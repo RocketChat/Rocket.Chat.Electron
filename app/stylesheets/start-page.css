@@ -69,7 +69,7 @@ div.server-list li {
 	top: 0;
 	right: 0;
 	bottom: 0;
-	left: 80px;
+	left: 0px;
 	width: auto;
 	height: auto;
 }
@@ -124,4 +124,3 @@ div.server-list li {
 		transform: translate3d(10px, 0, 0);
 	}
 }
-

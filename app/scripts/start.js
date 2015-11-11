@@ -3,6 +3,8 @@ export var start = function() {
         rocketHeader = 'X-Rocket-Chat-Version'.toLowerCase(),
         defaultInstance = 'https://demo.rocket.chat/';
 
+    var servers = {};
+
     //init loader
     var loader = document.querySelector('.loader');
     if (loader) {
@@ -200,6 +202,15 @@ export var start = function() {
         }
 
         if(hosts) {
+            console.log(hosts.length)
+            if (hosts.length > 1) {
+                var landing = document.querySelector('.landing-page');
+                var rocketapp = document.querySelector('.rocket-app');
+
+                landing.className = landing.className + ' server-list-visible';
+                rocketapp.className = rocketapp.className + ' server-list-visible';
+            }
+
             for (var i = 0; i < hosts.length; i++) {
                 list.appendChild(createItem(hosts[i], (i + 1)));
             }
@@ -222,9 +233,43 @@ export var start = function() {
         }
     }
 
+    function initializeServerConnection (url) {
+        var webview = document.createElement('webview');
+        webview.preload = './preload.js';
+        webview.src = url;
+
+        webview.onload = function () {
+            rocketAppFrame.contentWindow.addEventListener('unread-changed', function (e) {
+                window.dispatchEvent(new CustomEvent('unread-changed', {
+                    detail: e.detail
+                }));
+            });
+            rocketAppFrame.contentWindow.document.addEventListener('click', supportExternalLinks, false);
+            rocketAppFrame.contentWindow.open = function() {
+                return window.open.apply(this, arguments);
+            }
+        }
+
+        servers[url] = webview;
+        document.querySelector('.rocket-app').appendChild(webview);
+    }
+
     function redirect(url) {
+
+        $.each(servers, function (i, v) {
+            $(servers[i]).hide();
+        });
+
+        if (typeof(servers[url]) === 'undefined') {
+
+            initializeServerConnection(url);
+        } else {
+            $(servers[url]).show()
+        }
+
+
         localStorage.setItem('rocket.chat.currentHost', url);
-        document.getElementById('rocketAppFrame').src = url;
+
         document.querySelector('.landing-page').style.display = 'none';
         document.querySelector('.rocket-app').style.display = 'block';
     }
@@ -233,17 +278,4 @@ export var start = function() {
         addServer(defaultInstance);
         redirect(defaultInstance);
     }
-
-    var rocketAppFrame = document.getElementById('rocketAppFrame');
-    rocketAppFrame.onload = function () {
-        rocketAppFrame.contentWindow.addEventListener('unread-changed', function (e) {
-            window.dispatchEvent(new CustomEvent('unread-changed', {
-                detail: e.detail
-            }));
-        });
-        rocketAppFrame.contentWindow.document.addEventListener('click', supportExternalLinks, false);
-        rocketAppFrame.contentWindow.open = function() {
-            return window.open.apply(this, arguments);
-        }
-    };
 }

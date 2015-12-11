@@ -1,5 +1,6 @@
 <!doctype html>
 <html>
+
 <head>
 	<title>Rocket.Chat</title>
 	<meta charset="utf-8" />
@@ -8,12 +9,14 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 	<link rel="stylesheet" type="text/css" href="./stylesheets/base.css">
 	<link rel="stylesheet" type="text/css" href="./stylesheets/start-page.css">
+	<script src="vendor/electron_boilerplate/context_menu.js"></script>
+	<script src="vendor/electron_boilerplate/external_links.js"></script>
 </head>
+
 <body class="hide-server-list">
 	<div class="server-list">
 		<ul id="serverList"></ul>
 	</div>
-
 	<section class="landing-page">
 		<div class="wrapper">
 			<header>
@@ -30,11 +33,9 @@
 						<input type="text" name="host" placeholder="https://demo.rocket.chat" dir="auto">
 					</div>
 				</div>
-
 				<div id="invalidUrl" style="display:none;" class="alert alert-danger">
 					Not a valid instance url
 				</div>
-
 				<div class="submit">
 					<input type="submit" data-loading-text="Connecting..." class="button primary login" value="Connect"></input>
 				</div>
@@ -56,11 +57,10 @@
 			</footer>
 		</div>
 	</section>
-
 	<div class="rocket-app">
 		<iframe id="rocketAppFrame"></iframe>
 	</div>
-
 	<script src="app.js"></script>
 </body>
+
 </html>

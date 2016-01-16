@@ -46,6 +46,11 @@ app.on('ready', function () {
     mainWindow.on('close', function () {
         mainWindowState.saveState(mainWindow);
     });
+
+    mainWindow.webContents.on('new-window', function(e, url) {
+        e.preventDefault();
+        require('shell').openExternal(url);
+    });
 });
 
 app.on('window-all-closed', function () {

@@ -36,13 +36,13 @@ class WebView extends EventEmitter {
 		}
 
 		webview = document.createElement('webview');
-		webview.setAttribute('server', host.url);
+		webview.setAttribute('server', host.id);
 		webview.setAttribute('preload', './scripts/preload.js');
 		webview.setAttribute('allowpopups', 'on');
 		webview.setAttribute('disablewebsecurity', 'on');
 
 		webview.addEventListener('did-navigate-in-page', (lastPath) => {
-			this.saveLastPath(host.url, lastPath.url);
+			this.saveLastPath(host.id, lastPath.url);
 		});
 
 		webview.addEventListener('console-message', function(e) {
@@ -50,14 +50,14 @@ class WebView extends EventEmitter {
 		});
 
 		webview.addEventListener('ipc-message', (event) => {
-			this.emit('ipc-message-'+event.channel, host.url, event.args);
+			this.emit('ipc-message-'+event.channel, host.id, event.args);
 
 			switch (event.channel) {
 				case 'title-changed':
-					servers.setHostTitle(host.url, event.args[0]);
+					servers.setHostTitle(host.id, event.args[0]);
 					break;
 				case 'unread-changed':
-					sidebar.setBadge(host.url, event.args[0]);
+					sidebar.setBadge(host.id, event.args[0]);
 					break;
 				case 'focus':
 					servers.setActive(host.url);
@@ -66,6 +66,24 @@ class WebView extends EventEmitter {
 		});
 
 		this.webviewParentElement.appendChild(webview);
+
+		const url = host.lastPath || host.url;
+
+		const options = {};
+
+		if (host.headers && Object.keys(host.headers).length > 0) {
+			options.extraHeaders = [];
+			for (var headerKey in host.headers) {
+				if (host.headers.hasOwnProperty(headerKey)) {
+					options.extraHeaders.push(headerKey + ': ' + host.headers[headerKey]);
+				}
+			}
+			options.extraHeaders = options.extraHeaders.join('\n');
+		}
+
+		webview.addEventListener('dom-ready', function() {
+			webview.loadURL(url, options);
+		});
 
 		webview.src = host.lastPath || host.url;
 	}

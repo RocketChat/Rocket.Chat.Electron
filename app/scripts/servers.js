@@ -60,6 +60,12 @@ class Servers extends EventEmitter {
 			localStorage.setItem(this.hostsKey, JSON.stringify(hosts));
 		}
 
+		for (var id in hosts) {
+			if (hosts.hasOwnProperty(id)) {
+				hosts[id].id = hosts[id].id || hosts[id].url;
+			}
+		}
+
 		this._hosts = hosts;
 		this.emit('loaded');
 	}
@@ -82,11 +88,21 @@ class Servers extends EventEmitter {
 	}
 
 	validateHost(hostUrl, timeout) {
+		const self = this;
+
 		console.log('Validating hostUrl', hostUrl);
 		timeout = timeout || 5000;
 		return new Promise(function(resolve, reject) {
-			var resolved = false;
-			$.getJSON(`${hostUrl}/api/info`).then(function() {
+			let resolved = false;
+			const parsedHost = self.parseHostUrl(hostUrl);
+
+			const requestOptions = {
+				dataType: 'json',
+				url: `${parsedHost.url}/api/info`,
+				headers: parsedHost.headers
+			};
+
+			$.ajax(requestOptions).then(function() {
 				if (resolved) {
 					return;
 				}
@@ -127,9 +143,13 @@ class Servers extends EventEmitter {
 			return false;
 		}
 
+		const parsedHost = this.parseHostUrl(hostUrl);
+
 		hosts[hostUrl] = {
-			title: hostUrl,
-			url: hostUrl
+			id: hostUrl,
+			title: parsedHost.url,
+			url: parsedHost.url,
+			headers: parsedHost.headers
 		};
 		this.hosts = hosts;
 
@@ -181,6 +201,22 @@ class Servers extends EventEmitter {
 		hosts[hostUrl].title = title;
 		this.hosts = hosts;
 		this.emit('title-setted', hostUrl, title);
+	}
+
+	parseHostUrl(hostUrl) {
+		const result = {};
+
+		if (hostUrl.indexOf('#') > 0) {
+			hostUrl = hostUrl.split('#');
+			result.headers ={
+				Authorization: `Bearer ${hostUrl[1]}`
+			};
+			result.url = hostUrl[0];
+		} else {
+			result.url = hostUrl;
+		}
+
+		return result;
 	}
 }
 

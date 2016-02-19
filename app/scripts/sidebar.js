@@ -69,13 +69,13 @@ class SideBar extends EventEmitter {
 		item.appendChild(badge);
 		item.appendChild(img);
 
-		item.dataset.host = url;
-		item.setAttribute('server', url);
+		item.dataset.host = host.id;
+		item.setAttribute('server', host.id);
 		item.classList.add('instance');
 
 		item.onclick = () => {
-			this.emit('click', host.url);
-			servers.setActive(host.url);
+			this.emit('click', host.id);
+			servers.setActive(host.id);
 		};
 
 		this.listElement.appendChild(item);

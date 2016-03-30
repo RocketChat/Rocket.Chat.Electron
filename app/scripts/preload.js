@@ -5,6 +5,8 @@ var IPC = require('electron').ipcRenderer;
 const fs = require('fs');
 const http = require('http');
 const url = require('url');
+var remote = require('remote'); 
+var dialog = remote.require('dialog');
 
 class Notification extends window.Notification {
 	get onclick() {
@@ -53,11 +55,10 @@ var supportExternalLinks = function(e) {
 				href = element.getAttribute('href') || '';
 			}
 		}
-
+		
 		if (/^https?:\/\/.+/.test(href) === true /*&& RegExp('^https?:\/\/'+location.host).test(href) === false*/ ) {
 			isExternal = true;
-		} // Added clause where if it's an attachment
-		else if(href && element.parentElement && (' ' + element.parentElement.className + ' ').indexOf(' attachment-title ') > -1){
+		}else if(href && element.parentElement && element.parentElement.parentElement && (' ' + element.parentElement.className + ' ').indexOf(' attachment') > -1){
 			isExternal = true;
 			href = location.protocol + '//' + location.host + href;
 			var filename = href.substring(href.lastIndexOf('/')+1);
@@ -73,7 +74,7 @@ var supportExternalLinks = function(e) {
 			filename = route + basename + count_str + '.' + extension;
 			filename = dialog.showSaveDialog(
 				{
-					title: "Save attachment",
+					title: "Guardar adjunto",
 					defaultPath:filename,
 					filters: [{name:extension, extensions:[extension]}]
 				}
@@ -100,6 +101,14 @@ var supportExternalLinks = function(e) {
 			});
 			
 			return;
+		}
+
+		if (href && isExternal) {
+			shell.openExternal(href);
+			e.preventDefault();
+		} else if (element.parentElement) {
+			checkDomElement(element.parentElement);
+		}
 	};
 
 	checkDomElement(e.target);

@@ -58,7 +58,21 @@ var supportExternalLinks = function(e) {
 
 		if (/^https?:\/\/.+/.test(href) === true /*&& RegExp('^https?:\/\/'+location.host).test(href) === false*/ ) {
 			isExternal = true;
-		}else if(href && element.parentElement && element.parentElement.parentElement && (' ' + element.parentElement.className + ' ').indexOf(' attachment') > -1){
+		}else if(
+				href && 
+				(
+					(
+						element.parentElement && 
+						element.parentElement.parentElement && 
+						element.parentElement.classList.contains('attachment-title')
+					) || 
+					(
+						element.querySelector('i') &&
+						element.querySelector('i').classList.contains('icon-docs') &&
+						element.classList.contains('room-file-item')
+					)
+				)
+			){
 			isExternal = true;
 			href = location.protocol + '//' + location.host + href;
 			var filename = href.substring(href.lastIndexOf('/')+1);

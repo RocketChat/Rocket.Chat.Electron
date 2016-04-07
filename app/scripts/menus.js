@@ -11,6 +11,8 @@ var Menu = remote.Menu;
 var APP_NAME = remote.app.getName();
 var template;
 
+var certificate = remote.require('./certificate');
+
 document.title = APP_NAME;
 
 if (process.platform === 'darwin') {
@@ -164,6 +166,20 @@ if (process.platform === 'darwin') {
 					click: function() {
 						sidebar.toggle();
 					}
+				},
+				{
+					type: 'separator'
+				},
+				{
+					label: 'Clear',
+					submenu: [
+						{
+							label: 'Clear Trusted Certificates',
+							click: function() {
+								certificate.clear();
+							}
+						}
+					]
 				}
 			]
 		},
@@ -195,7 +211,6 @@ if (process.platform === 'darwin') {
 					accelerator: 'Command+N',
 					click: function() {
 						var mainWindow = remote.getCurrentWindow();
-						mainWindow.restore();
 						mainWindow.show();
 						servers.clearActive();
 					}
@@ -207,7 +222,6 @@ if (process.platform === 'darwin') {
 					label: 'Bring All to Front',
 					click: function() {
 						var mainWindow = remote.getCurrentWindow();
-						mainWindow.restore();
 						mainWindow.show();
 					}
 				}
@@ -238,7 +252,7 @@ if (process.platform === 'darwin') {
 } else {
 	template = [
 		{
-			label: APP_NAME,
+			label: '&' + APP_NAME,
 			submenu: [
 				{
 					label: 'About ' + APP_NAME,
@@ -261,7 +275,7 @@ if (process.platform === 'darwin') {
 			]
 		},
 		{
-			label: 'Edit',
+			label: '&Edit',
 			submenu: [
 				{
 					label: 'Undo',
@@ -299,7 +313,7 @@ if (process.platform === 'darwin') {
 			]
 		},
 		{
-			label: 'View',
+			label: '&View',
 			submenu: [
 				{
 					label: 'Original Zoom',
@@ -373,11 +387,25 @@ if (process.platform === 'darwin') {
 					click: function() {
 						sidebar.toggle();
 					}
+				},
+				{
+					type: 'separator'
+				},
+				{
+					label: 'Clear',
+					submenu: [
+						{
+							label: 'Clear Trusted Certificates',
+							click: function() {
+								certificate.clear();
+							}
+						}
+					]
 				}
 			]
 		},
 		{
-			label: 'Window',
+			label: '&Window',
 			id: 'window',
 			submenu: [
 				{

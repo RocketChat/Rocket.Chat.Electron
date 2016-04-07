@@ -6,6 +6,7 @@
 import { app, BrowserWindow } from 'electron';
 import devHelper from './vendor/electron_boilerplate/dev_helper';
 import windowStateKeeper from './vendor/electron_boilerplate/window_state';
+import certificate from './certificate';
 
 // Special module holding environment variables which you declared
 // in config/env_xxx.json file.
@@ -17,7 +18,6 @@ if (process.platform !== 'darwin') {
     var shouldQuit = app.makeSingleInstance(function() {
         // Someone tried to run a second instance, we should focus our window.
         if (mainWindow) {
-            mainWindow.restore();
             mainWindow.show();
             mainWindow.focus();
         }
@@ -40,7 +40,9 @@ app.on('ready', function () {
         x: mainWindowState.x,
         y: mainWindowState.y,
         width: mainWindowState.width,
-        height: mainWindowState.height
+        height: mainWindowState.height,
+        minWidth: 600,
+        minHeight: 400
     });
 
     if (mainWindowState.isMaximized) {
@@ -67,16 +69,26 @@ app.on('ready', function () {
     }
 
     mainWindow.on('close', function (event) {
-        mainWindowState.saveState(mainWindow);
         if (mainWindow.forceClose) {
+            mainWindowState.saveState(mainWindow);
             return;
         }
         event.preventDefault();
         mainWindow.hide();
+        mainWindowState.saveState(mainWindow);
     });
 
     app.on('before-quit', function() {
+        mainWindowState.saveState(mainWindow);
         mainWindow.forceClose = true;
+    });
+
+    mainWindow.on('resize', function() {
+        mainWindowState.saveState(mainWindow);
+    });
+
+    mainWindow.on('move', function() {
+        mainWindowState.saveState(mainWindow);
     });
 
     app.on('activate', function(){
@@ -86,6 +98,8 @@ app.on('ready', function () {
     mainWindow.webContents.on('will-navigate', function(event) {
         event.preventDefault();
     });
+
+    certificate.initWindow(mainWindow);
 });
 
 app.on('window-all-closed', function () {

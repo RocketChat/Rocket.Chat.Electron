@@ -16,8 +16,8 @@ Not in the scope:
 The only development dependency of this project is [Node.js](https://nodejs.org). So just make sure you have it installed.
 Then type few commands known to every Node developer...
 ```
-git clone https://github.com/szwacz/electron-boilerplate.git
-cd electron-boilerplate
+git clone https://github.com/RocketChat/Rocket.Chat.Electron
+cd Rocket.Chat.Electron
 npm install
 npm start
 ```

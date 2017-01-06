@@ -2,6 +2,11 @@
 'use strict';
 
 var IPC = require('electron').ipcRenderer;
+const fs = require('fs');
+const http = require('http');
+const url = require('url');
+var remote = require('remote'); 
+var dialog = remote.require('dialog');
 
 require('electron-notification-shim')();
 
@@ -52,9 +57,52 @@ var supportExternalLinks = function(e) {
 				href = element.getAttribute('href') || '';
 			}
 		}
-
+		
 		if (/^https?:\/\/.+/.test(href) === true /*&& RegExp('^https?:\/\/'+location.host).test(href) === false*/ ) {
 			isExternal = true;
+		}else if(href && element.parentElement && element.parentElement.parentElement && (' ' + element.parentElement.className + ' ').indexOf(' attachment') > -1){
+			isExternal = true;
+			href = location.protocol + '//' + location.host + href;
+			var filename = href.substring(href.lastIndexOf('/')+1);
+			var route = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'] + ((process.platform == 'win32') ? '\\' : '/') + 'Downloads' + ((process.platform == 'win32') ? '\\' : '/');
+			var basename = filename.substring(0,filename.lastIndexOf('.'));
+			var extension = filename.substring(filename.lastIndexOf('.')+1);
+			var count = 0;
+			var count_str = '';
+			while(fs.existsSync(route + basename + count_str + '.' + extension)){
+				count++;
+				count_str = ' (' + count + ')';
+			}
+			filename = route + basename + count_str + '.' + extension;
+			filename = dialog.showSaveDialog(
+				{
+					title: "Guardar adjunto",
+					defaultPath:filename,
+					filters: [{name:extension, extensions:[extension]}]
+				}
+			);
+			if(!filename){
+				return false;
+			}
+			console.log(filename);
+			var file = fs.createWriteStream(filename);
+			var http_options = url.parse(href);
+			http_options.headers = {
+				'Cookie': document.cookie
+			}
+			console.log(http_options)
+			var request = http.get(http_options, function(response) {
+				response.pipe(file);
+				file.on('finish', function() {
+					file.close();
+					shell.showItemInFolder(filename, false);
+				});
+			}).on('error', function(err) { // Handle errors
+				fs.unlink(file);
+				console.log(err.message);
+			});
+			
+			return;
 		}
 
 		if (href && isExternal) {

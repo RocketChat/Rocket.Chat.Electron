@@ -72,7 +72,7 @@ function createAppTray () {
     });
 
     _tray.on('click', () => {
-        _mainWindow.show();
+        mainWindow.show();
     });
 
     mainWindow.tray = _tray;

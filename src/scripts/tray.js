@@ -71,6 +71,10 @@ function createAppTray () {
         _tray.popUpContextMenu(undefined, b);
     });
 
+    _tray.on('click', () => {
+        _mainWindow.show();
+    });
+
     mainWindow.tray = _tray;
 }
 

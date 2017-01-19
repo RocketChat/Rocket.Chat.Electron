@@ -1,5 +1,10 @@
 # History
 
+## 2.2.1 - 2017-Jan-19
+
+- Added left button click to taskbar-icon to show main window
+- Fix various quirks with the windows installer
+
 ## 2.2.0 - 2017-Jan-11
 
 ### Upgrade electron-builder to 11.2.4

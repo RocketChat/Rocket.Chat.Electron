@@ -4,6 +4,7 @@
 
 import { app } from 'electron';
 import jetpack from 'fs-jetpack';
+import _ from 'lodash';
 
 export default function (name, defaults) {
 
@@ -47,6 +48,6 @@ export default function (name, defaults) {
         get isMaximized () { return state.isMaximized; },
         get isMinimized () { return state.isMinimized; },
         get isHidden () { return state.isHidden; },
-        saveState: saveState
+        saveState: _.debounce(saveState, 1000)
     };
 }

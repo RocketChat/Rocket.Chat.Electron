@@ -20,15 +20,20 @@
       "package.json"
     ],
     "extraResources": [
-      "dictionaries/**/*"
+      "dictionaries/**/*",
+      "build/icon.ico"
     ],
     "mac": {
       "helperBundleId": "chat.rocket.electron.helper",
       "category": "public.app-category.productivity",
       "target": ["dmg", "pkg", "zip"]
     },
-    "win": {
-      "target": ["nsis"]
+    "nsis": {
+      "include": "build/win/installer.nsh",
+      "oneClick": false,
+      "perMachine": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true
     },
     "linux": {
       "target": ["deb", "rpm"]

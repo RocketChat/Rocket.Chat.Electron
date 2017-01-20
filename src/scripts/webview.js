@@ -35,12 +35,12 @@ class WebView extends EventEmitter {
     }
 
     loaded () {
-      var loading = document.querySelector('#loading');
-      var form = document.querySelector('#login-card');
-      var footer = document.querySelector('footer');
-      loading.style.display = 'none';
-      form.style.display = 'block';
-      footer.style.display = 'block';
+        var loading = document.querySelector('#loading');
+        var form = document.querySelector('#login-card');
+        var footer = document.querySelector('footer');
+        loading.style.display = 'none';
+        form.style.display = 'block';
+        footer.style.display = 'block';
     }
 
     add (host) {

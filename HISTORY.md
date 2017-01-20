@@ -1,5 +1,10 @@
 # History
 
+## 2.2.2 - 2017-Jan-20
+
+- Fix client zoom keys the opposite way to be expected.
+- Debounce window saveState call to avoid Error: EPERM: operation not permitted
+
 ## 2.2.1 - 2017-Jan-19
 
 - Added left button click to taskbar-icon to show main window

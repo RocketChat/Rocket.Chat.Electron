@@ -101,12 +101,12 @@ if (process.platform === 'darwin') {
                 {
                     label: 'Zoom In',
                     accelerator: 'CommandOrControl+Plus',
-                    role: 'zoomout'
+                    role: 'zoomin'
                 },
                 {
                     label: 'Zoom Out',
                     accelerator: 'CommandOrControl+-',
-                    role: 'zoomin'
+                    role: 'zoomout'
                 },
                 {
                     type: 'separator'
@@ -316,12 +316,12 @@ if (process.platform === 'darwin') {
                 {
                     label: 'Zoom In',
                     accelerator: 'CommandOrControl+Plus',
-                    role: 'zoomout'
+                    role: 'zoomin'
                 },
                 {
                     label: 'Zoom Out',
                     accelerator: 'CommandOrControl+-',
-                    role: 'zoomin'
+                    role: 'zoomout'
                 },
                 {
                     type: 'separator'

@@ -57,6 +57,7 @@
     "electron-notification-shim": "^1.1.0",
     "electron-toaster": "^2.0.2",
     "spellchecker": "3.3.1",
+    "lodash": "^4.17.4",
     "electron-rebuild": "1.5.6"
   },
   "devDependencies": {

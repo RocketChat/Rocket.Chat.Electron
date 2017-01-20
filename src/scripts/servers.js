@@ -190,6 +190,7 @@ class Servers extends EventEmitter {
             this.emit('active-setted', hostUrl);
             return true;
         }
+        this.emit('loaded');
         return false;
     }
 

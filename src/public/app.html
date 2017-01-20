@@ -29,7 +29,12 @@
 					<img src="./images/logo.svg" />
 				</a>
 			</header>
-			<form id="login-card" method="/">
+			<div class="loading-animation" id="loading">
+				<div class="bounce1"></div>
+				<div class="bounce2"></div>
+				<div class="bounce3"></div>
+			</div>
+			<form id="login-card" method="/" style="display:none;">
 				<header>
 					<h2>Enter your server URL</h2>
 				</header>
@@ -49,7 +54,7 @@
 					<input type="submit" data-loading-text="Connecting..." class="button primary login" value="Connect"></input>
 				</div>
 			</form>
-			<footer>
+			<footer style="display:none;">
 				<div class="social">
 					<nav>
 						<a target="_system" class="button share twitter" href="https://twitter.com/RocketChatApp"><i class="icon-twitter"></i><span>Twitter</span></a>

@@ -81,6 +81,7 @@ class WebView extends EventEmitter {
 
         webviewObj.addEventListener('dom-ready', () => {
             this.emit('dom-ready', host.url);
+            this.loaded();
         });
 
         // Open external app on clicked link. e.g. mailto:, tel:, etc...

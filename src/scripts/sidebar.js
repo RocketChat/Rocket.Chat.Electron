@@ -39,8 +39,8 @@ class SideBar extends EventEmitter {
             this.setActive(hostUrl);
         });
 
-        servers.on('active-cleared', (hostUrl) => {
-            this.deactiveAll(hostUrl);
+        servers.on('active-cleared', () => {
+            this.deactiveAll(true);
         });
 
         servers.on('title-setted', (hostUrl, title) => {
@@ -161,17 +161,21 @@ class SideBar extends EventEmitter {
             return;
         }
 
-        this.deactiveAll();
+        this.deactiveAll(false);
         var item = this.getByUrl(hostUrl);
         if (item) {
             item.classList.add('active');
         }
     }
 
-    deactiveAll () {
+    deactiveAll (showSidebar) {
         var item;
         while (!(item = this.getActive()) === false) {
             item.classList.remove('active');
+        }
+
+        if (showSidebar && this.isHidden()) {
+            this.show();
         }
     }
 
@@ -242,7 +246,7 @@ class SideBar extends EventEmitter {
     }
 
     isHidden () {
-        return localStorage.getItem('sidebar-closed') === 'true';
+        return localStorage.getItem('sidebar-closed') !== 'false';
     }
 }
 

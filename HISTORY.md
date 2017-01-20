@@ -1,5 +1,9 @@
 # History
 
+## 2.2.3 - 2017-Jan-20
+
+- Dependencies update
+
 ## 2.2.2 - 2017-Jan-20
 
 - Fix client zoom keys the opposite way to be expected.

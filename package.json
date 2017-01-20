@@ -56,9 +56,9 @@
     "@paulcbetts/system-idle-time": "^1.0.4",
     "electron-notification-shim": "^1.1.0",
     "electron-toaster": "^2.0.2",
-    "spellchecker": "3.3.1",
+    "spellchecker": "^3.3.1",
     "lodash": "^4.17.4",
-    "electron-rebuild": "1.5.7"
+    "electron-rebuild": "^1.5.7"
   },
   "devDependencies": {
     "chai": "^3.5.0",

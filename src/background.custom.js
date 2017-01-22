@@ -7,7 +7,7 @@ import os from 'os';
 import { app, ipcMain } from 'electron';
 import windowStateKeeper from './background/windowState';
 import certificate from './background/certificate';
-import Toaster from 'electron-toaster';
+import Toaster from './Toaster';
 import idle from '@paulcbetts/system-idle-time';
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
@@ -90,32 +90,23 @@ export function afterMainWindow (mainWindow) {
         event.preventDefault();
     });
 
-    // ==== Quick check to fetch Operating System and it's version ==>>
-    // Add here any OS without native support for notifications to Toaster is used
-    var useToaster = false;
-
-    // Windows 7 or older
-    if (os.platform() === 'win32' || os.platform() === 'win64') {
-        if (parseFloat(os.release()) < 6.2) {
-            useToaster = true;
-        }
-    }
+    // Windows 7 and below
+    const useToaster = ['win32', 'win64'].indexOf(os.platform()) !== -1 &&
+      parseFloat(os.release()) < 6.2;
 
     if (useToaster) {
-        const toaster = new Toaster();
-        toaster.init(mainWindow);
+      const toaster = new Toaster(mainWindow);
 
-        ipcMain.on('notification-shim', (e, msg) => {
-            mainWindow.webContents.executeJavaScript(`
-                require('electron').ipcRenderer.send('electron-toaster-message', {
-                    title: '${msg.title}',
-                    message: \`${msg.options.body}\`,
-                    width: 400,
-                    focus: false,
-                    htmlFile: 'file://'+__dirname+'/notification.html?'
-                });
-            `);
+      ipcMain.on('notification-shim', (e, msg) => {
+        toaster.toast({
+          title: msg.title,
+          message: msg.options.body,
+          icon: msg.options.icon,
+          width: 400,
+          timeout: 5000,
+          htmlFile: 'file://'+__dirname+'/public/notification.html'
         });
+      });
     }
 
     certificate.initWindow(mainWindow);

@@ -1,11 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-
-	<title>toaster</title>
-	<!-- <link rel="stylesheet" type="text/css" href="bower_components/material-design-lite/material.min.css"> -->
-	<link rel="stylesheet" type="text/css" href="bower_components/octicons/octicons/octicons.css">
+	<title>Toaster</title>
 	<style type="text/css">
 		*{margin: 0;padding:0;}
 		body, html{
@@ -15,105 +11,179 @@
 			overflow: hidden;
 		}
 
-		.ico{
-			color: white;
-			font-size: 32px;
-			padding: 11px;
-		}
-
-		#title{
-			font-weight:bold;
-			font-size: 18px;
-		}
-
-		#message{
-			font-size: 14px;
-		}
-
-		#detail{
-			font-weight:bold;
-			font-size: 12px;
-			color: red;
-		}
-
-		table{
+		#frame {
+			height: 75px;
 			width: 100%;
+			background-color: #044b76;
+			position: absolute;
+			border-width: 2px;
+			border-style: solid;
+			border-color: #04436a;
+			overflow: hidden;
+			bottom: -4px;
+		}
+		#frame.enter {
+			-webkit-animation-duration: 0.5s;
+			-webkit-animation-fill-mode: both;
+			-webkit-animation-name: enter;
+		}
+		#frame.leave {
+			-webkit-animation-duration: 0.5s;
+			-webkit-animation-fill-mode: both;
+			-webkit-animation-name: leave;
+			align-self: flex-end;
+		}
+		@-webkit-keyframes enter {
+			0% {
+				-webkit-transform: perspective(300px) rotateY(90deg);
+			}
+			100% {
+				-webkit-transform: none;
+			}
+		}
+		@-webkit-keyframes leave {
+			0% {
+				opacity: 1;
+			}
+			100% {
+				opacity: 0;
+				height: 0;
+				margin-top: 0;
+				margin-bottom: 0;
+			}
+		}
+		.content {
+			position: relative;
+			height: 75px;
+		}
+		.icon {
+			width: 75px;
+			background-color: #04436a;
+			float: left;
 		}
 
-		table td {
-		    vertical-align: top;
+		.icon img {
+			margin: 10px;
+			width: 50px;
+		}
+		.text {
+			font-size: 0.8em;
+			padding-left: 1em;
+			line-height: 16px;
+			float: left;
+			color: white;
 		}
 
+		.title {
+			font-weight: bold;
+			margin-top: 0.5em;
+			margin-bottom: 0;
+			padding-right: 2em;
+			-webkit-line-clamp: 1;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.message {
+			margin-top: 0.33em;
+			padding-right: 4em;
+			-webkit-line-clamp: 2;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.close {
+			position: absolute;
+			right: 9px;
+			text-decoration: none;
+			cursor: pointer;
+			font-weight: bold;
+			opacity: 0.2;
+			-webkit-transition: all 0.4s ease-out;
+			color: white;
+		}
+		.content:hover > .close {
+			opacity: 1;
+			-webkit-transition: all 0.25s ease-in;
+		}
+		.logo {
+			width: 18px;
+			height: 18px;
+			position: absolute;
+			bottom: 6px;
+			right: 6px;
+		}
 	</style>
 </head>
 	<body>
-		<table id="content">
-			<tbody>
-				<row>
-					<td style="background-color:silver;" width="90" cellpadding="0">
-						<div style="text-align:center;">
-							<br>
-							<img src="images/icon.png" style="width: 50px" />
-						</div>
-					</td>
-					<td cellpadding="30">
-						<div style="padding:22px;">
-							<span id="title"></span><hr>
-							<span id="message"></span><br><br><br>
-							<span id="detail"></span>
-						</div>
-					</td>
-				</row>
-			</tbody>
-		</table>
+		<div id="frame" class="enter">
+				<div class="content">
+					<div class="icon">
+						<img id="icon" />
+					</div>
+					<div class="text">
+						<p class="title" id="title"></p>
+						<p class="message" id="message"></p>
+					</div>
+					<img class="logo" src="images/icon.png"/>
+					<a id="close" class="close">
+						&times;
+					</a>
+				</div>
+		</div>
 		<script>
+
+			var timeout;
 			function getQueryVariable(variable) {
 				var query = window.location.search.substring(1);
-				var vars = query.split("&");
+				var vars = query.split('&');
 				for (var i=0;i<vars.length;i++) {
-					var pair = vars[i].split("=");
+					var pair = vars[i].split('=');
 					if (pair[0] === variable) {
 						return decodeURIComponent(pair[1]);
 					}
 				}
 			}
 
-			var autoSize = function() {
-				var heightOffset = window.outerHeight - window.innerHeight;
-				var widthOffset = window.outerWidth - window.innerWidth;
-				var result = {
-					height : document.getElementById("content").clientHeight + heightOffset,
-					width : document.getElementById("content").clientWidth + widthOffset
-				}
+			function clicked() {
+				require('electron').ipcRenderer.send('notificationClicked');
+				closeItem();
+			}
 
-				window.resizeTo(result.width, result.height);
+			function mouseOver() {
+				clearTimeout(timeout);
+			}
 
-				return result;
-			};
+			function startTimeout() {
+				timeout = setTimeout(function() {
+					closeItem();
+				}, parseInt(getQueryVariable('timeout')));
+			}
 
+			function closeItem() {
+				document.getElementById('frame').className = 'leave';
+				setTimeout(function() {
+					window.close();
+				}, 500);
+			}
 
-			var onKeydown = function(/*e*/) {
-				window.close();
-			};
+			function closeClick(e) {
+				e.stopPropagation();
+				closeItem();
+			}
 
-			var onLoad = function load(/*event*/){
-				autoSize();
-			    this.removeEventListener("load", load, false); //remove listener, no longer needed
+			window.onload = function() {
+				startTimeout();
+				var frame = document.getElementById('frame');
+				frame.addEventListener('click', clicked)
+				frame.addEventListener('mouseover', mouseOver)
+				frame.addEventListener('mouseout', startTimeout)
 
-				this.setTimeout(function() {
-					this.close();
-				}, parseInt(getQueryVariable("timeout")));
+				document.getElementById('close').addEventListener('click', closeClick);
+			}
 
-				document.addEventListener("keydown", onKeydown, false);
-				document.addEventListener("click", window.close);
-			};
-
-			document.getElementById("title").innerHTML = getQueryVariable("title");
-			document.getElementById("message").innerHTML = getQueryVariable("message");
-			document.getElementById("detail").innerHTML = getQueryVariable("detail");
-			window.addEventListener("load", onLoad, false);
+			document.getElementById('title').innerHTML = getQueryVariable('title');
+			document.getElementById('message').innerHTML = getQueryVariable('message');
+			document.getElementById('icon').setAttribute('src', getQueryVariable('icon'));
 		</script>
 	</body>
 </html>
-
-

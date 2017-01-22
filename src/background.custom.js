@@ -95,18 +95,18 @@ export function afterMainWindow (mainWindow) {
       parseFloat(os.release()) < 6.2;
 
     if (useToaster) {
-      const toaster = new Toaster(mainWindow);
+        const toaster = new Toaster(mainWindow);
 
-      ipcMain.on('notification-shim', (e, msg) => {
-        toaster.toast({
-          title: msg.title,
-          message: msg.options.body,
-          icon: msg.options.icon,
-          width: 400,
-          timeout: 5000,
-          htmlFile: 'file://'+__dirname+'/public/notification.html'
+        ipcMain.on('notification-shim', (e, msg) => {
+            toaster.toast({
+                title: msg.title,
+                message: msg.options.body,
+                icon: msg.options.icon,
+                width: 400,
+                timeout: 5000,
+                htmlFile: 'file://'+__dirname+'/public/notification.html'
+            });
         });
-      });
     }
 
     certificate.initWindow(mainWindow);

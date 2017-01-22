@@ -14,7 +14,6 @@
   },
   "build": {
     "appId": "chat.rocket",
-    "name": "RocketChat",
     "files": [
       "app/**/*",
       "node_modules/**/*",

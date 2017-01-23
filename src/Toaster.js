@@ -8,7 +8,7 @@ export default class Toaster {
         this.windows = [];
     }
 
-    toast (msg) {
+    toast (msg, callback) {
         const window = new BrowserWindow({
             width: msg.width,
             height: 75,
@@ -27,7 +27,7 @@ export default class Toaster {
 
         this.windows.push(window);
 
-        ipcMain.once('notificationClicked', () => this.mainWindow.show());
+        ipcMain.once(`notification-${msg.tag}`, callback);
 
         window.on('closed', () => {
             this.windows = this.windows.filter((win) => win && !win.isDestroyed() && win !== window);
@@ -38,7 +38,8 @@ export default class Toaster {
             `title=${encodeURIComponent(msg.title || '')}&` +
             `message=${encodeURIComponent(msg.message || '')}&` +
             `timeout=${msg.timeout}&` +
-            `icon=${msg.icon}`;
+            `icon=${msg.icon}&` +
+            `tag=${msg.tag}`;
 
         window.loadURL(htmlFile);
 

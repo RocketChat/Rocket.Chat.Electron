@@ -145,7 +145,7 @@
 			}
 
 			function clicked() {
-				require('electron').ipcRenderer.send('notificationClicked');
+				require('electron').ipcRenderer.send(`notification-${getQueryVariable('tag')}`);
 				closeItem();
 			}
 

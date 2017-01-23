@@ -90,6 +90,8 @@ export function afterMainWindow (mainWindow) {
         event.preventDefault();
     });
 
+    ipcMain.on('focus', () => mainWindow.show());
+
     // Windows 7 and below
     const useToaster = ['win32', 'win64'].indexOf(os.platform()) !== -1 &&
       parseFloat(os.release()) < 6.2;
@@ -97,15 +99,16 @@ export function afterMainWindow (mainWindow) {
     if (useToaster) {
         const toaster = new Toaster(mainWindow);
 
-        ipcMain.on('notification-shim', (e, msg) => {
+        ipcMain.on('notification-shim', (e, title, options) => {
             toaster.toast({
-                title: msg.title,
-                message: msg.options.body,
-                icon: msg.options.icon,
+                title: title,
+                message: options.body,
+                icon: options.icon,
+                tag: options.tag,
                 width: 400,
                 timeout: 5000,
                 htmlFile: 'file://'+__dirname+'/public/notification.html'
-            });
+            }, () => e.sender.send(`clicked-${options.tag}`));
         });
     }
 

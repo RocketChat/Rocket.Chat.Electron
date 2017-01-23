@@ -31,7 +31,7 @@
     "nsis": {
       "include": "build/win/installer.nsh",
       "oneClick": false,
-      "perMachine": true,
+      "perMachine": false,
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true
     },

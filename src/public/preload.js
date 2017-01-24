@@ -1,12 +1,27 @@
 /* globals Meteor, Tracker, RocketChat */
 'use strict';
 
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, remote, webFrame } = require('electron');
 
-const NodeNotification = require('node-mac-notifier');
+if (process.platform === 'darwin') {
+    const NodeNotification = require('node-mac-notifier');
+    window.Notification = class extends NodeNotification {
+        constructor (title, options) {
+            options.bundleId = remote.getGlobal('BUNDLE_ID');
+            super(title, options);
+        }
 
-class Notification extends NodeNotification {
+        static requestPermission () {
+            return;
+        }
 
+        static get permission () {
+            return 'granted';
+        }
+    };
+}
+
+class Notification extends window.Notification {
     constructor (title, options) {
         super(title, options);
         ipcRenderer.send('notification-shim', title, options);
@@ -26,14 +41,6 @@ class Notification extends NodeNotification {
             fn.apply(this, arguments);
         };
         return result;
-    }
-
-    static requestPermission () {
-        return;
-    }
-
-    static get permission () {
-        return 'granted';
     }
 }
 
@@ -88,9 +95,6 @@ var supportExternalLinks = function (e) {
 
 document.addEventListener('click', supportExternalLinks, false);
 
-
-const {webFrame} = require('electron');
-const {remote} = require('electron');
 
 var webContents = remote.getCurrentWebContents();
 var menu = new remote.Menu();

@@ -1,5 +1,12 @@
 # History
 
+## 2.3.0 - 2017-Jan-24
+
+- Add loading screen
+- Add options of all users or current user for Windows install
+- Add run at startup option on Windows
+- Fix issues with Windows 7 notifications
+
 ## 2.2.3 - 2017-Jan-20
 
 - Dependencies update

@@ -3,7 +3,9 @@
 
 const { ipcRenderer } = require('electron');
 
-class Notification extends window.Notification {
+const NodeNotification = require('node-mac-notifier');
+
+class Notification extends NodeNotification {
 
     constructor (title, options) {
         super(title, options);
@@ -24,6 +26,14 @@ class Notification extends window.Notification {
             fn.apply(this, arguments);
         };
         return result;
+    }
+
+    static requestPermission () {
+        return;
+    }
+
+    static get permission () {
+        return 'granted';
     }
 }
 

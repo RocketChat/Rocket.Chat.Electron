@@ -12,13 +12,13 @@ export default class Toaster {
         const window = new BrowserWindow({
             width: msg.width,
             height: 75,
-            useContentSize: true,
             transparent: true,
             frame: false,
             show : false,
             alwaysOnTop: true,
             skipTaskbar: true,
-            resizeable: false
+            resizable: false,
+            focusable: false
         });
 
         if (this.debug) {

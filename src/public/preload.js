@@ -1,18 +1,26 @@
 /* globals Meteor, Tracker, RocketChat */
 'use strict';
 
-var IPC = require('electron').ipcRenderer;
-
-require('electron-notification-shim')();
+const { ipcRenderer } = require('electron');
 
 class Notification extends window.Notification {
+
+    constructor (title, options) {
+        super(title, options);
+        ipcRenderer.send('notification-shim', title, options);
+
+        // Handle correct notification using unique tag
+        ipcRenderer.once(`clicked-${options.tag}`, () => this.onclick());
+    }
+
     get onclick () {
         return super.onclick;
     }
 
     set onclick (fn) {
         var result = super.onclick = () => {
-            IPC.sendToHost('focus');
+            ipcRenderer.send('focus');
+            ipcRenderer.sendToHost('focus');
             fn.apply(this, arguments);
         };
         return result;
@@ -25,7 +33,7 @@ var events = ['unread-changed'];
 
 events.forEach(function (e) {
     window.addEventListener(e, function (event) {
-        IPC.sendToHost(e, event.detail);
+        ipcRenderer.sendToHost(e, event.detail);
     });
 });
 
@@ -34,7 +42,7 @@ window.addEventListener('load', function () {
         Tracker.autorun(function () {
             var siteName = RocketChat.settings.get('Site_Name');
             if (siteName) {
-                IPC.sendToHost('title-changed', siteName);
+                ipcRenderer.sendToHost('title-changed', siteName);
             }
         });
     });
@@ -349,7 +357,7 @@ window.addEventListener('contextmenu', function (event) {
 
 /* userPresence away timer based on system idle time */
 // function getSystemIdleTime () {
-//     return IPC.sendSync('getSystemIdleTime');
+//     return ipcRenderer.sendSync('getSystemIdleTime');
 // }
 
 // setInterval(function (){

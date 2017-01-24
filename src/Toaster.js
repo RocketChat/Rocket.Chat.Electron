@@ -49,15 +49,15 @@ export default class Toaster {
     }
 
     _setPosition (window, index) {
-        const width = window.getSize()[0];
-        const height = window.getSize()[1];
-        const pos = this.mainWindow.getPosition();
-        const display = screen.getDisplayNearestPoint({x:pos[0], y:pos[1]});
-        const notificationDistance = height + 5;
-        const x = display.workAreaSize.width - width - 4;
-        const y = display.workAreaSize.height - (notificationDistance * index);
+        const [ notificationWidth, notificationHeight ] = window.getSize();
+        const [ appX, appY ] = this.mainWindow.getPosition();
+        const { x, y, width, height } = screen.getDisplayNearestPoint({x: appX, y: appY}).workArea;
+        const margin = 5;
+        const notificationX = x + width - notificationWidth - margin;
+        const notificationDistance = notificationHeight + margin;
+        const notificationY = y + height - (notificationDistance * index);
 
-        window.setPosition(x, y);
+        window.setPosition(notificationX, notificationY);
 
         if (index <= this.maxNotifications) {
             window.show();

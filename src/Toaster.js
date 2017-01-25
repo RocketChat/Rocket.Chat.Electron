@@ -38,8 +38,8 @@ export default class Toaster {
             `title=${encodeURIComponent(msg.title || '')}&` +
             `message=${encodeURIComponent(msg.message || '')}&` +
             `timeout=${msg.timeout}&` +
-            `icon=${msg.icon}&` +
-            `tag=${msg.tag}`;
+            `icon=${encodeURIComponent(msg.icon)}&` +
+            `tag=${encodeURIComponent(msg.tag)}`;
 
         window.loadURL(htmlFile);
 

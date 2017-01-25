@@ -60,7 +60,7 @@ export default class Toaster {
         window.setPosition(notificationX, notificationY);
 
         if (index <= this.maxNotifications) {
-            window.show();
+            window.showInactive();
         }
     }
 }

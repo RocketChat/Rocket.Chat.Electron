@@ -139,8 +139,8 @@ if (process.platform === 'darwin') {
                     accelerator: 'Command+Shift+R',
                     click: function () {
                         var mainWindow = remote.getCurrentWindow();
-                        if (mainWindow.tray) {
-                            mainWindow.tray.destroy();
+                        if (mainWindow.destroyTray) {
+                            mainWindow.destroyTray();
                         }
                         mainWindow.reload();
                     }
@@ -354,8 +354,8 @@ if (process.platform === 'darwin') {
                     accelerator: 'Ctrl+Shift+R',
                     click: function () {
                         var mainWindow = remote.getCurrentWindow();
-                        if (mainWindow.tray) {
-                            mainWindow.tray.destroy();
+                        if (mainWindow.destroyTray) {
+                            mainWindow.destroyTray();
                         }
                         mainWindow.reload();
                     }

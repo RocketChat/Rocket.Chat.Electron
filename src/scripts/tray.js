@@ -57,13 +57,16 @@ function createAppTray () {
         _tray.setContextMenu(contextMenuHide);
     }
 
-    mainWindow.on('show', () => {
+    const onShow = function () {
         _tray.setContextMenu(contextMenuHide);
-    });
+    };
 
-    mainWindow.on('hide', () => {
+    const onHide = function () {
         _tray.setContextMenu(contextMenuShow);
-    });
+    };
+
+    mainWindow.on('show', onShow);
+    mainWindow.on('hide', onHide);
 
     _tray.setToolTip(remote.app.getName());
 
@@ -75,7 +78,11 @@ function createAppTray () {
         mainWindow.show();
     });
 
-    mainWindow.tray = _tray;
+    mainWindow.destroyTray = function () {
+        mainWindow.removeListener('show', onShow);
+        mainWindow.removeListener('hide', onHide);
+        _tray.destroy();
+    };
 }
 
 function showTrayAlert (showAlert, title) {

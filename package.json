@@ -75,6 +75,6 @@
     "rollup": "^0.41.4",
     "rollup-plugin-istanbul": "^1.1.0",
     "source-map-support": "^0.4.10",
-    "spectron": "^3.4.1"
+    "spectron": "^3.5.0"
   }
 }

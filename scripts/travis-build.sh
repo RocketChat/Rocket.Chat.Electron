@@ -11,6 +11,11 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
   sleep 3
 fi
 
+if [[ "$TRAVIS_PULL_REQUEST" != "false"]]; then
+  # Disable macOS code signing on PR
+  export CSC_IDENTITY_AUTO_DISCOVERY=false
+fi
+
 node --version
 npm --version
 

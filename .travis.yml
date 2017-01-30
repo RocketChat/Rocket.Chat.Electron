@@ -6,7 +6,7 @@ matrix:
     services:
     - docker
     script:
-    - docker run --rm -v ${PWD}:/project -e GH_TOKEN=${GH_TOKEN} rocketchat/electron.builder /bin/bash -l -c "npm install && npm run release -- --x64 --ia32"
+    - docker run --rm -v ${PWD}:/project -e GH_TOKEN=${GH_TOKEN} -e TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} rocketchat/electron.builder /bin/bash -l -c "npm install && npm run release -- --x64 --ia32"
   - os: osx
     osx_image: xcode7.3.1
     language: generic

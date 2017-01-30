@@ -123,6 +123,10 @@ You can create Windows installer only when running on Windows, the same is true 
 
 All packaging actions are handled by [electron-builder](https://github.com/electron-userland/electron-builder). It has a lot of [customization options](https://github.com/electron-userland/electron-builder/wiki/Options), which you can declare under ["build" key in package.json file](https://github.com/szwacz/electron-boilerplate/blob/master/package.json#L2).
 
+# Useful links
+
+http://developerthing.blogspot.com.br/2017/01/awesome-electron.html
+
 # License
 
 Released under the MIT license.

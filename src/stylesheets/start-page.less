@@ -30,9 +30,10 @@ div.server-list {
 	bottom: 0;
 	height: 100%;
 	width: 80px;
-	padding-top: 5px;
+	padding-top: 22px;
 	background-color: #0F354C;
 	z-index: 100000;
+	-webkit-app-region: drag;
 }
 
 div.server-list ul {
@@ -238,4 +239,10 @@ webview.active {
 
 .landing-page {
 	z-index: 1;
+	-webkit-app-region: drag;
 }
+
+body, html{
+	-webkit-app-region: drag;
+}
+

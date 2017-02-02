@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Screen Selection</title>
+	<style type="text/css">
+
+	</style>
+</head>
+	<body>
+    <h1>Select a screen to share</h1>
+    <div id="sources"></div>
+		<script>
+			window.onload = function() {
+        var sourcesDiv = document.getElementById('sources');
+        require('electron').ipcRenderer.on('sources', function(e, sources) {
+          sources.forEach(function(source) {
+            sourcesDiv.innerHTML += `<p>${source.name}</p><img id="${source.id}" src=${source.thumbnail} />`;
+          });
+        });
+
+        document.addEventListener('click', function(result) {
+          if (result.target.tagName === 'IMG') {
+						require('electron').ipcRenderer.send('source-result', result.target.id);
+						window.close();
+          }
+        });
+			}
+		</script>
+	</body>
+</html>

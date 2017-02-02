@@ -4,7 +4,7 @@
 // window from here.
 
 import os from 'os';
-import { app, ipcMain } from 'electron';
+import { app, ipcMain , BrowserWindow} from 'electron';
 import windowStateKeeper from './background/windowState';
 import certificate from './background/certificate';
 import Toaster from './Toaster';
@@ -17,6 +17,40 @@ ipcMain.on('getSystemIdleTime', function (event) {
     /* why does this fire twice?!?!? */
     event.returnValue = idle.getIdleTime();
 });
+
+let screenshareEvent;
+ipcMain.on('screenshare', (event, sources) => {
+  screenshareEvent = event;
+  let window = new BrowserWindow({
+      width: 800,
+      height: 600,
+      show : false,
+      skipTaskbar: false,
+  });
+
+  window.loadURL('file://'+__dirname+'/public/screenshare.html');
+
+  //window.openDevTools();
+  window.webContents.on('did-finish-load', () => {
+    window.webContents.send('sources', sources);
+    window.show();
+  });
+
+  window.on('closed', () => {
+      window = null;
+      if (screenshareEvent) {
+          screenshareEvent.sender.send('screenshare-result', 'PermissionDeniedError');
+          screenshareEvent = null;
+      }
+  });
+
+})
+ipcMain.on('source-result', (e, sourceId) => {
+  if (screenshareEvent) {
+    screenshareEvent.sender.send('screenshare-result', sourceId);
+    screenshareEvent = null;
+  }
+})
 
 export function afterMainWindow (mainWindow) {
     if (process.platform !== 'darwin') {

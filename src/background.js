@@ -40,7 +40,7 @@ app.on('ready', function () {
 
     var mainWindow = createWindow('main', {
         width: 1000,
-	titleBarStyle: 'hidden',
+        titleBarStyle: 'hidden',
         height: 600
     });
 

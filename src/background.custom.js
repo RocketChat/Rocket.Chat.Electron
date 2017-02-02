@@ -51,7 +51,7 @@ ipcMain.on('source-result', (e, sourceId) => {
         screenshareEvent.sender.send('screenshare-result', sourceId);
         screenshareEvent = null;
     }
-})
+});
 
 export function afterMainWindow (mainWindow) {
     if (process.platform !== 'darwin') {

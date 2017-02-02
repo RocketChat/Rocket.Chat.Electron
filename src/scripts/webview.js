@@ -34,12 +34,12 @@ class WebView extends EventEmitter {
         });
 
         ipcRenderer.on('screenshare-result', (e, result) => {
-          const webviewObj = this.getActive();
-          webviewObj.executeJavaScript(`
-            window.parent.postMessage({
-              sourceId: '${result}'
-            }, '*')
-          `);
+            const webviewObj = this.getActive();
+            webviewObj.executeJavaScript(`
+                window.parent.postMessage({
+                    sourceId: '${result}'
+                }, '*')
+            `);
         });
     }
 
@@ -87,12 +87,15 @@ class WebView extends EventEmitter {
                     break;
                 case 'get-sourceId':
                     desktopCapturer.getSources({types: ['window', 'screen']}, (error, sources) => {
-                      if (error) throw error;
-                      sources = sources.map(source => {
-                        source.thumbnail = source.thumbnail.toDataURL();
-                        return source;
-                      });
-                      ipcRenderer.send('screenshare', sources);
+                        if (error) {
+                            throw error;
+                        }
+
+                        sources = sources.map(source => {
+                            source.thumbnail = source.thumbnail.toDataURL();
+                            return source;
+                        });
+                        ipcRenderer.send('screenshare', sources);
                     });
                     break;
             }

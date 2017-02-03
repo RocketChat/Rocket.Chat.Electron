@@ -355,17 +355,18 @@ window.addEventListener('contextmenu', function (event) {
     }, 0);
 }, false);
 
-/* userPresence away timer based on system idle time */
-// function getSystemIdleTime () {
-//     return ipcRenderer.sendSync('getSystemIdleTime');
-// }
-
-// setInterval(function (){
-//  try {
-//      if(getSystemIdleTime() < UserPresence.awayTime) {
-//          UserPresence.setOnline();
-//      }
-//  } catch(e) {
-//      console.error(e);
-//  }
-// }, 1e3);
+/**
+ * Keep user online if they are still using their computer
+ */
+const AWAY_TIME = 300000; // 5 mins
+const INTERVAL = 10000; // 10 seconds
+setInterval(function () {
+    try {
+        const idleTime = ipcRenderer.sendSync('getSystemIdleTime');
+        if (idleTime < AWAY_TIME) {
+            Meteor.call('UserPresence:online');
+        }
+    } catch (e) {
+        console.error(`Error getting system idle time: ${e}`);
+    }
+}, INTERVAL);

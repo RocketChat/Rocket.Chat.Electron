@@ -12,12 +12,6 @@ import idle from '@paulcbetts/system-idle-time';
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
-/* system idle time synchronous event process */
-ipcMain.on('getSystemIdleTime', function (event) {
-    /* why does this fire twice?!?!? */
-    event.returnValue = idle.getIdleTime();
-});
-
 let screenshareEvent;
 ipcMain.on('screenshare', (event, sources) => {
     screenshareEvent = event;
@@ -125,6 +119,10 @@ export function afterMainWindow (mainWindow) {
     });
 
     ipcMain.on('focus', () => mainWindow.show());
+
+    ipcMain.on('getSystemIdleTime', (event) => {
+        event.returnValue = idle.getIdleTime();
+    });
 
     // Windows 7 and below
     const useToaster = ['win32', 'win64'].indexOf(os.platform()) !== -1 &&

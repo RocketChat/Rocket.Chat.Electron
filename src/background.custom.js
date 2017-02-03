@@ -22,7 +22,7 @@ let screenshareEvent;
 ipcMain.on('screenshare', (event, sources) => {
     screenshareEvent = event;
     let window = new BrowserWindow({
-        width: 800,
+        width: 776,
         height: 600,
         show : false,
         skipTaskbar: false
@@ -43,7 +43,6 @@ ipcMain.on('screenshare', (event, sources) => {
             screenshareEvent = null;
         }
     });
-
 });
 
 ipcMain.on('source-result', (e, sourceId) => {

@@ -29,7 +29,7 @@ class Notification extends window.Notification {
 
 window.Notification = Notification;
 
-var events = ['unread-changed'];
+var events = ['unread-changed', 'get-sourceId'];
 
 events.forEach(function (e) {
     window.addEventListener(e, function (event) {

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { servers } from './servers';
 import { sidebar } from './sidebar';
-import { shell } from 'electron';
+import { shell, desktopCapturer, ipcRenderer } from 'electron';
 
 class WebView extends EventEmitter {
     constructor () {
@@ -31,6 +31,15 @@ class WebView extends EventEmitter {
 
         servers.once('loaded', () => {
             this.loaded();
+        });
+
+        ipcRenderer.on('screenshare-result', (e, result) => {
+            const webviewObj = this.getActive();
+            webviewObj.executeJavaScript(`
+                window.parent.postMessage({
+                    sourceId: '${result}'
+                }, '*')
+            `);
         });
     }
 
@@ -75,6 +84,19 @@ class WebView extends EventEmitter {
                     break;
                 case 'focus':
                     servers.setActive(host.url);
+                    break;
+                case 'get-sourceId':
+                    desktopCapturer.getSources({types: ['window', 'screen']}, (error, sources) => {
+                        if (error) {
+                            throw error;
+                        }
+
+                        sources = sources.map(source => {
+                            source.thumbnail = source.thumbnail.toDataURL();
+                            return source;
+                        });
+                        ipcRenderer.send('screenshare', sources);
+                    });
                     break;
             }
         });

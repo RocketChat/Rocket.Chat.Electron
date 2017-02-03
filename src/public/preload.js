@@ -360,13 +360,13 @@ window.addEventListener('contextmenu', function (event) {
  */
 const AWAY_TIME = 300000; // 5 mins
 const INTERVAL = 10000; // 10 seconds
-setInterval(function (){
+setInterval(function () {
     try {
         const idleTime = ipcRenderer.sendSync('getSystemIdleTime');
         if (idleTime < AWAY_TIME) {
             Meteor.call('UserPresence:online');
         }
-    } catch(e) {
+    } catch (e) {
         console.error(`Error getting system idle time: ${e}`);
     }
 }, INTERVAL);

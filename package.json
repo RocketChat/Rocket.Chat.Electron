@@ -36,6 +36,10 @@
       "allowToChangeInstallationDirectory": true
     },
     "linux": {
+      "desktop": {
+        "Categories": "GNOME;GTK;Network;InstantMessaging",
+        "StartupWMClass": "Rocket.Chat+"
+      },
       "target": ["deb", "rpm"]
     }
   },

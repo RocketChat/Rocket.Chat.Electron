@@ -15,14 +15,98 @@ class SpellCheck {
         }
     }
 
-    get dictionaries () {
-        const dictionaries = localStorage.getItem('spellcheckerDictionaries');
-        if (dictionaries) {
-            const result = JSON.parse(dictionaries);
-            if (Array.isArray(result)) {
-                return result;
+    get dictionary () {
+        return localStorage.getItem('spellcheckerDictionary');
+    }
+
+    constructor () {
+        this.contractions = this.getContractions();
+        this.loadAvailableDictionaries();
+        this.setEnabledDictionary();
+
+        this.languagesMenu = {
+            label: 'Spelling languages',
+            submenu: this.availableDictionaries.map((dictionary) => {
+                const menu = {
+                    label: dictionary,
+                    type: 'checkbox',
+                    checked: this.enabledDictionary === dictionary,
+                    click: (menuItem) => {
+                        menu.checked = menuItem.checked;
+                        this.languagesMenu.submenu.forEach((m) => {
+                            if (m.label !== menuItem.label) {
+                                m.checked = false;
+                            }
+                        });
+                        if (menuItem.checked) {
+                            this.setEnabled(dictionary);
+                        } else {
+                            this.enabledDictionary = undefined;
+                        }
+                        this.saveEnabledDictionary();
+                    }
+                };
+                return menu;
+            })
+        };
+    }
+
+    setEnabledDictionary () {
+
+        if (this.setEnabled(this.dictionary)) {
+            return;
+        }
+
+        if (this.userLanguage) {
+            if (this.setEnabled(this.userLanguage)) {
+                return;
+            }
+            if (this.userLanguage.split('_') !== -1 && this.setEnabled(this.userLanguage.split('_')[0])) {
+                return;
             }
         }
+
+        let navigatorLanguage = navigator.language.replace('-', '_');
+        if (this.setEnabled(navigatorLanguage)) {
+            return;
+        }
+
+        if (navigatorLanguage.split('_') !== -1 && this.setEnabled(this.navigatorLanguage.split('_')[0])) {
+            return;
+        }
+
+        if (this.setEnabled('en_US')) {
+            return;
+        }
+
+        if (!this.setEnabled('en')) {
+            console.log('Unable to set a language for the spell checker - Spell checker is disabled');
+        }
+
+    }
+
+    loadAvailableDictionaries () {
+        this.availableDictionaries = checker.getAvailableDictionaries().sort();
+        if (this.availableDictionaries.length === 0) {
+            this.dictionariesPath = path.join(remote.app.getAppPath(), 'dictionaries');
+            this.availableDictionaries = [
+                'en_GB',
+                'en_US',
+                'es_ES',
+                'pt_BR'
+            ];
+        } else {
+            this.availableDictionaries = this.availableDictionaries.map((dict) => dict.replace('-', '_'));
+        }
+    }
+
+    setEnabled (dictionary) {
+        if (this.availableDictionaries.indexOf(dictionary) !== -1) {
+            this.enabledDictionary = dictionary;
+            checker.setDictionary(this.enabledDictionary, this.dictionariesPath);
+            return true;
+        }
+        return false;
     }
 
     getContractions () {
@@ -44,88 +128,6 @@ class SpellCheck {
         }, {});
 
         return contractionMap;
-    }
-
-    constructor () {
-        this.enabledDictionaries = [];
-        this.contractions = this.getContractions();
-        this.loadAvailableDictionaries();
-        this.loadEnabledDictionaries();
-
-        this.languagesMenu = {
-            label: 'Spelling languages',
-            submenu: this.availableDictionaries.map((dictionary) => {
-                const menu = {
-                    label: dictionary,
-                    type: 'checkbox',
-                    checked: this.enabledDictionaries.indexOf(dictionary) > -1,
-                    click: (menuItem) => {
-                        menu.checked = menuItem.checked;
-                        if (menuItem.checked) {
-                            this.enabledDictionaries.push(dictionary);
-                        } else {
-                            this.enabledDictionaries.splice(this.enabledDictionaries.indexOf(dictionary), 1);
-                        }
-                        this.saveEnabledDictionaries();
-                    }
-                };
-                return menu;
-            })
-        };
-    }
-
-    loadEnabledDictionaries () {
-        if (this.dictionaries) {
-            this.enabledDictionaries = this.dictionaries.filter((dict) => this.availableDictionaries.indexOf(dict) !== -1);
-        }
-        if (this.enabledDictionaries.length === 0) {
-            if (this.userLanguage) {
-                if (this.availableDictionaries.indexOf(this.userLanguage) !== -1) {
-                    this.enabledDictionaries.push(this.userLanguage);
-                } else if (this.userLanguage.indexOf('_') !== -1) {
-                    const langPart = this.userLanguage.split('_')[0];
-                    if (this.availableDictionaries.indexOf(langPart) !== -1) {
-                        this.enabledDictionaries.push(langPart);
-                    }
-                }
-            }
-
-            let navigatorLanguage = navigator.language.replace('-', '_');
-            if (this.availableDictionaries.indexOf(navigatorLanguage) !== -1) {
-                this.enabledDictionaries.push(navigatorLanguage);
-            }
-            if (navigatorLanguage.indexOf('_') !== -1) {
-                navigatorLanguage = navigatorLanguage.split('_')[0];
-                if (this.availableDictionaries.indexOf(navigatorLanguage) !== -1) {
-                    this.enabledDictionaries.push(navigatorLanguage);
-                }
-            }
-
-            let defaultLanguage = 'en_US';
-            if (this.availableDictionaries.indexOf(defaultLanguage) !== -1) {
-                this.enabledDictionaries.push(defaultLanguage);
-            }
-            defaultLanguage = defaultLanguage.split('_')[0];
-            if (this.availableDictionaries.indexOf(defaultLanguage) !== -1) {
-                this.enabledDictionaries.push(defaultLanguage);
-            }
-        }
-
-        this.enabledDictionaries = this.enabledDictionaries.filter((dict) => this.availableDictionaries.indexOf(dict) !== -1);
-    }
-
-    loadAvailableDictionaries () {
-        this.availableDictionaries = checker.getAvailableDictionaries().sort();
-        if (this.availableDictionaries.length === 0) {
-            this.dictionariesPath = path.join(remote.app.getAppPath(), '../dictionaries');
-            this.availableDictionaries = [
-                'en_US',
-                'es_ES',
-                'pt_BR'
-            ];
-        } else {
-            this.availableDictionaries = this.availableDictionaries.map((dict) => dict.replace('-', '_'));
-        }
     }
 
     enable () {
@@ -172,68 +174,20 @@ class SpellCheck {
         ];
     }
 
-    saveEnabledDictionaries () {
-        localStorage.setItem('spellcheckerDictionaries', JSON.stringify(this.enabledDictionaries));
+    saveEnabledDictionary () {
+        localStorage.setItem('spellcheckerDictionary', this.enabledDictionary);
     }
 
     isCorrect (text) {
-        if (this.enabledDictionaries.length === 0 || this.contractions[text.toLocaleLowerCase()]) {
+        if (!this.enabledDictionary || this.contractions[text.toLocaleLowerCase()]) {
             return true;
         }
 
-        for (let i = 0; i < this.enabledDictionaries.length; i++) {
-            checker.setDictionary(this.enabledDictionaries[i], this.dictionariesPath);
-            if (!checker.isMisspelled(text)) {
-                return true;
-            }
-        }
-
-        return false;
+        return !checker.isMisspelled(text);
     }
 
     getCorrections (text) {
-      // Create an array of arrays of corrections
-      // One array of corrections per language
-        let allCorrections = [];
-        this.enabledDictionaries.forEach((enabledDictionary) => {
-            if (this.availableDictionaries.indexOf(enabledDictionary) === -1) {
-                return;
-            }
-
-            checker.setDictionary(enabledDictionary, this.dictionariesPath);
-            const languageCorrections = checker.getCorrectionsForMisspelling(text);
-            if (languageCorrections.length > 0) {
-                allCorrections.push(languageCorrections);
-            }
-        });
-
-      // Get the size of biggest array
-        let length = 0;
-        allCorrections.forEach((items) => {
-            length = Math.max(length, items.length);
-        });
-
-      // Merge all arrays until the size of the biggest array
-      // To get the best suggestions of each language first
-      // Ex: [[1,2,3], [a,b]] => [1,a,2,b,3]
-        const corrections = [];
-        for (let i = 0; i < length; i++) {
-            for (var j = 0; j < allCorrections.length; j++) {
-                if (allCorrections[j][i]) {
-                    corrections.push(allCorrections[j][i]);
-                }
-            }
-        }
-
-      // Remove duplicateds
-        corrections.forEach((item, index) => {
-            const dupIndex = corrections.indexOf(item, index+1);
-            if (dupIndex > -1) {
-                corrections.splice(dupIndex, 1);
-            }
-        });
-
-        return corrections;
+        return checker.getCorrectionsForMisspelling(text);
     }
 
     setupContextMenuListener () {
@@ -268,16 +222,16 @@ class SpellCheck {
                             template.unshift({ type: 'separator' });
 
                             if (suggestions.length > maxItems) {
-                                const morSuggestions = {
+                                const moreSuggestions = {
                                     label: 'More spelling suggestions',
                                     submenu: suggestions.slice(maxItems)
                                 };
-                                template.unshift(morSuggestions);
+                                template.unshift(moreSuggestions);
                             }
 
                             template.unshift.apply(template, suggestions.slice(0, maxItems));
                         } else {
-                            template.unshift({ label: 'no suggestions', enabled: false });
+                            template.unshift({ label: 'No suggestions', enabled: false });
                         }
                     }
                 }

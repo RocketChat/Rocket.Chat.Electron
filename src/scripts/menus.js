@@ -156,13 +156,13 @@ if (process.platform === 'darwin') {
                     type: 'separator'
                 },
                 {
-                    label: 'Toggle server list',
+                    label: 'Toggle Server List',
                     click: function () {
                         sidebar.toggle();
                     }
                 },
                 {
-                    label: 'Toggle tray icon',
+                    label: 'Toggle Tray Icon',
                     click: function () {
                         tray.toggle();
                     }
@@ -377,13 +377,13 @@ if (process.platform === 'darwin') {
                     type: 'separator'
                 },
                 {
-                    label: 'Toggle server list',
+                    label: 'Toggle Server List',
                     click: function () {
                         sidebar.toggle();
                     }
                 },
                 {
-                    label: 'Toggle tray icon',
+                    label: 'Toggle Tray Icon',
                     click: function () {
                         tray.toggle();
                     }

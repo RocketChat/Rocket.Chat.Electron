@@ -4,6 +4,7 @@ import { remote } from 'electron';
 import { servers } from './servers';
 import { sidebar } from './sidebar';
 import { webview } from './webview';
+import tray from './tray';
 import '../branding/branding.js';
 
 var Menu = remote.Menu;
@@ -158,6 +159,12 @@ if (process.platform === 'darwin') {
                     label: 'Toggle server list',
                     click: function () {
                         sidebar.toggle();
+                    }
+                },
+                {
+                    label: 'Toggle tray icon',
+                    click: function () {
+                        tray.toggle();
                     }
                 },
                 {
@@ -373,6 +380,12 @@ if (process.platform === 'darwin') {
                     label: 'Toggle server list',
                     click: function () {
                         sidebar.toggle();
+                    }
+                },
+                {
+                    label: 'Toggle tray icon',
+                    click: function () {
+                        tray.toggle();
                     }
                 },
                 {

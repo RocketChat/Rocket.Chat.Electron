@@ -15,14 +15,21 @@ class SpellCheck {
         }
     }
 
-    get dictionary () {
-        return localStorage.getItem('spellcheckerDictionary');
+    get dictionaries () {
+        const dictionaries = localStorage.getItem('spellcheckerDictionaries');
+        if (dictionaries) {
+            const result = JSON.parse(dictionaries);
+            if (Array.isArray(result)) {
+                return result;
+            }
+        }
     }
 
     constructor () {
+        this.enabledDictionaries = [];
         this.contractions = this.getContractions();
         this.loadAvailableDictionaries();
-        this.setEnabledDictionary();
+        this.setEnabledDictionaries();
 
         this.languagesMenu = {
             label: 'Spelling languages',
@@ -30,20 +37,23 @@ class SpellCheck {
                 const menu = {
                     label: dictionary,
                     type: 'checkbox',
-                    checked: this.enabledDictionary === dictionary,
+                    checked: this.enabledDictionaries.indexOf(dictionary) !== -1,
                     click: (menuItem) => {
                         menu.checked = menuItem.checked;
-                        this.languagesMenu.submenu.forEach((m) => {
-                            if (m.label !== menuItem.label) {
-                                m.checked = false;
-                            }
-                        });
+                        // If not using os dictionary then limit to only 1 language
+                        if (!this.usingOsDictionary) {
+                            this.languagesMenu.submenu.forEach((m) => {
+                                if (m.label !== menuItem.label) {
+                                    m.checked = false;
+                                }
+                            });
+                        }
                         if (menuItem.checked) {
                             this.setEnabled(dictionary);
                         } else {
-                            this.enabledDictionary = '';
+                            this.disable(dictionary);
                         }
-                        this.saveEnabledDictionary();
+                        this.saveEnabledDictionaries();
                     }
                 };
                 return menu;
@@ -51,14 +61,21 @@ class SpellCheck {
         };
     }
 
-    setEnabledDictionary () {
-        // Dictionary disabled
-        if (this.dictionary === '') {
-            return;
-        }
-
-        if (this.setEnabled(this.dictionary)) {
-            return;
+    /**
+     * Set enabled dictionaries on load
+     * Either sets enabled dictionaries to saved preferences, or enables the first
+     * dictionary that is valid based on system (defaults to en_US)
+     */
+    setEnabledDictionaries () {
+        const dictionaries = this.dictionaries;
+        if (dictionaries) {
+            // Dictionary disabled
+            if (dictionaries.length === 0) {
+                return;
+            }
+            if (this.setEnabled(dictionaries)) {
+                return;
+            }
         }
 
         if (this.userLanguage) {
@@ -92,6 +109,7 @@ class SpellCheck {
     loadAvailableDictionaries () {
         this.availableDictionaries = checker.getAvailableDictionaries().sort();
         if (this.availableDictionaries.length === 0) {
+            this.usingOsDictionary = false;
             // Dictionaries path is correct for build
             this.dictionariesPath = path.join(remote.app.getAppPath(), '../dictionaries');
             this.availableDictionaries = [
@@ -101,17 +119,34 @@ class SpellCheck {
                 'pt_BR'
             ];
         } else {
+            this.usingOsDictionary = true;
             this.availableDictionaries = this.availableDictionaries.map((dict) => dict.replace('-', '_'));
         }
     }
 
-    setEnabled (dictionary) {
-        if (this.availableDictionaries.indexOf(dictionary) !== -1) {
-            this.enabledDictionary = dictionary;
-            checker.setDictionary(this.enabledDictionary, this.dictionariesPath);
-            return true;
+    setEnabled (dictionaries) {
+        dictionaries = [].concat(dictionaries);
+        let result = false;
+        for (let i = 0; i < dictionaries.length; i++) {
+            if (this.availableDictionaries.indexOf(dictionaries[i]) !== -1) {
+                result = true;
+                this.enabledDictionaries.push(dictionaries[i]);
+                // If using Hunspell then only allow 1 language for performance reasons
+                if (!this.usingOsDictionary) {
+                    this.enabledDictionaries = [dictionaries[i]];
+                    checker.setDictionary(dictionaries[i], this.dictionariesPath);
+                    return true;
+                }
+            }
         }
-        return false;
+        return result;
+    }
+
+    disable (dictionary) {
+        const pos = this.enabledDictionaries.indexOf(dictionary);
+        if (pos !== -1) {
+            this.enabledDictionaries.splice(pos, 1);
+        }
     }
 
     getContractions () {
@@ -179,20 +214,48 @@ class SpellCheck {
         ];
     }
 
-    saveEnabledDictionary () {
-        localStorage.setItem('spellcheckerDictionary', this.enabledDictionary);
+    saveEnabledDictionaries () {
+        localStorage.setItem('spellcheckerDictionaries', JSON.stringify(this.enabledDictionaries));
     }
 
     isCorrect (text) {
-        if (!this.enabledDictionary || this.contractions[text.toLocaleLowerCase()]) {
+        if (!this.enabledDictionaries.length || this.contractions[text.toLocaleLowerCase()]) {
             return true;
         }
 
-        return !checker.isMisspelled(text);
+        if (this.usingOsDictionary) {
+            for (let i = 0; i < this.enabledDictionaries.length; i++) {
+                checker.setDictionary(this.enabledDictionaries[i]);
+                if (!checker.isMisspelled(text)) {
+                    return true;
+                }
+            }
+        } else {
+            return !checker.isMisspelled(text);
+        }
+        return false;
     }
 
     getCorrections (text) {
-        return checker.getCorrectionsForMisspelling(text);
+        if (!this.usingOsDictionary) {
+            return checker.getCorrectionsForMisspelling(text);
+        }
+
+        const allCorrections = this.enabledDictionaries.map((dictionary) => {
+            checker.setDictionary(dictionary);
+            return checker.getCorrectionsForMisspelling(text);
+        }).filter((c) => c.length > 0);
+
+        const length = Math.max(...allCorrections.map((a) => a.length));
+
+        // Get the best suggestions of each language first
+        const corrections = [];
+        for (let i = 0; i < length; i++) {
+            corrections.push(...allCorrections.map((c) => c[i]).filter((c) => c));
+        }
+
+        // Remove duplicates
+        return [...new Set(corrections)];
     }
 
     setupContextMenuListener () {

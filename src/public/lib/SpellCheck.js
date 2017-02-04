@@ -41,7 +41,7 @@ class SpellCheck {
                         if (menuItem.checked) {
                             this.setEnabled(dictionary);
                         } else {
-                            this.enabledDictionary = undefined;
+                            this.enabledDictionary = '';
                         }
                         this.saveEnabledDictionary();
                     }
@@ -52,6 +52,10 @@ class SpellCheck {
     }
 
     setEnabledDictionary () {
+        // Dictionary disabled
+        if (this.dictionary === '') {
+            return;
+        }
 
         if (this.setEnabled(this.dictionary)) {
             return;
@@ -242,7 +246,6 @@ class SpellCheck {
             }, 0);
         }, false);
     }
-
 }
 
 module.exports = SpellCheck;

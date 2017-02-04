@@ -1,23 +1,27 @@
-# electron-boilerplate [![Build Status](https://img.shields.io/travis/RocketChat/Rocket.Chat.Electron/master.svg)](https://travis-ci.org/RocketChat/Rocket.Chat.Electron) [![Build status](https://ci.appveyor.com/api/projects/status/k72eq3gm42wt4j8b?svg=true)](https://ci.appveyor.com/project/RocketChat/rocket-chat-electron) [![Project Dependencies](https://david-dm.org/RocketChat/Rocket.Chat.Electron.svg)](https://david-dm.org/RocketChat/Rocket.Chat.Electron) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/54ebf39732d14cb19a1a992b46bd0da6)](https://www.codacy.com/app/RocketChat/Rocket-Chat-Electron?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RocketChat/Rocket.Chat.Electron&amp;utm_campaign=Badge_Grade)
+# Rocket Chat Desktop App [![Build Status](https://img.shields.io/travis/RocketChat/Rocket.Chat.Electron/master.svg)](https://travis-ci.org/RocketChat/Rocket.Chat.Electron) [![Build status](https://ci.appveyor.com/api/projects/status/k72eq3gm42wt4j8b?svg=true)](https://ci.appveyor.com/project/RocketChat/rocket-chat-electron) [![Project Dependencies](https://david-dm.org/RocketChat/Rocket.Chat.Electron.svg)](https://david-dm.org/RocketChat/Rocket.Chat.Electron) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/54ebf39732d14cb19a1a992b46bd0da6)](https://www.codacy.com/app/RocketChat/Rocket-Chat-Electron?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RocketChat/Rocket.Chat.Electron&amp;utm_campaign=Badge_Grade)
 
-A minimalistic yet comprehensive boilerplate application for [Electron runtime](http://electron.atom.io). Tested on macOS, Windows and Linux.  
+Desktop application for [Rocket.Chat](https://github.com/RocketChat/Rocket.Chat) for macOS, Windows and Linux.
 
-This project does not impose on you any framework (like Angular or React). It tries to give you only the 'electron' part of technology stack so you can pick your favorite technologies to build the actual app.
+# Development
 
-# Quick start
+## Quick start
 
-The only requirments for gettings started are that you have [Node.js](https://nodejs.org) installed and that you have the packages that [node-gyp](https://github.com/nodejs/node-gyp) requires to build the native componentes. 
+Prerequisites:
 
-After checking those requirments, simply run the few commands known to every Node developer...
-```
-git clone https://github.com/szwacz/electron-boilerplate.git
-cd electron-boilerplate
+* [Git](http://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+* [Node.js](https://nodejs.org)
+* [node-gyp](https://github.com/nodejs/node-gyp#installation)
+
+Now just clone and start the app:
+
+```sh
+git clone https://github.com/RocketChat/Rocket.Chat.Electron.git
+cd Rocket.Chat.Electron
 npm install
 npm start
 ```
-... and boom! You have a running desktop application on your screen.
 
-# Structure of the project
+## Structure of the project
 
 The application is split between two main folders...
 
@@ -29,35 +33,13 @@ The build process compiles all stuff from the `src` folder and puts it into the 
 
 Treat `src` and `app` folders like two halves of one bigger thing.
 
-The drawback of this design is that `app` folder contains some files which should be git-ignored and some which shouldn't (see `.gitignore` file). But thanks to this two-folders split development builds are much (much!) faster.
-
-# Development
-
-## Starting the app
-
-```
-npm start
-```
-
-## Upgrading Electron version
-
-The version of Electron runtime your app is using is declared in `package.json`:
-```json
-"devDependencies": {
-  "electron": "1.4.7"
-}
-```
-Side note: [Electron authors advise](http://electron.atom.io/docs/tutorial/electron-versioning/) to use fixed version here.
 
 ## The build pipeline
 
 Build process is founded upon [gulp](https://github.com/gulpjs/gulp) task runner and [rollup](https://github.com/rollup/rollup) bundler. There are two entry files for your code: `src/background.js` and `src/app.js`. Rollup will follow all `import` statements starting from those files and compile code of the whole dependency tree into one `.js` file for each entry point.
 
-You can [add as many more entry points as you like](https://github.com/szwacz/electron-boilerplate/blob/master/tasks/build_app.js#L16) (e.g. to split your app into modules).
 
-By the way, [rollup has a lot of plugins](https://github.com/rollup/rollup/wiki/Plugins). You can add them in [this file](https://github.com/szwacz/electron-boilerplate/blob/master/tasks/bundle.js).
-
-## Adding npm modules to your app
+## Adding npm modules
 
 Remember to respect the split between `dependencies` and `devDependencies` in `package.json` file. Only modules listed in `dependencies` will be included into distributable app.
 
@@ -104,10 +86,6 @@ npm run coverage
 Using [istanbul](http://gotwarlost.github.io/istanbul/) code coverage tool.
 
 You can set the reporter(s) by setting `ISTANBUL_REPORTERS` environment variable (defaults to `text-summary` and `html`). The report directory can be set with `ISTANBUL_REPORT_DIR` (defaults to `coverage`).
-
-## Continuous integration
-
-Electron [can be plugged](https://github.com/atom/electron/blob/master/docs/tutorial/testing-on-headless-ci.md) into CI systems. Here two CIs are preconfigured for you. [Travis CI](https://travis-ci.org/) tests on macOS and Linux, [App Veyor](https://www.appveyor.com) tests on Windows.
 
 # Making a release
 

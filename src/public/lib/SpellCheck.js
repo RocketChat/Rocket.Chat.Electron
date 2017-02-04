@@ -88,7 +88,8 @@ class SpellCheck {
     loadAvailableDictionaries () {
         this.availableDictionaries = checker.getAvailableDictionaries().sort();
         if (this.availableDictionaries.length === 0) {
-            this.dictionariesPath = path.join(remote.app.getAppPath(), 'dictionaries');
+            // Dictionaries path is correct for build
+            this.dictionariesPath = path.join(remote.app.getAppPath(), '../dictionaries');
             this.availableDictionaries = [
                 'en_GB',
                 'en_US',

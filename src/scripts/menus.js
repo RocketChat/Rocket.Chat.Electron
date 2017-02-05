@@ -4,6 +4,7 @@ import { remote } from 'electron';
 import { servers } from './servers';
 import { sidebar } from './sidebar';
 import { webview } from './webview';
+import tray from './tray';
 import '../branding/branding.js';
 
 const Menu = remote.Menu;
@@ -169,7 +170,7 @@ const viewTemplate = [
         id: 'toggle'
     },
     {
-        label: 'Toggle server list',
+        label: 'Toggle Server List',
         click: function () {
             sidebar.toggle();
         }
@@ -190,7 +191,15 @@ const viewTemplate = [
     }
 ];
 
-if (!isMac) {
+if (isMac) {
+    viewTemplate.push({
+        label: 'Toggle Tray Icon',
+        click: function () {
+            tray.toggle();
+        },
+        position: 'after=toggle'
+    });
+} else {
     viewTemplate.push({
         label: 'Toggle Menu Bar',
         click: function () {

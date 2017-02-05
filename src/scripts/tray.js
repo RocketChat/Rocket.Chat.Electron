@@ -104,8 +104,25 @@ function showTrayAlert (showAlert, title) {
     }
 }
 
-createAppTray();
+function removeAppTray () {
+    mainWindow.destroyTray();
+}
+
+function toggle () {
+    if (localStorage.getItem('hideTray') === 'true') {
+        createAppTray();
+        localStorage.setItem('hideTray', 'false');
+    } else {
+        removeAppTray();
+        localStorage.setItem('hideTray', 'true');
+    }
+}
+
+if (localStorage.getItem('hideTray') !== 'true') {
+    createAppTray();
+}
 
 export default {
-    showTrayAlert: showTrayAlert
+    showTrayAlert,
+    toggle
 };

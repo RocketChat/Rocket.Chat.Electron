@@ -61,7 +61,7 @@ var supportExternalLinks = function (e) {
             }
         }
 
-        if (/^https?:\/\/.+/.test(href) === true /*&& RegExp('^https?:\/\/'+location.host).test(href) === false*/) {
+        if (/^https?:\/\/.+/.test(href) && !RegExp('^https?:\/\/'+location.host).test(href)) {
             isExternal = true;
         }
 

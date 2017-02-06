@@ -16,5 +16,5 @@ Bugsnag.appVersion = app.getVersion();
 
 app.setAppUserModelId('chat.rocket');
 
-window.$ = window.jQuery = require('./vendor/jquery-1.12.0');
+window.$ = window.jQuery = require('./vendor/jquery-3.1.1');
 start();

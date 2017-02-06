@@ -53,6 +53,9 @@ var supportExternalLinks = function (e) {
 };
 
 document.addEventListener('click', supportExternalLinks, false);
+// Prevent redirect to url when dragging in
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => e.preventDefault());
 
 const spellChecker = new SpellCheck();
 spellChecker.enable();

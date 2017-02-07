@@ -1,7 +1,7 @@
 /* globals Meteor, Tracker, RocketChat */
 'use strict';
 
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, shell } = require('electron');
 const Notification = require('./lib/Notification');
 const SpellCheck = require('./lib/SpellCheck');
 
@@ -25,6 +25,27 @@ window.addEventListener('load', function () {
         });
     });
 });
+
+window.onload = function () {
+    const $ = require('./vendor/jquery-3.1.1');
+    function checkExternalUrl (e) {
+        const href = $(this).attr('href');
+        if (RegExp(`^${location.protocol}\/\/${location.host}`).test(href)) {
+            return;
+        }
+
+        if (/^file:\/\/.+/.test(href)) {
+            let item = href.slice(6);
+            shell.showItemInFolder(item);
+            e.preventDefault();
+        } else {
+            shell.openExternal(href);
+            e.preventDefault();
+        }
+    }
+
+    $(document).on('click', 'a', checkExternalUrl);
+};
 
 // Prevent redirect to url when dragging in
 document.addEventListener('dragover', e => e.preventDefault());

@@ -63,6 +63,22 @@ But use CommonJS syntax in `app` folder. So the code from above should look as f
 var myStuff = require('./my_lib/my_stuff');
 ```
 
+## Issues with Install
+
+### node-gyp
+Follow the installation instruction on [node-gyp readme](https://github.com/nodejs/node-gyp#installation).
+
+#### Ubuntu Install
+You will need to install:
+```sh
+build-essential
+libevas-dev
+libxss-dev
+```
+
+#### Windows 7
+On Windows 7 you may have to follow option 2 of the [node-gyp install guide](https://github.com/nodejs/node-gyp#installation) and install Visual Studio
+
 # Testing
 
 ## Unit tests

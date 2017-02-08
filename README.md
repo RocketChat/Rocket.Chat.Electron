@@ -27,16 +27,11 @@ npm start
 
 ## Structure of the project
 
-The application is split between two main folders...
+The sources is located in the `src` folder. Everything in this folder will be built automatically when running the app with `npm start`.
 
-`src` - this folder is intended for files which need to be transpiled or compiled (files which can't be used directly by Electron).
-
-`app` - contains all static assets (put here images, css, html etc.) which don't need any pre-processing.
+Stylesheets are written in `less` and are located in `src/stylesheets`. They will be build into a single `main.css` in the `app` folder.
 
 The build process compiles all stuff from the `src` folder and puts it into the `app` folder, so after the build has finished, your `app` folder contains the full, runnable application.
-
-Treat `src` and `app` folders like two halves of one bigger thing.
-
 
 ## The build pipeline
 
@@ -51,16 +46,18 @@ Side note: If the module you want to use in your app is a native one (not pure J
 
 ## Working with modules
 
-Thanks to [rollup](https://github.com/rollup/rollup) you can (and should) use ES6 modules for all code in `src` folder. But because ES6 modules still aren't natively supported you can't use them in the `app` folder.
+Thanks to [rollup](https://github.com/rollup/rollup) you can (and should) use ES6 modules for most code in `src` folder.
 
 Use ES6 syntax in the `src` folder like this:
 ```js
 import myStuff from './my_lib/my_stuff';
 ```
 
-But use CommonJS syntax in `app` folder. So the code from above should look as follows:
+The exception is in `src/public`. ES6 will work inside this folder, but it is limited to what Electron/Chromium supports. The key thing to note is that you cannot use `import` and `export` statements. Imports and exports need to be done using CommonJS syntax:
+
 ```js
-var myStuff = require('./my_lib/my_stuff');
+const myStuff = require('./my_lib/my_stuff');
+const { myFunction } =  require('./App');
 ```
 
 ## Issues with Install

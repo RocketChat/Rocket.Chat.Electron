@@ -26,33 +26,27 @@ window.addEventListener('load', function () {
     });
 });
 
-var supportExternalLinks = function (e) {
-    var href;
-    var isExternal = false;
-
-    var checkDomElement = function (element) {
-        if (element.nodeName === 'A') {
-            if (element.classList.contains('swipebox') === false) {
-                href = element.getAttribute('href') || '';
-            }
+window.onload = function () {
+    const $ = require('./vendor/jquery-3.1.1');
+    function checkExternalUrl (e) {
+        const href = $(this).attr('href');
+        if (RegExp(`^${location.protocol}\/\/${location.host}`).test(href)) {
+            return;
         }
 
-        if (/^https?:\/\/.+/.test(href) && !RegExp('^https?:\/\/'+location.host).test(href)) {
-            isExternal = true;
-        }
-
-        if (href && isExternal) {
+        if (/^file:\/\/.+/.test(href)) {
+            let item = href.slice(6);
+            shell.showItemInFolder(item);
+            e.preventDefault();
+        } else {
             shell.openExternal(href);
             e.preventDefault();
-        } else if (element.parentElement) {
-            checkDomElement(element.parentElement);
         }
-    };
+    }
 
-    checkDomElement(e.target);
+    $(document).on('click', 'a', checkExternalUrl);
 };
 
-document.addEventListener('click', supportExternalLinks, false);
 // Prevent redirect to url when dragging in
 document.addEventListener('dragover', e => e.preventDefault());
 document.addEventListener('drop', e => e.preventDefault());

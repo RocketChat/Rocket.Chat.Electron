@@ -106,14 +106,6 @@ class WebView extends EventEmitter {
             this.loaded();
         });
 
-        // Open external app on clicked link. e.g. mailto:, tel:, etc...
-        webviewObj.addEventListener('new-window', (e) => {
-            if (/^https?:\/\//.test(e.url)) {
-                return;
-            }
-            shell.openExternal(e.url);
-        });
-
         this.webviewParentElement.appendChild(webviewObj);
 
         webviewObj.src = host.lastPath || host.url;

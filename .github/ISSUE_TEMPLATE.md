@@ -16,9 +16,9 @@
 
 #### Current Behavior
 
-<!-- INSTRUCTION: Explain the current bahavior and attacth screen shots if it is possible -->
+<!-- INSTRUCTION: Explain the current behavior and attach screen shots if it is possible -->
 
 #### Expected Behavior
 
-<!-- INSTRUCTION: Explain the expected bahavior and attacth screen shots if it is possible -->
+<!-- INSTRUCTION: Explain the expected behavior and attach screen shots if it is possible -->
 

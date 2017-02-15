@@ -27,6 +27,8 @@ const _iconTrayAlert = path.join(__dirname, 'images', icons[process.platform].di
 
 function createAppTray () {
     const _tray = new Tray(_iconTray);
+    mainWindow.tray = _tray;
+    
     const contextMenuShow = Menu.buildFromTemplate([{
         label: 'Show',
         click () {

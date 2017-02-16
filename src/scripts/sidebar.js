@@ -43,6 +43,7 @@ class SideBar extends EventEmitter {
             } else {
                 this.show();
             }
+            this.injectCustomStyle();
         });
 
     }
@@ -101,6 +102,26 @@ class SideBar extends EventEmitter {
     setImage (hostUrl) {
         const img = this.getByUrl(hostUrl).querySelector('img');
         img.src = `${hostUrl}/assets/favicon.svg?v=${Math.round(Math.random()*10000)}`;
+    }
+
+    injectCustomStyle () {
+      const addCustomStyle = function(style){
+        const fixScript = 'document.body.innerHTML = document.body.innerHTML + "<style>'+style+'</style>"';
+        document.getElementsByTagName('webview')[0].executeJavaScript(fixScript);
+      }
+      const fs = require('fs');
+      const filePath = "/src/stylesheets/webview/custom.css"
+      fs.readFile(process.resourcesPath+"/app"+filePath, 'utf8', function (err, content) {
+        if(err){
+          fs.readFile("."+filePath, 'utf8', function (errSecond, content) {
+            if(errSecond){
+              fs.readFile(process.resourcesPath+"/app.asar"+filePath, 'utf8', function (errThird, content) {
+                addCustomStyle(content);
+              });
+            }else{ addCustomStyle(content); }
+          });
+        }else{ addCustomStyle(content); }
+      });
     }
 
     remove (hostUrl) {

@@ -105,8 +105,8 @@ class SideBar extends EventEmitter {
     }
 
     fixTitleBar () {
-      const fixScript = 'document.body.innerHTML = document.body.innerHTML + "<style>.side-nav{  margin-top: 15px; }</style>"';
-      document.getElementsByTagName('webview')[0].executeJavaScript(fixScript);
+        const fixScript = 'document.body.innerHTML = document.body.innerHTML + "<style>.side-nav{  margin-top: 15px; }</style>"';
+        document.getElementsByTagName('webview')[0].executeJavaScript(fixScript);
     }
 
     remove (hostUrl) {

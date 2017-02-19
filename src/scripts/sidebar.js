@@ -1,19 +1,8 @@
 import { EventEmitter } from 'events';
 import { remote } from 'electron';
-import { servers } from './servers';
-import { webview } from './webview';
-import { menuTemplate } from './menus';
-
-var Menu = remote.Menu;
-
-var windowMenuPosition = menuTemplate.findIndex(function (i) {
-    return i.id === 'window';
-});
-var windowMenu = menuTemplate[windowMenuPosition];
-var serverListSeparatorPosition = windowMenu.submenu.findIndex(function (i) {
-    return i.id === 'server-list-separator';
-});
-var serverListSeparator = windowMenu.submenu[serverListSeparatorPosition];
+import servers from './servers';
+import webview from './webview';
+import * as menus from './menus';
 
 class SideBar extends EventEmitter {
     constructor () {
@@ -49,13 +38,13 @@ class SideBar extends EventEmitter {
 
         webview.on('dom-ready', (hostUrl) => {
             this.setImage(hostUrl);
+            if (this.isHidden()) {
+                this.hide();
+            } else {
+                this.show();
+            }
         });
 
-        if (this.isHidden()) {
-            this.hide();
-        } else {
-            this.show();
-        }
     }
 
     add (host) {
@@ -101,29 +90,12 @@ class SideBar extends EventEmitter {
         item.classList.add('instance');
 
         item.onclick = () => {
-            this.emit('click', host.url);
             servers.setActive(host.url);
         };
 
         this.listElement.appendChild(item);
 
-        serverListSeparator.visible = true;
-
-        var menuItem = {
-            label: host.title,
-            accelerator: 'CmdOrCtrl+' + this.hostCount,
-            position: 'before=server-list-separator',
-            id: host.url,
-            click: () => {
-                var mainWindow = remote.getCurrentWindow();
-                mainWindow.show();
-                this.emit('click', host.url);
-                servers.setActive(host.url);
-            }
-        };
-
-        windowMenu.submenu.push(menuItem);
-        Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
+        menus.addServer(host, this.hostCount);
     }
 
     setImage (hostUrl) {
@@ -135,12 +107,7 @@ class SideBar extends EventEmitter {
         var el = this.getByUrl(hostUrl);
         if (el) {
             el.remove();
-
-            var index = windowMenu.submenu.findIndex(function (i) {
-                return i.id === hostUrl;
-            });
-            windowMenu.submenu.splice(index, 1);
-            Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
+            menus.removeServer(hostUrl);
         }
     }
 
@@ -246,7 +213,7 @@ class SideBar extends EventEmitter {
     }
 }
 
-export var sidebar = new SideBar();
+export default new SideBar();
 
 
 var selectedInstance = null;

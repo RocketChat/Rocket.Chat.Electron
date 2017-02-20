@@ -40,11 +40,6 @@ export var start = function () {
     var button = form.querySelector('[type="submit"]');
     var invalidUrl = form.querySelector('#invalidUrl');
 
-    $('#reload').click(() => {
-        console.log('click reload')
-        webview.reloadActive();
-    })
-
     window.addEventListener('load', function () {
         hostField.focus();
     });

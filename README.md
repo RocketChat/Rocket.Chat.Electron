@@ -6,6 +6,16 @@ Desktop application for [Rocket.Chat](https://github.com/RocketChat/Rocket.Chat)
 
 You can download the latest version from the [Releases](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest) page.
 
+# Install
+Launch the installer and follow the instructions to install.
+
+## Windows Options
+On Windows you can run a silent install by adding the `/S` flag. You can also add the options below:
+
+- `/S` - Silent install
+- `/allusers` - Install for all users (requires admin)
+- `/currentuser` - Install for current user only (default)
+
 # Development
 
 ## Quick start

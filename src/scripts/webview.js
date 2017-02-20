@@ -106,6 +106,10 @@ class WebView extends EventEmitter {
             this.loaded();
         });
 
+        webviewObj.addEventListener('did-fail-load', () => {
+            console.log('did fail');
+        });
+
         this.webviewParentElement.appendChild(webviewObj);
 
         webviewObj.src = host.lastPath || host.url;
@@ -130,6 +134,13 @@ class WebView extends EventEmitter {
 
     getActive () {
         return document.querySelector('webview.active');
+    }
+
+    reloadActive () {
+        const active = this.getActive();
+        if (active) {
+            active.reload();
+        }
     }
 
     isActive (hostUrl) {

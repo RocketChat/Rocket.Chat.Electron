@@ -43,7 +43,6 @@ class SideBar extends EventEmitter {
             } else {
                 this.show();
             }
-            this.fixTitleBar();
         });
 
     }
@@ -102,11 +101,6 @@ class SideBar extends EventEmitter {
     setImage (hostUrl) {
         const img = this.getByUrl(hostUrl).querySelector('img');
         img.src = `${hostUrl}/assets/favicon.svg?v=${Math.round(Math.random()*10000)}`;
-    }
-
-    fixTitleBar () {
-        const fixScript = 'document.body.innerHTML = document.body.innerHTML + "<style>.side-nav{  margin-top: 15px; }</style>"';
-        document.getElementsByTagName('webview')[0].executeJavaScript(fixScript);
     }
 
     remove (hostUrl) {
@@ -198,12 +192,20 @@ class SideBar extends EventEmitter {
         document.body.classList.add('hide-server-list');
         localStorage.setItem('sidebar-closed', 'true');
         this.emit('hide');
+        if (process.platform == 'darwin') {
+            [].forEach.call(document.getElementsByTagName('webview'),
+                (webviewObj) => { if(webviewObj.insertCSS) webviewObj.insertCSS('aside.side-nav{margin-top:15px;overflow:hidden; transition: margin .5s ease-in-out; }'); });
+        }
     }
 
     show () {
         document.body.classList.remove('hide-server-list');
         localStorage.setItem('sidebar-closed', 'false');
         this.emit('show');
+        if (process.platform == 'darwin') {
+            [].forEach.call(document.getElementsByTagName('webview'),
+                (webviewObj) => { if(webviewObj.insertCSS) webviewObj.insertCSS('aside.side-nav{margin-top:0; overflow:hidden; transition: margin .5s ease-in-out; }'); });
+        }
     }
 
     toggle () {

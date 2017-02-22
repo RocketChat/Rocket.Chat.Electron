@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
-import { servers } from './servers';
-import { sidebar } from './sidebar';
+import servers from './servers';
+import sidebar from './sidebar';
 import { shell, desktopCapturer, ipcRenderer } from 'electron';
 
 class WebView extends EventEmitter {
@@ -103,7 +103,7 @@ class WebView extends EventEmitter {
 
         webviewObj.addEventListener('dom-ready', () => {
             this.emit('dom-ready', host.url);
-            this.loaded();
+            this.loaded(host);
         });
 
         this.webviewParentElement.appendChild(webviewObj);
@@ -168,4 +168,4 @@ class WebView extends EventEmitter {
     }
 }
 
-export var webview = new WebView();
+export default new WebView();

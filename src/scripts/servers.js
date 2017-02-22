@@ -1,5 +1,6 @@
 /* globals $ */
 
+import jetpack from 'fs-jetpack';
 import { EventEmitter } from 'events';
 import { remote } from 'electron';
 const remoteServers = remote.require('./background').remoteServers;
@@ -60,6 +61,30 @@ class Servers extends EventEmitter {
                 };
             });
             localStorage.setItem(this.hostsKey, JSON.stringify(hosts));
+        }
+
+        // Load server info from server config file
+        if (Object.keys(hosts).length === 0) {
+            const serverFileName = 'servers.json';
+            const userDataDir = jetpack.cwd(remote.app.getPath('userData'));
+            try {
+                const result = userDataDir.read(serverFileName, 'json');
+                if (result) {
+                    hosts = {};
+                    Object.keys(result).forEach((title) => {
+                        const url = result[title];
+                        hosts[url] = { title, url };
+                    });
+                    localStorage.setItem(this.hostsKey, JSON.stringify(hosts));
+                    // Assume user doesn't want sidebar if they only have one server
+                    if (Object.keys(hosts).length === 1) {
+                        localStorage.setItem('sidebar-closed', 'true');
+                    }
+                }
+
+            } catch (e) {
+                console.log('Server file invalid');
+            }
         }
 
         this._hosts = hosts;
@@ -185,9 +210,16 @@ class Servers extends EventEmitter {
     }
 
     setActive (hostUrl) {
+        let url;
         if (this.hostExists(hostUrl)) {
+            url = hostUrl;
+        } else if (Object.keys(this._hosts).length > 0) {
+            url = Object.keys(this._hosts)[0];
+        }
+
+        if (url) {
             localStorage.setItem(this.activeKey, hostUrl);
-            this.emit('active-setted', hostUrl);
+            this.emit('active-setted', url);
             return true;
         }
         this.emit('loaded');
@@ -215,4 +247,4 @@ class Servers extends EventEmitter {
     }
 }
 
-export var servers = new Servers();
+export default new Servers();

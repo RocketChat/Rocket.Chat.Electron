@@ -219,7 +219,7 @@ class SideBar extends EventEmitter {
     addPlatformStyleForShow () {
         if (process.platform === 'darwin') {
             [].forEach.call(document.getElementsByTagName('webview'),
-                (webviewObj) => { if (webviewObj.insertCSS){ webviewObj.insertCSS('aside.side-nav{margin-top:0; overflow:hidden; transition: margin .5s ease-in-out; }'); }});
+                (webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:0; overflow:hidden; transition: margin .5s ease-in-out; }'); } });
         }
     }
 
@@ -227,7 +227,11 @@ class SideBar extends EventEmitter {
         if (process.platform === 'darwin') {
 >>>>>>> [macOS] Fix issues found by codacy bot
             [].forEach.call(document.getElementsByTagName('webview'),
+<<<<<<< HEAD
                 (webviewObj) => { if(webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:0; overflow:hidden; transition: margin .5s ease-in-out; }'); } });
+=======
+                (webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:15px;overflow:hidden; transition: margin .5s ease-in-out; }'); } });
+>>>>>>> [macOS] Fix issues found by codacy bot
         }
     }
 

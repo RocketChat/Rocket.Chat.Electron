@@ -202,36 +202,9 @@ class SideBar extends EventEmitter {
         document.body.classList.remove('hide-server-list');
         localStorage.setItem('sidebar-closed', 'false');
         this.emit('show');
-<<<<<<< HEAD
         if (process.platform == 'darwin') {
-=======
-        this.addPlatformStyleForShow();
-    }
-
-    toggle () {
-        if (this.isHidden()) {
-            this.show();
-        } else {
-            this.hide();
-        }
-    }
-
-    addPlatformStyleForShow () {
-        if (process.platform === 'darwin') {
             [].forEach.call(document.getElementsByTagName('webview'),
-                (webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:0; overflow:hidden; transition: margin .5s ease-in-out; }'); } });
-        }
-    }
-
-    addPlatformStyleForHide () {
-        if (process.platform === 'darwin') {
->>>>>>> [macOS] Fix issues found by codacy bot
-            [].forEach.call(document.getElementsByTagName('webview'),
-<<<<<<< HEAD
                 (webviewObj) => { if(webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:0; overflow:hidden; transition: margin .5s ease-in-out; }'); } });
-=======
-                (webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:15px;overflow:hidden; transition: margin .5s ease-in-out; }'); } });
->>>>>>> [macOS] Fix issues found by codacy bot
         }
     }
 

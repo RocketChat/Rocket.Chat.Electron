@@ -193,8 +193,8 @@ class SideBar extends EventEmitter {
         localStorage.setItem('sidebar-closed', 'true');
         this.emit('hide');
         if (process.platform === 'darwin') {
-            [].forEach.call(document.getElementsByTagName('webview'),
-                (webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:15px;overflow:hidden; transition: margin .5s ease-in-out; }'); } });
+            document.querySelectorAll('webview').forEach(
+              (webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:15px;overflow:hidden; transition: margin .5s ease-in-out; }'); } });
         }
     }
 
@@ -203,7 +203,7 @@ class SideBar extends EventEmitter {
         localStorage.setItem('sidebar-closed', 'false');
         this.emit('show');
         if (process.platform === 'darwin') {
-            [].forEach.call(document.getElementsByTagName('webview'),
+            document.querySelectorAll('webview').forEach(
                 (webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:0; overflow:hidden; transition: margin .5s ease-in-out; }'); } });
         }
     }

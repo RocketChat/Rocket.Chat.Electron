@@ -45,6 +45,12 @@ window.onload = function () {
     }
 
     $(document).on('click', 'a', checkExternalUrl);
+
+    $('#reload').click(function () {
+        ipcRenderer.sendToHost('reload-server');
+        $(this).hide();
+        $(this).parent().find('.loading-animation').show();
+    });
 };
 
 // Prevent redirect to url when dragging in

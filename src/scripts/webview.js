@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import servers from './servers';
 import sidebar from './sidebar';
-import { shell, desktopCapturer, ipcRenderer } from 'electron';
+import { desktopCapturer, ipcRenderer } from 'electron';
 
 class WebView extends EventEmitter {
     constructor () {
@@ -44,12 +44,15 @@ class WebView extends EventEmitter {
     }
 
     loaded () {
-        var loading = document.querySelector('#loading');
-        var form = document.querySelector('#login-card');
-        var footer = document.querySelector('footer');
-        loading.style.display = 'none';
-        form.style.display = 'block';
-        footer.style.display = 'block';
+        document.querySelector('#loading').style.display = 'none';
+        document.querySelector('#login-card').style.display = 'block';
+        document.querySelector('footer').style.display = 'block';
+    }
+
+    loading () {
+        document.querySelector('#loading').style.display = 'block';
+        document.querySelector('#login-card').style.display = 'none';
+        document.querySelector('footer').style.display = 'none';
     }
 
     add (host) {
@@ -98,12 +101,21 @@ class WebView extends EventEmitter {
                         ipcRenderer.send('screenshare', sources);
                     });
                     break;
+                case 'reload-server':
+                    const active = this.getActive();
+                    const server = active.getAttribute('server');
+                    this.loading();
+                    active.loadURL(server);
+                    break;
             }
         });
 
         webviewObj.addEventListener('dom-ready', () => {
             this.emit('dom-ready', host.url);
-            this.loaded(host);
+        });
+
+        webviewObj.addEventListener('did-fail-load', () => {
+            webviewObj.loadURL('file://' + __dirname + '/loading-error.html');
         });
 
         this.webviewParentElement.appendChild(webviewObj);

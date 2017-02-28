@@ -89,7 +89,7 @@ function createAppTray () {
 
     _tray.on('click', () => {
         mainWindow.show();
-    });
+});
 
     mainWindow.destroyTray = function () {
         mainWindow.removeListener('show', onShow);
@@ -154,6 +154,7 @@ function showTrayAlert (showAlert, title) {
         }
         mainWindow.tray.setTitle(title);
     }
+
 }
 
 function removeAppTray () {
@@ -167,6 +168,46 @@ function toggle () {
     } else {
         removeAppTray();
         localStorage.setItem('hideTray', 'true');
+    }
+}
+
+function setTitle(title) {
+    switch(title){
+        case "":
+            mainWindow.tray.setImage(_iconTray);
+            break;
+        case "•":
+            mainWindow.tray.setImage(_iconTrayTitleDot);
+            break;
+        case "1":
+            mainWindow.tray.setImage(_iconTrayTitle1);
+            break;
+        case "2":
+            mainWindow.tray.setImage(_iconTrayTitle2);
+            break;
+        case "3":
+            mainWindow.tray.setImage(_iconTrayTitle3);
+            break;
+        case "4":
+            mainWindow.tray.setImage(_iconTrayTitle4);
+            break;
+        case "5":
+            mainWindow.tray.setImage(_iconTrayTitle5);
+            break;
+        case "6":
+            mainWindow.tray.setImage(_iconTrayTitle6);
+            break;
+        case "7":
+            mainWindow.tray.setImage(_iconTrayTitle7);
+            break;
+        case "8":
+            mainWindow.tray.setImage(_iconTrayTitle8);
+            break;
+        case "9":
+            mainWindow.tray.setImage(_iconTrayTitle9);
+            break;
+        default:
+            mainWindow.tray.setImage(_iconTrayTitle9Plus);
     }
 }
 

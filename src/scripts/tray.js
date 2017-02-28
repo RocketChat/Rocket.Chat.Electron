@@ -154,6 +154,7 @@ function showTrayAlert (showAlert, title) {
         }
         mainWindow.tray.setTitle(title);
     }
+
 }
 
 function removeAppTray () {

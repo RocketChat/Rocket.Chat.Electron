@@ -158,6 +158,7 @@ export var start = function () {
     });
 
     $('.add-server').on('click', function () {
+        webview.loaded();
         servers.clearActive();
     });
 

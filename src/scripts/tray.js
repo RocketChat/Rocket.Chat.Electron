@@ -87,23 +87,34 @@ function createAppTray () {
     };
 }
 
+function setImage (title) {
+    if (title === '•') {
+        title = "Dot";
+    } else if (!isNaN(parseInt(title)) && title > 9) {
+        title = "9Plus";
+    }
+
+    const _iconPath = path.join(__dirname, 'images', icons[process.platform].dir, `icon-tray${title}.png`);
+    mainWindow.tray.setImage(_iconPath);
+}
+
 function showTrayAlert (showAlert, title) {
     if (mainWindow.tray === null || mainWindow.tray === undefined) {
         return;
     }
 
     mainWindow.flashFrame(showAlert);
-    if (showAlert) {
-        mainWindow.tray.setImage(_iconTrayAlert);
-        if (process.platform === 'darwin') {
-            mainWindow.tray.setTitle(title);
-        }
+    if (process.platform !== 'darwin') {
+        setImage(title);
     } else {
-        mainWindow.tray.setImage(_iconTray);
-        if (process.platform === 'darwin') {
-            mainWindow.tray.setTitle(title);
+        if (showAlert) {
+            mainWindow.tray.setImage(_iconTrayAlert);
+        } else {
+            mainWindow.tray.setImage(_iconTray);
         }
+        mainWindow.tray.setTitle(title);
     }
+
 }
 
 function removeAppTray () {

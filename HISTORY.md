@@ -1,5 +1,16 @@
 # History
 
+## 2.5.0 - 2017-Mar-05
+
+- Add Fedora Dev Dependencies
+- Allow opening of file urls
+- Changed the function name and the switch is replaced with `icon-tray${title}.png`);
+- Fix speed issues with spell check on Windows
+- Fixed to put tray object in mainWindow
+- Handle urls using click listener
+- Load server config from file and tidy menu
+- Show reload screen when server fails to load
+
 ## 2.4.0 - 2017-Fev-06
 
 - Add .nvmrc

@@ -30,7 +30,13 @@ window.onload = function () {
     const $ = require('./vendor/jquery-3.1.1');
     function checkExternalUrl (e) {
         const href = $(this).attr('href');
+        // Check href matching current domain
         if (RegExp(`^${location.protocol}\/\/${location.host}`).test(href)) {
+            return;
+        }
+
+        // Check href matching relative URL
+        if (!/^([a-z]+:)?\/\//.test(href)) {
             return;
         }
 

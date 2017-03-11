@@ -114,8 +114,10 @@ class WebView extends EventEmitter {
             this.emit('dom-ready', host.url);
         });
 
-        webviewObj.addEventListener('did-fail-load', () => {
-            webviewObj.loadURL('file://' + __dirname + '/loading-error.html');
+        webviewObj.addEventListener('did-fail-load', (e) => {
+            if (e.isMainFrame) {
+                webviewObj.loadURL('file://' + __dirname + '/loading-error.html');
+            }
         });
 
         this.webviewParentElement.appendChild(webviewObj);

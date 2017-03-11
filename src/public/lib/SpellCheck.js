@@ -6,7 +6,7 @@ const webContents = remote.getCurrentWebContents();
 let menu = new remote.Menu();
 
 const path = remote.require('path');
-const isWindows = ['win32', 'win64'].indexOf(os.platform());
+const isWindows = ['win32', 'win64'].indexOf(os.platform()) !== -1;
 
 class SpellCheck {
 
@@ -43,7 +43,7 @@ class SpellCheck {
                     click: (menuItem) => {
                         menu.checked = menuItem.checked;
                         // If not using os dictionary then limit to only 1 language
-                        if (!this.muliLanguage) {
+                        if (!this.multiLanguage) {
                             this.languagesMenu.submenu.forEach((m) => {
                                 if (m.label !== menuItem.label) {
                                     m.checked = false;
@@ -111,7 +111,7 @@ class SpellCheck {
     loadAvailableDictionaries () {
         this.availableDictionaries = checker.getAvailableDictionaries().sort();
         if (this.availableDictionaries.length === 0) {
-            this.muliLanguage = false;
+            this.multiLanguage = false;
             // Dictionaries path is correct for build
             this.dictionariesPath = path.join(remote.app.getAppPath(), '../dictionaries');
             this.availableDictionaries = [
@@ -121,7 +121,7 @@ class SpellCheck {
                 'pt_BR'
             ];
         } else {
-            this.muliLanguage = !isWindows;
+            this.multiLanguage = !isWindows;
             this.availableDictionaries = this.availableDictionaries.map((dict) => dict.replace('-', '_'));
         }
     }
@@ -134,7 +134,7 @@ class SpellCheck {
                 result = true;
                 this.enabledDictionaries.push(dictionaries[i]);
                 // If using Hunspell or Windows then only allow 1 language for performance reasons
-                if (!this.muliLanguage) {
+                if (!this.multiLanguage) {
                     this.enabledDictionaries = [dictionaries[i]];
                     checker.setDictionary(dictionaries[i], this.dictionariesPath);
                     return true;
@@ -225,7 +225,7 @@ class SpellCheck {
             return true;
         }
 
-        if (this.muliLanguage) {
+        if (this.multiLanguage) {
             for (let i = 0; i < this.enabledDictionaries.length; i++) {
                 checker.setDictionary(this.enabledDictionaries[i]);
                 if (!checker.isMisspelled(text)) {
@@ -239,7 +239,7 @@ class SpellCheck {
     }
 
     getCorrections (text) {
-        if (!this.muliLanguage) {
+        if (!this.multiLanguage) {
             return checker.getCorrectionsForMisspelling(text);
         }
 

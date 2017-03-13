@@ -120,6 +120,12 @@ class WebView extends EventEmitter {
             }
         });
 
+        webviewObj.addEventListener('did-get-response-details', (e) => {
+            if (e.resourceType === 'mainFrame' && e.httpResponseCode >= 500) {
+                webviewObj.loadURL('file://' + __dirname + '/loading-error.html');
+            }
+        });
+
         this.webviewParentElement.appendChild(webviewObj);
 
         webviewObj.src = host.lastPath || host.url;

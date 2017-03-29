@@ -2,7 +2,7 @@
   "name": "rocketchat",
   "productName": "Rocket.Chat+",
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
-  "version": "2.5.0",
+  "version": "2.6.0-develop",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2016, Rocket.Chat",
   "homepage": "https://rocket.chat",
@@ -64,15 +64,15 @@
   },
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
-    "electron-rebuild": "^1.5.7",
-    "fs-jetpack": "^0.10.5",
+    "fs-jetpack": "^0.12.0",
     "lodash": "^4.17.4",
     "spellchecker": "^3.3.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "electron": "^1.4.15",
-    "electron-builder": "^12.3.1",
+    "electron": "^1.6.1",
+    "electron-builder": "^14.5.3",
+    "electron-rebuild": "^1.5.7",
     "electron-mocha": "^3.3.0",
     "gulp": "^3.9.1",
     "gulp-batch": "^1.0.5",
@@ -86,6 +86,6 @@
     "rollup": "^0.41.4",
     "rollup-plugin-istanbul": "^1.1.0",
     "source-map-support": "^0.4.11",
-    "spectron": "^3.5.0"
+    "spectron": "^3.6.0"
   }
 }

@@ -30,14 +30,6 @@
         "dmg",
         "pkg",
         "zip"
-      ],
-      "publish": [
-        {
-          "provider": "github",
-          "owner": "RocketChat",
-          "repo": "Rocket.Chat.Electron",
-          "vPrefixedTagName": false
-        }
       ]
     },
     "nsis": {
@@ -56,7 +48,15 @@
         "deb",
         "rpm"
       ]
+  },
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "RocketChat",
+      "repo": "Rocket.Chat.Electron",
+      "vPrefixedTagName": false
     }
+  ]
   },
   "scripts": {
     "postinstall": "install-app-deps && electron-rebuild",

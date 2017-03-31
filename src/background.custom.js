@@ -4,7 +4,7 @@
 // window from here.
 
 import os from 'os';
-import { app, ipcMain, BrowserWindow, dialog, ipcRenderer } from 'electron';
+import { app, ipcMain, BrowserWindow, dialog } from 'electron';
 import windowStateKeeper from './background/windowState';
 import certificate from './background/certificate';
 import Toaster from './Toaster';

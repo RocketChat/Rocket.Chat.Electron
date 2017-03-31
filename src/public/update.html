@@ -19,16 +19,6 @@
 			margin-bottom: 10px;
 		}
 
-		.app-name {
-			font-size: 14px;
-			font-weight: bold;
-		}
-
-		.app-version {
-			margin-top: 20px;
-			font-size: 11px;
-		}
-
 		.update {
 			font-size: 15px;
 			font-weight: bold;
@@ -73,17 +63,17 @@
 		<div style="text-align:center;">
 			<img src="images/icon.png"/>
 			<p>A new version of the Rocket.Chat Desktop App is available!</p>
-			<p>From: <span class="old"></span> To: <span class="new"></span></p>
+			<p>Current Version: <span class="old"></span> New Version: <span class="new"></span></p>
 		</div>
 		<hr />
 		<p class="controls">
 			<a class="skip" href="/">Skip This Version</a>
-			<a class="remind" href="/">Remind me later</a>
+			<a class="remind" href="/">Remind Me Later</a>
 			<button class="update">Install Update</button>
 		</p>
 		<script>
 			var remote = require('electron').remote;
-			require('electron').ipcRenderer.on('newVersion', function(e, version) {
+			require('electron').ipcRenderer.on('new-version', function(e, version) {
 				document.querySelector('.old').innerHTML = remote.app.getVersion();
 				document.querySelector('.new').innerHTML = version;
 			});

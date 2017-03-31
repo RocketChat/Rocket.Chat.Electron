@@ -12,11 +12,13 @@ const appTemplate = [
                 height: 200,
                 resizable: false,
                 show: false,
+                center: true,
                 maximizable: false,
                 minimizable: false,
                 title: 'About Rocket.Chat'
             });
             win.loadURL('file://' + __dirname + '/about.html');
+            win.setMenuBarVisibility(false);
             win.show();
         }
     },

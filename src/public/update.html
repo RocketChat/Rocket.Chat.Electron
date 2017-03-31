@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+	<title></title>
+	<meta charset="utf-8" />
+	<style>
+		html {
+			background-color: #ececec;
+			font-family: helvetica;
+			padding: 10px;
+		}
+
+		body {
+			margin: 0px;
+		}
+
+		img {
+			height: 60px;
+			margin-bottom: 10px;
+		}
+
+		.app-name {
+			font-size: 14px;
+			font-weight: bold;
+		}
+
+		.app-version {
+			margin-top: 20px;
+			font-size: 11px;
+		}
+
+		.update {
+			font-size: 15px;
+			font-weight: bold;
+
+			position: fixed;
+			right: 10px;
+			bottom: 10px;
+		}
+
+		.skip {
+			position: fixed;
+			left: 10px;
+		}
+
+		.remind {
+			position: fixed;
+			right: 150px;
+		}
+
+		.controls {
+			font-size: 12px;
+			position: fixed;
+			bottom: 17px;
+		}
+
+		.controls a {
+			text-decoration: none;
+		}
+
+		h3 {
+			text-align: center;
+		}
+
+		.old, .new {
+			font-weight: bold;
+		}
+	</style>
+</head>
+	<body>
+		<h3>New Update is Available</h3>
+		<hr />
+		<div style="text-align:center;">
+			<img src="images/icon.png"/>
+			<p>A new version of the Rocket.Chat Desktop App is available!</p>
+			<p>From: <span class="old"></span> To: <span class="new"></span></p>
+		</div>
+		<hr />
+		<p class="controls">
+			<a class="skip" href="/">Skip This Version</a>
+			<a class="remind" href="/">Remind me later</a>
+			<button class="update">Install Update</button>
+		</p>
+		<script>
+			var remote = require('electron').remote;
+			require('electron').ipcRenderer.on('newVersion', function(e, version) {
+				document.querySelector('.old').innerHTML = remote.app.getVersion();
+				document.querySelector('.new').innerHTML = version;
+			});
+			document.querySelector('.update').onclick = function(e) {
+				require('electron').ipcRenderer.send('update');
+			}
+		</script>
+	</body>
+</html>

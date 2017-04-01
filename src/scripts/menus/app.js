@@ -9,7 +9,7 @@ const appTemplate = [
         click: function () {
             const win = new remote.BrowserWindow({
                 width: 310,
-                height: 200,
+                height: 220,
                 resizable: false,
                 show: false,
                 center: true,

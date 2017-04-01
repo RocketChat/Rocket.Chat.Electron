@@ -32,8 +32,17 @@
 			font-size: 11px;
 		}
 
+		.app-version .version {
+			font-weight: bold;
+		}
+
 		.update {
 			margin-top:10px;
+		}
+
+		.copyright {
+			font-size: 10px;
+			margin: 5px 0 0 0;
 		}
 	</style>
 </head>
@@ -46,10 +55,11 @@
 		<span class="update-spin icon-spin3 animate-spin" style="display:none;"></span>
 
 		<button class="update">Check for Updates</button>
+		<p class="copyright">Copyright &copy; 2017, Rocket.Chat</p>
 		<script>
-			var remote = require('electron').remote;
+			const remote = require('electron').remote;
 			document.querySelector('.app-name').innerHTML = remote.app.getName();
-			document.querySelector('.app-version').innerHTML = 'Version '+remote.app.getVersion();
+			document.querySelector('.app-version').innerHTML = `Version <span class="version">${remote.app.getVersion()}</span>`;
 			document.querySelector('.update').onclick = function(e) {
 				document.querySelector('.update-spin').setAttribute('style', '');
 				document.querySelector('.update').setAttribute('disabled', 'disabled');

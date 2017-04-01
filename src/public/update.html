@@ -12,6 +12,7 @@
 
 		body {
 			margin: 0px;
+			text-align: center;
 		}
 
 		img {
@@ -19,13 +20,22 @@
 			margin-bottom: 10px;
 		}
 
+		table {
+			margin: 0 auto;
+		}
+
 		.update {
 			font-size: 15px;
 			font-weight: bold;
-
+			color: #fff;
+			background-color: #13679a;
+			border-width: 0;
+			padding: 6px 8px;
+			border-radius: 4px;
+			cursor: pointer;
 			position: fixed;
 			right: 10px;
-			bottom: 10px;
+			bottom: 5px;
 		}
 
 		.skip {
@@ -41,15 +51,11 @@
 		.controls {
 			font-size: 12px;
 			position: fixed;
-			bottom: 17px;
+			bottom: 15px;
 		}
 
 		.controls a {
 			text-decoration: none;
-		}
-
-		h3 {
-			text-align: center;
 		}
 
 		.old, .new {
@@ -63,7 +69,16 @@
 		<div style="text-align:center;">
 			<img src="images/icon.png"/>
 			<p>A new version of the Rocket.Chat Desktop App is available!</p>
-			<p>Current Version: <span class="old"></span> New Version: <span class="new"></span></p>
+			<table>
+				<tr>
+					<td style="text-align:right;">Current Version:</td>
+					<td class="old"></td>
+				</tr>
+				<tr>
+					<td style="text-align:right;">New Version:</td>
+					<td class="new"></td>
+				</tr>
+			</table>
 		</div>
 		<hr />
 		<p class="controls">
@@ -78,11 +93,11 @@
 				document.querySelector('.new').innerHTML = version;
 			});
 			document.querySelectorAll('.response').forEach((item) => {
-                item.onclick = function(e) {
-                    const type = e.target.getAttribute('data-type');
-    				require('electron').ipcRenderer.send('update-response', type);
-    			}
-            });
+				item.onclick = function(e) {
+					const type = e.target.getAttribute('data-type');
+					require('electron').ipcRenderer.send('update-response', type);
+				}
+			});
 		</script>
 	</body>
 </html>

@@ -4,12 +4,12 @@
 // window from here.
 
 import os from 'os';
-import { app, ipcMain, BrowserWindow, dialog } from 'electron';
+import { app, ipcMain, BrowserWindow } from 'electron';
 import windowStateKeeper from './background/windowState';
 import certificate from './background/certificate';
 import Toaster from './Toaster';
 import idle from '@paulcbetts/system-idle-time';
-import { autoUpdater } from 'electron-updater';
+import { checkForUpdates } from './background/autoUpdate';
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
@@ -147,76 +147,5 @@ export function afterMainWindow (mainWindow) {
 
     certificate.initWindow(mainWindow);
 
-    let checkForUpdatesEvent;
-    autoUpdater.autoDownload = false;
-
-    autoUpdater.on('update-available', ({version}) => {
-        if (checkForUpdatesEvent) {
-            checkForUpdatesEvent.sender.send('update-result', true);
-        }
-
-        let window = new BrowserWindow({
-            width: 600,
-            height: 350,
-            show : false,
-            center: true,
-            resizable: false,
-            maximizable: false,
-            minimizable: false
-        });
-
-        window.loadURL('file://'+__dirname+'/public/update.html');
-        window.setMenuBarVisibility(false);
-
-        window.webContents.on('did-finish-load', () => {
-            window.webContents.send('new-version', version);
-            window.show();
-        });
-
-        ipcMain.once('update', () => {
-            dialog.showMessageBox({
-                title: 'Downloading Update',
-                message: 'You will be notified when the update is ready to be installed'
-            }, () => window.close());
-            autoUpdater.downloadUpdate();
-        });
-
-
-        window.on('closed', () => {
-            window = null;
-            ipcMain.removeAllListeners('update');
-        });
-    });
-
-    autoUpdater.on('download-progress', ({percent}) => {
-        console.log(`Update progress: ${percent}`);
-    });
-
-    autoUpdater.on('update-downloaded', () => {
-        dialog.showMessageBox({
-            title: 'Update Ready to Install',
-            message: 'Update has been downloaded',
-            buttons: [
-                'Install Later',
-                'Install Now'
-            ],
-            defaultId: 1
-        }, (response) => {
-            if (response === 0) {
-                dialog.showMessageBox({
-                    title: 'Installing Later',
-                    message: 'Update will be installed when you exit the app'
-                });
-            } else {
-                autoUpdater.quitAndInstall();
-            }
-        });
-    });
-
-    autoUpdater.checkForUpdates();
-
-    ipcMain.on('check-for-updates', (e) => {
-        checkForUpdatesEvent = e;
-        autoUpdater.checkForUpdates();
-    });
+    checkForUpdates();
 }

@@ -67,19 +67,22 @@
 		</div>
 		<hr />
 		<p class="controls">
-			<a class="skip" href="/">Skip This Version</a>
-			<a class="remind" href="/">Remind Me Later</a>
-			<button class="update">Install Update</button>
+			<a class="skip response" data-type="skip" href="#">Skip This Version</a>
+			<a class="remind response" data-type="remind" href="#">Remind Me Later</a>
+			<button class="update response" data-type="update">Install Update</button>
 		</p>
 		<script>
-			var remote = require('electron').remote;
+			const remote = require('electron').remote;
 			require('electron').ipcRenderer.on('new-version', function(e, version) {
 				document.querySelector('.old').innerHTML = remote.app.getVersion();
 				document.querySelector('.new').innerHTML = version;
 			});
-			document.querySelector('.update').onclick = function(e) {
-				require('electron').ipcRenderer.send('update');
-			}
+			document.querySelectorAll('.response').forEach((item) => {
+                item.onclick = function(e) {
+                    const type = e.target.getAttribute('data-type');
+    				require('electron').ipcRenderer.send('update-response', type);
+    			}
+            });
 		</script>
 	</body>
 </html>

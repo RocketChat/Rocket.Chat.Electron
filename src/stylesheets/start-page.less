@@ -241,9 +241,8 @@ webview.active {
 .landing-page {
 	z-index: 1;
 	-webkit-app-region: drag;
-}
 
-body,
-html {
-	-webkit-app-region: drag;
+	&.hide {
+		display: none;
+	}
 }

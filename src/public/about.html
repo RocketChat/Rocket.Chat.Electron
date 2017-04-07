@@ -28,7 +28,7 @@
 		}
 
 		.app-version {
-			margin-top: 20px;
+			margin-top: 15px;
 			font-size: 11px;
 		}
 
@@ -42,7 +42,16 @@
 
 		.copyright {
 			font-size: 10px;
-			margin: 5px 0 0 0;
+			position: absolute;
+			bottom: 0;
+			margin-left: auto;
+			margin-right: auto;
+			left: 0;
+			right: 0;
+		}
+
+		.auto-update-container {
+			margin: 5px 0;
 		}
 	</style>
 </head>
@@ -55,18 +64,26 @@
 		<span class="update-spin icon-spin3 animate-spin" style="display:none;"></span>
 
 		<button class="update">Check for Updates</button>
+		<p class="auto-update-container"><input type="checkbox" id="auto-update" checked /> Check for Updates on Start</p>
 		<p class="copyright">Copyright &copy; 2017, Rocket.Chat</p>
 		<script>
-			const remote = require('electron').remote;
+			const { remote, ipcRenderer } = require('electron');
+			const autoUpdate = ipcRenderer.sendSync('check-for-updates', 'auto');
+			if (!autoUpdate) {
+				document.querySelector('#auto-update').removeAttribute('checked');
+			}
 			document.querySelector('.app-name').innerHTML = remote.app.getName();
 			document.querySelector('.app-version').innerHTML = `Version <span class="version">${remote.app.getVersion()}</span>`;
 			document.querySelector('.update').onclick = function(e) {
 				document.querySelector('.update-spin').setAttribute('style', '');
 				document.querySelector('.update').setAttribute('disabled', 'disabled');
-				require('electron').ipcRenderer.send('check-for-updates');
+				ipcRenderer.send('check-for-updates');
 
 			}
-			require('electron').ipcRenderer.on('update-result', (e, updateAvailable) => {
+			document.querySelector('#auto-update').onclick = function(e) {
+				ipcRenderer.send('check-for-updates', e.target.checked);
+			}
+			ipcRenderer.on('update-result', (e, updateAvailable) => {
 				document.querySelector('.update-spin').setAttribute('style', 'display:none');
 				document.querySelector('.update').removeAttribute('disabled');
 				if (!updateAvailable) {

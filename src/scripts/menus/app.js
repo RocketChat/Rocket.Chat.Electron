@@ -9,7 +9,7 @@ const appTemplate = [
         click: function () {
             const win = new remote.BrowserWindow({
                 width: 310,
-                height: 220,
+                height: 240,
                 resizable: false,
                 show: false,
                 center: true,
@@ -19,6 +19,7 @@ const appTemplate = [
             });
             win.loadURL('file://' + __dirname + '/about.html');
             win.setMenuBarVisibility(false);
+            win.openDevTools();
             win.show();
         }
     },

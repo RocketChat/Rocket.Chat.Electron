@@ -8,6 +8,13 @@ let checkForUpdatesEvent;
 
 autoUpdater.autoDownload = false;
 
+let updateFile = {};
+try {
+    updateFile = userDataDir.read(updateStoreFile, 'json') || {};
+} catch (err) {
+    console.log(err);
+}
+
 function updateDownloaded () {
     dialog.showMessageBox({
         title: 'Update Ready to Install',
@@ -32,16 +39,9 @@ function updateDownloaded () {
 function updateAvailable ({version}) {
     if (checkForUpdatesEvent) {
         checkForUpdatesEvent.sender.send('update-result', true);
-    } else {
-        try {
-            const updateFile = userDataDir.read(updateStoreFile, 'json');
-            if (updateFile && updateFile.skip === version) {
-                console.log(`Skipping version: ${version}`);
-                return;
-            }
-        } catch (err) {
-            console.log(err);
-        }
+    } else if (updateFile.skip === version) {
+        console.log(`Skipping version: ${version}`);
+        return;
     }
 
     let window = new BrowserWindow({
@@ -66,7 +66,8 @@ function updateAvailable ({version}) {
     ipcMain.once('update-response', (e, type) => {
         switch (type) {
             case 'skip':
-                userDataDir.write(updateStoreFile, {skip: version}, { atomic: true });
+                updateFile.skip = version;
+                userDataDir.write(updateStoreFile, updateFile, { atomic: true });
                 dialog.showMessageBox({
                     title: 'Skip Update',
                     message: 'We will notify you when the next update is available\n' +
@@ -105,12 +106,21 @@ function checkForUpdates () {
     autoUpdater.on('update-downloaded', updateDownloaded);
 
     // Event from about window
-    ipcMain.on('check-for-updates', (e) => {
-        checkForUpdatesEvent = e;
-        autoUpdater.checkForUpdates();
+    ipcMain.on('check-for-updates', (e, autoUpdate) => {
+        if (autoUpdate === true || autoUpdate === false) {
+            updateFile.autoUpdate = autoUpdate;
+            userDataDir.write(updateStoreFile, updateFile, { atomic: true });
+        } else if (autoUpdate === 'auto') {
+            e.returnValue = updateFile.autoUpdate;
+        } else {
+            checkForUpdatesEvent = e;
+            autoUpdater.checkForUpdates();
+        }
     });
 
-    autoUpdater.checkForUpdates();
+    if (updateFile.autoUpdate !== false) {
+        autoUpdater.checkForUpdates();
+    }
 }
 
 export {

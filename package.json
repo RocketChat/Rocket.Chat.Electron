@@ -1,5 +1,5 @@
 {
-  "name": "rocketchat",
+  "name": "rocketchat-desktop",
   "productName": "Rocket.Chat+",
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
   "version": "2.7.0-develop",
@@ -46,7 +46,8 @@
       },
       "target": [
         "deb",
-        "rpm"
+        "rpm",
+        "snap"
       ]
     }
   },

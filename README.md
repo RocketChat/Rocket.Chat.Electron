@@ -137,11 +137,11 @@ All packaging actions are handled by [electron-builder](https://github.com/elect
 
 # Post Release Configuration
 ## Deploying with pre-configured servers
-You can bundle a 'servers.json' with the install will define what servers the client will connect and will populate the server list in the sidebar.
+You can bundle a `servers.json` with the install which will define what servers the client will connect to and will populate the server list in the sidebar.
 
-If this file is found, the initial "Connect to server" screen will be skipped and it will attempt to connect to the first server in the array that has been defined and drop the user right at the login screen. 
+If this file is found, the initial "Connect to server" screen will be skipped and it will attempt to connect to the first server in the array that has been defined and drop the user right at the login screen.
 
-servers.json needs to be placed in the %APPDATA% folder for the User not the System wide one. 
+The `servers.json` file needs to be placed in the `%APPDATA%` folder for the User not the System wide one.
 
 ```
 %APPDATA%/Rocket.Chat+/servers.json
@@ -150,8 +150,8 @@ servers.json needs to be placed in the %APPDATA% folder for the User not the Sys
 The syntax/layout of servers.json is as follows: 
 ```
 {
-"MyRocketChatServer": "https://my-chat-server-url.com",
-"Server2": "https://demo.rocket.chat"
+  "MyRocketChatServer": "https://my-chat-server-url.com",
+  "Server2": "https://demo.rocket.chat"
 }
 ```
 
@@ -164,6 +164,7 @@ and on windows:
 ```
 C:\Users\<username>\AppData\Roaming\Rocket.Chat+\servers.json
 ```
+
 # Useful links
 
 http://developerthing.blogspot.com.br/2017/01/awesome-electron.html

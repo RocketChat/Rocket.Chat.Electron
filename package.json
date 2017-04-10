@@ -71,7 +71,7 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "electron": "^1.6.2",
-    "electron-builder": "^16.4.2",
+    "electron-builder": "^16.8.2",
     "electron-rebuild": "^1.5.7",
     "electron-mocha": "^3.4.0",
     "gulp": "^3.9.1",
@@ -86,6 +86,6 @@
     "rollup": "^0.41.6",
     "rollup-plugin-istanbul": "^1.1.0",
     "source-map-support": "^0.4.14",
-    "spectron": "^3.6.0"
+    "spectron": "^3.6.1"
   }
 }

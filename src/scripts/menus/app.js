@@ -19,7 +19,6 @@ const appTemplate = [
             });
             win.loadURL('file://' + __dirname + '/about.html');
             win.setMenuBarVisibility(false);
-            win.openDevTools();
             win.show();
         }
     },

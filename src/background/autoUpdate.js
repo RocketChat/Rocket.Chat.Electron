@@ -36,9 +36,17 @@ function updateDownloaded () {
     });
 }
 
+function updateNotAvailable () {
+    if (checkForUpdatesEvent) {
+        checkForUpdatesEvent.sender.send('update-result', false);
+        checkForUpdatesEvent = null;
+    }
+}
+
 function updateAvailable ({version}) {
     if (checkForUpdatesEvent) {
         checkForUpdatesEvent.sender.send('update-result', true);
+        checkForUpdatesEvent = null;
     } else if (updateFile.skip === version) {
         console.log(`Skipping version: ${version}`);
         return;
@@ -98,6 +106,7 @@ function updateAvailable ({version}) {
 
 function checkForUpdates () {
     autoUpdater.on('update-available', updateAvailable);
+    autoUpdater.on('update-not-available', updateNotAvailable);
 
     autoUpdater.on('download-progress', ({percent}) => {
         console.log(`Update progress: ${percent}`);

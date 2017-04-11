@@ -3,59 +3,61 @@ import { remote } from 'electron';
 const APP_NAME = remote.app.getName();
 const isMac = process.platform === 'darwin';
 
-const macAppTemplate = [
-    {
-        label: 'About ' + APP_NAME,
-        role: 'about'
-    },
-    {
-        type: 'separator'
-    },
-    {
-        label: 'Hide ' + APP_NAME,
-        accelerator: 'Command+H',
-        role: 'hide'
-    },
-    {
-        label: 'Hide Others',
-        accelerator: 'Command+Alt+H',
-        role: 'hideothers'
-    },
-    {
-        label: 'Show All',
-        role: 'unhide'
-    },
-    {
-        type: 'separator'
-    },
-    {
-        label: 'Quit ' + APP_NAME,
-        accelerator: 'Command+Q',
-        click: function () {
-            remote.app.quit();
-        }
-    }
-];
-
 const appTemplate = [
     {
         label: 'About ' + APP_NAME,
         click: function () {
-            const win = new remote.BrowserWindow({ width: 310, height: 200, minWidth: 310, minHeight: 200, maxWidth: 310, maxHeight: 200, show: false, maximizable: false, minimizable: false, title: ' ' });
+            const win = new remote.BrowserWindow({
+                width: 310,
+                height: 240,
+                resizable: false,
+                show: false,
+                center: true,
+                maximizable: false,
+                minimizable: false,
+                title: 'About Rocket.Chat'
+            });
             win.loadURL('file://' + __dirname + '/about.html');
+            win.setMenuBarVisibility(false);
+            win.openDevTools();
             win.show();
         }
     },
     {
-        type: 'separator'
+        type: 'separator',
+        id: 'about-sep'
     },
     {
-        label: 'Quit',
-        accelerator: 'Ctrl+Q',
+        label: `Quit ${APP_NAME}`,
+        accelerator: 'CommandOrControl+Q',
         click: function () {
             remote.app.quit();
         }
     }
 ];
 
-export default isMac ? macAppTemplate : appTemplate;
+if (isMac) {
+    const macAppExtraTemplate = [
+        {
+            label: 'Hide ' + APP_NAME,
+            accelerator: 'Command+H',
+            role: 'hide',
+            position: 'after=about-sep'
+        },
+        {
+            label: 'Hide Others',
+            accelerator: 'Command+Alt+H',
+            role: 'hideothers'
+        },
+        {
+            label: 'Show All',
+            role: 'unhide'
+        },
+        {
+            type: 'separator'
+        }
+    ];
+    appTemplate.push(...macAppExtraTemplate);
+}
+
+export default appTemplate;

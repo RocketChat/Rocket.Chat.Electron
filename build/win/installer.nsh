@@ -27,5 +27,7 @@
 !macroend
 
 !macro customUnInstall
-  Delete "$SMSTARTUP\Rocket.Chat+.lnk"
+  ${IfNot} ${Silent}
+    Delete "$SMSTARTUP\Rocket.Chat+.lnk"
+  ${endif}
 !macroend

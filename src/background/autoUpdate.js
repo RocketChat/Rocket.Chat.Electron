@@ -32,6 +32,7 @@ function updateDownloaded () {
             });
         } else {
             autoUpdater.quitAndInstall();
+            setTimeout(() => app.quit(), 1000);
         }
     });
 }

@@ -2,9 +2,9 @@
   "name": "rocketchat",
   "productName": "Rocket.Chat+",
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
-  "version": "2.6.1",
+  "version": "2.7.0-develop",
   "author": "Rocket.Chat Support <support@rocket.chat>",
-  "copyright": "© 2016, Rocket.Chat",
+  "copyright": "© 2017, Rocket.Chat",
   "homepage": "https://rocket.chat",
   "license": "MIT",
   "main": "app/background.js",
@@ -48,7 +48,15 @@
         "deb",
         "rpm"
       ]
+  },
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "RocketChat",
+      "repo": "Rocket.Chat.Electron",
+      "vPrefixedTagName": false
     }
+  ]
   },
   "scripts": {
     "postinstall": "install-app-deps && electron-rebuild",
@@ -64,16 +72,17 @@
   },
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
-    "fs-jetpack": "^0.12.0",
+    "electron-updater": "^1.14.2",
+    "fs-jetpack": "^0.13.3",
     "lodash": "^4.17.4",
     "spellchecker": "^3.3.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "electron": "^1.6.1",
-    "electron-builder": "^14.5.3",
+    "electron": "^1.6.6",
+    "electron-builder": "^17.1.1",
+    "electron-mocha": "^3.4.0",
     "electron-rebuild": "^1.5.7",
-    "electron-mocha": "^3.3.0",
     "gulp": "^3.9.1",
     "gulp-batch": "^1.0.5",
     "gulp-less": "^3.3.0",
@@ -82,10 +91,10 @@
     "gulp-watch": "^4.3.11",
     "istanbul": "^0.4.5",
     "minimist": "^1.2.0",
-    "mocha": "^3.2.0",
-    "rollup": "^0.41.4",
+    "mocha": "^3.3.0",
+    "rollup": "^0.41.6",
     "rollup-plugin-istanbul": "^1.1.0",
-    "source-map-support": "^0.4.11",
-    "spectron": "^3.6.0"
+    "source-map-support": "^0.4.14",
+    "spectron": "^3.6.2"
   }
 }

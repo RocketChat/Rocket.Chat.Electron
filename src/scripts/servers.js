@@ -171,6 +171,7 @@ class Servers extends EventEmitter {
         }
 
         if (this.hostExists(hostUrl) === true) {
+            this.setActive(hostUrl);
             return false;
         }
 

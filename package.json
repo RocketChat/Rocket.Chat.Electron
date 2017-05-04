@@ -72,7 +72,7 @@
   },
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
-    "electron-updater": "^1.14.3",
+    "electron-updater": "^1.14.4",
     "fs-jetpack": "^0.13.3",
     "lodash": "^4.17.4",
     "spellchecker": "^3.3.1"

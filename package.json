@@ -72,7 +72,7 @@
   },
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
-    "electron-updater": "^1.14.2",
+    "electron-updater": "^1.14.3",
     "fs-jetpack": "^0.13.3",
     "lodash": "^4.17.4",
     "spellchecker": "^3.3.1"
@@ -80,7 +80,7 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "electron": "^1.6.6",
-    "electron-builder": "^17.1.1",
+    "electron-builder": "^17.1.2",
     "electron-mocha": "^3.4.0",
     "electron-rebuild": "^1.5.7",
     "gulp": "^3.9.1",
@@ -94,7 +94,7 @@
     "mocha": "^3.3.0",
     "rollup": "^0.41.6",
     "rollup-plugin-istanbul": "^1.1.0",
-    "source-map-support": "^0.4.14",
+    "source-map-support": "^0.4.15",
     "spectron": "^3.6.2"
   }
 }

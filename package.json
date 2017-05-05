@@ -1,5 +1,5 @@
 {
-  "name": "rocketchat-desktop",
+  "name": "Rocket.Chat+",
   "productName": "Rocket.Chat+",
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
   "version": "2.8.0-develop",
@@ -80,7 +80,7 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "electron": "^1.6.6",
-    "electron-builder": "^17.1.2",
+    "electron-builder": "^17.3.0",
     "electron-mocha": "^3.4.0",
     "electron-rebuild": "^1.5.7",
     "gulp": "^3.9.1",

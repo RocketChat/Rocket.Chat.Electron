@@ -121,7 +121,7 @@ function checkForUpdates () {
             updateFile.autoUpdate = autoUpdate;
             userDataDir.write(updateStoreFile, updateFile, { atomic: true });
         } else if (autoUpdate === 'auto') {
-            e.returnValue = updateFile.autoUpdate;
+            e.returnValue = !!updateFile.autoUpdate;
         } else {
             checkForUpdatesEvent = e;
             autoUpdater.checkForUpdates();

@@ -46,8 +46,7 @@
       },
       "target": [
         "deb",
-        "rpm",
-        "snap"
+        "rpm"
       ]
   },
   "publish": [

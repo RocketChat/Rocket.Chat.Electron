@@ -30,6 +30,8 @@ parts:
       - gconf2
       - libasound2
       - pulseaudio
+    organize:
+      rocketchat: rocketchat-desktop
     source: dist/linux-unpacked
     after:
       - desktop-glib-only

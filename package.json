@@ -80,7 +80,7 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "electron": "^1.6.7",
-    "electron-builder": "^17.5.0",
+    "electron-builder": "^17.8.0",
     "electron-mocha": "^3.4.0",
     "electron-rebuild": "^1.5.11",
     "gulp": "^3.9.1",

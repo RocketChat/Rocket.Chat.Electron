@@ -2,7 +2,7 @@
   "name": "rocketchat",
   "productName": "Rocket.Chat+",
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
-  "version": "2.8.0-develop",
+  "version": "2.9.0-develop",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2017, Rocket.Chat",
   "homepage": "https://rocket.chat",
@@ -24,6 +24,7 @@
       "build/icon.ico"
     ],
     "mac": {
+      "bundleVersion": "19",
       "helperBundleId": "chat.rocket.electron.helper",
       "category": "public.app-category.productivity",
       "target": [

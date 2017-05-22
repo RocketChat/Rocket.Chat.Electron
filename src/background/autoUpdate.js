@@ -2,6 +2,7 @@ import { app, ipcMain, BrowserWindow, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';
 
+const installDir = jetpack.cwd(app.getAppPath());
 const userDataDir = jetpack.cwd(app.getPath('userData'));
 const updateStoreFile = 'update.json';
 let checkForUpdatesEvent;
@@ -10,7 +11,9 @@ autoUpdater.autoDownload = false;
 
 let updateFile = {};
 try {
-    updateFile = userDataDir.read(updateStoreFile, 'json') || {};
+    const installUpdateFile = installDir.read(updateStoreFile, 'json');
+    const userUpdateFile = userDataDir.read(updateStoreFile, 'json');
+    updateFile = Object.assign({}, installUpdateFile, userUpdateFile);
 } catch (err) {
     console.log(err);
 }
@@ -121,7 +124,7 @@ function checkForUpdates () {
             updateFile.autoUpdate = autoUpdate;
             userDataDir.write(updateStoreFile, updateFile, { atomic: true });
         } else if (autoUpdate === 'auto') {
-            e.returnValue = !!updateFile.autoUpdate;
+            e.returnValue = updateFile.autoUpdate !== false;
         } else {
             checkForUpdatesEvent = e;
             autoUpdater.checkForUpdates();

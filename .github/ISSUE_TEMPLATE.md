@@ -1,24 +1,25 @@
-## My Setup
-<!-- INSTRUCTION: Answer the questions below about your current setup -->
- - __My OS name and version__: 
- - __My current app version__: 
-
 <!--
- INSTRUCTION: Answer the questions below by checking items with x, like:
- - [x] Checked Item
+Thanks for opening an issue! A few things to keep in mind:
+
+- Before reporting a bug, please try reproducing your issue with the latest version.
+- Please verify that the bug is related to the Rocket.Chat Desktop app, and NOT the
+  main web app by testing in Chrome/Firefox.
+- If the issue occurs in the browser, report to github.com/RocketChat/Rocket.Chat instead
 -->
-- [ ] I have tested with the latest application version
+
+## My Setup
+- Operating System:
+- App Version:
+
+<!-- Answer questions by putting x in box, e.g. [x] -->
+- [ ] I have tested with the latest version
 - [ ] I can simulate the issue easily
 
 ## Description
+<!-- If relevant, attach screenshots, and how to reproduce -->
 
-<!-- INSTRUCTION: Add more information about your issue and how to simulate the problem if it is possible -->
+### Current Behavior
+<!-- What do you think should happen? -->
 
-#### Current Behavior
-
-<!-- INSTRUCTION: Explain the current behavior and attach screen shots if it is possible -->
-
-#### Expected Behavior
-
-<!-- INSTRUCTION: Explain the expected behavior and attach screen shots if it is possible -->
-
+### Expected Behavior
+<!-- What actually happens? -->

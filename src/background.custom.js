@@ -62,6 +62,23 @@ export function afterMainWindow (mainWindow) {
         }
     }
 
+    if (!app.isDefaultProtocolClient('rocketchat')) {
+        app.setAsDefaultProtocolClient('rocketchat');
+    }
+
+    app.on('open-url', (e, url) => {
+        if (url && url.startsWith('rocketchat://')) {
+            const site = url.split(/\/|\?/)[2];
+            if (site) {
+                let scheme = 'https://';
+                if (url.includes('insecure=true')) {
+                    scheme = 'http://';
+                }
+                mainWindow.webContents.send('add-host', `${scheme}${site}`);
+            }
+        }
+    });
+
     // Preserver of the window size and position between app launches.
     var mainWindowState = windowStateKeeper('main', {
         width: 1000,

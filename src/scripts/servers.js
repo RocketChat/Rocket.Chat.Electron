@@ -2,13 +2,33 @@
 
 import jetpack from 'fs-jetpack';
 import { EventEmitter } from 'events';
-import { remote } from 'electron';
+import { remote, ipcRenderer } from 'electron';
 const remoteServers = remote.require('./background').remoteServers;
 
 class Servers extends EventEmitter {
     constructor () {
         super();
         this.load();
+        ipcRenderer.on('add-host', (e, host) => {
+            if (this.hostExists(host)) {
+                this.setActive(host);
+            } else {
+                remote.dialog.showMessageBox({
+                    type: 'question',
+                    buttons: ['Add', 'Cancel'],
+                    defaultId: 0,
+                    title: 'Add Server',
+                    message: `Do you want to add "${host} to your list of servers?"`
+                }, (response) => {
+                    if (response === 0) {
+                        this.validateHost(host)
+                            .then(() => this.addHost(host))
+                            .then(() => this.setActive(host))
+                            .catch(() => remote.dialog.showErrorBox('Invalid Host', `The host "${host}" could not be validated, so was not added.`));
+                    }
+                });
+            }
+        });
     }
 
     get hosts () {

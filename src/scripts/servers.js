@@ -73,7 +73,7 @@ class Servers extends EventEmitter {
                 const resultUserDataDir = userDataDir.read(serverFileName, 'json');
                 // overwrite installDataDir servers.json
                 if (resultUserDataDir) {
-                  var result = resultUserDataDir;
+                    result = resultUserDataDir;
                 }
                 if (result) {
                     hosts = {};

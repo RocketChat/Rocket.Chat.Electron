@@ -49,18 +49,17 @@
         "deb",
         "rpm"
       ]
-  },
-  "publish": [
-    {
-      "provider": "github",
-      "owner": "RocketChat",
-      "repo": "Rocket.Chat.Electron",
-      "vPrefixedTagName": false
-    }
-  ]
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "RocketChat",
+        "repo": "Rocket.Chat.Electron",
+        "vPrefixedTagName": false
+      }
+    ]
   },
   "scripts": {
-    "postinstall": "install-app-deps && electron-rebuild",
     "build": "gulp build",
     "prerelease": "gulp build --env=production",
     "release": "build",
@@ -73,29 +72,33 @@
   },
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
-    "electron-updater": "^1.16.0",
-    "fs-jetpack": "^1.0.0",
+    "electron-updater": "^2.7.1",
+    "fs-jetpack": "^1.1.0",
     "lodash": "^4.17.4",
-    "spellchecker": "^3.3.1"
+    "spellchecker": "^3.4.1"
   },
   "devDependencies": {
-    "chai": "^4.0.0",
-    "electron": "^1.6.10",
-    "electron-builder": "^18.0.1",
-    "electron-mocha": "^3.4.0",
+    "chai": "^4.1.0",
+    "electron": "^1.6.11",
+    "electron-builder": "^19.16.0",
+    "electron-mocha": "^4.0.0",
     "electron-rebuild": "^1.5.11",
     "gulp": "^3.9.1",
     "gulp-batch": "^1.0.5",
-    "gulp-less": "^3.3.0",
+    "gulp-less": "^3.3.2",
     "gulp-plumber": "^1.1.0",
     "gulp-util": "^3.0.8",
     "gulp-watch": "^4.3.11",
     "istanbul": "^0.4.5",
     "minimist": "^1.2.0",
     "mocha": "^3.4.2",
-    "rollup": "^0.41.6",
+    "rollup": "^0.45.2",
     "rollup-plugin-istanbul": "^1.1.0",
-    "source-map-support": "^0.4.15",
-    "spectron": "^3.7.1"
+    "spectron": "^3.7.2"
+  },
+  "devEngines": {
+    "node": ">=7.x",
+    "npm": ">=4.x",
+    "yarn": ">=0.21.3"
   }
 }

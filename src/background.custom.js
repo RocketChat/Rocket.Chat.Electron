@@ -47,10 +47,35 @@ ipcMain.on('source-result', (e, sourceId) => {
     }
 });
 
+function processProtocolURI (uri) {
+    if (uri && uri.startsWith('rocketchat://')) {
+        const site = uri.split(/\/|\?/)[2];
+        if (site) {
+            let scheme = 'https://';
+            if (uri.includes('insecure=true')) {
+                scheme = 'http://';
+            }
+            return scheme + site;
+        }
+    }
+}
+
+
+function processProtocolArgv (argv) {
+    const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
+    if (protocolURI) {
+        return processProtocolURI(protocolURI);
+    }
+}
+
 export function afterMainWindow (mainWindow) {
     if (process.platform !== 'darwin') {
-        var shouldQuit = app.makeSingleInstance(function () {
+        const shouldQuit = app.makeSingleInstance((argv) => {
             // Someone tried to run a second instance, we should focus our window.
+            const site = processProtocolArgv(argv);
+            if (site) {
+                mainWindow.webContents.send('add-host', site);
+            }
             if (mainWindow) {
                 mainWindow.show();
                 mainWindow.focus();
@@ -60,24 +85,24 @@ export function afterMainWindow (mainWindow) {
         if (shouldQuit) {
             app.quit();
         }
+    } else {
+        // Open protocol urls on mac as open-url is not yet implemented on other OS's
+        app.on('open-url', (e, url) => {
+            const site = processProtocolURI(url);
+            if (site) {
+                mainWindow.webContents.send('add-host', site);
+            }
+        });
     }
 
     if (!app.isDefaultProtocolClient('rocketchat')) {
         app.setAsDefaultProtocolClient('rocketchat');
     }
 
-    app.on('open-url', (e, url) => {
-        if (url && url.startsWith('rocketchat://')) {
-            const site = url.split(/\/|\?/)[2];
-            if (site) {
-                let scheme = 'https://';
-                if (url.includes('insecure=true')) {
-                    scheme = 'http://';
-                }
-                mainWindow.webContents.send('add-host', `${scheme}${site}`);
-            }
-        }
-    });
+    const site = processProtocolArgv(process.argv);
+    if (site) {
+        mainWindow.webContents.send('add-host', site);
+    }
 
     // Preserver of the window size and position between app launches.
     var mainWindowState = windowStateKeeper('main', {

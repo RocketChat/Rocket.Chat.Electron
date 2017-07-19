@@ -60,6 +60,7 @@
     ]
   },
   "scripts": {
+    "postinstall": "install-app-deps && electron-rebuild",
     "build": "gulp build",
     "prerelease": "gulp build --env=production",
     "release": "build",

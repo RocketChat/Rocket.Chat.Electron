@@ -1,7 +1,6 @@
 language: node_js
 node_js: 7
 cache:
-  yarn: true
   directories:
     - node_modules
 
@@ -20,12 +19,12 @@ matrix:
     osx_image: xcode8.3
 
 install:
-  - yarn
+  - npm install
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
   - node --version
-  - yarn --version
-  - yarn release -- --x64 --ia32
+  - npm --version
+  - npm run release -- --x64 --ia32
 
 branches:
   only:

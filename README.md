@@ -132,7 +132,10 @@ yarn release
 
 It will start the packaging process for operating system you are running this command on. Ready for distribution file will be outputted to `dist` directory.
 
-You can create Windows installer only when running on Windows, the same is true for Linux and macOS. So to generate all three installers you need all three operating systems.
+Right now you can only create Windows installer when running Windows, the same is true for macOS. For Linux builds, you can use our [Docker image](https://hub.docker.com/r/rocketchat/electron.builder/) with the following commands:
+```
+docker run --rm -ti -v ${PWD}:/project -v ${PWD##*/}-node-modules:/project/node_modules -v ~/.electron:/root/.electron rocketchat/electron.builder /bin/bash -l -c "yarn && yarn release -- --x64 --ia32 --p never"
+```
 
 All packaging actions are handled by [electron-builder](https://github.com/electron-userland/electron-builder). It has a lot of [customization options](https://github.com/electron-userland/electron-builder/wiki/Options), which you can declare under ["build" key in package.json file](https://github.com/szwacz/electron-boilerplate/blob/master/package.json#L2).
 

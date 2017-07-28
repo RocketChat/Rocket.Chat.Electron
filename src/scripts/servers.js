@@ -69,12 +69,7 @@ class Servers extends EventEmitter {
             const userDataDir = jetpack.cwd(remote.app.getPath('userData'));
             const installDataDir = jetpack.cwd(process.cwd());
             try {
-                var result = installDataDir.read(serverFileName, 'json');
-                const resultUserDataDir = userDataDir.read(serverFileName, 'json');
-                // overwrite installDataDir servers.json
-                if (resultUserDataDir) {
-                    result = resultUserDataDir;
-                }
+                const result = userDataDir.read(serverFileName, 'json') || installDataDir.read(serverFileName, 'json');
                 if (result) {
                     hosts = {};
                     Object.keys(result).forEach((title) => {

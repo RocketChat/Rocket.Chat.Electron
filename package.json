@@ -16,7 +16,8 @@
     "appId": "chat.rocket",
     "files": [
       "app/**/*",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "package.json"
     ],
     "extraResources": [
       "dictionaries/**/*",

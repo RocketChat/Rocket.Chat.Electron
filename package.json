@@ -16,12 +16,12 @@
     "appId": "chat.rocket",
     "files": [
       "app/**/*",
-      "node_modules/**/*",
-      "package.json"
+      "node_modules/**/*"
     ],
     "extraResources": [
       "dictionaries/**/*",
-      "build/icon.ico"
+      "build/icon.ico",
+      "servers.json"
     ],
     "mac": {
       "bundleVersion": "19",

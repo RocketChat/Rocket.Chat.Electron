@@ -139,35 +139,20 @@ docker run --rm -ti -v ${PWD}:/project -v ${PWD##*/}-node-modules:/project/node_
 
 All packaging actions are handled by [electron-builder](https://github.com/electron-userland/electron-builder). It has a lot of [customization options](https://github.com/electron-userland/electron-builder/wiki/Options), which you can declare under ["build" key in package.json file](https://github.com/szwacz/electron-boilerplate/blob/master/package.json#L2).
 
-# Post Release Configuration
+# Release Configuration
 ## Deploying with pre-configured servers
-You can bundle a `servers.json` with the install which will define what servers the client will connect to and will populate the server list in the sidebar.
+You can bundle a `servers.json` with the install package which will define what servers the client will connect to and will populate the server list in the sidebar.
 
-If this file is found, the initial "Connect to server" screen will be skipped and it will attempt to connect to the first server in the array that has been defined and drop the user right at the login screen.
+If this file is found, the initial "Connect to server" screen will be skipped and it will attempt to connect to the first server in the array that has been defined and drop the user right at the login screen. Note that the `servers.json` will only be checked if no other servers have already be added, even if you uninstall the app without removing older preferences, it will not be triggered again.
 
-The `servers.json` file needs to be placed in the `%APPDATA%` folder for the User not the System wide one. The servers.json will only be checked if no other servers have already be added. It should be copied to the correct location after the install.
-
-```
-%APPDATA%/Rocket.Chat+/servers.json
-```
-
-The syntax/layout of servers.json is as follows:
+The `servers.json` file should be located in the root of the project application (same level as the `package.json`) and the syntax is as follows:
 ```
 {
-  "MyRocketChatServer": "https://my-chat-server-url.com",
-  "Server2": "https://demo.rocket.chat"
+  "Demo Rocket Chat": "https://demo.rocket.chat",
+  "Open Rocket Chat": "https://open.rocket.chat"
 }
 ```
 
-On MacOS the full path of servers.json is:
-```
-/Users/<username>/Library/Application Support/Rocket.Chat+/servers.json
-```
-
-and on Windows:
-```
-C:\Users\<username>\AppData\Roaming\Rocket.Chat+\servers.json
-```
 
 # Useful links
 

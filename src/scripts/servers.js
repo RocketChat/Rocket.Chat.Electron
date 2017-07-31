@@ -67,7 +67,10 @@ class Servers extends EventEmitter {
         if (Object.keys(hosts).length === 0) {
             const serverFileName = 'servers.json';
             const userDataDir = jetpack.cwd(remote.app.getPath('userData'));
-            const installDataDir = jetpack.cwd(process.cwd());
+            const installDataDir = jetpack.exists(jetpack.path(remote.app.getAppPath())) === 'dir' ?
+              jetpack.cwd(remote.app.getAppPath()) :
+              jetpack.cwd(jetpack.path(remote.app.getAppPath(), '..')); //in case we are pointed to app.asar file
+
             try {
                 const result = userDataDir.read(serverFileName, 'json') || installDataDir.read(serverFileName, 'json');
                 if (result) {

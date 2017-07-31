@@ -66,8 +66,8 @@ class Servers extends EventEmitter {
         // Load server info from server config file
         if (Object.keys(hosts).length === 0) {
             const pathToServerJson = jetpack.path(
-              jetpack.find(remote.app.getAppPath(), { matching: 'servers.json'})[0] ||
-              jetpack.path(remote.app.getAppPath(), '../servers.json'));
+                jetpack.find(remote.app.getAppPath(), { matching: 'servers.json'})[0] ||
+                jetpack.path(remote.app.getAppPath(), '../servers.json'));
 
             try {
                 const result = jetpack.read(pathToServerJson, 'json');

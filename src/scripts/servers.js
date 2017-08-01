@@ -67,6 +67,7 @@ class Servers extends EventEmitter {
         if (Object.keys(hosts).length === 0) {
             const pathToServerJson = jetpack.path(
                 jetpack.find(remote.app.getPath('userData'), { matching: 'servers.json'})[0] ||
+                jetpack.find(process.cwd(), { matching: 'servers.json'})[0] ||
                 jetpack.find(remote.app.getAppPath(), { matching: 'servers.json'})[0]);
 
             try {

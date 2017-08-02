@@ -16,7 +16,7 @@ sidebar.on('badge-setted', function () {
     tray.showTrayAlert(!isNaN(parseInt(badge)) && badge > 0, badge);
 });
 
-export var start = function () {
+export const start = function () {
     const defaultInstance = 'https://demo.rocket.chat';
 
     // connection check
@@ -46,7 +46,7 @@ export var start = function () {
 
     function validateHost () {
         return new Promise(function (resolve, reject) {
-            var execValidation = function () {
+            const execValidation = function () {
                 invalidUrl.style.display = 'none';
                 hostField.classList.remove('wrong');
 

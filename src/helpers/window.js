@@ -7,7 +7,6 @@ import { app, BrowserWindow, screen } from 'electron';
 import jetpack from 'fs-jetpack';
 
 export default function (name, options) {
-
     const userDataDir = jetpack.cwd(app.getPath('userData'));
     const stateStoreFile = 'window-state-' + name +'.json';
     const defaultSize = {
@@ -15,7 +14,7 @@ export default function (name, options) {
         height: options.height
     };
     let state = {};
-    let win;
+    const win = new BrowserWindow(Object.assign({}, options, state));
 
     const restore = function () {
         let restoredState = {};
@@ -74,8 +73,6 @@ export default function (name, options) {
     };
 
     state = ensureVisibleOnSomeDisplay(restore());
-
-    win = new BrowserWindow(Object.assign({}, options, state));
 
     win.on('close', saveState);
 

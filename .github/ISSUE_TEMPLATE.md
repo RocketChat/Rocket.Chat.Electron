@@ -6,20 +6,25 @@ Thanks for opening an issue! A few things to keep in mind:
   main web app by testing in Chrome/Firefox.
 - If the issue occurs in the browser, report to github.com/RocketChat/Rocket.Chat instead
 -->
+### Description:
+<!-- Description of the issue -->
 
-## My Setup
+### My Setup
 - Operating System:
 - App Version:
 
 <!-- Answer questions by putting x in box, e.g. [x] -->
 - [ ] I have tested with the latest version
-- [ ] I can simulate the issue easily
+- [ ] I can reproduce the issue easily
 
-## Description
-<!-- If relevant, attach screenshots, and how to reproduce -->
 
-### Current Behavior
-<!-- What do you think should happen? -->
+### Steps to Reproduce:
+1. <!-- First Step (e.g. 'Open the app and toggle the servers list open') -->
+2. <!-- Second Step (e.g. 'Click on the Add Server button')-->
+3. <!-- and so on... -->
 
 ### Expected Behavior
+<!-- What do you think should happen? -->
+
+### Current Behavior
 <!-- What actually happens? -->

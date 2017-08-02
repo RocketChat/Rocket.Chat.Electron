@@ -2,15 +2,15 @@
 
 :+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
 
+The Rocket.Chat Electron app is Open Source, so we encourage every type of contribution, if you want a starting point make sure to check the open issues on our repository.
+
 The following is a set of guidelines for contributing to Rocket.Chat and its packages, which are hosted in the [Rocket.Chat Organization](https://github.com/RocketChat) on GitHub.
 
 __Note:__ If there's a feature you'd like, there's a bug you'd like to fix, or you'd just like to get involved please raise an issue and start a conversation. We'll help as much as we can so you can get contributing - although we may not always be able to respond right away :)
 
-## ECMAScript 2015 vs CoffeeScript
-
-While we still have a lot of CoffeeScript files you should not create new ones. New code contributions should be in **ECMAScript 2015**.
-
 ## Coding standards
+
+We use and encourage ES6+ adoption, but please check possible compatibility issues, mostly on code inside src/public since that is limited to what Electron/Chromium supports.
 
 Most of the coding standards are covered by `.editorconfig` and `.eslintrc.js`.
 

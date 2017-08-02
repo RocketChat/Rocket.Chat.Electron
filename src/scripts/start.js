@@ -8,7 +8,7 @@ import tray from './tray';
 import './menus';
 
 sidebar.on('badge-setted', function () {
-    var badge = sidebar.getGlobalBadge();
+    const badge = sidebar.getGlobalBadge();
 
     if (process.platform === 'darwin') {
         remote.app.dock.setBadge(badge);
@@ -17,7 +17,7 @@ sidebar.on('badge-setted', function () {
 });
 
 export var start = function () {
-    var defaultInstance = 'https://demo.rocket.chat';
+    const defaultInstance = 'https://demo.rocket.chat';
 
     // connection check
     function online () {
@@ -35,10 +35,10 @@ export var start = function () {
     window.addEventListener('offline', offline);
     // end connection check
 
-    var form = document.querySelector('form');
-    var hostField = form.querySelector('[name="host"]');
-    var button = form.querySelector('[type="submit"]');
-    var invalidUrl = form.querySelector('#invalidUrl');
+    const form = document.querySelector('form');
+    const hostField = form.querySelector('[name="host"]');
+    const button = form.querySelector('[type="submit"]');
+    const invalidUrl = form.querySelector('#invalidUrl');
 
     window.addEventListener('load', function () {
         hostField.focus();
@@ -50,7 +50,7 @@ export var start = function () {
                 invalidUrl.style.display = 'none';
                 hostField.classList.remove('wrong');
 
-                var host = hostField.value.trim();
+                let host = hostField.value.trim();
                 host = host.replace(/\/$/, '');
                 hostField.value = host;
 
@@ -122,10 +122,10 @@ export var start = function () {
         validateHost().then(function () {}, function () {});
     });
 
-    var submit = function () {
+    const submit = function () {
         validateHost().then(function () {
-            var input = form.querySelector('[name="host"]');
-            var url = input.value;
+            const input = form.querySelector('[name="host"]');
+            let url = input.value;
 
             if (url.length === 0) {
                 url = defaultInstance;

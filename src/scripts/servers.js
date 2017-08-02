@@ -30,7 +30,7 @@ class Servers extends EventEmitter {
     }
 
     load () {
-        var hosts = localStorage.getItem(this.hostsKey);
+        let hosts = localStorage.getItem(this.hostsKey);
 
         try {
             hosts = JSON.parse(hosts);
@@ -51,7 +51,7 @@ class Servers extends EventEmitter {
         }
 
         if (Array.isArray(hosts)) {
-            var oldHosts = hosts;
+            const oldHosts = hosts;
             hosts = {};
             oldHosts.forEach(function (item) {
                 item = item.replace(/\/$/, '');
@@ -102,7 +102,7 @@ class Servers extends EventEmitter {
     }
 
     forEach (cb) {
-        for (var host in this.hosts) {
+        for (const host in this.hosts) {
             if (this.hosts.hasOwnProperty(host)) {
                 cb(this.hosts[host]);
             }
@@ -113,7 +113,7 @@ class Servers extends EventEmitter {
         console.log('Validating hostUrl', hostUrl);
         timeout = timeout || 5000;
         return new Promise(function (resolve, reject) {
-            var resolved = false;
+            let resolved = false;
             $.getJSON(`${hostUrl}/api/info`).then(function () {
                 if (resolved) {
                     return;
@@ -123,7 +123,7 @@ class Servers extends EventEmitter {
                 resolve();
             }, function (request) {
                 if (request.status === 401) {
-                    let authHeader = request.getResponseHeader('www-authenticate');
+                    const authHeader = request.getResponseHeader('www-authenticate');
                     if (authHeader && authHeader.toLowerCase().indexOf('basic ') === 0) {
                         resolved = true;
                         console.log('HostUrl needs basic auth', hostUrl);
@@ -151,15 +151,15 @@ class Servers extends EventEmitter {
     }
 
     hostExists (hostUrl) {
-        var hosts = this.hosts;
+        const hosts = this.hosts;
 
         return !!hosts[hostUrl];
     }
 
     addHost (hostUrl) {
-        var hosts = this.hosts;
+        const hosts = this.hosts;
 
-        let match = hostUrl.match(/^(https?:\/\/)([^:]+):([^@]+)@(.+)$/);
+        const match = hostUrl.match(/^(https?:\/\/)([^:]+):([^@]+)@(.+)$/);
         let username;
         let password;
         let authUrl;
@@ -192,7 +192,7 @@ class Servers extends EventEmitter {
     }
 
     removeHost (hostUrl) {
-        var hosts = this.hosts;
+        const hosts = this.hosts;
         if (hosts[hostUrl]) {
             delete hosts[hostUrl];
             this.hosts = hosts;
@@ -241,7 +241,7 @@ class Servers extends EventEmitter {
         if (title === 'Rocket.Chat' && /https?:\/\/demo\.rocket\.chat/.test(hostUrl) === false) {
             title += ' - ' + hostUrl;
         }
-        var hosts = this.hosts;
+        const hosts = this.hosts;
         hosts[hostUrl].title = title;
         this.hosts = hosts;
         this.emit('title-setted', hostUrl, title);

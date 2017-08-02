@@ -1,7 +1,7 @@
 import './branding/branding.js';
 import { start } from './scripts/start';
 import { remote } from 'electron';
-var app = remote.app;
+const app = remote.app;
 
 Bugsnag.metaData = {
     // platformId: app.process.platform,

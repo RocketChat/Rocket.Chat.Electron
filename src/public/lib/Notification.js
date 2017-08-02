@@ -15,7 +15,7 @@ class Notification extends window.Notification {
     }
 
     set onclick (fn) {
-        var result = super.onclick = () => {
+        const result = super.onclick = () => {
             ipcRenderer.send('focus');
             ipcRenderer.sendToHost('focus');
             fn.apply(this, arguments);

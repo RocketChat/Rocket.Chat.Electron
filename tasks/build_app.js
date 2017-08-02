@@ -1,17 +1,17 @@
 'use strict';
 
-var gulp = require('gulp');
-var less = require('gulp-less');
-var watch = require('gulp-watch');
-var batch = require('gulp-batch');
-var plumber = require('gulp-plumber');
-var jetpack = require('fs-jetpack');
-var bundle = require('./bundle');
-var utils = require('./utils');
+const gulp = require('gulp');
+const less = require('gulp-less');
+const watch = require('gulp-watch');
+const batch = require('gulp-batch');
+const plumber = require('gulp-plumber');
+const jetpack = require('fs-jetpack');
+const bundle = require('./bundle');
+const utils = require('./utils');
 
-var projectDir = jetpack;
-var srcDir = jetpack.cwd('./src');
-var destDir = jetpack.cwd('./app');
+const projectDir = jetpack;
+const srcDir = jetpack.cwd('./src');
+const destDir = jetpack.cwd('./app');
 
 gulp.task('bundle', function () {
     return Promise.all([
@@ -29,12 +29,12 @@ gulp.task('less', function () {
 });
 
 gulp.task('environment', function () {
-    var configFile = 'config/env_' + utils.getEnvName() + '.json';
+    const configFile = 'config/env_' + utils.getEnvName() + '.json';
     projectDir.copy(configFile, destDir.path('env.json'), { overwrite: true });
 });
 
 gulp.task('watch', function () {
-    var beepOnError = function (done) {
+    const beepOnError = function (done) {
         return function (err) {
             if (err) {
                 utils.beepSound();

@@ -89,7 +89,7 @@ class SpellCheck {
             }
         }
 
-        let navigatorLanguage = navigator.language.replace('-', '_');
+        const navigatorLanguage = navigator.language.replace('-', '_');
         if (this.setEnabled(navigatorLanguage)) {
             return;
         }

@@ -160,14 +160,19 @@ If you can't (or don't want to) bundle the file inside the app, you can create a
 
 For Windows the full paths are:
 ```
-C:\Users\<username>\AppData\Roaming\Rocket.Chat+\servers.json
-C:\Program Files\Rocket.Chat+\Resources\servers.json
+~\Users\<username>\AppData\Roaming\Rocket.Chat+\
+~\Program Files\Rocket.Chat+\Resources\
 ```
 On MacOS the full path is:
 ```		
-/Users/<username>/Library/Application Support/Rocket.Chat+/servers.json
+~/Users/<username>/Library/Application Support/Rocket.Chat+/
+~/Applications/Rocket.Chat+.app/Contents/Resources/
 ```
-
+On Linux the full path is:
+```
+/home/<username>/.config/Rocket.Chat+/
+/opt/Rocket.Chat+/resources/
+```
 
 # Useful links
 

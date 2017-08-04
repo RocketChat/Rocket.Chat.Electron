@@ -76,8 +76,10 @@
     "electron-updater": "^2.7.1",
     "fs-jetpack": "^1.1.0",
     "lodash": "^4.17.4",
-    "node-mac-notifier": "0.0.13",
     "spellchecker": "^3.4.1"
+  },
+  "optionalDependencies": {
+    "node-mac-notifier": "0.0.13"
   },
   "devDependencies": {
     "chai": "^4.1.0",

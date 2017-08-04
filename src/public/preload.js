@@ -1,52 +1,13 @@
 /* globals Meteor, Tracker, RocketChat */
 'use strict';
 
-const { ipcRenderer, remote, webFrame } = require('electron');
-
-if (process.platform === 'darwin') {
-    const NodeNotification = require('node-mac-notifier');
-    window.Notification = class extends NodeNotification {
-        constructor (title, options) {
-            options.bundleId = remote.getGlobal('BUNDLE_ID');
-            super(title, options);
-        }
-
-        static requestPermission () {
-            return;
-        }
-
-        static get permission () {
-            return 'granted';
-        }
-    };
-}
-
-class Notification extends window.Notification {
-    constructor (title, options) {
-        super(title, options);
-        ipcRenderer.send('notification-shim', title, options);
-
-        // Handle correct notification using unique tag
-        ipcRenderer.once(`clicked-${options.tag}`, () => this.onclick());
-    }
-
-    get onclick () {
-        return super.onclick;
-    }
-
-    set onclick (fn) {
-        var result = super.onclick = () => {
-            ipcRenderer.send('focus');
-            ipcRenderer.sendToHost('focus');
-            fn.apply(this, arguments);
-        };
-        return result;
-    }
-}
+const { ipcRenderer, shell } = require('electron');
+const Notification = require('./lib/Notification');
+const SpellCheck = require('./lib/SpellCheck');
 
 window.Notification = Notification;
 
-var events = ['unread-changed'];
+var events = ['unread-changed', 'get-sourceId'];
 
 events.forEach(function (e) {
     window.addEventListener(e, function (event) {
@@ -65,321 +26,58 @@ window.addEventListener('load', function () {
     });
 });
 
-const {shell} = require('electron');
-
-var supportExternalLinks = function (e) {
-    var href;
-    var isExternal = false;
-
-    var checkDomElement = function (element) {
-        if (element.nodeName === 'A') {
-            if (element.classList.contains('swipebox') === false) {
-                href = element.getAttribute('href') || '';
-            }
+window.onload = function () {
+    const $ = require('./vendor/jquery-3.1.1');
+    function checkExternalUrl (e) {
+        const href = $(this).attr('href');
+        // Check href matching current domain
+        if (RegExp(`^${location.protocol}\/\/${location.host}`).test(href)) {
+            return;
         }
 
-        if (/^https?:\/\/.+/.test(href) === true /*&& RegExp('^https?:\/\/'+location.host).test(href) === false*/) {
-            isExternal = true;
+        // Check href matching relative URL
+        if (!/^([a-z]+:)?\/\//.test(href)) {
+            return;
         }
 
-        if (href && isExternal) {
+        if (/^file:\/\/.+/.test(href)) {
+            let item = href.slice(6);
+            shell.showItemInFolder(item);
+            e.preventDefault();
+        } else {
             shell.openExternal(href);
             e.preventDefault();
-        } else if (element.parentElement) {
-            checkDomElement(element.parentElement);
         }
-    };
+    }
 
-    checkDomElement(e.target);
+    $(document).on('click', 'a', checkExternalUrl);
+
+    $('#reload').click(function () {
+        ipcRenderer.sendToHost('reload-server');
+        $(this).hide();
+        $(this).parent().find('.loading-animation').show();
+    });
 };
 
-document.addEventListener('click', supportExternalLinks, false);
+// Prevent redirect to url when dragging in
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => e.preventDefault());
 
+const spellChecker = new SpellCheck();
+spellChecker.enable();
 
-var webContents = remote.getCurrentWebContents();
-var menu = new remote.Menu();
-
-var path = remote.require('path');
-
-// // set the initial context menu so that a context menu exists even before spellcheck is called
-var getTemplate = function () {
-    return [
-        {
-            label: 'Undo',
-            role: 'undo'
-        },
-        {
-            label: 'Redo',
-            role: 'redo'
-        },
-        {
-            type: 'separator'
-        },
-        {
-            label: 'Cut',
-            role: 'cut'
-        },
-        {
-            label: 'Copy',
-            role: 'copy'
-        },
-        {
-            label: 'Paste',
-            role: 'paste'
-        },
-        {
-            label: 'Select All',
-            role: 'selectall'
+/**
+ * Keep user online if they are still using their computer
+ */
+const AWAY_TIME = 300000; // 5 mins
+const INTERVAL = 10000; // 10 seconds
+setInterval(function () {
+    try {
+        const idleTime = ipcRenderer.sendSync('getSystemIdleTime');
+        if (idleTime < AWAY_TIME) {
+            Meteor.call('UserPresence:online');
         }
-    ];
-};
-
-let languagesMenu;
-let checker;
-const enabledDictionaries = [];
-let availableDictionaries = [];
-let dictionariesPath;
-
-if (localStorage.getItem('spellcheckerDictionaries')) {
-    let spellcheckerDictionaries = JSON.parse(localStorage.getItem('spellcheckerDictionaries'));
-    if (Array.isArray(spellcheckerDictionaries)) {
-        enabledDictionaries.push.apply(enabledDictionaries, spellcheckerDictionaries);
+    } catch (e) {
+        console.error(`Error getting system idle time: ${e}`);
     }
-}
-
-const saveEnabledDictionaries = function () {
-    localStorage.setItem('spellcheckerDictionaries', JSON.stringify(enabledDictionaries));
-};
-
-const isCorrect = function (text) {
-    if (!checker || enabledDictionaries.length === 0) {
-        return true;
-    }
-
-    let isCorrect = false;
-    enabledDictionaries.forEach(function (enabledDictionary) {
-        if (availableDictionaries.indexOf(enabledDictionary) === -1) {
-            return;
-        }
-
-        checker.setDictionary(enabledDictionary, dictionariesPath);
-        if (!checker.isMisspelled(text)) {
-            isCorrect = true;
-        }
-    });
-
-    return isCorrect;
-};
-
-const getCorrections = function (text) {
-    // Create an array of arrays of corrections
-    // One array of corrections per language
-    let allCorrections = [];
-    enabledDictionaries.forEach(function (enabledDictionary) {
-        if (availableDictionaries.indexOf(enabledDictionary) === -1) {
-            return;
-        }
-
-        checker.setDictionary(enabledDictionary, dictionariesPath);
-        const languageCorrections = checker.getCorrectionsForMisspelling(text);
-        if (languageCorrections.length > 0) {
-            allCorrections.push(languageCorrections);
-        }
-    });
-
-    // Get the size of biggest array
-    let length = 0;
-    allCorrections.forEach(function (items) {
-        length = Math.max(length, items.length);
-    });
-
-    // Merge all arrays until the size of the biggest array
-    // To get the best suggestions of each language first
-    // Ex: [[1,2,3], [a,b]] => [1,a,2,b,3]
-    const corrections = [];
-    for (let i = 0; i < length; i++) {
-        for (var j = 0; j < allCorrections.length; j++) {
-            if (allCorrections[j][i]) {
-                corrections.push(allCorrections[j][i]);
-            }
-        }
-    }
-
-    // Remove duplicateds
-    corrections.forEach(function (item, index) {
-        const dupIndex = corrections.indexOf(item, index+1);
-        if (dupIndex > -1) {
-            corrections.splice(dupIndex, 1);
-        }
-    });
-
-    return corrections;
-};
-
-try {
-    checker = require('spellchecker');
-
-    availableDictionaries = checker.getAvailableDictionaries();
-
-    if (availableDictionaries.length === 0) {
-        dictionariesPath = path.join(remote.app.getAppPath(), '../dictionaries');
-        availableDictionaries = [
-            'en_US',
-            'es_ES',
-            'pt_BR'
-        ];
-    } else {
-        for (let i = 0; i < availableDictionaries.length; i++) {
-            availableDictionaries[i] = availableDictionaries[i].replace('-', '_');
-        }
-    }
-
-    availableDictionaries = availableDictionaries.sort(function (a, b) {
-        if (a > b) {
-            return 1;
-        }
-        if (a < b) {
-            return -1;
-        }
-        return 0;
-    });
-
-    for (var i = enabledDictionaries.length - 1; i >= 0; i--) {
-        if (availableDictionaries.indexOf(enabledDictionaries[i]) === -1) {
-            enabledDictionaries.splice(i, 1);
-        }
-    }
-
-    if (enabledDictionaries.length === 0) {
-        if (localStorage.getItem('userLanguage')) {
-            let userLanguage = localStorage.getItem('userLanguage').replace('-', '_');
-            if (availableDictionaries.indexOf(userLanguage) > -1) {
-                enabledDictionaries.push(userLanguage);
-            }
-            if (userLanguage.indexOf('_') > -1) {
-                userLanguage = userLanguage.split('_')[0];
-                if (availableDictionaries.indexOf(userLanguage) > -1) {
-                    enabledDictionaries.push(userLanguage);
-                }
-            }
-        }
-
-        let navigatorLanguage = navigator.language.replace('-', '_');
-        if (availableDictionaries.indexOf(navigatorLanguage) > -1) {
-            enabledDictionaries.push(navigatorLanguage);
-        }
-        if (navigatorLanguage.indexOf('_') > -1) {
-            navigatorLanguage = navigatorLanguage.split('_')[0];
-            if (availableDictionaries.indexOf(navigatorLanguage) > -1) {
-                enabledDictionaries.push(navigatorLanguage);
-            }
-        }
-    }
-
-    if (enabledDictionaries.length === 0) {
-        let defaultLanguage = 'en_US';
-        if (availableDictionaries.indexOf(defaultLanguage) > -1) {
-            enabledDictionaries.push(defaultLanguage);
-        }
-        defaultLanguage = defaultLanguage.split('_')[0];
-        if (availableDictionaries.indexOf(defaultLanguage) > -1) {
-            enabledDictionaries.push(defaultLanguage);
-        }
-    }
-
-    languagesMenu = {
-        label: 'Spelling languages',
-        submenu: []
-    };
-
-    availableDictionaries.forEach((dictionary) => {
-        const menu = {
-            label: dictionary,
-            type: 'checkbox',
-            checked: enabledDictionaries.indexOf(dictionary) > -1,
-            click: function (menuItem) {
-                menu.checked = menuItem.checked;
-                if (menuItem.checked) {
-                    enabledDictionaries.push(dictionary);
-                } else {
-                    enabledDictionaries.splice(enabledDictionaries.indexOf(dictionary), 1);
-                }
-                saveEnabledDictionaries();
-            }
-        };
-        languagesMenu.submenu.push(menu);
-    });
-
-    webFrame.setSpellCheckProvider('', false, {
-        spellCheck: function (text) {
-            return isCorrect(text);
-        }
-    });
-} catch (e) {
-    console.log('Spellchecker module unavailable \n' + e.message);
-}
-
-window.addEventListener('contextmenu', function (event) {
-    event.preventDefault();
-
-    const template = getTemplate();
-
-    if (languagesMenu) {
-        template.unshift({ type: 'separator' });
-        template.unshift(languagesMenu);
-    }
-
-    setTimeout(function () {
-        if (['TEXTAREA', 'INPUT'].indexOf(event.target.nodeName) > -1) {
-            const text = window.getSelection().toString().trim();
-            if (text !== '' && !isCorrect(text)) {
-                const options = getCorrections(text);
-                const maxItems = Math.min(options.length, 6);
-
-                if (maxItems > 0) {
-                    const suggestions = [];
-                    const onClick = function (menuItem) {
-                        webContents.replaceMisspelling(menuItem.label);
-                    };
-
-                    for (let i = 0; i < options.length; i++) {
-                        const item = options[i];
-                        suggestions.push({ label: item, click: onClick });
-                    }
-
-                    template.unshift({ type: 'separator' });
-
-                    if (suggestions.length > maxItems) {
-                        const morSuggestions = {
-                            label: 'More spelling suggestions',
-                            submenu: suggestions.slice(maxItems)
-                        };
-                        template.unshift(morSuggestions);
-                    }
-
-                    template.unshift.apply(template, suggestions.slice(0, maxItems));
-                } else {
-                    template.unshift({ label: 'no suggestions', click: function () { } });
-                }
-            }
-        }
-
-        menu = remote.Menu.buildFromTemplate(template);
-        menu.popup(remote.getCurrentWindow());
-    }, 0);
-}, false);
-
-/* userPresence away timer based on system idle time */
-// function getSystemIdleTime () {
-//     return ipcRenderer.sendSync('getSystemIdleTime');
-// }
-
-// setInterval(function (){
-//  try {
-//      if(getSystemIdleTime() < UserPresence.awayTime) {
-//          UserPresence.setOnline();
-//      }
-//  } catch(e) {
-//      console.error(e);
-//  }
-// }, 1e3);
+}, INTERVAL);

@@ -3,12 +3,11 @@
 // It doesn't have any windows which you can see on screen, but we can open
 // window from here.
 
-import os from 'os';
-import { app, ipcMain } from 'electron';
+import { app, ipcMain, BrowserWindow } from 'electron';
 import windowStateKeeper from './background/windowState';
 import certificate from './background/certificate';
-import Toaster from './Toaster';
 import idle from '@paulcbetts/system-idle-time';
+import { checkForUpdates } from './background/autoUpdate';
 import jetpack from 'fs-jetpack';
 
 const appDataDir = jetpack.cwd(app.getAppPath());
@@ -19,10 +18,38 @@ if (packageJson && packageJson.build && packageJson.build.appId) {
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
-/* system idle time synchronous event process */
-ipcMain.on('getSystemIdleTime', function (event) {
-    /* why does this fire twice?!?!? */
-    event.returnValue = idle.getIdleTime();
+let screenshareEvent;
+ipcMain.on('screenshare', (event, sources) => {
+    screenshareEvent = event;
+    let window = new BrowserWindow({
+        width: 776,
+        height: 600,
+        show : false,
+        skipTaskbar: false
+    });
+
+    window.loadURL('file://'+__dirname+'/public/screenshare.html');
+
+    //window.openDevTools();
+    window.webContents.on('did-finish-load', () => {
+        window.webContents.send('sources', sources);
+        window.show();
+    });
+
+    window.on('closed', () => {
+        window = null;
+        if (screenshareEvent) {
+            screenshareEvent.sender.send('screenshare-result', 'PermissionDeniedError');
+            screenshareEvent = null;
+        }
+    });
+});
+
+ipcMain.on('source-result', (e, sourceId) => {
+    if (screenshareEvent) {
+        screenshareEvent.sender.send('screenshare-result', sourceId);
+        screenshareEvent = null;
+    }
 });
 
 export function afterMainWindow (mainWindow) {
@@ -72,7 +99,14 @@ export function afterMainWindow (mainWindow) {
             return;
         }
         event.preventDefault();
-        mainWindow.hide();
+        if (mainWindow.isFullScreen()) {
+            mainWindow.once('leave-full-screen', () => {
+                mainWindow.hide();
+            });
+            mainWindow.setFullScreen(false);
+        } else {
+            mainWindow.hide();
+        }
         mainWindowState.saveState(mainWindow);
     });
 
@@ -99,25 +133,11 @@ export function afterMainWindow (mainWindow) {
 
     ipcMain.on('focus', () => mainWindow.show());
 
-    // Windows 7 and below
-    const useToaster = ['win32', 'win64'].indexOf(os.platform()) !== -1 &&
-      parseFloat(os.release()) < 6.2;
-
-    if (useToaster) {
-        const toaster = new Toaster(mainWindow);
-
-        ipcMain.on('notification-shim', (e, title, options) => {
-            toaster.toast({
-                title: title,
-                message: options.body,
-                icon: options.icon,
-                tag: options.tag,
-                width: 400,
-                timeout: 5000,
-                htmlFile: 'file://'+__dirname+'/public/notification.html'
-            }, () => e.sender.send(`clicked-${options.tag}`));
-        });
-    }
+    ipcMain.on('getSystemIdleTime', (event) => {
+        event.returnValue = idle.getIdleTime();
+    });
 
     certificate.initWindow(mainWindow);
+
+    checkForUpdates();
 }

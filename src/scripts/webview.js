@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
-import { servers } from './servers';
-import { sidebar } from './sidebar';
-import { shell } from 'electron';
+import servers from './servers';
+import sidebar from './sidebar';
+import { desktopCapturer, ipcRenderer } from 'electron';
 
 class WebView extends EventEmitter {
     constructor () {
@@ -32,15 +32,27 @@ class WebView extends EventEmitter {
         servers.once('loaded', () => {
             this.loaded();
         });
+
+        ipcRenderer.on('screenshare-result', (e, result) => {
+            const webviewObj = this.getActive();
+            webviewObj.executeJavaScript(`
+                window.parent.postMessage({
+                    sourceId: '${result}'
+                }, '*')
+            `);
+        });
     }
 
     loaded () {
-        var loading = document.querySelector('#loading');
-        var form = document.querySelector('#login-card');
-        var footer = document.querySelector('footer');
-        loading.style.display = 'none';
-        form.style.display = 'block';
-        footer.style.display = 'block';
+        document.querySelector('#loading').style.display = 'none';
+        document.querySelector('#login-card').style.display = 'block';
+        document.querySelector('footer').style.display = 'block';
+    }
+
+    loading () {
+        document.querySelector('#loading').style.display = 'block';
+        document.querySelector('#login-card').style.display = 'none';
+        document.querySelector('footer').style.display = 'none';
     }
 
     add (host) {
@@ -76,20 +88,42 @@ class WebView extends EventEmitter {
                 case 'focus':
                     servers.setActive(host.url);
                     break;
+                case 'get-sourceId':
+                    desktopCapturer.getSources({types: ['window', 'screen']}, (error, sources) => {
+                        if (error) {
+                            throw error;
+                        }
+
+                        sources = sources.map(source => {
+                            source.thumbnail = source.thumbnail.toDataURL();
+                            return source;
+                        });
+                        ipcRenderer.send('screenshare', sources);
+                    });
+                    break;
+                case 'reload-server':
+                    const active = this.getActive();
+                    const server = active.getAttribute('server');
+                    this.loading();
+                    active.loadURL(server);
+                    break;
             }
         });
 
         webviewObj.addEventListener('dom-ready', () => {
             this.emit('dom-ready', host.url);
-            this.loaded();
         });
 
-        // Open external app on clicked link. e.g. mailto:, tel:, etc...
-        webviewObj.addEventListener('new-window', (e) => {
-            if (/^https?:\/\//.test(e.url)) {
-                return;
+        webviewObj.addEventListener('did-fail-load', (e) => {
+            if (e.isMainFrame) {
+                webviewObj.loadURL('file://' + __dirname + '/loading-error.html');
             }
-            shell.openExternal(e.url);
+        });
+
+        webviewObj.addEventListener('did-get-response-details', (e) => {
+            if (e.resourceType === 'mainFrame' && e.httpResponseCode >= 500) {
+                webviewObj.loadURL('file://' + __dirname + '/loading-error.html');
+            }
         });
 
         this.webviewParentElement.appendChild(webviewObj);
@@ -127,6 +161,12 @@ class WebView extends EventEmitter {
         while (!(item = this.getActive()) === false) {
             item.classList.remove('active');
         }
+        document.querySelector('.landing-page').classList.add('hide');
+    }
+
+    showLanding () {
+        this.loaded();
+        document.querySelector('.landing-page').classList.remove('hide');
     }
 
     setActive (hostUrl) {
@@ -154,4 +194,4 @@ class WebView extends EventEmitter {
     }
 }
 
-export var webview = new WebView();
+export default new WebView();

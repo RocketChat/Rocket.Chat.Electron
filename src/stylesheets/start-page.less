@@ -30,9 +30,10 @@ div.server-list {
 	bottom: 0;
 	height: 100%;
 	width: 80px;
-	padding-top: 5px;
+	padding-top: 22px;
 	background-color: #0F354C;
 	z-index: 100000;
+	-webkit-app-region: drag;
 }
 
 div.server-list ul {
@@ -175,6 +176,7 @@ div.server-list li:before {
 
 .hide-server-list webview {
 	left: 0;
+	transition: left 0.5s ease-in-out;
 }
 
 @-webkit-keyframes wrong {
@@ -238,4 +240,9 @@ webview.active {
 
 .landing-page {
 	z-index: 1;
+	-webkit-app-region: drag;
+
+	&.hide {
+		display: none;
+	}
 }

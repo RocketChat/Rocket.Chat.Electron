@@ -291,6 +291,7 @@ input[type='password'] {
 		padding: 45px 0 35px;
 		z-index: 10;
 		position: relative;
+		-webkit-app-region: no-drag;
 	}
 	.share {
 		border-radius: 50%;
@@ -308,5 +309,15 @@ input[type='password'] {
 .hide-server-list {
 	.landing-page {
 		left: 0;
+	}
+}
+
+.drag-region {
+	position: absolute;
+	-webkit-app-region: drag;
+
+	&.top-bar {
+		height: 22px;
+		width: 100%;
 	}
 }

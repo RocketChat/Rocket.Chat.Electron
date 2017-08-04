@@ -3,6 +3,8 @@
 <head>
 	<title></title>
 	<meta charset="utf-8" />
+	<link rel="stylesheet" type="text/css" href="../stylesheets/main.css">
+
 	<style>
 		html {
 			background-color: #ececec;
@@ -26,11 +28,30 @@
 		}
 
 		.app-version {
+			margin-top: 15px;
 			font-size: 11px;
-			position: fixed;
-			bottom: 30px;
+		}
+
+		.app-version .version {
+			font-weight: bold;
+		}
+
+		.update {
+			margin-top:10px;
+		}
+
+		.copyright {
+			font-size: 10px;
+			position: absolute;
+			bottom: 0;
+			margin-left: auto;
+			margin-right: auto;
 			left: 0;
 			right: 0;
+		}
+
+		.auto-update-container {
+			margin: 5px 0;
 		}
 	</style>
 </head>
@@ -39,13 +60,39 @@
 		<div class="app-name">
 
 		</div>
-		<div class="app-version">
+		<div class="app-version"></div>
+		<span class="update-spin icon-spin3 animate-spin" style="display:none;"></span>
 
-		</div>
+		<button class="update">Check for Updates</button>
+		<p class="auto-update-container"><input type="checkbox" id="auto-update" checked /> Check for Updates on Start</p>
+		<p class="copyright">Copyright &copy; 2017, Rocket.Chat</p>
 		<script>
-			var remote = require('electron').remote;
+			const { remote, ipcRenderer } = require('electron');
+			const autoUpdate = ipcRenderer.sendSync('check-for-updates', 'auto');
+			if (!autoUpdate) {
+				document.querySelector('#auto-update').removeAttribute('checked');
+			}
 			document.querySelector('.app-name').innerHTML = remote.app.getName();
-			document.querySelector('.app-version').innerHTML = 'Version '+remote.app.getVersion();
+			document.querySelector('.app-version').innerHTML = `Version <span class="version">${remote.app.getVersion()}</span>`;
+			document.querySelector('.update').onclick = function(e) {
+				document.querySelector('.update-spin').setAttribute('style', '');
+				document.querySelector('.update').setAttribute('disabled', 'disabled');
+				ipcRenderer.send('check-for-updates');
+
+			}
+			document.querySelector('#auto-update').onclick = function(e) {
+				ipcRenderer.send('check-for-updates', e.target.checked);
+			}
+			ipcRenderer.on('update-result', (e, updateAvailable) => {
+				document.querySelector('.update-spin').setAttribute('style', 'display:none');
+				document.querySelector('.update').removeAttribute('disabled');
+				if (!updateAvailable) {
+					alert('No updates are available.');
+				}
+			});
+
+
+
 		</script>
 	</body>
 </html>

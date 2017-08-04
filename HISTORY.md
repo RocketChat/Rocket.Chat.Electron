@@ -1,5 +1,46 @@
 # History
 
+## 2.5.0 - 2017-Mar-05
+
+- Add Fedora Dev Dependencies
+- Allow opening of file urls
+- Changed the function name and the switch is replaced with `icon-tray${title}.png`);
+- Fix speed issues with spell check on Windows
+- Fixed to put tray object in mainWindow
+- Handle urls using click listener
+- Load server config from file and tidy menu
+- Show reload screen when server fails to load
+
+## 2.4.0 - 2017-Fev-06
+
+- Add .nvmrc
+- Add download section to readme
+- Add option to hide tray icon
+- Add option to remove user data on uninstall
+- Add option to toggle menu on windows and linux
+- Allow multiple dictionaries if not using hunspell
+- Capitalize menu items
+- Fix blank notification issue
+- Fix dictionaries path
+- Fix issue with notification taking focus, and resize
+- Fix issue with some notifications being blank
+- Fix issues with desktop entry on linux
+- Fix multiple certificate notifications and replacing webview with image
+- Fix notification height with mulitple monitors
+- Fix speed issues with spell check
+- Improve design of screen selection
+- Initial changes to enable screen share
+- Keep user online if they are still active on their system
+- Make windows notification unselectable
+- Open link in app if internal url
+- Prevent error from tray when window reloads
+- Save disabled dictionary preference
+- Set notification as inactive so it doesnt take focus from window
+- Stop redirect when dragging image/url into window
+- Update .editorconfig to match eslint
+- Update jQuery to 3.1.1
+- Update spectron 3.4. to 3.5.0
+
 ## 2.3.0 - 2017-Jan-24
 
 - Add loading screen

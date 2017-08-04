@@ -9,12 +9,23 @@ class CertificateStore {
 
         this.load();
 
+        // Don't ask twice for same cert if loading multiple urls
+        this.queued = {};
+
         this.window = win;
         app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+            event.preventDefault();
             if (this.isTrusted(url, certificate)) {
-                event.preventDefault();
                 callback(true);
                 return;
+            }
+
+            if (this.queued[certificate.fingerprint]) {
+                this.queued[certificate.fingerprint].push(callback);
+                // Call the callback after approved/rejected
+                return;
+            } else {
+                this.queued[certificate.fingerprint] = [callback];
             }
 
             var detail = `URL: ${url}\nError: ${error}`;
@@ -38,12 +49,12 @@ class CertificateStore {
                     this.save();
                     if (webContents.getURL().indexOf('file://') === 0) {
                         webContents.send('certificate-reload', url);
-                    } else {
-                        webContents.loadURL(url);
                     }
                 }
+                //Call all queued callbacks with result
+                this.queued[certificate.fingerprint].forEach(cb => cb(response === 0));
+                delete this.queued[certificate.fingerprint];
             });
-            callback(false);
         });
     }
 

@@ -1,9 +1,9 @@
 /* globals $ */
 
 import { remote, ipcRenderer } from 'electron';
-import { servers } from './servers';
-import { sidebar } from './sidebar';
-import { webview } from './webview';
+import servers from './servers';
+import sidebar from './sidebar';
+import webview from './webview';
 import tray from './tray';
 import './menus';
 
@@ -159,6 +159,7 @@ export var start = function () {
 
     $('.add-server').on('click', function () {
         servers.clearActive();
+        webview.showLanding();
     });
 
     servers.restoreActive();

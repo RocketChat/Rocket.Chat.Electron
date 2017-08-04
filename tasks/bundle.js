@@ -33,21 +33,24 @@ module.exports = function (src, dest, opts) {
         cache: cached[src],
         plugins: opts.rollupPlugins,
     })
-    .then(function (bundle) {
-        cached[src] = bundle;
+        .then(function (bundle) {
+            cached[src] = bundle;
 
-        var jsFile = path.basename(dest);
-        var result = bundle.generate({
-            format: 'cjs',
-            sourceMap: true,
-            sourceMapFile: jsFile,
+            var jsFile = path.basename(dest);
+            return bundle.generate({
+                format: 'cjs',
+                sourceMap: true,
+                sourceMapFile: jsFile,
+            });
+        })
+        .then(function (result) {
+            // Wrap code in self invoking function so the variables don't
+            // pollute the global namespace.
+            var isolatedCode = '(function () {' + result.code + '\n}());';
+            var jsFile = path.basename(dest);
+            return Promise.all([
+                jetpack.writeAsync(dest, isolatedCode + '\n//# sourceMappingURL=' + jsFile + '.map'),
+                jetpack.writeAsync(dest + '.map', result.map.toString()),
+            ]);
         });
-        // Wrap code in self invoking function so the variables don't
-        // pollute the global namespace.
-        var isolatedCode = '(function () {' + result.code + '\n}());';
-        return Promise.all([
-            jetpack.writeAsync(dest, isolatedCode + '\n//# sourceMappingURL=' + jsFile + '.map'),
-            jetpack.writeAsync(dest + '.map', result.map.toString()),
-        ]);
-    });
 };

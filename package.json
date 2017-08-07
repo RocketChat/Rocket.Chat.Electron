@@ -21,7 +21,8 @@
     ],
     "extraResources": [
       "dictionaries/**/*",
-      "build/icon.ico"
+      "build/icon.ico",
+      "servers.json"
     ],
     "mac": {
       "bundleVersion": "19",

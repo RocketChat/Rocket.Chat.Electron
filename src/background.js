@@ -35,6 +35,12 @@ if (env.name !== 'production') {
     app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
 
+// Add proxy support startup switches
+app.commandLine.appendSwitch('proxy-bypass-list');
+app.commandLine.appendSwitch('proxy-pac-url');
+app.commandLine.appendSwitch('proxy-server');
+app.commandLine.appendSwitch('no-proxy-server');
+
 app.on('ready', function () {
     setApplicationMenu();
 

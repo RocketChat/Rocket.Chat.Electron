@@ -103,7 +103,7 @@ class Servers extends EventEmitter {
                 }
 
             } catch (e) {
-                console.log('Server file invalid');
+                console.error('Server file invalid');
             }
         }
 
@@ -130,7 +130,6 @@ class Servers extends EventEmitter {
     }
 
     validateHost (hostUrl, timeout) {
-        console.log('Validating hostUrl', hostUrl);
         timeout = timeout || 5000;
         return new Promise(function (resolve, reject) {
             var resolved = false;
@@ -139,14 +138,12 @@ class Servers extends EventEmitter {
                     return;
                 }
                 resolved = true;
-                console.log('HostUrl valid', hostUrl);
                 resolve();
             }, function (request) {
                 if (request.status === 401) {
                     let authHeader = request.getResponseHeader('www-authenticate');
                     if (authHeader && authHeader.toLowerCase().indexOf('basic ') === 0) {
                         resolved = true;
-                        console.log('HostUrl needs basic auth', hostUrl);
                         reject('basic-auth');
                     }
                 }
@@ -154,7 +151,6 @@ class Servers extends EventEmitter {
                     return;
                 }
                 resolved = true;
-                console.log('HostUrl invalid', hostUrl);
                 reject('invalid');
             });
             if (timeout) {
@@ -163,7 +159,6 @@ class Servers extends EventEmitter {
                         return;
                     }
                     resolved = true;
-                    console.log('Validating hostUrl TIMEOUT', hostUrl);
                     reject('timeout');
                 }, timeout);
             }

@@ -14,23 +14,23 @@ process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 let screenshareEvent;
 ipcMain.on('screenshare', (event, sources) => {
     screenshareEvent = event;
-    let window = new BrowserWindow({
+    let mainWindow = new BrowserWindow({
         width: 776,
         height: 600,
         show : false,
         skipTaskbar: false
     });
 
-    window.loadURL('file://'+__dirname+'/public/screenshare.html');
+    mainWindow.loadURL('file://'+__dirname+'/public/screenshare.html');
 
     //window.openDevTools();
-    window.webContents.on('did-finish-load', () => {
-        window.webContents.send('sources', sources);
-        window.show();
+    mainWindow.webContents.on('did-finish-load', () => {
+        mainWindow.webContents.send('sources', sources);
+        mainWindow.show();
     });
 
-    window.on('closed', () => {
-        window = null;
+    mainWindow.on('closed', () => {
+        mainWindow = null;
         if (screenshareEvent) {
             screenshareEvent.sender.send('screenshare-result', 'PermissionDeniedError');
             screenshareEvent = null;
@@ -45,7 +45,7 @@ ipcMain.on('source-result', (e, sourceId) => {
     }
 });
 
-function processProtocolURI (uri) {
+const processProtocolURI = (uri) => {
     if (uri && uri.startsWith('rocketchat://')) {
         const site = uri.split(/\/|\?/)[2];
         if (site) {
@@ -56,23 +56,23 @@ function processProtocolURI (uri) {
             return scheme + site;
         }
     }
-}
-
-
-function processProtocolArgv (argv) {
+};
+const processProtocolArgv = (argv) => {
     const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
     if (protocolURI) {
         return processProtocolURI(protocolURI);
     }
-}
+};
 
 export function afterMainWindow (mainWindow) {
     if (process.platform !== 'darwin') {
         const shouldQuit = app.makeSingleInstance((argv) => {
-            // Someone tried to run a second instance, we should focus our window.
+        // Someone tried to run a second instance, we should focus our window.
             const site = processProtocolArgv(argv);
             if (site) {
-                mainWindow.webContents.send('add-host', site);
+                setTimeout(() => {
+                    mainWindow.webContents.send('add-host', site);
+                }, 500);
             }
             if (mainWindow) {
                 mainWindow.show();
@@ -83,25 +83,10 @@ export function afterMainWindow (mainWindow) {
         if (shouldQuit) {
             app.quit();
         }
-    } else {
-        // Open protocol urls on mac as open-url is not yet implemented on other OS's
-        app.on('open-url', (e, url) => {
-            const site = processProtocolURI(url);
-            if (site) {
-                mainWindow.webContents.send('add-host', site);
-            }
-        });
     }
-
     if (!app.isDefaultProtocolClient('rocketchat')) {
         app.setAsDefaultProtocolClient('rocketchat');
     }
-
-    const site = processProtocolArgv(process.argv);
-    if (site) {
-        mainWindow.webContents.send('add-host', site);
-    }
-
     // Preserver of the window size and position between app launches.
     var mainWindowState = windowStateKeeper('main', {
         width: 1000,

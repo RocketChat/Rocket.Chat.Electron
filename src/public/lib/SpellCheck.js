@@ -103,7 +103,7 @@ class SpellCheck {
         }
 
         if (!this.setEnabled('en')) {
-            console.log('Unable to set a language for the spell checker - Spell checker is disabled');
+            console.info('Unable to set a language for the spell checker - Spell checker is disabled');
         }
 
     }

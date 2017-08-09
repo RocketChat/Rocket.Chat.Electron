@@ -35,6 +35,24 @@ if (env.name !== 'production') {
     app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
 
+const processProtocolURI = (uri) => {
+    if (uri && uri.startsWith('rocketchat://')) {
+        const site = uri.split(/\/|\?/)[2];
+        if (site) {
+            let scheme = 'https://';
+            if (uri.includes('insecure=true')) {
+                scheme = 'http://';
+            }
+            return scheme + site;
+        }
+    }
+};
+const processProtocolArgv = (argv) => {
+    const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
+    if (protocolURI) {
+        return processProtocolURI(protocolURI);
+    }
+};
 let mainWindow = null;
 
 app.on('ready', function () {
@@ -57,6 +75,24 @@ app.on('ready', function () {
     if (env.name === 'development') {
         mainWindow.openDevTools();
     }
+    if (process.argv.length > 1) {
+        const site = processProtocolArgv(process.argv);
+        if (site) {
+            const dialog = require('electron').dialog;
+            dialog.showMessageBox({
+                type: 'question',
+                buttons: ['Add', 'Cancel'],
+                defaultId: 0,
+                title: 'Add Server',
+                message: `Do you want to add "${site}" to your list of servers?`
+            }, (response) => {
+                if (response === 0) {
+                    mainWindow.send('add-host', site);
+                }
+            });
+        }
+    }
+
 });
 
 app.on('window-all-closed', function () {
@@ -70,24 +106,6 @@ let appIsReady = new Promise(resolve => {
     }
 });
 
-const processProtocolURI = (uri) => {
-    if (uri && uri.startsWith('rocketchat://')) {
-        const site = uri.split(/\/|\?/)[2];
-        if (site) {
-            let scheme = 'https://';
-            if (uri.includes('insecure=true')) {
-                scheme = 'http://';
-            }
-            return scheme + site;
-        }
-    }
-};
-const processProtocolArgv = (argv) => {
-    const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
-    if (protocolURI) {
-        return processProtocolURI(protocolURI);
-    }
-};
 
 if (process.platform === 'darwin') {
 // Open protocol urls on mac as open-url is not yet implemented on other OS's

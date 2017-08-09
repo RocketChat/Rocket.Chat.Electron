@@ -14,9 +14,9 @@ class Servers extends EventEmitter {
                 this.setActive(host);
             } else {
                 this.validateHost(host)
-                      .then(() => this.addHost(host))
-                      .then(() => this.setActive(host))
-                      .catch(() => remote.dialog.showErrorBox('Invalid Host', `The host "${host}" could not be validated, so was not added.`));
+                    .then(() => this.addHost(host))
+                    .then(() => this.setActive(host))
+                    .catch(() => remote.dialog.showErrorBox('Invalid Host', `The host "${host}" could not be validated, so was not added.`));
             }
         });
     }

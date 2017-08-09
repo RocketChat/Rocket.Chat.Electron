@@ -35,19 +35,6 @@ if (env.name !== 'production') {
     app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
 
-const processProtocolURI = (uri) => {
-    if (uri && uri.startsWith('rocketchat://')) {
-        const site = uri.split(/\/|\?/)[2];
-        if (site) {
-            let scheme = 'https://';
-            if (uri.includes('insecure=true')) {
-                scheme = 'http://';
-            }
-            return scheme + site;
-        }
-    }
-};
-
 let mainWindow = null;
 
 app.on('ready', function () {
@@ -58,6 +45,7 @@ app.on('ready', function () {
         titleBarStyle: 'hidden',
         height: 600
     });
+
     afterMainWindow(mainWindow);
 
     mainWindow.loadURL(url.format({
@@ -82,17 +70,64 @@ let appIsReady = new Promise(resolve => {
     }
 });
 
+const processProtocolURI = (uri) => {
+    if (uri && uri.startsWith('rocketchat://')) {
+        const site = uri.split(/\/|\?/)[2];
+        if (site) {
+            let scheme = 'https://';
+            if (uri.includes('insecure=true')) {
+                scheme = 'http://';
+            }
+            return scheme + site;
+        }
+    }
+};
+const processProtocolArgv = (argv) => {
+    const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
+    if (protocolURI) {
+        return processProtocolURI(protocolURI);
+    }
+};
+
 if (process.platform === 'darwin') {
 // Open protocol urls on mac as open-url is not yet implemented on other OS's
     app.on('open-url', function (e, url) {
         e.preventDefault();
+        console.log('open url called');
+
         const site = processProtocolURI(url);
         if (site) {
             appIsReady.then(() => {
+                mainWindow.webContents.executeJavaScript(`console.log('open url called', ${JSON.stringify(e)})`);
+
                 setTimeout(() => {
                     mainWindow.send('add-host', site);
                 }, 500);
             });
+        }
+    });
+} else {
+    const shouldQuit = app.makeSingleInstance((argv) => {
+        appIsReady.then(() => {
+            mainWindow.webContents.executeJavaScript(`console.log('${JSON.stringify(argv)}')`);
+            // Someone tried to run a second instance, we should focus our window.
+            const site = processProtocolArgv(argv);
+            if (site) {
+                setTimeout(() => {
+                    mainWindow.send('add-host', site);
+                }, 500);
+            }
+            if (mainWindow) {
+                if (mainWindow.isMinimized()) {
+                    mainWindow.restore();
+                }
+                mainWindow.show();
+                mainWindow.focus();
+            }
+        });
+
+        if (shouldQuit) {
+            app.quit();
         }
     });
 }

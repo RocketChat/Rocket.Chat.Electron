@@ -45,45 +45,7 @@ ipcMain.on('source-result', (e, sourceId) => {
     }
 });
 
-const processProtocolURI = (uri) => {
-    if (uri && uri.startsWith('rocketchat://')) {
-        const site = uri.split(/\/|\?/)[2];
-        if (site) {
-            let scheme = 'https://';
-            if (uri.includes('insecure=true')) {
-                scheme = 'http://';
-            }
-            return scheme + site;
-        }
-    }
-};
-const processProtocolArgv = (argv) => {
-    const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
-    if (protocolURI) {
-        return processProtocolURI(protocolURI);
-    }
-};
-
 export function afterMainWindow (mainWindow) {
-    if (process.platform !== 'darwin') {
-        const shouldQuit = app.makeSingleInstance((argv) => {
-        // Someone tried to run a second instance, we should focus our window.
-            const site = processProtocolArgv(argv);
-            if (site) {
-                setTimeout(() => {
-                    mainWindow.webContents.send('add-host', site);
-                }, 500);
-            }
-            if (mainWindow) {
-                mainWindow.show();
-                mainWindow.focus();
-            }
-        });
-
-        if (shouldQuit) {
-            app.quit();
-        }
-    }
     if (!app.isDefaultProtocolClient('rocketchat')) {
         app.setAsDefaultProtocolClient('rocketchat');
     }

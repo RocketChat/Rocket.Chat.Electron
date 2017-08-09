@@ -13,20 +13,10 @@ class Servers extends EventEmitter {
             if (this.hostExists(host)) {
                 this.setActive(host);
             } else {
-                remote.dialog.showMessageBox({
-                    type: 'question',
-                    buttons: ['Add', 'Cancel'],
-                    defaultId: 0,
-                    title: 'Add Server',
-                    message: `Do you want to add "${host} to your list of servers?"`
-                }, (response) => {
-                    if (response === 0) {
-                        this.validateHost(host)
-                            .then(() => this.addHost(host))
-                            .then(() => this.setActive(host))
-                            .catch(() => remote.dialog.showErrorBox('Invalid Host', `The host "${host}" could not be validated, so was not added.`));
-                    }
-                });
+                this.validateHost(host)
+                      .then(() => this.addHost(host))
+                      .then(() => this.setActive(host))
+                      .catch(() => remote.dialog.showErrorBox('Invalid Host', `The host "${host}" could not be validated, so was not added.`));
             }
         });
     }

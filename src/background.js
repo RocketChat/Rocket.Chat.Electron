@@ -93,41 +93,41 @@ if (process.platform === 'darwin') {
 // Open protocol urls on mac as open-url is not yet implemented on other OS's
     app.on('open-url', function (e, url) {
         e.preventDefault();
-        console.log('open url called');
-
         const site = processProtocolURI(url);
         if (site) {
             appIsReady.then(() => {
-                mainWindow.webContents.executeJavaScript(`console.log('open url called', ${JSON.stringify(e)})`);
-
-                setTimeout(() => {
-                    mainWindow.send('add-host', site);
-                }, 500);
+                mainWindow.send('add-host', site);
             });
         }
     });
 } else {
     const shouldQuit = app.makeSingleInstance((argv) => {
-        appIsReady.then(() => {
-            mainWindow.webContents.executeJavaScript(`console.log('${JSON.stringify(argv)}')`);
-            // Someone tried to run a second instance, we should focus our window.
-            const site = processProtocolArgv(argv);
-            if (site) {
-                setTimeout(() => {
+    // Someone tried to run a second instance, we should focus our window.
+        const site = processProtocolArgv(argv);
+        if (site) {
+            const dialog = require('electron').dialog;
+            dialog.showMessageBox({
+                type: 'question',
+                buttons: ['Add', 'Cancel'],
+                defaultId: 0,
+                title: 'Add Server',
+                message: `Do you want to add "${site}" to your list of servers?`
+            }, (response) => {
+                if (response === 0) {
                     mainWindow.send('add-host', site);
-                }, 500);
-            }
-            if (mainWindow) {
-                if (mainWindow.isMinimized()) {
-                    mainWindow.restore();
                 }
-                mainWindow.show();
-                mainWindow.focus();
+            });
+        }
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) {
+                mainWindow.restore();
             }
-        });
-
-        if (shouldQuit) {
-            app.quit();
+            mainWindow.show();
+            mainWindow.focus();
         }
     });
+
+    if (shouldQuit) {
+        app.quit();
+    }
 }

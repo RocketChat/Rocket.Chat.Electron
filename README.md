@@ -139,34 +139,39 @@ docker run --rm -ti -v ${PWD}:/project -v ${PWD##*/}-node-modules:/project/node_
 
 All packaging actions are handled by [electron-builder](https://github.com/electron-userland/electron-builder). It has a lot of [customization options](https://github.com/electron-userland/electron-builder/wiki/Options), which you can declare under ["build" key in package.json file](https://github.com/szwacz/electron-boilerplate/blob/master/package.json#L2).
 
-# Post Release Configuration
-## Deploying with pre-configured servers
-You can bundle a `servers.json` with the install which will define what servers the client will connect to and will populate the server list in the sidebar.
+# Default servers
 
-If this file is found, the initial "Connect to server" screen will be skipped and it will attempt to connect to the first server in the array that has been defined and drop the user right at the login screen.
-
-The `servers.json` file needs to be placed in the `%APPDATA%` folder for the User not the System wide one. The servers.json will only be checked if no other servers have already be added. It should be copied to the correct location after the install.
-
-```
-%APPDATA%/Rocket.Chat+/servers.json
-```
-
-The syntax/layout of servers.json is as follows:
+The `servers.json` file will define what servers the client will connect to and will populate the server list in the sidebar, it contains a list of default servers which will be added the first time the user runs the app (or when all servers are removed from the list).
+The file syntax is as follows:
 ```
 {
-  "MyRocketChatServer": "https://my-chat-server-url.com",
-  "Server2": "https://demo.rocket.chat"
+  "Demo Rocket Chat": "https://demo.rocket.chat",
+  "Open Rocket Chat": "https://open.rocket.chat"
 }
 ```
 
-On MacOS the full path of servers.json is:
-```
-/Users/<username>/Library/Application Support/Rocket.Chat+/servers.json
-```
+## Pre-Release Configuration
 
-and on Windows:
+You can bundle a `servers.json` with the install package, the file should be located in the root of the project application (same level as the `package.json`). If the file is found, the initial "Connect to server" screen will be skipped and it will attempt to connect to the first server in the array that has been defined and drop the user right at the login screen. Note that the `servers.json` will only be checked if no other servers have already be added, even if you uninstall the app without removing older preferences, it will not be triggered again.
+
+## Post-Install Configuration
+
+If you can't (or don't want to) bundle the file inside the app, you can create a `servers.json` in the user preferences folder which will overwrite the packaged one. The file should be located in the `%APPDATA%/Rocket.Chat+/` folder or the installation folder in case of a installation for all users (Windows only).
+
+For Windows the full paths are:
 ```
-C:\Users\<username>\AppData\Roaming\Rocket.Chat+\servers.json
+~\Users\<username>\AppData\Roaming\Rocket.Chat+\
+~\Program Files\Rocket.Chat+\Resources\
+```
+On MacOS the full path is:
+```		
+~/Users/<username>/Library/Application Support/Rocket.Chat+/
+~/Applications/Rocket.Chat+.app/Contents/Resources/
+```
+On Linux the full path is:
+```
+/home/<username>/.config/Rocket.Chat+/
+/opt/Rocket.Chat+/resources/
 ```
 
 # Useful links

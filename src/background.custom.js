@@ -8,6 +8,13 @@ import windowStateKeeper from './background/windowState';
 import certificate from './background/certificate';
 import idle from '@paulcbetts/system-idle-time';
 import { checkForUpdates } from './background/autoUpdate';
+import jetpack from 'fs-jetpack';
+
+const appDataDir = jetpack.cwd(app.getAppPath());
+const packageJson = appDataDir.read('./package.json', 'json');
+if (packageJson && packageJson.build && packageJson.build.appId) {
+    global.BUNDLE_ID = packageJson.build.appId;
+}
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 

@@ -79,6 +79,9 @@
     "lodash": "^4.17.4",
     "spellchecker": "^3.4.1"
   },
+  "optionalDependencies": {
+    "node-mac-notifier": "0.0.13"
+  },
   "devDependencies": {
     "chai": "^4.1.1",
     "electron": "^1.6.11",

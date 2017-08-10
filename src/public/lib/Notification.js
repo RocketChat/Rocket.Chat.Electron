@@ -1,7 +1,24 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, remote } = require('electron');
+
+if (process.platform === 'darwin') {
+    const NodeNotification = require('node-mac-notifier');
+    window.Notification = class extends NodeNotification {
+        constructor (title, options) {
+            options.bundleId = remote.getGlobal('BUNDLE_ID');
+            super(title, options);
+        }
+
+        static requestPermission () {
+            return;
+        }
+
+        static get permission () {
+            return 'granted';
+        }
+    };
+}
 
 class Notification extends window.Notification {
-
     constructor (title, options) {
         super(title, options);
         ipcRenderer.send('notification-shim', title, options);
@@ -9,6 +26,7 @@ class Notification extends window.Notification {
         // Handle correct notification using unique tag
         ipcRenderer.once(`clicked-${options.tag}`, () => this.onclick());
     }
+
 
     get onclick () {
         return super.onclick;

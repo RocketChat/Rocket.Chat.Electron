@@ -84,7 +84,7 @@ class SpellCheck {
             if (this.setEnabled(this.userLanguage)) {
                 return;
             }
-            if (this.userLanguage.split('_') !== -1 && this.setEnabled(this.userLanguage.split('_')[0])) {
+            if (this.userLanguage.includes('_') && this.setEnabled(this.userLanguage.split('_')[0])) {
                 return;
             }
         }
@@ -94,7 +94,7 @@ class SpellCheck {
             return;
         }
 
-        if (navigatorLanguage.split('_') !== -1 && this.setEnabled(this.navigatorLanguage.split('_')[0])) {
+        if (navigatorLanguage.includes('_') && this.setEnabled(navigatorLanguage.split('_')[0])) {
             return;
         }
 

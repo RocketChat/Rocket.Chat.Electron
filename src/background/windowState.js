@@ -8,15 +8,15 @@ import _ from 'lodash';
 
 export default function (name, defaults) {
 
-    var userDataDir = jetpack.cwd(app.getPath('userData'));
-    var stateStoreFile = 'window-state-' + name +'.json';
-    var state = {
+    const userDataDir = jetpack.cwd(app.getPath('userData'));
+    const stateStoreFile = 'window-state-' + name +'.json';
+    let state = {
         width: defaults.width,
         height: defaults.height
     };
 
     try {
-        var loadedState = userDataDir.read(stateStoreFile, 'json');
+        const loadedState = userDataDir.read(stateStoreFile, 'json');
         if (loadedState != null) {
             state = loadedState;
         }
@@ -25,10 +25,10 @@ export default function (name, defaults) {
         // No worries, we have defaults.
     }
 
-    var saveState = function (win) {
+    const saveState = function (win) {
         if (!win.isMaximized() && !win.isMinimized() && win.isVisible()) {
-            var position = win.getPosition();
-            var size = win.getSize();
+            const position = win.getPosition();
+            const size = win.getSize();
             state.x = position[0];
             state.y = position[1];
             state.width = size[0];

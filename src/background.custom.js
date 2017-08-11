@@ -54,7 +54,7 @@ ipcMain.on('source-result', (e, sourceId) => {
 
 export function afterMainWindow (mainWindow) {
     if (process.platform !== 'darwin') {
-        var shouldQuit = app.makeSingleInstance(function () {
+        const shouldQuit = app.makeSingleInstance(function () {
             // Someone tried to run a second instance, we should focus our window.
             if (mainWindow) {
                 mainWindow.show();
@@ -68,7 +68,7 @@ export function afterMainWindow (mainWindow) {
     }
 
     // Preserver of the window size and position between app launches.
-    var mainWindowState = windowStateKeeper('main', {
+    const mainWindowState = windowStateKeeper('main', {
         width: 1000,
         height: 600
     });

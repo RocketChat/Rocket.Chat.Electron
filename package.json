@@ -87,6 +87,7 @@
     "electron": "^1.6.11",
     "electron-builder": "^19.19.1",
     "electron-mocha": "^4.0.0",
+    "eslint": "^4.3.0",
     "gulp": "^3.9.1",
     "gulp-batch": "^1.0.5",
     "gulp-less": "^3.3.2",

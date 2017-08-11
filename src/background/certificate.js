@@ -28,7 +28,7 @@ class CertificateStore {
                 this.queued[certificate.fingerprint] = [callback];
             }
 
-            var detail = `URL: ${url}\nError: ${error}`;
+            let detail = `URL: ${url}\nError: ${error}`;
             if (this.isExisting(url)) {
                 detail = `Certificate is different from previous one.\n\n ${detail}`;
             }
@@ -99,7 +99,7 @@ class CertificateStore {
     }
 
     isTrusted (certUrl, certificate) {
-        var host = this.getHost(certUrl);
+        const host = this.getHost(certUrl);
         if (!this.isExisting(certUrl)) {
             return false;
         }

@@ -56,7 +56,7 @@ class WebView extends EventEmitter {
     }
 
     add (host) {
-        var webviewObj = this.getByUrl(host.url);
+        let webviewObj = this.getByUrl(host.url);
         if (webviewObj) {
             return;
         }
@@ -132,14 +132,14 @@ class WebView extends EventEmitter {
     }
 
     remove (hostUrl) {
-        var el = this.getByUrl(hostUrl);
+        const el = this.getByUrl(hostUrl);
         if (el) {
             el.remove();
         }
     }
 
     saveLastPath (hostUrl, lastPathUrl) {
-        var hosts = servers.hosts;
+        const hosts = servers.hosts;
         hosts[hostUrl].lastPath = lastPathUrl;
         servers.hosts = hosts;
     }
@@ -157,7 +157,7 @@ class WebView extends EventEmitter {
     }
 
     deactiveAll () {
-        var item;
+        let item;
         while (!(item = this.getActive()) === false) {
             item.classList.remove('active');
         }
@@ -176,7 +176,7 @@ class WebView extends EventEmitter {
         }
 
         this.deactiveAll();
-        var item = this.getByUrl(hostUrl);
+        const item = this.getByUrl(hostUrl);
         if (item) {
             item.classList.add('active');
         }
@@ -185,7 +185,7 @@ class WebView extends EventEmitter {
     }
 
     focusActive () {
-        var active = this.getActive();
+        const active = this.getActive();
         if (active) {
             active.focus();
             return true;

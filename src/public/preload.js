@@ -10,7 +10,7 @@ window.Notification = Notification;
 
 const defaultWindowOpen = window.open;
 
-function customWindowOpen(url, frameName, features) {
+function customWindowOpen (url, frameName, features) {
     if (url.indexOf('meet.jit.si') !== -1) {
         features = ((features) ? (features + ",") : "") +
             "nodeIntegration=true,preload=" + path.join(__dirname, 'jitsi-preload.js');

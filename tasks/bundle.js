@@ -1,19 +1,19 @@
 'use strict';
 
-var path = require('path');
-var jetpack = require('fs-jetpack');
-var rollup = require('rollup').rollup;
+const path = require('path');
+const jetpack = require('fs-jetpack');
+const rollup = require('rollup').rollup;
 
-var nodeBuiltInModules = ['assert', 'buffer', 'child_process', 'cluster',
+const nodeBuiltInModules = ['assert', 'buffer', 'child_process', 'cluster',
     'console', 'constants', 'crypto', 'dgram', 'dns', 'domain', 'events',
     'fs', 'http', 'https', 'module', 'net', 'os', 'path', 'process', 'punycode',
     'querystring', 'readline', 'repl', 'stream', 'string_decoder', 'timers',
     'tls', 'tty', 'url', 'util', 'v8', 'vm', 'zlib'];
 
-var electronBuiltInModules = ['electron'];
+const electronBuiltInModules = ['electron'];
 
-var generateExternalModulesList = function () {
-    var appManifest = jetpack.read('./package.json', 'json');
+const generateExternalModulesList = function () {
+    const appManifest = jetpack.read('./package.json', 'json');
     return [].concat(
         nodeBuiltInModules,
         electronBuiltInModules,
@@ -22,7 +22,7 @@ var generateExternalModulesList = function () {
     );
 };
 
-var cached = {};
+const cached = {};
 
 module.exports = function (src, dest, opts) {
     opts = opts || {};
@@ -36,7 +36,7 @@ module.exports = function (src, dest, opts) {
         .then(function (bundle) {
             cached[src] = bundle;
 
-            var jsFile = path.basename(dest);
+            const jsFile = path.basename(dest);
             return bundle.generate({
                 format: 'cjs',
                 sourceMap: true,
@@ -46,8 +46,8 @@ module.exports = function (src, dest, opts) {
         .then(function (result) {
             // Wrap code in self invoking function so the variables don't
             // pollute the global namespace.
-            var isolatedCode = '(function () {' + result.code + '\n}());';
-            var jsFile = path.basename(dest);
+            const isolatedCode = '(function () {' + result.code + '\n}());';
+            const jsFile = path.basename(dest);
             return Promise.all([
                 jetpack.writeAsync(dest, isolatedCode + '\n//# sourceMappingURL=' + jsFile + '.map'),
                 jetpack.writeAsync(dest + '.map', result.map.toString()),

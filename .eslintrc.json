@@ -10,6 +10,8 @@
     "jquery": true
   },
   "rules": {
+    "no-var": 2,
+    "prefer-const": 2,
     "no-multi-spaces": 2,
     "no-eval": 2,
     "no-extend-native": 2,

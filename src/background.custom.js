@@ -8,6 +8,13 @@ import windowStateKeeper from './background/windowState';
 import certificate from './background/certificate';
 import idle from '@paulcbetts/system-idle-time';
 import { checkForUpdates } from './background/autoUpdate';
+import jetpack from 'fs-jetpack';
+
+const appDataDir = jetpack.cwd(app.getAppPath());
+const packageJson = appDataDir.read('./package.json', 'json');
+if (packageJson && packageJson.build && packageJson.build.appId) {
+    global.BUNDLE_ID = packageJson.build.appId;
+}
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
@@ -50,7 +57,7 @@ export function afterMainWindow (mainWindow) {
         app.setAsDefaultProtocolClient('rocketchat');
     }
     // Preserver of the window size and position between app launches.
-    var mainWindowState = windowStateKeeper('main', {
+    const mainWindowState = windowStateKeeper('main', {
         width: 1000,
         height: 600
     });

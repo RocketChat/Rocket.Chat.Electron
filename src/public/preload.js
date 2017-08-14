@@ -7,7 +7,7 @@ const SpellCheck = require('./lib/SpellCheck');
 
 window.Notification = Notification;
 
-var events = ['unread-changed', 'get-sourceId'];
+const events = ['unread-changed', 'get-sourceId'];
 
 events.forEach(function (e) {
     window.addEventListener(e, function (event) {
@@ -18,7 +18,7 @@ events.forEach(function (e) {
 window.addEventListener('load', function () {
     Meteor.startup(function () {
         Tracker.autorun(function () {
-            var siteName = RocketChat.settings.get('Site_Name');
+            const siteName = RocketChat.settings.get('Site_Name');
             if (siteName) {
                 ipcRenderer.sendToHost('title-changed', siteName);
             }
@@ -41,7 +41,7 @@ window.onload = function () {
         }
 
         if (/^file:\/\/.+/.test(href)) {
-            let item = href.slice(6);
+            const item = href.slice(6);
             shell.showItemInFolder(item);
             e.preventDefault();
         } else {

@@ -19,8 +19,8 @@ import { afterMainWindow } from './background.custom';
 // in config/env_xxx.json file.
 import env from './env';
 
-var setApplicationMenu = function () {
-    var menus = [editMenuTemplate];
+const setApplicationMenu = function () {
+    const menus = [editMenuTemplate];
     if (env.name !== 'production') {
         menus.push(devMenuTemplate);
     }
@@ -31,7 +31,7 @@ var setApplicationMenu = function () {
 // Thanks to this you can use production and development versions of the app
 // on same machine like those are two separate apps.
 if (env.name !== 'production') {
-    var userDataPath = app.getPath('userData');
+    const userDataPath = app.getPath('userData');
     app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
 
@@ -98,7 +98,7 @@ app.on('ready', function () {
 app.on('window-all-closed', function () {
     app.quit();
 });
-let appIsReady = new Promise(resolve => {
+const appIsReady = new Promise(resolve => {
     if (app.isReady()) {
         resolve();
     } else {

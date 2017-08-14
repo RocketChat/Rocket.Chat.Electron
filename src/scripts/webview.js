@@ -170,7 +170,6 @@ class WebView extends EventEmitter {
     }
 
     setActive (hostUrl) {
-        console.log('active setted', hostUrl);
         if (this.isActive(hostUrl)) {
             return;
         }

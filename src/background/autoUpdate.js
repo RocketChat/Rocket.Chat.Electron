@@ -15,7 +15,7 @@ try {
     const userUpdateFile = userDataDir.read(updateStoreFile, 'json');
     updateFile = Object.assign({}, installUpdateFile, userUpdateFile);
 } catch (err) {
-    console.log(err);
+    console.error(err);
 }
 
 function updateDownloaded () {
@@ -52,7 +52,6 @@ function updateAvailable ({version}) {
         checkForUpdatesEvent.sender.send('update-result', true);
         checkForUpdatesEvent = null;
     } else if (updateFile.skip === version) {
-        console.log(`Skipping version: ${version}`);
         return;
     }
 
@@ -111,10 +110,6 @@ function updateAvailable ({version}) {
 function checkForUpdates () {
     autoUpdater.on('update-available', updateAvailable);
     autoUpdater.on('update-not-available', updateNotAvailable);
-
-    autoUpdater.on('download-progress', ({percent}) => {
-        console.log(`Update progress: ${percent}`);
-    });
 
     autoUpdater.on('update-downloaded', updateDownloaded);
 

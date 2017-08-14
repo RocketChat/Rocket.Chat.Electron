@@ -2,13 +2,23 @@
 
 import jetpack from 'fs-jetpack';
 import { EventEmitter } from 'events';
-import { remote } from 'electron';
+import { remote, ipcRenderer } from 'electron';
 const remoteServers = remote.require('./background').remoteServers;
 
 class Servers extends EventEmitter {
     constructor () {
         super();
         this.load();
+        ipcRenderer.on('add-host', (e, host) => {
+            if (this.hostExists(host)) {
+                this.setActive(host);
+            } else {
+                this.validateHost(host)
+                    .then(() => this.addHost(host))
+                    .then(() => this.setActive(host))
+                    .catch(() => remote.dialog.showErrorBox('Invalid Host', `The host "${host}" could not be validated, so was not added.`));
+            }
+        });
     }
 
     get hosts () {
@@ -85,7 +95,7 @@ class Servers extends EventEmitter {
                 }
 
             } catch (e) {
-                console.log('Server file invalid');
+                console.error('Server file invalid');
             }
         }
 
@@ -112,7 +122,6 @@ class Servers extends EventEmitter {
     }
 
     validateHost (hostUrl, timeout) {
-        console.log('Validating hostUrl', hostUrl);
         timeout = timeout || 5000;
         return new Promise(function (resolve, reject) {
             let resolved = false;
@@ -121,14 +130,12 @@ class Servers extends EventEmitter {
                     return;
                 }
                 resolved = true;
-                console.log('HostUrl valid', hostUrl);
                 resolve();
             }, function (request) {
                 if (request.status === 401) {
                     const authHeader = request.getResponseHeader('www-authenticate');
                     if (authHeader && authHeader.toLowerCase().indexOf('basic ') === 0) {
                         resolved = true;
-                        console.log('HostUrl needs basic auth', hostUrl);
                         reject('basic-auth');
                     }
                 }
@@ -136,7 +143,6 @@ class Servers extends EventEmitter {
                     return;
                 }
                 resolved = true;
-                console.log('HostUrl invalid', hostUrl);
                 reject('invalid');
             });
             if (timeout) {
@@ -145,7 +151,6 @@ class Servers extends EventEmitter {
                         return;
                     }
                     resolved = true;
-                    console.log('Validating hostUrl TIMEOUT', hostUrl);
                     reject('timeout');
                 }, timeout);
             }

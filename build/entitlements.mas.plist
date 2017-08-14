@@ -14,5 +14,18 @@
     <true/>
     <key>com.apple.security.device.microphone</key>
     <true/>
+    <key>CFBundleIdentifier</key>
+    <string>chat.rocket.AppleScript.RocketChat</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleURLName</key>
+        <string>RocketChat</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>rocketchat</string>
+        </array>
+      </dict>
+    </array>
   </dict>
 </plist>

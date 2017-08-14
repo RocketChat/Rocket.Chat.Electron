@@ -17,12 +17,13 @@ events.forEach(function (e) {
 
 const userPresenceControl = () => {
     UserPresence.stopTimer(); //stop userpresence control
-    const AWAY_TIME = 300000; // 5 min
     const INTERVAL = 10000; // 10s
     setInterval(() => {
         try {
             const idleTime = ipcRenderer.sendSync('getSystemIdleTime');
-            if (idleTime < AWAY_TIME) {
+            console.log(idleTime);
+            if (idleTime < INTERVAL) {
+                console.log('setonline');
                 UserPresence.setOnline();
             }
         } catch (e) {

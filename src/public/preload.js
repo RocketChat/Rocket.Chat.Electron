@@ -4,8 +4,23 @@
 const { ipcRenderer, shell } = require('electron');
 const Notification = require('./lib/Notification');
 const SpellCheck = require('./lib/SpellCheck');
+const path = require('path');
 
 window.Notification = Notification;
+
+const defaultWindowOpen = window.open;
+
+function customWindowOpen(url, frameName, features) {
+    if (url.indexOf('meet.jit.si') !== -1) {
+        features = ((features) ? (features + ",") : "") +
+            "nodeIntegration=true,preload=" + path.join(__dirname, 'jitsi-preload.js');
+        return defaultWindowOpen(url, frameName, features);
+    } else {
+        return defaultWindowOpen(url, frameName, features);
+    }
+}
+
+window.open = customWindowOpen;
 
 const events = ['unread-changed', 'get-sourceId'];
 

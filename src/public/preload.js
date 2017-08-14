@@ -19,18 +19,11 @@ const userPresenceControl = () => {
     UserPresence.stopTimer(); //stop userpresence control
     const AWAY_TIME = 300000; // 5 min
     const INTERVAL = 10000; // 10s
-    let userOnline = true;
     setInterval(() => {
         try {
             const idleTime = ipcRenderer.sendSync('getSystemIdleTime');
-            if (idleTime < AWAY_TIME && !userOnline) {
-                Meteor.call('UserPresence:online');
-                userOnline = true;
-            }
-            if (idleTime >= AWAY_TIME && userOnline) {
-                if (!userOnline) { return; }
-                Meteor.call('UserPresence:away');
-                userOnline = false;
+            if (idleTime < AWAY_TIME) {
+                UserPresence.setOnline();
             }
         } catch (e) {
             console.error(`Error getting system idle time: ${e}`);

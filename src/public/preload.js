@@ -1,4 +1,4 @@
-/* globals Meteor, Tracker, RocketChat */
+/* globals Meteor, Tracker, RocketChat, UserPresence*/
 'use strict';
 
 const { ipcRenderer, shell } = require('electron');
@@ -15,6 +15,20 @@ events.forEach(function (e) {
     });
 });
 
+const userPresenceControl = () => {
+    const INTERVAL = 10000; // 10s
+    setInterval(() => {
+        try {
+            const idleTime = ipcRenderer.sendSync('getSystemIdleTime');
+            if (idleTime < INTERVAL) {
+                UserPresence.setOnline();
+            }
+        } catch (e) {
+            console.error(`Error getting system idle time: ${e}`);
+        }
+    }, INTERVAL);
+};
+
 window.addEventListener('load', function () {
     Meteor.startup(function () {
         Tracker.autorun(function () {
@@ -24,8 +38,8 @@ window.addEventListener('load', function () {
             }
         });
     });
+    userPresenceControl();
 });
-
 window.onload = function () {
     const $ = require('./vendor/jquery-3.1.1');
     function checkExternalUrl (e) {
@@ -34,7 +48,6 @@ window.onload = function () {
         if (RegExp(`^${location.protocol}\/\/${location.host}`).test(href)) {
             return;
         }
-
         // Check href matching relative URL
         if (!/^([a-z]+:)?\/\//.test(href)) {
             return;
@@ -65,19 +78,3 @@ document.addEventListener('drop', e => e.preventDefault());
 
 const spellChecker = new SpellCheck();
 spellChecker.enable();
-
-/**
- * Keep user online if they are still using their computer
- */
-const AWAY_TIME = 300000; // 5 mins
-const INTERVAL = 10000; // 10 seconds
-setInterval(function () {
-    try {
-        const idleTime = ipcRenderer.sendSync('getSystemIdleTime');
-        if (idleTime < AWAY_TIME) {
-            Meteor.call('UserPresence:online');
-        }
-    } catch (e) {
-        console.error(`Error getting system idle time: ${e}`);
-    }
-}, INTERVAL);

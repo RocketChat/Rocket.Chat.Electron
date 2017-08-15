@@ -38,10 +38,18 @@ const appTemplate = [
 if (isMac) {
     const macAppExtraTemplate = [
         {
+            label: 'Services',
+            role: 'services',
+            submenu: [],
+            position: 'after=about-sep'
+        },
+        {
+            type: 'separator'
+        },
+        {
             label: 'Hide ' + APP_NAME,
             accelerator: 'Command+H',
-            role: 'hide',
-            position: 'after=about-sep'
+            role: 'hide'
         },
         {
             label: 'Hide Others',

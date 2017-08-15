@@ -55,15 +55,36 @@ const processProtocolArgv = (argv) => {
 };
 
 let mainWindow = null;
-const appIsReady = new Promise(resolve => {
-    if (app.isReady()) {
-        console.log('appisready');
 
-        resolve();
-    } else {
-        app.on('ready', () => { console.log('appisready'); setTimeout(resolve, 500); });
+if (process.platform === 'darwin') {
+// Open protocol urls on mac as open-url is not yet implemented on other OS's
+    app.on('open-url', function (e, url) {
+        e.preventDefault();
+        const site = processProtocolURI(url);
+        if (site) {
+            mainWindow.send('add-host', site);
+        }
+    });
+} else {
+    const isSecondInstance = app.makeSingleInstance((argv) => {
+        // Someone tried to run a second instance, we should focus our window.
+        const site = processProtocolArgv(argv);
+        if (site) {
+            mainWindow.send('add-host', site);
+        }
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) {
+                mainWindow.restore();
+            }
+            mainWindow.show();
+            mainWindow.focus();
+        }
+    });
+
+    if (isSecondInstance) {
+        app.quit();
     }
-});
+}
 
 app.on('ready', function () {
     setApplicationMenu();
@@ -85,59 +106,8 @@ app.on('ready', function () {
     if (env.name === 'development') {
         mainWindow.openDevTools();
     }
-    if (process.argv.length > 1) {
-        const site = processProtocolArgv(process.argv);
-        if (site) {
-            //openAddHostDialog(site);
-            appIsReady.then(() => {
-                //  openAddHostDialog(site);
-                mainWindow.send('add-host', site);
-
-            });
-        }
-    }
-
 });
 
 app.on('window-all-closed', function () {
     app.quit();
 });
-
-
-if (process.platform === 'darwin') {
-// Open protocol urls on mac as open-url is not yet implemented on other OS's
-    app.on('open-url', function (e, url) {
-        e.preventDefault();
-        const site = processProtocolURI(url);
-        if (site) {
-            appIsReady.then(() => {
-                //  openAddHostDialog(site);
-                mainWindow.send('add-host', site);
-
-            });
-        }
-    });
-} else {
-    const shouldQuit = app.makeSingleInstance((argv) => {
-    // Someone tried to run a second instance, we should focus our window.
-        const site = processProtocolArgv(argv);
-        if (site) {
-            appIsReady.then(() => {
-                //  openAddHostDialog(site);
-                mainWindow.send('add-host', site);
-
-            });
-        }
-        if (mainWindow) {
-            if (mainWindow.isMinimized()) {
-                mainWindow.restore();
-            }
-            mainWindow.show();
-            mainWindow.focus();
-        }
-    });
-
-    if (shouldQuit) {
-        app.quit();
-    }
-}

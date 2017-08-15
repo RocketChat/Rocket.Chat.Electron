@@ -9,25 +9,15 @@ class Servers extends EventEmitter {
     constructor () {
         super();
         this.load();
+        const processProtocol = this.getProtocolUrlFromProcess();
+        if (processProtocol) {
+            this.showHostConfirmation(processProtocol);
+        }
         ipcRenderer.on('add-host', (e, host) => {
             if (this.hostExists(host)) {
                 this.setActive(host);
             } else {
-                remote.dialog.showMessageBox({
-                    type: 'question',
-                    buttons: ['Add', 'Cancel'],
-                    defaultId: 0,
-                    title: 'Add Server',
-                    message: `Do you want to add "${host}" to your list of servers?`
-                }, (response) => {
-                    if (response === 0) {
-                        this.validateHost(host)
-                            .then(() => this.addHost(host))
-                            .then(() => this.setActive(host))
-                            .catch(() => remote.dialog.showErrorBox('Invalid Host', `The host "${host}" could not be validated, so was not added.`));
-                    }
-                });
-
+                this.showHostConfirmation(host);
             }
         });
     }
@@ -264,6 +254,42 @@ class Servers extends EventEmitter {
         this.hosts = hosts;
         this.emit('title-setted', hostUrl, title);
     }
+    getProtocolUrlFromProcess () {
+        const args = remote.process.argv;
+        let site = null;
+        if (args.length > 1) {
+            console.log(args);
+            const protocolURI = args.find(arg => arg.startsWith('rocketchat://'));
+            if (protocolURI) {
+                site = protocolURI.split(/\/|\?/)[2];
+                if (site) {
+                    let scheme = 'https://';
+                    if (protocolURI.includes('insecure=true')) {
+                        scheme = 'http://';
+                    }
+                    site = scheme + site;
+                }
+            }
+        }
+        return site;
+    }
+    showHostConfirmation (host) {
+        return remote.dialog.showMessageBox({
+            type: 'question',
+            buttons: ['Add', 'Cancel'],
+            defaultId: 0,
+            title: 'Add Server',
+            message: `Do you want to add "${host}" to your list of servers?`
+        }, (response) => {
+            if (response === 0) {
+                this.validateHost(host)
+                    .then(() => this.addHost(host))
+                    .then(() => this.setActive(host))
+                    .catch(() => remote.dialog.showErrorBox('Invalid Host', `The host "${host}" could not be validated, so was not added.`));
+            }
+        });
+    }
+
 }
 
 export default new Servers();

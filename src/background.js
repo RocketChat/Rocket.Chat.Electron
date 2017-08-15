@@ -35,22 +35,17 @@ if (env.name !== 'production') {
     app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
 
-const processProtocolURI = (uri) => {
-    if (uri && uri.startsWith('rocketchat://')) {
-        const site = uri.split(/\/|\?/)[2];
+const processProtocolArgv = (argv) => {
+    const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
+    if (protocolURI) {
+        const site = protocolURI.split(/\/|\?/)[2];
         if (site) {
             let scheme = 'https://';
-            if (uri.includes('insecure=true')) {
+            if (protocolURI.includes('insecure=true')) {
                 scheme = 'http://';
             }
             return scheme + site;
         }
-    }
-};
-const processProtocolArgv = (argv) => {
-    const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
-    if (protocolURI) {
-        return processProtocolURI(protocolURI);
     }
 };
 
@@ -60,7 +55,7 @@ if (process.platform === 'darwin') {
 // Open protocol urls on mac as open-url is not yet implemented on other OS's
     app.on('open-url', function (e, url) {
         e.preventDefault();
-        const site = processProtocolURI(url);
+        const site = processProtocolArgv(url);
         if (site) {
             mainWindow.send('add-host', site);
         }

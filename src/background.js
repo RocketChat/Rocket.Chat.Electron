@@ -50,14 +50,20 @@ const processProtocolArgv = (argv) => {
 };
 
 let mainWindow = null;
-
+const appIsReady = new Promise(resolve => {
+    if (app.isReady()) {
+        resolve();
+    } else {
+        app.on('ready', resolve);
+    }
+});
 if (process.platform === 'darwin') {
 // Open protocol urls on mac as open-url is not yet implemented on other OS's
     app.on('open-url', function (e, url) {
         e.preventDefault();
         const site = processProtocolArgv(url);
         if (site) {
-            mainWindow.send('add-host', site);
+            appIsReady.then(() => mainWindow.send('add-host', site));
         }
     });
 } else {
@@ -65,7 +71,7 @@ if (process.platform === 'darwin') {
         // Someone tried to run a second instance, we should focus our window.
         const site = processProtocolArgv(argv);
         if (site) {
-            mainWindow.send('add-host', site);
+            appIsReady.then(() => mainWindow.send('add-host', site));
         }
         if (mainWindow) {
             if (mainWindow.isMinimized()) {

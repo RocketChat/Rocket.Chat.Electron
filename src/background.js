@@ -53,7 +53,17 @@ const processProtocolArgv = (argv) => {
         return processProtocolURI(protocolURI);
     }
 };
+
 let mainWindow = null;
+const appIsReady = new Promise(resolve => {
+    if (app.isReady()) {
+        console.log('appisready');
+
+        resolve();
+    } else {
+        app.on('ready', () => { console.log('appisready'); setTimeout(resolve, 500); });
+    }
+});
 
 app.on('ready', function () {
     setApplicationMenu();
@@ -78,17 +88,11 @@ app.on('ready', function () {
     if (process.argv.length > 1) {
         const site = processProtocolArgv(process.argv);
         if (site) {
-            const dialog = require('electron').dialog;
-            dialog.showMessageBox({
-                type: 'question',
-                buttons: ['Add', 'Cancel'],
-                defaultId: 0,
-                title: 'Add Server',
-                message: `Do you want to add "${site}" to your list of servers?`
-            }, (response) => {
-                if (response === 0) {
-                    mainWindow.send('add-host', site);
-                }
+            //openAddHostDialog(site);
+            appIsReady.then(() => {
+                //  openAddHostDialog(site);
+                mainWindow.send('add-host', site);
+
             });
         }
     }
@@ -97,13 +101,6 @@ app.on('ready', function () {
 
 app.on('window-all-closed', function () {
     app.quit();
-});
-const appIsReady = new Promise(resolve => {
-    if (app.isReady()) {
-        resolve();
-    } else {
-        app.on('ready', resolve);
-    }
 });
 
 
@@ -114,7 +111,9 @@ if (process.platform === 'darwin') {
         const site = processProtocolURI(url);
         if (site) {
             appIsReady.then(() => {
+                //  openAddHostDialog(site);
                 mainWindow.send('add-host', site);
+
             });
         }
     });
@@ -123,17 +122,10 @@ if (process.platform === 'darwin') {
     // Someone tried to run a second instance, we should focus our window.
         const site = processProtocolArgv(argv);
         if (site) {
-            const dialog = require('electron').dialog;
-            dialog.showMessageBox({
-                type: 'question',
-                buttons: ['Add', 'Cancel'],
-                defaultId: 0,
-                title: 'Add Server',
-                message: `Do you want to add "${site}" to your list of servers?`
-            }, (response) => {
-                if (response === 0) {
-                    mainWindow.send('add-host', site);
-                }
+            appIsReady.then(() => {
+                //  openAddHostDialog(site);
+                mainWindow.send('add-host', site);
+
             });
         }
         if (mainWindow) {

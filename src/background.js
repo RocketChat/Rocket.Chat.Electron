@@ -61,9 +61,9 @@ if (process.platform === 'darwin') {
 // Open protocol urls on mac as open-url is not yet implemented on other OS's
     app.on('open-url', function (e, url) {
         e.preventDefault();
-        const site = processProtocolArgv(url);
+        const site = processProtocolArgv([url]);
         if (site) {
-            appIsReady.then(() => mainWindow.send('add-host', site));
+            appIsReady.then(() => setTimeout(() => mainWindow.send('add-host', site), 750));
         }
     });
 } else {
@@ -78,10 +78,8 @@ if (process.platform === 'darwin') {
                 mainWindow.restore();
             }
             mainWindow.show();
-            mainWindow.focus();
         }
     });
-
     if (isSecondInstance) {
         app.quit();
     }

@@ -9,7 +9,7 @@ class Servers extends EventEmitter {
     constructor () {
         super();
         this.load();
-        const processProtocol = this.getProtocolUrlFromProcess();
+        const processProtocol = this.getProtocolUrlFromProcess(remote.process.argv);
         if (processProtocol) {
             this.showHostConfirmation(processProtocol);
         }
@@ -254,11 +254,9 @@ class Servers extends EventEmitter {
         this.hosts = hosts;
         this.emit('title-setted', hostUrl, title);
     }
-    getProtocolUrlFromProcess () {
-        const args = remote.process.argv;
+    getProtocolUrlFromProcess (args) {
         let site = null;
         if (args.length > 1) {
-            console.log(args);
             const protocolURI = args.find(arg => arg.startsWith('rocketchat://'));
             if (protocolURI) {
                 site = protocolURI.split(/\/|\?/)[2];

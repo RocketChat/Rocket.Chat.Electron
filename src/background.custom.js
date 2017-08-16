@@ -114,13 +114,17 @@ export function afterMainWindow (mainWindow) {
 
     app.on('activate', function () {
         mainWindow.show();
+        mainWindowState.saveState(mainWindow);
     });
 
     mainWindow.webContents.on('will-navigate', function (event) {
         event.preventDefault();
     });
 
-    ipcMain.on('focus', () => mainWindow.show());
+    ipcMain.on('focus', () => {
+        mainWindow.show();
+        mainWindowState.saveState(mainWindow);
+    });
 
     ipcMain.on('getSystemIdleTime', (event) => {
         event.returnValue = idle.getIdleTime();

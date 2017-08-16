@@ -35,25 +35,55 @@ if (env.name !== 'production') {
     app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
 
-const processProtocolURI = (uri) => {
-    if (uri && uri.startsWith('rocketchat://')) {
-        const site = uri.split(/\/|\?/)[2];
+const processProtocolArgv = (argv) => {
+    const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
+    if (protocolURI) {
+        const site = protocolURI.split(/\/|\?/)[2];
         if (site) {
             let scheme = 'https://';
-            if (uri.includes('insecure=true')) {
+            if (protocolURI.includes('insecure=true')) {
                 scheme = 'http://';
             }
             return scheme + site;
         }
     }
 };
-const processProtocolArgv = (argv) => {
-    const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
-    if (protocolURI) {
-        return processProtocolURI(protocolURI);
-    }
-};
+
 let mainWindow = null;
+const appIsReady = new Promise(resolve => {
+    if (app.isReady()) {
+        resolve();
+    } else {
+        app.on('ready', resolve);
+    }
+});
+if (process.platform === 'darwin') {
+// Open protocol urls on mac as open-url is not yet implemented on other OS's
+    app.on('open-url', function (e, url) {
+        e.preventDefault();
+        const site = processProtocolArgv([url]);
+        if (site) {
+            appIsReady.then(() => setTimeout(() => mainWindow.send('add-host', site), 750));
+        }
+    });
+} else {
+    const isSecondInstance = app.makeSingleInstance((argv) => {
+        // Someone tried to run a second instance, we should focus our window.
+        const site = processProtocolArgv(argv);
+        if (site) {
+            appIsReady.then(() => mainWindow.send('add-host', site));
+        }
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) {
+                mainWindow.restore();
+            }
+            mainWindow.show();
+        }
+    });
+    if (isSecondInstance) {
+        app.quit();
+    }
+}
 
 app.on('ready', function () {
     setApplicationMenu();
@@ -75,77 +105,8 @@ app.on('ready', function () {
     if (env.name === 'development') {
         mainWindow.openDevTools();
     }
-    if (process.argv.length > 1) {
-        const site = processProtocolArgv(process.argv);
-        if (site) {
-            const dialog = require('electron').dialog;
-            dialog.showMessageBox({
-                type: 'question',
-                buttons: ['Add', 'Cancel'],
-                defaultId: 0,
-                title: 'Add Server',
-                message: `Do you want to add "${site}" to your list of servers?`
-            }, (response) => {
-                if (response === 0) {
-                    mainWindow.send('add-host', site);
-                }
-            });
-        }
-    }
-
 });
 
 app.on('window-all-closed', function () {
     app.quit();
 });
-const appIsReady = new Promise(resolve => {
-    if (app.isReady()) {
-        resolve();
-    } else {
-        app.on('ready', resolve);
-    }
-});
-
-
-if (process.platform === 'darwin') {
-// Open protocol urls on mac as open-url is not yet implemented on other OS's
-    app.on('open-url', function (e, url) {
-        e.preventDefault();
-        const site = processProtocolURI(url);
-        if (site) {
-            appIsReady.then(() => {
-                mainWindow.send('add-host', site);
-            });
-        }
-    });
-} else {
-    const shouldQuit = app.makeSingleInstance((argv) => {
-    // Someone tried to run a second instance, we should focus our window.
-        const site = processProtocolArgv(argv);
-        if (site) {
-            const dialog = require('electron').dialog;
-            dialog.showMessageBox({
-                type: 'question',
-                buttons: ['Add', 'Cancel'],
-                defaultId: 0,
-                title: 'Add Server',
-                message: `Do you want to add "${site}" to your list of servers?`
-            }, (response) => {
-                if (response === 0) {
-                    mainWindow.send('add-host', site);
-                }
-            });
-        }
-        if (mainWindow) {
-            if (mainWindow.isMinimized()) {
-                mainWindow.restore();
-            }
-            mainWindow.show();
-            mainWindow.focus();
-        }
-    });
-
-    if (shouldQuit) {
-        app.quit();
-    }
-}

@@ -2,6 +2,7 @@
 
 import { remote } from 'electron';
 import path from 'path';
+import i18n from '../i18n/index.js';
 
 const { Tray, Menu } = remote;
 
@@ -30,24 +31,24 @@ function createAppTray () {
     mainWindow.tray = _tray;
 
     const contextMenuShow = Menu.buildFromTemplate([{
-        label: 'Show',
+        label: i18n.__('Show'),
         click () {
             mainWindow.show();
         }
     }, {
-        label: 'Quit',
+        label: i18n.__('Quit'),
         click () {
             remote.app.quit();
         }
     }]);
 
     const contextMenuHide = Menu.buildFromTemplate([{
-        label: 'Hide',
+        label: i18n.__('Hide'),
         click () {
             mainWindow.hide();
         }
     }, {
-        label: 'Quit',
+        label: i18n.__('Quit'),
         click () {
             remote.app.quit();
         }

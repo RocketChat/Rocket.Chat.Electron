@@ -1,6 +1,7 @@
 'use strict';
 
 import { remote } from 'electron';
+import i18n from '../i18n/index.js';
 import servers from './servers';
 import appMenu from './menus/app';
 import editMenu from './menus/edit';
@@ -24,15 +25,15 @@ const menuTemplate = [
         submenu: appMenu
     },
     {
-        label: getLabel('Edit'),
+        label: getLabel(i18n.__('Edit')),
         submenu: editMenu
     },
     {
-        label: getLabel('View'),
+        label: getLabel(i18n.__('View')),
         submenu: viewMenu
     },
     {
-        label: getLabel('Window'),
+        label: getLabel(i18n.__('Window')),
         id: 'window',
         role: 'window',
         submenu: windowMenu
@@ -41,7 +42,7 @@ const menuTemplate = [
 
 if (isMac) {
     menuTemplate.push({
-        label: 'Help',
+        label: i18n.__('Help'),
         role: 'help',
         submenu: helpMenu
     });

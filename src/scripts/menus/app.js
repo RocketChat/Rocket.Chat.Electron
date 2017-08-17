@@ -1,11 +1,12 @@
 import { remote } from 'electron';
+import i18n from '../../i18n/index.js';
 
 const APP_NAME = remote.app.getName();
 const isMac = process.platform === 'darwin';
 
 const appTemplate = [
     {
-        label: 'About ' + APP_NAME,
+        label: i18n.__('About', APP_NAME),
         click: function () {
             const win = new remote.BrowserWindow({
                 width: 310,
@@ -38,7 +39,7 @@ const appTemplate = [
 if (isMac) {
     const macAppExtraTemplate = [
         {
-            label: 'Services',
+            label: i18n.__('test'),
             role: 'services',
             submenu: [],
             position: 'after=about-sep'

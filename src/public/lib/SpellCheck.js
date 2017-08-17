@@ -1,7 +1,7 @@
 const os = require('os');
 const checker = require('spellchecker');
 const { remote, webFrame } = require('electron');
-const i18n = require('../../i18n');
+const i18n = require('../../i18n/index');
 
 const webContents = remote.getCurrentWebContents();
 let menu = new remote.Menu();

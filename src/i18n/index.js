@@ -6,13 +6,22 @@ import { app, remote } from 'electron';
 const eApp = app || remote.app;
 
 class I18n {
+    /**
+     * Load users language if available, and fallback to english for any missing strings
+     * @constructor
+     */
     constructor () {
-        const dir = path.join(__dirname, '../i18n/lang');
-        let locale = path.join(dir, `${eApp.getLocale()}.json`);
-        if (!fs.existsSync(locale)) {
-            locale = path.join(dir, 'en.json');
+        let dir = path.join(__dirname, '../i18n/lang');
+        if (!fs.existsSync(dir)) {
+            dir = path.join(__dirname, 'i18n/lang');
         }
-        this.loadedLanguage = JSON.parse(fs.readFileSync(locale, 'utf8'));
+        const defaultLocale = path.join(dir, 'en.json');
+        this.loadedLanguage = JSON.parse(fs.readFileSync(defaultLocale, 'utf8'));
+        const locale = path.join(dir, `${eApp.getLocale()}.json`);
+        if (fs.existsSync(locale)) {
+            const lang = JSON.parse(fs.readFileSync(locale, 'utf8'));
+            this.loadedLanguage = Object.assign(this.loadedLanguage, lang);
+        }
     }
 
     /**

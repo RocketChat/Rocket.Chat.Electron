@@ -69,11 +69,12 @@
 		<script>
 			const { remote, ipcRenderer } = require('electron');
 			const autoUpdate = ipcRenderer.sendSync('check-for-updates', 'auto');
+            const i18n = require('../i18n/index');
 			if (!autoUpdate) {
 				document.querySelector('#auto-update').removeAttribute('checked');
 			}
 			document.querySelector('.app-name').innerHTML = remote.app.getName();
-			document.querySelector('.app-version').innerHTML = `Version <span class="version">${remote.app.getVersion()}</span>`;
+			document.querySelector('.app-version').innerHTML = `${i18n.__('Version')} <span class="version">${remote.app.getVersion()}</span>`;
 			document.querySelector('.update').onclick = function(e) {
 				document.querySelector('.update-spin').setAttribute('style', '');
 				document.querySelector('.update').setAttribute('disabled', 'disabled');

@@ -1,11 +1,8 @@
-/* eslint no-var: 0, object-shorthand: 0, prefer-template: 0 */
+const { readFileSync: readFile } = require('fs');
+const { resolve } = require('path');
+const gitUrl = 'https://github.com/RocketChat/Rocket.Chat.Electron';
 
-'use strict';
-var readFile = require('fs').readFileSync;
-var resolve = require('path').resolve;
-var gitUrl = 'https://github.com/RocketChat/Rocket.Chat.Electron';
-
-var parserOpts = {
+const parserOpts = {
 	headerPattern: /^(\[([A-z]+)\] )?(.*)$/m,
 	headerCorrespondence: [
 		'stype',
@@ -14,14 +11,9 @@ var parserOpts = {
 	],
 	mergePattern: /^Merge pull request #(.*) from .*$/,
 	mergeCorrespondence: ['pr']
-	// noteKeywords: ['BREAKING CHANGE', 'BREAKING CHANGES'],
-	// revertPattern: /^revert:\s([\s\S]*?)\s*This reverts commit (\w*)\./,
-	// revertCorrespondence: ['header', 'hash'],
-	// mergePattern: /^Merge pull request #(\d+) from (.*)$/,
-	// mergeCorrespondence: ['id', 'source']
 };
 
-var LABELS = {
+const LABELS = {
 	BREAK: {
 		title: 'BREAKING CHANGES',
 		collapse: false
@@ -44,15 +36,14 @@ var LABELS = {
 	}
 };
 
-var sort = Object.keys(LABELS);
+const sort = Object.keys(LABELS);
 
-var writerOpts = {
-	transform: function(commit) {
+const writerOpts = {
+	transform: (commit) => {
 		if (!commit.pr) {
 			return;
 		}
 
-		// console.log(commit);
 		commit.type = (commit.type || 'OTHER').toUpperCase();
 		if (LABELS[commit.type] == null) {
 			return;
@@ -60,7 +51,7 @@ var writerOpts = {
 
 		commit.pr_url = gitUrl + '/pull/' + commit.pr;
 
-		var issues = [];
+		const issues = [];
 
 		if (typeof commit.hash === 'string') {
 			commit.hash = commit.hash.substring(0, 7);
@@ -68,35 +59,23 @@ var writerOpts = {
 
 		if (typeof commit.subject === 'string') {
 			// GitHub issue URLs.
-			commit.subject = commit.subject.replace(/#([0-9]+)/g, function(_, issue) {
+			commit.subject = commit.subject.replace(/#([0-9]+)/g, (_, issue) => {
 				issues.push(issue);
-				return '[#' + issue + '](' + gitUrl + '/issues/' + issue + ')';
+				return `[#${issue}](${gitUrl}/issues/${issue})`;
 			});
 			// GitHub user URLs.
 			commit.subject = commit.subject.replace(/@([a-zA-Z0-9_]+)/g, '[@$1](https://github.com/$1)');
 		}
 
 		// remove references that already appear in the subject
-		commit.references = commit.references.filter(function(reference) {
-			if (issues.indexOf(reference.issue) === -1) {
-				return true;
-			}
-
-			return false;
-		});
+		commit.references = commit.references.filter(({ issue }) => issues.includes(issue));
 
 		return commit;
 	},
 	groupBy: 'type',
-	commitGroupsSort: function(a, b) {
-		return sort.indexOf(a.title) > sort.indexOf(b.title);
-	},
-	finalizeContext: function(context) {
-		context.commitGroups.forEach(function(group) {
-			Object.assign(group, LABELS[group.title.toUpperCase()]);
-		});
-
-		// console.log(context);
+	commitGroupsSort: (a, b) => sort.indexOf(a.title) > sort.indexOf(b.title),
+	finalizeContext: (context) => {
+		context.commitGroups.forEach((g) => Object.assign(g, LABELS[g.title.toUpperCase()]));
 		return context;
 	},
 	commitsSort: ['subject']

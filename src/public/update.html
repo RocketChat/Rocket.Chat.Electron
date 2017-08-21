@@ -62,29 +62,32 @@
 			font-weight: bold;
 		}
 	</style>
+	<script>
+        const i18n = require('../i18n/index');
+    </script>
 </head>
 	<body>
-		<h3>New Update is Available</h3>
+		<h3><script>document.write(i18n.__('Update_Available_New'))</script></h3>
 		<hr />
 		<div style="text-align:center;">
 			<img src="images/icon.png"/>
-			<p>A new version of the Rocket.Chat Desktop App is available!</p>
+			<p><script>document.write(i18n.__('Update_Available_message'))</script></p>
 			<table>
 				<tr>
-					<td style="text-align:right;">Current Version:</td>
+					<td style="text-align:right;"><script>document.write(i18n.__('Current_Version'))</script></td>
 					<td class="old"></td>
 				</tr>
 				<tr>
-					<td style="text-align:right;">New Version:</td>
+					<td style="text-align:right;"><script>document.write(i18n.__('New_Version'))</script></td>
 					<td class="new"></td>
 				</tr>
 			</table>
 		</div>
 		<hr />
 		<p class="controls">
-			<a class="skip response" data-type="skip" href="#">Skip This Version</a>
-			<a class="remind response" data-type="remind" href="#">Remind Me Later</a>
-			<button class="update response" data-type="update">Install Update</button>
+			<a class="skip response" data-type="skip" href="#"><script>document.write(i18n.__('Update_skip_version'))</script></a>
+			<a class="remind response" data-type="remind" href="#"><script>document.write(i18n.__('Update_skip_remind'))</script></a>
+			<button class="update response" data-type="update"><script>document.write(i18n.__('Update_Install'))</script></button>
 		</p>
 		<script>
 			const remote = require('electron').remote;

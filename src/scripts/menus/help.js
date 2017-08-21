@@ -12,11 +12,11 @@ const helpTemplate = [
         type: 'separator'
     },
     {
-        label: 'Report Issue',
+        label: i18n.__('Report_Issue'),
         click: () => remote.shell.openExternal('https://github.com/RocketChat/Rocket.Chat/issues')
     },
     {
-        label: 'Reset App Data',
+        label: i18n.__('Reset_App_Data'),
         click: () => servers.resetAppData()
     },
     {

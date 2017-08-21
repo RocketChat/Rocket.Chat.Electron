@@ -41,6 +41,12 @@
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true
     },
+    "appx": {
+      "backgroundColor": "white",
+      "publisher": "CN=Rocket.Chat Technologies Corp.",
+      "displayName": "Rocket.Chat+",
+      "publisherDisplayName": "Rocket.Chat"
+    },
     "linux": {
       "desktop": {
         "Categories": "GNOME;GTK;Network;InstantMessaging",

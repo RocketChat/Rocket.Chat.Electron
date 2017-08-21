@@ -76,27 +76,30 @@ class Servers extends EventEmitter {
 
         // Load server info from server config file
         if (Object.keys(hosts).length === 0) {
-            const pathToServerJson = jetpack.path(
-                jetpack.find(remote.app.getPath('userData'), { matching: 'servers.json'})[0] ||
-                jetpack.find(jetpack.path(remote.app.getAppPath(), '..'), { matching: 'servers.json'})[0]);
+            const path = jetpack.find(remote.app.getPath('userData'), { matching: 'servers.json'})[0] ||
+                jetpack.find(jetpack.path(remote.app.getAppPath(), '..'), { matching: 'servers.json'})[0];
 
-            try {
-                const result = jetpack.read(pathToServerJson, 'json');
-                if (result) {
-                    hosts = {};
-                    Object.keys(result).forEach((title) => {
-                        const url = result[title];
-                        hosts[url] = { title, url };
-                    });
-                    localStorage.setItem(this.hostsKey, JSON.stringify(hosts));
-                    // Assume user doesn't want sidebar if they only have one server
-                    if (Object.keys(hosts).length === 1) {
-                        localStorage.setItem('sidebar-closed', 'true');
+            if (path) {
+                const pathToServerJson = jetpack.path(path);
+
+                try {
+                    const result = jetpack.read(pathToServerJson, 'json');
+                    if (result) {
+                        hosts = {};
+                        Object.keys(result).forEach((title) => {
+                            const url = result[title];
+                            hosts[url] = { title, url };
+                        });
+                        localStorage.setItem(this.hostsKey, JSON.stringify(hosts));
+                        // Assume user doesn't want sidebar if they only have one server
+                        if (Object.keys(hosts).length === 1) {
+                            localStorage.setItem('sidebar-closed', 'true');
+                        }
                     }
-                }
 
-            } catch (e) {
-                console.error('Server file invalid');
+                } catch (e) {
+                    console.error('Server file invalid');
+                }
             }
         }
 
@@ -284,6 +287,23 @@ class Servers extends EventEmitter {
                     .then(() => this.addHost(host))
                     .then(() => this.setActive(host))
                     .catch(() => remote.dialog.showErrorBox('Invalid Host', `The host "${host}" could not be validated, so was not added.`));
+            }
+        });
+    }
+
+    resetAppData () {
+        return remote.dialog.showMessageBox({
+            type: 'question',
+            buttons: ['Yes', 'Cancel'],
+            defaultId: 1,
+            title: 'Reset App Data',
+            message: 'This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.'
+        }, (response) => {
+            if (response === 0) {
+                const dataDir = remote.app.getPath('userData');
+                jetpack.remove(dataDir);
+                remote.app.relaunch();
+                remote.app.quit();
             }
         });
     }

@@ -75,7 +75,7 @@ class SideBar extends EventEmitter {
         if (process.platform === 'darwin') {
             hotkey.innerHTML = '⌘' + (++this.hostCount);
         } else {
-            hotkey.innerHTML = '^' + (++this.hostCount);
+            hotkey.innerHTML = '^+' + (++this.hostCount);
         }
 
         const item = document.createElement('li');
@@ -254,3 +254,29 @@ window.addEventListener('contextmenu', function (e) {
         instanceMenu.popup(remote.getCurrentWindow());
     }
 }, false);
+
+if (process.platform === 'darwin') {
+    window.addEventListener('keydown', function (e) {
+        if (e.key === 'Meta') {
+            document.getElementsByClassName('server-list')[0].classList.add('command-pressed');
+        }
+    });
+
+    window.addEventListener('keyup', function (e) {
+        if (e.key === 'Meta') {
+            document.getElementsByClassName('server-list')[0].classList.remove('command-pressed');
+        }
+    });
+} else {
+    window.addEventListener('keydown', function (e) {
+        if (e.key === 'ctrlKey') {
+            document.getElementsByClassName('server-list')[0].classList.add('command-pressed');
+        }
+    });
+
+    window.addEventListener('keyup', function (e) {
+        if (e.key === 'ctrlKey') {
+            document.getElementsByClassName('server-list')[0].classList.remove('command-pressed');
+        }
+    });
+}

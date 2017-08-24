@@ -1,7 +1,28 @@
 const { ipcRenderer } = require('electron');
 
-class Notification extends window.Notification {
+if (process.platform === 'darwin') {
+    const NodeNotification = require('node-mac-notifier');
+    window.Notification = class Notification extends NodeNotification {
+        constructor (title, options) {
+            options.bundleId = `chat.rocket`;
+            super(title, options);
+            this.addEventListener('click', (/*notification*/) => {
+                ipcRenderer.send('focus');
+                ipcRenderer.sendToHost('focus');
+            });
+        }
 
+        static requestPermission () {
+            return;
+        }
+
+        static get permission () {
+            return 'granted';
+        }
+    };
+}
+
+class Notification extends window.Notification {
     constructor (title, options) {
         super(title, options);
         ipcRenderer.send('notification-shim', title, options);
@@ -10,12 +31,13 @@ class Notification extends window.Notification {
         ipcRenderer.once(`clicked-${options.tag}`, () => this.onclick());
     }
 
+
     get onclick () {
         return super.onclick;
     }
 
     set onclick (fn) {
-        var result = super.onclick = () => {
+        const result = super.onclick = () => {
             ipcRenderer.send('focus');
             ipcRenderer.sendToHost('focus');
             fn.apply(this, arguments);

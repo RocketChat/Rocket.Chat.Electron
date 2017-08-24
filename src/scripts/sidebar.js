@@ -48,29 +48,29 @@ class SideBar extends EventEmitter {
     }
 
     add (host) {
-        var name = host.title.replace(/^https?:\/\/(?:www\.)?([^\/]+)(.*)/, '$1');
+        let name = host.title.replace(/^https?:\/\/(?:www\.)?([^\/]+)(.*)/, '$1');
         name = name.split('.');
         name = name[0][0] + (name[1] ? name[1][0] : '');
         name = name.toUpperCase();
 
-        var initials = document.createElement('span');
+        const initials = document.createElement('span');
         initials.innerHTML = name;
 
-        var tooltip = document.createElement('div');
+        const tooltip = document.createElement('div');
         tooltip.classList.add('tooltip');
         tooltip.innerHTML = host.title;
 
-        var badge = document.createElement('div');
+        const badge = document.createElement('div');
         badge.classList.add('badge');
 
-        var img = document.createElement('img');
+        const img = document.createElement('img');
         img.onload = function () {
             img.style.display = 'initial';
             initials.style.display = 'none';
         };
         // img.src = `${host.url}/assets/favicon.svg?v=${Math.round(Math.random()*10000)}`;
 
-        var hotkey = document.createElement('div');
+        const hotkey = document.createElement('div');
         hotkey.classList.add('name');
         if (process.platform === 'darwin') {
             hotkey.innerHTML = '⌘' + (++this.hostCount);
@@ -78,7 +78,7 @@ class SideBar extends EventEmitter {
             hotkey.innerHTML = '^' + (++this.hostCount);
         }
 
-        var item = document.createElement('li');
+        const item = document.createElement('li');
         item.appendChild(initials);
         item.appendChild(tooltip);
         item.appendChild(badge);
@@ -104,7 +104,7 @@ class SideBar extends EventEmitter {
     }
 
     remove (hostUrl) {
-        var el = this.getByUrl(hostUrl);
+        const el = this.getByUrl(hostUrl);
         if (el) {
             el.remove();
             menus.removeServer(hostUrl);
@@ -129,14 +129,14 @@ class SideBar extends EventEmitter {
         }
 
         this.deactiveAll();
-        var item = this.getByUrl(hostUrl);
+        const item = this.getByUrl(hostUrl);
         if (item) {
             item.classList.add('active');
         }
     }
 
     deactiveAll () {
-        var item;
+        let item;
         while (!(item = this.getActive()) === false) {
             item.classList.remove('active');
         }
@@ -147,8 +147,8 @@ class SideBar extends EventEmitter {
     }
 
     setBadge (hostUrl, badge) {
-        var item = this.getByUrl(hostUrl);
-        var badgeEl = item.querySelector('.badge');
+        const item = this.getByUrl(hostUrl);
+        const badgeEl = item.querySelector('.badge');
 
         if (badge !== null && badge !== undefined && badge !== '') {
             item.classList.add('unread');
@@ -166,12 +166,12 @@ class SideBar extends EventEmitter {
     }
 
     getGlobalBadge () {
-        var count = 0;
-        var alert = '';
-        var instanceEls = this.listElement.querySelectorAll('li.instance');
-        for (var i = instanceEls.length - 1; i >= 0; i--) {
-            var instanceEl = instanceEls[i];
-            var text = instanceEl.querySelector('.badge').innerHTML;
+        let count = 0;
+        let alert = '';
+        const instanceEls = this.listElement.querySelectorAll('li.instance');
+        for (let i = instanceEls.length - 1; i >= 0; i--) {
+            const instanceEl = instanceEls[i];
+            const text = instanceEl.querySelector('.badge').innerHTML;
             if (!isNaN(parseInt(text))) {
                 count += parseInt(text);
             }
@@ -194,7 +194,7 @@ class SideBar extends EventEmitter {
         this.emit('hide');
         if (process.platform === 'darwin') {
             document.querySelectorAll('webview').forEach(
-              (webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:15px;overflow:hidden; transition: margin .5s ease-in-out; }'); } });
+                (webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:15px;overflow:hidden; transition: margin .5s ease-in-out; }'); } });
         }
     }
 
@@ -224,8 +224,8 @@ class SideBar extends EventEmitter {
 export default new SideBar();
 
 
-var selectedInstance = null;
-var instanceMenu = remote.Menu.buildFromTemplate([{
+let selectedInstance = null;
+const instanceMenu = remote.Menu.buildFromTemplate([{
     label: 'Reload server',
     click: function () {
         webview.getByUrl(selectedInstance.dataset.host).reload();

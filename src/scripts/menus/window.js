@@ -26,7 +26,7 @@ const macWindowTemplate = [
         label: 'Add new server',
         accelerator: 'Command+N',
         click: function () {
-            var mainWindow = remote.getCurrentWindow();
+            const mainWindow = remote.getCurrentWindow();
             mainWindow.show();
             servers.clearActive();
             webview.showLanding();
@@ -38,7 +38,7 @@ const macWindowTemplate = [
     {
         label: 'Bring All to Front',
         click: function () {
-            var mainWindow = remote.getCurrentWindow();
+            const mainWindow = remote.getCurrentWindow();
             mainWindow.show();
         }
     }

@@ -2,13 +2,24 @@
 
 import jetpack from 'fs-jetpack';
 import { EventEmitter } from 'events';
-import { remote } from 'electron';
+import { remote, ipcRenderer } from 'electron';
 const remoteServers = remote.require('./background').remoteServers;
 
 class Servers extends EventEmitter {
     constructor () {
         super();
         this.load();
+        const processProtocol = this.getProtocolUrlFromProcess(remote.process.argv);
+        if (processProtocol) {
+            this.showHostConfirmation(processProtocol);
+        }
+        ipcRenderer.on('add-host', (e, host) => {
+            if (this.hostExists(host)) {
+                this.setActive(host);
+            } else {
+                this.showHostConfirmation(host);
+            }
+        });
     }
 
     get hosts () {
@@ -30,7 +41,7 @@ class Servers extends EventEmitter {
     }
 
     load () {
-        var hosts = localStorage.getItem(this.hostsKey);
+        let hosts = localStorage.getItem(this.hostsKey);
 
         try {
             hosts = JSON.parse(hosts);
@@ -51,7 +62,7 @@ class Servers extends EventEmitter {
         }
 
         if (Array.isArray(hosts)) {
-            var oldHosts = hosts;
+            const oldHosts = hosts;
             hosts = {};
             oldHosts.forEach(function (item) {
                 item = item.replace(/\/$/, '');
@@ -65,25 +76,30 @@ class Servers extends EventEmitter {
 
         // Load server info from server config file
         if (Object.keys(hosts).length === 0) {
-            const serverFileName = 'servers.json';
-            const userDataDir = jetpack.cwd(remote.app.getPath('userData'));
-            try {
-                const result = userDataDir.read(serverFileName, 'json');
-                if (result) {
-                    hosts = {};
-                    Object.keys(result).forEach((title) => {
-                        const url = result[title];
-                        hosts[url] = { title, url };
-                    });
-                    localStorage.setItem(this.hostsKey, JSON.stringify(hosts));
-                    // Assume user doesn't want sidebar if they only have one server
-                    if (Object.keys(hosts).length === 1) {
-                        localStorage.setItem('sidebar-closed', 'true');
-                    }
-                }
+            const path = jetpack.find(remote.app.getPath('userData'), { matching: 'servers.json'})[0] ||
+                jetpack.find(jetpack.path(remote.app.getAppPath(), '..'), { matching: 'servers.json'})[0];
 
-            } catch (e) {
-                console.log('Server file invalid');
+            if (path) {
+                const pathToServerJson = jetpack.path(path);
+
+                try {
+                    const result = jetpack.read(pathToServerJson, 'json');
+                    if (result) {
+                        hosts = {};
+                        Object.keys(result).forEach((title) => {
+                            const url = result[title];
+                            hosts[url] = { title, url };
+                        });
+                        localStorage.setItem(this.hostsKey, JSON.stringify(hosts));
+                        // Assume user doesn't want sidebar if they only have one server
+                        if (Object.keys(hosts).length === 1) {
+                            localStorage.setItem('sidebar-closed', 'true');
+                        }
+                    }
+
+                } catch (e) {
+                    console.error('Server file invalid');
+                }
             }
         }
 
@@ -102,7 +118,7 @@ class Servers extends EventEmitter {
     }
 
     forEach (cb) {
-        for (var host in this.hosts) {
+        for (const host in this.hosts) {
             if (this.hosts.hasOwnProperty(host)) {
                 cb(this.hosts[host]);
             }
@@ -110,23 +126,20 @@ class Servers extends EventEmitter {
     }
 
     validateHost (hostUrl, timeout) {
-        console.log('Validating hostUrl', hostUrl);
         timeout = timeout || 5000;
         return new Promise(function (resolve, reject) {
-            var resolved = false;
+            let resolved = false;
             $.getJSON(`${hostUrl}/api/info`).then(function () {
                 if (resolved) {
                     return;
                 }
                 resolved = true;
-                console.log('HostUrl valid', hostUrl);
                 resolve();
             }, function (request) {
                 if (request.status === 401) {
-                    let authHeader = request.getResponseHeader('www-authenticate');
+                    const authHeader = request.getResponseHeader('www-authenticate');
                     if (authHeader && authHeader.toLowerCase().indexOf('basic ') === 0) {
                         resolved = true;
-                        console.log('HostUrl needs basic auth', hostUrl);
                         reject('basic-auth');
                     }
                 }
@@ -134,7 +147,6 @@ class Servers extends EventEmitter {
                     return;
                 }
                 resolved = true;
-                console.log('HostUrl invalid', hostUrl);
                 reject('invalid');
             });
             if (timeout) {
@@ -143,7 +155,6 @@ class Servers extends EventEmitter {
                         return;
                     }
                     resolved = true;
-                    console.log('Validating hostUrl TIMEOUT', hostUrl);
                     reject('timeout');
                 }, timeout);
             }
@@ -151,15 +162,15 @@ class Servers extends EventEmitter {
     }
 
     hostExists (hostUrl) {
-        var hosts = this.hosts;
+        const hosts = this.hosts;
 
         return !!hosts[hostUrl];
     }
 
     addHost (hostUrl) {
-        var hosts = this.hosts;
+        const hosts = this.hosts;
 
-        let match = hostUrl.match(/^(https?:\/\/)([^:]+):([^@]+)@(.+)$/);
+        const match = hostUrl.match(/^(https?:\/\/)([^:]+):([^@]+)@(.+)$/);
         let username;
         let password;
         let authUrl;
@@ -192,7 +203,7 @@ class Servers extends EventEmitter {
     }
 
     removeHost (hostUrl) {
-        var hosts = this.hosts;
+        const hosts = this.hosts;
         if (hosts[hostUrl]) {
             delete hosts[hostUrl];
             this.hosts = hosts;
@@ -241,11 +252,62 @@ class Servers extends EventEmitter {
         if (title === 'Rocket.Chat' && /https?:\/\/demo\.rocket\.chat/.test(hostUrl) === false) {
             title += ' - ' + hostUrl;
         }
-        var hosts = this.hosts;
+        const hosts = this.hosts;
         hosts[hostUrl].title = title;
         this.hosts = hosts;
         this.emit('title-setted', hostUrl, title);
     }
+    getProtocolUrlFromProcess (args) {
+        let site = null;
+        if (args.length > 1) {
+            const protocolURI = args.find(arg => arg.startsWith('rocketchat://'));
+            if (protocolURI) {
+                site = protocolURI.split(/\/|\?/)[2];
+                if (site) {
+                    let scheme = 'https://';
+                    if (protocolURI.includes('insecure=true')) {
+                        scheme = 'http://';
+                    }
+                    site = scheme + site;
+                }
+            }
+        }
+        return site;
+    }
+    showHostConfirmation (host) {
+        return remote.dialog.showMessageBox({
+            type: 'question',
+            buttons: ['Add', 'Cancel'],
+            defaultId: 0,
+            title: 'Add Server',
+            message: `Do you want to add "${host}" to your list of servers?`
+        }, (response) => {
+            if (response === 0) {
+                this.validateHost(host)
+                    .then(() => this.addHost(host))
+                    .then(() => this.setActive(host))
+                    .catch(() => remote.dialog.showErrorBox('Invalid Host', `The host "${host}" could not be validated, so was not added.`));
+            }
+        });
+    }
+
+    resetAppData () {
+        return remote.dialog.showMessageBox({
+            type: 'question',
+            buttons: ['Yes', 'Cancel'],
+            defaultId: 1,
+            title: 'Reset App Data',
+            message: 'This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.'
+        }, (response) => {
+            if (response === 0) {
+                const dataDir = remote.app.getPath('userData');
+                jetpack.remove(dataDir);
+                remote.app.relaunch();
+                remote.app.quit();
+            }
+        });
+    }
+
 }
 
 export default new Servers();

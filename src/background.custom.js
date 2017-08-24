@@ -3,36 +3,35 @@
 // It doesn't have any windows which you can see on screen, but we can open
 // window from here.
 
-import os from 'os';
 import { app, ipcMain, BrowserWindow } from 'electron';
 import windowStateKeeper from './background/windowState';
 import certificate from './background/certificate';
-import Toaster from './Toaster';
 import idle from '@paulcbetts/system-idle-time';
 import { checkForUpdates } from './background/autoUpdate';
+
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
 let screenshareEvent;
 ipcMain.on('screenshare', (event, sources) => {
     screenshareEvent = event;
-    let window = new BrowserWindow({
+    let mainWindow = new BrowserWindow({
         width: 776,
         height: 600,
         show : false,
         skipTaskbar: false
     });
 
-    window.loadURL('file://'+__dirname+'/public/screenshare.html');
+    mainWindow.loadURL('file://'+__dirname+'/public/screenshare.html');
 
     //window.openDevTools();
-    window.webContents.on('did-finish-load', () => {
-        window.webContents.send('sources', sources);
-        window.show();
+    mainWindow.webContents.on('did-finish-load', () => {
+        mainWindow.webContents.send('sources', sources);
+        mainWindow.show();
     });
 
-    window.on('closed', () => {
-        window = null;
+    mainWindow.on('closed', () => {
+        mainWindow = null;
         if (screenshareEvent) {
             screenshareEvent.sender.send('screenshare-result', 'PermissionDeniedError');
             screenshareEvent = null;
@@ -48,22 +47,11 @@ ipcMain.on('source-result', (e, sourceId) => {
 });
 
 export function afterMainWindow (mainWindow) {
-    if (process.platform !== 'darwin') {
-        var shouldQuit = app.makeSingleInstance(function () {
-            // Someone tried to run a second instance, we should focus our window.
-            if (mainWindow) {
-                mainWindow.show();
-                mainWindow.focus();
-            }
-        });
-
-        if (shouldQuit) {
-            app.quit();
-        }
+    if (!app.isDefaultProtocolClient('rocketchat')) {
+        app.setAsDefaultProtocolClient('rocketchat');
     }
-
     // Preserver of the window size and position between app launches.
-    var mainWindowState = windowStateKeeper('main', {
+    const mainWindowState = windowStateKeeper('main', {
         width: 1000,
         height: 600
     });
@@ -120,37 +108,21 @@ export function afterMainWindow (mainWindow) {
 
     app.on('activate', function () {
         mainWindow.show();
+        mainWindowState.saveState(mainWindow);
     });
 
     mainWindow.webContents.on('will-navigate', function (event) {
         event.preventDefault();
     });
 
-    ipcMain.on('focus', () => mainWindow.show());
+    ipcMain.on('focus', () => {
+        mainWindow.show();
+        mainWindowState.saveState(mainWindow);
+    });
 
     ipcMain.on('getSystemIdleTime', (event) => {
         event.returnValue = idle.getIdleTime();
     });
-
-    // Windows 7 and below
-    const useToaster = ['win32', 'win64'].indexOf(os.platform()) !== -1 &&
-      parseFloat(os.release()) < 6.2;
-
-    if (useToaster) {
-        const toaster = new Toaster(mainWindow);
-
-        ipcMain.on('notification-shim', (e, title, options) => {
-            toaster.toast({
-                title: title,
-                message: options.body,
-                icon: options.icon,
-                tag: options.tag,
-                width: 400,
-                timeout: 5000,
-                htmlFile: 'file://'+__dirname+'/public/notification.html'
-            }, () => e.sender.send(`clicked-${options.tag}`));
-        });
-    }
 
     certificate.initWindow(mainWindow);
 

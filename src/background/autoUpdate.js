@@ -2,6 +2,7 @@ import { app, ipcMain, BrowserWindow, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';
 
+const installDir = jetpack.cwd(app.getAppPath());
 const userDataDir = jetpack.cwd(app.getPath('userData'));
 const updateStoreFile = 'update.json';
 let checkForUpdatesEvent;
@@ -10,9 +11,11 @@ autoUpdater.autoDownload = false;
 
 let updateFile = {};
 try {
-    updateFile = userDataDir.read(updateStoreFile, 'json') || {};
+    const installUpdateFile = installDir.read(updateStoreFile, 'json');
+    const userUpdateFile = userDataDir.read(updateStoreFile, 'json');
+    updateFile = Object.assign({}, installUpdateFile, userUpdateFile);
 } catch (err) {
-    console.log(err);
+    console.error(err);
 }
 
 function updateDownloaded () {
@@ -49,7 +52,6 @@ function updateAvailable ({version}) {
         checkForUpdatesEvent.sender.send('update-result', true);
         checkForUpdatesEvent = null;
     } else if (updateFile.skip === version) {
-        console.log(`Skipping version: ${version}`);
         return;
     }
 
@@ -109,10 +111,6 @@ function checkForUpdates () {
     autoUpdater.on('update-available', updateAvailable);
     autoUpdater.on('update-not-available', updateNotAvailable);
 
-    autoUpdater.on('download-progress', ({percent}) => {
-        console.log(`Update progress: ${percent}`);
-    });
-
     autoUpdater.on('update-downloaded', updateDownloaded);
 
     // Event from about window
@@ -121,7 +119,7 @@ function checkForUpdates () {
             updateFile.autoUpdate = autoUpdate;
             userDataDir.write(updateStoreFile, updateFile, { atomic: true });
         } else if (autoUpdate === 'auto') {
-            e.returnValue = !!updateFile.autoUpdate;
+            e.returnValue = updateFile.autoUpdate !== false;
         } else {
             checkForUpdatesEvent = e;
             autoUpdater.checkForUpdates();

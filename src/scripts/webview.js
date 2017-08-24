@@ -56,7 +56,7 @@ class WebView extends EventEmitter {
     }
 
     add (host) {
-        var webviewObj = this.getByUrl(host.url);
+        let webviewObj = this.getByUrl(host.url);
         if (webviewObj) {
             return;
         }
@@ -68,7 +68,9 @@ class WebView extends EventEmitter {
         webviewObj.setAttribute('disablewebsecurity', 'on');
 
         webviewObj.addEventListener('did-navigate-in-page', (lastPath) => {
-            this.saveLastPath(host.url, lastPath.url);
+            if ((lastPath.url).includes(host.url)) {
+                this.saveLastPath(host.url, lastPath.url);
+            }
         });
 
         webviewObj.addEventListener('console-message', function (e) {
@@ -132,14 +134,14 @@ class WebView extends EventEmitter {
     }
 
     remove (hostUrl) {
-        var el = this.getByUrl(hostUrl);
+        const el = this.getByUrl(hostUrl);
         if (el) {
             el.remove();
         }
     }
 
     saveLastPath (hostUrl, lastPathUrl) {
-        var hosts = servers.hosts;
+        const hosts = servers.hosts;
         hosts[hostUrl].lastPath = lastPathUrl;
         servers.hosts = hosts;
     }
@@ -157,7 +159,7 @@ class WebView extends EventEmitter {
     }
 
     deactiveAll () {
-        var item;
+        let item;
         while (!(item = this.getActive()) === false) {
             item.classList.remove('active');
         }
@@ -170,13 +172,12 @@ class WebView extends EventEmitter {
     }
 
     setActive (hostUrl) {
-        console.log('active setted', hostUrl);
         if (this.isActive(hostUrl)) {
             return;
         }
 
         this.deactiveAll();
-        var item = this.getByUrl(hostUrl);
+        const item = this.getByUrl(hostUrl);
         if (item) {
             item.classList.add('active');
         }
@@ -185,7 +186,7 @@ class WebView extends EventEmitter {
     }
 
     focusActive () {
-        var active = this.getActive();
+        const active = this.getActive();
         if (active) {
             active.focus();
             return true;

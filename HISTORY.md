@@ -1,3 +1,23 @@
+<a name="2.9.0"></a>
+# 2.9.0 (2017-08-23)
+
+
+### New Features
+
+- [#320](https://github.com/RocketChat/Rocket.Chat.Electron/pull/320) Allow reply notifications on Mac OS
+- [#490](https://github.com/RocketChat/Rocket.Chat.Electron/pull/490) Default servers improvements
+- [#509](https://github.com/RocketChat/Rocket.Chat.Electron/pull/509) Add missing Services menu in application menu on macOS
+
+
+### Bug Fixes
+
+- [#494](https://github.com/RocketChat/Rocket.Chat.Electron/pull/494) Adding ESLint and fixing lint errors
+- [#465](https://github.com/RocketChat/Rocket.Chat.Electron/pull/465) Fix bug in spellcheck
+- [#512](https://github.com/RocketChat/Rocket.Chat.Electron/pull/512) Fix minimized start on Windows
+- [#464](https://github.com/RocketChat/Rocket.Chat.Electron/pull/464) Remove duplicate notification on windows 7
+- [#453](https://github.com/RocketChat/Rocket.Chat.Electron/pull/453) Read update settings from install location
+
+
 <a name="2.8.0"></a>
 # 2.8.0 (2017-05-17)
 

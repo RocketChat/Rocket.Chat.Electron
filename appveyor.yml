@@ -31,7 +31,7 @@ test_script:
   # - yarn e2e
 
 build_script:
-  - yarn release -- --x64 --win appx
+  - yarn release -- --ia32 --win appx
 
 artifacts:
   - path: 'dist\**\*.exe'

@@ -39,8 +39,8 @@ module.exports = function (src, dest, opts) {
             const jsFile = path.basename(dest);
             return bundle.generate({
                 format: 'cjs',
-                sourceMap: true,
-                sourceMapFile: jsFile,
+                sourcemap: true,
+                sourcemapFile: jsFile,
             });
         })
         .then(function (result) {

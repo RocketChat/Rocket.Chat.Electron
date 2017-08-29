@@ -6,10 +6,7 @@ if (process.platform === 'darwin') {
         constructor (title, options) {
             options.bundleId = `chat.rocket`;
             super(title, options);
-            this.addEventListener('click', (/*notification*/) => {
-                ipcRenderer.send('focus');
-                ipcRenderer.sendToHost('focus');
-            });
+            this.addEventListener('click', (/*notification*/) => this.onclick());
         }
 
         static requestPermission () {

@@ -45,6 +45,7 @@
     "Original_Zoom": "Original Zoom",
     "Paste": "Paste",
     "Quit": "Quit",
+    "Quit_App": "Quit %s",
     "Redo": "Redo",
     "Reload": "Reload",
     "Reload_server": "Reload server",

@@ -28,7 +28,7 @@ const appTemplate = [
         id: 'about-sep'
     },
     {
-        label: `Quit ${APP_NAME}`,
+        label: i18n.__('Quit_App', APP_NAME),
         accelerator: 'CommandOrControl+Q',
         click: function () {
             remote.app.quit();
@@ -39,7 +39,6 @@ const appTemplate = [
 if (isMac) {
     const macAppExtraTemplate = [
         {
-            label: i18n.__('Services'),
             role: 'services',
             submenu: [],
             position: 'after=about-sep'
@@ -48,17 +47,14 @@ if (isMac) {
             type: 'separator'
         },
         {
-            label: 'Hide ' + APP_NAME,
             accelerator: 'Command+H',
             role: 'hide'
         },
         {
-            label: 'Hide Others',
             accelerator: 'Command+Alt+H',
             role: 'hideothers'
         },
         {
-            label: 'Show All',
             role: 'unhide'
         },
         {

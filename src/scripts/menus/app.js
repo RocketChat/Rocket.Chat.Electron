@@ -39,7 +39,7 @@ const appTemplate = [
 if (isMac) {
     const macAppExtraTemplate = [
         {
-            label: i18n.__('test'),
+            label: i18n.__('Services'),
             role: 'services',
             submenu: [],
             position: 'after=about-sep'

@@ -5,7 +5,7 @@
 
 import path from 'path';
 import url from 'url';
-import { app, Menu } from 'electron';
+import { app, globalShortcut, Menu } from 'electron';
 import { devMenuTemplate } from './menu/dev_menu_template';
 import { editMenuTemplate } from './menu/edit_menu_template';
 import createWindow from './helpers/window';
@@ -58,7 +58,7 @@ const appIsReady = new Promise(resolve => {
     }
 });
 if (process.platform === 'darwin') {
-// Open protocol urls on mac as open-url is not yet implemented on other OS's
+    // Open protocol urls on mac as open-url is not yet implemented on other OS's
     app.on('open-url', function (e, url) {
         e.preventDefault();
         const site = processProtocolArgv([url]);
@@ -102,6 +102,14 @@ app.on('ready', function () {
         slashes: true
     }));
 
+    globalShortcut.register('CommandOrControl+left', () => {
+        mainWindow.webContents.goBack();
+    });
+
+    globalShortcut.register('CommandOrControl+right', () => {
+        mainWindow.webContents.goForward();
+    });
+
     if (env.name === 'development') {
         mainWindow.openDevTools();
     }
@@ -109,4 +117,9 @@ app.on('ready', function () {
 
 app.on('window-all-closed', function () {
     app.quit();
+});
+
+app.on('will-quit', () => {
+    globalShortcut.unregister('CommandOrControl+left');
+    globalShortcut.unregister('CommandOrControl+right');
 });

@@ -63,7 +63,8 @@
       "target": [
         "dmg",
         "pkg",
-        "zip"
+        "zip",
+        "mas"
       ]
     },
     "nsis": {

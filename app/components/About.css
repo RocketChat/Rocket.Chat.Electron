@@ -1,0 +1,47 @@
+html {
+	background-color: #ececec;
+	font-family: helvetica;
+	text-align: center;
+	padding: 10px;
+}
+
+body {
+	margin: 0px;
+}
+
+img {
+	height: 60px;
+	margin-bottom: 10px;
+}
+
+.app-name {
+	font-size: 14px;
+	font-weight: bold;
+}
+
+.app-version {
+	margin-top: 15px;
+	font-size: 11px;
+}
+
+.app-version .version {
+	font-weight: bold;
+}
+
+.update {
+	margin-top:10px;
+}
+
+.copyright {
+	font-size: 10px;
+	position: absolute;
+	bottom: 0;
+	margin-left: auto;
+	margin-right: auto;
+	left: 0;
+	right: 0;
+}
+
+.auto-update-container {
+	margin: 5px 0;
+}

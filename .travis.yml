@@ -4,6 +4,7 @@ cache:
   yarn: true
   directories:
     - node_modules
+    - app/node_modules
 
 matrix:
   include:
@@ -14,16 +15,32 @@ matrix:
       apt:
         packages:
           - rpm
-          - g++-multilib
-          - libxss-dev:i386
+          - g++-4.8
+          - icnsutils
+          - graphicsmagick
+          - xz-utils
+          - xorriso
   - os: osx
     osx_image: xcode8.3
 
 install:
+  - export CXX="g++-4.8"
   - yarn
+  - cd app && yarn && cd ..
+  #- "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
+
+#before_script:
+#  - export DISPLAY=:99.0
+#  - sh -e /etc/init.d/xvfb start &
+#  - sleep 3
+
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
+  - node --version
+  #- yarn lint
   - yarn release -- --x64 --ia32
+  #- yarn test
+  #- yarn test-e2e
 
 branches:
   only:

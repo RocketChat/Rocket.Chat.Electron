@@ -1,0 +1,140 @@
+
+.serverList {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	height: 100%;
+	width: 80px;
+	padding-top: 22px;
+	background-color: #0F354C;
+	z-index: 100000;
+	-webkit-app-region: drag;
+
+  ul {
+  	padding: 0px;
+  	margin: 0px;
+  }
+  li {
+  	color: #FFF;
+  	cursor: pointer;
+  	font-size: 17pt;
+
+  	-webkit-user-select: none;
+  	user-select: none;
+  	display: flex;
+  	justify-content: flex-start;
+  	align-items: center;
+  	height: 60px;
+  	position: relative;
+  	margin-bottom: 20px;
+
+    &:before {
+    	content: "";
+    	width: 0px;
+    	height: 0px;
+    	background-color: #fff;
+    	transition: height .2s, opacity .2s;
+    	border-radius: 0 3px 3px 0;
+    	opacity: 1;
+    }
+
+    &.active {
+      &:before {
+      	width: 5px;
+      	height: 30px;
+      	opacity: 1;
+      }
+      img {
+      	opacity: 1;
+      }
+      span {
+      	opacity: 1;
+      }
+    }
+
+
+    &.unread:before {
+    	width: 5px;
+    	height: 6px;
+    	opacity: .6;
+    }
+
+    .badge {
+    	position: absolute;
+    	right: 10px;
+    	top: 5px;
+    	background-color: #e43325;
+    	border-radius: 20px;
+    	min-width: 18px;
+    	line-height: 18px;
+    	font-size: 12px;
+    	text-align: center;
+    	z-index: 1;
+    	font-family: Helvetica;
+    	font-weight: bold;
+    	padding: 0 5px;
+    	box-shadow: 0px 1px 2px rgba(0,0,0,.6);
+    }
+    .name {
+    	text-align: center;
+    	width: 70px;
+    	bottom: -10px;
+    	position: absolute;
+    	font-size: 12px;
+    	line-height: 11px;
+    	right: 5px;
+    	font-weight: 600;
+    	opacity: 0.6;
+    }
+    &:hover {
+      span {
+      	opacity: 0.8;
+      }
+      img {
+      	opacity: 0.8;
+      }
+      .tooltip {
+      	display: block;
+      }
+    }
+  }
+
+  img {
+  	width: 50px;
+  	height: 50px;
+  	top: 5px;
+  	left: 15px;
+  	position: absolute;
+  	display: none;
+  	opacity: 0.6;
+  	transition: opacity .2s;
+  }
+  span {
+  	width: 70px;
+  	text-align: center;
+  	line-height: 60px;
+  	left: 5px;
+  	position: absolute;
+  	opacity: 0.6;
+  	transition: opacity .2s;
+  }
+}
+
+.tooltip {
+  line-height: 30px;
+  left: 72px;
+  position: absolute;
+  background-color: #000;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0px 15px;
+  display: none;
+  top: 15px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.addServer span {
+	font-size: 40px;
+	opacity: 0.3;
+}

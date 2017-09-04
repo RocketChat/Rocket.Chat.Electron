@@ -1,16 +1,7 @@
-# build: off
-
 os: unstable
 
 platform:
   - x64
-
-branches:
-  only:
-    - master
-    - develop
-
-skip_tags: true
 
 environment:
   nodejs_version: "7"
@@ -20,23 +11,34 @@ cache:
   - node_modules -> package.json
   - app/node_modules -> app/package.json
 
+branches:
+  only:
+    - master
+    - develop
+
+#matrix:
+#  fast_finish: true
+
+#build: off
+
+version: '{build}'
+
 shallow_clone: true
 
 clone_depth: 1
 
 install:
-  - ps: Install-Product node $env:nodejs_version $env:platform
+  - ps: Install-Product node $env:nodejs_version
   - set CI=true
   - yarn
+  - cd app && yarn
 
 test_script:
   - node --version
-  - yarn --version
-  # - yarn test
-  # - yarn e2e
-
-build_script:
+  #- yarn lint
   - yarn release -- --ia32 --x64
+  #- yarn test
+  #- yarn test-e2e
 
 artifacts:
-  - path: 'dist\**\*.exe'
+- path: 'dist\**\*.exe'

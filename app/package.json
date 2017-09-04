@@ -1,0 +1,19 @@
+{
+  "name": "rocketchat",
+  "productName": "RocketChat+",
+  "author": "Rocket.Chat Support <support@rocket.chat>",
+  "version": "2.8.0",
+  "description": "Electron application boilerplate based on React, React Router, Webpack, React Hot Loader for rapid application development",
+  "main": "./main.prod.js",
+  "scripts": {
+    "postinstall": "npm rebuild"
+  },
+  "license": "MIT",
+  "optionalDependencies": {
+    "node-mac-notifier": "0.0.13"
+  },
+  "dependencies": {
+    "electron-store": "1.2.0",
+    "spellchecker": "^3.4.2"
+  }
+}

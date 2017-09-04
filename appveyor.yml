@@ -4,20 +4,23 @@ platform:
   - x64
 
 environment:
-  nodejs_version: "7"
+  nodejs_version: 7
 
-cache:
-  - "%LOCALAPPDATA%/Yarn"
-  - node_modules -> package.json
-  - app/node_modules -> app/package.json
+skip_tags: true
+
+#cache:
+#  - "%LOCALAPPDATA%/Yarn"
+#  - node_modules -> package.json
+#  - app/node_modules -> app/package.json
 
 branches:
   only:
     - master
     - develop
+    - react
 
-#matrix:
-#  fast_finish: true
+matrix:
+  fast_finish: true
 
 #build: off
 
@@ -28,7 +31,7 @@ shallow_clone: true
 clone_depth: 1
 
 install:
-  - ps: Install-Product node $env:nodejs_version
+  - ps: Install-Product node $env:nodejs_version $env:platform
   - set CI=true
   - yarn
   - cd app && yarn
@@ -36,9 +39,11 @@ install:
 test_script:
   - node --version
   #- yarn lint
-  - yarn release -- --ia32 --x64
   #- yarn test
   #- yarn test-e2e
 
+build_script:
+  - yarn release -- --ia32 --x64
+
 artifacts:
-- path: 'dist\**\*.exe'
+  - path: 'release\**\*.exe'

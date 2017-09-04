@@ -20,11 +20,13 @@ matrix:
           - graphicsmagick
           - xz-utils
           - xorriso
+          - g++-multilib
+          - libxss-dev:i386
   - os: osx
     osx_image: xcode8.3
 
 install:
-  - export CXX="g++-4.8"
+  #- export CXX="g++-4.8"
   - yarn
   - cd app && yarn && cd ..
   #- "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
@@ -46,6 +48,7 @@ branches:
   only:
     - master
     - develop
+    - react
 
 notifications:
   email:

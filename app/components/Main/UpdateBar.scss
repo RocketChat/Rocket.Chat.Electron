@@ -1,0 +1,44 @@
+@import '../common/variables.scss';
+$base-color: #444444;
+
+.updateBar {
+  height: 30px;
+  width: 100%;
+  background-color: transparentize($base-color, 0.1);
+  color: white;
+  position: absolute;
+  z-index: 3;
+  font-weight: bold;
+  //line-height: 34px;
+  padding: 5px 10px;
+  -webkit-app-region: drag;
+
+  i {
+    cursor: pointer;
+  }
+
+  button {
+    height: 20px;
+    padding: 2px 12px;
+    margin: 0 5px;
+    text-transform: none;
+    border-radius: 5px;
+    background: darken($base-color, 5%);
+    color: white;
+    transition: height 1s;
+    overflow: hidden;
+    //cursor: pointer;
+    //border: 0;
+  }
+
+  .right {
+    float: right;
+  }
+}
+
+.progress {
+  height: 30px;
+  position: absolute;
+  background-color: #5f5f5f;
+  z-index: 2;
+}

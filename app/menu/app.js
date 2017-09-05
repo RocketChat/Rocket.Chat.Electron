@@ -21,7 +21,6 @@ const appTemplate = [
         title: 'About Rocket.Chat'
       });
       win.setMenuBarVisibility(false);
-      win.openDevTools()
     }
   },
   {

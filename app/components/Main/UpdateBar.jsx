@@ -1,12 +1,11 @@
 // @flow
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
-import * as UpdateActions from '../actions/update';
-import styles from './UpdateBar.scss';
-import store from '../utils/store';
 import { ipcRenderer } from 'electron';
+import { connect } from 'react-redux';
+import * as UpdateActions from '../../actions/update';
+import styles from './UpdateBar.scss';
+import store from '../../utils/store';
 
 class UpdateBar extends Component {
   state = {};

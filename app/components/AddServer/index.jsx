@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import Logo from '../images/logo.svg';
+import Logo from '../../images/logo.svg';
 import styles from './AddServer.scss';
 
 const defaultServer = 'https://demo.rocket.chat';

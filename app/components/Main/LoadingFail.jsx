@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from 'react';
-import i18n from '../i18n';
-import LoadingErrorImage from '../images/error.png';
+import i18n from '../../i18n';
+import LoadingErrorImage from '../../images/error.png';
 import styles from './LoadingFail.scss';
 
 export default class LoadingFail extends Component {

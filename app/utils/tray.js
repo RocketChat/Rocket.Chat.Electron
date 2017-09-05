@@ -119,10 +119,8 @@ function toggleTray() {
 }
 
 function initTray() {
-  console.log('initTray')
   mainWindow = getWindow('main');
   if (!store.get('hideTray', false)) {
-    console.log('crreating')
     createAppTray();
   }
 }

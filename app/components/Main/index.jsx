@@ -1,9 +1,9 @@
 // @flow
 import React, { Component } from 'react';
 import WebView from './WebView';
-import ServerList from './ServerList';
-import AddServer from './AddServer';
-import Loading from './Loading';
+import ServerList from '../ServerList';
+import AddServer from '../AddServer';
+import Loading from '../common/Loading';
 import UpdateBar from './UpdateBar';
 import styles from './Home.scss';
 

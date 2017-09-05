@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import { ipcRenderer } from 'electron';
 import LoadingFail from './LoadingFail';
-import Loading from './Loading';
+import Loading from '../common/Loading';
 import styles from './WebView.scss';
 
 export default class WebView extends Component {
@@ -27,7 +27,6 @@ export default class WebView extends Component {
         });
       }
     });
-    this.webview.addEventListener("dom-ready", ()=>{ this.webview.openDevTools(); });
 
     this.webview.addEventListener('did-get-response-details', (e) => {
       if (e.resourceType === 'mainFrame' && e.httpResponseCode >= 500) {

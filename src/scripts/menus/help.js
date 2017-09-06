@@ -24,7 +24,6 @@ const helpTemplate = [
     {
         label: 'Learn More',
         click: () => remote.shell.openExternal('https://rocket.chat')
-
     }
 ];
 

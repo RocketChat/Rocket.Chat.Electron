@@ -1,5 +1,6 @@
 // @flow
 import { app, Menu, shell, BrowserWindow } from 'electron';
+import { getState, subscribe } from './store/mainStore';
 import i18n from './i18n';
 import appMenu from './menu/app';
 import editMenu from './menu/edit';
@@ -15,18 +16,25 @@ export default class MenuBuilder {
 
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
+    this.servers = getState().servers;
+    subscribe(() => {
+      // Only rebuild menu if number of servers has changed
+      if (getState().servers.length !== this.servers.length) {
+        this.buildMenu();
+      }
+    });
+    initTray();
   }
 
   buildMenu() {
-    //if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
+    if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
       this.setupDevelopmentEnvironment();
-    //}
+    }
 
     const template = MenuBuilder.getTemplate();
 
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
-    initTray();
 
     return menu;
   }
@@ -63,12 +71,12 @@ export default class MenuBuilder {
       },
       {
         label: MenuBuilder.getLabel(i18n.__('View')),
-        submenu: viewMenu
+        submenu: viewMenu()
       },
       {
         id: 'window',
         role: 'window',
-        submenu: windowMenu
+        submenu: windowMenu()
       },
       {
         label: i18n.__('Help'),

@@ -14,6 +14,16 @@ export function addServer(server) {
   };
 }
 
+export function removeServer(url) {
+  const servers = store.get('servers', {});
+  delete servers[url];
+  store.set({ servers });
+  return {
+    type: LOAD_SERVERS,
+    servers
+  };
+}
+
 export function loadServers() {
   const servers = store.get('servers', {});
   return {

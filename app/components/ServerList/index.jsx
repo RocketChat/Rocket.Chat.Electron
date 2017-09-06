@@ -1,11 +1,32 @@
 // @flow
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import { remote } from 'electron';
 import styles from './ServerList.scss';
 
 export default class ServerList extends Component {
   state = {
     imageLoaded: {}
+  }
+
+  constructor() {
+    super();
+    this.contextMenu = remote.Menu.buildFromTemplate([
+      {
+        label: 'Reload server',
+        click: () => this.props.webview[this.selectedServer.url].reload()
+      },
+      {
+        label: 'Remove server',
+        click: () => this.props.removeServer(this.selectedServer.url)
+      },
+      {
+        label: 'Open DevTools',
+        click: () => this.props.webview[this.selectedServer.url].openDevTools()
+      }
+    ]);
+  }
+
+  componentDidMount() {
   }
 
   addServer = () => {
@@ -18,12 +39,22 @@ export default class ServerList extends Component {
     this.setState({ imageLoaded });
   }
 
+  showContextMenu = (e, server) => {
+    e.preventDefault();
+    this.selectedServer = server;
+    this.contextMenu.popup(remote.getCurrentWindow());
+  }
+
   render() {
     return (
       <div className={styles.serverList}>
         <ul>
           {this.props.servers.map((server, index) => (
-            <li key={index} onClick={() => this.props.changeServer(server.url)}>
+            <li
+              key={index}
+              className={this.props.active === server.url && styles.active}
+              onClick={() => this.props.changeServer(server.url)}
+              onContextMenu={(e) => this.showContextMenu(e, server)}>
               <span
                 style={{ display: this.state.imageLoaded[server.url] ? 'none' : 'initial' }}
               >RC</span>

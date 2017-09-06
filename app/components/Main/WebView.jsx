@@ -36,8 +36,8 @@ export default class WebView extends Component {
       }
     });
 
-    ipcRenderer.on('toggle-dev-tools', () => this.props.active && this.webview.openDevTools())
-    ipcRenderer.on('reload', () => this.props.active && this.webview.reload())
+    ipcRenderer.on('toggle-dev-tools', () => this.props.active && this.openDevTools())
+    ipcRenderer.on('reload', () => this.props.active && this.reload())
   }
 
   finishLoad = () => {
@@ -53,6 +53,10 @@ export default class WebView extends Component {
       loading: true
     });
     this.webview.reload();
+  }
+
+  openDevTools = () => {
+    this.webview.openDevTools();
   }
 
   onIpcMessage = (event) => {

@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import { ipcRenderer } from 'electron';
 import WebView from './WebView';
 import ServerList from '../ServerList';
 import AddServer from '../AddServer';
@@ -8,10 +9,15 @@ import UpdateBar from './UpdateBar';
 import styles from './Home.scss';
 
 export default class Home extends Component {
-  state = {
-    loading: true
-  };
+  constructor() {
+    super();
+    this.state = {
+      loading: true
+    };
+    this.webview = {};
 
+    //ipcRenderer.on('')
+  }
 
   componentWillMount() {
     this.props.loadServers();
@@ -23,37 +29,30 @@ export default class Home extends Component {
   }
 
   init(props) {
-    console.log(props);
-    if (!props.servers.length) {
-      this.setState({
-        addServer: true
-      });
-    } else if (props.servers !== this.props.servers && this.state.addServer === true) {
-      this.setState({
-        addServer: false
-      });
+    if (!props.servers.length && props.active) {
+      this.props.setActive(null);
     }
   }
 
   addServer = () => {
-    console.log('add server')
-    this.setState({
-      addServer: true
-    });
+    this.props.setActive(null);
   }
 
   setActive = (url) => {
     this.props.setActive(url);
-    this.setState({
-      addServer: false
-    });
   }
 
   render() {
-    console.log('render')
-    console.log(this.props.update);
-    const serverListVisible = this.props.sidebarStatus;
-    const serversWidth = serverListVisible ? 80 : 0;
+    // Only show serverlist if user wants it, and there is more than 1 server,
+    // or if on add server page, so they can get back to existing servers
+    const serverListVisible =
+      (this.props.sidebarStatus && this.props.servers.length > 1) ||
+      (this.props.servers.length && !this.props.active);
+    console.log('serverListVisible')
+    console.log(serverListVisible)
+    console.log(this.props.servers)
+    const serversWidth = serverListVisible ? 60 : 0;
+    const active = this.props.active;
     return (
       <div>
 
@@ -62,19 +61,23 @@ export default class Home extends Component {
             addServer={this.addServer}
             servers={this.props.servers}
             changeServer={this.setActive}
+            active={active}
+            webview={this.webview}
+            removeServer={this.props.removeServer}
           />
         }
 
         <div className={styles.appContainer} style={{ left: serversWidth }}>
           {this.props.update && <UpdateBar {...this.props.update} margin={!serverListVisible && process.platform === 'darwin'} />}
           <div className="drag-region top-bar" />
-          {this.state.addServer && <AddServer addServer={this.props.addServer} />}
+          {!this.props.active && <AddServer addServer={this.props.addServer} />}
 
           {this.props.servers.map((server, i) => (
             <WebView
               {...server}
+              ref={webview => {this.webview[server.url] = webview;}}
               key={server.url}
-              active={this.props.active ? server.url === this.props.active : i === 0}
+              active={server.url === active}
               setActive={this.setActive}
               updateServer={this.props.updateServer}
             />))}

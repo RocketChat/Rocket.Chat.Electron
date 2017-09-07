@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import * as Mousetrap  from 'mousetrap';
 import servers from './servers';
 import sidebar from './sidebar';
 import { desktopCapturer, ipcRenderer } from 'electron';
@@ -41,6 +42,24 @@ class WebView extends EventEmitter {
                 }, '*')
             `);
         });
+
+        Mousetrap.bind(['command+left', 'ctrl+left'], () => {
+            const webviewObj = this.getActive();
+            webviewObj.executeJavaScript(`
+                window.history.back();
+            `);
+
+            return false;
+        });
+
+        Mousetrap.bind(['command+right', 'ctrl+right'], () => {
+            const webviewObj = this.getActive();
+            webviewObj.executeJavaScript(`
+                window.history.forward();
+            `);
+
+            return false;
+        });
     }
 
     loaded () {
@@ -73,7 +92,7 @@ class WebView extends EventEmitter {
             }
         });
 
-        webviewObj.addEventListener('console-message', function (e) {
+        webviewObj.addEventListener('console-message', (e) => {
             console.log('webview:', e.message);
         });
 

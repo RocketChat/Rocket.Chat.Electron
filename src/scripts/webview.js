@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import * as Mousetrap  from 'mousetrap';
+import * as Mousetrap from 'mousetrap';
 import servers from './servers';
 import sidebar from './sidebar';
 import { desktopCapturer, ipcRenderer } from 'electron';

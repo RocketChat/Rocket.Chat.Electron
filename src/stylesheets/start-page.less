@@ -1,3 +1,10 @@
+:root {
+    --color-dark: #2f343d;
+    --color-darkest: #1f2329;
+    --color-primary: var(--color-dark);
+    --sidebar-background: var(--color-darkest);
+}
+
 .loader {
 	display: none;
 }
@@ -31,7 +38,7 @@ div.server-list {
 	height: 100%;
 	width: 64px;
 	padding-top: 5px;
-	background-color: #0F354C;
+	background-color: var(--sidebar-background);
 	z-index: 100000;
 	-webkit-app-region: drag;
 }

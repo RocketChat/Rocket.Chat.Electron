@@ -37,16 +37,13 @@ const menuTemplate = [
         id: 'window',
         role: 'window',
         submenu: windowMenu
-    }
-];
-
-if (isMac) {
-    menuTemplate.push({
-        label: i18n.__('Help'),
+    },
+    {
+        label: getLabel(i18n.__('Help')),
         role: 'help',
         submenu: helpMenu
-    });
-}
+    }
+];
 
 function createMenu () {
     const menu = Menu.buildFromTemplate(menuTemplate);

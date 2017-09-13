@@ -58,7 +58,7 @@ const appIsReady = new Promise(resolve => {
     }
 });
 if (process.platform === 'darwin') {
-// Open protocol urls on mac as open-url is not yet implemented on other OS's
+    // Open protocol urls on mac as open-url is not yet implemented on other OS's
     app.on('open-url', function (e, url) {
         e.preventDefault();
         const site = processProtocolArgv([url]);

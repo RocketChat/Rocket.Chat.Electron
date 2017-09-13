@@ -8,13 +8,21 @@ class SideBar extends EventEmitter {
     constructor () {
         super();
 
-        this.hostCount = 0;
+        this.sortOrder = JSON.parse(localStorage.getItem(this.sortOrderKey)) || [];
+        localStorage.setItem(this.sortOrderKey, JSON.stringify(this.sortOrder));
 
         this.listElement = document.getElementById('serverList');
 
-        servers.forEach((host) => {
-            this.add(host);
-        });
+        Object.values(servers.hosts)
+            .sort((a, b) => {
+                const orderA = this.sortOrder.indexOf(a.url);
+                const orderB = this.sortOrder.indexOf(b.url);
+
+                return orderA - orderB;
+            })
+            .forEach((host) => {
+                this.add(host);
+            });
 
         servers.on('host-added', (hostUrl) => {
             this.add(servers.get(hostUrl));
@@ -47,6 +55,10 @@ class SideBar extends EventEmitter {
 
     }
 
+    get sortOrderKey () {
+        return 'rocket.chat.sortOrder';
+    }
+
     add (host) {
         let name = host.title.replace(/^https?:\/\/(?:www\.)?([^\/]+)(.*)/, '$1');
         name = name.split('.');
@@ -68,14 +80,21 @@ class SideBar extends EventEmitter {
             img.style.display = 'initial';
             initials.style.display = 'none';
         };
-        // img.src = `${host.url}/assets/favicon.svg?v=${Math.round(Math.random()*10000)}`;
+
+        let hostOrder = 0;
+        if (this.sortOrder.includes(host.url)) {
+            hostOrder = this.sortOrder.indexOf(host.url) + 1;
+        } else {
+            hostOrder = this.sortOrder.length + 1;
+            this.sortOrder.push(host.url);
+        }
 
         const hotkey = document.createElement('div');
         hotkey.classList.add('name');
         if (process.platform === 'darwin') {
-            hotkey.innerHTML = '⌘' + (++this.hostCount);
+            hotkey.innerHTML = `⌘${hostOrder}`;
         } else {
-            hotkey.innerHTML = '^' + (++this.hostCount);
+            hotkey.innerHTML = `^${hostOrder}`;
         }
 
         const item = document.createElement('li');
@@ -86,16 +105,66 @@ class SideBar extends EventEmitter {
         item.appendChild(hotkey);
 
         item.dataset.host = host.url;
+        item.dataset.sortOrder = hostOrder;
         item.setAttribute('server', host.url);
         item.classList.add('instance');
+
+        item.setAttribute('draggable', true);
+
+        item.ondragstart = (event) => {
+            window.dragged = event.target.nodeName !== 'LI' ? event.target.closest('li') : event.target;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.dropEffect = 'move';
+            event.target.style.opacity = .5;
+        };
+
+        item.ondragover = (event) => {
+            event.preventDefault();
+        };
+
+        item.ondragenter = (event) => {
+            if (this.isBefore(window.dragged, event.target)) {
+                event.currentTarget.parentNode.insertBefore(window.dragged, event.currentTarget);
+            } else if (event.currentTarget !== event.currentTarget.parentNode.lastChild) {
+                event.currentTarget.parentNode.insertBefore(window.dragged, event.currentTarget.nextSibling);
+            } else {
+                event.currentTarget.parentNode.appendChild(window.dragged);
+            }
+        };
+
+        item.ondragend = (event) => {
+            event.target.style.opacity = '';
+        };
+
+        item.ondrop = (event) => {
+            event.preventDefault();
+
+            const newSortOrder = [];
+            Array.from(event.currentTarget.parentNode.children)
+                .map((sideBarElement) => {
+                    const url = sideBarElement.dataset.host;
+                    newSortOrder.push(url);
+                    this.remove(url);
+
+                    return sideBarElement;
+                })
+                .map((sideBarElement) => {
+                    this.sortOrder = newSortOrder;
+                    localStorage.setItem(this.sortOrderKey, JSON.stringify(this.sortOrder));
+
+                    const url = sideBarElement.dataset.host;
+                    const host = { url, title: sideBarElement.querySelector('div.tooltip').innerHTML };
+                    this.add(host);
+                    this.setImage(url);
+                });
+        };
 
         item.onclick = () => {
             servers.setActive(host.url);
         };
 
         this.listElement.appendChild(item);
-
-        menus.addServer(host, this.hostCount);
+        menus.addServer(host, hostOrder);
     }
 
     setImage (hostUrl) {
@@ -218,6 +287,17 @@ class SideBar extends EventEmitter {
 
     isHidden () {
         return localStorage.getItem('sidebar-closed') === 'true';
+    }
+
+    isBefore (a, b) {
+        if (a.parentNode === b.parentNode) {
+            for (let cur = a; cur; cur = cur.previousSibling) {
+                if (cur === b) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
 

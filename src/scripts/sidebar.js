@@ -14,12 +14,7 @@ class SideBar extends EventEmitter {
         this.listElement = document.getElementById('serverList');
 
         Object.values(servers.hosts)
-            .sort((a, b) => {
-                const orderA = this.sortOrder.indexOf(a.url);
-                const orderB = this.sortOrder.indexOf(b.url);
-
-                return orderA - orderB;
-            })
+            .sort((a, b) => this.sortOrder.indexOf(a.url) - this.sortOrder.indexOf(b.url))
             .forEach((host) => {
                 this.add(host);
             });
@@ -157,6 +152,8 @@ class SideBar extends EventEmitter {
                     this.add(host);
                     this.setImage(url);
                 });
+
+            this.setActive(window.dragged.dataset.host);
         };
 
         item.onclick = () => {

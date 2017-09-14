@@ -6,6 +6,7 @@ import servers from './servers';
 import appMenu from './menus/app';
 import editMenu from './menus/edit';
 import viewMenu from './menus/view';
+import historyMenu from './menus/history';
 import windowMenu from './menus/window';
 import helpMenu from './menus/help';
 
@@ -31,6 +32,10 @@ const menuTemplate = [
     {
         label: getLabel(i18n.__('View')),
         submenu: viewMenu
+    },
+    {
+        label: getLabel(i18n.__('History')),
+        submenu: historyMenu
     },
     {
         label: getLabel(i18n.__('Window')),

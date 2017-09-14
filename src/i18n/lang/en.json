@@ -31,6 +31,7 @@
     "Help": "Help",
     "Help_Name": "%s Help",
     "Hide": "Hide",
+    "History": "History",
     "Host_not_validated": "The host \"%s\" could not be validated, so was not added.",
     "Invalid_Host": "Invalid Host",
     "Invalid_url": "Invalid url",

@@ -15,9 +15,9 @@ class I18n {
         if (!fs.existsSync(dir)) {
             dir = path.join(__dirname, 'i18n/lang');
         }
-        const defaultLocale = path.join(dir, 'en.json');
+        const defaultLocale = path.join(dir, 'en.i18n.desktop.json');
         this.loadedLanguage = JSON.parse(fs.readFileSync(defaultLocale, 'utf8'));
-        const locale = path.join(dir, `${eApp.getLocale()}.json`);
+        const locale = path.join(dir, `${eApp.getLocale()}.i18n.desktop.json`);
         if (fs.existsSync(locale)) {
             const lang = JSON.parse(fs.readFileSync(locale, 'utf8'));
             this.loadedLanguage = Object.assign(this.loadedLanguage, lang);

@@ -17,7 +17,7 @@ const isMac = process.platform === 'darwin';
 document.title = APP_NAME;
 
 function getLabel (label) {
-    return isMac ? label : `&${label}`;
+    return i18n.__(isMac ? label : `&${label}`);
 }
 
 const menuTemplate = [
@@ -26,25 +26,25 @@ const menuTemplate = [
         submenu: appMenu
     },
     {
-        label: getLabel(i18n.__('Edit')),
+        label: getLabel('Edit'),
         submenu: editMenu
     },
     {
-        label: getLabel(i18n.__('View')),
+        label: getLabel('View'),
         submenu: viewMenu
     },
     {
-        label: getLabel(i18n.__('History')),
+        label: getLabel('History'),
         submenu: historyMenu
     },
     {
-        label: getLabel(i18n.__('Window')),
+        label: getLabel('Window'),
         id: 'window',
         role: 'window',
         submenu: windowMenu
     },
     {
-        label: getLabel(i18n.__('Help')),
+        label: getLabel('Help'),
         role: 'help',
         submenu: helpMenu
     }

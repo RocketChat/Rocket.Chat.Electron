@@ -4,8 +4,10 @@
 const { ipcRenderer, shell } = require('electron');
 const Notification = require('./lib/Notification');
 const SpellCheck = require('./lib/SpellCheck');
+const i18n = require('../i18n/index');
 
 window.Notification = Notification;
+window.i18n = i18n;
 
 const events = ['unread-changed', 'get-sourceId'];
 

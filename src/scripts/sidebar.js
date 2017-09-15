@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import { remote } from 'electron';
+import i18n from '../i18n/index.js';
 import servers from './servers';
 import webview from './webview';
 import * as menus from './menus';
@@ -226,17 +227,17 @@ export default new SideBar();
 
 let selectedInstance = null;
 const instanceMenu = remote.Menu.buildFromTemplate([{
-    label: 'Reload server',
+    label: i18n.__('Reload_server'),
     click: function () {
         webview.getByUrl(selectedInstance.dataset.host).reload();
     }
 }, {
-    label: 'Remove server',
+    label: i18n.__('Remove_server'),
     click: function () {
         servers.removeHost(selectedInstance.dataset.host);
     }
 }, {
-    label: 'Open DevTools',
+    label: i18n.__('Open_DevTools'),
     click: function () {
         webview.getByUrl(selectedInstance.dataset.host).openDevTools();
     }

@@ -1,6 +1,7 @@
 'use strict';
 
 import { remote } from 'electron';
+import i18n from '../i18n/index.js';
 import servers from './servers';
 import appMenu from './menus/app';
 import editMenu from './menus/edit';
@@ -15,35 +16,31 @@ const isMac = process.platform === 'darwin';
 
 document.title = APP_NAME;
 
-function getLabel (label) {
-    return isMac ? label : `&${label}`;
-}
-
 const menuTemplate = [
     {
-        label: getLabel(APP_NAME),
+        label: APP_NAME,
         submenu: appMenu
     },
     {
-        label: getLabel('Edit'),
+        label: i18n.__('Edit'),
         submenu: editMenu
     },
     {
-        label: getLabel('View'),
+        label: i18n.__('View'),
         submenu: viewMenu
     },
     {
-        label: getLabel('History'),
+        label: i18n.__('History'),
         submenu: historyMenu
     },
     {
-        label: getLabel('Window'),
+        label: i18n.__('Window'),
         id: 'window',
         role: 'window',
         submenu: windowMenu
     },
     {
-        label: 'Help',
+        label: i18n.__('Help'),
         role: 'help',
         submenu: helpMenu
     }

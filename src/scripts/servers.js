@@ -3,6 +3,7 @@
 import jetpack from 'fs-jetpack';
 import { EventEmitter } from 'events';
 import { remote, ipcRenderer } from 'electron';
+import i18n from '../i18n/index.js';
 const remoteServers = remote.require('./background').remoteServers;
 
 class Servers extends EventEmitter {
@@ -277,16 +278,16 @@ class Servers extends EventEmitter {
     showHostConfirmation (host) {
         return remote.dialog.showMessageBox({
             type: 'question',
-            buttons: ['Add', 'Cancel'],
+            buttons: [i18n.__('Add'), i18n.__('Cancel')],
             defaultId: 0,
-            title: 'Add Server',
-            message: `Do you want to add "${host}" to your list of servers?`
+            title: i18n.__('Add_Server'),
+            message: i18n.__('Add_host_to_servers', host)
         }, (response) => {
             if (response === 0) {
                 this.validateHost(host)
                     .then(() => this.addHost(host))
                     .then(() => this.setActive(host))
-                    .catch(() => remote.dialog.showErrorBox('Invalid Host', `The host "${host}" could not be validated, so was not added.`));
+                    .catch(() => remote.dialog.showErrorBox(i18n.__('Invalid_Host'), i18n.__('Host_not_validated', host)));
             }
         });
     }

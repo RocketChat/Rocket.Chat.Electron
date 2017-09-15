@@ -1,4 +1,5 @@
 import { remote } from 'electron';
+import i18n from '../../i18n/index.js';
 import webview from '../webview';
 import sidebar from '../sidebar';
 import tray from '../tray';
@@ -8,17 +9,17 @@ const certificate = remote.require('./background').certificate;
 
 const viewTemplate = [
     {
-        label: 'Original Zoom',
+        label: i18n.__('Original_Zoom'),
         accelerator: 'CommandOrControl+0',
         role: 'resetzoom'
     },
     {
-        label: 'Zoom In',
+        label: i18n.__('Zoom_In'),
         accelerator: 'CommandOrControl+Plus',
         role: 'zoomin'
     },
     {
-        label: 'Zoom Out',
+        label: i18n.__('Zoom_Out'),
         accelerator: 'CommandOrControl+-',
         role: 'zoomout'
     },
@@ -26,7 +27,7 @@ const viewTemplate = [
         type: 'separator'
     },
     {
-        label: 'Current Server - Reload',
+        label: i18n.__('Current_Server_Reload'),
         accelerator: 'CommandOrControl+R',
         click: function () {
             const activeWebview = webview.getActive();
@@ -36,7 +37,7 @@ const viewTemplate = [
         }
     },
     {
-        label: 'Current Server - Toggle DevTools',
+        label: i18n.__('Current_Server_Toggle_DevTools'),
         accelerator: isMac ? 'Command+Alt+I' : 'Ctrl+Shift+I',
         click: function () {
             const activeWebview = webview.getActive();
@@ -49,7 +50,7 @@ const viewTemplate = [
         type: 'separator'
     },
     {
-        label: 'Application - Reload',
+        label: i18n.__('Application_Reload'),
         accelerator: 'CommandOrControl+Shift+R',
         click: function () {
             const mainWindow = remote.getCurrentWindow();
@@ -60,7 +61,7 @@ const viewTemplate = [
         }
     },
     {
-        label: 'Application - Toggle DevTools',
+        label: i18n.__('Application_Toggle_DevTools'),
         click: function () {
             remote.getCurrentWindow().toggleDevTools();
         }
@@ -70,7 +71,7 @@ const viewTemplate = [
         id: 'toggle'
     },
     {
-        label: 'Toggle Server List',
+        label: i18n.__('Toggle_Server_List'),
         click: function () {
             sidebar.toggle();
         }
@@ -79,10 +80,10 @@ const viewTemplate = [
         type: 'separator'
     },
     {
-        label: 'Clear',
+        label: i18n.__('Clear'),
         submenu: [
             {
-                label: 'Clear Trusted Certificates',
+                label: i18n.__('Clear_Trusted_Certificates'),
                 click: function () {
                     certificate.clear();
                 }
@@ -93,7 +94,7 @@ const viewTemplate = [
 
 if (isMac) {
     viewTemplate.push({
-        label: 'Toggle Tray Icon',
+        label: i18n.__('Toggle_Tray_Icon'),
         click: function () {
             tray.toggle();
         },
@@ -101,7 +102,7 @@ if (isMac) {
     });
 } else {
     viewTemplate.push({
-        label: 'Toggle Menu Bar',
+        label: i18n.__('Toggle_Menu_Bar'),
         click: function () {
             const current = localStorage.getItem('autohideMenu') === 'true';
             remote.getCurrentWindow().setAutoHideMenuBar(!current);

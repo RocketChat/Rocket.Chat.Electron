@@ -1,12 +1,13 @@
+import i18n from '../../i18n/index.js';
 
 const editTemplate = [
     {
-        label: 'Undo',
+        label: i18n.__('Undo'),
         accelerator: 'CommandOrControl+Z',
         role: 'undo'
     },
     {
-        label: 'Redo',
+        label: i18n.__('Redo'),
         accelerator: 'CommandOrControl+Shift+Z',
         role: 'redo'
     },
@@ -14,22 +15,22 @@ const editTemplate = [
         type: 'separator'
     },
     {
-        label: 'Cut',
+        label: i18n.__('Cut'),
         accelerator: 'CommandOrControl+X',
         role: 'cut'
     },
     {
-        label: 'Copy',
+        label: i18n.__('Copy'),
         accelerator: 'CommandOrControl+C',
         role: 'copy'
     },
     {
-        label: 'Paste',
+        label: i18n.__('Paste'),
         accelerator: 'CommandOrControl+V',
         role: 'paste'
     },
     {
-        label: 'Select All',
+        label: i18n.__('Select_All'),
         accelerator: 'CommandOrControl+A',
         role: 'selectall'
     }

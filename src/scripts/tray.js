@@ -69,7 +69,10 @@ function createAppTray () {
     };
 
     mainWindow.on('show', onShow);
+    mainWindow.on('restore', onShow);
+
     mainWindow.on('hide', onHide);
+    mainWindow.on('minimize', onHide);
 
     _tray.setToolTip(remote.app.getName());
 
@@ -78,6 +81,7 @@ function createAppTray () {
     });
 
     _tray.on('click', () => {
+        console.log('click');
         mainWindow.show();
     });
 

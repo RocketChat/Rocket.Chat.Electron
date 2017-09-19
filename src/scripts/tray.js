@@ -81,7 +81,6 @@ function createAppTray () {
     });
 
     _tray.on('click', () => {
-        console.log('click');
         mainWindow.show();
     });
 

@@ -81,6 +81,10 @@ function createAppTray () {
     });
 
     _tray.on('click', () => {
+        if (mainWindow.isVisible()) {
+            return mainWindow.hide();
+        }
+
         mainWindow.show();
     });
 

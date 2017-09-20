@@ -1,6 +1,6 @@
 # build: off
 
-os: unstable
+image: Visual Studio 2017
 
 platform:
   - x64

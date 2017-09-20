@@ -43,7 +43,7 @@
       "allowToChangeInstallationDirectory": true
     },
     "appx": {
-      "backgroundColor": "#334",
+      "backgroundColor": "#2f343d",
       "displayName": "Rocket.Chat",
       "publisherDisplayName": "Rocket.Chat",
       "languages": ["en-US", "en-GB", "pt-BR"]

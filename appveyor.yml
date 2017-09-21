@@ -34,5 +34,5 @@ build_script:
   - yarn release -- --ia32 --x64 --win nsis appx
 
 artifacts:
-  - path: 'dist\**\*.exe'
-  - path: 'dist\**\*.appx'
+  - path: 'dist\*.exe'
+  - path: 'dist\*.appx'

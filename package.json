@@ -42,6 +42,12 @@
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true
     },
+    "appx": {
+      "backgroundColor": "#2f343d",
+      "displayName": "Rocket.Chat",
+      "publisherDisplayName": "Rocket.Chat",
+      "languages": ["en-US", "en-GB", "pt-BR"]
+    },
     "linux": {
       "desktop": {
         "Categories": "GNOME;GTK;Network;InstantMessaging",
@@ -89,7 +95,7 @@
     "chai": "^4.1.1",
     "conventional-changelog-cli": "^1.3.2",
     "electron": "^1.7.6",
-    "electron-builder": "^19.24.4",
+    "electron-builder": "^19.26.3",
     "electron-mocha": "^4.0.0",
     "eslint": "^4.5.0",
     "gulp": "^3.9.1",

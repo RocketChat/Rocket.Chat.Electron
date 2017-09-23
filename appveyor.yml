@@ -15,6 +15,11 @@ skip_tags: true
 environment:
   nodejs_version: "7"
 
+cache:
+  - "%LOCALAPPDATA%/Yarn"
+  - node_modules -> package.json
+  - app/node_modules -> app/package.json
+
 shallow_clone: true
 
 clone_depth: 1

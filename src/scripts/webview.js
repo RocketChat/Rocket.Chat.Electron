@@ -68,10 +68,12 @@ class WebView extends EventEmitter {
         webviewObj.setAttribute('disablewebsecurity', 'on');
 
         webviewObj.addEventListener('did-navigate-in-page', (lastPath) => {
-            this.saveLastPath(host.url, lastPath.url);
+            if ((lastPath.url).includes(host.url)) {
+                this.saveLastPath(host.url, lastPath.url);
+            }
         });
 
-        webviewObj.addEventListener('console-message', function (e) {
+        webviewObj.addEventListener('console-message', (e) => {
             console.log('webview:', e.message);
         });
 
@@ -190,6 +192,14 @@ class WebView extends EventEmitter {
             return true;
         }
         return false;
+    }
+
+    goBack () {
+        this.getActive().goBack();
+    }
+
+    goForward () {
+        this.getActive().goForward();
     }
 }
 

@@ -41,6 +41,8 @@ class SideBar extends EventEmitter {
         });
 
         webview.on('dom-ready', (hostUrl) => {
+            this.setActive(localStorage.getItem(servers.activeKey));
+            webview.getActive().send('request-sidebar-color');
             this.setImage(hostUrl);
             if (this.isHidden()) {
                 this.hide();
@@ -190,6 +192,12 @@ class SideBar extends EventEmitter {
         return !!this.listElement.querySelector(`.instance.active[server="${hostUrl}"]`);
     }
 
+    changeSidebarColor ({color, background}) {
+        const sidebar = document.getElementsByClassName('server-list')[0];
+        sidebar.style.background = background;
+        sidebar.style.color = color;
+    }
+
     setActive (hostUrl) {
         if (this.isActive(hostUrl)) {
             return;
@@ -200,6 +208,7 @@ class SideBar extends EventEmitter {
         if (item) {
             item.classList.add('active');
         }
+        webview.getActive().send && webview.getActive().send('request-sidebar-color');
     }
 
     deactiveAll () {

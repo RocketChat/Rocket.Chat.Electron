@@ -41,6 +41,7 @@ window.addEventListener('load', function () {
         });
     });
     userPresenceControl();
+
 });
 window.onload = function () {
     const $ = require('./vendor/jquery-3.1.1');

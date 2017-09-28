@@ -171,6 +171,16 @@ class WebView extends EventEmitter {
         document.querySelector('.landing-page').classList.remove('hide');
     }
 
+    changeSidebarColor () {
+        const webviewElement = document.querySelector('webview.active');
+        if (webviewElement) {
+            webviewElement.capturePage({x: 0, y: 0, height: 1, width: 1}, function (img) {
+                const bit = img.toBitmap();
+                document.querySelector('.server-list').style.backgroundColor = 'rgb('+bit[2]+', '+bit[1]+', '+bit[0]+')';
+            });
+        }
+    }
+
     setActive (hostUrl) {
         if (this.isActive(hostUrl)) {
             return;
@@ -183,6 +193,7 @@ class WebView extends EventEmitter {
         }
 
         this.focusActive();
+        this.changeSidebarColor();
     }
 
     focusActive () {

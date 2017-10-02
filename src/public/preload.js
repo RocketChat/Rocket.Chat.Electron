@@ -34,11 +34,20 @@ const userPresenceControl = () => {
 const changeSidebarColor = () => {
     const sidebar = document.querySelector('.sidebar');
     const fullpage = document.querySelector('.full-page');
-    if (sidebar || fullpage) {
-        const { color, background } = sidebar ? window.getComputedStyle(sidebar) : window.getComputedStyle(fullpage);
+    if (sidebar) {
+        const sidebarItem = sidebar.querySelector('.sidebar-item');
+        let itemColor;
+        if (sidebarItem) {
+            itemColor = window.getComputedStyle(sidebarItem);
+        }
+        const { color, background } = window.getComputedStyle(sidebar);
+        ipcRenderer.sendToHost('sidebar-background', {color: itemColor || color, background: background});
+    } else if (fullpage) {
+        const { color, background } = window.getComputedStyle(fullpage);
         ipcRenderer.sendToHost('sidebar-background', {color: color, background: background});
     } else {
         window.requestAnimationFrame(changeSidebarColor);
+
     }
 };
 

@@ -193,9 +193,11 @@ class SideBar extends EventEmitter {
     }
 
     changeSidebarColor ({color, background}) {
-        const sidebar = document.getElementsByClassName('server-list')[0];
-        sidebar.style.background = background;
-        sidebar.style.color = color;
+        const sidebar = document.querySelector('.server-list');
+        if (sidebar) {
+            sidebar.style.background = background;
+            sidebar.style.color = color;
+        }
     }
 
     setActive (hostUrl) {

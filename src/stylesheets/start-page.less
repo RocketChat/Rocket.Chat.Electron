@@ -32,7 +32,9 @@ div.server-list {
 	width: 68px;
 	padding-top: 27px;
 	background-color: #2F343D;
+	color: #FFF;
 	z-index: 100000;
+	filter: brightness(90%);
 	-webkit-app-region: drag;
 }
 
@@ -43,11 +45,12 @@ div.server-list ul {
 }
 
 div.server-list li {
-	color: #FFF;
+	color: inherit;
 	cursor: pointer;
 	font-size: 17pt;
 	-webkit-user-select: none;
 	user-select: none;
+	filter: brightness(110%)
 }
 
 div.server-list li.active img {
@@ -174,7 +177,6 @@ div.server-list li:before {
 
 .server-list li.add-server span {
 	font-size: 40px;
-	opacity: 0.3;
 }
 
 .hide-server-list div.server-list {

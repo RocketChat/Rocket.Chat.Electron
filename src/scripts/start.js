@@ -18,7 +18,7 @@ sidebar.on('badge-setted', function () {
 });
 
 export const start = function () {
-    const defaultInstance = 'https://demo.rocket.chat';
+    const defaultInstance = 'https://open.rocket.chat';
 
     // connection check
     function online () {

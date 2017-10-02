@@ -250,7 +250,7 @@ class Servers extends EventEmitter {
     }
 
     setHostTitle (hostUrl, title) {
-        if (title === 'Rocket.Chat' && /https?:\/\/demo\.rocket\.chat/.test(hostUrl) === false) {
+        if (title === 'Rocket.Chat' && /https?:\/\/open\.rocket\.chat/.test(hostUrl) === false) {
             title += ' - ' + hostUrl;
         }
         const hosts = this.hosts;

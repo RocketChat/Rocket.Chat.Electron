@@ -50,7 +50,7 @@ const viewTemplate = [
         type: 'separator'
     },
     {
-        label: i18n.__('Application_Reload'),
+        label: i18n.__('Application_Reload'), 
         accelerator: 'CommandOrControl+Shift+R',
         click: function () {
             const mainWindow = remote.getCurrentWindow();

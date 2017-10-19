@@ -51,7 +51,7 @@ const viewTemplate = [
     },
     {
         label: i18n.__('Application_Reload'), 
-        accelerator: 'CommandOrControl+Shift+R',
+        accelerator: 'CommandOrControl+R',
         click: function () {
             const mainWindow = remote.getCurrentWindow();
             if (mainWindow.destroyTray) {

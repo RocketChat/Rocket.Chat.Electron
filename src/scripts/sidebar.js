@@ -41,6 +41,8 @@ class SideBar extends EventEmitter {
         });
 
         webview.on('dom-ready', (hostUrl) => {
+            this.setActive(localStorage.getItem(servers.activeKey));
+            webview.getActive().send('request-sidebar-color');
             this.setImage(hostUrl);
             if (this.isHidden()) {
                 this.hide();
@@ -190,6 +192,14 @@ class SideBar extends EventEmitter {
         return !!this.listElement.querySelector(`.instance.active[server="${hostUrl}"]`);
     }
 
+    changeSidebarColor ({color, background}) {
+        const sidebar = document.querySelector('.server-list');
+        if (sidebar) {
+            sidebar.style.background = background;
+            sidebar.style.color = color;
+        }
+    }
+
     setActive (hostUrl) {
         if (this.isActive(hostUrl)) {
             return;
@@ -200,6 +210,7 @@ class SideBar extends EventEmitter {
         if (item) {
             item.classList.add('active');
         }
+        webview.getActive().send && webview.getActive().send('request-sidebar-color');
     }
 
     deactiveAll () {
@@ -332,3 +343,29 @@ window.addEventListener('contextmenu', function (e) {
         instanceMenu.popup(remote.getCurrentWindow());
     }
 }, false);
+
+if (process.platform === 'darwin') {
+    window.addEventListener('keydown', function (e) {
+        if (e.key === 'Meta') {
+            document.getElementsByClassName('server-list')[0].classList.add('command-pressed');
+        }
+    });
+
+    window.addEventListener('keyup', function (e) {
+        if (e.key === 'Meta') {
+            document.getElementsByClassName('server-list')[0].classList.remove('command-pressed');
+        }
+    });
+} else {
+    window.addEventListener('keydown', function (e) {
+        if (e.key === 'ctrlKey') {
+            document.getElementsByClassName('server-list')[0].classList.add('command-pressed');
+        }
+    });
+
+    window.addEventListener('keyup', function (e) {
+        if (e.key === 'ctrlKey') {
+            document.getElementsByClassName('server-list')[0].classList.remove('command-pressed');
+        }
+    });
+}

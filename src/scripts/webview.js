@@ -109,6 +109,9 @@ class WebView extends EventEmitter {
                     this.loading();
                     active.loadURL(server);
                     break;
+                case 'sidebar-background':
+                    sidebar.changeSidebarColor(event.args[0]);
+                    break;
             }
         });
 
@@ -181,7 +184,6 @@ class WebView extends EventEmitter {
         if (item) {
             item.classList.add('active');
         }
-
         this.focusActive();
     }
 

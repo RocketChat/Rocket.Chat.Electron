@@ -31,6 +31,30 @@ const userPresenceControl = () => {
     }, INTERVAL);
 };
 
+const changeSidebarColor = () => {
+    const sidebar = document.querySelector('.sidebar');
+    const fullpage = document.querySelector('.full-page');
+    if (sidebar) {
+        const sidebarItem = sidebar.querySelector('.sidebar-item');
+        let itemColor;
+        if (sidebarItem) {
+            itemColor = window.getComputedStyle(sidebarItem);
+        }
+        const { color, background } = window.getComputedStyle(sidebar);
+        ipcRenderer.sendToHost('sidebar-background', {color: itemColor || color, background: background});
+    } else if (fullpage) {
+        const { color, background } = window.getComputedStyle(fullpage);
+        ipcRenderer.sendToHost('sidebar-background', {color: color, background: background});
+    } else {
+        window.requestAnimationFrame(changeSidebarColor);
+
+    }
+};
+
+ipcRenderer.on('request-sidebar-color', () => {
+    changeSidebarColor();
+});
+
 window.addEventListener('load', function () {
     Meteor.startup(function () {
         Tracker.autorun(function () {
@@ -42,6 +66,7 @@ window.addEventListener('load', function () {
     });
     userPresenceControl();
 });
+
 window.onload = function () {
     const $ = require('./vendor/jquery-3.1.1');
     function checkExternalUrl (e) {

@@ -12,13 +12,13 @@
 	<section style="text-align: center;background-color: #022439;height:100%;">
         <img src="./images/error.png" />
         <div class="load-fail" id="load-fail">
-            <h2 style="color:white">Server Failed to Load</h2>
+            <h2 style="color:white"><script>document.write(window.i18n.__('Server_Failed_to_Load'))</script></h2>
             <div class="loading-animation" id="loading" style="display:none;">
                 <div class="bounce1"></div>
                 <div class="bounce2"></div>
                 <div class="bounce3"></div>
             </div>
-            <button class="button primary" id="reload">Reload</button>
+            <button class="button primary" id="reload"><script>document.write(window.i18n.__('Reload'))</script></button>
         </div>
 	</section>
 </body>

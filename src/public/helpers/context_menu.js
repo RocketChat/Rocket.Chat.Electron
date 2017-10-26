@@ -1,5 +1,6 @@
 // This gives you default context menu (cut, copy, paste)
 // in all input fields and textareas across your app.
+const i18n = require('../../i18n');
 
 (function () {
     'use strict';
@@ -13,21 +14,21 @@
     };
 
     const cut = new MenuItem({
-        label: "Cut",
+        label: i18n.__('Cut'),
         click: function () {
             document.execCommand("cut");
         }
     });
 
     const copy = new MenuItem({
-        label: "Copy",
+        label: i18n.__('Copy'),
         click: function () {
             document.execCommand("copy");
         }
     });
 
     const paste = new MenuItem({
-        label: "Paste",
+        label: i18n.__('Paste'),
         click: function () {
             document.execCommand("paste");
         }

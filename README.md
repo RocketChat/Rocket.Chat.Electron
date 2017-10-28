@@ -90,7 +90,6 @@ libX11
 libXScrnSaver-devel
 gcc-c++
 ```
-
 #### Windows 7
 On Windows 7 you may have to follow option 2 of the [node-gyp install guide](https://github.com/nodejs/node-gyp#installation) and install Visual Studio
 

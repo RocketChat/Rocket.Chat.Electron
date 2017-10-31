@@ -1,3 +1,4 @@
+//RocketChat/Rocket.Chat.Electron
 import { app, ipcMain, BrowserWindow, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';

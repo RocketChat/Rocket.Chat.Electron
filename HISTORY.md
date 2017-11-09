@@ -1,3 +1,10 @@
+<a name="2.10.1"></a>
+# 2.10.1 (2017-11-09)
+
+### Bug Fixes
+- [#597](https://github.com/RocketChat/Rocket.Chat.Electron/pull/597) Fix MacOS dmg build
+
+
 <a name="2.10.0"></a>
 # 2.10.0 (2017-10-27)
 

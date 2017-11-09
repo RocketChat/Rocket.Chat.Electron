@@ -29,6 +29,7 @@ branches:
   only:
     - master
     - develop
+    - hotfix
 
 notifications:
   email:

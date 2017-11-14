@@ -5,10 +5,9 @@
 
 import path from 'path';
 import url from 'url';
-import { app, Menu } from 'electron';
+import { app, Menu, BrowserWindow } from 'electron';
 import { devMenuTemplate } from './menu/dev_menu_template';
 import { editMenuTemplate } from './menu/edit_menu_template';
-import createWindow from './helpers/window';
 import './background/certificate';
 
 export { default as remoteServers } from './background/servers';
@@ -88,7 +87,7 @@ if (process.platform === 'darwin') {
 app.on('ready', function () {
     setApplicationMenu();
 
-    mainWindow = createWindow('main', {
+    mainWindow = new BrowserWindow({
         width: 1000,
         titleBarStyle: 'hidden',
         height: 600

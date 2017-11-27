@@ -17,6 +17,7 @@ apps:
       - gsettings
       - pulseaudio
       - opengl
+      - camera
 parts:
   app:
     plugin: dump

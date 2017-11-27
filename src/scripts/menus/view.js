@@ -50,8 +50,8 @@ const viewTemplate = [
         type: 'separator'
     },
     {
-        label: i18n.__('Application_Reload'),
-        accelerator: 'CommandOrControl+Shift+R',
+        label: i18n.__('Application_Reload'), 
+        accelerator: 'CommandOrControl+R',
         click: function () {
             const mainWindow = remote.getCurrentWindow();
             if (mainWindow.destroyTray) {

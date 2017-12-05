@@ -22,6 +22,14 @@
     "7zip-bin-mac" "^1.0.1"
     "7zip-bin-win" "^2.1.1"
 
+"7zip-bin@^2.3.4":
+  version "2.3.4"
+  resolved "https://registry.yarnpkg.com/7zip-bin/-/7zip-bin-2.3.4.tgz#0861a3c99793dd794f4dd6175ec4ddfa6af8bc9d"
+  optionalDependencies:
+    "7zip-bin-linux" "^1.1.0"
+    "7zip-bin-mac" "^1.0.1"
+    "7zip-bin-win" "^2.1.1"
+
 "@paulcbetts/system-idle-time@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@paulcbetts/system-idle-time/-/system-idle-time-1.0.4.tgz#17b275530176d72695646380b13b79724288b1c6"
@@ -169,16 +177,16 @@ anymatch@^1.3.0:
     micromatch "^2.1.5"
     normalize-path "^2.0.0"
 
-app-package-builder@1.5.2:
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/app-package-builder/-/app-package-builder-1.5.2.tgz#5dd76852d4e5c57a2940ce12b1f724c1648150d0"
+app-package-builder@1.5.3:
+  version "1.5.3"
+  resolved "https://registry.yarnpkg.com/app-package-builder/-/app-package-builder-1.5.3.tgz#a24776370dae3b7c35e7aedfbc77b93137d2ab4c"
   dependencies:
     bluebird-lst "^1.0.5"
-    builder-util "^3.4.2"
+    builder-util "^3.4.3"
     builder-util-runtime "^3.3.0"
     fs-extra-p "^4.4.4"
-    int64-buffer "^0.1.9"
-    rabin-bindings "~1.7.3"
+    int64-buffer "^0.1.10"
+    rabin-bindings "~1.7.4"
 
 aproba@^1.0.3:
   version "1.2.0"
@@ -485,7 +493,28 @@ builder-util-runtime@3.3.0, builder-util-runtime@^3.3.0, builder-util-runtime@~3
     fs-extra-p "^4.4.4"
     sax "^1.2.4"
 
-builder-util@3.4.2, builder-util@^3.4.2:
+builder-util@3.4.3, builder-util@^3.4.3:
+  version "3.4.3"
+  resolved "https://registry.yarnpkg.com/builder-util/-/builder-util-3.4.3.tgz#c7d6908ffc56fa3c4de0ec804dbcb9bbf6aa2ab4"
+  dependencies:
+    "7zip-bin" "^2.2.7"
+    bluebird-lst "^1.0.5"
+    builder-util-runtime "^3.3.0"
+    chalk "^2.3.0"
+    debug "^3.1.0"
+    fs-extra-p "^4.4.4"
+    ini "^1.3.5"
+    is-ci "^1.0.10"
+    js-yaml "^3.10.0"
+    lazy-val "^1.0.2"
+    node-emoji "^1.8.1"
+    semver "^5.4.1"
+    source-map-support "^0.5.0"
+    stat-mode "^0.2.2"
+    temp-file "^3.0.0"
+    tunnel-agent "^0.6.0"
+
+builder-util@^3.4.2:
   version "3.4.2"
   resolved "https://registry.yarnpkg.com/builder-util/-/builder-util-3.4.2.tgz#d5dbf595038f4912f3bbac0a98ab4010d2708b9c"
   dependencies:
@@ -1123,16 +1152,16 @@ ejs@^2.5.7, ejs@~2.5.6:
   version "2.5.7"
   resolved "https://registry.yarnpkg.com/ejs/-/ejs-2.5.7.tgz#cc872c168880ae3c7189762fd5ffc00896c9518a"
 
-electron-builder-lib@19.46.6:
-  version "19.46.6"
-  resolved "https://registry.yarnpkg.com/electron-builder-lib/-/electron-builder-lib-19.46.6.tgz#4ef54821ab0152269e7a361e2d25a5b06fac4389"
+electron-builder-lib@19.48.1:
+  version "19.48.1"
+  resolved "https://registry.yarnpkg.com/electron-builder-lib/-/electron-builder-lib-19.48.1.tgz#447b1804abcd1fb63551fd1d313bf698acf223e5"
   dependencies:
-    "7zip-bin" "^2.2.7"
-    app-package-builder "1.5.2"
+    "7zip-bin" "^2.3.4"
+    app-package-builder "1.5.3"
     asar-integrity "0.2.3"
     async-exit-hook "^2.0.1"
     bluebird-lst "^1.0.5"
-    builder-util "3.4.2"
+    builder-util "3.4.3"
     builder-util-runtime "3.3.0"
     chromium-pickle-js "^0.2.0"
     debug "^3.1.0"
@@ -1154,15 +1183,15 @@ electron-builder-lib@19.46.6:
     semver "^5.4.1"
     temp-file "^3.0.0"
 
-electron-builder@^19.46.4:
-  version "19.46.6"
-  resolved "https://registry.yarnpkg.com/electron-builder/-/electron-builder-19.46.6.tgz#3237f4b9734aa69a480c36505d2016e0747bcf5e"
+electron-builder@^19.48.1:
+  version "19.48.1"
+  resolved "https://registry.yarnpkg.com/electron-builder/-/electron-builder-19.48.1.tgz#7fc4966737e09694311d40b1c960e9297a0da937"
   dependencies:
     bluebird-lst "^1.0.5"
-    builder-util "3.4.2"
+    builder-util "3.4.3"
     builder-util-runtime "3.3.0"
     chalk "^2.3.0"
-    electron-builder-lib "19.46.6"
+    electron-builder-lib "19.48.1"
     electron-download-tf "4.3.4"
     fs-extra-p "^4.4.4"
     is-ci "^1.0.10"
@@ -1257,9 +1286,9 @@ electron-publish@19.46.5:
     fs-extra-p "^4.4.4"
     mime "^2.0.3"
 
-electron-updater@^2.16.1:
-  version "2.16.3"
-  resolved "https://registry.yarnpkg.com/electron-updater/-/electron-updater-2.16.3.tgz#a5b3d7793398d1e4d5faf3b348041c540c4df977"
+electron-updater@^2.17.0:
+  version "2.17.0"
+  resolved "https://registry.yarnpkg.com/electron-updater/-/electron-updater-2.17.0.tgz#add1fb1eb7fc06dbcb0483c4d1205a226fb04945"
   dependencies:
     bluebird-lst "^1.0.5"
     builder-util-runtime "~3.3.0"
@@ -1339,9 +1368,9 @@ eslint-scope@^3.7.1:
     esrecurse "^4.1.0"
     estraverse "^4.1.1"
 
-eslint@^4.12.0:
-  version "4.12.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-4.12.0.tgz#a7ce78eba8cc8f2443acfbbc870cc31a65135884"
+eslint@^4.12.1:
+  version "4.12.1"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-4.12.1.tgz#5ec1973822b4a066b353770c3c6d69a2a188e880"
   dependencies:
     ajv "^5.3.0"
     babel-code-frame "^6.22.0"
@@ -2279,9 +2308,9 @@ inquirer@~3.0.6:
     strip-ansi "^3.0.0"
     through "^2.3.6"
 
-int64-buffer@^0.1.9:
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/int64-buffer/-/int64-buffer-0.1.9.tgz#9e039da043b24f78b196b283e04653ef5e990f61"
+int64-buffer@^0.1.10:
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/int64-buffer/-/int64-buffer-0.1.10.tgz#277b228a87d95ad777d07c13832022406a473423"
 
 interpret@^1.0.0:
   version "1.0.4"
@@ -3046,7 +3075,7 @@ nan@^2.0.0, nan@^2.3.0:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.7.0.tgz#d95bf721ec877e08db276ed3fc6eb78f9083ad46"
 
-nan@^2.7.0:
+nan@^2.8.0:
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.8.0.tgz#ed715f3fe9de02b57a5e6252d90a96675e1f085a"
 
@@ -3525,12 +3554,12 @@ querystring@0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz#b209849203bb25df820da756e747005878521620"
 
-rabin-bindings@~1.7.3:
-  version "1.7.3"
-  resolved "https://registry.yarnpkg.com/rabin-bindings/-/rabin-bindings-1.7.3.tgz#fb6ae9dbf897988bc2504ccf4832ee4f0546d32a"
+rabin-bindings@~1.7.4:
+  version "1.7.4"
+  resolved "https://registry.yarnpkg.com/rabin-bindings/-/rabin-bindings-1.7.4.tgz#174581d3b9a3c1b09ece75dc21f1b4ae0dd79974"
   dependencies:
     bindings "^1.3.0"
-    nan "^2.7.0"
+    nan "^2.8.0"
     prebuild-install "^2.3.0"
 
 randomatic@^1.1.3:
@@ -3818,9 +3847,9 @@ rollup-pluginutils@^1.3.1:
     estree-walker "^0.2.1"
     minimatch "^3.0.2"
 
-rollup@^0.52.0:
-  version "0.52.0"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.52.0.tgz#cdb6927f53bf7b7fb09af3a936b9c8ee49b161e2"
+rollup@^0.52.1:
+  version "0.52.1"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.52.1.tgz#610e8e1be432f18fcfbfa865408a1cd7618cd707"
 
 run-async@^2.2.0:
   version "2.3.0"

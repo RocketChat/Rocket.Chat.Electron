@@ -1,6 +1,8 @@
 const os = require('os');
+const fs = require('fs');
 const checker = require('spellchecker');
 const { remote, webFrame, shell } = require('electron');
+const { MenuItem, dialog } = remote;
 const i18n = require('../../i18n/index');
 
 const webContents = remote.getCurrentWebContents();
@@ -40,11 +42,11 @@ class SpellCheck {
                 const menu = {
                     label: dictionary,
                     type: 'checkbox',
-                    checked: this.enabledDictionaries.indexOf(dictionary) !== -1,
+                    checked: this.enabledDictionaries.includes(dictionary),
                     click: (menuItem) => {
                         menu.checked = menuItem.checked;
                         // If not using os dictionary then limit to only 1 language
-                        if (!this.multiLanguage) {
+                        if (!this.multiLanguage && this.languagesMenu.submenu) {
                             this.languagesMenu.submenu.forEach((m) => {
                                 if (m.label !== menuItem.label) {
                                     m.checked = false;
@@ -62,6 +64,20 @@ class SpellCheck {
                 return menu;
             })
         };
+
+        this.browseForLanguageMenu = new MenuItem({
+            label: i18n.__('Browse_for_language'),
+            click: () => {
+                dialog.showOpenDialog({
+                    title: i18n.__('Open_Language_Dictionary'),
+                    defaultPath: this.dictionariesPath,
+                    filters: {name: 'Dictionaries', extensions: ['aff', 'dic']},
+                    properties: ['openFile', 'multiSelections']
+                },
+                (filePaths) => { this.installDictionariesFromPaths(filePaths); }
+                );
+            }
+        });
     }
 
     /**
@@ -115,15 +131,51 @@ class SpellCheck {
             this.multiLanguage = false;
             // Dictionaries path is correct for build
             this.dictionariesPath = path.join(remote.app.getAppPath(), '../dictionaries');
-            this.availableDictionaries = [
-                'en_GB',
-                'en_US',
-                'es_ES',
-                'pt_BR'
-            ];
+            this.getDictionariesFromInstallDirectory();
         } else {
             this.multiLanguage = !isWindows;
             this.availableDictionaries = this.availableDictionaries.map((dict) => dict.replace('-', '_'));
+        }
+    }
+
+    /**
+     * Installs all of the dictionaries specified in filePaths
+     * Copies dicts into our dictionary path and adds them to availableDictionaries
+     */
+    installDictionariesFromPaths (dictionaryPaths) {
+        for (const dictionaryPath of dictionaryPaths) {
+            const dictionaryFileName = dictionaryPath.split(path.sep).pop();
+            const dictionaryName = dictionaryFileName.slice(0, -4);
+            const newDictionaryPath = path.join(this.dictionariesPath, dictionaryFileName);
+
+            this.copyDictionaryToInstallDirectory(dictionaryName, dictionaryPath, newDictionaryPath);
+        }
+    }
+
+    copyDictionaryToInstallDirectory (dictionaryName, oldPath, newPath) {
+        fs.createReadStream(oldPath).pipe(fs.createWriteStream(newPath)
+            .on('error', (errorMessage) => {
+                dialog.showErrorBox(i18n.__('Error'), i18n.__('Error copying dictionary file') + `: ${dictionaryName}`);
+                console.error(errorMessage);
+            })
+            .on('finish', () => {
+                if (!this.availableDictionaries.includes(dictionaryName)) {
+                    this.availableDictionaries.push(dictionaryName);
+                }
+            }));
+    }
+
+    getDictionariesFromInstallDirectory () {
+        if (this.dictionariesPath) {
+            const fileNames = fs.readdirSync(this.dictionariesPath);
+            for (const fileName of fileNames) {
+                const dictionaryExtension = fileName.slice(-3);
+                const dictionaryName = fileName.slice(0, -4);
+                if (!this.availableDictionaries.includes(dictionaryName)
+                    && (dictionaryExtension === 'aff' || dictionaryExtension === 'dic')) {
+                    this.availableDictionaries.push(dictionaryName);
+                }
+            }
         }
     }
 
@@ -131,7 +183,7 @@ class SpellCheck {
         dictionaries = [].concat(dictionaries);
         let result = false;
         for (let i = 0; i < dictionaries.length; i++) {
-            if (this.availableDictionaries.indexOf(dictionaries[i]) !== -1) {
+            if (this.availableDictionaries.includes(dictionaries[i])) {
                 result = true;
                 this.enabledDictionaries.push(dictionaries[i]);
                 // If using Hunspell or Windows then only allow 1 language for performance reasons
@@ -267,8 +319,11 @@ class SpellCheck {
 
             const template = this.getMenu();
 
-            if (this.languagesMenu) {
+            if (this.languagesMenu && this.browseForLanguageMenu) {
                 template.unshift({ type: 'separator' });
+                if (this.dictionariesPath) {
+                    template.unshift(this.browseForLanguageMenu);
+                }
                 template.unshift(this.languagesMenu);
             }
 

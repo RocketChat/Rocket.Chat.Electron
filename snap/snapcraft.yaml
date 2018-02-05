@@ -1,5 +1,5 @@
 name: rocketchat-desktop
-version: 2.11.0-develop
+version: 2.10.4
 summary: Rocket.Chat+
 description: Rocket.Chat Native Cross-Platform Desktop Application via Electron.
 confinement: strict

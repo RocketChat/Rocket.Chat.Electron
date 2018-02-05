@@ -25,7 +25,7 @@
       "servers.json"
     ],
     "mac": {
-      "bundleVersion": "22",
+      "bundleVersion": "23",
       "helperBundleId": "chat.rocket.electron.helper",
       "category": "public.app-category.productivity",
       "target": [

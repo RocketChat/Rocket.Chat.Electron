@@ -4,7 +4,7 @@
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
   "version": "2.11.0-develop",
   "author": "Rocket.Chat Support <support@rocket.chat>",
-  "copyright": "© 2017, Rocket.Chat",
+  "copyright": "© 2018, Rocket.Chat",
   "homepage": "https://rocket.chat",
   "license": "MIT",
   "main": "app/background.js",
@@ -25,7 +25,7 @@
       "servers.json"
     ],
     "mac": {
-      "bundleVersion": "22",
+      "bundleVersion": "24",
       "helperBundleId": "chat.rocket.electron.helper",
       "category": "public.app-category.productivity",
       "target": [
@@ -90,7 +90,7 @@
     "@paulcbetts/system-idle-time": "^1.0.4",
     "electron-updater": "^2.20.1",
     "fs-jetpack": "^1.2.0",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.5",
     "spellchecker": "^3.4.4"
   },
   "optionalDependencies": {
@@ -98,11 +98,11 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "conventional-changelog-cli": "^1.3.8",
-    "electron": "^1.7.12",
-    "electron-builder": "^19.55.3",
+    "conventional-changelog-cli": "^1.3.9",
+    "electron": "^1.8.2",
+    "electron-builder": "^19.56.0",
     "electron-mocha": "^5.0.0",
-    "eslint": "^4.16.0",
+    "eslint": "^4.17.0",
     "gulp": "^3.9.1",
     "gulp-batch": "^1.0.5",
     "gulp-less": "^3.4.0",

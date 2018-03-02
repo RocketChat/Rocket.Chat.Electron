@@ -29,25 +29,28 @@ div.server-list {
 	top: 0;
 	bottom: 0;
 	height: 100%;
-	width: 80px;
-	padding-top: 22px;
-	background-color: #0F354C;
+	width: 68px;
+	padding-top: 27px;
+	background-color: #2F343D;
+	color: #FFF;
 	z-index: 100000;
+	filter: brightness(90%);
 	-webkit-app-region: drag;
 }
 
 div.server-list ul {
 	padding: 0px;
 	margin: 0px;
+	-webkit-app-region: no-drag;
 }
 
 div.server-list li {
-	color: #FFF;
+	color: inherit;
 	cursor: pointer;
 	font-size: 17pt;
-
 	-webkit-user-select: none;
 	user-select: none;
+	filter: brightness(110%);
 }
 
 div.server-list li.active img {
@@ -74,9 +77,10 @@ div.server-list li {
 	display: flex;
 	justify-content: flex-start;
 	align-items: center;
-	height: 60px;
+	height: 55px;
 	position: relative;
-	margin-bottom: 20px;
+	margin-bottom: 17px;
+	-webkit-app-region: no-drag;
 }
 
 div.server-list li:before {
@@ -90,9 +94,8 @@ div.server-list li:before {
 }
 
 .server-list img {
-	width: 50px;
-	height: 50px;
-	top: 5px;
+	width: 42px;
+	height: 42px;
 	left: 15px;
 	position: absolute;
 	display: none;
@@ -101,10 +104,9 @@ div.server-list li:before {
 }
 
 .server-list span {
-	width: 70px;
+	width: 100%;
 	text-align: center;
 	line-height: 60px;
-	left: 5px;
 	position: absolute;
 	opacity: 0.6;
 	transition: opacity .2s;
@@ -112,7 +114,7 @@ div.server-list li:before {
 
 .server-list li .tooltip {
 	line-height: 30px;
-	left: 72px;
+	left: 70px;
 	position: absolute;
 	background-color: #000;
 	color: #fff;
@@ -126,13 +128,13 @@ div.server-list li:before {
 
 .server-list li .badge {
 	position: absolute;
-	right: 10px;
-	top: 5px;
+	right: 8px;
+	top: 2px;
 	background-color: #e43325;
 	border-radius: 20px;
-	min-width: 18px;
-	line-height: 18px;
-	font-size: 12px;
+	min-width: 15px;
+	line-height: 15px;
+	font-size: 11px;
 	text-align: center;
 	z-index: 1;
 	font-family: Helvetica;
@@ -143,14 +145,18 @@ div.server-list li:before {
 
 .server-list li .name {
 	text-align: center;
-	width: 70px;
-	bottom: -10px;
+	width: 100%;
+	bottom: -12px;
 	position: absolute;
 	font-size: 12px;
 	line-height: 11px;
-	right: 5px;
 	font-weight: 600;
 	opacity: 0.6;
+	display: none;
+}
+
+.command-pressed li .name {
+	display: initial;
 }
 
 .server-list li:hover span {
@@ -165,9 +171,12 @@ div.server-list li:before {
 	display: block;
 }
 
-.add-server span {
+.server-list li.add-server {
+	height: 30px;
+}
+
+.server-list li.add-server span {
 	font-size: 40px;
-	opacity: 0.3;
 }
 
 .hide-server-list div.server-list {
@@ -176,7 +185,6 @@ div.server-list li:before {
 
 .hide-server-list webview {
 	left: 0;
-	transition: left 0.5s ease-in-out;
 }
 
 @-webkit-keyframes wrong {
@@ -229,7 +237,7 @@ webview {
 	z-index: 0;
 	position: fixed;
 	top: 0;
-	left: 80px;
+	left: 68px;
 	right: 0;
 	bottom: 0;
 }

@@ -9,6 +9,9 @@
 	<link rel="stylesheet" type="text/css" href="../stylesheets/main.css">
 	<script type="text/javascript" src="./lib/bugsnag.js"></script>
 	<!-- <script type="text/javascript" src="scripts/bugsnag_apikey.js"></script> -->
+    <script>
+        const i18n = require('../i18n/index');
+    </script>
 </head>
 <body class="hide-server-list">
 	<div class="server-list">
@@ -17,7 +20,7 @@
 		<ul>
 			<li class="add-server">
 				<span>+</span>
-				<div class="tooltip">Add new server</div>
+				<div class="tooltip"><script>document.write(i18n.__('Add_new_server'))</script></div>
 			</li>
 		</ul>
 	</div>
@@ -36,19 +39,19 @@
 			</div>
 			<form id="login-card" method="/" style="display:none;">
 				<header>
-					<h2>Enter your server URL</h2>
+					<h2><script>document.write(i18n.__('Enter_your_server_URL'))</script></h2>
 				</header>
 				<div class="fields">
 					<div class="input-text active">
-						<input type="text" name="host" placeholder="https://demo.rocket.chat" dir="auto">
+						<input type="text" name="host" placeholder="https://open.rocket.chat" dir="auto">
 					</div>
 				</div>
 
 				<div id="invalidUrl" style="display:none;" class="alert alert-danger">
-					No valid server found at the URL
+					<script>document.write(i18n.__('No_valid_server_found'))</script>
 				</div>
 
-				<div class="alert alert-danger only-offline">Check your Internet connection!</div>
+				<div class="alert alert-danger only-offline"><script>document.write(i18n.__('Check_connection'))</script></div>
 
 				<div class="submit">
 					<input type="submit" data-loading-text="Connecting..." class="button primary login" value="Connect"></input>
@@ -57,7 +60,7 @@
 			<footer style="display:none;">
 				<div class="social">
 					<nav>
-						<a target="_system" class="button share twitter" href="https://twitter.com/RocketChatApp"><i class="icon-twitter"></i><span>Twitter</span></a>
+						<a target="_system" class="button share twitter" href="https://twitter.com/RocketChat"><i class="icon-twitter"></i><span>Twitter</span></a>
 						<a target="_system" class="button share facebook" href="https://www.facebook.com/RocketChatApp"><i class="icon-facebook"></i><span>Facebook</span></a>
 						<a target="_system" class="button share google" href="https://plus.google.com/+RocketChatApp"><i class="icon-gplus"></i><span>Google Plus</span></a>
 						<a target="_system" class="button share github" href="https://github.com/RocketChat/Rocket.Chat"><i class="icon-github-circled"></i><span>Github</span></a>

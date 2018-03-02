@@ -9,7 +9,7 @@ import _ from 'lodash';
 export default function (name, defaults) {
 
     const userDataDir = jetpack.cwd(app.getPath('userData'));
-    const stateStoreFile = 'window-state-' + name +'.json';
+    const stateStoreFile = `window-state-${name}.json`;
     let state = {
         width: defaults.width,
         height: defaults.height
@@ -17,7 +17,7 @@ export default function (name, defaults) {
 
     try {
         const loadedState = userDataDir.read(stateStoreFile, 'json');
-        if (loadedState != null) {
+        if (loadedState) {
             state = loadedState;
         }
     } catch (err) {
@@ -41,10 +41,10 @@ export default function (name, defaults) {
     };
 
     return {
-        get x () { return state.x; },
-        get y () { return state.y; },
-        get width () { return state.width; },
-        get height () { return state.height; },
+        get x () { return state.x && Math.floor(state.x); },
+        get y () { return state.y && Math.floor(state.y); },
+        get width () { return state.width && Math.floor(state.width); },
+        get height () { return state.height && Math.floor(state.height); },
         get isMaximized () { return state.isMaximized; },
         get isMinimized () { return state.isMinimized; },
         get isHidden () { return state.isHidden; },

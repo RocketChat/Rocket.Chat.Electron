@@ -1,11 +1,12 @@
 import { remote } from 'electron';
+import i18n from '../../i18n/index.js';
 
 const APP_NAME = remote.app.getName();
 const isMac = process.platform === 'darwin';
 
 const appTemplate = [
     {
-        label: 'About ' + APP_NAME,
+        label: i18n.__('About', APP_NAME),
         click: function () {
             const win = new remote.BrowserWindow({
                 width: 310,
@@ -27,7 +28,7 @@ const appTemplate = [
         id: 'about-sep'
     },
     {
-        label: `Quit ${APP_NAME}`,
+        label: i18n.__('Quit_App', APP_NAME),
         accelerator: 'CommandOrControl+Q',
         click: function () {
             remote.app.quit();
@@ -38,18 +39,22 @@ const appTemplate = [
 if (isMac) {
     const macAppExtraTemplate = [
         {
-            label: 'Hide ' + APP_NAME,
-            accelerator: 'Command+H',
-            role: 'hide',
+            role: 'services',
+            submenu: [],
             position: 'after=about-sep'
         },
         {
-            label: 'Hide Others',
+            type: 'separator'
+        },
+        {
+            accelerator: 'Command+H',
+            role: 'hide'
+        },
+        {
             accelerator: 'Command+Alt+H',
             role: 'hideothers'
         },
         {
-            label: 'Show All',
             role: 'unhide'
         },
         {

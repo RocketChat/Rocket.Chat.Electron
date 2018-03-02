@@ -28,7 +28,7 @@ module.exports = function (src, dest, opts) {
     opts = opts || {};
     opts.rollupPlugins = opts.rollupPlugins || [];
     return rollup({
-        entry: src,
+        input: src,
         external: generateExternalModulesList(),
         cache: cached[src],
         plugins: opts.rollupPlugins,
@@ -39,8 +39,8 @@ module.exports = function (src, dest, opts) {
             const jsFile = path.basename(dest);
             return bundle.generate({
                 format: 'cjs',
-                sourceMap: true,
-                sourceMapFile: jsFile,
+                sourcemap: true,
+                sourcemapFile: jsFile,
             });
         })
         .then(function (result) {
@@ -49,7 +49,7 @@ module.exports = function (src, dest, opts) {
             const isolatedCode = '(function () {' + result.code + '\n}());';
             const jsFile = path.basename(dest);
             return Promise.all([
-                jetpack.writeAsync(dest, isolatedCode + '\n//# sourceMappingURL=' + jsFile + '.map'),
+                jetpack.writeAsync(dest, isolatedCode + '\n//# sourcemappingURL=' + jsFile + '.map'),
                 jetpack.writeAsync(dest + '.map', result.map.toString()),
             ]);
         });

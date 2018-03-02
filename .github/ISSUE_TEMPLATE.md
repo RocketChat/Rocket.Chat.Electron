@@ -19,7 +19,7 @@ Thanks for opening an issue! A few things to keep in mind:
 <!-- If relevant, attach screenshots, and how to reproduce -->
 
 ### Current Behavior
-<!-- What do you think should happen? -->
+<!-- What actually happens? -->
 
 ### Expected Behavior
-<!-- What actually happens? -->
+<!-- What do you think should happen? -->

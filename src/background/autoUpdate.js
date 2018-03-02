@@ -1,6 +1,7 @@
 import { app, ipcMain, BrowserWindow, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';
+import i18n from '../i18n/index.js';
 
 const installDir = jetpack.cwd(app.getAppPath());
 const userDataDir = jetpack.cwd(app.getPath('userData'));
@@ -15,23 +16,23 @@ try {
     const userUpdateFile = userDataDir.read(updateStoreFile, 'json');
     updateFile = Object.assign({}, installUpdateFile, userUpdateFile);
 } catch (err) {
-    console.log(err);
+    console.error(err);
 }
 
 function updateDownloaded () {
     dialog.showMessageBox({
-        title: 'Update Ready to Install',
-        message: 'Update has been downloaded',
+        title: i18n.__('Update_ready'),
+        message: i18n.__('Update_ready_message'),
         buttons: [
-            'Install Later',
-            'Install Now'
+            i18n.__('Update_Install_Later'),
+            i18n.__('Update_Install_Now')
         ],
         defaultId: 1
     }, (response) => {
         if (response === 0) {
             dialog.showMessageBox({
-                title: 'Installing Later',
-                message: 'Update will be installed when you exit the app'
+                title: i18n.__('Update_installing_later'),
+                message: i18n.__('Update_installing_later_message')
             });
         } else {
             autoUpdater.quitAndInstall();
@@ -52,12 +53,11 @@ function updateAvailable ({version}) {
         checkForUpdatesEvent.sender.send('update-result', true);
         checkForUpdatesEvent = null;
     } else if (updateFile.skip === version) {
-        console.log(`Skipping version: ${version}`);
         return;
     }
 
     let window = new BrowserWindow({
-        title: 'Update Available',
+        title: i18n.__('Update_Available'),
         width: 600,
         height: 330,
         show : false,
@@ -81,21 +81,20 @@ function updateAvailable ({version}) {
                 updateFile.skip = version;
                 userDataDir.write(updateStoreFile, updateFile, { atomic: true });
                 dialog.showMessageBox({
-                    title: 'Skip Update',
-                    message: 'We will notify you when the next update is available\n' +
-                        'If you change your mind you can check for updates from the About menu.'
+                    title: i18n.__('Update_skip'),
+                    message: i18n.__('Update_skip_message')
                 }, () => window.close());
                 break;
             case 'remind':
                 dialog.showMessageBox({
-                    title: 'Remind Later',
-                    message: 'We will remind you next time you start the app'
+                    title: i18n.__('Update_remind'),
+                    message: i18n.__('Update_remind_message')
                 }, () => window.close());
                 break;
             case 'update':
                 dialog.showMessageBox({
-                    title: 'Downloading Update',
-                    message: 'You will be notified when the update is ready to be installed'
+                    title: i18n.__('Update_downloading'),
+                    message: i18n.__('Update_downloading_message')
                 }, () => window.close());
                 autoUpdater.downloadUpdate();
                 break;
@@ -111,10 +110,6 @@ function updateAvailable ({version}) {
 function checkForUpdates () {
     autoUpdater.on('update-available', updateAvailable);
     autoUpdater.on('update-not-available', updateNotAvailable);
-
-    autoUpdater.on('download-progress', ({percent}) => {
-        console.log(`Update progress: ${percent}`);
-    });
 
     autoUpdater.on('update-downloaded', updateDownloaded);
 

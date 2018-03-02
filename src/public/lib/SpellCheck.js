@@ -1,6 +1,7 @@
 const os = require('os');
 const checker = require('spellchecker');
-const { remote, webFrame } = require('electron');
+const { remote, webFrame, shell } = require('electron');
+const i18n = require('../../i18n/index');
 
 const webContents = remote.getCurrentWebContents();
 let menu = new remote.Menu();
@@ -34,7 +35,7 @@ class SpellCheck {
         this.setEnabledDictionaries();
 
         this.languagesMenu = {
-            label: 'Spelling languages',
+            label: i18n.__('Spelling_languages'),
             submenu: this.availableDictionaries.map((dictionary) => {
                 const menu = {
                     label: dictionary,
@@ -103,7 +104,7 @@ class SpellCheck {
         }
 
         if (!this.setEnabled('en')) {
-            console.log('Unable to set a language for the spell checker - Spell checker is disabled');
+            console.info('Unable to set a language for the spell checker - Spell checker is disabled');
         }
 
     }
@@ -183,33 +184,33 @@ class SpellCheck {
     getMenu () {
         return [
             {
-                label: 'Undo',
+                label: i18n.__('Undo'),
                 role: 'undo'
             },
             {
-                label: 'Redo',
+                label: i18n.__('Redo'),
                 role: 'redo'
             },
             {
                 type: 'separator'
             },
             {
-                label: 'Cut',
+                label: i18n.__('Cut'),
                 role: 'cut',
                 accelerator: 'CommandOrControl+X',
             },
             {
-                label: 'Copy',
+                label: i18n.__('Copy'),
                 role: 'copy',
                 accelerator: 'CommandOrControl+C',
             },
             {
-                label: 'Paste',
+                label: i18n.__('Paste'),
                 role: 'paste',
                 accelerator: 'CommandOrControl+V',
             },
             {
-                label: 'Select All',
+                label: i18n.__('Select_All'),
                 role: 'selectall',
                 accelerator: 'CommandOrControl+A',
             }
@@ -272,6 +273,17 @@ class SpellCheck {
             }
 
             setTimeout(() => {
+                if (event.target.nodeName === 'A') {
+                    const targetLink = event.target.href;
+
+                    template.unshift({
+                        label: i18n.__('Open_Link'),
+                        click: () => {
+                            shell.openExternal(targetLink);
+                        }
+                    });
+                }
+
                 if (['TEXTAREA', 'INPUT'].indexOf(event.target.nodeName) > -1) {
                     const text = window.getSelection().toString().trim();
                     if (text !== '' && !this.isCorrect(text)) {
@@ -293,7 +305,7 @@ class SpellCheck {
 
                             if (suggestions.length > maxItems) {
                                 const moreSuggestions = {
-                                    label: 'More spelling suggestions',
+                                    label: i18n.__('More_spelling_suggestions'),
                                     submenu: suggestions.slice(maxItems)
                                 };
                                 template.unshift(moreSuggestions);
@@ -301,7 +313,7 @@ class SpellCheck {
 
                             template.unshift.apply(template, suggestions.slice(0, maxItems));
                         } else {
-                            template.unshift({ label: 'No suggestions', enabled: false });
+                            template.unshift({ label: i18n.__('No_suggestions'), enabled: false });
                         }
                     }
                 }

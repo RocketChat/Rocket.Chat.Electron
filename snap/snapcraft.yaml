@@ -1,5 +1,5 @@
 name: rocketchat-desktop
-version: 2.9.0-develop
+version: 2.11.0-develop
 summary: Rocket.Chat+
 description: Rocket.Chat Native Cross-Platform Desktop Application via Electron.
 confinement: strict
@@ -17,6 +17,7 @@ apps:
       - gsettings
       - pulseaudio
       - opengl
+      - camera
 parts:
   app:
     plugin: dump

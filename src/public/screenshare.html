@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Share Your Screen</title>
+	<script>
+        const i18n = require('../i18n/index');
+    </script>
+	<title><script>document.write(i18n.__('Share_Your_Screen'))</script></title>
 	<style type="text/css">
 		body {
 			background-color: #eeeeee;
@@ -33,7 +36,7 @@
 	</style>
 </head>
 	<body>
-		<h1>Select a screen to share</h1>
+		<h1><script>document.write(i18n.__('Select_a_screen_to_share'))</script></h1>
 		<div id="sources"></div>
 		<script>
 			window.onload = function() {

@@ -1,4 +1,103 @@
-# History
+<a name="2.10.1"></a>
+# 2.10.1 (2017-11-09)
+
+### Bug Fixes
+- [#597](https://github.com/RocketChat/Rocket.Chat.Electron/pull/597) Fix MacOS dmg build
+
+
+<a name="2.10.0"></a>
+# 2.10.0 (2017-10-27)
+
+### New Features
+- [#552](https://github.com/RocketChat/Rocket.Chat.Electron/pull/552) Add context menu option for links
+- [#556](https://github.com/RocketChat/Rocket.Chat.Electron/pull/556) Sidebar redesign and dynamic background color
+- [#539](https://github.com/RocketChat/Rocket.Chat.Electron/pull/539) Adds drag and drop for servers in the sidebar
+- [#533](https://github.com/RocketChat/Rocket.Chat.Electron/pull/533) New shortcut for moving back/forward between rooms
+
+### Bug Fixes
+- [#521](https://github.com/RocketChat/Rocket.Chat.Electron/pull/521) Fixes OSX build for AppStore
+- [#546](https://github.com/RocketChat/Rocket.Chat.Electron/pull/546) Fixed wrong window size on loading screen
+- [#532](https://github.com/RocketChat/Rocket.Chat.Electron/pull/532) Restores the help menu on Windows and Linux
+- [#526](https://github.com/RocketChat/Rocket.Chat.Electron/pull/526) Fix notifications not opening the correct room
+
+
+<a name="2.9.0"></a>
+# 2.9.0 (2017-08-23)
+
+
+### New Features
+
+- [#320](https://github.com/RocketChat/Rocket.Chat.Electron/pull/320) Allow reply notifications on Mac OS
+- [#490](https://github.com/RocketChat/Rocket.Chat.Electron/pull/490) Default servers improvements
+- [#509](https://github.com/RocketChat/Rocket.Chat.Electron/pull/509) Add missing Services menu in application menu on macOS
+
+
+### Bug Fixes
+
+- [#494](https://github.com/RocketChat/Rocket.Chat.Electron/pull/494) Adding ESLint and fixing lint errors
+- [#465](https://github.com/RocketChat/Rocket.Chat.Electron/pull/465) Fix bug in spellcheck
+- [#512](https://github.com/RocketChat/Rocket.Chat.Electron/pull/512) Fix minimized start on Windows
+- [#464](https://github.com/RocketChat/Rocket.Chat.Electron/pull/464) Remove duplicate notification on windows 7
+- [#453](https://github.com/RocketChat/Rocket.Chat.Electron/pull/453) Read update settings from install location
+
+
+<a name="2.8.0"></a>
+# 2.8.0 (2017-05-17)
+
+
+### New Features
+
+- [#416](https://github.com/RocketChat/Rocket.Chat.Electron/pull/416) Snap build
+
+### Bug Fixes
+
+- [#440](https://github.com/RocketChat/Rocket.Chat.Electron/pull/440) Fix bug on some OS versions on about window, closes [#427](https://github.com/RocketChat/Rocket.Chat.Electron/issues/427)
+- [#445](https://github.com/RocketChat/Rocket.Chat.Electron/pull/445) Fix bug when closing app in fullscreen
+
+
+
+
+<a name="2.7.0"></a>
+# 2.7.0 (2017-04-26)
+
+
+### New Features
+
+- [#411](https://github.com/RocketChat/Rocket.Chat.Electron/pull/411) Auto update when new version is released
+- [#423](https://github.com/RocketChat/Rocket.Chat.Electron/pull/423) Open host from add new server page if it exists
+
+
+### Bug Fixes
+
+- [#417](https://github.com/RocketChat/Rocket.Chat.Electron/pull/417) Don't open dev tools on about, and show message when no updates
+- [#425](https://github.com/RocketChat/Rocket.Chat.Electron/pull/425) Make sure app quits on mac on update
+- [#426](https://github.com/RocketChat/Rocket.Chat.Electron/pull/426) Reduce drag region to fix manual scroll
+- [#415](https://github.com/RocketChat/Rocket.Chat.Electron/pull/415) Updated README with servers.json instructions
+
+
+<a name="2.6.1"></a>
+## 2.6.1 (2017-04-04)
+
+### Bug Fixes
+- [#412](https://github.com/RocketChat/Rocket.Chat.Electron/pull/412) Fix bug with highlighting text & drag region on macOS
+
+
+<a name="2.6.0"></a>
+# 2.6.0 (2017-03-29)
+
+
+### Bug Fixes
+
+- [#384](https://github.com/RocketChat/Rocket.Chat.Electron/pull/384) Fix download file issue
+- [#390](https://github.com/RocketChat/Rocket.Chat.Electron/pull/390) Fix speed issues with spellcheck on windows
+- [#391](https://github.com/RocketChat/Rocket.Chat.Electron/pull/391) Only show reload screen if main webview error
+
+
+<details>
+<summary>Others</summary>
+
+- [#336](https://github.com/RocketChat/Rocket.Chat.Electron/pull/336) Make it sexier in macOS
+</details>
 
 ## 2.5.0 - 2017-Mar-05
 
@@ -136,7 +235,7 @@
 - Start client with windows logon (#57)
 - Tray icon on Windows requires triple click (#77)
 
-> Special thanks to @floriangoeldi 
+> Special thanks to @floriangoeldi
 
 ## 1.0.0 - 2016-Feb-19
 
@@ -202,7 +301,7 @@
 - Listen for double-clicked event on tray to minimize/restore window
 - Move window to front when click to show in tray
 - Open http links as external
-- Remove unnecessary files from OSX and Windows release	
+- Remove unnecessary files from OSX and Windows release
 - Rename application executable and helpers
 - Update Icons
 

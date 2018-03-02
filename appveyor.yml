@@ -1,6 +1,6 @@
 # build: off
 
-os: unstable
+image: Visual Studio 2017
 
 platform:
   - x64
@@ -36,7 +36,8 @@ test_script:
   # - yarn e2e
 
 build_script:
-  - yarn release -- --ia32 --x64
+  - yarn release -- --ia32 --x64 --win nsis appx
 
 artifacts:
-  - path: 'dist\**\*.exe'
+  - path: 'dist\*.exe'
+  - path: 'dist\*.appx'

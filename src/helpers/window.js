@@ -31,10 +31,10 @@ export default function (name, options) {
         const position = win.getPosition();
         const size = win.getSize();
         return {
-            x: position[0],
-            y: position[1],
-            width: size[0],
-            height: size[1]
+            x: Math.floor(position[0]),
+            y: Math.floor(position[1]),
+            width: Math.floor(size[0]),
+            height: Math.floor(size[1])
         };
     };
 

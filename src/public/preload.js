@@ -1,12 +1,14 @@
-/* globals Meteor, Tracker, RocketChat */
+/* globals Meteor, Tracker, RocketChat, UserPresence*/
 'use strict';
 
 const { ipcRenderer, shell } = require('electron');
 const Notification = require('./lib/Notification');
 const SpellCheck = require('./lib/SpellCheck');
 const path = require('path');
+const i18n = require('../i18n/index');
 
 window.Notification = Notification;
+window.i18n = i18n;
 
 const defaultWindowOpen = window.open;
 
@@ -30,6 +32,44 @@ events.forEach(function (e) {
     });
 });
 
+const userPresenceControl = () => {
+    const INTERVAL = 10000; // 10s
+    setInterval(() => {
+        try {
+            const idleTime = ipcRenderer.sendSync('getSystemIdleTime');
+            if (idleTime < INTERVAL) {
+                UserPresence.setOnline();
+            }
+        } catch (e) {
+            console.error(`Error getting system idle time: ${e}`);
+        }
+    }, INTERVAL);
+};
+
+const changeSidebarColor = () => {
+    const sidebar = document.querySelector('.sidebar');
+    const fullpage = document.querySelector('.full-page');
+    if (sidebar) {
+        const sidebarItem = sidebar.querySelector('.sidebar-item');
+        let itemColor;
+        if (sidebarItem) {
+            itemColor = window.getComputedStyle(sidebarItem);
+        }
+        const { color, background } = window.getComputedStyle(sidebar);
+        ipcRenderer.sendToHost('sidebar-background', {color: itemColor || color, background: background});
+    } else if (fullpage) {
+        const { color, background } = window.getComputedStyle(fullpage);
+        ipcRenderer.sendToHost('sidebar-background', {color: color, background: background});
+    } else {
+        window.requestAnimationFrame(changeSidebarColor);
+
+    }
+};
+
+ipcRenderer.on('request-sidebar-color', () => {
+    changeSidebarColor();
+});
+
 window.addEventListener('load', function () {
     Meteor.startup(function () {
         Tracker.autorun(function () {
@@ -39,6 +79,7 @@ window.addEventListener('load', function () {
             }
         });
     });
+    userPresenceControl();
 });
 
 window.onload = function () {
@@ -49,7 +90,6 @@ window.onload = function () {
         if (RegExp(`^${location.protocol}\/\/${location.host}`).test(href)) {
             return;
         }
-
         // Check href matching relative URL
         if (!/^([a-z]+:)?\/\//.test(href)) {
             return;
@@ -80,19 +120,3 @@ document.addEventListener('drop', e => e.preventDefault());
 
 const spellChecker = new SpellCheck();
 spellChecker.enable();
-
-/**
- * Keep user online if they are still using their computer
- */
-const AWAY_TIME = 300000; // 5 mins
-const INTERVAL = 10000; // 10 seconds
-setInterval(function () {
-    try {
-        const idleTime = ipcRenderer.sendSync('getSystemIdleTime');
-        if (idleTime < AWAY_TIME) {
-            Meteor.call('UserPresence:online');
-        }
-    } catch (e) {
-        console.error(`Error getting system idle time: ${e}`);
-    }
-}, INTERVAL);

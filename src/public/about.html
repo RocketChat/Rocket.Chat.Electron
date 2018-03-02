@@ -54,6 +54,9 @@
 			margin: 5px 0;
 		}
 	</style>
+    <script>
+        const i18n = require('../i18n/index');
+    </script>
 </head>
 	<body>
 		<img src="images/icon.png">
@@ -63,9 +66,9 @@
 		<div class="app-version"></div>
 		<span class="update-spin icon-spin3 animate-spin" style="display:none;"></span>
 
-		<button class="update">Check for Updates</button>
-		<p class="auto-update-container"><input type="checkbox" id="auto-update" checked /> Check for Updates on Start</p>
-		<p class="copyright">Copyright &copy; 2017, Rocket.Chat</p>
+		<button class="update"><script>document.write(i18n.__('Check_for_Updates'))</script></button>
+		<p class="auto-update-container"><input type="checkbox" id="auto-update" checked /> <script>document.write(i18n.__('Check_for_Updates_on_Start'))</script></p>
+		<p class="copyright"><script>document.write(i18n.__('Copyright'))</script></p>
 		<script>
 			const { remote, ipcRenderer } = require('electron');
 			const autoUpdate = ipcRenderer.sendSync('check-for-updates', 'auto');
@@ -73,7 +76,7 @@
 				document.querySelector('#auto-update').removeAttribute('checked');
 			}
 			document.querySelector('.app-name').innerHTML = remote.app.getName();
-			document.querySelector('.app-version').innerHTML = `Version <span class="version">${remote.app.getVersion()}</span>`;
+			document.querySelector('.app-version').innerHTML = `${i18n.__('Version')} <span class="version">${remote.app.getVersion()}</span>`;
 			document.querySelector('.update').onclick = function(e) {
 				document.querySelector('.update-spin').setAttribute('style', '');
 				document.querySelector('.update').setAttribute('disabled', 'disabled');

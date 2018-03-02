@@ -1,11 +1,12 @@
-const { ipcRenderer, remote } = require('electron');
+const { ipcRenderer } = require('electron');
 
 if (process.platform === 'darwin') {
     const NodeNotification = require('node-mac-notifier');
-    window.Notification = class extends NodeNotification {
+    window.Notification = class Notification extends NodeNotification {
         constructor (title, options) {
-            options.bundleId = remote.getGlobal('BUNDLE_ID');
+            options.bundleId = `chat.rocket`;
             super(title, options);
+            this.addEventListener('click', (/*notification*/) => this.onclick());
         }
 
         static requestPermission () {

@@ -17,7 +17,9 @@ gulp.task('bundle', function () {
     return Promise.all([
         bundle(srcDir.path('background.js'), destDir.path('background.js')),
         bundle(srcDir.path('app.js'), destDir.path('app.js')),
-        gulp.src(srcDir.path('public')+'/**/*').pipe(gulp.dest(destDir.path('public')))
+        bundle(srcDir.path('i18n/index.js'), destDir.path('i18n/index.js')),
+        gulp.src(srcDir.path('public')+'/**/*').pipe(gulp.dest(destDir.path('public'))),
+        gulp.src(srcDir.path('i18n/lang')+'/**/*').pipe(gulp.dest(destDir.path('i18n/lang')))
     ]);
 });
 

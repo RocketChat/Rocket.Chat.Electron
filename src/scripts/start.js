@@ -1,6 +1,7 @@
 /* globals $ */
 
 import { remote, ipcRenderer } from 'electron';
+import i18n from '../i18n/index.js';
 import servers from './servers';
 import sidebar from './sidebar';
 import webview from './webview';
@@ -17,7 +18,7 @@ sidebar.on('badge-setted', function () {
 });
 
 export const start = function () {
-    const defaultInstance = 'https://demo.rocket.chat';
+    const defaultInstance = 'https://open.rocket.chat';
 
     // connection check
     function online () {
@@ -55,33 +56,33 @@ export const start = function () {
                 hostField.value = host;
 
                 if (host.length === 0) {
-                    button.value = 'Connect';
+                    button.value = i18n.__('Connect');
                     button.disabled = false;
                     resolve();
                     return;
                 }
 
-                button.value = 'Validating...';
+                button.value = i18n.__('Validating');
                 button.disabled = true;
 
                 servers.validateHost(host, 2000).then(function () {
-                    button.value = 'Connect';
+                    button.value = i18n.__('Connect');
                     button.disabled = false;
                     resolve();
                 }, function (status) {
                     // If the url begins with HTTP, mark as invalid
                     if (/^https?:\/\/.+/.test(host) || status === 'basic-auth') {
-                        button.value = 'Invalid url';
+                        button.value = i18n.__('Invalid_url');
                         invalidUrl.style.display = 'block';
                         switch (status) {
                             case 'basic-auth':
-                                invalidUrl.innerHTML = 'Auth needed, try <b>username:password@host</b>';
+                                invalidUrl.innerHTML = i18n.__('Auth_needed_try', '<b>username:password@host</b>');
                                 break;
                             case 'invalid':
-                                invalidUrl.innerHTML = 'No valid server found at the URL';
+                                invalidUrl.innerHTML = i18n.__('No_valid_server_found');
                                 break;
                             case 'timeout':
-                                invalidUrl.innerHTML = 'Timeout trying to connect';
+                                invalidUrl.innerHTML = i18n.__('Timeout_trying_to_connect');
                                 break;
                         }
                         hostField.classList.add('wrong');

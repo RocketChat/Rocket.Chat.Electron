@@ -18,29 +18,29 @@ document.title = APP_NAME;
 
 const menuTemplate = [
     {
-        label: APP_NAME,
+        label: '&' + APP_NAME,
         submenu: appMenu
     },
     {
-        label: i18n.__('Edit'),
+        label: '&' + i18n.__('Edit'),
         submenu: editMenu
     },
     {
-        label: i18n.__('View'),
+        label: '&' + i18n.__('View'),
         submenu: viewMenu
     },
     {
-        label: i18n.__('History'),
+        label: '&' + i18n.__('History'),
         submenu: historyMenu
     },
     {
-        label: i18n.__('Window'),
+        label: '&' + i18n.__('Window'),
         id: 'window',
         role: 'window',
         submenu: windowMenu
     },
     {
-        label: i18n.__('Help'),
+        label: '&' + i18n.__('Help'),
         role: 'help',
         submenu: helpMenu
     }
@@ -56,7 +56,7 @@ function addServer (host, position) {
     windowMenu[index].visible = true;
 
     const menuItem = {
-        label: host.title,
+        label: '&' + host.title,
         accelerator: `CmdOrCtrl+ ${position}`,
         position: 'before=server-list-separator',
         id: host.url,

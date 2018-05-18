@@ -99,7 +99,15 @@ if (isMac) {
             tray.toggle();
         },
         position: 'after=toggle'
-    });
+    }, {
+        label: i18n.__('Toggle_Full_Screen'),
+        accelerator: 'Control+Command+F',
+        click: function () {
+            const mainWindow = remote.getCurrentWindow();
+            mainWindow.setFullScreen(!mainWindow.isFullScreen());
+        },
+        position: 'after=toggle'
+        });
 } else {
     viewTemplate.push({
         label: i18n.__('Toggle_Menu_Bar'),

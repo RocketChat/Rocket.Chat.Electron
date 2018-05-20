@@ -107,7 +107,7 @@ if (isMac) {
             mainWindow.setFullScreen(!mainWindow.isFullScreen());
         },
         position: 'after=toggle'
-        });
+    });
 } else {
     viewTemplate.push({
         label: i18n.__('Toggle_Menu_Bar'),

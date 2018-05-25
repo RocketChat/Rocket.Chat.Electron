@@ -1,4 +1,5 @@
 import webview from '../webview';
+import i18n from '../../i18n/index.js';
 const isMac = process.platform === 'darwin';
 
 const macWindowTemplate = [

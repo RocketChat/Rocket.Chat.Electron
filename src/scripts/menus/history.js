@@ -3,12 +3,12 @@ const isMac = process.platform === 'darwin';
 
 const macWindowTemplate = [
     {
-        label: 'Back',
+        label: i18n.__('Back'),
         accelerator: 'Command+left',
         click: () => { webview.goBack(); }
     },
     {
-        label: 'Forward',
+        label: i18n.__('Forward'),
         accelerator: 'Command+right',
         click: () => { webview.goForward(); }
     }
@@ -16,12 +16,12 @@ const macWindowTemplate = [
 
 const windowTemplate = [
     {
-        label: 'Back',
+        label: i18n.__('Back'),
         accelerator: 'Alt+Left',
         click: () => { webview.goBack(); }
     },
     {
-        label: 'Forward',
+        label: i18n.__('Forward'),
         accelerator: 'Alt+Right',
         click: () => { webview.goForward(); }
     },

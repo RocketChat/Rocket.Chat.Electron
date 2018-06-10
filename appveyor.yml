@@ -13,7 +13,7 @@ branches:
 skip_tags: true
 
 environment:
-  nodejs_version: "7"
+  nodejs_version: "8"
 
 cache:
   - "%LOCALAPPDATA%/Yarn"

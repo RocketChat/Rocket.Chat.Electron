@@ -2,7 +2,7 @@
   "name": "rocketchat",
   "productName": "Rocket.Chat+",
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
-  "version": "2.10.5",
+  "version": "2.10.6",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2018, Rocket.Chat",
   "homepage": "https://rocket.chat",
@@ -99,7 +99,7 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "conventional-changelog-cli": "^1.3.9",
-    "electron": "^1.8.2",
+    "electron": "^1.8.4",
     "electron-builder": "^19.56.0",
     "electron-mocha": "^5.0.0",
     "eslint": "^4.17.0",

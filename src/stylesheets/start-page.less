@@ -34,13 +34,25 @@ div.server-list {
 	background-color: #2F343D;
 	color: #FFF;
 	z-index: 100000;
-	filter: brightness(90%);
 	-webkit-app-region: drag;
+}
+
+div.server-list::after {
+	content: "";
+	background-color: rgba(0, 0, 0, 0.1);
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
 }
 
 div.server-list ul {
 	padding: 0px;
 	margin: 0px;
+	z-index: 2;
+	position: relative;
 	-webkit-app-region: no-drag;
 }
 

@@ -24,7 +24,7 @@ function customWindowOpen (url, frameName, features) {
 
 window.open = customWindowOpen;
 
-const events = ['unread-changed', 'get-sourceId'];
+const events = ['unread-changed', 'get-sourceId', 'user-status-manually-set'];
 
 events.forEach(function (e) {
     window.addEventListener(e, function (event) {

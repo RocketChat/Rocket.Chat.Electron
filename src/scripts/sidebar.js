@@ -259,11 +259,11 @@ class SideBar extends EventEmitter {
             }
         }
 
-        if (count > 0) {
-            return String(count);
-        } else {
-            return alert;
-        }
+        return {
+            count: count,
+            showAlert: (!isNaN(parseInt(count)) && count > 0),
+            title: alert
+        };
     }
 
     hide () {

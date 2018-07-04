@@ -12,9 +12,9 @@ sidebar.on('badge-setted', function () {
     const badge = sidebar.getGlobalBadge();
 
     if (process.platform === 'darwin') {
-        remote.app.dock.setBadge(badge);
+        remote.app.dock.setBadge(badge.title);
     }
-    tray.showTrayAlert(!isNaN(parseInt(badge)) && badge > 0, badge);
+    tray.showTrayAlert(badge.showAlert, badge.title);
 });
 
 export const start = function () {

@@ -39,20 +39,9 @@ const appTemplate = [
 if (isMac) {
     const macAppExtraTemplate = [
         {
-            label: i18n.__('Preferences'),
-            id: 'preferences',
-            accelerator: 'Command+,',
-            position: 'after=about-sep',
-            click: function () {
-                //TODO
-            }
-        },
-        {
-            type: 'separator'
-        },
-        {
             role: 'services',
-            submenu: []
+            submenu: [],
+            position: 'after=about-sep'
         },
         {
             type: 'separator'

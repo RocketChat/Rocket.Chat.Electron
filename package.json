@@ -59,6 +59,8 @@
         "MimeType": "x-scheme-handler/rocketchat"
       },
       "target": [
+        "tar.gz",
+        "snap",
         "deb",
         "rpm"
       ]

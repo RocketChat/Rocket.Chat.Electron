@@ -126,7 +126,6 @@ function showTrayAlert (showAlert, title, status = 'online') {
         return;
     }
 
-    mainWindow.flashFrame(showAlert, title);
     const trayImagePath = getTrayIcon(process.platform, showAlert, getImageTitle(title), status);
     mainWindow.tray.setImage(trayImagePath);
 

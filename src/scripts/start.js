@@ -11,10 +11,10 @@ import './menus';
 sidebar.on('badge-setted', function () {
     const badge = sidebar.getGlobalBadge();
 
-    if (process.platform === 'darwin') {
-        remote.app.dock.setBadge(badge.title);
+    if (process.platform === 'darwin' && badge.showAlert) {
+        remote.app.dock.setBadge(badge.count.toString());
     }
-    tray.showTrayAlert(badge.showAlert, badge.title);
+    tray.showTrayAlert(badge);
 });
 
 export const start = function () {

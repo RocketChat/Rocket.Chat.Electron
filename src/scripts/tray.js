@@ -101,37 +101,41 @@ function createAppTray () {
     };
 }
 
-function getImageTitle (title) {
+function getImageTitle (title, showAlert, count) {
     if (title === '•') {
         return "Dot";
-    } else if (!isNaN(parseInt(title)) && title > 9) {
+    } else if (showAlert && !isNaN(parseInt(title)) && title > 9) {
         return "9Plus";
+    } else {
+        return count;
     }
 }
 
-function getTrayIcon (platform, showAlert, title, status) {
+function getTrayIcon (platform, showAlert, title) {
     if (platform !== 'darwin') {
-        return path.join(__dirname, 'images', icons[process.platform].dir, `icon-tray${title}-${status}.png`);
+        return path.join(__dirname, 'images', icons[process.platform].dir, `icon-tray${title}.png`);
     }
 
     if (showAlert) {
-        return path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].iconAlert ||`icon-tray-alert-${status}Template.png`);
+        return path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].iconAlert);
     } else {
-        return path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].icon ||`icon-tray-${status}Template.png`);
+        return path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].icon);
     }
 }
 
-function showTrayAlert (showAlert, title, status = 'online') {
+function showTrayAlert (badge, status = 'online') {
     if (mainWindow.tray === null || mainWindow.tray === undefined) {
         return;
     }
 
-    mainWindow.flashFrame(showAlert, title);
-    const trayImagePath = getTrayIcon(process.platform, showAlert, getImageTitle(title), status);
+    const imageTitle = getImageTitle(badge.title, badge.showAlert, badge.count);
+
+    mainWindow.flashFrame(badge.showAlert, imageTitle);
+    const trayImagePath = getTrayIcon(process.platform, badge.showAlert, imageTitle);
     mainWindow.tray.setImage(trayImagePath);
 
     if (process.platform === 'darwin') {
-        mainWindow.tray.setTitle(`${icons[process.platform].title[status]}${title}`);
+        mainWindow.tray.setTitle(`${icons[process.platform].title[status]}${badge.title}`);
     }
 }
 

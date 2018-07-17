@@ -9,14 +9,14 @@ matrix:
   include:
   - os: linux
     dist: trusty
-    sudo: false
+    sudo: true
     addons:
       apt:
         packages:
           - rpm
           - g++-multilib
           - libxss-dev:i386
-          - snapcraft
+          - snapd
   - os: osx
     osx_image: xcode8.3
 

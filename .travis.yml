@@ -17,11 +17,17 @@ matrix:
           - g++-multilib
           - libxss-dev:i386
           - snapd
+          - libnotify4
+          - libappindicator1
+          - libxtst6
+          - libnss3
+          - libxss1
+          - fontconfig-config
+          - gconf2
+          - libasound2
+          - pulseaudio
   - os: osx
     osx_image: xcode8.3
-
-before_install:
-  - "sudo snap install snapcraft --classic"
 
 install:
   - yarn

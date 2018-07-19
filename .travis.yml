@@ -16,9 +16,12 @@ matrix:
           - rpm
           - g++-multilib
           - libxss-dev:i386
-          - snapcraft
+          - snapd
   - os: osx
     osx_image: xcode8.3
+
+before_install:
+  - "sudo snap install snapcraft --classic"
 
 install:
   - yarn

@@ -16,7 +16,6 @@ matrix:
           - rpm
           - g++-multilib
           - libxss-dev:i386
-          - snapcraft
   - os: osx
     osx_image: xcode8.3
 

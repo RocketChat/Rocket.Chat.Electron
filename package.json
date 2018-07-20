@@ -60,7 +60,6 @@
       "category": "GNOME;GTK;Network;InstantMessaging",
       "target": [
         "tar.gz",
-        "snap",
         "deb",
         "rpm"
       ]
@@ -90,7 +89,7 @@
   },
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
-    "electron-updater": "^3.0.1",
+    "electron-updater": "^3.0.3",
     "fs-jetpack": "^2.0.0",
     "lodash": "^4.17.10",
     "spellchecker": "^3.4.4"
@@ -102,7 +101,7 @@
     "chai": "^4.1.2",
     "conventional-changelog-cli": "^2.0.1",
     "electron": "^2.0.5",
-    "electron-builder": "^20.22.0",
+    "electron-builder": "^20.24.4",
     "electron-mocha": "^6.0.4",
     "eslint": "^5.1.0",
     "gulp": "^3.9.1",
@@ -114,7 +113,7 @@
     "istanbul": "^0.4.5",
     "minimist": "^1.2.0",
     "mocha": "^5.2.0",
-    "rollup": "^0.62.0",
+    "rollup": "^0.63.3",
     "rollup-plugin-istanbul": "^2.0.1",
     "spectron": "^3.8.0"
   },

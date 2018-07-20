@@ -16,8 +16,12 @@ matrix:
           - rpm
           - g++-multilib
           - libxss-dev:i386
+          - snapd
   - os: osx
     osx_image: xcode8.3
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo snap install snapcraft --classic; fi
 
 install:
   - yarn

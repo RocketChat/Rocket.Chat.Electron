@@ -22,7 +22,7 @@
     "Close": "Fermer",
     "Connect": "Connexion",
     "Copy": "Copier",
-    "Copyright": "Copyright &copy; 2017, Rocket.Chat",
+    "Copyright": "Copyright %s",
     "Current_Server_Reload": "Serveur actuel - recharger",
     "Current_Server_Toggle_DevTools": "Serveur actuel - activer/désactiver DevTools",
     "Current_Version": "Version utilisée :",

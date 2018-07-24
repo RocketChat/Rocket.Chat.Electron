@@ -106,7 +106,7 @@ function getTrayImagePath (badge) {
         if (badge.title > 9) {
             iconFilename = "icon-tray-9plus.png";
         } else {
-            iconFilename = "icon-tray-1.png" + badge.count;
+            iconFilename = `icon-tray-${badge.count}.png`;
         }
     } else if (badge.showAlert) {
         iconFilename =  "icon-tray-alert.png";

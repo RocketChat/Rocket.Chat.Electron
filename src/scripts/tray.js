@@ -10,17 +10,54 @@ const mainWindow = remote.getCurrentWindow();
 
 const icons = {
     win32: {
-        dir: 'windows'
+        dir: 'windows',
+        icon0: 'icon-tray-0.png',
+        icon1: 'icon-tray-1.png',
+        icon2: 'icon-tray-2.png',
+        icon3: 'icon-tray-3.png',
+        icon4: 'icon-tray-4.png',
+        icon5: 'icon-tray-5.png',
+        icon6: 'icon-tray-6.png',
+        icon7: 'icon-tray-7.png',
+        icon8: 'icon-tray-8.png',
+        icon9: 'icon-tray-9.png',
+        iconAlert: 'icon-tray-alert.png',
+        iconDot: 'icon-tray-dot.png',
+        iconPlus: 'icon-tray-plus.png'
     },
 
     linux: {
-        dir: 'linux'
+        dir: 'linux',
+        icon0: 'icon-tray-0.png',
+        icon1: 'icon-tray-1.png',
+        icon2: 'icon-tray-2.png',
+        icon3: 'icon-tray-3.png',
+        icon4: 'icon-tray-4.png',
+        icon5: 'icon-tray-5.png',
+        icon6: 'icon-tray-6.png',
+        icon7: 'icon-tray-7.png',
+        icon8: 'icon-tray-8.png',
+        icon9: 'icon-tray-9.png',
+        iconAlert: 'icon-tray-alert.png',
+        iconDot: 'icon-tray-dot.png',
+        iconPlus: 'icon-tray-plus.png'
     },
 
     darwin: {
         dir: 'osx',
-        icon: 'icon-trayTemplate.png',
+        icon0: 'icon-tray-0.png',
+        icon1: 'icon-tray-0.png',
+        icon2: 'icon-tray-0.png',
+        icon3: 'icon-tray-0.png',
+        icon4: 'icon-tray-0.png',
+        icon5: 'icon-tray-0.png',
+        icon6: 'icon-tray-0.png',
+        icon7: 'icon-tray-0.png',
+        icon8: 'icon-tray-0.png',
+        icon9: 'icon-tray-0.png',
         iconAlert: 'icon-tray-alert.png',
+        iconDot: 'icon-tray-alert.png',
+        iconPlus: 'icon-tray-alert.png',
         title: {
             online: '\u001B[32m',
             away: '\u001B[33m',
@@ -30,7 +67,7 @@ const icons = {
     }
 };
 
-const _iconTray = path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].icon || 'icon-tray.png');
+const _iconTray = path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].icon0);
 
 function createAppTray () {
     const _tray = new Tray(_iconTray);
@@ -101,41 +138,34 @@ function createAppTray () {
     };
 }
 
-function getImageTitle (title, showAlert, count) {
-    if (title === '•') {
-        return "Dot";
-    } else if (showAlert && !isNaN(parseInt(title)) && title > 9) {
-        return "9Plus";
+function getTrayImagePath (badge) {
+    let iconName;
+    if (badge.title === '•') {
+        iconName = "iconDot";
+    } else if (!isNaN(parseInt(badge.title))) {
+        if (badge.title > 9) {
+            iconName = "iconPlus";
+        } else {
+            iconName = "icon" + badge.count;
+        }
+    } else if (badge.showAlert) {
+        iconName =  "iconAlert";
     } else {
-        return count;
-    }
-}
-
-function getTrayIcon (platform, showAlert, title) {
-    if (platform !== 'darwin') {
-        return path.join(__dirname, 'images', icons[process.platform].dir, `icon-tray${title}.png`);
+        iconName =  "icon0";
     }
 
-    if (showAlert) {
-        return path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].iconAlert);
-    } else {
-        return path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].icon);
-    }
+    return path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform][iconName]);
 }
 
 function showTrayAlert (badge, status = 'online') {
     if (mainWindow.tray === null || mainWindow.tray === undefined) {
         return;
     }
-
-    const imageTitle = getImageTitle(badge.title, badge.showAlert, badge.count);
-    const trayImagePath = getTrayIcon(process.platform, badge.showAlert, imageTitle, status);
-
-    mainWindow.flashFrame(badge.showAlert, imageTitle);
-    mainWindow.tray.setImage(trayImagePath);
+    mainWindow.tray.setImage(getTrayImagePath(badge));
+    mainWindow.flashFrame(badge.showAlert);
 
     if (process.platform === 'darwin') {
-        mainWindow.tray.setTitle(`${icons[process.platform].title[status]}${badge.title}`);
+        mainWindow.tray.setTitle(`${icons[process.platform].title[status]} ${badge.title}`);
     }
 }
 

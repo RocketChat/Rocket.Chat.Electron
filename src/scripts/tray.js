@@ -27,7 +27,7 @@ const statusBullet = {
     offline: '\u001B[30m•\u001B[0m'
 }
 
-const _iconTray = path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].icon0);
+const _iconTray = path.join(__dirname, 'images', icons[process.platform].dir, "icon-tray-0.png");
 
 function createAppTray () {
     const _tray = new Tray(_iconTray);

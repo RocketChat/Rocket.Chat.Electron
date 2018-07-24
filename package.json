@@ -101,7 +101,7 @@
     "chai": "^4.1.2",
     "conventional-changelog-cli": "^2.0.1",
     "electron": "^2.0.5",
-    "electron-builder": "^20.24.5",
+    "electron-builder": "^20.25.0",
     "electron-mocha": "^6.0.4",
     "eslint": "^5.2.0",
     "gulp": "^3.9.1",

@@ -129,9 +129,9 @@ function showTrayAlert (badge, status = 'online') {
     }
 
     const imageTitle = getImageTitle(badge.title, badge.showAlert, badge.count);
+    const trayImagePath = getTrayIcon(process.platform, badge.showAlert, imageTitle, status);
 
     mainWindow.flashFrame(badge.showAlert, imageTitle);
-    const trayImagePath = getTrayIcon(process.platform, badge.showAlert, imageTitle);
     mainWindow.tray.setImage(trayImagePath);
 
     if (process.platform === 'darwin') {

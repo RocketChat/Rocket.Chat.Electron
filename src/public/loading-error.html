@@ -1,25 +1,23 @@
 <!doctype html>
-<html style="height: 100%;">
+<html>
 <head>
-	<title></title>
+	<title>Rocket.Chat</title>
 	<meta charset="utf-8" />
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 	<link rel="stylesheet" type="text/css" href="../stylesheets/main.css">
 </head>
-<body style="height: 100%;">
-	<section style="text-align: center;background-color: #022439;height:100%;">
-        <img src="./images/error.png" />
-        <div class="load-fail" id="load-fail">
-            <h2 style="color:white"><script>document.write(window.i18n.__('Server_Failed_to_Load'))</script></h2>
-            <div class="loading-animation" id="loading" style="display:none;">
-                <div class="bounce1"></div>
-                <div class="bounce2"></div>
-                <div class="bounce3"></div>
-            </div>
-            <button class="button primary" id="reload"><script>document.write(window.i18n.__('Reload'))</script></button>
+<body class="loading-error">
+    <div class="load-fail" id="load-fail">
+        <h1><script>document.write(window.i18n.__('Houston_we_have_a_problem'))</script></h1>
+        <h2><script>document.write(window.i18n.__('Server_Failed_to_Load'))</script></h2>
+        <div class="loading-animation" id="loading" style="display:none;">
+            <div class="bounce1"></div>
+            <div class="bounce2"></div>
+            <div class="bounce3"></div>
         </div>
-	</section>
+        <button class="button primary" id="reload"><script>document.write(window.i18n.__('Reload'))</script></button>
+    </div>
 </body>
 </html>

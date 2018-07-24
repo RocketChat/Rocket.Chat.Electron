@@ -93,7 +93,7 @@ class WebView extends EventEmitter {
                     break;
                 case 'user-status-manually-set':
                     const badge = sidebar.getGlobalBadge();
-                    tray.showTrayAlert(badge.showAlert, badge.title, event.args[0]);
+                    tray.showTrayAlert(badge, event.args[0]);
                     break;
                 case 'get-sourceId':
                     desktopCapturer.getSources({types: ['window', 'screen']}, (error, sources) => {

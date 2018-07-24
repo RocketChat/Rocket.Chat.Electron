@@ -10,62 +10,22 @@ const mainWindow = remote.getCurrentWindow();
 
 const icons = {
     win32: {
-        dir: 'windows',
-        icon0: 'icon-tray-0.png',
-        icon1: 'icon-tray-1.png',
-        icon2: 'icon-tray-2.png',
-        icon3: 'icon-tray-3.png',
-        icon4: 'icon-tray-4.png',
-        icon5: 'icon-tray-5.png',
-        icon6: 'icon-tray-6.png',
-        icon7: 'icon-tray-7.png',
-        icon8: 'icon-tray-8.png',
-        icon9: 'icon-tray-9.png',
-        iconAlert: 'icon-tray-alert.png',
-        iconDot: 'icon-tray-dot.png',
-        iconPlus: 'icon-tray-plus.png'
+        dir: 'windows'
     },
-
     linux: {
-        dir: 'linux',
-        icon0: 'icon-tray-0.png',
-        icon1: 'icon-tray-1.png',
-        icon2: 'icon-tray-2.png',
-        icon3: 'icon-tray-3.png',
-        icon4: 'icon-tray-4.png',
-        icon5: 'icon-tray-5.png',
-        icon6: 'icon-tray-6.png',
-        icon7: 'icon-tray-7.png',
-        icon8: 'icon-tray-8.png',
-        icon9: 'icon-tray-9.png',
-        iconAlert: 'icon-tray-alert.png',
-        iconDot: 'icon-tray-dot.png',
-        iconPlus: 'icon-tray-plus.png'
+        dir: 'linux'
     },
-
     darwin: {
-        dir: 'osx',
-        icon0: 'icon-tray-0.png',
-        icon1: 'icon-tray-0.png',
-        icon2: 'icon-tray-0.png',
-        icon3: 'icon-tray-0.png',
-        icon4: 'icon-tray-0.png',
-        icon5: 'icon-tray-0.png',
-        icon6: 'icon-tray-0.png',
-        icon7: 'icon-tray-0.png',
-        icon8: 'icon-tray-0.png',
-        icon9: 'icon-tray-0.png',
-        iconAlert: 'icon-tray-alert.png',
-        iconDot: 'icon-tray-alert.png',
-        iconPlus: 'icon-tray-alert.png',
-        title: {
-            online: '\u001B[32m',
-            away: '\u001B[33m',
-            busy: '\u001B[31m',
-            offline: '\u001B[30m'
-        }
+        dir: 'osx'
     }
 };
+
+const statusBullet = {
+    online: '\u001B[32m•\u001B[0m',
+    away: '\u001B[33m•\u001B[0m',
+    busy: '\u001B[31m•\u001B[0m',
+    offline: '\u001B[30m•\u001B[0m'
+}
 
 const _iconTray = path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].icon0);
 
@@ -139,22 +99,22 @@ function createAppTray () {
 }
 
 function getTrayImagePath (badge) {
-    let iconName;
+    let iconFilename;
     if (badge.title === '•') {
-        iconName = "iconDot";
+        iconFilename = "icon-tray-dot.png";
     } else if (!isNaN(parseInt(badge.title))) {
         if (badge.title > 9) {
-            iconName = "iconPlus";
+            iconFilename = "icon-tray-9plus.png";
         } else {
-            iconName = "icon" + badge.count;
+            iconFilename = "icon-tray-1.png" + badge.count;
         }
     } else if (badge.showAlert) {
-        iconName =  "iconAlert";
+        iconFilename =  "icon-tray-alert.png";
     } else {
-        iconName =  "icon0";
+        iconFilename =  "icon-tray-0.png";
     }
 
-    return path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform][iconName]);
+    return path.join(__dirname, 'images', icons[process.platform].dir, iconFilename);
 }
 
 function showTrayAlert (badge, status = 'online') {
@@ -165,7 +125,7 @@ function showTrayAlert (badge, status = 'online') {
     mainWindow.flashFrame(badge.showAlert);
 
     if (process.platform === 'darwin') {
-        mainWindow.tray.setTitle(`${icons[process.platform].title[status]} ${badge.title}`);
+        mainWindow.tray.setTitle(`${statusBullet[status]}${badge.count}`);
     }
 }
 

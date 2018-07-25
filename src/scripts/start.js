@@ -66,7 +66,6 @@ export const start = function () {
                 hostField.classList.remove('wrong');
 
                 let host = hostField.value.trim();
-                host = host.replace(/\/$/, '');
                 hostField.value = host;
 
                 if (host.length === 0) {

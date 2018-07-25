@@ -3,18 +3,16 @@
 <head>
 	<title></title>
 	<meta charset="utf-8" />
-	<link rel="stylesheet" type="text/css" href="../stylesheets/main.css">
-
 	<style>
 		html {
 			background-color: #ececec;
 			font-family: helvetica;
-			text-align: center;
 			padding: 10px;
 		}
 
 		body {
 			margin: 0px;
+			text-align: center;
 		}
 
 		img {
@@ -68,7 +66,7 @@
 
 		<button class="update"><script>document.write(i18n.__('Check_for_Updates'))</script></button>
 		<p class="auto-update-container"><input type="checkbox" id="auto-update" checked /> <script>document.write(i18n.__('Check_for_Updates_on_Start'))</script></p>
-		<p class="copyright"><script>document.write(i18n.__('Copyright'))</script></p>
+		<p class="copyright"><script>document.write(i18n.__('Copyright', require('../../package.json').copyright))</script></p>
 		<script>
 			const { remote, ipcRenderer } = require('electron');
 			const autoUpdate = ipcRenderer.sendSync('check-for-updates', 'auto');
@@ -93,9 +91,6 @@
 					alert('No updates are available.');
 				}
 			});
-
-
-
 		</script>
 	</body>
 </html>

@@ -19,9 +19,13 @@
 	outline-style: none;
 }
 
+html {
+	height: 100%;
+}
+
 body {
 	margin: 0px;
-	font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif, "Meiryo UI";
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Meiryo UI', Arial, sans-serif;
 	font-size: 0.875rem;
 	-webkit-font-smoothing: antialiased;
 	line-height: 1rem;
@@ -98,21 +102,20 @@ input[type='password'] {
 
 // new layout buttons
 .button {
-	display: inline-block;
-	padding: 9px 12px;
-	background-color: #FFF;
+	background-color: #1d74f5;
+	border-radius: 2px;
+	border: none;
 	color: rgba(255, 255, 255, 0.85);
-	font-weight: 500;
+	cursor: pointer;
+	display: inline-block;
 	font-size: 13px;
+	font-weight: 500;
+	line-height: 16px;
 	margin: 4px;
+	padding: 9px 12px;
+	position: relative;
 	text-transform: uppercase;
 	word-spacing: 0;
-	box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.125);
-	border: none;
-	line-height: 16px;
-	position: relative;
-	background-color: lighten(desaturate(@primary-background-color, 15%), 12.5%);
-	cursor: pointer;
 	span {
 		position: relative;
 		z-index: 2;
@@ -222,17 +225,6 @@ input[type='password'] {
 	img {
 		width: 200px;
 	}
-	// a {
-	// 	color: @primary-background-color;
-	// 	margin: 4px 0;
-	// 	display: inline-block;
-	// 	&:active {
-	// 		color: @primary-background-color;
-	// 	}
-	// 	&:hover {
-	// 		color: darken(@primary-background-color, 10%);
-	// 	}
-	// }
 	.input-text {
 		margin: 0 0 14px 0;
 		position: relative;
@@ -283,10 +275,13 @@ input[type='password'] {
 	left: 68px;
 	overflow-y: auto;
 	text-align: center;
-	background-color: darken(@primary-background-color, 10%);
+	background-color: @primary-background-color;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	.logo {
+		max-width: 520px;
+	}
 	.wrapper {
 		min-width: 600px;
 		text-align: center;
@@ -305,6 +300,24 @@ input[type='password'] {
 		span {
 			display: none;
 		}
+	}
+}
+
+.loading-error {
+	height: 100%;
+	color: white; 
+	text-align: center;
+	background-color: @primary-background-color;
+	background-position: center bottom;
+	background-repeat: no-repeat;
+	background-size: 100% auto;
+	background-image: url("../public/images/error.jpg");
+	.load-fail {
+		margin: 0;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 	}
 }
 

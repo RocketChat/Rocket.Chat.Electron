@@ -1,6 +1,6 @@
 /* globals $ */
 
-import { remote, ipcRenderer } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import i18n from '../i18n/index.js';
 import servers from './servers';
 import sidebar from './sidebar';
@@ -14,7 +14,21 @@ sidebar.on('badge-setted', function () {
     if (process.platform === 'darwin' && badge.showAlert) {
         remote.app.dock.setBadge(badge.count.toString());
     }
+
+    if (process.platform === 'win32') {
+        const mainWindow = remote.getCurrentWindow();
+        if (badge.showAlert) {
+            if (!mainWindow.isFocused()) {
+                mainWindow.flashFrame(true);
+            }
+            mainWindow.webContents.send('render-taskbar-icon', badge.count);
+        } else {
+            mainWindow.setOverlayIcon(null, '');
+        }
+    }
+
     tray.showTrayAlert(badge);
+
 });
 
 export const start = function () {
@@ -120,6 +134,30 @@ export const start = function () {
     ipcRenderer.on('certificate-reload', function (event, url) {
         hostField.value = url.replace(/\/api\/info$/, '');
         validateHost().then(function () {}, function () {});
+    });
+
+    ipcRenderer.on('render-taskbar-icon', (event, messageCount) => {
+        // Create a canvas from unread messages
+        function createOverlayIcon (messageCount) {
+            const canvas = document.createElement('canvas');
+            canvas.height = 128;
+            canvas.width = 128;
+
+            const ctx = canvas.getContext('2d');
+            ctx.beginPath();
+
+            ctx.fillStyle = 'red';
+            ctx.arc(64, 64, 64, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            canvas.style.letterSpacing = '-4px';
+            ctx.font = 'bold 92px sans-serif';
+            ctx.fillText(String(Math.min(99, messageCount)), 64, 98);
+
+            return canvas;
+        }
+        ipcRenderer.send('update-taskbar-icon', createOverlayIcon(messageCount).toDataURL(), String(messageCount));
     });
 
     const submit = function () {

@@ -12,28 +12,23 @@ const icons = {
     win32: {
         dir: 'windows'
     },
-
     linux: {
         dir: 'linux'
     },
-
     darwin: {
-        dir: 'osx',
-        icon: 'icon-trayTemplate.png',
-        iconAlert: 'icon-tray-alert.png',
-        title: {
-            online: '\u001B[32m',
-            away: '\u001B[33m',
-            busy: '\u001B[31m',
-            offline: '\u001B[30m'
-        }
+        dir: 'osx'
     }
 };
 
-const _iconTray = path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].icon || 'icon-tray.png');
+const statusBullet = {
+    online: '\u001B[32m•\u001B[0m',
+    away: '\u001B[33m•\u001B[0m',
+    busy: '\u001B[31m•\u001B[0m',
+    offline: '\u001B[30m•\u001B[0m'
+}
 
 function createAppTray () {
-    const _tray = new Tray(_iconTray);
+    const _tray = new Tray(getTrayImagePath({title:0}));
     mainWindow.tray = _tray;
 
     const contextMenuShow = Menu.buildFromTemplate([{
@@ -101,41 +96,40 @@ function createAppTray () {
     };
 }
 
-function getImageTitle (title, showAlert, count) {
-    if (title === '•') {
-        return "Dot";
-    } else if (showAlert && !isNaN(parseInt(title)) && title > 9) {
-        return "9Plus";
+function getTrayImagePath (badge) {
+    let iconFilename;
+    if (badge.title === '•') {
+        iconFilename = "icon-tray-dot";
+    } else if (!isNaN(parseInt(badge.title)) && badge.title > 0) {
+        if (badge.title > 9) {
+            iconFilename = "icon-tray-9plus";
+        } else {
+            iconFilename = `icon-tray-${badge.count}`;
+        }
+    } else if (badge.showAlert) {
+        iconFilename = "icon-tray-alert";
     } else {
-        return count;
-    }
-}
-
-function getTrayIcon (platform, showAlert, title) {
-    if (platform !== 'darwin') {
-        return path.join(__dirname, 'images', icons[process.platform].dir, `icon-tray${title}.png`);
+        iconFilename = "icon-tray-Template";
     }
 
-    if (showAlert) {
-        return path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].iconAlert);
+    if (process.platform === 'win32') {
+        iconFilename += ".ico";
     } else {
-        return path.join(__dirname, 'images', icons[process.platform].dir, icons[process.platform].icon);
+        iconFilename += ".png";
     }
+
+    return path.join(__dirname, 'images', icons[process.platform].dir, iconFilename);
 }
 
 function showTrayAlert (badge, status = 'online') {
     if (mainWindow.tray === null || mainWindow.tray === undefined) {
         return;
     }
-
-    const imageTitle = getImageTitle(badge.title, badge.showAlert, badge.count);
-
-    mainWindow.flashFrame(badge.showAlert, imageTitle);
-    const trayImagePath = getTrayIcon(process.platform, badge.showAlert, imageTitle);
-    mainWindow.tray.setImage(trayImagePath);
+    mainWindow.tray.setImage(getTrayImagePath(badge));
+    mainWindow.flashFrame(badge.showAlert);
 
     if (process.platform === 'darwin') {
-        mainWindow.tray.setTitle(`${icons[process.platform].title[status]}${badge.title}`);
+        mainWindow.tray.setTitle(`${statusBullet[status]}${badge.count}`);
     }
 }
 

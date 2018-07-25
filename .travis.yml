@@ -9,18 +9,23 @@ matrix:
   include:
   - os: linux
     dist: trusty
-    sudo: false
+    sudo: true
     addons:
       apt:
         packages:
           - rpm
           - g++-multilib
           - libxss-dev:i386
+          - snapd
   - os: osx
     osx_image: xcode8.3
 
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo snap install snapcraft --classic; fi
+
 install:
   - yarn
+
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
   - yarn release -- --x64 --ia32

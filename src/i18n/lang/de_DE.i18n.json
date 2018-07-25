@@ -20,7 +20,7 @@
     "Close": "Schließen",
     "Connect": "Verbinden",
     "Copy": "Kopieren",
-    "Copyright": "Copyright &copy; 2017, Rocket.Chat",
+    "Copyright": "Copyright %s",
     "Current_Server_Reload": "Aktuellen Server - neu laden",
     "Current_Server_Toggle_DevTools": "Aktueller Server - DevTools ein-/ausblenden",
     "Current_Version": "Aktuelle Version:",

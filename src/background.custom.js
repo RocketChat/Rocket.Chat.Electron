@@ -3,12 +3,11 @@
 // It doesn't have any windows which you can see on screen, but we can open
 // window from here.
 
-import { app, ipcMain, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain, nativeImage, } from 'electron';
 import windowStateKeeper from './background/windowState';
 import certificate from './background/certificate';
 import idle from '@paulcbetts/system-idle-time';
 import { checkForUpdates } from './background/autoUpdate';
-
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
@@ -122,6 +121,11 @@ export function afterMainWindow (mainWindow) {
 
     ipcMain.on('getSystemIdleTime', (event) => {
         event.returnValue = idle.getIdleTime();
+    });
+
+    ipcMain.on('update-taskbar-icon', (event, data, text) => {
+        const img = nativeImage.createFromDataURL(data);
+        mainWindow.setOverlayIcon(img, text);
     });
 
     certificate.initWindow(mainWindow);

@@ -27,10 +27,8 @@ const statusBullet = {
     offline: '\u001B[30m•\u001B[0m'
 }
 
-const _iconTray = path.join(__dirname, 'images', icons[process.platform].dir, "icon-tray-0.png");
-
 function createAppTray () {
-    const _tray = new Tray(_iconTray);
+    const _tray = new Tray(getTrayImagePath({title:0}));
     mainWindow.tray = _tray;
 
     const contextMenuShow = Menu.buildFromTemplate([{
@@ -101,17 +99,23 @@ function createAppTray () {
 function getTrayImagePath (badge) {
     let iconFilename;
     if (badge.title === '•') {
-        iconFilename = "icon-tray-dot.png";
-    } else if (!isNaN(parseInt(badge.title))) {
+        iconFilename = "icon-tray-dot";
+    } else if (!isNaN(parseInt(badge.title)) && badge.title > 0) {
         if (badge.title > 9) {
-            iconFilename = "icon-tray-9plus.png";
+            iconFilename = "icon-tray-9plus";
         } else {
-            iconFilename = `icon-tray-${badge.count}.png`;
+            iconFilename = `icon-tray-${badge.count}`;
         }
     } else if (badge.showAlert) {
-        iconFilename =  "icon-tray-alert.png";
+        iconFilename = "icon-tray-alert";
     } else {
-        iconFilename =  "icon-tray-0.png";
+        iconFilename = "icon-tray-Template";
+    }
+
+    if (process.platform === 'win32') {
+        iconFilename += ".ico";
+    } else {
+        iconFilename += ".png";
     }
 
     return path.join(__dirname, 'images', icons[process.platform].dir, iconFilename);

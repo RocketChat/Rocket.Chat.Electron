@@ -5,7 +5,7 @@ import { app, remote } from 'electron';
 
 const eApp = app || remote.app;
 
-var loadedLanguage = [];
+let loadedLanguage = [];
 
 /**
  * Load singular and plural translation based on count
@@ -13,19 +13,19 @@ var loadedLanguage = [];
  * @param {number} chount Count to check for singular / plural (0-1,2-n)
  * @returns {string} Translation in user language
  */
-function loadTranslation(phrase = '', count) {
+function loadTranslation (phrase = '', count) {
     const loadedLanguageTranslation = loadedLanguage[phrase];
-    var translation = loadedLanguageTranslation;
+    let translation = loadedLanguageTranslation;
     if (loadedLanguageTranslation === undefined) {
         translation = phrase;
-    } else if(loadedLanguageTranslation instanceof Object) {
+    } else if (loadedLanguageTranslation instanceof Object) {
         translation = loadedLanguageTranslation['one'];
-        if(count > 1) {
+        if (count > 1) {
             translation = loadedLanguageTranslation['multi'];
-      }  
+        }
     }
-    return translation; 
-} 
+    return translation;
+}
 
 class I18n {
     /**
@@ -33,7 +33,6 @@ class I18n {
      * @constructor
      */
     constructor () {
-        console.log('18n constructor loaded')
         let dir = path.join(__dirname, '../i18n/lang');
         if (!fs.existsSync(dir)) {
             dir = path.join(__dirname, 'i18n/lang');
@@ -65,7 +64,7 @@ class I18n {
      * @param {...string|number} replacements List of replacements in template strings
      * @return {string} Translation in users language
      */
-    pluralize(phrase, count, ...replacements) {
+    pluralize (phrase, count, ...replacements) {
         const translation = loadTranslation(phrase, count);
         return util.format(translation, ...replacements);
     }

@@ -1,12 +1,13 @@
 'use strict';
 
-import { remote } from 'electron';
+import { remote, systemPreferences } from 'electron';
 import path from 'path';
 import i18n from '../i18n/index.js';
 
 const { Tray, Menu } = remote;
 
 const mainWindow = remote.getCurrentWindow();
+console.log()
 
 const icons = {
     win32: {
@@ -21,10 +22,15 @@ const icons = {
 };
 
 const statusBullet = {
-    online: '\u001B[32m•\u001B[0m',
-    away: '\u001B[33m•\u001B[0m',
-    busy: '\u001B[31m•\u001B[0m',
-    offline: '\u001B[30m•\u001B[0m'
+    online: '\u001B[32m•',
+    away: '\u001B[33m•',
+    busy: '\u001B[31m•',
+    offline: '\u001B[30m•'
+}
+
+const messageCountColor = {
+    white: '\u001B[37m',
+    black: '\u001B[0m'
 }
 
 function createAppTray () {
@@ -129,7 +135,11 @@ function showTrayAlert (badge, status = 'online') {
     mainWindow.flashFrame(badge.showAlert);
 
     if (process.platform === 'darwin') {
-        mainWindow.tray.setTitle(`${statusBullet[status]}${badge.count}`);
+        let countColor = messageCountColor['black'];
+        if(remote.systemPreferences.isDarkMode()) {
+            countColor = messageCountColor['white'];
+        }
+        mainWindow.tray.setTitle(`${statusBullet[status]} ${countColor}${badge.count}`);
     }
 }
 

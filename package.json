@@ -62,7 +62,10 @@
         "tar.gz",
         "deb",
         "rpm",
-        "snap"
+        {
+            "target": "snap",
+            "arch": "x64"
+        }
       ]
     },
     "publish": [

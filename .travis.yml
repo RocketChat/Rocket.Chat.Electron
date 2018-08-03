@@ -29,7 +29,7 @@ install:
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
   - yarn release -- --x64
-  - yarn release -- --ia32 --linux tar.gz rpm deb
+  - yarn release -- --ia32
 
 branches:
   only:

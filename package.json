@@ -59,7 +59,6 @@
       },
       "category": "GNOME;GTK;Network;InstantMessaging",
       "target": [
-        "tar.gz",
         "deb",
         "rpm",
         "snap"

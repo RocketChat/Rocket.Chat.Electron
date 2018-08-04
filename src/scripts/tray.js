@@ -21,10 +21,40 @@ const icons = {
 };
 
 const statusBullet = {
-    online: '\u001B[32m•\u001B[0m',
-    away: '\u001B[33m•\u001B[0m',
-    busy: '\u001B[31m•\u001B[0m',
-    offline: '\u001B[30m•\u001B[0m'
+    online: '\u001B[32m•',
+    away: '\u001B[33m•',
+    busy: '\u001B[31m•',
+    offline: '\u001B[30m•'
+};
+
+const messageCountColor = {
+    white: '\u001B[37m',
+    black: '\u001B[0m'
+};
+
+function getTrayImagePath (badge) {
+    let iconFilename;
+    if (badge.title === '•') {
+        iconFilename = "icon-tray-dot";
+    } else if (!isNaN(parseInt(badge.title)) && badge.title > 0) {
+        if (badge.title > 9) {
+            iconFilename = "icon-tray-9plus";
+        } else {
+            iconFilename = `icon-tray-${badge.count}`;
+        }
+    } else if (badge.showAlert) {
+        iconFilename = "icon-tray-alert";
+    } else {
+        iconFilename = "icon-tray-Template";
+    }
+
+    if (process.platform === 'win32') {
+        iconFilename += ".ico";
+    } else {
+        iconFilename += ".png";
+    }
+
+    return path.join(__dirname, 'images', icons[process.platform].dir, iconFilename);
 }
 
 function createAppTray () {
@@ -96,31 +126,6 @@ function createAppTray () {
     };
 }
 
-function getTrayImagePath (badge) {
-    let iconFilename;
-    if (badge.title === '•') {
-        iconFilename = "icon-tray-dot";
-    } else if (!isNaN(parseInt(badge.title)) && badge.title > 0) {
-        if (badge.title > 9) {
-            iconFilename = "icon-tray-9plus";
-        } else {
-            iconFilename = `icon-tray-${badge.count}`;
-        }
-    } else if (badge.showAlert) {
-        iconFilename = "icon-tray-alert";
-    } else {
-        iconFilename = "icon-tray-Template";
-    }
-
-    if (process.platform === 'win32') {
-        iconFilename += ".ico";
-    } else {
-        iconFilename += ".png";
-    }
-
-    return path.join(__dirname, 'images', icons[process.platform].dir, iconFilename);
-}
-
 function showTrayAlert (badge, status = 'online') {
     if (mainWindow.tray === null || mainWindow.tray === undefined) {
         return;
@@ -129,7 +134,11 @@ function showTrayAlert (badge, status = 'online') {
     mainWindow.flashFrame(badge.showAlert);
 
     if (process.platform === 'darwin') {
-        mainWindow.tray.setTitle(`${statusBullet[status]}${badge.count}`);
+        let countColor = messageCountColor['black'];
+        if (remote.systemPreferences.isDarkMode()) {
+            countColor = messageCountColor['white'];
+        }
+        mainWindow.tray.setTitle(`${statusBullet[status]} ${countColor}${badge.count}`);
     }
 }
 

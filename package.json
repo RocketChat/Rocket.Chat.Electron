@@ -61,7 +61,8 @@
       "target": [
         "tar.gz",
         "deb",
-        "rpm"
+        "rpm",
+        "snap"
       ]
     },
     "publish": [

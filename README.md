@@ -53,7 +53,6 @@ Build process is founded upon [gulp](https://github.com/gulpjs/gulp) task runner
 
 Remember to respect the split between `dependencies` and `devDependencies` in `package.json` file. Only modules listed in `dependencies` will be included into distributable app.
 
-Side note: If the module you want to use in your app is a native one (not pure JavaScript but compiled C code or something) you should first  run `yarn add name_of_module` and then `yarn postinstall` to rebuild the module for Electron. This needs to be done only once when you're first time installing the module. Later on postinstall script will fire automatically with every `yarn install`.
 
 ## Working with modules
 
@@ -164,7 +163,7 @@ For Windows the full paths are:
 ~\Program Files\Rocket.Chat+\Resources\
 ```
 On MacOS the full path is:
-```		
+```
 ~/Users/<username>/Library/Application Support/Rocket.Chat+/
 ~/Applications/Rocket.Chat+.app/Contents/Resources/
 ```

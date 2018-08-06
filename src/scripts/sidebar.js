@@ -245,7 +245,7 @@ class SideBar extends EventEmitter {
 
     getGlobalBadge () {
         let count = 0;
-        let alert = '';
+        let title = '';
         const instanceEls = this.listElement.querySelectorAll('li.instance');
         for (let i = instanceEls.length - 1; i >= 0; i--) {
             const instanceEl = instanceEls[i];
@@ -253,16 +253,17 @@ class SideBar extends EventEmitter {
             if (!isNaN(parseInt(text))) {
                 count += parseInt(text);
             }
-
-            if (alert === '' && instanceEl.classList.contains('unread') === true) {
-                alert = '•';
+            if (title === '' && instanceEl.classList.contains('unread') === true) {
+                title = '•';
             }
         }
-
+        if (count > 0) {
+            title = count.toString();
+        }
         return {
             count: count,
-            showAlert: (!isNaN(parseInt(count)) && count > 0),
-            title: alert
+            title: title,
+            showAlert: (title !== '')
         };
     }
 

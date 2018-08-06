@@ -36,8 +36,8 @@ function getTrayImagePath (badge) {
     let iconFilename;
     if (badge.title === '•') {
         iconFilename = "icon-tray-dot";
-    } else if (!isNaN(parseInt(badge.title)) && badge.title > 0) {
-        if (badge.title > 9) {
+    } else if (badge.count > 0) {
+        if (badge.count > 9) {
             iconFilename = "icon-tray-9plus";
         } else {
             iconFilename = `icon-tray-${badge.count}`;
@@ -58,7 +58,7 @@ function getTrayImagePath (badge) {
 }
 
 function createAppTray () {
-    const _tray = new Tray(getTrayImagePath({title:0}));
+    const _tray = new Tray(getTrayImagePath({title:'',count:0,showAlert:false}));
     mainWindow.tray = _tray;
 
     const contextMenuShow = Menu.buildFromTemplate([{
@@ -131,14 +131,26 @@ function showTrayAlert (badge, status = 'online') {
         return;
     }
     mainWindow.tray.setImage(getTrayImagePath(badge));
-    mainWindow.flashFrame(badge.showAlert);
+
+    if (!mainWindow.isFocused()) {
+        mainWindow.flashFrame(badge.showAlert);
+    }
+
+    if (process.platform === 'win32') {
+        if (badge.showAlert) {
+            mainWindow.webContents.send('render-taskbar-icon', badge.count);
+        } else {
+            mainWindow.setOverlayIcon(null, '');
+        }
+    }
 
     if (process.platform === 'darwin') {
         let countColor = messageCountColor['black'];
         if (remote.systemPreferences.isDarkMode()) {
             countColor = messageCountColor['white'];
         }
-        mainWindow.tray.setTitle(`${statusBullet[status]} ${countColor}${badge.count}`);
+        mainWindow.tray.setTitle(`${statusBullet[status]} ${countColor}${badge.title}`);
+        remote.app.dock.setBadge(badge.title);
     }
 }
 

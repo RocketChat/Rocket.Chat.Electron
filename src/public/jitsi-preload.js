@@ -4,7 +4,6 @@ const electron = require('electron');
 const { remote } = require('electron');
 const selfBrowserWindow = remote.getCurrentWindow();
 
-selfBrowserWindow.webContents.openDevTools({ mode: 'detach' });
 selfBrowserWindow.webContents.once('dom-ready', () => {
     window.JitsiMeetElectron = {
         /**

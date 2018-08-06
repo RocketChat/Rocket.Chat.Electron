@@ -11,7 +11,6 @@ import './menus';
 sidebar.on('badge-setted', function () {
     const badge = sidebar.getGlobalBadge();
     tray.showTrayAlert(badge);
-
 });
 
 export const start = function () {

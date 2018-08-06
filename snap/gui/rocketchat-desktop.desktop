@@ -1,9 +1,9 @@
 [Desktop Entry]
-Name=Rocket.Chat+
+Name=Rocket.Chat
 Comment=Rocket.Chat Native Cross-Platform Desktop Application via Electron.
 Exec=rocketchat-desktop
 Terminal=false
 Type=Application
 Icon=${SNAP}/meta/gui/icon.png
 Categories=GNOME;GTK;Network;InstantMessaging
-StartupWMClass=Rocket.Chat+
+StartupWMClass=Rocket.Chat

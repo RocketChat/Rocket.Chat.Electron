@@ -152,6 +152,10 @@ function showTrayAlert (badge, status = 'online') {
         mainWindow.tray.setTitle(`${statusBullet[status]} ${countColor}${badge.title}`);
         remote.app.dock.setBadge(badge.title);
     }
+
+    if (process.platform === 'linux') {
+        remote.app.setBadgeCount(badge.count);
+    }
 }
 
 function removeAppTray () {

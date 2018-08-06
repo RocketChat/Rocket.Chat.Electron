@@ -1,6 +1,6 @@
 {
   "name": "rocketchat",
-  "productName": "Rocket.Chat+",
+  "productName": "Rocket.Chat",
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
   "version": "2.13.0-develop",
   "author": "Rocket.Chat Support <support@rocket.chat>",
@@ -54,7 +54,7 @@
     },
     "linux": {
       "desktop": {
-        "StartupWMClass": "Rocket.Chat+",
+        "StartupWMClass": "Rocket.Chat",
         "MimeType": "x-scheme-handler/rocketchat"
       },
       "category": "GNOME;GTK;Network;InstantMessaging",

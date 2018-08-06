@@ -11,8 +11,12 @@ import './menus';
 sidebar.on('badge-setted', function () {
     const badge = sidebar.getGlobalBadge();
 
-    if (process.platform === 'darwin' && badge.showAlert) {
-        remote.app.dock.setBadge(badge.count.toString());
+    if (process.platform === 'darwin') {
+        if (badge.count > 0) {
+            remote.app.dock.setBadge(badge.count.toString());
+        } else {
+            remote.app.dock.setBadge(badge.title);
+        }
     }
 
     if (process.platform === 'win32') {

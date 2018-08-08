@@ -1,31 +1,34 @@
 'use strict';
 
 const gulp = require('gulp');
+const sequence = require('gulp-sequence');
 const childProcess = require('child_process');
 const os = require('os');
 const { getEnvName } = require('./utils');
 
-const getElectronBuilderArgs = () => {
-    const argv = process.argv.filter(arg => !arg.startsWith('--env'));
-    const publishArgs = getEnvName() !== 'production' ? [ '--publish', 'never' ] : [];
+const argv = process.argv.slice(3).filter(arg => !arg.startsWith('--env'));
+const publishArgs = getEnvName() !== 'production' ? [ '--publish', 'never' ] : [];
 
-    const platform = os.platform();
-    const arch = os.arch();
-
-    if (platform === 'darwin' && arch === 'x64') {
-        return [ ...argv, ...publishArgs, '--x64', '--mac' ];
-    } else if (platform === 'linux' && arch === 'x64') {
-        return [ ...argv, ...publishArgs, '--x64', '--linux' ];
-    } else if (platform === 'linux' && arch === 'ia32') {
-        return [ ...argv, ...publishArgs, '--ia32', '--linux', 'deb', 'rpm' ];
-    } else if (os.platform() === 'win32') {
-        return [ ...argv, ...publishArgs, '--ia32', '--x64', '--win', 'nsis', 'appx' ];
-    }
-
-    throw new Error(`The OS platform "${ os.platform() }" is unsupported`);
+const buildRelease = (...args) => cb => {
+    childProcess.spawn('node_modules/.bin/build', [ ...argv, ...publishArgs, ...args ], { stdio: 'inherit' })
+        .on('close', () => cb());
 };
 
-gulp.task('release', [ 'build-app' ], () => {
-    childProcess.spawn('node_modules/.bin/build', getElectronBuilderArgs(), { stdio: 'inherit' })
-        .on('close', () => process.exit());
+gulp.task('release:osx', [ 'build-app' ], buildRelease('--x64', '--mac'));
+gulp.task('release:win', [ 'build-app' ], buildRelease('--ia32', '--x64', '--win', 'nsis', 'appx'));
+gulp.task('release:linux-x64', buildRelease('--x64', '--linux'));
+gulp.task('release:linux-ia32', buildRelease('--ia32', '--linux', 'deb', 'rpm'));
+gulp.task('release:linux', [ 'build-app' ], sequence('release:linux-x64', 'release:linux-ia32'));
+
+gulp.task('release', cb => {
+    switch (os.platform()) {
+        case 'darwin':
+            return gulp.start('release:osx', cb);
+
+        case 'win32':
+            return gulp.start('release:win', cb);
+
+        case 'linux':
+            return gulp.start('release:linux', cb);
+    }
 });

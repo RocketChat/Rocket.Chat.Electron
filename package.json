@@ -78,7 +78,7 @@
     "start": "gulp start",
     "build": "gulp build-app",
     "changelog": "conventional-changelog --config .github/changelog.js -i HISTORY.md -s",
-    "prerelease": "gulp build --env=production",
+    "prerelease": "gulp build-app --env=production",
     "release": "build",
     "lint": "eslint .",
     "pretest": "gulp build-unit-tests --env=test",

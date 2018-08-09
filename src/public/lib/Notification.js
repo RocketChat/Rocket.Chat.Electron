@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, remote } = require('electron');
 
 if (process.platform === 'darwin') {
     const NodeNotification = require('node-mac-notifier');
@@ -33,6 +33,7 @@ class Notification extends window.Notification {
         return super.onclick;
     }
 
+    /*
     set onclick (fn) {
         const result = super.onclick = () => {
             ipcRenderer.send('focus');
@@ -41,6 +42,30 @@ class Notification extends window.Notification {
         };
         return result;
     }
+    */
+    
+  set onclick(fn) {
+    const result = super.onclick = () => {
+      const currentWindow = remote.getCurrentWindow();
+      if (process.platform === 'win32') {
+        if (currentWindow.isVisible()) {
+          currentWindow.focus();
+        } else if (currentWindow.isMinimized()) {
+          currentWindow.restore();
+        } else {
+          currentWindow.show();
+        }
+      } else if (currentWindow.isMinimized()) {
+        currentWindow.restore();
+      } else {
+        currentWindow.show();
+      }
+      
+      ipcRenderer.sendToHost('focus');
+      fn.apply( this, arguments );
+    };
+    return result;
+   }
 }
 
 module.exports = Notification;

@@ -14,7 +14,7 @@ const createEntryFile = (srcDir, matching, outputDir, entryFileName, rollupOptio
             imports.join('\n')
         ))
         .then(entryFileContent => srcDir.writeAsync(entryFileName, entryFileContent))
-        .then(entryFilePath => bundle(srcDir.path(entryFileName), outputDir.path(entryFileName), rollupOptions))
+        .then(() => bundle(srcDir.path(entryFileName), outputDir.path(entryFileName), rollupOptions))
         .then(() => srcDir.remove(entryFileName));
 };
 

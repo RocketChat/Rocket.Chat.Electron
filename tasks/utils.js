@@ -1,11 +1,14 @@
 'use strict';
 
-const argv = require('minimist')(process.argv);
+const jetpack = require('fs-jetpack');
+const minimist = require('minimist');
 
-exports.getEnvName = function () {
-    return argv.env || 'development';
-};
+const argv = minimist(process.argv);
 
-exports.beepSound = function () {
-    process.stdout.write('\u0007');
-};
+exports.getEnvName = () => argv.env || 'development';
+
+exports.beepSound = () => process.stdout.write('\u0007');
+
+exports.appDir = jetpack.cwd('app');
+exports.configDir = jetpack.cwd('config');
+exports.srcDir = jetpack.cwd('src');

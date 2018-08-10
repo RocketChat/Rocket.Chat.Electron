@@ -47,7 +47,7 @@ export const start = function () {
                 invalidUrl.style.display = 'none';
                 hostField.classList.remove('wrong');
 
-                let host = hostField.value.trim();
+                const host = hostField.value.trim();
                 hostField.value = host;
 
                 if (host.length === 0) {

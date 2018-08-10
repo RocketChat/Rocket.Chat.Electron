@@ -28,9 +28,7 @@ install:
 
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then yarn release --x64 --mac; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then yarn release --x64 --linux; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then yarn release --ia32 --linux deb rpm; fi
+  - yarn release
 
 branches:
   only:

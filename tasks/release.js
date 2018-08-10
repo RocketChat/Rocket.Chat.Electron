@@ -4,13 +4,15 @@ const gulp = require('gulp');
 const sequence = require('gulp-sequence');
 const childProcess = require('child_process');
 const os = require('os');
+const path = require('path');
 const { getEnvName } = require('./utils');
 
 const argv = process.argv.slice(3).filter(arg => !arg.startsWith('--env'));
 const publishArgs = getEnvName() !== 'production' ? [ '--publish', 'never' ] : [];
 
 const buildRelease = (...args) => cb => {
-    childProcess.spawn('node_modules/.bin/build', [ ...argv, ...publishArgs, ...args ], { stdio: 'inherit' })
+    const buildPath = path.join('node_modules', '.bin', os.platform() === 'win32' ? 'build.cmd' : 'build');
+    childProcess.spawn(buildPath, [ ...argv, ...publishArgs, ...args ], { stdio: 'inherit' })
         .on('close', () => cb());
 };
 

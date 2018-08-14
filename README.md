@@ -155,22 +155,22 @@ You can bundle a `servers.json` with the install package, the file should be loc
 
 ## Post-Install Configuration
 
-If you can't (or don't want to) bundle the file inside the app, you can create a `servers.json` in the user preferences folder which will overwrite the packaged one. The file should be located in the `%APPDATA%/Rocket.Chat/` folder or the installation folder in case of a installation for all users (Windows only).
+If you can't (or don't want to) bundle the file inside the app, you can create a `servers.json` in the user preferences folder which will overwrite the packaged one. The file should be located in the `%APPDATA%/Rocket.Chat+/` folder or the installation folder in case of a installation for all users (Windows only).
 
 For Windows the full paths are:
 ```
-~\Users\<username>\AppData\Roaming\Rocket.Chat\
-~\Program Files\Rocket.Chat\Resources\
+~\Users\<username>\AppData\Roaming\Rocket.Chat+\
+~\Program Files\Rocket.Chat+\Resources\
 ```
 On MacOS the full path is:
 ```
-~/Users/<username>/Library/Application Support/Rocket.Chat/
-~/Applications/Rocket.Chat.app/Contents/Resources/
+~/Users/<username>/Library/Application Support/Rocket.Chat+/
+~/Applications/Rocket.Chat+.app/Contents/Resources/
 ```
 On Linux the full path is:
 ```
-/home/<username>/.config/Rocket.Chat/
-/opt/Rocket.Chat/resources/
+/home/<username>/.config/Rocket.Chat+/
+/opt/Rocket.Chat+/resources/
 ```
 
 # Useful links

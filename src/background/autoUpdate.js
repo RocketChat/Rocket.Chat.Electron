@@ -107,7 +107,7 @@ function updateAvailable ({version}) {
     });
 }
 
-function canUpdate() {
+function canUpdate () {
     return !process.mas;
 }
 

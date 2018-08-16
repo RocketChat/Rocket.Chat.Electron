@@ -19,7 +19,7 @@ const buildRelease = (...args) => cb => {
 gulp.task('release:osx', [ 'build-app' ], buildRelease('--x64', '--mac'));
 gulp.task('release:win', [ 'build-app' ], buildRelease('--ia32', '--x64', '--win', 'nsis', 'appx'));
 gulp.task('release:linux-x64', buildRelease('--x64', '--linux'));
-gulp.task('release:linux-ia32', buildRelease('--ia32', '--linux', 'deb', 'rpm'));
+gulp.task('release:linux-ia32', buildRelease('--ia32', '--linux', 'tar.gz', 'deb', 'rpm'));
 gulp.task('release:linux', [ 'build-app' ], sequence('release:linux-x64', 'release:linux-ia32'));
 
 gulp.task('release', cb => {

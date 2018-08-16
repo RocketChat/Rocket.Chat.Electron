@@ -1,6 +1,6 @@
 /* globals $ */
 
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import i18n from '../i18n/index.js';
 import servers from './servers';
 import sidebar from './sidebar';

@@ -58,7 +58,7 @@ function getTrayImagePath (badge) {
 }
 
 function createAppTray () {
-    const _tray = new Tray(getTrayImagePath({title:'',count:0,showAlert:false}));
+    const _tray = new Tray(getTrayImagePath({title:'', count:0, showAlert:false}));
     mainWindow.tray = _tray;
 
     const contextMenuShow = Menu.buildFromTemplate([{

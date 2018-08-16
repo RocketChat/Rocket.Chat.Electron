@@ -90,6 +90,13 @@ window.onload = function () {
         if (RegExp(`^${location.protocol}\/\/${location.host}`).test(href)) {
             return;
         }
+
+        // Check if is file upload link
+        if (/^\/file-upload\//.test(href) && !this.hasAttribute('download')) {
+            this.setAttribute('download', '');
+            this.click();
+        }
+
         // Check href matching relative URL
         if (!/^([a-z]+:)?\/\//.test(href)) {
             return;

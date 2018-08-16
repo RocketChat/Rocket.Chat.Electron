@@ -131,13 +131,14 @@ function showTrayAlert (badge, status = 'online') {
         return;
     }
     mainWindow.tray.setImage(getTrayImagePath(badge));
+    const hasMentions = badge.showAlert && badge.count > 0;
 
     if (!mainWindow.isFocused()) {
-        mainWindow.flashFrame(badge.showAlert);
+        mainWindow.flashFrame(hasMentions);
     }
 
     if (process.platform === 'win32') {
-        if (badge.showAlert) {
+        if (hasMentions) {
             mainWindow.webContents.send('render-taskbar-icon', badge.count);
         } else {
             mainWindow.setOverlayIcon(null, '');

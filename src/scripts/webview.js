@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import servers from './servers';
 import sidebar from './sidebar';
 import tray from './tray';
-import { desktopCapturer, ipcRenderer } from 'electron';
+import { desktopCapturer, ipcRenderer, shell } from 'electron';
 
 class WebView extends EventEmitter {
     constructor () {

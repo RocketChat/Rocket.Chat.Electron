@@ -7,7 +7,7 @@ import { app, BrowserWindow, ipcMain, nativeImage, } from 'electron';
 import windowStateKeeper from './background/windowState';
 import certificate from './background/certificate';
 import idle from '@paulcbetts/system-idle-time';
-import { checkForUpdates } from './background/autoUpdate';
+import { canUpdate, checkForUpdates } from './background/autoUpdate';
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
@@ -130,5 +130,7 @@ export function afterMainWindow (mainWindow) {
 
     certificate.initWindow(mainWindow);
 
-    checkForUpdates();
+    if (canUpdate()) {
+        checkForUpdates();
+    }
 }

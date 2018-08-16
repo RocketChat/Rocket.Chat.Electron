@@ -48,6 +48,14 @@
 			right: 0;
 		}
 
+		.update-container {
+			display: none;
+		}
+
+		.update-container.update-container--enabled {
+			display: block;
+		}
+
 		.auto-update-container {
 			margin: 5px 0;
 		}
@@ -62,35 +70,46 @@
 
 		</div>
 		<div class="app-version"></div>
-		<span class="update-spin icon-spin3 animate-spin" style="display:none;"></span>
 
-		<button class="update"><script>document.write(i18n.__('Check_for_Updates'))</script></button>
-		<p class="auto-update-container"><input type="checkbox" id="auto-update" checked /> <script>document.write(i18n.__('Check_for_Updates_on_Start'))</script></p>
+		<div class="update-container">
+			<span class="update-spin icon-spin3 animate-spin" style="display:none;"></span>
+			<button class="update"><script>document.write(i18n.__('Check_for_Updates'))</script></button>
+			<p class="auto-update-container"><input type="checkbox" id="auto-update" checked /> <script>document.write(i18n.__('Check_for_Updates_on_Start'))</script></p>
+		</div>
 		<p class="copyright"><script>document.write(i18n.__('Copyright', require('../../package.json').copyright))</script></p>
 		<script>
 			const { remote, ipcRenderer } = require('electron');
-			const autoUpdate = ipcRenderer.sendSync('check-for-updates', 'auto');
-			if (!autoUpdate) {
-				document.querySelector('#auto-update').removeAttribute('checked');
-			}
+
 			document.querySelector('.app-name').innerHTML = remote.app.getName();
 			document.querySelector('.app-version').innerHTML = `${i18n.__('Version')} <span class="version">${remote.app.getVersion()}</span>`;
-			document.querySelector('.update').onclick = function(e) {
-				document.querySelector('.update-spin').setAttribute('style', '');
-				document.querySelector('.update').setAttribute('disabled', 'disabled');
-				ipcRenderer.send('check-for-updates');
 
-			}
-			document.querySelector('#auto-update').onclick = function(e) {
-				ipcRenderer.send('check-for-updates', e.target.checked);
-			}
-			ipcRenderer.on('update-result', (e, updateAvailable) => {
-				document.querySelector('.update-spin').setAttribute('style', 'display:none');
-				document.querySelector('.update').removeAttribute('disabled');
-				if (!updateAvailable) {
-					alert('No updates are available.');
+			const canUpdate = !process.mas;
+
+			if (canUpdate) {
+				const autoUpdate = ipcRenderer.sendSync('check-for-updates', 'auto');
+				if (!autoUpdate) {
+					document.querySelector('#auto-update').removeAttribute('checked');
 				}
-			});
+				document.querySelector('.update').onclick = function(e) {
+					document.querySelector('.update-spin').setAttribute('style', '');
+					document.querySelector('.update').setAttribute('disabled', 'disabled');
+					ipcRenderer.send('check-for-updates');
+				};
+
+				document.querySelector('#auto-update').onclick = function(e) {
+					ipcRenderer.send('check-for-updates', e.target.checked);
+				};
+
+				ipcRenderer.on('update-result', (e, updateAvailable) => {
+					document.querySelector('.update-spin').setAttribute('style', 'display:none');
+					document.querySelector('.update').removeAttribute('disabled');
+					if (!updateAvailable) {
+						alert('No updates are available.');
+					}
+				});
+
+				document.querySelector('.update-container').classList.add('update-container--enabled');
+			}
 		</script>
 	</body>
 </html>

@@ -107,6 +107,10 @@ function updateAvailable ({version}) {
     });
 }
 
+function canUpdate () {
+    return !process.mas;
+}
+
 function checkForUpdates () {
     autoUpdater.on('update-available', updateAvailable);
     autoUpdater.on('update-not-available', updateNotAvailable);
@@ -132,5 +136,6 @@ function checkForUpdates () {
 }
 
 export {
+    canUpdate,
     checkForUpdates
 };

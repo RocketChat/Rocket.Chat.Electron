@@ -1,5 +1,6 @@
 import path from 'path';
 import url from 'url';
+import jetpack from 'fs-jetpack';
 import { app, Menu, BrowserWindow } from 'electron';
 import './background/certificate';
 import { afterMainWindow } from './background.custom';
@@ -32,13 +33,25 @@ const unsetDefaultApplicationMenu = () => {
     Menu.setApplicationMenu(null);
 };
 
-// Save userData in separate folders for each environment.
-// Thanks to this you can use production and development versions of the app
-// on same machine like those are two separate apps.
-if (env.name !== 'production') {
-    const userDataPath = app.getPath('userData');
-    app.setPath('userData', userDataPath + ' (' + env.name + ')');
-}
+const setUserDataPath = () => {
+    const appName = app.getName();
+    const dirName = env.name === 'production' ? appName : `${ appName } (${ env.name })`;
+
+    app.setPath('userData', path.join(app.getPath('appData'), dirName));
+};
+
+const migrateOlderVersionUserData = () => {
+    const olderAppName = 'Rocket.Chat+';
+    const dirName = env.name === 'production' ? olderAppName : `${ olderAppName } (${ env.name })`;
+    const olderUserDataPath = path.join(app.getPath('appData'), dirName);
+
+    try {
+        jetpack.copy(olderUserDataPath, app.getPath('userData'), { overwrite: true });
+        jetpack.remove(olderUserDataPath);
+    } catch (e) {
+        return;
+    }
+};
 
 const processProtocolArgv = (argv) => {
     const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
@@ -92,6 +105,8 @@ if (process.platform === 'darwin') {
 
 app.on('ready', function () {
     unsetDefaultApplicationMenu();
+    setUserDataPath();
+    migrateOlderVersionUserData();
 
     mainWindow = new BrowserWindow({
         width: 1000,

@@ -1,29 +1,35 @@
-// This is main process of Electron, started as first thing when your
-// app starts. This script is running through entire life of your application.
-// It doesn't have any windows which you can see on screen, but we can open
-// window from here.
-
 import path from 'path';
 import url from 'url';
 import { app, Menu, BrowserWindow } from 'electron';
-import { devMenuTemplate } from './menu/dev_menu_template';
-import { editMenuTemplate } from './menu/edit_menu_template';
 import './background/certificate';
+import { afterMainWindow } from './background.custom';
+import i18n from './i18n/index.js';
+import env from './env';
 
 export { default as remoteServers } from './background/servers';
 export { default as certificate } from './background/certificate';
-import { afterMainWindow } from './background.custom';
 
-// Special module holding environment variables which you declared
-// in config/env_xxx.json file.
-import env from './env';
+const unsetDefaultApplicationMenu = () => {
+    const isMacOS = process.platform === 'darwin';
 
-const setApplicationMenu = function () {
-    const menus = [editMenuTemplate];
-    if (env.name !== 'production') {
-        menus.push(devMenuTemplate);
+    if (isMacOS) {
+        const emptyMenuTemplate = [{
+            submenu: [
+                {
+                    label: i18n.__('Quit_App', app.getName()),
+                    accelerator: 'CommandOrControl+Q',
+                    click () {
+                        app.quit();
+                    }
+                }
+            ]
+        }];
+        Menu.setApplicationMenu(Menu.buildFromTemplate(emptyMenuTemplate));
+
+        return;
     }
-    Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
+
+    Menu.setApplicationMenu(null);
 };
 
 // Save userData in separate folders for each environment.
@@ -85,7 +91,7 @@ if (process.platform === 'darwin') {
 }
 
 app.on('ready', function () {
-    setApplicationMenu();
+    unsetDefaultApplicationMenu();
 
     mainWindow = new BrowserWindow({
         width: 1000,

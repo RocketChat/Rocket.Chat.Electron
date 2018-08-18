@@ -46,9 +46,6 @@ ipcMain.on('source-result', (e, sourceId) => {
 });
 
 export function afterMainWindow (mainWindow) {
-    if (!app.isDefaultProtocolClient('rocketchat')) {
-        app.setAsDefaultProtocolClient('rocketchat');
-    }
     // Preserver of the window size and position between app launches.
     const mainWindowState = windowStateKeeper('main', {
         width: 1000,
@@ -134,3 +131,16 @@ export function afterMainWindow (mainWindow) {
         checkForUpdates();
     }
 }
+
+let mainWindow = null;
+export const getMainWindow = () => new Promise(resolve => {
+    if (!mainWindow) {
+        mainWindow = new BrowserWindow({
+            width: 1000,
+            titleBarStyle: 'hidden',
+            height: 600
+        });
+    }
+
+    resolve(mainWindow);
+});

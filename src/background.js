@@ -2,9 +2,9 @@ import path from 'path';
 import querystring from 'querystring';
 import url from 'url';
 import jetpack from 'fs-jetpack';
-import { app, Menu, BrowserWindow } from 'electron';
+import { app, Menu } from 'electron';
 import './background/certificate';
-import { afterMainWindow } from './background.custom';
+import { getMainWindow, afterMainWindow } from './background.custom';
 import i18n from './i18n/index.js';
 import env from './env';
 
@@ -61,20 +61,16 @@ const parseProtocolUrls = (args) =>
             return `${ insecure === 'true' ? 'http' : 'https' }://${ hostname }${ pathname || '' }`;
         });
 
-let mainWindow = null;
-
 const addServers = (serverUrls) => {
-    if (!mainWindow) {
-        return;
-    }
+    getMainWindow().then((mainWindow) => {
+        serverUrls.forEach(serverUrl => mainWindow.send('add-host', serverUrl));
 
-    serverUrls.forEach(serverUrl => mainWindow.send('add-host', serverUrl));
+        if (mainWindow.isMinimized()) {
+            mainWindow.restore();
+        }
 
-    if (mainWindow.isMinimized()) {
-        mainWindow.restore();
-    }
-
-    mainWindow.show();
+        mainWindow.show();
+    });
 };
 
 const isSecondInstance = app.makeSingleInstance((argv) => {
@@ -96,23 +92,23 @@ app.on('ready', () => {
     setUserDataPath();
     migrateOlderVersionUserData();
 
-    mainWindow = new BrowserWindow({
-        width: 1000,
-        titleBarStyle: 'hidden',
-        height: 600
-    });
-
-    afterMainWindow(mainWindow);
-
-    mainWindow.loadURL(url.format({
-        pathname: path.join(__dirname, 'public', 'app.html'),
-        protocol: 'file:',
-        slashes: true
-    }));
-
-    if (env.name === 'development') {
-        mainWindow.openDevTools();
+    if (!app.isDefaultProtocolClient('rocketchat')) {
+        app.setAsDefaultProtocolClient('rocketchat');
     }
+
+    getMainWindow().then((mainWindow) => {
+        afterMainWindow(mainWindow);
+
+        mainWindow.loadURL(url.format({
+            pathname: path.join(__dirname, 'public', 'app.html'),
+            protocol: 'file:',
+            slashes: true
+        }));
+
+        if (env.name === 'development') {
+            mainWindow.openDevTools();
+        }
+    });
 });
 
 app.on('window-all-closed', () => {

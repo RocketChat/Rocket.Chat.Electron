@@ -1,4 +1,5 @@
 import path from 'path';
+import querystring from 'querystring';
 import url from 'url';
 import jetpack from 'fs-jetpack';
 import { app, Menu, BrowserWindow } from 'electron';
@@ -52,57 +53,45 @@ const migrateOlderVersionUserData = () => {
     }
 };
 
-const processProtocolArgv = (argv) => {
-    const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
-    if (protocolURI) {
-        const site = protocolURI.split(/\/|\?/)[2];
-        if (site) {
-            let scheme = 'https://';
-            if (protocolURI.includes('insecure=true')) {
-                scheme = 'http://';
-            }
-            return scheme + site;
-        }
-    }
-};
+const parseProtocolUrls = (args) =>
+    args.filter(arg => /^rocketchat:\/\/./.test(arg))
+        .map(uri => url.parse(uri))
+        .map(({ hostname, pathname, query }) => {
+            const { insecure } = querystring.parse(query);
+            return `${ insecure === 'true' ? 'http' : 'https' }://${ hostname }${ pathname || '' }`;
+        });
 
 let mainWindow = null;
-const appIsReady = new Promise(resolve => {
-    if (app.isReady()) {
-        resolve();
-    } else {
-        app.on('ready', resolve);
+
+const addServers = (serverUrls) => {
+    if (!mainWindow) {
+        return;
     }
+
+    serverUrls.forEach(serverUrl => mainWindow.send('add-host', serverUrl));
+
+    if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+    }
+
+    mainWindow.show();
+};
+
+const isSecondInstance = app.makeSingleInstance((argv) => {
+    addServers(parseProtocolUrls(argv.slice(2)));
 });
-if (process.platform === 'darwin') {
-    // Open protocol urls on mac as open-url is not yet implemented on other OS's
-    app.on('open-url', function (e, url) {
-        e.preventDefault();
-        const site = processProtocolArgv([url]);
-        if (site) {
-            appIsReady.then(() => setTimeout(() => mainWindow.send('add-host', site), 750));
-        }
-    });
-} else {
-    const isSecondInstance = app.makeSingleInstance((argv) => {
-        // Someone tried to run a second instance, we should focus our window.
-        const site = processProtocolArgv(argv);
-        if (site) {
-            appIsReady.then(() => mainWindow.send('add-host', site));
-        }
-        if (mainWindow) {
-            if (mainWindow.isMinimized()) {
-                mainWindow.restore();
-            }
-            mainWindow.show();
-        }
-    });
-    if (isSecondInstance) {
-        app.quit();
-    }
+
+if (isSecondInstance) {
+    app.quit();
 }
 
-app.on('ready', function () {
+// macOS only
+app.on('open-url', (event, url) => {
+    event.preventDefault();
+    addServers(parseProtocolUrls([ url ]));
+});
+
+app.on('ready', () => {
     unsetDefaultApplicationMenu();
     setUserDataPath();
     migrateOlderVersionUserData();
@@ -126,6 +115,6 @@ app.on('ready', function () {
     }
 });
 
-app.on('window-all-closed', function () {
+app.on('window-all-closed', () => {
     app.quit();
 });

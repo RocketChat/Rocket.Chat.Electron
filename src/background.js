@@ -10,27 +10,26 @@ import env from './env';
 export { default as remoteServers } from './background/servers';
 export { default as certificate } from './background/certificate';
 
+const isMacOS = process.platform === 'darwin';
+
 const unsetDefaultApplicationMenu = () => {
-    const isMacOS = process.platform === 'darwin';
-
-    if (isMacOS) {
-        const emptyMenuTemplate = [{
-            submenu: [
-                {
-                    label: i18n.__('Quit_App', app.getName()),
-                    accelerator: 'CommandOrControl+Q',
-                    click () {
-                        app.quit();
-                    }
-                }
-            ]
-        }];
-        Menu.setApplicationMenu(Menu.buildFromTemplate(emptyMenuTemplate));
-
+    if (!isMacOS) {
+        Menu.setApplicationMenu(null);
         return;
     }
 
-    Menu.setApplicationMenu(null);
+    const emptyMenuTemplate = [{
+        submenu: [
+            {
+                label: i18n.__('Quit_App', app.getName()),
+                accelerator: 'CommandOrControl+Q',
+                click () {
+                    app.quit();
+                }
+            }
+        ]
+    }];
+    Menu.setApplicationMenu(Menu.buildFromTemplate(emptyMenuTemplate));
 };
 
 const setUserDataPath = () => {

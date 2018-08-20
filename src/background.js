@@ -4,7 +4,8 @@ import url from 'url';
 import jetpack from 'fs-jetpack';
 import { app, Menu } from 'electron';
 import './background/certificate';
-import { getMainWindow, afterMainWindow } from './background.custom';
+import './background/screenshare';
+import { getMainWindow, afterMainWindow } from './background/mainWindow';
 import i18n from './i18n/index.js';
 import env from './env';
 

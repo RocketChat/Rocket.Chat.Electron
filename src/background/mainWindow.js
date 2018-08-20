@@ -4,46 +4,12 @@
 // window from here.
 
 import { app, BrowserWindow, ipcMain, nativeImage, } from 'electron';
-import windowStateKeeper from './background/windowState';
-import certificate from './background/certificate';
+import windowStateKeeper from './windowState';
+import certificate from './certificate';
 import idle from '@paulcbetts/system-idle-time';
-import { canUpdate, checkForUpdates } from './background/autoUpdate';
+import { canUpdate, checkForUpdates } from './autoUpdate';
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
-
-let screenshareEvent;
-ipcMain.on('screenshare', (event, sources) => {
-    screenshareEvent = event;
-    let mainWindow = new BrowserWindow({
-        width: 776,
-        height: 600,
-        show : false,
-        skipTaskbar: false
-    });
-
-    mainWindow.loadURL('file://'+__dirname+'/public/screenshare.html');
-
-    //window.openDevTools();
-    mainWindow.webContents.on('did-finish-load', () => {
-        mainWindow.webContents.send('sources', sources);
-        mainWindow.show();
-    });
-
-    mainWindow.on('closed', () => {
-        mainWindow = null;
-        if (screenshareEvent) {
-            screenshareEvent.sender.send('screenshare-result', 'PermissionDeniedError');
-            screenshareEvent = null;
-        }
-    });
-});
-
-ipcMain.on('source-result', (e, sourceId) => {
-    if (screenshareEvent) {
-        screenshareEvent.sender.send('screenshare-result', sourceId);
-        screenshareEvent = null;
-    }
-});
 
 export function afterMainWindow (mainWindow) {
     // Preserver of the window size and position between app launches.

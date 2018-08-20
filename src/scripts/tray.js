@@ -150,7 +150,12 @@ function showTrayAlert (badge, status = 'online') {
         if (remote.systemPreferences.isDarkMode()) {
             countColor = messageCountColor['white'];
         }
-        mainWindow.tray.setTitle(`${statusBullet[status]} ${countColor}${badge.title}`);
+
+        let trayTitle = `${statusBullet[status]}`;
+        if (hasMentions) {
+            trayTitle = `${statusBullet[status]} ${countColor}${badge.title}`;
+        }
+        mainWindow.tray.setTitle(trayTitle);
         remote.app.dock.setBadge(badge.title);
     }
 

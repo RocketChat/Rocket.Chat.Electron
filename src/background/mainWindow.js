@@ -9,7 +9,6 @@ import path from 'path';
 import windowStateKeeper from './windowState';
 import certificate from './certificate';
 import idle from '@paulcbetts/system-idle-time';
-import { canUpdate, checkForUpdates } from './autoUpdate';
 import env from '../env';
 
 let mainWindow = null;
@@ -87,10 +86,6 @@ function afterMainWindow (mainWindow) {
     });
 
     certificate.initWindow(mainWindow);
-
-    if (canUpdate()) {
-        checkForUpdates();
-    }
 }
 
 export const createMainWindow = (cb) => {

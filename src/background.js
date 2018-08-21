@@ -6,6 +6,7 @@ import { app, Menu } from 'electron';
 import './background/certificate';
 import './background/screenshare';
 import { createMainWindow, getMainWindow } from './background/mainWindow';
+import { canUpdate, checkForUpdates } from './background/autoUpdate';
 import i18n from './i18n/index.js';
 import env from './env';
 
@@ -100,6 +101,10 @@ app.on('ready', () => {
     }
 
     createMainWindow();
+
+    if (canUpdate()) {
+        checkForUpdates();
+    }
 });
 
 app.on('window-all-closed', () => {

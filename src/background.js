@@ -2,7 +2,8 @@ import path from 'path';
 import querystring from 'querystring';
 import url from 'url';
 import jetpack from 'fs-jetpack';
-import { app, Menu } from 'electron';
+import idle from '@paulcbetts/system-idle-time';
+import { app, ipcMain, Menu } from 'electron';
 
 import { canUpdate, checkForUpdates } from './background/autoUpdate';
 import certificate from './background/certificate';
@@ -113,4 +114,8 @@ app.on('ready', () => {
 
 app.on('window-all-closed', () => {
     app.quit();
+});
+
+ipcMain.on('getSystemIdleTime', (event) => {
+    event.returnValue = idle.getIdleTime();
 });

@@ -6,8 +6,8 @@
 import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
 import url from 'url';
 import path from 'path';
+
 import windowStateKeeper from './windowState';
-import idle from '@paulcbetts/system-idle-time';
 import env from '../env';
 
 let mainWindow = null;
@@ -73,10 +73,6 @@ function afterMainWindow (mainWindow) {
     ipcMain.on('focus', () => {
         mainWindow.show();
         mainWindowState.saveState(mainWindow);
-    });
-
-    ipcMain.on('getSystemIdleTime', (event) => {
-        event.returnValue = idle.getIdleTime();
     });
 
     ipcMain.on('update-taskbar-icon', (event, data, text) => {

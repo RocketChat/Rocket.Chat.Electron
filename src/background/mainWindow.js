@@ -7,7 +7,6 @@ import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
 import url from 'url';
 import path from 'path';
 import windowStateKeeper from './windowState';
-import certificate from './certificate';
 import idle from '@paulcbetts/system-idle-time';
 import env from '../env';
 
@@ -84,8 +83,6 @@ function afterMainWindow (mainWindow) {
         const img = nativeImage.createFromDataURL(data);
         mainWindow.setOverlayIcon(img, text);
     });
-
-    certificate.initWindow(mainWindow);
 }
 
 export const createMainWindow = (cb) => {

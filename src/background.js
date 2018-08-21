@@ -3,10 +3,12 @@ import querystring from 'querystring';
 import url from 'url';
 import jetpack from 'fs-jetpack';
 import { app, Menu } from 'electron';
-import './background/certificate';
-import './background/screenshare';
-import { createMainWindow, getMainWindow } from './background/mainWindow';
+
 import { canUpdate, checkForUpdates } from './background/autoUpdate';
+import certificate from './background/certificate';
+import { createMainWindow, getMainWindow } from './background/mainWindow';
+import './background/screenshare';
+
 import i18n from './i18n/index.js';
 import env from './env';
 
@@ -101,6 +103,8 @@ app.on('ready', () => {
     }
 
     createMainWindow();
+
+    getMainWindow().then(mainWindow => certificate.initWindow(mainWindow));
 
     if (canUpdate()) {
         checkForUpdates();

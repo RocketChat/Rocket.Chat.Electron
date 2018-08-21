@@ -14,32 +14,21 @@ import env from '../env';
 
 let mainWindow = null;
 
+const mainWindowOptions = {
+    width: 1000,
+    height: 600,
+    minWidth: 600,
+    minHeight: 400,
+    titleBarStyle: 'hidden',
+    show: false
+};
+
 function afterMainWindow (mainWindow) {
-    // Preserver of the window size and position between app launches.
-    const mainWindowState = windowStateKeeper('main', {
-        width: 1000,
-        height: 600
-    });
+    const mainWindowState = windowStateKeeper('main', mainWindowOptions);
 
-    if (mainWindowState.x !== undefined && mainWindowState.y !== undefined) {
-        mainWindow.setPosition(mainWindowState.x, mainWindowState.y, false);
-    }
-    if (mainWindowState.width !== undefined && mainWindowState.height !== undefined) {
-        mainWindow.setSize(mainWindowState.width, mainWindowState.height, false);
-    }
+    mainWindow.once('ready-to-show', () => mainWindowState.loadState(mainWindow));
 
-    if (mainWindowState.isMaximized) {
-        mainWindow.maximize();
-    }
-
-    if (mainWindowState.isMinimized) {
-        mainWindow.minimize();
-    }
-
-    if (mainWindowState.isHidden) {
-        mainWindow.hide();
-    }
-
+    // macOS only
     app.on('activate', () => {
         mainWindowState.saveState(mainWindow);
         mainWindow.show();
@@ -106,16 +95,11 @@ function afterMainWindow (mainWindow) {
 
 export const createMainWindow = (cb) => {
     if (mainWindow) {
-        return cb && cb(mainWindow);
+        cb && cb(mainWindow);
+        return;
     }
 
-    mainWindow = new BrowserWindow({
-        width: 1000,
-        height: 600,
-        minWidth: 600,
-        minHeight: 400,
-        titleBarStyle: 'hidden'
-    });
+    mainWindow = new BrowserWindow(mainWindowOptions);
 
     afterMainWindow(mainWindow);
 
@@ -129,12 +113,13 @@ export const createMainWindow = (cb) => {
         mainWindow.openDevTools();
     }
 
-    return cb && cb(mainWindow);
+    cb && cb(mainWindow);
 };
 
 export const getMainWindow = () => new Promise((resolve) => {
     if (app.isReady()) {
-        return createMainWindow(resolve);
+        createMainWindow(resolve);
+        return;
     }
 
     app.on('ready', () => createMainWindow(resolve));

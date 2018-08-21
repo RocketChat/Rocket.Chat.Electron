@@ -5,7 +5,7 @@ import jetpack from 'fs-jetpack';
 import { app, Menu } from 'electron';
 import './background/certificate';
 import './background/screenshare';
-import { getMainWindow, afterMainWindow } from './background/mainWindow';
+import { createMainWindow, getMainWindow } from './background/mainWindow';
 import i18n from './i18n/index.js';
 import env from './env';
 
@@ -99,19 +99,7 @@ app.on('ready', () => {
         app.setAsDefaultProtocolClient('rocketchat');
     }
 
-    getMainWindow().then((mainWindow) => {
-        afterMainWindow(mainWindow);
-
-        mainWindow.loadURL(url.format({
-            pathname: path.join(__dirname, 'public', 'app.html'),
-            protocol: 'file:',
-            slashes: true
-        }));
-
-        if (env.name === 'development') {
-            mainWindow.openDevTools();
-        }
-    });
+    createMainWindow();
 });
 
 app.on('window-all-closed', () => {

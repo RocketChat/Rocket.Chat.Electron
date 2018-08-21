@@ -4,12 +4,17 @@
 // window from here.
 
 import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
+import url from 'url';
+import path from 'path';
 import windowStateKeeper from './windowState';
 import certificate from './certificate';
 import idle from '@paulcbetts/system-idle-time';
 import { canUpdate, checkForUpdates } from './autoUpdate';
+import env from '../env';
 
-export function afterMainWindow (mainWindow) {
+let mainWindow = null;
+
+function afterMainWindow (mainWindow) {
     // Preserver of the window size and position between app launches.
     const mainWindowState = windowStateKeeper('main', {
         width: 1000,
@@ -36,6 +41,20 @@ export function afterMainWindow (mainWindow) {
         mainWindow.hide();
     }
 
+    app.on('activate', () => {
+        mainWindowState.saveState(mainWindow);
+        mainWindow.show();
+    });
+
+    app.on('before-quit', () => {
+        mainWindowState.saveState(mainWindow);
+        mainWindow.forceClose = true;
+    });
+
+    mainWindow.on('show', () => {
+        mainWindowState.saveState(mainWindow);
+    });
+
     mainWindow.on('close', function (event) {
         if (mainWindow.forceClose) {
             mainWindowState.saveState(mainWindow);
@@ -53,21 +72,11 @@ export function afterMainWindow (mainWindow) {
         mainWindowState.saveState(mainWindow);
     });
 
-    app.on('before-quit', function () {
-        mainWindowState.saveState(mainWindow);
-        mainWindow.forceClose = true;
-    });
-
     mainWindow.on('resize', function () {
         mainWindowState.saveState(mainWindow);
     });
 
     mainWindow.on('move', function () {
-        mainWindowState.saveState(mainWindow);
-    });
-
-    app.on('activate', function () {
-        mainWindow.show();
         mainWindowState.saveState(mainWindow);
     });
 
@@ -96,15 +105,36 @@ export function afterMainWindow (mainWindow) {
     }
 }
 
-let mainWindow = null;
-export const getMainWindow = () => new Promise(resolve => {
-    if (!mainWindow) {
-        mainWindow = new BrowserWindow({
-            width: 1000,
-            titleBarStyle: 'hidden',
-            height: 600
-        });
+export const createMainWindow = (cb) => {
+    if (mainWindow) {
+        return cb && cb(mainWindow);
     }
 
-    resolve(mainWindow);
+    mainWindow = new BrowserWindow({
+        width: 1000,
+        height: 600,
+        titleBarStyle: 'hidden'
+    });
+
+    afterMainWindow(mainWindow);
+
+    mainWindow.loadURL(url.format({
+        pathname: path.join(__dirname, 'public', 'app.html'),
+        protocol: 'file:',
+        slashes: true
+    }));
+
+    if (env.name === 'development') {
+        mainWindow.openDevTools();
+    }
+
+    return cb && cb(mainWindow);
+};
+
+export const getMainWindow = () => new Promise((resolve) => {
+    if (app.isReady()) {
+        return createMainWindow(resolve);
+    }
+
+    app.on('ready', () => createMainWindow(resolve));
 });

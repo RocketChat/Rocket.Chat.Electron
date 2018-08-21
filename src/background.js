@@ -7,7 +7,7 @@ import { app, ipcMain, Menu } from 'electron';
 
 import { canUpdate, checkForUpdates } from './background/autoUpdate';
 import certificate from './background/certificate';
-import { createMainWindow, getMainWindow } from './background/mainWindow';
+import { addServer, createMainWindow, getMainWindow } from './background/mainWindow';
 import './background/screenshare';
 
 import i18n from './i18n/index.js';
@@ -68,20 +68,11 @@ const parseProtocolUrls = (args) =>
             return `${ insecure === 'true' ? 'http' : 'https' }://${ hostname }${ pathname || '' }`;
         });
 
-const addServers = (serverUrls) => {
-    getMainWindow().then((mainWindow) => {
-        serverUrls.forEach(serverUrl => mainWindow.send('add-host', serverUrl));
-
-        if (mainWindow.isMinimized()) {
-            mainWindow.restore();
-        }
-
-        mainWindow.show();
-    });
-};
+const addServers = (protocolUrls) => parseProtocolUrls(protocolUrls)
+    .forEach(serverUrl => addServer(serverUrl));
 
 const isSecondInstance = app.makeSingleInstance((argv) => {
-    addServers(parseProtocolUrls(argv.slice(2)));
+    addServers(argv.slice(2));
 });
 
 if (isSecondInstance) {
@@ -91,7 +82,7 @@ if (isSecondInstance) {
 // macOS only
 app.on('open-url', (event, url) => {
     event.preventDefault();
-    addServers(parseProtocolUrls([ url ]));
+    addServers([ url ]);
 });
 
 app.on('ready', () => {

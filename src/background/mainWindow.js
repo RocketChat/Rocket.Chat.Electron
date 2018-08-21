@@ -21,7 +21,7 @@ const mainWindowOptions = {
     show: false
 };
 
-function afterMainWindow (mainWindow) {
+const attachWindowStateHandling = (mainWindow) => {
     const mainWindowState = windowStateKeeper('main', mainWindowOptions);
 
     mainWindow.once('ready-to-show', () => mainWindowState.loadState(mainWindow));
@@ -65,21 +65,18 @@ function afterMainWindow (mainWindow) {
     mainWindow.on('move', function () {
         mainWindowState.saveState(mainWindow);
     });
+};
 
-    mainWindow.webContents.on('will-navigate', function (event) {
-        event.preventDefault();
-    });
-
+const attachIpcMessageHandling = (mainWindow) => {
     ipcMain.on('focus', () => {
         mainWindow.show();
-        mainWindowState.saveState(mainWindow);
     });
 
     ipcMain.on('update-taskbar-icon', (event, data, text) => {
         const img = nativeImage.createFromDataURL(data);
         mainWindow.setOverlayIcon(img, text);
     });
-}
+};
 
 export const createMainWindow = (cb) => {
     if (mainWindow) {
@@ -88,14 +85,20 @@ export const createMainWindow = (cb) => {
     }
 
     mainWindow = new BrowserWindow(mainWindowOptions);
+    attachWindowStateHandling(mainWindow);
+    attachIpcMessageHandling(mainWindow);
 
-    afterMainWindow(mainWindow);
+    mainWindow.webContents.on('will-navigate', (event) => {
+        event.preventDefault();
+    });
 
-    mainWindow.loadURL(url.format({
+    const appUrl = url.format({
         pathname: path.join(__dirname, 'public', 'app.html'),
         protocol: 'file:',
         slashes: true
-    }));
+    });
+
+    mainWindow.loadURL(appUrl);
 
     if (env.name === 'development') {
         mainWindow.openDevTools();
@@ -111,4 +114,14 @@ export const getMainWindow = () => new Promise((resolve) => {
     }
 
     app.on('ready', () => createMainWindow(resolve));
+});
+
+export const addServer = (serverUrl) => getMainWindow().then((mainWindow) => {
+    mainWindow.send('add-host', serverUrl);
+
+    mainWindow.show();
+
+    if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+    }
 });

@@ -27,7 +27,6 @@ function afterMainWindow (mainWindow) {
     if (mainWindowState.width !== undefined && mainWindowState.height !== undefined) {
         mainWindow.setSize(mainWindowState.width, mainWindowState.height, false);
     }
-    mainWindow.setMinimumSize(600, 400);
 
     if (mainWindowState.isMaximized) {
         mainWindow.maximize();
@@ -113,6 +112,8 @@ export const createMainWindow = (cb) => {
     mainWindow = new BrowserWindow({
         width: 1000,
         height: 600,
+        minWidth: 600,
+        minHeight: 400,
         titleBarStyle: 'hidden'
     });
 

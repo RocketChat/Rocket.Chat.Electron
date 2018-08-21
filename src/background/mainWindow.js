@@ -3,13 +3,11 @@
 // It doesn't have any windows which you can see on screen, but we can open
 // window from here.
 
-import { app, BrowserWindow, ipcMain, nativeImage, } from 'electron';
+import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
 import windowStateKeeper from './windowState';
 import certificate from './certificate';
 import idle from '@paulcbetts/system-idle-time';
 import { canUpdate, checkForUpdates } from './autoUpdate';
-
-process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
 export function afterMainWindow (mainWindow) {
     // Preserver of the window size and position between app launches.

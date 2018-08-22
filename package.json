@@ -25,7 +25,7 @@
       "servers.json"
     ],
     "mac": {
-      "bundleVersion": "28",
+      "bundleVersion": "30",
       "helperBundleId": "chat.rocket.electron.helper",
       "category": "public.app-category.productivity",
       "target": [
@@ -115,7 +115,7 @@
     "conventional-changelog-cli": "^2.0.5",
     "css-loader": "^1.0.0",
     "electron": "^2.0.7",
-    "electron-builder": "^20.28.1",
+    "electron-builder": "^20.28.2",
     "electron-mocha": "^6.0.4",
     "eslint": "^5.4.0",
     "gulp": "^3.9.1",

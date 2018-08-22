@@ -185,36 +185,7 @@ app-builder-bin@2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/app-builder-bin/-/app-builder-bin-2.1.2.tgz#528ce8e543aa595210c9595f91bdf5638cecd79b"
 
-app-builder-lib@20.28.1:
-  version "20.28.1"
-  resolved "https://registry.yarnpkg.com/app-builder-lib/-/app-builder-lib-20.28.1.tgz#df3aa47ba8bdbde75a4040f1d5500290f599cf70"
-  dependencies:
-    "7zip-bin" "~4.0.2"
-    app-builder-bin "2.1.2"
-    async-exit-hook "^2.0.1"
-    bluebird-lst "^1.0.5"
-    builder-util "6.1.1"
-    builder-util-runtime "4.4.1"
-    chromium-pickle-js "^0.2.0"
-    debug "^3.1.0"
-    ejs "^2.6.1"
-    electron-osx-sign "0.4.10"
-    electron-publish "20.28.0"
-    fs-extra-p "^4.6.1"
-    hosted-git-info "^2.7.1"
-    is-ci "^1.1.0"
-    isbinaryfile "^3.0.3"
-    js-yaml "^3.12.0"
-    lazy-val "^1.0.3"
-    minimatch "^3.0.4"
-    normalize-package-data "^2.4.0"
-    plist "^3.0.1"
-    read-config-file "3.1.2"
-    sanitize-filename "^1.6.1"
-    semver "^5.5.0"
-    temp-file "^3.1.3"
-
-app-builder-lib@~20.28.0:
+app-builder-lib@20.28.2, app-builder-lib@~20.28.0:
   version "20.28.2"
   resolved "https://registry.yarnpkg.com/app-builder-lib/-/app-builder-lib-20.28.2.tgz#5e126190acc17f53d9b2f3e3f5a99f07c35263f3"
   dependencies:
@@ -651,25 +622,6 @@ builder-util-runtime@4.4.1, builder-util-runtime@^4.4.1, builder-util-runtime@~4
     fs-extra-p "^4.6.1"
     sax "^1.2.4"
 
-builder-util@6.1.1:
-  version "6.1.1"
-  resolved "https://registry.yarnpkg.com/builder-util/-/builder-util-6.1.1.tgz#2c419674eb168fc4184124933e65657d19d2d3ec"
-  dependencies:
-    "7zip-bin" "~4.0.2"
-    app-builder-bin "2.1.2"
-    bluebird-lst "^1.0.5"
-    builder-util-runtime "^4.4.1"
-    chalk "^2.4.1"
-    debug "^3.1.0"
-    fs-extra-p "^4.6.1"
-    is-ci "^1.1.0"
-    js-yaml "^3.12.0"
-    lazy-val "^1.0.3"
-    semver "^5.5.0"
-    source-map-support "^0.5.8"
-    stat-mode "^0.2.2"
-    temp-file "^3.1.3"
-
 builder-util@6.1.2, builder-util@~6.1.0:
   version "6.1.2"
   resolved "https://registry.yarnpkg.com/builder-util/-/builder-util-6.1.2.tgz#c96db6b33f9f60603c0ccd298dd25bba1eb3596a"
@@ -824,8 +776,8 @@ chromium-pickle-js@^0.2.0:
   resolved "https://registry.yarnpkg.com/chromium-pickle-js/-/chromium-pickle-js-0.2.0.tgz#04a106672c18b085ab774d983dfa3ea138f22205"
 
 ci-info@^1.3.0:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/ci-info/-/ci-info-1.3.1.tgz#da21bc65a5f0d0d250c19a169065532b42fa048c"
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/ci-info/-/ci-info-1.4.0.tgz#4841d53cad49f11b827b648ebde27a6e189b412f"
 
 circular-json@^0.3.1:
   version "0.3.3"
@@ -1014,12 +966,12 @@ conventional-changelog-atom@^2.0.0:
   dependencies:
     q "^1.5.1"
 
-conventional-changelog-cli@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/conventional-changelog-cli/-/conventional-changelog-cli-2.0.1.tgz#1bceb924a063b05757e131e93d6674bd7d3f5bc7"
+conventional-changelog-cli@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/conventional-changelog-cli/-/conventional-changelog-cli-2.0.5.tgz#37c2477ea43522a5f63e52ad977d8c9e1f863211"
   dependencies:
     add-stream "^1.0.0"
-    conventional-changelog "^2.0.1"
+    conventional-changelog "^2.0.3"
     lodash "^4.2.1"
     meow "^4.0.0"
     tempfile "^1.1.1"
@@ -1030,9 +982,9 @@ conventional-changelog-codemirror@^2.0.0:
   dependencies:
     q "^1.5.1"
 
-conventional-changelog-core@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/conventional-changelog-core/-/conventional-changelog-core-3.0.0.tgz#228bc97f436bbdde3fd6009557d16ce04497512c"
+conventional-changelog-core@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/conventional-changelog-core/-/conventional-changelog-core-3.1.0.tgz#96a81bb3301b4b2a3dc2851cc54c5fb674ac1942"
   dependencies:
     conventional-changelog-writer "^4.0.0"
     conventional-commits-parser "^3.0.0"
@@ -1048,9 +1000,9 @@ conventional-changelog-core@^3.0.0:
     read-pkg-up "^1.0.1"
     through2 "^2.0.0"
 
-conventional-changelog-ember@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/conventional-changelog-ember/-/conventional-changelog-ember-2.0.0.tgz#4104571fc8871bcf08501a3d5252b25d1a9a070c"
+conventional-changelog-ember@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/conventional-changelog-ember/-/conventional-changelog-ember-2.0.1.tgz#5a5595b9ed50a6daca4bd3508a47ffe4a1a7152f"
   dependencies:
     q "^1.5.1"
 
@@ -1085,9 +1037,9 @@ conventional-changelog-jshint@^2.0.0:
     compare-func "^1.3.1"
     q "^1.5.1"
 
-conventional-changelog-preset-loader@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/conventional-changelog-preset-loader/-/conventional-changelog-preset-loader-2.0.0.tgz#69fea3db554d9b2a95dcaf7c603c1a0a389a7603"
+conventional-changelog-preset-loader@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/conventional-changelog-preset-loader/-/conventional-changelog-preset-loader-2.0.1.tgz#d134734e0cc1b91b88b30586c5991f31442029f1"
 
 conventional-changelog-writer@^4.0.0:
   version "4.0.0"
@@ -1104,21 +1056,21 @@ conventional-changelog-writer@^4.0.0:
     split "^1.0.0"
     through2 "^2.0.0"
 
-conventional-changelog@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/conventional-changelog/-/conventional-changelog-2.0.1.tgz#0d8f0f9668eaeaa5edd612896e7f3cc4385b31c9"
+conventional-changelog@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/conventional-changelog/-/conventional-changelog-2.0.3.tgz#779cff582c0091d2b24574003eaa82ef5ddf653d"
   dependencies:
     conventional-changelog-angular "^1.6.6"
     conventional-changelog-atom "^2.0.0"
     conventional-changelog-codemirror "^2.0.0"
-    conventional-changelog-core "^3.0.0"
-    conventional-changelog-ember "^2.0.0"
+    conventional-changelog-core "^3.1.0"
+    conventional-changelog-ember "^2.0.1"
     conventional-changelog-eslint "^3.0.0"
     conventional-changelog-express "^2.0.0"
     conventional-changelog-jquery "^0.1.0"
     conventional-changelog-jscs "^0.1.0"
     conventional-changelog-jshint "^2.0.0"
-    conventional-changelog-preset-loader "^2.0.0"
+    conventional-changelog-preset-loader "^2.0.1"
 
 conventional-commits-filter@^2.0.0:
   version "2.0.0"
@@ -1427,18 +1379,18 @@ ejs@~2.5.6:
   version "2.5.9"
   resolved "https://registry.yarnpkg.com/ejs/-/ejs-2.5.9.tgz#7ba254582a560d267437109a68354112475b0ce5"
 
-electron-builder@^20.28.1:
-  version "20.28.1"
-  resolved "https://registry.yarnpkg.com/electron-builder/-/electron-builder-20.28.1.tgz#e87e71b74f3228d21e012d0b60ab7b0a384f5f25"
+electron-builder@^20.28.2:
+  version "20.28.2"
+  resolved "https://registry.yarnpkg.com/electron-builder/-/electron-builder-20.28.2.tgz#5ca19a117e9ee9c966ab4231958fe7463e598e62"
   dependencies:
-    app-builder-lib "20.28.1"
+    app-builder-lib "20.28.2"
     bluebird-lst "^1.0.5"
-    builder-util "6.1.1"
+    builder-util "6.1.2"
     builder-util-runtime "4.4.1"
     chalk "^2.4.1"
     dmg-builder "5.3.0"
     fs-extra-p "^4.6.1"
-    is-ci "^1.1.0"
+    is-ci "^1.2.0"
     lazy-val "^1.0.3"
     read-config-file "3.1.2"
     sanitize-filename "^1.6.1"
@@ -2669,7 +2621,7 @@ is-builtin-module@^1.0.0:
   dependencies:
     builtin-modules "^1.0.0"
 
-is-ci@^1.0.10, is-ci@^1.1.0, is-ci@^1.2.0:
+is-ci@^1.0.10, is-ci@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/is-ci/-/is-ci-1.2.0.tgz#3f4a08d6303a09882cef3f0fb97439c5f5ce2d53"
   dependencies:
@@ -4300,8 +4252,8 @@ remove-trailing-separator@^1.0.1:
   resolved "https://registry.yarnpkg.com/remove-trailing-separator/-/remove-trailing-separator-1.1.0.tgz#c24bce2a283adad5bc3f58e0d48249b92379d8ef"
 
 repeat-element@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/repeat-element/-/repeat-element-1.1.2.tgz#ef089a178d1483baae4d93eb98b4f9e4e11d990a"
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/repeat-element/-/repeat-element-1.1.3.tgz#782e0d825c0c5a3bb39731f84efee6b742e6b1ce"
 
 repeat-string@^1.5.2, repeat-string@^1.6.1:
   version "1.6.1"
@@ -4596,8 +4548,8 @@ source-map-resolve@^0.5.0, source-map-resolve@^0.5.1:
     urix "^0.1.0"
 
 source-map-support@^0.5.6, source-map-support@^0.5.8:
-  version "0.5.8"
-  resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.8.tgz#04f5581713a8a65612d0175fbf3a01f80a162613"
+  version "0.5.9"
+  resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.9.tgz#41bc953b2534267ea2d605bccfa7bfa3111ced5f"
   dependencies:
     buffer-from "^1.0.0"
     source-map "^0.6.0"
@@ -4833,7 +4785,7 @@ sumchecker@^2.0.2:
   dependencies:
     debug "^2.2.0"
 
-supports-color@5.4.0, supports-color@^5.3.0:
+supports-color@5.4.0:
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-5.4.0.tgz#1c6b337402c2137605efe19f10fec390f6faab54"
   dependencies:
@@ -4848,6 +4800,12 @@ supports-color@^3.1.0:
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-3.2.3.tgz#65ac0504b3954171d8a64946b2ae3cbb8a5f54f6"
   dependencies:
     has-flag "^1.0.0"
+
+supports-color@^5.3.0:
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-5.5.0.tgz#e2e69a44ac8772f78a1ec0b35b689df6530efc8f"
+  dependencies:
+    has-flag "^3.0.0"
 
 supports-color@~5.0.0:
   version "5.0.1"

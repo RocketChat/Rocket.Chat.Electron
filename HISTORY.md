@@ -1,3 +1,94 @@
+<a name="2.12.1"></a>
+## 2.12.1 (2018-08-14)
+
+### Bug Fixes
+
+- macOS dock badge fixed
+
+
+
+<a name="2.12.0"></a>
+# 2.12.0 (2018-08-04)
+
+
+### New Features
+
+- [#790](https://github.com/RocketChat/Rocket.Chat.Electron/pull/790) add pluralize
+- [#777](https://github.com/RocketChat/Rocket.Chat.Electron/pull/777) New image for error page
+- [#760](https://github.com/RocketChat/Rocket.Chat.Electron/pull/760) Notification on app icon
+- [#776](https://github.com/RocketChat/Rocket.Chat.Electron/pull/776) Updated with new logo
+
+
+### Bug Fixes
+
+- [#778](https://github.com/RocketChat/Rocket.Chat.Electron/pull/778) Add snap build back
+- [#791](https://github.com/RocketChat/Rocket.Chat.Electron/pull/791) Mac osx menubar color
+
+
+<details>
+<summary>Others</summary>
+
+- [#785](https://github.com/RocketChat/Rocket.Chat.Electron/pull/785) Replace last couple of icons
+</details>
+
+
+
+<a name="2.11.0"></a>
+# 2.11.0 (2018-06-10)
+
+
+### New Features
+
+- [#562](https://github.com/RocketChat/Rocket.Chat.Electron/pull/562) Add option to install language dictionaries
+- [#691](https://github.com/RocketChat/Rocket.Chat.Electron/pull/691) Add german translation
+
+
+### Bug Fixes
+
+- [#670](https://github.com/RocketChat/Rocket.Chat.Electron/pull/670) Add & to menu items to avoid alt-shift menu popup
+- [#685](https://github.com/RocketChat/Rocket.Chat.Electron/pull/685) CSS option in main.less
+- [#742](https://github.com/RocketChat/Rocket.Chat.Electron/pull/742) cve 2018 1000136
+- [#710](https://github.com/RocketChat/Rocket.Chat.Electron/pull/710) recompress PNG files lossless
+
+
+
+<a name="2.10.5"></a>
+## 2.10.5 (2018-02-07)
+
+### Bug Fixes
+- Dependencies updated
+
+
+
+<a name="2.10.4"></a>
+## 2.10.4 (2018-02-05)
+
+### Bug Fixes
+- macOS bundle version fixed
+
+
+
+<a name="2.10.3"></a>
+## 2.10.3 (2018-02-02)
+
+### Bug Fixes
+- Dependencies updated
+
+
+
+<a name="2.10.2"></a>
+## 2.10.2 (2018-01-26)
+
+
+<details>
+<summary>Others</summary>
+
+- [#521](https://github.com/RocketChat/Rocket.Chat.Electron/pull/521) Mas entitlements
+- [#520](https://github.com/RocketChat/Rocket.Chat.Electron/pull/520) npm deps update
+</details>
+
+
+
 <a name="2.10.1"></a>
 # 2.10.1 (2017-11-09)
 

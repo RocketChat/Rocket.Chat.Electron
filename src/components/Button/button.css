@@ -1,0 +1,17 @@
+.rcr-button {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0 1.5rem;
+    cursor: pointer;
+    text-align: center;
+    color: #ffffff;
+    border: 0px;
+}
+
+.rcr-button__primary {
+    background-color: #1d74f5;
+}
+
+.rcr-button__cancel {
+    background-color: #f5455c;
+}

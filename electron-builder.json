@@ -22,11 +22,12 @@
     ]
   },
   "nsis": {
-    "include": "build/win/installer.nsh",
     "oneClick": false,
     "perMachine": false,
     "allowElevation": true,
-    "allowToChangeInstallationDirectory": true
+    "allowToChangeInstallationDirectory": true,
+    "include": "build/win/installer.nsh",
+    "artifactName": "rocketchat-setup-${version}.${ext}"
   },
   "appx": {
     "backgroundColor": "#2f343d",
@@ -36,7 +37,8 @@
       "en-US",
       "en-GB",
       "pt-BR"
-    ]
+    ],
+    "artifactName": "rocketchat-setup-${version}.${ext}"
   },
   "linux": {
     "desktop": {

@@ -66,9 +66,7 @@
 </head>
 	<body>
 		<img src="images/icon.png">
-		<div class="app-name">
-
-		</div>
+		<div class="app-name"></div>
 		<div class="app-version"></div>
 
 		<div class="update-container">
@@ -83,21 +81,30 @@
 			document.querySelector('.app-name').innerHTML = remote.app.getName();
 			document.querySelector('.app-version').innerHTML = `${i18n.__('Version')} <span class="version">${remote.app.getVersion()}</span>`;
 
-			const canUpdate = !process.mas;
+			const canUpdate = ipcRenderer.sendSync('can-update');
 
 			if (canUpdate) {
-				const autoUpdate = ipcRenderer.sendSync('check-for-updates', 'auto');
-				if (!autoUpdate) {
+				const canAutoUpdate = ipcRenderer.sendSync('can-auto-update');
+
+				if (canAutoUpdate) {
+					document.querySelector('#auto-update').setAttribute('checked', 'checked');
+				} else {
 					document.querySelector('#auto-update').removeAttribute('checked');
 				}
+
+				const canSetAutoUpdate = ipcRenderer.sendSync('can-set-auto-update');
+				if (canSetAutoUpdate) {
+					document.querySelector('#auto-update').addEventListener('change', (event) => {
+						ipcRenderer.send('set-auto-update', event.target.checked);
+					});
+				} else {
+					document.querySelector('#auto-update').setAttribute('disabled', 'disabled');
+				}
+
 				document.querySelector('.update').onclick = function(e) {
 					document.querySelector('.update-spin').setAttribute('style', '');
 					document.querySelector('.update').setAttribute('disabled', 'disabled');
 					ipcRenderer.send('check-for-updates');
-				};
-
-				document.querySelector('#auto-update').onclick = function(e) {
-					ipcRenderer.send('check-for-updates', e.target.checked);
 				};
 
 				ipcRenderer.on('update-result', (e, updateAvailable) => {

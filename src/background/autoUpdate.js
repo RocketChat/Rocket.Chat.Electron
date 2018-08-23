@@ -3,19 +3,41 @@ import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';
 import i18n from '../i18n/index.js';
 
-const installDir = jetpack.cwd(app.getAppPath());
+const appDir = jetpack.cwd(app.getAppPath());
 const userDataDir = jetpack.cwd(app.getPath('userData'));
-const updateStoreFile = 'update.json';
-let checkForUpdatesEvent;
+const updateSettingsFileName = 'update.json';
 
-let updateFile = {};
-try {
-    const installUpdateFile = installDir.read(updateStoreFile, 'json');
-    const userUpdateFile = userDataDir.read(updateStoreFile, 'json');
-    updateFile = Object.assign({}, installUpdateFile, userUpdateFile);
-} catch (err) {
-    console.error(err);
-}
+const loadUpdateSettings = (dir) => {
+    try {
+        return dir.read(updateSettingsFileName, 'json') || {};
+    } catch (error) {
+        console.error(error);
+        return {};
+    }
+};
+
+const appUpdateSettings = loadUpdateSettings(appDir);
+const userUpdateSettings = loadUpdateSettings(userDataDir);
+const updateSettings = (() => {
+    const defaultUpdateSettings = { autoUpdate: true };
+
+    if (appUpdateSettings.forced) {
+        return Object.assign({}, defaultUpdateSettings, appUpdateSettings);
+    } else {
+        return Object.assign({}, defaultUpdateSettings, appUpdateSettings, userUpdateSettings);
+    }
+})();
+delete updateSettings.forced;
+
+const saveUpdateSettings = () => {
+    if (appUpdateSettings.forced) {
+        return;
+    }
+
+    userDataDir.write(updateSettingsFileName, userUpdateSettings, { atomic: true });
+};
+
+let checkForUpdatesEvent;
 
 function updateDownloaded () {
     dialog.showMessageBox({
@@ -50,7 +72,7 @@ function updateAvailable ({version}) {
     if (checkForUpdatesEvent) {
         checkForUpdatesEvent.sender.send('update-result', true);
         checkForUpdatesEvent = null;
-    } else if (updateFile.skip === version) {
+    } else if (updateSettings.skip === version) {
         return;
     }
 
@@ -76,8 +98,8 @@ function updateAvailable ({version}) {
     ipcMain.once('update-response', (e, type) => {
         switch (type) {
             case 'skip':
-                updateFile.skip = version;
-                userDataDir.write(updateStoreFile, updateFile, { atomic: true });
+                userUpdateSettings.skip = version;
+                saveUpdateSettings();
                 dialog.showMessageBox({
                     title: i18n.__('Update_skip'),
                     message: i18n.__('Update_skip_message')
@@ -110,11 +132,11 @@ export const canUpdate = () =>
     (process.platform === 'win32' && !process.windowsStore) &&
     (process.platform === 'darwin' && !process.mas);
 
-export const canAutoUpdate = () => updateFile.autoUpdate !== false;
+export const canAutoUpdate = () => updateSettings.autoUpdate !== false;
 
 export const setAutoUpdate = (canAutoUpdate) => {
-    updateFile.autoUpdate = Boolean(canAutoUpdate);
-    userDataDir.write(updateStoreFile, updateFile, { atomic: true });
+    userUpdateSettings.autoUpdate = Boolean(canAutoUpdate);
+    saveUpdateSettings();
 };
 
 ipcMain.on('can-update', (event) => {

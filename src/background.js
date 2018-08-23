@@ -1,111 +1,112 @@
-// This is main process of Electron, started as first thing when your
-// app starts. This script is running through entire life of your application.
-// It doesn't have any windows which you can see on screen, but we can open
-// window from here.
-
 import path from 'path';
+import querystring from 'querystring';
 import url from 'url';
-import { app, Menu, BrowserWindow } from 'electron';
-import { devMenuTemplate } from './menu/dev_menu_template';
-import { editMenuTemplate } from './menu/edit_menu_template';
-import './background/certificate';
+import jetpack from 'fs-jetpack';
+import idle from '@paulcbetts/system-idle-time';
+import { app, ipcMain, Menu } from 'electron';
+
+import { canUpdate, checkForUpdates } from './background/autoUpdate';
+import certificate from './background/certificate';
+import { addServer, createMainWindow, getMainWindow } from './background/mainWindow';
+import './background/screenshare';
+
+import i18n from './i18n/index.js';
+import env from './env';
 
 export { default as remoteServers } from './background/servers';
 export { default as certificate } from './background/certificate';
-import { afterMainWindow } from './background.custom';
 
-// Special module holding environment variables which you declared
-// in config/env_xxx.json file.
-import env from './env';
+process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
-const setApplicationMenu = function () {
-    const menus = [editMenuTemplate];
-    if (env.name !== 'production') {
-        menus.push(devMenuTemplate);
+const isMacOS = process.platform === 'darwin';
+
+const unsetDefaultApplicationMenu = () => {
+    if (!isMacOS) {
+        Menu.setApplicationMenu(null);
+        return;
     }
-    Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
+
+    const emptyMenuTemplate = [{
+        submenu: [
+            {
+                label: i18n.__('Quit_App', app.getName()),
+                accelerator: 'CommandOrControl+Q',
+                click () {
+                    app.quit();
+                }
+            }
+        ]
+    }];
+    Menu.setApplicationMenu(Menu.buildFromTemplate(emptyMenuTemplate));
 };
 
-// Save userData in separate folders for each environment.
-// Thanks to this you can use production and development versions of the app
-// on same machine like those are two separate apps.
-if (env.name !== 'production') {
-    const userDataPath = app.getPath('userData');
-    app.setPath('userData', userDataPath + ' (' + env.name + ')');
-}
+const setUserDataPath = () => {
+    const appName = app.getName();
+    const dirName = env.name === 'production' ? appName : `${ appName } (${ env.name })`;
 
-const processProtocolArgv = (argv) => {
-    const protocolURI = argv.find(arg => arg.startsWith('rocketchat://'));
-    if (protocolURI) {
-        const site = protocolURI.split(/\/|\?/)[2];
-        if (site) {
-            let scheme = 'https://';
-            if (protocolURI.includes('insecure=true')) {
-                scheme = 'http://';
-            }
-            return scheme + site;
-        }
+    app.setPath('userData', path.join(app.getPath('appData'), dirName));
+};
+
+const migrateOlderVersionUserData = () => {
+    const olderAppName = 'Rocket.Chat+';
+    const dirName = env.name === 'production' ? olderAppName : `${ olderAppName } (${ env.name })`;
+    const olderUserDataPath = path.join(app.getPath('appData'), dirName);
+
+    try {
+        jetpack.copy(olderUserDataPath, app.getPath('userData'), { overwrite: true });
+        jetpack.remove(olderUserDataPath);
+    } catch (e) {
+        return;
     }
 };
 
-let mainWindow = null;
-const appIsReady = new Promise(resolve => {
-    if (app.isReady()) {
-        resolve();
-    } else {
-        app.on('ready', resolve);
-    }
-});
-if (process.platform === 'darwin') {
-    // Open protocol urls on mac as open-url is not yet implemented on other OS's
-    app.on('open-url', function (e, url) {
-        e.preventDefault();
-        const site = processProtocolArgv([url]);
-        if (site) {
-            appIsReady.then(() => setTimeout(() => mainWindow.send('add-host', site), 750));
-        }
-    });
-} else {
-    const isSecondInstance = app.makeSingleInstance((argv) => {
-        // Someone tried to run a second instance, we should focus our window.
-        const site = processProtocolArgv(argv);
-        if (site) {
-            appIsReady.then(() => mainWindow.send('add-host', site));
-        }
-        if (mainWindow) {
-            if (mainWindow.isMinimized()) {
-                mainWindow.restore();
-            }
-            mainWindow.show();
-        }
-    });
-    if (isSecondInstance) {
-        app.quit();
-    }
-}
+const parseProtocolUrls = (args) =>
+    args.filter(arg => /^rocketchat:\/\/./.test(arg))
+        .map(uri => url.parse(uri))
+        .map(({ hostname, pathname, query }) => {
+            const { insecure } = querystring.parse(query);
+            return `${ insecure === 'true' ? 'http' : 'https' }://${ hostname }${ pathname || '' }`;
+        });
 
-app.on('ready', function () {
-    setApplicationMenu();
+const addServers = (protocolUrls) => parseProtocolUrls(protocolUrls)
+    .forEach(serverUrl => addServer(serverUrl));
 
-    mainWindow = new BrowserWindow({
-        width: 1000,
-        titleBarStyle: 'hidden',
-        height: 600
-    });
-
-    afterMainWindow(mainWindow);
-
-    mainWindow.loadURL(url.format({
-        pathname: path.join(__dirname, 'public', 'app.html'),
-        protocol: 'file:',
-        slashes: true
-    }));
-
-    if (env.name === 'development') {
-        mainWindow.openDevTools();
-    }
+const isSecondInstance = app.makeSingleInstance((argv) => {
+    addServers(argv.slice(2));
 });
 
-app.on('window-all-closed', function () {
+if (isSecondInstance) {
     app.quit();
+}
+
+// macOS only
+app.on('open-url', (event, url) => {
+    event.preventDefault();
+    addServers([ url ]);
+});
+
+app.on('ready', () => {
+    unsetDefaultApplicationMenu();
+    setUserDataPath();
+    migrateOlderVersionUserData();
+
+    if (!app.isDefaultProtocolClient('rocketchat')) {
+        app.setAsDefaultProtocolClient('rocketchat');
+    }
+
+    createMainWindow();
+
+    getMainWindow().then(mainWindow => certificate.initWindow(mainWindow));
+
+    if (canUpdate()) {
+        checkForUpdates();
+    }
+});
+
+app.on('window-all-closed', () => {
+    app.quit();
+});
+
+ipcMain.on('getSystemIdleTime', (event) => {
+    event.returnValue = idle.getIdleTime();
 });

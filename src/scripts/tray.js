@@ -150,9 +150,9 @@ function showTrayAlert (badge, status = 'online') {
         if (remote.systemPreferences.isDarkMode()) {
             countColor = messageCountColor['white'];
         }
-        
+
         let trayTitle = `${statusBullet[status]}`;
-        if(hasMentions) {
+        if (hasMentions) {
             trayTitle = `${statusBullet[status]} ${countColor}${badge.title}`;
         }
         mainWindow.tray.setTitle(trayTitle);

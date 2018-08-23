@@ -4,40 +4,50 @@
 
 import { app } from 'electron';
 import jetpack from 'fs-jetpack';
-import _ from 'lodash';
+import { debounce } from 'lodash';
 
 export default function (name, defaults) {
 
-    const userDataDir = jetpack.cwd(app.getPath('userData'));
-    const stateStoreFile = `window-state-${name}.json`;
     let state = {
         width: defaults.width,
         height: defaults.height
     };
 
+    const userDataDir = jetpack.cwd(app.getPath('userData'));
+    const stateStoreFile = `window-state-${name}.json`;
+
     try {
-        const loadedState = userDataDir.read(stateStoreFile, 'json');
-        if (loadedState) {
-            state = loadedState;
-        }
+        state = userDataDir.read(stateStoreFile, 'json') || state;
     } catch (err) {
-        // For some reason json can't be read.
-        // No worries, we have defaults.
+        console.error(`Failed to load "${ name }" window state`);
+        console.error(err);
     }
 
-    const saveState = function (win) {
-        if (!win.isMaximized() && !win.isMinimized() && win.isVisible()) {
-            const position = win.getPosition();
-            const size = win.getSize();
-            state.x = position[0];
-            state.y = position[1];
-            state.width = size[0];
-            state.height = size[1];
+    const saveState = function (window) {
+        state.isMaximized = window.isMaximized();
+        state.isMinimized = window.isMinimized();
+        state.isHidden = !window.isMinimized() && !window.isVisible();
+
+        if (!state.isMaximized && !state.isHidden) {
+            [ state.x, state.y ] = window.getPosition();
+            [ state.width, state.height ] = window.getSize();
         }
-        state.isMaximized = win.isMaximized();
-        state.isMinimized = win.isMinimized();
-        state.isHidden = !win.isMinimized() && !win.isVisible();
+
         userDataDir.write(stateStoreFile, state, { atomic: true });
+    };
+
+    const loadState = function (window) {
+        if (this.x !== undefined && this.y !== undefined) {
+            window.setPosition(this.x, this.y, false);
+        }
+
+        if (this.width !== undefined && this.height !== undefined) {
+            window.setSize(this.width, this.height, false);
+        }
+
+        this.isMaximized ? window.maximize() : window.unmaximize();
+        this.isMinimized ? window.minimize() : window.restore();
+        this.isHidden ? window.hide() : window.show();
     };
 
     return {
@@ -48,6 +58,7 @@ export default function (name, defaults) {
         get isMaximized () { return state.isMaximized; },
         get isMinimized () { return state.isMinimized; },
         get isHidden () { return state.isHidden; },
-        saveState: _.debounce(saveState, 1000)
+        saveState: debounce(saveState, 1000),
+        loadState
     };
 }

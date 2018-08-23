@@ -92,9 +92,14 @@
 					document.querySelector('#auto-update').removeAttribute('checked');
 				}
 
-				document.querySelector('#auto-update').addEventListener('change', (event) => {
-					ipcRenderer.send('set-auto-update', event.target.checked);
-				});
+				const canSetAutoUpdate = ipcRenderer.sendSync('can-set-auto-update');
+				if (canSetAutoUpdate) {
+					document.querySelector('#auto-update').addEventListener('change', (event) => {
+						ipcRenderer.send('set-auto-update', event.target.checked);
+					});
+				} else {
+					document.querySelector('#auto-update').setAttribute('disabled', 'disabled');
+				}
 
 				document.querySelector('.update').onclick = function(e) {
 					document.querySelector('.update-spin').setAttribute('style', '');

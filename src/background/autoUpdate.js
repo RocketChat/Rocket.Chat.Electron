@@ -134,8 +134,14 @@ export const canUpdate = () =>
 
 export const canAutoUpdate = () => updateSettings.autoUpdate !== false;
 
+export const canSetAutoUpdate = () => !appUpdateSettings.forced || appUpdateSettings.autoUpdate !== false;
+
 export const setAutoUpdate = (canAutoUpdate) => {
-    userUpdateSettings.autoUpdate = Boolean(canAutoUpdate);
+    if (!canSetAutoUpdate()) {
+        return;
+    }
+
+    updateSettings.autoUpdate = userUpdateSettings.autoUpdate = Boolean(canAutoUpdate);
     saveUpdateSettings();
 };
 
@@ -145,6 +151,10 @@ ipcMain.on('can-update', (event) => {
 
 ipcMain.on('can-auto-update', (event) => {
     event.returnValue = canAutoUpdate();
+});
+
+ipcMain.on('can-set-auto-update', (event) => {
+    event.returnValue = canSetAutoUpdate();
 });
 
 ipcMain.on('set-auto-update', (event, canAutoUpdate) => {

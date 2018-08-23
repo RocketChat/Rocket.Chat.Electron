@@ -7,18 +7,18 @@ module.exports = {
         filename: 'preferences.js'
     },
     module: {
-      rules: [
-        {
-          test: /\.js$/,
-          exclude: /node_modules/,
-          use: {
-            loader: "babel-loader"
-          }
-        },
-        {
-            test: /\.css$/,
-            use: ['style-loader','css-loader']
-        }
-      ]
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: "babel-loader"
+                }
+            },
+            {
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader']
+            }
+        ]
     }
 };

@@ -8,8 +8,6 @@ const userDataDir = jetpack.cwd(app.getPath('userData'));
 const updateStoreFile = 'update.json';
 let checkForUpdatesEvent;
 
-autoUpdater.autoDownload = false;
-
 let updateFile = {};
 try {
     const installUpdateFile = installDir.read(updateStoreFile, 'json');
@@ -107,36 +105,44 @@ function updateAvailable ({version}) {
     });
 }
 
-const canUpdate = () =>
+export const canUpdate = () =>
     (process.platform === 'linux' && Boolean(process.env.APPIMAGE)) &&
     (process.platform === 'win32' && !process.windowsStore) &&
     (process.platform === 'darwin' && !process.mas);
 
-function checkForUpdates () {
-    autoUpdater.on('update-available', updateAvailable);
-    autoUpdater.on('update-not-available', updateNotAvailable);
+export const canAutoUpdate = () => updateFile.autoUpdate !== false;
 
-    autoUpdater.on('update-downloaded', updateDownloaded);
+export const setAutoUpdate = (canAutoUpdate) => {
+    updateFile.autoUpdate = Boolean(canAutoUpdate);
+    userDataDir.write(updateStoreFile, updateFile, { atomic: true });
+};
 
-    // Event from about window
-    ipcMain.on('check-for-updates', (e, autoUpdate) => {
-        if (autoUpdate === true || autoUpdate === false) {
-            updateFile.autoUpdate = autoUpdate;
-            userDataDir.write(updateStoreFile, updateFile, { atomic: true });
-        } else if (autoUpdate === 'auto') {
-            e.returnValue = updateFile.autoUpdate !== false;
-        } else {
-            checkForUpdatesEvent = e;
-            autoUpdater.checkForUpdates();
-        }
-    });
+ipcMain.on('can-update', (event) => {
+    event.returnValue = canUpdate();
+});
 
-    if (updateFile.autoUpdate !== false) {
+ipcMain.on('can-auto-update', (event) => {
+    event.returnValue = canAutoUpdate();
+});
+
+ipcMain.on('set-auto-update', (event, canAutoUpdate) => {
+    setAutoUpdate(canAutoUpdate);
+});
+
+autoUpdater.autoDownload = false;
+autoUpdater.on('update-available', updateAvailable);
+autoUpdater.on('update-not-available', updateNotAvailable);
+autoUpdater.on('update-downloaded', updateDownloaded);
+
+ipcMain.on('check-for-updates', (event) => {
+    if (canAutoUpdate() && canUpdate()) {
+        checkForUpdatesEvent = event;
         autoUpdater.checkForUpdates();
     }
-}
+});
 
-export {
-    canUpdate,
-    checkForUpdates
+export default () => {
+    if (canAutoUpdate() && canUpdate()) {
+        autoUpdater.checkForUpdates();
+    }
 };

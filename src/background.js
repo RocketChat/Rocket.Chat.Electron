@@ -5,7 +5,7 @@ import jetpack from 'fs-jetpack';
 import idle from '@paulcbetts/system-idle-time';
 import { app, ipcMain, Menu } from 'electron';
 
-import { canUpdate, checkForUpdates } from './background/autoUpdate';
+import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
 import { addServer, createMainWindow, getMainWindow } from './background/mainWindow';
 import './background/screenshare';
@@ -98,9 +98,7 @@ app.on('ready', () => {
 
     getMainWindow().then(mainWindow => certificate.initWindow(mainWindow));
 
-    if (canUpdate()) {
-        checkForUpdates();
-    }
+    autoUpdate();
 });
 
 app.on('window-all-closed', () => {

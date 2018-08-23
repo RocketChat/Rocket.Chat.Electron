@@ -107,9 +107,10 @@ function updateAvailable ({version}) {
     });
 }
 
-function canUpdate () {
-    return !process.mas;
-}
+const canUpdate = () =>
+    (process.platform === 'linux' && Boolean(process.env.APPIMAGE)) &&
+    (process.platform === 'win32' && !process.windowsStore) &&
+    (process.platform === 'darwin' && !process.mas);
 
 function checkForUpdates () {
     autoUpdater.on('update-available', updateAvailable);

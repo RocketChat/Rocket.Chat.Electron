@@ -1,0 +1,63 @@
+{
+  "appId": "chat.rocket",
+  "files": [
+    "app/**/*",
+    "node_modules/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    "dictionaries/**/*",
+    "build/icon.ico",
+    "servers.json"
+  ],
+  "mac": {
+    "bundleVersion": "30",
+    "helperBundleId": "chat.rocket.electron.helper",
+    "category": "public.app-category.productivity",
+    "target": [
+      "default",
+      "pkg",
+      "mas"
+    ],
+    "artifactName": "rocketchat-${version}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowElevation": true,
+    "allowToChangeInstallationDirectory": true,
+    "artifactName": "rocketchat-setup-${version}.${ext}"
+  },
+  "appx": {
+    "backgroundColor": "#2f343d",
+    "displayName": "Rocket.Chat",
+    "publisherDisplayName": "Rocket.Chat",
+    "languages": [
+      "en-US",
+      "en-GB",
+      "pt-BR"
+    ],
+    "artifactName": "rocketchat-setup-${version}.${ext}"
+  },
+  "linux": {
+    "desktop": {
+      "StartupWMClass": "Rocket.Chat",
+      "MimeType": "x-scheme-handler/rocketchat"
+    },
+    "category": "GNOME;GTK;Network;InstantMessaging",
+    "target": [
+      "tar.gz",
+      "deb",
+      "rpm",
+      "snap"
+    ]
+  },
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "RocketChat",
+      "repo": "Rocket.Chat.Electron",
+      "vPrefixedTagName": false
+    }
+  ]
+}

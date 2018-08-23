@@ -13,7 +13,8 @@ window.i18n = i18n;
 const defaultWindowOpen = window.open;
 
 function customWindowOpen (url, frameName, features) {
-    if (url.indexOf('meet.jit.si') !== -1) {
+    const jitsiDomain = RocketChat.settings.get('Jitsi_Domain');
+    if (jitsiDomain && url.indexOf(jitsiDomain) !== -1) {
         features = ((features) ? (features + ",") : "") +
             "nodeIntegration=true,preload=" + path.join(__dirname, 'jitsi-preload.js');
         return defaultWindowOpen(url, frameName, features);

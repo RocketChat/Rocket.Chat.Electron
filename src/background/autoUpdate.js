@@ -3,21 +3,41 @@ import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';
 import i18n from '../i18n/index.js';
 
-const installDir = jetpack.cwd(app.getAppPath());
+const appDir = jetpack.cwd(app.getAppPath());
 const userDataDir = jetpack.cwd(app.getPath('userData'));
-const updateStoreFile = 'update.json';
+const updateSettingsFileName = 'update.json';
+
+const loadUpdateSettings = (dir) => {
+    try {
+        return dir.read(updateSettingsFileName, 'json') || {};
+    } catch (error) {
+        console.error(error);
+        return {};
+    }
+};
+
+const appUpdateSettings = loadUpdateSettings(appDir);
+const userUpdateSettings = loadUpdateSettings(userDataDir);
+const updateSettings = (() => {
+    const defaultUpdateSettings = { autoUpdate: true };
+
+    if (appUpdateSettings.forced) {
+        return Object.assign({}, defaultUpdateSettings, appUpdateSettings);
+    } else {
+        return Object.assign({}, defaultUpdateSettings, appUpdateSettings, userUpdateSettings);
+    }
+})();
+delete updateSettings.forced;
+
+const saveUpdateSettings = () => {
+    if (appUpdateSettings.forced) {
+        return;
+    }
+
+    userDataDir.write(updateSettingsFileName, userUpdateSettings, { atomic: true });
+};
+
 let checkForUpdatesEvent;
-
-autoUpdater.autoDownload = false;
-
-let updateFile = {};
-try {
-    const installUpdateFile = installDir.read(updateStoreFile, 'json');
-    const userUpdateFile = userDataDir.read(updateStoreFile, 'json');
-    updateFile = Object.assign({}, installUpdateFile, userUpdateFile);
-} catch (err) {
-    console.error(err);
-}
 
 function updateDownloaded () {
     dialog.showMessageBox({
@@ -52,7 +72,7 @@ function updateAvailable ({version}) {
     if (checkForUpdatesEvent) {
         checkForUpdatesEvent.sender.send('update-result', true);
         checkForUpdatesEvent = null;
-    } else if (updateFile.skip === version) {
+    } else if (updateSettings.skip === version) {
         return;
     }
 
@@ -78,8 +98,8 @@ function updateAvailable ({version}) {
     ipcMain.once('update-response', (e, type) => {
         switch (type) {
             case 'skip':
-                updateFile.skip = version;
-                userDataDir.write(updateStoreFile, updateFile, { atomic: true });
+                userUpdateSettings.skip = version;
+                saveUpdateSettings();
                 dialog.showMessageBox({
                     title: i18n.__('Update_skip'),
                     message: i18n.__('Update_skip_message')
@@ -107,35 +127,54 @@ function updateAvailable ({version}) {
     });
 }
 
-function canUpdate () {
-    return !process.mas;
-}
+export const canUpdate = () =>
+    (process.platform === 'linux' && Boolean(process.env.APPIMAGE)) &&
+    (process.platform === 'win32' && !process.windowsStore) &&
+    (process.platform === 'darwin' && !process.mas);
 
-function checkForUpdates () {
-    autoUpdater.on('update-available', updateAvailable);
-    autoUpdater.on('update-not-available', updateNotAvailable);
+export const canAutoUpdate = () => updateSettings.autoUpdate !== false;
 
-    autoUpdater.on('update-downloaded', updateDownloaded);
+export const canSetAutoUpdate = () => !appUpdateSettings.forced || appUpdateSettings.autoUpdate !== false;
 
-    // Event from about window
-    ipcMain.on('check-for-updates', (e, autoUpdate) => {
-        if (autoUpdate === true || autoUpdate === false) {
-            updateFile.autoUpdate = autoUpdate;
-            userDataDir.write(updateStoreFile, updateFile, { atomic: true });
-        } else if (autoUpdate === 'auto') {
-            e.returnValue = updateFile.autoUpdate !== false;
-        } else {
-            checkForUpdatesEvent = e;
-            autoUpdater.checkForUpdates();
-        }
-    });
+export const setAutoUpdate = (canAutoUpdate) => {
+    if (!canSetAutoUpdate()) {
+        return;
+    }
 
-    if (updateFile.autoUpdate !== false) {
+    updateSettings.autoUpdate = userUpdateSettings.autoUpdate = Boolean(canAutoUpdate);
+    saveUpdateSettings();
+};
+
+ipcMain.on('can-update', (event) => {
+    event.returnValue = canUpdate();
+});
+
+ipcMain.on('can-auto-update', (event) => {
+    event.returnValue = canAutoUpdate();
+});
+
+ipcMain.on('can-set-auto-update', (event) => {
+    event.returnValue = canSetAutoUpdate();
+});
+
+ipcMain.on('set-auto-update', (event, canAutoUpdate) => {
+    setAutoUpdate(canAutoUpdate);
+});
+
+autoUpdater.autoDownload = false;
+autoUpdater.on('update-available', updateAvailable);
+autoUpdater.on('update-not-available', updateNotAvailable);
+autoUpdater.on('update-downloaded', updateDownloaded);
+
+ipcMain.on('check-for-updates', (event) => {
+    if (canAutoUpdate() && canUpdate()) {
+        checkForUpdatesEvent = event;
         autoUpdater.checkForUpdates();
     }
-}
+});
 
-export {
-    canUpdate,
-    checkForUpdates
+export default () => {
+    if (canAutoUpdate() && canUpdate()) {
+        autoUpdater.checkForUpdates();
+    }
 };

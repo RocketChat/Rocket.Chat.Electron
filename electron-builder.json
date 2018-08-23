@@ -15,11 +15,11 @@
     "helperBundleId": "chat.rocket.electron.helper",
     "category": "public.app-category.productivity",
     "target": [
-      "dmg",
+      "default",
       "pkg",
-      "zip",
       "mas"
-    ]
+    ],
+    "artifactName": "rocketchat-${version}.${ext}"
   },
   "nsis": {
     "oneClick": false,

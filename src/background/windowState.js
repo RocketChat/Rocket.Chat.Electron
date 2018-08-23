@@ -24,6 +24,10 @@ export default function (name, defaults) {
     }
 
     const saveState = function (window) {
+        if (window.isDestroyed()) {
+            return;
+        }
+
         state.isMaximized = window.isMaximized();
         state.isMinimized = window.isMinimized();
         state.isHidden = !window.isMinimized() && !window.isVisible();

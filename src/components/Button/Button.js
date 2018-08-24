@@ -1,6 +1,6 @@
-const React = require('react');
+import React from 'react';
 
-const style = require('./button.css');
+import style from './button.css';
 
 class Button extends React.Component {
     constructor(props) {

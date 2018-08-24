@@ -1,0 +1,16 @@
+.rcr-navigation-item {
+    padding: 10px 0px 10px 50px;
+}
+
+.rcr-navigation-item:active {
+    background-color: #8c9197;
+}
+
+.rcr-navigation-item:hover {
+    background-color: #8c9197;
+}
+
+.rcr-navigation-item a {
+    color: black;
+    text-decoration: none;
+}

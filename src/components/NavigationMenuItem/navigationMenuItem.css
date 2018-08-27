@@ -14,3 +14,18 @@
     color: black;
     text-decoration: none;
 }
+
+.rcr-navigation-item__link {
+    display: grid;
+    grid-template-columns: 25px auto;
+    grid-column-gap: 0px;
+}
+
+.rcr-navigation-item__title {
+    grid-column-start: 2;
+}
+
+.rcr-navigation-item__icon {
+    grid-column-start: 1;
+    grid-column-end: 1;
+}

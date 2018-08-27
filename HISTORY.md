@@ -1,3 +1,29 @@
+<a name="2.13.0"></a>
+# 2.13.0 (2018-08-27)
+
+
+### New Features
+
+- [#838](https://github.com/RocketChat/Rocket.Chat.Electron/pull/838) Russian translation
+- [#837](https://github.com/RocketChat/Rocket.Chat.Electron/pull/837) Auto update fixes and settings enforcement
+
+
+### Improvements
+
+- [#821](https://github.com/RocketChat/Rocket.Chat.Electron/pull/821) Always force download of uploaded files
+- [#824](https://github.com/RocketChat/Rocket.Chat.Electron/pull/824) Background process rearranged
+
+
+### Bug Fixes
+
+- [#817](https://github.com/RocketChat/Rocket.Chat.Electron/pull/817) Disabled update in builds for Mac App Store
+- [#836](https://github.com/RocketChat/Rocket.Chat.Electron/pull/836) Window state persistency
+- [#825](https://github.com/RocketChat/Rocket.Chat.Electron/pull/825) macOS menubar icon extra space removed
+- [#835](https://github.com/RocketChat/Rocket.Chat.Electron/pull/835) Support On-Premise Jitsi screen sharing
+- [#818](https://github.com/RocketChat/Rocket.Chat.Electron/pull/818) Fixed dock icon badge counter showing zero
+
+
+
 <a name="2.12.1"></a>
 ## 2.12.1 (2018-08-14)
 

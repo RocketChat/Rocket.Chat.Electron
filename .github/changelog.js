@@ -3,14 +3,10 @@ const { resolve } = require('path');
 const gitUrl = 'https://github.com/RocketChat/Rocket.Chat.Electron';
 
 const parserOpts = {
+	mergePattern: /^(Merge pull request #(\d+) from (.*)|(.*) \(#(\d+)\))$/,
+	mergeCorrespondence: ['_', 'pr', 'source', 'subject_squashed', 'pr_squashed'],
 	headerPattern: /^(\[([A-z]+)\] )?(.*)$/m,
-	headerCorrespondence: [
-		'stype',
-		'type',
-		'subject'
-	],
-	mergePattern: /^Merge pull request #(.*) from .*$/,
-	mergeCorrespondence: ['pr']
+	headerCorrespondence: ['stype', 'type', 'subject'],
 };
 
 const LABELS = {
@@ -20,6 +16,10 @@ const LABELS = {
 	},
 	NEW: {
 		title: 'New Features',
+		collapse: false
+	},
+	IMPROVE: {
+		title: 'Improvements',
 		collapse: false
 	},
 	FIX: {
@@ -40,8 +40,23 @@ const sort = Object.keys(LABELS);
 
 const writerOpts = {
 	transform: (commit) => {
-		if (!commit.pr) {
+		if (!commit.pr && !commit.pr_squashed) {
 			return;
+		}
+
+		if (commit.pr_squashed) {
+			commit.pr = commit.pr_squashed;
+			const matches = /^(\[([A-z]+)\] )?(.*)$/m.exec(commit.subject_squashed);
+			if (matches) {
+				commit.stype = matches[1];
+				commit.type = matches[2];
+				commit.subject = matches[3];
+			} else {
+				commit.subject = commit.subject_squashed;
+			}
+
+			delete commit.pr_squashed;
+			delete commit.subject_squashed;
 		}
 
 		commit.type = (commit.type || 'OTHER').toUpperCase();

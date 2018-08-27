@@ -12,6 +12,9 @@ import NavigationMenuHeader from '../src/components/NavigationMenuHeader';
 import NavigationMenuItem from '../src/components/NavigationMenuItem';
 import NavigationMenu from '../src/components/NavigationMenu';
 
+import Content from '../src/components/Content';
+import ContentTitle from '../src/components/ContentTitle';
+import ContentBody from '../src/components/ContentBody';
 
 storiesOf('Buttons', module)
   .add('default button', () => <Button onClick={action('clicked')} value="Rocket.Chat" />)
@@ -45,12 +48,24 @@ storiesOf('Navigation', module)
     <NavigationMenuSidebar color="grey">
       <NavigationMenuHeader title="Navigation Header"/>
       <NavigationMenu>
-        <NavigationMenuItem title="Network"/>
+        <NavigationMenuItem title="Network" icon="icon-globe"/>
         <NavigationMenuItem title="Style"/>
-        <NavigationMenuItem title="Stuff"/>
+        <NavigationMenuItem title="Linux" icon="icon-linux" />
       </NavigationMenu>
     </NavigationMenuSidebar>
     <div style={column2}>
       <h1>Content</h1>
     </div>
     </Layout>);    
+
+storiesOf('Content', module).add('content title', () => 
+  <Layout>
+      <div style={column1}>
+        <h1>Menu</h1>
+      </div>
+    <Content color="grey">
+      <ContentTitle title="Hello Content"/>
+      <ContentBody>Content Body</ContentBody>
+    </Content>
+  </Layout>
+);

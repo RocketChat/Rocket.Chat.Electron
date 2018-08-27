@@ -16,7 +16,6 @@
     "category": "public.app-category.productivity",
     "target": [
       "default",
-      "pkg",
       "mas"
     ],
     "artifactName": "rocketchat-${version}.${ext}"

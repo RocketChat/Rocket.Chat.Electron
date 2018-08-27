@@ -128,8 +128,8 @@ function updateAvailable ({version}) {
 }
 
 export const canUpdate = () =>
-    (process.platform === 'linux' && Boolean(process.env.APPIMAGE)) &&
-    (process.platform === 'win32' && !process.windowsStore) &&
+    (process.platform === 'linux' && Boolean(process.env.APPIMAGE)) ||
+    (process.platform === 'win32' && !process.windowsStore) ||
     (process.platform === 'darwin' && !process.mas);
 
 export const canAutoUpdate = () => updateSettings.autoUpdate !== false;

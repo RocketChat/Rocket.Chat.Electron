@@ -9,7 +9,6 @@ clone_depth: 1
 cache:
   - "%LOCALAPPDATA%/Yarn"
   - node_modules -> package.json
-  - app/node_modules -> app/package.json
 
 branches:
   only:

@@ -36,6 +36,12 @@
     "entitlementsInherit": "build/entitlements.mas.inherit.plist",
     "artifactName": "rocketchat-${version}-mas.${ext}"
   },
+  "win": {
+    "target": [
+      "nsis",
+      "appx"
+    ]
+  },
   "nsis": {
     "oneClick": false,
     "perMachine": false,
@@ -52,7 +58,7 @@
       "en-GB",
       "pt-BR"
     ],
-    "artifactName": "rocketchat-setup-${version}.${ext}"
+    "artifactName": "rocketchat-${version}-${arch}.${ext}"
   },
   "linux": {
     "desktop": {

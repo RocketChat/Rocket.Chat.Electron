@@ -1,3 +1,11 @@
+<a name="2.13.1"></a>
+## 2.13.1 (2018-08-30)
+
+
+Fixes for MacOS and Windows builds.
+
+
+
 <a name="2.13.0"></a>
 # 2.13.0 (2018-08-27)
 

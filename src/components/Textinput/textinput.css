@@ -1,0 +1,19 @@
+.rcr-input-text {
+    display: block;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    width: 100%;
+    border: 0px solid;
+}
+
+.rcr-input-text input[type=text] {
+    border-color: #e1e5e8;
+    border-radius: 2px;
+    border-width: 2px;
+    border-style: solid;
+    background-color: transparent;
+    color: #414852;
+    padding: .75rem 1rem;
+    width: 100%;
+}

@@ -16,6 +16,8 @@ import Content from '../src/components/Content';
 import ContentTitle from '../src/components/ContentTitle';
 import ContentBody from '../src/components/ContentBody';
 
+import Textinput from '../src/components/Textinput';
+
 storiesOf('Buttons', module)
   .add('default button', () => <Button onClick={action('clicked')} value="Rocket.Chat" />)
   .add('primary button', () => <Button color="primary" onClick={action('clicked')} value="Rocket.Chat" />)
@@ -68,4 +70,8 @@ storiesOf('Content', module).add('content title', () =>
       <ContentBody>Content Body</ContentBody>
     </Content>
   </Layout>
+);
+
+storiesOf('Input', module).add('input', () => 
+  <Textinput></Textinput>
 );

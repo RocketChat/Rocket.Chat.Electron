@@ -21,7 +21,7 @@ module.exports = {
             },
             {
                 test: /\.less$/,
-                use: ['style-loader','css-loader', 'less-loader']
+                use: ['style-loader', 'css-loader', 'less-loader']
             },
             {
                 test   : /\.(ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,

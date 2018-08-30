@@ -1,39 +1,27 @@
-# build: off
-
 image: Visual Studio 2017
-
+environment:
+  nodejs_version: "8"
 platform:
   - x64
+skip_tags: true
+shallow_clone: true
+clone_depth: 1
+cache:
+  - "%LOCALAPPDATA%/Yarn"
+  - node_modules -> package.json
 
 branches:
   only:
     - master
     - develop
-
-skip_tags: true
-
-environment:
-  nodejs_version: "8"
-
-cache:
-  - "%LOCALAPPDATA%/Yarn"
-  - node_modules -> package.json
-  - app/node_modules -> app/package.json
-
-shallow_clone: true
-
-clone_depth: 1
+    - /^hotfix\/.*$/
+    - /^release\/.*$/
 
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   - set CI=true
   - yarn
-
-test_script:
-  - node --version
-  - yarn --version
-  # - yarn test
-  # - yarn e2e
+  - yarn list
 
 build_script:
   - yarn release

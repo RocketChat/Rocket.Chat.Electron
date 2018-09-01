@@ -41,7 +41,7 @@
     "electron": "^2.0.8",
     "electron-builder": "^20.28.3",
     "electron-mocha": "^6.0.4",
-    "eslint": "^5.4.0",
+    "eslint": "^5.5.0",
     "gulp": "^3.9.1",
     "gulp-batch": "^1.0.5",
     "gulp-less": "^4.0.1",
@@ -52,10 +52,10 @@
     "istanbul": "^0.4.5",
     "minimist": "^1.2.0",
     "mocha": "^5.2.0",
-    "rollup": "^0.64.1",
+    "rollup": "^0.65.0",
     "rollup-plugin-istanbul": "^2.0.1",
     "run-sequence": "^2.2.1",
-    "spectron": "^3.8.0"
+    "spectron": "^4.0.0"
   },
   "devEngines": {
     "node": ">=7.x",

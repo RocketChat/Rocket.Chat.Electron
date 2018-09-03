@@ -19,11 +19,9 @@ class HelloMessage extends React.Component {
         <div>
           <Layout>
             <NavigationMenuSidebar color="grey">
-              <NavigationMenuHeader title="Navigation Header"/>
+              <NavigationMenuHeader title="Preferences"/>
               <NavigationMenu>
-                <NavigationMenuItem title="Network" icon="icon-globe"/>
-                <NavigationMenuItem title="Style"/>
-                <NavigationMenuItem title="Linux" icon="icon-linux" />
+                <NavigationMenuItem title="Style" icon="icon-pencil"/>
               </NavigationMenu>
             </NavigationMenuSidebar>
             <Content color="grey">

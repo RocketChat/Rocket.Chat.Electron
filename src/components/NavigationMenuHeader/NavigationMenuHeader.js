@@ -11,7 +11,7 @@ class NavigationMenuHeader extends React.Component {
     render() {
         return (
             <div className="rcr-navigation-menu__header">
-               <h1>{this.props.title}</h1>
+               <h2>{this.props.title}</h2>
             </div>
         );
     }

@@ -1,5 +1,6 @@
 import { remote } from 'electron';
 import i18n from '../../i18n/index.js';
+import preferencesPane  from './preferences/index.js';
 
 const APP_NAME = remote.app.getName();
 const isMac = process.platform === 'darwin';
@@ -39,9 +40,21 @@ const appTemplate = [
 if (isMac) {
     const macAppExtraTemplate = [
         {
+            label: i18n.__('Preferences'),
+            accelerator: 'Command+,',
+            position: 'after=about-sep',
+            click: function () {
+                preferencesPane.openPreferences();
+            }
+        },
+        {
+            type: 'separator',
+            id: 'pref-sep'
+        },
+        {
             role: 'services',
             submenu: [],
-            position: 'after=about-sep'
+            position: 'after=pref-sep'
         },
         {
             type: 'separator'

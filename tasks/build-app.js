@@ -8,6 +8,8 @@ const rename = require('gulp-rename');
 const watch = require('gulp-watch');
 const bundle = require('./bundle');
 const utils = require('./utils');
+const webpack = require('webpack-stream');
+
 const { beepSound, srcDir, configDir, appDir } = require('./utils');
 
 gulp.task('public', () => {
@@ -44,7 +46,13 @@ gulp.task('environment', () => {
         .pipe(gulp.dest(appDir.path('.')));
 });
 
-gulp.task('build-app', [ 'public', 'i18n', 'bundle', 'less', 'environment' ]);
+gulp.task('build-app', [ 'react', 'public', 'i18n', 'bundle', 'less', 'environment' ]);
+
+gulp.task('react', () => {
+    return gulp.src(srcDir.path('preferences.js'))
+    .pipe(webpack(require('../webpack.config.js')))
+    .pipe(gulp.dest(appDir.path('')));
+});
 
 gulp.task('watch', () => {
     const runOnChanges = taskName => batch((event, done) => {

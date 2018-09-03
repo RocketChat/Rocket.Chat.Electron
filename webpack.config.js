@@ -2,6 +2,7 @@ const path = require('path');
 
 module.exports = {
     entry: "./src/preferences.js",
+    mode: 'production',
     output: {
         path: path.resolve('app'),
         filename: 'preferences.js'

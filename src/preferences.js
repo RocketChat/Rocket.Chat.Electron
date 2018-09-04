@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { BrowserRouter as Router } from 'react-router-dom'
 
 import Layout from '../src/components/Layout';
 
@@ -9,26 +10,28 @@ import NavigationMenuItem from '../src/components/NavigationMenuItem';
 import NavigationMenu from '../src/components/NavigationMenu';
 
 import Content from '../src/components/Content';
-import ContentTitle from '../src/components/ContentTitle';
-import ContentBody from '../src/components/ContentBody';
 
+import routes from './scripts/menus/preferences/config/routes';
 
 class HelloMessage extends React.Component {
+    
     render() {
       return (
         <div>
-          <Layout>
-            <NavigationMenuSidebar color="grey">
-              <NavigationMenuHeader title="Preferences"/>
-              <NavigationMenu>
-                <NavigationMenuItem title="Style" icon="icon-pencil"/>
-              </NavigationMenu>
-            </NavigationMenuSidebar>
-            <Content color="grey">
-              <ContentTitle title="Hello Content"/>
-              <ContentBody>Content Body</ContentBody>
-            </Content>
-          </Layout>
+          <Router>
+            <Layout>
+              <NavigationMenuSidebar color="grey">
+                <NavigationMenuHeader title="Preferences"/>
+                <NavigationMenu>
+                  <NavigationMenuItem title="Style" icon="icon-pencil" path="/styles" />
+                  <NavigationMenuItem title="Network" icon="icon-network" path="/network" />
+                </NavigationMenu>
+              </NavigationMenuSidebar>
+              <Content color="grey">          
+                {routes}   
+              </Content>
+            </Layout>
+          </Router>
         </div>
       );
     }

@@ -11,7 +11,7 @@ class NavigationMenu extends React.Component {
     render() {    
         return (
             <div className="rcr-navigation-menu">
-               {this.props.children}
+                {this.props.children}
             </div>
         );
     }

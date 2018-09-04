@@ -34,6 +34,7 @@
     "lodash": "^4.17.10",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
+    "react-router-dom": "^4.3.1",
     "spellchecker": "^3.4.4"
   },
   "optionalDependencies": {

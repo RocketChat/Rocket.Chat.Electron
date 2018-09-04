@@ -11,8 +11,8 @@ class ContentBody extends React.Component {
     render() {
         return (
             <div className="rcr-content-body">
-               {this.props.children}
-            </div>
+               {this.props.routes}
+            </div>        
         );
     }
 }

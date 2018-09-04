@@ -1,9 +1,9 @@
 {
-  "appId": "chat.rocket",
   "files": [
     "app/**/*",
     "node_modules/**/*",
-    "package.json"
+    "package.json",
+    "embedded.provisionprofile"
   ],
   "extraResources": [
     "dictionaries/**/*",
@@ -11,15 +11,38 @@
     "servers.json"
   ],
   "mac": {
-    "bundleVersion": "30",
-    "helperBundleId": "chat.rocket.electron.helper",
     "category": "public.app-category.productivity",
     "target": [
-      "default",
+      "dmg",
       "pkg",
+      "zip",
       "mas"
     ],
+    "icon": "build/icon.icns",
+    "bundleVersion": "34",
+    "helperBundleId": "chat.rocket.electron.helper",
+    "type": "distribution",
+    "appId": "chat.rocket",
+    "provisioningProfile": "embedded.provisionprofile",
     "artifactName": "rocketchat-${version}.${ext}"
+  },
+  "dmg": {
+    "background": "build/background.png"
+  },
+  "pkg": {
+    "isRelocatable": false,
+    "overwriteAction": "upgrade"
+  },
+  "mas": {
+    "entitlements": "build/entitlements.mas.plist",
+    "entitlementsInherit": "build/entitlements.mas.inherit.plist",
+    "artifactName": "rocketchat-${version}-mas.${ext}"
+  },
+  "win": {
+    "target": [
+      "nsis",
+      "appx"
+    ]
   },
   "nsis": {
     "oneClick": false,
@@ -37,7 +60,7 @@
       "en-GB",
       "pt-BR"
     ],
-    "artifactName": "rocketchat-setup-${version}.${ext}"
+    "artifactName": "rocketchat-${version}-${arch}.${ext}"
   },
   "linux": {
     "desktop": {

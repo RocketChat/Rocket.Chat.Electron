@@ -20,23 +20,25 @@ matrix:
   - os: osx
     osx_image: xcode8.3
 
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo snap install snapcraft --classic; fi
-
-install:
-  - yarn
-
-script:
-  - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
-  - yarn release
-
 branches:
   only:
     - master
     - develop
-    - hotfix
+    - /^hotfix\/.*$/
+    - /^release\/.*$/
 
 notifications:
   email:
     on_success: never
     on_failure: change
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo snap install snapcraft --classic; fi
+
+install:
+  - yarn
+  - yarn list
+
+script:
+  - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
+  - yarn release

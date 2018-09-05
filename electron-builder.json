@@ -9,6 +9,7 @@
     "build/icon.ico",
     "servers.json"
   ],
+  "appId": "chat.rocket",
   "mac": {
     "category": "public.app-category.productivity",
     "target": [
@@ -21,7 +22,6 @@
     "bundleVersion": "34",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
-    "appId": "chat.rocket",
     "artifactName": "rocketchat-${version}.${ext}"
   },
   "dmg": {

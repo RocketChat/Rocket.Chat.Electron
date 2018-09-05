@@ -10,8 +10,13 @@ const publish = getEnvName() !== 'production' ? 'never' : 'onTagOrDraft';
 gulp.task('release:darwin', () => build({ publish, x64: true, mac: [] }));
 gulp.task('release:win32', () => build({ publish, x64: true, ia32: true, win: [ 'nsis', 'appx' ] }));
 gulp.task('release:linux', (cb) => {
-    build({ publish, x64: true, linux: [] })
-        .then(() => build({ publish, ia32: true, linux: config.linux.target.filter(target => target !== 'snap') }))
+    build({ publish, x64: true, linux: [], c: { productName: 'rocketchat' } })
+        .then(() => build({
+            publish,
+            ia32: true,
+            linux: config.linux.target.filter(target => target !== 'snap'),
+            c: { productName: 'rocketchat' }
+        }))
         .then(() => cb(), (error) => cb(error));
 });
 

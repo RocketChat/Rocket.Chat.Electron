@@ -2,8 +2,7 @@
   "files": [
     "app/**/*",
     "node_modules/**/*",
-    "package.json",
-    "embedded.provisionprofile"
+    "package.json"
   ],
   "extraResources": [
     "dictionaries/**/*",
@@ -23,7 +22,6 @@
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
     "appId": "chat.rocket",
-    "provisioningProfile": "embedded.provisionprofile",
     "artifactName": "rocketchat-${version}.${ext}"
   },
   "dmg": {

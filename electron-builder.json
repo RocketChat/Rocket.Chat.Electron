@@ -61,17 +61,18 @@
     "artifactName": "rocketchat-${version}-${arch}.${ext}"
   },
   "linux": {
-    "desktop": {
-      "StartupWMClass": "Rocket.Chat",
-      "MimeType": "x-scheme-handler/rocketchat"
-    },
-    "category": "GNOME;GTK;Network;InstantMessaging",
     "target": [
       "tar.gz",
       "deb",
       "rpm",
       "snap"
-    ]
+    ],
+    "executableName": "rocketchat-desktop",
+    "category": "GNOME;GTK;Network;InstantMessaging",
+    "desktop": {
+      "StartupWMClass": "Rocket.Chat",
+      "MimeType": "x-scheme-handler/rocketchat"
+    }
   },
   "publish": [
     {

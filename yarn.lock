@@ -219,9 +219,9 @@ app-builder-bin@2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/app-builder-bin/-/app-builder-bin-2.1.2.tgz#528ce8e543aa595210c9595f91bdf5638cecd79b"
 
-app-builder-lib@20.28.3, app-builder-lib@~20.28.3:
-  version "20.28.3"
-  resolved "https://registry.yarnpkg.com/app-builder-lib/-/app-builder-lib-20.28.3.tgz#4e3469569adb1d2976bb0f8c9f61f700441e3795"
+app-builder-lib@20.28.4, app-builder-lib@~20.28.3:
+  version "20.28.4"
+  resolved "https://registry.yarnpkg.com/app-builder-lib/-/app-builder-lib-20.28.4.tgz#0bee3366364c65d17a2aaab75b30bb10df76ece5"
   dependencies:
     "7zip-bin" "~4.0.2"
     app-builder-bin "2.1.2"
@@ -1590,11 +1590,11 @@ ejs@~2.5.6:
   version "2.5.9"
   resolved "https://registry.yarnpkg.com/ejs/-/ejs-2.5.9.tgz#7ba254582a560d267437109a68354112475b0ce5"
 
-electron-builder@^20.28.3:
-  version "20.28.3"
-  resolved "https://registry.yarnpkg.com/electron-builder/-/electron-builder-20.28.3.tgz#f0c4e13c34be387eb01c940b7bcf5436bb30cdbe"
+electron-builder@^20.28.4:
+  version "20.28.4"
+  resolved "https://registry.yarnpkg.com/electron-builder/-/electron-builder-20.28.4.tgz#c9355b92b0971d51aaed0c945d2944bac41e9fbf"
   dependencies:
-    app-builder-lib "20.28.3"
+    app-builder-lib "20.28.4"
     bluebird-lst "^1.0.5"
     builder-util "6.1.3"
     builder-util-runtime "4.4.1"
@@ -4102,9 +4102,9 @@ node-gyp@^3.8.0:
     tar "^2.0.0"
     which "1"
 
-node-mac-notifier@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/node-mac-notifier/-/node-mac-notifier-1.0.1.tgz#a30b4c6577ed5c991293be6312a015985d73cbb1"
+node-mac-notifier@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/node-mac-notifier/-/node-mac-notifier-1.0.2.tgz#b36f77413e7734401db047d6f7945ee0c2ccce2e"
   dependencies:
     bindings "^1.2.1"
     event-target-shim "^1.1.1"
@@ -5323,9 +5323,9 @@ rollup-pluginutils@^2.0.1:
     estree-walker "^0.5.2"
     micromatch "^2.3.11"
 
-rollup@^0.65.1:
-  version "0.65.1"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.65.1.tgz#583ea5dc4c6e4d2d1ed9adc60bfaf2178afe9ea9"
+rollup@^0.65.2:
+  version "0.65.2"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.65.2.tgz#e1532e3c1a2e102c89d99289a184fcbbc7cd4b4a"
   dependencies:
     "@types/estree" "0.0.39"
     "@types/node" "*"

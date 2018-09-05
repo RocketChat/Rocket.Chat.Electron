@@ -40,7 +40,8 @@
     "target": [
       "nsis",
       "appx"
-    ]
+    ],
+    "icon": "build/icon.ico"
   },
   "nsis": {
     "oneClick": false,

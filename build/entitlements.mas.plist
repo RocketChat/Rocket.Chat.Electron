@@ -14,5 +14,7 @@
     <true/>
     <key>com.apple.security.device.microphone</key>
     <true/>
+    <key>com.apple.security.personal-information.location</key>
+    <true/>
   </dict>
 </plist>

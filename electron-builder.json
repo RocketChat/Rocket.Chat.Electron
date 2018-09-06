@@ -9,6 +9,7 @@
     "build/icon.ico",
     "servers.json"
   ],
+  "appId": "chat.rocket",
   "mac": {
     "category": "public.app-category.productivity",
     "target": [
@@ -21,7 +22,6 @@
     "bundleVersion": "35",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
-    "appId": "chat.rocket",
     "artifactName": "rocketchat-${version}.${ext}"
   },
   "dmg": {
@@ -40,7 +40,8 @@
     "target": [
       "nsis",
       "appx"
-    ]
+    ],
+    "icon": "build/icon.ico"
   },
   "nsis": {
     "oneClick": false,
@@ -61,17 +62,18 @@
     "artifactName": "rocketchat-${version}-${arch}.${ext}"
   },
   "linux": {
-    "desktop": {
-      "StartupWMClass": "Rocket.Chat",
-      "MimeType": "x-scheme-handler/rocketchat"
-    },
-    "category": "GNOME;GTK;Network;InstantMessaging",
     "target": [
       "tar.gz",
       "deb",
       "rpm",
       "snap"
-    ]
+    ],
+    "executableName": "rocketchat-desktop",
+    "category": "GNOME;GTK;Network;InstantMessaging",
+    "desktop": {
+      "StartupWMClass": "Rocket.Chat",
+      "MimeType": "x-scheme-handler/rocketchat"
+    }
   },
   "publish": [
     {

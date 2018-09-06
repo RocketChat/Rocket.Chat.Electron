@@ -75,7 +75,7 @@ const isSecondInstance = app.makeSingleInstance((argv) => {
     addServers(argv.slice(2));
 });
 
-if (isSecondInstance) {
+if (isSecondInstance && !process.mas) {
     app.quit();
 }
 

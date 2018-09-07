@@ -6,6 +6,7 @@
 import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
 import url from 'url';
 import path from 'path';
+import { debounce } from 'lodash';
 
 import windowStateKeeper from './windowState';
 import env from '../env';
@@ -58,13 +59,13 @@ const attachWindowStateHandling = (mainWindow) => {
         mainWindowState.saveState(mainWindow);
     });
 
-    mainWindow.on('resize', function () {
+    mainWindow.on('resize', debounce(() => {
         mainWindowState.saveState(mainWindow);
-    });
+    }), 1000);
 
-    mainWindow.on('move', function () {
+    mainWindow.on('move', debounce(() => {
         mainWindowState.saveState(mainWindow);
-    });
+    }), 1000);
 };
 
 const attachIpcMessageHandling = (mainWindow) => {

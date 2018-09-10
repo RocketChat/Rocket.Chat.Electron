@@ -28,13 +28,13 @@ const attachWindowStateHandling = (mainWindow) => {
 
     // macOS only
     app.on('activate', () => {
-        mainWindowState.saveState(mainWindow);
         mainWindow.show();
     });
 
     app.on('before-quit', () => {
         mainWindowState.saveState(mainWindow);
-        mainWindow.forceClose = true;
+        mainWindowState.saveState.flush();
+        mainWindow = null;
     });
 
     mainWindow.on('show', () => {
@@ -42,10 +42,10 @@ const attachWindowStateHandling = (mainWindow) => {
     });
 
     mainWindow.on('close', function (event) {
-        if (mainWindow.forceClose) {
-            mainWindowState.saveState(mainWindow);
+        if (!mainWindow) {
             return;
         }
+
         event.preventDefault();
         if (mainWindow.isFullScreen()) {
             mainWindow.once('leave-full-screen', () => {

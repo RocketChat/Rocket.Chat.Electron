@@ -1,3 +1,14 @@
+<a name="2.13.2"></a>
+## 2.13.2 (2018-09-10)
+
+
+### Bug Fixes
+- Dependencies updated
+- Window state persistency triggering redefined
+- AppId for Windows setups recovered
+- Linux package names fixed
+- Fixed multiple issues in provisioning profiles and entitlements for MacOS builds
+
 <a name="2.13.1"></a>
 ## 2.13.1 (2018-08-30)
 

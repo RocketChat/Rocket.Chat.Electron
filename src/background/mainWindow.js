@@ -58,11 +58,11 @@ const attachWindowStateHandling = (mainWindow) => {
         mainWindowState.saveState(mainWindow);
     });
 
-    mainWindow.on('resize', function () {
+    mainWindow.on('resize', () => {
         mainWindowState.saveState(mainWindow);
     });
 
-    mainWindow.on('move', function () {
+    mainWindow.on('move', () => {
         mainWindowState.saveState(mainWindow);
     });
 };

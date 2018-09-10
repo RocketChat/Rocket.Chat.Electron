@@ -6,7 +6,6 @@
 import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
 import url from 'url';
 import path from 'path';
-import { debounce } from 'lodash';
 
 import windowStateKeeper from './windowState';
 import env from '../env';
@@ -29,13 +28,13 @@ const attachWindowStateHandling = (mainWindow) => {
 
     // macOS only
     app.on('activate', () => {
-        mainWindowState.saveState(mainWindow);
         mainWindow.show();
     });
 
     app.on('before-quit', () => {
         mainWindowState.saveState(mainWindow);
-        mainWindow.forceClose = true;
+        mainWindowState.saveState.flush();
+        mainWindow = null;
     });
 
     mainWindow.on('show', () => {
@@ -43,10 +42,10 @@ const attachWindowStateHandling = (mainWindow) => {
     });
 
     mainWindow.on('close', function (event) {
-        if (mainWindow.forceClose) {
-            mainWindowState.saveState(mainWindow);
+        if (!mainWindow) {
             return;
         }
+
         event.preventDefault();
         if (mainWindow.isFullScreen()) {
             mainWindow.once('leave-full-screen', () => {
@@ -59,13 +58,13 @@ const attachWindowStateHandling = (mainWindow) => {
         mainWindowState.saveState(mainWindow);
     });
 
-    mainWindow.on('resize', debounce(() => {
+    mainWindow.on('resize', () => {
         mainWindowState.saveState(mainWindow);
-    }), 1000);
+    });
 
-    mainWindow.on('move', debounce(() => {
+    mainWindow.on('move', () => {
         mainWindowState.saveState(mainWindow);
-    }), 1000);
+    });
 };
 
 const attachIpcMessageHandling = (mainWindow) => {

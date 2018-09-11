@@ -1,0 +1,5 @@
+.rcr-content-action {
+    grid-row-start: 3;
+    grid-row-end: 3;
+    padding: 16px;
+}

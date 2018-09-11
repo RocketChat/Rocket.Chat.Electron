@@ -18,9 +18,16 @@ class Textinput extends React.Component {
     }
  
     render() {
+        const label = this.props.label;
+        const labelId = this.props.labelId;
+        let inputLabel;
+        if(label && labelId) {
+            inputLabel = <label for={labelId}>{label}</label>;
+        } 
         return (
             <div className="rcr-input-text">
-               <input type="text" name={this.props.name} value={this.state.textValue} onChange={this.handleChange}/>
+                {inputLabel}   
+                <input type="text" name={this.props.name} value={this.state.textValue} onChange={this.handleChange} placeholder={this.props.placeholder} id={labelId}/>
             </div>
         );
     }

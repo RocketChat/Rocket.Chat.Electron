@@ -1,0 +1,29 @@
+.settings {
+    border: 1px solid;
+    border-color: lightgray;
+    display: grid;
+    grid-column: auto;
+    grid-row: 5% auto;
+    grid-gap: 0px;
+}
+
+.settings-description {
+    grid-row-start: 1;
+    grid-row-end: 1;
+}
+
+.settings-content {
+    display: grid;
+    grid-column: 50% 50%;
+    grid-row-start: 2;
+    grid-row-end: 2;
+}
+
+.settings-group {
+    margin: 10px;
+}
+
+.settings-content-image {
+    width: 150px;
+    height: 50px;
+}

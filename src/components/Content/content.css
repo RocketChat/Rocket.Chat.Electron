@@ -1,9 +1,16 @@
-.rcr-navigation-menu-sidebar {
+.rcr-content {
     display: grid;
     grid-gap: 0px;
-    grid-template-rows: 0.1fr 9.9fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 100%;
+    height: 100%;
+    width: 100%;
 }
 
-.rcr-navigation-menu-sidebar__grey {
+.rcr-content__grey {
     background-color: #f2f3f5;
+}
+
+.rcr-content__white {
+    background-color: #ffffff;
 }

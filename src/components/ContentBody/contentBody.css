@@ -1,4 +1,7 @@
 .rcr-content-body {
     grid-row-start: 2;
+    grid-row-end: 2;
+    width: 100%;
+    height: 100%;
     padding: 16px;
 }

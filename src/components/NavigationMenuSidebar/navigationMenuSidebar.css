@@ -1,7 +1,8 @@
 .rcr-navigation-menu-sidebar {
     display: grid;
     grid-gap: 0px;
-    grid-template-rows: 0.1fr 9.9fr;
+    grid-template-rows: 60px auto;
+    height: 100vh;
 }
 
 .rcr-navigation-menu-sidebar__grey {

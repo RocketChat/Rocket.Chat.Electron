@@ -157,7 +157,7 @@ function showTrayAlert (badge, status = 'online') {
             trayTitle = `${statusBullet[status]} ${countColor}${badge.title}`;
         }
         remote.app.dock.setBadge(badge.title);
-        if(trayDisplayed) {
+        if (trayDisplayed) {
             mainWindow.tray.setTitle(trayTitle);
         }
     }
@@ -166,7 +166,7 @@ function showTrayAlert (badge, status = 'online') {
         remote.app.setBadgeCount(badge.count);
     }
 
-    if(trayDisplayed) {
+    if (trayDisplayed) {
         mainWindow.tray.setImage(getTrayImagePath(badge));
     }
 }

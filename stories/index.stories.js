@@ -3,6 +3,7 @@ import React from 'react';
 import { storiesOf } from '@storybook/react';
 import { action } from '@storybook/addon-actions';
 
+import { BrowserRouter as Router } from 'react-router-dom'
 
 import Button from '../src/components/Button';
 import Layout from '../src/components/Layout';
@@ -46,19 +47,23 @@ storiesOf('Layout', module)
     </Layout>);
 
 storiesOf('Navigation', module)
-  .add('navigation menu', () => <Layout>
-    <NavigationMenuSidebar color="grey">
-      <NavigationMenuHeader title="Navigation Header"/>
-      <NavigationMenu>
-        <NavigationMenuItem title="Network" icon="icon-globe"/>
-        <NavigationMenuItem title="Style"/>
-        <NavigationMenuItem title="Linux" icon="icon-linux" />
-      </NavigationMenu>
-    </NavigationMenuSidebar>
-    <div style={column2}>
-      <h1>Content</h1>
-    </div>
-    </Layout>);    
+  .add('navigation menu', () => 
+  <Router>
+    <Layout>
+      <NavigationMenuSidebar color="grey">
+        <NavigationMenuHeader title="Navigation Header"/>
+        <NavigationMenu>
+          <NavigationMenuItem title="Network" icon="icon-globe" path="/"/>
+          <NavigationMenuItem title="Style" path="/style"/>
+          <NavigationMenuItem title="Linux" icon="icon-linux" path="/linux" />
+        </NavigationMenu>
+      </NavigationMenuSidebar>
+      <div style={column2}>
+        <h1>Content</h1>
+      </div>
+      </Layout>
+    </Router>
+    );    
 
 storiesOf('Content', module).add('content title', () => 
   <Layout>
@@ -74,4 +79,5 @@ storiesOf('Content', module).add('content title', () =>
 
 storiesOf('Input', module).add('input', () => 
   <Textinput></Textinput>
-);
+)
+.add('input with label', () => <Textinput label="Fist name:" labelId="firstName" placeholder="Fist name"/>);

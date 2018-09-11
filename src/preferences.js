@@ -9,8 +9,6 @@ import NavigationMenuHeader from '../src/components/NavigationMenuHeader';
 import NavigationMenuItem from '../src/components/NavigationMenuItem';
 import NavigationMenu from '../src/components/NavigationMenu';
 
-import Content from '../src/components/Content';
-
 import routes from './scripts/menus/preferences/config/routes';
 
 class HelloMessage extends React.Component {
@@ -23,13 +21,11 @@ class HelloMessage extends React.Component {
               <NavigationMenuSidebar color="grey">
                 <NavigationMenuHeader title="Preferences"/>
                 <NavigationMenu>
-                  <NavigationMenuItem title="Style" icon="icon-pencil" path="/styles" />
-                  <NavigationMenuItem title="Network" icon="icon-network" path="/network" />
+                  <NavigationMenuItem title="Style" icon="icon-pencil" path="/" />
+                  <NavigationMenuItem title="Usability" icon="icon-network" path="/usability" />
                 </NavigationMenu>
-              </NavigationMenuSidebar>
-              <Content color="grey">          
-                {routes}   
-              </Content>
+              </NavigationMenuSidebar>        
+              {routes}   
             </Layout>
           </Router>
         </div>

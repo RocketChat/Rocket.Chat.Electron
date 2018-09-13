@@ -130,7 +130,8 @@ function showTrayAlert (badge, status = 'online') {
     if (mainWindow.tray === null || mainWindow.tray === undefined) {
         return;
     }
-    mainWindow.tray.setImage(getTrayImagePath(badge));
+
+    const trayDisplayed = localStorage.getItem('hideTray') === 'true';
     const hasMentions = badge.showAlert && badge.count > 0;
 
     if (!mainWindow.isFocused()) {
@@ -155,12 +156,18 @@ function showTrayAlert (badge, status = 'online') {
         if (hasMentions) {
             trayTitle = `${statusBullet[status]} ${countColor}${badge.title}`;
         }
-        mainWindow.tray.setTitle(trayTitle);
         remote.app.dock.setBadge(badge.title);
+        if (trayDisplayed) {
+            mainWindow.tray.setTitle(trayTitle);
+        }
     }
 
     if (process.platform === 'linux') {
         remote.app.setBadgeCount(badge.count);
+    }
+
+    if (trayDisplayed) {
+        mainWindow.tray.setImage(getTrayImagePath(badge));
     }
 }
 

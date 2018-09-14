@@ -1,25 +1,32 @@
+import path from 'path';
 import electron from 'electron';
 import { Application } from 'spectron';
 
-var beforeEach = function () {
+export let app = null;
+
+export async function startApp () {
     this.timeout(10000);
-    this.app = new Application({
+
+    app = new Application({
         path: electron,
-        args: ['.'],
-        startTimeout: 10000,
-        waitTimeout: 10000,
+        cwd: process.cwd(),
+        args: [path.join(__dirname, '..')],
+        quitTimeout: 5000,
+        startTimeout: 5000,
+        waitTimeout: 5000,
     });
-    return this.app.start();
+
+    await app.start();
+    await app.client.waitUntilWindowLoaded();
 };
 
-var afterEach = function () {
+export async function stopApp () {
     this.timeout(10000);
-    if (this.app && this.app.isRunning()) {
-        return this.app.stop();
-    }
-};
 
-export default {
-    beforeEach: beforeEach,
-    afterEach: afterEach,
+    if (app && app.isRunning()) {
+        const logs = await app.client.getMainProcessLogs();
+        logs.forEach(log => console.log(log));
+        await app.stop();
+        app = null;
+    }
 };

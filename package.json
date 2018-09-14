@@ -35,12 +35,12 @@
     "spellchecker": "^3.5.0"
   },
   "optionalDependencies": {
-    "node-mac-notifier": "^1.0.3"
+    "node-mac-notifier": "^1.1.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "conventional-changelog-cli": "^2.0.5",
-    "electron": "^2.0.8",
+    "electron": "^2.0.9",
     "electron-builder": "^20.28.4",
     "electron-mocha": "^6.0.4",
     "eslint": "^5.5.0",

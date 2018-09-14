@@ -38,3 +38,50 @@ const fetchLogs = async () => {
     const logs = await app.client.getMainProcessLogs();
     logs.forEach(log => console.log(log));
 };
+
+export const menuItem = (menuId, cb) => ({
+    get exists() {
+        return app.client.execute((menuId) => {
+            const { Menu } = require('electron').remote;
+            const appMenu = Menu.getApplicationMenu();
+            const menuItem = appMenu.getMenuItemById(menuId);
+            return !!menuItem;
+        }, menuId).then(({ value }) => value);
+    },
+
+    get enabled() {
+        return app.client.execute((menuId) => {
+            const { Menu } = require('electron').remote;
+            const appMenu = Menu.getApplicationMenu();
+            const menuItem = appMenu.getMenuItemById(menuId);
+            return menuItem.enabled;
+        }, menuId).then(({ value }) => value);
+    },
+
+    get visible() {
+        return app.client.execute((menuId) => {
+            const { Menu } = require('electron').remote;
+            const appMenu = Menu.getApplicationMenu();
+            const menuItem = appMenu.getMenuItemById(menuId);
+            return menuItem.visible;
+        }, menuId).then(({ value }) => value);
+    },
+
+    get label() {
+        return app.client.execute((menuId) => {
+            const { Menu } = require('electron').remote;
+            const appMenu = Menu.getApplicationMenu();
+            const menuItem = appMenu.getMenuItemById(menuId);
+            return menuItem.label;
+        }, menuId).then(({ value }) => value);
+    },
+
+    click() {
+        return app.client.execute((menuId) => {
+            const { Menu } = require('electron').remote;
+            const appMenu = Menu.getApplicationMenu();
+            const menuItem = appMenu.getMenuItemById(menuId);
+            menuItem.click();
+        }, menuId);
+    }
+});

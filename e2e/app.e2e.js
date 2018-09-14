@@ -3,7 +3,7 @@ import { app, startApp, stopApp } from './utils';
 
 import packageJson from '../package.json';
 
-describe('application launch', function () {
+describe('application', function () {
     before(startApp);
     after(stopApp);
 

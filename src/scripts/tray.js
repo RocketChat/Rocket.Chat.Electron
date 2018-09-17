@@ -24,7 +24,7 @@ const statusBullet = {
     online: '\u001B[32m•',
     away: '\u001B[33m•',
     busy: '\u001B[31m•',
-    offline: '\u001B[30m•'
+    offline: '\u001B[37m•'
 };
 
 const messageCountColor = {
@@ -131,7 +131,7 @@ function showTrayAlert (badge, status = 'online') {
         return;
     }
 
-    const trayDisplayed = localStorage.getItem('hideTray') === 'true';
+    const trayDisplayed = localStorage.getItem('hideTray') !== 'true';
     const hasMentions = badge.showAlert && badge.count > 0;
 
     if (!mainWindow.isFocused()) {

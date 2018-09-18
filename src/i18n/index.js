@@ -33,17 +33,26 @@ class I18n {
      * @constructor
      */
 	constructor() {
-		let dir = path.join(__dirname, '../i18n/lang');
-		if (!fs.existsSync(dir)) {
-			dir = path.join(__dirname, 'i18n/lang');
+		const load = () => {
+			let dir = path.join(__dirname, '../i18n/lang');
+			if (!fs.existsSync(dir)) {
+				dir = path.join(__dirname, 'i18n/lang');
+			}
+			const defaultLocale = path.join(dir, 'en.i18n.json');
+			loadedLanguage = JSON.parse(fs.readFileSync(defaultLocale, 'utf8'));
+			const locale = path.join(dir, `${ eApp.getLocale() }.i18n.json`);
+			if (fs.existsSync(locale)) {
+				const lang = JSON.parse(fs.readFileSync(locale, 'utf8'));
+				loadedLanguage = Object.assign(loadedLanguage, lang);
+			}
+		};
+
+		if (eApp.isReady()) {
+			load();
+			return;
 		}
-		const defaultLocale = path.join(dir, 'en.i18n.json');
-		loadedLanguage = JSON.parse(fs.readFileSync(defaultLocale, 'utf8'));
-		const locale = path.join(dir, `${ eApp.getLocale() }.i18n.json`);
-		if (fs.existsSync(locale)) {
-			const lang = JSON.parse(fs.readFileSync(locale, 'utf8'));
-			loadedLanguage = Object.assign(loadedLanguage, lang);
-		}
+
+		eApp.once('ready', load);
 	}
 
 	/**

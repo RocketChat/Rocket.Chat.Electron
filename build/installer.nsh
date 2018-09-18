@@ -20,8 +20,18 @@
   !define MUI_FINISHPAGE_SHOWREADME_FUNCTION un.AddAppData
 !endif
 
+!macro customInstall
+  ; Remove dangling reference of version 2.13.1
+  ${If} $installMode == "all"
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\66bed7da-e601-54e6-b2e8-7be611d82556"
+  ${Else}
+    DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\66bed7da-e601-54e6-b2e8-7be611d82556"
+  ${EndIf}
+  Delete "$SMSTARTUP\Rocket.Chat+.lnk"
+!macroend
+
 !macro customUnInstall
   ${IfNot} ${Silent}
     Delete "$SMSTARTUP\Rocket.Chat.lnk"
-  ${endif}
+  ${EndIf}
 !macroend

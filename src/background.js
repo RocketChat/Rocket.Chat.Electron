@@ -3,7 +3,7 @@ import querystring from 'querystring';
 import url from 'url';
 import jetpack from 'fs-jetpack';
 import idle from '@paulcbetts/system-idle-time';
-import { app, ipcMain, Menu } from 'electron';
+import { app, ipcMain, BrowserWindow, Menu } from 'electron';
 
 import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
@@ -107,4 +107,23 @@ app.on('window-all-closed', () => {
 
 ipcMain.on('getSystemIdleTime', (event) => {
 	event.returnValue = idle.getIdleTime();
+});
+
+ipcMain.on('show-about-dialog', () => {
+	getMainWindow().then((mainWindow) => {
+		const win = new BrowserWindow({
+			title: i18n.__('About', app.getName()),
+			parent: mainWindow,
+			width: 310,
+			height: 240,
+			resizable: false,
+			maximizable: false,
+			minimizable: false,
+			center: true,
+			show: false,
+		});
+		win.setMenuBarVisibility(false);
+		win.loadURL(`file://${ __dirname }/public/about.html`);
+		win.once('ready-to-show', () => win.show());
+	});
 });

@@ -10,13 +10,15 @@
 .settings-description {
     grid-row-start: 1;
     grid-row-end: 1;
+    padding: 0 0 20px 0;
 }
 
 .settings-content {
     display: grid;
-    grid-column: 50% 50%;
+    grid-template-columns: 25% auto;
     grid-row-start: 2;
     grid-row-end: 2;
+    align-items: center;
 }
 
 .settings-group {
@@ -26,4 +28,14 @@
 .settings-content-image {
     width: 150px;
     height: 50px;
+}
+
+.settings-content-input {
+    grid-column-start: 1;
+    grid-column-end: 1;
+}
+
+.settings-content-image {
+    grid-column-start: 2;
+    grid-column-end: 2;
 }

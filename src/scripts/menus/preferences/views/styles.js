@@ -25,14 +25,20 @@ class Styles extends React.Component {
                                 <h3>Tray icon color</h3>
                             </div>
                             <div className="settings-content">
-                                <div className="settings-content-1">
+                                <div className="settings-content-input">
                                     <input type="radio" className="custom-control-input" id="customControlValidation2" name="radio-stacked" required />
                                     <label className="custom-control-label" htmlFor="customControlValidation2">White color tray icon</label>
+                                </div>
+                                <div className="settings-content-image">
                                     <img className="settings-content-image" src="https://rocket.chat/images/default/logo--dark.svg"/>
                                 </div>
-                                <div className="settings-content-2">
+                            </div>
+                            <div className="settings-content">
+                                <div className="settings-content-input">
                                     <input type="radio" className="custom-control-input" id="customControlValidation1" name="radio-stacked" required />
                                     <label className="custom-control-label" htmlFor="customControlValidation2">Colored tray icon</label>
+                                </div>
+                                <div className="settings-content-image">
                                     <img className="settings-content-image" src="https://rocket.chat/images/default/logo--dark.svg"/>
                                 </div>
                             </div>

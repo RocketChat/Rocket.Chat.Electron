@@ -2,7 +2,7 @@
   "name": "rocketchat",
   "productName": "Rocket.Chat",
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
-  "version": "2.13.2",
+  "version": "2.13.3",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2018, Rocket.Chat",
   "homepage": "https://rocket.chat",
@@ -35,12 +35,12 @@
     "spellchecker": "^3.5.0"
   },
   "optionalDependencies": {
-    "node-mac-notifier": "^1.0.3"
+    "node-mac-notifier": "^1.1.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "conventional-changelog-cli": "^2.0.5",
-    "electron": "^2.0.8",
+    "electron": "^2.0.9",
     "electron-builder": "^20.28.4",
     "electron-mocha": "^6.0.4",
     "eslint": "^5.5.0",
@@ -56,6 +56,7 @@
     "mocha": "^5.2.0",
     "rollup": "^0.65.2",
     "rollup-plugin-istanbul": "^2.0.1",
+    "rollup-plugin-json": "^3.1.0",
     "run-sequence": "^2.2.1",
     "spectron": "^4.0.0"
   },

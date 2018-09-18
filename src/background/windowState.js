@@ -4,6 +4,7 @@
 
 import { app } from 'electron';
 import jetpack from 'fs-jetpack';
+import { debounce } from 'lodash';
 
 export default function (name, defaults) {
 
@@ -61,7 +62,7 @@ export default function (name, defaults) {
         get isMaximized () { return state.isMaximized; },
         get isMinimized () { return state.isMinimized; },
         get isHidden () { return state.isHidden; },
-        saveState,
+        saveState: debounce(saveState, 1000), // see https://github.com/RocketChat/Rocket.Chat.Electron/issues/181
         loadState
     };
 }

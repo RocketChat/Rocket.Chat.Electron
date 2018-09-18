@@ -19,13 +19,26 @@
       "mas"
     ],
     "icon": "build/icon.icns",
-    "bundleVersion": "36",
+    "bundleVersion": "37",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
     "artifactName": "rocketchat-${version}.${ext}"
   },
   "dmg": {
-    "background": "build/background.png"
+    "background": "build/background.png",
+    "contents": [
+        {
+            "type": "dir",
+            "x": 100,
+            "y": 211
+        },
+        {
+            "type": "link",
+            "path": "/Applications",
+            "x": 500,
+            "y": 211
+        }
+    ]
   },
   "pkg": {
     "isRelocatable": false,

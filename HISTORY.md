@@ -1,3 +1,22 @@
+<a name="2.13.3"></a>
+## 2.13.3 (2018-09-18)
+
+
+### Improvements
+
+- [#881](https://github.com/RocketChat/Rocket.Chat.Electron/pull/881) End-to-end tests
+- [#882](https://github.com/RocketChat/Rocket.Chat.Electron/pull/882) Set new DMG background
+
+
+### Bug Fixes
+
+- [#884](https://github.com/RocketChat/Rocket.Chat.Electron/pull/884) Show tray icon status again
+- [#875](https://github.com/RocketChat/Rocket.Chat.Electron/pull/875) Toggled tray icon notifications
+- [#880](https://github.com/RocketChat/Rocket.Chat.Electron/pull/880) Tray icon toggle crashes in MacOS
+- [#869](https://github.com/RocketChat/Rocket.Chat.Electron/pull/869) Window state errors on save when antivirus software is present
+
+
+
 <a name="2.13.2"></a>
 ## 2.13.2 (2018-09-10)
 

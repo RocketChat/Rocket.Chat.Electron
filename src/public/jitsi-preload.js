@@ -5,8 +5,8 @@ const { remote } = require('electron');
 const selfBrowserWindow = remote.getCurrentWindow();
 
 selfBrowserWindow.webContents.once('dom-ready', () => {
-    window.JitsiMeetElectron = {
-        /**
+	window.JitsiMeetElectron = {
+		/**
          * Get sources available for screensharing. The callback is invoked
          * with an array of DesktopCapturerSources.
          *
@@ -21,16 +21,16 @@ selfBrowserWindow.webContents.once('dom-ready', () => {
          * default electron will return images with height and width of
          * 150px.
          */
-        obtainDesktopStreams (callback, errorCallback, options = {}) {
-            electron.desktopCapturer.getSources(options,
-                (error, sources) => {
-                    if (error) {
-                        errorCallback(error);
-                        return;
-                    }
+		obtainDesktopStreams(callback, errorCallback, options = {}) {
+			electron.desktopCapturer.getSources(options,
+				(error, sources) => {
+					if (error) {
+						errorCallback(error);
+						return;
+					}
 
-                    callback(sources);
-                });
-        }
-    };
+					callback(sources);
+				});
+		},
+	};
 });

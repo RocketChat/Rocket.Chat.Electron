@@ -114,8 +114,8 @@ ipcMain.on('show-about-dialog', () => {
 		const win = new BrowserWindow({
 			title: i18n.__('About', app.getName()),
 			parent: mainWindow,
-			width: 310,
-			height: 240,
+			width: 400,
+			height: 300,
 			resizable: false,
 			maximizable: false,
 			minimizable: false,
@@ -123,7 +123,7 @@ ipcMain.on('show-about-dialog', () => {
 			show: false,
 		});
 		win.setMenuBarVisibility(false);
-		win.loadURL(`file://${ __dirname }/public/about.html`);
 		win.once('ready-to-show', () => win.show());
+		win.loadURL(`file://${ __dirname }/public/about.html`);
 	});
 });

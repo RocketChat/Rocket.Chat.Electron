@@ -2,14 +2,15 @@
 <html>
 <head>
 	<meta charset="utf-8" />
+	<title>About %s</title>
 	<link rel="stylesheet" href="../stylesheets/main.css" />
-
 	<script>
 		document.addEventListener('DOMContentLoaded', () => {
 			const { remote, ipcRenderer } = require('electron');
 			const i18n = require('../i18n/index');
 			const { copyright } = require('../../package.json');
 
+			document.title = i18n.__('About', remote.app.getName());
 			document.querySelector('.app-version').innerHTML = `${i18n.__('Version')} <span class="version">${remote.app.getVersion()}</span>`;
 			document.querySelector('.check-for-updates').innerHTML = i18n.__('Check_for_Updates');
 			document.querySelector('.check-for-updates-on-start + span').innerHTML = i18n.__('Check_for_Updates_on_Start');

@@ -1,85 +1,20 @@
 <!doctype html>
 <html>
 <head>
-	<title></title>
 	<meta charset="utf-8" />
-	<style>
-		html {
-			background-color: #ececec;
-			font-family: helvetica;
-			padding: 10px;
-		}
-
-		body {
-			margin: 0px;
-			text-align: center;
-		}
-
-		img {
-			height: 60px;
-			margin-bottom: 5px;
-		}
-
-		.app-name {
-			font-size: 14px;
-			font-weight: bold;
-		}
-
-		.app-version {
-			margin-top: 15px;
-			font-size: 11px;
-		}
-
-		.app-version .version {
-			font-weight: bold;
-		}
-
-		.update {
-			margin-top:5px;
-		}
-
-		.copyright {
-			font-size: 10px;
-			position: absolute;
-			bottom: 0;
-			margin-left: auto;
-			margin-right: auto;
-			left: 0;
-			right: 0;
-		}
-
-		.update-container {
-			display: none;
-		}
-
-		.update-container.update-container--enabled {
-			display: block;
-		}
-
-		.auto-update-container {
-			margin: auto 0;
-		}
-	</style>
-    <script>
-        const i18n = require('../i18n/index');
-    </script>
-</head>
-	<body>
-		<img src="images/icon.png">
-		<div class="app-name"></div>
-		<div class="app-version"></div>
-
-		<div class="update-container">
-			<span class="update-spin icon-spin3 animate-spin" style="display:none;"></span>
-			<button class="update"><script>document.write(i18n.__('Check_for_Updates'))</script></button>
-			<p class="auto-update-container"><input type="checkbox" id="auto-update" checked /> <script>document.write(i18n.__('Check_for_Updates_on_Start'))</script></p>
-		</div>
-		<p class="copyright"><script>document.write(i18n.__('Copyright', require('../../package.json').copyright))</script></p>
-		<script>
+	<title>About %s</title>
+	<link rel="stylesheet" href="../stylesheets/main.css" />
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
 			const { remote, ipcRenderer } = require('electron');
+			const i18n = require('../i18n/index');
+			const { copyright } = require('../../package.json');
 
-			document.querySelector('.app-name').innerHTML = remote.app.getName();
+			document.title = i18n.__('About', remote.app.getName());
 			document.querySelector('.app-version').innerHTML = `${i18n.__('Version')} <span class="version">${remote.app.getVersion()}</span>`;
+			document.querySelector('.check-for-updates').innerHTML = i18n.__('Check_for_Updates');
+			document.querySelector('.check-for-updates-on-start + span').innerHTML = i18n.__('Check_for_Updates_on_Start');
+			document.querySelector('.copyright').innerHTML = i18n.__('Copyright', copyright);
 
 			const canUpdate = ipcRenderer.sendSync('can-update');
 
@@ -87,36 +22,82 @@
 				const canAutoUpdate = ipcRenderer.sendSync('can-auto-update');
 
 				if (canAutoUpdate) {
-					document.querySelector('#auto-update').setAttribute('checked', 'checked');
+					document.querySelector('.check-for-updates-on-start').setAttribute('checked', 'checked');
 				} else {
-					document.querySelector('#auto-update').removeAttribute('checked');
+					document.querySelector('.check-for-updates-on-start').removeAttribute('checked');
 				}
 
 				const canSetAutoUpdate = ipcRenderer.sendSync('can-set-auto-update');
 				if (canSetAutoUpdate) {
-					document.querySelector('#auto-update').addEventListener('change', (event) => {
+					document.querySelector('.check-for-updates-on-start').addEventListener('change', (event) => {
 						ipcRenderer.send('set-auto-update', event.target.checked);
 					});
 				} else {
-					document.querySelector('#auto-update').setAttribute('disabled', 'disabled');
+					document.querySelector('.check-for-updates-on-start').setAttribute('disabled', 'disabled');
 				}
 
-				document.querySelector('.update').onclick = function(e) {
-					document.querySelector('.update-spin').setAttribute('style', '');
-					document.querySelector('.update').setAttribute('disabled', 'disabled');
+				document.querySelector('.check-for-updates').addEventListener('click', (e) => {
+					e.preventDefault();
+					document.querySelector('.check-for-updates').setAttribute('disabled', 'disabled');
+					document.querySelector('.check-for-updates').classList.add('hidden');
+					document.querySelector('.checking-for-updates').classList.remove('hidden');
 					ipcRenderer.send('check-for-updates');
-				};
+				}, false);
 
 				ipcRenderer.on('update-result', (e, updateAvailable) => {
-					document.querySelector('.update-spin').setAttribute('style', 'display:none');
-					document.querySelector('.update').removeAttribute('disabled');
-					if (!updateAvailable) {
-						alert('No updates are available.');
+					const resetUpdatesSection = () => {
+						document.querySelector('.check-for-updates').removeAttribute('disabled');
+						document.querySelector('.check-for-updates').classList.remove('hidden');
+						document.querySelector('.checking-for-updates').classList.add('hidden');
+					};
+
+					if (updateAvailable) {
+						resetUpdatesSection();
+						return;
 					}
+
+					document.querySelector('.checking-for-updates .message').innerHTML = i18n.__('No updates are available.');
+					document.querySelector('.checking-for-updates').classList.add('message-shown');
+
+					setTimeout(() => {
+						resetUpdatesSection();
+						document.querySelector('.checking-for-updates .message').innerHTML = '';
+						document.querySelector('.checking-for-updates').classList.remove('message-shown');
+					}, 5000);
 				});
 
-				document.querySelector('.update-container').classList.add('update-container--enabled');
+				document.querySelector('.updates').classList.remove('hidden');
 			}
-		</script>
-	</body>
+		}, false);
+	</script>
+</head>
+<body class="about-page">
+	<section class="app-info">
+		<div class="app-logo">
+			<img src="./images/logo.svg">
+		</div>
+		<div class="app-version">
+			Version <span class="version">%s</span>
+		</div>
+	</section>
+
+	<section class="updates hidden">
+		<button class="check-for-updates button primary">
+			Check for Updates
+		</button>
+
+		<div class="checking-for-updates hidden">
+			<span class="dot"></span>
+			<span class="dot"></span>
+			<span class="dot"></span>
+			<span class="message"></span>
+		</div>
+
+		<label class="check-for-updates-on-start__label">
+			<input class="check-for-updates-on-start" type="checkbox" checked /> <span>Check for Updates on Start</span>
+		</label>
+	</section>
+
+	<div class="copyright"></div>
+</body>
 </html>

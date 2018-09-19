@@ -13,115 +13,115 @@ import env from '../env';
 let mainWindow = null;
 
 const mainWindowOptions = {
-    width: 1000,
-    height: 600,
-    minWidth: 600,
-    minHeight: 400,
-    titleBarStyle: 'hidden',
-    show: false
+	width: 1000,
+	height: 600,
+	minWidth: 600,
+	minHeight: 400,
+	titleBarStyle: 'hidden',
+	show: false,
 };
 
 const attachWindowStateHandling = (mainWindow) => {
-    const mainWindowState = windowStateKeeper('main', mainWindowOptions);
+	const mainWindowState = windowStateKeeper('main', mainWindowOptions);
 
-    mainWindow.once('ready-to-show', () => mainWindowState.loadState(mainWindow));
+	mainWindow.once('ready-to-show', () => mainWindowState.loadState(mainWindow));
 
-    // macOS only
-    app.on('activate', () => {
-        mainWindow.show();
-    });
+	// macOS only
+	app.on('activate', () => {
+		mainWindow.show();
+	});
 
-    app.on('before-quit', () => {
-        mainWindowState.saveState(mainWindow);
-        mainWindowState.saveState.flush();
-        mainWindow = null;
-    });
+	app.on('before-quit', () => {
+		mainWindowState.saveState(mainWindow);
+		mainWindowState.saveState.flush();
+		mainWindow = null;
+	});
 
-    mainWindow.on('show', () => {
-        mainWindowState.saveState(mainWindow);
-    });
+	mainWindow.on('show', () => {
+		mainWindowState.saveState(mainWindow);
+	});
 
-    mainWindow.on('close', function (event) {
-        if (!mainWindow) {
-            return;
-        }
+	mainWindow.on('close', function(event) {
+		if (!mainWindow) {
+			return;
+		}
 
-        event.preventDefault();
-        if (mainWindow.isFullScreen()) {
-            mainWindow.once('leave-full-screen', () => {
-                mainWindow.hide();
-            });
-            mainWindow.setFullScreen(false);
-        } else {
-            mainWindow.hide();
-        }
-        mainWindowState.saveState(mainWindow);
-    });
+		event.preventDefault();
+		if (mainWindow.isFullScreen()) {
+			mainWindow.once('leave-full-screen', () => {
+				mainWindow.hide();
+			});
+			mainWindow.setFullScreen(false);
+		} else {
+			mainWindow.hide();
+		}
+		mainWindowState.saveState(mainWindow);
+	});
 
-    mainWindow.on('resize', () => {
-        mainWindowState.saveState(mainWindow);
-    });
+	mainWindow.on('resize', () => {
+		mainWindowState.saveState(mainWindow);
+	});
 
-    mainWindow.on('move', () => {
-        mainWindowState.saveState(mainWindow);
-    });
+	mainWindow.on('move', () => {
+		mainWindowState.saveState(mainWindow);
+	});
 };
 
 const attachIpcMessageHandling = (mainWindow) => {
-    ipcMain.on('focus', () => {
-        mainWindow.show();
-    });
+	ipcMain.on('focus', () => {
+		mainWindow.show();
+	});
 
-    ipcMain.on('update-taskbar-icon', (event, data, text) => {
-        const img = nativeImage.createFromDataURL(data);
-        mainWindow.setOverlayIcon(img, text);
-    });
+	ipcMain.on('update-taskbar-icon', (event, data, text) => {
+		const img = nativeImage.createFromDataURL(data);
+		mainWindow.setOverlayIcon(img, text);
+	});
 };
 
 export const createMainWindow = (cb) => {
-    if (mainWindow) {
-        cb && cb(mainWindow);
-        return;
-    }
+	if (mainWindow) {
+		cb && cb(mainWindow);
+		return;
+	}
 
-    mainWindow = new BrowserWindow(mainWindowOptions);
-    attachWindowStateHandling(mainWindow);
-    attachIpcMessageHandling(mainWindow);
+	mainWindow = new BrowserWindow(mainWindowOptions);
+	attachWindowStateHandling(mainWindow);
+	attachIpcMessageHandling(mainWindow);
 
-    mainWindow.webContents.on('will-navigate', (event) => {
-        event.preventDefault();
-    });
+	mainWindow.webContents.on('will-navigate', (event) => {
+		event.preventDefault();
+	});
 
-    const appUrl = url.format({
-        pathname: path.join(__dirname, 'public', 'app.html'),
-        protocol: 'file:',
-        slashes: true
-    });
+	const appUrl = url.format({
+		pathname: path.join(__dirname, 'public', 'app.html'),
+		protocol: 'file:',
+		slashes: true,
+	});
 
-    mainWindow.loadURL(appUrl);
+	mainWindow.loadURL(appUrl);
 
-    if (env.name === 'development') {
-        mainWindow.openDevTools();
-    }
+	if (env.name === 'development') {
+		mainWindow.openDevTools();
+	}
 
-    cb && cb(mainWindow);
+	cb && cb(mainWindow);
 };
 
 export const getMainWindow = () => new Promise((resolve) => {
-    if (app.isReady()) {
-        createMainWindow(resolve);
-        return;
-    }
+	if (app.isReady()) {
+		createMainWindow(resolve);
+		return;
+	}
 
-    app.on('ready', () => createMainWindow(resolve));
+	app.on('ready', () => createMainWindow(resolve));
 });
 
 export const addServer = (serverUrl) => getMainWindow().then((mainWindow) => {
-    mainWindow.send('add-host', serverUrl);
+	mainWindow.send('add-host', serverUrl);
 
-    mainWindow.show();
+	mainWindow.show();
 
-    if (mainWindow.isMinimized()) {
-        mainWindow.restore();
-    }
+	if (mainWindow.isMinimized()) {
+		mainWindow.restore();
+	}
 });

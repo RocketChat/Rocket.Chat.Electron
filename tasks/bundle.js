@@ -1,7 +1,6 @@
 'use strict';
 
 const path = require('path');
-const jetpack = require('fs-jetpack');
 const { rollup } = require('rollup');
 const rollupJson = require('rollup-plugin-json');
 const appManifest = require('../package.json');

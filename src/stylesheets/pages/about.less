@@ -1,0 +1,97 @@
+.about-page {
+	display: flex;
+	flex-direction: column;
+	padding: 0.25rem 0.75rem;
+	min-height: 100vh;
+	background-color: @secondary-background-color;
+	cursor: default;
+	user-select: none;
+
+	.hidden {
+		display: none !important;
+	}
+
+	.app-info {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		flex: 1;
+
+		.app-logo img {
+			width: 100%;
+		}
+
+		.app-version {
+			margin: 0 auto;
+			font-size: 0.75rem;
+
+			.version {
+				cursor: text;
+				user-select: text;
+				font-weight: bold;
+			}
+		}
+	}
+
+	.updates {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		flex: 1;
+
+		.check-for-updates {
+			height: 2.5rem;
+		}
+
+		.checking-for-updates {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 2.5rem;
+			margin: 4px;
+			color: @secondary-font-color;
+
+			.dot {
+				width: 0.5rem;
+				height: 0.5rem;
+				border-radius: 100%;
+				margin: 0.1rem;
+				background-color: currentColor;
+				animation: loading-bouncedelay 1.4s infinite ease-in-out both;
+
+				&:nth-of-type(1) {
+					animation-delay: -0.32s;
+				}
+
+				&:nth-of-type(2) {
+					animation-delay: -0.16s;
+				}
+			}
+
+			.message {
+				display: none;
+				font-size: 1rem;
+			}
+
+			&.message-shown {
+				.dot {
+					display: none;
+				}
+
+				.message {
+					display: inline-flex;
+				}
+			}
+		}
+
+		.check-for-updates-on-start__label {
+			margin: 0.1rem auto;
+			font-size: 0.8rem;
+		}
+	}
+
+	.copyright {
+		margin: 0 auto;
+		font-size: 0.65rem;
+	}
+}

@@ -41,4 +41,12 @@ install:
 
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
+  # e2e tests should be performed only on Linux
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      export DISPLAY=:99.0
+      sh -e /etc/init.d/xvfb start
+      sleep 3
+      yarn e2e
+    fi
   - yarn release

@@ -1,0 +1,8 @@
+{
+  "extends": [
+    "@rocket.chat/eslint-config"
+  ],
+  "env": {
+    "mocha": true
+  }
+}

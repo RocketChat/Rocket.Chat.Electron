@@ -116,6 +116,7 @@ ipcMain.on('show-about-dialog', () => {
 			parent: mainWindow,
 			width: 400,
 			height: 300,
+			type: 'toolbar',
 			resizable: false,
 			maximizable: false,
 			minimizable: false,

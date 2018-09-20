@@ -1727,9 +1727,9 @@ electron-window@^0.8.0:
   dependencies:
     is-electron-renderer "^2.0.0"
 
-electron@^2.0.9:
-  version "2.0.9"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-2.0.9.tgz#dfc863d653fa3a2dd4fea0c63303df9c0e33c602"
+electron@^2.0.10:
+  version "2.0.10"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-2.0.10.tgz#9d7cccd33698e12ecda4d3f585b3bd678a4d4546"
   dependencies:
     "@types/node" "^8.0.24"
     electron-download "^3.0.1"
@@ -1842,9 +1842,9 @@ eslint-visitor-keys@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#3f3180fb2e291017716acb4c9d6d5b5c34a6a81d"
 
-eslint@^5.5.0:
-  version "5.5.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-5.5.0.tgz#8557fcceab5141a8197da9ffd9904f89f64425c6"
+eslint@^5.6.0:
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-5.6.0.tgz#b6f7806041af01f71b3f1895cbb20971ea4b6223"
   dependencies:
     "@babel/code-frame" "^7.0.0"
     ajv "^6.5.3"
@@ -2292,9 +2292,9 @@ fs-extra@^6.0.1:
     jsonfile "^4.0.0"
     universalify "^0.1.0"
 
-fs-jetpack@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/fs-jetpack/-/fs-jetpack-2.1.0.tgz#0448d10cc841831046ff2bacb5c1060f2c38ab7b"
+fs-jetpack@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/fs-jetpack/-/fs-jetpack-2.1.1.tgz#31c4eca61c17a112452cb92ba103b9e2026d5863"
   dependencies:
     minimatch "^3.0.2"
 
@@ -5482,9 +5482,9 @@ rollup-pluginutils@^2.0.1, rollup-pluginutils@^2.3.1:
     estree-walker "^0.5.2"
     micromatch "^2.3.11"
 
-rollup@^0.65.2:
-  version "0.65.2"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.65.2.tgz#e1532e3c1a2e102c89d99289a184fcbbc7cd4b4a"
+rollup@^0.66.1:
+  version "0.66.1"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.66.1.tgz#4374a478a98ff075ee0e5bcafb9ab78ca968a301"
   dependencies:
     "@types/estree" "0.0.39"
     "@types/node" "*"

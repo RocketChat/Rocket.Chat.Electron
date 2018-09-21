@@ -29,7 +29,7 @@ const unsetDefaultApplicationMenu = () => {
 	const emptyMenuTemplate = [{
 		submenu: [
 			{
-				label: i18n.__('Quit_App', app.getName()),
+				label: i18n.__('&Quit %s', app.getName()),
 				accelerator: 'CommandOrControl+Q',
 				click() {
 					app.quit();
@@ -114,7 +114,7 @@ ipcMain.on('getSystemIdleTime', (event) => {
 ipcMain.on('show-about-dialog', () => {
 	getMainWindow().then((mainWindow) => {
 		const win = new BrowserWindow({
-			title: i18n.__('About', app.getName()),
+			title: i18n.__('About %s', app.getName()),
 			parent: mainWindow,
 			width: 400,
 			height: 300,

@@ -324,7 +324,7 @@ const instanceMenu = remote.Menu.buildFromTemplate([{
 		servers.removeHost(selectedInstance.dataset.host);
 	},
 }, {
-	label: i18n.__('Open_DevTools'),
+	label: i18n.__('Open DevTools'),
 	click() {
 		webview.getByUrl(selectedInstance.dataset.host).openDevTools();
 	},

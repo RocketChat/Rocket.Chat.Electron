@@ -240,33 +240,33 @@ class SpellCheck {
 	getMenu() {
 		return [
 			{
-				label: i18n.__('Undo'),
+				label: i18n.__('&Undo'),
 				role: 'undo',
 			},
 			{
-				label: i18n.__('Redo'),
+				label: i18n.__('&Redo'),
 				role: 'redo',
 			},
 			{
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Cut'),
+				label: i18n.__('Cu&t'),
 				role: 'cut',
 				accelerator: 'CommandOrControl+X',
 			},
 			{
-				label: i18n.__('Copy'),
+				label: i18n.__('&Copy'),
 				role: 'copy',
 				accelerator: 'CommandOrControl+C',
 			},
 			{
-				label: i18n.__('Paste'),
+				label: i18n.__('&Paste'),
 				role: 'paste',
 				accelerator: 'CommandOrControl+V',
 			},
 			{
-				label: i18n.__('Select_All'),
+				label: i18n.__('Select &all'),
 				role: 'selectall',
 				accelerator: 'CommandOrControl+A',
 			},

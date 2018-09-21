@@ -10,15 +10,16 @@ const { certificate } = remote.require('./background');
 
 const isMac = process.platform === 'darwin';
 const isWindows = process.platform === 'win32';
-const isLinux = process.platform === 'linux';
+
+// i18n.__ = (x) => x;
 
 const createMenuTemplate = () => ([
 	{
-		label: `&${ isMac ? app.getName() : i18n.__('File') }`,
+		label: isMac ? app.getName() : i18n.__('&File'),
 		submenu: [
 			...(isMac ? [
 				{
-					label: i18n.__('About', app.getName()),
+					label: i18n.__('About %s', app.getName()),
 					click: () => ipcRenderer.send('show-about-dialog'),
 				},
 				{
@@ -52,7 +53,7 @@ const createMenuTemplate = () => ([
 			// 	click: () => alert('Not implemented yet.'),
 			// },
 			{
-				label: i18n.__('Add_new_server'),
+				label: i18n.__('Add &new server'),
 				accelerator: 'CommandOrControl+N',
 				click() {
 					getCurrentWindow().show();
@@ -64,22 +65,22 @@ const createMenuTemplate = () => ([
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Quit_App', app.getName()),
+				label: i18n.__('&Quit %s', app.getName()),
 				accelerator: 'CommandOrControl+Q',
 				click: () => app.quit(),
 			},
 		],
 	},
 	{
-		label: `&${ i18n.__('Edit') }`,
+		label: i18n.__('&Edit'),
 		submenu: [
 			{
-				label: i18n.__('Undo'),
+				label: i18n.__('&Undo'),
 				accelerator: 'CommandOrControl+Z',
 				role: 'undo',
 			},
 			{
-				label: i18n.__('Redo'),
+				label: i18n.__('&Redo'),
 				accelerator: isWindows ? 'Control+Y' : 'CommandOrControl+Shift+Z',
 				role: 'redo',
 			},
@@ -87,32 +88,32 @@ const createMenuTemplate = () => ([
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Cut'),
+				label: i18n.__('Cu&t'),
 				accelerator: 'CommandOrControl+X',
 				role: 'cut',
 			},
 			{
-				label: i18n.__('Copy'),
+				label: i18n.__('&Copy'),
 				accelerator: 'CommandOrControl+C',
 				role: 'copy',
 			},
 			{
-				label: i18n.__('Paste'),
+				label: i18n.__('&Paste'),
 				accelerator: 'CommandOrControl+V',
 				role: 'paste',
 			},
 			{
-				label: i18n.__('Select_All'),
+				label: i18n.__('Select &all'),
 				accelerator: 'CommandOrControl+A',
 				role: 'selectall',
 			},
 		],
 	},
 	{
-		label: `&${ i18n.__('View') }`,
+		label: i18n.__('&View'),
 		submenu: [
 			{
-				label: i18n.__('Current_Server_Reload'),
+				label: i18n.__('&Reload'),
 				accelerator: 'CommandOrControl+R',
 				click() {
 					const activeWebview = webview.getActive();
@@ -122,7 +123,7 @@ const createMenuTemplate = () => ([
 				},
 			},
 			{
-				label: i18n.__('Reload Ignoring Cache'),
+				label: i18n.__('Reload ignoring cache'),
 				click() {
 					const activeWebview = webview.getActive();
 					if (activeWebview) {
@@ -131,7 +132,7 @@ const createMenuTemplate = () => ([
 				},
 			},
 			{
-				label: i18n.__('Clear_Trusted_Certificates'),
+				label: i18n.__('Clear trusted certificates'),
 				click: () => {
 					certificate.clear();
 					const activeWebview = webview.getActive();
@@ -141,7 +142,7 @@ const createMenuTemplate = () => ([
 				},
 			},
 			{
-				label: i18n.__('Current_Server_Toggle_DevTools'),
+				label: i18n.__('Open &DevTools'),
 				accelerator: isMac ? 'Command+Alt+I' : 'Ctrl+Shift+I',
 				click() {
 					const activeWebview = webview.getActive();
@@ -154,12 +155,12 @@ const createMenuTemplate = () => ([
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Back'),
+				label: i18n.__('&Back'),
 				accelerator: isMac ? 'Command+Left' : 'Alt+Left',
 				click: () => webview.goBack(),
 			},
 			{
-				label: i18n.__('Forward'),
+				label: i18n.__('&Forward'),
 				accelerator: isMac ? 'Command+Right' : 'Alt+Right',
 				click: () => webview.goForward(),
 			},
@@ -167,14 +168,14 @@ const createMenuTemplate = () => ([
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Toggle_Tray_Icon'),
+				label: i18n.__('Tray icon'),
 				type: 'checkbox',
 				checked: localStorage.getItem('hideTray') !== 'true',
 				click: () => tray.toggle(),
 			},
 			...(isMac ? [
 				{
-					label: i18n.__('Toggle_Full_Screen'),
+					label: i18n.__('Full screen'),
 					type: 'checkbox',
 					checked: getCurrentWindow().isFullScreen(),
 					accelerator: 'Control+Command+F',
@@ -186,7 +187,7 @@ const createMenuTemplate = () => ([
 			] : []),
 			...(!isMac ? [
 				{
-					label: i18n.__('Toggle_Menu_Bar'),
+					label: i18n.__('Menu bar'),
 					type: 'checkbox',
 					checked: localStorage.getItem('autohideMenu') === 'true',
 					click() {
@@ -197,7 +198,7 @@ const createMenuTemplate = () => ([
 				},
 			] : []),
 			{
-				label: i18n.__('Toggle_Server_List'),
+				label: i18n.__('Server list'),
 				type: 'checkbox',
 				checked: localStorage.getItem('sidebar-closed') !== 'true',
 				click: () => sidebar.toggle(),
@@ -206,49 +207,34 @@ const createMenuTemplate = () => ([
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Original_Zoom'),
+				label: i18n.__('Reset zoom'),
 				accelerator: 'CommandOrControl+0',
 				role: 'resetzoom',
 			},
 			{
-				label: i18n.__('Zoom_In'),
+				label: i18n.__('Zoom in'),
 				accelerator: 'CommandOrControl+Plus',
 				role: 'zoomin',
 			},
 			{
-				label: i18n.__('Zoom_Out'),
+				label: i18n.__('Zoom out'),
 				accelerator: 'CommandOrControl+-',
 				role: 'zoomout',
 			},
 		],
 	},
 	{
-		label: `&${ i18n.__('Window') }`,
+		label: i18n.__('&Window'),
 		id: 'window',
 		role: 'window',
 		submenu: [
-			...(isMac ? [
-				{
-					label: i18n.__('Minimize'),
-					accelerator: 'Command+M',
-					role: 'minimize',
-				},
-				{
-					label: i18n.__('Close'),
-					accelerator: 'Command+W',
-					role: 'close',
-				},
-				{
-					type: 'separator',
-				},
-			] : []),
 			...(Object.values(servers.hosts)
 				.sort((a, b) => (sidebar ? (sidebar.sortOrder.indexOf(a.url) - sidebar.sortOrder.indexOf(b.url)) : 0))
 				.map((host, i) => ({
-					label: `&${ host.title }`,
+					label: host.title.replace(/&/g, '&&'),
 					type: 'radio',
-					checked: servers.active.url === host.url,
-					accelerator: `CmdOrCtrl+${ i + 1 }`,
+					checked: servers.active && servers.active.url === host.url,
+					accelerator: `CommandOrControl+${ i + 1 }`,
 					id: host.url,
 					click() {
 						getCurrentWindow().show();
@@ -260,7 +246,7 @@ const createMenuTemplate = () => ([
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Application_Reload'),
+				label: i18n.__('&Reload'),
 				accelerator: 'CommandOrControl+Shift+R',
 				click() {
 					const mainWindow = getCurrentWindow();
@@ -271,7 +257,7 @@ const createMenuTemplate = () => ([
 				},
 			},
 			{
-				label: i18n.__('Application_Toggle_DevTools'),
+				label: i18n.__('Toggle &DevTools'),
 				click() {
 					getCurrentWindow().toggleDevTools();
 				},
@@ -280,40 +266,45 @@ const createMenuTemplate = () => ([
 				type: 'separator',
 			},
 			{
+				label: i18n.__('Minimize'),
+				accelerator: 'CommandOrControl+M',
+				role: 'minimize',
+			},
+			{
 				label: i18n.__('Close'),
 				accelerator: 'CommandOrControl+W',
-				click: () => getCurrentWindow().close(),
+				role: 'close',
 			},
 		],
 	},
 	{
-		label: `&${ i18n.__('Help') }`,
+		label: i18n.__('&Help'),
 		role: 'help',
 		submenu: [
 			{
-				label: i18n.__('Help_Name', app.getName()),
+				label: i18n.__('Documentation'),
 				click: () => shell.openExternal('https://rocket.chat/docs'),
 			},
 			{
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Report_Issue'),
+				label: i18n.__('Report issue'),
 				click: () => shell.openExternal('https://github.com/RocketChat/Rocket.Chat/issues'),
 			},
 			{
-				label: i18n.__('Reset_App_Data'),
+				label: i18n.__('Reset app data'),
 				click: () => servers.resetAppData(),
 			},
 			{
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Learn_More'),
+				label: i18n.__('Learn more'),
 				click: () => shell.openExternal('https://rocket.chat'),
 			},
 			{
-				label: i18n.__('About', app.getName()),
+				label: i18n.__('About %s', app.getName()),
 				click: () => ipcRenderer.send('show-about-dialog'),
 			},
 		],

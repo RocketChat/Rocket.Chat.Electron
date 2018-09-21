@@ -12,56 +12,7 @@ const isMac = process.platform === 'darwin';
 const isWindows = process.platform === 'win32';
 const isLinux = process.platform === 'linux';
 
-const windowMenu = [
-	...(isMac ? [
-		{
-			label: i18n.__('Minimize'),
-			accelerator: 'Command+M',
-			role: 'minimize',
-		},
-		{
-			label: i18n.__('Close'),
-			accelerator: 'Command+W',
-			role: 'close',
-		},
-		{
-			type: 'separator',
-		},
-	] : []),
-	{
-		type: 'separator',
-		id: 'server-list-separator',
-		visible: false,
-	},
-	{
-		label: i18n.__('Add_new_server'),
-		accelerator: 'CommandOrControl+N',
-		click() {
-			getCurrentWindow().show();
-			servers.clearActive();
-			webview.showLanding();
-		},
-	},
-	{
-		type: 'separator',
-	},
-	{
-		label: i18n.__('Bring_All_to_Front'),
-		click: () => getCurrentWindow().show(),
-	},
-	...((isWindows || isLinux) ? [
-		{
-			type: 'separator',
-		},
-		{
-			label: i18n.__('Close'),
-			accelerator: 'CommandOrControl+W',
-			click: () => getCurrentWindow().close(),
-		},
-	] : []),
-];
-
-const menuTemplate = [
+const createMenuTemplate = () => ([
 	{
 		label: `&${ app.getName() }`,
 		submenu: [
@@ -250,12 +201,12 @@ const menuTemplate = [
 		submenu: [
 			{
 				label: i18n.__('Back'),
-				accelerator: isMac ? 'Command+left' : 'Alt+Left',
+				accelerator: isMac ? 'Command+Left' : 'Alt+Left',
 				click: () => webview.goBack(),
 			},
 			{
 				label: i18n.__('Forward'),
-				accelerator: isMac ? 'Command+right' : 'Alt+Right',
+				accelerator: isMac ? 'Command+Right' : 'Alt+Right',
 				click: () => webview.goForward(),
 			},
 		],
@@ -264,7 +215,64 @@ const menuTemplate = [
 		label: `&${ i18n.__('Window') }`,
 		id: 'window',
 		role: 'window',
-		submenu: windowMenu,
+		submenu: [
+			...(isMac ? [
+				{
+					label: i18n.__('Minimize'),
+					accelerator: 'Command+M',
+					role: 'minimize',
+				},
+				{
+					label: i18n.__('Close'),
+					accelerator: 'Command+W',
+					role: 'close',
+				},
+				{
+					type: 'separator',
+				},
+			] : []),
+			...(Object.values(servers.hosts)
+				.sort((a, b) => (sidebar ? (sidebar.sortOrder.indexOf(a.url) - sidebar.sortOrder.indexOf(b.url)) : 0))
+				.map((host, i) => ({
+					label: `&${ host.title }`,
+					accelerator: `CmdOrCtrl+${ i + 1 }`,
+					id: host.url,
+					click() {
+						getCurrentWindow().show();
+						servers.setActive(host.url);
+					},
+				}))
+			),
+			{
+				type: 'separator',
+			},
+			{
+				label: i18n.__('Add_new_server'),
+				accelerator: 'CommandOrControl+N',
+				click() {
+					getCurrentWindow().show();
+					servers.clearActive();
+					webview.showLanding();
+				},
+			},
+			{
+				type: 'separator',
+			},
+			{
+				label: i18n.__('Bring_All_to_Front'),
+				click: () => getCurrentWindow().show(),
+			},
+			...((isWindows || isLinux) ? [
+				{
+					type: 'separator',
+				},
+				{
+					label: i18n.__('Close'),
+					accelerator: 'CommandOrControl+W',
+					click: () => getCurrentWindow().close(),
+				},
+			] : []),
+		],
 	},
 	{
 		label: `&${ i18n.__('Help') }`,
@@ -294,10 +302,10 @@ const menuTemplate = [
 			},
 		],
 	},
-];
+]);
 
-function createMenu() {
-	const menu = Menu.buildFromTemplate(menuTemplate);
+function updateMenus() {
+	const menu = Menu.buildFromTemplate(createMenuTemplate());
 	Menu.setApplicationMenu(menu);
 
 	if (!isMac && localStorage.getItem('autohideMenu') === 'true') {
@@ -305,34 +313,8 @@ function createMenu() {
 	}
 }
 
-function addServer(host, position) {
-	const index = windowMenu.findIndex((i) => i.id === 'server-list-separator');
-	windowMenu[index].visible = true;
-
-	const menuItem = {
-		label: `&${ host.title }`,
-		accelerator: `CommandOrControl+${ position }`,
-		position: 'before=server-list-separator',
-		id: host.url,
-		click() {
-			getCurrentWindow().show();
-			servers.setActive(host.url);
-		},
-	};
-
-	windowMenu.push(menuItem);
-	createMenu();
-}
-
-function removeServer(server) {
-	const index = windowMenu.findIndex((i) => i.id === server);
-	windowMenu.splice(index, 1);
-	createMenu();
-}
-
-createMenu();
-
-export {
-	addServer,
-	removeServer,
-};
+servers.on('host-added', updateMenus);
+servers.on('host-removed', updateMenus);
+servers.on('title-setted', updateMenus);
+sidebar.on('hosts-sorted', updateMenus);
+updateMenus();

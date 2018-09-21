@@ -85,6 +85,12 @@ app.on('open-url', (event, url) => {
 	addServers([url]);
 });
 
+app.on('window-all-closed', () => {
+	app.quit();
+});
+
+app.setAppUserModelId('chat.rocket');
+
 app.on('ready', () => {
 	unsetDefaultApplicationMenu();
 	setUserDataPath();
@@ -99,10 +105,6 @@ app.on('ready', () => {
 	getMainWindow().then((mainWindow) => certificate.initWindow(mainWindow));
 
 	autoUpdate();
-});
-
-app.on('window-all-closed', () => {
-	app.quit();
 });
 
 ipcMain.on('getSystemIdleTime', (event) => {

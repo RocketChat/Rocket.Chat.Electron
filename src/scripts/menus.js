@@ -14,13 +14,13 @@ const isLinux = process.platform === 'linux';
 
 const createMenuTemplate = () => ([
 	{
-		label: `&${ app.getName() }`,
+		label: `&${ isMac ? app.getName() : i18n.__('File') }`,
 		submenu: [
-			{
-				label: i18n.__('About', app.getName()),
-				click: () => ipcRenderer.send('show-about-dialog'),
-			},
 			...(isMac ? [
+				{
+					label: i18n.__('About', app.getName()),
+					click: () => ipcRenderer.send('show-about-dialog'),
+				},
 				{
 					type: 'separator',
 				},
@@ -42,7 +42,24 @@ const createMenuTemplate = () => ([
 				{
 					role: 'unhide',
 				},
+				{
+					type: 'separator',
+				},
 			] : []),
+			// {
+			// 	label: i18n.__('Preferences'),
+			// 	accelerator: 'CommandOrControl+,',
+			// 	click: () => alert('Not implemented yet.'),
+			// },
+			{
+				label: i18n.__('Add_new_server'),
+				accelerator: 'CommandOrControl+N',
+				click() {
+					getCurrentWindow().show();
+					servers.clearActive();
+					webview.showLanding();
+				},
+			},
 			{
 				type: 'separator',
 			},
@@ -63,7 +80,7 @@ const createMenuTemplate = () => ([
 			},
 			{
 				label: i18n.__('Redo'),
-				accelerator: 'CommandOrControl+Shift+Z',
+				accelerator: isWindows ? 'Control+Y' : 'CommandOrControl+Shift+Z',
 				role: 'redo',
 			},
 			{
@@ -95,30 +112,31 @@ const createMenuTemplate = () => ([
 		label: `&${ i18n.__('View') }`,
 		submenu: [
 			{
-				label: i18n.__('Original_Zoom'),
-				accelerator: 'CommandOrControl+0',
-				role: 'resetzoom',
-			},
-			{
-				label: i18n.__('Zoom_In'),
-				accelerator: 'CommandOrControl+Plus',
-				role: 'zoomin',
-			},
-			{
-				label: i18n.__('Zoom_Out'),
-				accelerator: 'CommandOrControl+-',
-				role: 'zoomout',
-			},
-			{
-				type: 'separator',
-			},
-			{
 				label: i18n.__('Current_Server_Reload'),
 				accelerator: 'CommandOrControl+R',
 				click() {
 					const activeWebview = webview.getActive();
 					if (activeWebview) {
 						activeWebview.reload();
+					}
+				},
+			},
+			{
+				label: i18n.__('Reload Ignoring Cache'),
+				click() {
+					const activeWebview = webview.getActive();
+					if (activeWebview) {
+						activeWebview.reloadIgnoringCache();
+					}
+				},
+			},
+			{
+				label: i18n.__('Clear_Trusted_Certificates'),
+				click: () => {
+					certificate.clear();
+					const activeWebview = webview.getActive();
+					if (activeWebview) {
+						activeWebview.reloadIgnoringCache();
 					}
 				},
 			},
@@ -136,31 +154,29 @@ const createMenuTemplate = () => ([
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Application_Reload'),
-				accelerator: 'CommandOrControl+Shift+R',
-				click() {
-					const mainWindow = getCurrentWindow();
-					if (mainWindow.destroyTray) {
-						mainWindow.destroyTray();
-					}
-					mainWindow.reload();
-				},
+				label: i18n.__('Back'),
+				accelerator: isMac ? 'Command+Left' : 'Alt+Left',
+				click: () => webview.goBack(),
 			},
 			{
-				label: i18n.__('Application_Toggle_DevTools'),
-				click() {
-					getCurrentWindow().toggleDevTools();
-				},
+				label: i18n.__('Forward'),
+				accelerator: isMac ? 'Command+Right' : 'Alt+Right',
+				click: () => webview.goForward(),
 			},
 			{
 				type: 'separator',
 			},
+			{
+				label: i18n.__('Toggle_Tray_Icon'),
+				type: 'checkbox',
+				checked: localStorage.getItem('hideTray') !== 'true',
+				click: () => tray.toggle(),
+			},
 			...(isMac ? [
 				{
-					label: i18n.__('Toggle_Tray_Icon'),
-					click: () => tray.toggle(),
-				}, {
 					label: i18n.__('Toggle_Full_Screen'),
+					type: 'checkbox',
+					checked: getCurrentWindow().isFullScreen(),
 					accelerator: 'Control+Command+F',
 					click() {
 						const mainWindow = getCurrentWindow();
@@ -168,9 +184,11 @@ const createMenuTemplate = () => ([
 					},
 				},
 			] : []),
-			...((isWindows || isLinux) ? [
+			...(!isMac ? [
 				{
 					label: i18n.__('Toggle_Menu_Bar'),
+					type: 'checkbox',
+					checked: localStorage.getItem('autohideMenu') === 'true',
 					click() {
 						const current = localStorage.getItem('autohideMenu') === 'true';
 						getCurrentWindow().setAutoHideMenuBar(!current);
@@ -180,34 +198,27 @@ const createMenuTemplate = () => ([
 			] : []),
 			{
 				label: i18n.__('Toggle_Server_List'),
+				type: 'checkbox',
+				checked: localStorage.getItem('sidebar-closed') !== 'true',
 				click: () => sidebar.toggle(),
 			},
 			{
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Clear'),
-				submenu: [
-					{
-						label: i18n.__('Clear_Trusted_Certificates'),
-						click: () => certificate.clear(),
-					},
-				],
-			},
-		],
-	},
-	{
-		label: `&${ i18n.__('History') }`,
-		submenu: [
-			{
-				label: i18n.__('Back'),
-				accelerator: isMac ? 'Command+Left' : 'Alt+Left',
-				click: () => webview.goBack(),
+				label: i18n.__('Original_Zoom'),
+				accelerator: 'CommandOrControl+0',
+				role: 'resetzoom',
 			},
 			{
-				label: i18n.__('Forward'),
-				accelerator: isMac ? 'Command+Right' : 'Alt+Right',
-				click: () => webview.goForward(),
+				label: i18n.__('Zoom_In'),
+				accelerator: 'CommandOrControl+Plus',
+				role: 'zoomin',
+			},
+			{
+				label: i18n.__('Zoom_Out'),
+				accelerator: 'CommandOrControl+-',
+				role: 'zoomout',
 			},
 		],
 	},
@@ -235,6 +246,8 @@ const createMenuTemplate = () => ([
 				.sort((a, b) => (sidebar ? (sidebar.sortOrder.indexOf(a.url) - sidebar.sortOrder.indexOf(b.url)) : 0))
 				.map((host, i) => ({
 					label: `&${ host.title }`,
+					type: 'radio',
+					checked: servers.active.url === host.url,
 					accelerator: `CmdOrCtrl+${ i + 1 }`,
 					id: host.url,
 					click() {
@@ -247,31 +260,30 @@ const createMenuTemplate = () => ([
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Add_new_server'),
-				accelerator: 'CommandOrControl+N',
+				label: i18n.__('Application_Reload'),
+				accelerator: 'CommandOrControl+Shift+R',
 				click() {
-					getCurrentWindow().show();
-					servers.clearActive();
-					webview.showLanding();
+					const mainWindow = getCurrentWindow();
+					if (mainWindow.destroyTray) {
+						mainWindow.destroyTray();
+					}
+					mainWindow.reload();
+				},
+			},
+			{
+				label: i18n.__('Application_Toggle_DevTools'),
+				click() {
+					getCurrentWindow().toggleDevTools();
 				},
 			},
 			{
 				type: 'separator',
 			},
 			{
-				label: i18n.__('Bring_All_to_Front'),
-				click: () => getCurrentWindow().show(),
+				label: i18n.__('Close'),
+				accelerator: 'CommandOrControl+W',
+				click: () => getCurrentWindow().close(),
 			},
-			...((isWindows || isLinux) ? [
-				{
-					type: 'separator',
-				},
-				{
-					label: i18n.__('Close'),
-					accelerator: 'CommandOrControl+W',
-					click: () => getCurrentWindow().close(),
-				},
-			] : []),
 		],
 	},
 	{
@@ -299,6 +311,10 @@ const createMenuTemplate = () => ([
 			{
 				label: i18n.__('Learn_More'),
 				click: () => shell.openExternal('https://rocket.chat'),
+			},
+			{
+				label: i18n.__('About', app.getName()),
+				click: () => ipcRenderer.send('show-about-dialog'),
 			},
 		],
 	},

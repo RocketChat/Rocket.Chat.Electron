@@ -87,16 +87,19 @@ app.on('window-all-closed', () => {
 	app.quit();
 });
 
+if (!app.isDefaultProtocolClient('rocketchat')) {
+	app.setAsDefaultProtocolClient('rocketchat');
+}
+
 app.setAppUserModelId('chat.rocket');
+if (process.platform === 'linux') {
+	app.disableHardwareAcceleration();
+}
 
 app.on('ready', () => {
 	unsetDefaultApplicationMenu();
 	setUserDataPath();
 	migrateOlderVersionUserData();
-
-	if (!app.isDefaultProtocolClient('rocketchat')) {
-		app.setAsDefaultProtocolClient('rocketchat');
-	}
 
 	createMainWindow();
 

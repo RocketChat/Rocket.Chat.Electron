@@ -18,10 +18,8 @@ export { default as certificate } from './background/certificate';
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
-const isMacOS = process.platform === 'darwin';
-
 const unsetDefaultApplicationMenu = () => {
-	if (!isMacOS) {
+	if (process.platform !== 'darwin') {
 		Menu.setApplicationMenu(null);
 		return;
 	}

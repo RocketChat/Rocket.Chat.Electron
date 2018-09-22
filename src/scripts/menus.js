@@ -8,117 +8,13 @@ import servers from './servers';
 const { app, getCurrentWindow, shell, Menu } = remote;
 const { certificate } = remote.require('./background');
 
-const isMac = process.platform === 'darwin';
-const isWindows = process.platform === 'win32';
-
-const getMainWindow = getCurrentWindow;
-
-const actions = {
-	quit() {
-		app.quit();
-	},
-
-	about() {
-		ipcRenderer.send('show-about-dialog');
-	},
-
-	addNewServer() {
-		getMainWindow().show();
-		servers.clearActive();
-		webview.showLanding();
-	},
-
-	selectServer: (host) => () => {
-		getMainWindow().show();
-		servers.setActive(host.url);
-	},
-
-	server: {
-		reload() {
-			const activeWebview = webview.getActive();
-			if (activeWebview) {
-				activeWebview.reload();
-			}
-		},
-
-		reloadIgnoringCache() {
-			const activeWebview = webview.getActive();
-			if (activeWebview) {
-				activeWebview.reload();
-			}
-		},
-
-		clearCertificatesAndReload() {
-			certificate.clear();
-			const activeWebview = webview.getActive();
-			if (activeWebview) {
-				activeWebview.reload();
-			}
-		},
-
-		openDevTools() {
-			const activeWebview = webview.getActive();
-			if (activeWebview) {
-				activeWebview.openDevTools();
-			}
-		},
-
-		goBack() {
-			webview.goBack();
-		},
-
-		goForward() {
-			webview.goForward();
-		},
-
-	},
-
-	toggleTrayIcon() {
-		tray.toggle();
-	},
-
-	toggleFullScreen() {
-		const mainWindow = getMainWindow();
-		mainWindow.setFullScreen(!mainWindow.isFullScreen());
-	},
-
-	toggleMenuBar() {
-		const current = localStorage.getItem('autohideMenu') === 'true';
-		getMainWindow().setAutoHideMenuBar(!current);
-		localStorage.setItem('autohideMenu', JSON.stringify(!current));
-	},
-
-	toggleServerList() {
-		sidebar.toggle();
-	},
-
-	app: {
-		reload() {
-			const mainWindow = getMainWindow();
-			console.log({ mainWindow });
-			if (mainWindow.destroyTray) {
-				mainWindow.destroyTray();
-			}
-			mainWindow.reload();
-		},
-
-		toggleDevTools() {
-			getMainWindow().toggleDevTools();
-		},
-
-		resetData() {
-			servers.resetAppData();
-		},
-	},
-};
-
-const createMenuTemplate = (state) => ([
+const createMenuTemplate = (state, actions) => ([
 	{
-		label: isMac ? app.getName() : i18n.__('&File'),
+		label: process.platform === 'darwin' ? state.appName : i18n.__('&File'),
 		submenu: [
-			...(isMac ? [
+			...(process.platform === 'darwin' ? [
 				{
-					label: i18n.__('About %s', app.getName()),
+					label: i18n.__('About %s', state.appName),
 					click: actions.about,
 				},
 				{
@@ -160,7 +56,7 @@ const createMenuTemplate = (state) => ([
 				type: 'separator',
 			},
 			{
-				label: i18n.__('&Quit %s', app.getName()),
+				label: i18n.__('&Quit %s', state.appName),
 				accelerator: 'CommandOrControl+Q',
 				click: actions.quit,
 			},
@@ -176,7 +72,7 @@ const createMenuTemplate = (state) => ([
 			},
 			{
 				label: i18n.__('&Redo'),
-				accelerator: isWindows ? 'Control+Y' : 'CommandOrControl+Shift+Z',
+				accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
 				role: 'redo',
 			},
 			{
@@ -210,19 +106,19 @@ const createMenuTemplate = (state) => ([
 			{
 				label: i18n.__('&Reload'),
 				accelerator: 'CommandOrControl+R',
-				click: actions.server.reload,
+				click: actions.server.reload(),
 			},
 			{
 				label: i18n.__('Reload ignoring cache'),
-				click: actions.server.reloadIgnoringCache,
+				click: actions.server.reload({ ignoringCache: true }),
 			},
 			{
 				label: i18n.__('Clear trusted certificates'),
-				click: actions.server.clearCertificatesAndReload,
+				click: actions.server.reload({ ignoringCache: true, clearCertificates: true }),
 			},
 			{
 				label: i18n.__('Open &DevTools'),
-				accelerator: isMac ? 'Command+Alt+I' : 'Ctrl+Shift+I',
+				accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
 				click: actions.server.openDevTools,
 			},
 			{
@@ -230,12 +126,12 @@ const createMenuTemplate = (state) => ([
 			},
 			{
 				label: i18n.__('&Back'),
-				accelerator: isMac ? 'Command+Left' : 'Alt+Left',
+				accelerator: process.platform === 'darwin' ? 'Command+Left' : 'Alt+Left',
 				click: actions.server.goBack,
 			},
 			{
 				label: i18n.__('&Forward'),
-				accelerator: isMac ? 'Command+Right' : 'Alt+Right',
+				accelerator: process.platform === 'darwin' ? 'Command+Right' : 'Alt+Right',
 				click: actions.server.goForward,
 			},
 			{
@@ -247,7 +143,7 @@ const createMenuTemplate = (state) => ([
 				checked: state.trayIcon,
 				click: actions.toggleTrayIcon,
 			},
-			...(isMac ? [
+			...(process.platform === 'darwin' ? [
 				{
 					label: i18n.__('Full screen'),
 					type: 'checkbox',
@@ -256,7 +152,7 @@ const createMenuTemplate = (state) => ([
 					click: actions.toggleFullScreen,
 				},
 			] : []),
-			...(!isMac ? [
+			...(process.platform !== 'darwin' ? [
 				{
 					label: i18n.__('Menu bar'),
 					type: 'checkbox',
@@ -336,14 +232,14 @@ const createMenuTemplate = (state) => ([
 		submenu: [
 			{
 				label: i18n.__('Documentation'),
-				click: () => shell.openExternal('https://rocket.chat/docs'),
+				click: actions.openUrl('https://rocket.chat/docs'),
 			},
 			{
 				type: 'separator',
 			},
 			{
 				label: i18n.__('Report issue'),
-				click: () => shell.openExternal('https://github.com/RocketChat/Rocket.Chat/issues'),
+				click: actions.openUrl('https://github.com/RocketChat/Rocket.Chat/issues'),
 			},
 			{
 				label: i18n.__('Reset app data'),
@@ -354,45 +250,149 @@ const createMenuTemplate = (state) => ([
 			},
 			{
 				label: i18n.__('Learn more'),
-				click: () => shell.openExternal('https://rocket.chat'),
+				click: actions.openUrl('https://rocket.chat'),
 			},
 			{
-				label: i18n.__('About %s', app.getName()),
+				label: i18n.__('About %s', state.appName),
 				click: actions.about,
 			},
 		],
 	},
 ]);
 
-function updateMenus() {
-	const state = {};
-	state.trayIcon = localStorage.getItem('hideTray') !== 'true';
-	state.fullScreen = getMainWindow().isFullScreen();
-	state.menuBar = localStorage.getItem('autohideMenu') !== 'true';
-	state.serverList = localStorage.getItem('sidebar-closed') !== 'true';
+const actions = {
+	quit() {
+		app.quit();
+	},
 
-	state.servers = Object.values(servers.hosts)
-		.sort((a, b) => (sidebar ? (sidebar.sortOrder.indexOf(a.url) - sidebar.sortOrder.indexOf(b.url)) : 0))
-		.map(({ title, url }) => ({ title, url }));
-	state.currentServerUrl = servers.active;
+	about() {
+		ipcRenderer.send('show-about-dialog');
+	},
 
-	const menu = Menu.buildFromTemplate(createMenuTemplate(state));
-	Menu.setApplicationMenu(menu);
+	openUrl: (url) => () => {
+		shell.openExternal(url);
+	},
 
-	if (!isMac && localStorage.getItem('autohideMenu') === 'true') {
-		getMainWindow().setAutoHideMenuBar(true);
-	}
-}
+	addNewServer() {
+		getCurrentWindow().show();
+		servers.clearActive();
+		webview.showLanding();
+	},
 
-servers.on('loaded', updateMenus);
-servers.on('active-cleared', updateMenus);
-servers.on('active-setted', updateMenus);
-servers.on('host-added', updateMenus);
-servers.on('host-removed', updateMenus);
-servers.on('title-setted', updateMenus);
+	selectServer: ({ url }) => () => {
+		getCurrentWindow().show();
+		servers.setActive(url);
+	},
 
-sidebar.on('hosts-sorted', updateMenus);
-sidebar.on('hide', updateMenus);
-sidebar.on('show', updateMenus);
+	server: {
+		reload: ({ ignoringCache = false, clearCertificates = false } = {}) => () => {
+			if (clearCertificates) {
+				certificate.clear();
+			}
 
-updateMenus();
+			const activeWebview = webview.getActive();
+			if (!activeWebview) {
+				return;
+			}
+
+			if (ignoringCache) {
+				activeWebview.reloadIgnoringCache();
+				return;
+			}
+
+			activeWebview.reload();
+		},
+
+		openDevTools() {
+			const activeWebview = webview.getActive();
+			if (activeWebview) {
+				activeWebview.openDevTools();
+			}
+		},
+
+		goBack() {
+			webview.goBack();
+		},
+
+		goForward() {
+			webview.goForward();
+		},
+	},
+
+	toggleTrayIcon() {
+		tray.toggle();
+		actions.update();
+	},
+
+	toggleFullScreen() {
+		const mainWindow = getCurrentWindow();
+		mainWindow.setFullScreen(!mainWindow.isFullScreen());
+		actions.update();
+	},
+
+	toggleMenuBar() {
+		const hadMenuBar = localStorage.getItem('autohideMenu') !== 'true';
+		const hasMenuBar = !hadMenuBar;
+		localStorage.setItem('autohideMenu', JSON.stringify(!hasMenuBar));
+		actions.update();
+	},
+
+	toggleServerList() {
+		sidebar.toggle();
+		actions.update();
+	},
+
+	app: {
+		reload() {
+			const mainWindow = getCurrentWindow();
+			if (mainWindow.destroyTray) {
+				mainWindow.destroyTray();
+			}
+			mainWindow.removeAllListeners();
+			mainWindow.reload();
+		},
+
+		toggleDevTools() {
+			getCurrentWindow().toggleDevTools();
+		},
+
+		resetData() {
+			servers.resetAppData();
+		},
+	},
+
+	update() {
+		const state = {
+			appName: app.getName(),
+			servers: Object.values(servers.hosts)
+				.sort((a, b) => (sidebar ? (sidebar.sortOrder.indexOf(a.url) - sidebar.sortOrder.indexOf(b.url)) : 0))
+				.map(({ title, url }) => ({ title, url })),
+			currentServerUrl: servers.active,
+			trayIcon: localStorage.getItem('hideTray') !== 'true',
+			fullScreen: getCurrentWindow().isFullScreen(),
+			menuBar: localStorage.getItem('autohideMenu') !== 'true',
+			serverList: localStorage.getItem('sidebar-closed') !== 'true',
+		};
+
+		const menu = Menu.buildFromTemplate(createMenuTemplate(state, actions));
+		Menu.setApplicationMenu(menu);
+
+		if (process.platform !== 'darwin') {
+			getCurrentWindow().setAutoHideMenuBar(!state.menuBar);
+			getCurrentWindow().setMenuBarVisibility(state.menuBar);
+		}
+	},
+};
+
+servers.on('loaded', actions.update);
+servers.on('active-cleared', actions.update);
+servers.on('active-setted', actions.update);
+servers.on('host-added', actions.update);
+servers.on('host-removed', actions.update);
+servers.on('title-setted', actions.update);
+
+sidebar.on('hosts-sorted', actions.update);
+sidebar.on('hide', actions.update);
+sidebar.on('show', actions.update);
+
+actions.update();

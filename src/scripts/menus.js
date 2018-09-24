@@ -154,6 +154,12 @@ const createMenuTemplate = (state, actions) => ([
 			] : []),
 			...(process.platform !== 'darwin' ? [
 				{
+					label: i18n.__('Show window on unread messages'),
+					type: 'checkbox',
+					checked: state.showWindowOnUnreadChanged,
+					click: actions.toggleShowWindowOnUnreadChanged,
+				},
+				{
 					label: i18n.__('Menu bar'),
 					type: 'checkbox',
 					checked: state.menuBar,
@@ -330,10 +336,17 @@ const actions = {
 		actions.update();
 	},
 
+	toggleShowWindowOnUnreadChanged() {
+		const previousValue = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
+		const newValue = !previousValue;
+		localStorage.setItem('showWindowOnUnreadChanged', JSON.stringify(newValue));
+		actions.update();
+	},
+
 	toggleMenuBar() {
-		const hadMenuBar = localStorage.getItem('autohideMenu') !== 'true';
-		const hasMenuBar = !hadMenuBar;
-		localStorage.setItem('autohideMenu', JSON.stringify(!hasMenuBar));
+		const previousValue = localStorage.getItem('autohideMenu') !== 'true';
+		const newValue = !previousValue;
+		localStorage.setItem('autohideMenu', JSON.stringify(!newValue));
 		actions.update();
 	},
 
@@ -370,6 +383,7 @@ const actions = {
 			currentServerUrl: servers.active,
 			trayIcon: localStorage.getItem('hideTray') !== 'true',
 			fullScreen: getCurrentWindow().isFullScreen(),
+			showWindowOnUnreadChanged: localStorage.getItem('showWindowOnUnreadChanged') === 'true',
 			menuBar: localStorage.getItem('autohideMenu') !== 'true',
 			serverList: localStorage.getItem('sidebar-closed') !== 'true',
 		};

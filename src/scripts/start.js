@@ -1,6 +1,6 @@
 /* globals $ */
 
-import { ipcRenderer } from 'electron';
+import { remote, ipcRenderer } from 'electron';
 import i18n from '../i18n/index.js';
 import servers from './servers';
 import sidebar from './sidebar';
@@ -187,4 +187,15 @@ export const start = function() {
 
 window.addEventListener('focus', function() {
 	webview.focusActive();
+});
+
+webview.on('ipc-message-unread-changed', (hostUrl, [count]) => {
+	if (typeof count === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {
+		const mainWindow = remote.getCurrentWindow();
+		if (!mainWindow.isFocused()) {
+			mainWindow.once('focus', () => mainWindow.flashFrame(false));
+			mainWindow.showInactive();
+			mainWindow.flashFrame(true);
+		}
+	}
 });

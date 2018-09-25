@@ -62,6 +62,7 @@ const createTemplate = ({
 				type: 'separator',
 			},
 			{
+				id: 'quit',
 				label: i18n.__('&Quit %s', appName),
 				accelerator: 'CommandOrControl+Q',
 				click: () => events.emit('quit'),
@@ -278,6 +279,7 @@ const createTemplate = ({
 				click: () => events.emit('open-url', 'https://rocket.chat'),
 			},
 			{
+				id: 'about',
 				label: i18n.__('About %s', appName),
 				click: () => events.emit('about'),
 			},
@@ -298,6 +300,10 @@ class Menus extends EventEmitter {
 			...partialState,
 		};
 		this.update();
+	}
+
+	getItem(id) {
+		return Menu.getApplicationMenu().getMenuItemById(id);
 	}
 
 	async update() {

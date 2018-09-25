@@ -1,16 +1,15 @@
 import { remote, ipcRenderer } from 'electron';
-import menus from './menus';
 import servers from './servers';
 import sidebar from './sidebar';
 import tray from './tray';
 import webview from './webview';
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate } = remote.require('./background');
+const { certificate, menus, showAboutDialog } = remote.require('./background');
 
 export default () => {
 	menus.on('quit', () => app.quit());
-	menus.on('about', () => ipcRenderer.send('show-about-dialog'));
+	menus.on('about', () => showAboutDialog());
 	menus.on('open-url', (url) => shell.openExternal(url));
 
 
@@ -72,12 +71,13 @@ export default () => {
 	const updatePreferences = () => {
 		const mainWindow = getCurrentWindow();
 
-		menus.showTrayIcon = localStorage.getItem('hideTray') !== 'true';
-		menus.showFullScreen = mainWindow.isFullScreen();
-		menus.showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
-		menus.showMenuBar = localStorage.getItem('autohideMenu') !== 'true';
-		menus.showServerList = localStorage.getItem('sidebar-closed') !== 'true';
-		menus.emit('update');
+		menus.setState({
+			showTrayIcon: localStorage.getItem('hideTray') !== 'true',
+			showFullScreen: mainWindow.isFullScreen(),
+			showWindowOnUnreadChanged: localStorage.getItem('showWindowOnUnreadChanged') === 'true',
+			showMenuBar: localStorage.getItem('autohideMenu') !== 'true',
+			showServerList: localStorage.getItem('sidebar-closed') !== 'true',
+		});
 	};
 
 	menus.on('toggle', (property) => {
@@ -117,11 +117,12 @@ export default () => {
 	});
 
 	const updateServers = () => {
-		menus.servers = Object.values(servers.hosts)
-			.sort((a, b) => (sidebar ? (sidebar.sortOrder.indexOf(a.url) - sidebar.sortOrder.indexOf(b.url)) : 0))
-			.map(({ title, url }) => ({ title, url }));
-		menus.currentServerUrl = servers.active;
-		menus.emit('update');
+		menus.setState({
+			servers: Object.values(servers.hosts)
+				.sort((a, b) => (sidebar ? (sidebar.sortOrder.indexOf(a.url) - sidebar.sortOrder.indexOf(b.url)) : 0))
+				.map(({ title, url }) => ({ title, url })),
+			currentServerUrl: servers.active,
+		});
 	};
 
 	servers.on('loaded', updateServers);

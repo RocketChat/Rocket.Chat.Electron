@@ -3,7 +3,7 @@ import querystring from 'querystring';
 import url from 'url';
 import jetpack from 'fs-jetpack';
 import idle from '@paulcbetts/system-idle-time';
-import { app, ipcMain, BrowserWindow, Menu } from 'electron';
+import { app, ipcMain, Menu } from 'electron';
 
 import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
@@ -13,8 +13,10 @@ import './background/screenshare';
 import i18n from './i18n/index.js';
 import env from './env';
 
-export { default as remoteServers } from './background/servers';
+export { default as showAboutDialog } from './background/aboutDialog';
 export { default as certificate } from './background/certificate';
+export { default as menus } from './background/menus';
+export { default as remoteServers } from './background/servers';
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
@@ -110,24 +112,4 @@ app.on('ready', () => {
 
 ipcMain.on('getSystemIdleTime', (event) => {
 	event.returnValue = idle.getIdleTime();
-});
-
-ipcMain.on('show-about-dialog', () => {
-	getMainWindow().then((mainWindow) => {
-		const win = new BrowserWindow({
-			title: i18n.__('About %s', app.getName()),
-			parent: mainWindow,
-			width: 400,
-			height: 300,
-			type: 'toolbar',
-			resizable: false,
-			maximizable: false,
-			minimizable: false,
-			center: true,
-			show: false,
-		});
-		win.setMenuBarVisibility(false);
-		win.once('ready-to-show', () => win.show());
-		win.loadURL(`file://${ __dirname }/public/about.html`);
-	});
 });

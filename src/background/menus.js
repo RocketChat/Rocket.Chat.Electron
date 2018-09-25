@@ -1,8 +1,7 @@
-import { remote } from 'electron';
+import { app, Menu } from 'electron';
 import { EventEmitter } from 'events';
+import { getMainWindow } from './mainWindow';
 import i18n from '../i18n/index.js';
-
-const { app, getCurrentWindow, Menu } = remote;
 
 const createTemplate = ({
 	appName,
@@ -274,18 +273,28 @@ const createTemplate = ({
 class Menus extends EventEmitter {
 	constructor() {
 		super();
+		this.state = {};
 		this.on('update', this.update.bind(this));
 	}
 
-	update() {
-		const template = createTemplate({ appName: app.getName(), ...this }, this);
+	setState(partialState) {
+		this.state = {
+			...this.state,
+			...partialState,
+		};
+		this.update();
+	}
+
+	async update() {
+		const template = createTemplate({ appName: app.getName(), ...this.state }, this);
 		const menu = Menu.buildFromTemplate(template);
 		Menu.setApplicationMenu(menu);
 
 		if (process.platform !== 'darwin') {
-			const { showMenuBar } = this;
-			getCurrentWindow().setAutoHideMenuBar(!showMenuBar);
-			getCurrentWindow().setMenuBarVisibility(!!showMenuBar);
+			const { showMenuBar } = this.state;
+			const mainWindow = await getMainWindow();
+			mainWindow.setAutoHideMenuBar(!showMenuBar);
+			mainWindow.setMenuBarVisibility(!!showMenuBar);
 		}
 	}
 }

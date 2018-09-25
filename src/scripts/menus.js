@@ -1,21 +1,26 @@
-import { remote, ipcRenderer } from 'electron';
+import { remote } from 'electron';
+import { EventEmitter } from 'events';
 import i18n from '../i18n/index.js';
-import webview from './webview';
-import sidebar from './sidebar';
-import tray from './tray';
-import servers from './servers';
 
-const { app, getCurrentWindow, shell, Menu } = remote;
-const { certificate } = remote.require('./background');
+const { app, getCurrentWindow, Menu } = remote;
 
-const createMenuTemplate = (state, actions) => ([
+const createTemplate = ({
+	appName,
+	servers = [],
+	currentServerUrl = null,
+	showTrayIcon = true,
+	showFullScreen = false,
+	showWindowOnUnreadChanged = false,
+	showMenuBar = true,
+	showServerList = true,
+}, events) => ([
 	{
-		label: process.platform === 'darwin' ? state.appName : i18n.__('&File'),
+		label: process.platform === 'darwin' ? appName : i18n.__('&File'),
 		submenu: [
 			...(process.platform === 'darwin' ? [
 				{
-					label: i18n.__('About %s', state.appName),
-					click: actions.about,
+					label: i18n.__('About %s', appName),
+					click: () => events.emit('about'),
 				},
 				{
 					type: 'separator',
@@ -45,20 +50,20 @@ const createMenuTemplate = (state, actions) => ([
 			// {
 			// 	label: i18n.__('Preferences'),
 			// 	accelerator: 'CommandOrControl+,',
-			// 	click: actions.preferences,
+			// 	click: () => events.emit('preferences'),
 			// },
 			{
 				label: i18n.__('Add &new server'),
 				accelerator: 'CommandOrControl+N',
-				click: actions.addNewServer,
+				click: () => events.emit('add-new-server'),
 			},
 			{
 				type: 'separator',
 			},
 			{
-				label: i18n.__('&Quit %s', state.appName),
+				label: i18n.__('&Quit %s', appName),
 				accelerator: 'CommandOrControl+Q',
-				click: actions.quit,
+				click: () => events.emit('quit'),
 			},
 		],
 	},
@@ -106,20 +111,20 @@ const createMenuTemplate = (state, actions) => ([
 			{
 				label: i18n.__('&Reload'),
 				accelerator: 'CommandOrControl+R',
-				click: actions.server.reload(),
+				click: () => events.emit('reload-server'),
 			},
 			{
 				label: i18n.__('Reload ignoring cache'),
-				click: actions.server.reload({ ignoringCache: true }),
+				click: () => events.emit('reload-server', { ignoringCache: true }),
 			},
 			{
 				label: i18n.__('Clear trusted certificates'),
-				click: actions.server.reload({ ignoringCache: true, clearCertificates: true }),
+				click: () => events.emit('reload-server', { ignoringCache: true, clearCertificates: true }),
 			},
 			{
 				label: i18n.__('Open &DevTools'),
 				accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
-				click: actions.server.openDevTools,
+				click: () => events.emit('open-devtools-for-server'),
 			},
 			{
 				type: 'separator',
@@ -127,12 +132,12 @@ const createMenuTemplate = (state, actions) => ([
 			{
 				label: i18n.__('&Back'),
 				accelerator: process.platform === 'darwin' ? 'Command+Left' : 'Alt+Left',
-				click: actions.server.goBack,
+				click: () => events.emit('go-back'),
 			},
 			{
 				label: i18n.__('&Forward'),
 				accelerator: process.platform === 'darwin' ? 'Command+Right' : 'Alt+Right',
-				click: actions.server.goForward,
+				click: () => events.emit('go-forward'),
 			},
 			{
 				type: 'separator',
@@ -140,37 +145,37 @@ const createMenuTemplate = (state, actions) => ([
 			{
 				label: i18n.__('Tray icon'),
 				type: 'checkbox',
-				checked: state.trayIcon,
-				click: actions.toggleTrayIcon,
+				checked: showTrayIcon,
+				click: () => events.emit('toggle', 'showTrayIcon'),
 			},
 			...(process.platform === 'darwin' ? [
 				{
 					label: i18n.__('Full screen'),
 					type: 'checkbox',
-					checked: state.fullScreen,
+					checked: showFullScreen,
 					accelerator: 'Control+Command+F',
-					click: actions.toggleFullScreen,
+					click: () => events.emit('toggle', 'showFullScreen'),
 				},
 			] : []),
 			...(process.platform !== 'darwin' ? [
 				{
 					label: i18n.__('Show window on unread messages'),
 					type: 'checkbox',
-					checked: state.showWindowOnUnreadChanged,
-					click: actions.toggleShowWindowOnUnreadChanged,
+					checked: showWindowOnUnreadChanged,
+					click: () => events.emit('toggle', 'showWindowOnUnreadChanged'),
 				},
 				{
 					label: i18n.__('Menu bar'),
 					type: 'checkbox',
-					checked: state.menuBar,
-					click: actions.toggleMenuBar,
+					checked: showMenuBar,
+					click: () => events.emit('toggle', 'showMenuBar'),
 				},
 			] : []),
 			{
 				label: i18n.__('Server list'),
 				type: 'checkbox',
-				checked: state.serverList,
-				click: actions.toggleServerList,
+				checked: showServerList,
+				click: () => events.emit('toggle', 'showServerList'),
 			},
 			{
 				type: 'separator',
@@ -197,13 +202,13 @@ const createMenuTemplate = (state, actions) => ([
 		id: 'window',
 		role: 'window',
 		submenu: [
-			...state.servers.map((host, i) => ({
+			...servers.map((host, i) => ({
 				label: host.title.replace(/&/g, '&&'),
-				type: state.currentServerUrl ? 'radio' : 'normal',
-				checked: state.currentServerUrl === host.url,
+				type: currentServerUrl ? 'radio' : 'normal',
+				checked: currentServerUrl === host.url,
 				accelerator: `CommandOrControl+${ i + 1 }`,
 				id: host.url,
-				click: actions.selectServer(host),
+				click: () => events.emit('select-server', host),
 			})),
 			{
 				type: 'separator',
@@ -211,11 +216,11 @@ const createMenuTemplate = (state, actions) => ([
 			{
 				label: i18n.__('&Reload'),
 				accelerator: 'CommandOrControl+Shift+R',
-				click: actions.app.reload,
+				click: () => events.emit('reload-app'),
 			},
 			{
 				label: i18n.__('Toggle &DevTools'),
-				click: actions.app.toggleDevTools,
+				click: () => events.emit('toggle-devtools'),
 			},
 			{
 				type: 'separator',
@@ -238,175 +243,51 @@ const createMenuTemplate = (state, actions) => ([
 		submenu: [
 			{
 				label: i18n.__('Documentation'),
-				click: actions.openUrl('https://rocket.chat/docs'),
+				click: () => events.emit('open-url', 'https://rocket.chat/docs'),
 			},
 			{
 				type: 'separator',
 			},
 			{
 				label: i18n.__('Report issue'),
-				click: actions.openUrl('https://github.com/RocketChat/Rocket.Chat/issues'),
+				click: () => events.emit('open-url', 'https://github.com/RocketChat/Rocket.Chat/issues'),
 			},
 			{
 				label: i18n.__('Reset app data'),
-				click: actions.app.resetData,
+				click: () => events.emit('reset-app-data'),
 			},
 			{
 				type: 'separator',
 			},
 			{
 				label: i18n.__('Learn more'),
-				click: actions.openUrl('https://rocket.chat'),
+				click: () => events.emit('open-url', 'https://rocket.chat'),
 			},
 			{
-				label: i18n.__('About %s', state.appName),
-				click: actions.about,
+				label: i18n.__('About %s', appName),
+				click: () => events.emit('about'),
 			},
 		],
 	},
 ]);
 
-const actions = {
-	quit() {
-		app.quit();
-	},
-
-	about() {
-		ipcRenderer.send('show-about-dialog');
-	},
-
-	openUrl: (url) => () => {
-		shell.openExternal(url);
-	},
-
-	addNewServer() {
-		getCurrentWindow().show();
-		servers.clearActive();
-		webview.showLanding();
-	},
-
-	selectServer: ({ url }) => () => {
-		getCurrentWindow().show();
-		servers.setActive(url);
-	},
-
-	server: {
-		reload: ({ ignoringCache = false, clearCertificates = false } = {}) => () => {
-			if (clearCertificates) {
-				certificate.clear();
-			}
-
-			const activeWebview = webview.getActive();
-			if (!activeWebview) {
-				return;
-			}
-
-			if (ignoringCache) {
-				activeWebview.reloadIgnoringCache();
-				return;
-			}
-
-			activeWebview.reload();
-		},
-
-		openDevTools() {
-			const activeWebview = webview.getActive();
-			if (activeWebview) {
-				activeWebview.openDevTools();
-			}
-		},
-
-		goBack() {
-			webview.goBack();
-		},
-
-		goForward() {
-			webview.goForward();
-		},
-	},
-
-	toggleTrayIcon() {
-		tray.toggle();
-		actions.update();
-	},
-
-	toggleFullScreen() {
-		const mainWindow = getCurrentWindow();
-		mainWindow.setFullScreen(!mainWindow.isFullScreen());
-		actions.update();
-	},
-
-	toggleShowWindowOnUnreadChanged() {
-		const previousValue = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
-		const newValue = !previousValue;
-		localStorage.setItem('showWindowOnUnreadChanged', JSON.stringify(newValue));
-		actions.update();
-	},
-
-	toggleMenuBar() {
-		const previousValue = localStorage.getItem('autohideMenu') !== 'true';
-		const newValue = !previousValue;
-		localStorage.setItem('autohideMenu', JSON.stringify(!newValue));
-		actions.update();
-	},
-
-	toggleServerList() {
-		sidebar.toggle();
-		actions.update();
-	},
-
-	app: {
-		reload() {
-			const mainWindow = getCurrentWindow();
-			if (mainWindow.destroyTray) {
-				mainWindow.destroyTray();
-			}
-			mainWindow.removeAllListeners();
-			mainWindow.reload();
-		},
-
-		toggleDevTools() {
-			getCurrentWindow().toggleDevTools();
-		},
-
-		resetData() {
-			servers.resetAppData();
-		},
-	},
+class Menus extends EventEmitter {
+	constructor() {
+		super();
+		this.on('update', this.update.bind(this));
+	}
 
 	update() {
-		const state = {
-			appName: app.getName(),
-			servers: Object.values(servers.hosts)
-				.sort((a, b) => (sidebar ? (sidebar.sortOrder.indexOf(a.url) - sidebar.sortOrder.indexOf(b.url)) : 0))
-				.map(({ title, url }) => ({ title, url })),
-			currentServerUrl: servers.active,
-			trayIcon: localStorage.getItem('hideTray') !== 'true',
-			fullScreen: getCurrentWindow().isFullScreen(),
-			showWindowOnUnreadChanged: localStorage.getItem('showWindowOnUnreadChanged') === 'true',
-			menuBar: localStorage.getItem('autohideMenu') !== 'true',
-			serverList: localStorage.getItem('sidebar-closed') !== 'true',
-		};
-
-		const menu = Menu.buildFromTemplate(createMenuTemplate(state, actions));
+		const template = createTemplate({ appName: app.getName(), ...this }, this);
+		const menu = Menu.buildFromTemplate(template);
 		Menu.setApplicationMenu(menu);
 
 		if (process.platform !== 'darwin') {
-			getCurrentWindow().setAutoHideMenuBar(!state.menuBar);
-			getCurrentWindow().setMenuBarVisibility(state.menuBar);
+			const { showMenuBar } = this;
+			getCurrentWindow().setAutoHideMenuBar(!showMenuBar);
+			getCurrentWindow().setMenuBarVisibility(!!showMenuBar);
 		}
-	},
-};
+	}
+}
 
-servers.on('loaded', actions.update);
-servers.on('active-cleared', actions.update);
-servers.on('active-setted', actions.update);
-servers.on('host-added', actions.update);
-servers.on('host-removed', actions.update);
-servers.on('title-setted', actions.update);
-
-sidebar.on('hosts-sorted', actions.update);
-sidebar.on('hide', actions.update);
-sidebar.on('show', actions.update);
-
-actions.update();
+export default new Menus();

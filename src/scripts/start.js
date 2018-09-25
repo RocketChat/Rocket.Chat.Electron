@@ -2,16 +2,10 @@
 
 import { ipcRenderer } from 'electron';
 import i18n from '../i18n/index.js';
+import attachEvents from './events';
 import servers from './servers';
 import sidebar from './sidebar';
 import webview from './webview';
-import tray from './tray';
-import './menus';
-
-sidebar.on('badge-setted', function() {
-	const badge = sidebar.getGlobalBadge();
-	tray.showTrayAlert(badge);
-});
 
 export const start = function() {
 	const defaultInstance = 'https://open.rocket.chat';
@@ -28,6 +22,7 @@ export const start = function() {
 	if (!navigator.onLine) {
 		offline();
 	}
+
 	window.addEventListener('online', online);
 	window.addEventListener('offline', offline);
 	// end connection check
@@ -37,9 +32,9 @@ export const start = function() {
 	const button = form.querySelector('[type="submit"]');
 	const invalidUrl = form.querySelector('#invalidUrl');
 
-	window.addEventListener('load', function() {
-		hostField.focus();
-	});
+	window.addEventListener('load', () => hostField.focus());
+
+	window.addEventListener('focus', () => webview.focusActive());
 
 	function validateHost() {
 		return new Promise(function(resolve, reject) {
@@ -118,30 +113,6 @@ export const start = function() {
 		validateHost().then(function() {}, function() {});
 	});
 
-	ipcRenderer.on('render-taskbar-icon', (event, messageCount) => {
-		// Create a canvas from unread messages
-		function createOverlayIcon(messageCount) {
-			const canvas = document.createElement('canvas');
-			canvas.height = 128;
-			canvas.width = 128;
-
-			const ctx = canvas.getContext('2d');
-			ctx.beginPath();
-
-			ctx.fillStyle = 'red';
-			ctx.arc(64, 64, 64, 0, 2 * Math.PI);
-			ctx.fill();
-			ctx.fillStyle = '#ffffff';
-			ctx.textAlign = 'center';
-			canvas.style.letterSpacing = '-4px';
-			ctx.font = 'bold 92px sans-serif';
-			ctx.fillText(String(Math.min(99, messageCount)), 64, 98);
-
-			return canvas;
-		}
-		ipcRenderer.send('update-taskbar-icon', createOverlayIcon(messageCount).toDataURL(), String(messageCount));
-	});
-
 	const submit = function() {
 		validateHost().then(function() {
 			const input = form.querySelector('[name="host"]');
@@ -182,9 +153,5 @@ export const start = function() {
 		webview.showLanding();
 	});
 
-	servers.restoreActive();
+	attachEvents();
 };
-
-window.addEventListener('focus', function() {
-	webview.focusActive();
-});

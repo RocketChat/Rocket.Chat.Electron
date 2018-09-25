@@ -3,7 +3,6 @@ import { remote } from 'electron';
 import i18n from '../i18n/index.js';
 import servers from './servers';
 import webview from './webview';
-import * as menus from './menus';
 
 class SideBar extends EventEmitter {
 	constructor() {
@@ -164,7 +163,7 @@ class SideBar extends EventEmitter {
 		};
 
 		this.listElement.appendChild(item);
-		menus.addServer(host, hostOrder);
+		this.emit('hosts-sorted');
 	}
 
 	setImage(hostUrl) {
@@ -176,7 +175,6 @@ class SideBar extends EventEmitter {
 		const el = this.getByUrl(hostUrl);
 		if (el) {
 			el.remove();
-			menus.removeServer(hostUrl);
 		}
 	}
 
@@ -326,7 +324,7 @@ const instanceMenu = remote.Menu.buildFromTemplate([{
 		servers.removeHost(selectedInstance.dataset.host);
 	},
 }, {
-	label: i18n.__('Open_DevTools'),
+	label: i18n.__('Open DevTools'),
 	click() {
 		webview.getByUrl(selectedInstance.dataset.host).openDevTools();
 	},

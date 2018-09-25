@@ -13,21 +13,21 @@ const i18n = require('../../i18n');
 	};
 
 	const cut = new MenuItem({
-		label: i18n.__('Cut'),
+		label: i18n.__('Cu&t'),
 		click() {
 			document.execCommand('cut');
 		},
 	});
 
 	const copy = new MenuItem({
-		label: i18n.__('Copy'),
+		label: i18n.__('&Copy'),
 		click() {
 			document.execCommand('copy');
 		},
 	});
 
 	const paste = new MenuItem({
-		label: i18n.__('Paste'),
+		label: i18n.__('&Paste'),
 		click() {
 			document.execCommand('paste');
 		},

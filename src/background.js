@@ -3,25 +3,25 @@ import querystring from 'querystring';
 import url from 'url';
 import jetpack from 'fs-jetpack';
 import idle from '@paulcbetts/system-idle-time';
-import { app, ipcMain, BrowserWindow, Menu } from 'electron';
+import { app, ipcMain, Menu } from 'electron';
 
 import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
 import { addServer, createMainWindow, getMainWindow } from './background/mainWindow';
+import menus from './background/menus';
 import './background/screenshare';
 
 import i18n from './i18n/index.js';
 import env from './env';
 
+export { default as showAboutDialog } from './background/aboutDialog';
 export { default as remoteServers } from './background/servers';
-export { default as certificate } from './background/certificate';
+export { certificate, menus };
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
-const isMacOS = process.platform === 'darwin';
-
 const unsetDefaultApplicationMenu = () => {
-	if (!isMacOS) {
+	if (process.platform !== 'darwin') {
 		Menu.setApplicationMenu(null);
 		return;
 	}
@@ -29,7 +29,7 @@ const unsetDefaultApplicationMenu = () => {
 	const emptyMenuTemplate = [{
 		submenu: [
 			{
-				label: i18n.__('Quit_App', app.getName()),
+				label: i18n.__('&Quit %s', app.getName()),
 				accelerator: 'CommandOrControl+Q',
 				click() {
 					app.quit();
@@ -85,14 +85,23 @@ app.on('open-url', (event, url) => {
 	addServers([url]);
 });
 
+app.on('window-all-closed', () => {
+	app.quit();
+});
+
+if (!app.isDefaultProtocolClient('rocketchat')) {
+	app.setAsDefaultProtocolClient('rocketchat');
+}
+
+app.setAppUserModelId('chat.rocket');
+if (process.platform === 'linux') {
+	app.disableHardwareAcceleration();
+}
+
 app.on('ready', () => {
 	unsetDefaultApplicationMenu();
 	setUserDataPath();
 	migrateOlderVersionUserData();
-
-	if (!app.isDefaultProtocolClient('rocketchat')) {
-		app.setAsDefaultProtocolClient('rocketchat');
-	}
 
 	createMainWindow();
 
@@ -101,30 +110,6 @@ app.on('ready', () => {
 	autoUpdate();
 });
 
-app.on('window-all-closed', () => {
-	app.quit();
-});
-
 ipcMain.on('getSystemIdleTime', (event) => {
 	event.returnValue = idle.getIdleTime();
-});
-
-ipcMain.on('show-about-dialog', () => {
-	getMainWindow().then((mainWindow) => {
-		const win = new BrowserWindow({
-			title: i18n.__('About', app.getName()),
-			parent: mainWindow,
-			width: 400,
-			height: 300,
-			type: 'toolbar',
-			resizable: false,
-			maximizable: false,
-			minimizable: false,
-			center: true,
-			show: false,
-		});
-		win.setMenuBarVisibility(false);
-		win.once('ready-to-show', () => win.show());
-		win.loadURL(`file://${ __dirname }/public/about.html`);
-	});
 });

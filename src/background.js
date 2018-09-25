@@ -8,15 +8,15 @@ import { app, ipcMain, Menu } from 'electron';
 import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
 import { addServer, createMainWindow, getMainWindow } from './background/mainWindow';
+import menus from './background/menus';
 import './background/screenshare';
 
 import i18n from './i18n/index.js';
 import env from './env';
 
 export { default as showAboutDialog } from './background/aboutDialog';
-export { default as certificate } from './background/certificate';
-export { default as menus } from './background/menus';
 export { default as remoteServers } from './background/servers';
+export { certificate, menus };
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 

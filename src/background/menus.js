@@ -9,9 +9,9 @@ const createTemplate = ({
 	currentServerUrl = null,
 	showTrayIcon = true,
 	showFullScreen = false,
-	showWindowOnUnreadChanged = false,
 	showMenuBar = true,
 	showServerList = true,
+	showWindowOnUnreadChanged = false,
 }, events) => ([
 	{
 		label: process.platform === 'darwin' ? appName : i18n.__('&File'),
@@ -51,11 +51,13 @@ const createTemplate = ({
 			// 	accelerator: 'CommandOrControl+,',
 			// 	click: () => events.emit('preferences'),
 			// },
-			{
-				label: i18n.__('Add &new server'),
-				accelerator: 'CommandOrControl+N',
-				click: () => events.emit('add-new-server'),
-			},
+			...(process.platform !== 'darwin' ? [
+				{
+					label: i18n.__('Add &new server'),
+					accelerator: 'CommandOrControl+N',
+					click: () => events.emit('add-new-server'),
+				},
+			] : []),
 			{
 				type: 'separator',
 			},
@@ -158,12 +160,6 @@ const createTemplate = ({
 			] : []),
 			...(process.platform !== 'darwin' ? [
 				{
-					label: i18n.__('Show window on unread messages'),
-					type: 'checkbox',
-					checked: showWindowOnUnreadChanged,
-					click: () => events.emit('toggle', 'showWindowOnUnreadChanged'),
-				},
-				{
 					label: i18n.__('Menu bar'),
 					type: 'checkbox',
 					checked: showMenuBar,
@@ -201,6 +197,16 @@ const createTemplate = ({
 		id: 'window',
 		role: 'window',
 		submenu: [
+			...(process.platform === 'darwin' ? [
+				{
+					label: i18n.__('Add &new server'),
+					accelerator: 'CommandOrControl+N',
+					click: () => events.emit('add-new-server'),
+				},
+				{
+					type: 'separator',
+				},
+			] : []),
 			...servers.map((host, i) => ({
 				label: host.title.replace(/&/g, '&&'),
 				type: currentServerUrl ? 'radio' : 'normal',
@@ -220,6 +226,15 @@ const createTemplate = ({
 			{
 				label: i18n.__('Toggle &DevTools'),
 				click: () => events.emit('toggle-devtools'),
+			},
+			{
+				type: 'separator',
+			},
+			{
+				label: i18n.__('Show on unread messages'),
+				type: 'checkbox',
+				checked: showWindowOnUnreadChanged,
+				click: () => events.emit('toggle', 'showWindowOnUnreadChanged'),
 			},
 			{
 				type: 'separator',

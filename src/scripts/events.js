@@ -60,6 +60,7 @@ export default () => {
 			mainWindow.destroyTray();
 		}
 		mainWindow.removeAllListeners();
+		menus.removeAllListeners();
 		mainWindow.reload();
 	});
 

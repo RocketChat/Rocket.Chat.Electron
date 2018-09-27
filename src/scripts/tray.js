@@ -126,12 +126,24 @@ function createAppTray() {
 	};
 }
 
+let state = {
+	badge: null,
+	status: 'online',
+};
+
 function showTrayAlert(badge, status = 'online') {
 	if (mainWindow.tray === null || mainWindow.tray === undefined) {
 		return;
 	}
 
+	state = {
+		...state,
+		badge,
+		status,
+	};
+
 	const trayDisplayed = localStorage.getItem('hideTray') !== 'true';
+	const statusDisplayed = (localStorage.getItem('showUserStatusInTray') || 'true') === 'true';
 	const hasMentions = badge.showAlert && badge.count > 0;
 
 	if (!mainWindow.isFocused()) {
@@ -152,10 +164,10 @@ function showTrayAlert(badge, status = 'online') {
 			countColor = messageCountColor.white;
 		}
 
-		let trayTitle = `${ statusBullet[status] }`;
-		if (hasMentions) {
-			trayTitle = `${ statusBullet[status] } ${ countColor }${ badge.title }`;
-		}
+		const trayTitle = [
+			statusDisplayed && statusBullet[status],
+			hasMentions && `${ countColor }${ badge.title }`,
+		].filter(Boolean).join(' ');
 		remote.app.dock.setBadge(badge.title);
 		if (trayDisplayed) {
 			mainWindow.tray.setTitle(trayTitle);
@@ -179,9 +191,22 @@ function toggle() {
 	if (localStorage.getItem('hideTray') === 'true') {
 		createAppTray();
 		localStorage.setItem('hideTray', 'false');
+		showTrayAlert(state.badge, state.status);
 	} else {
 		removeAppTray();
 		localStorage.setItem('hideTray', 'true');
+	}
+}
+
+function toggleStatus() {
+	if (localStorage.getItem('showUserStatusInTray') === 'true') {
+		localStorage.setItem('showUserStatusInTray', 'false');
+	} else {
+		localStorage.setItem('showUserStatusInTray', 'true');
+	}
+
+	if (localStorage.getItem('hideTray') !== 'true') {
+		showTrayAlert(state.badge, state.status);
 	}
 }
 
@@ -192,4 +217,5 @@ if (localStorage.getItem('hideTray') !== 'true') {
 export default {
 	showTrayAlert,
 	toggle,
+	toggleStatus,
 };

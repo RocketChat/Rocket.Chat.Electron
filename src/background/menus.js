@@ -8,6 +8,7 @@ const createTemplate = ({
 	servers = [],
 	currentServerUrl = null,
 	showTrayIcon = true,
+	showUserStatusInTray = true,
 	showFullScreen = false,
 	showMenuBar = true,
 	showServerList = true,
@@ -151,6 +152,13 @@ const createTemplate = ({
 				click: () => events.emit('toggle', 'showTrayIcon'),
 			},
 			...(process.platform === 'darwin' ? [
+				{
+					label: i18n.__('User status in tray'),
+					type: 'checkbox',
+					enabled: showTrayIcon,
+					checked: showTrayIcon && showUserStatusInTray,
+					click: () => events.emit('toggle', 'showUserStatusInTray'),
+				},
 				{
 					label: i18n.__('Full screen'),
 					type: 'checkbox',

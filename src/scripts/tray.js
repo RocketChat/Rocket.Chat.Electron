@@ -123,7 +123,10 @@ function createAppTray() {
 		mainWindow.removeListener('show', onShow);
 		mainWindow.removeListener('hide', onHide);
 		_tray.destroy();
+		mainWindow.emit('tray-destroyed');
 	};
+
+	mainWindow.emit('tray-created');
 }
 
 let state = {

@@ -1,10 +1,11 @@
 'use strict';
 
 import { remote } from 'electron';
+import { EventEmitter } from 'events';
 import path from 'path';
 import i18n from '../i18n/index.js';
 
-const { Tray, Menu, getCurrentWindow } = remote;
+const { Tray, Menu, app, getCurrentWindow, systemPreferences } = remote;
 
 const mainWindow = getCurrentWindow();
 
@@ -57,62 +58,55 @@ function getTrayImagePath(badge) {
 	return path.join(__dirname, 'images', icons[process.platform].dir, iconFilename);
 }
 
+const createContextMenuTemplate = ({ isHidden }, events) => ([
+	{
+		label: isHidden ? i18n.__('Show') : i18n.__('Hide'),
+		click: () => events.emit('setVisibility', !isHidden),
+	},
+	{
+		label: i18n.__('Quit'),
+		click: () => events.emit('quit'),
+	},
+]);
+
 function createAppTray() {
 	const _tray = new Tray(getTrayImagePath({ title:'', count:0, showAlert:false }));
+	_tray.setToolTip(app.getName());
+
 	mainWindow.tray = _tray;
 
-	const contextMenuShow = Menu.buildFromTemplate([{
-		label: i18n.__('Show'),
-		click() {
-			mainWindow.show();
-		},
-	}, {
-		label: i18n.__('Quit'),
-		click() {
-			remote.app.quit();
-		},
-	}]);
+	const events = new EventEmitter();
 
-	const contextMenuHide = Menu.buildFromTemplate([{
-		label: i18n.__('Hide'),
-		click() {
-			mainWindow.hide();
-		},
-	}, {
-		label: i18n.__('Quit'),
-		click() {
-			remote.app.quit();
-		},
-	}]);
-
-	if (!mainWindow.isMinimized() && !mainWindow.isVisible()) {
-		_tray.setContextMenu(contextMenuShow);
-	} else {
-		_tray.setContextMenu(contextMenuHide);
-	}
-
-	const onShow = function() {
-		_tray.setContextMenu(contextMenuHide);
+	const updateContextMenu = () => {
+		const state = {
+			isHidden: !mainWindow.isMinimized() && !mainWindow.isVisible(),
+		};
+		const template = createContextMenuTemplate(state, events);
+		const menu = Menu.buildFromTemplate(template);
+		_tray.setContextMenu(menu);
 	};
 
-	const onHide = function() {
-		_tray.setContextMenu(contextMenuShow);
-	};
+	events.on('setVisibility', (visible) => {
+		visible ? mainWindow.hide() : mainWindow.show();
+		updateContextMenu();
+	});
 
-	mainWindow.on('show', onShow);
-	mainWindow.on('restore', onShow);
+	events.on('quit', () => app.quit());
 
-	mainWindow.on('hide', onHide);
-	mainWindow.on('minimize', onHide);
+	mainWindow.on('hide', updateContextMenu);
+	mainWindow.on('show', updateContextMenu);
 
-	_tray.setToolTip(remote.app.getName());
+	mainWindow.on('minimize', updateContextMenu);
+	mainWindow.on('restore', updateContextMenu);
 
-	_tray.on('right-click', function(e, b) {
-		_tray.popUpContextMenu(undefined, b);
+	updateContextMenu();
+
+	_tray.on('right-click', function(event, bounds) {
+		_tray.popUpContextMenu(undefined, bounds);
 	});
 
 	_tray.on('click', () => {
-		if (mainWindow.isVisible()) {
+		if (mainWindow.isVisible() && !mainWindow.isMinimized()) {
 			return mainWindow.hide();
 		}
 
@@ -120,8 +114,10 @@ function createAppTray() {
 	});
 
 	mainWindow.destroyTray = function() {
-		mainWindow.removeListener('show', onShow);
-		mainWindow.removeListener('hide', onHide);
+		mainWindow.removeListener('hide', updateContextMenu);
+		mainWindow.removeListener('show', updateContextMenu);
+		mainWindow.removeListener('minimize', updateContextMenu);
+		mainWindow.removeListener('restore', updateContextMenu);
 		_tray.destroy();
 		mainWindow.emit('tray-destroyed');
 	};
@@ -166,7 +162,7 @@ function showTrayAlert(badge, status = 'online') {
 
 	if (process.platform === 'darwin') {
 		let countColor = messageCountColor.black;
-		if (remote.systemPreferences.isDarkMode()) {
+		if (systemPreferences.isDarkMode()) {
 			countColor = messageCountColor.white;
 		}
 
@@ -174,14 +170,14 @@ function showTrayAlert(badge, status = 'online') {
 			statusDisplayed && statusBullet[status],
 			hasMentions && `${ countColor }${ badge.title }`,
 		].filter(Boolean).join(' ');
-		remote.app.dock.setBadge(badge.title);
+		app.dock.setBadge(badge.title);
 		if (trayDisplayed) {
 			mainWindow.tray.setTitle(trayTitle);
 		}
 	}
 
 	if (process.platform === 'linux') {
-		remote.app.setBadgeCount(badge.count);
+		app.setBadgeCount(badge.count);
 	}
 
 	if (trayDisplayed) {

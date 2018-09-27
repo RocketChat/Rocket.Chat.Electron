@@ -4,9 +4,9 @@ import { remote } from 'electron';
 import path from 'path';
 import i18n from '../i18n/index.js';
 
-const { Tray, Menu } = remote;
+const { Tray, Menu, getCurrentWindow } = remote;
 
-const mainWindow = remote.getCurrentWindow();
+const mainWindow = getCurrentWindow();
 
 const icons = {
 	win32: {
@@ -130,7 +130,10 @@ function createAppTray() {
 }
 
 let state = {
-	badge: null,
+	badge: {
+		title: '',
+		count: 0,
+	},
 	status: 'online',
 };
 

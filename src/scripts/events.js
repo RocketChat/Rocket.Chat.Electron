@@ -74,6 +74,7 @@ export default () => {
 
 		menus.setState({
 			showTrayIcon: localStorage.getItem('hideTray') !== 'true',
+			showUserStatusInTray: (localStorage.getItem('showUserStatusInTray') || 'true') === 'true',
 			showFullScreen: mainWindow.isFullScreen(),
 			showWindowOnUnreadChanged: localStorage.getItem('showWindowOnUnreadChanged') === 'true',
 			showMenuBar: localStorage.getItem('autohideMenu') !== 'true',
@@ -85,6 +86,11 @@ export default () => {
 		switch (property) {
 			case 'showTrayIcon': {
 				tray.toggle();
+				break;
+			}
+
+			case 'showUserStatusInTray': {
+				tray.toggleStatus();
 				break;
 			}
 

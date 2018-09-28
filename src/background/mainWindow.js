@@ -33,7 +33,6 @@ const attachWindowStateHandling = (mainWindow) => {
 	});
 
 	app.on('before-quit', () => {
-		mainWindowState.saveState(mainWindow);
 		mainWindowState.saveState.flush();
 		mainWindow = null;
 	});

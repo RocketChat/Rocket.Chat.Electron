@@ -1,9 +1,7 @@
-import { remote } from 'electron';
+import { app, systemPreferences, Menu, Tray as TrayIcon } from 'electron';
 import { EventEmitter } from 'events';
 import path from 'path';
 import i18n from '../i18n/index.js';
-
-const { Tray: TrayIcon, Menu, app, systemPreferences } = remote;
 
 const getTrayIconFileNameSuffix = ({ badge: { title, count, showAlert } }) => {
 	if (title === '•') {
@@ -26,7 +24,7 @@ const getTrayIconPath = (state) => {
 		darwin: 'osx',
 	}[process.platform];
 	const fileName = `icon-tray-${ getTrayIconFileNameSuffix(state) }.${ process.platform === 'win32' ? 'ico' : 'png' }`;
-	return path.join(__dirname, 'images', iconDir, fileName);
+	return path.join(__dirname, 'public', 'images', iconDir, fileName);
 };
 
 const getTrayIconTitle = ({ badge: { title, count, showAlert }, status, showUserStatus }) => {

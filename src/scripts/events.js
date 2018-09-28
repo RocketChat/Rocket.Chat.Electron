@@ -1,11 +1,10 @@
 import { remote, ipcRenderer } from 'electron';
 import servers from './servers';
 import sidebar from './sidebar';
-import tray from './tray';
 import webview from './webview';
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, menus, showAboutDialog } = remote.require('./background');
+const { certificate, menus, showAboutDialog, tray } = remote.require('./background');
 
 export default () => {
 	menus.on('quit', () => app.quit());

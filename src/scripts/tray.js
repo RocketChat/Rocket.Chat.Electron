@@ -5,7 +5,7 @@ import i18n from '../i18n/index.js';
 
 const { Tray, Menu, app, getCurrentWindow, systemPreferences } = remote;
 
-const mainWindow = getCurrentWindow();
+let trayIcon = null;
 
 const getTrayIconFileNameSuffix = ({ badge: { title, count, showAlert } }) => {
 	if (title === '•') {
@@ -61,11 +61,11 @@ const createContextMenuTemplate = ({ isHidden }, events) => ([
 	},
 ]);
 
-function createAppTray() {
-	const _tray = new Tray(getTrayIconPath({ badge: { title:'', count:0, showAlert:false } }));
-	_tray.setToolTip(app.getName());
+const mainWindow = getCurrentWindow();
 
-	mainWindow.tray = _tray;
+function createAppTray() {
+	trayIcon = new Tray(getTrayIconPath({ badge: { title:'', count:0, showAlert:false } }));
+	trayIcon.setToolTip(app.getName());
 
 	const events = new EventEmitter();
 
@@ -75,7 +75,7 @@ function createAppTray() {
 		};
 		const template = createContextMenuTemplate(state, events);
 		const menu = Menu.buildFromTemplate(template);
-		_tray.setContextMenu(menu);
+		trayIcon.setContextMenu(menu);
 	};
 
 	events.on('setVisibility', (visible) => {
@@ -93,11 +93,11 @@ function createAppTray() {
 
 	updateContextMenu();
 
-	_tray.on('right-click', function(event, bounds) {
-		_tray.popUpContextMenu(undefined, bounds);
+	trayIcon.on('right-click', function(event, bounds) {
+		trayIcon.popUpContextMenu(undefined, bounds);
 	});
 
-	_tray.on('click', () => {
+	trayIcon.on('click', () => {
 		if (mainWindow.isVisible() && !mainWindow.isMinimized()) {
 			return mainWindow.hide();
 		}
@@ -110,7 +110,7 @@ function createAppTray() {
 		mainWindow.removeListener('show', updateContextMenu);
 		mainWindow.removeListener('minimize', updateContextMenu);
 		mainWindow.removeListener('restore', updateContextMenu);
-		_tray.destroy();
+		trayIcon.destroy();
 		mainWindow.emit('tray-destroyed');
 	};
 
@@ -127,7 +127,7 @@ let state = {
 };
 
 function showTrayAlert(badge, status = 'online') {
-	if (mainWindow.tray === null || mainWindow.tray === undefined) {
+	if (trayIcon === null || trayIcon === undefined) {
 		return;
 	}
 
@@ -156,7 +156,7 @@ function showTrayAlert(badge, status = 'online') {
 	if (process.platform === 'darwin') {
 		app.dock.setBadge(badge.title);
 		if (trayDisplayed) {
-			mainWindow.tray.setTitle(getTrayIconTitle({ badge, status: statusDisplayed && status }));
+			trayIcon.setTitle(getTrayIconTitle({ badge, status: statusDisplayed && status }));
 		}
 	}
 
@@ -165,7 +165,7 @@ function showTrayAlert(badge, status = 'online') {
 	}
 
 	if (trayDisplayed) {
-		mainWindow.tray.setImage(getTrayIconPath({ badge }));
+		trayIcon.setImage(getTrayIconPath({ badge }));
 	}
 }
 

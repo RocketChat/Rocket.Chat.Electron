@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import path from 'path';
 import i18n from '../i18n/index.js';
 
-const { Tray, Menu, app, systemPreferences } = remote;
+const { Tray: TrayIcon, Menu, app, systemPreferences } = remote;
 
 const getTrayIconFileNameSuffix = ({ badge: { title, count, showAlert } }) => {
 	if (title === '•') {
@@ -60,7 +60,7 @@ const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 	},
 ]);
 
-class SystemTray extends EventEmitter {
+class Tray extends EventEmitter {
 	constructor() {
 		super();
 
@@ -90,7 +90,7 @@ class SystemTray extends EventEmitter {
 	}
 
 	createTrayIcon() {
-		this.trayIcon = new Tray(getTrayIconPath(this.state));
+		this.trayIcon = new TrayIcon(getTrayIconPath(this.state));
 		this.trayIcon.setToolTip(app.getName());
 
 		const { isMainWindowVisible } = this.state;
@@ -140,4 +140,4 @@ class SystemTray extends EventEmitter {
 	}
 }
 
-export default new SystemTray();
+export default new Tray();

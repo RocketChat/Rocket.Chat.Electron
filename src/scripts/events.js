@@ -183,8 +183,8 @@ export default () => {
 	getCurrentWindow().on('minimize', updateWindowState);
 	getCurrentWindow().on('restore', updateWindowState);
 
-	tray.on('tray-created', () => getCurrentWindow().emit('tray-created'));
-	tray.on('tray-destroyed', () => getCurrentWindow().emit('tray-destroyed'));
+	tray.on('created', () => getCurrentWindow().emit('tray-created'));
+	tray.on('destroyed', () => getCurrentWindow().emit('tray-destroyed'));
 	tray.on('set-main-window-visibility', (visible) =>
 		(visible ? getCurrentWindow().show() : getCurrentWindow().hide()));
 	tray.on('quit', () => app.quit());

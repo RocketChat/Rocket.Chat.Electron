@@ -95,7 +95,7 @@ class Tray extends EventEmitter {
 		this.trayIcon.on('click', () => this.emit('set-main-window-visibility', !isMainWindowVisible));
 		this.trayIcon.on('right-click', (event, bounds) => this.trayIcon.popUpContextMenu(undefined, bounds));
 
-		this.emit('tray-created');
+		this.emit('created');
 	}
 
 	destroyTrayIcon() {
@@ -104,7 +104,7 @@ class Tray extends EventEmitter {
 		}
 
 		this.trayIcon.destroy();
-		this.emit('tray-destroyed');
+		this.emit('destroyed');
 		this.trayIcon = null;
 	}
 

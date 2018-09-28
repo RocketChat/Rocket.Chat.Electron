@@ -1,5 +1,3 @@
-'use strict';
-
 import { remote } from 'electron';
 import { EventEmitter } from 'events';
 import path from 'path';
@@ -9,48 +7,48 @@ const { Tray, Menu, app, getCurrentWindow, systemPreferences } = remote;
 
 const mainWindow = getCurrentWindow();
 
-const iconsDir = {
-	win32: 'windows',
-	linux: 'linux',
-	darwin: 'osx',
-};
-
-const statusBullet = {
-	online: '\u001B[32m•',
-	away: '\u001B[33m•',
-	busy: '\u001B[31m•',
-	offline: '\u001B[37m•',
-};
-
-const messageCountColor = {
-	white: '\u001B[37m',
-	black: '\u001B[0m',
-};
-
-function getTrayImagePath(badge) {
-	let iconFilename;
-	if (badge.title === '•') {
-		iconFilename = 'icon-tray-dot';
-	} else if (badge.count > 0) {
-		if (badge.count > 9) {
-			iconFilename = 'icon-tray-9plus';
-		} else {
-			iconFilename = `icon-tray-${ badge.count }`;
-		}
-	} else if (badge.showAlert) {
-		iconFilename = 'icon-tray-alert';
+const getTrayIconFileNameSuffix = ({ badge: { title, count, showAlert } }) => {
+	if (title === '•') {
+		return 'dot';
+	} else if (count > 9) {
+		return '9plus';
+	} else if (count > 0) {
+		return String(count);
+	} else if (showAlert) {
+		return 'alert';
 	} else {
-		iconFilename = 'icon-tray-Template';
+		return 'Template';
 	}
+};
 
-	if (process.platform === 'win32') {
-		iconFilename += '.ico';
-	} else {
-		iconFilename += '.png';
-	}
+const getTrayIconPath = (state) => {
+	const iconDir = {
+		win32: 'windows',
+		linux: 'linux',
+		darwin: 'osx',
+	}[process.platform];
+	const fileName = `icon-tray-${ getTrayIconFileNameSuffix(state) }.${ process.platform === 'win32' ? 'ico' : 'png' }`;
+	return path.join(__dirname, 'images', iconDir, fileName);
+};
 
-	return path.join(__dirname, 'images', iconsDir[process.platform], iconFilename);
-}
+const getTrayIconTitle = ({ badge: { title, count, showAlert }, status }) => {
+	// TODO: remove status icon from title, since ANSI codes disable title color's adaptiveness
+	const isDarkMode = systemPreferences.getUserDefault('AppleInterfaceStyle', 'string') === 'Dark';
+
+	const statusAnsiColor = {
+		online: '32',
+		away: '33',
+		busy: '31',
+		offline: isDarkMode ? '37' : '0',
+	}[status];
+
+	const badgeTitleAnsiColor = isDarkMode ? '37' : '0';
+
+	const statusBulletString = status ? `\u001B[${ statusAnsiColor }m•\u001B[0m` : null;
+	const badgeTitleString = (showAlert && count > 0) ? `\u001B[${ badgeTitleAnsiColor }m${ title }\u001B[0m` : null;
+
+	return [statusBulletString, badgeTitleString].filter(Boolean).join(' ');
+};
 
 const createContextMenuTemplate = ({ isHidden }, events) => ([
 	{
@@ -64,7 +62,7 @@ const createContextMenuTemplate = ({ isHidden }, events) => ([
 ]);
 
 function createAppTray() {
-	const _tray = new Tray(getTrayImagePath({ title:'', count:0, showAlert:false }));
+	const _tray = new Tray(getTrayIconPath({ badge: { title:'', count:0, showAlert:false } }));
 	_tray.setToolTip(app.getName());
 
 	mainWindow.tray = _tray;
@@ -123,6 +121,7 @@ let state = {
 	badge: {
 		title: '',
 		count: 0,
+		showAlert: false,
 	},
 	status: 'online',
 };
@@ -155,18 +154,9 @@ function showTrayAlert(badge, status = 'online') {
 	}
 
 	if (process.platform === 'darwin') {
-		let countColor = messageCountColor.black;
-		if (systemPreferences.isDarkMode()) {
-			countColor = messageCountColor.white;
-		}
-
-		const trayTitle = [
-			statusDisplayed && statusBullet[status],
-			hasMentions && `${ countColor }${ badge.title }`,
-		].filter(Boolean).join(' ');
 		app.dock.setBadge(badge.title);
 		if (trayDisplayed) {
-			mainWindow.tray.setTitle(trayTitle);
+			mainWindow.tray.setTitle(getTrayIconTitle({ badge, status: statusDisplayed && status }));
 		}
 	}
 
@@ -175,7 +165,7 @@ function showTrayAlert(badge, status = 'online') {
 	}
 
 	if (trayDisplayed) {
-		mainWindow.tray.setImage(getTrayImagePath(badge));
+		mainWindow.tray.setImage(getTrayIconPath({ badge }));
 	}
 }
 

@@ -202,6 +202,10 @@ export default () => {
 		}
 	});
 
+	webview.on('ipc-message-user-status-manually-set', (hostUrl, [status]) => {
+		tray.setState({ status });
+	});
+
 	ipcRenderer.on('render-taskbar-icon', (event, messageCount) => {
 		// Create a canvas from unread messages
 		function createOverlayIcon(messageCount) {

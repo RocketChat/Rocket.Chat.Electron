@@ -9,16 +9,10 @@ const { Tray, Menu, app, getCurrentWindow, systemPreferences } = remote;
 
 const mainWindow = getCurrentWindow();
 
-const icons = {
-	win32: {
-		dir: 'windows',
-	},
-	linux: {
-		dir: 'linux',
-	},
-	darwin: {
-		dir: 'osx',
-	},
+const iconsDir = {
+	win32: 'windows',
+	linux: 'linux',
+	darwin: 'osx',
 };
 
 const statusBullet = {
@@ -55,7 +49,7 @@ function getTrayImagePath(badge) {
 		iconFilename += '.png';
 	}
 
-	return path.join(__dirname, 'images', icons[process.platform].dir, iconFilename);
+	return path.join(__dirname, 'images', iconsDir[process.platform], iconFilename);
 }
 
 const createContextMenuTemplate = ({ isHidden }, events) => ([

@@ -3,9 +3,7 @@ import { EventEmitter } from 'events';
 import path from 'path';
 import i18n from '../i18n/index.js';
 
-const { Tray, Menu, app, getCurrentWindow, systemPreferences } = remote;
-
-let trayIcon = null;
+const { Tray, Menu, app, systemPreferences } = remote;
 
 const getTrayIconFileNameSuffix = ({ badge: { title, count, showAlert } }) => {
 	if (title === '•') {
@@ -31,7 +29,7 @@ const getTrayIconPath = (state) => {
 	return path.join(__dirname, 'images', iconDir, fileName);
 };
 
-const getTrayIconTitle = ({ badge: { title, count, showAlert }, status }) => {
+const getTrayIconTitle = ({ badge: { title, count, showAlert }, status, showUserStatus }) => {
 	// TODO: remove status icon from title, since ANSI codes disable title color's adaptiveness
 	const isDarkMode = systemPreferences.getUserDefault('AppleInterfaceStyle', 'string') === 'Dark';
 
@@ -44,16 +42,17 @@ const getTrayIconTitle = ({ badge: { title, count, showAlert }, status }) => {
 
 	const badgeTitleAnsiColor = isDarkMode ? '37' : '0';
 
-	const statusBulletString = status ? `\u001B[${ statusAnsiColor }m•\u001B[0m` : null;
-	const badgeTitleString = (showAlert && count > 0) ? `\u001B[${ badgeTitleAnsiColor }m${ title }\u001B[0m` : null;
+	const hasMentions = showAlert && count > 0;
+	const statusBulletString = showUserStatus ? `\u001B[${ statusAnsiColor }m•\u001B[0m` : null;
+	const badgeTitleString = hasMentions ? `\u001B[${ badgeTitleAnsiColor }m${ title }\u001B[0m` : null;
 
 	return [statusBulletString, badgeTitleString].filter(Boolean).join(' ');
 };
 
-const createContextMenuTemplate = ({ isHidden }, events) => ([
+const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 	{
-		label: isHidden ? i18n.__('Show') : i18n.__('Hide'),
-		click: () => events.emit('setVisibility', !isHidden),
+		label: !isMainWindowVisible ? i18n.__('Show') : i18n.__('Hide'),
+		click: () => events.emit('set-main-window-visibility', !isMainWindowVisible),
 	},
 	{
 		label: i18n.__('Quit'),
@@ -61,147 +60,84 @@ const createContextMenuTemplate = ({ isHidden }, events) => ([
 	},
 ]);
 
-const mainWindow = getCurrentWindow();
+class SystemTray extends EventEmitter {
+	constructor() {
+		super();
 
-function createAppTray() {
-	trayIcon = new Tray(getTrayIconPath({ badge: { title:'', count:0, showAlert:false } }));
-	trayIcon.setToolTip(app.getName());
-
-	const events = new EventEmitter();
-
-	const updateContextMenu = () => {
-		const state = {
-			isHidden: !mainWindow.isMinimized() && !mainWindow.isVisible(),
+		this.state = {
+			badge: {
+				title: '',
+				count: 0,
+				showAlert: false,
+			},
+			status: 'online',
+			isMainWindowVisible: true,
+			showIcon: true,
+			showUserStatus: true,
 		};
-		const template = createContextMenuTemplate(state, events);
+
+		this.trayIcon = null;
+
+		this.on('update', this.update.bind(this));
+	}
+
+	setState(partialState) {
+		this.state = {
+			...this.state,
+			...partialState,
+		};
+		this.emit('update');
+	}
+
+	createTrayIcon() {
+		this.trayIcon = new Tray(getTrayIconPath(this.state));
+		this.trayIcon.setToolTip(app.getName());
+
+		const { isMainWindowVisible } = this.state;
+		this.trayIcon.on('click', () => this.emit('set-main-window-visibility', !isMainWindowVisible));
+		this.trayIcon.on('right-click', (event, bounds) => this.trayIcon.popUpContextMenu(undefined, bounds));
+
+		this.emit('tray-created');
+	}
+
+	destroyTrayIcon() {
+		if (!this.trayIcon) {
+			return;
+		}
+
+		this.trayIcon.destroy();
+		this.emit('tray-destroyed');
+		this.trayIcon = null;
+	}
+
+	destroy() {
+		this.destroyTrayIcon();
+		this.removeAllListeners();
+	}
+
+	update() {
+		const { showIcon } = this.state;
+
+		if (this.trayIcon && !showIcon) {
+			this.destroyTrayIcon();
+		} else if (!this.trayIcon && showIcon) {
+			this.createTrayIcon();
+		}
+
+		if (!this.trayIcon) {
+			return;
+		}
+
+		if (process.platform === 'darwin') {
+			this.trayIcon.setTitle(getTrayIconTitle(this.state));
+		}
+
+		this.trayIcon.setImage(getTrayIconPath(this.state));
+
+		const template = createContextMenuTemplate(this.state, this);
 		const menu = Menu.buildFromTemplate(template);
-		trayIcon.setContextMenu(menu);
-	};
-
-	events.on('setVisibility', (visible) => {
-		visible ? mainWindow.hide() : mainWindow.show();
-		updateContextMenu();
-	});
-
-	events.on('quit', () => app.quit());
-
-	mainWindow.on('hide', updateContextMenu);
-	mainWindow.on('show', updateContextMenu);
-
-	mainWindow.on('minimize', updateContextMenu);
-	mainWindow.on('restore', updateContextMenu);
-
-	updateContextMenu();
-
-	trayIcon.on('right-click', function(event, bounds) {
-		trayIcon.popUpContextMenu(undefined, bounds);
-	});
-
-	trayIcon.on('click', () => {
-		if (mainWindow.isVisible() && !mainWindow.isMinimized()) {
-			return mainWindow.hide();
-		}
-
-		mainWindow.show();
-	});
-
-	mainWindow.destroyTray = function() {
-		mainWindow.removeListener('hide', updateContextMenu);
-		mainWindow.removeListener('show', updateContextMenu);
-		mainWindow.removeListener('minimize', updateContextMenu);
-		mainWindow.removeListener('restore', updateContextMenu);
-		trayIcon.destroy();
-		mainWindow.emit('tray-destroyed');
-	};
-
-	mainWindow.emit('tray-created');
-}
-
-let state = {
-	badge: {
-		title: '',
-		count: 0,
-		showAlert: false,
-	},
-	status: 'online',
-};
-
-function showTrayAlert(badge, status = 'online') {
-	if (trayIcon === null || trayIcon === undefined) {
-		return;
-	}
-
-	state = {
-		...state,
-		badge,
-		status,
-	};
-
-	const trayDisplayed = localStorage.getItem('hideTray') !== 'true';
-	const statusDisplayed = (localStorage.getItem('showUserStatusInTray') || 'true') === 'true';
-	const hasMentions = badge.showAlert && badge.count > 0;
-
-	if (!mainWindow.isFocused()) {
-		mainWindow.flashFrame(hasMentions);
-	}
-
-	if (process.platform === 'win32') {
-		if (hasMentions) {
-			mainWindow.webContents.send('render-taskbar-icon', badge.count);
-		} else {
-			mainWindow.setOverlayIcon(null, '');
-		}
-	}
-
-	if (process.platform === 'darwin') {
-		app.dock.setBadge(badge.title);
-		if (trayDisplayed) {
-			trayIcon.setTitle(getTrayIconTitle({ badge, status: statusDisplayed && status }));
-		}
-	}
-
-	if (process.platform === 'linux') {
-		app.setBadgeCount(badge.count);
-	}
-
-	if (trayDisplayed) {
-		trayIcon.setImage(getTrayIconPath({ badge }));
+		this.trayIcon.setContextMenu(menu);
 	}
 }
 
-function removeAppTray() {
-	mainWindow.destroyTray();
-}
-
-function toggle() {
-	if (localStorage.getItem('hideTray') === 'true') {
-		createAppTray();
-		localStorage.setItem('hideTray', 'false');
-		showTrayAlert(state.badge, state.status);
-	} else {
-		removeAppTray();
-		localStorage.setItem('hideTray', 'true');
-	}
-}
-
-function toggleStatus() {
-	if (localStorage.getItem('showUserStatusInTray') === 'true') {
-		localStorage.setItem('showUserStatusInTray', 'false');
-	} else {
-		localStorage.setItem('showUserStatusInTray', 'true');
-	}
-
-	if (localStorage.getItem('hideTray') !== 'true') {
-		showTrayAlert(state.badge, state.status);
-	}
-}
-
-if (localStorage.getItem('hideTray') !== 'true') {
-	createAppTray();
-}
-
-export default {
-	showTrayAlert,
-	toggle,
-	toggleStatus,
-};
+export default new SystemTray();

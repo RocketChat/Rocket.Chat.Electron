@@ -307,7 +307,7 @@ class Menus extends EventEmitter {
 			...this.state,
 			...partialState,
 		};
-		this.update();
+		this.emit('update');
 	}
 
 	getItem(id) {

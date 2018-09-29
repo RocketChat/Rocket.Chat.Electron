@@ -75,8 +75,6 @@ class Tray extends EventEmitter {
 		};
 
 		this.trayIcon = null;
-
-		this.on('update', this.update.bind(this));
 	}
 
 	setState(partialState) {
@@ -84,7 +82,7 @@ class Tray extends EventEmitter {
 			...this.state,
 			...partialState,
 		};
-		this.emit('update');
+		this.update();
 	}
 
 	createTrayIcon() {
@@ -115,6 +113,11 @@ class Tray extends EventEmitter {
 	update() {
 		const { showIcon } = this.state;
 
+		console.log({
+			trayIcon: this.trayIcon,
+			showIcon,
+		});
+
 		if (this.trayIcon && !showIcon) {
 			this.destroyTrayIcon();
 		} else if (!this.trayIcon && showIcon) {
@@ -122,6 +125,7 @@ class Tray extends EventEmitter {
 		}
 
 		if (!this.trayIcon) {
+			this.emit('update');
 			return;
 		}
 
@@ -134,6 +138,7 @@ class Tray extends EventEmitter {
 		const template = createContextMenuTemplate(this.state, this);
 		const menu = Menu.buildFromTemplate(template);
 		this.trayIcon.setContextMenu(menu);
+		this.emit('update');
 	}
 }
 

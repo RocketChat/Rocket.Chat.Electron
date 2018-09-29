@@ -91,8 +91,7 @@ class Tray extends EventEmitter {
 		this.trayIcon = new TrayIcon(getTrayIconPath(this.state));
 		this.trayIcon.setToolTip(app.getName());
 
-		const { isMainWindowVisible } = this.state;
-		this.trayIcon.on('click', () => this.emit('set-main-window-visibility', !isMainWindowVisible));
+		this.trayIcon.on('click', () => this.emit('set-main-window-visibility', !this.state.isMainWindowVisible));
 		this.trayIcon.on('right-click', (event, bounds) => this.trayIcon.popUpContextMenu(undefined, bounds));
 
 		this.emit('created');

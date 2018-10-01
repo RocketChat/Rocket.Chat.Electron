@@ -35,3 +35,21 @@
     Delete "$SMSTARTUP\Rocket.Chat.lnk"
   ${EndIf}
 !macroend
+
+!macro disableAutoUpdates
+  ${GetParameters} $R0
+  ClearErrors
+  ${GetOptions} $R0 "--disableAutoUpdates" $R1
+  ${IfNot} ${Errors}
+    MessageBox mb_ok $R1
+  ${EndIf}
+!macroend
+
+!macro writeUpdateFile
+  FileOpen $4 "$PROFILE\update.json" w
+  FileWrite $4 "{$\r$\n"
+  FileWrite $4 " \"autoUpdate\": \"false\"$\r$\n"
+  FileWrite $4 "}"
+  FileWrite $4 "$\r$\n"
+  FileClose $4
+!macroend

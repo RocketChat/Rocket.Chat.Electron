@@ -299,7 +299,6 @@ class Menus extends EventEmitter {
 	constructor() {
 		super();
 		this.state = {};
-		this.on('update', this.update.bind(this));
 	}
 
 	setState(partialState) {
@@ -325,6 +324,8 @@ class Menus extends EventEmitter {
 			mainWindow.setAutoHideMenuBar(!showMenuBar);
 			mainWindow.setMenuBarVisibility(!!showMenuBar);
 		}
+
+		this.emit('update');
 	}
 }
 

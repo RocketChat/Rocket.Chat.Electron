@@ -113,11 +113,6 @@ class Tray extends EventEmitter {
 	update() {
 		const { showIcon } = this.state;
 
-		console.log({
-			trayIcon: this.trayIcon,
-			showIcon,
-		});
-
 		if (this.trayIcon && !showIcon) {
 			this.destroyTrayIcon();
 		} else if (!this.trayIcon && showIcon) {

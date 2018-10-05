@@ -1,7 +1,7 @@
 const os = require('os');
 const fs = require('fs');
 const checker = require('spellchecker');
-const { remote, webFrame, shell } = require('electron');
+const { clipboard, remote, webFrame, shell } = require('electron');
 const { MenuItem, dialog } = remote;
 const i18n = require('../../i18n/index');
 
@@ -339,6 +339,12 @@ class SpellCheck {
 						label: i18n.__('Open_Link'),
 						click: () => {
 							shell.openExternal(targetLink);
+						},
+					});
+					template.unshift({
+						label: i18n.__('Copy_Link'),
+						click: () => {
+							clipboard.writeText(targetLink);
 						},
 					});
 				}

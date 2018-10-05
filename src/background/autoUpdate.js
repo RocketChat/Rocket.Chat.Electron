@@ -130,7 +130,7 @@ function updateAvailable({ version }) {
 export const canUpdate = () => {
 	return (updateSettings.canUpdate) && (
 		(process.platform === 'linux' && Boolean(process.env.APPIMAGE)) ||
-    	(process.platform === 'win32' && !process.windowsStore) ||
+    		(process.platform === 'win32' && !process.windowsStore) ||
 		(process.platform === 'darwin' && !process.mas)
 	);
 };

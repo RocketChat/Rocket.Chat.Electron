@@ -49,11 +49,11 @@ const attachWindowStateHandling = (mainWindow) => {
 		event.preventDefault();
 		if (mainWindow.isFullScreen()) {
 			mainWindow.once('leave-full-screen', () => {
-				(process.platform === 'darwin' && hideOnClose) ? mainWindow.hide() : mainWindow.destroy();
+				(process.platform === 'darwin' || hideOnClose) ? mainWindow.hide() : mainWindow.destroy();
 			});
 			mainWindow.setFullScreen(false);
 		} else {
-			(process.platform === 'darwin' && hideOnClose) ? mainWindow.hide() : mainWindow.destroy();
+			(process.platform === 'darwin' || hideOnClose) ? mainWindow.hide() : mainWindow.destroy();
 		}
 		mainWindowState.saveState(mainWindow);
 	});

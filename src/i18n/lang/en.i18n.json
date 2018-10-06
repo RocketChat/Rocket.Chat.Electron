@@ -43,7 +43,7 @@
     "Learn more": "Learn more",
     "Menu bar": "Menu bar",
     "Message_count": {
-        "zero": "Rocket.Chat: no unread messages",
+        "zero": "Rocket.Chat: no unread message",
         "one": "Rocket.Chat: you have %s unread message",
         "multi": "Rocket.Chat: you have %s unread messages"
     },

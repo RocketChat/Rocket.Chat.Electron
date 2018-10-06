@@ -72,7 +72,8 @@ const parseProtocolUrls = (args) =>
 const addServers = (protocolUrls) => parseProtocolUrls(protocolUrls)
 	.forEach((serverUrl) => addServer(serverUrl));
 
-const isSecondInstance = app.makeSingleInstance((argv) => {
+const isSecondInstance = app.makeSingleInstance(async(argv) => {
+	(await getMainWindow()).show();
 	addServers(argv.slice(2));
 });
 

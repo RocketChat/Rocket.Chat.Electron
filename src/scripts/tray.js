@@ -171,6 +171,7 @@ function showTrayAlert(badge, status = 'online') {
 		remote.app.dock.setBadge(badge.title);
 		if (trayDisplayed) {
 			mainWindow.tray.setTitle(trayTitle);
+			mainWindow.tray.setToolTip(i18n.pluralize('Message_count', badge.count, badge.count));
 		}
 	}
 

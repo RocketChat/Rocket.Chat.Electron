@@ -20,7 +20,7 @@ function loadTranslation(phrase = '', count) {
 		translation = phrase;
 	} else if (loadedLanguageTranslation instanceof Object) {
 		translation = loadedLanguageTranslation.zero;
-		if (count == 1) {
+		if (count === 1) {
 			translation = loadedLanguageTranslation.one;
 		} else if (count > 1) {
 			translation = loadedLanguageTranslation.multi;
@@ -77,7 +77,7 @@ class I18n {
      */
 	pluralize(phrase, count, ...replacements) {
 		const translation = loadTranslation(phrase, count);
-		if(translation.includes('%s')){
+		if (translation.includes('%s')) {
 			return util.format(translation, ...replacements);
 		}
 		return translation;

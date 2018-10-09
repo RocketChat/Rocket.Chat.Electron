@@ -134,12 +134,12 @@ const createTemplate = ({
 			},
 			{
 				label: i18n.__('&Back'),
-				accelerator: process.platform === 'darwin' ? 'Command+Left' : 'Alt+Left',
+				accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
 				click: () => events.emit('go-back'),
 			},
 			{
 				label: i18n.__('&Forward'),
-				accelerator: process.platform === 'darwin' ? 'Command+Right' : 'Alt+Right',
+				accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
 				click: () => events.emit('go-forward'),
 			},
 			{

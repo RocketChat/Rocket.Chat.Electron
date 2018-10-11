@@ -1,3 +1,38 @@
+<a name="2.14.0"></a>
+# 2.14.0 (2018-10-11)
+
+
+### New Features
+
+- [#899](https://github.com/RocketChat/Rocket.Chat.Electron/pull/899) Optional status on tray for MacOS
+- [#905](https://github.com/RocketChat/Rocket.Chat.Electron/pull/905) Add copy link in the context menu
+- [#907](https://github.com/RocketChat/Rocket.Chat.Electron/pull/907) Disable autoupdate on windows installer
+- [#911](https://github.com/RocketChat/Rocket.Chat.Electron/pull/911) Documentation to disable Autoupdates
+
+### Improvements
+
+- [#887](https://github.com/RocketChat/Rocket.Chat.Electron/pull/887) Update ESLint rules following Rocket.Chat guidelines
+
+
+### Bug Fixes
+
+- [#889](https://github.com/RocketChat/Rocket.Chat.Electron/pull/889) About dialog
+- [#895](https://github.com/RocketChat/Rocket.Chat.Electron/pull/895) Menus
+- [#884](https://github.com/RocketChat/Rocket.Chat.Electron/pull/884) Show tray icon status again
+- [#900](https://github.com/RocketChat/Rocket.Chat.Electron/pull/900) Tray icon module
+- [#902](https://github.com/RocketChat/Rocket.Chat.Electron/pull/902) Tray icon sizes for Linux
+- [#912](https://github.com/RocketChat/Rocket.Chat.Electron/pull/912) Condition to quit on window close
+- [#913](https://github.com/RocketChat/Rocket.Chat.Electron/pull/913) Show window on second instance running
+
+
+<details>
+<summary>Others</summary>
+
+- [#916](https://github.com/RocketChat/Rocket.Chat.Electron/pull/916) Change back and forward shortcuts
+</details>
+
+
+
 <a name="2.13.3"></a>
 ## 2.13.3 (2018-09-18)
 

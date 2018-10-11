@@ -10,13 +10,14 @@ import certificate from './background/certificate';
 import { addServer, createMainWindow, getMainWindow } from './background/mainWindow';
 import menus from './background/menus';
 import './background/screenshare';
+import tray from './background/tray';
 
 import i18n from './i18n/index.js';
 import env from './env';
 
 export { default as showAboutDialog } from './background/aboutDialog';
 export { default as remoteServers } from './background/servers';
-export { certificate, menus };
+export { certificate, menus, tray };
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
@@ -71,7 +72,8 @@ const parseProtocolUrls = (args) =>
 const addServers = (protocolUrls) => parseProtocolUrls(protocolUrls)
 	.forEach((serverUrl) => addServer(serverUrl));
 
-const isSecondInstance = app.makeSingleInstance((argv) => {
+const isSecondInstance = app.makeSingleInstance(async(argv) => {
+	(await getMainWindow()).show();
 	addServers(argv.slice(2));
 });
 

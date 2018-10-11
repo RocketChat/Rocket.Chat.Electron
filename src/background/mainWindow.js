@@ -11,6 +11,7 @@ import windowStateKeeper from './windowState';
 import env from '../env';
 
 let mainWindow = null;
+let hideOnClose = true;
 
 const mainWindowOptions = {
 	width: 1000,
@@ -32,7 +33,6 @@ const attachWindowStateHandling = (mainWindow) => {
 	});
 
 	app.on('before-quit', () => {
-		mainWindowState.saveState(mainWindow);
 		mainWindowState.saveState.flush();
 		mainWindow = null;
 	});
@@ -49,11 +49,11 @@ const attachWindowStateHandling = (mainWindow) => {
 		event.preventDefault();
 		if (mainWindow.isFullScreen()) {
 			mainWindow.once('leave-full-screen', () => {
-				mainWindow.hide();
+				(process.platform === 'darwin' || hideOnClose) ? mainWindow.hide() : mainWindow.destroy();
 			});
 			mainWindow.setFullScreen(false);
 		} else {
-			mainWindow.hide();
+			(process.platform === 'darwin' || hideOnClose) ? mainWindow.hide() : mainWindow.destroy();
 		}
 		mainWindowState.saveState(mainWindow);
 	});
@@ -64,6 +64,14 @@ const attachWindowStateHandling = (mainWindow) => {
 
 	mainWindow.on('move', () => {
 		mainWindowState.saveState(mainWindow);
+	});
+
+	mainWindow.on('tray-created', () => {
+		hideOnClose = true;
+	});
+
+	mainWindow.on('tray-destroyed', () => {
+		hideOnClose = false;
 	});
 };
 

@@ -2,7 +2,6 @@ const os = require('os');
 const fs = require('fs');
 const checker = require('spellchecker');
 const { remote, webFrame, shell, clipboard } = require('electron');
-const {download} = require('electron-dl');
 const { MenuItem, dialog } = remote;
 const i18n = require('../../i18n/index');
 

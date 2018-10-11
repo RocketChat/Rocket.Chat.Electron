@@ -27,6 +27,7 @@
   ${Else}
     DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\66bed7da-e601-54e6-b2e8-7be611d82556"
   ${EndIf}
+  !insertMacro disableAutoUpdates
   Delete "$SMSTARTUP\Rocket.Chat+.lnk"
 !macroend
 
@@ -34,4 +35,23 @@
   ${IfNot} ${Silent}
     Delete "$SMSTARTUP\Rocket.Chat.lnk"
   ${EndIf}
+!macroend
+
+!macro disableAutoUpdates
+  ${GetParameters} $R0
+  ClearErrors
+  ${GetOptions} $R0 "/disableAutoUpdates" $R1
+  ${IfNot} ${Errors}
+    !insertMacro writeUpdateFile
+  ${EndIf}
+!macroend
+
+!macro writeUpdateFile
+  FileOpen $4 "$APPDATA\Rocket.Chat\update.json" w
+  FileWrite $4 "{$\r$\n"
+  FileWrite $4 '  "canUpdate": false,$\r$\n'
+  FileWrite $4 '  "autoUpdate": false$\r$\n'
+  FileWrite $4 "}"
+  FileWrite $4 "$\r$\n"
+  FileClose $4
 !macroend

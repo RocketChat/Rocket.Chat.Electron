@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
 import servers from './servers';
 import sidebar from './sidebar';
-import tray from './tray';
 import { desktopCapturer, ipcRenderer } from 'electron';
 
 class WebView extends EventEmitter {
@@ -90,10 +89,6 @@ class WebView extends EventEmitter {
 					break;
 				case 'focus':
 					servers.setActive(host.url);
-					break;
-				case 'user-status-manually-set':
-					const badge = sidebar.getGlobalBadge();
-					tray.showTrayAlert(badge, event.args[0]);
 					break;
 				case 'get-sourceId':
 					desktopCapturer.getSources({ types: ['window', 'screen'] }, (error, sources) => {

@@ -19,7 +19,7 @@ const loadUpdateSettings = (dir) => {
 const appUpdateSettings = loadUpdateSettings(appDir);
 const userUpdateSettings = loadUpdateSettings(userDataDir);
 const updateSettings = (() => {
-	const defaultUpdateSettings = { autoUpdate: true };
+	const defaultUpdateSettings = { autoUpdate: true, canUpdate: true };
 
 	if (appUpdateSettings.forced) {
 		return Object.assign({}, defaultUpdateSettings, appUpdateSettings);
@@ -127,10 +127,13 @@ function updateAvailable({ version }) {
 	});
 }
 
-export const canUpdate = () =>
-	(process.platform === 'linux' && Boolean(process.env.APPIMAGE)) ||
-    (process.platform === 'win32' && !process.windowsStore) ||
-    (process.platform === 'darwin' && !process.mas);
+export const canUpdate = () => {
+	return (updateSettings.canUpdate) && (
+		(process.platform === 'linux' && Boolean(process.env.APPIMAGE)) ||
+    		(process.platform === 'win32' && !process.windowsStore) ||
+		(process.platform === 'darwin' && !process.mas)
+	);
+};
 
 export const canAutoUpdate = () => updateSettings.autoUpdate !== false;
 

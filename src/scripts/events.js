@@ -1,11 +1,10 @@
 import { remote, ipcRenderer } from 'electron';
 import servers from './servers';
 import sidebar from './sidebar';
-import tray from './tray';
 import webview from './webview';
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, menus, showAboutDialog } = remote.require('./background');
+const { certificate, menus, showAboutDialog, tray } = remote.require('./background');
 
 export default () => {
 	menus.on('quit', () => app.quit());
@@ -56,11 +55,9 @@ export default () => {
 
 	menus.on('reload-app', () => {
 		const mainWindow = getCurrentWindow();
-		if (mainWindow.destroyTray) {
-			mainWindow.destroyTray();
-		}
 		mainWindow.removeAllListeners();
 		menus.removeAllListeners();
+		tray.destroy();
 		mainWindow.reload();
 	});
 
@@ -80,17 +77,26 @@ export default () => {
 			showMenuBar: localStorage.getItem('autohideMenu') !== 'true',
 			showServerList: localStorage.getItem('sidebar-closed') !== 'true',
 		});
+
+		tray.setState({
+			showIcon: localStorage.getItem('hideTray') !== 'true',
+			showUserStatus: (localStorage.getItem('showUserStatusInTray') || 'true') === 'true',
+		});
 	};
 
 	menus.on('toggle', (property) => {
 		switch (property) {
 			case 'showTrayIcon': {
-				tray.toggle();
+				const previousValue = localStorage.getItem('hideTray') !== 'true';
+				const newValue = !previousValue;
+				localStorage.setItem('hideTray', JSON.stringify(!newValue));
 				break;
 			}
 
 			case 'showUserStatusInTray': {
-				tray.toggleStatus();
+				const previousValue = (localStorage.getItem('showUserStatusInTray') || 'true') === 'true';
+				const newValue = !previousValue;
+				localStorage.setItem('showUserStatusInTray', JSON.stringify(newValue));
 				break;
 			}
 
@@ -141,10 +147,48 @@ export default () => {
 	sidebar.on('hosts-sorted', updateServers);
 
 
-	sidebar.on('badge-setted', function() {
+	sidebar.on('badge-setted', () => {
 		const badge = sidebar.getGlobalBadge();
-		tray.showTrayAlert(badge);
+		const hasMentions = badge.showAlert && badge.count > 0;
+		const mainWindow = getCurrentWindow();
+
+		tray.setState({ badge });
+
+		if (!mainWindow.isFocused()) {
+			mainWindow.flashFrame(hasMentions);
+		}
+
+		if (process.platform === 'win32') {
+			if (hasMentions) {
+				mainWindow.webContents.send('render-taskbar-icon', badge.count);
+			} else {
+				mainWindow.setOverlayIcon(null, '');
+			}
+		}
+
+		if (process.platform === 'darwin') {
+			app.dock.setBadge(badge.title);
+		}
+
+		if (process.platform === 'linux') {
+			app.setBadgeCount(badge.count);
+		}
 	});
+
+
+	const updateWindowState = () =>
+		tray.setState({ isMainWindowVisible: getCurrentWindow().isVisible() || getCurrentWindow().isMinimized() });
+	getCurrentWindow().on('hide', updateWindowState);
+	getCurrentWindow().on('show', updateWindowState);
+	getCurrentWindow().on('minimize', updateWindowState);
+	getCurrentWindow().on('restore', updateWindowState);
+
+	tray.on('created', () => getCurrentWindow().emit('tray-created'));
+	tray.on('destroyed', () => getCurrentWindow().emit('tray-destroyed'));
+	tray.on('set-main-window-visibility', (visible) =>
+		(visible ? getCurrentWindow().show() : getCurrentWindow().hide()));
+	tray.on('quit', () => app.quit());
+
 
 	webview.on('ipc-message-unread-changed', (hostUrl, [count]) => {
 		if (typeof count === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {
@@ -155,6 +199,10 @@ export default () => {
 				mainWindow.flashFrame(true);
 			}
 		}
+	});
+
+	webview.on('ipc-message-user-status-manually-set', (hostUrl, [status]) => {
+		tray.setState({ status });
 	});
 
 	ipcRenderer.on('render-taskbar-icon', (event, messageCount) => {
@@ -186,5 +234,6 @@ export default () => {
 	servers.restoreActive();
 	updatePreferences();
 	updateServers();
+	updateWindowState();
 
 };

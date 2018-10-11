@@ -331,17 +331,15 @@ class SpellCheck {
 				template.unshift(this.languagesMenu);
 			}
 
-			if(properties.mediaType === 'image') {
-				template.unshift(
-					{ 
-						type: 'separator' 
+			if (properties.mediaType === 'image') {
+				template.unshift({
+					type: 'separator',
+				}, {
+					label: i18n.__('Save_Image'),
+					click: () => {
+						webContents.downloadURL(properties.srcURL);
 					},
-					{
-						label: i18n.__('Save_Image'),
-						click: () => {
-							webContents.downloadURL(properties.srcURL);
-						},
-					});
+				});
 			}
 
 			setTimeout(() => {
@@ -353,16 +351,15 @@ class SpellCheck {
 						click: () => {
 							shell.openExternal(targetLink);
 						},
-						},{
-							label: i18n.__('Copy_Link'),
-							click: () => {
-								clipboard.write({
-									text: properties.linkURL,
-									bookmark: properties.linkText
-								});
-							},
-						}
-					);
+					}, {
+						label: i18n.__('Copy_Link'),
+						click: () => {
+							clipboard.write({
+								text: properties.linkURL,
+								bookmark: properties.linkText,
+							});
+						},
+					});
 				}
 
 				if (properties.isEditable && properties.selectionText !== '') {

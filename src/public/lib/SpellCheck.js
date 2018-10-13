@@ -15,23 +15,13 @@ class SpellCheck {
 
 	get userLanguage() {
 		const lang = localStorage.getItem('userLanguage');
-		if (lang) {
-			return lang.replace('-', '_');
-		}
-
-		return undefined;
+		return lang ? lang.replace('-', '_') : null;
 	}
 
 	get dictionaries() {
 		const dictionaries = localStorage.getItem('spellcheckerDictionaries');
-		if (dictionaries) {
-			const result = JSON.parse(dictionaries);
-			if (Array.isArray(result)) {
-				return result;
-			}
-		}
-
-		return undefined;
+		const result = JSON.parse(dictionaries || '[]');
+		return Array.isArray(result) ? result : [];
 	}
 
 	constructor() {
@@ -134,7 +124,11 @@ class SpellCheck {
 		if (this.availableDictionaries.length === 0) {
 			this.multiLanguage = false;
 			// Dictionaries path is correct for build
-			this.dictionariesPath = path.join(remote.app.getAppPath(), '../dictionaries');
+			this.dictionariesPath = path.join(
+				remote.app.getAppPath(),
+				process.mainModule.filename.indexOf('app.asar') !== -1 ? '..' : '.',
+				'dictionaries'
+			);
 			this.getDictionariesFromInstallDirectory();
 		} else {
 			this.multiLanguage = !isWindows;

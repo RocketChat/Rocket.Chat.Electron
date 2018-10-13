@@ -9,6 +9,25 @@ const { app, dialog, getCurrentWebContents, getCurrentWindow, Menu, MenuItem } =
 const webContents = getCurrentWebContents();
 let menu = new Menu();
 
+const localStorage = {
+	getItem(key) {
+		try {
+			return window.localStorage.getItem(key);
+		} catch (e) {
+			console.error(e);
+			return null;
+		}
+	},
+
+	setItem(key, value) {
+		try {
+			window.localStorage.setItem(key, value);
+		} catch (e) {
+			console.error(e);
+		}
+	},
+};
+
 class SpellCheck {
 
 	constructor() {

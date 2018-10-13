@@ -5,6 +5,7 @@
 @import "fontello.less";
 @import "utils/_loading.import.less";
 @import "pages/about.less";
+@import "pages/loading-error.less";
 
 *,
 *:before,
@@ -301,24 +302,6 @@ input[type='password'] {
 		span {
 			display: none;
 		}
-	}
-}
-
-.loading-error {
-	height: 100%;
-	color: white;
-	text-align: center;
-	background-color: @primary-background-color;
-	background-position: center bottom;
-	background-repeat: no-repeat;
-	background-size: 100% auto;
-	background-image: url("../public/images/error.jpg");
-	.load-fail {
-		margin: 0;
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
 	}
 }
 

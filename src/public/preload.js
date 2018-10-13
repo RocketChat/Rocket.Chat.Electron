@@ -1,10 +1,8 @@
 /* globals Meteor, Tracker, RocketChat, UserPresence*/
-'use strict';
-
 const { ipcRenderer, shell } = require('electron');
+const path = require('path');
 const Notification = require('./lib/Notification');
 const SpellCheck = require('./lib/SpellCheck');
-const path = require('path');
 const i18n = require('../i18n/index');
 
 window.Notification = Notification;
@@ -83,7 +81,7 @@ window.addEventListener('load', function() {
 	userPresenceControl();
 });
 
-window.onload = function() {
+window.onload = () => {
 	const $ = require('./vendor/jquery-3.1.1');
 	function checkExternalUrl(e) {
 		const href = $(this).attr('href');
@@ -115,11 +113,7 @@ window.onload = function() {
 
 	$(document).on('click', 'a', checkExternalUrl);
 
-	$('#reload').click(function() {
-		ipcRenderer.sendToHost('reload-server');
-		$(this).hide();
-		$(this).parent().find('.loading-animation').show();
-	});
+	window.reloadServer = () => ipcRenderer.sendToHost('reload-server');
 };
 
 // Prevent redirect to url when dragging in

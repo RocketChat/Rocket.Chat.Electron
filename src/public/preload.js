@@ -61,15 +61,16 @@ const changeSidebarColor = () => {
 		ipcRenderer.sendToHost('sidebar-background', { color, background });
 	} else {
 		window.requestAnimationFrame(changeSidebarColor);
-
 	}
 };
 
-ipcRenderer.on('request-sidebar-color', () => {
-	changeSidebarColor();
-});
+ipcRenderer.on('request-sidebar-color', changeSidebarColor);
 
 window.addEventListener('load', function() {
+	if (!Meteor) {
+		return;
+	}
+
 	Meteor.startup(function() {
 		Tracker.autorun(function() {
 			const siteName = RocketChat.settings.get('Site_Name');
@@ -82,18 +83,27 @@ window.addEventListener('load', function() {
 });
 
 window.onload = () => {
-	const $ = require('./vendor/jquery-3.1.1');
-	function checkExternalUrl(e) {
-		const href = $(this).attr('href');
+	document.addEventListener('click', (event) => {
+		const anchorElement = event.target.closest('a');
+
+		if (!anchorElement) {
+			return;
+		}
+
+		const { href } = anchorElement;
+
 		// Check href matching current domain
 		if (RegExp(`^${ location.protocol }\/\/${ location.host }`).test(href)) {
 			return;
 		}
 
 		// Check if is file upload link
-		if (/^\/file-upload\//.test(href) && !this.hasAttribute('download')) {
-			this.setAttribute('download', '');
-			this.click();
+		if (/^\/file-upload\//.test(href) && !anchorElement.hasAttribute('download')) {
+			const tempElement = document.createElement('a');
+			tempElement.href = href;
+			tempElement.download = 'download';
+			tempElement.click();
+			return;
 		}
 
 		// Check href matching relative URL
@@ -104,21 +114,20 @@ window.onload = () => {
 		if (/^file:\/\/.+/.test(href)) {
 			const item = href.slice(6);
 			shell.showItemInFolder(item);
-			e.preventDefault();
-		} else {
-			shell.openExternal(href);
-			e.preventDefault();
+			event.preventDefault();
+			return;
 		}
-	}
 
-	$(document).on('click', 'a', checkExternalUrl);
+		shell.openExternal(href);
+		event.preventDefault();
+	}, true);
 
 	window.reloadServer = () => ipcRenderer.sendToHost('reload-server');
 };
 
 // Prevent redirect to url when dragging in
-document.addEventListener('dragover', (e) => e.preventDefault());
-document.addEventListener('drop', (e) => e.preventDefault());
+document.addEventListener('dragover', (event) => event.preventDefault());
+document.addEventListener('drop', (event) => event.preventDefault());
 
 const spellChecker = new SpellCheck();
 spellChecker.enable();

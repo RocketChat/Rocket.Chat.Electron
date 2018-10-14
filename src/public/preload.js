@@ -1,6 +1,7 @@
-/* globals Meteor, Tracker, RocketChat, UserPresence*/
+/* globals Meteor, RocketChat, Tracker, UserPresence */
 const { ipcRenderer, shell } = require('electron');
 const path = require('path');
+const url = require('url');
 const Notification = require('./lib/Notification');
 const SpellCheck = require('./lib/SpellCheck');
 const i18n = require('../i18n/index');
@@ -8,30 +9,60 @@ const i18n = require('../i18n/index');
 window.Notification = Notification;
 window.i18n = i18n;
 
-const defaultWindowOpen = window.open;
-
-function customWindowOpen(url, frameName, features) {
-	const jitsiDomain = RocketChat.settings.get('Jitsi_Domain');
-	if (jitsiDomain && url.indexOf(jitsiDomain) !== -1) {
-		features = `${ (features) ? (`${ features },`) : ''
-		}nodeIntegration=true,preload=${ path.join(__dirname, 'jitsi-preload.js') }`;
-		return defaultWindowOpen(url, frameName, features);
-	} else {
-		return defaultWindowOpen(url, frameName, features);
+window.open = ((defaultWindowOpen) => (href, frameName, features) => {
+	if (url.parse(href).host === RocketChat.settings.get('Jitsi_Domain')) {
+		features = [
+			features,
+			'nodeIntegration=true',
+			`preload=${ path.join(__dirname, 'jitsi-preload.js') }`,
+		].filter((x) => Boolean(x)).join(',');
 	}
+
+	return defaultWindowOpen(href, frameName, features);
+})(window.open);
+
+window.reloadServer = () => ipcRenderer.sendToHost('reload-server');
+
+for (const eventName of ['unread-changed', 'get-sourceId', 'user-status-manually-set']) {
+	window.addEventListener(eventName, (event) => ipcRenderer.sendToHost(eventName, event.detail));
 }
 
-window.open = customWindowOpen;
+const changeSidebarColor = () => {
+	const sidebar = document.querySelector('.sidebar');
+	if (sidebar) {
+		const { color, background } = window.getComputedStyle(sidebar);
+		const sidebarItem = sidebar.querySelector('.sidebar-item');
+		const itemColor = sidebarItem && window.getComputedStyle(sidebarItem).color;
+		ipcRenderer.sendToHost('sidebar-background', { color: itemColor || color, background });
+		return;
+	}
 
-const events = ['unread-changed', 'get-sourceId', 'user-status-manually-set'];
+	const fullpage = document.querySelector('.full-page');
+	if (fullpage) {
+		const { color, background } = window.getComputedStyle(fullpage);
+		ipcRenderer.sendToHost('sidebar-background', { color, background });
+		return;
+	}
 
-events.forEach(function(e) {
-	window.addEventListener(e, function(event) {
-		ipcRenderer.sendToHost(e, event.detail);
+	window.requestAnimationFrame(changeSidebarColor);
+};
+
+ipcRenderer.on('request-sidebar-color', changeSidebarColor);
+
+window.addEventListener('load', () => {
+	if (!Meteor) {
+		return;
+	}
+
+	Meteor.startup(() => {
+		Tracker.autorun(() => {
+			const siteName = RocketChat.settings.get('Site_Name');
+			if (siteName) {
+				ipcRenderer.sendToHost('title-changed', siteName);
+			}
+		});
 	});
-});
 
-const userPresenceControl = () => {
 	const INTERVAL = 10000; // 10s
 	setInterval(() => {
 		try {
@@ -43,46 +74,7 @@ const userPresenceControl = () => {
 			console.error(`Error getting system idle time: ${ e }`);
 		}
 	}, INTERVAL);
-};
 
-const changeSidebarColor = () => {
-	const sidebar = document.querySelector('.sidebar');
-	const fullpage = document.querySelector('.full-page');
-	if (sidebar) {
-		const sidebarItem = sidebar.querySelector('.sidebar-item');
-		let itemColor;
-		if (sidebarItem) {
-			itemColor = window.getComputedStyle(sidebarItem);
-		}
-		const { color, background } = window.getComputedStyle(sidebar);
-		ipcRenderer.sendToHost('sidebar-background', { color: itemColor || color, background });
-	} else if (fullpage) {
-		const { color, background } = window.getComputedStyle(fullpage);
-		ipcRenderer.sendToHost('sidebar-background', { color, background });
-	} else {
-		window.requestAnimationFrame(changeSidebarColor);
-	}
-};
-
-ipcRenderer.on('request-sidebar-color', changeSidebarColor);
-
-window.addEventListener('load', function() {
-	if (!Meteor) {
-		return;
-	}
-
-	Meteor.startup(function() {
-		Tracker.autorun(function() {
-			const siteName = RocketChat.settings.get('Site_Name');
-			if (siteName) {
-				ipcRenderer.sendToHost('title-changed', siteName);
-			}
-		});
-	});
-	userPresenceControl();
-});
-
-window.onload = () => {
 	document.addEventListener('click', (event) => {
 		const anchorElement = event.target.closest('a');
 
@@ -121,9 +113,7 @@ window.onload = () => {
 		shell.openExternal(href);
 		event.preventDefault();
 	}, true);
-
-	window.reloadServer = () => ipcRenderer.sendToHost('reload-server');
-};
+});
 
 // Prevent redirect to url when dragging in
 document.addEventListener('dragover', (event) => event.preventDefault());

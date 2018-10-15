@@ -168,7 +168,7 @@ class SideBar extends EventEmitter {
 
 	setImage(hostUrl) {
 		const img = this.getByUrl(hostUrl).querySelector('img');
-		img.src = `${ hostUrl }/assets/favicon.svg?v=${ Math.round(Math.random() * 10000) }`;
+		img.src = `${ hostUrl.replace(/\/$/, '') }/assets/favicon.svg?v=${ Math.round(Math.random() * 10000) }`;
 	}
 
 	remove(hostUrl) {

@@ -3,7 +3,10 @@ import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';
 import i18n from '../i18n/index.js';
 
-const appDir = jetpack.cwd(app.getAppPath());
+const appDir = jetpack.cwd(
+	app.getAppPath(),
+	process.mainModule.filename.indexOf('app.asar') !== -1 ? '..' : '.'
+);
 const userDataDir = jetpack.cwd(app.getPath('userData'));
 const updateSettingsFileName = 'update.json';
 

@@ -2,7 +2,7 @@
   "name": "rocketchat",
   "productName": "Rocket.Chat",
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
-  "version": "2.14.0-develop",
+  "version": "2.15.0-develop",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2018, Rocket.Chat",
   "homepage": "https://rocket.chat",

@@ -20,6 +20,7 @@ On Windows you can run a silent install by adding the `/S` flag. You can also ad
 - `/S` - Silent install
 - `/allusers` - Install for all users (requires admin)
 - `/currentuser` - Install for current user only (default)
+- `/disableAutoUpdates` - Disable autoupdates (Application will not update automatically / User can't update via dialog )
 
 # Development
 

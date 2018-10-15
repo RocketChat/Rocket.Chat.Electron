@@ -3,7 +3,10 @@ import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';
 import i18n from '../i18n/index.js';
 
-const appDir = jetpack.cwd(app.getAppPath());
+const appDir = jetpack.cwd(
+	app.getAppPath(),
+	process.mainModule.filename.indexOf('app.asar') !== -1 ? '..' : '.'
+);
 const userDataDir = jetpack.cwd(app.getPath('userData'));
 const updateSettingsFileName = 'update.json';
 
@@ -19,7 +22,7 @@ const loadUpdateSettings = (dir) => {
 const appUpdateSettings = loadUpdateSettings(appDir);
 const userUpdateSettings = loadUpdateSettings(userDataDir);
 const updateSettings = (() => {
-	const defaultUpdateSettings = { autoUpdate: true };
+	const defaultUpdateSettings = { autoUpdate: true, canUpdate: true };
 
 	if (appUpdateSettings.forced) {
 		return Object.assign({}, defaultUpdateSettings, appUpdateSettings);
@@ -127,10 +130,13 @@ function updateAvailable({ version }) {
 	});
 }
 
-export const canUpdate = () =>
-	(process.platform === 'linux' && Boolean(process.env.APPIMAGE)) ||
-    (process.platform === 'win32' && !process.windowsStore) ||
-    (process.platform === 'darwin' && !process.mas);
+export const canUpdate = () => {
+	return (updateSettings.canUpdate) && (
+		(process.platform === 'linux' && Boolean(process.env.APPIMAGE)) ||
+    		(process.platform === 'win32' && !process.windowsStore) ||
+		(process.platform === 'darwin' && !process.mas)
+	);
+};
 
 export const canAutoUpdate = () => updateSettings.autoUpdate !== false;
 

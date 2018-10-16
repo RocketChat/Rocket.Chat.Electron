@@ -9,9 +9,20 @@
 	<link rel="stylesheet" type="text/css" href="../stylesheets/main.css">
 	<script type="text/javascript" src="./lib/bugsnag.js"></script>
 	<!-- <script type="text/javascript" src="scripts/bugsnag_apikey.js"></script> -->
-    <script>
-        const i18n = require('../i18n/index');
-    </script>
+	<script>
+		const { shell } = require('electron');
+		const i18n = require('../i18n/index');
+
+		window.addEventListener('load', () => {
+			document.addEventListener('click', (event) => {
+				const anchorElement = event.target.closest('a[rel="noopener noreferrer"]');
+				if (anchorElement) {
+					shell.openExternal(anchorElement.href);
+					event.preventDefault();
+				}
+			});
+		});
+	</script>
 </head>
 <body class="hide-server-list">
 	<div class="server-list">
@@ -58,11 +69,21 @@
 			<footer style="display:none;">
 				<div class="social">
 					<nav>
-						<a target="_system" class="button share twitter" href="https://twitter.com/RocketChat"><i class="icon-twitter"></i><span>Twitter</span></a>
-						<a target="_system" class="button share facebook" href="https://www.facebook.com/RocketChatApp"><i class="icon-facebook"></i><span>Facebook</span></a>
-						<a target="_system" class="button share google" href="https://plus.google.com/+RocketChatApp"><i class="icon-gplus"></i><span>Google Plus</span></a>
-						<a target="_system" class="button share github" href="https://github.com/RocketChat/Rocket.Chat"><i class="icon-github-circled"></i><span>Github</span></a>
-						<a target="_system" class="button share linkedin" href="https://www.linkedin.com/company/rocket-chat"><i class="icon-linkedin"></i><span>LinkedIn</span></a>
+						<a rel="noopener noreferrer" href="https://twitter.com/RocketChat" class="button share twitter">
+							<i class="icon-twitter"></i><span>Twitter</span>
+						</a>
+						<a rel="noopener noreferrer" href="https://www.facebook.com/RocketChatApp" class="button share facebook">
+							<i class="icon-facebook"></i><span>Facebook</span>
+						</a>
+						<a rel="noopener noreferrer" href="https://plus.google.com/+RocketChatApp" class="button share google">
+							<i class="icon-gplus"></i><span>Google Plus</span>
+						</a>
+						<a rel="noopener noreferrer" href="https://github.com/RocketChat/Rocket.Chat" class="button share github">
+							<i class="icon-github-circled"></i><span>Github</span>
+						</a>
+						<a rel="noopener noreferrer" href="https://www.linkedin.com/company/rocket-chat" class="button share linkedin">
+							<i class="icon-linkedin"></i><span>LinkedIn</span>
+						</a>
 					</nav>
 				</div>
 			</footer>

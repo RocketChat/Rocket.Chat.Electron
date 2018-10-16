@@ -1,5 +1,7 @@
-.loader {
-	display: none;
+.app-page {
+	.hidden {
+		display: none !important;
+	}
 }
 
 .only-offline {
@@ -12,11 +14,6 @@ body.offline #login-card *:not(.only-offline) {
 
 body.offline .only-offline {
 	display: block;
-}
-
-.loader span {
-	color: #FFF;
-	font-size: 1.4em;
 }
 
 .wrong {
@@ -391,9 +388,6 @@ webview.active {
 .drag-region {
 	position: absolute;
 	-webkit-app-region: drag;
-
-	&.top-bar {
-		height: 22px;
-		width: 100%;
-	}
+	height: 22px;
+	width: 100%;
 }

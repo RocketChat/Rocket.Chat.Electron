@@ -1,0 +1,55 @@
+.loading-error-page {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 100vh;
+	background-image: url('../public/images/error.jpg');
+	background-color: @primary-background-color;
+	background-position: center bottom;
+	background-repeat: no-repeat;
+	background-size: 100% auto;
+	cursor: default;
+	user-select: none;
+
+	.hidden {
+		display: none !important;
+	}
+
+	.title,
+	.subtitle {
+		color: @quaternary-font-color;
+		text-align: center;
+		line-height: 1.5em;
+	}
+
+	.subtitle {
+		font-weight: normal;
+	}
+
+	.reloading-server {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 2.5rem;
+		margin: 4px;
+		color: @secondary-font-color;
+
+		.dot {
+			width: 0.5rem;
+			height: 0.5rem;
+			border-radius: 100%;
+			margin: 0.1rem;
+			background-color: currentColor;
+			animation: loading-bouncedelay 1.4s infinite ease-in-out both;
+
+			&:nth-of-type(1) {
+				animation-delay: -0.32s;
+			}
+
+			&:nth-of-type(2) {
+				animation-delay: -0.16s;
+			}
+		}
+	}
+}

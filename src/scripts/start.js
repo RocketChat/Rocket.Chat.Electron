@@ -1,11 +1,9 @@
-/* globals $ */
-
 import { ipcRenderer } from 'electron';
-import i18n from '../i18n/index.js';
 import attachEvents from './events';
 import servers from './servers';
 import sidebar from './sidebar';
 import webview from './webview';
+import i18n from '../i18n/index.js';
 
 export const start = function() {
 	const defaultInstance = 'https://open.rocket.chat';
@@ -148,7 +146,7 @@ export const start = function() {
 		return false;
 	});
 
-	$('.add-server').on('click', function() {
+	document.querySelector('.add-server').addEventListener('click', () => {
 		servers.clearActive();
 		webview.showLanding();
 	});

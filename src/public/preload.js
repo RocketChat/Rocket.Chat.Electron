@@ -1,39 +1,68 @@
-/* globals Meteor, Tracker, RocketChat, UserPresence*/
-'use strict';
-
+/* globals Meteor, RocketChat, Tracker, UserPresence */
 const { ipcRenderer, shell } = require('electron');
+const path = require('path');
+const url = require('url');
 const Notification = require('./lib/Notification');
 const SpellCheck = require('./lib/SpellCheck');
-const path = require('path');
 const i18n = require('../i18n/index');
 
 window.Notification = Notification;
 window.i18n = i18n;
 
-const defaultWindowOpen = window.open;
-
-function customWindowOpen(url, frameName, features) {
-	const jitsiDomain = RocketChat.settings.get('Jitsi_Domain');
-	if (jitsiDomain && url.indexOf(jitsiDomain) !== -1) {
-		features = `${ (features) ? (`${ features },`) : ''
-		}nodeIntegration=true,preload=${ path.join(__dirname, 'jitsi-preload.js') }`;
-		return defaultWindowOpen(url, frameName, features);
-	} else {
-		return defaultWindowOpen(url, frameName, features);
+window.open = ((defaultWindowOpen) => (href, frameName, features) => {
+	if (url.parse(href).host === RocketChat.settings.get('Jitsi_Domain')) {
+		features = [
+			features,
+			'nodeIntegration=true',
+			`preload=${ path.join(__dirname, 'jitsi-preload.js') }`,
+		].filter((x) => Boolean(x)).join(',');
 	}
+
+	return defaultWindowOpen(href, frameName, features);
+})(window.open);
+
+window.reloadServer = () => ipcRenderer.sendToHost('reload-server');
+
+for (const eventName of ['unread-changed', 'get-sourceId', 'user-status-manually-set']) {
+	window.addEventListener(eventName, (event) => ipcRenderer.sendToHost(eventName, event.detail));
 }
 
-window.open = customWindowOpen;
+const changeSidebarColor = () => {
+	const sidebar = document.querySelector('.sidebar');
+	if (sidebar) {
+		const { color, background } = window.getComputedStyle(sidebar);
+		const sidebarItem = sidebar.querySelector('.sidebar-item');
+		const itemColor = sidebarItem && window.getComputedStyle(sidebarItem).color;
+		ipcRenderer.sendToHost('sidebar-background', { color: itemColor || color, background });
+		return;
+	}
 
-const events = ['unread-changed', 'get-sourceId', 'user-status-manually-set'];
+	const fullpage = document.querySelector('.full-page');
+	if (fullpage) {
+		const { color, background } = window.getComputedStyle(fullpage);
+		ipcRenderer.sendToHost('sidebar-background', { color, background });
+		return;
+	}
 
-events.forEach(function(e) {
-	window.addEventListener(e, function(event) {
-		ipcRenderer.sendToHost(e, event.detail);
+	window.requestAnimationFrame(changeSidebarColor);
+};
+
+ipcRenderer.on('request-sidebar-color', changeSidebarColor);
+
+window.addEventListener('load', () => {
+	if (!Meteor) {
+		return;
+	}
+
+	Meteor.startup(() => {
+		Tracker.autorun(() => {
+			const siteName = RocketChat.settings.get('Site_Name');
+			if (siteName) {
+				ipcRenderer.sendToHost('title-changed', siteName);
+			}
+		});
 	});
-});
 
-const userPresenceControl = () => {
 	const INTERVAL = 10000; // 10s
 	setInterval(() => {
 		try {
@@ -45,57 +74,28 @@ const userPresenceControl = () => {
 			console.error(`Error getting system idle time: ${ e }`);
 		}
 	}, INTERVAL);
-};
 
-const changeSidebarColor = () => {
-	const sidebar = document.querySelector('.sidebar');
-	const fullpage = document.querySelector('.full-page');
-	if (sidebar) {
-		const sidebarItem = sidebar.querySelector('.sidebar-item');
-		let itemColor;
-		if (sidebarItem) {
-			itemColor = window.getComputedStyle(sidebarItem);
+	document.addEventListener('click', (event) => {
+		const anchorElement = event.target.closest('a');
+
+		if (!anchorElement) {
+			return;
 		}
-		const { color, background } = window.getComputedStyle(sidebar);
-		ipcRenderer.sendToHost('sidebar-background', { color: itemColor || color, background });
-	} else if (fullpage) {
-		const { color, background } = window.getComputedStyle(fullpage);
-		ipcRenderer.sendToHost('sidebar-background', { color, background });
-	} else {
-		window.requestAnimationFrame(changeSidebarColor);
 
-	}
-};
+		const { href } = anchorElement;
 
-ipcRenderer.on('request-sidebar-color', () => {
-	changeSidebarColor();
-});
-
-window.addEventListener('load', function() {
-	Meteor.startup(function() {
-		Tracker.autorun(function() {
-			const siteName = RocketChat.settings.get('Site_Name');
-			if (siteName) {
-				ipcRenderer.sendToHost('title-changed', siteName);
-			}
-		});
-	});
-	userPresenceControl();
-});
-
-window.onload = function() {
-	const $ = require('./vendor/jquery-3.1.1');
-	function checkExternalUrl(e) {
-		const href = $(this).attr('href');
 		// Check href matching current domain
 		if (RegExp(`^${ location.protocol }\/\/${ location.host }`).test(href)) {
 			return;
 		}
 
 		// Check if is file upload link
-		if (/^\/file-upload\//.test(href) && !this.hasAttribute('download')) {
-			this.setAttribute('download', '');
-			this.click();
+		if (/^\/file-upload\//.test(href) && !anchorElement.hasAttribute('download')) {
+			const tempElement = document.createElement('a');
+			tempElement.href = href;
+			tempElement.download = 'download';
+			tempElement.click();
+			return;
 		}
 
 		// Check href matching relative URL
@@ -106,25 +106,18 @@ window.onload = function() {
 		if (/^file:\/\/.+/.test(href)) {
 			const item = href.slice(6);
 			shell.showItemInFolder(item);
-			e.preventDefault();
-		} else {
-			shell.openExternal(href);
-			e.preventDefault();
+			event.preventDefault();
+			return;
 		}
-	}
 
-	$(document).on('click', 'a', checkExternalUrl);
-
-	$('#reload').click(function() {
-		ipcRenderer.sendToHost('reload-server');
-		$(this).hide();
-		$(this).parent().find('.loading-animation').show();
-	});
-};
+		shell.openExternal(href);
+		event.preventDefault();
+	}, true);
+});
 
 // Prevent redirect to url when dragging in
-document.addEventListener('dragover', (e) => e.preventDefault());
-document.addEventListener('drop', (e) => e.preventDefault());
+document.addEventListener('dragover', (event) => event.preventDefault());
+document.addEventListener('drop', (event) => event.preventDefault());
 
 const spellChecker = new SpellCheck();
 spellChecker.enable();

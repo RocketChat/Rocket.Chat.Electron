@@ -1,42 +1,53 @@
-const os = require('os');
 const fs = require('fs');
+const path = require('path');
 const checker = require('spellchecker');
-const { clipboard, remote, webFrame, shell } = require('electron');
-const { MenuItem, dialog } = remote;
+const { clipboard, remote, shell, webFrame } = require('electron');
 const i18n = require('../../i18n/index');
 
-const webContents = remote.getCurrentWebContents();
-let menu = new remote.Menu();
+const { app, dialog, getCurrentWebContents, getCurrentWindow, Menu, MenuItem } = remote;
 
-const path = remote.require('path');
-const isWindows = ['win32', 'win64'].indexOf(os.platform()) !== -1;
+const webContents = getCurrentWebContents();
+let menu = new Menu();
+
+const localStorage = {
+	getItem(key) {
+		try {
+			return window.localStorage.getItem(key);
+		} catch (e) {
+			console.error(e);
+			return null;
+		}
+	},
+
+	setItem(key, value) {
+		try {
+			window.localStorage.setItem(key, value);
+		} catch (e) {
+			console.error(e);
+		}
+	},
+};
 
 class SpellCheck {
 
-	get userLanguage() {
-		const lang = localStorage.getItem('userLanguage');
-		if (lang) {
-			return lang.replace('-', '_');
-		}
-
-		return undefined;
-	}
-
-	get dictionaries() {
-		const dictionaries = localStorage.getItem('spellcheckerDictionaries');
-		if (dictionaries) {
-			const result = JSON.parse(dictionaries);
-			if (Array.isArray(result)) {
-				return result;
-			}
-		}
-
-		return undefined;
-	}
-
 	constructor() {
 		this.enabledDictionaries = [];
-		this.contractions = this.getContractions();
+
+		this.contractions = [
+			"ain't", "aren't", "can't", "could've", "couldn't", "couldn't've", "didn't", "doesn't", "don't", "hadn't",
+			"hadn't've", "hasn't", "haven't", "he'd", "he'd've", "he'll", "he's", "how'd", "how'll", "how's", "I'd",
+			"I'd've", "I'll", "I'm", "I've", "isn't", "it'd", "it'd've", "it'll", "it's", "let's", "ma'am", "mightn't",
+			"mightn't've", "might've", "mustn't", "must've", "needn't", "not've", "o'clock", "shan't", "she'd", "she'd've",
+			"she'll", "she's", "should've", "shouldn't", "shouldn't've", "that'll", "that's", "there'd", "there'd've",
+			"there're", "there's", "they'd", "they'd've", "they'll", "they're", "they've", "wasn't", "we'd", "we'd've",
+			"we'll", "we're", "we've", "weren't", "what'll", "what're", "what's", "what've", "when's", "where'd",
+			"where's", "where've", "who'd", "who'll", "who're", "who's", "who've", "why'll", "why're", "why's", "won't",
+			"would've", "wouldn't", "wouldn't've", "y'all", "y'all'd've", "you'd", "you'd've", "you'll", "you're", "you've",
+		].reduce((contractionMap, word) => {
+			contractionMap[word.replace(/'.*/, '')] = true;
+			return contractionMap;
+		}, {});
+
 		this.loadAvailableDictionaries();
 		this.setEnabledDictionaries();
 
@@ -82,6 +93,17 @@ class SpellCheck {
 				);
 			},
 		});
+	}
+
+	get userLanguage() {
+		const lang = localStorage.getItem('userLanguage');
+		return lang ? lang.replace('-', '_') : null;
+	}
+
+	get dictionaries() {
+		const dictionaries = localStorage.getItem('spellcheckerDictionaries');
+		const result = JSON.parse(dictionaries || '[]');
+		return Array.isArray(result) ? result : [];
 	}
 
 	/**
@@ -134,10 +156,14 @@ class SpellCheck {
 		if (this.availableDictionaries.length === 0) {
 			this.multiLanguage = false;
 			// Dictionaries path is correct for build
-			this.dictionariesPath = path.join(remote.app.getAppPath(), '../dictionaries');
+			this.dictionariesPath = path.join(
+				app.getAppPath(),
+				process.mainModule.filename.indexOf('app.asar') !== -1 ? '..' : '.',
+				'dictionaries'
+			);
 			this.getDictionariesFromInstallDirectory();
 		} else {
-			this.multiLanguage = !isWindows;
+			this.multiLanguage = process.platform !== 'win32';
 			this.availableDictionaries = this.availableDictionaries.map((dict) => dict.replace('-', '_'));
 		}
 	}
@@ -208,27 +234,6 @@ class SpellCheck {
 		}
 	}
 
-	getContractions() {
-		const contractions = [
-			"ain't", "aren't", "can't", "could've", "couldn't", "couldn't've", "didn't", "doesn't", "don't", "hadn't",
-			"hadn't've", "hasn't", "haven't", "he'd", "he'd've", "he'll", "he's", "how'd", "how'll", "how's", "I'd",
-			"I'd've", "I'll", "I'm", "I've", "isn't", "it'd", "it'd've", "it'll", "it's", "let's", "ma'am", "mightn't",
-			"mightn't've", "might've", "mustn't", "must've", "needn't", "not've", "o'clock", "shan't", "she'd", "she'd've",
-			"she'll", "she's", "should've", "shouldn't", "shouldn't've", "that'll", "that's", "there'd", "there'd've",
-			"there're", "there's", "they'd", "they'd've", "they'll", "they're", "they've", "wasn't", "we'd", "we'd've",
-			"we'll", "we're", "we've", "weren't", "what'll", "what're", "what's", "what've", "when's", "where'd",
-			"where's", "where've", "who'd", "who'll", "who're", "who's", "who've", "why'll", "why're", "why's", "won't",
-			"would've", "wouldn't", "wouldn't've", "y'all", "y'all'd've", "you'd", "you'd've", "you'll", "you're", "you've",
-		];
-
-		const contractionMap = contractions.reduce((acc, word) => {
-			acc[word.replace(/'.*/, '')] = true;
-			return acc;
-		}, {});
-
-		return contractionMap;
-	}
-
 	enable() {
 		webFrame.setSpellCheckProvider('', false, {
 			spellCheck: (text) => this.isCorrect(text),
@@ -237,15 +242,17 @@ class SpellCheck {
 		this.setupContextMenuListener();
 	}
 
-	getMenu() {
+	createMenuTemplate() {
 		return [
 			{
 				label: i18n.__('&Undo'),
 				role: 'undo',
+				accelerator: 'CommandOrControl+Z',
 			},
 			{
 				label: i18n.__('&Redo'),
 				role: 'redo',
+				accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
 			},
 			{
 				type: 'separator',
@@ -321,7 +328,7 @@ class SpellCheck {
 		window.addEventListener('contextmenu', (event) => {
 			event.preventDefault();
 
-			const template = this.getMenu();
+			const template = this.createMenuTemplate();
 
 			if (this.languagesMenu && this.browseForLanguageMenu) {
 				template.unshift({ type: 'separator' });
@@ -383,8 +390,8 @@ class SpellCheck {
 					}
 				}
 
-				menu = remote.Menu.buildFromTemplate(template);
-				menu.popup(remote.getCurrentWindow(), undefined, undefined, 5);
+				menu = Menu.buildFromTemplate(template);
+				menu.popup(getCurrentWindow(), undefined, undefined, 5);
 			}, 0);
 		}, false);
 	}

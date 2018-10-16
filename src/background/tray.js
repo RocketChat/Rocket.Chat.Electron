@@ -47,6 +47,8 @@ const getTrayIconTitle = ({ badge: { title, count, showAlert }, status, showUser
 	return [statusBulletString, badgeTitleString].filter(Boolean).join(' ');
 };
 
+const getTrayIconTooltip = ({ badge: { count } }) => i18n.pluralize('Message_count', count, count);
+
 const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 	{
 		label: !isMainWindowVisible ? i18n.__('Show') : i18n.__('Hide'),
@@ -127,6 +129,8 @@ class Tray extends EventEmitter {
 		if (process.platform === 'darwin') {
 			this.trayIcon.setTitle(getTrayIconTitle(this.state));
 		}
+		
+		this.trayIcon.setToolTip(getTrayIconTooltip(this.state));
 
 		this.trayIcon.setImage(getTrayIconPath(this.state));
 

@@ -1,27 +1,11 @@
 <!doctype html>
 <html>
 <head>
-	<title>Rocket.Chat</title>
 	<meta charset="utf-8" />
-	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+	<title>Rocket.Chat</title>
 	<link rel="stylesheet" type="text/css" href="../stylesheets/main.css">
-	<script type="text/javascript" src="./lib/bugsnag.js"></script>
-	<!-- <script type="text/javascript" src="scripts/bugsnag_apikey.js"></script> -->
 	<script>
-		const { shell } = require('electron');
 		const i18n = require('../i18n/index');
-
-		window.addEventListener('load', () => {
-			document.addEventListener('click', (event) => {
-				const anchorElement = event.target.closest('a[rel="noopener noreferrer"]');
-				if (anchorElement) {
-					shell.openExternal(anchorElement.href);
-					event.preventDefault();
-				}
-			});
-		});
 	</script>
 </head>
 <body class="hide-server-list">

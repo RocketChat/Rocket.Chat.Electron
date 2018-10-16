@@ -273,7 +273,7 @@ const createTemplate = ({
 			},
 			{
 				label: i18n.__('Report issue'),
-				click: () => events.emit('open-url', 'https://github.com/RocketChat/Rocket.Chat/issues'),
+				click: () => events.emit('open-url', 'https://github.com/RocketChat/Rocket.Chat.Electron/issues/new'),
 			},
 			{
 				label: i18n.__('Reset app data'),

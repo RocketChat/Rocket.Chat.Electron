@@ -177,11 +177,9 @@ export default () => {
 
 
 	const updateWindowState = () =>
-		tray.setState({ isMainWindowVisible: getCurrentWindow().isVisible() || getCurrentWindow().isMinimized() });
+		tray.setState({ isMainWindowVisible: getCurrentWindow().isVisible() });
 	getCurrentWindow().on('hide', updateWindowState);
 	getCurrentWindow().on('show', updateWindowState);
-	getCurrentWindow().on('minimize', updateWindowState);
-	getCurrentWindow().on('restore', updateWindowState);
 
 	tray.on('created', () => getCurrentWindow().emit('tray-created'));
 	tray.on('destroyed', () => getCurrentWindow().emit('tray-destroyed'));

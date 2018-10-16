@@ -43,6 +43,11 @@
     "Invalid_url": "Invalid url",
     "Learn more": "Learn more",
     "Menu bar": "Menu bar",
+    "Message_count": {
+        "zero": "Rocket.Chat: no unread message",
+        "one": "Rocket.Chat: you have %s unread message",
+        "multi": "Rocket.Chat: you have %s unread messages"
+    },
     "Minimize": "Minimize",
     "More_spelling_suggestions": "More spelling suggestions",
     "New_Version": "New Version:",

@@ -76,8 +76,8 @@ ipcMain.on('set-auto-update', (event, canAutoUpdate) => {
 
 let checkForUpdatesEvent;
 
-function updateDownloaded() {
-	dialog.showMessageBox({
+async function updateDownloaded() {
+	const response = dialog.showMessageBox({
 		title: i18n.__('Update_ready'),
 		message: i18n.__('Update_ready_message'),
 		buttons: [
@@ -85,17 +85,20 @@ function updateDownloaded() {
 			i18n.__('Update_Install_Now'),
 		],
 		defaultId: 1,
-	}, (response) => {
-		if (response === 0) {
-			dialog.showMessageBox({
-				title: i18n.__('Update_installing_later'),
-				message: i18n.__('Update_installing_later_message'),
-			});
-		} else {
-			autoUpdater.quitAndInstall();
-			setTimeout(() => app.quit(), 1000);
-		}
 	});
+
+	if (response === 0) {
+		dialog.showMessageBox({
+			title: i18n.__('Update_installing_later'),
+			message: i18n.__('Update_installing_later_message'),
+		});
+		return;
+	}
+
+	const mainWindow = await getMainWindow();
+	mainWindow.removeAllListeners();
+	app.removeAllListeners('window-all-closed');
+	autoUpdater.quitAndInstall();
 }
 
 function updateNotAvailable() {

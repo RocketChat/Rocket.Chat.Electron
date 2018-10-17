@@ -2,7 +2,7 @@
   "name": "rocketchat",
   "productName": "Rocket.Chat",
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
-  "version": "2.15.0-develop",
+  "version": "2.13.3",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2018, Rocket.Chat",
   "homepage": "https://rocket.chat",
@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
-    "electron-updater": "^3.1.2",
+    "electron-updater": "3.0.4",
     "fs-jetpack": "^2.1.1",
     "lodash": "^4.17.10",
     "spellchecker": "^3.5.0"

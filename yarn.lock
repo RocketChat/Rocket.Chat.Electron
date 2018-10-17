@@ -1757,9 +1757,9 @@ electron-publish@20.28.3:
     lazy-val "^1.0.3"
     mime "^2.3.1"
 
-electron-updater@^3.1.2:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/electron-updater/-/electron-updater-3.1.2.tgz#30d9790d5b16048e4afc74a31748790348b153bf"
+electron-updater@3.0.4:
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/electron-updater/-/electron-updater-3.0.4.tgz#de3f394038a29c5d06815a118279528b039db03f"
   dependencies:
     bluebird-lst "^1.0.5"
     builder-util-runtime "~4.4.1"
@@ -1768,8 +1768,8 @@ electron-updater@^3.1.2:
     js-yaml "^3.12.0"
     lazy-val "^1.0.3"
     lodash.isequal "^4.5.0"
-    semver "^5.5.1"
-    source-map-support "^0.5.9"
+    semver "^5.5.0"
+    source-map-support "^0.5.6"
 
 electron-window@^0.8.0:
   version "0.8.1"
@@ -5922,7 +5922,7 @@ source-map-resolve@^0.5.0, source-map-resolve@^0.5.2:
     source-map-url "^0.4.0"
     urix "^0.1.0"
 
-source-map-support@^0.5.9:
+source-map-support@^0.5.6, source-map-support@^0.5.9:
   version "0.5.9"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.9.tgz#41bc953b2534267ea2d605bccfa7bfa3111ced5f"
   dependencies:

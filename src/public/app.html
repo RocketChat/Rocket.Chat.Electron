@@ -5,7 +5,18 @@
 	<title>Rocket.Chat</title>
 	<link rel="stylesheet" type="text/css" href="../stylesheets/main.css">
 	<script>
-		const i18n = require('../i18n/index');
+		window.addEventListener('load', () => {
+			const i18n = require('../i18n/index');
+			document.querySelector('.add-server .tooltip').innerHTML = i18n.__('Add new server');
+			document.querySelector('#login-card .connect__prompt').innerHTML = i18n.__('Enter_your_server_URL');
+			document.querySelector('#login-card #invalidUrl').innerHTML = i18n.__('No_valid_server_found');
+			document.querySelector('#login-card .connect__error').innerHTML = i18n.__('Check_connection');
+			document.querySelector('#login-card .login').innerHTML = i18n.__('Connect');
+
+			const script = document.createElement('script');
+			script.src = '../app.js';
+			document.body.appendChild(script);
+		});
 	</script>
 </head>
 <body class="app-page app-page--loading">
@@ -15,7 +26,7 @@
 		<ul>
 			<li class="add-server">
 				<span>+</span>
-				<div class="tooltip"><script>document.write(i18n.__('Add new server'))</script></div>
+				<div class="tooltip">Add new server</div>
 			</li>
 		</ul>
 	</div>
@@ -34,7 +45,7 @@
 
 			<form id="login-card" method="/">
 				<header>
-					<h2><script>document.write(i18n.__('Enter_your_server_URL'))</script></h2>
+					<h2 class="connect__prompt">Enter your server URL</h2>
 				</header>
 				<div class="fields">
 					<div class="input-text active">
@@ -42,21 +53,17 @@
 					</div>
 				</div>
 
-				<div id="invalidUrl" style="display:none;" class="alert alert-danger">
-					<script>document.write(i18n.__('No_valid_server_found'))</script>
-				</div>
+				<div id="invalidUrl" style="display:none;" class="alert alert-danger">No valid server found</div>
 
-				<div class="alert alert-danger only-offline"><script>document.write(i18n.__('Check_connection'))</script></div>
+				<div class="connect__error alert alert-danger only-offline">Check connection</div>
 
 				<div class="submit">
-					<input type="submit" data-loading-text="Connecting..." class="button primary login" value="Connect"></input>
+					<button type="submit" data-loading-text="Connecting..." class="button primary login">Connect</button>
 				</div>
 			</form>
 		</div>
 	</section>
 
 	<div class="drag-region"></div>
-
-	<script src="../app.js"></script>
 </body>
 </html>

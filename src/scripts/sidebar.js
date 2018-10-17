@@ -191,7 +191,7 @@ class SideBar extends EventEmitter {
 	}
 
 	changeSidebarColor({ color, background }) {
-		const sidebar = document.querySelector('.server-list');
+		const sidebar = document.querySelector('.sidebar');
 		if (sidebar) {
 			sidebar.style.background = background;
 			sidebar.style.color = color;
@@ -346,25 +346,25 @@ window.addEventListener('contextmenu', function(e) {
 if (process.platform === 'darwin') {
 	window.addEventListener('keydown', function(e) {
 		if (e.key === 'Meta') {
-			document.getElementsByClassName('server-list')[0].classList.add('command-pressed');
+			document.getElementsByClassName('sidebar')[0].classList.add('command-pressed');
 		}
 	});
 
 	window.addEventListener('keyup', function(e) {
 		if (e.key === 'Meta') {
-			document.getElementsByClassName('server-list')[0].classList.remove('command-pressed');
+			document.getElementsByClassName('sidebar')[0].classList.remove('command-pressed');
 		}
 	});
 } else {
 	window.addEventListener('keydown', function(e) {
 		if (e.key === 'ctrlKey') {
-			document.getElementsByClassName('server-list')[0].classList.add('command-pressed');
+			document.getElementsByClassName('sidebar')[0].classList.add('command-pressed');
 		}
 	});
 
 	window.addEventListener('keyup', function(e) {
 		if (e.key === 'ctrlKey') {
-			document.getElementsByClassName('server-list')[0].classList.remove('command-pressed');
+			document.getElementsByClassName('sidebar')[0].classList.remove('command-pressed');
 		}
 	});
 }

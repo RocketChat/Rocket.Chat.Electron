@@ -195,11 +195,11 @@ div.sidebar li:before {
 	font-size: 40px;
 }
 
-.hide-server-list div.sidebar {
+div.sidebar.sidebar--hidden {
 	display: none;
 }
 
-.hide-server-list webview {
+div.sidebar.sidebar--hidden ~ webview {
 	left: 0;
 }
 
@@ -387,10 +387,8 @@ webview.active {
 	}
 }
 
-.hide-server-list {
-	.landing-page {
-		left: 0;
-	}
+.sidebar--hidden ~ .landing-page {
+	left: 0;
 }
 
 .drag-region {

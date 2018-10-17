@@ -2,12 +2,27 @@
 	user-select: none;
 	cursor: default;
 
+	&.app-page--loading {
+		.loading-indicator {
+			display: flex;
+		}
+
+		#login-card {
+			display: none;
+		}
+
+		.app-page__footer {
+			display: none;
+		}
+	}
+
 	.hidden {
 		display: none !important;
 	}
 
 	.loading-indicator {
 		.loading-component;
+		display: none;
 	}
 }
 

@@ -8,7 +8,7 @@
 		const i18n = require('../i18n/index');
 	</script>
 </head>
-<body class="app-page">
+<body class="app-page app-page--loading">
 	<div class="sidebar sidebar--hidden">
 		<ul id="sidebar__servers">
 		</ul>
@@ -32,7 +32,7 @@
 				<span class="dot"></span>
 			</div>
 
-			<form id="login-card" method="/" style="display:none;">
+			<form id="login-card" method="/">
 				<header>
 					<h2><script>document.write(i18n.__('Enter_your_server_URL'))</script></h2>
 				</header>
@@ -52,7 +52,7 @@
 					<input type="submit" data-loading-text="Connecting..." class="button primary login" value="Connect"></input>
 				</div>
 			</form>
-			<footer style="display:none;">
+			<footer class="app-page__footer">
 				<div class="social">
 					<nav>
 						<a rel="noopener noreferrer" href="https://twitter.com/RocketChat" class="button share twitter">

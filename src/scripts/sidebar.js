@@ -11,7 +11,7 @@ class SideBar extends EventEmitter {
 		this.sortOrder = JSON.parse(localStorage.getItem(this.sortOrderKey)) || [];
 		localStorage.setItem(this.sortOrderKey, JSON.stringify(this.sortOrder));
 
-		this.listElement = document.getElementById('serverList');
+		this.listElement = document.getElementById('sidebar__servers');
 
 		Object.values(servers.hosts)
 			.sort((a, b) => this.sortOrder.indexOf(a.url) - this.sortOrder.indexOf(b.url))
@@ -191,7 +191,7 @@ class SideBar extends EventEmitter {
 	}
 
 	changeSidebarColor({ color, background }) {
-		const sidebar = document.querySelector('.server-list');
+		const sidebar = document.querySelector('.sidebar');
 		if (sidebar) {
 			sidebar.style.background = background;
 			sidebar.style.color = color;
@@ -266,7 +266,7 @@ class SideBar extends EventEmitter {
 	}
 
 	hide() {
-		document.body.classList.add('hide-server-list');
+		document.querySelector('.sidebar').classList.add('sidebar--hidden');
 		localStorage.setItem('sidebar-closed', 'true');
 		this.emit('hide');
 		if (process.platform === 'darwin') {
@@ -276,7 +276,7 @@ class SideBar extends EventEmitter {
 	}
 
 	show() {
-		document.body.classList.remove('hide-server-list');
+		document.querySelector('.sidebar').classList.remove('sidebar--hidden');
 		localStorage.setItem('sidebar-closed', 'false');
 		this.emit('show');
 		if (process.platform === 'darwin') {
@@ -346,25 +346,25 @@ window.addEventListener('contextmenu', function(e) {
 if (process.platform === 'darwin') {
 	window.addEventListener('keydown', function(e) {
 		if (e.key === 'Meta') {
-			document.getElementsByClassName('server-list')[0].classList.add('command-pressed');
+			document.getElementsByClassName('sidebar')[0].classList.add('command-pressed');
 		}
 	});
 
 	window.addEventListener('keyup', function(e) {
 		if (e.key === 'Meta') {
-			document.getElementsByClassName('server-list')[0].classList.remove('command-pressed');
+			document.getElementsByClassName('sidebar')[0].classList.remove('command-pressed');
 		}
 	});
 } else {
 	window.addEventListener('keydown', function(e) {
 		if (e.key === 'ctrlKey') {
-			document.getElementsByClassName('server-list')[0].classList.add('command-pressed');
+			document.getElementsByClassName('sidebar')[0].classList.add('command-pressed');
 		}
 	});
 
 	window.addEventListener('keyup', function(e) {
 		if (e.key === 'ctrlKey') {
-			document.getElementsByClassName('server-list')[0].classList.remove('command-pressed');
+			document.getElementsByClassName('sidebar')[0].classList.remove('command-pressed');
 		}
 	});
 }

@@ -1,9 +1,9 @@
 @import "global/_variables.less";
 @import "utils/_lesshat.import.less";
-@import "start-page.less";
 @import "../branding/branding.less";
 @import "fontello.less";
-@import "utils/_loading.import.less";
+@import "utils/loading.less";
+@import "pages/app.less";
 @import "pages/about.less";
 @import "pages/loading-error.less";
 
@@ -162,24 +162,6 @@ input[type='password'] {
 			font-weight: 600;
 		}
 	}
-	&.facebook {
-		background-color: #325c99;
-	}
-	&.twitter {
-		background-color: #02acec;
-	}
-	&.google {
-		background-color: #dd4b39;
-	}
-	&.github {
-		background-color: #4c4c4c;
-	}
-	&.trello {
-		background-color: #026aa7;
-	}
-	&.meteor-developer {
-		background-color: #de4f4f;
-	}
 
 	&:disabled {
 		color: #888;
@@ -187,136 +169,5 @@ input[type='password'] {
 		cursor: not-allowed;
 		pointer-events: none;
 		background-color: #ddd;
-	}
-}
-
-#login-card {
-	width: 90%;
-	max-width: 520px;
-	padding: 22px 30px 30px;
-	margin: 25px auto;
-	background-color: #FAFAFA;
-	box-shadow: 0 0 6px 10px rgba(0, 0, 0, 0.1);
-	border-radius: 2px;
-	position: relative;
-	z-index: 1;
-	header {
-		padding: 18px 0;
-		p {
-			margin: 8px 0 0;
-			font-size: 14px;
-			line-height: 22px;
-			font-weight: 300;
-		}
-	}
-	h2 {
-		&:extend(.rocket-h2);
-		color: @primary-font-color;
-		line-height: 24px;
-		margin: 0;
-		&.error {
-			color: #b40202;
-		}
-	}
-	h3 {
-		&:extend(.rocket-h3);
-		&.error {
-			color: #b40202;
-		}
-	}
-	img {
-		width: 200px;
-	}
-	.input-text {
-		margin: 0 0 14px 0;
-		position: relative;
-		input {
-			box-shadow: 0 0 0;
-			background-color: transparent;
-			border-width: 0;
-			position: relative;
-			padding: 4px 8px;
-			font-size: 22px;
-			border-bottom: 1px solid #DFDFDF;
-			font-weight: 400;
-			&.error {
-				border-bottom: 1px solid #b40202;
-				&::-webkit-input-placeholder {
-					color: #b40202;
-				}
-				&:-moz-placeholder {
-					color: #b40202;
-				}
-				/* Firefox 18- */
-
-				&::-moz-placeholder {
-					color: #b40202;
-				}
-				/* Firefox 19+ */
-
-				&:-ms-input-placeholder {
-					color: #b40202;
-				}
-			}
-		}
-		input:-webkit-autofill {
-			color: #fff !important;
-		}
-		input:-webkit-autofill {
-			-webkit-box-shadow: 0 0 0px 1000px #f4f4f4 inset;
-			background-color: transparent !important;
-		}
-	}
-}
-
-.landing-page {
-	position: fixed;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	left: 68px;
-	overflow-y: auto;
-	text-align: center;
-	background-color: @primary-background-color;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	.logo {
-		max-width: 520px;
-	}
-	.wrapper {
-		min-width: 600px;
-		text-align: center;
-		padding: 45px 0 35px;
-		z-index: 10;
-		position: relative;
-		-webkit-app-region: no-drag;
-	}
-	.share {
-		border-radius: 50%;
-		min-height: 40px;
-		line-height: 20px;
-		&:before {
-			border-radius: 50%;
-		}
-		span {
-			display: none;
-		}
-	}
-}
-
-.hide-server-list {
-	.landing-page {
-		left: 0;
-	}
-}
-
-.drag-region {
-	position: absolute;
-	-webkit-app-region: drag;
-
-	&.top-bar {
-		height: 22px;
-		width: 100%;
 	}
 }

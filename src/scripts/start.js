@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, shell } from 'electron';
 import attachEvents from './events';
 import servers from './servers';
 import sidebar from './sidebar';
@@ -149,6 +149,14 @@ export const start = function() {
 	document.querySelector('.add-server').addEventListener('click', () => {
 		servers.clearActive();
 		webview.showLanding();
+	});
+
+	document.addEventListener('click', (event) => {
+		const anchorElement = event.target.closest('a[rel="noopener noreferrer"]');
+		if (anchorElement) {
+			shell.openExternal(anchorElement.href);
+			event.preventDefault();
+		}
 	});
 
 	attachEvents();

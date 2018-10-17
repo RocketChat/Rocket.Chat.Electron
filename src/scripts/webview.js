@@ -44,15 +44,11 @@ class WebView extends EventEmitter {
 	}
 
 	loaded() {
-		document.querySelector('#loading').style.display = 'none';
-		document.querySelector('#login-card').style.display = 'block';
-		document.querySelector('footer').style.display = 'block';
+		document.querySelector('.app-page').classList.remove('app-page--loading');
 	}
 
 	loading() {
-		document.querySelector('#loading').style.display = 'block';
-		document.querySelector('#login-card').style.display = 'none';
-		document.querySelector('footer').style.display = 'none';
+		document.querySelector('.app-page').classList.add('app-page--loading');
 	}
 
 	add(host) {

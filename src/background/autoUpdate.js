@@ -1,6 +1,7 @@
-import { app, ipcMain, BrowserWindow, dialog } from 'electron';
+import { app, dialog, ipcMain, BrowserWindow } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';
+import { getMainWindow } from './mainWindow';
 import i18n from '../i18n/index.js';
 
 const appDir = jetpack.cwd(
@@ -40,10 +41,46 @@ const saveUpdateSettings = () => {
 	userDataDir.write(updateSettingsFileName, userUpdateSettings, { atomic: true });
 };
 
+export const canUpdate = () => updateSettings.canUpdate &&
+	(
+		(process.platform === 'linux' && Boolean(process.env.APPIMAGE)) ||
+		(process.platform === 'win32' && !process.windowsStore) ||
+		(process.platform === 'darwin' && !process.mas)
+	);
+
+export const canAutoUpdate = () => updateSettings.autoUpdate !== false;
+
+export const canSetAutoUpdate = () => !appUpdateSettings.forced || appUpdateSettings.autoUpdate !== false;
+
+export const setAutoUpdate = (canAutoUpdate) => {
+	if (!canSetAutoUpdate()) {
+		return;
+	}
+
+	updateSettings.autoUpdate = userUpdateSettings.autoUpdate = Boolean(canAutoUpdate);
+	saveUpdateSettings();
+};
+
+ipcMain.on('can-update', (event) => {
+	event.returnValue = canUpdate();
+});
+
+ipcMain.on('can-auto-update', (event) => {
+	event.returnValue = canAutoUpdate();
+});
+
+ipcMain.on('can-set-auto-update', (event) => {
+	event.returnValue = canSetAutoUpdate();
+});
+
+ipcMain.on('set-auto-update', (event, canAutoUpdate) => {
+	setAutoUpdate(canAutoUpdate);
+});
+
 let checkForUpdatesEvent;
 
-function updateDownloaded() {
-	dialog.showMessageBox({
+async function updateDownloaded() {
+	const response = dialog.showMessageBox({
 		title: i18n.__('Update_ready'),
 		message: i18n.__('Update_ready_message'),
 		buttons: [
@@ -51,17 +88,20 @@ function updateDownloaded() {
 			i18n.__('Update_Install_Now'),
 		],
 		defaultId: 1,
-	}, (response) => {
-		if (response === 0) {
-			dialog.showMessageBox({
-				title: i18n.__('Update_installing_later'),
-				message: i18n.__('Update_installing_later_message'),
-			});
-		} else {
-			autoUpdater.quitAndInstall();
-			setTimeout(() => app.quit(), 1000);
-		}
 	});
+
+	if (response === 0) {
+		dialog.showMessageBox({
+			title: i18n.__('Update_installing_later'),
+			message: i18n.__('Update_installing_later_message'),
+		});
+		return;
+	}
+
+	const mainWindow = await getMainWindow();
+	mainWindow.removeAllListeners();
+	app.removeAllListeners('window-all-closed');
+	autoUpdater.quitAndInstall();
 }
 
 function updateNotAvailable() {
@@ -130,45 +170,30 @@ function updateAvailable({ version }) {
 	});
 }
 
-export const canUpdate = () => {
-	return (updateSettings.canUpdate) && (
-		(process.platform === 'linux' && Boolean(process.env.APPIMAGE)) ||
-    		(process.platform === 'win32' && !process.windowsStore) ||
-		(process.platform === 'darwin' && !process.mas)
-	);
-};
+autoUpdater.autoDownload = false;
 
-export const canAutoUpdate = () => updateSettings.autoUpdate !== false;
+const sendToRenderer = async(channel, ...args) => {
+	const mainWindow = await getMainWindow();
+	const send = () => mainWindow.send(channel, ...args);
 
-export const canSetAutoUpdate = () => !appUpdateSettings.forced || appUpdateSettings.autoUpdate !== false;
-
-export const setAutoUpdate = (canAutoUpdate) => {
-	if (!canSetAutoUpdate()) {
+	if (mainWindow.webContents.isLoading()) {
+		mainWindow.webContents.on('dom-ready', send);
 		return;
 	}
 
-	updateSettings.autoUpdate = userUpdateSettings.autoUpdate = Boolean(canAutoUpdate);
-	saveUpdateSettings();
+	send();
 };
 
-ipcMain.on('can-update', (event) => {
-	event.returnValue = canUpdate();
+autoUpdater.on('error', async(error) => {
+	sendToRenderer('update-error', error);
 });
 
-ipcMain.on('can-auto-update', (event) => {
-	event.returnValue = canAutoUpdate();
+autoUpdater.on('checking-for-update', async() => {
+	sendToRenderer('update-checking');
 });
 
-ipcMain.on('can-set-auto-update', (event) => {
-	event.returnValue = canSetAutoUpdate();
-});
-
-ipcMain.on('set-auto-update', (event, canAutoUpdate) => {
-	setAutoUpdate(canAutoUpdate);
-});
-
-autoUpdater.autoDownload = false;
 autoUpdater.on('update-available', updateAvailable);
+
 autoUpdater.on('update-not-available', updateNotAvailable);
 autoUpdater.on('update-downloaded', updateDownloaded);
 

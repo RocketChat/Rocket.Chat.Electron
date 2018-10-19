@@ -286,11 +286,13 @@ const createTemplate = ({
 				label: i18n.__('Learn more'),
 				click: () => events.emit('open-url', 'https://rocket.chat'),
 			},
-			{
-				id: 'about',
-				label: i18n.__('About %s', appName),
-				click: () => events.emit('about'),
-			},
+			...(process.platform !== 'darwin' ? [
+				{
+					id: 'about',
+					label: i18n.__('About %s', appName),
+					click: () => events.emit('about'),
+				},
+			] : []),
 		],
 	},
 ]);

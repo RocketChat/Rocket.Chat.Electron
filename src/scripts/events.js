@@ -1,4 +1,4 @@
-import { remote, ipcRenderer } from 'electron';
+import { ipcRenderer, nativeImage, remote } from 'electron';
 import servers from './servers';
 import sidebar from './sidebar';
 import webview from './webview';
@@ -6,7 +6,84 @@ import webview from './webview';
 const { app, getCurrentWindow, shell } = remote;
 const { certificate, menus, showAboutDialog, tray } = remote.require('./background');
 
-export default () => {
+const setupTrayIconImages = async() => {
+	const loadImage = async(imageName) => {
+		const extension = process.platform === 'win32' ? 'ico' : 'png';
+		const imagePath = `${ __dirname }/images/tray-icons/${ imageName }.${ extension }`;
+
+		const image = new Image();
+		image.src = nativeImage.createFromPath(imagePath).toDataURL();
+		await new Promise((resolve) => image.onload = resolve);
+
+		return image;
+	};
+
+	const getImage = async(imageName) => ({
+		template: await loadImage('template'),
+		normal: await loadImage('normal'),
+	}[imageName]);
+
+	const drawBadge = (canvas, ctx, text, color) => {
+		ctx.save();
+		ctx.fillStyle = color;
+		ctx.shadowColor = 'rgba(0, 0, 0, 1)';
+		ctx.shadowOffsetX = 1;
+		ctx.shadowOffsetY = 1;
+		ctx.shadowBlur = 1;
+		ctx.beginPath();
+		ctx.arc(36, 12, 12, 0, 2 * Math.PI);
+		ctx.fill();
+		ctx.restore();
+
+		ctx.save();
+		ctx.fillStyle = '#ffffff';
+		ctx.font = 'normal bold 20px sans-serif';
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText(text, 36, 12);
+		ctx.restore();
+	};
+
+	const createTrayIconImage = async(imageName, badgeText, badgeColor = '#bc2031') => {
+		const image = await getImage(imageName);
+
+		const canvas = document.createElement('canvas');
+		canvas.width = image.width;
+		canvas.height = image.height;
+
+		const ctx = canvas.getContext('2d');
+		ctx.drawImage(image, 0, 0);
+
+		if (badgeText) {
+			drawBadge(canvas, ctx, badgeText, badgeColor);
+		}
+
+		return canvas.toDataURL();
+	};
+
+	const iconConfigurations = [
+		{ name: 'template', image: 'template' },
+		{ name: 'normal', image: 'normal' },
+		{ name: '1', image: 'normal', badgeText: '1' },
+		{ name: '2', image: 'normal', badgeText: '2' },
+		{ name: '3', image: 'normal', badgeText: '3' },
+		{ name: '4', image: 'normal', badgeText: '4' },
+		{ name: '5', image: 'normal', badgeText: '5' },
+		{ name: '6', image: 'normal', badgeText: '6' },
+		{ name: '7', image: 'normal', badgeText: '7' },
+		{ name: '8', image: 'normal', badgeText: '8' },
+		{ name: '9', image: 'normal', badgeText: '9' },
+		{ name: 'dot', image: 'normal', badgeText: '•' },
+		{ name: 'alert', image: 'normal', badgeText: '!' },
+		{ name: '9plus', image: 'normal', badgeText: '9+' },
+	];
+
+	for (const { name, image, badgeText, badgeColor } of iconConfigurations) {
+		tray.setIconImage(name, await createTrayIconImage(image, badgeText, badgeColor));
+	}
+};
+
+export default async() => {
 	menus.on('quit', () => app.quit());
 	menus.on('about', () => showAboutDialog());
 	menus.on('open-url', (url) => shell.openExternal(url));
@@ -182,6 +259,8 @@ export default () => {
 		tray.setState({ isMainWindowVisible: getCurrentWindow().isVisible() });
 	getCurrentWindow().on('hide', updateWindowState);
 	getCurrentWindow().on('show', updateWindowState);
+
+	await setupTrayIconImages();
 
 	tray.on('created', () => getCurrentWindow().emit('tray-created'));
 	tray.on('destroyed', () => getCurrentWindow().emit('tray-destroyed'));

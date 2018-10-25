@@ -19,8 +19,10 @@ function loadTranslation(phrase = '', count) {
 	if (loadedLanguageTranslation === undefined) {
 		translation = phrase;
 	} else if (loadedLanguageTranslation instanceof Object) {
-		translation = loadedLanguageTranslation.one;
-		if (count > 1) {
+		translation = loadedLanguageTranslation.zero;
+		if (count === 1) {
+			translation = loadedLanguageTranslation.one;
+		} else if (count > 1) {
 			translation = loadedLanguageTranslation.multi;
 		}
 	}
@@ -75,7 +77,10 @@ class I18n {
      */
 	pluralize(phrase, count, ...replacements) {
 		const translation = loadTranslation(phrase, count);
-		return util.format(translation, ...replacements);
+		if (translation.includes('%s')) {
+			return util.format(translation, ...replacements);
+		}
+		return translation;
 	}
 }
 

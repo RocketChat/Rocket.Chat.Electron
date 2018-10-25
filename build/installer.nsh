@@ -47,11 +47,10 @@
 !macroend
 
 !macro writeUpdateFile
-  FileOpen $4 "$APPDATA\Rocket.Chat\update.json" w
-  FileWrite $4 "{$\r$\n"
+  FileOpen $4 '$INSTDIR\resources\update.json' w
+  FileWrite $4 '{$\r$\n'
   FileWrite $4 '  "canUpdate": false,$\r$\n'
   FileWrite $4 '  "autoUpdate": false$\r$\n'
-  FileWrite $4 "}"
-  FileWrite $4 "$\r$\n"
+  FileWrite $4 '}$\r$\n'
   FileClose $4
 !macroend

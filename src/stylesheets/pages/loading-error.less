@@ -1,0 +1,33 @@
+.loading-error-page {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 100vh;
+	background-image: url('../public/images/error.jpg');
+	background-color: @primary-background-color;
+	background-position: center bottom;
+	background-repeat: no-repeat;
+	background-size: 100% auto;
+	cursor: default;
+	user-select: none;
+
+	.hidden {
+		display: none !important;
+	}
+
+	.title,
+	.subtitle {
+		color: @quaternary-font-color;
+		text-align: center;
+		line-height: 1.5em;
+	}
+
+	.subtitle {
+		font-weight: normal;
+	}
+
+	.reloading-server {
+		.loading-component;
+	}
+}

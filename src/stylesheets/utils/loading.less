@@ -1,0 +1,37 @@
+.loading-component {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 2.5rem;
+	margin: 4px;
+	color: @secondary-font-color;
+
+	.dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 100%;
+		margin: 0.1rem;
+		background-color: currentColor;
+		animation: loading-bouncedelay 1.4s infinite ease-in-out both;
+
+		&:nth-of-type(1) {
+			animation-delay: -0.32s;
+		}
+
+		&:nth-of-type(2) {
+			animation-delay: -0.16s;
+		}
+	}
+}
+
+@keyframes loading-bouncedelay {
+	0%,
+	80%,
+	100% {
+		transform: scale(0);
+	}
+
+	40% {
+		transform: scale(1);
+	}
+}

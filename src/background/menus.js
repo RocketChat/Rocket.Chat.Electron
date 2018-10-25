@@ -273,7 +273,7 @@ const createTemplate = ({
 			},
 			{
 				label: i18n.__('Report issue'),
-				click: () => events.emit('open-url', 'https://github.com/RocketChat/Rocket.Chat/issues'),
+				click: () => events.emit('open-url', 'https://github.com/RocketChat/Rocket.Chat.Electron/issues/new'),
 			},
 			{
 				label: i18n.__('Reset app data'),
@@ -286,11 +286,13 @@ const createTemplate = ({
 				label: i18n.__('Learn more'),
 				click: () => events.emit('open-url', 'https://rocket.chat'),
 			},
-			{
-				id: 'about',
-				label: i18n.__('About %s', appName),
-				click: () => events.emit('about'),
-			},
+			...(process.platform !== 'darwin' ? [
+				{
+					id: 'about',
+					label: i18n.__('About %s', appName),
+					click: () => events.emit('about'),
+				},
+			] : []),
 		],
 	},
 ]);

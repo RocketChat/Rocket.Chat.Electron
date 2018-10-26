@@ -272,8 +272,9 @@ class Servers extends EventEmitter {
 			type: 'question',
 			buttons: ['Yes', 'Cancel'],
 			defaultId: 1,
-			title: 'Reset App Data',
-			message: 'This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.',
+			title: i18n.__('Reset app data'),
+			message: i18n.__('This will sign you out from all your teams and reset the app back to its ' +
+				'original settings. This cannot be undone.'),
 		});
 
 		if (response !== 0) {

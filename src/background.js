@@ -3,7 +3,7 @@ import querystring from 'querystring';
 import url from 'url';
 import jetpack from 'fs-jetpack';
 import idle from '@paulcbetts/system-idle-time';
-import { app, ipcMain, Menu } from 'electron';
+import { app, dialog, ipcMain, Menu } from 'electron';
 
 import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
@@ -102,8 +102,17 @@ if (process.platform === 'linux') {
 
 app.on('ready', () => {
 	unsetDefaultApplicationMenu();
+
 	setUserDataPath();
+	if (process.argv[2] === '--reset-app-data') {
+		const dataDir = app.getPath('userData');
+		jetpack.remove(dataDir);
+		app.relaunch({ args: [process.argv[1]] });
+		app.quit();
+		return;
+	}
 	migrateOlderVersionUserData();
+
 
 	createMainWindow();
 
@@ -114,4 +123,9 @@ app.on('ready', () => {
 
 ipcMain.on('getSystemIdleTime', (event) => {
 	event.returnValue = idle.getIdleTime();
+});
+
+ipcMain.on('reset-app-data', () => {
+	app.relaunch({ args: [process.argv[1], '--reset-app-data'] });
+	app.quit();
 });

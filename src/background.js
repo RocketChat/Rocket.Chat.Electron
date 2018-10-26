@@ -1,10 +1,9 @@
-import path from 'path';
+import { app, ipcMain, Menu } from 'electron';
 import querystring from 'querystring';
 import url from 'url';
-import jetpack from 'fs-jetpack';
 import idle from '@paulcbetts/system-idle-time';
-import { app, dialog, ipcMain, Menu } from 'electron';
 
+import appData from './background/appData';
 import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
 import { addServer, createMainWindow, getMainWindow } from './background/mainWindow';
@@ -13,7 +12,6 @@ import './background/screenshare';
 import tray from './background/tray';
 
 import i18n from './i18n/index.js';
-import env from './env';
 
 export { default as showAboutDialog } from './background/aboutDialog';
 export { default as remoteServers } from './background/servers';
@@ -39,26 +37,6 @@ const unsetDefaultApplicationMenu = () => {
 		],
 	}];
 	Menu.setApplicationMenu(Menu.buildFromTemplate(emptyMenuTemplate));
-};
-
-const setUserDataPath = () => {
-	const appName = app.getName();
-	const dirName = env.name === 'production' ? appName : `${ appName } (${ env.name })`;
-
-	app.setPath('userData', path.join(app.getPath('appData'), dirName));
-};
-
-const migrateOlderVersionUserData = () => {
-	const olderAppName = 'Rocket.Chat+';
-	const dirName = env.name === 'production' ? olderAppName : `${ olderAppName } (${ env.name })`;
-	const olderUserDataPath = path.join(app.getPath('appData'), dirName);
-
-	try {
-		jetpack.copy(olderUserDataPath, app.getPath('userData'), { overwrite: true });
-		jetpack.remove(olderUserDataPath);
-	} catch (e) {
-		return;
-	}
 };
 
 const parseProtocolUrls = (args) =>
@@ -103,16 +81,7 @@ if (process.platform === 'linux') {
 app.on('ready', () => {
 	unsetDefaultApplicationMenu();
 
-	setUserDataPath();
-	if (process.argv[2] === '--reset-app-data') {
-		const dataDir = app.getPath('userData');
-		jetpack.remove(dataDir);
-		app.relaunch({ args: [process.argv[1]] });
-		app.quit();
-		return;
-	}
-	migrateOlderVersionUserData();
-
+	appData.initialize();
 
 	createMainWindow();
 
@@ -123,9 +92,4 @@ app.on('ready', () => {
 
 ipcMain.on('getSystemIdleTime', (event) => {
 	event.returnValue = idle.getIdleTime();
-});
-
-ipcMain.on('reset-app-data', () => {
-	app.relaunch({ args: [process.argv[1], '--reset-app-data'] });
-	app.quit();
 });

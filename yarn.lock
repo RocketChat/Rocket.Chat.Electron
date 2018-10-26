@@ -2386,8 +2386,8 @@ fs-extra@^6.0.1:
     universalify "^0.1.0"
 
 fs-jetpack@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/fs-jetpack/-/fs-jetpack-2.1.1.tgz#31c4eca61c17a112452cb92ba103b9e2026d5863"
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/fs-jetpack/-/fs-jetpack-2.2.0.tgz#4385b42b728a3400f00f4afe6ecabc72543cc72d"
   dependencies:
     minimatch "^3.0.2"
 

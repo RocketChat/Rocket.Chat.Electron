@@ -3,6 +3,30 @@ import { EventEmitter } from 'events';
 import i18n from '../i18n/index.js';
 
 
+const getTrayIconStyle = ({ badge: { title, count, showAlert }, status }) => {
+	const style = {};
+
+	if (title === '•') {
+		style.badgeText = '•';
+	} else if (count > 0) {
+		style.badgeText = count > 9 ? '9+' : String(count);
+	} else if (showAlert) {
+		style.badgeText = '!';
+	}
+
+	style.colored = process.platform !== 'darwin' || !style.badgeText;
+
+	style.statusColor = {
+		away: 'yellow',
+		busy: 'red',
+		online: 'green',
+	}[status];
+
+	style.size = process.platform === 'win32' ? 16 : 22;
+
+	return style;
+};
+
 const getTrayIconTitle = ({ badge: { title, count, showAlert }, status, showUserStatus }) => {
 	// TODO: remove status icon from title, since ANSI codes disable title color's adaptiveness
 	const isDarkMode = systemPreferences.getUserDefault('AppleInterfaceStyle', 'string') === 'Dark';
@@ -53,8 +77,6 @@ class Tray extends EventEmitter {
 		};
 
 		this.trayIcon = null;
-
-		this.images = {};
 	}
 
 	setState(partialState) {
@@ -65,35 +87,12 @@ class Tray extends EventEmitter {
 		this.update();
 	}
 
-	getIconImage() {
-		const { title, count, showAlert } = this.state.badge;
-
-		if (title === '•') {
-			return this.images.dot;
-		}
-
-		if (count > 0) {
-			return this.images[count > 9 ? '9plus' : String(count)];
-		}
-
-		if (showAlert) {
-			return this.images.alert;
-		}
-
-		return this.images[process.platform === 'darwin' ? 'template' : 'normal'];
-	}
-
-	setIconImage(name, dataUrl) {
-		this.images[name] = nativeImage.createFromDataURL(dataUrl);
-	}
-
-	createTrayIcon() {
+	createTrayIcon(image) {
 		if (this.trayIcon) {
 			return;
 		}
 
-		this.trayIcon = new TrayIcon(this.getIconImage());
-		this.trayIcon.setToolTip(getTrayIconTooltip(this.state));
+		this.trayIcon = new TrayIcon(image);
 
 		this.trayIcon.on('click', () => this.emit('set-main-window-visibility', !this.state.isMainWindowVisible));
 		this.trayIcon.on('right-click', (event, bounds) => this.trayIcon.popUpContextMenu(undefined, bounds));
@@ -116,27 +115,31 @@ class Tray extends EventEmitter {
 		this.removeAllListeners();
 	}
 
-	update() {
-		const { showIcon } = this.state;
+	async update() {
+		const waitForIcon = new Promise((resolve) => this.once('rendered-icon', resolve));
+		this.emit('render-icon', getTrayIconStyle(this.state));
+		const { dataUrl, pixelRatio } = await waitForIcon;
+		const pngData = nativeImage.createFromDataURL(dataUrl).toPNG();
+		const image = nativeImage.createFromBuffer(pngData, pixelRatio);
 
-		if (this.trayIcon && !showIcon) {
+
+		if (!this.state.showIcon) {
 			this.destroyTrayIcon();
-		} else if (!this.trayIcon && showIcon) {
-			this.createTrayIcon();
-		}
-
-		if (!this.trayIcon) {
 			this.emit('update');
 			return;
 		}
 
-		this.trayIcon.setImage(this.getIconImage());
+		if (!this.trayIcon) {
+			this.createTrayIcon(image);
+		} else {
+			this.trayIcon.setImage(image);
+		}
+
+		this.trayIcon.setToolTip(getTrayIconTooltip(this.state));
 
 		if (process.platform === 'darwin') {
 			this.trayIcon.setTitle(getTrayIconTitle(this.state));
 		}
-
-		this.trayIcon.setToolTip(getTrayIconTooltip(this.state));
 
 		const template = createContextMenuTemplate(this.state, this);
 		const menu = Menu.buildFromTemplate(template);

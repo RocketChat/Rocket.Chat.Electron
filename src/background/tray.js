@@ -1,10 +1,14 @@
-import { nativeImage, Menu, Tray as TrayIcon } from 'electron';
+import { Menu, Tray as TrayIcon } from 'electron';
 import { EventEmitter } from 'events';
+import icon from './icon';
 import i18n from '../i18n/index.js';
 
 
 const getTrayIconStyle = ({ badge: { title, count, showAlert }, status, showUserStatus }) => {
-	const style = {};
+	const style = {
+		template: process.platform === 'darwin',
+		size: process.platform === 'win32' ? 16 : 24,
+	};
 
 	if (showUserStatus) {
 		style.status = status;
@@ -101,12 +105,7 @@ class Tray extends EventEmitter {
 			return;
 		}
 
-		const waitForIcon = new Promise((resolve) => this.once('rendered-icon', resolve));
-		this.emit('render-icon', getTrayIconStyle(this.state));
-		const { dataUrl, pixelRatio } = await waitForIcon;
-		const buffer = nativeImage.createFromDataURL(dataUrl).toPNG();
-		const image = nativeImage.createFromBuffer(buffer, pixelRatio);
-		image.setTemplateImage(process.platform === 'darwin');
+		const image = await icon.render(getTrayIconStyle(this.state));
 
 		if (!this.trayIcon) {
 			this.createTrayIcon(image);

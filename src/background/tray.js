@@ -4,7 +4,7 @@ import icon from './icon';
 import i18n from '../i18n/index.js';
 
 
-const getTrayIconStyle = ({ badge: { title, count, showAlert }, status, showUserStatus }) => {
+const getIconStyle = ({ badge: { title, count, showAlert }, status, showUserStatus }) => {
 	const style = {
 		template: process.platform === 'darwin',
 		size: process.platform === 'win32' ? 16 : 24,
@@ -27,10 +27,10 @@ const getTrayIconStyle = ({ badge: { title, count, showAlert }, status, showUser
 	return style;
 };
 
-const getTrayIconTitle =
+const getIconTitle =
 	({ badge: { title, count, showAlert } }) => ((showAlert && count > 0) ? title : null);
 
-const getTrayIconTooltip = ({ badge: { count } }) => i18n.pluralize('Message_count', count, count);
+const getIconTooltip = ({ badge: { count } }) => i18n.pluralize('Message_count', count, count);
 
 const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 	{
@@ -43,87 +43,86 @@ const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 	},
 ]);
 
-class Tray extends EventEmitter {
-	constructor() {
-		super();
+let trayIcon = null;
 
-		this.state = {
-			badge: {
-				title: '',
-				count: 0,
-				showAlert: false,
-			},
-			status: 'online',
-			isMainWindowVisible: true,
-			showIcon: true,
-			showUserStatus: true,
-		};
+let state = {
+	badge: {
+		title: '',
+		count: 0,
+		showAlert: false,
+	},
+	status: 'online',
+	isMainWindowVisible: true,
+	showIcon: true,
+	showUserStatus: true,
+};
 
-		this.trayIcon = null;
+const instance = new (class Tray extends EventEmitter {});
+
+const createIcon = (image) => {
+	if (trayIcon) {
+		return;
 	}
 
-	setState(partialState) {
-		this.state = {
-			...this.state,
-			...partialState,
-		};
-		this.update();
+	trayIcon = new TrayIcon(image);
+
+	trayIcon.on('click', () => instance.emit('set-main-window-visibility', !state.isMainWindowVisible));
+	trayIcon.on('right-click', (event, bounds) => trayIcon.popUpContextMenu(undefined, bounds));
+
+	instance.emit('created');
+};
+
+const destroyIcon = () => {
+	if (!trayIcon) {
+		return;
 	}
 
-	createTrayIcon(image) {
-		if (this.trayIcon) {
-			return;
-		}
+	trayIcon.destroy();
+	instance.emit('destroyed');
+	trayIcon = null;
+};
 
-		this.trayIcon = new TrayIcon(image);
+const destroy = () => {
+	instance.destroyIcon();
+	instance.removeAllListeners();
+};
 
-		this.trayIcon.on('click', () => this.emit('set-main-window-visibility', !this.state.isMainWindowVisible));
-		this.trayIcon.on('right-click', (event, bounds) => this.trayIcon.popUpContextMenu(undefined, bounds));
-
-		this.emit('created');
+const update = async() => {
+	if (!state.showIcon) {
+		destroyIcon();
+		instance.emit('update');
+		return;
 	}
 
-	destroyTrayIcon() {
-		if (!this.trayIcon) {
-			return;
-		}
+	const image = await icon.render(getIconStyle(state));
 
-		this.trayIcon.destroy();
-		this.emit('destroyed');
-		this.trayIcon = null;
+	if (!trayIcon) {
+		createIcon(image);
+	} else {
+		trayIcon.setImage(image);
 	}
 
-	destroy() {
-		this.destroyTrayIcon();
-		this.removeAllListeners();
+	trayIcon.setToolTip(getIconTooltip(state));
+
+	if (process.platform === 'darwin') {
+		trayIcon.setTitle(getIconTitle(state));
 	}
 
-	async update() {
-		if (!this.state.showIcon) {
-			this.destroyTrayIcon();
-			this.emit('update');
-			return;
-		}
+	const template = createContextMenuTemplate(state, this);
+	const menu = Menu.buildFromTemplate(template);
+	trayIcon.setContextMenu(menu);
+	instance.emit('update');
+};
 
-		const image = await icon.render(getTrayIconStyle(this.state));
+const setState = (partialState) => {
+	state = {
+		...state,
+		...partialState,
+	};
+	update();
+};
 
-		if (!this.trayIcon) {
-			this.createTrayIcon(image);
-		} else {
-			this.trayIcon.setImage(image);
-		}
-
-		this.trayIcon.setToolTip(getTrayIconTooltip(this.state));
-
-		if (process.platform === 'darwin') {
-			this.trayIcon.setTitle(getTrayIconTitle(this.state));
-		}
-
-		const template = createContextMenuTemplate(this.state, this);
-		const menu = Menu.buildFromTemplate(template);
-		this.trayIcon.setContextMenu(menu);
-		this.emit('update');
-	}
-}
-
-export default new Tray();
+export default Object.assign(instance, {
+	destroy,
+	setState,
+});

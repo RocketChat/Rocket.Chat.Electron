@@ -14,15 +14,15 @@ const getTrayIconStyle = ({ badge: { title, count, showAlert }, status }) => {
 		style.badgeText = '!';
 	}
 
-	style.colored = process.platform !== 'darwin' || !style.badgeText;
-
 	style.statusColor = {
 		away: 'yellow',
 		busy: 'red',
-		online: 'green',
+		online: 'lime',
 	}[status];
 
-	style.size = process.platform === 'win32' ? 16 : 22;
+	style.colored = process.platform !== 'darwin' || !style.badgeText || !style.statusColor;
+
+	style.size = process.platform === 'win32' ? 16 : 24;
 
 	return style;
 };
@@ -116,17 +116,24 @@ class Tray extends EventEmitter {
 	}
 
 	async update() {
-		const waitForIcon = new Promise((resolve) => this.once('rendered-icon', resolve));
-		this.emit('render-icon', getTrayIconStyle(this.state));
-		const { dataUrl, pixelRatio } = await waitForIcon;
-		const pngData = nativeImage.createFromDataURL(dataUrl).toPNG();
-		const image = nativeImage.createFromBuffer(pngData, pixelRatio);
-
-
 		if (!this.state.showIcon) {
 			this.destroyTrayIcon();
 			this.emit('update');
 			return;
+		}
+
+		let image;
+		const waitForIcon = new Promise((resolve) => this.once('rendered-icon', resolve));
+		if (process.platform === 'darwin') {
+			this.emit('render-icon', { colored: false });
+		} else {
+			this.emit('render-icon', getTrayIconStyle(this.state));
+		}
+		const { dataUrl, pixelRatio } = await waitForIcon;
+		const pngData = nativeImage.createFromDataURL(dataUrl).toPNG();
+		image = nativeImage.createFromBuffer(pngData, pixelRatio);
+		if (process.platform === 'darwin') {
+			image.setTemplateImage(true);
 		}
 
 		if (!this.trayIcon) {

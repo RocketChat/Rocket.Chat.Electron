@@ -8,14 +8,17 @@ const { certificate, menus, showAboutDialog, tray } = remote.require('./backgrou
 
 const updateTrayIconState = ({ colored = true, badgeText, statusColor } = {}) => {
 	const svg = document.querySelector('#tray-icon');
-
 	svg.querySelector('.logo .baloon').style.fill = colored ? '#DB2323' : '#FFFFFF';
 	svg.querySelector('.logo .circles').style.fill = colored ? '#DB2323' : '#FFFFFF';
+	svg.querySelector('.logo .circles').style.filter = colored ? 'url(#tray-icon-dropshadow)' : '';
 	svg.querySelector('.logo .bubble').style.display = colored ? '' : 'none';
 	svg.querySelector('.badge').style.display = badgeText ? '' : 'none';
+	svg.querySelector('.badge circle').style.filter = colored ? 'url(#tray-icon-dropshadow)' : '';
 	svg.querySelector('.badge text').innerHTML = badgeText;
 	svg.querySelector('.status').style.display = statusColor ? '' : 'none';
 	svg.querySelector('.status circle').style.fill = statusColor;
+	svg.querySelector('.status circle').style.filter = colored ? 'url(#tray-icon-dropshadow)' : '';
+	console.log(svg.outerHTML);
 };
 
 const rasterize = async(size) => {

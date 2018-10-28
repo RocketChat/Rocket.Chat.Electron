@@ -1,51 +1,30 @@
-import { nativeImage, systemPreferences, Menu, Tray as TrayIcon } from 'electron';
+import { nativeImage, Menu, Tray as TrayIcon } from 'electron';
 import { EventEmitter } from 'events';
 import i18n from '../i18n/index.js';
 
 
-const getTrayIconStyle = ({ badge: { title, count, showAlert }, status }) => {
+const getTrayIconStyle = ({ badge: { title, count, showAlert }, status, showUserStatus }) => {
 	const style = {};
 
-	if (title === '•') {
-		style.badgeText = '•';
-	} else if (count > 0) {
-		style.badgeText = count > 9 ? '9+' : String(count);
-	} else if (showAlert) {
-		style.badgeText = '!';
+	if (showUserStatus) {
+		style.status = status;
 	}
 
-	style.statusColor = {
-		away: 'yellow',
-		busy: 'red',
-		online: 'lime',
-	}[status];
-
-	style.colored = process.platform !== 'darwin' || !style.badgeText || !style.statusColor;
-
-	style.size = process.platform === 'win32' ? 16 : 24;
+	if (process.platform !== 'darwin') {
+		if (title === '•') {
+			style.badgeText = '•';
+		} else if (count > 0) {
+			style.badgeText = count > 9 ? '9+' : String(count);
+		} else if (showAlert) {
+			style.badgeText = '!';
+		}
+	}
 
 	return style;
 };
 
-const getTrayIconTitle = ({ badge: { title, count, showAlert }, status, showUserStatus }) => {
-	// TODO: remove status icon from title, since ANSI codes disable title color's adaptiveness
-	const isDarkMode = systemPreferences.getUserDefault('AppleInterfaceStyle', 'string') === 'Dark';
-
-	const statusAnsiColor = {
-		online: '32',
-		away: '33',
-		busy: '31',
-		offline: isDarkMode ? '37' : '0',
-	}[status];
-
-	const badgeTitleAnsiColor = isDarkMode ? '37' : '0';
-
-	const hasMentions = showAlert && count > 0;
-	const statusBulletString = showUserStatus ? `\u001B[${ statusAnsiColor }m•\u001B[0m` : null;
-	const badgeTitleString = hasMentions ? `\u001B[${ badgeTitleAnsiColor }m${ title }\u001B[0m` : null;
-
-	return [statusBulletString, badgeTitleString].filter(Boolean).join(' ');
-};
+const getTrayIconTitle =
+	({ badge: { title, count, showAlert } }) => ((showAlert && count > 0) ? title : null);
 
 const getTrayIconTooltip = ({ badge: { count } }) => i18n.pluralize('Message_count', count, count);
 
@@ -122,19 +101,12 @@ class Tray extends EventEmitter {
 			return;
 		}
 
-		let image;
 		const waitForIcon = new Promise((resolve) => this.once('rendered-icon', resolve));
-		if (process.platform === 'darwin') {
-			this.emit('render-icon', { colored: false });
-		} else {
-			this.emit('render-icon', getTrayIconStyle(this.state));
-		}
+		this.emit('render-icon', getTrayIconStyle(this.state));
 		const { dataUrl, pixelRatio } = await waitForIcon;
-		const pngData = nativeImage.createFromDataURL(dataUrl).toPNG();
-		image = nativeImage.createFromBuffer(pngData, pixelRatio);
-		if (process.platform === 'darwin') {
-			image.setTemplateImage(true);
-		}
+		const buffer = nativeImage.createFromDataURL(dataUrl).toPNG();
+		const image = nativeImage.createFromBuffer(buffer, pixelRatio);
+		image.setTemplateImage(process.platform === 'darwin');
 
 		if (!this.trayIcon) {
 			this.createTrayIcon(image);

@@ -6,22 +6,38 @@ import webview from './webview';
 const { app, getCurrentWindow, shell } = remote;
 const { certificate, menus, showAboutDialog, tray } = remote.require('./background');
 
-const updateTrayIconState = ({ colored = true, badgeText, statusColor } = {}) => {
+const updateTrayIconState = ({ status, badgeText } = {}) => {
 	const svg = document.querySelector('#tray-icon');
-	svg.querySelector('.logo .baloon').style.fill = colored ? '#DB2323' : '#FFFFFF';
-	svg.querySelector('.logo .circles').style.fill = colored ? '#DB2323' : '#FFFFFF';
-	svg.querySelector('.logo .circles').style.filter = colored ? 'url(#tray-icon-dropshadow)' : '';
-	svg.querySelector('.logo .bubble').style.display = colored ? '' : 'none';
-	svg.querySelector('.badge').style.display = badgeText ? '' : 'none';
-	svg.querySelector('.badge circle').style.filter = colored ? 'url(#tray-icon-dropshadow)' : '';
+
+	const template = process.platform === 'darwin';
+
+	svg.querySelector('.logo .baloon').style.fill = template ? '#FFFFFF' : '#DB2323';
+	svg.querySelector('.logo .circles').style.fill = template ? '#FFFFFF' : '#DB2323';
+	svg.querySelector('.status .away').style.fill = template ? '#FFFFFF' : '#DB2323';
+	svg.querySelector('.status .busy').style.fill = template ? '#FFFFFF' : '#DB2323';
+
+	svg.querySelector('.logo .bubble').style.display = template ? 'none' : null;
+
+	svg.querySelector('.logo .circles').style.filter = template ? null : 'url(#tray-icon-dropshadow)';
+	svg.querySelector('.badge circle').style.filter = template ? null : 'url(#tray-icon-dropshadow)';
+	svg.querySelector('.status circle').style.filter = template ? null : 'url(#tray-icon-dropshadow)';
+
+	svg.querySelector('.badge').style.display = (!template && badgeText) ? null : 'none';
 	svg.querySelector('.badge text').innerHTML = badgeText;
-	svg.querySelector('.status').style.display = statusColor ? '' : 'none';
-	svg.querySelector('.status circle').style.fill = statusColor;
-	svg.querySelector('.status circle').style.filter = colored ? 'url(#tray-icon-dropshadow)' : '';
-	console.log(svg.outerHTML);
+
+	svg.querySelector('.logo .circles').style.display = (template && status !== 'online') ? 'none' : '';
+	svg.querySelector('.status circle').style.display = (template || !status) ? 'none' : null;
+	svg.querySelector('.status .away').style.display = (template && status === 'away') ? null : 'none';
+	svg.querySelector('.status .busy').style.display = (template && status === 'busy') ? null : 'none';
+	svg.querySelector('.status circle').style.fill = {
+		offline: null,
+		away: 'yellow',
+		busy: 'red',
+		online: 'lime',
+	}[status];
 };
 
-const rasterize = async(size) => {
+const rasterizeTrayIcon = async(size) => {
 	const svg = document.querySelector('#tray-icon');
 
 	const image = new Image();
@@ -222,10 +238,10 @@ export default () => {
 	tray.on('destroyed', () => getCurrentWindow().emit('tray-destroyed'));
 	tray.on('render-icon', async(style) => {
 		updateTrayIconState(style);
-		tray.emit('rendered-icon', {
-			dataUrl: await rasterize(style.size || 22),
-			pixelRatio: window.devicePixelRatio,
-		});
+		const pixelRatio = window.devicePixelRatio;
+		const iconSize = (process.platform === 'win32' ? 16 : 24) * pixelRatio;
+		const dataUrl = await rasterizeTrayIcon(iconSize);
+		tray.emit('rendered-icon', { dataUrl, pixelRatio });
 	});
 	tray.on('set-main-window-visibility', (visible) =>
 		(visible ? getCurrentWindow().show() : getCurrentWindow().hide()));

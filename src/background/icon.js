@@ -74,12 +74,21 @@ const renderInWindow = async(style) => {
 };
 
 const render = async(style = {}) => {
+	const encodedArgs = JSON.stringify(style);
+	render.cache = render.cache || [];
+
+	if (render.cache[encodedArgs]) {
+		return render.cache[encodedArgs];
+	}
+
 	const rendererWindow = await getRendererWindow();
-	const jsCode = `(${ renderInWindow.toString() })(${ JSON.stringify(style) })`;
+	const jsCode = `(${ renderInWindow.toString() })(${ encodedArgs })`;
 	const { dataUrl, pixelRatio } = await rendererWindow.webContents.executeJavaScript(jsCode);
 	const buffer = nativeImage.createFromDataURL(dataUrl).toPNG();
 	const image = nativeImage.createFromBuffer(buffer, pixelRatio);
 	image.setTemplateImage(style.template || false);
+	render.cache[encodedArgs] = image;
+
 	return image;
 };
 

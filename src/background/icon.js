@@ -30,10 +30,6 @@ const renderInWindow = async(style) => {
 
 		svg.querySelector('.logo .bubble').style.display = template ? 'none' : null;
 
-		svg.querySelector('.logo .circles').style.filter = template ? null : 'url(#icon-dropshadow)';
-		svg.querySelector('.badge circle').style.filter = template ? null : 'url(#icon-dropshadow)';
-		svg.querySelector('.status circle').style.filter = template ? null : 'url(#icon-dropshadow)';
-
 		svg.querySelector('.badge').style.display = (!template && badgeText) ? null : 'none';
 		svg.querySelector('.badge text').innerHTML = badgeText;
 

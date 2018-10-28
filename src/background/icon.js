@@ -1,12 +1,11 @@
 import { BrowserWindow, nativeImage } from 'electron';
 import jetpack from 'fs-jetpack';
-import { whenReady, whenReadyToShow } from './utils';
+import { whenReadyToShow } from './utils';
 
 let rendererWindow = null;
 
 const getRendererWindow = async() => {
 	if (!rendererWindow) {
-		await whenReady();
 		rendererWindow = new BrowserWindow({ show: false });
 
 		const dataUrl = `data:text/html,<!doctype html>

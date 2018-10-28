@@ -18,66 +18,47 @@ const mainWindowOptions = {
 
 const attachWindowStateHandling = (mainWindow) => {
 	const mainWindowState = windowStateKeeper('main', mainWindowOptions);
+	whenReadyToShow(mainWindow).then(() => mainWindowState.loadState(mainWindow));
 
-	mainWindow.once('ready-to-show', () => mainWindowState.loadState(mainWindow));
-
-	// macOS only
-	app.on('activate', () => {
-		mainWindow.show();
+	const exitFullscreen = new Promise((resolve) => {
+		if (mainWindow.isFullScreen()) {
+			mainWindow.once('leave-full-screen', resolve);
+			mainWindow.setFullScreen(false);
+			return;
+		}
+		resolve();
 	});
 
+	const close = () => {
+		if (process.platform === 'darwin' || hideOnClose) {
+			mainWindow.hide();
+		} else {
+			mainWindow.minimize();
+		}
+	};
+
+	app.on('activate', () => mainWindow.show());
 	app.on('before-quit', () => {
 		mainWindowState.saveState.flush();
 		mainWindow = null;
 	});
 
-	mainWindow.on('show', () => {
-		mainWindowState.saveState(mainWindow);
-	});
-
-	mainWindow.on('close', function(event) {
+	mainWindow.on('resize', () => mainWindowState.saveState(mainWindow));
+	mainWindow.on('move', () => mainWindowState.saveState(mainWindow));
+	mainWindow.on('show', () => mainWindowState.saveState(mainWindow));
+	mainWindow.on('close', async(event) => {
 		if (!mainWindow) {
 			return;
 		}
 
 		event.preventDefault();
-		if (mainWindow.isFullScreen()) {
-			mainWindow.once('leave-full-screen', () => {
-				(process.platform === 'darwin' || hideOnClose) ? mainWindow.hide() : mainWindow.minimize();
-			});
-			mainWindow.setFullScreen(false);
-		} else {
-			(process.platform === 'darwin' || hideOnClose) ? mainWindow.hide() : mainWindow.minimize();
-		}
+		await exitFullscreen();
+		close();
 		mainWindowState.saveState(mainWindow);
 	});
 
-	mainWindow.on('resize', () => {
-		mainWindowState.saveState(mainWindow);
-	});
-
-	mainWindow.on('move', () => {
-		mainWindowState.saveState(mainWindow);
-	});
-
-	mainWindow.on('tray-created', () => {
-		hideOnClose = true;
-	});
-
-	mainWindow.on('tray-destroyed', () => {
-		hideOnClose = false;
-	});
-};
-
-const attachIpcMessageHandling = (mainWindow) => {
-	ipcMain.on('focus', () => {
-		mainWindow.show();
-	});
-
-	ipcMain.on('update-taskbar-icon', (event, data, text) => {
-		const img = nativeImage.createFromDataURL(data);
-		mainWindow.setOverlayIcon(img, text);
-	});
+	mainWindow.on('tray-created', () => hideOnClose = true);
+	mainWindow.on('tray-destroyed', () => hideOnClose = false);
 };
 
 export const getMainWindow = async() => {
@@ -85,13 +66,9 @@ export const getMainWindow = async() => {
 
 	if (!mainWindow) {
 		mainWindow = new BrowserWindow(mainWindowOptions);
-
-		attachWindowStateHandling(mainWindow);
-		attachIpcMessageHandling(mainWindow);
-
 		mainWindow.webContents.on('will-navigate', (event) => event.preventDefault());
-
 		mainWindow.loadURL(`file://${ __dirname }/public/app.html`);
+		attachWindowStateHandling(mainWindow);
 
 		if (process.platform !== 'darwin') {
 			mainWindow.setIcon(await icon.render({ size: 64 }));
@@ -100,19 +77,24 @@ export const getMainWindow = async() => {
 		if (env.name === 'development') {
 			mainWindow.openDevTools();
 		}
-
-		whenReadyToShow(mainWindow);
 	}
 
 	return mainWindow;
 };
 
 export const addServer = (serverUrl) => getMainWindow().then((mainWindow) => {
-	mainWindow.send('add-host', serverUrl);
-
 	mainWindow.show();
 
 	if (mainWindow.isMinimized()) {
 		mainWindow.restore();
 	}
+
+	mainWindow.send('add-host', serverUrl);
+});
+
+ipcMain.on('focus', async() => (await getMainWindow()).show());
+
+ipcMain.on('update-taskbar-icon', async(event, dataUrl, text) => {
+	const image = nativeImage.createFromDataURL(dataUrl);
+	(await getMainWindow()).setOverlayIcon(image, text);
 });

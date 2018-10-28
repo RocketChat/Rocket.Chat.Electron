@@ -108,7 +108,7 @@ const update = async() => {
 		trayIcon.setTitle(getIconTitle(state));
 	}
 
-	const template = createContextMenuTemplate(state, this);
+	const template = createContextMenuTemplate(state, instance);
 	const menu = Menu.buildFromTemplate(template);
 	trayIcon.setContextMenu(menu);
 	instance.emit('update');

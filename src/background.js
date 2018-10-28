@@ -17,6 +17,7 @@ export { default as showAboutDialog } from './background/aboutDialog';
 export { default as remoteServers } from './background/servers';
 export { certificate, menus, tray };
 
+
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
 const unsetDefaultApplicationMenu = () => {
@@ -78,12 +79,13 @@ if (process.platform === 'linux') {
 	app.disableHardwareAcceleration();
 }
 
-app.on('ready', () => {
+app.on('ready', async() => {
 	unsetDefaultApplicationMenu();
 
 	appData.initialize();
 
-	getMainWindow().then((mainWindow) => certificate.initWindow(mainWindow));
+	const mainWindow = await getMainWindow();
+	certificate.initWindow(mainWindow);
 
 	autoUpdate();
 });

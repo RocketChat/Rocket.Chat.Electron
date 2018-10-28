@@ -1,14 +1,8 @@
-// This is main process of Electron, started as first thing when your
-// app starts. This script is running through entire life of your application.
-// It doesn't have any windows which you can see on screen, but we can open
-// window from here.
-
 import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
-import url from 'url';
-import path from 'path';
-
 import windowStateKeeper from './windowState';
+import { whenReady, whenReadyToShow } from './utils';
 import env from '../env';
+import icon from './icon';
 
 let mainWindow = null;
 let hideOnClose = false;
@@ -86,43 +80,32 @@ const attachIpcMessageHandling = (mainWindow) => {
 	});
 };
 
-export const createMainWindow = (cb) => {
-	if (mainWindow) {
-		cb && cb(mainWindow);
-		return;
+export const getMainWindow = async() => {
+	await whenReady();
+
+	if (!mainWindow) {
+		mainWindow = new BrowserWindow(mainWindowOptions);
+
+		attachWindowStateHandling(mainWindow);
+		attachIpcMessageHandling(mainWindow);
+
+		mainWindow.webContents.on('will-navigate', (event) => event.preventDefault());
+
+		mainWindow.loadURL(`file://${ __dirname }/public/app.html`);
+
+		if (process.platform !== 'darwin') {
+			mainWindow.setIcon(await icon.render({ size: 64 }));
+		}
+
+		if (env.name === 'development') {
+			mainWindow.openDevTools();
+		}
+
+		whenReadyToShow(mainWindow);
 	}
 
-	mainWindow = new BrowserWindow(mainWindowOptions);
-	attachWindowStateHandling(mainWindow);
-	attachIpcMessageHandling(mainWindow);
-
-	mainWindow.webContents.on('will-navigate', (event) => {
-		event.preventDefault();
-	});
-
-	const appUrl = url.format({
-		pathname: path.join(__dirname, 'public', 'app.html'),
-		protocol: 'file:',
-		slashes: true,
-	});
-
-	mainWindow.loadURL(appUrl);
-
-	if (env.name === 'development') {
-		mainWindow.openDevTools();
-	}
-
-	cb && cb(mainWindow);
+	return mainWindow;
 };
-
-export const getMainWindow = () => new Promise((resolve) => {
-	if (app.isReady()) {
-		createMainWindow(resolve);
-		return;
-	}
-
-	app.on('ready', () => createMainWindow(resolve));
-});
 
 export const addServer = (serverUrl) => getMainWindow().then((mainWindow) => {
 	mainWindow.send('add-host', serverUrl);

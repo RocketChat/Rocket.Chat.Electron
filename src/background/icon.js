@@ -1,23 +1,22 @@
-import { app, nativeImage, BrowserWindow } from 'electron';
+import { BrowserWindow, nativeImage } from 'electron';
 import jetpack from 'fs-jetpack';
+import { whenReady, whenReadyToShow } from './utils';
 
-const whenReady = app.whenReady || (() => new Promise((resolve) => {
-	app.isReady() ? resolve() : app.once('ready', () => resolve());
-}));
+let rendererWindow = null;
 
 const getRendererWindow = async() => {
-	if (!getRendererWindow.instance) {
+	if (!rendererWindow) {
 		await whenReady();
-		getRendererWindow.instance = new BrowserWindow({ show: false });
+		rendererWindow = new BrowserWindow({ show: false });
 
 		const dataUrl = `data:text/html,<!doctype html>
 		${ jetpack.read(`${ __dirname }/public/images/icon.svg`) }`;
 
-		getRendererWindow.instance.loadURL(dataUrl);
-		await new Promise((resolve) => getRendererWindow.instance.on('ready-to-show', resolve));
+		rendererWindow.loadURL(dataUrl);
+		await whenReadyToShow(rendererWindow);
 	}
 
-	return getRendererWindow.instance;
+	return rendererWindow;
 };
 
 const renderInWindow = async(style) => {
@@ -78,7 +77,7 @@ const renderInWindow = async(style) => {
 	return { dataUrl, pixelRatio };
 };
 
-const render = async(style) => {
+const render = async(style = {}) => {
 	const rendererWindow = await getRendererWindow();
 	const jsCode = `(${ renderInWindow.toString() })(${ JSON.stringify(style) })`;
 	const { dataUrl, pixelRatio } = await rendererWindow.webContents.executeJavaScript(jsCode);

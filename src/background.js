@@ -6,7 +6,7 @@ import idle from '@paulcbetts/system-idle-time';
 import appData from './background/appData';
 import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
-import { addServer, createMainWindow, getMainWindow } from './background/mainWindow';
+import { addServer, getMainWindow } from './background/mainWindow';
 import menus from './background/menus';
 import './background/screenshare';
 import tray from './background/tray';
@@ -83,8 +83,6 @@ app.on('ready', () => {
 
 	appData.initialize();
 
-	createMainWindow();
-
 	getMainWindow().then((mainWindow) => certificate.initWindow(mainWindow));
 
 	autoUpdate();
@@ -93,3 +91,5 @@ app.on('ready', () => {
 ipcMain.on('getSystemIdleTime', (event) => {
 	event.returnValue = idle.getIdleTime();
 });
+
+process.on('unhandledRejection', console.error.bind(console));

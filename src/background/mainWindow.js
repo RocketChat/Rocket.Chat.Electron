@@ -1,5 +1,5 @@
-import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
-import windowStateKeeper from './windowState';
+import { app, BrowserWindow, ipcMain } from 'electron';
+import createWindowStateKeeper from './windowState';
 import { whenReady, whenReadyToShow } from './utils';
 import env from '../env';
 import icon from './icon';
@@ -28,8 +28,8 @@ const setState = (partialState) => {
 };
 
 const attachWindowStateHandling = (mainWindow) => {
-	const mainWindowState = windowStateKeeper('main', mainWindowOptions);
-	whenReadyToShow(mainWindow).then(() => mainWindowState.loadState(mainWindow));
+	const windowStateKeeper = createWindowStateKeeper('main', mainWindowOptions);
+	whenReadyToShow(mainWindow).then(() => windowStateKeeper.loadState(mainWindow));
 
 	const exitFullscreen = () => new Promise((resolve) => {
 		if (mainWindow.isFullScreen()) {
@@ -50,13 +50,13 @@ const attachWindowStateHandling = (mainWindow) => {
 
 	app.on('activate', () => mainWindow.show());
 	app.on('before-quit', () => {
-		mainWindowState.saveState.flush();
+		windowStateKeeper.saveState.flush();
 		mainWindow = null;
 	});
 
-	mainWindow.on('resize', () => mainWindowState.saveState(mainWindow));
-	mainWindow.on('move', () => mainWindowState.saveState(mainWindow));
-	mainWindow.on('show', () => mainWindowState.saveState(mainWindow));
+	mainWindow.on('resize', () => windowStateKeeper.saveState(mainWindow));
+	mainWindow.on('move', () => windowStateKeeper.saveState(mainWindow));
+	mainWindow.on('show', () => windowStateKeeper.saveState(mainWindow));
 	mainWindow.on('close', async(event) => {
 		if (!mainWindow) {
 			return;
@@ -65,7 +65,7 @@ const attachWindowStateHandling = (mainWindow) => {
 		event.preventDefault();
 		await exitFullscreen();
 		close();
-		mainWindowState.saveState(mainWindow);
+		windowStateKeeper.saveState(mainWindow);
 	});
 
 	mainWindow.on('set-state', setState);

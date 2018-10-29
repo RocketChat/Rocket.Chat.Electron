@@ -2,7 +2,7 @@ import { app, screen } from 'electron';
 import jetpack from 'fs-jetpack';
 import { debounce } from 'lodash';
 
-export default function(name, defaults) {
+export default (name, defaults) => {
 
 	let state = {
 		width: defaults.width,
@@ -19,7 +19,7 @@ export default function(name, defaults) {
 		console.error(err);
 	}
 
-	const saveState = function(window) {
+	const saveState = (window) => {
 		if (window.isDestroyed()) {
 			return;
 		}
@@ -76,4 +76,4 @@ export default function(name, defaults) {
 		saveState: debounce(saveState, 1000), // see https://github.com/RocketChat/Rocket.Chat.Electron/issues/181
 		loadState,
 	};
-}
+};

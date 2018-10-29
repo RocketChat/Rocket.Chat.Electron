@@ -54,7 +54,10 @@ const update = async(previousState) => {
 	if (process.platform === 'linux') {
 		mainWindow.setIcon(await icon.render({
 			badgeText,
-			size: [16, 32, 48, 64, 128],
+			size: {
+				win32: [256, 128, 64, 48, 32, 24, 16],
+				linux: 128,
+			}[process.platform],
 		}));
 	}
 

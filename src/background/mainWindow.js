@@ -81,7 +81,12 @@ export const getMainWindow = async() => {
 		attachWindowStateHandling(mainWindow);
 
 		if (process.platform !== 'darwin') {
-			mainWindow.setIcon(await icon.render({ size: [16, 32, 48, 64, 128] }));
+			mainWindow.setIcon(await icon.render({
+				size: {
+					win32: [256, 128, 64, 48, 32, 24, 16],
+					linux: 128,
+				}[process.platform],
+			}));
 		}
 
 		if (env.name === 'development') {

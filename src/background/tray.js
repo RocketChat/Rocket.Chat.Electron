@@ -7,7 +7,11 @@ import i18n from '../i18n/index.js';
 const getIconStyle = ({ badge: { title, count }, status, showUserStatus }) => {
 	const style = {
 		template: process.platform === 'darwin',
-		size: process.platform === 'win32' ? 16 : 24,
+		size: {
+			darwin: 24,
+			win32: [32, 24, 16],
+			linux: 22,
+		}[process.platform],
 	};
 
 	if (showUserStatus) {

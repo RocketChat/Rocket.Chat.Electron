@@ -20,7 +20,7 @@ const attachWindowStateHandling = (mainWindow) => {
 	const mainWindowState = windowStateKeeper('main', mainWindowOptions);
 	whenReadyToShow(mainWindow).then(() => mainWindowState.loadState(mainWindow));
 
-	const exitFullscreen = new Promise((resolve) => {
+	const exitFullscreen = () => new Promise((resolve) => {
 		if (mainWindow.isFullScreen()) {
 			mainWindow.once('leave-full-screen', resolve);
 			mainWindow.setFullScreen(false);
@@ -71,7 +71,7 @@ export const getMainWindow = async() => {
 		attachWindowStateHandling(mainWindow);
 
 		if (process.platform !== 'darwin') {
-			mainWindow.setIcon(await icon.render({ size: 64 }));
+			mainWindow.setIcon(await icon.render({ size: [16, 32, 48, 64, 128] }));
 		}
 
 		if (env.name === 'development') {

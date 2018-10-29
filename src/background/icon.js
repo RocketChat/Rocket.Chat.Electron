@@ -8,10 +8,10 @@ const getRendererWindow = async() => {
 	if (!rendererWindow) {
 		rendererWindow = new BrowserWindow({ show: false });
 
-		const dataUrl = `data:text/html,<!doctype html>
+		const dataURL = `data:text/html,<!doctype html>
 		${ jetpack.read(`${ __dirname }/public/images/icon.svg`) }`;
 
-		rendererWindow.loadURL(dataUrl);
+		rendererWindow.loadURL(dataURL);
 		await whenReadyToShow(rendererWindow);
 	}
 
@@ -66,10 +66,14 @@ const renderInWindow = async(style) => {
 
 	const svg = create(style);
 	const pixelRatio = window.devicePixelRatio;
-	const iconSize = (style.size || 256) * pixelRatio;
-	const dataUrl = await rasterize(svg, iconSize);
+	const sizes = Array.isArray(style.size) ? style.size : [style.size || 256];
+	const images = await Promise.all(sizes.map(async(size) => ({
+		dataURL: await rasterize(svg, size * pixelRatio),
+		size,
+		pixelRatio,
+	})));
 	svg.remove();
-	return { dataUrl, pixelRatio };
+	return images;
 };
 
 const render = async(style = {}) => {
@@ -82,9 +86,16 @@ const render = async(style = {}) => {
 
 	const rendererWindow = await getRendererWindow();
 	const jsCode = `(${ renderInWindow.toString() })(${ encodedArgs })`;
-	const { dataUrl, pixelRatio } = await rendererWindow.webContents.executeJavaScript(jsCode);
-	const buffer = nativeImage.createFromDataURL(dataUrl).toPNG();
-	const image = nativeImage.createFromBuffer(buffer, pixelRatio);
+	const images = await rendererWindow.webContents.executeJavaScript(jsCode);
+	const image = nativeImage.createEmpty();
+	for (const { dataURL, size, pixelRatio } of images) {
+		image.addRepresentation({
+			scaleFactor: pixelRatio,
+			width: size,
+			height: size,
+			dataURL,
+		});
+	}
 	image.setTemplateImage(style.template || false);
 	render.cache[encodedArgs] = image;
 

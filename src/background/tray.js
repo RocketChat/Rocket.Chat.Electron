@@ -83,7 +83,7 @@ const destroyIcon = () => {
 };
 
 const destroy = () => {
-	instance.destroyIcon();
+	destroyIcon();
 	instance.removeAllListeners();
 };
 

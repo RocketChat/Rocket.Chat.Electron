@@ -19,7 +19,14 @@ const getRendererWindow = async() => {
 };
 
 const renderInWindow = async(style) => {
-	const create = ({ template, status, badgeText } = {}) => {
+	const statusColors = {
+		offline: null,
+		away: 'yellow',
+		busy: 'red',
+		online: 'lime',
+	};
+
+	const create = ({ overlay, template, status, badgeText } = {}) => {
 		const svg = document.querySelector('#icon').cloneNode(true);
 
 		svg.querySelector('.logo .baloon').style.fill = template ? '#FFFFFF' : '#DB2323';
@@ -36,12 +43,18 @@ const renderInWindow = async(style) => {
 		svg.querySelector('.status circle').style.display = (template || !status) ? 'none' : null;
 		svg.querySelector('.status .away').style.display = (template && status === 'away') ? null : 'none';
 		svg.querySelector('.status .busy').style.display = (template && status === 'busy') ? null : 'none';
-		svg.querySelector('.status circle').style.fill = {
-			offline: null,
-			away: 'yellow',
-			busy: 'red',
-			online: 'lime',
-		}[status];
+		svg.querySelector('.status circle').style.fill = statusColors[status];
+
+		if (overlay) {
+			const overlaySVG = svg.cloneNode(true);
+			svg.remove();
+
+			overlaySVG.querySelector('.logo').remove();
+			overlaySVG.querySelector('.status').remove();
+			overlaySVG.setAttribute('viewBox', '96 -32 160 160');
+
+			return overlaySVG;
+		}
 
 		return svg;
 	};

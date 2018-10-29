@@ -103,8 +103,3 @@ export const addServer = (serverUrl) => getMainWindow().then((mainWindow) => {
 });
 
 ipcMain.on('focus', async() => (await getMainWindow()).show());
-
-ipcMain.on('update-taskbar-icon', async(event, dataUrl, text) => {
-	const image = nativeImage.createFromDataURL(dataUrl);
-	(await getMainWindow()).setOverlayIcon(image, text);
-});

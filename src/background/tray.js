@@ -4,7 +4,7 @@ import icon from './icon';
 import i18n from '../i18n/index.js';
 
 
-const getIconStyle = ({ badge: { title, count, showAlert }, status, showUserStatus }) => {
+const getIconStyle = ({ badge: { title, count }, status, showUserStatus }) => {
 	const style = {
 		template: process.platform === 'darwin',
 		size: process.platform === 'win32' ? 16 : 24,
@@ -19,7 +19,7 @@ const getIconStyle = ({ badge: { title, count, showAlert }, status, showUserStat
 			style.badgeText = '•';
 		} else if (count > 0) {
 			style.badgeText = count > 9 ? '9+' : String(count);
-		} else if (showAlert) {
+		} else if (title) {
 			style.badgeText = '!';
 		}
 	}
@@ -27,7 +27,7 @@ const getIconStyle = ({ badge: { title, count, showAlert }, status, showUserStat
 	return style;
 };
 
-const getIconTitle = ({ badge: { title, count, showAlert } }) => ((showAlert && count > 0) ? title : '');
+const getIconTitle = ({ badge: { title, count } }) => ((count > 0) ? title : '');
 
 const getIconTooltip = ({ badge: { count } }) => i18n.pluralize('Message_count', count, count);
 
@@ -48,7 +48,6 @@ let state = {
 	badge: {
 		title: '',
 		count: 0,
-		showAlert: false,
 	},
 	status: 'online',
 	isMainWindowVisible: true,

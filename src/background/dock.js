@@ -4,12 +4,12 @@ import { getMainWindow } from './mainWindow';
 import icon from './icon';
 
 
-const getBadgeText = ({ badge: { title, count, showAlert } }) => {
+const getBadgeText = ({ badge: { title, count } }) => {
 	if (title === '•') {
 		return '•';
 	} else if (count > 0) {
 		return count > 9 ? '9+' : String(count);
-	} else if (showAlert) {
+	} else if (title) {
 		return '!';
 	}
 };
@@ -18,7 +18,6 @@ let state = {
 	badge: {
 		title: '',
 		count: 0,
-		showAlert: false,
 	},
 	status: 'online',
 };

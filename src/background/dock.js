@@ -5,14 +5,12 @@ import icon from './icon';
 
 
 const getBadgeText = ({ badge: { title, count, showAlert } }) => {
-	if (process.platform !== 'darwin') {
-		if (title === '•') {
-			return '•';
-		} else if (count > 0) {
-			return count > 9 ? '9+' : String(count);
-		} else if (showAlert) {
-			return '!';
-		}
+	if (title === '•') {
+		return '•';
+	} else if (count > 0) {
+		return count > 9 ? '9+' : String(count);
+	} else if (showAlert) {
+		return '!';
 	}
 };
 
@@ -31,7 +29,7 @@ const destroy = () => {
 	instance.removeAllListeners();
 };
 
-const update = async() => {
+const update = async(previousState) => {
 	const mainWindow = await getMainWindow();
 	const badgeText = getBadgeText(state);
 
@@ -48,11 +46,17 @@ const update = async() => {
 	}
 
 	if (process.platform === 'darwin') {
-		app.dock.setBadge(badgeText);
+		app.dock.setBadge(badgeText || '');
+		if (state.badge.count > 0 && previousState.badge.count === 0) {
+			app.dock.bounce();
+		}
 	}
 
 	if (process.platform === 'linux') {
-		mainWindow.setIcon(await icon.render({ size: [16, 32, 48, 64, 128] }));
+		mainWindow.setIcon(await icon.render({
+			badgeText,
+			size: [16, 32, 48, 64, 128],
+		}));
 	}
 
 	if (!mainWindow.isFocused()) {
@@ -63,11 +67,12 @@ const update = async() => {
 };
 
 const setState = (partialState) => {
+	const previousState = state;
 	state = {
 		...state,
 		...partialState,
 	};
-	update();
+	update(previousState);
 };
 
 export default Object.assign(instance, {

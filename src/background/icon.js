@@ -39,7 +39,7 @@ const renderInWindow = async(style) => {
 		svg.querySelector('.badge').style.display = (!template && badgeText) ? null : 'none';
 		svg.querySelector('.badge text').innerHTML = badgeText;
 
-		svg.querySelector('.logo .circles').style.display = (template && status !== 'online') ? 'none' : '';
+		svg.querySelector('.logo .circles').style.display = (template && status && status !== 'online') ? 'none' : '';
 		svg.querySelector('.status circle').style.display = (template || !status) ? 'none' : null;
 		svg.querySelector('.status .away').style.display = (template && status === 'away') ? null : 'none';
 		svg.querySelector('.status .busy').style.display = (template && status === 'busy') ? null : 'none';

@@ -27,8 +27,7 @@ const getIconStyle = ({ badge: { title, count, showAlert }, status, showUserStat
 	return style;
 };
 
-const getIconTitle =
-	({ badge: { title, count, showAlert } }) => ((showAlert && count > 0) ? title : null);
+const getIconTitle = ({ badge: { title, count, showAlert } }) => ((showAlert && count > 0) ? title : '');
 
 const getIconTooltip = ({ badge: { count } }) => i18n.pluralize('Message_count', count, count);
 

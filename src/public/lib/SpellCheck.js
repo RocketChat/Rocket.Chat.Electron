@@ -158,7 +158,7 @@ class SpellCheck {
 			// Dictionaries path is correct for build
 			this.dictionariesPath = path.join(
 				app.getAppPath(),
-				process.mainModule.filename.indexOf('app.asar') !== -1 ? '..' : '.',
+				app.getAppPath().endsWith('app.asar') ? '..' : '.',
 				'dictionaries'
 			);
 			this.getDictionariesFromInstallDirectory();

@@ -4,8 +4,12 @@ import { whenReady, whenReadyToShow } from './utils';
 import env from '../env';
 import icon from './icon';
 
+
 let mainWindow = null;
-let hideOnClose = false;
+
+let state = {
+	hideOnClose: false,
+};
 
 const mainWindowOptions = {
 	width: 1000,
@@ -14,6 +18,13 @@ const mainWindowOptions = {
 	minHeight: 400,
 	titleBarStyle: 'hidden',
 	show: false,
+};
+
+const setState = (partialState) => {
+	state = {
+		...state,
+		...partialState,
+	};
 };
 
 const attachWindowStateHandling = (mainWindow) => {
@@ -30,7 +41,7 @@ const attachWindowStateHandling = (mainWindow) => {
 	});
 
 	const close = () => {
-		if (process.platform === 'darwin' || hideOnClose) {
+		if (process.platform === 'darwin' || state.hideOnClose) {
 			mainWindow.hide();
 		} else {
 			mainWindow.minimize();
@@ -57,8 +68,7 @@ const attachWindowStateHandling = (mainWindow) => {
 		mainWindowState.saveState(mainWindow);
 	});
 
-	mainWindow.on('tray-created', () => hideOnClose = true);
-	mainWindow.on('tray-destroyed', () => hideOnClose = false);
+	mainWindow.on('set-state', setState);
 };
 
 export const getMainWindow = async() => {

@@ -151,14 +151,14 @@ const createTemplate = ({
 				checked: showTrayIcon,
 				click: () => events.emit('toggle', 'showTrayIcon'),
 			},
+			{
+				label: i18n.__('User status in tray'),
+				type: 'checkbox',
+				enabled: showTrayIcon,
+				checked: showTrayIcon && showUserStatusInTray,
+				click: () => events.emit('toggle', 'showUserStatusInTray'),
+			},
 			...(process.platform === 'darwin' ? [
-				{
-					label: i18n.__('User status in tray'),
-					type: 'checkbox',
-					enabled: showTrayIcon,
-					checked: showTrayIcon && showUserStatusInTray,
-					click: () => events.emit('toggle', 'showUserStatusInTray'),
-				},
 				{
 					label: i18n.__('Full screen'),
 					type: 'checkbox',
@@ -166,15 +166,14 @@ const createTemplate = ({
 					accelerator: 'Control+Command+F',
 					click: () => events.emit('toggle', 'showFullScreen'),
 				},
-			] : []),
-			...(process.platform !== 'darwin' ? [
+			] : [
 				{
 					label: i18n.__('Menu bar'),
 					type: 'checkbox',
 					checked: showMenuBar,
 					click: () => events.emit('toggle', 'showMenuBar'),
 				},
-			] : []),
+			]),
 			{
 				label: i18n.__('Server list'),
 				type: 'checkbox',

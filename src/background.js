@@ -6,7 +6,8 @@ import idle from '@paulcbetts/system-idle-time';
 import appData from './background/appData';
 import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
-import { addServer, createMainWindow, getMainWindow } from './background/mainWindow';
+import dock from './background/dock';
+import { addServer, getMainWindow } from './background/mainWindow';
 import menus from './background/menus';
 import './background/screenshare';
 import tray from './background/tray';
@@ -15,7 +16,8 @@ import i18n from './i18n/index.js';
 
 export { default as showAboutDialog } from './background/aboutDialog';
 export { default as remoteServers } from './background/servers';
-export { certificate, menus, tray };
+export { certificate, dock, menus, tray };
+
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
@@ -78,14 +80,13 @@ if (process.platform === 'linux') {
 	app.disableHardwareAcceleration();
 }
 
-app.on('ready', () => {
+app.on('ready', async() => {
 	unsetDefaultApplicationMenu();
 
 	appData.initialize();
 
-	createMainWindow();
-
-	getMainWindow().then((mainWindow) => certificate.initWindow(mainWindow));
+	const mainWindow = await getMainWindow();
+	certificate.initWindow(mainWindow);
 
 	autoUpdate();
 });
@@ -93,3 +94,5 @@ app.on('ready', () => {
 ipcMain.on('getSystemIdleTime', (event) => {
 	event.returnValue = idle.getIdleTime();
 });
+
+process.on('unhandledRejection', console.error.bind(console));

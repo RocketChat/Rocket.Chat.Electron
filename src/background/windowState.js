@@ -1,12 +1,8 @@
-// Simple module to help you remember the size and position of windows.
-// Can be used for more than one window, just construct many
-// instances of it and give each different name.
-
-import { app } from 'electron';
+import { app, screen } from 'electron';
 import jetpack from 'fs-jetpack';
 import { debounce } from 'lodash';
 
-export default function(name, defaults) {
+export default (name, defaults) => {
 
 	let state = {
 		width: defaults.width,
@@ -23,7 +19,7 @@ export default function(name, defaults) {
 		console.error(err);
 	}
 
-	const saveState = function(window) {
+	const saveState = (window) => {
 		if (window.isDestroyed()) {
 			return;
 		}
@@ -40,7 +36,22 @@ export default function(name, defaults) {
 		userDataDir.write(stateStoreFile, state, { atomic: true });
 	};
 
+	const isInsideSomeScreen = (state) => screen.getAllDisplays().some(({ bounds }) => (
+		state.x >= bounds.x &&
+		state.y >= bounds.y &&
+		state.x + state.width <= bounds.x + bounds.width &&
+		state.y + state.height <= bounds.y + bounds.height
+	));
+
 	const loadState = function(window) {
+		if (!isInsideSomeScreen(state)) {
+			const { bounds } = screen.getPrimaryDisplay();
+			state.x = (bounds.width - defaults.width) / 2;
+			state.y = (bounds.height - defaults.height) / 2;
+			state.width = defaults.width;
+			state.height = defaults.height;
+		}
+
 		if (this.x !== undefined && this.y !== undefined) {
 			window.setPosition(this.x, this.y, false);
 		}
@@ -65,4 +76,4 @@ export default function(name, defaults) {
 		saveState: debounce(saveState, 1000), // see https://github.com/RocketChat/Rocket.Chat.Electron/issues/181
 		loadState,
 	};
-}
+};

@@ -1,53 +1,39 @@
-import { app, systemPreferences, Menu, Tray as TrayIcon } from 'electron';
+import { Menu, Tray as TrayIcon } from 'electron';
 import { EventEmitter } from 'events';
-import path from 'path';
+import icon from './icon';
 import i18n from '../i18n/index.js';
 
-const getTrayIconFileNameSuffix = ({ badge: { title, count, showAlert } }) => {
-	if (title === '•') {
-		return 'dot';
-	} else if (count > 9) {
-		return '9plus';
-	} else if (count > 0) {
-		return String(count);
-	} else if (showAlert) {
-		return 'alert';
-	} else {
-		return 'Template';
+
+const getIconStyle = ({ badge: { title, count }, status, showUserStatus }) => {
+	const style = {
+		template: process.platform === 'darwin',
+		size: {
+			darwin: 24,
+			win32: [32, 24, 16],
+			linux: 22,
+		}[process.platform],
+	};
+
+	if (showUserStatus) {
+		style.status = status;
 	}
+
+	if (process.platform !== 'darwin') {
+		if (title === '•') {
+			style.badgeText = '•';
+		} else if (count > 0) {
+			style.badgeText = count > 9 ? '9+' : String(count);
+		} else if (title) {
+			style.badgeText = '!';
+		}
+	}
+
+	return style;
 };
 
-const getTrayIconPath = (state) => {
-	const iconDir = {
-		win32: 'windows',
-		linux: 'linux',
-		darwin: 'osx',
-	}[process.platform];
-	const fileName = `icon-tray-${ getTrayIconFileNameSuffix(state) }.${ process.platform === 'win32' ? 'ico' : 'png' }`;
-	return path.join(__dirname, 'public', 'images', iconDir, fileName);
-};
+const getIconTitle = ({ badge: { title, count } }) => ((count > 0) ? title : '');
 
-const getTrayIconTitle = ({ badge: { title, count, showAlert }, status, showUserStatus }) => {
-	// TODO: remove status icon from title, since ANSI codes disable title color's adaptiveness
-	const isDarkMode = systemPreferences.getUserDefault('AppleInterfaceStyle', 'string') === 'Dark';
-
-	const statusAnsiColor = {
-		online: '32',
-		away: '33',
-		busy: '31',
-		offline: isDarkMode ? '37' : '0',
-	}[status];
-
-	const badgeTitleAnsiColor = isDarkMode ? '37' : '0';
-
-	const hasMentions = showAlert && count > 0;
-	const statusBulletString = showUserStatus ? `\u001B[${ statusAnsiColor }m•\u001B[0m` : null;
-	const badgeTitleString = hasMentions ? `\u001B[${ badgeTitleAnsiColor }m${ title }\u001B[0m` : null;
-
-	return [statusBulletString, badgeTitleString].filter(Boolean).join(' ');
-};
-
-const getTrayIconTooltip = ({ badge: { count } }) => i18n.pluralize('Message_count', count, count);
+const getIconTooltip = ({ badge: { count } }) => i18n.pluralize('Message_count', count, count);
 
 const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 	{
@@ -60,85 +46,85 @@ const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 	},
 ]);
 
-class Tray extends EventEmitter {
-	constructor() {
-		super();
+let trayIcon = null;
 
-		this.state = {
-			badge: {
-				title: '',
-				count: 0,
-				showAlert: false,
-			},
-			status: 'online',
-			isMainWindowVisible: true,
-			showIcon: true,
-			showUserStatus: true,
-		};
+let state = {
+	badge: {
+		title: '',
+		count: 0,
+	},
+	status: 'online',
+	isMainWindowVisible: true,
+	showIcon: true,
+	showUserStatus: true,
+};
 
-		this.trayIcon = null;
+const instance = new (class Tray extends EventEmitter {});
+
+const createIcon = (image) => {
+	if (trayIcon) {
+		return;
 	}
 
-	setState(partialState) {
-		this.state = {
-			...this.state,
-			...partialState,
-		};
-		this.update();
+	trayIcon = new TrayIcon(image);
+
+	trayIcon.on('click', () => instance.emit('set-main-window-visibility', !state.isMainWindowVisible));
+	trayIcon.on('right-click', (event, bounds) => trayIcon.popUpContextMenu(undefined, bounds));
+
+	instance.emit('created');
+};
+
+const destroyIcon = () => {
+	if (!trayIcon) {
+		return;
 	}
 
-	createTrayIcon() {
-		this.trayIcon = new TrayIcon(getTrayIconPath(this.state));
-		this.trayIcon.setToolTip(app.getName());
+	trayIcon.destroy();
+	instance.emit('destroyed');
+	trayIcon = null;
+};
 
-		this.trayIcon.on('click', () => this.emit('set-main-window-visibility', !this.state.isMainWindowVisible));
-		this.trayIcon.on('right-click', (event, bounds) => this.trayIcon.popUpContextMenu(undefined, bounds));
+const destroy = () => {
+	destroyIcon();
+	instance.removeAllListeners();
+};
 
-		this.emit('created');
+const update = async() => {
+	if (!state.showIcon) {
+		destroyIcon();
+		instance.emit('update');
+		return;
 	}
 
-	destroyTrayIcon() {
-		if (!this.trayIcon) {
-			return;
-		}
+	const image = await icon.render(getIconStyle(state));
 
-		this.trayIcon.destroy();
-		this.emit('destroyed');
-		this.trayIcon = null;
+	if (!trayIcon) {
+		createIcon(image);
+	} else {
+		trayIcon.setImage(image);
 	}
 
-	destroy() {
-		this.destroyTrayIcon();
-		this.removeAllListeners();
+	trayIcon.setToolTip(getIconTooltip(state));
+
+	if (process.platform === 'darwin') {
+		trayIcon.setTitle(getIconTitle(state));
 	}
 
-	update() {
-		const { showIcon } = this.state;
+	const template = createContextMenuTemplate(state, instance);
+	const menu = Menu.buildFromTemplate(template);
+	trayIcon.setContextMenu(menu);
+	instance.emit('update');
+};
 
-		if (this.trayIcon && !showIcon) {
-			this.destroyTrayIcon();
-		} else if (!this.trayIcon && showIcon) {
-			this.createTrayIcon();
-		}
+const setState = (partialState) => {
+	state = {
+		...state,
+		...partialState,
+	};
+	update();
+};
 
-		if (!this.trayIcon) {
-			this.emit('update');
-			return;
-		}
-
-		if (process.platform === 'darwin') {
-			this.trayIcon.setTitle(getTrayIconTitle(this.state));
-		}
-		
-		this.trayIcon.setToolTip(getTrayIconTooltip(this.state));
-
-		this.trayIcon.setImage(getTrayIconPath(this.state));
-
-		const template = createContextMenuTemplate(this.state, this);
-		const menu = Menu.buildFromTemplate(template);
-		this.trayIcon.setContextMenu(menu);
-		this.emit('update');
-	}
-}
-
-export default new Tray();
+export default Object.assign(instance, {
+	destroy,
+	setState,
+});

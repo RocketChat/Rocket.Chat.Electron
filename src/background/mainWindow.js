@@ -43,8 +43,10 @@ const attachWindowStateHandling = (mainWindow) => {
 	const close = () => {
 		if (process.platform === 'darwin' || state.hideOnClose) {
 			mainWindow.hide();
-		} else {
+		} else if (process.platform === 'win32') {
 			mainWindow.minimize();
+		} else {
+			app.quit();
 		}
 	};
 

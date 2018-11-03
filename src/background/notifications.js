@@ -1,33 +1,48 @@
-import freedesktopNotifications from 'freedesktop-notifications';
+import { app } from 'electron';
 import { EventEmitter } from 'events';
+import freedesktopNotifications from 'freedesktop-notifications';
+import path from 'path';
 
 
-class FreedesktopNotification extends EventEmitter {
-	constructor(title, { body, icon, tag } = {}) {
+class BaseNotification extends EventEmitter {
+	show() {}
+	close() {}
+}
+
+class FreedesktopNotification extends BaseNotification {
+	constructor({ title, body, icon, tag } = {}) {
 		super();
 
-		this.tag = tag;
+		FreedesktopNotification.instance = FreedesktopNotification.instance || {};
 
-		this.instance = freedesktopNotifications.createNotification({
+		this.parameters = {
 			summary: title,
 			body,
-			icon,
-		});
+			icon: icon && path.resolve(icon) : 'info',
+			appName: app.getName(),
+			actions: {
+				default: '',
+			},
+		};
 
-		// this.instance.on('action', (...args) => console.log(args));
-		this.instance.on('close', (closedBy) => {
-			if (closedBy === 'user') {
-				this.emit('click');
-			}
+		this.notification = (tag && FreedesktopNotification.instance[tag]) ||
+			freedesktopNotifications.createNotification(this.parameters);
 
-			this.emit('close');
-		});
+		this.notification.on('close', () => this.emit('close'));
+		this.notification.on('action', (action) => action === 'default' && this.emit('click'));
 
-		this.instance.push(() => this.emit('show'));
+		if (tag) {
+			FreedesktopNotification.instance[tag] = this.notification;
+		}
+	}
+
+	show() {
+		this.notification.set(this.parameters);
+		this.notification.push(() => this.emit('show'));
 	}
 
 	close() {
-		this.instance.close();
+		this.notification.close();
 	}
 }
 

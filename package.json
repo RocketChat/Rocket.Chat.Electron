@@ -37,9 +37,7 @@
     "lodash": "^4.17.10",
     "spellchecker": "^3.5.0"
   },
-  "optionalDependencies": {
-    "node-mac-notifier": "^1.1.0"
-  },
+  "optionalDependencies": {},
   "devDependencies": {
     "@rocket.chat/eslint-config": "^0.1.2",
     "chai": "^4.1.2",

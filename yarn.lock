@@ -2034,10 +2034,6 @@ event-stream@^3.1.7, event-stream@~3.3.0:
     stream-combiner "^0.2.2"
     through "^2.3.8"
 
-event-target-shim@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-1.1.1.tgz#a86e5ee6bdaa16054475da797ccddf0c55698491"
-
 execa@^0.10.0:
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/execa/-/execa-0.10.0.tgz#ff456a8f53f90f8eccc71a96d11bdfc7f082cb50"
@@ -4401,14 +4397,6 @@ node-gyp@^3.8.0:
     semver "~5.3.0"
     tar "^2.0.0"
     which "1"
-
-node-mac-notifier@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/node-mac-notifier/-/node-mac-notifier-1.1.0.tgz#8c84193498c04ba99058f45da750f94798982d10"
-  dependencies:
-    bindings "^1.2.1"
-    event-target-shim "^1.1.1"
-    uuid "^3.3.2"
 
 node-pre-gyp@^0.10.0:
   version "0.10.3"

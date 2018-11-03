@@ -126,40 +126,15 @@ class Servers extends EventEmitter {
 		}
 	}
 
-	validateHost(hostUrl, timeout) {
-		timeout = timeout || 5000;
-		return new Promise(function(resolve, reject) {
-			let resolved = false;
-			$.getJSON(`${ hostUrl }/api/info`).then(function() {
-				if (resolved) {
-					return;
-				}
-				resolved = true;
-				resolve();
-			}, function(request) {
-				if (request.status === 401) {
-					const authHeader = request.getResponseHeader('www-authenticate');
-					if (authHeader && authHeader.toLowerCase().indexOf('basic ') === 0) {
-						resolved = true;
-						reject('basic-auth');
-					}
-				}
-				if (resolved) {
-					return;
-				}
-				resolved = true;
-				reject('invalid');
-			});
-			if (timeout) {
-				setTimeout(function() {
-					if (resolved) {
-						return;
-					}
-					resolved = true;
-					reject('timeout');
-				}, timeout);
-			}
-		});
+	async validateHost(hostUrl, timeout = 5000) {
+		const response = await Promise.race([
+			fetch(`${ hostUrl }/api/info`),
+			new Promise((resolve, reject) => setTimeout(() => reject('timeout'), timeout)),
+		]);
+
+		if (!response.ok) {
+			throw 'invalid';
+		}
 	}
 
 	hostExists(hostUrl) {
@@ -293,20 +268,20 @@ class Servers extends EventEmitter {
 	}
 
 	resetAppData() {
-		return remote.dialog.showMessageBox({
+		const response = remote.dialog.showMessageBox({
 			type: 'question',
 			buttons: ['Yes', 'Cancel'],
 			defaultId: 1,
-			title: 'Reset App Data',
-			message: 'This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.',
-		}, (response) => {
-			if (response === 0) {
-				const dataDir = remote.app.getPath('userData');
-				jetpack.remove(dataDir);
-				remote.app.relaunch();
-				remote.app.quit();
-			}
+			title: i18n.__('Reset app data'),
+			message: i18n.__('This will sign you out from all your teams and reset the app back to its ' +
+				'original settings. This cannot be undone.'),
 		});
+
+		if (response !== 0) {
+			return;
+		}
+
+		ipcRenderer.send('reset-app-data');
 	}
 
 }

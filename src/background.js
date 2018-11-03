@@ -1,23 +1,23 @@
-import path from 'path';
+import { app, ipcMain, Menu } from 'electron';
 import querystring from 'querystring';
 import url from 'url';
-import jetpack from 'fs-jetpack';
 import idle from '@paulcbetts/system-idle-time';
-import { app, ipcMain, Menu } from 'electron';
 
+import appData from './background/appData';
 import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
-import { addServer, createMainWindow, getMainWindow } from './background/mainWindow';
+import dock from './background/dock';
+import { addServer, getMainWindow } from './background/mainWindow';
 import menus from './background/menus';
 import './background/screenshare';
 import tray from './background/tray';
 
 import i18n from './i18n/index.js';
-import env from './env';
 
 export { default as showAboutDialog } from './background/aboutDialog';
 export { default as remoteServers } from './background/servers';
-export { certificate, menus, tray };
+export { certificate, dock, menus, tray };
+
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
@@ -39,26 +39,6 @@ const unsetDefaultApplicationMenu = () => {
 		],
 	}];
 	Menu.setApplicationMenu(Menu.buildFromTemplate(emptyMenuTemplate));
-};
-
-const setUserDataPath = () => {
-	const appName = app.getName();
-	const dirName = env.name === 'production' ? appName : `${ appName } (${ env.name })`;
-
-	app.setPath('userData', path.join(app.getPath('appData'), dirName));
-};
-
-const migrateOlderVersionUserData = () => {
-	const olderAppName = 'Rocket.Chat+';
-	const dirName = env.name === 'production' ? olderAppName : `${ olderAppName } (${ env.name })`;
-	const olderUserDataPath = path.join(app.getPath('appData'), dirName);
-
-	try {
-		jetpack.copy(olderUserDataPath, app.getPath('userData'), { overwrite: true });
-		jetpack.remove(olderUserDataPath);
-	} catch (e) {
-		return;
-	}
 };
 
 const parseProtocolUrls = (args) =>
@@ -100,14 +80,13 @@ if (process.platform === 'linux') {
 	app.disableHardwareAcceleration();
 }
 
-app.on('ready', () => {
+app.on('ready', async() => {
 	unsetDefaultApplicationMenu();
-	setUserDataPath();
-	migrateOlderVersionUserData();
 
-	createMainWindow();
+	appData.initialize();
 
-	getMainWindow().then((mainWindow) => certificate.initWindow(mainWindow));
+	const mainWindow = await getMainWindow();
+	certificate.initWindow(mainWindow);
 
 	autoUpdate();
 });
@@ -115,3 +94,5 @@ app.on('ready', () => {
 ipcMain.on('getSystemIdleTime', (event) => {
 	event.returnValue = idle.getIdleTime();
 });
+
+process.on('unhandledRejection', console.error.bind(console));

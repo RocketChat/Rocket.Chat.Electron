@@ -1,26 +1,32 @@
 <!doctype html>
 <html>
 <head>
-	<title>Rocket.Chat</title>
 	<meta charset="utf-8" />
-	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+	<title>Rocket.Chat</title>
 	<link rel="stylesheet" type="text/css" href="../stylesheets/main.css">
-	<script type="text/javascript" src="./lib/bugsnag.js"></script>
-	<!-- <script type="text/javascript" src="scripts/bugsnag_apikey.js"></script> -->
-    <script>
-        const i18n = require('../i18n/index');
-    </script>
+	<script>
+		window.addEventListener('load', () => {
+			const i18n = require('../i18n/index');
+			document.querySelector('.add-server .tooltip').innerHTML = i18n.__('Add new server');
+			document.querySelector('#login-card .connect__prompt').innerHTML = i18n.__('Enter_your_server_URL');
+			document.querySelector('#login-card #invalidUrl').innerHTML = i18n.__('No_valid_server_found');
+			document.querySelector('#login-card .connect__error').innerHTML = i18n.__('Check_connection');
+			document.querySelector('#login-card .login').innerHTML = i18n.__('Connect');
+
+			const script = document.createElement('script');
+			script.src = '../app.js';
+			document.body.appendChild(script);
+		});
+	</script>
 </head>
-<body class="hide-server-list">
-	<div class="server-list">
-		<ul id="serverList">
+<body class="app-page app-page--loading">
+	<div class="sidebar sidebar--hidden">
+		<ul id="sidebar__servers">
 		</ul>
 		<ul>
 			<li class="add-server">
 				<span>+</span>
-				<div class="tooltip"><script>document.write(i18n.__('Add new server'))</script></div>
+				<div class="tooltip">Add new server</div>
 			</li>
 		</ul>
 	</div>
@@ -30,14 +36,16 @@
 			<header>
 				<img class="logo" src="./images/logo-dark.svg" />
 			</header>
-			<div class="loading-animation" id="loading">
-				<div class="bounce1"></div>
-				<div class="bounce2"></div>
-				<div class="bounce3"></div>
+
+			<div class="loading-indicator">
+				<span class="dot"></span>
+				<span class="dot"></span>
+				<span class="dot"></span>
 			</div>
-			<form id="login-card" method="/" style="display:none;">
+
+			<form id="login-card" method="/">
 				<header>
-					<h2><script>document.write(i18n.__('Enter_your_server_URL'))</script></h2>
+					<h2 class="connect__prompt">Enter your server URL</h2>
 				</header>
 				<div class="fields">
 					<div class="input-text active">
@@ -45,31 +53,17 @@
 					</div>
 				</div>
 
-				<div id="invalidUrl" style="display:none;" class="alert alert-danger">
-					<script>document.write(i18n.__('No_valid_server_found'))</script>
-				</div>
+				<div id="invalidUrl" style="display:none;" class="alert alert-danger">No valid server found</div>
 
-				<div class="alert alert-danger only-offline"><script>document.write(i18n.__('Check_connection'))</script></div>
+				<div class="connect__error alert alert-danger only-offline">Check connection</div>
 
 				<div class="submit">
-					<input type="submit" data-loading-text="Connecting..." class="button primary login" value="Connect"></input>
+					<button type="submit" data-loading-text="Connecting..." class="button primary login">Connect</button>
 				</div>
 			</form>
-			<footer style="display:none;">
-				<div class="social">
-					<nav>
-						<a target="_system" class="button share twitter" href="https://twitter.com/RocketChat"><i class="icon-twitter"></i><span>Twitter</span></a>
-						<a target="_system" class="button share facebook" href="https://www.facebook.com/RocketChatApp"><i class="icon-facebook"></i><span>Facebook</span></a>
-						<a target="_system" class="button share google" href="https://plus.google.com/+RocketChatApp"><i class="icon-gplus"></i><span>Google Plus</span></a>
-						<a target="_system" class="button share github" href="https://github.com/RocketChat/Rocket.Chat"><i class="icon-github-circled"></i><span>Github</span></a>
-						<a target="_system" class="button share linkedin" href="https://www.linkedin.com/company/rocket-chat"><i class="icon-linkedin"></i><span>LinkedIn</span></a>
-					</nav>
-				</div>
-			</footer>
 		</div>
 	</section>
-	<div class="drag-region top-bar"></div>
 
-	<script src="../app.js"></script>
+	<div class="drag-region"></div>
 </body>
 </html>

@@ -1,3 +1,30 @@
+<a name="2.14.1"></a>
+## 2.14.1 (2018-10-25)
+
+
+### New Features
+
+- [#914](https://github.com/RocketChat/Rocket.Chat.Electron/pull/914) Tray tooltip
+
+
+### Improvements
+
+- [#933](https://github.com/RocketChat/Rocket.Chat.Electron/pull/933) App (main) page
+- [#932](https://github.com/RocketChat/Rocket.Chat.Electron/pull/932) Report issue menu item links to desktop app repository
+
+
+### Bug Fixes
+
+- [#936](https://github.com/RocketChat/Rocket.Chat.Electron/pull/936) Autoupdate in MacOS
+- [#927](https://github.com/RocketChat/Rocket.Chat.Electron/pull/927) Disable autoupdates
+- [#931](https://github.com/RocketChat/Rocket.Chat.Electron/pull/931) Main window's visibility toggling in tray window
+- [#938](https://github.com/RocketChat/Rocket.Chat.Electron/pull/938) Move about menu item for MacOS
+- [#926](https://github.com/RocketChat/Rocket.Chat.Electron/pull/926) Preload issues
+- [#922](https://github.com/RocketChat/Rocket.Chat.Electron/pull/922) Server icon not displayed on sidebar if server url ending with a trailing slash
+- [#941](https://github.com/RocketChat/Rocket.Chat.Electron/pull/941) Window closing behavior for Linux environments without a system tray
+
+
+
 <a name="2.14.0"></a>
 # 2.14.0 (2018-10-11)
 

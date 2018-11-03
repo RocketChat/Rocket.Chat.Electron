@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
-    "electron-updater": "^3.1.2",
+    "electron-updater": "3.0.4",
     "fs-jetpack": "^2.1.1",
     "lodash": "^4.17.10",
     "spellchecker": "^3.5.0"
@@ -46,7 +46,7 @@
     "electron": "^2.0.10",
     "electron-builder": "^20.28.4",
     "electron-mocha": "^6.0.4",
-    "eslint": "^5.6.0",
+    "eslint": "^5.7.0",
     "gulp": "^3.9.1",
     "gulp-batch": "^1.0.5",
     "gulp-less": "^4.0.1",
@@ -62,7 +62,7 @@
     "rollup-plugin-istanbul": "^2.0.1",
     "rollup-plugin-json": "^3.1.0",
     "run-sequence": "^2.2.1",
-    "sinon": "^6.3.4",
+    "sinon": "^7.0.0",
     "spectron": "^4.0.0"
   },
   "devEngines": {

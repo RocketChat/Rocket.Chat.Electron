@@ -1,23 +1,32 @@
 <!doctype html>
 <html>
 <head>
-	<title>Rocket.Chat</title>
 	<meta charset="utf-8" />
-	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+	<title>Rocket.Chat</title>
 	<link rel="stylesheet" type="text/css" href="../stylesheets/main.css">
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			document.querySelector('.title').innerHTML = i18n.__('Houston_we_have_a_problem');
+			document.querySelector('.subtitle').innerHTML = i18n.__('Server_Failed_to_Load');
+			document.querySelector('.reload-button').innerHTML = i18n.__('Reload');
+			document.querySelector('.reload-button').addEventListener('click', ({ target }) => {
+				document.querySelector('.reload-button').classList.add('hidden');
+				document.querySelector('.reloading-server').classList.remove('hidden');
+				// location.reload(true);
+				window.reloadServer();
+			}, false);
+		}, false);
+	</script>
 </head>
-<body class="loading-error">
-    <div class="load-fail" id="load-fail">
-        <h1><script>document.write(window.i18n.__('Houston_we_have_a_problem'))</script></h1>
-        <h2><script>document.write(window.i18n.__('Server_Failed_to_Load'))</script></h2>
-        <div class="loading-animation" id="loading" style="display:none;">
-            <div class="bounce1"></div>
-            <div class="bounce2"></div>
-            <div class="bounce3"></div>
-        </div>
-        <button class="button primary" id="reload"><script>document.write(window.i18n.__('Reload'))</script></button>
-    </div>
+<body class="loading-error-page">
+	<h1 class="title">Houston, we have a problem</h1>
+	<h2 class="subtitle">Server Failed to Load</h2>
+	<div class="reloading-server hidden">
+		<span class="dot"></span>
+		<span class="dot"></span>
+		<span class="dot"></span>
+		<span class="message"></span>
+	</div>
+	<button class="button primary reload-button">Reload</button>
 </body>
 </html>

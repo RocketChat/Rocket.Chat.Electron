@@ -20,6 +20,36 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
+"@nodert-win10-cu/windows.applicationmodel@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@nodert-win10-cu/windows.applicationmodel/-/windows.applicationmodel-0.3.2.tgz#3b9df6413203f99a03170a0246cf91112dbdaa17"
+  dependencies:
+    nan latest
+
+"@nodert-win10-cu/windows.data.xml.dom@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@nodert-win10-cu/windows.data.xml.dom/-/windows.data.xml.dom-0.3.2.tgz#a6a12b92da0a564c767ded152244d89e9313344b"
+  dependencies:
+    nan latest
+
+"@nodert-win10-cu/windows.foundation@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@nodert-win10-cu/windows.foundation/-/windows.foundation-0.3.2.tgz#456f23e620350227ec73a646d00db77e9424482a"
+  dependencies:
+    nan latest
+
+"@nodert-win10-cu/windows.ui.notifications@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@nodert-win10-cu/windows.ui.notifications/-/windows.ui.notifications-0.3.2.tgz#ddc2563e9ccc6e1e99d8cc7b0c1dcae333b086af"
+  dependencies:
+    nan latest
+
+"@nodert-win10-cu/windows.ui.startscreen@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@nodert-win10-cu/windows.ui.startscreen/-/windows.ui.startscreen-0.3.2.tgz#e33dca79fe6df92f75cc45d9d92cf3ac55b8cd6e"
+  dependencies:
+    nan latest
+
 "@paulcbetts/system-idle-time@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@paulcbetts/system-idle-time/-/system-idle-time-1.0.4.tgz#17b275530176d72695646380b13b79724288b1c6"
@@ -1802,6 +1832,21 @@ electron-window@^0.8.0:
   dependencies:
     is-electron-renderer "^2.0.0"
 
+electron-windows-notifications@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/electron-windows-notifications/-/electron-windows-notifications-3.0.1.tgz#33b0b7caef3adbe8bbea1ac2bd3ac2d434af4b3b"
+  dependencies:
+    "@nodert-win10-cu/windows.applicationmodel" "^0.3.2"
+    "@nodert-win10-cu/windows.data.xml.dom" "^0.3.2"
+    "@nodert-win10-cu/windows.foundation" "^0.3.2"
+    "@nodert-win10-cu/windows.ui.notifications" "^0.3.2"
+    "@nodert-win10-cu/windows.ui.startscreen" "^0.3.2"
+    debug "^4.0.1"
+    is-electron-renderer "^2.0.1"
+    sanitize-xml-string "^1.1.0"
+    uuid "^3.3.2"
+    xml-escape "^1.1.0"
+
 electron@^2.0.10:
   version "2.0.10"
   resolved "https://registry.yarnpkg.com/electron/-/electron-2.0.10.tgz#9d7cccd33698e12ecda4d3f585b3bd678a4d4546"
@@ -3240,7 +3285,7 @@ is-dotfile@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/is-dotfile/-/is-dotfile-1.0.3.tgz#a6a2f32ffd2dfb04f5ca25ecd0f6b83cf798a1e1"
 
-is-electron-renderer@^2.0.0:
+is-electron-renderer@^2.0.0, is-electron-renderer@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/is-electron-renderer/-/is-electron-renderer-2.0.1.tgz#a469d056f975697c58c98c6023eb0aa79af895a2"
 
@@ -4322,7 +4367,7 @@ nan@^2.0.0, nan@^2.10.0, nan@^2.9.2:
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.11.0.tgz#574e360e4d954ab16966ec102c0c049fd961a099"
 
-nan@^2.0.9:
+nan@^2.0.9, nan@latest:
   version "2.11.1"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.11.1.tgz#90e22bccb8ca57ea4cd37cc83d3819b52eea6766"
 
@@ -5762,6 +5807,10 @@ sanitize-filename@^1.6.1:
   dependencies:
     truncate-utf8-bytes "^1.0.0"
 
+sanitize-xml-string@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/sanitize-xml-string/-/sanitize-xml-string-1.1.0.tgz#dd86686069ce102b4954912d9c7982037b928768"
+
 sax@>=0.1.1, sax@^1.2.4:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
@@ -6845,6 +6894,10 @@ write@^0.2.1:
 xdg-basedir@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/xdg-basedir/-/xdg-basedir-3.0.0.tgz#496b2cc109eca8dbacfe2dc72b603c17c5870ad4"
+
+xml-escape@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/xml-escape/-/xml-escape-1.1.0.tgz#3904c143fa8eb3a0030ec646d2902a2f1b706c44"
 
 xml2js@0.1.14:
   version "0.1.14"

@@ -1,4 +1,5 @@
 import { app, Notification as ElectronNotification } from 'electron';
+import { ToastNotification } from 'electron-windows-notifications';
 import { EventEmitter } from 'events';
 import freedesktopNotifications from 'freedesktop-notifications';
 import path from 'path';
@@ -17,19 +18,29 @@ class MacNotification extends BaseNotification {
 
 		this.previousNotification = tag && MacNotification.instances[tag];
 
-		this.notification = new ElectronNotification({
+		const notification = new ElectronNotification({
 			title,
 			body,
 			icon: icon && path.resolve(icon),
 		});
 
-		this.notification.on('show', () => this.emit('show'));
-		this.notification.on('close', () => this.emit('close'));
-		this.notification.on('click', () => this.emit('click'));
+		notification.on('show', () => this.emit('show'));
+		notification.on('close', () => {
+			if (tag) {
+				delete MacNotification.instances[tag];
+			}
+
+			this.emit('close');
+		});
+		notification.on('click', () => this.emit('click'));
+
+		app.on('before-quit', () => notification.close());
 
 		if (tag) {
-			LinuxNotification.instances[tag] = this.notification;
+			MacNotification.instances[tag] = notification;
 		}
+
+		this.notification = notification;
 	}
 
 	show() {
@@ -61,15 +72,25 @@ class LinuxNotification extends BaseNotification {
 			},
 		};
 
-		this.notification = (tag && LinuxNotification.instances[tag]) ||
+		const notification = (tag && LinuxNotification.instances[tag]) ||
 			freedesktopNotifications.createNotification(this.parameters);
 
-		this.notification.on('close', () => this.emit('close'));
-		this.notification.on('action', (action) => action === 'default' && this.emit('click'));
+		notification.on('close', () => {
+			if (tag) {
+				delete LinuxNotification.instances[tag];
+			}
+
+			this.emit('close');
+		});
+		notification.on('action', (action) => action === 'default' && this.emit('click'));
+
+		app.on('before-quit', () => notification.close());
 
 		if (tag) {
-			LinuxNotification.instances[tag] = this.notification;
+			LinuxNotification.instances[tag] = notification;
 		}
+
+		this.notification = notification;
 	}
 
 	show() {
@@ -82,20 +103,46 @@ class LinuxNotification extends BaseNotification {
 	}
 }
 
-class WindowsNotification extends BaseNotification {}
+class WindowsNotification extends BaseNotification {
+	constructor({ title, body, icon, tag } = {}) {
+		super();
+
+		const notification = new ToastNotification({
+			appId: 'chat.rocket',
+			template: `
+			<toast>
+				<visual>
+					<binding template="ToastGeneric">
+						${ title && '<text>%s</text>' }
+						${ body && '<text>%s</text>' }
+						${ icon && '<image placement="AppLogoOverride" src="%s" />' }
+					</binding>
+				</visual>
+			</toast>`,
+			strings: [title, body, icon].filter(Boolean),
+			tag,
+		});
+
+		notification.on('dismissed', () => this.emit('close'));
+		notification.on('activated', () => this.emit('click'));
+
+		app.on('before-quit', () => notification.hide());
+
+		this.notification = notification;
+	}
+
+	show() {
+		this.notification.show();
+		this.emit('show');
+	}
+
+	close() {
+		this.notification.hide();
+	}
+}
 
 export class Notification extends ({
 	darwin: MacNotification,
 	linux: LinuxNotification,
 	win32: WindowsNotification,
 }[process.platform]) {}
-
-app.on('ready', () => {
-	const n = new Notification({
-		title: 'wat',
-		icon: `${__dirname}/public/images/icon.png`,
-	});
-	n.on('click', () => console.log('click'));
-	n.show();
-	// setTimeout(() => n.close(), 1000);
-});

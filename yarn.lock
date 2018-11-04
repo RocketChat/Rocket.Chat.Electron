@@ -4308,8 +4308,9 @@ nanomatch@^1.2.9:
     to-regex "^3.0.1"
 
 natives@^1.1.0:
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/natives/-/natives-1.1.5.tgz#3bdbdb4104023e5dd239b56fc7ef3d9a17acc6aa"
+  version "1.1.6"
+  resolved "https://registry.yarnpkg.com/natives/-/natives-1.1.6.tgz#a603b4a498ab77173612b9ea1acdec4d980f00bb"
+  integrity sha512-6+TDFewD4yxY14ptjKaS63GVdtKiES1pTPyxn9Jb0rBqPMZ7VcCiooEhPNsr+mqHtMGxa/5c/HhcC4uPEUw/nA==
 
 natural-compare@^1.4.0:
   version "1.4.0"

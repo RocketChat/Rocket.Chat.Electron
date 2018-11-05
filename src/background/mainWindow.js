@@ -109,4 +109,25 @@ export const addServer = (serverUrl) => getMainWindow().then((mainWindow) => {
 	mainWindow.send('add-host', serverUrl);
 });
 
-ipcMain.on('focus', async() => (await getMainWindow()).show());
+ipcMain.on('focus', async() => {
+	const mainWindow = await getMainWindow();
+
+	if (process.platform === 'win32') {
+		if (mainWindow.isVisible()) {
+			mainWindow.focus();
+		} else if (mainWindow.isMinimized()) {
+			mainWindow.restore();
+		} else {
+			mainWindow.show();
+		}
+
+		return;
+	}
+
+	if (mainWindow.isMinimized()) {
+		mainWindow.restore();
+		return;
+	}
+
+	mainWindow.show();
+});

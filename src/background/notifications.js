@@ -1,4 +1,4 @@
-import { app, Notification as ElectronNotification } from 'electron';
+import { app, ipcMain, Notification as ElectronNotification } from 'electron';
 import { ToastNotification } from 'electron-windows-notifications';
 import { EventEmitter } from 'events';
 import freedesktopNotifications from 'freedesktop-notifications';
@@ -141,8 +141,31 @@ class WindowsNotification extends BaseNotification {
 	}
 }
 
-export class Notification extends ({
+class Notification extends ({
 	darwin: MacNotification,
 	linux: LinuxNotification,
 	win32: WindowsNotification,
 }[process.platform]) {}
+
+const notifications = [];
+
+ipcMain.on('request-notification', (event, options) => {
+	const notification = new Notification(options);
+	notifications.push(notification);
+
+	const id = notifications.length - 1;
+
+	notification.on('click', () => event.sender.send('notification-clicked', id));
+	notification.on('close', () => event.sender.send('notification-closed', id));
+
+	event.returnValue = id;
+
+	notification.show();
+});
+
+ipcMain.on('close-notification', (event, id) => {
+	if (notifications[id]) {
+		notifications[id].close();
+		delete notifications[id];
+	}
+});

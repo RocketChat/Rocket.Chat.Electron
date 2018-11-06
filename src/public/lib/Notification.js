@@ -1,70 +1,53 @@
-const { ipcRenderer, remote } = require('electron');
+const { ipcRenderer, nativeImage } = require('electron');
+const { EventEmitter } = require('events');
+const jetpack = require('fs-jetpack');
+const tmp = require('tmp');
 
-if (process.platform === 'darwin') {
-	const NodeNotification = require('node-mac-notifier');
-	window.Notification = class Notification extends NodeNotification {
-		constructor(title, options) {
-			options.bundleId = 'chat.rocket';
-			super(title, options);
-			this.addEventListener('click', (/* notification*/) => this.onclick());
-		}
+class Notification extends EventEmitter {
+	static requestPermission() {
+		return;
+	}
 
-		static requestPermission() {
-			return;
-		}
+	static get permission() {
+		return 'granted';
+	}
 
-		static get permission() {
-			return 'granted';
-		}
-	};
-}
-
-class Notification extends window.Notification {
 	constructor(title, options) {
-		super(title, options);
-		ipcRenderer.send('notification-shim', title, options);
+		super();
 
-		// Handle correct notification using unique tag
-		ipcRenderer.once(`clicked-${ options.tag }`, () => this.onclick());
+		this.create({ title, ...options });
 	}
 
+	async create({ icon, ...options }) {
+		if (icon) {
+			Notification.cachedIcons = Notification.cachedIcons || {};
 
-	get onclick() {
-		return super.onclick;
-	}
+			if (!Notification.cachedIcons[icon]) {
+				Notification.cachedIcons[icon] = await new Promise((resolve, reject) =>
+					tmp.file((err, path) => (err ? reject(err) : resolve(path))));
+				const buffer = nativeImage.createFromDataURL(icon).toPNG();
+				await jetpack.writeAsync(Notification.cachedIcons[icon], buffer);
+			}
+			icon = Notification.cachedIcons[icon];
+		}
 
-	/*
-    set onclick (fn) {
-        const result = super.onclick = () => {
-            ipcRenderer.send('focus');
-            ipcRenderer.sendToHost('focus');
-            fn.apply(this, arguments);
-        };
-        return result;
-    }
-    */
+		this.id = ipcRenderer.sendSync('request-notification', { icon, ...options });
 
-	set onclick(fn) {
-		const result = super.onclick = (...args) => {
-			const currentWindow = remote.getCurrentWindow();
-			if (process.platform === 'win32') {
-				if (currentWindow.isVisible()) {
-					currentWindow.focus();
-				} else if (currentWindow.isMinimized()) {
-					currentWindow.restore();
-				} else {
-					currentWindow.show();
-				}
-			} else if (currentWindow.isMinimized()) {
-				currentWindow.restore();
-			} else {
-				currentWindow.show();
+		ipcRenderer.on('notification-clicked', (event, id) => {
+			if (id !== this.id) {
+				return;
 			}
 
+			ipcRenderer.send('focus');
 			ipcRenderer.sendToHost('focus');
-			fn.apply(this, args);
-		};
-		return result;
+			typeof this.onclick === 'function' && this.onclick.call(this);
+			this.emit('click');
+		});
+		ipcRenderer.on('notification-closed', (event, id) => id === this.id && this.emit('close'));
+	}
+
+	close() {
+		ipcRenderer.send('close-notification', this.id);
 	}
 }
 

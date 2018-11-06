@@ -32,13 +32,14 @@
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
     "electron-updater": "3.0.4",
+    "electron-windows-notifications": "^3.0.1",
+    "freedesktop-notifications": "^1.2.3",
     "fs-jetpack": "^2.1.1",
     "lodash": "^4.17.10",
-    "spellchecker": "^3.5.0"
+    "spellchecker": "^3.5.0",
+    "tmp": "^0.0.33"
   },
-  "optionalDependencies": {
-    "node-mac-notifier": "^1.1.0"
-  },
+  "optionalDependencies": {},
   "devDependencies": {
     "@rocket.chat/eslint-config": "^0.1.2",
     "chai": "^4.1.2",

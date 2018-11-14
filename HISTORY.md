@@ -1,3 +1,22 @@
+<a name="2.14.2"></a>
+## 2.14.2 (2018-11-13)
+
+
+### Bug Fixes
+
+- [#960](https://github.com/RocketChat/Rocket.Chat.Electron/pull/960) Dictionaries path detection in spell checker
+- [#967](https://github.com/RocketChat/Rocket.Chat.Electron/pull/967) Main window closing behavior for Linux
+- [#969](https://github.com/RocketChat/Rocket.Chat.Electron/pull/969) Notifications redesigned
+- [#949](https://github.com/RocketChat/Rocket.Chat.Electron/pull/949) Reset app data under Windows
+- [#959](https://github.com/RocketChat/Rocket.Chat.Electron/pull/959) System tray, dock, task bar and main window issues
+
+
+### Improvements
+
+- [#968](https://github.com/RocketChat/Rocket.Chat.Electron/pull/968) Node 11 support
+
+
+
 <a name="2.14.1"></a>
 ## 2.14.1 (2018-10-25)
 
@@ -17,7 +36,6 @@
 
 - [#936](https://github.com/RocketChat/Rocket.Chat.Electron/pull/936) Autoupdate in MacOS
 - [#927](https://github.com/RocketChat/Rocket.Chat.Electron/pull/927) Disable autoupdates
-- [#931](https://github.com/RocketChat/Rocket.Chat.Electron/pull/931) Main window's visibility toggling in tray window
 - [#938](https://github.com/RocketChat/Rocket.Chat.Electron/pull/938) Move about menu item for MacOS
 - [#926](https://github.com/RocketChat/Rocket.Chat.Electron/pull/926) Preload issues
 - [#922](https://github.com/RocketChat/Rocket.Chat.Electron/pull/922) Server icon not displayed on sidebar if server url ending with a trailing slash

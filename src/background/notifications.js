@@ -2,6 +2,7 @@ import { app, ipcMain, Notification as ElectronNotification } from 'electron';
 import { ToastNotification } from 'electron-windows-notifications';
 import { EventEmitter } from 'events';
 import freedesktopNotifications from 'freedesktop-notifications';
+import os from 'os';
 import path from 'path';
 
 
@@ -141,11 +142,57 @@ class WindowsNotification extends BaseNotification {
 	}
 }
 
+class Windows7Notification extends BaseNotification {
+	constructor({ title, body, icon, tag } = {}) {
+		super();
+
+		Windows7Notification.instances = Windows7Notification.instances || {};
+
+		this.previousNotification = tag && Windows7Notification.instances[tag];
+
+		const notification = new ElectronNotification({
+			title,
+			body,
+			icon: icon && path.resolve(icon),
+		});
+
+		notification.on('show', () => this.emit('show'));
+		notification.on('close', () => {
+			if (tag) {
+				delete Windows7Notification.instances[tag];
+			}
+
+			this.emit('close');
+		});
+		notification.on('click', () => this.emit('click'));
+
+		app.on('before-quit', () => notification.close());
+
+		if (tag) {
+			Windows7Notification.instances[tag] = notification;
+		}
+
+		this.notification = notification;
+	}
+
+	show() {
+		if (this.previousNotification) {
+			this.previousNotification.close();
+		}
+
+		this.notification.show();
+	}
+
+	close() {
+		this.notification.close();
+	}
+}
+
 class Notification extends ({
 	darwin: MacNotification,
 	linux: LinuxNotification,
-	win32: WindowsNotification,
-}[process.platform]) {}
+	win32: os.release().split('.').slice(0, 2).join('.') === '6.1' ? Windows7Notification : WindowsNotification,
+}[os.platform()]) {}
 
 const notifications = [];
 

@@ -268,20 +268,20 @@ class Servers extends EventEmitter {
 	}
 
 	resetAppData() {
-		return remote.dialog.showMessageBox({
+		const response = remote.dialog.showMessageBox({
 			type: 'question',
 			buttons: ['Yes', 'Cancel'],
 			defaultId: 1,
-			title: 'Reset App Data',
-			message: 'This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.',
-		}, (response) => {
-			if (response === 0) {
-				const dataDir = remote.app.getPath('userData');
-				jetpack.remove(dataDir);
-				remote.app.relaunch();
-				remote.app.quit();
-			}
+			title: i18n.__('Reset app data'),
+			message: i18n.__('This will sign you out from all your teams and reset the app back to its ' +
+				'original settings. This cannot be undone.'),
 		});
+
+		if (response !== 0) {
+			return;
+		}
+
+		ipcRenderer.send('reset-app-data');
 	}
 
 }

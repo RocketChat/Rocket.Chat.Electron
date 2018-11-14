@@ -1,10 +1,11 @@
-import { remote, ipcRenderer } from 'electron';
+import { remote } from 'electron';
 import servers from './servers';
 import sidebar from './sidebar';
 import webview from './webview';
 
+
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, menus, showAboutDialog, tray } = remote.require('./background');
+const { certificate, dock, menus, showAboutDialog, tray } = remote.require('./background');
 
 export default () => {
 	menus.on('quit', () => app.quit());
@@ -58,6 +59,7 @@ export default () => {
 		mainWindow.removeAllListeners();
 		menus.removeAllListeners();
 		tray.destroy();
+		dock.destroy();
 		mainWindow.reload();
 	});
 
@@ -151,30 +153,8 @@ export default () => {
 
 	sidebar.on('badge-setted', () => {
 		const badge = sidebar.getGlobalBadge();
-		const hasMentions = badge.showAlert && badge.count > 0;
-		const mainWindow = getCurrentWindow();
-
 		tray.setState({ badge });
-
-		if (!mainWindow.isFocused()) {
-			mainWindow.flashFrame(hasMentions);
-		}
-
-		if (process.platform === 'win32') {
-			if (hasMentions) {
-				mainWindow.webContents.send('render-taskbar-icon', badge.count);
-			} else {
-				mainWindow.setOverlayIcon(null, '');
-			}
-		}
-
-		if (process.platform === 'darwin') {
-			app.dock.setBadge(badge.title);
-		}
-
-		if (process.platform === 'linux') {
-			app.setBadgeCount(badge.count);
-		}
+		dock.setState({ badge });
 	});
 
 
@@ -183,8 +163,8 @@ export default () => {
 	getCurrentWindow().on('hide', updateWindowState);
 	getCurrentWindow().on('show', updateWindowState);
 
-	tray.on('created', () => getCurrentWindow().emit('tray-created'));
-	tray.on('destroyed', () => getCurrentWindow().emit('tray-destroyed'));
+	tray.on('created', () => getCurrentWindow().emit('set-state', { hideOnClose: true }));
+	tray.on('destroyed', () => getCurrentWindow().emit('set-state', { hideOnClose: false }));
 	tray.on('set-main-window-visibility', (visible) =>
 		(visible ? getCurrentWindow().show() : getCurrentWindow().hide()));
 	tray.on('quit', () => app.quit());
@@ -203,31 +183,7 @@ export default () => {
 
 	webview.on('ipc-message-user-status-manually-set', (hostUrl, [status]) => {
 		tray.setState({ status });
-	});
-
-	ipcRenderer.on('render-taskbar-icon', (event, messageCount) => {
-		// Create a canvas from unread messages
-		function createOverlayIcon(messageCount) {
-			const canvas = document.createElement('canvas');
-			canvas.height = 128;
-			canvas.width = 128;
-
-			const ctx = canvas.getContext('2d');
-			ctx.beginPath();
-
-			ctx.fillStyle = 'red';
-			ctx.arc(64, 64, 64, 0, 2 * Math.PI);
-			ctx.fill();
-			ctx.fillStyle = '#ffffff';
-			ctx.textAlign = 'center';
-			canvas.style.letterSpacing = '-4px';
-			ctx.font = 'bold 92px sans-serif';
-			ctx.fillText(String(Math.min(99, messageCount)), 64, 98);
-
-			return canvas;
-		}
-
-		ipcRenderer.send('update-taskbar-icon', createOverlayIcon(messageCount).toDataURL(), String(messageCount));
+		dock.setState({ status });
 	});
 
 

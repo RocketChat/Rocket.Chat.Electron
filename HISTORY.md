@@ -1,3 +1,13 @@
+<a name="2.14.3"></a>
+## 2.14.3 (2018-11-14)
+
+
+### Bug Fixes
+
+- [#978](https://github.com/RocketChat/Rocket.Chat.Electron/pull/978) Fallback notifications for Windows 7
+
+
+
 <a name="2.14.2"></a>
 ## 2.14.2 (2018-11-13)
 

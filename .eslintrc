@@ -3,7 +3,6 @@
     "@rocket.chat/eslint-config"
   ],
   "globals": {
-    "_": false,
     "Bugsnag": false
   }
 }

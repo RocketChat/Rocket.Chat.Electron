@@ -1,8 +1,5 @@
 {
   "extends": [
     "@rocket.chat/eslint-config"
-  ],
-  "globals": {
-    "Bugsnag": false
-  }
+  ]
 }

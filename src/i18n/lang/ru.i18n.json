@@ -45,7 +45,7 @@
     "Menu bar": "Главное меню",
     "Message_count": {
         "zero": "Rocket.Chat: нет непрочитанных сообщений",
-        "one": "Rocket.Chat: у вас %s непрочитанное сообщение",
+        "one": "Rocket.Chat: у Вас %s непрочитанное сообщение",
         "multi": "Rocket.Chat: у вас %s непрочитанных сообщений"
     },
     "Minimize": "Свернуть",

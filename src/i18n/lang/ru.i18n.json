@@ -46,7 +46,7 @@
     "Message_count": {
         "zero": "Rocket.Chat: нет непрочитанных сообщений",
         "one": "Rocket.Chat: у Вас %s непрочитанное сообщение",
-        "multi": "Rocket.Chat: у вас %s непрочитанных сообщений"
+        "multi": "Rocket.Chat: у Вас %s непрочитанных сообщений"
     },
     "Minimize": "Свернуть",
     "More_spelling_suggestions": "Другие варианты написания",

@@ -1,5 +1,3 @@
-/* globals $ */
-
 import jetpack from 'fs-jetpack';
 import { EventEmitter } from 'events';
 import { remote, ipcRenderer } from 'electron';
@@ -77,8 +75,11 @@ class Servers extends EventEmitter {
 
 		// Load server info from server config file
 		if (Object.keys(hosts).length === 0) {
-			const path = jetpack.find(remote.app.getPath('userData'), { matching: 'servers.json' })[0] ||
-                jetpack.find(jetpack.path(remote.app.getAppPath(), '..'), { matching: 'servers.json' })[0];
+			const { app } = remote;
+			const userDir = jetpack.cwd(app.getPath('userData'));
+			const appDir = jetpack.cwd(jetpack.path(app.getAppPath(), app.getAppPath().endsWith('.asar') ? '..' : '.'));
+			const path = userDir.find({ matching: 'servers.json', recursive: false })[0] ||
+				appDir.find({ matching: 'servers.json', recursive: false })[0];
 
 			if (path) {
 				const pathToServerJson = jetpack.path(path);

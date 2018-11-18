@@ -33,11 +33,12 @@ class BaseNotification {
 
 
 class ElectronNotification extends BaseNotification {
-	initialize({ title, body, icon } = {}) {
+	initialize({ title, body, icon, silent } = {}) {
 		this.notification = new Notification({
 			title,
 			body,
 			icon: icon && path.resolve(icon),
+			silent,
 		});
 
 		this.notification.on('show', this.handleShow);
@@ -62,7 +63,7 @@ class ElectronNotification extends BaseNotification {
 
 
 class WindowsToastNotification extends BaseNotification {
-	initialize({ title, body, icon, tag } = {}) {
+	initialize({ title, body, icon, silent, tag } = {}) {
 		this.notification = new ToastNotification({
 			template: `
 			<toast>
@@ -73,6 +74,7 @@ class WindowsToastNotification extends BaseNotification {
 			${ icon && '<image placement="AppLogoOverride" src="%s" />' }
 			</binding>
 			</visual>
+			${ silent && '<audio silent="true" />' }
 			</toast>`,
 			strings: [title, body, icon].filter(Boolean),
 			tag: tag ? `${ tag }` : undefined,
@@ -100,13 +102,14 @@ class WindowsToastNotification extends BaseNotification {
 
 
 class FreeDesktopNotification extends BaseNotification {
-	initialize({ title, body, icon } = {}) {
+	initialize({ title, body, icon, silent } = {}) {
 		this.notification = freedesktopNotifications.createNotification({
 			summary: title,
 			body,
 			icon: icon ? path.resolve(icon) : 'info',
 			appName: app.getName(),
 			timeout: 24 * 60 * 60 * 1000,
+			sound: silent ? undefined : 'message-new-instant',
 			actions: {
 				default: '',
 			},

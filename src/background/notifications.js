@@ -8,6 +8,9 @@ import path from 'path';
 class BaseNotification {
 	constructor(options = {}) {
 		this.initialize(options);
+		this.handleShow = this.handleShow.bind(this);
+		this.handleClick = this.handleClick.bind(this);
+		this.handleClose = this.handleClose.bind(this);
 	}
 
 	handleShow() {

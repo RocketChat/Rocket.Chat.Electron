@@ -16,6 +16,18 @@
 				window.reloadServer();
 			}, false);
 		}, false);
+		document.addEventListener("DOMContentLoaded", () => {
+			let counter = 60;
+			const reloadCounterStepSize = 1;
+			const textBefore = document.querySelector(".reload-button").innerHTML + "";
+			setInterval(() => {
+				counter = counter - reloadCounterStepSize;
+				document.querySelector(".reload-button").innerHTML = `${textBefore} (${counter})`;
+				if (counter <= 0) {
+					document.querySelector(".reload-button").click();
+				}
+			}, reloadCounterStepSize * 1000);
+		}, false);
 	</script>
 </head>
 <body class="loading-error-page">

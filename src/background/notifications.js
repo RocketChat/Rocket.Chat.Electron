@@ -67,6 +67,12 @@ class ElectronNotification extends BaseNotification {
 
 class WindowsToastNotification extends BaseNotification {
 	initialize({ title, body, icon, silent, tag } = {}) {
+		const strings = [
+			title && (title.length > 100 ? `${ title.substring(0, 100 - 3) }...` : title),
+			body && (body.length > 1000 ? `${ body.substring(0, 1000 - 3) }...` : body),
+			icon,
+		].filter(Boolean);
+
 		this.notification = new ToastNotification({
 			template: `
 			<toast>
@@ -79,7 +85,7 @@ class WindowsToastNotification extends BaseNotification {
 			</visual>
 			${ silent && '<audio silent="true" />' }
 			</toast>`,
-			strings: [title, body, icon].filter(Boolean),
+			strings,
 			tag: tag ? `${ tag }` : undefined,
 			appId: 'chat.rocket',
 		});

@@ -54,7 +54,17 @@
       "nsis",
       "appx"
     ],
-    "icon": "build/icon.ico"
+    "icon": "build/icon.ico",
+    "extraFiles": [
+      {
+        "from": "build/concrt140.dll",
+        "to": "concrt140.dll"
+      },
+      {
+        "from": "build/vccorlib140.dll",
+        "to": "vccorlib140.dll"
+      }
+    ]
   },
   "nsis": {
     "oneClick": false,

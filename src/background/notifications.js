@@ -111,10 +111,25 @@ class WindowsToastNotification extends BaseNotification {
 
 
 class FreeDesktopNotification extends BaseNotification {
+	escapeBody(body) {
+		const escapeMap = {
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			'"': '&quot;',
+			'\'': '&#x27;',
+			'`': '&#x60;',
+		};
+
+		const escapeRegex = new RegExp(`(?:${ Object.keys(escapeMap).join('|') })`, 'g');
+
+		return body.replace(escapeRegex, (match) => escapeMap[match]);
+	}
+
 	initialize({ title, body, icon, silent } = {}) {
 		this.notification = freedesktopNotifications.createNotification({
 			summary: title,
-			body,
+			body: this.escapeBody(body),
 			icon: icon ? path.resolve(icon) : 'info',
 			appName: app.getName(),
 			timeout: 24 * 60 * 60 * 1000,

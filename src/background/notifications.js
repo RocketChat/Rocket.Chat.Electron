@@ -76,14 +76,14 @@ class WindowsToastNotification extends BaseNotification {
 		this.notification = new ToastNotification({
 			template: `
 			<toast>
-			<visual>
-			<binding template="ToastGeneric">
-			${ title && '<text>%s</text>' }
-			${ body && '<text>%s</text>' }
-			${ icon && '<image placement="AppLogoOverride" src="%s" />' }
-			</binding>
-			</visual>
-			${ silent && '<audio silent="true" />' }
+				<visual>
+					<binding template="ToastGeneric">
+					${ title ? '<text>%s</text>' : '' }
+					${ body ? '<text>%s</text>' : '' }
+					${ icon ? '<image placement="AppLogoOverride" src="%s" />' : '' }
+					</binding>
+				</visual>
+				${ silent ? '<audio silent="true" />' : '' }
 			</toast>`,
 			strings,
 			tag: tag ? `${ tag }` : undefined,

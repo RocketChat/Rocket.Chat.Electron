@@ -3,6 +3,9 @@ const { EventEmitter } = require('events');
 const jetpack = require('fs-jetpack');
 const tmp = require('tmp');
 
+
+const instances = new Map();
+
 class Notification extends EventEmitter {
 	static requestPermission() {
 		return;
@@ -32,18 +35,7 @@ class Notification extends EventEmitter {
 		}
 
 		this.id = ipcRenderer.sendSync('request-notification', { icon, ...options });
-
-		ipcRenderer.on('notification-clicked', (event, id) => {
-			if (id !== this.id) {
-				return;
-			}
-
-			ipcRenderer.send('focus');
-			ipcRenderer.sendToHost('focus');
-			typeof this.onclick === 'function' && this.onclick.call(this);
-			this.emit('click');
-		});
-		ipcRenderer.on('notification-closed', (event, id) => id === this.id && this.emit('close'));
+		instances.set(this.id, this);
 	}
 
 	close() {
@@ -52,3 +44,39 @@ class Notification extends EventEmitter {
 }
 
 module.exports = Notification;
+
+ipcRenderer.on('notification-shown', (event, id) => {
+	const notification = instances.get(id);
+	if (!notification) {
+		return;
+	}
+
+	typeof notification.onshow === 'function' && notification.onshow.call(notification);
+	notification.emit('show');
+});
+
+ipcRenderer.on('notification-clicked', (event, id) => {
+	const notification = instances.get(id);
+	if (!notification) {
+		return;
+	}
+
+	ipcRenderer.send('focus');
+	ipcRenderer.sendToHost('focus');
+
+	typeof notification.onclick === 'function' && notification.onclick.call(notification);
+	notification.emit('click');
+});
+
+ipcRenderer.on('notification-closed', (event, id) => {
+	const notification = instances.get(id);
+	if (!notification) {
+		return;
+	}
+
+	ipcRenderer.send('focus');
+	ipcRenderer.sendToHost('focus');
+
+	typeof notification.onclose === 'function' && notification.onclose.call(notification);
+	notification.emit('close');
+});

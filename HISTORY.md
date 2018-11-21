@@ -1,3 +1,23 @@
+<a name="2.14.4"></a>
+## 2.14.4 (2018-11-21)
+
+
+### Bug Fixes
+
+- [#1001](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1001) Check for updates response when an error occurs
+- [#978](https://github.com/RocketChat/Rocket.Chat.Electron/pull/978) Fallback notifications for Windows 7
+- [#1000](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1000) Notification errors
+- [#990](https://github.com/RocketChat/Rocket.Chat.Electron/pull/990) Speed up servers.json loading
+
+
+<details>
+<summary>Others</summary>
+
+- [#987](https://github.com/RocketChat/Rocket.Chat.Electron/pull/987)  [IMPROVE] Update Russian translation
+</details>
+
+
+
 <a name="2.14.3"></a>
 ## 2.14.3 (2018-11-14)
 

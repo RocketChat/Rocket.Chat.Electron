@@ -44,19 +44,30 @@
 					ipcRenderer.send('check-for-updates');
 				}, false);
 
-				ipcRenderer.on('update-result', (e, updateAvailable) => {
-					const resetUpdatesSection = () => {
-						document.querySelector('.check-for-updates').removeAttribute('disabled');
-						document.querySelector('.check-for-updates').classList.remove('hidden');
-						document.querySelector('.checking-for-updates').classList.add('hidden');
-					};
+				const resetUpdatesSection = () => {
+					document.querySelector('.check-for-updates').removeAttribute('disabled');
+					document.querySelector('.check-for-updates').classList.remove('hidden');
+					document.querySelector('.checking-for-updates').classList.add('hidden');
+				};
 
+				ipcRenderer.on('update-result', (e, updateAvailable) => {
 					if (updateAvailable) {
 						resetUpdatesSection();
 						return;
 					}
 
 					document.querySelector('.checking-for-updates .message').innerHTML = i18n.__('No updates are available.');
+					document.querySelector('.checking-for-updates').classList.add('message-shown');
+
+					setTimeout(() => {
+						resetUpdatesSection();
+						document.querySelector('.checking-for-updates .message').innerHTML = '';
+						document.querySelector('.checking-for-updates').classList.remove('message-shown');
+					}, 5000);
+				});
+
+				ipcRenderer.on('update-error', (e, updateAvailable) => {
+					document.querySelector('.checking-for-updates .message').innerHTML = i18n.__('An error has occurred while looking for updates.');
 					document.querySelector('.checking-for-updates').classList.add('message-shown');
 
 					setTimeout(() => {

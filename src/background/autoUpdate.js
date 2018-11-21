@@ -4,10 +4,8 @@ import jetpack from 'fs-jetpack';
 import { getMainWindow } from './mainWindow';
 import i18n from '../i18n/index.js';
 
-const appDir = jetpack.cwd(
-	app.getAppPath(),
-	process.mainModule.filename.indexOf('app.asar') !== -1 ? '..' : '.'
-);
+
+const appDir = jetpack.cwd(app.getAppPath(), app.getAppPath().endsWith('app.asar') ? '..' : '.');
 const userDataDir = jetpack.cwd(app.getPath('userData'));
 const updateSettingsFileName = 'update.json';
 
@@ -104,13 +102,6 @@ async function updateDownloaded() {
 	autoUpdater.quitAndInstall();
 }
 
-function updateNotAvailable() {
-	if (checkForUpdatesEvent) {
-		checkForUpdatesEvent.sender.send('update-result', false);
-		checkForUpdatesEvent = null;
-	}
-}
-
 function updateAvailable({ version }) {
 	if (checkForUpdatesEvent) {
 		checkForUpdatesEvent.sender.send('update-result', true);
@@ -186,6 +177,11 @@ const sendToRenderer = async(channel, ...args) => {
 
 autoUpdater.on('error', async(error) => {
 	sendToRenderer('update-error', error);
+
+	if (checkForUpdatesEvent) {
+		checkForUpdatesEvent.sender.send('update-result', false);
+		checkForUpdatesEvent = null;
+	}
 });
 
 autoUpdater.on('checking-for-update', async() => {
@@ -194,7 +190,15 @@ autoUpdater.on('checking-for-update', async() => {
 
 autoUpdater.on('update-available', updateAvailable);
 
-autoUpdater.on('update-not-available', updateNotAvailable);
+autoUpdater.on('update-not-available', () => {
+	sendToRenderer('update-not-available');
+
+	if (checkForUpdatesEvent) {
+		checkForUpdatesEvent.sender.send('update-result', false);
+		checkForUpdatesEvent = null;
+	}
+});
+
 autoUpdater.on('update-downloaded', updateDownloaded);
 
 ipcMain.on('check-for-updates', (event) => {

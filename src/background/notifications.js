@@ -1,54 +1,61 @@
-import { app, ipcMain, Notification as ElectronNotification } from 'electron';
+import { app, ipcMain, Notification } from 'electron';
 import { ToastNotification } from 'electron-windows-notifications';
-import { EventEmitter } from 'events';
 import freedesktopNotifications from 'freedesktop-notifications';
 import os from 'os';
 import path from 'path';
 
 
-class BaseNotification extends EventEmitter {
+class BaseNotification {
+	constructor(options = {}) {
+		this.initialize(options);
+		this.handleShow = this.handleShow.bind(this);
+		this.handleClick = this.handleClick.bind(this);
+		this.handleClose = this.handleClose.bind(this);
+	}
+
+	handleShow() {
+		const { id, eventTarget } = this;
+		eventTarget && eventTarget.send('notification-shown', id);
+	}
+
+	handleClick() {
+		const { id, eventTarget } = this;
+		eventTarget && eventTarget.send('notification-clicked', id);
+	}
+
+	handleClose() {
+		const { id, eventTarget } = this;
+		eventTarget && eventTarget.send('notification-closed', id);
+	}
+
+	initialize(/* options = {} */) {}
+	reset(/* options = {} */) {}
 	show() {}
 	close() {}
 }
 
-class MacNotification extends BaseNotification {
-	constructor({ title, body, icon, tag } = {}) {
-		super();
 
-		MacNotification.instances = MacNotification.instances || {};
-
-		this.previousNotification = tag && MacNotification.instances[tag];
-
-		const notification = new ElectronNotification({
+class ElectronNotification extends BaseNotification {
+	initialize({ title, body, icon, silent } = {}) {
+		this.notification = new Notification({
 			title,
 			body,
 			icon: icon && path.resolve(icon),
+			silent,
 		});
 
-		notification.on('show', () => this.emit('show'));
-		notification.on('close', () => {
-			if (tag) {
-				delete MacNotification.instances[tag];
-			}
+		this.notification.on('show', this.handleShow);
+		this.notification.on('click', this.handleClick);
+		this.notification.on('close', this.handleClose);
+	}
 
-			this.emit('close');
-		});
-		notification.on('click', () => this.emit('click'));
-
-		app.on('before-quit', () => notification.close());
-
-		if (tag) {
-			MacNotification.instances[tag] = notification;
-		}
-
-		this.notification = notification;
+	reset(options = {}) {
+		this.notification.removeAllListeners();
+		this.notification.close();
+		this.createNotification(options);
 	}
 
 	show() {
-		if (this.previousNotification) {
-			this.previousNotification.close();
-		}
-
 		this.notification.show();
 	}
 
@@ -57,84 +64,44 @@ class MacNotification extends BaseNotification {
 	}
 }
 
-class LinuxNotification extends BaseNotification {
-	constructor({ title, body, icon, tag } = {}) {
-		super();
 
-		LinuxNotification.instances = LinuxNotification.instances || {};
+class WindowsToastNotification extends BaseNotification {
+	initialize({ title, body, icon, silent, tag } = {}) {
+		const strings = [
+			title && (title.length > 100 ? `${ title.substring(0, 100 - 3) }...` : title),
+			body && (body.length > 1000 ? `${ body.substring(0, 1000 - 3) }...` : body),
+			icon,
+		].filter(Boolean);
 
-		this.parameters = {
-			summary: title,
-			body,
-			icon: icon ? path.resolve(icon) : 'info',
-			appName: app.getName(),
-			actions: {
-				default: '',
-			},
-		};
-
-		const notification = (tag && LinuxNotification.instances[tag]) ||
-			freedesktopNotifications.createNotification(this.parameters);
-
-		notification.on('close', () => {
-			if (tag) {
-				delete LinuxNotification.instances[tag];
-			}
-
-			this.emit('close');
-		});
-		notification.on('action', (action) => action === 'default' && this.emit('click'));
-
-		app.on('before-quit', () => notification.close());
-
-		if (tag) {
-			LinuxNotification.instances[tag] = notification;
-		}
-
-		this.notification = notification;
-	}
-
-	show() {
-		this.notification.set(this.parameters);
-		this.notification.push(() => this.emit('show'));
-	}
-
-	close() {
-		this.notification.close();
-	}
-}
-
-class WindowsNotification extends BaseNotification {
-	constructor({ title, body, icon, tag } = {}) {
-		super();
-
-		const notification = new ToastNotification({
-			appId: 'chat.rocket',
+		this.notification = new ToastNotification({
 			template: `
 			<toast>
 				<visual>
 					<binding template="ToastGeneric">
-						${ title && '<text>%s</text>' }
-						${ body && '<text>%s</text>' }
-						${ icon && '<image placement="AppLogoOverride" src="%s" />' }
+					${ title ? '<text>%s</text>' : '' }
+					${ body ? '<text>%s</text>' : '' }
+					${ icon ? '<image placement="AppLogoOverride" src="%s" />' : '' }
 					</binding>
 				</visual>
+				${ silent ? '<audio silent="true" />' : '' }
 			</toast>`,
-			strings: [title, body, icon].filter(Boolean),
-			tag,
+			strings,
+			tag: tag ? `${ tag }` : undefined,
+			appId: 'chat.rocket',
 		});
 
-		notification.on('dismissed', () => this.emit('close'));
-		notification.on('activated', () => this.emit('click'));
+		this.notification.on('activated', this.handleClick);
+		this.notification.on('dismissed', this.handleClose);
+	}
 
-		app.on('before-quit', () => notification.hide());
-
-		this.notification = notification;
+	reset(options = {}) {
+		this.notification.removeAllListeners();
+		this.initialize(options);
 	}
 
 	show() {
 		this.notification.show();
-		this.emit('show');
+		this.handleShow();
 	}
 
 	close() {
@@ -142,45 +109,50 @@ class WindowsNotification extends BaseNotification {
 	}
 }
 
-class Windows7Notification extends BaseNotification {
-	constructor({ title, body, icon, tag } = {}) {
-		super();
 
-		Windows7Notification.instances = Windows7Notification.instances || {};
+class FreeDesktopNotification extends BaseNotification {
+	escapeBody(body) {
+		const escapeMap = {
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			'"': '&quot;',
+			'\'': '&#x27;',
+			'`': '&#x60;',
+		};
 
-		this.previousNotification = tag && Windows7Notification.instances[tag];
+		const escapeRegex = new RegExp(`(?:${ Object.keys(escapeMap).join('|') })`, 'g');
 
-		const notification = new ElectronNotification({
-			title,
+		return body.replace(escapeRegex, (match) => escapeMap[match]);
+	}
+
+	initialize({ title, body, icon, silent } = {}) {
+		this.notification = freedesktopNotifications.createNotification({
+			summary: title,
+			body: body && this.escapeBody(body),
+			icon: icon ? path.resolve(icon) : 'info',
+			appName: app.getName(),
+			timeout: 24 * 60 * 60 * 1000,
+			sound: silent ? undefined : 'message-new-instant',
+			actions: {
+				default: '',
+			},
+		});
+
+		this.notification.on('action', (action) => action === 'default' && this.handleClick());
+		this.notification.on('close', this.handleClose);
+	}
+
+	reset({ title, body, icon } = {}) {
+		this.notification.set({
+			summary: title,
 			body,
-			icon: icon && path.resolve(icon),
+			icon: icon ? path.resolve(icon) : 'info',
 		});
-
-		notification.on('show', () => this.emit('show'));
-		notification.on('close', () => {
-			if (tag) {
-				delete Windows7Notification.instances[tag];
-			}
-
-			this.emit('close');
-		});
-		notification.on('click', () => this.emit('click'));
-
-		app.on('before-quit', () => notification.close());
-
-		if (tag) {
-			Windows7Notification.instances[tag] = notification;
-		}
-
-		this.notification = notification;
 	}
 
 	show() {
-		if (this.previousNotification) {
-			this.previousNotification.close();
-		}
-
-		this.notification.show();
+		this.notification.push(this.handleShow);
 	}
 
 	close() {
@@ -188,31 +160,67 @@ class Windows7Notification extends BaseNotification {
 	}
 }
 
-class Notification extends ({
-	darwin: MacNotification,
-	linux: LinuxNotification,
-	win32: os.release().split('.').slice(0, 2).join('.') === '6.1' ? Windows7Notification : WindowsNotification,
-}[os.platform()]) {}
 
-const notifications = [];
+const ImplementatedNotification = (() => {
+	if (os.platform() === 'linux') {
+		return FreeDesktopNotification;
+	}
+
+	if (os.platform() === 'win32' && os.release().split('.').slice(0, 2).join('.') !== '6.1') {
+		return WindowsToastNotification;
+	}
+
+	return ElectronNotification;
+})();
+
+const instances = new Map();
+
+let creationCount = 1;
+
+const createOrGetNotification = (options = {}) => {
+	const tag = options.tag ? JSON.stringify(options.tag) : null;
+
+	if (!tag || !instances.get(tag)) {
+		const notification = new ImplementatedNotification(options);
+		notification.id = tag || creationCount++;
+
+		instances.set(notification.id, notification);
+		return notification;
+	}
+
+	const notification = instances.get(tag);
+	notification.reset(options);
+	return notification;
+};
+
 
 ipcMain.on('request-notification', (event, options) => {
-	const notification = new Notification(options);
-	notifications.push(notification);
-
-	const id = notifications.length - 1;
-
-	notification.on('click', () => event.sender.send('notification-clicked', id));
-	notification.on('close', () => event.sender.send('notification-closed', id));
-
-	event.returnValue = id;
-
-	notification.show();
+	try {
+		const notification = createOrGetNotification(options);
+		notification.eventTarget = event.sender;
+		event.returnValue = notification.id;
+		setImmediate(() => notification.show());
+	} catch (e) {
+		console.error(e);
+		event.returnValue = -1;
+	}
 });
 
 ipcMain.on('close-notification', (event, id) => {
-	if (notifications[id]) {
-		notifications[id].close();
-		delete notifications[id];
+	try {
+		const notification = instances.get(id);
+		if (notification) {
+			notification.close();
+			instances.delete(id);
+		}
+	} catch (e) {
+		console.error(e);
 	}
+});
+
+
+app.on('before-quit', () => {
+	instances.forEach((notification) => {
+		notification.close();
+	});
 });

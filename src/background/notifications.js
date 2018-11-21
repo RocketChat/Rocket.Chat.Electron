@@ -198,8 +198,8 @@ ipcMain.on('request-notification', (event, options) => {
 	try {
 		const notification = createOrGetNotification(options);
 		notification.eventTarget = event.sender;
-		notification.show();
 		event.returnValue = notification.id;
+		setImmediate(() => notification.show());
 	} catch (e) {
 		console.error(e);
 		event.returnValue = -1;

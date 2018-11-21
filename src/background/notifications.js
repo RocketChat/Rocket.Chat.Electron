@@ -129,7 +129,7 @@ class FreeDesktopNotification extends BaseNotification {
 	initialize({ title, body, icon, silent } = {}) {
 		this.notification = freedesktopNotifications.createNotification({
 			summary: title,
-			body: this.escapeBody(body),
+			body: body && this.escapeBody(body),
 			icon: icon ? path.resolve(icon) : 'info',
 			appName: app.getName(),
 			timeout: 24 * 60 * 60 * 1000,

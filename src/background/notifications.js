@@ -134,9 +134,9 @@ class FreeDesktopNotification extends BaseNotification {
 			appName: app.getName(),
 			timeout: 24 * 60 * 60 * 1000,
 			sound: silent ? undefined : 'message-new-instant',
-			actions: {
+			actions: process.env.XDG_CURRENT_DESKTOP !== 'Unity' ? {
 				default: '',
-			},
+			} : null,
 		});
 
 		this.notification.on('action', (action) => action === 'default' && this.handleClick());

@@ -60,6 +60,7 @@
 "@rocket.chat/eslint-config@^0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@rocket.chat/eslint-config/-/eslint-config-0.1.2.tgz#f9c5041b8a0e849de9eb4013e4e3efcbe9951d0a"
+  integrity sha512-QhoSk8n77UMo889EtipRrCiJnayDYqxHDuD3TdL06SHnB8urZ1mCVBSf/ocsdV5TxevnE2TeZHDyjAQwvOvM0A==
   dependencies:
     eslint-plugin-import "^2.14.0"
 

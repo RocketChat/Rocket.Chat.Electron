@@ -10,6 +10,7 @@
     "servers.json"
   ],
   "appId": "chat.rocket",
+  "afterPack": "./build/afterPack.js",
   "mac": {
     "category": "public.app-category.productivity",
     "target": [
@@ -54,17 +55,7 @@
       "nsis",
       "appx"
     ],
-    "icon": "build/icon.ico",
-    "extraFiles": [
-      {
-        "from": "build/concrt140.dll",
-        "to": "concrt140.dll"
-      },
-      {
-        "from": "build/vccorlib140.dll",
-        "to": "vccorlib140.dll"
-      }
-    ]
+    "icon": "build/icon.ico"
   },
   "nsis": {
     "oneClick": false,

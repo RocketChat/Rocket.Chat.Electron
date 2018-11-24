@@ -3,9 +3,9 @@
 const { ipcRenderer, shell } = require('electron');
 const path = require('path');
 const url = require('url');
-const Notification = require('./lib/Notification');
-const SpellCheck = require('./lib/SpellCheck');
-const i18n = require('../i18n/index');
+const Notification = require('./preload/Notification.js');
+const SpellCheck = require('./preload/SpellCheck.js');
+const i18n = require('./i18n/index.js');
 
 window.Notification = Notification;
 window.i18n = i18n;
@@ -15,7 +15,7 @@ window.open = ((defaultWindowOpen) => (href, frameName, features) => {
 		features = [
 			features,
 			'nodeIntegration=true',
-			`preload=${ path.join(__dirname, 'jitsi-preload.js') }`,
+			`preload=${ path.join(__dirname, './public/jitsi-preload.js') }`,
 		].filter((x) => Boolean(x)).join(',');
 	}
 

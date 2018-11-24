@@ -1,33 +1,28 @@
-'use strict';
-
 const path = require('path');
-const { rollup } = require('rollup');
-const rollupJson = require('rollup-plugin-json');
+const builtinModules = require('builtin-modules');
 const appManifest = require('../package.json');
+const { rollup } = require('rollup');
+const json = require('rollup-plugin-json');
+const nodeResolve = require('rollup-plugin-node-resolve');
+const commonjs = require('rollup-plugin-commonjs');
 
-const nodeBuiltInModules = ['assert', 'buffer', 'child_process', 'cluster', 'console', 'constants', 'crypto', 'dgram',
-	'dns', 'domain', 'events', 'fs', 'http', 'https', 'module', 'net', 'os', 'path', 'process', 'punycode', 'querystring',
-	'readline', 'repl', 'stream', 'string_decoder', 'timers', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'zlib'];
-
-const electronBuiltInModules = ['electron'];
-
-const externalModulesList = [
-	...nodeBuiltInModules,
-	...electronBuiltInModules,
-	...Object.keys(appManifest.dependencies),
-	...Object.keys(appManifest.devDependencies),
-];
 
 const cached = {};
 
-module.exports = async(src, dest, opts = {}) => {
+module.exports = async(src, dest, { rollupPlugins = [] } = {}) => {
 	const inputOptions = {
 		input: src,
-		external: externalModulesList,
+		external: [
+			...builtinModules,
+			...Object.keys(appManifest.dependencies),
+			...Object.keys(appManifest.devDependencies),
+		],
 		cache: cached[src],
 		plugins: [
-			...(opts.rollupPlugins || []),
-			rollupJson(),
+			...rollupPlugins,
+			json(),
+			nodeResolve(),
+			commonjs(),
 		],
 	};
 

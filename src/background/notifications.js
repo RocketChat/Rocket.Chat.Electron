@@ -15,17 +15,17 @@ class BaseNotification {
 
 	handleShow() {
 		const { id, eventTarget } = this;
-		eventTarget && eventTarget.send('notification-shown', id);
+		eventTarget && !eventTarget.isDestroyed() && eventTarget.send('notification-shown', id);
 	}
 
 	handleClick() {
 		const { id, eventTarget } = this;
-		eventTarget && eventTarget.send('notification-clicked', id);
+		eventTarget && !eventTarget.isDestroyed() && eventTarget.send('notification-clicked', id);
 	}
 
 	handleClose() {
 		const { id, eventTarget } = this;
-		eventTarget && eventTarget.send('notification-closed', id);
+		eventTarget && !eventTarget.isDestroyed() && eventTarget.send('notification-closed', id);
 	}
 
 	initialize(/* options = {} */) {}
@@ -86,7 +86,7 @@ class WindowsToastNotification extends BaseNotification {
 				${ silent ? '<audio silent="true" />' : '' }
 			</toast>`,
 			strings,
-			tag: tag ? `${ tag }` : undefined,
+			tag: tag ? `${ tag.slice(0, 16) }` : undefined,
 			appId: 'chat.rocket',
 		});
 

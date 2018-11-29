@@ -32,7 +32,6 @@
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
     "electron-updater": "3.0.4",
-    "electron-windows-notifications": "^3.0.1",
     "freedesktop-notifications": "^1.2.3",
     "fs-jetpack": "^2.2.0",
     "lodash": "^4.17.11",

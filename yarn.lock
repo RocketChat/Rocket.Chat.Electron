@@ -20,36 +20,6 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@nodert-win10-cu/windows.applicationmodel@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@nodert-win10-cu/windows.applicationmodel/-/windows.applicationmodel-0.3.2.tgz#3b9df6413203f99a03170a0246cf91112dbdaa17"
-  dependencies:
-    nan latest
-
-"@nodert-win10-cu/windows.data.xml.dom@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@nodert-win10-cu/windows.data.xml.dom/-/windows.data.xml.dom-0.3.2.tgz#a6a12b92da0a564c767ded152244d89e9313344b"
-  dependencies:
-    nan latest
-
-"@nodert-win10-cu/windows.foundation@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@nodert-win10-cu/windows.foundation/-/windows.foundation-0.3.2.tgz#456f23e620350227ec73a646d00db77e9424482a"
-  dependencies:
-    nan latest
-
-"@nodert-win10-cu/windows.ui.notifications@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@nodert-win10-cu/windows.ui.notifications/-/windows.ui.notifications-0.3.2.tgz#ddc2563e9ccc6e1e99d8cc7b0c1dcae333b086af"
-  dependencies:
-    nan latest
-
-"@nodert-win10-cu/windows.ui.startscreen@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@nodert-win10-cu/windows.ui.startscreen/-/windows.ui.startscreen-0.3.2.tgz#e33dca79fe6df92f75cc45d9d92cf3ac55b8cd6e"
-  dependencies:
-    nan latest
-
 "@paulcbetts/system-idle-time@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@paulcbetts/system-idle-time/-/system-idle-time-1.0.4.tgz#17b275530176d72695646380b13b79724288b1c6"
@@ -60,14 +30,12 @@
 "@rocket.chat/eslint-config@^0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@rocket.chat/eslint-config/-/eslint-config-0.1.2.tgz#f9c5041b8a0e849de9eb4013e4e3efcbe9951d0a"
-  integrity sha512-QhoSk8n77UMo889EtipRrCiJnayDYqxHDuD3TdL06SHnB8urZ1mCVBSf/ocsdV5TxevnE2TeZHDyjAQwvOvM0A==
   dependencies:
     eslint-plugin-import "^2.14.0"
 
 "@sinonjs/commons@^1.2.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.3.0.tgz#50a2754016b6f30a994ceda6d9a0a8c36adda849"
-  integrity sha512-j4ZwhaHmwsCb4DlDOIWnI5YyKDNMoNThsmwEpfHx6a1EpsGZ9qYLxP++LMlmBRjtGptGHFsGItJ768snllFWpA==
   dependencies:
     type-detect "4.0.8"
 
@@ -448,7 +416,6 @@ assert-plus@1.0.0, assert-plus@^1.0.0:
 assertion-error@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/assertion-error/-/assertion-error-1.1.0.tgz#e60b6b0e8f301bd97e5375215bda406c85118c0b"
-  integrity sha512-jgsaNduz+ndvGyFt3uSuWqvy4lCnIJiovtouQN5JZHOKCS2QuhEdbcQHFhVksz2N2U9hXJo8odG7ETyWlEeuDw==
 
 assign-symbols@^1.0.0:
   version "1.0.0"
@@ -812,7 +779,6 @@ center-align@^0.1.1:
 chai@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/chai/-/chai-4.2.0.tgz#760aa72cf20e3795e84b12877ce0e83737aa29e5"
-  integrity sha512-XQU3bhBukrOsQCuwZndwGcCVQHyZi53fQ6Ys1Fym7E4olpIqqZZhhoFJoaKVvV17lWQoXYwgWN2nF5crA8J2jw==
   dependencies:
     assertion-error "^1.1.0"
     check-error "^1.0.2"
@@ -850,7 +816,6 @@ chardet@^0.7.0:
 check-error@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/check-error/-/check-error-1.0.2.tgz#574d312edd88bb5dd8912e9286dd6c0aed4aac82"
-  integrity sha1-V00xLt2Iu13YkS6Sht1sCu1KrII=
 
 chokidar@^2.0.0:
   version "2.0.4"
@@ -1068,7 +1033,6 @@ contains-path@^0.1.0:
 conventional-changelog-angular@^5.0.2:
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/conventional-changelog-angular/-/conventional-changelog-angular-5.0.2.tgz#39d945635e03b6d0c9d4078b1df74e06163dc66a"
-  integrity sha512-yx7m7lVrXmt4nKWQgWZqxSALEiAKZhOAcbxdUaU9575mB0CzXVbgrgpfSnSP7OqWDUTYGD0YVJ0MSRdyOPgAwA==
   dependencies:
     compare-func "^1.3.1"
     q "^1.5.1"
@@ -1076,14 +1040,12 @@ conventional-changelog-angular@^5.0.2:
 conventional-changelog-atom@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/conventional-changelog-atom/-/conventional-changelog-atom-2.0.1.tgz#dc88ce650ffa9ceace805cbe70f88bfd0cb2c13a"
-  integrity sha512-9BniJa4gLwL20Sm7HWSNXd0gd9c5qo49gCi8nylLFpqAHhkFTj7NQfROq3f1VpffRtzfTQp4VKU5nxbe2v+eZQ==
   dependencies:
     q "^1.5.1"
 
 conventional-changelog-cli@^2.0.11:
   version "2.0.11"
   resolved "https://registry.yarnpkg.com/conventional-changelog-cli/-/conventional-changelog-cli-2.0.11.tgz#18210bfcd61660140e3160e6d00d68abe260e493"
-  integrity sha512-00Z4EZfpuQxvStA5fjJXdixXCtRd5/AUMUOhYKOomhH3cRFqzF/P0MP8vavT9wnGkR0eba9mrWsMuqeVszPRxQ==
   dependencies:
     add-stream "^1.0.0"
     conventional-changelog "^3.0.5"
@@ -1094,14 +1056,12 @@ conventional-changelog-cli@^2.0.11:
 conventional-changelog-codemirror@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/conventional-changelog-codemirror/-/conventional-changelog-codemirror-2.0.1.tgz#acc046bc0971460939a0cc2d390e5eafc5eb30da"
-  integrity sha512-23kT5IZWa+oNoUaDUzVXMYn60MCdOygTA2I+UjnOMiYVhZgmVwNd6ri/yDlmQGXHqbKhNR5NoXdBzSOSGxsgIQ==
   dependencies:
     q "^1.5.1"
 
 conventional-changelog-core@^3.1.5:
   version "3.1.5"
   resolved "https://registry.yarnpkg.com/conventional-changelog-core/-/conventional-changelog-core-3.1.5.tgz#c2edf928539308b54fe1b90a2fc731abc021852c"
-  integrity sha512-iwqAotS4zk0wA4S84YY1JCUG7X3LxaRjJxuUo6GI4dZuIy243j5nOg/Ora35ExT4DOiw5dQbMMQvw2SUjh6moQ==
   dependencies:
     conventional-changelog-writer "^4.0.2"
     conventional-commits-parser "^3.0.1"
@@ -1120,35 +1080,30 @@ conventional-changelog-core@^3.1.5:
 conventional-changelog-ember@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/conventional-changelog-ember/-/conventional-changelog-ember-2.0.2.tgz#284ffdea8c83ea8c210b65c5b4eb3e5cc0f4f51a"
-  integrity sha512-qtZbA3XefO/n6DDmkYywDYi6wDKNNc98MMl2F9PKSaheJ25Trpi3336W8fDlBhq0X+EJRuseceAdKLEMmuX2tg==
   dependencies:
     q "^1.5.1"
 
 conventional-changelog-eslint@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/conventional-changelog-eslint/-/conventional-changelog-eslint-3.0.1.tgz#f65e0e7f63dc09c044244b8785313a602e628002"
-  integrity sha512-yH3+bYrtvgKxSFChUBQnKNh9/U9kN2JElYBm253VpYs5wXhPHVc9ENcuVGWijh24nnOkei7wEJmnmUzgZ4ok+A==
   dependencies:
     q "^1.5.1"
 
 conventional-changelog-express@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/conventional-changelog-express/-/conventional-changelog-express-2.0.1.tgz#fea2231d99a5381b4e6badb0c1c40a41fcacb755"
-  integrity sha512-G6uCuCaQhLxdb4eEfAIHpcfcJ2+ao3hJkbLrw/jSK/eROeNfnxCJasaWdDAfFkxsbpzvQT4W01iSynU3OoPLIw==
   dependencies:
     q "^1.5.1"
 
 conventional-changelog-jquery@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/conventional-changelog-jquery/-/conventional-changelog-jquery-3.0.4.tgz#7eb598467b83db96742178e1e8d68598bffcd7ae"
-  integrity sha512-IVJGI3MseYoY6eybknnTf9WzeQIKZv7aNTm2KQsiFVJH21bfP2q7XVjfoMibdCg95GmgeFlaygMdeoDDa+ZbEQ==
   dependencies:
     q "^1.5.1"
 
 conventional-changelog-jshint@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/conventional-changelog-jshint/-/conventional-changelog-jshint-2.0.1.tgz#11c0e8283abf156a4ff78e89be6fdedf9bd72202"
-  integrity sha512-kRFJsCOZzPFm2tzRHULWP4tauGMvccOlXYf3zGeuSW4U0mZhk5NsjnRZ7xFWrTFPlCLV+PNmHMuXp5atdoZmEg==
   dependencies:
     compare-func "^1.3.1"
     q "^1.5.1"
@@ -1156,12 +1111,10 @@ conventional-changelog-jshint@^2.0.1:
 conventional-changelog-preset-loader@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/conventional-changelog-preset-loader/-/conventional-changelog-preset-loader-2.0.2.tgz#81d1a07523913f3d17da3a49f0091f967ad345b0"
-  integrity sha512-pBY+qnUoJPXAXXqVGwQaVmcye05xi6z231QM98wHWamGAmu/ghkBprQAwmF5bdmyobdVxiLhPY3PrCfSeUNzRQ==
 
 conventional-changelog-writer@^4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/conventional-changelog-writer/-/conventional-changelog-writer-4.0.2.tgz#eb493ed84269e7a663da36e49af51c54639c9a67"
-  integrity sha512-d8/FQY/fix2xXEBUhOo8u3DCbyEw3UOQgYHxLsPDw+wHUDma/GQGAGsGtoH876WyNs32fViHmTOUrgRKVLvBug==
   dependencies:
     compare-func "^1.3.1"
     conventional-commits-filter "^2.0.1"
@@ -1177,7 +1130,6 @@ conventional-changelog-writer@^4.0.2:
 conventional-changelog@^3.0.5:
   version "3.0.5"
   resolved "https://registry.yarnpkg.com/conventional-changelog/-/conventional-changelog-3.0.5.tgz#660a61c1c5c9c9ba967ff3d2f5e7e9d7e0680be6"
-  integrity sha512-JYSVGJbnOl9S2gkZwmoJ+wX2gxNVHodUmEiv+eIykeJBNX0zN5vJ3oa2xCvk2HiF7TZ+Les0eq/aX49dcymONA==
   dependencies:
     conventional-changelog-angular "^5.0.2"
     conventional-changelog-atom "^2.0.1"
@@ -1193,7 +1145,6 @@ conventional-changelog@^3.0.5:
 conventional-commits-filter@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/conventional-commits-filter/-/conventional-commits-filter-2.0.1.tgz#55a135de1802f6510b6758e0a6aa9e0b28618db3"
-  integrity sha512-92OU8pz/977udhBjgPEbg3sbYzIxMDFTlQT97w7KdhR9igNqdJvy8smmedAAgn4tPiqseFloKkrVfbXCVd+E7A==
   dependencies:
     is-subset "^0.1.1"
     modify-values "^1.0.0"
@@ -1201,7 +1152,6 @@ conventional-commits-filter@^2.0.1:
 conventional-commits-parser@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/conventional-commits-parser/-/conventional-commits-parser-3.0.1.tgz#fe1c49753df3f98edb2285a5e485e11ffa7f2e4c"
-  integrity sha512-P6U5UOvDeidUJ8ebHVDIoXzI7gMlQ1OF/id6oUvp8cnZvOXMt1n8nYl74Ey9YMn0uVQtxmCtjPQawpsssBWtGg==
   dependencies:
     JSONStream "^1.0.4"
     is-text-path "^1.0.0"
@@ -1377,7 +1327,6 @@ decode-uri-component@^0.2.0:
 deep-eql@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/deep-eql/-/deep-eql-3.0.1.tgz#dfc9404400ad1c8fe023e7da1df1c147c4b444df"
-  integrity sha512-+QeIQyN5ZuO+3Uk5DYh6/1eKO0m0YmJFGNmFHGACpf1ClL1nmlV/p4gNgbl2pJGxgXb4faqo6UE+M5ACEMyVcw==
   dependencies:
     type-detect "^4.0.0"
 
@@ -1566,7 +1515,6 @@ electron-builder@^20.28.4:
 electron-chromedriver@~3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/electron-chromedriver/-/electron-chromedriver-3.0.0.tgz#ec0a17badb6c3529813c660bf91a43fb91407674"
-  integrity sha512-xWivZRiPTtDFJt+qXv7Ax/Dmhxj0iqESOxoLZ2szu3fv6k1vYDUDJUMHfdfVAke9D2gBRIgChuGb5j3YEt6hxQ==
   dependencies:
     electron-download "^4.1.0"
     extract-zip "^1.6.5"
@@ -1656,25 +1604,9 @@ electron-window@^0.8.0:
   dependencies:
     is-electron-renderer "^2.0.0"
 
-electron-windows-notifications@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/electron-windows-notifications/-/electron-windows-notifications-3.0.1.tgz#33b0b7caef3adbe8bbea1ac2bd3ac2d434af4b3b"
-  dependencies:
-    "@nodert-win10-cu/windows.applicationmodel" "^0.3.2"
-    "@nodert-win10-cu/windows.data.xml.dom" "^0.3.2"
-    "@nodert-win10-cu/windows.foundation" "^0.3.2"
-    "@nodert-win10-cu/windows.ui.notifications" "^0.3.2"
-    "@nodert-win10-cu/windows.ui.startscreen" "^0.3.2"
-    debug "^4.0.1"
-    is-electron-renderer "^2.0.1"
-    sanitize-xml-string "^1.1.0"
-    uuid "^3.3.2"
-    xml-escape "^1.1.0"
-
 electron@^2.0.14:
   version "2.0.14"
   resolved "https://registry.yarnpkg.com/electron/-/electron-2.0.14.tgz#fad6766645e7c0cd10b4ae822d3167959735a870"
-  integrity sha512-8HLVZuscZxVhoMUL6RlF5kMcwGUAMWw5HNwrEmRgzZyBIBbdCO4aMo9z0qknnPTUDROz8xXZFNhFvBXDu61g5Q==
   dependencies:
     "@types/node" "^8.0.24"
     electron-download "^3.0.1"
@@ -1792,7 +1724,6 @@ eslint-visitor-keys@^1.0.0:
 eslint@^5.9.0:
   version "5.9.0"
   resolved "https://registry.yarnpkg.com/eslint/-/eslint-5.9.0.tgz#b234b6d15ef84b5849c6de2af43195a2d59d408e"
-  integrity sha512-g4KWpPdqN0nth+goDNICNXGfJF7nNnepthp46CAlJoJtC5K/cLu3NgCM3AHu1CkJ5Hzt9V0Y0PBAO6Ay/gGb+w==
   dependencies:
     "@babel/code-frame" "^7.0.0"
     ajv "^6.5.3"
@@ -2237,7 +2168,6 @@ fs-extra@^6.0.1:
 fs-jetpack@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/fs-jetpack/-/fs-jetpack-2.2.0.tgz#4385b42b728a3400f00f4afe6ecabc72543cc72d"
-  integrity sha512-d/fqY4pRhtKPEDyMz3sfx4ZBeWY6fV9b0E07fvI/k2oHwOYfFzCGe6yYuIHea7568dqIb1oEzzsGpZFQwGq+7Q==
   dependencies:
     minimatch "^3.0.2"
 
@@ -2330,7 +2260,6 @@ getpass@^0.1.1:
 git-raw-commits@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/git-raw-commits/-/git-raw-commits-2.0.0.tgz#d92addf74440c14bcc5c83ecce3fb7f8a79118b5"
-  integrity sha512-w4jFEJFgKXMQJ0H0ikBk2S+4KP2VEjhCvLCNqbNRQC8BgGWgLKNCO7a9K9LI+TVT7Gfoloje502sEnctibffgg==
   dependencies:
     dargs "^4.0.1"
     lodash.template "^4.0.2"
@@ -2348,7 +2277,6 @@ git-remote-origin-url@^2.0.0:
 git-semver-tags@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/git-semver-tags/-/git-semver-tags-2.0.2.tgz#f506ec07caade191ac0c8d5a21bdb8131b4934e3"
-  integrity sha512-34lMF7Yo1xEmsK2EkbArdoU79umpvm0MfzaDkSNYSJqtM5QLAVTPWgpiXSVI5o/O9EvZPSrP4Zvnec/CqhSd5w==
   dependencies:
     meow "^4.0.0"
     semver "^5.5.0"
@@ -2963,7 +2891,7 @@ is-dotfile@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/is-dotfile/-/is-dotfile-1.0.3.tgz#a6a2f32ffd2dfb04f5ca25ecd0f6b83cf798a1e1"
 
-is-electron-renderer@^2.0.0, is-electron-renderer@^2.0.1:
+is-electron-renderer@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/is-electron-renderer/-/is-electron-renderer-2.0.1.tgz#a469d056f975697c58c98c6023eb0aa79af895a2"
 
@@ -3579,7 +3507,6 @@ lodash.uniq@^4.3.0:
 lodash@^4.17.10, lodash@^4.17.11, lodash@^4.17.4, lodash@^4.17.5, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.8.0, lodash@~4.17.10:
   version "4.17.11"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
-  integrity sha512-cQKh8igo5QUhZ7lg38DYWAxMvjSAKG0A8wGSVimP07SIUEK2UO+arSRKbRZWtelMtN5V0Hkwh5ryOto/SshYIg==
 
 lodash@~1.0.1:
   version "1.0.2"
@@ -3878,7 +3805,7 @@ nan@^2.0.0, nan@^2.10.0, nan@^2.9.2:
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.11.0.tgz#574e360e4d954ab16966ec102c0c049fd961a099"
 
-nan@^2.0.9, nan@latest:
+nan@^2.0.9:
   version "2.11.1"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.11.1.tgz#90e22bccb8ca57ea4cd37cc83d3819b52eea6766"
 
@@ -3901,7 +3828,6 @@ nanomatch@^1.2.9:
 natives@^1.1.0:
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/natives/-/natives-1.1.6.tgz#a603b4a498ab77173612b9ea1acdec4d980f00bb"
-  integrity sha512-6+TDFewD4yxY14ptjKaS63GVdtKiES1pTPyxn9Jb0rBqPMZ7VcCiooEhPNsr+mqHtMGxa/5c/HhcC4uPEUw/nA==
 
 natural-compare@^1.4.0:
   version "1.4.0"
@@ -3922,7 +3848,6 @@ nice-try@^1.0.4:
 nise@^1.4.6:
   version "1.4.6"
   resolved "https://registry.yarnpkg.com/nise/-/nise-1.4.6.tgz#76cc3915925056ae6c405dd8ad5d12bde570c19f"
-  integrity sha512-1GedetLKzmqmgwabuMSqPsT7oumdR77SBpDfNNJhADRIeA3LN/2RVqR4fFqwvzhAqcTef6PPCzQwITE/YQ8S8A==
   dependencies:
     "@sinonjs/formatio" "3.0.0"
     just-extend "^3.0.0"
@@ -4337,7 +4262,6 @@ path-type@^3.0.0:
 pathval@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/pathval/-/pathval-1.1.0.tgz#b942e6d4bde653005ef6b71361def8727d0645e0"
-  integrity sha1-uULm1L3mUwBe9rcTYd74cn0GReA=
 
 pause-stream@^0.0.11:
   version "0.0.11"
@@ -4839,7 +4763,6 @@ rollup-pluginutils@^2.0.1, rollup-pluginutils@^2.3.1:
 rollup@^0.67.3:
   version "0.67.3"
   resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.67.3.tgz#55475b1b62c43220c3b4bd7edc5846233932f50b"
-  integrity sha512-TyNQCz97rKuVVbsKUTXfwIjV7UljWyTVd7cTMuE+aqlQ7WJslkYF5QaYGjMLR2BlQtUOO5CAxSVnpQ55iYp5jg==
   dependencies:
     "@types/estree" "0.0.39"
     "@types/node" "*"
@@ -4893,10 +4816,6 @@ sanitize-filename@^1.6.1:
   resolved "https://registry.yarnpkg.com/sanitize-filename/-/sanitize-filename-1.6.1.tgz#612da1c96473fa02dccda92dcd5b4ab164a6772a"
   dependencies:
     truncate-utf8-bytes "^1.0.0"
-
-sanitize-xml-string@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/sanitize-xml-string/-/sanitize-xml-string-1.1.0.tgz#dd86686069ce102b4954912d9c7982037b928768"
 
 sax@>=0.1.1, sax@^1.2.4:
   version "1.2.4"
@@ -4978,7 +4897,6 @@ single-line-log@^1.1.2:
 sinon@^7.1.1:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/sinon/-/sinon-7.1.1.tgz#1202f317aa14d93cb9b69ff50b6bd49c0e05ffc9"
-  integrity sha512-iYagtjLVt1vN3zZY7D8oH7dkjNJEjLjyuzy8daX5+3bbQl8gaohrheB9VfH1O3L6LKuue5WTJvFluHiuZ9y3nQ==
   dependencies:
     "@sinonjs/commons" "^1.2.0"
     "@sinonjs/formatio" "^3.0.0"
@@ -5091,7 +5009,6 @@ spdx-license-ids@^3.0.0:
 spectron@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/spectron/-/spectron-5.0.0.tgz#602440da0c892f8d73471652ae68000b98d7769c"
-  integrity sha512-wJrFe8EZ7xvarYawBPd1pDegmSz81U1jG0rSCx+yXqD1TISUH9ASB21KysLXkPylAnc2vhbpGiWQxrqVFtsiJg==
   dependencies:
     dev-null "^0.1.1"
     electron-chromedriver "~3.0.0"
@@ -5420,7 +5337,6 @@ timed-out@^4.0.0:
 tmp@^0.0.33:
   version "0.0.33"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.0.33.tgz#6d34335889768d21b2bcda0aa277ced3b1bfadf9"
-  integrity sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==
   dependencies:
     os-tmpdir "~1.0.2"
 
@@ -5506,7 +5422,6 @@ type-check@~0.3.2:
 type-detect@4.0.8, type-detect@^4.0.0, type-detect@^4.0.5, type-detect@^4.0.8:
   version "4.0.8"
   resolved "https://registry.yarnpkg.com/type-detect/-/type-detect-4.0.8.tgz#7646fb5f18871cfbb7749e69bd39a6388eb7450c"
-  integrity sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==
 
 typedarray@^0.0.6:
   version "0.0.6"
@@ -5728,7 +5643,6 @@ wdio-dot-reporter@~0.0.8:
 webdriverio@^4.13.0:
   version "4.14.0"
   resolved "https://registry.yarnpkg.com/webdriverio/-/webdriverio-4.14.0.tgz#f8a48d03abc70c87d7d17b59bd3f45a322927e0c"
-  integrity sha512-642Iqp9en2hvuVINkTfQvWoQCaLb6zJyLHgQFUFLx7s+8l8GnrHzMjkv5DbecZHwnBkhybpphbTW7k0B2ARH5A==
   dependencies:
     archiver "~2.1.0"
     babel-runtime "^6.26.0"
@@ -5827,10 +5741,6 @@ write@^0.2.1:
 xdg-basedir@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/xdg-basedir/-/xdg-basedir-3.0.0.tgz#496b2cc109eca8dbacfe2dc72b603c17c5870ad4"
-
-xml-escape@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/xml-escape/-/xml-escape-1.1.0.tgz#3904c143fa8eb3a0030ec646d2902a2f1b706c44"
 
 xml2js@0.1.14:
   version "0.1.14"

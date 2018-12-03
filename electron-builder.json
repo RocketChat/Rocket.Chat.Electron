@@ -10,7 +10,6 @@
     "servers.json"
   ],
   "appId": "chat.rocket",
-  "afterPack": "./build/afterPack.js",
   "mac": {
     "category": "public.app-category.productivity",
     "target": [

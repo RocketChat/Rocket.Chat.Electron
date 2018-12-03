@@ -1,5 +1,4 @@
 import { app, ipcMain, Notification } from 'electron';
-import { ToastNotification } from 'electron-windows-notifications';
 import freedesktopNotifications from 'freedesktop-notifications';
 import os from 'os';
 import path from 'path';
@@ -7,25 +6,25 @@ import path from 'path';
 
 class BaseNotification {
 	constructor(options = {}) {
-		this.initialize(options);
 		this.handleShow = this.handleShow.bind(this);
 		this.handleClick = this.handleClick.bind(this);
 		this.handleClose = this.handleClose.bind(this);
+		this.initialize(options);
 	}
 
 	handleShow() {
 		const { id, eventTarget } = this;
-		eventTarget && eventTarget.send('notification-shown', id);
+		eventTarget && !eventTarget.isDestroyed() && eventTarget.send('notification-shown', id);
 	}
 
 	handleClick() {
 		const { id, eventTarget } = this;
-		eventTarget && eventTarget.send('notification-clicked', id);
+		eventTarget && !eventTarget.isDestroyed() && eventTarget.send('notification-clicked', id);
 	}
 
 	handleClose() {
 		const { id, eventTarget } = this;
-		eventTarget && eventTarget.send('notification-closed', id);
+		eventTarget && !eventTarget.isDestroyed() && eventTarget.send('notification-closed', id);
 	}
 
 	initialize(/* options = {} */) {}
@@ -61,51 +60,6 @@ class ElectronNotification extends BaseNotification {
 
 	close() {
 		this.notification.close();
-	}
-}
-
-
-class WindowsToastNotification extends BaseNotification {
-	initialize({ title, body, icon, silent, tag } = {}) {
-		const strings = [
-			title && (title.length > 100 ? `${ title.substring(0, 100 - 3) }...` : title),
-			body && (body.length > 1000 ? `${ body.substring(0, 1000 - 3) }...` : body),
-			icon,
-		].filter(Boolean);
-
-		this.notification = new ToastNotification({
-			template: `
-			<toast>
-				<visual>
-					<binding template="ToastGeneric">
-					${ title ? '<text>%s</text>' : '' }
-					${ body ? '<text>%s</text>' : '' }
-					${ icon ? '<image placement="AppLogoOverride" src="%s" />' : '' }
-					</binding>
-				</visual>
-				${ silent ? '<audio silent="true" />' : '' }
-			</toast>`,
-			strings,
-			tag: tag ? `${ tag }` : undefined,
-			appId: 'chat.rocket',
-		});
-
-		this.notification.on('activated', this.handleClick);
-		this.notification.on('dismissed', this.handleClose);
-	}
-
-	reset(options = {}) {
-		this.notification.removeAllListeners();
-		this.initialize(options);
-	}
-
-	show() {
-		this.notification.show();
-		this.handleShow();
-	}
-
-	close() {
-		this.notification.hide();
 	}
 }
 
@@ -164,10 +118,6 @@ class FreeDesktopNotification extends BaseNotification {
 const ImplementatedNotification = (() => {
 	if (os.platform() === 'linux') {
 		return FreeDesktopNotification;
-	}
-
-	if (os.platform() === 'win32' && os.release().split('.').slice(0, 2).join('.') !== '6.1') {
-		return WindowsToastNotification;
 	}
 
 	return ElectronNotification;

@@ -74,9 +74,6 @@ ipcRenderer.on('notification-closed', (event, id) => {
 		return;
 	}
 
-	ipcRenderer.send('focus');
-	ipcRenderer.sendToHost('focus');
-
 	typeof notification.onclose === 'function' && notification.onclose.call(notification);
 	notification.emit('close');
 });

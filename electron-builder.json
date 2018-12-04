@@ -19,7 +19,7 @@
       "mas"
     ],
     "icon": "build/icon.icns",
-    "bundleVersion": "42",
+    "bundleVersion": "43",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
     "artifactName": "rocketchat-${version}.${ext}"
@@ -54,17 +54,7 @@
       "nsis",
       "appx"
     ],
-    "icon": "build/icon.ico",
-    "extraFiles": [
-      {
-        "from": "build/concrt140.dll",
-        "to": "concrt140.dll"
-      },
-      {
-        "from": "build/vccorlib140.dll",
-        "to": "vccorlib140.dll"
-      }
-    ]
+    "icon": "build/icon.ico"
   },
   "nsis": {
     "oneClick": false,

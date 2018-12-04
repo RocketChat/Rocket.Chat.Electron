@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const checker = require('spellchecker');
 const { clipboard, remote, shell, webFrame } = require('electron');
-const { MenuItem, dialog } = remote;
 const i18n = require('../../i18n/index');
 
 const { app, dialog, getCurrentWebContents, getCurrentWindow, Menu, MenuItem } = remote;

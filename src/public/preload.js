@@ -85,8 +85,8 @@ window.addEventListener('load', () => {
 
 		const { href } = anchorElement;
 
-		// Check href matching current domain
-		if (RegExp(`^${ location.protocol }\/\/${ location.host }`).test(href)) {
+		// Check href matching Rochet.Chat URL
+		if (RegExp(`^${ Meteor.absoluteUrl() }`).test(href)) {
 			return;
 		}
 

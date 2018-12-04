@@ -1,5 +1,4 @@
 /node_modules
 /app
-/src/public/lib/bugsnag.js
 /src/public/vendor/*
 /scripts/istanbul-reporter.js

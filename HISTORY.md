@@ -1,3 +1,70 @@
+<a name="2.14.5"></a>
+## 2.14.5 (2018-12-04)
+
+
+### Improvements
+
+- [#1010](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1010) Remove unused modules
+
+
+### Bug Fixes
+
+- [#1026](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1026) Add additional condition for option "Show on unread"
+- [#1005](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1005) Disable FreeDesktopNotification actions for Unity desktop
+- [#1025](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1025) Remove dependencies related to the npm's event-stream incident
+- [#1019](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1019) Rollback notifications for Windows
+
+
+
+<a name="2.14.4"></a>
+## 2.14.4 (2018-11-21)
+
+
+### Bug Fixes
+
+- [#1001](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1001) Check for updates response when an error occurs
+- [#978](https://github.com/RocketChat/Rocket.Chat.Electron/pull/978) Fallback notifications for Windows 7
+- [#1000](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1000) Notification errors
+- [#990](https://github.com/RocketChat/Rocket.Chat.Electron/pull/990) Speed up servers.json loading
+
+
+<details>
+<summary>Others</summary>
+
+- [#987](https://github.com/RocketChat/Rocket.Chat.Electron/pull/987) Update Russian translation
+</details>
+
+
+
+<a name="2.14.3"></a>
+## 2.14.3 (2018-11-14)
+
+
+### Bug Fixes
+
+- [#978](https://github.com/RocketChat/Rocket.Chat.Electron/pull/978) Fallback notifications for Windows 7
+
+
+
+<a name="2.14.2"></a>
+## 2.14.2 (2018-11-13)
+
+
+### Bug Fixes
+
+- [#960](https://github.com/RocketChat/Rocket.Chat.Electron/pull/960) Dictionaries path detection in spell checker
+- [#967](https://github.com/RocketChat/Rocket.Chat.Electron/pull/967) Main window closing behavior for Linux
+- [#969](https://github.com/RocketChat/Rocket.Chat.Electron/pull/969) Notifications redesigned
+- [#949](https://github.com/RocketChat/Rocket.Chat.Electron/pull/949) Reset app data under Windows
+- [#959](https://github.com/RocketChat/Rocket.Chat.Electron/pull/959) System tray, dock, task bar and main window issues
+
+
+### Improvements
+
+- [#968](https://github.com/RocketChat/Rocket.Chat.Electron/pull/968) Node 11 support
+
+
+
 <a name="2.14.1"></a>
 ## 2.14.1 (2018-10-25)
 
@@ -17,7 +84,6 @@
 
 - [#936](https://github.com/RocketChat/Rocket.Chat.Electron/pull/936) Autoupdate in MacOS
 - [#927](https://github.com/RocketChat/Rocket.Chat.Electron/pull/927) Disable autoupdates
-- [#931](https://github.com/RocketChat/Rocket.Chat.Electron/pull/931) Main window's visibility toggling in tray window
 - [#938](https://github.com/RocketChat/Rocket.Chat.Electron/pull/938) Move about menu item for MacOS
 - [#926](https://github.com/RocketChat/Rocket.Chat.Electron/pull/926) Preload issues
 - [#922](https://github.com/RocketChat/Rocket.Chat.Electron/pull/922) Server icon not displayed on sidebar if server url ending with a trailing slash

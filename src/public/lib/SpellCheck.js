@@ -325,7 +325,7 @@ class SpellCheck {
 	}
 
 	setupContextMenuListener() {
-		window.addEventListener('contextmenu', (event) => {
+		webContents.on('context-menu', (event, properties) => {
 			event.preventDefault();
 
 			const template = this.createMenuTemplate();
@@ -338,26 +338,39 @@ class SpellCheck {
 				template.unshift(this.languagesMenu);
 			}
 
+			if (properties.mediaType === 'image') {
+				template.unshift({
+					type: 'separator',
+				}, {
+					label: i18n.__('Save_Image'),
+					click: () => {
+						webContents.downloadURL(properties.srcURL);
+					},
+				});
+			}
+
 			setTimeout(() => {
-				if (event.target.nodeName === 'A') {
-					const targetLink = event.target.href;
+				if (properties.linkURL !== '') {
+					const targetLink = properties.linkURL;
 
 					template.unshift({
 						label: i18n.__('Open_Link'),
 						click: () => {
 							shell.openExternal(targetLink);
 						},
-					});
-					template.unshift({
+					}, {
 						label: i18n.__('Copy_Link'),
 						click: () => {
-							clipboard.writeText(targetLink);
+							clipboard.write({
+								text: properties.linkURL,
+								bookmark: properties.linkText,
+							});
 						},
 					});
 				}
 
-				if (['TEXTAREA', 'INPUT'].indexOf(event.target.nodeName) > -1) {
-					const text = window.getSelection().toString().trim();
+				if (properties.isEditable && properties.selectionText !== '') {
+					const text = properties.selectionText.toString().trim();
 					if (text !== '' && !this.isCorrect(text)) {
 						const options = this.getCorrections(text);
 						const maxItems = Math.min(options.length, 6);

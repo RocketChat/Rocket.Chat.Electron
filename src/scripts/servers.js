@@ -78,14 +78,12 @@ class Servers extends EventEmitter {
 			const { app } = remote;
 			const userDir = jetpack.cwd(app.getPath('userData'));
 			const appDir = jetpack.cwd(jetpack.path(app.getAppPath(), app.getAppPath().endsWith('.asar') ? '..' : '.'));
-			const path = userDir.find({ matching: 'servers.json', recursive: false })[0] ||
-				appDir.find({ matching: 'servers.json', recursive: false })[0];
+			const path = (userDir.find({ matching: 'servers.json', recursive: false })[0] && userDir.path('servers.json')) ||
+				(appDir.find({ matching: 'servers.json', recursive: false })[0] && appDir.path('servers.json'));
 
 			if (path) {
-				const pathToServerJson = jetpack.path(path);
-
 				try {
-					const result = jetpack.read(pathToServerJson, 'json');
+					const result = jetpack.read(path, 'json');
 					if (result) {
 						hosts = {};
 						Object.keys(result).forEach((title) => {

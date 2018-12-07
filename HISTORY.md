@@ -1,3 +1,14 @@
+<a name="2.14.6"></a>
+## 2.14.6 (2018-12-06)
+
+
+### Bug Fixes
+
+- Add strings specifying why some permissions are needed in MacOS
+- Fix servers.json path resolution
+
+
+
 <a name="2.14.5"></a>
 ## 2.14.5 (2018-12-04)
 

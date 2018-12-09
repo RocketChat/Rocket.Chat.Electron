@@ -3,6 +3,7 @@ import querystring from 'querystring';
 import url from 'url';
 import idle from '@paulcbetts/system-idle-time';
 
+import './background/aboutDialog';
 import appData from './background/appData';
 import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
@@ -15,7 +16,6 @@ import tray from './background/tray';
 
 import i18n from './i18n/index.js';
 
-export { default as showAboutDialog } from './background/aboutDialog';
 export { default as remoteServers } from './background/servers';
 export { certificate, dock, menus, tray };
 

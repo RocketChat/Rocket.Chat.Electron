@@ -1,15 +1,15 @@
-import { remote } from 'electron';
+import { remote, ipcRenderer } from 'electron';
 import servers from './servers';
 import sidebar from './sidebar';
 import webview from './webview';
 
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, dock, menus, showAboutDialog, tray } = remote.require('./background');
+const { certificate, dock, menus, tray } = remote.require('./background');
 
 export default () => {
 	menus.on('quit', () => app.quit());
-	menus.on('about', () => showAboutDialog());
+	menus.on('about', () => ipcRenderer.send('open-about-dialog'));
 	menus.on('open-url', (url) => shell.openExternal(url));
 
 

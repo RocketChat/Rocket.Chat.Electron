@@ -13,6 +13,7 @@ import menus from './background/menus';
 import './background/notifications';
 import './background/screenshare';
 import tray from './background/tray';
+import './background/updateDialog';
 
 import i18n from './i18n/index.js';
 

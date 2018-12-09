@@ -1,0 +1,67 @@
+.update-page {
+	display: flex;
+	flex-direction: column;
+	padding: 0.25rem 0.75rem;
+	min-height: 100vh;
+	background-color: @secondary-background-color;
+	color: @primary-font-color;
+	cursor: default;
+	user-select: none;
+
+	.update-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+
+		.update-title {
+			font-size: 1.5rem;
+			line-height: normal;
+			margin: 0 0 1rem 0;
+		}
+
+		.update-message {
+			line-height: normal;
+			margin: 0 0 1rem 0;
+		}
+
+		.update-info {
+			display: flex;
+			align-items: center;
+
+			.app-version {
+				flex: 1;
+				margin: 1rem;
+				white-space: nowrap;
+				line-height: normal;
+				text-align: center;
+
+				.app-version-value {
+					font-weight: bold;
+					font-size: 1.5rem;
+				}
+			}
+
+			.update-arrow {
+				flex: 1;
+				margin: 1rem;
+				font-size: 2rem;
+			}
+
+			.current-version {
+				color: @secondary-font-color;
+			}
+		}
+	}
+
+	.update-actions {
+		flex: 0;
+		display: flex;
+		justify-content: flex-end;
+
+		.button:first-of-type {
+			margin-right: auto;
+		}
+	}
+}

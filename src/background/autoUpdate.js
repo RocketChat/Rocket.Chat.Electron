@@ -1,4 +1,4 @@
-import { app, dialog, ipcMain, BrowserWindow } from 'electron';
+import { app, dialog, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';
 import { getMainWindow } from './mainWindow';
@@ -110,56 +110,37 @@ function updateAvailable({ version }) {
 		return;
 	}
 
-	let window = new BrowserWindow({
-		title: i18n.__('Update_Available'),
-		width: 600,
-		height: 330,
-		show : false,
-		center: true,
-		resizable: false,
-		maximizable: false,
-		minimizable: false,
-	});
-
-	window.loadURL(`file://${ __dirname }/public/update.html`);
-	window.setMenuBarVisibility(false);
-
-	window.webContents.on('did-finish-load', () => {
-		window.webContents.send('new-version', version);
-		window.show();
-	});
-
-	ipcMain.once('update-response', (e, type) => {
-		switch (type) {
-			case 'skip':
-				userUpdateSettings.skip = version;
-				saveUpdateSettings();
-				dialog.showMessageBox({
-					title: i18n.__('Update_skip'),
-					message: i18n.__('Update_skip_message'),
-				}, () => window.close());
-				break;
-			case 'remind':
-				dialog.showMessageBox({
-					title: i18n.__('Update_remind'),
-					message: i18n.__('Update_remind_message'),
-				}, () => window.close());
-				break;
-			case 'update':
-				dialog.showMessageBox({
-					title: i18n.__('Update_downloading'),
-					message: i18n.__('Update_downloading_message'),
-				}, () => window.close());
-				autoUpdater.downloadUpdate();
-				break;
-		}
-	});
-
-	window.on('closed', () => {
-		window = null;
-		ipcMain.removeAllListeners('update-response');
-	});
+	ipcMain.emit('close-about-dialog');
+	ipcMain.emit('open-update-dialog', { newVersion: version });
 }
+
+ipcMain.on('update-response', (e, { action, version }) => {
+	switch (action) {
+		case 'skip':
+			dialog.showMessageBox({
+				title: i18n.__('Update_skip'),
+				message: i18n.__('Update_skip_message'),
+			}, () => ipcMain.emit('close-update-dialog'));
+			userUpdateSettings.skip = version;
+			saveUpdateSettings();
+			break;
+
+		case 'remind':
+			dialog.showMessageBox({
+				title: i18n.__('Update_remind'),
+				message: i18n.__('Update_remind_message'),
+			}, () => ipcMain.emit('close-update-dialog'));
+			break;
+
+		case 'update':
+			dialog.showMessageBox({
+				title: i18n.__('Update_downloading'),
+				message: i18n.__('Update_downloading_message'),
+			}, () => ipcMain.emit('close-update-dialog'));
+			autoUpdater.downloadUpdate();
+			break;
+	}
+});
 
 autoUpdater.autoDownload = false;
 

@@ -34,7 +34,6 @@
     "electron-updater": "3.0.4",
     "freedesktop-notifications": "^1.2.3",
     "fs-jetpack": "^2.2.0",
-    "lodash": "^4.17.11",
     "spellchecker": "^3.5.0",
     "tmp": "^0.0.33"
   },

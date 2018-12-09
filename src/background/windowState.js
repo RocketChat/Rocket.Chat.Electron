@@ -1,6 +1,25 @@
 import { app, screen } from 'electron';
 import jetpack from 'fs-jetpack';
-import { debounce } from 'lodash';
+
+
+const debounce = (f, delay) => {
+	let call;
+	let timeout;
+
+
+	const ret = function(...args) {
+		call = () => f.apply(this, args);
+		clearTimeout(timeout);
+		timeout = setTimeout(call, delay);
+	};
+
+	ret.flush = () => {
+		clearTimeout(timeout);
+		call();
+	};
+
+	return ret;
+};
 
 export default (name, defaults) => {
 

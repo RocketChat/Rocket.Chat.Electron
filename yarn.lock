@@ -729,6 +729,7 @@ builder-util-runtime@8.0.2, builder-util-runtime@^8.0.2:
 builder-util-runtime@~4.4.1:
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/builder-util-runtime/-/builder-util-runtime-4.4.1.tgz#2770d03241e51fde46acacc7ed3ed8a9f45f02cb"
+  integrity sha512-8L2pbL6D3VdI1f8OMknlZJpw0c7KK15BRz3cY77AOUElc4XlCv2UhVV01jJM7+6Lx7henaQh80ALULp64eFYAQ==
   dependencies:
     bluebird-lst "^1.0.5"
     debug "^3.1.0"
@@ -1624,6 +1625,7 @@ electron-download@^4.1.0:
 electron-is-dev@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/electron-is-dev/-/electron-is-dev-0.3.0.tgz#14e6fda5c68e9e4ecbeff9ccf037cbd7c05c5afe"
+  integrity sha1-FOb9pcaOnk7L7/nM8DfL18BcWv4=
 
 electron-mocha@^6.0.4:
   version "6.0.4"
@@ -1663,6 +1665,7 @@ electron-publish@20.38.2:
 electron-updater@3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/electron-updater/-/electron-updater-3.0.4.tgz#de3f394038a29c5d06815a118279528b039db03f"
+  integrity sha512-/JDbjy7gjrB6LHGCswACKDynE/QWNs89NnyiWEF2xXr8FVp6v0k/3B3wQI6ux2oCJAvxr14+kpi+xz5wkWnkuQ==
   dependencies:
     bluebird-lst "^1.0.5"
     builder-util-runtime "~4.4.1"
@@ -2270,6 +2273,7 @@ fs-extra@^7.0.0:
 fs-jetpack@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/fs-jetpack/-/fs-jetpack-2.2.0.tgz#4385b42b728a3400f00f4afe6ecabc72543cc72d"
+  integrity sha512-d/fqY4pRhtKPEDyMz3sfx4ZBeWY6fV9b0E07fvI/k2oHwOYfFzCGe6yYuIHea7568dqIb1oEzzsGpZFQwGq+7Q==
   dependencies:
     minimatch "^3.0.2"
 
@@ -3661,7 +3665,7 @@ lodash.uniq@^4.3.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
 
-lodash@^4.17.10, lodash@^4.17.11, lodash@^4.17.4, lodash@^4.17.5, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.8.0, lodash@~4.17.10:
+lodash@^4.17.10, lodash@^4.17.4, lodash@^4.17.5, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.8.0, lodash@~4.17.10:
   version "4.17.11"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
 
@@ -5205,6 +5209,7 @@ source-map-resolve@^0.5.0, source-map-resolve@^0.5.2:
 source-map-support@^0.5.6, source-map-support@^0.5.9:
   version "0.5.9"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.9.tgz#41bc953b2534267ea2d605bccfa7bfa3111ced5f"
+  integrity sha512-gR6Rw4MvUlYy83vP0vxoVNzM6t8MUXqNuRsuBmBHQDu1Fh6X015FrLdgoDKcNdkwGubozq0P4N0Q37UyFVr1EA==
   dependencies:
     buffer-from "^1.0.0"
     source-map "^0.6.0"

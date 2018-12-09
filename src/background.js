@@ -5,7 +5,6 @@ import idle from '@paulcbetts/system-idle-time';
 
 import './background/aboutDialog';
 import appData from './background/appData';
-import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
 import dock from './background/dock';
 import { addServer, getMainWindow } from './background/mainWindow';
@@ -14,6 +13,7 @@ import './background/notifications';
 import './background/screenshare';
 import tray from './background/tray';
 import './background/updateDialog';
+import './background/updates';
 
 import i18n from './i18n/index.js';
 
@@ -96,7 +96,7 @@ if (gotTheLock) {
 		const mainWindow = await getMainWindow();
 		certificate.initWindow(mainWindow);
 
-		autoUpdate();
+		ipcMain.emit('check-for-updates');
 	});
 } else {
 	app.quit();

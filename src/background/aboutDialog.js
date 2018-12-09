@@ -33,7 +33,7 @@ const openAboutDialog = async() => {
 
 	aboutWindow.params = { appName: app.getName(), appVersion: app.getVersion() };
 
-	aboutWindow.loadFile(`${ __dirname }/public/aboutDialog.html`);
+	aboutWindow.loadFile(`${ __dirname }/public/about-dialog.html`);
 };
 
 const closeAboutDialog = () => {

@@ -6,8 +6,8 @@
 	<link rel="stylesheet" href="../stylesheets/main.css" />
 	<script>
 		window.addEventListener('load', () => {
-			const { remote: { app, getCurrentWindow }, ipcRenderer } = require('electron');
-			const { variables: { currentVersion, newVersion} } = getCurrentWindow();
+			const { remote: { dialog, getCurrentWindow }, ipcRenderer } = require('electron');
+			const { params: { currentVersion, newVersion} } = getCurrentWindow();
 			const i18n = require('../i18n/index');
 
 			document.title = i18n.__('Update_Available');
@@ -24,17 +24,44 @@
 
 			document.querySelector('.update-skip-action').addEventListener('click', (e) => {
 				e.preventDefault();
-				ipcRenderer.send('update-response', { action: 'skip', version: newVersion });
+				dialog.showMessageBox(getCurrentWindow(), {
+					type: 'warning',
+					title: i18n.__('Update_skip'),
+					message: i18n.__('Update_skip_message'),
+					buttons: [i18n.__('OK')],
+					defaultId: 0,
+				}, () => {
+					ipcRenderer.send('close-update-dialog');
+					ipcRenderer.send('skip-update-version', newVersion);
+				});
 			}, false);
 
-			document.querySelector('.update-remind-action').addEventListener('click', (e) => {
+			document.querySelector('.update-remind-later-action').addEventListener('click', (e) => {
 				e.preventDefault();
-				ipcRenderer.send('update-response', { action: 'remind', version: newVersion });
+				dialog.showMessageBox(getCurrentWindow(), {
+					type: 'info',
+					title: i18n.__('Update_remind'),
+					message: i18n.__('Update_remind_message'),
+					buttons: [i18n.__('OK')],
+					defaultId: 0,
+				}, () => {
+					ipcRenderer.send('close-update-dialog');
+					ipcRenderer.send('remind-update-later');
+				});
 			}, false);
 
 			document.querySelector('.update-install-action').addEventListener('click', (e) => {
 				e.preventDefault();
-				ipcRenderer.send('update-response', { action: 'install', version: newVersion });
+				dialog.showMessageBox(getCurrentWindow(), {
+					type: 'info',
+					title: i18n.__('Update_downloading'),
+					message: i18n.__('Update_downloading_message'),
+					buttons: [i18n.__('OK')],
+					defaultId: 0,
+				}, () => {
+						ipcRenderer.send('close-update-dialog');
+						ipcRenderer.send('download-update');
+				});
 			}, false);
 
 			document.querySelector('.update-install-action').focus();

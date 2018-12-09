@@ -31,14 +31,14 @@ const openUpdateDialog = async({ currentVersion = app.getVersion(), newVersion }
 		updateWindow = null;
 	});
 
-	updateWindow.variables = { currentVersion, newVersion };
+	updateWindow.params = { currentVersion, newVersion };
 
-	updateWindow.loadFile(`${ __dirname }/public/updateDialog.html`);
+	updateWindow.loadFile(`${ __dirname }/public/update-dialog.html`);
 };
 
 const closeUpdateDialog = () => {
 	updateWindow.destroy();
 };
 
-ipcMain.on('open-update-dialog', openUpdateDialog);
-ipcMain.on('close-update-dialog', closeUpdateDialog);
+ipcMain.on('open-update-dialog', (e, ...args) => openUpdateDialog(...args));
+ipcMain.on('close-update-dialog', () => closeUpdateDialog());

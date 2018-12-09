@@ -31,19 +31,18 @@
   },
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
-    "electron-updater": "3.0.4",
+    "electron-updater": "^4.0.5",
     "freedesktop-notifications": "^1.4.0",
     "fs-jetpack": "^2.2.0",
     "spellchecker": "^3.5.0",
     "tmp": "^0.0.33"
   },
-  "optionalDependencies": {},
   "devDependencies": {
     "@rocket.chat/eslint-config": "^0.1.2",
     "chai": "^4.2.0",
     "conventional-changelog-cli": "^2.0.11",
     "electron": "^3.0.10",
-    "electron-builder": "^20.28.4",
+    "electron-builder": "^20.38.2",
     "electron-mocha": "^6.0.4",
     "eslint": "^5.9.0",
     "gulp": "^3.9.1",

@@ -619,7 +619,7 @@ bl@^1.0.0:
     readable-stream "^2.3.5"
     safe-buffer "^5.1.1"
 
-bluebird-lst@^1.0.5, bluebird-lst@^1.0.6:
+bluebird-lst@^1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/bluebird-lst/-/bluebird-lst-1.0.6.tgz#89bc4de0a357373605c8781f293f7b06d454f869"
   integrity sha512-CBWFoPuUPpcvMUxfyr8DKdI5d4kjxFl1h39+VbKxP3KJWJHEsLtuT4pPLkjpxCGU6Ask21tvbnftWXdqIxYldQ==
@@ -716,7 +716,7 @@ buffer@^5.1.0:
     base64-js "^1.0.2"
     ieee754 "^1.1.4"
 
-builder-util-runtime@8.0.2, builder-util-runtime@^8.0.2:
+builder-util-runtime@8.0.2, builder-util-runtime@^8.0.2, builder-util-runtime@~8.0.2:
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/builder-util-runtime/-/builder-util-runtime-8.0.2.tgz#9d638a266ca3aa25ced1cff4df74c8fd97dd78cf"
   integrity sha512-46AjyMQ1/yBvGnXWmqNGlg8te7jCPCs7TJ0zDC2+4vV/t5iZp2dR1H9UfVpcBxlvBq3dlAOmwb9fz1d9xZN1+Q==
@@ -724,16 +724,6 @@ builder-util-runtime@8.0.2, builder-util-runtime@^8.0.2:
     bluebird-lst "^1.0.6"
     debug "^4.1.0"
     fs-extra-p "^7.0.0"
-    sax "^1.2.4"
-
-builder-util-runtime@~4.4.1:
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/builder-util-runtime/-/builder-util-runtime-4.4.1.tgz#2770d03241e51fde46acacc7ed3ed8a9f45f02cb"
-  integrity sha512-8L2pbL6D3VdI1f8OMknlZJpw0c7KK15BRz3cY77AOUElc4XlCv2UhVV01jJM7+6Lx7henaQh80ALULp64eFYAQ==
-  dependencies:
-    bluebird-lst "^1.0.5"
-    debug "^3.1.0"
-    fs-extra-p "^4.6.1"
     sax "^1.2.4"
 
 builder-util@9.6.0, builder-util@~9.6.0:
@@ -1374,13 +1364,6 @@ debug@^3.0.0:
   dependencies:
     ms "^2.1.1"
 
-debug@^3.1.0:
-  version "3.2.6"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-3.2.6.tgz#e83d17de16d8a7efb7717edbe5fb10135eee629b"
-  integrity sha512-mel+jf7nrtEl5Pn1Qx46zARXKDpBbvzezse7p7LqINmdoIk8PYP5SySaxEmYv6TZ0JyEKA1hsCId6DIhgITtWQ==
-  dependencies:
-    ms "^2.1.1"
-
 debug@^4.0.1, debug@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.1.0.tgz#373687bffa678b38b1cd91f861b63850035ddc87"
@@ -1582,7 +1565,7 @@ ejs@~2.5.6:
   version "2.5.9"
   resolved "https://registry.yarnpkg.com/ejs/-/ejs-2.5.9.tgz#7ba254582a560d267437109a68354112475b0ce5"
 
-electron-builder@^20.28.4:
+electron-builder@^20.38.2:
   version "20.38.2"
   resolved "https://registry.yarnpkg.com/electron-builder/-/electron-builder-20.38.2.tgz#e44f086348f70e40bad796b260a7d3542cb93282"
   integrity sha512-uUEzfc/e8J7nAowvFQw4SyHIe4d6VSHO1LmcLy53he4aGXlVklHluhbwa0rxATPdYVNgHmJz7zoVgYYOd/YS+A==
@@ -1622,11 +1605,6 @@ electron-download@^4.1.0:
     semver "^5.4.1"
     sumchecker "^2.0.2"
 
-electron-is-dev@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/electron-is-dev/-/electron-is-dev-0.3.0.tgz#14e6fda5c68e9e4ecbeff9ccf037cbd7c05c5afe"
-  integrity sha1-FOb9pcaOnk7L7/nM8DfL18BcWv4=
-
 electron-mocha@^6.0.4:
   version "6.0.4"
   resolved "https://registry.yarnpkg.com/electron-mocha/-/electron-mocha-6.0.4.tgz#5130ff3ed1ffc2971de26881cd7d18c0c0179baf"
@@ -1662,20 +1640,20 @@ electron-publish@20.38.2:
     lazy-val "^1.0.3"
     mime "^2.4.0"
 
-electron-updater@3.0.4:
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/electron-updater/-/electron-updater-3.0.4.tgz#de3f394038a29c5d06815a118279528b039db03f"
-  integrity sha512-/JDbjy7gjrB6LHGCswACKDynE/QWNs89NnyiWEF2xXr8FVp6v0k/3B3wQI6ux2oCJAvxr14+kpi+xz5wkWnkuQ==
+electron-updater@^4.0.5:
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/electron-updater/-/electron-updater-4.0.5.tgz#0d35f13b539d0dde5a1ee18f676ea87c37bf5f4a"
+  integrity sha512-2w93987YlPNMbhYQe6+EsSpkhtgYtLyYuAMttqQckwFdBJJat4Jo8ja/gmBk2Aa760g2Jt7aIBPQvlJDiXGPgg==
   dependencies:
-    bluebird-lst "^1.0.5"
-    builder-util-runtime "~4.4.1"
-    electron-is-dev "^0.3.0"
-    fs-extra-p "^4.6.1"
+    bluebird-lst "^1.0.6"
+    builder-util-runtime "~8.0.2"
+    fs-extra-p "^7.0.0"
     js-yaml "^3.12.0"
     lazy-val "^1.0.3"
     lodash.isequal "^4.5.0"
-    semver "^5.5.0"
-    source-map-support "^0.5.6"
+    pako "^1.0.6"
+    semver "^5.6.0"
+    source-map-support "^0.5.9"
 
 electron-window@^0.8.0:
   version "0.8.1"
@@ -2227,14 +2205,6 @@ from@^0.1.7:
 fs-constants@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fs-constants/-/fs-constants-1.0.0.tgz#6be0de9be998ce16af8afc24497b9ee9b7ccd9ad"
-
-fs-extra-p@^4.6.1:
-  version "4.6.1"
-  resolved "https://registry.yarnpkg.com/fs-extra-p/-/fs-extra-p-4.6.1.tgz#6156e0cc98097f415fcd17029578fc41c78b5092"
-  integrity sha512-IsTMbUS0svZKZTvqF4vDS9c/L7Mw9n8nZQWWeSzAGacOSe+8CzowhUN0tdZEZFIJNP5HC7L9j3MMikz/G4hDeQ==
-  dependencies:
-    bluebird-lst "^1.0.5"
-    fs-extra "^6.0.1"
 
 fs-extra-p@^7.0.0:
   version "7.0.0"
@@ -4345,6 +4315,11 @@ package-json@^4.0.0:
     registry-url "^3.0.3"
     semver "^5.1.0"
 
+pako@^1.0.6:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.7.tgz#2473439021b57f1516c82f58be7275ad8ef1bb27"
+  integrity sha512-3HNK5tW4x8o5mO8RuHZp3Ydw9icZXx0RANAOMzlMzx7LVXhMJ4mo3MOBpzyd7r/+RUu8BmndP47LXT+vzjtWcQ==
+
 parse-color@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/parse-color/-/parse-color-1.0.0.tgz#7b748b95a83f03f16a94f535e52d7f3d94658619"
@@ -5206,7 +5181,7 @@ source-map-resolve@^0.5.0, source-map-resolve@^0.5.2:
     source-map-url "^0.4.0"
     urix "^0.1.0"
 
-source-map-support@^0.5.6, source-map-support@^0.5.9:
+source-map-support@^0.5.9:
   version "0.5.9"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.9.tgz#41bc953b2534267ea2d605bccfa7bfa3111ced5f"
   integrity sha512-gR6Rw4MvUlYy83vP0vxoVNzM6t8MUXqNuRsuBmBHQDu1Fh6X015FrLdgoDKcNdkwGubozq0P4N0Q37UyFVr1EA==

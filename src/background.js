@@ -53,15 +53,6 @@ const parseProtocolUrls = (args) =>
 const addServers = (protocolUrls) => parseProtocolUrls(protocolUrls)
 	.forEach((serverUrl) => addServer(serverUrl));
 
-const isSecondInstance = app.makeSingleInstance(async(argv) => {
-	(await getMainWindow()).show();
-	addServers(argv.slice(2));
-});
-
-if (isSecondInstance && !process.mas) {
-	app.quit();
-}
-
 // macOS only
 app.on('open-url', (event, url) => {
 	event.preventDefault();
@@ -81,19 +72,31 @@ if (process.platform === 'linux') {
 	app.disableHardwareAcceleration();
 }
 
-app.on('ready', async() => {
-	unsetDefaultApplicationMenu();
-
-	appData.initialize();
-
-	const mainWindow = await getMainWindow();
-	certificate.initWindow(mainWindow);
-
-	autoUpdate();
-});
-
 ipcMain.on('getSystemIdleTime', (event) => {
 	event.returnValue = idle.getIdleTime();
 });
 
 process.on('unhandledRejection', console.error.bind(console));
+
+
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (gotTheLock) {
+	app.on('second-instance', async(event, argv) => {
+		(await getMainWindow()).show();
+		addServers(argv.slice(2));
+	});
+
+	app.on('ready', async() => {
+		unsetDefaultApplicationMenu();
+
+		appData.initialize();
+
+		const mainWindow = await getMainWindow();
+		certificate.initWindow(mainWindow);
+
+		autoUpdate();
+	});
+} else {
+	app.quit();
+}

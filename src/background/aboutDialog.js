@@ -10,13 +10,15 @@ const openAboutDialog = async() => {
 	aboutWindow = new BrowserWindow({
 		title: i18n.__('About %s', app.getName()),
 		parent: mainWindow,
-		modal: true,
+		modal: process.platform !== 'darwin',
 		width: 400,
 		height: 300,
 		type: 'toolbar',
 		resizable: false,
+		fullscreenable: false,
 		maximizable: false,
 		minimizable: false,
+		fullscreen: false,
 		show: false,
 	});
 	aboutWindow.setMenuBarVisibility(false);

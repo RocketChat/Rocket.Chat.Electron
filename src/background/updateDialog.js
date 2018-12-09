@@ -10,13 +10,15 @@ const openUpdateDialog = async({ currentVersion = app.getVersion(), newVersion }
 	updateWindow = new BrowserWindow({
 		title: i18n.__('Update_Available'),
 		parent: mainWindow,
-		modal: true,
+		modal: process.platform !== 'darwin',
 		width: 600,
 		height: 330,
 		type: 'toolbar',
 		resizable: false,
+		fullscreenable: false,
 		maximizable: false,
 		minimizable: false,
+		fullscreen: false,
 		show: false,
 	});
 	updateWindow.setMenuBarVisibility(false);

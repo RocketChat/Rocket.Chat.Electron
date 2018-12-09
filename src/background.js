@@ -10,7 +10,7 @@ import dock from './background/dock';
 import { addServer, getMainWindow } from './background/mainWindow';
 import menus from './background/menus';
 import './background/notifications';
-import './background/screenshare';
+import './background/screenshareDialog';
 import tray from './background/tray';
 import './background/updateDialog';
 import './background/updates';

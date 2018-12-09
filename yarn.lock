@@ -2213,7 +2213,7 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-freedesktop-notifications@^1.2.3:
+freedesktop-notifications@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/freedesktop-notifications/-/freedesktop-notifications-1.4.0.tgz#ec88202098974594d88168f97f604b4478931745"
   integrity sha512-D4vlpBTmc4PGPdaPTbcJLEJyHl1FoxwFWsWkQ0oqfHPVMN7eWWZoYRKSWj2NKVhraq42BX9IkIX6bIv45QbYKw==
@@ -5281,6 +5281,7 @@ speedometer@~0.1.2:
 spellchecker@^3.5.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/spellchecker/-/spellchecker-3.5.0.tgz#7daefac5ce9044b9486f22ccfc1067c89c64db19"
+  integrity sha512-Xa7XnRulYhh5N/XENeL2O8/875XhLBjos7Bemv0rfcgV6ojNYMSrXscUZUGJwniX2t67eY+lNUJeptD1bMauHQ==
   dependencies:
     any-promise "^1.3.0"
     nan "^2.10.0"
@@ -5616,6 +5617,7 @@ timed-out@^4.0.0:
 tmp@^0.0.33:
   version "0.0.33"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.0.33.tgz#6d34335889768d21b2bcda0aa277ced3b1bfadf9"
+  integrity sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==
   dependencies:
     os-tmpdir "~1.0.2"
 

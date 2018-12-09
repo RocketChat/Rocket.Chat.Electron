@@ -5,7 +5,11 @@ import i18n from '../i18n/index.js';
 
 let updateWindow;
 
-const openUpdateDialog = async({ currentVersion = app.getVersion(), newVersion }) => {
+const openUpdateDialog = async({ currentVersion = app.getVersion(), newVersion } = {}) => {
+	if (updateWindow) {
+		return;
+	}
+
 	const mainWindow = await getMainWindow();
 	updateWindow = new BrowserWindow({
 		title: i18n.__('Update_Available'),

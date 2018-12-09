@@ -6,6 +6,10 @@ import i18n from '../i18n/index.js';
 let aboutWindow;
 
 const openAboutDialog = async() => {
+	if (aboutWindow) {
+		return;
+	}
+
 	const mainWindow = await getMainWindow();
 	aboutWindow = new BrowserWindow({
 		title: i18n.__('About %s', app.getName()),

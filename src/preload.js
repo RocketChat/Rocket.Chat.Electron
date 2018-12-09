@@ -3,19 +3,30 @@
 const { ipcRenderer, shell } = require('electron');
 const path = require('path');
 const url = require('url');
-const Notification = require('./preload/Notification.js');
-const SpellCheck = require('./preload/SpellCheck.js');
-const i18n = require('./i18n/index.js');
+const JitsiMeetElectron = require('./preload/JitsiMeetElectron');
+const Notification = require('./preload/Notification');
+const SpellCheck = require('./preload/SpellCheck');
+const i18n = require('./i18n/index');
 
+window.JitsiMeetElectron = JitsiMeetElectron;
 window.Notification = Notification;
 window.i18n = i18n;
+
+setInterval(() => {
+	const jitsiIframe = document.querySelector('iframe[id^=jitsiConference]');
+	if (!jitsiIframe) {
+		return;
+	}
+
+	jitsiIframe.contentWindow.JitsiMeetElectron = JitsiMeetElectron;
+}, 1000);
 
 window.open = ((defaultWindowOpen) => (href, frameName, features) => {
 	if (url.parse(href).host === RocketChat.settings.get('Jitsi_Domain')) {
 		features = [
 			features,
 			'nodeIntegration=true',
-			`preload=${ path.join(__dirname, './public/jitsi-preload.js') }`,
+			`preload=${ path.join(__dirname, './preload.js') }`,
 		].filter((x) => Boolean(x)).join(',');
 	}
 

@@ -31,6 +31,8 @@ const openAboutDialog = async() => {
 		aboutWindow = null;
 	});
 
+	aboutWindow.params = { appName: app.getName(), appVersion: app.getVersion() };
+
 	aboutWindow.loadFile(`${ __dirname }/public/aboutDialog.html`);
 };
 
@@ -38,5 +40,5 @@ const closeAboutDialog = () => {
 	aboutWindow && aboutWindow.destroy();
 };
 
-ipcMain.on('open-about-dialog', openAboutDialog);
-ipcMain.on('close-about-dialog', closeAboutDialog);
+ipcMain.on('open-about-dialog', () => openAboutDialog());
+ipcMain.on('close-about-dialog', () => closeAboutDialog());

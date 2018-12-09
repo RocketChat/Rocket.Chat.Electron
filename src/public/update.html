@@ -1,8 +1,11 @@
 <!doctype html>
 <html>
 <head>
-	<title></title>
 	<meta charset="utf-8" />
+	<script>
+		const i18n = require('../i18n/index');
+	</script>
+	<title><script>document.write(i18n.__('Update_Available_New'))</script></title>
 	<style>
 		html {
 			background-color: #ececec;
@@ -62,9 +65,6 @@
 			font-weight: bold;
 		}
 	</style>
-	<script>
-        const i18n = require('../i18n/index');
-    </script>
 </head>
 	<body>
 		<h3><script>document.write(i18n.__('Update_Available_New'))</script></h3>

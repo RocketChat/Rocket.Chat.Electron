@@ -77,7 +77,7 @@ const handleNotificationClosed = (event, id) => {
 };
 
 
-export default (window) => {
+export default () => {
 	window.Notification = Notification;
 	ipcRenderer.on('notification-shown', handleNotificationShown);
 	ipcRenderer.on('notification-clicked', handleNotificationClicked);

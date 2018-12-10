@@ -1,6 +1,7 @@
 import { shell } from 'electron';
 
-const handleAnchorClick = ({ Meteor }) => (event) => {
+
+const handleAnchorClick = (event) => {
 	const a = event.target.closest('a');
 
 	if (!a) {
@@ -27,6 +28,7 @@ const handleAnchorClick = ({ Meteor }) => (event) => {
 		return;
 	}
 
+	const { Meteor } = window;
 	const isInsideDomain = Meteor && RegExp(`^${ Meteor.absoluteUrl() }`).test(href);
 	const isRelative = !/^([a-z]+:)?\/\//.test(href);
 	if (isInsideDomain || isRelative) {
@@ -38,8 +40,8 @@ const handleAnchorClick = ({ Meteor }) => (event) => {
 };
 
 
-export default (window) => {
+export default () => {
 	window.addEventListener('load', () => {
-		window.document.addEventListener('click', handleAnchorClick(window), true);
+		document.addEventListener('click', handleAnchorClick, true);
 	});
 };

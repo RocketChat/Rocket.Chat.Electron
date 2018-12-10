@@ -1,12 +1,7 @@
 import { ipcRenderer } from 'electron';
 
 
-const handleWindowEventTriggered = (window, eventName) => (e) => {
-	ipcRenderer.sendToHost(eventName, e.detail);
-};
-
-
-const handleTitleChange = (window) => {
+const handleTitleChange = () => {
 	const { Meteor, RocketChat, Tracker } = window;
 
 	if (!Meteor || !RocketChat || !Tracker) {
@@ -24,7 +19,7 @@ const handleTitleChange = (window) => {
 };
 
 
-const handleUserPresenceChange = (window) => {
+const handleUserPresenceChange = () => {
 	const { Meteor, UserPresence } = window;
 
 	if (!Meteor || !UserPresence) {
@@ -45,23 +40,18 @@ const handleUserPresenceChange = (window) => {
 };
 
 
-const preventUrlLoadingOnDrop = ({ document }) => {
-	document.addEventListener('dragover', (e) => e.preventDefault());
-	document.addEventListener('drop', (e) => e.preventDefault());
-};
+export default () => {
+	document.addEventListener('dragover', (event) => event.preventDefault());
+	document.addEventListener('drop', (event) => event.preventDefault());
 
-
-export default (window) => {
 	const eventsListened = ['unread-changed', 'get-sourceId', 'user-status-manually-set'];
 
 	for (const eventName of eventsListened) {
-		window.addEventListener(eventName, handleWindowEventTriggered(window, eventName));
+		window.addEventListener(eventName, (event) => ipcRenderer.sendToHost(eventName, event.detail));
 	}
 
 	window.addEventListener('load', () => {
-		handleTitleChange(window);
-		handleUserPresenceChange(window);
+		handleTitleChange();
+		handleUserPresenceChange();
 	});
-
-	preventUrlLoadingOnDrop(window);
 };

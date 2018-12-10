@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron';
 
 
-const requestSidebarColor = ({ document, requestAnimationFrame }) => function pollSidebarColor() {
+const requestSidebarColor = function pollSidebarColor() {
 	const sidebar = document.querySelector('.sidebar');
 	if (sidebar) {
 		const { color, background } = window.getComputedStyle(sidebar);
@@ -21,6 +21,6 @@ const requestSidebarColor = ({ document, requestAnimationFrame }) => function po
 	requestAnimationFrame(pollSidebarColor);
 };
 
-export default (window) => {
-	ipcRenderer.on('request-sidebar-color', requestSidebarColor(window));
+export default () => {
+	ipcRenderer.on('request-sidebar-color', requestSidebarColor);
 };

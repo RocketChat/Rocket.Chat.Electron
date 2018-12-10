@@ -32,7 +32,7 @@ const wrapWindowOpen = (defaultWindowOpen) => (href, frameName, features) => {
 };
 
 
-const pollJitsiIframe = ({ document }) => {
+const pollJitsiIframe = () => {
 	const jitsiIframe = document.querySelector('iframe[id^=jitsiConference]');
 	if (!jitsiIframe) {
 		return;
@@ -42,12 +42,12 @@ const pollJitsiIframe = ({ document }) => {
 };
 
 
-export default (window) => {
+export default () => {
 	window.JitsiMeetElectron = JitsiMeetElectron;
 
 	window.open = wrapWindowOpen(window.open);
 
 	window.addEventListener('load', () => {
-		setInterval(() => pollJitsiIframe(window), 1000);
+		setInterval(pollJitsiIframe, 1000);
 	});
 };

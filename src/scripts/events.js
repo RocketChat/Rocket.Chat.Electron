@@ -173,8 +173,7 @@ export default () => {
 	webview.on('ipc-message-unread-changed', (hostUrl, [count]) => {
 		if (typeof count === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {
 			const mainWindow = remote.getCurrentWindow();
-			const isNeededToShow = !mainWindow.isFocused() || (mainWindow.isFocused() && !mainWindow.isVisible());
-			if (isNeededToShow) {
+			if (!mainWindow.isFocused()) {
 				mainWindow.once('focus', () => mainWindow.flashFrame(false));
 				mainWindow.showInactive();
 				mainWindow.flashFrame(true);

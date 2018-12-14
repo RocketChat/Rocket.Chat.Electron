@@ -2,6 +2,7 @@ import { remote } from 'electron';
 import servers from './servers';
 import sidebar from './sidebar';
 import webview from './webview';
+import { TouchBarBuilder, SelectServerPanel, FormattingPanel } from './touchBar';
 
 
 const { app, getCurrentWindow, shell } = remote;
@@ -185,6 +186,16 @@ export default () => {
 		tray.setState({ status });
 		dock.setState({ status });
 	});
+
+	if (process.platform === 'darwin') {
+		servers.once('active-setted', () => {
+			const touchBar = new TouchBarBuilder()
+				.addSelectServerPanel(new SelectServerPanel())
+				.addFormattingPanel(new FormattingPanel())
+				.build();
+			getCurrentWindow().setTouchBar(touchBar);
+		});
+	}
 
 
 	servers.restoreActive();

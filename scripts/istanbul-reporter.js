@@ -1,4 +1,5 @@
 var istanbul = require('istanbul');
+const mocha = require('mocha');
 
 module.exports = function (runner, options) {
     mocha.reporters.Base.call(this, runner);

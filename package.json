@@ -22,15 +22,15 @@
     "release-mas-dev": "build --publish never --mac mas-dev --c.mac.provisioningProfile=Development.provisionprofile",
     "lint": "eslint src",
     "pretest": "gulp build-unit-tests --env=test",
-    "test-main": "electron-mocha --require source-map-support/register app/main.specs.js",
-    "test-renderer": "electron-mocha --require source-map-support/register --renderer app/renderer.specs.js",
+    "test-main": "xvfb-maybe electron-mocha --require source-map-support/register app/main.specs.js",
+    "test-renderer": "xvfb-maybe electron-mocha --require source-map-support/register --renderer app/renderer.specs.js",
     "test": "npm-run-all test-main test-renderer",
     "precoverage": "gulp build-coverage-tests --env=test",
-    "coverage-main": "electron-mocha --require source-map-support/register --reporter scripts/istanbul-reporter app/main.specs.js",
-    "coverage-renderer": "electron-mocha --require source-map-support/register --reporter scripts/istanbul-reporter app/renderer.specs.js",
+    "coverage-main": "xvfb-maybe electron-mocha --require source-map-support/register --reporter scripts/istanbul-reporter app/main.specs.js",
+    "coverage-renderer": "xvfb-maybe electron-mocha --require source-map-support/register --reporter scripts/istanbul-reporter app/renderer.specs.js",
     "coverage": "npm-run-all coverage-main coverage-renderer",
     "pree2e": "gulp build-e2e-tests --env=test",
-    "e2e": "mocha --require source-map-support/register app/e2e.js"
+    "e2e": "xvfb-maybe mocha --require source-map-support/register app/e2e.js"
   },
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",
@@ -68,7 +68,8 @@
     "rollup-plugin-node-resolve": "^3.4.0",
     "run-sequence": "^2.2.1",
     "sinon": "^7.1.1",
-    "spectron": "^5.0.0"
+    "spectron": "^5.0.0",
+    "xvfb-maybe": "^0.2.1"
   },
   "devEngines": {
     "node": ">=8.12.x",

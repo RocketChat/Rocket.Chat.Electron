@@ -8,7 +8,7 @@ describe('application', function() {
 	after(stopApp);
 
 	it('shows the main window', async function() {
+		expect(await app.browserWindow.getTitle()).to.be.equals(appManifest.productName);
 		expect(await app.browserWindow.isVisible()).to.be.true;
-		expect(await app.browserWindow.getTitle()).to.be.equal(appManifest.productName);
 	});
 });

@@ -18,6 +18,7 @@ const getRendererWindow = async() => {
 	return rendererWindow;
 };
 
+/* istanbul ignore next */
 const renderInWindow = async(style) => {
 	const statusColors = {
 		offline: null,

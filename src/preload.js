@@ -17,3 +17,4 @@ setupSidebarPreload();
 setupSpellcheckingPreload();
 
 window.reloadServer = () => ipcRenderer.sendToHost('reload-server');
+window.i18n = require('./i18n');

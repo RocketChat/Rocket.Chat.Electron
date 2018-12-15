@@ -5,13 +5,14 @@
 	<title>About %s</title>
 	<link rel="stylesheet" href="../stylesheets/main.css" />
 	<script>
-		document.addEventListener('DOMContentLoaded', () => {
-			const { remote, ipcRenderer } = require('electron');
+		window.addEventListener('load', () => {
+			const { remote: { getCurrentWindow }, ipcRenderer } = require('electron');
+			const { params: { appName, appVersion} } = getCurrentWindow();
 			const i18n = require('../i18n/index');
 			const { copyright } = require('../../package.json');
 
-			document.title = i18n.__('About %s', remote.app.getName());
-			document.querySelector('.app-version').innerHTML = `${i18n.__('Version')} <span class="version">${remote.app.getVersion()}</span>`;
+			document.title = i18n.__('About %s', appName);
+			document.querySelector('.app-version').innerHTML = `${i18n.__('Version')} <span class="version">${appVersion}</span>`;
 			document.querySelector('.check-for-updates').innerHTML = i18n.__('Check_for_Updates');
 			document.querySelector('.check-for-updates-on-start + span').innerHTML = i18n.__('Check_for_Updates_on_Start');
 			document.querySelector('.copyright').innerHTML = i18n.__('Copyright', copyright);
@@ -41,7 +42,7 @@
 					document.querySelector('.check-for-updates').setAttribute('disabled', 'disabled');
 					document.querySelector('.check-for-updates').classList.add('hidden');
 					document.querySelector('.checking-for-updates').classList.remove('hidden');
-					ipcRenderer.send('check-for-updates');
+					ipcRenderer.send('check-for-updates', { forced: true });
 				}, false);
 
 				const resetUpdatesSection = () => {

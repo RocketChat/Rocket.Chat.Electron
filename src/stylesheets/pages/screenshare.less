@@ -1,0 +1,47 @@
+.screenshare-page {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: 0.25rem 0.75rem;
+	min-height: 100vh;
+	background-color: @secondary-background-color;
+	color: @primary-font-color;
+	cursor: default;
+	user-select: none;
+
+	.screenshare-title {
+		font-size: 1.5rem;
+		line-height: normal;
+		margin: 0 0 1rem 0;
+	}
+
+	.screenshare-sources {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: stretch;
+		flex-wrap: wrap;
+		overflow-y: auto;
+
+		.screenshare-source {
+			padding: 1rem;
+			display: flex;
+			flex-direction: column;
+			cursor: pointer;
+
+			&:hover {
+				background-color: @tertiary-background-color;
+			}
+
+			.screenshare-source-thumbnail {
+				width: 150px;
+			}
+
+			.screenshare-source-name {
+				width: 150px;
+				text-align: center;
+			}
+		}
+	}
+}

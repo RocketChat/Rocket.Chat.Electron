@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>Update Available</title>
+	<link rel="stylesheet" href="../stylesheets/main.css" />
+	<script>
+		window.addEventListener('load', () => {
+			const { remote: { dialog, getCurrentWindow }, ipcRenderer } = require('electron');
+			const { params: { currentVersion, newVersion} } = getCurrentWindow();
+			const i18n = require('../i18n/index');
+
+			document.title = i18n.__('Update_Available');
+			document.querySelector('.update-title').innerHTML = i18n.__('Update_Available_New');
+			document.querySelector('.update-message').innerHTML = i18n.__('Update_Available_message');
+			document.querySelector('.current-version .app-version-label').innerHTML = i18n.__('Current_Version');
+			document.querySelector('.new-version .app-version-label').innerHTML = i18n.__('New_Version');
+			document.querySelector('.update-skip-action').innerHTML = i18n.__('Update_skip_version');
+			document.querySelector('.update-remind-action').innerHTML = i18n.__('Update_skip_remind');
+			document.querySelector('.update-install-action').innerHTML = i18n.__('Update_Install');
+
+			document.querySelector('.current-version .app-version-value').innerHTML = currentVersion;
+			document.querySelector('.new-version .app-version-value').innerHTML = newVersion;
+
+			document.querySelector('.update-skip-action').addEventListener('click', (e) => {
+				e.preventDefault();
+				dialog.showMessageBox(getCurrentWindow(), {
+					type: 'warning',
+					title: i18n.__('Update_skip'),
+					message: i18n.__('Update_skip_message'),
+					buttons: [i18n.__('OK')],
+					defaultId: 0,
+				}, () => {
+					ipcRenderer.send('close-update-dialog');
+					ipcRenderer.send('skip-update-version', newVersion);
+				});
+			}, false);
+
+			document.querySelector('.update-remind-later-action').addEventListener('click', (e) => {
+				e.preventDefault();
+				dialog.showMessageBox(getCurrentWindow(), {
+					type: 'info',
+					title: i18n.__('Update_remind'),
+					message: i18n.__('Update_remind_message'),
+					buttons: [i18n.__('OK')],
+					defaultId: 0,
+				}, () => {
+					ipcRenderer.send('close-update-dialog');
+					ipcRenderer.send('remind-update-later');
+				});
+			}, false);
+
+			document.querySelector('.update-install-action').addEventListener('click', (e) => {
+				e.preventDefault();
+				dialog.showMessageBox(getCurrentWindow(), {
+					type: 'info',
+					title: i18n.__('Update_downloading'),
+					message: i18n.__('Update_downloading_message'),
+					buttons: [i18n.__('OK')],
+					defaultId: 0,
+				}, () => {
+						ipcRenderer.send('close-update-dialog');
+						ipcRenderer.send('download-update');
+				});
+			}, false);
+
+			document.querySelector('.update-install-action').focus();
+		}, false);
+	</script>
+</head>
+<body class="update-page">
+	<div class="update-content">
+		<h1 class="update-title">New Update is Available</h1>
+		<p class="update-message">A new version of the Rocket.Chat Desktop App is available!</p>
+
+		<div class="update-info">
+			<div class="app-version current-version">
+				<div class="app-version-label">Current Version:</div>
+				<div class="app-version-value">a.b.c</div>
+			</div>
+			<div class="update-arrow">&rarr;</div>
+			<div class="app-version new-version">
+				<div class="app-version-label">New Version:</div>
+				<div class="app-version-value">x.y.z</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="update-actions">
+		<button class="update-skip-action button secondary">Skip This Version</button>
+		<button class="update-remind-action button secondary">Remind Me Later</button>
+		<button class="update-install-action button primary">Install Update</button>
+	</div>
+</body>
+</html>

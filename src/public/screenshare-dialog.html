@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>Share Your Screen</title>
+	<link rel="stylesheet" href="../stylesheets/main.css" />
+	<script>
+		window.addEventListener('load', () => {
+			const { ipcRenderer, desktopCapturer } = require('electron');
+			const i18n = require('../i18n/index');
+
+			document.title = i18n.__('Share_Your_Screen');
+			document.querySelector('.screenshare-title').innerHTML = i18n.__('Select_a_screen_to_share');
+
+			const template = document.querySelector('.screenshare-source-template');
+
+			desktopCapturer.getSources({ types: ['window', 'screen'] }, (error, sources) => {
+				if (error) {
+					throw error;
+				}
+
+				document.querySelector('.screenshare-sources').innerHTML = '';
+
+				sources.forEach(({ id, name, thumbnail }) => {
+					const sourceView = document.importNode(template.content, true);
+
+					sourceView.querySelector('.screenshare-source-thumbnail img').setAttribute('alt', name);
+					sourceView.querySelector('.screenshare-source-thumbnail img').setAttribute('src', thumbnail.toDataURL());
+					sourceView.querySelector('.screenshare-source-name').textContent = name;
+
+					sourceView.querySelector('.screenshare-source').addEventListener('click', (e) => {
+						ipcRenderer.send('select-screenshare-source', id);
+						window.close();
+					}, false);
+
+					document.querySelector('.screenshare-sources').appendChild(sourceView);
+				});
+			});
+		}, false);
+	</script>
+	<template class="screenshare-source-template">
+		<div class="screenshare-source">
+			<div class="screenshare-source-thumbnail">
+				<img src="" alt="" />
+			</div>
+			<div class="screenshare-source-name"></div>
+		</div>
+	</template>
+</head>
+<body class="screenshare-page">
+	<h1 class="screenshare-title">Select a screen to share</h1>
+	<div class="screenshare-sources"></div>
+</body>
+</html>

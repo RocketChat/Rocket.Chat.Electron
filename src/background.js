@@ -3,19 +3,20 @@ import querystring from 'querystring';
 import url from 'url';
 import idle from '@paulcbetts/system-idle-time';
 
+import './background/aboutDialog';
 import appData from './background/appData';
-import autoUpdate from './background/autoUpdate';
 import certificate from './background/certificate';
 import dock from './background/dock';
 import { addServer, getMainWindow } from './background/mainWindow';
 import menus from './background/menus';
 import './background/notifications';
-import './background/screenshare';
+import './background/screenshareDialog';
 import tray from './background/tray';
+import './background/updateDialog';
+import './background/updates';
 
 import i18n from './i18n/index.js';
 
-export { default as showAboutDialog } from './background/aboutDialog';
 export { default as remoteServers } from './background/servers';
 export { certificate, dock, menus, tray };
 
@@ -95,7 +96,7 @@ if (gotTheLock) {
 		const mainWindow = await getMainWindow();
 		certificate.initWindow(mainWindow);
 
-		autoUpdate();
+		ipcMain.emit('check-for-updates');
 	});
 } else {
 	app.quit();

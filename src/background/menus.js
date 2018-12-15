@@ -19,6 +19,7 @@ const createTemplate = ({
 		submenu: [
 			...(process.platform === 'darwin' ? [
 				{
+					id: 'about',
 					label: i18n.__('About %s', appName),
 					click: () => events.emit('about'),
 				},

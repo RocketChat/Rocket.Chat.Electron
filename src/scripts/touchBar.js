@@ -1,19 +1,14 @@
 import { remote } from 'electron';
-import { EventEmitter } from 'events';
 import servers from './servers';
 import webview from './webview';
 import i18n from '../i18n/index.js';
 
-const { TouchBar, nativeImage } = remote.require('electron');
+const { TouchBar, nativeImage, getCurrentWindow } = remote;
 const { TouchBarButton, TouchBarLabel, TouchBarSegmentedControl, TouchBarScrubber, TouchBarPopover, TouchBarGroup } = TouchBar;
 
-export class SelectServerPanel extends EventEmitter {
-
+export class SelectServerPanel {
 	constructor() {
-		super();
-
 		this._MAX_LENGTH_FOR_SEGMENTS_CONTROL = 76 - i18n.__('Select_server').length;
-		this._patternRemoveSchema = new RegExp('^http(s?):\/\/');
 		this._hosts = [];
 
 		this._setHostsArray();
@@ -37,7 +32,7 @@ export class SelectServerPanel extends EventEmitter {
 	}
 
 	_setHostsArray() {
-		this._hosts = Object.keys(servers.hosts).map((key) => ({ label: key.replace(this._patternRemoveSchema, ''), host: key }));
+		this._hosts = Object.values(servers.hosts).map((value) => ({ label: value.title, host: value.url }));
 		this._hosts = this._trimHostsNames(this._hosts);
 	}
 
@@ -119,6 +114,7 @@ export class SelectServerPanel extends EventEmitter {
 		servers.on('active-setted', () => this._setActiveServer());
 		servers.on('host-added', () => this._update());
 		servers.on('host-removed', () => this._update());
+		servers.on('title-setted', () => this._update());
 	}
 
 	/**
@@ -155,10 +151,8 @@ export class SelectServerPanel extends EventEmitter {
 	}
 }
 
-export class FormattingPanel extends EventEmitter {
-
+export class FormattingPanel {
 	constructor() {
-		super();
 		this._buttonClasses = ['bold', 'italic', 'strike', 'code', 'multi-line'];
 		this._BACKGROUND_COLOR = '#A4A4A4';
 	}
@@ -190,10 +184,8 @@ export class FormattingPanel extends EventEmitter {
 	}
 }
 
-export class TouchBarBuilder extends EventEmitter {
-
+export class TouchBarBuilder {
 	constructor() {
-		super();
 		this._touchBarElements = {};
 	}
 
@@ -221,4 +213,14 @@ export class TouchBarBuilder extends EventEmitter {
 	_isPanel(panel) {
 		return panel && typeof panel.build === 'function';
 	}
+}
+
+export default function setTouchBar() {
+	servers.once('active-setted', () => {
+		const touchBar = new TouchBarBuilder()
+			.addSelectServerPanel(new SelectServerPanel())
+			.addFormattingPanel(new FormattingPanel())
+			.build();
+		getCurrentWindow().setTouchBar(touchBar);
+	});
 }

@@ -41,6 +41,8 @@ const attachWindowStateHandling = (mainWindow) => {
 	});
 
 	const close = () => {
+		mainWindow.blur();
+
 		if (process.platform === 'darwin' || state.hideOnClose) {
 			mainWindow.hide();
 		} else if (process.platform === 'win32') {

@@ -1,3 +1,13 @@
+<a name="2.14.7"></a>
+## 2.14.7 (2019-01-09)
+
+
+### Bug Fixes
+
+- Main window destroyed when closing on MacOS
+
+
+
 <a name="2.14.6"></a>
 ## 2.14.6 (2018-12-06)
 

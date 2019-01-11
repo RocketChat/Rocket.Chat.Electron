@@ -30,6 +30,7 @@ const unsetDefaultApplicationMenu = () => {
 	}
 
 	const emptyMenuTemplate = [{
+		label: app.getName(),
 		submenu: [
 			{
 				label: i18n.__('&Quit %s', app.getName()),

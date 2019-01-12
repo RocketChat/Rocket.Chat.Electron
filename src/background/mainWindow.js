@@ -52,7 +52,7 @@ const attachWindowStateHandling = (mainWindow) => {
 		}
 	};
 
-	app.on('activate', () => mainWindow.show());
+	app.on('activate', () => mainWindow && mainWindow.show());
 	app.on('before-quit', () => {
 		windowStateKeeper.saveState.flush();
 		mainWindow = null;

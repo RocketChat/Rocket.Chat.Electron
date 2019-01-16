@@ -1,4 +1,6 @@
 import { shell } from 'electron';
+const { BrowserWindow } = require('electron').remote;
+const PDFWindow = require('electron-pdf-window');
 
 
 const handleAnchorClick = (event) => {
@@ -10,6 +12,13 @@ const handleAnchorClick = (event) => {
 
 	const href = a.getAttribute('href');
 	const download = a.hasAttribute('download');
+
+	const isPdfFile = /.*\.pdf$/.test(href);
+	if (isPdfFile) {
+		// todo need to prevent the download file window from appearing
+		event.preventDefault();
+		return;
+	}
 
 	const isFileUpload = /^\/file-upload\//.test(href) && !download;
 	if (isFileUpload) {
@@ -39,9 +48,23 @@ const handleAnchorClick = (event) => {
 	event.preventDefault();
 };
 
+const wrapWindowOpenPdf = (defaultWindowOpen) => (href, frameName, features) => {
+	const { RocketChat } = window;
+
+	if (RocketChat && RegExp(/.*\.pdf$/).test(href)) {
+		const pdfWindow = new BrowserWindow({ width: 800, height: 600 });
+		PDFWindow.addSupport(pdfWindow);
+		pdfWindow.loadURL(href);
+	}
+
+	return defaultWindowOpen(href, frameName, features);
+};
+
 
 export default () => {
 	window.addEventListener('load', () => {
 		document.addEventListener('click', handleAnchorClick, true);
 	});
+
+	window.open = wrapWindowOpenPdf(window.open);
 };

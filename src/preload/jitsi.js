@@ -1,8 +1,6 @@
 import { desktopCapturer } from 'electron';
 import path from 'path';
 import url from 'url';
-const { BrowserWindow } = require('electron').remote;
-const PDFWindow = require('electron-pdf-window');
 
 
 const JitsiMeetElectron = {
@@ -28,12 +26,6 @@ const wrapWindowOpen = (defaultWindowOpen) => (href, frameName, features) => {
 			'nodeIntegration=true',
 			`preload=${ path.join(__dirname, './preload.js') }`,
 		].filter((x) => Boolean(x)).join(',');
-	}
-
-	if (RegExp(/.*\.pdf$/).test(href)) {
-		const pdfWindow = new BrowserWindow({ width: 800, height: 600 });
-		PDFWindow.addSupport(pdfWindow);
-		pdfWindow.loadURL(href);
 	}
 
 	return defaultWindowOpen(href, frameName, features);

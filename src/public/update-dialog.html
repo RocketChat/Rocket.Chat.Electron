@@ -38,16 +38,8 @@
 
 			document.querySelector('.update-remind-later-action').addEventListener('click', (e) => {
 				e.preventDefault();
-				dialog.showMessageBox(getCurrentWindow(), {
-					type: 'info',
-					title: i18n.__('Update_remind'),
-					message: i18n.__('Update_remind_message'),
-					buttons: [i18n.__('OK')],
-					defaultId: 0,
-				}, () => {
-					ipcRenderer.send('close-update-dialog');
-					ipcRenderer.send('remind-update-later');
-				});
+				ipcRenderer.send('close-update-dialog');
+				ipcRenderer.send('remind-update-later');
 			}, false);
 
 			document.querySelector('.update-install-action').addEventListener('click', (e) => {

@@ -100,8 +100,6 @@
     "Update_installing_later_message": "Update will be installed when you exit the app",
     "Update_ready": "Update Ready to Install",
     "Update_ready_message": "Update has been downloaded",
-    "Update_remind": "Remind Later",
-    "Update_remind_message": "We will remind you next time you start the app",
     "Update_skip": "Skip Update",
     "Update_skip_message": "We will notify you when the next update is available\nIf you change your mind you can check for updates from the About menu.",
     "Update_skip_remind": "Remind Me Later",

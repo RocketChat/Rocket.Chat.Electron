@@ -96,8 +96,6 @@
     "Update_installing_later_message": "アプリを終了すると更新プログラムがインストールされます",
     "Update_ready": "更新プログラムをインストールする準備が整いました",
     "Update_ready_message": "更新プログラムがダウンロードされました",
-    "Update_remind": "後で知らせる",
-    "Update_remind_message": "アプリを次回起動するときに知らせる",
     "Update_skip": "更新をスキップ",
     "Update_skip_message": "次回の更新プログラムが利用可能になったときにお知らせします。\n気になる場合は[バージョン情報]メニューから更新プログラムを確認できます。",
     "Update_skip_remind": "後で知らせる",

@@ -208,7 +208,9 @@ class SideBar extends EventEmitter {
 		if (item) {
 			item.classList.add('active');
 		}
-		webview.getActive().send && webview.getActive().send('request-sidebar-color');
+		if (webview.getActive() && webview.getActive().classList.contains('ready')) {
+			webview.getActive().send('request-sidebar-color');
+		}
 	}
 
 	deactiveAll() {

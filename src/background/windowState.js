@@ -79,9 +79,19 @@ export default (name, defaults) => {
 			window.setSize(this.width, this.height, false);
 		}
 
-		this.isMaximized ? window.maximize() : window.unmaximize();
-		this.isMinimized ? window.minimize() : window.restore();
-		this.isHidden ? window.hide() : window.show();
+		if (this.isMaximized) {
+			window.maximize();
+		} else if (this.isMinimized) {
+			window.minimize();
+		} else {
+			window.restore();
+		}
+
+		if (this.isHidden) {
+			window.hide();
+		} else if (!this.isMinimized) {
+			window.show();
+		}
 	};
 
 	return {

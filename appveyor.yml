@@ -26,7 +26,3 @@ install:
 
 build_script:
   - yarn release
-
-artifacts:
-  - path: 'dist\*.exe'
-  - path: 'dist\*.appx'

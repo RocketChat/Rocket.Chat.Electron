@@ -85,8 +85,6 @@
     "Update_installing_later_message": "La mise à jour sera installé à la fermeture de l'application",
     "Update_ready": "La mise à jour est prête a être installée",
     "Update_ready_message": "La mise à jour a été téléchargée",
-    "Update_remind": "Me rappeler plus tard",
-    "Update_remind_message": "Vous serez averti au prochain démarrage de l'application",
     "Update_skip": "Ignorer la mise à jour",
     "Update_skip_message": "Vous serez averti quand la prochaine mise à jour sera disponible\nSi vous changez d'avis, vous pouvez vérifier si des mises à jour sont disponible dans le menu A propos.",
     "Update_skip_remind": "Me rappeler plus tard",

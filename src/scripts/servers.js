@@ -126,8 +126,16 @@ class Servers extends EventEmitter {
 	}
 
 	async validateHost(hostUrl, timeout = 5000) {
+		const headers = new Headers();
+
+		if (hostUrl.includes('@')) {
+			const url = new URL(hostUrl);
+			hostUrl = url.origin;
+			headers.set('Authorization', `Basic ${ btoa(`${ url.username }:${ url.password }`) }`);
+		}
+
 		const response = await Promise.race([
-			fetch(`${ hostUrl }/api/info`),
+			fetch(`${ hostUrl }/api/info`, { headers }),
 			new Promise((resolve, reject) => setTimeout(() => reject('timeout'), timeout)),
 		]);
 

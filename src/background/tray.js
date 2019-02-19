@@ -22,6 +22,19 @@ const getIconImageLinux = ({ iconsetsPath, title, count }) => {
 	return nativeImage.createFromPath(`${ iconsetsPath }/${ iconset }/${ name }.png`);
 };
 
+const getIconImageWin32 = ({ iconsetsPath, title, count }) => {
+	const iconset = 'linux';
+	let name = 'default';
+
+	if (title === '•') {
+		name = 'notification-dot';
+	} else if (count > 0) {
+		name = count > 9 ? 'notification-plus-9' : `notification-${ String(count) }`;
+	}
+
+	return nativeImage.createFromPath(`${ iconsetsPath }/${ iconset }/${ name }.ico`);
+};
+
 const getIconImage = ({ badge: { title, count } }) => {
 	const iconsetsPath = `${ __dirname }/public/images/tray`;
 
@@ -33,17 +46,11 @@ const getIconImage = ({ badge: { title, count } }) => {
 		return getIconImageLinux({ iconsetsPath, title, count });
 	}
 
-	const iconset = process.platform;
-	let name = 'default';
-	const extension = process.platform === 'win32' ? 'ico' : 'png';
-
-	if (title === '•') {
-		name = 'notification-dot';
-	} else if (count > 0) {
-		name = `notification-${ count > 9 ? 'plus-9' : String(count) }`;
+	if (process.platform === 'win32') {
+		return getIconImageWin32({ iconsetsPath, title, count });
 	}
 
-	return nativeImage.createFromPath(`${ iconsetsPath }/${ iconset }/${ name }.${ extension }`);
+	return null;
 };
 
 const getIconTitle = ({ badge: { title, count } }) => ((count > 0) ? title : '');

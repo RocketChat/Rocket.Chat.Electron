@@ -72,6 +72,7 @@
     "run-sequence": "^2.2.1",
     "sinon": "^7.2.2",
     "spectron": "^5.0.0",
+    "to-ico": "^1.1.5",
     "xvfb-maybe": "^0.2.1"
   },
   "devEngines": {

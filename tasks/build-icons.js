@@ -69,7 +69,8 @@ async function buildTrayWindowsIcons() {
 		const png48 = await convert(svg, { width: 48, height: 48 });
 		const png64 = await convert(svg, { width: 64, height: 64 });
 		const png128 = await convert(svg, { width: 128, height: 128 });
-		const ico = await toIco([png16, png24, png32, png48, png64, png128]);
+		const png256 = await convert(svg, { width: 256, height: 256 });
+		const ico = await toIco([png16, png24, png32, png48, png64, png128, png256]);
 
 		await jetpack.writeAsync(`src/public/images/tray/win32/${ destName }.ico`, ico);
 		console.log(`win32/${ destName }`);
@@ -107,7 +108,7 @@ async function buildAppIcon() {
 	const png256 = await convert(svg, { width: 256, height: 256 });
 	const png512 = await convert(svg, { width: 512, height: 512 });
 	const png1024 = await convert(svg, { width: 1024, height: 1024 });
-	const ico = await toIco([png16, png24, png32, png48, png64, png128]);
+	const ico = await toIco([png16, png24, png32, png48, png64, png128, png256]);
 	const icns = await icnsConvert([png1024, png512, png256, png128, png64, png32, png16]);
 
 	await jetpack.writeAsync('src/public/images/icon.png', png64);

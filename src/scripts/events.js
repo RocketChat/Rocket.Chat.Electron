@@ -10,10 +10,11 @@ const { certificate, dock, menus, tray } = remote.require('./background');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();
+	const hasTrayIcon = localStorage.getItem('hideTray') ?
+		localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux');
 
 	menus.setState({
-		showTrayIcon: localStorage.getItem('hideTray') ?
-			localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux'),
+		showTrayIcon: hasTrayIcon,
 		showFullScreen: mainWindow.isFullScreen(),
 		showWindowOnUnreadChanged: localStorage.getItem('showWindowOnUnreadChanged') === 'true',
 		showMenuBar: localStorage.getItem('autohideMenu') !== 'true',
@@ -21,8 +22,11 @@ const updatePreferences = () => {
 	});
 
 	tray.setState({
-		showIcon: localStorage.getItem('hideTray') ?
-			localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux'),
+		showIcon: hasTrayIcon,
+	});
+
+	dock.setState({
+		hasTrayIcon,
 	});
 };
 

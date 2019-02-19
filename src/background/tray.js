@@ -1,7 +1,7 @@
 import { Menu, systemPreferences, Tray as TrayIcon } from 'electron';
 import { EventEmitter } from 'events';
 import i18n from '../i18n';
-import { getIconImage } from './icon';
+import { getTrayIconImage } from './icon';
 
 
 const getIconTitle = ({ badge: { title, count } }) => ((count > 0) ? title : '');
@@ -34,8 +34,11 @@ const instance = new (class Tray extends EventEmitter {});
 
 let darwinThemeSubscriberId = null;
 
-const createIcon = (image) => {
+const createIcon = () => {
+	const image = getTrayIconImage(state.badge);
+
 	if (trayIcon) {
+		trayIcon.setImage(image);
 		return;
 	}
 
@@ -43,7 +46,7 @@ const createIcon = (image) => {
 
 	if (process.platform === 'darwin') {
 		darwinThemeSubscriberId = systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
-			trayIcon.setImage(getIconImage(state));
+			trayIcon.setImage(getTrayIconImage(state.badge));
 		});
 	}
 
@@ -81,13 +84,7 @@ const update = () => {
 		return;
 	}
 
-	const image = getIconImage(state);
-
-	if (!trayIcon) {
-		createIcon(image);
-	} else {
-		trayIcon.setImage(image);
-	}
+	createIcon();
 
 	trayIcon.setToolTip(getIconTooltip(state));
 

@@ -1,16 +1,14 @@
 import { app } from 'electron';
 import { EventEmitter } from 'events';
 import { getMainWindow } from './mainWindow';
-import { getIconImage } from './icon';
+import { getTrayIconImage, getAppIconImage } from './icon';
 
 
 const getBadgeText = ({ badge: { title, count } }) => {
 	if (title === '•') {
 		return '•';
 	} else if (count > 0) {
-		return count > 9 ? '9+' : String(count);
-	} else if (title) {
-		return '!';
+		return String(count);
 	}
 };
 
@@ -19,6 +17,7 @@ let state = {
 		title: '',
 		count: 0,
 	},
+	hasTrayIcon: false,
 };
 
 const instance = new (class Dock extends EventEmitter {});
@@ -38,12 +37,9 @@ const update = async(previousState) => {
 		}
 	}
 
-	if (process.platform === 'linux') {
-		mainWindow.setIcon(getIconImage(state));
-	}
-
-	if (process.platform === 'win32') {
-		mainWindow.setIcon(getIconImage(state));
+	if (process.platform === 'linux' || process.platform === 'win32') {
+		const image = state.hasTrayIcon ? getAppIconImage() : getTrayIconImage(state.badge);
+		mainWindow.setIcon(image);
 	}
 
 	if (!mainWindow.isFocused()) {

@@ -14,7 +14,6 @@ const updatePreferences = () => {
 	menus.setState({
 		showTrayIcon: localStorage.getItem('hideTray') ?
 			localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux'),
-		showUserStatusInTray: (localStorage.getItem('showUserStatusInTray') || 'true') === 'true',
 		showFullScreen: mainWindow.isFullScreen(),
 		showWindowOnUnreadChanged: localStorage.getItem('showWindowOnUnreadChanged') === 'true',
 		showMenuBar: localStorage.getItem('autohideMenu') !== 'true',
@@ -24,7 +23,6 @@ const updatePreferences = () => {
 	tray.setState({
 		showIcon: localStorage.getItem('hideTray') ?
 			localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux'),
-		showUserStatus: (localStorage.getItem('showUserStatusInTray') || 'true') === 'true',
 	});
 };
 
@@ -112,13 +110,6 @@ export default () => {
 				const previousValue = localStorage.getItem('hideTray') !== 'true';
 				const newValue = !previousValue;
 				localStorage.setItem('hideTray', JSON.stringify(!newValue));
-				break;
-			}
-
-			case 'showUserStatusInTray': {
-				const previousValue = (localStorage.getItem('showUserStatusInTray') || 'true') === 'true';
-				const newValue = !previousValue;
-				localStorage.setItem('showUserStatusInTray', JSON.stringify(newValue));
 				break;
 			}
 

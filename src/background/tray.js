@@ -75,10 +75,8 @@ let state = {
 		title: '',
 		count: 0,
 	},
-	status: 'online',
 	isMainWindowVisible: true,
 	showIcon: true,
-	showUserStatus: true,
 };
 
 const instance = new (class Tray extends EventEmitter {});

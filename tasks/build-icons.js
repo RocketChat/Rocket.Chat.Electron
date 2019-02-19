@@ -1,7 +1,6 @@
 const { convert } = require('convert-svg-to-png');
 const toIco = require('to-ico');
 const jetpack = require('fs-jetpack');
-const gulp = require('gulp');
 
 async function buildDarwinIcons() {
 	const createIcon = async(srcName, destName) => {
@@ -19,6 +18,7 @@ async function buildDarwinIcons() {
 		await jetpack.writeAsync(`src/public/images/tray/darwin/${ destName }@2x.png`, light2x);
 		await jetpack.writeAsync(`src/public/images/tray/darwin-dark/${ destName }.png`, dark1x);
 		await jetpack.writeAsync(`src/public/images/tray/darwin-dark/${ destName }@2x.png`, dark2x);
+		console.log(`darwin/${ destName }`);
 	};
 
 	await jetpack.removeAsync('src/public/images/tray/darwin');
@@ -37,6 +37,7 @@ async function buildLinuxIcons() {
 
 		await jetpack.writeAsync(`src/public/images/tray/linux/${ destName }.png`, png1x);
 		await jetpack.writeAsync(`src/public/images/tray/linux/${ destName }@2x.png`, png2x);
+		console.log(`linux/${ destName }`);
 	};
 
 	await jetpack.removeAsync('src/public/images/tray/linux');
@@ -69,6 +70,7 @@ async function buildWindowsIcons() {
 
 		const ico = await toIco([png16, png24, png32, png48, png64, png128]);
 		await jetpack.writeAsync(`src/public/images/tray/win32/${ destName }.ico`, ico);
+		console.log(`win32/${ destName }`);
 	};
 
 	await jetpack.removeAsync('src/public/images/tray/win32');
@@ -87,8 +89,8 @@ async function buildWindowsIcons() {
 	await createIcon('notification-dot', 'notification-plus-9', 'notification-plus-9');
 }
 
-gulp.task('icons', async() => {
+(async() => {
 	await buildDarwinIcons();
 	await buildLinuxIcons();
 	await buildWindowsIcons();
-});
+})();

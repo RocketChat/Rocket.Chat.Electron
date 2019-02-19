@@ -74,7 +74,7 @@ const destroy = () => {
 	instance.removeAllListeners();
 };
 
-const update = async() => {
+const update = () => {
 	if (!state.showIcon) {
 		destroyIcon();
 		instance.emit('update');

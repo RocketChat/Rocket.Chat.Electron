@@ -1,52 +1,42 @@
 import { nativeImage, systemPreferences } from 'electron';
 
 
-function getIconImageDarwin({ iconsetsPath, title, count }) {
-	const iconset = `darwin${ systemPreferences.isDarkMode() ? '-dark' : '' }`;
-	const name = (title || count) ? 'notification' : 'default';
-	return nativeImage.createFromPath(`${ iconsetsPath }/${ iconset }/${ name }.png`);
-}
-
-function getIconImageLinux({ iconsetsPath, title, count }) {
-	const iconset = 'linux';
-	let name = 'default';
-
-	if (title === '•') {
-		name = 'notification-dot';
-	} else if (count > 0) {
-		name = count > 9 ? 'notification-plus-9' : `notification-${ String(count) }`;
+function getIconSet({ platform }) {
+	if (platform === 'darwin') {
+		return `darwin${ systemPreferences.isDarkMode() ? '-dark' : '' }`;
 	}
 
-	return nativeImage.createFromPath(`${ iconsetsPath }/${ iconset }/${ name }.png`);
+	return platform;
 }
 
-function getIconImageWin32({ iconsetsPath, title, count }) {
-	const iconset = 'linux';
-	let name = 'default';
-
-	if (title === '•') {
-		name = 'notification-dot';
-	} else if (count > 0) {
-		name = count > 9 ? 'notification-plus-9' : `notification-${ String(count) }`;
+function getIconName({ title, count, platform }) {
+	if (platform === 'darwin') {
+		return (title || count) ? 'notification' : 'default';
 	}
 
-	return nativeImage.createFromPath(`${ iconsetsPath }/${ iconset }/${ name }.ico`);
+	if (title === '•') {
+		return 'notification-dot';
+	} else if (count > 0) {
+		return count > 9 ? 'notification-plus-9' : `notification-${ String(count) }`;
+	}
+
+	return 'default';
+}
+
+function getIconExtension({ platform }) {
+	if (platform === 'win32') {
+		return 'ico';
+	}
+
+	return 'png';
 }
 
 export function getIconImage({ badge: { title, count } }) {
 	const iconsetsPath = `${ __dirname }/public/images/tray`;
-
-	if (process.platform === 'darwin') {
-		return getIconImageDarwin({ iconsetsPath, title, count });
-	}
-
-	if (process.platform === 'linux') {
-		return getIconImageLinux({ iconsetsPath, title, count });
-	}
-
-	if (process.platform === 'win32') {
-		return getIconImageWin32({ iconsetsPath, title, count });
-	}
-
-	return null;
+	const { platform } = process;
+	const params = { title, count, platform };
+	const iconset = getIconSet(params);
+	const name = getIconName(params);
+	const extension = getIconExtension(params);
+	return nativeImage.createFromPath(`${ iconsetsPath }/${ iconset }/${ name }.${ extension }`);
 }

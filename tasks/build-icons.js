@@ -1,8 +1,10 @@
 const { convert } = require('convert-svg-to-png');
 const toIco = require('to-ico');
+const icnsConvert = require('@fiahfy/icns-convert');
 const jetpack = require('fs-jetpack');
 
-async function buildDarwinIcons() {
+
+async function buildTrayDarwinIcons() {
 	const createIcon = async(srcName, destName) => {
 		const lightSvg = (await jetpack.readAsync(`src/icons/black/${ srcName }.svg`))
 			.replace('viewBox="0 0 64 64"', 'viewBox="0 0 64 64" transform="scale(0.8)"');
@@ -28,7 +30,7 @@ async function buildDarwinIcons() {
 	await createIcon('notification-dot', 'notification');
 }
 
-async function buildLinuxIcons() {
+async function buildTrayLinuxIcons() {
 	const createIcon = async(srcName, destName) => {
 		const svg = await jetpack.readAsync(`src/icons/grey/${ srcName }.svg`);
 
@@ -56,7 +58,7 @@ async function buildLinuxIcons() {
 	await createIcon('notification-plus-9', 'notification-plus-9');
 }
 
-async function buildWindowsIcons() {
+async function buildTrayWindowsIcons() {
 	const createIcon = async(smallSrcName, srcName, destName) => {
 		const smallSvg = await jetpack.readAsync(`src/icons/grey/${ smallSrcName }.svg`);
 		const svg = await jetpack.readAsync(`src/icons/grey/${ srcName }.svg`);
@@ -67,8 +69,8 @@ async function buildWindowsIcons() {
 		const png48 = await convert(svg, { width: 48, height: 48 });
 		const png64 = await convert(svg, { width: 64, height: 64 });
 		const png128 = await convert(svg, { width: 128, height: 128 });
-
 		const ico = await toIco([png16, png24, png32, png48, png64, png128]);
+
 		await jetpack.writeAsync(`src/public/images/tray/win32/${ destName }.ico`, ico);
 		console.log(`win32/${ destName }`);
 	};
@@ -89,8 +91,44 @@ async function buildWindowsIcons() {
 	await createIcon('notification-dot', 'notification-plus-9', 'notification-plus-9');
 }
 
+async function buildAppIcon() {
+	const svg = await jetpack.readAsync('src/icons/icon.svg');
+
+	const png16 = await convert(svg, { width: 16, height: 16 });
+	const png24 = await convert(svg, { width: 24, height: 24 });
+	const png32 = await convert(svg, { width: 32, height: 32 });
+	const png44 = await convert(svg, { width: 44, height: 44 });
+	const png48 = await convert(svg, { width: 48, height: 48 });
+	const png50 = await convert(svg, { width: 50, height: 50 });
+	const png64 = await convert(svg, { width: 64, height: 64 });
+	const png128 = await convert(svg, { width: 128, height: 128 });
+	const png150 = await convert(svg, { width: 150, height: 150 });
+	const png310v150 = await convert(svg, { width: 310, height: 150 });
+	const png256 = await convert(svg, { width: 256, height: 256 });
+	const png512 = await convert(svg, { width: 512, height: 512 });
+	const png1024 = await convert(svg, { width: 1024, height: 1024 });
+	const ico = await toIco([png16, png24, png32, png48, png64, png128]);
+	const icns = await icnsConvert([png1024, png512, png256, png128, png64, png32, png16]);
+
+	await jetpack.writeAsync('src/public/images/icon.png', png64);
+	await jetpack.writeAsync('src/public/images/icon@2x.png', png128);
+	console.log('icon');
+
+	await jetpack.writeAsync('build/icon.ico', ico);
+	await jetpack.writeAsync('build/icon.icns', icns);
+	await jetpack.writeAsync('build/installerIcon.ico', ico);
+	await jetpack.writeAsync('build/uninstallerIcon.ico', ico);
+	await jetpack.writeAsync('build/appx/Square44x44Logo.png', png44);
+	await jetpack.writeAsync('build/appx/Square150x150Logo.png', png150);
+	await jetpack.writeAsync('build/appx/StoreLogo.png', png50);
+	await jetpack.writeAsync('build/appx/Wide310x150Logo.png', png310v150);
+	await jetpack.writeAsync('build/icons/512x512.png', png512);
+	console.log('build/icon');
+}
+
 (async() => {
-	await buildDarwinIcons();
-	await buildLinuxIcons();
-	await buildWindowsIcons();
+	await buildTrayDarwinIcons();
+	await buildTrayLinuxIcons();
+	await buildTrayWindowsIcons();
+	await buildAppIcon();
 })();

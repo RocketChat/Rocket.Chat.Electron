@@ -1,39 +1,24 @@
 import { Menu, systemPreferences, Tray as TrayIcon, nativeImage } from 'electron';
 import { EventEmitter } from 'events';
-import icon from './icon';
 import i18n from '../i18n';
 
-
-const getIconStyle = ({ badge: { title, count }, status, showUserStatus }) => {
-	const style = {
-		template: process.platform === 'darwin',
-		size: {
-			darwin: 24,
-			win32: [32, 24, 16],
-			linux: 22,
-		}[process.platform],
-	};
-
-	if (showUserStatus) {
-		style.status = status;
-	}
-
-	if (process.platform !== 'darwin') {
-		if (title === '•') {
-			style.badgeText = '•';
-		} else if (count > 0) {
-			style.badgeText = count > 9 ? '9+' : String(count);
-		} else if (title) {
-			style.badgeText = '!';
-		}
-	}
-
-	return style;
-};
 
 const getIconImageDarwin = ({ iconsetsPath, title, count }) => {
 	const iconset = `darwin${ systemPreferences.isDarkMode() ? '-dark' : '' }`;
 	const name = (title || count) ? 'notification' : 'default';
+	return nativeImage.createFromPath(`${ iconsetsPath }/${ iconset }/${ name }.png`);
+};
+
+const getIconImageLinux = ({ iconsetsPath, title, count }) => {
+	const iconset = 'linux';
+	let name = 'default';
+
+	if (title === '•') {
+		name = 'notification-dot';
+	} else if (count > 0) {
+		name = count > 9 ? 'notification-plus-9' : `notification-${ String(count) }`;
+	}
+
 	return nativeImage.createFromPath(`${ iconsetsPath }/${ iconset }/${ name }.png`);
 };
 
@@ -42,6 +27,10 @@ const getIconImage = ({ badge: { title, count } }) => {
 
 	if (process.platform === 'darwin') {
 		return getIconImageDarwin({ iconsetsPath, title, count });
+	}
+
+	if (process.platform === 'linux') {
+		return getIconImageLinux({ iconsetsPath, title, count });
 	}
 
 	const iconset = process.platform;
@@ -136,9 +125,7 @@ const update = async() => {
 		return;
 	}
 
-	const image = process.platform === 'darwin' ?
-		getIconImage(state) :
-		await icon.render(getIconStyle(state));
+	const image = getIconImage(state);
 
 	if (!trayIcon) {
 		createIcon(image);

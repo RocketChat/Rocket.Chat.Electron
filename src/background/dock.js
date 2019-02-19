@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import { EventEmitter } from 'events';
 import { getMainWindow } from './mainWindow';
-import icon from './icon';
+import { getIconImage } from './icon';
 
 
 const getBadgeText = ({ badge: { title, count } }) => {
@@ -19,7 +19,6 @@ let state = {
 		title: '',
 		count: 0,
 	},
-	status: 'online',
 };
 
 const instance = new (class Dock extends EventEmitter {});
@@ -32,18 +31,6 @@ const update = async(previousState) => {
 	const mainWindow = await getMainWindow();
 	const badgeText = getBadgeText(state);
 
-	if (process.platform === 'win32') {
-		const image = badgeText ? await icon.render({
-			overlay: true,
-			size: 16,
-			badgeText,
-		}) : null;
-		mainWindow.setOverlayIcon(image, badgeText || '');
-
-		mainWindow.removeListener('show', update);
-		mainWindow.on('show', update);
-	}
-
 	if (process.platform === 'darwin') {
 		app.dock.setBadge(badgeText || '');
 		if (state.badge.count > 0 && previousState.badge.count === 0) {
@@ -52,13 +39,11 @@ const update = async(previousState) => {
 	}
 
 	if (process.platform === 'linux') {
-		mainWindow.setIcon(await icon.render({
-			badgeText,
-			size: {
-				win32: [256, 128, 64, 48, 32, 24, 16],
-				linux: 128,
-			}[process.platform],
-		}));
+		mainWindow.setIcon(getIconImage(state));
+	}
+
+	if (process.platform === 'win32') {
+		mainWindow.setIcon(getIconImage(state));
 	}
 
 	if (!mainWindow.isFocused()) {

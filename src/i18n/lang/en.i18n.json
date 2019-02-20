@@ -111,5 +111,7 @@
     "&Window": "&Window",
     "Yes": "Yes",
     "Zoom in": "Zoom in",
-    "Zoom out": "Zoom out"
+    "Zoom out": "Zoom out",
+    "%s: no unread message": "%s: no unread message",
+    "%s: you have unread messages": "%s: you have unread messages"
 }

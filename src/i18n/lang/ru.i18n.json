@@ -109,5 +109,7 @@
     "&Window": "&Окна",
     "Yes": "Да",
     "Zoom in": "Увеличить",
-    "Zoom out": "Уменьшить"
+    "Zoom out": "Уменьшить",
+    "%s: no unread message": "%s: нет непрочитанных сообщений",
+    "%s: you have unread messages": "%s: у Вас непрочитанных сообщений"
 }

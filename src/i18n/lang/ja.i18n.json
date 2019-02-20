@@ -107,5 +107,7 @@
     "&Window": "ウィンドウ (&W)",
     "Yes": "はい",
     "Zoom in": "拡大",
-    "Zoom out": "縮小"
+    "Zoom out": "縮小",
+    "%s: no unread message": "%s: 未読メッセージなし",
+    "%s: you have unread messages": "%s: 件の未読メッセージがあります"
 }

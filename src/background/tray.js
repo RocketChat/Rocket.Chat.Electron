@@ -1,4 +1,4 @@
-import { Menu, systemPreferences, Tray as TrayIcon } from 'electron';
+import { app, Menu, systemPreferences, Tray as TrayIcon } from 'electron';
 import { EventEmitter } from 'events';
 import i18n from '../i18n';
 import { getTrayIconImage } from './icon';
@@ -6,7 +6,21 @@ import { getTrayIconImage } from './icon';
 
 const getIconTitle = ({ badge: { title, count } }) => ((count > 0) ? title : '');
 
-const getIconTooltip = ({ badge: { count } }) => i18n.pluralize('Message_count', count, count);
+const getIconTooltip = ({ badge: { title, count } }) => {
+	if (title === '•') {
+		return i18n.__('%s: you have unread messages', app.getName());
+	}
+
+	if (count === 1) {
+		return i18n.__('%s: you have a unread mention/direct message', app.getName());
+	}
+
+	if (count > 1) {
+		return i18n.__('%s: you have %c unread mentions/direct messages', app.getName(), count);
+	}
+
+	return i18n.__('%s: no unread messages', app.getName());
+};
 
 const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 	{

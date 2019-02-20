@@ -29,33 +29,16 @@ function initialize() {
 	loadTranslation(globalLocale);
 }
 
-function getTranslation(phrase = '', count) {
-	const loadedLanguage = translations[globalLocale] || translations[defaultLocale];
-	const loadedLanguageTranslation = loadedLanguage[phrase];
-	let translation = loadedLanguageTranslation;
+function translate(phrase, ...replacements) {
+	const translation = (translations[globalLocale] && translations[globalLocale][phrase]) ||
+		(translations[defaultLocale] || translations[defaultLocale][phrase]) ||
+		phrase;
 
-	if (loadedLanguageTranslation === undefined) {
-		translation = phrase;
-	} else if (loadedLanguageTranslation instanceof Object) {
-		translation = loadedLanguageTranslation.zero;
-		if (count === 1) {
-			translation = loadedLanguageTranslation.one;
-		} else if (count > 1) {
-			translation = loadedLanguageTranslation.multi;
-		}
-	}
-
-	return translation;
-}
-
-function translate(phrase, count, ...replacements) {
-	const translation = getTranslation(phrase, count);
 	return util.format(translation, ...replacements);
 }
 
 app.isReady() ? initialize() : app.whenReady().then(initialize);
 
 export default {
-	__: (phrase, ...replacements) => translate.call(null, phrase, 0, ...replacements),
-	pluralize: translate,
+	__: translate,
 };

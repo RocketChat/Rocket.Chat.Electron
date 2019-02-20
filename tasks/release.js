@@ -1,12 +1,12 @@
-'use strict';
-
-const gulp = require('gulp');
-const runSequence = require('run-sequence');
 const { build } = require('electron-builder');
+const gulp = require('gulp');
+const minimist = require('minimist');
+const runSequence = require('run-sequence');
 const config = require('../electron-builder.json');
-const { getEnvName } = require('./utils');
 
-const publish = getEnvName() !== 'production' ? 'never' : 'onTagOrDraft';
+const { env } = minimist(process.argv, { default: { env: 'development' } });
+
+const publish = env !== 'production' ? 'never' : 'onTagOrDraft';
 gulp.task('release:darwin', () => build({ publish, x64: true, mac: [] }));
 gulp.task('release:win32', () => build({ publish, x64: true, ia32: true, win: ['nsis', 'appx'] }));
 gulp.task('release:linux', async() => {

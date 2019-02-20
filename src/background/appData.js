@@ -1,12 +1,11 @@
 import { app, ipcMain } from 'electron';
 import jetpack from 'fs-jetpack';
 import path from 'path';
-import env from '../env';
 
 
 const definePath = () => {
 	const appName = app.getName();
-	const dirName = env.name === 'production' ? appName : `${ appName } (${ env.name })`;
+	const dirName = process.env.NODE_ENV === 'production' ? appName : `${ appName } (${ process.env.NODE_ENV })`;
 
 	app.setPath('userData', path.join(app.getPath('appData'), dirName));
 };
@@ -20,7 +19,7 @@ const reset = () => {
 
 const migrate = () => {
 	const olderAppName = 'Rocket.Chat+';
-	const dirName = env.name === 'production' ? olderAppName : `${ olderAppName } (${ env.name })`;
+	const dirName = process.env.NODE_ENV === 'production' ? olderAppName : `${ olderAppName } (${ process.env.NODE_ENV })`;
 	const olderUserDataPath = path.join(app.getPath('appData'), dirName);
 
 	try {

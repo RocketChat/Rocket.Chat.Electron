@@ -1,21 +1,39 @@
-import path from 'path';
-import fs from 'fs';
+import { app as mainApp, remote } from 'electron';
+import jetpack from 'fs-jetpack';
 import util from 'util';
-import { app, remote } from 'electron';
 
-const eApp = app || remote.app;
 
-let loadedLanguage = [];
+const app = mainApp || remote.app;
+const defaultLocale = 'en';
+let globalLocale = defaultLocale;
+const translations = {};
 
-/**
- * Load singular and plural translation based on count
- * @param {string} phrase The key fore the translation string
- * @param {number} chount Count to check for singular / plural (0-1,2-n)
- * @returns {string} Translation in user language
- */
-function loadTranslation(phrase = '', count) {
+function loadTranslation(locale) {
+	if (translations[locale]) {
+		return;
+	}
+
+	const translation = jetpack.read(`${ app.getAppPath() }/app/i18n/lang/${ locale }.i18n.json`, 'json');
+
+	if (typeof translation !== 'object') {
+		return;
+	}
+
+	translations[locale] = translation;
+}
+
+function initialize() {
+	globalLocale = app.getLocale();
+
+	loadTranslation(defaultLocale);
+	loadTranslation(globalLocale);
+}
+
+function getTranslation(phrase = '', count) {
+	const loadedLanguage = translations[globalLocale] || translations[defaultLocale];
 	const loadedLanguageTranslation = loadedLanguage[phrase];
 	let translation = loadedLanguageTranslation;
+
 	if (loadedLanguageTranslation === undefined) {
 		translation = phrase;
 	} else if (loadedLanguageTranslation instanceof Object) {
@@ -26,62 +44,18 @@ function loadTranslation(phrase = '', count) {
 			translation = loadedLanguageTranslation.multi;
 		}
 	}
+
 	return translation;
 }
 
-class I18n {
-	/**
-     * Load users language if available, and fallback to english for any missing strings
-     * @constructor
-     */
-	constructor() {
-		const load = () => {
-			let dir = path.join(__dirname, '../i18n/lang');
-			if (!fs.existsSync(dir)) {
-				dir = path.join(__dirname, 'i18n/lang');
-			}
-			const defaultLocale = path.join(dir, 'en.i18n.json');
-			loadedLanguage = JSON.parse(fs.readFileSync(defaultLocale, 'utf8'));
-			const locale = path.join(dir, `${ eApp.getLocale() }.i18n.json`);
-			if (fs.existsSync(locale)) {
-				const lang = JSON.parse(fs.readFileSync(locale, 'utf8'));
-				loadedLanguage = Object.assign(loadedLanguage, lang);
-			}
-		};
-
-		if (eApp.isReady()) {
-			load();
-			return;
-		}
-
-		eApp.once('ready', load);
-	}
-
-	/**
-     * Get translation string
-     * @param {string} phrase The key for the translation string
-     * @param {...string|number} replacements List of replacements in template strings
-     * @return {string} Translation in users language
-     */
-	__(phrase, ...replacements) {
-		const translation = loadTranslation(phrase, 0);
-		return util.format(translation, ...replacements);
-	}
-
-	/**
-     * Get translation string
-     * @param {string} phrase The key for the translation string
-     * @param {number} count Count to check for singular / plural (0-1,2-n)
-     * @param {...string|number} replacements List of replacements in template strings
-     * @return {string} Translation in users language
-     */
-	pluralize(phrase, count, ...replacements) {
-		const translation = loadTranslation(phrase, count);
-		if (translation.includes('%s')) {
-			return util.format(translation, ...replacements);
-		}
-		return translation;
-	}
+function translate(phrase, count, ...replacements) {
+	const translation = getTranslation(phrase, count);
+	return util.format(translation, ...replacements);
 }
 
-export default new I18n();
+app.isReady() ? initialize() : app.whenReady().then(initialize);
+
+export default {
+	__: (phrase, ...replacements) => translate.call(null, phrase, 0, ...replacements),
+	pluralize: translate,
+};

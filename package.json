@@ -17,6 +17,7 @@
     "postremove": "electron-builder install-app-deps",
     "start": "gulp start",
     "build": "gulp build-app",
+    "build:icons": "node tasks/build-icons.js",
     "changelog": "conventional-changelog --config .github/changelog.js -i HISTORY.md -s",
     "release": "gulp release --env=production",
     "release-dev": "gulp release --env=development",
@@ -43,10 +44,12 @@
     "tmp": "^0.0.33"
   },
   "devDependencies": {
+    "@fiahfy/icns-convert": "^0.0.5",
     "@rocket.chat/eslint-config": "^0.1.2",
     "builtin-modules": "^3.0.0",
     "chai": "^4.2.0",
     "conventional-changelog-cli": "^2.0.11",
+    "convert-svg-to-png": "^0.5.0",
     "electron": "^4.0.1",
     "electron-builder": "^20.38.4",
     "electron-mocha": "^6.0.4",
@@ -71,6 +74,7 @@
     "run-sequence": "^2.2.1",
     "sinon": "^7.2.2",
     "spectron": "^5.0.0",
+    "to-ico": "^1.1.5",
     "xvfb-maybe": "^0.2.1"
   },
   "devEngines": {

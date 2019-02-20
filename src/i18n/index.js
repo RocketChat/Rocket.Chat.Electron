@@ -8,6 +8,22 @@ const defaultLocale = 'en';
 let globalLocale = defaultLocale;
 const translations = {};
 
+const normalizeLocale = (locale) => {
+	let [languageCode, countryCode] = locale.split ? locale.split(/[-_]/) : [];
+	if (!languageCode || languageCode.length !== 2) {
+		return 'en';
+	}
+	languageCode = languageCode.toLowerCase();
+
+	if (!countryCode || countryCode.length !== 2) {
+		countryCode = null;
+	} else {
+		countryCode = countryCode.toUpperCase();
+	}
+
+	return countryCode ? `${ languageCode }-${ countryCode }` : languageCode;
+};
+
 function loadTranslation(locale) {
 	if (translations[locale]) {
 		return;
@@ -23,7 +39,7 @@ function loadTranslation(locale) {
 }
 
 function initialize() {
-	globalLocale = app.getLocale();
+	globalLocale = normalizeLocale(app.getLocale());
 
 	loadTranslation(defaultLocale);
 	loadTranslation(globalLocale);

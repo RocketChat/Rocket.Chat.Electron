@@ -1,5 +1,5 @@
 import { clipboard, remote, shell } from 'electron';
-import i18n from '../i18n/index';
+import i18n from '../i18n';
 import { spellchecking } from './spellchecking';
 const { dialog, getCurrentWebContents, getCurrentWindow, Menu } = remote;
 

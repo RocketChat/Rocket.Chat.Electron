@@ -1,7 +1,7 @@
 import { app, Menu } from 'electron';
 import { EventEmitter } from 'events';
 import { getMainWindow } from './mainWindow';
-import i18n from '../i18n/index.js';
+import i18n from '../i18n';
 
 const createTemplate = ({
 	appName,

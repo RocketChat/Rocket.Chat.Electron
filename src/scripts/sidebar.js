@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { remote } from 'electron';
-import i18n from '../i18n/index.js';
+import i18n from '../i18n';
 import servers from './servers';
 import webview from './webview';
 

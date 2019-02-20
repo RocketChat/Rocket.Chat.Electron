@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import servers from './servers';
 import webview from './webview';
-import i18n from '../i18n/index.js';
+import i18n from '../i18n';
 
 const { TouchBar, nativeImage, getCurrentWindow } = remote;
 const { TouchBarButton, TouchBarLabel, TouchBarSegmentedControl, TouchBarScrubber, TouchBarPopover, TouchBarGroup } = TouchBar;

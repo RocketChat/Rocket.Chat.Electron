@@ -1,7 +1,7 @@
 import { app, dialog } from 'electron';
 import jetpack from 'fs-jetpack';
 import url from 'url';
-import i18n from '../i18n/index.js';
+import i18n from '../i18n';
 
 class CertificateStore {
 	initWindow(win) {

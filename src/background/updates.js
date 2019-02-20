@@ -2,7 +2,7 @@ import { app, dialog, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';
 import { getMainWindow } from './mainWindow';
-import i18n from '../i18n/index.js';
+import i18n from '../i18n';
 
 
 const appDir = jetpack.cwd(app.getAppPath(), app.getAppPath().endsWith('app.asar') ? '..' : '.');

@@ -8,7 +8,7 @@
 		window.addEventListener('load', () => {
 			const { remote: { dialog, getCurrentWindow }, ipcRenderer } = require('electron');
 			const { params: { currentVersion, newVersion} } = getCurrentWindow();
-			const i18n = require('../i18n/index');
+			const i18n = require('../i18n');
 
 			document.title = i18n.__('Update_Available');
 			document.querySelector('.update-title').innerHTML = i18n.__('Update_Available_New');

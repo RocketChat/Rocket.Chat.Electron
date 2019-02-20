@@ -7,7 +7,7 @@
 	<script>
 		window.addEventListener('load', () => {
 			const { ipcRenderer, desktopCapturer } = require('electron');
-			const i18n = require('../i18n/index');
+			const i18n = require('../i18n');
 
 			document.title = i18n.__('Share_Your_Screen');
 			document.querySelector('.screenshare-title').innerHTML = i18n.__('Select_a_screen_to_share');

@@ -15,7 +15,7 @@ import tray from './background/tray';
 import './background/updateDialog';
 import './background/updates';
 
-import i18n from './i18n/index.js';
+import i18n from './i18n';
 
 export { default as remoteServers } from './background/servers';
 export { certificate, dock, menus, tray };

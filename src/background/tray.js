@@ -7,19 +7,21 @@ import { getTrayIconImage } from './icon';
 const getIconTitle = ({ badge: { title, count } }) => ((count > 0) ? title : '');
 
 const getIconTooltip = ({ badge: { title, count } }) => {
+	const appName = app.getName();
+
 	if (title === '•') {
-		return i18n.__('%s: you have unread messages', app.getName());
+		return i18n.__('%s: you have unread messages', { appName });
 	}
 
 	if (count === 1) {
-		return i18n.__('%s: you have a unread mention/direct message', app.getName());
+		return i18n.__('%s: you have a unread mention/direct message', { appName });
 	}
 
 	if (count > 1) {
-		return i18n.__('%s: you have %c unread mentions/direct messages', app.getName(), count);
+		return i18n.__('%s: you have %c unread mentions/direct messages', { appName, count });
 	}
 
-	return i18n.__('%s: no unread messages', app.getName());
+	return i18n.__('%s: no unread messages', { appName });
 };
 
 const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([

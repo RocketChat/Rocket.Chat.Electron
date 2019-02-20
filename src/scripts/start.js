@@ -64,7 +64,7 @@ export const start = function() {
 						invalidUrl.style.display = 'block';
 						switch (status) {
 							case 'basic-auth':
-								invalidUrl.innerHTML = i18n.__('Auth_needed_try', '<b>username:password@host</b>');
+								invalidUrl.innerHTML = i18n.__('Auth_needed_try', { auth: 'username:password@host' });
 								break;
 							case 'invalid':
 								invalidUrl.innerHTML = i18n.__('No_valid_server_found');

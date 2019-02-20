@@ -19,7 +19,7 @@ const createTemplate = ({
 			...(process.platform === 'darwin' ? [
 				{
 					id: 'about',
-					label: i18n.__('About %s', appName),
+					label: i18n.__('About %s', { appName }),
 					click: () => events.emit('about'),
 				},
 				{
@@ -64,7 +64,7 @@ const createTemplate = ({
 			},
 			{
 				id: 'quit',
-				label: i18n.__('&Quit %s', appName),
+				label: i18n.__('&Quit %s', { appName }),
 				accelerator: 'CommandOrControl+Q',
 				click: () => events.emit('quit'),
 			},
@@ -281,7 +281,7 @@ const createTemplate = ({
 			...(process.platform !== 'darwin' ? [
 				{
 					id: 'about',
-					label: i18n.__('About %s', appName),
+					label: i18n.__('About %s', { appName }),
 					click: () => events.emit('about'),
 				},
 			] : []),

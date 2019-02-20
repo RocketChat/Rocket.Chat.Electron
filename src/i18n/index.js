@@ -47,8 +47,17 @@ function initialize() {
 
 function translate(phrase, ...replacements) {
 	const translation = (translations[globalLocale] && translations[globalLocale][phrase]) ||
-		(translations[defaultLocale] || translations[defaultLocale][phrase]) ||
+		(translations[defaultLocale] && translations[defaultLocale][phrase]) ||
 		phrase;
+
+	if (typeof replacements[0] === 'object') {
+		const variables = replacements[0];
+		const replaceVariable = (match, variableName) => variables[variableName];
+		const interpolated = translation.replace(/{{- (.*?)}}/g, replaceVariable)
+			.replace(/{{(.*?)}}/g, replaceVariable);
+
+		return interpolated;
+	}
 
 	return util.format(translation, ...replacements);
 }

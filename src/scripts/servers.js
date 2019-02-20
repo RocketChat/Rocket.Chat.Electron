@@ -263,13 +263,13 @@ class Servers extends EventEmitter {
 			buttons: [i18n.__('Add'), i18n.__('Cancel')],
 			defaultId: 0,
 			title: i18n.__('Add_Server'),
-			message: i18n.__('Add_host_to_servers', host),
+			message: i18n.__('Add_host_to_servers', { host }),
 		}, (response) => {
 			if (response === 0) {
 				this.validateHost(host)
 					.then(() => this.addHost(host))
 					.then(() => this.setActive(host))
-					.catch(() => remote.dialog.showErrorBox(i18n.__('Invalid_Host'), i18n.__('Host_not_validated', host)));
+					.catch(() => remote.dialog.showErrorBox(i18n.__('Invalid_Host'), i18n.__('Host_not_validated', { host })));
 			}
 		});
 	}

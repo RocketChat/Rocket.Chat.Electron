@@ -31,12 +31,12 @@ class CertificateStore {
 
 			let detail = `URL: ${ url }\nError: ${ error }`;
 			if (this.isExisting(url)) {
-				detail = i18n.__('Certificate_error_different', detail);
+				detail = i18n.__('Certificate_error_different', { detail });
 			}
 
 			dialog.showMessageBox(this.window, {
 				title: i18n.__('Certificate_error'),
-				message: i18n.__('Certificate_error_message', certificate.issuerName),
+				message: i18n.__('Certificate_error_message', { issuerName: certificate.issuerName }),
 				detail,
 				type: 'warning',
 				buttons: [

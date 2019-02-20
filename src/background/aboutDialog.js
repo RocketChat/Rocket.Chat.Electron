@@ -12,7 +12,7 @@ const openAboutDialog = async() => {
 
 	const mainWindow = await getMainWindow();
 	aboutWindow = new BrowserWindow({
-		title: i18n.__('About %s', app.getName()),
+		title: i18n.__('About %s', { appName: app.getName() }),
 		parent: mainWindow,
 		modal: process.platform !== 'darwin',
 		width: 400,

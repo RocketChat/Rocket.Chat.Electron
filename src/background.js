@@ -33,7 +33,7 @@ const unsetDefaultApplicationMenu = () => {
 		label: app.getName(),
 		submenu: [
 			{
-				label: i18n.__('&Quit %s', app.getName()),
+				label: i18n.__('&Quit %s', { appName: app.getName() }),
 				accelerator: 'CommandOrControl+Q',
 				click() {
 					app.quit();

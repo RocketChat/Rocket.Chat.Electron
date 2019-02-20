@@ -323,4 +323,27 @@ class Menus extends EventEmitter {
 	}
 }
 
+const unsetDefaultApplicationMenu = () => {
+	if (process.platform !== 'darwin') {
+		Menu.setApplicationMenu(null);
+		return;
+	}
+
+	const emptyMenuTemplate = [{
+		label: app.getName(),
+		submenu: [
+			{
+				label: i18n.__('&Quit %s', { appName: app.getName() }),
+				accelerator: 'CommandOrControl+Q',
+				click() {
+					app.quit();
+				},
+			},
+		],
+	}];
+	Menu.setApplicationMenu(Menu.buildFromTemplate(emptyMenuTemplate));
+};
+
+app.on('ready', unsetDefaultApplicationMenu);
+
 export default new Menus();

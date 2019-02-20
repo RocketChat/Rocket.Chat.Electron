@@ -25,8 +25,6 @@
     "Copyright": "Copyright %s",
     "Current_Version": "Текущая версия:",
     "Cu&t": "В&ырезать",
-    "Development": "Разработка",
-    "Dictionary_install_error": "Ошибка при установке словаря",
     "Documentation": "Документация",
     "&Edit": "&Правка",
     "Enter_your_server_URL": "Введите URL Вашего сервера",
@@ -44,11 +42,6 @@
     "Invalid_url": "Некорректный url",
     "Learn more": "Узнать больше",
     "Menu bar": "Главное меню",
-    "Message_count": {
-        "zero": "Rocket.Chat: нет непрочитанных сообщений",
-        "one": "Rocket.Chat: у Вас %s непрочитанное сообщение",
-        "multi": "Rocket.Chat: у Вас %s непрочитанных сообщений"
-    },
     "Minimize": "Свернуть",
     "More_spelling_suggestions": "Другие варианты написания",
     "New_Version": "Новая версия:",
@@ -102,7 +95,6 @@
     "Update_skip_message": "Мы оповестим Вас, когда следующее обновление будет доступно.\nЕсли Вы передумаете, Вы можете проверить наличие обновлений в меню \"О Rocket.Chat\".",
     "Update_skip_remind": "Напомнить позже",
     "Update_skip_version": "Пропустить эту версию",
-    "User status in tray": "Статус пользователя в системном трее",
     "Validating": "Проверяем...",
     "Version": "Версия",
     "&View": "&Вид",

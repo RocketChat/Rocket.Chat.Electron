@@ -47,7 +47,7 @@
     "New_Version": "New Version:",
     "No": "No",
     "No_suggestions": "No suggestions",
-    "No updates are available.": "No updates are available.",
+    "No updates are available": "No updates are available.",
     "No_valid_server_found": "No valid server found at the URL",
     "Open DevTools": "Open DevTools",
     "Open &DevTools": "Open &DevTools",
@@ -65,7 +65,7 @@
     "Report issue": "Report issue",
     "Reset app data": "Reset app data",
     "Reset zoom": "Reset zoom",
-    "Save image as...": "Save image as...",
+    "Save image as": "Save image as...",
     "Select_a_screen_to_share": "Select a screen to share",
     "Select &all": "Select &all",
     "Select_server": "Select server",
@@ -75,7 +75,7 @@
     "Show": "Show",
     "Show on unread messages": "Show on unread messages",
     "Spelling_languages": "Spelling languages",
-    "This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.": "This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.",
+    "Reset_app_data_message": "This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.",
     "Timeout_trying_to_connect": "Timeout trying to connect",
     "Toggle &DevTools": "Toggle &DevTools",
     "Tray icon": "Tray icon",
@@ -104,5 +104,7 @@
     "Zoom in": "Zoom in",
     "Zoom out": "Zoom out",
     "%s: no unread message": "{{- appName}}: no unread message",
-    "%s: you have unread messages": "{{- appName}}: you have unread messages"
+    "%s: you have unread messages": "{{- appName}}: you have unread messages",
+    "%s: you have a unread mention/direct message": "{{- appName}}: you have a unread mention/direct message",
+    "%s: you have %c unread mentions/direct messages": "{{- appName}}: you have {{- count}} unread mentions/direct messages"
 }

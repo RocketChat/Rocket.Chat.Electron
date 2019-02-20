@@ -97,7 +97,7 @@ const createImageMenuTemplate = ({
 	mediaType === 'image' ?
 		[
 			{
-				label: i18n.__('Save image as...'),
+				label: i18n.__('Save image as'),
 				click: () => getCurrentWebContents().downloadURL(srcURL),
 			},
 			{

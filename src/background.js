@@ -14,6 +14,7 @@ import './background/screenshareDialog';
 import tray from './background/tray';
 import './background/updateDialog';
 import './background/updates';
+import i18n from './i18n';
 
 export { default as remoteServers } from './background/servers';
 export { certificate, dock, menus, tray };
@@ -68,7 +69,7 @@ if (gotTheLock) {
 
 	app.on('ready', async() => {
 		appData.initialize();
-
+		await i18n.initialize();
 		const mainWindow = await getMainWindow();
 		certificate.initWindow(mainWindow);
 

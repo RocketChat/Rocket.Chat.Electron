@@ -5,7 +5,9 @@ import sidebar from './sidebar';
 import webview from './webview';
 import i18n from '../i18n';
 
-export const start = function() {
+export const start = async function() {
+	await i18n.initialize();
+
 	const defaultInstance = 'https://open.rocket.chat';
 
 	// connection check

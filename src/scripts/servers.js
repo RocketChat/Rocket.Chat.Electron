@@ -260,16 +260,16 @@ class Servers extends EventEmitter {
 	showHostConfirmation(host) {
 		return remote.dialog.showMessageBox({
 			type: 'question',
-			buttons: [i18n.__('Add'), i18n.__('Cancel')],
+			buttons: [i18n.__('dialog.addServer.add'), i18n.__('dialog.addServer.cancel')],
 			defaultId: 0,
-			title: i18n.__('Add_Server'),
-			message: i18n.__('Add_host_to_servers', { host }),
+			title: i18n.__('dialog.addServer.title'),
+			message: i18n.__('dialog.addServer.message', { host }),
 		}, (response) => {
 			if (response === 0) {
 				this.validateHost(host)
 					.then(() => this.addHost(host))
 					.then(() => this.setActive(host))
-					.catch(() => remote.dialog.showErrorBox(i18n.__('Invalid_Host'), i18n.__('Host_not_validated', { host })));
+					.catch(() => remote.dialog.showErrorBox(i18n.__('dialog.addServerError.title'), i18n.__('dialog.addServerError.message', { host })));
 			}
 		});
 	}
@@ -277,10 +277,10 @@ class Servers extends EventEmitter {
 	resetAppData() {
 		const response = remote.dialog.showMessageBox({
 			type: 'question',
-			buttons: ['Yes', 'Cancel'],
+			buttons: [i18n.__('dialog.resetAppData.yes'), i18n.__('dialog.resetAppData.cancel')],
 			defaultId: 1,
-			title: i18n.__('Reset app data'),
-			message: i18n.__('Reset_app_data_message'),
+			title: i18n.__('dialog.resetAppData.title'),
+			message: i18n.__('dialog.resetAppData.message'),
 		});
 
 		if (response !== 0) {

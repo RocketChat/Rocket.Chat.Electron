@@ -31,17 +31,17 @@ class CertificateStore {
 
 			let detail = `URL: ${ url }\nError: ${ error }`;
 			if (this.isExisting(url)) {
-				detail = i18n.__('Certificate_error_different', { detail });
+				detail = i18n.__('error.differentCertificate', { detail });
 			}
 
 			dialog.showMessageBox(this.window, {
-				title: i18n.__('Certificate_error'),
-				message: i18n.__('Certificate_error_message', { issuerName: certificate.issuerName }),
+				title: i18n.__('dialog.certificateError.title'),
+				message: i18n.__('dialog.certificateError.message', { issuerName: certificate.issuerName }),
 				detail,
 				type: 'warning',
 				buttons: [
-					i18n.__('Yes'),
-					i18n.__('No'),
+					i18n.__('dialog.certificateError.yes'),
+					i18n.__('dialog.certificateError.no'),
 				],
 				cancelId: 1,
 			}, (response) => {

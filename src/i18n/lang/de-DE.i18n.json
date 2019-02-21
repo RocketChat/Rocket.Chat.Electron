@@ -1,92 +1,141 @@
 {
-    "About %s": "Über {{- appName}}",
-    "Add": "Hinzufügen",
-    "Add_host_to_servers": "Möchten Sie \"{{- host}}\" zu Ihrer Serverliste hinzufügen?",
-    "Add new server": "Neuen Server hinzufügen",
-    "Add &new server": "&Neuen server hinzufügen",
-    "Add_Server": "Server hinzufügen",
-    "Auth_needed_try": "Auth benötigt, probieren Sie <strong>{{- auth}}</strong>",
-    "Cancel": "Abbrechen",
-    "Certificate_error": "Zertifikatsfehler",
-    "Certificate_error_different": "Zertifikat unterscheidet sich vom Vorigen.\n\n {{- detail}}",
-    "Certificate_error_message": "Vertrauen Sie dem Zertifikat von \"{{- issuerName}}\"?",
-    "Check_connection": "Überprüfen Sie Ihre Internetverbindung!",
-    "Check_for_Updates": "Auf Aktualisierungen prüfen",
-    "Check_for_Updates_on_Start": "Beim Start auf Aktualisierungen prüfen",
-    "Clear": "Löschen",
-    "Clear trusted certificates": "Vertraute zertifikate löschen",
-    "Close": "Schließen",
-    "Connect": "Verbinden",
-    "&Copy": "&Kopieren",
-    "Copy link address": "Link kopieren",
-    "Copyright": "Copyright {{copyright}}",
-    "Current_Version": "Aktuelle Version:",
-    "Cu&t": "&Ausschneiden",
-    "Documentation": "Dokumentation",
-    "&Edit": "&Bearbeiten",
-    "Enter_your_server_URL": "Server URL eingeben",
-    "&File": "&Datei",
-    "Full screen": "Vollbildmodus",
-    "&Help": "&Hilfe",
-    "Hide": "Ausblenden",
-    "History": "Verlauf",
-    "Host_not_validated": "Der Host \"{{- host}}\" konnte nicht validiert werden, er wurde also nicht hinzugefügt.",
-    "Invalid_Host": "Ungültiger Host",
-    "Invalid_url": "Ungültige url",
-    "Learn more": "Mehr erfahren",
-    "Menu bar": "MenuBar",
-    "Minimize": "Minimieren",
-    "More_spelling_suggestions": "Mehr Rechtschreibvorschläge",
-    "Open link": "Link öffnen",
-    "New_Version": "Neue Version:",
-    "No": "Nein",
-    "No_suggestions": "Keine Vorschläge",
-    "No_valid_server_found": "Kein gültiger Server unter dieser URL gefunden",
-    "Open DevTools": "DevTools öffnen",
-    "Open &DevTools": "&DevTools öffnen",
-    "&Paste": "&Einfügen",
-    "Quit": "Beenden",
-    "&Quit %s": "{{- appName}} &beenden",
-    "&Redo": "Wieder&holen",
-    "Reload": "Neu laden",
-    "&Reload": "&Neu laden",
-    "Reload_server": "Server neu laden",
-    "Remove_server": "Server entfernen",
-    "Report issue": "Problem melden",
-    "Reset app data": "Appdaten löschen",
-    "Reset zoom": "Originalgröße",
-    "Select_a_screen_to_share": "Wählen Sie den zu teilenden Bildschirm aus",
-    "Select &all": "Alle auswählen",
-    "Server_Failed_to_Load": "Server konnte nicht geladen werden",
-    "Server list": "Server liste",
-    "Share_Your_Screen": "Bildschirm teilen",
-    "Show": "Anzeigen",
-    "Spelling_languages": "Sprachen für die Rechtschreibprüfung",
-    "Timeout_trying_to_connect": "Zeitüberschreitung beim Verbindungsaufbau",
-    "Toggle &DevTools": "&DevTools ein-/ausblenden",
-    "Tray icon": "Symbole in menüleiste",
-    "&Undo": "Wider&rufen",
-    "Update_Available": "Aktualisierung verfügbar",
-    "Update_Available_message": "Eine neue Version der Rocket.Chat Desktop App ist verfügbar!",
-    "Update_Available_New": "Neue Aktualisierung verfügbar",
-    "Update_downloading": "Aktualisierung wird heruntergeladen",
-    "Update_downloading_message": "Sie werden benachrichtigt, wenn die Aktualisierung bereit zur Installation ist",
-    "Update_Install": "Update installieren",
-    "Update_Install_Later": "Später installieren",
-    "Update_Install_Now": "Jetzt installieren",
-    "Update_installing_later": "Wird später installiert",
-    "Update_installing_later_message": "Die Aktualisierung wird durchgeführt, wenn Sie die App beenden",
-    "Update_ready": "Aktualisierung bereit zur Installation",
-    "Update_ready_message": "Aktualisierung wurde heruntergeladen",
-    "Update_skip": "Aktualisierung überspringen",
-    "Update_skip_message": "Wir werden Sie benachrichtigen, wenn die nächste Aktualisierung verfügbar ist\n Wenn Sie Ihre Meinung ändern, können Sie im Über Menü nach Aktualisierungen suchen.",
-    "Update_skip_remind": "Später erinnern",
-    "Update_skip_version": "Diese Version überspringen",
-    "Validating": "Validieren...",
-    "Version": "Version",
-    "&View": "Darstellung",
-    "&Window": "&Fenster",
-    "Yes": "Ja",
-    "Zoom in": "Vergrößern",
-    "Zoom out": "Verkleinern"
+    "contextMenu": {
+        "cut": "&Ausschneiden",
+        "copy": "&Kopieren",
+        "paste": "&Einfügen",
+        "selectAll": "Alle auswählen",
+        "undo": "Wider&rufen",
+        "redo": "Wieder&holen",
+        "spellingLanguages": "Sprachen für die Rechtschreibprüfung",
+        "moreSpellingSuggestions": "Mehr Rechtschreibvorschläge",
+        "noSpellingSuggestions": "Keine Vorschläge",
+        "copyLinkAddress": "Link kopieren",
+        "openLink": "Link öffnen"
+    },
+    "dialog": {
+        "about": {
+            "title": "Über {{- appName}}",
+            "version": "Version",
+            "checkUpdates": "Auf Aktualisierungen prüfen",
+            "checkUpdatesOnStart": "Beim Start auf Aktualisierungen prüfen",
+            "copyright": "Copyright {{copyright}}"
+        },
+        "addServer": {
+            "title": "Server hinzufügen",
+            "message": "Möchten Sie \"{{- host}}\" zu Ihrer Serverliste hinzufügen?",
+            "add": "Hinzufügen",
+            "cancel": "Abbrechen"
+        },
+        "addServerError": {
+            "title": "Ungültiger Host",
+            "message": "Der Host \"{{- host}}\" konnte nicht validiert werden, er wurde also nicht hinzugefügt."
+        },
+        "certificateError": {
+            "title": "Zertifikatsfehler",
+            "message": "Vertrauen Sie dem Zertifikat von \"{{- issuerName}}\"?",
+            "yes": "Ja",
+            "no": "Nein"
+        },
+        "resetAppData": {
+            "yes": "Ja",
+            "cancel": "Abbrechen"
+        },
+        "screenshare": {
+            "title": "Bildschirm teilen",
+            "announcement": "Wählen Sie den zu teilenden Bildschirm aus"
+        },
+        "update": {
+            "title": "Aktualisierung verfügbar",
+            "announcement": "Neue Aktualisierung verfügbar",
+            "message": "Eine neue Version der Rocket.Chat Desktop App ist verfügbar!",
+            "currentVersion": "Aktuelle Version:",
+            "newVersion": "Neue Version:",
+            "install": "Update installieren",
+            "remindLater": "Später erinnern",
+            "skip": "Diese Version überspringen"
+        },
+        "updateDownloading": {
+            "title": "Aktualisierung wird heruntergeladen",
+            "message": "Sie werden benachrichtigt, wenn die Aktualisierung bereit zur Installation ist"
+        },
+        "updateInstallLater": {
+            "title": "Wird später installiert",
+            "message": "Die Aktualisierung wird durchgeführt, wenn Sie die App beenden"
+        },
+        "updateReady": {
+            "title": "Aktualisierung bereit zur Installation",
+            "message": "Aktualisierung wurde heruntergeladen",
+            "installNow": "Jetzt installieren",
+            "installLater": "Später installieren"
+        },
+        "updateSkip": {
+            "title": "Aktualisierung überspringen",
+            "message": "Wir werden Sie benachrichtigen, wenn die nächste Aktualisierung verfügbar ist\n Wenn Sie Ihre Meinung ändern, können Sie im Über Menü nach Aktualisierungen suchen."
+        }
+    },
+    "error": {
+        "authNeeded": "Auth benötigt, probieren Sie <strong>{{- auth}}</strong>",
+        "connectTimeout": "Zeitüberschreitung beim Verbindungsaufbau",
+        "differentCertificate": "Zertifikat unterscheidet sich vom Vorigen.\n\n {{- detail}}",
+        "noValidServerFound": "Kein gültiger Server unter dieser URL gefunden",
+        "offline": "Überprüfen Sie Ihre Internetverbindung!"
+    },
+    "landing": {
+        "invalidUrl": "Ungültige url",
+        "validating": "Validieren...",
+        "inputUrl": "Server URL eingeben",
+        "connect": "Verbinden"
+    },
+    "menus": {
+        "about": "Über {{- appName}}",
+        "addNewServer": "&Neuen server hinzufügen",
+        "clearTrustedCertificates": "Vertraute zertifikate löschen",
+        "close": "Schließen",
+        "copy": "&Kopieren",
+        "cut": "&Ausschneiden",
+        "documentation": "Dokumentation",
+        "editMenu": "&Bearbeiten",
+        "fileMenu": "&Datei",
+        "helpMenu": "&Hilfe",
+        "learnMore": "Mehr erfahren",
+        "minimize": "Minimieren",
+        "openDevTools": "&DevTools öffnen",
+        "paste": "&Einfügen",
+        "quit": "{{- appName}} &beenden",
+        "redo": "Wieder&holen",
+        "reload": "&Neu laden",
+        "reportIssue": "Problem melden",
+        "resetAppData": "Appdaten löschen",
+        "resetZoom": "Originalgröße",
+        "selectAll": "Alle auswählen",
+        "showFullScreen": "Vollbildmodus",
+        "showMenuBar": "MenuBar",
+        "showServerList": "Server liste",
+        "showTrayIcon": "Symbole in menüleiste",
+        "toggleDevTools": "&DevTools ein-/ausblenden",
+        "undo": "Wider&rufen",
+        "viewMenu": "Darstellung",
+        "windowMenu": "&Fenster",
+        "zoomIn": "Vergrößern",
+        "zoomOut": "Verkleinern"
+    },
+    "loadingError": {
+        "title": "Server konnte nicht geladen werden",
+        "reload": "Neu laden"
+    },
+    "sidebar": {
+        "addNewServer": "Neuen Server hinzufügen",
+        "item": {
+            "reload": "Server neu laden",
+            "remove": "Server entfernen",
+            "openDevTools": "DevTools öffnen"
+        }
+    },
+    "tray": {
+        "menu": {
+            "show": "Anzeigen",
+            "hide": "Ausblenden",
+            "quit": "Beenden"
+        }
+    }
 }

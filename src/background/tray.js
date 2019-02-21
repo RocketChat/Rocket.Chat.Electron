@@ -10,27 +10,23 @@ const getIconTooltip = ({ badge: { title, count } }) => {
 	const appName = app.getName();
 
 	if (title === '•') {
-		return i18n.__('%s: you have unread messages', { appName });
+		return i18n.__('tray.tooltip.unreadMessage', { appName });
 	}
 
-	if (count === 1) {
-		return i18n.__('%s: you have a unread mention/direct message', { appName });
+	if (count > 0) {
+		return i18n.__('tray.tooltip.unreadMention', { appName, count });
 	}
 
-	if (count > 1) {
-		return i18n.__('%s: you have %c unread mentions/direct messages', { appName, count });
-	}
-
-	return i18n.__('%s: no unread messages', { appName });
+	return i18n.__('tray.tooltip.noUnreadMessage', { appName });
 };
 
 const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 	{
-		label: !isMainWindowVisible ? i18n.__('Show') : i18n.__('Hide'),
+		label: !isMainWindowVisible ? i18n.__('tray.menu.show') : i18n.__('tray.menu.hide'),
 		click: () => events.emit('set-main-window-visibility', !isMainWindowVisible),
 	},
 	{
-		label: i18n.__('Quit'),
+		label: i18n.__('tray.menu.quit'),
 		click: () => events.emit('quit'),
 	},
 ]);

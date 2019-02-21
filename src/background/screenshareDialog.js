@@ -12,7 +12,7 @@ const openScreenshareDialog = async() => {
 
 	const mainWindow = await getMainWindow();
 	screenshareWindow = new BrowserWindow({
-		title: i18n.__('Share Your Screen'),
+		title: i18n.__('dialog.screenshare.title'),
 		parent: mainWindow,
 		width: 776,
 		height: 600,

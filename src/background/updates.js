@@ -123,11 +123,11 @@ const handleUpdateDownloaded = async() => {
 
 	const response = dialog.showMessageBox(mainWindow, {
 		type: 'question',
-		title: i18n.__('Update_ready'),
-		message: i18n.__('Update_ready_message'),
+		title: i18n.__('dialog.updateReady.title'),
+		message: i18n.__('dialog.updateReady.message'),
 		buttons: [
-			i18n.__('Update_Install_Later'),
-			i18n.__('Update_Install_Now'),
+			i18n.__('dialog.updateReady.installLater'),
+			i18n.__('dialog.updateReady.installNow'),
 		],
 		defaultId: 1,
 	});
@@ -135,9 +135,9 @@ const handleUpdateDownloaded = async() => {
 	if (response === 0) {
 		dialog.showMessageBox(mainWindow, {
 			type: 'info',
-			title: i18n.__('Update_installing_later'),
-			message: i18n.__('Update_installing_later_message'),
-			buttons: [i18n.__('OK')],
+			title: i18n.__('dialog.updateInstallLater.title'),
+			message: i18n.__('dialog.updateInstallLater.message'),
+			buttons: [i18n.__('dialog.updateInstallLater.ok')],
 			defaultId: 0,
 		});
 		return;

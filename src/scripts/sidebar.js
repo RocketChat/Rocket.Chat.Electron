@@ -316,17 +316,17 @@ export default new SideBar();
 
 let selectedInstance = null;
 const instanceMenu = remote.Menu.buildFromTemplate([{
-	label: i18n.__('Reload_server'),
+	label: i18n.__('sidebar.item\.reload'),
 	click() {
 		webview.getByUrl(selectedInstance.dataset.host).reload();
 	},
 }, {
-	label: i18n.__('Remove_server'),
+	label: i18n.__('sidebar.item\.remove'),
 	click() {
 		servers.removeHost(selectedInstance.dataset.host);
 	},
 }, {
-	label: i18n.__('Open DevTools'),
+	label: i18n.__('sidebar.item\.openDevTools'),
 	click() {
 		webview.getByUrl(selectedInstance.dataset.host).openDevTools();
 	},

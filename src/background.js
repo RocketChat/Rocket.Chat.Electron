@@ -49,6 +49,7 @@ app.setAppUserModelId('chat.rocket');
 if (process.platform === 'linux') {
 	app.disableHardwareAcceleration();
 }
+app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
 
 process.on('unhandledRejection', console.error.bind(console));
 

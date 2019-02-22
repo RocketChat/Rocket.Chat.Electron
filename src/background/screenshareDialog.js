@@ -1,6 +1,6 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { BrowserWindow, ipcMain } from 'electron';
 import { getMainWindow } from './mainWindow';
-import i18n from '../i18n/index.js';
+import i18n from '../i18n';
 
 
 let screenshareWindow;
@@ -12,7 +12,7 @@ const openScreenshareDialog = async() => {
 
 	const mainWindow = await getMainWindow();
 	screenshareWindow = new BrowserWindow({
-		title: i18n.__('About %s', app.getName()),
+		title: i18n.__('dialog.screenshare.title'),
 		parent: mainWindow,
 		width: 776,
 		height: 600,

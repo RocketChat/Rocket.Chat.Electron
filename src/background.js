@@ -1,4 +1,4 @@
-import { app, ipcMain, Menu } from 'electron';
+import { app, ipcMain } from 'electron';
 import querystring from 'querystring';
 import url from 'url';
 import idle from '@paulcbetts/system-idle-time';
@@ -14,35 +14,13 @@ import './background/screenshareDialog';
 import tray from './background/tray';
 import './background/updateDialog';
 import './background/updates';
-
-import i18n from './i18n/index.js';
+import i18n from './i18n';
 
 export { default as remoteServers } from './background/servers';
 export { certificate, dock, menus, tray };
 
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
-
-const unsetDefaultApplicationMenu = () => {
-	if (process.platform !== 'darwin') {
-		Menu.setApplicationMenu(null);
-		return;
-	}
-
-	const emptyMenuTemplate = [{
-		label: app.getName(),
-		submenu: [
-			{
-				label: i18n.__('&Quit %s', app.getName()),
-				accelerator: 'CommandOrControl+Q',
-				click() {
-					app.quit();
-				},
-			},
-		],
-	}];
-	Menu.setApplicationMenu(Menu.buildFromTemplate(emptyMenuTemplate));
-};
 
 const parseProtocolUrls = (args) =>
 	args.filter((arg) => /^rocketchat:\/\/./.test(arg))
@@ -90,10 +68,8 @@ if (gotTheLock) {
 	});
 
 	app.on('ready', async() => {
-		unsetDefaultApplicationMenu();
-
 		appData.initialize();
-
+		await i18n.initialize();
 		const mainWindow = await getMainWindow();
 		certificate.initWindow(mainWindow);
 

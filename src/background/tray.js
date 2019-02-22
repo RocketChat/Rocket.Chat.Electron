@@ -1,4 +1,4 @@
-import { Menu, systemPreferences, Tray as TrayIcon } from 'electron';
+import { app, Menu, systemPreferences, Tray as TrayIcon } from 'electron';
 import { EventEmitter } from 'events';
 import i18n from '../i18n';
 import { getTrayIconImage } from './icon';
@@ -6,15 +6,27 @@ import { getTrayIconImage } from './icon';
 
 const getIconTitle = ({ badge: { title, count } }) => ((count > 0) ? title : '');
 
-const getIconTooltip = ({ badge: { count } }) => i18n.pluralize('Message_count', count, count);
+const getIconTooltip = ({ badge: { title, count } }) => {
+	const appName = app.getName();
+
+	if (title === '•') {
+		return i18n.__('tray.tooltip.unreadMessage', { appName });
+	}
+
+	if (count > 0) {
+		return i18n.__('tray.tooltip.unreadMention', { appName, count });
+	}
+
+	return i18n.__('tray.tooltip.noUnreadMessage', { appName });
+};
 
 const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 	{
-		label: !isMainWindowVisible ? i18n.__('Show') : i18n.__('Hide'),
+		label: !isMainWindowVisible ? i18n.__('tray.menu.show') : i18n.__('tray.menu.hide'),
 		click: () => events.emit('set-main-window-visibility', !isMainWindowVisible),
 	},
 	{
-		label: i18n.__('Quit'),
+		label: i18n.__('tray.menu.quit'),
 		click: () => events.emit('quit'),
 	},
 ]);

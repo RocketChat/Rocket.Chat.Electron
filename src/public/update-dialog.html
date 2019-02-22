@@ -8,16 +8,16 @@
 		window.addEventListener('load', () => {
 			const { remote: { dialog, getCurrentWindow }, ipcRenderer } = require('electron');
 			const { params: { currentVersion, newVersion} } = getCurrentWindow();
-			const i18n = require('../i18n/index');
+			const i18n = require('../i18n');
 
-			document.title = i18n.__('Update_Available');
-			document.querySelector('.update-title').innerHTML = i18n.__('Update_Available_New');
-			document.querySelector('.update-message').innerHTML = i18n.__('Update_Available_message');
-			document.querySelector('.current-version .app-version-label').innerHTML = i18n.__('Current_Version');
-			document.querySelector('.new-version .app-version-label').innerHTML = i18n.__('New_Version');
-			document.querySelector('.update-skip-action').innerHTML = i18n.__('Update_skip_version');
-			document.querySelector('.update-remind-action').innerHTML = i18n.__('Update_skip_remind');
-			document.querySelector('.update-install-action').innerHTML = i18n.__('Update_Install');
+			document.title = i18n.__('dialog.update.title');
+			document.querySelector('.update-title').innerHTML = i18n.__('dialog.update.announcement');
+			document.querySelector('.update-message').innerHTML = i18n.__('dialog.update.message');
+			document.querySelector('.current-version .app-version-label').innerHTML = i18n.__('dialog.update.currentVersion');
+			document.querySelector('.new-version .app-version-label').innerHTML = i18n.__('dialog.update.newVersion');
+			document.querySelector('.update-skip-action').innerHTML = i18n.__('dialog.update.skip');
+			document.querySelector('.update-remind-action').innerHTML = i18n.__('dialog.update.remindLater');
+			document.querySelector('.update-install-action').innerHTML = i18n.__('dialog.update.install');
 
 			document.querySelector('.current-version .app-version-value').innerHTML = currentVersion;
 			document.querySelector('.new-version .app-version-value').innerHTML = newVersion;
@@ -26,9 +26,9 @@
 				e.preventDefault();
 				dialog.showMessageBox(getCurrentWindow(), {
 					type: 'warning',
-					title: i18n.__('Update_skip'),
-					message: i18n.__('Update_skip_message'),
-					buttons: [i18n.__('OK')],
+					title: i18n.__('dialog.updateSkip.title'),
+					message: i18n.__('dialog.updateSkip.message'),
+					buttons: [i18n.__('dialog.updateSkip.ok')],
 					defaultId: 0,
 				}, () => {
 					ipcRenderer.send('close-update-dialog');
@@ -46,9 +46,9 @@
 				e.preventDefault();
 				dialog.showMessageBox(getCurrentWindow(), {
 					type: 'info',
-					title: i18n.__('Update_downloading'),
-					message: i18n.__('Update_downloading_message'),
-					buttons: [i18n.__('OK')],
+					title: i18n.__('dialog.updateDownloading.title'),
+					message: i18n.__('dialog.updateDownloading.message'),
+					buttons: [i18n.__('dialog.updateDownloading.ok')],
 					defaultId: 0,
 				}, () => {
 						ipcRenderer.send('close-update-dialog');

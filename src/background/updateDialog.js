@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { getMainWindow } from './mainWindow';
-import i18n from '../i18n/index.js';
+import i18n from '../i18n';
 
 
 let updateWindow;
@@ -12,7 +12,7 @@ const openUpdateDialog = async({ currentVersion = app.getVersion(), newVersion }
 
 	const mainWindow = await getMainWindow();
 	updateWindow = new BrowserWindow({
-		title: i18n.__('Update_Available'),
+		title: i18n.__('dialog.update.title'),
 		parent: mainWindow,
 		modal: process.platform !== 'darwin',
 		width: 600,

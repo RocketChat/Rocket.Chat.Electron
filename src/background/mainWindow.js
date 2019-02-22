@@ -1,7 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import createWindowStateKeeper from './windowState';
 import { whenReady, whenReadyToShow } from './utils';
-import env from '../env';
 
 
 let mainWindow = null;
@@ -83,7 +82,7 @@ export const getMainWindow = async() => {
 		mainWindow.loadURL(`file://${ __dirname }/public/app.html`);
 		attachWindowStateHandling(mainWindow);
 
-		if (env.name === 'development') {
+		if (process.env.NODE_ENV === 'development') {
 			mainWindow.openDevTools();
 		}
 	}

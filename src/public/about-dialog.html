@@ -8,14 +8,14 @@
 		window.addEventListener('load', () => {
 			const { remote: { getCurrentWindow }, ipcRenderer } = require('electron');
 			const { params: { appName, appVersion} } = getCurrentWindow();
-			const i18n = require('../i18n/index');
+			const i18n = require('../i18n');
 			const { copyright } = require('../../package.json');
 
-			document.title = i18n.__('About %s', appName);
-			document.querySelector('.app-version').innerHTML = `${i18n.__('Version')} <span class="version">${appVersion}</span>`;
-			document.querySelector('.check-for-updates').innerHTML = i18n.__('Check_for_Updates');
-			document.querySelector('.check-for-updates-on-start + span').innerHTML = i18n.__('Check_for_Updates_on_Start');
-			document.querySelector('.copyright').innerHTML = i18n.__('Copyright', copyright);
+			document.title = i18n.__('dialog.about.title', { appName });
+			document.querySelector('.app-version').innerHTML = `${i18n.__('dialog.about.version')} <span class="version">${appVersion}</span>`;
+			document.querySelector('.check-for-updates').innerHTML = i18n.__('dialog.about.checkUpdates');
+			document.querySelector('.check-for-updates-on-start + span').innerHTML = i18n.__('dialog.about.checkUpdatesOnStart');
+			document.querySelector('.copyright').innerHTML = i18n.__('dialog.about.copyright', { copyright });
 
 			const canUpdate = ipcRenderer.sendSync('can-update');
 
@@ -57,7 +57,7 @@
 						return;
 					}
 
-					document.querySelector('.checking-for-updates .message').innerHTML = i18n.__('No updates are available.');
+					document.querySelector('.checking-for-updates .message').innerHTML = i18n.__('dialog.about.noUpdatesAvailable');
 					document.querySelector('.checking-for-updates').classList.add('message-shown');
 
 					setTimeout(() => {
@@ -68,7 +68,7 @@
 				});
 
 				ipcRenderer.on('update-error', (e, updateAvailable) => {
-					document.querySelector('.checking-for-updates .message').innerHTML = i18n.__('An error has occurred while looking for updates.');
+					document.querySelector('.checking-for-updates .message').innerHTML = i18n.__('dialog.about.errorWhileLookingForUpdates');
 					document.querySelector('.checking-for-updates').classList.add('message-shown');
 
 					setTimeout(() => {

@@ -26,10 +26,23 @@ class Notification extends EventEmitter {
 			Notification.cachedIcons = Notification.cachedIcons || {};
 
 			if (!Notification.cachedIcons[icon]) {
+				const img = new Image();
+				img.src = icon;
+				await new Promise((resolve) => (img.onload = resolve));
+
+				const canvas = document.createElement('canvas');
+				canvas.width = img.naturalWidth;
+				canvas.height = img.naturalHeight;
+
+				const context = canvas.getContext('2d');
+				context.drawImage(img, 0, 0);
+
 				Notification.cachedIcons[icon] = await new Promise((resolve, reject) =>
 					tmp.file((err, path) => (err ? reject(err) : resolve(path))));
-				const buffer = nativeImage.createFromDataURL(icon).toPNG();
+				const buffer = nativeImage.createFromDataURL(canvas.toDataURL()).toPNG();
 				await jetpack.writeAsync(Notification.cachedIcons[icon], buffer);
+
+				canvas.remove();
 			}
 			icon = Notification.cachedIcons[icon];
 		}

@@ -1,8 +1,6 @@
 import { app, ipcMain } from 'electron';
 import querystring from 'querystring';
 import url from 'url';
-import idle from '@paulcbetts/system-idle-time';
-
 import './background/aboutDialog';
 import appData from './background/appData';
 import certificate from './background/certificate';
@@ -51,10 +49,6 @@ app.setAppUserModelId('chat.rocket');
 if (process.platform === 'linux') {
 	app.disableHardwareAcceleration();
 }
-
-ipcMain.on('getSystemIdleTime', (event) => {
-	event.returnValue = idle.getIdleTime();
-});
 
 process.on('unhandledRejection', console.error.bind(console));
 

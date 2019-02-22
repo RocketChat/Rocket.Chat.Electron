@@ -36,7 +36,6 @@
     "e2e": "xvfb-maybe mocha --require source-map-support/register app/e2e.js"
   },
   "dependencies": {
-    "@paulcbetts/system-idle-time": "^1.0.4",
     "electron-updater": "^4.0.6",
     "freedesktop-notifications": "^1.4.0",
     "fs-jetpack": "^2.2.0",

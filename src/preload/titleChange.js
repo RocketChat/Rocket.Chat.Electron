@@ -8,7 +8,6 @@ const getSettings = () => (
 		(window.require && window.require('meteor/rocketchat:settings').settings)
 );
 
-
 function handleTitleChange() {
 	const Meteor = getMeteor();
 	const Tracker = getTracker();

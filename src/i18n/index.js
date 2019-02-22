@@ -6,6 +6,7 @@ import i18nextSyncFileSystemBackend from 'i18next-sync-fs-backend';
 
 
 const app = mainApp || remote.app;
+const languagesDirPath = `${ app.getAppPath() }/app/i18n/lang`;
 const defaultLocale = 'en';
 let globalLocale = defaultLocale;
 
@@ -25,24 +26,18 @@ const normalizeLocale = (locale) => {
 	return countryCode ? `${ languageCode }-${ countryCode }` : languageCode;
 };
 
-const getLanguages = async() => (
-	(await jetpack.listAsync(`${ app.getAppPath() }/app/i18n/lang`))
-		.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
-		.map((filename) => filename.split('.')[0])
-);
-
-const getLanguagesSync = async() => (
-	jetpack.list(`${ app.getAppPath() }/app/i18n/lang`)
-		.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
-		.map((filename) => filename.split('.')[0])
-);
-
+// TODO: remove synchronous initialization
 async function initialize({ synchronous = false } = {}) {
 	globalLocale = normalizeLocale(app.getLocale());
 
-	const lngs = synchronous ? getLanguages() : await getLanguagesSync();
+	const lngFiles = synchronous ? jetpack.list(languagesDirPath) : await jetpack.listAsync(languagesDirPath);
+	const lngs = (
+		lngFiles
+			.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
+			.map((filename) => filename.split('.')[0])
+	);
 
-	await (
+	const result = (
 		i18next
 			.use(synchronous ? i18nextSyncFileSystemBackend : i18nextNodeFileSystemBackend)
 			.init({
@@ -50,15 +45,17 @@ async function initialize({ synchronous = false } = {}) {
 				fallbackLng: defaultLocale,
 				lngs,
 				backend: {
-					loadPath: `${ app.getAppPath() }/app/i18n/lang/{{lng}}.i18n.json`,
+					loadPath: `${ languagesDirPath }/{{lng}}.i18n.json`,
 				},
 				initImmediate: !synchronous,
 			})
 	);
+
+	!synchronous && await result;
 }
 
 function translate(...args) {
-	if (!i18next.isInitialized) {
+	if (!i18next.isInitialized && process.env.NODE_ENV !== 'test') {
 		initialize({ synchronous: true });
 	}
 

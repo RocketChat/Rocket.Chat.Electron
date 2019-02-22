@@ -8,4 +8,4 @@ const spawnElectron = () => (
 		.on('close', spawnElectron)
 );
 
-gulp.task('start', gulp.parallel('watch', gulp.series('build-app', spawnElectron)));
+gulp.task('start', gulp.series('build-app', gulp.parallel('watch', spawnElectron)));

@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron';
+import i18n from './i18n';
 import setupContextMenuPreload from './preload/contextMenu';
 import setupEventsPreload from './preload/events';
 import setupJitsiPreload from './preload/jitsi';
@@ -17,4 +18,4 @@ setupSidebarPreload();
 setupSpellcheckingPreload();
 
 window.reloadServer = () => ipcRenderer.sendToHost('reload-server');
-window.i18n = require('./i18n');
+window.i18n = i18n;

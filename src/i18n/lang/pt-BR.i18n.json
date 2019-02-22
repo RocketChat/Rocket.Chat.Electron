@@ -47,7 +47,7 @@
         },
         "loadDictionaryError": {
             "title": "Erro",
-            "message": "Erro ao copiar arquivo de dicionário"
+            "message": "Erro ao copiar arquivo de dicionário: {{- message}}"
         },
         "resetAppData": {
             "title": "Limpar dados do aplicativo",

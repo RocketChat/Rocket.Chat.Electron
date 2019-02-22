@@ -39,9 +39,9 @@ class SideBar extends EventEmitter {
 			this.setLabel(hostUrl, title);
 		});
 
-		webview.on('dom-ready', (hostUrl) => {
+		webview.on('dom-ready', (webviewObj, hostUrl) => {
 			this.setActive(localStorage.getItem(servers.activeKey));
-			webview.getActive().send('request-sidebar-color');
+			webviewObj.send('request-sidebar-color');
 			this.setImage(hostUrl);
 			if (this.isHidden()) {
 				this.hide();
@@ -272,8 +272,24 @@ class SideBar extends EventEmitter {
 		localStorage.setItem('sidebar-closed', 'true');
 		this.emit('hide');
 		if (process.platform === 'darwin') {
-			document.querySelectorAll('webview').forEach(
-				(webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:15px;overflow:hidden; transition: margin .5s ease-in-out; } .sidebar{padding-top:10px;transition: margin .5s ease-in-out;}'); } });
+			Array.from(document.querySelectorAll('webview.ready'))
+				.forEach((webviewObj) => {
+					if (!webviewObj.insertCSS) {
+						return;
+					}
+
+					webviewObj.insertCSS(`
+						aside.side-nav {
+							margin-top: 15px;
+							overflow: hidden;
+							transition: margin .5s ease-in-out;
+						}
+						.sidebar {
+							padding-top: 10px;
+							transition: margin .5s ease-in-out;
+						}
+					`);
+				});
 		}
 	}
 
@@ -282,8 +298,25 @@ class SideBar extends EventEmitter {
 		localStorage.setItem('sidebar-closed', 'false');
 		this.emit('show');
 		if (process.platform === 'darwin') {
-			document.querySelectorAll('webview').forEach(
-				(webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:0; overflow:hidden; transition: margin .5s ease-in-out;} .sidebar{padding-top:0;transition: margin .5s ease-in-out;}'); } });
+			Array.from(document.querySelectorAll('webview.ready'))
+				.forEach((webviewObj) => {
+					if (!webviewObj.insertCSS) {
+						return;
+					}
+
+					webviewObj.insertCSS(`
+						aside.side-nav {
+							margin-top: 0;
+							overflow: hidden;
+							transition: margin .5s ease-in-out;
+						}
+
+						.sidebar {
+							padding-top: 0;
+							transition: margin .5s ease-in-out;
+						}
+					`);
+				});
 		}
 	}
 

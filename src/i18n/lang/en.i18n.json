@@ -47,7 +47,7 @@
         },
         "loadDictionaryError": {
             "title": "Error",
-            "message": "Error copying dictionary file"
+            "message": "Error copying dictionary file: {{- message}}"
         },
         "resetAppData": {
             "title": "Reset app data",

@@ -19,8 +19,11 @@ const createSpellCheckingMenuTemplate = async({
 			try {
 				await spellchecking.installDictionaries(filePaths);
 			} catch (error) {
-				dialog.showErrorBox(i18n.__('dialog.loadDictionaryError.title'), `${ i18n.__('dialog.loadDictionaryError.message') }: ${ name }`);
 				console.error(error);
+				dialog.showErrorBox(
+					i18n.__('dialog.loadDictionaryError.title'),
+					i18n.__('dialog.loadDictionaryError.message', { message: error.message })
+				);
 			}
 		};
 

@@ -31,7 +31,7 @@ gulp.task('less', () => gulp.src('src/stylesheets/main.less')
 gulp.task('build-app', gulp.series('public', 'i18n', 'bundle', 'less'));
 
 gulp.task('watch', () => {
-	const run = (taskName) => batch((event, done) => gulp.start(taskName, done));
+	const run = (taskName) => batch((event, done) => gulp.task(taskName)(done));
 
 	watch('src/public/**/*', run('public'));
 	watch('src/i18n/lang/**/*', run('i18n'));

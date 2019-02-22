@@ -101,7 +101,7 @@ class WebView extends EventEmitter {
 
 		webviewObj.addEventListener('dom-ready', () => {
 			webviewObj.classList.add('ready');
-			this.emit('dom-ready', host.url);
+			this.emit('dom-ready', webviewObj, host.url);
 		});
 
 		webviewObj.addEventListener('did-fail-load', (e) => {

@@ -1,34 +1,38 @@
-import { desktopCapturer } from 'electron';
-import path from 'path';
+import { desktopCapturer, remote } from 'electron';
 import url from 'url';
+import util from 'util';
+const { app } = remote;
 
 
+const getScreenSources = util.promisify(desktopCapturer.getSources.bind(desktopCapturer));
 const JitsiMeetElectron = {
-	obtainDesktopStreams(callback, errorCallback, options = {}) {
-		desktopCapturer.getSources(options, (error, sources) => {
-			if (error) {
-				errorCallback(error);
-				return;
-			}
-
-			callback(sources);
-		});
+	async obtainDesktopStreams(callback, errorCallback, options = {}) {
+		try {
+			callback(await getScreenSources(options));
+		} catch (error) {
+			errorCallback(error);
+		}
 	},
 };
 
 
-const wrapWindowOpen = (defaultWindowOpen) => (href, frameName, features) => {
-	const { RocketChat } = window;
+const getSettings = () => (
+	(window.RocketChat && window.RocketChat.settings) ||
+		(window.require && window.require('meteor/rocketchat:settings').settings)
+);
 
-	if (RocketChat && url.parse(href).host === RocketChat.settings.get('Jitsi_Domain')) {
+const wrapWindowOpen = (defaultWindowOpen) => (href, frameName, features) => {
+	const settings = getSettings();
+
+	if (settings && url.parse(href).host === settings.get('Jitsi_Domain')) {
 		features = [
 			features,
 			'nodeIntegration=true',
-			`preload=${ path.join(__dirname, './preload.js') }`,
-		].filter((x) => Boolean(x)).join(',');
+			`preload=${ `${ app.getAppPath() }/app/preload.js` }`,
+		].join(',');
 	}
 
-	return defaultWindowOpen(href, frameName, features);
+	return defaultWindowOpen.call(window, href, frameName, features);
 };
 
 
@@ -44,7 +48,6 @@ const pollJitsiIframe = () => {
 
 export default () => {
 	window.JitsiMeetElectron = JitsiMeetElectron;
-
 	window.open = wrapWindowOpen(window.open);
 
 	window.addEventListener('load', () => {

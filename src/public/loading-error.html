@@ -13,7 +13,7 @@
 			document.querySelector('.reload-button').addEventListener('click', ({ target }) => {
 				document.querySelector('.reload-button').classList.add('hidden');
 				document.querySelector('.reloading-server').classList.remove('hidden');
-				window.reloadServer();
+				window.reloadServer && window.reloadServer();
 			}, false);
 
 			let counter = 60;
@@ -23,7 +23,8 @@
 				counter = counter - reloadCounterStepSize;
 				document.querySelector('.reload-button').innerHTML = `${textBefore} (${counter})`;
 				if (counter <= 0) {
-					document.querySelector('.reload-button').click();
+					window.reloadServer && window.reloadServer();
+					counter = 60;
 				}
 			}, reloadCounterStepSize * 1000);
 		});

@@ -1,7 +1,6 @@
 const { build } = require('electron-builder');
 const gulp = require('gulp');
 const minimist = require('minimist');
-const runSequence = require('run-sequence');
 const config = require('../electron-builder.json');
 
 const { env } = minimist(process.argv, { default: { env: 'development' } });
@@ -15,4 +14,4 @@ gulp.task('release:linux', async() => {
 	await build({ publish, ia32: true, linux: allLinuxTargetsButSnap, c: { productName: 'rocketchat' } });
 });
 
-gulp.task('release', (cb) => runSequence('build-app', `release:${ process.platform }`, cb));
+gulp.task('release', gulp.series('build-app', `release:${ process.platform }`));

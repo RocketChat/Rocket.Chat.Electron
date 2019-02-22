@@ -1,6 +1,7 @@
 import { expect } from 'chai';
-import { describe, it } from 'mocha';
 import { getAppIconPath, getTrayIconPath, getAppIconImage, getTrayIconImage } from './icon';
+const { describe, it } = global;
+
 
 describe('icon', () => {
 

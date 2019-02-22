@@ -28,7 +28,7 @@ gulp.task('less', () => gulp.src('src/stylesheets/main.less')
 	.pipe(less())
 	.pipe(gulp.dest('app/stylesheets')));
 
-gulp.task('build-app', ['public', 'i18n', 'bundle', 'less']);
+gulp.task('build-app', gulp.series('public', 'i18n', 'bundle', 'less'));
 
 gulp.task('watch', () => {
 	const run = (taskName) => batch((event, done) => gulp.start(taskName, done));
@@ -39,16 +39,16 @@ gulp.task('watch', () => {
 	watch('src/**/*.less', run('less'));
 });
 
-gulp.task('build-unit-tests', ['build-app'], async() => {
+gulp.task('build-unit-tests', gulp.series('build-app', async() => {
 	await bundle.many('src', 'background/*.spec.js', 'app/main.specs.js', { env });
 	await bundle.many('src', ['*.spec.js', '!background/*.spec.js'], 'app/renderer.specs.js', { env });
-});
+}));
 
-gulp.task('build-coverage-tests', ['build-app'], async() => {
+gulp.task('build-coverage-tests', gulp.series('build-app', async() => {
 	await bundle.many('src', 'background/*.spec.js', 'app/main.specs.js', { coverage: true, env });
 	await bundle.many('src', ['*.spec.js', '!background/*.spec.js'], 'app/renderer.specs.js', { coverage: true, env });
-});
+}));
 
-gulp.task('build-e2e-tests', ['build-app'], async() => {
+gulp.task('build-e2e-tests', gulp.series('build-app', async() => {
 	await bundle.many('src', '*.e2e.js', 'app/e2e.js', { env });
-});
+}));

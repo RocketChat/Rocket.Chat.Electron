@@ -1,8 +1,9 @@
-/* eslint-env node, mocha */
-import { Menu } from 'electron';
 import { expect } from 'chai';
+import { Menu } from 'electron';
 import sinon from 'sinon';
 import menus from './menus';
+const { beforeEach, describe, it } = global;
+
 
 describe('menus', () => {
 	let menu;

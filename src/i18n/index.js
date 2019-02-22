@@ -25,46 +25,41 @@ const normalizeLocale = (locale) => {
 	return countryCode ? `${ languageCode }-${ countryCode }` : languageCode;
 };
 
-function initializeSync() {
+const getLanguages = async() => (
+	(await jetpack.listAsync(`${ app.getAppPath() }/app/i18n/lang`))
+		.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
+		.map((filename) => filename.split('.')[0])
+);
+
+const getLanguagesSync = async() => (
+	jetpack.list(`${ app.getAppPath() }/app/i18n/lang`)
+		.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
+		.map((filename) => filename.split('.')[0])
+);
+
+async function initialize({ synchronous = false } = {}) {
 	globalLocale = normalizeLocale(app.getLocale());
 
-	i18next
-		.use(i18nextSyncFileSystemBackend)
-		.init({
-			lng: globalLocale,
-			fallbackLng: defaultLocale,
-			lngs: jetpack.list(`${ app.getAppPath() }/app/i18n/lang`)
-				.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
-				.map((filename) => filename.split('.')[0]),
-			backend: {
-				loadPath: `${ app.getAppPath() }/app/i18n/lang/{{lng}}.i18n.json`,
-			},
-			initImmediate: false,
-		});
-}
-
-async function initialize() {
-	globalLocale = normalizeLocale(app.getLocale());
+	const lngs = synchronous ? getLanguages() : await getLanguagesSync();
 
 	await (
 		i18next
-			.use(i18nextNodeFileSystemBackend)
+			.use(synchronous ? i18nextSyncFileSystemBackend : i18nextNodeFileSystemBackend)
 			.init({
 				lng: globalLocale,
 				fallbackLng: defaultLocale,
-				lngs: jetpack.list(`${ app.getAppPath() }/app/i18n/lang`)
-					.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
-					.map((filename) => filename.split('.')[0]),
+				lngs,
 				backend: {
 					loadPath: `${ app.getAppPath() }/app/i18n/lang/{{lng}}.i18n.json`,
 				},
+				initImmediate: !synchronous,
 			})
 	);
 }
 
 function translate(...args) {
 	if (!i18next.isInitialized) {
-		initializeSync();
+		initialize({ synchronous: true });
 	}
 
 	return i18next.t.apply(i18next, args);

@@ -121,4 +121,5 @@ ipcMain.on('focus', async() => {
 	}
 
 	mainWindow.show();
+	mainWindow.focus();
 });

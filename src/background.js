@@ -4,19 +4,17 @@ import url from 'url';
 import './background/aboutDialog';
 import appData from './background/appData';
 import certificate from './background/certificate';
-import dock from './background/dock';
+export { default as dock } from './background/dock';
 import { addServer, getMainWindow } from './background/mainWindow';
-import menus from './background/menus';
-import './background/notifications';
+export { default as menus } from './background/menus';
+export { default as notifications } from './background/notifications';
 import './background/screenshareDialog';
-import tray from './background/tray';
+export { default as remoteServers } from './background/servers';
+export { default as tray } from './background/tray';
 import './background/updateDialog';
 import './background/updates';
 import i18n from './i18n';
-
-export { default as remoteServers } from './background/servers';
-export { certificate, dock, menus, tray };
-
+export { certificate };
 
 process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 

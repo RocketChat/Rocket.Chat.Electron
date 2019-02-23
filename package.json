@@ -37,13 +37,12 @@
   },
   "dependencies": {
     "electron-updater": "^4.0.6",
-    "freedesktop-notifications": "^1.4.0",
     "fs-jetpack": "^2.2.0",
     "i18next": "^15.0.4",
     "i18next-node-fs-backend": "^2.1.1",
     "i18next-sync-fs-backend": "^1.1.0",
-    "spellchecker": "^3.5.0",
-    "tmp": "^0.0.33"
+    "mem": "^4.1.0",
+    "spellchecker": "^3.5.0"
   },
   "devDependencies": {
     "@fiahfy/icns-convert": "^0.0.5",

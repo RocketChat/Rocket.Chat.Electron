@@ -14,7 +14,6 @@
   },
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
-    "postremove": "electron-builder install-app-deps",
     "start": "gulp start",
     "build": "gulp build-app",
     "build:icons": "node tasks/build-icons.js",

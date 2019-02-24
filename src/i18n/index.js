@@ -1,87 +1,68 @@
-import path from 'path';
-import fs from 'fs';
-import util from 'util';
-import { app, remote } from 'electron';
+import { app as mainApp, remote } from 'electron';
+import jetpack from 'fs-jetpack';
+import i18next from 'i18next';
+import i18nextNodeFileSystemBackend from 'i18next-node-fs-backend';
+import i18nextSyncFileSystemBackend from 'i18next-sync-fs-backend';
 
-const eApp = app || remote.app;
 
-let loadedLanguage = [];
+const app = mainApp || remote.app;
+const languagesDirPath = `${ app.getAppPath() }/app/i18n/lang`;
+const defaultLocale = 'en';
+let globalLocale = defaultLocale;
 
-/**
- * Load singular and plural translation based on count
- * @param {string} phrase The key fore the translation string
- * @param {number} chount Count to check for singular / plural (0-1,2-n)
- * @returns {string} Translation in user language
- */
-function loadTranslation(phrase = '', count) {
-	const loadedLanguageTranslation = loadedLanguage[phrase];
-	let translation = loadedLanguageTranslation;
-	if (loadedLanguageTranslation === undefined) {
-		translation = phrase;
-	} else if (loadedLanguageTranslation instanceof Object) {
-		translation = loadedLanguageTranslation.zero;
-		if (count === 1) {
-			translation = loadedLanguageTranslation.one;
-		} else if (count > 1) {
-			translation = loadedLanguageTranslation.multi;
-		}
+const normalizeLocale = (locale) => {
+	let [languageCode, countryCode] = locale.split ? locale.split(/[-_]/) : [];
+	if (!languageCode || languageCode.length !== 2) {
+		return 'en';
 	}
-	return translation;
+	languageCode = languageCode.toLowerCase();
+
+	if (!countryCode || countryCode.length !== 2) {
+		countryCode = null;
+	} else {
+		countryCode = countryCode.toUpperCase();
+	}
+
+	return countryCode ? `${ languageCode }-${ countryCode }` : languageCode;
+};
+
+// TODO: remove synchronous initialization
+async function initialize({ synchronous = false } = {}) {
+	globalLocale = normalizeLocale(app.getLocale());
+
+	const lngFiles = synchronous ? jetpack.list(languagesDirPath) : await jetpack.listAsync(languagesDirPath);
+	const lngs = (
+		lngFiles
+			.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
+			.map((filename) => filename.split('.')[0])
+	);
+
+	const result = (
+		i18next
+			.use(synchronous ? i18nextSyncFileSystemBackend : i18nextNodeFileSystemBackend)
+			.init({
+				lng: globalLocale,
+				fallbackLng: defaultLocale,
+				lngs,
+				backend: {
+					loadPath: `${ languagesDirPath }/{{lng}}.i18n.json`,
+				},
+				initImmediate: !synchronous,
+			})
+	);
+
+	!synchronous && await result;
 }
 
-class I18n {
-	/**
-     * Load users language if available, and fallback to english for any missing strings
-     * @constructor
-     */
-	constructor() {
-		const load = () => {
-			let dir = path.join(__dirname, '../i18n/lang');
-			if (!fs.existsSync(dir)) {
-				dir = path.join(__dirname, 'i18n/lang');
-			}
-			const defaultLocale = path.join(dir, 'en.i18n.json');
-			loadedLanguage = JSON.parse(fs.readFileSync(defaultLocale, 'utf8'));
-			const locale = path.join(dir, `${ eApp.getLocale() }.i18n.json`);
-			if (fs.existsSync(locale)) {
-				const lang = JSON.parse(fs.readFileSync(locale, 'utf8'));
-				loadedLanguage = Object.assign(loadedLanguage, lang);
-			}
-		};
-
-		if (eApp.isReady()) {
-			load();
-			return;
-		}
-
-		eApp.once('ready', load);
+function translate(...args) {
+	if (!i18next.isInitialized && process.env.NODE_ENV !== 'test') {
+		initialize({ synchronous: true });
 	}
 
-	/**
-     * Get translation string
-     * @param {string} phrase The key for the translation string
-     * @param {...string|number} replacements List of replacements in template strings
-     * @return {string} Translation in users language
-     */
-	__(phrase, ...replacements) {
-		const translation = loadTranslation(phrase, 0);
-		return util.format(translation, ...replacements);
-	}
-
-	/**
-     * Get translation string
-     * @param {string} phrase The key for the translation string
-     * @param {number} count Count to check for singular / plural (0-1,2-n)
-     * @param {...string|number} replacements List of replacements in template strings
-     * @return {string} Translation in users language
-     */
-	pluralize(phrase, count, ...replacements) {
-		const translation = loadTranslation(phrase, count);
-		if (translation.includes('%s')) {
-			return util.format(translation, ...replacements);
-		}
-		return translation;
-	}
+	return i18next.t.apply(i18next, args);
 }
 
-export default new I18n();
+export default {
+	initialize,
+	__: translate,
+};

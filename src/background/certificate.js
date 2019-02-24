@@ -1,7 +1,7 @@
 import { app, dialog } from 'electron';
 import jetpack from 'fs-jetpack';
 import url from 'url';
-import i18n from '../i18n/index.js';
+import i18n from '../i18n';
 
 class CertificateStore {
 	initWindow(win) {
@@ -31,17 +31,17 @@ class CertificateStore {
 
 			let detail = `URL: ${ url }\nError: ${ error }`;
 			if (this.isExisting(url)) {
-				detail = i18n.__('Certificate_error_different', detail);
+				detail = i18n.__('error.differentCertificate', { detail });
 			}
 
 			dialog.showMessageBox(this.window, {
-				title: i18n.__('Certificate_error'),
-				message: i18n.__('Certificate_error_message', certificate.issuerName),
+				title: i18n.__('dialog.certificateError.title'),
+				message: i18n.__('dialog.certificateError.message', { issuerName: certificate.issuerName }),
 				detail,
 				type: 'warning',
 				buttons: [
-					i18n.__('Yes'),
-					i18n.__('No'),
+					i18n.__('dialog.certificateError.yes'),
+					i18n.__('dialog.certificateError.no'),
 				],
 				cancelId: 1,
 			}, (response) => {

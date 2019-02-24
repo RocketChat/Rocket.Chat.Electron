@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { remote } from 'electron';
-import i18n from '../i18n/index.js';
+import i18n from '../i18n';
 import servers from './servers';
 import webview from './webview';
 
@@ -39,9 +39,9 @@ class SideBar extends EventEmitter {
 			this.setLabel(hostUrl, title);
 		});
 
-		webview.on('dom-ready', (hostUrl) => {
+		webview.on('dom-ready', (webviewObj, hostUrl) => {
 			this.setActive(localStorage.getItem(servers.activeKey));
-			webview.getActive().send('request-sidebar-color');
+			webviewObj.send('request-sidebar-color');
 			this.setImage(hostUrl);
 			if (this.isHidden()) {
 				this.hide();
@@ -208,7 +208,9 @@ class SideBar extends EventEmitter {
 		if (item) {
 			item.classList.add('active');
 		}
-		webview.getActive().send && webview.getActive().send('request-sidebar-color');
+		if (webview.getActive() && webview.getActive().classList.contains('ready')) {
+			webview.getActive().send('request-sidebar-color');
+		}
 	}
 
 	deactiveAll() {
@@ -270,8 +272,24 @@ class SideBar extends EventEmitter {
 		localStorage.setItem('sidebar-closed', 'true');
 		this.emit('hide');
 		if (process.platform === 'darwin') {
-			document.querySelectorAll('webview').forEach(
-				(webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:15px;overflow:hidden; transition: margin .5s ease-in-out; } .sidebar{padding-top:10px;transition: margin .5s ease-in-out;}'); } });
+			Array.from(document.querySelectorAll('webview.ready'))
+				.forEach((webviewObj) => {
+					if (!webviewObj.insertCSS) {
+						return;
+					}
+
+					webviewObj.insertCSS(`
+						aside.side-nav {
+							margin-top: 15px;
+							overflow: hidden;
+							transition: margin .5s ease-in-out;
+						}
+						.sidebar {
+							padding-top: 10px;
+							transition: margin .5s ease-in-out;
+						}
+					`);
+				});
 		}
 	}
 
@@ -280,8 +298,25 @@ class SideBar extends EventEmitter {
 		localStorage.setItem('sidebar-closed', 'false');
 		this.emit('show');
 		if (process.platform === 'darwin') {
-			document.querySelectorAll('webview').forEach(
-				(webviewObj) => { if (webviewObj.insertCSS) { webviewObj.insertCSS('aside.side-nav{margin-top:0; overflow:hidden; transition: margin .5s ease-in-out;} .sidebar{padding-top:0;transition: margin .5s ease-in-out;}'); } });
+			Array.from(document.querySelectorAll('webview.ready'))
+				.forEach((webviewObj) => {
+					if (!webviewObj.insertCSS) {
+						return;
+					}
+
+					webviewObj.insertCSS(`
+						aside.side-nav {
+							margin-top: 0;
+							overflow: hidden;
+							transition: margin .5s ease-in-out;
+						}
+
+						.sidebar {
+							padding-top: 0;
+							transition: margin .5s ease-in-out;
+						}
+					`);
+				});
 		}
 	}
 
@@ -314,17 +349,17 @@ export default new SideBar();
 
 let selectedInstance = null;
 const instanceMenu = remote.Menu.buildFromTemplate([{
-	label: i18n.__('Reload_server'),
+	label: i18n.__('sidebar.item\.reload'),
 	click() {
 		webview.getByUrl(selectedInstance.dataset.host).reload();
 	},
 }, {
-	label: i18n.__('Remove_server'),
+	label: i18n.__('sidebar.item\.remove'),
 	click() {
 		servers.removeHost(selectedInstance.dataset.host);
 	},
 }, {
-	label: i18n.__('Open DevTools'),
+	label: i18n.__('sidebar.item\.openDevTools'),
 	click() {
 		webview.getByUrl(selectedInstance.dataset.host).openDevTools();
 	},

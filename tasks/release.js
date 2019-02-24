@@ -1,12 +1,11 @@
-'use strict';
-
-const gulp = require('gulp');
-const runSequence = require('run-sequence');
 const { build } = require('electron-builder');
+const gulp = require('gulp');
+const minimist = require('minimist');
 const config = require('../electron-builder.json');
-const { getEnvName } = require('./utils');
 
-const publish = getEnvName() !== 'production' ? 'never' : 'onTagOrDraft';
+const { env } = minimist(process.argv, { default: { env: 'development' } });
+
+const publish = env !== 'production' ? 'never' : 'onTagOrDraft';
 gulp.task('release:darwin', () => build({ publish, x64: true, mac: [] }));
 gulp.task('release:win32', () => build({ publish, x64: true, ia32: true, win: ['nsis', 'appx'] }));
 gulp.task('release:linux', async() => {
@@ -15,4 +14,4 @@ gulp.task('release:linux', async() => {
 	await build({ publish, ia32: true, linux: allLinuxTargetsButSnap, c: { productName: 'rocketchat' } });
 });
 
-gulp.task('release', (cb) => runSequence('build-app', `release:${ process.platform }`, cb));
+gulp.task('release', gulp.series('build-app', `release:${ process.platform }`));

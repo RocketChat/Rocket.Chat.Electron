@@ -1,4 +1,3 @@
-import path from 'path';
 import electron from 'electron';
 import { Application } from 'spectron';
 
@@ -16,7 +15,7 @@ export async function startApp() {
 	app = new Application({
 		path: electron,
 		cwd: process.cwd(),
-		args: [path.join(__dirname, '..')],
+		args: [process.cwd()],
 		quitTimeout: 5000,
 		startTimeout: 5000,
 		waitTimeout: 5000,
@@ -24,6 +23,13 @@ export async function startApp() {
 
 	await app.start();
 	await app.client.waitUntilWindowLoaded();
+
+	for (let i = 0; i < (await app.client.windowHandles()).value.length; ++i) {
+		await app.client.windowByIndex(i);
+		if (await app.browserWindow.isVisible()) {
+			break;
+		}
+	}
 
 	logFetchInterval = setInterval(fetchLogs, 100);
 }

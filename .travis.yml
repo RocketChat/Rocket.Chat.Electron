@@ -1,5 +1,5 @@
 language: node_js
-node_js: 8
+node_js: 10
 cache:
   yarn: true
   directories:
@@ -49,6 +49,8 @@ notifications:
 
 install:
   - yarn
+  - yarn test
+  - yarn e2e
 
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi

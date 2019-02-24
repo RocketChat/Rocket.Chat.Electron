@@ -1,113 +1,174 @@
 {
-    "About %s": "About %s",
-    "Add": "Add",
-    "Add_host_to_servers": "Do you want to add \"%s\" to your list of servers?",
-    "Add new server": "Add new server",
-    "Add &new server": "Add &new server",
-    "Add_Server": "Add Server",
-    "Auth_needed_try": "Auth needed, try %s",
-    "&Back": "&Back",
-    "Bring_All_to_Front": "Bring All to Front",
-    "Browse_for_language": "Browse for language...",
-    "Cancel": "Cancel",
-    "Certificate_error": "Certificate error",
-    "Certificate_error_different": "Certificate is different from previous one.\n\n %s",
-    "Certificate_error_message": "Do you trust certificate from \"%s\"?",
-    "Check_connection": "Check your Internet connection!",
-    "Check_for_Updates": "Check for Updates",
-    "Check_for_Updates_on_Start": "Check for Updates on Start",
-    "Clear": "Clear",
-    "Clear trusted certificates": "Clear trusted certificates",
-    "Close": "Close",
-    "Connect": "Connect",
-    "&Copy": "&Copy",
-    "Copy_Link": "Copy link",
-    "Copyright": "Copyright %s",
-    "Current_Version": "Current Version:",
-    "Cu&t": "Cu&t",
-    "Development": "Development",
-    "Dictionary_install_error": "Error installing dictionary",
-    "Documentation": "Documentation",
-    "&Edit": "&Edit",
-    "Enter_your_server_URL": "Enter your server URL",
-    "Error": "Error",
-    "&File": "&File",
-    "&Forward": "&Forward",
-    "Full screen": "Full screen",
-    "&Help": "&Help",
-    "Hide": "Hide",
-    "History": "History",
-    "Host_not_validated": "The host \"%s\" could not be validated, so was not added.",
-    "Houston_we_have_a_problem": "Houston, we have a problem",
-    "Invalid_Host": "Invalid Host",
-    "Invalid_url": "Invalid url",
-    "Learn more": "Learn more",
-    "Menu bar": "Menu bar",
-    "Message_count": {
-        "zero": "Rocket.Chat: no unread message",
-        "one": "Rocket.Chat: you have %s unread message",
-        "multi": "Rocket.Chat: you have %s unread messages"
+    "contextMenu": {
+        "cut": "Cu&t",
+        "copy": "&Copy",
+        "paste": "&Paste",
+        "selectAll": "Select &all",
+        "undo": "&Undo",
+        "redo": "&Redo",
+        "spellingLanguages": "Spelling languages",
+        "browseForLanguage": "Browse for language...",
+        "moreSpellingSuggestions": "More spelling suggestions",
+        "noSpellingSuggestions": "No suggestions",
+        "copyLinkAddress": "Copy link address",
+        "copyLinkText": "Copy link text",
+        "openLink": "Open link",
+        "saveImageAs": "Save image as..."
     },
-    "Minimize": "Minimize",
-    "More_spelling_suggestions": "More spelling suggestions",
-    "New_Version": "New Version:",
-    "No": "No",
-    "No_suggestions": "No suggestions",
-    "No updates are available.": "No updates are available.",
-    "No_valid_server_found": "No valid server found at the URL",
-    "Open DevTools": "Open DevTools",
-    "Open &DevTools": "Open &DevTools",
-    "Open_Language_Dictionary": "Open Language Dictionary",
-    "Open_Link": "Open link",
-    "&Paste": "&Paste",
-    "Quit": "Quit",
-    "&Quit %s": "&Quit %s",
-    "&Redo": "&Redo",
-    "Reload": "Reload",
-    "&Reload": "&Reload",
-    "Reload ignoring cache": "Reload ignoring cache",
-    "Reload_server": "Reload server",
-    "Remove_server": "Remove server",
-    "Report issue": "Report issue",
-    "Reset app data": "Reset app data",
-    "Reset zoom": "Reset zoom",
-    "Select_a_screen_to_share": "Select a screen to share",
-    "Select &all": "Select &all",
-    "Server_Failed_to_Load": "Server Failed to Load",
-    "Server list": "Server list",
-    "Share_Your_Screen": "Share Your Screen",
-    "Show": "Show",
-    "Show on unread messages": "Show on unread messages",
-    "Spelling_languages": "Spelling languages",
-    "This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.": "This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.",
-    "Timeout_trying_to_connect": "Timeout trying to connect",
-    "Toggle &DevTools": "Toggle &DevTools",
-    "Tray icon": "Tray icon",
-    "&Undo": "&Undo",
-    "Update_Available": "Update Available",
-    "Update_Available_message": "A new version of the Rocket.Chat Desktop App is available!",
-    "Update_Available_New": "New Update is Available",
-    "Update_downloading": "Downloading Update",
-    "Update_downloading_message": "You will be notified when the update is ready to be installed",
-    "Update_Install": "Install Update",
-    "Update_Install_Later": "Install Later",
-    "Update_Install_Now": "Install Now",
-    "Update_installing_later": "Installing Later",
-    "Update_installing_later_message": "Update will be installed when you exit the app",
-    "Update_ready": "Update Ready to Install",
-    "Update_ready_message": "Update has been downloaded",
-    "Update_remind": "Remind Later",
-    "Update_remind_message": "We will remind you next time you start the app",
-    "Update_skip": "Skip Update",
-    "Update_skip_message": "We will notify you when the next update is available\nIf you change your mind you can check for updates from the About menu.",
-    "Update_skip_remind": "Remind Me Later",
-    "Update_skip_version": "Skip This Version",
-    "User status in tray": "User status in tray",
-    "Validating": "Validating...",
-    "Version": "Version",
-    "&View": "&View",
-    "&Window": "&Window",
-    "Yes": "Yes",
-    "Zoom in": "Zoom in",
-    "Zoom out": "Zoom out"
+    "dialog": {
+        "about": {
+            "title": "About {{- appName}}",
+            "version": "Version",
+            "checkUpdates": "Check for Updates",
+            "checkUpdatesOnStart": "Check for Updates on Start",
+            "noUpdatesAvailable": "No updates are available.",
+            "copyright": "Copyright {{copyright}}"
+        },
+        "addServer": {
+            "title": "Add Server",
+            "message": "Do you want to add \"{{- host}}\" to your list of servers?",
+            "add": "Add",
+            "cancel": "Cancel"
+        },
+        "addServerError": {
+            "title": "Invalid Host",
+            "message": "The host \"{{- host}}\" could not be validated, so was not added."
+        },
+        "certificateError": {
+            "title": "Certificate error",
+            "message": "Do you trust certificate from \"{{- issuerName}}\"?",
+            "yes": "Yes",
+            "no": "No"
+        },
+        "loadDictionary": {
+            "title": "Open Language Dictionary",
+            "dictionaries": "Dictionaries",
+            "allFiles": "All files"
+        },
+        "loadDictionaryError": {
+            "title": "Error",
+            "message": "Error copying dictionary file: {{- message}}"
+        },
+        "resetAppData": {
+            "title": "Reset app data",
+            "message": "This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.",
+            "yes": "Yes",
+            "cancel": "Cancel"
+        },
+        "screenshare": {
+            "title": "Share Your Screen",
+            "announcement": "Select a screen to share"
+        },
+        "update": {
+            "title": "Update Available",
+            "announcement": "New Update is Available",
+            "message": "A new version of the Rocket.Chat Desktop App is available!",
+            "currentVersion": "Current Version:",
+            "newVersion": "New Version:",
+            "install": "Install Update",
+            "remindLater": "Remind Me Later",
+            "skip": "Skip This Version"
+        },
+        "updateDownloading": {
+            "title": "Downloading Update",
+            "message": "You will be notified when the update is ready to be installed",
+            "ok": "OK"
+        },
+        "updateInstallLater": {
+            "title": "Installing Later",
+            "message": "Update will be installed when you exit the app",
+            "ok": "OK"
+        },
+        "updateReady": {
+            "title": "Update Ready to Install",
+            "message": "Update has been downloaded",
+            "installNow": "Install Now",
+            "installLater": "Install Later"
+        },
+        "updateSkip": {
+            "title": "Skip Update",
+            "message": "We will notify you when the next update is available\nIf you change your mind you can check for updates from the About menu.",
+            "ok": "OK"
+        }
+    },
+    "error": {
+        "authNeeded": "Auth needed, try <strong>{{- auth}}</strong>",
+        "connectTimeout": "Timeout trying to connect",
+        "differentCertificate": "Certificate is different from previous one.\n\n {{- detail}}",
+        "noValidServerFound": "No valid server found at the URL",
+        "offline": "Check your Internet connection!"
+    },
+    "landing": {
+        "invalidUrl": "Invalid url",
+        "validating": "Validating...",
+        "inputUrl": "Enter your server URL",
+        "connect": "Connect"
+    },
+    "menus": {
+        "about": "About {{- appName}}",
+        "addNewServer": "Add &new server",
+        "back": "&Back",
+        "clearTrustedCertificates": "Clear trusted certificates",
+        "close": "Close",
+        "copy": "&Copy",
+        "cut": "Cu&t",
+        "documentation": "Documentation",
+        "editMenu": "&Edit",
+        "fileMenu": "&File",
+        "forward": "&Forward",
+        "helpMenu": "&Help",
+        "learnMore": "Learn more",
+        "minimize": "Minimize",
+        "openDevTools": "Open &DevTools",
+        "paste": "&Paste",
+        "quit": "&Quit {{- appName}}",
+        "redo": "&Redo",
+        "reload": "&Reload",
+        "reloadIgnoringCache": "Reload ignoring cache",
+        "reportIssue": "Report issue",
+        "resetAppData": "Reset app data",
+        "resetZoom": "Reset zoom",
+        "selectAll": "Select &all",
+        "showFullScreen": "Full screen",
+        "showMenuBar": "Menu bar",
+        "showOnUnreadMessage": "Show on unread messages",
+        "showServerList": "Server list",
+        "showTrayIcon": "Tray icon",
+        "toggleDevTools": "Toggle &DevTools",
+        "undo": "&Undo",
+        "viewMenu": "&View",
+        "windowMenu": "&Window",
+        "zoomIn": "Zoom in",
+        "zoomOut": "Zoom out"
+    },
+    "loadingError": {
+        "title": "Server Failed to Load",
+        "announcement": "Houston, we have a problem",
+        "reload": "Reload"
+    },
+    "sidebar": {
+        "addNewServer": "Add new server",
+        "item": {
+            "reload": "Reload server",
+            "remove": "Remove server",
+            "openDevTools": "Open DevTools"
+        }
+    },
+    "touchBar": {
+        "formatting": "Formatting",
+        "selectServer": "Select server"
+    },
+    "tray": {
+        "menu": {
+            "show": "Show",
+            "hide": "Hide",
+            "quit": "Quit"
+        },
+        "tooltip": {
+            "noUnreadMessage": "{{- appName}}: no unread message",
+            "unreadMention": "{{- appName}}: you have a unread mention/direct message",
+            "unreadMention_plural": "{{- appName}}: you have {{- count}} unread mentions/direct messages",
+            "unreadMessage": "{{- appName}}: you have unread messages"
+        }
+    }
 }

@@ -1,6 +1,25 @@
 import { app, screen } from 'electron';
 import jetpack from 'fs-jetpack';
-import { debounce } from 'lodash';
+
+
+const debounce = (f, delay) => {
+	let call;
+	let timeout;
+
+
+	const ret = function(...args) {
+		call = () => f.apply(this, args);
+		clearTimeout(timeout);
+		timeout = setTimeout(call, delay);
+	};
+
+	ret.flush = () => {
+		clearTimeout(timeout);
+		call();
+	};
+
+	return ret;
+};
 
 export default (name, defaults) => {
 
@@ -60,9 +79,19 @@ export default (name, defaults) => {
 			window.setSize(this.width, this.height, false);
 		}
 
-		this.isMaximized ? window.maximize() : window.unmaximize();
-		this.isMinimized ? window.minimize() : window.restore();
-		this.isHidden ? window.hide() : window.show();
+		if (this.isMaximized) {
+			window.maximize();
+		} else if (this.isMinimized) {
+			window.minimize();
+		} else {
+			window.restore();
+		}
+
+		if (this.isHidden) {
+			window.hide();
+		} else if (!this.isMinimized) {
+			window.show();
+		}
 	};
 
 	return {

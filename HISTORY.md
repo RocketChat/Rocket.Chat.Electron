@@ -1,3 +1,45 @@
+<a name="2.15.0"></a>
+# 2.15.0 (2019-02-24)
+
+
+### Bug Fixes
+
+- [#1028](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1028) The behavior of clicking links when running RocketChat with subdir.
+- [#1099](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1099) Updates preloads scripts to be compatible with Rocket.Chat >0.74.0
+- [#1101](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1101) Use Electron notifications
+
+
+### Improvements
+
+- [#1096](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1096) i18next
+- [#1093](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1093) New tray icons
+- [#1045](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1045) Pages and preload script changes
+- [#1076](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1076) Remove update-remind-later-dialog
+
+
+<details>
+<summary>Others</summary>
+
+- [#1081](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1081) Disable artifact collection by AppVeyor
+- [#1074](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1074) Fix for basic-auth servers connect
+- [#1080](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1080) Fix remember window state on load
+</details>
+
+
+### New Features
+
+- [#919](https://github.com/RocketChat/Rocket.Chat.Electron/pull/919) Add "save image" to context menu 
+- [#1030](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1030) Add Japanese translation.
+- [#995](https://github.com/RocketChat/Rocket.Chat.Electron/pull/995) Automatic reload on error page
+- [#1044](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1044) Support for MacBooks Touch Bar
+
+
+### BREAKING CHANGES
+
+- [#1036](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1036) Update dependencies
+
+
+
 <a name="2.14.7"></a>
 ## 2.14.7 (2019-01-09)
 

@@ -1,19 +1,20 @@
-import { remote } from 'electron';
+import { remote, ipcRenderer } from 'electron';
 import servers from './servers';
 import sidebar from './sidebar';
 import webview from './webview';
+import setTouchBar from './touchBar';
 
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, dock, menus, showAboutDialog, tray } = remote.require('./background');
+const { certificate, dock, menus, tray } = remote.require('./background');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();
+	const hasTrayIcon = localStorage.getItem('hideTray') ?
+		localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux');
 
 	menus.setState({
-		showTrayIcon: localStorage.getItem('hideTray') ?
-			localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux'),
-		showUserStatusInTray: (localStorage.getItem('showUserStatusInTray') || 'true') === 'true',
+		showTrayIcon: hasTrayIcon,
 		showFullScreen: mainWindow.isFullScreen(),
 		showWindowOnUnreadChanged: localStorage.getItem('showWindowOnUnreadChanged') === 'true',
 		showMenuBar: localStorage.getItem('autohideMenu') !== 'true',
@@ -21,9 +22,11 @@ const updatePreferences = () => {
 	});
 
 	tray.setState({
-		showIcon: localStorage.getItem('hideTray') ?
-			localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux'),
-		showUserStatus: (localStorage.getItem('showUserStatusInTray') || 'true') === 'true',
+		showIcon: hasTrayIcon,
+	});
+
+	dock.setState({
+		hasTrayIcon,
 	});
 };
 
@@ -57,7 +60,7 @@ export default () => {
 	window.addEventListener('beforeunload', destroyAll);
 
 	menus.on('quit', () => app.quit());
-	menus.on('about', () => showAboutDialog());
+	menus.on('about', () => ipcRenderer.send('open-about-dialog'));
 	menus.on('open-url', (url) => shell.openExternal(url));
 
 	menus.on('add-new-server', () => {
@@ -111,13 +114,6 @@ export default () => {
 				const previousValue = localStorage.getItem('hideTray') !== 'true';
 				const newValue = !previousValue;
 				localStorage.setItem('hideTray', JSON.stringify(!newValue));
-				break;
-			}
-
-			case 'showUserStatusInTray': {
-				const previousValue = (localStorage.getItem('showUserStatusInTray') || 'true') === 'true';
-				const newValue = !previousValue;
-				localStorage.setItem('showUserStatusInTray', JSON.stringify(newValue));
 				break;
 			}
 
@@ -177,8 +173,7 @@ export default () => {
 	webview.on('ipc-message-unread-changed', (hostUrl, [count]) => {
 		if (typeof count === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {
 			const mainWindow = remote.getCurrentWindow();
-			const isNeededToShow = !mainWindow.isFocused() || (mainWindow.isFocused() && !mainWindow.isVisible());
-			if (isNeededToShow) {
+			if (!mainWindow.isFocused()) {
 				mainWindow.once('focus', () => mainWindow.flashFrame(false));
 				mainWindow.showInactive();
 				mainWindow.flashFrame(true);
@@ -186,10 +181,9 @@ export default () => {
 		}
 	});
 
-	webview.on('ipc-message-user-status-manually-set', (hostUrl, [status]) => {
-		tray.setState({ status });
-		dock.setState({ status });
-	});
+	if (process.platform === 'darwin') {
+		setTouchBar();
+	}
 
 
 	servers.restoreActive();

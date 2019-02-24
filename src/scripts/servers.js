@@ -1,7 +1,7 @@
 import jetpack from 'fs-jetpack';
 import { EventEmitter } from 'events';
 import { remote, ipcRenderer } from 'electron';
-import i18n from '../i18n/index.js';
+import i18n from '../i18n';
 const { remoteServers } = remote.require('./background');
 
 class Servers extends EventEmitter {
@@ -126,8 +126,16 @@ class Servers extends EventEmitter {
 	}
 
 	async validateHost(hostUrl, timeout = 5000) {
+		const headers = new Headers();
+
+		if (hostUrl.includes('@')) {
+			const url = new URL(hostUrl);
+			hostUrl = url.origin;
+			headers.set('Authorization', `Basic ${ btoa(`${ url.username }:${ url.password }`) }`);
+		}
+
 		const response = await Promise.race([
-			fetch(`${ hostUrl }/api/info`),
+			fetch(`${ hostUrl }/api/info`, { headers }),
 			new Promise((resolve, reject) => setTimeout(() => reject('timeout'), timeout)),
 		]);
 
@@ -252,16 +260,16 @@ class Servers extends EventEmitter {
 	showHostConfirmation(host) {
 		return remote.dialog.showMessageBox({
 			type: 'question',
-			buttons: [i18n.__('Add'), i18n.__('Cancel')],
+			buttons: [i18n.__('dialog.addServer.add'), i18n.__('dialog.addServer.cancel')],
 			defaultId: 0,
-			title: i18n.__('Add_Server'),
-			message: i18n.__('Add_host_to_servers', host),
+			title: i18n.__('dialog.addServer.title'),
+			message: i18n.__('dialog.addServer.message', { host }),
 		}, (response) => {
 			if (response === 0) {
 				this.validateHost(host)
 					.then(() => this.addHost(host))
 					.then(() => this.setActive(host))
-					.catch(() => remote.dialog.showErrorBox(i18n.__('Invalid_Host'), i18n.__('Host_not_validated', host)));
+					.catch(() => remote.dialog.showErrorBox(i18n.__('dialog.addServerError.title'), i18n.__('dialog.addServerError.message', { host })));
 			}
 		});
 	}
@@ -269,11 +277,10 @@ class Servers extends EventEmitter {
 	resetAppData() {
 		const response = remote.dialog.showMessageBox({
 			type: 'question',
-			buttons: ['Yes', 'Cancel'],
+			buttons: [i18n.__('dialog.resetAppData.yes'), i18n.__('dialog.resetAppData.cancel')],
 			defaultId: 1,
-			title: i18n.__('Reset app data'),
-			message: i18n.__('This will sign you out from all your teams and reset the app back to its ' +
-				'original settings. This cannot be undone.'),
+			title: i18n.__('dialog.resetAppData.title'),
+			message: i18n.__('dialog.resetAppData.message'),
 		});
 
 		if (response !== 0) {

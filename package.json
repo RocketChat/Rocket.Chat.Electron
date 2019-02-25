@@ -20,7 +20,8 @@
     "changelog": "conventional-changelog --config .github/changelog.js -i HISTORY.md -s",
     "release": "gulp release --env=production",
     "release-dev": "gulp release --env=development",
-    "lint": "eslint src",
+		"eslint": "eslint src",
+		"stylelint": "stylelint 'src/**/*.css' 'src/**/*.less'",
     "test": "gulp test",
     "coverage": "gulp coverage",
     "e2e": "gulp e2e"
@@ -64,6 +65,8 @@
     "run-sequence": "^2.2.1",
     "sinon": "^7.2.2",
     "spectron": "^5.0.0",
+    "stylelint": "^9.10.1",
+    "stylelint-order": "^2.0.0",
     "to-ico": "^1.1.5",
     "xvfb-maybe": "^0.2.1"
   },

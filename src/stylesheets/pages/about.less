@@ -1,12 +1,15 @@
 .about-page {
 	display: flex;
 	flex-direction: column;
-	padding: 0.25rem 0.75rem;
+
 	min-height: 100vh;
-	background-color: @secondary-background-color;
-	color: @primary-font-color;
+	padding: 0.25rem 0.75rem;
+
 	cursor: default;
 	user-select: none;
+
+	color: @primary-font-color;
+	background-color: @secondary-background-color;
 
 	.hidden {
 		display: none !important;
@@ -15,8 +18,8 @@
 	.app-info {
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
 		flex: 1;
+		justify-content: center;
 
 		.app-logo img {
 			width: 100%;
@@ -24,11 +27,13 @@
 
 		.app-version {
 			margin: 0 auto;
+
 			font-size: 0.75rem;
 
 			.version {
 				cursor: text;
 				user-select: text;
+
 				font-weight: bold;
 			}
 		}
@@ -37,8 +42,8 @@
 	.updates {
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
 		flex: 1;
+		justify-content: center;
 
 		.check-for-updates {
 			height: 2.5rem;
@@ -49,6 +54,7 @@
 
 			.message {
 				display: none;
+
 				font-size: 1rem;
 			}
 
@@ -65,12 +71,14 @@
 
 		.check-for-updates-on-start__label {
 			margin: 0.1rem auto;
+
 			font-size: 0.8rem;
 		}
 	}
 
 	.copyright {
 		margin: 0 auto;
+
 		font-size: 0.65rem;
 	}
 }

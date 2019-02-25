@@ -1,11 +1,12 @@
-const gulp = require('gulp');
 const childProcess = require('child_process');
 const electron = require('electron');
+const gulp = require('gulp');
 
-const spawnElectron = () => (
+
+gulp.task('electron', () => {
 	childProcess
 		.spawn(electron, ['.'], { stdio: 'inherit' })
-		.on('close', spawnElectron)
-);
+		.on('close', gulp.task('electron'));
+});
 
-gulp.task('start', gulp.series('build-app', gulp.parallel('watch', spawnElectron)));
+gulp.task('start', gulp.series('build', gulp.parallel('watch', 'electron')));

@@ -9,7 +9,7 @@ gulp.task('e2e:build', async() => {
 	await bundle.many('src', '*.e2e.js', 'app/e2e.js', { env });
 });
 
-gulp.task('e2e', gulp.series('env:test', 'build', 'e2e:build', (cb) => {
+gulp.task('e2e:run', (cb) => {
 	childProcess
 		.spawn('xvfb-maybe', [
 			'mocha',
@@ -18,4 +18,6 @@ gulp.task('e2e', gulp.series('env:test', 'build', 'e2e:build', (cb) => {
 			'app/e2e.js',
 		], { stdio: 'inherit', shell: true })
 		.on('close', cb);
-}));
+});
+
+gulp.task('e2e', gulp.series('env:test', 'build', 'e2e:build', 'e2e:run'));

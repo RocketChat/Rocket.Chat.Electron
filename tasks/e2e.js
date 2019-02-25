@@ -16,6 +16,6 @@ gulp.task('e2e', gulp.series('env:test', 'build', 'e2e:build', (cb) => {
 			'--require',
 			'source-map-support/register',
 			'app/e2e.js',
-		], { stdio: 'inherit' })
+		], { stdio: 'inherit', shell: true })
 		.on('close', cb);
 }));

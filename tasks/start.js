@@ -5,7 +5,7 @@ const gulp = require('gulp');
 
 gulp.task('electron', () => {
 	childProcess
-		.spawn(electron, ['.'], { stdio: 'inherit' })
+		.spawn(electron, ['.'], { stdio: 'inherit', shell: true })
 		.on('close', gulp.task('electron'));
 });
 

@@ -20,7 +20,7 @@ gulp.task('coverage:main', (cb) => {
 			'--reporter',
 			'tasks/coverage-reporter',
 			'app/main.specs.js',
-		], { stdio: 'inherit' })
+		], { stdio: 'inherit', shell: true })
 		.on('close', cb);
 });
 
@@ -34,7 +34,7 @@ gulp.task('coverage:renderer', (cb) => {
 			'tasks/coverage-reporter',
 			'--renderer',
 			'app/renderer.specs.js',
-		], { stdio: 'inherit' })
+		], { stdio: 'inherit', shell: true })
 		.on('close', cb);
 });
 
@@ -42,7 +42,7 @@ gulp.task('coverage:report', (cb) => {
 	childProcess
 		.spawn('node', [
 			'tasks/coverage-reporter',
-		], { stdio: 'inherit' })
+		], { stdio: 'inherit', shell: true })
 		.on('close', cb);
 });
 

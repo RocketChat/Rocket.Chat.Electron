@@ -17,7 +17,7 @@ gulp.task('test:main', (cb) => {
 			'--require',
 			'source-map-support/register',
 			'app/main.specs.js',
-		], { stdio: 'inherit' })
+		], { stdio: 'inherit', shell: true })
 		.on('close', cb);
 });
 
@@ -29,7 +29,7 @@ gulp.task('test:renderer', (cb) => {
 			'source-map-support/register',
 			'--renderer',
 			'app/renderer.specs.js',
-		], { stdio: 'inherit' })
+		], { stdio: 'inherit', shell: true })
 		.on('close', cb);
 });
 

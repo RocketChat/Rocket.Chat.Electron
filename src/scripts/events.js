@@ -58,6 +58,7 @@ const destroyAll = () => {
 
 export default () => {
 	window.addEventListener('beforeunload', destroyAll);
+	window.addEventListener('focus', () => webview.focusActive());
 
 	menus.on('quit', () => app.quit());
 	menus.on('about', () => ipcRenderer.send('open-about-dialog'));
@@ -185,10 +186,8 @@ export default () => {
 		setTouchBar();
 	}
 
-
 	servers.restoreActive();
 	updatePreferences();
 	updateServers();
 	updateWindowState();
-
 };

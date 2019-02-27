@@ -8,6 +8,13 @@ class SideBar extends EventEmitter {
 	constructor() {
 		super();
 
+		document.querySelector('.add-server .tooltip').innerHTML = i18n.__('sidebar.addNewServer');
+
+		document.querySelector('.add-server').addEventListener('click', () => {
+			servers.clearActive();
+			webview.showLanding();
+		});
+
 		this.sortOrder = JSON.parse(localStorage.getItem(this.sortOrderKey)) || [];
 		localStorage.setItem(this.sortOrderKey, JSON.stringify(this.sortOrder));
 

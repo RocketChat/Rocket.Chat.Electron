@@ -6,13 +6,6 @@
 	<link rel="stylesheet" href="../stylesheets/main.css">
 	<script>
 		window.addEventListener('load', () => {
-			const i18n = require('../i18n');
-			document.querySelector('.add-server .tooltip').innerHTML = i18n.__('sidebar.addNewServer');
-			document.querySelector('#login-card .connect__prompt').innerHTML = i18n.__('landing.inputUrl');
-			document.querySelector('#login-card #invalidUrl').innerHTML = i18n.__('error.noValidServerFound');
-			document.querySelector('#login-card .connect__error').innerHTML = i18n.__('error.offline');
-			document.querySelector('#login-card .login').innerHTML = i18n.__('landing.connect');
-
 			const script = document.createElement('script');
 			script.src = '../app.js';
 			document.body.appendChild(script);

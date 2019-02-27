@@ -167,6 +167,9 @@ export default () => {
 	servers.on('active-setted', (hostUrl) => {
 		sidebar.setActive(hostUrl);
 		webview.setActive(hostUrl);
+		if (webview.getActive() && webview.getActive().classList.contains('ready')) {
+			webview.getActive().send('request-sidebar-color');
+		}
 		updateServers();
 	});
 
@@ -263,7 +266,7 @@ export default () => {
 	}
 
 	servers.restoreActive();
-	sidebar.setState({ hosts: servers.hosts });
+	sidebar.setHosts(servers.hosts);
 	updatePreferences();
 	updateServers();
 	updateWindowState();

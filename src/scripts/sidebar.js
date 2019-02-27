@@ -1,95 +1,65 @@
-import { EventEmitter } from 'events';
 import { remote } from 'electron';
+import { EventEmitter } from 'events';
 import i18n from '../i18n';
-import webview from './webview';
 const { getCurrentWindow, Menu } = remote;
 
 
 class SideBar extends EventEmitter {
 	constructor() {
 		super();
-		this.state = {};
 
 		document.querySelector('.add-server .tooltip').innerHTML = i18n.__('sidebar.addNewServer');
 		document.querySelector('.add-server').addEventListener('click', this.handleAddServerClick.bind(this), false);
+
+		// TODO: use globalShortcut and mainWindow focus
+		window.addEventListener('keydown', this.handleShortcutsKey.bind(this, true));
+		window.addEventListener('keyup', this.handleShortcutsKey.bind(this, false));
 
 		this.sortOrder = JSON.parse(localStorage.getItem(this.sortOrderKey)) || [];
 		localStorage.setItem(this.sortOrderKey, JSON.stringify(this.sortOrder));
 
 		this.listElement = document.getElementById('sidebar__servers');
-
-		window.addEventListener('contextmenu', (e) => {
-			const selectedInstance = (e.target.classList.contains('instance') && e.target) ||
-				(e.target.parentNode.classList.contains('instance') && e.target.parentNode);
-
-			if (!selectedInstance) {
-				return;
-			}
-
-			const { host } = selectedInstance.dataset;
-
-			e.preventDefault();
-
-			const menu = Menu.buildFromTemplate([
-				{
-					label: i18n.__('sidebar.item.reload'),
-					click: () => this.emit('reload-server', host),
-				},
-				{
-					label: i18n.__('sidebar.item.remove'),
-					click: () => this.emit('remove-server', host),
-				},
-				{
-					label: i18n.__('sidebar.item.openDevTools'),
-					click: () => this.emit('open-devtools-for-server', host),
-				},
-			]);
-			menu.popup(getCurrentWindow());
-		}, false);
-
-		if (process.platform === 'darwin') {
-			window.addEventListener('keydown', function(e) {
-				if (e.key === 'Meta') {
-					document.getElementsByClassName('sidebar')[0].classList.add('command-pressed');
-				}
-			});
-
-			window.addEventListener('keyup', function(e) {
-				if (e.key === 'Meta') {
-					document.getElementsByClassName('sidebar')[0].classList.remove('command-pressed');
-				}
-			});
-		} else {
-			window.addEventListener('keydown', function(e) {
-				if (e.key === 'ctrlKey') {
-					document.getElementsByClassName('sidebar')[0].classList.add('command-pressed');
-				}
-			});
-
-			window.addEventListener('keyup', function(e) {
-				if (e.key === 'ctrlKey') {
-					document.getElementsByClassName('sidebar')[0].classList.remove('command-pressed');
-				}
-			});
-		}
 	}
 
-	setState(partialState) {
-		this.state = {
-			...this.state,
-			...partialState,
-		};
-		this.update();
+	handleServerClick(hostUrl) {
+		this.emit('select-server', hostUrl);
 	}
 
-	update() {
-		Object.values(this.state.hosts)
-			.sort(({ url: a, url: b }) => this.sortOrder.indexOf(a) - this.sortOrder.indexOf(b))
-			.forEach((host) => this.add(host));
+	handleServerContextMenu(hostUrl, event) {
+		event.preventDefault();
+
+		const menu = Menu.buildFromTemplate([
+			{
+				label: i18n.__('sidebar.item.reload'),
+				click: () => this.emit('reload-server', hostUrl),
+			},
+			{
+				label: i18n.__('sidebar.item.remove'),
+				click: () => this.emit('remove-server', hostUrl),
+			},
+			{
+				label: i18n.__('sidebar.item.openDevTools'),
+				click: () => this.emit('open-devtools-for-server', hostUrl),
+			},
+		]);
+		menu.popup(getCurrentWindow());
 	}
 
 	handleAddServerClick() {
 		this.emit('add-server');
+	}
+
+	handleShortcutsKey(down, event) {
+		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'ctrlKey';
+		if (event.key === shortcutKey) {
+			document.querySelector('.sidebar').classList[down ? 'add' : 'remove']('command-pressed');
+		}
+	}
+
+	setHosts(hosts) {
+		Object.values(hosts)
+			.sort(({ url: a, url: b }) => this.sortOrder.indexOf(a) - this.sortOrder.indexOf(b))
+			.forEach((host) => this.add(host));
 	}
 
 	get sortOrderKey() {
@@ -126,12 +96,12 @@ class SideBar extends EventEmitter {
 			this.sortOrder.push(host.url);
 		}
 
-		const hotkey = document.createElement('div');
-		hotkey.classList.add('name');
+		const shortcut = document.createElement('div');
+		shortcut.classList.add('name');
 		if (process.platform === 'darwin') {
-			hotkey.innerHTML = `⌘${ hostOrder }`;
+			shortcut.innerHTML = `⌘${ hostOrder }`;
 		} else {
-			hotkey.innerHTML = `^${ hostOrder }`;
+			shortcut.innerHTML = `^${ hostOrder }`;
 		}
 
 		const item = document.createElement('li');
@@ -139,7 +109,7 @@ class SideBar extends EventEmitter {
 		item.appendChild(tooltip);
 		item.appendChild(badge);
 		item.appendChild(img);
-		item.appendChild(hotkey);
+		item.appendChild(shortcut);
 
 		item.dataset.host = host.url;
 		item.dataset.sortOrder = hostOrder;
@@ -195,17 +165,14 @@ class SideBar extends EventEmitter {
 					this.setImage(url);
 				});
 
-			this.setActive(window.dragged.dataset.host);
+			this.emit('select-server', window.dragged.dataset.host);
 		};
 
-		item.onclick = this.handleServerClick.bind(this, host.url);
+		item.addEventListener('click', this.handleServerClick.bind(this, host.url), false);
+		item.addEventListener('contextmenu', this.handleServerContextMenu.bind(this, host.url), false);
 
 		this.listElement.appendChild(item);
 		this.emit('hosts-sorted');
-	}
-
-	handleServerClick(hostUrl) {
-		this.emit('select-server', hostUrl);
 	}
 
 	setImage(hostUrl) {
@@ -249,9 +216,6 @@ class SideBar extends EventEmitter {
 		const item = this.getByUrl(hostUrl);
 		if (item) {
 			item.classList.add('active');
-		}
-		if (webview.getActive() && webview.getActive().classList.contains('ready')) {
-			webview.getActive().send('request-sidebar-color');
 		}
 	}
 

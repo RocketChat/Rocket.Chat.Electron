@@ -147,19 +147,71 @@ export default () => {
 		updatePreferences();
 	});
 
-	servers.on('loaded', updateServers);
-	servers.on('active-cleared', updateServers);
-	servers.on('active-setted', updateServers);
-	servers.on('host-added', updateServers);
-	servers.on('host-removed', updateServers);
-	servers.on('title-setted', updateServers);
-	sidebar.on('hosts-sorted', updateServers);
+	servers.on('loaded', () => {
+		webview.loaded();
+		updateServers();
+	});
+
+	servers.on('host-added', (hostUrl) => {
+		sidebar.add(servers.get(hostUrl));
+		webview.add(servers.get(hostUrl));
+		updateServers();
+	});
+
+	servers.on('host-removed', (hostUrl) => {
+		sidebar.remove(hostUrl);
+		webview.remove(hostUrl);
+		updateServers();
+	});
+
+	servers.on('active-setted', (hostUrl) => {
+		sidebar.setActive(hostUrl);
+		webview.setActive(hostUrl);
+		updateServers();
+	});
+
+	servers.on('active-cleared', (hostUrl) => {
+		sidebar.deactiveAll(hostUrl);
+		webview.deactiveAll(hostUrl);
+		updateServers();
+	});
+
+	servers.on('title-setted', (hostUrl, title) => {
+		sidebar.setLabel(hostUrl, title);
+		updateServers();
+	});
+
+	sidebar.on('select-server', (hostUrl) => {
+		servers.setActive(hostUrl);
+	});
+
+	sidebar.on('reload-server', (hostUrl) => {
+		webview.getByUrl(hostUrl).reload();
+	});
+
+	sidebar.on('remove-server', (hostUrl) => {
+		servers.removeHost(hostUrl);
+	});
+
+	sidebar.on('open-devtools-for-server', (hostUrl) => {
+		webview.getByUrl(hostUrl).openDevTools();
+	});
+
+	sidebar.on('add-server', () => {
+		servers.clearActive();
+		webview.showLanding();
+	});
+
+	sidebar.on('hosts-sorted', () => {
+		updateServers();
+	});
 
 	sidebar.on('badge-setted', () => {
 		const badge = sidebar.getGlobalBadge();
 		tray.setState({ badge });
 		dock.setState({ badge });
 	});
+
 
 	getCurrentWindow().on('hide', updateWindowState);
 	getCurrentWindow().on('show', updateWindowState);
@@ -180,6 +232,30 @@ export default () => {
 				mainWindow.flashFrame(true);
 			}
 		}
+		sidebar.setBadge(hostUrl, count);
+	});
+
+	webview.on('ipc-message-title-changed', (hostUrl, [title]) => {
+		servers.setHostTitle(hostUrl, title);
+	});
+
+	webview.on('ipc-message-focus', (hostUrl) => {
+		servers.setActive(hostUrl);
+	});
+
+	webview.on('ipc-message-sidebar-background', (hostUrl, [colors]) => {
+		sidebar.changeSidebarColor(colors);
+	});
+
+	webview.on('dom-ready', (webviewObj, hostUrl) => {
+		sidebar.setActive(localStorage.getItem(servers.activeKey));
+		webviewObj.send('request-sidebar-color');
+		sidebar.setImage(hostUrl);
+		if (sidebar.isHidden()) {
+			sidebar.hide();
+		} else {
+			sidebar.show();
+		}
 	});
 
 	if (process.platform === 'darwin') {
@@ -187,6 +263,7 @@ export default () => {
 	}
 
 	servers.restoreActive();
+	sidebar.setState({ hosts: servers.hosts });
 	updatePreferences();
 	updateServers();
 	updateWindowState();

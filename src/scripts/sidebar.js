@@ -1,62 +1,95 @@
 import { EventEmitter } from 'events';
 import { remote } from 'electron';
 import i18n from '../i18n';
-import servers from './servers';
 import webview from './webview';
+const { getCurrentWindow, Menu } = remote;
+
 
 class SideBar extends EventEmitter {
 	constructor() {
 		super();
+		this.state = {};
 
 		document.querySelector('.add-server .tooltip').innerHTML = i18n.__('sidebar.addNewServer');
-
-		document.querySelector('.add-server').addEventListener('click', () => {
-			servers.clearActive();
-			webview.showLanding();
-		});
+		document.querySelector('.add-server').addEventListener('click', this.handleAddServerClick.bind(this), false);
 
 		this.sortOrder = JSON.parse(localStorage.getItem(this.sortOrderKey)) || [];
 		localStorage.setItem(this.sortOrderKey, JSON.stringify(this.sortOrder));
 
 		this.listElement = document.getElementById('sidebar__servers');
 
-		Object.values(servers.hosts)
-			.sort((a, b) => this.sortOrder.indexOf(a.url) - this.sortOrder.indexOf(b.url))
-			.forEach((host) => {
-				this.add(host);
+		window.addEventListener('contextmenu', (e) => {
+			const selectedInstance = (e.target.classList.contains('instance') && e.target) ||
+				(e.target.parentNode.classList.contains('instance') && e.target.parentNode);
+
+			if (!selectedInstance) {
+				return;
+			}
+
+			const { host } = selectedInstance.dataset;
+
+			e.preventDefault();
+
+			const menu = Menu.buildFromTemplate([
+				{
+					label: i18n.__('sidebar.item.reload'),
+					click: () => this.emit('reload-server', host),
+				},
+				{
+					label: i18n.__('sidebar.item.remove'),
+					click: () => this.emit('remove-server', host),
+				},
+				{
+					label: i18n.__('sidebar.item.openDevTools'),
+					click: () => this.emit('open-devtools-for-server', host),
+				},
+			]);
+			menu.popup(getCurrentWindow());
+		}, false);
+
+		if (process.platform === 'darwin') {
+			window.addEventListener('keydown', function(e) {
+				if (e.key === 'Meta') {
+					document.getElementsByClassName('sidebar')[0].classList.add('command-pressed');
+				}
 			});
 
-		servers.on('host-added', (hostUrl) => {
-			this.add(servers.get(hostUrl));
-		});
+			window.addEventListener('keyup', function(e) {
+				if (e.key === 'Meta') {
+					document.getElementsByClassName('sidebar')[0].classList.remove('command-pressed');
+				}
+			});
+		} else {
+			window.addEventListener('keydown', function(e) {
+				if (e.key === 'ctrlKey') {
+					document.getElementsByClassName('sidebar')[0].classList.add('command-pressed');
+				}
+			});
 
-		servers.on('host-removed', (hostUrl) => {
-			this.remove(hostUrl);
-		});
+			window.addEventListener('keyup', function(e) {
+				if (e.key === 'ctrlKey') {
+					document.getElementsByClassName('sidebar')[0].classList.remove('command-pressed');
+				}
+			});
+		}
+	}
 
-		servers.on('active-setted', (hostUrl) => {
-			this.setActive(hostUrl);
-		});
+	setState(partialState) {
+		this.state = {
+			...this.state,
+			...partialState,
+		};
+		this.update();
+	}
 
-		servers.on('active-cleared', (hostUrl) => {
-			this.deactiveAll(hostUrl);
-		});
+	update() {
+		Object.values(this.state.hosts)
+			.sort(({ url: a, url: b }) => this.sortOrder.indexOf(a) - this.sortOrder.indexOf(b))
+			.forEach((host) => this.add(host));
+	}
 
-		servers.on('title-setted', (hostUrl, title) => {
-			this.setLabel(hostUrl, title);
-		});
-
-		webview.on('dom-ready', (webviewObj, hostUrl) => {
-			this.setActive(localStorage.getItem(servers.activeKey));
-			webviewObj.send('request-sidebar-color');
-			this.setImage(hostUrl);
-			if (this.isHidden()) {
-				this.hide();
-			} else {
-				this.show();
-			}
-		});
-
+	handleAddServerClick() {
+		this.emit('add-server');
 	}
 
 	get sortOrderKey() {
@@ -165,12 +198,14 @@ class SideBar extends EventEmitter {
 			this.setActive(window.dragged.dataset.host);
 		};
 
-		item.onclick = () => {
-			servers.setActive(host.url);
-		};
+		item.onclick = this.handleServerClick.bind(this, host.url);
 
 		this.listElement.appendChild(item);
 		this.emit('hosts-sorted');
+	}
+
+	handleServerClick(hostUrl) {
+		this.emit('select-server', hostUrl);
 	}
 
 	setImage(hostUrl) {
@@ -352,61 +387,3 @@ class SideBar extends EventEmitter {
 }
 
 export default new SideBar();
-
-
-let selectedInstance = null;
-const instanceMenu = remote.Menu.buildFromTemplate([{
-	label: i18n.__('sidebar.item\.reload'),
-	click() {
-		webview.getByUrl(selectedInstance.dataset.host).reload();
-	},
-}, {
-	label: i18n.__('sidebar.item\.remove'),
-	click() {
-		servers.removeHost(selectedInstance.dataset.host);
-	},
-}, {
-	label: i18n.__('sidebar.item\.openDevTools'),
-	click() {
-		webview.getByUrl(selectedInstance.dataset.host).openDevTools();
-	},
-}]);
-
-window.addEventListener('contextmenu', function(e) {
-	if (e.target.classList.contains('instance') || e.target.parentNode.classList.contains('instance')) {
-		e.preventDefault();
-		if (e.target.classList.contains('instance')) {
-			selectedInstance = e.target;
-		} else {
-			selectedInstance = e.target.parentNode;
-		}
-
-		instanceMenu.popup(remote.getCurrentWindow());
-	}
-}, false);
-
-if (process.platform === 'darwin') {
-	window.addEventListener('keydown', function(e) {
-		if (e.key === 'Meta') {
-			document.getElementsByClassName('sidebar')[0].classList.add('command-pressed');
-		}
-	});
-
-	window.addEventListener('keyup', function(e) {
-		if (e.key === 'Meta') {
-			document.getElementsByClassName('sidebar')[0].classList.remove('command-pressed');
-		}
-	});
-} else {
-	window.addEventListener('keydown', function(e) {
-		if (e.key === 'ctrlKey') {
-			document.getElementsByClassName('sidebar')[0].classList.add('command-pressed');
-		}
-	});
-
-	window.addEventListener('keyup', function(e) {
-		if (e.key === 'ctrlKey') {
-			document.getElementsByClassName('sidebar')[0].classList.remove('command-pressed');
-		}
-	});
-}

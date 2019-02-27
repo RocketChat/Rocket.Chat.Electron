@@ -1,7 +1,7 @@
+import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
 import servers from './servers';
-import sidebar from './sidebar';
-import { ipcRenderer } from 'electron';
+
 
 class WebView extends EventEmitter {
 	constructor() {
@@ -11,26 +11,6 @@ class WebView extends EventEmitter {
 
 		servers.forEach((host) => {
 			this.add(host);
-		});
-
-		servers.on('host-added', (hostUrl) => {
-			this.add(servers.get(hostUrl));
-		});
-
-		servers.on('host-removed', (hostUrl) => {
-			this.remove(hostUrl);
-		});
-
-		servers.on('active-setted', (hostUrl) => {
-			this.setActive(hostUrl);
-		});
-
-		servers.on('active-cleared', (hostUrl) => {
-			this.deactiveAll(hostUrl);
-		});
-
-		servers.once('loaded', () => {
-			this.loaded();
 		});
 
 		ipcRenderer.on('screenshare-result', (e, id) => {
@@ -75,15 +55,6 @@ class WebView extends EventEmitter {
 			this.emit(`ipc-message-${ event.channel }`, host.url, event.args);
 
 			switch (event.channel) {
-				case 'title-changed':
-					servers.setHostTitle(host.url, event.args[0]);
-					break;
-				case 'unread-changed':
-					sidebar.setBadge(host.url, event.args[0]);
-					break;
-				case 'focus':
-					servers.setActive(host.url);
-					break;
 				case 'get-sourceId':
 					ipcRenderer.send('open-screenshare-dialog');
 					break;
@@ -94,9 +65,6 @@ class WebView extends EventEmitter {
 					webviewObj.loadURL(server);
 					break;
 				}
-				case 'sidebar-background':
-					sidebar.changeSidebarColor(event.args[0]);
-					break;
 			}
 		});
 

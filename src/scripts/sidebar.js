@@ -4,288 +4,237 @@ import i18n from '../i18n';
 const { getCurrentWindow, Menu } = remote;
 
 
+const faviconCacheBustingTime = 15 * 60 * 1000;
+
 class SideBar extends EventEmitter {
 	constructor() {
 		super();
+
+		this.state = {
+			hosts: {},
+			sorting: [],
+			active: null,
+			badges: {},
+			styles: {},
+			showShortcuts: false,
+			visible: false,
+		};
+	}
+
+	setState(partialState) {
+		this.state = {
+			...this.state,
+			...partialState,
+		};
+
+		if (this.node) {
+			this.render();
+		}
+	}
+
+	mount() {
+		this.node = document.querySelector('.sidebar');
 
 		// TODO: use globalShortcut and mainWindow focus
 		window.addEventListener('keydown', this.handleShortcutsKey.bind(this, true));
 		window.addEventListener('keyup', this.handleShortcutsKey.bind(this, false));
 
-		document.querySelector('.add-server .tooltip').innerHTML = i18n.__('sidebar.addNewServer');
-		document.querySelector('.add-server').addEventListener('click', this.handleAddServerClick.bind(this), false);
+		this.node.querySelector('.add-server').addEventListener('click', this.handleAddServerClick.bind(this), false);
 
-		this.sortOrder = JSON.parse(localStorage.getItem(this.sortOrderKey)) || [];
-		localStorage.setItem(this.sortOrderKey, JSON.stringify(this.sortOrder));
+		this.serverListElement = this.node.querySelector('.server-list');
 
-		this.listElement = document.getElementById('sidebar__servers');
+		this.render();
 	}
 
-	handleShortcutsKey(down, event) {
-		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'ctrlKey';
-		if (event.key === shortcutKey) {
-			document.querySelector('.sidebar').classList[down ? 'add' : 'remove']('command-pressed');
+	render() {
+		const {
+			hosts,
+			sorting,
+			active,
+			badges,
+			styles,
+			showShortcuts,
+			visible,
+		} = this.state;
+
+		this.node.classList.toggle('sidebar--shortcuts', showShortcuts);
+		this.node.classList.toggle('sidebar--hidden', !visible);
+
+		const style = styles[active] || {};
+		this.node.style.background = style.background || '';
+		this.node.style.color = style.color || '';
+
+		const orderedHosts = Object.values(hosts)
+			.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b));
+
+		const hostUrls = orderedHosts.map(({ url }) => url);
+		Array.from(this.serverListElement.querySelectorAll('.server'))
+			.filter((serverElement) => !hostUrls.includes(serverElement.dataset.host))
+			.forEach((serverElement) => serverElement.remove());
+
+		orderedHosts.forEach((host, order) => this.renderHost({
+			...host,
+			order,
+			active: active === host.url,
+			hasUnreadMessages: !!badges[host.url],
+			mentionCount: (badges[host.url] || badges[host.url] === 0) ? parseInt(badges[host.url], 10) : null,
+		}));
+
+		this.node.querySelector('.add-server .tooltip').innerText = i18n.__('sidebar.addNewServer');
+	}
+
+	renderHost({ url, title, order, active, hasUnreadMessages, mentionCount }) {
+		let name = title.replace(/^https?:\/\/(?:www\.)?([^\/]+)(.*)/, '$1').split('.');
+		name = (name[0][0] + (name[1] ? name[1][0] : '')).toUpperCase();
+
+		const bustingParam = Math.round(Date.now() / faviconCacheBustingTime);
+		const faviconUrl = `${ url.replace(/\/$/, '') }/assets/favicon.svg?_=${ bustingParam }`;
+
+		const node = this.node.querySelector(`.server[data-url="${ url }"]`);
+		const serverElement = node ? node : document.createElement('li');
+		const initialsElement = node ? node.querySelector('.initials') : document.createElement('span');
+		const tooltipElement = node ? node.querySelector('.tooltip') : document.createElement('div');
+		const badgeElement = node ? node.querySelector('.badge') : document.createElement('div');
+		const faviconElement = node ? node.querySelector('img') : document.createElement('img');
+		const shortcutElement = node ? node.querySelector('.name') : document.createElement('div');
+
+		serverElement.setAttribute('draggable', 'true');
+		serverElement.setAttribute('server', url);
+		serverElement.dataset.url = url;
+		serverElement.dataset.host = url;
+		serverElement.dataset.sortOrder = order + 1;
+		serverElement.classList.add('server');
+		serverElement.classList.add('instance');
+		serverElement.classList.toggle('active', active);
+		serverElement.classList.toggle('unread', hasUnreadMessages);
+		serverElement.onclick = this.handleServerClick.bind(this, url);
+		serverElement.oncontextmenu = this.handleServerContextMenu.bind(this, url);
+		serverElement.ondragstart = this.handleDragStart.bind(this);
+		serverElement.ondragend = this.handleDragEnd.bind(this);
+		serverElement.ondragenter = this.handleDragEnter.bind(this);
+		serverElement.ondragover = this.handleDragOver.bind(this);
+		serverElement.ondrop = this.handleDrop.bind(this);
+
+		initialsElement.classList.add('initials');
+		initialsElement.innerText = name;
+
+		tooltipElement.classList.add('tooltip');
+		tooltipElement.innerText = title;
+
+		badgeElement.classList.add('badge');
+		badgeElement.innerText = Number.isInteger(mentionCount) ? String(mentionCount) : '',
+
+		faviconElement.onload = () => {
+			initialsElement.style.display = 'none';
+			faviconElement.style.display = 'initial';
+		};
+		faviconElement.src = faviconUrl;
+
+		shortcutElement.classList.add('name');
+		shortcutElement.innerText = `${ process.platform === 'darwin' ? '⌘' : '^' }${ order + 1 }`;
+
+		if (!node) {
+			serverElement.appendChild(initialsElement);
+			serverElement.appendChild(tooltipElement);
+			serverElement.appendChild(badgeElement);
+			serverElement.appendChild(faviconElement);
+			serverElement.appendChild(shortcutElement);
+		}
+
+		const shouldAppend = !node || order !== Array.from(this.serverListElement.children).indexOf(serverElement);
+
+		if (shouldAppend) {
+			this.serverListElement.appendChild(serverElement);
 		}
 	}
 
-	handleServerClick(hostUrl) {
-		this.emit('select-server', hostUrl);
+	handleShortcutsKey(down, event) {
+		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
+		if (event.key === shortcutKey) {
+			this.setState({ showShortcuts: down });
+		}
 	}
 
-	handleServerContextMenu(hostUrl, event) {
+	handleServerClick(url) {
+		this.emit('select-server', url);
+	}
+
+	handleServerContextMenu(url, event) {
 		event.preventDefault();
 
 		const menu = Menu.buildFromTemplate([
 			{
 				label: i18n.__('sidebar.item.reload'),
-				click: () => this.emit('reload-server', hostUrl),
+				click: () => this.emit('reload-server', url),
 			},
 			{
 				label: i18n.__('sidebar.item.remove'),
-				click: () => this.emit('remove-server', hostUrl),
+				click: () => this.emit('remove-server', url),
 			},
 			{
 				label: i18n.__('sidebar.item.openDevTools'),
-				click: () => this.emit('open-devtools-for-server', hostUrl),
+				click: () => this.emit('open-devtools-for-server', url),
 			},
 		]);
 		menu.popup(getCurrentWindow());
 	}
 
-	handleAddServerClick() {
-		this.emit('add-server');
+	handleDragStart(event) {
+		const serverElement = event.currentTarget;
+		serverElement.classList.add('server--dragged');
+		serverElement.style.opacity = .5;
+
+		event.dataTransfer.dropEffect = 'move';
+		event.dataTransfer.effectAllowed = 'move';
 	}
 
-	setHosts(hosts) {
-		Object.values(hosts)
-			.sort(({ url: a, url: b }) => this.sortOrder.indexOf(a) - this.sortOrder.indexOf(b))
-			.forEach((host) => this.add(host));
+	handleDragEnd(event) {
+		const serverElement = event.currentTarget;
+		serverElement.classList.remove('server--dragged');
+		serverElement.style.opacity = '';
 	}
 
-	get sortOrderKey() {
-		return 'rocket.chat.sortOrder';
-	}
+	handleDragEnter(event) {
+		const draggedServerElement = this.serverListElement.querySelector('.server--dragged');
+		const targetServerElement = event.currentTarget;
 
-	isBefore(a, b) {
-		if (a.parentNode === b.parentNode) {
-			for (let cur = a; cur; cur = cur.previousSibling) {
-				if (cur === b) {
+		const isTargetBeforeDragged = (() => {
+			for (let current = draggedServerElement; current; current = current.previousSibling) {
+				if (current === targetServerElement) {
 					return true;
 				}
 			}
-		}
-		return false;
-	}
 
-	add(host) {
-		let name = host.title.replace(/^https?:\/\/(?:www\.)?([^\/]+)(.*)/, '$1');
-		name = name.split('.');
-		name = name[0][0] + (name[1] ? name[1][0] : '');
-		name = name.toUpperCase();
+			return false;
+		})();
 
-		const initials = document.createElement('span');
-		initials.innerHTML = name;
-
-		const tooltip = document.createElement('div');
-		tooltip.classList.add('tooltip');
-		tooltip.innerHTML = host.title;
-
-		const badge = document.createElement('div');
-		badge.classList.add('badge');
-
-		const img = document.createElement('img');
-		img.onload = function() {
-			img.style.display = 'initial';
-			initials.style.display = 'none';
-		};
-
-		let hostOrder = 0;
-		if (this.sortOrder.includes(host.url)) {
-			hostOrder = this.sortOrder.indexOf(host.url) + 1;
+		if (isTargetBeforeDragged) {
+			this.serverListElement.insertBefore(draggedServerElement, targetServerElement);
+		} else if (targetServerElement !== this.serverListElement.lastChild) {
+			this.serverListElement.insertBefore(draggedServerElement, targetServerElement.nextSibling);
 		} else {
-			hostOrder = this.sortOrder.length + 1;
-			this.sortOrder.push(host.url);
-		}
-
-		const shortcut = document.createElement('div');
-		shortcut.classList.add('name');
-		if (process.platform === 'darwin') {
-			shortcut.innerHTML = `⌘${ hostOrder }`;
-		} else {
-			shortcut.innerHTML = `^${ hostOrder }`;
-		}
-
-		const item = document.createElement('li');
-		item.appendChild(initials);
-		item.appendChild(tooltip);
-		item.appendChild(badge);
-		item.appendChild(img);
-		item.appendChild(shortcut);
-
-		item.dataset.host = host.url;
-		item.dataset.sortOrder = hostOrder;
-		item.setAttribute('server', host.url);
-		item.classList.add('instance');
-
-		item.setAttribute('draggable', true);
-
-		item.ondragstart = (event) => {
-			window.dragged = event.target.nodeName !== 'LI' ? event.target.closest('li') : event.target;
-			event.dataTransfer.effectAllowed = 'move';
-			event.dataTransfer.dropEffect = 'move';
-			event.target.style.opacity = .5;
-		};
-
-		item.ondragover = (event) => {
-			event.preventDefault();
-		};
-
-		item.ondragenter = (event) => {
-			if (this.isBefore(window.dragged, event.target)) {
-				event.currentTarget.parentNode.insertBefore(window.dragged, event.currentTarget);
-			} else if (event.currentTarget !== event.currentTarget.parentNode.lastChild) {
-				event.currentTarget.parentNode.insertBefore(window.dragged, event.currentTarget.nextSibling);
-			} else {
-				event.currentTarget.parentNode.appendChild(window.dragged);
-			}
-		};
-
-		item.ondragend = (event) => {
-			event.target.style.opacity = '';
-		};
-
-		item.ondrop = (event) => {
-			event.preventDefault();
-
-			const newSortOrder = [];
-			Array.from(event.currentTarget.parentNode.children)
-				.map((sideBarElement) => {
-					const url = sideBarElement.dataset.host;
-					newSortOrder.push(url);
-					this.remove(url);
-
-					return sideBarElement;
-				})
-				.forEach((sideBarElement) => {
-					this.sortOrder = newSortOrder;
-					localStorage.setItem(this.sortOrderKey, JSON.stringify(this.sortOrder));
-
-					const url = sideBarElement.dataset.host;
-					const host = { url, title: sideBarElement.querySelector('div.tooltip').innerHTML };
-					this.add(host);
-					this.setImage(url);
-				});
-
-			this.emit('select-server', window.dragged.dataset.host);
-		};
-
-		item.addEventListener('click', this.handleServerClick.bind(this, host.url), false);
-		item.addEventListener('contextmenu', this.handleServerContextMenu.bind(this, host.url), false);
-
-		this.listElement.appendChild(item);
-		this.emit('hosts-sorted');
-	}
-
-	setImage(hostUrl) {
-		const img = this.getByUrl(hostUrl).querySelector('img');
-		img.src = `${ hostUrl.replace(/\/$/, '') }/assets/favicon.svg?v=${ Math.round(Math.random() * 10000) }`;
-	}
-
-	remove(hostUrl) {
-		const el = this.getByUrl(hostUrl);
-		if (el) {
-			el.remove();
+			this.serverListElement.appendChild(draggedServerElement);
 		}
 	}
 
-	getByUrl(hostUrl) {
-		return this.listElement.querySelector(`.instance[server="${ hostUrl }"]`);
+	handleDragOver(event) {
+		event.preventDefault();
 	}
 
-	getActive() {
-		return this.listElement.querySelector('.instance.active');
+	handleDrop(event) {
+		event.preventDefault();
+
+		const serverElement = event.currentTarget;
+
+		const newSorting = Array.from(this.serverListElement.querySelectorAll('.server'))
+			.reduce((sorting, serverElement) => [...sorting, serverElement.dataset.url], []);
+
+		this.emit('servers-sorted', newSorting);
+		this.emit('select-server', serverElement.dataset.host);
 	}
 
-	isActive(hostUrl) {
-		return !!this.listElement.querySelector(`.instance.active[server="${ hostUrl }"]`);
-	}
-
-	changeSidebarColor({ color, background }) {
-		const sidebar = document.querySelector('.sidebar');
-		if (sidebar) {
-			sidebar.style.background = background;
-			sidebar.style.color = color;
-		}
-	}
-
-	setActive(hostUrl) {
-		if (this.isActive(hostUrl)) {
-			return;
-		}
-
-		this.deactiveAll();
-		const item = this.getByUrl(hostUrl);
-		if (item) {
-			item.classList.add('active');
-		}
-	}
-
-	deactiveAll() {
-		let item;
-		while (!(item = this.getActive()) === false) {
-			item.classList.remove('active');
-		}
-	}
-
-	setLabel(hostUrl, label) {
-		this.listElement.querySelector(`.instance[server="${ hostUrl }"] .tooltip`).innerHTML = label;
-	}
-
-	setBadge(hostUrl, badge) {
-		const item = this.getByUrl(hostUrl);
-		const badgeEl = item.querySelector('.badge');
-
-		if (badge !== null && badge !== undefined && badge !== '') {
-			item.classList.add('unread');
-			if (isNaN(parseInt(badge))) {
-				badgeEl.innerHTML = '';
-			} else {
-				badgeEl.innerHTML = badge;
-			}
-		} else {
-			badge = undefined;
-			item.classList.remove('unread');
-			badgeEl.innerHTML = '';
-		}
-		this.emit('badge-setted', hostUrl, badge);
-	}
-
-	getGlobalBadge() {
-		let count = 0;
-		let title = '';
-		const instanceEls = this.listElement.querySelectorAll('li.instance');
-		for (let i = instanceEls.length - 1; i >= 0; i--) {
-			const instanceEl = instanceEls[i];
-			const text = instanceEl.querySelector('.badge').innerHTML;
-			if (!isNaN(parseInt(text))) {
-				count += parseInt(text);
-			}
-			if (title === '' && instanceEl.classList.contains('unread') === true) {
-				title = '•';
-			}
-		}
-		if (count > 0) {
-			title = count.toString();
-		}
-		return {
-			count,
-			title,
-			showAlert: (title !== ''),
-		};
-	}
-
-	setVisible(visible) {
-		document.querySelector('.sidebar').classList[visible ? 'remove' : 'add']('sidebar--hidden');
+	handleAddServerClick() {
+		this.emit('add-server');
 	}
 }
 

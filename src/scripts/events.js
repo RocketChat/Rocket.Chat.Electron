@@ -32,17 +32,28 @@ const updatePreferences = () => {
 		hasTrayIcon,
 	});
 
-	sidebar.setVisible(hasSidebar);
+	sidebar.setState({
+		visible: hasSidebar,
+	});
+
 	webview.setSidebarPaddingEnabled(!hasSidebar);
 };
 
 
 const updateServers = () => {
+	const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+
 	menus.setState({
 		servers: Object.values(servers.hosts)
-			.sort((a, b) => (sidebar ? (sidebar.sortOrder.indexOf(a.url) - sidebar.sortOrder.indexOf(b.url)) : 0))
+			.sort(({ url: a }, { url: b }) => (sidebar ? (sorting.indexOf(a) - sorting.indexOf(b)) : 0))
 			.map(({ title, url }) => ({ title, url })),
 		currentServerUrl: servers.active,
+	});
+
+	sidebar.setState({
+		hosts: servers.hosts,
+		sorting,
+		active: servers.active,
 	});
 };
 
@@ -161,34 +172,26 @@ export default () => {
 	});
 
 	servers.on('host-added', (hostUrl) => {
-		sidebar.add(servers.get(hostUrl));
 		webview.add(servers.get(hostUrl));
 		updateServers();
 	});
 
 	servers.on('host-removed', (hostUrl) => {
-		sidebar.remove(hostUrl);
 		webview.remove(hostUrl);
 		updateServers();
 	});
 
 	servers.on('active-setted', (hostUrl) => {
-		sidebar.setActive(hostUrl);
 		webview.setActive(hostUrl);
-		if (webview.getActive() && webview.getActive().classList.contains('ready')) {
-			webview.getActive().send('request-sidebar-color');
-		}
 		updateServers();
 	});
 
 	servers.on('active-cleared', (hostUrl) => {
-		sidebar.deactiveAll(hostUrl);
 		webview.deactiveAll(hostUrl);
 		updateServers();
 	});
 
-	servers.on('title-setted', (hostUrl, title) => {
-		sidebar.setLabel(hostUrl, title);
+	servers.on('title-setted', () => {
 		updateServers();
 	});
 
@@ -213,16 +216,10 @@ export default () => {
 		webview.showLanding();
 	});
 
-	sidebar.on('hosts-sorted', () => {
+	sidebar.on('servers-sorted', (sorting) => {
+		localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));
 		updateServers();
 	});
-
-	sidebar.on('badge-setted', () => {
-		const badge = sidebar.getGlobalBadge();
-		tray.setState({ badge });
-		dock.setState({ badge });
-	});
-
 
 	getCurrentWindow().on('hide', updateWindowState);
 	getCurrentWindow().on('show', updateWindowState);
@@ -234,8 +231,8 @@ export default () => {
 	tray.on('quit', () => app.quit());
 
 
-	webview.on('ipc-message-unread-changed', (hostUrl, [count]) => {
-		if (typeof count === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {
+	webview.on('ipc-message-unread-changed', (hostUrl, [badge]) => {
+		if (typeof unread === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {
 			const mainWindow = remote.getCurrentWindow();
 			if (!mainWindow.isFocused()) {
 				mainWindow.once('focus', () => mainWindow.flashFrame(false));
@@ -243,7 +240,23 @@ export default () => {
 				mainWindow.flashFrame(true);
 			}
 		}
-		sidebar.setBadge(hostUrl, count);
+
+		sidebar.setState({
+			badges: {
+				...sidebar.state.badges,
+				[hostUrl]: badge || null,
+			},
+		});
+
+		const mentionCount = Object.values(sidebar.state.badges)
+			.filter((badge) => Number.isInteger(badge))
+			.reduce((sum, count) => sum + count, 0);
+		const globalBadge = mentionCount ||
+			(Object.values(sidebar.state.badges).some((badge) => !!badge) && '•') ||
+			null;
+
+		tray.setState({ badge: globalBadge });
+		dock.setState({ badge: globalBadge });
 	});
 
 	webview.on('ipc-message-title-changed', (hostUrl, [title]) => {
@@ -254,16 +267,20 @@ export default () => {
 		servers.setActive(hostUrl);
 	});
 
-	webview.on('ipc-message-sidebar-background', (hostUrl, [colors]) => {
-		sidebar.changeSidebarColor(colors);
+	webview.on('ipc-message-sidebar-style', (hostUrl, [style]) => {
+		sidebar.setState({
+			styles: {
+				...sidebar.state.styles,
+				[hostUrl]: style || null,
+			},
+		});
 	});
 
-	webview.on('dom-ready', (webviewObj, hostUrl) => {
+	webview.on('dom-ready', () => {
 		const hasSidebar = localStorage.getItem('sidebar-closed') !== 'true';
-		sidebar.setActive(localStorage.getItem(servers.activeKey));
-		webviewObj.send('request-sidebar-color');
-		sidebar.setImage(hostUrl);
-		sidebar.setVisible(hasSidebar);
+		sidebar.setState({
+			visible: hasSidebar,
+		});
 		webview.setSidebarPaddingEnabled(!hasSidebar);
 	});
 
@@ -272,7 +289,7 @@ export default () => {
 	}
 
 	servers.restoreActive();
-	sidebar.setHosts(servers.hosts);
+	sidebar.mount();
 	updatePreferences();
 	updateServers();
 	updateWindowState();

@@ -11,28 +11,41 @@
 	color: #ffffff;
 	background-color: @primary-background-color;
 	-webkit-app-region: drag;
-}
 
-.sidebar::after {
-	position: absolute;
-	z-index: 1;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	left: 0;
+	&::after {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
 
-	content: "";
+		content: "";
 
-	background-color: rgba(0, 0, 0, 0.1);
-}
+		background-color: rgba(0, 0, 0, 0.1);
+	}
 
-.sidebar ul {
-	position: relative;
-	z-index: 2;
 
-	margin: 0;
-	padding: 0;
-	-webkit-app-region: no-drag;
+	.sidebar__list {
+		position: relative;
+		z-index: 2;
+
+		margin: 0;
+		padding: 0;
+		-webkit-app-region: no-drag;
+	}
+
+	&.sidebar--shortcuts li .name {
+		display: initial;
+	}
+
+	&.sidebar--hidden {
+		display: none;
+
+		& ~ .landing-page,
+		& ~ webview {
+			left: 0;
+		}
+	}
 }
 
 .sidebar li {
@@ -175,10 +188,6 @@
 	line-height: 11px;
 }
 
-.command-pressed li .name {
-	display: initial;
-}
-
 .sidebar li:hover span {
 	opacity: 0.8;
 }
@@ -197,16 +206,4 @@
 
 .sidebar li.add-server span {
 	font-size: 40px;
-}
-
-.sidebar.sidebar--hidden {
-	display: none;
-}
-
-.sidebar.sidebar--hidden ~ webview {
-	left: 0;
-}
-
-.sidebar.sidebar--hidden ~ .landing-page {
-	left: 0;
 }

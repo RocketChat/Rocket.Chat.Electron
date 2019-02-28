@@ -9,15 +9,17 @@ function getTrayIconSet({ platform, dark }) {
 	return platform;
 }
 
-function getTrayIconName({ title, count, platform }) {
+function getTrayIconName({ badge, platform }) {
 	if (platform === 'darwin') {
-		return (title || count) ? 'notification' : 'default';
+		return badge ? 'notification' : 'default';
 	}
 
-	if (title === '•') {
+	if (badge === '•') {
 		return 'notification-dot';
-	} else if (count > 0) {
-		return count > 9 ? 'notification-plus-9' : `notification-${ String(count) }`;
+	}
+
+	if (Number.isInteger(badge)) {
+		return badge > 9 ? 'notification-plus-9' : `notification-${ String(badge) }`;
 	}
 
 	return 'default';
@@ -35,7 +37,7 @@ export function getAppIconPath() {
 	return 'public/images/icon.png';
 }
 
-export function getTrayIconPath({ title, count, platform, dark } = {}) {
+export function getTrayIconPath({ badge, platform, dark } = {}) {
 	if (typeof platform === 'undefined') {
 		platform = process.platform;
 	}
@@ -44,7 +46,7 @@ export function getTrayIconPath({ title, count, platform, dark } = {}) {
 		dark = systemPreferences.isDarkMode();
 	}
 
-	const params = { title, count, platform, dark };
+	const params = { badge, platform, dark };
 	const iconset = getTrayIconSet(params);
 	const name = getTrayIconName(params);
 	const extension = getTrayIconExtension(params);
@@ -55,15 +57,15 @@ export function getAppIconImage() {
 	return nativeImage.createFromPath(`${ __dirname }/${ getAppIconPath() }`);
 }
 
-export function getTrayIconImage({ title, count, platform, dark } = {}) {
-	return nativeImage.createFromPath(`${ __dirname }/${ getTrayIconPath({ title, count, platform, dark }) }`);
+export function getTrayIconImage({ badge, platform, dark } = {}) {
+	return nativeImage.createFromPath(`${ __dirname }/${ getTrayIconPath({ badge, platform, dark }) }`);
 }
 
-export function getIconImage({ badge: { title, count } }) {
+export function getIconImage({ badge }) {
 	const iconsetsPath = `${ __dirname }/public/images/tray`;
 	const { platform } = process;
 	const dark = systemPreferences.isDarkMode();
-	const params = { title, count, platform, dark };
+	const params = { badge, platform, dark };
 	const iconset = getTrayIconSet(params);
 	const name = getTrayIconName(params);
 	const extension = getTrayIconExtension(params);

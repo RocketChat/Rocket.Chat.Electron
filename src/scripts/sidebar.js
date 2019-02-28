@@ -8,17 +8,24 @@ class SideBar extends EventEmitter {
 	constructor() {
 		super();
 
-		document.querySelector('.add-server .tooltip').innerHTML = i18n.__('sidebar.addNewServer');
-		document.querySelector('.add-server').addEventListener('click', this.handleAddServerClick.bind(this), false);
-
 		// TODO: use globalShortcut and mainWindow focus
 		window.addEventListener('keydown', this.handleShortcutsKey.bind(this, true));
 		window.addEventListener('keyup', this.handleShortcutsKey.bind(this, false));
+
+		document.querySelector('.add-server .tooltip').innerHTML = i18n.__('sidebar.addNewServer');
+		document.querySelector('.add-server').addEventListener('click', this.handleAddServerClick.bind(this), false);
 
 		this.sortOrder = JSON.parse(localStorage.getItem(this.sortOrderKey)) || [];
 		localStorage.setItem(this.sortOrderKey, JSON.stringify(this.sortOrder));
 
 		this.listElement = document.getElementById('sidebar__servers');
+	}
+
+	handleShortcutsKey(down, event) {
+		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'ctrlKey';
+		if (event.key === shortcutKey) {
+			document.querySelector('.sidebar').classList[down ? 'add' : 'remove']('command-pressed');
+		}
 	}
 
 	handleServerClick(hostUrl) {
@@ -49,13 +56,6 @@ class SideBar extends EventEmitter {
 		this.emit('add-server');
 	}
 
-	handleShortcutsKey(down, event) {
-		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'ctrlKey';
-		if (event.key === shortcutKey) {
-			document.querySelector('.sidebar').classList[down ? 'add' : 'remove']('command-pressed');
-		}
-	}
-
 	setHosts(hosts) {
 		Object.values(hosts)
 			.sort(({ url: a, url: b }) => this.sortOrder.indexOf(a) - this.sortOrder.indexOf(b))
@@ -64,6 +64,17 @@ class SideBar extends EventEmitter {
 
 	get sortOrderKey() {
 		return 'rocket.chat.sortOrder';
+	}
+
+	isBefore(a, b) {
+		if (a.parentNode === b.parentNode) {
+			for (let cur = a; cur; cur = cur.previousSibling) {
+				if (cur === b) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	add(host) {
@@ -273,80 +284,8 @@ class SideBar extends EventEmitter {
 		};
 	}
 
-	hide() {
-		document.querySelector('.sidebar').classList.add('sidebar--hidden');
-		localStorage.setItem('sidebar-closed', 'true');
-		this.emit('hide');
-		if (process.platform === 'darwin') {
-			Array.from(document.querySelectorAll('webview.ready'))
-				.forEach((webviewObj) => {
-					if (!webviewObj.insertCSS) {
-						return;
-					}
-
-					webviewObj.insertCSS(`
-						aside.side-nav {
-							margin-top: 15px;
-							overflow: hidden;
-							transition: margin .5s ease-in-out;
-						}
-						.sidebar {
-							padding-top: 10px;
-							transition: margin .5s ease-in-out;
-						}
-					`);
-				});
-		}
-	}
-
-	show() {
-		document.querySelector('.sidebar').classList.remove('sidebar--hidden');
-		localStorage.setItem('sidebar-closed', 'false');
-		this.emit('show');
-		if (process.platform === 'darwin') {
-			Array.from(document.querySelectorAll('webview.ready'))
-				.forEach((webviewObj) => {
-					if (!webviewObj.insertCSS) {
-						return;
-					}
-
-					webviewObj.insertCSS(`
-						aside.side-nav {
-							margin-top: 0;
-							overflow: hidden;
-							transition: margin .5s ease-in-out;
-						}
-
-						.sidebar {
-							padding-top: 0;
-							transition: margin .5s ease-in-out;
-						}
-					`);
-				});
-		}
-	}
-
-	toggle() {
-		if (this.isHidden()) {
-			this.show();
-		} else {
-			this.hide();
-		}
-	}
-
-	isHidden() {
-		return localStorage.getItem('sidebar-closed') === 'true';
-	}
-
-	isBefore(a, b) {
-		if (a.parentNode === b.parentNode) {
-			for (let cur = a; cur; cur = cur.previousSibling) {
-				if (cur === b) {
-					return true;
-				}
-			}
-		}
-		return false;
+	setVisible(visible) {
+		document.querySelector('.sidebar').classList[visible ? 'remove' : 'add']('sidebar--hidden');
 	}
 }
 

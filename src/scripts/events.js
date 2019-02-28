@@ -10,15 +10,18 @@ const { certificate, dock, menus, tray } = remote.require('./background');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();
+	const showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
 	const hasTrayIcon = localStorage.getItem('hideTray') ?
 		localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux');
+	const hasMenuBar = localStorage.getItem('autohideMenu') !== 'true';
+	const hasSidebar = localStorage.getItem('sidebar-closed') !== 'true';
 
 	menus.setState({
 		showTrayIcon: hasTrayIcon,
 		showFullScreen: mainWindow.isFullScreen(),
-		showWindowOnUnreadChanged: localStorage.getItem('showWindowOnUnreadChanged') === 'true',
-		showMenuBar: localStorage.getItem('autohideMenu') !== 'true',
-		showServerList: localStorage.getItem('sidebar-closed') !== 'true',
+		showWindowOnUnreadChanged,
+		showMenuBar: hasMenuBar,
+		showServerList: hasSidebar,
 	});
 
 	tray.setState({
@@ -28,6 +31,9 @@ const updatePreferences = () => {
 	dock.setState({
 		hasTrayIcon,
 	});
+
+	sidebar.setVisible(hasSidebar);
+	webview.setSidebarPaddingEnabled(!hasSidebar);
 };
 
 
@@ -139,7 +145,9 @@ export default () => {
 			}
 
 			case 'showServerList': {
-				sidebar.toggle();
+				const previousValue = localStorage.getItem('sidebar-closed') !== 'true';
+				const newValue = !previousValue;
+				localStorage.setItem('sidebar-closed', JSON.stringify(!newValue));
 				break;
 			}
 		}
@@ -251,14 +259,12 @@ export default () => {
 	});
 
 	webview.on('dom-ready', (webviewObj, hostUrl) => {
+		const hasSidebar = localStorage.getItem('sidebar-closed') !== 'true';
 		sidebar.setActive(localStorage.getItem(servers.activeKey));
 		webviewObj.send('request-sidebar-color');
 		sidebar.setImage(hostUrl);
-		if (sidebar.isHidden()) {
-			sidebar.hide();
-		} else {
-			sidebar.show();
-		}
+		sidebar.setVisible(hasSidebar);
+		webview.setSidebarPaddingEnabled(!hasSidebar);
 	});
 
 	if (process.platform === 'darwin') {

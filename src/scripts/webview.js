@@ -157,6 +157,21 @@ class WebView extends EventEmitter {
 	goForward() {
 		this.getActive().goForward();
 	}
+
+	setSidebarPaddingEnabled(enabled) {
+		if (process.platform !== 'darwin') {
+			return;
+		}
+
+		Array.from(document.querySelectorAll('webview.ready'))
+			.filter((webviewObj) => webviewObj.insertCSS)
+			.forEach((webviewObj) => webviewObj.insertCSS(`
+				.sidebar {
+					padding-top: ${ enabled ? '10px' : '0' };
+					transition: margin .5s ease-in-out;
+				}
+			`));
+	}
 }
 
 export default new WebView();

@@ -1,6 +1,7 @@
 import { remote } from 'electron';
 import { EventEmitter } from 'events';
 import i18n from '../i18n';
+import { parse as parseUrl } from 'url';
 const { getCurrentWindow, Menu } = remote;
 
 
@@ -39,9 +40,9 @@ class SideBar extends EventEmitter {
 		window.addEventListener('keydown', this.handleShortcutsKey.bind(this, true));
 		window.addEventListener('keyup', this.handleShortcutsKey.bind(this, false));
 
-		this.node.querySelector('.add-server').addEventListener('click', this.handleAddServerClick.bind(this), false);
+		this.node.querySelector('.sidebar__add-server').addEventListener('click', this.handleAddServerClick.bind(this), false);
 
-		this.serverListElement = this.node.querySelector('.server-list');
+		this.serverListElement = this.node.querySelector('.sidebar__server-list');
 
 		this.render();
 	}
@@ -57,19 +58,19 @@ class SideBar extends EventEmitter {
 			visible,
 		} = this.state;
 
-		this.node.classList.toggle('sidebar--shortcuts', showShortcuts);
 		this.node.classList.toggle('sidebar--hidden', !visible);
+		this.serverListElement.classList.toggle('sidebar__server-list--shortcuts', showShortcuts);
 
 		const style = styles[active] || {};
-		this.node.style.background = style.background || '';
-		this.node.style.color = style.color || '';
+		this.node.style.setProperty('--background', style.background || '');
+		this.node.style.setProperty('--color', style.color || '');
 
 		const orderedHosts = Object.values(hosts)
 			.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b));
 
 		const hostUrls = orderedHosts.map(({ url }) => url);
 		Array.from(this.serverListElement.querySelectorAll('.server'))
-			.filter((serverElement) => !hostUrls.includes(serverElement.dataset.host))
+			.filter((serverElement) => !hostUrls.includes(serverElement.dataset.url))
 			.forEach((serverElement) => serverElement.remove());
 
 		orderedHosts.forEach((host, order) => this.renderHost({
@@ -80,33 +81,35 @@ class SideBar extends EventEmitter {
 			mentionCount: (badges[host.url] || badges[host.url] === 0) ? parseInt(badges[host.url], 10) : null,
 		}));
 
-		this.node.querySelector('.add-server .tooltip').innerText = i18n.__('sidebar.addNewServer');
+		this.node.querySelector('.sidebar__add-server').dataset.tooltip = i18n.__('sidebar.addNewServer');
 	}
 
 	renderHost({ url, title, order, active, hasUnreadMessages, mentionCount }) {
-		let name = title.replace(/^https?:\/\/(?:www\.)?([^\/]+)(.*)/, '$1').split('.');
-		name = (name[0][0] + (name[1] ? name[1][0] : '')).toUpperCase();
-
+		const initials = (
+			title
+				.replace(url, parseUrl(url).hostname)
+				.split(/[^A-Za-z0-9]+/g)
+				.slice(0, 2)
+				.map((text) => text[0].toUpperCase())
+				.join('')
+		);
 		const bustingParam = Math.round(Date.now() / faviconCacheBustingTime);
 		const faviconUrl = `${ url.replace(/\/$/, '') }/assets/favicon.svg?_=${ bustingParam }`;
 
 		const node = this.node.querySelector(`.server[data-url="${ url }"]`);
 		const serverElement = node ? node : document.createElement('li');
-		const initialsElement = node ? node.querySelector('.initials') : document.createElement('span');
-		const tooltipElement = node ? node.querySelector('.tooltip') : document.createElement('div');
-		const badgeElement = node ? node.querySelector('.badge') : document.createElement('div');
-		const faviconElement = node ? node.querySelector('img') : document.createElement('img');
-		const shortcutElement = node ? node.querySelector('.name') : document.createElement('div');
+		const initialsElement = node ? node.querySelector('.server__initials') : document.createElement('span');
+		const faviconElement = node ? node.querySelector('.server__favicon') : document.createElement('img');
+		const badgeElement = node ? node.querySelector('.server__badge') : document.createElement('div');
+		const shortcutElement = node ? node.querySelector('.server__shortcut') : document.createElement('div');
 
 		serverElement.setAttribute('draggable', 'true');
-		serverElement.setAttribute('server', url);
 		serverElement.dataset.url = url;
-		serverElement.dataset.host = url;
-		serverElement.dataset.sortOrder = order + 1;
+		serverElement.dataset.tooltip = title;
+		serverElement.classList.add('sidebar__list-item');
 		serverElement.classList.add('server');
-		serverElement.classList.add('instance');
-		serverElement.classList.toggle('active', active);
-		serverElement.classList.toggle('unread', hasUnreadMessages);
+		serverElement.classList.toggle('server--active', active);
+		serverElement.classList.toggle('server--unread', hasUnreadMessages);
 		serverElement.onclick = this.handleServerClick.bind(this, url);
 		serverElement.oncontextmenu = this.handleServerContextMenu.bind(this, url);
 		serverElement.ondragstart = this.handleDragStart.bind(this);
@@ -115,29 +118,28 @@ class SideBar extends EventEmitter {
 		serverElement.ondragover = this.handleDragOver.bind(this);
 		serverElement.ondrop = this.handleDrop.bind(this);
 
-		initialsElement.classList.add('initials');
-		initialsElement.innerText = name;
+		initialsElement.classList.add('server__initials');
+		initialsElement.innerText = initials;
 
-		tooltipElement.classList.add('tooltip');
-		tooltipElement.innerText = title;
-
-		badgeElement.classList.add('badge');
-		badgeElement.innerText = Number.isInteger(mentionCount) ? String(mentionCount) : '',
-
+		faviconElement.classList.add('server__favicon');
 		faviconElement.onload = () => {
-			initialsElement.style.display = 'none';
-			faviconElement.style.display = 'initial';
+			serverElement.classList.add('server--with-favicon');
+		};
+		faviconElement.onerror = () => {
+			serverElement.classList.remove('server--with-favicon');
 		};
 		faviconElement.src = faviconUrl;
 
-		shortcutElement.classList.add('name');
+		badgeElement.classList.add('server__badge');
+		badgeElement.innerText = Number.isInteger(mentionCount) ? String(mentionCount) : '',
+
+		shortcutElement.classList.add('server__shortcut');
 		shortcutElement.innerText = `${ process.platform === 'darwin' ? '⌘' : '^' }${ order + 1 }`;
 
 		if (!node) {
 			serverElement.appendChild(initialsElement);
-			serverElement.appendChild(tooltipElement);
-			serverElement.appendChild(badgeElement);
 			serverElement.appendChild(faviconElement);
+			serverElement.appendChild(badgeElement);
 			serverElement.appendChild(shortcutElement);
 		}
 
@@ -182,7 +184,6 @@ class SideBar extends EventEmitter {
 	handleDragStart(event) {
 		const serverElement = event.currentTarget;
 		serverElement.classList.add('server--dragged');
-		serverElement.style.opacity = .5;
 
 		event.dataTransfer.dropEffect = 'move';
 		event.dataTransfer.effectAllowed = 'move';
@@ -191,7 +192,6 @@ class SideBar extends EventEmitter {
 	handleDragEnd(event) {
 		const serverElement = event.currentTarget;
 		serverElement.classList.remove('server--dragged');
-		serverElement.style.opacity = '';
 	}
 
 	handleDragEnter(event) {
@@ -227,10 +227,10 @@ class SideBar extends EventEmitter {
 		const serverElement = event.currentTarget;
 
 		const newSorting = Array.from(this.serverListElement.querySelectorAll('.server'))
-			.reduce((sorting, serverElement) => [...sorting, serverElement.dataset.url], []);
+			.map((serverElement) => serverElement.dataset.url);
 
 		this.emit('servers-sorted', newSorting);
-		this.emit('select-server', serverElement.dataset.host);
+		this.emit('select-server', serverElement.dataset.url);
 	}
 
 	handleAddServerClick() {

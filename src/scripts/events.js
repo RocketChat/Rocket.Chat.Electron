@@ -178,6 +178,8 @@ export default () => {
 
 	servers.on('host-removed', (hostUrl) => {
 		webview.remove(hostUrl);
+		servers.clearActive();
+		webview.showLanding();
 		updateServers();
 	});
 

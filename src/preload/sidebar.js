@@ -19,6 +19,7 @@ function createStylesObserver(element, getStylesFrom) {
 	});
 
 	observer.observe(element, { attributes: true });
+	getStylesFrom(element);
 
 	return observer;
 }
@@ -44,5 +45,5 @@ function requestSidebarStyle() {
 }
 
 export default () => {
-	requestSidebarStyle();
+	window.addEventListener('load', requestSidebarStyle);
 };

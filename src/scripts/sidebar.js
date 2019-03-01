@@ -35,6 +35,7 @@ class SideBar extends EventEmitter {
 
 	mount() {
 		this.node = document.querySelector('.sidebar');
+		this.node.classList.toggle('sidebar--macos', process.platform === 'darwin');
 
 		// TODO: use globalShortcut and mainWindow focus
 		window.addEventListener('keydown', this.handleShortcutsKey.bind(this, true));
@@ -121,6 +122,7 @@ class SideBar extends EventEmitter {
 		initialsElement.classList.add('server__initials');
 		initialsElement.innerText = initials;
 
+		faviconElement.setAttribute('draggable', 'false');
 		faviconElement.classList.add('server__favicon');
 		faviconElement.onload = () => {
 			serverElement.classList.add('server--with-favicon');

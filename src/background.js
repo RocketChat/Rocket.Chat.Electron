@@ -51,7 +51,7 @@ if (process.platform === 'linux') {
 }
 app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
 
-ipcMain.on('getSystemIdleTime', (event) => {
+ipcMain.on('request-system-idle-time', (event) => {
 	event.returnValue = idle.getIdleTime();
 });
 

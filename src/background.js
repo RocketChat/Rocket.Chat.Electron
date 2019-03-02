@@ -1,6 +1,8 @@
 import { app, ipcMain } from 'electron';
 import querystring from 'querystring';
 import url from 'url';
+import idle from '@paulcbetts/system-idle-time';
+
 import './background/aboutDialog';
 import appData from './background/appData';
 import certificate from './background/certificate';
@@ -48,6 +50,10 @@ if (process.platform === 'linux') {
 	app.disableHardwareAcceleration();
 }
 app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
+
+ipcMain.on('getSystemIdleTime', (event) => {
+	event.returnValue = idle.getIdleTime();
+});
 
 process.on('unhandledRejection', console.error.bind(console));
 

@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { getMainWindow } from './mainWindow';
-import i18n from '../i18n';
+import { getMainWindow } from '../mainWindow';
+import i18n from '../../i18n';
 
 
 let aboutWindow;
@@ -37,7 +37,7 @@ const openAboutDialog = async() => {
 
 	aboutWindow.params = { appName: app.getName(), appVersion: app.getVersion() };
 
-	aboutWindow.loadFile(`${ __dirname }/public/about-dialog.html`);
+	aboutWindow.loadFile(`${ app.getAppPath() }/app/public/dialogs/about.html`);
 };
 
 const closeAboutDialog = () => {

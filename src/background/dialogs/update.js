@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { getMainWindow } from './mainWindow';
-import i18n from '../i18n';
+import { getMainWindow } from '../mainWindow';
+import i18n from '../../i18n';
 
 
 let updateWindow;
@@ -37,7 +37,7 @@ const openUpdateDialog = async({ currentVersion = app.getVersion(), newVersion }
 
 	updateWindow.params = { currentVersion, newVersion };
 
-	updateWindow.loadFile(`${ __dirname }/public/update-dialog.html`);
+	updateWindow.loadFile(`${ app.getAppPath() }/app/public/dialogs/update.html`);
 };
 
 const closeUpdateDialog = () => {

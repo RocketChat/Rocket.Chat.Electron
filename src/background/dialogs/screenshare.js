@@ -1,6 +1,6 @@
-import { BrowserWindow, ipcMain } from 'electron';
-import { getMainWindow } from './mainWindow';
-import i18n from '../i18n';
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { getMainWindow } from '../mainWindow';
+import i18n from '../../i18n';
 
 
 let screenshareWindow;
@@ -39,7 +39,7 @@ const openScreenshareDialog = async() => {
 		screenshareWindow = null;
 	});
 
-	screenshareWindow.loadFile(`${ __dirname }/public/screenshare-dialog.html`);
+	screenshareWindow.loadFile(`${ app.getAppPath() }/app/public/dialogs/screenshare.html`);
 };
 
 const closeScreenshareDialog = () => {

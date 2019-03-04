@@ -1,20 +1,19 @@
 import { app, ipcMain } from 'electron';
 import querystring from 'querystring';
 import url from 'url';
-
-import './background/aboutDialog';
 import appData from './background/appData';
 import certificate from './background/certificate';
 export { default as dock } from './background/dock';
 import { addServer, getMainWindow } from './background/mainWindow';
 export { default as menus } from './background/menus';
 export { default as notifications } from './background/notifications';
-import './background/screenshareDialog';
 export { default as remoteServers } from './background/servers';
 import './background/systemIdleTime';
 export { default as tray } from './background/tray';
-import './background/updateDialog';
 import './background/updates';
+import './background/dialogs/about';
+import './background/dialogs/screenshare';
+import './background/dialogs/update';
 import i18n from './i18n';
 export { certificate };
 

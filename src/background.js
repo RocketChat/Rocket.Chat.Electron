@@ -18,7 +18,6 @@ import './background/updates';
 import i18n from './i18n';
 export { certificate };
 
-process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
 const parseProtocolUrls = (args) =>
 	args.filter((arg) => /^rocketchat:\/\/./.test(arg))

@@ -3,58 +3,67 @@ import { getMainWindow } from '../mainWindow';
 import i18n from '../../i18n';
 
 
-let screenshareWindow;
+let window;
 
-const openScreenshareDialog = async() => {
-	if (screenshareWindow) {
+async function open() {
+	if (window) {
 		return;
 	}
 
 	const mainWindow = await getMainWindow();
-	screenshareWindow = new BrowserWindow({
-		title: i18n.__('dialog.screenshare.title'),
-		parent: mainWindow,
+	window = new BrowserWindow({
 		width: 776,
 		height: 600,
-		type: 'toolbar',
-		resizable: false,
-		fullscreenable: false,
-		maximizable: false,
-		minimizable: false,
-		fullscreen: false,
-		skipTaskbar: false,
+		useContentSize: true,
 		center: true,
+		resizable: false,
+		minimizable: false,
+		maximizable: false,
+		fullscreen: false,
+		fullscreenable: false,
+		skipTaskbar: true,
+		title: i18n.__('dialog.screenshare.title'),
 		show: false,
+		parent: mainWindow,
+		modal: process.platform !== 'darwin',
+		backgroundColor: '#F4F4F4',
+		type: process.platform === 'darwin' ? 'desktop' : 'toolbar',
+		webPreferences: {
+			devTools: false,
+			nodeIntegration: true,
+		},
 	});
-	screenshareWindow.setMenuBarVisibility(false);
+	window.setMenuBarVisibility(false);
 
-	screenshareWindow.once('ready-to-show', () => {
-		screenshareWindow.show();
+	window.once('ready-to-show', () => {
+		window.show();
 	});
 
-	screenshareWindow.once('closed', () => {
-		if (!screenshareWindow.resultSent) {
+	window.once('closed', () => {
+		if (!window.resultSent) {
 			mainWindow.webContents.send('screenshare-result', 'PermissionDeniedError');
 		}
-		screenshareWindow = null;
+		window = null;
 	});
 
-	screenshareWindow.loadFile(`${ app.getAppPath() }/app/public/dialogs/screenshare.html`);
-};
+	window.loadFile(`${ app.getAppPath() }/app/public/dialogs/screenshare.html`);
+}
 
-const closeScreenshareDialog = () => {
-	screenshareWindow && screenshareWindow.destroy();
-};
+function close() {
+	if (window) {
+		window.destroy();
+	}
+}
 
-const selectScreenshareSource = async(id) => {
+async function selectSource(id) {
 	const mainWindow = await getMainWindow();
 	mainWindow.webContents.send('screenshare-result', id);
-	if (screenshareWindow) {
-		screenshareWindow.resultSent = true;
-		screenshareWindow.destroy();
+	if (window) {
+		window.resultSent = true;
+		window.destroy();
 	}
-};
+}
 
-ipcMain.on('open-screenshare-dialog', () => openScreenshareDialog());
-ipcMain.on('close-screenshare-dialog', () => closeScreenshareDialog());
-ipcMain.on('select-screenshare-source', (e, id) => selectScreenshareSource(id));
+ipcMain.on('open-screenshare-dialog', (e, ...args) => open(...args));
+ipcMain.on('close-screenshare-dialog', (e, ...args) => close(...args));
+ipcMain.on('select-screenshare-source', (e, ...args) => selectSource(...args));

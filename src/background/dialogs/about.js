@@ -3,46 +3,56 @@ import { getMainWindow } from '../mainWindow';
 import i18n from '../../i18n';
 
 
-let aboutWindow;
+let window;
 
-const openAboutDialog = async() => {
-	if (aboutWindow) {
+async function open() {
+	if (window) {
 		return;
 	}
 
 	const mainWindow = await getMainWindow();
-	aboutWindow = new BrowserWindow({
-		title: i18n.__('dialog.about.title', { appName: app.getName() }),
-		parent: mainWindow,
-		modal: process.platform !== 'darwin',
+	window = new BrowserWindow({
 		width: 400,
 		height: 300,
-		type: 'toolbar',
+		useContentSize: true,
+		center: true,
 		resizable: false,
-		fullscreenable: false,
-		maximizable: false,
 		minimizable: false,
+		maximizable: false,
 		fullscreen: false,
+		fullscreenable: false,
+		skipTaskbar: true,
+		title: i18n.__('dialog.about.title', { appName: app.getName() }),
 		show: false,
+		parent: mainWindow,
+		modal: process.platform !== 'darwin',
+		backgroundColor: '#F4F4F4',
+		type: process.platform === 'darwin' ? 'desktop' : 'toolbar',
+		webPreferences: {
+			devTools: false,
+			nodeIntegration: true,
+		},
 	});
-	aboutWindow.setMenuBarVisibility(false);
+	window.setMenuBarVisibility(false);
 
-	aboutWindow.once('ready-to-show', () => {
-		aboutWindow.show();
+	window.once('ready-to-show', () => {
+		window.show();
 	});
 
-	aboutWindow.once('closed', () => {
-		aboutWindow = null;
+	window.once('closed', () => {
+		window = null;
 	});
 
-	aboutWindow.params = { appName: app.getName(), appVersion: app.getVersion() };
+	window.params = { appName: app.getName(), appVersion: app.getVersion() };
 
-	aboutWindow.loadFile(`${ app.getAppPath() }/app/public/dialogs/about.html`);
-};
+	window.loadFile(`${ app.getAppPath() }/app/public/dialogs/about.html`);
+}
 
-const closeAboutDialog = () => {
-	aboutWindow && aboutWindow.destroy();
-};
+function close() {
+	if (window) {
+		window.destroy();
+	}
+}
 
-ipcMain.on('open-about-dialog', () => openAboutDialog());
-ipcMain.on('close-about-dialog', () => closeAboutDialog());
+ipcMain.on('open-about-dialog', (e, ...args) => open(...args));
+ipcMain.on('close-about-dialog', (e, ...args) => close(...args));

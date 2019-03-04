@@ -3,46 +3,56 @@ import { getMainWindow } from '../mainWindow';
 import i18n from '../../i18n';
 
 
-let updateWindow;
+let window;
 
-const openUpdateDialog = async({ currentVersion = app.getVersion(), newVersion } = {}) => {
-	if (updateWindow) {
+async function open({ currentVersion = app.getVersion(), newVersion } = {}) {
+	if (window) {
 		return;
 	}
 
 	const mainWindow = await getMainWindow();
-	updateWindow = new BrowserWindow({
-		title: i18n.__('dialog.update.title'),
-		parent: mainWindow,
-		modal: process.platform !== 'darwin',
+	window = new BrowserWindow({
 		width: 600,
 		height: 330,
-		type: 'toolbar',
+		useContentSize: true,
+		center: true,
 		resizable: false,
-		fullscreenable: false,
-		maximizable: false,
 		minimizable: false,
+		maximizable: false,
 		fullscreen: false,
+		fullscreenable: false,
+		skipTaskbar: true,
+		title: i18n.__('dialog.update.title'),
 		show: false,
+		parent: mainWindow,
+		modal: process.platform !== 'darwin',
+		backgroundColor: '#F4F4F4',
+		type: process.platform === 'darwin' ? 'desktop' : 'toolbar',
+		webPreferences: {
+			devTools: false,
+			nodeIntegration: true,
+		},
 	});
-	updateWindow.setMenuBarVisibility(false);
+	window.setMenuBarVisibility(false);
 
-	updateWindow.once('ready-to-show', () => {
-		updateWindow.show();
+	window.once('ready-to-show', () => {
+		window.show();
 	});
 
-	updateWindow.once('closed', () => {
-		updateWindow = null;
+	window.once('closed', () => {
+		window = null;
 	});
 
-	updateWindow.params = { currentVersion, newVersion };
+	window.params = { currentVersion, newVersion };
 
-	updateWindow.loadFile(`${ app.getAppPath() }/app/public/dialogs/update.html`);
-};
+	window.loadFile(`${ app.getAppPath() }/app/public/dialogs/update.html`);
+}
 
-const closeUpdateDialog = () => {
-	updateWindow.destroy();
-};
+function close() {
+	if (window) {
+		window.destroy();
+	}
+}
 
-ipcMain.on('open-update-dialog', (e, ...args) => openUpdateDialog(...args));
-ipcMain.on('close-update-dialog', () => closeUpdateDialog());
+ipcMain.on('open-update-dialog', (e, ...args) => open(...args));
+ipcMain.on('close-update-dialog', (e, ...args) => close(...args));

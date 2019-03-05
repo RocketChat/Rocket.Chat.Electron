@@ -1,6 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import createWindowStateKeeper from './windowState';
-import { whenReady, whenReadyToShow } from './utils';
 
 
 let mainWindow = null;
@@ -27,6 +26,9 @@ const setState = (partialState) => {
 		...partialState,
 	};
 };
+
+const whenReadyToShow =
+	(window) => new Promise((resolve) => window.on('ready-to-show', resolve));
 
 const attachWindowStateHandling = (mainWindow) => {
 	const windowStateKeeper = createWindowStateKeeper('main', mainWindowOptions);
@@ -77,7 +79,7 @@ const attachWindowStateHandling = (mainWindow) => {
 };
 
 export const getMainWindow = async() => {
-	await whenReady();
+	await app.whenReady();
 
 	if (!mainWindow) {
 		mainWindow = new BrowserWindow(mainWindowOptions);

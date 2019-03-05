@@ -1,23 +1,11 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-import createWindowStateKeeper from './windowState';
+import { WindowStateHandler } from './state';
 
 
 let mainWindow = null;
 
 let state = {
 	hideOnClose: false,
-};
-
-const mainWindowOptions = {
-	width: 1000,
-	height: 600,
-	minWidth: 600,
-	minHeight: 400,
-	titleBarStyle: 'hidden',
-	show: false,
-	webPreferences: {
-		nodeIntegration: true,
-	},
 };
 
 const setState = (partialState) => {
@@ -27,12 +15,11 @@ const setState = (partialState) => {
 	};
 };
 
-const whenReadyToShow =
-	(window) => new Promise((resolve) => window.on('ready-to-show', resolve));
-
-const attachWindowStateHandling = (mainWindow) => {
-	const windowStateKeeper = createWindowStateKeeper('main', mainWindowOptions);
-	whenReadyToShow(mainWindow).then(() => windowStateKeeper.loadState(mainWindow));
+async function attachWindowStateHandling(mainWindow) {
+	const windowStateHandler = new WindowStateHandler(mainWindow, 'main');
+	await windowStateHandler.load();
+	await new Promise((resolve) => mainWindow.once('ready-to-show', resolve));
+	windowStateHandler.apply();
 
 	const exitFullscreen = () => new Promise((resolve) => {
 		if (mainWindow.isFullScreen()) {
@@ -57,13 +44,13 @@ const attachWindowStateHandling = (mainWindow) => {
 
 	app.on('activate', () => mainWindow && mainWindow.show());
 	app.on('before-quit', () => {
-		windowStateKeeper.saveState.flush();
 		mainWindow = null;
+		windowStateHandler.save();
 	});
 
-	mainWindow.on('resize', () => windowStateKeeper.saveState(mainWindow));
-	mainWindow.on('move', () => windowStateKeeper.saveState(mainWindow));
-	mainWindow.on('show', () => windowStateKeeper.saveState(mainWindow));
+	mainWindow.on('resize', () => windowStateHandler.fetchAndSave());
+	mainWindow.on('move', () => windowStateHandler.fetchAndSave());
+	mainWindow.on('show', () => windowStateHandler.fetchAndSave());
 	mainWindow.on('close', async(event) => {
 		if (!mainWindow) {
 			return;
@@ -72,24 +59,37 @@ const attachWindowStateHandling = (mainWindow) => {
 		event.preventDefault();
 		await exitFullscreen();
 		close();
-		windowStateKeeper.saveState(mainWindow);
+		windowStateHandler.fetchAndSave();
 	});
 
 	mainWindow.on('set-state', setState);
-};
+}
+
+async function createMainWindow() {
+	mainWindow = new BrowserWindow({
+		width: 1000,
+		height: 600,
+		minWidth: 600,
+		minHeight: 400,
+		titleBarStyle: 'hidden',
+		show: false,
+		webPreferences: {
+			nodeIntegration: true,
+		},
+	});
+	attachWindowStateHandling(mainWindow);
+	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
+
+	if (process.env.NODE_ENV === 'development') {
+		mainWindow.webContents.openDevTools();
+	}
+}
 
 export const getMainWindow = async() => {
 	await app.whenReady();
 
 	if (!mainWindow) {
-		mainWindow = new BrowserWindow(mainWindowOptions);
-		mainWindow.webContents.on('will-navigate', (event) => event.preventDefault());
-		mainWindow.loadURL(`file://${ __dirname }/public/app.html`);
-		attachWindowStateHandling(mainWindow);
-
-		if (process.env.NODE_ENV === 'development') {
-			mainWindow.openDevTools();
-		}
+		await createMainWindow();
 	}
 
 	return mainWindow;

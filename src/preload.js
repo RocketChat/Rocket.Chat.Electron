@@ -8,6 +8,7 @@ import setupNotificationsPreload from './preload/notifications';
 import setupSidebarPreload from './preload/sidebar';
 import setupSpellcheckingPreload from './preload/spellchecking';
 import setupTitleChangePreload from './preload/titleChange';
+import setupUserPresencePreload from './preload/userPresence';
 
 
 setupContextMenuPreload();
@@ -18,6 +19,7 @@ setupNotificationsPreload();
 setupSidebarPreload();
 setupSpellcheckingPreload();
 setupTitleChangePreload();
+setupUserPresencePreload();
 
 window.reloadServer = () => ipcRenderer.sendToHost('reload-server');
 window.i18n = i18n;

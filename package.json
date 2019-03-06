@@ -20,8 +20,8 @@
     "changelog": "conventional-changelog --config .github/changelog.js -i HISTORY.md -s",
     "release": "gulp release --env=production",
     "release-dev": "gulp release --env=development",
-		"eslint": "eslint src",
-		"stylelint": "stylelint 'src/**/*.css' 'src/**/*.less'",
+    "eslint": "eslint src",
+    "stylelint": "stylelint 'src/**/*.css' 'src/**/*.less'",
     "test": "gulp test",
     "coverage": "gulp coverage",
     "e2e": "gulp e2e"

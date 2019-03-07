@@ -3,12 +3,12 @@
 <head>
 	<meta charset="utf-8" />
 	<title>Update Available</title>
-	<link rel="stylesheet" href="../stylesheets/main.css" />
+	<link rel="stylesheet" href="../../stylesheets/main.css" />
 	<script>
 		window.addEventListener('load', () => {
 			const { remote: { dialog, getCurrentWindow }, ipcRenderer } = require('electron');
 			const { params: { currentVersion, newVersion} } = getCurrentWindow();
-			const i18n = require('../i18n');
+			const i18n = require('../../i18n');
 
 			document.title = i18n.__('dialog.update.title');
 			document.querySelector('.update-title').innerHTML = i18n.__('dialog.update.announcement');

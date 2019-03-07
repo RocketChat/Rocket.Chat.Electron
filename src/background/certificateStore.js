@@ -1,40 +1,41 @@
 import { app, dialog } from 'electron';
 import jetpack from 'fs-jetpack';
 import url from 'url';
+import { getMainWindow } from './mainWindow';
 import i18n from '../i18n';
 
+
 class CertificateStore {
-	initWindow(win) {
+	async initialize() {
 		this.storeFileName = 'certificate.json';
 		this.userDataDir = jetpack.cwd(app.getPath('userData'));
 
-		this.load();
+		await this.load();
 
 		// Don't ask twice for same cert if loading multiple urls
 		this.queued = {};
 
-		this.window = win;
-		app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+		app.on('certificate-error', async(event, webContents, certificateUrl, error, certificate, callback) => {
 			event.preventDefault();
-			if (this.isTrusted(url, certificate)) {
+
+			if (this.isTrusted(certificateUrl, certificate)) {
 				callback(true);
 				return;
 			}
 
 			if (this.queued[certificate.fingerprint]) {
 				this.queued[certificate.fingerprint].push(callback);
-				// Call the callback after approved/rejected
 				return;
 			} else {
 				this.queued[certificate.fingerprint] = [callback];
 			}
 
-			let detail = `URL: ${ url }\nError: ${ error }`;
-			if (this.isExisting(url)) {
+			let detail = `URL: ${ certificateUrl }\nError: ${ error }`;
+			if (this.isExisting(certificateUrl)) {
 				detail = i18n.__('error.differentCertificate', { detail });
 			}
 
-			dialog.showMessageBox(this.window, {
+			dialog.showMessageBox(await getMainWindow(), {
 				title: i18n.__('dialog.certificateError.title'),
 				message: i18n.__('dialog.certificateError.message', { issuerName: certificate.issuerName }),
 				detail,
@@ -44,70 +45,73 @@ class CertificateStore {
 					i18n.__('dialog.certificateError.no'),
 				],
 				cancelId: 1,
-			}, (response) => {
+			}, async(response) => {
 				if (response === 0) {
-					this.add(url, certificate);
-					this.save();
+					this.add(certificateUrl, certificate);
+					await this.save();
 					if (webContents.getURL().indexOf('file://') === 0) {
-						webContents.send('certificate-reload', url);
+						webContents.send('certificate-reload', certificateUrl);
 					}
 				}
-				// Call all queued callbacks with result
+
 				this.queued[certificate.fingerprint].forEach((cb) => cb(response === 0));
 				delete this.queued[certificate.fingerprint];
 			});
 		});
 	}
 
-	load() {
+	async load() {
 		try {
-			this.data = this.userDataDir.read(this.storeFileName, 'json');
+			this.data = await this.userDataDir.readAsync(this.storeFileName, 'json');
 		} catch (e) {
 			console.error(e);
 			this.data = {};
 		}
 
 		if (this.data === undefined) {
-			this.clear();
+			await this.clear();
 		}
 	}
 
-	clear() {
+	async clear() {
 		this.data = {};
-		this.save();
+		await this.save();
 	}
 
-	save() {
-		this.userDataDir.write(this.storeFileName, this.data, { atomic: true });
+	async save() {
+		await this.userDataDir.writeAsync(this.storeFileName, this.data, { atomic: true });
 	}
 
 	parseCertificate(certificate) {
 		return `${ certificate.issuerName }\n${ certificate.data.toString() }`;
 	}
 
-	getHost(certUrl) {
-		return url.parse(certUrl).host;
+	getHost(certificateUrl) {
+		return url.parse(certificateUrl).host;
 	}
 
-	add(certUrl, certificate) {
-		const host = this.getHost(certUrl);
+	add(certificateUrl, certificate) {
+		const host = this.getHost(certificateUrl);
 		this.data[host] = this.parseCertificate(certificate);
 	}
 
-	isExisting(certUrl) {
-		const host = this.getHost(certUrl);
+	isExisting(certificateUrl) {
+		const host = this.getHost(certificateUrl);
 		return this.data.hasOwnProperty(host);
 	}
 
-	isTrusted(certUrl, certificate) {
-		const host = this.getHost(certUrl);
-		if (!this.isExisting(certUrl)) {
+	isTrusted(certificateUrl, certificate) {
+		const host = this.getHost(certificateUrl);
+		if (!this.isExisting(certificateUrl)) {
 			return false;
 		}
 		return this.data[host] === this.parseCertificate(certificate);
 	}
 }
 
-const certificateStore = new CertificateStore();
+const instance = new CertificateStore();
 
-export default certificateStore;
+app.once('start', instance.initialize.bind(instance));
+
+
+export default instance;

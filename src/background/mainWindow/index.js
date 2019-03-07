@@ -85,7 +85,7 @@ async function createMainWindow() {
 	}
 }
 
-export const getMainWindow = async() => {
+export async function getMainWindow() {
 	await app.whenReady();
 
 	if (!mainWindow) {
@@ -93,19 +93,9 @@ export const getMainWindow = async() => {
 	}
 
 	return mainWindow;
-};
+}
 
-export const addServer = (serverUrl) => getMainWindow().then((mainWindow) => {
-	mainWindow.show();
-
-	if (mainWindow.isMinimized()) {
-		mainWindow.restore();
-	}
-
-	mainWindow.send('add-host', serverUrl);
-});
-
-ipcMain.on('focus', async() => {
+export async function focus() {
 	const mainWindow = await getMainWindow();
 
 	if (process.platform === 'win32') {
@@ -127,4 +117,6 @@ ipcMain.on('focus', async() => {
 
 	mainWindow.show();
 	mainWindow.focus();
-});
+}
+
+ipcMain.on('focus', focus);

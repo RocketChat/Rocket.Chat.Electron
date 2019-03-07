@@ -1,9 +1,8 @@
-import { app, ipcMain } from 'electron';
+import { app } from 'electron';
 import querystring from 'querystring';
 import url from 'url';
 import appData from './background/appData';
-import certificate from './background/certificate';
-import { addServer, getMainWindow } from './background/mainWindow';
+import { getMainWindow } from './background/mainWindow';
 import './background/systemIdleTime';
 import './background/updates';
 import './background/dialogs/about';
@@ -15,7 +14,7 @@ export { default as menus } from './background/menus';
 export { default as tray } from './background/tray';
 export { default as notifications } from './background/notifications';
 export { default as remoteServers } from './background/servers';
-export { certificate };
+export { default as certificate } from './background/certificateStore';
 
 
 function parseCommandLineArguments(args) {
@@ -27,7 +26,10 @@ function parseCommandLineArguments(args) {
 			return `${ insecure === 'true' ? 'http' : 'https' }://${ hostname }${ pathname || '' }`;
 		})
 		.slice(0, 1)
-		.forEach((serverUrl) => addServer(serverUrl));
+		.forEach(async(serverUrl) => {
+			const mainWindow = await getMainWindow();
+			mainWindow.send('add-host', serverUrl);
+		});
 }
 
 function handleUncaughtException(error) {
@@ -77,16 +79,11 @@ async function prepareApp() {
 	}
 }
 
-async function startApp() {
-	await i18n.initialize();
-	const mainWindow = await getMainWindow();
-	parseCommandLineArguments(process.argv.slice(2));
-	certificate.initWindow(mainWindow);
-	ipcMain.emit('check-for-updates');
-}
-
 (async() => {
 	await prepareApp();
 	await app.whenReady();
-	await startApp();
+	await i18n.initialize();
+	app.emit('start');
+	await getMainWindow();
+	parseCommandLineArguments(process.argv.slice(2));
 })();

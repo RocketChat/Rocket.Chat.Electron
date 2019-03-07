@@ -36,6 +36,7 @@ class WebView extends EventEmitter {
 		}
 
 		webviewObj = document.createElement('webview');
+		webviewObj.classList.add('webview');
 		webviewObj.setAttribute('server', host.url);
 		webviewObj.setAttribute('preload', '../preload.js');
 		webviewObj.setAttribute('allowpopups', 'on');

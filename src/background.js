@@ -1,73 +1,92 @@
 import { app, ipcMain } from 'electron';
 import querystring from 'querystring';
 import url from 'url';
-import './background/aboutDialog';
 import appData from './background/appData';
 import certificate from './background/certificate';
-export { default as dock } from './background/dock';
 import { addServer, getMainWindow } from './background/mainWindow';
-export { default as menus } from './background/menus';
-export { default as notifications } from './background/notifications';
-import './background/screenshareDialog';
-export { default as remoteServers } from './background/servers';
-export { default as tray } from './background/tray';
-import './background/updateDialog';
+import './background/systemIdleTime';
 import './background/updates';
+import './background/dialogs/about';
+import './background/dialogs/screenshare';
+import './background/dialogs/update';
 import i18n from './i18n';
+export { default as dock } from './background/dock';
+export { default as menus } from './background/menus';
+export { default as tray } from './background/tray';
+export { default as notifications } from './background/notifications';
+export { default as remoteServers } from './background/servers';
 export { certificate };
 
-process.env.GOOGLE_API_KEY = 'AIzaSyADqUh_c1Qhji3Cp1NE43YrcpuPkmhXD-c';
 
-const parseProtocolUrls = (args) =>
-	args.filter((arg) => /^rocketchat:\/\/./.test(arg))
+function parseCommandLineArguments(args) {
+	args
+		.filter((arg) => /^rocketchat:\/\/./.test(arg))
 		.map((uri) => url.parse(uri))
 		.map(({ hostname, pathname, query }) => {
 			const { insecure } = querystring.parse(query);
 			return `${ insecure === 'true' ? 'http' : 'https' }://${ hostname }${ pathname || '' }`;
-		});
+		})
+		.slice(0, 1)
+		.forEach((serverUrl) => addServer(serverUrl));
+}
 
-const addServers = (protocolUrls) => parseProtocolUrls(protocolUrls)
-	.forEach((serverUrl) => addServer(serverUrl));
+function handleUncaughtException(error) {
+	console.error(error);
+	app.exit(1);
+}
 
-// macOS only
-app.on('open-url', (event, url) => {
-	event.preventDefault();
-	addServers([url]);
-});
+function handleUnhandledRejection(reason) {
+	console.error(reason);
+	app.exit(1);
+}
 
-app.on('window-all-closed', () => {
-	app.quit();
-});
+async function prepareApp() {
+	process.on('uncaughtException', handleUncaughtException);
+	process.on('unhandledRejection', handleUnhandledRejection);
 
-if (!app.isDefaultProtocolClient('rocketchat')) {
 	app.setAsDefaultProtocolClient('rocketchat');
-}
+	app.setAppUserModelId('chat.rocket');
 
-app.setAppUserModelId('chat.rocket');
-if (process.platform === 'linux') {
-	app.disableHardwareAcceleration();
-}
-app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
+	// TODO: make it a setting
+	if (process.platform === 'linux') {
+		app.disableHardwareAcceleration();
+	}
 
-process.on('unhandledRejection', console.error.bind(console));
+	app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
 
+	app.on('window-all-closed', () => {
+		app.quit();
+	});
 
-const gotTheLock = app.requestSingleInstanceLock();
+	app.on('open-url', (event, url) => {
+		event.preventDefault();
+		parseCommandLineArguments([url]);
+	});
 
-if (gotTheLock) {
 	app.on('second-instance', async(event, argv) => {
-		(await getMainWindow()).show();
-		addServers(argv.slice(2));
+		parseCommandLineArguments(argv.slice(2));
 	});
 
-	app.on('ready', async() => {
-		appData.initialize();
-		await i18n.initialize();
-		const mainWindow = await getMainWindow();
-		certificate.initWindow(mainWindow);
+	appData.initialize();
 
-		ipcMain.emit('check-for-updates');
-	});
-} else {
-	app.quit();
+	const canStart = process.mas || app.requestSingleInstanceLock();
+
+	if (!canStart) {
+		app.quit();
+		return;
+	}
 }
+
+async function startApp() {
+	await i18n.initialize();
+	const mainWindow = await getMainWindow();
+	parseCommandLineArguments(process.argv.slice(2));
+	certificate.initWindow(mainWindow);
+	ipcMain.emit('check-for-updates');
+}
+
+(async() => {
+	await prepareApp();
+	await app.whenReady();
+	await startApp();
+})();

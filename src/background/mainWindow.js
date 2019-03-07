@@ -16,6 +16,9 @@ const mainWindowOptions = {
 	minHeight: 400,
 	titleBarStyle: 'hidden',
 	show: false,
+	webPreferences: {
+		nodeIntegration: true,
+	},
 };
 
 const setState = (partialState) => {

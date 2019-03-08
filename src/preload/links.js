@@ -1,4 +1,4 @@
-import { shell } from 'electron';
+import { shell, remote } from 'electron';
 
 
 const getSettings = () => (
@@ -16,11 +16,10 @@ const handleAnchorClick = (event) => {
 	const href = a.getAttribute('href');
 	const download = a.hasAttribute('download');
 
-	const isFileUpload = /^\/file-upload\//.test(href) && !download;
-	if (isFileUpload) {
-		const clone = a.cloneNode();
-		clone.setAttribute('download', 'download');
-		clone.click();
+	const canDownload = /^\/file-upload\//.test(href) || download;
+	if (canDownload) {
+		const downloadUrl = a.href;
+		remote.getCurrentWebContents().downloadURL(downloadUrl);
 		event.preventDefault();
 		return;
 	}

@@ -1,5 +1,6 @@
 import { remote, webFrame } from 'electron';
 import jetpack from 'fs-jetpack';
+import mem from 'mem';
 import path from 'path';
 import spellchecker from 'spellchecker';
 const { app } = remote;
@@ -87,6 +88,8 @@ class SpellCheck {
 
 		localStorage.setItem('spellcheckerDictionaries', JSON.stringify(this.enabledDictionaries));
 
+		this.updateChecker();
+
 		return this.enabledDictionaries.length > 0;
 	}
 
@@ -95,17 +98,48 @@ class SpellCheck {
 
 		this.enabledDictionaries = this.enabledDictionaries.filter((dictionary) => !dictionaries.includes(dictionary));
 		localStorage.setItem('spellcheckerDictionaries', JSON.stringify(this.enabledDictionaries));
+
+		this.updateChecker();
+	}
+
+	updateChecker() {
+		try {
+			if (this.enabledDictionaries.length === 0) {
+				this.checker = () => true;
+				return;
+			}
+
+			if (this.enabledDictionaries.length === 1) {
+				let enabled = false;
+				this.checker = mem((text) => {
+					if (!enabled) {
+						spellchecker.setDictionary(this.enabledDictionaries[0], this.dictionariesPath);
+						enabled = true;
+					}
+					return !spellchecker.isMisspelled(text);
+				});
+				return;
+			}
+
+			const singleDictionaryChecker = mem(
+				((dictionariesPath, dictionary, text) => {
+					spellchecker.setDictionary(dictionary, dictionariesPath);
+					return !spellchecker.isMisspelled(text);
+				})
+					.bind(null, this.dictionariesPath)
+			);
+
+			this.checker = mem(
+				((dictionaries, text) => dictionaries.every((dictionary) => singleDictionaryChecker(dictionary, text)))
+					.bind(null, this.enabledDictionaries)
+			);
+		} finally {
+			webFrame.setSpellCheckProvider('', false, { spellCheck: this.checker });
+		}
 	}
 
 	isCorrect(text) {
-		if (!this.enabledDictionaries.length) {
-			return true;
-		}
-
-		return this.enabledDictionaries.every((dictionary) => {
-			spellchecker.setDictionary(dictionary, this.dictionariesPath);
-			return !spellchecker.isMisspelled(text);
-		});
+		return this.checker(text);
 	}
 
 	getCorrections(text) {
@@ -142,7 +176,4 @@ export const spellchecking = new SpellCheck;
 
 export default () => {
 	spellchecking.load();
-
-	const spellCheck = (text) => spellchecking.isCorrect(text);
-	webFrame.setSpellCheckProvider('', false, { spellCheck });
 };

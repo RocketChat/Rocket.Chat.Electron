@@ -13,6 +13,10 @@ indent_style = tab
 
 [*.i18n.json]
 indent_style = space
+indent_size = 4
+
+[package.json]
+indent_style = space
 indent_size = 2
 
 [*.md]

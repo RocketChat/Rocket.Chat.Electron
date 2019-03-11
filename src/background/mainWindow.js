@@ -1,8 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import createWindowStateKeeper from './windowState';
 import { whenReady, whenReadyToShow } from './utils';
-import env from '../env';
-import icon from './icon';
 
 
 let mainWindow = null;
@@ -18,6 +16,9 @@ const mainWindowOptions = {
 	minHeight: 400,
 	titleBarStyle: 'hidden',
 	show: false,
+	webPreferences: {
+		nodeIntegration: true,
+	},
 };
 
 const setState = (partialState) => {
@@ -84,16 +85,7 @@ export const getMainWindow = async() => {
 		mainWindow.loadURL(`file://${ __dirname }/public/app.html`);
 		attachWindowStateHandling(mainWindow);
 
-		if (process.platform !== 'darwin') {
-			mainWindow.setIcon(await icon.render({
-				size: {
-					win32: [256, 128, 64, 48, 32, 24, 16],
-					linux: 128,
-				}[process.platform],
-			}));
-		}
-
-		if (env.name === 'development') {
+		if (process.env.NODE_ENV === 'development') {
 			mainWindow.openDevTools();
 		}
 	}
@@ -132,4 +124,5 @@ ipcMain.on('focus', async() => {
 	}
 
 	mainWindow.show();
+	mainWindow.focus();
 });

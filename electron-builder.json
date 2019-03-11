@@ -19,7 +19,7 @@
       "mas"
     ],
     "icon": "build/icon.icns",
-    "bundleVersion": "46",
+    "bundleVersion": "47",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
 		"artifactName": "rocketchat-${version}.${ext}",

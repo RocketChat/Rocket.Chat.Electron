@@ -87,12 +87,13 @@ class WebView extends EventEmitter {
 				case 'get-sourceId':
 					ipcRenderer.send('open-screenshare-dialog');
 					break;
-				case 'reload-server':
-					const active = this.getActive();
-					const server = active.getAttribute('server');
+				case 'reload-server': {
+					const webviewObj = this.getByUrl(host.url);
+					const server = webviewObj.getAttribute('server');
 					this.loading();
-					active.loadURL(server);
+					webviewObj.loadURL(server);
 					break;
+				}
 				case 'sidebar-background':
 					sidebar.changeSidebarColor(event.args[0]);
 					break;
@@ -101,7 +102,7 @@ class WebView extends EventEmitter {
 
 		webviewObj.addEventListener('dom-ready', () => {
 			webviewObj.classList.add('ready');
-			this.emit('dom-ready', host.url);
+			this.emit('dom-ready', webviewObj, host.url);
 		});
 
 		webviewObj.addEventListener('did-fail-load', (e) => {

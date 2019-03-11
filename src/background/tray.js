@@ -1,47 +1,32 @@
-import { Menu, Tray as TrayIcon } from 'electron';
+import { app, Menu, systemPreferences, Tray as TrayIcon } from 'electron';
 import { EventEmitter } from 'events';
-import icon from './icon';
-import i18n from '../i18n/index.js';
+import i18n from '../i18n';
+import { getTrayIconImage } from './icon';
 
-
-const getIconStyle = ({ badge: { title, count }, status, showUserStatus }) => {
-	const style = {
-		template: process.platform === 'darwin',
-		size: {
-			darwin: 24,
-			win32: [32, 24, 16],
-			linux: 22,
-		}[process.platform],
-	};
-
-	if (showUserStatus) {
-		style.status = status;
-	}
-
-	if (process.platform !== 'darwin') {
-		if (title === '•') {
-			style.badgeText = '•';
-		} else if (count > 0) {
-			style.badgeText = count > 9 ? '9+' : String(count);
-		} else if (title) {
-			style.badgeText = '!';
-		}
-	}
-
-	return style;
-};
 
 const getIconTitle = ({ badge: { title, count } }) => ((count > 0) ? title : '');
 
-const getIconTooltip = ({ badge: { count } }) => i18n.pluralize('Message_count', count, count);
+const getIconTooltip = ({ badge: { title, count } }) => {
+	const appName = app.getName();
+
+	if (title === '•') {
+		return i18n.__('tray.tooltip.unreadMessage', { appName });
+	}
+
+	if (count > 0) {
+		return i18n.__('tray.tooltip.unreadMention', { appName, count });
+	}
+
+	return i18n.__('tray.tooltip.noUnreadMessage', { appName });
+};
 
 const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 	{
-		label: !isMainWindowVisible ? i18n.__('Show') : i18n.__('Hide'),
+		label: !isMainWindowVisible ? i18n.__('tray.menu.show') : i18n.__('tray.menu.hide'),
 		click: () => events.emit('set-main-window-visibility', !isMainWindowVisible),
 	},
 	{
-		label: i18n.__('Quit'),
+		label: i18n.__('tray.menu.quit'),
 		click: () => events.emit('quit'),
 	},
 ]);
@@ -53,20 +38,29 @@ let state = {
 		title: '',
 		count: 0,
 	},
-	status: 'online',
 	isMainWindowVisible: true,
 	showIcon: true,
-	showUserStatus: true,
 };
 
 const instance = new (class Tray extends EventEmitter {});
 
-const createIcon = (image) => {
+let darwinThemeSubscriberId = null;
+
+const createIcon = () => {
+	const image = getTrayIconImage(state.badge);
+
 	if (trayIcon) {
+		trayIcon.setImage(image);
 		return;
 	}
 
 	trayIcon = new TrayIcon(image);
+
+	if (process.platform === 'darwin') {
+		darwinThemeSubscriberId = systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
+			trayIcon.setImage(getTrayIconImage(state.badge));
+		});
+	}
 
 	trayIcon.on('click', () => instance.emit('set-main-window-visibility', !state.isMainWindowVisible));
 	trayIcon.on('right-click', (event, bounds) => trayIcon.popUpContextMenu(undefined, bounds));
@@ -79,6 +73,12 @@ const destroyIcon = () => {
 		return;
 	}
 
+	if (process.platform === 'darwin' && darwinThemeSubscriberId) {
+		systemPreferences.unsubscribeNotification(darwinThemeSubscriberId);
+		darwinThemeSubscriberId = null;
+	}
+
+
 	trayIcon.destroy();
 	instance.emit('destroyed');
 	trayIcon = null;
@@ -89,20 +89,14 @@ const destroy = () => {
 	instance.removeAllListeners();
 };
 
-const update = async() => {
+const update = () => {
 	if (!state.showIcon) {
 		destroyIcon();
 		instance.emit('update');
 		return;
 	}
 
-	const image = await icon.render(getIconStyle(state));
-
-	if (!trayIcon) {
-		createIcon(image);
-	} else {
-		trayIcon.setImage(image);
-	}
+	createIcon();
 
 	trayIcon.setToolTip(getIconTooltip(state));
 

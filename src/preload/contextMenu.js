@@ -1,5 +1,5 @@
 import { clipboard, remote, shell } from 'electron';
-import i18n from '../i18n/index';
+import i18n from '../i18n';
 import { spellchecking } from './spellchecking';
 const { dialog, getCurrentWebContents, getCurrentWindow, Menu } = remote;
 
@@ -19,17 +19,20 @@ const createSpellCheckingMenuTemplate = async({
 			try {
 				await spellchecking.installDictionaries(filePaths);
 			} catch (error) {
-				dialog.showErrorBox(i18n.__('Error'), `${ i18n.__('Error copying dictionary file') }: ${ name }`);
 				console.error(error);
+				dialog.showErrorBox(
+					i18n.__('dialog.loadDictionaryError.title'),
+					i18n.__('dialog.loadDictionaryError.message', { message: error.message })
+				);
 			}
 		};
 
 		dialog.showOpenDialog(getCurrentWindow(), {
-			title: i18n.__('Open_Language_Dictionary'),
+			title: i18n.__('dialog.loadDictionary.title'),
 			defaultPath: spellchecking.dictionariesPath,
 			filters: [
-				{ name: i18n.__('Dictionaries'), extensions: ['aff', 'dic'] },
-				{ name: i18n.__('All files'), extensions: ['*'] },
+				{ name: i18n.__('dialog.loadDictionary.dictionaries'), extensions: ['aff', 'dic'] },
+				{ name: i18n.__('dialog.loadDictionary.allFiles'), extensions: ['*'] },
 			],
 			properties: ['openFile', 'multiSelections'],
 		}, callback);
@@ -40,7 +43,7 @@ const createSpellCheckingMenuTemplate = async({
 			...(corrections.length === 0 ? (
 				[
 					{
-						label: i18n.__('No_suggestions'),
+						label: i18n.__('contextMenu.noSpellingSuggestions'),
 						enabled: false,
 					},
 				]
@@ -52,7 +55,7 @@ const createSpellCheckingMenuTemplate = async({
 			)),
 			...(corrections.length > 6 ? [
 				{
-					label: i18n.__('More_spelling_suggestions'),
+					label: i18n.__('contextMenu.moreSpellingSuggestions'),
 					submenu: corrections.slice(6).map((correction) => ({
 						label: correction,
 						click: () => getCurrentWebContents().replaceMisspelling(correction),
@@ -64,7 +67,7 @@ const createSpellCheckingMenuTemplate = async({
 			},
 		] : []),
 		{
-			label: i18n.__('Spelling_languages'),
+			label: i18n.__('contextMenu.spellingLanguages'),
 			enabled: spellchecking.dictionaries.length > 0,
 			submenu: [
 				...spellchecking.dictionaries.map((dictionaryName) => ({
@@ -79,7 +82,7 @@ const createSpellCheckingMenuTemplate = async({
 					type: 'separator',
 				},
 				{
-					label: i18n.__('Browse_for_language'),
+					label: i18n.__('contextMenu.browseForLanguage'),
 					click: handleBrowserForLanguage,
 				},
 			],
@@ -97,7 +100,7 @@ const createImageMenuTemplate = ({
 	mediaType === 'image' ?
 		[
 			{
-				label: i18n.__('Save image as...'),
+				label: i18n.__('contextMenu.saveImageAs'),
 				click: () => getCurrentWebContents().downloadURL(srcURL),
 			},
 			{
@@ -114,16 +117,16 @@ const createLinkMenuTemplate = ({
 	linkURL ?
 		[
 			{
-				label: i18n.__('Open link'),
+				label: i18n.__('contextMenu.openLink'),
 				click: () => shell.openExternal(linkURL),
 			},
 			{
-				label: i18n.__('Copy link text'),
+				label: i18n.__('contextMenu.copyLinkText'),
 				click: () => clipboard.write({ text: linkText, bookmark: linkText }),
 				enabled: !!linkText,
 			},
 			{
-				label: i18n.__('Copy link address'),
+				label: i18n.__('contextMenu.copyLinkAddress'),
 				click: () => clipboard.write({ text: linkURL, bookmark: linkText }),
 			},
 			{
@@ -144,13 +147,13 @@ const createDefaultMenuTemplate = ({
 	} = {},
 } = {}) => [
 	{
-		label: i18n.__('&Undo'),
+		label: i18n.__('contextMenu.undo'),
 		role: 'undo',
 		accelerator: 'CommandOrControl+Z',
 		enabled: canUndo,
 	},
 	{
-		label: i18n.__('&Redo'),
+		label: i18n.__('contextMenu.redo'),
 		role: 'redo',
 		accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
 		enabled: canRedo,
@@ -159,25 +162,25 @@ const createDefaultMenuTemplate = ({
 		type: 'separator',
 	},
 	{
-		label: i18n.__('Cu&t'),
+		label: i18n.__('contextMenu.cut'),
 		role: 'cut',
 		accelerator: 'CommandOrControl+X',
 		enabled: canCut,
 	},
 	{
-		label: i18n.__('&Copy'),
+		label: i18n.__('contextMenu.copy'),
 		role: 'copy',
 		accelerator: 'CommandOrControl+C',
 		enabled: canCopy,
 	},
 	{
-		label: i18n.__('&Paste'),
+		label: i18n.__('contextMenu.paste'),
 		role: 'paste',
 		accelerator: 'CommandOrControl+V',
 		enabled: canPaste,
 	},
 	{
-		label: i18n.__('Select &all'),
+		label: i18n.__('contextMenu.selectAll'),
 		role: 'selectall',
 		accelerator: 'CommandOrControl+A',
 		enabled: canSelectAll,

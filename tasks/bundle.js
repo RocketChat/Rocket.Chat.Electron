@@ -6,12 +6,13 @@ const commonjs = require('rollup-plugin-commonjs');
 const istanbul = require('rollup-plugin-istanbul');
 const json = require('rollup-plugin-json');
 const nodeResolve = require('rollup-plugin-node-resolve');
+const replace = require('rollup-plugin-replace');
 const appManifest = require('../package.json');
 
 
 const cached = {};
 
-const bundle = async(src, dest, { coverage = false, rollupPlugins = [] } = {}) => {
+const bundle = async(src, dest, { coverage = false, env = 'development' } = {}) => {
 	const inputOptions = {
 		input: src,
 		external: [
@@ -21,7 +22,6 @@ const bundle = async(src, dest, { coverage = false, rollupPlugins = [] } = {}) =
 		],
 		cache: cached[src],
 		plugins: [
-			...rollupPlugins,
 			...(coverage ? [
 				istanbul({
 					exclude: ['**/*.spec.js', '**/*.specs.js'],
@@ -29,6 +29,9 @@ const bundle = async(src, dest, { coverage = false, rollupPlugins = [] } = {}) =
 				}),
 			] : []),
 			json(),
+			replace({
+				'process.env.NODE_ENV': JSON.stringify(env),
+			}),
 			nodeResolve(),
 			commonjs(),
 		],

@@ -1,10 +1,8 @@
-import { ipcRenderer, nativeImage } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import { EventEmitter } from 'events';
-import jetpack from 'fs-jetpack';
-import tmp from 'tmp';
+import mem from 'mem';
+const { notifications } = remote.require('./background');
 
-
-const instances = new Map();
 
 class Notification extends EventEmitter {
 	static requestPermission() {
@@ -17,69 +15,91 @@ class Notification extends EventEmitter {
 
 	constructor(title, options) {
 		super();
-
+		this.createIcon = mem(this.createIcon.bind(this));
 		this.create({ title, ...options });
+		this.addEventListener = this.addListener.bind(this);
 	}
 
-	async create({ icon, ...options }) {
-		if (icon) {
-			Notification.cachedIcons = Notification.cachedIcons || {};
+	async createIcon(icon) {
+		const img = new Image();
+		img.src = icon;
+		await new Promise((resolve, reject) => {
+			img.onload = resolve;
+			img.onerror = reject;
+		});
 
-			if (!Notification.cachedIcons[icon]) {
-				Notification.cachedIcons[icon] = await new Promise((resolve, reject) =>
-					tmp.file((err, path) => (err ? reject(err) : resolve(path))));
-				const buffer = nativeImage.createFromDataURL(icon).toPNG();
-				await jetpack.writeAsync(Notification.cachedIcons[icon], buffer);
-			}
-			icon = Notification.cachedIcons[icon];
+		const canvas = document.createElement('canvas');
+		canvas.width = img.naturalWidth;
+		canvas.height = img.naturalHeight;
+
+		const context = canvas.getContext('2d');
+		context.drawImage(img, 0, 0);
+
+		return canvas.toDataURL();
+	}
+
+	async create({ icon, canReply, ...options }) {
+		if (icon) {
+			icon = await this.createIcon(icon);
 		}
 
-		this.id = ipcRenderer.sendSync('request-notification', { icon, ...options });
-		instances.set(this.id, this);
+		const notification = notifications.create({ icon, hasReply: canReply, ...options });
+
+		notification.on('show', this.handleShow.bind(this));
+		notification.on('close', this.handleClose.bind(this));
+		notification.on('click', this.handleClick.bind(this));
+		notification.on('reply', this.handleReply.bind(this));
+		notification.on('action', this.handleAction.bind(this));
+
+		notification.show();
+
+		this.notification = notification;
+	}
+
+	handleShow(event) {
+		event.currentTarget = this;
+		this.onshow && this.onshow.call(this, event);
+		this.emit('show', event);
+	}
+
+	handleClose(event) {
+		event.currentTarget = this;
+		this.onclose && this.onclose.call(this, event);
+		this.emit('close', event);
+	}
+
+	handleClick(event) {
+		ipcRenderer.send('focus');
+		ipcRenderer.sendToHost('focus');
+		event.currentTarget = this;
+		this.onclick && this.onclick.call(this, event);
+		this.emit('close', event);
+	}
+
+	handleReply(event, reply) {
+		event.currentTarget = this;
+		event.response = reply;
+		this.onreply && this.onreply.call(this, event);
+		this.emit('reply', event);
+	}
+
+	handleAction(event, index) {
+		event.currentTarget = this;
+		event.index = index;
+		this.onaction && this.onaction.call(this, event);
+		this.emit('action', event);
 	}
 
 	close() {
-		ipcRenderer.send('close-notification', this.id);
+		if (!this.notification) {
+			return;
+		}
+
+		this.notification.close();
+		this.notification = null;
 	}
 }
 
-const handleNotificationShown = (event, id) => {
-	const notification = instances.get(id);
-	if (!notification) {
-		return;
-	}
-
-	typeof notification.onshow === 'function' && notification.onshow.call(notification);
-	notification.emit('show');
-};
-
-const handleNotificationClicked = (event, id) => {
-	const notification = instances.get(id);
-	if (!notification) {
-		return;
-	}
-
-	ipcRenderer.send('focus');
-	ipcRenderer.sendToHost('focus');
-
-	typeof notification.onclick === 'function' && notification.onclick.call(notification);
-	notification.emit('click');
-};
-
-const handleNotificationClosed = (event, id) => {
-	const notification = instances.get(id);
-	if (!notification) {
-		return;
-	}
-
-	typeof notification.onclose === 'function' && notification.onclose.call(notification);
-	notification.emit('close');
-};
-
-
 export default () => {
 	window.Notification = Notification;
-	ipcRenderer.on('notification-shown', handleNotificationShown);
-	ipcRenderer.on('notification-clicked', handleNotificationClicked);
-	ipcRenderer.on('notification-closed', handleNotificationClosed);
 };

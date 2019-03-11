@@ -10,11 +10,11 @@ const { certificate, dock, menus, tray } = remote.require('./background');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();
+	const hasTrayIcon = localStorage.getItem('hideTray') ?
+		localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux');
 
 	menus.setState({
-		showTrayIcon: localStorage.getItem('hideTray') ?
-			localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux'),
-		showUserStatusInTray: (localStorage.getItem('showUserStatusInTray') || 'true') === 'true',
+		showTrayIcon: hasTrayIcon,
 		showFullScreen: mainWindow.isFullScreen(),
 		showWindowOnUnreadChanged: localStorage.getItem('showWindowOnUnreadChanged') === 'true',
 		showMenuBar: localStorage.getItem('autohideMenu') !== 'true',
@@ -22,9 +22,11 @@ const updatePreferences = () => {
 	});
 
 	tray.setState({
-		showIcon: localStorage.getItem('hideTray') ?
-			localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux'),
-		showUserStatus: (localStorage.getItem('showUserStatusInTray') || 'true') === 'true',
+		showIcon: hasTrayIcon,
+	});
+
+	dock.setState({
+		hasTrayIcon,
 	});
 };
 
@@ -115,13 +117,6 @@ export default () => {
 				break;
 			}
 
-			case 'showUserStatusInTray': {
-				const previousValue = (localStorage.getItem('showUserStatusInTray') || 'true') === 'true';
-				const newValue = !previousValue;
-				localStorage.setItem('showUserStatusInTray', JSON.stringify(newValue));
-				break;
-			}
-
 			case 'showFullScreen': {
 				const mainWindow = getCurrentWindow();
 				mainWindow.setFullScreen(!mainWindow.isFullScreen());
@@ -184,11 +179,6 @@ export default () => {
 				mainWindow.flashFrame(true);
 			}
 		}
-	});
-
-	webview.on('ipc-message-user-status-manually-set', (hostUrl, [status]) => {
-		tray.setState({ status });
-		dock.setState({ status });
 	});
 
 	if (process.platform === 'darwin') {

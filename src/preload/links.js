@@ -13,10 +13,14 @@ const handleAnchorClick = (event) => {
 	const href = a.getAttribute('href');
 	const download = a.hasAttribute('download');
 
-	const isPdfFile = /.*\.pdf$/.test(href);
+	const isPdfFile = RegExp(/.*\.pdf$/).test(href) && !download;
 	if (isPdfFile) {
-		// todo need to prevent the download file window from appearing
-		event.preventDefault();
+		const absPathToPdf = `${ window.location.protocol }//${ window.location.hostname }${ href }`;
+		console.log(absPathToPdf);
+		const pdfWindow = new BrowserWindow({ width: 800, height: 600, });
+		PDFWindow.addSupport(pdfWindow);
+		pdfWindow.loadURL(absPathToPdf);
+		event.stopPropagation();
 		return;
 	}
 

@@ -8,7 +8,7 @@ const getMeteor = () => window.Meteor || (window.require && window.require('mete
 const getTracker = () => window.Tracker || (window.require && window.require('meteor/tracker').Tracker);
 const getGetUserPreference = () => (
 	(window.RocketChat && window.RocketChat.getUserPreference) ||
-	(window.require && window.require('meteor/rocketchat:utils').getUserPreference)
+	(window.require && window.require('/app/utils').getUserPreference)
 );
 const getUserPresence = () => (
 	window.UserPresence ||

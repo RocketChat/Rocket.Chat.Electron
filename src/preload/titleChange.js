@@ -5,7 +5,7 @@ const getMeteor = () => window.Meteor || (window.require && window.require('mete
 const getTracker = () => window.Tracker || (window.require && window.require('meteor/tracker').Tracker);
 const getSettings = () => (
 	(window.RocketChat && window.RocketChat.settings) ||
-		(window.require && window.require('meteor/rocketchat:settings').settings)
+		(window.require && window.require('/app/settings').settings)
 );
 
 function handleTitleChange() {

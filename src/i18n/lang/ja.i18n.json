@@ -10,8 +10,10 @@
         "browseForLanguage": "言語をブラウズ...",
         "moreSpellingSuggestions": "その他のスペルの提案",
         "noSpellingSuggestions": "提案はありません",
-        "copyLinkAddress": "リンクをコピー",
-        "openLink": "リンクを開く"
+        "copyLinkAddress": "リンクURLをコピー",
+        "copyLinkText": "リンクテキストをコピー",
+        "openLink": "リンクを開く",
+        "saveImageAs": "画像を保存..."
     },
     "dialog": {
         "about": {
@@ -39,12 +41,16 @@
             "no": "いいえ"
         },
         "loadDictionary": {
-            "title": "言語の辞書を開く"
+            "title": "言語の辞書を開く",
+            "dictionaries": "辞書",
+            "allFiles": "すべてのファイル"
         },
         "loadDictionaryError": {
-            "title": "エラー"
+            "title": "エラー",
+            "message": "辞書ファイルのコピーでエラー: {{- message}}"
         },
         "resetAppData": {
+            "title": "アプリのデータをリセット",
             "message": "すべてのチームからログアウトしアプリを元の設定に戻すことができます。 これは元に戻すことはできません。",
             "yes": "はい",
             "cancel": "キャンセル"
@@ -65,11 +71,13 @@
         },
         "updateDownloading": {
             "title": "更新プログラムをダウンロード中",
-            "message": "更新プログラムのインストール準備が整うと通知されます"
+            "message": "更新プログラムのインストール準備が整うと通知されます",
+            "ok": "OK"
         },
         "updateInstallLater": {
             "title": "後でインストール",
-            "message": "アプリを終了すると更新プログラムがインストールされます"
+            "message": "アプリを終了すると更新プログラムがインストールされます",
+            "ok": "OK"
         },
         "updateReady": {
             "title": "更新プログラムをインストールする準備が整いました",
@@ -79,7 +87,8 @@
         },
         "updateSkip": {
             "title": "更新をスキップ",
-            "message": "次回の更新プログラムが利用可能になったときにお知らせします。\n気になる場合は[バージョン情報]メニューから更新プログラムを確認できます。"
+            "message": "次回の更新プログラムが利用可能になったときにお知らせします。\n気になる場合は[バージョン情報]メニューから更新プログラムを確認できます。",
+            "ok": "OK"
         }
     },
     "error": {
@@ -145,6 +154,10 @@
             "openDevTools": "開発ツールを開く"
         }
     },
+    "touchBar": {
+        "formatting": "書式",
+        "selectServer": "サーバーを選択"
+    },
     "tray": {
         "menu": {
             "show": "表示",
@@ -152,8 +165,10 @@
             "quit": "終了"
         },
         "tooltip": {
-            "noUnreadMessage": "{{- appName}}: 未読メッセージなし",
-            "unreadMessage": "{{- appName}}: 件の未読メッセージがあります"
+            "noUnreadMessage": "{{- appName}}: 未読のメッセージはありません",
+            "unreadMention": "{{- appName}}: 未読のメンション/ダイレクトメッセージがあります",
+            "unreadMention_plural": "{{- appName}}: 未読のメンション/ダイレクトメッセージが {{- count}} 件あります",
+            "unreadMessage": "{{- appName}}: 未読のメッセージがあります"
         }
     }
 }

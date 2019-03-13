@@ -1,4 +1,2 @@
 /node_modules
 /app
-/src/public/vendor/*
-/scripts/istanbul-reporter.js

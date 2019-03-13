@@ -17,6 +17,7 @@ class Notification extends EventEmitter {
 		super();
 		this.createIcon = mem(this.createIcon.bind(this));
 		this.create({ title, ...options });
+		this.addEventListener = this.addListener.bind(this);
 	}
 
 	async createIcon(icon) {
@@ -37,12 +38,12 @@ class Notification extends EventEmitter {
 		return canvas.toDataURL();
 	}
 
-	async create({ icon, ...options }) {
+	async create({ icon, canReply, ...options }) {
 		if (icon) {
 			icon = await this.createIcon(icon);
 		}
 
-		const notification = notifications.create({ icon, ...options });
+		const notification = notifications.create({ icon, hasReply: canReply, ...options });
 
 		notification.on('show', this.handleShow.bind(this));
 		notification.on('close', this.handleClose.bind(this));

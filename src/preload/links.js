@@ -1,10 +1,6 @@
-import { shell } from 'electron';
+import { shell, remote } from 'electron';
+import { getSettings } from './rocketChat';
 
-
-const getSettings = () => (
-	(window.RocketChat && window.RocketChat.settings) ||
-		(window.require && window.require('meteor/rocketchat:settings').settings)
-);
 
 const handleAnchorClick = (event) => {
 	const a = event.target.closest('a');
@@ -16,11 +12,10 @@ const handleAnchorClick = (event) => {
 	const href = a.getAttribute('href');
 	const download = a.hasAttribute('download');
 
-	const isFileUpload = /^\/file-upload\//.test(href) && !download;
-	if (isFileUpload) {
-		const clone = a.cloneNode();
-		clone.setAttribute('download', 'download');
-		clone.click();
+	const canDownload = /^\/file-upload\//.test(href) || download;
+	if (canDownload) {
+		const downloadUrl = a.href;
+		remote.getCurrentWebContents().downloadURL(downloadUrl);
 		event.preventDefault();
 		return;
 	}

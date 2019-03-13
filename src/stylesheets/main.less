@@ -1,14 +1,14 @@
 @import "variables.less";
 @import "utils/loading.less";
+@import "dialogs/about.less";
+@import "dialogs/screenshare.less";
+@import "dialogs/update.less";
 @import "pages/app.less";
-@import "pages/about.less";
 @import "pages/loading-error.less";
-@import "pages/screenshare.less";
-@import "pages/update.less";
 
 *,
-*:before,
-*:after {
+*::before,
+*::after {
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
@@ -16,8 +16,8 @@
 
 :focus {
 	outline: 0 !important;
-	outline-color: transparent;
 	outline-style: none;
+	outline-color: transparent;
 }
 
 html {
@@ -25,49 +25,54 @@ html {
 }
 
 body {
-	margin: 0px;
+	margin: 0;
+	padding: 0;
+
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Meiryo UI', Arial, sans-serif;
 	font-size: 0.875rem;
-	-webkit-font-smoothing: antialiased;
 	line-height: 1rem;
-	padding: 0;
+	-webkit-font-smoothing: antialiased;
 }
 
 .rocket-h2 {
-	font-weight: 300;
-	text-transform: uppercase;
-	font-size: 20px;
-	letter-spacing: -0.5px;
 	margin: 18px 0;
+
+	letter-spacing: -0.5px;
+	text-transform: uppercase;
+
+	font-size: 20px;
+	font-weight: 300;
 }
 
 .rocket-h3 {
-	font-weight: 300;
-	text-transform: uppercase;
-	font-size: 16px;
-	letter-spacing: -0.5px;
 	margin: 18px 0;
+
+	letter-spacing: -0.5px;
+	text-transform: uppercase;
+
+	font-size: 16px;
+	font-weight: 300;
 }
 
 .alert {
-	padding: 15px;
 	margin-bottom: 20px;
+	padding: 15px;
+
 	border: 1px solid rgba(0, 0, 0, 0);
 	border-radius: 4px;
 }
 
 .alert-warning {
-	color: #8A6D3B;
-	background-color: #FCF8E3;
-	border-color: #FAEBCC;
+	color: #8a6d3b;
+	border-color: #faebcc;
+	background-color: #fcf8e3;
 }
 
 .alert-danger {
-	color: #A94442;
-	background-color: #F2DEDE;
-	border-color: #EBCCD1;
+	color: #a94442;
+	border-color: #ebccd1;
+	background-color: #f2dede;
 }
-
 
 // input & form styles
 input,
@@ -89,84 +94,108 @@ select,
 input[type='text'],
 input[type='email'],
 input[type='password'] {
-	height: 35px;
-	line-height: normal;
-	border: 1px solid #dfdfdf;
-	background-color: #fff;
-	border-radius: 2px;
-	padding: 2px 8px;
-	box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
 	position: relative;
+
 	width: 100%;
+	height: 35px;
+	padding: 2px 8px;
+
+	border: 1px solid #dfdfdf;
+	border-radius: 2px;
 	outline: none;
+	background-color: #ffffff;
+	box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+
+	line-height: normal;
 }
 
 // new layout buttons
 .button {
-	background-color: #1d74f5;
-	border-radius: 2px;
-	border: none;
-	color: rgba(255, 255, 255, 0.85);
-	cursor: pointer;
+	position: relative;
+
 	display: inline-block;
+
+	margin: 4px;
+	padding: 9px 12px;
+
+	cursor: pointer;
+	word-spacing: 0;
+	text-transform: uppercase;
+
+	color: rgba(255, 255, 255, 0.85);
+	border: none;
+	border-radius: 2px;
+	background-color: #1d74f5;
+
 	font-size: 13px;
 	font-weight: 500;
 	line-height: 16px;
-	margin: 4px;
-	padding: 9px 12px;
-	position: relative;
-	text-transform: uppercase;
-	word-spacing: 0;
+
 	span {
 		position: relative;
 		z-index: 2;
 	}
-	&:before {
-		content: " ";
+
+	&::before {
 		position: absolute;
+		z-index: 1;
 		top: 0;
 		left: 0;
+
 		width: 100%;
 		height: 100%;
-		background-color: rgba(0, 0, 0, 0.1);
+
+		content: " ";
+		transition: opacity 0.1s ease-out;
+
 		opacity: 0;
-		z-index: 1;
-		transition: opacity .1s ease-out;
+		background-color: rgba(0, 0, 0, 0.1);
 	}
+
 	&:hover {
 		text-decoration: none;
-		color: #FFF;
-		&:before {
+
+		color: #ffffff;
+
+		&::before {
 			opacity: 1;
 		}
 	}
+
 	&.secondary {
-		background-color: @tertiary-background-color;
 		color: @primary-font-color;
-		&:before {
+		background-color: @tertiary-background-color;
+
+		&::before {
 			background-color: rgba(0, 0, 0, 0.045);
 		}
 	}
+
 	&.delete,
 	&.remove,
 	&.red {
 		min-width: 120px;
+
 		background-color: #bc2031;
 	}
+
 	&.clean {
 		background-color: rgba(0, 0, 0, 0.025);
-		font-size: 14px;
 		box-shadow: 0 0 3px rgba(0, 0, 0, 0.08);
+
+		font-size: 14px;
+
 		&.primary {
 			font-weight: 600;
 		}
 	}
 
 	&:disabled {
-		color: #888;
-		box-shadow: none;
 		cursor: not-allowed;
 		pointer-events: none;
-		background-color: #ddd;
+
+		color: #888888;
+		background-color: #dddddd;
+		box-shadow: none;
 	}
 }

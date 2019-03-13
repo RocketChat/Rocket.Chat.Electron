@@ -3,13 +3,13 @@
 <head>
 	<meta charset="utf-8" />
 	<title>About %s</title>
-	<link rel="stylesheet" href="../stylesheets/main.css" />
+	<link rel="stylesheet" href="../../stylesheets/main.css" />
 	<script>
 		window.addEventListener('load', () => {
 			const { remote: { getCurrentWindow }, ipcRenderer } = require('electron');
 			const { params: { appName, appVersion} } = getCurrentWindow();
-			const i18n = require('../i18n');
-			const { copyright } = require('../../package.json');
+			const i18n = require('../../i18n');
+			const { copyright } = require('../../../package.json');
 
 			document.title = i18n.__('dialog.about.title', { appName });
 			document.querySelector('.app-version').innerHTML = `${i18n.__('dialog.about.version')} <span class="version">${appVersion}</span>`;
@@ -86,7 +86,7 @@
 <body class="about-page">
 	<section class="app-info">
 		<div class="app-logo">
-			<img src="./images/logo.svg">
+			<img src="../images/logo.svg">
 		</div>
 		<div class="app-version">
 			Version <span class="version">%s</span>

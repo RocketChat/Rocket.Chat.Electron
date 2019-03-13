@@ -1,18 +1,22 @@
 .loading-component {
 	display: flex;
-	justify-content: center;
-	align-items: center;
+
 	height: 2.5rem;
 	margin: 4px;
+
 	color: @secondary-font-color;
+	align-items: center;
+	justify-content: center;
 
 	.dot {
 		width: 0.5rem;
 		height: 0.5rem;
-		border-radius: 100%;
 		margin: 0.1rem;
-		background-color: currentColor;
+
 		animation: loading-bouncedelay 1.4s infinite ease-in-out both;
+
+		border-radius: 100%;
+		background-color: currentColor;
 
 		&:nth-of-type(1) {
 			animation-delay: -0.32s;

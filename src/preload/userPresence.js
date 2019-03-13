@@ -1,19 +1,9 @@
 import { ipcRenderer } from 'electron';
+import { getMeteor, getTracker, getGetUserPreference, getUserPresence } from './rocketChat';
 
 
 let maximumIdleTime = 10 * 1000;
 const idleDetectionInterval = 1 * 1000;
-
-const getMeteor = () => window.Meteor || (window.require && window.require('meteor/meteor').Meteor);
-const getTracker = () => window.Tracker || (window.require && window.require('meteor/tracker').Tracker);
-const getGetUserPreference = () => (
-	(window.RocketChat && window.RocketChat.getUserPreference) ||
-	(window.require && window.require('/app/utils').getUserPreference)
-);
-const getUserPresence = () => (
-	window.UserPresence ||
-	(window.require && window.require('meteor/konecty:user-presence').UserPresence)
-);
 
 function onChangeUserPresence(isUserPresent) {
 	const UserPresence = getUserPresence();

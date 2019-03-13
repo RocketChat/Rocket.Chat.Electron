@@ -1,10 +1,6 @@
 import { shell, remote } from 'electron';
+import { getSettings } from './rocketChat';
 
-
-const getSettings = () => (
-	(window.RocketChat && window.RocketChat.settings) ||
-		(window.require && window.require('/app/settings').settings)
-);
 
 const handleAnchorClick = (event) => {
 	const a = event.target.closest('a');

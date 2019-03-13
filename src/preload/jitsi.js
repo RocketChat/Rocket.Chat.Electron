@@ -18,7 +18,7 @@ const JitsiMeetElectron = {
 
 const getSettings = () => (
 	(window.RocketChat && window.RocketChat.settings) ||
-		(window.require && window.require('meteor/rocketchat:settings').settings)
+		(window.require && window.require('/app/settings').settings)
 );
 
 const wrapWindowOpen = (defaultWindowOpen) => (href, frameName, features) => {

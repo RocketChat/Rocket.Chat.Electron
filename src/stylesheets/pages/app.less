@@ -1,6 +1,11 @@
+@import './app/sidebar.less';
+@import './app/webview.less';
+
 .app-page {
 	cursor: default;
 	user-select: none;
+
+	background: @primary-background-color;
 
 	&.app-page--loading {
 		.loading-indicator {
@@ -37,215 +42,6 @@ body.offline .only-offline {
 .wrong {
 	-webkit-animation: wrong 1s;
 	animation: wrong 1s;
-}
-
-div.sidebar {
-	position: fixed;
-	z-index: 100000;
-	top: 0;
-	bottom: 0;
-
-	width: 68px;
-	height: 100%;
-	padding-top: 27px;
-
-	color: #ffffff;
-	background-color: #2f343d;
-	-webkit-app-region: drag;
-}
-
-div.sidebar::after {
-	position: absolute;
-	z-index: 1;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	left: 0;
-
-	content: "";
-
-	background-color: rgba(0, 0, 0, 0.1);
-}
-
-div.sidebar ul {
-	position: relative;
-	z-index: 2;
-
-	margin: 0;
-	padding: 0;
-	-webkit-app-region: no-drag;
-}
-
-div.sidebar li {
-
-	position: relative;
-
-	display: flex;
-
-	height: 55px;
-	margin-bottom: 17px;
-
-	cursor: pointer;
-	-webkit-user-select: none;
-	user-select: none;
-
-	color: inherit;
-
-	font-size: 17pt;
-	align-items: center;
-	-webkit-app-region: no-drag;
-	filter: brightness(110%);
-	justify-content: flex-start;
-}
-
-div.sidebar li.active img {
-	opacity: 1;
-}
-
-div.sidebar li.active span {
-	opacity: 1;
-}
-
-div.sidebar li.unread::before {
-	width: 5px;
-	height: 6px;
-
-	opacity: 0.6;
-}
-
-div.sidebar li.active::before {
-	width: 5px;
-	height: 30px;
-
-	opacity: 1;
-}
-
-div.sidebar li::before {
-	width: 0;
-	height: 0;
-
-	content: "";
-	transition: height 0.2s, opacity 0.2s;
-
-	opacity: 1;
-	border-radius: 0 3px 3px 0;
-	background-color: #ffffff;
-}
-
-.sidebar img {
-	position: absolute;
-	left: 15px;
-
-	display: none;
-
-	width: 42px;
-	height: 42px;
-
-	transition: opacity 0.2s;
-
-	opacity: 0.6;
-}
-
-.sidebar span {
-	position: absolute;
-
-	width: 100%;
-
-	transition: opacity 0.2s;
-	text-align: center;
-
-	opacity: 0.6;
-
-	line-height: 60px;
-}
-
-.sidebar li .tooltip {
-	position: absolute;
-	top: 15px;
-	left: 70px;
-
-	display: none;
-
-	padding: 0 15px;
-
-	white-space: nowrap;
-
-	color: #ffffff;
-	border-radius: 6px;
-	background-color: #000000;
-
-	font-size: 14px;
-	line-height: 30px;
-}
-
-.sidebar li .badge {
-	position: absolute;
-	z-index: 1;
-	top: 2px;
-	right: 8px;
-
-	min-width: 15px;
-	padding: 0 5px;
-
-	text-align: center;
-
-	border-radius: 20px;
-	background-color: #e43325;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-
-	font-family: Helvetica;
-	font-size: 11px;
-	font-weight: bold;
-	line-height: 15px;
-}
-
-.sidebar li .name {
-	position: absolute;
-	bottom: -12px;
-
-	display: none;
-
-	width: 100%;
-
-	text-align: center;
-
-	opacity: 0.6;
-
-	font-size: 12px;
-	font-weight: 600;
-	line-height: 11px;
-}
-
-.command-pressed li .name {
-	display: initial;
-}
-
-.sidebar li:hover span {
-	opacity: 0.8;
-}
-
-.sidebar li:hover img {
-	opacity: 0.8;
-}
-
-.sidebar li:hover .tooltip {
-	display: block;
-}
-
-.sidebar li.add-server {
-	height: 30px;
-}
-
-.sidebar li.add-server span {
-	font-size: 40px;
-}
-
-div.sidebar.sidebar--hidden {
-	display: none;
-}
-
-div.sidebar.sidebar--hidden ~ webview {
-	left: 0;
 }
 
 @-webkit-keyframes wrong {
@@ -466,10 +262,6 @@ webview.active {
 			box-shadow: 0 0 0 1000px #f4f4f4 inset;
 		}
 	}
-}
-
-.sidebar--hidden ~ .landing-page {
-	left: 0;
 }
 
 .drag-region {

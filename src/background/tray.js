@@ -4,17 +4,17 @@ import i18n from '../i18n';
 import { getTrayIconImage } from './icon';
 
 
-const getIconTitle = ({ badge: { title, count } }) => ((count > 0) ? title : '');
+const getIconTitle = ({ badge }) => (Number.isInteger(badge) ? String(badge) : '');
 
-const getIconTooltip = ({ badge: { title, count } }) => {
+const getIconTooltip = ({ badge }) => {
 	const appName = app.getName();
 
-	if (title === '•') {
+	if (badge === '•') {
 		return i18n.__('tray.tooltip.unreadMessage', { appName });
 	}
 
-	if (count > 0) {
-		return i18n.__('tray.tooltip.unreadMention', { appName, count });
+	if (Number.isInteger(badge)) {
+		return i18n.__('tray.tooltip.unreadMention', { appName, count: badge });
 	}
 
 	return i18n.__('tray.tooltip.noUnreadMessage', { appName });
@@ -34,10 +34,7 @@ const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 let trayIcon = null;
 
 let state = {
-	badge: {
-		title: '',
-		count: 0,
-	},
+	badge: null,
 	isMainWindowVisible: true,
 	showIcon: true,
 };
@@ -47,7 +44,7 @@ const instance = new (class Tray extends EventEmitter {});
 let darwinThemeSubscriberId = null;
 
 const createIcon = () => {
-	const image = getTrayIconImage(state.badge);
+	const image = getTrayIconImage({ badge: state.badge });
 
 	if (trayIcon) {
 		trayIcon.setImage(image);
@@ -58,7 +55,7 @@ const createIcon = () => {
 
 	if (process.platform === 'darwin') {
 		darwinThemeSubscriberId = systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
-			trayIcon.setImage(getTrayIconImage(state.badge));
+			trayIcon.setImage(getTrayIconImage({ badge: state.badge }));
 		});
 	}
 

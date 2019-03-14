@@ -201,7 +201,8 @@ class Servers extends EventEmitter {
 	}
 
 	get active() {
-		return localStorage.getItem(this.activeKey);
+		const active = localStorage.getItem(this.activeKey);
+		return active === 'null' ? null : active;
 	}
 
 	setActive(hostUrl) {

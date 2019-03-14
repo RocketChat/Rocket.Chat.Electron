@@ -4,7 +4,7 @@
   "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
   "version": "2.16.0-develop",
   "author": "Rocket.Chat Support <support@rocket.chat>",
-  "copyright": "© 2018, Rocket.Chat",
+  "copyright": "© 2019, Rocket.Chat",
   "homepage": "https://rocket.chat",
   "license": "MIT",
   "main": "app/background.js",

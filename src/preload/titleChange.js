@@ -1,12 +1,6 @@
 import { ipcRenderer } from 'electron';
+import { getMeteor, getTracker, getSettings } from './rocketChat';
 
-
-const getMeteor = () => window.Meteor || (window.require && window.require('meteor/meteor').Meteor);
-const getTracker = () => window.Tracker || (window.require && window.require('meteor/tracker').Tracker);
-const getSettings = () => (
-	(window.RocketChat && window.RocketChat.settings) ||
-		(window.require && window.require('meteor/rocketchat:settings').settings)
-);
 
 function handleTitleChange() {
 	const Meteor = getMeteor();

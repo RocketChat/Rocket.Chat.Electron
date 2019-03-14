@@ -1,6 +1,7 @@
 import { desktopCapturer, remote } from 'electron';
 import url from 'url';
 import util from 'util';
+import { getSettings } from './rocketChat';
 const { app } = remote;
 
 
@@ -14,12 +15,6 @@ const JitsiMeetElectron = {
 		}
 	},
 };
-
-
-const getSettings = () => (
-	(window.RocketChat && window.RocketChat.settings) ||
-		(window.require && window.require('meteor/rocketchat:settings').settings)
-);
 
 const wrapWindowOpen = (defaultWindowOpen) => (href, frameName, features) => {
 	const settings = getSettings();

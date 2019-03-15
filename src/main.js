@@ -49,12 +49,21 @@ async function prepareApp() {
 	app.setAsDefaultProtocolClient('rocketchat');
 	app.setAppUserModelId('chat.rocket');
 
+	await appData.initialize();
+
+	const canStart = process.mas || app.requestSingleInstanceLock();
+
+	if (!canStart) {
+		app.quit();
+		return;
+	}
+
+	app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
+
 	// TODO: make it a setting
 	if (process.platform === 'linux') {
 		app.disableHardwareAcceleration();
 	}
-
-	app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
 
 	app.on('window-all-closed', () => {
 		app.quit();
@@ -65,18 +74,9 @@ async function prepareApp() {
 		parseCommandLineArguments([url]);
 	});
 
-	app.on('second-instance', async(event, argv) => {
+	app.on('second-instance', (event, argv) => {
 		parseCommandLineArguments(argv.slice(2));
 	});
-
-	appData.initialize();
-
-	const canStart = process.mas || app.requestSingleInstanceLock();
-
-	if (!canStart) {
-		app.quit();
-		return;
-	}
 }
 
 (async() => {

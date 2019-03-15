@@ -2,9 +2,10 @@ import { app } from 'electron';
 import querystring from 'querystring';
 import url from 'url';
 import appData from './main/appData';
-import { getMainWindow } from './main/mainWindow';
+import './main/basicAuth';
 import './main/systemIdleTime';
 import './main/updates';
+import { getMainWindow } from './main/mainWindow';
 import './main/dialogs/about';
 import './main/dialogs/screenshare';
 import './main/dialogs/update';
@@ -13,7 +14,6 @@ export { default as dock } from './main/dock';
 export { default as menus } from './main/menus';
 export { default as tray } from './main/tray';
 export { default as notifications } from './main/notifications';
-export { default as remoteServers } from './main/servers';
 export { default as certificate } from './main/certificateStore';
 
 

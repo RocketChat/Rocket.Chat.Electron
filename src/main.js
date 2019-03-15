@@ -1,20 +1,20 @@
 import { app } from 'electron';
 import querystring from 'querystring';
 import url from 'url';
-import appData from './background/appData';
-import { getMainWindow } from './background/mainWindow';
-import './background/systemIdleTime';
-import './background/updates';
-import './background/dialogs/about';
-import './background/dialogs/screenshare';
-import './background/dialogs/update';
+import appData from './main/appData';
+import { getMainWindow } from './main/mainWindow';
+import './main/systemIdleTime';
+import './main/updates';
+import './main/dialogs/about';
+import './main/dialogs/screenshare';
+import './main/dialogs/update';
 import i18n from './i18n';
-export { default as dock } from './background/dock';
-export { default as menus } from './background/menus';
-export { default as tray } from './background/tray';
-export { default as notifications } from './background/notifications';
-export { default as remoteServers } from './background/servers';
-export { default as certificate } from './background/certificateStore';
+export { default as dock } from './main/dock';
+export { default as menus } from './main/menus';
+export { default as tray } from './main/tray';
+export { default as notifications } from './main/notifications';
+export { default as remoteServers } from './main/servers';
+export { default as certificate } from './main/certificateStore';
 
 
 function parseCommandLineArguments(args) {

@@ -16,7 +16,7 @@ gulp.task('build:i18n', () => gulp.src('src/i18n/lang/**/*')
 gulp.task('build:bundle', () => {
 	const env = getEnv();
 	return Promise.all([
-		bundle('src/background.js', 'app/background.js', { env }),
+		bundle('src/main.js', 'app/main.js', { env }),
 		bundle('src/app.js', 'app/app.js', { env }),
 		bundle('src/i18n/index.js', 'app/i18n/index.js', { env }),
 		bundle('src/preload.js', 'app/preload.js', { env }),

@@ -7,7 +7,7 @@
   "copyright": "© 2019, Rocket.Chat",
   "homepage": "https://rocket.chat",
   "license": "MIT",
-  "main": "app/background.js",
+  "main": "app/main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/RocketChat/Rocket.Chat.Electron.git"

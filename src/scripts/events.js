@@ -6,7 +6,7 @@ import setTouchBar from './touchBar';
 
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, dock, menus, tray } = remote.require('./background');
+const { certificate, dock, menus, tray } = remote.require('./main');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();

@@ -2,7 +2,7 @@ import jetpack from 'fs-jetpack';
 import { EventEmitter } from 'events';
 import { remote, ipcRenderer } from 'electron';
 import i18n from '../i18n';
-const { remoteServers } = remote.require('./background');
+const { remoteServers } = remote.require('./main');
 
 class Servers extends EventEmitter {
 	constructor() {

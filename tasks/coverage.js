@@ -7,8 +7,8 @@ const getEnv = require('./env');
 gulp.task('coverage:build', async() => {
 	const env = getEnv();
 	const coverage = true;
-	await bundle.many('src', 'background/*.spec.js', 'app/main.specs.js', { coverage, env });
-	await bundle.many('src', ['*.spec.js', '!background/*.spec.js'], 'app/renderer.specs.js', { coverage, env });
+	await bundle.many('src', 'main/*.spec.js', 'app/main.specs.js', { coverage, env });
+	await bundle.many('src', ['*.spec.js', '!main/*.spec.js'], 'app/renderer.specs.js', { coverage, env });
 });
 
 gulp.task('coverage:main', (cb) => {

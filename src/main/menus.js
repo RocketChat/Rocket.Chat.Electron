@@ -340,6 +340,6 @@ const unsetDefaultApplicationMenu = () => {
 	Menu.setApplicationMenu(Menu.buildFromTemplate(emptyMenuTemplate));
 };
 
-app.on('ready', unsetDefaultApplicationMenu);
+app.once('start', unsetDefaultApplicationMenu);
 
 export default new Menus();

@@ -1,7 +1,7 @@
 import { ipcRenderer, remote } from 'electron';
 import { EventEmitter } from 'events';
 import mem from 'mem';
-const { notifications } = remote.require('./background');
+const { notifications } = remote.require('./main');
 
 
 class Notification extends EventEmitter {

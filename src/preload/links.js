@@ -1,4 +1,4 @@
-import { shell, remote } from 'electron';
+import { shell, remote, ipcRenderer } from 'electron';
 import { getSettings } from './rocketChat';
 
 
@@ -15,7 +15,10 @@ const handleAnchorClick = (event) => {
 	const canDownload = /^\/file-upload\//.test(href) || download;
 	if (canDownload) {
 		const downloadUrl = a.href;
-		remote.getCurrentWebContents().downloadURL(downloadUrl);
+		console.log(`can download :-) ${downloadUrl}`)
+		var t = ipcRenderer.sendSync('show-save-dialog', downloadUrl);
+		console.log(t);
+		//remote.getCurrentWebContents().downloadURL(downloadUrl);
 		event.preventDefault();
 		return;
 	}

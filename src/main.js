@@ -2,6 +2,7 @@ import { app } from 'electron';
 import querystring from 'querystring';
 import url from 'url';
 import appData from './main/appData';
+import downloadManager from './main/downloadManager';
 import './main/basicAuth';
 import './main/systemIdleTime';
 import './main/updates';
@@ -85,5 +86,6 @@ async function prepareApp() {
 	await i18n.initialize();
 	app.emit('start');
 	await getMainWindow();
+	await downloadManager.initialize();
 	parseCommandLineArguments(process.argv.slice(2));
 })();

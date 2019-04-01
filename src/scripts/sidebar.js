@@ -42,7 +42,8 @@ class SideBar extends EventEmitter {
 		window.addEventListener('keyup', this.handleShortcutsKey.bind(this, false));
 
 		this.node.querySelector('.sidebar__add-server').addEventListener('click', this.handleAddServerClick.bind(this), false);
-
+		this.node.querySelector('.sidebar__submenu-action').addEventListener('click', this.handleShowDownloadManager.bind(this), false);
+		
 		this.serverListElement = this.node.querySelector('.sidebar__server-list');
 
 		this.render();
@@ -83,6 +84,7 @@ class SideBar extends EventEmitter {
 		}));
 
 		this.node.querySelector('.sidebar__add-server').dataset.tooltip = i18n.__('sidebar.addNewServer');
+		this.node.querySelector('.sidebar__submenu-action').dataset.tooltip = i18n.__('sidebar.showDownloadManager');
 	}
 
 	renderHost({ url, title, order, active, hasUnreadMessages, mentionCount }) {
@@ -237,6 +239,10 @@ class SideBar extends EventEmitter {
 
 	handleAddServerClick() {
 		this.emit('add-server');
+	}
+
+	handleShowDownloadManager() {
+		this.emit('show-download-manger');
 	}
 }
 

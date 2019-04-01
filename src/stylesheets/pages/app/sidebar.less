@@ -45,6 +45,16 @@
 		align-items: stretch;
 	}
 
+
+	.sidebar__submenu {
+		background-color: rgba(0, 0, 0, 0.1);
+		border-top: 1px solid;
+		border-top-color: rgba(0, 0, 0, 0.1);
+
+		display: flex;
+		flex-direction: column;
+	}
+
 	.sidebar__list {
 		display: flex;
 		flex-direction: column;
@@ -54,6 +64,37 @@
 		padding: 0;
 		align-items: stretch;
 		-webkit-app-region: no-drag;
+	}
+
+	.sidebar__submenu-action {
+		display: flex;
+		flex-direction: row;
+		height: 20px;
+		cursor: pointer;
+		align-items: center;
+		justify-content: center;
+		border: none;
+		margin: 5px;
+		background-color:  rgba(0, 0, 0, 0.1);
+		color: white;
+	}
+
+	.sidebar__submenu-action-active {
+		border-bottom: 1px solid;
+		border-bottom-color: aqua;
+		animation: pulse 2s infinite;
+	}
+
+	@keyframes pulse {
+		0% {
+			border-bottom-color: #8f221a;
+		  }
+		  50% {
+			border-bottom-color: #e43325;
+		  }
+		  100% {
+			border-bottom-color: #8f221a;
+		  }
 	}
 
 	.sidebar__action,

@@ -148,7 +148,7 @@
     },
     "sidebar": {
         "addNewServer": "Add new server",
-        "showDownloadManager": "Show download manager",
+        "showDownloadManager": "Show Download manager",
         "item": {
             "reload": "Reload server",
             "remove": "Remove server",

@@ -1,6 +1,7 @@
 import { remote, ipcRenderer } from 'electron';
 import servers from './servers';
 import sidebar from './sidebar';
+import downloadManager from './downloadManager';
 import webview from './webview';
 import setTouchBar from './touchBar';
 
@@ -217,6 +218,10 @@ export default () => {
 		servers.clearActive();
 		webview.showLanding();
 	});
+
+	sidebar.on('show-download-manger', () => {
+		downloadManager.showWindow(this);
+	})
 
 	sidebar.on('servers-sorted', (sorting) => {
 		localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));

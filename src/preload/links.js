@@ -15,10 +15,7 @@ const handleAnchorClick = (event) => {
 	const canDownload = /^\/file-upload\//.test(href) || download;
 	if (canDownload) {
 		const downloadUrl = a.href;
-		console.log(`can download :-) ${downloadUrl}`)
-		var t = ipcRenderer.sendSync('show-save-dialog', downloadUrl);
-		console.log(t);
-		//remote.getCurrentWebContents().downloadURL(downloadUrl);
+		remote.getCurrentWebContents().downloadURL(downloadUrl);
 		event.preventDefault();
 		return;
 	}

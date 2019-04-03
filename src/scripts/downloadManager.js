@@ -6,11 +6,15 @@ import { clearScreenDown } from 'readline';
 class DownloadManager {
 
     constructor() {
+        /**
+         * initialize database to save download items
+         */
         var downloadDb = indexedDB.open("rocket.chat-db",1);
         downloadDb.onupgradeneeded = (event) => {
             var upgradeDb = event.target.result;
             if(!upgradeDb.objectStoreNames.contains('download-manager')) {
-                var downloadManager = upgradeDb.createObjectStore('download-manager',{keyPath: 'id', autoIncrement:true});
+                var downloadManager = upgradeDb.createObjectStore('download-manager',{keyPath: 'createDate', autoIncrement:false});
+                downloadManager.createIndex("fileState", "fileState", { unique: false });
             }
         };
 
@@ -22,24 +26,19 @@ class DownloadManager {
             ;
         }
 
-        ipcRenderer.on('download-manager-start',(e) => {
-            console.log('event download-manager-start')
-            this.downloadStarted(e.target);
-        });
+        /**
+         * load all divs 
+         */
+        this.downloadManagerItems = document.querySelector('.app-download-manager-items');
+        this.downloadManagerWindow = document.querySelector('.app-download-manager');
+        this.downloadManagerButton = document.querySelector('.sidebar__submenu-action');
+        /**
+         * event dispatcher 
+         */
+        ipcRenderer.on('download-manager-start',this.downloadStarted.bind(this));
+        ipcRenderer.on('download-manager-error',this.downloadError.bind(this));
+        ipcRenderer.on('download-manager-finish',this.downloadFinished.bind(this));
     }
-
-            /*
-            data store object 
-            {
-                fileName: "",
-                filePath: "",
-                status: "", 
-                fileSize: "",
-                dlSize: ""
-            }
-            
-        });
-    }*/
 
     showWindow(event) {    
         var downloadManagerItems = document.querySelector('.app-download-manager-items');
@@ -96,13 +95,10 @@ class DownloadManager {
         </div>
         */
 
-        this.addDownload("");
-        
-        this.loadDownloads();
-
+       this.loadDownloads();
+        /*this.addDownload("");
         this.clearDownloads();
-
-        this.loadDownloads();
+        this.loadDownloads();*/
         /*result.onsuccess = (e) => {
             console.log(`load all data: ${JSON.stringify(e.target.result)}`);
 
@@ -119,18 +115,22 @@ class DownloadManager {
         }
     }
 
-    addDownload(element) {
+    saveDbItem(item) {
         var store = this.getDownloadManagerStore('readwrite');
-        var item = {
-          name: 'banana',
-          price: '$2.99',
-          description: 'It is a purple banana!',
-          created: new Date().getTime()
+        var request = store.add(item);
+        request.onerror = function(e) {
+          ;
         };
-      
-       var request = store.add(item);
-      
-       request.onerror = function(e) {
+
+        request.onsuccess = function(e) {
+          ;
+        };
+    }
+
+    updateDbItem(item) {
+        var store = this.getDownloadManagerStore('readwrite');
+        var request = store.add(item);
+        request.onerror = function(e) {
           ;
         };
 
@@ -155,10 +155,27 @@ class DownloadManager {
         return transaction.objectStore('download-manager');
     }
 
-    downloadStarted(downloadItem) {
-        console.log(`download started ${downloadItem}`);
+    /**
+     * download of item started, set downloadManagerButton to active
+     */
+    downloadStarted(event, downloadItem) {
+        if(!this.downloadManagerButton.className.includes('active')) {
+            this.downloadManagerButton.className = `${this.downloadManagerButton.className} ${this.downloadManagerButton.className}-active`
+        }
+        //save item to db
+        this.saveDbItem(downloadItem);
+    }
+
+    downloadFinished(event, downloadItem) {
+        if(this.downloadManagerButton.className.includes('active')) {
+            //check if any other 
+            this.downloadManagerButton.className = `${this.downloadManagerButton.className.split(' ')[0]}`
+        }
     }
     
+    downloadError(event, downloadItem) {
+        console.log(`download error ${downloadItem}`);
+    }
 
 
 }

@@ -5,6 +5,13 @@ import { clearScreenDown } from 'readline';
 
 class DownloadManager {
 
+    /**
+     * create database
+     * register all needed html elements
+     * register click event
+     * register all events
+     * 
+     */
     constructor() {
         /**
          * initialize database to save download items
@@ -32,50 +39,63 @@ class DownloadManager {
         this.downloadManagerItems = document.querySelector('.app-download-manager-items');
         this.downloadManagerWindow = document.querySelector('.app-download-manager');
         this.downloadManagerButton = document.querySelector('.sidebar__submenu-action');
+
+        /**
+         * downloadManager Button events
+         */
+        this.downloadManagerClearDownloadsButton = document.querySelector('.app-download-manager-clear-action').addEventListener('click', this.clearAllDbItems.bind(this), false);
         /**
          * event dispatcher 
          */
         ipcRenderer.on('download-manager-start',this.downloadStarted.bind(this));
         ipcRenderer.on('download-manager-error',this.downloadError.bind(this));
         ipcRenderer.on('download-manager-finish',this.downloadFinished.bind(this));
+        ipcRenderer.on('download-manager-data-received',this.downloadDataReceived.bind(this));
     }
 
-    showWindow(event) {    
+    /**
+     * show download manager window with content
+     */
+    async showWindow(event) {    
         var downloadManagerItems = document.querySelector('.app-download-manager-items');
         
-        //titleDiv.className = "title";
-
         const downloadManagerWindow = document.querySelector('.app-download-manager');
         if(downloadManagerWindow.style.display === 'none') {
             //create elements
-            
-            for(var i = 0 ; i < 10 ; i++) {
+            let downloadData = await this.loadDownloads();
+            console.log(`download data ${downloadData}`);
+
+            downloadData.forEach((item) => {
+                console.log(`entry ${JSON.stringify(item)}`)
                 const divElement = document.createElement("div");
-
-            const titleDiv = document.createElement("div");
-            titleDiv.textContent = "Item Title";
-            titleDiv.setAttribute('class', 'title');
+                divElement.setAttribute('id', item.createDate);
     
-            const actionDiv = document.createElement("div");
-            titleDiv.setAttribute('class', 'app-download-manager_buttons');
-    
-            const stopDiv = document.createElement("div");
-            stopDiv.setAttribute('class', 'app-download-manager_button_stop');
-            stopDiv.textContent = "action item";
-            
-            const showDiv = document.createElement("div");
-            showDiv.setAttribute('class', 'app-download-manager_button_show');
-            showDiv.textContent = "Show download item";
-    
-            actionDiv.appendChild(stopDiv);
-            actionDiv.appendChild(showDiv);
-    
-            divElement.appendChild(titleDiv);
-            divElement.appendChild(actionDiv);
+                const titleDiv = document.createElement("div");
+                titleDiv.textContent = item.fileName;
+                titleDiv.setAttribute('class', 'title');
+        
+                const actionDiv = document.createElement("div");
+                titleDiv.setAttribute('class', 'app-download-manager_buttons');
+        
+                const stopDiv = document.createElement("div");
+                stopDiv.setAttribute('class', 'app-download-manager_button_stop');
+                stopDiv.textContent = item.fileState;
+                
+                const showDiv = document.createElement("div");
+                showDiv.setAttribute('class', 'app-download-manager_button_show');
+                showDiv.textContent = item.filePath;
+        
+                actionDiv.appendChild(stopDiv);
+                actionDiv.appendChild(showDiv);
+        
+                divElement.appendChild(titleDiv);
+                divElement.appendChild(actionDiv);
                 downloadManagerItems.appendChild(divElement);
-            }
+                
+                downloadManagerWindow.style.display = 'block'
 
-            downloadManagerWindow.style.display = 'block'
+            });
+            
         } else {
             //delete elements
             downloadManagerWindow.style.display = 'none'
@@ -95,7 +115,7 @@ class DownloadManager {
         </div>
         */
 
-       this.loadDownloads();
+       
         /*this.addDownload("");
         this.clearDownloads();
         this.loadDownloads();*/
@@ -107,39 +127,58 @@ class DownloadManager {
         
     }
 
-    loadDownloads() {
-        var store = this.getDownloadManagerStore('readonly');
-        var result = store.getAll();
-        result.onsuccess = (e) => {
-            console.log(`event ${JSON.stringify(e)}  - result ${JSON.stringify(result.result)}`);
-        }
+    async loadDownloads() {
+        return new Promise((resolve, reject) => {
+            var store = this.getDownloadManagerStore('readonly');
+            var result = store.getAll();
+            result.onsuccess = (e) => {
+                //console.log(`event ${JSON.stringify(e)}  - result ${JSON.stringify(result.result)}`);
+                resolve(result.result, null);
+            }
+            result.onerror = (e) => {
+                reject(null,e);
+            }
+        });
     }
 
+    /**
+     * save item in database
+     */
     saveDbItem(item) {
         var store = this.getDownloadManagerStore('readwrite');
         var request = store.add(item);
-        request.onerror = function(e) {
+        request.onerror = (e) => {
           ;
         };
 
-        request.onsuccess = function(e) {
+        request.onsuccess = (e) => {
           ;
         };
     }
 
+    /**
+     * update object in database
+     */
     updateDbItem(item) {
         var store = this.getDownloadManagerStore('readwrite');
         return store.put(item);
     }
     
+    /**
+     * clear all not running downloads from databse
+     */
     clearAllDbItems() {
+        console.log(`clearAllDbItems`);
         var store = this.getDownloadManagerStore('readwrite');
         var request = store.getAll();
         request.onsuccess = (e) => {
             request.result.forEach(element => {
-                store.delete(element.id);
+                if(element.fileState !== 'progressing') {
+                    store.delete(element.createDate);
+                    const childElement = document.getElementById(element.createDate);
+                    this.downloadManagerItems.removeChild(childElement);
+                }
             });
-
         }
     }
 
@@ -161,20 +200,26 @@ class DownloadManager {
 
     downloadFinished(event, downloadItem) {
         let request = this.updateDbItem(downloadItem);
-        request.onsuccess = async (e) => {
-            if(this.downloadManagerButton.className.includes('active')) {
-                //check if any other 
-                const runningDownloads = await this.checkRunningDownloads();
-                console.log(runningDownloads);
-                if(!runningDownloads) {
-                    this.downloadManagerButton.className = `${this.downloadManagerButton.className.split(' ')[0]}`
-                }
-            }
+        request.onsuccess = (e) => {
+            this.inactiveDownloadManagerButton(e,this.downloadManagerButton);
         };
-
         request.onerror = (e) => {
             //set item in list to error?
         };
+    }
+        
+    /**
+     * check htmlElement an change class if no download is running 
+     */
+    async inactiveDownloadManagerButton(event, htmlElement) {
+        if(htmlElement.className.includes('active')) {
+            //check if any other 
+            const runningDownloads = await this.checkRunningDownloads();
+            console.log(`download is still running ${runningDownloads}`)
+            if(!runningDownloads) {
+                htmlElement.className = `${htmlElement.className.split(' ')[0]}`
+            }
+        }
     }
 
     /**
@@ -184,7 +229,7 @@ class DownloadManager {
         return new Promise((resolve,reject) => {
             let store = this.getDownloadManagerStore('readonly');
             let fileStateIndex = store.index("fileState");
-            let request = fileStateIndex.get('progress');
+            let request = fileStateIndex.get('progressing');
             request.onerror = (e) => {
                 reject(null,e);
               };
@@ -200,7 +245,12 @@ class DownloadManager {
     }
     
     downloadError(event, downloadItem) {
-        console.log(`download error ${downloadItem}`);
+        this.inactiveDownloadManagerButton(event, this.downloadManagerButton);  
+    }
+
+    downloadDataReceived(event, downloadItem) {
+        //console.log(`download data rec ${JSON.stringify(downloadItem)}`);
+        //save in db?
     }
 
 

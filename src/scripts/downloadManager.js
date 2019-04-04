@@ -129,17 +129,10 @@ class DownloadManager {
 
     updateDbItem(item) {
         var store = this.getDownloadManagerStore('readwrite');
-        var request = store.add(item);
-        request.onerror = function(e) {
-          ;
-        };
-
-        request.onsuccess = function(e) {
-          ;
-        };
+        return store.put(item);
     }
     
-    clearDownloads() {
+    clearAllDbItems() {
         var store = this.getDownloadManagerStore('readwrite');
         var request = store.getAll();
         request.onsuccess = (e) => {
@@ -167,10 +160,43 @@ class DownloadManager {
     }
 
     downloadFinished(event, downloadItem) {
-        if(this.downloadManagerButton.className.includes('active')) {
-            //check if any other 
-            this.downloadManagerButton.className = `${this.downloadManagerButton.className.split(' ')[0]}`
-        }
+        let request = this.updateDbItem(downloadItem);
+        request.onsuccess = async (e) => {
+            if(this.downloadManagerButton.className.includes('active')) {
+                //check if any other 
+                const runningDownloads = await this.checkRunningDownloads();
+                console.log(runningDownloads);
+                if(!runningDownloads) {
+                    this.downloadManagerButton.className = `${this.downloadManagerButton.className.split(' ')[0]}`
+                }
+            }
+        };
+
+        request.onerror = (e) => {
+            //set item in list to error?
+        };
+    }
+
+    /**
+     * check if any download is still running.
+     */
+    async checkRunningDownloads() {
+        return new Promise((resolve,reject) => {
+            let store = this.getDownloadManagerStore('readonly');
+            let fileStateIndex = store.index("fileState");
+            let request = fileStateIndex.get('progress');
+            request.onerror = (e) => {
+                reject(null,e);
+              };
+      
+              request.onsuccess = (e) => {
+                  if(e.target.result == undefined) {
+                    resolve(false, null);
+                  } else {
+                      resolve(true, null);
+                  }
+              };
+        }); 
     }
     
     downloadError(event, downloadItem) {

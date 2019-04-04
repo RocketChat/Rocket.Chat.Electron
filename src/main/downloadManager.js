@@ -10,9 +10,10 @@ async function willDownload(event, item, webContents) {
     
 	const downloadItem = {
         fileSize: item.getTotalBytes(),
-		fileName: item.getFilename(),
-		filePath: downloadFileName,
-		fileType: item.getMimeType(),
+        fileReceivedBytes: item.getReceivedBytes(),
+		    fileName: item.getFilename(),
+		    filePath: downloadFileName,
+		    fileType: item.getMimeType(),
         fileState: item.getState(),
         createDate: new Date().getTime()
     }
@@ -29,7 +30,8 @@ async function willDownload(event, item, webContents) {
           if (item.isPaused()) {
             console.log('Download is paused')
           } else {
-            console.log(`Received bytes: ${item.getReceivedBytes()}`)
+            downloadItem.fileReceivedBytes = item.getReceivedBytes();
+            mainWindow.webContents.send('download-manager-data-received',downloadItem);
           }
         }
       })

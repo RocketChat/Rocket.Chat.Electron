@@ -34,7 +34,8 @@ async function willDownload(event, item, webContents) {
             mainWindow.webContents.send('download-manager-data-received',downloadItem);
           }
         }
-      })
+      });
+
       item.once('done', (event, state) => {
         if (state === 'completed') {
             downloadItem.fileState = item.getState();
@@ -43,7 +44,7 @@ async function willDownload(event, item, webContents) {
             downloadItem.fileState = item.getState();
             mainWindow.webContents.send('download-manager-error', downloadItem);
         }
-      })
+      });
 }
 
 export default {

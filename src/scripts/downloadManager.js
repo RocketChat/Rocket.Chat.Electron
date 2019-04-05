@@ -53,6 +53,7 @@ class DownloadManager {
         ipcRenderer.on('download-manager-data-received',this.downloadDataReceived.bind(this));
     }
 
+    
     /**
      * show download manager window with content
      */
@@ -72,24 +73,31 @@ class DownloadManager {
     
                 const titleDiv = document.createElement("div");
                 titleDiv.textContent = item.fileName;
-                titleDiv.setAttribute('class', 'title');
+                titleDiv.setAttribute('class', 'app-download-manager-item_title');
+        
+                const buttonsDiv = document.createElement("div");
+                titleDiv.setAttribute('class', 'app-download-manager-item_buttons');
         
                 const actionDiv = document.createElement("div");
-                titleDiv.setAttribute('class', 'app-download-manager_buttons');
-        
-                const stopDiv = document.createElement("div");
-                stopDiv.setAttribute('class', 'app-download-manager_button_stop');
-                stopDiv.textContent = item.fileState;
+                actionDiv.setAttribute('class', 'app-download-manager-item-button_action');
+                actionDiv.textContent = '×';
+                //item.fileState;
                 
                 const showDiv = document.createElement("div");
-                showDiv.setAttribute('class', 'app-download-manager_button_show');
-                showDiv.textContent = item.filePath;
+                showDiv.setAttribute('class', 'app-download-manager-item-button_show');
+                
+                const showDivIcon = document.createElement("div");
+                showDivIcon.setAttribute('class','app-download-manager-item-button_show_icon')
+                showDivIcon.textContent = '⚲';
+                //item.filePath;
         
-                actionDiv.appendChild(stopDiv);
-                actionDiv.appendChild(showDiv);
+                showDiv.appendChild(showDivIcon);
+
+                buttonsDiv.appendChild(actionDiv);
+                buttonsDiv.appendChild(showDiv);
         
                 divElement.appendChild(titleDiv);
-                divElement.appendChild(actionDiv);
+                divElement.appendChild(buttonsDiv);
                 downloadManagerItems.appendChild(divElement);
                 
                 downloadManagerWindow.style.display = 'block'

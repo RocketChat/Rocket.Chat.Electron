@@ -348,6 +348,8 @@
 
 .app-download-manager-actions {
 	padding: 10px;
+	display: flex;
+	flex-flow: nowrap;
 }
 
 .app-download-manager-clear-action {
@@ -355,14 +357,26 @@
 	border: none;
 	border-radius: 2px;
 	background-color: #1d74f5;
+	position: absolute;
+	right: 10px;
 }
 
 .app-download-manager-items {
 	padding: 5px;
 }
 
+.app-download-manager-item {
+	display: flex;
+	padding: 5px;
+	border-top: 1px solid;
+	border-color: rgba(0, 0, 0, 0.1);
+}
+
 .app-download-manager-item_title {
 	color: #ffffff;
+	width: 310px;
+	height: 30px;
+	line-height: 25px;
 }
 
 .app-download-manager-item-button_show {
@@ -370,11 +384,14 @@
 	border: none;
 	border-radius: 2px;
 	background-color: #1d74f5;
+	width: 20px;
+	text-align: center;
 
 }
 .app-download-manager-item-button_show_icon {
 	transform: rotate(-45.0deg);
-	width: 10px;
+	width: 20px;
+	text-align: center;
 }
 
 .app-download-manager-item-button_action {
@@ -382,8 +399,15 @@
 	border: none;
 	border-radius: 2px;
 	background-color: #1d74f5;
+	width: 20px;
+	text-align: center;
 }
 
 .app-download-manager-item_buttons {
 	padding: 5px;
+	width: 70px;
+	position: absolute;
+	right: 0px;
+	display: flex;
+	justify-content: space-around;
 }

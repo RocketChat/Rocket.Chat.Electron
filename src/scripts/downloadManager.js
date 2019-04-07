@@ -34,6 +34,11 @@ class DownloadManager {
         }
 
         /**
+         * set downloadmanager state
+         */
+        this.downloadManagerWindowIsActive = false;
+
+        /**
          * load all divs 
          */
         this.downloadManagerItems = document.querySelector('.app-download-manager-items');
@@ -57,26 +62,22 @@ class DownloadManager {
     /**
      * show download manager window with content
      */
-    async showWindow(event) {    
-        var downloadManagerItems = document.querySelector('.app-download-manager-items');
-        
+    async showWindow(event) {   
         const downloadManagerWindow = document.querySelector('.app-download-manager');
         if(downloadManagerWindow.style.display === 'none') {
             //create elements
             let downloadData = await this.loadDownloads();
-            console.log(`download data ${downloadData}`);
-
             downloadData.forEach((item) => {
-                console.log(`entry ${JSON.stringify(item)}`)
                 const divElement = document.createElement("div");
                 divElement.setAttribute('id', item.createDate);
+                divElement.setAttribute('class', 'app-download-manager-item');
     
                 const titleDiv = document.createElement("div");
                 titleDiv.textContent = item.fileName;
                 titleDiv.setAttribute('class', 'app-download-manager-item_title');
         
                 const buttonsDiv = document.createElement("div");
-                titleDiv.setAttribute('class', 'app-download-manager-item_buttons');
+                buttonsDiv.setAttribute('class', 'app-download-manager-item_buttons');
         
                 const actionDiv = document.createElement("div");
                 actionDiv.setAttribute('class', 'app-download-manager-item-button_action');
@@ -98,41 +99,18 @@ class DownloadManager {
         
                 divElement.appendChild(titleDiv);
                 divElement.appendChild(buttonsDiv);
-                downloadManagerItems.appendChild(divElement);
+                this.downloadManagerItems.appendChild(divElement);
                 
                 downloadManagerWindow.style.display = 'block'
+                this.downloadManagerWindowIsActive = true;
 
             });
-            
         } else {
             //delete elements
             downloadManagerWindow.style.display = 'none'
-            downloadManagerItems.innerHTML = '';
+            this.downloadManagerItems.innerHTML = '';
+            this.downloadManagerWindowIsActive = false;
         }
-        
-        
-/*
-<div>
-			<div class="title">
-				My Download title
-			</div>
-			<div class="app-download-manager_buttons">
-				<div class="app-download-manager_button_stop"></div>
-				<div class="app-download-manager_button_show"></div>
-			</div>
-        </div>
-        */
-
-       
-        /*this.addDownload("");
-        this.clearDownloads();
-        this.loadDownloads();*/
-        /*result.onsuccess = (e) => {
-            console.log(`load all data: ${JSON.stringify(e.target.result)}`);
-
-        }*/
-
-        
     }
 
     async loadDownloads() {
@@ -140,7 +118,6 @@ class DownloadManager {
             var store = this.getDownloadManagerStore('readonly');
             var result = store.getAll();
             result.onsuccess = (e) => {
-                //console.log(`event ${JSON.stringify(e)}  - result ${JSON.stringify(result.result)}`);
                 resolve(result.result, null);
             }
             result.onerror = (e) => {
@@ -176,7 +153,6 @@ class DownloadManager {
      * clear all not running downloads from databse
      */
     clearAllDbItems() {
-        console.log(`clearAllDbItems`);
         var store = this.getDownloadManagerStore('readwrite');
         var request = store.getAll();
         request.onsuccess = (e) => {
@@ -202,6 +178,11 @@ class DownloadManager {
         if(!this.downloadManagerButton.className.includes('active')) {
             this.downloadManagerButton.className = `${this.downloadManagerButton.className} ${this.downloadManagerButton.className}-active`
         }
+
+        //add item direct if downloadmanager is open
+        if(this.downloadManagerWindowIsActive) {
+            //add render method
+        }
         //save item to db
         this.saveDbItem(downloadItem);
     }
@@ -223,7 +204,6 @@ class DownloadManager {
         if(htmlElement.className.includes('active')) {
             //check if any other 
             const runningDownloads = await this.checkRunningDownloads();
-            console.log(`download is still running ${runningDownloads}`)
             if(!runningDownloads) {
                 htmlElement.className = `${htmlElement.className.split(' ')[0]}`
             }

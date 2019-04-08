@@ -68,49 +68,56 @@ class DownloadManager {
             //create elements
             let downloadData = await this.loadDownloads();
             downloadData.forEach((item) => {
-                const divElement = document.createElement("div");
-                divElement.setAttribute('id', item.createDate);
-                divElement.setAttribute('class', 'app-download-manager-item');
-    
-                const titleDiv = document.createElement("div");
-                titleDiv.textContent = item.fileName;
-                titleDiv.setAttribute('class', 'app-download-manager-item_title');
-        
-                const buttonsDiv = document.createElement("div");
-                buttonsDiv.setAttribute('class', 'app-download-manager-item_buttons');
-        
-                const actionDiv = document.createElement("div");
-                actionDiv.setAttribute('class', 'app-download-manager-item-button_action');
-                actionDiv.textContent = '×';
-                //item.fileState;
-                
-                const showDiv = document.createElement("div");
-                showDiv.setAttribute('class', 'app-download-manager-item-button_show');
-                
-                const showDivIcon = document.createElement("div");
-                showDivIcon.setAttribute('class','app-download-manager-item-button_show_icon')
-                showDivIcon.textContent = '⚲';
-                //item.filePath;
-        
-                showDiv.appendChild(showDivIcon);
-
-                buttonsDiv.appendChild(actionDiv);
-                buttonsDiv.appendChild(showDiv);
-        
-                divElement.appendChild(titleDiv);
-                divElement.appendChild(buttonsDiv);
-                this.downloadManagerItems.appendChild(divElement);
-                
-                downloadManagerWindow.style.display = 'block'
-                this.downloadManagerWindowIsActive = true;
-
+                const downloadManagerItem = this.createDownloadManagerItem(item);
+                this.downloadManagerItems.appendChild(downloadManagerItem);
             });
+            
+            downloadManagerWindow.style.display = 'block'
+            this.downloadManagerWindowIsActive = true;
         } else {
             //delete elements
             downloadManagerWindow.style.display = 'none'
             this.downloadManagerItems.innerHTML = '';
             this.downloadManagerWindowIsActive = false;
         }
+    }
+
+    /**
+     * create download manager item with all div's and data
+     */
+     createDownloadManagerItem(item) {
+        const divElement = document.createElement("div");
+        divElement.setAttribute('id', item.createDate);
+        divElement.setAttribute('class', 'app-download-manager-item');
+        const titleDiv = document.createElement("div");
+        titleDiv.textContent = item.fileName;
+        titleDiv.setAttribute('class', 'app-download-manager-item_title');
+
+        const buttonsDiv = document.createElement("div");
+        buttonsDiv.setAttribute('class', 'app-download-manager-item_buttons');
+
+        const actionDiv = document.createElement("div");
+        actionDiv.setAttribute('class', 'app-download-manager-item-button_action');
+        actionDiv.textContent = '×';
+        actionDiv.addEventListener('click', this.clearOneItem.bind(this), false);
+        //item.fileState;
+        
+        const showDiv = document.createElement("div");
+        showDiv.setAttribute('class', 'app-download-manager-item-button_show');
+        
+        const showDivIcon = document.createElement("div");
+        showDivIcon.setAttribute('class','app-download-manager-item-button_show_icon')
+        showDivIcon.textContent = '⚲';
+        //item.filePath;
+
+        showDiv.appendChild(showDivIcon)
+        buttonsDiv.appendChild(actionDiv);
+        buttonsDiv.appendChild(showDiv);
+
+        divElement.appendChild(titleDiv);
+        divElement.appendChild(buttonsDiv);
+        
+        return divElement;
     }
 
     async loadDownloads() {
@@ -166,6 +173,28 @@ class DownloadManager {
         }
     }
 
+    async clearDbItem(id) {
+        var store = this.getDownloadManagerStore('readwrite');
+        return store.delete(Number(id));
+    }
+
+    clearOneItem(event) {
+        console.log(`clear one item ${event.target.parentElement.parentElement.id}`);
+        const id = event.target.parentElement.parentElement.id;
+        if(id !== undefined) {
+            var request = await this.clearDbItem(id);
+            request.onsuccess = (e) => { 
+                //remove div from view if download manager was shown
+                if(this.downloadManagerWindowIsActive) {
+                    const deletedDownloadItemDiv = document.getElementById(id);
+                    if(deletedDownloadItemDiv !== undefined) {
+                        this.downloadManagerItems.removeChild(deletedDownloadItemDiv);
+                    }
+                }
+            };
+        }
+    }
+
     getDownloadManagerStore(mode) {
         var transaction = this.db.transaction(['download-manager'], mode);
         return transaction.objectStore('download-manager');
@@ -174,7 +203,7 @@ class DownloadManager {
     /**
      * download of item started, set downloadManagerButton to active
      */
-    downloadStarted(event, downloadItem) {
+    async downloadStarted(event, downloadItem) {
         if(!this.downloadManagerButton.className.includes('active')) {
             this.downloadManagerButton.className = `${this.downloadManagerButton.className} ${this.downloadManagerButton.className}-active`
         }
@@ -182,6 +211,8 @@ class DownloadManager {
         //add item direct if downloadmanager is open
         if(this.downloadManagerWindowIsActive) {
             //add render method
+            const downloadManagerItem = await this.createDownloadManagerItem(downloadItem);
+            this.downloadManagerItems.appendChild(downloadManagerItem);
         }
         //save item to db
         this.saveDbItem(downloadItem);

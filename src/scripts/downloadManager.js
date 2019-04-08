@@ -1,7 +1,5 @@
-import { EventEmitter } from 'events';
-import { remote, ipcRenderer } from 'electron';
+import { shell, ipcRenderer } from 'electron';
 import i18n from '../i18n';
-import { clearScreenDown } from 'readline';
 
 class DownloadManager {
 
@@ -100,15 +98,15 @@ class DownloadManager {
         actionDiv.setAttribute('class', 'app-download-manager-item-button_action');
         actionDiv.textContent = '×';
         actionDiv.addEventListener('click', this.clearOneItem.bind(this), false);
-        //item.fileState;
         
         const showDiv = document.createElement("div");
         showDiv.setAttribute('class', 'app-download-manager-item-button_show');
+        showDiv.setAttribute('path', item.filePath);
+        showDiv.addEventListener('click', this.showFile.bind(this), false);
         
         const showDivIcon = document.createElement("div");
         showDivIcon.setAttribute('class','app-download-manager-item-button_show_icon')
         showDivIcon.textContent = '⚲';
-        //item.filePath;
 
         showDiv.appendChild(showDivIcon)
         buttonsDiv.appendChild(actionDiv);
@@ -178,7 +176,7 @@ class DownloadManager {
         return store.delete(Number(id));
     }
 
-    clearOneItem(event) {
+    async clearOneItem(event) {
         console.log(`clear one item ${event.target.parentElement.parentElement.id}`);
         const id = event.target.parentElement.parentElement.id;
         if(id !== undefined) {
@@ -193,6 +191,12 @@ class DownloadManager {
                 }
             };
         }
+    }
+
+    async showFile(event) {
+        console.log('show file')
+        
+        shell.showItemInFolder(/*TODO*/);
     }
 
     getDownloadManagerStore(mode) {

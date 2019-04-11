@@ -194,9 +194,8 @@ class DownloadManager {
     }
 
     async showFile(event) {
-        console.log('show file')
-        
-        shell.showItemInFolder(/*TODO*/);
+        const fileDownloadFilePath = event.target.parentElement.attributes['path'].value;
+        shell.showItemInFolder(fileDownloadFilePath);
     }
 
     getDownloadManagerStore(mode) {

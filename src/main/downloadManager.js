@@ -9,8 +9,8 @@ async function willDownload(event, item, webContents) {
     const downloadFileName = `${app.getPath('downloads')}/${item.getFilename()}`
     
 	const downloadItem = {
-        fileSize: item.getTotalBytes(),
-        fileReceivedBytes: item.getReceivedBytes(),
+        fileSize: convertFormat(item.getTotalBytes()),
+        fileReceivedBytes: convertFormat(item.getReceivedBytes()),
 		    fileName: item.getFilename(),
 		    filePath: downloadFileName,
 		    fileType: item.getMimeType(),
@@ -30,7 +30,7 @@ async function willDownload(event, item, webContents) {
           if (item.isPaused()) {
             console.log('Download is paused')
           } else {
-            downloadItem.fileReceivedBytes = item.getReceivedBytes();
+            downloadItem.fileReceivedBytes = convertFormat(item.getReceivedBytes());
             mainWindow.webContents.send('download-manager-data-received',downloadItem);
           }
         }
@@ -46,6 +46,13 @@ async function willDownload(event, item, webContents) {
         }
       });
 }
+
+function convertFormat(fileBytes) {
+  const formats = ['Bytes', 'KB', 'MB']
+  const calcFormat =  Math.floor(Math.log(fileBytes) / Math.log(1024));
+  return `${parseFloat((fileBytes / Math.pow(1024, calcFormat)).toFixed(2))} ${formats[calcFormat]}`
+}
+
 
 export default {
 	initialize,

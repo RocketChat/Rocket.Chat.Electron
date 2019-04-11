@@ -1,5 +1,6 @@
 import { shell, ipcRenderer } from 'electron';
 import i18n from '../i18n';
+import { throws } from 'assert';
 
 class DownloadManager {
 
@@ -31,6 +32,7 @@ class DownloadManager {
             ;
         }
 
+        
         /**
          * set downloadmanager state
          */
@@ -62,7 +64,7 @@ class DownloadManager {
      */
     async showWindow(event) {   
         const downloadManagerWindow = document.querySelector('.app-download-manager');
-        if(downloadManagerWindow.style.display === 'none') {
+        if(downloadManagerWindow.style.display === 'none') {            
             //create elements
             let downloadData = await this.loadDownloads();
             downloadData.forEach((item) => {
@@ -91,6 +93,10 @@ class DownloadManager {
         titleDiv.textContent = item.fileName;
         titleDiv.setAttribute('class', 'app-download-manager-item_title');
 
+        const downloadDiv = document.createElement("div");
+        downloadDiv.textContent = `${item.fileReceivedBytes} of ${item.fileSize}`;
+        downloadDiv.setAttribute('class', 'app-download-manager-item_dl_state');
+
         const buttonsDiv = document.createElement("div");
         buttonsDiv.setAttribute('class', 'app-download-manager-item_buttons');
 
@@ -113,6 +119,7 @@ class DownloadManager {
         buttonsDiv.appendChild(showDiv);
 
         divElement.appendChild(titleDiv);
+        divElement.appendChild(downloadDiv);
         divElement.appendChild(buttonsDiv);
         
         return divElement;
@@ -271,8 +278,10 @@ class DownloadManager {
     }
 
     downloadDataReceived(event, downloadItem) {
-        //console.log(`download data rec ${JSON.stringify(downloadItem)}`);
-        //save in db?
+        if(this.downloadManagerWindowIsActive) {
+            const element = document.getElementById(downloadItem.createDate);
+            element.childNodes[1].innerHTML = `${downloadItem.fileReceivedBytes} of ${downloadItem.fileSize}`
+        }
     }
 
 

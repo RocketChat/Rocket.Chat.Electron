@@ -43,7 +43,7 @@ class SideBar extends EventEmitter {
 
 		this.node.querySelector('.sidebar__add-server').addEventListener('click', this.handleAddServerClick.bind(this), false);
 		this.node.querySelector('.sidebar__submenu-action').addEventListener('click', this.handleShowDownloadManager.bind(this), false);
-		
+
 		this.serverListElement = this.node.querySelector('.sidebar__server-list');
 
 		this.render();

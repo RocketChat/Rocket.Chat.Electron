@@ -221,7 +221,7 @@ export default () => {
 
 	sidebar.on('show-download-manger', () => {
 		downloadManager.showWindow(this);
-	})
+	});
 
 	sidebar.on('servers-sorted', (sorting) => {
 		localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));

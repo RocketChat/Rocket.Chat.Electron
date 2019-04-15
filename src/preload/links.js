@@ -1,4 +1,4 @@
-import { shell, remote, ipcRenderer } from 'electron';
+import { shell, remote } from 'electron';
 import { getSettings } from './rocketChat';
 
 

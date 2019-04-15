@@ -45,14 +45,14 @@
 		align-items: stretch;
 	}
 
-
 	.sidebar__submenu {
-		background-color: rgba(0, 0, 0, 0.1);
-		border-top: 1px solid;
-		border-top-color: rgba(0, 0, 0, 0.1);
 
 		display: flex;
 		flex-direction: column;
+
+		border-top: 1px solid;
+		border-top-color: rgba(0, 0, 0, 0.1);
+		background-color: rgba(0, 0, 0, 0.1);
 	}
 
 	.sidebar__list {
@@ -69,34 +69,40 @@
 	.sidebar__submenu-action {
 		display: flex;
 		flex-direction: row;
+
 		height: 20px;
-		cursor: pointer;
-		align-items: center;
-		justify-content: center;
-		border: none;
 		margin: 5px;
-		background-color:  rgba(0, 0, 0, 0.1);
+
+		cursor: pointer;
+
+		color: white;
+		border: none;
 		border-bottom: 1px solid;
 		border-bottom-color: rgba(0, 0, 0, 0.1);
-		color: white;
+		background-color: rgba(0, 0, 0, 0.1);
+		align-items: center;
+		justify-content: center;
 	}
 
 	.sidebar__submenu-action-active {
+		animation: pulse 2s infinite;
+
 		border-bottom: 1px solid;
 		border-bottom-color: aqua;
-		animation: pulse 2s infinite;
 	}
 
 	@keyframes pulse {
 		0% {
 			border-bottom-color: #8f221a;
-		  }
-		  50% {
+		}
+
+		50% {
 			border-bottom-color: #e43325;
-		  }
-		  100% {
+		}
+
+		100% {
 			border-bottom-color: #8f221a;
-		  }
+		}
 	}
 
 	.sidebar__action,
@@ -325,40 +331,43 @@
 }
 
 .app-download-manager {
-	z-index: 10;
 	position: absolute;
-	bottom: 0px;
+	z-index: 10;
+	bottom: 0;
 	left: 68px;
-	width: 400px;
-	height: 30%;
 
 	display: none;
 
+	overflow: scroll;
+	overflow-x: hidden;
+
+	width: 400px;
+	height: 30%;
+
 	color: #ffffff;
-	background-color: rgb(47, 52, 61);
 
 	border-left: 1px solid;
 	border-left-color: rgba(0, 0, 0, 0.1);
+	background-color: rgb(47, 52, 61);
 
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-
-	overflow: scroll; 
-	overflow-x:hidden
 }
 
 .app-download-manager-actions {
-	padding: 10px;
 	display: flex;
+
+	padding: 10px;
 	flex-flow: nowrap;
 }
 
 .app-download-manager-clear-action {
+	position: absolute;
+	right: 10px;
+
 	color: rgba(255, 255, 255, 0.85);
 	border: none;
 	border-radius: 2px;
 	background-color: #1d74f5;
-	position: absolute;
-	right: 10px;
 }
 
 .app-download-manager-items {
@@ -367,53 +376,65 @@
 
 .app-download-manager-item {
 	display: flex;
-	flex-flow: row wrap;
+
 	padding: 5px;
-	border-top: 1px solid;
+
 	border-color: rgba(0, 0, 0, 0.1);
+	border-top: 1px solid;
+	flex-flow: row wrap;
 }
 
 .app-download-manager-item_title {
-	color: #ffffff;
 	width: 310px;
 	height: 30px;
+
+	color: #ffffff;
+
 	line-height: 25px;
 }
 
 .app-download-manager-item_dl_state {
-	font-size: 0.5em;
 	width: 100%;
+
+	font-size: 0.5em;
 }
 
 .app-download-manager-item-button_show {
+	width: 20px;
+
+	text-align: center;
+
 	color: rgba(255, 255, 255, 0.85);
 	border: none;
 	border-radius: 2px;
 	background-color: #1d74f5;
-	width: 20px;
-	text-align: center;
-
 }
+
 .app-download-manager-item-button_show_icon {
-	transform: rotate(-45.0deg);
 	width: 20px;
+
+	transform: rotate(-45deg);
 	text-align: center;
 }
 
 .app-download-manager-item-button_action {
+	width: 20px;
+
+	text-align: center;
+
 	color: rgba(255, 255, 255, 0.85);
 	border: none;
 	border-radius: 2px;
 	background-color: #1d74f5;
-	width: 20px;
-	text-align: center;
 }
 
 .app-download-manager-item_buttons {
-	padding: 5px;
-	width: 70px;
 	position: absolute;
-	right: 0px;
+	right: 0;
+
 	display: flex;
+
+	width: 70px;
+	padding: 5px;
 	justify-content: space-around;
 }

@@ -149,6 +149,10 @@
     "sidebar": {
         "addNewServer": "Add new server",
         "showDownloadManager": "Show Download manager",
+        "downloadManager": {
+            "title": "Downloads",
+            "clear": "Clear all items"
+        },
         "item": {
             "reload": "Reload server",
             "remove": "Remove server",

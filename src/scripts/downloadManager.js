@@ -1,6 +1,5 @@
 import { shell, ipcRenderer } from 'electron';
 import i18n from '../i18n';
-import { throws } from 'assert';
 
 class DownloadManager {
 
@@ -44,11 +43,14 @@ class DownloadManager {
         this.downloadManagerItems = document.querySelector('.app-download-manager-items');
         this.downloadManagerWindow = document.querySelector('.app-download-manager');
         this.downloadManagerButton = document.querySelector('.sidebar__submenu-action');
-
+        this.downloadManagerTitle = document.querySelector('.app-download-manager-title');
+        this.downloadManagerTitle.innerHTML = i18n.__('sidebar.downloadManager.title');
         /**
          * downloadManager Button events
          */
-        this.downloadManagerClearDownloadsButton = document.querySelector('.app-download-manager-clear-action').addEventListener('click', this.clearAllDbItems.bind(this), false);
+        this.downloadManagerClearDownloadsButton = document.querySelector('.app-download-manager-clear-action')
+        this.downloadManagerClearDownloadsButton.addEventListener('click', this.clearAllDbItems.bind(this), false);
+        this.downloadManagerClearDownloadsButton.innerHTML = i18n.__('sidebar.downloadManager.clear');
         /**
          * event dispatcher 
          */

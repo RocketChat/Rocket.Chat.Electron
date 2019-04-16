@@ -64,20 +64,28 @@ const skipUpdateVersion = (version) => {
 	saveUpdateSettings();
 };
 
-const downloadUpdate = () => {
-	autoUpdater.downloadUpdate();
+const downloadUpdate = async() => {
+	try {
+		await autoUpdater.downloadUpdate();
+	} catch (e) {
+		autoUpdater.emit('error', e);
+	}
 };
 
 let checkForUpdatesEvent = null;
 
-const checkForUpdates = (e = null, { forced = false } = {}) => {
+const checkForUpdates = async(event = null, { forced = false } = {}) => {
 	if (checkForUpdatesEvent) {
 		return;
 	}
 
 	if ((forced || canAutoUpdate()) && canUpdate()) {
-		checkForUpdatesEvent = e;
-		autoUpdater.checkForUpdates();
+		checkForUpdatesEvent = event;
+		try {
+			await autoUpdater.checkForUpdates();
+		} catch (e) {
+			autoUpdater.emit('error', e);
+		}
 	}
 };
 
@@ -145,7 +153,11 @@ const handleUpdateDownloaded = async() => {
 
 	mainWindow.removeAllListeners();
 	app.removeAllListeners('window-all-closed');
-	autoUpdater.quitAndInstall();
+	try {
+		autoUpdater.quitAndInstall();
+	} catch (e) {
+		autoUpdater.emit('error', e);
+	}
 };
 
 const handleError = async(error) => {

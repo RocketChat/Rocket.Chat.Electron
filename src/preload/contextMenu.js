@@ -4,7 +4,7 @@ import { spellchecking } from './spellchecking';
 const { dialog, getCurrentWebContents, getCurrentWindow, Menu } = remote;
 
 
-const createSpellCheckingMenuTemplate = async({
+const createSpellCheckingMenuTemplate = async ({
 	isEditable,
 	selectionText,
 }) => {
@@ -15,7 +15,7 @@ const createSpellCheckingMenuTemplate = async({
 	const corrections = spellchecking.getCorrections(selectionText);
 
 	const handleBrowserForLanguage = () => {
-		const callback = async(filePaths) => {
+		const callback = async (filePaths) => {
 			try {
 				await spellchecking.installDictionaries(filePaths);
 			} catch (error) {
@@ -187,7 +187,7 @@ const createDefaultMenuTemplate = ({
 	},
 ];
 
-const createMenuTemplate = async(params) => [
+const createMenuTemplate = async (params) => [
 	...(await createSpellCheckingMenuTemplate(params)),
 	...(await createImageMenuTemplate(params)),
 	...(await createLinkMenuTemplate(params)),
@@ -197,7 +197,7 @@ const createMenuTemplate = async(params) => [
 export default () => {
 	getCurrentWebContents().on('context-menu', (event, params) => {
 		event.preventDefault();
-		(async() => {
+		(async () => {
 			const menu = Menu.buildFromTemplate(await createMenuTemplate(params));
 			menu.popup({ window: getCurrentWindow() });
 		})();

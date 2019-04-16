@@ -64,7 +64,7 @@ const skipUpdateVersion = (version) => {
 	saveUpdateSettings();
 };
 
-const downloadUpdate = async() => {
+const downloadUpdate = async () => {
 	try {
 		await autoUpdater.downloadUpdate();
 	} catch (e) {
@@ -74,7 +74,7 @@ const downloadUpdate = async() => {
 
 let checkForUpdatesEvent = null;
 
-const checkForUpdates = async(event = null, { forced = false } = {}) => {
+const checkForUpdates = async (event = null, { forced = false } = {}) => {
 	if (checkForUpdatesEvent) {
 		return;
 	}
@@ -89,7 +89,7 @@ const checkForUpdates = async(event = null, { forced = false } = {}) => {
 	}
 };
 
-const sendToMainWindow = async(channel, ...args) => {
+const sendToMainWindow = async (channel, ...args) => {
 	const mainWindow = await getMainWindow();
 	const send = () => mainWindow.send(channel, ...args);
 
@@ -126,7 +126,7 @@ const handleUpdateNotAvailable = () => {
 	}
 };
 
-const handleUpdateDownloaded = async() => {
+const handleUpdateDownloaded = async () => {
 	const mainWindow = await getMainWindow();
 
 	const response = dialog.showMessageBox(mainWindow, {
@@ -160,7 +160,7 @@ const handleUpdateDownloaded = async() => {
 	}
 };
 
-const handleError = async(error) => {
+const handleError = async (error) => {
 	sendToMainWindow('update-error', error);
 
 	if (checkForUpdatesEvent) {

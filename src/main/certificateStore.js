@@ -15,7 +15,7 @@ class CertificateStore {
 		// Don't ask twice for same cert if loading multiple urls
 		this.queued = {};
 
-		app.on('certificate-error', async(event, webContents, certificateUrl, error, certificate, callback) => {
+		app.on('certificate-error', async (event, webContents, certificateUrl, error, certificate, callback) => {
 			event.preventDefault();
 
 			if (this.isTrusted(certificateUrl, certificate)) {
@@ -45,7 +45,7 @@ class CertificateStore {
 					i18n.__('dialog.certificateError.no'),
 				],
 				cancelId: 1,
-			}, async(response) => {
+			}, async (response) => {
 				if (response === 0) {
 					this.add(certificateUrl, certificate);
 					await this.save();

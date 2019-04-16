@@ -26,7 +26,7 @@ function parseCommandLineArguments(args) {
 			return `${ insecure === 'true' ? 'http' : 'https' }://${ hostname }${ pathname || '' }`;
 		})
 		.slice(0, 1)
-		.forEach(async(serverUrl) => {
+		.forEach(async (serverUrl) => {
 			const mainWindow = await getMainWindow();
 			mainWindow.send('add-host', serverUrl);
 		});
@@ -79,7 +79,7 @@ async function prepareApp() {
 	});
 }
 
-(async() => {
+(async () => {
 	await prepareApp();
 	await app.whenReady();
 	await i18n.initialize();

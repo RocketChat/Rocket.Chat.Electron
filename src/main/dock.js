@@ -27,7 +27,7 @@ const destroy = () => {
 	instance.removeAllListeners();
 };
 
-const update = async(previousState) => {
+const update = async (previousState) => {
 	const mainWindow = await getMainWindow();
 
 	if (process.platform === 'darwin') {

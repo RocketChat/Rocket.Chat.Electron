@@ -2,82 +2,74 @@ import { ipcRenderer } from 'electron';
 import { getMeteor, getTracker, getGetUserPreference, getUserPresence } from './rocketChat';
 
 
-let idleDetectionInterval;
-let maximumIdleTime;
-let wasUserPresent = false;
-let autoAwayEnabled = false;
-let intervalHandler;
+const pollUserPresence = (UserPresence, maximumIdleTime) => {
+	let wasUserPresent = false;
 
-function setUserPresence(isUserPresent) {
-	const UserPresence = getUserPresence();
+	return () => {
+		let isUserPresent = true;
 
-	if (!UserPresence) {
-		return;
-	}
+		try {
+			const idleTime = ipcRenderer.sendSync('request-system-idle-time');
+			isUserPresent = idleTime < maximumIdleTime;
 
-	if (isUserPresent) {
-		UserPresence.setOnline();
-	} else {
-		UserPresence.setAway();
-	}
-}
+			if (isUserPresent === wasUserPresent) {
+				return;
+			}
 
-function pollUserPresence() {
-	let isUserPresent = true;
-
-	try {
-		const idleTime = ipcRenderer.sendSync('request-system-idle-time');
-		isUserPresent = idleTime < maximumIdleTime;
-		const changed = isUserPresent !== wasUserPresent;
-
-		if (autoAwayEnabled && changed) {
-			setUserPresence(isUserPresent);
-			return;
+			if (isUserPresent) {
+				UserPresence.setOnline();
+			} else {
+				UserPresence.setAway();
+			}
+		} catch (error) {
+			console.error(error);
+		} finally {
+			wasUserPresent = isUserPresent;
 		}
+	};
+};
 
-		if (!autoAwayEnabled && isUserPresent) {
-			setUserPresence(isUserPresent);
-			return;
-		}
-	} catch (error) {
-		console.error(error);
-	} finally {
-		wasUserPresent = isUserPresent;
-	}
-}
-
-function handleUserPresence() {
+const handleUserPresence = () => {
 	const Meteor = getMeteor();
 	const Tracker = getTracker();
 	const getUserPreference = getGetUserPreference();
+	const UserPresence = getUserPresence();
 
-	if (!Meteor || !Tracker || !getUserPreference) {
+	if (!Meteor || !Tracker || !getUserPreference || !UserPresence) {
 		return;
 	}
 
+	let intervalID;
+
 	Tracker.autorun(() => {
-		if (!Meteor.userId()) {
+		if (intervalID) {
+			clearInterval(intervalID);
+			intervalID = null;
+		}
+
+		const uid = Meteor.userId();
+
+		if (!uid) {
 			return;
 		}
 
-		const userId = Meteor.userId();
-		autoAwayEnabled = getUserPreference(userId, 'enableAutoAway');
+		delete UserPresence.awayTime;
+		UserPresence.start();
 
-		if (autoAwayEnabled) {
-			idleDetectionInterval = 1 * 1000;
-			maximumIdleTime = (getUserPreference(userId, 'idleTimeLimit') || 300) * 1000;
-		} else {
-			idleDetectionInterval = 10 * 1000;
-			maximumIdleTime = 10 * 1000;
+		const isAutoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
+
+		if (!isAutoAwayEnabled) {
+			UserPresence.setOnline();
+			return;
 		}
 
-		if (intervalHandler) {
-			clearInterval(intervalHandler);
-		}
+		const maximumIdleTime = (getUserPreference(uid, 'idleTimeLimit') || 300) * 1000;
+		const idleTimeDetectionInterval = maximumIdleTime / 2;
+		const callback = pollUserPresence(UserPresence, maximumIdleTime);
 
-		intervalHandler = setInterval(pollUserPresence, idleDetectionInterval);
+		intervalID = setInterval(callback, idleTimeDetectionInterval);
 	});
-}
+};
 
 
 export default () => {

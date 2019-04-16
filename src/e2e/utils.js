@@ -4,7 +4,7 @@ import { Application } from 'spectron';
 export let app = null;
 let logFetchInterval = null;
 
-const fetchLogs = async() => {
+const fetchLogs = async () => {
 	const logs = await app.client.getMainProcessLogs();
 	logs.forEach((log) => console.log(log));
 };

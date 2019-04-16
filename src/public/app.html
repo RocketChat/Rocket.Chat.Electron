@@ -6,13 +6,6 @@
 	<link rel="stylesheet" href="../stylesheets/main.css">
 	<script>
 		window.addEventListener('load', () => {
-			const i18n = require('../i18n');
-			document.querySelector('.add-server .tooltip').innerHTML = i18n.__('sidebar.addNewServer');
-			document.querySelector('#login-card .connect__prompt').innerHTML = i18n.__('landing.inputUrl');
-			document.querySelector('#login-card #invalidUrl').innerHTML = i18n.__('error.noValidServerFound');
-			document.querySelector('#login-card .connect__error').innerHTML = i18n.__('error.offline');
-			document.querySelector('#login-card .login').innerHTML = i18n.__('landing.connect');
-
 			const script = document.createElement('script');
 			script.src = '../app.js';
 			document.body.appendChild(script);
@@ -21,14 +14,13 @@
 </head>
 <body class="app-page app-page--loading">
 	<div class="sidebar sidebar--hidden">
-		<ul id="sidebar__servers">
-		</ul>
-		<ul>
-			<li class="add-server">
-				<span>+</span>
-				<div class="tooltip">Add new server</div>
-			</li>
-		</ul>
+		<div class="sidebar__inner">
+			<ol class="sidebar__list sidebar__server-list">
+			</ol>
+			<button class="sidebar__action sidebar__add-server" data-tooltip="Add server">
+				<span class="sidebar__action-label">+</span>
+			</button>
+		</div>
 	</div>
 
 	<section class="landing-page">

@@ -21,7 +21,7 @@ gulp.task('release:linux', async() => {
 
 gulp.task('release:win32', async() => {
 	const publish = getEnv() === 'production' ? 'onTagOrDraft' : 'never';
-	await build({ publish, x64, ia32, win: ['nsis', 'appx'] });
+	await build({ publish, x64, ia32, win: [] });
 });
 
 gulp.task('release', gulp.series('build', `release:${ process.platform }`));

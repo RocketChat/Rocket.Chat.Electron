@@ -2,7 +2,7 @@ import jetpack from 'fs-jetpack';
 import { EventEmitter } from 'events';
 import { remote, ipcRenderer } from 'electron';
 import i18n from '../i18n';
-const { remoteServers } = remote.require('./background');
+
 
 class Servers extends EventEmitter {
 	constructor() {
@@ -13,6 +13,7 @@ class Servers extends EventEmitter {
 			this.showHostConfirmation(processProtocol);
 		}
 		ipcRenderer.on('add-host', (e, host) => {
+			ipcRenderer.send('focus');
 			if (this.hostExists(host)) {
 				this.setActive(host);
 			} else {
@@ -104,7 +105,7 @@ class Servers extends EventEmitter {
 		}
 
 		this._hosts = hosts;
-		remoteServers.loadServers(this._hosts);
+		ipcRenderer.send('update-servers', this._hosts);
 		this.emit('loaded');
 	}
 
@@ -178,7 +179,7 @@ class Servers extends EventEmitter {
 		};
 		this.hosts = hosts;
 
-		remoteServers.loadServers(this.hosts);
+		ipcRenderer.send('update-servers', this._hosts);
 
 		this.emit('host-added', hostUrl);
 
@@ -191,7 +192,7 @@ class Servers extends EventEmitter {
 			delete hosts[hostUrl];
 			this.hosts = hosts;
 
-			remoteServers.loadServers(this.hosts);
+			ipcRenderer.send('update-servers', this._hosts);
 
 			if (this.active === hostUrl) {
 				this.clearActive();
@@ -201,7 +202,8 @@ class Servers extends EventEmitter {
 	}
 
 	get active() {
-		return localStorage.getItem(this.activeKey);
+		const active = localStorage.getItem(this.activeKey);
+		return active === 'null' ? null : active;
 	}
 
 	setActive(hostUrl) {

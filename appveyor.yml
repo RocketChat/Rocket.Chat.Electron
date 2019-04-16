@@ -18,6 +18,10 @@ branches:
     - /^release\/.*$/
 
 install:
+  - ps: |
+      $tmp = New-TemporaryFile
+      [Convert]::FromBase64String($env:CSC_LINK) | Set-Content ($tmp.FullName + ".p12") -Encoding Byte
+      $env:CSC_LINK = ($tmp.FullName + ".p12")
   - ps: Install-Product node $env:nodejs_version $env:platform
   - set CI=true
   - yarn

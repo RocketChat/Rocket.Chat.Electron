@@ -64,24 +64,32 @@ const skipUpdateVersion = (version) => {
 	saveUpdateSettings();
 };
 
-const downloadUpdate = () => {
-	autoUpdater.downloadUpdate();
+const downloadUpdate = async () => {
+	try {
+		await autoUpdater.downloadUpdate();
+	} catch (e) {
+		autoUpdater.emit('error', e);
+	}
 };
 
 let checkForUpdatesEvent = null;
 
-const checkForUpdates = (e = null, { forced = false } = {}) => {
+const checkForUpdates = async (event = null, { forced = false } = {}) => {
 	if (checkForUpdatesEvent) {
 		return;
 	}
 
 	if ((forced || canAutoUpdate()) && canUpdate()) {
-		checkForUpdatesEvent = e;
-		autoUpdater.checkForUpdates();
+		checkForUpdatesEvent = event;
+		try {
+			await autoUpdater.checkForUpdates();
+		} catch (e) {
+			autoUpdater.emit('error', e);
+		}
 	}
 };
 
-const sendToMainWindow = async(channel, ...args) => {
+const sendToMainWindow = async (channel, ...args) => {
 	const mainWindow = await getMainWindow();
 	const send = () => mainWindow.send(channel, ...args);
 
@@ -118,7 +126,7 @@ const handleUpdateNotAvailable = () => {
 	}
 };
 
-const handleUpdateDownloaded = async() => {
+const handleUpdateDownloaded = async () => {
 	const mainWindow = await getMainWindow();
 
 	const response = dialog.showMessageBox(mainWindow, {
@@ -145,10 +153,14 @@ const handleUpdateDownloaded = async() => {
 
 	mainWindow.removeAllListeners();
 	app.removeAllListeners('window-all-closed');
-	autoUpdater.quitAndInstall();
+	try {
+		autoUpdater.quitAndInstall();
+	} catch (e) {
+		autoUpdater.emit('error', e);
+	}
 };
 
-const handleError = async(error) => {
+const handleError = async (error) => {
 	sendToMainWindow('update-error', error);
 
 	if (checkForUpdatesEvent) {
@@ -172,3 +184,5 @@ ipcMain.on('check-for-updates', (e, ...args) => checkForUpdates(e, ...args));
 ipcMain.on('skip-update-version', (e, ...args) => skipUpdateVersion(...args));
 ipcMain.on('remind-update-later', () => {});
 ipcMain.on('download-update', () => downloadUpdate());
+
+app.once('start', () => ipcMain.emit('check-for-updates'));

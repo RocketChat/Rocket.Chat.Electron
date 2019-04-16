@@ -1,4 +1,4 @@
-import { app, Menu } from 'electron';
+import { app, Menu, webContents } from 'electron';
 import { EventEmitter } from 'events';
 import { getMainWindow } from './mainWindow';
 import i18n from '../i18n';
@@ -72,12 +72,12 @@ const createTemplate = ({
 			{
 				label: i18n.__('menus.undo'),
 				accelerator: 'CommandOrControl+Z',
-				role: 'undo',
+				click: () => webContents.getFocusedWebContents().undo(),
 			},
 			{
 				label: i18n.__('menus.redo'),
 				accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
-				role: 'redo',
+				click: () => webContents.getFocusedWebContents().redo(),
 			},
 			{
 				type: 'separator',
@@ -340,6 +340,6 @@ const unsetDefaultApplicationMenu = () => {
 	Menu.setApplicationMenu(Menu.buildFromTemplate(emptyMenuTemplate));
 };
 
-app.on('ready', unsetDefaultApplicationMenu);
+app.once('start', unsetDefaultApplicationMenu);
 
 export default new Menus();

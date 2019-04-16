@@ -8,7 +8,7 @@ const { beforeEach, describe, it } = global;
 describe('menus', () => {
 	let menu;
 
-	beforeEach(async() => {
+	beforeEach(async () => {
 		await menus.update();
 		menu = Menu.getApplicationMenu();
 	});

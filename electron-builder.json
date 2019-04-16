@@ -19,7 +19,7 @@
       "mas"
     ],
     "icon": "build/icon.icns",
-    "bundleVersion": "47",
+    "bundleVersion": "48",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
 		"artifactName": "rocketchat-${version}.${ext}",
@@ -55,8 +55,7 @@
   },
   "win": {
     "target": [
-      "nsis",
-      "appx"
+      "nsis"
     ],
     "icon": "build/icon.ico"
   },

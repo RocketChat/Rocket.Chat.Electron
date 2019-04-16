@@ -1,3 +1,22 @@
+<a name="2.15.2"></a>
+## 2.15.2 (2019-04-16)
+
+
+### Bug Fixes
+
+- [#1188](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1188) Apply workaround for undo and redo actions
+- [#1189](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1189) Multiple language selection on spellchecking
+- [#1164](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1164) Only set user presence as online when auto away detection is disabled
+- [#1125](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1125) Sidebar and badges
+- [#1187](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1187) Update crashes when host is unreachable
+
+
+### New Features
+
+- [#1157](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1157) Add Traditional Chinese translation
+
+
+
 <a name="2.15.1"></a>
 ## 2.15.1 (2019-03-13)
 

@@ -1,4 +1,4 @@
-Rocket.Chat Desktop App 
+Rocket.Chat Desktop App
 ===============================================================================
 
 [![Build Status](https://img.shields.io/travis/RocketChat/Rocket.Chat.Electron/master.svg?logo=travis)](https://travis-ci.org/RocketChat/Rocket.Chat.Electron)
@@ -27,7 +27,7 @@ On Windows you can run a silent install by adding the `/S` flag. You can also ad
 - `/S` - Silent install
 - `/allusers` - Install for all users (requires admin)
 - `/currentuser` - Install for current user only (default)
-- `/disableAutoUpdates` - Disable autoupdates (Application will not update automatically / User can't update via dialog )
+- `/disableAutoUpdates` - Disable autoupdates (Application will not update automatically / User can't update via dialog)
 
 # Development
 
@@ -51,15 +51,15 @@ yarn start
 
 ## Structure of the project
 
-The sources is located in the `src` folder. Everything in this folder will be built automatically when running the app with `yarn start`.
+The source is located in the `src` folder. Everything in this folder will be built automatically when running the app with `yarn start`.
 
-Stylesheets are written in `less` and are located in `src/stylesheets`. They will be build into a single `main.css` in the `app` folder.
+Stylesheets are written in `less` and are located in `src/stylesheets`. They will be built into a single `main.css` in the `app` folder.
 
 The build process compiles all stuff from the `src` folder and puts it into the `app` folder, so after the build has finished, your `app` folder contains the full, runnable application.
 
 ## The build pipeline
 
-Build process is founded upon [gulp](https://github.com/gulpjs/gulp) task runner and [rollup](https://github.com/rollup/rollup) bundler. There are two entry files for your code: `src/background.js` and `src/app.js`. Rollup will follow all `import` statements starting from those files and compile code of the whole dependency tree into one `.js` file for each entry point.
+Build process is founded upon [gulp](https://github.com/gulpjs/gulp) task runner and [rollup](https://github.com/rollup/rollup) bundler. There are two entry files for your code: `src/main.js` and `src/app.js`. Rollup will follow all `import` statements starting from those files and compile code of the whole dependency tree into one `.js` file for each entry point.
 
 
 ### Adding node modules

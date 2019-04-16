@@ -6,19 +6,22 @@ import setTouchBar from './touchBar';
 
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, dock, menus, tray } = remote.require('./background');
+const { certificate, dock, menus, tray } = remote.require('./main');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();
+	const showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
 	const hasTrayIcon = localStorage.getItem('hideTray') ?
 		localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux');
+	const hasMenuBar = localStorage.getItem('autohideMenu') !== 'true';
+	const hasSidebar = localStorage.getItem('sidebar-closed') !== 'true';
 
 	menus.setState({
 		showTrayIcon: hasTrayIcon,
 		showFullScreen: mainWindow.isFullScreen(),
-		showWindowOnUnreadChanged: localStorage.getItem('showWindowOnUnreadChanged') === 'true',
-		showMenuBar: localStorage.getItem('autohideMenu') !== 'true',
-		showServerList: localStorage.getItem('sidebar-closed') !== 'true',
+		showWindowOnUnreadChanged,
+		showMenuBar: hasMenuBar,
+		showServerList: hasSidebar,
 	});
 
 	tray.setState({
@@ -28,15 +31,29 @@ const updatePreferences = () => {
 	dock.setState({
 		hasTrayIcon,
 	});
+
+	sidebar.setState({
+		visible: hasSidebar,
+	});
+
+	webview.setSidebarPaddingEnabled(!hasSidebar);
 };
 
 
 const updateServers = () => {
+	const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+
 	menus.setState({
 		servers: Object.values(servers.hosts)
-			.sort((a, b) => (sidebar ? (sidebar.sortOrder.indexOf(a.url) - sidebar.sortOrder.indexOf(b.url)) : 0))
+			.sort(({ url: a }, { url: b }) => (sidebar ? (sorting.indexOf(a) - sorting.indexOf(b)) : 0))
 			.map(({ title, url }) => ({ title, url })),
 		currentServerUrl: servers.active,
+	});
+
+	sidebar.setState({
+		hosts: servers.hosts,
+		sorting,
+		active: servers.active,
 	});
 };
 
@@ -58,6 +75,7 @@ const destroyAll = () => {
 
 export default () => {
 	window.addEventListener('beforeunload', destroyAll);
+	window.addEventListener('focus', () => webview.focusActive());
 
 	menus.on('quit', () => app.quit());
 	menus.on('about', () => ipcRenderer.send('open-about-dialog'));
@@ -138,7 +156,9 @@ export default () => {
 			}
 
 			case 'showServerList': {
-				sidebar.toggle();
+				const previousValue = localStorage.getItem('sidebar-closed') !== 'true';
+				const newValue = !previousValue;
+				localStorage.setItem('sidebar-closed', JSON.stringify(!newValue));
 				break;
 			}
 		}
@@ -146,18 +166,61 @@ export default () => {
 		updatePreferences();
 	});
 
-	servers.on('loaded', updateServers);
-	servers.on('active-cleared', updateServers);
-	servers.on('active-setted', updateServers);
-	servers.on('host-added', updateServers);
-	servers.on('host-removed', updateServers);
-	servers.on('title-setted', updateServers);
-	sidebar.on('hosts-sorted', updateServers);
+	servers.on('loaded', () => {
+		webview.loaded();
+		updateServers();
+	});
 
-	sidebar.on('badge-setted', () => {
-		const badge = sidebar.getGlobalBadge();
-		tray.setState({ badge });
-		dock.setState({ badge });
+	servers.on('host-added', (hostUrl) => {
+		webview.add(servers.get(hostUrl));
+		updateServers();
+	});
+
+	servers.on('host-removed', (hostUrl) => {
+		webview.remove(hostUrl);
+		servers.clearActive();
+		webview.showLanding();
+		updateServers();
+	});
+
+	servers.on('active-setted', (hostUrl) => {
+		webview.setActive(hostUrl);
+		updateServers();
+	});
+
+	servers.on('active-cleared', (hostUrl) => {
+		webview.deactiveAll(hostUrl);
+		updateServers();
+	});
+
+	servers.on('title-setted', () => {
+		updateServers();
+	});
+
+	sidebar.on('select-server', (hostUrl) => {
+		servers.setActive(hostUrl);
+	});
+
+	sidebar.on('reload-server', (hostUrl) => {
+		webview.getByUrl(hostUrl).reload();
+	});
+
+	sidebar.on('remove-server', (hostUrl) => {
+		servers.removeHost(hostUrl);
+	});
+
+	sidebar.on('open-devtools-for-server', (hostUrl) => {
+		webview.getByUrl(hostUrl).openDevTools();
+	});
+
+	sidebar.on('add-server', () => {
+		servers.clearActive();
+		webview.showLanding();
+	});
+
+	sidebar.on('servers-sorted', (sorting) => {
+		localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));
+		updateServers();
 	});
 
 	getCurrentWindow().on('hide', updateWindowState);
@@ -170,8 +233,8 @@ export default () => {
 	tray.on('quit', () => app.quit());
 
 
-	webview.on('ipc-message-unread-changed', (hostUrl, [count]) => {
-		if (typeof count === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {
+	webview.on('ipc-message-unread-changed', (hostUrl, [badge]) => {
+		if (typeof unread === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {
 			const mainWindow = remote.getCurrentWindow();
 			if (!mainWindow.isFocused()) {
 				mainWindow.once('focus', () => mainWindow.flashFrame(false));
@@ -179,16 +242,57 @@ export default () => {
 				mainWindow.flashFrame(true);
 			}
 		}
+
+		sidebar.setState({
+			badges: {
+				...sidebar.state.badges,
+				[hostUrl]: badge || null,
+			},
+		});
+
+		const mentionCount = Object.values(sidebar.state.badges)
+			.filter((badge) => Number.isInteger(badge))
+			.reduce((sum, count) => sum + count, 0);
+		const globalBadge = mentionCount ||
+			(Object.values(sidebar.state.badges).some((badge) => !!badge) && '•') ||
+			null;
+
+		tray.setState({ badge: globalBadge });
+		dock.setState({ badge: globalBadge });
+	});
+
+	webview.on('ipc-message-title-changed', (hostUrl, [title]) => {
+		servers.setHostTitle(hostUrl, title);
+	});
+
+	webview.on('ipc-message-focus', (hostUrl) => {
+		servers.setActive(hostUrl);
+	});
+
+	webview.on('ipc-message-sidebar-style', (hostUrl, [style]) => {
+		sidebar.setState({
+			styles: {
+				...sidebar.state.styles,
+				[hostUrl]: style || null,
+			},
+		});
+	});
+
+	webview.on('dom-ready', () => {
+		const hasSidebar = localStorage.getItem('sidebar-closed') !== 'true';
+		sidebar.setState({
+			visible: hasSidebar,
+		});
+		webview.setSidebarPaddingEnabled(!hasSidebar);
 	});
 
 	if (process.platform === 'darwin') {
 		setTouchBar();
 	}
 
-
 	servers.restoreActive();
+	sidebar.mount();
 	updatePreferences();
 	updateServers();
 	updateWindowState();
-
 };

@@ -62,16 +62,15 @@ class SpellCheck {
 		}
 	}
 
-	filterDictionaries(...dictionaries) {
-		return dictionaries.map((dictionary) => {
-			const matches = /^(\w+?)[-_](\w+)$/.exec(dictionary);
-
-			const dictionaries = matches ?
-				[`${ matches[1] }_${ matches[2] }`, `${ matches[1] }-${ matches[2] }`, matches[1]] :
-				[dictionary];
-
-			return dictionaries.find((dictionary) => this.dictionaries.includes(dictionary));
-		}).filter(Boolean);
+	filterDictionaries(dictionaries) {
+		return dictionaries
+			.flatMap((dictionary) => {
+				const matches = /^(\w+?)[-_](\w+)$/.exec(dictionary);
+				return matches ?
+					[`${ matches[1] }_${ matches[2] }`, `${ matches[1] }-${ matches[2] }`, matches[1]] :
+					[dictionary];
+			})
+			.filter((dictionary) => this.dictionaries.includes(dictionary));
 	}
 
 	enable(...dictionaries) {
@@ -130,7 +129,7 @@ class SpellCheck {
 			);
 
 			this.checker = mem(
-				((dictionaries, text) => dictionaries.every((dictionary) => singleDictionaryChecker(dictionary, text)))
+				((dictionaries, text) => dictionaries.some((dictionary) => singleDictionaryChecker(dictionary, text)))
 					.bind(null, this.enabledDictionaries)
 			);
 		} finally {

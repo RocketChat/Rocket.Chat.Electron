@@ -4,7 +4,7 @@ const bundle = require('./bundle');
 const getEnv = require('./env');
 
 
-gulp.task('test:build', async() => {
+gulp.task('test:build', async () => {
 	const env = getEnv();
 	await bundle.many('src', 'main/*.spec.js', 'app/main.specs.js', { env });
 	await bundle.many('src', ['*.spec.js', '!main/*.spec.js'], 'app/renderer.specs.js', { env });

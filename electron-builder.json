@@ -1,7 +1,6 @@
 {
 	"files": [
 		"app/**/*",
-		"node_modules/**/*",
 		"package.json"
 	],
 	"extraResources": [

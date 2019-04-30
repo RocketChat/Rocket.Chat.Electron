@@ -1,9 +1,8 @@
 import { app } from 'electron';
-import querystring from 'querystring';
-import url from 'url';
 import appData from './main/appData';
 import downloadManager from './main/downloadManager';
 import './main/basicAuth';
+import { processDeepLink } from './main/deepLinks';
 import './main/systemIdleTime';
 import './main/updates';
 import { getMainWindow } from './main/mainWindow';
@@ -17,21 +16,6 @@ export { default as tray } from './main/tray';
 export { default as notifications } from './main/notifications';
 export { default as certificate } from './main/certificateStore';
 
-
-function parseCommandLineArguments(args) {
-	args
-		.filter((arg) => /^rocketchat:\/\/./.test(arg))
-		.map((uri) => url.parse(uri))
-		.map(({ hostname, pathname, query }) => {
-			const { insecure } = querystring.parse(query);
-			return `${ insecure === 'true' ? 'http' : 'https' }://${ hostname }${ pathname || '' }`;
-		})
-		.slice(0, 1)
-		.forEach(async(serverUrl) => {
-			const mainWindow = await getMainWindow();
-			mainWindow.send('add-host', serverUrl);
-		});
-}
 
 function handleUncaughtException(error) {
 	console.error(error);
@@ -72,20 +56,20 @@ async function prepareApp() {
 
 	app.on('open-url', (event, url) => {
 		event.preventDefault();
-		parseCommandLineArguments([url]);
+		processDeepLink(url);
 	});
 
 	app.on('second-instance', (event, argv) => {
-		parseCommandLineArguments(argv.slice(2));
+		argv.slice(2).forEach(processDeepLink);
 	});
 }
 
-(async() => {
+(async () => {
 	await prepareApp();
 	await app.whenReady();
 	await i18n.initialize();
 	app.emit('start');
 	await getMainWindow();
 	await downloadManager.initialize();
-	parseCommandLineArguments(process.argv.slice(2));
+	process.argv.slice(2).forEach(processDeepLink);
 })();

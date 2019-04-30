@@ -51,7 +51,7 @@ async function attachWindowStateHandling(mainWindow) {
 	mainWindow.on('resize', () => windowStateHandler.fetchAndSave());
 	mainWindow.on('move', () => windowStateHandler.fetchAndSave());
 	mainWindow.on('show', () => windowStateHandler.fetchAndSave());
-	mainWindow.on('close', async(event) => {
+	mainWindow.on('close', async (event) => {
 		if (!mainWindow) {
 			return;
 		}

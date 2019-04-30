@@ -93,7 +93,7 @@ class SideBar extends EventEmitter {
 				.replace(url, parseUrl(url).hostname)
 				.split(/[^A-Za-z0-9]+/g)
 				.slice(0, 2)
-				.map((text) => text[0].toUpperCase())
+				.map((text) => text.slice(0, 1).toUpperCase())
 				.join('')
 		);
 		const bustingParam = Math.round(Date.now() / faviconCacheBustingTime);

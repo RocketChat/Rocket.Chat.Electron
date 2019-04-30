@@ -5,14 +5,14 @@ const toIco = require('to-ico');
 const icnsConvert = require('@fiahfy/icns-convert');
 
 
-gulp.task('icons:clean', async() => {
+gulp.task('icons:clean', async () => {
 	await jetpack.removeAsync('src/public/images/tray/darwin');
 	await jetpack.removeAsync('src/public/images/tray/darwin-dark');
 	await jetpack.removeAsync('src/public/images/tray/linux');
 	await jetpack.removeAsync('src/public/images/tray/win32');
 });
 
-const createDarwinTrayIcon = ({ src, dest, dark = false }) => async() => {
+const createDarwinTrayIcon = ({ src, dest, dark = false }) => async () => {
 	const svg = (await jetpack.readAsync(`src/icons/${ dark ? 'white' : 'black' }/${ src }.svg`))
 		.replace('viewBox="0 0 64 64"', 'viewBox="0 0 64 64" transform="scale(0.8)"');
 
@@ -31,7 +31,7 @@ gulp.task('icons:darwin-dark:default', createDarwinTrayIcon({ src: 'default', de
 gulp.task('icons:darwin-dark:notification', createDarwinTrayIcon({ src: 'notification-dot', dest: 'notification', dark: true }));
 gulp.task('icons:darwin-dark', gulp.series('icons:darwin-dark:default', 'icons:darwin-dark:notification'));
 
-const createLinuxTrayIcon = ({ src, dest }) => async() => {
+const createLinuxTrayIcon = ({ src, dest }) => async () => {
 	const svg = await jetpack.readAsync(`src/icons/grey/${ src }.svg`);
 
 	const png24 = await convert(svg, { width: 64, height: 64 });
@@ -68,7 +68,7 @@ gulp.task('icons:linux', gulp.series(
 	'icons:linux:notification-plus-9',
 ));
 
-const createWindowsTrayIcon = ({ src, dest }) => async() => {
+const createWindowsTrayIcon = ({ src, dest }) => async () => {
 	const smallSrc = src.startsWith('notification-') ? 'notification-dot' : src;
 	const smallSvg = await jetpack.readAsync(`src/icons/grey/${ smallSrc }.svg`);
 	const svg = await jetpack.readAsync(`src/icons/grey/${ src }.svg`);
@@ -112,7 +112,7 @@ gulp.task('icons:win32', gulp.series(
 	'icons:win32:notification-plus-9',
 ));
 
-gulp.task('icons:app', async() => {
+gulp.task('icons:app', async () => {
 	const svg = await jetpack.readAsync('src/icons/icon.svg');
 
 	const png16 = await convert(svg, { width: 16, height: 16 });

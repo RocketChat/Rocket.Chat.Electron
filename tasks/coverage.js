@@ -4,7 +4,7 @@ const bundle = require('./bundle');
 const getEnv = require('./env');
 
 
-gulp.task('coverage:build', async() => {
+gulp.task('coverage:build', async () => {
 	const env = getEnv();
 	const coverage = true;
 	await bundle.many('src', 'main/*.spec.js', 'app/main.specs.js', { coverage, env });

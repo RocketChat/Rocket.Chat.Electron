@@ -12,7 +12,7 @@ const appManifest = require('../package.json');
 
 const cached = {};
 
-const bundle = async(src, dest, { coverage = false, env = 'development' } = {}) => {
+const bundle = async (src, dest, { coverage = false, env = 'development' } = {}) => {
 	const inputOptions = {
 		input: src,
 		external: [
@@ -51,7 +51,7 @@ const bundle = async(src, dest, { coverage = false, env = 'development' } = {}) 
 	await bundle.write(outputOptions);
 };
 
-const bundleMany = async(srcDirPath, matching, dest, options) => {
+const bundleMany = async (srcDirPath, matching, dest, options) => {
 	const srcDir = jetpack.cwd(srcDirPath);
 	const src = srcDir.path(path.basename(dest));
 

@@ -1,3 +1,14 @@
+<a name="2.15.3"></a>
+## 2.15.3 (2019-04-30)
+
+
+### Bug Fixes
+
+- [#1198](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1198) Add a module to handle deep links following the documentation
+- [#1196](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1196) Safely compute initials for server name on sidebars
+
+
+
 <a name="2.15.2"></a>
 ## 2.15.2 (2019-04-16)
 

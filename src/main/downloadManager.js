@@ -17,7 +17,7 @@ async function willDownload(event, item) {
 		filePath: downloadFileName,
 		fileType: item.getMimeType(),
 		fileState: item.getState(),
-		createDate: new Date().getTime(),
+		creationDate: new Date().getTime(),
 	};
 
 	const mainWindow = await getMainWindow();

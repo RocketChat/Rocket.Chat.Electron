@@ -1,6 +1,23 @@
 import { shell, ipcRenderer } from 'electron';
 import i18n from '../i18n';
 
+
+const createStorage = async () => {
+	const openRequest = indexedDB.open('rocket.chat-db', 1);
+
+	openRequest.onupgradeneeded = ({ target: { result: db } }) => {
+		if (!db.objectStoreNames.contains('downloads')) {
+			const downloadManager = db.createObjectStore('downloads', { keyPath: 'creationDate', autoIncrement: false });
+			downloadManager.createIndex('fileState', 'fileState', { unique: false });
+		}
+	};
+
+	return await new Promise((resolve, reject) => {
+		openRequest.onsuccess = ({ target: { result: db } }) => resolve(db);
+		openRequest.onerror = (error) => reject(error);
+	});
+};
+
 class DownloadManager {
 
 	/**
@@ -8,28 +25,14 @@ class DownloadManager {
 	 * register all needed html elements
 	 * register click event
 	 * register all events
-	 *
 	 */
 	constructor() {
 		/**
 		 * initialize database to save download items
 		 */
-		const downloadDb = indexedDB.open('rocket.chat-db', 1);
-		downloadDb.onupgradeneeded = (event) => {
-			const upgradeDb = event.target.result;
-			if (!upgradeDb.objectStoreNames.contains('download-manager')) {
-				const downloadManager = upgradeDb.createObjectStore('download-manager', { keyPath: 'createDate', autoIncrement:false });
-				downloadManager.createIndex('fileState', 'fileState', { unique: false });
-			}
-		};
-
-		downloadDb.onsuccess = (event) => {
-			this.db = event.target.result;
-		};
-
-		downloadDb.onerror = () => {
-		};
-
+		createStorage().then((db) => {
+			this.db = db;
+		});
 
 		/**
 		 * set downloadmanager state
@@ -43,13 +46,13 @@ class DownloadManager {
 		this.downloadManagerWindow = document.querySelector('.app-download-manager');
 		this.downloadManagerButton = document.querySelector('.sidebar__submenu-action');
 		this.downloadManagerTitle = document.querySelector('.app-download-manager-title');
-		this.downloadManagerTitle.innerHTML = i18n.__('sidebar.downloadManager.title');
+		this.downloadManagerTitle.innerText = i18n.__('sidebar.downloadManager.title');
 		/**
 		 * downloadManager Button events
 		 */
 		this.downloadManagerClearDownloadsButton = document.querySelector('.app-download-manager-clear-action');
 		this.downloadManagerClearDownloadsButton.addEventListener('click', this.clearAllDbItems.bind(this), false);
-		this.downloadManagerClearDownloadsButton.innerHTML = i18n.__('sidebar.downloadManager.clear');
+		this.downloadManagerClearDownloadsButton.innerText = i18n.__('sidebar.downloadManager.clear');
 		/**
 		 * event dispatcher
 		 */
@@ -88,8 +91,9 @@ class DownloadManager {
 	 */
 	createDownloadManagerItem(item) {
 		const divElement = document.createElement('div');
-		divElement.setAttribute('id', item.createDate);
+		divElement.setAttribute('id', item.creationDate);
 		divElement.setAttribute('class', 'app-download-manager-item');
+
 		const titleDiv = document.createElement('div');
 		titleDiv.textContent = item.fileName;
 		titleDiv.setAttribute('class', 'app-download-manager-item_title');
@@ -169,8 +173,8 @@ class DownloadManager {
 		request.onsuccess = () => {
 			request.result.forEach((element) => {
 				if (element.fileState !== 'progressing') {
-					store.delete(element.createDate);
-					const childElement = document.getElementById(element.createDate);
+					store.delete(element.creationDate);
+					const childElement = document.getElementById(element.creationDate);
 					this.downloadManagerItems.removeChild(childElement);
 				}
 			});
@@ -205,8 +209,8 @@ class DownloadManager {
 	}
 
 	getDownloadManagerStore(mode) {
-		const transaction = this.db.transaction(['download-manager'], mode);
-		return transaction.objectStore('download-manager');
+		const transaction = this.db.transaction(['downloads'], mode);
+		return transaction.objectStore('downloads');
 	}
 
 	/**
@@ -278,7 +282,7 @@ class DownloadManager {
 
 	downloadDataReceived(event, downloadItem) {
 		if (this.downloadManagerWindowIsActive) {
-			const element = document.getElementById(downloadItem.createDate);
+			const element = document.getElementById(downloadItem.creationDate);
 			element.childNodes[1].innerHTML = `${ downloadItem.fileReceivedBytes } of ${ downloadItem.fileSize }`;
 		}
 	}

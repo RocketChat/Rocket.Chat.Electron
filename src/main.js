@@ -1,6 +1,6 @@
 import { app } from 'electron';
 import appData from './main/appData';
-import downloadManager from './main/downloadManager';
+import { downloadManager } from './main/downloadManager';
 import './main/basicAuth';
 import { processDeepLink } from './main/deepLinks';
 import './main/systemIdleTime';

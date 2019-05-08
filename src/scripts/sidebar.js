@@ -242,7 +242,7 @@ class SideBar extends EventEmitter {
 	}
 
 	handleShowDownloadManager() {
-		this.emit('show-download-manger');
+		this.emit('show-download-manager');
 	}
 }
 

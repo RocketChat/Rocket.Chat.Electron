@@ -1,7 +1,7 @@
 import { remote, ipcRenderer } from 'electron';
 import servers from './servers';
 import sidebar from './sidebar';
-import downloadManager from './downloadManager';
+import { downloadManager } from './downloadManager';
 import webview from './webview';
 import setTouchBar from './touchBar';
 
@@ -219,8 +219,8 @@ export default () => {
 		webview.showLanding();
 	});
 
-	sidebar.on('show-download-manger', () => {
-		downloadManager.showWindow(this);
+	sidebar.on('show-download-manager', () => {
+		downloadManager.showWindow();
 	});
 
 	sidebar.on('servers-sorted', (sorting) => {

@@ -4,16 +4,16 @@ import i18n from '../i18n';
 class DownloadManager {
 
 	/**
-     * create database
-     * register all needed html elements
-     * register click event
-     * register all events
-     *
-     */
+	 * create database
+	 * register all needed html elements
+	 * register click event
+	 * register all events
+	 *
+	 */
 	constructor() {
 		/**
-         * initialize database to save download items
-         */
+		 * initialize database to save download items
+		 */
 		const downloadDb = indexedDB.open('rocket.chat-db', 1);
 		downloadDb.onupgradeneeded = (event) => {
 			const upgradeDb = event.target.result;
@@ -32,27 +32,27 @@ class DownloadManager {
 
 
 		/**
-         * set downloadmanager state
-         */
+		 * set downloadmanager state
+		 */
 		this.downloadManagerWindowIsActive = false;
 
 		/**
-         * load all divs
-         */
+		 * load all divs
+		 */
 		this.downloadManagerItems = document.querySelector('.app-download-manager-items');
 		this.downloadManagerWindow = document.querySelector('.app-download-manager');
 		this.downloadManagerButton = document.querySelector('.sidebar__submenu-action');
 		this.downloadManagerTitle = document.querySelector('.app-download-manager-title');
 		this.downloadManagerTitle.innerHTML = i18n.__('sidebar.downloadManager.title');
 		/**
-         * downloadManager Button events
-         */
+		 * downloadManager Button events
+		 */
 		this.downloadManagerClearDownloadsButton = document.querySelector('.app-download-manager-clear-action');
 		this.downloadManagerClearDownloadsButton.addEventListener('click', this.clearAllDbItems.bind(this), false);
 		this.downloadManagerClearDownloadsButton.innerHTML = i18n.__('sidebar.downloadManager.clear');
 		/**
-         * event dispatcher
-         */
+		 * event dispatcher
+		 */
 		ipcRenderer.on('download-manager-start', this.downloadStarted.bind(this));
 		ipcRenderer.on('download-manager-error', this.downloadError.bind(this));
 		ipcRenderer.on('download-manager-finish', this.downloadFinished.bind(this));
@@ -61,8 +61,8 @@ class DownloadManager {
 
 
 	/**
-     * show download manager window with content
-     */
+	 * show download manager window with content
+	 */
 	async showWindow() {
 		const downloadManagerWindow = document.querySelector('.app-download-manager');
 		if (downloadManagerWindow.style.display === 'none') {
@@ -84,8 +84,8 @@ class DownloadManager {
 	}
 
 	/**
-     * create download manager item with all div's and data
-     */
+	 * create download manager item with all div's and data
+	 */
 	createDownloadManagerItem(item) {
 		const divElement = document.createElement('div');
 		divElement.setAttribute('id', item.createDate);
@@ -140,8 +140,8 @@ class DownloadManager {
 	}
 
 	/**
-     * save item in database
-     */
+	 * save item in database
+	 */
 	saveDbItem(item) {
 		const store = this.getDownloadManagerStore('readwrite');
 		const request = store.add(item);
@@ -153,16 +153,16 @@ class DownloadManager {
 	}
 
 	/**
-     * update object in database
-     */
+	 * update object in database
+	 */
 	updateDbItem(item) {
 		const store = this.getDownloadManagerStore('readwrite');
 		return store.put(item);
 	}
 
 	/**
-     * clear all not running downloads from databse
-     */
+	 * clear all not running downloads from databse
+	 */
 	clearAllDbItems() {
 		const store = this.getDownloadManagerStore('readwrite');
 		const request = store.getAll();
@@ -210,8 +210,8 @@ class DownloadManager {
 	}
 
 	/**
-     * download of item started, set downloadManagerButton to active
-     */
+	 * download of item started, set downloadManagerButton to active
+	 */
 	async downloadStarted(event, downloadItem) {
 		if (!this.downloadManagerButton.className.includes('active')) {
 			this.downloadManagerButton.className = `${ this.downloadManagerButton.className } ${ this.downloadManagerButton.className }-active`;
@@ -238,8 +238,8 @@ class DownloadManager {
 	}
 
 	/**
-     * check htmlElement an change class if no download is running
-     */
+	 * check htmlElement an change class if no download is running
+	 */
 	async inactiveDownloadManagerButton(event, htmlElement) {
 		if (htmlElement.className.includes('active')) {
 			// check if any other
@@ -251,8 +251,8 @@ class DownloadManager {
 	}
 
 	/**
-     * check if any download is still running.
-     */
+	 * check if any download is still running.
+	 */
 	async checkRunningDownloads() {
 		return new Promise((resolve, reject) => {
 			const store = this.getDownloadManagerStore('readonly');
@@ -282,8 +282,6 @@ class DownloadManager {
 			element.childNodes[1].innerHTML = `${ downloadItem.fileReceivedBytes } of ${ downloadItem.fileSize }`;
 		}
 	}
-
-
 }
 
-export default new DownloadManager();
+export const downloadManager = new DownloadManager();

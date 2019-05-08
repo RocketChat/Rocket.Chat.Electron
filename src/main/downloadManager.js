@@ -53,6 +53,6 @@ async function initialize() {
 	session.defaultSession.on('will-download', await willDownload);
 }
 
-export default {
+export const downloadManager = {
 	initialize,
 };

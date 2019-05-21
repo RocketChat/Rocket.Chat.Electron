@@ -1,7 +1,7 @@
 {
     "contextMenu": {
         "cut": "剪切 (&T)",
-        "copy": "复制",
+        "copy": "复制 (&C)",
         "paste": "粘贴 (&P)",
         "selectAll": "全选 (&A)",
         "undo": "复原 (&U)",

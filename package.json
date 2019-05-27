@@ -1,10 +1,10 @@
 {
   "name": "rocketchat",
-  "productName": "Rocket.Chat",
-  "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
-  "version": "2.15.3",
-  "author": "Rocket.Chat Support <support@rocket.chat>",
-  "copyright": "© 2019, Rocket.Chat",
+  "productName": "WC Calling",
+  "description": "WC Calling Native Cross-Platform Desktop Application via Electron.",
+  "version": "1.0.1",
+  "author": "WC Calling Support <support@rocket.chat>",
+  "copyright": "© 2019, WC Calling",
   "homepage": "https://rocket.chat",
   "license": "MIT",
   "main": "app/main.js",
@@ -24,7 +24,15 @@
     "stylelint": "stylelint 'src/**/*.css' 'src/**/*.less'",
     "test": "gulp test",
     "coverage": "gulp coverage",
-    "e2e": "gulp e2e"
+    "e2e": "gulp e2e",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "jp.workchat.calling",
+    "mac": {
+      "category": "jp.workchat.calling.category.type"
+    }
   },
   "dependencies": {
     "@paulcbetts/system-idle-time": "^1.0.4",

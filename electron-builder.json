@@ -1,102 +1,78 @@
 {
-  "files": [
-    "app/**/*",
-    "node_modules/**/*",
-    "package.json"
-  ],
-  "extraResources": [
-    "dictionaries/**/*",
-    "build/icon.ico",
-    "servers.json"
-  ],
-  "appId": "chat.rocket",
-  "mac": {
-    "category": "public.app-category.productivity",
-    "target": [
-      "dmg",
-      "pkg",
-      "zip",
-      "mas"
-    ],
-    "icon": "build/icon.icns",
-    "bundleVersion": "49",
-    "helperBundleId": "chat.rocket.electron.helper",
-    "type": "distribution",
-		"artifactName": "rocketchat-${version}.${ext}",
+	"files": ["app/**/*", "node_modules/**/*", "package.json"],
+	"extraResources": ["dictionaries/**/*", "build/icon.ico", "servers.json"],
+	"appId": "jp.workchat.calling",
+	"mac": {
+		"category": "public.app-category.productivity",
+		"target": ["dmg", "pkg", "zip", "mas"],
+		"icon": "build/icon.icns",
+		"bundleVersion": "49",
+		"helperBundleId": "chat.rocket.electron.helper",
+		"type": "distribution",
+		"artifactName": "wccaling-${version}.${ext}",
 		"extendInfo": {
 			"NSMicrophoneUsageDescription": "I need access to your microphone to record the audio you want to send.",
 			"NSCameraUsageDescription": "I need access to your camera to record the video you want to send."
 		}
-  },
-  "dmg": {
-    "background": "build/background.png",
-    "contents": [
-        {
-            "type": "dir",
-            "x": 100,
-            "y": 211
-        },
-        {
-            "type": "link",
-            "path": "/Applications",
-            "x": 500,
-            "y": 211
-        }
-    ]
-  },
-  "pkg": {
-    "isRelocatable": false,
-    "overwriteAction": "upgrade"
-  },
-  "mas": {
-    "entitlements": "build/entitlements.mas.plist",
-    "entitlementsInherit": "build/entitlements.mas.inherit.plist",
-    "artifactName": "rocketchat-${version}-mas.${ext}"
-  },
-  "win": {
-    "target": [
-      "nsis"
-    ],
-    "icon": "build/icon.ico"
-  },
-  "nsis": {
-    "oneClick": false,
-    "perMachine": false,
-    "allowElevation": true,
-    "allowToChangeInstallationDirectory": true,
-    "artifactName": "rocketchat-setup-${version}.${ext}"
-  },
-  "appx": {
-    "backgroundColor": "#2f343d",
-    "displayName": "Rocket.Chat",
-    "publisherDisplayName": "Rocket.Chat",
-    "languages": [
-      "en-US",
-      "en-GB",
-      "pt-BR"
-    ],
-    "artifactName": "rocketchat-${version}-${arch}.${ext}"
-  },
-  "linux": {
-    "target": [
-      "tar.gz",
-      "deb",
-      "rpm",
-      "snap"
-    ],
-    "executableName": "rocketchat-desktop",
-    "category": "GNOME;GTK;Network;InstantMessaging",
-    "desktop": {
-      "StartupWMClass": "Rocket.Chat",
-      "MimeType": "x-scheme-handler/rocketchat"
-    }
-  },
-  "publish": [
-    {
-      "provider": "github",
-      "owner": "RocketChat",
-      "repo": "Rocket.Chat.Electron",
-      "vPrefixedTagName": false
-    }
-  ]
+	},
+	"dmg": {
+		"background": "build/background.png",
+		"contents": [
+			{
+				"type": "dir",
+				"x": 100,
+				"y": 211
+			},
+			{
+				"type": "link",
+				"path": "/Applications",
+				"x": 500,
+				"y": 211
+			}
+		]
+	},
+	"pkg": {
+		"isRelocatable": false,
+		"overwriteAction": "upgrade"
+	},
+	"mas": {
+		"entitlements": "build/entitlements.mas.plist",
+		"entitlementsInherit": "build/entitlements.mas.inherit.plist",
+		"artifactName": "wccaling-${version}-mas.${ext}"
+	},
+	"win": {
+		"target": ["nsis"],
+		"icon": "build/icon.ico"
+	},
+	"nsis": {
+		"oneClick": false,
+		"perMachine": false,
+		"allowElevation": true,
+		"allowToChangeInstallationDirectory": true,
+		"artifactName": "wccaling-setup-${version}.${ext}"
+	},
+	"appx": {
+		"backgroundColor": "#2f343d",
+		"displayName": "WC Calling",
+		"publisherDisplayName": "WC Calling",
+		"languages": ["en-US", "en-GB", "pt-BR"],
+		"artifactName": "wccaling-${version}-${arch}.${ext}"
+	},
+	"linux": {
+		"target": ["tar.gz", "deb", "rpm", "snap"],
+		"executableName": "wccaling-desktop",
+		"category": "GNOME;GTK;Network;InstantMessaging",
+		"desktop": {
+			"StartupWMClass": "WC Calling",
+			"MimeType": "x-scheme-handler/wccaling"
+		}
+	},
+	"publish": [
+		{
+			"provider": "github",
+			"owner": "wccaling",
+			"repo": "WC Calling.Electron",
+			"vPrefixedTagName": false
+		}
+	]
 }

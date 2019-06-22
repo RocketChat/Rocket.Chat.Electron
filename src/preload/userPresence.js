@@ -54,6 +54,7 @@ const handleUserPresence = () => {
 		}
 
 		delete UserPresence.awayTime;
+		UserPresence.awayOnWindowBlur = false;
 		UserPresence.start();
 
 		const isAutoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
@@ -64,7 +65,7 @@ const handleUserPresence = () => {
 		}
 
 		const maximumIdleTime = (getUserPreference(uid, 'idleTimeLimit') || 300) * 1000;
-		const idleTimeDetectionInterval = maximumIdleTime / 2;
+		const idleTimeDetectionInterval = 5000;
 		const callback = pollUserPresence(UserPresence, maximumIdleTime);
 
 		intervalID = setInterval(callback, idleTimeDetectionInterval);

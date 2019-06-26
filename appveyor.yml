@@ -17,16 +17,23 @@ branches:
     - /^hotfix\/.*$/
     - /^release\/.*$/
 
+# init:
+#   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
 install:
-  - ps: |
-      $tmp = New-TemporaryFile
-      [Convert]::FromBase64String($env:CSC_LINK) | Set-Content ($tmp.FullName + ".p12") -Encoding Byte
-      $env:CSC_LINK = ($tmp.FullName + ".p12")
   - ps: Install-Product node $env:nodejs_version $env:platform
-  - set CI=true
   - yarn
-  - yarn test
-  - yarn e2e
 
 build_script:
+  - ps: |
+      if ($env:CSC_LINK) {
+        $tmp = New-TemporaryFile
+        [Convert]::FromBase64String($env:CSC_LINK) | Set-Content ($tmp.FullName + ".p12") -Encoding Byte
+        $env:CSC_LINK = ($tmp.FullName + ".p12")
+      }
+  - yarn test
+  - yarn e2e
   - yarn release
+
+# on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

@@ -75,6 +75,10 @@ class WebView extends EventEmitter {
 		});
 
 		webviewObj.addEventListener('did-fail-load', (e) => {
+			if (e.errorCode == -3) {
+				console.log("Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004")
+				return;
+			}
 			if (e.isMainFrame) {
 				webviewObj.loadURL(`file://${ __dirname }/loading-error.html`);
 			}

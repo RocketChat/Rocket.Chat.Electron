@@ -1,3 +1,25 @@
+<a name="2.15.4"></a>
+## 2.15.4 (2019-08-08)
+
+
+<details>
+<summary>Others</summary>
+
+- [#1198](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1198) Add a module to handle deep links following the documentation
+- [#1244](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1244) Add Simplified Chinese translation file
+- [#1287](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1287) Reenable Bugsnag error tracking
+- [#1196](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1196) Safely compute initials for server name on sidebar
+</details>
+
+
+### Bug Fixes
+
+- [#1286](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1286) "Show window on unread changed" not working
+- [#1285](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1285) Remove missing variable reference
+- [#1264](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1264) Resolves issue with timing out when Rocket.Chat is in the background …
+
+
+
 <a name="2.15.3"></a>
 ## 2.15.3 (2019-04-30)
 

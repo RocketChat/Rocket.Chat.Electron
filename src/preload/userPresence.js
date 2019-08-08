@@ -1,27 +1,22 @@
 import { ipcRenderer } from 'electron';
 import { getMeteor, getTracker, getGetUserPreference, getUserPresence } from './rocketChat';
 
-const pollUserPresence = (UserPresence, maximumIdleTime) => {
-	
-	return () => {
-		let isUserPresent = true;
+const pollUserPresence = (UserPresence, maximumIdleTime) => () => {
+	let isUserPresent = true;
 
-		try {
-			const idleTime = ipcRenderer.sendSync('request-system-idle-time');
-			isUserPresent = idleTime < maximumIdleTime;
-		
-			if (isUserPresent) {	
-				UserPresence.setOnline();
-				
-			} else {
-				UserPresence.setAway();
-			}
-		} catch (error) {
-			console.error(error);
-		} finally {
-			wasUserPresent = isUserPresent;
+	try {
+		const idleTime = ipcRenderer.sendSync('request-system-idle-time');
+		isUserPresent = idleTime < maximumIdleTime;
+
+		if (isUserPresent) {
+			UserPresence.setOnline();
+
+		} else {
+			UserPresence.setAway();
 		}
-	};
+	} catch (error) {
+		console.error(error);
+	}
 };
 
 const handleUserPresence = () => {

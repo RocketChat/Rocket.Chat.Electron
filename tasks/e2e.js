@@ -4,7 +4,7 @@ const bundle = require('./bundle');
 const getEnv = require('./env');
 
 
-gulp.task('e2e:build', async() => {
+gulp.task('e2e:build', async () => {
 	const env = getEnv();
 	await bundle.many('src', '*.e2e.js', 'app/e2e.js', { env });
 });

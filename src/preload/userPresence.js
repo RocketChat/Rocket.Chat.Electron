@@ -1,32 +1,22 @@
 import { ipcRenderer } from 'electron';
 import { getMeteor, getTracker, getGetUserPreference, getUserPresence } from './rocketChat';
 
+const pollUserPresence = (UserPresence, maximumIdleTime) => () => {
+	let isUserPresent = true;
 
-const pollUserPresence = (UserPresence, maximumIdleTime) => {
-	let wasUserPresent = false;
+	try {
+		const idleTime = ipcRenderer.sendSync('request-system-idle-time');
+		isUserPresent = idleTime < maximumIdleTime;
 
-	return () => {
-		let isUserPresent = true;
+		if (isUserPresent) {
+			UserPresence.setOnline();
 
-		try {
-			const idleTime = ipcRenderer.sendSync('request-system-idle-time');
-			isUserPresent = idleTime < maximumIdleTime;
-
-			if (isUserPresent === wasUserPresent) {
-				return;
-			}
-
-			if (isUserPresent) {
-				UserPresence.setOnline();
-			} else {
-				UserPresence.setAway();
-			}
-		} catch (error) {
-			console.error(error);
-		} finally {
-			wasUserPresent = isUserPresent;
+		} else {
+			UserPresence.setAway();
 		}
-	};
+	} catch (error) {
+		console.error(error);
+	}
 };
 
 const handleUserPresence = () => {
@@ -54,6 +44,7 @@ const handleUserPresence = () => {
 		}
 
 		delete UserPresence.awayTime;
+		UserPresence.awayOnWindowBlur = false;
 		UserPresence.start();
 
 		const isAutoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
@@ -64,7 +55,7 @@ const handleUserPresence = () => {
 		}
 
 		const maximumIdleTime = (getUserPreference(uid, 'idleTimeLimit') || 300) * 1000;
-		const idleTimeDetectionInterval = maximumIdleTime / 2;
+		const idleTimeDetectionInterval = 5000;
 		const callback = pollUserPresence(UserPresence, maximumIdleTime);
 
 		intervalID = setInterval(callback, idleTimeDetectionInterval);

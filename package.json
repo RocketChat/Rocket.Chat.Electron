@@ -37,6 +37,7 @@
     "spellchecker": "^3.5.0"
   },
   "devDependencies": {
+    "@bugsnag/js": "^6.3.2",
     "@fiahfy/icns-convert": "^0.0.5",
     "@rocket.chat/eslint-config": "^0.2.0",
     "builtin-modules": "^3.0.0",

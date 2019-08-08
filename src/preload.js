@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron';
+import { setupErrorHandling } from './errorHandling';
 import i18n from './i18n';
 import setupContextMenuPreload from './preload/contextMenu';
 import setupEventsPreload from './preload/events';
@@ -11,6 +12,7 @@ import setupTitleChangePreload from './preload/titleChange';
 import setupUserPresencePreload from './preload/userPresence';
 
 
+setupErrorHandling('preload');
 setupContextMenuPreload();
 setupEventsPreload();
 setupJitsiPreload();

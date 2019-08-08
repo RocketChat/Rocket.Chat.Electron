@@ -1,4 +1,5 @@
 import { app } from 'electron';
+import { setupErrorHandling } from './errorHandling';
 import appData from './main/appData';
 import './main/basicAuth';
 import { processDeepLink } from './main/deepLinks';
@@ -15,20 +16,8 @@ export { default as tray } from './main/tray';
 export { default as notifications } from './main/notifications';
 export { default as certificate } from './main/certificateStore';
 
-
-function handleUncaughtException(error) {
-	console.error(error);
-	app.exit(1);
-}
-
-function handleUnhandledRejection(reason) {
-	console.error(reason);
-	app.exit(1);
-}
-
 async function prepareApp() {
-	process.on('uncaughtException', handleUncaughtException);
-	process.on('unhandledRejection', handleUnhandledRejection);
+	setupErrorHandling('main');
 
 	app.setAsDefaultProtocolClient('rocketchat');
 	app.setAppUserModelId('chat.rocket');

@@ -30,6 +30,7 @@ const bundle = async (src, dest, { coverage = false, env = 'development' } = {})
 			] : []),
 			json(),
 			replace({
+				'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
 				'process.env.NODE_ENV': JSON.stringify(env),
 			}),
 			nodeResolve(),

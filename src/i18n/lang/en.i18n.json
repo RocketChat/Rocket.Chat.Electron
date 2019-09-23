@@ -146,6 +146,11 @@
         "announcement": "Houston, we have a problem",
         "reload": "Reload"
     },
+    "selfxss": {
+        "title": "⚠️ Wait! ️️⚠️",
+        "description": "This is a feature for developers. If you were told to copy and paste something here there is a good chance someone may be attempting to compromise your account.",
+        "moreInfo": "More information: https://en.wikipedia.org/wiki/Self-XSS"
+    },
     "sidebar": {
         "addNewServer": "Add new server",
         "item": {

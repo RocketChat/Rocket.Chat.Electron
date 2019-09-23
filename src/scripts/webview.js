@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
+import { t } from 'i18next';
 import servers from './servers';
 
 
@@ -48,8 +49,19 @@ class WebView extends EventEmitter {
 			}
 		});
 
-		webviewObj.addEventListener('console-message', (e) => {
-			console.log('webview:', e.message);
+		let selfXssWarned = false;
+		webviewObj.addEventListener('devtools-opened', () => {
+			if (selfXssWarned) {
+				return;
+			}
+
+			webviewObj.getWebContents().executeJavaScript(`(${ ([title, description, moreInfo]) => {
+				console.warn('%c%s', 'color: red; font-size: 32px;', title);
+				console.warn('%c%s', 'font-size: 20px;', description);
+				console.warn('%c%s', 'font-size: 20px;', moreInfo);
+			} })(${ JSON.stringify([t('selfxss.title'), t('selfxss.description'), t('selfxss.moreInfo')]) })`);
+
+			selfXssWarned = true;
 		});
 
 		webviewObj.addEventListener('ipc-message', (event) => {

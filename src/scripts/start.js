@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron';
+import { t } from 'i18next';
 import attachEvents from './events';
 import servers from './servers';
 import i18n from '../i18n';
@@ -123,6 +124,9 @@ async function setupLanding() {
 
 export async function start() {
 	await i18n.initialize();
+	console.warn('%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
+	console.warn('%c%s', 'font-size: 20px;', t('selfxss.description'));
+	console.warn('%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
 	await setupLanding();
 	await attachEvents();
 }

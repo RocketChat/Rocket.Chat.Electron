@@ -1,18 +1,24 @@
-'use strict';
-
-const gulp = require('gulp');
-const runSequence = require('run-sequence');
 const { build } = require('electron-builder');
-const config = require('../electron-builder.json');
-const { getEnvName } = require('./utils');
+const gulp = require('gulp');
+const getEnv = require('./env');
 
-const publish = getEnvName() !== 'production' ? 'never' : 'onTagOrDraft';
-gulp.task('release:darwin', () => build({ publish, x64: true, mac: [] }));
-gulp.task('release:win32', () => build({ publish, x64: true, ia32: true, win: ['nsis', 'appx'] }));
-gulp.task('release:linux', async() => {
-	const allLinuxTargetsButSnap = config.linux.target.filter((target) => target !== 'snap');
-	await build({ publish, x64: true, linux: [], c: { productName: 'rocketchat' } });
-	await build({ publish, ia32: true, linux: allLinuxTargetsButSnap, c: { productName: 'rocketchat' } });
+
+const x64 = true;
+const ia32 = true;
+
+gulp.task('release:darwin', async () => {
+	const publish = getEnv() === 'production' ? 'onTagOrDraft' : 'never';
+	await build({ publish, x64, mac: [] });
 });
 
-gulp.task('release', (cb) => runSequence('build-app', `release:${ process.platform }`, cb));
+gulp.task('release:linux', async () => {
+	const publish = getEnv() === 'production' ? 'onTagOrDraft' : 'never';
+	await build({ publish, x64, linux: [], c: { productName: 'rocketchat' } });
+});
+
+gulp.task('release:win32', async () => {
+	const publish = getEnv() === 'production' ? 'onTagOrDraft' : 'never';
+	await build({ publish, x64, ia32, win: [] });
+});
+
+gulp.task('release', gulp.series('build', `release:${ process.platform }`));

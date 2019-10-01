@@ -2,20 +2,32 @@
 <html>
 <head>
 	<meta charset="utf-8" />
-	<title>Rocket.Chat</title>
+	<title>Server Failed to Load</title>
 	<link rel="stylesheet" type="text/css" href="../stylesheets/main.css">
 	<script>
-		document.addEventListener('DOMContentLoaded', () => {
-			document.querySelector('.title').innerHTML = i18n.__('Houston_we_have_a_problem');
-			document.querySelector('.subtitle').innerHTML = i18n.__('Server_Failed_to_Load');
-			document.querySelector('.reload-button').innerHTML = i18n.__('Reload');
+		window.addEventListener('load', () => {
+			document.title = i18n.__('loadingError.title');
+			document.querySelector('.title').innerHTML = i18n.__('loadingError.announcement');
+			document.querySelector('.subtitle').innerHTML = i18n.__('loadingError.title');
+			document.querySelector('.reload-button').innerHTML = i18n.__('loadingError.reload');
 			document.querySelector('.reload-button').addEventListener('click', ({ target }) => {
 				document.querySelector('.reload-button').classList.add('hidden');
 				document.querySelector('.reloading-server').classList.remove('hidden');
-				// location.reload(true);
-				window.reloadServer();
+				window.reloadServer && window.reloadServer();
 			}, false);
-		}, false);
+
+			let counter = 60;
+			const reloadCounterStepSize = 1;
+			const textBefore = document.querySelector('.reload-button').innerHTML;
+			setInterval(() => {
+				counter = counter - reloadCounterStepSize;
+				document.querySelector('.reload-button').innerHTML = `${textBefore} (${counter})`;
+				if (counter <= 0) {
+					window.reloadServer && window.reloadServer();
+					counter = 60;
+				}
+			}, reloadCounterStepSize * 1000);
+		});
 	</script>
 </head>
 <body class="loading-error-page">

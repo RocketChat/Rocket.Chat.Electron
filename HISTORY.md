@@ -1,3 +1,187 @@
+<a name="2.15.5"></a>
+## 2.15.5 (2019-08-09)
+
+
+### Hot fix
+
+- Bugsnag dependency error
+
+
+<a name="2.15.4"></a>
+## 2.15.4 (2019-08-08)
+
+
+<details>
+<summary>Others</summary>
+
+- [#1198](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1198) Add a module to handle deep links following the documentation
+- [#1244](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1244) Add Simplified Chinese translation file
+- [#1287](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1287) Reenable Bugsnag error tracking
+- [#1196](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1196) Safely compute initials for server name on sidebar
+</details>
+
+
+### Bug Fixes
+
+- [#1286](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1286) "Show window on unread changed" not working
+- [#1285](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1285) Remove missing variable reference
+- [#1264](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1264) Resolves issue with timing out when Rocket.Chat is in the background …
+
+
+
+<a name="2.15.3"></a>
+## 2.15.3 (2019-04-30)
+
+
+### Bug Fixes
+
+- [#1198](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1198) Add a module to handle deep links following the documentation
+- [#1196](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1196) Safely compute initials for server name on sidebars
+
+
+
+<a name="2.15.2"></a>
+## 2.15.2 (2019-04-16)
+
+
+### Bug Fixes
+
+- [#1188](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1188) Apply workaround for undo and redo actions
+- [#1189](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1189) Multiple language selection on spellchecking
+- [#1164](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1164) Only set user presence as online when auto away detection is disabled
+- [#1125](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1125) Sidebar and badges
+- [#1187](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1187) Update crashes when host is unreachable
+
+
+### New Features
+
+- [#1157](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1157) Add Traditional Chinese translation
+
+
+
+<a name="2.15.1"></a>
+## 2.15.1 (2019-03-13)
+
+
+### Improvements
+
+- [#1117](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1117) Updated Japanese translation
+
+
+### Bug Fixes
+
+- [#1132](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1132) Apply memoization to spell checking
+- [#1124](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1124) Away detection
+- [#1129](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1129) Mac App Store startup issue
+- [#1140](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1140) Preload scripts compatibility
+- [#1133](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1133) Re-enable download links
+- [#1130](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1130) Reply notifications in MacOS
+- [#1123](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1123) Update button
+- [#1115](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1115) Auto reload server
+
+
+
+<a name="2.15.0"></a>
+# 2.15.0 (2019-02-24)
+
+
+### Bug Fixes
+
+- [#1028](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1028) The behavior of clicking links when running RocketChat with subdir.
+- [#1099](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1099) Updates preloads scripts to be compatible with Rocket.Chat >0.74.0
+- [#1101](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1101) Use Electron notifications
+
+
+### Improvements
+
+- [#1096](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1096) i18next
+- [#1093](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1093) New tray icons
+- [#1045](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1045) Pages and preload script changes
+- [#1076](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1076) Remove update-remind-later-dialog
+
+
+<details>
+<summary>Others</summary>
+
+- [#1081](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1081) Disable artifact collection by AppVeyor
+- [#1074](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1074) Fix for basic-auth servers connect
+- [#1080](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1080) Fix remember window state on load
+</details>
+
+
+### New Features
+
+- [#919](https://github.com/RocketChat/Rocket.Chat.Electron/pull/919) Add "save image" to context menu
+- [#1030](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1030) Add Japanese translation.
+- [#995](https://github.com/RocketChat/Rocket.Chat.Electron/pull/995) Automatic reload on error page
+- [#1044](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1044) Support for MacBooks Touch Bar
+
+
+### BREAKING CHANGES
+
+- [#1036](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1036) Update dependencies
+
+
+
+<a name="2.14.7"></a>
+## 2.14.7 (2019-01-09)
+
+
+### Bug Fixes
+
+- Main window destroyed when closing on MacOS
+
+
+
+<a name="2.14.6"></a>
+## 2.14.6 (2018-12-06)
+
+
+### Bug Fixes
+
+- Add strings specifying why some permissions are needed in MacOS
+- Fix servers.json path resolution
+
+
+
+<a name="2.14.5"></a>
+## 2.14.5 (2018-12-04)
+
+
+### Improvements
+
+- [#1010](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1010) Remove unused modules
+
+
+### Bug Fixes
+
+- [#1026](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1026) Add additional condition for option "Show on unread"
+- [#1005](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1005) Disable FreeDesktopNotification actions for Unity desktop
+- [#1025](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1025) Remove dependencies related to the npm's event-stream incident
+- [#1019](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1019) Rollback notifications for Windows
+
+
+
+<a name="2.14.4"></a>
+## 2.14.4 (2018-11-21)
+
+
+### Bug Fixes
+
+- [#1001](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1001) Check for updates response when an error occurs
+- [#978](https://github.com/RocketChat/Rocket.Chat.Electron/pull/978) Fallback notifications for Windows 7
+- [#1000](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1000) Notification errors
+- [#990](https://github.com/RocketChat/Rocket.Chat.Electron/pull/990) Speed up servers.json loading
+
+
+<details>
+<summary>Others</summary>
+
+- [#987](https://github.com/RocketChat/Rocket.Chat.Electron/pull/987) Update Russian translation
+</details>
+
+
+
 <a name="2.14.3"></a>
 ## 2.14.3 (2018-11-14)
 

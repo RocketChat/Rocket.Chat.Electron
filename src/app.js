@@ -1,5 +1,6 @@
 import { start } from './scripts/start';
-import './branding/branding.js';
+import { setupErrorHandling } from './errorHandling';
 
-window.$ = window.jQuery = require('./vendor/jquery-3.1.1');
+
+setupErrorHandling('renderer');
 start();

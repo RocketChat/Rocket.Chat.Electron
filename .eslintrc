@@ -2,8 +2,8 @@
   "extends": [
     "@rocket.chat/eslint-config"
   ],
-  "globals": {
-    "_": false,
-    "Bugsnag": false
-  }
+  "parserOptions": {
+		"sourceType": "module",
+		"ecmaVersion": 2018
+	}
 }

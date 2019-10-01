@@ -1,7 +1,8 @@
+import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
+import { t } from 'i18next';
 import servers from './servers';
-import sidebar from './sidebar';
-import { desktopCapturer, ipcRenderer } from 'electron';
+
 
 class WebView extends EventEmitter {
 	constructor() {
@@ -13,33 +14,11 @@ class WebView extends EventEmitter {
 			this.add(host);
 		});
 
-		servers.on('host-added', (hostUrl) => {
-			this.add(servers.get(hostUrl));
-		});
-
-		servers.on('host-removed', (hostUrl) => {
-			this.remove(hostUrl);
-		});
-
-		servers.on('active-setted', (hostUrl) => {
-			this.setActive(hostUrl);
-		});
-
-		servers.on('active-cleared', (hostUrl) => {
-			this.deactiveAll(hostUrl);
-		});
-
-		servers.once('loaded', () => {
-			this.loaded();
-		});
-
-		ipcRenderer.on('screenshare-result', (e, result) => {
+		ipcRenderer.on('screenshare-result', (e, id) => {
 			const webviewObj = this.getActive();
 			webviewObj.executeJavaScript(`
-                window.parent.postMessage({
-                    sourceId: '${ result }'
-                }, '*')
-            `);
+				window.parent.postMessage({ sourceId: '${ id }' }, '*');
+			`);
 		});
 	}
 
@@ -58,8 +37,9 @@ class WebView extends EventEmitter {
 		}
 
 		webviewObj = document.createElement('webview');
+		webviewObj.classList.add('webview');
 		webviewObj.setAttribute('server', host.url);
-		webviewObj.setAttribute('preload', './preload.js');
+		webviewObj.setAttribute('preload', '../preload.js');
 		webviewObj.setAttribute('allowpopups', 'on');
 		webviewObj.setAttribute('disablewebsecurity', 'on');
 
@@ -69,53 +49,48 @@ class WebView extends EventEmitter {
 			}
 		});
 
-		webviewObj.addEventListener('console-message', (e) => {
-			console.log('webview:', e.message);
+		let selfXssWarned = false;
+		webviewObj.addEventListener('devtools-opened', () => {
+			if (selfXssWarned) {
+				return;
+			}
+
+			webviewObj.getWebContents().executeJavaScript(`(${ ([title, description, moreInfo]) => {
+				console.warn('%c%s', 'color: red; font-size: 32px;', title);
+				console.warn('%c%s', 'font-size: 20px;', description);
+				console.warn('%c%s', 'font-size: 20px;', moreInfo);
+			} })(${ JSON.stringify([t('selfxss.title'), t('selfxss.description'), t('selfxss.moreInfo')]) })`);
+
+			selfXssWarned = true;
 		});
 
 		webviewObj.addEventListener('ipc-message', (event) => {
 			this.emit(`ipc-message-${ event.channel }`, host.url, event.args);
 
 			switch (event.channel) {
-				case 'title-changed':
-					servers.setHostTitle(host.url, event.args[0]);
-					break;
-				case 'unread-changed':
-					sidebar.setBadge(host.url, event.args[0]);
-					break;
-				case 'focus':
-					servers.setActive(host.url);
-					break;
 				case 'get-sourceId':
-					desktopCapturer.getSources({ types: ['window', 'screen'] }, (error, sources) => {
-						if (error) {
-							throw error;
-						}
-
-						sources = sources.map((source) => {
-							source.thumbnail = source.thumbnail.toDataURL();
-							return source;
-						});
-						ipcRenderer.send('screenshare', sources);
-					});
+					ipcRenderer.send('open-screenshare-dialog');
 					break;
-				case 'reload-server':
-					const active = this.getActive();
-					const server = active.getAttribute('server');
+				case 'reload-server': {
+					const webviewObj = this.getByUrl(host.url);
+					const server = webviewObj.getAttribute('server');
 					this.loading();
-					active.loadURL(server);
+					webviewObj.loadURL(server);
 					break;
-				case 'sidebar-background':
-					sidebar.changeSidebarColor(event.args[0]);
-					break;
+				}
 			}
 		});
 
 		webviewObj.addEventListener('dom-ready', () => {
-			this.emit('dom-ready', host.url);
+			webviewObj.classList.add('ready');
+			this.emit('dom-ready', webviewObj, host.url);
 		});
 
 		webviewObj.addEventListener('did-fail-load', (e) => {
+			if (e.errorCode == -3) {
+				console.log("Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004")
+				return;
+			}
 			if (e.isMainFrame) {
 				webviewObj.loadURL(`file://${ __dirname }/loading-error.html`);
 			}
@@ -198,6 +173,21 @@ class WebView extends EventEmitter {
 
 	goForward() {
 		this.getActive().goForward();
+	}
+
+	setSidebarPaddingEnabled(enabled) {
+		if (process.platform !== 'darwin') {
+			return;
+		}
+
+		Array.from(document.querySelectorAll('webview.ready'))
+			.filter((webviewObj) => webviewObj.insertCSS)
+			.forEach((webviewObj) => webviewObj.insertCSS(`
+				.sidebar {
+					padding-top: ${ enabled ? '10px' : '0' };
+					transition: margin .5s ease-in-out;
+				}
+			`));
 	}
 }
 

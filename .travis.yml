@@ -14,8 +14,8 @@ matrix:
       apt:
         packages:
           - rpm
+          - gcc-multilib
           - g++-multilib
-          - libxss-dev:i386
           - snapd
     before_install:
       - sudo snap install snapcraft --classic
@@ -50,7 +50,6 @@ notifications:
 install:
   - yarn
   - yarn test
-  - yarn e2e
 
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi

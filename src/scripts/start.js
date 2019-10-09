@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { t } from 'i18next';
+
 import attachEvents from './events';
 import servers from './servers';
 import i18n from '../i18n';

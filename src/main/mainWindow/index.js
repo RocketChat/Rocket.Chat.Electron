@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
+
 import { WindowStateHandler } from './state';
 
 

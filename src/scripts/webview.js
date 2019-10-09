@@ -1,6 +1,8 @@
-import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
+
+import { ipcRenderer } from 'electron';
 import { t } from 'i18next';
+
 import servers from './servers';
 
 
@@ -44,7 +46,7 @@ class WebView extends EventEmitter {
 		webviewObj.setAttribute('disablewebsecurity', 'on');
 
 		webviewObj.addEventListener('did-navigate-in-page', (lastPath) => {
-			if ((lastPath.url).includes(host.url)) {
+			if (lastPath.url.includes(host.url)) {
 				this.saveLastPath(host.url, lastPath.url);
 			}
 		});
@@ -87,8 +89,8 @@ class WebView extends EventEmitter {
 		});
 
 		webviewObj.addEventListener('did-fail-load', (e) => {
-			if (e.errorCode == -3) {
-				console.log("Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004")
+			if (e.errorCode === -3) {
+				console.log('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
 				return;
 			}
 			if (e.isMainFrame) {

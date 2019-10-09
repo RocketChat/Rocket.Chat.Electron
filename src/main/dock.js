@@ -1,5 +1,7 @@
-import { app } from 'electron';
 import { EventEmitter } from 'events';
+
+import { app } from 'electron';
+
 import { getMainWindow } from './mainWindow';
 import { getTrayIconImage, getAppIconImage } from './icon';
 
@@ -21,7 +23,7 @@ let state = {
 	hasTrayIcon: false,
 };
 
-const instance = new (class Dock extends EventEmitter {});
+const instance = new class Dock extends EventEmitter {}();
 
 const destroy = () => {
 	instance.removeAllListeners();

@@ -1,6 +1,8 @@
+import url from 'url';
+
 import { app, dialog } from 'electron';
 import jetpack from 'fs-jetpack';
-import url from 'url';
+
 import { getMainWindow } from './mainWindow';
 import i18n from '../i18n';
 
@@ -26,9 +28,9 @@ class CertificateStore {
 			if (this.queued[certificate.fingerprint]) {
 				this.queued[certificate.fingerprint].push(callback);
 				return;
-			} else {
-				this.queued[certificate.fingerprint] = [callback];
 			}
+			this.queued[certificate.fingerprint] = [callback];
+
 
 			let detail = `URL: ${ certificateUrl }\nError: ${ error }`;
 			if (this.isExisting(certificateUrl)) {

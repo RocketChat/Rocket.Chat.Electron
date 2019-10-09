@@ -1,4 +1,5 @@
 import { shell, remote } from 'electron';
+
 import { getSettings } from './rocketChat';
 
 

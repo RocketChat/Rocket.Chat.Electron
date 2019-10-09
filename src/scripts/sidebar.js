@@ -1,7 +1,11 @@
-import { remote } from 'electron';
 import { EventEmitter } from 'events';
-import i18n from '../i18n';
 import { parse as parseUrl } from 'url';
+
+import { remote } from 'electron';
+
+import i18n from '../i18n';
+
+
 const { getCurrentWindow, Menu } = remote;
 
 
@@ -79,26 +83,24 @@ class SideBar extends EventEmitter {
 			order,
 			active: active === host.url,
 			hasUnreadMessages: !!badges[host.url],
-			mentionCount: (badges[host.url] || badges[host.url] === 0) ? parseInt(badges[host.url], 10) : null,
+			mentionCount: badges[host.url] || badges[host.url] === 0 ? parseInt(badges[host.url], 10) : null,
 		}));
 
 		this.node.querySelector('.sidebar__add-server').dataset.tooltip = i18n.__('sidebar.addNewServer');
 	}
 
 	renderHost({ url, title, order, active, hasUnreadMessages, mentionCount }) {
-		const initials = (
-			title
-				.replace(url, parseUrl(url).hostname)
-				.split(/[^A-Za-z0-9]+/g)
-				.slice(0, 2)
-				.map((text) => text.slice(0, 1).toUpperCase())
-				.join('')
-		);
+		const initials = 			title
+			.replace(url, parseUrl(url).hostname)
+			.split(/[^A-Za-z0-9]+/g)
+			.slice(0, 2)
+			.map((text) => text.slice(0, 1).toUpperCase())
+			.join('');
 		const bustingParam = Math.round(Date.now() / faviconCacheBustingTime);
 		const faviconUrl = `${ url.replace(/\/$/, '') }/assets/favicon.svg?_=${ bustingParam }`;
 
 		const node = this.node.querySelector(`.server[data-url="${ url }"]`);
-		const serverElement = node ? node : document.createElement('li');
+		const serverElement = node || document.createElement('li');
 		const initialsElement = node ? node.querySelector('.server__initials') : document.createElement('span');
 		const faviconElement = node ? node.querySelector('.server__favicon') : document.createElement('img');
 		const badgeElement = node ? node.querySelector('.server__badge') : document.createElement('div');
@@ -133,7 +135,7 @@ class SideBar extends EventEmitter {
 		faviconElement.src = faviconUrl;
 
 		badgeElement.classList.add('server__badge');
-		badgeElement.innerText = Number.isInteger(mentionCount) ? String(mentionCount) : '',
+		badgeElement.innerText = Number.isInteger(mentionCount) ? String(mentionCount) : '';
 
 		shortcutElement.classList.add('server__shortcut');
 		shortcutElement.innerText = `${ process.platform === 'darwin' ? '⌘' : '^' }${ order + 1 }`;

@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron';
+
 import { setupErrorHandling } from './errorHandling';
 import i18n from './i18n';
 import setupContextMenuPreload from './preload/contextMenu';

@@ -1,5 +1,7 @@
-import { app, Menu, systemPreferences, Tray as TrayIcon } from 'electron';
 import { EventEmitter } from 'events';
+
+import { app, Menu, systemPreferences, Tray as TrayIcon } from 'electron';
+
 import i18n from '../i18n';
 import { getTrayIconImage } from './icon';
 
@@ -20,7 +22,7 @@ const getIconTooltip = ({ badge }) => {
 	return i18n.__('tray.tooltip.noUnreadMessage', { appName });
 };
 
-const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
+const createContextMenuTemplate = ({ isMainWindowVisible }, events) => [
 	{
 		label: !isMainWindowVisible ? i18n.__('tray.menu.show') : i18n.__('tray.menu.hide'),
 		click: () => events.emit('set-main-window-visibility', !isMainWindowVisible),
@@ -29,7 +31,7 @@ const createContextMenuTemplate = ({ isMainWindowVisible }, events) => ([
 		label: i18n.__('tray.menu.quit'),
 		click: () => events.emit('quit'),
 	},
-]);
+];
 
 let trayIcon = null;
 
@@ -39,7 +41,7 @@ let state = {
 	showIcon: true,
 };
 
-const instance = new (class Tray extends EventEmitter {});
+const instance = new class Tray extends EventEmitter {}();
 
 let darwinThemeSubscriberId = null;
 

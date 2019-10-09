@@ -1,5 +1,6 @@
 import bugsnag from '@bugsnag/js';
 import { app as mainApp, remote } from 'electron';
+
 const app = mainApp || remote.app;
 
 const logger = !remote ? console : new Proxy(console, {

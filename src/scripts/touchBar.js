@@ -1,4 +1,5 @@
 import { remote } from 'electron';
+
 import servers from './servers';
 import webview from './webview';
 import i18n from '../i18n';

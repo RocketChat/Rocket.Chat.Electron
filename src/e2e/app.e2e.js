@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { app, startApp, stopApp } from './utils';
 
+import { app, startApp, stopApp } from './utils';
 import appManifest from '../../package.json';
 
 describe('application', function() {

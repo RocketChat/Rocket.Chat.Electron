@@ -31,26 +31,20 @@ async function initialize({ synchronous = false } = {}) {
 	globalLocale = normalizeLocale(app.getLocale());
 
 	const lngFiles = synchronous ? jetpack.list(languagesDirPath) : await jetpack.listAsync(languagesDirPath);
-	const lngs = (
-		lngFiles
-			.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
-			.map((filename) => filename.split('.')[0])
-	);
-
-	const result = (
-		i18next
-			.use(synchronous ? i18nextSyncFileSystemBackend : i18nextNodeFileSystemBackend)
-			.init({
-				lng: globalLocale,
-				fallbackLng: defaultLocale,
-				lngs,
-				backend: {
-					loadPath: `${ languagesDirPath }/{{lng}}.i18n.json`,
-				},
-				initImmediate: !synchronous,
-			})
-	);
-
+	const lngs = 		lngFiles
+		.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
+		.map((filename) => filename.split('.')[0]);
+	const result = 		i18next
+		.use(synchronous ? i18nextSyncFileSystemBackend : i18nextNodeFileSystemBackend)
+		.init({
+			lng: globalLocale,
+			fallbackLng: defaultLocale,
+			lngs,
+			backend: {
+				loadPath: `${ languagesDirPath }/{{lng}}.i18n.json`,
+			},
+			initImmediate: !synchronous,
+		});
 	!synchronous && await result;
 }
 

@@ -1,6 +1,7 @@
 import { app, dialog, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import jetpack from 'fs-jetpack';
+
 import { getMainWindow } from './mainWindow';
 import i18n from '../i18n';
 
@@ -25,9 +26,8 @@ const updateSettings = (() => {
 
 	if (appUpdateSettings.forced) {
 		return Object.assign({}, defaultUpdateSettings, appUpdateSettings);
-	} else {
-		return Object.assign({}, defaultUpdateSettings, appUpdateSettings, userUpdateSettings);
 	}
+	return Object.assign({}, defaultUpdateSettings, appUpdateSettings, userUpdateSettings);
 })();
 delete updateSettings.forced;
 
@@ -39,11 +39,11 @@ const saveUpdateSettings = () => {
 	userDataDir.write(updateSettingsFileName, userUpdateSettings, { atomic: true });
 };
 
-const canUpdate = () => updateSettings.canUpdate &&
-	(
-		(process.platform === 'linux' && Boolean(process.env.APPIMAGE)) ||
-		(process.platform === 'win32' && !process.windowsStore) ||
-		(process.platform === 'darwin' && !process.mas)
+const canUpdate = () => updateSettings.canUpdate
+	&& (
+		(process.platform === 'linux' && Boolean(process.env.APPIMAGE))
+		|| (process.platform === 'win32' && !process.windowsStore)
+		|| (process.platform === 'darwin' && !process.mas)
 	);
 
 const canAutoUpdate = () => updateSettings.autoUpdate !== false;
@@ -55,7 +55,8 @@ const setAutoUpdate = (canAutoUpdate) => {
 		return;
 	}
 
-	updateSettings.autoUpdate = userUpdateSettings.autoUpdate = Boolean(canAutoUpdate);
+	userUpdateSettings.autoUpdate = !!canAutoUpdate;
+	updateSettings.autoUpdate = !!canAutoUpdate;
 	saveUpdateSettings();
 };
 

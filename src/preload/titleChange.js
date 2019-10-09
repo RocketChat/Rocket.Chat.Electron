@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron';
+
 import { getMeteor, getTracker, getSettings } from './rocketChat';
 
 

@@ -19,7 +19,7 @@ export class WindowStateHandler {
 			const userDataDir = jetpack.cwd(app.getPath('userData'));
 			this.state = {
 				...this.state,
-				...(await userDataDir.readAsync(`window-state-${ this.name }.json`, 'json') || {}),
+				...await userDataDir.readAsync(`window-state-${ this.name }.json`, 'json') || {},
 			};
 		} catch (error) {
 			console.error(`Failed to load "${ this.name }" window state`);
@@ -99,12 +99,12 @@ export class WindowStateHandler {
 		const { state } = this;
 
 		return screen.getAllDisplays()
-			.some(({ bounds }) => (
-				state.x >= bounds.x &&
-				state.y >= bounds.y &&
-				state.x + state.width <= bounds.x + bounds.width &&
-				state.y + state.height <= bounds.y + bounds.height
-			));
+			.some(({ bounds }) =>
+				state.x >= bounds.x
+				&& state.y >= bounds.y
+				&& state.x + state.width <= bounds.x + bounds.width
+				&& state.y + state.height <= bounds.y + bounds.height
+			);
 	}
 
 	fetchAndSave() {

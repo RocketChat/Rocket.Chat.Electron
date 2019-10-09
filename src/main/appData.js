@@ -1,6 +1,7 @@
+import path from 'path';
+
 import { app, ipcMain } from 'electron';
 import jetpack from 'fs-jetpack';
-import path from 'path';
 
 
 function definePath() {
@@ -25,8 +26,12 @@ async function migrate() {
 	try {
 		await jetpack.copyAsync(olderUserDataPath, app.getPath('userData'), { overwrite: true });
 		await jetpack.removeAsync(olderUserDataPath);
-	} catch (e) {
-		return;
+	} catch (error) {
+		if (jetpack.exists(olderUserDataPath)) {
+			throw error;
+		}
+
+		console.log('No data to migrate.');
 	}
 }
 

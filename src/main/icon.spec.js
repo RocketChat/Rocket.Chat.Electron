@@ -1,19 +1,18 @@
 import { expect } from 'chai';
+
 import { getAppIconPath, getTrayIconPath, getAppIconImage, getTrayIconImage } from './icon';
+
 const { describe, it } = global;
 
 
 describe('icon', () => {
-
 	describe('paths', () => {
 		it('app', () => {
 			expect(getAppIconPath()).to.be.equals('public/images/icon.png');
 		});
 
 		describe('tray', () => {
-
 			it('darwin', () => {
-
 				expect(getTrayIconPath({ platform: 'darwin', dark: false })).to.be.equals('public/images/tray/darwin/default.png');
 				expect(getTrayIconPath({ badge: '•', platform: 'darwin', dark: false })).to.be.equals('public/images/tray/darwin/notification.png');
 				expect(getTrayIconPath({ badge: 1, platform: 'darwin', dark: false })).to.be.equals('public/images/tray/darwin/notification.png');
@@ -29,7 +28,6 @@ describe('icon', () => {
 			});
 
 			it('darwin-dark', () => {
-
 				expect(getTrayIconPath({ platform: 'darwin', dark: true })).to.be.equals('public/images/tray/darwin-dark/default.png');
 				expect(getTrayIconPath({ badge: '•', platform: 'darwin', dark: true })).to.be.equals('public/images/tray/darwin-dark/notification.png');
 				expect(getTrayIconPath({ badge: 1, platform: 'darwin', dark: true })).to.be.equals('public/images/tray/darwin-dark/notification.png');
@@ -45,7 +43,6 @@ describe('icon', () => {
 			});
 
 			it('linux', () => {
-
 				expect(getTrayIconPath({ platform: 'linux' })).to.be.equals('public/images/tray/linux/default.png');
 				expect(getTrayIconPath({ badge: '•', platform: 'linux' })).to.be.equals('public/images/tray/linux/notification-dot.png');
 				expect(getTrayIconPath({ badge: 1, platform: 'linux' })).to.be.equals('public/images/tray/linux/notification-1.png');
@@ -61,7 +58,6 @@ describe('icon', () => {
 			});
 
 			it('win32', () => {
-
 				expect(getTrayIconPath({ platform: 'win32' })).to.be.equals('public/images/tray/win32/default.ico');
 				expect(getTrayIconPath({ badge: '•', platform: 'win32' })).to.be.equals('public/images/tray/win32/notification-dot.ico');
 				expect(getTrayIconPath({ badge: 1, platform: 'win32' })).to.be.equals('public/images/tray/win32/notification-1.ico');

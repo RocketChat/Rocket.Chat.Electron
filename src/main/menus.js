@@ -1,5 +1,7 @@
-import { app, Menu, webContents } from 'electron';
 import { EventEmitter } from 'events';
+
+import { app, Menu, webContents } from 'electron';
+
 import { getMainWindow } from './mainWindow';
 import i18n from '../i18n';
 
@@ -13,11 +15,11 @@ const createTemplate = ({
 	showMenuBar = true,
 	showServerList = true,
 	showWindowOnUnreadChanged = false,
-}, events) => ([
+}, events) => [
 	{
 		label: process.platform === 'darwin' ? appName : i18n.__('menus.fileMenu'),
 		submenu: [
-			...(process.platform === 'darwin' ? [
+			...process.platform === 'darwin' ? [
 				{
 					id: 'about',
 					label: i18n.__('menus.about', { appName }),
@@ -47,14 +49,14 @@ const createTemplate = ({
 				{
 					type: 'separator',
 				},
-			] : []),
-			...(process.platform !== 'darwin' ? [
+			] : [],
+			...process.platform !== 'darwin' ? [
 				{
 					label: i18n.__('menus.addNewServer'),
 					accelerator: 'CommandOrControl+N',
 					click: () => events.emit('add-new-server'),
 				},
-			] : []),
+			] : [],
 			{
 				type: 'separator',
 			},
@@ -147,7 +149,7 @@ const createTemplate = ({
 				checked: showTrayIcon,
 				click: () => events.emit('toggle', 'showTrayIcon'),
 			},
-			...(process.platform === 'darwin' ? [
+			...process.platform === 'darwin' ? [
 				{
 					label: i18n.__('menus.showFullScreen'),
 					type: 'checkbox',
@@ -162,7 +164,7 @@ const createTemplate = ({
 					checked: showMenuBar,
 					click: () => events.emit('toggle', 'showMenuBar'),
 				},
-			]),
+			],
 			{
 				label: i18n.__('menus.showServerList'),
 				type: 'checkbox',
@@ -194,7 +196,7 @@ const createTemplate = ({
 		id: 'window',
 		role: 'window',
 		submenu: [
-			...(process.platform === 'darwin' ? [
+			...process.platform === 'darwin' ? [
 				{
 					label: i18n.__('menus.addNewServer'),
 					accelerator: 'CommandOrControl+N',
@@ -203,7 +205,7 @@ const createTemplate = ({
 				{
 					type: 'separator',
 				},
-			] : []),
+			] : [],
 			...servers.map((host, i) => ({
 				label: host.title.replace(/&/g, '&&'),
 				type: currentServerUrl ? 'radio' : 'normal',
@@ -274,16 +276,16 @@ const createTemplate = ({
 				label: i18n.__('menus.learnMore'),
 				click: () => events.emit('open-url', 'https://rocket.chat'),
 			},
-			...(process.platform !== 'darwin' ? [
+			...process.platform !== 'darwin' ? [
 				{
 					id: 'about',
 					label: i18n.__('menus.about', { appName }),
 					click: () => events.emit('about'),
 				},
-			] : []),
+			] : [],
 		],
 	},
-]);
+];
 
 class Menus extends EventEmitter {
 	constructor() {

@@ -23,8 +23,7 @@
     "eslint": "eslint src",
     "stylelint": "stylelint 'src/**/*.css' 'src/**/*.less'",
     "test": "gulp test",
-    "coverage": "gulp coverage",
-    "e2e": "gulp e2e"
+    "coverage": "gulp coverage"
   },
   "dependencies": {
     "@bugsnag/js": "^6.3.2",
@@ -65,7 +64,6 @@
     "rollup-plugin-replace": "^2.1.0",
     "run-sequence": "^2.2.1",
     "sinon": "^7.2.2",
-    "spectron": "^8.0.0",
     "stylelint": "^11.0.0",
     "stylelint-order": "^3.1.1",
     "to-ico": "^1.1.5",

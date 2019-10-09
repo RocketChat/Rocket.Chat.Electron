@@ -50,7 +50,6 @@ notifications:
 install:
   - yarn
   - yarn test
-  - yarn e2e
 
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi

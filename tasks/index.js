@@ -5,4 +5,3 @@ require('./icons');
 require('./release');
 require('./test');
 require('./coverage');
-require('./e2e');

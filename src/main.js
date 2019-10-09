@@ -1,4 +1,5 @@
 import { app } from 'electron';
+import setupElectronReload from 'electron-reload';
 
 import { setupErrorHandling } from './errorHandling';
 import appData from './main/appData';
@@ -16,6 +17,12 @@ export { default as menus } from './main/menus';
 export { default as tray } from './main/tray';
 export { default as notifications } from './main/notifications';
 export { default as certificate } from './main/certificateStore';
+
+if (process.env.NODE_ENV) {
+	setupElectronReload(__dirname, {
+		electron: process.execPath,
+	});
+}
 
 async function prepareApp() {
 	setupErrorHandling('main');

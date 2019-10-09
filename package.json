@@ -14,13 +14,12 @@
   },
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
-    "gulp": "gulp",
     "start": "gulp start",
     "icons": "gulp icons",
     "changelog": "conventional-changelog --config .github/changelog.js -i HISTORY.md -s",
     "release": "gulp release --env=production",
     "release-dev": "gulp release --env=development",
-    "eslint": "eslint src tasks",
+    "eslint": "eslint src tasks gulpfile.js",
     "stylelint": "stylelint 'src/**/*.css' 'src/**/*.less'",
     "test": "gulp test"
   },
@@ -44,6 +43,7 @@
     "electron": "^6.0.12",
     "electron-builder": "^21.2.0",
     "electron-mocha": "^8.0.1",
+    "electron-reload": "^1.5.0",
     "eslint": "^6.5.1",
     "gulp": "^4.0.0",
     "gulp-cli": "^2.0.1",

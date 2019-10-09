@@ -4,7 +4,7 @@ const minimist = require('minimist');
 
 let { env } = minimist(process.argv, { default: { env: 'development' } });
 
-const setEnv = (newEnv) => () => {
+const setEnv = (newEnv) => async () => {
 	env = newEnv;
 };
 gulp.task('env:development', setEnv('development'));

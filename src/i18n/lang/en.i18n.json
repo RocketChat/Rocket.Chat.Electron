@@ -147,9 +147,9 @@
         "reload": "Reload"
     },
     "selfxss": {
-        "title": "⚠️ Wait! ️️⚠️",
-        "description": "This is a feature for developers. If you were told to copy and paste something here there is a good chance someone may be attempting to compromise your account.",
-        "moreInfo": "More information: https://en.wikipedia.org/wiki/Self-XSS"
+        "title": "Stop!",
+        "description": "This is a browser feature intended for developers. If someone told you to copy-paste something here to enable a Rocket.Chat feature or \"hack\" someone's account, it is a scam and will give them access to your Rocket.Chat account.",
+        "moreInfo": "See https://go.rocket.chat/i/xss for more information."
     },
     "sidebar": {
         "addNewServer": "Add new server",

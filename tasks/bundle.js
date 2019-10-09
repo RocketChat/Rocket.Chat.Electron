@@ -4,7 +4,6 @@ const builtinModules = require('builtin-modules');
 const jetpack = require('fs-jetpack');
 const { rollup } = require('rollup');
 const commonjs = require('rollup-plugin-commonjs');
-const istanbul = require('rollup-plugin-istanbul');
 const json = require('rollup-plugin-json');
 const nodeResolve = require('rollup-plugin-node-resolve');
 const replace = require('rollup-plugin-replace');
@@ -14,7 +13,7 @@ const appManifest = require('../package.json');
 
 const cached = {};
 
-const bundle = async (src, dest, { coverage = false, env = 'development' } = {}) => {
+const bundle = async (src, dest, { env = 'development' } = {}) => {
 	const inputOptions = {
 		input: src,
 		external: [
@@ -24,12 +23,6 @@ const bundle = async (src, dest, { coverage = false, env = 'development' } = {})
 		],
 		cache: cached[src],
 		plugins: [
-			...coverage ? [
-				istanbul({
-					exclude: ['**/*.spec.js', '**/*.specs.js'],
-					sourcemap: true,
-				}),
-			] : [],
 			json(),
 			replace({
 				'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),

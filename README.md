@@ -129,17 +129,6 @@ yarn test
 Using [electron-mocha](https://github.com/jprichardson/electron-mocha) test runner with the [chai](http://chaijs.com/api/assert/) assertion library. This task searches for all files in `src` directory which respect pattern `*.spec.js`.
 
 
-### Code coverage
-
-```
-yarn coverage
-```
-
-Using [istanbul](http://gotwarlost.github.io/istanbul/) code coverage tool.
-
-You can set the reporter(s) by setting `ISTANBUL_REPORTERS` environment variable (defaults to `text-summary` and `html`). The report directory can be set with `ISTANBUL_REPORT_DIR` (defaults to `coverage`).
-
-
 ## Making a release
 
 To package your app into an installer use command:

@@ -75,6 +75,7 @@ async function createMainWindow() {
 		titleBarStyle: 'hidden',
 		show: false,
 		webPreferences: {
+			webviewTag: true,
 			nodeIntegration: true,
 		},
 	});

@@ -14,8 +14,8 @@ matrix:
       apt:
         packages:
           - rpm
+          - gcc-multilib
           - g++-multilib
-          - libxss-dev:i386
           - snapd
     before_install:
       - sudo snap install snapcraft --classic

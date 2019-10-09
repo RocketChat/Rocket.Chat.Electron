@@ -16,9 +16,8 @@
     "postinstall": "electron-builder install-app-deps",
     "start": "gulp start",
     "icons": "gulp icons",
+    "release": "gulp release",
     "changelog": "conventional-changelog --config .github/changelog.js -i HISTORY.md -s",
-    "release": "gulp release --env=production",
-    "release-dev": "gulp release --env=development",
     "eslint": "eslint src tasks gulpfile.js",
     "stylelint": "stylelint 'src/**/*.css' 'src/**/*.less'",
     "test": "gulp test"

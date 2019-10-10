@@ -75,12 +75,12 @@
     "xvfb-maybe": "^0.2.1"
   },
   "engines": {
-    "node": ">=10.16.3"
+    "node": ">=10.16.x"
   },
   "devEngines": {
-    "node": ">=10.16.3",
-    "npm": ">=4.x",
-    "yarn": ">=0.21.3"
+    "node": ">=10.16.x",
+    "npm": ">=6.9.x",
+    "yarn": ">=1.17.x"
   },
   "productName": "Rocket.Chat"
 }

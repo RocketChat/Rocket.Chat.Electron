@@ -25,7 +25,9 @@
 		"extendInfo": {
 			"NSMicrophoneUsageDescription": "I need access to your microphone to record the audio you want to send.",
 			"NSCameraUsageDescription": "I need access to your camera to record the video you want to send."
-		}
+		},
+		"hardenedRuntime" : true,
+		"gatekeeperAssess": false
 	},
 	"dmg": {
 		"background": "build/background.png",
@@ -100,6 +102,7 @@
 	"snap": {
 		"artifactName": "rocketchat_${version}_${arch}.${ext}"
 	},
+	"afterSign": "build/notarize.js",
 	"publish": [
 		{
 			"provider": "github",

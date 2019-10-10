@@ -1,5 +1,5 @@
 {
-  "name": "@rocket.chat/electron",
+  "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
   "version": "2.16.0-develop",
   "author": "Rocket.Chat Support <support@rocket.chat>",

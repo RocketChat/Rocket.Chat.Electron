@@ -46,11 +46,17 @@ task('start:electron', execa.task('electron .'));
 
 task('start', series('build', parallel('watch', 'start:electron')));
 
-task('release:darwin', () => build({
-	publish: NODE_ENV === 'production' ? 'onTagOrDraft' : 'never',
-	x64: true,
-	mac: [],
-}));
+task('release:darwin', async () => {
+	// Workaround for https://github.com/electron-userland/electron-builder/issues/4204
+	for (const target of ['dmg', 'pkg', 'zip', 'mas']) {
+		// eslint-disable-next-line no-await-in-loop
+		await build({
+			publish: NODE_ENV === 'production' ? 'onTagOrDraft' : 'never',
+			x64: true,
+			mac: [target],
+		});
+	}
+});
 
 task('release:linux', () => build({
 	publish: NODE_ENV === 'production' ? 'onTagOrDraft' : 'never',

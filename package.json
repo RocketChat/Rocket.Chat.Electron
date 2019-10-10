@@ -19,7 +19,7 @@
     "release": "gulp release",
     "icons": "gulp icons",
     "changelog": "conventional-changelog --config .github/changelog.js -i HISTORY.md -s",
-    "eslint": "eslint src tasks gulpfile.js",
+    "eslint": "eslint src gulpfile.js",
     "stylelint": "stylelint 'src/**/*.css' 'src/**/*.less'"
   },
   "dependencies": {
@@ -33,8 +33,15 @@
     "spellchecker": "^3.5.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.6.3",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-function-bind": "^7.2.0",
+    "@babel/preset-env": "^7.6.3",
+    "@babel/traverse": "^7.6.3",
+    "@babel/types": "^7.6.3",
     "@fiahfy/icns-convert": "^0.0.6",
     "@rocket.chat/eslint-config": "^0.4.0",
+    "babel-eslint": "^10.0.3",
     "builtin-modules": "^3.0.0",
     "chai": "^4.2.0",
     "conventional-changelog-cli": "^2.0.11",
@@ -44,6 +51,7 @@
     "electron-mocha": "^8.0.1",
     "electron-reload": "^1.5.0",
     "eslint": "^6.5.1",
+    "eslint-plugin-import": "^2.17.2",
     "gulp": "^4.0.0",
     "gulp-cli": "^2.0.1",
     "gulp-less": "^4.0.1",
@@ -53,6 +61,7 @@
     "mocha": "^6.0.1",
     "npm-run-all": "^4.1.3",
     "rollup": "^1.1.0",
+    "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",

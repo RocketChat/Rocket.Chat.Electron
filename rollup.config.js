@@ -1,5 +1,6 @@
 import builtinModules from 'builtin-modules';
 import jetpack from 'fs-jetpack';
+import babel from 'rollup-plugin-babel';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
 import nodeResolve from 'rollup-plugin-node-resolve';
@@ -21,6 +22,7 @@ const bundleOptions = {
 			'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
 			'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
 		}),
+		babel(),
 		nodeResolve(),
 		commonjs(),
 	],

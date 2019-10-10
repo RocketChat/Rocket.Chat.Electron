@@ -1,11 +1,9 @@
-const { spawn } = require('child_process');
-
 const icnsConvert = require('@fiahfy/icns-convert');
 const { convert } = require('convert-svg-to-png');
-const electron = require('electron');
 const { build } = require('electron-builder');
 const { readAsync, removeAsync, writeAsync } = require('fs-jetpack');
 const { dest, parallel, series, src, task, watch } = require('gulp');
+const execa = require('gulp-execa');
 const less = require('gulp-less');
 const toIco = require('to-ico');
 
@@ -19,7 +17,7 @@ task('build:public', () => src('src/public/**/*')
 task('build:i18n', () => src('src/i18n/lang/**/*')
 	.pipe(dest('app/i18n/lang')));
 
-task('build:bundle', () => spawn('./node_modules/.bin/rollup', ['-c'], { stdio: 'inherit', shell: true, env: { NODE_ENV } }));
+task('build:bundle', execa.task('rollup -c', { env: { NODE_ENV } }));
 
 task('build:less', () => src('src/stylesheets/main.less')
 	.pipe(less())
@@ -34,26 +32,17 @@ task('watch', () => {
 	watch('src/**/*.less', task('build:less'));
 });
 
-task('test:build', () => spawn('./node_modules/.bin/rollup', ['-c'], { stdio: 'inherit', shell: true, env: { NODE_ENV: 'test' } }));
+task('test:build', execa.task('rollup -c', { env: { NODE_ENV: 'test' } }));
 
-task('test:main', () => spawn('xvfb-maybe', [
-	'electron-mocha',
-	'--require',
-	'source-map-support/register',
-	'app/main.specs/*.js',
-], { stdio: 'inherit', shell: true }));
+task('test:main',
+	execa.task('xvfb-maybe electron-mocha --require source-map-support/register app/main.specs/*.js'));
 
-task('test:renderer', () => spawn('xvfb-maybe', [
-	'electron-mocha',
-	'--require',
-	'source-map-support/register',
-	'--renderer',
-	'app/renderer.specs/*.js',
-], { stdio: 'inherit', shell: true }));
+task('test:renderer',
+	execa.task('xvfb-maybe electron-mocha --require source-map-support/register --renderer app/renderer.specs/*.js'));
 
 task('test', series('clean', 'test:build', 'test:main', 'test:renderer'));
 
-task('start:electron', () => spawn(electron, [__dirname], { stdio: 'inherit', shell: true }));
+task('start:electron', execa.task('electron .'));
 
 task('start', series('build', parallel('watch', 'start:electron')));
 

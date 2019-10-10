@@ -9,7 +9,11 @@
   "copyright": "© 2019, Rocket.Chat",
   "homepage": "https://rocket.chat",
   "license": "MIT",
-  "keywords": ["rocketchat","desktop","electron"],
+  "keywords": [
+    "rocketchat",
+    "desktop",
+    "electron"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/RocketChat/Rocket.Chat.Electron.git"
@@ -60,6 +64,7 @@
     "eslint-plugin-import": "^2.17.2",
     "gulp": "^4.0.0",
     "gulp-cli": "^2.0.1",
+    "gulp-execa": "^1.0.1",
     "gulp-less": "^4.0.1",
     "mocha": "^6.0.1",
     "rollup": "^1.1.0",

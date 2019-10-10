@@ -15,12 +15,12 @@
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
     "start": "gulp start",
-    "icons": "gulp icons",
+    "test": "gulp test",
     "release": "gulp release",
+    "icons": "gulp icons",
     "changelog": "conventional-changelog --config .github/changelog.js -i HISTORY.md -s",
     "eslint": "eslint src tasks gulpfile.js",
-    "stylelint": "stylelint 'src/**/*.css' 'src/**/*.less'",
-    "test": "gulp test"
+    "stylelint": "stylelint 'src/**/*.css' 'src/**/*.less'"
   },
   "dependencies": {
     "@bugsnag/js": "^6.3.2",
@@ -47,7 +47,6 @@
     "gulp": "^4.0.0",
     "gulp-cli": "^2.0.1",
     "gulp-less": "^4.0.1",
-    "gulp-plumber": "^1.2.0",
     "gulp-rename": "^1.4.0",
     "gulp-util": "^3.0.8",
     "minimist": "^1.2.0",

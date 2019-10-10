@@ -1,17 +1,23 @@
 {
-  "name": "rocketchat",
-  "productName": "Rocket.Chat",
-  "description": "Rocket.Chat Native Cross-Platform Desktop Application via Electron.",
+  "name": "@rocket.chat/electron",
+  "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
   "version": "2.16.0-develop",
-  "author": "Rocket.Chat Support <support@rocket.chat>",
+  "author": {
+    "name": "Rocket.Chat",
+    "url": "https://rocket.chat/"
+  },
   "copyright": "© 2019, Rocket.Chat",
   "homepage": "https://rocket.chat",
   "license": "MIT",
-  "main": "app/main.js",
+  "keywords": ["rocketchat","desktop","electron"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/RocketChat/Rocket.Chat.Electron.git"
+    "url": "git+https://github.com/RocketChat/Rocket.Chat.Electron.git"
   },
+  "bugs": {
+    "url": "https://github.com/RocketChat/Rocket.Chat.Electron/issues"
+  },
+  "main": "app/main.js",
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
     "start": "gulp start",
@@ -68,9 +74,13 @@
     "to-ico": "^1.1.5",
     "xvfb-maybe": "^0.2.1"
   },
+  "engines": {
+    "node": ">=10.16.3"
+  },
   "devEngines": {
-    "node": ">=8.12.x",
+    "node": ">=10.16.3",
     "npm": ">=4.x",
     "yarn": ">=0.21.3"
-  }
+  },
+  "productName": "Rocket.Chat"
 }

@@ -2,8 +2,5 @@
   "extends": [
     "@rocket.chat/eslint-config"
   ],
-  "parserOptions": {
-		"sourceType": "module",
-		"ecmaVersion": 2018
-	}
+  "parser": "babel-eslint"
 }

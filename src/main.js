@@ -1,20 +1,28 @@
 import { app } from 'electron';
+import setupElectronReload from 'electron-reload';
+
 import { setupErrorHandling } from './errorHandling';
 import appData from './main/appData';
 import './main/basicAuth';
 import { processDeepLink } from './main/deepLinks';
-import './main/systemIdleTime';
 import './main/updates';
 import { getMainWindow } from './main/mainWindow';
 import './main/dialogs/about';
 import './main/dialogs/screenshare';
 import './main/dialogs/update';
 import i18n from './i18n';
+
 export { default as dock } from './main/dock';
 export { default as menus } from './main/menus';
 export { default as tray } from './main/tray';
 export { default as notifications } from './main/notifications';
 export { default as certificate } from './main/certificateStore';
+
+if (process.env.NODE_ENV) {
+	setupElectronReload(__dirname, {
+		electron: process.execPath,
+	});
+}
 
 async function prepareApp() {
 	setupErrorHandling('main');

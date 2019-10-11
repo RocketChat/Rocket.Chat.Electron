@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
+
 import { getMainWindow } from '../mainWindow';
 import i18n from '../../i18n';
 

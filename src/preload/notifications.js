@@ -1,12 +1,14 @@
-import { ipcRenderer, remote } from 'electron';
 import { EventEmitter } from 'events';
+
+import { ipcRenderer, remote } from 'electron';
 import mem from 'mem';
+
 const { notifications } = remote.require('./main');
 
 
 class Notification extends EventEmitter {
 	static requestPermission() {
-		return;
+
 	}
 
 	static get permission() {

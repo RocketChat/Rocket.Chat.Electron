@@ -34,7 +34,7 @@ build_script:
         $env:CSC_LINK = ($tmp.FullName + ".p12")
       }
   - yarn test
-  - yarn e2e
+  - set NODE_ENV=production
   - yarn release
 
 # on_finish:

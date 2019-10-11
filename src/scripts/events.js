@@ -1,4 +1,5 @@
 import { remote, ipcRenderer } from 'electron';
+
 import servers from './servers';
 import sidebar from './sidebar';
 import webview from './webview';
@@ -11,8 +12,8 @@ const { certificate, dock, menus, tray } = remote.require('./main');
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();
 	const showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
-	const hasTrayIcon = localStorage.getItem('hideTray') ?
-		localStorage.getItem('hideTray') !== 'true' : (process.platform !== 'linux');
+	const hasTrayIcon = localStorage.getItem('hideTray')
+		? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux';
 	const hasMenuBar = localStorage.getItem('autohideMenu') !== 'true';
 	const hasSidebar = localStorage.getItem('sidebar-closed') !== 'true';
 
@@ -45,7 +46,7 @@ const updateServers = () => {
 
 	menus.setState({
 		servers: Object.values(servers.hosts)
-			.sort(({ url: a }, { url: b }) => (sidebar ? (sorting.indexOf(a) - sorting.indexOf(b)) : 0))
+			.sort(({ url: a }, { url: b }) => (sidebar ? sorting.indexOf(a) - sorting.indexOf(b) : 0))
 			.map(({ title, url }) => ({ title, url })),
 		currentServerUrl: servers.active,
 	});
@@ -253,9 +254,9 @@ export default () => {
 		const mentionCount = Object.values(sidebar.state.badges)
 			.filter((badge) => Number.isInteger(badge))
 			.reduce((sum, count) => sum + count, 0);
-		const globalBadge = mentionCount ||
-			(Object.values(sidebar.state.badges).some((badge) => !!badge) && '•') ||
-			null;
+		const globalBadge = mentionCount
+			|| (Object.values(sidebar.state.badges).some((badge) => !!badge) && '•')
+			|| null;
 
 		tray.setState({ badge: globalBadge });
 		dock.setState({ badge: globalBadge });

@@ -14,8 +14,8 @@ matrix:
       apt:
         packages:
           - rpm
+          - gcc-multilib
           - g++-multilib
-          - libxss-dev:i386
           - snapd
     before_install:
       - sudo snap install snapcraft --classic
@@ -33,7 +33,7 @@ matrix:
         on:
           branch: master
   - os: osx
-    osx_image: xcode8.3
+    osx_image: xcode11.2
 
 branches:
   only:
@@ -50,8 +50,7 @@ notifications:
 install:
   - yarn
   - yarn test
-  - yarn e2e
 
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
-  - yarn release
+  - NODE_ENV=production yarn release

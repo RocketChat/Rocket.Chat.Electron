@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
+
 import { WindowStateHandler } from './state';
 
 
@@ -74,6 +75,7 @@ async function createMainWindow() {
 		titleBarStyle: 'hidden',
 		show: false,
 		webPreferences: {
+			webviewTag: true,
 			nodeIntegration: true,
 		},
 	});

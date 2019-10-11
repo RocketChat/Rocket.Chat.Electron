@@ -1,5 +1,8 @@
-import { ipcRenderer } from 'electron';
 import { EventEmitter } from 'events';
+
+import { ipcRenderer } from 'electron';
+import { t } from 'i18next';
+
 import servers from './servers';
 
 
@@ -43,13 +46,24 @@ class WebView extends EventEmitter {
 		webviewObj.setAttribute('disablewebsecurity', 'on');
 
 		webviewObj.addEventListener('did-navigate-in-page', (lastPath) => {
-			if ((lastPath.url).includes(host.url)) {
+			if (lastPath.url.includes(host.url)) {
 				this.saveLastPath(host.url, lastPath.url);
 			}
 		});
 
-		webviewObj.addEventListener('console-message', (e) => {
-			console.log('webview:', e.message);
+		let selfXssWarned = false;
+		webviewObj.addEventListener('devtools-opened', () => {
+			if (selfXssWarned) {
+				return;
+			}
+
+			webviewObj.getWebContents().executeJavaScript(`(${ ([title, description, moreInfo]) => {
+				console.warn('%c%s', 'color: red; font-size: 32px;', title);
+				console.warn('%c%s', 'font-size: 20px;', description);
+				console.warn('%c%s', 'font-size: 20px;', moreInfo);
+			} })(${ JSON.stringify([t('selfxss.title'), t('selfxss.description'), t('selfxss.moreInfo')]) })`);
+
+			selfXssWarned = true;
 		});
 
 		webviewObj.addEventListener('ipc-message', (event) => {
@@ -75,6 +89,10 @@ class WebView extends EventEmitter {
 		});
 
 		webviewObj.addEventListener('did-fail-load', (e) => {
+			if (e.errorCode === -3) {
+				console.log('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
+				return;
+			}
 			if (e.isMainFrame) {
 				webviewObj.loadURL(`file://${ __dirname }/loading-error.html`);
 			}

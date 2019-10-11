@@ -18,14 +18,16 @@
 			"mas"
 		],
 		"icon": "build/icon.icns",
-		"bundleVersion": "50",
+		"bundleVersion": "52",
 		"helperBundleId": "chat.rocket.electron.helper",
 		"type": "distribution",
 		"artifactName": "rocketchat-${version}.${ext}",
 		"extendInfo": {
 			"NSMicrophoneUsageDescription": "I need access to your microphone to record the audio you want to send.",
 			"NSCameraUsageDescription": "I need access to your camera to record the video you want to send."
-		}
+		},
+		"hardenedRuntime" : true,
+		"gatekeeperAssess": false
 	},
 	"dmg": {
 		"background": "build/background.png",
@@ -88,8 +90,19 @@
 		"desktop": {
 			"StartupWMClass": "Rocket.Chat",
 			"MimeType": "x-scheme-handler/rocketchat"
-		}
+		},
+		"artifactName": "rocketchat-${version}.${ext}"
 	},
+	"deb": {
+		"artifactName": "rocketchat_${version}_${arch}.${ext}"
+	},
+	"rpm": {
+		"artifactName": "rocketchat-${version}.${arch}.${ext}"
+	},
+	"snap": {
+		"artifactName": "rocketchat_${version}_${arch}.${ext}"
+	},
+	"afterSign": "./build/notarize.js",
 	"publish": [
 		{
 			"provider": "github",

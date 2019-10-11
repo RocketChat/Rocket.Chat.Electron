@@ -1,7 +1,10 @@
-import { desktopCapturer, remote } from 'electron';
 import url from 'url';
 import util from 'util';
+
+import { desktopCapturer, remote } from 'electron';
+
 import { getSettings } from './rocketChat';
+
 const { app } = remote;
 
 

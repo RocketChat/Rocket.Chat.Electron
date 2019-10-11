@@ -1,3 +1,35 @@
+<a name="2.16.0"></a>
+# 2.16.0 (2019-10-11)
+
+
+### Bug Fixes
+
+- [#1275](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1275) Ignore spurious did-fail load, fixes [#1273](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1273).
+
+
+### Improvements
+
+- [#1325](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1325) Add console warning to self-XSS
+- [#1312](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1312) Fixes and updates French translations
+
+
+<details>
+<summary>Others</summary>
+
+- [#1347](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1347) MacOS build
+- [#1343](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1343) Reenable webviews
+- [#1346](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1346) Revert Linux artifacts names
+- [#1342](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1342) Update dependencies
+- [#1344](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1344) Update tasks and metadata
+- [#1306](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1306) Bump eslint-utils from 1.3.1 to 1.4.2
+- [#1305](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1305) Bump js-yaml from 3.12.2 to 3.13.0
+- [#1304](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1304) Bump lodash from 4.17.11 to 4.17.15
+- [#1307](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1307) Bump lodash.merge from 4.6.1 to 4.6.2
+- [#1308](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1308) Bump mixin-deep from 1.3.1 to 1.3.2
+</details>
+
+
+
 <a name="2.15.5"></a>
 ## 2.15.5 (2019-08-09)
 

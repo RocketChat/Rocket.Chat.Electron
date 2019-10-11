@@ -1,6 +1,8 @@
+const debug = require('debug');
 const { notarize } = require('electron-notarize');
 
 exports.default = function notarizing(context) {
+	debug.enable('electron-notarize');
 	const { electronPlatformName, appOutDir } = context;
 	if (electronPlatformName !== 'darwin' || process.env.TRAVIS_PULL_REQUEST !== 'false') {
 		return;

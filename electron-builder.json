@@ -102,7 +102,7 @@
 	"snap": {
 		"artifactName": "rocketchat_${version}_${arch}.${ext}"
 	},
-	"afterSign": "build/notarize.js",
+	"afterSign": "./build/notarize.js",
 	"publish": [
 		{
 			"provider": "github",

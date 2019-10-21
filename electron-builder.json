@@ -18,7 +18,7 @@
 			"mas"
 		],
 		"icon": "build/icon.icns",
-		"bundleVersion": "53",
+		"bundleVersion": "59",
 		"helperBundleId": "chat.rocket.electron.helper",
 		"type": "distribution",
 		"artifactName": "rocketchat-${version}.${ext}",
@@ -27,7 +27,8 @@
 			"NSCameraUsageDescription": "I need access to your camera to record the video you want to send."
 		},
 		"hardenedRuntime" : true,
-		"gatekeeperAssess": false
+		"gatekeeperAssess": false,
+		"provisioningProfile": "embedded.provisionprofile"
 	},
 	"dmg": {
 		"background": "build/background.png",
@@ -52,6 +53,10 @@
 	"mas": {
 		"entitlements": "build/entitlements.mas.plist",
 		"entitlementsInherit": "build/entitlements.mas.inherit.plist",
+		"hardenedRuntime" : false,
+		"asarUnpack": [
+			"node_modules"
+		],
 		"artifactName": "rocketchat-${version}-mas.${ext}"
 	},
 	"win": {

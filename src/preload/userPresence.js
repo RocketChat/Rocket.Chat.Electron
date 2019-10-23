@@ -1,12 +1,15 @@
-import { powerMonitor } from 'electron';
+import { remote } from 'electron';
 
 import { getMeteor, getTracker, getGetUserPreference, getUserPresence } from './rocketChat';
+
+const { powerMonitor } = remote;
 
 const pollUserPresence = (UserPresence, maximumIdleTime) => () => {
 	let isUserPresent = true;
 
 	try {
 		const idleTime = powerMonitor.getSystemIdleTime();
+		console.log(idleTime);
 		isUserPresent = idleTime < maximumIdleTime;
 
 		if (isUserPresent) {

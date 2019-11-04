@@ -3,9 +3,6 @@ import { EventEmitter } from 'events';
 import { ipcRenderer, remote } from 'electron';
 import mem from 'mem';
 
-// const { notifications } = remote.require('./main');
-
-
 class Notification extends EventEmitter {
 	static requestPermission() {
 
@@ -45,7 +42,6 @@ class Notification extends EventEmitter {
 			icon = await this.createIcon(icon);
 		}
 
-		// const notification = notifications.create({ icon, hasReply: canReply, ...options });
 		const notification = new remote.Notification({
 			icon: icon && remote.nativeImage.createFromDataURL(icon),
 			hasReply: canReply,

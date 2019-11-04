@@ -54,6 +54,7 @@
     "chai": "^4.2.0",
     "conventional-changelog-cli": "^2.0.11",
     "convert-svg-to-png": "^0.5.0",
+    "debug": "^4.1.1",
     "electron": "^6.0.12",
     "electron-builder": "^21.2.0",
     "electron-mocha": "^8.0.1",

@@ -133,7 +133,14 @@ class SpellCheck {
 					.bind(null, this.enabledDictionaries)
 			);
 		} finally {
-			webFrame.setSpellCheckProvider('', false, { spellCheck: this.checker });
+			webFrame.setSpellCheckProvider('', {
+				spellCheck: (words, callback) => {
+					setTimeout(() => {
+						const misspelled = words.filter((word) => !this.checker(word));
+						callback(misspelled);
+					}, 0);
+				},
+			});
 		}
 	}
 

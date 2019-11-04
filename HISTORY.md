@@ -1,3 +1,14 @@
+<a name="2.16.1"></a>
+## 2.16.1 (2019-11-04)
+
+
+### Bug Fixes
+
+- [#1365](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1365) powerMonitor API usage
+- [#1366](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1366) Spellchecker setup
+
+
+
 <a name="2.16.0"></a>
 # 2.16.0 (2019-10-11)
 

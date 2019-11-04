@@ -9,7 +9,6 @@ const pollUserPresence = (UserPresence, maximumIdleTime) => () => {
 
 	try {
 		const idleTime = powerMonitor.getSystemIdleTime();
-		console.log(idleTime);
 		isUserPresent = idleTime < maximumIdleTime;
 
 		if (isUserPresent) {

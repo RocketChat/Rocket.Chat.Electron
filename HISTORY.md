@@ -1,3 +1,18 @@
+<a name="2.16.2"></a>
+## 2.16.2 (2019-11-07)
+
+
+### Bug Fixes
+
+- [#1381](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1381) Update dialog events
+
+
+### Improvements
+
+- [#1380](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1380) Notifications on Gnome
+
+
+
 <a name="2.16.1"></a>
 ## 2.16.1 (2019-11-04)
 

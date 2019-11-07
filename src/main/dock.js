@@ -46,7 +46,7 @@ const update = async (previousState) => {
 		mainWindow.setIcon(image);
 	}
 
-	if (!mainWindow.isFocused()) {
+	if (process.platform === 'win32' && !mainWindow.isFocused()) {
 		const count = Number.isInteger(state.badge) ? state.badge : 0;
 		mainWindow.flashFrame(count > 0);
 	}

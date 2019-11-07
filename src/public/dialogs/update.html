@@ -31,15 +31,15 @@
 					buttons: [i18n.__('dialog.updateSkip.ok')],
 					defaultId: 0,
 				}, () => {
-					ipcRenderer.send('close-update-dialog');
 					ipcRenderer.send('skip-update-version', newVersion);
+					ipcRenderer.send('close-update-dialog');
 				});
 			}, false);
 
 			document.querySelector('.update-remind-action').addEventListener('click', (e) => {
 				e.preventDefault();
-				ipcRenderer.send('close-update-dialog');
 				ipcRenderer.send('remind-update-later');
+				ipcRenderer.send('close-update-dialog');
 			}, false);
 
 			document.querySelector('.update-install-action').addEventListener('click', (e) => {
@@ -51,8 +51,8 @@
 					buttons: [i18n.__('dialog.updateDownloading.ok')],
 					defaultId: 0,
 				}, () => {
-						ipcRenderer.send('close-update-dialog');
-						ipcRenderer.send('download-update');
+					ipcRenderer.send('download-update');
+					ipcRenderer.send('close-update-dialog');
 				});
 			}, false);
 

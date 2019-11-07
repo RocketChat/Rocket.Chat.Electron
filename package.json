@@ -1,7 +1,7 @@
 {
   "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
-  "version": "2.16.1",
+  "version": "2.16.2",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2019, Rocket.Chat",
   "homepage": "https://rocket.chat",
@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@bugsnag/js": "^6.3.2",
+    "debug": "^4.1.1",
     "electron-reload": "^1.5.0",
     "electron-updater": "^4.0.6",
     "fs-jetpack": "^2.2.0",

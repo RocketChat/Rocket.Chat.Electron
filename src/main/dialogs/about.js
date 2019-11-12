@@ -23,7 +23,7 @@ async function open() {
 		fullscreen: false,
 		fullscreenable: false,
 		skipTaskbar: true,
-		title: i18n.__('dialog.about.title', { appName: app.getName() }),
+		title: i18n.__('dialog.about.title', { appName: app.name }),
 		show: false,
 		parent: mainWindow,
 		modal: process.platform !== 'darwin',
@@ -44,7 +44,7 @@ async function open() {
 		window = null;
 	});
 
-	window.params = { appName: app.getName(), appVersion: app.getVersion() };
+	window.params = { appName: app.name, appVersion: app.getVersion() };
 
 	window.loadFile(`${ app.getAppPath() }/app/public/dialogs/about.html`);
 }

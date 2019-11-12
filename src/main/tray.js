@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 
-import { app, Menu, systemPreferences, Tray as TrayIcon } from 'electron';
+import { app, Menu, nativeTheme, Tray as TrayIcon } from 'electron';
 
 import i18n from '../i18n';
 import { getTrayIconImage } from './icon';
@@ -9,17 +9,15 @@ import { getTrayIconImage } from './icon';
 const getIconTitle = ({ badge }) => (Number.isInteger(badge) ? String(badge) : '');
 
 const getIconTooltip = ({ badge }) => {
-	const appName = app.getName();
-
 	if (badge === '•') {
-		return i18n.__('tray.tooltip.unreadMessage', { appName });
+		return i18n.__('tray.tooltip.unreadMessage', { appName: app.name });
 	}
 
 	if (Number.isInteger(badge)) {
-		return i18n.__('tray.tooltip.unreadMention', { appName, count: badge });
+		return i18n.__('tray.tooltip.unreadMention', { appName: app.name, count: badge });
 	}
 
-	return i18n.__('tray.tooltip.noUnreadMessage', { appName });
+	return i18n.__('tray.tooltip.noUnreadMessage', { appName: app.name });
 };
 
 const createContextMenuTemplate = ({ isMainWindowVisible }, events) => [
@@ -43,7 +41,13 @@ let state = {
 
 const instance = new class Tray extends EventEmitter {}();
 
-let darwinThemeSubscriberId = null;
+const handleThemeUpdate = () => {
+	if (!trayIcon) {
+		return;
+	}
+
+	trayIcon.setImage(getTrayIconImage({ badge: state.badge }));
+};
 
 const createIcon = () => {
 	const image = getTrayIconImage({ badge: state.badge });
@@ -56,9 +60,7 @@ const createIcon = () => {
 	trayIcon = new TrayIcon(image);
 
 	if (process.platform === 'darwin') {
-		darwinThemeSubscriberId = systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
-			trayIcon.setImage(getTrayIconImage({ badge: state.badge }));
-		});
+		nativeTheme.on('updated', handleThemeUpdate);
 	}
 
 	trayIcon.on('click', () => instance.emit('set-main-window-visibility', !state.isMainWindowVisible));
@@ -72,11 +74,9 @@ const destroyIcon = () => {
 		return;
 	}
 
-	if (process.platform === 'darwin' && darwinThemeSubscriberId) {
-		systemPreferences.unsubscribeNotification(darwinThemeSubscriberId);
-		darwinThemeSubscriberId = null;
+	if (process.platform === 'darwin') {
+		nativeTheme.off('updated', handleThemeUpdate);
 	}
-
 
 	trayIcon.destroy();
 	instance.emit('destroyed');

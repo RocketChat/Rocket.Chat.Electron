@@ -103,7 +103,7 @@ export class WindowStateHandler {
 				state.x >= bounds.x
 				&& state.y >= bounds.y
 				&& state.x + state.width <= bounds.x + bounds.width
-				&& state.y + state.height <= bounds.y + bounds.height
+				&& state.y + state.height <= bounds.y + bounds.height,
 			);
 	}
 

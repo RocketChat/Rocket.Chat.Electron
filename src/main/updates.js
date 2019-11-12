@@ -130,7 +130,7 @@ const handleUpdateNotAvailable = () => {
 const handleUpdateDownloaded = async () => {
 	const mainWindow = await getMainWindow();
 
-	const response = dialog.showMessageBox(mainWindow, {
+	const { response } = await dialog.showMessageBox(mainWindow, {
 		type: 'question',
 		title: i18n.__('dialog.updateReady.title'),
 		message: i18n.__('dialog.updateReady.message'),
@@ -142,7 +142,7 @@ const handleUpdateDownloaded = async () => {
 	});
 
 	if (response === 0) {
-		dialog.showMessageBox(mainWindow, {
+		await dialog.showMessageBox(mainWindow, {
 			type: 'info',
 			title: i18n.__('dialog.updateInstallLater.title'),
 			message: i18n.__('dialog.updateInstallLater.message'),

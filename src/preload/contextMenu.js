@@ -16,20 +16,8 @@ const createSpellCheckingMenuTemplate = async ({
 
 	const corrections = spellchecking.getCorrections(selectionText);
 
-	const handleBrowserForLanguage = () => {
-		const callback = async (filePaths) => {
-			try {
-				await spellchecking.installDictionaries(filePaths);
-			} catch (error) {
-				console.error(error);
-				dialog.showErrorBox(
-					i18n.__('dialog.loadDictionaryError.title'),
-					i18n.__('dialog.loadDictionaryError.message', { message: error.message })
-				);
-			}
-		};
-
-		dialog.showOpenDialog(getCurrentWindow(), {
+	const handleBrowserForLanguage = async () => {
+		const { filePaths } = await dialog.showOpenDialog(getCurrentWindow(), {
 			title: i18n.__('dialog.loadDictionary.title'),
 			defaultPath: spellchecking.dictionariesPath,
 			filters: [
@@ -37,7 +25,17 @@ const createSpellCheckingMenuTemplate = async ({
 				{ name: i18n.__('dialog.loadDictionary.allFiles'), extensions: ['*'] },
 			],
 			properties: ['openFile', 'multiSelections'],
-		}, callback);
+		});
+
+		try {
+			await spellchecking.installDictionaries(filePaths);
+		} catch (error) {
+			console.error(error);
+			dialog.showErrorBox(
+				i18n.__('dialog.loadDictionaryError.title'),
+				i18n.__('dialog.loadDictionaryError.message', { message: error.message }),
+			);
+		}
 	};
 
 	return [

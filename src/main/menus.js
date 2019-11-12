@@ -306,7 +306,7 @@ class Menus extends EventEmitter {
 	}
 
 	async update() {
-		const template = createTemplate({ appName: app.getName(), ...this.state }, this);
+		const template = createTemplate({ appName: app.name, ...this.state }, this);
 		const menu = Menu.buildFromTemplate(template);
 		Menu.setApplicationMenu(menu);
 
@@ -328,10 +328,10 @@ const unsetDefaultApplicationMenu = () => {
 	}
 
 	const emptyMenuTemplate = [{
-		label: app.getName(),
+		label: app.name,
 		submenu: [
 			{
-				label: i18n.__('menus.quit', { appName: app.getName() }),
+				label: i18n.__('menus.quit', { appName: app.name }),
 				accelerator: 'CommandOrControl+Q',
 				click() {
 					app.quit();

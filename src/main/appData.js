@@ -5,8 +5,7 @@ import jetpack from 'fs-jetpack';
 
 
 function definePath() {
-	const appName = app.getName();
-	const dirName = process.env.NODE_ENV === 'production' ? appName : `${ appName } (${ process.env.NODE_ENV })`;
+	const dirName = process.env.NODE_ENV === 'production' ? app.name : `${ app.name } (${ process.env.NODE_ENV })`;
 
 	app.setPath('userData', path.join(app.getPath('appData'), dirName));
 }

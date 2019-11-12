@@ -1,4 +1,4 @@
-import { nativeImage, systemPreferences } from 'electron';
+import { nativeImage, nativeTheme } from 'electron';
 
 
 function getTrayIconSet({ platform, dark }) {
@@ -43,7 +43,7 @@ export function getTrayIconPath({ badge, platform, dark } = {}) {
 	}
 
 	if (platform === 'darwin' && typeof dark === 'undefined') {
-		dark = systemPreferences.isDarkMode();
+		dark = nativeTheme.shouldUseDarkColors;
 	}
 
 	const params = { badge, platform, dark };
@@ -64,7 +64,7 @@ export function getTrayIconImage({ badge, platform, dark } = {}) {
 export function getIconImage({ badge }) {
 	const iconsetsPath = `${ __dirname }/public/images/tray`;
 	const { platform } = process;
-	const dark = systemPreferences.isDarkMode();
+	const dark = nativeTheme.shouldUseDarkColors;
 	const params = { badge, platform, dark };
 	const iconset = getTrayIconSet(params);
 	const name = getTrayIconName(params);

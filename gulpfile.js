@@ -220,6 +220,6 @@ task('icons', series(
 		'icons:darwin-dark',
 		'icons:linux',
 		'icons:win32',
-		'icons:app'
-	)
+		'icons:app',
+	),
 ));

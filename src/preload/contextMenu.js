@@ -33,7 +33,7 @@ const createSpellCheckingMenuTemplate = async ({
 			console.error(error);
 			dialog.showErrorBox(
 				i18n.__('dialog.loadDictionaryError.title'),
-				i18n.__('dialog.loadDictionaryError.message', { message: error.message })
+				i18n.__('dialog.loadDictionaryError.message', { message: error.message }),
 			);
 		}
 	};

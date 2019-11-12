@@ -3,10 +3,9 @@ import path from 'path';
 import { remote, webFrame } from 'electron';
 import jetpack from 'fs-jetpack';
 import mem from 'mem';
-import spellchecker from 'spellchecker';
+import spellchecker from '@felixrieseberg/spellchecker';
 
 const { app } = remote;
-
 
 class SpellCheck {
 	constructor() {
@@ -125,12 +124,12 @@ class SpellCheck {
 					spellchecker.setDictionary(dictionary, dictionariesPath);
 					return !spellchecker.isMisspelled(text);
 				})
-					.bind(null, this.dictionariesPath)
+					.bind(null, this.dictionariesPath),
 			);
 
 			this.checker = mem(
 				((dictionaries, text) => dictionaries.some((dictionary) => singleDictionaryChecker(dictionary, text)))
-					.bind(null, this.enabledDictionaries)
+					.bind(null, this.enabledDictionaries),
 			);
 		} finally {
 			webFrame.setSpellCheckProvider('', {
@@ -159,7 +158,7 @@ class SpellCheck {
 			this.enabledDictionaries.flatMap((language) => {
 				spellchecker.setDictionary(language, this.dictionariesPath);
 				return spellchecker.getCorrectionsForMisspelling(text);
-			})
+			}),
 		));
 	}
 

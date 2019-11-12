@@ -784,6 +784,13 @@
     global-agent "^2.0.2"
     global-tunnel-ng "^2.7.1"
 
+"@felixrieseberg/spellchecker@^4.0.12":
+  version "4.0.12"
+  resolved "https://registry.yarnpkg.com/@felixrieseberg/spellchecker/-/spellchecker-4.0.12.tgz#ec7bea6c1539d6a6f852a16d514c42f7dc9b5798"
+  integrity sha512-jLAPnRALB1I6Un8ldHVJfJid7m2R1qXoafFF/95sdm7R5VPOsZ3xTreZ/wLKO5x9AdsD2t9zpOcjDFTsCf3VzQ==
+  dependencies:
+    nan "^2.14.0"
+
 "@fiahfy/icns-convert@^0.0.6":
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/@fiahfy/icns-convert/-/icns-convert-0.0.6.tgz#ecc29df9e245ccd4708b0e4abf8996074a1821da"
@@ -1397,11 +1404,6 @@ any-base@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/any-base/-/any-base-1.1.0.tgz#ae101a62bc08a597b4c9ab5b7089d456630549fe"
   integrity sha512-uMgjozySS8adZZYePpaWs8cxB9/kdzmpX6SgJZ+wbz1K5eYk5QMYDVJaZKhxyIHUdnnJkfR7SVgStgH7LkGUyg==
-
-any-promise@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/any-promise/-/any-promise-1.3.0.tgz#abc6afeedcea52e809cdc0376aed3ce39635d17f"
-  integrity sha1-q8av7tzqUugJzcA3au0845Y10X8=
 
 anymatch@^2.0.0:
   version "2.0.0"
@@ -7733,14 +7735,6 @@ specificity@^0.4.1:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/specificity/-/specificity-0.4.1.tgz#aab5e645012db08ba182e151165738d00887b019"
   integrity sha512-1klA3Gi5PD1Wv9Q0wUoOQN1IWAuPu0D1U03ThXTr0cJ20+/iq2tHSDnK7Kk/0LXJ1ztUB2/1Os0wKmfyNgUQfg==
-
-spellchecker@^3.5.0:
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/spellchecker/-/spellchecker-3.7.0.tgz#d63e6fd612352b0108e7bbf942f271665ff63c8b"
-  integrity sha512-saQT4BR9nivbK70s0YjyIlSbZzO6bfWRULcGL2JU7fi7wotOnWl70P0QoUwwLywNQJQ47osgCo6GmOlqzRTxbQ==
-  dependencies:
-    any-promise "^1.3.0"
-    nan "^2.14.0"
 
 split-string@^3.0.1, split-string@^3.0.2:
   version "3.1.0"

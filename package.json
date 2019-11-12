@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@bugsnag/js": "^6.3.2",
+    "@felixrieseberg/spellchecker": "^4.0.12",
     "debug": "^4.1.1",
     "electron-reload": "^1.5.0",
     "electron-updater": "^4.0.6",
@@ -38,8 +39,7 @@
     "i18next": "^19.0.0",
     "i18next-node-fs-backend": "^2.1.1",
     "i18next-sync-fs-backend": "^1.1.0",
-    "mem": "^6.0.0",
-    "spellchecker": "^3.5.0"
+    "mem": "^6.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.6.3",

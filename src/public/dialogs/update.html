@@ -22,18 +22,17 @@
 			document.querySelector('.current-version .app-version-value').innerHTML = currentVersion;
 			document.querySelector('.new-version .app-version-value').innerHTML = newVersion;
 
-			document.querySelector('.update-skip-action').addEventListener('click', (e) => {
+			document.querySelector('.update-skip-action').addEventListener('click', async (e) => {
 				e.preventDefault();
-				dialog.showMessageBox(getCurrentWindow(), {
+				await dialog.showMessageBox(getCurrentWindow(), {
 					type: 'warning',
 					title: i18n.__('dialog.updateSkip.title'),
 					message: i18n.__('dialog.updateSkip.message'),
 					buttons: [i18n.__('dialog.updateSkip.ok')],
 					defaultId: 0,
-				}, () => {
-					ipcRenderer.send('skip-update-version', newVersion);
-					ipcRenderer.send('close-update-dialog');
 				});
+				ipcRenderer.send('skip-update-version', newVersion);
+				ipcRenderer.send('close-update-dialog');
 			}, false);
 
 			document.querySelector('.update-remind-action').addEventListener('click', (e) => {
@@ -42,18 +41,17 @@
 				ipcRenderer.send('close-update-dialog');
 			}, false);
 
-			document.querySelector('.update-install-action').addEventListener('click', (e) => {
+			document.querySelector('.update-install-action').addEventListener('click', async (e) => {
 				e.preventDefault();
-				dialog.showMessageBox(getCurrentWindow(), {
+				await dialog.showMessageBox(getCurrentWindow(), {
 					type: 'info',
 					title: i18n.__('dialog.updateDownloading.title'),
 					message: i18n.__('dialog.updateDownloading.message'),
 					buttons: [i18n.__('dialog.updateDownloading.ok')],
 					defaultId: 0,
-				}, () => {
-					ipcRenderer.send('download-update');
-					ipcRenderer.send('close-update-dialog');
 				});
+				ipcRenderer.send('download-update');
+				ipcRenderer.send('close-update-dialog');
 			}, false);
 
 			document.querySelector('.update-install-action').focus();

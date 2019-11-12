@@ -37,7 +37,7 @@ class CertificateStore {
 				detail = i18n.__('error.differentCertificate', { detail });
 			}
 
-			dialog.showMessageBox(await getMainWindow(), {
+			const { response } = await dialog.showMessageBox(await getMainWindow(), {
 				title: i18n.__('dialog.certificateError.title'),
 				message: i18n.__('dialog.certificateError.message', { issuerName: certificate.issuerName }),
 				detail,
@@ -47,18 +47,18 @@ class CertificateStore {
 					i18n.__('dialog.certificateError.no'),
 				],
 				cancelId: 1,
-			}, async (response) => {
-				if (response === 0) {
-					this.add(certificateUrl, certificate);
-					await this.save();
-					if (webContents.getURL().indexOf('file://') === 0) {
-						webContents.send('certificate-reload', certificateUrl);
-					}
-				}
-
-				this.queued[certificate.fingerprint].forEach((cb) => cb(response === 0));
-				delete this.queued[certificate.fingerprint];
 			});
+
+			if (response === 0) {
+				this.add(certificateUrl, certificate);
+				await this.save();
+				if (webContents.getURL().indexOf('file://') === 0) {
+					webContents.send('certificate-reload', certificateUrl);
+				}
+			}
+
+			this.queued[certificate.fingerprint].forEach((cb) => cb(response === 0));
+			delete this.queued[certificate.fingerprint];
 		});
 	}
 

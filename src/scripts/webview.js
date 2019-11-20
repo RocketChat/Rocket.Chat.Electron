@@ -7,14 +7,10 @@ import servers from './servers';
 
 
 class WebView extends EventEmitter {
-	constructor() {
-		super();
-
+	initialize = () => {
 		this.webviewParentElement = document.body;
 
-		servers.forEach((host) => {
-			this.add(host);
-		});
+		servers.forEach(::this.add);
 
 		ipcRenderer.on('screenshare-result', (e, id) => {
 			const webviewObj = this.getActive();

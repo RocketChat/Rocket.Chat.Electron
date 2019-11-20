@@ -3,14 +3,7 @@
 <head>
 	<meta charset="utf-8" />
 	<title>Rocket.Chat</title>
-	<link rel="stylesheet" href="../stylesheets/main.css">
-	<script>
-		window.addEventListener('load', () => {
-			const script = document.createElement('script');
-			script.src = '../app.js';
-			document.body.appendChild(script);
-		});
-	</script>
+	<link rel="stylesheet" href="../stylesheets/main.css" />
 </head>
 <body class="app-page app-page--loading">
 	<div class="sidebar sidebar--hidden">
@@ -57,5 +50,7 @@
 	</section>
 
 	<div class="drag-region"></div>
+
+	<script src="../app.js" data-context="main"></script>
 </body>
 </html>

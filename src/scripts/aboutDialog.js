@@ -5,7 +5,7 @@ import pkg from '../../package.json';
 
 const { app } = remote;
 
-const setupAboutDialog = () => {
+const setupAboutDialog = async () => {
 	const appName = app.name;
 	const appVersion = app.getVersion();
 	const { copyright } = pkg;
@@ -16,10 +16,10 @@ const setupAboutDialog = () => {
 	document.querySelector('.check-for-updates-on-start + span').innerHTML = t('dialog.about.checkUpdatesOnStart');
 	document.querySelector('.copyright').innerHTML = t('dialog.about.copyright', { copyright });
 
-	const canUpdate = ipcRenderer.sendSync('can-update');
+	const canUpdate = await ipcRenderer.invoke('can-update');
 
 	if (canUpdate) {
-		const canAutoUpdate = ipcRenderer.sendSync('can-auto-update');
+		const canAutoUpdate = await ipcRenderer.invoke('can-auto-update');
 
 		if (canAutoUpdate) {
 			document.querySelector('.check-for-updates-on-start').setAttribute('checked', 'checked');
@@ -27,7 +27,7 @@ const setupAboutDialog = () => {
 			document.querySelector('.check-for-updates-on-start').removeAttribute('checked');
 		}
 
-		const canSetAutoUpdate = ipcRenderer.sendSync('can-set-auto-update');
+		const canSetAutoUpdate = await ipcRenderer.invoke('can-set-auto-update');
 		if (canSetAutoUpdate) {
 			document.querySelector('.check-for-updates-on-start').addEventListener('change', (event) => {
 				ipcRenderer.send('set-auto-update', event.target.checked);

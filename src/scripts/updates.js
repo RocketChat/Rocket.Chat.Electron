@@ -190,14 +190,25 @@ export const setupUpdates = async () => {
 		autoUpdater.off('error', handleError);
 	});
 
-	ipcRenderer.on('can-update', (e) => { e.returnValue = canUpdate(); });
-	ipcRenderer.on('can-auto-update', (e) => { e.returnValue = canAutoUpdate(); });
-	ipcRenderer.on('can-set-auto-update', (e) => { e.returnValue = canSetAutoUpdate(); });
-	ipcRenderer.on('set-auto-update', (e, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
-	ipcRenderer.on('check-for-updates', (e, ...args) => checkForUpdates(e, ...args));
-	ipcRenderer.on('skip-update-version', (e, ...args) => skipUpdateVersion(...args));
-	ipcRenderer.on('remind-update-later', () => {});
-	ipcRenderer.on('download-update', () => downloadUpdate());
+	remote.ipcMain.handle('can-update', () => canUpdate());
+	remote.ipcMain.handle('can-auto-update', () => canAutoUpdate());
+	remote.ipcMain.handle('can-set-auto-update', () => canSetAutoUpdate());
+	remote.ipcMain.on('set-auto-update', (_, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
+	remote.ipcMain.on('check-for-updates', (event, ...args) => checkForUpdates(event, ...args));
+	remote.ipcMain.on('skip-update-version', (_, ...args) => skipUpdateVersion(...args));
+	remote.ipcMain.on('remind-update-later', () => {});
+	remote.ipcMain.on('download-update', () => downloadUpdate());
+
+	window.addEventListener('unload', () => {
+		remote.ipcMain.removeHandler('can-update');
+		remote.ipcMain.removeHandler('can-auto-update');
+		remote.ipcMain.removeHandler('can-set-auto-update');
+		remote.ipcMain.removeAllListeners('set-auto-update');
+		remote.ipcMain.removeAllListeners('check-for-updates');
+		remote.ipcMain.removeAllListeners('skip-update-version');
+		remote.ipcMain.removeAllListeners('remind-update-later');
+		remote.ipcMain.removeAllListeners('download-update');
+	});
 
 	checkForUpdates();
 };

@@ -2,15 +2,15 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 
 import { getMainWindow } from './mainWindow';
 
-let window;
+let browserWindow;
 
 async function open() {
-	if (window) {
+	if (browserWindow) {
 		return;
 	}
 
 	const mainWindow = await getMainWindow();
-	window = new BrowserWindow({
+	browserWindow = new BrowserWindow({
 		width: 400,
 		height: 300,
 		useContentSize: true,
@@ -27,26 +27,26 @@ async function open() {
 		backgroundColor: '#F4F4F4',
 		type: process.platform === 'darwin' ? 'desktop' : 'toolbar',
 		webPreferences: {
-			devTools: false,
+			devTools: true,
 			nodeIntegration: true,
 		},
 	});
-	window.setMenuBarVisibility(false);
+	browserWindow.setMenuBarVisibility(false);
 
-	window.once('ready-to-show', () => {
-		window.show();
+	browserWindow.once('ready-to-show', () => {
+		browserWindow.show();
 	});
 
-	window.once('closed', () => {
-		window = null;
+	browserWindow.once('closed', () => {
+		browserWindow = null;
 	});
 
-	window.loadFile(`${ app.getAppPath() }/app/public/aboutDialog.html`);
+	browserWindow.loadFile(`${ app.getAppPath() }/app/public/aboutDialog.html`);
 }
 
 function close() {
-	if (window) {
-		window.destroy();
+	if (browserWindow) {
+		browserWindow.destroy();
 	}
 }
 

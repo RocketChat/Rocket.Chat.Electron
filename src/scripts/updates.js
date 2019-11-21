@@ -29,18 +29,18 @@ const saveUpdateSettings = () => {
 	userDataDir.write(updateSettingsFileName, userUpdateSettings, { atomic: true });
 };
 
-const canUpdate = () => updateSettings.canUpdate
+export const canUpdate = () => updateSettings.canUpdate
 	&& (
 		(process.platform === 'linux' && Boolean(process.env.APPIMAGE))
 		|| (process.platform === 'win32' && !process.windowsStore)
 		|| (process.platform === 'darwin' && !process.mas)
 	);
 
-const canAutoUpdate = () => updateSettings.autoUpdate !== false;
+export const canAutoUpdate = () => updateSettings.autoUpdate !== false;
 
-const canSetAutoUpdate = () => !appUpdateSettings.forced || appUpdateSettings.autoUpdate !== false;
+export const canSetAutoUpdate = () => !appUpdateSettings.forced || appUpdateSettings.autoUpdate !== false;
 
-const setAutoUpdate = (canAutoUpdate) => {
+export const setAutoUpdate = (canAutoUpdate) => {
 	if (!canSetAutoUpdate()) {
 		return;
 	}
@@ -50,12 +50,12 @@ const setAutoUpdate = (canAutoUpdate) => {
 	saveUpdateSettings();
 };
 
-const skipUpdateVersion = (version) => {
+export const skipUpdateVersion = (version) => {
 	userUpdateSettings.skip = version;
 	saveUpdateSettings();
 };
 
-const downloadUpdate = async () => {
+export const downloadUpdate = async () => {
 	try {
 		await autoUpdater.downloadUpdate();
 	} catch (e) {
@@ -65,7 +65,7 @@ const downloadUpdate = async () => {
 
 let checkForUpdatesEvent = null;
 
-const checkForUpdates = async (event = null, { forced = false } = {}) => {
+export const checkForUpdates = async (event = null, { forced = false } = {}) => {
 	if (checkForUpdatesEvent) {
 		return;
 	}
@@ -188,26 +188,6 @@ export const setupUpdates = async () => {
 		autoUpdater.off('update-not-available', handleUpdateNotAvailable);
 		autoUpdater.off('update-downloaded', handleUpdateDownloaded);
 		autoUpdater.off('error', handleError);
-	});
-
-	remote.ipcMain.handle('can-update', () => canUpdate());
-	remote.ipcMain.handle('can-auto-update', () => canAutoUpdate());
-	remote.ipcMain.handle('can-set-auto-update', () => canSetAutoUpdate());
-	remote.ipcMain.on('set-auto-update', (_, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
-	remote.ipcMain.on('check-for-updates', (event, ...args) => checkForUpdates(event, ...args));
-	remote.ipcMain.on('skip-update-version', (_, ...args) => skipUpdateVersion(...args));
-	remote.ipcMain.on('remind-update-later', () => {});
-	remote.ipcMain.on('download-update', () => downloadUpdate());
-
-	window.addEventListener('unload', () => {
-		remote.ipcMain.removeHandler('can-update');
-		remote.ipcMain.removeHandler('can-auto-update');
-		remote.ipcMain.removeHandler('can-set-auto-update');
-		remote.ipcMain.removeAllListeners('set-auto-update');
-		remote.ipcMain.removeAllListeners('check-for-updates');
-		remote.ipcMain.removeAllListeners('skip-update-version');
-		remote.ipcMain.removeAllListeners('remind-update-later');
-		remote.ipcMain.removeAllListeners('download-update');
 	});
 
 	checkForUpdates();

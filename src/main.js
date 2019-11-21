@@ -7,7 +7,6 @@ import appData from './main/appData';
 import './main/basicAuth';
 import { processDeepLink } from './main/deepLinks';
 import { getMainWindow } from './main/mainWindow';
-import './main/dialogs';
 import i18n from './i18n';
 
 export { default as dock } from './main/dock';

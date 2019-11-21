@@ -1,11 +1,19 @@
 import { remote, ipcRenderer } from 'electron';
 
+import {
+	openAboutDialog,
+	closeAboutDialog,
+	openScreenSharingDialog,
+	closeScreenSharingDialog,
+	selectScreenSharingSource,
+	openUpdateDialog,
+	closeUpdateDialog,
+} from './dialogs';
 import servers from './servers';
 import sidebar from './sidebar';
-import { setupUpdates } from './updates';
+import { setupUpdates, canUpdate, canAutoUpdate, canSetAutoUpdate, setAutoUpdate, checkForUpdates, skipUpdateVersion, downloadUpdate } from './updates';
 import webview from './webview';
 import setTouchBar from './touchBar';
-
 
 const { app, getCurrentWindow, shell } = remote;
 const { certificate, dock, menus, tray } = remote.require('./main');
@@ -78,6 +86,40 @@ const destroyAll = () => {
 export default () => {
 	window.addEventListener('beforeunload', destroyAll);
 	window.addEventListener('focus', () => webview.focusActive());
+
+	remote.ipcMain.handle('can-update', () => canUpdate());
+	remote.ipcMain.handle('can-auto-update', () => canAutoUpdate());
+	remote.ipcMain.handle('can-set-auto-update', () => canSetAutoUpdate());
+	remote.ipcMain.on('set-auto-update', (_, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
+	remote.ipcMain.on('check-for-updates', (event, ...args) => checkForUpdates(event, ...args));
+	remote.ipcMain.on('skip-update-version', (_, ...args) => skipUpdateVersion(...args));
+	remote.ipcMain.on('remind-update-later', () => {});
+	remote.ipcMain.on('download-update', () => downloadUpdate());
+	remote.ipcMain.on('open-about-dialog', (_, ...args) => openAboutDialog(...args));
+	remote.ipcMain.on('close-about-dialog', (_, ...args) => closeAboutDialog(...args));
+	remote.ipcMain.on('open-screenshare-dialog', (_, ...args) => openScreenSharingDialog(...args));
+	remote.ipcMain.on('close-screenshare-dialog', (_, ...args) => closeScreenSharingDialog(...args));
+	remote.ipcMain.on('select-screenshare-source', (_, ...args) => selectScreenSharingSource(...args));
+	remote.ipcMain.on('open-update-dialog', (_, ...args) => openUpdateDialog(...args));
+	remote.ipcMain.on('close-update-dialog', (_, ...args) => closeUpdateDialog(...args));
+
+	window.addEventListener('unload', () => {
+		remote.ipcMain.removeHandler('can-update');
+		remote.ipcMain.removeHandler('can-auto-update');
+		remote.ipcMain.removeHandler('can-set-auto-update');
+		remote.ipcMain.removeAllListeners('set-auto-update');
+		remote.ipcMain.removeAllListeners('check-for-updates');
+		remote.ipcMain.removeAllListeners('skip-update-version');
+		remote.ipcMain.removeAllListeners('remind-update-later');
+		remote.ipcMain.removeAllListeners('download-update');
+		remote.ipcMain.removeAllListeners('open-about-dialog');
+		remote.ipcMain.removeAllListeners('close-about-dialog');
+		remote.ipcMain.removeAllListeners('open-screenshare-dialog');
+		remote.ipcMain.removeAllListeners('close-screenshare-dialog');
+		remote.ipcMain.removeAllListeners('select-screenshare-source');
+		remote.ipcMain.removeAllListeners('open-update-dialog');
+		remote.ipcMain.removeAllListeners('close-update-dialog');
+	});
 
 	menus.on('quit', () => app.quit());
 	menus.on('about', () => ipcRenderer.send('open-about-dialog'));

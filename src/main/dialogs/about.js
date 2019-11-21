@@ -46,7 +46,7 @@ async function open() {
 
 	window.params = { appName: app.name, appVersion: app.getVersion() };
 
-	window.loadFile(`${ app.getAppPath() }/app/public/dialogs/about.html`);
+	window.loadFile(`${ app.getAppPath() }/app/public/aboutDialog.html`);
 }
 
 function close() {

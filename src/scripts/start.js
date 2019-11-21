@@ -124,7 +124,6 @@ async function setupLanding() {
 }
 
 export async function start() {
-	await i18n.initialize();
 	console.warn('%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
 	console.warn('%c%s', 'font-size: 20px;', t('selfxss.description'));
 	console.warn('%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));

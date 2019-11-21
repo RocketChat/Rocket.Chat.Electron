@@ -3,22 +3,30 @@ import { start } from './scripts/start';
 import setupAboutDialog from './scripts/aboutDialog';
 import setupScreenSharingDialog from './scripts/screenSharingDialog';
 import setupUpdateDialog from './scripts/updateDialog';
+import i18n from './i18n';
 
-setupErrorHandling('renderer');
-switch (document.currentScript.dataset.context) {
-	case 'main':
-		start();
-		break;
+const initialize = async (context) => {
+	setupErrorHandling('renderer');
 
-	case 'about-dialog':
-		setupAboutDialog();
-		break;
+	await i18n.initialize();
 
-	case 'screen-sharing-dialog':
-		setupScreenSharingDialog();
-		break;
+	switch (context) {
+		case 'main':
+			start();
+			break;
 
-	case 'update-dialog':
-		setupUpdateDialog();
-		break;
-}
+		case 'about-dialog':
+			setupAboutDialog();
+			break;
+
+		case 'screen-sharing-dialog':
+			setupScreenSharingDialog();
+			break;
+
+		case 'update-dialog':
+			setupUpdateDialog();
+			break;
+	}
+};
+
+initialize(document.currentScript.dataset.context);

@@ -1,10 +1,9 @@
 import { desktopCapturer, ipcRenderer } from 'electron';
-
-import i18n from '../i18n';
+import { t } from 'i18next';
 
 const setupScreenSharingDialog = () => {
-	document.title = i18n.__('dialog.screenshare.title');
-	document.querySelector('.screenshare-title').innerHTML = i18n.__('dialog.screenshare.announcement');
+	document.title = t('dialog.screenshare.title');
+	document.querySelector('.screenshare-title').innerHTML = t('dialog.screenshare.announcement');
 
 	const template = document.querySelector('.screenshare-source-template');
 

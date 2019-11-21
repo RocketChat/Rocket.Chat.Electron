@@ -2,6 +2,7 @@ import { remote, ipcRenderer } from 'electron';
 
 import servers from './servers';
 import sidebar from './sidebar';
+import { setupUpdates } from './updates';
 import webview from './webview';
 import setTouchBar from './touchBar';
 
@@ -291,6 +292,7 @@ export default () => {
 		setTouchBar();
 	}
 
+	setupUpdates();
 	servers.initialize();
 	webview.initialize();
 	servers.restoreActive();

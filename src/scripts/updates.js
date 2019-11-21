@@ -1,14 +1,16 @@
-import { app, dialog, ipcMain } from 'electron';
-import { autoUpdater } from 'electron-updater';
+import { ipcRenderer, remote } from 'electron';
 import jetpack from 'fs-jetpack';
+import { t } from 'i18next';
 
-import { getMainWindow } from './mainWindow';
-import i18n from '../i18n';
+const { app, dialog } = remote;
+const { autoUpdater } = remote.require('electron-updater');
 
-
-const appDir = jetpack.cwd(app.getAppPath(), app.getAppPath().endsWith('app.asar') ? '..' : '.');
-const userDataDir = jetpack.cwd(app.getPath('userData'));
 const updateSettingsFileName = 'update.json';
+let appDir;
+let userDataDir;
+let appUpdateSettings;
+let userUpdateSettings;
+let updateSettings;
 
 const loadUpdateSettings = (dir) => {
 	try {
@@ -18,18 +20,6 @@ const loadUpdateSettings = (dir) => {
 		return {};
 	}
 };
-
-const appUpdateSettings = loadUpdateSettings(appDir);
-const userUpdateSettings = loadUpdateSettings(userDataDir);
-const updateSettings = (() => {
-	const defaultUpdateSettings = { autoUpdate: true, canUpdate: true };
-
-	if (appUpdateSettings.forced) {
-		return Object.assign({}, defaultUpdateSettings, appUpdateSettings);
-	}
-	return Object.assign({}, defaultUpdateSettings, appUpdateSettings, userUpdateSettings);
-})();
-delete updateSettings.forced;
 
 const saveUpdateSettings = () => {
 	if (appUpdateSettings.forced) {
@@ -90,8 +80,8 @@ const checkForUpdates = async (event = null, { forced = false } = {}) => {
 	}
 };
 
-const sendToMainWindow = async (channel, ...args) => {
-	const mainWindow = await getMainWindow();
+const sendToMainWindow = (channel, ...args) => {
+	const mainWindow = remote.getCurrentWindow();
 	const send = () => mainWindow.send(channel, ...args);
 
 	if (mainWindow.webContents.isLoading()) {
@@ -114,8 +104,8 @@ const handleUpdateAvailable = ({ version }) => {
 		return;
 	}
 
-	ipcMain.emit('close-about-dialog');
-	ipcMain.emit('open-update-dialog', undefined, { newVersion: version });
+	ipcRenderer.send('close-about-dialog');
+	ipcRenderer.send('open-update-dialog', { newVersion: version });
 };
 
 const handleUpdateNotAvailable = () => {
@@ -128,15 +118,15 @@ const handleUpdateNotAvailable = () => {
 };
 
 const handleUpdateDownloaded = async () => {
-	const mainWindow = await getMainWindow();
+	const mainWindow = remote.getCurrentWindow();
 
 	const { response } = await dialog.showMessageBox(mainWindow, {
 		type: 'question',
-		title: i18n.__('dialog.updateReady.title'),
-		message: i18n.__('dialog.updateReady.message'),
+		title: t('dialog.updateReady.title'),
+		message: t('dialog.updateReady.message'),
 		buttons: [
-			i18n.__('dialog.updateReady.installLater'),
-			i18n.__('dialog.updateReady.installNow'),
+			t('dialog.updateReady.installLater'),
+			t('dialog.updateReady.installNow'),
 		],
 		defaultId: 1,
 	});
@@ -144,9 +134,9 @@ const handleUpdateDownloaded = async () => {
 	if (response === 0) {
 		await dialog.showMessageBox(mainWindow, {
 			type: 'info',
-			title: i18n.__('dialog.updateInstallLater.title'),
-			message: i18n.__('dialog.updateInstallLater.message'),
-			buttons: [i18n.__('dialog.updateInstallLater.ok')],
+			title: t('dialog.updateInstallLater.title'),
+			message: t('dialog.updateInstallLater.message'),
+			buttons: [t('dialog.updateInstallLater.ok')],
 			defaultId: 0,
 		});
 		return;
@@ -170,20 +160,44 @@ const handleError = async (error) => {
 	}
 };
 
-autoUpdater.autoDownload = false;
-autoUpdater.on('checking-for-update', handleCheckingForUpdate);
-autoUpdater.on('update-available', handleUpdateAvailable);
-autoUpdater.on('update-not-available', handleUpdateNotAvailable);
-autoUpdater.on('update-downloaded', handleUpdateDownloaded);
-autoUpdater.on('error', handleError);
+export const setupUpdates = async () => {
+	appDir = jetpack.cwd(app.getAppPath(), app.getAppPath().endsWith('app.asar') ? '..' : '.');
+	userDataDir = jetpack.cwd(app.getPath('userData'));
+	appUpdateSettings = loadUpdateSettings(appDir);
+	userUpdateSettings = loadUpdateSettings(userDataDir);
+	updateSettings = (() => {
+		const defaultUpdateSettings = { autoUpdate: true, canUpdate: true };
 
-ipcMain.on('can-update', (e) => { e.returnValue = canUpdate(); });
-ipcMain.on('can-auto-update', (e) => { e.returnValue = canAutoUpdate(); });
-ipcMain.on('can-set-auto-update', (e) => { e.returnValue = canSetAutoUpdate(); });
-ipcMain.on('set-auto-update', (e, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
-ipcMain.on('check-for-updates', (e, ...args) => checkForUpdates(e, ...args));
-ipcMain.on('skip-update-version', (e, ...args) => skipUpdateVersion(...args));
-ipcMain.on('remind-update-later', () => {});
-ipcMain.on('download-update', () => downloadUpdate());
+		if (appUpdateSettings.forced) {
+			return Object.assign({}, defaultUpdateSettings, appUpdateSettings);
+		}
+		return Object.assign({}, defaultUpdateSettings, appUpdateSettings, userUpdateSettings);
+	})();
+	delete updateSettings.forced;
 
-app.once('start', () => ipcMain.emit('check-for-updates'));
+	autoUpdater.autoDownload = false;
+	autoUpdater.on('checking-for-update', handleCheckingForUpdate);
+	autoUpdater.on('update-available', handleUpdateAvailable);
+	autoUpdater.on('update-not-available', handleUpdateNotAvailable);
+	autoUpdater.on('update-downloaded', handleUpdateDownloaded);
+	autoUpdater.on('error', handleError);
+
+	window.addEventListener('unload', () => {
+		autoUpdater.off('checking-for-update', handleCheckingForUpdate);
+		autoUpdater.off('update-available', handleUpdateAvailable);
+		autoUpdater.off('update-not-available', handleUpdateNotAvailable);
+		autoUpdater.off('update-downloaded', handleUpdateDownloaded);
+		autoUpdater.off('error', handleError);
+	});
+
+	ipcRenderer.on('can-update', (e) => { e.returnValue = canUpdate(); });
+	ipcRenderer.on('can-auto-update', (e) => { e.returnValue = canAutoUpdate(); });
+	ipcRenderer.on('can-set-auto-update', (e) => { e.returnValue = canSetAutoUpdate(); });
+	ipcRenderer.on('set-auto-update', (e, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
+	ipcRenderer.on('check-for-updates', (e, ...args) => checkForUpdates(e, ...args));
+	ipcRenderer.on('skip-update-version', (e, ...args) => skipUpdateVersion(...args));
+	ipcRenderer.on('remind-update-later', () => {});
+	ipcRenderer.on('download-update', () => downloadUpdate());
+
+	checkForUpdates();
+};

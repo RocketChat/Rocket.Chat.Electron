@@ -6,7 +6,6 @@ import { setupErrorHandling } from './errorHandling';
 import appData from './main/appData';
 import './main/basicAuth';
 import { processDeepLink } from './main/deepLinks';
-import './main/updates';
 import { getMainWindow } from './main/mainWindow';
 import './main/aboutDialog';
 import './main/screenSharingDialog';

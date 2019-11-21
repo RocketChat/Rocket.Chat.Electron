@@ -1,7 +1,13 @@
+import { remote, ipcRenderer } from 'electron';
+
+import i18n from '../i18n';
+
+const { app, dialog, getCurrentWindow } = remote;
+
 const setupUpdateDialog = () => {
-	const { remote: { dialog, getCurrentWindow }, ipcRenderer } = require('electron');
-	const { params: { currentVersion, newVersion } } = getCurrentWindow();
-	const i18n = require('../i18n');
+	const { params: { newVersion } } = getCurrentWindow();
+
+	const currentVersion = app.getVersion();
 
 	document.title = i18n.__('dialog.update.title');
 	document.querySelector('.update-title').innerHTML = i18n.__('dialog.update.announcement');
@@ -15,8 +21,8 @@ const setupUpdateDialog = () => {
 	document.querySelector('.current-version .app-version-value').innerHTML = currentVersion;
 	document.querySelector('.new-version .app-version-value').innerHTML = newVersion;
 
-	document.querySelector('.update-skip-action').addEventListener('click', async (e) => {
-		e.preventDefault();
+	document.querySelector('.update-skip-action').addEventListener('click', async (event) => {
+		event.preventDefault();
 		await dialog.showMessageBox(getCurrentWindow(), {
 			type: 'warning',
 			title: i18n.__('dialog.updateSkip.title'),
@@ -28,14 +34,14 @@ const setupUpdateDialog = () => {
 		ipcRenderer.send('close-update-dialog');
 	}, false);
 
-	document.querySelector('.update-remind-action').addEventListener('click', (e) => {
-		e.preventDefault();
+	document.querySelector('.update-remind-action').addEventListener('click', (event) => {
+		event.preventDefault();
 		ipcRenderer.send('remind-update-later');
 		ipcRenderer.send('close-update-dialog');
 	}, false);
 
-	document.querySelector('.update-install-action').addEventListener('click', async (e) => {
-		e.preventDefault();
+	document.querySelector('.update-install-action').addEventListener('click', async (event) => {
+		event.preventDefault();
 		await dialog.showMessageBox(getCurrentWindow(), {
 			type: 'info',
 			title: i18n.__('dialog.updateDownloading.title'),

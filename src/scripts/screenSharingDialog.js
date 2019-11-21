@@ -1,7 +1,8 @@
-const setupScreenSharingDialog = () => {
-	const { ipcRenderer, desktopCapturer } = require('electron');
-	const i18n = require('../i18n');
+import { desktopCapturer, ipcRenderer } from 'electron';
 
+import i18n from '../i18n';
+
+const setupScreenSharingDialog = () => {
 	document.title = i18n.__('dialog.screenshare.title');
 	document.querySelector('.screenshare-title').innerHTML = i18n.__('dialog.screenshare.announcement');
 

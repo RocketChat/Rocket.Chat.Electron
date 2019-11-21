@@ -1,7 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 
-import { getMainWindow } from '../mainWindow';
-import i18n from '../../i18n';
+import { getMainWindow } from './mainWindow';
 
 
 let window;
@@ -23,7 +22,6 @@ async function open() {
 		fullscreen: false,
 		fullscreenable: false,
 		skipTaskbar: true,
-		title: i18n.__('dialog.screenshare.title'),
 		show: false,
 		parent: mainWindow,
 		modal: process.platform !== 'darwin',

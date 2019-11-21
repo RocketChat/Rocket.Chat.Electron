@@ -1,8 +1,14 @@
+import { remote, ipcRenderer } from 'electron';
+
+import i18n from '../i18n';
+import pkg from '../../package.json';
+
+const { app } = remote;
+
 const setupAboutDialog = () => {
-	const { remote: { getCurrentWindow }, ipcRenderer } = require('electron');
-	const { params: { appName, appVersion } } = getCurrentWindow();
-	const i18n = require('../i18n');
-	const { copyright } = require('../../package.json');
+	const appName = app.name;
+	const appVersion = app.getVersion();
+	const { copyright } = pkg;
 
 	document.title = i18n.__('dialog.about.title', { appName });
 	document.querySelector('.app-version').innerHTML = `${ i18n.__('dialog.about.version') } <span class="version">${ appVersion }</span>`;

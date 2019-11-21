@@ -1,20 +1,18 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 
-import { getMainWindow } from '../mainWindow';
-import i18n from '../../i18n';
-
+import { getMainWindow } from './mainWindow';
 
 let window;
 
-async function open({ currentVersion = app.getVersion(), newVersion } = {}) {
+async function open() {
 	if (window) {
 		return;
 	}
 
 	const mainWindow = await getMainWindow();
 	window = new BrowserWindow({
-		width: 600,
-		height: 330,
+		width: 400,
+		height: 300,
 		useContentSize: true,
 		center: true,
 		resizable: false,
@@ -23,7 +21,6 @@ async function open({ currentVersion = app.getVersion(), newVersion } = {}) {
 		fullscreen: false,
 		fullscreenable: false,
 		skipTaskbar: true,
-		title: i18n.__('dialog.update.title'),
 		show: false,
 		parent: mainWindow,
 		modal: process.platform !== 'darwin',
@@ -44,9 +41,7 @@ async function open({ currentVersion = app.getVersion(), newVersion } = {}) {
 		window = null;
 	});
 
-	window.params = { currentVersion, newVersion };
-
-	window.loadFile(`${ app.getAppPath() }/app/public/updateDialog.html`);
+	window.loadFile(`${ app.getAppPath() }/app/public/aboutDialog.html`);
 }
 
 function close() {
@@ -55,5 +50,5 @@ function close() {
 	}
 }
 
-ipcMain.on('open-update-dialog', (e, ...args) => open(...args));
-ipcMain.on('close-update-dialog', (e, ...args) => close(...args));
+ipcMain.on('open-about-dialog', (e, ...args) => open(...args));
+ipcMain.on('close-about-dialog', (e, ...args) => close(...args));

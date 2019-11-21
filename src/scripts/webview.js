@@ -41,6 +41,12 @@ class WebView extends EventEmitter {
 		webviewObj.setAttribute('allowpopups', 'on');
 		webviewObj.setAttribute('disablewebsecurity', 'on');
 
+		const loadingErrorView = document.createElement('webview');
+		loadingErrorView.classList.add('webview');
+		loadingErrorView.setAttribute('preload', '../preload.js');
+		loadingErrorView.setAttribute('allowpopups', 'on');
+		loadingErrorView.setAttribute('disablewebsecurity', 'on');
+
 		webviewObj.addEventListener('did-navigate-in-page', (lastPath) => {
 			if (lastPath.url.includes(host.url)) {
 				this.saveLastPath(host.url, lastPath.url);
@@ -70,12 +76,18 @@ class WebView extends EventEmitter {
 					ipcRenderer.send('open-screenshare-dialog');
 					break;
 				case 'reload-server': {
-					const webviewObj = this.getByUrl(host.url);
-					const server = webviewObj.getAttribute('server');
 					this.loading();
-					webviewObj.loadURL(server);
+					webviewObj.loadURL(host.url);
 					break;
 				}
+			}
+		});
+
+		loadingErrorView.addEventListener('ipc-message', ({ channel }) => {
+			if (channel === 'reload-server') {
+				this.loading();
+				webviewObj.loadURL(host.url);
+				loadingErrorView.reload();
 			}
 		});
 
@@ -84,23 +96,36 @@ class WebView extends EventEmitter {
 			this.emit('dom-ready', webviewObj, host.url);
 		});
 
+		loadingErrorView.addEventListener('dom-ready', () => {
+			loadingErrorView.classList.add('ready');
+		});
+
+		webviewObj.addEventListener('did-finish-load', () => {
+			const failed = webviewObj.classList.contains('failed');
+			webviewObj.classList.toggle('hidden', failed);
+			loadingErrorView.classList.toggle('hidden', !failed);
+
+			loadingErrorView.src = failed ? `file://${ __dirname }/loadingError.html` : 'about:blank';
+		});
+
 		webviewObj.addEventListener('did-fail-load', (e) => {
 			if (e.errorCode === -3) {
 				console.log('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
 				return;
 			}
 			if (e.isMainFrame) {
-				webviewObj.loadURL(`file://${ __dirname }/loading-error.html`);
+				webviewObj.classList.add('failed');
 			}
 		});
 
 		webviewObj.addEventListener('did-get-response-details', (e) => {
 			if (e.resourceType === 'mainFrame' && e.httpResponseCode >= 500) {
-				webviewObj.loadURL(`file://${ __dirname }/loading-error.html`);
+				webviewObj.classList.add('failed');
 			}
 		});
 
 		this.webviewParentElement.appendChild(webviewObj);
+		this.webviewParentElement.appendChild(loadingErrorView);
 
 		webviewObj.src = host.lastPath || host.url;
 	}
@@ -152,6 +177,7 @@ class WebView extends EventEmitter {
 		const item = this.getByUrl(hostUrl);
 		if (item) {
 			item.classList.add('active');
+			item.nextElementSibling.classList.add('active');
 		}
 		this.focusActive();
 	}

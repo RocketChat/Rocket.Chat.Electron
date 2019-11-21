@@ -1,10 +1,12 @@
+import querystring from 'querystring';
+
 import { remote, ipcRenderer } from 'electron';
 import { t } from 'i18next';
 
 const { app, dialog, getCurrentWindow } = remote;
 
 const setupUpdateDialog = () => {
-	const { params: { newVersion } } = getCurrentWindow();
+	const { newVersion } = querystring.parse(window.location.search.slice(1));
 
 	const currentVersion = app.getVersion();
 

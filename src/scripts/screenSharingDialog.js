@@ -7,6 +7,10 @@ const setupScreenSharingDialog = () => {
 
 	const template = document.querySelector('.screenshare-source-template');
 
+	const handleUnload = () => {
+		ipcRenderer.send('select-screenshare-source', null);
+	};
+
 	desktopCapturer.getSources({ types: ['window', 'screen'] }).then((sources) => {
 		document.querySelector('.screenshare-sources').innerHTML = '';
 
@@ -19,12 +23,15 @@ const setupScreenSharingDialog = () => {
 
 			sourceView.querySelector('.screenshare-source').addEventListener('click', () => {
 				ipcRenderer.send('select-screenshare-source', id);
+				window.removeEventListener('unload', handleUnload);
 				window.close();
 			}, false);
 
 			document.querySelector('.screenshare-sources').appendChild(sourceView);
 		});
 	});
+
+	window.addEventListener('unload', handleUnload);
 };
 
 export default setupScreenSharingDialog;

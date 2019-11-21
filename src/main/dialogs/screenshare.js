@@ -47,7 +47,7 @@ async function open() {
 		window = null;
 	});
 
-	window.loadFile(`${ app.getAppPath() }/app/public/dialogs/screenshare.html`);
+	window.loadFile(`${ app.getAppPath() }/app/public/screenSharingDialog.html`);
 }
 
 function close() {

@@ -1,6 +1,7 @@
 import { setupErrorHandling } from './errorHandling';
 import { start } from './scripts/start';
 import setupAboutDialog from './scripts/aboutDialog';
+import setupScreenSharingDialog from './scripts/screenSharingDialog';
 
 setupErrorHandling('renderer');
 switch (document.currentScript.dataset.context) {
@@ -10,5 +11,9 @@ switch (document.currentScript.dataset.context) {
 
 	case 'about-dialog':
 		setupAboutDialog();
+		break;
+
+	case 'screen-sharing-dialog':
+		setupScreenSharingDialog();
 		break;
 }

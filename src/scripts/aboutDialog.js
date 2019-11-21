@@ -81,5 +81,4 @@ const setupAboutDialog = () => {
 	}
 };
 
-
 export default setupAboutDialog;

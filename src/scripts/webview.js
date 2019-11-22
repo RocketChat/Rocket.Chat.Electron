@@ -3,20 +3,13 @@ import { EventEmitter } from 'events';
 import { ipcRenderer } from 'electron';
 import { t } from 'i18next';
 
-import servers from './servers';
-
-
 class WebView extends EventEmitter {
 	initialize = () => {
 		this.webviewParentElement = document.body;
 
-		servers.forEach(::this.add);
-
 		ipcRenderer.on('screenshare-result', (e, id) => {
 			const webviewObj = this.getActive();
-			webviewObj.executeJavaScript(`
-				window.parent.postMessage({ sourceId: '${ id }' }, '*');
-			`);
+			webviewObj && webviewObj.executeJavaScript(`window.parent.postMessage({ sourceId: '${ id }' }, '*');`);
 		});
 	}
 
@@ -47,10 +40,8 @@ class WebView extends EventEmitter {
 		loadingErrorView.setAttribute('allowpopups', 'on');
 		loadingErrorView.setAttribute('disablewebsecurity', 'on');
 
-		webviewObj.addEventListener('did-navigate-in-page', (lastPath) => {
-			if (lastPath.url.includes(host.url)) {
-				this.saveLastPath(host.url, lastPath.url);
-			}
+		webviewObj.addEventListener('did-navigate-in-page', (event) => {
+			this.emit('did-navigate-in-page', host.url, event);
 		});
 
 		let selfXssWarned = false;
@@ -137,12 +128,6 @@ class WebView extends EventEmitter {
 		}
 	}
 
-	saveLastPath(hostUrl, lastPathUrl) {
-		const { hosts } = servers;
-		hosts[hostUrl].lastPath = lastPathUrl;
-		servers.hosts = hosts;
-	}
-
 	getByUrl(hostUrl) {
 		return this.webviewParentElement.querySelector(`webview[server="${ hostUrl }"]`);
 	}
@@ -215,4 +200,6 @@ class WebView extends EventEmitter {
 	}
 }
 
-export default new WebView();
+const instance = new WebView();
+
+export default instance;

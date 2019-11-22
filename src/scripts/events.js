@@ -324,6 +324,12 @@ export default () => {
 		webview.setSidebarPaddingEnabled(!hasSidebar);
 	});
 
+	webview.on('did-navigate-in-page', (hostUrl, event) => {
+		if (event.url.includes(hostUrl)) {
+			servers.hosts[hostUrl].lastPath = event.url;
+		}
+	});
+
 	if (process.platform === 'darwin') {
 		setTouchBar();
 	}
@@ -331,6 +337,7 @@ export default () => {
 	setupUpdates();
 	servers.initialize();
 	webview.initialize();
+	servers.forEach(::webview.add);
 	servers.restoreActive();
 	sidebar.mount();
 	updatePreferences();

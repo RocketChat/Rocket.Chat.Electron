@@ -3,16 +3,64 @@ import { EventEmitter } from 'events';
 import { ipcRenderer } from 'electron';
 import { t } from 'i18next';
 
+import { createElement, useEffect, useRoot, useState } from './reactiveUi';
+
+function LoadingErrorView({ visible, counting, reloading, onReload }) {
+	const root = useRoot();
+
+	const [counter, setCounter] = useState(60);
+
+	useEffect(() => {
+		if (!counting) {
+			return;
+		}
+
+		setCounter(60);
+
+		const reloadCounterStepSize = 1;
+		const timer = setInterval(() => {
+			setCounter((counter) => {
+				counter -= reloadCounterStepSize;
+
+				if (counter <= 0) {
+					onReload && onReload();
+					return 60;
+				}
+
+				return counter;
+			});
+		}, reloadCounterStepSize * 1000);
+
+		return () => {
+			clearInterval(timer);
+		};
+	}, [counting]);
+
+	const handleReloadButtonClick = () => {
+		onReload && onReload();
+	};
+
+	root.classList.add('webview');
+	root.classList.add('loading-error-view');
+	root.classList.toggle('active', visible);
+	root.append(document.importNode(document.querySelector('.loading-error-template').content, true));
+
+	root.querySelector('.title').innerText = t('loadingError.announcement');
+
+	root.querySelector('.subtitle').innerText = t('loadingError.title');
+
+	root.querySelector('.reload-button').innerText = `${ t('loadingError.reload') } (${ counter })`;
+	root.querySelector('.reload-button').classList.toggle('hidden', reloading);
+	root.querySelector('.reload-button').onclick = handleReloadButtonClick;
+
+	root.querySelector('.reloading-server').classList.toggle('hidden', !reloading);
+
+	return null;
+}
+
+const loadingErrorViews = new Map();
+
 class WebView extends EventEmitter {
-	initialize = () => {
-		this.webviewParentElement = document.body;
-
-		ipcRenderer.on('screenshare-result', (e, id) => {
-			const webviewObj = this.getActive();
-			webviewObj && webviewObj.executeJavaScript(`window.parent.postMessage({ sourceId: '${ id }' }, '*');`);
-		});
-	}
-
 	add(host) {
 		let webviewObj = this.getByUrl(host.url);
 		if (webviewObj) {
@@ -26,11 +74,17 @@ class WebView extends EventEmitter {
 		webviewObj.setAttribute('allowpopups', 'on');
 		webviewObj.setAttribute('disablewebsecurity', 'on');
 
-		const loadingErrorView = document.createElement('webview');
-		loadingErrorView.classList.add('webview');
-		loadingErrorView.setAttribute('preload', '../preload.js');
-		loadingErrorView.setAttribute('allowpopups', 'on');
-		loadingErrorView.setAttribute('disablewebsecurity', 'on');
+		const loadingErrorViewElement = createElement(LoadingErrorView, {
+			visible: false,
+			onReload: () => {
+				loadingErrorViewElement.update({ reloading: true });
+				webviewObj.loadURL(host.url);
+			},
+		});
+
+		loadingErrorViewElement.mount(document.createElement('div'));
+
+		loadingErrorViews.set(host.url, loadingErrorViewElement);
 
 		webviewObj.addEventListener('did-navigate-in-page', (event) => {
 			this.emit('did-navigate-in-page', host.url, event);
@@ -58,17 +112,7 @@ class WebView extends EventEmitter {
 				case 'get-sourceId':
 					ipcRenderer.send('open-screen-sharing-dialog');
 					break;
-				case 'reload-server': {
-					webviewObj.loadURL(host.url);
-					break;
 				}
-			}
-		});
-
-		loadingErrorView.addEventListener('ipc-message', ({ channel }) => {
-			if (channel === 'reload-server') {
-				webviewObj.loadURL(host.url);
-				loadingErrorView.reload();
 			}
 		});
 
@@ -77,16 +121,11 @@ class WebView extends EventEmitter {
 			this.emit('dom-ready', webviewObj, host.url);
 		});
 
-		loadingErrorView.addEventListener('dom-ready', () => {
-			loadingErrorView.classList.add('ready');
-		});
-
 		webviewObj.addEventListener('did-finish-load', () => {
+			const active = webviewObj.classList.contains('active');
 			const failed = webviewObj.classList.contains('failed');
 			webviewObj.classList.toggle('hidden', failed);
-			loadingErrorView.classList.toggle('hidden', !failed);
-
-			loadingErrorView.src = failed ? `file://${ __dirname }/loadingError.html` : 'about:blank';
+			loadingErrorViewElement.update({ visible: active && failed, counting: failed, reloading: false });
 		});
 
 		webviewObj.addEventListener('did-fail-load', (e) => {
@@ -106,7 +145,7 @@ class WebView extends EventEmitter {
 		});
 
 		this.webviewParentElement.appendChild(webviewObj);
-		this.webviewParentElement.appendChild(loadingErrorView);
+		this.webviewParentElement.appendChild(loadingErrorViewElement.root);
 
 		webviewObj.src = host.lastPath || host.url;
 	}
@@ -115,6 +154,10 @@ class WebView extends EventEmitter {
 		const el = this.getByUrl(hostUrl);
 		if (el) {
 			el.remove();
+			const loadingErrorViewElement = loadingErrorViews.get(hostUrl);
+			loadingErrorViewElement.root.remove();
+			loadingErrorViewElement.unmount();
+			loadingErrorViews.delete(hostUrl);
 		}
 	}
 
@@ -134,6 +177,8 @@ class WebView extends EventEmitter {
 		let item;
 		while (!(item = this.getActive()) === false) {
 			item.classList.remove('active');
+			const loadingErrorViewElement = loadingErrorViews.get(item.getAttribute('server'));
+			loadingErrorViewElement.update({ visible: false });
 		}
 	}
 
@@ -146,7 +191,9 @@ class WebView extends EventEmitter {
 		const item = this.getByUrl(hostUrl);
 		if (item) {
 			item.classList.add('active');
-			item.nextElementSibling.classList.add('active');
+			const loadingErrorViewElement = loadingErrorViews.get(hostUrl);
+			const failed = item.classList.contains('failed');
+			loadingErrorViewElement.update({ visible: failed, counting: failed });
 		}
 		this.focusActive();
 	}
@@ -174,7 +221,6 @@ class WebView extends EventEmitter {
 		}
 
 		Array.from(document.querySelectorAll('webview.ready'))
-			.filter((webviewObj) => webviewObj.insertCSS)
 			.forEach((webviewObj) => webviewObj.insertCSS(`
 				.sidebar {
 					padding-top: ${ enabled ? '10px' : '0' };
@@ -187,3 +233,32 @@ class WebView extends EventEmitter {
 const instance = new WebView();
 
 export default instance;
+
+function WebViews() {
+	const root = useRoot();
+
+	useEffect(() => {
+		instance.webviewParentElement = root;
+
+		const handleScreenSharingSourceSelect = (e, id) => {
+			const webviewObj = instance.getActive();
+			webviewObj && webviewObj.executeJavaScript(`window.parent.postMessage({ sourceId: ${ JSON.stringify(id) } }, '*');`);
+		};
+
+		ipcRenderer.on('screen-sharing-source-selected', handleScreenSharingSourceSelect);
+
+		return () => {
+			ipcRenderer.removeListener('screen-sharing-source-selected', handleScreenSharingSourceSelect);
+		};
+	}, []);
+
+	return null;
+}
+
+let webViewsElement;
+
+export const mountWebViews = () => {
+	webViewsElement = createElement(WebViews);
+
+	webViewsElement.mount(document.body);
+};

@@ -3,7 +3,7 @@ import { remote, ipcRenderer } from 'electron';
 import servers from './servers';
 import sidebar from './sidebar';
 import { setupUpdates, canUpdate, canAutoUpdate, canSetAutoUpdate, setAutoUpdate, checkForUpdates, skipUpdateVersion, downloadUpdate } from './updates';
-import webview from './webview';
+import webview, { mountWebViews } from './webview';
 import setTouchBar from './touchBar';
 import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
@@ -350,7 +350,7 @@ export default () => {
 	mountAddServerView();
 	sidebar.mount();
 
-	webview.initialize();
+	mountWebViews();
 	servers.forEach(::webview.add);
 
 	servers.restoreActive();

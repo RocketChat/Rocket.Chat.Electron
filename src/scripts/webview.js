@@ -112,7 +112,6 @@ class WebView extends EventEmitter {
 				case 'get-sourceId':
 					ipcRenderer.send('open-screen-sharing-dialog');
 					break;
-				}
 			}
 		});
 

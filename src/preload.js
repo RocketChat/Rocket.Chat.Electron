@@ -1,7 +1,4 @@
-import { ipcRenderer } from 'electron';
-
 import { setupErrorHandling } from './errorHandling';
-import i18n from './i18n';
 import setupContextMenuPreload from './preload/contextMenu';
 import setupEventsPreload from './preload/events';
 import setupJitsiPreload from './preload/jitsi';
@@ -11,7 +8,6 @@ import setupSidebarPreload from './preload/sidebar';
 import setupSpellcheckingPreload from './preload/spellchecking';
 import setupTitleChangePreload from './preload/titleChange';
 import setupUserPresencePreload from './preload/userPresence';
-
 
 setupErrorHandling('preload');
 setupContextMenuPreload();
@@ -23,6 +19,3 @@ setupSidebarPreload();
 setupSpellcheckingPreload();
 setupTitleChangePreload();
 setupUserPresencePreload();
-
-window.reloadServer = () => ipcRenderer.sendToHost('reload-server');
-window.i18n = i18n;

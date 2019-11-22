@@ -48,7 +48,7 @@ notifications:
     on_failure: change
 
 install:
-  - yarn
+  - yarn --check-files
   - yarn test
 
 script:

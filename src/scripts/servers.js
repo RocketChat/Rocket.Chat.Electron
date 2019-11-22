@@ -7,8 +7,7 @@ import i18n from '../i18n';
 
 
 class Servers extends EventEmitter {
-	constructor() {
-		super();
+	initialize = () => {
 		this.load();
 		const processProtocol = this.getProtocolUrlFromProcess(remote.process.argv);
 		if (processProtocol) {

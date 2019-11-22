@@ -85,6 +85,11 @@ async function createMainWindow() {
 	if (process.env.NODE_ENV === 'development') {
 		mainWindow.webContents.openDevTools();
 	}
+
+	if (app.commandLine.hasSwitch('start-hidden')) {
+		console.debug('Start application in background');
+		mainWindow.hide();
+	}
 }
 
 export async function getMainWindow() {

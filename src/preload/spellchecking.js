@@ -3,9 +3,9 @@ import path from 'path';
 import { remote, webFrame } from 'electron';
 import jetpack from 'fs-jetpack';
 import mem from 'mem';
-import spellchecker from '@felixrieseberg/spellchecker';
 
 const { app } = remote;
+const spellchecker = remote.require('@felixrieseberg/spellchecker');
 
 class SpellCheck {
 	constructor() {

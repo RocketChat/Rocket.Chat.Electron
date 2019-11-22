@@ -1,13 +1,12 @@
-import querystring from 'querystring';
-
 import { remote, ipcRenderer } from 'electron';
 import { t } from 'i18next';
 
-import { createElement, useRoot, useEffect, useRef } from './reactiveUi';
+import { useRoot, useEffect, useRef } from './reactiveUi';
+import { createDialog, destroyDialog } from './dialogs';
 
 const { app, dialog } = remote;
 
-function UpdateDialog({
+export function UpdateDialog({
 	currentVersion,
 	newVersion,
 }) {
@@ -77,17 +76,17 @@ function UpdateDialog({
 	return null;
 }
 
-const setupUpdateDialog = () => {
-	const { newVersion } = querystring.parse(window.location.search.slice(1));
-	const currentVersion = app.getVersion();
-
-	const element = createElement(UpdateDialog, { currentVersion, newVersion });
-
-	element.mount(document.querySelector('.update-page'));
-
-	window.onunload = () => {
-		element.unmount();
-	};
+export const openUpdateDialog = ({ newVersion } = {}) => {
+	createDialog({
+		name: 'update-dialog',
+		component: UpdateDialog,
+		createProps: () => {
+			const currentVersion = app.getVersion();
+			return { currentVersion, newVersion };
+		},
+	});
 };
 
-export default setupUpdateDialog;
+export const closeUpdateDialog = () => {
+	destroyDialog('update-dialog');
+};

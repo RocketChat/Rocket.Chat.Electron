@@ -2,11 +2,12 @@ import { remote, ipcRenderer } from 'electron';
 import { t } from 'i18next';
 
 import pkg from '../../package.json';
-import { useEffect, useState, useRef, createElement, useRoot } from './reactiveUi.js';
+import { useEffect, useState, useRef, useRoot } from './reactiveUi.js';
+import { createDialog, destroyDialog } from './dialogs.js';
 
 const { app } = remote;
 
-function AboutDialog({
+export function AboutDialog({
 	appName,
 	appVersion,
 	copyright,
@@ -98,28 +99,30 @@ function AboutDialog({
 	return null;
 }
 
-const setupAboutDialog = async () => {
-	const appName = app.name;
-	const appVersion = app.getVersion();
-	const { copyright } = pkg;
-	const canUpdate = await ipcRenderer.invoke('can-update');
-	const canAutoUpdate = canUpdate && await ipcRenderer.invoke('can-auto-update');
-	const canSetAutoUpdate = canUpdate && await ipcRenderer.invoke('can-set-auto-update');
+export const openAboutDialog = async () => {
+	createDialog({
+		name: 'about-dialog',
+		component: AboutDialog,
+		createProps: async () => {
+			const appName = app.name;
+			const appVersion = app.getVersion();
+			const { copyright } = pkg;
+			const canUpdate = await ipcRenderer.invoke('can-update');
+			const canAutoUpdate = canUpdate && await ipcRenderer.invoke('can-auto-update');
+			const canSetAutoUpdate = canUpdate && await ipcRenderer.invoke('can-set-auto-update');
 
-	const element = createElement(AboutDialog, {
-		appName,
-		appVersion,
-		copyright,
-		canUpdate,
-		canAutoUpdate,
-		canSetAutoUpdate,
+			return {
+				appName,
+				appVersion,
+				copyright,
+				canUpdate,
+				canAutoUpdate,
+				canSetAutoUpdate,
+			};
+		},
 	});
-
-	element.mount(document.querySelector('.about-page'));
-
-	window.onload = () => {
-		element.unmount();
-	};
 };
 
-export default setupAboutDialog;
+export const closeAboutDialog = () => {
+	destroyDialog('about-dialog');
+};

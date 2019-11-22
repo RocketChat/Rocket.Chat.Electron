@@ -1,8 +1,13 @@
-.update-page {
+.update-dialog {
 	display: flex;
 	flex-direction: column;
 
-	min-height: 100vh;
+	top: 0;
+	bottom: 0;
+	z-index: 1000;
+
+	width: 600px;
+	height: 330px;
 	padding: 0.25rem 0.75rem;
 
 	cursor: default;
@@ -10,6 +15,10 @@
 
 	color: @primary-font-color;
 	background-color: @secondary-background-color;
+
+	&:not([open]) {
+		display: none;
+	}
 
 	.update-content {
 		display: flex;

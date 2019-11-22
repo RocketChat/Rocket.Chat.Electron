@@ -6,6 +6,8 @@
 	<link rel="stylesheet" href="../stylesheets/main.css" />
 </head>
 <body class="app-page app-page--loading">
+	<div class="drag-region"></div>
+
 	<div class="sidebar sidebar--hidden">
 		<div class="sidebar__inner">
 			<ol class="sidebar__list sidebar__server-list">
@@ -49,7 +51,74 @@
 		</div>
 	</section>
 
-	<div class="drag-region"></div>
+	<dialog class="about-dialog">
+		<section class="app-info">
+			<div class="app-logo">
+				<img src="./images/logo.svg">
+			</div>
+			<div class="app-version">
+				Version <span class="version">%s</span>
+			</div>
+		</section>
+
+		<section class="updates hidden">
+			<button type="button" class="check-for-updates button primary">
+				Check for Updates
+			</button>
+
+			<div class="checking-for-updates hidden">
+				<span class="dot"></span>
+				<span class="dot"></span>
+				<span class="dot"></span>
+				<span class="message"></span>
+			</div>
+
+			<label class="check-for-updates-on-start__label">
+				<input class="check-for-updates-on-start" type="checkbox" checked /> <span>Check for Updates on Start</span>
+			</label>
+		</section>
+
+		<div class="copyright"></div>
+	</dialog>
+
+	<dialog class="screen-sharing-dialog">
+		<template class="screen-sharing-source-template">
+			<div class="screen-sharing-source">
+				<div class="screen-sharing-source-thumbnail">
+					<img src="" alt="" />
+				</div>
+				<div class="screen-sharing-source-name"></div>
+			</div>
+		</template>
+
+		<h1 class="screenshare-title">Select a screen to share</h1>
+		<div class="screen-sharing-sources"></div>
+	</dialog>
+
+	<dialog class="update-dialog">
+		<div class="update-content">
+			<h1 class="update-title">New Update is Available</h1>
+			<p class="update-message">A new version of the Rocket.Chat Desktop App is available!</p>
+
+			<div class="update-info">
+				<div class="app-version current-version">
+					<div class="app-version-label">Current Version:</div>
+					<div class="app-version-value">a.b.c</div>
+				</div>
+				<div class="update-arrow">&rarr;</div>
+				<div class="app-version new-version">
+					<div class="app-version-label">New Version:</div>
+					<div class="app-version-value">x.y.z</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="update-actions">
+			<button type="button" class="update-skip-action button secondary">Skip This Version</button>
+			<button type="button" class="update-remind-action button secondary">Remind Me Later</button>
+			<button type="button" class="update-install-action button primary">Install Update</button>
+		</div>
+	</dialog>
 
 	<script src="../app.js" data-context="main"></script>
 </body>

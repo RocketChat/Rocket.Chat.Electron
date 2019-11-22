@@ -1,9 +1,10 @@
-import { desktopCapturer, ipcRenderer } from 'electron';
+import { desktopCapturer, ipcRenderer, remote } from 'electron';
 import { t } from 'i18next';
 
-import { createElement, useRoot, useEffect, useRef } from './reactiveUi';
+import { useRoot, useEffect, useRef } from './reactiveUi';
+import { createDialog, destroyDialog } from './dialogs';
 
-function ScreenSharingDialog({ sources }) {
+export function ScreenSharingDialog({ sources }) {
 	const sourceSelectedRef = useRef(false);
 
 	useEffect(() => {
@@ -17,32 +18,32 @@ function ScreenSharingDialog({ sources }) {
 			return;
 		}
 
-		ipcRenderer.send('select-screenshare-source', null);
+		ipcRenderer.send('select-screen-sharing-source', null);
 	}, []);
 
 	const handleScreenSharingSourceClick = (id) => () => {
 		sourceSelectedRef.current = true;
-		ipcRenderer.send('select-screenshare-source', id);
-		ipcRenderer.send('close-screenshare-dialog');
+		ipcRenderer.send('select-screen-sharing-source', id);
+		ipcRenderer.send('close-screen-sharing-dialog');
 	};
 
 	const root = useRoot();
 
 	root.querySelector('.screenshare-title').innerText = t('dialog.screenshare.announcement');
 
-	while (root.querySelector('.screenshare-sources').firstChild) {
-		root.querySelector('.screenshare-sources').firstChild.remove();
+	while (root.querySelector('.screen-sharing-sources').firstChild) {
+		root.querySelector('.screen-sharing-sources').firstChild.remove();
 	}
 
-	root.querySelector('.screenshare-sources').append(...sources.map(({ id, name, thumbnail }) => {
-		const sourceView = document.importNode(root.querySelector('.screenshare-source-template').content, true);
+	root.querySelector('.screen-sharing-sources').append(...sources.map(({ id, name, thumbnail }) => {
+		const sourceView = document.importNode(root.querySelector('.screen-sharing-source-template').content, true);
 
-		sourceView.querySelector('.screenshare-source').onclick = handleScreenSharingSourceClick(id);
+		sourceView.querySelector('.screen-sharing-source').onclick = handleScreenSharingSourceClick(id);
 
-		sourceView.querySelector('.screenshare-source-thumbnail img').setAttribute('alt', name);
-		sourceView.querySelector('.screenshare-source-thumbnail img').setAttribute('src', thumbnail.toDataURL());
+		sourceView.querySelector('.screen-sharing-source-thumbnail img').setAttribute('alt', name);
+		sourceView.querySelector('.screen-sharing-source-thumbnail img').setAttribute('src', thumbnail.toDataURL());
 
-		sourceView.querySelector('.screenshare-source-name').innerText = name;
+		sourceView.querySelector('.screen-sharing-source-name').innerText = name;
 
 		return sourceView;
 	}));
@@ -50,16 +51,22 @@ function ScreenSharingDialog({ sources }) {
 	return null;
 }
 
-const setupScreenSharingDialog = async () => {
-	const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
+export const openScreenSharingDialog = () => {
+	createDialog({
+		name: 'screen-sharing-dialog',
+		component: ScreenSharingDialog,
+		createProps: async () => {
+			const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
 
-	const element = createElement(ScreenSharingDialog, { sources });
-
-	element.mount(document.querySelector('.screenshare-page'));
-
-	window.onunload = () => {
-		element.unmount();
-	};
+			return { sources };
+		},
+	});
 };
 
-export default setupScreenSharingDialog;
+export const closeScreenSharingDialog = () => {
+	destroyDialog('screen-sharing-dialog');
+};
+
+export const selectScreenSharingSource = (id) => {
+	remote.getCurrentWebContents().send('screenshare-result', id || 'PermissionDeniedError');
+};

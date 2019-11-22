@@ -52,9 +52,7 @@ export const createElement = (render, initialProps = {}) => {
 			}
 
 			element.hooks.filter(({ cleanUp }) => typeof cleanUp === 'function').forEach(({ cleanUp }) => cleanUp());
-			while (element.root.firstChild) {
-				element.root.firstChild.remove();
-			}
+			element.root = null;
 		},
 	};
 

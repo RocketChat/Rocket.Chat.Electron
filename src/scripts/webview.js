@@ -73,7 +73,7 @@ class WebView extends EventEmitter {
 
 			switch (event.channel) {
 				case 'get-sourceId':
-					ipcRenderer.send('open-screenshare-dialog');
+					ipcRenderer.send('open-screen-sharing-dialog');
 					break;
 				case 'reload-server': {
 					this.loading();

@@ -1,19 +1,13 @@
 import { remote, ipcRenderer } from 'electron';
 
-import {
-	openAboutDialog,
-	closeAboutDialog,
-	openScreenSharingDialog,
-	closeScreenSharingDialog,
-	selectScreenSharingSource,
-	openUpdateDialog,
-	closeUpdateDialog,
-} from './dialogs';
 import servers from './servers';
 import sidebar from './sidebar';
 import { setupUpdates, canUpdate, canAutoUpdate, canSetAutoUpdate, setAutoUpdate, checkForUpdates, skipUpdateVersion, downloadUpdate } from './updates';
 import webview from './webview';
 import setTouchBar from './touchBar';
+import { openAboutDialog, closeAboutDialog } from './aboutDialog';
+import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
+import { openUpdateDialog, closeUpdateDialog } from './updateDialog';
 
 const { app, getCurrentWindow, shell } = remote;
 const { certificate, dock, menus, tray } = remote.require('./main');
@@ -97,9 +91,9 @@ export default () => {
 	remote.ipcMain.on('download-update', () => downloadUpdate());
 	remote.ipcMain.on('open-about-dialog', (_, ...args) => openAboutDialog(...args));
 	remote.ipcMain.on('close-about-dialog', (_, ...args) => closeAboutDialog(...args));
-	remote.ipcMain.on('open-screenshare-dialog', (_, ...args) => openScreenSharingDialog(...args));
-	remote.ipcMain.on('close-screenshare-dialog', (_, ...args) => closeScreenSharingDialog(...args));
-	remote.ipcMain.on('select-screenshare-source', (_, ...args) => selectScreenSharingSource(...args));
+	remote.ipcMain.on('open-screen-sharing-dialog', (_, ...args) => openScreenSharingDialog(...args));
+	remote.ipcMain.on('close-screen-sharing-dialog', (_, ...args) => closeScreenSharingDialog(...args));
+	remote.ipcMain.on('select-screen-sharing-source', (_, ...args) => selectScreenSharingSource(...args));
 	remote.ipcMain.on('open-update-dialog', (_, ...args) => openUpdateDialog(...args));
 	remote.ipcMain.on('close-update-dialog', (_, ...args) => closeUpdateDialog(...args));
 
@@ -114,9 +108,9 @@ export default () => {
 		remote.ipcMain.removeAllListeners('download-update');
 		remote.ipcMain.removeAllListeners('open-about-dialog');
 		remote.ipcMain.removeAllListeners('close-about-dialog');
-		remote.ipcMain.removeAllListeners('open-screenshare-dialog');
-		remote.ipcMain.removeAllListeners('close-screenshare-dialog');
-		remote.ipcMain.removeAllListeners('select-screenshare-source');
+		remote.ipcMain.removeAllListeners('open-screen-sharing-dialog');
+		remote.ipcMain.removeAllListeners('close-screen-sharing-dialog');
+		remote.ipcMain.removeAllListeners('select-screen-sharing-source');
 		remote.ipcMain.removeAllListeners('open-update-dialog');
 		remote.ipcMain.removeAllListeners('close-update-dialog');
 	});

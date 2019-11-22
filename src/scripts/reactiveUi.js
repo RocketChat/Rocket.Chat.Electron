@@ -12,7 +12,7 @@ const commit = (element) => {
 
 		const depsChanged = !Array.isArray(deps)
 				|| !Array.isArray(prevDeps)
-				|| Array.from({ length: deps.length }).some((i) => deps[i] !== prevDeps[i]);
+				|| deps.some((_, i) => deps[i] !== prevDeps[i]);
 
 		if (!depsChanged) {
 			return;

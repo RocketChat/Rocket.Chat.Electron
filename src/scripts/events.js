@@ -8,6 +8,7 @@ import setTouchBar from './touchBar';
 import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
 import { openUpdateDialog, closeUpdateDialog } from './updateDialog';
+import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
 
 const { app, getCurrentWindow, shell } = remote;
 const { certificate, dock, menus, tray } = remote.require('./main');
@@ -81,6 +82,13 @@ export default () => {
 	window.addEventListener('beforeunload', destroyAll);
 	window.addEventListener('focus', () => webview.focusActive());
 
+	const handleConnectionStatus = () => {
+		document.body.classList.toggle('offline', !navigator.onLine);
+	};
+	window.addEventListener('online', handleConnectionStatus);
+	window.addEventListener('offline', handleConnectionStatus);
+	handleConnectionStatus();
+
 	remote.ipcMain.handle('can-update', () => canUpdate());
 	remote.ipcMain.handle('can-auto-update', () => canAutoUpdate());
 	remote.ipcMain.handle('can-set-auto-update', () => canSetAutoUpdate());
@@ -122,7 +130,7 @@ export default () => {
 	menus.on('add-new-server', () => {
 		getCurrentWindow().show();
 		servers.clearActive();
-		webview.showLanding();
+		toggleAddServerViewVisible(true);
 	});
 
 	menus.on('select-server', ({ url }) => {
@@ -205,7 +213,7 @@ export default () => {
 	});
 
 	servers.on('loaded', () => {
-		webview.loaded();
+		document.querySelector('.app-page').classList.remove('app-page--loading');
 		updateServers();
 	});
 
@@ -217,17 +225,19 @@ export default () => {
 	servers.on('host-removed', (hostUrl) => {
 		webview.remove(hostUrl);
 		servers.clearActive();
-		webview.showLanding();
+		toggleAddServerViewVisible(true);
 		updateServers();
 	});
 
 	servers.on('active-setted', (hostUrl) => {
 		webview.setActive(hostUrl);
+		toggleAddServerViewVisible(false);
 		updateServers();
 	});
 
 	servers.on('active-cleared', (hostUrl) => {
 		webview.deactiveAll(hostUrl);
+		toggleAddServerViewVisible(true);
 		updateServers();
 	});
 
@@ -253,7 +263,7 @@ export default () => {
 
 	sidebar.on('add-server', () => {
 		servers.clearActive();
-		webview.showLanding();
+		toggleAddServerViewVisible(true);
 	});
 
 	sidebar.on('servers-sorted', (sorting) => {
@@ -336,10 +346,15 @@ export default () => {
 
 	setupUpdates();
 	servers.initialize();
+
+	mountAddServerView();
+	sidebar.mount();
+
 	webview.initialize();
 	servers.forEach(::webview.add);
+
 	servers.restoreActive();
-	sidebar.mount();
+
 	updatePreferences();
 	updateServers();
 	updateWindowState();

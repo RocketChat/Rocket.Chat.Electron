@@ -13,14 +13,6 @@ class WebView extends EventEmitter {
 		});
 	}
 
-	loaded() {
-		document.querySelector('.app-page').classList.remove('app-page--loading');
-	}
-
-	loading() {
-		document.querySelector('.app-page').classList.add('app-page--loading');
-	}
-
 	add(host) {
 		let webviewObj = this.getByUrl(host.url);
 		if (webviewObj) {
@@ -67,7 +59,6 @@ class WebView extends EventEmitter {
 					ipcRenderer.send('open-screen-sharing-dialog');
 					break;
 				case 'reload-server': {
-					this.loading();
 					webviewObj.loadURL(host.url);
 					break;
 				}
@@ -76,7 +67,6 @@ class WebView extends EventEmitter {
 
 		loadingErrorView.addEventListener('ipc-message', ({ channel }) => {
 			if (channel === 'reload-server') {
-				this.loading();
 				webviewObj.loadURL(host.url);
 				loadingErrorView.reload();
 			}
@@ -145,12 +135,6 @@ class WebView extends EventEmitter {
 		while (!(item = this.getActive()) === false) {
 			item.classList.remove('active');
 		}
-		document.querySelector('.landing-page').classList.add('hide');
-	}
-
-	showLanding() {
-		this.loaded();
-		document.querySelector('.landing-page').classList.remove('hide');
 	}
 
 	setActive(hostUrl) {

@@ -1,6 +1,6 @@
 import { setupErrorHandling } from './errorHandling';
-import { start } from './scripts/start';
 import i18n from './i18n';
+import attachEvents from './scripts/events';
 
 const initialize = async (context) => {
 	setupErrorHandling('renderer');
@@ -9,7 +9,7 @@ const initialize = async (context) => {
 
 	switch (context) {
 		case 'main':
-			start();
+			await attachEvents();
 			break;
 	}
 };

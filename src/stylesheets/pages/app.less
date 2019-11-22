@@ -12,7 +12,7 @@
 			display: flex;
 		}
 
-		#login-card {
+		.add-server-form {
 			display: none;
 		}
 	}
@@ -31,7 +31,7 @@
 	display: none;
 }
 
-body.offline #login-card *:not(.only-offline) {
+body.offline .add-server-form *:not(.only-offline) {
 	display: none;
 }
 
@@ -107,7 +107,7 @@ webview.active {
 	z-index: 2;
 }
 
-.landing-page {
+.add-server-view {
 
 	position: fixed;
 	z-index: 1;
@@ -125,6 +125,10 @@ webview.active {
 	align-items: center;
 	-webkit-app-region: drag;
 	justify-content: center;
+
+	.hidden {
+		display: none;
+	}
 
 	&.hide {
 		display: none;
@@ -163,7 +167,7 @@ webview.active {
 	}
 }
 
-#login-card {
+.add-server-form {
 	position: relative;
 	z-index: 1;
 

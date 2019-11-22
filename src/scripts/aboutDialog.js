@@ -8,17 +8,12 @@ import { createDialog, destroyDialog } from './dialogs.js';
 const { app } = remote;
 
 export function AboutDialog({
-	appName,
 	appVersion,
 	copyright,
 	canUpdate,
 	canAutoUpdate,
 	canSetAutoUpdate,
 }) {
-	useEffect(() => {
-		document.title = t('dialog.about.title', { appName });
-	});
-
 	const [checkingForUpdates, setCheckingForUpdates] = useState(false);
 	const [checkingForUpdatesMessage, setCheckingForUpdatesMessage] = useState(null);
 
@@ -104,7 +99,6 @@ export const openAboutDialog = async () => {
 		name: 'about-dialog',
 		component: AboutDialog,
 		createProps: async () => {
-			const appName = app.name;
 			const appVersion = app.getVersion();
 			const { copyright } = pkg;
 			const canUpdate = await ipcRenderer.invoke('can-update');
@@ -112,7 +106,6 @@ export const openAboutDialog = async () => {
 			const canSetAutoUpdate = canUpdate && await ipcRenderer.invoke('can-set-auto-update');
 
 			return {
-				appName,
 				appVersion,
 				copyright,
 				canUpdate,

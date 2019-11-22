@@ -10,10 +10,6 @@ export function UpdateDialog({
 	currentVersion,
 	newVersion,
 }) {
-	useEffect(() => {
-		document.title = t('dialog.update.title');
-	});
-
 	const installButtonRef = useRef();
 
 	useEffect(() => {

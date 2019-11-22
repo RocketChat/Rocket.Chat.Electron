@@ -7,10 +7,6 @@ import { createDialog, destroyDialog } from './dialogs';
 export function ScreenSharingDialog({ sources }) {
 	const sourceSelectedRef = useRef(false);
 
-	useEffect(() => {
-		document.title = t('dialog.screenshare.title');
-	});
-
 	useEffect(() => () => {
 		const { current: sourceSelected } = sourceSelectedRef;
 
@@ -68,5 +64,5 @@ export const closeScreenSharingDialog = () => {
 };
 
 export const selectScreenSharingSource = (id) => {
-	remote.getCurrentWebContents().send('screenshare-result', id || 'PermissionDeniedError');
+	remote.getCurrentWebContents().send('screen-sharing-source-selected', id || 'PermissionDeniedError');
 };

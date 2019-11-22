@@ -46,6 +46,8 @@ function ScreenSharingDialog({ sources }) {
 
 		return sourceView;
 	}));
+
+	return null;
 }
 
 const setupScreenSharingDialog = async () => {

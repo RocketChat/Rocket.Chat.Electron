@@ -2,83 +2,124 @@ import { remote, ipcRenderer } from 'electron';
 import { t } from 'i18next';
 
 import pkg from '../../package.json';
+import { useEffect, useState, useRef, createElement, useRoot } from './reactiveUi.js';
 
 const { app } = remote;
+
+function AboutDialog({
+	appName,
+	appVersion,
+	copyright,
+	canUpdate,
+	canAutoUpdate,
+	canSetAutoUpdate,
+}) {
+	useEffect(() => {
+		document.title = t('dialog.about.title', { appName });
+	});
+
+	const [checkingForUpdates, setCheckingForUpdates] = useState(false);
+	const [checkingForUpdatesMessage, setCheckingForUpdatesMessage] = useState(null);
+
+	const checkingForUpdatesMessageTimerRef = useRef();
+
+	const displayCheckingForUpdatesMessage = (message) => {
+		setCheckingForUpdatesMessage(message);
+
+		clearTimeout(checkingForUpdatesMessageTimerRef.current);
+		checkingForUpdatesMessageTimerRef.current = setTimeout(() => {
+			setCheckingForUpdates(false);
+			setCheckingForUpdatesMessage(null);
+		}, 5000);
+	};
+
+	useEffect(() => {
+		if (!canUpdate) {
+			return;
+		}
+
+		const handleUpdateResult = (_, updateAvailable) => {
+			if (updateAvailable) {
+				setCheckingForUpdates(false);
+				setCheckingForUpdatesMessage(null);
+				return;
+			}
+
+			displayCheckingForUpdatesMessage(t('dialog.about.noUpdatesAvailable'));
+		};
+
+		const handleUpdateError = () => {
+			displayCheckingForUpdatesMessage(t('dialog.about.errorWhileLookingForUpdates'));
+		};
+
+		ipcRenderer.on('update-result', handleUpdateResult);
+		ipcRenderer.on('update-error', handleUpdateError);
+
+		return () => {
+			ipcRenderer.removeListener('update-result', handleUpdateResult);
+			ipcRenderer.removeListener('update-error', handleUpdateError);
+		};
+	}, [canUpdate]);
+
+	const handleCheckForUpdatesButtonClick = () => {
+		setCheckingForUpdates(true);
+		setCheckingForUpdatesMessage(null);
+		ipcRenderer.send('check-for-updates', { forced: true });
+	};
+
+	const handleCheckForUpdatesOnStartCheckBoxChange = (event) => {
+		ipcRenderer.send('set-auto-update', event.target.checked);
+	};
+
+	const root = useRoot();
+
+	root.querySelector('.app-version').innerHTML = `${ t('dialog.about.version') } <span class="version">${ appVersion }</span>`;
+
+	root.querySelector('.check-for-updates').innerText = t('dialog.about.checkUpdates');
+	root.querySelector('.check-for-updates').onclick = handleCheckForUpdatesButtonClick;
+	root.querySelector('.check-for-updates').toggleAttribute('disabled', checkingForUpdates);
+	root.querySelector('.check-for-updates').classList.toggle('hidden', checkingForUpdates);
+
+	root.querySelector('.checking-for-updates').classList.toggle('hidden', !checkingForUpdates);
+	root.querySelector('.checking-for-updates').classList.toggle('message-shown', !!checkingForUpdatesMessage);
+
+	root.querySelector('.checking-for-updates .message').innerText = checkingForUpdatesMessage || '';
+
+	root.querySelector('.check-for-updates-on-start').toggleAttribute('checked', canAutoUpdate);
+	root.querySelector('.check-for-updates-on-start').toggleAttribute('disabled', !canSetAutoUpdate);
+	root.querySelector('.check-for-updates-on-start').onchange = handleCheckForUpdatesOnStartCheckBoxChange;
+
+	root.querySelector('.check-for-updates-on-start + span').innerText = t('dialog.about.checkUpdatesOnStart');
+
+	root.querySelector('.copyright').innerText = t('dialog.about.copyright', { copyright });
+
+	root.querySelector('.updates').classList.toggle('hidden', !canUpdate);
+
+	return null;
+}
 
 const setupAboutDialog = async () => {
 	const appName = app.name;
 	const appVersion = app.getVersion();
 	const { copyright } = pkg;
-
-	document.title = t('dialog.about.title', { appName });
-	document.querySelector('.app-version').innerHTML = `${ t('dialog.about.version') } <span class="version">${ appVersion }</span>`;
-	document.querySelector('.check-for-updates').innerHTML = t('dialog.about.checkUpdates');
-	document.querySelector('.check-for-updates-on-start + span').innerHTML = t('dialog.about.checkUpdatesOnStart');
-	document.querySelector('.copyright').innerHTML = t('dialog.about.copyright', { copyright });
-
 	const canUpdate = await ipcRenderer.invoke('can-update');
+	const canAutoUpdate = canUpdate && await ipcRenderer.invoke('can-auto-update');
+	const canSetAutoUpdate = canUpdate && await ipcRenderer.invoke('can-set-auto-update');
 
-	if (canUpdate) {
-		const canAutoUpdate = await ipcRenderer.invoke('can-auto-update');
+	const element = createElement(AboutDialog, {
+		appName,
+		appVersion,
+		copyright,
+		canUpdate,
+		canAutoUpdate,
+		canSetAutoUpdate,
+	});
 
-		if (canAutoUpdate) {
-			document.querySelector('.check-for-updates-on-start').setAttribute('checked', 'checked');
-		} else {
-			document.querySelector('.check-for-updates-on-start').removeAttribute('checked');
-		}
+	element.mount(document.querySelector('.about-page'));
 
-		const canSetAutoUpdate = await ipcRenderer.invoke('can-set-auto-update');
-		if (canSetAutoUpdate) {
-			document.querySelector('.check-for-updates-on-start').addEventListener('change', (event) => {
-				ipcRenderer.send('set-auto-update', event.target.checked);
-			});
-		} else {
-			document.querySelector('.check-for-updates-on-start').setAttribute('disabled', 'disabled');
-		}
-
-		document.querySelector('.check-for-updates').addEventListener('click', (event) => {
-			event.preventDefault();
-			document.querySelector('.check-for-updates').setAttribute('disabled', 'disabled');
-			document.querySelector('.check-for-updates').classList.add('hidden');
-			document.querySelector('.checking-for-updates').classList.remove('hidden');
-			ipcRenderer.send('check-for-updates', { forced: true });
-		}, false);
-
-		const resetUpdatesSection = () => {
-			document.querySelector('.check-for-updates').removeAttribute('disabled');
-			document.querySelector('.check-for-updates').classList.remove('hidden');
-			document.querySelector('.checking-for-updates').classList.add('hidden');
-		};
-
-		ipcRenderer.on('update-result', (_, updateAvailable) => {
-			if (updateAvailable) {
-				resetUpdatesSection();
-				return;
-			}
-
-			document.querySelector('.checking-for-updates .message').innerHTML = t('dialog.about.noUpdatesAvailable');
-			document.querySelector('.checking-for-updates').classList.add('message-shown');
-
-			setTimeout(() => {
-				resetUpdatesSection();
-				document.querySelector('.checking-for-updates .message').innerHTML = '';
-				document.querySelector('.checking-for-updates').classList.remove('message-shown');
-			}, 5000);
-		});
-
-		ipcRenderer.on('update-error', () => {
-			document.querySelector('.checking-for-updates .message').innerHTML = t('dialog.about.errorWhileLookingForUpdates');
-			document.querySelector('.checking-for-updates').classList.add('message-shown');
-
-			setTimeout(() => {
-				resetUpdatesSection();
-				document.querySelector('.checking-for-updates .message').innerHTML = '';
-				document.querySelector('.checking-for-updates').classList.remove('message-shown');
-			}, 5000);
-		});
-
-		document.querySelector('.updates').classList.remove('hidden');
-	}
+	window.onload = () => {
+		element.unmount();
+	};
 };
 
 export default setupAboutDialog;

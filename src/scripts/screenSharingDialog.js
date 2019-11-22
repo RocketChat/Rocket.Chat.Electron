@@ -1,37 +1,53 @@
 import { desktopCapturer, ipcRenderer } from 'electron';
 import { t } from 'i18next';
 
-const setupScreenSharingDialog = () => {
-	document.title = t('dialog.screenshare.title');
-	document.querySelector('.screenshare-title').innerHTML = t('dialog.screenshare.announcement');
+const setupScreenSharingDialog = async () => {
+	const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
 
-	const template = document.querySelector('.screenshare-source-template');
+	let sourceSelected = false;
 
-	const handleUnload = () => {
-		ipcRenderer.send('select-screenshare-source', null);
-	};
+	const root = document.querySelector('.screenshare-page');
 
-	desktopCapturer.getSources({ types: ['window', 'screen'] }).then((sources) => {
-		document.querySelector('.screenshare-sources').innerHTML = '';
+	const render = () => {
+		// useEffect
+		document.title = t('dialog.screenshare.title');
 
-		sources.forEach(({ id, name, thumbnail }) => {
-			const sourceView = document.importNode(template.content, true);
+		// useEffect cleanUp deps=[]
+		window.onunload = () => {
+			if (sourceSelected) {
+				return;
+			}
+
+			ipcRenderer.send('select-screenshare-source', null);
+		};
+
+		const handleScreenSharingSourceClick = (id) => () => {
+			sourceSelected = true;
+			ipcRenderer.send('select-screenshare-source', id);
+			ipcRenderer.send('close-screenshare-dialog');
+		};
+
+		root.querySelector('.screenshare-title').innerText = t('dialog.screenshare.announcement');
+
+		while (root.querySelector('.screenshare-sources').firstChild) {
+			root.querySelector('.screenshare-sources').firstChild.remove();
+		}
+
+		root.querySelector('.screenshare-sources').append(...sources.map(({ id, name, thumbnail }) => {
+			const sourceView = document.importNode(root.querySelector('.screenshare-source-template').content, true);
+
+			sourceView.querySelector('.screenshare-source').onclick = handleScreenSharingSourceClick(id);
 
 			sourceView.querySelector('.screenshare-source-thumbnail img').setAttribute('alt', name);
 			sourceView.querySelector('.screenshare-source-thumbnail img').setAttribute('src', thumbnail.toDataURL());
-			sourceView.querySelector('.screenshare-source-name').textContent = name;
 
-			sourceView.querySelector('.screenshare-source').addEventListener('click', () => {
-				ipcRenderer.send('select-screenshare-source', id);
-				window.removeEventListener('unload', handleUnload);
-				window.close();
-			}, false);
+			sourceView.querySelector('.screenshare-source-name').innerText = name;
 
-			document.querySelector('.screenshare-sources').appendChild(sourceView);
-		});
-	});
+			return sourceView;
+		}));
+	};
 
-	window.addEventListener('unload', handleUnload);
+	render();
 };
 
 export default setupScreenSharingDialog;

@@ -1,4 +1,3 @@
-import 'debug';
 import { app } from 'electron';
 import setupElectronReload from 'electron-reload';
 

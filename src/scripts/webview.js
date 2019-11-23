@@ -71,8 +71,9 @@ class WebView extends EventEmitter {
 		webviewObj.classList.add('webview');
 		webviewObj.setAttribute('server', host.url);
 		webviewObj.setAttribute('preload', '../preload.js');
-		webviewObj.setAttribute('allowpopups', 'on');
-		webviewObj.setAttribute('disablewebsecurity', 'on');
+		webviewObj.toggleAttribute('allowpopups', true);
+		webviewObj.toggleAttribute('disablewebsecurity', false);
+		webviewObj.setAttribute('enableremotemodule', 'true');
 
 		const loadingErrorViewElement = createElement(LoadingErrorView, {
 			visible: false,

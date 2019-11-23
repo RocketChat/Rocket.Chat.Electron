@@ -80,6 +80,11 @@ async function createMainWindow() {
 		},
 	});
 	attachWindowStateHandling(mainWindow);
+
+	mainWindow.webContents.on('will-attach-webview', (event, webPreferences) => {
+		delete webPreferences.enableBlinkFeatures;
+	});
+
 	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
 
 	if (process.env.NODE_ENV === 'development') {

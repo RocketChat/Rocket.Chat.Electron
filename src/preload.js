@@ -8,14 +8,22 @@ import setupSidebarPreload from './preload/sidebar';
 import setupSpellcheckingPreload from './preload/spellchecking';
 import setupTitleChangePreload from './preload/titleChange';
 import setupUserPresencePreload from './preload/userPresence';
+import i18n from './i18n';
 
-setupErrorHandling('preload');
-setupContextMenuPreload();
-setupEventsPreload();
-setupJitsiPreload();
-setupLinksPreload();
-setupNotificationsPreload();
-setupSidebarPreload();
-setupSpellcheckingPreload();
-setupTitleChangePreload();
-setupUserPresencePreload();
+const initialize = async () => {
+	setupErrorHandling('preload');
+
+	await i18n.initialize();
+
+	setupContextMenuPreload();
+	setupEventsPreload();
+	setupJitsiPreload();
+	setupLinksPreload();
+	setupNotificationsPreload();
+	setupSidebarPreload();
+	setupSpellcheckingPreload();
+	setupTitleChangePreload();
+	setupUserPresencePreload();
+};
+
+initialize();

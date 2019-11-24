@@ -276,22 +276,6 @@ class Servers extends EventEmitter {
 				.catch(() => remote.dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host })));
 		}
 	}
-
-	async resetAppData() {
-		const { response } = await remote.dialog.showMessageBox({
-			type: 'question',
-			buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
-			defaultId: 1,
-			title: t('dialog.resetAppData.title'),
-			message: t('dialog.resetAppData.message'),
-		});
-
-		if (response !== 0) {
-			return;
-		}
-
-		ipcRenderer.send('reset-app-data');
-	}
 }
 
 const instance = new Servers();

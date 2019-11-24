@@ -1,4 +1,5 @@
 import { remote, ipcRenderer } from 'electron';
+import { t } from 'i18next';
 
 import servers from './servers';
 import sidebar from './sidebar';
@@ -170,7 +171,22 @@ export default () => {
 
 	menus.on('toggle-devtools', () => getCurrentWindow().toggleDevTools());
 
-	menus.on('reset-app-data', () => servers.resetAppData());
+	menus.on('reset-app-data', async () => {
+		const { response } = await remote.dialog.showMessageBox({
+			type: 'question',
+			buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
+			defaultId: 1,
+			title: t('dialog.resetAppData.title'),
+			message: t('dialog.resetAppData.message'),
+		});
+
+		if (response !== 0) {
+			return;
+		}
+
+		remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
+		remote.app.quit();
+	});
 
 	menus.on('toggle', (property) => {
 		switch (property) {

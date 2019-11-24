@@ -1,10 +1,8 @@
 import { EventEmitter } from 'events';
 
-import { app } from 'electron';
+import { remote } from 'electron';
 
-import { getMainWindow } from './mainWindow';
-import { getTrayIconImage, getAppIconImage } from './icon';
-
+import { getAppIconPath, getTrayIconPath } from './icon';
 
 const getBadgeText = ({ badge }) => {
 	if (badge === '•') {
@@ -30,25 +28,23 @@ const destroy = () => {
 };
 
 const update = async (previousState) => {
-	const mainWindow = await getMainWindow();
-
 	if (process.platform === 'darwin') {
-		app.dock.setBadge(getBadgeText(state));
+		remote.app.dock.setBadge(getBadgeText(state));
 		const count = Number.isInteger(state.badge) ? state.badge : 0;
 		const previousCount = Number.isInteger(previousState.badge) ? state.badge : 0;
 		if (count > 0 && previousCount === 0) {
-			app.dock.bounce();
+			remote.app.dock.bounce();
 		}
 	}
 
 	if (process.platform === 'linux' || process.platform === 'win32') {
-		const image = state.hasTrayIcon ? getAppIconImage() : getTrayIconImage({ badge: state.badge });
-		mainWindow.setIcon(image);
+		const image = state.hasTrayIcon ? getAppIconPath() : getTrayIconPath({ badge: state.badge });
+		remote.getCurrentWindow().setIcon(image);
 	}
 
-	if (process.platform === 'win32' && !mainWindow.isFocused()) {
+	if (process.platform === 'win32' && !remote.getCurrentWindow().isFocused()) {
 		const count = Number.isInteger(state.badge) ? state.badge : 0;
-		mainWindow.flashFrame(count > 0);
+		remote.getCurrentWindow().flashFrame(count > 0);
 	}
 
 	instance.emit('update');

@@ -1,19 +1,29 @@
 import { remote, ipcRenderer } from 'electron';
 import { t } from 'i18next';
 
+import { openAboutDialog, closeAboutDialog } from './aboutDialog';
+import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
+import dock from './dock';
+import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
 import servers from './servers';
 import sidebar from './sidebar';
-import { setupUpdates, canUpdate, canAutoUpdate, canSetAutoUpdate, setAutoUpdate, checkForUpdates, skipUpdateVersion, downloadUpdate } from './updates';
-import webview, { mountWebViews } from './webview';
-import setTouchBar from './touchBar';
-import { openAboutDialog, closeAboutDialog } from './aboutDialog';
-import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
-import { openUpdateDialog, closeUpdateDialog } from './updateDialog';
-import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
 import tray from './tray';
+import setTouchBar from './touchBar';
+import { openUpdateDialog, closeUpdateDialog } from './updateDialog';
+import {
+	setupUpdates,
+	canUpdate,
+	canAutoUpdate,
+	canSetAutoUpdate,
+	setAutoUpdate,
+	checkForUpdates,
+	skipUpdateVersion,
+	downloadUpdate,
+} from './updates';
+import webview, { mountWebViews } from './webview';
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, dock, menus } = remote.require('./main');
+const { certificate, menus } = remote.require('./main');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();

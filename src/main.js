@@ -31,7 +31,7 @@ async function prepareApp() {
 
 	if (!canStart) {
 		app.quit();
-		return;
+		return false;
 	}
 
 	app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
@@ -53,10 +53,15 @@ async function prepareApp() {
 	app.on('second-instance', (event, argv) => {
 		argv.slice(2).forEach(processDeepLink);
 	});
+
+	return true;
 }
 
 (async () => {
-	await prepareApp();
+	if (!await prepareApp()) {
+		return;
+	}
+
 	await app.whenReady();
 	await setupI18next();
 	app.emit('start');

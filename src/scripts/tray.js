@@ -1,9 +1,11 @@
 import { EventEmitter } from 'events';
 
-import { app, Menu, nativeTheme, Tray as TrayIcon } from 'electron';
+import { remote } from 'electron';
 import { t } from 'i18next';
 
-import { getTrayIconImage } from './icon';
+import { getTrayIconPath } from './icon';
+
+const { app, Menu, nativeTheme, Tray: TrayIcon } = remote;
 
 const getIconTitle = ({ badge }) => (Number.isInteger(badge) ? String(badge) : '');
 
@@ -45,11 +47,11 @@ const handleThemeUpdate = () => {
 		return;
 	}
 
-	trayIcon.setImage(getTrayIconImage({ badge: state.badge }));
+	trayIcon.setImage(getTrayIconPath({ badge: state.badge }));
 };
 
 const createIcon = () => {
-	const image = getTrayIconImage({ badge: state.badge });
+	const image = getTrayIconPath({ badge: state.badge });
 
 	if (trayIcon) {
 		trayIcon.setImage(image);

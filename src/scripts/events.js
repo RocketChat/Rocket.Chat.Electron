@@ -10,9 +10,10 @@ import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
 import { openUpdateDialog, closeUpdateDialog } from './updateDialog';
 import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
+import tray from './tray';
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, dock, menus, tray } = remote.require('./main');
+const { certificate, dock, menus } = remote.require('./main');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();

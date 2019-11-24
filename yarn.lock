@@ -4501,14 +4501,6 @@ i18next-node-fs-backend@^2.1.1:
     js-yaml "3.13.1"
     json5 "2.0.0"
 
-i18next-sync-fs-backend@^1.1.0:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/i18next-sync-fs-backend/-/i18next-sync-fs-backend-1.1.1.tgz#d1fb28545918e899b59feccc61adb4b9f5593a04"
-  integrity sha512-IoJCGid/NLqPFp+2qsumwOy1hG6jENKSIW9BozHL/3ZsjunH0P7iZLRMADljIuFntKlA63suPIPJWGR2SkxLIg==
-  dependencies:
-    js-yaml "3.13.1"
-    json5 "0.5.0"
-
 i18next@^19.0.0:
   version "19.0.1"
   resolved "https://registry.yarnpkg.com/i18next/-/i18next-19.0.1.tgz#11347b9d5f2ceb4a03750a06010cc249fe065d31"
@@ -5202,11 +5194,6 @@ json-stringify-safe@^5.0.1, json-stringify-safe@~5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
   integrity sha1-Epai1Y/UXxmg9s4B1lcB4sc1tus=
-
-json5@0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/json5/-/json5-0.5.0.tgz#9b20715b026cbe3778fd769edccd822d8332a5b2"
-  integrity sha1-myBxWwJsvjd4/Xae3M2CLYMypbI=
 
 json5@2.0.0:
   version "2.0.0"

@@ -6,7 +6,7 @@ import appData from './main/appData';
 import './main/basicAuth';
 import { processDeepLink } from './main/deepLinks';
 import { getMainWindow } from './main/mainWindow';
-import i18n from './i18n';
+import { setupI18next } from './i18n';
 
 export { default as dock } from './main/dock';
 export { default as menus } from './main/menus';
@@ -58,7 +58,7 @@ async function prepareApp() {
 (async () => {
 	await prepareApp();
 	await app.whenReady();
-	await i18n.initialize();
+	await setupI18next();
 	app.emit('start');
 	await getMainWindow();
 	process.argv.slice(2).forEach(processDeepLink);

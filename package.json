@@ -38,7 +38,6 @@
     "fs-jetpack": "^2.2.0",
     "i18next": "^19.0.0",
     "i18next-node-fs-backend": "^2.1.1",
-    "i18next-sync-fs-backend": "^1.1.0",
     "mem": "^6.0.0"
   },
   "devDependencies": {

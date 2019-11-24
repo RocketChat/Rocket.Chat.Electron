@@ -14,8 +14,6 @@ matrix:
       apt:
         packages:
           - rpm
-          - gcc-multilib
-          - g++-multilib
     deploy:
       - provider: snap
         snap: dist/*.snap

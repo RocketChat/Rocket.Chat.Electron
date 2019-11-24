@@ -1,15 +1,15 @@
 import { remote } from 'electron';
+import { t } from 'i18next';
 
 import servers from './servers';
 import webview from './webview';
-import i18n from '../i18n';
 
 const { TouchBar, nativeImage, getCurrentWindow } = remote;
 const { TouchBarButton, TouchBarLabel, TouchBarSegmentedControl, TouchBarScrubber, TouchBarPopover, TouchBarGroup } = TouchBar;
 
 export class SelectServerPanel {
 	constructor() {
-		this._MAX_LENGTH_FOR_SEGMENTS_CONTROL = 76 - i18n.__('touchBar.selectServer').length;
+		this._MAX_LENGTH_FOR_SEGMENTS_CONTROL = 76 - t('touchBar.selectServer').length;
 		this._hosts = [];
 
 		this._setHostsArray();
@@ -58,7 +58,7 @@ export class SelectServerPanel {
 		const popoverItems = this._buildSelectServersPopoverItems();
 
 		this.touchBarPopover = new TouchBarPopover({
-			label: i18n.__('touchBar.selectServer'),
+			label: t('touchBar.selectServer'),
 			items: new TouchBar({
 				items: popoverItems,
 			}),
@@ -68,7 +68,7 @@ export class SelectServerPanel {
 
 	_buildSelectServersPopoverItems() {
 		const items = [
-			new TouchBarLabel({ label: i18n.__('touchBar.selectServer') }),
+			new TouchBarLabel({ label: t('touchBar.selectServer') }),
 		];
 
 		// The maximum length of available display area is limited. If exceed the length of displayed data, then
@@ -176,7 +176,7 @@ export class FormattingPanel {
 		this._touchBarGroup = new TouchBarGroup({
 			items: new TouchBar({
 				items: [
-					new TouchBarLabel({ label: i18n.__('touchBar.formatting') }),
+					new TouchBarLabel({ label: t('touchBar.formatting') }),
 					...formatButtons,
 				],
 			}),

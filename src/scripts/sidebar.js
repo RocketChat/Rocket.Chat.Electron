@@ -2,9 +2,7 @@ import { EventEmitter } from 'events';
 import { parse as parseUrl } from 'url';
 
 import { remote } from 'electron';
-
-import i18n from '../i18n';
-
+import { t } from 'i18next';
 
 const { getCurrentWindow, Menu } = remote;
 
@@ -86,7 +84,7 @@ class SideBar extends EventEmitter {
 			mentionCount: badges[host.url] || badges[host.url] === 0 ? parseInt(badges[host.url], 10) : null,
 		}));
 
-		this.node.querySelector('.sidebar__add-server').dataset.tooltip = i18n.__('sidebar.addNewServer');
+		this.node.querySelector('.sidebar__add-server').dataset.tooltip = t('sidebar.addNewServer');
 	}
 
 	renderHost({ url, title, order, active, hasUnreadMessages, mentionCount }) {
@@ -170,15 +168,15 @@ class SideBar extends EventEmitter {
 
 		const menu = Menu.buildFromTemplate([
 			{
-				label: i18n.__('sidebar.item.reload'),
+				label: t('sidebar.item.reload'),
 				click: () => this.emit('reload-server', url),
 			},
 			{
-				label: i18n.__('sidebar.item.remove'),
+				label: t('sidebar.item.remove'),
 				click: () => this.emit('remove-server', url),
 			},
 			{
-				label: i18n.__('sidebar.item.openDevTools'),
+				label: t('sidebar.item.openDevTools'),
 				click: () => this.emit('open-devtools-for-server', url),
 			},
 		]);

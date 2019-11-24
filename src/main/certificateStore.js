@@ -2,10 +2,9 @@ import url from 'url';
 
 import { app, dialog } from 'electron';
 import jetpack from 'fs-jetpack';
+import { t } from 'i18next';
 
 import { getMainWindow } from './mainWindow';
-import i18n from '../i18n';
-
 
 class CertificateStore {
 	async initialize() {
@@ -34,17 +33,17 @@ class CertificateStore {
 
 			let detail = `URL: ${ certificateUrl }\nError: ${ error }`;
 			if (this.isExisting(certificateUrl)) {
-				detail = i18n.__('error.differentCertificate', { detail });
+				detail = t('error.differentCertificate', { detail });
 			}
 
 			const { response } = await dialog.showMessageBox(await getMainWindow(), {
-				title: i18n.__('dialog.certificateError.title'),
-				message: i18n.__('dialog.certificateError.message', { issuerName: certificate.issuerName }),
+				title: t('dialog.certificateError.title'),
+				message: t('dialog.certificateError.message', { issuerName: certificate.issuerName }),
 				detail,
 				type: 'warning',
 				buttons: [
-					i18n.__('dialog.certificateError.yes'),
-					i18n.__('dialog.certificateError.no'),
+					t('dialog.certificateError.yes'),
+					t('dialog.certificateError.no'),
 				],
 				cancelId: 1,
 			});

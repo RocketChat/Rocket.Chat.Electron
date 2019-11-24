@@ -1,10 +1,8 @@
 import { EventEmitter } from 'events';
 
-import jetpack from 'fs-jetpack';
 import { remote, ipcRenderer } from 'electron';
-
-import i18n from '../i18n';
-
+import jetpack from 'fs-jetpack';
+import { t } from 'i18next';
 
 class Servers extends EventEmitter {
 	initialize = () => {
@@ -265,27 +263,27 @@ class Servers extends EventEmitter {
 	async showHostConfirmation(host) {
 		const { response } = await remote.dialog.showMessageBox({
 			type: 'question',
-			buttons: [i18n.__('dialog.addServer.add'), i18n.__('dialog.addServer.cancel')],
+			buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
 			defaultId: 0,
-			title: i18n.__('dialog.addServer.title'),
-			message: i18n.__('dialog.addServer.message', { host }),
+			title: t('dialog.addServer.title'),
+			message: t('dialog.addServer.message', { host }),
 		});
 
 		if (response === 0) {
 			this.validateHost(host)
 				.then(() => this.addHost(host))
 				.then(() => this.setActive(host))
-				.catch(() => remote.dialog.showErrorBox(i18n.__('dialog.addServerError.title'), i18n.__('dialog.addServerError.message', { host })));
+				.catch(() => remote.dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host })));
 		}
 	}
 
 	async resetAppData() {
 		const { response } = await remote.dialog.showMessageBox({
 			type: 'question',
-			buttons: [i18n.__('dialog.resetAppData.yes'), i18n.__('dialog.resetAppData.cancel')],
+			buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
 			defaultId: 1,
-			title: i18n.__('dialog.resetAppData.title'),
-			message: i18n.__('dialog.resetAppData.message'),
+			title: t('dialog.resetAppData.title'),
+			message: t('dialog.resetAppData.message'),
 		});
 
 		if (response !== 0) {
@@ -296,4 +294,6 @@ class Servers extends EventEmitter {
 	}
 }
 
-export default new Servers();
+const instance = new Servers();
+
+export default instance;

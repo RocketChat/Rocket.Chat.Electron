@@ -4,6 +4,7 @@ import { t } from 'i18next';
 import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
 import dock from './dock';
+import menus from './menus';
 import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
 import servers from './servers';
 import sidebar from './sidebar';
@@ -23,7 +24,7 @@ import {
 import webview, { mountWebViews } from './webview';
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, menus } = remote.require('./main');
+const { certificate } = remote.require('./main');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();

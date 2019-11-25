@@ -1,9 +1,9 @@
 import { EventEmitter } from 'events';
 
-import { app, Menu, webContents } from 'electron';
+import { remote } from 'electron';
 import { t } from 'i18next';
 
-import { getMainWindow } from './mainWindow';
+const { app, Menu, webContents } = remote;
 
 const createTemplate = ({
 	appName,
@@ -20,7 +20,6 @@ const createTemplate = ({
 		submenu: [
 			...process.platform === 'darwin' ? [
 				{
-					id: 'about',
 					label: t('menus.about', { appName }),
 					click: () => events.emit('about'),
 				},
@@ -60,7 +59,6 @@ const createTemplate = ({
 				type: 'separator',
 			},
 			{
-				id: 'quit',
 				label: t('menus.quit', { appName }),
 				accelerator: 'CommandOrControl+Q',
 				click: () => events.emit('quit'),
@@ -192,7 +190,6 @@ const createTemplate = ({
 	},
 	{
 		label: t('menus.windowMenu'),
-		id: 'window',
 		role: 'window',
 		submenu: [
 			...process.platform === 'darwin' ? [
@@ -277,7 +274,6 @@ const createTemplate = ({
 			},
 			...process.platform !== 'darwin' ? [
 				{
-					id: 'about',
 					label: t('menus.about', { appName }),
 					click: () => events.emit('about'),
 				},
@@ -304,14 +300,14 @@ class Menus extends EventEmitter {
 		return Menu.getApplicationMenu().getMenuItemById(id);
 	}
 
-	async update() {
+	update() {
 		const template = createTemplate({ appName: app.name, ...this.state }, this);
 		const menu = Menu.buildFromTemplate(template);
 		Menu.setApplicationMenu(menu);
 
 		if (process.platform !== 'darwin') {
 			const { showMenuBar } = this.state;
-			const mainWindow = await getMainWindow();
+			const mainWindow = remote.getCurrentWindow();
 			mainWindow.setAutoHideMenuBar(!showMenuBar);
 			mainWindow.setMenuBarVisibility(!!showMenuBar);
 		}
@@ -319,28 +315,5 @@ class Menus extends EventEmitter {
 		this.emit('update');
 	}
 }
-
-const unsetDefaultApplicationMenu = () => {
-	if (process.platform !== 'darwin') {
-		Menu.setApplicationMenu(null);
-		return;
-	}
-
-	const emptyMenuTemplate = [{
-		label: app.name,
-		submenu: [
-			{
-				label: t('menus.quit', { appName: app.name }),
-				accelerator: 'CommandOrControl+Q',
-				click() {
-					app.quit();
-				},
-			},
-		],
-	}];
-	Menu.setApplicationMenu(Menu.buildFromTemplate(emptyMenuTemplate));
-};
-
-app.once('start', unsetDefaultApplicationMenu);
 
 export default new Menus();

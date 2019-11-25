@@ -5,8 +5,7 @@ import setupElectronReload from 'electron-reload';
 import jetpack from 'fs-jetpack';
 
 import { setupErrorHandling } from './errorHandling';
-import { getMainWindow } from './main/mainWindow';
-import { setupI18next } from './i18n';
+import { createMainWindow } from './main/mainWindow';
 
 if (process.env.NODE_ENV) {
 	setupElectronReload(__dirname, {
@@ -59,11 +58,6 @@ async function prepareApp() {
 
 (async () => {
 	await prepareApp();
-
 	await app.whenReady();
-
-	await setupI18next();
-
-	app.emit('start');
-	await getMainWindow();
+	await createMainWindow();
 })();

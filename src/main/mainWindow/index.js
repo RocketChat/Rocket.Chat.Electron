@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 
 import { WindowStateHandler } from './state';
 
@@ -66,7 +66,7 @@ async function attachWindowStateHandling(mainWindow) {
 	mainWindow.on('set-state', setState);
 }
 
-async function createMainWindow() {
+export async function createMainWindow() {
 	mainWindow = new BrowserWindow({
 		width: 1000,
 		height: 600,
@@ -91,39 +91,3 @@ async function createMainWindow() {
 		mainWindow.webContents.openDevTools();
 	}
 }
-
-export async function getMainWindow() {
-	await app.whenReady();
-
-	if (!mainWindow) {
-		await createMainWindow();
-	}
-
-	return mainWindow;
-}
-
-export async function focus() {
-	const mainWindow = await getMainWindow();
-
-	if (process.platform === 'win32') {
-		if (mainWindow.isVisible()) {
-			mainWindow.focus();
-		} else if (mainWindow.isMinimized()) {
-			mainWindow.restore();
-		} else {
-			mainWindow.show();
-		}
-
-		return;
-	}
-
-	if (mainWindow.isMinimized()) {
-		mainWindow.restore();
-		return;
-	}
-
-	mainWindow.show();
-	mainWindow.focus();
-}
-
-ipcMain.on('focus', focus);

@@ -24,6 +24,7 @@ import {
 } from './updates';
 import webview, { mountWebViews } from './webview';
 import { processDeepLink } from './deepLinks';
+import { setupMainWindow, setMainWindowState } from './mainWindow';
 
 const { app, getCurrentWindow, shell } = remote;
 
@@ -103,6 +104,10 @@ export default () => {
 	window.addEventListener('offline', handleConnectionStatus);
 	handleConnectionStatus();
 
+	const handleActivate = () => {
+		remote.getCurrentWindow().show();
+	};
+
 	const handleLogin = (event, webContents, request, authInfo, callback) => {
 		for (const url of Object.keys(servers.hosts)) {
 			const server = servers.hosts[url];
@@ -143,6 +148,7 @@ export default () => {
 		remote.getCurrentWindow().focus();
 	};
 
+	remote.app.on('activate', handleActivate);
 	remote.app.on('login', handleLogin);
 	remote.app.on('open-url', handleOpenUrl);
 	remote.app.on('second-instance', handleSecondInstance);
@@ -165,6 +171,7 @@ export default () => {
 	remote.ipcMain.on('focus', handleFocusWindow);
 
 	window.addEventListener('unload', () => {
+		remote.app.removeListener('activate', handleActivate);
 		remote.app.removeListener('login', handleLogin);
 		remote.app.removeListener('open-url', handleOpenUrl);
 		remote.app.removeListener('second-instance', handleSecondInstance);
@@ -353,8 +360,8 @@ export default () => {
 	getCurrentWindow().on('hide', updateWindowState);
 	getCurrentWindow().on('show', updateWindowState);
 
-	tray.on('created', () => getCurrentWindow().emit('set-state', { hideOnClose: true }));
-	tray.on('destroyed', () => getCurrentWindow().emit('set-state', { hideOnClose: false }));
+	tray.on('created', () => setMainWindowState({ hideOnClose: true }));
+	tray.on('destroyed', () => setMainWindowState({ hideOnClose: false }));
 	tray.on('set-main-window-visibility', (visible) =>
 		(visible ? getCurrentWindow().show() : getCurrentWindow().hide()));
 	tray.on('quit', () => app.quit());
@@ -434,6 +441,8 @@ export default () => {
 	servers.forEach(::webview.add);
 
 	servers.restoreActive();
+
+	setupMainWindow(remote.getCurrentWindow());
 
 	updatePreferences();
 	updateServers();

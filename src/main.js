@@ -1,19 +1,20 @@
 import path from 'path';
 
-import { app } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import setupElectronReload from 'electron-reload';
 import jetpack from 'fs-jetpack';
 
 import { setupErrorHandling } from './errorHandling';
-import { createMainWindow } from './main/mainWindow';
 
-if (process.env.NODE_ENV) {
+if (process.env.NODE_ENV === 'development') {
 	setupElectronReload(__dirname, {
 		electron: process.execPath,
 	});
 }
 
-async function prepareApp() {
+const preventEvent = (event) => event.preventDefault();
+
+const prepareApp = () => {
 	setupErrorHandling('main');
 
 	app.setAsDefaultProtocolClient('rocketchat');
@@ -25,7 +26,7 @@ async function prepareApp() {
 
 	if (process.argv[2] === '--reset-app-data') {
 		const dataDir = app.getPath('userData');
-		await jetpack.removeAsync(dataDir);
+		jetpack.remove(dataDir);
 		app.relaunch({ args: [process.argv[1]] });
 		app.exit();
 		return;
@@ -45,19 +46,41 @@ async function prepareApp() {
 		app.disableHardwareAcceleration();
 	}
 
-	app.on('window-all-closed', () => {
-		app.quit();
-	});
-
-	const preventEvent = (event) => event.preventDefault();
-
 	app.on('certificate-error', preventEvent);
 	app.on('login', preventEvent);
 	app.on('open-url', preventEvent);
-}
+	app.on('window-all-closed', () => {
+		app.quit();
+	});
+};
 
-(async () => {
-	await prepareApp();
+const createMainWindow = () => {
+	const mainWindow = new BrowserWindow({
+		width: 1000,
+		height: 600,
+		minWidth: 600,
+		minHeight: 400,
+		titleBarStyle: 'hidden',
+		show: false,
+		webPreferences: {
+			webviewTag: true,
+			nodeIntegration: true,
+		},
+	});
+
+	mainWindow.on('close', preventEvent);
+
+	mainWindow.webContents.on('will-attach-webview', (event, webPreferences) => {
+		delete webPreferences.enableBlinkFeatures;
+	});
+
+	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
+};
+
+const initialize = async () => {
+	prepareApp();
 	await app.whenReady();
-	await createMainWindow();
-})();
+	createMainWindow();
+};
+
+initialize();

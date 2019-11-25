@@ -1,5 +1,7 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { remote } from 'electron';
 import jetpack from 'fs-jetpack';
+
+const { app, screen } = remote;
 
 class WindowStateHandler {
 	constructor(window) {
@@ -26,10 +28,8 @@ class WindowStateHandler {
 	}
 
 	async save() {
-		if (this.saveTimeout) {
-			clearTimeout(this.saveTimeout);
-			this.saveTimeout = null;
-		}
+		clearTimeout(this.saveTimeout);
+		this.saveTimeout = null;
 
 		try {
 			const userDataDir = jetpack.cwd(app.getPath('userData'));
@@ -112,23 +112,20 @@ class WindowStateHandler {
 	}
 }
 
-let mainWindow = null;
-
 let state = {
 	hideOnClose: false,
 };
 
-const setState = (partialState) => {
+export const setMainWindowState = (partialState) => {
 	state = {
 		...state,
 		...partialState,
 	};
 };
 
-async function attachWindowStateHandling(mainWindow) {
+export async function setupMainWindow(mainWindow) {
 	const windowStateHandler = new WindowStateHandler(mainWindow);
 	await windowStateHandler.load();
-	await new Promise((resolve) => mainWindow.once('ready-to-show', resolve));
 	windowStateHandler.apply();
 
 	const exitFullscreen = () => new Promise((resolve) => {
@@ -152,49 +149,19 @@ async function attachWindowStateHandling(mainWindow) {
 		}
 	};
 
-	app.on('activate', () => mainWindow && mainWindow.show());
 	app.on('before-quit', () => {
-		mainWindow = null;
 		windowStateHandler.save();
+		mainWindow.destroy();
 	});
 
 	mainWindow.on('resize', () => windowStateHandler.fetchAndSave());
 	mainWindow.on('move', () => windowStateHandler.fetchAndSave());
 	mainWindow.on('show', () => windowStateHandler.fetchAndSave());
-	mainWindow.on('close', async (event) => {
-		if (!mainWindow) {
-			return;
-		}
-
-		event.preventDefault();
+	mainWindow.on('close', async () => {
 		await exitFullscreen();
 		close();
 		windowStateHandler.fetchAndSave();
 	});
-
-	mainWindow.on('set-state', setState);
-}
-
-export async function createMainWindow() {
-	mainWindow = new BrowserWindow({
-		width: 1000,
-		height: 600,
-		minWidth: 600,
-		minHeight: 400,
-		titleBarStyle: 'hidden',
-		show: false,
-		webPreferences: {
-			webviewTag: true,
-			nodeIntegration: true,
-		},
-	});
-	attachWindowStateHandling(mainWindow);
-
-	mainWindow.webContents.on('will-attach-webview', (event, webPreferences) => {
-		delete webPreferences.enableBlinkFeatures;
-	});
-
-	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
 
 	if (process.env.NODE_ENV === 'development') {
 		mainWindow.webContents.openDevTools();

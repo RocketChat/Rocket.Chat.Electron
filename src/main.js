@@ -5,7 +5,6 @@ import setupElectronReload from 'electron-reload';
 import jetpack from 'fs-jetpack';
 
 import { setupErrorHandling } from './errorHandling';
-import './main/basicAuth';
 import { getMainWindow } from './main/mainWindow';
 import { setupI18next } from './i18n';
 
@@ -51,13 +50,11 @@ async function prepareApp() {
 		app.quit();
 	});
 
-	app.on('open-url', (event) => {
-		event.preventDefault();
-	});
+	const preventEvent = (event) => event.preventDefault();
 
-	app.on('certificate-error', (event) => {
-		event.preventDefault();
-	});
+	app.on('certificate-error', preventEvent);
+	app.on('login', preventEvent);
+	app.on('open-url', preventEvent);
 }
 
 (async () => {

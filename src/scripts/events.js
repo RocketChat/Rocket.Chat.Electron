@@ -103,6 +103,16 @@ export default () => {
 	window.addEventListener('offline', handleConnectionStatus);
 	handleConnectionStatus();
 
+	const handleLogin = (event, webContents, request, authInfo, callback) => {
+		for (const url of Object.keys(servers.hosts)) {
+			const server = servers.hosts[url];
+			if (request.url.indexOf(url) === 0 && server.username) {
+				callback(server.username, server.password);
+				break;
+			}
+		}
+	};
+
 	const handleOpenUrl = (event, url) => {
 		processDeepLink(url);
 	};
@@ -111,6 +121,7 @@ export default () => {
 		argv.slice(2).forEach(processDeepLink);
 	};
 
+	remote.app.on('login', handleLogin);
 	remote.app.on('open-url', handleOpenUrl);
 	remote.app.on('second-instance', handleSecondInstance);
 
@@ -131,6 +142,7 @@ export default () => {
 	remote.ipcMain.on('close-update-dialog', (_, ...args) => closeUpdateDialog(...args));
 
 	window.addEventListener('unload', () => {
+		remote.app.removeListener('login', handleLogin);
 		remote.app.removeListener('open-url', handleOpenUrl);
 		remote.app.removeListener('second-instance', handleSecondInstance);
 

@@ -6,7 +6,6 @@ import jetpack from 'fs-jetpack';
 
 import { setupErrorHandling } from './errorHandling';
 import './main/basicAuth';
-import { processDeepLink } from './main/deepLinks';
 import { getMainWindow } from './main/mainWindow';
 import { setupI18next } from './i18n';
 
@@ -54,13 +53,8 @@ async function prepareApp() {
 		app.quit();
 	});
 
-	app.on('open-url', (event, url) => {
+	app.on('open-url', (event) => {
 		event.preventDefault();
-		processDeepLink(url);
-	});
-
-	app.on('second-instance', (event, argv) => {
-		argv.slice(2).forEach(processDeepLink);
 	});
 }
 
@@ -73,5 +67,4 @@ async function prepareApp() {
 
 	app.emit('start');
 	await getMainWindow();
-	process.argv.slice(2).forEach(processDeepLink);
 })();

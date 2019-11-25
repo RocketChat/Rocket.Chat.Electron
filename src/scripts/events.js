@@ -22,6 +22,7 @@ import {
 	downloadUpdate,
 } from './updates';
 import webview, { mountWebViews } from './webview';
+import { processDeepLink } from './deepLinks';
 
 const { app, getCurrentWindow, shell } = remote;
 const { certificate } = remote.require('./main');
@@ -102,6 +103,17 @@ export default () => {
 	window.addEventListener('offline', handleConnectionStatus);
 	handleConnectionStatus();
 
+	const handleOpenUrl = (event, url) => {
+		processDeepLink(url);
+	};
+
+	const handleSecondInstance = (event, argv) => {
+		argv.slice(2).forEach(processDeepLink);
+	};
+
+	remote.app.on('open-url', handleOpenUrl);
+	remote.app.on('second-instance', handleSecondInstance);
+
 	remote.ipcMain.handle('can-update', () => canUpdate());
 	remote.ipcMain.handle('can-auto-update', () => canAutoUpdate());
 	remote.ipcMain.handle('can-set-auto-update', () => canSetAutoUpdate());
@@ -119,6 +131,9 @@ export default () => {
 	remote.ipcMain.on('close-update-dialog', (_, ...args) => closeUpdateDialog(...args));
 
 	window.addEventListener('unload', () => {
+		remote.app.removeListener('open-url', handleOpenUrl);
+		remote.app.removeListener('second-instance', handleSecondInstance);
+
 		remote.ipcMain.removeHandler('can-update');
 		remote.ipcMain.removeHandler('can-auto-update');
 		remote.ipcMain.removeHandler('can-set-auto-update');
@@ -386,4 +401,6 @@ export default () => {
 	updatePreferences();
 	updateServers();
 	updateWindowState();
+
+	remote.process.argv.slice(2).forEach(processDeepLink);
 };

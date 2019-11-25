@@ -43,6 +43,9 @@ function LoadingErrorView({ visible, counting, reloading, onReload }) {
 	root.classList.add('webview');
 	root.classList.add('loading-error-view');
 	root.classList.toggle('active', visible);
+	while (root.firstChild) {
+		root.firstChild.remove();
+	}
 	root.append(document.importNode(document.querySelector('.loading-error-template').content, true));
 
 	root.querySelector('.title').innerText = t('loadingError.announcement');

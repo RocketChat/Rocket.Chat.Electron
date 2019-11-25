@@ -79,6 +79,7 @@ class WebView extends EventEmitter {
 			visible: false,
 			onReload: () => {
 				loadingErrorViewElement.update({ reloading: true });
+				webviewObj.classList.remove('failed');
 				webviewObj.loadURL(host.url);
 			},
 		});

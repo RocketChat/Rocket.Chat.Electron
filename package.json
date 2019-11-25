@@ -33,6 +33,7 @@
     "@bugsnag/js": "^6.3.2",
     "@felixrieseberg/spellchecker": "^4.0.12",
     "debug": "^4.1.1",
+    "electron-fetch": "^1.4.0",
     "electron-reload": "^1.5.0",
     "electron-updater": "^4.0.6",
     "fs-jetpack": "^2.2.0",

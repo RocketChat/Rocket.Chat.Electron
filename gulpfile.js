@@ -34,13 +34,10 @@ task('watch', () => {
 
 task('test:build', execa.task('rollup -c', { env: { NODE_ENV: 'test' } }));
 
-task('test:main',
-	execa.task('xvfb-maybe electron-mocha --require source-map-support/register app/main.specs/*.js'));
-
 task('test:renderer',
 	execa.task('xvfb-maybe electron-mocha --require source-map-support/register --renderer app/renderer.specs/*.js'));
 
-task('test', series('clean', 'test:build', 'test:main', 'test:renderer'));
+task('test', series('clean', 'test:build', 'test:renderer'));
 
 task('start:electron', execa.task('electron .'));
 

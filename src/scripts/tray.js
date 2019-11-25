@@ -1,32 +1,33 @@
 import { EventEmitter } from 'events';
 
-import { app, Menu, nativeTheme, Tray as TrayIcon } from 'electron';
+import { remote } from 'electron';
+import { t } from 'i18next';
 
-import i18n from '../i18n';
-import { getTrayIconImage } from './icon';
+import { getTrayIconPath } from './icon';
 
+const { app, Menu, nativeTheme, Tray: TrayIcon } = remote;
 
 const getIconTitle = ({ badge }) => (Number.isInteger(badge) ? String(badge) : '');
 
 const getIconTooltip = ({ badge }) => {
 	if (badge === '•') {
-		return i18n.__('tray.tooltip.unreadMessage', { appName: app.name });
+		return t('tray.tooltip.unreadMessage', { appName: app.name });
 	}
 
 	if (Number.isInteger(badge)) {
-		return i18n.__('tray.tooltip.unreadMention', { appName: app.name, count: badge });
+		return t('tray.tooltip.unreadMention', { appName: app.name, count: badge });
 	}
 
-	return i18n.__('tray.tooltip.noUnreadMessage', { appName: app.name });
+	return t('tray.tooltip.noUnreadMessage', { appName: app.name });
 };
 
 const createContextMenuTemplate = ({ isMainWindowVisible }, events) => [
 	{
-		label: !isMainWindowVisible ? i18n.__('tray.menu.show') : i18n.__('tray.menu.hide'),
+		label: !isMainWindowVisible ? t('tray.menu.show') : t('tray.menu.hide'),
 		click: () => events.emit('set-main-window-visibility', !isMainWindowVisible),
 	},
 	{
-		label: i18n.__('tray.menu.quit'),
+		label: t('tray.menu.quit'),
 		click: () => events.emit('quit'),
 	},
 ];
@@ -46,11 +47,11 @@ const handleThemeUpdate = () => {
 		return;
 	}
 
-	trayIcon.setImage(getTrayIconImage({ badge: state.badge }));
+	trayIcon.setImage(getTrayIconPath({ badge: state.badge }));
 };
 
 const createIcon = () => {
-	const image = getTrayIconImage({ badge: state.badge });
+	const image = getTrayIconPath({ badge: state.badge });
 
 	if (trayIcon) {
 		trayIcon.setImage(image);

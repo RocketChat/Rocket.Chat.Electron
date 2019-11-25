@@ -33,23 +33,11 @@ const createTestEntries = () => {
 		return [];
 	}
 
-	const mainSpecs = jetpack.find('src/main', { matching: '*.spec.js' });
 	const rendererSpecs = [
 		...jetpack.find('src/scripts', { matching: '*.spec.js' }),
 		...jetpack.find('src/preload', { matching: '*.spec.js' }),
 	];
 	return [
-		...mainSpecs.length
-			? [{
-				input: mainSpecs,
-				...bundleOptions,
-				output: {
-					dir: 'app/main.specs',
-					format: 'cjs',
-					sourcemap: true,
-				},
-			}]
-			: [],
 		...rendererSpecs.length
 			? [{
 				input: rendererSpecs,

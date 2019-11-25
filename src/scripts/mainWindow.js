@@ -1,11 +1,11 @@
-import { app, screen } from 'electron';
+import { remote } from 'electron';
 import jetpack from 'fs-jetpack';
 
+const { app, screen } = remote;
 
-export class WindowStateHandler {
-	constructor(window, name) {
+class WindowStateHandler {
+	constructor(window) {
 		this.window = window;
-		this.name = name;
 		[this.defaultWidth, this.defaultHeight] = window.getSize();
 
 		this.state = {
@@ -19,27 +19,25 @@ export class WindowStateHandler {
 			const userDataDir = jetpack.cwd(app.getPath('userData'));
 			this.state = {
 				...this.state,
-				...await userDataDir.readAsync(`window-state-${ this.name }.json`, 'json') || {},
+				...await userDataDir.readAsync('window-state-main.json', 'json') || {},
 			};
 		} catch (error) {
-			console.error(`Failed to load "${ this.name }" window state`);
+			console.error('Failed to load window state');
 			console.error(error);
 		}
 	}
 
 	async save() {
-		if (this.saveTimeout) {
-			clearTimeout(this.saveTimeout);
-			this.saveTimeout = null;
-		}
+		clearTimeout(this.saveTimeout);
+		this.saveTimeout = null;
 
 		try {
 			const userDataDir = jetpack.cwd(app.getPath('userData'));
-			await userDataDir.writeAsync(`window-state-${ this.name }.json`, this.state, {
+			await userDataDir.writeAsync('window-state-main.json', this.state, {
 				atomic: true,
 			});
 		} catch (error) {
-			console.error(`Failed to save "${ this.name }" window state`);
+			console.error('Failed to save window state');
 			console.error(error);
 		}
 	}
@@ -109,11 +107,63 @@ export class WindowStateHandler {
 
 	fetchAndSave() {
 		this.fetch();
-
-		if (this.saveTimeout) {
-			clearTimeout(this.saveTimeout);
-		}
-
+		clearTimeout(this.saveTimeout);
 		this.saveTimeout = setTimeout(() => this.save(), 5000);
+	}
+}
+
+let state = {
+	hideOnClose: false,
+};
+
+export const setMainWindowState = (partialState) => {
+	state = {
+		...state,
+		...partialState,
+	};
+};
+
+export async function setupMainWindow(mainWindow) {
+	const windowStateHandler = new WindowStateHandler(mainWindow);
+	await windowStateHandler.load();
+	windowStateHandler.apply();
+
+	const exitFullscreen = () => new Promise((resolve) => {
+		if (mainWindow.isFullScreen()) {
+			mainWindow.once('leave-full-screen', resolve);
+			mainWindow.setFullScreen(false);
+			return;
+		}
+		resolve();
+	});
+
+	const close = () => {
+		mainWindow.blur();
+
+		if (process.platform === 'darwin' || state.hideOnClose) {
+			mainWindow.hide();
+		} else if (process.platform === 'win32') {
+			mainWindow.minimize();
+		} else {
+			app.quit();
+		}
+	};
+
+	app.on('before-quit', () => {
+		windowStateHandler.save();
+		mainWindow.destroy();
+	});
+
+	mainWindow.on('resize', () => windowStateHandler.fetchAndSave());
+	mainWindow.on('move', () => windowStateHandler.fetchAndSave());
+	mainWindow.on('show', () => windowStateHandler.fetchAndSave());
+	mainWindow.on('close', async () => {
+		await exitFullscreen();
+		close();
+		windowStateHandler.fetchAndSave();
+	});
+
+	if (process.env.NODE_ENV === 'development') {
+		mainWindow.webContents.openDevTools();
 	}
 }

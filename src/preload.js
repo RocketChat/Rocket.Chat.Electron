@@ -8,12 +8,12 @@ import setupSidebarPreload from './preload/sidebar';
 import setupSpellcheckingPreload from './preload/spellchecking';
 import setupTitleChangePreload from './preload/titleChange';
 import setupUserPresencePreload from './preload/userPresence';
-import i18n from './i18n';
+import { setupI18next } from './i18n';
 
 const initialize = async () => {
 	setupErrorHandling('preload');
 
-	await i18n.initialize();
+	await setupI18next();
 
 	setupContextMenuPreload();
 	setupEventsPreload();

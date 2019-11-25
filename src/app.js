@@ -1,17 +1,11 @@
 import { setupErrorHandling } from './errorHandling';
-import i18n from './i18n';
+import { setupI18next } from './i18n';
 import attachEvents from './scripts/events';
 
-const initialize = async (context) => {
+const initialize = async () => {
 	setupErrorHandling('renderer');
-
-	await i18n.initialize();
-
-	switch (context) {
-		case 'main':
-			await attachEvents();
-			break;
-	}
+	await setupI18next();
+	await attachEvents();
 };
 
-initialize(document.currentScript.dataset.context);
+initialize();

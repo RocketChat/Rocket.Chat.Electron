@@ -1,17 +1,32 @@
 import { remote, ipcRenderer } from 'electron';
+import { t } from 'i18next';
 
+import { openAboutDialog, closeAboutDialog } from './aboutDialog';
+import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
+import certificates from './certificates';
+import dock from './dock';
+import menus from './menus';
+import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
 import servers from './servers';
 import sidebar from './sidebar';
-import { setupUpdates, canUpdate, canAutoUpdate, canSetAutoUpdate, setAutoUpdate, checkForUpdates, skipUpdateVersion, downloadUpdate } from './updates';
-import webview, { mountWebViews } from './webview';
+import tray from './tray';
 import setTouchBar from './touchBar';
-import { openAboutDialog, closeAboutDialog } from './aboutDialog';
-import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
 import { openUpdateDialog, closeUpdateDialog } from './updateDialog';
-import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
+import {
+	setupUpdates,
+	canUpdate,
+	canAutoUpdate,
+	canSetAutoUpdate,
+	setAutoUpdate,
+	checkForUpdates,
+	skipUpdateVersion,
+	downloadUpdate,
+} from './updates';
+import webview, { mountWebViews } from './webview';
+import { processDeepLink } from './deepLinks';
+import { setupMainWindow, setMainWindowState } from './mainWindow';
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, dock, menus, tray } = remote.require('./main');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();
@@ -89,6 +104,55 @@ export default () => {
 	window.addEventListener('offline', handleConnectionStatus);
 	handleConnectionStatus();
 
+	const handleActivate = () => {
+		remote.getCurrentWindow().show();
+	};
+
+	const handleLogin = (event, webContents, request, authInfo, callback) => {
+		for (const url of Object.keys(servers.hosts)) {
+			const server = servers.hosts[url];
+			if (request.url.indexOf(url) === 0 && server.username) {
+				callback(server.username, server.password);
+				break;
+			}
+		}
+	};
+
+	const handleOpenUrl = (event, url) => {
+		processDeepLink(url);
+	};
+
+	const handleSecondInstance = (event, argv) => {
+		argv.slice(2).forEach(processDeepLink);
+	};
+
+	const handleFocusWindow = () => {
+		if (process.platform === 'win32') {
+			if (remote.getCurrentWindow().isVisible()) {
+				remote.getCurrentWindow().focus();
+			} else if (remote.getCurrentWindow().isMinimized()) {
+				remote.getCurrentWindow().restore();
+			} else {
+				remote.getCurrentWindow().show();
+			}
+
+			return;
+		}
+
+		if (remote.getCurrentWindow().isMinimized()) {
+			remote.getCurrentWindow().restore();
+			return;
+		}
+
+		remote.getCurrentWindow().show();
+		remote.getCurrentWindow().focus();
+	};
+
+	remote.app.on('activate', handleActivate);
+	remote.app.on('login', handleLogin);
+	remote.app.on('open-url', handleOpenUrl);
+	remote.app.on('second-instance', handleSecondInstance);
+
 	remote.ipcMain.handle('can-update', () => canUpdate());
 	remote.ipcMain.handle('can-auto-update', () => canAutoUpdate());
 	remote.ipcMain.handle('can-set-auto-update', () => canSetAutoUpdate());
@@ -104,8 +168,14 @@ export default () => {
 	remote.ipcMain.on('select-screen-sharing-source', (_, ...args) => selectScreenSharingSource(...args));
 	remote.ipcMain.on('open-update-dialog', (_, ...args) => openUpdateDialog(...args));
 	remote.ipcMain.on('close-update-dialog', (_, ...args) => closeUpdateDialog(...args));
+	remote.ipcMain.on('focus', handleFocusWindow);
 
 	window.addEventListener('unload', () => {
+		remote.app.removeListener('activate', handleActivate);
+		remote.app.removeListener('login', handleLogin);
+		remote.app.removeListener('open-url', handleOpenUrl);
+		remote.app.removeListener('second-instance', handleSecondInstance);
+
 		remote.ipcMain.removeHandler('can-update');
 		remote.ipcMain.removeHandler('can-auto-update');
 		remote.ipcMain.removeHandler('can-set-auto-update');
@@ -121,6 +191,7 @@ export default () => {
 		remote.ipcMain.removeAllListeners('select-screen-sharing-source');
 		remote.ipcMain.removeAllListeners('open-update-dialog');
 		remote.ipcMain.removeAllListeners('close-update-dialog');
+		remote.ipcMain.removeListener('focus', handleFocusWindow);
 	});
 
 	menus.on('quit', () => app.quit());
@@ -140,7 +211,7 @@ export default () => {
 
 	menus.on('reload-server', ({ ignoringCache = false, clearCertificates = false } = {}) => {
 		if (clearCertificates) {
-			certificate.clear();
+			certificates.clear();
 		}
 
 		const activeWebview = webview.getActive();
@@ -170,7 +241,22 @@ export default () => {
 
 	menus.on('toggle-devtools', () => getCurrentWindow().toggleDevTools());
 
-	menus.on('reset-app-data', () => servers.resetAppData());
+	menus.on('reset-app-data', async () => {
+		const { response } = await remote.dialog.showMessageBox({
+			type: 'question',
+			buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
+			defaultId: 1,
+			title: t('dialog.resetAppData.title'),
+			message: t('dialog.resetAppData.message'),
+		});
+
+		if (response !== 0) {
+			return;
+		}
+
+		remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
+		remote.app.quit();
+	});
 
 	menus.on('toggle', (property) => {
 		switch (property) {
@@ -274,8 +360,8 @@ export default () => {
 	getCurrentWindow().on('hide', updateWindowState);
 	getCurrentWindow().on('show', updateWindowState);
 
-	tray.on('created', () => getCurrentWindow().emit('set-state', { hideOnClose: true }));
-	tray.on('destroyed', () => getCurrentWindow().emit('set-state', { hideOnClose: false }));
+	tray.on('created', () => setMainWindowState({ hideOnClose: true }));
+	tray.on('destroyed', () => setMainWindowState({ hideOnClose: false }));
 	tray.on('set-main-window-visibility', (visible) =>
 		(visible ? getCurrentWindow().show() : getCurrentWindow().hide()));
 	tray.on('quit', () => app.quit());
@@ -346,6 +432,7 @@ export default () => {
 
 	setupUpdates();
 	servers.initialize();
+	certificates.initialize();
 
 	mountAddServerView();
 	sidebar.mount();
@@ -355,7 +442,11 @@ export default () => {
 
 	servers.restoreActive();
 
+	setupMainWindow(remote.getCurrentWindow());
+
 	updatePreferences();
 	updateServers();
 	updateWindowState();
+
+	remote.process.argv.slice(2).forEach(processDeepLink);
 };

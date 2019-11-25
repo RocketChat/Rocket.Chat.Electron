@@ -1,5 +1,6 @@
-import { nativeImage, nativeTheme } from 'electron';
+import { remote } from 'electron';
 
+const { app, nativeTheme } = remote;
 
 function getTrayIconSet({ platform, dark }) {
 	if (platform === 'darwin') {
@@ -34,7 +35,7 @@ function getTrayIconExtension({ platform }) {
 }
 
 export function getAppIconPath() {
-	return 'public/images/icon.png';
+	return `${ app.getAppPath() }/app/public/images/icon.png`;
 }
 
 export function getTrayIconPath({ badge, platform, dark } = {}) {
@@ -50,24 +51,5 @@ export function getTrayIconPath({ badge, platform, dark } = {}) {
 	const iconset = getTrayIconSet(params);
 	const name = getTrayIconName(params);
 	const extension = getTrayIconExtension(params);
-	return `public/images/tray/${ iconset }/${ name }.${ extension }`;
-}
-
-export function getAppIconImage() {
-	return nativeImage.createFromPath(`${ __dirname }/${ getAppIconPath() }`);
-}
-
-export function getTrayIconImage({ badge, platform, dark } = {}) {
-	return nativeImage.createFromPath(`${ __dirname }/${ getTrayIconPath({ badge, platform, dark }) }`);
-}
-
-export function getIconImage({ badge }) {
-	const iconsetsPath = `${ __dirname }/public/images/tray`;
-	const { platform } = process;
-	const dark = nativeTheme.shouldUseDarkColors;
-	const params = { badge, platform, dark };
-	const iconset = getTrayIconSet(params);
-	const name = getTrayIconName(params);
-	const extension = getTrayIconExtension(params);
-	return nativeImage.createFromPath(`${ iconsetsPath }/${ iconset }/${ name }.${ extension }`);
+	return `${ app.getAppPath() }/app/public/images/tray/${ iconset }/${ name }.${ extension }`;
 }

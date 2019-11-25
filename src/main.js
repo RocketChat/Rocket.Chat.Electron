@@ -9,8 +9,6 @@ import './main/basicAuth';
 import { getMainWindow } from './main/mainWindow';
 import { setupI18next } from './i18n';
 
-export { default as certificate } from './main/certificateStore';
-
 if (process.env.NODE_ENV) {
 	setupElectronReload(__dirname, {
 		electron: process.execPath,
@@ -54,6 +52,10 @@ async function prepareApp() {
 	});
 
 	app.on('open-url', (event) => {
+		event.preventDefault();
+	});
+
+	app.on('certificate-error', (event) => {
 		event.preventDefault();
 	});
 }

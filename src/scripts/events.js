@@ -3,6 +3,7 @@ import { t } from 'i18next';
 
 import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
+import certificates from './certificates';
 import dock from './dock';
 import menus from './menus';
 import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
@@ -25,7 +26,6 @@ import webview, { mountWebViews } from './webview';
 import { processDeepLink } from './deepLinks';
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate } = remote.require('./main');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();
@@ -168,7 +168,7 @@ export default () => {
 
 	menus.on('reload-server', ({ ignoringCache = false, clearCertificates = false } = {}) => {
 		if (clearCertificates) {
-			certificate.clear();
+			certificates.clear();
 		}
 
 		const activeWebview = webview.getActive();
@@ -389,6 +389,7 @@ export default () => {
 
 	setupUpdates();
 	servers.initialize();
+	certificates.initialize();
 
 	mountAddServerView();
 	sidebar.mount();

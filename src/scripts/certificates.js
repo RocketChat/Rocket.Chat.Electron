@@ -1,10 +1,10 @@
 import url from 'url';
 
-import { app, dialog } from 'electron';
+import { remote } from 'electron';
 import jetpack from 'fs-jetpack';
 import { t } from 'i18next';
 
-import { getMainWindow } from './mainWindow';
+const { app, dialog } = remote;
 
 class CertificateStore {
 	async initialize() {
@@ -17,8 +17,6 @@ class CertificateStore {
 		this.queued = {};
 
 		app.on('certificate-error', async (event, webContents, certificateUrl, error, certificate, callback) => {
-			event.preventDefault();
-
 			if (this.isTrusted(certificateUrl, certificate)) {
 				callback(true);
 				return;
@@ -36,7 +34,7 @@ class CertificateStore {
 				detail = t('error.differentCertificate', { detail });
 			}
 
-			const { response } = await dialog.showMessageBox(await getMainWindow(), {
+			const { response } = await dialog.showMessageBox(remote.getCurrentWindow(), {
 				title: t('dialog.certificateError.title'),
 				message: t('dialog.certificateError.message', { issuerName: certificate.issuerName }),
 				detail,
@@ -111,8 +109,5 @@ class CertificateStore {
 }
 
 const instance = new CertificateStore();
-
-app.once('start', instance.initialize.bind(instance));
-
 
 export default instance;

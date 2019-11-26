@@ -24,7 +24,7 @@ import {
 } from './updates';
 import webview, { mountWebViews } from './webview';
 import { processDeepLink } from './deepLinks';
-import { mountMainWindow, updateMainWindow } from './mainWindow';
+import { mountMainWindow, updateMainWindow, unmountMainWindow } from './mainWindow';
 
 const { app, getCurrentWindow, shell } = remote;
 
@@ -192,6 +192,8 @@ export default () => {
 		remote.ipcMain.removeAllListeners('open-update-dialog');
 		remote.ipcMain.removeAllListeners('close-update-dialog');
 		remote.ipcMain.removeListener('focus', handleFocusWindow);
+
+		unmountMainWindow();
 	});
 
 	menus.on('quit', () => app.quit());

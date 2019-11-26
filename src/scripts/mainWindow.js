@@ -89,9 +89,7 @@ const fetchWindowState = (browserWindow, windowState) => {
 	}
 };
 
-export function MainWindow({ browserWindow, hideOnClose = false }) {
-	const windowStateRef = useRef({});
-
+const useBeforeAppQuitEvent = (browserWindow, windowStateRef) => {
 	useEffect(() => {
 		const handleBeforeAppQuit = () => {
 			remote.app.removeListener('before-quit', handleBeforeAppQuit);
@@ -105,7 +103,9 @@ export function MainWindow({ browserWindow, hideOnClose = false }) {
 			remote.app.removeListener('before-quit', handleBeforeAppQuit);
 		};
 	}, [browserWindow, windowStateRef]);
+};
 
+const useWindowStateUpdates = (browserWindow, windowStateRef) => {
 	const fetchAndSaveTimerRef = useRef();
 
 	useEffect(() => {
@@ -127,7 +127,9 @@ export function MainWindow({ browserWindow, hideOnClose = false }) {
 			browserWindow.removeListener('show', fetchAndSaveWindowState);
 		};
 	}, [browserWindow, windowStateRef, fetchAndSaveTimerRef]);
+};
 
+const useWindowClosing = (browserWindow, windowStateRef, hideOnClose) => {
 	useEffect(() => {
 		const handleClose = async () => {
 			if (browserWindow.isFullScreen()) {
@@ -155,7 +157,9 @@ export function MainWindow({ browserWindow, hideOnClose = false }) {
 			browserWindow.removeListener('close', handleClose);
 		};
 	}, [browserWindow, windowStateRef, hideOnClose]);
+};
 
+const useWindowStateLoading = (browserWindow, windowStateRef) => {
 	useEffect(() => {
 		const loadAndApplyWindowState = async () => {
 			windowStateRef.current = await loadWindowState(browserWindow.getSize());
@@ -168,6 +172,48 @@ export function MainWindow({ browserWindow, hideOnClose = false }) {
 			browserWindow.webContents.openDevTools();
 		}
 	}, [browserWindow, windowStateRef]);
+};
+
+const useIpcRequests = (browserWindow) => {
+	useEffect(() => {
+		const handleFocusRequest = () => {
+			if (process.platform === 'win32') {
+				if (browserWindow.isVisible()) {
+					browserWindow.focus();
+				} else if (browserWindow.isMinimized()) {
+					browserWindow.restore();
+				} else {
+					browserWindow.show();
+				}
+
+				return;
+			}
+
+			if (browserWindow.isMinimized()) {
+				browserWindow.restore();
+				return;
+			}
+
+			browserWindow.show();
+			browserWindow.focus();
+		};
+
+		remote.ipcMain.on('main-window/focus', handleFocusRequest);
+
+		return () => {
+			remote.ipcMain.removeListener('main-window/focus', handleFocusRequest);
+		};
+	}, [browserWindow]);
+};
+
+export function MainWindow({ browserWindow, hideOnClose = false }) {
+	const windowStateRef = useRef({});
+
+	useBeforeAppQuitEvent(browserWindow, windowStateRef);
+	useWindowStateUpdates(browserWindow, windowStateRef);
+	useWindowClosing(browserWindow, windowStateRef, hideOnClose);
+	useWindowStateLoading(browserWindow, windowStateRef);
+	useIpcRequests(browserWindow);
 
 	return null;
 }

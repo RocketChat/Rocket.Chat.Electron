@@ -12,7 +12,7 @@ class Servers extends EventEmitter {
 			this.showHostConfirmation(processProtocol);
 		}
 		ipcRenderer.on('add-host', (e, host) => {
-			ipcRenderer.send('focus');
+			ipcRenderer.send('main-window/focus');
 			if (this.hostExists(host)) {
 				this.setActive(host);
 			} else {

@@ -126,28 +126,6 @@ export default () => {
 		argv.slice(2).forEach(processDeepLink);
 	};
 
-	const handleFocusWindow = () => {
-		if (process.platform === 'win32') {
-			if (remote.getCurrentWindow().isVisible()) {
-				remote.getCurrentWindow().focus();
-			} else if (remote.getCurrentWindow().isMinimized()) {
-				remote.getCurrentWindow().restore();
-			} else {
-				remote.getCurrentWindow().show();
-			}
-
-			return;
-		}
-
-		if (remote.getCurrentWindow().isMinimized()) {
-			remote.getCurrentWindow().restore();
-			return;
-		}
-
-		remote.getCurrentWindow().show();
-		remote.getCurrentWindow().focus();
-	};
-
 	remote.app.on('activate', handleActivate);
 	remote.app.on('login', handleLogin);
 	remote.app.on('open-url', handleOpenUrl);
@@ -168,7 +146,6 @@ export default () => {
 	remote.ipcMain.on('select-screen-sharing-source', (_, ...args) => selectScreenSharingSource(...args));
 	remote.ipcMain.on('open-update-dialog', (_, ...args) => openUpdateDialog(...args));
 	remote.ipcMain.on('close-update-dialog', (_, ...args) => closeUpdateDialog(...args));
-	remote.ipcMain.on('focus', handleFocusWindow);
 
 	window.addEventListener('unload', () => {
 		remote.app.removeListener('activate', handleActivate);
@@ -191,7 +168,6 @@ export default () => {
 		remote.ipcMain.removeAllListeners('select-screen-sharing-source');
 		remote.ipcMain.removeAllListeners('open-update-dialog');
 		remote.ipcMain.removeAllListeners('close-update-dialog');
-		remote.ipcMain.removeListener('focus', handleFocusWindow);
 
 		unmountMainWindow();
 	});

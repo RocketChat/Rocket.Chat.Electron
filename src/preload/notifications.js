@@ -6,6 +6,18 @@ const fetchWithoutOrigin = remote.require('electron-fetch').default;
 
 const avatarCache = {};
 
+const inferContentTypeFromImageData = (data) => {
+	const header = data.slice(0, 3).map((byte) => byte.toString(16)).join('');
+	switch (header) {
+		case '89504e':
+			return 'image/png';
+		case '474946':
+			return 'image/gif';
+		case 'ffd8ff':
+			return 'image/jpeg';
+	}
+};
+
 const getAvatarUrlAsDataUrl = async (avatarUrl) => {
 	if (/^data:/.test(avatarUrl)) {
 		return avatarUrl;
@@ -21,7 +33,7 @@ const getAvatarUrlAsDataUrl = async (avatarUrl) => {
 	const binaryString = byteArray.reduce((binaryString, byte) => binaryString + String.fromCharCode(byte), '');
 	const base64String = btoa(binaryString);
 	const contentType = response.headers.get('content-type');
-	avatarCache[avatarUrl] = `data:${ contentType };base64,${ base64String }`;
+	avatarCache[avatarUrl] = `data:${ inferContentTypeFromImageData(byteArray) || contentType };base64,${ base64String }`;
 	return avatarCache[avatarUrl];
 };
 

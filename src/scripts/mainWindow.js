@@ -116,14 +116,15 @@ let state = {
 	hideOnClose: false,
 };
 
-export const setMainWindowState = (partialState) => {
+export const updateMainWindow = (partialState) => {
 	state = {
 		...state,
 		...partialState,
 	};
 };
 
-export async function setupMainWindow(mainWindow) {
+export async function mountMainWindow() {
+	const mainWindow = remote.getCurrentWindow();
 	const windowStateHandler = new WindowStateHandler(mainWindow);
 	await windowStateHandler.load();
 	windowStateHandler.apply();
@@ -149,18 +150,33 @@ export async function setupMainWindow(mainWindow) {
 		}
 	};
 
-	app.on('before-quit', () => {
+	const handleBeforeAppQuit = () => {
 		windowStateHandler.save();
+		remote.app.removeListener('before-quit', handleBeforeAppQuit);
 		mainWindow.destroy();
-	});
+	};
 
-	mainWindow.on('resize', () => windowStateHandler.fetchAndSave());
-	mainWindow.on('move', () => windowStateHandler.fetchAndSave());
-	mainWindow.on('show', () => windowStateHandler.fetchAndSave());
-	mainWindow.on('close', async () => {
+	remote.app.on('before-quit', handleBeforeAppQuit);
+
+	const handleResize = ::windowStateHandler.fetchAndSave;
+	const handleMove = ::windowStateHandler.fetchAndSave;
+	const handleShow = ::windowStateHandler.fetchAndSave;
+	const handleClose = async () => {
 		await exitFullscreen();
 		close();
 		windowStateHandler.fetchAndSave();
+	};
+
+	mainWindow.on('resize', handleResize);
+	mainWindow.on('move', handleMove);
+	mainWindow.on('show', handleShow);
+	mainWindow.on('close', handleClose);
+
+	window.addEventListener('unload', () => {
+		mainWindow.removeListener('resize', handleResize);
+		mainWindow.removeListener('move', handleMove);
+		mainWindow.removeListener('show', handleShow);
+		mainWindow.removeListener('close', handleClose);
 	});
 
 	if (process.env.NODE_ENV === 'development') {

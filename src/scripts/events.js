@@ -24,7 +24,7 @@ import {
 } from './updates';
 import webview, { mountWebViews } from './webview';
 import { processDeepLink } from './deepLinks';
-import { setupMainWindow, setMainWindowState } from './mainWindow';
+import { mountMainWindow, updateMainWindow } from './mainWindow';
 
 const { app, getCurrentWindow, shell } = remote;
 
@@ -360,8 +360,8 @@ export default () => {
 	getCurrentWindow().on('hide', updateWindowState);
 	getCurrentWindow().on('show', updateWindowState);
 
-	tray.on('created', () => setMainWindowState({ hideOnClose: true }));
-	tray.on('destroyed', () => setMainWindowState({ hideOnClose: false }));
+	tray.on('created', () => updateMainWindow({ hideOnClose: true }));
+	tray.on('destroyed', () => updateMainWindow({ hideOnClose: false }));
 	tray.on('set-main-window-visibility', (visible) =>
 		(visible ? getCurrentWindow().show() : getCurrentWindow().hide()));
 	tray.on('quit', () => app.quit());
@@ -442,7 +442,7 @@ export default () => {
 
 	servers.restoreActive();
 
-	setupMainWindow(remote.getCurrentWindow());
+	mountMainWindow();
 
 	updatePreferences();
 	updateServers();

@@ -308,7 +308,7 @@ class Menus extends EventEmitter {
 		if (process.platform !== 'darwin') {
 			const { showMenuBar } = this.state;
 			const mainWindow = remote.getCurrentWindow();
-			mainWindow.setAutoHideMenuBar(!showMenuBar);
+			mainWindow.autoHideMenuBar = !showMenuBar;
 			mainWindow.setMenuBarVisibility(!!showMenuBar);
 		}
 

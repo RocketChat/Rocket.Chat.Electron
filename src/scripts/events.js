@@ -123,6 +123,7 @@ export default () => {
 	};
 
 	const handleSecondInstance = (event, argv) => {
+		ipcRenderer.send('main-window/focus');
 		argv.slice(2).forEach(processDeepLink);
 	};
 

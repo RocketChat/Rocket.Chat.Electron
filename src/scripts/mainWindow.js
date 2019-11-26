@@ -3,114 +3,123 @@ import jetpack from 'fs-jetpack';
 
 const { app, screen } = remote;
 
-class WindowStateHandler {
-	constructor(window) {
-		this.window = window;
-		[this.defaultWidth, this.defaultHeight] = window.getSize();
+let saveTimeout;
+let windowState;
+let defaultWidth;
+let defaultHeight;
 
-		this.state = {
-			width: this.defaultWidth,
-			height: this.defaultHeight,
-		};
+const isInsideSomeScreen = () => screen.getAllDisplays()
+	.some(({ bounds }) =>
+		windowState.x >= bounds.x
+			&& windowState.y >= bounds.y
+			&& windowState.x + windowState.width <= bounds.x + bounds.width
+			&& windowState.y + windowState.height <= bounds.y + bounds.height,
+	);
+
+const saveWindowState = async () => {
+	clearTimeout(saveTimeout);
+	saveTimeout = null;
+
+	try {
+		const userDataDir = jetpack.cwd(app.getPath('userData'));
+		await userDataDir.writeAsync('window-state-main.json', windowState, {
+			atomic: true,
+		});
+	} catch (error) {
+		console.error('Failed to save window state');
+		console.error(error);
+	}
+};
+
+const fetchWindowState = async () => {
+	const mainWindow = remote.getCurrentWindow();
+
+	if (mainWindow.isDestroyed()) {
+		return;
 	}
 
-	async load() {
-		try {
-			const userDataDir = jetpack.cwd(app.getPath('userData'));
-			this.state = {
-				...this.state,
-				...await userDataDir.readAsync('window-state-main.json', 'json') || {},
-			};
-		} catch (error) {
-			console.error('Failed to load window state');
-			console.error(error);
-		}
+	windowState.isMaximized = mainWindow.isMaximized();
+	windowState.isMinimized = mainWindow.isMinimized();
+	windowState.isHidden = !mainWindow.isMinimized() && !mainWindow.isVisible();
+
+	if (!windowState.isMaximized && !windowState.isHidden) {
+		[windowState.x, windowState.y] = mainWindow.getPosition();
+		[windowState.width, windowState.height] = mainWindow.getSize();
+	}
+};
+
+const applyWindowState = async () => {
+	const mainWindow = remote.getCurrentWindow();
+
+	if (!isInsideSomeScreen()) {
+		const { bounds } = screen.getPrimaryDisplay();
+		windowState.x = (bounds.width - defaultWidth) / 2;
+		windowState.y = (bounds.height - defaultHeight) / 2;
+		windowState.width = defaultWidth;
+		windowState.height = defaultHeight;
 	}
 
-	async save() {
-		clearTimeout(this.saveTimeout);
-		this.saveTimeout = null;
-
-		try {
-			const userDataDir = jetpack.cwd(app.getPath('userData'));
-			await userDataDir.writeAsync('window-state-main.json', this.state, {
-				atomic: true,
-			});
-		} catch (error) {
-			console.error('Failed to save window state');
-			console.error(error);
-		}
+	if (windowState.x !== undefined && windowState.y !== undefined) {
+		mainWindow.setPosition(Math.floor(windowState.x), Math.floor(windowState.y), false);
 	}
 
-	async fetch() {
-		const { state, window } = this;
-
-		if (window.isDestroyed()) {
-			return;
-		}
-
-		state.isMaximized = window.isMaximized();
-		state.isMinimized = window.isMinimized();
-		state.isHidden = !window.isMinimized() && !window.isVisible();
-
-		if (!state.isMaximized && !state.isHidden) {
-			[state.x, state.y] = window.getPosition();
-			[state.width, state.height] = window.getSize();
-		}
+	if (windowState.width !== undefined && windowState.height !== undefined) {
+		mainWindow.setSize(Math.floor(windowState.width), Math.floor(windowState.height), false);
 	}
 
-	async apply() {
-		const { defaultWidth, defaultHeight, state, window } = this;
-
-		if (!this.isInsideSomeScreen()) {
-			const { bounds } = screen.getPrimaryDisplay();
-			state.x = (bounds.width - defaultWidth) / 2;
-			state.y = (bounds.height - defaultHeight) / 2;
-			state.width = defaultWidth;
-			state.height = defaultHeight;
-		}
-
-		if (state.x !== undefined && state.y !== undefined) {
-			window.setPosition(Math.floor(state.x), Math.floor(state.y), false);
-		}
-
-		if (state.width !== undefined && state.height !== undefined) {
-			window.setSize(Math.floor(state.width), Math.floor(state.height), false);
-		}
-
-		if (state.isMaximized) {
-			window.maximize();
-		} else if (state.isMinimized) {
-			window.minimize();
-		} else {
-			window.restore();
-		}
-
-		if (state.isHidden) {
-			window.hide();
-		} else if (!state.isMinimized) {
-			window.show();
-		}
+	if (windowState.isMaximized) {
+		mainWindow.maximize();
+	} else if (windowState.isMinimized) {
+		mainWindow.minimize();
+	} else {
+		mainWindow.restore();
 	}
 
-	isInsideSomeScreen() {
-		const { state } = this;
-
-		return screen.getAllDisplays()
-			.some(({ bounds }) =>
-				state.x >= bounds.x
-				&& state.y >= bounds.y
-				&& state.x + state.width <= bounds.x + bounds.width
-				&& state.y + state.height <= bounds.y + bounds.height,
-			);
+	if (windowState.isHidden) {
+		mainWindow.hide();
+	} else if (!windowState.isMinimized) {
+		mainWindow.show();
 	}
+};
 
-	fetchAndSave() {
-		this.fetch();
-		clearTimeout(this.saveTimeout);
-		this.saveTimeout = setTimeout(() => this.save(), 5000);
+const fetchAndSave = () => {
+	fetchWindowState();
+	clearTimeout(saveTimeout);
+	saveTimeout = setTimeout(() => saveWindowState(), 5000);
+};
+
+const exitFullscreen = () => new Promise((resolve) => {
+	const mainWindow = remote.getCurrentWindow();
+
+	if (mainWindow.isFullScreen()) {
+		mainWindow.once('leave-full-screen', resolve);
+		mainWindow.setFullScreen(false);
+		return;
 	}
-}
+	resolve();
+});
+
+const close = () => {
+	const mainWindow = remote.getCurrentWindow();
+
+	mainWindow.blur();
+
+	if (process.platform === 'darwin' || windowState.hideOnClose) {
+		mainWindow.hide();
+	} else if (process.platform === 'win32') {
+		mainWindow.minimize();
+	} else {
+		app.quit();
+	}
+};
+
+const handleBeforeAppQuit = () => {
+	const mainWindow = remote.getCurrentWindow();
+
+	saveWindowState();
+	remote.app.removeListener('before-quit', handleBeforeAppQuit);
+	mainWindow.destroy();
+};
 
 let state = {
 	hideOnClose: false,
@@ -125,46 +134,36 @@ export const updateMainWindow = (partialState) => {
 
 export async function mountMainWindow() {
 	const mainWindow = remote.getCurrentWindow();
-	const windowStateHandler = new WindowStateHandler(mainWindow);
-	await windowStateHandler.load();
-	windowStateHandler.apply();
 
-	const exitFullscreen = () => new Promise((resolve) => {
-		if (mainWindow.isFullScreen()) {
-			mainWindow.once('leave-full-screen', resolve);
-			mainWindow.setFullScreen(false);
-			return;
-		}
-		resolve();
-	});
+	[defaultWidth, defaultHeight] = mainWindow.getSize();
 
-	const close = () => {
-		mainWindow.blur();
-
-		if (process.platform === 'darwin' || state.hideOnClose) {
-			mainWindow.hide();
-		} else if (process.platform === 'win32') {
-			mainWindow.minimize();
-		} else {
-			app.quit();
-		}
+	windowState = {
+		width: defaultWidth,
+		height: defaultHeight,
 	};
 
-	const handleBeforeAppQuit = () => {
-		windowStateHandler.save();
-		remote.app.removeListener('before-quit', handleBeforeAppQuit);
-		mainWindow.destroy();
-	};
+	try {
+		const userDataDir = jetpack.cwd(app.getPath('userData'));
+		windowState = {
+			...windowState,
+			...await userDataDir.readAsync('window-state-main.json', 'json') || {},
+		};
+	} catch (error) {
+		console.error('Failed to load window state');
+		console.error(error);
+	}
+
+	applyWindowState();
 
 	remote.app.on('before-quit', handleBeforeAppQuit);
 
-	const handleResize = ::windowStateHandler.fetchAndSave;
-	const handleMove = ::windowStateHandler.fetchAndSave;
-	const handleShow = ::windowStateHandler.fetchAndSave;
+	const handleResize = fetchAndSave;
+	const handleMove = fetchAndSave;
+	const handleShow = fetchAndSave;
 	const handleClose = async () => {
 		await exitFullscreen();
 		close();
-		windowStateHandler.fetchAndSave();
+		fetchAndSave();
 	};
 
 	mainWindow.on('resize', handleResize);

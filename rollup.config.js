@@ -93,18 +93,7 @@ export default [
 			{
 				file: 'app/preload.js',
 				format: 'cjs',
-				sourcemap: true,
-			},
-		],
-	},
-	{
-		input: 'src/preload.js',
-		...bundleOptions,
-		output: [
-			{
-				file: 'app/preload.js',
-				format: 'cjs',
-				sourcemap: true,
+				sourcemap: 'inline',
 			},
 		],
 	},

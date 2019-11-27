@@ -46,8 +46,6 @@
     "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/plugin-proposal-function-bind": "^7.2.0",
     "@babel/preset-env": "^7.6.3",
-    "@babel/traverse": "^7.6.3",
-    "@babel/types": "^7.6.3",
     "@fiahfy/icns-convert": "^0.0.6",
     "@rocket.chat/eslint-config": "^0.4.0",
     "babel-eslint": "^10.0.3",

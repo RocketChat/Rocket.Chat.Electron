@@ -1,4 +1,4 @@
-import bugsnag from '@bugsnag/js';
+import bugsnag from '@bugsnag/node';
 import { app as mainApp, remote } from 'electron';
 
 const app = mainApp || remote.app;

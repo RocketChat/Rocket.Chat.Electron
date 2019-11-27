@@ -402,6 +402,7 @@ export default () => {
 	webview.on('did-navigate-in-page', (hostUrl, event) => {
 		if (event.url.includes(hostUrl)) {
 			servers.hosts[hostUrl].lastPath = event.url;
+			servers.save();
 		}
 	});
 

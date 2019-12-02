@@ -8,17 +8,12 @@ cache:
 matrix:
   include:
   - os: linux
-    dist: trusty
+    dist: bionic
     sudo: true
     addons:
       apt:
         packages:
           - rpm
-          - gcc-multilib
-          - g++-multilib
-          - snapd
-    before_install:
-      - sudo snap install snapcraft --classic
     deploy:
       - provider: snap
         snap: dist/*.snap
@@ -48,7 +43,7 @@ notifications:
     on_failure: change
 
 install:
-  - yarn
+  - yarn --check-files
   - yarn test
 
 script:

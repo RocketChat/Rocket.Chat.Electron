@@ -3,35 +3,67 @@ import { EventEmitter } from 'events';
 import { ipcRenderer } from 'electron';
 import { t } from 'i18next';
 
-import servers from './servers';
+import { createElement, useEffect, useRoot, useState } from './reactiveUi';
 
+function LoadingErrorView({ visible, counting, reloading, onReload }) {
+	const root = useRoot();
+
+	const [counter, setCounter] = useState(60);
+
+	useEffect(() => {
+		if (!counting) {
+			return;
+		}
+
+		setCounter(60);
+
+		const reloadCounterStepSize = 1;
+		const timer = setInterval(() => {
+			setCounter((counter) => {
+				counter -= reloadCounterStepSize;
+
+				if (counter <= 0) {
+					onReload && onReload();
+					return 60;
+				}
+
+				return counter;
+			});
+		}, reloadCounterStepSize * 1000);
+
+		return () => {
+			clearInterval(timer);
+		};
+	}, [counting]);
+
+	const handleReloadButtonClick = () => {
+		onReload && onReload();
+	};
+
+	root.classList.add('webview');
+	root.classList.add('loading-error-view');
+	root.classList.toggle('active', visible);
+	while (root.firstChild) {
+		root.firstChild.remove();
+	}
+	root.append(document.importNode(document.querySelector('.loading-error-template').content, true));
+
+	root.querySelector('.title').innerText = t('loadingError.announcement');
+
+	root.querySelector('.subtitle').innerText = t('loadingError.title');
+
+	root.querySelector('.reload-button').innerText = `${ t('loadingError.reload') } (${ counter })`;
+	root.querySelector('.reload-button').classList.toggle('hidden', reloading);
+	root.querySelector('.reload-button').onclick = handleReloadButtonClick;
+
+	root.querySelector('.reloading-server').classList.toggle('hidden', !reloading);
+
+	return null;
+}
+
+const loadingErrorViews = new Map();
 
 class WebView extends EventEmitter {
-	constructor() {
-		super();
-
-		this.webviewParentElement = document.body;
-
-		servers.forEach((host) => {
-			this.add(host);
-		});
-
-		ipcRenderer.on('screenshare-result', (e, id) => {
-			const webviewObj = this.getActive();
-			webviewObj.executeJavaScript(`
-				window.parent.postMessage({ sourceId: '${ id }' }, '*');
-			`);
-		});
-	}
-
-	loaded() {
-		document.querySelector('.app-page').classList.remove('app-page--loading');
-	}
-
-	loading() {
-		document.querySelector('.app-page').classList.add('app-page--loading');
-	}
-
 	add(host) {
 		let webviewObj = this.getByUrl(host.url);
 		if (webviewObj) {
@@ -42,13 +74,25 @@ class WebView extends EventEmitter {
 		webviewObj.classList.add('webview');
 		webviewObj.setAttribute('server', host.url);
 		webviewObj.setAttribute('preload', '../preload.js');
-		webviewObj.setAttribute('allowpopups', 'on');
-		webviewObj.setAttribute('disablewebsecurity', 'on');
+		webviewObj.toggleAttribute('allowpopups', true);
+		webviewObj.toggleAttribute('disablewebsecurity', false);
+		webviewObj.setAttribute('enableremotemodule', 'true');
 
-		webviewObj.addEventListener('did-navigate-in-page', (lastPath) => {
-			if (lastPath.url.includes(host.url)) {
-				this.saveLastPath(host.url, lastPath.url);
-			}
+		const loadingErrorViewElement = createElement(LoadingErrorView, {
+			visible: false,
+			onReload: () => {
+				loadingErrorViewElement.update({ reloading: true });
+				webviewObj.classList.remove('failed');
+				webviewObj.loadURL(host.url);
+			},
+		});
+
+		loadingErrorViewElement.mount(document.createElement('div'));
+
+		loadingErrorViews.set(host.url, loadingErrorViewElement);
+
+		webviewObj.addEventListener('did-navigate-in-page', (event) => {
+			this.emit('did-navigate-in-page', host.url, event);
 		});
 
 		let selfXssWarned = false;
@@ -71,15 +115,8 @@ class WebView extends EventEmitter {
 
 			switch (event.channel) {
 				case 'get-sourceId':
-					ipcRenderer.send('open-screenshare-dialog');
+					ipcRenderer.send('open-screen-sharing-dialog');
 					break;
-				case 'reload-server': {
-					const webviewObj = this.getByUrl(host.url);
-					const server = webviewObj.getAttribute('server');
-					this.loading();
-					webviewObj.loadURL(server);
-					break;
-				}
 			}
 		});
 
@@ -88,23 +125,31 @@ class WebView extends EventEmitter {
 			this.emit('dom-ready', webviewObj, host.url);
 		});
 
+		webviewObj.addEventListener('did-finish-load', () => {
+			const active = webviewObj.classList.contains('active');
+			const failed = webviewObj.classList.contains('failed');
+			webviewObj.classList.toggle('hidden', failed);
+			loadingErrorViewElement.update({ visible: active && failed, counting: failed, reloading: false });
+		});
+
 		webviewObj.addEventListener('did-fail-load', (e) => {
 			if (e.errorCode === -3) {
 				console.log('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
 				return;
 			}
 			if (e.isMainFrame) {
-				webviewObj.loadURL(`file://${ __dirname }/loading-error.html`);
+				webviewObj.classList.add('failed');
 			}
 		});
 
 		webviewObj.addEventListener('did-get-response-details', (e) => {
 			if (e.resourceType === 'mainFrame' && e.httpResponseCode >= 500) {
-				webviewObj.loadURL(`file://${ __dirname }/loading-error.html`);
+				webviewObj.classList.add('failed');
 			}
 		});
 
 		this.webviewParentElement.appendChild(webviewObj);
+		this.webviewParentElement.appendChild(loadingErrorViewElement.root);
 
 		webviewObj.src = host.lastPath || host.url;
 	}
@@ -113,13 +158,11 @@ class WebView extends EventEmitter {
 		const el = this.getByUrl(hostUrl);
 		if (el) {
 			el.remove();
+			const loadingErrorViewElement = loadingErrorViews.get(hostUrl);
+			loadingErrorViewElement.root.remove();
+			loadingErrorViewElement.unmount();
+			loadingErrorViews.delete(hostUrl);
 		}
-	}
-
-	saveLastPath(hostUrl, lastPathUrl) {
-		const { hosts } = servers;
-		hosts[hostUrl].lastPath = lastPathUrl;
-		servers.hosts = hosts;
 	}
 
 	getByUrl(hostUrl) {
@@ -138,13 +181,9 @@ class WebView extends EventEmitter {
 		let item;
 		while (!(item = this.getActive()) === false) {
 			item.classList.remove('active');
+			const loadingErrorViewElement = loadingErrorViews.get(item.getAttribute('server'));
+			loadingErrorViewElement.update({ visible: false });
 		}
-		document.querySelector('.landing-page').classList.add('hide');
-	}
-
-	showLanding() {
-		this.loaded();
-		document.querySelector('.landing-page').classList.remove('hide');
 	}
 
 	setActive(hostUrl) {
@@ -156,6 +195,9 @@ class WebView extends EventEmitter {
 		const item = this.getByUrl(hostUrl);
 		if (item) {
 			item.classList.add('active');
+			const loadingErrorViewElement = loadingErrorViews.get(hostUrl);
+			const failed = item.classList.contains('failed');
+			loadingErrorViewElement.update({ visible: failed, counting: failed });
 		}
 		this.focusActive();
 	}
@@ -183,7 +225,6 @@ class WebView extends EventEmitter {
 		}
 
 		Array.from(document.querySelectorAll('webview.ready'))
-			.filter((webviewObj) => webviewObj.insertCSS)
 			.forEach((webviewObj) => webviewObj.insertCSS(`
 				.sidebar {
 					padding-top: ${ enabled ? '10px' : '0' };
@@ -193,4 +234,35 @@ class WebView extends EventEmitter {
 	}
 }
 
-export default new WebView();
+const instance = new WebView();
+
+export default instance;
+
+function WebViews() {
+	const root = useRoot();
+
+	useEffect(() => {
+		instance.webviewParentElement = root;
+
+		const handleScreenSharingSourceSelect = (e, id) => {
+			const webviewObj = instance.getActive();
+			webviewObj && webviewObj.executeJavaScript(`window.parent.postMessage({ sourceId: ${ JSON.stringify(id) } }, '*');`);
+		};
+
+		ipcRenderer.on('screen-sharing-source-selected', handleScreenSharingSourceSelect);
+
+		return () => {
+			ipcRenderer.removeListener('screen-sharing-source-selected', handleScreenSharingSourceSelect);
+		};
+	}, []);
+
+	return null;
+}
+
+let webViewsElement;
+
+export const mountWebViews = () => {
+	webViewsElement = createElement(WebViews);
+
+	webViewsElement.mount(document.body);
+};

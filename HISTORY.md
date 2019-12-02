@@ -1,3 +1,36 @@
+<a name="2.17.0"></a>
+# 2.17.0 (2019-12-02)
+
+
+### Bug Fixes
+
+- [#1402](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1402) Embed dialogs
+- [#1410](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1410) Enable websecurity
+- [#1415](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1415) Fetch avatar images for notifications without CORS
+- [#1412](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1412) Loading error view updates
+- [#1417](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1417) Main window state handling
+- [#1409](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1409) Non context-aware native modules
+- [#1419](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1419) Preload script issues
+- [#1381](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1381) Update dialog events
+
+
+### Improvements
+
+- [#1418](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1418) Focus main window on second app instance event
+- [#1416](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1416) Infer content type for notification icon
+- [#1414](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1414) Lean main process
+- [#1380](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1380) Notifications on Gnome
+- [#1392](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1392) Update to Electron 7
+
+
+<details>
+<summary>Others</summary>
+
+- [#1401](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1401) Update TouchBar API usage
+</details>
+
+
+
 <a name="2.16.2"></a>
 ## 2.16.2 (2019-11-07)
 

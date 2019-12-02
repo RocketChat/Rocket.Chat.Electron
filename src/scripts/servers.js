@@ -1,21 +1,18 @@
 import { EventEmitter } from 'events';
 
-import jetpack from 'fs-jetpack';
 import { remote, ipcRenderer } from 'electron';
-
-import i18n from '../i18n';
-
+import jetpack from 'fs-jetpack';
+import { t } from 'i18next';
 
 class Servers extends EventEmitter {
-	constructor() {
-		super();
+	initialize = () => {
 		this.load();
 		const processProtocol = this.getProtocolUrlFromProcess(remote.process.argv);
 		if (processProtocol) {
 			this.showHostConfirmation(processProtocol);
 		}
 		ipcRenderer.on('add-host', (e, host) => {
-			ipcRenderer.send('focus');
+			ipcRenderer.send('main-window/focus');
 			if (this.hostExists(host)) {
 				this.setActive(host);
 			} else {
@@ -106,7 +103,6 @@ class Servers extends EventEmitter {
 		}
 
 		this._hosts = hosts;
-		ipcRenderer.send('update-servers', this._hosts);
 		this.emit('loaded');
 	}
 
@@ -181,8 +177,6 @@ class Servers extends EventEmitter {
 		};
 		this.hosts = hosts;
 
-		ipcRenderer.send('update-servers', this._hosts);
-
 		this.emit('host-added', hostUrl);
 
 		return hostUrl;
@@ -193,8 +187,6 @@ class Servers extends EventEmitter {
 		if (hosts[hostUrl]) {
 			delete hosts[hostUrl];
 			this.hosts = hosts;
-
-			ipcRenderer.send('update-servers', this._hosts);
 
 			if (this.active === hostUrl) {
 				this.clearActive();
@@ -263,38 +255,24 @@ class Servers extends EventEmitter {
 		return site;
 	}
 
-	showHostConfirmation(host) {
-		return remote.dialog.showMessageBox({
+	async showHostConfirmation(host) {
+		const { response } = await remote.dialog.showMessageBox({
 			type: 'question',
-			buttons: [i18n.__('dialog.addServer.add'), i18n.__('dialog.addServer.cancel')],
+			buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
 			defaultId: 0,
-			title: i18n.__('dialog.addServer.title'),
-			message: i18n.__('dialog.addServer.message', { host }),
-		}, (response) => {
-			if (response === 0) {
-				this.validateHost(host)
-					.then(() => this.addHost(host))
-					.then(() => this.setActive(host))
-					.catch(() => remote.dialog.showErrorBox(i18n.__('dialog.addServerError.title'), i18n.__('dialog.addServerError.message', { host })));
-			}
-		});
-	}
-
-	resetAppData() {
-		const response = remote.dialog.showMessageBox({
-			type: 'question',
-			buttons: [i18n.__('dialog.resetAppData.yes'), i18n.__('dialog.resetAppData.cancel')],
-			defaultId: 1,
-			title: i18n.__('dialog.resetAppData.title'),
-			message: i18n.__('dialog.resetAppData.message'),
+			title: t('dialog.addServer.title'),
+			message: t('dialog.addServer.message', { host }),
 		});
 
-		if (response !== 0) {
-			return;
+		if (response === 0) {
+			this.validateHost(host)
+				.then(() => this.addHost(host))
+				.then(() => this.setActive(host))
+				.catch(() => remote.dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host })));
 		}
-
-		ipcRenderer.send('reset-app-data');
 	}
 }
 
-export default new Servers();
+const instance = new Servers();
+
+export default instance;

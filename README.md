@@ -15,6 +15,7 @@ Desktop application for [Rocket.Chat](https://github.com/RocketChat/Rocket.Chat)
 
 You can download the latest version from the [Releases](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest) page.
 
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/rocketchat-desktop)
 
 # Install
 

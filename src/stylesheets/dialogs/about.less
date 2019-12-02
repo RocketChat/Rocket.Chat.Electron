@@ -1,8 +1,14 @@
-.about-page {
+.about-dialog {
+	z-index: 1000;
+
+	top: 0;
+	bottom: 0;
+
 	display: flex;
 	flex-direction: column;
 
-	min-height: 100vh;
+	width: 400px;
+	height: 300px;
 	padding: 0.25rem 0.75rem;
 
 	cursor: default;
@@ -10,6 +16,10 @@
 
 	color: @primary-font-color;
 	background-color: @secondary-background-color;
+
+	&:not([open]) {
+		display: none;
+	}
 
 	.hidden {
 		display: none !important;

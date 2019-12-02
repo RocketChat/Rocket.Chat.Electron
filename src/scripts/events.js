@@ -1,13 +1,32 @@
 import { remote, ipcRenderer } from 'electron';
+import { t } from 'i18next';
 
+import { openAboutDialog, closeAboutDialog } from './aboutDialog';
+import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
+import certificates from './certificates';
+import dock from './dock';
+import menus from './menus';
+import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
 import servers from './servers';
 import sidebar from './sidebar';
-import webview from './webview';
+import tray from './tray';
 import setTouchBar from './touchBar';
-
+import { openUpdateDialog, closeUpdateDialog } from './updateDialog';
+import {
+	setupUpdates,
+	canUpdate,
+	canAutoUpdate,
+	canSetAutoUpdate,
+	setAutoUpdate,
+	checkForUpdates,
+	skipUpdateVersion,
+	downloadUpdate,
+} from './updates';
+import webview, { mountWebViews } from './webview';
+import { processDeepLink } from './deepLinks';
+import { mountMainWindow, updateMainWindow, unmountMainWindow } from './mainWindow';
 
 const { app, getCurrentWindow, shell } = remote;
-const { certificate, dock, menus, tray } = remote.require('./main');
 
 const updatePreferences = () => {
 	const mainWindow = getCurrentWindow();
@@ -78,6 +97,82 @@ export default () => {
 	window.addEventListener('beforeunload', destroyAll);
 	window.addEventListener('focus', () => webview.focusActive());
 
+	const handleConnectionStatus = () => {
+		document.body.classList.toggle('offline', !navigator.onLine);
+	};
+	window.addEventListener('online', handleConnectionStatus);
+	window.addEventListener('offline', handleConnectionStatus);
+	handleConnectionStatus();
+
+	const handleActivate = () => {
+		remote.getCurrentWindow().show();
+	};
+
+	const handleLogin = (event, webContents, request, authInfo, callback) => {
+		for (const url of Object.keys(servers.hosts)) {
+			const server = servers.hosts[url];
+			if (request.url.indexOf(url) === 0 && server.username) {
+				callback(server.username, server.password);
+				break;
+			}
+		}
+	};
+
+	const handleOpenUrl = (event, url) => {
+		processDeepLink(url);
+	};
+
+	const handleSecondInstance = (event, argv) => {
+		ipcRenderer.send('main-window/focus');
+		argv.slice(2).forEach(processDeepLink);
+	};
+
+	remote.app.on('activate', handleActivate);
+	remote.app.on('login', handleLogin);
+	remote.app.on('open-url', handleOpenUrl);
+	remote.app.on('second-instance', handleSecondInstance);
+
+	remote.ipcMain.handle('can-update', () => canUpdate());
+	remote.ipcMain.handle('can-auto-update', () => canAutoUpdate());
+	remote.ipcMain.handle('can-set-auto-update', () => canSetAutoUpdate());
+	remote.ipcMain.on('set-auto-update', (_, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
+	remote.ipcMain.on('check-for-updates', (event, ...args) => checkForUpdates(event, ...args));
+	remote.ipcMain.on('skip-update-version', (_, ...args) => skipUpdateVersion(...args));
+	remote.ipcMain.on('remind-update-later', () => {});
+	remote.ipcMain.on('download-update', () => downloadUpdate());
+	remote.ipcMain.on('open-about-dialog', (_, ...args) => openAboutDialog(...args));
+	remote.ipcMain.on('close-about-dialog', (_, ...args) => closeAboutDialog(...args));
+	remote.ipcMain.on('open-screen-sharing-dialog', (_, ...args) => openScreenSharingDialog(...args));
+	remote.ipcMain.on('close-screen-sharing-dialog', (_, ...args) => closeScreenSharingDialog(...args));
+	remote.ipcMain.on('select-screen-sharing-source', (_, ...args) => selectScreenSharingSource(...args));
+	remote.ipcMain.on('open-update-dialog', (_, ...args) => openUpdateDialog(...args));
+	remote.ipcMain.on('close-update-dialog', (_, ...args) => closeUpdateDialog(...args));
+
+	window.addEventListener('unload', () => {
+		remote.app.removeListener('activate', handleActivate);
+		remote.app.removeListener('login', handleLogin);
+		remote.app.removeListener('open-url', handleOpenUrl);
+		remote.app.removeListener('second-instance', handleSecondInstance);
+
+		remote.ipcMain.removeHandler('can-update');
+		remote.ipcMain.removeHandler('can-auto-update');
+		remote.ipcMain.removeHandler('can-set-auto-update');
+		remote.ipcMain.removeAllListeners('set-auto-update');
+		remote.ipcMain.removeAllListeners('check-for-updates');
+		remote.ipcMain.removeAllListeners('skip-update-version');
+		remote.ipcMain.removeAllListeners('remind-update-later');
+		remote.ipcMain.removeAllListeners('download-update');
+		remote.ipcMain.removeAllListeners('open-about-dialog');
+		remote.ipcMain.removeAllListeners('close-about-dialog');
+		remote.ipcMain.removeAllListeners('open-screen-sharing-dialog');
+		remote.ipcMain.removeAllListeners('close-screen-sharing-dialog');
+		remote.ipcMain.removeAllListeners('select-screen-sharing-source');
+		remote.ipcMain.removeAllListeners('open-update-dialog');
+		remote.ipcMain.removeAllListeners('close-update-dialog');
+
+		unmountMainWindow();
+	});
+
 	menus.on('quit', () => app.quit());
 	menus.on('about', () => ipcRenderer.send('open-about-dialog'));
 	menus.on('open-url', (url) => shell.openExternal(url));
@@ -85,7 +180,7 @@ export default () => {
 	menus.on('add-new-server', () => {
 		getCurrentWindow().show();
 		servers.clearActive();
-		webview.showLanding();
+		toggleAddServerViewVisible(true);
 	});
 
 	menus.on('select-server', ({ url }) => {
@@ -95,7 +190,7 @@ export default () => {
 
 	menus.on('reload-server', ({ ignoringCache = false, clearCertificates = false } = {}) => {
 		if (clearCertificates) {
-			certificate.clear();
+			certificates.clear();
 		}
 
 		const activeWebview = webview.getActive();
@@ -125,7 +220,22 @@ export default () => {
 
 	menus.on('toggle-devtools', () => getCurrentWindow().toggleDevTools());
 
-	menus.on('reset-app-data', () => servers.resetAppData());
+	menus.on('reset-app-data', async () => {
+		const { response } = await remote.dialog.showMessageBox({
+			type: 'question',
+			buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
+			defaultId: 1,
+			title: t('dialog.resetAppData.title'),
+			message: t('dialog.resetAppData.message'),
+		});
+
+		if (response !== 0) {
+			return;
+		}
+
+		remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
+		remote.app.quit();
+	});
 
 	menus.on('toggle', (property) => {
 		switch (property) {
@@ -168,7 +278,7 @@ export default () => {
 	});
 
 	servers.on('loaded', () => {
-		webview.loaded();
+		document.querySelector('.app-page').classList.remove('app-page--loading');
 		updateServers();
 	});
 
@@ -180,17 +290,19 @@ export default () => {
 	servers.on('host-removed', (hostUrl) => {
 		webview.remove(hostUrl);
 		servers.clearActive();
-		webview.showLanding();
+		toggleAddServerViewVisible(true);
 		updateServers();
 	});
 
 	servers.on('active-setted', (hostUrl) => {
 		webview.setActive(hostUrl);
+		toggleAddServerViewVisible(false);
 		updateServers();
 	});
 
 	servers.on('active-cleared', (hostUrl) => {
 		webview.deactiveAll(hostUrl);
+		toggleAddServerViewVisible(true);
 		updateServers();
 	});
 
@@ -216,7 +328,7 @@ export default () => {
 
 	sidebar.on('add-server', () => {
 		servers.clearActive();
-		webview.showLanding();
+		toggleAddServerViewVisible(true);
 	});
 
 	sidebar.on('servers-sorted', (sorting) => {
@@ -227,8 +339,8 @@ export default () => {
 	getCurrentWindow().on('hide', updateWindowState);
 	getCurrentWindow().on('show', updateWindowState);
 
-	tray.on('created', () => getCurrentWindow().emit('set-state', { hideOnClose: true }));
-	tray.on('destroyed', () => getCurrentWindow().emit('set-state', { hideOnClose: false }));
+	tray.on('created', () => updateMainWindow({ hideOnClose: true }));
+	tray.on('destroyed', () => updateMainWindow({ hideOnClose: false }));
 	tray.on('set-main-window-visibility', (visible) =>
 		(visible ? getCurrentWindow().show() : getCurrentWindow().hide()));
 	tray.on('quit', () => app.quit());
@@ -287,13 +399,34 @@ export default () => {
 		webview.setSidebarPaddingEnabled(!hasSidebar);
 	});
 
+	webview.on('did-navigate-in-page', (hostUrl, event) => {
+		if (event.url.includes(hostUrl)) {
+			servers.hosts[hostUrl].lastPath = event.url;
+			servers.save();
+		}
+	});
+
 	if (process.platform === 'darwin') {
 		setTouchBar();
 	}
 
-	servers.restoreActive();
+	setupUpdates();
+	servers.initialize();
+	certificates.initialize();
+
+	mountAddServerView();
 	sidebar.mount();
+
+	mountWebViews();
+	servers.forEach(::webview.add);
+
+	servers.restoreActive();
+
+	mountMainWindow();
+
 	updatePreferences();
 	updateServers();
 	updateWindowState();
+
+	remote.process.argv.slice(2).forEach(processDeepLink);
 };

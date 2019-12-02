@@ -1,15 +1,15 @@
 import { remote } from 'electron';
+import { t } from 'i18next';
 
 import servers from './servers';
 import webview from './webview';
-import i18n from '../i18n';
 
 const { TouchBar, nativeImage, getCurrentWindow } = remote;
 const { TouchBarButton, TouchBarLabel, TouchBarSegmentedControl, TouchBarScrubber, TouchBarPopover, TouchBarGroup } = TouchBar;
 
 export class SelectServerPanel {
 	constructor() {
-		this._MAX_LENGTH_FOR_SEGMENTS_CONTROL = 76 - i18n.__('touchBar.selectServer').length;
+		this._MAX_LENGTH_FOR_SEGMENTS_CONTROL = 76 - t('touchBar.selectServer').length;
 		this._hosts = [];
 
 		this._setHostsArray();
@@ -58,7 +58,7 @@ export class SelectServerPanel {
 		const popoverItems = this._buildSelectServersPopoverItems();
 
 		this.touchBarPopover = new TouchBarPopover({
-			label: i18n.__('touchBar.selectServer'),
+			label: t('touchBar.selectServer'),
 			items: new TouchBar({
 				items: popoverItems,
 			}),
@@ -68,7 +68,7 @@ export class SelectServerPanel {
 
 	_buildSelectServersPopoverItems() {
 		const items = [
-			new TouchBarLabel({ label: i18n.__('touchBar.selectServer') }),
+			new TouchBarLabel({ label: t('touchBar.selectServer') }),
 		];
 
 		// The maximum length of available display area is limited. If exceed the length of displayed data, then
@@ -159,9 +159,7 @@ export class FormattingPanel {
 	}
 
 	build() {
-		const formatButtons = [];
-
-		this._buttonClasses.forEach((buttonClass) => {
+		const formatButtons = this._buttonClasses.map((buttonClass) => {
 			const touchBarButton = new TouchBarButton({
 				backgroundColor: this._BACKGROUND_COLOR,
 				icon: nativeImage.createFromPath(`${ __dirname }/images/icon-${ buttonClass }.png`),
@@ -172,14 +170,16 @@ export class FormattingPanel {
 						`.trim());
 				},
 			});
-			formatButtons.push(touchBarButton);
+			return touchBarButton;
 		});
 
 		this._touchBarGroup = new TouchBarGroup({
-			items: [
-				new TouchBarLabel({ label: i18n.__('touchBar.formatting') }),
-				...formatButtons,
-			],
+			items: new TouchBar({
+				items: [
+					new TouchBarLabel({ label: t('touchBar.formatting') }),
+					...formatButtons,
+				],
+			}),
 		});
 		return this._touchBarGroup;
 	}
@@ -187,26 +187,26 @@ export class FormattingPanel {
 
 export class TouchBarBuilder {
 	constructor() {
-		this._touchBarElements = {};
+		this._touchBarElements = [];
 	}
 
 	build() {
 		this._touchBar = new TouchBar({
-			items: Object.values(this._touchBarElements).map((element) => element.build()),
+			items: this._touchBarElements.map((element) => element.build()),
 		});
 		return this._touchBar;
 	}
 
 	addSelectServerPanel(panel) {
 		if (this._isPanel(panel)) {
-			this._touchBarElements.selectServerPanel = panel;
+			this._touchBarElements.push(panel);
 		}
 		return this;
 	}
 
 	addFormattingPanel(panel) {
 		if (this._isPanel(panel)) {
-			this._touchBarElements.formattingtPanel = panel;
+			this._touchBarElements.push(panel);
 		}
 		return this;
 	}

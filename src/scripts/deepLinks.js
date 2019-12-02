@@ -1,8 +1,7 @@
 import querystring from 'querystring';
 import url from 'url';
 
-import { getMainWindow } from './mainWindow';
-
+import { remote } from 'electron';
 
 const normalizeUrl = (hostUrl) => {
 	if (!/^https?:\/\//.test(hostUrl)) {
@@ -12,17 +11,15 @@ const normalizeUrl = (hostUrl) => {
 	return hostUrl;
 };
 
-const processAuth = async ({ host, token, userId }) => {
-	const mainWindow = await getMainWindow();
+const processAuth = ({ host, token, userId }) => {
 	const hostUrl = normalizeUrl(host);
-	mainWindow.send('add-host', hostUrl, { token, userId });
+	remote.getCurrentWindow().send('add-host', hostUrl, { token, userId });
 };
 
-const processRoom = async ({ host, rid, path }) => {
-	const mainWindow = await getMainWindow();
+const processRoom = ({ host, rid, path }) => {
 	const hostUrl = normalizeUrl(host);
-	mainWindow.send('add-host', hostUrl);
-	mainWindow.send('open-room', hostUrl, { rid, path });
+	remote.getCurrentWindow().send('add-host', hostUrl);
+	remote.getCurrentWindow().send('open-room', hostUrl, { rid, path });
 };
 
 export const processDeepLink = (link) => {

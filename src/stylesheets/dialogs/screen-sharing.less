@@ -1,8 +1,14 @@
-.screenshare-page {
+.screen-sharing-dialog {
+	z-index: 1000;
+
+	top: 0;
+	bottom: 0;
+
 	display: flex;
 	flex-direction: column;
 
-	min-height: 100vh;
+	width: 776px;
+	height: 600px;
 	padding: 0.25rem 0.75rem;
 
 	cursor: default;
@@ -13,6 +19,10 @@
 	align-items: center;
 	justify-content: center;
 
+	&:not([open]) {
+		display: none;
+	}
+
 	.screenshare-title {
 		margin: 0 0 1rem;
 
@@ -20,7 +30,7 @@
 		line-height: normal;
 	}
 
-	.screenshare-sources {
+	.screen-sharing-sources {
 		display: flex;
 		overflow-y: auto;
 
@@ -29,7 +39,7 @@
 		flex-wrap: wrap;
 		justify-content: center;
 
-		.screenshare-source {
+		.screen-sharing-source {
 			display: flex;
 			flex-direction: column;
 
@@ -41,11 +51,11 @@
 				background-color: @tertiary-background-color;
 			}
 
-			.screenshare-source-thumbnail {
+			.screen-sharing-source-thumbnail {
 				width: 150px;
 			}
 
-			.screenshare-source-name {
+			.screen-sharing-source-name {
 				width: 150px;
 
 				text-align: center;

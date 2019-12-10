@@ -1,3 +1,13 @@
+<a name="2.17.1"></a>
+## 2.17.1 (2019-12-10)
+
+
+### Bug Fixes
+
+- [#1436](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1436) Disable hardenedRuntime
+
+
+
 <a name="2.17.0"></a>
 # 2.17.0 (2019-12-02)
 

@@ -155,8 +155,7 @@ const useFormattingPanel = (activeWebView) => {
 	const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
 
 	const formatButtons = ids.map((id) => new TouchBarButton({
-		backgroundColor: '#A4A4A4',
-		icon: nativeImage.createFromPath(`${ __dirname }/images/icon-${ id }.png`),
+		icon: nativeImage.createFromPath(`${ __dirname }/images/touch-bar/${ id }.png`),
 		click: () => {
 			activeWebView.executeJavaScript(`(() => {
 				const button = document.querySelector('.rc-message-box .js-format[data-id="${ id }"]');
@@ -194,8 +193,8 @@ function TouchBar({ activeWebView, activeServerUrl, servers = [], onChangeServer
 
 let touchBarElement;
 
-export const mountTouchBar = () => {
-	touchBarElement = createElement(TouchBar);
+export const mountTouchBar = (props) => {
+	touchBarElement = createElement(TouchBar, props);
 	touchBarElement.mount(document.body);
 };
 

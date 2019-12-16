@@ -148,20 +148,22 @@ const useSelectServerPanel = (activeServerUrl, servers, onChangeServer) => {
 };
 
 const useFormattingPanel = (activeWebView) => {
-	const formatButtons = ['bold', 'italic', 'strike', 'code', 'multi-line'].map((buttonClass) => {
-		const touchBarButton = new TouchBarButton({
-			backgroundColor: '#A4A4A4',
-			icon: nativeImage.createFromPath(`${ __dirname }/images/icon-${ buttonClass }.png`),
-			click: () => {
-				activeWebView.executeJavaScript(`
-							var svg = document.querySelector("button svg[class$='${ buttonClass }']");
-							svg && svg.parentNode.click();
-							`.trim());
-			},
-		});
+	if (!activeWebView || !activeWebView.classList.contains('ready')) {
+		return new TouchBarGroup({ items: [] });
+	}
 
-		return touchBarButton;
-	});
+	const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
+
+	const formatButtons = ids.map((id) => new TouchBarButton({
+		backgroundColor: '#A4A4A4',
+		icon: nativeImage.createFromPath(`${ __dirname }/images/icon-${ id }.png`),
+		click: () => {
+			activeWebView.executeJavaScript(`(() => {
+				const button = document.querySelector('.rc-message-box .js-format[data-id="${ id }"]');
+				button.click();
+			})()`.trim());
+		},
+	}));
 
 	return new TouchBarGroup({
 		items: new ElectronTouchBar({
@@ -194,7 +196,6 @@ let touchBarElement;
 
 export const mountTouchBar = () => {
 	touchBarElement = createElement(TouchBar);
-
 	touchBarElement.mount(document.body);
 };
 

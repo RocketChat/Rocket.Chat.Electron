@@ -81,7 +81,7 @@ const updateServers = () => {
 			.sort(({ url: a }, { url: b }) => (sidebar ? sorting.indexOf(a) - sorting.indexOf(b) : 0))
 			.map(({ title, url }) => ({ title, url })),
 		activeServerUrl: servers.active,
-		activeWebview: webview.getActive(),
+		activeWebView: webview.getActive(),
 	});
 };
 

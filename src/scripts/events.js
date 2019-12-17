@@ -10,7 +10,7 @@ import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingS
 import servers from './servers';
 import sidebar from './sidebar';
 import tray from './tray';
-import setTouchBar from './touchBar';
+import { mountTouchBar, updateTouchBar } from './touchBar';
 import { openUpdateDialog, closeUpdateDialog } from './updateDialog';
 import {
 	setupUpdates,
@@ -74,6 +74,14 @@ const updateServers = () => {
 		hosts: servers.hosts,
 		sorting,
 		active: servers.active,
+	});
+
+	updateTouchBar({
+		servers: Object.values(servers.hosts)
+			.sort(({ url: a }, { url: b }) => (sidebar ? sorting.indexOf(a) - sorting.indexOf(b) : 0))
+			.map(({ title, url }) => ({ title, url })),
+		activeServerUrl: servers.active,
+		activeWebView: webview.getActive(),
 	});
 };
 
@@ -406,23 +414,23 @@ export default () => {
 		}
 	});
 
-	if (process.platform === 'darwin') {
-		setTouchBar();
-	}
+	mountMainWindow();
 
 	setupUpdates();
+	mountTouchBar({
+		onChangeServer: (serverUrl) => {
+			servers.setActive(serverUrl);
+		},
+	});
 	servers.initialize();
 	certificates.initialize();
 
 	mountAddServerView();
 	sidebar.mount();
-
 	mountWebViews();
 	servers.forEach(::webview.add);
 
 	servers.restoreActive();
-
-	mountMainWindow();
 
 	updatePreferences();
 	updateServers();

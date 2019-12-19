@@ -2,9 +2,8 @@
 Thanks for opening an issue! A few things to keep in mind:
 
 - Before reporting a bug, please try reproducing your issue with the latest version.
-- Please verify that the bug is related to the Rocket.Chat Desktop app, and NOT the
-  main web app by testing in Chrome/Firefox.
-- If the issue occurs in the browser, report to github.com/RocketChat/Rocket.Chat instead
+- Please verify that the bug is related to the desktop app, and NOT the main web app by testing in Chrome/Firefox.
+- If the issue occurs in the browser, report to https://github.com/RocketChat/Rocket.Chat instead
 -->
 
 ## My Setup

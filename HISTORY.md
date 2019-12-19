@@ -1,3 +1,14 @@
+<a name="2.17.2"></a>
+## 2.17.2 (2019-12-19)
+
+
+### Bug Fixes
+
+- [#1450](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1450) Windows select boxes
+- [#1447](https://github.com/RocketChat/Rocket.Chat.Electron/pull/1447) TouchBar buttons
+
+
+
 <a name="2.17.1"></a>
 ## 2.17.1 (2019-12-10)
 

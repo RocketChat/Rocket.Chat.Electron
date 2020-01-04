@@ -7,178 +7,167 @@ import mem from 'mem';
 const { app } = remote;
 const spellchecker = remote.require('@felixrieseberg/spellchecker');
 
-class SpellCheck {
-	constructor() {
-		this.dictionaries = [];
-		this.enabledDictionaries = [];
-		this.isMultiLanguage = false;
-		this.dictionariesPath = null;
-	}
+export let dictionaries = [];
+export let dictionariesPath = null;
+export let enabledDictionaries = [];
+export let isMultiLanguage = false;
+export let checker = () => true;
 
-	async load() {
-		await this.loadDictionaries();
-		this.setDefaultEnabledDictionaries();
-	}
-
-	async loadDictionaries() {
-		const embeddedDictionaries = spellchecker.getAvailableDictionaries();
-
-		const directory = jetpack.cwd(app.getAppPath(), app.getAppPath().endsWith('app.asar') ? '..' : '.', 'dictionaries');
-		const installedDictionaries = (await directory.findAsync({ matching: '*.{aff,dic}' }))
-			.map((fileName) => path.basename(fileName, path.extname(fileName)));
-
-		this.dictionariesPath = directory.path();
-		this.dictionaries = Array.from(new Set([...embeddedDictionaries, ...installedDictionaries])).sort();
-		this.isMultiLanguage = embeddedDictionaries.length > 0 && process.platform !== 'win32';
-	}
-
-	setDefaultEnabledDictionaries() {
-		const selectedDictionaries = (() => {
-			try {
-				const enabledDictionaries = JSON.parse(localStorage.getItem('spellcheckerDictionaries'));
-				return Array.isArray(enabledDictionaries) ? enabledDictionaries.map(String) : null;
-			} catch (error) {
-				console.error(error);
-				return null;
-			}
-		})();
-
-		if (selectedDictionaries) {
-			this.enable(...selectedDictionaries);
+function updateChecker() {
+	try {
+		if (enabledDictionaries.length === 0) {
+			checker = () => true;
 			return;
 		}
 
-		const userLanguage = localStorage.getItem('userLanguage');
-		if (userLanguage && this.enable(this.userLanguage)) {
-			return;
-		}
-
-		const navigatorLanguage = navigator.language;
-		if (this.enable(navigatorLanguage)) {
-			return;
-		}
-
-		this.enable('en_US');
-	}
-
-	filterDictionaries(dictionaries) {
-		return dictionaries
-			.flatMap((dictionary) => {
-				const matches = /^(\w+?)[-_](\w+)$/.exec(dictionary);
-				return matches
-					? [`${ matches[1] }_${ matches[2] }`, `${ matches[1] }-${ matches[2] }`, matches[1]]
-					: [dictionary];
-			})
-			.filter((dictionary) => this.dictionaries.includes(dictionary));
-	}
-
-	enable(...dictionaries) {
-		dictionaries = this.filterDictionaries(dictionaries);
-
-		if (this.isMultiLanguage) {
-			this.enabledDictionaries = [
-				...this.enabledDictionaries,
-				...dictionaries,
-			];
-		} else {
-			this.enabledDictionaries = [dictionaries[0]];
-		}
-
-		localStorage.setItem('spellcheckerDictionaries', JSON.stringify(this.enabledDictionaries));
-
-		this.updateChecker();
-
-		return this.enabledDictionaries.length > 0;
-	}
-
-	disable(...dictionaries) {
-		dictionaries = this.filterDictionaries(dictionaries);
-
-		this.enabledDictionaries = this.enabledDictionaries.filter((dictionary) => !dictionaries.includes(dictionary));
-		localStorage.setItem('spellcheckerDictionaries', JSON.stringify(this.enabledDictionaries));
-
-		this.updateChecker();
-	}
-
-	updateChecker() {
-		try {
-			if (this.enabledDictionaries.length === 0) {
-				this.checker = () => true;
-				return;
-			}
-
-			if (this.enabledDictionaries.length === 1) {
-				let enabled = false;
-				this.checker = mem((text) => {
-					if (!enabled) {
-						spellchecker.setDictionary(this.enabledDictionaries[0], this.dictionariesPath);
-						enabled = true;
-					}
-					return !spellchecker.isMisspelled(text);
-				});
-				return;
-			}
-
-			const singleDictionaryChecker = mem(
-				((dictionariesPath, dictionary, text) => {
-					spellchecker.setDictionary(dictionary, dictionariesPath);
-					return !spellchecker.isMisspelled(text);
-				})
-					.bind(null, this.dictionariesPath),
-			);
-
-			this.checker = mem(
-				((dictionaries, text) => dictionaries.some((dictionary) => singleDictionaryChecker(dictionary, text)))
-					.bind(null, this.enabledDictionaries),
-			);
-		} finally {
-			webFrame.setSpellCheckProvider('', {
-				spellCheck: (words, callback) => {
-					setTimeout(() => {
-						const misspelled = words.filter((word) => !this.checker(word));
-						callback(misspelled);
-					}, 0);
-				},
+		if (enabledDictionaries.length === 1) {
+			let enabled = false;
+			checker = mem((text) => {
+				if (!enabled) {
+					spellchecker.setDictionary(enabledDictionaries[0], dictionariesPath);
+					enabled = true;
+				}
+				return !spellchecker.isMisspelled(text);
 			});
-		}
-	}
-
-	isCorrect(text) {
-		return this.checker(text);
-	}
-
-	getCorrections(text) {
-		text = text.trim();
-
-		if (text === '' || this.isCorrect(text)) {
-			return null;
+			return;
 		}
 
-		return Array.from(new Set(
-			this.enabledDictionaries.flatMap((language) => {
-				spellchecker.setDictionary(language, this.dictionariesPath);
-				return spellchecker.getCorrectionsForMisspelling(text);
-			}),
-		));
-	}
+		const singleDictionaryChecker = mem(
+			((dictionariesPath, dictionary, text) => {
+				spellchecker.setDictionary(dictionary, dictionariesPath);
+				return !spellchecker.isMisspelled(text);
+			})
+				.bind(null, dictionariesPath),
+		);
 
-	async installDictionaries(filePaths) {
-		await Promise.all(filePaths.map(async (filePath) => {
-			const name = filePath.basename(filePath, filePath.extname(filePath));
-			const basename = filePath.basename(filePath);
-			const newPath = filePath.join(this.dictionariesPath, basename);
-
-			await jetpack.copyAsync(filePath, newPath);
-
-			if (!this.dictionaries.includes(name)) {
-				this.dictionaries.push(name);
-			}
-		}));
+		checker = mem(
+			((dictionaries, text) => dictionaries.some((dictionary) => singleDictionaryChecker(dictionary, text)))
+				.bind(null, enabledDictionaries),
+		);
+	} finally {
+		webFrame.setSpellCheckProvider('', {
+			spellCheck: (words, callback) => {
+				setTimeout(() => {
+					const misspelled = words.filter((word) => !checker(word));
+					callback(misspelled);
+				}, 0);
+			},
+		});
 	}
 }
 
-export const spellchecking = new SpellCheck();
+async function loadDictionaries() {
+	const embeddedDictionaries = spellchecker.getAvailableDictionaries();
 
-export default () => {
-	spellchecking.load();
+	const directory = jetpack.cwd(app.getAppPath(), app.getAppPath().endsWith('app.asar') ? '..' : '.', 'dictionaries');
+	const installedDictionaries = (await directory.findAsync({ matching: '*.{aff,dic}' }))
+		.map((fileName) => path.basename(fileName, path.extname(fileName)));
+
+	dictionariesPath = directory.path();
+	dictionaries = Array.from(new Set([...embeddedDictionaries, ...installedDictionaries])).sort();
+	isMultiLanguage = embeddedDictionaries.length > 0 && process.platform !== 'win32';
+}
+
+function filterDictionaries(dictionaries) {
+	return dictionaries
+		.flatMap((dictionary) => {
+			const matches = /^(\w+?)[-_](\w+)$/.exec(dictionary);
+			return matches
+				? [`${ matches[1] }_${ matches[2] }`, `${ matches[1] }-${ matches[2] }`, matches[1]]
+				: [dictionary];
+		})
+		.filter((dictionary) => dictionaries.includes(dictionary));
+}
+
+export const enable = function(...dictionaries) {
+	dictionaries = filterDictionaries(dictionaries);
+
+	if (isMultiLanguage) {
+		enabledDictionaries = [
+			...enabledDictionaries,
+			...dictionaries,
+		];
+	} else {
+		enabledDictionaries = [dictionaries[0]];
+	}
+
+	localStorage.setItem('spellcheckerDictionaries', JSON.stringify(enabledDictionaries));
+
+	updateChecker();
+
+	return enabledDictionaries.length > 0;
+};
+
+export const disable = function(...dictionaries) {
+	dictionaries = filterDictionaries(dictionaries);
+
+	enabledDictionaries = enabledDictionaries.filter((dictionary) => !dictionaries.includes(dictionary));
+	localStorage.setItem('spellcheckerDictionaries', JSON.stringify(enabledDictionaries));
+
+	updateChecker();
+};
+
+function setDefaultEnabledDictionaries() {
+	const selectedDictionaries = (() => {
+		try {
+			const enabledDictionaries = JSON.parse(localStorage.getItem('spellcheckerDictionaries'));
+			return Array.isArray(enabledDictionaries) ? enabledDictionaries.map(String) : null;
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	})();
+
+	if (selectedDictionaries) {
+		enable(...selectedDictionaries);
+		return;
+	}
+
+	const userLanguage = localStorage.getItem('userLanguage');
+	if (userLanguage && enable(userLanguage)) {
+		return;
+	}
+
+	const navigatorLanguage = navigator.language;
+	if (enable(navigatorLanguage)) {
+		return;
+	}
+
+	enable('en_US');
+}
+
+export const isCorrect = (text) => checker(text);
+
+export const getCorrections = (text) => {
+	text = text.trim();
+
+	if (text === '' || isCorrect(text)) {
+		return null;
+	}
+
+	return Array.from(new Set(
+		enabledDictionaries.flatMap((language) => {
+			spellchecker.setDictionary(language, dictionariesPath);
+			return spellchecker.getCorrectionsForMisspelling(text);
+		}),
+	));
+};
+
+export const installDictionaries = async (filePaths) => {
+	await Promise.all(filePaths.map(async (filePath) => {
+		const name = filePath.basename(filePath, filePath.extname(filePath));
+		const basename = filePath.basename(filePath);
+		const newPath = filePath.join(dictionariesPath, basename);
+
+		await jetpack.copyAsync(filePath, newPath);
+
+		if (!dictionaries.includes(name)) {
+			dictionaries.push(name);
+		}
+	}));
+};
+
+export default async () => {
+	await loadDictionaries();
+	setDefaultEnabledDictionaries();
 };

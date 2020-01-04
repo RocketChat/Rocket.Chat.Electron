@@ -1,7 +1,15 @@
 import { clipboard, remote, shell } from 'electron';
 import { t } from 'i18next';
 
-import { spellchecking } from './spellchecking';
+import {
+	dictionaries,
+	dictionariesPath,
+	enabledDictionaries,
+	getCorrections,
+	installDictionaries,
+	enable,
+	disable,
+} from './spellchecking';
 
 const { dialog, getCurrentWebContents, getCurrentWindow, Menu } = remote;
 
@@ -14,12 +22,12 @@ const createSpellCheckingMenuTemplate = async ({
 		return [];
 	}
 
-	const corrections = spellchecking.getCorrections(selectionText);
+	const corrections = getCorrections(selectionText);
 
 	const handleBrowserForLanguage = async () => {
 		const { filePaths } = await dialog.showOpenDialog(getCurrentWindow(), {
 			title: t('dialog.loadDictionary.title'),
-			defaultPath: spellchecking.dictionariesPath,
+			defaultPath: dictionariesPath,
 			filters: [
 				{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['aff', 'dic'] },
 				{ name: t('dialog.loadDictionary.allFiles'), extensions: ['*'] },
@@ -28,7 +36,7 @@ const createSpellCheckingMenuTemplate = async ({
 		});
 
 		try {
-			await spellchecking.installDictionaries(filePaths);
+			await installDictionaries(filePaths);
 		} catch (error) {
 			console.error(error);
 			dialog.showErrorBox(
@@ -66,15 +74,15 @@ const createSpellCheckingMenuTemplate = async ({
 		] : [],
 		{
 			label: t('contextMenu.spellingLanguages'),
-			enabled: spellchecking.dictionaries.length > 0,
+			enabled: dictionaries.length > 0,
 			submenu: [
-				...spellchecking.dictionaries.map((dictionaryName) => ({
+				...dictionaries.map((dictionaryName) => ({
 					label: dictionaryName,
 					type: 'checkbox',
-					checked: spellchecking.enabledDictionaries.includes(dictionaryName),
+					checked: enabledDictionaries.includes(dictionaryName),
 					click: ({ checked }) => (checked
-						? spellchecking.enable(dictionaryName)
-						: spellchecking.disable(dictionaryName)),
+						? enable(dictionaryName)
+						: disable(dictionaryName)),
 				})),
 				{
 					type: 'separator',

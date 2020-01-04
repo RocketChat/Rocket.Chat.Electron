@@ -1,7 +1,7 @@
+import fs from 'fs';
 import path from 'path';
 
 import { remote, webFrame } from 'electron';
-import jetpack from 'fs-jetpack';
 import mem from 'mem';
 
 const { app } = remote;
@@ -11,18 +11,18 @@ export let dictionaries = [];
 export let dictionariesPath = null;
 export let enabledDictionaries = [];
 export let isMultiLanguage = false;
-export let checker = () => true;
+export let isCorrect = () => true;
 
 function updateChecker() {
 	try {
 		if (enabledDictionaries.length === 0) {
-			checker = () => true;
+			isCorrect = () => true;
 			return;
 		}
 
 		if (enabledDictionaries.length === 1) {
 			let enabled = false;
-			checker = mem((text) => {
+			isCorrect = mem((text) => {
 				if (!enabled) {
 					spellchecker.setDictionary(enabledDictionaries[0], dictionariesPath);
 					enabled = true;
@@ -40,7 +40,7 @@ function updateChecker() {
 				.bind(null, dictionariesPath),
 		);
 
-		checker = mem(
+		isCorrect = mem(
 			((dictionaries, text) => dictionaries.some((dictionary) => singleDictionaryChecker(dictionary, text)))
 				.bind(null, enabledDictionaries),
 		);
@@ -48,7 +48,7 @@ function updateChecker() {
 		webFrame.setSpellCheckProvider('', {
 			spellCheck: (words, callback) => {
 				setTimeout(() => {
-					const misspelled = words.filter((word) => !checker(word));
+					const misspelled = words.filter((word) => !isCorrect(word));
 					callback(misspelled);
 				}, 0);
 			},
@@ -58,12 +58,10 @@ function updateChecker() {
 
 async function loadDictionaries() {
 	const embeddedDictionaries = spellchecker.getAvailableDictionaries();
-
-	const directory = jetpack.cwd(app.getAppPath(), app.getAppPath().endsWith('app.asar') ? '..' : '.', 'dictionaries');
-	const installedDictionaries = (await directory.findAsync({ matching: '*.{aff,dic}' }))
-		.map((fileName) => path.basename(fileName, path.extname(fileName)));
-
-	dictionariesPath = directory.path();
+	dictionariesPath = path.join(app.getAppPath(), app.getAppPath().endsWith('app.asar') ? '..' : '.', 'dictionaries');
+	const installedDictionaries = (await fs.promises.readdir(dictionariesPath, { encoding: 'utf8' }))
+		.filter((filename) => ['aff', 'dic'].includes(path.extname(filename).toString()))
+		.map((filename) => path.basename(filename, path.extname(filename)));
 	dictionaries = Array.from(new Set([...embeddedDictionaries, ...installedDictionaries])).sort();
 	isMultiLanguage = embeddedDictionaries.length > 0 && process.platform !== 'win32';
 }
@@ -79,7 +77,7 @@ function filterDictionaries(dictionaries) {
 		.filter((dictionary) => dictionaries.includes(dictionary));
 }
 
-export const enable = function(...dictionaries) {
+export const enable = (...dictionaries) => {
 	dictionaries = filterDictionaries(dictionaries);
 
 	if (isMultiLanguage) {
@@ -98,7 +96,7 @@ export const enable = function(...dictionaries) {
 	return enabledDictionaries.length > 0;
 };
 
-export const disable = function(...dictionaries) {
+export const disable = (...dictionaries) => {
 	dictionaries = filterDictionaries(dictionaries);
 
 	enabledDictionaries = enabledDictionaries.filter((dictionary) => !dictionaries.includes(dictionary));
@@ -136,8 +134,6 @@ function setDefaultEnabledDictionaries() {
 	enable('en_US');
 }
 
-export const isCorrect = (text) => checker(text);
-
 export const getCorrections = (text) => {
 	text = text.trim();
 
@@ -155,11 +151,11 @@ export const getCorrections = (text) => {
 
 export const installDictionaries = async (filePaths) => {
 	await Promise.all(filePaths.map(async (filePath) => {
-		const name = filePath.basename(filePath, filePath.extname(filePath));
-		const basename = filePath.basename(filePath);
-		const newPath = filePath.join(dictionariesPath, basename);
+		const name = path.basename(filePath, path.extname(filePath));
+		const basename = path.basename(filePath);
+		const newPath = path.join(dictionariesPath, basename);
 
-		await jetpack.copyAsync(filePath, newPath);
+		await fs.promises.copyFile(filePath, newPath);
 
 		if (!dictionaries.includes(name)) {
 			dictionaries.push(name);

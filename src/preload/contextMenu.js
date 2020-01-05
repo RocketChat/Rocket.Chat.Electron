@@ -2,27 +2,31 @@ import { clipboard, remote, shell } from 'electron';
 import { t } from 'i18next';
 
 import {
-	dictionaries,
-	dictionariesPath,
-	enabledDictionaries,
-	getCorrections,
-	installDictionaries,
-	enable,
-	disable,
-} from './spellchecking';
+	getSpellCheckingDictionaries,
+	getSpellCheckingDictionariesPath,
+	getEnabledSpellCheckingDictionaries,
+	installSpellCheckingDictionaries,
+	getSpellCheckingCorrections,
+	enableSpellCheckingDictionary,
+	disableSpellCheckingDictionary,
+} from './spellChecking';
 
 const { dialog, getCurrentWebContents, getCurrentWindow, Menu } = remote;
 
 
-const createSpellCheckingMenuTemplate = async ({
+const createSpellCheckingMenuTemplate = ({
 	isEditable,
-	selectionText,
+	corrections,
+	dictionaries,
+	dictionariesPath,
+	enabledDictionaries,
+	installDictionaries,
+	enableSpellCheckingDictionary,
+	disableSpellCheckingDictionary,
 }) => {
 	if (!isEditable) {
 		return [];
 	}
-
-	const corrections = getCorrections(selectionText);
 
 	const handleBrowserForLanguage = async () => {
 		const { filePaths } = await dialog.showOpenDialog(getCurrentWindow(), {
@@ -81,8 +85,8 @@ const createSpellCheckingMenuTemplate = async ({
 					type: 'checkbox',
 					checked: enabledDictionaries.includes(dictionaryName),
 					click: ({ checked }) => (checked
-						? enable(dictionaryName)
-						: disable(dictionaryName)),
+						? enableSpellCheckingDictionary(dictionaryName)
+						: disableSpellCheckingDictionary(dictionaryName)),
 				})),
 				{
 					type: 'separator',
@@ -193,19 +197,41 @@ const createDefaultMenuTemplate = ({
 	},
 ];
 
-const createMenuTemplate = async (params) => [
-	...await createSpellCheckingMenuTemplate(params),
-	...await createImageMenuTemplate(params),
-	...await createLinkMenuTemplate(params),
-	...await createDefaultMenuTemplate(params),
-];
+const computeProps = async (params) => {
+	const {
+		selectionText,
+	} = params;
+
+	const corrections = await getSpellCheckingCorrections(selectionText);
+
+	return {
+		...params,
+		corrections,
+		dictionaries: getSpellCheckingDictionaries(),
+		dictionariesPath: getSpellCheckingDictionariesPath(),
+		enabledDictionaries: getEnabledSpellCheckingDictionaries(),
+		installDictionaries: installSpellCheckingDictionaries,
+		enableSpellCheckingDictionary,
+		disableSpellCheckingDictionary,
+	};
+};
+
+const handleContextMenu = async (event, params) => {
+	event.preventDefault();
+
+	const props = await computeProps(params);
+
+	const template = [
+		...createSpellCheckingMenuTemplate(props),
+		...createImageMenuTemplate(props),
+		...createLinkMenuTemplate(props),
+		...createDefaultMenuTemplate(props),
+	];
+
+	const menu = Menu.buildFromTemplate(template);
+	menu.popup({ window: getCurrentWindow() });
+};
 
 export default () => {
-	getCurrentWebContents().on('context-menu', (event, params) => {
-		event.preventDefault();
-		(async () => {
-			const menu = Menu.buildFromTemplate(await createMenuTemplate(params));
-			menu.popup({ window: getCurrentWindow() });
-		})();
-	});
+	getCurrentWebContents().on('context-menu', handleContextMenu);
 };

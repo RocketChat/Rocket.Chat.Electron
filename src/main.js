@@ -87,7 +87,11 @@ initialize();
 
 global.registerRemoteHandler = (channel, remoteHandler) => {
 	ipcMain.removeHandler(channel);
-	ipcMain.handle(channel, (_, ...args) => new Promise((resolve, reject) => {
-		remoteHandler(resolve, reject, ...args);
+	ipcMain.handle(channel, (...args) => new Promise((resolve, reject) => {
+		try {
+			remoteHandler(resolve, reject, ...args);
+		} catch (error) {
+			console.error(error);
+		}
 	}));
 };

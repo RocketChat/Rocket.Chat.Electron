@@ -1,15 +1,7 @@
 import { clipboard, remote, shell } from 'electron';
 import { t } from 'i18next';
 
-import {
-	getSpellCheckingDictionaries,
-	getSpellCheckingDictionariesPath,
-	getEnabledSpellCheckingDictionaries,
-	installSpellCheckingDictionaries,
-	getSpellCheckingCorrections,
-	enableSpellCheckingDictionaries,
-	disableSpellCheckingDictionaries,
-} from './spellChecking';
+import { invoke } from '../scripts/ipc';
 
 const { dialog, getCurrentWebContents, getCurrentWindow, Menu } = remote;
 
@@ -198,21 +190,16 @@ const createDefaultMenuTemplate = ({
 ];
 
 const computeProps = async (params) => {
-	const {
-		selectionText,
-	} = params;
-
-	const corrections = await getSpellCheckingCorrections(selectionText);
-
+	const { selectionText } = params;
 	return {
 		...params,
-		corrections,
-		dictionaries: getSpellCheckingDictionaries(),
-		dictionariesPath: getSpellCheckingDictionariesPath(),
-		enabledDictionaries: getEnabledSpellCheckingDictionaries(),
-		installDictionaries: installSpellCheckingDictionaries,
-		enableSpellCheckingDictionary: enableSpellCheckingDictionaries,
-		disableSpellCheckingDictionary: disableSpellCheckingDictionaries,
+		corrections: await invoke('spell-checking/get-corrections', selectionText),
+		dictionaries: await invoke('spell-checking/get-dictionaries'),
+		dictionariesPath: await invoke('spell-checking/get-dictionaries-path'),
+		enabledDictionaries: await invoke('spell-checking/get-enabled-dictionaries'),
+		installDictionaries: (...args) => invoke('spell-checking/install-dictionaries', ...args),
+		enableSpellCheckingDictionary: (...args) => invoke('spell-checking/enable-dictionaries', ...args),
+		disableSpellCheckingDictionary: (...args) => invoke('spell-checking/disable-dictionaries', ...args),
 	};
 };
 

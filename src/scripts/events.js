@@ -26,6 +26,17 @@ import webview, { mountWebViews } from './webview';
 import { processDeepLink } from './deepLinks';
 import { mountMainWindow, updateMainWindow, unmountMainWindow } from './mainWindow';
 import { handle, removeHandler, listen, removeAllListeners } from './ipc';
+import {
+	setupSpellChecking,
+	getSpellCheckingCorrections,
+	getSpellCheckingDictionaries,
+	getSpellCheckingDictionariesPath,
+	getEnabledSpellCheckingDictionaries,
+	installSpellCheckingDictionaries,
+	enableSpellCheckingDictionaries,
+	disableSpellCheckingDictionaries,
+	getMisspelledWords,
+} from './spellChecking';
 
 const { app, getCurrentWindow, shell } = remote;
 
@@ -144,6 +155,14 @@ export default () => {
 	handle('can-update', () => canUpdate());
 	handle('can-auto-update', () => canAutoUpdate());
 	handle('can-set-auto-update', () => canSetAutoUpdate());
+	handle('spell-checking/get-corrections', (_, text) => getSpellCheckingCorrections(text));
+	handle('spell-checking/get-dictionaries', () => getSpellCheckingDictionaries());
+	handle('spell-checking/get-dictionaries-path', () => getSpellCheckingDictionariesPath());
+	handle('spell-checking/get-enabled-dictionaries', () => getEnabledSpellCheckingDictionaries());
+	handle('spell-checking/get-misspelled-words', (_, words) => getMisspelledWords(words));
+	handle('spell-checking/install-dictionaries', (_, ...args) => installSpellCheckingDictionaries(...args));
+	handle('spell-checking/enable-dictionaries', (_, ...args) => enableSpellCheckingDictionaries(...args));
+	handle('spell-checking/disable-dictionaries', (_, ...args) => disableSpellCheckingDictionaries(...args));
 	listen('set-auto-update', (_, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
 	listen('check-for-updates', (event, ...args) => checkForUpdates(event, ...args));
 	listen('skip-update-version', (_, ...args) => skipUpdateVersion(...args));
@@ -166,6 +185,14 @@ export default () => {
 		removeHandler('can-update');
 		removeHandler('can-auto-update');
 		removeHandler('can-set-auto-update');
+		removeHandler('spell-checking/get-corrections');
+		removeHandler('spell-checking/get-dictionaries');
+		removeHandler('spell-checking/get-dictionaries-path');
+		removeHandler('spell-checking/get-enabled-dictionaries');
+		removeHandler('spell-checking/get-misspelled-words');
+		removeHandler('spell-checking/install-dictionaries');
+		removeHandler('spell-checking/enable-dictionaries');
+		removeHandler('spell-checking/disable-dictionaries');
 		removeAllListeners('set-auto-update');
 		removeAllListeners('check-for-updates');
 		removeAllListeners('skip-update-version');
@@ -417,7 +444,9 @@ export default () => {
 
 	mountMainWindow();
 
+	setupSpellChecking();
 	setupUpdates();
+
 	mountTouchBar({
 		onChangeServer: (serverUrl) => {
 			servers.setActive(serverUrl);

@@ -7,8 +7,8 @@ import {
 	getEnabledSpellCheckingDictionaries,
 	installSpellCheckingDictionaries,
 	getSpellCheckingCorrections,
-	enableSpellCheckingDictionary,
-	disableSpellCheckingDictionary,
+	enableSpellCheckingDictionaries,
+	disableSpellCheckingDictionaries,
 } from './spellChecking';
 
 const { dialog, getCurrentWebContents, getCurrentWindow, Menu } = remote;
@@ -211,8 +211,8 @@ const computeProps = async (params) => {
 		dictionariesPath: getSpellCheckingDictionariesPath(),
 		enabledDictionaries: getEnabledSpellCheckingDictionaries(),
 		installDictionaries: installSpellCheckingDictionaries,
-		enableSpellCheckingDictionary,
-		disableSpellCheckingDictionary,
+		enableSpellCheckingDictionary: enableSpellCheckingDictionaries,
+		disableSpellCheckingDictionary: disableSpellCheckingDictionaries,
 	};
 };
 

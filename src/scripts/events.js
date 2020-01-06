@@ -25,6 +25,7 @@ import {
 import webview, { mountWebViews } from './webview';
 import { processDeepLink } from './deepLinks';
 import { mountMainWindow, updateMainWindow, unmountMainWindow } from './mainWindow';
+import { handle, removeHandler, listen, removeAllListeners } from './ipc';
 
 const { app, getCurrentWindow, shell } = remote;
 
@@ -140,21 +141,21 @@ export default () => {
 	remote.app.on('open-url', handleOpenUrl);
 	remote.app.on('second-instance', handleSecondInstance);
 
-	remote.ipcMain.handle('can-update', () => canUpdate());
-	remote.ipcMain.handle('can-auto-update', () => canAutoUpdate());
-	remote.ipcMain.handle('can-set-auto-update', () => canSetAutoUpdate());
-	remote.ipcMain.on('set-auto-update', (_, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
-	remote.ipcMain.on('check-for-updates', (event, ...args) => checkForUpdates(event, ...args));
-	remote.ipcMain.on('skip-update-version', (_, ...args) => skipUpdateVersion(...args));
-	remote.ipcMain.on('remind-update-later', () => {});
-	remote.ipcMain.on('download-update', () => downloadUpdate());
-	remote.ipcMain.on('open-about-dialog', (_, ...args) => openAboutDialog(...args));
-	remote.ipcMain.on('close-about-dialog', (_, ...args) => closeAboutDialog(...args));
-	remote.ipcMain.on('open-screen-sharing-dialog', (_, ...args) => openScreenSharingDialog(...args));
-	remote.ipcMain.on('close-screen-sharing-dialog', (_, ...args) => closeScreenSharingDialog(...args));
-	remote.ipcMain.on('select-screen-sharing-source', (_, ...args) => selectScreenSharingSource(...args));
-	remote.ipcMain.on('open-update-dialog', (_, ...args) => openUpdateDialog(...args));
-	remote.ipcMain.on('close-update-dialog', (_, ...args) => closeUpdateDialog(...args));
+	handle('can-update', () => canUpdate());
+	handle('can-auto-update', () => canAutoUpdate());
+	handle('can-set-auto-update', () => canSetAutoUpdate());
+	listen('set-auto-update', (_, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
+	listen('check-for-updates', (event, ...args) => checkForUpdates(event, ...args));
+	listen('skip-update-version', (_, ...args) => skipUpdateVersion(...args));
+	listen('remind-update-later', () => {});
+	listen('download-update', () => downloadUpdate());
+	listen('open-about-dialog', (_, ...args) => openAboutDialog(...args));
+	listen('close-about-dialog', (_, ...args) => closeAboutDialog(...args));
+	listen('open-screen-sharing-dialog', (_, ...args) => openScreenSharingDialog(...args));
+	listen('close-screen-sharing-dialog', (_, ...args) => closeScreenSharingDialog(...args));
+	listen('select-screen-sharing-source', (_, ...args) => selectScreenSharingSource(...args));
+	listen('open-update-dialog', (_, ...args) => openUpdateDialog(...args));
+	listen('close-update-dialog', (_, ...args) => closeUpdateDialog(...args));
 
 	window.addEventListener('unload', () => {
 		remote.app.removeListener('activate', handleActivate);
@@ -162,21 +163,21 @@ export default () => {
 		remote.app.removeListener('open-url', handleOpenUrl);
 		remote.app.removeListener('second-instance', handleSecondInstance);
 
-		remote.ipcMain.removeHandler('can-update');
-		remote.ipcMain.removeHandler('can-auto-update');
-		remote.ipcMain.removeHandler('can-set-auto-update');
-		remote.ipcMain.removeAllListeners('set-auto-update');
-		remote.ipcMain.removeAllListeners('check-for-updates');
-		remote.ipcMain.removeAllListeners('skip-update-version');
-		remote.ipcMain.removeAllListeners('remind-update-later');
-		remote.ipcMain.removeAllListeners('download-update');
-		remote.ipcMain.removeAllListeners('open-about-dialog');
-		remote.ipcMain.removeAllListeners('close-about-dialog');
-		remote.ipcMain.removeAllListeners('open-screen-sharing-dialog');
-		remote.ipcMain.removeAllListeners('close-screen-sharing-dialog');
-		remote.ipcMain.removeAllListeners('select-screen-sharing-source');
-		remote.ipcMain.removeAllListeners('open-update-dialog');
-		remote.ipcMain.removeAllListeners('close-update-dialog');
+		removeHandler('can-update');
+		removeHandler('can-auto-update');
+		removeHandler('can-set-auto-update');
+		removeAllListeners('set-auto-update');
+		removeAllListeners('check-for-updates');
+		removeAllListeners('skip-update-version');
+		removeAllListeners('remind-update-later');
+		removeAllListeners('download-update');
+		removeAllListeners('open-about-dialog');
+		removeAllListeners('close-about-dialog');
+		removeAllListeners('open-screen-sharing-dialog');
+		removeAllListeners('close-screen-sharing-dialog');
+		removeAllListeners('select-screen-sharing-source');
+		removeAllListeners('open-update-dialog');
+		removeAllListeners('close-update-dialog');
 
 		unmountMainWindow();
 	});

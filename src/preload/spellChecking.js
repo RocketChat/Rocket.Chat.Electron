@@ -48,10 +48,10 @@ function updateChecker() {
 async function loadDictionaries() {
 	const embeddedDictionaries = spellchecker.getAvailableDictionaries();
 	dictionariesPath = path.join(app.getAppPath(), app.getAppPath().endsWith('app.asar') ? '..' : '.', 'dictionaries');
-	const installedDictionaries = (await fs.promises.readdir(dictionariesPath, { encoding: 'utf8' }))
-		.filter((filename) => ['.aff', '.dic'].includes(path.extname(filename).toLowerCase()))
-		.map((filename) => path.basename(filename, path.extname(filename)));
-	dictionaries = Array.from(new Set([...embeddedDictionaries, ...installedDictionaries])).sort();
+	dictionaries = (await fs.promises.readdir(dictionariesPath, { encoding: 'utf8' }))
+		.filter((filename) => ['.bdic'].includes(path.extname(filename).toLowerCase()))
+		.map((filename) => path.basename(filename, path.extname(filename)).replace(/-/, '_'))
+		.sort();
 	isMultiLanguage = embeddedDictionaries.length > 0 && process.platform !== 'win32';
 }
 

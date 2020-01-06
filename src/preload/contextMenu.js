@@ -33,7 +33,7 @@ const createSpellCheckingMenuTemplate = ({
 			title: t('dialog.loadDictionary.title'),
 			defaultPath: dictionariesPath,
 			filters: [
-				{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['aff', 'dic'] },
+				{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['bdic'] },
 				{ name: t('dialog.loadDictionary.allFiles'), extensions: ['*'] },
 			],
 			properties: ['openFile', 'multiSelections'],

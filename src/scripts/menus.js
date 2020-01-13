@@ -1,7 +1,6 @@
-import { EventEmitter } from 'events';
-
 import { remote } from 'electron';
 import { t } from 'i18next';
+import { createElement, useEffect } from './reactiveUi';
 
 const { app, Menu, webContents } = remote;
 
@@ -14,14 +13,15 @@ const createTemplate = ({
 	showMenuBar = true,
 	showServerList = true,
 	showWindowOnUnreadChanged = false,
-}, events) => [
+	onAction,
+}) => [
 	{
 		label: process.platform === 'darwin' ? appName : t('menus.fileMenu'),
 		submenu: [
 			...process.platform === 'darwin' ? [
 				{
 					label: t('menus.about', { appName }),
-					click: () => events.emit('about'),
+					click: () => onAction({ type: 'about' }),
 				},
 				{
 					type: 'separator',
@@ -52,7 +52,7 @@ const createTemplate = ({
 				{
 					label: t('menus.addNewServer'),
 					accelerator: 'CommandOrControl+N',
-					click: () => events.emit('add-new-server'),
+					click: () => onAction({ type: 'add-new-server' }),
 				},
 			] : [],
 			{
@@ -61,7 +61,7 @@ const createTemplate = ({
 			{
 				label: t('menus.quit', { appName }),
 				accelerator: 'CommandOrControl+Q',
-				click: () => events.emit('quit'),
+				click: () => onAction({ type: 'quit' }),
 			},
 		],
 	},
@@ -109,20 +109,20 @@ const createTemplate = ({
 			{
 				label: t('menus.reload'),
 				accelerator: 'CommandOrControl+R',
-				click: () => events.emit('reload-server'),
+				click: () => onAction({ type: 'reload-server' }),
 			},
 			{
 				label: t('menus.reloadIgnoringCache'),
-				click: () => events.emit('reload-server', { ignoringCache: true }),
+				click: () => onAction({ type: 'reload-server', payload: { ignoringCache: true } }),
 			},
 			{
 				label: t('menus.clearTrustedCertificates'),
-				click: () => events.emit('reload-server', { ignoringCache: true, clearCertificates: true }),
+				click: () => onAction({ type: 'reload-server', payload: { ignoringCache: true, clearCertificates: true } }),
 			},
 			{
 				label: t('menus.openDevTools'),
 				accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
-				click: () => events.emit('open-devtools-for-server'),
+				click: () => onAction({ type: 'open-devtools-for-server' }),
 			},
 			{
 				type: 'separator',
@@ -130,12 +130,12 @@ const createTemplate = ({
 			{
 				label: t('menus.back'),
 				accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
-				click: () => events.emit('go-back'),
+				click: () => onAction({ type: 'go-back' }),
 			},
 			{
 				label: t('menus.forward'),
 				accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
-				click: () => events.emit('go-forward'),
+				click: () => onAction({ type: 'go-forward' }),
 			},
 			{
 				type: 'separator',
@@ -144,7 +144,7 @@ const createTemplate = ({
 				label: t('menus.showTrayIcon'),
 				type: 'checkbox',
 				checked: showTrayIcon,
-				click: () => events.emit('toggle', 'showTrayIcon'),
+				click: () => onAction({ type: 'toggle', payload: 'showTrayIcon' }),
 			},
 			...process.platform === 'darwin' ? [
 				{
@@ -152,21 +152,21 @@ const createTemplate = ({
 					type: 'checkbox',
 					checked: showFullScreen,
 					accelerator: 'Control+Command+F',
-					click: () => events.emit('toggle', 'showFullScreen'),
+					click: () => onAction({ type: 'toggle', payload: 'showFullScreen' }),
 				},
 			] : [
 				{
 					label: t('menus.showMenuBar'),
 					type: 'checkbox',
 					checked: showMenuBar,
-					click: () => events.emit('toggle', 'showMenuBar'),
+					click: () => onAction({ type: 'toggle', payload: 'showMenuBar' }),
 				},
 			],
 			{
 				label: t('menus.showServerList'),
 				type: 'checkbox',
 				checked: showServerList,
-				click: () => events.emit('toggle', 'showServerList'),
+				click: () => onAction({ type: 'toggle', payload: 'showServerList' }),
 			},
 			{
 				type: 'separator',
@@ -196,7 +196,7 @@ const createTemplate = ({
 				{
 					label: t('menus.addNewServer'),
 					accelerator: 'CommandOrControl+N',
-					click: () => events.emit('add-new-server'),
+					click: () => onAction({ type: 'add-new-server' }),
 				},
 				{
 					type: 'separator',
@@ -208,7 +208,7 @@ const createTemplate = ({
 				checked: currentServerUrl === host.url,
 				accelerator: `CommandOrControl+${ i + 1 }`,
 				id: host.url,
-				click: () => events.emit('select-server', host),
+				click: () => onAction({ type: 'select-server', payload: host }),
 			})),
 			{
 				type: 'separator',
@@ -216,11 +216,11 @@ const createTemplate = ({
 			{
 				label: t('menus.reload'),
 				accelerator: 'CommandOrControl+Shift+R',
-				click: () => events.emit('reload-app'),
+				click: () => onAction({ type: 'reload-app' }),
 			},
 			{
 				label: t('menus.toggleDevTools'),
-				click: () => events.emit('toggle-devtools'),
+				click: () => onAction({ type: 'toggle-devtools' }),
 			},
 			{
 				type: 'separator',
@@ -229,7 +229,7 @@ const createTemplate = ({
 				label: t('menus.showOnUnreadMessage'),
 				type: 'checkbox',
 				checked: showWindowOnUnreadChanged,
-				click: () => events.emit('toggle', 'showWindowOnUnreadChanged'),
+				click: () => onAction({ type: 'toggle', payload: 'showWindowOnUnreadChanged' }),
 			},
 			{
 				type: 'separator',
@@ -252,68 +252,60 @@ const createTemplate = ({
 		submenu: [
 			{
 				label: t('menus.documentation'),
-				click: () => events.emit('open-url', 'https://rocket.chat/docs'),
+				click: () => onAction({ type: 'open-url', payload: 'https://rocket.chat/docs' }),
 			},
 			{
 				type: 'separator',
 			},
 			{
 				label: t('menus.reportIssue'),
-				click: () => events.emit('open-url', 'https://github.com/RocketChat/Rocket.Chat.Electron/issues/new'),
+				click: () => onAction({ type: 'open-url', payload: 'https://github.com/RocketChat/Rocket.Chat.Electron/issues/new' }),
 			},
 			{
 				label: t('menus.resetAppData'),
-				click: () => events.emit('reset-app-data'),
+				click: () => onAction({ type: 'reset-app-data' }),
 			},
 			{
 				type: 'separator',
 			},
 			{
 				label: t('menus.learnMore'),
-				click: () => events.emit('open-url', 'https://rocket.chat'),
+				click: () => onAction({ type: 'open-url', payload: 'https://rocket.chat' }),
 			},
 			...process.platform !== 'darwin' ? [
 				{
 					label: t('menus.about', { appName }),
-					click: () => events.emit('about'),
+					click: () => onAction({ type: 'about' }),
 				},
 			] : [],
 		],
 	},
 ];
 
-class Menus extends EventEmitter {
-	constructor() {
-		super();
-		this.state = {};
-	}
-
-	setState(partialState) {
-		this.state = {
-			...this.state,
-			...partialState,
-		};
-		this.update();
-	}
-
-	getItem(id) {
-		return Menu.getApplicationMenu().getMenuItemById(id);
-	}
-
-	update() {
-		const template = createTemplate({ appName: app.name, ...this.state }, this);
+function MenuBar(props) {
+	useEffect(()=> {
+		const template = createTemplate({ appName: remote.app.name, ...props });
 		const menu = Menu.buildFromTemplate(template);
 		Menu.setApplicationMenu(menu);
 
 		if (process.platform !== 'darwin') {
-			const { showMenuBar } = this.state;
+			const { showMenuBar } = props;
 			const mainWindow = remote.getCurrentWindow();
 			mainWindow.autoHideMenuBar = !showMenuBar;
 			mainWindow.setMenuBarVisibility(!!showMenuBar);
 		}
+	});
 
-		this.emit('update');
-	}
+	return null;
 }
 
-export default new Menus();
+let menuBarElement;
+
+export const mountMenuBar = (props) => {
+	menuBarElement = createElement(MenuBar, props);
+	menuBarElement.mount(document.body);
+};
+
+export const updateMenuBar = (newProps) => {
+	menuBarElement.update(newProps);
+};

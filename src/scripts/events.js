@@ -5,7 +5,7 @@ import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
 import certificates from './certificates';
 import dock from './dock';
-import menus from './menus';
+import { mountMenuBar, updateMenuBar } from './menus';
 import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
 import servers from './servers';
 import sidebar from './sidebar';
@@ -25,7 +25,7 @@ import {
 import webview, { mountWebViews } from './webview';
 import { processDeepLink } from './deepLinks';
 import { mountMainWindow, updateMainWindow, unmountMainWindow } from './mainWindow';
-import { handle, removeHandler, listen, removeAllListeners } from './ipc';
+import { handle, removeHandler, listen, removeAllListeners, emit } from './ipc';
 import {
 	setupSpellChecking,
 	getSpellCheckingCorrections,
@@ -48,7 +48,7 @@ const updatePreferences = () => {
 	const hasMenuBar = localStorage.getItem('autohideMenu') !== 'true';
 	const hasSidebar = localStorage.getItem('sidebar-closed') !== 'true';
 
-	menus.setState({
+	updateMenuBar({
 		showTrayIcon: hasTrayIcon,
 		showFullScreen: mainWindow.isFullScreen(),
 		showWindowOnUnreadChanged,
@@ -75,7 +75,7 @@ const updatePreferences = () => {
 const updateServers = () => {
 	const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
 
-	menus.setState({
+	updateMenuBar({
 		servers: Object.values(servers.hosts)
 			.sort(({ url: a }, { url: b }) => (sidebar ? sorting.indexOf(a) - sorting.indexOf(b) : 0))
 			.map(({ title, url }) => ({ title, url })),
@@ -102,7 +102,6 @@ const updateWindowState = () => tray.setState({ isMainWindowVisible: getCurrentW
 
 const destroyAll = () => {
 	try {
-		menus.removeAllListeners();
 		tray.destroy();
 		dock.destroy();
 		const mainWindow = getCurrentWindow();
@@ -207,110 +206,6 @@ export default () => {
 		removeAllListeners('close-update-dialog');
 
 		unmountMainWindow();
-	});
-
-	menus.on('quit', () => app.quit());
-	menus.on('about', () => ipcRenderer.send('open-about-dialog'));
-	menus.on('open-url', (url) => shell.openExternal(url));
-
-	menus.on('add-new-server', () => {
-		getCurrentWindow().show();
-		servers.clearActive();
-		toggleAddServerViewVisible(true);
-	});
-
-	menus.on('select-server', ({ url }) => {
-		getCurrentWindow().show();
-		servers.setActive(url);
-	});
-
-	menus.on('reload-server', ({ ignoringCache = false, clearCertificates = false } = {}) => {
-		if (clearCertificates) {
-			certificates.clear();
-		}
-
-		const activeWebview = webview.getActive();
-		if (!activeWebview) {
-			return;
-		}
-
-		if (ignoringCache) {
-			activeWebview.reloadIgnoringCache();
-			return;
-		}
-
-		activeWebview.reload();
-	});
-
-	menus.on('open-devtools-for-server', () => {
-		const activeWebview = webview.getActive();
-		if (activeWebview) {
-			activeWebview.openDevTools();
-		}
-	});
-
-	menus.on('go-back', () => webview.goBack());
-	menus.on('go-forward', () => webview.goForward());
-
-	menus.on('reload-app', () => getCurrentWindow().reload());
-
-	menus.on('toggle-devtools', () => getCurrentWindow().toggleDevTools());
-
-	menus.on('reset-app-data', async () => {
-		const { response } = await remote.dialog.showMessageBox({
-			type: 'question',
-			buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
-			defaultId: 1,
-			title: t('dialog.resetAppData.title'),
-			message: t('dialog.resetAppData.message'),
-		});
-
-		if (response !== 0) {
-			return;
-		}
-
-		remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
-		remote.app.quit();
-	});
-
-	menus.on('toggle', (property) => {
-		switch (property) {
-			case 'showTrayIcon': {
-				const previousValue = localStorage.getItem('hideTray') !== 'true';
-				const newValue = !previousValue;
-				localStorage.setItem('hideTray', JSON.stringify(!newValue));
-				break;
-			}
-
-			case 'showFullScreen': {
-				const mainWindow = getCurrentWindow();
-				mainWindow.setFullScreen(!mainWindow.isFullScreen());
-				break;
-			}
-
-			case 'showWindowOnUnreadChanged': {
-				const previousValue = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
-				const newValue = !previousValue;
-				localStorage.setItem('showWindowOnUnreadChanged', JSON.stringify(newValue));
-				break;
-			}
-
-			case 'showMenuBar': {
-				const previousValue = localStorage.getItem('autohideMenu') !== 'true';
-				const newValue = !previousValue;
-				localStorage.setItem('autohideMenu', JSON.stringify(!newValue));
-				break;
-			}
-
-			case 'showServerList': {
-				const previousValue = localStorage.getItem('sidebar-closed') !== 'true';
-				const newValue = !previousValue;
-				localStorage.setItem('sidebar-closed', JSON.stringify(!newValue));
-				break;
-			}
-		}
-
-		updatePreferences();
 	});
 
 	servers.on('loaded', () => {
@@ -446,6 +341,148 @@ export default () => {
 
 	setupSpellChecking();
 	setupUpdates();
+
+	mountMenuBar({
+		onAction: async ({ type, payload }) => {
+			if (type === 'quit') {
+				app.quit();
+				return;
+			}
+
+			if (type === 'about') {
+				emit('open-about-dialog');
+				return;
+			}
+
+			if (type === 'open-url') {
+				const url = payload;
+				shell.openExternal(url);
+				return;
+			}
+
+			if (type === 'add-new-server') {
+				getCurrentWindow().show();
+				servers.clearActive();
+				toggleAddServerViewVisible(true);
+				return;
+			}
+
+			if (type === 'select-server') {
+				const { url } = payload || {};
+				getCurrentWindow().show();
+				servers.setActive(url);
+				return;
+			}
+
+			if (type === 'reload-server') {
+				const { ignoringCache = false, clearCertificates = false } = payload || {};
+				if (clearCertificates) {
+					certificates.clear();
+				}
+
+				const activeWebview = webview.getActive();
+				if (!activeWebview) {
+					return;
+				}
+
+				if (ignoringCache) {
+					activeWebview.reloadIgnoringCache();
+					return;
+				}
+
+				activeWebview.reload();
+				return;
+			}
+
+			if (type === 'open-devtools-for-server') {
+				const activeWebview = webview.getActive();
+				if (activeWebview) {
+					activeWebview.openDevTools();
+				}
+				return;
+			}
+
+			if (type === 'go-back') {
+				webview.goBack();
+				return;
+			}
+
+			if (type === 'go-forward') {
+				webview.goForward();
+				return;
+			}
+
+			if (type === 'reload-app') {
+				getCurrentWindow().reload();
+				return;
+			}
+
+			if (type === 'toggle-devtools') {
+				getCurrentWindow().toggleDevTools();
+				return;
+			}
+
+			if (type === 'reset-app-data') {
+				const { response } = await remote.dialog.showMessageBox({
+					type: 'question',
+					buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
+					defaultId: 1,
+					title: t('dialog.resetAppData.title'),
+					message: t('dialog.resetAppData.message'),
+				});
+
+				if (response !== 0) {
+					return;
+				}
+
+				remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
+				remote.app.quit();
+				return;
+			}
+
+			if (type === 'toggle') {
+				const property = payload;
+
+				switch (property) {
+					case 'showTrayIcon': {
+						const previousValue = localStorage.getItem('hideTray') !== 'true';
+						const newValue = !previousValue;
+						localStorage.setItem('hideTray', JSON.stringify(!newValue));
+						break;
+					}
+
+					case 'showFullScreen': {
+						const mainWindow = getCurrentWindow();
+						mainWindow.setFullScreen(!mainWindow.isFullScreen());
+						break;
+					}
+
+					case 'showWindowOnUnreadChanged': {
+						const previousValue = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
+						const newValue = !previousValue;
+						localStorage.setItem('showWindowOnUnreadChanged', JSON.stringify(newValue));
+						break;
+					}
+
+					case 'showMenuBar': {
+						const previousValue = localStorage.getItem('autohideMenu') !== 'true';
+						const newValue = !previousValue;
+						localStorage.setItem('autohideMenu', JSON.stringify(!newValue));
+						break;
+					}
+
+					case 'showServerList': {
+						const previousValue = localStorage.getItem('sidebar-closed') !== 'true';
+						const newValue = !previousValue;
+						localStorage.setItem('sidebar-closed', JSON.stringify(!newValue));
+						break;
+					}
+				}
+
+				updatePreferences();
+			}
+		},
+	});
 
 	mountTouchBar({
 		onChangeServer: (serverUrl) => {

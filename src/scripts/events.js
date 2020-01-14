@@ -471,6 +471,21 @@ export default () => {
 				return;
 			}
 
+			if (type === 'reset-zoom') {
+				remote.webContents.getFocusedWebContents().zoomLevel = 0;
+				return;
+			}
+
+			if (type === 'zoom-in') {
+				remote.webContents.getFocusedWebContents().zoomLevel++;
+				return;
+			}
+
+			if (type === 'reset-out') {
+				remote.webContents.getFocusedWebContents().zoomLevel--;
+				return;
+			}
+
 			if (type === 'reset-app-data') {
 				const { response } = await remote.dialog.showMessageBox({
 					type: 'question',

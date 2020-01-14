@@ -5,7 +5,18 @@ const commit = (element) => {
 
 	element.hookIndex = 0;
 
-	element.render(element.props);
+	const previouslyRendered = element.rendered;
+	element.rendered = element.render(element.props);
+
+	if (previouslyRendered && element.rendered) {
+		element.rendered.root = previouslyRendered.root;
+		element.rendered.hooks = previouslyRendered.hooks;
+		commit(element.rendered);
+	} else if (!previouslyRendered && element.rendered) {
+		element.rendered.mount(element.root);
+	} else if (previouslyRendered && !element.rendered) {
+		previouslyRendered.unmount();
+	}
 
 	element.hooks.filter(({ fn }) => !!fn).forEach((hook) => {
 		const { fn, deps, prevDeps, cleanUp } = hook;
@@ -32,6 +43,7 @@ export const createElement = (render, initialProps = {}) => {
 		render,
 		props: { ...initialProps },
 		root: null,
+		rendered: null,
 		hooks: [],
 		hookIndex: 0,
 		mount: (root) => {
@@ -49,6 +61,10 @@ export const createElement = (render, initialProps = {}) => {
 		unmount: () => {
 			if (!element.root) {
 				return;
+			}
+
+			if (element.rendered) {
+				element.rendered.unmount();
 			}
 
 			element.hooks.filter(({ cleanUp }) => typeof cleanUp === 'function').forEach(({ cleanUp }) => cleanUp());

@@ -361,6 +361,7 @@ export default () => {
 	setupUpdates();
 
 	mountMenuBar({
+		// eslint-disable-next-line complexity
 		onAction: async ({ type, payload }) => {
 			if (type === 'quit') {
 				app.quit();
@@ -375,6 +376,36 @@ export default () => {
 			if (type === 'open-url') {
 				const url = payload;
 				shell.openExternal(url);
+				return;
+			}
+
+			if (type === 'undo') {
+				remote.webContents.getFocusedWebContents().undo();
+				return;
+			}
+
+			if (type === 'redo') {
+				remote.webContents.getFocusedWebContents().redo();
+				return;
+			}
+
+			if (type === 'cut') {
+				remote.webContents.getFocusedWebContents().cut();
+				return;
+			}
+
+			if (type === 'copy') {
+				remote.webContents.getFocusedWebContents().copy();
+				return;
+			}
+
+			if (type === 'paste') {
+				remote.webContents.getFocusedWebContents().paste();
+				return;
+			}
+
+			if (type === 'select-all') {
+				remote.webContents.getFocusedWebContents().selectAll();
 				return;
 			}
 

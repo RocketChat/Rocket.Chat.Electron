@@ -2,8 +2,6 @@ import { remote } from 'electron';
 import { t } from 'i18next';
 import { createElement, useEffect } from './reactiveUi';
 
-const { app, Menu, webContents } = remote;
-
 const createTemplate = ({
 	appName,
 	servers = [],
@@ -71,12 +69,12 @@ const createTemplate = ({
 			{
 				label: t('menus.undo'),
 				accelerator: 'CommandOrControl+Z',
-				click: () => webContents.getFocusedWebContents().undo(),
+				click: () => onAction({ type: 'undo' }),
 			},
 			{
 				label: t('menus.redo'),
 				accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
-				click: () => webContents.getFocusedWebContents().redo(),
+				click: () => onAction({ type: 'redo' }),
 			},
 			{
 				type: 'separator',
@@ -84,22 +82,22 @@ const createTemplate = ({
 			{
 				label: t('menus.cut'),
 				accelerator: 'CommandOrControl+X',
-				role: 'cut',
+				click: () => onAction({ type: 'cut' }),
 			},
 			{
 				label: t('menus.copy'),
 				accelerator: 'CommandOrControl+C',
-				role: 'copy',
+				click: () => onAction({ type: 'copy' }),
 			},
 			{
 				label: t('menus.paste'),
 				accelerator: 'CommandOrControl+V',
-				role: 'paste',
+				click: () => onAction({ type: 'paste' }),
 			},
 			{
 				label: t('menus.selectAll'),
 				accelerator: 'CommandOrControl+A',
-				role: 'selectall',
+				click: () => onAction({ type: 'select-all' }),
 			},
 		],
 	},
@@ -174,17 +172,23 @@ const createTemplate = ({
 			{
 				label: t('menus.resetZoom'),
 				accelerator: 'CommandOrControl+0',
-				role: 'resetzoom',
+				click: () => {
+					remote.webContents.getFocusedWebContents().zoomLevel = 0;
+				},
 			},
 			{
 				label: t('menus.zoomIn'),
 				accelerator: 'CommandOrControl+Plus',
-				role: 'zoomin',
+				click: () => {
+					remote.webContents.getFocusedWebContents().zoomLevel++;
+				},
 			},
 			{
 				label: t('menus.zoomOut'),
 				accelerator: 'CommandOrControl+-',
-				role: 'zoomout',
+				click: () => {
+					remote.webContents.getFocusedWebContents().zoomLevel--;
+				},
 			},
 		],
 	},
@@ -285,8 +289,8 @@ const createTemplate = ({
 function MenuBar(props) {
 	useEffect(()=> {
 		const template = createTemplate({ appName: remote.app.name, ...props });
-		const menu = Menu.buildFromTemplate(template);
-		Menu.setApplicationMenu(menu);
+		const menu = remote.Menu.buildFromTemplate(template);
+		remote.Menu.setApplicationMenu(menu);
 
 		if (process.platform !== 'darwin') {
 			const { showMenuBar } = props;

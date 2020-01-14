@@ -91,6 +91,10 @@ class WebView extends EventEmitter {
 
 		loadingErrorViews.set(host.url, loadingErrorViewElement);
 
+		webviewObj.addEventListener('focus', () => {
+			this.emit('focus', webviewObj.getWebContents());
+		});
+
 		webviewObj.addEventListener('did-navigate-in-page', (event) => {
 			this.emit('did-navigate-in-page', host.url, event);
 		});

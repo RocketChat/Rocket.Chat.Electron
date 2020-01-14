@@ -112,7 +112,25 @@ const destroyAll = () => {
 	}
 };
 
+let focusedWebContents = null;
+
+const patchFocusedWebContents = () => {
+	focusedWebContents = remote.getCurrentWebContents();
+
+	window.addEventListener('focus', () => {
+		focusedWebContents = remote.getCurrentWebContents();
+	});
+
+	webview.on('focus', (webContents) => {
+		focusedWebContents = webContents;
+	});
+
+	remote.webContents.getFocusedWebContents = () => focusedWebContents;
+};
+
 export default () => {
+	patchFocusedWebContents();
+
 	window.addEventListener('beforeunload', destroyAll);
 	window.addEventListener('focus', () => webview.focusActive());
 

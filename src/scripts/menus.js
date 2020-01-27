@@ -1,33 +1,254 @@
 import { remote } from 'electron';
 import { t } from 'i18next';
-import { createElement, useEffect, useRef } from './reactiveUi';
+import { createElement, useEffect, useRef, useState } from './reactiveUi';
 
-function MenuItem(props) {
-	return null;
-}
+const createMenu = ({
+	appName = remote.app.name,
+	showFullScreen,
+	showServerList,
+	showTrayIcon,
+	showMenuBar,
+	servers = [],
+	currentServerUrl,
+	showWindowOnUnreadChanged,
+	onAction,
+}) => {
+	const template = [
+		{
+			label: process.platform === 'darwin' ? appName : t('menus.fileMenu'),
+			submenu: [
+				...process.platform === 'darwin' ? [
+					{
+						label: t('menus.about', { appName }),
+						click: () => onAction({ type: 'about' })
+					},
+					{ type: 'separator' },
+					{ role: 'services' },
+					{ type: 'separator' },
+					{ role: 'hide' },
+					{ role: 'hideothers' },
+					{ role: 'unhide' },
+					{ type: 'separator' },
+				] : [],
+				...process.platform !== 'darwin' ? [
+					{
+						label: t('menus.addNewServer'),
+						accelerator: 'CommandOrControl+N',
+						click: () => onAction({ type: 'add-new-server' })
+					},
+				] : [],
+				{ type: 'separator' },
+				{
+					label: t('menus.quit', { appName }),
+					accelerator: 'CommandOrControl+Q',
+					click: () => onAction({ type: 'quit' })
+				},
+			]
+		},
+		{
+			label: t('menus.editMenu'),
+			submenu: [
+				{
+					label: t('menus.undo'),
+					accelerator: 'CommandOrControl+Z',
+					click: () => onAction({ type: 'undo' }),
+				},
+				{
+					label: t('menus.redo'),
+					accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
+					click: () => onAction({ type: 'redo' }),
+				},
+				{ type: 'separator' },
+				{
+					label: t('menus.cut'),
+					accelerator: 'CommandOrControl+X',
+					click: () => onAction({ type: 'cut' }),
+				},
+				{
+					label: t('menus.copy'),
+					accelerator: 'CommandOrControl+C',
+					click: () => onAction({ type: 'copy' }),
+				},
+				{
+					label: t('menus.paste'),
+					accelerator: 'CommandOrControl+V',
+					click: () => onAction({ type: 'paste' }),
+				},
+				{
+					label: t('menus.selectAll'),
+					accelerator: 'CommandOrControl+A',
+					click: () => onAction({ type: 'select-all' }),
+				},
+			]
+		},
+		{
+			label: t('menus.viewMenu'),
+			submenu: [
+				{
+					label: t('menus.reload'),
+					accelerator: 'CommandOrControl+R',
+					click: () => onAction({ type: 'reload-server' }),
+				},
+				{
+					label: t('menus.reloadIgnoringCache'),
+					click: () => onAction({ type: 'reload-server', payload: { ignoringCache: true } }),
+				},
+				{
+					label: t('menus.clearTrustedCertificates'),
+					click: () => onAction({ type: 'reload-server', payload: { ignoringCache: true, clearCertificates: true } }),
+				},
+				{
+					label: t('menus.openDevTools'),
+					accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
+					click: () => onAction({ type: 'open-devtools-for-server' }),
+				},
+				{ type: 'separator' },
+				{
+					label: t('menus.back'),
+					accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
+					click: () => onAction({ type: 'go-back' }),
+				},
+				{
+					label: t('menus.forward'),
+					accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
+					click: () => onAction({ type: 'go-forward' }),
+				},
+				{ type: 'separator' },
+				{
+					label: t('menus.showTrayIcon'),
+					type: 'checkbox',
+					checked: showTrayIcon,
+					click: () => onAction({ type: 'toggle', payload: 'showTrayIcon' }),
+				},
+				...process.platform === 'darwin' ? [
+					{
+						label: t('menus.showFullScreen'),
+						type: 'checkbox',
+						checked: showFullScreen,
+						accelerator: 'Control+Command+F',
+						click: () => onAction({ type: 'toggle', payload: 'showFullScreen' }),
+					},
+				] : [],
+				...process.platform !== 'darwin' ? [
+					{
+						label: t('menus.showMenuBar'),
+						type: 'checkbox',
+						checked: showMenuBar,
+						click: () => onAction({ type: 'toggle', payload: 'showMenuBar' }),
+					},
+				] : [],
+				{
+					label: t('menus.showServerList'),
+					type: 'checkbox',
+					checked: showServerList,
+					click: () => onAction({ type: 'toggle', payload: 'showServerList' }),
+				},
+				{ type: 'separator' },
+				{
+					label: t('menus.resetZoom'),
+					accelerator: 'CommandOrControl+0',
+					click: () => onAction({ type: 'reset-zoom' }),
+				},
+				{
+					label: t('menus.zoomIn'),
+					accelerator: 'CommandOrControl+Plus',
+					click: () => onAction({ type: 'zoom-in' }),
+				},
+				{
+					label: t('menus.zoomOut'),
+					accelerator: 'CommandOrControl+-',
+					click: () => onAction({ type: 'zoom-out' }),
+				},
+			]
+		},
+		{
+			label: t('menus.windowMenu'),
+			role: 'window',
+			submenu: [
+				...process.platform === 'darwin' ? [
+					{
+						label: t('menus.addNewServer'),
+						accelerator: 'CommandOrControl+N',
+						click: () => onAction({ type: 'add-new-server' }),
+					},
+					{ type: 'separator' },
+				] : [],
+				...servers.map((server, i) => ({
+					type: currentServerUrl ? 'radio' : 'normal',
+					label: server.title.replace(/&/g, '&&'),
+					checked: currentServerUrl === server.url,
+					accelerator: `CommandOrControl+${ i + 1 }`,
+					click: () => onAction({ type: 'select-server', payload: server }),
+				})),
+				{ type: 'separator' },
+				{
+					label: t('menus.reload'),
+					accelerator: 'CommandOrControl+Shift+R',
+					click: () => onAction({ type: 'reload-app' }),
+				},
+				{
+					label: t('menus.toggleDevTools'),
+					click: () => onAction({ type: 'toggle-devtools' }),
+				},
+				{ type: 'separator' },
+				{
+					type: 'checkbox',
+					label: t('menus.showOnUnreadMessage'),
+					checked: showWindowOnUnreadChanged,
+					click: () => onAction({ type: 'toggle', payload: 'showWindowOnUnreadChanged' }),
+				},
+				{ type: 'separator' },
+				{
+					role: 'minimize',
+					label: t('menus.minimize'),
+					accelerator: 'CommandOrControl+M',
+				},
+				{
+					role: 'close',
+					label: t('menus.close'),
+					accelerator: 'CommandOrControl+W',
+				},
+			]
+		},
+		{
+			label: t('menus.helpMenu'),
+			role: 'help',
+			submenu: [
+				{
+					label: t('menus.documentation'),
+					click: () => onAction({ type: 'open-url', payload: 'https://rocket.chat/docs' }),
+				},
+				{ type: 'separator' },
+				{
+					label: t('menus.reportIssue'),
+					click: () => onAction({ type: 'open-url', payload: 'https://github.com/RocketChat/Rocket.Chat.Electron/issues/new' }),
+				},
+				{
+					label: t('menus.resetAppData'),
+					click: () => onAction({ type: 'reset-app-data' }),
+				},
+				{ type: 'separator' },
+				{
+					label: t('menus.learnMore'),
+					click: () => onAction({ type: 'open-url', payload: 'https://rocket.chat' }),
+				},
+				...process.platform !== 'darwin' ? [
+					{
+						label: t('menus.about', { appName }),
+						click: () => onAction({ type: 'about' }),
+					},
+				] : [],
+			]
+		},
+	];
 
-function Menu({ children, ref, ...props }) {
-	const menuRef = useRef();
+	const menu = remote.Menu.buildFromTemplate(template);
 
-	useEffect(() => {
-		const mapChildren = (children) => children.map(({ props: { children, ...props } }) => ({
-			...props,
-			submenu: children ? mapChildren(children) : null,
-		}));
-
-		const template = mapChildren(children);
-		const menu = remote.Menu.buildFromTemplate(template);
-		ref.current = menu;
-
-		return () => {
-			ref.current = null;
-		};
-	}, [ref, children]);
-
-	return null;
-}
+	return menu;
+};
 
 function MenuBar({
+	appName = remote.app.name,
 	showFullScreen,
 	showServerList,
 	showTrayIcon,
@@ -37,15 +258,34 @@ function MenuBar({
 	showWindowOnUnreadChanged,
 	onAction,
 }) {
-	const menuRef = useRef();
-
 	useEffect(() => {
-		remote.Menu.setApplicationMenu(menuRef.current);
+		const menu = createMenu({
+			appName,
+			showFullScreen,
+			showServerList,
+			showTrayIcon,
+			showMenuBar,
+			servers,
+			currentServerUrl,
+			showWindowOnUnreadChanged,
+			onAction,
+		});
+		remote.Menu.setApplicationMenu(menu);
 
 		return () => {
 			remote.Menu.setApplicationMenu(null);
 		};
-	});
+	}, [
+		appName,
+		showFullScreen,
+		showServerList,
+		showTrayIcon,
+		showMenuBar,
+		servers,
+		currentServerUrl,
+		showWindowOnUnreadChanged,
+		onAction,
+	]);
 
 	useEffect(() => {
 		if (process.platform === 'darwin') {
@@ -56,219 +296,7 @@ function MenuBar({
 		remote.getCurrentWindow().setMenuBarVisibility(!!showMenuBar);
 	}, [showMenuBar]);
 
-	const appName = remote.app.name;
-
-	return createElement(Menu, { ref: menuRef, children: [
-		createElement(MenuItem, { label: process.platform === 'darwin' ? appName : t('menus.fileMenu'), children: [
-			...process.platform === 'darwin' ? [
-				createElement(MenuItem, {
-					label: t('menus.about', { appName }),
-					click: () => onAction({ type: 'about' })
-				}),
-				createElement(MenuItem, { type: 'separator' }),
-				createElement(MenuItem, { role: 'services' }),
-				createElement(MenuItem, { type: 'separator' }),
-				createElement(MenuItem, { accelerator: 'Command+H', role: 'hide' }),
-				createElement(MenuItem, { accelerator: 'Command+Alt+H', role: 'hideothers' }),
-				createElement(MenuItem, { role: 'unhide' }),
-				createElement(MenuItem, { type: 'separator' }),
-			] : [],
-			...process.platform !== 'darwin' ? [
-				createElement(MenuItem, {
-					label: t('menus.addNewServer'),
-					accelerator: 'CommandOrControl+N',
-					click: () => onAction({ type: 'add-new-server' })
-				}),
-			] : [],
-			createElement(MenuItem, { type: 'separator' }),
-			createElement(MenuItem, {
-				label: t('menus.quit', { appName }),
-				accelerator: 'CommandOrControl+Q',
-				click: () => onAction({ type: 'quit' })
-			}),
-		] }),
-		createElement(MenuItem, { label: t('menus.editMenu'), children: [
-			createElement(MenuItem, {
-				label: t('menus.undo'),
-				accelerator: 'CommandOrControl+Z',
-				click: () => onAction({ type: 'undo' }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.redo'),
-				accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
-				click: () => onAction({ type: 'redo' }),
-			}),
-			createElement(MenuItem, { type: 'separator' }),
-			createElement(MenuItem, {
-				label: t('menus.cut'),
-				accelerator: 'CommandOrControl+X',
-				click: () => onAction({ type: 'cut' }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.copy'),
-				accelerator: 'CommandOrControl+C',
-				click: () => onAction({ type: 'copy' }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.paste'),
-				accelerator: 'CommandOrControl+V',
-				click: () => onAction({ type: 'paste' }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.selectAll'),
-				accelerator: 'CommandOrControl+A',
-				click: () => onAction({ type: 'select-all' }),
-			}),
-		] }),
-		createElement(MenuItem, { label: t('menus.viewMenu'), children: [
-			createElement(MenuItem, {
-				label: t('menus.reload'),
-				accelerator: 'CommandOrControl+R',
-				click: () => onAction({ type: 'reload-server' }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.reloadIgnoringCache'),
-				click: () => onAction({ type: 'reload-server', payload: { ignoringCache: true } }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.clearTrustedCertificates'),
-				click: () => onAction({ type: 'reload-server', payload: { ignoringCache: true, clearCertificates: true } }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.openDevTools'),
-				accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
-				click: () => onAction({ type: 'open-devtools-for-server' }),
-			}),
-			createElement(MenuItem, { type: 'separator' }),
-			createElement(MenuItem, {
-				label: t('menus.back'),
-				accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
-				click: () => onAction({ type: 'go-back' }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.forward'),
-				accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
-				click: () => onAction({ type: 'go-forward' }),
-			}),
-			createElement(MenuItem, { type: 'separator' }),
-			createElement(MenuItem, {
-				label: t('menus.showTrayIcon'),
-				type: 'checkbox',
-				checked: showTrayIcon,
-				click: () => onAction({ type: 'toggle', payload: 'showTrayIcon' }),
-			}),
-			...process.platform === 'darwin' ? [
-				createElement(MenuItem, {
-					label: t('menus.showFullScreen'),
-					type: 'checkbox',
-					checked: showFullScreen,
-					accelerator: 'Control+Command+F',
-					click: () => onAction({ type: 'toggle', payload: 'showFullScreen' }),
-				}),
-			] : [
-				createElement(MenuItem, {
-					label: t('menus.showMenuBar'),
-					type: 'checkbox',
-					checked: showMenuBar,
-					click: () => onAction({ type: 'toggle', payload: 'showMenuBar' }),
-				}),
-			],
-			createElement(MenuItem, {
-				label: t('menus.showServerList'),
-				type: 'checkbox',
-				checked: showServerList,
-				click: () => onAction({ type: 'toggle', payload: 'showServerList' }),
-			}),
-			createElement(MenuItem, { type: 'separator' }),
-			createElement(MenuItem, {
-				label: t('menus.resetZoom'),
-				accelerator: 'CommandOrControl+0',
-				click: () => onAction({ type: 'reset-zoom' }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.zoomIn'),
-				accelerator: 'CommandOrControl+Plus',
-				click: () => onAction({ type: 'zoom-in' }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.zoomOut'),
-				accelerator: 'CommandOrControl+-',
-				click: () => onAction({ type: 'zoom-out' }),
-			}),
-		] }),
-		createElement(MenuItem, { label: t('menus.windowMenu'), role: 'window', children: [
-			...process.platform === 'darwin' ? [
-				createElement(MenuItem, {
-					label: t('menus.addNewServer'),
-					accelerator: 'CommandOrControl+N',
-					click: () => onAction({ type: 'add-new-server' }),
-				}),
-				createElement(MenuItem, { type: 'separator' }),
-			] : [],
-			...servers.map((host, i) => createElement(MenuItem, {
-				label: host.title.replace(/&/g, '&&'),
-				type: currentServerUrl ? 'radio' : 'normal',
-				checked: currentServerUrl === host.url,
-				accelerator: `CommandOrControl+${ i + 1 }`,
-				id: host.url,
-				click: () => onAction({ type: 'select-server', payload: host }),
-			})),
-			createElement(MenuItem, { type: 'separator' }),
-			createElement(MenuItem, {
-				label: t('menus.reload'),
-				accelerator: 'CommandOrControl+Shift+R',
-				click: () => onAction({ type: 'reload-app' }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.toggleDevTools'),
-				click: () => onAction({ type: 'toggle-devtools' }),
-			}),
-			createElement(MenuItem, { type: 'separator' }),
-			createElement(MenuItem, {
-				label: t('menus.showOnUnreadMessage'),
-				type: 'checkbox',
-				checked: showWindowOnUnreadChanged,
-				click: () => onAction({ type: 'toggle', payload: 'showWindowOnUnreadChanged' }),
-			}),
-			createElement(MenuItem, { type: 'separator' }),
-			createElement(MenuItem, {
-				label: t('menus.minimize'),
-				accelerator: 'CommandOrControl+M',
-				role: 'minimize',
-			}),
-			createElement(MenuItem, {
-				label: t('menus.close'),
-				accelerator: 'CommandOrControl+W',
-				role: 'close',
-			}),
-		] }),
-		createElement(MenuItem, { label: t('menus.helpMenu'), role: 'help', children: [
-			createElement(MenuItem, {
-				label: t('menus.documentation'),
-				click: () => onAction({ type: 'open-url', payload: 'https://rocket.chat/docs' }),
-			}),
-			createElement(MenuItem, { type: 'separator' }),
-			createElement(MenuItem, {
-				label: t('menus.reportIssue'),
-				click: () => onAction({ type: 'open-url', payload: 'https://github.com/RocketChat/Rocket.Chat.Electron/issues/new' }),
-			}),
-			createElement(MenuItem, {
-				label: t('menus.resetAppData'),
-				click: () => onAction({ type: 'reset-app-data' }),
-			}),
-			createElement(MenuItem, { type: 'separator' }),
-			createElement(MenuItem, {
-				label: t('menus.learnMore'),
-				click: () => onAction({ type: 'open-url', payload: 'https://rocket.chat' }),
-			}),
-			...process.platform !== 'darwin' ? [
-				createElement(MenuItem, {
-					label: t('menus.about', { appName }),
-					click: () => onAction({ type: 'about' }),
-				}),
-			] : [],
-		] }),
-	] });
+	return null;
 }
 
 let menuBarElement;

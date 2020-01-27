@@ -5,7 +5,7 @@ import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
 import certificates from './certificates';
 import dock from './dock';
-import { mountMenuBar, updateMenuBar } from './menus';
+import { mountMenuBar, updateMenuBar } from './menuBar';
 import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
 import servers from './servers';
 import sidebar from './sidebar';

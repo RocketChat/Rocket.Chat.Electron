@@ -25,7 +25,7 @@ import {
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
 } from './actions';
-import { createElement, useEffect } from './reactiveUi';
+import { useEffect } from './reactiveUi';
 
 const createAppMenuItemTemplate = ({ appName, t, dispatch }) => ({
 	label: process.platform === 'darwin' ? appName : t('menus.fileMenu'),
@@ -322,14 +322,3 @@ export function MenuBar({
 
 	return null;
 }
-
-let menuBarElement;
-
-export const mountMenuBar = (props) => {
-	menuBarElement = createElement(MenuBar, props);
-	menuBarElement.mount(document.body);
-};
-
-export const updateMenuBar = (newProps) => {
-	menuBarElement.update(newProps);
-};

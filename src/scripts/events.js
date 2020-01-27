@@ -1,3 +1,4 @@
+/** @jsx createElement */
 import { remote, ipcRenderer } from 'electron';
 import { t } from 'i18next';
 
@@ -5,7 +6,7 @@ import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
 import certificates from './certificates';
 import dock from './dock';
-import { mountMenuBar, updateMenuBar } from './menuBar';
+import { MenuBar } from './menuBar';
 import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
 import servers from './servers';
 import sidebar from './sidebar';
@@ -61,27 +62,40 @@ import {
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
 } from './actions';
+import { createElement, Fragment } from './reactiveUi';
 
 const { app, getCurrentWindow, shell } = remote;
 
-const updatePreferences = () => {
-	const mainWindow = getCurrentWindow();
-	const showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
-	const hasTrayIcon = localStorage.getItem('hideTray')
-		? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux';
-	const hasMenuBar = localStorage.getItem('autohideMenu') !== 'true';
-	const hasSidebar = localStorage.getItem('sidebar-closed') !== 'true';
+let showWindowOnUnreadChanged;
+let hasTrayIcon;
+let hasMenuBar;
+let hasSidebar;
+let _servers;
+let currentServerUrl;
+let isFullScreen;
+let isMainWindowVisible;
 
-	updateMenuBar({
-		showTrayIcon: hasTrayIcon,
-		showFullScreen: mainWindow.isFullScreen(),
-		showWindowOnUnreadChanged,
-		showMenuBar: hasMenuBar,
-		showServerList: hasSidebar,
-	});
+let appElement;
+
+const updateComponents = () => {
+	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
+	hasTrayIcon = localStorage.getItem('hideTray')
+		? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux';
+	hasMenuBar = localStorage.getItem('autohideMenu') !== 'true';
+	hasSidebar = localStorage.getItem('sidebar-closed') !== 'true';
+
+	const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+	_servers = Object.values(servers.hosts)
+		.sort(({ url: a }, { url: b }) => (sidebar ? sorting.indexOf(a) - sorting.indexOf(b) : 0))
+		.map(({ title, url }) => ({ title, url }));
+	currentServerUrl = servers.active;
+
+	isFullScreen = remote.getCurrentWindow().isFullScreen();
+	isMainWindowVisible = remote.getCurrentWindow().isVisible();
 
 	tray.setState({
 		showIcon: hasTrayIcon,
+		isMainWindowVisible,
 	});
 
 	dock.setState({
@@ -90,47 +104,236 @@ const updatePreferences = () => {
 
 	sidebar.setState({
 		visible: hasSidebar,
+		hosts: _servers.reduce((hosts, server) => ({ ...hosts, [server.url]: server }), {}),
+		sorting: _servers.map(({ url }) => url),
+		active: currentServerUrl,
 	});
 
 	webview.setSidebarPaddingEnabled(!hasSidebar);
-};
-
-
-const updateServers = () => {
-	const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
-
-	updateMenuBar({
-		servers: Object.values(servers.hosts)
-			.sort(({ url: a }, { url: b }) => (sidebar ? sorting.indexOf(a) - sorting.indexOf(b) : 0))
-			.map(({ title, url }) => ({ title, url })),
-		currentServerUrl: servers.active,
-	});
-
-	sidebar.setState({
-		hosts: servers.hosts,
-		sorting,
-		active: servers.active,
-	});
 
 	updateTouchBar({
-		servers: Object.values(servers.hosts)
-			.sort(({ url: a }, { url: b }) => (sidebar ? sorting.indexOf(a) - sorting.indexOf(b) : 0))
-			.map(({ title, url }) => ({ title, url })),
-		activeServerUrl: servers.active,
+		servers: _servers,
+		activeServerUrl: currentServerUrl,
 		activeWebView: webview.getActive(),
 	});
+
+	appElement.update();
 };
 
+// eslint-disable-next-line complexity
+const dispatch = async ({ type, payload }) => {
+	if (type === MENU_BAR_QUIT_CLICKED) {
+		app.quit();
+		return;
+	}
 
-const updateWindowState = () => tray.setState({ isMainWindowVisible: getCurrentWindow().isVisible() });
+	if (type === MENU_BAR_ABOUT_CLICKED) {
+		emit('open-about-dialog');
+		return;
+	}
+
+	if (type === MENU_BAR_OPEN_URL_CLICKED) {
+		const url = payload;
+		shell.openExternal(url);
+		return;
+	}
+
+	if (type === MENU_BAR_UNDO_CLICKED) {
+		remote.webContents.getFocusedWebContents().undo();
+		return;
+	}
+
+	if (type === MENU_BAR_REDO_CLICKED) {
+		remote.webContents.getFocusedWebContents().redo();
+		return;
+	}
+
+	if (type === MENU_BAR_CUT_CLICKED) {
+		remote.webContents.getFocusedWebContents().cut();
+		return;
+	}
+
+	if (type === MENU_BAR_COPY_CLICKED) {
+		remote.webContents.getFocusedWebContents().copy();
+		return;
+	}
+
+	if (type === MENU_BAR_PASTE_CLICKED) {
+		remote.webContents.getFocusedWebContents().paste();
+		return;
+	}
+
+	if (type === MENU_BAR_SELECT_ALL_CLICKED) {
+		remote.webContents.getFocusedWebContents().selectAll();
+		return;
+	}
+
+	if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
+		getCurrentWindow().show();
+		servers.clearActive();
+		toggleAddServerViewVisible(true);
+		return;
+	}
+
+	if (type === MENU_BAR_SELECT_ALL_CLICKED) {
+		const { url } = payload || {};
+		getCurrentWindow().show();
+		servers.setActive(url);
+		return;
+	}
+
+	if (type === MENU_BAR_RELOAD_SERVER_CLICKED) {
+		const { ignoringCache = false, clearCertificates = false } = payload || {};
+		if (clearCertificates) {
+			certificates.clear();
+		}
+
+		const activeWebview = webview.getActive();
+		if (!activeWebview) {
+			return;
+		}
+
+		if (ignoringCache) {
+			activeWebview.reloadIgnoringCache();
+			return;
+		}
+
+		activeWebview.reload();
+		return;
+	}
+
+	if (type === MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
+		const activeWebview = webview.getActive();
+		if (activeWebview) {
+			activeWebview.openDevTools();
+		}
+		return;
+	}
+
+	if (type === MENU_BAR_GO_BACK_CLICKED) {
+		webview.goBack();
+		return;
+	}
+
+	if (type === MENU_BAR_GO_FORWARD_CLICKED) {
+		webview.goForward();
+		return;
+	}
+
+	if (type === MENU_BAR_RELOAD_APP_CLICKED) {
+		getCurrentWindow().reload();
+		return;
+	}
+
+	if (type === MENU_BAR_TOGGLE_DEVTOOLS_CLICKED) {
+		getCurrentWindow().toggleDevTools();
+		return;
+	}
+
+	if (type === MENU_BAR_RESET_ZOOM_CLICKED) {
+		remote.webContents.getFocusedWebContents().zoomLevel = 0;
+		return;
+	}
+
+	if (type === MENU_BAR_ZOOM_IN_CLICKED) {
+		remote.webContents.getFocusedWebContents().zoomLevel++;
+		return;
+	}
+
+	if (type === MENU_BAR_ZOOM_OUT_CLICKED) {
+		remote.webContents.getFocusedWebContents().zoomLevel--;
+		return;
+	}
+
+	if (type === MENU_BAR_RESET_APP_DATA_CLICKED) {
+		const { response } = await remote.dialog.showMessageBox({
+			type: 'question',
+			buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
+			defaultId: 1,
+			title: t('dialog.resetAppData.title'),
+			message: t('dialog.resetAppData.message'),
+		});
+
+		if (response !== 0) {
+			return;
+		}
+
+		remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
+		remote.app.quit();
+		return;
+	}
+
+	if (type === MENU_BAR_TOGGLE_SETTING_CLICKED) {
+		const property = payload;
+
+		switch (property) {
+			case 'showTrayIcon': {
+				const previousValue = localStorage.getItem('hideTray') !== 'true';
+				const newValue = !previousValue;
+				localStorage.setItem('hideTray', JSON.stringify(!newValue));
+				break;
+			}
+
+			case 'showFullScreen': {
+				const mainWindow = getCurrentWindow();
+				mainWindow.setFullScreen(!mainWindow.isFullScreen());
+				break;
+			}
+
+			case 'showWindowOnUnreadChanged': {
+				const previousValue = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
+				const newValue = !previousValue;
+				localStorage.setItem('showWindowOnUnreadChanged', JSON.stringify(newValue));
+				break;
+			}
+
+			case 'showMenuBar': {
+				const previousValue = localStorage.getItem('autohideMenu') !== 'true';
+				const newValue = !previousValue;
+				localStorage.setItem('autohideMenu', JSON.stringify(!newValue));
+				break;
+			}
+
+			case 'showServerList': {
+				const previousValue = localStorage.getItem('sidebar-closed') !== 'true';
+				const newValue = !previousValue;
+				localStorage.setItem('sidebar-closed', JSON.stringify(!newValue));
+				break;
+			}
+		}
+
+		updateComponents();
+		return;
+	}
+
+	if (type === MENU_BAR_SELECT_SERVER_CLICKED) {
+		const server = payload;
+		servers.setActive(server.url);
+		updateComponents();
+	}
+};
+
+function App() {
+	return <Fragment>
+		<MenuBar
+			showTrayIcon={hasTrayIcon}
+			showFullScreen={isFullScreen}
+			showWindowOnUnreadChanged={showWindowOnUnreadChanged}
+			showMenuBar={hasMenuBar}
+			showServerList={hasSidebar}
+			servers={_servers}
+			currentServerUrl={currentServerUrl}
+			dispatch={dispatch}
+		/>
+	</Fragment>;
+}
 
 const destroyAll = () => {
 	try {
 		tray.destroy();
 		dock.destroy();
-		const mainWindow = getCurrentWindow();
-		mainWindow.removeListener('hide', updateWindowState);
-		mainWindow.removeListener('show', updateWindowState);
+		remote.getCurrentWindow().removeListener('hide', updateComponents);
+		remote.getCurrentWindow().removeListener('show', updateComponents);
 	} catch (error) {
 		remote.getGlobal('console').error(error);
 	}
@@ -252,35 +455,35 @@ export default () => {
 
 	servers.on('loaded', () => {
 		document.querySelector('.app-page').classList.remove('app-page--loading');
-		updateServers();
+		updateComponents();
 	});
 
 	servers.on('host-added', (hostUrl) => {
 		webview.add(servers.get(hostUrl));
-		updateServers();
+		updateComponents();
 	});
 
 	servers.on('host-removed', (hostUrl) => {
 		webview.remove(hostUrl);
 		servers.clearActive();
 		toggleAddServerViewVisible(true);
-		updateServers();
+		updateComponents();
 	});
 
 	servers.on('active-setted', (hostUrl) => {
 		webview.setActive(hostUrl);
 		toggleAddServerViewVisible(false);
-		updateServers();
+		updateComponents();
 	});
 
 	servers.on('active-cleared', (hostUrl) => {
 		webview.deactiveAll(hostUrl);
 		toggleAddServerViewVisible(true);
-		updateServers();
+		updateComponents();
 	});
 
 	servers.on('title-setted', () => {
-		updateServers();
+		updateComponents();
 	});
 
 	sidebar.on('select-server', (hostUrl) => {
@@ -306,11 +509,11 @@ export default () => {
 
 	sidebar.on('servers-sorted', (sorting) => {
 		localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));
-		updateServers();
+		updateComponents();
 	});
 
-	getCurrentWindow().on('hide', updateWindowState);
-	getCurrentWindow().on('show', updateWindowState);
+	remote.getCurrentWindow().on('hide', updateComponents);
+	remote.getCurrentWindow().on('show', updateComponents);
 
 	tray.on('created', () => updateMainWindow({ hideOnClose: true }));
 	tray.on('destroyed', () => updateMainWindow({ hideOnClose: false }));
@@ -384,200 +587,8 @@ export default () => {
 	setupSpellChecking();
 	setupUpdates();
 
-	mountMenuBar({
-		// eslint-disable-next-line complexity
-		dispatch: async ({ type, payload }) => {
-			if (type === MENU_BAR_QUIT_CLICKED) {
-				app.quit();
-				return;
-			}
-
-			if (type === MENU_BAR_ABOUT_CLICKED) {
-				emit('open-about-dialog');
-				return;
-			}
-
-			if (type === MENU_BAR_OPEN_URL_CLICKED) {
-				const url = payload;
-				shell.openExternal(url);
-				return;
-			}
-
-			if (type === MENU_BAR_UNDO_CLICKED) {
-				remote.webContents.getFocusedWebContents().undo();
-				return;
-			}
-
-			if (type === MENU_BAR_REDO_CLICKED) {
-				remote.webContents.getFocusedWebContents().redo();
-				return;
-			}
-
-			if (type === MENU_BAR_CUT_CLICKED) {
-				remote.webContents.getFocusedWebContents().cut();
-				return;
-			}
-
-			if (type === MENU_BAR_COPY_CLICKED) {
-				remote.webContents.getFocusedWebContents().copy();
-				return;
-			}
-
-			if (type === MENU_BAR_PASTE_CLICKED) {
-				remote.webContents.getFocusedWebContents().paste();
-				return;
-			}
-
-			if (type === MENU_BAR_SELECT_ALL_CLICKED) {
-				remote.webContents.getFocusedWebContents().selectAll();
-				return;
-			}
-
-			if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
-				getCurrentWindow().show();
-				servers.clearActive();
-				toggleAddServerViewVisible(true);
-				return;
-			}
-
-			if (type === MENU_BAR_SELECT_ALL_CLICKED) {
-				const { url } = payload || {};
-				getCurrentWindow().show();
-				servers.setActive(url);
-				return;
-			}
-
-			if (type === MENU_BAR_RELOAD_SERVER_CLICKED) {
-				const { ignoringCache = false, clearCertificates = false } = payload || {};
-				if (clearCertificates) {
-					certificates.clear();
-				}
-
-				const activeWebview = webview.getActive();
-				if (!activeWebview) {
-					return;
-				}
-
-				if (ignoringCache) {
-					activeWebview.reloadIgnoringCache();
-					return;
-				}
-
-				activeWebview.reload();
-				return;
-			}
-
-			if (type === MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
-				const activeWebview = webview.getActive();
-				if (activeWebview) {
-					activeWebview.openDevTools();
-				}
-				return;
-			}
-
-			if (type === MENU_BAR_GO_BACK_CLICKED) {
-				webview.goBack();
-				return;
-			}
-
-			if (type === MENU_BAR_GO_FORWARD_CLICKED) {
-				webview.goForward();
-				return;
-			}
-
-			if (type === MENU_BAR_RELOAD_APP_CLICKED) {
-				getCurrentWindow().reload();
-				return;
-			}
-
-			if (type === MENU_BAR_TOGGLE_DEVTOOLS_CLICKED) {
-				getCurrentWindow().toggleDevTools();
-				return;
-			}
-
-			if (type === MENU_BAR_RESET_ZOOM_CLICKED) {
-				remote.webContents.getFocusedWebContents().zoomLevel = 0;
-				return;
-			}
-
-			if (type === MENU_BAR_ZOOM_IN_CLICKED) {
-				remote.webContents.getFocusedWebContents().zoomLevel++;
-				return;
-			}
-
-			if (type === MENU_BAR_ZOOM_OUT_CLICKED) {
-				remote.webContents.getFocusedWebContents().zoomLevel--;
-				return;
-			}
-
-			if (type === MENU_BAR_RESET_APP_DATA_CLICKED) {
-				const { response } = await remote.dialog.showMessageBox({
-					type: 'question',
-					buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
-					defaultId: 1,
-					title: t('dialog.resetAppData.title'),
-					message: t('dialog.resetAppData.message'),
-				});
-
-				if (response !== 0) {
-					return;
-				}
-
-				remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
-				remote.app.quit();
-				return;
-			}
-
-			if (type === MENU_BAR_TOGGLE_SETTING_CLICKED) {
-				const property = payload;
-
-				switch (property) {
-					case 'showTrayIcon': {
-						const previousValue = localStorage.getItem('hideTray') !== 'true';
-						const newValue = !previousValue;
-						localStorage.setItem('hideTray', JSON.stringify(!newValue));
-						break;
-					}
-
-					case 'showFullScreen': {
-						const mainWindow = getCurrentWindow();
-						mainWindow.setFullScreen(!mainWindow.isFullScreen());
-						break;
-					}
-
-					case 'showWindowOnUnreadChanged': {
-						const previousValue = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
-						const newValue = !previousValue;
-						localStorage.setItem('showWindowOnUnreadChanged', JSON.stringify(newValue));
-						break;
-					}
-
-					case 'showMenuBar': {
-						const previousValue = localStorage.getItem('autohideMenu') !== 'true';
-						const newValue = !previousValue;
-						localStorage.setItem('autohideMenu', JSON.stringify(!newValue));
-						break;
-					}
-
-					case 'showServerList': {
-						const previousValue = localStorage.getItem('sidebar-closed') !== 'true';
-						const newValue = !previousValue;
-						localStorage.setItem('sidebar-closed', JSON.stringify(!newValue));
-						break;
-					}
-				}
-
-				updatePreferences();
-				return;
-			}
-
-			if (type === MENU_BAR_SELECT_SERVER_CLICKED) {
-				const server = payload;
-				servers.setActive(server.url);
-				updateServers();
-			}
-		},
-	});
+	appElement = createElement(App);
+	appElement.mount(document.body);
 
 	mountTouchBar({
 		onChangeServer: (serverUrl) => {
@@ -594,9 +605,7 @@ export default () => {
 
 	servers.restoreActive();
 
-	updatePreferences();
-	updateServers();
-	updateWindowState();
+	updateComponents();
 
 	remote.process.argv.slice(2).forEach(processDeepLink);
 };

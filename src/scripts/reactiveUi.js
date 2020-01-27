@@ -38,10 +38,10 @@ const commit = (element) => {
 	elements.shift();
 };
 
-export const createElement = (render, initialProps = {}) => {
+export const createElement = (render, initialProps = {}, children = []) => {
 	const element = {
 		render,
-		props: { ...initialProps },
+		props: { ...initialProps || {}, children: (initialProps || {}).children || children },
 		root: null,
 		rendered: null,
 		hooks: [],
@@ -136,3 +136,13 @@ export const useState = (initialValue) => {
 
 	return hook;
 };
+
+export function Fragment({ children }) {
+	if (Array.isArray(children)) {
+		children.forEach((element) => commit(element));
+	} else {
+		commit(children);
+	}
+
+	return null;
+}

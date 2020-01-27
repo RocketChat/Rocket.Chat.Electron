@@ -136,30 +136,3 @@ export const useState = (initialValue) => {
 
 	return hook;
 };
-
-export const useComponent = (Component, getRoot = () => document.body, props = {}) => {
-	const elementRef = useRef();
-
-	useEffect(() => {
-		elementRef.current = createElement(Component);
-		elementRef.current.mount(getRoot(), props);
-
-		return () => {
-			elementRef.current.unmount();
-		};
-	}, []);
-
-	useEffect(() => {
-		elementRef.current.update(props);
-	});
-
-	return elementRef;
-};
-
-export function Fragment({ children }) {
-	useEffect(() => {
-		children.forEach((element) => commit(element));
-	}, [children]);
-
-	return null;
-}

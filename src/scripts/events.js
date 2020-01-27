@@ -6,7 +6,7 @@ import { render, unmountComponentAtNode } from 'react-dom';
 import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
 import certificates from './certificates';
-import dock from './dock';
+import { Dock } from './dock';
 import { MenuBar } from './menuBar';
 import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
 import servers from './servers';
@@ -78,6 +78,7 @@ let isFullScreen;
 let isMainWindowVisible;
 let activeWebView;
 let hideOnClose;
+let globalBadge;
 
 const updateComponents = () => {
 	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
@@ -100,10 +101,7 @@ const updateComponents = () => {
 	tray.setState({
 		showIcon: hasTrayIcon,
 		isMainWindowVisible,
-	});
-
-	dock.setState({
-		hasTrayIcon,
+		badge: globalBadge,
 	});
 
 	sidebar.setState({
@@ -338,6 +336,10 @@ function App() {
 			currentServerUrl={currentServerUrl}
 			dispatch={dispatch}
 		/>
+		<Dock
+			badge={globalBadge}
+			hasTrayIcon={hasTrayIcon}
+		/>
 		<TouchBar
 			servers={_servers}
 			activeServerUrl={currentServerUrl}
@@ -350,7 +352,6 @@ function App() {
 const destroyAll = () => {
 	try {
 		tray.destroy();
-		dock.destroy();
 		remote.getCurrentWindow().removeListener('hide', updateComponents);
 		remote.getCurrentWindow().removeListener('show', updateComponents);
 	} catch (error) {
@@ -567,12 +568,11 @@ export default () => {
 		const mentionCount = Object.values(sidebar.state.badges)
 			.filter((badge) => Number.isInteger(badge))
 			.reduce((sum, count) => sum + count, 0);
-		const globalBadge = mentionCount
+		globalBadge = mentionCount
 			|| (Object.values(sidebar.state.badges).some((badge) => !!badge) && '•')
 			|| null;
 
-		tray.setState({ badge: globalBadge });
-		dock.setState({ badge: globalBadge });
+		updateComponents();
 	});
 
 	webview.on('ipc-message-title-changed', (hostUrl, [title]) => {

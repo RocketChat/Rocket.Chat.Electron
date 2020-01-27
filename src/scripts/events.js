@@ -1,7 +1,7 @@
 import { remote, ipcRenderer } from 'electron';
 import { t } from 'i18next';
 import React from 'react';
-import { render } from 'react-dom';
+import { render, unmountComponentAtNode } from 'react-dom';
 
 import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
@@ -26,7 +26,7 @@ import {
 } from './updates';
 import webview, { mountWebViews } from './webview';
 import { processDeepLink } from './deepLinks';
-import { mountMainWindow, updateMainWindow, unmountMainWindow } from './mainWindow';
+import { MainWindow } from './mainWindow';
 import { handle, removeHandler, listen, removeAllListeners, emit } from './ipc';
 import {
 	setupSpellChecking,
@@ -77,6 +77,7 @@ let currentServerUrl;
 let isFullScreen;
 let isMainWindowVisible;
 let activeWebView;
+let hideOnClose;
 
 const updateComponents = () => {
 	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
@@ -326,7 +327,7 @@ const dispatch = async ({ type, payload }) => {
 };
 
 function App() {
-	return <>
+	return <MainWindow hideOnClose={hideOnClose}>
 		<MenuBar
 			showTrayIcon={hasTrayIcon}
 			showFullScreen={isFullScreen}
@@ -343,7 +344,7 @@ function App() {
 			activeWebView={activeWebView}
 			dispatch={dispatch}
 		/>
-	</>;
+	</MainWindow>;
 }
 
 const destroyAll = () => {
@@ -468,7 +469,7 @@ export default () => {
 		removeAllListeners('open-update-dialog');
 		removeAllListeners('close-update-dialog');
 
-		unmountMainWindow();
+		unmountComponentAtNode(document.getElementById('root'));
 	});
 
 	servers.on('loaded', () => {
@@ -533,8 +534,14 @@ export default () => {
 	remote.getCurrentWindow().on('hide', updateComponents);
 	remote.getCurrentWindow().on('show', updateComponents);
 
-	tray.on('created', () => updateMainWindow({ hideOnClose: true }));
-	tray.on('destroyed', () => updateMainWindow({ hideOnClose: false }));
+	tray.on('created', () => {
+		hideOnClose = true;
+		updateComponents();
+	});
+	tray.on('destroyed', () => {
+		hideOnClose = false;
+		updateComponents();
+	});
 	tray.on('set-main-window-visibility', (visible) =>
 		(visible ? getCurrentWindow().show() : getCurrentWindow().hide()));
 	tray.on('quit', () => app.quit());
@@ -599,8 +606,6 @@ export default () => {
 			servers.save();
 		}
 	});
-
-	mountMainWindow();
 
 	setupSpellChecking();
 	setupUpdates();

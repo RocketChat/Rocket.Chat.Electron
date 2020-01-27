@@ -1,7 +1,6 @@
 import { remote } from 'electron';
 import jetpack from 'fs-jetpack';
-
-import { createElement, useEffect, useRef } from './reactiveUi';
+import React, { useEffect, useRef } from 'react';
 
 const { app, screen } = remote;
 
@@ -206,7 +205,11 @@ const useIpcRequests = (browserWindow) => {
 	}, [browserWindow]);
 };
 
-export function MainWindow({ browserWindow, hideOnClose = false }) {
+export function MainWindow({
+	browserWindow = remote.getCurrentWindow(),
+	children,
+	hideOnClose = false,
+}) {
 	const windowStateRef = useRef({});
 
 	useBeforeAppQuitEvent(browserWindow, windowStateRef);
@@ -215,21 +218,7 @@ export function MainWindow({ browserWindow, hideOnClose = false }) {
 	useWindowStateLoading(browserWindow, windowStateRef);
 	useIpcRequests(browserWindow);
 
-	return null;
+	return <>
+		{children}
+	</>;
 }
-
-let mainWindowElement;
-
-export async function mountMainWindow() {
-	mainWindowElement = createElement(MainWindow, { browserWindow: remote.getCurrentWindow() });
-	mainWindowElement.mount(document.body);
-}
-
-export const unmountMainWindow = () => {
-	mainWindowElement.unmount();
-	mainWindowElement = undefined;
-};
-
-export const updateMainWindow = (newProps) => {
-	mainWindowElement.update(newProps);
-};

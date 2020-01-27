@@ -7,23 +7,25 @@ export const createDialog = async ({ name, component, createProps }) => {
 		return;
 	}
 
-	const element = createElement(component, await createProps());
+	const root = document.querySelector(`.${ name }`);
 
-	element.mount(document.querySelector(`.${ name }`));
+	const element = createElement(component, { ...await createProps(), root });
 
-	element.root.showModal();
+	element.mount(root);
 
-	element.root.onclose = () => {
-		element.root.close();
+	root.showModal();
+
+	root.onclose = () => {
+		root.close();
 		element.unmount();
 		delete dialogs[name];
 	};
 
-	element.root.onclick = ({ clientX, clientY }) => {
-		const { left, top, width, height } = element.root.getBoundingClientRect();
+	root.onclick = ({ clientX, clientY }) => {
+		const { left, top, width, height } = root.getBoundingClientRect();
 		const isInDialog = top <= clientY && clientY <= top + height && left <= clientX && clientX <= left + width;
 		if (!isInDialog) {
-			element.root.close();
+			root.close();
 		}
 	};
 

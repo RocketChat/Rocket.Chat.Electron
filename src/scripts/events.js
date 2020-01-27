@@ -3,7 +3,6 @@ import { t } from 'i18next';
 import React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
-import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { AddServerView } from './addServerView';
 import certificates from './certificates';
 import { Dock } from './dock';
@@ -16,18 +15,18 @@ import { TouchBar } from './touchBar';
 import { openUpdateDialog, closeUpdateDialog } from './updateDialog';
 import {
 	setupUpdates,
-	canUpdate,
-	canAutoUpdate,
-	canSetAutoUpdate,
 	setAutoUpdate,
 	checkForUpdates,
 	skipUpdateVersion,
 	downloadUpdate,
+	canUpdate,
+	canAutoUpdate,
+	canSetAutoUpdate,
 } from './updates';
 import webview, { mountWebViews } from './webview';
 import { processDeepLink } from './deepLinks';
 import { MainWindow } from './mainWindow';
-import { handle, removeHandler, listen, removeAllListeners, emit } from './ipc';
+import { handle, removeHandler, listen, removeAllListeners } from './ipc';
 import {
 	setupSpellChecking,
 	getSpellCheckingCorrections,
@@ -65,7 +64,9 @@ import {
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	ADD_SERVER_VIEW_SERVER_ADDED,
+	ABOUT_DIALOG_DISMISSED,
 } from './actions';
+import { AboutDialog } from './aboutDialog';
 
 const { app, getCurrentWindow, shell } = remote;
 
@@ -81,6 +82,7 @@ let activeWebView;
 let hideOnClose;
 let globalBadge;
 let addServerViewVisible;
+let aboutDialogVisible;
 
 const updateComponents = () => {
 	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
@@ -126,7 +128,8 @@ const dispatch = async ({ type, payload }) => {
 	}
 
 	if (type === MENU_BAR_ABOUT_CLICKED) {
-		emit('open-about-dialog');
+		aboutDialogVisible = true;
+		updateComponents();
 		return;
 	}
 
@@ -332,6 +335,12 @@ const dispatch = async ({ type, payload }) => {
 		if (url !== false) {
 			servers.setActive(url);
 		}
+		return;
+	}
+
+	if (type === ABOUT_DIALOG_DISMISSED) {
+		aboutDialogVisible = false;
+		updateComponents();
 	}
 };
 
@@ -349,6 +358,13 @@ function App() {
 		/>
 		<AddServerView
 			visible={addServerViewVisible}
+			dispatch={dispatch}
+		/>
+		<AboutDialog
+			canUpdate={canUpdate()}
+			canAutoUpdate={canAutoUpdate()}
+			canSetAutoUpdate={canSetAutoUpdate()}
+			visible={aboutDialogVisible}
 			dispatch={dispatch}
 		/>
 		<Dock
@@ -431,9 +447,6 @@ export default () => {
 	remote.app.on('open-url', handleOpenUrl);
 	remote.app.on('second-instance', handleSecondInstance);
 
-	handle('can-update', () => canUpdate());
-	handle('can-auto-update', () => canAutoUpdate());
-	handle('can-set-auto-update', () => canSetAutoUpdate());
 	handle('spell-checking/get-corrections', (_, text) => getSpellCheckingCorrections(text));
 	handle('spell-checking/get-dictionaries', () => getSpellCheckingDictionaries());
 	handle('spell-checking/get-dictionaries-path', () => getSpellCheckingDictionariesPath());
@@ -447,8 +460,10 @@ export default () => {
 	listen('skip-update-version', (_, ...args) => skipUpdateVersion(...args));
 	listen('remind-update-later', () => {});
 	listen('download-update', () => downloadUpdate());
-	listen('open-about-dialog', (_, ...args) => openAboutDialog(...args));
-	listen('close-about-dialog', (_, ...args) => closeAboutDialog(...args));
+	listen('close-about-dialog', () => {
+		aboutDialogVisible = false;
+		updateComponents();
+	});
 	listen('open-screen-sharing-dialog', (_, ...args) => openScreenSharingDialog(...args));
 	listen('close-screen-sharing-dialog', (_, ...args) => closeScreenSharingDialog(...args));
 	listen('select-screen-sharing-source', (_, ...args) => selectScreenSharingSource(...args));
@@ -461,9 +476,6 @@ export default () => {
 		remote.app.removeListener('open-url', handleOpenUrl);
 		remote.app.removeListener('second-instance', handleSecondInstance);
 
-		removeHandler('can-update');
-		removeHandler('can-auto-update');
-		removeHandler('can-set-auto-update');
 		removeHandler('spell-checking/get-corrections');
 		removeHandler('spell-checking/get-dictionaries');
 		removeHandler('spell-checking/get-dictionaries-path');
@@ -477,7 +489,6 @@ export default () => {
 		removeAllListeners('skip-update-version');
 		removeAllListeners('remind-update-later');
 		removeAllListeners('download-update');
-		removeAllListeners('open-about-dialog');
 		removeAllListeners('close-about-dialog');
 		removeAllListeners('open-screen-sharing-dialog');
 		removeAllListeners('close-screen-sharing-dialog');

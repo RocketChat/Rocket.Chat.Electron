@@ -1,19 +1,43 @@
 import { remote, ipcRenderer } from 'electron';
 import { t } from 'i18next';
+import { useEffect, useState, useRef } from 'react';
 
 import pkg from '../../package.json';
-import { useEffect, useState, useRef, useRoot } from './reactiveUi.js';
-import { createDialog, destroyDialog } from './dialogs.js';
-
-const { app } = remote;
+import { ABOUT_DIALOG_DISMISSED } from './actions.js';
 
 export function AboutDialog({
-	appVersion,
-	copyright,
+	appVersion = remote.app.getVersion(),
+	copyright = pkg.copyright,
 	canUpdate,
 	canAutoUpdate,
 	canSetAutoUpdate,
+	root = document.querySelector('.about-dialog'),
+	visible,
+	dispatch,
 }) {
+	useEffect(() => {
+		if (!visible) {
+			root.close();
+			return;
+		}
+
+		root.showModal();
+
+		root.onclose = () => {
+			root.close();
+			dispatch({ type: ABOUT_DIALOG_DISMISSED });
+		};
+
+		root.onclick = ({ clientX, clientY }) => {
+			const { left, top, width, height } = root.getBoundingClientRect();
+			const isInDialog = top <= clientY && clientY <= top + height && left <= clientX && clientX <= left + width;
+			if (!isInDialog) {
+				root.close();
+				dispatch({ type: ABOUT_DIALOG_DISMISSED });
+			}
+		};
+	}, [visible]);
+
 	const [checkingForUpdates, setCheckingForUpdates] = useState(false);
 	const [checkingForUpdatesMessage, setCheckingForUpdatesMessage] = useState(null);
 
@@ -67,8 +91,6 @@ export function AboutDialog({
 		ipcRenderer.send('set-auto-update', event.target.checked);
 	};
 
-	const root = useRoot();
-
 	root.querySelector('.app-version').innerHTML = `${ t('dialog.about.version') } <span class="version">${ appVersion }</span>`;
 
 	root.querySelector('.check-for-updates').innerText = t('dialog.about.checkUpdates');
@@ -93,29 +115,3 @@ export function AboutDialog({
 
 	return null;
 }
-
-export const openAboutDialog = async () => {
-	createDialog({
-		name: 'about-dialog',
-		component: AboutDialog,
-		createProps: async () => {
-			const appVersion = app.getVersion();
-			const { copyright } = pkg;
-			const canUpdate = await ipcRenderer.invoke('can-update');
-			const canAutoUpdate = canUpdate && await ipcRenderer.invoke('can-auto-update');
-			const canSetAutoUpdate = canUpdate && await ipcRenderer.invoke('can-set-auto-update');
-
-			return {
-				appVersion,
-				copyright,
-				canUpdate,
-				canAutoUpdate,
-				canSetAutoUpdate,
-			};
-		},
-	});
-};
-
-export const closeAboutDialog = () => {
-	destroyDialog('about-dialog');
-};

@@ -3,11 +3,14 @@ import { t } from 'i18next';
 import { useEffect, useRef, useState } from 'react';
 
 import servers from './servers';
+import { ADD_SERVER_VIEW_SERVER_ADDED } from './actions';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',
 	root = document.querySelector('.add-server-view'),
 	visible,
+	validator = (url) => servers.validateHost(url, 2000),
+	dispatch,
 }) {
 	const inputRef = useRef();
 
@@ -34,7 +37,7 @@ export function AddServerView({
 		}
 
 		try {
-			await servers.validateHost(serverUrl, 2000);
+			await validator(serverUrl);
 			setValidationState('idle');
 			return;
 		} catch (error) {
@@ -80,13 +83,11 @@ export function AddServerView({
 	const handleFormSubmit = async (event) => {
 		event.preventDefault();
 
-		await validateServerUrl(inputRef.current.value.trim());
-		let url = inputRef.current.value || defaultServerUrl;
+		const url = (inputRef.current.value || defaultServerUrl).trim();
 
-		url = servers.addHost(url);
-		if (url !== false) {
-			servers.setActive(url);
-		}
+		await validateServerUrl(url);
+
+		dispatch({ type: ADD_SERVER_VIEW_SERVER_ADDED, payload: url });
 
 		inputRef.current.value = '';
 	};

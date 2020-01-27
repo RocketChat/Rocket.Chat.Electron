@@ -23,3 +23,5 @@ export const MENU_BAR_RESET_APP_DATA_CLICKED = 'menu-bar/reset-app-data-clicked'
 
 export const TOUCH_BAR_FORMAT_BUTTON_TOUCHED = 'touch-bar/format-button-touched';
 export const TOUCH_BAR_SELECT_SERVER_TOUCHED = 'touch-bar/select-server-touched';
+
+export const ADD_SERVER_VIEW_SERVER_ADDED = 'add-server/view-server-added';

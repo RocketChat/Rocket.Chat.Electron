@@ -64,6 +64,7 @@ import {
 	MENU_BAR_SELECT_SERVER_CLICKED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
+	ADD_SERVER_VIEW_SERVER_ADDED,
 } from './actions';
 
 const { app, getCurrentWindow, shell } = remote;
@@ -323,6 +324,14 @@ const dispatch = async ({ type, payload }) => {
 			const button = document.querySelector('.rc-message-box .js-format[data-id="${ id }"]');
 			button.click();
 		})()`.trim());
+		return;
+	}
+
+	if (type === ADD_SERVER_VIEW_SERVER_ADDED) {
+		const url = servers.addHost(payload);
+		if (url !== false) {
+			servers.setActive(url);
+		}
 	}
 };
 
@@ -340,6 +349,7 @@ function App() {
 		/>
 		<AddServerView
 			visible={addServerViewVisible}
+			dispatch={dispatch}
 		/>
 		<Dock
 			badge={globalBadge}

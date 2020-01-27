@@ -1,5 +1,5 @@
-const icnsConvert = require('@fiahfy/icns-convert');
-const { convert } = require('convert-svg-to-png');
+const { convert: convertToIcns } = require('@fiahfy/icns-convert');
+const { convert: convertSvgToPng } = require('convert-svg-to-png');
 const { build } = require('electron-builder');
 const { readAsync, removeAsync, writeAsync } = require('fs-jetpack');
 const { dest, parallel, series, src, task, watch } = require('gulp');
@@ -82,8 +82,8 @@ const createDarwinTrayIcon = ({ src, dest, dark = false }) => async () => {
 	const svg = (await readAsync(`src/icons/${ dark ? 'white' : 'black' }/${ src }.svg`))
 		.replace('viewBox="0 0 64 64"', 'viewBox="0 0 64 64" transform="scale(0.8)"');
 
-	const png24 = await convert(svg, { width: 24, height: 24 });
-	const png48 = await convert(svg, { width: 24, height: 24, scale: 2 });
+	const png24 = await convertSvgToPng(svg, { width: 24, height: 24 });
+	const png48 = await convertSvgToPng(svg, { width: 24, height: 24, scale: 2 });
 
 	await writeAsync(`src/public/images/tray/${ dark ? 'darwin-dark' : 'darwin' }/${ dest }.png`, png24);
 	await writeAsync(`src/public/images/tray/${ dark ? 'darwin-dark' : 'darwin' }/${ dest }@2x.png`, png48);
@@ -100,8 +100,8 @@ task('icons:darwin-dark', series('icons:darwin-dark:default', 'icons:darwin-dark
 const createLinuxTrayIcon = ({ src, dest }) => async () => {
 	const svg = await readAsync(`src/icons/grey/${ src }.svg`);
 
-	const png24 = await convert(svg, { width: 64, height: 64 });
-	const png48 = await convert(svg, { width: 64, height: 64, scale: 2 });
+	const png24 = await convertSvgToPng(svg, { width: 64, height: 64 });
+	const png48 = await convertSvgToPng(svg, { width: 64, height: 64, scale: 2 });
 
 	await writeAsync(`src/public/images/tray/linux/${ dest }.png`, png24);
 	await writeAsync(`src/public/images/tray/linux/${ dest }@2x.png`, png48);
@@ -139,13 +139,13 @@ const createWindowsTrayIcon = ({ src, dest }) => async () => {
 	const smallSvg = await readAsync(`src/icons/grey/${ smallSrc }.svg`);
 	const svg = await readAsync(`src/icons/grey/${ src }.svg`);
 
-	const png16 = await convert(smallSvg, { width: 16, height: 16 });
-	const png24 = await convert(smallSvg, { width: 24, height: 24 });
-	const png32 = await convert(svg, { width: 32, height: 32 });
-	const png48 = await convert(svg, { width: 48, height: 48 });
-	const png64 = await convert(svg, { width: 64, height: 64 });
-	const png128 = await convert(svg, { width: 128, height: 128 });
-	const png256 = await convert(svg, { width: 256, height: 256 });
+	const png16 = await convertSvgToPng(smallSvg, { width: 16, height: 16 });
+	const png24 = await convertSvgToPng(smallSvg, { width: 24, height: 24 });
+	const png32 = await convertSvgToPng(svg, { width: 32, height: 32 });
+	const png48 = await convertSvgToPng(svg, { width: 48, height: 48 });
+	const png64 = await convertSvgToPng(svg, { width: 64, height: 64 });
+	const png128 = await convertSvgToPng(svg, { width: 128, height: 128 });
+	const png256 = await convertSvgToPng(svg, { width: 256, height: 256 });
 	const ico = await toIco([png16, png24, png32, png48, png64, png128, png256]);
 
 	await writeAsync(`src/public/images/tray/win32/${ dest }.ico`, ico);
@@ -181,21 +181,21 @@ task('icons:win32', series(
 task('icons:app', async () => {
 	const svg = await readAsync('src/icons/icon.svg');
 
-	const png16 = await convert(svg, { width: 16, height: 16 });
-	const png24 = await convert(svg, { width: 24, height: 24 });
-	const png32 = await convert(svg, { width: 32, height: 32 });
-	const png44 = await convert(svg, { width: 44, height: 44 });
-	const png48 = await convert(svg, { width: 48, height: 48 });
-	const png50 = await convert(svg, { width: 50, height: 50 });
-	const png64 = await convert(svg, { width: 64, height: 64 });
-	const png128 = await convert(svg, { width: 128, height: 128 });
-	const png150 = await convert(svg, { width: 150, height: 150 });
-	const png310v150 = await convert(svg, { width: 310, height: 150 });
-	const png256 = await convert(svg, { width: 256, height: 256 });
-	const png512 = await convert(svg, { width: 512, height: 512 });
-	const png1024 = await convert(svg, { width: 1024, height: 1024 });
+	const png16 = await convertSvgToPng(svg, { width: 16, height: 16 });
+	const png24 = await convertSvgToPng(svg, { width: 24, height: 24 });
+	const png32 = await convertSvgToPng(svg, { width: 32, height: 32 });
+	const png44 = await convertSvgToPng(svg, { width: 44, height: 44 });
+	const png48 = await convertSvgToPng(svg, { width: 48, height: 48 });
+	const png50 = await convertSvgToPng(svg, { width: 50, height: 50 });
+	const png64 = await convertSvgToPng(svg, { width: 64, height: 64 });
+	const png128 = await convertSvgToPng(svg, { width: 128, height: 128 });
+	const png150 = await convertSvgToPng(svg, { width: 150, height: 150 });
+	const png310v150 = await convertSvgToPng(svg, { width: 310, height: 150 });
+	const png256 = await convertSvgToPng(svg, { width: 256, height: 256 });
+	const png512 = await convertSvgToPng(svg, { width: 512, height: 512 });
+	const png1024 = await convertSvgToPng(svg, { width: 1024, height: 1024 });
 	const ico = await toIco([png16, png24, png32, png48, png64, png128, png256]);
-	const icns = await icnsConvert([png1024, png512, png256, png128, png64, png32, png16]);
+	const icns = await convertToIcns([png1024, png512, png256, png128, png64, png32, png16]);
 
 	await writeAsync('src/public/images/icon.png', png64);
 	await writeAsync('src/public/images/icon@2x.png', png128);

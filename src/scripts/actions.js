@@ -20,3 +20,6 @@ export const MENU_BAR_RELOAD_APP_CLICKED = 'menu-bar/reload-app-clicked';
 export const MENU_BAR_TOGGLE_DEVTOOLS_CLICKED = 'menu-bar/toggle-devtools-clicked';
 export const MENU_BAR_OPEN_URL_CLICKED = 'menu-bar/open-url-clicked';
 export const MENU_BAR_RESET_APP_DATA_CLICKED = 'menu-bar/reset-app-data-clicked';
+
+export const TOUCH_BAR_FORMAT_BUTTON_TOUCHED = 'touch-bar/format-button-touched';
+export const TOUCH_BAR_SELECT_SERVER_TOUCHED = 'touch-bar/select-server-touched';

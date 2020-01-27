@@ -38,7 +38,7 @@ const commit = (element) => {
 	elements.shift();
 };
 
-export const createElement = (render, initialProps = {}, children = []) => {
+export const createElement = (render, initialProps = {}, ...children) => {
 	const element = {
 		render,
 		props: { ...initialProps || {}, children: (initialProps || {}).children || children },

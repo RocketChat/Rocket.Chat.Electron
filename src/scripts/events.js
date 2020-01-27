@@ -11,7 +11,7 @@ import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingS
 import servers from './servers';
 import sidebar from './sidebar';
 import tray from './tray';
-import { mountTouchBar, updateTouchBar } from './touchBar';
+import { TouchBar } from './touchBar';
 import { openUpdateDialog, closeUpdateDialog } from './updateDialog';
 import {
 	setupUpdates,
@@ -61,6 +61,8 @@ import {
 	MENU_BAR_RESET_APP_DATA_CLICKED,
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
+	TOUCH_BAR_SELECT_SERVER_TOUCHED,
+	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 } from './actions';
 import { createElement, Fragment } from './reactiveUi';
 
@@ -74,6 +76,7 @@ let _servers;
 let currentServerUrl;
 let isFullScreen;
 let isMainWindowVisible;
+let activeWebView;
 
 let appElement;
 
@@ -93,6 +96,8 @@ const updateComponents = () => {
 	isFullScreen = remote.getCurrentWindow().isFullScreen();
 	isMainWindowVisible = remote.getCurrentWindow().isVisible();
 
+	activeWebView = webview.getActive();
+
 	tray.setState({
 		showIcon: hasTrayIcon,
 		isMainWindowVisible,
@@ -110,12 +115,6 @@ const updateComponents = () => {
 	});
 
 	webview.setSidebarPaddingEnabled(!hasSidebar);
-
-	updateTouchBar({
-		servers: _servers,
-		activeServerUrl: currentServerUrl,
-		activeWebView: webview.getActive(),
-	});
 
 	appElement.update();
 };
@@ -310,6 +309,21 @@ const dispatch = async ({ type, payload }) => {
 		const server = payload;
 		servers.setActive(server.url);
 		updateComponents();
+		return;
+	}
+
+	if (type === TOUCH_BAR_SELECT_SERVER_TOUCHED) {
+		const serverUrl = payload;
+		servers.setActive(serverUrl);
+		return;
+	}
+
+	if (type === TOUCH_BAR_FORMAT_BUTTON_TOUCHED) {
+		const id = payload;
+		activeWebView.executeJavaScript(`(() => {
+			const button = document.querySelector('.rc-message-box .js-format[data-id="${ id }"]');
+			button.click();
+		})()`.trim());
 	}
 };
 
@@ -323,6 +337,12 @@ function App() {
 			showServerList={hasSidebar}
 			servers={_servers}
 			currentServerUrl={currentServerUrl}
+			dispatch={dispatch}
+		/>
+		<TouchBar
+			servers={_servers}
+			activeServerUrl={currentServerUrl}
+			activeWebView={activeWebView}
 			dispatch={dispatch}
 		/>
 	</Fragment>;
@@ -590,11 +610,6 @@ export default () => {
 	appElement = createElement(App);
 	appElement.mount(document.body);
 
-	mountTouchBar({
-		onChangeServer: (serverUrl) => {
-			servers.setActive(serverUrl);
-		},
-	});
 	servers.initialize();
 	certificates.initialize();
 

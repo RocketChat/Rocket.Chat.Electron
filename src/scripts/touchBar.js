@@ -1,12 +1,16 @@
 import { remote } from 'electron';
 import { t } from 'i18next';
 
-import { createElement, useEffect } from './reactiveUi';
+import {
+	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
+	TOUCH_BAR_SELECT_SERVER_TOUCHED,
+} from './actions';
+import { useEffect } from './reactiveUi';
 
 const { TouchBar: ElectronTouchBar, nativeImage } = remote;
 const { TouchBarButton, TouchBarLabel, TouchBarSegmentedControl, TouchBarScrubber, TouchBarPopover, TouchBarGroup } = ElectronTouchBar;
 
-const useSelectServerPanel = (activeServerUrl, servers, onChangeServer) => {
+const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
 	class SelectServerPanel {
 		constructor() {
 			this._MAX_LENGTH_FOR_SEGMENTS_CONTROL = 76 - t('touchBar.selectServer').length;
@@ -91,7 +95,7 @@ const useSelectServerPanel = (activeServerUrl, servers, onChangeServer) => {
 				selectedIndex: this._getActiveServerIndex(),
 				segments: this._hosts,
 				change: (index) => {
-					onChangeServer(this._hosts[index].host);
+					dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: this._hosts[index].host });
 				},
 			});
 			return this.control;
@@ -104,7 +108,7 @@ const useSelectServerPanel = (activeServerUrl, servers, onChangeServer) => {
 				mode: 'fixed',
 				items: this._hosts,
 				highlight: (index) => {
-					onChangeServer(this._hosts[index].host);
+					dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: this._hosts[index].host });
 				},
 			});
 			return this.control;
@@ -147,7 +151,7 @@ const useSelectServerPanel = (activeServerUrl, servers, onChangeServer) => {
 	return new SelectServerPanel().build();
 };
 
-const useFormattingPanel = (activeWebView) => {
+const useFormattingPanel = (activeWebView, dispatch) => {
 	if (!activeWebView || !activeWebView.classList.contains('ready')) {
 		return new TouchBarGroup({ items: [] });
 	}
@@ -157,10 +161,7 @@ const useFormattingPanel = (activeWebView) => {
 	const formatButtons = ids.map((id) => new TouchBarButton({
 		icon: nativeImage.createFromPath(`${ __dirname }/images/touch-bar/${ id }.png`),
 		click: () => {
-			activeWebView.executeJavaScript(`(() => {
-				const button = document.querySelector('.rc-message-box .js-format[data-id="${ id }"]');
-				button.click();
-			})()`.trim());
+			dispatch({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: id });
 		},
 	}));
 
@@ -174,9 +175,9 @@ const useFormattingPanel = (activeWebView) => {
 	});
 };
 
-function TouchBar({ activeWebView, activeServerUrl, servers = [], onChangeServer }) {
-	const selectServerPanel = useSelectServerPanel(activeServerUrl, servers, onChangeServer);
-	const formattingPanel = useFormattingPanel(activeWebView);
+export function TouchBar({ activeWebView, activeServerUrl, servers = [], dispatch }) {
+	const selectServerPanel = useSelectServerPanel(activeServerUrl, servers, dispatch);
+	const formattingPanel = useFormattingPanel(activeWebView, dispatch);
 
 	useEffect(() => {
 		const touchBar = new ElectronTouchBar({
@@ -190,14 +191,3 @@ function TouchBar({ activeWebView, activeServerUrl, servers = [], onChangeServer
 
 	return null;
 }
-
-let touchBarElement;
-
-export const mountTouchBar = (props) => {
-	touchBarElement = createElement(TouchBar, props);
-	touchBarElement.mount(document.body);
-};
-
-export const updateTouchBar = (newProps) => {
-	touchBarElement.update(newProps);
-};

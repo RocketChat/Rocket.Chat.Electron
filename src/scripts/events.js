@@ -37,6 +37,30 @@ import {
 	disableSpellCheckingDictionaries,
 	getMisspelledWords,
 } from './spellChecking';
+import {
+	MENU_BAR_QUIT_CLICKED,
+	MENU_BAR_ABOUT_CLICKED,
+	MENU_BAR_OPEN_URL_CLICKED,
+	MENU_BAR_UNDO_CLICKED,
+	MENU_BAR_REDO_CLICKED,
+	MENU_BAR_CUT_CLICKED,
+	MENU_BAR_COPY_CLICKED,
+	MENU_BAR_PASTE_CLICKED,
+	MENU_BAR_SELECT_ALL_CLICKED,
+	MENU_BAR_ADD_NEW_SERVER_CLICKED,
+	MENU_BAR_RELOAD_SERVER_CLICKED,
+	MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
+	MENU_BAR_GO_BACK_CLICKED,
+	MENU_BAR_GO_FORWARD_CLICKED,
+	MENU_BAR_RELOAD_APP_CLICKED,
+	MENU_BAR_TOGGLE_DEVTOOLS_CLICKED,
+	MENU_BAR_RESET_ZOOM_CLICKED,
+	MENU_BAR_ZOOM_IN_CLICKED,
+	MENU_BAR_ZOOM_OUT_CLICKED,
+	MENU_BAR_RESET_APP_DATA_CLICKED,
+	MENU_BAR_TOGGLE_SETTING_CLICKED,
+	MENU_BAR_SELECT_SERVER_CLICKED,
+} from './actions';
 
 const { app, getCurrentWindow, shell } = remote;
 
@@ -362,68 +386,68 @@ export default () => {
 
 	mountMenuBar({
 		// eslint-disable-next-line complexity
-		onAction: async ({ type, payload }) => {
-			if (type === 'quit') {
+		dispatch: async ({ type, payload }) => {
+			if (type === MENU_BAR_QUIT_CLICKED) {
 				app.quit();
 				return;
 			}
 
-			if (type === 'about') {
+			if (type === MENU_BAR_ABOUT_CLICKED) {
 				emit('open-about-dialog');
 				return;
 			}
 
-			if (type === 'open-url') {
+			if (type === MENU_BAR_OPEN_URL_CLICKED) {
 				const url = payload;
 				shell.openExternal(url);
 				return;
 			}
 
-			if (type === 'undo') {
+			if (type === MENU_BAR_UNDO_CLICKED) {
 				remote.webContents.getFocusedWebContents().undo();
 				return;
 			}
 
-			if (type === 'redo') {
+			if (type === MENU_BAR_REDO_CLICKED) {
 				remote.webContents.getFocusedWebContents().redo();
 				return;
 			}
 
-			if (type === 'cut') {
+			if (type === MENU_BAR_CUT_CLICKED) {
 				remote.webContents.getFocusedWebContents().cut();
 				return;
 			}
 
-			if (type === 'copy') {
+			if (type === MENU_BAR_COPY_CLICKED) {
 				remote.webContents.getFocusedWebContents().copy();
 				return;
 			}
 
-			if (type === 'paste') {
+			if (type === MENU_BAR_PASTE_CLICKED) {
 				remote.webContents.getFocusedWebContents().paste();
 				return;
 			}
 
-			if (type === 'select-all') {
+			if (type === MENU_BAR_SELECT_ALL_CLICKED) {
 				remote.webContents.getFocusedWebContents().selectAll();
 				return;
 			}
 
-			if (type === 'add-new-server') {
+			if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
 				getCurrentWindow().show();
 				servers.clearActive();
 				toggleAddServerViewVisible(true);
 				return;
 			}
 
-			if (type === 'select-server') {
+			if (type === MENU_BAR_SELECT_ALL_CLICKED) {
 				const { url } = payload || {};
 				getCurrentWindow().show();
 				servers.setActive(url);
 				return;
 			}
 
-			if (type === 'reload-server') {
+			if (type === MENU_BAR_RELOAD_SERVER_CLICKED) {
 				const { ignoringCache = false, clearCertificates = false } = payload || {};
 				if (clearCertificates) {
 					certificates.clear();
@@ -443,7 +467,7 @@ export default () => {
 				return;
 			}
 
-			if (type === 'open-devtools-for-server') {
+			if (type === MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
 				const activeWebview = webview.getActive();
 				if (activeWebview) {
 					activeWebview.openDevTools();
@@ -451,42 +475,42 @@ export default () => {
 				return;
 			}
 
-			if (type === 'go-back') {
+			if (type === MENU_BAR_GO_BACK_CLICKED) {
 				webview.goBack();
 				return;
 			}
 
-			if (type === 'go-forward') {
+			if (type === MENU_BAR_GO_FORWARD_CLICKED) {
 				webview.goForward();
 				return;
 			}
 
-			if (type === 'reload-app') {
+			if (type === MENU_BAR_RELOAD_APP_CLICKED) {
 				getCurrentWindow().reload();
 				return;
 			}
 
-			if (type === 'toggle-devtools') {
+			if (type === MENU_BAR_TOGGLE_DEVTOOLS_CLICKED) {
 				getCurrentWindow().toggleDevTools();
 				return;
 			}
 
-			if (type === 'reset-zoom') {
+			if (type === MENU_BAR_RESET_ZOOM_CLICKED) {
 				remote.webContents.getFocusedWebContents().zoomLevel = 0;
 				return;
 			}
 
-			if (type === 'zoom-in') {
+			if (type === MENU_BAR_ZOOM_IN_CLICKED) {
 				remote.webContents.getFocusedWebContents().zoomLevel++;
 				return;
 			}
 
-			if (type === 'reset-out') {
+			if (type === MENU_BAR_ZOOM_OUT_CLICKED) {
 				remote.webContents.getFocusedWebContents().zoomLevel--;
 				return;
 			}
 
-			if (type === 'reset-app-data') {
+			if (type === MENU_BAR_RESET_APP_DATA_CLICKED) {
 				const { response } = await remote.dialog.showMessageBox({
 					type: 'question',
 					buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
@@ -504,7 +528,7 @@ export default () => {
 				return;
 			}
 
-			if (type === 'toggle') {
+			if (type === MENU_BAR_TOGGLE_SETTING_CLICKED) {
 				const property = payload;
 
 				switch (property) {
@@ -544,6 +568,13 @@ export default () => {
 				}
 
 				updatePreferences();
+				return;
+			}
+
+			if (type === MENU_BAR_SELECT_SERVER_CLICKED) {
+				const server = payload;
+				servers.setActive(server.url);
+				updateServers();
 			}
 		},
 	});

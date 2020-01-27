@@ -1,15 +1,39 @@
 import { remote } from 'electron';
 import i18next from 'i18next';
 
+import {
+	MENU_BAR_QUIT_CLICKED,
+	MENU_BAR_ABOUT_CLICKED,
+	MENU_BAR_OPEN_URL_CLICKED,
+	MENU_BAR_UNDO_CLICKED,
+	MENU_BAR_REDO_CLICKED,
+	MENU_BAR_CUT_CLICKED,
+	MENU_BAR_COPY_CLICKED,
+	MENU_BAR_PASTE_CLICKED,
+	MENU_BAR_SELECT_ALL_CLICKED,
+	MENU_BAR_ADD_NEW_SERVER_CLICKED,
+	MENU_BAR_RELOAD_SERVER_CLICKED,
+	MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
+	MENU_BAR_GO_BACK_CLICKED,
+	MENU_BAR_GO_FORWARD_CLICKED,
+	MENU_BAR_RELOAD_APP_CLICKED,
+	MENU_BAR_TOGGLE_DEVTOOLS_CLICKED,
+	MENU_BAR_RESET_ZOOM_CLICKED,
+	MENU_BAR_ZOOM_IN_CLICKED,
+	MENU_BAR_ZOOM_OUT_CLICKED,
+	MENU_BAR_RESET_APP_DATA_CLICKED,
+	MENU_BAR_TOGGLE_SETTING_CLICKED,
+	MENU_BAR_SELECT_SERVER_CLICKED,
+} from './actions';
 import { createElement, useEffect } from './reactiveUi';
 
-const createAppMenuItemTemplate = ({ appName, t, onAction }) => ({
+const createAppMenuItemTemplate = ({ appName, t, dispatch }) => ({
 	label: process.platform === 'darwin' ? appName : t('menus.fileMenu'),
 	submenu: [
 		...process.platform === 'darwin' ? [
 			{
 				label: t('menus.about', { appName }),
-				click: () => onAction({ type: 'about' }),
+				click: () => dispatch({ type: MENU_BAR_ABOUT_CLICKED }),
 			},
 			{ type: 'separator' },
 			{
@@ -35,93 +59,93 @@ const createAppMenuItemTemplate = ({ appName, t, onAction }) => ({
 			{
 				label: t('menus.addNewServer'),
 				accelerator: 'CommandOrControl+N',
-				click: () => onAction({ type: 'add-new-server' }),
+				click: () => dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED }),
 			},
 		] : [],
 		{ type: 'separator' },
 		{
 			label: t('menus.quit', { appName }),
 			accelerator: 'CommandOrControl+Q',
-			click: () => onAction({ type: 'quit' }),
+			click: () => dispatch({ type: MENU_BAR_QUIT_CLICKED }),
 		},
 	],
 });
 
-const createEditMenuItemTemplate = ({ t, onAction }) => ({
+const createEditMenuItemTemplate = ({ t, dispatch }) => ({
 	label: t('menus.editMenu'),
 	submenu: [
 		{
 			label: t('menus.undo'),
 			accelerator: 'CommandOrControl+Z',
-			click: () => onAction({ type: 'undo' }),
+			click: () => dispatch({ type: MENU_BAR_UNDO_CLICKED }),
 		},
 		{
 			label: t('menus.redo'),
 			accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
-			click: () => onAction({ type: 'redo' }),
+			click: () => dispatch({ type: MENU_BAR_REDO_CLICKED }),
 		},
 		{ type: 'separator' },
 		{
 			label: t('menus.cut'),
 			accelerator: 'CommandOrControl+X',
-			click: () => onAction({ type: 'cut' }),
+			click: () => dispatch({ type: MENU_BAR_CUT_CLICKED }),
 		},
 		{
 			label: t('menus.copy'),
 			accelerator: 'CommandOrControl+C',
-			click: () => onAction({ type: 'copy' }),
+			click: () => dispatch({ type: MENU_BAR_COPY_CLICKED }),
 		},
 		{
 			label: t('menus.paste'),
 			accelerator: 'CommandOrControl+V',
-			click: () => onAction({ type: 'paste' }),
+			click: () => dispatch({ type: MENU_BAR_PASTE_CLICKED }),
 		},
 		{
 			label: t('menus.selectAll'),
 			accelerator: 'CommandOrControl+A',
-			click: () => onAction({ type: 'select-all' }),
+			click: () => dispatch({ type: MENU_BAR_SELECT_ALL_CLICKED }),
 		},
 	],
 });
 
-const createViewMenuItemTemplate = ({ showTrayIcon, showFullScreen, showMenuBar, showServerList, t, onAction }) => ({
+const createViewMenuItemTemplate = ({ showTrayIcon, showFullScreen, showMenuBar, showServerList, t, dispatch }) => ({
 	label: t('menus.viewMenu'),
 	submenu: [
 		{
 			label: t('menus.reload'),
 			accelerator: 'CommandOrControl+R',
-			click: () => onAction({ type: 'reload-server' }),
+			click: () => dispatch({ type: MENU_BAR_RELOAD_SERVER_CLICKED }),
 		},
 		{
 			label: t('menus.reloadIgnoringCache'),
-			click: () => onAction({ type: 'reload-server', payload: { ignoringCache: true } }),
+			click: () => dispatch({ type: MENU_BAR_RELOAD_SERVER_CLICKED, payload: { ignoringCache: true } }),
 		},
 		{
 			label: t('menus.clearTrustedCertificates'),
-			click: () => onAction({ type: 'reload-server', payload: { ignoringCache: true, clearCertificates: true } }),
+			click: () => dispatch({ type: MENU_BAR_RELOAD_SERVER_CLICKED, payload: { ignoringCache: true, clearCertificates: true } }),
 		},
 		{
 			label: t('menus.openDevTools'),
 			accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
-			click: () => onAction({ type: 'open-devtools-for-server' }),
+			click: () => dispatch({ type: MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED }),
 		},
 		{ type: 'separator' },
 		{
 			label: t('menus.back'),
 			accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
-			click: () => onAction({ type: 'go-back' }),
+			click: () => dispatch({ type: MENU_BAR_GO_BACK_CLICKED }),
 		},
 		{
 			label: t('menus.forward'),
 			accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
-			click: () => onAction({ type: 'go-forward' }),
+			click: () => dispatch({ type: MENU_BAR_GO_FORWARD_CLICKED }),
 		},
 		{ type: 'separator' },
 		{
 			label: t('menus.showTrayIcon'),
 			type: 'checkbox',
 			checked: showTrayIcon,
-			click: () => onAction({ type: 'toggle', payload: 'showTrayIcon' }),
+			click: () => dispatch({ type: MENU_BAR_TOGGLE_SETTING_CLICKED, payload: 'showTrayIcon' }),
 		},
 		...process.platform === 'darwin' ? [
 			{
@@ -129,7 +153,7 @@ const createViewMenuItemTemplate = ({ showTrayIcon, showFullScreen, showMenuBar,
 				type: 'checkbox',
 				checked: showFullScreen,
 				accelerator: 'Control+Command+F',
-				click: () => onAction({ type: 'toggle', payload: 'showFullScreen' }),
+				click: () => dispatch({ type: MENU_BAR_TOGGLE_SETTING_CLICKED, payload: 'showFullScreen' }),
 			},
 		] : [],
 		...process.platform !== 'darwin' ? [
@@ -137,35 +161,35 @@ const createViewMenuItemTemplate = ({ showTrayIcon, showFullScreen, showMenuBar,
 				label: t('menus.showMenuBar'),
 				type: 'checkbox',
 				checked: showMenuBar,
-				click: () => onAction({ type: 'toggle', payload: 'showMenuBar' }),
+				click: () => dispatch({ type: MENU_BAR_TOGGLE_SETTING_CLICKED, payload: 'showMenuBar' }),
 			},
 		] : [],
 		{
 			label: t('menus.showServerList'),
 			type: 'checkbox',
 			checked: showServerList,
-			click: () => onAction({ type: 'toggle', payload: 'showServerList' }),
+			click: () => dispatch({ type: MENU_BAR_TOGGLE_SETTING_CLICKED, payload: 'showServerList' }),
 		},
 		{ type: 'separator' },
 		{
 			label: t('menus.resetZoom'),
 			accelerator: 'CommandOrControl+0',
-			click: () => onAction({ type: 'reset-zoom' }),
+			click: () => dispatch({ type: MENU_BAR_RESET_ZOOM_CLICKED }),
 		},
 		{
 			label: t('menus.zoomIn'),
 			accelerator: 'CommandOrControl+Plus',
-			click: () => onAction({ type: 'zoom-in' }),
+			click: () => dispatch({ type: MENU_BAR_ZOOM_IN_CLICKED }),
 		},
 		{
 			label: t('menus.zoomOut'),
 			accelerator: 'CommandOrControl+-',
-			click: () => onAction({ type: 'zoom-out' }),
+			click: () => dispatch({ type: MENU_BAR_ZOOM_OUT_CLICKED }),
 		},
 	],
 });
 
-const createWindowMenuItemTemplate = ({ servers, currentServerUrl, showWindowOnUnreadChanged, t, onAction }) => ({
+const createWindowMenuItemTemplate = ({ servers, currentServerUrl, showWindowOnUnreadChanged, t, dispatch }) => ({
 	label: t('menus.windowMenu'),
 	role: 'window',
 	submenu: [
@@ -173,7 +197,7 @@ const createWindowMenuItemTemplate = ({ servers, currentServerUrl, showWindowOnU
 			{
 				label: t('menus.addNewServer'),
 				accelerator: 'CommandOrControl+N',
-				click: () => onAction({ type: 'add-new-server' }),
+				click: () => dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED }),
 			},
 			{ type: 'separator' },
 		] : [],
@@ -182,24 +206,24 @@ const createWindowMenuItemTemplate = ({ servers, currentServerUrl, showWindowOnU
 			label: server.title.replace(/&/g, '&&'),
 			checked: currentServerUrl === server.url,
 			accelerator: `CommandOrControl+${ i + 1 }`,
-			click: () => onAction({ type: 'select-server', payload: server }),
+			click: () => dispatch({ type: MENU_BAR_SELECT_SERVER_CLICKED, payload: server }),
 		})),
 		{ type: 'separator' },
 		{
 			label: t('menus.reload'),
 			accelerator: 'CommandOrControl+Shift+R',
-			click: () => onAction({ type: 'reload-app' }),
+			click: () => dispatch({ type: MENU_BAR_RELOAD_APP_CLICKED }),
 		},
 		{
 			label: t('menus.toggleDevTools'),
-			click: () => onAction({ type: 'toggle-devtools' }),
+			click: () => dispatch({ type: MENU_BAR_TOGGLE_DEVTOOLS_CLICKED }),
 		},
 		{ type: 'separator' },
 		{
 			type: 'checkbox',
 			label: t('menus.showOnUnreadMessage'),
 			checked: showWindowOnUnreadChanged,
-			click: () => onAction({ type: 'toggle', payload: 'showWindowOnUnreadChanged' }),
+			click: () => dispatch({ type: MENU_BAR_TOGGLE_SETTING_CLICKED, payload: 'showWindowOnUnreadChanged' }),
 		},
 		{ type: 'separator' },
 		{
@@ -215,38 +239,38 @@ const createWindowMenuItemTemplate = ({ servers, currentServerUrl, showWindowOnU
 	],
 });
 
-const createHelpMenuItemTemplate = ({ appName, t, onAction }) => ({
+const createHelpMenuItemTemplate = ({ appName, t, dispatch }) => ({
 	label: t('menus.helpMenu'),
 	role: 'help',
 	submenu: [
 		{
 			label: t('menus.documentation'),
-			click: () => onAction({ type: 'open-url', payload: 'https://rocket.chat/docs' }),
+			click: () => dispatch({ type: MENU_BAR_OPEN_URL_CLICKED, payload: 'https://rocket.chat/docs' }),
 		},
 		{ type: 'separator' },
 		{
 			label: t('menus.reportIssue'),
-			click: () => onAction({ type: 'open-url', payload: 'https://github.com/RocketChat/Rocket.Chat.Electron/issues/new' }),
+			click: () => dispatch({ type: MENU_BAR_OPEN_URL_CLICKED, payload: 'https://github.com/RocketChat/Rocket.Chat.Electron/issues/new' }),
 		},
 		{
 			label: t('menus.resetAppData'),
-			click: () => onAction({ type: 'reset-app-data' }),
+			click: () => dispatch({ type: MENU_BAR_RESET_APP_DATA_CLICKED }),
 		},
 		{ type: 'separator' },
 		{
 			label: t('menus.learnMore'),
-			click: () => onAction({ type: 'open-url', payload: 'https://rocket.chat' }),
+			click: () => dispatch({ type: MENU_BAR_OPEN_URL_CLICKED, payload: 'https://rocket.chat' }),
 		},
 		...process.platform !== 'darwin' ? [
 			{
 				label: t('menus.about', { appName }),
-				click: () => onAction({ type: 'about' }),
+				click: () => dispatch({ type: MENU_BAR_ABOUT_CLICKED }),
 			},
 		] : [],
 	],
 });
 
-function MenuBar({
+export function MenuBar({
 	appName = remote.app.name,
 	showFullScreen,
 	showServerList,
@@ -255,17 +279,17 @@ function MenuBar({
 	servers = [],
 	currentServerUrl,
 	showWindowOnUnreadChanged,
-	onAction,
+	dispatch,
 }) {
 	const t = ::i18next.t;
 
 	useEffect(() => {
 		const template = [
-			createAppMenuItemTemplate({ t, appName, onAction }),
-			createEditMenuItemTemplate({ t, onAction }),
-			createViewMenuItemTemplate({ showTrayIcon, showFullScreen, showMenuBar, showServerList, t, onAction }),
-			createWindowMenuItemTemplate({ servers, currentServerUrl, showWindowOnUnreadChanged, t, onAction }),
-			createHelpMenuItemTemplate({ appName, t, onAction }),
+			createAppMenuItemTemplate({ t, appName, dispatch }),
+			createEditMenuItemTemplate({ t, dispatch }),
+			createViewMenuItemTemplate({ showTrayIcon, showFullScreen, showMenuBar, showServerList, t, dispatch }),
+			createWindowMenuItemTemplate({ servers, currentServerUrl, showWindowOnUnreadChanged, t, dispatch }),
+			createHelpMenuItemTemplate({ appName, t, dispatch }),
 		];
 
 		const menu = remote.Menu.buildFromTemplate(template);
@@ -284,7 +308,7 @@ function MenuBar({
 		servers,
 		currentServerUrl,
 		showWindowOnUnreadChanged,
-		onAction,
+		dispatch,
 	]);
 
 	useEffect(() => {

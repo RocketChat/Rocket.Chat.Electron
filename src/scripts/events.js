@@ -4,7 +4,7 @@ import React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
 import { openAboutDialog, closeAboutDialog } from './aboutDialog';
-import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
+import { AddServerView } from './addServerView';
 import certificates from './certificates';
 import { Dock } from './dock';
 import { MenuBar } from './menuBar';
@@ -79,6 +79,7 @@ let isMainWindowVisible;
 let activeWebView;
 let hideOnClose;
 let globalBadge;
+let addServerViewVisible;
 
 const updateComponents = () => {
 	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
@@ -167,7 +168,8 @@ const dispatch = async ({ type, payload }) => {
 	if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
 		getCurrentWindow().show();
 		servers.clearActive();
-		toggleAddServerViewVisible(true);
+		addServerViewVisible = true;
+		updateComponents();
 		return;
 	}
 
@@ -336,6 +338,9 @@ function App() {
 			currentServerUrl={currentServerUrl}
 			dispatch={dispatch}
 		/>
+		<AddServerView
+			visible={addServerViewVisible}
+		/>
 		<Dock
 			badge={globalBadge}
 			hasTrayIcon={hasTrayIcon}
@@ -486,19 +491,19 @@ export default () => {
 	servers.on('host-removed', (hostUrl) => {
 		webview.remove(hostUrl);
 		servers.clearActive();
-		toggleAddServerViewVisible(true);
+		addServerViewVisible = true;
 		updateComponents();
 	});
 
 	servers.on('active-setted', (hostUrl) => {
 		webview.setActive(hostUrl);
-		toggleAddServerViewVisible(false);
+		addServerViewVisible = false;
 		updateComponents();
 	});
 
 	servers.on('active-cleared', (hostUrl) => {
 		webview.deactiveAll(hostUrl);
-		toggleAddServerViewVisible(true);
+		addServerViewVisible = true;
 		updateComponents();
 	});
 
@@ -524,7 +529,8 @@ export default () => {
 
 	sidebar.on('add-server', () => {
 		servers.clearActive();
-		toggleAddServerViewVisible(true);
+		addServerViewVisible = true;
+		updateComponents();
 	});
 
 	sidebar.on('servers-sorted', (sorting) => {
@@ -613,7 +619,6 @@ export default () => {
 	servers.initialize();
 	certificates.initialize();
 
-	mountAddServerView();
 	sidebar.mount();
 	mountWebViews();
 	servers.forEach(::webview.add);

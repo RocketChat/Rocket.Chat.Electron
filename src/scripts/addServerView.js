@@ -1,12 +1,14 @@
 import { ipcRenderer } from 'electron';
 import { t } from 'i18next';
+import { useEffect, useRef, useState } from 'react';
 
 import servers from './servers';
-import { createElement, useRoot, useRef, useEffect, useState } from './reactiveUi';
 
-function AddServerView({ defaultServerUrl = 'https://open.rocket.chat', visible }) {
-	const root = useRoot();
-
+export function AddServerView({
+	defaultServerUrl = 'https://open.rocket.chat',
+	root = document.querySelector('.add-server-view'),
+	visible,
+}) {
 	const inputRef = useRef();
 
 	useEffect(() => {
@@ -115,15 +117,3 @@ function AddServerView({ defaultServerUrl = 'https://open.rocket.chat', visible 
 
 	return null;
 }
-
-let addServerViewElement;
-
-export const mountAddServerView = () => {
-	addServerViewElement = createElement(AddServerView, { visible: true });
-
-	addServerViewElement.mount(document.querySelector('.add-server-view'));
-};
-
-export const toggleAddServerViewVisible = (visible) => {
-	addServerViewElement.update({ visible });
-};

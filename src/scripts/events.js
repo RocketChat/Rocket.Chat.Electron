@@ -1,6 +1,7 @@
-/** @jsx createElement */
 import { remote, ipcRenderer } from 'electron';
 import { t } from 'i18next';
+import React from 'react';
+import { render } from 'react-dom';
 
 import { openAboutDialog, closeAboutDialog } from './aboutDialog';
 import { mountAddServerView, toggleAddServerViewVisible } from './addServerView';
@@ -64,7 +65,6 @@ import {
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 } from './actions';
-import { createElement, Fragment } from './reactiveUi';
 
 const { app, getCurrentWindow, shell } = remote;
 
@@ -77,8 +77,6 @@ let currentServerUrl;
 let isFullScreen;
 let isMainWindowVisible;
 let activeWebView;
-
-let appElement;
 
 const updateComponents = () => {
 	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
@@ -116,7 +114,7 @@ const updateComponents = () => {
 
 	webview.setSidebarPaddingEnabled(!hasSidebar);
 
-	appElement.update();
+	render(<App />, document.getElementById('root'));
 };
 
 // eslint-disable-next-line complexity
@@ -328,7 +326,7 @@ const dispatch = async ({ type, payload }) => {
 };
 
 function App() {
-	return <Fragment>
+	return <>
 		<MenuBar
 			showTrayIcon={hasTrayIcon}
 			showFullScreen={isFullScreen}
@@ -345,7 +343,7 @@ function App() {
 			activeWebView={activeWebView}
 			dispatch={dispatch}
 		/>
-	</Fragment>;
+	</>;
 }
 
 const destroyAll = () => {
@@ -606,9 +604,6 @@ export default () => {
 
 	setupSpellChecking();
 	setupUpdates();
-
-	appElement = createElement(App);
-	appElement.mount(document.body);
 
 	servers.initialize();
 	certificates.initialize();

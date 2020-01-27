@@ -1,11 +1,11 @@
 import { remote } from 'electron';
 import { t } from 'i18next';
+import { useEffect } from 'react';
 
 import {
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 } from './actions';
-import { useEffect } from './reactiveUi';
 
 const { TouchBar: ElectronTouchBar, nativeImage } = remote;
 const { TouchBarButton, TouchBarLabel, TouchBarSegmentedControl, TouchBarScrubber, TouchBarPopover, TouchBarGroup } = ElectronTouchBar;

@@ -1,10 +1,54 @@
-import { desktopCapturer, ipcRenderer, remote } from 'electron';
+import { desktopCapturer, remote } from 'electron';
 import { t } from 'i18next';
+import { useEffect, useRef, useState } from 'react';
 
-import { useRoot, useEffect, useRef } from './reactiveUi';
-import { createDialog, destroyDialog } from './dialogs';
+import {
+	SCREEN_SHARING_DIALOG_DISMISSED,
+	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
+} from './actions';
 
-export function ScreenSharingDialog({ sources }) {
+export function ScreenSharingDialog({
+	root = document.querySelector('.screen-sharing-dialog'),
+	visible = false,
+	dispatch,
+}) {
+	useEffect(() => {
+		if (!visible) {
+			root.close();
+			return;
+		}
+
+		root.showModal();
+
+		root.onclose = () => {
+			root.close();
+			dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
+		};
+
+		root.onclick = ({ clientX, clientY }) => {
+			const { left, top, width, height } = root.getBoundingClientRect();
+			const isInDialog = top <= clientY && clientY <= top + height && left <= clientX && clientX <= left + width;
+			if (!isInDialog) {
+				root.close();
+				dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
+			}
+		};
+	}, [visible]);
+
+	const [sources, setSources] = useState([]);
+
+	useEffect(() => {
+		if (!visible) {
+			return;
+		}
+
+		const fetchSources = async () => {
+			const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
+			setSources(sources);
+		};
+		fetchSources();
+	}, [visible]);
+
 	const sourceSelectedRef = useRef(false);
 
 	useEffect(() => () => {
@@ -14,16 +58,14 @@ export function ScreenSharingDialog({ sources }) {
 			return;
 		}
 
-		ipcRenderer.send('select-screen-sharing-source', null);
+		dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: null });
 	}, []);
 
 	const handleScreenSharingSourceClick = (id) => () => {
 		sourceSelectedRef.current = true;
-		ipcRenderer.send('select-screen-sharing-source', id);
-		ipcRenderer.send('close-screen-sharing-dialog');
+		dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: id });
+		dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
 	};
-
-	const root = useRoot();
 
 	root.querySelector('.screenshare-title').innerText = t('dialog.screenshare.announcement');
 
@@ -46,23 +88,3 @@ export function ScreenSharingDialog({ sources }) {
 
 	return null;
 }
-
-export const openScreenSharingDialog = () => {
-	createDialog({
-		name: 'screen-sharing-dialog',
-		component: ScreenSharingDialog,
-		createProps: async () => {
-			const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
-
-			return { sources };
-		},
-	});
-};
-
-export const closeScreenSharingDialog = () => {
-	destroyDialog('screen-sharing-dialog');
-};
-
-export const selectScreenSharingSource = (id) => {
-	remote.getCurrentWebContents().send('screen-sharing-source-selected', id || 'PermissionDeniedError');
-};

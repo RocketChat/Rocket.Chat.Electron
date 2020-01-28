@@ -32,3 +32,6 @@ export const UPDATE_DIALOG_DISMISSED = 'update-dialog/dismissed';
 export const UPDATE_DIALOG_SKIP_UPDATE_CLICKED = 'update-dialog/skip-update-clicked';
 export const UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED = 'update-dialog/remind-update-later-clicked';
 export const UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED = 'update-dialog/download-update-clicked';
+
+export const SCREEN_SHARING_DIALOG_DISMISSED = 'screen-sharing-dialog/dismissed';
+export const SCREEN_SHARING_DIALOG_SOURCE_SELECTED = 'screen-sharing-dialog/source-selected';

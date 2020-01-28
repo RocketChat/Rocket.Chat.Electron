@@ -7,7 +7,7 @@ import { AddServerView } from './addServerView';
 import certificates from './certificates';
 import { Dock } from './dock';
 import { MenuBar } from './menuBar';
-import { openScreenSharingDialog, closeScreenSharingDialog, selectScreenSharingSource } from './screenSharingDialog';
+import { ScreenSharingDialog } from './screenSharingDialog';
 import servers from './servers';
 import sidebar from './sidebar';
 import tray from './tray';
@@ -67,6 +67,8 @@ import {
 	UPDATE_DIALOG_DISMISSED,
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
+	SCREEN_SHARING_DIALOG_DISMISSED,
+	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
 } from './actions';
 import { AboutDialog } from './aboutDialog';
 import { UpdateDialog } from './updateDialog';
@@ -88,6 +90,7 @@ let addServerViewVisible;
 let aboutDialogVisible;
 let newUpdateVersion;
 let updateDialogVisible;
+let screenSharingDialogVisible;
 
 const updateComponents = () => {
 	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
@@ -363,6 +366,18 @@ const dispatch = async ({ type, payload }) => {
 
 	if (type === UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED) {
 		downloadUpdate();
+		return;
+	}
+
+	if (type === SCREEN_SHARING_DIALOG_DISMISSED) {
+		screenSharingDialogVisible = false;
+		updateComponents();
+		return;
+	}
+
+	if (type === SCREEN_SHARING_DIALOG_SOURCE_SELECTED) {
+		const id = payload;
+		remote.getCurrentWebContents().send('screen-sharing-source-selected', id || 'PermissionDeniedError');
 	}
 };
 
@@ -392,6 +407,10 @@ function App() {
 		<UpdateDialog
 			newVersion={newUpdateVersion}
 			visible={updateDialogVisible}
+			dispatch={dispatch}
+		/>
+		<ScreenSharingDialog
+			visible={screenSharingDialogVisible}
 			dispatch={dispatch}
 		/>
 		<Dock
@@ -490,9 +509,10 @@ export default () => {
 		aboutDialogVisible = false;
 		updateComponents();
 	});
-	listen('open-screen-sharing-dialog', (_, ...args) => openScreenSharingDialog(...args));
-	listen('close-screen-sharing-dialog', (_, ...args) => closeScreenSharingDialog(...args));
-	listen('select-screen-sharing-source', (_, ...args) => selectScreenSharingSource(...args));
+	listen('open-screen-sharing-dialog', () => {
+		screenSharingDialogVisible = true;
+		updateComponents();
+	});
 	listen('open-update-dialog', (_, { newVersion }) => {
 		newUpdateVersion = newVersion;
 		updateDialogVisible = true;
@@ -519,8 +539,6 @@ export default () => {
 		removeAllListeners('download-update');
 		removeAllListeners('close-about-dialog');
 		removeAllListeners('open-screen-sharing-dialog');
-		removeAllListeners('close-screen-sharing-dialog');
-		removeAllListeners('select-screen-sharing-source');
 		removeAllListeners('open-update-dialog');
 
 		unmountComponentAtNode(document.getElementById('root'));

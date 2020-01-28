@@ -12,7 +12,6 @@ import servers from './servers';
 import sidebar from './sidebar';
 import tray from './tray';
 import { TouchBar } from './touchBar';
-import { openUpdateDialog, closeUpdateDialog } from './updateDialog';
 import {
 	setupUpdates,
 	setAutoUpdate,
@@ -65,8 +64,12 @@ import {
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	ADD_SERVER_VIEW_SERVER_ADDED,
 	ABOUT_DIALOG_DISMISSED,
+	UPDATE_DIALOG_DISMISSED,
+	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
+	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 } from './actions';
 import { AboutDialog } from './aboutDialog';
+import { UpdateDialog } from './updateDialog';
 
 const { app, getCurrentWindow, shell } = remote;
 
@@ -83,6 +86,8 @@ let hideOnClose;
 let globalBadge;
 let addServerViewVisible;
 let aboutDialogVisible;
+let newUpdateVersion;
+let updateDialogVisible;
 
 const updateComponents = () => {
 	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
@@ -341,6 +346,23 @@ const dispatch = async ({ type, payload }) => {
 	if (type === ABOUT_DIALOG_DISMISSED) {
 		aboutDialogVisible = false;
 		updateComponents();
+		return;
+	}
+
+	if (type === UPDATE_DIALOG_DISMISSED) {
+		updateDialogVisible = false;
+		updateComponents();
+		return;
+	}
+
+	if (type === UPDATE_DIALOG_SKIP_UPDATE_CLICKED) {
+		const skippedVersion = payload;
+		skipUpdateVersion(skippedVersion);
+		return;
+	}
+
+	if (type === UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED) {
+		downloadUpdate();
 	}
 };
 
@@ -365,6 +387,11 @@ function App() {
 			canAutoUpdate={canAutoUpdate()}
 			canSetAutoUpdate={canSetAutoUpdate()}
 			visible={aboutDialogVisible}
+			dispatch={dispatch}
+		/>
+		<UpdateDialog
+			newVersion={newUpdateVersion}
+			visible={updateDialogVisible}
 			dispatch={dispatch}
 		/>
 		<Dock
@@ -458,7 +485,6 @@ export default () => {
 	listen('set-auto-update', (_, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
 	listen('check-for-updates', (event, ...args) => checkForUpdates(event, ...args));
 	listen('skip-update-version', (_, ...args) => skipUpdateVersion(...args));
-	listen('remind-update-later', () => {});
 	listen('download-update', () => downloadUpdate());
 	listen('close-about-dialog', () => {
 		aboutDialogVisible = false;
@@ -467,8 +493,11 @@ export default () => {
 	listen('open-screen-sharing-dialog', (_, ...args) => openScreenSharingDialog(...args));
 	listen('close-screen-sharing-dialog', (_, ...args) => closeScreenSharingDialog(...args));
 	listen('select-screen-sharing-source', (_, ...args) => selectScreenSharingSource(...args));
-	listen('open-update-dialog', (_, ...args) => openUpdateDialog(...args));
-	listen('close-update-dialog', (_, ...args) => closeUpdateDialog(...args));
+	listen('open-update-dialog', (_, { newVersion }) => {
+		newUpdateVersion = newVersion;
+		updateDialogVisible = true;
+		updateComponents();
+	});
 
 	window.addEventListener('unload', () => {
 		remote.app.removeListener('activate', handleActivate);
@@ -487,14 +516,12 @@ export default () => {
 		removeAllListeners('set-auto-update');
 		removeAllListeners('check-for-updates');
 		removeAllListeners('skip-update-version');
-		removeAllListeners('remind-update-later');
 		removeAllListeners('download-update');
 		removeAllListeners('close-about-dialog');
 		removeAllListeners('open-screen-sharing-dialog');
 		removeAllListeners('close-screen-sharing-dialog');
 		removeAllListeners('select-screen-sharing-source');
 		removeAllListeners('open-update-dialog');
-		removeAllListeners('close-update-dialog');
 
 		unmountComponentAtNode(document.getElementById('root'));
 	});

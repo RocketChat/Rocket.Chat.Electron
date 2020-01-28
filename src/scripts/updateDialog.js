@@ -1,15 +1,44 @@
-import { remote, ipcRenderer } from 'electron';
+import { remote } from 'electron';
 import { t } from 'i18next';
+import { useEffect, useRef } from 'react';
 
-import { useRoot, useEffect, useRef } from './reactiveUi';
-import { createDialog, destroyDialog } from './dialogs';
-
-const { app, dialog } = remote;
+import {
+	UPDATE_DIALOG_DISMISSED,
+	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
+	UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
+	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
+} from './actions';
 
 export function UpdateDialog({
-	currentVersion,
+	currentVersion = remote.app.getVersion(),
 	newVersion,
+	root = document.querySelector('.update-dialog'),
+	visible = false,
+	dispatch,
 }) {
+	useEffect(() => {
+		if (!visible) {
+			root.close();
+			return;
+		}
+
+		root.showModal();
+
+		root.onclose = () => {
+			root.close();
+			dispatch({ type: UPDATE_DIALOG_DISMISSED });
+		};
+
+		root.onclick = ({ clientX, clientY }) => {
+			const { left, top, width, height } = root.getBoundingClientRect();
+			const isInDialog = top <= clientY && clientY <= top + height && left <= clientX && clientX <= left + width;
+			if (!isInDialog) {
+				root.close();
+				dispatch({ type: UPDATE_DIALOG_DISMISSED });
+			}
+		};
+	}, [visible]);
+
 	const installButtonRef = useRef();
 
 	useEffect(() => {
@@ -17,35 +46,33 @@ export function UpdateDialog({
 	}, []);
 
 	const handleSkipButtonClick = async () => {
-		await dialog.showMessageBox(remote.getCurrentWindow(), {
+		await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
 			type: 'warning',
 			title: t('dialog.updateSkip.title'),
 			message: t('dialog.updateSkip.message'),
 			buttons: [t('dialog.updateSkip.ok')],
 			defaultId: 0,
 		});
-		ipcRenderer.send('skip-update-version', newVersion);
-		ipcRenderer.send('close-update-dialog');
+		dispatch({ type: UPDATE_DIALOG_SKIP_UPDATE_CLICKED, payload: newVersion });
+		dispatch({ type: UPDATE_DIALOG_DISMISSED });
 	};
 
 	const handleRemindLaterButtonClick = () => {
-		ipcRenderer.send('remind-update-later');
-		ipcRenderer.send('close-update-dialog');
+		dispatch({ type: UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED });
+		dispatch({ type: UPDATE_DIALOG_DISMISSED });
 	};
 
 	const handleInstallButtonClick = async () => {
-		await dialog.showMessageBox(remote.getCurrentWindow(), {
+		await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
 			type: 'info',
 			title: t('dialog.updateDownloading.title'),
 			message: t('dialog.updateDownloading.message'),
 			buttons: [t('dialog.updateDownloading.ok')],
 			defaultId: 0,
 		});
-		ipcRenderer.send('download-update');
-		ipcRenderer.send('close-update-dialog');
+		dispatch({ type: UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED });
+		dispatch({ type: UPDATE_DIALOG_DISMISSED });
 	};
-
-	const root = useRoot();
 
 	root.querySelector('.update-title').innerText = t('dialog.update.announcement');
 
@@ -71,18 +98,3 @@ export function UpdateDialog({
 
 	return null;
 }
-
-export const openUpdateDialog = ({ newVersion } = {}) => {
-	createDialog({
-		name: 'update-dialog',
-		component: UpdateDialog,
-		createProps: () => {
-			const currentVersion = app.getVersion();
-			return { currentVersion, newVersion };
-		},
-	});
-};
-
-export const closeUpdateDialog = () => {
-	destroyDialog('update-dialog');
-};

@@ -295,10 +295,6 @@ export function MenuBar({
 		const menu = remote.Menu.buildFromTemplate(template);
 
 		remote.Menu.setApplicationMenu(menu);
-
-		return () => {
-			remote.Menu.setApplicationMenu(null);
-		};
 	}, [
 		appName,
 		showFullScreen,
@@ -310,6 +306,10 @@ export function MenuBar({
 		showWindowOnUnreadChanged,
 		dispatch,
 	]);
+
+	useEffect(() => () => {
+		remote.Menu.setApplicationMenu(null);
+	}, []);
 
 	useEffect(() => {
 		if (process.platform === 'darwin') {

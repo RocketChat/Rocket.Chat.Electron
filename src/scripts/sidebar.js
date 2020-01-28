@@ -91,7 +91,7 @@ const renderHost = ({ url, title, order, active, hasUnreadMessages, mentionCount
 		dispatch({ type: SIDEBAR_SERVER_SELECTED, payload: serverElement.dataset.url });
 	};
 
-	const initials = 			title
+	const initials = title
 		.replace(url, parseUrl(url).hostname)
 		.split(/[^A-Za-z0-9]+/g)
 		.slice(0, 2)

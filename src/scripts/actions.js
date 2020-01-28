@@ -27,6 +27,8 @@ export const TOUCH_BAR_SELECT_SERVER_TOUCHED = 'touch-bar/select-server-touched'
 export const ADD_SERVER_VIEW_SERVER_ADDED = 'add-server/view-server-added';
 
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
+export const ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED = 'about-dialog/check-for-updates-clicked';
+export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START = 'about-dialog/toggle-update-on-start';
 
 export const UPDATE_DIALOG_DISMISSED = 'update-dialog/dismissed';
 export const UPDATE_DIALOG_SKIP_UPDATE_CLICKED = 'update-dialog/skip-update-clicked';

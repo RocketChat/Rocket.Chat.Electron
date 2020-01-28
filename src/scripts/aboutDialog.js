@@ -3,7 +3,11 @@ import { t } from 'i18next';
 import { useEffect, useState, useRef } from 'react';
 
 import pkg from '../../package.json';
-import { ABOUT_DIALOG_DISMISSED } from './actions.js';
+import {
+	ABOUT_DIALOG_DISMISSED,
+	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
+	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
+} from './actions.js';
 
 export function AboutDialog({
 	appVersion = remote.app.getVersion(),
@@ -84,11 +88,11 @@ export function AboutDialog({
 	const handleCheckForUpdatesButtonClick = () => {
 		setCheckingForUpdates(true);
 		setCheckingForUpdatesMessage(null);
-		ipcRenderer.send('check-for-updates', { forced: true });
+		dispatch({ type: ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED });
 	};
 
 	const handleCheckForUpdatesOnStartCheckBoxChange = (event) => {
-		ipcRenderer.send('set-auto-update', event.target.checked);
+		dispatch({ type: ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, payload: event.target.checked });
 	};
 
 	root.querySelector('.app-version').innerHTML = `${ t('dialog.about.version') } <span class="version">${ appVersion }</span>`;

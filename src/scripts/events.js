@@ -79,11 +79,11 @@ import {
 	SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	SIDEBAR_ADD_NEW_SERVER_CLICKED,
 	SIDEBAR_SERVERS_SORTED,
+	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
+	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
 } from './actions';
 import { AboutDialog } from './aboutDialog';
 import { UpdateDialog } from './updateDialog';
-
-const { app, getCurrentWindow, shell } = remote;
 
 let showWindowOnUnreadChanged;
 let hasTrayIcon;
@@ -128,7 +128,7 @@ const updateComponents = () => {
 // eslint-disable-next-line complexity
 const dispatch = async ({ type, payload }) => {
 	if (type === MENU_BAR_QUIT_CLICKED) {
-		app.quit();
+		remote.app.quit();
 		return;
 	}
 
@@ -140,7 +140,7 @@ const dispatch = async ({ type, payload }) => {
 
 	if (type === MENU_BAR_OPEN_URL_CLICKED) {
 		const url = payload;
-		shell.openExternal(url);
+		remote.shell.openExternal(url);
 		return;
 	}
 
@@ -175,7 +175,7 @@ const dispatch = async ({ type, payload }) => {
 	}
 
 	if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
-		getCurrentWindow().show();
+		remote.getCurrentWindow().show();
 		servers.clearActive();
 		addServerViewVisible = true;
 		updateComponents();
@@ -184,7 +184,7 @@ const dispatch = async ({ type, payload }) => {
 
 	if (type === MENU_BAR_SELECT_ALL_CLICKED) {
 		const { url } = payload || {};
-		getCurrentWindow().show();
+		remote.getCurrentWindow().show();
 		servers.setActive(url);
 		return;
 	}
@@ -228,12 +228,12 @@ const dispatch = async ({ type, payload }) => {
 	}
 
 	if (type === MENU_BAR_RELOAD_APP_CLICKED) {
-		getCurrentWindow().reload();
+		remote.getCurrentWindow().reload();
 		return;
 	}
 
 	if (type === MENU_BAR_TOGGLE_DEVTOOLS_CLICKED) {
-		getCurrentWindow().toggleDevTools();
+		remote.getCurrentWindow().toggleDevTools();
 		return;
 	}
 
@@ -282,7 +282,7 @@ const dispatch = async ({ type, payload }) => {
 			}
 
 			case 'showFullScreen': {
-				const mainWindow = getCurrentWindow();
+				const mainWindow = remote.getCurrentWindow();
 				mainWindow.setFullScreen(!mainWindow.isFullScreen());
 				break;
 			}
@@ -349,6 +349,17 @@ const dispatch = async ({ type, payload }) => {
 		return;
 	}
 
+	if (type === ABOUT_DIALOG_TOGGLE_UPDATE_ON_START) {
+		const updateOnStart = payload;
+		setAutoUpdate(updateOnStart);
+		return;
+	}
+
+	if (type === ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED) {
+		checkForUpdates(null, { forced: true });
+		return;
+	}
+
 	if (type === UPDATE_DIALOG_DISMISSED) {
 		updateDialogVisible = false;
 		updateComponents();
@@ -392,12 +403,17 @@ const dispatch = async ({ type, payload }) => {
 
 	if (type === TRAY_ICON_TOGGLE_CLICKED) {
 		const visible = payload;
-		visible ? getCurrentWindow().show() : getCurrentWindow().hide();
+		if (visible) {
+			remote.getCurrentWindow().show();
+			return;
+		}
+
+		remote.getCurrentWindow().hide();
 		return;
 	}
 
 	if (type === TRAY_ICON_QUIT_CLICKED) {
-		app.quit();
+		remote.app.quit();
 		return;
 	}
 
@@ -579,10 +595,6 @@ export default () => {
 	handle('spell-checking/install-dictionaries', (_, ...args) => installSpellCheckingDictionaries(...args));
 	handle('spell-checking/enable-dictionaries', (_, ...args) => enableSpellCheckingDictionaries(...args));
 	handle('spell-checking/disable-dictionaries', (_, ...args) => disableSpellCheckingDictionaries(...args));
-	listen('set-auto-update', (_, canAutoUpdate) => setAutoUpdate(canAutoUpdate));
-	listen('check-for-updates', (event, ...args) => checkForUpdates(event, ...args));
-	listen('skip-update-version', (_, ...args) => skipUpdateVersion(...args));
-	listen('download-update', () => downloadUpdate());
 	listen('close-about-dialog', () => {
 		aboutDialogVisible = false;
 		updateComponents();
@@ -611,10 +623,6 @@ export default () => {
 		removeHandler('spell-checking/install-dictionaries');
 		removeHandler('spell-checking/enable-dictionaries');
 		removeHandler('spell-checking/disable-dictionaries');
-		removeAllListeners('set-auto-update');
-		removeAllListeners('check-for-updates');
-		removeAllListeners('skip-update-version');
-		removeAllListeners('download-update');
 		removeAllListeners('close-about-dialog');
 		removeAllListeners('open-screen-sharing-dialog');
 		removeAllListeners('open-update-dialog');

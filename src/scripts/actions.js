@@ -49,3 +49,14 @@ export const SIDEBAR_REMOVE_SERVER_CLICKED = 'sidebar/remove-server-clicked';
 export const SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED = 'sidebar/open-devtools-for-server-clicked';
 export const SIDEBAR_ADD_NEW_SERVER_CLICKED = 'sidebar/add-new-server-clicked';
 export const SIDEBAR_SERVERS_SORTED = 'sidebar/servers-sorted';
+
+export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
+export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
+export const WEBVIEW_FOCUS_REQUESTED = 'webview/focus-requested';
+export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
+export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
+export const WEBVIEW_FOCUSED = 'webview/focused';
+export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED = 'webview/screen-sharing-source-requested';
+export const WEBVIEW_ACTIVATED = 'webview/activated';
+export const WEBVIEW_RELOAD_REQUESTED = 'webview/reload-requested';
+export const WEBVIEW_OPEN_DEVTOOLS_REQUESTED = 'webview/open-devtools-requested';

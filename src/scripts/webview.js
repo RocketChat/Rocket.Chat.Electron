@@ -1,12 +1,39 @@
-import { EventEmitter } from 'events';
-
 import { ipcRenderer } from 'electron';
 import { t } from 'i18next';
+import React, { useEffect, useState, useRef } from 'react';
 
-import { createElement, useEffect, useRoot, useState } from './reactiveUi';
+import {
+	WEBVIEW_UNREAD_CHANGED,
+	WEBVIEW_TITLE_CHANGED,
+	WEBVIEW_FOCUS_REQUESTED,
+	WEBVIEW_SIDEBAR_STYLE_CHANGED,
+	WEBVIEW_DID_NAVIGATE,
+	WEBVIEW_FOCUSED,
+	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
+	WEBVIEW_ACTIVATED,
+	WEBVIEW_RELOAD_REQUESTED,
+	WEBVIEW_OPEN_DEVTOOLS_REQUESTED,
+} from './actions';
+import { listen, removeListener } from './ipc';
 
-function LoadingErrorView({ visible, counting, reloading, onReload }) {
-	const root = useRoot();
+const useRoot = (elementName) => {
+	const ref = useRef();
+
+	if (!ref.current) {
+		ref.current = document.createElement(elementName);
+		document.body.append(ref.current);
+	}
+
+	return ref.current;
+};
+
+function LoadingErrorView({
+	counting,
+	reloading,
+	visible,
+	onReload,
+}) {
+	const root = useRoot('div');
 
 	const [counter, setCounter] = useState(60);
 
@@ -61,196 +88,164 @@ function LoadingErrorView({ visible, counting, reloading, onReload }) {
 	return null;
 }
 
-const loadingErrorViews = new Map();
+function WebUiView({
+	active = false,
+	failed = false,
+	hasSidebar = false,
+	lastPath,
+	url,
+	dispatch,
+	onLoad,
+	onFail,
+}) {
+	const root = useRoot('webview');
 
-class WebView extends EventEmitter {
-	add(host) {
-		let webviewObj = this.getByUrl(host.url);
-		if (webviewObj) {
+	useEffect(() => {
+		root.classList.add('webview');
+		root.setAttribute('preload', '../preload.js');
+		root.toggleAttribute('allowpopups', true);
+		root.toggleAttribute('disablewebsecurity', false);
+		root.setAttribute('enableremotemodule', 'true');
+	}, []);
+
+	useEffect(() => {
+		root.setAttribute('server', url);
+		root.src = lastPath || url;
+	}, [lastPath, url]);
+
+	useEffect(() => {
+		root.classList.toggle('active', active);
+
+		if (active) {
+			root.focus();
+			dispatch({ type: WEBVIEW_ACTIVATED, payload: root.getWebContents().id });
+		}
+	}, [active]);
+
+	useEffect(() => {
+		root.classList.toggle('hidden', failed);
+		root.classList.toggle('failed', failed);
+	}, [failed]);
+
+	const prevFailedRef = useRef(failed);
+
+	useEffect(() => {
+		if (prevFailedRef.current === failed) {
 			return;
 		}
 
-		webviewObj = document.createElement('webview');
-		webviewObj.classList.add('webview');
-		webviewObj.setAttribute('server', host.url);
-		webviewObj.setAttribute('preload', '../preload.js');
-		webviewObj.toggleAttribute('allowpopups', true);
-		webviewObj.toggleAttribute('disablewebsecurity', false);
-		webviewObj.setAttribute('enableremotemodule', 'true');
+		if (!failed) {
+			root.loadURL(url);
+		}
 
-		const loadingErrorViewElement = createElement(LoadingErrorView, {
-			visible: false,
-			onReload: () => {
-				loadingErrorViewElement.update({ reloading: true });
-				webviewObj.classList.remove('failed');
-				webviewObj.loadURL(host.url);
-			},
-		});
+		prevFailedRef.current === failed;
+	}, [url, failed]);
 
-		loadingErrorViewElement.mount(document.createElement('div'));
+	useEffect(() => {
+		const handleFocus = () => {
+			dispatch({ type: WEBVIEW_FOCUSED, payload: { id: root.getWebContents().id, url } });
+		};
 
-		loadingErrorViews.set(host.url, loadingErrorViewElement);
+		root.addEventListener('focus', handleFocus);
 
-		webviewObj.addEventListener('focus', () => {
-			this.emit('focus', webviewObj.getWebContents());
-		});
+		return () => {
+			root.removeEventListener('focus', handleFocus);
+		};
+	}, [url]);
 
-		webviewObj.addEventListener('did-navigate-in-page', (event) => {
-			this.emit('did-navigate-in-page', host.url, event);
-		});
+	useEffect(() => {
+		const handleDidNavigateInPage = (event) => {
+			dispatch({ type: WEBVIEW_DID_NAVIGATE, payload: { url, pageUrl: event.url } });
+		};
 
-		let selfXssWarned = false;
-		webviewObj.addEventListener('devtools-opened', () => {
+		root.addEventListener('did-navigate-in-page', handleDidNavigateInPage);
+
+		return () => {
+			root.removeEventListener('did-navigate-in-page', handleDidNavigateInPage);
+		};
+	}, [url]);
+
+	const [selfXssWarned, setSelfXssWarned] = useState(false);
+
+	useEffect(() => {
+		const handleDevtoolsOpened = () => {
 			if (selfXssWarned) {
 				return;
 			}
 
-			webviewObj.getWebContents().executeJavaScript(`(${ ([title, description, moreInfo]) => {
+			root.getWebContents().executeJavaScript(`(${ ([title, description, moreInfo]) => {
 				console.warn('%c%s', 'color: red; font-size: 32px;', title);
 				console.warn('%c%s', 'font-size: 20px;', description);
 				console.warn('%c%s', 'font-size: 20px;', moreInfo);
 			} })(${ JSON.stringify([t('selfxss.title'), t('selfxss.description'), t('selfxss.moreInfo')]) })`);
 
-			selfXssWarned = true;
-		});
+			setSelfXssWarned(true);
+		};
 
-		webviewObj.addEventListener('ipc-message', (event) => {
-			this.emit(`ipc-message-${ event.channel }`, host.url, event.args);
+		root.addEventListener('devtools-opened', handleDevtoolsOpened);
 
-			switch (event.channel) {
-				case 'get-sourceId':
-					ipcRenderer.send('open-screen-sharing-dialog');
-					break;
-			}
-		});
+		return () => {
+			root.removeEventListener('devtools-opened', handleDevtoolsOpened);
+		};
+	}, []);
 
-		webviewObj.addEventListener('dom-ready', () => {
-			webviewObj.classList.add('ready');
-			this.emit('dom-ready', webviewObj, host.url);
-		});
-
-		webviewObj.addEventListener('did-finish-load', () => {
-			const active = webviewObj.classList.contains('active');
-			const failed = webviewObj.classList.contains('failed');
-			webviewObj.classList.toggle('hidden', failed);
-			loadingErrorViewElement.update({ visible: active && failed, counting: failed, reloading: false });
-		});
-
-		webviewObj.addEventListener('did-fail-load', (e) => {
-			if (e.errorCode === -3) {
-				console.log('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
-				return;
-			}
-			if (e.isMainFrame) {
-				webviewObj.classList.add('failed');
-			}
-		});
-
-		webviewObj.addEventListener('did-get-response-details', (e) => {
-			if (e.resourceType === 'mainFrame' && e.httpResponseCode >= 500) {
-				webviewObj.classList.add('failed');
-			}
-		});
-
-		this.webviewParentElement.appendChild(webviewObj);
-		this.webviewParentElement.appendChild(loadingErrorViewElement.root);
-
-		webviewObj.src = host.lastPath || host.url;
-	}
-
-	remove(hostUrl) {
-		const el = this.getByUrl(hostUrl);
-		if (el) {
-			el.remove();
-			const loadingErrorViewElement = loadingErrorViews.get(hostUrl);
-			loadingErrorViewElement.root.remove();
-			loadingErrorViewElement.unmount();
-			loadingErrorViews.delete(hostUrl);
-		}
-	}
-
-	getByUrl(hostUrl) {
-		return this.webviewParentElement.querySelector(`webview[server="${ hostUrl }"]`);
-	}
-
-	getActive() {
-		return document.querySelector('webview.active');
-	}
-
-	isActive(hostUrl) {
-		return !!this.webviewParentElement.querySelector(`webview.active[server="${ hostUrl }"]`);
-	}
-
-	deactiveAll() {
-		let item;
-		while (!(item = this.getActive()) === false) {
-			item.classList.remove('active');
-			const loadingErrorViewElement = loadingErrorViews.get(item.getAttribute('server'));
-			loadingErrorViewElement.update({ visible: false });
-		}
-	}
-
-	setActive(hostUrl) {
-		if (this.isActive(hostUrl)) {
-			return;
-		}
-
-		this.deactiveAll();
-		const item = this.getByUrl(hostUrl);
-		if (item) {
-			item.classList.add('active');
-			const loadingErrorViewElement = loadingErrorViews.get(hostUrl);
-			const failed = item.classList.contains('failed');
-			loadingErrorViewElement.update({ visible: failed, counting: failed });
-		}
-		this.focusActive();
-	}
-
-	focusActive() {
-		const active = this.getActive();
-		if (active) {
-			active.focus();
-			return true;
-		}
-		return false;
-	}
-
-	goBack() {
-		this.getActive().goBack();
-	}
-
-	goForward() {
-		this.getActive().goForward();
-	}
-
-	setSidebarPaddingEnabled(enabled) {
-		if (process.platform !== 'darwin') {
-			return;
-		}
-
-		Array.from(document.querySelectorAll('webview.ready'))
-			.forEach((webviewObj) => webviewObj.insertCSS(`
-				.sidebar {
-					padding-top: ${ enabled ? '10px' : '0' };
-					transition: margin .5s ease-in-out;
-				}
-			`));
-	}
-}
-
-const instance = new WebView();
-
-export default instance;
-
-function WebViews() {
-	const root = useRoot();
+	const [ready, setReady] = useState(false);
 
 	useEffect(() => {
-		instance.webviewParentElement = root;
+		const handleDomReady = () => {
+			setReady(true);
+		};
+
+		root.addEventListener('dom-ready', handleDomReady);
+
+		return () => {
+			root.removeEventListener('dom-ready', handleDomReady);
+		};
+	}, []);
+
+	useEffect(() => {
+		root.classList.toggle('ready', ready);
+	}, [ready]);
+
+	useEffect(() => {
+		const handleIpcMessage = (event) => {
+			switch (event.channel) {
+				case 'get-sourceId':
+					dispatch({ type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED });
+					break;
+
+				case 'unread-changed':
+					dispatch({ type: WEBVIEW_UNREAD_CHANGED, payload: { url, badge: event.args[0] } });
+					break;
+
+				case 'title-changed':
+					dispatch({ type: WEBVIEW_TITLE_CHANGED, payload: { url, title: event.args[0] } });
+					break;
+
+				case 'focus':
+					dispatch({ type: WEBVIEW_FOCUS_REQUESTED, payload: { url } });
+					break;
+
+				case 'sidebar-style':
+					dispatch({ type: WEBVIEW_SIDEBAR_STYLE_CHANGED, payload: { url, style: event.args[0] } });
+					break;
+			}
+		};
+
+		root.addEventListener('ipc-message', handleIpcMessage);
+
+		return () => {
+			root.removeEventListener('ipc-message', handleIpcMessage);
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!active) {
+			return;
+		}
 
 		const handleScreenSharingSourceSelect = (e, id) => {
-			const webviewObj = instance.getActive();
-			webviewObj && webviewObj.executeJavaScript(`window.parent.postMessage({ sourceId: ${ JSON.stringify(id) } }, '*');`);
+			root.executeJavaScript(`window.parent.postMessage({ sourceId: ${ JSON.stringify(id) } }, '*');`);
 		};
 
 		ipcRenderer.on('screen-sharing-source-selected', handleScreenSharingSourceSelect);
@@ -258,15 +253,143 @@ function WebViews() {
 		return () => {
 			ipcRenderer.removeListener('screen-sharing-source-selected', handleScreenSharingSourceSelect);
 		};
+	}, [active]);
+
+	useEffect(() => {
+		const handleDidFinishLoad = () => {
+			onLoad && onLoad();
+		};
+
+		root.addEventListener('did-finish-load', handleDidFinishLoad);
+
+		return () => {
+			root.removeEventListener('did-finish-load', handleDidFinishLoad);
+		};
+	}, [onLoad]);
+
+	useEffect(() => {
+		const handleDidFailLoad = (e) => {
+			if (e.errorCode === -3) {
+				console.warn('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
+				return;
+			}
+			if (e.isMainFrame) {
+				onFail && onFail();
+			}
+		};
+
+		const handleDidGetResponseDetails = (e) => {
+			if (e.resourceType === 'mainFrame' && e.httpResponseCode >= 500) {
+				onFail && onFail();
+			}
+		};
+
+		root.addEventListener('did-fail-load', handleDidFailLoad);
+		root.addEventListener('did-get-response-details', handleDidGetResponseDetails);
+
+		return () => {
+			root.removeEventListener('did-fail-load', handleDidFailLoad);
+			root.removeEventListener('did-get-response-details', handleDidGetResponseDetails);
+		};
+	}, [onFail]);
+
+	useEffect(() => {
+		const handleReloadRequest = (_, _url) => {
+			if (url !== _url) {
+				return;
+			}
+
+			root.reload();
+		};
+
+		const handleOpenDevtoolsRequest = (_, _url) => {
+			if (url !== _url) {
+				return;
+			}
+
+			root.openDevTools();
+		};
+
+		listen(WEBVIEW_RELOAD_REQUESTED, handleReloadRequest);
+		listen(WEBVIEW_OPEN_DEVTOOLS_REQUESTED, handleOpenDevtoolsRequest);
+
+		return () => {
+			removeListener(WEBVIEW_RELOAD_REQUESTED, handleReloadRequest);
+			removeListener(WEBVIEW_OPEN_DEVTOOLS_REQUESTED, handleOpenDevtoolsRequest);
+		};
 	}, []);
+
+	useEffect(() => {
+		if (process.platform !== 'darwin') {
+			return;
+		}
+
+		if (!root.classList.contains('ready')) {
+			return;
+		}
+
+		root.insertCSS(`
+			.sidebar {
+				padding-top: ${ !hasSidebar ? '10px' : '0' };
+				transition: margin .5s ease-in-out;
+			}
+		`);
+	}, [hasSidebar]);
 
 	return null;
 }
 
-let webViewsElement;
+function ServerView({
+	active = false,
+	hasSidebar = false,
+	lastPath,
+	url,
+	dispatch,
+}) {
+	const [failed, setFailed] = useState(false);
+	const [reloading, setReloading] = useState(false);
 
-export const mountWebViews = () => {
-	webViewsElement = createElement(WebViews);
+	return <>
+		<WebUiView
+			active={active}
+			failed={failed}
+			hasSidebar={hasSidebar}
+			lastPath={lastPath}
+			url={url}
+			dispatch={dispatch}
+			onLoad={() => {
+				setReloading(false);
+			}}
+			onFail={() => {
+				setFailed(true);
+			}}
+		/>
+		<LoadingErrorView
+			visible={active && failed}
+			counting={active && failed}
+			reloading={reloading}
+			onReload={() => {
+				setFailed(false);
+				setReloading(true);
+			}}
+		/>
+	</>;
+}
 
-	webViewsElement.mount(document.body);
-};
+export function WebViews({
+	hasSidebar,
+	servers = [],
+	currentServerUrl,
+	dispatch,
+}) {
+	return <>
+		{servers.map((server) => <ServerView
+			key={server.url}
+			active={currentServerUrl === server.url}
+			hasSidebar={hasSidebar}
+			lastPath={server.lastPath}
+			url={server.url}
+			dispatch={dispatch}
+		/>)}
+	</>;
+}

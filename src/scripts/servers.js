@@ -217,10 +217,6 @@ class Servers extends EventEmitter {
 		return false;
 	}
 
-	restoreActive() {
-		this.setActive(this.active);
-	}
-
 	clearActive() {
 		localStorage.removeItem(this.activeKey);
 		this.emit('active-cleared');

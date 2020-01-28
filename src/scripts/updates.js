@@ -8,9 +8,9 @@ const { autoUpdater } = remote.require('electron-updater');
 const updateSettingsFileName = 'update.json';
 let appDir;
 let userDataDir;
-let appUpdateSettings;
-let userUpdateSettings;
-let updateSettings;
+let appUpdateSettings = {};
+let userUpdateSettings = {};
+let updateSettings = {};
 
 const loadUpdateSettings = (dir) => {
 	try {

@@ -1,6 +1,6 @@
 import { remote, ipcRenderer } from 'electron';
 import { t } from 'i18next';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
 import { AddServerView } from './addServerView';
@@ -22,10 +22,10 @@ import {
 	canAutoUpdate,
 	canSetAutoUpdate,
 } from './updates';
-import webview, { mountWebViews } from './webview';
+import { WebViews } from './webview';
 import { processDeepLink } from './deepLinks';
 import { MainWindow } from './mainWindow';
-import { handle, removeHandler, listen, removeAllListeners } from './ipc';
+import { handle, removeHandler, listen, removeAllListeners, emit } from './ipc';
 import {
 	setupSpellChecking,
 	getSpellCheckingCorrections,
@@ -81,6 +81,16 @@ import {
 	SIDEBAR_SERVERS_SORTED,
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
 	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
+	WEBVIEW_UNREAD_CHANGED,
+	WEBVIEW_TITLE_CHANGED,
+	WEBVIEW_FOCUS_REQUESTED,
+	WEBVIEW_SIDEBAR_STYLE_CHANGED,
+	WEBVIEW_DID_NAVIGATE,
+	WEBVIEW_FOCUSED,
+	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
+	WEBVIEW_ACTIVATED,
+	WEBVIEW_RELOAD_REQUESTED,
+	WEBVIEW_OPEN_DEVTOOLS_REQUESTED,
 } from './actions';
 import { AboutDialog } from './aboutDialog';
 import { UpdateDialog } from './updateDialog';
@@ -93,7 +103,7 @@ let _servers;
 let currentServerUrl;
 let isFullScreen;
 let isMainWindowVisible;
-let activeWebView;
+let currentServerWebContents;
 let hideOnClose;
 let badges = {};
 let styles = {};
@@ -102,6 +112,7 @@ let aboutDialogVisible;
 let newUpdateVersion;
 let updateDialogVisible;
 let screenSharingDialogVisible;
+let focusedWebContents = null;
 
 const updateComponents = () => {
 	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
@@ -118,15 +129,17 @@ const updateComponents = () => {
 	isFullScreen = remote.getCurrentWindow().isFullScreen();
 	isMainWindowVisible = remote.getCurrentWindow().isVisible();
 
-	activeWebView = webview.getActive();
-
-	webview.setSidebarPaddingEnabled(!hasSidebar);
-
 	render(<App />, document.getElementById('root'));
 };
 
 // eslint-disable-next-line complexity
-const dispatch = async ({ type, payload }) => {
+const dispatch = async ({ type, payload = null }) => {
+	try {
+		emit(type, JSON.parse(JSON.stringify(payload)));
+	} catch (e) {
+		console.warn(type, e);
+	}
+
 	if (type === MENU_BAR_QUIT_CLICKED) {
 		remote.app.quit();
 		return;
@@ -145,32 +158,32 @@ const dispatch = async ({ type, payload }) => {
 	}
 
 	if (type === MENU_BAR_UNDO_CLICKED) {
-		remote.webContents.getFocusedWebContents().undo();
+		focusedWebContents.undo();
 		return;
 	}
 
 	if (type === MENU_BAR_REDO_CLICKED) {
-		remote.webContents.getFocusedWebContents().redo();
+		focusedWebContents.redo();
 		return;
 	}
 
 	if (type === MENU_BAR_CUT_CLICKED) {
-		remote.webContents.getFocusedWebContents().cut();
+		focusedWebContents.cut();
 		return;
 	}
 
 	if (type === MENU_BAR_COPY_CLICKED) {
-		remote.webContents.getFocusedWebContents().copy();
+		focusedWebContents.copy();
 		return;
 	}
 
 	if (type === MENU_BAR_PASTE_CLICKED) {
-		remote.webContents.getFocusedWebContents().paste();
+		focusedWebContents.paste();
 		return;
 	}
 
 	if (type === MENU_BAR_SELECT_ALL_CLICKED) {
-		remote.webContents.getFocusedWebContents().selectAll();
+		focusedWebContents.selectAll();
 		return;
 	}
 
@@ -195,35 +208,33 @@ const dispatch = async ({ type, payload }) => {
 			certificates.clear();
 		}
 
-		const activeWebview = webview.getActive();
-		if (!activeWebview) {
+		if (!currentServerWebContents) {
 			return;
 		}
 
 		if (ignoringCache) {
-			activeWebview.reloadIgnoringCache();
+			currentServerWebContents.reloadIgnoringCache();
 			return;
 		}
 
-		activeWebview.reload();
+		currentServerWebContents.reload();
 		return;
 	}
 
 	if (type === MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
-		const activeWebview = webview.getActive();
-		if (activeWebview) {
-			activeWebview.openDevTools();
+		if (currentServerWebContents) {
+			currentServerWebContents.openDevTools();
 		}
 		return;
 	}
 
 	if (type === MENU_BAR_GO_BACK_CLICKED) {
-		webview.goBack();
+		currentServerWebContents.goBack();
 		return;
 	}
 
 	if (type === MENU_BAR_GO_FORWARD_CLICKED) {
-		webview.goForward();
+		currentServerWebContents.goForward();
 		return;
 	}
 
@@ -238,17 +249,17 @@ const dispatch = async ({ type, payload }) => {
 	}
 
 	if (type === MENU_BAR_RESET_ZOOM_CLICKED) {
-		remote.webContents.getFocusedWebContents().zoomLevel = 0;
+		focusedWebContents.zoomLevel = 0;
 		return;
 	}
 
 	if (type === MENU_BAR_ZOOM_IN_CLICKED) {
-		remote.webContents.getFocusedWebContents().zoomLevel++;
+		focusedWebContents.zoomLevel++;
 		return;
 	}
 
 	if (type === MENU_BAR_ZOOM_OUT_CLICKED) {
-		remote.webContents.getFocusedWebContents().zoomLevel--;
+		focusedWebContents.zoomLevel--;
 		return;
 	}
 
@@ -328,7 +339,7 @@ const dispatch = async ({ type, payload }) => {
 
 	if (type === TOUCH_BAR_FORMAT_BUTTON_TOUCHED) {
 		const id = payload;
-		activeWebView.executeJavaScript(`(() => {
+		currentServerWebContents.executeJavaScript(`(() => {
 			const button = document.querySelector('.rc-message-box .js-format[data-id="${ id }"]');
 			button.click();
 		})()`.trim());
@@ -425,7 +436,7 @@ const dispatch = async ({ type, payload }) => {
 
 	if (type === SIDEBAR_RELOAD_SERVER_CLICKED) {
 		const hostUrl = payload;
-		webview.getByUrl(hostUrl).reload();
+		dispatch({ type: WEBVIEW_RELOAD_REQUESTED, payload: hostUrl });
 		return;
 	}
 
@@ -437,7 +448,7 @@ const dispatch = async ({ type, payload }) => {
 
 	if (type === SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
 		const hostUrl = payload;
-		webview.getByUrl(hostUrl).openDevTools();
+		dispatch({ type: WEBVIEW_OPEN_DEVTOOLS_REQUESTED, payload: hostUrl });
 		return;
 	}
 
@@ -452,10 +463,87 @@ const dispatch = async ({ type, payload }) => {
 		const sorting = payload;
 		localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));
 		updateComponents();
+		return;
+	}
+
+	if (type === WEBVIEW_UNREAD_CHANGED) {
+		const { url, badge } = payload;
+		if (typeof badge === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {
+			const mainWindow = remote.getCurrentWindow();
+			if (!mainWindow.isFocused()) {
+				mainWindow.once('focus', () => mainWindow.flashFrame(false));
+				mainWindow.showInactive();
+				mainWindow.flashFrame(true);
+			}
+		}
+
+		badges = {
+			...badges,
+			[url]: badge || null,
+		};
+
+		updateComponents();
+		return;
+	}
+
+	if (type === WEBVIEW_TITLE_CHANGED) {
+		const { url, title } = payload;
+		servers.setHostTitle(url, title);
+		return;
+	}
+
+	if (type === WEBVIEW_FOCUS_REQUESTED) {
+		const { url } = payload;
+		servers.setActive(url);
+		return;
+	}
+
+	if (type === WEBVIEW_SIDEBAR_STYLE_CHANGED) {
+		const { url, style } = payload;
+		styles = {
+			...styles,
+			[url]: style || null,
+		};
+		updateComponents();
+		return;
+	}
+
+	if (type === WEBVIEW_DID_NAVIGATE) {
+		const { url, pageUrl } = payload;
+		if (pageUrl.includes(url)) {
+			servers.hosts[url].lastPath = pageUrl;
+			servers.save();
+		}
+		return;
+	}
+
+	if (type === WEBVIEW_FOCUSED) {
+		const { id } = payload;
+		focusedWebContents = remote.webContents.fromId(id);
+		return;
+	}
+
+	if (type === WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED) {
+		screenSharingDialogVisible = true;
+		updateComponents();
+		return;
+	}
+
+	if (type === WEBVIEW_ACTIVATED) {
+		currentServerWebContents = remote.webContents.fromId(payload);
+		updateComponents();
 	}
 };
 
 function App() {
+	useEffect(() => {
+		setupSpellChecking();
+		setupUpdates();
+
+		certificates.initialize();
+		servers.setActive(servers.active);
+	}, []);
+
 	const mentionCount = Object.values(badges)
 		.filter((badge) => Number.isInteger(badge))
 		.reduce((sum, count) => sum + count, 0);
@@ -480,6 +568,12 @@ function App() {
 			badges={badges}
 			visible={hasSidebar}
 			styles={styles}
+			dispatch={dispatch}
+		/>
+		<WebViews
+			servers={_servers}
+			currentServerUrl={currentServerUrl}
+			hasSidebar={hasSidebar}
 			dispatch={dispatch}
 		/>
 		<AddServerView
@@ -515,7 +609,7 @@ function App() {
 		<TouchBar
 			servers={_servers}
 			activeServerUrl={currentServerUrl}
-			activeWebView={activeWebView}
+			webContents={currentServerWebContents}
 			dispatch={dispatch}
 		/>
 	</MainWindow>;
@@ -530,17 +624,11 @@ const destroyAll = () => {
 	}
 };
 
-let focusedWebContents = null;
-
 const patchFocusedWebContents = () => {
 	focusedWebContents = remote.getCurrentWebContents();
 
 	window.addEventListener('focus', () => {
 		focusedWebContents = remote.getCurrentWebContents();
-	});
-
-	webview.on('focus', (webContents) => {
-		focusedWebContents = webContents;
 	});
 
 	remote.webContents.getFocusedWebContents = () => focusedWebContents;
@@ -550,7 +638,13 @@ export default () => {
 	patchFocusedWebContents();
 
 	window.addEventListener('beforeunload', destroyAll);
-	window.addEventListener('focus', () => webview.focusActive());
+	window.addEventListener('focus', () => {
+		if (!currentServerWebContents) {
+			return;
+		}
+
+		currentServerWebContents.focus();
+	});
 
 	const handleConnectionStatus = () => {
 		document.body.classList.toggle('offline', !navigator.onLine);
@@ -599,10 +693,6 @@ export default () => {
 		aboutDialogVisible = false;
 		updateComponents();
 	});
-	listen('open-screen-sharing-dialog', () => {
-		screenSharingDialogVisible = true;
-		updateComponents();
-	});
 	listen('open-update-dialog', (_, { newVersion }) => {
 		newUpdateVersion = newVersion;
 		updateDialogVisible = true;
@@ -624,7 +714,6 @@ export default () => {
 		removeHandler('spell-checking/enable-dictionaries');
 		removeHandler('spell-checking/disable-dictionaries');
 		removeAllListeners('close-about-dialog');
-		removeAllListeners('open-screen-sharing-dialog');
 		removeAllListeners('open-update-dialog');
 
 		unmountComponentAtNode(document.getElementById('root'));
@@ -635,26 +724,24 @@ export default () => {
 		updateComponents();
 	});
 
-	servers.on('host-added', (hostUrl) => {
-		webview.add(servers.get(hostUrl));
+	servers.on('host-added', () => {
 		updateComponents();
 	});
 
-	servers.on('host-removed', (hostUrl) => {
-		webview.remove(hostUrl);
+	servers.on('host-removed', () => {
 		servers.clearActive();
 		addServerViewVisible = true;
 		updateComponents();
 	});
 
 	servers.on('active-setted', (hostUrl) => {
-		webview.setActive(hostUrl);
+		currentServerUrl = hostUrl;
 		addServerViewVisible = false;
 		updateComponents();
 	});
 
-	servers.on('active-cleared', (hostUrl) => {
-		webview.deactiveAll(hostUrl);
+	servers.on('active-cleared', () => {
+		currentServerUrl = null;
 		addServerViewVisible = true;
 		updateComponents();
 	});
@@ -666,61 +753,7 @@ export default () => {
 	remote.getCurrentWindow().on('hide', updateComponents);
 	remote.getCurrentWindow().on('show', updateComponents);
 
-	webview.on('ipc-message-unread-changed', (hostUrl, [badge]) => {
-		if (typeof badge === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {
-			const mainWindow = remote.getCurrentWindow();
-			if (!mainWindow.isFocused()) {
-				mainWindow.once('focus', () => mainWindow.flashFrame(false));
-				mainWindow.showInactive();
-				mainWindow.flashFrame(true);
-			}
-		}
-
-		badges = {
-			...badges,
-			[hostUrl]: badge || null,
-		};
-
-		updateComponents();
-	});
-
-	webview.on('ipc-message-title-changed', (hostUrl, [title]) => {
-		servers.setHostTitle(hostUrl, title);
-	});
-
-	webview.on('ipc-message-focus', (hostUrl) => {
-		servers.setActive(hostUrl);
-	});
-
-	webview.on('ipc-message-sidebar-style', (hostUrl, [style]) => {
-		styles = {
-			...styles,
-			[hostUrl]: style || null,
-		};
-		updateComponents();
-	});
-
-	webview.on('dom-ready', () => {
-		updateComponents();
-	});
-
-	webview.on('did-navigate-in-page', (hostUrl, event) => {
-		if (event.url.includes(hostUrl)) {
-			servers.hosts[hostUrl].lastPath = event.url;
-			servers.save();
-		}
-	});
-
-	setupSpellChecking();
-	setupUpdates();
-
 	servers.initialize();
-	certificates.initialize();
-
-	mountWebViews();
-	servers.forEach(::webview.add);
-
-	servers.restoreActive();
 
 	updateComponents();
 

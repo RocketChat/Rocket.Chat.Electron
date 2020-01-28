@@ -10,7 +10,7 @@ import { MenuBar } from './menuBar';
 import { ScreenSharingDialog } from './screenSharingDialog';
 import servers from './servers';
 import sidebar from './sidebar';
-import tray from './tray';
+import { Tray } from './tray';
 import { TouchBar } from './touchBar';
 import {
 	setupUpdates,
@@ -69,6 +69,10 @@ import {
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 	SCREEN_SHARING_DIALOG_DISMISSED,
 	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
+	TRAY_ICON_CREATED,
+	TRAY_ICON_DESTROYED,
+	TRAY_ICON_TOGGLE_CLICKED,
+	TRAY_ICON_QUIT_CLICKED,
 } from './actions';
 import { AboutDialog } from './aboutDialog';
 import { UpdateDialog } from './updateDialog';
@@ -109,12 +113,6 @@ const updateComponents = () => {
 	isMainWindowVisible = remote.getCurrentWindow().isVisible();
 
 	activeWebView = webview.getActive();
-
-	tray.setState({
-		showIcon: hasTrayIcon,
-		isMainWindowVisible,
-		badge: globalBadge,
-	});
 
 	sidebar.setState({
 		visible: hasSidebar,
@@ -378,6 +376,29 @@ const dispatch = async ({ type, payload }) => {
 	if (type === SCREEN_SHARING_DIALOG_SOURCE_SELECTED) {
 		const id = payload;
 		remote.getCurrentWebContents().send('screen-sharing-source-selected', id || 'PermissionDeniedError');
+		return;
+	}
+
+	if (type === TRAY_ICON_CREATED) {
+		hideOnClose = true;
+		updateComponents();
+		return;
+	}
+
+	if (type === TRAY_ICON_DESTROYED) {
+		hideOnClose = false;
+		updateComponents();
+		return;
+	}
+
+	if (type === TRAY_ICON_TOGGLE_CLICKED) {
+		const visible = payload;
+		visible ? getCurrentWindow().show() : getCurrentWindow().hide();
+		return;
+	}
+
+	if (type === TRAY_ICON_QUIT_CLICKED) {
+		app.quit();
 	}
 };
 
@@ -417,6 +438,12 @@ function App() {
 			badge={globalBadge}
 			hasTrayIcon={hasTrayIcon}
 		/>
+		<Tray
+			badge={globalBadge}
+			isMainWindowVisible={isMainWindowVisible}
+			showIcon={hasTrayIcon}
+			dispatch={dispatch}
+		/>
 		<TouchBar
 			servers={_servers}
 			activeServerUrl={currentServerUrl}
@@ -428,7 +455,6 @@ function App() {
 
 const destroyAll = () => {
 	try {
-		tray.destroy();
 		remote.getCurrentWindow().removeListener('hide', updateComponents);
 		remote.getCurrentWindow().removeListener('show', updateComponents);
 	} catch (error) {
@@ -606,19 +632,6 @@ export default () => {
 
 	remote.getCurrentWindow().on('hide', updateComponents);
 	remote.getCurrentWindow().on('show', updateComponents);
-
-	tray.on('created', () => {
-		hideOnClose = true;
-		updateComponents();
-	});
-	tray.on('destroyed', () => {
-		hideOnClose = false;
-		updateComponents();
-	});
-	tray.on('set-main-window-visibility', (visible) =>
-		(visible ? getCurrentWindow().show() : getCurrentWindow().hide()));
-	tray.on('quit', () => app.quit());
-
 
 	webview.on('ipc-message-unread-changed', (hostUrl, [badge]) => {
 		if (typeof badge === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {

@@ -35,3 +35,8 @@ export const UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED = 'update-dialog/download-upd
 
 export const SCREEN_SHARING_DIALOG_DISMISSED = 'screen-sharing-dialog/dismissed';
 export const SCREEN_SHARING_DIALOG_SOURCE_SELECTED = 'screen-sharing-dialog/source-selected';
+
+export const TRAY_ICON_CREATED = 'tray-icon/created';
+export const TRAY_ICON_DESTROYED = 'tray-icon/destroyed';
+export const TRAY_ICON_TOGGLE_CLICKED = 'tray-icon/toggle-clicked';
+export const TRAY_ICON_QUIT_CLICKED = 'tray-icon/quit-clicked';

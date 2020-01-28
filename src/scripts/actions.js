@@ -40,3 +40,10 @@ export const TRAY_ICON_CREATED = 'tray-icon/created';
 export const TRAY_ICON_DESTROYED = 'tray-icon/destroyed';
 export const TRAY_ICON_TOGGLE_CLICKED = 'tray-icon/toggle-clicked';
 export const TRAY_ICON_QUIT_CLICKED = 'tray-icon/quit-clicked';
+
+export const SIDEBAR_SERVER_SELECTED = 'sidebar/server-selected';
+export const SIDEBAR_RELOAD_SERVER_CLICKED = 'sidebar/reload-server-clicked';
+export const SIDEBAR_REMOVE_SERVER_CLICKED = 'sidebar/remove-server-clicked';
+export const SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED = 'sidebar/open-devtools-for-server-clicked';
+export const SIDEBAR_ADD_NEW_SERVER_CLICKED = 'sidebar/add-new-server-clicked';
+export const SIDEBAR_SERVERS_SORTED = 'sidebar/servers-sorted';

@@ -9,7 +9,7 @@ import { Dock } from './dock';
 import { MenuBar } from './menuBar';
 import { ScreenSharingDialog } from './screenSharingDialog';
 import servers from './servers';
-import sidebar from './sidebar';
+import { SideBar } from './sidebar';
 import { Tray } from './tray';
 import { TouchBar } from './touchBar';
 import {
@@ -73,6 +73,12 @@ import {
 	TRAY_ICON_DESTROYED,
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
+	SIDEBAR_SERVER_SELECTED,
+	SIDEBAR_RELOAD_SERVER_CLICKED,
+	SIDEBAR_REMOVE_SERVER_CLICKED,
+	SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
+	SIDEBAR_ADD_NEW_SERVER_CLICKED,
+	SIDEBAR_SERVERS_SORTED,
 } from './actions';
 import { AboutDialog } from './aboutDialog';
 import { UpdateDialog } from './updateDialog';
@@ -89,7 +95,8 @@ let isFullScreen;
 let isMainWindowVisible;
 let activeWebView;
 let hideOnClose;
-let globalBadge;
+let badges = {};
+let styles = {};
 let addServerViewVisible;
 let aboutDialogVisible;
 let newUpdateVersion;
@@ -105,21 +112,13 @@ const updateComponents = () => {
 
 	const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
 	_servers = Object.values(servers.hosts)
-		.sort(({ url: a }, { url: b }) => (sidebar ? sorting.indexOf(a) - sorting.indexOf(b) : 0))
-		.map(({ title, url }) => ({ title, url }));
+		.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b));
 	currentServerUrl = servers.active;
 
 	isFullScreen = remote.getCurrentWindow().isFullScreen();
 	isMainWindowVisible = remote.getCurrentWindow().isVisible();
 
 	activeWebView = webview.getActive();
-
-	sidebar.setState({
-		visible: hasSidebar,
-		hosts: _servers.reduce((hosts, server) => ({ ...hosts, [server.url]: server }), {}),
-		sorting: _servers.map(({ url }) => url),
-		active: currentServerUrl,
-	});
 
 	webview.setSidebarPaddingEnabled(!hasSidebar);
 
@@ -399,10 +398,55 @@ const dispatch = async ({ type, payload }) => {
 
 	if (type === TRAY_ICON_QUIT_CLICKED) {
 		app.quit();
+		return;
+	}
+
+	if (type === SIDEBAR_SERVER_SELECTED) {
+		const hostUrl = payload;
+		servers.setActive(hostUrl);
+		return;
+	}
+
+	if (type === SIDEBAR_RELOAD_SERVER_CLICKED) {
+		const hostUrl = payload;
+		webview.getByUrl(hostUrl).reload();
+		return;
+	}
+
+	if (type === SIDEBAR_REMOVE_SERVER_CLICKED) {
+		const hostUrl = payload;
+		servers.removeHost(hostUrl);
+		return;
+	}
+
+	if (type === SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
+		const hostUrl = payload;
+		webview.getByUrl(hostUrl).openDevTools();
+		return;
+	}
+
+	if (type === SIDEBAR_ADD_NEW_SERVER_CLICKED) {
+		servers.clearActive();
+		addServerViewVisible = true;
+		updateComponents();
+		return;
+	}
+
+	if (type === SIDEBAR_SERVERS_SORTED) {
+		const sorting = payload;
+		localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));
+		updateComponents();
 	}
 };
 
 function App() {
+	const mentionCount = Object.values(badges)
+		.filter((badge) => Number.isInteger(badge))
+		.reduce((sum, count) => sum + count, 0);
+	const globalBadge = mentionCount
+		|| (Object.values(badges).some((badge) => !!badge) && '•')
+		|| null;
+
 	return <MainWindow hideOnClose={hideOnClose}>
 		<MenuBar
 			showTrayIcon={hasTrayIcon}
@@ -412,6 +456,14 @@ function App() {
 			showServerList={hasSidebar}
 			servers={_servers}
 			currentServerUrl={currentServerUrl}
+			dispatch={dispatch}
+		/>
+		<SideBar
+			servers={_servers}
+			currentServerUrl={currentServerUrl}
+			badges={badges}
+			visible={hasSidebar}
+			styles={styles}
 			dispatch={dispatch}
 		/>
 		<AddServerView
@@ -603,33 +655,6 @@ export default () => {
 		updateComponents();
 	});
 
-	sidebar.on('select-server', (hostUrl) => {
-		servers.setActive(hostUrl);
-	});
-
-	sidebar.on('reload-server', (hostUrl) => {
-		webview.getByUrl(hostUrl).reload();
-	});
-
-	sidebar.on('remove-server', (hostUrl) => {
-		servers.removeHost(hostUrl);
-	});
-
-	sidebar.on('open-devtools-for-server', (hostUrl) => {
-		webview.getByUrl(hostUrl).openDevTools();
-	});
-
-	sidebar.on('add-server', () => {
-		servers.clearActive();
-		addServerViewVisible = true;
-		updateComponents();
-	});
-
-	sidebar.on('servers-sorted', (sorting) => {
-		localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));
-		updateComponents();
-	});
-
 	remote.getCurrentWindow().on('hide', updateComponents);
 	remote.getCurrentWindow().on('show', updateComponents);
 
@@ -643,19 +668,10 @@ export default () => {
 			}
 		}
 
-		sidebar.setState({
-			badges: {
-				...sidebar.state.badges,
-				[hostUrl]: badge || null,
-			},
-		});
-
-		const mentionCount = Object.values(sidebar.state.badges)
-			.filter((badge) => Number.isInteger(badge))
-			.reduce((sum, count) => sum + count, 0);
-		globalBadge = mentionCount
-			|| (Object.values(sidebar.state.badges).some((badge) => !!badge) && '•')
-			|| null;
+		badges = {
+			...badges,
+			[hostUrl]: badge || null,
+		};
 
 		updateComponents();
 	});
@@ -669,20 +685,15 @@ export default () => {
 	});
 
 	webview.on('ipc-message-sidebar-style', (hostUrl, [style]) => {
-		sidebar.setState({
-			styles: {
-				...sidebar.state.styles,
-				[hostUrl]: style || null,
-			},
-		});
+		styles = {
+			...styles,
+			[hostUrl]: style || null,
+		};
+		updateComponents();
 	});
 
 	webview.on('dom-ready', () => {
-		const hasSidebar = localStorage.getItem('sidebar-closed') !== 'true';
-		sidebar.setState({
-			visible: hasSidebar,
-		});
-		webview.setSidebarPaddingEnabled(!hasSidebar);
+		updateComponents();
 	});
 
 	webview.on('did-navigate-in-page', (hostUrl, event) => {
@@ -698,7 +709,6 @@ export default () => {
 	servers.initialize();
 	certificates.initialize();
 
-	sidebar.mount();
 	mountWebViews();
 	servers.forEach(::webview.add);
 

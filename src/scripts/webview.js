@@ -11,8 +11,9 @@ import {
 	WEBVIEW_FOCUSED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	WEBVIEW_ACTIVATED,
-	WEBVIEW_RELOAD_REQUESTED,
-	WEBVIEW_OPEN_DEVTOOLS_REQUESTED,
+	SIDEBAR_RELOAD_SERVER_CLICKED,
+	SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
+	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 } from './actions';
 import { listen, removeListener } from './ipc';
 
@@ -107,11 +108,6 @@ function WebUiView({
 		root.toggleAttribute('disablewebsecurity', false);
 		root.setAttribute('enableremotemodule', 'true');
 	}, []);
-
-	useEffect(() => {
-		root.setAttribute('server', url);
-		root.src = lastPath || url;
-	}, [lastPath, url]);
 
 	useEffect(() => {
 		root.classList.toggle('active', active);
@@ -294,7 +290,7 @@ function WebUiView({
 	}, [onFail]);
 
 	useEffect(() => {
-		const handleReloadRequest = (_, _url) => {
+		const handleSideBarReloadServerClicked = (_, _url) => {
 			if (url !== _url) {
 				return;
 			}
@@ -302,7 +298,7 @@ function WebUiView({
 			root.reload();
 		};
 
-		const handleOpenDevtoolsRequest = (_, _url) => {
+		const handleSideBarOpenDevtoolsForServerClicked = (_, _url) => {
 			if (url !== _url) {
 				return;
 			}
@@ -310,14 +306,27 @@ function WebUiView({
 			root.openDevTools();
 		};
 
-		listen(WEBVIEW_RELOAD_REQUESTED, handleReloadRequest);
-		listen(WEBVIEW_OPEN_DEVTOOLS_REQUESTED, handleOpenDevtoolsRequest);
+		const handleTouchBarFormatButtonTouched = (_, id) => {
+			if (!active || failed) {
+				return;
+			}
+
+			root.executeJavaScript(`(() => {
+				const button = document.querySelector('.rc-message-box .js-format[data-id="${ id }"]');
+				button.click();
+			})()`.trim());
+		};
+
+		listen(SIDEBAR_RELOAD_SERVER_CLICKED, handleSideBarReloadServerClicked);
+		listen(SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, handleSideBarOpenDevtoolsForServerClicked);
+		listen(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, handleTouchBarFormatButtonTouched);
 
 		return () => {
-			removeListener(WEBVIEW_RELOAD_REQUESTED, handleReloadRequest);
-			removeListener(WEBVIEW_OPEN_DEVTOOLS_REQUESTED, handleOpenDevtoolsRequest);
+			removeListener(SIDEBAR_RELOAD_SERVER_CLICKED, handleSideBarReloadServerClicked);
+			removeListener(SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, handleSideBarOpenDevtoolsForServerClicked);
+			removeListener(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, handleTouchBarFormatButtonTouched);
 		};
-	}, []);
+	}, [url, active, failed]);
 
 	useEffect(() => {
 		if (process.platform !== 'darwin') {
@@ -335,6 +344,10 @@ function WebUiView({
 			}
 		`);
 	}, [hasSidebar]);
+
+	useEffect(() => {
+		root.src = lastPath || url;
+	}, [lastPath, url]);
 
 	return null;
 }

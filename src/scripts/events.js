@@ -3,15 +3,8 @@ import { t } from 'i18next';
 import React, { useEffect } from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
-import { AddServerView } from './addServerView';
 import certificates from './certificates';
-import { Dock } from './dock';
-import { MenuBar } from './menuBar';
-import { ScreenSharingDialog } from './screenSharingDialog';
 import servers from './servers';
-import { SideBar } from './sidebar';
-import { Tray } from './tray';
-import { TouchBar } from './touchBar';
 import {
 	setupUpdates,
 	setAutoUpdate,
@@ -22,9 +15,7 @@ import {
 	canAutoUpdate,
 	canSetAutoUpdate,
 } from './updates';
-import { WebViews } from './webview';
 import { processDeepLink } from './deepLinks';
-import { MainWindow } from './mainWindow';
 import { handle, removeHandler, listen, removeAllListeners, emit } from './ipc';
 import {
 	setupSpellChecking,
@@ -61,7 +52,6 @@ import {
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
-	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	ADD_SERVER_VIEW_SERVER_ADDED,
 	ABOUT_DIALOG_DISMISSED,
 	UPDATE_DIALOG_DISMISSED,
@@ -74,9 +64,7 @@ import {
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
 	SIDEBAR_SERVER_SELECTED,
-	SIDEBAR_RELOAD_SERVER_CLICKED,
 	SIDEBAR_REMOVE_SERVER_CLICKED,
-	SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	SIDEBAR_ADD_NEW_SERVER_CLICKED,
 	SIDEBAR_SERVERS_SORTED,
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
@@ -89,11 +77,18 @@ import {
 	WEBVIEW_FOCUSED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	WEBVIEW_ACTIVATED,
-	WEBVIEW_RELOAD_REQUESTED,
-	WEBVIEW_OPEN_DEVTOOLS_REQUESTED,
 } from './actions';
+import { MainWindow } from './mainWindow';
 import { AboutDialog } from './aboutDialog';
+import { ScreenSharingDialog } from './screenSharingDialog';
 import { UpdateDialog } from './updateDialog';
+import { SideBar } from './sidebar';
+import { WebViews } from './webview';
+import { AddServerView } from './addServerView';
+import { Tray } from './tray';
+import { MenuBar } from './menuBar';
+import { Dock } from './dock';
+import { TouchBar } from './touchBar';
 
 let showWindowOnUnreadChanged;
 let hasTrayIcon;
@@ -337,15 +332,6 @@ const dispatch = async ({ type, payload = null }) => {
 		return;
 	}
 
-	if (type === TOUCH_BAR_FORMAT_BUTTON_TOUCHED) {
-		const id = payload;
-		currentServerWebContents.executeJavaScript(`(() => {
-			const button = document.querySelector('.rc-message-box .js-format[data-id="${ id }"]');
-			button.click();
-		})()`.trim());
-		return;
-	}
-
 	if (type === ADD_SERVER_VIEW_SERVER_ADDED) {
 		const url = servers.addHost(payload);
 		if (url !== false) {
@@ -434,21 +420,9 @@ const dispatch = async ({ type, payload = null }) => {
 		return;
 	}
 
-	if (type === SIDEBAR_RELOAD_SERVER_CLICKED) {
-		const hostUrl = payload;
-		dispatch({ type: WEBVIEW_RELOAD_REQUESTED, payload: hostUrl });
-		return;
-	}
-
 	if (type === SIDEBAR_REMOVE_SERVER_CLICKED) {
 		const hostUrl = payload;
 		servers.removeHost(hostUrl);
-		return;
-	}
-
-	if (type === SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
-		const hostUrl = payload;
-		dispatch({ type: WEBVIEW_OPEN_DEVTOOLS_REQUESTED, payload: hostUrl });
 		return;
 	}
 

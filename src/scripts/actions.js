@@ -58,5 +58,3 @@ export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
 export const WEBVIEW_FOCUSED = 'webview/focused';
 export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED = 'webview/screen-sharing-source-requested';
 export const WEBVIEW_ACTIVATED = 'webview/activated';
-export const WEBVIEW_RELOAD_REQUESTED = 'webview/reload-requested';
-export const WEBVIEW_OPEN_DEVTOOLS_REQUESTED = 'webview/open-devtools-requested';

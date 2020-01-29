@@ -2,17 +2,17 @@ import { remote } from 'electron';
 import jetpack from 'fs-jetpack';
 import React, { useEffect, useRef } from 'react';
 
-const { app, screen } = remote;
+import { MAIN_WINDOW_STATE_CHANGED } from './actions';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
-	screen.getAllDisplays()
+	remote.screen.getAllDisplays()
 		.some(({ bounds }) => x >= bounds.x && y >= bounds.y
 		&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
 		);
 
 const loadWindowState = async ([width, height]) => {
 	try {
-		const userDataDir = jetpack.cwd(app.getPath('userData'));
+		const userDataDir = jetpack.cwd(remote.app.getPath('userData'));
 		const windowState = {
 			width,
 			height,
@@ -20,7 +20,7 @@ const loadWindowState = async ([width, height]) => {
 		};
 
 		if (!isInsideSomeScreen(windowState)) {
-			const { bounds } = screen.getPrimaryDisplay();
+			const { bounds } = remote.screen.getPrimaryDisplay();
 			windowState.x = (bounds.width - width) / 2;
 			windowState.y = (bounds.height - height) / 2;
 			windowState.width = width;
@@ -37,7 +37,7 @@ const loadWindowState = async ([width, height]) => {
 
 const saveWindowState = async (windowState) => {
 	try {
-		const userDataDir = jetpack.cwd(app.getPath('userData'));
+		const userDataDir = jetpack.cwd(remote.app.getPath('userData'));
 		await userDataDir.writeAsync('window-state-main.json', windowState, { atomic: true });
 	} catch (error) {
 		console.error('Failed to save window state');
@@ -104,10 +104,31 @@ const useBeforeAppQuitEvent = (browserWindow, windowStateRef) => {
 	}, [browserWindow, windowStateRef]);
 };
 
-const useWindowStateUpdates = (browserWindow, windowStateRef) => {
+const useWindowStateUpdates = (browserWindow, windowStateRef, dispatch) => {
 	const fetchAndSaveTimerRef = useRef();
 
 	useEffect(() => {
+		const fetchAndDispatchWindowState = () => {
+			const focused = browserWindow.isFocused();
+			const visible = browserWindow.isVisible();
+			const maximized = browserWindow.isMaximized();
+			const minimized = browserWindow.isMinimized();
+			const fullscreen = browserWindow.isFullScreen();
+			const normal = browserWindow.isNormal();
+			const bounds = browserWindow.getNormalBounds();
+
+			dispatch({ type: MAIN_WINDOW_STATE_CHANGED,
+				payload: {
+					focused,
+					visible,
+					maximized,
+					minimized,
+					fullscreen,
+					normal,
+					bounds,
+				} });
+		};
+
 		const fetchAndSaveWindowState = () => {
 			clearTimeout(fetchAndSaveTimerRef.current);
 			fetchAndSaveTimerRef.current = setTimeout(() => {
@@ -120,10 +141,32 @@ const useWindowStateUpdates = (browserWindow, windowStateRef) => {
 		browserWindow.on('move', fetchAndSaveWindowState);
 		browserWindow.on('show', fetchAndSaveWindowState);
 
+		browserWindow.on('show', fetchAndDispatchWindowState);
+		browserWindow.on('hide', fetchAndDispatchWindowState);
+		browserWindow.on('focus', fetchAndDispatchWindowState);
+		browserWindow.on('blur', fetchAndDispatchWindowState);
+		browserWindow.on('maximize', fetchAndDispatchWindowState);
+		browserWindow.on('unmaximize', fetchAndDispatchWindowState);
+		browserWindow.on('minimize', fetchAndDispatchWindowState);
+		browserWindow.on('restore', fetchAndDispatchWindowState);
+		browserWindow.on('resize', fetchAndDispatchWindowState);
+		browserWindow.on('move', fetchAndDispatchWindowState);
+
 		return () => {
 			browserWindow.removeListener('resize', fetchAndSaveWindowState);
 			browserWindow.removeListener('move', fetchAndSaveWindowState);
 			browserWindow.removeListener('show', fetchAndSaveWindowState);
+
+			browserWindow.removeListener('show', fetchAndDispatchWindowState);
+			browserWindow.removeListener('hide', fetchAndDispatchWindowState);
+			browserWindow.removeListener('focus', fetchAndDispatchWindowState);
+			browserWindow.removeListener('blur', fetchAndDispatchWindowState);
+			browserWindow.removeListener('maximize', fetchAndDispatchWindowState);
+			browserWindow.removeListener('unmaximize', fetchAndDispatchWindowState);
+			browserWindow.removeListener('minimize', fetchAndDispatchWindowState);
+			browserWindow.removeListener('restore', fetchAndDispatchWindowState);
+			browserWindow.removeListener('resize', fetchAndDispatchWindowState);
+			browserWindow.removeListener('move', fetchAndDispatchWindowState);
 		};
 	}, [browserWindow, windowStateRef, fetchAndSaveTimerRef]);
 };
@@ -145,7 +188,7 @@ const useWindowClosing = (browserWindow, windowStateRef, hideOnClose) => {
 			} else if (process.platform === 'win32') {
 				browserWindow.minimize();
 			} else {
-				app.quit();
+				remote.app.quit();
 			}
 
 			saveWindowState(windowStateRef.current);
@@ -209,11 +252,12 @@ export function MainWindow({
 	browserWindow = remote.getCurrentWindow(),
 	children,
 	hideOnClose = false,
+	dispatch,
 }) {
 	const windowStateRef = useRef({});
 
 	useBeforeAppQuitEvent(browserWindow, windowStateRef);
-	useWindowStateUpdates(browserWindow, windowStateRef);
+	useWindowStateUpdates(browserWindow, windowStateRef, dispatch);
 	useWindowClosing(browserWindow, windowStateRef, hideOnClose);
 	useWindowStateLoading(browserWindow, windowStateRef);
 	useIpcRequests(browserWindow);

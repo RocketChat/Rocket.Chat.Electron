@@ -538,7 +538,7 @@ function App() {
 		emit('action-dispatched', action);
 	};
 
-	return <MainWindow hideOnClose={hideOnClose}>
+	return <MainWindow hideOnClose={hideOnClose} dispatch={dispatch}>
 		<MenuBar
 			showTrayIcon={hasTrayIcon}
 			showFullScreen={isFullScreen}

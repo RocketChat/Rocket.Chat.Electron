@@ -5,12 +5,12 @@ import { t } from 'i18next';
 import { useEffect, useState } from 'react';
 
 import {
-	SIDEBAR_SERVER_SELECTED,
-	SIDEBAR_RELOAD_SERVER_CLICKED,
-	SIDEBAR_REMOVE_SERVER_CLICKED,
-	SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
-	SIDEBAR_ADD_NEW_SERVER_CLICKED,
-	SIDEBAR_SERVERS_SORTED,
+	SIDE_BAR_SERVER_SELECTED,
+	SIDE_BAR_RELOAD_SERVER_CLICKED,
+	SIDE_BAR_REMOVE_SERVER_CLICKED,
+	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
+	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
+	SIDE_BAR_SERVERS_SORTED,
 } from './actions';
 
 const faviconCacheBustingTime = 15 * 60 * 1000;
@@ -20,7 +20,7 @@ let serverListRoot;
 
 const renderHost = ({ url, title, order, active, hasUnreadMessages, mentionCount, dispatch }) => {
 	const handleServerClick = (url) => {
-		dispatch({ type: SIDEBAR_SERVER_SELECTED, payload: url });
+		dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
 	};
 
 	const handleServerContextMenu = (url, event) => {
@@ -29,15 +29,15 @@ const renderHost = ({ url, title, order, active, hasUnreadMessages, mentionCount
 		const menu = remote.Menu.buildFromTemplate([
 			{
 				label: t('sidebar.item.reload'),
-				click: () => dispatch({ type: SIDEBAR_RELOAD_SERVER_CLICKED, payload: url }),
+				click: () => dispatch({ type: SIDE_BAR_RELOAD_SERVER_CLICKED, payload: url }),
 			},
 			{
 				label: t('sidebar.item.remove'),
-				click: () => dispatch({ type: SIDEBAR_REMOVE_SERVER_CLICKED, payload: url }),
+				click: () => dispatch({ type: SIDE_BAR_REMOVE_SERVER_CLICKED, payload: url }),
 			},
 			{
 				label: t('sidebar.item.openDevTools'),
-				click: () => dispatch({ type: SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, payload: url }),
+				click: () => dispatch({ type: SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, payload: url }),
 			},
 		]);
 		menu.popup(remote.getCurrentWindow());
@@ -87,8 +87,8 @@ const renderHost = ({ url, title, order, active, hasUnreadMessages, mentionCount
 		const newSorting = Array.from(serverListRoot.querySelectorAll('.server'))
 			.map((serverElement) => serverElement.dataset.url);
 
-		dispatch({ type: SIDEBAR_SERVERS_SORTED, payload: newSorting });
-		dispatch({ type: SIDEBAR_SERVER_SELECTED, payload: serverElement.dataset.url });
+		dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: newSorting });
+		dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: serverElement.dataset.url });
 	};
 
 	const initials = title
@@ -170,22 +170,23 @@ export function SideBar({
 		root.classList.toggle('sidebar--macos', process.platform === 'darwin');
 
 		// TODO: use globalShortcut and mainWindow focus
-		window.addEventListener('keydown', (event) => {
+		window.onkeydown = (event) => {
 			const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 			if (event.key === shortcutKey) {
 				setShowShortcuts(true);
 			}
-		});
-		window.addEventListener('keyup', (event) => {
+		};
+
+		window.onkeyup = (event) => {
 			const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 			if (event.key === shortcutKey) {
 				setShowShortcuts(false);
 			}
-		});
+		};
 
-		root.querySelector('.sidebar__add-server').addEventListener('click', () => {
-			dispatch({ type: SIDEBAR_ADD_NEW_SERVER_CLICKED });
-		}, false);
+		root.querySelector('.sidebar__add-server').onclick = () => {
+			dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
+		};
 
 		serverListRoot = root.querySelector('.sidebar__server-list');
 	}, [dispatch]);

@@ -16,7 +16,7 @@ import {
 	canSetAutoUpdate,
 } from './updates';
 import { processDeepLink } from './deepLinks';
-import { handle, removeHandler, listen, removeAllListeners, emit } from './ipc';
+import { handle, removeHandler, listen, removeAllListeners, emit, removeListener } from './ipc';
 import {
 	setupSpellChecking,
 	getSpellCheckingCorrections,
@@ -58,15 +58,14 @@ import {
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 	SCREEN_SHARING_DIALOG_DISMISSED,
-	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
 	TRAY_ICON_CREATED,
 	TRAY_ICON_DESTROYED,
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
-	SIDEBAR_SERVER_SELECTED,
-	SIDEBAR_REMOVE_SERVER_CLICKED,
-	SIDEBAR_ADD_NEW_SERVER_CLICKED,
-	SIDEBAR_SERVERS_SORTED,
+	SIDE_BAR_SERVER_SELECTED,
+	SIDE_BAR_REMOVE_SERVER_CLICKED,
+	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
+	SIDE_BAR_SERVERS_SORTED,
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
 	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
 	WEBVIEW_UNREAD_CHANGED,
@@ -90,11 +89,12 @@ import { MenuBar } from './menuBar';
 import { Dock } from './dock';
 import { TouchBar } from './touchBar';
 
+let loading = true;
 let showWindowOnUnreadChanged;
 let hasTrayIcon;
 let hasMenuBar;
 let hasSidebar;
-let _servers;
+let _servers = [];
 let currentServerUrl;
 let isFullScreen;
 let isMainWindowVisible;
@@ -128,13 +128,7 @@ const updateComponents = () => {
 };
 
 // eslint-disable-next-line complexity
-const dispatch = async ({ type, payload = null }) => {
-	try {
-		emit(type, JSON.parse(JSON.stringify(payload)));
-	} catch (e) {
-		console.warn(type, e);
-	}
-
+const handleActionDispatched = async (_, { type, payload = null }) => {
 	if (type === MENU_BAR_QUIT_CLICKED) {
 		remote.app.quit();
 		return;
@@ -380,12 +374,6 @@ const dispatch = async ({ type, payload = null }) => {
 		return;
 	}
 
-	if (type === SCREEN_SHARING_DIALOG_SOURCE_SELECTED) {
-		const id = payload;
-		remote.getCurrentWebContents().send('screen-sharing-source-selected', id || 'PermissionDeniedError');
-		return;
-	}
-
 	if (type === TRAY_ICON_CREATED) {
 		hideOnClose = true;
 		updateComponents();
@@ -414,26 +402,26 @@ const dispatch = async ({ type, payload = null }) => {
 		return;
 	}
 
-	if (type === SIDEBAR_SERVER_SELECTED) {
+	if (type === SIDE_BAR_SERVER_SELECTED) {
 		const hostUrl = payload;
 		servers.setActive(hostUrl);
 		return;
 	}
 
-	if (type === SIDEBAR_REMOVE_SERVER_CLICKED) {
+	if (type === SIDE_BAR_REMOVE_SERVER_CLICKED) {
 		const hostUrl = payload;
 		servers.removeHost(hostUrl);
 		return;
 	}
 
-	if (type === SIDEBAR_ADD_NEW_SERVER_CLICKED) {
+	if (type === SIDE_BAR_ADD_NEW_SERVER_CLICKED) {
 		servers.clearActive();
 		addServerViewVisible = true;
 		updateComponents();
 		return;
 	}
 
-	if (type === SIDEBAR_SERVERS_SORTED) {
+	if (type === SIDE_BAR_SERVERS_SORTED) {
 		const sorting = payload;
 		localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));
 		updateComponents();
@@ -518,12 +506,37 @@ function App() {
 		servers.setActive(servers.active);
 	}, []);
 
+	useEffect(() => {
+		document.querySelector('.app-page').classList.toggle('app-page--loading', loading);
+	}, [loading]);
+
+	useEffect(() => {
+		const handleConnectionStatus = () => {
+			document.body.classList.toggle('offline', !navigator.onLine);
+		};
+
+		handleConnectionStatus();
+
+		window.addEventListener('online', handleConnectionStatus);
+		window.addEventListener('offline', handleConnectionStatus);
+
+		return () => {
+			window.removeEventListener('online', handleConnectionStatus);
+			window.removeEventListener('offline', handleConnectionStatus);
+		};
+	}, []);
+
 	const mentionCount = Object.values(badges)
 		.filter((badge) => Number.isInteger(badge))
 		.reduce((sum, count) => sum + count, 0);
 	const globalBadge = mentionCount
 		|| (Object.values(badges).some((badge) => !!badge) && '•')
 		|| null;
+
+	const dispatch = (action) => {
+		console.log(action);
+		emit('action-dispatched', action);
+	};
 
 	return <MainWindow hideOnClose={hideOnClose}>
 		<MenuBar
@@ -620,13 +633,6 @@ export default () => {
 		currentServerWebContents.focus();
 	});
 
-	const handleConnectionStatus = () => {
-		document.body.classList.toggle('offline', !navigator.onLine);
-	};
-	window.addEventListener('online', handleConnectionStatus);
-	window.addEventListener('offline', handleConnectionStatus);
-	handleConnectionStatus();
-
 	const handleActivate = () => {
 		remote.getCurrentWindow().show();
 	};
@@ -672,6 +678,7 @@ export default () => {
 		updateDialogVisible = true;
 		updateComponents();
 	});
+	listen('action-dispatched', handleActionDispatched);
 
 	window.addEventListener('unload', () => {
 		remote.app.removeListener('activate', handleActivate);
@@ -689,12 +696,13 @@ export default () => {
 		removeHandler('spell-checking/disable-dictionaries');
 		removeAllListeners('close-about-dialog');
 		removeAllListeners('open-update-dialog');
+		removeListener('action-dispatched', handleActionDispatched);
 
 		unmountComponentAtNode(document.getElementById('root'));
 	});
 
 	servers.on('loaded', () => {
-		document.querySelector('.app-page').classList.remove('app-page--loading');
+		loading = false;
 		updateComponents();
 	});
 
@@ -708,8 +716,8 @@ export default () => {
 		updateComponents();
 	});
 
-	servers.on('active-setted', (hostUrl) => {
-		currentServerUrl = hostUrl;
+	servers.on('active-setted', (url) => {
+		currentServerUrl = url;
 		addServerViewVisible = false;
 		updateComponents();
 	});

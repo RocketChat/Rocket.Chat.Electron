@@ -43,12 +43,12 @@ export const TRAY_ICON_DESTROYED = 'tray-icon/destroyed';
 export const TRAY_ICON_TOGGLE_CLICKED = 'tray-icon/toggle-clicked';
 export const TRAY_ICON_QUIT_CLICKED = 'tray-icon/quit-clicked';
 
-export const SIDEBAR_SERVER_SELECTED = 'sidebar/server-selected';
-export const SIDEBAR_RELOAD_SERVER_CLICKED = 'sidebar/reload-server-clicked';
-export const SIDEBAR_REMOVE_SERVER_CLICKED = 'sidebar/remove-server-clicked';
-export const SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED = 'sidebar/open-devtools-for-server-clicked';
-export const SIDEBAR_ADD_NEW_SERVER_CLICKED = 'sidebar/add-new-server-clicked';
-export const SIDEBAR_SERVERS_SORTED = 'sidebar/servers-sorted';
+export const SIDE_BAR_SERVER_SELECTED = 'side-bar/server-selected';
+export const SIDE_BAR_RELOAD_SERVER_CLICKED = 'side-bar/reload-server-clicked';
+export const SIDE_BAR_REMOVE_SERVER_CLICKED = 'side-bar/remove-server-clicked';
+export const SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED = 'side-bar/open-devtools-for-server-clicked';
+export const SIDE_BAR_ADD_NEW_SERVER_CLICKED = 'side-bar/add-new-server-clicked';
+export const SIDE_BAR_SERVERS_SORTED = 'side-bar/servers-sorted';
 
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';

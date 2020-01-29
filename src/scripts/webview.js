@@ -1,4 +1,3 @@
-import { ipcRenderer } from 'electron';
 import { t } from 'i18next';
 import React, { useEffect, useState, useRef } from 'react';
 
@@ -11,9 +10,10 @@ import {
 	WEBVIEW_FOCUSED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	WEBVIEW_ACTIVATED,
-	SIDEBAR_RELOAD_SERVER_CLICKED,
-	SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
+	SIDE_BAR_RELOAD_SERVER_CLICKED,
+	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
+	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
 } from './actions';
 import { listen, removeListener } from './ipc';
 
@@ -236,22 +236,6 @@ function WebUiView({
 	}, []);
 
 	useEffect(() => {
-		if (!active) {
-			return;
-		}
-
-		const handleScreenSharingSourceSelect = (e, id) => {
-			root.executeJavaScript(`window.parent.postMessage({ sourceId: ${ JSON.stringify(id) } }, '*');`);
-		};
-
-		ipcRenderer.on('screen-sharing-source-selected', handleScreenSharingSourceSelect);
-
-		return () => {
-			ipcRenderer.removeListener('screen-sharing-source-selected', handleScreenSharingSourceSelect);
-		};
-	}, [active]);
-
-	useEffect(() => {
 		const handleDidFinishLoad = () => {
 			onLoad && onLoad();
 		};
@@ -290,41 +274,50 @@ function WebUiView({
 	}, [onFail]);
 
 	useEffect(() => {
-		const handleSideBarReloadServerClicked = (_, _url) => {
-			if (url !== _url) {
+		const handleActionDispatched = (_, { type, payload }) => {
+			if (type === SIDE_BAR_RELOAD_SERVER_CLICKED) {
+				if (url !== payload) {
+					return;
+				}
+
+				root.reload();
 				return;
 			}
 
-			root.reload();
-		};
+			if (type === SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
+				if (url !== payload) {
+					return;
+				}
 
-		const handleSideBarOpenDevtoolsForServerClicked = (_, _url) => {
-			if (url !== _url) {
+				root.openDevTools();
 				return;
 			}
 
-			root.openDevTools();
-		};
+			if (type === TOUCH_BAR_FORMAT_BUTTON_TOUCHED) {
+				if (!active || failed) {
+					return;
+				}
 
-		const handleTouchBarFormatButtonTouched = (_, id) => {
-			if (!active || failed) {
+				root.executeJavaScript(`(() => {
+					const button = document.querySelector('.rc-message-box .js-format[data-id="${ payload }"]');
+					button.click();
+				})()`.trim());
 				return;
 			}
 
-			root.executeJavaScript(`(() => {
-				const button = document.querySelector('.rc-message-box .js-format[data-id="${ id }"]');
-				button.click();
-			})()`.trim());
+			if (type === SCREEN_SHARING_DIALOG_SOURCE_SELECTED) {
+				if (!active) {
+					return;
+				}
+
+				root.executeJavaScript(`window.parent.postMessage({ sourceId: ${ JSON.stringify(payload || 'PermissionDeniedError') } }, '*');`);
+			}
 		};
 
-		listen(SIDEBAR_RELOAD_SERVER_CLICKED, handleSideBarReloadServerClicked);
-		listen(SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, handleSideBarOpenDevtoolsForServerClicked);
-		listen(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, handleTouchBarFormatButtonTouched);
+		listen('action-dispatched', handleActionDispatched);
 
 		return () => {
-			removeListener(SIDEBAR_RELOAD_SERVER_CLICKED, handleSideBarReloadServerClicked);
-			removeListener(SIDEBAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, handleSideBarOpenDevtoolsForServerClicked);
-			removeListener(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, handleTouchBarFormatButtonTouched);
+			removeListener('action-dispatched', handleActionDispatched);
 		};
 	}, [url, active, failed]);
 

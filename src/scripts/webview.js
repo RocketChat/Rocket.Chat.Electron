@@ -397,7 +397,7 @@ function WebUiView({
 
 	useEffect(() => {
 		root.src = lastPath || url;
-	}, [lastPath, url]);
+	}, [url]);
 
 	return null;
 }

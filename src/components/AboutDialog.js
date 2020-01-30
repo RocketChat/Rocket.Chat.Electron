@@ -1,5 +1,5 @@
 import { remote } from 'electron';
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from 'react';
 
 import pkg from '../../package.json';
@@ -23,6 +23,8 @@ export function AboutDialog({
 	visible,
 	dispatch,
 }) {
+	const { t } = useTranslation();
+
 	useEffect(() => {
 		if (!visible) {
 			root.close();

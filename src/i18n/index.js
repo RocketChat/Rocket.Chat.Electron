@@ -2,6 +2,7 @@ import { app as mainApp, remote } from 'electron';
 import jetpack from 'fs-jetpack';
 import i18next from 'i18next';
 import i18nextNodeFileSystemBackend from 'i18next-node-fs-backend';
+import { initReactI18next } from 'react-i18next';
 
 const app = mainApp || remote.app;
 const languagesDirPath = `${ app.getAppPath() }/app/i18n/lang`;
@@ -34,6 +35,7 @@ export const setupI18next = async () => {
 
 	await i18next
 		.use(i18nextNodeFileSystemBackend)
+		.use(initReactI18next)
 		.init({
 			lng: globalLocale,
 			fallbackLng: defaultLocale,

@@ -1,4 +1,4 @@
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState, useRef } from 'react';
 
 import {
@@ -37,6 +37,8 @@ function LoadingErrorView({
 	visible,
 	onReload,
 }) {
+	const { t } = useTranslation();
+
 	const root = useRoot('div');
 
 	const [counter, setCounter] = useState(60);
@@ -102,6 +104,8 @@ function WebUiView({
 	onLoad,
 	onFail,
 }) {
+	const { t } = useTranslation();
+
 	const root = useRoot('webview');
 
 	useEffect(() => {

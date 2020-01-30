@@ -1,5 +1,6 @@
 import { remote } from 'electron';
-import { t } from 'i18next';
+import i18n from 'i18next';
+import { I18nextProvider, useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 
 import certificates from '../scripts/certificates';
@@ -59,7 +60,7 @@ import { UpdateDialog } from './UpdateDialog';
 import { SideBar } from './SideBar';
 import { ServersView } from './ServersView';
 import { AddServerView } from './AddServerView';
-import { Tray } from './Tray';
+import { TrayIcon } from './TrayIcon';
 import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
@@ -67,6 +68,8 @@ import { dispatch, subscribe } from '../scripts/effects';
 import { invoke } from '../scripts/ipc';
 
 export function App() {
+	const { t } = useTranslation();
+
 	const [loading, setLoading] = useState(true);
 	const [showWindowOnUnreadChanged, setShowWindowOnUnreadChanged] =	useState(() => localStorage.getItem('showWindowOnUnreadChanged') === 'true');
 	const [hasTrayIcon, setHasTrayIcon] =	useState(() => (localStorage.getItem('hideTray') ? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux'));
@@ -540,69 +543,71 @@ export function App() {
 		|| (Object.values(badges).some((badge) => !!badge) && '•')
 		|| null;
 
-	return <MainWindow
-		hideOnClose={hideOnClose}
-		showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-		dispatch={dispatch}
-	>
-		<MenuBar
-			showTrayIcon={hasTrayIcon}
-			showFullScreen={mainWindowState.fullscreen}
+	return <I18nextProvider i18n={i18n}>
+		<MainWindow
+			hideOnClose={hideOnClose}
 			showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-			showMenuBar={hasMenuBar}
-			showServerList={hasSidebar}
-			servers={_servers}
-			currentServerUrl={currentServerUrl}
 			dispatch={dispatch}
-		/>
-		<SideBar
-			servers={_servers}
-			currentServerUrl={currentServerUrl}
-			badges={badges}
-			visible={hasSidebar}
-			styles={styles}
-			dispatch={dispatch}
-		/>
-		<ServersView
-			servers={_servers}
-			currentServerUrl={currentServerUrl}
-			hasSidebar={hasSidebar}
-			dispatch={dispatch}
-		/>
-		<AddServerView
-			visible={currentServerUrl === null}
-			dispatch={dispatch}
-		/>
-		<AboutDialog
-			canUpdate={canUpdate}
-			canSetAutoUpdate={canSetAutoUpdate}
-			canAutoUpdate={canAutoUpdate}
-			visible={aboutDialogVisible}
-			dispatch={dispatch}
-		/>
-		<UpdateDialog
-			newVersion={newUpdateVersion}
-			visible={updateDialogVisible}
-			dispatch={dispatch}
-		/>
-		<ScreenSharingDialog
-			visible={screenSharingDialogVisible}
-			dispatch={dispatch}
-		/>
-		<Dock
-			badge={globalBadge}
-			hasTrayIcon={hasTrayIcon}
-		/>
-		<Tray
-			badge={globalBadge}
-			isMainWindowVisible={mainWindowState.visible && mainWindowState.focused}
-			showIcon={hasTrayIcon}
-			dispatch={dispatch}
-		/>
-		<TouchBar
-			servers={_servers}
-			activeServerUrl={currentServerUrl}
-			dispatch={dispatch}
-		/>
-	</MainWindow>;
+		>
+			<MenuBar
+				showTrayIcon={hasTrayIcon}
+				showFullScreen={mainWindowState.fullscreen}
+				showWindowOnUnreadChanged={showWindowOnUnreadChanged}
+				showMenuBar={hasMenuBar}
+				showServerList={hasSidebar}
+				servers={_servers}
+				currentServerUrl={currentServerUrl}
+				dispatch={dispatch}
+			/>
+			<SideBar
+				servers={_servers}
+				currentServerUrl={currentServerUrl}
+				badges={badges}
+				visible={hasSidebar}
+				styles={styles}
+				dispatch={dispatch}
+			/>
+			<ServersView
+				servers={_servers}
+				currentServerUrl={currentServerUrl}
+				hasSidebar={hasSidebar}
+				dispatch={dispatch}
+			/>
+			<AddServerView
+				visible={currentServerUrl === null}
+				dispatch={dispatch}
+			/>
+			<AboutDialog
+				canUpdate={canUpdate}
+				canSetAutoUpdate={canSetAutoUpdate}
+				canAutoUpdate={canAutoUpdate}
+				visible={aboutDialogVisible}
+				dispatch={dispatch}
+			/>
+			<UpdateDialog
+				newVersion={newUpdateVersion}
+				visible={updateDialogVisible}
+				dispatch={dispatch}
+			/>
+			<ScreenSharingDialog
+				visible={screenSharingDialogVisible}
+				dispatch={dispatch}
+			/>
+			<Dock
+				badge={globalBadge}
+				hasTrayIcon={hasTrayIcon}
+			/>
+			<TrayIcon
+				badge={globalBadge}
+				isMainWindowVisible={mainWindowState.visible && mainWindowState.focused}
+				showIcon={hasTrayIcon}
+				dispatch={dispatch}
+			/>
+			<TouchBar
+				servers={_servers}
+				activeServerUrl={currentServerUrl}
+				dispatch={dispatch}
+			/>
+		</MainWindow>
+	</I18nextProvider>;
 }

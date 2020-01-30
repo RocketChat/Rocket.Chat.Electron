@@ -1,5 +1,5 @@
 import { remote } from 'electron';
-import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 
 import {
@@ -281,7 +281,7 @@ export function MenuBar({
 	showWindowOnUnreadChanged,
 	dispatch,
 }) {
-	const t = ::i18next.t;
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		const template = [

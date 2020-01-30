@@ -1,5 +1,5 @@
 import { remote } from 'electron';
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 
 import {
@@ -8,6 +8,8 @@ import {
 } from '../scripts/actions';
 
 const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
+	const { t } = useTranslation();
+
 	class SelectServerPanel {
 		constructor() {
 			this._MAX_LENGTH_FOR_SEGMENTS_CONTROL = 76 - t('touchBar.selectServer').length;
@@ -149,6 +151,8 @@ const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
 };
 
 const useFormattingPanel = (activeServerUrl, dispatch) => {
+	const { t } = useTranslation();
+
 	if (!activeServerUrl) {
 		return new remote.TouchBar.TouchBarGroup({ items: [] });
 	}

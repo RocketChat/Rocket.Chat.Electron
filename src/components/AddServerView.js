@@ -1,4 +1,4 @@
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState } from 'react';
 
 import servers from '../scripts/servers';
@@ -12,6 +12,8 @@ export function AddServerView({
 	validator = (url) => servers.validateHost(url, 2000),
 	dispatch,
 }) {
+	const { t } = useTranslation();
+
 	const inputRef = useRef();
 
 	useEffect(() => {

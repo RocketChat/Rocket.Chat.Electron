@@ -1,7 +1,7 @@
 import { parse as parseUrl } from 'url';
 
 import { remote } from 'electron';
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 
 import {
@@ -18,7 +18,7 @@ const faviconCacheBustingTime = 15 * 60 * 1000;
 let root;
 let serverListRoot;
 
-const renderHost = ({ url, title, order, active, hasUnreadMessages, mentionCount, dispatch }) => {
+const renderHost = (t, { url, title, order, active, hasUnreadMessages, mentionCount, dispatch }) => {
 	const handleServerClick = (url) => {
 		dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
 	};
@@ -163,6 +163,8 @@ export function SideBar({
 	visible = false,
 	dispatch,
 }) {
+	const { t } = useTranslation();
+
 	const [showShortcuts, setShowShortcuts] = useState(false);
 
 	useEffect(() => {
@@ -204,7 +206,7 @@ export function SideBar({
 			.filter((serverElement) => !hostUrls.includes(serverElement.dataset.url))
 			.forEach((serverElement) => serverElement.remove());
 
-		servers.forEach((host, order) => renderHost({
+		servers.forEach((host, order) => renderHost(t, {
 			...host,
 			order,
 			active: currentServerUrl === host.url,

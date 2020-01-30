@@ -1,5 +1,5 @@
 import { remote } from 'electron';
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useRef } from 'react';
 
 import { getTrayIconPath } from '../scripts/icon';
@@ -10,13 +10,15 @@ import {
 	TRAY_ICON_QUIT_CLICKED,
 } from '../scripts/actions';
 
-export function Tray({
+export function TrayIcon({
 	appName = remote.app.name,
 	badge,
 	isMainWindowVisible,
 	showIcon,
 	dispatch,
 }) {
+	const { t } = useTranslation();
+
 	const trayIconRef = useRef();
 
 	const handleThemeUpdate = () => {

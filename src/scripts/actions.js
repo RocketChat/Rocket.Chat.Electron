@@ -57,6 +57,5 @@ export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
 export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
 export const WEBVIEW_FOCUSED = 'webview/focused';
 export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED = 'webview/screen-sharing-source-requested';
-export const WEBVIEW_ACTIVATED = 'webview/activated';
 
 export const MAIN_WINDOW_STATE_CHANGED = 'main-window/state-changed';

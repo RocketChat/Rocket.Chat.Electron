@@ -40,9 +40,6 @@ import {
 	MENU_BAR_SELECT_ALL_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	MENU_BAR_RELOAD_SERVER_CLICKED,
-	MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
-	MENU_BAR_GO_BACK_CLICKED,
-	MENU_BAR_GO_FORWARD_CLICKED,
 	MENU_BAR_RESET_ZOOM_CLICKED,
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
@@ -72,7 +69,6 @@ import {
 	WEBVIEW_DID_NAVIGATE,
 	WEBVIEW_FOCUSED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
-	WEBVIEW_ACTIVATED,
 	MAIN_WINDOW_STATE_CHANGED,
 } from './actions';
 import { MainWindow } from './mainWindow';
@@ -94,7 +90,6 @@ let hasMenuBar;
 let hasSidebar;
 let _servers = [];
 let currentServerUrl;
-let currentServerWebContents;
 let hideOnClose;
 let badges = {};
 let styles = {};
@@ -107,6 +102,10 @@ let focusedWebContents = null;
 let mainWindowState = {};
 
 const updateComponents = () => {
+	if (!focusedWebContents) {
+		focusedWebContents = remote.getCurrentWebContents();
+	}
+
 	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
 	hasTrayIcon = localStorage.getItem('hideTray')
 		? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux';
@@ -183,53 +182,26 @@ const handleActionDispatched = async (_, { type, payload = null }) => {
 	}
 
 	if (type === MENU_BAR_RELOAD_SERVER_CLICKED) {
-		const { ignoringCache = false, clearCertificates = false } = payload || {};
+		const { clearCertificates = false } = payload || {};
 		if (clearCertificates) {
 			certificates.clear();
 		}
 
-		if (!currentServerWebContents) {
-			return;
-		}
-
-		if (ignoringCache) {
-			currentServerWebContents.reloadIgnoringCache();
-			return;
-		}
-
-		currentServerWebContents.reload();
-		return;
-	}
-
-	if (type === MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
-		if (currentServerWebContents) {
-			currentServerWebContents.openDevTools();
-		}
-		return;
-	}
-
-	if (type === MENU_BAR_GO_BACK_CLICKED) {
-		currentServerWebContents.goBack();
-		return;
-	}
-
-	if (type === MENU_BAR_GO_FORWARD_CLICKED) {
-		currentServerWebContents.goForward();
 		return;
 	}
 
 	if (type === MENU_BAR_RESET_ZOOM_CLICKED) {
-		focusedWebContents.zoomLevel = 0;
+		remote.getCurrentWebContents().zoomLevel = 0;
 		return;
 	}
 
 	if (type === MENU_BAR_ZOOM_IN_CLICKED) {
-		focusedWebContents.zoomLevel++;
+		remote.getCurrentWebContents().zoomLevel++;
 		return;
 	}
 
 	if (type === MENU_BAR_ZOOM_OUT_CLICKED) {
-		focusedWebContents.zoomLevel--;
+		remote.getCurrentWebContents().zoomLevel--;
 		return;
 	}
 
@@ -442,12 +414,6 @@ const handleActionDispatched = async (_, { type, payload = null }) => {
 		return;
 	}
 
-	if (type === WEBVIEW_ACTIVATED) {
-		currentServerWebContents = remote.webContents.fromId(payload);
-		updateComponents();
-		return;
-	}
-
 	if (type === MAIN_WINDOW_STATE_CHANGED) {
 		mainWindowState = payload;
 		updateComponents();
@@ -557,35 +523,14 @@ function App() {
 		<TouchBar
 			servers={_servers}
 			activeServerUrl={currentServerUrl}
-			webContents={currentServerWebContents}
 			dispatch={dispatch}
 		/>
 	</MainWindow>;
 }
 
-const patchFocusedWebContents = () => {
-	focusedWebContents = remote.getCurrentWebContents();
-
-	window.addEventListener('focus', () => {
-		focusedWebContents = remote.getCurrentWebContents();
-	});
-
-	remote.webContents.getFocusedWebContents = () => focusedWebContents;
-};
-
 export default () => {
-	patchFocusedWebContents();
-
 	window.addEventListener('beforeunload', () => {
-		unmountComponentAtNode(document.getElementById('root'));
-	});
-
-	window.addEventListener('focus', () => {
-		if (!currentServerWebContents) {
-			return;
-		}
-
-		currentServerWebContents.focus();
+		// unmountComponentAtNode(document.getElementById('root'));
 	});
 
 	const handleActivate = () => {

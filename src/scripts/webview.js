@@ -9,11 +9,14 @@ import {
 	WEBVIEW_DID_NAVIGATE,
 	WEBVIEW_FOCUSED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
-	WEBVIEW_ACTIVATED,
 	SIDE_BAR_RELOAD_SERVER_CLICKED,
 	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
+	MENU_BAR_RELOAD_SERVER_CLICKED,
+	MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
+	MENU_BAR_GO_BACK_CLICKED,
+	MENU_BAR_GO_FORWARD_CLICKED,
 } from './actions';
 import { listen, removeListener } from './ipc';
 
@@ -114,8 +117,23 @@ function WebUiView({
 
 		if (active) {
 			root.focus();
-			dispatch({ type: WEBVIEW_ACTIVATED, payload: root.getWebContents().id });
 		}
+	}, [active]);
+
+	useEffect(() => {
+		const handleWindowFocus = () => {
+			if (!active) {
+				return;
+			}
+
+			root.focus();
+		};
+
+		window.addEventListener('focus', handleWindowFocus);
+
+		return () => {
+			window.removeEventListener('focus', handleWindowFocus);
+		};
 	}, [active]);
 
 	useEffect(() => {
@@ -311,6 +329,49 @@ function WebUiView({
 				}
 
 				root.executeJavaScript(`window.parent.postMessage({ sourceId: ${ JSON.stringify(payload || 'PermissionDeniedError') } }, '*');`);
+				return;
+			}
+
+			if (type === MENU_BAR_RELOAD_SERVER_CLICKED) {
+				if (!active) {
+					return;
+				}
+
+				const { ignoringCache = false } = payload || {};
+
+				if (ignoringCache) {
+					root.reloadIgnoringCache();
+					return;
+				}
+
+				root.reload();
+				return;
+			}
+
+			if (type === MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
+				if (!active) {
+					return;
+				}
+
+				root.openDevTools();
+				return;
+			}
+
+			if (type === MENU_BAR_GO_BACK_CLICKED) {
+				if (!active) {
+					return;
+				}
+
+				root.goBack();
+				return;
+			}
+
+			if (type === MENU_BAR_GO_FORWARD_CLICKED) {
+				if (!active) {
+					return;
+				}
+
+				root.goForward();
 			}
 		};
 

@@ -151,8 +151,8 @@ const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
 	return new SelectServerPanel().build();
 };
 
-const useFormattingPanel = (webContents, dispatch) => {
-	if (!webContents) {
+const useFormattingPanel = (activeServerUrl, dispatch) => {
+	if (!activeServerUrl) {
 		return new TouchBarGroup({ items: [] });
 	}
 
@@ -175,9 +175,9 @@ const useFormattingPanel = (webContents, dispatch) => {
 	});
 };
 
-export function TouchBar({ webContents, activeServerUrl, servers = [], dispatch }) {
+export function TouchBar({ activeServerUrl, servers = [], dispatch }) {
 	const selectServerPanel = useSelectServerPanel(activeServerUrl, servers, dispatch);
-	const formattingPanel = useFormattingPanel(webContents, dispatch);
+	const formattingPanel = useFormattingPanel(activeServerUrl, dispatch);
 
 	useEffect(() => {
 		const touchBar = new ElectronTouchBar({

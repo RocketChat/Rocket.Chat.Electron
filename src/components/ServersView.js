@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState, useRef } from 'react';
+import { remote } from 'electron';
 
 import {
 	WEBVIEW_UNREAD_CHANGED,
@@ -17,6 +18,10 @@ import {
 	MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	MENU_BAR_GO_BACK_CLICKED,
 	MENU_BAR_GO_FORWARD_CLICKED,
+	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
+	CERTIFICATE_TRUST_REQUESTED,
+	WEBVIEW_CERTIFICATE_TRUSTED,
+	WEBVIEW_CERTIFICATE_DENIED,
 } from '../scripts/actions';
 import { subscribe } from '../scripts/effects';
 
@@ -296,7 +301,7 @@ function WebUiView({
 	}, [onFail]);
 
 	useEffect(() => {
-		const handleActionDispatched = ({ type, payload }) => {
+		const handleActionDispatched = async ({ type, payload }) => {
 			if (type === SIDE_BAR_RELOAD_SERVER_CLICKED) {
 				if (url !== payload) {
 					return;
@@ -376,6 +381,44 @@ function WebUiView({
 				}
 
 				root.goForward();
+				return;
+			}
+
+			if (type === MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED) {
+				root.reloadIgnoringCache();
+				return;
+			}
+
+			if (type === CERTIFICATE_TRUST_REQUESTED) {
+				const { webContentsId, url, error, fingerprint, issuerName, willBeReplaced } = payload;
+
+				if (webContentsId !== root.getWebContents().id) {
+					return;
+				}
+
+				let detail = `URL: ${ url }\nError: ${ error }`;
+				if (willBeReplaced) {
+					detail = t('error.differentCertificate', { detail });
+				}
+
+				const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+					title: t('dialog.certificateError.title'),
+					message: t('dialog.certificateError.message', { issuerName }),
+					detail,
+					type: 'warning',
+					buttons: [
+						t('dialog.certificateError.yes'),
+						t('dialog.certificateError.no'),
+					],
+					cancelId: 1,
+				});
+
+				if (response === 0) {
+					dispatch({ type: WEBVIEW_CERTIFICATE_TRUSTED, payload: { fingerprint } });
+					return;
+				}
+
+				dispatch({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { fingerprint } });
 			}
 		};
 

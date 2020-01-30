@@ -1,114 +1,116 @@
+import fs from 'fs';
+import path from 'path';
 import url from 'url';
 
 import { remote } from 'electron';
-import jetpack from 'fs-jetpack';
-import { t } from 'i18next';
 
-import { dispatch } from './effects';
-import { CERTIFICATES_CHANGED } from './actions';
+import { dispatch, subscribe } from './effects';
+import {
+	CERTIFICATES_CHANGED,
+	CERTIFICATE_TRUST_REQUESTED,
+	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
+	WEBVIEW_CERTIFICATE_TRUSTED,
+	WEBVIEW_CERTIFICATE_DENIED,
+} from './actions';
 
-class CertificateStore {
-	async initialize() {
-		this.storeFileName = 'certificate.json';
-		this.userDataDir = jetpack.cwd(remote.app.getPath('userData'));
+const storageFileName = 'certificate.json';
+let certificates = {};
+const queuedTrustRequests = new WeakMap();
 
-		await this.load();
+const updateCertificates = async (newCertificates) => {
+	certificates = newCertificates;
+	await fs.promises.writeFile(path.join(remote.app.getPath('userData'), storageFileName), JSON.stringify(certificates), 'utf8');
+};
 
-		// Don't ask twice for same cert if loading multiple urls
-		this.queued = {};
+const fetchCertificates = async () => {
+	try {
+		const certificates = JSON.parse(await fs.promises.readFile(path.join(remote.app.getPath('userData'), storageFileName), 'utf8'));
+
+		if (!certificates || typeof certificates !== 'object') {
+			updateCertificates({});
+		} else {
+			updateCertificates(certificates);
+		}
+	} catch (error) {
+		console.error(error);
+		updateCertificates({});
+	}
+};
+
+const serializeCertificate = (certificate) => `${ certificate.issuerName }\n${ certificate.data.toString() }`;
+
+const	handleCertificateError = async (_, webContents, certificateUrl, error, certificate, callback) => {
+	const serialized = serializeCertificate(certificate);
+
+	const { host } = url.parse(certificateUrl);
+	const isTrusted = certificates[host] && certificates[host] === serialized;
+
+	if (isTrusted) {
+		callback(true);
+		return;
 	}
 
-	handleCertificateError = async (event, webContents, certificateUrl, error, certificate, callback) => {
-		if (this.isTrusted(certificateUrl, certificate)) {
-			callback(true);
+	if (queuedTrustRequests.has(certificate.fingerprint)) {
+		queuedTrustRequests.get(certificate.fingerprint).push(callback);
+		return;
+	}
+
+	const commit = async (trusted) => {
+		if (!trusted) {
 			return;
 		}
 
-		if (this.queued[certificate.fingerprint]) {
-			this.queued[certificate.fingerprint].push(callback);
-			return;
-		}
-		this.queued[certificate.fingerprint] = [callback];
+		updateCertificates({ ...certificates, [host]: serialized });
+		dispatch({ type: CERTIFICATES_CHANGED });
+	};
 
+	queuedTrustRequests.set(certificate.fingerprint, [commit, callback]);
 
-		let detail = `URL: ${ certificateUrl }\nError: ${ error }`;
-		if (this.isExisting(certificateUrl)) {
-			detail = t('error.differentCertificate', { detail });
-		}
+	dispatch({
+		type: CERTIFICATE_TRUST_REQUESTED,
+		payload: {
+			webContentsId: webContents.id,
+			url: certificateUrl,
+			error,
+			fingerprint: certificate.fingerprint,
+			issuerName: certificate.issuerName,
+			willBeReplaced: !!certificates[host],
+		},
+	});
+};
 
-		const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-			title: t('dialog.certificateError.title'),
-			message: t('dialog.certificateError.message', { issuerName: certificate.issuerName }),
-			detail,
-			type: 'warning',
-			buttons: [
-				t('dialog.certificateError.yes'),
-				t('dialog.certificateError.no'),
-			],
-			cancelId: 1,
-		});
-
-		if (response === 0) {
-			this.add(certificateUrl, certificate);
-			await this.save();
-			if (webContents.getURL().indexOf('file://') === 0) {
-				dispatch({ type: CERTIFICATES_CHANGED });
-			}
+const handleActionDispatched = ({ type, payload }) => {
+	switch (type) {
+		case MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED: {
+			updateCertificates({});
+			break;
 		}
 
-		this.queued[certificate.fingerprint].forEach((cb) => cb(response === 0));
-		delete this.queued[certificate.fingerprint];
-	}
-
-	async load() {
-		try {
-			this.data = await this.userDataDir.readAsync(this.storeFileName, 'json');
-		} catch (e) {
-			console.error(e);
-			this.data = {};
+		case WEBVIEW_CERTIFICATE_TRUSTED: {
+			const { fingerprint } = payload;
+			queuedTrustRequests.get(fingerprint).forEach((cb) => cb(true));
+			queuedTrustRequests.delete(fingerprint);
+			break;
 		}
 
-		if (this.data === undefined) {
-			await this.clear();
+		case WEBVIEW_CERTIFICATE_DENIED: {
+			const { fingerprint } = payload;
+			queuedTrustRequests.get(fingerprint).forEach((cb) => cb(false));
+			queuedTrustRequests.delete(fingerprint);
+			break;
 		}
 	}
+};
 
-	async clear() {
-		this.data = {};
-		await this.save();
-	}
+// TODO: configure it on webviews only
+export const setupCertificates = async () => {
+	await fetchCertificates();
 
-	async save() {
-		await this.userDataDir.writeAsync(this.storeFileName, this.data, { atomic: true });
-	}
+	subscribe(handleActionDispatched);
 
-	parseCertificate(certificate) {
-		return `${ certificate.issuerName }\n${ certificate.data.toString() }`;
-	}
+	remote.app.on('certificate-error', handleCertificateError);
 
-	getHost(certificateUrl) {
-		return url.parse(certificateUrl).host;
-	}
-
-	add(certificateUrl, certificate) {
-		const host = this.getHost(certificateUrl);
-		this.data[host] = this.parseCertificate(certificate);
-	}
-
-	isExisting(certificateUrl) {
-		const host = this.getHost(certificateUrl);
-		return this.data.hasOwnProperty(host);
-	}
-
-	isTrusted(certificateUrl, certificate) {
-		const host = this.getHost(certificateUrl);
-		if (!this.isExisting(certificateUrl)) {
-			return false;
-		}
-		return this.data[host] === this.parseCertificate(certificate);
-	}
-}
-
-const instance = new CertificateStore();
-
-export default instance;
+	window.addEventListener('unload', () => {
+		remote.app.removeListener('certificate-error', handleCertificateError);
+	});
+};

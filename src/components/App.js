@@ -3,7 +3,7 @@ import i18n from 'i18next';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 
-import certificates from '../scripts/certificates';
+import { setupCertificates } from '../scripts/certificates';
 import servers from '../scripts/servers';
 import { setupUpdates } from '../scripts/updates';
 import { processDeepLink } from '../scripts/deepLinks';
@@ -19,7 +19,6 @@ import {
 	MENU_BAR_PASTE_CLICKED,
 	MENU_BAR_SELECT_ALL_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
-	MENU_BAR_RELOAD_SERVER_CLICKED,
 	MENU_BAR_RESET_ZOOM_CLICKED,
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
@@ -151,15 +150,6 @@ export function App() {
 			if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
 				servers.clearActive();
 				setCurrentServerUrl(null);
-				return;
-			}
-
-			if (type === MENU_BAR_RELOAD_SERVER_CLICKED) {
-				const { clearCertificates = false } = payload || {};
-				if (clearCertificates) {
-					certificates.clear();
-				}
-
 				return;
 			}
 
@@ -507,13 +497,11 @@ export function App() {
 		remote.app.on('login', handleLogin);
 		remote.app.on('open-url', handleOpenUrl);
 		remote.app.on('second-instance', handleSecondInstance);
-		remote.app.on('certificate-error', certificates.handleCertificateError);
 
 		const unsubscribe = () => {
 			remote.app.removeListener('login', handleLogin);
 			remote.app.removeListener('open-url', handleOpenUrl);
 			remote.app.removeListener('second-instance', handleSecondInstance);
-			remote.app.removeListener('certificate-error', certificates.handleCertificateError);
 		};
 
 		window.addEventListener('unload', unsubscribe);
@@ -522,6 +510,7 @@ export function App() {
 	}, []);
 
 	useEffect(() => {
+		setupCertificates();
 		setupSpellChecking();
 		const { canUpdate, canSetAutoUpdate, canAutoUpdate } = setupUpdates();
 
@@ -530,7 +519,6 @@ export function App() {
 		setCanAutoUpdate(canAutoUpdate);
 
 		servers.initialize();
-		certificates.initialize();
 		servers.setActive(servers.active);
 
 		remote.process.argv.slice(2).forEach(processDeepLink);

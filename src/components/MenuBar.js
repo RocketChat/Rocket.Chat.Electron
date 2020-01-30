@@ -14,6 +14,7 @@ import {
 	MENU_BAR_SELECT_ALL_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	MENU_BAR_RELOAD_SERVER_CLICKED,
+	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
 	MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	MENU_BAR_GO_BACK_CLICKED,
 	MENU_BAR_GO_FORWARD_CLICKED,
@@ -119,10 +120,6 @@ const createViewMenuItemTemplate = ({ showTrayIcon, showFullScreen, showMenuBar,
 		{
 			label: t('menus.reloadIgnoringCache'),
 			click: () => dispatch({ type: MENU_BAR_RELOAD_SERVER_CLICKED, payload: { ignoringCache: true } }),
-		},
-		{
-			label: t('menus.clearTrustedCertificates'),
-			click: () => dispatch({ type: MENU_BAR_RELOAD_SERVER_CLICKED, payload: { ignoringCache: true, clearCertificates: true } }),
 		},
 		{
 			label: t('menus.openDevTools'),
@@ -255,6 +252,10 @@ const createHelpMenuItemTemplate = ({ appName, t, dispatch }) => ({
 		{
 			label: t('menus.resetAppData'),
 			click: () => dispatch({ type: MENU_BAR_RESET_APP_DATA_CLICKED }),
+		},
+		{
+			label: t('menus.clearTrustedCertificates'),
+			click: () => dispatch({ type: MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED }),
 		},
 		{ type: 'separator' },
 		{

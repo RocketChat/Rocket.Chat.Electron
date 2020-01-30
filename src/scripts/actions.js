@@ -8,6 +8,7 @@ export const MENU_BAR_COPY_CLICKED = 'menu-bar/copy-clicked';
 export const MENU_BAR_PASTE_CLICKED = 'menu-bar/paste-clicked';
 export const MENU_BAR_SELECT_ALL_CLICKED = 'menu-bar/select-all-clicked';
 export const MENU_BAR_RELOAD_SERVER_CLICKED = 'menu-bar/reload-server-clicked';
+export const MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED = 'menu-bar/clear-trusted-certificates-clicked';
 export const MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED = 'menu-bar/open-devtools-for-server-clicked';
 export const MENU_BAR_GO_BACK_CLICKED = 'menu-bar/go-back-clicked';
 export const MENU_BAR_GO_FORWARD_CLICKED = 'menu-bar/go-forward-clicked';
@@ -57,6 +58,8 @@ export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
 export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
 export const WEBVIEW_FOCUSED = 'webview/focused';
 export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED = 'webview/screen-sharing-source-requested';
+export const WEBVIEW_CERTIFICATE_TRUSTED = 'webview/certificate-trusted';
+export const WEBVIEW_CERTIFICATE_DENIED = 'webview/certificate-denied';
 
 export const MAIN_WINDOW_STATE_CHANGED = 'main-window/state-changed';
 
@@ -65,5 +68,6 @@ export const UPDATES_NEW_VERSION_NOT_AVAILABLE = 'updates/new-version-not-availa
 export const UPDATES_CHECK_FAILED = 'updates/check-failed';
 
 export const CERTIFICATES_CHANGED = 'certificates/changed';
+export const CERTIFICATE_TRUST_REQUESTED = 'certificate/trust-requested';
 
 export const DEEP_LINK_TRIGGERED = 'deep-link/triggered';

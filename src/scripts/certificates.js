@@ -4,6 +4,9 @@ import { remote } from 'electron';
 import jetpack from 'fs-jetpack';
 import { t } from 'i18next';
 
+import { dispatch } from './effects';
+import { CERTIFICATES_CHANGED } from './actions';
+
 const { app, dialog } = remote;
 
 class CertificateStore {
@@ -50,7 +53,7 @@ class CertificateStore {
 				this.add(certificateUrl, certificate);
 				await this.save();
 				if (webContents.getURL().indexOf('file://') === 0) {
-					webContents.send('certificate-reload', certificateUrl);
+					dispatch({ type: CERTIFICATES_CHANGED });
 				}
 			}
 

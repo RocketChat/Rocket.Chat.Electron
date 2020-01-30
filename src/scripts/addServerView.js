@@ -1,9 +1,9 @@
-import { ipcRenderer } from 'electron';
 import { t } from 'i18next';
 import { useEffect, useRef, useState } from 'react';
 
 import servers from './servers';
-import { ADD_SERVER_VIEW_SERVER_ADDED } from './actions';
+import { ADD_SERVER_VIEW_SERVER_ADDED, CERTIFICATES_CHANGED } from './actions';
+import { subscribe } from './effects';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',
@@ -68,16 +68,13 @@ export function AddServerView({
 	};
 
 	useEffect(() => {
-		const handleCertificateReload = (event, url) => {
-			inputRef.current.value = url.replace(/\/api\/info$/, '');
-			validateServerUrl(inputRef.current.value.trim());
+		const handleActionDispatched = ({ type }) => {
+			if (type === CERTIFICATES_CHANGED) {
+				validateServerUrl(inputRef.current.value.trim());
+			}
 		};
 
-		ipcRenderer.on('certificate-reload', handleCertificateReload);
-
-		return () => {
-			ipcRenderer.removeListener('certificate-reload', handleCertificateReload);
-		};
+		return subscribe(handleActionDispatched);
 	}, [inputRef]);
 
 	const handleFormSubmit = async (event) => {

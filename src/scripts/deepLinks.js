@@ -1,7 +1,8 @@
 import querystring from 'querystring';
 import url from 'url';
 
-import { remote } from 'electron';
+import { dispatch } from './effects';
+import { DEEP_LINK_TRIGGERED } from './actions';
 
 const normalizeUrl = (hostUrl) => {
 	if (!/^https?:\/\//.test(hostUrl)) {
@@ -13,13 +14,12 @@ const normalizeUrl = (hostUrl) => {
 
 const processAuth = ({ host, token, userId }) => {
 	const hostUrl = normalizeUrl(host);
-	remote.getCurrentWindow().send('add-host', hostUrl, { token, userId });
+	dispatch({ type: DEEP_LINK_TRIGGERED, payload: { type: 'auth', url: hostUrl, token, userId } });
 };
 
 const processRoom = ({ host, rid, path }) => {
 	const hostUrl = normalizeUrl(host);
-	remote.getCurrentWindow().send('add-host', hostUrl);
-	remote.getCurrentWindow().send('open-room', hostUrl, { rid, path });
+	dispatch({ type: DEEP_LINK_TRIGGERED, payload: { type: 'room', url: hostUrl, rid, path } });
 };
 
 export const processDeepLink = (link) => {

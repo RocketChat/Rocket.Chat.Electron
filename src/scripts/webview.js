@@ -18,7 +18,7 @@ import {
 	MENU_BAR_GO_BACK_CLICKED,
 	MENU_BAR_GO_FORWARD_CLICKED,
 } from './actions';
-import { listen, removeListener } from './ipc';
+import { subscribe } from './effects';
 
 const useRoot = (elementName) => {
 	const ref = useRef();
@@ -292,7 +292,7 @@ function WebUiView({
 	}, [onFail]);
 
 	useEffect(() => {
-		const handleActionDispatched = (_, { type, payload }) => {
+		const handleActionDispatched = ({ type, payload }) => {
 			if (type === SIDE_BAR_RELOAD_SERVER_CLICKED) {
 				if (url !== payload) {
 					return;
@@ -375,11 +375,7 @@ function WebUiView({
 			}
 		};
 
-		listen('action-dispatched', handleActionDispatched);
-
-		return () => {
-			removeListener('action-dispatched', handleActionDispatched);
-		};
+		return subscribe(handleActionDispatched);
 	}, [url, active, failed]);
 
 	useEffect(() => {

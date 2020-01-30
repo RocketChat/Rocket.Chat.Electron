@@ -16,7 +16,7 @@ import {
 	canSetAutoUpdate,
 } from './updates';
 import { processDeepLink } from './deepLinks';
-import { handle, removeHandler, listen, removeAllListeners, emit } from './ipc';
+import { handle, removeHandler } from './ipc';
 import {
 	setupSpellChecking,
 	getSpellCheckingCorrections,
@@ -70,6 +70,8 @@ import {
 	WEBVIEW_FOCUSED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	MAIN_WINDOW_STATE_CHANGED,
+	UPDATES_NEW_VERSION_AVAILABLE,
+	DEEP_LINK_TRIGGERED,
 } from './actions';
 import { MainWindow } from './mainWindow';
 import { AboutDialog } from './aboutDialog';
@@ -82,6 +84,7 @@ import { Tray } from './tray';
 import { MenuBar } from './menuBar';
 import { Dock } from './dock';
 import { TouchBar } from './touchBar';
+import { dispatch, subscribe } from './effects';
 
 let loading = true;
 let showWindowOnUnreadChanged;
@@ -121,7 +124,7 @@ const updateComponents = () => {
 };
 
 // eslint-disable-next-line complexity
-const handleActionDispatched = async (_, { type, payload = null }) => {
+const handleActionDispatched = async ({ type, payload = null }) => {
 	if (type === MENU_BAR_QUIT_CLICKED) {
 		remote.app.quit();
 		return;
@@ -417,10 +420,29 @@ const handleActionDispatched = async (_, { type, payload = null }) => {
 	if (type === MAIN_WINDOW_STATE_CHANGED) {
 		mainWindowState = payload;
 		updateComponents();
+		return;
+	}
+
+	if (type === UPDATES_NEW_VERSION_AVAILABLE) {
+		newUpdateVersion = payload;
+		updateDialogVisible = true;
+		updateComponents();
+		return;
+	}
+
+	if (type === DEEP_LINK_TRIGGERED) {
+		const { url } = payload;
+		if (servers.hostExists(url)) {
+			servers.setActive(url);
+		} else {
+			servers.showHostConfirmation(url);
+		}
 	}
 };
 
 function App() {
+	useEffect(() => subscribe(handleActionDispatched), []);
+
 	useEffect(() => {
 		setupSpellChecking();
 		setupUpdates();
@@ -428,10 +450,6 @@ function App() {
 		servers.initialize();
 		certificates.initialize();
 		servers.setActive(servers.active);
-
-		return () => {
-			removeAllListeners('action-dispatched');
-		};
 	}, []);
 
 	useEffect(() => {
@@ -493,11 +511,6 @@ function App() {
 	const globalBadge = mentionCount
 		|| (Object.values(badges).some((badge) => !!badge) && '•')
 		|| null;
-
-	const dispatch = (action) => {
-		console.log(action);
-		emit('action-dispatched', action);
-	};
 
 	return <MainWindow
 		hideOnClose={hideOnClose}
@@ -597,16 +610,6 @@ export default () => {
 	handle('spell-checking/install-dictionaries', (_, ...args) => installSpellCheckingDictionaries(...args));
 	handle('spell-checking/enable-dictionaries', (_, ...args) => enableSpellCheckingDictionaries(...args));
 	handle('spell-checking/disable-dictionaries', (_, ...args) => disableSpellCheckingDictionaries(...args));
-	listen('close-about-dialog', () => {
-		aboutDialogVisible = false;
-		updateComponents();
-	});
-	listen('open-update-dialog', (_, { newVersion }) => {
-		newUpdateVersion = newVersion;
-		updateDialogVisible = true;
-		updateComponents();
-	});
-	listen('action-dispatched', handleActionDispatched);
 
 	window.addEventListener('unload', () => {
 		remote.app.removeListener('login', handleLogin);
@@ -621,8 +624,6 @@ export default () => {
 		removeHandler('spell-checking/install-dictionaries');
 		removeHandler('spell-checking/enable-dictionaries');
 		removeHandler('spell-checking/disable-dictionaries');
-		removeAllListeners('close-about-dialog');
-		removeAllListeners('open-update-dialog');
 
 		unmountComponentAtNode(document.getElementById('root'));
 	});

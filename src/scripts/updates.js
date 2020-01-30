@@ -1,6 +1,9 @@
-import { ipcRenderer, remote } from 'electron';
+import { remote } from 'electron';
 import jetpack from 'fs-jetpack';
 import { t } from 'i18next';
+
+import { ABOUT_DIALOG_DISMISSED, UPDATES_NEW_VERSION_AVAILABLE } from './actions';
+import { dispatch } from './effects';
 
 const { app, dialog } = remote;
 const { autoUpdater } = remote.require('electron-updater');
@@ -104,8 +107,8 @@ const handleUpdateAvailable = ({ version }) => {
 		return;
 	}
 
-	ipcRenderer.send('close-about-dialog');
-	ipcRenderer.send('open-update-dialog', { newVersion: version });
+	dispatch({ type: ABOUT_DIALOG_DISMISSED });
+	dispatch({ type: UPDATES_NEW_VERSION_AVAILABLE, payload: version });
 };
 
 const handleUpdateNotAvailable = () => {

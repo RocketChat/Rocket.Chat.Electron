@@ -59,3 +59,9 @@ export const WEBVIEW_FOCUSED = 'webview/focused';
 export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED = 'webview/screen-sharing-source-requested';
 
 export const MAIN_WINDOW_STATE_CHANGED = 'main-window/state-changed';
+
+export const UPDATES_NEW_VERSION_AVAILABLE = 'updates/new-version-available';
+
+export const CERTIFICATES_CHANGED = 'certificates/changed';
+
+export const DEEP_LINK_TRIGGERED = 'deep-link/triggered';

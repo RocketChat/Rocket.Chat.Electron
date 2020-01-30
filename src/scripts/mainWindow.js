@@ -1,4 +1,4 @@
-import { remote, ipcRenderer } from 'electron';
+import { remote } from 'electron';
 import jetpack from 'fs-jetpack';
 import React, { useEffect, useRef } from 'react';
 
@@ -26,8 +26,10 @@ import {
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 	TRAY_ICON_TOGGLE_CLICKED,
 	WEBVIEW_UNREAD_CHANGED,
+	WEBVIEW_FOCUS_REQUESTED,
+	DEEP_LINK_TRIGGERED,
 } from './actions';
-import { listen, removeListener } from './ipc';
+import { subscribe } from './effects';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
 	remote.screen.getAllDisplays()
@@ -126,7 +128,25 @@ const useAppEvents = (browserWindow, windowStateRef) => {
 		};
 
 		const handleAppSecondInstance = () => {
-			ipcRenderer.send('main-window/focus');
+			if (process.platform === 'win32') {
+				if (browserWindow.isVisible()) {
+					browserWindow.focus();
+				} else if (browserWindow.isMinimized()) {
+					browserWindow.restore();
+				} else {
+					browserWindow.show();
+				}
+
+				return;
+			}
+
+			if (browserWindow.isMinimized()) {
+				browserWindow.restore();
+				return;
+			}
+
+			browserWindow.show();
+			browserWindow.focus();
 		};
 
 		remote.app.on('activate', handleActivate);
@@ -253,38 +273,6 @@ const useWindowStateLoading = (browserWindow, windowStateRef) => {
 	}, [browserWindow, windowStateRef]);
 };
 
-const useIpcRequests = (browserWindow) => {
-	useEffect(() => {
-		const handleFocusRequest = () => {
-			if (process.platform === 'win32') {
-				if (browserWindow.isVisible()) {
-					browserWindow.focus();
-				} else if (browserWindow.isMinimized()) {
-					browserWindow.restore();
-				} else {
-					browserWindow.show();
-				}
-
-				return;
-			}
-
-			if (browserWindow.isMinimized()) {
-				browserWindow.restore();
-				return;
-			}
-
-			browserWindow.show();
-			browserWindow.focus();
-		};
-
-		remote.ipcMain.on('main-window/focus', handleFocusRequest);
-
-		return () => {
-			remote.ipcMain.removeListener('main-window/focus', handleFocusRequest);
-		};
-	}, [browserWindow]);
-};
-
 export function MainWindow({
 	browserWindow = remote.getCurrentWindow(),
 	children,
@@ -298,10 +286,9 @@ export function MainWindow({
 	useWindowStateUpdates(browserWindow, windowStateRef, dispatch);
 	useWindowClosing(browserWindow, windowStateRef, hideOnClose);
 	useWindowStateLoading(browserWindow, windowStateRef);
-	useIpcRequests(browserWindow);
 
 	useEffect(() => {
-		const handleActionDispatched = (_, { type, payload }) => {
+		const handleActionDispatched = ({ type, payload }) => {
 			switch (type) {
 				case MENU_BAR_ABOUT_CLICKED:
 				case MENU_BAR_UNDO_CLICKED:
@@ -320,6 +307,8 @@ export function MainWindow({
 				case MENU_BAR_SELECT_SERVER_CLICKED:
 				case TOUCH_BAR_SELECT_SERVER_TOUCHED:
 				case TOUCH_BAR_FORMAT_BUTTON_TOUCHED:
+				case WEBVIEW_FOCUS_REQUESTED:
+				case DEEP_LINK_TRIGGERED:
 					browserWindow.show();
 					break;
 
@@ -369,11 +358,7 @@ export function MainWindow({
 			}
 		};
 
-		listen('action-dispatched', handleActionDispatched);
-
-		return () => {
-			removeListener('action-dispatched', handleActionDispatched);
-		};
+		return subscribe(handleActionDispatched);
 	}, [browserWindow, showWindowOnUnreadChanged]);
 
 	return <>

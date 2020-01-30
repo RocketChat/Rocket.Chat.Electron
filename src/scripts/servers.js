@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 
-import { remote, ipcRenderer } from 'electron';
+import { remote } from 'electron';
 import jetpack from 'fs-jetpack';
 import { t } from 'i18next';
 
@@ -13,14 +13,6 @@ class Servers extends EventEmitter {
 		if (processProtocol) {
 			this.showHostConfirmation(processProtocol);
 		}
-		ipcRenderer.on('add-host', (e, host) => {
-			ipcRenderer.send('main-window/focus');
-			if (this.hostExists(host)) {
-				this.setActive(host);
-			} else {
-				this.showHostConfirmation(host);
-			}
-		});
 	}
 
 	get hosts() {

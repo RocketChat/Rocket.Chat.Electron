@@ -5,8 +5,6 @@ import { desktopCapturer, remote } from 'electron';
 
 import { getSettings } from './rocketChat';
 
-const { app } = remote;
-
 
 const getScreenSources = util.promisify(desktopCapturer.getSources.bind(desktopCapturer));
 const JitsiMeetElectron = {
@@ -26,7 +24,7 @@ const wrapWindowOpen = (defaultWindowOpen) => (href, frameName, features) => {
 		features = [
 			features,
 			'nodeIntegration=true',
-			`preload=${ `${ app.getAppPath() }/app/preload.js` }`,
+			`preload=${ `${ remote.app.getAppPath() }/app/preload.js` }`,
 		].join(',');
 	}
 

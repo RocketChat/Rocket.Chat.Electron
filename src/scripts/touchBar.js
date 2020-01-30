@@ -7,9 +7,6 @@ import {
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 } from './actions';
 
-const { TouchBar: ElectronTouchBar, nativeImage } = remote;
-const { TouchBarButton, TouchBarLabel, TouchBarSegmentedControl, TouchBarScrubber, TouchBarPopover, TouchBarGroup } = ElectronTouchBar;
-
 const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
 	class SelectServerPanel {
 		constructor() {
@@ -60,9 +57,9 @@ const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
 		build() {
 			const popoverItems = this._buildSelectServersPopoverItems();
 
-			this.touchBarPopover = new TouchBarPopover({
+			this.touchBarPopover = new remote.TouchBar.TouchBarPopover({
 				label: t('touchBar.selectServer'),
-				items: new ElectronTouchBar({
+				items: new remote.TouchBar({
 					items: popoverItems,
 				}),
 			});
@@ -71,7 +68,7 @@ const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
 
 		_buildSelectServersPopoverItems() {
 			const items = [
-				new TouchBarLabel({ label: t('touchBar.selectServer') }),
+				new remote.TouchBar.TouchBarLabel({ label: t('touchBar.selectServer') }),
 			];
 
 			// The maximum length of available display area is limited. If exceed the length of displayed data, then
@@ -90,7 +87,7 @@ const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
 		}
 
 		_buildTouchBarSegmentedControl() {
-			this.control = new TouchBarSegmentedControl({
+			this.control = new remote.TouchBar.TouchBarSegmentedControl({
 				segmentStyle: 'separated',
 				selectedIndex: this._getActiveServerIndex(),
 				segments: this._hosts,
@@ -102,7 +99,7 @@ const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
 		}
 
 		_buildTouchBarScrubber() {
-			this.control = new TouchBarScrubber({
+			this.control = new remote.TouchBar.TouchBarScrubber({
 				selectedStyle: 'background',
 				showArrowButtons: true,
 				mode: 'fixed',
@@ -153,22 +150,22 @@ const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
 
 const useFormattingPanel = (activeServerUrl, dispatch) => {
 	if (!activeServerUrl) {
-		return new TouchBarGroup({ items: [] });
+		return new remote.TouchBar.TouchBarGroup({ items: [] });
 	}
 
 	const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
 
-	const formatButtons = ids.map((id) => new TouchBarButton({
-		icon: nativeImage.createFromPath(`${ __dirname }/images/touch-bar/${ id }.png`),
+	const formatButtons = ids.map((id) => new remote.TouchBar.TouchBarButton({
+		icon: remote.nativeImage.createFromPath(`${ __dirname }/images/touch-bar/${ id }.png`),
 		click: () => {
 			dispatch({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: id });
 		},
 	}));
 
-	return new TouchBarGroup({
-		items: new ElectronTouchBar({
+	return new remote.TouchBar.TouchBarGroup({
+		items: new remote.TouchBar({
 			items: [
-				new TouchBarLabel({ label: t('touchBar.formatting') }),
+				new remote.TouchBar.TouchBarLabel({ label: t('touchBar.formatting') }),
 				...formatButtons,
 			],
 		}),
@@ -180,7 +177,7 @@ export function TouchBar({ activeServerUrl, servers = [], dispatch }) {
 	const formattingPanel = useFormattingPanel(activeServerUrl, dispatch);
 
 	useEffect(() => {
-		const touchBar = new ElectronTouchBar({
+		const touchBar = new remote.TouchBar({
 			items: [
 				selectServerPanel,
 				formattingPanel,

@@ -1,7 +1,5 @@
 import { remote } from 'electron';
 
-const { app, nativeTheme } = remote;
-
 function getTrayIconSet({ platform, dark }) {
 	if (platform === 'darwin') {
 		return `darwin${ dark ? '-dark' : '' }`;
@@ -35,7 +33,7 @@ function getTrayIconExtension({ platform }) {
 }
 
 export function getAppIconPath() {
-	return `${ app.getAppPath() }/app/public/images/icon.png`;
+	return `${ remote.app.getAppPath() }/app/public/images/icon.png`;
 }
 
 export function getTrayIconPath({ badge, platform, dark } = {}) {
@@ -44,12 +42,12 @@ export function getTrayIconPath({ badge, platform, dark } = {}) {
 	}
 
 	if (platform === 'darwin' && typeof dark === 'undefined') {
-		dark = nativeTheme.shouldUseDarkColors;
+		dark = remote.nativeTheme.shouldUseDarkColors;
 	}
 
 	const params = { badge, platform, dark };
 	const iconset = getTrayIconSet(params);
 	const name = getTrayIconName(params);
 	const extension = getTrayIconExtension(params);
-	return `${ app.getAppPath() }/app/public/images/tray/${ iconset }/${ name }.${ extension }`;
+	return `${ remote.app.getAppPath() }/app/public/images/tray/${ iconset }/${ name }.${ extension }`;
 }

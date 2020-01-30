@@ -11,7 +11,6 @@ import {
 import { dispatch } from './effects';
 import { handle, removeHandler } from './ipc';
 
-const { app, dialog } = remote;
 const { autoUpdater } = remote.require('electron-updater');
 
 const updateSettingsFileName = 'update.json';
@@ -99,9 +98,7 @@ const handleUpdateNotAvailable = () => {
 };
 
 const handleUpdateDownloaded = async () => {
-	const mainWindow = remote.getCurrentWindow();
-
-	const { response } = await dialog.showMessageBox(mainWindow, {
+	const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
 		type: 'question',
 		title: t('dialog.updateReady.title'),
 		message: t('dialog.updateReady.message'),
@@ -113,7 +110,7 @@ const handleUpdateDownloaded = async () => {
 	});
 
 	if (response === 0) {
-		await dialog.showMessageBox(mainWindow, {
+		await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
 			type: 'info',
 			title: t('dialog.updateInstallLater.title'),
 			message: t('dialog.updateInstallLater.message'),
@@ -123,8 +120,8 @@ const handleUpdateDownloaded = async () => {
 		return;
 	}
 
-	mainWindow.removeAllListeners();
-	app.removeAllListeners('window-all-closed');
+	remote.getCurrentWindow().removeAllListeners();
+	remote.app.removeAllListeners('window-all-closed');
 	try {
 		autoUpdater.quitAndInstall();
 	} catch (e) {
@@ -137,8 +134,8 @@ const handleError = () => {
 };
 
 export const setupUpdates = () => {
-	appDir = jetpack.cwd(app.getAppPath(), app.getAppPath().endsWith('app.asar') ? '..' : '.');
-	userDataDir = jetpack.cwd(app.getPath('userData'));
+	appDir = jetpack.cwd(remote.app.getAppPath(), remote.app.getAppPath().endsWith('app.asar') ? '..' : '.');
+	userDataDir = jetpack.cwd(remote.app.getPath('userData'));
 	appUpdateSettings = loadUpdateSettings(appDir);
 	userUpdateSettings = loadUpdateSettings(userDataDir);
 	updateSettings = (() => {

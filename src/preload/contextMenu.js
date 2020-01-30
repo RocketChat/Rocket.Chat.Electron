@@ -3,9 +3,6 @@ import { t } from 'i18next';
 
 import { invoke } from '../scripts/ipc';
 
-const { dialog, getCurrentWebContents, getCurrentWindow, Menu } = remote;
-
-
 const createSpellCheckingMenuTemplate = ({
 	isEditable,
 	corrections,
@@ -21,7 +18,7 @@ const createSpellCheckingMenuTemplate = ({
 	}
 
 	const handleBrowserForLanguage = async () => {
-		const { filePaths } = await dialog.showOpenDialog(getCurrentWindow(), {
+		const { filePaths } = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
 			title: t('dialog.loadDictionary.title'),
 			defaultPath: dictionariesPath,
 			filters: [
@@ -35,7 +32,7 @@ const createSpellCheckingMenuTemplate = ({
 			await installDictionaries(filePaths);
 		} catch (error) {
 			console.error(error);
-			dialog.showErrorBox(
+			remote.dialog.showErrorBox(
 				t('dialog.loadDictionaryError.title'),
 				t('dialog.loadDictionaryError.message', { message: error.message }),
 			);
@@ -53,14 +50,14 @@ const createSpellCheckingMenuTemplate = ({
 				]
 				: corrections.slice(0, 6).map((correction) => ({
 					label: correction,
-					click: () => getCurrentWebContents().replaceMisspelling(correction),
+					click: () => remote.getCurrentWebContents().replaceMisspelling(correction),
 				})),
 			...corrections.length > 6 ? [
 				{
 					label: t('contextMenu.moreSpellingSuggestions'),
 					submenu: corrections.slice(6).map((correction) => ({
 						label: correction,
-						click: () => getCurrentWebContents().replaceMisspelling(correction),
+						click: () => remote.getCurrentWebContents().replaceMisspelling(correction),
 					})),
 				},
 			] : [],
@@ -103,7 +100,7 @@ const createImageMenuTemplate = ({
 		? [
 			{
 				label: t('contextMenu.saveImageAs'),
-				click: () => getCurrentWebContents().downloadURL(srcURL),
+				click: () => remote.getCurrentWebContents().downloadURL(srcURL),
 			},
 			{
 				type: 'separator',
@@ -215,10 +212,10 @@ const handleContextMenu = async (event, params) => {
 		...createDefaultMenuTemplate(props),
 	];
 
-	const menu = Menu.buildFromTemplate(template);
-	menu.popup({ window: getCurrentWindow() });
+	const menu = remote.Menu.buildFromTemplate(template);
+	menu.popup({ window: remote.getCurrentWindow() });
 };
 
 export default () => {
-	getCurrentWebContents().on('context-menu', handleContextMenu);
+	remote.getCurrentWebContents().on('context-menu', handleContextMenu);
 };

@@ -2,7 +2,32 @@ import { remote } from 'electron';
 import jetpack from 'fs-jetpack';
 import React, { useEffect, useRef } from 'react';
 
-import { MAIN_WINDOW_STATE_CHANGED } from './actions';
+import {
+	MAIN_WINDOW_STATE_CHANGED,
+	MENU_BAR_ABOUT_CLICKED,
+	MENU_BAR_ADD_NEW_SERVER_CLICKED,
+	MENU_BAR_COPY_CLICKED,
+	MENU_BAR_CUT_CLICKED,
+	MENU_BAR_GO_BACK_CLICKED,
+	MENU_BAR_GO_FORWARD_CLICKED,
+	MENU_BAR_PASTE_CLICKED,
+	MENU_BAR_REDO_CLICKED,
+	MENU_BAR_RELOAD_APP_CLICKED,
+	MENU_BAR_RELOAD_SERVER_CLICKED,
+	MENU_BAR_RESET_ZOOM_CLICKED,
+	MENU_BAR_SELECT_ALL_CLICKED,
+	MENU_BAR_SELECT_SERVER_CLICKED,
+	MENU_BAR_TOGGLE_DEVTOOLS_CLICKED,
+	MENU_BAR_TOGGLE_SETTING_CLICKED,
+	MENU_BAR_UNDO_CLICKED,
+	MENU_BAR_ZOOM_IN_CLICKED,
+	MENU_BAR_ZOOM_OUT_CLICKED,
+	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
+	TOUCH_BAR_SELECT_SERVER_TOUCHED,
+	TRAY_ICON_TOGGLE_CLICKED,
+	WEBVIEW_UNREAD_CHANGED,
+} from './actions';
+import { listen, removeListener } from './ipc';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
 	remote.screen.getAllDisplays()
@@ -252,6 +277,7 @@ export function MainWindow({
 	browserWindow = remote.getCurrentWindow(),
 	children,
 	hideOnClose = false,
+	showWindowOnUnreadChanged = false,
 	dispatch,
 }) {
 	const windowStateRef = useRef({});
@@ -261,6 +287,82 @@ export function MainWindow({
 	useWindowClosing(browserWindow, windowStateRef, hideOnClose);
 	useWindowStateLoading(browserWindow, windowStateRef);
 	useIpcRequests(browserWindow);
+
+	useEffect(() => {
+		const handleActionDispatched = (_, { type, payload }) => {
+			switch (type) {
+				case MENU_BAR_ABOUT_CLICKED:
+				case MENU_BAR_UNDO_CLICKED:
+				case MENU_BAR_REDO_CLICKED:
+				case MENU_BAR_CUT_CLICKED:
+				case MENU_BAR_COPY_CLICKED:
+				case MENU_BAR_PASTE_CLICKED:
+				case MENU_BAR_SELECT_ALL_CLICKED:
+				case MENU_BAR_ADD_NEW_SERVER_CLICKED:
+				case MENU_BAR_RELOAD_SERVER_CLICKED:
+				case MENU_BAR_GO_BACK_CLICKED:
+				case MENU_BAR_GO_FORWARD_CLICKED:
+				case MENU_BAR_RESET_ZOOM_CLICKED:
+				case MENU_BAR_ZOOM_IN_CLICKED:
+				case MENU_BAR_ZOOM_OUT_CLICKED:
+				case MENU_BAR_SELECT_SERVER_CLICKED:
+				case TOUCH_BAR_SELECT_SERVER_TOUCHED:
+				case TOUCH_BAR_FORMAT_BUTTON_TOUCHED:
+					browserWindow.show();
+					break;
+
+				case MENU_BAR_RELOAD_APP_CLICKED:
+					browserWindow.show();
+					browserWindow.reload();
+					break;
+
+				case MENU_BAR_TOGGLE_DEVTOOLS_CLICKED:
+					browserWindow.show();
+					browserWindow.toggleDevTools();
+					break;
+
+				case MENU_BAR_TOGGLE_SETTING_CLICKED: {
+					browserWindow.show();
+
+					const setting = payload;
+					if (setting === 'showFullScreen') {
+						browserWindow.setFullScreen(!browserWindow.isFullScreen());
+					}
+					break;
+				}
+
+				case TRAY_ICON_TOGGLE_CLICKED: {
+					const visible = payload;
+					if (visible) {
+						browserWindow.show();
+					} else {
+						browserWindow.hide();
+					}
+					break;
+				}
+
+				case WEBVIEW_UNREAD_CHANGED: {
+					const { badge } = payload;
+
+					if (!showWindowOnUnreadChanged || browserWindow.isFocused() || typeof badge !== 'number') {
+						break;
+					}
+
+					browserWindow.once('focus', () => {
+						browserWindow.flashFrame(false);
+					});
+					browserWindow.showInactive();
+					browserWindow.flashFrame(true);
+				}
+			}
+		};
+
+		listen('action-dispatched', handleActionDispatched);
+
+		return () => {
+			removeListener('action-dispatched', handleActionDispatched);
+		};
+	}, [browserWindow, showWindowOnUnreadChanged]);
 
 	return <>
 		{children}

@@ -43,8 +43,6 @@ import {
 	MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	MENU_BAR_GO_BACK_CLICKED,
 	MENU_BAR_GO_FORWARD_CLICKED,
-	MENU_BAR_RELOAD_APP_CLICKED,
-	MENU_BAR_TOGGLE_DEVTOOLS_CLICKED,
 	MENU_BAR_RESET_ZOOM_CLICKED,
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
@@ -60,7 +58,6 @@ import {
 	SCREEN_SHARING_DIALOG_DISMISSED,
 	TRAY_ICON_CREATED,
 	TRAY_ICON_DESTROYED,
-	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
 	SIDE_BAR_SERVER_SELECTED,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
@@ -76,6 +73,7 @@ import {
 	WEBVIEW_FOCUSED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	WEBVIEW_ACTIVATED,
+	MAIN_WINDOW_STATE_CHANGED,
 } from './actions';
 import { MainWindow } from './mainWindow';
 import { AboutDialog } from './aboutDialog';
@@ -96,8 +94,6 @@ let hasMenuBar;
 let hasSidebar;
 let _servers = [];
 let currentServerUrl;
-let isFullScreen;
-let isMainWindowVisible;
 let currentServerWebContents;
 let hideOnClose;
 let badges = {};
@@ -108,6 +104,7 @@ let newUpdateVersion;
 let updateDialogVisible;
 let screenSharingDialogVisible;
 let focusedWebContents = null;
+let mainWindowState = {};
 
 const updateComponents = () => {
 	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
@@ -121,15 +118,17 @@ const updateComponents = () => {
 		.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b));
 	currentServerUrl = servers.active;
 
-	isFullScreen = remote.getCurrentWindow().isFullScreen();
-	isMainWindowVisible = remote.getCurrentWindow().isVisible();
-
 	render(<App />, document.getElementById('root'));
 };
 
 // eslint-disable-next-line complexity
 const handleActionDispatched = async (_, { type, payload = null }) => {
 	if (type === MENU_BAR_QUIT_CLICKED) {
+		remote.app.quit();
+		return;
+	}
+
+	if (type === TRAY_ICON_QUIT_CLICKED) {
 		remote.app.quit();
 		return;
 	}
@@ -177,17 +176,9 @@ const handleActionDispatched = async (_, { type, payload = null }) => {
 	}
 
 	if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
-		remote.getCurrentWindow().show();
 		servers.clearActive();
 		addServerViewVisible = true;
 		updateComponents();
-		return;
-	}
-
-	if (type === MENU_BAR_SELECT_ALL_CLICKED) {
-		const { url } = payload || {};
-		remote.getCurrentWindow().show();
-		servers.setActive(url);
 		return;
 	}
 
@@ -224,16 +215,6 @@ const handleActionDispatched = async (_, { type, payload = null }) => {
 
 	if (type === MENU_BAR_GO_FORWARD_CLICKED) {
 		currentServerWebContents.goForward();
-		return;
-	}
-
-	if (type === MENU_BAR_RELOAD_APP_CLICKED) {
-		remote.getCurrentWindow().reload();
-		return;
-	}
-
-	if (type === MENU_BAR_TOGGLE_DEVTOOLS_CLICKED) {
-		remote.getCurrentWindow().toggleDevTools();
 		return;
 	}
 
@@ -278,12 +259,6 @@ const handleActionDispatched = async (_, { type, payload = null }) => {
 				const previousValue = localStorage.getItem('hideTray') !== 'true';
 				const newValue = !previousValue;
 				localStorage.setItem('hideTray', JSON.stringify(!newValue));
-				break;
-			}
-
-			case 'showFullScreen': {
-				const mainWindow = remote.getCurrentWindow();
-				mainWindow.setFullScreen(!mainWindow.isFullScreen());
 				break;
 			}
 
@@ -386,22 +361,6 @@ const handleActionDispatched = async (_, { type, payload = null }) => {
 		return;
 	}
 
-	if (type === TRAY_ICON_TOGGLE_CLICKED) {
-		const visible = payload;
-		if (visible) {
-			remote.getCurrentWindow().show();
-			return;
-		}
-
-		remote.getCurrentWindow().hide();
-		return;
-	}
-
-	if (type === TRAY_ICON_QUIT_CLICKED) {
-		remote.app.quit();
-		return;
-	}
-
 	if (type === SIDE_BAR_SERVER_SELECTED) {
 		const hostUrl = payload;
 		servers.setActive(hostUrl);
@@ -430,14 +389,6 @@ const handleActionDispatched = async (_, { type, payload = null }) => {
 
 	if (type === WEBVIEW_UNREAD_CHANGED) {
 		const { url, badge } = payload;
-		if (typeof badge === 'number' && localStorage.getItem('showWindowOnUnreadChanged') === 'true') {
-			const mainWindow = remote.getCurrentWindow();
-			if (!mainWindow.isFocused()) {
-				mainWindow.once('focus', () => mainWindow.flashFrame(false));
-				mainWindow.showInactive();
-				mainWindow.flashFrame(true);
-			}
-		}
 
 		badges = {
 			...badges,
@@ -494,6 +445,12 @@ const handleActionDispatched = async (_, { type, payload = null }) => {
 	if (type === WEBVIEW_ACTIVATED) {
 		currentServerWebContents = remote.webContents.fromId(payload);
 		updateComponents();
+		return;
+	}
+
+	if (type === MAIN_WINDOW_STATE_CHANGED) {
+		mainWindowState = payload;
+		updateComponents();
 	}
 };
 
@@ -538,10 +495,14 @@ function App() {
 		emit('action-dispatched', action);
 	};
 
-	return <MainWindow hideOnClose={hideOnClose} dispatch={dispatch}>
+	return <MainWindow
+		hideOnClose={hideOnClose}
+		showWindowOnUnreadChanged={showWindowOnUnreadChanged}
+		dispatch={dispatch}
+	>
 		<MenuBar
 			showTrayIcon={hasTrayIcon}
-			showFullScreen={isFullScreen}
+			showFullScreen={mainWindowState.fullscreen}
 			showWindowOnUnreadChanged={showWindowOnUnreadChanged}
 			showMenuBar={hasMenuBar}
 			showServerList={hasSidebar}
@@ -589,7 +550,7 @@ function App() {
 		/>
 		<Tray
 			badge={globalBadge}
-			isMainWindowVisible={isMainWindowVisible}
+			isMainWindowVisible={mainWindowState.visible && mainWindowState.focused}
 			showIcon={hasTrayIcon}
 			dispatch={dispatch}
 		/>
@@ -601,15 +562,6 @@ function App() {
 		/>
 	</MainWindow>;
 }
-
-const destroyAll = () => {
-	try {
-		remote.getCurrentWindow().removeListener('hide', updateComponents);
-		remote.getCurrentWindow().removeListener('show', updateComponents);
-	} catch (error) {
-		remote.getGlobal('console').error(error);
-	}
-};
 
 const patchFocusedWebContents = () => {
 	focusedWebContents = remote.getCurrentWebContents();
@@ -624,7 +576,10 @@ const patchFocusedWebContents = () => {
 export default () => {
 	patchFocusedWebContents();
 
-	window.addEventListener('beforeunload', destroyAll);
+	window.addEventListener('beforeunload', () => {
+		unmountComponentAtNode(document.getElementById('root'));
+	});
+
 	window.addEventListener('focus', () => {
 		if (!currentServerWebContents) {
 			return;
@@ -731,9 +686,6 @@ export default () => {
 	servers.on('title-setted', () => {
 		updateComponents();
 	});
-
-	remote.getCurrentWindow().on('hide', updateComponents);
-	remote.getCurrentWindow().on('show', updateComponents);
 
 	servers.initialize();
 

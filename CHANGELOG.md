@@ -1,3 +1,12 @@
+## [2.17.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.2...2.17.3) (2020-01-30)
+
+
+### Bug Fixes
+
+* Screen sharing in Jitsi ([#1486](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1486)) ([d7d463a](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d7d463ae3cef91410525eb42d1333e3e18996d34))
+
+
+
 <a name="2.17.2"></a>
 ## 2.17.2 (2019-12-19)
 

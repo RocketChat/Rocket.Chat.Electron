@@ -1,5 +1,4 @@
 import url from 'url';
-import util from 'util';
 
 import { desktopCapturer, remote } from 'electron';
 
@@ -8,11 +7,10 @@ import { getSettings } from './rocketChat';
 const { app } = remote;
 
 
-const getScreenSources = util.promisify(desktopCapturer.getSources.bind(desktopCapturer));
 const JitsiMeetElectron = {
 	async obtainDesktopStreams(callback, errorCallback, options = {}) {
 		try {
-			callback(await getScreenSources(options));
+			callback(await desktopCapturer.getSources(options));
 		} catch (error) {
 			errorCallback(error);
 		}

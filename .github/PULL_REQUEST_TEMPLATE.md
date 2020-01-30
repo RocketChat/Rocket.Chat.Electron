@@ -1,11 +1,9 @@
-<!-- INSTRUCTION: Your Pull Request name should start with one of the following tags -->
-<!-- [NEW] For new features -->
-<!-- [FIX] For bug fixes -->
-<!-- [IMPROVE] For non-breaking changes that enhance some existing feature -->
-<!-- [BREAK] For pull requests including breaking changes -->
+<!-- INSTRUCTION: Your Pull Request name should start with one of the following prefixes -->
+<!-- feat: For new features -->
+<!-- fix: For bug fixes -->
 
-<!-- INSTRUCTION: Keep the line below to notify all core developers about this new PR -->
-@RocketChat/electron
+<!-- INSTRUCTION: Keep the line below to notify the developers about this new PR -->
+@RocketChat/frontend
 
 <!-- INSTRUCTION: Inform the issue number that this PR closes, or remove the line below -->
 Closes #ISSUE_NUMBER

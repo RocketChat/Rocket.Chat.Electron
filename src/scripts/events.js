@@ -1,6 +1,6 @@
 import { remote } from 'electron';
 import { t } from 'i18next';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
 import certificates from './certificates';
@@ -86,370 +86,364 @@ import { Dock } from './dock';
 import { TouchBar } from './touchBar';
 import { dispatch, subscribe } from './effects';
 
-let loading = true;
-let showWindowOnUnreadChanged;
-let hasTrayIcon;
-let hasMenuBar;
-let hasSidebar;
-let _servers = [];
-let currentServerUrl;
-let hideOnClose;
-let badges = {};
-let styles = {};
-let addServerViewVisible;
-let aboutDialogVisible;
-let newUpdateVersion;
-let updateDialogVisible;
-let screenSharingDialogVisible;
-let focusedWebContents = null;
-let mainWindowState = {};
-
-const updateComponents = () => {
-	if (!focusedWebContents) {
-		focusedWebContents = remote.getCurrentWebContents();
-	}
-
-	showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
-	hasTrayIcon = localStorage.getItem('hideTray')
-		? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux';
-	hasMenuBar = localStorage.getItem('autohideMenu') !== 'true';
-	hasSidebar = localStorage.getItem('sidebar-closed') !== 'true';
-
-	const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
-	_servers = Object.values(servers.hosts)
-		.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b));
-	currentServerUrl = servers.active;
-
-	render(<App />, document.getElementById('root'));
-};
-
-// eslint-disable-next-line complexity
-const handleActionDispatched = async ({ type, payload = null }) => {
-	if (type === MENU_BAR_QUIT_CLICKED) {
-		remote.app.quit();
-		return;
-	}
-
-	if (type === TRAY_ICON_QUIT_CLICKED) {
-		remote.app.quit();
-		return;
-	}
-
-	if (type === MENU_BAR_ABOUT_CLICKED) {
-		aboutDialogVisible = true;
-		updateComponents();
-		return;
-	}
-
-	if (type === MENU_BAR_OPEN_URL_CLICKED) {
-		const url = payload;
-		remote.shell.openExternal(url);
-		return;
-	}
-
-	if (type === MENU_BAR_UNDO_CLICKED) {
-		focusedWebContents.undo();
-		return;
-	}
-
-	if (type === MENU_BAR_REDO_CLICKED) {
-		focusedWebContents.redo();
-		return;
-	}
-
-	if (type === MENU_BAR_CUT_CLICKED) {
-		focusedWebContents.cut();
-		return;
-	}
-
-	if (type === MENU_BAR_COPY_CLICKED) {
-		focusedWebContents.copy();
-		return;
-	}
-
-	if (type === MENU_BAR_PASTE_CLICKED) {
-		focusedWebContents.paste();
-		return;
-	}
-
-	if (type === MENU_BAR_SELECT_ALL_CLICKED) {
-		focusedWebContents.selectAll();
-		return;
-	}
-
-	if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
-		servers.clearActive();
-		addServerViewVisible = true;
-		updateComponents();
-		return;
-	}
-
-	if (type === MENU_BAR_RELOAD_SERVER_CLICKED) {
-		const { clearCertificates = false } = payload || {};
-		if (clearCertificates) {
-			certificates.clear();
-		}
-
-		return;
-	}
-
-	if (type === MENU_BAR_RESET_ZOOM_CLICKED) {
-		remote.getCurrentWebContents().zoomLevel = 0;
-		return;
-	}
-
-	if (type === MENU_BAR_ZOOM_IN_CLICKED) {
-		remote.getCurrentWebContents().zoomLevel++;
-		return;
-	}
-
-	if (type === MENU_BAR_ZOOM_OUT_CLICKED) {
-		remote.getCurrentWebContents().zoomLevel--;
-		return;
-	}
-
-	if (type === MENU_BAR_RESET_APP_DATA_CLICKED) {
-		const { response } = await remote.dialog.showMessageBox({
-			type: 'question',
-			buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
-			defaultId: 1,
-			title: t('dialog.resetAppData.title'),
-			message: t('dialog.resetAppData.message'),
-		});
-
-		if (response !== 0) {
-			return;
-		}
-
-		remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
-		remote.app.quit();
-		return;
-	}
-
-	if (type === MENU_BAR_TOGGLE_SETTING_CLICKED) {
-		const property = payload;
-
-		switch (property) {
-			case 'showTrayIcon': {
-				const previousValue = localStorage.getItem('hideTray') !== 'true';
-				const newValue = !previousValue;
-				localStorage.setItem('hideTray', JSON.stringify(!newValue));
-				break;
-			}
-
-			case 'showWindowOnUnreadChanged': {
-				const previousValue = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
-				const newValue = !previousValue;
-				localStorage.setItem('showWindowOnUnreadChanged', JSON.stringify(newValue));
-				break;
-			}
-
-			case 'showMenuBar': {
-				const previousValue = localStorage.getItem('autohideMenu') !== 'true';
-				const newValue = !previousValue;
-				localStorage.setItem('autohideMenu', JSON.stringify(!newValue));
-				break;
-			}
-
-			case 'showServerList': {
-				const previousValue = localStorage.getItem('sidebar-closed') !== 'true';
-				const newValue = !previousValue;
-				localStorage.setItem('sidebar-closed', JSON.stringify(!newValue));
-				break;
-			}
-		}
-
-		updateComponents();
-		return;
-	}
-
-	if (type === MENU_BAR_SELECT_SERVER_CLICKED) {
-		const server = payload;
-		servers.setActive(server.url);
-		updateComponents();
-		return;
-	}
-
-	if (type === TOUCH_BAR_SELECT_SERVER_TOUCHED) {
-		const serverUrl = payload;
-		servers.setActive(serverUrl);
-		return;
-	}
-
-	if (type === ADD_SERVER_VIEW_SERVER_ADDED) {
-		const url = servers.addHost(payload);
-		if (url !== false) {
-			servers.setActive(url);
-		}
-		return;
-	}
-
-	if (type === ABOUT_DIALOG_DISMISSED) {
-		aboutDialogVisible = false;
-		updateComponents();
-		return;
-	}
-
-	if (type === ABOUT_DIALOG_TOGGLE_UPDATE_ON_START) {
-		const updateOnStart = payload;
-		setAutoUpdate(updateOnStart);
-		return;
-	}
-
-	if (type === ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED) {
-		checkForUpdates(null, { forced: true });
-		return;
-	}
-
-	if (type === UPDATE_DIALOG_DISMISSED) {
-		updateDialogVisible = false;
-		updateComponents();
-		return;
-	}
-
-	if (type === UPDATE_DIALOG_SKIP_UPDATE_CLICKED) {
-		const skippedVersion = payload;
-		skipUpdateVersion(skippedVersion);
-		return;
-	}
-
-	if (type === UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED) {
-		downloadUpdate();
-		return;
-	}
-
-	if (type === SCREEN_SHARING_DIALOG_DISMISSED) {
-		screenSharingDialogVisible = false;
-		updateComponents();
-		return;
-	}
-
-	if (type === TRAY_ICON_CREATED) {
-		hideOnClose = true;
-		updateComponents();
-		return;
-	}
-
-	if (type === TRAY_ICON_DESTROYED) {
-		hideOnClose = false;
-		updateComponents();
-		return;
-	}
-
-	if (type === SIDE_BAR_SERVER_SELECTED) {
-		const hostUrl = payload;
-		servers.setActive(hostUrl);
-		return;
-	}
-
-	if (type === SIDE_BAR_REMOVE_SERVER_CLICKED) {
-		const hostUrl = payload;
-		servers.removeHost(hostUrl);
-		return;
-	}
-
-	if (type === SIDE_BAR_ADD_NEW_SERVER_CLICKED) {
-		servers.clearActive();
-		addServerViewVisible = true;
-		updateComponents();
-		return;
-	}
-
-	if (type === SIDE_BAR_SERVERS_SORTED) {
-		const sorting = payload;
-		localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));
-		updateComponents();
-		return;
-	}
-
-	if (type === WEBVIEW_UNREAD_CHANGED) {
-		const { url, badge } = payload;
-
-		badges = {
-			...badges,
-			[url]: badge || null,
-		};
-
-		updateComponents();
-		return;
-	}
-
-	if (type === WEBVIEW_TITLE_CHANGED) {
-		const { url, title } = payload;
-		servers.setHostTitle(url, title);
-		return;
-	}
-
-	if (type === WEBVIEW_FOCUS_REQUESTED) {
-		const { url } = payload;
-		servers.setActive(url);
-		return;
-	}
-
-	if (type === WEBVIEW_SIDEBAR_STYLE_CHANGED) {
-		const { url, style } = payload;
-		styles = {
-			...styles,
-			[url]: style || null,
-		};
-		updateComponents();
-		return;
-	}
-
-	if (type === WEBVIEW_DID_NAVIGATE) {
-		const { url, pageUrl } = payload;
-		if (pageUrl.includes(url)) {
-			servers.hosts[url].lastPath = pageUrl;
-			servers.save();
-		}
-		return;
-	}
-
-	if (type === WEBVIEW_FOCUSED) {
-		const { id } = payload;
-		focusedWebContents = remote.webContents.fromId(id);
-		return;
-	}
-
-	if (type === WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED) {
-		screenSharingDialogVisible = true;
-		updateComponents();
-		return;
-	}
-
-	if (type === MAIN_WINDOW_STATE_CHANGED) {
-		mainWindowState = payload;
-		updateComponents();
-		return;
-	}
-
-	if (type === UPDATES_NEW_VERSION_AVAILABLE) {
-		newUpdateVersion = payload;
-		updateDialogVisible = true;
-		updateComponents();
-		return;
-	}
-
-	if (type === DEEP_LINK_TRIGGERED) {
-		const { url } = payload;
-		if (servers.hostExists(url)) {
-			servers.setActive(url);
-		} else {
-			servers.showHostConfirmation(url);
-		}
-	}
-};
-
 function App() {
-	useEffect(() => subscribe(handleActionDispatched), []);
+	const [loading, setLoading] = useState(true);
+	const [showWindowOnUnreadChanged, setShowWindowOnUnreadChanged] =	useState(() => localStorage.getItem('showWindowOnUnreadChanged') === 'true');
+	const [hasTrayIcon, setHasTrayIcon] =	useState(() => (localStorage.getItem('hideTray') ? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux'));
+	const [hasMenuBar, setHasMenuBar] = useState(() => localStorage.getItem('autohideMenu') !== 'true');
+	const [hasSidebar, setHasSidebar] = useState(() => localStorage.getItem('sidebar-closed') !== 'true');
+	const [_servers, setServers] = useState(() => {
+		const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+		return Object.values(servers.hosts)
+			.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b));
+	});
+	const [currentServerUrl, setCurrentServerUrl] = useState(() => servers.active);
+	const [hideOnClose, setHideOnClose] = useState(false);
+	const [badges, setBadges] = useState({});
+	const [styles, setStyles] = useState({});
+	const [addServerViewVisible, setAddServerViewVisible] = useState(true);
+	const [aboutDialogVisible, setAboutDialogVisible] = useState(false);
+	const [newUpdateVersion, setNewUpdateVersion] = useState(null);
+	const [updateDialogVisible, setUpdateDialogVisible] = useState(false);
+	const [screenSharingDialogVisible, setScreenSharingDialogVisible] = useState(false);
+	const [focusedWebContents, setFocusedWebContents] = useState(() => remote.getCurrentWebContents());
+	const [mainWindowState, setMainWindowState] = useState({});
 
 	useEffect(() => {
-		setupSpellChecking();
-		setupUpdates();
+		// eslint-disable-next-line complexity
+		const handleActionDispatched = async ({ type, payload = null }) => {
+			if (type === MENU_BAR_QUIT_CLICKED) {
+				remote.app.quit();
+				return;
+			}
 
-		servers.initialize();
-		certificates.initialize();
-		servers.setActive(servers.active);
+			if (type === TRAY_ICON_QUIT_CLICKED) {
+				remote.app.quit();
+				return;
+			}
+
+			if (type === MENU_BAR_ABOUT_CLICKED) {
+				setAboutDialogVisible(true);
+				return;
+			}
+
+			if (type === MENU_BAR_OPEN_URL_CLICKED) {
+				const url = payload;
+				remote.shell.openExternal(url);
+				return;
+			}
+
+			if (type === MENU_BAR_UNDO_CLICKED) {
+				focusedWebContents.undo();
+				return;
+			}
+
+			if (type === MENU_BAR_REDO_CLICKED) {
+				focusedWebContents.redo();
+				return;
+			}
+
+			if (type === MENU_BAR_CUT_CLICKED) {
+				focusedWebContents.cut();
+				return;
+			}
+
+			if (type === MENU_BAR_COPY_CLICKED) {
+				focusedWebContents.copy();
+				return;
+			}
+
+			if (type === MENU_BAR_PASTE_CLICKED) {
+				focusedWebContents.paste();
+				return;
+			}
+
+			if (type === MENU_BAR_SELECT_ALL_CLICKED) {
+				focusedWebContents.selectAll();
+				return;
+			}
+
+			if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
+				servers.clearActive();
+				setCurrentServerUrl(null);
+				setAddServerViewVisible(true);
+				return;
+			}
+
+			if (type === MENU_BAR_RELOAD_SERVER_CLICKED) {
+				const { clearCertificates = false } = payload || {};
+				if (clearCertificates) {
+					certificates.clear();
+				}
+
+				return;
+			}
+
+			if (type === MENU_BAR_RESET_ZOOM_CLICKED) {
+				remote.getCurrentWebContents().zoomLevel = 0;
+				return;
+			}
+
+			if (type === MENU_BAR_ZOOM_IN_CLICKED) {
+				remote.getCurrentWebContents().zoomLevel++;
+				return;
+			}
+
+			if (type === MENU_BAR_ZOOM_OUT_CLICKED) {
+				remote.getCurrentWebContents().zoomLevel--;
+				return;
+			}
+
+			if (type === MENU_BAR_RESET_APP_DATA_CLICKED) {
+				const { response } = await remote.dialog.showMessageBox({
+					type: 'question',
+					buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
+					defaultId: 1,
+					title: t('dialog.resetAppData.title'),
+					message: t('dialog.resetAppData.message'),
+				});
+
+				if (response !== 0) {
+					return;
+				}
+
+				remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
+				remote.app.quit();
+				return;
+			}
+
+			if (type === MENU_BAR_TOGGLE_SETTING_CLICKED) {
+				const property = payload;
+
+				switch (property) {
+					case 'showTrayIcon': {
+						const previousValue = localStorage.getItem('hideTray') !== 'true';
+						const newValue = !previousValue;
+						localStorage.setItem('hideTray', JSON.stringify(!newValue));
+						setHasTrayIcon(newValue);
+						break;
+					}
+
+					case 'showWindowOnUnreadChanged': {
+						const previousValue = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
+						const newValue = !previousValue;
+						localStorage.setItem('showWindowOnUnreadChanged', JSON.stringify(newValue));
+						setShowWindowOnUnreadChanged(newValue);
+						break;
+					}
+
+					case 'showMenuBar': {
+						const previousValue = localStorage.getItem('autohideMenu') !== 'true';
+						const newValue = !previousValue;
+						localStorage.setItem('autohideMenu', JSON.stringify(!newValue));
+						setHasMenuBar(newValue);
+						break;
+					}
+
+					case 'showServerList': {
+						const previousValue = localStorage.getItem('sidebar-closed') !== 'true';
+						const newValue = !previousValue;
+						localStorage.setItem('sidebar-closed', JSON.stringify(!newValue));
+						setHasSidebar(newValue);
+						break;
+					}
+				}
+				return;
+			}
+
+			if (type === MENU_BAR_SELECT_SERVER_CLICKED) {
+				const server = payload;
+				servers.setActive(server.url);
+				setCurrentServerUrl(server.url);
+				return;
+			}
+
+			if (type === TOUCH_BAR_SELECT_SERVER_TOUCHED) {
+				const serverUrl = payload;
+				servers.setActive(serverUrl);
+				setCurrentServerUrl(serverUrl);
+				return;
+			}
+
+			if (type === ADD_SERVER_VIEW_SERVER_ADDED) {
+				const url = servers.addHost(payload);
+				if (url !== false) {
+					servers.setActive(url);
+
+					const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+					setServers(Object.values(servers.hosts)
+						.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
+					setCurrentServerUrl(url);
+				}
+				return;
+			}
+
+			if (type === ABOUT_DIALOG_DISMISSED) {
+				setAboutDialogVisible(false);
+				return;
+			}
+
+			if (type === ABOUT_DIALOG_TOGGLE_UPDATE_ON_START) {
+				const updateOnStart = payload;
+				setAutoUpdate(updateOnStart);
+				return;
+			}
+
+			if (type === ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED) {
+				checkForUpdates(null, { forced: true });
+				return;
+			}
+
+			if (type === UPDATE_DIALOG_DISMISSED) {
+				setUpdateDialogVisible(false);
+				return;
+			}
+
+			if (type === UPDATE_DIALOG_SKIP_UPDATE_CLICKED) {
+				const skippedVersion = payload;
+				skipUpdateVersion(skippedVersion);
+				return;
+			}
+
+			if (type === UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED) {
+				downloadUpdate();
+				return;
+			}
+
+			if (type === SCREEN_SHARING_DIALOG_DISMISSED) {
+				setScreenSharingDialogVisible(false);
+				return;
+			}
+
+			if (type === TRAY_ICON_CREATED) {
+				setHideOnClose(true);
+				return;
+			}
+
+			if (type === TRAY_ICON_DESTROYED) {
+				setHideOnClose(false);
+				return;
+			}
+
+			if (type === SIDE_BAR_SERVER_SELECTED) {
+				const hostUrl = payload;
+				servers.setActive(hostUrl);
+				setCurrentServerUrl(hostUrl);
+				return;
+			}
+
+			if (type === SIDE_BAR_REMOVE_SERVER_CLICKED) {
+				const hostUrl = payload;
+				servers.removeHost(hostUrl);
+
+				setCurrentServerUrl(null);
+				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+				setServers(Object.values(servers.hosts)
+					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
+				return;
+			}
+
+			if (type === SIDE_BAR_ADD_NEW_SERVER_CLICKED) {
+				servers.clearActive();
+				setCurrentServerUrl(null);
+				setAddServerViewVisible(true);
+				return;
+			}
+
+			if (type === SIDE_BAR_SERVERS_SORTED) {
+				const sorting = payload;
+				localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));
+				setServers(Object.values(servers.hosts)
+					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
+				return;
+			}
+
+			if (type === WEBVIEW_UNREAD_CHANGED) {
+				const { url, badge } = payload;
+
+				setBadges((badges) => ({
+					...badges,
+					[url]: badge || null,
+				}));
+				return;
+			}
+
+			if (type === WEBVIEW_TITLE_CHANGED) {
+				const { url, title } = payload;
+				servers.setHostTitle(url, title);
+				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+				setServers(Object.values(servers.hosts)
+					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
+				return;
+			}
+
+			if (type === WEBVIEW_FOCUS_REQUESTED) {
+				const { url } = payload;
+				servers.setActive(url);
+				setCurrentServerUrl(url);
+				return;
+			}
+
+			if (type === WEBVIEW_SIDEBAR_STYLE_CHANGED) {
+				const { url, style } = payload;
+				setStyles((styles) => ({
+					...styles,
+					[url]: style || null,
+				}));
+				return;
+			}
+
+			if (type === WEBVIEW_DID_NAVIGATE) {
+				const { url, pageUrl } = payload;
+				if (pageUrl.includes(url)) {
+					servers.hosts[url].lastPath = pageUrl;
+					servers.save();
+				}
+				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+				setServers(Object.values(servers.hosts)
+					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
+				return;
+			}
+
+			if (type === WEBVIEW_FOCUSED) {
+				const { id } = payload;
+				setFocusedWebContents(remote.webContents.fromId(id));
+				return;
+			}
+
+			if (type === WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED) {
+				setScreenSharingDialogVisible(true);
+				return;
+			}
+
+			if (type === MAIN_WINDOW_STATE_CHANGED) {
+				setMainWindowState(payload);
+				return;
+			}
+
+			if (type === UPDATES_NEW_VERSION_AVAILABLE) {
+				setNewUpdateVersion(payload);
+				setUpdateDialogVisible(true);
+				return;
+			}
+
+			if (type === DEEP_LINK_TRIGGERED) {
+				const { url } = payload;
+				if (servers.hostExists(url)) {
+					servers.setActive(url);
+					setCurrentServerUrl(url);
+					return;
+				}
+
+				await servers.showHostConfirmation(url);
+				setCurrentServerUrl(url);
+				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+				setServers(Object.values(servers.hosts)
+					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
+			}
+		};
+
+		return subscribe(handleActionDispatched);
 	}, []);
 
 	useEffect(() => {
@@ -474,35 +468,87 @@ function App() {
 
 	useEffect(() => {
 		servers.on('loaded', () => {
-			loading = false;
-			updateComponents();
+			setLoading(false);
+			setCurrentServerUrl(servers.active);
+			const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+			setServers(Object.values(servers.hosts)
+				.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
 		});
 
 		servers.on('host-added', () => {
-			updateComponents();
+			const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+			setServers(Object.values(servers.hosts)
+				.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
 		});
 
 		servers.on('host-removed', () => {
 			servers.clearActive();
-			addServerViewVisible = true;
-			updateComponents();
+			setCurrentServerUrl(null);
+			setAddServerViewVisible(true);
 		});
 
 		servers.on('active-setted', (url) => {
-			currentServerUrl = url;
-			addServerViewVisible = false;
-			updateComponents();
+			setCurrentServerUrl(url);
+			setAddServerViewVisible(false);
 		});
 
 		servers.on('active-cleared', () => {
-			currentServerUrl = null;
-			addServerViewVisible = true;
-			updateComponents();
+			setCurrentServerUrl(null);
+			setAddServerViewVisible(true);
 		});
 
 		servers.on('title-setted', () => {
-			updateComponents();
+			const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
+			setServers(Object.values(servers.hosts)
+				.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
 		});
+	}, []);
+
+	useEffect(() => {
+		const handleLogin = (event, webContents, request, authInfo, callback) => {
+			for (const url of Object.keys(servers.hosts)) {
+				const server = servers.hosts[url];
+				if (request.url.indexOf(url) === 0 && server.username) {
+					callback(server.username, server.password);
+					break;
+				}
+			}
+		};
+
+		const handleOpenUrl = (event, url) => {
+			processDeepLink(url);
+		};
+
+		const handleSecondInstance = (event, argv) => {
+			argv.slice(2).forEach(processDeepLink);
+		};
+
+		remote.app.on('login', handleLogin);
+		remote.app.on('open-url', handleOpenUrl);
+		remote.app.on('second-instance', handleSecondInstance);
+		remote.app.on('certificate-error', certificates.handleCertificateError);
+
+		const unsubscribe = () => {
+			remote.app.removeListener('login', handleLogin);
+			remote.app.removeListener('open-url', handleOpenUrl);
+			remote.app.removeListener('second-instance', handleSecondInstance);
+			remote.app.removeListener('certificate-error', certificates.handleCertificateError);
+		};
+
+		window.addEventListener('unload', unsubscribe);
+
+		return unsubscribe;
+	}, []);
+
+	useEffect(() => {
+		setupSpellChecking();
+		setupUpdates();
+
+		servers.initialize();
+		certificates.initialize();
+		servers.setActive(servers.active);
+
+		remote.process.argv.slice(2).forEach(processDeepLink);
 	}, []);
 
 	const mentionCount = Object.values(badges)
@@ -580,28 +626,6 @@ function App() {
 }
 
 export default () => {
-	const handleLogin = (event, webContents, request, authInfo, callback) => {
-		for (const url of Object.keys(servers.hosts)) {
-			const server = servers.hosts[url];
-			if (request.url.indexOf(url) === 0 && server.username) {
-				callback(server.username, server.password);
-				break;
-			}
-		}
-	};
-
-	const handleOpenUrl = (event, url) => {
-		processDeepLink(url);
-	};
-
-	const handleSecondInstance = (event, argv) => {
-		argv.slice(2).forEach(processDeepLink);
-	};
-
-	remote.app.on('login', handleLogin);
-	remote.app.on('open-url', handleOpenUrl);
-	remote.app.on('second-instance', handleSecondInstance);
-
 	handle('spell-checking/get-corrections', (_, text) => getSpellCheckingCorrections(text));
 	handle('spell-checking/get-dictionaries', () => getSpellCheckingDictionaries());
 	handle('spell-checking/get-dictionaries-path', () => getSpellCheckingDictionariesPath());
@@ -612,10 +636,6 @@ export default () => {
 	handle('spell-checking/disable-dictionaries', (_, ...args) => disableSpellCheckingDictionaries(...args));
 
 	window.addEventListener('unload', () => {
-		remote.app.removeListener('login', handleLogin);
-		remote.app.removeListener('open-url', handleOpenUrl);
-		remote.app.removeListener('second-instance', handleSecondInstance);
-
 		removeHandler('spell-checking/get-corrections');
 		removeHandler('spell-checking/get-dictionaries');
 		removeHandler('spell-checking/get-dictionaries-path');
@@ -628,7 +648,5 @@ export default () => {
 		unmountComponentAtNode(document.getElementById('root'));
 	});
 
-	updateComponents();
-
-	remote.process.argv.slice(2).forEach(processDeepLink);
+	render(<App />, document.getElementById('root'));
 };

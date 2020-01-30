@@ -7,59 +7,57 @@ import { t } from 'i18next';
 import { dispatch } from './effects';
 import { CERTIFICATES_CHANGED } from './actions';
 
-const { app, dialog } = remote;
-
 class CertificateStore {
 	async initialize() {
 		this.storeFileName = 'certificate.json';
-		this.userDataDir = jetpack.cwd(app.getPath('userData'));
+		this.userDataDir = jetpack.cwd(remote.app.getPath('userData'));
 
 		await this.load();
 
 		// Don't ask twice for same cert if loading multiple urls
 		this.queued = {};
+	}
 
-		app.on('certificate-error', async (event, webContents, certificateUrl, error, certificate, callback) => {
-			if (this.isTrusted(certificateUrl, certificate)) {
-				callback(true);
-				return;
-			}
+	handleCertificateError = async (event, webContents, certificateUrl, error, certificate, callback) => {
+		if (this.isTrusted(certificateUrl, certificate)) {
+			callback(true);
+			return;
+		}
 
-			if (this.queued[certificate.fingerprint]) {
-				this.queued[certificate.fingerprint].push(callback);
-				return;
-			}
-			this.queued[certificate.fingerprint] = [callback];
+		if (this.queued[certificate.fingerprint]) {
+			this.queued[certificate.fingerprint].push(callback);
+			return;
+		}
+		this.queued[certificate.fingerprint] = [callback];
 
 
-			let detail = `URL: ${ certificateUrl }\nError: ${ error }`;
-			if (this.isExisting(certificateUrl)) {
-				detail = t('error.differentCertificate', { detail });
-			}
+		let detail = `URL: ${ certificateUrl }\nError: ${ error }`;
+		if (this.isExisting(certificateUrl)) {
+			detail = t('error.differentCertificate', { detail });
+		}
 
-			const { response } = await dialog.showMessageBox(remote.getCurrentWindow(), {
-				title: t('dialog.certificateError.title'),
-				message: t('dialog.certificateError.message', { issuerName: certificate.issuerName }),
-				detail,
-				type: 'warning',
-				buttons: [
-					t('dialog.certificateError.yes'),
-					t('dialog.certificateError.no'),
-				],
-				cancelId: 1,
-			});
-
-			if (response === 0) {
-				this.add(certificateUrl, certificate);
-				await this.save();
-				if (webContents.getURL().indexOf('file://') === 0) {
-					dispatch({ type: CERTIFICATES_CHANGED });
-				}
-			}
-
-			this.queued[certificate.fingerprint].forEach((cb) => cb(response === 0));
-			delete this.queued[certificate.fingerprint];
+		const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+			title: t('dialog.certificateError.title'),
+			message: t('dialog.certificateError.message', { issuerName: certificate.issuerName }),
+			detail,
+			type: 'warning',
+			buttons: [
+				t('dialog.certificateError.yes'),
+				t('dialog.certificateError.no'),
+			],
+			cancelId: 1,
 		});
+
+		if (response === 0) {
+			this.add(certificateUrl, certificate);
+			await this.save();
+			if (webContents.getURL().indexOf('file://') === 0) {
+				dispatch({ type: CERTIFICATES_CHANGED });
+			}
+		}
+
+		this.queued[certificate.fingerprint].forEach((cb) => cb(response === 0));
+		delete this.queued[certificate.fingerprint];
 	}
 
 	async load() {

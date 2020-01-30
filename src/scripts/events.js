@@ -5,29 +5,9 @@ import { render, unmountComponentAtNode } from 'react-dom';
 
 import certificates from './certificates';
 import servers from './servers';
-import {
-	setupUpdates,
-	setAutoUpdate,
-	checkForUpdates,
-	skipUpdateVersion,
-	downloadUpdate,
-	canUpdate,
-	canAutoUpdate,
-	canSetAutoUpdate,
-} from './updates';
+import { setupUpdates } from './updates';
 import { processDeepLink } from './deepLinks';
-import { handle, removeHandler } from './ipc';
-import {
-	setupSpellChecking,
-	getSpellCheckingCorrections,
-	getSpellCheckingDictionaries,
-	getSpellCheckingDictionariesPath,
-	getEnabledSpellCheckingDictionaries,
-	installSpellCheckingDictionaries,
-	enableSpellCheckingDictionaries,
-	disableSpellCheckingDictionaries,
-	getMisspelledWords,
-} from './spellChecking';
+import { setupSpellChecking } from './spellChecking';
 import {
 	MENU_BAR_QUIT_CLICKED,
 	MENU_BAR_ABOUT_CLICKED,
@@ -85,6 +65,7 @@ import { MenuBar } from './menuBar';
 import { Dock } from './dock';
 import { TouchBar } from './touchBar';
 import { dispatch, subscribe } from './effects';
+import { invoke } from './ipc';
 
 function App() {
 	const [loading, setLoading] = useState(true);
@@ -108,6 +89,9 @@ function App() {
 	const [screenSharingDialogVisible, setScreenSharingDialogVisible] = useState(false);
 	const [focusedWebContents, setFocusedWebContents] = useState(() => remote.getCurrentWebContents());
 	const [mainWindowState, setMainWindowState] = useState({});
+	const [canUpdate, setCanUpdate] = useState(false);
+	const [canSetAutoUpdate, setCanSetAutoUpdate] = useState(false);
+	const [canAutoUpdate, setCanAutoUpdate] = useState(false);
 
 	useEffect(() => {
 		// eslint-disable-next-line complexity
@@ -285,12 +269,13 @@ function App() {
 
 			if (type === ABOUT_DIALOG_TOGGLE_UPDATE_ON_START) {
 				const updateOnStart = payload;
-				setAutoUpdate(updateOnStart);
+				invoke('updates/set-auto-update', updateOnStart);
+				setCanAutoUpdate(updateOnStart);
 				return;
 			}
 
 			if (type === ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED) {
-				checkForUpdates(null, { forced: true });
+				invoke('updates/check-for-updates', null, { forced: true });
 				return;
 			}
 
@@ -301,12 +286,12 @@ function App() {
 
 			if (type === UPDATE_DIALOG_SKIP_UPDATE_CLICKED) {
 				const skippedVersion = payload;
-				skipUpdateVersion(skippedVersion);
+				invoke('updates/skip-update-version', skippedVersion);
 				return;
 			}
 
 			if (type === UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED) {
-				downloadUpdate();
+				invoke('updates/download-update');
 				return;
 			}
 
@@ -542,7 +527,11 @@ function App() {
 
 	useEffect(() => {
 		setupSpellChecking();
-		setupUpdates();
+		const { canUpdate, canSetAutoUpdate, canAutoUpdate } = setupUpdates();
+
+		setCanUpdate(canUpdate);
+		setCanSetAutoUpdate(canSetAutoUpdate);
+		setCanAutoUpdate(canAutoUpdate);
 
 		servers.initialize();
 		certificates.initialize();
@@ -592,9 +581,9 @@ function App() {
 			dispatch={dispatch}
 		/>
 		<AboutDialog
-			canUpdate={canUpdate()}
-			canAutoUpdate={canAutoUpdate()}
-			canSetAutoUpdate={canSetAutoUpdate()}
+			canUpdate={canUpdate}
+			canSetAutoUpdate={canSetAutoUpdate}
+			canAutoUpdate={canAutoUpdate}
 			visible={aboutDialogVisible}
 			dispatch={dispatch}
 		/>
@@ -626,27 +615,9 @@ function App() {
 }
 
 export default () => {
-	handle('spell-checking/get-corrections', (_, text) => getSpellCheckingCorrections(text));
-	handle('spell-checking/get-dictionaries', () => getSpellCheckingDictionaries());
-	handle('spell-checking/get-dictionaries-path', () => getSpellCheckingDictionariesPath());
-	handle('spell-checking/get-enabled-dictionaries', () => getEnabledSpellCheckingDictionaries());
-	handle('spell-checking/get-misspelled-words', (_, words) => getMisspelledWords(words));
-	handle('spell-checking/install-dictionaries', (_, ...args) => installSpellCheckingDictionaries(...args));
-	handle('spell-checking/enable-dictionaries', (_, ...args) => enableSpellCheckingDictionaries(...args));
-	handle('spell-checking/disable-dictionaries', (_, ...args) => disableSpellCheckingDictionaries(...args));
+	render(<App />, document.getElementById('root'));
 
 	window.addEventListener('unload', () => {
-		removeHandler('spell-checking/get-corrections');
-		removeHandler('spell-checking/get-dictionaries');
-		removeHandler('spell-checking/get-dictionaries-path');
-		removeHandler('spell-checking/get-enabled-dictionaries');
-		removeHandler('spell-checking/get-misspelled-words');
-		removeHandler('spell-checking/install-dictionaries');
-		removeHandler('spell-checking/enable-dictionaries');
-		removeHandler('spell-checking/disable-dictionaries');
-
 		unmountComponentAtNode(document.getElementById('root'));
 	});
-
-	render(<App />, document.getElementById('root'));
 };

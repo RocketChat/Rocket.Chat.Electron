@@ -9,6 +9,7 @@ import {
 	UPDATES_CHECK_FAILED,
 } from './actions';
 import { dispatch } from './effects';
+import { handle, removeHandler } from './ipc';
 
 const { app, dialog } = remote;
 const { autoUpdater } = remote.require('electron-updater');
@@ -37,18 +38,18 @@ const saveUpdateSettings = () => {
 	userDataDir.write(updateSettingsFileName, userUpdateSettings, { atomic: true });
 };
 
-export const canUpdate = () => updateSettings.canUpdate
+const canUpdate = () => updateSettings.canUpdate
 	&& (
 		(process.platform === 'linux' && Boolean(process.env.APPIMAGE))
 		|| (process.platform === 'win32' && !process.windowsStore)
 		|| (process.platform === 'darwin' && !process.mas)
 	);
 
-export const canAutoUpdate = () => updateSettings.autoUpdate !== false;
+const canSetAutoUpdate = () => !appUpdateSettings.forced || appUpdateSettings.autoUpdate !== false;
 
-export const canSetAutoUpdate = () => !appUpdateSettings.forced || appUpdateSettings.autoUpdate !== false;
+const canAutoUpdate = () => updateSettings.autoUpdate !== false;
 
-export const setAutoUpdate = (canAutoUpdate) => {
+const setAutoUpdate = (canAutoUpdate) => {
 	if (!canSetAutoUpdate()) {
 		return;
 	}
@@ -58,12 +59,12 @@ export const setAutoUpdate = (canAutoUpdate) => {
 	saveUpdateSettings();
 };
 
-export const skipUpdateVersion = (version) => {
+const skipUpdateVersion = (version) => {
 	userUpdateSettings.skip = version;
 	saveUpdateSettings();
 };
 
-export const downloadUpdate = async () => {
+const downloadUpdate = async () => {
 	try {
 		await autoUpdater.downloadUpdate();
 	} catch (e) {
@@ -71,15 +72,8 @@ export const downloadUpdate = async () => {
 	}
 };
 
-let checkForUpdatesEvent = null;
-
-export const checkForUpdates = async (event = null, { forced = false } = {}) => {
-	if (checkForUpdatesEvent) {
-		return;
-	}
-
+export const checkForUpdates = async (_, { forced = false } = {}) => {
 	if ((forced || canAutoUpdate()) && canUpdate()) {
-		checkForUpdatesEvent = event;
 		try {
 			await autoUpdater.checkForUpdates();
 		} catch (e) {
@@ -142,7 +136,7 @@ const handleError = () => {
 	dispatch({ type: UPDATES_CHECK_FAILED });
 };
 
-export const setupUpdates = async () => {
+export const setupUpdates = () => {
 	appDir = jetpack.cwd(app.getAppPath(), app.getAppPath().endsWith('app.asar') ? '..' : '.');
 	userDataDir = jetpack.cwd(app.getPath('userData'));
 	appUpdateSettings = loadUpdateSettings(appDir);
@@ -172,5 +166,29 @@ export const setupUpdates = async () => {
 		autoUpdater.off('error', handleError);
 	});
 
+	handle('updates/set-auto-update', (_, ...args) => setAutoUpdate(...args));
+	handle('updates/check-for-updates', (_, ...args) => checkForUpdates(...args));
+	handle('updates/skip-update-version', (_, ...args) => skipUpdateVersion(...args));
+	handle('updates/download-update', (_, ...args) => downloadUpdate(...args));
+	handle('updates/can-update', (_, ...args) => canUpdate(...args));
+	handle('updates/can-auto-update', (_, ...args) => canAutoUpdate(...args));
+	handle('updates/can-set-auto-update', (_, ...args) => canSetAutoUpdate(...args));
+
+	window.addEventListener('unload', () => {
+		removeHandler('updates/set-auto-update');
+		removeHandler('updates/check-for-updates');
+		removeHandler('updates/skip-update-version');
+		removeHandler('updates/download-update');
+		removeHandler('updates/can-update');
+		removeHandler('updates/can-auto-update');
+		removeHandler('updates/can-set-auto-update');
+	});
+
 	checkForUpdates();
+
+	return {
+		canUpdate: canUpdate(),
+		canSetAutoUpdate: canSetAutoUpdate(),
+		canAutoUpdate: canAutoUpdate(),
+	};
 };

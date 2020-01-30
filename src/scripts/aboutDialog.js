@@ -1,4 +1,4 @@
-import { remote, ipcRenderer } from 'electron';
+import { remote } from 'electron';
 import { t } from 'i18next';
 import { useEffect, useState, useRef } from 'react';
 
@@ -7,7 +7,11 @@ import {
 	ABOUT_DIALOG_DISMISSED,
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
 	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
+	UPDATES_NEW_VERSION_AVAILABLE,
+	UPDATES_NEW_VERSION_NOT_AVAILABLE,
+	UPDATES_CHECK_FAILED,
 } from './actions.js';
+import { subscribe } from './effects.js';
 
 export function AboutDialog({
 	appVersion = remote.app.getVersion(),
@@ -62,27 +66,24 @@ export function AboutDialog({
 			return;
 		}
 
-		const handleUpdateResult = (_, updateAvailable) => {
-			if (updateAvailable) {
-				setCheckingForUpdates(false);
-				setCheckingForUpdatesMessage(null);
-				return;
+		const handleActionDispatched = ({ type }) => {
+			switch (type) {
+				case UPDATES_NEW_VERSION_AVAILABLE:
+					setCheckingForUpdates(false);
+					setCheckingForUpdatesMessage(null);
+					break;
+
+				case UPDATES_NEW_VERSION_NOT_AVAILABLE:
+					displayCheckingForUpdatesMessage(t('dialog.about.noUpdatesAvailable'));
+					break;
+
+				case UPDATES_CHECK_FAILED:
+					displayCheckingForUpdatesMessage(t('dialog.about.errorWhileLookingForUpdates'));
+					break;
 			}
-
-			displayCheckingForUpdatesMessage(t('dialog.about.noUpdatesAvailable'));
 		};
 
-		const handleUpdateError = () => {
-			displayCheckingForUpdatesMessage(t('dialog.about.errorWhileLookingForUpdates'));
-		};
-
-		ipcRenderer.on('update-result', handleUpdateResult);
-		ipcRenderer.on('update-error', handleUpdateError);
-
-		return () => {
-			ipcRenderer.removeListener('update-result', handleUpdateResult);
-			ipcRenderer.removeListener('update-error', handleUpdateError);
-		};
+		return subscribe(handleActionDispatched);
 	}, [canUpdate]);
 
 	const handleCheckForUpdatesButtonClick = () => {

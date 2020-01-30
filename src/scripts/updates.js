@@ -2,7 +2,12 @@ import { remote } from 'electron';
 import jetpack from 'fs-jetpack';
 import { t } from 'i18next';
 
-import { ABOUT_DIALOG_DISMISSED, UPDATES_NEW_VERSION_AVAILABLE } from './actions';
+import {
+	ABOUT_DIALOG_DISMISSED,
+	UPDATES_NEW_VERSION_AVAILABLE,
+	UPDATES_NEW_VERSION_NOT_AVAILABLE,
+	UPDATES_CHECK_FAILED,
+} from './actions';
 import { dispatch } from './effects';
 
 const { app, dialog } = remote;
@@ -83,27 +88,11 @@ export const checkForUpdates = async (event = null, { forced = false } = {}) => 
 	}
 };
 
-const sendToMainWindow = (channel, ...args) => {
-	const mainWindow = remote.getCurrentWindow();
-	const send = () => mainWindow.send(channel, ...args);
-
-	if (mainWindow.webContents.isLoading()) {
-		mainWindow.webContents.on('dom-ready', send);
-		return;
-	}
-
-	send();
-};
-
-const handleCheckingForUpdate = () => {
-	sendToMainWindow('update-checking');
-};
+const handleCheckingForUpdate = () => {};
 
 const handleUpdateAvailable = ({ version }) => {
-	if (checkForUpdatesEvent) {
-		checkForUpdatesEvent.sender.send('update-result', true);
-		checkForUpdatesEvent = null;
-	} else if (updateSettings.skip === version) {
+	if (updateSettings.skip === version) {
+		dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
 		return;
 	}
 
@@ -112,12 +101,7 @@ const handleUpdateAvailable = ({ version }) => {
 };
 
 const handleUpdateNotAvailable = () => {
-	sendToMainWindow('update-not-available');
-
-	if (checkForUpdatesEvent) {
-		checkForUpdatesEvent.sender.send('update-result', false);
-		checkForUpdatesEvent = null;
-	}
+	dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
 };
 
 const handleUpdateDownloaded = async () => {
@@ -154,13 +138,8 @@ const handleUpdateDownloaded = async () => {
 	}
 };
 
-const handleError = async (error) => {
-	sendToMainWindow('update-error', error);
-
-	if (checkForUpdatesEvent) {
-		checkForUpdatesEvent.sender.send('update-result', false);
-		checkForUpdatesEvent = null;
-	}
+const handleError = () => {
+	dispatch({ type: UPDATES_CHECK_FAILED });
 };
 
 export const setupUpdates = async () => {

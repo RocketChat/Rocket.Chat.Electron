@@ -61,6 +61,8 @@ export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED = 'webview/screen-sharing-s
 export const MAIN_WINDOW_STATE_CHANGED = 'main-window/state-changed';
 
 export const UPDATES_NEW_VERSION_AVAILABLE = 'updates/new-version-available';
+export const UPDATES_NEW_VERSION_NOT_AVAILABLE = 'updates/new-version-not-available';
+export const UPDATES_CHECK_FAILED = 'updates/check-failed';
 
 export const CERTIFICATES_CHANGED = 'certificates/changed';
 

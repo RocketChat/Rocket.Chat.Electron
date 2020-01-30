@@ -1,4 +1,4 @@
-import { remote } from 'electron';
+import { remote, ipcRenderer } from 'electron';
 import jetpack from 'fs-jetpack';
 import React, { useEffect, useRef } from 'react';
 
@@ -113,18 +113,30 @@ const fetchWindowState = (browserWindow, windowState) => {
 	}
 };
 
-const useBeforeAppQuitEvent = (browserWindow, windowStateRef) => {
+const useAppEvents = (browserWindow, windowStateRef) => {
 	useEffect(() => {
-		const handleBeforeAppQuit = () => {
-			remote.app.removeListener('before-quit', handleBeforeAppQuit);
+		const handleActivate = () => {
+			browserWindow.show();
+		};
+
+		const handleAppBeforeQuit = () => {
+			remote.app.removeListener('before-quit', handleAppBeforeQuit);
 			saveWindowState(windowStateRef.current);
 			browserWindow.destroy();
 		};
 
-		remote.app.on('before-quit', handleBeforeAppQuit);
+		const handleAppSecondInstance = () => {
+			ipcRenderer.send('main-window/focus');
+		};
+
+		remote.app.on('activate', handleActivate);
+		remote.app.on('before-quit', handleAppBeforeQuit);
+		remote.app.on('second-instance', handleAppSecondInstance);
 
 		return () => {
-			remote.app.removeListener('before-quit', handleBeforeAppQuit);
+			remote.app.removeListener('before-quit', handleAppBeforeQuit);
+			remote.app.removeListener('activate', handleActivate);
+			remote.app.removeListener('second-instance', handleAppSecondInstance);
 		};
 	}, [browserWindow, windowStateRef]);
 };
@@ -282,7 +294,7 @@ export function MainWindow({
 }) {
 	const windowStateRef = useRef({});
 
-	useBeforeAppQuitEvent(browserWindow, windowStateRef);
+	useAppEvents(browserWindow, windowStateRef);
 	useWindowStateUpdates(browserWindow, windowStateRef, dispatch);
 	useWindowClosing(browserWindow, windowStateRef, hideOnClose);
 	useWindowStateLoading(browserWindow, windowStateRef);

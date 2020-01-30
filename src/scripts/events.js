@@ -1,4 +1,4 @@
-import { remote, ipcRenderer } from 'electron';
+import { remote } from 'electron';
 import { t } from 'i18next';
 import React, { useEffect } from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
@@ -16,7 +16,7 @@ import {
 	canSetAutoUpdate,
 } from './updates';
 import { processDeepLink } from './deepLinks';
-import { handle, removeHandler, listen, removeAllListeners, emit, removeListener } from './ipc';
+import { handle, removeHandler, listen, removeAllListeners, emit } from './ipc';
 import {
 	setupSpellChecking,
 	getSpellCheckingCorrections,
@@ -425,8 +425,13 @@ function App() {
 		setupSpellChecking();
 		setupUpdates();
 
+		servers.initialize();
 		certificates.initialize();
 		servers.setActive(servers.active);
+
+		return () => {
+			removeAllListeners('action-dispatched');
+		};
 	}, []);
 
 	useEffect(() => {
@@ -447,6 +452,39 @@ function App() {
 			window.removeEventListener('online', handleConnectionStatus);
 			window.removeEventListener('offline', handleConnectionStatus);
 		};
+	}, []);
+
+	useEffect(() => {
+		servers.on('loaded', () => {
+			loading = false;
+			updateComponents();
+		});
+
+		servers.on('host-added', () => {
+			updateComponents();
+		});
+
+		servers.on('host-removed', () => {
+			servers.clearActive();
+			addServerViewVisible = true;
+			updateComponents();
+		});
+
+		servers.on('active-setted', (url) => {
+			currentServerUrl = url;
+			addServerViewVisible = false;
+			updateComponents();
+		});
+
+		servers.on('active-cleared', () => {
+			currentServerUrl = null;
+			addServerViewVisible = true;
+			updateComponents();
+		});
+
+		servers.on('title-setted', () => {
+			updateComponents();
+		});
 	}, []);
 
 	const mentionCount = Object.values(badges)
@@ -529,14 +567,6 @@ function App() {
 }
 
 export default () => {
-	window.addEventListener('beforeunload', () => {
-		// unmountComponentAtNode(document.getElementById('root'));
-	});
-
-	const handleActivate = () => {
-		remote.getCurrentWindow().show();
-	};
-
 	const handleLogin = (event, webContents, request, authInfo, callback) => {
 		for (const url of Object.keys(servers.hosts)) {
 			const server = servers.hosts[url];
@@ -552,11 +582,9 @@ export default () => {
 	};
 
 	const handleSecondInstance = (event, argv) => {
-		ipcRenderer.send('main-window/focus');
 		argv.slice(2).forEach(processDeepLink);
 	};
 
-	remote.app.on('activate', handleActivate);
 	remote.app.on('login', handleLogin);
 	remote.app.on('open-url', handleOpenUrl);
 	remote.app.on('second-instance', handleSecondInstance);
@@ -581,7 +609,6 @@ export default () => {
 	listen('action-dispatched', handleActionDispatched);
 
 	window.addEventListener('unload', () => {
-		remote.app.removeListener('activate', handleActivate);
 		remote.app.removeListener('login', handleLogin);
 		remote.app.removeListener('open-url', handleOpenUrl);
 		remote.app.removeListener('second-instance', handleSecondInstance);
@@ -596,43 +623,9 @@ export default () => {
 		removeHandler('spell-checking/disable-dictionaries');
 		removeAllListeners('close-about-dialog');
 		removeAllListeners('open-update-dialog');
-		removeListener('action-dispatched', handleActionDispatched);
 
 		unmountComponentAtNode(document.getElementById('root'));
 	});
-
-	servers.on('loaded', () => {
-		loading = false;
-		updateComponents();
-	});
-
-	servers.on('host-added', () => {
-		updateComponents();
-	});
-
-	servers.on('host-removed', () => {
-		servers.clearActive();
-		addServerViewVisible = true;
-		updateComponents();
-	});
-
-	servers.on('active-setted', (url) => {
-		currentServerUrl = url;
-		addServerViewVisible = false;
-		updateComponents();
-	});
-
-	servers.on('active-cleared', () => {
-		currentServerUrl = null;
-		addServerViewVisible = true;
-		updateComponents();
-	});
-
-	servers.on('title-setted', () => {
-		updateComponents();
-	});
-
-	servers.initialize();
 
 	updateComponents();
 

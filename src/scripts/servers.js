@@ -5,6 +5,8 @@ import jetpack from 'fs-jetpack';
 import { t } from 'i18next';
 
 class Servers extends EventEmitter {
+	_hosts = {}
+
 	initialize = () => {
 		this.load();
 		const processProtocol = this.getProtocolUrlFromProcess(remote.process.argv);

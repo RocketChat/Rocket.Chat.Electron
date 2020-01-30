@@ -1,34 +1,38 @@
 import { clipboard, remote, shell } from 'electron';
 import { t } from 'i18next';
 
-import { spellchecking } from './spellchecking';
+import { invoke } from '../scripts/ipc';
 
 const { dialog, getCurrentWebContents, getCurrentWindow, Menu } = remote;
 
 
-const createSpellCheckingMenuTemplate = async ({
+const createSpellCheckingMenuTemplate = ({
 	isEditable,
-	selectionText,
+	corrections,
+	dictionaries,
+	dictionariesPath,
+	enabledDictionaries,
+	installDictionaries,
+	enableSpellCheckingDictionary,
+	disableSpellCheckingDictionary,
 }) => {
 	if (!isEditable) {
 		return [];
 	}
 
-	const corrections = spellchecking.getCorrections(selectionText);
-
 	const handleBrowserForLanguage = async () => {
 		const { filePaths } = await dialog.showOpenDialog(getCurrentWindow(), {
 			title: t('dialog.loadDictionary.title'),
-			defaultPath: spellchecking.dictionariesPath,
+			defaultPath: dictionariesPath,
 			filters: [
-				{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['aff', 'dic'] },
+				{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['bdic'] },
 				{ name: t('dialog.loadDictionary.allFiles'), extensions: ['*'] },
 			],
 			properties: ['openFile', 'multiSelections'],
 		});
 
 		try {
-			await spellchecking.installDictionaries(filePaths);
+			await installDictionaries(filePaths);
 		} catch (error) {
 			console.error(error);
 			dialog.showErrorBox(
@@ -66,15 +70,15 @@ const createSpellCheckingMenuTemplate = async ({
 		] : [],
 		{
 			label: t('contextMenu.spellingLanguages'),
-			enabled: spellchecking.dictionaries.length > 0,
+			enabled: dictionaries.length > 0,
 			submenu: [
-				...spellchecking.dictionaries.map((dictionaryName) => ({
+				...dictionaries.map((dictionaryName) => ({
 					label: dictionaryName,
 					type: 'checkbox',
-					checked: spellchecking.enabledDictionaries.includes(dictionaryName),
+					checked: enabledDictionaries.includes(dictionaryName),
 					click: ({ checked }) => (checked
-						? spellchecking.enable(dictionaryName)
-						: spellchecking.disable(dictionaryName)),
+						? enableSpellCheckingDictionary(dictionaryName)
+						: disableSpellCheckingDictionary(dictionaryName)),
 				})),
 				{
 					type: 'separator',
@@ -185,19 +189,36 @@ const createDefaultMenuTemplate = ({
 	},
 ];
 
-const createMenuTemplate = async (params) => [
-	...await createSpellCheckingMenuTemplate(params),
-	...await createImageMenuTemplate(params),
-	...await createLinkMenuTemplate(params),
-	...await createDefaultMenuTemplate(params),
-];
+const computeProps = async (params) => {
+	const { selectionText } = params;
+	return {
+		...params,
+		corrections: await invoke('spell-checking/get-corrections', selectionText),
+		dictionaries: await invoke('spell-checking/get-dictionaries'),
+		dictionariesPath: await invoke('spell-checking/get-dictionaries-path'),
+		enabledDictionaries: await invoke('spell-checking/get-enabled-dictionaries'),
+		installDictionaries: (...args) => invoke('spell-checking/install-dictionaries', ...args),
+		enableSpellCheckingDictionary: (...args) => invoke('spell-checking/enable-dictionaries', ...args),
+		disableSpellCheckingDictionary: (...args) => invoke('spell-checking/disable-dictionaries', ...args),
+	};
+};
+
+const handleContextMenu = async (event, params) => {
+	event.preventDefault();
+
+	const props = await computeProps(params);
+
+	const template = [
+		...createSpellCheckingMenuTemplate(props),
+		...createImageMenuTemplate(props),
+		...createLinkMenuTemplate(props),
+		...createDefaultMenuTemplate(props),
+	];
+
+	const menu = Menu.buildFromTemplate(template);
+	menu.popup({ window: getCurrentWindow() });
+};
 
 export default () => {
-	getCurrentWebContents().on('context-menu', (event, params) => {
-		event.preventDefault();
-		(async () => {
-			const menu = Menu.buildFromTemplate(await createMenuTemplate(params));
-			menu.popup({ window: getCurrentWindow() });
-		})();
-	});
+	getCurrentWebContents().on('context-menu', handleContextMenu);
 };

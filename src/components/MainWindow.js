@@ -28,8 +28,8 @@ import {
 	WEBVIEW_UNREAD_CHANGED,
 	WEBVIEW_FOCUS_REQUESTED,
 	DEEP_LINK_TRIGGERED,
-} from './actions';
-import { subscribe } from './effects';
+} from '../scripts/actions';
+import { subscribe } from '../scripts/effects';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
 	remote.screen.getAllDisplays()

@@ -17,8 +17,8 @@ import {
 	MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	MENU_BAR_GO_BACK_CLICKED,
 	MENU_BAR_GO_FORWARD_CLICKED,
-} from './actions';
-import { subscribe } from './effects';
+} from '../scripts/actions';
+import { subscribe } from '../scripts/effects';
 
 const useRoot = (elementName) => {
 	const ref = useRef();
@@ -439,7 +439,7 @@ function ServerView({
 	</>;
 }
 
-export function WebViews({
+export function ServersView({
 	hasSidebar,
 	servers = [],
 	currentServerUrl,

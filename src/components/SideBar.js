@@ -11,7 +11,7 @@ import {
 	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 	SIDE_BAR_SERVERS_SORTED,
-} from './actions';
+} from '../scripts/actions';
 
 const faviconCacheBustingTime = 15 * 60 * 1000;
 

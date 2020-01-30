@@ -1,13 +1,12 @@
 import { remote } from 'electron';
 import { t } from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
 
-import certificates from './certificates';
-import servers from './servers';
-import { setupUpdates } from './updates';
-import { processDeepLink } from './deepLinks';
-import { setupSpellChecking } from './spellChecking';
+import certificates from '../scripts/certificates';
+import servers from '../scripts/servers';
+import { setupUpdates } from '../scripts/updates';
+import { processDeepLink } from '../scripts/deepLinks';
+import { setupSpellChecking } from '../scripts/spellChecking';
 import {
 	MENU_BAR_QUIT_CLICKED,
 	MENU_BAR_ABOUT_CLICKED,
@@ -52,22 +51,22 @@ import {
 	MAIN_WINDOW_STATE_CHANGED,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	DEEP_LINK_TRIGGERED,
-} from './actions';
-import { MainWindow } from './mainWindow';
-import { AboutDialog } from './aboutDialog';
-import { ScreenSharingDialog } from './screenSharingDialog';
-import { UpdateDialog } from './updateDialog';
-import { SideBar } from './sidebar';
-import { WebViews } from './webview';
-import { AddServerView } from './addServerView';
-import { Tray } from './tray';
-import { MenuBar } from './menuBar';
-import { Dock } from './dock';
-import { TouchBar } from './touchBar';
-import { dispatch, subscribe } from './effects';
-import { invoke } from './ipc';
+} from '../scripts/actions';
+import { MainWindow } from './MainWindow';
+import { AboutDialog } from './AboutDialog';
+import { ScreenSharingDialog } from './ScreenSharingDialog';
+import { UpdateDialog } from './UpdateDialog';
+import { SideBar } from './SideBar';
+import { ServersView } from './ServersView';
+import { AddServerView } from './AddServerView';
+import { Tray } from './Tray';
+import { MenuBar } from './MenuBar';
+import { Dock } from './Dock';
+import { TouchBar } from './TouchBar';
+import { dispatch, subscribe } from '../scripts/effects';
+import { invoke } from '../scripts/ipc';
 
-function App() {
+export function App() {
 	const [loading, setLoading] = useState(true);
 	const [showWindowOnUnreadChanged, setShowWindowOnUnreadChanged] =	useState(() => localStorage.getItem('showWindowOnUnreadChanged') === 'true');
 	const [hasTrayIcon, setHasTrayIcon] =	useState(() => (localStorage.getItem('hideTray') ? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux'));
@@ -82,7 +81,6 @@ function App() {
 	const [hideOnClose, setHideOnClose] = useState(false);
 	const [badges, setBadges] = useState({});
 	const [styles, setStyles] = useState({});
-	const [addServerViewVisible, setAddServerViewVisible] = useState(true);
 	const [aboutDialogVisible, setAboutDialogVisible] = useState(false);
 	const [newUpdateVersion, setNewUpdateVersion] = useState(null);
 	const [updateDialogVisible, setUpdateDialogVisible] = useState(false);
@@ -150,7 +148,6 @@ function App() {
 			if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
 				servers.clearActive();
 				setCurrentServerUrl(null);
-				setAddServerViewVisible(true);
 				return;
 			}
 
@@ -331,7 +328,6 @@ function App() {
 			if (type === SIDE_BAR_ADD_NEW_SERVER_CLICKED) {
 				servers.clearActive();
 				setCurrentServerUrl(null);
-				setAddServerViewVisible(true);
 				return;
 			}
 
@@ -469,17 +465,14 @@ function App() {
 		servers.on('host-removed', () => {
 			servers.clearActive();
 			setCurrentServerUrl(null);
-			setAddServerViewVisible(true);
 		});
 
 		servers.on('active-setted', (url) => {
 			setCurrentServerUrl(url);
-			setAddServerViewVisible(false);
 		});
 
 		servers.on('active-cleared', () => {
 			setCurrentServerUrl(null);
-			setAddServerViewVisible(true);
 		});
 
 		servers.on('title-setted', () => {
@@ -570,14 +563,14 @@ function App() {
 			styles={styles}
 			dispatch={dispatch}
 		/>
-		<WebViews
+		<ServersView
 			servers={_servers}
 			currentServerUrl={currentServerUrl}
 			hasSidebar={hasSidebar}
 			dispatch={dispatch}
 		/>
 		<AddServerView
-			visible={addServerViewVisible}
+			visible={currentServerUrl === null}
 			dispatch={dispatch}
 		/>
 		<AboutDialog
@@ -613,11 +606,3 @@ function App() {
 		/>
 	</MainWindow>;
 }
-
-export default () => {
-	render(<App />, document.getElementById('root'));
-
-	window.addEventListener('unload', () => {
-		unmountComponentAtNode(document.getElementById('root'));
-	});
-};

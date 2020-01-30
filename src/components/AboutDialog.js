@@ -10,8 +10,8 @@ import {
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_CHECK_FAILED,
-} from './actions.js';
-import { subscribe } from './effects.js';
+} from '../scripts/actions.js';
+import { subscribe } from '../scripts/effects.js';
 
 export function AboutDialog({
 	appVersion = remote.app.getVersion(),

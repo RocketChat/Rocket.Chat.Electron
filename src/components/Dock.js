@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import { useRef, useEffect } from 'react';
 
-import { getAppIconPath, getTrayIconPath } from './icon';
+import { getAppIconPath, getTrayIconPath } from '../scripts/icon';
 
 export function Dock({
 	badge = null,

@@ -7,7 +7,7 @@ import {
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
-} from './actions';
+} from '../scripts/actions';
 
 export function UpdateDialog({
 	currentVersion = remote.app.getVersion(),

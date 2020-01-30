@@ -2,13 +2,13 @@ import { remote } from 'electron';
 import { t } from 'i18next';
 import { useEffect, useRef } from 'react';
 
-import { getTrayIconPath } from './icon';
+import { getTrayIconPath } from '../scripts/icon';
 import {
 	TRAY_ICON_DESTROYED,
 	TRAY_ICON_CREATED,
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
-} from './actions';
+} from '../scripts/actions';
 
 export function Tray({
 	appName = remote.app.name,

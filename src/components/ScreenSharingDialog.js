@@ -1,11 +1,11 @@
-import { desktopCapturer, remote } from 'electron';
+import { desktopCapturer } from 'electron';
 import { t } from 'i18next';
 import { useEffect, useRef, useState } from 'react';
 
 import {
 	SCREEN_SHARING_DIALOG_DISMISSED,
 	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
-} from './actions';
+} from '../scripts/actions';
 
 export function ScreenSharingDialog({
 	root = document.querySelector('.screen-sharing-dialog'),

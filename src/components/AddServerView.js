@@ -1,9 +1,9 @@
 import { t } from 'i18next';
 import { useEffect, useRef, useState } from 'react';
 
-import servers from './servers';
-import { ADD_SERVER_VIEW_SERVER_ADDED, CERTIFICATES_CHANGED } from './actions';
-import { subscribe } from './effects';
+import servers from '../scripts/servers';
+import { ADD_SERVER_VIEW_SERVER_ADDED, CERTIFICATES_CHANGED } from '../scripts/actions';
+import { subscribe } from '../scripts/effects';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',

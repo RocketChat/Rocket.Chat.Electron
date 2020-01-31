@@ -349,7 +349,7 @@ export function App() {
 
 			if (type === WEBVIEW_TITLE_CHANGED) {
 				const { url, title } = payload;
-				servers.setHostTitle(url, title);
+				servers.setHostTitle(url, title || '');
 				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
 				setServers(Object.values(servers.hosts)
 					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
@@ -385,8 +385,8 @@ export function App() {
 			}
 
 			if (type === WEBVIEW_FOCUSED) {
-				const { id } = payload;
-				setFocusedWebContents(remote.webContents.fromId(id));
+				const { webContentsId } = payload;
+				setFocusedWebContents(remote.webContents.fromId(webContentsId));
 				return;
 			}
 

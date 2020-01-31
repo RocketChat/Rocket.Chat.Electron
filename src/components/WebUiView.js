@@ -310,8 +310,10 @@ export function WebUiView({
 	}, [url, failed]);
 
 	useEffect(() => {
+		const webContentsId = root.getWebContents().id;
+
 		const handleFocus = () => {
-			dispatch({ type: WEBVIEW_FOCUSED, payload: { id: root.getWebContents().id, url } });
+			dispatch({ type: WEBVIEW_FOCUSED, payload: { webContentsId, url } });
 		};
 
 		root.addEventListener('focus', handleFocus);
@@ -355,30 +357,6 @@ export function WebUiView({
 		};
 	}, [url]);
 
-	const [selfXssWarned, setSelfXssWarned] = useState(false);
-
-	useEffect(() => {
-		const handleDevtoolsOpened = () => {
-			if (selfXssWarned) {
-				return;
-			}
-
-			root.getWebContents().executeJavaScript(`(${ ([title, description, moreInfo]) => {
-				console.warn('%c%s', 'color: red; font-size: 32px;', title);
-				console.warn('%c%s', 'font-size: 20px;', description);
-				console.warn('%c%s', 'font-size: 20px;', moreInfo);
-			} })(${ JSON.stringify([t('selfxss.title'), t('selfxss.description'), t('selfxss.moreInfo')]) })`);
-
-			setSelfXssWarned(true);
-		};
-
-		root.addEventListener('devtools-opened', handleDevtoolsOpened);
-
-		return () => {
-			root.removeEventListener('devtools-opened', handleDevtoolsOpened);
-		};
-	}, []);
-
 	const [ready, setReady] = useState(false);
 
 	useEffect(() => {
@@ -403,7 +381,7 @@ export function WebUiView({
 		const handleIpcMessage = (event) => {
 			switch (event.channel) {
 				case 'get-sourceId':
-					dispatch({ type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED });
+					dispatch({ type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, payload: { webContentsId, url } });
 					break;
 
 				case 'unread-changed':
@@ -502,10 +480,7 @@ export function WebUiView({
 					return;
 				}
 
-				root.executeJavaScript(`(() => {
-					const button = document.querySelector('.rc-message-box .js-format[data-id="${ payload }"]');
-					button.click();
-				})()`.trim());
+				root.send('format-button-touched', payload);
 				return;
 			}
 
@@ -514,7 +489,7 @@ export function WebUiView({
 					return;
 				}
 
-				root.executeJavaScript(`window.parent.postMessage({ sourceId: ${ JSON.stringify(payload || 'PermissionDeniedError') } }, '*');`);
+				root.send('screen-sharing-source-selected', payload);
 				return;
 			}
 
@@ -611,12 +586,7 @@ export function WebUiView({
 			return;
 		}
 
-		root.insertCSS(`
-			.sidebar {
-				padding-top: ${ !hasSidebar ? '10px' : '0' };
-				transition: margin .5s ease-in-out;
-			}
-		`);
+		root.send('sidebar-visibility-changed', hasSidebar);
 	}, [hasSidebar]);
 
 	useEffect(() => {

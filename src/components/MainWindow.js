@@ -149,9 +149,9 @@ const useAppEvents = (browserWindow, windowStateRef) => {
 			browserWindow.focus();
 		};
 
-		remote.app.on('activate', handleActivate);
-		remote.app.on('before-quit', handleAppBeforeQuit);
-		remote.app.on('second-instance', handleAppSecondInstance);
+		remote.app.addListener('activate', handleActivate);
+		remote.app.addListener('before-quit', handleAppBeforeQuit);
+		remote.app.addListener('second-instance', handleAppSecondInstance);
 
 		return () => {
 			remote.app.removeListener('before-quit', handleAppBeforeQuit);

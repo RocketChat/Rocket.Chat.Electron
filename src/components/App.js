@@ -3,7 +3,6 @@ import i18n from 'i18next';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 
-import { setupCertificates } from '../scripts/certificates';
 import servers from '../scripts/servers';
 import { setupUpdates } from '../scripts/updates';
 import { processDeepLink } from '../scripts/deepLinks';
@@ -65,6 +64,7 @@ import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
 import { dispatch, subscribe } from '../scripts/effects';
 import { invoke } from '../scripts/ipc';
+import { CertificatesProvider } from './CertificatesProvider';
 
 export function App() {
 	const { t } = useTranslation();
@@ -494,9 +494,9 @@ export function App() {
 			argv.slice(2).forEach(processDeepLink);
 		};
 
-		remote.app.on('login', handleLogin);
-		remote.app.on('open-url', handleOpenUrl);
-		remote.app.on('second-instance', handleSecondInstance);
+		remote.app.addListener('login', handleLogin);
+		remote.app.addListener('open-url', handleOpenUrl);
+		remote.app.addListener('second-instance', handleSecondInstance);
 
 		const unsubscribe = () => {
 			remote.app.removeListener('login', handleLogin);
@@ -510,7 +510,6 @@ export function App() {
 	}, []);
 
 	useEffect(() => {
-		setupCertificates();
 		setupSpellChecking();
 		const { canUpdate, canSetAutoUpdate, canAutoUpdate } = setupUpdates();
 
@@ -532,70 +531,72 @@ export function App() {
 		|| null;
 
 	return <I18nextProvider i18n={i18n}>
-		<MainWindow
-			hideOnClose={hideOnClose}
-			showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-			dispatch={dispatch}
-		>
-			<MenuBar
-				showTrayIcon={hasTrayIcon}
-				showFullScreen={mainWindowState.fullscreen}
+		<CertificatesProvider dispatch={dispatch} subscribe={subscribe}>
+			<MainWindow
+				hideOnClose={hideOnClose}
 				showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-				showMenuBar={hasMenuBar}
-				showServerList={hasSidebar}
-				servers={_servers}
-				currentServerUrl={currentServerUrl}
 				dispatch={dispatch}
-			/>
-			<SideBar
-				servers={_servers}
-				currentServerUrl={currentServerUrl}
-				badges={badges}
-				visible={hasSidebar}
-				styles={styles}
-				dispatch={dispatch}
-			/>
-			<ServersView
-				servers={_servers}
-				currentServerUrl={currentServerUrl}
-				hasSidebar={hasSidebar}
-				dispatch={dispatch}
-			/>
-			<AddServerView
-				visible={currentServerUrl === null}
-				dispatch={dispatch}
-			/>
-			<AboutDialog
-				canUpdate={canUpdate}
-				canSetAutoUpdate={canSetAutoUpdate}
-				canAutoUpdate={canAutoUpdate}
-				visible={aboutDialogVisible}
-				dispatch={dispatch}
-			/>
-			<UpdateDialog
-				newVersion={newUpdateVersion}
-				visible={updateDialogVisible}
-				dispatch={dispatch}
-			/>
-			<ScreenSharingDialog
-				visible={screenSharingDialogVisible}
-				dispatch={dispatch}
-			/>
-			<Dock
-				badge={globalBadge}
-				hasTrayIcon={hasTrayIcon}
-			/>
-			<TrayIcon
-				badge={globalBadge}
-				isMainWindowVisible={mainWindowState.visible && mainWindowState.focused}
-				showIcon={hasTrayIcon}
-				dispatch={dispatch}
-			/>
-			<TouchBar
-				servers={_servers}
-				activeServerUrl={currentServerUrl}
-				dispatch={dispatch}
-			/>
-		</MainWindow>
+			>
+				<MenuBar
+					showTrayIcon={hasTrayIcon}
+					showFullScreen={mainWindowState.fullscreen}
+					showWindowOnUnreadChanged={showWindowOnUnreadChanged}
+					showMenuBar={hasMenuBar}
+					showServerList={hasSidebar}
+					servers={_servers}
+					currentServerUrl={currentServerUrl}
+					dispatch={dispatch}
+				/>
+				<SideBar
+					servers={_servers}
+					currentServerUrl={currentServerUrl}
+					badges={badges}
+					visible={hasSidebar}
+					styles={styles}
+					dispatch={dispatch}
+				/>
+				<ServersView
+					servers={_servers}
+					currentServerUrl={currentServerUrl}
+					hasSidebar={hasSidebar}
+					dispatch={dispatch}
+				/>
+				<AddServerView
+					visible={currentServerUrl === null}
+					dispatch={dispatch}
+				/>
+				<AboutDialog
+					canUpdate={canUpdate}
+					canSetAutoUpdate={canSetAutoUpdate}
+					canAutoUpdate={canAutoUpdate}
+					visible={aboutDialogVisible}
+					dispatch={dispatch}
+				/>
+				<UpdateDialog
+					newVersion={newUpdateVersion}
+					visible={updateDialogVisible}
+					dispatch={dispatch}
+				/>
+				<ScreenSharingDialog
+					visible={screenSharingDialogVisible}
+					dispatch={dispatch}
+				/>
+				<Dock
+					badge={globalBadge}
+					hasTrayIcon={hasTrayIcon}
+				/>
+				<TrayIcon
+					badge={globalBadge}
+					isMainWindowVisible={mainWindowState.visible && mainWindowState.focused}
+					showIcon={hasTrayIcon}
+					dispatch={dispatch}
+				/>
+				<TouchBar
+					servers={_servers}
+					activeServerUrl={currentServerUrl}
+					dispatch={dispatch}
+				/>
+			</MainWindow>
+		</CertificatesProvider>
 	</I18nextProvider>;
 }

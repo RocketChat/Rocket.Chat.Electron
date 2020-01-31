@@ -1,7 +1,8 @@
 import { remote } from 'electron';
 import i18n from 'i18next';
+import React, { createContext, useEffect, useState, useContext, useRef } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
-import React, { useEffect, useState } from 'react';
+import { Provider } from 'react-redux';
 
 import { setupCertificates } from '../scripts/certificates';
 import servers from '../scripts/servers';
@@ -70,6 +71,26 @@ import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
 import { dispatch, subscribe } from '../scripts/effects';
+import { store, sagaMiddleware } from '../storeAndEffects';
+
+const SagaContext = createContext();
+
+export const useSaga = (saga) => {
+	const sagaMiddleware = useContext(SagaContext);
+	const sagaRef = useRef(saga);
+
+	useEffect(() => {
+		sagaRef.current = saga;
+	});
+
+	useEffect(() => {
+		const task = sagaMiddleware.run(sagaRef.current);
+
+		return () => {
+			task.cancel();
+		};
+	}, []);
+};
 
 export function App() {
 	const { t } = useTranslation();
@@ -536,76 +557,80 @@ export function App() {
 		|| (Object.values(badges).some((badge) => !!badge) && '•')
 		|| null;
 
-	return <I18nextProvider i18n={i18n}>
-		<MainWindow
-			hideOnClose={hideOnClose}
-			showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-			dispatch={dispatch}
-			subscribe={subscribe}
-		>
-			<MenuBar
-				showTrayIcon={hasTrayIcon}
-				showFullScreen={mainWindowState.fullscreen}
-				showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-				showMenuBar={hasMenuBar}
-				showServerList={hasSidebar}
-				servers={_servers}
-				currentServerUrl={currentServerUrl}
-				dispatch={dispatch}
-			/>
-			<SideBar
-				servers={_servers}
-				currentServerUrl={currentServerUrl}
-				badges={badges}
-				visible={hasSidebar}
-				styles={styles}
-				dispatch={dispatch}
-				subscribe={subscribe}
-			/>
-			<ServersView
-				servers={_servers}
-				currentServerUrl={currentServerUrl}
-				hasSidebar={hasSidebar}
-				dispatch={dispatch}
-				subscribe={subscribe}
-			/>
-			<AddServerView
-				visible={currentServerUrl === null}
-				dispatch={dispatch}
-				subscribe={subscribe}
-			/>
-			<AboutDialog
-				canUpdate={canUpdate}
-				canSetAutoUpdate={canSetAutoUpdate}
-				canAutoUpdate={canAutoUpdate}
-				visible={aboutDialogVisible}
-				dispatch={dispatch}
-				subscribe={subscribe}
-			/>
-			<UpdateDialog
-				newVersion={newUpdateVersion}
-				visible={updateDialogVisible}
-				dispatch={dispatch}
-			/>
-			<ScreenSharingDialog
-				visible={screenSharingDialogVisible}
-				dispatch={dispatch}
-			/>
-			<Dock
-				badge={globalBadge}
-				hasTrayIcon={hasTrayIcon}
-			/>
-			<TrayIcon
-				badge={globalBadge}
-				isMainWindowVisible={mainWindowState.visible && mainWindowState.focused}
-				showIcon={hasTrayIcon}
-				dispatch={dispatch}
-			/>
-			<TouchBar
-				servers={_servers}
-				activeServerUrl={currentServerUrl}
-				dispatch={dispatch}
-			/>
-		</MainWindow>
-	</I18nextProvider>;
+	return <Provider store={store}>
+		<SagaContext.Provider value={sagaMiddleware}>
+			<I18nextProvider i18n={i18n}>
+				<MainWindow
+					hideOnClose={hideOnClose}
+					showWindowOnUnreadChanged={showWindowOnUnreadChanged}
+					dispatch={dispatch}
+					subscribe={subscribe}
+				>
+					<MenuBar
+						showTrayIcon={hasTrayIcon}
+						showFullScreen={mainWindowState.fullscreen}
+						showWindowOnUnreadChanged={showWindowOnUnreadChanged}
+						showMenuBar={hasMenuBar}
+						showServerList={hasSidebar}
+						servers={_servers}
+						currentServerUrl={currentServerUrl}
+						dispatch={dispatch}
+					/>
+					<SideBar
+						servers={_servers}
+						currentServerUrl={currentServerUrl}
+						badges={badges}
+						visible={hasSidebar}
+						styles={styles}
+						dispatch={dispatch}
+						subscribe={subscribe}
+					/>
+					<ServersView
+						servers={_servers}
+						currentServerUrl={currentServerUrl}
+						hasSidebar={hasSidebar}
+						dispatch={dispatch}
+						subscribe={subscribe}
+					/>
+					<AddServerView
+						visible={currentServerUrl === null}
+						dispatch={dispatch}
+						subscribe={subscribe}
+					/>
+					<AboutDialog
+						canUpdate={canUpdate}
+						canSetAutoUpdate={canSetAutoUpdate}
+						canAutoUpdate={canAutoUpdate}
+						visible={aboutDialogVisible}
+						dispatch={dispatch}
+						subscribe={subscribe}
+					/>
+					<UpdateDialog
+						newVersion={newUpdateVersion}
+						visible={updateDialogVisible}
+						dispatch={dispatch}
+					/>
+					<ScreenSharingDialog
+						visible={screenSharingDialogVisible}
+						dispatch={dispatch}
+					/>
+					<Dock
+						badge={globalBadge}
+						hasTrayIcon={hasTrayIcon}
+					/>
+					<TrayIcon
+						badge={globalBadge}
+						isMainWindowVisible={mainWindowState.visible && mainWindowState.focused}
+						showIcon={hasTrayIcon}
+						dispatch={dispatch}
+					/>
+					<TouchBar
+						servers={_servers}
+						activeServerUrl={currentServerUrl}
+						dispatch={dispatch}
+					/>
+				</MainWindow>
+			</I18nextProvider>
+		</SagaContext.Provider>
+	</Provider>;
 }

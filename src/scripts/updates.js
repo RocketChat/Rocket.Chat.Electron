@@ -35,7 +35,7 @@ const saveUpdateSettings = () => {
 		return;
 	}
 
-	userDataDir.write(updateSettingsFileName, userUpdateSettings, { atomic: true });
+	fs.writeFileSync(path.join(userDataDir, updateSettingsFileName), JSON.stringify(userUpdateSettings), 'utf8');
 };
 
 const canUpdate = () => updateSettings.canUpdate

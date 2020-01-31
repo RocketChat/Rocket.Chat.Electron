@@ -1,5 +1,5 @@
 import builtinModules from 'builtin-modules';
-import jetpack from 'fs-jetpack';
+import glob from 'glob';
 import babel from 'rollup-plugin-babel';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
@@ -34,8 +34,8 @@ const createTestEntries = () => {
 	}
 
 	const rendererSpecs = [
-		...jetpack.find('src/scripts', { matching: '*.spec.js' }),
-		...jetpack.find('src/preload', { matching: '*.spec.js' }),
+		...glob.sync('src/scripts/*.spec.js'),
+		...glob.sync('src/preload/*.spec.js'),
 	];
 	return [
 		...rendererSpecs.length

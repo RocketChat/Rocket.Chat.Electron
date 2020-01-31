@@ -36,7 +36,6 @@
     "electron-fetch": "^1.4.0",
     "electron-reload": "^1.5.0",
     "electron-updater": "^4.0.6",
-    "fs-jetpack": "^2.2.0",
     "i18next": "^19.0.0",
     "i18next-node-fs-backend": "^2.1.1",
     "mem": "^6.0.0",
@@ -45,7 +44,8 @@
     "react-i18next": "^11.3.1",
     "react-redux": "^7.1.3",
     "redux": "^4.0.5",
-    "redux-saga": "^1.1.3"
+    "redux-saga": "^1.1.3",
+    "rimraf": "^3.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.6.3",
@@ -69,6 +69,7 @@
     "eslint": "^6.5.1",
     "eslint-plugin-import": "^2.17.2",
     "eslint-plugin-react": "^7.18.0",
+    "glob": "^7.1.6",
     "gulp": "^4.0.0",
     "gulp-cli": "^2.0.1",
     "gulp-execa": "^2.0.0",

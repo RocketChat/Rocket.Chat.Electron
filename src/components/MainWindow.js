@@ -1,5 +1,7 @@
+import fs from 'fs';
+import path from 'path';
+
 import { remote } from 'electron';
-import jetpack from 'fs-jetpack';
 import React, { useEffect, useRef } from 'react';
 
 import {
@@ -38,11 +40,10 @@ const isInsideSomeScreen = ({ x, y, width, height }) =>
 
 const loadWindowState = async ([width, height]) => {
 	try {
-		const userDataDir = jetpack.cwd(remote.app.getPath('userData'));
 		const windowState = {
 			width,
 			height,
-			...await userDataDir.readAsync('window-state-main.json', 'json') || {},
+			...JSON.parse(await fs.promises.readFile(path.join(remote.app.getPath('userData'), 'window-state-main.json'), 'utf8')) || {},
 		};
 
 		if (!isInsideSomeScreen(windowState)) {
@@ -63,8 +64,7 @@ const loadWindowState = async ([width, height]) => {
 
 const saveWindowState = async (windowState) => {
 	try {
-		const userDataDir = jetpack.cwd(remote.app.getPath('userData'));
-		await userDataDir.writeAsync('window-state-main.json', windowState, { atomic: true });
+		await fs.promises.writeFile(path.join(remote.app.getPath('userData'), 'window-state-main.json'), JSON.stringify(windowState), 'utf8');
 	} catch (error) {
 		console.error('Failed to save window state');
 		console.error(error);

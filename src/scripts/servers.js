@@ -1,7 +1,8 @@
 import { EventEmitter } from 'events';
+import fs from 'fs';
+import path from 'path';
 
 import { remote } from 'electron';
-import jetpack from 'fs-jetpack';
 import { t } from 'i18next';
 
 class Servers extends EventEmitter {
@@ -69,14 +70,14 @@ class Servers extends EventEmitter {
 
 		// Load server info from server config file
 		if (Object.keys(hosts).length === 0) {
-			const userDir = jetpack.cwd(remote.app.getPath('userData'));
-			const appDir = jetpack.cwd(jetpack.path(remote.app.getAppPath(), remote.app.getAppPath().endsWith('.asar') ? '..' : '.'));
-			const path = (userDir.find({ matching: 'servers.json', recursive: false })[0] && userDir.path('servers.json'))
-				|| (appDir.find({ matching: 'servers.json', recursive: false })[0] && appDir.path('servers.json'));
+			const serversJsonPath = [
+				path.join(remote.app.getPath('userData'), 'servers.json'),
+				path.join(remote.app.getAppPath(), remote.app.getAppPath().endsWith('.asar') ? '..' : '.', 'servers.json'),
+			].filter((filePath) => fs.existsSync(filePath))[0];
 
-			if (path) {
+			if (serversJsonPath) {
 				try {
-					const result = jetpack.read(path, 'json');
+					const result = JSON.parse(fs.readFileSync(serversJsonPath, 'utf8'));
 					if (result) {
 						hosts = {};
 						Object.keys(result).forEach((title) => {

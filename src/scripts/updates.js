@@ -1,5 +1,7 @@
+import fs from 'fs';
+import path from 'path';
+
 import { remote } from 'electron';
-import jetpack from 'fs-jetpack';
 import { t } from 'i18next';
 
 import {
@@ -21,7 +23,7 @@ let updateSettings = {};
 
 const loadUpdateSettings = (dir) => {
 	try {
-		return dir.read(updateSettingsFileName, 'json') || {};
+		return JSON.parse(fs.readFileSync(path.join(dir, updateSettingsFileName), 'utf8')) || {};
 	} catch (error) {
 		console.error(error);
 		return {};
@@ -133,8 +135,8 @@ const handleError = () => {
 };
 
 export const setupUpdates = () => {
-	appDir = jetpack.cwd(remote.app.getAppPath(), remote.app.getAppPath().endsWith('app.asar') ? '..' : '.');
-	userDataDir = jetpack.cwd(remote.app.getPath('userData'));
+	appDir = path.join(remote.app.getAppPath(), remote.app.getAppPath().endsWith('app.asar') ? '..' : '.');
+	userDataDir = path.join(remote.app.getPath('userData'));
 	appUpdateSettings = loadUpdateSettings(appDir);
 	userUpdateSettings = loadUpdateSettings(userDataDir);
 	updateSettings = (() => {

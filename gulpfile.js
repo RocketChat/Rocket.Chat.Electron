@@ -1,15 +1,19 @@
+const fs = require('fs');
+const { promisify } = require('util');
+
 const { convert: convertToIcns } = require('@fiahfy/icns-convert');
 const { convert: convertSvgToPng } = require('convert-svg-to-png');
 const { build } = require('electron-builder');
-const { readAsync, removeAsync, writeAsync } = require('fs-jetpack');
 const { dest, parallel, series, src, task, watch } = require('gulp');
 const execa = require('gulp-execa');
 const less = require('gulp-less');
 const toIco = require('to-ico');
+const rimraf = require('rimraf');
+
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-task('clean', () => removeAsync('app'));
+task('clean', () => promisify(rimraf)('app'));
 
 task('build:public', () => src('src/public/**/*')
 	.pipe(dest('app/public')));
@@ -72,21 +76,22 @@ task('release:win32', () => build({
 task('release', series('build', `release:${ process.platform }`));
 
 task('icons:clean', async () => {
-	await removeAsync('src/public/images/tray/darwin');
-	await removeAsync('src/public/images/tray/darwin-dark');
-	await removeAsync('src/public/images/tray/linux');
-	await removeAsync('src/public/images/tray/win32');
+	await promisify(rimraf)('src/public/images/tray/darwin');
+	await promisify(rimraf)('src/public/images/tray/darwin-dark');
+	await promisify(rimraf)('src/public/images/tray/linux');
+	await promisify(rimraf)('src/public/images/tray/win32');
 });
 
 const createDarwinTrayIcon = ({ src, dest, dark = false }) => async () => {
-	const svg = (await readAsync(`src/icons/${ dark ? 'white' : 'black' }/${ src }.svg`))
+	const svg = (await fs.promises.readFile(`src/icons/${ dark ? 'white' : 'black' }/${ src }.svg`, 'utf8'))
 		.replace('viewBox="0 0 64 64"', 'viewBox="0 0 64 64" transform="scale(0.8)"');
 
 	const png24 = await convertSvgToPng(svg, { width: 24, height: 24 });
 	const png48 = await convertSvgToPng(svg, { width: 24, height: 24, scale: 2 });
 
-	await writeAsync(`src/public/images/tray/${ dark ? 'darwin-dark' : 'darwin' }/${ dest }.png`, png24);
-	await writeAsync(`src/public/images/tray/${ dark ? 'darwin-dark' : 'darwin' }/${ dest }@2x.png`, png48);
+	await fs.promises.mkdir(`src/public/images/tray/${ dark ? 'darwin-dark' : 'darwin' }`, { recursive: true });
+	await fs.promises.writeFile(`src/public/images/tray/${ dark ? 'darwin-dark' : 'darwin' }/${ dest }.png`, png24);
+	await fs.promises.writeFile(`src/public/images/tray/${ dark ? 'darwin-dark' : 'darwin' }/${ dest }@2x.png`, png48);
 };
 
 task('icons:darwin:default', createDarwinTrayIcon({ src: 'default', dest: 'default' }));
@@ -98,13 +103,14 @@ task('icons:darwin-dark:notification', createDarwinTrayIcon({ src: 'notification
 task('icons:darwin-dark', series('icons:darwin-dark:default', 'icons:darwin-dark:notification'));
 
 const createLinuxTrayIcon = ({ src, dest }) => async () => {
-	const svg = await readAsync(`src/icons/grey/${ src }.svg`);
+	const svg = await fs.promises.readFile(`src/icons/grey/${ src }.svg`, 'utf8');
 
 	const png24 = await convertSvgToPng(svg, { width: 64, height: 64 });
 	const png48 = await convertSvgToPng(svg, { width: 64, height: 64, scale: 2 });
 
-	await writeAsync(`src/public/images/tray/linux/${ dest }.png`, png24);
-	await writeAsync(`src/public/images/tray/linux/${ dest }@2x.png`, png48);
+	await fs.promises.mkdir('src/public/images/tray/linux', { recursive: true });
+	await fs.promises.writeFile(`src/public/images/tray/linux/${ dest }.png`, png24);
+	await fs.promises.writeFile(`src/public/images/tray/linux/${ dest }@2x.png`, png48);
 };
 
 task('icons:linux:default', createLinuxTrayIcon({ src: 'default', dest: 'default' }));
@@ -136,8 +142,8 @@ task('icons:linux', series(
 
 const createWindowsTrayIcon = ({ src, dest }) => async () => {
 	const smallSrc = src.startsWith('notification-') ? 'notification-dot' : src;
-	const smallSvg = await readAsync(`src/icons/grey/${ smallSrc }.svg`);
-	const svg = await readAsync(`src/icons/grey/${ src }.svg`);
+	const smallSvg = await fs.promises.readFile(`src/icons/grey/${ smallSrc }.svg`, 'utf8');
+	const svg = await fs.promises.readFile(`src/icons/grey/${ src }.svg`, 'utf8');
 
 	const png16 = await convertSvgToPng(smallSvg, { width: 16, height: 16 });
 	const png24 = await convertSvgToPng(smallSvg, { width: 24, height: 24 });
@@ -148,7 +154,8 @@ const createWindowsTrayIcon = ({ src, dest }) => async () => {
 	const png256 = await convertSvgToPng(svg, { width: 256, height: 256 });
 	const ico = await toIco([png16, png24, png32, png48, png64, png128, png256]);
 
-	await writeAsync(`src/public/images/tray/win32/${ dest }.ico`, ico);
+	await fs.promises.mkdir('src/public/images/tray/win32', { recursive: true });
+	await fs.promises.writeFile(`src/public/images/tray/win32/${ dest }.ico`, ico);
 };
 
 task('icons:win32:default', createWindowsTrayIcon({ src: 'default', dest: 'default' }));
@@ -179,7 +186,7 @@ task('icons:win32', series(
 ));
 
 task('icons:app', async () => {
-	const svg = await readAsync('src/icons/icon.svg');
+	const svg = await fs.promises.readFile('src/icons/icon.svg', 'utf8');
 
 	const png16 = await convertSvgToPng(svg, { width: 16, height: 16 });
 	const png24 = await convertSvgToPng(svg, { width: 24, height: 24 });
@@ -197,17 +204,17 @@ task('icons:app', async () => {
 	const ico = await toIco([png16, png24, png32, png48, png64, png128, png256]);
 	const icns = await convertToIcns([png1024, png512, png256, png128, png64, png32, png16]);
 
-	await writeAsync('src/public/images/icon.png', png64);
-	await writeAsync('src/public/images/icon@2x.png', png128);
-	await writeAsync('build/icon.ico', ico);
-	await writeAsync('build/icon.icns', icns);
-	await writeAsync('build/installerIcon.ico', ico);
-	await writeAsync('build/uninstallerIcon.ico', ico);
-	await writeAsync('build/appx/Square44x44Logo.png', png44);
-	await writeAsync('build/appx/Square150x150Logo.png', png150);
-	await writeAsync('build/appx/StoreLogo.png', png50);
-	await writeAsync('build/appx/Wide310x150Logo.png', png310v150);
-	await writeAsync('build/icons/512x512.png', png512);
+	await fs.promises.writeFile('src/public/images/icon.png', png64);
+	await fs.promises.writeFile('src/public/images/icon@2x.png', png128);
+	await fs.promises.writeFile('build/icon.ico', ico);
+	await fs.promises.writeFile('build/icon.icns', icns);
+	await fs.promises.writeFile('build/installerIcon.ico', ico);
+	await fs.promises.writeFile('build/uninstallerIcon.ico', ico);
+	await fs.promises.writeFile('build/appx/Square44x44Logo.png', png44);
+	await fs.promises.writeFile('build/appx/Square150x150Logo.png', png150);
+	await fs.promises.writeFile('build/appx/StoreLogo.png', png50);
+	await fs.promises.writeFile('build/appx/Wide310x150Logo.png', png310v150);
+	await fs.promises.writeFile('build/icons/512x512.png', png512);
 });
 
 task('icons', series(

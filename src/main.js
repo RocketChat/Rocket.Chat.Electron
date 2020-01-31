@@ -2,7 +2,7 @@ import path from 'path';
 
 import { app, BrowserWindow } from 'electron';
 import setupElectronReload from 'electron-reload';
-import jetpack from 'fs-jetpack';
+import rimraf from 'rimraf';
 
 import { setupErrorHandling } from './errorHandling';
 
@@ -26,7 +26,7 @@ const prepareApp = () => {
 
 	if (process.argv[2] === '--reset-app-data') {
 		const dataDir = app.getPath('userData');
-		jetpack.remove(dataDir);
+		rimraf.sync(dataDir);
 		app.relaunch({ args: [process.argv[1]] });
 		app.exit();
 		return;

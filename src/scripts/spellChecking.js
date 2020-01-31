@@ -134,23 +134,9 @@ export const setupSpellChecking = async () => {
 		console.error(error);
 	}
 
-	handle('spell-checking/get-corrections', (_, text) => getSpellCheckingCorrections(text));
-	handle('spell-checking/get-dictionaries', () => getSpellCheckingDictionaries());
-	handle('spell-checking/get-dictionaries-path', () => getSpellCheckingDictionariesPath());
-	handle('spell-checking/get-enabled-dictionaries', () => getEnabledSpellCheckingDictionaries());
 	handle('spell-checking/get-misspelled-words', (_, words) => getMisspelledWords(words));
-	handle('spell-checking/install-dictionaries', (_, ...args) => installSpellCheckingDictionaries(...args));
-	handle('spell-checking/enable-dictionaries', (_, ...args) => enableSpellCheckingDictionaries(...args));
-	handle('spell-checking/disable-dictionaries', (_, ...args) => disableSpellCheckingDictionaries(...args));
 
-	window.addEventListener('unload', () => {
-		removeHandler('spell-checking/get-corrections');
-		removeHandler('spell-checking/get-dictionaries');
-		removeHandler('spell-checking/get-dictionaries-path');
-		removeHandler('spell-checking/get-enabled-dictionaries');
+	window.addEventListener('beforeunload', () => {
 		removeHandler('spell-checking/get-misspelled-words');
-		removeHandler('spell-checking/install-dictionaries');
-		removeHandler('spell-checking/enable-dictionaries');
-		removeHandler('spell-checking/disable-dictionaries');
 	});
 };

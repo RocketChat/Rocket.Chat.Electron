@@ -11,7 +11,7 @@ const initialize = async () => {
 
 	render(<App />, document.getElementById('root'));
 
-	window.addEventListener('unload', () => {
+	window.addEventListener('beforeunload', () => {
 		unmountComponentAtNode(document.getElementById('root'));
 	});
 };

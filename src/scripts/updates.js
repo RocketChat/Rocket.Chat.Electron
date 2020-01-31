@@ -155,7 +155,7 @@ export const setupUpdates = () => {
 	autoUpdater.on('update-downloaded', handleUpdateDownloaded);
 	autoUpdater.on('error', handleError);
 
-	window.addEventListener('unload', () => {
+	window.addEventListener('beforeunload', () => {
 		autoUpdater.off('checking-for-update', handleCheckingForUpdate);
 		autoUpdater.off('update-available', handleUpdateAvailable);
 		autoUpdater.off('update-not-available', handleUpdateNotAvailable);
@@ -171,7 +171,7 @@ export const setupUpdates = () => {
 	handle('updates/can-auto-update', (_, ...args) => canAutoUpdate(...args));
 	handle('updates/can-set-auto-update', (_, ...args) => canSetAutoUpdate(...args));
 
-	window.addEventListener('unload', () => {
+	window.addEventListener('beforeunload', () => {
 		removeHandler('updates/set-auto-update');
 		removeHandler('updates/check-for-updates');
 		removeHandler('updates/skip-update-version');

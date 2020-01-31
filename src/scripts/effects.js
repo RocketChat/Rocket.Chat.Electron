@@ -12,7 +12,7 @@ export const subscribe = (handler) => {
 
 	const unsubscribe = () => removeListener('action-dispatched', listener);
 
-	window.addEventListener('unload', unsubscribe);
+	window.addEventListener('beforeunload', unsubscribe);
 
 	return unsubscribe;
 };

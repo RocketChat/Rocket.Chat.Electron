@@ -504,7 +504,7 @@ export function App() {
 			remote.app.removeListener('second-instance', handleSecondInstance);
 		};
 
-		window.addEventListener('unload', unsubscribe);
+		window.addEventListener('beforeunload', unsubscribe);
 
 		return unsubscribe;
 	}, []);

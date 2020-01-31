@@ -11,7 +11,6 @@ import {
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_CHECK_FAILED,
 } from '../scripts/actions.js';
-import { subscribe } from '../scripts/effects.js';
 
 export function AboutDialog({
 	appVersion = remote.app.getVersion(),
@@ -22,6 +21,7 @@ export function AboutDialog({
 	root = document.querySelector('.about-dialog'),
 	visible,
 	dispatch,
+	subscribe,
 }) {
 	const { t } = useTranslation();
 

@@ -23,7 +23,6 @@ import {
 	WEBVIEW_CERTIFICATE_TRUSTED,
 	WEBVIEW_CERTIFICATE_DENIED,
 } from '../scripts/actions';
-import { subscribe } from '../scripts/effects';
 
 const useRoot = (elementName) => {
 	const ref = useRef();
@@ -106,6 +105,7 @@ function WebUiView({
 	lastPath,
 	url,
 	dispatch,
+	subscribe,
 	onLoad,
 	onFail,
 }) {
@@ -455,6 +455,7 @@ function ServerView({
 	lastPath,
 	url,
 	dispatch,
+	subscribe,
 }) {
 	const [failed, setFailed] = useState(false);
 	const [reloading, setReloading] = useState(false);
@@ -467,6 +468,7 @@ function ServerView({
 			lastPath={lastPath}
 			url={url}
 			dispatch={dispatch}
+			subscribe={subscribe}
 			onLoad={() => {
 				setReloading(false);
 			}}
@@ -491,6 +493,7 @@ export function ServersView({
 	servers = [],
 	currentServerUrl,
 	dispatch,
+	subscribe,
 }) {
 	return <>
 		{servers.map((server) => <ServerView
@@ -500,6 +503,7 @@ export function ServersView({
 			lastPath={server.lastPath}
 			url={server.url}
 			dispatch={dispatch}
+			subscribe={subscribe}
 		/>)}
 	</>;
 }

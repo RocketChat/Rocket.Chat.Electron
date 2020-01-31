@@ -2,8 +2,10 @@ import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState } from 'react';
 
 import servers from '../scripts/servers';
-import { ADD_SERVER_VIEW_SERVER_ADDED, CERTIFICATES_CHANGED } from '../scripts/actions';
-import { subscribe } from '../scripts/effects';
+import {
+	ADD_SERVER_VIEW_SERVER_ADDED,
+	CERTIFICATES_CHANGED,
+} from '../scripts/actions';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',
@@ -11,6 +13,7 @@ export function AddServerView({
 	visible,
 	validator = (url) => servers.validateHost(url, 2000),
 	dispatch,
+	subscribe,
 }) {
 	const { t } = useTranslation();
 

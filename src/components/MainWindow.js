@@ -29,7 +29,6 @@ import {
 	WEBVIEW_FOCUS_REQUESTED,
 	DEEP_LINK_TRIGGERED,
 } from '../scripts/actions';
-import { subscribe } from '../scripts/effects';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
 	remote.screen.getAllDisplays()
@@ -279,6 +278,7 @@ export function MainWindow({
 	hideOnClose = false,
 	showWindowOnUnreadChanged = false,
 	dispatch,
+	subscribe,
 }) {
 	const windowStateRef = useRef({});
 

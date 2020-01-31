@@ -536,6 +536,7 @@ export function App() {
 				hideOnClose={hideOnClose}
 				showWindowOnUnreadChanged={showWindowOnUnreadChanged}
 				dispatch={dispatch}
+				subscribe={subscribe}
 			>
 				<MenuBar
 					showTrayIcon={hasTrayIcon}
@@ -560,10 +561,12 @@ export function App() {
 					currentServerUrl={currentServerUrl}
 					hasSidebar={hasSidebar}
 					dispatch={dispatch}
+					subscribe={subscribe}
 				/>
 				<AddServerView
 					visible={currentServerUrl === null}
 					dispatch={dispatch}
+					subscribe={subscribe}
 				/>
 				<AboutDialog
 					canUpdate={canUpdate}
@@ -571,6 +574,7 @@ export function App() {
 					canAutoUpdate={canAutoUpdate}
 					visible={aboutDialogVisible}
 					dispatch={dispatch}
+					subscribe={subscribe}
 				/>
 				<UpdateDialog
 					newVersion={newUpdateVersion}

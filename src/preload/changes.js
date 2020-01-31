@@ -52,8 +52,42 @@ function handleFaviconChange() {
 	});
 }
 
+const handleSidebarStyleChange = () => {
+	const element = document.createElement('div');
+	element.classList.add('sidebar');
+	element.style.backgroundColor = 'var(--sidebar-background)';
+	element.style.color = 'var(--sidebar-item-text-color)';
+	element.style.display = 'none';
+	document.body.append(element);
+
+	let prevStyle = {};
+	setInterval(() => {
+		const { background, color } = window.getComputedStyle(element);
+
+		if (prevStyle.background !== background || prevStyle.color !== color) {
+			prevStyle = { background, color };
+			ipcRenderer.sendToHost('sidebar-style', { color, background });
+		}
+	}, 1000);
+
+	const Meteor = getMeteor();
+	const Tracker = getTracker();
+	const settings = getSettings();
+
+	if (!Meteor || !Tracker || !settings) {
+		return;
+	}
+
+	Meteor.startup(() => {
+		Tracker.autorun(async () => {
+			const { url } = settings.get('Assets_background');
+			element.style.backgroundImage = url ? `url(${ JSON.stringify(url) })` : null;
+		});
+	});
+};
 
 export default () => {
 	window.addEventListener('load', handleTitleChange);
 	window.addEventListener('load', handleFaviconChange);
+	window.addEventListener('load', handleSidebarStyleChange);
 };

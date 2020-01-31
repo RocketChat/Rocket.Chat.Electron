@@ -8,7 +8,9 @@
     "react/jsx-uses-react": "error",
     "react/jsx-uses-vars": "error",
     "react/jsx-no-undef": "error",
-    "react/jsx-fragments": ["error", "syntax"]
+    "react/jsx-fragments": ["error", "syntax"],
+    "jsx-quotes": ["error", "prefer-single"],
+    "generator-star-spacing": ["error", "before"]
   },
   "settings": {
     "react": {

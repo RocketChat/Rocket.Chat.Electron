@@ -65,11 +65,11 @@ export function TrayIcon({
 		trayIconRef.current = new remote.Tray(image);
 
 		if (process.platform === 'darwin') {
-			remote.nativeTheme.on('updated', handleThemeUpdate);
+			remote.nativeTheme.addListener('updated', handleThemeUpdate);
 		}
 
-		trayIconRef.current.on('click', () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: !isMainWindowVisible }));
-		trayIconRef.current.on('right-click', (event, bounds) => trayIconRef.current.popUpContextMenu(undefined, bounds));
+		trayIconRef.current.addListener('click', () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: !isMainWindowVisible }));
+		trayIconRef.current.addListener('right-click', (event, bounds) => trayIconRef.current.popUpContextMenu(undefined, bounds));
 
 		dispatch({ type: TRAY_ICON_CREATED });
 	};

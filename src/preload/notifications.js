@@ -65,11 +65,11 @@ class Notification extends EventEmitter {
 			...options,
 		});
 
-		notification.on('show', this.handleShow.bind(this));
-		notification.on('close', this.handleClose.bind(this));
-		notification.on('click', this.handleClick.bind(this));
-		notification.on('reply', this.handleReply.bind(this));
-		notification.on('action', this.handleAction.bind(this));
+		notification.addListener('show', this.handleShow.bind(this));
+		notification.addListener('close', this.handleClose.bind(this));
+		notification.addListener('click', this.handleClick.bind(this));
+		notification.addListener('reply', this.handleReply.bind(this));
+		notification.addListener('action', this.handleAction.bind(this));
 
 		notification.show();
 

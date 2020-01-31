@@ -108,7 +108,7 @@ export const setupCertificates = async () => {
 
 	subscribe(handleActionDispatched);
 
-	remote.app.on('certificate-error', handleCertificateError);
+	remote.app.addListener('certificate-error', handleCertificateError);
 
 	window.addEventListener('beforeunload', () => {
 		remote.app.removeListener('certificate-error', handleCertificateError);

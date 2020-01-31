@@ -446,7 +446,7 @@ export function App() {
 	}, []);
 
 	useEffect(() => {
-		servers.on('loaded', () => {
+		servers.addListener('loaded', () => {
 			setLoading(false);
 			setCurrentServerUrl(servers.active);
 			const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
@@ -454,26 +454,26 @@ export function App() {
 				.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
 		});
 
-		servers.on('host-added', () => {
+		servers.addListener('host-added', () => {
 			const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
 			setServers(Object.values(servers.hosts)
 				.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
 		});
 
-		servers.on('host-removed', () => {
+		servers.addListener('host-removed', () => {
 			servers.clearActive();
 			setCurrentServerUrl(null);
 		});
 
-		servers.on('active-setted', (url) => {
+		servers.addListener('active-setted', (url) => {
 			setCurrentServerUrl(url);
 		});
 
-		servers.on('active-cleared', () => {
+		servers.addListener('active-cleared', () => {
 			setCurrentServerUrl(null);
 		});
 
-		servers.on('title-setted', () => {
+		servers.addListener('title-setted', () => {
 			const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
 			setServers(Object.values(servers.hosts)
 				.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
@@ -499,9 +499,9 @@ export function App() {
 			argv.slice(2).forEach(processDeepLink);
 		};
 
-		remote.app.on('login', handleLogin);
-		remote.app.on('open-url', handleOpenUrl);
-		remote.app.on('second-instance', handleSecondInstance);
+		remote.app.addListener('login', handleLogin);
+		remote.app.addListener('open-url', handleOpenUrl);
+		remote.app.addListener('second-instance', handleSecondInstance);
 
 		const unsubscribe = () => {
 			remote.app.removeListener('login', handleLogin);

@@ -46,10 +46,10 @@ const prepareApp = () => {
 		app.disableHardwareAcceleration();
 	}
 
-	app.on('certificate-error', preventEvent);
-	app.on('login', preventEvent);
-	app.on('open-url', preventEvent);
-	app.on('window-all-closed', () => {
+	app.addListener('certificate-error', preventEvent);
+	app.addListener('login', preventEvent);
+	app.addListener('open-url', preventEvent);
+	app.addListener('window-all-closed', () => {
 		app.quit();
 	});
 };
@@ -68,9 +68,9 @@ const createMainWindow = () => {
 		},
 	});
 
-	mainWindow.on('close', preventEvent);
+	mainWindow.addListener('close', preventEvent);
 
-	mainWindow.webContents.on('will-attach-webview', (event, webPreferences) => {
+	mainWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
 		delete webPreferences.enableBlinkFeatures;
 	});
 

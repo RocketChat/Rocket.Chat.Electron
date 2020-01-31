@@ -47,8 +47,8 @@ export const setupErrorHandling = (appType) => {
 		return;
 	}
 
-	process.on('uncaughtException', handleError);
-	process.on('unhandledRejection', handleError);
+	process.addListener('uncaughtException', handleError);
+	process.addListener('unhandledRejection', handleError);
 };
 
 export const reportError = (error) => {

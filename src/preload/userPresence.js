@@ -25,17 +25,19 @@ const handleUserPresence = () => {
 	setInterval(() => {
 		const state = remote.powerMonitor.getSystemIdleState(idleThreshold);
 
-		if (prevState !== state) {
-			const isOnline = !isAutoAwayEnabled || state === 'active' || state === 'unknown';
-
-			if (isOnline) {
-				Meteor.call('UserPresence:online');
-			} else {
-				Meteor.call('UserPresence:away');
-			}
-
-			prevState = state;
+		if (prevState === state) {
+			return;
 		}
+
+		const isOnline = !isAutoAwayEnabled || state === 'active' || state === 'unknown';
+
+		if (isOnline) {
+			Meteor.call('UserPresence:online');
+		} else {
+			Meteor.call('UserPresence:away');
+		}
+
+		prevState = state;
 	}, 1000);
 };
 

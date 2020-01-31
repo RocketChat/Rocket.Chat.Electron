@@ -148,9 +148,9 @@ const useAppEvents = (browserWindow, windowStateRef) => {
 			browserWindow.focus();
 		};
 
-		remote.app.on('activate', handleActivate);
-		remote.app.on('before-quit', handleAppBeforeQuit);
-		remote.app.on('second-instance', handleAppSecondInstance);
+		remote.app.addListener('activate', handleActivate);
+		remote.app.addListener('before-quit', handleAppBeforeQuit);
+		remote.app.addListener('second-instance', handleAppSecondInstance);
 
 		return () => {
 			remote.app.removeListener('before-quit', handleAppBeforeQuit);
@@ -193,20 +193,20 @@ const useWindowStateUpdates = (browserWindow, windowStateRef, dispatch) => {
 			}, 1000);
 		};
 
-		browserWindow.on('resize', fetchAndSaveWindowState);
-		browserWindow.on('move', fetchAndSaveWindowState);
-		browserWindow.on('show', fetchAndSaveWindowState);
+		browserWindow.addListener('resize', fetchAndSaveWindowState);
+		browserWindow.addListener('move', fetchAndSaveWindowState);
+		browserWindow.addListener('show', fetchAndSaveWindowState);
 
-		browserWindow.on('show', fetchAndDispatchWindowState);
-		browserWindow.on('hide', fetchAndDispatchWindowState);
-		browserWindow.on('focus', fetchAndDispatchWindowState);
-		browserWindow.on('blur', fetchAndDispatchWindowState);
-		browserWindow.on('maximize', fetchAndDispatchWindowState);
-		browserWindow.on('unmaximize', fetchAndDispatchWindowState);
-		browserWindow.on('minimize', fetchAndDispatchWindowState);
-		browserWindow.on('restore', fetchAndDispatchWindowState);
-		browserWindow.on('resize', fetchAndDispatchWindowState);
-		browserWindow.on('move', fetchAndDispatchWindowState);
+		browserWindow.addListener('show', fetchAndDispatchWindowState);
+		browserWindow.addListener('hide', fetchAndDispatchWindowState);
+		browserWindow.addListener('focus', fetchAndDispatchWindowState);
+		browserWindow.addListener('blur', fetchAndDispatchWindowState);
+		browserWindow.addListener('maximize', fetchAndDispatchWindowState);
+		browserWindow.addListener('unmaximize', fetchAndDispatchWindowState);
+		browserWindow.addListener('minimize', fetchAndDispatchWindowState);
+		browserWindow.addListener('restore', fetchAndDispatchWindowState);
+		browserWindow.addListener('resize', fetchAndDispatchWindowState);
+		browserWindow.addListener('move', fetchAndDispatchWindowState);
 
 		return () => {
 			browserWindow.removeListener('resize', fetchAndSaveWindowState);
@@ -249,7 +249,7 @@ const useWindowClosing = (browserWindow, windowStateRef, hideOnClose) => {
 
 			saveWindowState(windowStateRef.current);
 		};
-		browserWindow.on('close', handleClose);
+		browserWindow.addListener('close', handleClose);
 
 		return () => {
 			browserWindow.removeListener('close', handleClose);

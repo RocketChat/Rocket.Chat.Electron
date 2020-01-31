@@ -1,16 +1,18 @@
-import { emit, listen, removeListener } from './ipc';
+import { remote, ipcRenderer } from 'electron';
 
 export const dispatch = (action) => {
 	console.log(action);
-	emit('action-dispatched', action);
+	ipcRenderer.send('action-dispatched', action);
 };
 
 export const subscribe = (handler) => {
 	const listener = (_, action) => handler(action);
 
-	listen('action-dispatched', listener);
+	remote.ipcMain.addListener('action-dispatched', listener);
 
-	const unsubscribe = () => removeListener('action-dispatched', listener);
+	const unsubscribe = () => {
+		remote.ipcMain.removeListener('action-dispatched', listener);
+	};
 
 	window.addEventListener('beforeunload', unsubscribe);
 

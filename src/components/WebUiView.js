@@ -31,6 +31,7 @@ import {
 	installSpellCheckingDictionaries,
 	enableSpellCheckingDictionaries,
 	disableSpellCheckingDictionaries,
+	getMisspelledWords,
 } from '../scripts/spellChecking';
 
 const createSpellCheckingMenuTemplate = (t, {
@@ -416,6 +417,10 @@ export function WebUiView({
 
 				case 'sidebar-style':
 					dispatch({ type: WEBVIEW_SIDEBAR_STYLE_CHANGED, payload: { url, style: event.args[0] } });
+					break;
+
+				case 'get-misspelled-words':
+					root.send('misspelled-words', JSON.stringify(event.args[0]), getMisspelledWords(event.args[0]));
 					break;
 			}
 		};

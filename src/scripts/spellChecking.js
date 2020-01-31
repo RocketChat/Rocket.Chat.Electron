@@ -4,8 +4,6 @@ import path from 'path';
 import { remote } from 'electron';
 import mem from 'mem';
 
-import { handle, removeHandler } from './ipc';
-
 const { Spellchecker, getAvailableDictionaries } = remote.require('@felixrieseberg/spellchecker');
 
 let dictionaries = [];
@@ -133,10 +131,4 @@ export const setupSpellChecking = async () => {
 	} catch (error) {
 		console.error(error);
 	}
-
-	handle('spell-checking/get-misspelled-words', (_, words) => getMisspelledWords(words));
-
-	window.addEventListener('beforeunload', () => {
-		removeHandler('spell-checking/get-misspelled-words');
-	});
 };

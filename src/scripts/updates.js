@@ -9,7 +9,6 @@ import {
 	UPDATES_CHECK_FAILED,
 } from './actions';
 import { dispatch } from './effects';
-import { handle, removeHandler } from './ipc';
 
 const { autoUpdater } = remote.require('electron-updater');
 
@@ -48,7 +47,7 @@ const canSetAutoUpdate = () => !appUpdateSettings.forced || appUpdateSettings.au
 
 const canAutoUpdate = () => updateSettings.autoUpdate !== false;
 
-const setAutoUpdate = (canAutoUpdate) => {
+export const setAutoUpdate = (canAutoUpdate) => {
 	if (!canSetAutoUpdate()) {
 		return;
 	}
@@ -58,12 +57,12 @@ const setAutoUpdate = (canAutoUpdate) => {
 	saveUpdateSettings();
 };
 
-const skipUpdateVersion = (version) => {
+export const skipUpdateVersion = (version) => {
 	userUpdateSettings.skip = version;
 	saveUpdateSettings();
 };
 
-const downloadUpdate = async () => {
+export const downloadUpdate = async () => {
 	try {
 		await autoUpdater.downloadUpdate();
 	} catch (e) {
@@ -161,24 +160,6 @@ export const setupUpdates = () => {
 		autoUpdater.off('update-not-available', handleUpdateNotAvailable);
 		autoUpdater.off('update-downloaded', handleUpdateDownloaded);
 		autoUpdater.off('error', handleError);
-	});
-
-	handle('updates/set-auto-update', (_, ...args) => setAutoUpdate(...args));
-	handle('updates/check-for-updates', (_, ...args) => checkForUpdates(...args));
-	handle('updates/skip-update-version', (_, ...args) => skipUpdateVersion(...args));
-	handle('updates/download-update', (_, ...args) => downloadUpdate(...args));
-	handle('updates/can-update', (_, ...args) => canUpdate(...args));
-	handle('updates/can-auto-update', (_, ...args) => canAutoUpdate(...args));
-	handle('updates/can-set-auto-update', (_, ...args) => canSetAutoUpdate(...args));
-
-	window.addEventListener('beforeunload', () => {
-		removeHandler('updates/set-auto-update');
-		removeHandler('updates/check-for-updates');
-		removeHandler('updates/skip-update-version');
-		removeHandler('updates/download-update');
-		removeHandler('updates/can-update');
-		removeHandler('updates/can-auto-update');
-		removeHandler('updates/can-set-auto-update');
 	});
 
 	checkForUpdates();

@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import setupElectronReload from 'electron-reload';
 import jetpack from 'fs-jetpack';
 
@@ -84,14 +84,3 @@ const initialize = async () => {
 };
 
 initialize();
-
-global.registerRemoteHandler = (channel, remoteHandler) => {
-	ipcMain.removeHandler(channel);
-	ipcMain.handle(channel, (...args) => new Promise((resolve, reject) => {
-		try {
-			remoteHandler(resolve, reject, ...args);
-		} catch (error) {
-			console.error(error);
-		}
-	}));
-};

@@ -5,7 +5,13 @@ import React, { useEffect, useState } from 'react';
 
 import { setupCertificates } from '../scripts/certificates';
 import servers from '../scripts/servers';
-import { setupUpdates } from '../scripts/updates';
+import {
+	setupUpdates,
+	setAutoUpdate,
+	checkForUpdates,
+	skipUpdateVersion,
+	downloadUpdate,
+} from '../scripts/updates';
 import { processDeepLink } from '../scripts/deepLinks';
 import { setupSpellChecking } from '../scripts/spellChecking';
 import {
@@ -64,7 +70,6 @@ import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
 import { dispatch, subscribe } from '../scripts/effects';
-import { invoke } from '../scripts/ipc';
 
 export function App() {
 	const { t } = useTranslation();
@@ -259,13 +264,13 @@ export function App() {
 
 			if (type === ABOUT_DIALOG_TOGGLE_UPDATE_ON_START) {
 				const updateOnStart = payload;
-				invoke('updates/set-auto-update', updateOnStart);
+				setAutoUpdate(updateOnStart);
 				setCanAutoUpdate(updateOnStart);
 				return;
 			}
 
 			if (type === ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED) {
-				invoke('updates/check-for-updates', null, { forced: true });
+				checkForUpdates(null, { forced: true });
 				return;
 			}
 
@@ -276,12 +281,12 @@ export function App() {
 
 			if (type === UPDATE_DIALOG_SKIP_UPDATE_CLICKED) {
 				const skippedVersion = payload;
-				invoke('updates/skip-update-version', skippedVersion);
+				skipUpdateVersion(skippedVersion);
 				return;
 			}
 
 			if (type === UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED) {
-				invoke('updates/download-update');
+				downloadUpdate();
 				return;
 			}
 

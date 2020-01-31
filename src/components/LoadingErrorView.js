@@ -1,16 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState, useRef } from 'react';
-
-const useRoot = (elementName) => {
-	const ref = useRef();
-
-	if (!ref.current) {
-		ref.current = document.createElement(elementName);
-		document.body.append(ref.current);
-	}
-
-	return ref.current;
-};
+import { useEffect, useState } from 'react';
 
 export function LoadingErrorView({
 	counting,
@@ -20,7 +9,11 @@ export function LoadingErrorView({
 }) {
 	const { t } = useTranslation();
 
-	const root = useRoot('div');
+	const [root] = useState(() => {
+		const root = document.createElement('div');
+		document.body.append(root);
+		return root;
+	});
 
 	const [counter, setCounter] = useState(60);
 

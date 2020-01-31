@@ -232,17 +232,6 @@ const computeProps = (params) => {
 	};
 };
 
-const useRoot = (elementName) => {
-	const ref = useRef();
-
-	if (!ref.current) {
-		ref.current = document.createElement(elementName);
-		document.body.append(ref.current);
-	}
-
-	return ref.current;
-};
-
 export function WebUiView({
 	active = false,
 	failed = false,
@@ -256,7 +245,11 @@ export function WebUiView({
 }) {
 	const { t } = useTranslation();
 
-	const root = useRoot('webview');
+	const [root] = useState(() => {
+		const root = document.createElement('webview');
+		document.body.append(root);
+		return root;
+	});
 
 	useEffect(() => {
 		root.classList.add('webview');

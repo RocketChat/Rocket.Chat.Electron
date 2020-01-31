@@ -8,7 +8,7 @@ import {
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_CHECK_FAILED,
 } from './actions';
-import { dispatch } from './effects';
+import { dispatch } from '../storeAndEffects';
 
 const { autoUpdater } = remote.require('electron-updater');
 

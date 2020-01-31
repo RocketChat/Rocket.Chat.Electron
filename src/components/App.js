@@ -70,8 +70,8 @@ import { TrayIcon } from './TrayIcon';
 import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
-import { dispatch, subscribe } from '../scripts/effects';
-import { store, sagaMiddleware } from '../storeAndEffects';
+import { dispatch, subscribe, store, sagaMiddleware } from '../storeAndEffects';
+
 
 const SagaContext = createContext();
 

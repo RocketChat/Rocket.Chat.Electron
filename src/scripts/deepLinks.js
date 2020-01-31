@@ -1,7 +1,7 @@
 import querystring from 'querystring';
 import url from 'url';
 
-import { dispatch } from './effects';
+import { dispatch } from '../storeAndEffects';
 import { DEEP_LINK_TRIGGERED } from './actions';
 
 const normalizeUrl = (hostUrl) => {

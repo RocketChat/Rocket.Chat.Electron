@@ -4,7 +4,7 @@ import url from 'url';
 
 import { remote } from 'electron';
 
-import { dispatch, subscribe } from './effects';
+import { dispatch, subscribe } from '../storeAndEffects';
 import {
 	CERTIFICATES_CHANGED,
 	CERTIFICATE_TRUST_REQUESTED,

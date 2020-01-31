@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { remote } from 'electron';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import {
 	MAIN_WINDOW_STATE_CHANGED,
@@ -30,6 +30,8 @@ import {
 	WEBVIEW_UNREAD_CHANGED,
 	WEBVIEW_FOCUS_REQUESTED,
 	DEEP_LINK_TRIGGERED,
+	TRAY_ICON_CREATED,
+	TRAY_ICON_DESTROYED,
 } from '../scripts/actions';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
@@ -275,12 +277,12 @@ const useWindowStateLoading = (browserWindow, windowStateRef) => {
 export function MainWindow({
 	browserWindow = remote.getCurrentWindow(),
 	children,
-	hideOnClose = false,
 	showWindowOnUnreadChanged = false,
 	dispatch,
 	subscribe,
 }) {
 	const windowStateRef = useRef({});
+	const [hideOnClose, setHideOnClose] = useState(false);
 
 	useAppEvents(browserWindow, windowStateRef);
 	useWindowStateUpdates(browserWindow, windowStateRef, dispatch);
@@ -288,6 +290,7 @@ export function MainWindow({
 	useWindowStateLoading(browserWindow, windowStateRef);
 
 	useEffect(() => {
+		// eslint-disable-next-line complexity
 		const handleActionDispatched = ({ type, payload }) => {
 			switch (type) {
 				case MENU_BAR_ABOUT_CLICKED:
@@ -331,6 +334,14 @@ export function MainWindow({
 					}
 					break;
 				}
+
+				case TRAY_ICON_CREATED:
+					setHideOnClose(true);
+					break;
+
+				case TRAY_ICON_DESTROYED:
+					setHideOnClose(false);
+					break;
 
 				case TRAY_ICON_TOGGLE_CLICKED: {
 					const visible = payload;

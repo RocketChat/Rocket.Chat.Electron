@@ -35,7 +35,7 @@ import {
 	getMisspelledWords,
 } from '../scripts/spellChecking';
 
-const createSpellCheckingMenuTemplate = (t, {
+const createSpellCheckingMenuTemplate = (root, t, {
 	isEditable,
 	corrections,
 	dictionaries,
@@ -82,14 +82,14 @@ const createSpellCheckingMenuTemplate = (t, {
 				]
 				: corrections.slice(0, 6).map((correction) => ({
 					label: correction,
-					click: () => remote.getCurrentWebContents().replaceMisspelling(correction),
+					click: () => root.getWebContents().replaceMisspelling(correction),
 				})),
 			...corrections.length > 6 ? [
 				{
 					label: t('contextMenu.moreSpellingSuggestions'),
 					submenu: corrections.slice(6).map((correction) => ({
 						label: correction,
-						click: () => remote.getCurrentWebContents().replaceMisspelling(correction),
+						click: () => root.getWebContents().replaceMisspelling(correction),
 					})),
 				},
 			] : [],
@@ -124,7 +124,7 @@ const createSpellCheckingMenuTemplate = (t, {
 	];
 };
 
-const createImageMenuTemplate = (t, {
+const createImageMenuTemplate = (root, t, {
 	mediaType,
 	srcURL,
 }) => (
@@ -132,7 +132,7 @@ const createImageMenuTemplate = (t, {
 		? [
 			{
 				label: t('contextMenu.saveImageAs'),
-				click: () => remote.getCurrentWebContents().downloadURL(srcURL),
+				click: () => root.getWebContents().downloadURL(srcURL),
 			},
 			{
 				type: 'separator',
@@ -141,7 +141,7 @@ const createImageMenuTemplate = (t, {
 		: []
 );
 
-const createLinkMenuTemplate = (t, {
+const createLinkMenuTemplate = (root, t, {
 	linkURL,
 	linkText,
 }) => (
@@ -167,7 +167,7 @@ const createLinkMenuTemplate = (t, {
 		: []
 );
 
-const createDefaultMenuTemplate = (t, {
+const createDefaultMenuTemplate = (root, t, {
 	editFlags: {
 		canUndo = false,
 		canRedo = false,
@@ -321,10 +321,10 @@ export function WebUiView({
 			const props = await computeProps(event.params);
 
 			const template = [
-				...createSpellCheckingMenuTemplate(t, props),
-				...createImageMenuTemplate(t, props),
-				...createLinkMenuTemplate(t, props),
-				...createDefaultMenuTemplate(t, props),
+				...createSpellCheckingMenuTemplate(root, t, props),
+				...createImageMenuTemplate(root, t, props),
+				...createLinkMenuTemplate(root, t, props),
+				...createDefaultMenuTemplate(root, t, props),
 			];
 
 			const menu = remote.Menu.buildFromTemplate(template);

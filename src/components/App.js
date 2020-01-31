@@ -39,8 +39,6 @@ import {
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 	SCREEN_SHARING_DIALOG_DISMISSED,
-	TRAY_ICON_CREATED,
-	TRAY_ICON_DESTROYED,
 	TRAY_ICON_QUIT_CLICKED,
 	SIDE_BAR_SERVER_SELECTED,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
@@ -106,7 +104,6 @@ export function App() {
 			.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b));
 	});
 	const [currentServerUrl, setCurrentServerUrl] = useState(() => servers.active);
-	const [hideOnClose, setHideOnClose] = useState(false);
 	const [badges, setBadges] = useState({});
 	const [styles, setStyles] = useState({});
 	const [aboutDialogVisible, setAboutDialogVisible] = useState(false);
@@ -313,16 +310,6 @@ export function App() {
 
 			if (type === SCREEN_SHARING_DIALOG_DISMISSED) {
 				setScreenSharingDialogVisible(false);
-				return;
-			}
-
-			if (type === TRAY_ICON_CREATED) {
-				setHideOnClose(true);
-				return;
-			}
-
-			if (type === TRAY_ICON_DESTROYED) {
-				setHideOnClose(false);
 				return;
 			}
 
@@ -561,7 +548,6 @@ export function App() {
 		<SagaContext.Provider value={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>
 				<MainWindow
-					hideOnClose={hideOnClose}
 					showWindowOnUnreadChanged={showWindowOnUnreadChanged}
 					dispatch={dispatch}
 					subscribe={subscribe}

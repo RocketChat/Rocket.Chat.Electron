@@ -560,6 +560,7 @@ export function App() {
 				visible={hasSidebar}
 				styles={styles}
 				dispatch={dispatch}
+				subscribe={subscribe}
 			/>
 			<ServersView
 				servers={_servers}

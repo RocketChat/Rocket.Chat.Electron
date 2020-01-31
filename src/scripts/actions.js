@@ -60,6 +60,7 @@ export const WEBVIEW_FOCUSED = 'webview/focused';
 export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED = 'webview/screen-sharing-source-requested';
 export const WEBVIEW_CERTIFICATE_TRUSTED = 'webview/certificate-trusted';
 export const WEBVIEW_CERTIFICATE_DENIED = 'webview/certificate-denied';
+export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
 
 export const MAIN_WINDOW_STATE_CHANGED = 'main-window/state-changed';
 

@@ -22,6 +22,7 @@ import {
 	CERTIFICATE_TRUST_REQUESTED,
 	WEBVIEW_CERTIFICATE_TRUSTED,
 	WEBVIEW_CERTIFICATE_DENIED,
+	WEBVIEW_FAVICON_CHANGED,
 } from '../scripts/actions';
 import {
 	getSpellCheckingCorrections,
@@ -397,6 +398,8 @@ export function WebUiView({
 	}, [ready]);
 
 	useEffect(() => {
+		const webContentsId = root.getWebContents().id;
+
 		const handleIpcMessage = (event) => {
 			switch (event.channel) {
 				case 'get-sourceId':
@@ -404,23 +407,27 @@ export function WebUiView({
 					break;
 
 				case 'unread-changed':
-					dispatch({ type: WEBVIEW_UNREAD_CHANGED, payload: { url, badge: event.args[0] } });
+					dispatch({ type: WEBVIEW_UNREAD_CHANGED, payload: { webContentsId, url, badge: event.args[0] } });
 					break;
 
 				case 'title-changed':
-					dispatch({ type: WEBVIEW_TITLE_CHANGED, payload: { url, title: event.args[0] } });
+					dispatch({ type: WEBVIEW_TITLE_CHANGED, payload: { webContentsId, url, title: event.args[0] } });
 					break;
 
 				case 'focus':
-					dispatch({ type: WEBVIEW_FOCUS_REQUESTED, payload: { url } });
+					dispatch({ type: WEBVIEW_FOCUS_REQUESTED, payload: { webContentsId, url } });
 					break;
 
 				case 'sidebar-style':
-					dispatch({ type: WEBVIEW_SIDEBAR_STYLE_CHANGED, payload: { url, style: event.args[0] } });
+					dispatch({ type: WEBVIEW_SIDEBAR_STYLE_CHANGED, payload: { webContentsId, url, style: event.args[0] } });
 					break;
 
 				case 'get-misspelled-words':
 					root.send('misspelled-words', JSON.stringify(event.args[0]), getMisspelledWords(event.args[0]));
+					break;
+
+				case 'favicon-changed':
+					dispatch({ type: WEBVIEW_FAVICON_CHANGED, payload: { webContentsId, url, favicon: event.args[0] } });
 					break;
 			}
 		};

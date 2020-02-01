@@ -61,6 +61,11 @@ export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED = 'webview/screen-sharing-s
 export const WEBVIEW_CERTIFICATE_TRUSTED = 'webview/certificate-trusted';
 export const WEBVIEW_CERTIFICATE_DENIED = 'webview/certificate-denied';
 export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
+export const WEBVIEW_LOADING_DONE = 'webview/loading-done';
+export const WEBVIEW_LOADING_STARTED = 'webview/loading-started';
+export const WEBVIEW_LOADING_FAILED = 'webview/loading-failed';
+
+export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED = 'loading-error-view/reload-server-clicked';
 
 export const MAIN_WINDOW_STATE_CHANGED = 'main-window/state-changed';
 

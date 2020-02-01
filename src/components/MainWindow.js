@@ -282,6 +282,7 @@ export function MainWindow({
 	badge = undefined,
 	browserWindow = remote.getCurrentWindow(),
 	children,
+	loading = true,
 	showWindowOnUnreadChanged = false,
 }) {
 	const dispatch = useDispatch();
@@ -311,6 +312,10 @@ export function MainWindow({
 		browserWindow.flashFrame(!browserWindow.isFocused() && count > 0);
 	}, [badge, browserWindow]);
 
+	useEffect(() => {
+		document.querySelector('.app-page').classList.toggle('app-page--loading', loading);
+	}, [loading]);
+
 	useSaga(function *() {
 		yield takeEvery([
 			MENU_BAR_ABOUT_CLICKED,
@@ -324,9 +329,6 @@ export function MainWindow({
 			MENU_BAR_RELOAD_SERVER_CLICKED,
 			MENU_BAR_GO_BACK_CLICKED,
 			MENU_BAR_GO_FORWARD_CLICKED,
-			MENU_BAR_RESET_ZOOM_CLICKED,
-			MENU_BAR_ZOOM_IN_CLICKED,
-			MENU_BAR_ZOOM_OUT_CLICKED,
 			MENU_BAR_SELECT_SERVER_CLICKED,
 			TOUCH_BAR_SELECT_SERVER_TOUCHED,
 			TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
@@ -334,6 +336,21 @@ export function MainWindow({
 			DEEP_LINK_TRIGGERED,
 		], function *() {
 			browserWindow.show();
+		});
+
+		yield takeEvery(MENU_BAR_RESET_ZOOM_CLICKED, function *() {
+			browserWindow.show();
+			browserWindow.webContents.zoomLevel = 0;
+		});
+
+		yield takeEvery(MENU_BAR_ZOOM_IN_CLICKED, function *() {
+			browserWindow.show();
+			browserWindow.webContents.zoomLevel++;
+		});
+
+		yield takeEvery(MENU_BAR_ZOOM_OUT_CLICKED, function *() {
+			browserWindow.show();
+			browserWindow.webContents.zoomLevel--;
 		});
 
 		yield takeEvery(MENU_BAR_RELOAD_APP_CLICKED, function *() {

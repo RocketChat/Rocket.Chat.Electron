@@ -15,7 +15,7 @@ export function UpdateDialog({
 	newVersion = null,
 	visible = false,
 }) {
-	const rootRef = useRef(document.querySelector('.update-dialog'));
+	const rootRef = useRef();
 	const dispatch = useDispatch();
 
 	useEffect(() => {

@@ -1,24 +1,24 @@
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+
+import {
+	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+} from '../scripts/actions';
+
 
 export function LoadingErrorView({
-	counting,
-	reloading,
-	visible,
-	onReload,
+	reloading = false,
+	url = null,
+	visible = false,
 }) {
+	const dispatch = useDispatch();
 	const { t } = useTranslation();
-
-	const [root] = useState(() => {
-		const root = document.createElement('div');
-		document.body.append(root);
-		return root;
-	});
 
 	const [counter, setCounter] = useState(60);
 
 	useEffect(() => {
-		if (!counting) {
+		if (!visible) {
 			return;
 		}
 
@@ -30,7 +30,7 @@ export function LoadingErrorView({
 				counter -= reloadCounterStepSize;
 
 				if (counter <= 0) {
-					onReload && onReload();
+					dispatch({ type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, payload: url });
 					return 60;
 				}
 
@@ -41,31 +41,32 @@ export function LoadingErrorView({
 		return () => {
 			clearInterval(timer);
 		};
-	}, [counting]);
+	}, [url, visible]);
 
 	const handleReloadButtonClick = () => {
-		onReload && onReload();
+		dispatch({ type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, payload: url });
+		setCounter(60);
 	};
 
-	useEffect(() => {
-		root.classList.add('webview');
-		root.classList.add('loading-error-view');
-		root.classList.toggle('active', visible);
-		while (root.firstChild) {
-			root.firstChild.remove();
-		}
-		root.append(document.importNode(document.querySelector('.loading-error-template').content, true));
-
-		root.querySelector('.title').innerText = t('loadingError.announcement');
-
-		root.querySelector('.subtitle').innerText = t('loadingError.title');
-
-		root.querySelector('.reload-button').innerText = `${ t('loadingError.reload') } (${ counter })`;
-		root.querySelector('.reload-button').classList.toggle('hidden', reloading);
-		root.querySelector('.reload-button').onclick = handleReloadButtonClick;
-
-		root.querySelector('.reloading-server').classList.toggle('hidden', !reloading);
-	});
-
-	return null;
+	return <div className={['webview', 'loading-error-view', visible && 'active'].filter(Boolean).join(' ')}>
+		<div className='loading-error-page'>
+			<h1 className='title'>
+				{t('loadingError.announcement')}
+			</h1>
+			<h2 className='subtitle'>
+				{t('loadingError.title')}
+			</h2>
+			<div className={['reloading-server', !reloading && 'hidden'].filter(Boolean).join(' ')}>
+				<span className='dot'></span>
+				<span className='dot'></span>
+				<span className='dot'></span>
+			</div>
+			<button
+				className={['button', 'primary', 'reload-button', reloading && 'hidden'].filter(Boolean).join(' ')}
+				onClick={handleReloadButtonClick}
+			>
+				{t('loadingError.reload')} ({counter})
+			</button>
+		</div>
+	</div>;
 }

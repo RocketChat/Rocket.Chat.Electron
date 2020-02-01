@@ -1,6 +1,6 @@
 import { remote } from 'electron';
 import i18n from 'i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import { Provider } from 'react-redux';
 
@@ -26,9 +26,6 @@ import {
 	MENU_BAR_PASTE_CLICKED,
 	MENU_BAR_SELECT_ALL_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
-	MENU_BAR_RESET_ZOOM_CLICKED,
-	MENU_BAR_ZOOM_IN_CLICKED,
-	MENU_BAR_ZOOM_OUT_CLICKED,
 	MENU_BAR_RESET_APP_DATA_CLICKED,
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
@@ -95,6 +92,13 @@ export function App() {
 	const [canAutoUpdate, setCanAutoUpdate] = useState(false);
 	const [openDialog, setOpenDialog] = useState(null);
 
+	const globalBadge = useMemo(() => {
+		const mentionCount = Object.values(badges)
+			.filter((badge) => Number.isInteger(badge))
+			.reduce((sum, count) => sum + count, 0);
+		return mentionCount || (Object.values(badges).some((badge) => !!badge) && '•') || null;
+	}, [badges]);
+
 	useEffect(() => {
 		// eslint-disable-next-line complexity
 		const handleActionDispatched = async ({ type, payload = null }) => {
@@ -152,21 +156,6 @@ export function App() {
 			if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
 				servers.clearActive();
 				setCurrentServerUrl(null);
-				return;
-			}
-
-			if (type === MENU_BAR_RESET_ZOOM_CLICKED) {
-				remote.getCurrentWebContents().zoomLevel = 0;
-				return;
-			}
-
-			if (type === MENU_BAR_ZOOM_IN_CLICKED) {
-				remote.getCurrentWebContents().zoomLevel++;
-				return;
-			}
-
-			if (type === MENU_BAR_ZOOM_OUT_CLICKED) {
-				remote.getCurrentWebContents().zoomLevel--;
 				return;
 			}
 
@@ -413,10 +402,6 @@ export function App() {
 	}, []);
 
 	useEffect(() => {
-		document.querySelector('.app-page').classList.toggle('app-page--loading', loading);
-	}, [loading]);
-
-	useEffect(() => {
 		const handleConnectionStatus = () => {
 			document.body.classList.toggle('offline', !navigator.onLine);
 		};
@@ -518,18 +503,12 @@ export function App() {
 		window.dispatch = dispatch;
 	}, []);
 
-	const mentionCount = Object.values(badges)
-		.filter((badge) => Number.isInteger(badge))
-		.reduce((sum, count) => sum + count, 0);
-	const globalBadge = mentionCount
-		|| (Object.values(badges).some((badge) => !!badge) && '•')
-		|| null;
-
 	return <Provider store={store}>
 		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>
 				<MainWindow
 					badge={hasTrayIcon ? undefined : globalBadge}
+					loading={loading}
 					showWindowOnUnreadChanged={showWindowOnUnreadChanged}
 				>
 					<MenuBar

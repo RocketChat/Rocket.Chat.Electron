@@ -25,6 +25,10 @@ import {
 	WEBVIEW_CERTIFICATE_TRUSTED,
 	WEBVIEW_CERTIFICATE_DENIED,
 	WEBVIEW_FAVICON_CHANGED,
+	WEBVIEW_LOADING_DONE,
+	WEBVIEW_LOADING_STARTED,
+	WEBVIEW_LOADING_FAILED,
+	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
 } from '../scripts/actions';
 import {
 	getSpellCheckingCorrections,
@@ -416,6 +420,7 @@ export function WebUiView({
 	useEffect(() => {
 		const handleDidFinishLoad = () => {
 			onLoad && onLoad();
+			dispatch({ type: WEBVIEW_LOADING_DONE, payload: { webContentsId: root.getWebContents().id, url } });
 		};
 
 		root.addEventListener('did-finish-load', handleDidFinishLoad);
@@ -433,12 +438,14 @@ export function WebUiView({
 			}
 			if (e.isMainFrame) {
 				onFail && onFail();
+				dispatch({ type: WEBVIEW_LOADING_FAILED, payload: { webContentsId: root.getWebContents().id, url } });
 			}
 		};
 
 		const handleDidGetResponseDetails = (e) => {
 			if (e.resourceType === 'mainFrame' && e.httpResponseCode >= 500) {
 				onFail && onFail();
+				dispatch({ type: WEBVIEW_LOADING_FAILED, payload: { webContentsId: root.getWebContents().id, url } });
 			}
 		};
 
@@ -451,8 +458,23 @@ export function WebUiView({
 		};
 	}, [onFail]);
 
+	useEffect(() => {
+		const handleDidStartLoading = () => {
+			dispatch({ type: WEBVIEW_LOADING_STARTED, payload: { webContentsId: root.getWebContents().id, url } });
+		};
+
+		root.addEventListener('did-start-loading', handleDidStartLoading);
+
+		return () => {
+			root.removeEventListener('did-start-loading', handleDidStartLoading);
+		};
+	}, [dispatch]);
+
 	useSaga(function *() {
-		yield takeEvery(SIDE_BAR_RELOAD_SERVER_CLICKED, function *({ payload }) {
+		yield takeEvery([
+			SIDE_BAR_RELOAD_SERVER_CLICKED,
+			LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+		], function *({ payload }) {
 			if (url !== payload) {
 				return;
 			}

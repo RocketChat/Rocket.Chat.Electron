@@ -87,15 +87,13 @@ export function App() {
 	const [currentServerUrl, setCurrentServerUrl] = useState(() => servers.active);
 	const [badges, setBadges] = useState({});
 	const [styles, setStyles] = useState({});
-	const [aboutDialogVisible, setAboutDialogVisible] = useState(false);
 	const [newUpdateVersion, setNewUpdateVersion] = useState(null);
-	const [updateDialogVisible, setUpdateDialogVisible] = useState(false);
-	const [screenSharingDialogVisible, setScreenSharingDialogVisible] = useState(false);
 	const [focusedWebContents, setFocusedWebContents] = useState(() => remote.getCurrentWebContents());
 	const [mainWindowState, setMainWindowState] = useState({});
 	const [canUpdate, setCanUpdate] = useState(false);
 	const [canSetAutoUpdate, setCanSetAutoUpdate] = useState(false);
 	const [canAutoUpdate, setCanAutoUpdate] = useState(false);
+	const [openDialog, setOpenDialog] = useState(null);
 
 	useEffect(() => {
 		// eslint-disable-next-line complexity
@@ -111,7 +109,7 @@ export function App() {
 			}
 
 			if (type === MENU_BAR_ABOUT_CLICKED) {
-				setAboutDialogVisible(true);
+				setOpenDialog('about');
 				return;
 			}
 
@@ -257,7 +255,7 @@ export function App() {
 			}
 
 			if (type === ABOUT_DIALOG_DISMISSED) {
-				setAboutDialogVisible(false);
+				setOpenDialog(null);
 				return;
 			}
 
@@ -274,7 +272,7 @@ export function App() {
 			}
 
 			if (type === UPDATE_DIALOG_DISMISSED) {
-				setUpdateDialogVisible(false);
+				setOpenDialog(null);
 				return;
 			}
 
@@ -290,7 +288,7 @@ export function App() {
 			}
 
 			if (type === SCREEN_SHARING_DIALOG_DISMISSED) {
-				setScreenSharingDialogVisible(false);
+				setOpenDialog(null);
 				return;
 			}
 
@@ -380,7 +378,7 @@ export function App() {
 			}
 
 			if (type === WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED) {
-				setScreenSharingDialogVisible(true);
+				setOpenDialog('screen-sharing');
 				return;
 			}
 
@@ -391,7 +389,7 @@ export function App() {
 
 			if (type === UPDATES_NEW_VERSION_AVAILABLE) {
 				setNewUpdateVersion(payload);
-				setUpdateDialogVisible(true);
+				setOpenDialog('update');
 				return;
 			}
 
@@ -570,18 +568,14 @@ export function App() {
 						canUpdate={canUpdate}
 						canSetAutoUpdate={canSetAutoUpdate}
 						canAutoUpdate={canAutoUpdate}
-						visible={aboutDialogVisible}
-						dispatch={dispatch}
-						subscribe={subscribe}
+						visible={openDialog === 'about'}
 					/>
 					<UpdateDialog
 						newVersion={newUpdateVersion}
-						visible={updateDialogVisible}
-						dispatch={dispatch}
+						visible={openDialog === 'update'}
 					/>
 					<ScreenSharingDialog
-						visible={screenSharingDialogVisible}
-						dispatch={dispatch}
+						visible={openDialog === 'screen-sharing'}
 					/>
 					<Dock
 						badge={globalBadge}

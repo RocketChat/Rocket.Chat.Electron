@@ -1,6 +1,7 @@
 import { remote } from 'electron';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 
 import {
 	UPDATE_DIALOG_DISMISSED,
@@ -11,14 +12,15 @@ import {
 
 export function UpdateDialog({
 	currentVersion = remote.app.getVersion(),
-	newVersion,
-	root = document.querySelector('.update-dialog'),
+	newVersion = null,
 	visible = false,
-	dispatch,
 }) {
-	const { t } = useTranslation();
+	const rootRef = useRef(document.querySelector('.update-dialog'));
+	const dispatch = useDispatch();
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		if (!visible) {
 			root.close();
 			return;
@@ -39,13 +41,19 @@ export function UpdateDialog({
 				dispatch({ type: UPDATE_DIALOG_DISMISSED });
 			}
 		};
-	}, [visible]);
+	}, [rootRef, visible, dispatch]);
+
+	const { t } = useTranslation();
 
 	const installButtonRef = useRef();
 
 	useEffect(() => {
+		if (!visible) {
+			return;
+		}
+
 		installButtonRef.current.focus();
-	}, []);
+	}, [visible]);
 
 	const handleSkipButtonClick = async () => {
 		await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
@@ -76,27 +84,34 @@ export function UpdateDialog({
 		dispatch({ type: UPDATE_DIALOG_DISMISSED });
 	};
 
-	root.querySelector('.update-title').innerText = t('dialog.update.announcement');
+	return <dialog ref={rootRef} className='update-dialog'>
+		<div className='update-content'>
+			<h1 className='update-title'>{t('dialog.update.announcement')}</h1>
+			<p className='update-message'>{t('dialog.update.message')}</p>
 
-	root.querySelector('.update-message').innerText = t('dialog.update.message');
+			<div className='update-info'>
+				<div className='app-version current-version'>
+					<div className='app-version-label'>{t('dialog.update.currentVersion')}</div>
+					<div className='app-version-value'>{currentVersion}</div>
+				</div>
+				<div className='update-arrow'>&rarr;</div>
+				<div className='app-version new-version'>
+					<div className='app-version-label'>{t('dialog.update.newVersion')}</div>
+					<div className='app-version-value'>{newVersion}</div>
+				</div>
+			</div>
+		</div>
 
-	root.querySelector('.current-version .app-version-label').innerText = t('dialog.update.currentVersion');
-
-	root.querySelector('.current-version .app-version-value').innerText = currentVersion;
-
-	root.querySelector('.new-version .app-version-label').innerText = t('dialog.update.newVersion');
-
-	root.querySelector('.new-version .app-version-value').innerText = newVersion;
-
-	root.querySelector('.update-skip-action').innerText = t('dialog.update.skip');
-	root.querySelector('.update-skip-action').onclick = handleSkipButtonClick;
-
-	root.querySelector('.update-remind-action').innerText = t('dialog.update.remindLater');
-	root.querySelector('.update-remind-action').onclick = handleRemindLaterButtonClick;
-
-	installButtonRef.current = root.querySelector('.update-install-action');
-	root.querySelector('.update-install-action').innerText = t('dialog.update.install');
-	root.querySelector('.update-install-action').onclick = handleInstallButtonClick;
-
-	return null;
+		<div className='update-actions'>
+			<button type='button' className='update-skip-action button secondary' onClick={handleSkipButtonClick}>
+				{t('dialog.update.skip')}
+			</button>
+			<button type='button' className='update-remind-action button secondary' onClick={handleRemindLaterButtonClick}>
+				{t('dialog.update.remindLater')}
+			</button>
+			<button ref={installButtonRef} type='button' className='update-install-action button primary' onClick={handleInstallButtonClick}>
+				{t('dialog.update.install')}
+			</button>
+		</div>
+	</dialog>;
 }

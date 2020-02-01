@@ -1,6 +1,6 @@
 import { remote } from 'electron';
 import i18n from 'i18next';
-import React, { createContext, useEffect, useState, useContext, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import { Provider } from 'react-redux';
 
@@ -69,26 +69,7 @@ import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
 import { dispatch, subscribe, store, sagaMiddleware } from '../storeAndEffects';
-
-
-const SagaContext = createContext();
-
-export const useSaga = (saga) => {
-	const sagaMiddleware = useContext(SagaContext);
-	const sagaRef = useRef(saga);
-
-	useEffect(() => {
-		sagaRef.current = saga;
-	});
-
-	useEffect(() => {
-		const task = sagaMiddleware.run(sagaRef.current);
-
-		return () => {
-			task.cancel();
-		};
-	}, []);
-};
+import { SagaMiddlewareProvider } from './SagaMiddlewareProvider';
 
 export function App() {
 	const { t } = useTranslation();
@@ -535,6 +516,8 @@ export function App() {
 		servers.setActive(servers.active);
 
 		remote.process.argv.slice(2).forEach(processDeepLink);
+
+		window.dispatch = dispatch;
 	}, []);
 
 	const mentionCount = Object.values(badges)
@@ -545,7 +528,7 @@ export function App() {
 		|| null;
 
 	return <Provider store={store}>
-		<SagaContext.Provider value={sagaMiddleware}>
+		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>
 				<MainWindow
 					showWindowOnUnreadChanged={showWindowOnUnreadChanged}
@@ -617,6 +600,6 @@ export function App() {
 					/>
 				</MainWindow>
 			</I18nextProvider>
-		</SagaContext.Provider>
+		</SagaMiddlewareProvider>
 	</Provider>;
 }

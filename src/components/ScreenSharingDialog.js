@@ -1,6 +1,7 @@
 import { desktopCapturer } from 'electron';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
 
 import {
 	SCREEN_SHARING_DIALOG_DISMISSED,
@@ -8,13 +9,14 @@ import {
 } from '../scripts/actions';
 
 export function ScreenSharingDialog({
-	root = document.querySelector('.screen-sharing-dialog'),
 	visible = false,
-	dispatch,
 }) {
-	const { t } = useTranslation();
+	const rootRef = useRef();
+	const dispatch = useDispatch();
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		if (!visible) {
 			root.close();
 			return;
@@ -35,7 +37,9 @@ export function ScreenSharingDialog({
 				dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
 			}
 		};
-	}, [visible]);
+	}, [rootRef, visible, dispatch]);
+
+	const { t } = useTranslation();
 
 	const [sources, setSources] = useState([]);
 
@@ -48,7 +52,14 @@ export function ScreenSharingDialog({
 			const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
 			setSources(sources);
 		};
-		fetchSources();
+
+		const timer = setInterval(() => {
+			fetchSources();
+		}, 1000);
+
+		return () => {
+			clearInterval(timer);
+		};
 	}, [visible]);
 
 	const sourceSelectedRef = useRef(false);
@@ -69,24 +80,15 @@ export function ScreenSharingDialog({
 		dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
 	};
 
-	root.querySelector('.screenshare-title').innerText = t('dialog.screenshare.announcement');
-
-	while (root.querySelector('.screen-sharing-sources').firstChild) {
-		root.querySelector('.screen-sharing-sources').firstChild.remove();
-	}
-
-	root.querySelector('.screen-sharing-sources').append(...sources.map(({ id, name, thumbnail }) => {
-		const sourceView = document.importNode(root.querySelector('.screen-sharing-source-template').content, true);
-
-		sourceView.querySelector('.screen-sharing-source').onclick = handleScreenSharingSourceClick(id);
-
-		sourceView.querySelector('.screen-sharing-source-thumbnail img').setAttribute('alt', name);
-		sourceView.querySelector('.screen-sharing-source-thumbnail img').setAttribute('src', thumbnail.toDataURL());
-
-		sourceView.querySelector('.screen-sharing-source-name').innerText = name;
-
-		return sourceView;
-	}));
-
-	return null;
+	return <dialog ref={rootRef} className='screen-sharing-dialog'>
+		<h1 className='screenshare-title'>{t('dialog.screenshare.announcement')}</h1>
+		<div className='screen-sharing-sources'>
+			{sources.map(({ id, name, thumbnail }) => <div key={id} className='screen-sharing-source' onClick={handleScreenSharingSourceClick(id)}>
+				<div className='screen-sharing-source-thumbnail'>
+					<img src={thumbnail.toDataURL()} alt={name} />
+				</div>
+				<div className='screen-sharing-source-name'>{name}</div>
+			</div>)}
+		</div>
+	</dialog>;
 }

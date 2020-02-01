@@ -1,6 +1,8 @@
 import { remote } from 'electron';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { useDispatch } from 'react-redux';
+import { takeEvery } from 'redux-saga/effects';
 
 import pkg from '../../package.json';
 import {
@@ -11,21 +13,22 @@ import {
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_CHECK_FAILED,
 } from '../scripts/actions.js';
+import { useSaga } from './SagaMiddlewareProvider';
 
 export function AboutDialog({
 	appVersion = remote.app.getVersion(),
 	copyright = pkg.copyright,
-	canUpdate,
-	canAutoUpdate,
-	canSetAutoUpdate,
-	root = document.querySelector('.about-dialog'),
-	visible,
-	dispatch,
-	subscribe,
+	canUpdate = false,
+	canAutoUpdate = false,
+	canSetAutoUpdate = false,
+	visible = false,
 }) {
-	const { t } = useTranslation();
+	const rootRef = useRef();
+	const dispatch = useDispatch();
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		if (!visible) {
 			root.close();
 			return;
@@ -46,7 +49,9 @@ export function AboutDialog({
 				dispatch({ type: ABOUT_DIALOG_DISMISSED });
 			}
 		};
-	}, [visible]);
+	}, [rootRef, visible, dispatch]);
+
+	const { t } = useTranslation();
 
 	const [checkingForUpdates, setCheckingForUpdates] = useState(false);
 	const [checkingForUpdatesMessage, setCheckingForUpdatesMessage] = useState(null);
@@ -63,29 +68,23 @@ export function AboutDialog({
 		}, 5000);
 	};
 
-	useEffect(() => {
+	useSaga(function *() {
 		if (!canUpdate) {
 			return;
 		}
 
-		const handleActionDispatched = ({ type }) => {
-			switch (type) {
-				case UPDATES_NEW_VERSION_AVAILABLE:
-					setCheckingForUpdates(false);
-					setCheckingForUpdatesMessage(null);
-					break;
+		yield takeEvery(UPDATES_NEW_VERSION_AVAILABLE, function *() {
+			setCheckingForUpdates(false);
+			setCheckingForUpdatesMessage(null);
+		});
 
-				case UPDATES_NEW_VERSION_NOT_AVAILABLE:
-					displayCheckingForUpdatesMessage(t('dialog.about.noUpdatesAvailable'));
-					break;
+		yield takeEvery(UPDATES_NEW_VERSION_NOT_AVAILABLE, function *() {
+			displayCheckingForUpdatesMessage(t('dialog.about.noUpdatesAvailable'));
+		});
 
-				case UPDATES_CHECK_FAILED:
-					displayCheckingForUpdatesMessage(t('dialog.about.errorWhileLookingForUpdates'));
-					break;
-			}
-		};
-
-		return subscribe(handleActionDispatched);
+		yield takeEvery(UPDATES_CHECK_FAILED, function *() {
+			displayCheckingForUpdatesMessage(t('dialog.about.errorWhileLookingForUpdates'));
+		});
 	}, [canUpdate]);
 
 	const handleCheckForUpdatesButtonClick = () => {
@@ -98,27 +97,58 @@ export function AboutDialog({
 		dispatch({ type: ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, payload: event.target.checked });
 	};
 
-	root.querySelector('.app-version').innerHTML = `${ t('dialog.about.version') } <span class="version">${ appVersion }</span>`;
+	return <dialog ref={rootRef} className='about-dialog'>
+		<section className='app-info'>
+			<div className='app-logo'>
+				<img src='./images/logo.svg' />
+			</div>
+			<div className='app-version'>
+				{t('dialog.about.version')} <span className='version'>{appVersion}</span>
+			</div>
+		</section>
 
-	root.querySelector('.check-for-updates').innerText = t('dialog.about.checkUpdates');
-	root.querySelector('.check-for-updates').onclick = handleCheckForUpdatesButtonClick;
-	root.querySelector('.check-for-updates').toggleAttribute('disabled', checkingForUpdates);
-	root.querySelector('.check-for-updates').classList.toggle('hidden', checkingForUpdates);
+		<section className={['updates', !canUpdate && 'hidden'].filter(Boolean).join(' ')}>
+			<button
+				type='button'
+				className={[
+					'check-for-updates',
+					'button',
+					'primary',
+					checkingForUpdates && 'hidden',
+				].filter(Boolean).join(' ')}
+				disabled={checkingForUpdates}
+				onClick={handleCheckForUpdatesButtonClick}
+			>
+				{t('dialog.about.checkUpdates')}
+			</button>
 
-	root.querySelector('.checking-for-updates').classList.toggle('hidden', !checkingForUpdates);
-	root.querySelector('.checking-for-updates').classList.toggle('message-shown', !!checkingForUpdatesMessage);
+			<div
+				className={[
+					'checking-for-updates',
+					!checkingForUpdates && 'hidden',
+					!!checkingForUpdatesMessage && 'message-shown',
+				].filter(Boolean).join(' ')}
+			>
+				<span className='dot'></span>
+				<span className='dot'></span>
+				<span className='dot'></span>
+				<span className='message'>{checkingForUpdatesMessage}</span>
+			</div>
 
-	root.querySelector('.checking-for-updates .message').innerText = checkingForUpdatesMessage || '';
+			<label className='check-for-updates-on-start__label'>
+				<input
+					className='check-for-updates-on-start'
+					type='checkbox'
+					checked={canAutoUpdate}
+					disabled={!canSetAutoUpdate}
+					onChange={handleCheckForUpdatesOnStartCheckBoxChange}
+				/>
+				<span>{t('dialog.about.checkUpdatesOnStart')}</span>
+			</label>
+		</section>
 
-	root.querySelector('.check-for-updates-on-start').toggleAttribute('checked', canAutoUpdate);
-	root.querySelector('.check-for-updates-on-start').toggleAttribute('disabled', !canSetAutoUpdate);
-	root.querySelector('.check-for-updates-on-start').onchange = handleCheckForUpdatesOnStartCheckBoxChange;
-
-	root.querySelector('.check-for-updates-on-start + span').innerText = t('dialog.about.checkUpdatesOnStart');
-
-	root.querySelector('.copyright').innerText = t('dialog.about.copyright', { copyright });
-
-	root.querySelector('.updates').classList.toggle('hidden', !canUpdate);
-
-	return null;
+		<div className='copyright'>
+			{t('dialog.about.copyright', { copyright })}
+		</div>
+	</dialog>;
 }

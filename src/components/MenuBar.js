@@ -1,6 +1,7 @@
 import { remote } from 'electron';
-import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
 
 import {
 	MENU_BAR_QUIT_CLICKED,
@@ -280,8 +281,8 @@ export function MenuBar({
 	servers = [],
 	currentServerUrl,
 	showWindowOnUnreadChanged,
-	dispatch,
 }) {
+	const dispatch = useDispatch();
 	const { t } = useTranslation();
 
 	useEffect(() => {

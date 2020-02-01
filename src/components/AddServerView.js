@@ -1,22 +1,22 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { takeEvery } from 'redux-saga/effects';
 
-import servers from '../scripts/servers';
 import {
 	ADD_SERVER_VIEW_SERVER_ADDED,
 	CERTIFICATES_CHANGED,
 } from '../scripts/actions';
+import { useSaga } from './SagaMiddlewareProvider';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',
-	root = document.querySelector('.add-server-view'),
 	visible,
-	validator = (url) => servers.validateHost(url, 2000),
-	dispatch,
-	subscribe,
+	validator,
 }) {
+	const dispatch = useDispatch();
 	const { t } = useTranslation();
-
+	const [input, setInput] = useState('');
 	const inputRef = useRef();
 
 	useEffect(() => {
@@ -31,7 +31,7 @@ export function AddServerView({
 	const [errorMessage, setErrorMessage] = useState(null);
 
 	const validateServerUrl = async (serverUrl) => {
-		inputRef.current.value = serverUrl;
+		setInput(serverUrl);
 
 		setValidationState('validating');
 		setErrorMessage(null);
@@ -52,11 +52,12 @@ export function AddServerView({
 					case 'basic-auth':
 						setErrorMessage(t('error.authNeeded', { auth: 'username:password@host' }));
 						break;
-					case 'invalid':
-						setErrorMessage(t('error.noValidServerFound'));
-						break;
 					case 'timeout':
 						setErrorMessage(t('error.connectTimeout'));
+						break;
+					case 'invalid':
+					default:
+						setErrorMessage(t('error.noValidServerFound'));
 						break;
 				}
 				return;
@@ -72,51 +73,81 @@ export function AddServerView({
 		}
 	};
 
-	useEffect(() => {
-		const handleActionDispatched = ({ type }) => {
-			if (type === CERTIFICATES_CHANGED) {
-				validateServerUrl(inputRef.current.value.trim());
-			}
-		};
-
-		return subscribe(handleActionDispatched);
-	}, [inputRef]);
+	useSaga(function *() {
+		yield takeEvery(CERTIFICATES_CHANGED, function *() {
+			validateServerUrl(input.trim());
+		});
+	}, [input, validator]);
 
 	const handleFormSubmit = async (event) => {
 		event.preventDefault();
 
-		const url = (inputRef.current.value || defaultServerUrl).trim();
+		const url = (input || defaultServerUrl).trim();
 
 		await validateServerUrl(url);
 
 		dispatch({ type: ADD_SERVER_VIEW_SERVER_ADDED, payload: url });
 
-		inputRef.current.value = '';
+		setInput('');
 	};
 
 	const handleInputBlur = () => {
-		validateServerUrl(inputRef.current.value.trim());
+		validateServerUrl(input.trim());
 	};
 
-	root.classList.toggle('hidden', !visible);
+	const handleInputChange = (event) => {
+		setInput(event.currentTarget.value);
+	};
 
-	root.querySelector('.add-server-form').onsubmit = handleFormSubmit;
+	return <section className={['add-server-view', !visible && 'hidden'].filter(Boolean).join(' ')}>
+		<div className='wrapper'>
+			<header>
+				<img className='logo' src='./images/logo-dark.svg' />
+			</header>
 
-	root.querySelector('.add-server-prompt').innerHTML = t('landing.inputUrl');
+			<div className='loading-indicator'>
+				<span className='dot'></span>
+				<span className='dot'></span>
+				<span className='dot'></span>
+			</div>
 
-	inputRef.current = root.querySelector('.add-server-input');
-	root.querySelector('.add-server-input').onblur = handleInputBlur;
-	root.querySelector('.add-server-input').classList.toggle('wrong', validationState === 'invalid');
+			<form className='add-server-form' method='/' onSubmit={handleFormSubmit}>
+				<header>
+					<h2 className='add-server-prompt'>
+						{t('landing.inputUrl')}
+					</h2>
+				</header>
+				<div className='fields'>
+					<div className='input-text active'>
+						<input
+							ref={inputRef}
+							className={['add-server-input', validationState === 'invalid' && 'wrong'].filter(Boolean).join(' ')}
+							type='text'
+							placeholder='https://open.rocket.chat'
+							dir='auto'
+							value={input}
+							onBlur={handleInputBlur}
+							onChange={handleInputChange}
+						/>
+					</div>
+				</div>
 
-	root.querySelector('.add-server-error-message').innerHTML = errorMessage || '';
-	root.querySelector('.add-server-error-message').classList.toggle('hidden', validationState !== 'invalid');
+				<div className={['add-server-error-message', 'alert', 'alert-danger', validationState !== 'invalid' && 'hidden'].filter(Boolean).join(' ')}>
+					{errorMessage}
+				</div>
 
-	root.querySelector('.add-server-offline-error').innerText = t('error.offline');
+				<div className='add-server-offline-error alert alert-danger only-offline'>
+					{t('error.offline')}
+				</div>
 
-	root.querySelector('.add-server-button').innerText = (validationState === 'idle' && t('landing.connect'))
-		|| (validationState === 'validating' && t('landing.validating'))
-		|| (validationState === 'invalid' && t('landing.invalidUrl'));
-	root.querySelector('.add-server-button').toggleAttribute('disabled', validationState !== 'idle');
-
-	return null;
+				<div className='submit'>
+					<button type='submit' className='button primary add-server-button' disabled={validationState !== 'idle'}>
+						{(validationState === 'idle' && t('landing.connect'))
+						|| (validationState === 'validating' && t('landing.validating'))
+						|| (validationState === 'invalid' && t('landing.invalidUrl'))}
+					</button>
+				</div>
+			</form>
+		</div>
+	</section>;
 }

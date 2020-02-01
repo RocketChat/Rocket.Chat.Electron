@@ -1,6 +1,8 @@
-import { useTranslation } from 'react-i18next';
-import { useEffect, useState, useRef } from 'react';
 import { remote, shell, clipboard } from 'electron';
+import { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
+import { call, takeEvery } from 'redux-saga/effects';
 
 import {
 	WEBVIEW_UNREAD_CHANGED,
@@ -34,6 +36,7 @@ import {
 	disableSpellCheckingDictionaries,
 	getMisspelledWords,
 } from '../scripts/spellChecking';
+import { useSaga } from './SagaMiddlewareProvider';
 
 const createSpellCheckingMenuTemplate = (root, t, {
 	isEditable,
@@ -238,11 +241,11 @@ export function WebUiView({
 	hasSidebar = false,
 	lastPath,
 	url,
-	dispatch,
-	subscribe,
 	onLoad,
 	onFail,
 }) {
+	const dispatch = useDispatch();
+
 	const { t } = useTranslation();
 
 	const [root] = useState(() => {
@@ -448,127 +451,112 @@ export function WebUiView({
 		};
 	}, [onFail]);
 
-	useEffect(() => {
-		const handleActionDispatched = async ({ type, payload }) => {
-			if (type === SIDE_BAR_RELOAD_SERVER_CLICKED) {
-				if (url !== payload) {
-					return;
-				}
-
-				root.reload();
+	useSaga(function *() {
+		yield takeEvery(SIDE_BAR_RELOAD_SERVER_CLICKED, function *({ payload }) {
+			if (url !== payload) {
 				return;
 			}
 
-			if (type === SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
-				if (url !== payload) {
-					return;
-				}
+			root.reload();
+		});
 
-				root.openDevTools();
+		yield takeEvery(SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, function *({ payload }) {
+			if (url !== payload) {
 				return;
 			}
 
-			if (type === TOUCH_BAR_FORMAT_BUTTON_TOUCHED) {
-				if (!active || failed) {
-					return;
-				}
+			root.openDevTools();
+		});
 
-				root.send('format-button-touched', payload);
+		yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *({ payload }) {
+			if (!active || failed) {
 				return;
 			}
 
-			if (type === SCREEN_SHARING_DIALOG_SOURCE_SELECTED) {
-				if (!active) {
-					return;
-				}
+			root.send('format-button-touched', payload);
+		});
 
-				root.send('screen-sharing-source-selected', payload);
+		yield takeEvery(SCREEN_SHARING_DIALOG_SOURCE_SELECTED, function *({ payload }) {
+			if (!active) {
 				return;
 			}
 
-			if (type === MENU_BAR_RELOAD_SERVER_CLICKED) {
-				if (!active) {
-					return;
-				}
+			root.send('screen-sharing-source-selected', payload);
+		});
 
-				const { ignoringCache = false } = payload || {};
-
-				if (ignoringCache) {
-					root.reloadIgnoringCache();
-					return;
-				}
-
-				root.reload();
+		yield takeEvery(MENU_BAR_RELOAD_SERVER_CLICKED, function *({ payload: { ignoringCache = false } = {} }) {
+			if (!active) {
 				return;
 			}
 
-			if (type === MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED) {
-				if (!active) {
-					return;
-				}
-
-				root.openDevTools();
-				return;
-			}
-
-			if (type === MENU_BAR_GO_BACK_CLICKED) {
-				if (!active) {
-					return;
-				}
-
-				root.goBack();
-				return;
-			}
-
-			if (type === MENU_BAR_GO_FORWARD_CLICKED) {
-				if (!active) {
-					return;
-				}
-
-				root.goForward();
-				return;
-			}
-
-			if (type === MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED) {
+			if (ignoringCache) {
 				root.reloadIgnoringCache();
 				return;
 			}
 
-			if (type === CERTIFICATE_TRUST_REQUESTED) {
-				const { webContentsId, url, error, fingerprint, issuerName, willBeReplaced } = payload;
+			root.reload();
+		});
 
-				if (webContentsId !== root.getWebContents().id) {
-					return;
-				}
-
-				let detail = `URL: ${ url }\nError: ${ error }`;
-				if (willBeReplaced) {
-					detail = t('error.differentCertificate', { detail });
-				}
-
-				const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-					title: t('dialog.certificateError.title'),
-					message: t('dialog.certificateError.message', { issuerName }),
-					detail,
-					type: 'warning',
-					buttons: [
-						t('dialog.certificateError.yes'),
-						t('dialog.certificateError.no'),
-					],
-					cancelId: 1,
-				});
-
-				if (response === 0) {
-					dispatch({ type: WEBVIEW_CERTIFICATE_TRUSTED, payload: { fingerprint } });
-					return;
-				}
-
-				dispatch({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { fingerprint } });
+		yield takeEvery(MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, function *() {
+			if (!active) {
+				return;
 			}
-		};
 
-		return subscribe(handleActionDispatched);
-	}, [url, active, failed]);
+			root.openDevTools();
+		});
+
+		yield takeEvery(MENU_BAR_GO_BACK_CLICKED, function *() {
+			if (!active) {
+				return;
+			}
+
+			root.goBack();
+		});
+
+		yield takeEvery(MENU_BAR_GO_FORWARD_CLICKED, function *() {
+			if (!active) {
+				return;
+			}
+
+			root.goForward();
+		});
+
+		yield takeEvery(MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED, function *() {
+			root.reloadIgnoringCache();
+		});
+
+		yield takeEvery(CERTIFICATE_TRUST_REQUESTED, function *({ payload }) {
+			const { webContentsId, url, error, fingerprint, issuerName, willBeReplaced } = payload;
+
+			if (webContentsId !== root.getWebContents().id) {
+				return;
+			}
+
+			let detail = `URL: ${ url }\nError: ${ error }`;
+			if (willBeReplaced) {
+				detail = t('error.differentCertificate', { detail });
+			}
+
+			const { response } = yield call(remote.dialog.showMessageBox, remote.getCurrentWindow(), {
+				title: t('dialog.certificateError.title'),
+				message: t('dialog.certificateError.message', { issuerName }),
+				detail,
+				type: 'warning',
+				buttons: [
+					t('dialog.certificateError.yes'),
+					t('dialog.certificateError.no'),
+				],
+				cancelId: 1,
+			});
+
+			if (response === 0) {
+				dispatch({ type: WEBVIEW_CERTIFICATE_TRUSTED, payload: { fingerprint } });
+				return;
+			}
+
+			dispatch({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { fingerprint } });
+		});
+	}, [root, url, active, failed]);
 
 	useEffect(() => {
 		if (process.platform !== 'darwin') {

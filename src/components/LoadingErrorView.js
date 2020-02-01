@@ -47,23 +47,25 @@ export function LoadingErrorView({
 		onReload && onReload();
 	};
 
-	root.classList.add('webview');
-	root.classList.add('loading-error-view');
-	root.classList.toggle('active', visible);
-	while (root.firstChild) {
-		root.firstChild.remove();
-	}
-	root.append(document.importNode(document.querySelector('.loading-error-template').content, true));
+	useEffect(() => {
+		root.classList.add('webview');
+		root.classList.add('loading-error-view');
+		root.classList.toggle('active', visible);
+		while (root.firstChild) {
+			root.firstChild.remove();
+		}
+		root.append(document.importNode(document.querySelector('.loading-error-template').content, true));
 
-	root.querySelector('.title').innerText = t('loadingError.announcement');
+		root.querySelector('.title').innerText = t('loadingError.announcement');
 
-	root.querySelector('.subtitle').innerText = t('loadingError.title');
+		root.querySelector('.subtitle').innerText = t('loadingError.title');
 
-	root.querySelector('.reload-button').innerText = `${ t('loadingError.reload') } (${ counter })`;
-	root.querySelector('.reload-button').classList.toggle('hidden', reloading);
-	root.querySelector('.reload-button').onclick = handleReloadButtonClick;
+		root.querySelector('.reload-button').innerText = `${ t('loadingError.reload') } (${ counter })`;
+		root.querySelector('.reload-button').classList.toggle('hidden', reloading);
+		root.querySelector('.reload-button').onclick = handleReloadButtonClick;
 
-	root.querySelector('.reloading-server').classList.toggle('hidden', !reloading);
+		root.querySelector('.reloading-server').classList.toggle('hidden', !reloading);
+	});
 
 	return null;
 }

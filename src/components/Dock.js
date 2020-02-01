@@ -1,13 +1,9 @@
 import { remote } from 'electron';
 import { useRef, useEffect } from 'react';
 
-import { getAppIconPath, getTrayIconPath } from '../scripts/icon';
-
 export function Dock({
 	badge = null,
-	browserWindow = remote.getCurrentWindow(),
 	dock = remote.app.dock,
-	hasTrayIcon = false,
 }) {
 	useEffect(() => {
 		if (process.platform !== 'darwin') {
@@ -46,24 +42,6 @@ export function Dock({
 
 	useEffect(() => {
 		prevBadgeRef.current = badge;
-	}, [badge]);
-
-	useEffect(() => {
-		if (process.platform !== 'linux' && process.platform !== 'win32') {
-			return;
-		}
-
-		const image = hasTrayIcon ? getAppIconPath() : getTrayIconPath({ badge });
-		browserWindow.setIcon(image);
-	}, [badge, hasTrayIcon]);
-
-	useEffect(() => {
-		if (process.platform !== 'win32') {
-			return;
-		}
-
-		const count = Number.isInteger(badge) ? badge : 0;
-		browserWindow.flashFrame(!browserWindow.isFocused() && count > 0);
 	}, [badge]);
 
 	return null;

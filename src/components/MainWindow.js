@@ -3,6 +3,8 @@ import path from 'path';
 
 import { remote } from 'electron';
 import React, { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { takeEvery } from 'redux-saga/effects';
 
 import {
 	MAIN_WINDOW_STATE_CHANGED,
@@ -33,6 +35,8 @@ import {
 	TRAY_ICON_CREATED,
 	TRAY_ICON_DESTROYED,
 } from '../scripts/actions';
+import { getAppIconPath, getTrayIconPath } from '../scripts/icon';
+import { useSaga } from './SagaMiddlewareProvider';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
 	remote.screen.getAllDisplays()
@@ -275,12 +279,12 @@ const useWindowStateLoading = (browserWindow, windowStateRef) => {
 };
 
 export function MainWindow({
+	badge = undefined,
 	browserWindow = remote.getCurrentWindow(),
 	children,
 	showWindowOnUnreadChanged = false,
-	dispatch,
-	subscribe,
 }) {
+	const dispatch = useDispatch();
 	const windowStateRef = useRef({});
 	const [hideOnClose, setHideOnClose] = useState(false);
 
@@ -290,86 +294,93 @@ export function MainWindow({
 	useWindowStateLoading(browserWindow, windowStateRef);
 
 	useEffect(() => {
-		// eslint-disable-next-line complexity
-		const handleActionDispatched = ({ type, payload }) => {
-			switch (type) {
-				case MENU_BAR_ABOUT_CLICKED:
-				case MENU_BAR_UNDO_CLICKED:
-				case MENU_BAR_REDO_CLICKED:
-				case MENU_BAR_CUT_CLICKED:
-				case MENU_BAR_COPY_CLICKED:
-				case MENU_BAR_PASTE_CLICKED:
-				case MENU_BAR_SELECT_ALL_CLICKED:
-				case MENU_BAR_ADD_NEW_SERVER_CLICKED:
-				case MENU_BAR_RELOAD_SERVER_CLICKED:
-				case MENU_BAR_GO_BACK_CLICKED:
-				case MENU_BAR_GO_FORWARD_CLICKED:
-				case MENU_BAR_RESET_ZOOM_CLICKED:
-				case MENU_BAR_ZOOM_IN_CLICKED:
-				case MENU_BAR_ZOOM_OUT_CLICKED:
-				case MENU_BAR_SELECT_SERVER_CLICKED:
-				case TOUCH_BAR_SELECT_SERVER_TOUCHED:
-				case TOUCH_BAR_FORMAT_BUTTON_TOUCHED:
-				case WEBVIEW_FOCUS_REQUESTED:
-				case DEEP_LINK_TRIGGERED:
-					browserWindow.show();
-					break;
+		if (process.platform !== 'linux' && process.platform !== 'win32') {
+			return;
+		}
 
-				case MENU_BAR_RELOAD_APP_CLICKED:
-					browserWindow.show();
-					browserWindow.reload();
-					break;
+		const image = badge === undefined ? getAppIconPath() : getTrayIconPath({ badge });
+		browserWindow.setIcon(image);
+	}, [badge, browserWindow]);
 
-				case MENU_BAR_TOGGLE_DEVTOOLS_CLICKED:
-					browserWindow.show();
-					browserWindow.toggleDevTools();
-					break;
+	useEffect(() => {
+		if (process.platform !== 'win32') {
+			return;
+		}
 
-				case MENU_BAR_TOGGLE_SETTING_CLICKED: {
-					browserWindow.show();
+		const count = Number.isInteger(badge) ? badge : 0;
+		browserWindow.flashFrame(!browserWindow.isFocused() && count > 0);
+	}, [badge, browserWindow]);
 
-					const setting = payload;
-					if (setting === 'showFullScreen') {
-						browserWindow.setFullScreen(!browserWindow.isFullScreen());
-					}
-					break;
-				}
+	useSaga(function *() {
+		yield takeEvery([
+			MENU_BAR_ABOUT_CLICKED,
+			MENU_BAR_UNDO_CLICKED,
+			MENU_BAR_REDO_CLICKED,
+			MENU_BAR_CUT_CLICKED,
+			MENU_BAR_COPY_CLICKED,
+			MENU_BAR_PASTE_CLICKED,
+			MENU_BAR_SELECT_ALL_CLICKED,
+			MENU_BAR_ADD_NEW_SERVER_CLICKED,
+			MENU_BAR_RELOAD_SERVER_CLICKED,
+			MENU_BAR_GO_BACK_CLICKED,
+			MENU_BAR_GO_FORWARD_CLICKED,
+			MENU_BAR_RESET_ZOOM_CLICKED,
+			MENU_BAR_ZOOM_IN_CLICKED,
+			MENU_BAR_ZOOM_OUT_CLICKED,
+			MENU_BAR_SELECT_SERVER_CLICKED,
+			TOUCH_BAR_SELECT_SERVER_TOUCHED,
+			TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
+			WEBVIEW_FOCUS_REQUESTED,
+			DEEP_LINK_TRIGGERED,
+		], function *() {
+			browserWindow.show();
+		});
 
-				case TRAY_ICON_CREATED:
-					setHideOnClose(true);
-					break;
+		yield takeEvery(MENU_BAR_RELOAD_APP_CLICKED, function *() {
+			browserWindow.show();
+			browserWindow.reload();
+		});
 
-				case TRAY_ICON_DESTROYED:
-					setHideOnClose(false);
-					break;
+		yield takeEvery(MENU_BAR_TOGGLE_DEVTOOLS_CLICKED, function *() {
+			browserWindow.show();
+			browserWindow.toggleDevTools();
+		});
 
-				case TRAY_ICON_TOGGLE_CLICKED: {
-					const visible = payload;
-					if (visible) {
-						browserWindow.show();
-					} else {
-						browserWindow.hide();
-					}
-					break;
-				}
+		yield takeEvery(MENU_BAR_TOGGLE_SETTING_CLICKED, function *({ payload: setting }) {
+			browserWindow.show();
 
-				case WEBVIEW_UNREAD_CHANGED: {
-					const { badge } = payload;
-
-					if (!showWindowOnUnreadChanged || browserWindow.isFocused() || typeof badge !== 'number') {
-						break;
-					}
-
-					browserWindow.once('focus', () => {
-						browserWindow.flashFrame(false);
-					});
-					browserWindow.showInactive();
-					browserWindow.flashFrame(true);
-				}
+			if (setting === 'showFullScreen') {
+				browserWindow.setFullScreen(!browserWindow.isFullScreen());
 			}
-		};
+		});
 
-		return subscribe(handleActionDispatched);
+		yield takeEvery(TRAY_ICON_CREATED, function *() {
+			setHideOnClose(true);
+		});
+
+		yield takeEvery(TRAY_ICON_DESTROYED, function *() {
+			setHideOnClose(false);
+		});
+
+		yield takeEvery(TRAY_ICON_TOGGLE_CLICKED, function *({ payload: visible }) {
+			if (visible) {
+				browserWindow.show();
+			} else {
+				browserWindow.hide();
+			}
+		});
+
+		yield takeEvery(WEBVIEW_UNREAD_CHANGED, function *({ payload: badge }) {
+			if (!showWindowOnUnreadChanged || browserWindow.isFocused() || typeof badge !== 'number') {
+				return;
+			}
+
+			browserWindow.once('focus', () => {
+				browserWindow.flashFrame(false);
+			});
+			browserWindow.showInactive();
+			browserWindow.flashFrame(true);
+		});
 	}, [browserWindow, showWindowOnUnreadChanged]);
 
 	return <>

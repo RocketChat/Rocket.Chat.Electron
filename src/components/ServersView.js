@@ -3,11 +3,9 @@ import React from 'react';
 import { ServerView } from './ServerView';
 
 export function ServersView({
-	hasSidebar,
 	servers = [],
 	currentServerUrl,
-	dispatch,
-	subscribe,
+	hasSidebar = true,
 }) {
 	return <>
 		{servers.map((server) => <ServerView
@@ -16,8 +14,6 @@ export function ServersView({
 			hasSidebar={hasSidebar}
 			lastPath={server.lastPath}
 			url={server.url}
-			dispatch={dispatch}
-			subscribe={subscribe}
 		/>)}
 	</>;
 }

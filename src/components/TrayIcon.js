@@ -1,6 +1,7 @@
 import { remote } from 'electron';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 
 import { getTrayIconPath } from '../scripts/icon';
 import {
@@ -12,11 +13,11 @@ import {
 
 export function TrayIcon({
 	appName = remote.app.name,
-	badge,
-	isMainWindowVisible,
-	showIcon,
-	dispatch,
+	badge = null,
+	show = true,
+	visible = false,
 }) {
+	const dispatch = useDispatch();
 	const { t } = useTranslation();
 
 	const trayIconRef = useRef();
@@ -45,8 +46,8 @@ export function TrayIcon({
 
 	const createContextMenuTemplate = () => [
 		{
-			label: !isMainWindowVisible ? t('tray.menu.show') : t('tray.menu.hide'),
-			click: () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: !isMainWindowVisible }),
+			label: show ? t('tray.menu.show') : t('tray.menu.hide'),
+			click: () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: show }),
 		},
 		{
 			label: t('tray.menu.quit'),
@@ -68,7 +69,7 @@ export function TrayIcon({
 			remote.nativeTheme.addListener('updated', handleThemeUpdate);
 		}
 
-		trayIconRef.current.addListener('click', () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: !isMainWindowVisible }));
+		trayIconRef.current.addListener('click', () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: show }));
 		trayIconRef.current.addListener('right-click', (event, bounds) => trayIconRef.current.popUpContextMenu(undefined, bounds));
 
 		dispatch({ type: TRAY_ICON_CREATED });
@@ -89,7 +90,7 @@ export function TrayIcon({
 	};
 
 	useEffect(() => {
-		if (!showIcon) {
+		if (!visible) {
 			destroyIcon({ dispatch });
 			return;
 		}
@@ -107,8 +108,8 @@ export function TrayIcon({
 		trayIconRef.current.setContextMenu(menu);
 	}, [
 		badge,
-		isMainWindowVisible,
-		showIcon,
+		show,
+		visible,
 		dispatch,
 	]);
 

@@ -529,9 +529,8 @@ export function App() {
 		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>
 				<MainWindow
+					badge={hasTrayIcon ? undefined : globalBadge}
 					showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-					dispatch={dispatch}
-					subscribe={subscribe}
 				>
 					<MenuBar
 						showTrayIcon={hasTrayIcon}
@@ -541,7 +540,6 @@ export function App() {
 						showServerList={hasSidebar}
 						servers={_servers}
 						currentServerUrl={currentServerUrl}
-						dispatch={dispatch}
 					/>
 					<SideBar
 						servers={_servers}
@@ -549,20 +547,15 @@ export function App() {
 						badges={badges}
 						visible={hasSidebar}
 						styles={styles}
-						dispatch={dispatch}
-						subscribe={subscribe}
 					/>
 					<ServersView
 						servers={_servers}
 						currentServerUrl={currentServerUrl}
 						hasSidebar={hasSidebar}
-						dispatch={dispatch}
-						subscribe={subscribe}
 					/>
 					<AddServerView
+						validator={(url) => servers.validateHost(url, 2000)}
 						visible={currentServerUrl === null}
-						dispatch={dispatch}
-						subscribe={subscribe}
 					/>
 					<AboutDialog
 						canUpdate={canUpdate}
@@ -579,18 +572,15 @@ export function App() {
 					/>
 					<Dock
 						badge={globalBadge}
-						hasTrayIcon={hasTrayIcon}
 					/>
 					<TrayIcon
 						badge={globalBadge}
-						isMainWindowVisible={mainWindowState.visible && mainWindowState.focused}
-						showIcon={hasTrayIcon}
-						dispatch={dispatch}
+						show={!mainWindowState.visible || !mainWindowState.focused}
+						visible={hasTrayIcon}
 					/>
 					<TouchBar
 						servers={_servers}
-						activeServerUrl={currentServerUrl}
-						dispatch={dispatch}
+						currentServerUrl={currentServerUrl}
 					/>
 				</MainWindow>
 			</I18nextProvider>

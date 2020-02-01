@@ -8,8 +8,6 @@ export function ServerView({
 	hasSidebar = false,
 	lastPath,
 	url,
-	dispatch,
-	subscribe,
 }) {
 	const [failed, setFailed] = useState(false);
 	const [reloading, setReloading] = useState(false);
@@ -21,8 +19,6 @@ export function ServerView({
 			hasSidebar={hasSidebar}
 			lastPath={lastPath}
 			url={url}
-			dispatch={dispatch}
-			subscribe={subscribe}
 			onLoad={() => {
 				setReloading(false);
 			}}

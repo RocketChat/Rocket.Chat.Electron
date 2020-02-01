@@ -1,13 +1,14 @@
 import { remote } from 'electron';
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 
 import {
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 } from '../scripts/actions';
 
-const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
+const useSelectServerPanel = (currentServerUrl, servers, dispatch) => {
 	const { t } = useTranslation();
 
 	class SelectServerPanel {
@@ -23,7 +24,7 @@ const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
 		}
 
 		_getActiveServerIndex() {
-			return this._hosts.findIndex((value) => value.host === activeServerUrl);
+			return this._hosts.findIndex((value) => value.host === currentServerUrl);
 		}
 
 		_setActiveServer() {
@@ -150,10 +151,10 @@ const useSelectServerPanel = (activeServerUrl, servers, dispatch) => {
 	return new SelectServerPanel().build();
 };
 
-const useFormattingPanel = (activeServerUrl, dispatch) => {
+const useFormattingPanel = (currentServerUrl, dispatch) => {
 	const { t } = useTranslation();
 
-	if (!activeServerUrl) {
+	if (!currentServerUrl) {
 		return new remote.TouchBar.TouchBarGroup({ items: [] });
 	}
 
@@ -176,9 +177,10 @@ const useFormattingPanel = (activeServerUrl, dispatch) => {
 	});
 };
 
-export function TouchBar({ activeServerUrl, servers = [], dispatch }) {
-	const selectServerPanel = useSelectServerPanel(activeServerUrl, servers, dispatch);
-	const formattingPanel = useFormattingPanel(activeServerUrl, dispatch);
+export function TouchBar({ currentServerUrl, servers = [] }) {
+	const dispatch = useDispatch();
+	const selectServerPanel = useSelectServerPanel(currentServerUrl, servers, dispatch);
+	const formattingPanel = useFormattingPanel(currentServerUrl, dispatch);
 
 	useEffect(() => {
 		const touchBar = new remote.TouchBar({

@@ -1,8 +1,10 @@
 import { parse as parseUrl } from 'url';
 
 import { remote } from 'electron';
-import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
+import { takeEvery } from 'redux-saga/effects';
 
 import {
 	SIDE_BAR_SERVER_SELECTED,
@@ -13,6 +15,7 @@ import {
 	SIDE_BAR_SERVERS_SORTED,
 	WEBVIEW_FAVICON_CHANGED,
 } from '../scripts/actions';
+import { useSaga } from './SagaMiddlewareProvider';
 
 function ServerButton({
 	url,
@@ -21,9 +24,8 @@ function ServerButton({
 	active,
 	hasUnreadMessages,
 	mentionCount,
-	dispatch,
-	subscribe,
 }) {
+	const dispatch = useDispatch();
 	const [serverListRoot] = useState(() => document.querySelector('.sidebar .sidebar__server-list'));
 	const { t } = useTranslation();
 
@@ -173,22 +175,14 @@ function ServerButton({
 		serverElement.remove();
 	}, []);
 
-	useEffect(() => {
-		const handleActionDispatched = ({ type, payload }) => {
-			switch (type) {
-				case WEBVIEW_FAVICON_CHANGED: {
-					const { url: _url, favicon } = payload;
-					if (url !== _url) {
-						return;
-					}
-
-					setFavicon(favicon);
-					break;
-				}
+	useSaga(function *() {
+		yield takeEvery(WEBVIEW_FAVICON_CHANGED, function *({ payload: { url: _url, favicon } }) {
+			if (url !== _url) {
+				return;
 			}
-		};
 
-		return subscribe(handleActionDispatched);
+			setFavicon(favicon);
+		});
 	}, []);
 
 	return null;
@@ -200,9 +194,8 @@ export function SideBar({
 	badges = {},
 	styles = {},
 	visible = false,
-	dispatch,
-	subscribe,
 }) {
+	const dispatch = useDispatch();
 	const { t } = useTranslation();
 	const [root] = useState(() => document.querySelector('.sidebar'));
 	const [serverListRoot] = useState(() => document.querySelector('.sidebar .sidebar__server-list'));
@@ -260,8 +253,6 @@ export function SideBar({
 			active={currentServerUrl === server.url}
 			hasUnreadMessages={!!badges[server.url]}
 			mentionCount={badges[server.url] || badges[server.url] === 0 ? parseInt(badges[server.url], 10) : null}
-			dispatch={dispatch}
-			subscribe={subscribe}
 		/>)}
 	</>;
 }

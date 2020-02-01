@@ -6,13 +6,7 @@ import { Provider } from 'react-redux';
 
 import { setupCertificates } from '../scripts/certificates';
 import servers from '../scripts/servers';
-import {
-	setupUpdates,
-	setAutoUpdate,
-	checkForUpdates,
-	skipUpdateVersion,
-	downloadUpdate,
-} from '../scripts/updates';
+import updates from '../scripts/updates';
 import { processDeepLink } from '../scripts/deepLinks';
 import { setupSpellChecking } from '../scripts/spellChecking';
 import {
@@ -53,6 +47,8 @@ import {
 	MAIN_WINDOW_STATE_CHANGED,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	DEEP_LINK_TRIGGERED,
+	UPDATES_CHECK_FAILED,
+	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 } from '../scripts/actions';
 import { MainWindow } from './MainWindow';
 import { AboutDialog } from './AboutDialog';
@@ -251,13 +247,13 @@ export function App() {
 
 			if (type === ABOUT_DIALOG_TOGGLE_UPDATE_ON_START) {
 				const updateOnStart = payload;
-				setAutoUpdate(updateOnStart);
 				setCanAutoUpdate(updateOnStart);
+				updates.toggleCheckOnStartup(updateOnStart);
 				return;
 			}
 
 			if (type === ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED) {
-				checkForUpdates(null, { forced: true });
+				updates.check();
 				return;
 			}
 
@@ -268,12 +264,12 @@ export function App() {
 
 			if (type === UPDATE_DIALOG_SKIP_UPDATE_CLICKED) {
 				const skippedVersion = payload;
-				skipUpdateVersion(skippedVersion);
+				updates.skipVersion(skippedVersion);
 				return;
 			}
 
 			if (type === UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED) {
-				downloadUpdate();
+				updates.download();
 				return;
 			}
 
@@ -490,11 +486,6 @@ export function App() {
 	useEffect(() => {
 		setupCertificates();
 		setupSpellChecking();
-		const { canUpdate, canSetAutoUpdate, canAutoUpdate } = setupUpdates();
-
-		setCanUpdate(canUpdate);
-		setCanSetAutoUpdate(canSetAutoUpdate);
-		setCanAutoUpdate(canAutoUpdate);
 
 		servers.initialize();
 		servers.setActive(servers.active);
@@ -502,6 +493,75 @@ export function App() {
 		remote.process.argv.slice(2).forEach(processDeepLink);
 
 		window.dispatch = dispatch;
+
+		const subscribe = async () => {
+			let checking = false;
+
+			updates.addListener(updates.constants.CHECKING_EVENT, () => {
+				checking = true;
+			});
+
+			updates.addListener(updates.constants.NOT_AVAILABLE_EVENT, () => {
+				checking = false;
+				dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+			});
+
+			updates.addListener(updates.constants.SKIPPED_EVENT, () => {
+				checking = false;
+				dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+			});
+
+			updates.addListener(updates.constants.AVAILABLE_EVENT, async (version) => {
+				dispatch({ type: UPDATES_NEW_VERSION_AVAILABLE, payload: version });
+			});
+
+			updates.addListener(updates.constants.DOWNLOADED_EVENT, async () => {
+				const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+					type: 'question',
+					title: t('dialog.updateReady.title'),
+					message: t('dialog.updateReady.message'),
+					buttons: [
+						t('dialog.updateReady.installLater'),
+						t('dialog.updateReady.installNow'),
+					],
+					defaultId: 1,
+				});
+
+				if (response === 0) {
+					await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+						type: 'info',
+						title: t('dialog.updateInstallLater.title'),
+						message: t('dialog.updateInstallLater.message'),
+						buttons: [t('dialog.updateInstallLater.ok')],
+						defaultId: 0,
+					});
+					return;
+				}
+
+				remote.getCurrentWindow().removeAllListeners();
+				remote.app.removeAllListeners('window-all-closed');
+				updates.install();
+			});
+
+			updates.addListener(updates.constants.ERROR_EVENT, () => {
+				if (checking) {
+					dispatch({ type: UPDATES_CHECK_FAILED });
+				}
+			});
+
+			await updates.setUp();
+			setCanUpdate(updates.enabled);
+			setCanSetAutoUpdate(updates.configurable);
+			setCanAutoUpdate(updates.checkOnStartup);
+		};
+
+		const unsubscribe = async () => {
+			await updates.tearDown();
+		};
+
+		subscribe();
+		window.addEventListener('beforeunload', unsubscribe);
+		return unsubscribe;
 	}, []);
 
 	return <Provider store={store}>

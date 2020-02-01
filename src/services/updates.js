@@ -18,7 +18,6 @@ const DOWNLOADED_EVENT = 'downloaded';
 const CANCELLED_EVENT = 'cancelled';
 const ERROR_EVENT = 'error';
 
-
 let configurable = true;
 let updatesEnabled = true;
 let checkForUpdatesOnStartup = true;

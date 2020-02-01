@@ -2,11 +2,11 @@ import { remote } from 'electron';
 import i18n from 'i18next';
 import React, { useEffect, useState, useMemo } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { call, take } from 'redux-saga/effects';
 
 import { setupCertificates } from '../scripts/certificates';
 import servers from '../scripts/servers';
-import updates from '../scripts/updates';
 import { processDeepLink } from '../scripts/deepLinks';
 import { setupSpellChecking } from '../scripts/spellChecking';
 import {
@@ -27,16 +27,12 @@ import {
 	ADD_SERVER_VIEW_SERVER_ADDED,
 	ABOUT_DIALOG_DISMISSED,
 	UPDATE_DIALOG_DISMISSED,
-	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 	SCREEN_SHARING_DIALOG_DISMISSED,
 	TRAY_ICON_QUIT_CLICKED,
 	SIDE_BAR_SERVER_SELECTED,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 	SIDE_BAR_SERVERS_SORTED,
-	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
-	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
 	WEBVIEW_UNREAD_CHANGED,
 	WEBVIEW_TITLE_CHANGED,
 	WEBVIEW_FOCUS_REQUESTED,
@@ -47,8 +43,6 @@ import {
 	MAIN_WINDOW_STATE_CHANGED,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	DEEP_LINK_TRIGGERED,
-	UPDATES_CHECK_FAILED,
-	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 } from '../scripts/actions';
 import { MainWindow } from './MainWindow';
 import { AboutDialog } from './AboutDialog';
@@ -61,10 +55,11 @@ import { TrayIcon } from './TrayIcon';
 import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
-import { dispatch, subscribe, store, sagaMiddleware } from '../storeAndEffects';
-import { SagaMiddlewareProvider } from './SagaMiddlewareProvider';
+import { store, sagaMiddleware } from '../storeAndEffects';
+import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
+import { useUpdates } from '../hooks/useUpdates';
 
-export function App() {
+function AppContent() {
 	const { t } = useTranslation();
 
 	const [loading, setLoading] = useState(true);
@@ -83,11 +78,10 @@ export function App() {
 	const [newUpdateVersion, setNewUpdateVersion] = useState(null);
 	const [focusedWebContents, setFocusedWebContents] = useState(() => remote.getCurrentWebContents());
 	const [mainWindowState, setMainWindowState] = useState({});
-	const [canUpdate, setCanUpdate] = useState(false);
-	const [canSetAutoUpdate, setCanSetAutoUpdate] = useState(false);
-	const [canAutoUpdate, setCanAutoUpdate] = useState(false);
 	const [openDialog, setOpenDialog] = useState(null);
 	const [offline, setOffline] = useState(false);
+
+	const { updatesEnabled, checksForUpdatesOnStartup, updatesConfigurable } = useUpdates();
 
 	const globalBadge = useMemo(() => {
 		const mentionCount = Object.values(badges)
@@ -96,68 +90,70 @@ export function App() {
 		return mentionCount || (Object.values(badges).some((badge) => !!badge) && '•') || null;
 	}, [badges]);
 
-	useEffect(() => {
-		// eslint-disable-next-line complexity
-		const handleActionDispatched = async ({ type, payload = null }) => {
+	// eslint-disable-next-line complexity
+	useSaga(function *() {
+		while (true) {
+			const { type, payload } = yield take();
+
 			if (type === MENU_BAR_QUIT_CLICKED) {
 				remote.app.quit();
-				return;
+				continue;
 			}
 
 			if (type === TRAY_ICON_QUIT_CLICKED) {
 				remote.app.quit();
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_ABOUT_CLICKED) {
 				setOpenDialog('about');
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_OPEN_URL_CLICKED) {
 				const url = payload;
 				remote.shell.openExternal(url);
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_UNDO_CLICKED) {
 				focusedWebContents.undo();
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_REDO_CLICKED) {
 				focusedWebContents.redo();
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_CUT_CLICKED) {
 				focusedWebContents.cut();
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_COPY_CLICKED) {
 				focusedWebContents.copy();
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_PASTE_CLICKED) {
 				focusedWebContents.paste();
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_SELECT_ALL_CLICKED) {
 				focusedWebContents.selectAll();
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
 				servers.clearActive();
 				setCurrentServerUrl(null);
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_RESET_APP_DATA_CLICKED) {
-				const { response } = await remote.dialog.showMessageBox({
+				const { response } = yield call(::remote.dialog.showMessageBox, {
 					type: 'question',
 					buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
 					defaultId: 1,
@@ -166,12 +162,12 @@ export function App() {
 				});
 
 				if (response !== 0) {
-					return;
+					continue;
 				}
 
 				remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
 				remote.app.quit();
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_TOGGLE_SETTING_CLICKED) {
@@ -210,21 +206,21 @@ export function App() {
 						break;
 					}
 				}
-				return;
+				continue;
 			}
 
 			if (type === MENU_BAR_SELECT_SERVER_CLICKED) {
 				const server = payload;
 				servers.setActive(server.url);
 				setCurrentServerUrl(server.url);
-				return;
+				continue;
 			}
 
 			if (type === TOUCH_BAR_SELECT_SERVER_TOUCHED) {
 				const serverUrl = payload;
 				servers.setActive(serverUrl);
 				setCurrentServerUrl(serverUrl);
-				return;
+				continue;
 			}
 
 			if (type === ADD_SERVER_VIEW_SERVER_ADDED) {
@@ -237,52 +233,29 @@ export function App() {
 						.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
 					setCurrentServerUrl(url);
 				}
-				return;
+				continue;
 			}
 
 			if (type === ABOUT_DIALOG_DISMISSED) {
 				setOpenDialog(null);
-				return;
-			}
-
-			if (type === ABOUT_DIALOG_TOGGLE_UPDATE_ON_START) {
-				const updateOnStart = payload;
-				setCanAutoUpdate(updateOnStart);
-				updates.toggleCheckOnStartup(updateOnStart);
-				return;
-			}
-
-			if (type === ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED) {
-				updates.check();
-				return;
+				continue;
 			}
 
 			if (type === UPDATE_DIALOG_DISMISSED) {
 				setOpenDialog(null);
-				return;
-			}
-
-			if (type === UPDATE_DIALOG_SKIP_UPDATE_CLICKED) {
-				const skippedVersion = payload;
-				updates.skipVersion(skippedVersion);
-				return;
-			}
-
-			if (type === UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED) {
-				updates.download();
-				return;
+				continue;
 			}
 
 			if (type === SCREEN_SHARING_DIALOG_DISMISSED) {
 				setOpenDialog(null);
-				return;
+				continue;
 			}
 
 			if (type === SIDE_BAR_SERVER_SELECTED) {
 				const hostUrl = payload;
 				servers.setActive(hostUrl);
 				setCurrentServerUrl(hostUrl);
-				return;
+				continue;
 			}
 
 			if (type === SIDE_BAR_REMOVE_SERVER_CLICKED) {
@@ -293,13 +266,13 @@ export function App() {
 				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
 				setServers(Object.values(servers.hosts)
 					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
-				return;
+				continue;
 			}
 
 			if (type === SIDE_BAR_ADD_NEW_SERVER_CLICKED) {
 				servers.clearActive();
 				setCurrentServerUrl(null);
-				return;
+				continue;
 			}
 
 			if (type === SIDE_BAR_SERVERS_SORTED) {
@@ -307,7 +280,7 @@ export function App() {
 				localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));
 				setServers(Object.values(servers.hosts)
 					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
-				return;
+				continue;
 			}
 
 			if (type === WEBVIEW_UNREAD_CHANGED) {
@@ -317,7 +290,7 @@ export function App() {
 					...badges,
 					[url]: badge || null,
 				}));
-				return;
+				continue;
 			}
 
 			if (type === WEBVIEW_TITLE_CHANGED) {
@@ -326,14 +299,14 @@ export function App() {
 				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
 				setServers(Object.values(servers.hosts)
 					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
-				return;
+				continue;
 			}
 
 			if (type === WEBVIEW_FOCUS_REQUESTED) {
 				const { url } = payload;
 				servers.setActive(url);
 				setCurrentServerUrl(url);
-				return;
+				continue;
 			}
 
 			if (type === WEBVIEW_SIDEBAR_STYLE_CHANGED) {
@@ -342,7 +315,7 @@ export function App() {
 					...styles,
 					[url]: style || null,
 				}));
-				return;
+				continue;
 			}
 
 			if (type === WEBVIEW_DID_NAVIGATE) {
@@ -354,29 +327,29 @@ export function App() {
 				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
 				setServers(Object.values(servers.hosts)
 					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
-				return;
+				continue;
 			}
 
 			if (type === WEBVIEW_FOCUSED) {
 				const { webContentsId } = payload;
 				setFocusedWebContents(remote.webContents.fromId(webContentsId));
-				return;
+				continue;
 			}
 
 			if (type === WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED) {
 				setOpenDialog('screen-sharing');
-				return;
+				continue;
 			}
 
 			if (type === MAIN_WINDOW_STATE_CHANGED) {
 				setMainWindowState(payload);
-				return;
+				continue;
 			}
 
 			if (type === UPDATES_NEW_VERSION_AVAILABLE) {
 				setNewUpdateVersion(payload);
 				setOpenDialog('update');
-				return;
+				continue;
 			}
 
 			if (type === DEEP_LINK_TRIGGERED) {
@@ -384,19 +357,17 @@ export function App() {
 				if (servers.hostExists(url)) {
 					servers.setActive(url);
 					setCurrentServerUrl(url);
-					return;
+					continue;
 				}
 
-				await servers.showHostConfirmation(url);
+				yield call(::servers.showHostConfirmation, url);
 				setCurrentServerUrl(url);
 				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
 				setServers(Object.values(servers.hosts)
 					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
 			}
-		};
-
-		return subscribe(handleActionDispatched);
-	}, []);
+		}
+	}, [focusedWebContents]);
 
 	useEffect(() => {
 		const handleConnectionStatus = () => {
@@ -483,6 +454,8 @@ export function App() {
 		return unsubscribe;
 	}, []);
 
+	const dispatch = useDispatch();
+
 	useEffect(() => {
 		setupCertificates();
 		setupSpellChecking();
@@ -493,137 +466,72 @@ export function App() {
 		remote.process.argv.slice(2).forEach(processDeepLink);
 
 		window.dispatch = dispatch;
-
-		const subscribe = async () => {
-			let checking = false;
-
-			updates.addListener(updates.constants.CHECKING_EVENT, () => {
-				checking = true;
-			});
-
-			updates.addListener(updates.constants.NOT_AVAILABLE_EVENT, () => {
-				checking = false;
-				dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
-			});
-
-			updates.addListener(updates.constants.SKIPPED_EVENT, () => {
-				checking = false;
-				dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
-			});
-
-			updates.addListener(updates.constants.AVAILABLE_EVENT, async (version) => {
-				dispatch({ type: UPDATES_NEW_VERSION_AVAILABLE, payload: version });
-			});
-
-			updates.addListener(updates.constants.DOWNLOADED_EVENT, async () => {
-				const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-					type: 'question',
-					title: t('dialog.updateReady.title'),
-					message: t('dialog.updateReady.message'),
-					buttons: [
-						t('dialog.updateReady.installLater'),
-						t('dialog.updateReady.installNow'),
-					],
-					defaultId: 1,
-				});
-
-				if (response === 0) {
-					await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-						type: 'info',
-						title: t('dialog.updateInstallLater.title'),
-						message: t('dialog.updateInstallLater.message'),
-						buttons: [t('dialog.updateInstallLater.ok')],
-						defaultId: 0,
-					});
-					return;
-				}
-
-				remote.getCurrentWindow().removeAllListeners();
-				remote.app.removeAllListeners('window-all-closed');
-				updates.install();
-			});
-
-			updates.addListener(updates.constants.ERROR_EVENT, () => {
-				if (checking) {
-					dispatch({ type: UPDATES_CHECK_FAILED });
-				}
-			});
-
-			await updates.setUp();
-			setCanUpdate(updates.enabled);
-			setCanSetAutoUpdate(updates.configurable);
-			setCanAutoUpdate(updates.checkOnStartup);
-		};
-
-		const unsubscribe = async () => {
-			await updates.tearDown();
-		};
-
-		subscribe();
-		window.addEventListener('beforeunload', unsubscribe);
-		return unsubscribe;
 	}, []);
 
+	return <MainWindow
+		badge={hasTrayIcon ? undefined : globalBadge}
+		loading={loading}
+		offline={offline}
+		showWindowOnUnreadChanged={showWindowOnUnreadChanged}
+	>
+		<MenuBar
+			showTrayIcon={hasTrayIcon}
+			showFullScreen={mainWindowState.fullscreen}
+			showWindowOnUnreadChanged={showWindowOnUnreadChanged}
+			showMenuBar={hasMenuBar}
+			showServerList={hasSidebar}
+			servers={_servers}
+			currentServerUrl={currentServerUrl}
+		/>
+		<SideBar
+			servers={_servers}
+			currentServerUrl={currentServerUrl}
+			badges={badges}
+			visible={hasSidebar}
+			styles={styles}
+		/>
+		<ServersView
+			servers={_servers}
+			currentServerUrl={currentServerUrl}
+			hasSidebar={hasSidebar}
+		/>
+		<AddServerView
+			validator={(url) => servers.validateHost(url, 2000)}
+			visible={currentServerUrl === null}
+		/>
+		<AboutDialog
+			canUpdate={updatesEnabled}
+			canSetAutoUpdate={updatesConfigurable}
+			canAutoUpdate={checksForUpdatesOnStartup}
+			visible={openDialog === 'about'}
+		/>
+		<UpdateDialog
+			newVersion={newUpdateVersion}
+			visible={openDialog === 'update'}
+		/>
+		<ScreenSharingDialog
+			visible={openDialog === 'screen-sharing'}
+		/>
+		<Dock
+			badge={globalBadge}
+		/>
+		<TrayIcon
+			badge={globalBadge}
+			show={!mainWindowState.visible || !mainWindowState.focused}
+			visible={hasTrayIcon}
+		/>
+		<TouchBar
+			servers={_servers}
+			currentServerUrl={currentServerUrl}
+		/>
+	</MainWindow>;
+}
+
+export function App() {
 	return <Provider store={store}>
 		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>
-				<MainWindow
-					badge={hasTrayIcon ? undefined : globalBadge}
-					loading={loading}
-					offline={offline}
-					showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-				>
-					<MenuBar
-						showTrayIcon={hasTrayIcon}
-						showFullScreen={mainWindowState.fullscreen}
-						showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-						showMenuBar={hasMenuBar}
-						showServerList={hasSidebar}
-						servers={_servers}
-						currentServerUrl={currentServerUrl}
-					/>
-					<SideBar
-						servers={_servers}
-						currentServerUrl={currentServerUrl}
-						badges={badges}
-						visible={hasSidebar}
-						styles={styles}
-					/>
-					<ServersView
-						servers={_servers}
-						currentServerUrl={currentServerUrl}
-						hasSidebar={hasSidebar}
-					/>
-					<AddServerView
-						validator={(url) => servers.validateHost(url, 2000)}
-						visible={currentServerUrl === null}
-					/>
-					<AboutDialog
-						canUpdate={canUpdate}
-						canSetAutoUpdate={canSetAutoUpdate}
-						canAutoUpdate={canAutoUpdate}
-						visible={openDialog === 'about'}
-					/>
-					<UpdateDialog
-						newVersion={newUpdateVersion}
-						visible={openDialog === 'update'}
-					/>
-					<ScreenSharingDialog
-						visible={openDialog === 'screen-sharing'}
-					/>
-					<Dock
-						badge={globalBadge}
-					/>
-					<TrayIcon
-						badge={globalBadge}
-						show={!mainWindowState.visible || !mainWindowState.focused}
-						visible={hasTrayIcon}
-					/>
-					<TouchBar
-						servers={_servers}
-						currentServerUrl={currentServerUrl}
-					/>
-				</MainWindow>
+				<AppContent />
 			</I18nextProvider>
 		</SagaMiddlewareProvider>
 	</Provider>;

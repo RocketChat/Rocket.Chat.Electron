@@ -283,6 +283,7 @@ export function MainWindow({
 	browserWindow = remote.getCurrentWindow(),
 	children,
 	loading = true,
+	offline = false,
 	showWindowOnUnreadChanged = false,
 }) {
 	const dispatch = useDispatch();
@@ -395,6 +396,10 @@ export function MainWindow({
 			browserWindow.flashFrame(true);
 		});
 	}, [browserWindow, showWindowOnUnreadChanged]);
+
+	useEffect(() => {
+		document.body.classList.toggle('offline', offline);
+	}, [offline]);
 
 	return <div className={['app-page', loading && 'app-page--loading'].filter(Boolean).join(' ')}>
 		<div className='drag-region' />

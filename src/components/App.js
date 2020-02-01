@@ -91,6 +91,7 @@ export function App() {
 	const [canSetAutoUpdate, setCanSetAutoUpdate] = useState(false);
 	const [canAutoUpdate, setCanAutoUpdate] = useState(false);
 	const [openDialog, setOpenDialog] = useState(null);
+	const [offline, setOffline] = useState(false);
 
 	const globalBadge = useMemo(() => {
 		const mentionCount = Object.values(badges)
@@ -403,7 +404,7 @@ export function App() {
 
 	useEffect(() => {
 		const handleConnectionStatus = () => {
-			document.body.classList.toggle('offline', !navigator.onLine);
+			setOffline(!navigator.onLine);
 		};
 
 		handleConnectionStatus();
@@ -509,6 +510,7 @@ export function App() {
 				<MainWindow
 					badge={hasTrayIcon ? undefined : globalBadge}
 					loading={loading}
+					offline={offline}
 					showWindowOnUnreadChanged={showWindowOnUnreadChanged}
 				>
 					<MenuBar

@@ -1,5 +1,5 @@
 import { remote, shell, clipboard } from 'electron';
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { call, takeEvery } from 'redux-saga/effects';
@@ -247,28 +247,30 @@ export function WebUiView({
 	hasSidebar = false,
 	lastPath,
 	url,
-	onLoad,
-	onFail,
 }) {
 	const dispatch = useDispatch();
 
 	const { t } = useTranslation();
 
-	const [root] = useState(() => {
-		const root = document.createElement('webview');
-		document.body.append(root);
-		return root;
-	});
+	const containerRef = useRef();
+	const rootRef = useRef();
 
 	useEffect(() => {
+		const root = document.createElement('webview');
+		rootRef.current = root;
+
 		root.classList.add('webview');
 		root.setAttribute('preload', '../preload.js');
 		root.toggleAttribute('allowpopups', true);
 		root.toggleAttribute('disablewebsecurity', false);
 		root.setAttribute('enableremotemodule', 'true');
+
+		containerRef.current.append(root);
 	}, []);
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		root.classList.toggle('active', active);
 
 		if (active) {
@@ -277,6 +279,8 @@ export function WebUiView({
 	}, [active]);
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		const handleWindowFocus = () => {
 			if (!active) {
 				return;
@@ -293,6 +297,8 @@ export function WebUiView({
 	}, [active]);
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		root.classList.toggle('hidden', failed);
 		root.classList.toggle('failed', failed);
 	}, [failed]);
@@ -300,6 +306,7 @@ export function WebUiView({
 	const prevFailedRef = useRef(failed);
 
 	useEffect(() => {
+		const root = rootRef.current;
 		if (prevFailedRef.current === failed) {
 			return;
 		}
@@ -312,6 +319,7 @@ export function WebUiView({
 	}, [url, failed]);
 
 	useEffect(() => {
+		const root = rootRef.current;
 		const webContentsId = root.getWebContents().id;
 
 		const handleFocus = () => {
@@ -326,6 +334,7 @@ export function WebUiView({
 	}, [url]);
 
 	useEffect(() => {
+		const root = rootRef.current;
 		const handleContextMenu = async (event) => {
 			const props = await computeProps(event.params);
 
@@ -348,6 +357,8 @@ export function WebUiView({
 	}, []);
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		const handleDidNavigateInPage = (event) => {
 			dispatch({ type: WEBVIEW_DID_NAVIGATE, payload: { url, pageUrl: event.url } });
 		};
@@ -362,6 +373,8 @@ export function WebUiView({
 	const [ready, setReady] = useState(false);
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		const handleDomReady = () => {
 			setReady(true);
 		};
@@ -374,10 +387,12 @@ export function WebUiView({
 	}, []);
 
 	useEffect(() => {
+		const root = rootRef.current;
 		root.classList.toggle('ready', ready);
 	}, [ready]);
 
 	useEffect(() => {
+		const root = rootRef.current;
 		const webContentsId = root.getWebContents().id;
 
 		const handleIpcMessage = (event) => {
@@ -420,8 +435,9 @@ export function WebUiView({
 	}, []);
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		const handleDidFinishLoad = () => {
-			onLoad && onLoad();
 			dispatch({ type: WEBVIEW_LOADING_DONE, payload: { webContentsId: root.getWebContents().id, url } });
 		};
 
@@ -430,23 +446,23 @@ export function WebUiView({
 		return () => {
 			root.removeEventListener('did-finish-load', handleDidFinishLoad);
 		};
-	}, [onLoad]);
+	}, []);
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		const handleDidFailLoad = (e) => {
 			if (e.errorCode === -3) {
 				console.warn('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
 				return;
 			}
 			if (e.isMainFrame) {
-				onFail && onFail();
 				dispatch({ type: WEBVIEW_LOADING_FAILED, payload: { webContentsId: root.getWebContents().id, url } });
 			}
 		};
 
 		const handleDidGetResponseDetails = (e) => {
 			if (e.resourceType === 'mainFrame' && e.httpResponseCode >= 500) {
-				onFail && onFail();
 				dispatch({ type: WEBVIEW_LOADING_FAILED, payload: { webContentsId: root.getWebContents().id, url } });
 			}
 		};
@@ -458,9 +474,11 @@ export function WebUiView({
 			root.removeEventListener('did-fail-load', handleDidFailLoad);
 			root.removeEventListener('did-get-response-details', handleDidGetResponseDetails);
 		};
-	}, [onFail]);
+	}, []);
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		const handleDidStartLoading = () => {
 			dispatch({ type: WEBVIEW_LOADING_STARTED, payload: { webContentsId: root.getWebContents().id, url } });
 		};
@@ -473,6 +491,8 @@ export function WebUiView({
 	}, [dispatch]);
 
 	useEffect(() => {
+		const root = rootRef.current;
+
 		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 		const handle = (_, { type, key }) => {
 			if (key !== shortcutKey) {
@@ -501,6 +521,7 @@ export function WebUiView({
 				return;
 			}
 
+			const root = rootRef.current;
 			root.reload();
 		});
 
@@ -509,6 +530,7 @@ export function WebUiView({
 				return;
 			}
 
+			const root = rootRef.current;
 			root.openDevTools();
 		});
 
@@ -517,6 +539,7 @@ export function WebUiView({
 				return;
 			}
 
+			const root = rootRef.current;
 			root.send('format-button-touched', payload);
 		});
 
@@ -525,6 +548,7 @@ export function WebUiView({
 				return;
 			}
 
+			const root = rootRef.current;
 			root.send('screen-sharing-source-selected', payload);
 		});
 
@@ -532,6 +556,8 @@ export function WebUiView({
 			if (!active) {
 				return;
 			}
+
+			const root = rootRef.current;
 
 			if (ignoringCache) {
 				root.reloadIgnoringCache();
@@ -546,6 +572,7 @@ export function WebUiView({
 				return;
 			}
 
+			const root = rootRef.current;
 			root.openDevTools();
 		});
 
@@ -553,7 +580,7 @@ export function WebUiView({
 			if (!active) {
 				return;
 			}
-
+			const root = rootRef.current;
 			root.goBack();
 		});
 
@@ -561,16 +588,19 @@ export function WebUiView({
 			if (!active) {
 				return;
 			}
-
+			const root = rootRef.current;
 			root.goForward();
 		});
 
 		yield takeEvery(MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED, function *() {
+			const root = rootRef.current;
 			root.reloadIgnoringCache();
 		});
 
 		yield takeEvery(CERTIFICATE_TRUST_REQUESTED, function *({ payload }) {
 			const { webContentsId, url, error, fingerprint, issuerName, willBeReplaced } = payload;
+
+			const root = rootRef.current;
 
 			if (webContentsId !== root.getWebContents().id) {
 				return;
@@ -600,12 +630,14 @@ export function WebUiView({
 
 			dispatch({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { fingerprint } });
 		});
-	}, [root, url, active, failed]);
+	}, [url, active, failed]);
 
 	useEffect(() => {
 		if (process.platform !== 'darwin') {
 			return;
 		}
+
+		const root = rootRef.current;
 
 		if (!root.classList.contains('ready')) {
 			return;
@@ -615,8 +647,9 @@ export function WebUiView({
 	}, [hasSidebar]);
 
 	useEffect(() => {
+		const root = rootRef.current;
 		root.src = lastPath || url;
 	}, [url]);
 
-	return null;
+	return <div ref={containerRef} />;
 }

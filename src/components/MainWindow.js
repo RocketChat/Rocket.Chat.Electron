@@ -312,10 +312,6 @@ export function MainWindow({
 		browserWindow.flashFrame(!browserWindow.isFocused() && count > 0);
 	}, [badge, browserWindow]);
 
-	useEffect(() => {
-		document.querySelector('.app-page').classList.toggle('app-page--loading', loading);
-	}, [loading]);
-
 	useSaga(function *() {
 		yield takeEvery([
 			MENU_BAR_ABOUT_CLICKED,
@@ -400,7 +396,8 @@ export function MainWindow({
 		});
 	}, [browserWindow, showWindowOnUnreadChanged]);
 
-	return <>
+	return <div className={['app-page', loading && 'app-page--loading'].filter(Boolean).join(' ')}>
+		<div className='drag-region' />
 		{children}
-	</>;
+	</div>;
 }

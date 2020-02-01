@@ -1,7 +1,7 @@
 import { parse as parseUrl } from 'url';
 
 import { remote } from 'electron';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
@@ -14,6 +14,8 @@ import {
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 	SIDE_BAR_SERVERS_SORTED,
 	WEBVIEW_FAVICON_CHANGED,
+	WEBVIEW_SHORTCUT_KEY_DOWN,
+	WEBVIEW_SHORTCUT_KEY_UP,
 } from '../scripts/actions';
 import { useSaga } from './SagaMiddlewareProvider';
 
@@ -26,154 +28,89 @@ function ServerButton({
 	mentionCount,
 }) {
 	const dispatch = useDispatch();
-	const [serverListRoot] = useState(() => document.querySelector('.sidebar .sidebar__server-list'));
 	const { t } = useTranslation();
 
 	const [favicon, setFavicon] = useState();
+	const [faviconLoaded, setFaviconLoaded] = useState(false);
+	const [dragged, setDragged] = useState(false);
 
-	useEffect(() => {
-		const handleServerClick = (url) => {
-			dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
-		};
+	const handleServerClick = (url) => {
+		dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
+	};
 
-		const handleServerContextMenu = (url, event) => {
-			event.preventDefault();
+	const handleServerContextMenu = (url, event) => {
+		event.preventDefault();
 
-			const menu = remote.Menu.buildFromTemplate([
-				{
-					label: t('sidebar.item.reload'),
-					click: () => dispatch({ type: SIDE_BAR_RELOAD_SERVER_CLICKED, payload: url }),
-				},
-				{
-					label: t('sidebar.item.remove'),
-					click: () => dispatch({ type: SIDE_BAR_REMOVE_SERVER_CLICKED, payload: url }),
-				},
-				{
-					label: t('sidebar.item.openDevTools'),
-					click: () => dispatch({ type: SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, payload: url }),
-				},
-			]);
-			menu.popup(remote.getCurrentWindow());
-		};
+		const menu = remote.Menu.buildFromTemplate([
+			{
+				label: t('sidebar.item.reload'),
+				click: () => dispatch({ type: SIDE_BAR_RELOAD_SERVER_CLICKED, payload: url }),
+			},
+			{
+				label: t('sidebar.item.remove'),
+				click: () => dispatch({ type: SIDE_BAR_REMOVE_SERVER_CLICKED, payload: url }),
+			},
+			{
+				label: t('sidebar.item.openDevTools'),
+				click: () => dispatch({ type: SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, payload: url }),
+			},
+		]);
+		menu.popup(remote.getCurrentWindow());
+	};
 
-		const handleDragStart = (event) => {
-			const serverElement = event.currentTarget;
-			serverElement.classList.add('server--dragged');
+	const handleDragStart = (event) => {
+		event.dataTransfer.dropEffect = 'move';
+		event.dataTransfer.effectAllowed = 'move';
+		setDragged(true);
+	};
 
-			event.dataTransfer.dropEffect = 'move';
-			event.dataTransfer.effectAllowed = 'move';
-		};
+	const handleDragEnd = () => {
+		setDragged(false);
+	};
 
-		const handleDragEnd = (event) => {
-			const serverElement = event.currentTarget;
-			serverElement.classList.remove('server--dragged');
-		};
+	const [serverListRoot] = useState(() => document.querySelector('.sidebar .sidebar__server-list'));
 
-		const handleDragEnter = (event) => {
-			const draggedServerElement = serverListRoot.querySelector('.server--dragged');
-			const targetServerElement = event.currentTarget;
+	const handleDragEnter = (event) => {
+		const draggedServerElement = serverListRoot.querySelector('.server--dragged');
+		const targetServerElement = event.currentTarget;
 
-			const isTargetBeforeDragged = (() => {
-				for (let current = draggedServerElement; current; current = current.previousSibling) {
-					if (current === targetServerElement) {
-						return true;
-					}
+		const isTargetBeforeDragged = (() => {
+			for (let current = draggedServerElement; current; current = current.previousSibling) {
+				if (current === targetServerElement) {
+					return true;
 				}
-
-				return false;
-			})();
-
-			if (isTargetBeforeDragged) {
-				serverListRoot.insertBefore(draggedServerElement, targetServerElement);
-			} else if (targetServerElement !== serverListRoot.lastChild) {
-				serverListRoot.insertBefore(draggedServerElement, targetServerElement.nextSibling);
-			} else {
-				serverListRoot.appendChild(draggedServerElement);
 			}
-		};
 
-		const handleDrop = (event) => {
-			event.preventDefault();
+			return false;
+		})();
 
-			const serverElement = event.currentTarget;
-
-			const newSorting = Array.from(serverListRoot.querySelectorAll('.server'))
-				.map((serverElement) => serverElement.dataset.url);
-
-			dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: newSorting });
-			dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: serverElement.dataset.url });
-		};
-
-		const initials = title
-			.replace(url, parseUrl(url).hostname)
-			.split(/[^A-Za-z0-9]+/g)
-			.slice(0, 2)
-			.map((text) => text.slice(0, 1).toUpperCase())
-			.join('');
-
-		const node = document.querySelector(`.sidebar .server[data-url="${ url }"]`);
-		const serverElement = node || document.createElement('li');
-		const initialsElement = node ? node.querySelector('.server__initials') : document.createElement('span');
-		const faviconElement = node ? node.querySelector('.server__favicon') : document.createElement('img');
-		const badgeElement = node ? node.querySelector('.server__badge') : document.createElement('div');
-		const shortcutElement = node ? node.querySelector('.server__shortcut') : document.createElement('div');
-
-		serverElement.setAttribute('draggable', 'true');
-		serverElement.dataset.url = url;
-		serverElement.dataset.tooltip = title;
-		serverElement.classList.add('sidebar__list-item');
-		serverElement.classList.add('server');
-		serverElement.classList.toggle('server--active', active);
-		serverElement.classList.toggle('server--unread', hasUnreadMessages);
-		serverElement.onclick = handleServerClick.bind(null, url);
-		serverElement.oncontextmenu = handleServerContextMenu.bind(null, url);
-		serverElement.ondragstart = handleDragStart;
-		serverElement.ondragend = handleDragEnd;
-		serverElement.ondragenter = handleDragEnter;
-		serverElement.ondragover = (event) => event.preventDefault();
-		serverElement.ondrop = handleDrop;
-
-		initialsElement.classList.add('server__initials');
-		initialsElement.innerText = initials;
-
-		faviconElement.setAttribute('draggable', 'false');
-		faviconElement.classList.add('server__favicon');
-		faviconElement.onload = () => {
-			serverElement.classList.add('server--with-favicon');
-		};
-		faviconElement.onerror = () => {
-			serverElement.classList.remove('server--with-favicon');
-		};
-		if (favicon) {
-			faviconElement.src = favicon;
+		if (isTargetBeforeDragged) {
+			serverListRoot.insertBefore(draggedServerElement, targetServerElement);
+		} else if (targetServerElement !== serverListRoot.lastChild) {
+			serverListRoot.insertBefore(draggedServerElement, targetServerElement.nextSibling);
 		} else {
-			faviconElement.removeAttribute('src');
+			serverListRoot.appendChild(draggedServerElement);
 		}
+	};
 
-		badgeElement.classList.add('server__badge');
-		badgeElement.innerText = Number.isInteger(mentionCount) ? String(mentionCount) : '';
+	const handleDrop = (event) => {
+		event.preventDefault();
 
-		shortcutElement.classList.add('server__shortcut');
-		shortcutElement.innerText = `${ process.platform === 'darwin' ? '⌘' : '^' }${ order + 1 }`;
+		const serverElement = event.currentTarget;
 
-		if (!node) {
-			serverElement.appendChild(initialsElement);
-			serverElement.appendChild(faviconElement);
-			serverElement.appendChild(badgeElement);
-			serverElement.appendChild(shortcutElement);
-		}
+		const newSorting = Array.from(serverListRoot.querySelectorAll('.server'))
+			.map((serverElement) => serverElement.dataset.url);
 
-		const shouldAppend = !node || order !== Array.from(serverListRoot.children).indexOf(serverElement);
+		dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: newSorting });
+		dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: serverElement.dataset.url });
+	};
 
-		if (shouldAppend) {
-			serverListRoot.appendChild(serverElement);
-		}
-	});
-
-	useEffect(() => () => {
-		const serverElement = document.querySelector(`.sidebar .sidebar__server-list .server[data-url='${ url }']`);
-		serverElement.remove();
-	}, []);
+	const initials = useMemo(() => title
+		.replace(url, parseUrl(url).hostname)
+		.split(/[^A-Za-z0-9]+/g)
+		.slice(0, 2)
+		.map((text) => text.slice(0, 1).toUpperCase())
+		.join(''), [title, url]);
 
 	useSaga(function *() {
 		yield takeEvery(WEBVIEW_FAVICON_CHANGED, function *({ payload: { url: _url, favicon } }) {
@@ -185,7 +122,41 @@ function ServerButton({
 		});
 	}, []);
 
-	return null;
+	return <li
+		className={[
+			'sidebar__list-item',
+			'server',
+			active && 'server--active',
+			hasUnreadMessages && 'server--unread',
+			faviconLoaded && 'server--with-favicon',
+			dragged && 'server--dragged',
+		].filter(Boolean).join(' ')}
+		draggable='true'
+		data-url={url}
+		data-tooltip={title}
+		onClick={handleServerClick.bind(null, url)}
+		onContextMenu={handleServerContextMenu.bind(null, url)}
+		onDragStart={handleDragStart}
+		onDragEnd={handleDragEnd}
+		onDragEnter={handleDragEnter}
+		onDragOver={(event) => event.preventDefault()}
+		onDrop={handleDrop}
+	>
+		<span className='server__initials'>{initials}</span>
+		<img
+			className='server__favicon'
+			draggable='false'
+			src={favicon}
+			onLoad={() => setFaviconLoaded(true)}
+			onError={() => setFaviconLoaded(false)}
+		/>
+		<div className='server__badge'>
+			{Number.isInteger(mentionCount) ? String(mentionCount) : ''}
+		</div>
+		<div className='server__shortcut'>
+			{process.platform === 'darwin' ? '⌘' : '^'}{order + 1}
+		</div>
+	</li>;
 }
 
 export function SideBar({
@@ -197,62 +168,92 @@ export function SideBar({
 }) {
 	const dispatch = useDispatch();
 	const { t } = useTranslation();
-	const [root] = useState(() => document.querySelector('.sidebar'));
-	const [serverListRoot] = useState(() => document.querySelector('.sidebar .sidebar__server-list'));
 
 	const [showShortcuts, setShowShortcuts] = useState(false);
 
 	useEffect(() => {
-		root.classList.toggle('sidebar--macos', process.platform === 'darwin');
+		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 
-		// TODO: use globalShortcut and mainWindow focus
-		window.onkeydown = (event) => {
-			const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
-			if (event.key === shortcutKey) {
-				setShowShortcuts(true);
+		const handleKeyDown = ({ key }) => {
+			if (shortcutKey !== key) {
+				return;
 			}
+
+			setShowShortcuts(true);
 		};
 
-		window.onkeyup = (event) => {
-			const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
-			if (event.key === shortcutKey) {
-				setShowShortcuts(false);
+		const handleKeyUp = ({ key }) => {
+			if (shortcutKey !== key) {
+				return;
 			}
+
+			setShowShortcuts(false);
 		};
 
-		root.querySelector('.sidebar__add-server').onclick = () => {
-			dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
+		window.addEventListener('keydown', handleKeyDown);
+		window.addEventListener('keyup', handleKeyUp);
+
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown);
+			window.removeEventListener('keyup', handleKeyUp);
 		};
-	}, [dispatch]);
+	}, []);
 
-	useEffect(() => {
-		root.classList.toggle('sidebar--hidden', !visible);
-		serverListRoot.classList.toggle('sidebar__server-list--shortcuts', showShortcuts);
+	useSaga(function *() {
+		yield takeEvery(WEBVIEW_SHORTCUT_KEY_DOWN, function *() {
+			setShowShortcuts(true);
+		});
 
-		const style = styles[currentServerUrl] || {};
-		root.style.setProperty('--background', style.background || '');
-		root.style.setProperty('--color', style.color || '');
+		yield takeEvery(WEBVIEW_SHORTCUT_KEY_UP, function *() {
+			setShowShortcuts(false);
+		});
+	}, []);
 
-		root.querySelector('.sidebar__add-server').dataset.tooltip = t('sidebar.addNewServer');
-	}, [
-		servers,
-		currentServerUrl,
-		visible,
-		badges,
-		styles,
-		showShortcuts,
-		dispatch,
-	]);
+	const {
+		background,
+		color,
+	} = styles[currentServerUrl] || {};
 
-	return <>
-		{servers.map((server, order) => <ServerButton
-			key={server.url}
-			url={server.url}
-			title={server.title}
-			order={order}
-			active={currentServerUrl === server.url}
-			hasUnreadMessages={!!badges[server.url]}
-			mentionCount={badges[server.url] || badges[server.url] === 0 ? parseInt(badges[server.url], 10) : null}
-		/>)}
-	</>;
+	const handleAddServerButtonClicked = () => {
+		dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
+	};
+
+	return <div
+		className={[
+			'sidebar',
+			!visible && 'sidebar--hidden',
+			process.platform === 'darwin' && 'sidebar--macos',
+		].filter(Boolean).join(' ')}
+		style={{
+			'--background': background,
+			'--color': color,
+		}}
+	>
+		<div className='sidebar__inner'>
+			<ol
+				className={[
+					'sidebar__list',
+					'sidebar__server-list',
+					showShortcuts && 'sidebar__server-list--shortcuts',
+				].filter(Boolean).join(' ')}
+			>
+				{servers.map((server, order) => <ServerButton
+					key={server.url}
+					url={server.url}
+					title={server.title}
+					order={order}
+					active={currentServerUrl === server.url}
+					hasUnreadMessages={!!badges[server.url]}
+					mentionCount={badges[server.url] || badges[server.url] === 0 ? parseInt(badges[server.url], 10) : null}
+				/>)}
+			</ol>
+			<button
+				className='sidebar__action sidebar__add-server'
+				data-tooltip={t('sidebar.addNewServer')}
+				onClick={handleAddServerButtonClicked}
+			>
+				<span className='sidebar__action-label'>+</span>
+			</button>
+		</div>
+	</div>;
 }

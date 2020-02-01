@@ -29,6 +29,8 @@ import {
 	WEBVIEW_LOADING_STARTED,
 	WEBVIEW_LOADING_FAILED,
 	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+	WEBVIEW_SHORTCUT_KEY_UP,
+	WEBVIEW_SHORTCUT_KEY_DOWN,
 } from '../scripts/actions';
 import {
 	getSpellCheckingCorrections,
@@ -469,6 +471,26 @@ export function WebUiView({
 			root.removeEventListener('did-start-loading', handleDidStartLoading);
 		};
 	}, [dispatch]);
+
+	useEffect(() => {
+		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
+		const handle = (_, { type, key }) => {
+			if (key !== shortcutKey) {
+				return;
+			}
+
+			dispatch({
+				type: type === 'keyUp' ? WEBVIEW_SHORTCUT_KEY_UP : WEBVIEW_SHORTCUT_KEY_DOWN,
+				payload: { webContentsId: root.getWebContents().id, url },
+			});
+		};
+
+		root.getWebContents().addListener('before-input-event', handle);
+
+		return () => {
+			root.getWebContents().removeListener('before-input-event', handle);
+		};
+	}, []);
 
 	useSaga(function *() {
 		yield takeEvery([

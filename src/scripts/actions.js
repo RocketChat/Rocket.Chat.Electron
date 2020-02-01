@@ -64,6 +64,8 @@ export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
 export const WEBVIEW_LOADING_DONE = 'webview/loading-done';
 export const WEBVIEW_LOADING_STARTED = 'webview/loading-started';
 export const WEBVIEW_LOADING_FAILED = 'webview/loading-failed';
+export const WEBVIEW_SHORTCUT_KEY_DOWN = 'webview/shortcut-key-down';
+export const WEBVIEW_SHORTCUT_KEY_UP = 'webview/shortcut-key-up';
 
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED = 'loading-error-view/reload-server-clicked';
 

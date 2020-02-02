@@ -1,8 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import {
+	SPELL_CHECKING_DICTIONARIES_UPDATED,
+	SPELL_CHECKING_READY,
+} from '../actions';
 import spellChecking from '../services/spellChecking';
-import { SPELL_CHECKING_DICTIONARIES_UPDATED } from '../actions';
 
 const SpellCheckingContext = createContext();
 
@@ -10,6 +13,21 @@ export function SpellCheckingProvider({ children, service = spellChecking }) {
 	const spellChecking = service;
 
 	const dispatch = useDispatch();
+
+	useEffect(() => {
+		spellChecking.setUp().then(() => {
+			dispatch({
+				type: SPELL_CHECKING_READY,
+				payload: {
+					available: spellChecking.getAvailableDictionaries(),
+					enabled: spellChecking.getEnabledDictionaries(),
+				},
+			});
+		});
+
+		window.addEventListener('beforeunload', ::spellChecking.tearDown);
+		return ::spellChecking.tearDown;
+	}, [spellChecking, dispatch]);
 
 	const spellCheckingDictionariesUpdated = useCallback(() => {
 		dispatch({
@@ -20,15 +38,6 @@ export function SpellCheckingProvider({ children, service = spellChecking }) {
 			},
 		});
 	}, [dispatch, spellChecking]);
-
-	useEffect(() => {
-		spellChecking.setUp().then(() => {
-			spellCheckingDictionariesUpdated();
-		});
-
-		window.addEventListener('beforeunload', ::spellChecking.tearDown);
-		return ::spellChecking.tearDown;
-	}, [spellChecking, spellCheckingDictionariesUpdated]);
 
 	const value = useMemo(() => ({
 		spellChecking,

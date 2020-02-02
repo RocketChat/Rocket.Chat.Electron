@@ -44,7 +44,7 @@ const handleUpdateNotAvailable = () => {
 	emitter.emit(NOT_AVAILABLE_EVENT);
 };
 
-const handleDownloadProgress = console.log;
+const handleDownloadProgress = () => {};
 
 const handleUpdateDownloaded = async () => {
 	emitter.emit(DOWNLOADED_EVENT);

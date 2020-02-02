@@ -14,15 +14,19 @@ import {
 	UPDATES_CHECK_FAILED,
 } from '../actions.js';
 import { useSaga } from './SagaMiddlewareProvider';
+import { useUpdatesParameters } from './UpdatesProvider.js';
 
 export function AboutDialog({
 	appVersion = remote.app.getVersion(),
 	copyright = pkg.copyright,
-	canUpdate = false,
-	canAutoUpdate = false,
-	canSetAutoUpdate = false,
 	visible = false,
 }) {
+	const {
+		updatesEnabled: canUpdate = false,
+		checksForUpdatesOnStartup: canAutoUpdate = false,
+		updatesConfigurable: canSetAutoUpdate = false,
+	} = useUpdatesParameters();
+
 	const rootRef = useRef();
 	const dispatch = useDispatch();
 

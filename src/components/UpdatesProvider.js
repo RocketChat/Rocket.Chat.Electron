@@ -1,27 +1,26 @@
 import { remote } from 'electron';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
-import { useSaga } from '../components/SagaMiddlewareProvider';
 import {
-	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
-	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
 	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
-	UPDATES_NEW_VERSION_AVAILABLE,
+	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
+	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
+	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATES_CHECK_FAILED,
+	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
+	UPDATES_READY,
 } from '../actions';
 import updates from '../services/updates';
+import { useSaga } from './SagaMiddlewareProvider';
 
-export const useUpdates = () => {
+export function UpdatesProvider({ children, service = updates }) {
+	const updates = service;
+
 	const dispatch = useDispatch();
-
-	const [updatesEnabled, setUpdatesEnabled] = useState(false);
-	const [updatesConfigurable, setUpdatesConfigurable] = useState(false);
-	const [checksForUpdatesOnStartup, setCheckForUpdatesOnStartup] = useState(false);
 
 	const t = useTranslation();
 
@@ -81,9 +80,14 @@ export const useUpdates = () => {
 		});
 
 		updates.setUp().then(() => {
-			setUpdatesEnabled(updates.isEnabled());
-			setUpdatesConfigurable(updates.isConfigurable());
-			setCheckForUpdatesOnStartup(updates.isCheckForUpdatesOnStartupEnabled());
+			dispatch({
+				type: UPDATES_READY,
+				payload: {
+					updatesEnabled: updates.isEnabled(),
+					updatesConfigurable: updates.isConfigurable(),
+					checksForUpdatesOnStartup: updates.isCheckForUpdatesOnStartupEnabled(),
+				},
+			});
 		});
 
 		window.addEventListener('beforeunload', ::updates.tearDown);
@@ -93,7 +97,6 @@ export const useUpdates = () => {
 	useSaga(function *() {
 		yield takeEvery(ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, function *({ payload: updateOnStart }) {
 			updates.toggleCheckOnStartup(updateOnStart);
-			setCheckForUpdatesOnStartup(updates.isCheckForUpdatesOnStartupEnabled());
 		});
 
 		yield takeEvery(ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED, function *() {
@@ -109,5 +112,19 @@ export const useUpdates = () => {
 		});
 	}, []);
 
-	return { updatesEnabled, checksForUpdatesOnStartup, updatesConfigurable };
+	return <>
+		{children}
+	</>;
+}
+
+export const useUpdatesParameters = () => {
+	const checksForUpdatesOnStartup = useSelector(({ checksForUpdatesOnStartup }) => checksForUpdatesOnStartup);
+	const updatesConfigurable = useSelector(({ updatesConfigurable }) => updatesConfigurable);
+	const updatesEnabled = useSelector(({ updatesEnabled }) => updatesEnabled);
+
+	return useMemo(() => ({
+		checksForUpdatesOnStartup,
+		updatesConfigurable,
+		updatesEnabled,
+	}), [checksForUpdatesOnStartup, updatesConfigurable, updatesEnabled]);
 };

@@ -5,7 +5,6 @@ import { I18nextProvider, useTranslation } from 'react-i18next';
 import { Provider, useDispatch } from 'react-redux';
 import { call, take } from 'redux-saga/effects';
 
-import { useUpdates } from '../hooks/useUpdates';
 import { setupCertificates } from '../scripts/certificates';
 import servers from '../scripts/servers';
 import { processDeepLink } from '../scripts/deepLinks';
@@ -58,7 +57,7 @@ import { TouchBar } from './TouchBar';
 import { store, sagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
 import { SpellCheckingProvider } from './SpellCheckingProvider';
-
+import { UpdatesProvider } from './UpdatesProvider';
 
 function AppContent() {
 	const { t } = useTranslation();
@@ -81,8 +80,6 @@ function AppContent() {
 	const [mainWindowState, setMainWindowState] = useState({});
 	const [openDialog, setOpenDialog] = useState(null);
 	const [offline, setOffline] = useState(false);
-
-	const { updatesEnabled, checksForUpdatesOnStartup, updatesConfigurable } = useUpdates();
 
 	const globalBadge = useMemo(() => {
 		const mentionCount = Object.values(badges)
@@ -500,9 +497,6 @@ function AppContent() {
 			visible={currentServerUrl === null}
 		/>
 		<AboutDialog
-			canUpdate={updatesEnabled}
-			canSetAutoUpdate={updatesConfigurable}
-			canAutoUpdate={checksForUpdatesOnStartup}
 			visible={openDialog === 'about'}
 		/>
 		<UpdateDialog
@@ -532,7 +526,9 @@ export function App() {
 		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>
 				<SpellCheckingProvider>
-					<AppContent />
+					<UpdatesProvider>
+						<AppContent />
+					</UpdatesProvider>
 				</SpellCheckingProvider>
 			</I18nextProvider>
 		</SagaMiddlewareProvider>

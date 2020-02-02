@@ -34,8 +34,7 @@ const createTestEntries = () => {
 	}
 
 	const rendererSpecs = [
-		...glob.sync('src/scripts/*.spec.js'),
-		...glob.sync('src/preload/*.spec.js'),
+		...glob.sync('src/**/*.spec.js'),
 	];
 	return [
 		...rendererSpecs.length

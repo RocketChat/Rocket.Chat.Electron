@@ -1,6 +1,6 @@
 import { expect, use } from 'chai';
 
-import { getAppIconPath, getTrayIconPath } from './icon';
+import { getAppIconPath, getTrayIconPath } from './icons';
 
 const { describe, it } = global;
 

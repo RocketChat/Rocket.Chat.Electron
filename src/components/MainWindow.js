@@ -35,7 +35,7 @@ import {
 	TRAY_ICON_CREATED,
 	TRAY_ICON_DESTROYED,
 } from '../actions';
-import { getAppIconPath, getTrayIconPath } from '../scripts/icon';
+import { getAppIconPath, getTrayIconPath } from '../services/icons';
 import { useSaga } from './SagaMiddlewareProvider';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>

@@ -32,25 +32,23 @@ import {
 	WEBVIEW_SHORTCUT_KEY_UP,
 	WEBVIEW_SHORTCUT_KEY_DOWN,
 } from '../scripts/actions';
-import {
-	getSpellCheckingCorrections,
-	getSpellCheckingDictionaries,
-	getSpellCheckingDictionariesPath,
-	getEnabledSpellCheckingDictionaries,
-	installSpellCheckingDictionaries,
-	enableSpellCheckingDictionaries,
-	disableSpellCheckingDictionaries,
-	getMisspelledWords,
-} from '../scripts/spellChecking';
 import { useSaga } from './SagaMiddlewareProvider';
+import {
+	useCorrectionsForMisspelling,
+	useMisspellingDectection,
+	useSpellCheckingDictionaries,
+	useSpellCheckingDictionaryInstall,
+} from './SpellCheckingProvider';
 
 const createSpellCheckingMenuTemplate = (root, t, {
 	isEditable,
 	corrections,
 	dictionaries,
-	dictionariesPath,
-	enabledDictionaries,
-	installDictionaries,
+	dictionaryInstall: {
+		directory: dictionariesDirectoryPath,
+		extension: dictionaryExtension,
+		install: installDictionary,
+	},
 	enableSpellCheckingDictionary,
 	disableSpellCheckingDictionary,
 }) => {
@@ -61,16 +59,16 @@ const createSpellCheckingMenuTemplate = (root, t, {
 	const handleBrowserForLanguage = async () => {
 		const { filePaths } = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
 			title: t('dialog.loadDictionary.title'),
-			defaultPath: dictionariesPath,
+			defaultPath: dictionariesDirectoryPath,
 			filters: [
-				{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['bdic'] },
+				{ name: t('dialog.loadDictionary.dictionaries'), extensions: [dictionaryExtension] },
 				{ name: t('dialog.loadDictionary.allFiles'), extensions: ['*'] },
 			],
 			properties: ['openFile', 'multiSelections'],
 		});
 
 		try {
-			await installDictionaries(filePaths);
+			await Promise.all(filePaths.map(installDictionary));
 		} catch (error) {
 			console.error(error);
 			remote.dialog.showErrorBox(
@@ -110,13 +108,13 @@ const createSpellCheckingMenuTemplate = (root, t, {
 			label: t('contextMenu.spellingLanguages'),
 			enabled: dictionaries.length > 0,
 			submenu: [
-				...dictionaries.map((dictionaryName) => ({
-					label: dictionaryName,
+				...dictionaries.map(({ name, enabled }) => ({
+					label: name,
 					type: 'checkbox',
-					checked: enabledDictionaries.includes(dictionaryName),
+					checked: enabled,
 					click: ({ checked }) => (checked
-						? enableSpellCheckingDictionary(dictionaryName)
-						: disableSpellCheckingDictionary(dictionaryName)),
+						? enableSpellCheckingDictionary(name)
+						: disableSpellCheckingDictionary(name)),
 				})),
 				{
 					type: 'separator',
@@ -227,20 +225,6 @@ const createDefaultMenuTemplate = (root, t, {
 	},
 ];
 
-const computeProps = (params) => {
-	const { selectionText } = params;
-	return {
-		...params,
-		corrections: getSpellCheckingCorrections(selectionText),
-		dictionaries: getSpellCheckingDictionaries(),
-		dictionariesPath: getSpellCheckingDictionariesPath(),
-		enabledDictionaries: getEnabledSpellCheckingDictionaries(),
-		installDictionaries: (...args) => installSpellCheckingDictionaries(...args),
-		enableSpellCheckingDictionary: (...args) => enableSpellCheckingDictionaries(...args),
-		disableSpellCheckingDictionary: (...args) => disableSpellCheckingDictionaries(...args),
-	};
-};
-
 export function WebUiView({
 	active = false,
 	failed = false,
@@ -333,8 +317,25 @@ export function WebUiView({
 		};
 	}, [url]);
 
+	const { dictionaries: spellCheckingDictionaries, toggleDictionary } = useSpellCheckingDictionaries();
+	const dictionaryInstall = useSpellCheckingDictionaryInstall();
+	const getSuggestionsForMisspelling = useCorrectionsForMisspelling();
+
 	useEffect(() => {
 		const root = rootRef.current;
+
+		const computeProps = async (params) => {
+			const { selectionText } = params;
+			return {
+				...params,
+				corrections: await getSuggestionsForMisspelling(selectionText),
+				dictionaries: spellCheckingDictionaries,
+				dictionaryInstall,
+				enableSpellCheckingDictionary: (...args) => args.forEach((arg) => toggleDictionary(arg, true)),
+				disableSpellCheckingDictionary: (...args) => args.forEach((arg) => toggleDictionary(arg, false)),
+			};
+		};
+
 		const handleContextMenu = async (event) => {
 			const props = await computeProps(event.params);
 
@@ -354,7 +355,7 @@ export function WebUiView({
 		return () => {
 			root.removeEventListener('context-menu', handleContextMenu);
 		};
-	}, []);
+	}, [spellCheckingDictionaries, getSuggestionsForMisspelling]);
 
 	useEffect(() => {
 		const root = rootRef.current;
@@ -390,6 +391,8 @@ export function WebUiView({
 		const root = rootRef.current;
 		root.classList.toggle('ready', ready);
 	}, [ready]);
+
+	const getMisspelledWords = useMisspellingDectection();
 
 	useEffect(() => {
 		const root = rootRef.current;

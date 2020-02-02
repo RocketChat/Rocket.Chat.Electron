@@ -1,3 +1,6 @@
+import querystring from 'querystring';
+import url from 'url';
+
 import { remote } from 'electron';
 import i18n from 'i18next';
 import React, { useEffect, useState, useMemo } from 'react';
@@ -6,7 +9,6 @@ import { Provider, useDispatch } from 'react-redux';
 import { call, take } from 'redux-saga/effects';
 
 import servers from '../scripts/servers';
-import { processDeepLink } from '../scripts/deepLinks';
 import {
 	MENU_BAR_QUIT_CLICKED,
 	MENU_BAR_ABOUT_CLICKED,
@@ -418,7 +420,46 @@ function AppContent() {
 		});
 	}, []);
 
+	const dispatch = useDispatch();
+
 	useEffect(() => {
+		const normalizeUrl = (hostUrl) => {
+			if (!/^https?:\/\//.test(hostUrl)) {
+				return `https://${ hostUrl }`;
+			}
+
+			return hostUrl;
+		};
+
+		const processAuth = ({ host, token, userId }) => {
+			const hostUrl = normalizeUrl(host);
+			dispatch({ type: DEEP_LINK_TRIGGERED, payload: { type: 'auth', url: hostUrl, token, userId } });
+		};
+
+		const processRoom = ({ host, rid, path }) => {
+			const hostUrl = normalizeUrl(host);
+			dispatch({ type: DEEP_LINK_TRIGGERED, payload: { type: 'room', url: hostUrl, rid, path } });
+		};
+
+		const processDeepLink = (link) => {
+			const { protocol, hostname:	action, query } = url.parse(link);
+
+			if (protocol !== 'rocketchat:') {
+				return;
+			}
+
+			switch (action) {
+				case 'auth': {
+					processAuth(querystring.parse(query));
+					break;
+				}
+				case 'room': {
+					processRoom(querystring.parse(query));
+					break;
+				}
+			}
+		};
+
 		const handleLogin = (event, webContents, request, authInfo, callback) => {
 			for (const url of Object.keys(servers.hosts)) {
 				const server = servers.hosts[url];
@@ -449,16 +490,14 @@ function AppContent() {
 
 		window.addEventListener('beforeunload', unsubscribe);
 
+		remote.process.argv.slice(2).forEach(processDeepLink);
+
 		return unsubscribe;
 	}, []);
-
-	const dispatch = useDispatch();
 
 	useEffect(() => {
 		servers.initialize();
 		servers.setActive(servers.active);
-
-		remote.process.argv.slice(2).forEach(processDeepLink);
 
 		window.dispatch = dispatch;
 	}, []);

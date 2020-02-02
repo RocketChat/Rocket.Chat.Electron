@@ -28,6 +28,24 @@ export const readArrayOf = (cast, key, defaultArray = []) => {
 		return defaultArray;
 	}
 };
+export const readMap = (key, defaultMap = new Map()) => {
+	try {
+		const storedValue = JSON.parse(localStorage.getItem(key));
+
+		if (storedValue === null || !Array.isArray(storedValue)) {
+			return defaultMap;
+		}
+
+		const pairs = storedValue
+			.filter(([key, value]) => typeof key === 'string' && value !== undefined)
+			.map(([key, value]) => [key, value]);
+
+		return new Map(pairs);
+	} catch (error) {
+		console.warn(error.stack);
+		return defaultMap;
+	}
+};
 
 const writeValue = (cast, key, value) => {
 	try {
@@ -51,21 +69,32 @@ export const writeBoolean = (key, value) => writeValue(Boolean, key, value);
 export const writeString = (key, value) => writeValue(String, key, value);
 export const writeArrayOf = (cast, key, array) => {
 	try {
-		if (!Array.isArray(array)) {
-			return;
-		}
-
 		if (array === undefined) {
 			localStorage.removeItem(key);
 			return;
 		}
 
-		if (array === null) {
-			localStorage.setItem(key, JSON.stringify(null));
+		if (!Array.isArray(array)) {
 			return;
 		}
 
 		localStorage.setItem(key, JSON.stringify(array.filter((value) => value === cast(value))));
+	} catch (error) {
+		console.warn(error.stack);
+	}
+};
+export const writeMap = (key, map) => {
+	try {
+		if (map === undefined) {
+			localStorage.removeItem(key);
+			return;
+		}
+
+		if (!(map instanceof Map)) {
+			return;
+		}
+
+		localStorage.setItem(key, JSON.stringify(Array.from(map.entries())));
 	} catch (error) {
 		console.warn(error.stack);
 	}

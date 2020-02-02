@@ -5,7 +5,6 @@ import { I18nextProvider, useTranslation } from 'react-i18next';
 import { Provider, useDispatch } from 'react-redux';
 import { call, take } from 'redux-saga/effects';
 
-import { setupCertificates } from '../scripts/certificates';
 import servers from '../scripts/servers';
 import { processDeepLink } from '../scripts/deepLinks';
 import {
@@ -58,6 +57,7 @@ import { store, sagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
 import { SpellCheckingProvider } from './SpellCheckingProvider';
 import { UpdatesProvider } from './UpdatesProvider';
+import { CertificatesProvider } from './CertificatesProvider';
 
 function AppContent() {
 	const { t } = useTranslation();
@@ -455,8 +455,6 @@ function AppContent() {
 	const dispatch = useDispatch();
 
 	useEffect(() => {
-		setupCertificates();
-
 		servers.initialize();
 		servers.setActive(servers.active);
 
@@ -525,11 +523,13 @@ export function App() {
 	return <Provider store={store}>
 		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>
-				<SpellCheckingProvider>
-					<UpdatesProvider>
-						<AppContent />
-					</UpdatesProvider>
-				</SpellCheckingProvider>
+				<CertificatesProvider>
+					<SpellCheckingProvider>
+						<UpdatesProvider>
+							<AppContent />
+						</UpdatesProvider>
+					</SpellCheckingProvider>
+				</CertificatesProvider>
 			</I18nextProvider>
 		</SagaMiddlewareProvider>
 	</Provider>;

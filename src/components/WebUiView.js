@@ -2,7 +2,7 @@ import { remote, shell, clipboard } from 'electron';
 import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { call, takeEvery } from 'redux-saga/effects';
+import { call, put, takeEvery } from 'redux-saga/effects';
 
 import {
 	WEBVIEW_UNREAD_CHANGED,
@@ -39,6 +39,7 @@ import {
 	useSpellCheckingDictionaries,
 	useSpellCheckingDictionaryInstall,
 } from './SpellCheckingProvider';
+import { useCertificateErrorHandler } from './CertificatesProvider';
 
 const createSpellCheckingMenuTemplate = (root, t, {
 	isEditable,
@@ -387,6 +388,21 @@ export function WebUiView({
 		};
 	}, []);
 
+	const handleCertificateError = useCertificateErrorHandler();
+
+	useEffect(() => {
+		const root = rootRef.current;
+		const handleCertificateErrorForWebView = (event, ...args) => {
+			handleCertificateError(root.getWebContents(), ...args);
+		};
+
+		root.getWebContents().addListener('certificate-error', handleCertificateErrorForWebView);
+
+		return () => {
+			root.getWebContents().removeListener('certificate-error', handleCertificateErrorForWebView);
+		};
+	}, [handleCertificateError]);
+
 	useEffect(() => {
 		const root = rootRef.current;
 		root.classList.toggle('ready', ready);
@@ -444,38 +460,38 @@ export function WebUiView({
 			dispatch({ type: WEBVIEW_LOADING_DONE, payload: { webContentsId: root.getWebContents().id, url } });
 		};
 
-		root.addEventListener('did-finish-load', handleDidFinishLoad);
+		root.getWebContents().addListener('did-finish-load', handleDidFinishLoad);
 
 		return () => {
-			root.removeEventListener('did-finish-load', handleDidFinishLoad);
+			root.getWebContents().removeListener('did-finish-load', handleDidFinishLoad);
 		};
 	}, []);
 
 	useEffect(() => {
 		const root = rootRef.current;
 
-		const handleDidFailLoad = (e) => {
-			if (e.errorCode === -3) {
+		const handleDidFailLoad = (event) => {
+			if (event.errorCode === -3) {
 				console.warn('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
 				return;
 			}
-			if (e.isMainFrame) {
+			if (event.isMainFrame) {
 				dispatch({ type: WEBVIEW_LOADING_FAILED, payload: { webContentsId: root.getWebContents().id, url } });
 			}
 		};
 
-		const handleDidGetResponseDetails = (e) => {
-			if (e.resourceType === 'mainFrame' && e.httpResponseCode >= 500) {
+		const handleDidGetResponseDetails = (event) => {
+			if (event.resourceType === 'mainFrame' && event.httpResponseCode >= 500) {
 				dispatch({ type: WEBVIEW_LOADING_FAILED, payload: { webContentsId: root.getWebContents().id, url } });
 			}
 		};
 
-		root.addEventListener('did-fail-load', handleDidFailLoad);
-		root.addEventListener('did-get-response-details', handleDidGetResponseDetails);
+		root.getWebContents().addListener('did-fail-load', handleDidFailLoad);
+		root.getWebContents().addListener('did-get-response-details', handleDidGetResponseDetails);
 
 		return () => {
-			root.removeEventListener('did-fail-load', handleDidFailLoad);
-			root.removeEventListener('did-get-response-details', handleDidGetResponseDetails);
+			root.getWebContents().removeListener('did-fail-load', handleDidFailLoad);
+			root.getWebContents().removeListener('did-get-response-details', handleDidGetResponseDetails);
 		};
 	}, []);
 
@@ -601,7 +617,7 @@ export function WebUiView({
 		});
 
 		yield takeEvery(CERTIFICATE_TRUST_REQUESTED, function *({ payload }) {
-			const { webContentsId, url, error, fingerprint, issuerName, willBeReplaced } = payload;
+			const { webContentsId, requestedUrl, error, fingerprint, issuerName, willBeReplaced } = payload;
 
 			const root = rootRef.current;
 
@@ -609,7 +625,7 @@ export function WebUiView({
 				return;
 			}
 
-			let detail = `URL: ${ url }\nError: ${ error }`;
+			let detail = `URL: ${ requestedUrl }\nError: ${ error }`;
 			if (willBeReplaced) {
 				detail = t('error.differentCertificate', { detail });
 			}
@@ -627,11 +643,11 @@ export function WebUiView({
 			});
 
 			if (response === 0) {
-				dispatch({ type: WEBVIEW_CERTIFICATE_TRUSTED, payload: { fingerprint } });
+				yield put({ type: WEBVIEW_CERTIFICATE_TRUSTED, payload: { webContentsId: root.getWebContents().id, url, fingerprint } });
 				return;
 			}
 
-			dispatch({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { fingerprint } });
+			yield put({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { webContentsId: root.getWebContents().id, url, fingerprint } });
 		});
 	}, [url, active, failed]);
 

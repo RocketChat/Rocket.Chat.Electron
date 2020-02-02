@@ -5,6 +5,7 @@ import {
 	WEBVIEW_LOADING_STARTED,
 	WEBVIEW_LOADING_DONE,
 	WEBVIEW_LOADING_FAILED,
+	WEBVIEW_CERTIFICATE_DENIED,
 } from '../actions';
 import { LoadingErrorView } from './LoadingErrorView';
 import { WebUiView } from './WebUiView';
@@ -38,7 +39,7 @@ export function ServerView({
 			setFailed(false);
 		});
 
-		yield takeEvery(WEBVIEW_LOADING_FAILED, function *({ payload: { url: _url } }) {
+		yield takeEvery([WEBVIEW_LOADING_FAILED, WEBVIEW_CERTIFICATE_DENIED], function *({ payload: { url: _url } }) {
 			if (url !== _url) {
 				return;
 			}

@@ -31,7 +31,7 @@ import {
 	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
 	WEBVIEW_SHORTCUT_KEY_UP,
 	WEBVIEW_SHORTCUT_KEY_DOWN,
-} from '../scripts/actions';
+} from '../actions';
 import { useSaga } from './SagaMiddlewareProvider';
 import {
 	useCorrectionsForMisspelling,

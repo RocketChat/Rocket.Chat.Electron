@@ -5,7 +5,7 @@ import {
 	WEBVIEW_LOADING_STARTED,
 	WEBVIEW_LOADING_DONE,
 	WEBVIEW_LOADING_FAILED,
-} from '../scripts/actions';
+} from '../actions';
 import { LoadingErrorView } from './LoadingErrorView';
 import { WebUiView } from './WebUiView';
 import { useSaga } from './SagaMiddlewareProvider';

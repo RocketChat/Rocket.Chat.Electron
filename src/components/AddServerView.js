@@ -6,7 +6,7 @@ import { takeEvery } from 'redux-saga/effects';
 import {
 	ADD_SERVER_VIEW_SERVER_ADDED,
 	CERTIFICATES_CHANGED,
-} from '../scripts/actions';
+} from '../actions';
 import { useSaga } from './SagaMiddlewareProvider';
 
 export function AddServerView({

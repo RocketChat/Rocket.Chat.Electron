@@ -27,7 +27,7 @@ import {
 	MENU_BAR_RESET_APP_DATA_CLICKED,
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
-} from '../scripts/actions';
+} from '../actions';
 
 const createAppMenuItemTemplate = ({ appName, t, dispatch }) => ({
 	label: process.platform === 'darwin' ? appName : t('menus.fileMenu'),

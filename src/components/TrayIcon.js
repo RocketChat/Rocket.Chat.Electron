@@ -9,7 +9,7 @@ import {
 	TRAY_ICON_CREATED,
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
-} from '../scripts/actions';
+} from '../actions';
 
 export function TrayIcon({
 	appName = remote.app.name,

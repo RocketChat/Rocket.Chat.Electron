@@ -1,8 +1,12 @@
-import { createStore, applyMiddleware } from 'redux';
+import { createStore, applyMiddleware, combineReducers } from 'redux';
 import createSagaMiddleware from 'redux-saga';
 import { takeEvery } from 'redux-saga/effects';
 
-const rootReducer = (state) => state;
+import { spellCheckingDictionaries } from './reducers/spellCheckingDictionaries';
+
+const rootReducer = combineReducers({
+	spellCheckingDictionaries,
+});
 
 export const sagaMiddleware = createSagaMiddleware();
 

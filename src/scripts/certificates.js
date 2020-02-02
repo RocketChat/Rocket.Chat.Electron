@@ -11,7 +11,7 @@ import {
 	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
 	WEBVIEW_CERTIFICATE_TRUSTED,
 	WEBVIEW_CERTIFICATE_DENIED,
-} from './actions';
+} from '../actions';
 
 const storageFileName = 'certificate.json';
 let certificates = {};

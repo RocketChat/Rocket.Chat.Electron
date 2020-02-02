@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 
 import {
 	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
-} from '../scripts/actions';
+} from '../actions';
 
 
 export function LoadingErrorView({

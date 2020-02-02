@@ -43,7 +43,7 @@ import {
 	MAIN_WINDOW_STATE_CHANGED,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	DEEP_LINK_TRIGGERED,
-} from '../scripts/actions';
+} from '../actions';
 import { MainWindow } from './MainWindow';
 import { AboutDialog } from './AboutDialog';
 import { ScreenSharingDialog } from './ScreenSharingDialog';

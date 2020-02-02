@@ -16,7 +16,7 @@ import {
 	WEBVIEW_FAVICON_CHANGED,
 	WEBVIEW_SHORTCUT_KEY_DOWN,
 	WEBVIEW_SHORTCUT_KEY_UP,
-} from '../scripts/actions';
+} from '../actions';
 import { useSaga } from './SagaMiddlewareProvider';
 
 function ServerButton({

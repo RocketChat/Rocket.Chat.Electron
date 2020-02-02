@@ -79,3 +79,5 @@ export const CERTIFICATES_CHANGED = 'certificates/changed';
 export const CERTIFICATE_TRUST_REQUESTED = 'certificate/trust-requested';
 
 export const DEEP_LINK_TRIGGERED = 'deep-link/triggered';
+
+export const SPELL_CHECKING_DICTIONARIES_UPDATED = 'spell-checking/dictionaries-updated';

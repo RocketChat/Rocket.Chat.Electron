@@ -34,7 +34,7 @@ import {
 	DEEP_LINK_TRIGGERED,
 	TRAY_ICON_CREATED,
 	TRAY_ICON_DESTROYED,
-} from '../scripts/actions';
+} from '../actions';
 import { getAppIconPath, getTrayIconPath } from '../scripts/icon';
 import { useSaga } from './SagaMiddlewareProvider';
 

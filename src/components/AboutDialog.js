@@ -12,7 +12,7 @@ import {
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_CHECK_FAILED,
-} from '../scripts/actions.js';
+} from '../actions.js';
 import { useSaga } from './SagaMiddlewareProvider';
 
 export function AboutDialog({

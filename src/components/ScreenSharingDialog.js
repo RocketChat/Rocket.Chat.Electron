@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import {
 	SCREEN_SHARING_DIALOG_DISMISSED,
 	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
-} from '../scripts/actions';
+} from '../actions';
 
 export function ScreenSharingDialog({
 	visible = false,

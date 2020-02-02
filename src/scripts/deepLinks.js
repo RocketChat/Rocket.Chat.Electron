@@ -2,7 +2,7 @@ import querystring from 'querystring';
 import url from 'url';
 
 import { dispatch } from '../storeAndEffects';
-import { DEEP_LINK_TRIGGERED } from './actions';
+import { DEEP_LINK_TRIGGERED } from '../actions';
 
 const normalizeUrl = (hostUrl) => {
 	if (!/^https?:\/\//.test(hostUrl)) {

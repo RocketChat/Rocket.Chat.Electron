@@ -13,7 +13,7 @@ import {
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_CHECK_FAILED,
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
-} from '../scripts/actions';
+} from '../actions';
 import updates from '../services/updates';
 
 export const useUpdates = () => {

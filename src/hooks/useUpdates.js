@@ -26,74 +26,68 @@ export const useUpdates = () => {
 	const t = useTranslation();
 
 	useEffect(() => {
-		const subscribe = async () => {
-			let checking = false;
+		let checking = false;
 
-			updates.addListener(updates.constants.CHECKING_EVENT, () => {
-				checking = true;
+		updates.addListener(updates.constants.CHECKING_EVENT, () => {
+			checking = true;
+		});
+
+		updates.addListener(updates.constants.NOT_AVAILABLE_EVENT, () => {
+			checking = false;
+			dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+		});
+
+		updates.addListener(updates.constants.SKIPPED_EVENT, () => {
+			checking = false;
+			dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+		});
+
+		updates.addListener(updates.constants.AVAILABLE_EVENT, async (version) => {
+			dispatch({ type: UPDATES_NEW_VERSION_AVAILABLE, payload: version });
+		});
+
+		updates.addListener(updates.constants.DOWNLOADED_EVENT, async () => {
+			const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+				type: 'question',
+				title: t('dialog.updateReady.title'),
+				message: t('dialog.updateReady.message'),
+				buttons: [
+					t('dialog.updateReady.installLater'),
+					t('dialog.updateReady.installNow'),
+				],
+				defaultId: 1,
 			});
 
-			updates.addListener(updates.constants.NOT_AVAILABLE_EVENT, () => {
-				checking = false;
-				dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
-			});
-
-			updates.addListener(updates.constants.SKIPPED_EVENT, () => {
-				checking = false;
-				dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
-			});
-
-			updates.addListener(updates.constants.AVAILABLE_EVENT, async (version) => {
-				dispatch({ type: UPDATES_NEW_VERSION_AVAILABLE, payload: version });
-			});
-
-			updates.addListener(updates.constants.DOWNLOADED_EVENT, async () => {
-				const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-					type: 'question',
-					title: t('dialog.updateReady.title'),
-					message: t('dialog.updateReady.message'),
-					buttons: [
-						t('dialog.updateReady.installLater'),
-						t('dialog.updateReady.installNow'),
-					],
-					defaultId: 1,
+			if (response === 0) {
+				await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+					type: 'info',
+					title: t('dialog.updateInstallLater.title'),
+					message: t('dialog.updateInstallLater.message'),
+					buttons: [t('dialog.updateInstallLater.ok')],
+					defaultId: 0,
 				});
+				return;
+			}
 
-				if (response === 0) {
-					await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-						type: 'info',
-						title: t('dialog.updateInstallLater.title'),
-						message: t('dialog.updateInstallLater.message'),
-						buttons: [t('dialog.updateInstallLater.ok')],
-						defaultId: 0,
-					});
-					return;
-				}
+			remote.getCurrentWindow().removeAllListeners();
+			remote.app.removeAllListeners('window-all-closed');
+			updates.install();
+		});
 
-				remote.getCurrentWindow().removeAllListeners();
-				remote.app.removeAllListeners('window-all-closed');
-				updates.install();
-			});
+		updates.addListener(updates.constants.ERROR_EVENT, () => {
+			if (checking) {
+				dispatch({ type: UPDATES_CHECK_FAILED });
+			}
+		});
 
-			updates.addListener(updates.constants.ERROR_EVENT, () => {
-				if (checking) {
-					dispatch({ type: UPDATES_CHECK_FAILED });
-				}
-			});
-
-			await updates.setUp();
+		updates.setUp().then(() => {
 			setUpdatesEnabled(updates.isEnabled());
 			setUpdatesConfigurable(updates.isConfigurable());
 			setCheckForUpdatesOnStartup(updates.isCheckForUpdatesOnStartupEnabled());
-		};
+		});
 
-		const unsubscribe = async () => {
-			await updates.tearDown();
-		};
-
-		subscribe();
-		window.addEventListener('beforeunload', unsubscribe);
-		return unsubscribe;
+		window.addEventListener('beforeunload', ::updates.tearDown);
+		return ::updates.tearDown;
 	}, []);
 
 	useSaga(function *() {

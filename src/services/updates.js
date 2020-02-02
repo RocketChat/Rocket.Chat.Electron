@@ -170,7 +170,7 @@ const tearDown = () => {
 	autoUpdater.removeListener('checking-for-update', handleCheckingForUpdate);
 	autoUpdater.removeListener('update-available', handleUpdateAvailable);
 	autoUpdater.removeListener('update-not-available', handleUpdateNotAvailable);
-	autoUpdater.removeListener('update-progress', handleDownloadProgress);
+	autoUpdater.removeListener('download-progress', handleDownloadProgress);
 	autoUpdater.removeListener('update-downloaded', handleUpdateDownloaded);
 	autoUpdater.removeListener('update-cancelled', handleUpdateCancelled);
 	autoUpdater.removeListener('error', handleError);

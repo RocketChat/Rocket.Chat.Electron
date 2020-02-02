@@ -246,15 +246,9 @@ export default Object.seal(Object.assign(emitter, {
 	}),
 	setUp,
 	tearDown,
-	get enabled() {
-		return updatesAllowed && updatesEnabled;
-	},
-	get configurable() {
-		return configurable;
-	},
-	get checkOnStartup() {
-		return updatesAllowed && updatesEnabled && checkForUpdatesOnStartup;
-	},
+	isEnabled: () => updatesAllowed && updatesEnabled,
+	isConfigurable: () => configurable,
+	isCheckForUpdatesOnStartupEnabled: () => updatesAllowed && updatesEnabled && checkForUpdatesOnStartup,
 	check,
 	toggleCheckOnStartup,
 	skipVersion,

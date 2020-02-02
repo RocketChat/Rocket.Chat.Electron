@@ -82,9 +82,9 @@ export const useUpdates = () => {
 			});
 
 			await updates.setUp();
-			setUpdatesEnabled(updates.enabled);
-			setUpdatesConfigurable(updates.configurable);
-			setCheckForUpdatesOnStartup(updates.checkOnStartup);
+			setUpdatesEnabled(updates.isEnabled());
+			setUpdatesConfigurable(updates.isConfigurable());
+			setCheckForUpdatesOnStartup(updates.isCheckForUpdatesOnStartupEnabled());
 		};
 
 		const unsubscribe = async () => {
@@ -99,7 +99,7 @@ export const useUpdates = () => {
 	useSaga(function *() {
 		yield takeEvery(ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, function *({ payload: updateOnStart }) {
 			updates.toggleCheckOnStartup(updateOnStart);
-			setCheckForUpdatesOnStartup(updates.checkOnStartup);
+			setCheckForUpdatesOnStartup(updates.isCheckForUpdatesOnStartupEnabled());
 		});
 
 		yield takeEvery(ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED, function *() {

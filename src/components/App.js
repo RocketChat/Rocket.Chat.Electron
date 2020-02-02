@@ -5,8 +5,8 @@ import { remote } from 'electron';
 import i18n from 'i18next';
 import React, { useEffect, useState, useMemo } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
-import { Provider, useDispatch } from 'react-redux';
-import { call, take } from 'redux-saga/effects';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { call, put, take } from 'redux-saga/effects';
 
 import servers from '../scripts/servers';
 import {
@@ -43,6 +43,8 @@ import {
 	MAIN_WINDOW_STATE_CHANGED,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	DEEP_LINK_TRIGGERED,
+	SERVERS_UPDATED,
+	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
 } from '../actions';
 import { MainWindow } from './MainWindow';
 import { AboutDialog } from './AboutDialog';
@@ -60,6 +62,7 @@ import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
 import { SpellCheckingProvider } from './SpellCheckingProvider';
 import { UpdatesProvider } from './UpdatesProvider';
 import { CertificatesProvider } from './CertificatesProvider';
+import { ServersProvider } from './ServersProvider';
 
 function AppContent() {
 	const { t } = useTranslation();
@@ -69,12 +72,8 @@ function AppContent() {
 	const [hasTrayIcon, setHasTrayIcon] =	useState(() => (localStorage.getItem('hideTray') ? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux'));
 	const [hasMenuBar, setHasMenuBar] = useState(() => localStorage.getItem('autohideMenu') !== 'true');
 	const [hasSidebar, setHasSidebar] = useState(() => localStorage.getItem('sidebar-closed') !== 'true');
-	const [_servers, setServers] = useState(() => {
-		const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
-		return Object.values(servers.hosts)
-			.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b));
-	});
-	const [currentServerUrl, setCurrentServerUrl] = useState(() => servers.active);
+	const _servers = useSelector(({ servers }) => servers);
+	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
 	const [badges, setBadges] = useState({});
 	const [styles, setStyles] = useState({});
 	const [newUpdateVersion, setNewUpdateVersion] = useState(null);
@@ -148,7 +147,6 @@ function AppContent() {
 
 			if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
 				servers.clearActive();
-				setCurrentServerUrl(null);
 				continue;
 			}
 
@@ -212,27 +210,26 @@ function AppContent() {
 			if (type === MENU_BAR_SELECT_SERVER_CLICKED) {
 				const server = payload;
 				servers.setActive(server.url);
-				setCurrentServerUrl(server.url);
 				continue;
 			}
 
 			if (type === TOUCH_BAR_SELECT_SERVER_TOUCHED) {
 				const serverUrl = payload;
 				servers.setActive(serverUrl);
-				setCurrentServerUrl(serverUrl);
 				continue;
 			}
 
 			if (type === ADD_SERVER_VIEW_SERVER_ADDED) {
-				const url = servers.addHost(payload);
-				if (url !== false) {
-					servers.setActive(url);
+				servers.put({ url: payload, title: payload });
+				servers.setActive(payload);
 
-					const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
-					setServers(Object.values(servers.hosts)
-						.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
-					setCurrentServerUrl(url);
-				}
+				yield put({
+					type: SERVERS_UPDATED,
+					payload: {
+						servers: servers.all(),
+						currentServerUrl: servers.active,
+					},
+				});
 				continue;
 			}
 
@@ -254,32 +251,42 @@ function AppContent() {
 			if (type === SIDE_BAR_SERVER_SELECTED) {
 				const hostUrl = payload;
 				servers.setActive(hostUrl);
-				setCurrentServerUrl(hostUrl);
 				continue;
 			}
 
 			if (type === SIDE_BAR_REMOVE_SERVER_CLICKED) {
-				const hostUrl = payload;
-				servers.removeHost(hostUrl);
+				const url = payload;
+				servers.remove(url);
 
-				setCurrentServerUrl(null);
-				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
-				setServers(Object.values(servers.hosts)
-					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
+				yield put({
+					type: SERVERS_UPDATED,
+					payload: {
+						servers: servers.all(),
+						currentServerUrl: servers.active,
+					},
+				});
 				continue;
 			}
 
 			if (type === SIDE_BAR_ADD_NEW_SERVER_CLICKED) {
 				servers.clearActive();
-				setCurrentServerUrl(null);
 				continue;
 			}
 
 			if (type === SIDE_BAR_SERVERS_SORTED) {
-				const sorting = payload;
-				localStorage.setItem('rocket.chat.sortOrder', JSON.stringify(sorting));
-				setServers(Object.values(servers.hosts)
-					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
+				servers.sort(payload);
+				yield put({
+					type: SERVERS_UPDATED,
+					payload: {
+						servers: servers.all(),
+						currentServerUrl: servers.active,
+					},
+				});
+				continue;
+			}
+
+			if (type === SCREEN_SHARING_DIALOG_SOURCE_SELECTED) {
+				setOpenDialog(null);
 				continue;
 			}
 
@@ -295,17 +302,20 @@ function AppContent() {
 
 			if (type === WEBVIEW_TITLE_CHANGED) {
 				const { url, title } = payload;
-				servers.setHostTitle(url, title || '');
-				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
-				setServers(Object.values(servers.hosts)
-					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
+				servers.put({ url, title: title || url });
+				yield put({
+					type: SERVERS_UPDATED,
+					payload: {
+						servers: servers.all(),
+						currentServerUrl: servers.active,
+					},
+				});
 				continue;
 			}
 
 			if (type === WEBVIEW_FOCUS_REQUESTED) {
 				const { url } = payload;
 				servers.setActive(url);
-				setCurrentServerUrl(url);
 				continue;
 			}
 
@@ -321,12 +331,15 @@ function AppContent() {
 			if (type === WEBVIEW_DID_NAVIGATE) {
 				const { url, pageUrl } = payload;
 				if (pageUrl.includes(url)) {
-					servers.hosts[url].lastPath = pageUrl;
-					servers.save();
+					servers.put({ url, lastPath: pageUrl });
+					yield put({
+						type: SERVERS_UPDATED,
+						payload: {
+							servers: servers.all(),
+							currentServerUrl: servers.active,
+						},
+					});
 				}
-				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
-				setServers(Object.values(servers.hosts)
-					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
 				continue;
 			}
 
@@ -354,17 +367,37 @@ function AppContent() {
 
 			if (type === DEEP_LINK_TRIGGERED) {
 				const { url } = payload;
-				if (servers.hostExists(url)) {
+				if (servers.has(url)) {
 					servers.setActive(url);
-					setCurrentServerUrl(url);
 					continue;
 				}
 
-				yield call(::servers.showHostConfirmation, url);
-				setCurrentServerUrl(url);
-				const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
-				setServers(Object.values(servers.hosts)
-					.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
+				const { response } = yield call(::remote.dialog.showMessageBox, {
+					type: 'question',
+					buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
+					defaultId: 0,
+					title: t('dialog.addServer.title'),
+					message: t('dialog.addServer.message', { host: url }),
+				});
+
+				if (response === 0) {
+					try {
+						yield call(::servers.validateHost(url));
+						servers.put({ url, title: url });
+						servers.setActive(url);
+					} catch (error) {
+						remote.dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host: url }));
+					}
+				}
+
+
+				yield put({
+					type: SERVERS_UPDATED,
+					payload: {
+						servers: servers.all(),
+						currentServerUrl: servers.active,
+					},
+				});
 			}
 		}
 	}, [focusedWebContents]);
@@ -385,59 +418,48 @@ function AppContent() {
 		};
 	}, []);
 
-	useEffect(() => {
-		servers.addListener('loaded', () => {
-			setLoading(false);
-			setCurrentServerUrl(servers.active);
-			const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
-			setServers(Object.values(servers.hosts)
-				.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
-		});
-
-		servers.addListener('host-added', () => {
-			const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
-			setServers(Object.values(servers.hosts)
-				.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
-		});
-
-		servers.addListener('host-removed', () => {
-			servers.clearActive();
-			setCurrentServerUrl(null);
-		});
-
-		servers.addListener('active-setted', (url) => {
-			setCurrentServerUrl(url);
-		});
-
-		servers.addListener('active-cleared', () => {
-			setCurrentServerUrl(null);
-		});
-
-		servers.addListener('title-setted', () => {
-			const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder')) || [];
-			setServers(Object.values(servers.hosts)
-				.sort(({ url: a }, { url: b }) => sorting.indexOf(a) - sorting.indexOf(b)));
-		});
-	}, []);
-
 	const dispatch = useDispatch();
 
 	useEffect(() => {
-		const normalizeUrl = (hostUrl) => {
+		setLoading(false);
+
+		servers.addListener('active-setted', () => {
+			dispatch({
+				type: SERVERS_UPDATED,
+				payload: {
+					servers: servers.all(),
+					currentServerUrl: servers.active,
+				},
+			});
+		});
+
+		servers.addListener('active-cleared', () => {
+			dispatch({
+				type: SERVERS_UPDATED,
+				payload: {
+					servers: servers.all(),
+					currentServerUrl: servers.active,
+				},
+			});
+		});
+	}, []);
+
+	useEffect(() => {
+		const normalizeUrl = (hostUrl, insecure = false) => {
 			if (!/^https?:\/\//.test(hostUrl)) {
-				return `https://${ hostUrl }`;
+				return `${ insecure ? 'http' : 'https' }://${ hostUrl }`;
 			}
 
 			return hostUrl;
 		};
 
-		const processAuth = ({ host, token, userId }) => {
-			const hostUrl = normalizeUrl(host);
+		const processAuth = ({ host, token, userId, insecure }) => {
+			const hostUrl = normalizeUrl(host, insecure === 'true');
 			dispatch({ type: DEEP_LINK_TRIGGERED, payload: { type: 'auth', url: hostUrl, token, userId } });
 		};
 
-		const processRoom = ({ host, rid, path }) => {
-			const hostUrl = normalizeUrl(host);
+		const processRoom = ({ host, rid, path, insecure }) => {
+			const hostUrl = normalizeUrl(host, insecure === 'true');
 			dispatch({ type: DEEP_LINK_TRIGGERED, payload: { type: 'room', url: hostUrl, rid, path } });
 		};
 
@@ -496,9 +518,6 @@ function AppContent() {
 	}, []);
 
 	useEffect(() => {
-		servers.initialize();
-		servers.setActive(servers.active);
-
 		window.dispatch = dispatch;
 	}, []);
 
@@ -530,7 +549,7 @@ function AppContent() {
 			hasSidebar={hasSidebar}
 		/>
 		<AddServerView
-			validator={(url) => servers.validateHost(url, 2000)}
+			validator={(url) => servers.validateHost(url)}
 			visible={currentServerUrl === null}
 		/>
 		<AboutDialog
@@ -563,11 +582,13 @@ export function App() {
 		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>
 				<CertificatesProvider>
-					<SpellCheckingProvider>
-						<UpdatesProvider>
-							<AppContent />
-						</UpdatesProvider>
-					</SpellCheckingProvider>
+					<ServersProvider>
+						<SpellCheckingProvider>
+							<UpdatesProvider>
+								<AppContent />
+							</UpdatesProvider>
+						</SpellCheckingProvider>
+					</ServersProvider>
 				</CertificatesProvider>
 			</I18nextProvider>
 		</SagaMiddlewareProvider>

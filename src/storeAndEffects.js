@@ -1,14 +1,17 @@
 import { createStore, applyMiddleware, combineReducers } from 'redux';
 import createSagaMiddleware from 'redux-saga';
-import { takeEvery } from 'redux-saga/effects';
 
 import { checksForUpdatesOnStartup } from './reducers/checksForUpdatesOnStartup';
+import { currentServerUrl } from './reducers/currentServerUrl';
+import { servers } from './reducers/servers';
 import { spellCheckingDictionaries } from './reducers/spellCheckingDictionaries';
 import { updatesConfigurable } from './reducers/updatesConfigurable';
 import { updatesEnabled } from './reducers/updatesEnabled';
 
 const rootReducer = combineReducers({
 	checksForUpdatesOnStartup,
+	currentServerUrl,
+	servers,
 	spellCheckingDictionaries,
 	updatesConfigurable,
 	updatesEnabled,
@@ -16,24 +19,9 @@ const rootReducer = combineReducers({
 
 export const sagaMiddleware = createSagaMiddleware();
 
-export const store = createStore(rootReducer, {}, applyMiddleware(sagaMiddleware));
+// const logger = () => (next) => (action) => {
+// 	console.log(action.type, action.payload);
+// 	return next(action);
+// };
 
-export const dispatch = (action) => {
-	store.dispatch(action);
-};
-
-export const subscribe = (handler) => {
-	const task = sagaMiddleware.run(function *() {
-		yield takeEvery('*', function *(action) {
-			handler(action);
-		});
-	});
-
-	const unsubscribe = () => {
-		task.cancel();
-	};
-
-	window.addEventListener('beforeunload', unsubscribe);
-
-	return unsubscribe;
-};
+export const store = createStore(rootReducer, {}, applyMiddleware(sagaMiddleware/* , logger*/));

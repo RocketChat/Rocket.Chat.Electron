@@ -22,7 +22,7 @@ export const readArrayOf = (cast, key, defaultArray = []) => {
 			return defaultArray;
 		}
 
-		return storedValue.filter((value) => value === cast(value));
+		return storedValue.map(cast).filter((value) => value !== undefined);
 	} catch (error) {
 		console.warn(error.stack);
 		return defaultArray;

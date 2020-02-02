@@ -3,118 +3,14 @@ import fs from 'fs';
 import path from 'path';
 
 import { remote } from 'electron';
-import { t } from 'i18next';
+
+import { readMap, writeMap } from '../localStorage';
 
 class Servers extends EventEmitter {
 	_hosts = {}
 
-	initialize = () => {
-		this.load();
-		const processProtocol = this.getProtocolUrlFromProcess(remote.process.argv);
-		if (processProtocol) {
-			this.showHostConfirmation(processProtocol);
-		}
-	}
-
 	get hosts() {
 		return this._hosts;
-	}
-
-	set hosts(hosts) {
-		this._hosts = hosts;
-		this.save();
-		return true;
-	}
-
-	get hostsKey() {
-		return 'rocket.chat.hosts';
-	}
-
-	get activeKey() {
-		return 'rocket.chat.currentHost';
-	}
-
-	load() {
-		let hosts = localStorage.getItem(this.hostsKey);
-
-		try {
-			hosts = JSON.parse(hosts);
-		} catch (e) {
-			if (typeof hosts === 'string' && hosts.match(/^https?:\/\//)) {
-				hosts = {};
-				hosts[hosts] = {
-					title: hosts,
-					url: hosts,
-				};
-			}
-
-			localStorage.setItem(this.hostsKey, JSON.stringify(hosts));
-		}
-
-		if (hosts === null) {
-			hosts = {};
-		}
-
-		if (Array.isArray(hosts)) {
-			const oldHosts = hosts;
-			hosts = {};
-			oldHosts.forEach(function(item) {
-				item = item.replace(/\/$/, '');
-				hosts[item] = {
-					title: item,
-					url: item,
-				};
-			});
-			localStorage.setItem(this.hostsKey, JSON.stringify(hosts));
-		}
-
-		// Load server info from server config file
-		if (Object.keys(hosts).length === 0) {
-			const serversJsonPath = [
-				path.join(remote.app.getPath('userData'), 'servers.json'),
-				path.join(remote.app.getAppPath(), remote.app.getAppPath().endsWith('.asar') ? '..' : '.', 'servers.json'),
-			].filter((filePath) => fs.existsSync(filePath))[0];
-
-			if (serversJsonPath) {
-				try {
-					const result = JSON.parse(fs.readFileSync(serversJsonPath, 'utf8'));
-					if (result) {
-						hosts = {};
-						Object.keys(result).forEach((title) => {
-							const url = result[title];
-							hosts[url] = { title, url };
-						});
-						localStorage.setItem(this.hostsKey, JSON.stringify(hosts));
-						// Assume user doesn't want sidebar if they only have one server
-						if (Object.keys(hosts).length === 1) {
-							localStorage.setItem('sidebar-closed', 'true');
-						}
-					}
-				} catch (e) {
-					console.error('Server file invalid');
-				}
-			}
-		}
-
-		this._hosts = hosts;
-		this.emit('loaded');
-	}
-
-	save() {
-		localStorage.setItem(this.hostsKey, JSON.stringify(this._hosts));
-		this.emit('saved');
-	}
-
-	get(hostUrl) {
-		return this.hosts[hostUrl];
-	}
-
-	forEach(cb) {
-		for (const host in this.hosts) {
-			if (this.hosts.hasOwnProperty(host)) {
-				cb(this.hosts[host]);
-			}
-		}
 	}
 
 	async validateHost(hostUrl, timeout = 5000) {
@@ -143,54 +39,8 @@ class Servers extends EventEmitter {
 		return !!hosts[hostUrl];
 	}
 
-	addHost(hostUrl) {
-		const { hosts } = this;
-
-		const match = hostUrl.match(/^(https?:\/\/)([^:]+):([^@]+)@(.+)$/);
-		let username;
-		let password;
-		let authUrl;
-		if (match) {
-			authUrl = hostUrl;
-			hostUrl = match[1] + match[4];
-			username = match[2];
-			password = match[3];
-		}
-
-		if (this.hostExists(hostUrl) === true) {
-			this.setActive(hostUrl);
-			return false;
-		}
-
-		hosts[hostUrl] = {
-			title: hostUrl,
-			url: hostUrl,
-			authUrl,
-			username,
-			password,
-		};
-		this.hosts = hosts;
-
-		this.emit('host-added', hostUrl);
-
-		return hostUrl;
-	}
-
-	removeHost(hostUrl) {
-		const { hosts } = this;
-		if (hosts[hostUrl]) {
-			delete hosts[hostUrl];
-			this.hosts = hosts;
-
-			if (this.active === hostUrl) {
-				this.clearActive();
-			}
-			this.emit('host-removed', hostUrl);
-		}
-	}
-
 	get active() {
-		const active = localStorage.getItem(this.activeKey);
+		const active = localStorage.getItem('rocket.chat.currentHost');
 		return active === 'null' ? null : active;
 	}
 
@@ -203,66 +53,146 @@ class Servers extends EventEmitter {
 		}
 
 		if (url) {
-			localStorage.setItem(this.activeKey, hostUrl);
+			localStorage.setItem('rocket.chat.currentHost', hostUrl);
 			this.emit('active-setted', url);
 			return true;
 		}
-		this.emit('loaded');
 		return false;
 	}
 
 	clearActive() {
-		localStorage.removeItem(this.activeKey);
+		localStorage.removeItem('rocket.chat.currentHost');
 		this.emit('active-cleared');
 		return true;
-	}
-
-	setHostTitle(hostUrl, title) {
-		if (title === 'Rocket.Chat' && /https?:\/\/open\.rocket\.chat/.test(hostUrl) === false) {
-			title += ` - ${ hostUrl }`;
-		}
-		const { hosts } = this;
-		hosts[hostUrl].title = title;
-		this.hosts = hosts;
-		this.emit('title-setted', hostUrl, title);
-	}
-
-	getProtocolUrlFromProcess(args) {
-		let site = null;
-		if (args.length > 1) {
-			const protocolURI = args.find((arg) => arg.startsWith('rocketchat://'));
-			if (protocolURI) {
-				site = protocolURI.split(/\/|\?/)[2];
-				if (site) {
-					let scheme = 'https://';
-					if (protocolURI.includes('insecure=true')) {
-						scheme = 'http://';
-					}
-					site = scheme + site;
-				}
-			}
-		}
-		return site;
-	}
-
-	async showHostConfirmation(host) {
-		const { response } = await remote.dialog.showMessageBox({
-			type: 'question',
-			buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
-			defaultId: 0,
-			title: t('dialog.addServer.title'),
-			message: t('dialog.addServer.message', { host }),
-		});
-
-		if (response === 0) {
-			this.validateHost(host)
-				.then(() => this.addHost(host))
-				.then(() => this.setActive(host))
-				.catch(() => remote.dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host })));
-		}
 	}
 }
 
 const instance = new Servers();
 
-export default instance;
+let servers = new Map();
+
+const loadServers = async () => {
+	servers = readMap('servers');
+
+	try {
+		const storedString = localStorage.getItem('rocket.chat.hosts');
+
+		if (/^https?:\/\//.test(storedString)) {
+			servers.set(storedString, { url: storedString, title: storedString });
+		} else {
+			const storedValue = JSON.parse(storedString);
+
+			if (Array.isArray(storedValue)) {
+				storedValue.map((url) => url.replace(/\/$/, '')).forEach((url) => {
+					servers.set(url, { url, title: url });
+				});
+			}
+		}
+	} catch (error) {
+		console.warn(error.stack);
+	} finally {
+		localStorage.removeItem('rocket.chat.hosts');
+	}
+
+	if (servers.size === 0) {
+		const appConfigurationFilePath = path.join(
+			remote.app.getAppPath(),
+			remote.app.getAppPath().endsWith('app.asar') ? '..' : '.',
+			'servers.json',
+		);
+
+		try {
+			if (await fs.promises.stat(appConfigurationFilePath).then((stat) => stat.isFile(), () => false)) {
+				const entries = JSON.parse(await fs.promises.readFile(appConfigurationFilePath, 'utf8'));
+
+				for (const [title, url] of Object.entries(entries)) {
+					servers.set(url, { url, title });
+				}
+			}
+		} catch (error) {
+			console.warn(error.stack);
+		}
+
+		const userConfigurationFilePath = path.join(remote.app.getPath('userData'), 'servers.json');
+		try {
+			if (await fs.promises.stat(userConfigurationFilePath).then((stat) => stat.isFile(), () => false)) {
+				const entries = JSON.parse(await fs.promises.readFile(userConfigurationFilePath, 'utf8'));
+				await fs.promises.unlink(userConfigurationFilePath);
+
+				for (const [title, url] of Object.entries(entries)) {
+					servers.set(url, { url, title });
+				}
+			}
+		} catch (error) {
+			console.warn(error.stack);
+		}
+	}
+
+	try {
+		const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder'));
+		if (Array.isArray(sorting)) {
+			servers = new Map([...servers.entries()].sort(([a], [b]) => sorting.indexOf(a) - sorting.indexOf(b)));
+		}
+		localStorage.removeItem('rocket.chat.sortOrder');
+	} catch (error) {
+		console.warn(error.stack);
+	}
+};
+
+const setUp = async () => {
+	await loadServers();
+	writeMap('servers', servers);
+	instance._hosts = Array.from(servers.values()).reduce((_hosts, server) => ({ ..._hosts, [server.url]: server }), {});
+	instance.setActive(instance.active);
+};
+
+const tearDown = () => {
+	instance.removeAllListeners();
+	servers = new Map();
+};
+
+const put = ({ url, ...props }) => {
+	if (servers.has(url)) {
+		servers.set(url, { ...servers.get(url), ...props });
+		writeMap('servers', servers);
+		instance._hosts = Array.from(servers.values()).reduce((_hosts, server) => ({ ..._hosts, [server.url]: server }), {});
+		return;
+	}
+
+	servers.set(url, { url, ...props });
+	writeMap('servers', servers);
+	instance._hosts = Array.from(servers.values()).reduce((_hosts, server) => ({ ..._hosts, [server.url]: server }), {});
+};
+
+const remove = (url) => {
+	const removed = servers.delete(url);
+
+	if (!removed) {
+		return;
+	}
+
+	writeMap('servers', servers);
+	instance._hosts = Array.from(servers.values()).reduce((_hosts, server) => ({ ..._hosts, [server.url]: server }), {});
+
+	if (instance.active === url) {
+		instance.clearActive();
+	}
+};
+
+const sort = (urls) => {
+	servers = new Map([...servers.entries()].sort(([a], [b]) => urls.indexOf(a) - urls.indexOf(b)));
+	writeMap('servers', servers);
+	instance._hosts = Array.from(servers.values()).reduce((_hosts, server) => ({ ..._hosts, [server.url]: server }), {});
+};
+
+const has = (url) => servers.has(url);
+
+export default Object.seal(Object.assign(instance, {
+	setUp,
+	tearDown,
+	all: () => Array.from(servers.values()),
+	put,
+	remove,
+	sort,
+	has,
+}));

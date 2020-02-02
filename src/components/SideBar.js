@@ -240,7 +240,9 @@ export function SideBar({
 				{servers.map((server, order) => <ServerButton
 					key={server.url}
 					url={server.url}
-					title={server.title}
+					title={servers.title === 'Rocket.Chat' && parseUrl(server.url).host !== 'open.rocket.chat'
+						? `${ server.title } - ${ server.url }`
+						: server.title}
 					order={order}
 					active={currentServerUrl === server.url}
 					hasUnreadMessages={!!badges[server.url]}

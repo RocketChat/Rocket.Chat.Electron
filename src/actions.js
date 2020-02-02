@@ -32,6 +32,7 @@ export const MENU_BAR_ZOOM_IN_CLICKED = 'menu-bar/zoom-in-clicked';
 export const MENU_BAR_ZOOM_OUT_CLICKED = 'menu-bar/zoom-out-clicked';
 export const SCREEN_SHARING_DIALOG_DISMISSED = 'screen-sharing-dialog/dismissed';
 export const SCREEN_SHARING_DIALOG_SOURCE_SELECTED = 'screen-sharing-dialog/source-selected';
+export const SERVERS_UPDATED = 'servers/updated';
 export const SIDE_BAR_ADD_NEW_SERVER_CLICKED = 'side-bar/add-new-server-clicked';
 export const SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED = 'side-bar/open-devtools-for-server-clicked';
 export const SIDE_BAR_RELOAD_SERVER_CLICKED = 'side-bar/reload-server-clicked';

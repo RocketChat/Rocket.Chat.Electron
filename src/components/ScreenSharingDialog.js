@@ -27,6 +27,7 @@ export function ScreenSharingDialog({
 		root.onclose = () => {
 			root.close();
 			dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
+			dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: null });
 		};
 
 		root.onclick = ({ clientX, clientY }) => {
@@ -35,6 +36,7 @@ export function ScreenSharingDialog({
 			if (!isInDialog) {
 				root.close();
 				dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
+				dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: null });
 			}
 		};
 	}, [rootRef, visible, dispatch]);
@@ -62,22 +64,8 @@ export function ScreenSharingDialog({
 		};
 	}, [visible]);
 
-	const sourceSelectedRef = useRef(false);
-
-	useEffect(() => () => {
-		const { current: sourceSelected } = sourceSelectedRef;
-
-		if (sourceSelected) {
-			return;
-		}
-
-		dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: null });
-	}, []);
-
 	const handleScreenSharingSourceClick = (id) => () => {
-		sourceSelectedRef.current = true;
 		dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: id });
-		dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
 	};
 
 	return <dialog ref={rootRef} className='screen-sharing-dialog'>

@@ -226,6 +226,80 @@ const createDefaultMenuTemplate = (root, t, {
 	},
 ];
 
+const useWebview = () => {
+	const webviewRef = useRef();
+	const [webContents, setWebContents] = useState(null);
+
+	useEffect(() => {
+		const webview = webviewRef.current;
+
+		webview.addEventListener('did-attach', console.log);
+		webview.addEventListener('destroyed', console.log);
+
+		const handleDidAttach = () => {
+			setWebContents(webview.getWebContents());
+		};
+
+		const handleDestroyed = () => {
+			setWebContents(null);
+		};
+
+		webview.addEventListener('did-attach', handleDidAttach);
+		webview.addEventListener('destroyed', handleDestroyed);
+
+		return () => {
+			webview.removeEventListener('did-attach', handleDidAttach);
+			webview.removeEventListener('destroyed', handleDestroyed);
+		};
+	}, [webviewRef]);
+
+	return [webviewRef, webContents];
+};
+
+const useWebviewFocus = (webviewRef, webContents, { url, active }) => {
+	const dispatch = useDispatch();
+
+	useEffect(() => {
+		if (!webContents || !active) {
+			return;
+		}
+
+		const webview = webviewRef.current;
+
+		const handle = () => {
+			webview.focus();
+		};
+
+		handle();
+
+		window.addEventListener('focus', handle);
+		webContents.addListener('dom-ready', handle);
+
+		return () => {
+			window.removeEventListener('focus', handle);
+			webContents.removeListener('dom-ready', handle);
+		};
+	}, [webviewRef, webContents, active]);
+
+	useEffect(() => {
+		if (!webContents) {
+			return;
+		}
+
+		const webview = webviewRef.current;
+
+		const handleFocus = () => {
+			dispatch({ type: WEBVIEW_FOCUSED, payload: { webContentsId: webContents.id, url } });
+		};
+
+		webview.addEventListener('focus', handleFocus);
+
+		return () => {
+			webview.removeEventListener('focus', handleFocus);
+		};
+	}, [webviewRef, webContents, dispatch, url]);
+};
+
 export function WebUiView({
 	active = false,
 	failed = false,
@@ -237,93 +311,14 @@ export function WebUiView({
 
 	const { t } = useTranslation();
 
-	const containerRef = useRef();
-	const rootRef = useRef();
-
-	useEffect(() => {
-		const root = document.createElement('webview');
-		rootRef.current = root;
-
-		root.classList.add('webview');
-		root.setAttribute('preload', '../preload.js');
-		root.toggleAttribute('allowpopups', true);
-		root.toggleAttribute('disablewebsecurity', false);
-		root.setAttribute('enableremotemodule', 'true');
-
-		containerRef.current.append(root);
-	}, []);
-
-	useEffect(() => {
-		const root = rootRef.current;
-
-		root.classList.toggle('active', active);
-
-		if (active) {
-			root.focus();
-		}
-	}, [active]);
-
-	useEffect(() => {
-		const root = rootRef.current;
-
-		const handleWindowFocus = () => {
-			if (!active) {
-				return;
-			}
-
-			root.focus();
-		};
-
-		window.addEventListener('focus', handleWindowFocus);
-
-		return () => {
-			window.removeEventListener('focus', handleWindowFocus);
-		};
-	}, [active]);
-
-	useEffect(() => {
-		const root = rootRef.current;
-
-		root.classList.toggle('hidden', failed);
-		root.classList.toggle('failed', failed);
-	}, [failed]);
-
-	const prevFailedRef = useRef(failed);
-
-	useEffect(() => {
-		const root = rootRef.current;
-		if (prevFailedRef.current === failed) {
-			return;
-		}
-
-		if (!failed) {
-			root.loadURL(url);
-		}
-
-		prevFailedRef.current === failed;
-	}, [url, failed]);
-
-	useEffect(() => {
-		const root = rootRef.current;
-		const webContentsId = root.getWebContents().id;
-
-		const handleFocus = () => {
-			dispatch({ type: WEBVIEW_FOCUSED, payload: { webContentsId, url } });
-		};
-
-		root.addEventListener('focus', handleFocus);
-
-		return () => {
-			root.removeEventListener('focus', handleFocus);
-		};
-	}, [url]);
+	const [webviewRef, webContents] = useWebview();
+	useWebviewFocus(webviewRef, webContents, { url, active });
 
 	const { dictionaries: spellCheckingDictionaries, toggleDictionary } = useSpellCheckingDictionaries();
 	const dictionaryInstall = useSpellCheckingDictionaryInstall();
 	const getSuggestionsForMisspelling = useCorrectionsForMisspelling();
-
 	useEffect(() => {
-		const root = rootRef.current;
+		const root = webviewRef.current;
 
 		const computeProps = async (params) => {
 			const { selectionText } = params;
@@ -356,10 +351,10 @@ export function WebUiView({
 		return () => {
 			root.removeEventListener('context-menu', handleContextMenu);
 		};
-	}, [spellCheckingDictionaries, getSuggestionsForMisspelling]);
+	}, [spellCheckingDictionaries, getSuggestionsForMisspelling, webviewRef, dictionaryInstall, toggleDictionary, t]);
 
 	useEffect(() => {
-		const root = rootRef.current;
+		const root = webviewRef.current;
 
 		const handleDidNavigateInPage = (event) => {
 			dispatch({ type: WEBVIEW_DID_NAVIGATE, payload: { url, pageUrl: event.url } });
@@ -370,28 +365,12 @@ export function WebUiView({
 		return () => {
 			root.removeEventListener('did-navigate-in-page', handleDidNavigateInPage);
 		};
-	}, [url]);
-
-	const [ready, setReady] = useState(false);
-
-	useEffect(() => {
-		const root = rootRef.current;
-
-		const handleDomReady = () => {
-			setReady(true);
-		};
-
-		root.addEventListener('dom-ready', handleDomReady);
-
-		return () => {
-			root.removeEventListener('dom-ready', handleDomReady);
-		};
-	}, []);
+	}, [dispatch, url, webviewRef]);
 
 	const handleCertificateError = useCertificateErrorHandler();
 
 	useEffect(() => {
-		const root = rootRef.current;
+		const root = webviewRef.current;
 		const context = { webContentsId: root.getWebContents().id, url };
 		const handleCertificateErrorForWebView = (event, ...args) => {
 			handleCertificateError(context, ...args);
@@ -402,17 +381,12 @@ export function WebUiView({
 		return () => {
 			root.getWebContents().removeListener('certificate-error', handleCertificateErrorForWebView);
 		};
-	}, [url, handleCertificateError]);
-
-	useEffect(() => {
-		const root = rootRef.current;
-		root.classList.toggle('ready', ready);
-	}, [ready]);
+	}, [url, handleCertificateError, webviewRef]);
 
 	const getMisspelledWords = useMisspellingDectection();
 
 	useEffect(() => {
-		const root = rootRef.current;
+		const root = webviewRef.current;
 		const webContentsId = root.getWebContents().id;
 
 		const handleIpcMessage = (event) => {
@@ -452,10 +426,10 @@ export function WebUiView({
 		return () => {
 			root.removeEventListener('ipc-message', handleIpcMessage);
 		};
-	}, []);
+	}, [dispatch, getMisspelledWords, url, webviewRef]);
 
 	useEffect(() => {
-		const root = rootRef.current;
+		const root = webviewRef.current;
 
 		const handleDidFinishLoad = () => {
 			dispatch({ type: WEBVIEW_LOADING_DONE, payload: { webContentsId: root.getWebContents().id, url } });
@@ -466,10 +440,10 @@ export function WebUiView({
 		return () => {
 			root.getWebContents().removeListener('did-finish-load', handleDidFinishLoad);
 		};
-	}, []);
+	}, [dispatch, url, webviewRef]);
 
 	useEffect(() => {
-		const root = rootRef.current;
+		const root = webviewRef.current;
 
 		const handleDidFailLoad = (event) => {
 			if (event.errorCode === -3) {
@@ -494,10 +468,10 @@ export function WebUiView({
 			root.getWebContents().removeListener('did-fail-load', handleDidFailLoad);
 			root.getWebContents().removeListener('did-get-response-details', handleDidGetResponseDetails);
 		};
-	}, []);
+	}, [dispatch, url, webviewRef]);
 
 	useEffect(() => {
-		const root = rootRef.current;
+		const root = webviewRef.current;
 
 		const handleDidStartLoading = () => {
 			dispatch({ type: WEBVIEW_LOADING_STARTED, payload: { webContentsId: root.getWebContents().id, url } });
@@ -508,10 +482,10 @@ export function WebUiView({
 		return () => {
 			root.removeEventListener('did-start-loading', handleDidStartLoading);
 		};
-	}, [dispatch]);
+	}, [dispatch, url, webviewRef]);
 
 	useEffect(() => {
-		const root = rootRef.current;
+		const root = webviewRef.current;
 
 		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 		const handle = (_, { type, key }) => {
@@ -530,7 +504,7 @@ export function WebUiView({
 		return () => {
 			root.getWebContents().removeListener('before-input-event', handle);
 		};
-	}, []);
+	}, [dispatch, url, webviewRef]);
 
 	useSaga(function *() {
 		yield takeEvery([
@@ -541,8 +515,8 @@ export function WebUiView({
 				return;
 			}
 
-			const root = rootRef.current;
-			root.reload();
+			const root = webviewRef.current;
+			root.loadURL(url);
 		});
 
 		yield takeEvery(SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, function *({ payload }) {
@@ -550,7 +524,7 @@ export function WebUiView({
 				return;
 			}
 
-			const root = rootRef.current;
+			const root = webviewRef.current;
 			root.openDevTools();
 		});
 
@@ -559,7 +533,7 @@ export function WebUiView({
 				return;
 			}
 
-			const root = rootRef.current;
+			const root = webviewRef.current;
 			root.send('format-button-touched', payload);
 		});
 
@@ -568,7 +542,7 @@ export function WebUiView({
 				return;
 			}
 
-			const root = rootRef.current;
+			const root = webviewRef.current;
 			root.send('screen-sharing-source-selected', payload);
 		});
 
@@ -577,7 +551,7 @@ export function WebUiView({
 				return;
 			}
 
-			const root = rootRef.current;
+			const root = webviewRef.current;
 
 			if (ignoringCache) {
 				root.reloadIgnoringCache();
@@ -592,7 +566,7 @@ export function WebUiView({
 				return;
 			}
 
-			const root = rootRef.current;
+			const root = webviewRef.current;
 			root.openDevTools();
 		});
 
@@ -600,7 +574,7 @@ export function WebUiView({
 			if (!active) {
 				return;
 			}
-			const root = rootRef.current;
+			const root = webviewRef.current;
 			root.goBack();
 		});
 
@@ -608,19 +582,19 @@ export function WebUiView({
 			if (!active) {
 				return;
 			}
-			const root = rootRef.current;
+			const root = webviewRef.current;
 			root.goForward();
 		});
 
 		yield takeEvery(MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED, function *() {
-			const root = rootRef.current;
+			const root = webviewRef.current;
 			root.reloadIgnoringCache();
 		});
 
 		yield takeEvery(CERTIFICATE_TRUST_REQUESTED, function *({ payload }) {
 			const { webContentsId, requestedUrl, error, fingerprint, issuerName, willBeReplaced } = payload;
 
-			const root = rootRef.current;
+			const root = webviewRef.current;
 
 			if (webContentsId !== root.getWebContents().id) {
 				return;
@@ -657,19 +631,32 @@ export function WebUiView({
 			return;
 		}
 
-		const root = rootRef.current;
+		const root = webviewRef.current;
 
-		if (!root.classList.contains('ready')) {
+		if (!webContents) {
 			return;
 		}
 
 		root.send('sidebar-visibility-changed', hasSidebar);
-	}, [hasSidebar]);
+	}, [hasSidebar, webContents, webviewRef]);
 
 	useEffect(() => {
-		const root = rootRef.current;
+		const root = webviewRef.current;
 		root.src = lastPath || url;
-	}, [url]);
+	}, [lastPath, url, webviewRef]);
 
-	return <div ref={containerRef} />;
+	return <webview
+		allowpopups='allowpopups'
+		className={[
+			'webview',
+			active && 'active',
+			failed && 'hidden',
+			failed && 'failed',
+			!!webContents && 'ready',
+		].filter(Boolean).join(' ')}
+		disablewebsecurity='disablewebsecurity'
+		enableremotemodule='true'
+		preload='../preload.js'
+		ref={webviewRef}
+	/>;
 }

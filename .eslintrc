@@ -2,7 +2,7 @@
   "extends": [
     "@rocket.chat/eslint-config"
   ],
-  "plugins": ["react"],
+  "plugins": ["react", "react-hooks"],
   "parser": "babel-eslint",
   "rules": {
     "react/jsx-uses-react": "error",
@@ -10,7 +10,9 @@
     "react/jsx-no-undef": "error",
     "react/jsx-fragments": ["error", "syntax"],
     "jsx-quotes": ["error", "prefer-single"],
-    "generator-star-spacing": ["error", "before"]
+    "generator-star-spacing": ["error", "before"],
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
   },
   "settings": {
     "react": {

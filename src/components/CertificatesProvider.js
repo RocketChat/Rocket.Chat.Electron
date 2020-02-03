@@ -3,11 +3,12 @@ import { useDispatch } from 'react-redux';
 import { put, takeEvery } from 'redux-saga/effects';
 
 import {
-	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
-	WEBVIEW_CERTIFICATE_TRUSTED,
-	WEBVIEW_CERTIFICATE_DENIED,
-	CERTIFICATES_CHANGED,
 	CERTIFICATE_TRUST_REQUESTED,
+	CERTIFICATES_CHANGED,
+	CERTIFICATES_CLEARED,
+	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
+	WEBVIEW_CERTIFICATE_DENIED,
+	WEBVIEW_CERTIFICATE_TRUSTED,
 } from '../actions';
 import certificates from '../services/certificates';
 import { useSaga } from './SagaMiddlewareProvider';
@@ -33,11 +34,12 @@ export function CertificatesProvider({ children, service = certificates }) {
 
 		window.addEventListener('beforeunload', ::certificates.tearDown);
 		return ::certificates.tearDown;
-	}, [certificates]);
+	}, [certificates, dispatch]);
 
 	useSaga(function *() {
 		yield takeEvery(MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED, function *() {
 			certificates.clear();
+			yield put({ type: CERTIFICATES_CLEARED });
 		});
 
 		yield takeEvery(WEBVIEW_CERTIFICATE_TRUSTED, function *({ payload: { fingerprint } }) {

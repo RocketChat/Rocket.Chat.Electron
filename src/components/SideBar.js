@@ -14,8 +14,6 @@ import {
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 	SIDE_BAR_SERVERS_SORTED,
 	WEBVIEW_FAVICON_CHANGED,
-	WEBVIEW_SHORTCUT_KEY_DOWN,
-	WEBVIEW_SHORTCUT_KEY_UP,
 } from '../actions';
 import { useSaga } from './SagaMiddlewareProvider';
 
@@ -148,16 +146,6 @@ export function SideBar({
 			window.removeEventListener('keydown', handleKeyDown);
 			window.removeEventListener('keyup', handleKeyUp);
 		};
-	}, []);
-
-	useSaga(function *() {
-		yield takeEvery(WEBVIEW_SHORTCUT_KEY_DOWN, function *() {
-			setShowShortcuts(true);
-		});
-
-		yield takeEvery(WEBVIEW_SHORTCUT_KEY_UP, function *() {
-			setShowShortcuts(false);
-		});
 	}, []);
 
 	const {

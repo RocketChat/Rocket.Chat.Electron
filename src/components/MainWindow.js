@@ -397,11 +397,7 @@ export function MainWindow({
 		});
 	}, [browserWindow, showWindowOnUnreadChanged]);
 
-	useEffect(() => {
-		document.body.classList.toggle('offline', offline);
-	}, [offline]);
-
-	return <div className={['app-page', loading && 'app-page--loading'].filter(Boolean).join(' ')}>
+	return <div className={['app-page', loading && 'app-page--loading', offline && 'offline'].filter(Boolean).join(' ')}>
 		<div className='drag-region' />
 		{children}
 	</div>;

@@ -1,11 +1,19 @@
+import React from 'react';
+import { render, unmountComponentAtNode } from 'react-dom';
+
 import { setupErrorHandling } from './errorHandling';
 import { setupI18next } from './i18n';
-import attachEvents from './scripts/events';
+import { App } from './components/App';
 
 const initialize = async () => {
 	setupErrorHandling('renderer');
 	await setupI18next();
-	await attachEvents();
+
+	render(<App />, document.getElementById('root'));
+
+	window.addEventListener('beforeunload', () => {
+		unmountComponentAtNode(document.getElementById('root'));
+	});
 };
 
 initialize();

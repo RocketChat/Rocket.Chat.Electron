@@ -2,5 +2,21 @@
   "extends": [
     "@rocket.chat/eslint-config"
   ],
-  "parser": "babel-eslint"
+  "plugins": ["react", "react-hooks"],
+  "parser": "babel-eslint",
+  "rules": {
+    "react/jsx-uses-react": "error",
+    "react/jsx-uses-vars": "error",
+    "react/jsx-no-undef": "error",
+    "react/jsx-fragments": ["error", "syntax"],
+    "jsx-quotes": ["error", "prefer-single"],
+    "generator-star-spacing": ["error", "before"],
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
 }

@@ -5,10 +5,11 @@ module.exports = {
 			'@babel/preset-env',
 			{
 				targets: {
-					electron: 6,
+					electron: 7,
 				},
 			},
 		],
+		'@babel/preset-react',
 	],
 	plugins: [
 		'@babel/plugin-proposal-function-bind',

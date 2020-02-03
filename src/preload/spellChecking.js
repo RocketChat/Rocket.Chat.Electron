@@ -1,37 +1,19 @@
-import { webFrame } from 'electron';
+import { webFrame, ipcRenderer } from 'electron';
 
-import { invoke } from '../scripts/ipc';
-
-const setupFallbackDictionaries = async () => {
-	if (await invoke('spell-checking/get-enabled-dictionaries').length > 0) {
-		return;
-	}
-
-	const userLanguage = localStorage.getItem('userLanguage');
-	if (userLanguage && await invoke('spell-checking/enable-dictionaries', userLanguage)) {
-		return;
-	}
-
-	const navigatorLanguage = navigator.language;
-	if (navigatorLanguage && await invoke('spell-checking/enable-dictionaries', navigatorLanguage)) {
-		return;
-	}
-
-	await invoke('spell-checking/enable-dictionaries', 'en_US');
-};
+const requests = new Map();
 
 export default async () => {
-	await setupFallbackDictionaries();
-
 	webFrame.setSpellCheckProvider('', {
 		spellCheck: async (words, callback) => {
-			try {
-				const mispelledWords = await invoke('spell-checking/get-misspelled-words', words);
-				callback(mispelledWords);
-			} catch (error) {
-				console.error(error);
-				callback([]);
-			}
+			const id = JSON.stringify(words);
+			ipcRenderer.sendToHost('get-misspelled-words', words);
+			requests.set(id, callback);
 		},
+	});
+
+	ipcRenderer.addListener('misspelled-words', (_, id, misspeledWords) => {
+		if (requests.has(id)) {
+			requests.get(id)(misspeledWords);
+		}
 	});
 };

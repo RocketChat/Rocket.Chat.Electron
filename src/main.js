@@ -1,8 +1,8 @@
 import path from 'path';
 
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, webContents } from 'electron';
 import setupElectronReload from 'electron-reload';
-import jetpack from 'fs-jetpack';
+import rimraf from 'rimraf';
 
 import { setupErrorHandling } from './errorHandling';
 
@@ -26,7 +26,7 @@ const prepareApp = () => {
 
 	if (process.argv[2] === '--reset-app-data') {
 		const dataDir = app.getPath('userData');
-		jetpack.remove(dataDir);
+		rimraf.sync(dataDir);
 		app.relaunch({ args: [process.argv[1]] });
 		app.exit();
 		return;
@@ -46,10 +46,10 @@ const prepareApp = () => {
 		app.disableHardwareAcceleration();
 	}
 
-	app.on('certificate-error', preventEvent);
-	app.on('login', preventEvent);
-	app.on('open-url', preventEvent);
-	app.on('window-all-closed', () => {
+	app.addListener('certificate-error', preventEvent);
+	app.addListener('login', preventEvent);
+	app.addListener('open-url', preventEvent);
+	app.addListener('window-all-closed', () => {
 		app.quit();
 	});
 };
@@ -68,9 +68,9 @@ const createMainWindow = () => {
 		},
 	});
 
-	mainWindow.on('close', preventEvent);
+	mainWindow.addListener('close', preventEvent);
 
-	mainWindow.webContents.on('will-attach-webview', (event, webPreferences) => {
+	mainWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
 		delete webPreferences.enableBlinkFeatures;
 	});
 
@@ -84,14 +84,3 @@ const initialize = async () => {
 };
 
 initialize();
-
-global.registerRemoteHandler = (channel, remoteHandler) => {
-	ipcMain.removeHandler(channel);
-	ipcMain.handle(channel, (...args) => new Promise((resolve, reject) => {
-		try {
-			remoteHandler(resolve, reject, ...args);
-		} catch (error) {
-			console.error(error);
-		}
-	}));
-};

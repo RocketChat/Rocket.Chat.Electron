@@ -1,7 +1,9 @@
+import fs from 'fs';
+
 import { app as mainApp, remote } from 'electron';
-import jetpack from 'fs-jetpack';
 import i18next from 'i18next';
 import i18nextNodeFileSystemBackend from 'i18next-node-fs-backend';
+import { initReactI18next } from 'react-i18next';
 
 const app = mainApp || remote.app;
 const languagesDirPath = `${ app.getAppPath() }/app/i18n/lang`;
@@ -27,13 +29,14 @@ const normalizeLocale = (locale) => {
 export const setupI18next = async () => {
 	globalLocale = normalizeLocale(app.getLocale());
 
-	const lngFiles = await jetpack.listAsync(languagesDirPath);
+	const lngFiles = await fs.promises.readdir(languagesDirPath);
 	const lngs = lngFiles
 		.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
 		.map((filename) => filename.split('.')[0]);
 
 	await i18next
 		.use(i18nextNodeFileSystemBackend)
+		.use(initReactI18next)
 		.init({
 			lng: globalLocale,
 			fallbackLng: defaultLocale,

@@ -79,7 +79,7 @@ export function UpdatesProvider({ children, service = updates }) {
 			}
 		});
 
-		updates.setUp().then(() => {
+		const setupPromise = updates.setUp().then(() => {
 			dispatch({
 				type: UPDATES_READY,
 				payload: {
@@ -90,8 +90,12 @@ export function UpdatesProvider({ children, service = updates }) {
 			});
 		});
 
-		window.addEventListener('beforeunload', ::updates.tearDown);
-		return ::updates.tearDown;
+		const cleanUp = () => {
+			setupPromise.finally(::updates.tearDown);
+		};
+
+		window.addEventListener('beforeunload', cleanUp);
+		return () => cleanUp;
 	}, []);
 
 	useSaga(function *() {

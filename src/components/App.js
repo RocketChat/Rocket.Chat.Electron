@@ -80,6 +80,10 @@ function AppContent() {
 			remote.app.quit();
 		});
 
+		yield takeEvery(WEBVIEW_FOCUSED, function *({ payload: { webContentsId } }) {
+			setFocusedWebContents(remote.webContents.fromId(webContentsId));
+		});
+
 		while (true) {
 			const { type, payload } = yield take();
 
@@ -198,12 +202,6 @@ function AppContent() {
 
 			if (type === SCREEN_SHARING_DIALOG_SOURCE_SELECTED) {
 				setOpenDialog(null);
-				continue;
-			}
-
-			if (type === WEBVIEW_FOCUSED) {
-				const { webContentsId } = payload;
-				setFocusedWebContents(remote.webContents.fromId(webContentsId));
 				continue;
 			}
 

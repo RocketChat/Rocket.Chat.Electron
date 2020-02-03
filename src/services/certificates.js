@@ -57,7 +57,7 @@ const serializeCertificate = (certificate) => `${ certificate.issuerName }\n${ c
 
 const TRUST_REQUESTED_EVENT = 'trust-requested';
 
-const handleCertificateError = async (webContents, requestedUrl, error, certificate, callback) => {
+const handleCertificateError = async (context = {}, requestedUrl, error, certificate, callback) => {
 	const serialized = serializeCertificate(certificate);
 	const { host } = url.parse(requestedUrl);
 
@@ -85,7 +85,7 @@ const handleCertificateError = async (webContents, requestedUrl, error, certific
 	queuedTrustRequests.set(certificate.fingerprint, [commit, callback]);
 
 	emitter.emit(TRUST_REQUESTED_EVENT, {
-		webContentsId: webContents.id,
+		...context,
 		requestedUrl,
 		error,
 		fingerprint: certificate.fingerprint,

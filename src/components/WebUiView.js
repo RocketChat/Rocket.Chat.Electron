@@ -392,8 +392,9 @@ export function WebUiView({
 
 	useEffect(() => {
 		const root = rootRef.current;
+		const context = { webContentsId: root.getWebContents().id, url };
 		const handleCertificateErrorForWebView = (event, ...args) => {
-			handleCertificateError(root.getWebContents(), ...args);
+			handleCertificateError(context, ...args);
 		};
 
 		root.getWebContents().addListener('certificate-error', handleCertificateErrorForWebView);
@@ -401,7 +402,7 @@ export function WebUiView({
 		return () => {
 			root.getWebContents().removeListener('certificate-error', handleCertificateErrorForWebView);
 		};
-	}, [handleCertificateError]);
+	}, [url, handleCertificateError]);
 
 	useEffect(() => {
 		const root = rootRef.current;

@@ -33,7 +33,7 @@ export function CertificatesProvider({ children, service = certificates }) {
 
 		window.addEventListener('beforeunload', ::certificates.tearDown);
 		return ::certificates.tearDown;
-	}, []);
+	}, [certificates]);
 
 	useSaga(function *() {
 		yield takeEvery(MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED, function *() {
@@ -49,7 +49,7 @@ export function CertificatesProvider({ children, service = certificates }) {
 			certificates.deny(fingerprint);
 			yield put({ type: CERTIFICATES_CHANGED });
 		});
-	}, []);
+	}, [certificates]);
 
 	const value = useMemo(() => ({
 		handleCertificateError: ::certificates.handleCertificateError,

@@ -8,11 +8,11 @@ import {
 	CERTIFICATES_CHANGED,
 } from '../actions';
 import { useSaga } from './SagaMiddlewareProvider';
+import { useServerValidation } from './ServersProvider';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',
 	visible,
-	validator,
 }) {
 	const dispatch = useDispatch();
 	const { t } = useTranslation();
@@ -29,6 +29,8 @@ export function AddServerView({
 
 	const [validationState, setValidationState] = useState('idle');
 	const [errorMessage, setErrorMessage] = useState(null);
+
+	const validator = useServerValidation();
 
 	const validateServerUrl = async (serverUrl) => {
 		setInput(serverUrl);

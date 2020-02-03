@@ -6,9 +6,8 @@ import i18n from 'i18next';
 import React, { useEffect, useState, useMemo } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import { Provider, useDispatch, useSelector } from 'react-redux';
-import { call, put, take } from 'redux-saga/effects';
+import { call, take, takeEvery } from 'redux-saga/effects';
 
-import servers from '../scripts/servers';
 import {
 	MENU_BAR_QUIT_CLICKED,
 	MENU_BAR_ABOUT_CLICKED,
@@ -19,31 +18,17 @@ import {
 	MENU_BAR_COPY_CLICKED,
 	MENU_BAR_PASTE_CLICKED,
 	MENU_BAR_SELECT_ALL_CLICKED,
-	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	MENU_BAR_RESET_APP_DATA_CLICKED,
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
-	MENU_BAR_SELECT_SERVER_CLICKED,
-	TOUCH_BAR_SELECT_SERVER_TOUCHED,
-	ADD_SERVER_VIEW_SERVER_ADDED,
 	ABOUT_DIALOG_DISMISSED,
 	UPDATE_DIALOG_DISMISSED,
 	SCREEN_SHARING_DIALOG_DISMISSED,
 	TRAY_ICON_QUIT_CLICKED,
-	SIDE_BAR_SERVER_SELECTED,
-	SIDE_BAR_REMOVE_SERVER_CLICKED,
-	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
-	SIDE_BAR_SERVERS_SORTED,
-	WEBVIEW_UNREAD_CHANGED,
-	WEBVIEW_TITLE_CHANGED,
-	WEBVIEW_FOCUS_REQUESTED,
-	WEBVIEW_SIDEBAR_STYLE_CHANGED,
-	WEBVIEW_DID_NAVIGATE,
 	WEBVIEW_FOCUSED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	MAIN_WINDOW_STATE_CHANGED,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	DEEP_LINK_TRIGGERED,
-	SERVERS_UPDATED,
 	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
 } from '../actions';
 import { MainWindow } from './MainWindow';
@@ -74,8 +59,8 @@ function AppContent() {
 	const [hasSidebar, setHasSidebar] = useState(() => localStorage.getItem('sidebar-closed') !== 'true');
 	const _servers = useSelector(({ servers }) => servers);
 	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
-	const [badges, setBadges] = useState({});
-	const [styles, setStyles] = useState({});
+	const badges = useSelector(({ servers }) => servers.reduce((badges, { url, badge }) => ({ ...badges, [url]: badge }), {}));
+	const styles = useSelector(({ servers }) => servers.reduce((styles, { url, style }) => ({ ...styles, [url]: style }), {}));
 	const [newUpdateVersion, setNewUpdateVersion] = useState(null);
 	const [focusedWebContents, setFocusedWebContents] = useState(() => remote.getCurrentWebContents());
 	const [mainWindowState, setMainWindowState] = useState({});
@@ -91,18 +76,12 @@ function AppContent() {
 
 	// eslint-disable-next-line complexity
 	useSaga(function *() {
+		yield takeEvery([MENU_BAR_QUIT_CLICKED, TRAY_ICON_QUIT_CLICKED], function *() {
+			remote.app.quit();
+		});
+
 		while (true) {
 			const { type, payload } = yield take();
-
-			if (type === MENU_BAR_QUIT_CLICKED) {
-				remote.app.quit();
-				continue;
-			}
-
-			if (type === TRAY_ICON_QUIT_CLICKED) {
-				remote.app.quit();
-				continue;
-			}
 
 			if (type === MENU_BAR_ABOUT_CLICKED) {
 				setOpenDialog('about');
@@ -142,11 +121,6 @@ function AppContent() {
 
 			if (type === MENU_BAR_SELECT_ALL_CLICKED) {
 				focusedWebContents.selectAll();
-				continue;
-			}
-
-			if (type === MENU_BAR_ADD_NEW_SERVER_CLICKED) {
-				servers.clearActive();
 				continue;
 			}
 
@@ -207,32 +181,6 @@ function AppContent() {
 				continue;
 			}
 
-			if (type === MENU_BAR_SELECT_SERVER_CLICKED) {
-				const server = payload;
-				servers.setActive(server.url);
-				continue;
-			}
-
-			if (type === TOUCH_BAR_SELECT_SERVER_TOUCHED) {
-				const serverUrl = payload;
-				servers.setActive(serverUrl);
-				continue;
-			}
-
-			if (type === ADD_SERVER_VIEW_SERVER_ADDED) {
-				servers.put({ url: payload, title: payload });
-				servers.setActive(payload);
-
-				yield put({
-					type: SERVERS_UPDATED,
-					payload: {
-						servers: servers.all(),
-						currentServerUrl: servers.active,
-					},
-				});
-				continue;
-			}
-
 			if (type === ABOUT_DIALOG_DISMISSED) {
 				setOpenDialog(null);
 				continue;
@@ -248,98 +196,8 @@ function AppContent() {
 				continue;
 			}
 
-			if (type === SIDE_BAR_SERVER_SELECTED) {
-				const hostUrl = payload;
-				servers.setActive(hostUrl);
-				continue;
-			}
-
-			if (type === SIDE_BAR_REMOVE_SERVER_CLICKED) {
-				const url = payload;
-				servers.remove(url);
-
-				yield put({
-					type: SERVERS_UPDATED,
-					payload: {
-						servers: servers.all(),
-						currentServerUrl: servers.active,
-					},
-				});
-				continue;
-			}
-
-			if (type === SIDE_BAR_ADD_NEW_SERVER_CLICKED) {
-				servers.clearActive();
-				continue;
-			}
-
-			if (type === SIDE_BAR_SERVERS_SORTED) {
-				servers.sort(payload);
-				yield put({
-					type: SERVERS_UPDATED,
-					payload: {
-						servers: servers.all(),
-						currentServerUrl: servers.active,
-					},
-				});
-				continue;
-			}
-
 			if (type === SCREEN_SHARING_DIALOG_SOURCE_SELECTED) {
 				setOpenDialog(null);
-				continue;
-			}
-
-			if (type === WEBVIEW_UNREAD_CHANGED) {
-				const { url, badge } = payload;
-
-				setBadges((badges) => ({
-					...badges,
-					[url]: badge || null,
-				}));
-				continue;
-			}
-
-			if (type === WEBVIEW_TITLE_CHANGED) {
-				const { url, title } = payload;
-				servers.put({ url, title: title || url });
-				yield put({
-					type: SERVERS_UPDATED,
-					payload: {
-						servers: servers.all(),
-						currentServerUrl: servers.active,
-					},
-				});
-				continue;
-			}
-
-			if (type === WEBVIEW_FOCUS_REQUESTED) {
-				const { url } = payload;
-				servers.setActive(url);
-				continue;
-			}
-
-			if (type === WEBVIEW_SIDEBAR_STYLE_CHANGED) {
-				const { url, style } = payload;
-				setStyles((styles) => ({
-					...styles,
-					[url]: style || null,
-				}));
-				continue;
-			}
-
-			if (type === WEBVIEW_DID_NAVIGATE) {
-				const { url, pageUrl } = payload;
-				if (pageUrl.includes(url)) {
-					servers.put({ url, lastPath: pageUrl });
-					yield put({
-						type: SERVERS_UPDATED,
-						payload: {
-							servers: servers.all(),
-							currentServerUrl: servers.active,
-						},
-					});
-				}
 				continue;
 			}
 
@@ -364,41 +222,6 @@ function AppContent() {
 				setOpenDialog('update');
 				continue;
 			}
-
-			if (type === DEEP_LINK_TRIGGERED) {
-				const { url } = payload;
-				if (servers.has(url)) {
-					servers.setActive(url);
-					continue;
-				}
-
-				const { response } = yield call(::remote.dialog.showMessageBox, {
-					type: 'question',
-					buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
-					defaultId: 0,
-					title: t('dialog.addServer.title'),
-					message: t('dialog.addServer.message', { host: url }),
-				});
-
-				if (response === 0) {
-					try {
-						yield call(::servers.validateHost(url));
-						servers.put({ url, title: url });
-						servers.setActive(url);
-					} catch (error) {
-						remote.dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host: url }));
-					}
-				}
-
-
-				yield put({
-					type: SERVERS_UPDATED,
-					payload: {
-						servers: servers.all(),
-						currentServerUrl: servers.active,
-					},
-				});
-			}
 		}
 	}, [focusedWebContents]);
 
@@ -422,26 +245,6 @@ function AppContent() {
 
 	useEffect(() => {
 		setLoading(false);
-
-		servers.addListener('active-setted', () => {
-			dispatch({
-				type: SERVERS_UPDATED,
-				payload: {
-					servers: servers.all(),
-					currentServerUrl: servers.active,
-				},
-			});
-		});
-
-		servers.addListener('active-cleared', () => {
-			dispatch({
-				type: SERVERS_UPDATED,
-				payload: {
-					servers: servers.all(),
-					currentServerUrl: servers.active,
-				},
-			});
-		});
 	}, []);
 
 	useEffect(() => {
@@ -482,16 +285,6 @@ function AppContent() {
 			}
 		};
 
-		const handleLogin = (event, webContents, request, authInfo, callback) => {
-			for (const url of Object.keys(servers.hosts)) {
-				const server = servers.hosts[url];
-				if (request.url.indexOf(url) === 0 && server.username) {
-					callback(server.username, server.password);
-					break;
-				}
-			}
-		};
-
 		const handleOpenUrl = (event, url) => {
 			processDeepLink(url);
 		};
@@ -500,12 +293,10 @@ function AppContent() {
 			argv.slice(2).forEach(processDeepLink);
 		};
 
-		remote.app.addListener('login', handleLogin);
 		remote.app.addListener('open-url', handleOpenUrl);
 		remote.app.addListener('second-instance', handleSecondInstance);
 
 		const unsubscribe = () => {
-			remote.app.removeListener('login', handleLogin);
 			remote.app.removeListener('open-url', handleOpenUrl);
 			remote.app.removeListener('second-instance', handleSecondInstance);
 		};
@@ -516,6 +307,31 @@ function AppContent() {
 
 		return unsubscribe;
 	}, []);
+
+	useEffect(() => {
+		const handleLogin = (event, webContents, request, authInfo, callback) => {
+			for (const server of _servers) {
+				const { host: serverHost, auth } = url.parse(server.url);
+				const requestHost = url.parse(request.url).host;
+
+				if (serverHost !== requestHost || !auth) {
+					callback();
+					return;
+				}
+
+				const [username, password] = auth.split(/:/);
+				callback(username, password);
+			}
+		};
+
+		remote.app.addListener('login', handleLogin);
+
+		const unsubscribe = () => {
+			remote.app.removeListener('login', handleLogin);
+		};
+
+		return unsubscribe;
+	}, [_servers]);
 
 	useEffect(() => {
 		window.dispatch = dispatch;
@@ -540,16 +356,15 @@ function AppContent() {
 			servers={_servers}
 			currentServerUrl={currentServerUrl}
 			badges={badges}
-			visible={hasSidebar}
+			visible={_servers.length > 0 && hasSidebar}
 			styles={styles}
 		/>
 		<ServersView
 			servers={_servers}
 			currentServerUrl={currentServerUrl}
-			hasSidebar={hasSidebar}
+			hasSidebar={_servers.length > 0 && hasSidebar}
 		/>
 		<AddServerView
-			validator={(url) => servers.validateHost(url)}
 			visible={currentServerUrl === null}
 		/>
 		<AboutDialog

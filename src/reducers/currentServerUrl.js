@@ -9,7 +9,7 @@ import {
 	WEBVIEW_FOCUS_REQUESTED,
 } from '../actions';
 
-export const currentServerUrl = (state = [], { type, payload }) => {
+export const currentServerUrl = (state = null, { type, payload }) => {
 	switch (type) {
 		case MENU_BAR_ADD_NEW_SERVER_CLICKED:
 			return null;

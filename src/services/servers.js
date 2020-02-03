@@ -1,73 +1,29 @@
-import { EventEmitter } from 'events';
 import fs from 'fs';
 import path from 'path';
 
 import { remote } from 'electron';
 
-import { readMap, writeMap } from '../localStorage';
+import { readMap, writeMap, readString, writeString } from '../localStorage';
 
-class Servers extends EventEmitter {
-	_hosts = {}
+const validateHost = async (hostUrl, timeout = 5000) => {
+	const headers = new Headers();
 
-	get hosts() {
-		return this._hosts;
+	if (hostUrl.includes('@')) {
+		const url = new URL(hostUrl);
+		hostUrl = url.origin;
+		headers.set('Authorization', `Basic ${ btoa(`${ url.username }:${ url.password }`) }`);
 	}
 
-	async validateHost(hostUrl, timeout = 5000) {
-		const headers = new Headers();
+	const response = await Promise.race([
+		fetch(`${ hostUrl }/api/info`, { headers }),
+		new Promise((resolve, reject) => setTimeout(() => reject('timeout'), timeout)),
+	]);
 
-		if (hostUrl.includes('@')) {
-			const url = new URL(hostUrl);
-			hostUrl = url.origin;
-			headers.set('Authorization', `Basic ${ btoa(`${ url.username }:${ url.password }`) }`);
-		}
-
-		const response = await Promise.race([
-			fetch(`${ hostUrl }/api/info`, { headers }),
-			new Promise((resolve, reject) => setTimeout(() => reject('timeout'), timeout)),
-		]);
-
-		if (!response.ok) {
-			// eslint-disable-next-line no-throw-literal
-			throw 'invalid';
-		}
+	if (!response.ok) {
+		// eslint-disable-next-line no-throw-literal
+		throw 'invalid';
 	}
-
-	hostExists(hostUrl) {
-		const { hosts } = this;
-
-		return !!hosts[hostUrl];
-	}
-
-	get active() {
-		const active = localStorage.getItem('rocket.chat.currentHost');
-		return active === 'null' ? null : active;
-	}
-
-	setActive(hostUrl) {
-		let url;
-		if (this.hostExists(hostUrl)) {
-			url = hostUrl;
-		} else if (Object.keys(this._hosts).length > 0) {
-			url = Object.keys(this._hosts)[0];
-		}
-
-		if (url) {
-			localStorage.setItem('rocket.chat.currentHost', hostUrl);
-			this.emit('active-setted', url);
-			return true;
-		}
-		return false;
-	}
-
-	clearActive() {
-		localStorage.removeItem('rocket.chat.currentHost');
-		this.emit('active-cleared');
-		return true;
-	}
-}
-
-const instance = new Servers();
+};
 
 let servers = new Map();
 
@@ -139,15 +95,27 @@ const loadServers = async () => {
 	}
 };
 
+let currentServerUrl = null;
+
+const loadCurrentServerUrl = () => {
+	currentServerUrl = readString('currentServerUrl', null);
+
+	const storedValue = localStorage.getItem('rocket.chat.currentHost');
+	localStorage.removeItem('rocket.chat.currentHost');
+
+	if (storedValue && storedValue !== 'null') {
+		currentServerUrl = storedValue;
+	}
+};
+
 const setUp = async () => {
 	await loadServers();
+	await loadCurrentServerUrl();
 	writeMap('servers', servers);
-	instance._hosts = Array.from(servers.values()).reduce((_hosts, server) => ({ ..._hosts, [server.url]: server }), {});
-	instance.setActive(instance.active);
+	writeString('currentServerUrl', currentServerUrl);
 };
 
 const tearDown = () => {
-	instance.removeAllListeners();
 	servers = new Map();
 };
 
@@ -155,13 +123,11 @@ const put = ({ url, ...props }) => {
 	if (servers.has(url)) {
 		servers.set(url, { ...servers.get(url), ...props });
 		writeMap('servers', servers);
-		instance._hosts = Array.from(servers.values()).reduce((_hosts, server) => ({ ..._hosts, [server.url]: server }), {});
 		return;
 	}
 
 	servers.set(url, { url, ...props });
 	writeMap('servers', servers);
-	instance._hosts = Array.from(servers.values()).reduce((_hosts, server) => ({ ..._hosts, [server.url]: server }), {});
 };
 
 const remove = (url) => {
@@ -171,23 +137,33 @@ const remove = (url) => {
 		return;
 	}
 
-	writeMap('servers', servers);
-	instance._hosts = Array.from(servers.values()).reduce((_hosts, server) => ({ ..._hosts, [server.url]: server }), {});
-
-	if (instance.active === url) {
-		instance.clearActive();
+	if (currentServerUrl === url) {
+		currentServerUrl = null;
 	}
+
+	writeMap('servers', servers);
+	writeString('currentServerUrl', currentServerUrl);
 };
 
 const sort = (urls) => {
 	servers = new Map([...servers.entries()].sort(([a], [b]) => urls.indexOf(a) - urls.indexOf(b)));
 	writeMap('servers', servers);
-	instance._hosts = Array.from(servers.values()).reduce((_hosts, server) => ({ ..._hosts, [server.url]: server }), {});
 };
 
 const has = (url) => servers.has(url);
 
-export default Object.seal(Object.assign(instance, {
+const setCurrentServerUrl = (_currentServerUrl) => {
+	if (!_currentServerUrl || !servers.has(_currentServerUrl)) {
+		currentServerUrl = null;
+		writeString('currentServerUrl', currentServerUrl);
+		return;
+	}
+
+	currentServerUrl = _currentServerUrl;
+	writeString('currentServerUrl', currentServerUrl);
+};
+
+export default Object.freeze({
 	setUp,
 	tearDown,
 	all: () => Array.from(servers.values()),
@@ -195,4 +171,7 @@ export default Object.seal(Object.assign(instance, {
 	remove,
 	sort,
 	has,
-}));
+	getCurrentServerUrl: () => currentServerUrl,
+	setCurrentServerUrl,
+	validateHost,
+});

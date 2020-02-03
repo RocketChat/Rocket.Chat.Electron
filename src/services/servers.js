@@ -106,6 +106,10 @@ const loadCurrentServerUrl = () => {
 	if (storedValue && storedValue !== 'null') {
 		currentServerUrl = storedValue;
 	}
+
+	if (!servers.has(currentServerUrl)) {
+		currentServerUrl = null;
+	}
 };
 
 const setUp = async () => {

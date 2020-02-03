@@ -26,13 +26,14 @@ function ServerButton({
 	active,
 	hasUnreadMessages,
 	mentionCount,
+	isDragging,
+	...props
 }) {
 	const dispatch = useDispatch();
 	const { t } = useTranslation();
 
 	const [favicon, setFavicon] = useState();
 	const [faviconLoaded, setFaviconLoaded] = useState(false);
-	const [dragged, setDragged] = useState(false);
 
 	const handleServerClick = (url) => {
 		dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
@@ -56,53 +57,6 @@ function ServerButton({
 			},
 		]);
 		menu.popup(remote.getCurrentWindow());
-	};
-
-	const handleDragStart = (event) => {
-		event.dataTransfer.dropEffect = 'move';
-		event.dataTransfer.effectAllowed = 'move';
-		setDragged(true);
-	};
-
-	const handleDragEnd = () => {
-		setDragged(false);
-	};
-
-	const [serverListRoot] = useState(() => document.querySelector('.sidebar .sidebar__server-list'));
-
-	const handleDragEnter = (event) => {
-		const draggedServerElement = serverListRoot.querySelector('.server--dragged');
-		const targetServerElement = event.currentTarget;
-
-		const isTargetBeforeDragged = (() => {
-			for (let current = draggedServerElement; current; current = current.previousSibling) {
-				if (current === targetServerElement) {
-					return true;
-				}
-			}
-
-			return false;
-		})();
-
-		if (isTargetBeforeDragged) {
-			serverListRoot.insertBefore(draggedServerElement, targetServerElement);
-		} else if (targetServerElement !== serverListRoot.lastChild) {
-			serverListRoot.insertBefore(draggedServerElement, targetServerElement.nextSibling);
-		} else {
-			serverListRoot.appendChild(draggedServerElement);
-		}
-	};
-
-	const handleDrop = (event) => {
-		event.preventDefault();
-
-		const serverElement = event.currentTarget;
-
-		const newSorting = Array.from(serverListRoot.querySelectorAll('.server'))
-			.map((serverElement) => serverElement.dataset.url);
-
-		dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: newSorting });
-		dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: serverElement.dataset.url });
 	};
 
 	const initials = useMemo(() => title
@@ -129,18 +83,15 @@ function ServerButton({
 			active && 'server--active',
 			hasUnreadMessages && 'server--unread',
 			faviconLoaded && 'server--with-favicon',
-			dragged && 'server--dragged',
+			isDragging && 'server--dragged',
 		].filter(Boolean).join(' ')}
 		draggable='true'
 		data-url={url}
 		data-tooltip={title}
 		onClick={handleServerClick.bind(null, url)}
 		onContextMenu={handleServerContextMenu.bind(null, url)}
-		onDragStart={handleDragStart}
-		onDragEnd={handleDragEnd}
-		onDragEnter={handleDragEnter}
 		onDragOver={(event) => event.preventDefault()}
-		onDrop={handleDrop}
+		{...props}
 	>
 		<span className='server__initials'>{initials}</span>
 		<img
@@ -218,6 +169,46 @@ export function SideBar({
 		dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
 	};
 
+	const [draggedServerUrl, setDraggedServerUrl] = useState(null);
+	const [serversSorting, setServersSorting] = useState(null);
+
+	const handleDragStart = (url) => (event) => {
+		event.dataTransfer.dropEffect = 'move';
+		event.dataTransfer.effectAllowed = 'move';
+		setDraggedServerUrl(url);
+		setServersSorting(servers.map(({ url }) => url));
+	};
+
+	const handleDragEnd = () => () => {
+		setDraggedServerUrl(null);
+		setServersSorting(null);
+	};
+
+	const handleDragEnter = (targetServerUrl) => () => {
+		setServersSorting((serversSorting) => serversSorting.map((url) => {
+			if (url === targetServerUrl) {
+				return draggedServerUrl;
+			}
+
+			if (url === draggedServerUrl) {
+				return targetServerUrl;
+			}
+
+			return url;
+		}));
+	};
+
+	const handleDrop = (url) => (event) => {
+		event.preventDefault();
+
+		dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: serversSorting });
+		dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
+	};
+
+	const sortedServers = serversSorting
+		? servers.sort(({ url: a }, { url: b }) => serversSorting.indexOf(a) - serversSorting.indexOf(b))
+		: servers;
+
 	return <div
 		className={[
 			'sidebar',
@@ -237,7 +228,7 @@ export function SideBar({
 					showShortcuts && 'sidebar__server-list--shortcuts',
 				].filter(Boolean).join(' ')}
 			>
-				{servers.map((server, order) => <ServerButton
+				{sortedServers.map((server, order) => <ServerButton
 					key={server.url}
 					url={server.url}
 					title={servers.title === 'Rocket.Chat' && parseUrl(server.url).host !== 'open.rocket.chat'
@@ -247,6 +238,11 @@ export function SideBar({
 					active={currentServerUrl === server.url}
 					hasUnreadMessages={!!badges[server.url]}
 					mentionCount={badges[server.url] || badges[server.url] === 0 ? parseInt(badges[server.url], 10) : null}
+					isDragging={draggedServerUrl === server.url}
+					onDragStart={handleDragStart(server.url)}
+					onDragEnd={handleDragEnd(server.url)}
+					onDragEnter={handleDragEnter(server.url)}
+					onDrop={handleDrop(server.url)}
 				/>)}
 			</ol>
 			<button

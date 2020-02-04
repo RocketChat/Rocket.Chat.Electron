@@ -18,14 +18,14 @@ const DOWNLOADED_EVENT = 'downloaded';
 const CANCELLED_EVENT = 'cancelled';
 const ERROR_EVENT = 'error';
 
-let configurable = true;
-let updatesEnabled = true;
-let checkForUpdatesOnStartup = true;
+let isEachUpdatesSettingsConfigurable = true;
+let isUpdatingEnabled = true;
+let doCheckForUpdatesOnStartup = true;
 let skippedUpdateVersion = null;
 
-const updatesAllowed = (process.platform === 'linux' && !!process.env.APPIMAGE)
-|| (process.platform === 'win32' && !process.windowsStore)
-|| (process.platform === 'darwin' && !process.mas);
+const isUpdatingAllowed = (process.platform === 'linux' && !!process.env.APPIMAGE)
+	|| (process.platform === 'win32' && !process.windowsStore)
+	|| (process.platform === 'darwin' && !process.mas);
 
 const handleCheckingForUpdate = () => {
 	emitter.emit(CHECKING_EVENT);
@@ -59,9 +59,9 @@ const handleError = (error) => {
 };
 
 const loadConfiguration = async () => {
-	configurable = true;
-	updatesEnabled = true;
-	checkForUpdatesOnStartup = true;
+	isEachUpdatesSettingsConfigurable = true;
+	isUpdatingEnabled = true;
+	doCheckForUpdatesOnStartup = true;
 	skippedUpdateVersion = null;
 
 	const appConfigurationFilePath = path.join(
@@ -80,15 +80,15 @@ const loadConfiguration = async () => {
 			} = JSON.parse(await fs.promises.readFile(appConfigurationFilePath, 'utf8'));
 
 			if (forced !== undefined) {
-				configurable = !forced;
+				isEachUpdatesSettingsConfigurable = !forced;
 			}
 
 			if (canUpdate !== undefined) {
-				updatesEnabled = Boolean(canUpdate);
+				isUpdatingEnabled = Boolean(canUpdate);
 			}
 
 			if (autoUpdate !== undefined) {
-				checkForUpdatesOnStartup = Boolean(autoUpdate);
+				doCheckForUpdatesOnStartup = Boolean(autoUpdate);
 			}
 
 			if (skip !== undefined) {
@@ -100,14 +100,14 @@ const loadConfiguration = async () => {
 			}
 		}
 	} catch (error) {
-		configurable = true;
-		updatesEnabled = true;
-		checkForUpdatesOnStartup = true;
+		isEachUpdatesSettingsConfigurable = true;
+		isUpdatingEnabled = true;
+		doCheckForUpdatesOnStartup = true;
 		skippedUpdateVersion = null;
 	}
 
-	updatesEnabled = readBoolean('updatesEnabled', updatesEnabled);
-	checkForUpdatesOnStartup = readBoolean('checkForUpdatesOnStartup', checkForUpdatesOnStartup);
+	isUpdatingEnabled = readBoolean('isUpdatingEnabled', isUpdatingEnabled);
+	doCheckForUpdatesOnStartup = readBoolean('doCheckForUpdatesOnStartup', doCheckForUpdatesOnStartup);
 	skippedUpdateVersion = readString('skippedUpdateVersion', skippedUpdateVersion);
 
 	try {
@@ -121,7 +121,7 @@ const loadConfiguration = async () => {
 			await fs.promises.unlink(userConfigurationFilePath);
 
 			if (autoUpdate !== undefined) {
-				checkForUpdatesOnStartup = Boolean(autoUpdate);
+				doCheckForUpdatesOnStartup = Boolean(autoUpdate);
 			}
 
 			if (skip !== undefined) {
@@ -131,14 +131,14 @@ const loadConfiguration = async () => {
 	} catch (error) {
 		console.error(error.stack);
 	} finally {
-		if (checkForUpdatesOnStartup === null) {
-			checkForUpdatesOnStartup = true;
+		if (doCheckForUpdatesOnStartup === null) {
+			doCheckForUpdatesOnStartup = true;
 		}
 	}
 };
 
 const check = async () => {
-	if (!updatesAllowed || !updatesEnabled) {
+	if (!isUpdatingAllowed || !isUpdatingEnabled) {
 		return;
 	}
 
@@ -161,7 +161,7 @@ const setUp = async () => {
 
 	await loadConfiguration();
 
-	if (updatesAllowed && updatesEnabled && checkForUpdatesOnStartup) {
+	if (isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup) {
 		await check();
 	}
 };
@@ -177,28 +177,28 @@ const tearDown = () => {
 	emitter.removeAllListeners();
 };
 
-const toggleCheckOnStartup = (_checkForUpdatesOnStartup = !checkForUpdatesOnStartup) => {
-	if (!updatesAllowed || !updatesEnabled || !configurable) {
+const toggleCheckOnStartup = (_checkForUpdatesOnStartup = !doCheckForUpdatesOnStartup) => {
+	if (!isUpdatingAllowed || !isUpdatingEnabled || !isEachUpdatesSettingsConfigurable) {
 		return;
 	}
 
-	checkForUpdatesOnStartup = _checkForUpdatesOnStartup;
-	writeBoolean('checkForUpdatesOnStartup', checkForUpdatesOnStartup);
+	doCheckForUpdatesOnStartup = _checkForUpdatesOnStartup;
+	writeBoolean('doCheckForUpdatesOnStartup', doCheckForUpdatesOnStartup);
 };
 
 const skipVersion = (version) => {
-	if (!updatesAllowed || !updatesEnabled || !configurable) {
+	if (!isUpdatingAllowed || !isUpdatingEnabled || !isEachUpdatesSettingsConfigurable) {
 		return;
 	}
 
 	skippedUpdateVersion = version;
-	writeString('skippedUpdateVersion', version);
+	writeString('skippedUpdateVersion', skippedUpdateVersion);
 };
 
 let cancellationToken;
 
 const download = async () => {
-	if (!updatesAllowed || !updatesEnabled) {
+	if (!isUpdatingAllowed || !isUpdatingEnabled) {
 		return;
 	}
 
@@ -211,7 +211,7 @@ const download = async () => {
 };
 
 const cancelDownload = () => {
-	if (!updatesAllowed || !updatesEnabled || !cancellationToken) {
+	if (!isUpdatingAllowed || !isUpdatingEnabled || !cancellationToken) {
 		return;
 	}
 
@@ -223,7 +223,7 @@ const cancelDownload = () => {
 };
 
 const install = () => {
-	if (!updatesAllowed || !updatesEnabled) {
+	if (!isUpdatingAllowed || !isUpdatingEnabled) {
 		return;
 	}
 
@@ -246,9 +246,10 @@ export default Object.seal(Object.assign(emitter, {
 	}),
 	setUp,
 	tearDown,
-	isEnabled: () => updatesAllowed && updatesEnabled,
-	isConfigurable: () => configurable,
-	isCheckForUpdatesOnStartupEnabled: () => updatesAllowed && updatesEnabled && checkForUpdatesOnStartup,
+	isUpdatingAllowed: () => isUpdatingAllowed,
+	isEachUpdatesSettingConfigurable: () => isEachUpdatesSettingsConfigurable,
+	isUpdatingEnabled: () => isUpdatingEnabled,
+	doCheckForUpdatesOnStartup: () => doCheckForUpdatesOnStartup,
 	check,
 	toggleCheckOnStartup,
 	skipVersion,

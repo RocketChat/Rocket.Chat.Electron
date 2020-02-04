@@ -83,9 +83,10 @@ export function UpdatesProvider({ children, service = updates }) {
 			dispatch({
 				type: UPDATES_READY,
 				payload: {
-					updatesEnabled: updates.isEnabled(),
-					updatesConfigurable: updates.isConfigurable(),
-					checksForUpdatesOnStartup: updates.isCheckForUpdatesOnStartupEnabled(),
+					isUpdatingAllowed: updates.isUpdatingAllowed(),
+					isEachUpdatesSettingConfigurable: updates.isEachUpdatesSettingConfigurable(),
+					isUpdatingEnabled: updates.isUpdatingEnabled(),
+					doCheckForUpdatesOnStartup: updates.doCheckForUpdatesOnStartup(),
 				},
 			});
 		});
@@ -96,7 +97,7 @@ export function UpdatesProvider({ children, service = updates }) {
 
 		window.addEventListener('beforeunload', cleanUp);
 		return () => cleanUp;
-	}, []);
+	}, [dispatch, t, updates]);
 
 	useSaga(function *() {
 		yield takeEvery(ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, function *({ payload: updateOnStart }) {
@@ -120,15 +121,3 @@ export function UpdatesProvider({ children, service = updates }) {
 		{children}
 	</>;
 }
-
-export const useUpdatesParameters = () => {
-	const checksForUpdatesOnStartup = useSelector(({ checksForUpdatesOnStartup }) => checksForUpdatesOnStartup);
-	const updatesConfigurable = useSelector(({ updatesConfigurable }) => updatesConfigurable);
-	const updatesEnabled = useSelector(({ updatesEnabled }) => updatesEnabled);
-
-	return useMemo(() => ({
-		checksForUpdatesOnStartup,
-		updatesConfigurable,
-		updatesEnabled,
-	}), [checksForUpdatesOnStartup, updatesConfigurable, updatesEnabled]);
-};

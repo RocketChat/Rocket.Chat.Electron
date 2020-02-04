@@ -1,20 +1,22 @@
 import { createStore, applyMiddleware, combineReducers } from 'redux';
 import createSagaMiddleware from 'redux-saga';
 
-import { checksForUpdatesOnStartup } from './reducers/checksForUpdatesOnStartup';
 import { currentServerUrl } from './reducers/currentServerUrl';
+import { doCheckForUpdatesOnStartup } from './reducers/doCheckForUpdatesOnStartup';
+import { isEachUpdatesSettingConfigurable } from './reducers/isEachUpdatesSettingConfigurable';
+import { isUpdatingAllowed } from './reducers/isUpdatingAllowed';
+import { isUpdatingEnabled } from './reducers/isUpdatingEnabled';
 import { servers } from './reducers/servers';
 import { spellCheckingDictionaries } from './reducers/spellCheckingDictionaries';
-import { updatesConfigurable } from './reducers/updatesConfigurable';
-import { updatesEnabled } from './reducers/updatesEnabled';
 
 const rootReducer = combineReducers({
-	checksForUpdatesOnStartup,
 	currentServerUrl,
+	doCheckForUpdatesOnStartup,
+	isEachUpdatesSettingConfigurable,
+	isUpdatingAllowed,
+	isUpdatingEnabled,
 	servers,
 	spellCheckingDictionaries,
-	updatesConfigurable,
-	updatesEnabled,
 });
 
 export const sagaMiddleware = createSagaMiddleware();

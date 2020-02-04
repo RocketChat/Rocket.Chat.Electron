@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
 import pkg from '../../package.json';
@@ -14,18 +14,15 @@ import {
 	UPDATES_CHECK_FAILED,
 } from '../actions';
 import { useSaga } from './SagaMiddlewareProvider';
-import { useUpdatesParameters } from './UpdatesProvider';
 
 export function AboutDialog({
 	appVersion = remote.app.getVersion(),
 	copyright = pkg.copyright,
 	visible = false,
 }) {
-	const {
-		updatesEnabled: canUpdate = false,
-		checksForUpdatesOnStartup: canAutoUpdate = false,
-		updatesConfigurable: canSetAutoUpdate = false,
-	} = useUpdatesParameters();
+	const canUpdate = useSelector(({ isUpdatingAllowed, isUpdatingEnabled }) => isUpdatingAllowed && isUpdatingEnabled);
+	const isCheckForUpdatesOnStartupChecked = useSelector(({ isUpdatingAllowed, isUpdatingEnabled, doCheckForUpdatesOnStartup }) => isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup);
+	const canSetCheckForUpdatesOnStartup = useSelector(({ isUpdatingAllowed, isEachUpdatesSettingConfigurable }) => isUpdatingAllowed && isEachUpdatesSettingConfigurable);
 
 	const rootRef = useRef();
 	const dispatch = useDispatch();
@@ -143,8 +140,8 @@ export function AboutDialog({
 				<input
 					className='check-for-updates-on-start'
 					type='checkbox'
-					checked={canAutoUpdate}
-					disabled={!canSetAutoUpdate}
+					checked={isCheckForUpdatesOnStartupChecked}
+					disabled={!canSetCheckForUpdatesOnStartup}
 					onChange={handleCheckForUpdatesOnStartCheckBoxChange}
 				/>
 				<span>{t('dialog.about.checkUpdatesOnStart')}</span>

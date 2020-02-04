@@ -1,3 +1,13 @@
+## [2.17.5](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.4...2.17.5) (2020-02-04)
+
+
+### Bug Fixes
+
+* Handle unset enabled dictionaries ([2e3f203](https://github.com/RocketChat/Rocket.Chat.Electron/commit/2e3f20397f8b39d70e7e9261c20145b9e6987e91))
+* Ignore Hunspell dictionaries on MacOS ([cccca77](https://github.com/RocketChat/Rocket.Chat.Electron/commit/cccca775e40c101798a870ee3f2ced79fdee20a3))
+
+
+
 ## [2.17.4](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.3...2.17.4) (2020-02-04)
 
 

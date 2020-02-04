@@ -24,8 +24,8 @@ export const isMisspelled = mem((text) => {
 	return true;
 });
 
-function filterDictionaries(dictionaries) {
-	return dictionaries
+function filterDictionaries(dictionariesToFilter) {
+	return dictionariesToFilter
 		.flatMap((dictionary) => {
 			const matches = /^(\w+?)[-_](\w+)$/.exec(dictionary);
 			return matches
@@ -121,7 +121,7 @@ export const setupSpellChecking = async () => {
 
 	const installedDictionaries = (await fs.promises.readdir(dictionariesPath, { encoding: 'utf8' }))
 		.filter((filename) => ['.bdic'].includes(path.extname(filename).toLowerCase()))
-		.map((filename) => path.basename(filename, path.extname(filename)).replace(/-/, '_'))
+		.map((filename) => path.basename(filename, path.extname(filename)))
 		.sort();
 
 	dictionaries = Array.from(new Set([...embeddedDictionaries, ...installedDictionaries]));

@@ -127,7 +127,7 @@ export const setupSpellChecking = async () => {
 	dictionaries = Array.from(new Set([...embeddedDictionaries, ...installedDictionaries]));
 
 	try {
-		const enabledDictionaries = JSON.parse(localStorage.getItem('spellcheckerDictionaries'));
+		const enabledDictionaries = JSON.parse(localStorage.getItem('spellcheckerDictionaries')) || [];
 		await enableSpellCheckingDictionaries(...enabledDictionaries);
 	} catch (error) {
 		console.error(error);

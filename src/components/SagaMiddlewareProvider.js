@@ -7,10 +7,10 @@ export const useSaga = (saga, deps) => {
 
 	useEffect(() => {
 		const task = sagaMiddleware.run(saga);
-
-		return () => {
-			task.cancel();
-		};
+		const cleanUp = ::task.cancel;
+		window.addEventListener('beforeunload', cleanUp);
+		return cleanUp;
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, deps);
 };
 

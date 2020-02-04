@@ -11,7 +11,8 @@ import {
 	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
-	UPDATES_CHECK_FAILED,
+	UPDATES_ERROR_THROWN,
+	UPDATES_CHECKING_FOR_UPDATE,
 } from '../actions';
 import { useSaga } from './SagaMiddlewareProvider';
 
@@ -83,14 +84,19 @@ export function AboutDialog({
 			displayCheckingForUpdatesMessage(t('dialog.about.noUpdatesAvailable'));
 		});
 
-		yield takeEvery(UPDATES_CHECK_FAILED, function *() {
-			displayCheckingForUpdatesMessage(t('dialog.about.errorWhileLookingForUpdates'));
+		yield takeEvery(UPDATES_CHECKING_FOR_UPDATE, function *() {
+			setCheckingForUpdates(true);
+			setCheckingForUpdatesMessage(null);
 		});
-	}, [canUpdate]);
+
+		yield takeEvery(UPDATES_ERROR_THROWN, function *() {
+			if (checkingForUpdates) {
+				displayCheckingForUpdatesMessage(t('dialog.about.errorWhileLookingForUpdates'));
+			}
+		});
+	}, [canUpdate, checkingForUpdates]);
 
 	const handleCheckForUpdatesButtonClick = () => {
-		setCheckingForUpdates(true);
-		setCheckingForUpdatesMessage(null);
 		dispatch({ type: ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED });
 	};
 

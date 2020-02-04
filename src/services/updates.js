@@ -250,6 +250,7 @@ export default Object.seal(Object.assign(emitter, {
 	isEachUpdatesSettingConfigurable: () => isEachUpdatesSettingsConfigurable,
 	isUpdatingEnabled: () => isUpdatingEnabled,
 	doCheckForUpdatesOnStartup: () => doCheckForUpdatesOnStartup,
+	skippedUpdateVersion: () => skippedUpdateVersion,
 	check,
 	toggleCheckOnStartup,
 	skipVersion,

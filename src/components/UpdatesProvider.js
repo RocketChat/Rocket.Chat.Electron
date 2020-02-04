@@ -1,7 +1,7 @@
 import { remote } from 'electron';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
 import {
@@ -9,7 +9,8 @@ import {
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-	UPDATES_CHECK_FAILED,
+	UPDATES_CHECKING_FOR_UPDATE,
+	UPDATES_ERROR_THROWN,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_READY,
@@ -25,19 +26,15 @@ export function UpdatesProvider({ children, service = updates }) {
 	const t = useTranslation();
 
 	useEffect(() => {
-		let checking = false;
-
 		updates.addListener(updates.constants.CHECKING_EVENT, () => {
-			checking = true;
+			dispatch({ type: UPDATES_CHECKING_FOR_UPDATE });
 		});
 
 		updates.addListener(updates.constants.NOT_AVAILABLE_EVENT, () => {
-			checking = false;
 			dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
 		});
 
 		updates.addListener(updates.constants.SKIPPED_EVENT, () => {
-			checking = false;
 			dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
 		});
 
@@ -73,10 +70,8 @@ export function UpdatesProvider({ children, service = updates }) {
 			updates.install();
 		});
 
-		updates.addListener(updates.constants.ERROR_EVENT, () => {
-			if (checking) {
-				dispatch({ type: UPDATES_CHECK_FAILED });
-			}
+		updates.addListener(updates.constants.ERROR_EVENT, (error) => {
+			dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
 		});
 
 		const setupPromise = updates.setUp().then(() => {
@@ -87,6 +82,7 @@ export function UpdatesProvider({ children, service = updates }) {
 					isEachUpdatesSettingConfigurable: updates.isEachUpdatesSettingConfigurable(),
 					isUpdatingEnabled: updates.isUpdatingEnabled(),
 					doCheckForUpdatesOnStartup: updates.doCheckForUpdatesOnStartup(),
+					skippedUpdateVersion: updates.skippedUpdateVersion(),
 				},
 			});
 		});
@@ -100,16 +96,16 @@ export function UpdatesProvider({ children, service = updates }) {
 	}, [dispatch, t, updates]);
 
 	useSaga(function *() {
-		yield takeEvery(ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, function *({ payload: updateOnStart }) {
-			updates.toggleCheckOnStartup(updateOnStart);
+		yield takeEvery(ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, function *({ payload: doCheckForUpdatesOnStartup }) {
+			updates.toggleCheckOnStartup(doCheckForUpdatesOnStartup);
 		});
 
 		yield takeEvery(ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED, function *() {
 			updates.check();
 		});
 
-		yield takeEvery(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, function *({ payload: skippedVersion }) {
-			updates.skipVersion(skippedVersion);
+		yield takeEvery(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, function *({ payload: skippedUpdateVersion }) {
+			updates.skipVersion(skippedUpdateVersion);
 		});
 
 		yield takeEvery(UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED, function *() {

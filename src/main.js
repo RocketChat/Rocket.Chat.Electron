@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { app, BrowserWindow, ipcMain, webContents } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import setupElectronReload from 'electron-reload';
 import rimraf from 'rimraf';
 

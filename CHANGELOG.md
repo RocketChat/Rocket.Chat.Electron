@@ -1,3 +1,12 @@
+## [2.17.4](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.3...2.17.4) (2020-02-04)
+
+
+### Bug Fixes
+
+* Broken spell checking dictionary selection ([c11600c](https://github.com/RocketChat/Rocket.Chat.Electron/commit/c11600ca509c8c1806c734b189a33981b5ba002e))
+
+
+
 ## [2.17.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.2...2.17.3) (2020-01-30)
 
 

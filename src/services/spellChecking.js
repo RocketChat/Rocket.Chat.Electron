@@ -80,14 +80,16 @@ const updateEnabledDictionaries = () => {
 };
 
 const updateInstalledDictionaries = async () => {
-	try {
-		installedDictionaries = (await fs.promises.readdir(installedDictionariesDirectoryPath, { encoding: 'utf8' }))
-			.filter((filename) => path.extname(filename).toLowerCase() === installedDictionariesExtension)
-			.map((filename) => path.basename(filename, path.extname(filename)))
-			.sort();
-	} catch (error) {
-		console.warn(error.stack);
-		installedDictionaries = [];
+	if (process.platform !== 'darwin') {
+		try {
+			installedDictionaries = (await fs.promises.readdir(installedDictionariesDirectoryPath, { encoding: 'utf8' }))
+				.filter((filename) => path.extname(filename).toLowerCase() === installedDictionariesExtension)
+				.map((filename) => path.basename(filename, path.extname(filename)))
+				.sort();
+		} catch (error) {
+			console.warn(error.stack);
+			installedDictionaries = [];
+		}
 	}
 
 	availableDictionaries = Array.from(new Set([...embeddedDictionaries, ...installedDictionaries]));
@@ -128,6 +130,9 @@ const setUp = async () => {
 };
 
 const installDictionary = async (sourcePath) => {
+	if (process.platform === 'darwin') {
+		return;
+	}
 	const basename = path.basename(sourcePath);
 	const targetPath = path.join(installedDictionariesDirectoryPath, basename);
 

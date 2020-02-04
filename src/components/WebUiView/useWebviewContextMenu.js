@@ -98,13 +98,15 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 								? enableSpellCheckingDictionary(name)
 								: disableSpellCheckingDictionary(name)),
 						})),
-						{
-							type: 'separator',
-						},
-						{
-							label: t('contextMenu.browseForLanguage'),
-							click: handleBrowserForLanguage,
-						},
+						...process.platform !== 'darwin' ? [
+							{
+								type: 'separator',
+							},
+							{
+								label: t('contextMenu.browseForLanguage'),
+								click: handleBrowserForLanguage,
+							},
+						] : [],
 					],
 				},
 				{

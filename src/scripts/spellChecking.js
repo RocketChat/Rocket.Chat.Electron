@@ -42,6 +42,10 @@ export const getSpellCheckingDictionariesPath = () => dictionariesPath;
 export const getEnabledSpellCheckingDictionaries = () => Array.from(spellCheckers.keys());
 
 export const installSpellCheckingDictionaries = async (filePaths) => {
+	if (process.platform === 'darwin') {
+		return;
+	}
+
 	await Promise.all(filePaths.map(async (filePath) => {
 		const name = path.basename(filePath, path.extname(filePath));
 		const basename = path.basename(filePath);
@@ -68,17 +72,17 @@ export const getSpellCheckingCorrections = (text) => {
 };
 
 const registerSpellCheckingDictionary = async (dictionary) => {
-	let data;
+	let args;
 	try {
 		const dictionaryPath = path.join(dictionariesPath, `${ dictionary.replace(/_/g, '-') }.bdic`);
-		data = await fs.promises.readFile(dictionaryPath);
+		args = [dictionary, await fs.promises.readFile(dictionaryPath)];
 	} catch (error) {
-		data = Buffer.alloc(0);
+		args = [dictionary];
 	}
 
 	try {
 		const spellChecker = new Spellchecker();
-		if (spellChecker.setDictionary(dictionary, data)) {
+		if (spellChecker.setDictionary(...args)) {
 			spellCheckers.set(dictionary, spellChecker);
 		}
 	} catch (error) {
@@ -119,10 +123,13 @@ export const setupSpellChecking = async () => {
 		'dictionaries',
 	);
 
-	const installedDictionaries = (await fs.promises.readdir(dictionariesPath, { encoding: 'utf8' }))
-		.filter((filename) => ['.bdic'].includes(path.extname(filename).toLowerCase()))
-		.map((filename) => path.basename(filename, path.extname(filename)))
-		.sort();
+	let installedDictionaries = [];
+	if (process.platform !== 'darwin') {
+		installedDictionaries = (await fs.promises.readdir(dictionariesPath, { encoding: 'utf8' }))
+			.filter((filename) => ['.bdic'].includes(path.extname(filename).toLowerCase()))
+			.map((filename) => path.basename(filename, path.extname(filename)))
+			.sort();
+	}
 
 	dictionaries = Array.from(new Set([...embeddedDictionaries, ...installedDictionaries]));
 

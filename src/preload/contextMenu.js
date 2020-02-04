@@ -80,13 +80,15 @@ const createSpellCheckingMenuTemplate = ({
 						? enableSpellCheckingDictionary(dictionaryName)
 						: disableSpellCheckingDictionary(dictionaryName)),
 				})),
-				{
-					type: 'separator',
-				},
-				{
-					label: t('contextMenu.browseForLanguage'),
-					click: handleBrowserForLanguage,
-				},
+				...process.platform !== 'darwin' ? [
+					{
+						type: 'separator',
+					},
+					{
+						label: t('contextMenu.browseForLanguage'),
+						click: handleBrowserForLanguage,
+					},
+				] : [],
 			],
 		},
 		{

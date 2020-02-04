@@ -12,9 +12,9 @@ import {
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_CHECK_FAILED,
-} from '../actions.js';
+} from '../actions';
 import { useSaga } from './SagaMiddlewareProvider';
-import { useUpdatesParameters } from './UpdatesProvider.js';
+import { useUpdatesParameters } from './UpdatesProvider';
 
 export function AboutDialog({
 	appVersion = remote.app.getVersion(),

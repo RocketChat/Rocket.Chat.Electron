@@ -1,4 +1,3 @@
-import querystring from 'querystring';
 import url from 'url';
 
 import { remote } from 'electron';
@@ -6,7 +5,7 @@ import i18n from 'i18next';
 import React, { useEffect, useState, useMemo } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import { Provider, useDispatch, useSelector } from 'react-redux';
-import { call, take, takeEvery } from 'redux-saga/effects';
+import { call, put, select, take, takeEvery } from 'redux-saga/effects';
 
 import {
 	MENU_BAR_QUIT_CLICKED,
@@ -28,8 +27,10 @@ import {
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	MAIN_WINDOW_STATE_CHANGED,
 	UPDATES_NEW_VERSION_AVAILABLE,
-	DEEP_LINK_TRIGGERED,
 	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
+	DEEP_LINK_TRIGGERED,
+	DEEP_LINKS_SERVER_FOCUSED,
+	DEEP_LINKS_SERVER_ADDED,
 } from '../actions';
 import { MainWindow } from './MainWindow';
 import { AboutDialog } from './AboutDialog';
@@ -44,6 +45,7 @@ import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
 import { store, sagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
+import { validateServerUrl } from '../sagas/servers';
 
 function AppContent() {
 	const { t } = useTranslation();
@@ -80,52 +82,31 @@ function AppContent() {
 			setFocusedWebContents(remote.webContents.fromId(webContentsId));
 		});
 
-		// yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
-		// 	if (servers.has(url)) {
-		// 		servers.setCurrentServerUrl(url);
-		// 		yield put({
-		// 			type: SERVERS_UPDATED,
-		// 			payload: {
-		// 				servers: servers.all(),
-		// 				currentServerUrl: servers.getCurrentServerUrl(),
-		// 			},
-		// 		});
-		// 		return;
-		// 	}
+		yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
+			const servers = yield select(({ servers }) => servers);
 
-		// 	const { response } = yield call(::remote.dialog.showMessageBox, {
-		// 		type: 'question',
-		// 		buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
-		// 		defaultId: 0,
-		// 		title: t('dialog.addServer.title'),
-		// 		message: t('dialog.addServer.message', { host: url }),
-		// 	});
+			if (servers.some((server) => server.url === url)) {
+				yield put({ type: DEEP_LINKS_SERVER_FOCUSED, payload: url });
+				return;
+			}
 
-		// 	if (response === 0) {
-		// 		try {
-		// 			yield call(::servers.validateHost(url));
-		// 			servers.put({ url, title: url });
-		// 			servers.setCurrentServerUrl(url);
-		// 			yield put({
-		// 				type: SERVERS_UPDATED,
-		// 				payload: {
-		// 					servers: servers.all(),
-		// 					currentServerUrl: servers.getCurrentServerUrl(),
-		// 				},
-		// 			});
-		// 		} catch (error) {
-		// 			remote.dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host: url }));
-		// 		}
+			const { response } = yield call(::remote.dialog.showMessageBox, {
+				type: 'question',
+				buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
+				defaultId: 0,
+				title: t('dialog.addServer.title'),
+				message: t('dialog.addServer.message', { host: url }),
+			});
 
-		// 		yield put({
-		// 			type: SERVERS_UPDATED,
-		// 			payload: {
-		// 				servers: servers.all(),
-		// 				currentServerUrl: servers.getCurrentServerUrl(),
-		// 			},
-		// 		});
-		// 	}
-		// });
+			if (response === 0) {
+				try {
+					yield *validateServerUrl(url);
+					yield put({ type: DEEP_LINKS_SERVER_ADDED, payload: url });
+				} catch (error) {
+					remote.dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host: url }));
+				}
+			}
+		});
 
 		while (true) {
 			const { type, payload } = yield take();
@@ -287,67 +268,6 @@ function AppContent() {
 	useEffect(() => {
 		setLoading(false);
 	}, []);
-
-	useEffect(() => {
-		const normalizeUrl = (hostUrl, insecure = false) => {
-			if (!/^https?:\/\//.test(hostUrl)) {
-				return `${ insecure ? 'http' : 'https' }://${ hostUrl }`;
-			}
-
-			return hostUrl;
-		};
-
-		const processAuth = ({ host, token, userId, insecure }) => {
-			const hostUrl = normalizeUrl(host, insecure === 'true');
-			dispatch({ type: DEEP_LINK_TRIGGERED, payload: { type: 'auth', url: hostUrl, token, userId } });
-		};
-
-		const processRoom = ({ host, rid, path, insecure }) => {
-			const hostUrl = normalizeUrl(host, insecure === 'true');
-			dispatch({ type: DEEP_LINK_TRIGGERED, payload: { type: 'room', url: hostUrl, rid, path } });
-		};
-
-		const processDeepLink = (link) => {
-			const { protocol, hostname:	action, query } = url.parse(link);
-
-			if (protocol !== 'rocketchat:') {
-				return;
-			}
-
-			switch (action) {
-				case 'auth': {
-					processAuth(querystring.parse(query));
-					break;
-				}
-				case 'room': {
-					processRoom(querystring.parse(query));
-					break;
-				}
-			}
-		};
-
-		const handleOpenUrl = (event, url) => {
-			processDeepLink(url);
-		};
-
-		const handleSecondInstance = (event, argv) => {
-			argv.slice(2).forEach(processDeepLink);
-		};
-
-		remote.app.addListener('open-url', handleOpenUrl);
-		remote.app.addListener('second-instance', handleSecondInstance);
-
-		const unsubscribe = () => {
-			remote.app.removeListener('open-url', handleOpenUrl);
-			remote.app.removeListener('second-instance', handleSecondInstance);
-		};
-
-		window.addEventListener('beforeunload', unsubscribe);
-
-		remote.process.argv.slice(2).forEach(processDeepLink);
-
-		return unsubscribe;
-	}, [dispatch]);
 
 	useEffect(() => {
 		const handleLogin = (event, webContents, request, authInfo, callback) => {

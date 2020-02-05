@@ -4,35 +4,20 @@ import path from 'path';
 import { remote } from 'electron';
 import { call, delay, put, race, select, takeEvery } from 'redux-saga/effects';
 
-import {
-	ADD_SERVER_VIEW_SERVER_ADDED,
-	MENU_BAR_ADD_NEW_SERVER_CLICKED,
-	MENU_BAR_SELECT_SERVER_CLICKED,
-	SERVERS_READY,
-	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
-	SIDE_BAR_REMOVE_SERVER_CLICKED,
-	SIDE_BAR_SERVER_SELECTED,
-	SIDE_BAR_SERVERS_SORTED,
-	TOUCH_BAR_SELECT_SERVER_TOUCHED,
-	WEBVIEW_DID_NAVIGATE,
-	WEBVIEW_FOCUS_REQUESTED,
-	WEBVIEW_SIDEBAR_STYLE_CHANGED,
-	WEBVIEW_TITLE_CHANGED,
-	WEBVIEW_UNREAD_CHANGED,
-} from '../actions';
+import { SERVERS_READY } from '../actions';
 import { readString, writeString, writeArrayOf, readArrayOf } from '../localStorage';
 
-export function *validateHostSaga(hostUrl, timeout = 5000) {
+export function *validateServerUrl(serverUrl, timeout = 5000) {
 	const headers = new Headers();
 
-	if (hostUrl.includes('@')) {
-		const url = new URL(hostUrl);
-		hostUrl = url.origin;
+	if (serverUrl.includes('@')) {
+		const url = new URL(serverUrl);
+		serverUrl = url.origin;
 		headers.set('Authorization', `Basic ${ btoa(`${ url.username }:${ url.password }`) }`);
 	}
 
 	const response = yield race([
-		call(fetch, `${ hostUrl }/api/info`, { headers }),
+		call(fetch, `${ serverUrl }/api/info`, { headers }),
 		delay(timeout),
 	]);
 
@@ -141,33 +126,22 @@ const loadCurrentServerUrl = (servers) => {
 };
 
 export function *serversSaga() {
-	yield takeEvery([
-		ADD_SERVER_VIEW_SERVER_ADDED,
-		MENU_BAR_ADD_NEW_SERVER_CLICKED,
-		MENU_BAR_SELECT_SERVER_CLICKED,
-		SERVERS_READY,
-		SIDE_BAR_ADD_NEW_SERVER_CLICKED,
-		SIDE_BAR_REMOVE_SERVER_CLICKED,
-		SIDE_BAR_SERVER_SELECTED,
-		TOUCH_BAR_SELECT_SERVER_TOUCHED,
-		WEBVIEW_FOCUS_REQUESTED,
-	], function *() {
+	let prevCurrentServerUrl = yield select(({ currentServerUrl }) => currentServerUrl);
+	yield takeEvery('*', function *() {
 		const currentServerUrl = yield select(({ currentServerUrl }) => currentServerUrl);
-		writeString('currentServerUrl', currentServerUrl);
+		if (prevCurrentServerUrl !== currentServerUrl) {
+			writeString('currentServerUrl', currentServerUrl);
+			prevCurrentServerUrl = currentServerUrl;
+		}
 	});
 
-	yield takeEvery([
-		ADD_SERVER_VIEW_SERVER_ADDED,
-		SERVERS_READY,
-		SIDE_BAR_REMOVE_SERVER_CLICKED,
-		SIDE_BAR_SERVERS_SORTED,
-		WEBVIEW_DID_NAVIGATE,
-		WEBVIEW_SIDEBAR_STYLE_CHANGED,
-		WEBVIEW_TITLE_CHANGED,
-		WEBVIEW_UNREAD_CHANGED,
-	], function *() {
+	let prevServers = yield select(({ servers }) => servers);
+	yield takeEvery('*', function *() {
 		const servers = yield select(({ servers }) => servers);
-		writeArrayOf(castServer, 'servers', servers);
+		if (prevServers !== servers) {
+			writeArrayOf(castServer, 'servers', servers);
+			prevServers = servers;
+		}
 	});
 
 	const servers = yield call(loadServers);

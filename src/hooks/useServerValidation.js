@@ -1,4 +1,4 @@
 import { useCallableSaga } from '../components/SagaMiddlewareProvider';
-import { validateHostSaga } from '../sagas/servers';
+import { validateServerUrl } from '../sagas/servers';
 
-export const useServerValidation = () => useCallableSaga(validateHostSaga, []);
+export const useServerValidation = () => useCallableSaga(validateServerUrl, []);

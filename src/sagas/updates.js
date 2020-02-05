@@ -17,8 +17,8 @@ import {
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_UPDATE_DOWNLOADED,
-} from '../../actions';
-import { readBoolean, readString, writeBoolean, writeString } from '../../localStorage';
+} from '../actions';
+import { readBoolean, readString, writeBoolean, writeString } from '../localStorage';
 
 const { autoUpdater, CancellationToken } = remote.require('electron-updater');
 

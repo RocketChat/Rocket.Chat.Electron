@@ -1,5 +1,6 @@
 import { createStore, applyMiddleware, combineReducers } from 'redux';
 import createSagaMiddleware from 'redux-saga';
+import { fork } from 'redux-saga/effects';
 
 import { currentServerUrl } from './reducers/currentServerUrl';
 import { doCheckForUpdatesOnStartup } from './reducers/doCheckForUpdatesOnStartup';
@@ -12,6 +13,9 @@ import { isUpdatingEnabled } from './reducers/isUpdatingEnabled';
 import { servers } from './reducers/servers';
 import { skippedUpdateVersion } from './reducers/skippedUpdateVersion';
 import { spellCheckingDictionaries } from './reducers/spellCheckingDictionaries';
+import { certificatesSaga } from './sagas/certificates';
+import { spellCheckingSaga } from './sagas/spellChecking';
+import { updatesSaga } from './sagas/updates';
 
 const rootReducer = combineReducers({
 	currentServerUrl,
@@ -27,6 +31,12 @@ const rootReducer = combineReducers({
 	skippedUpdateVersion,
 });
 
+function *rootSaga() {
+	yield fork(certificatesSaga);
+	yield fork(spellCheckingSaga);
+	yield fork(updatesSaga);
+}
+
 export const sagaMiddleware = createSagaMiddleware();
 
 // const logger = () => (next) => (action) => {
@@ -35,3 +45,4 @@ export const sagaMiddleware = createSagaMiddleware();
 // };
 
 export const store = createStore(rootReducer, {}, applyMiddleware(sagaMiddleware/* , logger*/));
+sagaMiddleware.run(rootSaga);

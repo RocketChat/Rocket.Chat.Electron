@@ -3,9 +3,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
 
-import {
-	useCorrectionsForMisspelling,
-} from '../SpellCheckingProvider';
+import { useCorrectionsForMisspelling } from '../../hooks/useCorrectionsForMisspelling';
 import { WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN } from '../../actions';
 
 export const useWebviewContextMenu = (webviewRef, webContents) => {

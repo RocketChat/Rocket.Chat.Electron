@@ -6,14 +6,14 @@ import { remote } from 'electron';
 import mem from 'mem';
 import { all, call, put, select, take, takeEvery } from 'redux-saga/effects';
 
-import { readArrayOf, writeArrayOf } from '../../localStorage';
+import { readArrayOf, writeArrayOf } from '../localStorage';
 import {
 	SPELL_CHECKING_DICTIONARY_ADDED,
 	SPELL_CHECKING_ERROR_THROWN,
 	SPELL_CHECKING_READY,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-} from '../../actions';
+} from '../actions';
 
 const { Spellchecker, getAvailableDictionaries } = remote.require('@felixrieseberg/spellchecker');
 

@@ -6,7 +6,7 @@ import { remote } from 'electron';
 import { eventChannel } from 'redux-saga';
 import { call, put, takeEvery } from 'redux-saga/effects';
 
-import { readMap, writeMap } from '../../localStorage';
+import { readMap, writeMap } from '../localStorage';
 import {
 	CERTIFICATES_CLEARED,
 	CERTIFICATES_UPDATED,
@@ -14,7 +14,7 @@ import {
 	WEBVIEW_CERTIFICATE_DENIED,
 	WEBVIEW_CERTIFICATE_TRUSTED,
 	CERTIFICATE_TRUST_REQUESTED,
-} from '../../actions';
+} from '../actions';
 
 let trustedCertificates = new Map();
 

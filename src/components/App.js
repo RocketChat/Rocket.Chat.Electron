@@ -44,9 +44,6 @@ import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
 import { store, sagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
-import { SpellCheckingProvider } from './SpellCheckingProvider';
-import { UpdatesProvider } from './UpdatesProvider';
-import { CertificatesProvider } from './CertificatesProvider';
 import { ServersProvider } from './ServersProvider';
 
 function AppContent() {
@@ -304,7 +301,7 @@ function AppContent() {
 		remote.process.argv.slice(2).forEach(processDeepLink);
 
 		return unsubscribe;
-	}, []);
+	}, [dispatch]);
 
 	useEffect(() => {
 		const handleLogin = (event, webContents, request, authInfo, callback) => {
@@ -333,7 +330,7 @@ function AppContent() {
 
 	useEffect(() => {
 		window.dispatch = dispatch;
-	}, []);
+	}, [dispatch]);
 
 	return <MainWindow
 		badge={hasTrayIcon ? undefined : globalBadge}
@@ -394,15 +391,9 @@ export function App() {
 	return <Provider store={store}>
 		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>
-				<CertificatesProvider>
-					<ServersProvider>
-						<SpellCheckingProvider>
-							<UpdatesProvider>
-								<AppContent />
-							</UpdatesProvider>
-						</SpellCheckingProvider>
-					</ServersProvider>
-				</CertificatesProvider>
+				<ServersProvider>
+					<AppContent />
+				</ServersProvider>
 			</I18nextProvider>
 		</SagaMiddlewareProvider>
 	</Provider>;

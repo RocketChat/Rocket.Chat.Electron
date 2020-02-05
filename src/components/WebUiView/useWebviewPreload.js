@@ -13,9 +13,7 @@ import {
 	WEBVIEW_UNREAD_CHANGED,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
-import {
-	useMisspellingDetection,
-} from '../SpellCheckingProvider';
+import { useMisspellingDetection } from '../../hooks/useMisspellingDetection';
 
 export const useWebviewPreload = (webviewRef, webContents, { url, hasSidebar, active, failed }) => {
 	const dispatch = useDispatch();

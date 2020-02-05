@@ -8,7 +8,7 @@ import {
 	CERTIFICATES_UPDATED,
 } from '../actions';
 import { useSaga } from './SagaMiddlewareProvider';
-import { useServerValidation } from './ServersProvider';
+import { useServerValidation } from '../hooks/useServerValidation';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',

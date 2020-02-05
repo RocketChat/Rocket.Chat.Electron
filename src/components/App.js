@@ -44,7 +44,6 @@ import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
 import { store, sagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
-import { ServersProvider } from './ServersProvider';
 
 function AppContent() {
 	const { t } = useTranslation();
@@ -80,6 +79,53 @@ function AppContent() {
 		yield takeEvery(WEBVIEW_FOCUSED, function *({ payload: { webContentsId } }) {
 			setFocusedWebContents(remote.webContents.fromId(webContentsId));
 		});
+
+		// yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
+		// 	if (servers.has(url)) {
+		// 		servers.setCurrentServerUrl(url);
+		// 		yield put({
+		// 			type: SERVERS_UPDATED,
+		// 			payload: {
+		// 				servers: servers.all(),
+		// 				currentServerUrl: servers.getCurrentServerUrl(),
+		// 			},
+		// 		});
+		// 		return;
+		// 	}
+
+		// 	const { response } = yield call(::remote.dialog.showMessageBox, {
+		// 		type: 'question',
+		// 		buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
+		// 		defaultId: 0,
+		// 		title: t('dialog.addServer.title'),
+		// 		message: t('dialog.addServer.message', { host: url }),
+		// 	});
+
+		// 	if (response === 0) {
+		// 		try {
+		// 			yield call(::servers.validateHost(url));
+		// 			servers.put({ url, title: url });
+		// 			servers.setCurrentServerUrl(url);
+		// 			yield put({
+		// 				type: SERVERS_UPDATED,
+		// 				payload: {
+		// 					servers: servers.all(),
+		// 					currentServerUrl: servers.getCurrentServerUrl(),
+		// 				},
+		// 			});
+		// 		} catch (error) {
+		// 			remote.dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host: url }));
+		// 		}
+
+		// 		yield put({
+		// 			type: SERVERS_UPDATED,
+		// 			payload: {
+		// 				servers: servers.all(),
+		// 				currentServerUrl: servers.getCurrentServerUrl(),
+		// 			},
+		// 		});
+		// 	}
+		// });
 
 		while (true) {
 			const { type, payload } = yield take();
@@ -391,9 +437,7 @@ export function App() {
 	return <Provider store={store}>
 		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>
-				<ServersProvider>
-					<AppContent />
-				</ServersProvider>
+				<AppContent />
 			</I18nextProvider>
 		</SagaMiddlewareProvider>
 	</Provider>;

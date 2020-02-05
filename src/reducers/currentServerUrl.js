@@ -1,7 +1,8 @@
 import {
+	ADD_SERVER_VIEW_SERVER_ADDED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
-	SERVERS_UPDATED,
+	SERVERS_READY,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	SIDE_BAR_SERVER_SELECTED,
@@ -11,6 +12,11 @@ import {
 
 export const currentServerUrl = (state = null, { type, payload }) => {
 	switch (type) {
+		case ADD_SERVER_VIEW_SERVER_ADDED: {
+			const url = payload;
+			return url;
+		}
+
 		case MENU_BAR_ADD_NEW_SERVER_CLICKED:
 			return null;
 
@@ -40,12 +46,11 @@ export const currentServerUrl = (state = null, { type, payload }) => {
 			return url;
 		}
 
-		case SERVERS_UPDATED: {
+		case SERVERS_READY: {
 			const { currentServerUrl } = payload;
 			return currentServerUrl;
 		}
-
-		default:
-			return state;
 	}
+
+	return state;
 };

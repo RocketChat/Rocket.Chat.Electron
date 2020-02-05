@@ -39,7 +39,7 @@ import {
 	MAIN_WINDOW_INSTALL_UPDATE_CLICKED,
 	SPELL_CHECKING_ERROR_THROWN,
 } from '../actions';
-import { getAppIconPath, getTrayIconPath } from '../services/icons';
+import { getAppIconPath, getTrayIconPath } from '../icons';
 import { useSaga } from './SagaMiddlewareProvider';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>

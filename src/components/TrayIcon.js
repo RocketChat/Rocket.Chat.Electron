@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { getTrayIconPath } from '../services/icons';
+import { getTrayIconPath } from '../icons';
 import {
 	TRAY_ICON_DESTROYED,
 	TRAY_ICON_CREATED,

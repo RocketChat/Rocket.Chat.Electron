@@ -14,6 +14,7 @@ import { servers } from './reducers/servers';
 import { skippedUpdateVersion } from './reducers/skippedUpdateVersion';
 import { spellCheckingDictionaries } from './reducers/spellCheckingDictionaries';
 import { certificatesSaga } from './sagas/certificates';
+import { serversSaga } from './sagas/servers';
 import { spellCheckingSaga } from './sagas/spellChecking';
 import { updatesSaga } from './sagas/updates';
 
@@ -33,6 +34,7 @@ const rootReducer = combineReducers({
 
 function *rootSaga() {
 	yield fork(certificatesSaga);
+	yield fork(serversSaga);
 	yield fork(spellCheckingSaga);
 	yield fork(updatesSaga);
 }

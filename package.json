@@ -3,7 +3,7 @@
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
   "version": "2.18.0-develop",
   "author": "Rocket.Chat Support <support@rocket.chat>",
-  "copyright": "© 2019, Rocket.Chat",
+  "copyright": "© 2016-2020, Rocket.Chat",
   "homepage": "https://rocket.chat",
   "license": "MIT",
   "keywords": [

@@ -22,7 +22,6 @@ import {
 	CERTIFICATES_CLEARED,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
-import { useCertificateErrorHandler } from '../CertificatesProvider';
 
 export const useWebviewNavigation = (webviewRef, webContents, { url, active }) => {
 	const dispatch = useDispatch();
@@ -44,24 +43,6 @@ export const useWebviewNavigation = (webviewRef, webContents, { url, active }) =
 			webContents.removeListener('did-navigate-in-page', handleDidNavigateInPage);
 		};
 	}, [webContents, url, dispatch]);
-
-	const handleCertificateError = useCertificateErrorHandler();
-
-	useEffect(() => {
-		if (!webContents) {
-			return;
-		}
-
-		const handleCertificateErrorForWebView = (event, ...args) => {
-			handleCertificateError({ webContentsId: webContents.id, url }, ...args);
-		};
-
-		webContents.addListener('certificate-error', handleCertificateErrorForWebView);
-
-		return () => {
-			webContents.removeListener('certificate-error', handleCertificateErrorForWebView);
-		};
-	}, [webContents, url, handleCertificateError]);
 
 	useEffect(() => {
 		if (!webContents) {

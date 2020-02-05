@@ -47,6 +47,7 @@ const prepareApp = () => {
 	}
 
 	app.addListener('certificate-error', preventEvent);
+	app.addListener('select-client-certificate', preventEvent);
 	app.addListener('login', preventEvent);
 	app.addListener('open-url', preventEvent);
 	app.addListener('window-all-closed', () => {

@@ -1,19 +1,22 @@
 import { remote, shell, clipboard } from 'electron';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSelector, useDispatch } from 'react-redux';
 
 import {
-	useSpellCheckingDictionaries,
-	useSpellCheckingDictionaryInstall,
 	useCorrectionsForMisspelling,
 } from '../SpellCheckingProvider';
+import { WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN } from '../../actions';
 
 export const useWebviewContextMenu = (webviewRef, webContents) => {
 	const { t } = useTranslation();
 
-	const { dictionaries: spellCheckingDictionaries, toggleDictionary } = useSpellCheckingDictionaries();
-	const dictionaryInstall = useSpellCheckingDictionaryInstall();
-	const getSuggestionsForMisspelling = useCorrectionsForMisspelling();
+	const dictionaries = useSelector(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
+	const canInstallDictionaries = useSelector(({ isHunspellSpellCheckerUsed }) => isHunspellSpellCheckerUsed);
+	const dictionariesDirectoryPath = useSelector(({ installedSpellCheckingDictionariesDirectoryPath }) => installedSpellCheckingDictionariesDirectoryPath);
+	const getCorrectionsForMisspelling = useCorrectionsForMisspelling();
+
+	const dispatch = useDispatch();
 
 	useEffect(() => {
 		if (!webContents) {
@@ -26,13 +29,6 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 			isEditable,
 			corrections,
 			dictionaries,
-			dictionaryInstall: {
-				directory: dictionariesDirectoryPath,
-				extension: dictionaryExtension,
-				install: installDictionary,
-			},
-			enableSpellCheckingDictionary,
-			disableSpellCheckingDictionary,
 		}) => {
 			if (!isEditable) {
 				return [];
@@ -43,21 +39,13 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 					title: t('dialog.loadDictionary.title'),
 					defaultPath: dictionariesDirectoryPath,
 					filters: [
-						{ name: t('dialog.loadDictionary.dictionaries'), extensions: [dictionaryExtension] },
+						{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['bdic'] },
 						{ name: t('dialog.loadDictionary.allFiles'), extensions: ['*'] },
 					],
 					properties: ['openFile', 'multiSelections'],
 				});
 
-				try {
-					await Promise.all(filePaths.map(installDictionary));
-				} catch (error) {
-					console.error(error);
-					remote.dialog.showErrorBox(
-						t('dialog.loadDictionaryError.title'),
-						t('dialog.loadDictionaryError.message', { message: error.message }),
-					);
-				}
+				dispatch({ type: WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, payload: filePaths });
 			};
 
 			return [
@@ -94,11 +82,12 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 							label: name,
 							type: 'checkbox',
 							checked: enabled,
-							click: ({ checked }) => (checked
-								? enableSpellCheckingDictionary(name)
-								: disableSpellCheckingDictionary(name)),
+							click: ({ checked }) => dispatch({
+								type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
+								payload: { dictionaryName: name, enabled: checked },
+							}),
 						})),
-						...process.platform !== 'darwin' ? [
+						...canInstallDictionaries ? [
 							{
 								type: 'separator',
 							},
@@ -214,11 +203,8 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 			const { selectionText } = params;
 			return {
 				...params,
-				corrections: await getSuggestionsForMisspelling(selectionText),
-				dictionaries: spellCheckingDictionaries,
-				dictionaryInstall,
-				enableSpellCheckingDictionary: (...args) => args.forEach((arg) => toggleDictionary(arg, true)),
-				disableSpellCheckingDictionary: (...args) => args.forEach((arg) => toggleDictionary(arg, false)),
+				corrections: await getCorrectionsForMisspelling(selectionText),
+				dictionaries,
 			};
 		};
 
@@ -241,5 +227,5 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 		return () => {
 			root.removeEventListener('context-menu', handleContextMenu);
 		};
-	}, [spellCheckingDictionaries, getSuggestionsForMisspelling, webviewRef, dictionaryInstall, toggleDictionary, t, webContents]);
+	}, [canInstallDictionaries, dictionariesDirectoryPath, dispatch, getCorrectionsForMisspelling, dictionaries, t, webContents, webviewRef]);
 };

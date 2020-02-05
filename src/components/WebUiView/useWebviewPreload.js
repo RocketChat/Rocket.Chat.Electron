@@ -14,19 +14,19 @@ import {
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
 import {
-	useMisspellingDectection,
+	useMisspellingDetection,
 } from '../SpellCheckingProvider';
 
 export const useWebviewPreload = (webviewRef, webContents, { url, hasSidebar, active, failed }) => {
 	const dispatch = useDispatch();
-	const getMisspelledWords = useMisspellingDectection();
+	const getMisspelledWords = useMisspellingDetection();
 
 	useEffect(() => {
 		if (!webContents) {
 			return;
 		}
 
-		const handleIpcMessage = (event) => {
+		const handleIpcMessage = async (event) => {
 			const { channel, args } = event;
 
 			switch (channel) {
@@ -51,7 +51,7 @@ export const useWebviewPreload = (webviewRef, webContents, { url, hasSidebar, ac
 					break;
 
 				case 'get-misspelled-words':
-					webContents.send('misspelled-words', JSON.stringify(args[0]), getMisspelledWords(args[0]));
+					webContents.send('misspelled-words', JSON.stringify(args[0]), await getMisspelledWords(args[0]));
 					break;
 
 				case 'favicon-changed':

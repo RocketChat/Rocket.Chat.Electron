@@ -196,9 +196,15 @@ function *takeAutoUpdaterEvents() {
 
 	const createAutoUpdaterChannel = (autoUpdater, eventName) => eventChannel((emit) => {
 		const listener = (...args) => emit(args);
+
+		const cleanUp = () => {
+			autoUpdater.removeListener(eventName, listener);
+			window.removeEventListener('beforeunload', cleanUp);
+		};
+
 		autoUpdater.addListener(eventName, listener);
-		const cleanUp = () => autoUpdater.removeListener(eventName, listener);
 		window.addEventListener('beforeunload', cleanUp);
+
 		return cleanUp;
 	});
 

@@ -37,6 +37,7 @@ import {
 	TRAY_ICON_DESTROYED,
 	UPDATES_UPDATE_DOWNLOADED,
 	MAIN_WINDOW_INSTALL_UPDATE_CLICKED,
+	SPELL_CHECKING_ERROR_THROWN,
 } from '../actions';
 import { getAppIconPath, getTrayIconPath } from '../services/icons';
 import { useSaga } from './SagaMiddlewareProvider';
@@ -426,6 +427,13 @@ export function MainWindow({
 			remote.getCurrentWindow().removeAllListeners();
 			remote.app.removeAllListeners('window-all-closed');
 			yield put({ type: MAIN_WINDOW_INSTALL_UPDATE_CLICKED });
+		});
+
+		yield takeEvery(SPELL_CHECKING_ERROR_THROWN, function *({ payload: error }) {
+			remote.dialog.showErrorBox(
+				t('dialog.loadDictionaryError.title'),
+				t('dialog.loadDictionaryError.message', { message: error.message }),
+			);
 		});
 	}, [browserWindow, showWindowOnUnreadChanged]);
 

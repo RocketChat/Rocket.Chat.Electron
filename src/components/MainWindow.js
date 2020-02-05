@@ -4,7 +4,8 @@ import path from 'path';
 import { remote } from 'electron';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { takeEvery } from 'redux-saga/effects';
+import { call, put, takeEvery } from 'redux-saga/effects';
+import { useTranslation } from 'react-i18next';
 
 import {
 	MAIN_WINDOW_STATE_CHANGED,
@@ -34,6 +35,8 @@ import {
 	DEEP_LINK_TRIGGERED,
 	TRAY_ICON_CREATED,
 	TRAY_ICON_DESTROYED,
+	UPDATES_UPDATE_DOWNLOADED,
+	MAIN_WINDOW_INSTALL_UPDATE_CLICKED,
 } from '../actions';
 import { getAppIconPath, getTrayIconPath } from '../services/icons';
 import { useSaga } from './SagaMiddlewareProvider';
@@ -230,7 +233,7 @@ const useWindowStateUpdates = (browserWindow, windowStateRef, dispatch) => {
 			browserWindow.removeListener('resize', fetchAndDispatchWindowState);
 			browserWindow.removeListener('move', fetchAndDispatchWindowState);
 		};
-	}, [browserWindow, windowStateRef, fetchAndSaveTimerRef]);
+	}, [browserWindow, windowStateRef, fetchAndSaveTimerRef, dispatch]);
 };
 
 const useWindowClosing = (browserWindow, windowStateRef, hideOnClose) => {
@@ -286,6 +289,7 @@ export function MainWindow({
 	offline = false,
 	showWindowOnUnreadChanged = false,
 }) {
+	const { t } = useTranslation();
 	const dispatch = useDispatch();
 	const windowStateRef = useRef({});
 	const [hideOnClose, setHideOnClose] = useState(false);
@@ -394,6 +398,34 @@ export function MainWindow({
 			});
 			browserWindow.showInactive();
 			browserWindow.flashFrame(true);
+		});
+
+		yield takeEvery(UPDATES_UPDATE_DOWNLOADED, function *() {
+			const { response } = yield call(remote.dialog.showMessageBox, remote.getCurrentWindow(), {
+				type: 'question',
+				title: t('dialog.updateReady.title'),
+				message: t('dialog.updateReady.message'),
+				buttons: [
+					t('dialog.updateReady.installLater'),
+					t('dialog.updateReady.installNow'),
+				],
+				defaultId: 1,
+			});
+
+			if (response === 0) {
+				yield call(remote.dialog.showMessageBox, remote.getCurrentWindow(), {
+					type: 'info',
+					title: t('dialog.updateInstallLater.title'),
+					message: t('dialog.updateInstallLater.message'),
+					buttons: [t('dialog.updateInstallLater.ok')],
+					defaultId: 0,
+				});
+				return;
+			}
+
+			remote.getCurrentWindow().removeAllListeners();
+			remote.app.removeAllListeners('window-all-closed');
+			yield put({ type: MAIN_WINDOW_INSTALL_UPDATE_CLICKED });
 		});
 	}, [browserWindow, showWindowOnUnreadChanged]);
 

@@ -8,16 +8,15 @@ import { SERVERS_READY } from '../actions';
 import { readString, writeString, writeArrayOf, readArrayOf } from '../localStorage';
 
 export function *validateServerUrl(serverUrl, timeout = 5000) {
+	const url = new URL(serverUrl);
 	const headers = new Headers();
 
-	if (serverUrl.includes('@')) {
-		const url = new URL(serverUrl);
-		serverUrl = url.origin;
+	if (url.username && url.password) {
 		headers.set('Authorization', `Basic ${ btoa(`${ url.username }:${ url.password }`) }`);
 	}
 
-	const response = yield race([
-		call(fetch, `${ serverUrl }/api/info`, { headers }),
+	const [response] = yield race([
+		call(fetch, `${ url.href.replace(/\/$/, '') }/api/info`, { headers }),
 		delay(timeout),
 	]);
 
@@ -27,6 +26,11 @@ export function *validateServerUrl(serverUrl, timeout = 5000) {
 	}
 
 	if (!response.ok) {
+		// eslint-disable-next-line no-throw-literal
+		throw 'invalid';
+	}
+
+	if (!(yield call(::response.json)).success) {
 		// eslint-disable-next-line no-throw-literal
 		throw 'invalid';
 	}

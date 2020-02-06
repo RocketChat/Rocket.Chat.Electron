@@ -4,7 +4,7 @@ import url from 'url';
 
 import { remote } from 'electron';
 import { eventChannel } from 'redux-saga';
-import { call, put, takeEvery } from 'redux-saga/effects';
+import { call, put, select, takeEvery } from 'redux-saga/effects';
 
 import { readMap, writeMap } from '../localStorage';
 import {
@@ -39,6 +39,23 @@ const loadTrustedCertificates = async () => {
 
 	return trustedCertificates;
 };
+
+function *handleLogin([, , request, , callback]) {
+	const servers = yield select(({ servers }) => servers);
+
+	for (const server of servers) {
+		const { host: serverHost, auth } = url.parse(server.url);
+		const requestHost = url.parse(request.url).host;
+
+		if (serverHost !== requestHost || !auth) {
+			callback();
+			return;
+		}
+
+		const [username, password] = auth.split(/:/);
+		callback(username, password);
+	}
+}
 
 const serializeCertificate = (certificate) => `${ certificate.issuerName }\n${ certificate.data.toString() }`;
 
@@ -99,8 +116,11 @@ function *takeAppEvents() {
 		return cleanUp;
 	});
 
+	const loginChannel = createAppChannel(remote.app, 'login');
 	const certificateErrorChannel = createAppChannel(remote.app, 'certificate-error');
 	const selectClientCertificateChannel = createAppChannel(remote.app, 'select-client-certificate');
+
+	yield takeEvery(loginChannel, handleLogin);
 
 	yield takeEvery(certificateErrorChannel, handleCertificateError);
 
@@ -128,7 +148,7 @@ function *takeActions() {
 	});
 }
 
-export function *certificatesSaga() {
+export function *navigationEventsSaga() {
 	trustedCertificates = yield call(loadTrustedCertificates);
 	yield takeAppEvents();
 	yield *takeActions();

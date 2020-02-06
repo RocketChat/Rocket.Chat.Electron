@@ -1,5 +1,3 @@
-import url from 'url';
-
 import { remote } from 'electron';
 import i18n from 'i18next';
 import React, { useEffect, useState, useMemo } from 'react';
@@ -48,7 +46,7 @@ function AppContent() {
 	const [hasTrayIcon, setHasTrayIcon] =	useState(() => (localStorage.getItem('hideTray') ? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux'));
 	const [hasMenuBar, setHasMenuBar] = useState(() => localStorage.getItem('autohideMenu') !== 'true');
 	const [hasSidebar, setHasSidebar] = useState(() => localStorage.getItem('sidebar-closed') !== 'true');
-	const _servers = useSelector(({ servers }) => servers);
+	const servers = useSelector(({ servers }) => servers);
 	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
 	const badges = useSelector(({ servers }) => servers.reduce((badges, { url, badge }) => ({ ...badges, [url]: badge }), {}));
 	const styles = useSelector(({ servers }) => servers.reduce((styles, { url, style }) => ({ ...styles, [url]: style }), {}));
@@ -64,12 +62,18 @@ function AppContent() {
 		return mentionCount || (Object.values(badges).some((badge) => !!badge) && '•') || null;
 	}, [badges]);
 
-	// eslint-disable-next-line complexity
 	useSaga(function *() {
 		yield takeEvery([MENU_BAR_QUIT_CLICKED, TRAY_ICON_QUIT_CLICKED], function *() {
 			remote.app.quit();
 		});
 
+		yield takeEvery(MENU_BAR_OPEN_URL_CLICKED, function *({ payload: url }) {
+			remote.shell.openExternal(url);
+		});
+	}, []);
+
+	// eslint-disable-next-line complexity
+	useSaga(function *() {
 		yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
 			const servers = yield select(({ servers }) => servers);
 
@@ -101,12 +105,6 @@ function AppContent() {
 
 			if (type === MENU_BAR_ABOUT_CLICKED) {
 				setOpenDialog('about');
-				continue;
-			}
-
-			if (type === MENU_BAR_OPEN_URL_CLICKED) {
-				const url = payload;
-				remote.shell.openExternal(url);
 				continue;
 			}
 
@@ -228,31 +226,6 @@ function AppContent() {
 	}, []);
 
 	useEffect(() => {
-		const handleLogin = (event, webContents, request, authInfo, callback) => {
-			for (const server of _servers) {
-				const { host: serverHost, auth } = url.parse(server.url);
-				const requestHost = url.parse(request.url).host;
-
-				if (serverHost !== requestHost || !auth) {
-					callback();
-					return;
-				}
-
-				const [username, password] = auth.split(/:/);
-				callback(username, password);
-			}
-		};
-
-		remote.app.addListener('login', handleLogin);
-
-		const unsubscribe = () => {
-			remote.app.removeListener('login', handleLogin);
-		};
-
-		return unsubscribe;
-	}, [_servers]);
-
-	useEffect(() => {
 		window.dispatch = dispatch;
 	}, [dispatch]);
 
@@ -268,20 +241,20 @@ function AppContent() {
 			showWindowOnUnreadChanged={showWindowOnUnreadChanged}
 			showMenuBar={hasMenuBar}
 			showServerList={hasSidebar}
-			servers={_servers}
+			servers={servers}
 			currentServerUrl={currentServerUrl}
 		/>
 		<SideBar
-			servers={_servers}
+			servers={servers}
 			currentServerUrl={currentServerUrl}
 			badges={badges}
-			visible={_servers.length > 0 && hasSidebar}
+			visible={servers.length > 0 && hasSidebar}
 			styles={styles}
 		/>
 		<ServersView
-			servers={_servers}
+			servers={servers}
 			currentServerUrl={currentServerUrl}
-			hasSidebar={_servers.length > 0 && hasSidebar}
+			hasSidebar={servers.length > 0 && hasSidebar}
 		/>
 		<AddServerView
 			visible={currentServerUrl === null}
@@ -305,7 +278,7 @@ function AppContent() {
 			visible={hasTrayIcon}
 		/>
 		<TouchBar
-			servers={_servers}
+			servers={servers}
 			currentServerUrl={currentServerUrl}
 		/>
 	</MainWindow>;

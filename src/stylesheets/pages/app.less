@@ -1,4 +1,3 @@
-@import './app/sidebar.less';
 @import './app/webview.less';
 
 .app-page {
@@ -116,6 +115,10 @@
 	align-items: center;
 	-webkit-app-region: drag;
 	justify-content: center;
+
+	&--without-side-bar {
+		left: 0;
+	}
 
 	.hidden {
 		display: none;

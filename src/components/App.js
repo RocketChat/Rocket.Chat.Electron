@@ -48,7 +48,6 @@ function AppContent() {
 	const servers = useSelector(({ servers }) => servers);
 	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
 	const badges = useSelector(({ servers }) => servers.reduce((badges, { url, badge }) => ({ ...badges, [url]: badge }), {}));
-	const styles = useSelector(({ servers }) => servers.reduce((styles, { url, style }) => ({ ...styles, [url]: style }), {}));
 	const [newUpdateVersion, setNewUpdateVersion] = useState(null);
 	const [mainWindowState, setMainWindowState] = useState({});
 	const [openDialog, setOpenDialog] = useState(null);
@@ -238,19 +237,14 @@ function AppContent() {
 			servers={servers}
 			currentServerUrl={currentServerUrl}
 		/>
-		<SideBar
-			servers={servers}
-			currentServerUrl={currentServerUrl}
-			badges={badges}
-			visible={servers.length > 0 && hasSidebar}
-			styles={styles}
-		/>
+		<SideBar visible={servers.length > 0 && hasSidebar} />
 		<ServersView
 			servers={servers}
 			currentServerUrl={currentServerUrl}
 			hasSidebar={servers.length > 0 && hasSidebar}
 		/>
 		<AddServerView
+			hasSidebar={servers.length > 0 && hasSidebar}
 			visible={currentServerUrl === null}
 		/>
 		<AboutDialog
@@ -263,9 +257,7 @@ function AppContent() {
 		<ScreenSharingDialog
 			visible={openDialog === 'screen-sharing'}
 		/>
-		<Dock
-			badge={globalBadge}
-		/>
+		<Dock badge={globalBadge} />
 		<TrayIcon
 			badge={globalBadge}
 			show={!mainWindowState.visible || !mainWindowState.focused}

@@ -12,6 +12,7 @@ import { useServerValidation } from '../hooks/useServerValidation';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',
+	hasSidebar,
 	visible,
 }) {
 	const dispatch = useDispatch();
@@ -101,7 +102,7 @@ export function AddServerView({
 		setInput(event.currentTarget.value);
 	};
 
-	return <section className={['add-server-view', !visible && 'hidden'].filter(Boolean).join(' ')}>
+	return <section className={['add-server-view', !visible && 'hidden', !hasSidebar && 'add-server-view--without-side-bar'].filter(Boolean).join(' ')}>
 		<div className='wrapper'>
 			<header>
 				<img className='logo' src='./images/logo-dark.svg' />

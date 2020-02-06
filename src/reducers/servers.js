@@ -7,6 +7,7 @@ import {
 	WEBVIEW_SIDEBAR_STYLE_CHANGED,
 	WEBVIEW_TITLE_CHANGED,
 	WEBVIEW_UNREAD_CHANGED,
+	WEBVIEW_FAVICON_CHANGED,
 } from '../actions';
 
 const upsert = (state, server) => {
@@ -54,6 +55,11 @@ export const servers = (state = [], { type, payload }) => {
 		case WEBVIEW_SIDEBAR_STYLE_CHANGED: {
 			const { url, style } = payload;
 			return upsert(state, { url, style });
+		}
+
+		case WEBVIEW_FAVICON_CHANGED: {
+			const { url, favicon } = payload;
+			return upsert(state, { url, favicon });
 		}
 
 		case WEBVIEW_DID_NAVIGATE: {

@@ -53,6 +53,7 @@ export function WebUiView({
 			failed && 'hidden',
 			failed && 'failed',
 			!!webContents && 'ready',
+			!hasSidebar && 'webview--without-side-bar',
 		].filter(Boolean).join(' ')}
 		disablewebsecurity='disablewebsecurity'
 		enableremotemodule='true'

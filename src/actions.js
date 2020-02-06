@@ -43,6 +43,7 @@ export const SIDE_BAR_RELOAD_SERVER_CLICKED = 'side-bar/reload-server-clicked';
 export const SIDE_BAR_REMOVE_SERVER_CLICKED = 'side-bar/remove-server-clicked';
 export const SIDE_BAR_SERVER_SELECTED = 'side-bar/server-selected';
 export const SIDE_BAR_SERVERS_SORTED = 'side-bar/servers-sorted';
+export const SPELL_CHECKING_PARAMETERS_SET = 'spell-checking/parameters-set';
 export const SPELL_CHECKING_DICTIONARY_ADDED = 'spell-checking/dictionary-added';
 export const SPELL_CHECKING_ERROR_THROWN = 'spell-checking/error-thrown';
 export const SPELL_CHECKING_READY = 'spell-checking/ready';

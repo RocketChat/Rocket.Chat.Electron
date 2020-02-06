@@ -4,16 +4,17 @@ import os from 'os';
 
 import { remote } from 'electron';
 import mem from 'mem';
-import { all, call, put, select, take, takeEvery } from 'redux-saga/effects';
+import { all, call, put, select, takeEvery } from 'redux-saga/effects';
 
-import { readArrayOf, writeArrayOf } from '../localStorage';
 import {
 	SPELL_CHECKING_DICTIONARY_ADDED,
 	SPELL_CHECKING_ERROR_THROWN,
+	SPELL_CHECKING_PARAMETERS_SET,
 	SPELL_CHECKING_READY,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 } from '../actions';
+import { readArrayOf, writeArrayOf } from '../localStorage';
 
 const { Spellchecker, getAvailableDictionaries } = remote.require('@felixrieseberg/spellchecker');
 
@@ -104,20 +105,13 @@ function *createDictionaryReference({ name, installed }) {
 		return [name];
 	}
 
-	const {
+	const installedSpellCheckingDictionariesDirectoryPath = yield select(({
 		installedSpellCheckingDictionariesDirectoryPath,
-		installedSpellCheckingDictionariesExtension,
-	} = yield select(({
-		installedSpellCheckingDictionariesDirectoryPath,
-		installedSpellCheckingDictionariesExtension,
-	}) => ({
-		installedSpellCheckingDictionariesDirectoryPath,
-		installedSpellCheckingDictionariesExtension,
-	}));
+	}) => installedSpellCheckingDictionariesDirectoryPath);
 
 	const dictionaryPath = path.join(
 		installedSpellCheckingDictionariesDirectoryPath,
-		`${ name }${ installedSpellCheckingDictionariesExtension }`,
+		`${ name }.bdic`,
 	);
 	const data = yield call(::fs.promises.readFile, dictionaryPath);
 
@@ -139,7 +133,7 @@ function *toggleDictionary({ name, enabled, installed }) {
 		}
 		spellCheckers.set(name, spellChecker);
 	} catch (error) {
-		yield put({ type: SPELL_CHECKING_ERROR_THROWN, payload: error });
+		console.error(error);
 	}
 }
 
@@ -159,70 +153,57 @@ export function *getMisspelledWordsSaga(words) {
 }
 
 export function *spellCheckingSaga() {
-	const cleanUp = async () => {
-		window.removeEventListener('beforeunload', cleanUp);
-		spellCheckers.clear();
-	};
+	const {
+		isHunspellSpellCheckerUsed,
+		installedSpellCheckingDictionariesDirectoryPath,
+		spellCheckingDictionaries,
+	} = yield call(loadConfiguration);
 
-	window.addEventListener('beforeunload', cleanUp);
+	spellCheckers.clear();
 
-	try {
-		const {
+	yield put({
+		type: SPELL_CHECKING_PARAMETERS_SET,
+		payload: {
 			isHunspellSpellCheckerUsed,
 			installedSpellCheckingDictionariesDirectoryPath,
-			installedSpellCheckingDictionariesExtension,
+		},
+	});
+
+	yield *updateSpellCheckers(spellCheckingDictionaries);
+
+	yield put({
+		type: SPELL_CHECKING_READY,
+		payload: {
 			spellCheckingDictionaries,
-		} = yield call(loadConfiguration);
+		},
+	});
 
-		spellCheckers.clear();
-
+	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, function *() {
+		const spellCheckingDictionaries = yield select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
 		yield *updateSpellCheckers(spellCheckingDictionaries);
+		writeArrayOf(String, 'enabledSpellCheckingDictionaries', Array.from(spellCheckers.keys()));
+	});
 
-		yield put({
-			type: SPELL_CHECKING_READY,
-			payload: {
-				isHunspellSpellCheckerUsed,
-				installedSpellCheckingDictionariesDirectoryPath,
-				installedSpellCheckingDictionariesExtension,
-				spellCheckingDictionaries,
-			},
-		});
+	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, function *({ payload: filePaths }) {
+		const isHunspellSpellCheckerUsed = yield select(({ isHunspellSpellCheckerUsed }) => isHunspellSpellCheckerUsed);
 
-		yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, function *() {
-			const spellCheckingDictionaries = yield select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
-			yield *updateSpellCheckers(spellCheckingDictionaries);
-			writeArrayOf(String, 'enabledSpellCheckingDictionaries', Array.from(spellCheckers.keys()));
-		});
-
-		yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, function *({ payload: filePaths }) {
-			const isHunspellSpellCheckerUsed = yield select(({ isHunspellSpellCheckerUsed }) => isHunspellSpellCheckerUsed);
-
-			if (!isHunspellSpellCheckerUsed) {
-				return;
-			}
-
-			const installedSpellCheckingDictionariesDirectoryPath = yield select(({
-				installedSpellCheckingDictionariesDirectoryPath,
-			}) => installedSpellCheckingDictionariesDirectoryPath);
-
-			yield all(filePaths.map(function *(filePath) {
-				const basename = path.basename(filePath);
-				const targetPath = path.join(installedSpellCheckingDictionariesDirectoryPath, basename);
-				try {
-					yield call(::fs.promises.copyFile, filePath, targetPath);
-					yield put({ type: SPELL_CHECKING_DICTIONARY_ADDED, payload: basename });
-				} catch (error) {
-					yield call({ type: SPELL_CHECKING_ERROR_THROWN, payload: error });
-				}
-			}));
-		});
-
-		while (true) {
-			yield take();
+		if (!isHunspellSpellCheckerUsed) {
+			return;
 		}
-	} catch (error) {
-		throw error;
-	} finally {
-		cleanUp();
-	}
+
+		const installedSpellCheckingDictionariesDirectoryPath = yield select(({
+			installedSpellCheckingDictionariesDirectoryPath,
+		}) => installedSpellCheckingDictionariesDirectoryPath);
+
+		yield all(filePaths.map(function *(filePath) {
+			const basename = path.basename(filePath);
+			const targetPath = path.join(installedSpellCheckingDictionariesDirectoryPath, basename);
+			try {
+				yield call(::fs.promises.copyFile, filePath, targetPath);
+				yield put({ type: SPELL_CHECKING_DICTIONARY_ADDED, payload: basename });
+			} catch (error) {
+				yield call({ type: SPELL_CHECKING_ERROR_THROWN, payload: error });
+			}
+		}));
+	});
 }

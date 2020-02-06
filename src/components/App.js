@@ -11,19 +11,12 @@ import {
 	MENU_BAR_QUIT_CLICKED,
 	MENU_BAR_ABOUT_CLICKED,
 	MENU_BAR_OPEN_URL_CLICKED,
-	MENU_BAR_UNDO_CLICKED,
-	MENU_BAR_REDO_CLICKED,
-	MENU_BAR_CUT_CLICKED,
-	MENU_BAR_COPY_CLICKED,
-	MENU_BAR_PASTE_CLICKED,
-	MENU_BAR_SELECT_ALL_CLICKED,
 	MENU_BAR_RESET_APP_DATA_CLICKED,
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
 	ABOUT_DIALOG_DISMISSED,
 	UPDATE_DIALOG_DISMISSED,
 	SCREEN_SHARING_DIALOG_DISMISSED,
 	TRAY_ICON_QUIT_CLICKED,
-	WEBVIEW_FOCUSED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	MAIN_WINDOW_STATE_CHANGED,
 	UPDATES_NEW_VERSION_AVAILABLE,
@@ -60,7 +53,6 @@ function AppContent() {
 	const badges = useSelector(({ servers }) => servers.reduce((badges, { url, badge }) => ({ ...badges, [url]: badge }), {}));
 	const styles = useSelector(({ servers }) => servers.reduce((styles, { url, style }) => ({ ...styles, [url]: style }), {}));
 	const [newUpdateVersion, setNewUpdateVersion] = useState(null);
-	const [focusedWebContents, setFocusedWebContents] = useState(() => remote.getCurrentWebContents());
 	const [mainWindowState, setMainWindowState] = useState({});
 	const [openDialog, setOpenDialog] = useState(null);
 	const [offline, setOffline] = useState(false);
@@ -76,10 +68,6 @@ function AppContent() {
 	useSaga(function *() {
 		yield takeEvery([MENU_BAR_QUIT_CLICKED, TRAY_ICON_QUIT_CLICKED], function *() {
 			remote.app.quit();
-		});
-
-		yield takeEvery(WEBVIEW_FOCUSED, function *({ payload: { webContentsId } }) {
-			setFocusedWebContents(remote.webContents.fromId(webContentsId));
 		});
 
 		yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
@@ -119,36 +107,6 @@ function AppContent() {
 			if (type === MENU_BAR_OPEN_URL_CLICKED) {
 				const url = payload;
 				remote.shell.openExternal(url);
-				continue;
-			}
-
-			if (type === MENU_BAR_UNDO_CLICKED) {
-				focusedWebContents.undo();
-				continue;
-			}
-
-			if (type === MENU_BAR_REDO_CLICKED) {
-				focusedWebContents.redo();
-				continue;
-			}
-
-			if (type === MENU_BAR_CUT_CLICKED) {
-				focusedWebContents.cut();
-				continue;
-			}
-
-			if (type === MENU_BAR_COPY_CLICKED) {
-				focusedWebContents.copy();
-				continue;
-			}
-
-			if (type === MENU_BAR_PASTE_CLICKED) {
-				focusedWebContents.paste();
-				continue;
-			}
-
-			if (type === MENU_BAR_SELECT_ALL_CLICKED) {
-				focusedWebContents.selectAll();
 				continue;
 			}
 
@@ -245,7 +203,7 @@ function AppContent() {
 				continue;
 			}
 		}
-	}, [focusedWebContents]);
+	}, []);
 
 	useEffect(() => {
 		const handleConnectionStatus = () => {

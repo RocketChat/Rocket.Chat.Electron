@@ -43,7 +43,7 @@ import { TrayIcon } from './TrayIcon';
 import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
-import { store, sagaMiddleware } from '../storeAndEffects';
+import { createReduxStoreAndSagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
 import { validateServerUrl } from '../sagas/servers';
 
@@ -354,6 +354,8 @@ function AppContent() {
 }
 
 export function App() {
+	const [[store, sagaMiddleware]] = useState(() => createReduxStoreAndSagaMiddleware());
+
 	return <Provider store={store}>
 		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>

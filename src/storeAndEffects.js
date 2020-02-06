@@ -41,12 +41,15 @@ function *rootSaga() {
 	yield fork(updatesSaga);
 }
 
-export const sagaMiddleware = createSagaMiddleware();
-
 // const logger = () => (next) => (action) => {
 // 	console.log(action.type, action.payload);
 // 	return next(action);
 // };
 
-export const store = createStore(rootReducer, {}, applyMiddleware(sagaMiddleware/* , logger*/));
-sagaMiddleware.run(rootSaga);
+export const createReduxStoreAndSagaMiddleware = () => {
+	const sagaMiddleware = createSagaMiddleware();
+	const store = createStore(rootReducer, {}, applyMiddleware(sagaMiddleware/* , logger*/));
+	sagaMiddleware.run(rootSaga);
+
+	return [store, sagaMiddleware];
+};

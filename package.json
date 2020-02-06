@@ -31,6 +31,8 @@
   },
   "dependencies": {
     "@bugsnag/js": "^6.3.2",
+    "@emotion/core": "^10.0.27",
+    "@emotion/styled": "^10.0.27",
     "@felixrieseberg/spellchecker": "^4.0.12",
     "debug": "^4.1.1",
     "electron-fetch": "^1.4.0",

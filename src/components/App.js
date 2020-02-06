@@ -41,7 +41,6 @@ import { validateServerUrl } from '../sagas/servers';
 function AppContent() {
 	const { t } = useTranslation();
 
-	const [loading, setLoading] = useState(true);
 	const [showWindowOnUnreadChanged, setShowWindowOnUnreadChanged] =	useState(() => localStorage.getItem('showWindowOnUnreadChanged') === 'true');
 	const [hasTrayIcon, setHasTrayIcon] =	useState(() => (localStorage.getItem('hideTray') ? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux'));
 	const [hasMenuBar, setHasMenuBar] = useState(() => localStorage.getItem('autohideMenu') !== 'true');
@@ -222,16 +221,11 @@ function AppContent() {
 	const dispatch = useDispatch();
 
 	useEffect(() => {
-		setLoading(false);
-	}, []);
-
-	useEffect(() => {
 		window.dispatch = dispatch;
 	}, [dispatch]);
 
 	return <MainWindow
 		badge={hasTrayIcon ? undefined : globalBadge}
-		loading={loading}
 		offline={offline}
 		showWindowOnUnreadChanged={showWindowOnUnreadChanged}
 	>

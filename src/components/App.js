@@ -1,4 +1,3 @@
-import querystring from 'querystring';
 import url from 'url';
 
 import { remote } from 'electron';
@@ -6,30 +5,25 @@ import i18n from 'i18next';
 import React, { useEffect, useState, useMemo } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import { Provider, useDispatch, useSelector } from 'react-redux';
-import { call, take, takeEvery } from 'redux-saga/effects';
+import { call, put, select, take, takeEvery } from 'redux-saga/effects';
 
 import {
 	MENU_BAR_QUIT_CLICKED,
 	MENU_BAR_ABOUT_CLICKED,
 	MENU_BAR_OPEN_URL_CLICKED,
-	MENU_BAR_UNDO_CLICKED,
-	MENU_BAR_REDO_CLICKED,
-	MENU_BAR_CUT_CLICKED,
-	MENU_BAR_COPY_CLICKED,
-	MENU_BAR_PASTE_CLICKED,
-	MENU_BAR_SELECT_ALL_CLICKED,
 	MENU_BAR_RESET_APP_DATA_CLICKED,
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
 	ABOUT_DIALOG_DISMISSED,
 	UPDATE_DIALOG_DISMISSED,
 	SCREEN_SHARING_DIALOG_DISMISSED,
 	TRAY_ICON_QUIT_CLICKED,
-	WEBVIEW_FOCUSED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	MAIN_WINDOW_STATE_CHANGED,
 	UPDATES_NEW_VERSION_AVAILABLE,
-	DEEP_LINK_TRIGGERED,
 	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
+	DEEP_LINK_TRIGGERED,
+	DEEP_LINKS_SERVER_FOCUSED,
+	DEEP_LINKS_SERVER_ADDED,
 } from '../actions';
 import { MainWindow } from './MainWindow';
 import { AboutDialog } from './AboutDialog';
@@ -42,12 +36,9 @@ import { TrayIcon } from './TrayIcon';
 import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
-import { store, sagaMiddleware } from '../storeAndEffects';
+import { createReduxStoreAndSagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
-import { SpellCheckingProvider } from './SpellCheckingProvider';
-import { UpdatesProvider } from './UpdatesProvider';
-import { CertificatesProvider } from './CertificatesProvider';
-import { ServersProvider } from './ServersProvider';
+import { validateServerUrl } from '../sagas/servers';
 
 function AppContent() {
 	const { t } = useTranslation();
@@ -62,7 +53,6 @@ function AppContent() {
 	const badges = useSelector(({ servers }) => servers.reduce((badges, { url, badge }) => ({ ...badges, [url]: badge }), {}));
 	const styles = useSelector(({ servers }) => servers.reduce((styles, { url, style }) => ({ ...styles, [url]: style }), {}));
 	const [newUpdateVersion, setNewUpdateVersion] = useState(null);
-	const [focusedWebContents, setFocusedWebContents] = useState(() => remote.getCurrentWebContents());
 	const [mainWindowState, setMainWindowState] = useState({});
 	const [openDialog, setOpenDialog] = useState(null);
 	const [offline, setOffline] = useState(false);
@@ -80,8 +70,30 @@ function AppContent() {
 			remote.app.quit();
 		});
 
-		yield takeEvery(WEBVIEW_FOCUSED, function *({ payload: { webContentsId } }) {
-			setFocusedWebContents(remote.webContents.fromId(webContentsId));
+		yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
+			const servers = yield select(({ servers }) => servers);
+
+			if (servers.some((server) => server.url === url)) {
+				yield put({ type: DEEP_LINKS_SERVER_FOCUSED, payload: url });
+				return;
+			}
+
+			const { response } = yield call(::remote.dialog.showMessageBox, {
+				type: 'question',
+				buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
+				defaultId: 0,
+				title: t('dialog.addServer.title'),
+				message: t('dialog.addServer.message', { host: url }),
+			});
+
+			if (response === 0) {
+				try {
+					yield *validateServerUrl(url);
+					yield put({ type: DEEP_LINKS_SERVER_ADDED, payload: url });
+				} catch (error) {
+					remote.dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host: url }));
+				}
+			}
 		});
 
 		while (true) {
@@ -95,36 +107,6 @@ function AppContent() {
 			if (type === MENU_BAR_OPEN_URL_CLICKED) {
 				const url = payload;
 				remote.shell.openExternal(url);
-				continue;
-			}
-
-			if (type === MENU_BAR_UNDO_CLICKED) {
-				focusedWebContents.undo();
-				continue;
-			}
-
-			if (type === MENU_BAR_REDO_CLICKED) {
-				focusedWebContents.redo();
-				continue;
-			}
-
-			if (type === MENU_BAR_CUT_CLICKED) {
-				focusedWebContents.cut();
-				continue;
-			}
-
-			if (type === MENU_BAR_COPY_CLICKED) {
-				focusedWebContents.copy();
-				continue;
-			}
-
-			if (type === MENU_BAR_PASTE_CLICKED) {
-				focusedWebContents.paste();
-				continue;
-			}
-
-			if (type === MENU_BAR_SELECT_ALL_CLICKED) {
-				focusedWebContents.selectAll();
 				continue;
 			}
 
@@ -221,7 +203,7 @@ function AppContent() {
 				continue;
 			}
 		}
-	}, [focusedWebContents]);
+	}, []);
 
 	useEffect(() => {
 		const handleConnectionStatus = () => {
@@ -243,67 +225,6 @@ function AppContent() {
 
 	useEffect(() => {
 		setLoading(false);
-	}, []);
-
-	useEffect(() => {
-		const normalizeUrl = (hostUrl, insecure = false) => {
-			if (!/^https?:\/\//.test(hostUrl)) {
-				return `${ insecure ? 'http' : 'https' }://${ hostUrl }`;
-			}
-
-			return hostUrl;
-		};
-
-		const processAuth = ({ host, token, userId, insecure }) => {
-			const hostUrl = normalizeUrl(host, insecure === 'true');
-			dispatch({ type: DEEP_LINK_TRIGGERED, payload: { type: 'auth', url: hostUrl, token, userId } });
-		};
-
-		const processRoom = ({ host, rid, path, insecure }) => {
-			const hostUrl = normalizeUrl(host, insecure === 'true');
-			dispatch({ type: DEEP_LINK_TRIGGERED, payload: { type: 'room', url: hostUrl, rid, path } });
-		};
-
-		const processDeepLink = (link) => {
-			const { protocol, hostname:	action, query } = url.parse(link);
-
-			if (protocol !== 'rocketchat:') {
-				return;
-			}
-
-			switch (action) {
-				case 'auth': {
-					processAuth(querystring.parse(query));
-					break;
-				}
-				case 'room': {
-					processRoom(querystring.parse(query));
-					break;
-				}
-			}
-		};
-
-		const handleOpenUrl = (event, url) => {
-			processDeepLink(url);
-		};
-
-		const handleSecondInstance = (event, argv) => {
-			argv.slice(2).forEach(processDeepLink);
-		};
-
-		remote.app.addListener('open-url', handleOpenUrl);
-		remote.app.addListener('second-instance', handleSecondInstance);
-
-		const unsubscribe = () => {
-			remote.app.removeListener('open-url', handleOpenUrl);
-			remote.app.removeListener('second-instance', handleSecondInstance);
-		};
-
-		window.addEventListener('beforeunload', unsubscribe);
-
-		remote.process.argv.slice(2).forEach(processDeepLink);
-
-		return unsubscribe;
 	}, []);
 
 	useEffect(() => {
@@ -333,7 +254,7 @@ function AppContent() {
 
 	useEffect(() => {
 		window.dispatch = dispatch;
-	}, []);
+	}, [dispatch]);
 
 	return <MainWindow
 		badge={hasTrayIcon ? undefined : globalBadge}
@@ -391,18 +312,12 @@ function AppContent() {
 }
 
 export function App() {
+	const [[store, sagaMiddleware]] = useState(() => createReduxStoreAndSagaMiddleware());
+
 	return <Provider store={store}>
 		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
 			<I18nextProvider i18n={i18n}>
-				<CertificatesProvider>
-					<ServersProvider>
-						<SpellCheckingProvider>
-							<UpdatesProvider>
-								<AppContent />
-							</UpdatesProvider>
-						</SpellCheckingProvider>
-					</ServersProvider>
-				</CertificatesProvider>
+				<AppContent />
 			</I18nextProvider>
 		</SagaMiddlewareProvider>
 	</Provider>;

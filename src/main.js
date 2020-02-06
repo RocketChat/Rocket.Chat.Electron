@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { app, BrowserWindow, ipcMain, webContents } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import setupElectronReload from 'electron-reload';
 import rimraf from 'rimraf';
 
@@ -47,6 +47,7 @@ const prepareApp = () => {
 	}
 
 	app.addListener('certificate-error', preventEvent);
+	app.addListener('select-client-certificate', preventEvent);
 	app.addListener('login', preventEvent);
 	app.addListener('open-url', preventEvent);
 	app.addListener('window-all-closed', () => {

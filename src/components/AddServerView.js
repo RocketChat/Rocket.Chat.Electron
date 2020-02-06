@@ -5,10 +5,10 @@ import { takeEvery } from 'redux-saga/effects';
 
 import {
 	ADD_SERVER_VIEW_SERVER_ADDED,
-	CERTIFICATES_CHANGED,
+	CERTIFICATES_UPDATED,
 } from '../actions';
 import { useSaga } from './SagaMiddlewareProvider';
-import { useServerValidation } from './ServersProvider';
+import { useServerValidation } from '../hooks/useServerValidation';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',
@@ -76,7 +76,7 @@ export function AddServerView({
 	};
 
 	useSaga(function *() {
-		yield takeEvery(CERTIFICATES_CHANGED, function *() {
+		yield takeEvery(CERTIFICATES_UPDATED, function *() {
 			validateServerUrl(input.trim());
 		});
 	}, [input, validator]);

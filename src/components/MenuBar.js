@@ -7,12 +7,6 @@ import {
 	MENU_BAR_QUIT_CLICKED,
 	MENU_BAR_ABOUT_CLICKED,
 	MENU_BAR_OPEN_URL_CLICKED,
-	MENU_BAR_UNDO_CLICKED,
-	MENU_BAR_REDO_CLICKED,
-	MENU_BAR_CUT_CLICKED,
-	MENU_BAR_COPY_CLICKED,
-	MENU_BAR_PASTE_CLICKED,
-	MENU_BAR_SELECT_ALL_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	MENU_BAR_RELOAD_SERVER_CLICKED,
 	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
@@ -73,39 +67,39 @@ const createAppMenuItemTemplate = ({ appName, t, dispatch }) => ({
 	],
 });
 
-const createEditMenuItemTemplate = ({ t, dispatch }) => ({
+const createEditMenuItemTemplate = ({ t }) => ({
 	label: t('menus.editMenu'),
 	submenu: [
 		{
 			label: t('menus.undo'),
 			accelerator: 'CommandOrControl+Z',
-			click: () => dispatch({ type: MENU_BAR_UNDO_CLICKED }),
+			role: 'undo',
 		},
 		{
 			label: t('menus.redo'),
 			accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
-			click: () => dispatch({ type: MENU_BAR_REDO_CLICKED }),
+			role: 'redo',
 		},
 		{ type: 'separator' },
 		{
 			label: t('menus.cut'),
 			accelerator: 'CommandOrControl+X',
-			click: () => dispatch({ type: MENU_BAR_CUT_CLICKED }),
+			role: 'cut',
 		},
 		{
 			label: t('menus.copy'),
 			accelerator: 'CommandOrControl+C',
-			click: () => dispatch({ type: MENU_BAR_COPY_CLICKED }),
+			role: 'copy',
 		},
 		{
 			label: t('menus.paste'),
 			accelerator: 'CommandOrControl+V',
-			click: () => dispatch({ type: MENU_BAR_PASTE_CLICKED }),
+			role: 'paste',
 		},
 		{
 			label: t('menus.selectAll'),
 			accelerator: 'CommandOrControl+A',
-			click: () => dispatch({ type: MENU_BAR_SELECT_ALL_CLICKED }),
+			role: 'selectAll',
 		},
 	],
 });
@@ -297,17 +291,7 @@ export function MenuBar({
 		const menu = remote.Menu.buildFromTemplate(template);
 
 		remote.Menu.setApplicationMenu(menu);
-	}, [
-		appName,
-		showFullScreen,
-		showServerList,
-		showTrayIcon,
-		showMenuBar,
-		servers,
-		currentServerUrl,
-		showWindowOnUnreadChanged,
-		dispatch,
-	]);
+	}, [appName, showFullScreen, showServerList, showTrayIcon, showMenuBar, servers, currentServerUrl, showWindowOnUnreadChanged, dispatch, t]);
 
 	useEffect(() => () => {
 		remote.Menu.setApplicationMenu(null);

@@ -4,26 +4,21 @@ import path from 'path';
 import { remote } from 'electron';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { takeEvery } from 'redux-saga/effects';
+import { call, put, takeEvery } from 'redux-saga/effects';
+import { useTranslation } from 'react-i18next';
 
 import {
 	MAIN_WINDOW_STATE_CHANGED,
 	MENU_BAR_ABOUT_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
-	MENU_BAR_COPY_CLICKED,
-	MENU_BAR_CUT_CLICKED,
 	MENU_BAR_GO_BACK_CLICKED,
 	MENU_BAR_GO_FORWARD_CLICKED,
-	MENU_BAR_PASTE_CLICKED,
-	MENU_BAR_REDO_CLICKED,
 	MENU_BAR_RELOAD_APP_CLICKED,
 	MENU_BAR_RELOAD_SERVER_CLICKED,
 	MENU_BAR_RESET_ZOOM_CLICKED,
-	MENU_BAR_SELECT_ALL_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
 	MENU_BAR_TOGGLE_DEVTOOLS_CLICKED,
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
-	MENU_BAR_UNDO_CLICKED,
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
@@ -34,8 +29,11 @@ import {
 	DEEP_LINK_TRIGGERED,
 	TRAY_ICON_CREATED,
 	TRAY_ICON_DESTROYED,
+	UPDATES_UPDATE_DOWNLOADED,
+	MAIN_WINDOW_INSTALL_UPDATE_CLICKED,
+	SPELL_CHECKING_ERROR_THROWN,
 } from '../actions';
-import { getAppIconPath, getTrayIconPath } from '../services/icons';
+import { getAppIconPath, getTrayIconPath } from '../icons';
 import { useSaga } from './SagaMiddlewareProvider';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
@@ -230,7 +228,7 @@ const useWindowStateUpdates = (browserWindow, windowStateRef, dispatch) => {
 			browserWindow.removeListener('resize', fetchAndDispatchWindowState);
 			browserWindow.removeListener('move', fetchAndDispatchWindowState);
 		};
-	}, [browserWindow, windowStateRef, fetchAndSaveTimerRef]);
+	}, [browserWindow, windowStateRef, fetchAndSaveTimerRef, dispatch]);
 };
 
 const useWindowClosing = (browserWindow, windowStateRef, hideOnClose) => {
@@ -286,6 +284,7 @@ export function MainWindow({
 	offline = false,
 	showWindowOnUnreadChanged = false,
 }) {
+	const { t } = useTranslation();
 	const dispatch = useDispatch();
 	const windowStateRef = useRef({});
 	const [hideOnClose, setHideOnClose] = useState(false);
@@ -316,12 +315,6 @@ export function MainWindow({
 	useSaga(function *() {
 		yield takeEvery([
 			MENU_BAR_ABOUT_CLICKED,
-			MENU_BAR_UNDO_CLICKED,
-			MENU_BAR_REDO_CLICKED,
-			MENU_BAR_CUT_CLICKED,
-			MENU_BAR_COPY_CLICKED,
-			MENU_BAR_PASTE_CLICKED,
-			MENU_BAR_SELECT_ALL_CLICKED,
 			MENU_BAR_ADD_NEW_SERVER_CLICKED,
 			MENU_BAR_RELOAD_SERVER_CLICKED,
 			MENU_BAR_GO_BACK_CLICKED,
@@ -394,6 +387,41 @@ export function MainWindow({
 			});
 			browserWindow.showInactive();
 			browserWindow.flashFrame(true);
+		});
+
+		yield takeEvery(UPDATES_UPDATE_DOWNLOADED, function *() {
+			const { response } = yield call(remote.dialog.showMessageBox, remote.getCurrentWindow(), {
+				type: 'question',
+				title: t('dialog.updateReady.title'),
+				message: t('dialog.updateReady.message'),
+				buttons: [
+					t('dialog.updateReady.installLater'),
+					t('dialog.updateReady.installNow'),
+				],
+				defaultId: 1,
+			});
+
+			if (response === 0) {
+				yield call(remote.dialog.showMessageBox, remote.getCurrentWindow(), {
+					type: 'info',
+					title: t('dialog.updateInstallLater.title'),
+					message: t('dialog.updateInstallLater.message'),
+					buttons: [t('dialog.updateInstallLater.ok')],
+					defaultId: 0,
+				});
+				return;
+			}
+
+			remote.getCurrentWindow().removeAllListeners();
+			remote.app.removeAllListeners('window-all-closed');
+			yield put({ type: MAIN_WINDOW_INSTALL_UPDATE_CLICKED });
+		});
+
+		yield takeEvery(SPELL_CHECKING_ERROR_THROWN, function *({ payload: error }) {
+			remote.dialog.showErrorBox(
+				t('dialog.loadDictionaryError.title'),
+				t('dialog.loadDictionaryError.message', { message: error.message }),
+			);
 		});
 	}, [browserWindow, showWindowOnUnreadChanged]);
 

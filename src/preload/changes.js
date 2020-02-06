@@ -14,6 +14,9 @@ function handleTitleChange() {
 
 	Tracker.autorun(() => {
 		const siteName = settings.get('Site_Name');
+		if (!siteName) {
+			return;
+		}
 		ipcRenderer.sendToHost('title-changed', siteName);
 	});
 }

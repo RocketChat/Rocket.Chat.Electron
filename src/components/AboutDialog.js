@@ -14,6 +14,7 @@ import {
 	UPDATES_ERROR_THROWN,
 	UPDATES_CHECKING_FOR_UPDATE,
 } from '../actions';
+import { RocketChatLogo } from './RocketChatLogo.js';
 import { useSaga } from './SagaMiddlewareProvider';
 
 export function AboutDialog({
@@ -22,8 +23,13 @@ export function AboutDialog({
 	visible = false,
 }) {
 	const canUpdate = useSelector(({ isUpdatingAllowed, isUpdatingEnabled }) => isUpdatingAllowed && isUpdatingEnabled);
-	const isCheckForUpdatesOnStartupChecked = useSelector(({ isUpdatingAllowed, isUpdatingEnabled, doCheckForUpdatesOnStartup }) => isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup);
-	const canSetCheckForUpdatesOnStartup = useSelector(({ isUpdatingAllowed, isEachUpdatesSettingConfigurable }) => isUpdatingAllowed && isEachUpdatesSettingConfigurable);
+	const isCheckForUpdatesOnStartupChecked = useSelector(({
+		isUpdatingAllowed,
+		isUpdatingEnabled,
+		doCheckForUpdatesOnStartup,
+	}) => isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup);
+	const canSetCheckForUpdatesOnStartup = useSelector(({ isUpdatingAllowed, isEachUpdatesSettingConfigurable }) =>
+		isUpdatingAllowed && isEachUpdatesSettingConfigurable);
 
 	const rootRef = useRef();
 	const dispatch = useDispatch();
@@ -107,7 +113,7 @@ export function AboutDialog({
 	return <dialog ref={rootRef} className='about-dialog'>
 		<section className='app-info'>
 			<div className='app-logo'>
-				<img src='./images/logo.svg' />
+				<RocketChatLogo />
 			</div>
 			<div className='app-version'>
 				{t('dialog.about.version')} <span className='version'>{appVersion}</span>

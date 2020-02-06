@@ -9,6 +9,7 @@ import {
 } from '../actions';
 import { useSaga } from './SagaMiddlewareProvider';
 import { useServerValidation } from '../hooks/useServerValidation';
+import { RocketChatLogo } from './RocketChatLogo';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',
@@ -105,7 +106,9 @@ export function AddServerView({
 	return <section className={['add-server-view', !visible && 'hidden', !hasSidebar && 'add-server-view--without-side-bar'].filter(Boolean).join(' ')}>
 		<div className='wrapper'>
 			<header>
-				<img className='logo' src='./images/logo-dark.svg' />
+				<div className='logo' style={{ margin: '0 auto' }}>
+					<RocketChatLogo alternate />
+				</div>
 			</header>
 
 			<div className='loading-indicator'>

@@ -46,10 +46,10 @@ export function ServersView({
 		<div ref={containerRef} />
 		{pairs.map(([server, node]) => createPortal(<ServerPane
 			key={server.url}
-			active={currentServerUrl === server.url}
-			hasSidebar={hasSidebar}
 			lastPath={server.lastPath}
 			url={server.url}
+			isFull={!hasSidebar}
+			isSelected={currentServerUrl === server.url}
 		/>, node))}
 	</>;
 }

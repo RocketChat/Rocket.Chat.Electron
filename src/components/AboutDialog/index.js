@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
-import pkg from '../../package.json';
-import { useDialog } from '../hooks/useDialog.js';
+import pkg from '../../../package.json';
+import { useDialog } from '../../hooks/useDialog.js';
 import {
 	ABOUT_DIALOG_DISMISSED,
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
@@ -14,9 +14,23 @@ import {
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_ERROR_THROWN,
 	UPDATES_CHECKING_FOR_UPDATE,
-} from '../actions';
-import { RocketChatLogo } from './RocketChatLogo.js';
-import { useSaga } from './SagaMiddlewareProvider';
+} from '../../actions';
+import { RocketChatLogo } from '../RocketChatLogo.js';
+import { useSaga } from '../SagaMiddlewareProvider';
+import {
+	AppInfo,
+	AppVersion,
+	CheckForUpdatesButton,
+	CheckForUpdatesOnStartupInput,
+	CheckForUpdatesOnStartupLabel,
+	Copyright,
+	LoadingIndicator,
+	LoadingIndicatorDot,
+	LoadingIndicatorMessage,
+	Updates,
+	Version,
+	Wrapper,
+} from './styles.js';
 
 export function AboutDialog({
 	appVersion = remote.app.getVersion(),
@@ -89,58 +103,46 @@ export function AboutDialog({
 		dispatch({ type: ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, payload: event.target.checked });
 	};
 
-	return <dialog ref={dialogRef} className='about-dialog'>
-		<section className='app-info'>
-			<div className='app-logo'>
-				<RocketChatLogo />
-			</div>
-			<div className='app-version'>
-				{t('dialog.about.version')} <span className='version'>{appVersion}</span>
-			</div>
-		</section>
+	return <Wrapper ref={dialogRef}>
+		<AppInfo>
+			<RocketChatLogo />
+			<AppVersion>
+				{t('dialog.about.version')} <Version>{appVersion}</Version>
+			</AppVersion>
+		</AppInfo>
 
-		<section className={['updates', !canUpdate && 'hidden'].filter(Boolean).join(' ')}>
-			<button
+		{canUpdate && <Updates>
+			{!checkingForUpdates && <CheckForUpdatesButton
 				type='button'
-				className={[
-					'check-for-updates',
-					'button',
-					'primary',
-					checkingForUpdates && 'hidden',
-				].filter(Boolean).join(' ')}
 				disabled={checkingForUpdates}
 				onClick={handleCheckForUpdatesButtonClick}
 			>
 				{t('dialog.about.checkUpdates')}
-			</button>
+			</CheckForUpdatesButton>}
 
-			<div
-				className={[
-					'checking-for-updates',
-					!checkingForUpdates && 'hidden',
-					!!checkingForUpdatesMessage && 'message-shown',
-				].filter(Boolean).join(' ')}
-			>
-				<span className='dot'></span>
-				<span className='dot'></span>
-				<span className='dot'></span>
-				<span className='message'>{checkingForUpdatesMessage}</span>
-			</div>
+			{checkingForUpdates && <LoadingIndicator>
+				{checkingForUpdatesMessage
+					? <LoadingIndicatorMessage>{checkingForUpdatesMessage}</LoadingIndicatorMessage>
+					: <>
+						<LoadingIndicatorDot />
+						<LoadingIndicatorDot />
+						<LoadingIndicatorDot />
+					</>}
+			</LoadingIndicator>}
 
-			<label className='check-for-updates-on-start__label'>
-				<input
-					className='check-for-updates-on-start'
+			<CheckForUpdatesOnStartupLabel>
+				<CheckForUpdatesOnStartupInput
 					type='checkbox'
 					checked={isCheckForUpdatesOnStartupChecked}
 					disabled={!canSetCheckForUpdatesOnStartup}
 					onChange={handleCheckForUpdatesOnStartCheckBoxChange}
 				/>
-				<span>{t('dialog.about.checkUpdatesOnStart')}</span>
-			</label>
-		</section>
+				{t('dialog.about.checkUpdatesOnStart')}
+			</CheckForUpdatesOnStartupLabel>
+		</Updates>}
 
-		<div className='copyright'>
+		<Copyright>
 			{t('dialog.about.copyright', { copyright })}
-		</div>
-	</dialog>;
+		</Copyright>
+	</Wrapper>;
 }

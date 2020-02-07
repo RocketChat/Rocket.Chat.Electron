@@ -6,8 +6,9 @@ import { useDispatch } from 'react-redux';
 import {
 	SCREEN_SHARING_DIALOG_DISMISSED,
 	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
-} from '../actions';
-import { useDialog } from '../hooks/useDialog';
+} from '../../actions';
+import { useDialog } from '../../hooks/useDialog';
+import { Wrapper, Announcement, Sources, Source, ThumbnailWrapper, Thumbnail, Name } from './styles';
 
 export function ScreenSharingDialog({
 	visible = false,
@@ -46,15 +47,15 @@ export function ScreenSharingDialog({
 		dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: id });
 	};
 
-	return <dialog ref={dialogRef} className='screen-sharing-dialog'>
-		<h1 className='screenshare-title'>{t('dialog.screenshare.announcement')}</h1>
-		<div className='screen-sharing-sources'>
-			{sources.map(({ id, name, thumbnail }) => <div key={id} className='screen-sharing-source' onClick={handleScreenSharingSourceClick(id)}>
-				<div className='screen-sharing-source-thumbnail'>
-					<img src={thumbnail.toDataURL()} alt={name} />
-				</div>
-				<div className='screen-sharing-source-name'>{name}</div>
-			</div>)}
-		</div>
-	</dialog>;
+	return <Wrapper ref={dialogRef}>
+		<Announcement>{t('dialog.screenshare.announcement')}</Announcement>
+		<Sources>
+			{sources.map(({ id, name, thumbnail }) => <Source key={id} onClick={handleScreenSharingSourceClick(id)}>
+				<ThumbnailWrapper>
+					<Thumbnail src={thumbnail.toDataURL()} alt={name} />
+				</ThumbnailWrapper>
+				<Name>{name}</Name>
+			</Source>)}
+		</Sources>
+	</Wrapper>;
 }

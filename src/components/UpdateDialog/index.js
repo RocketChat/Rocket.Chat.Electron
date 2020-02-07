@@ -8,8 +8,22 @@ import {
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
-} from '../actions';
-import { useDialog } from '../hooks/useDialog';
+} from '../../actions';
+import { useDialog } from '../../hooks/useDialog';
+import {
+	Actions,
+	Arrow,
+	Button,
+	Content,
+	CurrentVersion,
+	Info,
+	Label,
+	Message,
+	NewVersion,
+	Title,
+	Value,
+	Wrapper,
+} from './styles';
 
 export function UpdateDialog({
 	currentVersion = remote.app.getVersion(),
@@ -62,34 +76,34 @@ export function UpdateDialog({
 		dispatch({ type: UPDATE_DIALOG_DISMISSED });
 	};
 
-	return <dialog ref={dialogRef} className='update-dialog'>
-		<div className='update-content'>
-			<h1 className='update-title'>{t('dialog.update.announcement')}</h1>
-			<p className='update-message'>{t('dialog.update.message')}</p>
+	return <Wrapper ref={dialogRef}>
+		<Content>
+			<Title>{t('dialog.update.announcement')}</Title>
+			<Message>{t('dialog.update.message')}</Message>
 
-			<div className='update-info'>
-				<div className='app-version current-version'>
-					<div className='app-version-label'>{t('dialog.update.currentVersion')}</div>
-					<div className='app-version-value'>{currentVersion}</div>
-				</div>
-				<div className='update-arrow'>&rarr;</div>
-				<div className='app-version new-version'>
-					<div className='app-version-label'>{t('dialog.update.newVersion')}</div>
-					<div className='app-version-value'>{newVersion}</div>
-				</div>
-			</div>
-		</div>
+			<Info>
+				<CurrentVersion>
+					<Label>{t('dialog.update.currentVersion')}</Label>
+					<Value>{currentVersion}</Value>
+				</CurrentVersion>
+				<Arrow>&rarr;</Arrow>
+				<NewVersion>
+					<Label>{t('dialog.update.newVersion')}</Label>
+					<Value>{newVersion}</Value>
+				</NewVersion>
+			</Info>
+		</Content>
 
-		<div className='update-actions'>
-			<button type='button' className='update-skip-action button secondary' onClick={handleSkipButtonClick}>
+		<Actions>
+			<Button type='button' secondary onClick={handleSkipButtonClick}>
 				{t('dialog.update.skip')}
-			</button>
-			<button type='button' className='update-remind-action button secondary' onClick={handleRemindLaterButtonClick}>
+			</Button>
+			<Button type='button' secondary onClick={handleRemindLaterButtonClick}>
 				{t('dialog.update.remindLater')}
-			</button>
-			<button ref={installButtonRef} type='button' className='update-install-action button primary' onClick={handleInstallButtonClick}>
+			</Button>
+			<Button ref={installButtonRef} type='button' onClick={handleInstallButtonClick}>
 				{t('dialog.update.install')}
-			</button>
-		</div>
-	</dialog>;
+			</Button>
+		</Actions>
+	</Wrapper>;
 }

@@ -1,45 +1,23 @@
 import { desktopCapturer } from 'electron';
 import { useTranslation } from 'react-i18next';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import {
 	SCREEN_SHARING_DIALOG_DISMISSED,
 	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
 } from '../actions';
+import { useDialog } from '../hooks/useDialog';
 
 export function ScreenSharingDialog({
 	visible = false,
 }) {
-	const rootRef = useRef();
 	const dispatch = useDispatch();
 
-	useEffect(() => {
-		const root = rootRef.current;
-
-		if (!visible) {
-			root.close();
-			return;
-		}
-
-		root.showModal();
-
-		root.onclose = () => {
-			root.close();
-			dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
-			dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: null });
-		};
-
-		root.onclick = ({ clientX, clientY }) => {
-			const { left, top, width, height } = root.getBoundingClientRect();
-			const isInDialog = top <= clientY && clientY <= top + height && left <= clientX && clientX <= left + width;
-			if (!isInDialog) {
-				root.close();
-				dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
-				dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: null });
-			}
-		};
-	}, [rootRef, visible, dispatch]);
+	const dialogRef = useDialog(visible, () => {
+		dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
+		dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: null });
+	});
 
 	const { t } = useTranslation();
 
@@ -68,7 +46,7 @@ export function ScreenSharingDialog({
 		dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: id });
 	};
 
-	return <dialog ref={rootRef} className='screen-sharing-dialog'>
+	return <dialog ref={dialogRef} className='screen-sharing-dialog'>
 		<h1 className='screenshare-title'>{t('dialog.screenshare.announcement')}</h1>
 		<div className='screen-sharing-sources'>
 			{sources.map(({ id, name, thumbnail }) => <div key={id} className='screen-sharing-source' onClick={handleScreenSharingSourceClick(id)}>

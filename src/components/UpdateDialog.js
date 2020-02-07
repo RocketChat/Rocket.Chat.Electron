@@ -9,39 +9,17 @@ import {
 	UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 } from '../actions';
+import { useDialog } from '../hooks/useDialog';
 
 export function UpdateDialog({
 	currentVersion = remote.app.getVersion(),
 	newVersion = null,
 	visible = false,
 }) {
-	const rootRef = useRef();
 	const dispatch = useDispatch();
-
-	useEffect(() => {
-		const root = rootRef.current;
-
-		if (!visible) {
-			root.close();
-			return;
-		}
-
-		root.showModal();
-
-		root.onclose = () => {
-			root.close();
-			dispatch({ type: UPDATE_DIALOG_DISMISSED });
-		};
-
-		root.onclick = ({ clientX, clientY }) => {
-			const { left, top, width, height } = root.getBoundingClientRect();
-			const isInDialog = top <= clientY && clientY <= top + height && left <= clientX && clientX <= left + width;
-			if (!isInDialog) {
-				root.close();
-				dispatch({ type: UPDATE_DIALOG_DISMISSED });
-			}
-		};
-	}, [rootRef, visible, dispatch]);
+	const dialogRef = useDialog(visible, () => {
+		dispatch({ type: UPDATE_DIALOG_DISMISSED });
+	});
 
 	const { t } = useTranslation();
 
@@ -84,7 +62,7 @@ export function UpdateDialog({
 		dispatch({ type: UPDATE_DIALOG_DISMISSED });
 	};
 
-	return <dialog ref={rootRef} className='update-dialog'>
+	return <dialog ref={dialogRef} className='update-dialog'>
 		<div className='update-content'>
 			<h1 className='update-title'>{t('dialog.update.announcement')}</h1>
 			<p className='update-message'>{t('dialog.update.message')}</p>

@@ -1,10 +1,11 @@
 import { remote } from 'electron';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
 import pkg from '../../package.json';
+import { useDialog } from '../hooks/useDialog.js';
 import {
 	ABOUT_DIALOG_DISMISSED,
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
@@ -31,33 +32,11 @@ export function AboutDialog({
 	const canSetCheckForUpdatesOnStartup = useSelector(({ isUpdatingAllowed, isEachUpdatesSettingConfigurable }) =>
 		isUpdatingAllowed && isEachUpdatesSettingConfigurable);
 
-	const rootRef = useRef();
 	const dispatch = useDispatch();
 
-	useEffect(() => {
-		const root = rootRef.current;
-
-		if (!visible) {
-			root.close();
-			return;
-		}
-
-		root.showModal();
-
-		root.onclose = () => {
-			root.close();
-			dispatch({ type: ABOUT_DIALOG_DISMISSED });
-		};
-
-		root.onclick = ({ clientX, clientY }) => {
-			const { left, top, width, height } = root.getBoundingClientRect();
-			const isInDialog = top <= clientY && clientY <= top + height && left <= clientX && clientX <= left + width;
-			if (!isInDialog) {
-				root.close();
-				dispatch({ type: ABOUT_DIALOG_DISMISSED });
-			}
-		};
-	}, [rootRef, visible, dispatch]);
+	const dialogRef = useDialog(visible, () => {
+		dispatch({ type: ABOUT_DIALOG_DISMISSED });
+	});
 
 	const { t } = useTranslation();
 
@@ -110,7 +89,7 @@ export function AboutDialog({
 		dispatch({ type: ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, payload: event.target.checked });
 	};
 
-	return <dialog ref={rootRef} className='about-dialog'>
+	return <dialog ref={dialogRef} className='about-dialog'>
 		<section className='app-info'>
 			<div className='app-logo'>
 				<RocketChatLogo />

@@ -7,7 +7,6 @@ export const Wrapper = styled.div`
 	z-index: 100000;
 	top: 0;
 	bottom: 0;
-	display: flex;
 	flex-direction: column;
 	width: 68px;
 	height: 100%;
@@ -17,7 +16,7 @@ export const Wrapper = styled.div`
 
 	${ ({ background }) => css`background: ${ background || '#2f343d' };` }
 	${ ({ color }) => css`color: ${ color || '#ffffff' };` }
-	${ ({ visible }) => !visible && css`display: none;` }
+	${ ({ isVisible }) => css`display: ${ isVisible ? 'flex' : 'none' };` }
 `;
 
 export const Content = styled.div`

@@ -35,9 +35,10 @@ import {
 	UPDATES_UPDATE_DOWNLOADED,
 	WEBVIEW_FOCUS_REQUESTED,
 	WEBVIEW_UNREAD_CHANGED,
-} from '../actions';
-import { getAppIconPath, getTrayIconPath } from '../icons';
-import { useSaga } from './SagaMiddlewareProvider';
+} from '../../actions';
+import { getAppIconPath, getTrayIconPath } from '../../icons';
+import { useSaga } from '../SagaMiddlewareProvider';
+import { WindowDragBar, Wrapper } from './styles';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
 	remote.screen.getAllDisplays()
@@ -283,7 +284,6 @@ export function MainWindow({
 	badge = undefined,
 	browserWindow = remote.getCurrentWindow(),
 	children,
-	offline = false,
 	showWindowOnUnreadChanged = false,
 }) {
 	const { t } = useTranslation();
@@ -435,8 +435,8 @@ export function MainWindow({
 		});
 	}, [browserWindow, showWindowOnUnreadChanged]);
 
-	return <div className={['app-page', loading && 'app-page--loading', offline && 'offline'].filter(Boolean).join(' ')}>
-		<div className='drag-region' />
+	return <Wrapper>
+		{process.platform === 'darwin' && <WindowDragBar />}
 		{!loading && children}
-	</div>;
+	</Wrapper>;
 }

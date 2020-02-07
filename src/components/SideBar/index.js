@@ -126,7 +126,7 @@ function ServerButton({
 	</ServerButtonWrapper>;
 }
 
-export function SideBar({ visible = false }) {
+export function SideBar({ isVisible = false }) {
 	const servers = useSelector(({ servers }) => servers);
 	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
 
@@ -153,7 +153,7 @@ export function SideBar({ visible = false }) {
 
 	const { t } = useTranslation();
 
-	return <Wrapper background={background} color={color} visible={visible}>
+	return <Wrapper background={background} color={color} isVisible={isVisible}>
 		<Content withWindowButtons={process.platform === 'darwin'}>
 			<ServerList>
 				{sortedServers.map((server, order) => <ServerButton

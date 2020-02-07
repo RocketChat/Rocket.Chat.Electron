@@ -51,7 +51,6 @@ function AppContent() {
 	const [newUpdateVersion, setNewUpdateVersion] = useState(null);
 	const [mainWindowState, setMainWindowState] = useState({});
 	const [openDialog, setOpenDialog] = useState(null);
-	const [offline, setOffline] = useState(false);
 
 	const globalBadge = useMemo(() => {
 		const mentionCount = Object.values(badges)
@@ -201,22 +200,6 @@ function AppContent() {
 		}
 	}, []);
 
-	useEffect(() => {
-		const handleConnectionStatus = () => {
-			setOffline(!navigator.onLine);
-		};
-
-		handleConnectionStatus();
-
-		window.addEventListener('online', handleConnectionStatus);
-		window.addEventListener('offline', handleConnectionStatus);
-
-		return () => {
-			window.removeEventListener('online', handleConnectionStatus);
-			window.removeEventListener('offline', handleConnectionStatus);
-		};
-	}, []);
-
 	const dispatch = useDispatch();
 
 	useEffect(() => {
@@ -225,7 +208,6 @@ function AppContent() {
 
 	return <MainWindow
 		badge={hasTrayIcon ? undefined : globalBadge}
-		offline={offline}
 		showWindowOnUnreadChanged={showWindowOnUnreadChanged}
 	>
 		<MenuBar
@@ -237,15 +219,15 @@ function AppContent() {
 			servers={servers}
 			currentServerUrl={currentServerUrl}
 		/>
-		<SideBar visible={servers.length > 0 && hasSidebar} />
+		<SideBar isVisible={servers.length > 0 && hasSidebar} />
 		<ServersView
 			servers={servers}
 			currentServerUrl={currentServerUrl}
 			hasSidebar={servers.length > 0 && hasSidebar}
 		/>
 		<AddServerView
-			hasSidebar={servers.length > 0 && hasSidebar}
-			visible={currentServerUrl === null}
+			isVisible={currentServerUrl === null}
+			isFull={!(servers.length > 0 && hasSidebar)}
 		/>
 		<AboutDialog
 			visible={openDialog === 'about'}

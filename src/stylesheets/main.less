@@ -3,7 +3,7 @@
 @import "dialogs/about.less";
 @import "dialogs/screen-sharing.less";
 @import "dialogs/update.less";
-@import "pages/app.less";
+@import "pages/app/webview.less";
 @import "pages/loading-error.less";
 
 *,
@@ -34,51 +34,9 @@ body {
 	-webkit-font-smoothing: antialiased;
 }
 
-.rocket-h2 {
-	margin: 18px 0;
-
-	letter-spacing: -0.5px;
-	text-transform: uppercase;
-
-	font-size: 20px;
-	font-weight: 300;
-}
-
-.rocket-h3 {
-	margin: 18px 0;
-
-	letter-spacing: -0.5px;
-	text-transform: uppercase;
-
-	font-size: 16px;
-	font-weight: 300;
-}
-
-.alert {
-	margin-bottom: 20px;
-	padding: 15px;
-
-	border: 1px solid rgba(0, 0, 0, 0);
-	border-radius: 4px;
-}
-
-.alert-warning {
-	color: #8a6d3b;
-	border-color: #faebcc;
-	background-color: #fcf8e3;
-}
-
-.alert-danger {
-	color: #a94442;
-	border-color: #ebccd1;
-	background-color: #f2dede;
-}
-
 // input & form styles
 input,
-button,
-select,
-textarea {
+button {
 	font-family: inherit;
 	font-size: inherit;
 	line-height: inherit;
@@ -89,11 +47,7 @@ input:focus {
 	box-shadow: 0 0 0;
 }
 
-textarea,
-select,
-input[type='text'],
-input[type='email'],
-input[type='password'] {
+input[type='text'] {
 	position: relative;
 
 	width: 100%;

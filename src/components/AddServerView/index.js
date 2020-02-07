@@ -6,28 +6,20 @@ import { takeEvery } from 'redux-saga/effects';
 import {
 	ADD_SERVER_VIEW_SERVER_ADDED,
 	CERTIFICATES_UPDATED,
-} from '../actions';
-import { useSaga } from './SagaMiddlewareProvider';
-import { useServerValidation } from '../hooks/useServerValidation';
-import { RocketChatLogo } from './RocketChatLogo';
+} from '../../actions';
+import { useSaga } from '../SagaMiddlewareProvider';
+import { useServerValidation } from '../../hooks/useServerValidation';
+import { RocketChatLogo } from '../RocketChatLogo';
+import { Wrapper, SubmitButton, FormActions, ErrorDisplay, InputWrapper, Input, Prompt, Form, Header, Content } from './styles';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',
-	hasSidebar,
-	visible,
+	isVisible,
+	isFull,
 }) {
 	const dispatch = useDispatch();
 	const { t } = useTranslation();
 	const [input, setInput] = useState('');
-	const inputRef = useRef();
-
-	useEffect(() => {
-		if (!visible) {
-			return;
-		}
-
-		inputRef.current.focus();
-	}, [visible]);
 
 	const [validationState, setValidationState] = useState('idle');
 	const [errorMessage, setErrorMessage] = useState(null);
@@ -95,65 +87,76 @@ export function AddServerView({
 		setInput('');
 	};
 
-	const handleInputBlur = () => {
-		validateServerUrl(input.trim());
-	};
-
 	const handleInputChange = (event) => {
 		setInput(event.currentTarget.value);
 	};
 
-	return <section className={['add-server-view', !visible && 'hidden', !hasSidebar && 'add-server-view--without-side-bar'].filter(Boolean).join(' ')}>
-		<div className='wrapper'>
-			<header>
-				<div className='logo' style={{ margin: '0 auto' }}>
-					<RocketChatLogo alternate />
-				</div>
-			</header>
+	const [isOnLine, setOnLine] = useState(navigator.onLine);
 
-			<div className='loading-indicator'>
-				<span className='dot'></span>
-				<span className='dot'></span>
-				<span className='dot'></span>
-			</div>
+	useEffect(() => {
+		const handleConnectionStatus = () => {
+			setOnLine(navigator.onLine);
+		};
 
-			<form className='add-server-form' method='/' onSubmit={handleFormSubmit}>
-				<header>
-					<h2 className='add-server-prompt'>
+		window.addEventListener('online', handleConnectionStatus);
+		window.addEventListener('offline', handleConnectionStatus);
+
+		return () => {
+			window.removeEventListener('online', handleConnectionStatus);
+			window.removeEventListener('offline', handleConnectionStatus);
+		};
+	}, []);
+
+	const [inputId] = useState(() => Math.random().toString(36).slice(2));
+	const inputRef = useRef();
+
+	useEffect(() => {
+		if (!isVisible || !inputRef.current) {
+			return;
+		}
+
+		inputRef.current.focus();
+	}, [isVisible]);
+
+	return <Wrapper isVisible={isVisible} isFull={isFull}>
+		<Content>
+			<Header>
+				<RocketChatLogo alternate />
+			</Header>
+
+			{isOnLine
+				? <Form method='/' onSubmit={handleFormSubmit}>
+					<Prompt htmlFor={inputId}>
 						{t('landing.inputUrl')}
-					</h2>
-				</header>
-				<div className='fields'>
-					<div className='input-text active'>
-						<input
+					</Prompt>
+					<InputWrapper>
+						<Input
 							ref={inputRef}
-							className={['add-server-input', validationState === 'invalid' && 'wrong'].filter(Boolean).join(' ')}
+							id={inputId}
+							isFailed={validationState === 'invalid'}
 							type='text'
-							placeholder='https://open.rocket.chat'
+							placeholder={defaultServerUrl}
 							dir='auto'
 							value={input}
-							onBlur={handleInputBlur}
 							onChange={handleInputChange}
 						/>
-					</div>
-				</div>
+					</InputWrapper>
 
-				<div className={['add-server-error-message', 'alert', 'alert-danger', validationState !== 'invalid' && 'hidden'].filter(Boolean).join(' ')}>
-					{errorMessage}
-				</div>
+					{validationState === 'invalid' && <ErrorDisplay>
+						{errorMessage}
+					</ErrorDisplay>}
 
-				<div className='add-server-offline-error alert alert-danger only-offline'>
+					<FormActions>
+						<SubmitButton type='submit' disabled={validationState !== 'idle'}>
+							{(validationState === 'idle' && t('landing.connect'))
+							|| (validationState === 'validating' && t('landing.validating'))
+							|| (validationState === 'invalid' && t('landing.invalidUrl'))}
+						</SubmitButton>
+					</FormActions>
+				</Form>
+				: <ErrorDisplay>
 					{t('error.offline')}
-				</div>
-
-				<div className='submit'>
-					<button type='submit' className='button primary add-server-button' disabled={validationState !== 'idle'}>
-						{(validationState === 'idle' && t('landing.connect'))
-						|| (validationState === 'validating' && t('landing.validating'))
-						|| (validationState === 'invalid' && t('landing.invalidUrl'))}
-					</button>
-				</div>
-			</form>
-		</div>
-	</section>;
+				</ErrorDisplay>}
+		</Content>
+	</Wrapper>;
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
-import { ServerView } from './ServerView';
+import { ServerPane } from './ServerPane';
 
 export function ServersView({
 	servers = [],
@@ -44,7 +44,7 @@ export function ServersView({
 
 	return <>
 		<div ref={containerRef} />
-		{pairs.map(([server, node]) => createPortal(<ServerView
+		{pairs.map(([server, node]) => createPortal(<ServerPane
 			key={server.url}
 			active={currentServerUrl === server.url}
 			hasSidebar={hasSidebar}

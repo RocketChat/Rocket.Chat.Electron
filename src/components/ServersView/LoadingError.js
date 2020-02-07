@@ -4,10 +4,10 @@ import { useDispatch } from 'react-redux';
 
 import {
 	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
-} from '../actions';
+} from '../../actions';
 
 
-export function LoadingErrorView({
+export function LoadingError({
 	reloading = false,
 	url = null,
 	visible = false,
@@ -41,7 +41,7 @@ export function LoadingErrorView({
 		return () => {
 			clearInterval(timer);
 		};
-	}, [url, visible]);
+	}, [dispatch, url, visible]);
 
 	const handleReloadButtonClick = () => {
 		dispatch({ type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, payload: url });

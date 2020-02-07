@@ -5,7 +5,7 @@ import { useWebviewContextMenu } from './useWebviewContextMenu';
 import { useWebviewPreload } from './useWebviewPreload';
 import { useWebviewNavigation } from './useWebviewNavigation';
 
-export function WebUiView({
+export function WebViewPane({
 	active = false,
 	failed = false,
 	hasSidebar = false,

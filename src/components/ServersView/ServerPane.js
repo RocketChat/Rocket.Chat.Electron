@@ -6,12 +6,12 @@ import {
 	WEBVIEW_LOADING_DONE,
 	WEBVIEW_LOADING_FAILED,
 	WEBVIEW_CERTIFICATE_DENIED,
-} from '../actions';
-import { LoadingErrorView } from './LoadingErrorView';
-import { WebUiView } from './WebUiView';
-import { useSaga } from './SagaMiddlewareProvider';
+} from '../../actions';
+import { LoadingError } from './LoadingError';
+import { WebViewPane } from './WebViewPane';
+import { useSaga } from '../SagaMiddlewareProvider';
 
-export function ServerView({
+export function ServerPane({
 	active = false,
 	hasSidebar = false,
 	lastPath,
@@ -50,14 +50,14 @@ export function ServerView({
 	}, [url]);
 
 	return <>
-		<WebUiView
+		<WebViewPane
 			active={active}
 			failed={failed}
 			hasSidebar={hasSidebar}
 			lastPath={lastPath}
 			url={url}
 		/>
-		<LoadingErrorView
+		<LoadingError
 			reloading={reloading}
 			url={url}
 			visible={active && failed}

@@ -2,6 +2,7 @@ import builtinModules from 'builtin-modules';
 import glob from 'glob';
 import babel from 'rollup-plugin-babel';
 import commonjs from 'rollup-plugin-commonjs';
+import copy from 'rollup-plugin-copy';
 import json from 'rollup-plugin-json';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import replace from 'rollup-plugin-replace';
@@ -17,6 +18,12 @@ const bundleOptions = {
 		...Object.keys(appManifest.devDependencies),
 	],
 	plugins: [
+		copy({
+			targets: [
+				{ src: 'src/i18n/*.i18n.json', dest: 'app/i18n' },
+				{ src: 'src/public/*', dest: 'app/public' },
+			],
+		}),
 		json(),
 		replace({
 			'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),

@@ -4,7 +4,7 @@ const { promisify } = require('util');
 const { convert: convertToIcns } = require('@fiahfy/icns-convert');
 const { convert: convertSvgToPng } = require('convert-svg-to-png');
 const { build } = require('electron-builder');
-const { dest, parallel, series, src, task, watch } = require('gulp');
+const { parallel, series, task } = require('gulp');
 const execa = require('gulp-execa');
 const toIco = require('to-ico');
 const rimraf = require('rimraf');
@@ -14,21 +14,9 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 task('clean', () => promisify(rimraf)('app'));
 
-task('build:public', () => src('src/public/**/*')
-	.pipe(dest('app/public')));
+task('build', execa.task('rollup -c', { env: { NODE_ENV } }));
 
-task('build:i18n', () => src('src/i18n/*')
-	.pipe(dest('app/i18n')));
-
-task('build:bundle', execa.task('rollup -c', { env: { NODE_ENV } }));
-
-task('build', parallel('build:public', 'build:i18n', 'build:bundle'));
-
-task('watch', () => {
-	watch('src/public/**/*', task('build:public'));
-	watch('src/i18n/*', task('build:i18n'));
-	watch('src/**/*.js', task('build:bundle'));
-});
+task('watch', execa.task('rollup -c -w', { env: { NODE_ENV } }));
 
 task('test:build', execa.task('rollup -c', { env: { NODE_ENV: 'test' } }));
 

@@ -106,7 +106,8 @@
 		"artifactName": "rocketchat-${version}.${arch}.${ext}"
 	},
 	"snap": {
-		"artifactName": "rocketchat_${version}_${arch}.${ext}"
+		"artifactName": "rocketchat_${version}_${arch}.${ext}",
+		"plugs": ["desktop", "desktop-legacy", "home", "x11", "unity7", "browser-support", "network", "gsettings", "pulseaudio", "opengl", "camera"]
 	},
 	"afterSign": "./build/notarize.js",
 	"publish": [

@@ -81,6 +81,7 @@ export const Actions = styled.div`
 `;
 
 export const Button = styled.button`
+	font-family: inherit;
 	position: relative;
 	display: inline-block;
 	margin: 4px;

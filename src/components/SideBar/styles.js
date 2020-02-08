@@ -166,6 +166,7 @@ export const KeyboardShortcut = styled.div`
 `;
 
 export const AddServerButton = styled.button`
+	font-family: inherit;
 	position: relative;
 	flex: 0 0 auto;
 	box-sizing: border-box;

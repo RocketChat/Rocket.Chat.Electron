@@ -93,6 +93,7 @@ export const LoadingIndicatorDot = styled.span`
 `;
 
 export const ReloadButton = styled.button`
+	font-family: inherit;
 	position: relative;
 	display: inline-block;
 	margin: 4px;

@@ -54,14 +54,20 @@ export const InputWrapper = styled.div`
 `;
 
 export const Input = styled.input`
+	width: 100%;
+	height: 35px;
+	border-radius: 2px;
+	outline: none;
+	line-height: normal;
 	position: relative;
 	padding: 4px 8px;
-	border-width: 0 !important;
-	border-bottom: 1px solid #dfdfdf !important;
-	background-color: transparent !important;
-	box-shadow: 0 0 0 !important;
+	border-width: 0;
+	border-bottom: 1px solid #dfdfdf;
+	background-color: transparent;
+	box-shadow: 0 0 0;
 	font-size: 22px;
 	font-weight: 400;
+	font-family: inherit;
 
 	${ ({ isFailed }) => isFailed && css`
 		animation: ${ keyframes`
@@ -106,6 +112,7 @@ export const FormActions = styled.div`
 `;
 
 export const SubmitButton = styled.button`
+	font-family: inherit;
 	position: relative;
 	display: inline-block;
 	margin: 4px;

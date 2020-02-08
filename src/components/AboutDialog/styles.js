@@ -46,6 +46,7 @@ export const Updates = styled.section`
 `;
 
 export const CheckForUpdatesButton = styled.button`
+	font-family: inherit;
 	position: relative;
 	display: inline-block;
 	margin: 4px;

@@ -38,7 +38,7 @@ import {
 } from '../../actions';
 import { getAppIconPath, getTrayIconPath } from '../../icons';
 import { useSaga } from '../SagaMiddlewareProvider';
-import { WindowDragBar, Wrapper } from './styles';
+import { WindowDragBar, Wrapper, GlobalStyles } from './styles';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
 	remote.screen.getAllDisplays()
@@ -435,8 +435,11 @@ export function MainWindow({
 		});
 	}, [browserWindow, showWindowOnUnreadChanged]);
 
-	return <Wrapper>
-		{process.platform === 'darwin' && <WindowDragBar />}
-		{!loading && children}
-	</Wrapper>;
+	return <>
+		<GlobalStyles />
+		<Wrapper>
+			{process.platform === 'darwin' && <WindowDragBar />}
+			{!loading && children}
+		</Wrapper>
+	</>;
 }

@@ -6,7 +6,6 @@ const { convert: convertSvgToPng } = require('convert-svg-to-png');
 const { build } = require('electron-builder');
 const { dest, parallel, series, src, task, watch } = require('gulp');
 const execa = require('gulp-execa');
-const less = require('gulp-less');
 const toIco = require('to-ico');
 const rimraf = require('rimraf');
 
@@ -23,17 +22,12 @@ task('build:i18n', () => src('src/i18n/lang/**/*')
 
 task('build:bundle', execa.task('rollup -c', { env: { NODE_ENV } }));
 
-task('build:less', () => src('src/stylesheets/main.less')
-	.pipe(less())
-	.pipe(dest('app/stylesheets')));
-
-task('build', parallel('build:public', 'build:i18n', 'build:bundle', 'build:less'));
+task('build', parallel('build:public', 'build:i18n', 'build:bundle'));
 
 task('watch', () => {
 	watch('src/public/**/*', task('build:public'));
 	watch('src/i18n/lang/**/*', task('build:i18n'));
 	watch('src/**/*.js', task('build:bundle'));
-	watch('src/**/*.less', task('build:less'));
 });
 
 task('test:build', execa.task('rollup -c', { env: { NODE_ENV: 'test' } }));

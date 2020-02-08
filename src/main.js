@@ -62,6 +62,7 @@ const createMainWindow = () => {
 		minWidth: 600,
 		minHeight: 400,
 		titleBarStyle: 'hidden',
+		backgroundColor: '#2f343d',
 		show: false,
 		webPreferences: {
 			webviewTag: true,

@@ -54,8 +54,6 @@ yarn start
 
 The source is located in the `src` folder. Everything in this folder will be built automatically when running the app with `yarn start`.
 
-Stylesheets are written in `less` and are located in `src/stylesheets`. They will be built into a single `main.css` in the `app` folder.
-
 The build process compiles all stuff from the `src` folder and puts it into the `app` folder, so after the build has finished, your `app` folder contains the full, runnable application.
 
 ## The build pipeline

@@ -4,10 +4,12 @@ import path from 'path';
 import { remote } from 'electron';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { call, put, takeEvery } from 'redux-saga/effects';
+import { call, put, take, takeEvery } from 'redux-saga/effects';
 import { useTranslation } from 'react-i18next';
 
 import {
+	DEEP_LINK_TRIGGERED,
+	MAIN_WINDOW_INSTALL_UPDATE_CLICKED,
 	MAIN_WINDOW_STATE_CHANGED,
 	MENU_BAR_ABOUT_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
@@ -21,20 +23,22 @@ import {
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
+	SERVERS_READY,
+	SPELL_CHECKING_ERROR_THROWN,
+	SPELL_CHECKING_READY,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
-	TRAY_ICON_TOGGLE_CLICKED,
-	WEBVIEW_UNREAD_CHANGED,
-	WEBVIEW_FOCUS_REQUESTED,
-	DEEP_LINK_TRIGGERED,
 	TRAY_ICON_CREATED,
 	TRAY_ICON_DESTROYED,
+	TRAY_ICON_TOGGLE_CLICKED,
+	UPDATES_READY,
 	UPDATES_UPDATE_DOWNLOADED,
-	MAIN_WINDOW_INSTALL_UPDATE_CLICKED,
-	SPELL_CHECKING_ERROR_THROWN,
-} from '../actions';
-import { getAppIconPath, getTrayIconPath } from '../icons';
-import { useSaga } from './SagaMiddlewareProvider';
+	WEBVIEW_FOCUS_REQUESTED,
+	WEBVIEW_UNREAD_CHANGED,
+} from '../../actions';
+import { getAppIconPath, getTrayIconPath } from '../../icons';
+import { useSaga } from '../SagaMiddlewareProvider';
+import { WindowDragBar, Wrapper, GlobalStyles } from './styles';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
 	remote.screen.getAllDisplays()
@@ -280,13 +284,12 @@ export function MainWindow({
 	badge = undefined,
 	browserWindow = remote.getCurrentWindow(),
 	children,
-	loading = true,
-	offline = false,
 	showWindowOnUnreadChanged = false,
 }) {
 	const { t } = useTranslation();
 	const dispatch = useDispatch();
 	const windowStateRef = useRef({});
+	const [loading, setLoading] = useState(true);
 	const [hideOnClose, setHideOnClose] = useState(false);
 
 	useAppEvents(browserWindow, windowStateRef);
@@ -311,6 +314,13 @@ export function MainWindow({
 		const count = Number.isInteger(badge) ? badge : 0;
 		browserWindow.flashFrame(!browserWindow.isFocused() && count > 0);
 	}, [badge, browserWindow]);
+
+	useSaga(function *() {
+		yield take(SERVERS_READY);
+		yield take(SPELL_CHECKING_READY);
+		yield take(UPDATES_READY);
+		setLoading(false);
+	}, []);
 
 	useSaga(function *() {
 		yield takeEvery([
@@ -425,8 +435,11 @@ export function MainWindow({
 		});
 	}, [browserWindow, showWindowOnUnreadChanged]);
 
-	return <div className={['app-page', loading && 'app-page--loading', offline && 'offline'].filter(Boolean).join(' ')}>
-		<div className='drag-region' />
-		{children}
-	</div>;
+	return <>
+		<GlobalStyles />
+		<Wrapper>
+			{process.platform === 'darwin' && <WindowDragBar />}
+			{!loading && children}
+		</Wrapper>
+	</>;
 }

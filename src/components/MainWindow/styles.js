@@ -1,0 +1,44 @@
+import styled from '@emotion/styled';
+import { Global, css } from '@emotion/core';
+import React from 'react';
+
+export const GlobalStyles = () => <Global styles={css`
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	:focus {
+		outline: 0 !important;
+		outline-style: none;
+		outline-color: transparent;
+	}
+
+	body {
+		-webkit-font-smoothing: antialiased;
+		margin: 0;
+		padding: 0;
+		font-family: system-ui;
+		font-size: 0.875rem;
+		line-height: 1rem;
+		background-color: #2f343d;
+	}
+
+`} />;
+
+export const Wrapper = styled.div`
+	overflow: hidden;
+	width: 100vw;
+	height: 100vh;
+	cursor: default;
+	user-select: none;
+	background-color: #2f343d;
+`;
+
+export const WindowDragBar = styled.div`
+	position: fixed;
+	width: 100%;
+	height: 22px;
+	-webkit-app-region: drag;
+`;

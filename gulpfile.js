@@ -3,8 +3,7 @@ const { promisify } = require('util');
 
 const { convert: convertToIcns } = require('@fiahfy/icns-convert');
 const { convert: convertSvgToPng } = require('convert-svg-to-png');
-const { build } = require('electron-builder');
-const { dest, parallel, series, src, task, watch } = require('gulp');
+const { parallel, series, task } = require('gulp');
 const execa = require('gulp-execa');
 const toIco = require('to-ico');
 const rimraf = require('rimraf');
@@ -14,59 +13,19 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 task('clean', () => promisify(rimraf)('app'));
 
-task('build:public', () => src('src/public/**/*')
-	.pipe(dest('app/public')));
-
-task('build:i18n', () => src('src/i18n/lang/**/*')
-	.pipe(dest('app/i18n/lang')));
-
-task('build:bundle', execa.task('rollup -c', { env: { NODE_ENV } }));
-
-task('build', parallel('build:public', 'build:i18n', 'build:bundle'));
-
-task('watch', () => {
-	watch('src/public/**/*', task('build:public'));
-	watch('src/i18n/lang/**/*', task('build:i18n'));
-	watch('src/**/*.js', task('build:bundle'));
-});
+task('build', execa.task('rollup -c', { env: { NODE_ENV } }));
+task('watch', execa.task('rollup -c -w', { env: { NODE_ENV } }));
 
 task('test:build', execa.task('rollup -c', { env: { NODE_ENV: 'test' } }));
-
-task('test:renderer',
-	execa.task('xvfb-maybe electron-mocha --require source-map-support/register --renderer app/renderer.specs/*.js'));
+task('test:renderer', execa.task('xvfb-maybe electron-mocha --require source-map-support/register --renderer app/renderer.specs/*.js'));
 
 task('test', series('clean', 'test:build', 'test:renderer'));
-
 task('start:electron', execa.task('electron .'));
-
 task('start', series('build', parallel('watch', 'start:electron')));
 
-task('release:darwin', async () => {
-	// Workaround for https://github.com/electron-userland/electron-builder/issues/4204
-	for (const target of ['dmg', 'pkg', 'zip', 'mas']) {
-		// eslint-disable-next-line no-await-in-loop
-		await build({
-			publish: NODE_ENV === 'production' ? 'onTagOrDraft' : 'never',
-			x64: true,
-			mac: [target],
-		});
-	}
-});
-
-task('release:linux', () => build({
-	publish: NODE_ENV === 'production' ? 'onTagOrDraft' : 'never',
-	x64: true,
-	linux: [],
-	c: { productName: 'rocketchat' },
-}));
-
-task('release:win32', () => build({
-	publish: NODE_ENV === 'production' ? 'onTagOrDraft' : 'never',
-	x64: true,
-	ia32: true,
-	win: [],
-}));
-
+task('release:darwin', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --mac`));
+task('release:linux', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --linux --c.productName=rocketchat`));
+task('release:win32', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --ia32 --win`));
 task('release', series('build', `release:${ process.platform }`));
 
 task('icons:clean', async () => {

@@ -73,19 +73,6 @@ export default [
 		],
 	},
 	{
-		input: 'src/i18n/index.js',
-		...bundleOptions,
-		output: [
-			{
-				file: 'app/i18n/index.js',
-				format: 'cjs',
-				intro: '(function () {',
-				outro: '})()',
-				sourcemap: true,
-			},
-		],
-	},
-	{
 		input: 'src/preload.js',
 		...bundleOptions,
 		output: [

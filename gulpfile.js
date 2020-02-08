@@ -17,8 +17,8 @@ task('clean', () => promisify(rimraf)('app'));
 task('build:public', () => src('src/public/**/*')
 	.pipe(dest('app/public')));
 
-task('build:i18n', () => src('src/i18n/lang/**/*')
-	.pipe(dest('app/i18n/lang')));
+task('build:i18n', () => src('src/i18n/*')
+	.pipe(dest('app/i18n')));
 
 task('build:bundle', execa.task('rollup -c', { env: { NODE_ENV } }));
 
@@ -26,7 +26,7 @@ task('build', parallel('build:public', 'build:i18n', 'build:bundle'));
 
 task('watch', () => {
 	watch('src/public/**/*', task('build:public'));
-	watch('src/i18n/lang/**/*', task('build:i18n'));
+	watch('src/i18n/*', task('build:i18n'));
 	watch('src/**/*.js', task('build:bundle'));
 });
 

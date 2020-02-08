@@ -1,14 +1,15 @@
 import { remote } from 'electron';
 import { useTranslation } from 'react-i18next';
-import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useEffect, useRef, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 import {
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 } from '../actions';
 
-const useSelectServerPanel = (currentServerUrl, servers, dispatch) => {
+const useSelectServerPanel = (currentServerUrl, servers) => {
+	const dispatch = useDispatch();
 	const { t } = useTranslation();
 
 	class SelectServerPanel {
@@ -55,18 +56,6 @@ const useSelectServerPanel = (currentServerUrl, servers, dispatch) => {
 			} else {
 				this.build();
 			}
-		}
-
-		build() {
-			const popoverItems = this._buildSelectServersPopoverItems();
-
-			this.touchBarPopover = new remote.TouchBar.TouchBarPopover({
-				label: t('touchBar.selectServer'),
-				items: new remote.TouchBar({
-					items: popoverItems,
-				}),
-			});
-			return this.touchBarPopover;
 		}
 
 		_buildSelectServersPopoverItems() {
@@ -146,47 +135,76 @@ const useSelectServerPanel = (currentServerUrl, servers, dispatch) => {
 			}
 			return arr;
 		}
+
+		build() {
+			const popoverItems = this._buildSelectServersPopoverItems();
+
+			this.touchBarPopover = new remote.TouchBar.TouchBarPopover({
+				label: t('touchBar.selectServer'),
+				items: new remote.TouchBar({
+					items: popoverItems,
+				}),
+			});
+			return this.touchBarPopover;
+		}
 	}
 
 	return new SelectServerPanel().build();
 };
 
-const useFormattingPanel = (currentServerUrl, dispatch) => {
-	const { t } = useTranslation();
+const useFormattingPanel = (currentServerUrl) => {
+	const segmentedControlRef = useRef();
 
-	if (!currentServerUrl) {
-		return new remote.TouchBar.TouchBarGroup({ items: [] });
+	if (!segmentedControlRef.current) {
+		segmentedControlRef.current = new remote.TouchBar.TouchBarSegmentedControl({
+			mode: 'buttons',
+		});
 	}
 
-	const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
+	const itemsRef = useRef();
 
-	const formatButtons = ids.map((id) => new remote.TouchBar.TouchBarButton({
-		icon: remote.nativeImage.createFromPath(`${ __dirname }/images/touch-bar/${ id }.png`),
-		click: () => {
-			dispatch({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: id });
-		},
-	}));
+	if (!itemsRef.current) {
+		itemsRef.current = [
+			new remote.TouchBar.TouchBarSpacer({
+				size: 'flexible',
+			}),
+			segmentedControlRef.current,
+			new remote.TouchBar.TouchBarSpacer({
+				size: 'flexible',
+			}),
+		];
+	}
 
-	return new remote.TouchBar.TouchBarGroup({
-		items: new remote.TouchBar({
-			items: [
-				new remote.TouchBar.TouchBarLabel({ label: t('touchBar.formatting') }),
-				...formatButtons,
-			],
-		}),
-	});
+	const dispatch = useDispatch();
+
+	useEffect(() => {
+		const segmentedControl = segmentedControlRef.current;
+
+		const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
+
+		segmentedControl.segments = ids.map((id) => ({
+			icon: remote.nativeImage.createFromPath(`${ remote.app.getAppPath() }/app/public/images/touch-bar/${ id }.png`),
+			enabled: !!currentServerUrl,
+		}));
+		segmentedControl.change = (selectedIndex) => dispatch({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: ids[selectedIndex] });
+	}, [currentServerUrl, dispatch]);
+
+	return itemsRef.current;
 };
 
-export function TouchBar({ currentServerUrl, servers = [] }) {
-	const dispatch = useDispatch();
-	const selectServerPanel = useSelectServerPanel(currentServerUrl, servers, dispatch);
-	const formattingPanel = useFormattingPanel(currentServerUrl, dispatch);
+export function TouchBar() {
+	const servers = useSelector(({ servers }) => servers);
+	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
+
+
+	const selectServerPanel = useSelectServerPanel(currentServerUrl, servers);
+	const formattingPanel = useFormattingPanel(currentServerUrl);
 
 	useEffect(() => {
 		const touchBar = new remote.TouchBar({
 			items: [
 				selectServerPanel,
-				formattingPanel,
+				...formattingPanel,
 			],
 		});
 		remote.getCurrentWindow().setTouchBar(touchBar);

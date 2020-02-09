@@ -30,6 +30,7 @@ import { TouchBar } from './TouchBar';
 import { createReduxStoreAndSagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
 import { validateServerUrl } from '../sagas/servers';
+import { SelectClientCertificateDialog } from './SelectClientCertificateDialog';
 
 function AppContent() {
 	const { t } = useTranslation();
@@ -186,6 +187,7 @@ function AppContent() {
 		/>
 		<AboutDialog />
 		<ScreenSharingDialog />
+		<SelectClientCertificateDialog />
 		<UpdateDialog />
 		<Dock badge={globalBadge} />
 		<TrayIcon

@@ -18,7 +18,7 @@
     "dialog": {
         "about": {
             "title": "About {{- appName}}",
-            "version": "Version: <1>{{version}}</1>",
+            "version": "Version: <1>{{-version}}</1>",
             "checkUpdates": "Check for Updates",
             "checkUpdatesOnStart": "Check for Updates on Start",
             "noUpdatesAvailable": "No updates are available.",
@@ -90,6 +90,11 @@
             "title": "Skip Update",
             "message": "We will notify you when the next update is available\nIf you change your mind you can check for updates from the About menu.",
             "ok": "OK"
+        },
+        "selectClientCertificate": {
+            "announcement": "Select Certificate",
+            "select": "Select",
+            "validDates": "Valid from {{-validStart,}} to {{-validExpiry,}}"
         }
     },
     "error": {

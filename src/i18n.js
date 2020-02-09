@@ -44,6 +44,15 @@ export const setupI18next = async () => {
 			backend: {
 				loadPath: `${ languagesDirPath }/{{lng}}.i18n.json`,
 			},
+			interpolation: {
+				format: (value, format, lng) => {
+					if (value instanceof Date) {
+						return new Intl.DateTimeFormat(lng).format(value);
+					}
+
+					return value;
+				},
+			},
 			initImmediate: true,
 		});
 };

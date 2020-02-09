@@ -11,6 +11,8 @@ import {
 	WEBVIEW_SIDEBAR_STYLE_CHANGED,
 	WEBVIEW_TITLE_CHANGED,
 	WEBVIEW_UNREAD_CHANGED,
+	WEBVIEW_MESSAGE_BOX_FOCUSED,
+	WEBVIEW_MESSAGE_BOX_BLURRED,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
 import { useMisspellingDetection } from '../../hooks/useMisspellingDetection';
@@ -54,6 +56,14 @@ export const useWebviewPreload = (webviewRef, webContents, { url, hasSidebar, ac
 
 				case 'favicon-changed':
 					dispatch({ type: WEBVIEW_FAVICON_CHANGED, payload: { webContentsId: webContents.id, url, favicon: args[0] } });
+					break;
+
+				case 'message-box-focused':
+					dispatch({ type: WEBVIEW_MESSAGE_BOX_FOCUSED, payload: { webContentsId: webContents.id, url } });
+					break;
+
+				case 'message-box-blurred':
+					dispatch({ type: WEBVIEW_MESSAGE_BOX_BLURRED, payload: { webContentsId: webContents.id, url } });
 					break;
 			}
 		};

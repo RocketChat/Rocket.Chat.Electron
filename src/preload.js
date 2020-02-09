@@ -1,5 +1,4 @@
 import { setupErrorHandling } from './errorHandling';
-import setupEventsPreload from './preload/events';
 import setupJitsiPreload from './preload/jitsi';
 import setupLinksPreload from './preload/links';
 import setupNotificationsPreload from './preload/notifications';
@@ -13,7 +12,6 @@ const initialize = async () => {
 
 	await setupI18next();
 
-	setupEventsPreload();
 	setupJitsiPreload();
 	setupLinksPreload();
 	setupNotificationsPreload();

@@ -18,9 +18,9 @@ const getNativeImageFromPath = mem((path) => remote.nativeImage.createFromPath(p
 const getNativeImageFromDataURL = mem((dataURL) => (dataURL ? remote.nativeImage.createFromDataURL(dataURL) : null));
 
 export function TouchBar() {
+	const isMessageBoxFocused = useSelector(({ isMessageBoxFocused }) => isMessageBoxFocused);
 	const servers = useSelector(({ servers }) => servers);
-	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
-	const currentServer = useMemo(() => servers.find(({ url }) => url === currentServerUrl), [currentServerUrl, servers]);
+	const currentServer = useSelector(({ servers, currentServerUrl }) => servers.find(({ url }) => url === currentServerUrl));
 
 	const barRef = useRef();
 	const prevBarRef = useRef();
@@ -62,8 +62,8 @@ export function TouchBar() {
 			mode='buttons'
 			segments={useMemo(() => ids.map((id) => ({
 				icon: getNativeImageFromPath(`${ remote.app.getAppPath() }/app/public/images/touch-bar/${ id }.png`),
-				enabled: !!currentServerUrl,
-			})), [currentServerUrl, ids])}
+				enabled: isMessageBoxFocused,
+			})), [ids, isMessageBoxFocused])}
 			onChange={(selectedIndex) => dispatch({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: ids[selectedIndex] })}
 		/>
 		<Spacer size='flexible' />

@@ -1,4 +1,4 @@
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { t } from 'i18next';
 
 import { getMeteor, getTracker, getSettings } from './rocketChat';
@@ -94,9 +94,41 @@ export default () => {
 	window.addEventListener('load', handleFaviconChange);
 	window.addEventListener('load', handleSidebarStyleChange);
 
+	window.addEventListener('unread-changed', (event) => {
+		ipcRenderer.sendToHost('unread-changed', event.detail);
+	});
+
+	window.addEventListener('get-sourceId', (event) => {
+		ipcRenderer.sendToHost('get-sourceId', event.detail);
+	});
+
+	let focusedMessageBoxInput = null;
+
+	document.addEventListener('focus', (event) => {
+		if (event.target.classList.contains('js-input-message')) {
+			focusedMessageBoxInput = event.target;
+			ipcRenderer.sendToHost('message-box-focused');
+		}
+	}, true);
+
+	document.addEventListener('blur', (event) => {
+		if (event.target.classList.contains('js-input-message')) {
+			focusedMessageBoxInput = null;
+			ipcRenderer.sendToHost('message-box-blurred');
+		}
+	}, true);
+
 	ipcRenderer.addListener('format-button-touched', (_, buttonId) => {
-		const button = document.querySelector(`.rc-message-box .js-format[data-id='${ buttonId }']`);
-		button.click();
+		if (!focusedMessageBoxInput) {
+			return;
+		}
+
+		const { formattingButtons, applyFormatting } = window.require('/app/ui-message/client/messageBox/messageBoxFormatting');
+		const { pattern } = formattingButtons
+			.filter(({ condition }) => !condition || condition())
+			.find(({ label }) => label === buttonId) || {};
+
+		applyFormatting(pattern, focusedMessageBoxInput);
 	});
 
 	ipcRenderer.addListener('screen-sharing-source-selected', (_, source) => {

@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import { t } from 'i18next';
 
 import { getMeteor, getTracker, getSettings } from './rocketChat';
@@ -32,7 +32,23 @@ function handleFaviconChange() {
 
 	Tracker.autorun(async () => {
 		const { url, defaultUrl } = settings.get('Assets_favicon') || {};
-		ipcRenderer.sendToHost('favicon-changed', Meteor.absoluteUrl(url || defaultUrl));
+		const faviconUrl = (url || defaultUrl) && Meteor.absoluteUrl(url || defaultUrl);
+
+		if (faviconUrl) {
+			const canvas = document.createElement('canvas');
+			canvas.width = 100;
+			canvas.height = 100;
+			const ctx = canvas.getContext('2d');
+
+			const image = new Image();
+			image.src = faviconUrl;
+			image.onload = () => {
+				ctx.drawImage(image, 0, 0, 100, 100);
+				ipcRenderer.sendToHost('favicon-changed', canvas.toDataURL());
+			};
+		} else {
+			ipcRenderer.sendToHost('favicon-changed', null);
+		}
 	});
 }
 

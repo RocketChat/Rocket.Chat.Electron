@@ -1,3 +1,4 @@
+import { Box, Button, ButtonGroup, Chevron, Flex, Margins } from '@rocket.chat/fuselage';
 import { remote } from 'electron';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useRef } from 'react';
@@ -9,43 +10,26 @@ import {
 	UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 } from '../../actions';
-import { useDialog } from '../../hooks/useDialog';
-import {
-	Actions,
-	Arrow,
-	Button,
-	Content,
-	CurrentVersion,
-	Info,
-	Label,
-	Message,
-	NewVersion,
-	Title,
-	Value,
-	Wrapper,
-} from './styles';
+import { Dialog } from '../Dialog';
 
 export function UpdateDialog({
 	currentVersion = remote.app.getVersion(),
 	newVersion = null,
-	visible = false,
+	isVisible = false,
 }) {
 	const dispatch = useDispatch();
-	const dialogRef = useDialog(visible, () => {
-		dispatch({ type: UPDATE_DIALOG_DISMISSED });
-	});
 
 	const { t } = useTranslation();
 
 	const installButtonRef = useRef();
 
 	useEffect(() => {
-		if (!visible) {
+		if (!isVisible) {
 			return;
 		}
 
 		installButtonRef.current.focus();
-	}, [visible]);
+	}, [isVisible]);
 
 	const handleSkipButtonClick = async () => {
 		await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
@@ -76,34 +60,48 @@ export function UpdateDialog({
 		dispatch({ type: UPDATE_DIALOG_DISMISSED });
 	};
 
-	return <Wrapper ref={dialogRef}>
-		<Content>
-			<Title>{t('dialog.update.announcement')}</Title>
-			<Message>{t('dialog.update.message')}</Message>
+	return <Dialog isVisible={isVisible} onClose={() => dispatch({ type: UPDATE_DIALOG_DISMISSED })}>
+		<Flex.Container direction='column' alignItems='center'>
+			<Box>
+				<Margins block='x8'>
+					<Box textStyle='h1'>{t('dialog.update.announcement')}</Box>
+					<Box>{t('dialog.update.message')}</Box>
+				</Margins>
 
-			<Info>
-				<CurrentVersion>
-					<Label>{t('dialog.update.currentVersion')}</Label>
-					<Value>{currentVersion}</Value>
-				</CurrentVersion>
-				<Arrow>&rarr;</Arrow>
-				<NewVersion>
-					<Label>{t('dialog.update.newVersion')}</Label>
-					<Value>{newVersion}</Value>
-				</NewVersion>
-			</Info>
-		</Content>
+				<Margins block='x32'>
+					<Flex.Container alignItems='center' justifyContent='center'>
+						<Box>
+							<Margins inline='x16'>
+								<Flex.Container direction='column' alignItems='center'>
+									<Box textColor='info'>
+										<Box>{t('dialog.update.currentVersion')}</Box>
+										<Box textStyle='p2'>{currentVersion}</Box>
+									</Box>
+								</Flex.Container>
+								<Chevron right size='32' />
+								<Flex.Container direction='column' alignItems='center'>
+									<Box>
+										<Box>{t('dialog.update.newVersion')}</Box>
+										<Box textStyle='p2'>{newVersion}</Box>
+									</Box>
+								</Flex.Container>
+							</Margins>
+						</Box>
+					</Flex.Container>
+				</Margins>
+			</Box>
+		</Flex.Container>
 
-		<Actions>
-			<Button type='button' secondary onClick={handleSkipButtonClick}>
+		<ButtonGroup>
+			<Button type='button' onClick={handleSkipButtonClick}>
 				{t('dialog.update.skip')}
 			</Button>
-			<Button type='button' secondary onClick={handleRemindLaterButtonClick}>
+			<Button type='button' onClick={handleRemindLaterButtonClick}>
 				{t('dialog.update.remindLater')}
 			</Button>
-			<Button ref={installButtonRef} type='button' onClick={handleInstallButtonClick}>
+			<Button ref={installButtonRef} type='button' primary onClick={handleInstallButtonClick}>
 				{t('dialog.update.install')}
 			</Button>
-		</Actions>
-	</Wrapper>;
+		</ButtonGroup>
+	</Dialog>;
 }

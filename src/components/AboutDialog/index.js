@@ -1,11 +1,12 @@
+import { Box, Button, Field, Flex, Margins, ToggleSwitch } from '@rocket.chat/fuselage';
+import { useUniqueId } from '@rocket.chat/fuselage-hooks';
 import { remote } from 'electron';
-import React, { useState, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
 import pkg from '../../../package.json';
-import { useDialog } from '../../hooks/useDialog.js';
 import {
 	ABOUT_DIALOG_DISMISSED,
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
@@ -18,24 +19,15 @@ import {
 import { RocketChatLogo } from '../RocketChatLogo.js';
 import { useSaga } from '../SagaMiddlewareProvider';
 import {
-	AppInfo,
-	AppVersion,
-	CheckForUpdatesButton,
-	CheckForUpdatesOnStartupInput,
-	CheckForUpdatesOnStartupLabel,
-	Copyright,
 	LoadingIndicator,
 	LoadingIndicatorDot,
-	LoadingIndicatorMessage,
-	Updates,
-	Version,
-	Wrapper,
 } from './styles.js';
+import { Dialog } from '../Dialog/index.js';
 
 export function AboutDialog({
-	appVersion = remote.app.getVersion(),
+	version = remote.app.getVersion(),
 	copyright = pkg.copyright,
-	visible = false,
+	isVisible = false,
 }) {
 	const canUpdate = useSelector(({ isUpdatingAllowed, isUpdatingEnabled }) => isUpdatingAllowed && isUpdatingEnabled);
 	const isCheckForUpdatesOnStartupChecked = useSelector(({
@@ -47,10 +39,6 @@ export function AboutDialog({
 		isUpdatingAllowed && isEachUpdatesSettingConfigurable);
 
 	const dispatch = useDispatch();
-
-	const dialogRef = useDialog(visible, () => {
-		dispatch({ type: ABOUT_DIALOG_DISMISSED });
-	});
 
 	const { t } = useTranslation();
 
@@ -90,7 +78,7 @@ export function AboutDialog({
 
 		yield takeEvery(UPDATES_ERROR_THROWN, function *() {
 			if (checkingForUpdates) {
-				displayCheckingForUpdatesMessage(t('dialog.about.errorWhileLookingForUpdates'));
+				displayCheckingForUpdatesMessage(t('dialog.about.errorWhenLookingForUpdates'));
 			}
 		});
 	}, [canUpdate, checkingForUpdates]);
@@ -103,46 +91,77 @@ export function AboutDialog({
 		dispatch({ type: ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, payload: event.target.checked });
 	};
 
-	return <Wrapper ref={dialogRef}>
-		<AppInfo>
+	const checkForUpdatesButtonRef = useRef();
+
+	useEffect(() => {
+		if (!isVisible || !checkForUpdatesButtonRef.current) {
+			return;
+		}
+
+		checkForUpdatesButtonRef.current.focus();
+	}, [isVisible]);
+
+	const checkForUpdatesOnStartupToggleSwitchId = useUniqueId();
+
+	return <Dialog isVisible={isVisible} onClose={() => dispatch({ type: ABOUT_DIALOG_DISMISSED })}>
+		<Margins block='x16'>
 			<RocketChatLogo />
-			<AppVersion>
-				{t('dialog.about.version')} <Version>{appVersion}</Version>
-			</AppVersion>
-		</AppInfo>
 
-		{canUpdate && <Updates>
-			{!checkingForUpdates && <CheckForUpdatesButton
-				type='button'
-				disabled={checkingForUpdates}
-				onClick={handleCheckForUpdatesButtonClick}
-			>
-				{t('dialog.about.checkUpdates')}
-			</CheckForUpdatesButton>}
+			<Flex.Item align='center'>
+				<Box>
+					<Trans i18nKey='dialog.about.version' version={version}>
+							Version: <Box is='span' textStyle='p2' style={{ userSelect: 'text' }}>{{ version }}</Box>
+					</Trans>
+				</Box>
+			</Flex.Item>
 
-			{checkingForUpdates && <LoadingIndicator>
-				{checkingForUpdatesMessage
-					? <LoadingIndicatorMessage>{checkingForUpdatesMessage}</LoadingIndicatorMessage>
-					: <>
-						<LoadingIndicatorDot />
-						<LoadingIndicatorDot />
-						<LoadingIndicatorDot />
-					</>}
-			</LoadingIndicator>}
+			{canUpdate && <Flex.Container direction='column'>
+				<Box>
+					<Margins block='x8'>
+						{!checkingForUpdates && <Button
+							ref={checkForUpdatesButtonRef}
+							primary
+							type='button'
+							disabled={checkingForUpdates}
+							onClick={handleCheckForUpdatesButtonClick}
+						>
+							{t('dialog.about.checkUpdates')}
+						</Button>}
+					</Margins>
 
-			<CheckForUpdatesOnStartupLabel>
-				<CheckForUpdatesOnStartupInput
-					type='checkbox'
-					checked={isCheckForUpdatesOnStartupChecked}
-					disabled={!canSetCheckForUpdatesOnStartup}
-					onChange={handleCheckForUpdatesOnStartCheckBoxChange}
-				/>
-				{t('dialog.about.checkUpdatesOnStart')}
-			</CheckForUpdatesOnStartupLabel>
-		</Updates>}
+					<Margins inline='auto' block='x8'>
+						{checkingForUpdates && <Box>
+							{checkingForUpdatesMessage
+								? <Margins block='x12'>
+									<Box textStyle='c1' textColor='info'>{checkingForUpdatesMessage}</Box>
+								</Margins>
+								: <LoadingIndicator>
+									<LoadingIndicatorDot />
+									<LoadingIndicatorDot />
+									<LoadingIndicatorDot />
+								</LoadingIndicator>}
+						</Box>}
 
-		<Copyright>
-			{t('dialog.about.copyright', { copyright })}
-		</Copyright>
-	</Wrapper>;
+						<Field.Row>
+							<ToggleSwitch
+								id={checkForUpdatesOnStartupToggleSwitchId}
+								checked={isCheckForUpdatesOnStartupChecked}
+								disabled={!canSetCheckForUpdatesOnStartup}
+								onChange={handleCheckForUpdatesOnStartCheckBoxChange}
+							/>
+							<Field.Label htmlFor={checkForUpdatesOnStartupToggleSwitchId}>
+								{t('dialog.about.checkUpdatesOnStart')}
+							</Field.Label>
+						</Field.Row>
+					</Margins>
+				</Box>
+			</Flex.Container>}
+
+			<Flex.Item align='center'>
+				<Box textStyle='micro'>
+					{t('dialog.about.copyright', { copyright })}
+				</Box>
+			</Flex.Item>
+		</Margins>
+	</Dialog>;
 }

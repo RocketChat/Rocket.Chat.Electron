@@ -230,14 +230,14 @@ function AppContent() {
 			isFull={!(servers.length > 0 && hasSidebar)}
 		/>
 		<AboutDialog
-			visible={openDialog === 'about'}
+			isVisible={openDialog === 'about'}
 		/>
 		<UpdateDialog
 			newVersion={newUpdateVersion}
-			visible={openDialog === 'update'}
+			isVisible={openDialog === 'update'}
 		/>
 		<ScreenSharingDialog
-			visible={openDialog === 'screen-sharing'}
+			isVisible={openDialog === 'screen-sharing'}
 		/>
 		<Dock badge={globalBadge} />
 		<TrayIcon

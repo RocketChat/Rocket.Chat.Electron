@@ -1,6 +1,7 @@
+import { Box, Button, ButtonGroup, Flex, Margins } from '@rocket.chat/fuselage';
+import { remote } from 'electron';
 import React, { useState, useRef, useEffect } from 'react';
 import { takeEvery } from 'redux-saga/effects';
-import { remote } from 'electron';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 
@@ -17,14 +18,10 @@ import { useWebviewContextMenu } from './useWebviewContextMenu';
 import { useWebviewPreload } from './useWebviewPreload';
 import { useWebviewNavigation } from './useWebviewNavigation';
 import {
-	Announcement,
 	ErrorPane,
-	LoadingErrorPage,
 	LoadingIndicator,
 	LoadingIndicatorDot,
-	ReloadButton,
 	StyledWebView,
-	Title,
 } from './styles';
 
 export function ServerPane({
@@ -146,25 +143,40 @@ export function ServerPane({
 			isFailed={isFailed}
 			hasWebContents={!!webContents}
 		/>
-		<ErrorPane isFull={isFull} isSelected={isSelected} isFailed={isFailed}>
-			<LoadingErrorPage>
-				<Announcement>
-					{t('loadingError.announcement')}
-				</Announcement>
-				<Title>
-					{t('loadingError.title')}
-				</Title>
+		<ErrorPane isFull={isFull} isSelected={isSelected} isFailed={isFailed || true}>
+			<Flex.Container direction='column' justifyContent='center' alignItems='center'>
+				<Box is='section'>
+					<Flex.Item>
+						<Flex.Container direction='column'>
+							<Margins block='x12'>
+								<Box>
+									<Margins block='x8' inline='auto'>
+										<Box textStyle='h1' textColor='alternative'>
+											{t('loadingError.announcement')}
+										</Box>
 
-				{isReloading && <LoadingIndicator>
-					<LoadingIndicatorDot />
-					<LoadingIndicatorDot />
-					<LoadingIndicatorDot />
-				</LoadingIndicator>}
+										<Box textStyle='s1' textColor='alternative'>
+											{t('loadingError.title')}
+										</Box>
+									</Margins>
+								</Box>
+							</Margins>
 
-				{!isReloading && <ReloadButton onClick={handleReloadButtonClick}>
-					{t('loadingError.reload')} ({counter})
-				</ReloadButton>}
-			</LoadingErrorPage>
+							{isReloading && <LoadingIndicator>
+								<LoadingIndicatorDot />
+								<LoadingIndicatorDot />
+								<LoadingIndicatorDot />
+							</LoadingIndicator>}
+
+							{!isReloading && <ButtonGroup align='center'>
+								<Button primary onClick={handleReloadButtonClick}>
+									{t('loadingError.reload')} ({counter})
+								</Button>
+							</ButtonGroup>}
+						</Flex.Container>
+					</Flex.Item>
+				</Box>
+			</Flex.Container>
 		</ErrorPane>
 	</>;
 }

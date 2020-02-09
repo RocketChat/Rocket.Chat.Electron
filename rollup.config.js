@@ -22,6 +22,7 @@ const bundleOptions = {
 			targets: [
 				{ src: 'src/i18n/*.i18n.json', dest: 'app/i18n' },
 				{ src: 'src/public/*', dest: 'app/public' },
+				{ src: 'node_modules/@rocket.chat/icons/dist/*', dest: 'app/icons' },
 			],
 		}),
 		json(),

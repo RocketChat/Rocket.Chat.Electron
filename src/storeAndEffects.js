@@ -8,6 +8,7 @@ import { installedSpellCheckingDictionariesDirectoryPath } from './reducers/inst
 import { isCheckingForUpdates } from './reducers/isCheckingForUpdates';
 import { isEachUpdatesSettingConfigurable } from './reducers/isEachUpdatesSettingConfigurable';
 import { isHunspellSpellCheckerUsed } from './reducers/isHunspellSpellCheckerUsed';
+import { isMessageBoxFocused } from './reducers/isMessageBoxFocused';
 import { isUpdatingAllowed } from './reducers/isUpdatingAllowed';
 import { isUpdatingEnabled } from './reducers/isUpdatingEnabled';
 import { servers } from './reducers/servers';
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
 	isCheckingForUpdates,
 	isEachUpdatesSettingConfigurable,
 	isHunspellSpellCheckerUsed,
+	isMessageBoxFocused,
 	isUpdatingAllowed,
 	isUpdatingEnabled,
 	servers,

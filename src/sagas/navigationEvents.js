@@ -150,6 +150,6 @@ function *takeActions() {
 
 export function *navigationEventsSaga() {
 	trustedCertificates = yield call(loadTrustedCertificates);
-	yield takeAppEvents();
+	yield *takeAppEvents();
 	yield *takeActions();
 }

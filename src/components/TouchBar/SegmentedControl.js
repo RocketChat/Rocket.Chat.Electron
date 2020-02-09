@@ -25,7 +25,7 @@ export const SegmentedControl = forwardRef(function SegmentedControl({
 			segments: segmentsRef.current,
 			segmentStyle: segmentStyleRef.current,
 			selectedIndex: selectedIndexRef.current,
-			change: (...args) => (0, onChangeRef.current)(...args),
+			change: (...args) => onChangeRef.current && (0, onChangeRef.current)(...args),
 		});
 		return innerRef.current;
 	}, [mode]);

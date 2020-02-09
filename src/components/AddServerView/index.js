@@ -1,3 +1,14 @@
+import {
+	Box,
+	Button,
+	ButtonGroup,
+	Callout,
+	Field,
+	FieldGroup,
+	Margins,
+	TextInput,
+	Tile,
+} from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -10,7 +21,7 @@ import {
 import { useSaga } from '../SagaMiddlewareProvider';
 import { useServerValidation } from '../../hooks/useServerValidation';
 import { RocketChatLogo } from '../RocketChatLogo';
-import { Wrapper, SubmitButton, FormActions, ErrorDisplay, InputWrapper, Input, Prompt, Form, Header, Content } from './styles';
+import { Wrapper, Content } from './styles';
 
 export function AddServerView({
 	defaultServerUrl = 'https://open.rocket.chat',
@@ -120,43 +131,48 @@ export function AddServerView({
 
 	return <Wrapper isVisible={isVisible} isFull={isFull}>
 		<Content>
-			<Header>
-				<RocketChatLogo alternate />
-			</Header>
+			<Margins block='x16'>
+				<Box>
+					<RocketChatLogo alternate />
+				</Box>
+			</Margins>
 
 			{isOnLine
-				? <Form method='/' onSubmit={handleFormSubmit}>
-					<Prompt htmlFor={inputId}>
-						{t('landing.inputUrl')}
-					</Prompt>
-					<InputWrapper>
-						<Input
-							ref={inputRef}
-							id={inputId}
-							isFailed={validationState === 'invalid'}
-							type='text'
-							placeholder={defaultServerUrl}
-							dir='auto'
-							value={input}
-							onChange={handleInputChange}
-						/>
-					</InputWrapper>
+				? <Tile is='form' padding='x32' method='/' onSubmit={handleFormSubmit}>
+					<FieldGroup>
+						<Field>
+							<Field.Label htmlFor={inputId}>
+								{t('landing.inputUrl')}
+							</Field.Label>
+							<Field.Row>
+								<TextInput
+									ref={inputRef}
+									id={inputId}
+									error={errorMessage}
+									type='text'
+									placeholder={defaultServerUrl}
+									dir='auto'
+									value={input}
+									onChange={handleInputChange}
+								/>
+							</Field.Row>
+							<Field.Error>
+								{errorMessage}
+							</Field.Error>
+						</Field>
 
-					{validationState === 'invalid' && <ErrorDisplay>
-						{errorMessage}
-					</ErrorDisplay>}
-
-					<FormActions>
-						<SubmitButton type='submit' disabled={validationState !== 'idle'}>
-							{(validationState === 'idle' && t('landing.connect'))
+						<ButtonGroup align='center'>
+							<Button type='submit' primary disabled={validationState !== 'idle'}>
+								{(validationState === 'idle' && t('landing.connect'))
 							|| (validationState === 'validating' && t('landing.validating'))
 							|| (validationState === 'invalid' && t('landing.invalidUrl'))}
-						</SubmitButton>
-					</FormActions>
-				</Form>
-				: <ErrorDisplay>
+							</Button>
+						</ButtonGroup>
+					</FieldGroup>
+				</Tile>
+				: <Callout type='warning'>
 					{t('error.offline')}
-				</ErrorDisplay>}
+				</Callout>}
 		</Content>
 	</Wrapper>;
 }

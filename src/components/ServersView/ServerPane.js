@@ -143,7 +143,7 @@ export function ServerPane({
 			isFailed={isFailed}
 			hasWebContents={!!webContents}
 		/>
-		<ErrorPane isFull={isFull} isSelected={isSelected} isFailed={isFailed || true}>
+		<ErrorPane isFull={isFull} isSelected={isSelected} isFailed={isFailed}>
 			<Flex.Container direction='column' justifyContent='center' alignItems='center'>
 				<Box is='section'>
 					<Flex.Item>

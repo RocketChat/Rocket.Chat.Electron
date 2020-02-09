@@ -11,6 +11,8 @@ import { isHunspellSpellCheckerUsed } from './reducers/isHunspellSpellCheckerUse
 import { isMessageBoxFocused } from './reducers/isMessageBoxFocused';
 import { isUpdatingAllowed } from './reducers/isUpdatingAllowed';
 import { isUpdatingEnabled } from './reducers/isUpdatingEnabled';
+import { newUpdateVersion } from './reducers/newUpdateVersion';
+import { openDialog } from './reducers/openDialog';
 import { servers } from './reducers/servers';
 import { skippedUpdateVersion } from './reducers/skippedUpdateVersion';
 import { spellCheckingDictionaries } from './reducers/spellCheckingDictionaries';
@@ -30,9 +32,11 @@ const rootReducer = combineReducers({
 	isMessageBoxFocused,
 	isUpdatingAllowed,
 	isUpdatingEnabled,
+	newUpdateVersion,
+	openDialog,
 	servers,
-	spellCheckingDictionaries,
 	skippedUpdateVersion,
+	spellCheckingDictionaries,
 });
 
 function *rootSaga() {

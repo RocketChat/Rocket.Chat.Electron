@@ -7,18 +7,11 @@ import { call, put, select, take, takeEvery } from 'redux-saga/effects';
 
 import {
 	MENU_BAR_QUIT_CLICKED,
-	MENU_BAR_ABOUT_CLICKED,
 	MENU_BAR_OPEN_URL_CLICKED,
 	MENU_BAR_RESET_APP_DATA_CLICKED,
 	MENU_BAR_TOGGLE_SETTING_CLICKED,
-	ABOUT_DIALOG_DISMISSED,
-	UPDATE_DIALOG_DISMISSED,
-	SCREEN_SHARING_DIALOG_DISMISSED,
 	TRAY_ICON_QUIT_CLICKED,
-	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	MAIN_WINDOW_STATE_CHANGED,
-	UPDATES_NEW_VERSION_AVAILABLE,
-	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
 	DEEP_LINK_TRIGGERED,
 	DEEP_LINKS_SERVER_FOCUSED,
 	DEEP_LINKS_SERVER_ADDED,
@@ -48,9 +41,7 @@ function AppContent() {
 	const servers = useSelector(({ servers }) => servers);
 	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
 	const badges = useSelector(({ servers }) => servers.reduce((badges, { url, badge }) => ({ ...badges, [url]: badge }), {}));
-	const [newUpdateVersion, setNewUpdateVersion] = useState(null);
 	const [mainWindowState, setMainWindowState] = useState({});
-	const [openDialog, setOpenDialog] = useState(null);
 
 	const globalBadge = useMemo(() => {
 		const mentionCount = Object.values(badges)
@@ -99,11 +90,6 @@ function AppContent() {
 
 		while (true) {
 			const { type, payload } = yield take();
-
-			if (type === MENU_BAR_ABOUT_CLICKED) {
-				setOpenDialog('about');
-				continue;
-			}
 
 			if (type === MENU_BAR_RESET_APP_DATA_CLICKED) {
 				const { response } = yield call(::remote.dialog.showMessageBox, {
@@ -162,39 +148,8 @@ function AppContent() {
 				continue;
 			}
 
-			if (type === ABOUT_DIALOG_DISMISSED) {
-				setOpenDialog(null);
-				continue;
-			}
-
-			if (type === UPDATE_DIALOG_DISMISSED) {
-				setOpenDialog(null);
-				continue;
-			}
-
-			if (type === SCREEN_SHARING_DIALOG_DISMISSED) {
-				setOpenDialog(null);
-				continue;
-			}
-
-			if (type === SCREEN_SHARING_DIALOG_SOURCE_SELECTED) {
-				setOpenDialog(null);
-				continue;
-			}
-
-			if (type === WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED) {
-				setOpenDialog('screen-sharing');
-				continue;
-			}
-
 			if (type === MAIN_WINDOW_STATE_CHANGED) {
 				setMainWindowState(payload);
-				continue;
-			}
-
-			if (type === UPDATES_NEW_VERSION_AVAILABLE) {
-				setNewUpdateVersion(payload);
-				setOpenDialog('update');
 				continue;
 			}
 		}
@@ -229,16 +184,9 @@ function AppContent() {
 			isVisible={currentServerUrl === null}
 			isFull={!(servers.length > 0 && hasSidebar)}
 		/>
-		<AboutDialog
-			isVisible={openDialog === 'about'}
-		/>
-		<UpdateDialog
-			newVersion={newUpdateVersion}
-			isVisible={openDialog === 'update'}
-		/>
-		<ScreenSharingDialog
-			isVisible={openDialog === 'screen-sharing'}
-		/>
+		<AboutDialog />
+		<ScreenSharingDialog />
+		<UpdateDialog />
 		<Dock badge={globalBadge} />
 		<TrayIcon
 			badge={globalBadge}

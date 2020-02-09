@@ -1,8 +1,8 @@
 import { Box, Button, ButtonGroup, Chevron, Flex, Margins } from '@rocket.chat/fuselage';
 import { remote } from 'electron';
 import { useTranslation } from 'react-i18next';
-import React, { useEffect, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useEffect, useRef, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 import {
 	UPDATE_DIALOG_DISMISSED,
@@ -12,11 +12,11 @@ import {
 } from '../../actions';
 import { Dialog } from '../Dialog';
 
-export function UpdateDialog({
-	currentVersion = remote.app.getVersion(),
-	newVersion = null,
-	isVisible = false,
-}) {
+export function UpdateDialog() {
+	const currentVersion = useMemo(() => remote.app.getVersion(), []);
+	const newVersion = useSelector(({ newUpdateVersion }) => newUpdateVersion);
+	const isVisible = useSelector(({ openDialog }) => openDialog === 'update');
+
 	const dispatch = useDispatch();
 
 	const { t } = useTranslation();

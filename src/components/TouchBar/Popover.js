@@ -30,7 +30,7 @@ export const Popover = forwardRef(function Popover({
 	}, [label]);
 
 	useLayoutEffect(() => {
-		innerRef.current.textColor = icon;
+		innerRef.current.icon = icon;
 	}, [icon]);
 
 	return clonedItemsElement;

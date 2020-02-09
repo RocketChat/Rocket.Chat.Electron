@@ -1,4 +1,5 @@
 import { remote } from 'electron';
+import mem from 'mem';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,6 +13,9 @@ import { SegmentedControl } from './SegmentedControl';
 import { Spacer } from './Spacer';
 import { Popover } from './Popover';
 import { Scrubber } from './Scrubber';
+
+const getNativeImageFromPath = mem((path) => remote.nativeImage.createFromPath(path));
+const getNativeImageFromDataURL = mem((dataURL) => (dataURL ? remote.nativeImage.createFromDataURL(dataURL) : null));
 
 export function TouchBar() {
 	const servers = useSelector(({ servers }) => servers);
@@ -30,17 +34,23 @@ export function TouchBar() {
 	});
 
 	const ids = useMemo(() => ['bold', 'italic', 'strike', 'inline_code', 'multi_line'], []);
-	const icons = useMemo(() => ids.map((id) => remote.nativeImage.createFromPath(`${ remote.app.getAppPath() }/app/public/images/touch-bar/${ id }.png`)), [ids]);
 	const dispatch = useDispatch();
 	const { t } = useTranslation();
 
 	return <Bar ref={barRef}>
-		<Popover label={currentServer ? currentServer.title : t('touchBar.selectServer')}>
+		<Popover
+			label={currentServer ? currentServer.title : t('touchBar.selectServer')}
+			icon={currentServer ? getNativeImageFromDataURL(currentServer.favicon) : null}
+		>
 			<Bar>
 				<Scrubber
-					selectedStyle='outline'
+					selectedStyle='background'
 					mode='free'
-					items={servers.map((server) => ({ label: server.title.padEnd(30) }))}
+					continuous={false}
+					items={servers.map((server) => ({
+						label: server.title.padEnd(30),
+						// icon: server.favicon && remote.nativeImage.createFromDataURL(server.favicon),
+					}))}
 					onSelect={(index) => {
 						dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: servers[index].url });
 					}}
@@ -50,10 +60,10 @@ export function TouchBar() {
 		<Spacer size='flexible' />
 		<SegmentedControl
 			mode='buttons'
-			segments={icons.map((icon) => ({
-				icon,
+			segments={useMemo(() => ids.map((id) => ({
+				icon: getNativeImageFromPath(`${ remote.app.getAppPath() }/app/public/images/touch-bar/${ id }.png`),
 				enabled: !!currentServerUrl,
-			}))}
+			})), [currentServerUrl, ids])}
 			onChange={(selectedIndex) => dispatch({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: ids[selectedIndex] })}
 		/>
 		<Spacer size='flexible' />

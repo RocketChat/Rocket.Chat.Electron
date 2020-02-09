@@ -1,4 +1,4 @@
-import { Box, Button, Field, Flex, Margins, Tile, ToggleSwitch } from '@rocket.chat/fuselage';
+import { Box, Button, Field, Flex, Margins, ToggleSwitch } from '@rocket.chat/fuselage';
 import { useUniqueId } from '@rocket.chat/fuselage-hooks';
 import { remote } from 'electron';
 import React, { useState, useRef, useEffect } from 'react';
@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
 import pkg from '../../../package.json';
-import { useDialog } from '../../hooks/useDialog.js';
 import {
 	ABOUT_DIALOG_DISMISSED,
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
@@ -22,8 +21,8 @@ import { useSaga } from '../SagaMiddlewareProvider';
 import {
 	LoadingIndicator,
 	LoadingIndicatorDot,
-	Wrapper,
 } from './styles.js';
+import { Dialog } from '../Dialog/index.js';
 
 export function AboutDialog({
 	version = remote.app.getVersion(),
@@ -40,10 +39,6 @@ export function AboutDialog({
 		isUpdatingAllowed && isEachUpdatesSettingConfigurable);
 
 	const dispatch = useDispatch();
-
-	const dialogRef = useDialog(isVisible, () => {
-		dispatch({ type: ABOUT_DIALOG_DISMISSED });
-	});
 
 	const { t } = useTranslation();
 
@@ -108,69 +103,65 @@ export function AboutDialog({
 
 	const checkForUpdatesOnStartupToggleSwitchId = useUniqueId();
 
-	return <Wrapper ref={dialogRef}>
-		<Flex.Container direction='column'>
-			<Tile padding='x32'>
-				<Margins block='x16'>
-					<RocketChatLogo />
+	return <Dialog isVisible={isVisible} onClose={() => dispatch({ type: ABOUT_DIALOG_DISMISSED })}>
+		<Margins block='x16'>
+			<RocketChatLogo />
 
-					<Flex.Item align='center'>
-						<Box>
-							<Trans i18nKey='dialog.about.version' version={version}>
+			<Flex.Item align='center'>
+				<Box>
+					<Trans i18nKey='dialog.about.version' version={version}>
 							Version: <Box is='span' textStyle='p2' style={{ userSelect: 'text' }}>{{ version }}</Box>
-							</Trans>
-						</Box>
-					</Flex.Item>
+					</Trans>
+				</Box>
+			</Flex.Item>
 
-					{canUpdate && <Flex.Container direction='column'>
-						<Box>
-							<Margins block='x8'>
-								{!checkingForUpdates && <Button
-									ref={checkForUpdatesButtonRef}
-									primary
-									type='button'
-									disabled={checkingForUpdates}
-									onClick={handleCheckForUpdatesButtonClick}
-								>
-									{t('dialog.about.checkUpdates')}
-								</Button>}
-							</Margins>
+			{canUpdate && <Flex.Container direction='column'>
+				<Box>
+					<Margins block='x8'>
+						{!checkingForUpdates && <Button
+							ref={checkForUpdatesButtonRef}
+							primary
+							type='button'
+							disabled={checkingForUpdates}
+							onClick={handleCheckForUpdatesButtonClick}
+						>
+							{t('dialog.about.checkUpdates')}
+						</Button>}
+					</Margins>
 
-							<Margins inline='auto' block='x8'>
-								{checkingForUpdates && <Box>
-									{checkingForUpdatesMessage
-										? <Margins block='x12'>
-											<Box textStyle='c1' textColor='info'>{checkingForUpdatesMessage}</Box>
-										</Margins>
-										: <LoadingIndicator>
-											<LoadingIndicatorDot />
-											<LoadingIndicatorDot />
-											<LoadingIndicatorDot />
-										</LoadingIndicator>}
-								</Box>}
+					<Margins inline='auto' block='x8'>
+						{checkingForUpdates && <Box>
+							{checkingForUpdatesMessage
+								? <Margins block='x12'>
+									<Box textStyle='c1' textColor='info'>{checkingForUpdatesMessage}</Box>
+								</Margins>
+								: <LoadingIndicator>
+									<LoadingIndicatorDot />
+									<LoadingIndicatorDot />
+									<LoadingIndicatorDot />
+								</LoadingIndicator>}
+						</Box>}
 
-								<Field.Row>
-									<ToggleSwitch
-										id={checkForUpdatesOnStartupToggleSwitchId}
-										checked={isCheckForUpdatesOnStartupChecked}
-										disabled={!canSetCheckForUpdatesOnStartup}
-										onChange={handleCheckForUpdatesOnStartCheckBoxChange}
-									/>
-									<Field.Label htmlFor={checkForUpdatesOnStartupToggleSwitchId}>
-										{t('dialog.about.checkUpdatesOnStart')}
-									</Field.Label>
-								</Field.Row>
-							</Margins>
-						</Box>
-					</Flex.Container>}
+						<Field.Row>
+							<ToggleSwitch
+								id={checkForUpdatesOnStartupToggleSwitchId}
+								checked={isCheckForUpdatesOnStartupChecked}
+								disabled={!canSetCheckForUpdatesOnStartup}
+								onChange={handleCheckForUpdatesOnStartCheckBoxChange}
+							/>
+							<Field.Label htmlFor={checkForUpdatesOnStartupToggleSwitchId}>
+								{t('dialog.about.checkUpdatesOnStart')}
+							</Field.Label>
+						</Field.Row>
+					</Margins>
+				</Box>
+			</Flex.Container>}
 
-					<Flex.Item align='center'>
-						<Box textStyle='micro'>
-							{t('dialog.about.copyright', { copyright })}
-						</Box>
-					</Flex.Item>
-				</Margins>
-			</Tile>
-		</Flex.Container>
-	</Wrapper>;
+			<Flex.Item align='center'>
+				<Box textStyle='micro'>
+					{t('dialog.about.copyright', { copyright })}
+				</Box>
+			</Flex.Item>
+		</Margins>
+	</Dialog>;
 }

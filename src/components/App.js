@@ -234,10 +234,10 @@ function AppContent() {
 		/>
 		<UpdateDialog
 			newVersion={newUpdateVersion}
-			visible={openDialog === 'update'}
+			isVisible={openDialog === 'update'}
 		/>
 		<ScreenSharingDialog
-			visible={openDialog === 'screen-sharing'}
+			isVisible={openDialog === 'screen-sharing'}
 		/>
 		<Dock badge={globalBadge} />
 		<TrayIcon

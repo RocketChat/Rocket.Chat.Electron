@@ -1,23 +1,6 @@
 import { keyframes } from '@emotion/core';
 import styled from '@emotion/styled';
 
-export const Wrapper = styled.dialog`
-	z-index: 1000;
-	top: 0;
-	bottom: 0;
-	display: flex;
-	flex-direction: column;
-	width: 60vw;
-	cursor: default;
-	user-select: none;
-	border: 0;
-	background-color: transparent;
-
-	&:not([open]) {
-		display: none;
-	}
-`;
-
 export const LoadingIndicator = styled.div`
 	display: flex;
 	height: 40px;

@@ -18,7 +18,7 @@
     "dialog": {
         "about": {
             "title": "Hakkında {{- appName}}",
-            "version": "Versiyon",
+            "version": "Versiyon: <1>{{-version}}</1>",
             "checkUpdates": "Güncellemeleri kontrol et",
             "checkUpdatesOnStart": "Başlangıçta güncellemeleri kontrol et",
             "noUpdatesAvailable": "Kullanıclabilir güncelleme yok.",

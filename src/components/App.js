@@ -230,7 +230,7 @@ function AppContent() {
 			isFull={!(servers.length > 0 && hasSidebar)}
 		/>
 		<AboutDialog
-			visible={openDialog === 'about'}
+			isVisible={openDialog === 'about'}
 		/>
 		<UpdateDialog
 			newVersion={newUpdateVersion}

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { remote } from 'electron';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { call, put, take, takeEvery } from 'redux-saga/effects';
 import { useTranslation } from 'react-i18next';
@@ -286,6 +286,14 @@ export function MainWindow({
 	children,
 	showWindowOnUnreadChanged = false,
 }) {
+	useLayoutEffect(() => {
+		const styleSrc = `${ remote.app.getAppPath() }/app/icons/rocketchat.css`;
+		const linkElement = document.createElement('link');
+		linkElement.rel = 'stylesheet';
+		linkElement.href = styleSrc;
+		document.head.append(linkElement);
+	}, []);
+
 	const { t } = useTranslation();
 	const dispatch = useDispatch();
 	const windowStateRef = useRef({});

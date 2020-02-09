@@ -18,11 +18,12 @@
     "dialog": {
         "about": {
             "title": "About {{- appName}}",
-            "version": "Version",
+            "version": "Version: <1>{{version}}</1>",
             "checkUpdates": "Check for Updates",
             "checkUpdatesOnStart": "Check for Updates on Start",
             "noUpdatesAvailable": "No updates are available.",
-            "copyright": "Copyright {{copyright}}"
+            "copyright": "Copyright {{copyright}}",
+            "errorWhenLookingForUpdates": "As error has occurred when looking for updates"
         },
         "addServer": {
             "title": "Add Server",

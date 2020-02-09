@@ -16,7 +16,7 @@
     "dialog": {
         "about": {
             "title": "О {{- appName}}",
-            "version": "Версия",
+            "version": "Версия: <1>{{-version}}</1>",
             "checkUpdates": "Проверить обновления",
             "checkUpdatesOnStart": "Проверять обновления при запуске",
             "noUpdatesAvailable": "Нет обновлений.",

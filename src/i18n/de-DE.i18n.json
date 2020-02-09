@@ -15,7 +15,7 @@
     "dialog": {
         "about": {
             "title": "Über {{- appName}}",
-            "version": "Version",
+            "version": "Version: <1>{{-version}}</1>",
             "checkUpdates": "Auf Aktualisierungen prüfen",
             "checkUpdatesOnStart": "Beim Start auf Aktualisierungen prüfen",
             "copyright": "Copyright {{copyright}}"

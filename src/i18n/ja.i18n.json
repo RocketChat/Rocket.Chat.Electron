@@ -18,7 +18,7 @@
     "dialog": {
         "about": {
             "title": "{{- appName}} について",
-            "version": "バージョン",
+            "version": "バージョン: <1>{{-version}}</1>",
             "checkUpdates": "アップデートを確認",
             "checkUpdatesOnStart": "起動時に更新を確認",
             "noUpdatesAvailable": "利用可能な更新はありません。",

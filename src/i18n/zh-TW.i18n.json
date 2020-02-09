@@ -18,7 +18,7 @@
     "dialog": {
         "about": {
             "title": "關於 {{- appName}}",
-            "version": "版本",
+            "version": "版本: <1>{{-version}}</1>",
             "checkUpdates": "檢查更新",
             "checkUpdatesOnStart": "啟動時檢查更新",
             "noUpdatesAvailable": "目前沒有可用的更新",

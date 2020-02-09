@@ -7,72 +7,20 @@ export const Wrapper = styled.dialog`
 	bottom: 0;
 	display: flex;
 	flex-direction: column;
-	width: 400px;
-	height: 300px;
-	padding: 0.25rem 0.75rem;
+	width: 60vw;
 	cursor: default;
 	user-select: none;
-	color: #444444;
-	background-color: #F4F4F4;
+	border: 0;
+	background-color: transparent;
 
 	&:not([open]) {
 		display: none;
 	}
 `;
 
-export const AppInfo = styled.section`
-	display: flex;
-	flex-direction: column;
-	flex: 1;
-	justify-content: center;
-`;
-
-export const AppVersion = styled.div`
-	margin: 0 auto;
-	font-size: 0.75rem;
-`;
-
-export const Version = styled.span`
-	cursor: text;
-	user-select: text;
-	font-weight: bold;
-`;
-
-export const Updates = styled.section`
-	display: flex;
-	flex-direction: column;
-	flex: 1;
-	justify-content: center;
-`;
-
-export const CheckForUpdatesButton = styled.button`
-	font-family: inherit;
-	position: relative;
-	display: inline-block;
-	margin: 4px;
-	padding: 9px 12px;
-	cursor: pointer;
-	word-spacing: 0;
-	text-transform: uppercase;
-	color: rgba(255, 255, 255, 0.85);
-	border: none;
-	border-radius: 2px;
-	background-color: #1d74f5;
-	font-size: 13px;
-	font-weight: 500;
-	line-height: 16px;
-	height: 2.5rem;
-
-	&:hover {
-		text-decoration: none;
-		color: #ffffff;
-	}
-`;
-
 export const LoadingIndicator = styled.div`
 	display: flex;
-	height: 2.5rem;
-	margin: 4px;
+	height: 40px;
 	color: #7f7f7f;
 	align-items: center;
 	justify-content: center;
@@ -103,20 +51,4 @@ export const LoadingIndicatorDot = styled.span`
 	&:nth-of-type(2) {
 		animation-delay: -0.16s;
 	}
-`;
-
-export const LoadingIndicatorMessage = styled.span`
-	font-size: 1rem;
-`;
-
-export const CheckForUpdatesOnStartupLabel = styled.label`
-	margin: 0.1rem auto;
-	font-size: 0.8rem;
-`;
-
-export const CheckForUpdatesOnStartupInput = styled.input``;
-
-export const Copyright = styled.div`
-	margin: 0 auto;
-	font-size: 0.65rem;
 `;

@@ -1,7 +1,7 @@
 import { Box, Button, Field, Flex, Margins, ToggleSwitch } from '@rocket.chat/fuselage';
 import { useUniqueId } from '@rocket.chat/fuselage-hooks';
 import { remote } from 'electron';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
@@ -24,11 +24,10 @@ import {
 } from './styles.js';
 import { Dialog } from '../Dialog/index.js';
 
-export function AboutDialog({
-	version = remote.app.getVersion(),
-	copyright = pkg.copyright,
-	isVisible = false,
-}) {
+export function AboutDialog() {
+	const version = useMemo(() => remote.app.getVersion(), []);
+	const { copyright } = pkg;
+	const isVisible = useSelector(({ openDialog }) => openDialog === 'about');
 	const canUpdate = useSelector(({ isUpdatingAllowed, isUpdatingEnabled }) => isUpdatingAllowed && isUpdatingEnabled);
 	const isCheckForUpdatesOnStartupChecked = useSelector(({
 		isUpdatingAllowed,

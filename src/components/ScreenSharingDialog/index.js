@@ -2,7 +2,7 @@ import { Box, Flex, Margins, Scrollable } from '@rocket.chat/fuselage';
 import { desktopCapturer } from 'electron';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import {
 	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
@@ -10,11 +10,9 @@ import {
 import { Dialog } from '../Dialog';
 import { Source } from './styles';
 
-export function ScreenSharingDialog({
-	isVisible = false,
-}) {
+export function ScreenSharingDialog() {
+	const isVisible = useSelector(({ openDialog }) => openDialog === 'screen-sharing');
 	const dispatch = useDispatch();
-
 
 	const { t } = useTranslation();
 

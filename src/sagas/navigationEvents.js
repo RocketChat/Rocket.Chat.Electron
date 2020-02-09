@@ -6,15 +6,17 @@ import { remote } from 'electron';
 import { eventChannel } from 'redux-saga';
 import { call, put, select, takeEvery } from 'redux-saga/effects';
 
-import { readMap, writeMap } from '../localStorage';
 import {
+	CERTIFICATE_TRUST_REQUESTED,
 	CERTIFICATES_CLEARED,
+	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
 	CERTIFICATES_UPDATED,
 	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
+	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
 	WEBVIEW_CERTIFICATE_DENIED,
 	WEBVIEW_CERTIFICATE_TRUSTED,
-	CERTIFICATE_TRUST_REQUESTED,
 } from '../actions';
+import { readMap, writeMap } from '../localStorage';
 
 let trustedCertificates = new Map();
 
@@ -101,6 +103,16 @@ function *handleCertificateError([, webContents, requestedUrl, error, certificat
 	});
 }
 
+const queuedClientCertificateRequests = new Map();
+
+function *handleSelectClientCertificate([, , , certificateList, callback]) {
+	const requestId = Math.random().toString(36).slice(2);
+	queuedClientCertificateRequests.set(requestId, { certificateList, callback });
+
+	certificateList = JSON.parse(JSON.stringify(certificateList));
+	yield put({ type: CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, payload: { requestId, certificateList } });
+}
+
 function *takeAppEvents() {
 	const createAppChannel = (app, eventName) => eventChannel((emit) => {
 		const listener = (...args) => emit(args);
@@ -124,9 +136,7 @@ function *takeAppEvents() {
 
 	yield takeEvery(certificateErrorChannel, handleCertificateError);
 
-	yield takeEvery(selectClientCertificateChannel, function *() {
-		// TODO
-	});
+	yield takeEvery(selectClientCertificateChannel, handleSelectClientCertificate);
 }
 
 function *takeActions() {
@@ -145,6 +155,23 @@ function *takeActions() {
 	yield takeEvery(WEBVIEW_CERTIFICATE_DENIED, function *({ payload: { fingerprint } }) {
 		queuedTrustRequests.get(fingerprint).forEach((cb) => cb(false));
 		queuedTrustRequests.delete(fingerprint);
+	});
+
+	yield takeEvery(SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, function *({ payload: { requestId, fingerprint } }) {
+		if (!queuedClientCertificateRequests.has(requestId)) {
+			return;
+		}
+
+		const { certificateList, callback } = queuedClientCertificateRequests.get(requestId);
+		const certificate = certificateList.find((certificate) => certificate.fingerprint === fingerprint);
+
+		if (!certificate) {
+			callback(null);
+			return;
+		}
+
+		queuedClientCertificateRequests.delete(requestId);
+		callback(certificate);
 	});
 }
 

@@ -1,5 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect } from 'react';
 
+import { rootSaga } from '../sagas';
+
 const SagaMiddlewareContext = createContext();
 
 export const useSaga = (saga, deps) => {
@@ -30,5 +32,12 @@ export const useCallableSaga = (saga, deps) => {
 };
 
 export function SagaMiddlewareProvider({ children, sagaMiddleware }) {
+	useEffect(() => {
+		const task = sagaMiddleware.run(rootSaga);
+		return () => {
+			task.cancel();
+		};
+	}, [sagaMiddleware]);
+
 	return <SagaMiddlewareContext.Provider children={children} value={sagaMiddleware} />;
 }

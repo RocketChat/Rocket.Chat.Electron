@@ -57,7 +57,7 @@
     "@babel/preset-react": "^7.8.3",
     "@fiahfy/icns-convert": "^0.0.8",
     "@rocket.chat/eslint-config": "^0.4.0",
-    "@rocket.chat/fuselage": "^0.2.0-dev.97",
+    "@rocket.chat/fuselage": "^0.2.0-dev.106",
     "@rocket.chat/fuselage-hooks": "^0.2.0-dev.94",
     "babel-eslint": "^10.0.3",
     "builtin-modules": "^3.0.0",

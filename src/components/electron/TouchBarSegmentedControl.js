@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from 'react';
 
-export const SegmentedControl = forwardRef(function SegmentedControl({
+export const TouchBarSegmentedControl = forwardRef(function TouchBarSegmentedControl({
 	segments,
 	mode,
 	segmentStyle,

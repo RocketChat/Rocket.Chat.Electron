@@ -1084,28 +1084,28 @@
   resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage-hooks/-/fuselage-hooks-0.2.0-dev.94.tgz#e5487d9c25c5c6856ff86021fc24fa93996742eb"
   integrity sha512-S0db3L8jw5rIO8pFWz7n8e4atKDVQ20lkAd5Zf6VVAmZpNLtvXVIjJIeDAjSrg1SG5GAA5o8/w4oBTrOhUJ8AQ==
 
-"@rocket.chat/fuselage-tokens@^0.2.0-dev.94+5269aad":
-  version "0.2.0-dev.94"
-  resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage-tokens/-/fuselage-tokens-0.2.0-dev.94.tgz#a424c60bd142b5f075326fb14f5db0fd157fb1b6"
-  integrity sha512-h7WAe6MOmRbcEdVbcR2Lf4qo0N1lVPjqjk92fIy4+klED+vc2TLd3qMnQnTt+5kNZq87UV2+viV066yp5xhyKw==
+"@rocket.chat/fuselage-tokens@^0.2.0-dev.97+b7d85c1":
+  version "0.2.0-dev.97"
+  resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage-tokens/-/fuselage-tokens-0.2.0-dev.97.tgz#e98c3a34e47c71736fd2d4751b11fe09ee473006"
+  integrity sha512-EdZykcrzWgpGPVjQbzu6tjDYp5ZnHH2cxpHh6V78w7en7x8V4+1wHZLiJX9l9MJP/XZttWjiTb+1lQGWrrxtVQ==
 
-"@rocket.chat/fuselage@^0.2.0-dev.94":
-  version "0.2.0-dev.94"
-  resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage/-/fuselage-0.2.0-dev.94.tgz#9ed1fea4c1256d0b975aff698bd9e8d1790554ca"
-  integrity sha512-cHjTlAeP8zUvqnr63FTS/XNiNVVWZFgh87X7mxKyLwGCJY287iihBITbxK9bGin9HglIzZJk3tlP3nGhKotutg==
+"@rocket.chat/fuselage@^0.2.0-dev.97":
+  version "0.2.0-dev.97"
+  resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage/-/fuselage-0.2.0-dev.97.tgz#14d292b51be531ce6ef25d3fda45f3c879a14e25"
+  integrity sha512-k9MC7xeqdBm7ownF7ZWgDomwCyNobRhKW1+dASuqFt3brQ8YQeEzgjM4IUo0odUH/QiBDhjd4M1LdA9I7fsw0g==
   dependencies:
-    "@rocket.chat/fuselage-tokens" "^0.2.0-dev.94+5269aad"
-    "@rocket.chat/icons" "^0.2.0-dev.94+5269aad"
+    "@rocket.chat/fuselage-tokens" "^0.2.0-dev.97+b7d85c1"
+    "@rocket.chat/icons" "^0.2.0-dev.97+b7d85c1"
 
 "@rocket.chat/icons@^0.2.0-alpha.23":
   version "0.2.0-alpha.23"
   resolved "https://registry.yarnpkg.com/@rocket.chat/icons/-/icons-0.2.0-alpha.23.tgz#dc100921b8de47baadb9369165d3b3309ffebd5a"
   integrity sha512-iK/R8JP234RsS90su5M9vh5VSOaxHFRfYtXa3KfJP2Yuq4YOLfXTyj+Kq1OEC4kdUbWUBN/6w+n3W4uSSWjWdA==
 
-"@rocket.chat/icons@^0.2.0-dev.94+5269aad":
-  version "0.2.0-dev.94"
-  resolved "https://registry.yarnpkg.com/@rocket.chat/icons/-/icons-0.2.0-dev.94.tgz#8052b050f457749e28b36b2461522d8fbdfb2f8e"
-  integrity sha512-xqmuoxkKLzOu0zQ8z96NhEPvuUrdLv0NyTsctYwgAW1afp1okY3Vwq7gzJ0LswG7tG96/y6SFExdo3vobwRcDQ==
+"@rocket.chat/icons@^0.2.0-dev.97+b7d85c1":
+  version "0.2.0-dev.97"
+  resolved "https://registry.yarnpkg.com/@rocket.chat/icons/-/icons-0.2.0-dev.97.tgz#a846cd8117e3c3473a15692089fb6efc2ec732b0"
+  integrity sha512-BqdxK3qqC/kODqQm5/cP5BsmEPA7SE2XeJVr69RvwPlUzSqp3PqsUQas0aOGfbdV1EVyBZW2tORFndd2v0Nt8Q==
 
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"

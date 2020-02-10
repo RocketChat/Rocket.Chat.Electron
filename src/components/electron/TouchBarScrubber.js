@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from 'react';
 
-export const Scrubber = forwardRef(function Scrubber({
+export const TouchBarScrubber = forwardRef(function TouchBarScrubber({
 	items,
 	continuous,
 	mode,

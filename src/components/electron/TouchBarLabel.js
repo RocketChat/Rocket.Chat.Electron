@@ -1,7 +1,10 @@
 import { remote } from 'electron';
 import { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from 'react';
 
-export const Label = forwardRef(function Label({ label, textColor }, ref) {
+export const TouchBarLabel = forwardRef(function TouchBarLabel({
+	label,
+	textColor,
+}, ref) {
 	const innerRef = useRef();
 
 	const labelRef = useRef(label);

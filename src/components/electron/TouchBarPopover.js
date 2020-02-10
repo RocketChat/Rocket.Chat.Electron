@@ -1,9 +1,9 @@
 import { remote } from 'electron';
 import { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from 'react';
 
-import { useElementRefValue } from './useElementRefValue';
+import { useElementRefValue } from '../../hooks/useElementRefValue';
 
-export const Popover = forwardRef(function Popover({
+export const TouchBarPopover = forwardRef(function TouchBarPopover({
 	children: itemsElement,
 	label,
 	icon,

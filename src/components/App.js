@@ -172,8 +172,6 @@ function AppContent() {
 			showWindowOnUnreadChanged={showWindowOnUnreadChanged}
 			showMenuBar={hasMenuBar}
 			showServerList={hasSidebar}
-			servers={servers}
-			currentServerUrl={currentServerUrl}
 		/>
 		<SideBar isVisible={servers.length > 0 && hasSidebar} />
 		<ServersView
@@ -195,10 +193,7 @@ function AppContent() {
 			show={!mainWindowState.visible || !mainWindowState.focused}
 			visible={hasTrayIcon}
 		/>
-		<TouchBar
-			servers={servers}
-			currentServerUrl={currentServerUrl}
-		/>
+		<TouchBar />
 	</MainWindow>;
 }
 

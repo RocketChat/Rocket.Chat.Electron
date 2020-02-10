@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from 'react';
 
-export const Button = forwardRef(function Button({
+export const TouchBarButton = forwardRef(function TouchBarGroup({
 	label,
 	backgroundColor,
 	icon,

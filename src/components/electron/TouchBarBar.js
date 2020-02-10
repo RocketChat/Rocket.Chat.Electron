@@ -4,7 +4,10 @@ import React, { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from 
 import { useElementRefValue } from '../../hooks/useElementRefValue';
 import { useElementsRefValues } from '../../hooks/useElementsRefValues';
 
-export const Bar = forwardRef(function Bar({ children: itemsElements, escapeItem: escapeItemElement }, ref) {
+export const TouchBarBar = forwardRef(function TouchBarBar({
+	children: itemsElements,
+	escapeItem: escapeItemElement,
+}, ref) {
 	const [items, clonedItemsElements] = useElementsRefValues(itemsElements);
 	const [escapeItem, clonedEscapeItem] = useElementRefValue(escapeItemElement);
 

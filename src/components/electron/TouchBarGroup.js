@@ -3,7 +3,7 @@ import { forwardRef, useImperativeHandle, useRef } from 'react';
 
 import { useElementRefValue } from '../../hooks/useElementRefValue';
 
-export const Group = forwardRef(function Group({
+export const TouchBarGroup = forwardRef(function TouchBarGroup({
 	children: itemsElement,
 }, ref) {
 	const innerRef = useRef();

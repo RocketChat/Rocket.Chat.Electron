@@ -23,9 +23,16 @@ task('test', series('clean', 'test:build', 'test:renderer'));
 task('start:electron', execa.task('electron .'));
 task('start', series('build', parallel('watch', 'start:electron')));
 
-task('release:darwin', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --mac`));
 task('release:linux', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --linux --c.productName=rocketchat`));
+
 task('release:win32', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --ia32 --win`));
+
+task('release:darwin', async () => {
+	// Workaround for https://github.com/electron-userland/electron-builder/issues/4204
+	await execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --mac dmg pkg zip`);
+	await execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --mac mas`);
+});
+
 task('release', series('build', `release:${ process.platform }`));
 
 task('icons:clean', async () => {

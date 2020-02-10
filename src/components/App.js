@@ -200,7 +200,7 @@ function AppContent() {
 class ErrorCatcher extends Component {
 	componentDidCatch(error, errorInfo) {
 		console.error(error);
-		console.error(errorInfo);
+		console.error(errorInfo.componentStack);
 		remote.dialog.showErrorBox(error.message, error.stack);
 	}
 

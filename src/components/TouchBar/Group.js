@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 
-import { useElementRefValue } from './useElementRefValue';
+import { useElementRefValue } from '../../hooks/useElementRefValue';
 
 export const Group = forwardRef(function Group({
 	children: itemsElement,

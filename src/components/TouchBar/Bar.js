@@ -1,8 +1,8 @@
 import { remote } from 'electron';
 import React, { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from 'react';
 
-import { useElementRefValue } from './useElementRefValue';
-import { useElementsRefValues } from './useElementsRefValues';
+import { useElementRefValue } from '../../hooks/useElementRefValue';
+import { useElementsRefValues } from '../../hooks/useElementsRefValues';
 
 export const Bar = forwardRef(function Bar({ children: itemsElements, escapeItem: escapeItemElement }, ref) {
 	const [items, clonedItemsElements] = useElementsRefValues(itemsElements);

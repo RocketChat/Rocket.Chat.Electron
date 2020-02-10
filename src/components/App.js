@@ -1,6 +1,6 @@
 import { remote } from 'electron';
 import i18n from 'i18next';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, Component } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { call, put, select, take, takeEvery } from 'redux-saga/effects';
@@ -197,14 +197,30 @@ function AppContent() {
 	</MainWindow>;
 }
 
+class ErrorCatcher extends Component {
+	componentDidCatch(error, errorInfo) {
+		console.error(error);
+		console.error(errorInfo);
+		remote.dialog.showErrorBox(error.message, error.stack);
+	}
+
+	render() {
+		return <>
+			{this.props.children}
+		</>;
+	}
+}
+
 export function App() {
 	const [[store, sagaMiddleware]] = useState(() => createReduxStoreAndSagaMiddleware());
 
-	return <Provider store={store}>
-		<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
-			<I18nextProvider i18n={i18n}>
-				<AppContent />
-			</I18nextProvider>
-		</SagaMiddlewareProvider>
-	</Provider>;
+	return <ErrorCatcher>
+		<Provider store={store}>
+			<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
+				<I18nextProvider i18n={i18n}>
+					<AppContent />
+				</I18nextProvider>
+			</SagaMiddlewareProvider>
+		</Provider>
+	</ErrorCatcher>;
 }

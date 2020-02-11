@@ -6,7 +6,11 @@ import { installedSpellCheckingDictionariesDirectoryPath } from './installedSpel
 import { isCheckingForUpdates } from './isCheckingForUpdates';
 import { isEachUpdatesSettingConfigurable } from './isEachUpdatesSettingConfigurable';
 import { isHunspellSpellCheckerUsed } from './isHunspellSpellCheckerUsed';
+import { isMenuBarEnabled } from './isMenuBarEnabled';
 import { isMessageBoxFocused } from './isMessageBoxFocused';
+import { isShowWindowOnUnreadChangedEnabled } from './isShowWindowOnUnreadChangedEnabled';
+import { isSideBarEnabled } from './isSideBarEnabled';
+import { isTrayIconEnabled } from './isTrayIconEnabled';
 import { isUpdatingAllowed } from './isUpdatingAllowed';
 import { isUpdatingEnabled } from './isUpdatingEnabled';
 import { newUpdateVersion } from './newUpdateVersion';
@@ -22,7 +26,11 @@ export const rootReducer = combineReducers({
 	isCheckingForUpdates,
 	isEachUpdatesSettingConfigurable,
 	isHunspellSpellCheckerUsed,
+	isMenuBarEnabled,
 	isMessageBoxFocused,
+	isShowWindowOnUnreadChangedEnabled,
+	isSideBarEnabled,
+	isTrayIconEnabled,
 	isUpdatingAllowed,
 	isUpdatingEnabled,
 	newUpdateVersion,

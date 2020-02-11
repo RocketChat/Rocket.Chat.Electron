@@ -5,12 +5,15 @@ import { useDispatch } from 'react-redux';
 import { MenuItem } from '../electron/MenuItem';
 import { Menu } from '../electron/Menu';
 import {
-	MENU_BAR_RELOAD_SERVER_CLICKED,
-	MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	MENU_BAR_GO_BACK_CLICKED,
 	MENU_BAR_GO_FORWARD_CLICKED,
-	MENU_BAR_TOGGLE_SETTING_CLICKED,
+	MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
+	MENU_BAR_RELOAD_SERVER_CLICKED,
 	MENU_BAR_RESET_ZOOM_CLICKED,
+	MENU_BAR_TOGGLE_IS_FULL_SCREEN_ENABLED_CLICKED,
+	MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
+	MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
+	MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
 } from '../../actions';
@@ -56,7 +59,7 @@ export const ViewMenu = forwardRef(function ViewMenu({
 				label={t('menus.showTrayIcon')}
 				type='checkbox'
 				checked={showTrayIcon}
-				onClick={() => dispatch({ type: MENU_BAR_TOGGLE_SETTING_CLICKED, payload: 'showTrayIcon' })}
+				onClick={({ checked }) => dispatch({ type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED, payload: checked })}
 			/>
 			{process.platform === 'darwin' && <>
 				<MenuItem
@@ -64,7 +67,7 @@ export const ViewMenu = forwardRef(function ViewMenu({
 					type='checkbox'
 					checked={showFullScreen}
 					accelerator='Control+Command+F'
-					onClick={() => dispatch({ type: MENU_BAR_TOGGLE_SETTING_CLICKED, payload: 'showFullScreen' })}
+					onClick={({ checked }) => dispatch({ type: MENU_BAR_TOGGLE_IS_FULL_SCREEN_ENABLED_CLICKED, payload: checked })}
 				/>
 			</>}
 			{process.platform !== 'darwin' && <>
@@ -72,14 +75,14 @@ export const ViewMenu = forwardRef(function ViewMenu({
 					label={t('menus.showMenuBar')}
 					type='checkbox'
 					checked={showMenuBar}
-					onClick={() => dispatch({ type: MENU_BAR_TOGGLE_SETTING_CLICKED, payload: 'showMenuBar' })}
+					onClick={({ checked }) => dispatch({ type: MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED, payload: checked })}
 				/>
 			</>}
 			<MenuItem
 				label={t('menus.showServerList')}
 				type='checkbox'
 				checked={showServerList}
-				onClick={() => dispatch({ type: MENU_BAR_TOGGLE_SETTING_CLICKED, payload: 'showServerList' })}
+				onClick={({ checked }) => dispatch({ type: MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED, payload: checked })}
 			/>
 			<MenuItem type='separator' />
 			<MenuItem

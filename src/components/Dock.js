@@ -1,10 +1,18 @@
 import { remote } from 'electron';
 import { useRef, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 
-export function Dock({
-	badge = null,
-	dock = remote.app.dock,
-}) {
+const { dock } = remote.app;
+
+export function Dock() {
+	const badge = useSelector(({ servers }) => {
+		const badges = servers.map(({ badge }) => badge);
+		const mentionCount = badges
+			.filter((badge) => Number.isInteger(badge))
+			.reduce((sum, count) => sum + count, 0);
+		return mentionCount || (badges.some((badge) => !!badge) && '•') || null;
+	});
+
 	useEffect(() => {
 		if (process.platform !== 'darwin') {
 			return;
@@ -23,6 +31,7 @@ export function Dock({
 		};
 
 		dock.setBadge(getBadgeText(badge));
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [badge]);
 
 	const prevBadgeRef = useRef();
@@ -38,6 +47,7 @@ export function Dock({
 		if (count > 0 && previousCount === 0) {
 			dock.bounce();
 		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [badge]);
 
 	useEffect(() => {

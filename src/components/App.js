@@ -1,15 +1,14 @@
 import { remote } from 'electron';
 import i18n from 'i18next';
-import React, { useEffect, useState, useMemo, Component } from 'react';
+import React, { useEffect, useState, Component } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
-import { Provider, useDispatch, useSelector } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 import { call, put, select, take, takeEvery } from 'redux-saga/effects';
 
 import {
 	MENU_BAR_QUIT_CLICKED,
 	MENU_BAR_OPEN_URL_CLICKED,
 	MENU_BAR_RESET_APP_DATA_CLICKED,
-	MENU_BAR_TOGGLE_SETTING_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
 	MAIN_WINDOW_STATE_CHANGED,
 	DEEP_LINK_TRIGGERED,
@@ -35,21 +34,7 @@ import { SelectClientCertificateDialog } from './SelectClientCertificateDialog';
 function AppContent() {
 	const { t } = useTranslation();
 
-	const [showWindowOnUnreadChanged, setShowWindowOnUnreadChanged] =	useState(() => localStorage.getItem('showWindowOnUnreadChanged') === 'true');
-	const [hasTrayIcon, setHasTrayIcon] =	useState(() => (localStorage.getItem('hideTray') ? localStorage.getItem('hideTray') !== 'true' : process.platform !== 'linux'));
-	const [hasMenuBar, setHasMenuBar] = useState(() => localStorage.getItem('autohideMenu') !== 'true');
-	const [hasSidebar, setHasSidebar] = useState(() => localStorage.getItem('sidebar-closed') !== 'true');
-	const servers = useSelector(({ servers }) => servers);
-	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
-	const badges = useSelector(({ servers }) => servers.reduce((badges, { url, badge }) => ({ ...badges, [url]: badge }), {}));
 	const [mainWindowState, setMainWindowState] = useState({});
-
-	const globalBadge = useMemo(() => {
-		const mentionCount = Object.values(badges)
-			.filter((badge) => Number.isInteger(badge))
-			.reduce((sum, count) => sum + count, 0);
-		return mentionCount || (Object.values(badges).some((badge) => !!badge) && '•') || null;
-	}, [badges]);
 
 	useSaga(function *() {
 		yield takeEvery([MENU_BAR_QUIT_CLICKED, TRAY_ICON_QUIT_CLICKED], function *() {
@@ -110,45 +95,6 @@ function AppContent() {
 				continue;
 			}
 
-			if (type === MENU_BAR_TOGGLE_SETTING_CLICKED) {
-				const property = payload;
-
-				switch (property) {
-					case 'showTrayIcon': {
-						const previousValue = localStorage.getItem('hideTray') !== 'true';
-						const newValue = !previousValue;
-						localStorage.setItem('hideTray', JSON.stringify(!newValue));
-						setHasTrayIcon(newValue);
-						break;
-					}
-
-					case 'showWindowOnUnreadChanged': {
-						const previousValue = localStorage.getItem('showWindowOnUnreadChanged') === 'true';
-						const newValue = !previousValue;
-						localStorage.setItem('showWindowOnUnreadChanged', JSON.stringify(newValue));
-						setShowWindowOnUnreadChanged(newValue);
-						break;
-					}
-
-					case 'showMenuBar': {
-						const previousValue = localStorage.getItem('autohideMenu') !== 'true';
-						const newValue = !previousValue;
-						localStorage.setItem('autohideMenu', JSON.stringify(!newValue));
-						setHasMenuBar(newValue);
-						break;
-					}
-
-					case 'showServerList': {
-						const previousValue = localStorage.getItem('sidebar-closed') !== 'true';
-						const newValue = !previousValue;
-						localStorage.setItem('sidebar-closed', JSON.stringify(!newValue));
-						setHasSidebar(newValue);
-						break;
-					}
-				}
-				continue;
-			}
-
 			if (type === MAIN_WINDOW_STATE_CHANGED) {
 				setMainWindowState(payload);
 				continue;
@@ -162,37 +108,17 @@ function AppContent() {
 		window.dispatch = dispatch;
 	}, [dispatch]);
 
-	return <MainWindow
-		badge={hasTrayIcon ? undefined : globalBadge}
-		showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-	>
-		<MenuBar
-			showTrayIcon={hasTrayIcon}
-			showFullScreen={mainWindowState.fullscreen}
-			showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-			showMenuBar={hasMenuBar}
-			showServerList={hasSidebar}
-		/>
-		<SideBar isVisible={servers.length > 0 && hasSidebar} />
-		<ServersView
-			servers={servers}
-			currentServerUrl={currentServerUrl}
-			hasSidebar={servers.length > 0 && hasSidebar}
-		/>
-		<AddServerView
-			isVisible={currentServerUrl === null}
-			isFull={!(servers.length > 0 && hasSidebar)}
-		/>
+	return <MainWindow>
+		<MenuBar isFullScreenEnabled={mainWindowState.fullscreen} />
+		<SideBar />
+		<ServersView />
+		<AddServerView />
 		<AboutDialog />
 		<ScreenSharingDialog />
 		<SelectClientCertificateDialog />
 		<UpdateDialog />
-		<Dock badge={globalBadge} />
-		<TrayIcon
-			badge={globalBadge}
-			show={!mainWindowState.visible || !mainWindowState.focused}
-			visible={hasTrayIcon}
-		/>
+		<Dock />
+		<TrayIcon show={!mainWindowState.visible || !mainWindowState.focused} />
 		<TouchBar />
 	</MainWindow>;
 }

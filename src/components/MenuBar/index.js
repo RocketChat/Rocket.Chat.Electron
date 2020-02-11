@@ -1,5 +1,6 @@
 import { remote } from 'electron';
 import React, { useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 
 import { Menu } from '../electron/Menu';
 import { AppMenu } from './AppMenu';
@@ -9,20 +10,21 @@ import { WindowMenu } from './WindowMenu';
 import { HelpMenu } from './HelpMenu';
 
 export function MenuBar({
-	showFullScreen,
-	showServerList,
-	showTrayIcon,
-	showMenuBar,
-	showWindowOnUnreadChanged,
+	isFullScreenEnabled,
 }) {
+	const isSideBarEnabled = useSelector(({ isSideBarEnabled }) => isSideBarEnabled);
+	const isTrayIconEnabled = useSelector(({ isTrayIconEnabled }) => isTrayIconEnabled);
+	const isMenuBarEnabled = useSelector(({ isMenuBarEnabled }) => isMenuBarEnabled);
+	const isShowWindowOnUnreadChangedEnabled =		useSelector(({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled);
+
 	useEffect(() => {
 		if (process.platform === 'darwin') {
 			return;
 		}
 
-		remote.getCurrentWindow().autoHideMenuBar = !showMenuBar;
-		remote.getCurrentWindow().setMenuBarVisibility(!!showMenuBar);
-	}, [showMenuBar]);
+		remote.getCurrentWindow().autoHideMenuBar = !isMenuBarEnabled;
+		remote.getCurrentWindow().setMenuBarVisibility(!!isMenuBarEnabled);
+	}, [isMenuBarEnabled]);
 
 	const menuRef = useRef();
 	const prevMenuRef = useRef();
@@ -43,13 +45,13 @@ export function MenuBar({
 		<AppMenu />
 		<EditMenu />
 		<ViewMenu
-			showFullScreen={showFullScreen}
-			showMenuBar={showMenuBar}
-			showServerList={showServerList}
-			showTrayIcon={showTrayIcon}
+			showFullScreen={isFullScreenEnabled}
+			showMenuBar={isMenuBarEnabled}
+			showServerList={isSideBarEnabled}
+			showTrayIcon={isTrayIconEnabled}
 		/>
 		<WindowMenu
-			showWindowOnUnreadChanged={showWindowOnUnreadChanged}
+			showWindowOnUnreadChanged={isShowWindowOnUnreadChangedEnabled}
 		/>
 		<HelpMenu />
 	</Menu>;

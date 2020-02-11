@@ -4,7 +4,13 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { MenuItem } from '../electron/MenuItem';
 import { Menu } from '../electron/Menu';
-import { MENU_BAR_ADD_NEW_SERVER_CLICKED, MENU_BAR_SELECT_SERVER_CLICKED, MENU_BAR_RELOAD_APP_CLICKED, MENU_BAR_TOGGLE_DEVTOOLS_CLICKED, MENU_BAR_TOGGLE_SETTING_CLICKED } from '../../actions';
+import {
+	MENU_BAR_ADD_NEW_SERVER_CLICKED,
+	MENU_BAR_RELOAD_APP_CLICKED,
+	MENU_BAR_SELECT_SERVER_CLICKED,
+	MENU_BAR_TOGGLE_DEVTOOLS_CLICKED,
+	MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
+} from '../../actions';
 
 export const WindowMenu = forwardRef(function WindowMenu({
 	showWindowOnUnreadChanged,
@@ -47,7 +53,7 @@ export const WindowMenu = forwardRef(function WindowMenu({
 				type='checkbox'
 				label={t('menus.showOnUnreadMessage')}
 				checked={showWindowOnUnreadChanged}
-				onClick={() => dispatch({ type: MENU_BAR_TOGGLE_SETTING_CLICKED, payload: 'showWindowOnUnreadChanged' })}
+				onClick={({ checked }) => dispatch({ type: MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED, payload: checked })}
 			/>
 			<MenuItem type='separator' />
 			<MenuItem

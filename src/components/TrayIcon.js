@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { getTrayIconPath } from '../icons';
 import {
@@ -11,12 +11,21 @@ import {
 	TRAY_ICON_QUIT_CLICKED,
 } from '../actions';
 
+const appName = remote.app.name;
+
 export function TrayIcon({
-	appName = remote.app.name,
-	badge = null,
 	show = true,
-	visible = false,
 }) {
+	const isTrayIconEnabled = useSelector(({ isTrayIconEnabled }) => isTrayIconEnabled);
+
+	const badge = useSelector(({ servers }) => {
+		const badges = servers.map(({ badge }) => badge);
+		const mentionCount = badges
+			.filter((badge) => Number.isInteger(badge))
+			.reduce((sum, count) => sum + count, 0);
+		return mentionCount || (badges.some((badge) => !!badge) && '•') || null;
+	});
+
 	const dispatch = useDispatch();
 	const { t } = useTranslation();
 
@@ -90,7 +99,7 @@ export function TrayIcon({
 	};
 
 	useEffect(() => {
-		if (!visible) {
+		if (!isTrayIconEnabled) {
 			destroyIcon({ dispatch });
 			return;
 		}
@@ -106,15 +115,17 @@ export function TrayIcon({
 		const template = createContextMenuTemplate();
 		const menu = remote.Menu.buildFromTemplate(template);
 		trayIconRef.current.setContextMenu(menu);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		badge,
 		show,
-		visible,
+		isTrayIconEnabled,
 		dispatch,
 	]);
 
 	useEffect(() => () => {
 		destroyIcon();
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	return null;

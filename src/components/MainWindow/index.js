@@ -3,7 +3,7 @@ import path from 'path';
 
 import { remote } from 'electron';
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { all, call, put, take, takeEvery } from 'redux-saga/effects';
 import { useTranslation } from 'react-i18next';
 
@@ -20,7 +20,11 @@ import {
 	MENU_BAR_RESET_ZOOM_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
 	MENU_BAR_TOGGLE_DEVTOOLS_CLICKED,
-	MENU_BAR_TOGGLE_SETTING_CLICKED,
+	MENU_BAR_TOGGLE_IS_FULL_SCREEN_ENABLED_CLICKED,
+	MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
+	MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
+	MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
+	MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
 	SERVERS_READY,
@@ -281,11 +285,25 @@ const useWindowStateLoading = (browserWindow, windowStateRef) => {
 };
 
 export function MainWindow({
-	badge = undefined,
 	browserWindow = remote.getCurrentWindow(),
 	children,
-	showWindowOnUnreadChanged = false,
 }) {
+	const badge = useSelector(({ isTrayIconEnabled, servers }) => {
+		if (isTrayIconEnabled) {
+			return undefined;
+		}
+
+		const badges = servers.map(({ badge }) => badge);
+		const mentionCount = badges
+			.filter((badge) => Number.isInteger(badge))
+			.reduce((sum, count) => sum + count, 0);
+		return mentionCount || (badges.some((badge) => !!badge) && '•') || null;
+	});
+
+	const isShowWindowOnUnreadChangedEnabled = useSelector(({ isShowWindowOnUnreadChangedEnabled }) =>
+		isShowWindowOnUnreadChangedEnabled);
+
+
 	useLayoutEffect(() => {
 		const styleSrc = `${ remote.app.getAppPath() }/app/icons/rocketchat.css`;
 		const linkElement = document.createElement('link');
@@ -334,16 +352,20 @@ export function MainWindow({
 
 	useSaga(function *() {
 		yield takeEvery([
+			DEEP_LINK_TRIGGERED,
 			MENU_BAR_ABOUT_CLICKED,
 			MENU_BAR_ADD_NEW_SERVER_CLICKED,
-			MENU_BAR_RELOAD_SERVER_CLICKED,
 			MENU_BAR_GO_BACK_CLICKED,
 			MENU_BAR_GO_FORWARD_CLICKED,
+			MENU_BAR_RELOAD_SERVER_CLICKED,
 			MENU_BAR_SELECT_SERVER_CLICKED,
-			TOUCH_BAR_SELECT_SERVER_TOUCHED,
+			MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
+			MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
+			MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
+			MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
 			TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
+			TOUCH_BAR_SELECT_SERVER_TOUCHED,
 			WEBVIEW_FOCUS_REQUESTED,
-			DEEP_LINK_TRIGGERED,
 		], function *() {
 			browserWindow.show();
 		});
@@ -373,12 +395,9 @@ export function MainWindow({
 			browserWindow.toggleDevTools();
 		});
 
-		yield takeEvery(MENU_BAR_TOGGLE_SETTING_CLICKED, function *({ payload: setting }) {
+		yield takeEvery(MENU_BAR_TOGGLE_IS_FULL_SCREEN_ENABLED_CLICKED, function *({ payload: enabled }) {
 			browserWindow.show();
-
-			if (setting === 'showFullScreen') {
-				browserWindow.setFullScreen(!browserWindow.isFullScreen());
-			}
+			browserWindow.setFullScreen(enabled);
 		});
 
 		yield takeEvery(TRAY_ICON_CREATED, function *() {
@@ -398,7 +417,7 @@ export function MainWindow({
 		});
 
 		yield takeEvery(WEBVIEW_UNREAD_CHANGED, function *({ payload: badge }) {
-			if (!showWindowOnUnreadChanged || browserWindow.isFocused() || typeof badge !== 'number') {
+			if (!isShowWindowOnUnreadChangedEnabled || browserWindow.isFocused() || typeof badge !== 'number') {
 				return;
 			}
 
@@ -443,7 +462,7 @@ export function MainWindow({
 				t('dialog.loadDictionaryError.message', { message: error.message }),
 			);
 		});
-	}, [browserWindow, showWindowOnUnreadChanged]);
+	}, [browserWindow, isShowWindowOnUnreadChangedEnabled]);
 
 	return <>
 		<GlobalStyles />

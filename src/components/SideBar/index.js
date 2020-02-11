@@ -132,7 +132,8 @@ function ServerButton({
 	</>;
 }
 
-export function SideBar({ isVisible = false }) {
+export function SideBar() {
+	const isVisible = useSelector(({ servers, isSideBarEnabled }) => servers.length > 0 && isSideBarEnabled);
 	const servers = useSelector(({ servers }) => servers);
 	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
 

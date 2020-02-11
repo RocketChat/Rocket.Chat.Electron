@@ -2,21 +2,26 @@ import fs from 'fs';
 import path from 'path';
 
 import { remote } from 'electron';
+import { SpellCheckerProvider } from 'electron-hunspell';
 import mem from 'mem';
 
-const { Spellchecker, getAvailableDictionaries } = remote.require('@felixrieseberg/spellchecker');
+let provider;
 
 let dictionaries = [];
 let dictionariesPath = null;
-const spellCheckers = new Map();
 
-export const isMisspelled = mem((text) => {
-	if (!text || spellCheckers.size === 0) {
+export const isMisspelled = mem(async (text) => {
+	if (!text || (await provider.getAvailableDictionaries()).length === 0) {
 		return false;
 	}
 
-	for (const spellChecker of spellCheckers.values()) {
-		if (!spellChecker.isMisspelled(text)) {
+	const dictionaries = await provider.getAvailableDictionaries();
+
+	for (const dictionary of dictionaries) {
+		// eslint-disable-next-line no-await-in-loop
+		await provider.onSwitchLanguage(dictionary);
+		// eslint-disable-next-line no-await-in-loop
+		if (await provider.spell(text)) {
 			return false;
 		}
 	}
@@ -39,13 +44,9 @@ export const getSpellCheckingDictionaries = () => dictionaries;
 
 export const getSpellCheckingDictionariesPath = () => dictionariesPath;
 
-export const getEnabledSpellCheckingDictionaries = () => Array.from(spellCheckers.keys());
+export const getEnabledSpellCheckingDictionaries = () => provider.getAvailableDictionaries();
 
 export const installSpellCheckingDictionaries = async (filePaths) => {
-	if (process.platform === 'darwin') {
-		return;
-	}
-
 	await Promise.all(filePaths.map(async (filePath) => {
 		const name = path.basename(filePath, path.extname(filePath));
 		const basename = path.basename(filePath);
@@ -59,34 +60,49 @@ export const installSpellCheckingDictionaries = async (filePaths) => {
 	}));
 };
 
-export const getMisspelledWords = (words) => words.filter(isMisspelled);
+export const getMisspelledWords = async (words) => {
+	const misspelledWords = [];
 
-export const getSpellCheckingCorrections = (text) => {
+	for (const word of words) {
+		// eslint-disable-next-line no-await-in-loop
+		if (await isMisspelled(word)) {
+			misspelledWords.push(word);
+		}
+	}
+
+	return misspelledWords;
+};
+
+export const getSpellCheckingCorrections = async (text) => {
 	text = text.trim();
 
-	if (!isMisspelled(text)) {
+	if (!await isMisspelled(text)) {
 		return null;
 	}
 
-	return Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.getCorrectionsForMisspelling(text));
+	const dictionaries = await provider.getAvailableDictionaries();
+	const corrections = [];
+
+	for (const dictionary of dictionaries) {
+		// eslint-disable-next-line no-await-in-loop
+		await provider.onSwitchLanguage(dictionary);
+		// eslint-disable-next-line no-await-in-loop
+		corrections.push(...await provider.getSuggestion(text));
+	}
+
+	return corrections;
 };
 
 const registerSpellCheckingDictionary = async (dictionary) => {
-	let args;
 	try {
-		const dictionaryPath = path.join(dictionariesPath, `${ dictionary.replace(/_/g, '-') }.bdic`);
-		args = [dictionary, await fs.promises.readFile(dictionaryPath)];
+		const dicPath = path.join(dictionariesPath, `${ dictionary.replace(/-/g, '_') }.dic`);
+		const affPath = path.join(dictionariesPath, `${ dictionary.replace(/-/g, '_') }.aff`);
+		const dicBuffer = await fs.promises.readFile(dicPath);
+		const affBuffer = await fs.promises.readFile(affPath);
+		await provider.loadDictionary(dictionary, dicBuffer, affBuffer);
 	} catch (error) {
-		args = [dictionary];
-	}
-
-	try {
-		const spellChecker = new Spellchecker();
-		if (spellChecker.setDictionary(...args)) {
-			spellCheckers.set(dictionary, spellChecker);
-		}
-	} catch (error) {
-		spellCheckers.delete(dictionary);
+		console.error(error);
+		await provider.unloadDictionary(dictionary);
 	}
 };
 
@@ -97,25 +113,29 @@ export const enableSpellCheckingDictionaries = async (...dictionaries) => {
 
 	mem.clear(isMisspelled);
 
-	localStorage.setItem('spellcheckerDictionaries', JSON.stringify(Array.from(spellCheckers.keys())));
+	localStorage.setItem('spellcheckerDictionaries', JSON.stringify(await provider.getAvailableDictionaries()));
 
-	return spellCheckers.size > 0;
+	return (await provider.getAvailableDictionaries()).length > 0;
 };
 
-export const disableSpellCheckingDictionaries = (...dictionaries) => {
+export const disableSpellCheckingDictionaries = async (...dictionaries) => {
 	const filteredDictionaries = filterDictionaries(dictionaries);
 
 	for (const dictionary of filteredDictionaries) {
-		spellCheckers.delete(dictionary);
+		provider.unloadDictionary(dictionary);
 	}
 
 	mem.clear(isMisspelled);
 
-	localStorage.setItem('spellcheckerDictionaries', JSON.stringify(Array.from(spellCheckers.keys())));
+	localStorage.setItem('spellcheckerDictionaries', JSON.stringify(await provider.getAvailableDictionaries()));
 };
 
 export const setupSpellChecking = async () => {
-	const embeddedDictionaries = getAvailableDictionaries();
+	provider = new SpellCheckerProvider();
+
+	await provider.initialize();
+
+	const embeddedDictionaries = await provider.getAvailableDictionaries();
 
 	dictionariesPath = path.join(
 		remote.app.getAppPath(),
@@ -124,12 +144,10 @@ export const setupSpellChecking = async () => {
 	);
 
 	let installedDictionaries = [];
-	if (process.platform !== 'darwin') {
-		installedDictionaries = (await fs.promises.readdir(dictionariesPath, { encoding: 'utf8' }))
-			.filter((filename) => ['.bdic'].includes(path.extname(filename).toLowerCase()))
-			.map((filename) => path.basename(filename, path.extname(filename)))
-			.sort();
-	}
+	installedDictionaries = (await fs.promises.readdir(dictionariesPath, { encoding: 'utf8' }))
+		.filter((filename) => ['.dic'].includes(path.extname(filename).toLowerCase()))
+		.map((filename) => path.basename(filename, path.extname(filename)))
+		.sort();
 
 	dictionaries = Array.from(new Set([...embeddedDictionaries, ...installedDictionaries]));
 

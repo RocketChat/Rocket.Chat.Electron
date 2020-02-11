@@ -1,5 +1,5 @@
-SET ISO8859-1
-TRY esianrtolcdugmphbyfvkwäüößáéêàâñESIANRTOLCDUGMPHBYFVKWÄÜÖ
+SET UTF-8
+TRY esianrtolcdugmphbyfvkwÃ¤Ã¼Ã¶ÃŸÃ¡Ã©ÃªÃ Ã¢Ã±ESIANRTOLCDUGMPHBYFVKWÃ„ÃœÃ–
 
 
 PFX G N 1
@@ -65,12 +65,12 @@ SFX M   0       chen       [^s][^s]
 SFX M   0       chens      [^s][^s]
 SFX M   0       chen       [^e]
 SFX M   0       chens      [^e]
-SFX M   ass     ässchen    ass
-SFX M   ass     ässchens   ass
-SFX M   oss     össchen    oss
-SFX M   oss     össchens   oss
-SFX M   uss     üsschen    uss
-SFX M   uss     üsschens   uss
+SFX M   ass     Ã¤sschen    ass
+SFX M   ass     Ã¤sschens   ass
+SFX M   oss     Ã¶sschen    oss
+SFX M   oss     Ã¶sschens   oss
+SFX M   uss     Ã¼sschen    uss
+SFX M   uss     Ã¼sschens   uss
 SFX M   e       chen       e
 SFX M   e       chens      e
 
@@ -111,12 +111,12 @@ SFX A   el      ler        [^eil]el
 SFX A   el      len        [^eil]el
 SFX A   el      lem        [^eil]el
 SFX A   el      les        [^eil]el
-SFX A   lig     elig       [^aeiouhlräüö]lig
-SFX A   lig     elige      [^aeiouhlräüö]lig
-SFX A   lig     eliger     [^aeiouhlräüö]lig
-SFX A   lig     eligen     [^aeiouhlräüö]lig
-SFX A   lig     eligem     [^aeiouhlräüö]lig
-SFX A   lig     eliges     [^aeiouhlräüö]lig
+SFX A   lig     elig       [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX A   lig     elige      [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX A   lig     eliger     [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX A   lig     eligen     [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX A   lig     eligem     [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX A   lig     eliges     [^aeiouhlrÃ¤Ã¼Ã¶]lig
 SFX A   erig    rig        [^hi]erig
 SFX A   erig    rige       [^hi]erig
 SFX A   erig    riger      [^hi]erig
@@ -157,21 +157,21 @@ SFX C   0       erer       [^u]er
 SFX C   0       eren       [^u]er
 SFX C   0       erem       [^u]er
 SFX C   0       eres       [^u]er
-SFX C   lig     eligere    [^aeiouhlräüö]lig
-SFX C   lig     eligerer   [^aeiouhlräüö]lig
-SFX C   lig     eligeren   [^aeiouhlräüö]lig
-SFX C   lig     eligerem   [^aeiouhlräüö]lig
-SFX C   lig     eligeres   [^aeiouhlräüö]lig
+SFX C   lig     eligere    [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX C   lig     eligerer   [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX C   lig     eligeren   [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX C   lig     eligerem   [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX C   lig     eligeres   [^aeiouhlrÃ¤Ã¼Ã¶]lig
 SFX C   erig    rigere     [^hi]erig
 SFX C   erig    rigerer    [^hi]erig
 SFX C   erig    rigeren    [^hi]erig
 SFX C   erig    rigerem    [^hi]erig
 SFX C   erig    rigeres    [^hi]erig
-SFX C   0       este       [kßsuxz]
-SFX C   0       ester      [kßsuxz]
-SFX C   0       esten      [kßsuxz]
-SFX C   0       estem      [kßsuxz]
-SFX C   0       estes      [kßsuxz]
+SFX C   0       este       [kÃŸsuxz]
+SFX C   0       ester      [kÃŸsuxz]
+SFX C   0       esten      [kÃŸsuxz]
+SFX C   0       estem      [kÃŸsuxz]
+SFX C   0       estes      [kÃŸsuxz]
 SFX C   0       ste        et
 SFX C   0       ster       et
 SFX C   0       sten       et
@@ -182,11 +182,11 @@ SFX C   0       ester      [^e]t
 SFX C   0       esten      [^e]t
 SFX C   0       estem      [^e]t
 SFX C   0       estes      [^e]t
-SFX C   0       ste        [^kßstxz]
-SFX C   0       ster       [^kßstxz]
-SFX C   0       sten       [^kßstxz]
-SFX C   0       stem       [^kßstxz]
-SFX C   0       stes       [^kßstxz]
+SFX C   0       ste        [^kÃŸstxz]
+SFX C   0       ster       [^kÃŸstxz]
+SFX C   0       sten       [^kÃŸstxz]
+SFX C   0       stem       [^kÃŸstxz]
+SFX C   0       stes       [^kÃŸstxz]
 SFX C   0       ste        nd
 SFX C   0       ster       nd
 SFX C   0       sten       nd
@@ -197,11 +197,11 @@ SFX C   0       ester      [^n]d
 SFX C   0       esten      [^n]d
 SFX C   0       estem      [^n]d
 SFX C   0       estes      [^n]d
-SFX C   lig     eligste    [^aeiouhlräüö]lig
-SFX C   lig     eligster   [^aeiouhlräüö]lig
-SFX C   lig     eligsten   [^aeiouhlräüö]lig
-SFX C   lig     eligstem   [^aeiouhlräüö]lig
-SFX C   lig     eligstes   [^aeiouhlräüö]lig
+SFX C   lig     eligste    [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX C   lig     eligster   [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX C   lig     eligsten   [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX C   lig     eligstem   [^aeiouhlrÃ¤Ã¼Ã¶]lig
+SFX C   lig     eligstes   [^aeiouhlrÃ¤Ã¼Ã¶]lig
 SFX C   erig    rigste     [^hi]erig
 SFX C   erig    rigster    [^hi]erig
 SFX C   erig    rigsten    [^hi]erig
@@ -234,30 +234,30 @@ SFX P   0       en         .
 
 
 SFX p Y 24
-SFX p   auf     äufe      auf
-SFX p   auf     äufen     auf
-SFX p   aus     äuser     haus
-SFX p   aus     äusern    haus
-SFX p   arkt    ärkte     markt
-SFX p   arkt    ärkten    markt
-SFX p   ang     änge      ang
-SFX p   ang     ängen     ang
-SFX p   uß      üße       uß
-SFX p   uß      üßen      uß
-SFX p   oß      öße       oß
-SFX p   oß      ößen      oß
-SFX p   aum     äume      aum
-SFX p   aum     äumen     aum
-SFX p   ag      äge       ag
-SFX p   ag      ägen      ag
-SFX p   ug      üge       ug
-SFX p   ug      ügen      ug
-SFX p   all     älle      all
-SFX p   all     ällen     all
-SFX p   ass     ässe      ass
-SFX p   ass     ässen     ass
-SFX p   uss     üsse      uss
-SFX p   uss     üssen     uss
+SFX p   auf     Ã¤ufe      auf
+SFX p   auf     Ã¤ufen     auf
+SFX p   aus     Ã¤user     haus
+SFX p   aus     Ã¤usern    haus
+SFX p   arkt    Ã¤rkte     markt
+SFX p   arkt    Ã¤rkten    markt
+SFX p   ang     Ã¤nge      ang
+SFX p   ang     Ã¤ngen     ang
+SFX p   uÃŸ      Ã¼ÃŸe       uÃŸ
+SFX p   uÃŸ      Ã¼ÃŸen      uÃŸ
+SFX p   oÃŸ      Ã¶ÃŸe       oÃŸ
+SFX p   oÃŸ      Ã¶ÃŸen      oÃŸ
+SFX p   aum     Ã¤ume      aum
+SFX p   aum     Ã¤umen     aum
+SFX p   ag      Ã¤ge       ag
+SFX p   ag      Ã¤gen      ag
+SFX p   ug      Ã¼ge       ug
+SFX p   ug      Ã¼gen      ug
+SFX p   all     Ã¤lle      all
+SFX p   all     Ã¤llen     all
+SFX p   ass     Ã¤sse      ass
+SFX p   ass     Ã¤ssen     ass
+SFX p   uss     Ã¼sse      uss
+SFX p   uss     Ã¼ssen     uss
 
 
 
@@ -294,8 +294,8 @@ SFX T   0       es         .
 
 
 SFX J Y 12
-SFX J   n       ung        [bgkpßsz]eln
-SFX J   n       ungen      [bgkpßsz]eln
+SFX J   n       ung        [bgkpÃŸsz]eln
+SFX J   n       ungen      [bgkpÃŸsz]eln
 SFX J   eln     lung       eln
 SFX J   n       ung        ern
 SFX J   en      ung        en
@@ -368,8 +368,8 @@ SFX I   en      t          eien
 SFX I   n       t          [^e]ien
 SFX I   n       t          chnen
 SFX I   en      t          [^c]h[mn]en
-SFX I   n       t          [^aäehilmnoöuür][mn]en
-SFX I   en      t          [aäeilmnoöuür][mn]en
+SFX I   n       t          [^aÃ¤ehilmnoÃ¶uÃ¼r][mn]en
+SFX I   en      t          [aÃ¤eilmnoÃ¶uÃ¼r][mn]en
 SFX I   n       e          un
 SFX I   n       t          un
 
@@ -382,21 +382,21 @@ SFX X   n       t          [^e]ien
 SFX X   en      t          [^ditmnw]en
 SFX X   n       t          chnen
 SFX X   en      t          [^c]h[mn]en
-SFX X   n       t          [^aäehilmnoöuür][mn]en
-SFX X   en      t          [aäeilmnoöuür][mn]en
+SFX X   n       t          [^aÃ¤ehilmnoÃ¶uÃ¼r][mn]en
+SFX X   en      t          [aÃ¤eilmnoÃ¶uÃ¼r][mn]en
 SFX X   n       t          un
 SFX X   st      0          tst
 SFX X   n       st         e[lr]n
 SFX X   n       st         [dtw]en
-SFX X   en      st         [^dimnßstwzx]en
+SFX X   en      st         [^dimnÃŸstwzx]en
 SFX X   en      st         eien
 SFX X   n       st         [^e]ien
 SFX X   n       st         chnen
 SFX X   en      st         [^c]h[mn]en
-SFX X   n       st         [^aäehilmnoöuür][mn]en
-SFX X   en      st         [aäeilmnoöuür][mn]en
+SFX X   n       st         [^aÃ¤ehilmnoÃ¶uÃ¼r][mn]en
+SFX X   en      st         [aÃ¤eilmnoÃ¶uÃ¼r][mn]en
 SFX X   n       st         un
-SFX X   n       st         [ßsxz]en
+SFX X   n       st         [ÃŸsxz]en
 SFX X   n       st         ssen
 SFX X   n       st         schen
 SFX X   t       st         [^sz]t
@@ -411,8 +411,8 @@ SFX Y   en      te         eien
 SFX Y   n       te         [^e]ien
 SFX Y   n       te         chnen
 SFX Y   en      te         [^c]h[mn]en
-SFX Y   n       te         [^aäehilmnoöuür][mn]en
-SFX Y   en      te         [aäeilmnoöuür][mn]en
+SFX Y   n       te         [^aÃ¤ehilmnoÃ¶uÃ¼r][mn]en
+SFX Y   en      te         [aÃ¤eilmnoÃ¶uÃ¼r][mn]en
 SFX Y   n       test       e[lr]n
 SFX Y   n       test       [dtw]en
 SFX Y   en      test       [^dimntw]en
@@ -420,8 +420,8 @@ SFX Y   en      test       eien
 SFX Y   n       test       [^e]ien
 SFX Y   n       test       chnen
 SFX Y   en      test       [^c]h[mn]en
-SFX Y   n       test       [^aäehilmnoöuür][mn]en
-SFX Y   en      test       [aäeilmnoöuür][mn]en
+SFX Y   n       test       [^aÃ¤ehilmnoÃ¶uÃ¼r][mn]en
+SFX Y   en      test       [aÃ¤eilmnoÃ¶uÃ¼r][mn]en
 SFX Y   n       tet        e[lr]n
 SFX Y   n       tet        [dtw]en
 SFX Y   en      tet        [^dimntw]en
@@ -429,8 +429,8 @@ SFX Y   en      tet        eien
 SFX Y   n       tet        [^e]ien
 SFX Y   n       tet        chnen
 SFX Y   en      tet        [^c]h[mn]en
-SFX Y   n       tet        [^aäehilmnoöuür][mn]en
-SFX Y   en      tet        [aäeilmnoöuür][mn]en
+SFX Y   n       tet        [^aÃ¤ehilmnoÃ¶uÃ¼r][mn]en
+SFX Y   en      tet        [aÃ¤eilmnoÃ¶uÃ¼r][mn]en
 SFX Y   n       ten        e[lr]n
 SFX Y   n       ten        [dtw]en
 SFX Y   en      ten        [^dimntw]en
@@ -438,19 +438,19 @@ SFX Y   en      ten        eien
 SFX Y   n       ten        [^e]ien
 SFX Y   n       ten        chnen
 SFX Y   en      ten        [^c]h[mn]en
-SFX Y   n       ten        [^aäehilmnoöuür][mn]en
-SFX Y   en      ten        [aäeilmnoöuür][mn]en
+SFX Y   n       ten        [^aÃ¤ehilmnoÃ¶uÃ¼r][mn]en
+SFX Y   en      ten        [aÃ¤eilmnoÃ¶uÃ¼r][mn]en
 
 
 
 SFX Z Y 13
-SFX Z   0       st         [^hßsz]
+SFX Z   0       st         [^hÃŸsz]
 SFX Z   0       st         [^c]h
 SFX Z   0       st         [^s]ch
 SFX Z   0       est        [dfkstz]
 SFX Z   0       est        ch
-SFX Z   0       est        [au]ß
-SFX Z   0       est        ieß
+SFX Z   0       est        [au]ÃŸ
+SFX Z   0       est        ieÃŸ
 SFX Z   0       est        [io]ss
 SFX Z   0       t          [^dt]
 SFX Z   0       et         [dt]
@@ -465,28 +465,28 @@ SFX O   n       tes        [dtw]en
 SFX O   en      tes        [^dmntw]en
 SFX O   n       tes        chnen
 SFX O   en      tes        [^c]h[mn]en
-SFX O   n       tes        [^aäehilmnoöuür][mn]en
-SFX O   en      tes        [aäeilmnoöuür][mn]en
+SFX O   n       tes        [^aÃ¤ehilmnoÃ¶uÃ¼r][mn]en
+SFX O   en      tes        [aÃ¤eilmnoÃ¶uÃ¼r][mn]en
 SFX O   n       ter        e[lr]n
 SFX O   n       ter        [dtw]en
 SFX O   en      ter        [^dmntw]en
 SFX O   n       ter        chnen
 SFX O   en      ter        [^c]h[mn]en
-SFX O   n       ter        [^aäehilmnoöuür][mn]en
-SFX O   en      ter        [aäeilmnoöuür][mn]en
+SFX O   n       ter        [^aÃ¤ehilmnoÃ¶uÃ¼r][mn]en
+SFX O   en      ter        [aÃ¤eilmnoÃ¶uÃ¼r][mn]en
 SFX O   n       tem        e[lr]n
 SFX O   n       tem        [dtw]en
 SFX O   en      tem        [^dmntw]en
 SFX O   n       tem        chnen
 SFX O   en      tem        [^c]h[mn]en
-SFX O   n       tem        [^aäehilmnoöuür][mn]en
-SFX O   en      tem        [aäeilmnoöuür][mn]en
+SFX O   n       tem        [^aÃ¤ehilmnoÃ¶uÃ¼r][mn]en
+SFX O   en      tem        [aÃ¤eilmnoÃ¶uÃ¼r][mn]en
 
 REP 15
 REP f ph
 REP ph f
-REP ß ss
-REP ss ß
+REP ÃŸ ss
+REP ss ÃŸ
 REP s ss
 REP ss s
 REP i ie

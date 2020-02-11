@@ -142,6 +142,15 @@ export function *serversSaga() {
 	let prevServers = yield select(({ servers }) => servers);
 	yield takeEvery('*', function *() {
 		const servers = yield select(({ servers }) => servers);
+
+		const serverUrls = servers.map(({ url }) => url);
+		const removedServers = prevServers.filter(({ url }) => !serverUrls.includes(url));
+		removedServers.forEach((server) => {
+			remote.getCurrentWebContents().session.clearStorageData({
+				origin: server.url,
+			});
+		});
+
 		if (prevServers !== servers) {
 			writeArrayOf(castServer, 'servers', servers);
 			prevServers = servers;

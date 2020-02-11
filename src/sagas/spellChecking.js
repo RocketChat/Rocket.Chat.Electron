@@ -1,9 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 
 import { remote } from 'electron';
-import mem from 'mem';
+import { SpellCheckerProvider } from 'electron-hunspell';
 import { all, call, put, select, takeEvery } from 'redux-saga/effects';
 
 import {
@@ -16,71 +15,60 @@ import {
 } from '../actions';
 import { readArrayOf, writeArrayOf } from '../localStorage';
 
-const { Spellchecker, getAvailableDictionaries } = remote.require('@felixrieseberg/spellchecker');
+const provider = new SpellCheckerProvider();
 
 const spellCheckers = new Map();
 
-const getCorrectionsForMisspelling = mem((text) => {
+const getCorrectionsForMisspelling = (text) => {
 	text = text.trim();
 
 	if (!text || spellCheckers.size === 0) {
 		return [];
 	}
 
-	return Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.getCorrectionsForMisspelling(text));
-});
+	return Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.suggest(text));
+};
 
-const isMisspelled = mem((word) => {
+const isMisspelled = (word) => {
 	if (spellCheckers.size === 0) {
 		return false;
 	}
 
 	return Array.from(spellCheckers.values())
-		.every((spellChecker) => spellChecker.isMisspelled(word));
-});
+		.every((spellChecker) => !spellChecker.spell(word));
+};
 
-const getMisspelledWords = mem((words) => words.filter(isMisspelled));
+const getMisspelledWords = (words) => words.filter(isMisspelled);
 
 const loadConfiguration = async () => {
-	const isNSSpellCheckerUsed = os.platform() === 'darwin';
-	const isWindowsSpellCheckingAPIUsed = (() => {
-		if (os.platform() !== 'win32') {
-			return false;
-		}
+	const appDictionariesDirectoryPath = path.join(
+		remote.app.getAppPath(),
+		remote.app.getAppPath().endsWith('app.asar') ? '..' : '.',
+		'dictionaries',
+	);
 
-		const [major, minor] = os.release().split('.').map((slice) => parseInt(slice, 10));
+	const userDictionariesDirectoryPath = path.join(
+		remote.app.getPath('userData'),
+		'dictionaries',
+	);
 
-		return major >= 6 && minor >= 2;
-	})();
-	const isHunspellSpellCheckerUsed = !isNSSpellCheckerUsed && !isWindowsSpellCheckingAPIUsed;
+	let installedDictionaries = [];
 
-	let embeddedDictionaries = [];
 	try {
-		embeddedDictionaries = getAvailableDictionaries();
+		installedDictionaries = [
+			...(await fs.promises.readdir(appDictionariesDirectoryPath, { encoding: 'utf8' }))
+				.filter((filename) => path.extname(filename).toLowerCase() === '.dic')
+				.map((filename) => path.basename(filename, path.extname(filename))),
+			...(await fs.promises.readdir(userDictionariesDirectoryPath, { encoding: 'utf8' }))
+				.filter((filename) => path.extname(filename).toLowerCase() === '.dic')
+				.map((filename) => path.basename(filename, path.extname(filename))),
+		]
+			.sort();
 	} catch (error) {
 		console.warn(error.stack);
 	}
 
-	let installedDictionariesDirectoryPath = null;
-	let installedDictionaries = [];
-	if (isHunspellSpellCheckerUsed) {
-		installedDictionariesDirectoryPath = path.join(
-			remote.app.getAppPath(),
-			remote.app.getAppPath().endsWith('app.asar') ? '..' : '.',
-			'dictionaries',
-		);
-
-		try {
-			installedDictionaries = (await fs.promises.readdir(installedDictionariesDirectoryPath, { encoding: 'utf8' }))
-				.filter((filename) => path.extname(filename).toLowerCase() === '.bdic')
-				.map((filename) => path.basename(filename, path.extname(filename)))
-				.sort();
-		} catch (error) {
-			console.warn(error.stack);
-		}
-	}
-
-	const availableDictionaries = Array.from(new Set([...embeddedDictionaries, ...installedDictionaries]));
+	const availableDictionaries = Array.from(new Set(installedDictionaries));
 
 	const defaultDictionaries = availableDictionaries.includes(remote.app.getLocale()) ? [remote.app.getLocale()] : [];
 
@@ -89,59 +77,63 @@ const loadConfiguration = async () => {
 
 	const spellCheckingDictionaries = availableDictionaries.map((dictionaryName) => ({
 		name: dictionaryName,
-		installed: installedDictionaries.includes(dictionaryName),
+		installed: true,
 		enabled: enabledDictionaries.includes(dictionaryName),
 	}));
 
 	return {
-		isHunspellSpellCheckerUsed,
-		installedSpellCheckingDictionariesDirectoryPath: installedDictionariesDirectoryPath,
+		isHunspellSpellCheckerUsed: true,
+		installedSpellCheckingDictionariesDirectoryPath: userDictionariesDirectoryPath,
 		spellCheckingDictionaries,
 	};
 };
 
-function *createDictionaryReference({ name, installed }) {
-	if (!installed) {
-		return [name];
-	}
-
-	const installedSpellCheckingDictionariesDirectoryPath = yield select(({
-		installedSpellCheckingDictionariesDirectoryPath,
-	}) => installedSpellCheckingDictionariesDirectoryPath);
-
-	const dictionaryPath = path.join(
-		installedSpellCheckingDictionariesDirectoryPath,
-		`${ name }.bdic`,
-	);
-	const data = yield call(::fs.promises.readFile, dictionaryPath);
-
-	return [name, data];
-}
-
-function *toggleDictionary({ name, enabled, installed }) {
-	spellCheckers.delete(name);
-
+function *toggleDictionary({ name, enabled }) {
 	if (!enabled) {
+		spellCheckers.delete(name);
+		provider.unloadDictionary(name);
 		return;
 	}
 
 	try {
-		const dictionaryReference = yield *createDictionaryReference({ name, installed });
-		const spellChecker = new Spellchecker();
-		if (!spellChecker.setDictionary(...dictionaryReference)) {
-			throw new Error(`Dictionary not loaded: ${ name }`);
-		}
-		spellCheckers.set(name, spellChecker);
+		const appDictionariesDirectoryPath = path.join(
+			remote.app.getAppPath(),
+			remote.app.getAppPath().endsWith('app.asar') ? '..' : '.',
+			'dictionaries',
+		);
+
+		const userDictionariesDirectoryPath = yield select(({
+			installedSpellCheckingDictionariesDirectoryPath,
+		}) => installedSpellCheckingDictionariesDirectoryPath);
+
+		const dicPath = (yield call(::Promise.all, [
+			path.join(userDictionariesDirectoryPath, `${ name }.dic`),
+			path.join(appDictionariesDirectoryPath, `${ name }.dic`),
+		].map(async (filePath) => [filePath, await fs.promises.stat(filePath).then((stat) => stat.isFile(), () => false)])))
+			.filter(([, exists]) => exists)
+			.map(([filePath]) => filePath)[0];
+
+		const affPath = (yield call(::Promise.all, [
+			path.join(userDictionariesDirectoryPath, `${ name }.aff`),
+			path.join(appDictionariesDirectoryPath, `${ name }.aff`),
+		].map(async (filePath) => [filePath, await fs.promises.stat(filePath).then((stat) => stat.isFile(), () => false)])))
+			.filter(([, exists]) => exists)
+			.map(([filePath]) => filePath)[0];
+
+		const [dicBuffer, affBuffer] = yield all([
+			call(::fs.promises.readFile, dicPath),
+			call(::fs.promises.readFile, affPath),
+		]);
+
+		yield call(::provider.loadDictionary, name, dicBuffer, affBuffer);
+		spellCheckers.set(name, provider.spellCheckerTable[name].spellChecker);
 	} catch (error) {
-		console.error(error);
+		console.error(error.stack);
 	}
 }
 
 function *updateSpellCheckers(spellCheckingDictionaries) {
 	yield all(spellCheckingDictionaries.map(toggleDictionary));
-	mem.clear(getCorrectionsForMisspelling);
-	mem.clear(isMisspelled);
-	mem.clear(getMisspelledWords);
 }
 
 export function *getCorrectionsForMisspellingSaga(text) {
@@ -169,6 +161,8 @@ export function *spellCheckingSaga() {
 		},
 	});
 
+	yield call(::provider.initialize);
+
 	yield *updateSpellCheckers(spellCheckingDictionaries);
 
 	yield put({
@@ -195,14 +189,35 @@ export function *spellCheckingSaga() {
 			installedSpellCheckingDictionariesDirectoryPath,
 		}) => installedSpellCheckingDictionariesDirectoryPath);
 
-		yield all(filePaths.map(function *(filePath) {
-			const basename = path.basename(filePath);
-			const targetPath = path.join(installedSpellCheckingDictionariesDirectoryPath, basename);
+		yield call(::fs.promises.mkdir, installedSpellCheckingDictionariesDirectoryPath, { recursive: true });
+
+		const pairs = Object.entries(
+			filePaths
+				.filter((filePath) => ['.dic', '.aff'].includes(path.extname(filePath).toLowerCase()))
+				.reduce((obj, filePath) => {
+					const extension = path.extname(filePath);
+					const dictionaryName = path.basename(filePath, path.extname(filePath));
+					return {
+						...obj,
+						[dictionaryName]: {
+							...obj[dictionaryName],
+							[extension.slice(1).toLowerCase()]: filePath,
+						},
+					};
+				}, {}),
+		)
+			.filter(([, { aff, dic }]) => aff && dic)
+			.sort(([a], [b]) => a.localeCompare(b));
+
+		yield all(pairs.map(function *([dictionaryName, { aff, dic }]) {
 			try {
-				yield call(::fs.promises.copyFile, filePath, targetPath);
-				yield put({ type: SPELL_CHECKING_DICTIONARY_ADDED, payload: basename });
+				yield all([
+					call(::fs.promises.copyFile, aff, path.join(installedSpellCheckingDictionariesDirectoryPath, `${ dictionaryName }.aff`)),
+					call(::fs.promises.copyFile, dic, path.join(installedSpellCheckingDictionariesDirectoryPath, `${ dictionaryName }.dic`)),
+				]);
+				yield put({ type: SPELL_CHECKING_DICTIONARY_ADDED, payload: dictionaryName });
 			} catch (error) {
-				yield call({ type: SPELL_CHECKING_ERROR_THROWN, payload: error });
+				yield put({ type: SPELL_CHECKING_ERROR_THROWN, payload: error });
 			}
 		}));
 	});

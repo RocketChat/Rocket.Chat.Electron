@@ -4,7 +4,7 @@ import path from 'path';
 import { remote } from 'electron';
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { call, put, take, takeEvery } from 'redux-saga/effects';
+import { all, call, put, take, takeEvery } from 'redux-saga/effects';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -324,9 +324,11 @@ export function MainWindow({
 	}, [badge, browserWindow]);
 
 	useSaga(function *() {
-		yield take(SERVERS_READY);
-		yield take(SPELL_CHECKING_READY);
-		yield take(UPDATES_READY);
+		yield all([
+			take(SERVERS_READY),
+			take(SPELL_CHECKING_READY),
+			take(UPDATES_READY),
+		]);
 		setLoading(false);
 	}, []);
 

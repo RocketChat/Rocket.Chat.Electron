@@ -37,7 +37,7 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 					title: t('dialog.loadDictionary.title'),
 					defaultPath: dictionariesDirectoryPath,
 					filters: [
-						{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['bdic'] },
+						{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['dic', 'aff'] },
 						{ name: t('dialog.loadDictionary.allFiles'), extensions: ['*'] },
 					],
 					properties: ['openFile', 'multiSelections'],

@@ -1,15 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-
 import { remote } from 'electron';
-import { eventChannel } from 'redux-saga';
 import { call, put, select, takeEvery } from 'redux-saga/effects';
 
 import {
 	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
-	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
-	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	MAIN_WINDOW_INSTALL_UPDATE_CLICKED,
 	UPDATES_READY,
 	UPDATES_CHECKING_FOR_UPDATE,
@@ -18,7 +12,8 @@ import {
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_UPDATE_DOWNLOADED,
 } from '../actions';
-import { readBoolean, readString, writeBoolean, writeString } from '../localStorage';
+import { readFromStorage } from '../localStorage';
+import { createEventChannelFromEmitter, keepStoreValuePersisted, readConfigurationFile } from '../sagaUtils';
 
 const { autoUpdater, CancellationToken } = remote.require('electron-updater');
 
@@ -26,98 +21,97 @@ const isUpdatingAllowed = (process.platform === 'linux' && !!process.env.APPIMAG
 	|| (process.platform === 'win32' && !process.windowsStore)
 	|| (process.platform === 'darwin' && !process.mas);
 
-const loadConfiguration = async () => {
-	let isEachUpdatesSettingConfigurable = true;
-	let isUpdatingEnabled = true;
-	let doCheckForUpdatesOnStartup = true;
-	let skippedUpdateVersion = null;
+const loadAppConfiguration = async (configuration) => {
+	const appConfiguration = await readConfigurationFile('update.json', { appData: true });
 
-	const appConfigurationFilePath = path.join(
-		remote.app.getAppPath(),
-		remote.app.getAppPath().endsWith('app.asar') ? '..' : '.',
-		'update.json',
-	);
-
-	try {
-		if (await fs.promises.stat(appConfigurationFilePath).then((stat) => stat.isFile(), () => false)) {
-			const {
-				forced,
-				autoUpdate,
-				canUpdate,
-				skip,
-			} = JSON.parse(await fs.promises.readFile(appConfigurationFilePath, 'utf8'));
-
-			if (forced !== undefined) {
-				isEachUpdatesSettingConfigurable = !forced;
-			}
-
-			if (canUpdate !== undefined) {
-				isUpdatingEnabled = Boolean(canUpdate);
-			}
-
-			if (autoUpdate !== undefined) {
-				doCheckForUpdatesOnStartup = Boolean(autoUpdate);
-			}
-
-			if (skip !== undefined) {
-				skippedUpdateVersion = Boolean(skip);
-			}
-
-			if (forced) {
-				return {
-					isUpdatingAllowed,
-					isEachUpdatesSettingConfigurable,
-					isUpdatingEnabled,
-					doCheckForUpdatesOnStartup,
-					skippedUpdateVersion,
-				};
-			}
-		}
-	} catch (error) {
-		isEachUpdatesSettingConfigurable = true;
-		isUpdatingEnabled = true;
-		doCheckForUpdatesOnStartup = true;
-		skippedUpdateVersion = null;
+	if (!appConfiguration) {
+		return false;
 	}
 
-	isUpdatingEnabled = readBoolean('isUpdatingEnabled', isUpdatingEnabled);
-	doCheckForUpdatesOnStartup = readBoolean('doCheckForUpdatesOnStartup', doCheckForUpdatesOnStartup);
-	skippedUpdateVersion = readString('skippedUpdateVersion', skippedUpdateVersion);
-
 	try {
-		const userConfigurationFilePath = path.join(remote.app.getPath('userData'), 'update.json');
+		const {
+			forced,
+			autoUpdate,
+			canUpdate,
+			skip,
+		} = appConfiguration;
 
-		if (await fs.promises.stat(userConfigurationFilePath).then((stat) => stat.isFile(), () => false)) {
-			const {
-				autoUpdate,
-				skip,
-			} = JSON.parse(await fs.promises.readFile(userConfigurationFilePath, 'utf8'));
-			await fs.promises.unlink(userConfigurationFilePath);
-
-			if (autoUpdate !== undefined) {
-				doCheckForUpdatesOnStartup = Boolean(autoUpdate);
-			}
-
-			if (skip !== undefined) {
-				skippedUpdateVersion = Boolean(skip);
-			}
+		if (forced !== undefined) {
+			configuration.isEachUpdatesSettingConfigurable = !forced;
 		}
+
+		if (canUpdate !== undefined) {
+			configuration.isUpdatingEnabled = Boolean(canUpdate);
+		}
+
+		if (autoUpdate !== undefined) {
+			configuration.doCheckForUpdatesOnStartup = Boolean(autoUpdate);
+		}
+
+		if (skip !== undefined) {
+			configuration.skippedUpdateVersion = String(skip);
+		}
+
+		return forced;
 	} catch (error) {
-		console.error(error.stack);
-	} finally {
-		if (doCheckForUpdatesOnStartup === null) {
-			doCheckForUpdatesOnStartup = true;
-		}
+		console.warn(error);
+		return false;
+	}
+};
+
+export const loadUserConfiguration = async (configuration) => {
+	const userConfiguration = await readConfigurationFile('update.json', { appData: false, purgeAfter: true });
+
+	if (!userConfiguration) {
+		return;
 	}
 
-	return {
+	try {
+		const {
+			autoUpdate,
+			skip,
+		} = userConfiguration;
+
+		if (autoUpdate !== undefined) {
+			configuration.doCheckForUpdatesOnStartup = Boolean(autoUpdate);
+		}
+
+		if (skip !== undefined) {
+			configuration.skippedUpdateVersion = String(skip);
+		}
+	} catch (error) {
+		console.error(error);
+	}
+};
+
+function *loadConfiguration() {
+	const configuration = yield select(({
+		isEachUpdatesSettingConfigurable,
+		isUpdatingEnabled,
+		doCheckForUpdatesOnStartup,
+		skippedUpdateVersion,
+	}) => ({
 		isUpdatingAllowed,
 		isEachUpdatesSettingConfigurable,
 		isUpdatingEnabled,
 		doCheckForUpdatesOnStartup,
 		skippedUpdateVersion,
-	};
-};
+	}));
+
+	const forced = yield call(loadAppConfiguration, configuration);
+
+	if (forced) {
+		return configuration;
+	}
+
+	configuration.isUpdatingEnabled = readFromStorage('isUpdatingEnabled', configuration.isUpdatingEnabled);
+	configuration.doCheckForUpdatesOnStartup = readFromStorage('doCheckForUpdatesOnStartup', configuration.doCheckForUpdatesOnStartup);
+	configuration.skippedUpdateVersion = readFromStorage('skippedUpdateVersion', configuration.skippedUpdateVersion);
+
+	yield call(loadUserConfiguration, configuration);
+
+	return configuration;
+}
 
 function *check() {
 	const isUpdatingAllowed = yield select(({ isUpdatingAllowed }) => isUpdatingAllowed);
@@ -168,18 +162,8 @@ function *install() {
 }
 
 function *takeActions() {
-	yield takeEvery(ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, function *() {
-		const doCheckForUpdatesOnStartup = yield select(({ doCheckForUpdatesOnStartup }) => doCheckForUpdatesOnStartup);
-		writeBoolean('doCheckForUpdatesOnStartup', doCheckForUpdatesOnStartup);
-	});
-
 	yield takeEvery(ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED, function *() {
 		yield *check();
-	});
-
-	yield takeEvery(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, function *() {
-		const skippedUpdateVersion = yield select(({ skippedUpdateVersion }) => skippedUpdateVersion);
-		writeString('skippedUpdateVersion', skippedUpdateVersion);
 	});
 
 	yield takeEvery(UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED, function *() {
@@ -194,25 +178,11 @@ function *takeActions() {
 function *takeAutoUpdaterEvents() {
 	autoUpdater.autoDownload = false;
 
-	const createAutoUpdaterChannel = (autoUpdater, eventName) => eventChannel((emit) => {
-		const listener = (...args) => emit(args);
-
-		const cleanUp = () => {
-			autoUpdater.removeListener(eventName, listener);
-			window.removeEventListener('beforeunload', cleanUp);
-		};
-
-		autoUpdater.addListener(eventName, listener);
-		window.addEventListener('beforeunload', cleanUp);
-
-		return cleanUp;
-	});
-
-	const checkingForUpdateChannel = createAutoUpdaterChannel(autoUpdater, 'checking-for-update');
-	const updateAvailableChannel = createAutoUpdaterChannel(autoUpdater, 'update-available');
-	const updateNotAvailableChannel = createAutoUpdaterChannel(autoUpdater, 'update-not-available');
-	const updateDownloadedChannel = createAutoUpdaterChannel(autoUpdater, 'update-downloaded');
-	const errorChannel = createAutoUpdaterChannel(autoUpdater, 'error');
+	const checkingForUpdateChannel = createEventChannelFromEmitter(autoUpdater, 'checking-for-update');
+	const updateAvailableChannel = createEventChannelFromEmitter(autoUpdater, 'update-available');
+	const updateNotAvailableChannel = createEventChannelFromEmitter(autoUpdater, 'update-not-available');
+	const updateDownloadedChannel = createEventChannelFromEmitter(autoUpdater, 'update-downloaded');
+	const errorChannel = createEventChannelFromEmitter(autoUpdater, 'error');
 
 	yield takeEvery(checkingForUpdateChannel, function *() {
 		yield put({ type: UPDATES_CHECKING_FOR_UPDATE });
@@ -242,15 +212,16 @@ function *takeAutoUpdaterEvents() {
 }
 
 export function *updatesSaga() {
-	yield *takeAutoUpdaterEvents();
-
 	const {
 		isUpdatingAllowed,
 		isEachUpdatesSettingConfigurable,
 		isUpdatingEnabled,
 		doCheckForUpdatesOnStartup,
 		skippedUpdateVersion,
-	} = yield call(loadConfiguration);
+	} = yield *loadConfiguration();
+
+	yield *keepStoreValuePersisted('doCheckForUpdatesOnStartup');
+	yield *keepStoreValuePersisted('skippedUpdateVersion');
 
 	yield put({
 		type: UPDATES_READY,
@@ -267,5 +238,6 @@ export function *updatesSaga() {
 		yield *check();
 	}
 
+	yield *takeAutoUpdaterEvents();
 	yield *takeActions();
 }

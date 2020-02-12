@@ -5,7 +5,6 @@ import { doCheckForUpdatesOnStartup } from './doCheckForUpdatesOnStartup';
 import { installedSpellCheckingDictionariesDirectoryPath } from './installedSpellCheckingDictionariesDirectoryPath';
 import { isCheckingForUpdates } from './isCheckingForUpdates';
 import { isEachUpdatesSettingConfigurable } from './isEachUpdatesSettingConfigurable';
-import { isHunspellSpellCheckerUsed } from './isHunspellSpellCheckerUsed';
 import { isMenuBarEnabled } from './isMenuBarEnabled';
 import { isMessageBoxFocused } from './isMessageBoxFocused';
 import { isShowWindowOnUnreadChangedEnabled } from './isShowWindowOnUnreadChangedEnabled';
@@ -18,6 +17,7 @@ import { openDialog } from './openDialog';
 import { servers } from './servers';
 import { skippedUpdateVersion } from './skippedUpdateVersion';
 import { spellCheckingDictionaries } from './spellCheckingDictionaries';
+import { trustedCertificates } from './trustedCertificates';
 
 export const rootReducer = combineReducers({
 	currentServerUrl,
@@ -25,7 +25,6 @@ export const rootReducer = combineReducers({
 	installedSpellCheckingDictionariesDirectoryPath,
 	isCheckingForUpdates,
 	isEachUpdatesSettingConfigurable,
-	isHunspellSpellCheckerUsed,
 	isMenuBarEnabled,
 	isMessageBoxFocused,
 	isShowWindowOnUnreadChangedEnabled,
@@ -38,4 +37,5 @@ export const rootReducer = combineReducers({
 	servers,
 	skippedUpdateVersion,
 	spellCheckingDictionaries,
+	trustedCertificates,
 });

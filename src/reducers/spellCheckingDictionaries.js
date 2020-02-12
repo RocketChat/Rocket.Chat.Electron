@@ -1,7 +1,7 @@
 import {
 	SPELL_CHECKING_READY,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-	SPELL_CHECKING_DICTIONARY_ADDED,
+	SPELL_CHECKING_DICTIONARIES_UPDATED,
 } from '../actions';
 
 const compare = ({ name: a }, { name: b }) => a.localeCompare(b);
@@ -14,9 +14,9 @@ export const spellCheckingDictionaries = (state = [], { type, payload }) => {
 		}
 
 		case WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED: {
-			const { dictionaryName, enabled } = payload;
+			const { name, enabled } = payload;
 			return state.map((dictionary) => {
-				if (dictionaryName === dictionary.name) {
+				if (name === dictionary.name) {
 					return {
 						...dictionary,
 						enabled,
@@ -27,14 +27,8 @@ export const spellCheckingDictionaries = (state = [], { type, payload }) => {
 			});
 		}
 
-		case SPELL_CHECKING_DICTIONARY_ADDED: {
-			const dictionaryName = payload;
-			return [...state, {
-				name: dictionaryName,
-				installed: true,
-				enabled: false,
-			}].sort(compare);
-		}
+		case SPELL_CHECKING_DICTIONARIES_UPDATED:
+			return payload.sort(compare);
 
 		default:
 			return state;

@@ -28,7 +28,6 @@ import {
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
 	SERVERS_READY,
-	SPELL_CHECKING_ERROR_THROWN,
 	SPELL_CHECKING_READY,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
@@ -454,13 +453,6 @@ export function MainWindow({
 			remote.getCurrentWindow().removeAllListeners();
 			remote.app.removeAllListeners('window-all-closed');
 			yield put({ type: MAIN_WINDOW_INSTALL_UPDATE_CLICKED });
-		});
-
-		yield takeEvery(SPELL_CHECKING_ERROR_THROWN, function *({ payload: error }) {
-			remote.dialog.showErrorBox(
-				t('dialog.loadDictionaryError.title'),
-				t('dialog.loadDictionaryError.message', { message: error.message }),
-			);
 		});
 	}, [browserWindow, isShowWindowOnUnreadChangedEnabled]);
 

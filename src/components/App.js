@@ -46,7 +46,6 @@ function AppContent() {
 		});
 	}, []);
 
-	// eslint-disable-next-line complexity
 	useSaga(function *() {
 		yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
 			const servers = yield select(({ servers }) => servers);

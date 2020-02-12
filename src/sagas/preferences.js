@@ -1,7 +1,8 @@
-import { put, select, takeEvery } from 'redux-saga/effects';
+import { put, select } from 'redux-saga/effects';
 
 import { PREFERENCES_READY } from '../actions';
-import { readFromStorage, writeToStorage } from '../localStorage';
+import { readFromStorage } from '../localStorage';
+import { keepStoreValuePersisted } from '../sagaUtils';
 
 function *loadIsMenuBarEnabled() {
 	const autohideMenu = localStorage.getItem('autohideMenu');
@@ -52,30 +53,16 @@ function *loadIsTrayIconEnabled() {
 	return readFromStorage('isTrayIconEnabled', isTrayIconEnabled);
 }
 
-function *keepStoreValuePersisted(key) {
-	const selector = (state) => state[key];
-
-	let prevValue = yield select(selector);
-
-	yield takeEvery('*', function *() {
-		const value = yield select(selector);
-		if (prevValue !== value) {
-			writeToStorage(key, value);
-			prevValue = value;
-		}
-	});
-}
-
 export function *preferencesSaga() {
-	yield *keepStoreValuePersisted('isMenuBarEnabled');
-	yield *keepStoreValuePersisted('isShowWindowOnUnreadChangedEnabled');
-	yield *keepStoreValuePersisted('isSideBarEnabled');
-	yield *keepStoreValuePersisted('isTrayIconEnabled');
-
 	const isMenuBarEnabled = yield *loadIsMenuBarEnabled();
 	const isShowWindowOnUnreadChangedEnabled = yield *loadIsShowWindowOnUnreadChangedEnabled();
 	const isSideBarEnabled = yield *loadIsSideBarEnabled();
 	const isTrayIconEnabled = yield *loadIsTrayIconEnabled();
+
+	yield *keepStoreValuePersisted('isMenuBarEnabled');
+	yield *keepStoreValuePersisted('isShowWindowOnUnreadChangedEnabled');
+	yield *keepStoreValuePersisted('isSideBarEnabled');
+	yield *keepStoreValuePersisted('isTrayIconEnabled');
 
 	yield put({
 		type: PREFERENCES_READY,

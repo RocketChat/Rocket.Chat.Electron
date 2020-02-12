@@ -1,4 +1,8 @@
 const defaultValueCast = (defaultValue) => (value) => {
+	if (defaultValue === null) {
+		return value;
+	}
+
 	if (typeof defaultValue === 'boolean') {
 		return Boolean(value);
 	}
@@ -30,7 +34,7 @@ export const readFromStorage = (key, defaultValue, cast = defaultValueCast(defau
 
 		return cast(storedValue);
 	} catch (error) {
-		console.warn(error.stack);
+		console.warn(error);
 		return defaultValue;
 	}
 };
@@ -51,7 +55,7 @@ export const writeToStorage = (key, value) => {
 
 		localStorage.setItem(key, JSON.stringify(value));
 	} catch (error) {
-		console.warn(error.stack);
+		console.warn(error);
 	}
 };
 
@@ -65,7 +69,7 @@ const readValue = (cast, key, defaultValue) => {
 
 		return cast(storedValue);
 	} catch (error) {
-		console.warn(error.stack);
+		console.warn(error);
 		return defaultValue;
 	}
 };
@@ -82,7 +86,7 @@ export const readArrayOf = (cast, key, defaultArray = []) => {
 
 		return storedValue.map(cast).filter((value) => value !== undefined);
 	} catch (error) {
-		console.warn(error.stack);
+		console.warn(error);
 		return defaultArray;
 	}
 };
@@ -100,7 +104,7 @@ export const readMap = (key, defaultMap = new Map()) => {
 
 		return new Map(pairs);
 	} catch (error) {
-		console.warn(error.stack);
+		console.warn(error);
 		return defaultMap;
 	}
 };
@@ -119,7 +123,7 @@ const writeValue = (cast, key, value) => {
 
 		localStorage.setItem(key, JSON.stringify(cast(value)));
 	} catch (error) {
-		console.warn(error.stack);
+		console.warn(error);
 	}
 };
 
@@ -138,7 +142,7 @@ export const writeArrayOf = (cast, key, array) => {
 
 		localStorage.setItem(key, JSON.stringify(array.filter((value) => value === cast(value))));
 	} catch (error) {
-		console.warn(error.stack);
+		console.warn(error);
 	}
 };
 export const writeMap = (key, map) => {
@@ -154,6 +158,6 @@ export const writeMap = (key, map) => {
 
 		localStorage.setItem(key, JSON.stringify(Array.from(map.entries())));
 	} catch (error) {
-		console.warn(error.stack);
+		console.warn(error);
 	}
 };

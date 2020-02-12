@@ -7,19 +7,20 @@ const SagaMiddlewareContext = createContext();
 export const useSaga = (saga, deps) => {
 	const sagaMiddleware = useContext(SagaMiddlewareContext);
 
-	useEffect(() => {
+	const effect = () => {
 		const task = sagaMiddleware.run(saga);
 		return () => {
 			task.cancel();
 		};
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, deps);
+	};
+
+	useEffect(effect, deps);
 };
 
 export const useCallableSaga = (saga, deps) => {
 	const sagaMiddleware = useContext(SagaMiddlewareContext);
 
-	return useCallback((...args) => new Promise((resolve, reject) => {
+	const callback = (...args) => new Promise((resolve, reject) => {
 		sagaMiddleware.run(function *() {
 			try {
 				resolve(yield *saga(...args));
@@ -27,8 +28,9 @@ export const useCallableSaga = (saga, deps) => {
 				reject(error);
 			}
 		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}), deps);
+	});
+
+	return useCallback(callback, deps);
 };
 
 export function SagaMiddlewareProvider({ children, sagaMiddleware }) {

@@ -3,14 +3,13 @@ import i18n from 'i18next';
 import React, { useEffect, useState, Component } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import { Provider, useDispatch } from 'react-redux';
-import { call, put, select, take, takeEvery } from 'redux-saga/effects';
+import { call, put, select, takeEvery } from 'redux-saga/effects';
 
 import {
 	MENU_BAR_QUIT_CLICKED,
 	MENU_BAR_OPEN_URL_CLICKED,
 	MENU_BAR_RESET_APP_DATA_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
-	MAIN_WINDOW_STATE_CHANGED,
 	DEEP_LINK_TRIGGERED,
 	DEEP_LINKS_SERVER_FOCUSED,
 	DEEP_LINKS_SERVER_ADDED,
@@ -33,8 +32,6 @@ import { SelectClientCertificateDialog } from './SelectClientCertificateDialog';
 
 function AppContent() {
 	const { t } = useTranslation();
-
-	const [mainWindowState, setMainWindowState] = useState({});
 
 	useSaga(function *() {
 		yield takeEvery([MENU_BAR_QUIT_CLICKED, TRAY_ICON_QUIT_CLICKED], function *() {
@@ -73,32 +70,22 @@ function AppContent() {
 			}
 		});
 
-		while (true) {
-			const { type, payload } = yield take();
+		yield takeEvery(MENU_BAR_RESET_APP_DATA_CLICKED, function *() {
+			const { response } = yield call(::remote.dialog.showMessageBox, {
+				type: 'question',
+				buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
+				defaultId: 1,
+				title: t('dialog.resetAppData.title'),
+				message: t('dialog.resetAppData.message'),
+			});
 
-			if (type === MENU_BAR_RESET_APP_DATA_CLICKED) {
-				const { response } = yield call(::remote.dialog.showMessageBox, {
-					type: 'question',
-					buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
-					defaultId: 1,
-					title: t('dialog.resetAppData.title'),
-					message: t('dialog.resetAppData.message'),
-				});
-
-				if (response !== 0) {
-					continue;
-				}
-
-				remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
-				remote.app.quit();
-				continue;
+			if (response !== 0) {
+				return;
 			}
 
-			if (type === MAIN_WINDOW_STATE_CHANGED) {
-				setMainWindowState(payload);
-				continue;
-			}
-		}
+			remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
+			remote.app.quit();
+		});
 	}, []);
 
 	const dispatch = useDispatch();
@@ -108,7 +95,7 @@ function AppContent() {
 	}, [dispatch]);
 
 	return <MainWindow>
-		<MenuBar isFullScreenEnabled={mainWindowState.fullscreen} />
+		<MenuBar />
 		<SideBar />
 		<ServersView />
 		<AddServerView />
@@ -117,7 +104,7 @@ function AppContent() {
 		<SelectClientCertificateDialog />
 		<UpdateDialog />
 		<Dock />
-		<TrayIcon show={!mainWindowState.visible || !mainWindowState.focused} />
+		<TrayIcon />
 		<TouchBar />
 	</MainWindow>;
 }

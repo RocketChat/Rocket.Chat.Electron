@@ -9,9 +9,7 @@ import { ViewMenu } from './ViewMenu';
 import { WindowMenu } from './WindowMenu';
 import { HelpMenu } from './HelpMenu';
 
-export function MenuBar({
-	isFullScreenEnabled,
-}) {
+export function MenuBar() {
 	const isMenuBarEnabled = useSelector(({ isMenuBarEnabled }) => isMenuBarEnabled);
 
 	useEffect(() => {
@@ -32,7 +30,7 @@ export function MenuBar({
 	return <Menu ref={setMenu}>
 		<AppMenu />
 		<EditMenu />
-		<ViewMenu showFullScreen={isFullScreenEnabled} />
+		<ViewMenu />
 		<WindowMenu />
 		<HelpMenu />
 	</Menu>;

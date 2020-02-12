@@ -12,6 +12,7 @@ import { isSideBarEnabled } from './isSideBarEnabled';
 import { isTrayIconEnabled } from './isTrayIconEnabled';
 import { isUpdatingAllowed } from './isUpdatingAllowed';
 import { isUpdatingEnabled } from './isUpdatingEnabled';
+import { mainWindowState } from './mainWindowState';
 import { newUpdateVersion } from './newUpdateVersion';
 import { openDialog } from './openDialog';
 import { servers } from './servers';
@@ -32,6 +33,7 @@ export const rootReducer = combineReducers({
 	isTrayIconEnabled,
 	isUpdatingAllowed,
 	isUpdatingEnabled,
+	mainWindowState,
 	newUpdateVersion,
 	openDialog,
 	servers,

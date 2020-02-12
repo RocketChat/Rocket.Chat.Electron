@@ -1,10 +1,7 @@
-import fs from 'fs';
-import path from 'path';
-
 import { remote } from 'electron';
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { all, call, put, take, takeEvery } from 'redux-saga/effects';
+import { all, call, put, select, take, takeEvery } from 'redux-saga/effects';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -42,88 +39,8 @@ import {
 import { getAppIconPath, getTrayIconPath } from '../../icons';
 import { useSaga } from '../SagaMiddlewareProvider';
 import { WindowDragBar, Wrapper, GlobalStyles } from './styles';
-
-const isInsideSomeScreen = ({ x, y, width, height }) =>
-	remote.screen.getAllDisplays()
-		.some(({ bounds }) => x >= bounds.x && y >= bounds.y
-		&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
-		);
-
-const loadWindowState = async ([width, height]) => {
-	try {
-		const windowState = {
-			width,
-			height,
-			...JSON.parse(await fs.promises.readFile(path.join(remote.app.getPath('userData'), 'window-state-main.json'), 'utf8')) || {},
-		};
-
-		if (!isInsideSomeScreen(windowState)) {
-			const { bounds } = remote.screen.getPrimaryDisplay();
-			windowState.x = (bounds.width - width) / 2;
-			windowState.y = (bounds.height - height) / 2;
-			windowState.width = width;
-			windowState.height = height;
-		}
-
-		return windowState;
-	} catch (error) {
-		console.error('Failed to load window state');
-		console.error(error);
-		return { width, height };
-	}
-};
-
-const saveWindowState = async (windowState) => {
-	try {
-		await fs.promises.writeFile(path.join(remote.app.getPath('userData'), 'window-state-main.json'), JSON.stringify(windowState), 'utf8');
-	} catch (error) {
-		console.error('Failed to save window state');
-		console.error(error);
-	}
-};
-
-const applyWindowState = (browserWindow, windowState) => {
-	if (browserWindow.isDestroyed()) {
-		return;
-	}
-
-	if (windowState.x !== undefined && windowState.y !== undefined) {
-		browserWindow.setPosition(Math.floor(windowState.x), Math.floor(windowState.y), false);
-	}
-
-	if (windowState.width !== undefined && windowState.height !== undefined) {
-		browserWindow.setSize(Math.floor(windowState.width), Math.floor(windowState.height), false);
-	}
-
-	if (windowState.isMaximized) {
-		browserWindow.maximize();
-	} else if (windowState.isMinimized) {
-		browserWindow.minimize();
-	} else {
-		browserWindow.restore();
-	}
-
-	if (windowState.isHidden) {
-		browserWindow.hide();
-	} else if (!windowState.isMinimized) {
-		browserWindow.show();
-	}
-};
-
-const fetchWindowState = (browserWindow, windowState) => {
-	if (browserWindow.isDestroyed()) {
-		return;
-	}
-
-	windowState.isMaximized = browserWindow.isMaximized();
-	windowState.isMinimized = browserWindow.isMinimized();
-	windowState.isHidden = !browserWindow.isMinimized() && !browserWindow.isVisible();
-
-	if (!windowState.isMaximized && !windowState.isHidden) {
-		[windowState.x, windowState.y] = browserWindow.getPosition();
-		[windowState.width, windowState.height] = browserWindow.getSize();
-	}
-};
+import { readConfigurationFile, keepStoreValuePersisted } from '../../sagaUtils';
+import { readFromStorage } from '../../localStorage';
 
 const useAppEvents = (browserWindow, windowStateRef) => {
 	useEffect(() => {
@@ -133,7 +50,6 @@ const useAppEvents = (browserWindow, windowStateRef) => {
 
 		const handleAppBeforeQuit = () => {
 			remote.app.removeListener('before-quit', handleAppBeforeQuit);
-			saveWindowState(windowStateRef.current);
 			browserWindow.destroy();
 		};
 
@@ -184,7 +100,8 @@ const useWindowStateUpdates = (browserWindow, windowStateRef, dispatch) => {
 			const normal = browserWindow.isNormal();
 			const bounds = browserWindow.getNormalBounds();
 
-			dispatch({ type: MAIN_WINDOW_STATE_CHANGED,
+			dispatch({
+				type: MAIN_WINDOW_STATE_CHANGED,
 				payload: {
 					focused,
 					visible,
@@ -193,20 +110,9 @@ const useWindowStateUpdates = (browserWindow, windowStateRef, dispatch) => {
 					fullscreen,
 					normal,
 					bounds,
-				} });
+				},
+			});
 		};
-
-		const fetchAndSaveWindowState = () => {
-			clearTimeout(fetchAndSaveTimerRef.current);
-			fetchAndSaveTimerRef.current = setTimeout(() => {
-				fetchWindowState(browserWindow, windowStateRef.current);
-				saveWindowState(windowStateRef.current);
-			}, 1000);
-		};
-
-		browserWindow.addListener('resize', fetchAndSaveWindowState);
-		browserWindow.addListener('move', fetchAndSaveWindowState);
-		browserWindow.addListener('show', fetchAndSaveWindowState);
 
 		browserWindow.addListener('show', fetchAndDispatchWindowState);
 		browserWindow.addListener('hide', fetchAndDispatchWindowState);
@@ -220,10 +126,6 @@ const useWindowStateUpdates = (browserWindow, windowStateRef, dispatch) => {
 		browserWindow.addListener('move', fetchAndDispatchWindowState);
 
 		return () => {
-			browserWindow.removeListener('resize', fetchAndSaveWindowState);
-			browserWindow.removeListener('move', fetchAndSaveWindowState);
-			browserWindow.removeListener('show', fetchAndSaveWindowState);
-
 			browserWindow.removeListener('show', fetchAndDispatchWindowState);
 			browserWindow.removeListener('hide', fetchAndDispatchWindowState);
 			browserWindow.removeListener('focus', fetchAndDispatchWindowState);
@@ -246,8 +148,6 @@ const useWindowClosing = (browserWindow, windowStateRef, hideOnClose) => {
 				browserWindow.setFullScreen(false);
 			}
 
-			fetchWindowState(browserWindow, windowStateRef.current);
-
 			browserWindow.blur();
 
 			if (process.platform === 'darwin' || hideOnClose) {
@@ -257,8 +157,6 @@ const useWindowClosing = (browserWindow, windowStateRef, hideOnClose) => {
 			} else {
 				remote.app.quit();
 			}
-
-			saveWindowState(windowStateRef.current);
 		};
 		browserWindow.addListener('close', handleClose);
 
@@ -266,21 +164,6 @@ const useWindowClosing = (browserWindow, windowStateRef, hideOnClose) => {
 			browserWindow.removeListener('close', handleClose);
 		};
 	}, [browserWindow, windowStateRef, hideOnClose]);
-};
-
-const useWindowStateLoading = (browserWindow, windowStateRef) => {
-	useEffect(() => {
-		const loadAndApplyWindowState = async () => {
-			windowStateRef.current = await loadWindowState(browserWindow.getSize());
-			applyWindowState(browserWindow, windowStateRef.current);
-		};
-
-		loadAndApplyWindowState();
-
-		if (process.env.NODE_ENV === 'development') {
-			browserWindow.webContents.openDevTools();
-		}
-	}, [browserWindow, windowStateRef]);
 };
 
 export function MainWindow({
@@ -299,10 +182,6 @@ export function MainWindow({
 		return mentionCount || (badges.some((badge) => !!badge) && '•') || null;
 	});
 
-	const isShowWindowOnUnreadChangedEnabled = useSelector(({ isShowWindowOnUnreadChangedEnabled }) =>
-		isShowWindowOnUnreadChangedEnabled);
-
-
 	useLayoutEffect(() => {
 		const styleSrc = `${ remote.app.getAppPath() }/app/icons/rocketchat.css`;
 		const linkElement = document.createElement('link');
@@ -320,7 +199,6 @@ export function MainWindow({
 	useAppEvents(browserWindow, windowStateRef);
 	useWindowStateUpdates(browserWindow, windowStateRef, dispatch);
 	useWindowClosing(browserWindow, windowStateRef, hideOnClose);
-	useWindowStateLoading(browserWindow, windowStateRef);
 
 	useEffect(() => {
 		if (process.platform !== 'linux' && process.platform !== 'win32') {
@@ -416,6 +294,8 @@ export function MainWindow({
 		});
 
 		yield takeEvery(WEBVIEW_UNREAD_CHANGED, function *({ payload: badge }) {
+			const isShowWindowOnUnreadChangedEnabled = yield select(({ isShowWindowOnUnreadChangedEnabled }) =>
+				isShowWindowOnUnreadChangedEnabled);
 			if (!isShowWindowOnUnreadChangedEnabled || browserWindow.isFocused() || typeof badge !== 'number') {
 				return;
 			}
@@ -454,7 +334,95 @@ export function MainWindow({
 			remote.app.removeAllListeners('window-all-closed');
 			yield put({ type: MAIN_WINDOW_INSTALL_UPDATE_CLICKED });
 		});
-	}, [browserWindow, isShowWindowOnUnreadChangedEnabled]);
+	}, [browserWindow]);
+
+	useSaga(function *() {
+		const isInsideSomeScreen = ({ x, y, width, height }) =>
+			remote.screen.getAllDisplays()
+				.some(({ bounds }) => x >= bounds.x && y >= bounds.y
+				&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
+				);
+
+		const loadUserMainWindowState = async () => {
+			const userMainWindowState = await readConfigurationFile('main-window-state.json',
+				{ appData: false, purgeAfter: true });
+
+			if (!userMainWindowState) {
+				return null;
+			}
+
+			const {
+				x,
+				y,
+				width,
+				height,
+				isMaximized,
+				isMinimized,
+				isHidden,
+			} = userMainWindowState;
+
+			return {
+				focused: true,
+				visible: !isHidden,
+				maximized: isMaximized,
+				minimized: isMinimized,
+				fullscreen: false,
+				normal: !isMinimized && !isMaximized,
+				bounds: { x, y, width, height },
+			};
+		};
+
+		function *loadMainWindowState() {
+			const userMainWindowState = yield call(loadUserMainWindowState);
+			if (userMainWindowState) {
+				return userMainWindowState;
+			}
+
+			const initialMainWindowState = yield select(({ mainWindowState }) => mainWindowState);
+
+			return readFromStorage('mainWindowState', initialMainWindowState);
+		}
+
+		const mainWindowState = yield *loadMainWindowState();
+
+		if (!isInsideSomeScreen(mainWindowState.bounds)) {
+			const { bounds } = remote.screen.getPrimaryDisplay();
+			mainWindowState.bounds.x = (bounds.width - mainWindowState.bounds.width) / 2;
+			mainWindowState.bounds.y = (bounds.height - mainWindowState.bounds.width) / 2;
+		}
+
+		if (browserWindow.isVisible()) {
+			return;
+		}
+
+		browserWindow.setBounds(mainWindowState.bounds);
+
+		if (mainWindowState.maximized) {
+			browserWindow.maximize();
+		}
+
+		if (mainWindowState.minimized) {
+			browserWindow.minimize();
+		}
+
+		if (mainWindowState.fullscreen) {
+			browserWindow.setFullScreen(true);
+		}
+
+		if (mainWindowState.visible) {
+			browserWindow.showInactive();
+		}
+
+		if (mainWindowState.focused) {
+			browserWindow.focus();
+		}
+
+		if (process.env.NODE_ENV === 'development') {
+			browserWindow.webContents.openDevTools();
+		}
+
+		yield *keepStoreValuePersisted('mainWindowState');
+	}, []);
 
 	return <>
 		<GlobalStyles />

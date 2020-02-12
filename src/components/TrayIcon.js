@@ -13,9 +13,8 @@ import {
 
 const appName = remote.app.name;
 
-export function TrayIcon({
-	show = true,
-}) {
+export function TrayIcon() {
+	const isMainWindowToBeShown = useSelector(({ mainWindowState: { visible, focused } }) => !visible || !focused);
 	const isTrayIconEnabled = useSelector(({ isTrayIconEnabled }) => isTrayIconEnabled);
 
 	const badge = useSelector(({ servers }) => {
@@ -55,8 +54,8 @@ export function TrayIcon({
 
 	const createContextMenuTemplate = () => [
 		{
-			label: show ? t('tray.menu.show') : t('tray.menu.hide'),
-			click: () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: show }),
+			label: isMainWindowToBeShown ? t('tray.menu.show') : t('tray.menu.hide'),
+			click: () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: isMainWindowToBeShown }),
 		},
 		{
 			label: t('tray.menu.quit'),
@@ -78,7 +77,7 @@ export function TrayIcon({
 			remote.nativeTheme.addListener('updated', handleThemeUpdate);
 		}
 
-		trayIconRef.current.addListener('click', () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: show }));
+		trayIconRef.current.addListener('click', () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: isMainWindowToBeShown }));
 		trayIconRef.current.addListener('right-click', (event, bounds) => trayIconRef.current.popUpContextMenu(undefined, bounds));
 
 		dispatch({ type: TRAY_ICON_CREATED });
@@ -118,7 +117,7 @@ export function TrayIcon({
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		badge,
-		show,
+		isMainWindowToBeShown,
 		isTrayIconEnabled,
 		dispatch,
 	]);

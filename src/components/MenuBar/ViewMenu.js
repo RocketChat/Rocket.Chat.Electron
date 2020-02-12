@@ -18,12 +18,11 @@ import {
 	MENU_BAR_ZOOM_OUT_CLICKED,
 } from '../../actions';
 
-export const ViewMenu = forwardRef(function ViewMenu({
-	showFullScreen,
-}, ref) {
+export const ViewMenu = forwardRef(function ViewMenu(_, ref) {
 	const isSideBarEnabled = useSelector(({ isSideBarEnabled }) => isSideBarEnabled);
 	const isTrayIconEnabled = useSelector(({ isTrayIconEnabled }) => isTrayIconEnabled);
 	const isMenuBarEnabled = useSelector(({ isMenuBarEnabled }) => isMenuBarEnabled);
+	const isFullScreenEnabled = useSelector(({ mainWindowState: { fullscreen } }) => fullscreen);
 	const { t } = useTranslation();
 	const dispatch = useDispatch();
 
@@ -65,7 +64,7 @@ export const ViewMenu = forwardRef(function ViewMenu({
 				<MenuItem
 					label={t('menus.showFullScreen')}
 					type='checkbox'
-					checked={showFullScreen}
+					checked={isFullScreenEnabled}
 					accelerator='Control+Command+F'
 					onClick={({ checked }) => dispatch({ type: MENU_BAR_TOGGLE_IS_FULL_SCREEN_ENABLED_CLICKED, payload: checked })}
 				/>

@@ -1,67 +1,81 @@
-import { call, put, select, takeEvery } from 'redux-saga/effects';
+import { put, select, takeEvery } from 'redux-saga/effects';
 
 import { PREFERENCES_READY } from '../actions';
-import { readBoolean, writeBoolean } from '../localStorage';
+import { readFromStorage, writeToStorage } from '../localStorage';
 
+function *loadIsMenuBarEnabled() {
+	const autohideMenu = localStorage.getItem('autohideMenu');
+	if (autohideMenu) {
+		localStorage.removeItem('autohideMenu');
+		return autohideMenu !== 'true';
+	}
 
-const loadPreferences = () => {
-	const isMenuBarEnabled = !readBoolean('autohideMenu', !readBoolean('isMenuBarEnabled', true));
-	const isShowWindowOnUnreadChangedEnabled = readBoolean('showWindowOnUnreadChanged',
-		readBoolean('isShowWindowOnUnreadChangedEnabled', false));
-	const isSideBarEnabled = !readBoolean('sidebar-closed', !readBoolean('isSideBarEnabled', true));
-	const isTrayIconEnabled = !readBoolean('hideTray', !readBoolean('isTrayIconEnabled', process.platform !== 'linux'));
+	const isMenuBarEnabled = yield select(({ isMenuBarEnabled }) => isMenuBarEnabled);
 
-	return {
-		isMenuBarEnabled,
-		isShowWindowOnUnreadChangedEnabled,
-		isSideBarEnabled,
-		isTrayIconEnabled,
-	};
-};
+	return readFromStorage('isMenuBarEnabled', isMenuBarEnabled);
+}
+
+function *loadIsShowWindowOnUnreadChangedEnabled() {
+	const showWindowOnUnreadChanged = localStorage.getItem('showWindowOnUnreadChanged');
+	if (showWindowOnUnreadChanged) {
+		localStorage.removeItem('showWindowOnUnreadChanged');
+		return showWindowOnUnreadChanged === 'true';
+	}
+
+	const isShowWindowOnUnreadChangedEnabled = yield select(
+		({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled);
+
+	return readFromStorage('isShowWindowOnUnreadChangedEnabled', isShowWindowOnUnreadChangedEnabled);
+}
+
+function *loadIsSideBarEnabled() {
+	const sidebarClosed = localStorage.getItem('sidebar-closed');
+	if (sidebarClosed) {
+		localStorage.removeItem('sidebar-closed');
+		return sidebarClosed !== 'true';
+	}
+
+	const isSideBarEnabled = yield select(({ isSideBarEnabled }) => isSideBarEnabled);
+
+	return readFromStorage('isSideBarEnabled', isSideBarEnabled);
+}
+
+function *loadIsTrayIconEnabled() {
+	const hideTray = localStorage.getItem('hideTray');
+	if (hideTray) {
+		localStorage.removeItem('hideTray');
+		return hideTray !== 'true';
+	}
+
+	const isTrayIconEnabled = yield select(({ isTrayIconEnabled }) => isTrayIconEnabled);
+
+	return readFromStorage('isTrayIconEnabled', isTrayIconEnabled);
+}
+
+function *keepStoreValuePersisted(key) {
+	const selector = (state) => state[key];
+
+	let prevValue = yield select(selector);
+
+	yield takeEvery('*', function *() {
+		const value = yield select(selector);
+		if (prevValue !== value) {
+			writeToStorage(key, value);
+			prevValue = value;
+		}
+	});
+}
 
 export function *preferencesSaga() {
-	let prevIsMenuBarEnabled = yield select(({ isMenuBarEnabled }) => isMenuBarEnabled);
-	yield takeEvery('*', function *() {
-		const isMenuBarEnabled = yield select(({ isMenuBarEnabled }) => isMenuBarEnabled);
-		if (prevIsMenuBarEnabled !== isMenuBarEnabled) {
-			writeBoolean('isMenuBarEnabled', isMenuBarEnabled);
-			prevIsMenuBarEnabled = isMenuBarEnabled;
-		}
-	});
+	yield *keepStoreValuePersisted('isMenuBarEnabled');
+	yield *keepStoreValuePersisted('isShowWindowOnUnreadChangedEnabled');
+	yield *keepStoreValuePersisted('isSideBarEnabled');
+	yield *keepStoreValuePersisted('isTrayIconEnabled');
 
-	let prevIsShowWindowOnUnreadChangedEnabled = yield select(({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled);
-	yield takeEvery('*', function *() {
-		const isShowWindowOnUnreadChangedEnabled = yield select(({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled);
-		if (prevIsShowWindowOnUnreadChangedEnabled !== isShowWindowOnUnreadChangedEnabled) {
-			writeBoolean('isShowWindowOnUnreadChangedEnabled', isShowWindowOnUnreadChangedEnabled);
-			prevIsShowWindowOnUnreadChangedEnabled = isShowWindowOnUnreadChangedEnabled;
-		}
-	});
-
-	let prevIsSideBarEnabled = yield select(({ isSideBarEnabled }) => isSideBarEnabled);
-	yield takeEvery('*', function *() {
-		const isSideBarEnabled = yield select(({ isSideBarEnabled }) => isSideBarEnabled);
-		if (prevIsSideBarEnabled !== isSideBarEnabled) {
-			writeBoolean('isSideBarEnabled', isSideBarEnabled);
-			prevIsSideBarEnabled = isSideBarEnabled;
-		}
-	});
-
-	let prevIsTrayIconEnabled = yield select(({ isTrayIconEnabled }) => isTrayIconEnabled);
-	yield takeEvery('*', function *() {
-		const isTrayIconEnabled = yield select(({ isTrayIconEnabled }) => isTrayIconEnabled);
-		if (prevIsTrayIconEnabled !== isTrayIconEnabled) {
-			writeBoolean('isTrayIconEnabled', isTrayIconEnabled);
-			prevIsTrayIconEnabled = isTrayIconEnabled;
-		}
-	});
-
-	const {
-		isMenuBarEnabled,
-		isShowWindowOnUnreadChangedEnabled,
-		isSideBarEnabled,
-		isTrayIconEnabled,
-	} = yield call(loadPreferences);
+	const isMenuBarEnabled = yield *loadIsMenuBarEnabled();
+	const isShowWindowOnUnreadChangedEnabled = yield *loadIsShowWindowOnUnreadChangedEnabled();
+	const isSideBarEnabled = yield *loadIsSideBarEnabled();
+	const isTrayIconEnabled = yield *loadIsTrayIconEnabled();
 
 	yield put({
 		type: PREFERENCES_READY,

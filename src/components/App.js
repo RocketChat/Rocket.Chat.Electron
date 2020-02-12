@@ -128,6 +128,7 @@ class ErrorCatcher extends Component {
 		console.error(error);
 		console.error(errorInfo.componentStack);
 		remote.dialog.showErrorBox(error.message, error.stack);
+		process.exit(1);
 	}
 
 	render() {

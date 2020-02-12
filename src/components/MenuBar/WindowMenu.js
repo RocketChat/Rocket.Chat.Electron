@@ -6,9 +6,7 @@ import { MenuItem } from '../electron/MenuItem';
 import { Menu } from '../electron/Menu';
 import {
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
-	MENU_BAR_RELOAD_APP_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
-	MENU_BAR_TOGGLE_DEVTOOLS_CLICKED,
 	MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
 } from '../../actions';
 
@@ -37,16 +35,6 @@ export const WindowMenu = forwardRef(function WindowMenu(_, ref) {
 				accelerator={`CommandOrControl+${ i + 1 }`}
 				onClick={() => dispatch({ type: MENU_BAR_SELECT_SERVER_CLICKED, payload: server })}
 			/>)}
-			<MenuItem type='separator' />
-			<MenuItem
-				label={t('menus.reload')}
-				accelerator='CommandOrControl+Shift+R'
-				onClick={() => dispatch({ type: MENU_BAR_RELOAD_APP_CLICKED })}
-			/>
-			<MenuItem
-				label={t('menus.toggleDevTools')}
-				onClick={() => dispatch({ type: MENU_BAR_TOGGLE_DEVTOOLS_CLICKED })}
-			/>
 			<MenuItem type='separator' />
 			<MenuItem
 				type='checkbox'

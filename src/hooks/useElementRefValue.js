@@ -13,5 +13,5 @@ export const useElementRefValue = (element) => {
 		});
 	});
 
-	return [value, clonedElement];
+	return [value, clonedElement, setValue];
 };

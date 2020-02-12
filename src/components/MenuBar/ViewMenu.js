@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { MenuItem } from '../electron/MenuItem';
 import { Menu } from '../electron/Menu';
@@ -20,10 +20,10 @@ import {
 
 export const ViewMenu = forwardRef(function ViewMenu({
 	showFullScreen,
-	showMenuBar,
-	showServerList,
-	showTrayIcon,
 }, ref) {
+	const isSideBarEnabled = useSelector(({ isSideBarEnabled }) => isSideBarEnabled);
+	const isTrayIconEnabled = useSelector(({ isTrayIconEnabled }) => isTrayIconEnabled);
+	const isMenuBarEnabled = useSelector(({ isMenuBarEnabled }) => isMenuBarEnabled);
 	const { t } = useTranslation();
 	const dispatch = useDispatch();
 
@@ -58,7 +58,7 @@ export const ViewMenu = forwardRef(function ViewMenu({
 			<MenuItem
 				label={t('menus.showTrayIcon')}
 				type='checkbox'
-				checked={showTrayIcon}
+				checked={isTrayIconEnabled}
 				onClick={({ checked }) => dispatch({ type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED, payload: checked })}
 			/>
 			{process.platform === 'darwin' && <>
@@ -74,14 +74,14 @@ export const ViewMenu = forwardRef(function ViewMenu({
 				<MenuItem
 					label={t('menus.showMenuBar')}
 					type='checkbox'
-					checked={showMenuBar}
+					checked={isMenuBarEnabled}
 					onClick={({ checked }) => dispatch({ type: MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED, payload: checked })}
 				/>
 			</>}
 			<MenuItem
 				label={t('menus.showServerList')}
 				type='checkbox'
-				checked={showServerList}
+				checked={isSideBarEnabled}
 				onClick={({ checked }) => dispatch({ type: MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED, payload: checked })}
 			/>
 			<MenuItem type='separator' />

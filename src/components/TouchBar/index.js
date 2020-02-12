@@ -1,5 +1,5 @@
 import { remote } from 'electron';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { TouchBarBar } from '../electron/TouchBarBar';
 import { TouchBarSpacer } from '../electron/TouchBarSpacer';
@@ -7,18 +7,13 @@ import { MessageBoxFormattingButtons } from './MessageBoxFormattingButtons';
 import { ServerSelectionPopover } from './ServerSelectionPopover';
 
 export function TouchBar() {
-	const barRef = useRef();
-	const prevBarRef = useRef();
+	const [bar, setBar] = useState(null);
+
 	useEffect(() => {
-		if (prevBarRef.current === barRef.current) {
-			return;
-		}
+		remote.getCurrentWindow().setTouchBar(bar);
+	}, [bar]);
 
-		remote.getCurrentWindow().setTouchBar(barRef.current);
-		prevBarRef.current = barRef.current;
-	});
-
-	return <TouchBarBar ref={barRef}>
+	return <TouchBarBar ref={setBar}>
 		<ServerSelectionPopover />
 		<TouchBarSpacer size='flexible' />
 		<MessageBoxFormattingButtons />

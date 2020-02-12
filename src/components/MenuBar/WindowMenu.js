@@ -12,11 +12,10 @@ import {
 	MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
 } from '../../actions';
 
-export const WindowMenu = forwardRef(function WindowMenu({
-	showWindowOnUnreadChanged,
-}, ref) {
+export const WindowMenu = forwardRef(function WindowMenu(_, ref) {
 	const servers = useSelector(({ servers }) => servers);
 	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
+	const isShowWindowOnUnreadChangedEnabled = useSelector(({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled);
 	const { t } = useTranslation();
 	const dispatch = useDispatch();
 
@@ -32,7 +31,7 @@ export const WindowMenu = forwardRef(function WindowMenu({
 			</>}
 			{servers.map((server, i) => <MenuItem
 				key={i}
-				type={currentServerUrl ? 'radio' : 'normal'}
+				type={currentServerUrl ? 'checkbox' : 'normal'}
 				label={server.title.replace(/&/g, '&&')}
 				checked={currentServerUrl === server.url}
 				accelerator={`CommandOrControl+${ i + 1 }`}
@@ -52,7 +51,7 @@ export const WindowMenu = forwardRef(function WindowMenu({
 			<MenuItem
 				type='checkbox'
 				label={t('menus.showOnUnreadMessage')}
-				checked={showWindowOnUnreadChanged}
+				checked={isShowWindowOnUnreadChangedEnabled}
 				onClick={({ checked }) => dispatch({ type: MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED, payload: checked })}
 			/>
 			<MenuItem type='separator' />

@@ -32,5 +32,5 @@ export const useElementsRefValues = (elements) => {
 		});
 	});
 
-	return [values, clonedElements];
+	return [values, clonedElements, setValues];
 };

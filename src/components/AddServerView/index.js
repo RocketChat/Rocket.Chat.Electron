@@ -11,7 +11,7 @@ import {
 } from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
 import {
@@ -23,11 +23,11 @@ import { useServerValidation } from '../../hooks/useServerValidation';
 import { RocketChatLogo } from '../RocketChatLogo';
 import { Wrapper, Content } from './styles';
 
-export function AddServerView({
-	defaultServerUrl = 'https://open.rocket.chat',
-	isVisible,
-	isFull,
-}) {
+const defaultServerUrl = 'https://open.rocket.chat';
+
+export function AddServerView() {
+	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === null);
+	const isFull = useSelector(({ servers, isSideBarEnabled }) => !(servers.length > 0 && isSideBarEnabled));
 	const dispatch = useDispatch();
 	const { t } = useTranslation();
 	const [input, setInput] = useState('');

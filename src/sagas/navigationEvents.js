@@ -1,46 +1,48 @@
-import fs from 'fs';
-import path from 'path';
 import url from 'url';
 
 import { remote } from 'electron';
-import { eventChannel } from 'redux-saga';
-import { call, put, select, takeEvery } from 'redux-saga/effects';
+import { call, put, race, select, take, takeEvery } from 'redux-saga/effects';
 
 import {
 	CERTIFICATE_TRUST_REQUESTED,
 	CERTIFICATES_CLEARED,
 	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
+	CERTIFICATES_READY,
 	CERTIFICATES_UPDATED,
 	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
 	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
 	WEBVIEW_CERTIFICATE_DENIED,
 	WEBVIEW_CERTIFICATE_TRUSTED,
+	MENU_BAR_OPEN_URL_CLICKED,
 } from '../actions';
-import { readMap, writeMap } from '../localStorage';
+import { readFromStorage } from '../localStorage';
+import { createEventChannelFromEmitter, keepStoreValuePersisted, readConfigurationFile } from '../sagaUtils';
 
-let trustedCertificates = new Map();
+const loadUserTrustedCertificates = async (trustedCertificates) => {
+	const userTrustedCertificates = await readConfigurationFile('certificate.json', { appData: false, purgeAfter: true });
 
-const loadTrustedCertificates = async () => {
-	const trustedCertificates = readMap('trustedCertificates');
-
-	try {
-		const certificatesFilePath = path.join(remote.app.getPath('userData'), 'certificate.json');
-
-		if (await fs.promises.stat(certificatesFilePath).then((stat) => stat.isFile(), () => false)) {
-			const mapping = JSON.parse(await fs.promises.readFile(certificatesFilePath, 'utf8'));
-
-			for (const [key, value] of Object.entries(mapping)) {
-				trustedCertificates.set(key, String(value));
-			}
-
-			await fs.promises.unlink(certificatesFilePath);
-		}
-	} catch (error) {
-		console.error(error.stack);
+	if (!userTrustedCertificates) {
+		return;
 	}
 
-	return trustedCertificates;
+	try {
+		for (const [host, certificate] of Object.entries(userTrustedCertificates)) {
+			trustedCertificates[host] = certificate;
+		}
+	} catch (error) {
+		console.warn(error);
+	}
 };
+
+function *loadTrustedCertificates() {
+	const trustedCertificates = yield select(({ trustedCertificates }) => trustedCertificates);
+
+	yield call(loadUserTrustedCertificates, trustedCertificates);
+
+	Object.assign(trustedCertificates, readFromStorage('trustedCertificates', {}));
+
+	return trustedCertificates;
+}
 
 function *handleLogin([, , request, , callback]) {
 	const servers = yield select(({ servers }) => servers);
@@ -67,7 +69,9 @@ function *handleCertificateError([, webContents, requestedUrl, error, certificat
 	const serialized = serializeCertificate(certificate);
 	const { host } = url.parse(requestedUrl);
 
-	const isTrusted = trustedCertificates.has(host) && trustedCertificates.get(host) === serialized;
+	const trustedCertificates = yield select(({ trustedCertificates }) => trustedCertificates);
+
+	const isTrusted = !!trustedCertificates[host] && trustedCertificates[host] === serialized;
 
 	if (isTrusted) {
 		callback(true);
@@ -79,16 +83,7 @@ function *handleCertificateError([, webContents, requestedUrl, error, certificat
 		return;
 	}
 
-	const commit = (trusted) => {
-		if (!trusted) {
-			return;
-		}
-
-		trustedCertificates.set(host, serialized);
-		writeMap('trustedCertificates', trustedCertificates);
-	};
-
-	queuedTrustRequests.set(certificate.fingerprint, [commit, callback]);
+	queuedTrustRequests.set(certificate.fingerprint, [callback]);
 
 	yield put({
 		type: CERTIFICATE_TRUST_REQUESTED,
@@ -98,9 +93,30 @@ function *handleCertificateError([, webContents, requestedUrl, error, certificat
 			error,
 			fingerprint: certificate.fingerprint,
 			issuerName: certificate.issuerName,
-			willBeReplaced: trustedCertificates.has(host),
+			willBeReplaced: !!trustedCertificates[host],
 		},
 	});
+
+	while (true) {
+		const { type, payload: { fingerprint } } = (yield race([
+			take(WEBVIEW_CERTIFICATE_TRUSTED),
+			take(WEBVIEW_CERTIFICATE_DENIED),
+		])).filter(Boolean)[0];
+
+		const isTrustedByUser = type === WEBVIEW_CERTIFICATE_TRUSTED;
+
+		queuedTrustRequests.get(fingerprint).forEach((cb) => cb(isTrustedByUser));
+		queuedTrustRequests.delete(fingerprint);
+
+		const trustedCertificates = yield select(({ trustedCertificates }) => trustedCertificates);
+
+		if (isTrustedByUser) {
+			yield put({
+				type: CERTIFICATES_UPDATED,
+				payload: { ...trustedCertificates, [host]: serialized },
+			});
+		}
+	}
 }
 
 const queuedClientCertificateRequests = new Map();
@@ -114,47 +130,18 @@ function *handleSelectClientCertificate([, , , certificateList, callback]) {
 }
 
 function *takeAppEvents() {
-	const createAppChannel = (app, eventName) => eventChannel((emit) => {
-		const listener = (...args) => emit(args);
-
-		const cleanUp = () => {
-			app.removeListener(eventName, listener);
-			window.removeEventListener('beforeunload', cleanUp);
-		};
-
-		app.addListener(eventName, listener);
-		window.addEventListener('beforeunload', cleanUp);
-
-		return cleanUp;
-	});
-
-	const loginChannel = createAppChannel(remote.app, 'login');
-	const certificateErrorChannel = createAppChannel(remote.app, 'certificate-error');
-	const selectClientCertificateChannel = createAppChannel(remote.app, 'select-client-certificate');
+	const loginChannel = createEventChannelFromEmitter(remote.app, 'login');
+	const certificateErrorChannel = createEventChannelFromEmitter(remote.app, 'certificate-error');
+	const selectClientCertificateChannel = createEventChannelFromEmitter(remote.app, 'select-client-certificate');
 
 	yield takeEvery(loginChannel, handleLogin);
-
 	yield takeEvery(certificateErrorChannel, handleCertificateError);
-
 	yield takeEvery(selectClientCertificateChannel, handleSelectClientCertificate);
 }
 
 function *takeActions() {
 	yield takeEvery(MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED, function *() {
-		trustedCertificates.clear();
-		writeMap('trustedCertificates', trustedCertificates);
 		yield put({ type: CERTIFICATES_CLEARED });
-	});
-
-	yield takeEvery(WEBVIEW_CERTIFICATE_TRUSTED, function *({ payload: { fingerprint } }) {
-		queuedTrustRequests.get(fingerprint).forEach((cb) => cb(true));
-		queuedTrustRequests.delete(fingerprint);
-		yield put({ type: CERTIFICATES_UPDATED });
-	});
-
-	yield takeEvery(WEBVIEW_CERTIFICATE_DENIED, function *({ payload: { fingerprint } }) {
-		queuedTrustRequests.get(fingerprint).forEach((cb) => cb(false));
-		queuedTrustRequests.delete(fingerprint);
 	});
 
 	yield takeEvery(SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, function *({ payload: { requestId, fingerprint } }) {
@@ -173,10 +160,22 @@ function *takeActions() {
 		queuedClientCertificateRequests.delete(requestId);
 		callback(certificate);
 	});
+
+	yield takeEvery(MENU_BAR_OPEN_URL_CLICKED, function *({ payload: url }) {
+		remote.shell.openExternal(url);
+	});
 }
 
 export function *navigationEventsSaga() {
-	trustedCertificates = yield call(loadTrustedCertificates);
+	const trustedCertificates = yield *loadTrustedCertificates();
+
+	yield *keepStoreValuePersisted('trustedCertificates');
+
+	yield put({
+		type: CERTIFICATES_READY,
+		payload: trustedCertificates,
+	});
+
 	yield *takeAppEvents();
 	yield *takeActions();
 }

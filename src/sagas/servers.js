@@ -1,11 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-
-import { remote } from 'electron';
-import { call, delay, put, race, select, takeEvery } from 'redux-saga/effects';
+import { call, delay, put, race, select } from 'redux-saga/effects';
 
 import { SERVERS_READY } from '../actions';
-import { readString, writeString, writeArrayOf, readArrayOf } from '../localStorage';
+import { readFromStorage } from '../localStorage';
+import { keepStoreValuePersisted, readConfigurationFile } from '../sagaUtils';
 
 export function *validateServerUrl(serverUrl, timeout = 5000) {
 	const url = new URL(serverUrl);
@@ -36,14 +33,47 @@ export function *validateServerUrl(serverUrl, timeout = 5000) {
 	}
 }
 
-const castServer = (server) => {
-	if (typeof server.url === 'string' && typeof server.title === 'string') {
-		return server;
+const loadAppServers = async (serversMap) => {
+	const appConfiguration = await readConfigurationFile('servers.json', { appData: true });
+
+	if (!appConfiguration) {
+		return;
+	}
+
+	try {
+		for (const [title, url] of Object.entries(appConfiguration)) {
+			serversMap.set(url, { url, title });
+		}
+	} catch (error) {
+		console.warn(error);
 	}
 };
 
-const loadServers = async () => {
-	const serversMap = new Map(readArrayOf(castServer, 'servers', []).map((server) => [server.url, server]));
+const loadUserServers = async (serversMap) => {
+	const userConfiguration = await readConfigurationFile('servers.json', { appData: false, purgeAfter: true });
+
+	if (!userConfiguration) {
+		return;
+	}
+
+	try {
+		for (const [title, url] of Object.entries(userConfiguration)) {
+			serversMap.set(url, { url, title });
+		}
+	} catch (error) {
+		console.warn(error);
+	}
+};
+
+function *loadServers() {
+	const servers = yield select(({ servers }) => servers);
+
+	const serversMap = new Map(
+		readFromStorage('servers', servers)
+			.filter(Boolean)
+			.filter(({ url, title }) => typeof url === 'string' && typeof title === 'string')
+			.map((server) => [server.url, server]),
+	);
 
 	try {
 		const storedString = localStorage.getItem('rocket.chat.hosts');
@@ -60,43 +90,14 @@ const loadServers = async () => {
 			}
 		}
 	} catch (error) {
-		console.warn(error.stack);
+		console.warn(error);
 	} finally {
 		localStorage.removeItem('rocket.chat.hosts');
 	}
 
 	if (serversMap.size === 0) {
-		const appConfigurationFilePath = path.join(
-			remote.app.getAppPath(),
-			remote.app.getAppPath().endsWith('app.asar') ? '..' : '.',
-			'servers.json',
-		);
-
-		try {
-			if (await fs.promises.stat(appConfigurationFilePath).then((stat) => stat.isFile(), () => false)) {
-				const entries = JSON.parse(await fs.promises.readFile(appConfigurationFilePath, 'utf8'));
-
-				for (const [title, url] of Object.entries(entries)) {
-					serversMap.set(url, { url, title });
-				}
-			}
-		} catch (error) {
-			console.warn(error.stack);
-		}
-
-		const userConfigurationFilePath = path.join(remote.app.getPath('userData'), 'servers.json');
-		try {
-			if (await fs.promises.stat(userConfigurationFilePath).then((stat) => stat.isFile(), () => false)) {
-				const entries = JSON.parse(await fs.promises.readFile(userConfigurationFilePath, 'utf8'));
-				await fs.promises.unlink(userConfigurationFilePath);
-
-				for (const [title, url] of Object.entries(entries)) {
-					serversMap.set(url, { url, title });
-				}
-			}
-		} catch (error) {
-			console.warn(error.stack);
-		}
+		yield call(loadAppServers, serversMap);
+		yield call(loadUserServers, serversMap);
 	}
 
 	try {
@@ -106,14 +107,16 @@ const loadServers = async () => {
 		}
 		localStorage.removeItem('rocket.chat.sortOrder');
 	} catch (error) {
-		console.warn(error.stack);
+		console.warn(error);
 	}
 
 	return Array.from(serversMap.values());
-};
+}
 
-const loadCurrentServerUrl = (servers) => {
-	let currentServerUrl = readString('currentServerUrl', null);
+function *loadCurrentServerUrl(servers) {
+	let currentServerUrl = yield select(({ currentServerUrl }) => currentServerUrl);
+
+	currentServerUrl = readFromStorage('currentServerUrl', currentServerUrl);
 
 	const storedValue = localStorage.getItem('rocket.chat.currentHost');
 	localStorage.removeItem('rocket.chat.currentHost');
@@ -127,29 +130,14 @@ const loadCurrentServerUrl = (servers) => {
 	}
 
 	return currentServerUrl;
-};
+}
 
 export function *serversSaga() {
-	let prevCurrentServerUrl = yield select(({ currentServerUrl }) => currentServerUrl);
-	yield takeEvery('*', function *() {
-		const currentServerUrl = yield select(({ currentServerUrl }) => currentServerUrl);
-		if (prevCurrentServerUrl !== currentServerUrl) {
-			writeString('currentServerUrl', currentServerUrl);
-			prevCurrentServerUrl = currentServerUrl;
-		}
-	});
+	const servers = yield *loadServers();
+	const currentServerUrl = yield *loadCurrentServerUrl(servers);
 
-	let prevServers = yield select(({ servers }) => servers);
-	yield takeEvery('*', function *() {
-		const servers = yield select(({ servers }) => servers);
-		if (prevServers !== servers) {
-			writeArrayOf(castServer, 'servers', servers);
-			prevServers = servers;
-		}
-	});
-
-	const servers = yield call(loadServers);
-	const currentServerUrl = yield call(loadCurrentServerUrl, servers);
+	yield *keepStoreValuePersisted('servers');
+	yield *keepStoreValuePersisted('currentServerUrl');
 
 	yield put({
 		type: SERVERS_READY,

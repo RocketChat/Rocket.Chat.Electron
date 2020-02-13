@@ -2,10 +2,10 @@ import querystring from 'querystring';
 import url from 'url';
 
 import { remote } from 'electron';
-import { eventChannel } from 'redux-saga';
 import { all, fork, put, takeEvery } from 'redux-saga/effects';
 
 import { DEEP_LINK_TRIGGERED } from '../actions';
+import { createEventChannelFromEmitter } from '../sagaUtils';
 
 const normalizeUrl = (hostUrl, insecure = false) => {
 	if (!/^https?:\/\//.test(hostUrl)) {
@@ -46,22 +46,8 @@ function *processDeepLink(link) {
 }
 
 function *takeAppEvents() {
-	const createAppChannel = (app, eventName) => eventChannel((emit) => {
-		const listener = (...args) => emit(args);
-
-		const cleanUp = () => {
-			app.removeListener(eventName, listener);
-			window.removeEventListener('beforeunload', cleanUp);
-		};
-
-		app.addListener(eventName, listener);
-		window.addEventListener('beforeunload', cleanUp);
-
-		return cleanUp;
-	});
-
-	const openUrlChannel = createAppChannel(remote.app, 'open-url');
-	const secondInstanceChannel = createAppChannel(remote.app, 'second-instance');
+	const openUrlChannel = createEventChannelFromEmitter(remote.app, 'open-url');
+	const secondInstanceChannel = createEventChannelFromEmitter(remote.app, 'second-instance');
 
 	yield takeEvery(openUrlChannel, function *([, url]) {
 		yield fork(processDeepLink, url);

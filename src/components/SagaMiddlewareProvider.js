@@ -1,23 +1,26 @@
 import React, { createContext, useCallback, useContext, useEffect } from 'react';
 
+import { rootSaga } from '../sagas';
+
 const SagaMiddlewareContext = createContext();
 
 export const useSaga = (saga, deps) => {
 	const sagaMiddleware = useContext(SagaMiddlewareContext);
 
-	useEffect(() => {
-		const task = sagaMiddleware.run(saga);
+	const effect = () => {
+		const task = sagaMiddleware.run(saga, ...deps || []);
 		return () => {
 			task.cancel();
 		};
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, deps);
+	};
+
+	useEffect(effect, deps);
 };
 
 export const useCallableSaga = (saga, deps) => {
 	const sagaMiddleware = useContext(SagaMiddlewareContext);
 
-	return useCallback((...args) => new Promise((resolve, reject) => {
+	const callback = (...args) => new Promise((resolve, reject) => {
 		sagaMiddleware.run(function *() {
 			try {
 				resolve(yield *saga(...args));
@@ -25,10 +28,18 @@ export const useCallableSaga = (saga, deps) => {
 				reject(error);
 			}
 		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}), deps);
+	});
+
+	return useCallback(callback, deps);
 };
 
 export function SagaMiddlewareProvider({ children, sagaMiddleware }) {
+	useEffect(() => {
+		const task = sagaMiddleware.run(rootSaga);
+		return () => {
+			task.cancel();
+		};
+	}, [sagaMiddleware]);
+
 	return <SagaMiddlewareContext.Provider children={children} value={sagaMiddleware} />;
 }

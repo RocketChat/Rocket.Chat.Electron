@@ -21,16 +21,16 @@ export const useElementsRefValues = (elements) => {
 
 	const [values, setValues] = useState([]);
 	const refs = useRef(Array.from({ length: elements.length }, () => createRef()));
-	refs.current = Array.from({ length: elements.length }, (_, i) => refs.current[i]);
+	refs.current = Array.from({ length: elements.length }, (_, i) => refs.current[i] || createRef());
 	const clonedElements = elements.map((element, i) => !!element && cloneElement(element, { key: i, ref: refs.current[i] }));
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const setValuesRef = useRef(setValues);
 	useLayoutEffect(() => {
-		setValues((values) => {
+		(0, setValuesRef.current)((values) => {
 			const newValues = refs.current.map((ref) => ref.current);
 			return isEachElementTheSame(values, newValues) ? values : newValues;
 		});
 	});
 
-	return [values, clonedElements];
+	return [values, clonedElements, setValues];
 };

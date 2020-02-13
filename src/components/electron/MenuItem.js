@@ -1,7 +1,8 @@
 import { remote } from 'electron';
-import React, { forwardRef, useImperativeHandle, useRef, useLayoutEffect } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useLayoutEffect } from 'react';
 
 import { useElementRefValue } from '../../hooks/useElementRefValue';
+import { useMenuInvalidation } from './Menu';
 
 export const MenuItem = forwardRef(function MenuItem({
 	children: submenuElement,
@@ -36,7 +37,12 @@ export const MenuItem = forwardRef(function MenuItem({
 	const visibleRef = useRef(visible);
 
 	useLayoutEffect(() => {
+		checkedRef.current = checked;
 		onClickRef.current = onClick;
+		enabledRef.current = enabled;
+		idRef.current = id;
+		registerAcceleratorRef.current = registerAccelerator;
+		visibleRef.current = visible;
 	});
 
 	useImperativeHandle(ref, () => {
@@ -78,27 +84,32 @@ export const MenuItem = forwardRef(function MenuItem({
 		type,
 	]);
 
+	const invalidateParent = useMenuInvalidation();
+
 	useLayoutEffect(() => {
 		innerRef.current.id = id;
-	}, [id]);
+		invalidateParent();
+	}, [id, invalidateParent]);
 
 	useLayoutEffect(() => {
 		innerRef.current.enabled = enabled;
-	}, [enabled]);
+		invalidateParent();
+	}, [enabled, invalidateParent]);
 
 	useLayoutEffect(() => {
 		innerRef.current.visible = visible;
-	}, [visible]);
+		invalidateParent();
+	}, [invalidateParent, visible]);
 
 	useLayoutEffect(() => {
 		innerRef.current.checked = checked;
-	}, [checked]);
+		invalidateParent();
+	}, [checked, invalidateParent]);
 
 	useLayoutEffect(() => {
 		innerRef.current.registerAccelerator = registerAccelerator;
-	}, [registerAccelerator]);
+		invalidateParent();
+	}, [invalidateParent, registerAccelerator]);
 
-	return <>
-		{clonedSubmenu}
-	</>;
+	return clonedSubmenu;
 });

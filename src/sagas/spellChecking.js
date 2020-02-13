@@ -1,209 +1,192 @@
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 
 import { remote } from 'electron';
-import mem from 'mem';
+import { SpellCheckerProvider } from 'electron-hunspell';
 import { all, call, put, select, takeEvery } from 'redux-saga/effects';
 
 import {
-	SPELL_CHECKING_DICTIONARY_ADDED,
-	SPELL_CHECKING_ERROR_THROWN,
-	SPELL_CHECKING_PARAMETERS_SET,
+	SPELL_CHECKING_DICTIONARIES_UPDATED,
 	SPELL_CHECKING_READY,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 } from '../actions';
-import { readArrayOf, writeArrayOf } from '../localStorage';
+import { readFromStorage, writeToStorage } from '../localStorage';
+import { getConfigurationPath } from '../sagaUtils';
 
-const { Spellchecker, getAvailableDictionaries } = remote.require('@felixrieseberg/spellchecker');
-
+const provider = new SpellCheckerProvider();
 const spellCheckers = new Map();
 
-const getCorrectionsForMisspelling = mem((text) => {
+const loadSpellCheckingDictionariesFromFiles = async (filePaths) => {
+	try {
+		return Object.values(
+			filePaths
+				.filter((filePath) => /^\.(dic|aff)$/.test(path.extname(filePath)))
+				.reduce((obj, filePath) => {
+					const extension = path.extname(filePath);
+					const name = path.basename(filePath, extension);
+					const type = extension.slice(1);
+					return {
+						...obj,
+						[name]: {
+							name,
+							...obj[name],
+							[type]: filePath,
+						},
+					};
+				}, {}),
+		)
+			.filter(({ aff, dic }) => aff && dic);
+	} catch (error) {
+		console.warn(error);
+		return [];
+	}
+};
+
+const loadSpellCheckingDictionariesFromDirectory = async (dictionariesDirectoryPath) => {
+	try {
+		const filePaths = (await fs.promises.readdir(dictionariesDirectoryPath))
+			.map((filename) => path.join(dictionariesDirectoryPath, filename));
+		return await loadSpellCheckingDictionariesFromFiles(filePaths);
+	} catch (error) {
+		console.warn(error);
+		return [];
+	}
+};
+
+function *loadSpellCheckingDictionaries() {
+	const appDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: true });
+	const userDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: false });
+
+	const [appDictionaries, userDictionaries] = yield all([
+		call(loadSpellCheckingDictionariesFromDirectory, appDictionariesDirectoryPath),
+		call(loadSpellCheckingDictionariesFromDirectory, userDictionariesDirectoryPath),
+	]);
+
+	const prevSpellCheckingDictionaries = yield select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
+
+	const enabledDictionaries = readFromStorage('enabledSpellCheckingDictionaries', [remote.app.getLocale()]);
+
+	return [...prevSpellCheckingDictionaries, ...appDictionaries, ...userDictionaries]
+		.reduce((dictionaries, dictionary) => {
+			const replaced = dictionaries.find(({ name }) => name === dictionary.name);
+			if (!replaced) {
+				return [...dictionaries, { ...dictionary, enabled: enabledDictionaries.includes(dictionary.name) }];
+			}
+
+			const replacer = { ...dictionary, enabled: replaced.enabled };
+
+			return dictionaries.map((dictionary) => (dictionary === replaced ? replacer : dictionary));
+		}, []);
+}
+
+function *toggleDictionary({ name, enabled, dic, aff }) {
+	if (!enabled) {
+		spellCheckers.delete(name);
+		yield call(::provider.unloadDictionary, name);
+		return;
+	}
+
+	if (spellCheckers.has(name)) {
+		return;
+	}
+
+	try {
+		const [dicBuffer, affBuffer] = yield all([
+			call(::fs.promises.readFile, dic),
+			call(::fs.promises.readFile, aff),
+		]);
+
+		yield call(::provider.loadDictionary, name, dicBuffer, affBuffer);
+		spellCheckers.set(name, provider.spellCheckerTable[name].spellChecker);
+	} catch (error) {
+		console.error(error);
+	}
+}
+
+function *takeEvents() {
+	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, function *() {
+		const spellCheckingDictionaries = yield select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
+		yield all(spellCheckingDictionaries.map(toggleDictionary));
+		writeToStorage('enabledSpellCheckingDictionaries', Array.from(spellCheckers.keys()));
+	});
+
+	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, function *({ payload: filePaths }) {
+		const userDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: false });
+		yield call(::fs.promises.mkdir, userDictionariesDirectoryPath, { recursive: true });
+
+		const newFilesPaths = yield all(
+			filePaths.map((filePath) => call(function *() {
+				const basename = path.basename(filePath);
+				const newPath = path.join(userDictionariesDirectoryPath, basename);
+
+				try {
+					yield call(::fs.promises.copyFile, filePath, newPath);
+				} catch (error) {
+					console.warn(error);
+				}
+
+				return newPath;
+			})),
+		);
+
+		const installedDictionaries = yield call(loadSpellCheckingDictionariesFromFiles, newFilesPaths);
+		const prevSpellCheckingDictionaries = yield select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
+
+		const spellCheckingDictionaries = [...prevSpellCheckingDictionaries, ...installedDictionaries]
+			.reduce((dictionaries, dictionary) => {
+				const replaced = dictionaries.find(({ name }) => name === dictionary.name);
+				if (!replaced) {
+					return [...dictionaries, dictionary];
+				}
+
+				const replacer = { ...dictionary, enabled: replaced.enabled };
+
+				return dictionaries.map((dictionary) => (dictionary === replaced ? replacer : dictionary));
+			}, []);
+
+		yield put({ type: SPELL_CHECKING_DICTIONARIES_UPDATED, payload: spellCheckingDictionaries });
+	});
+}
+
+export function *spellCheckingSaga() {
+	const installedSpellCheckingDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: false });
+	const spellCheckingDictionaries = yield *loadSpellCheckingDictionaries();
+
+	yield call(::provider.initialize);
+	spellCheckers.clear();
+	yield all(spellCheckingDictionaries.map(toggleDictionary));
+
+	yield put({
+		type: SPELL_CHECKING_READY,
+		payload: {
+			installedSpellCheckingDictionariesDirectoryPath,
+			spellCheckingDictionaries,
+		},
+	});
+
+	yield *takeEvents();
+}
+
+const isMisspelled = (word) => {
+	if (spellCheckers.size === 0) {
+		return false;
+	}
+
+	return Array.from(spellCheckers.values())
+		.every((spellChecker) => !spellChecker.spell(word));
+};
+
+export function *getMisspelledWords(words) {
+	return words.filter(isMisspelled);
+}
+
+export function *getCorrectionsForMisspelling(text) {
 	text = text.trim();
 
 	if (!text || spellCheckers.size === 0) {
 		return [];
 	}
 
-	return Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.getCorrectionsForMisspelling(text));
-});
-
-const isMisspelled = mem((word) => {
-	if (spellCheckers.size === 0) {
-		return false;
-	}
-
-	return Array.from(spellCheckers.values())
-		.every((spellChecker) => spellChecker.isMisspelled(word));
-});
-
-const getMisspelledWords = mem((words) => words.filter(isMisspelled));
-
-const loadConfiguration = async () => {
-	const isNSSpellCheckerUsed = os.platform() === 'darwin';
-	const isWindowsSpellCheckingAPIUsed = (() => {
-		if (os.platform() !== 'win32') {
-			return false;
-		}
-
-		const [major, minor] = os.release().split('.').map((slice) => parseInt(slice, 10));
-
-		return major >= 6 && minor >= 2;
-	})();
-	const isHunspellSpellCheckerUsed = !isNSSpellCheckerUsed && !isWindowsSpellCheckingAPIUsed;
-
-	let embeddedDictionaries = [];
-	try {
-		embeddedDictionaries = getAvailableDictionaries();
-	} catch (error) {
-		console.warn(error.stack);
-	}
-
-	let installedDictionariesDirectoryPath = null;
-	let installedDictionaries = [];
-	if (isHunspellSpellCheckerUsed) {
-		installedDictionariesDirectoryPath = path.join(
-			remote.app.getAppPath(),
-			remote.app.getAppPath().endsWith('app.asar') ? '..' : '.',
-			'dictionaries',
-		);
-
-		try {
-			installedDictionaries = (await fs.promises.readdir(installedDictionariesDirectoryPath, { encoding: 'utf8' }))
-				.filter((filename) => path.extname(filename).toLowerCase() === '.bdic')
-				.map((filename) => path.basename(filename, path.extname(filename)))
-				.sort();
-		} catch (error) {
-			console.warn(error.stack);
-		}
-	}
-
-	const availableDictionaries = Array.from(new Set([...embeddedDictionaries, ...installedDictionaries]));
-
-	const defaultDictionaries = availableDictionaries.includes(remote.app.getLocale()) ? [remote.app.getLocale()] : [];
-
-	const enabledDictionaries = readArrayOf(String, 'enabledSpellCheckingDictionaries', defaultDictionaries)
-		.filter((dictionaryName) => availableDictionaries.includes(dictionaryName));
-
-	const spellCheckingDictionaries = availableDictionaries.map((dictionaryName) => ({
-		name: dictionaryName,
-		installed: installedDictionaries.includes(dictionaryName),
-		enabled: enabledDictionaries.includes(dictionaryName),
-	}));
-
-	return {
-		isHunspellSpellCheckerUsed,
-		installedSpellCheckingDictionariesDirectoryPath: installedDictionariesDirectoryPath,
-		spellCheckingDictionaries,
-	};
-};
-
-function *createDictionaryReference({ name, installed }) {
-	if (!installed) {
-		return [name];
-	}
-
-	const installedSpellCheckingDictionariesDirectoryPath = yield select(({
-		installedSpellCheckingDictionariesDirectoryPath,
-	}) => installedSpellCheckingDictionariesDirectoryPath);
-
-	const dictionaryPath = path.join(
-		installedSpellCheckingDictionariesDirectoryPath,
-		`${ name }.bdic`,
-	);
-	const data = yield call(::fs.promises.readFile, dictionaryPath);
-
-	return [name, data];
-}
-
-function *toggleDictionary({ name, enabled, installed }) {
-	spellCheckers.delete(name);
-
-	if (!enabled) {
-		return;
-	}
-
-	try {
-		const dictionaryReference = yield *createDictionaryReference({ name, installed });
-		const spellChecker = new Spellchecker();
-		if (!spellChecker.setDictionary(...dictionaryReference)) {
-			throw new Error(`Dictionary not loaded: ${ name }`);
-		}
-		spellCheckers.set(name, spellChecker);
-	} catch (error) {
-		console.error(error);
-	}
-}
-
-function *updateSpellCheckers(spellCheckingDictionaries) {
-	yield all(spellCheckingDictionaries.map(toggleDictionary));
-	mem.clear(getCorrectionsForMisspelling);
-	mem.clear(isMisspelled);
-	mem.clear(getMisspelledWords);
-}
-
-export function *getCorrectionsForMisspellingSaga(text) {
-	return yield call(getCorrectionsForMisspelling, text);
-}
-
-export function *getMisspelledWordsSaga(words) {
-	return yield call(getMisspelledWords, words);
-}
-
-export function *spellCheckingSaga() {
-	const {
-		isHunspellSpellCheckerUsed,
-		installedSpellCheckingDictionariesDirectoryPath,
-		spellCheckingDictionaries,
-	} = yield call(loadConfiguration);
-
-	spellCheckers.clear();
-
-	yield put({
-		type: SPELL_CHECKING_PARAMETERS_SET,
-		payload: {
-			isHunspellSpellCheckerUsed,
-			installedSpellCheckingDictionariesDirectoryPath,
-		},
-	});
-
-	yield *updateSpellCheckers(spellCheckingDictionaries);
-
-	yield put({
-		type: SPELL_CHECKING_READY,
-		payload: {
-			spellCheckingDictionaries,
-		},
-	});
-
-	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, function *() {
-		const spellCheckingDictionaries = yield select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
-		yield *updateSpellCheckers(spellCheckingDictionaries);
-		writeArrayOf(String, 'enabledSpellCheckingDictionaries', Array.from(spellCheckers.keys()));
-	});
-
-	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, function *({ payload: filePaths }) {
-		const isHunspellSpellCheckerUsed = yield select(({ isHunspellSpellCheckerUsed }) => isHunspellSpellCheckerUsed);
-
-		if (!isHunspellSpellCheckerUsed) {
-			return;
-		}
-
-		const installedSpellCheckingDictionariesDirectoryPath = yield select(({
-			installedSpellCheckingDictionariesDirectoryPath,
-		}) => installedSpellCheckingDictionariesDirectoryPath);
-
-		yield all(filePaths.map(function *(filePath) {
-			const basename = path.basename(filePath);
-			const targetPath = path.join(installedSpellCheckingDictionariesDirectoryPath, basename);
-			try {
-				yield call(::fs.promises.copyFile, filePath, targetPath);
-				yield put({ type: SPELL_CHECKING_DICTIONARY_ADDED, payload: basename });
-			} catch (error) {
-				yield call({ type: SPELL_CHECKING_ERROR_THROWN, payload: error });
-			}
-		}));
-	});
+	return Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.suggest(text));
 }

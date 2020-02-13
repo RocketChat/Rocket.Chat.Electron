@@ -5,13 +5,13 @@ export const useElementRefValue = (element) => {
 	const ref = useRef();
 	const clonedElement = !!element && cloneElement(element, { ref });
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const setValueRef = useRef(setValue);
 	useLayoutEffect(() => {
-		setValue((value) => {
+		(0, setValueRef.current)((value) => {
 			const newValue = ref.current;
 			return Object.is(value, newValue) ? value : newValue;
 		});
 	});
 
-	return [value, clonedElement];
+	return [value, clonedElement, setValue];
 };

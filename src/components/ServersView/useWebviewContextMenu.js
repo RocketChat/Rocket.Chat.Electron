@@ -10,7 +10,6 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 	const { t } = useTranslation();
 
 	const dictionaries = useSelector(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
-	const canInstallDictionaries = useSelector(({ isHunspellSpellCheckerUsed }) => isHunspellSpellCheckerUsed);
 	const dictionariesDirectoryPath = useSelector(({ installedSpellCheckingDictionariesDirectoryPath }) => installedSpellCheckingDictionariesDirectoryPath);
 	const getCorrectionsForMisspelling = useCorrectionsForMisspelling();
 
@@ -37,7 +36,7 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 					title: t('dialog.loadDictionary.title'),
 					defaultPath: dictionariesDirectoryPath,
 					filters: [
-						{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['bdic'] },
+						{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['dic', 'aff'] },
 						{ name: t('dialog.loadDictionary.allFiles'), extensions: ['*'] },
 					],
 					properties: ['openFile', 'multiSelections'],
@@ -82,18 +81,16 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 							checked: enabled,
 							click: ({ checked }) => dispatch({
 								type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-								payload: { dictionaryName: name, enabled: checked },
+								payload: { name, enabled: checked },
 							}),
 						})),
-						...canInstallDictionaries ? [
-							{
-								type: 'separator',
-							},
-							{
-								label: t('contextMenu.browseForLanguage'),
-								click: handleBrowserForLanguage,
-							},
-						] : [],
+						{
+							type: 'separator',
+						},
+						{
+							label: t('contextMenu.browseForLanguage'),
+							click: handleBrowserForLanguage,
+						},
 					],
 				},
 				{
@@ -225,5 +222,5 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 		return () => {
 			root.removeEventListener('context-menu', handleContextMenu);
 		};
-	}, [canInstallDictionaries, dictionariesDirectoryPath, dispatch, getCorrectionsForMisspelling, dictionaries, t, webContents, webviewRef]);
+	}, [dictionariesDirectoryPath, dispatch, getCorrectionsForMisspelling, dictionaries, t, webContents, webviewRef]);
 };

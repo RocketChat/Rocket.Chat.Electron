@@ -1,5 +1,6 @@
 import { remote } from 'electron';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 
 import { Menu } from '../electron/Menu';
 import { AppMenu } from './AppMenu';
@@ -8,49 +9,29 @@ import { ViewMenu } from './ViewMenu';
 import { WindowMenu } from './WindowMenu';
 import { HelpMenu } from './HelpMenu';
 
-export function MenuBar({
-	showFullScreen,
-	showServerList,
-	showTrayIcon,
-	showMenuBar,
-	showWindowOnUnreadChanged,
-}) {
+export function MenuBar() {
+	const isMenuBarEnabled = useSelector(({ isMenuBarEnabled }) => isMenuBarEnabled);
+
 	useEffect(() => {
 		if (process.platform === 'darwin') {
 			return;
 		}
 
-		remote.getCurrentWindow().autoHideMenuBar = !showMenuBar;
-		remote.getCurrentWindow().setMenuBarVisibility(!!showMenuBar);
-	}, [showMenuBar]);
+		remote.getCurrentWindow().autoHideMenuBar = !isMenuBarEnabled;
+		remote.getCurrentWindow().setMenuBarVisibility(!!isMenuBarEnabled);
+	}, [isMenuBarEnabled]);
 
-	const menuRef = useRef();
-	const prevMenuRef = useRef();
+	const [menu, setMenu] = useState(null);
+
 	useEffect(() => {
-		if (prevMenuRef.current === menuRef.current) {
-			return;
-		}
+		remote.Menu.setApplicationMenu(menu);
+	}, [menu]);
 
-		remote.Menu.setApplicationMenu(menuRef.current);
-		prevMenuRef.current = menuRef.current;
-	});
-
-	useEffect(() => () => {
-		remote.Menu.setApplicationMenu(null);
-	}, []);
-
-	return <Menu ref={menuRef}>
+	return <Menu ref={setMenu}>
 		<AppMenu />
 		<EditMenu />
-		<ViewMenu
-			showFullScreen={showFullScreen}
-			showMenuBar={showMenuBar}
-			showServerList={showServerList}
-			showTrayIcon={showTrayIcon}
-		/>
-		<WindowMenu
-			showWindowOnUnreadChanged={showWindowOnUnreadChanged}
-		/>
+		<ViewMenu />
+		<WindowMenu />
 		<HelpMenu />
 	</Menu>;
 }

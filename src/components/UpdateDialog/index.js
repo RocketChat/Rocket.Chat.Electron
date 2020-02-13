@@ -40,12 +40,10 @@ export function UpdateDialog() {
 			defaultId: 0,
 		});
 		dispatch({ type: UPDATE_DIALOG_SKIP_UPDATE_CLICKED, payload: newVersion });
-		dispatch({ type: UPDATE_DIALOG_DISMISSED });
 	};
 
 	const handleRemindLaterButtonClick = () => {
 		dispatch({ type: UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED });
-		dispatch({ type: UPDATE_DIALOG_DISMISSED });
 	};
 
 	const handleInstallButtonClick = async () => {
@@ -57,7 +55,6 @@ export function UpdateDialog() {
 			defaultId: 0,
 		});
 		dispatch({ type: UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED });
-		dispatch({ type: UPDATE_DIALOG_DISMISSED });
 	};
 
 	return <Dialog isVisible={isVisible} onClose={() => dispatch({ type: UPDATE_DIALOG_DISMISSED })}>

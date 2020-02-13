@@ -1,3 +1,21 @@
+## [2.17.7](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.6...2.17.7) (2020-02-11)
+
+
+### Bug Fixes
+
+* Spell checking dictionaries files encoded as UTF-8 ([18b9524](https://github.com/RocketChat/Rocket.Chat.Electron/commit/18b95241a9df47751c5d67a55c5e2cf73e2763ca))
+
+
+
+## [2.17.6](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.5...2.17.6) (2020-02-11)
+
+
+### Bug Fixes
+
+* Rollback to plain-text Hunspell dictionaries ([#1514](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1514)) ([0f16d32](https://github.com/RocketChat/Rocket.Chat.Electron/commit/0f16d32845faf5b9a9b475db3c34420d982cb6bc))
+
+
+
 ## [2.17.5](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.4...2.17.5) (2020-02-04)
 
 

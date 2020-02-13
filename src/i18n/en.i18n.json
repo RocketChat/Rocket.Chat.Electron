@@ -184,6 +184,12 @@
             "unreadMention": "{{- appName}}: you have a unread mention/direct message",
             "unreadMention_plural": "{{- appName}}: you have {{- count}} unread mentions/direct messages",
             "unreadMessage": "{{- appName}}: you have unread messages"
+        },
+        "balloon": {
+            "stillRunning": {
+                "title": "{{- appName}} is still running",
+                "content": "{{- appName }} is set to stay running in the system tray/notification area."
+            }
         }
     }
 }

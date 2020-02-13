@@ -2,12 +2,13 @@ import { remote } from 'electron';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { takeEvery } from 'redux-saga/effects';
+import { select, takeEvery } from 'redux-saga/effects';
 
-import { getTrayIconPath } from '../icons';
+import { getTrayIconPath, getAppIconPath } from '../icons';
 import {
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
+	MAIN_WINDOW_STATE_CHANGED,
 } from '../actions';
 import { Menu } from './electron/Menu';
 import { MenuItem } from './electron/MenuItem';
@@ -81,6 +82,7 @@ export function TrayIcon() {
 
 		innerRef.current = new remote.Tray(imageRef.current);
 		innerRef.current.addListener('click', (...args) => onClickRef.current && (0, onClickRef.current)(...args));
+		innerRef.current.addListener('balloon-click', (...args) => onClickRef.current && (0, onClickRef.current)(...args));
 		innerRef.current.addListener('right-click', (...args) => onRightClickRef.current && (0, onRightClickRef.current)(...args));
 
 		return () => {
@@ -119,6 +121,23 @@ export function TrayIcon() {
 
 		innerRef.current.setContextMenu(menu);
 	}, [menu]);
+
+	useSaga(function *(appName, t) {
+		let prevIsMainWindowVisible = yield select(({ mainWindowState: { visible } }) => visible);
+		yield takeEvery(MAIN_WINDOW_STATE_CHANGED, function *() {
+			const isMainWindowVisible = yield select(({ mainWindowState: { visible } }) => visible);
+
+			if (prevIsMainWindowVisible && !isMainWindowVisible) {
+				innerRef.current.displayBalloon({
+					icon: getAppIconPath(),
+					title: t('tray.balloon.stillRunning.title', { appName }),
+					content: t('tray.balloon.stillRunning.content', { appName }),
+				});
+			}
+
+			prevIsMainWindowVisible = isMainWindowVisible;
+		});
+	}, [appName, t]);
 
 	return <>
 		<Menu ref={setMenu}>

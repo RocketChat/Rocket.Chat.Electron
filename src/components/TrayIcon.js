@@ -1,18 +1,22 @@
 import { remote } from 'electron';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { takeEvery } from 'redux-saga/effects';
 
 import { getTrayIconPath } from '../icons';
 import {
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
 } from '../actions';
-
-const appName = remote.app.name;
+import { Menu } from './electron/Menu';
+import { MenuItem } from './electron/MenuItem';
+import { useSaga } from './SagaMiddlewareProvider';
+import { createEventChannelFromEmitter } from '../sagaUtils';
 
 export function TrayIcon() {
-	const isMainWindowToBeShown = useSelector(({ mainWindowState: { visible, focused } }) => !visible || !focused);
+	const appName = remote.app.name;
+	const isMainWindowToBeShown = useSelector(({ mainWindowState: { visible } }) => !visible);
 	const isTrayIconEnabled = useSelector(({ isTrayIconEnabled }) => isTrayIconEnabled);
 
 	const badge = useSelector(({ servers }) => {
@@ -26,19 +30,22 @@ export function TrayIcon() {
 	const dispatch = useDispatch();
 	const { t } = useTranslation();
 
-	const trayIconRef = useRef();
+	const innerRef = useRef();
 
-	const handleThemeUpdate = () => {
-		if (!trayIconRef.current) {
-			return;
-		}
+	const [isDarkModeEnabled, setDarkModeEnabled] = useState(remote.nativeTheme.shouldUseDarkColors);
+	useSaga(function *(nativeTheme) {
+		const nativeThemeUpdatedEvent = createEventChannelFromEmitter(nativeTheme, 'updated');
 
-		trayIconRef.current.setImage(getTrayIconPath({ badge }));
-	};
+		yield takeEvery(nativeThemeUpdatedEvent, function *() {
+			setDarkModeEnabled(nativeTheme.shouldUseDarkColors);
+		});
+	}, [remote.nativeTheme]);
 
-	const getIconTitle = () => (Number.isInteger(badge) ? String(badge) : '');
+	const image = useMemo(() => getTrayIconPath({ badge, dark: isDarkModeEnabled }), [badge, isDarkModeEnabled]);
 
-	const getIconTooltip = () => {
+	const title = useMemo(() => (Number.isInteger(badge) ? String(badge) : ''), [badge]);
+
+	const toolTip = useMemo(() => {
 		if (badge === '•') {
 			return t('tray.tooltip.unreadMessage', { appName });
 		}
@@ -48,79 +55,81 @@ export function TrayIcon() {
 		}
 
 		return t('tray.tooltip.noUnreadMessage', { appName });
-	};
+	}, [appName, badge, t]);
 
-	const createContextMenuTemplate = () => [
-		{
-			label: isMainWindowToBeShown ? t('tray.menu.show') : t('tray.menu.hide'),
-			click: () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: isMainWindowToBeShown }),
-		},
-		{
-			label: t('tray.menu.quit'),
-			click: () => dispatch({ type: TRAY_ICON_QUIT_CLICKED }),
-		},
-	];
+	const [menu, setMenu] = useState(null);
 
-	const createIcon = () => {
-		const image = getTrayIconPath({ badge });
-
-		if (trayIconRef.current) {
-			trayIconRef.current.setImage(image);
-			return;
-		}
-
-		trayIconRef.current = new remote.Tray(image);
-
-		if (process.platform === 'darwin') {
-			remote.nativeTheme.addListener('updated', handleThemeUpdate);
-		}
-
-		trayIconRef.current.addListener('click', () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: isMainWindowToBeShown }));
-		trayIconRef.current.addListener('right-click', (event, bounds) => trayIconRef.current.popUpContextMenu(undefined, bounds));
-	};
-
-	const destroyIcon = () => {
-		if (!trayIconRef.current) {
-			return;
-		}
-
-		if (process.platform === 'darwin') {
-			remote.nativeTheme.off('updated', handleThemeUpdate);
-		}
-
-		trayIconRef.current.destroy();
-		trayIconRef.current = null;
-	};
-
+	const onClickRef = useRef();
 	useEffect(() => {
-		if (!isTrayIconEnabled) {
-			destroyIcon({ dispatch });
-			return;
-		}
+		onClickRef.current = () => {
+			dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: isMainWindowToBeShown });
+		};
+	}, [dispatch, isMainWindowToBeShown]);
 
-		createIcon();
-
-		trayIconRef.current.setToolTip(getIconTooltip());
-
-		if (process.platform === 'darwin') {
-			trayIconRef.current.setTitle(getIconTitle());
-		}
-
-		const template = createContextMenuTemplate();
-		const menu = remote.Menu.buildFromTemplate(template);
-		trayIconRef.current.setContextMenu(menu);
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		badge,
-		isMainWindowToBeShown,
-		isTrayIconEnabled,
-		dispatch,
-	]);
-
-	useEffect(() => () => {
-		destroyIcon();
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const onRightClickRef = useRef();
+	useEffect(() => {
+		onRightClickRef.current = (event, bounds) => {
+			innerRef.current.popUpContextMenu(undefined, bounds);
+		};
 	}, []);
 
-	return null;
+	const imageRef = useRef(image);
+	useEffect(() => {
+		if (!isTrayIconEnabled) {
+			return;
+		}
+
+		innerRef.current = new remote.Tray(imageRef.current);
+		innerRef.current.addListener('click', (...args) => onClickRef.current && (0, onClickRef.current)(...args));
+		innerRef.current.addListener('right-click', (...args) => onRightClickRef.current && (0, onRightClickRef.current)(...args));
+
+		return () => {
+			innerRef.current.destroy();
+		};
+	}, [isTrayIconEnabled]);
+
+	useEffect(() => {
+		if (!innerRef.current) {
+			return;
+		}
+
+		innerRef.current.setImage(image);
+	}, [image]);
+
+	useEffect(() => {
+		if (!innerRef.current) {
+			return;
+		}
+
+		innerRef.current.setTitle(title);
+	}, [title]);
+
+	useEffect(() => {
+		if (!innerRef.current) {
+			return;
+		}
+
+		innerRef.current.setToolTip(toolTip);
+	}, [toolTip]);
+
+	useEffect(() => {
+		if (!innerRef.current) {
+			return;
+		}
+
+		innerRef.current.setContextMenu(menu);
+	}, [menu]);
+
+	return <>
+		<Menu ref={setMenu}>
+			<MenuItem
+				label={isMainWindowToBeShown ? t('tray.menu.show') : t('tray.menu.hide')}
+				onClick={() => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: isMainWindowToBeShown })}
+			/>
+			<MenuItem
+				label={t('tray.menu.quit')}
+				onClick={() => dispatch({ type: TRAY_ICON_QUIT_CLICKED })}
+			/>
+		</Menu>
+	</>;
 }

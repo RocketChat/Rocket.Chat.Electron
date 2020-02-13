@@ -5,8 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { getTrayIconPath } from '../icons';
 import {
-	TRAY_ICON_DESTROYED,
-	TRAY_ICON_CREATED,
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
 } from '../actions';
@@ -79,8 +77,6 @@ export function TrayIcon() {
 
 		trayIconRef.current.addListener('click', () => dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: isMainWindowToBeShown }));
 		trayIconRef.current.addListener('right-click', (event, bounds) => trayIconRef.current.popUpContextMenu(undefined, bounds));
-
-		dispatch({ type: TRAY_ICON_CREATED });
 	};
 
 	const destroyIcon = () => {
@@ -94,7 +90,6 @@ export function TrayIcon() {
 
 		trayIconRef.current.destroy();
 		trayIconRef.current = null;
-		dispatch({ type: TRAY_ICON_DESTROYED });
 	};
 
 	useEffect(() => {

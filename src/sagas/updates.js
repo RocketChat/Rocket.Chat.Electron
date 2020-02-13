@@ -155,6 +155,7 @@ function *install() {
 	}
 
 	try {
+		remote.app.removeAllListeners('window-all-closed');
 		yield call(::autoUpdater.quitAndInstall);
 	} catch (error) {
 		yield put({ type: UPDATES_ERROR_THROWN, payload: error });

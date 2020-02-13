@@ -8,7 +8,7 @@ export const useSaga = (saga, deps) => {
 	const sagaMiddleware = useContext(SagaMiddlewareContext);
 
 	const effect = () => {
-		const task = sagaMiddleware.run(saga);
+		const task = sagaMiddleware.run(saga, ...deps || []);
 		return () => {
 			task.cancel();
 		};

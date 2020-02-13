@@ -13,6 +13,7 @@ import {
 	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
 	WEBVIEW_CERTIFICATE_DENIED,
 	WEBVIEW_CERTIFICATE_TRUSTED,
+	MENU_BAR_OPEN_URL_CLICKED,
 } from '../actions';
 import { readFromStorage } from '../localStorage';
 import { createEventChannelFromEmitter, keepStoreValuePersisted, readConfigurationFile } from '../sagaUtils';
@@ -158,6 +159,10 @@ function *takeActions() {
 
 		queuedClientCertificateRequests.delete(requestId);
 		callback(certificate);
+	});
+
+	yield takeEvery(MENU_BAR_OPEN_URL_CLICKED, function *({ payload: url }) {
+		remote.shell.openExternal(url);
 	});
 }
 

@@ -6,13 +6,12 @@ import { Provider, useDispatch } from 'react-redux';
 import { call, put, select, takeEvery } from 'redux-saga/effects';
 
 import {
-	MENU_BAR_QUIT_CLICKED,
-	MENU_BAR_OPEN_URL_CLICKED,
-	MENU_BAR_RESET_APP_DATA_CLICKED,
-	TRAY_ICON_QUIT_CLICKED,
 	DEEP_LINK_TRIGGERED,
-	DEEP_LINKS_SERVER_FOCUSED,
 	DEEP_LINKS_SERVER_ADDED,
+	DEEP_LINKS_SERVER_FOCUSED,
+	MAIN_WINDOW_INSTALL_UPDATE_CLICKED,
+	MENU_BAR_RESET_APP_DATA_CLICKED,
+	UPDATES_UPDATE_DOWNLOADED,
 } from '../actions';
 import { MainWindow } from './MainWindow';
 import { AboutDialog } from './AboutDialog';
@@ -34,20 +33,10 @@ function AppContent() {
 	const { t } = useTranslation();
 
 	useSaga(function *() {
-		yield takeEvery([MENU_BAR_QUIT_CLICKED, TRAY_ICON_QUIT_CLICKED], function *() {
-			remote.app.quit();
-		});
-
-		yield takeEvery(MENU_BAR_OPEN_URL_CLICKED, function *({ payload: url }) {
-			remote.shell.openExternal(url);
-		});
-	}, []);
-
-	useSaga(function *() {
 		yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
-			const servers = yield select(({ servers }) => servers);
+			const isServerAlreadyAdded = yield select(({ servers }) => servers.some((server) => server.url === url));
 
-			if (servers.some((server) => server.url === url)) {
+			if (isServerAlreadyAdded) {
 				yield put({ type: DEEP_LINKS_SERVER_FOCUSED, payload: url });
 				return;
 			}
@@ -85,6 +74,32 @@ function AppContent() {
 
 			remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
 			remote.app.quit();
+		});
+
+		yield takeEvery(UPDATES_UPDATE_DOWNLOADED, function *() {
+			const { response } = yield call(::remote.dialog.showMessageBox, remote.getCurrentWindow(), {
+				type: 'question',
+				title: t('dialog.updateReady.title'),
+				message: t('dialog.updateReady.message'),
+				buttons: [
+					t('dialog.updateReady.installLater'),
+					t('dialog.updateReady.installNow'),
+				],
+				defaultId: 1,
+			});
+
+			if (response === 0) {
+				yield call(::remote.dialog.showMessageBox, remote.getCurrentWindow(), {
+					type: 'info',
+					title: t('dialog.updateInstallLater.title'),
+					message: t('dialog.updateInstallLater.message'),
+					buttons: [t('dialog.updateInstallLater.ok')],
+					defaultId: 0,
+				});
+				return;
+			}
+
+			yield put({ type: MAIN_WINDOW_INSTALL_UPDATE_CLICKED });
 		});
 	}, []);
 

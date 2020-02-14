@@ -72,7 +72,9 @@ function AppContent() {
 				return;
 			}
 
-			remote.app.relaunch({ args: [remote.process.argv[1], '--reset-app-data'] });
+			const command = remote.process.argv.slice(0, remote.app.isPackaged ? 1 : 2);
+
+			remote.app.relaunch({ args: [...command.slice(1), '--reset-app-data'] });
 			remote.app.quit();
 		});
 

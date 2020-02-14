@@ -24,10 +24,17 @@ const prepareApp = () => {
 
 	app.setPath('userData', path.join(app.getPath('appData'), dirName));
 
-	if (process.argv[2] === '--reset-app-data') {
+	const [command, args] = [
+		process.argv.slice(0, app.isPackaged ? 1 : 2),
+		process.argv.slice(app.isPackaged ? 1 : 2),
+	];
+
+	console.log(args);
+
+	if (args.includes('--reset-app-data')) {
 		const dataDir = app.getPath('userData');
 		rimraf.sync(dataDir);
-		app.relaunch({ args: [process.argv[1]] });
+		app.relaunch({ args: [...command.slice(1)] });
 		app.exit();
 		return;
 	}

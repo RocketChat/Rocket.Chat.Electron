@@ -54,11 +54,13 @@ function *takeAppEvents() {
 	});
 
 	yield takeEvery(secondInstanceChannel, function *([, argv]) {
-		yield all(argv.slice(2).map((arg) => fork(processDeepLink, arg)));
+		const args = argv.slice(remote.app.isPackaged ? 1 : 2);
+		yield all(args.map((arg) => fork(processDeepLink, arg)));
 	});
 }
 
 export function *deepLinksSaga() {
 	yield *takeAppEvents();
-	yield all(remote.process.argv.slice(2).map((arg) => fork(processDeepLink, arg)));
+	const args = remote.process.argv.slice(remote.app.isPackaged ? 1 : 2);
+	yield all(args.map((arg) => fork(processDeepLink, arg)));
 }

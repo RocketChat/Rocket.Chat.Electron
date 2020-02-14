@@ -2836,6 +2836,11 @@ dictionary-es-es@^1.0.1:
   resolved "https://registry.yarnpkg.com/dictionary-es-es/-/dictionary-es-es-1.0.1.tgz#c532b118b29c20854f7f6c32d901162b7950662e"
   integrity sha512-DfKnkKC5B2NVH61jA6EKAC4re09VxMBHwZLEqrJXiKdpLkWsJXtf3+ITdVAIbk7sFvBYYmI2zEK9ETyv5E5/Dg==
 
+dictionary-fr@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/dictionary-fr/-/dictionary-fr-2.4.1.tgz#b013bb547f3ceae2fdb59a5bf4e618e7983ebb45"
+  integrity sha512-hgOBOvNNw1hf2AZajXzVqUuzI8Lnoqj2tqU+jerV6XshuRmGh6d0fNhNIH5juqsR+L4M8kCL0R91F1ONCden4Q==
+
 dictionary-pt-br@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/dictionary-pt-br/-/dictionary-pt-br-2.0.1.tgz#c1f363658735fb4c692b022066d5d9e9734853a7"

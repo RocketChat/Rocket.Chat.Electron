@@ -55,7 +55,7 @@ const loadSpellCheckingDictionariesFromDirectory = async (dictionariesDirectoryP
 };
 
 function *loadSpellCheckingDictionaries() {
-	const embeddedDictionaries = ['de', 'en-GB', 'en-US', 'es-ES', 'pt-BR', 'tr', 'ru'].map((name) => ({
+	const embeddedDictionaries = ['de', 'en-GB', 'en-US', 'es-ES', 'fr', 'pt-BR', 'tr', 'ru'].map((name) => ({
 		name,
 		aff: path.join(require.resolve(`dictionary-${ name.toLowerCase() }/package.json`), '../index.aff'),
 		dic: path.join(require.resolve(`dictionary-${ name.toLowerCase() }/package.json`), '../index.dic'),
@@ -196,8 +196,8 @@ export function *getMisspelledWords(words) {
 export function *getCorrectionsForMisspelling(text) {
 	text = text.trim();
 
-	if (!text || spellCheckers.size === 0) {
-		return [];
+	if (!text || spellCheckers.size === 0 || !isMisspelled(text)) {
+		return null;
 	}
 
 	return Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.suggest(text));

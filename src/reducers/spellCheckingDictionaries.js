@@ -23,7 +23,7 @@ export const spellCheckingDictionaries = (state = [], { type, payload }) => {
 					};
 				}
 
-				return dictionary;
+				return enabled ? { ...dictionary, enabled: false } : dictionary;
 			});
 		}
 

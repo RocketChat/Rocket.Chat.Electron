@@ -2816,6 +2816,46 @@ detect-node@^2.0.4:
   resolved "https://registry.yarnpkg.com/detect-node/-/detect-node-2.0.4.tgz#014ee8f8f669c5c58023da64b8179c083a28c46c"
   integrity sha512-ZIzRpLJrOj7jjP2miAtgqIfmzbxa4ZOr5jJc601zklsfEx9oTzmmj2nVpIPRpNlRTIh8lc1kyViIY7BWSGNmKw==
 
+dictionary-de@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/dictionary-de/-/dictionary-de-2.0.3.tgz#df50c749fddbff601f5bd044aef4622a365a15b2"
+  integrity sha512-fbNcCIjDrdNvu7DzMzkOY77vIaGqiDQqf9vtwGud1fcSxVWwX6EdtHcosmgG7AA10u3QgDVkymMaX9mr3elwRw==
+
+dictionary-en-gb@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/dictionary-en-gb/-/dictionary-en-gb-2.2.1.tgz#8ef21b484b0ce89cdebd60c1b2b65f56df9a475f"
+  integrity sha512-kYhSoaD9yOaq/h14DyT/+hyjs5X96kFdnlmy582wr+hCOIRuv1hqAe9gWM+oUQAA1+MH8fAKzyAsTxS8ps/qsg==
+
+dictionary-en-us@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/dictionary-en-us/-/dictionary-en-us-2.2.1.tgz#f57ef9ae0edcfa0a70db6558843de5a01cb87771"
+  integrity sha512-Z8mycV0ywTfjbUTi0JZfQHqBZhu4CYFtpf7KluSGpt3xHpFlal2S/hiK50tlPynOtR5K3pG5wCradnz1yxwOHA==
+
+dictionary-es-es@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/dictionary-es-es/-/dictionary-es-es-1.0.1.tgz#c532b118b29c20854f7f6c32d901162b7950662e"
+  integrity sha512-DfKnkKC5B2NVH61jA6EKAC4re09VxMBHwZLEqrJXiKdpLkWsJXtf3+ITdVAIbk7sFvBYYmI2zEK9ETyv5E5/Dg==
+
+dictionary-fr@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/dictionary-fr/-/dictionary-fr-2.4.1.tgz#b013bb547f3ceae2fdb59a5bf4e618e7983ebb45"
+  integrity sha512-hgOBOvNNw1hf2AZajXzVqUuzI8Lnoqj2tqU+jerV6XshuRmGh6d0fNhNIH5juqsR+L4M8kCL0R91F1ONCden4Q==
+
+dictionary-pt-br@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/dictionary-pt-br/-/dictionary-pt-br-2.0.1.tgz#c1f363658735fb4c692b022066d5d9e9734853a7"
+  integrity sha512-TvPlZWXzKya6vnajLKfKr/FwOeT2bmGHlWlasA4MVhmTZeXH0Fif37uLigQGLWZlqncz7iX57iXGAwvN5SbDIg==
+
+dictionary-ru@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/dictionary-ru/-/dictionary-ru-2.0.1.tgz#92a763f821f629d985b2b5ed554a7d25eb055a46"
+  integrity sha512-jCBYpgYuu5UBaHVaTr8qIXRDVTa7skkhd5PdVL0sh1clg6pcinsqXJcM7qj7UnjwrnCr/k3zueHG4k025MZS+Q==
+
+dictionary-tr@^1.3.3:
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/dictionary-tr/-/dictionary-tr-1.3.3.tgz#85aa9aa434c8258cec5bc28b405e983543de7e2d"
+  integrity sha512-p054brtIocq0evXT7aiHR8x1eGMH3GMdWRzC7JlKF/7bWVW/Cp1LFudv2cEPPLG4G9EKPjWY6jOscjYU7HnSNA==
+
 diff@3.5.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/diff/-/diff-3.5.0.tgz#800c0dd1e0a8bfbc95835c202ad220fe317e5a12"

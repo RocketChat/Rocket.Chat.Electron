@@ -221,3 +221,14 @@ On Linux the full paths are:
 ## License
 
 Released under the MIT license.
+
+### Spelling dictionaries
+
+- German: [GPL-2.0 OR GPL-3.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/de/license)
+- English (United Kingdom): [MIT AND BSD](https://github.com/wooorm/dictionaries/blob/master/dictionaries/en-GB/license)
+- English (United States): [MIT AND BSD](https://github.com/wooorm/dictionaries/blob/master/dictionaries/en-US/license)
+- Spanish (or Castilian; Spain): [GPL-3.0 OR LGPL-3.0 OR MPL-1.1](https://github.com/wooorm/dictionaries/blob/master/dictionaries/es-ES/license)
+- French: [MPL-2.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/fr/license)
+- Portuguese (Brazil): [LGPL-3.0 OR MPL-2.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/pt-BR/license)
+- Russian: [LGPL-3.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/ru/license)
+- Turkish: [MIT](https://github.com/wooorm/dictionaries/blob/master/dictionaries/tr/license)

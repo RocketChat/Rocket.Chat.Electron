@@ -29,8 +29,6 @@ const prepareApp = () => {
 		process.argv.slice(app.isPackaged ? 1 : 2),
 	];
 
-	console.log(args);
-
 	if (args.includes('--reset-app-data')) {
 		const dataDir = app.getPath('userData');
 		rimraf.sync(dataDir);

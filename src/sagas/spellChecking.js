@@ -55,8 +55,16 @@ const loadSpellCheckingDictionariesFromDirectory = async (dictionariesDirectoryP
 };
 
 function *loadSpellCheckingDictionaries() {
+	const embeddedDictionaries = ['de', 'en-GB', 'en-US', 'es-ES', 'pt-BR', 'tr', 'ru'].map((name) => ({
+		name,
+		aff: path.join(require.resolve(`dictionary-${ name.toLowerCase() }/package.json`), '../index.aff'),
+		dic: path.join(require.resolve(`dictionary-${ name.toLowerCase() }/package.json`), '../index.dic'),
+	}));
+
 	const appDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: true });
 	const userDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: false });
+
+	yield call(::fs.promises.mkdir, userDictionariesDirectoryPath, { recursive: true });
 
 	const [appDictionaries, userDictionaries] = yield all([
 		call(loadSpellCheckingDictionariesFromDirectory, appDictionariesDirectoryPath),
@@ -67,7 +75,12 @@ function *loadSpellCheckingDictionaries() {
 
 	const enabledDictionaries = readFromStorage('enabledSpellCheckingDictionaries', [remote.app.getLocale()]);
 
-	return [...prevSpellCheckingDictionaries, ...appDictionaries, ...userDictionaries]
+	return [
+		...prevSpellCheckingDictionaries,
+		...embeddedDictionaries,
+		...appDictionaries,
+		...userDictionaries,
+	]
 		.reduce((dictionaries, dictionary) => {
 			const replaced = dictionaries.find(({ name }) => name === dictionary.name);
 			if (!replaced) {
@@ -113,7 +126,6 @@ function *takeEvents() {
 
 	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, function *({ payload: filePaths }) {
 		const userDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: false });
-		yield call(::fs.promises.mkdir, userDictionariesDirectoryPath, { recursive: true });
 
 		const newFilesPaths = yield all(
 			filePaths.map((filePath) => call(function *() {

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
 import {
@@ -100,4 +100,16 @@ export const useWebviewPreload = (webviewRef, webContents, { url, hasSidebar, ac
 			webContents.send('screen-sharing-source-selected', sourceId);
 		});
 	}, [webContents, visible]);
+
+	const dictionaryName = useSelector(({ spellCheckingDictionaries }) =>
+		spellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name)[0]);
+
+	useEffect(() => {
+		if (!webContents || !visible) {
+			return;
+		}
+
+		const language = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
+		webContents.send('set-spell-checking-language', language);
+	}, [webContents, visible, dictionaryName]);
 };

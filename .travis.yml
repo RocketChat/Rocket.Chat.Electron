@@ -17,22 +17,18 @@ jobs:
     deploy:
       - provider: snap
         cleanup: false
+        skip_cleanup: true
         snap: dist/*.snap
         channel: beta
         on:
           branch: develop
       - provider: snap
         cleanup: false
+        skip_cleanup: true
         snap: dist/*.snap
         channel: stable
         on:
           branch: master
-      - provider: snap
-        cleanup: false
-        snap: dist/*.snap
-        channel: beta/regression
-        on:
-          branch: /^hotfix\/.*$/
   - os: osx
     osx_image: xcode11.2
 

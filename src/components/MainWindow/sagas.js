@@ -3,7 +3,34 @@ import { call, put, select, takeEvery } from 'redux-saga/effects';
 
 import { readFromStorage } from '../../localStorage';
 import { readConfigurationFile, keepStoreValuePersisted, createEventChannelFromEmitter } from '../../sagaUtils';
-import { MAIN_WINDOW_STATE_CHANGED, DEEP_LINK_TRIGGERED, MENU_BAR_ABOUT_CLICKED, MENU_BAR_ADD_NEW_SERVER_CLICKED, MENU_BAR_GO_BACK_CLICKED, MENU_BAR_GO_FORWARD_CLICKED, MENU_BAR_RELOAD_SERVER_CLICKED, MENU_BAR_SELECT_SERVER_CLICKED, MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED, MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED, MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED, MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED, TOUCH_BAR_FORMAT_BUTTON_TOUCHED, TOUCH_BAR_SELECT_SERVER_TOUCHED, WEBVIEW_FOCUS_REQUESTED, MENU_BAR_RESET_ZOOM_CLICKED, MENU_BAR_ZOOM_IN_CLICKED, MENU_BAR_ZOOM_OUT_CLICKED, MENU_BAR_RELOAD_APP_CLICKED, MENU_BAR_TOGGLE_DEVTOOLS_CLICKED, MENU_BAR_TOGGLE_IS_FULL_SCREEN_ENABLED_CLICKED, TRAY_ICON_TOGGLE_CLICKED, WEBVIEW_UNREAD_CHANGED, MENU_BAR_QUIT_CLICKED, TRAY_ICON_QUIT_CLICKED } from '../../actions';
+import {
+	DEEP_LINK_TRIGGERED,
+	MAIN_WINDOW_STATE_CHANGED,
+	MAIN_WINDOW_WEBCONTENTS_FOCUSED,
+	MENU_BAR_ABOUT_CLICKED,
+	MENU_BAR_ADD_NEW_SERVER_CLICKED,
+	MENU_BAR_GO_BACK_CLICKED,
+	MENU_BAR_GO_FORWARD_CLICKED,
+	MENU_BAR_QUIT_CLICKED,
+	MENU_BAR_RELOAD_APP_CLICKED,
+	MENU_BAR_RELOAD_SERVER_CLICKED,
+	MENU_BAR_RESET_ZOOM_CLICKED,
+	MENU_BAR_SELECT_SERVER_CLICKED,
+	MENU_BAR_TOGGLE_DEVTOOLS_CLICKED,
+	MENU_BAR_TOGGLE_IS_FULL_SCREEN_ENABLED_CLICKED,
+	MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
+	MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
+	MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
+	MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
+	MENU_BAR_ZOOM_IN_CLICKED,
+	MENU_BAR_ZOOM_OUT_CLICKED,
+	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
+	TOUCH_BAR_SELECT_SERVER_TOUCHED,
+	TRAY_ICON_QUIT_CLICKED,
+	TRAY_ICON_TOGGLE_CLICKED,
+	WEBVIEW_FOCUS_REQUESTED,
+	WEBVIEW_UNREAD_CHANGED,
+} from '../../actions';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
 	remote.screen.getAllDisplays()
@@ -151,6 +178,7 @@ function *takeBrowserWindowEvents(browserWindow) {
 	const resizeEvent = createEventChannelFromEmitter(browserWindow, 'resize');
 	const moveEvent = createEventChannelFromEmitter(browserWindow, 'move');
 	const closeEvent = createEventChannelFromEmitter(browserWindow, 'close');
+	const devtoolsFocusedEvent = createEventChannelFromEmitter(browserWindow, 'devtools-focused');
 
 	yield takeEvery(showEvent, fetchAndDispatchWindowState, browserWindow);
 	yield takeEvery(hideEvent, fetchAndDispatchWindowState, browserWindow);
@@ -188,6 +216,10 @@ function *takeBrowserWindowEvents(browserWindow) {
 		}
 
 		browserWindow.destroy();
+	});
+
+	yield takeEvery(devtoolsFocusedEvent, function *() {
+		yield put({ type: MAIN_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
 	});
 }
 

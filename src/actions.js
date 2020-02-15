@@ -13,6 +13,7 @@ export const DEEP_LINKS_SERVER_FOCUSED = 'deep-links/server-focused';
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED = 'loading-error-view/reload-server-clicked';
 export const MAIN_WINDOW_INSTALL_UPDATE_CLICKED = 'main-window/install-update-clicked';
 export const MAIN_WINDOW_STATE_CHANGED = 'main-window/state-changed';
+export const MAIN_WINDOW_WEBCONTENTS_FOCUSED = 'main-window/webcontents-focused';
 export const MENU_BAR_ABOUT_CLICKED = 'menu-bar/about-clicked';
 export const MENU_BAR_ADD_NEW_SERVER_CLICKED = 'menu-bar/add-new-server-clicked';
 export const MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED = 'menu-bar/clear-trusted-certificates-clicked';

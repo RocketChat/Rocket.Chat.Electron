@@ -2,6 +2,7 @@ import { combineReducers } from 'redux';
 
 import { currentServerUrl } from './currentServerUrl';
 import { doCheckForUpdatesOnStartup } from './doCheckForUpdatesOnStartup';
+import { editFlags } from './editFlags';
 import { focusedWebContentsId } from './focusedWebContentsId';
 import { installedSpellCheckingDictionariesDirectoryPath } from './installedSpellCheckingDictionariesDirectoryPath';
 import { isCheckingForUpdates } from './isCheckingForUpdates';
@@ -24,6 +25,7 @@ import { trustedCertificates } from './trustedCertificates';
 export const rootReducer = combineReducers({
 	currentServerUrl,
 	doCheckForUpdatesOnStartup,
+	editFlags,
 	focusedWebContentsId,
 	installedSpellCheckingDictionariesDirectoryPath,
 	isCheckingForUpdates,

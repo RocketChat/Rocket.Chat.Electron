@@ -6,7 +6,7 @@ import { getAppIconPath, getTrayIconPath } from '../../icons';
 import { useSaga } from '../SagaMiddlewareProvider';
 import { WindowDragBar, Wrapper, GlobalStyles } from './styles';
 import { mainWindowStateSaga } from './sagas';
-import { MAIN_WINDOW_WEBCONTENTS_FOCUSED } from '../../actions';
+import { MAIN_WINDOW_WEBCONTENTS_FOCUSED, MAIN_WINDOW_EDIT_FLAGS_CHANGED } from '../../actions';
 
 export function MainWindow({
 	browserWindow = remote.getCurrentWindow(),
@@ -45,6 +45,30 @@ export function MainWindow({
 			document.removeEventListener('blur', fetchAndDispatchFocusedWebContentsId);
 		};
 	}, [browserWindow, dispatch]);
+
+	useEffect(() => {
+		const fetchAndDispatchEditFlags = () => {
+			dispatch({
+				type: MAIN_WINDOW_EDIT_FLAGS_CHANGED,
+				payload: {
+					canUndo: document.queryCommandEnabled('undo'),
+					canRedo: document.queryCommandEnabled('redo'),
+					canCut: document.queryCommandEnabled('cut'),
+					canCopy: document.queryCommandEnabled('copy'),
+					canPaste: document.queryCommandEnabled('paste'),
+					canSelectAll: document.queryCommandEnabled('selectAll'),
+				},
+			});
+		};
+
+		document.addEventListener('focus', fetchAndDispatchEditFlags, true);
+		document.addEventListener('selectionchange', fetchAndDispatchEditFlags, true);
+
+		return () => {
+			document.removeEventListener('focus', fetchAndDispatchEditFlags);
+			document.removeEventListener('selectionchange', fetchAndDispatchEditFlags);
+		};
+	}, [dispatch]);
 
 	const badge = useSelector(({ isTrayIconEnabled, servers }) => {
 		if (isTrayIconEnabled) {

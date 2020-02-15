@@ -13,6 +13,7 @@ import {
 	WEBVIEW_UNREAD_CHANGED,
 	WEBVIEW_MESSAGE_BOX_FOCUSED,
 	WEBVIEW_MESSAGE_BOX_BLURRED,
+	WEBVIEW_EDIT_FLAGS_CHANGED,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
 import { useMisspellingDetection } from '../../hooks/useMisspellingDetection';
@@ -65,6 +66,9 @@ export const useWebviewPreload = (webviewRef, webContents, { url, hasSidebar, ac
 				case 'message-box-blurred':
 					dispatch({ type: WEBVIEW_MESSAGE_BOX_BLURRED, payload: { webContentsId: webContents.id, url } });
 					break;
+
+				case 'edit-flags-changed':
+					dispatch({ type: WEBVIEW_EDIT_FLAGS_CHANGED, payload: { webContentsId: webContents.id, url, editFlags: args[0] } });
 			}
 		};
 

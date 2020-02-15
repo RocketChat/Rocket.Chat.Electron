@@ -118,6 +118,28 @@ export default () => {
 		}
 	}, true);
 
+	document.addEventListener('focus', () => {
+		ipcRenderer.sendToHost('edit-flags-changed', {
+			canUndo: document.queryCommandEnabled('undo'),
+			canRedo: document.queryCommandEnabled('redo'),
+			canCut: document.queryCommandEnabled('cut'),
+			canCopy: document.queryCommandEnabled('copy'),
+			canPaste: document.queryCommandEnabled('paste'),
+			canSelectAll: document.queryCommandEnabled('selectAll'),
+		});
+	}, true);
+
+	document.addEventListener('selectionchange', () => {
+		ipcRenderer.sendToHost('edit-flags-changed', {
+			canUndo: document.queryCommandEnabled('undo'),
+			canRedo: document.queryCommandEnabled('redo'),
+			canCut: document.queryCommandEnabled('cut'),
+			canCopy: document.queryCommandEnabled('copy'),
+			canPaste: document.queryCommandEnabled('paste'),
+			canSelectAll: document.queryCommandEnabled('selectAll'),
+		});
+	}, true);
+
 	ipcRenderer.addListener('format-button-touched', (_, buttonId) => {
 		if (!focusedMessageBoxInput) {
 			return;

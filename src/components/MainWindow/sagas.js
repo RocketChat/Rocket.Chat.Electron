@@ -52,17 +52,24 @@ function *loadMainWindowState() {
 }
 
 function *applyMainWindowState(browserWindow, mainWindowState) {
-	if (!isInsideSomeScreen(mainWindowState.bounds)) {
-		const { bounds } = remote.screen.getPrimaryDisplay();
-		mainWindowState.bounds.x = (bounds.width - mainWindowState.bounds.width) / 2;
-		mainWindowState.bounds.y = (bounds.height - mainWindowState.bounds.width) / 2;
+	let { x, y } = mainWindowState.bounds;
+	const { width, height } = mainWindowState.bounds;
+	if (!isInsideSomeScreen({ x, y, width, height })) {
+		const {
+			bounds: {
+				width: primaryDisplayWidth,
+				height: primaryDisplayHeight,
+			},
+		} = remote.screen.getPrimaryDisplay();
+		x = (primaryDisplayWidth - width) / 2;
+		y = (primaryDisplayHeight - height) / 2;
 	}
 
 	if (browserWindow.isVisible()) {
 		return;
 	}
 
-	browserWindow.setBounds(mainWindowState.bounds);
+	browserWindow.setBounds({ x, y, width, height });
 
 	if (mainWindowState.maximized) {
 		browserWindow.maximize();

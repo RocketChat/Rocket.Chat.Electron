@@ -27,15 +27,17 @@ export const WindowMenu = forwardRef(function WindowMenu(_, ref) {
 				/>
 				<MenuItem type='separator' />
 			</>}
-			{servers.map((server, i) => <MenuItem
-				key={i}
-				type={currentServerUrl ? 'checkbox' : 'normal'}
-				label={server.title.replace(/&/g, '&&')}
-				checked={currentServerUrl === server.url}
-				accelerator={`CommandOrControl+${ i + 1 }`}
-				onClick={() => dispatch({ type: MENU_BAR_SELECT_SERVER_CLICKED, payload: server })}
-			/>)}
-			<MenuItem type='separator' />
+			{servers.length > 0 && <>
+				{servers.map((server, i) => <MenuItem
+					key={i}
+					type={currentServerUrl ? 'checkbox' : 'normal'}
+					label={server.title.replace(/&/g, '&&')}
+					checked={currentServerUrl === server.url}
+					accelerator={`CommandOrControl+${ i + 1 }`}
+					onClick={() => dispatch({ type: MENU_BAR_SELECT_SERVER_CLICKED, payload: server })}
+				/>)}
+				<MenuItem type='separator' />
+			</>}
 			<MenuItem
 				type='checkbox'
 				label={t('menus.showOnUnreadMessage')}

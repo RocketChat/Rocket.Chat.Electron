@@ -1,15 +1,15 @@
 language: node_js
 node_js: 10
+os: linux
 cache:
   yarn: true
   directories:
     - node_modules
 
-matrix:
+jobs:
   include:
   - os: linux
     dist: bionic
-    sudo: true
     addons:
       apt:
         packages:
@@ -18,13 +18,11 @@ matrix:
       - provider: snap
         snap: dist/*.snap
         channel: beta
-        skip_cleanup: true
         on:
           branch: develop
       - provider: snap
         snap: dist/*.snap
         channel: stable
-        skip_cleanup: true
         on:
           branch: master
   - os: osx

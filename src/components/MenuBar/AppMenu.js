@@ -31,15 +31,15 @@ export const AppMenu = forwardRef(function AppMenu(_, ref) {
 				<MenuItem type='separator' />
 				<MenuItem
 					label={t('menus.hide', { appName })}
-					role={'hide'}
+					role='hide'
 				/>
 				<MenuItem
 					label={t('menus.hideOthers')}
-					role={'hideothers'}
+					role='hideothers'
 				/>
 				<MenuItem
 					label={t('menus.unhide')}
-					role={'unhide'}
+					role='unhide'
 				/>
 				<MenuItem type='separator' />
 			</>}

@@ -20,6 +20,7 @@ import { useWebviewNavigation } from './useWebviewNavigation';
 import {
 	ErrorPane,
 	StyledWebView,
+	Wrapper,
 } from './styles';
 import { FailureImage } from '../FailureImage';
 
@@ -48,7 +49,6 @@ export function ServerPane({
 			}
 
 			setReloading(false);
-			setFailed(false);
 		});
 
 		yield takeEvery([WEBVIEW_LOADING_FAILED, WEBVIEW_CERTIFICATE_DENIED], function *({ payload: { url: _url } }) {
@@ -107,7 +107,7 @@ export function ServerPane({
 
 	const srcRef = useRef(lastPath || url);
 
-	return <>
+	return <Wrapper isVisible={isSelected} isFull={isFull}>
 		<StyledWebView
 			ref={webviewRef}
 			src={srcRef.current}
@@ -115,13 +115,10 @@ export function ServerPane({
 			webSecurity={false}
 			remoteModule
 			preload={`${ remote.app.getAppPath() }/app/preload.js`}
-			isFull={isFull}
-			isSelected={isSelected}
 			isFailed={isFailed}
-			hasWebContents={!!webContents}
 			onWebContentsChange={(webContents) => setWebContents(webContents)}
 		/>
-		<ErrorPane isFull={isFull} isSelected={isSelected} isFailed={isFailed}>
+		<ErrorPane isFailed={isFailed}>
 			<FailureImage style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }} />
 			<Flex.Container direction='column' justifyContent='center' alignItems='center'>
 				<Box is='section'>
@@ -154,5 +151,5 @@ export function ServerPane({
 			</Flex.Container>
 
 		</ErrorPane>
-	</>;
+	</Wrapper>;
 }

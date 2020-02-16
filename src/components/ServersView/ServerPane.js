@@ -107,7 +107,7 @@ export function ServerPane({
 
 	const srcRef = useRef(lastPath || url);
 
-	return <Wrapper isVisible={isSelected} isFull={isFull}>
+	return <Wrapper isVisible={isSelected}>
 		<StyledWebView
 			ref={webviewRef}
 			src={srcRef.current}

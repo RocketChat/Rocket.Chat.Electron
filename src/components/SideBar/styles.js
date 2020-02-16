@@ -2,21 +2,26 @@ import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 
 export const Wrapper = styled.div`
-	--transitions-duration: 200ms;
-	position: fixed;
-	z-index: 100000;
-	top: 0;
-	bottom: 0;
+	flex: 0 0 68px;
+	align-self: stretch;
+
+	display: flex;
 	flex-direction: column;
-	width: 68px;
-	height: 100%;
-	user-select: none;
 	align-items: stretch;
+
+	user-select: none;
 	-webkit-app-region: drag;
+
+	transition:
+		margin-inline-start 230ms ease-in-out,
+		visibility 230ms ease-in-out;
 
 	${ ({ background }) => css`background: ${ background || '#2f343d' };` }
 	${ ({ color }) => css`color: ${ color || '#ffffff' };` }
-	${ ({ isVisible }) => css`display: ${ isVisible ? 'flex' : 'none' };` }
+	${ ({ isVisible }) => !isVisible && css`
+		margin-inline-start: -68px;
+		visibility: hidden;
+	` }
 `;
 
 export const Content = styled.div`
@@ -59,6 +64,7 @@ const withTooltip = ({ tooltip }) => css`
 		background-color: #1f2329;
 		font-size: 0.875rem;
 		line-height: normal;
+		z-index: 100000;
 	}
 
 	&:hover::after {

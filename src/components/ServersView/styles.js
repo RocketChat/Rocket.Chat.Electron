@@ -4,14 +4,14 @@ import styled from '@emotion/styled';
 import { WebViewComponent } from '../electron/WebViewComponent';
 
 export const Wrapper = styled.section`
-	position: fixed;
+	position: absolute;
+	left: 0;
 	top: 0;
 	right: 0;
 	bottom: 0;
 	background-color: #2f343d;
 
 	${ ({ isVisible }) => css`display: ${ isVisible ? 'flex' : 'none' };` };
-	${ ({ isFull }) => css`left: ${ isFull ? '0' : '68px' };` }
 `;
 
 export const StyledWebView = styled(WebViewComponent)`

@@ -1,5 +1,5 @@
 import { useUniqueId } from '@rocket.chat/fuselage-hooks';
-import React, { useState } from 'react';
+import React from 'react';
 
 export function FailureImage({
 	st3 = '#030C1A',

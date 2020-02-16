@@ -1,10 +1,9 @@
 import { remote } from 'electron';
-import React, { useEffect, useLayoutEffect } from 'react';
+import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { getAppIconPath, getTrayIconPath } from '../../icons';
 import { useSaga } from '../SagaMiddlewareProvider';
-import { WindowDragBar, Wrapper, GlobalStyles } from './styles';
 import { mainWindowStateSaga } from './sagas';
 import { MAIN_WINDOW_WEBCONTENTS_FOCUSED, MAIN_WINDOW_EDIT_FLAGS_CHANGED } from '../../actions';
 
@@ -12,13 +11,6 @@ export function MainWindow({
 	browserWindow = remote.getCurrentWindow(),
 	children,
 }) {
-	useLayoutEffect(() => {
-		const linkElement = document.createElement('link');
-		linkElement.rel = 'stylesheet';
-		linkElement.href = `${ remote.app.getAppPath() }/app/icons/rocketchat.css`;
-		document.head.append(linkElement);
-	}, []);
-
 	const dispatch = useDispatch();
 
 	useEffect(() => {
@@ -102,11 +94,5 @@ export function MainWindow({
 
 	useSaga(mainWindowStateSaga, [browserWindow]);
 
-	return <>
-		<GlobalStyles />
-		<Wrapper>
-			{process.platform === 'darwin' && <WindowDragBar />}
-			{children}
-		</Wrapper>
-	</>;
+	return children;
 }

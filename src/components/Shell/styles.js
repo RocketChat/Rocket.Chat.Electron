@@ -27,6 +27,13 @@ export const GlobalStyles = () => <Global styles={css`
 
 `} />;
 
+export const WindowDragBar = styled.div`
+	position: fixed;
+	width: 100vw;
+	height: 22px;
+	-webkit-app-region: drag;
+`;
+
 export const Wrapper = styled.div`
 	overflow: hidden;
 	width: 100vw;
@@ -34,11 +41,12 @@ export const Wrapper = styled.div`
 	cursor: default;
 	user-select: none;
 	background-color: #2f343d;
+	display: flex;
+	flex-flow: row nowrap;
 `;
 
-export const WindowDragBar = styled.div`
-	position: fixed;
-	width: 100%;
-	height: 22px;
-	-webkit-app-region: drag;
+export const ViewsWrapper = styled.div`
+	position: relative;
+	flex: 1 0 auto;
+	align-self: stretch;
 `;

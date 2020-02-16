@@ -1,4 +1,4 @@
-import { Box, Button, Field, Flex, Margins, ToggleSwitch } from '@rocket.chat/fuselage';
+import { Box, Button, Field, Flex, Loading, Margins, ToggleSwitch } from '@rocket.chat/fuselage';
 import { useUniqueId } from '@rocket.chat/fuselage-hooks';
 import { remote } from 'electron';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
@@ -18,10 +18,6 @@ import {
 } from '../../actions';
 import { RocketChatLogo } from '../RocketChatLogo.js';
 import { useSaga } from '../SagaMiddlewareProvider';
-import {
-	LoadingIndicator,
-	LoadingIndicatorDot,
-} from './styles.js';
 import { Dialog } from '../Dialog/index.js';
 
 export function AboutDialog() {
@@ -130,15 +126,11 @@ export function AboutDialog() {
 
 					<Margins inline='auto' block='x8'>
 						{checkingForUpdates && <Box>
-							{checkingForUpdatesMessage
-								? <Margins block='x12'>
-									<Box textStyle='c1' textColor='info'>{checkingForUpdatesMessage}</Box>
-								</Margins>
-								: <LoadingIndicator>
-									<LoadingIndicatorDot />
-									<LoadingIndicatorDot />
-									<LoadingIndicatorDot />
-								</LoadingIndicator>}
+							<Margins block='x12'>
+								{checkingForUpdatesMessage
+									? <Box textStyle='c1' textColor='info'>{checkingForUpdatesMessage}</Box>
+									: <Loading size='x16' />}
+							</Margins>
 						</Box>}
 
 						<Field.Row>

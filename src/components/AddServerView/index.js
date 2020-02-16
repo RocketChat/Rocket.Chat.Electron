@@ -27,7 +27,6 @@ const defaultServerUrl = 'https://open.rocket.chat';
 
 export function AddServerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === null);
-	const isFull = useSelector(({ servers, isSideBarEnabled }) => !(servers.length > 0 && isSideBarEnabled));
 	const dispatch = useDispatch();
 	const { t } = useTranslation();
 	const [input, setInput] = useState('');
@@ -129,7 +128,7 @@ export function AddServerView() {
 		inputRef.current.focus();
 	}, [isVisible]);
 
-	return <Wrapper isVisible={isVisible} isFull={isFull}>
+	return <Wrapper isVisible={isVisible}>
 		<Content>
 			<Margins block='x16'>
 				<Box>

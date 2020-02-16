@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, Flex, Margins } from '@rocket.chat/fuselage';
+import { Box, Button, ButtonGroup, Flex, Loading, Margins } from '@rocket.chat/fuselage';
 import { remote } from 'electron';
 import React, { useState, useRef, useEffect } from 'react';
 import { takeEvery } from 'redux-saga/effects';
@@ -19,10 +19,10 @@ import { useWebviewPreload } from './useWebviewPreload';
 import { useWebviewNavigation } from './useWebviewNavigation';
 import {
 	ErrorPane,
-	LoadingIndicator,
-	LoadingIndicatorDot,
 	StyledWebView,
+	Wrapper,
 } from './styles';
+import { FailureImage } from '../FailureImage';
 
 export function ServerPane({
 	lastPath,
@@ -39,7 +39,6 @@ export function ServerPane({
 				return;
 			}
 
-			setReloading(true);
 			setFailed(false);
 		});
 
@@ -49,7 +48,6 @@ export function ServerPane({
 			}
 
 			setReloading(false);
-			setFailed(false);
 		});
 
 		yield takeEvery([WEBVIEW_LOADING_FAILED, WEBVIEW_CERTIFICATE_DENIED], function *({ payload: { url: _url } }) {
@@ -65,35 +63,10 @@ export function ServerPane({
 	const webviewRef = useRef();
 	const [webContents, setWebContents] = useState(null);
 
-	useEffect(() => {
-		const webview = webviewRef.current;
-
-		const handleDidAttach = () => {
-			setWebContents(webview.getWebContents());
-		};
-
-		const handleDestroyed = () => {
-			setWebContents(null);
-		};
-
-		webview.addEventListener('did-attach', handleDidAttach);
-		webview.addEventListener('destroyed', handleDestroyed);
-
-		return () => {
-			webview.removeEventListener('did-attach', handleDidAttach);
-			webview.removeEventListener('destroyed', handleDestroyed);
-		};
-	}, [webviewRef]);
-
 	useWebviewFocus(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 	useWebviewContextMenu(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 	useWebviewPreload(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 	useWebviewNavigation(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
-
-	useEffect(() => {
-		const webview = webviewRef.current;
-		webview.src = lastPath || url;
-	}, [webviewRef, lastPath, url]);
 
 	const dispatch = useDispatch();
 	const { t } = useTranslation();
@@ -101,7 +74,7 @@ export function ServerPane({
 	const [counter, setCounter] = useState(60);
 
 	useEffect(() => {
-		if (!isSelected || !isFailed) {
+		if (!isFailed) {
 			return;
 		}
 
@@ -114,6 +87,7 @@ export function ServerPane({
 
 				if (counter <= 0) {
 					dispatch({ type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, payload: url });
+					setReloading(true);
 					return 60;
 				}
 
@@ -124,59 +98,63 @@ export function ServerPane({
 		return () => {
 			clearInterval(timer);
 		};
-	}, [dispatch, isFailed, isSelected, url]);
+	}, [dispatch, isFailed, url]);
 
 	const handleReloadButtonClick = () => {
 		dispatch({ type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, payload: url });
+		setReloading(true);
 		setCounter(60);
 	};
 
-	return <>
+	const srcRef = useRef(lastPath || url);
+
+	return <Wrapper isVisible={isSelected}>
 		<StyledWebView
 			ref={webviewRef}
-			allowpopups='allowpopups'
-			disablewebsecurity='disablewebsecurity'
-			enableremotemodule='true'
-			preload={ `${ remote.app.getAppPath() }/app/preload.js` }
-			isFull={isFull}
-			isSelected={isSelected}
-			isFailed={isFailed}
-			hasWebContents={!!webContents}
+			src={srcRef.current}
+			popups
+			webSecurity={false}
+			remoteModule
+			preload={`${ remote.app.getAppPath() }/app/preload.js`}
+			isVisible={!isFailed && !isReloading}
+			onWebContentsChange={(webContents) => setWebContents(webContents)}
 		/>
-		<ErrorPane isFull={isFull} isSelected={isSelected} isFailed={isFailed}>
+		<ErrorPane isVisible={isFailed || isReloading}>
+			<FailureImage style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0 }} />
 			<Flex.Container direction='column' justifyContent='center' alignItems='center'>
-				<Box is='section'>
+				<Box is='section' textColor='alternative' style={{ zIndex: 1 }}>
 					<Flex.Item>
 						<Flex.Container direction='column'>
 							<Margins block='x12'>
 								<Box>
 									<Margins block='x8' inline='auto'>
-										<Box textStyle='h1' textColor='alternative'>
+										<Box textStyle='h1'>
 											{t('loadingError.announcement')}
 										</Box>
 
-										<Box textStyle='s1' textColor='alternative'>
+										<Box textStyle='s1'>
 											{t('loadingError.title')}
 										</Box>
 									</Margins>
 								</Box>
 							</Margins>
 
-							{isReloading && <LoadingIndicator>
-								<LoadingIndicatorDot />
-								<LoadingIndicatorDot />
-								<LoadingIndicatorDot />
-							</LoadingIndicator>}
+							<Box>
+								{isReloading && <Margins block='x12'>
+									<Loading inheritColor size='x16' />
+								</Margins>}
 
-							{!isReloading && <ButtonGroup align='center'>
-								<Button primary onClick={handleReloadButtonClick}>
-									{t('loadingError.reload')} ({counter})
-								</Button>
-							</ButtonGroup>}
+								{!isReloading && <ButtonGroup align='center'>
+									<Button primary onClick={handleReloadButtonClick}>
+										{t('loadingError.reload')} ({counter})
+									</Button>
+								</ButtonGroup>}
+							</Box>
 						</Flex.Container>
 					</Flex.Item>
 				</Box>
 			</Flex.Container>
+
 		</ErrorPane>
-	</>;
+	</Wrapper>;
 }

@@ -1,6 +1,6 @@
 import { remote } from 'electron';
 import i18n from 'i18next';
-import React, { useEffect, useState, Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import { Provider, useDispatch } from 'react-redux';
 import { call, put, select, takeEvery } from 'redux-saga/effects';
@@ -17,12 +17,6 @@ import {
 	WEBVIEW_CERTIFICATE_TRUSTED,
 } from '../actions';
 import { MainWindow } from './MainWindow';
-import { AboutDialog } from './AboutDialog';
-import { ScreenSharingDialog } from './ScreenSharingDialog';
-import { UpdateDialog } from './UpdateDialog';
-import { SideBar } from './SideBar';
-import { ServersView } from './ServersView';
-import { AddServerView } from './AddServerView';
 import { TrayIcon } from './TrayIcon';
 import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
@@ -30,7 +24,8 @@ import { TouchBar } from './TouchBar';
 import { createReduxStoreAndSagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
 import { validateServerUrl } from '../sagas/servers';
-import { SelectClientCertificateDialog } from './SelectClientCertificateDialog';
+import { Shell } from './Shell';
+import { ErrorCatcher } from './utils/ErrorCatcher';
 
 function AppContent() {
 	const { t } = useTranslation();
@@ -148,32 +143,11 @@ function AppContent() {
 
 	return <MainWindow>
 		<MenuBar />
-		<SideBar />
-		<ServersView />
-		<AddServerView />
-		<AboutDialog />
-		<ScreenSharingDialog />
-		<SelectClientCertificateDialog />
-		<UpdateDialog />
+		<Shell />
 		<Dock />
 		<TrayIcon />
 		<TouchBar />
 	</MainWindow>;
-}
-
-class ErrorCatcher extends Component {
-	componentDidCatch(error, errorInfo) {
-		console.error(error);
-		console.error(errorInfo.componentStack);
-		remote.dialog.showErrorBox(error.message, error.stack);
-		process.exit(1);
-	}
-
-	render() {
-		return <>
-			{this.props.children}
-		</>;
-	}
 }
 
 export function App() {

@@ -65,28 +65,20 @@ export const useWebviewNavigation = (webviewRef, webContents, { url, active }) =
 			return;
 		}
 
-		const handleDidFailLoad = (event) => {
-			if (event.errorCode === -3) {
+		const handleDidFailLoad = (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+			if (errorCode === -3) {
 				console.warn('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
 				return;
 			}
-			if (event.isMainFrame) {
-				dispatch({ type: WEBVIEW_LOADING_FAILED, payload: { webContentsId: webContents.id, url } });
-			}
-		};
-
-		const handleDidGetResponseDetails = (event) => {
-			if (event.resourceType === 'mainFrame' && event.httpResponseCode >= 500) {
+			if (isMainFrame) {
 				dispatch({ type: WEBVIEW_LOADING_FAILED, payload: { webContentsId: webContents.id, url } });
 			}
 		};
 
 		webContents.addListener('did-fail-load', handleDidFailLoad);
-		webContents.addListener('did-get-response-details', handleDidGetResponseDetails);
 
 		return () => {
 			webContents.removeListener('did-fail-load', handleDidFailLoad);
-			webContents.removeListener('did-get-response-details', handleDidGetResponseDetails);
 		};
 	}, [webContents, url, dispatch]);
 

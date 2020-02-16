@@ -21,6 +21,7 @@ import {
 	ErrorPane,
 	StyledWebView,
 } from './styles';
+import { FailureImage } from '../FailureImage';
 
 export function ServerPane({
 	lastPath,
@@ -128,6 +129,7 @@ export function ServerPane({
 			onDestroyed={handleDestroyed}
 		/>
 		<ErrorPane isFull={isFull} isSelected={isSelected} isFailed={isFailed}>
+			<FailureImage style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }} />
 			<Flex.Container direction='column' justifyContent='center' alignItems='center'>
 				<Box is='section'>
 					<Flex.Item>
@@ -157,6 +159,7 @@ export function ServerPane({
 					</Flex.Item>
 				</Box>
 			</Flex.Container>
+
 		</ErrorPane>
 	</>;
 }

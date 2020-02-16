@@ -27,11 +27,6 @@ export const ErrorPane = styled.div`
 	align-items: stretch;
 	justify-content: center;
 	user-select: none;
-	background-color: #2f343d;
-	background-image: url('../public/images/not-found.jpg');
-	background-repeat: no-repeat;
-	background-position: center bottom;
-	background-size: cover;
 
 	${ ({ isFull }) => css`left: ${ isFull ? '0' : '68px' };` }
 	${ ({ isSelected }) => css`z-index: ${ isSelected ? '1' : '0' };` }

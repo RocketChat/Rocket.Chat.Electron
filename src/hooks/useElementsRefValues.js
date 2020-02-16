@@ -9,7 +9,7 @@ const isEachElementTheSame = (a, b) => {
 };
 
 const toArray = (elements) => [].concat(...Children.toArray(elements).map((element) => {
-	if (!element.type.render) {
+	if (!element.type.render && element.props.children) {
 		return toArray(element.props.children);
 	}
 

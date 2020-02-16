@@ -1,4 +1,4 @@
-import { css, keyframes } from '@emotion/core';
+import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 
 import { WebViewComponent } from '../electron/WebViewComponent';
@@ -36,40 +36,4 @@ export const ErrorPane = styled.div`
 	${ ({ isFull }) => css`left: ${ isFull ? '0' : '68px' };` }
 	${ ({ isSelected }) => css`z-index: ${ isSelected ? '1' : '0' };` }
 	${ ({ isFailed }) => css`display: ${ isFailed ? 'flex' : 'none' };` }
-`;
-
-export const LoadingIndicator = styled.div`
-	display: flex;
-	height: 40px;
-	color: #7f7f7f;
-	align-items: center;
-	justify-content: center;
-`;
-
-export const LoadingIndicatorDot = styled.span`
-	width: 0.5rem;
-	height: 0.5rem;
-	margin: 0.1rem;
-	border-radius: 100%;
-	background-color: currentColor;
-
-	animation: ${ keyframes`
-		0%,
-		80%,
-		100% {
-			transform: scale(0);
-		}
-
-		40% {
-			transform: scale(1);
-		}
-	` } 1.4s infinite ease-in-out both;
-
-	&:nth-of-type(1) {
-		animation-delay: -0.32s;
-	}
-
-	&:nth-of-type(2) {
-		animation-delay: -0.16s;
-	}
 `;

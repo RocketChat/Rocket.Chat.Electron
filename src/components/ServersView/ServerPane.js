@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, Flex, Margins } from '@rocket.chat/fuselage';
+import { Box, Button, ButtonGroup, Flex, Loading, Margins } from '@rocket.chat/fuselage';
 import { remote } from 'electron';
 import React, { useState, useRef, useEffect } from 'react';
 import { takeEvery } from 'redux-saga/effects';
@@ -19,8 +19,6 @@ import { useWebviewPreload } from './useWebviewPreload';
 import { useWebviewNavigation } from './useWebviewNavigation';
 import {
 	ErrorPane,
-	LoadingIndicator,
-	LoadingIndicatorDot,
 	StyledWebView,
 } from './styles';
 
@@ -148,11 +146,7 @@ export function ServerPane({
 								</Box>
 							</Margins>
 
-							{isReloading && <LoadingIndicator>
-								<LoadingIndicatorDot />
-								<LoadingIndicatorDot />
-								<LoadingIndicatorDot />
-							</LoadingIndicator>}
+							{isReloading && <Loading />}
 
 							{!isReloading && <ButtonGroup align='center'>
 								<Button primary onClick={handleReloadButtonClick}>

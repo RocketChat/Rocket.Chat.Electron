@@ -65,35 +65,18 @@ export function ServerPane({
 	const webviewRef = useRef();
 	const [webContents, setWebContents] = useState(null);
 
-	useEffect(() => {
-		const webview = webviewRef.current;
+	const handleDidAttach = () => {
+		setWebContents(webviewRef.current.getWebContents());
+	};
 
-		const handleDidAttach = () => {
-			setWebContents(webview.getWebContents());
-		};
-
-		const handleDestroyed = () => {
-			setWebContents(null);
-		};
-
-		webview.addEventListener('did-attach', handleDidAttach);
-		webview.addEventListener('destroyed', handleDestroyed);
-
-		return () => {
-			webview.removeEventListener('did-attach', handleDidAttach);
-			webview.removeEventListener('destroyed', handleDestroyed);
-		};
-	}, [webviewRef]);
+	const handleDestroyed = () => {
+		setWebContents(null);
+	};
 
 	useWebviewFocus(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 	useWebviewContextMenu(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 	useWebviewPreload(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 	useWebviewNavigation(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
-
-	useEffect(() => {
-		const webview = webviewRef.current;
-		webview.src = lastPath || url;
-	}, [webviewRef, lastPath, url]);
 
 	const dispatch = useDispatch();
 	const { t } = useTranslation();
@@ -134,14 +117,17 @@ export function ServerPane({
 	return <>
 		<StyledWebView
 			ref={webviewRef}
-			allowpopups='allowpopups'
-			disablewebsecurity='disablewebsecurity'
-			enableremotemodule='true'
-			preload={ `${ remote.app.getAppPath() }/app/preload.js` }
+			src={lastPath || url}
+			popups
+			webSecurity={false}
+			remoteModule
+			preload={`${ remote.app.getAppPath() }/app/preload.js`}
 			isFull={isFull}
 			isSelected={isSelected}
 			isFailed={isFailed}
 			hasWebContents={!!webContents}
+			onDidAttach={handleDidAttach}
+			onDestroyed={handleDestroyed}
 		/>
 		<ErrorPane isFull={isFull} isSelected={isSelected} isFailed={isFailed}>
 			<Flex.Container direction='column' justifyContent='center' alignItems='center'>

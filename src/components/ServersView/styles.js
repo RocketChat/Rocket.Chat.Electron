@@ -1,7 +1,9 @@
 import { css, keyframes } from '@emotion/core';
 import styled from '@emotion/styled';
 
-export const StyledWebView = styled('webview')`
+import { WebViewComponent } from '../electron/WebViewComponent';
+
+export const StyledWebView = styled(WebViewComponent)`
 	position: fixed;
 	top: 0;
 	right: 0;

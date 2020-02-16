@@ -21,7 +21,7 @@ export const StyledWebView = styled(WebViewComponent)`
 	right: 0;
 	bottom: 0;
 
-	${ ({ isFailed }) => css`display: ${ isFailed ? 'none' : 'flex' };` }
+${ ({ isVisible }) => css`display: ${ isVisible ? 'flex' : 'none' };` }
 `;
 
 export const ErrorPane = styled.div`
@@ -36,5 +36,5 @@ export const ErrorPane = styled.div`
 	justify-content: center;
 	user-select: none;
 
-	${ ({ isFailed }) => css`display: ${ isFailed ? 'flex' : 'none' };` }
+	${ ({ isVisible }) => css`display: ${ isVisible ? 'flex' : 'none' };` }
 `;

@@ -39,7 +39,6 @@ export function ServerPane({
 				return;
 			}
 
-			setReloading(true);
 			setFailed(false);
 		});
 
@@ -75,7 +74,7 @@ export function ServerPane({
 	const [counter, setCounter] = useState(60);
 
 	useEffect(() => {
-		if (!isSelected || !isFailed) {
+		if (!isFailed) {
 			return;
 		}
 
@@ -88,6 +87,7 @@ export function ServerPane({
 
 				if (counter <= 0) {
 					dispatch({ type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, payload: url });
+					setReloading(true);
 					return 60;
 				}
 
@@ -98,10 +98,11 @@ export function ServerPane({
 		return () => {
 			clearInterval(timer);
 		};
-	}, [dispatch, isFailed, isSelected, url]);
+	}, [dispatch, isFailed, url]);
 
 	const handleReloadButtonClick = () => {
 		dispatch({ type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, payload: url });
+		setReloading(true);
 		setCounter(60);
 	};
 
@@ -115,36 +116,40 @@ export function ServerPane({
 			webSecurity={false}
 			remoteModule
 			preload={`${ remote.app.getAppPath() }/app/preload.js`}
-			isFailed={isFailed}
+			isVisible={!isFailed && !isReloading}
 			onWebContentsChange={(webContents) => setWebContents(webContents)}
 		/>
-		<ErrorPane isFailed={isFailed}>
-			<FailureImage style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }} />
+		<ErrorPane isVisible={isFailed || isReloading}>
+			<FailureImage style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0 }} />
 			<Flex.Container direction='column' justifyContent='center' alignItems='center'>
-				<Box is='section'>
+				<Box is='section' textColor='alternative' style={{ zIndex: 1 }}>
 					<Flex.Item>
 						<Flex.Container direction='column'>
 							<Margins block='x12'>
 								<Box>
 									<Margins block='x8' inline='auto'>
-										<Box textStyle='h1' textColor='alternative'>
+										<Box textStyle='h1'>
 											{t('loadingError.announcement')}
 										</Box>
 
-										<Box textStyle='s1' textColor='alternative'>
+										<Box textStyle='s1'>
 											{t('loadingError.title')}
 										</Box>
 									</Margins>
 								</Box>
 							</Margins>
 
-							{isReloading && <Loading />}
+							<Box>
+								{isReloading && <Margins block='x12'>
+									<Loading inheritColor size='x16' />
+								</Margins>}
 
-							{!isReloading && <ButtonGroup align='center'>
-								<Button primary onClick={handleReloadButtonClick}>
-									{t('loadingError.reload')} ({counter})
-								</Button>
-							</ButtonGroup>}
+								{!isReloading && <ButtonGroup align='center'>
+									<Button primary onClick={handleReloadButtonClick}>
+										{t('loadingError.reload')} ({counter})
+									</Button>
+								</ButtonGroup>}
+							</Box>
 						</Flex.Container>
 					</Flex.Item>
 				</Box>

@@ -16,112 +16,237 @@ export const WebViewComponent = forwardRef(function WebViewComponent({
 	popups,
 	webPreferences = {},
 	blinkFeatures = {},
-	onClose,
-	onConsoleMessage,
-	onCrashed,
-	onDestroyed,
-	onDevtoolsClosed,
-	onDevtoolsFocused,
-	onDevtoolsOpened,
-	onDidAttach,
-	onDidChangeThemeColor,
-	onDidFailLoad,
+
+	onFocus,
+	onBlur,
+	onWebContentsChange,
+
 	onDidFinishLoad,
+	onDidFailLoad,
+	onDidFailProvisionalLoad,
 	onDidFrameFinishLoad,
-	onDidNavigate,
-	onDidNavigateInPage,
 	onDidStartLoading,
 	onDidStopLoading,
 	onDomReady,
-	onEnterHtmlFullScreen,
-	onFoundInPage,
-	onIpcMessage,
-	onLeaveHtmlFullScreen,
-	onLoadCommit,
-	onMediaPaused,
-	onMediaStartedPlaying,
-	onNewWindow,
-	onPageFaviconUpdated,
 	onPageTitleUpdated,
-	onPluginCrashed,
-	onUpdateTargetUrl,
+	onPageFaviconUpdated,
+	onNewWindow,
 	onWillNavigate,
+	onDidStartNavigation,
+	onWillRedirect,
+	onDidRedirectNavigation,
+	onDidNavigate,
+	onDidFrameNavigate,
+	onDidNavigateInPage,
+	onWillPreventUnload,
+	onCrashed,
+	onUnresponsive,
+	onResponsive,
+	onPluginCrashed,
+	onDestroyed,
+	onBeforeInputEvent,
+	onEnterHtmlFullScreen,
+	onLeaveHtmlFullScreen,
+	onZoomChanged,
+	onDevtoolsOpened,
+	onDevtoolsClosed,
+	onDevtoolsFocused,
+	onCertificateError,
+	onSelectClientCertificate,
+	onLogin,
+	onFoundInPage,
+	onMediaStartedPlaying,
+	onMediaPaused,
+	onDidChangeThemeColor,
+	onUpdateTargetUrl,
+	onCursorChanged,
+	onContextMenu,
+	onSelectBluetoothDevice,
+	onPaint,
+	onDevtoolsReloadPage,
+	onWillAttachWebview,
+	onDidAttachWebview,
+	onConsoleMessage,
+	onPreloadError,
+	onIpcMessage,
+	onIpcMessageSync,
+	onDesktopCapturerGetSources,
+	onRemoteRequire,
+	onRemoteGetGlobal,
+	onRemoteGetBuiltin,
+	onRemoteGetCurrentWindow,
+	onRemoteGetCurrentWebContents,
+	onRemoteGetGuestWebContents,
 }, ref) {
 	const innerRef = useRef();
 	const mergedRef = useMergedRefs(ref, innerRef);
 
-	const eventsRef = useRef({});
+	const webviewEventsRef = useRef({});
 	useLayoutEffect(() => {
-		eventsRef.current = {
-			close: onClose,
-			'console-message': onConsoleMessage,
-			crashed: onCrashed,
-			destroyed: onDestroyed,
-			'devtools-closed': onDevtoolsClosed,
-			'devtools-focused': onDevtoolsFocused,
-			'devtools-opened': onDevtoolsOpened,
-			'did-attach': onDidAttach,
-			'did-change-theme-color': onDidChangeThemeColor,
-			'did-fail-load': onDidFailLoad,
+		webviewEventsRef.current = {
+			focus: onFocus,
+			blur: onBlur,
+		};
+	}, [onBlur, onFocus]);
+
+	useLayoutEffect(() => {
+		for (const eventName of Object.keys(webviewEventsRef.current)) {
+			innerRef.current.addEventListener(
+				eventName,
+				(...args) => webviewEventsRef.current[eventName]
+					&& (0, webviewEventsRef.current[eventName])(...args),
+			);
+		}
+	}, []);
+
+	const webContentsChangeEventRef = useRef();
+	useLayoutEffect(() => {
+		webContentsChangeEventRef.current = onWebContentsChange;
+	}, [onWebContentsChange]);
+
+	const webContentsEventsRef = useRef({});
+	useLayoutEffect(() => {
+		webContentsEventsRef.current = {
 			'did-finish-load': onDidFinishLoad,
+			'did-fail-load': onDidFailLoad,
+			'did-fail-provisional-load': onDidFailProvisionalLoad,
 			'did-frame-finish-load': onDidFrameFinishLoad,
-			'did-navigate-in-page': onDidNavigateInPage,
-			'did-navigate': onDidNavigate,
 			'did-start-loading': onDidStartLoading,
 			'did-stop-loading': onDidStopLoading,
 			'dom-ready': onDomReady,
-			'enter-html-full-screen': onEnterHtmlFullScreen,
-			'found-in-page': onFoundInPage,
-			'ipc-message': onIpcMessage,
-			'leave-html-full-screen': onLeaveHtmlFullScreen,
-			'load-commit': onLoadCommit,
-			'media-paused': onMediaPaused,
-			'media-started-playing': onMediaStartedPlaying,
-			'new-window': onNewWindow,
-			'page-favicon-updated': onPageFaviconUpdated,
 			'page-title-updated': onPageTitleUpdated,
-			'plugin-crashed': onPluginCrashed,
-			'update-target-url': onUpdateTargetUrl,
+			'page-favicon-updated': onPageFaviconUpdated,
+			'new-window': onNewWindow,
 			'will-navigate': onWillNavigate,
+			'did-start-navigation': onDidStartNavigation,
+			'will-redirect': onWillRedirect,
+			'did-redirect-navigation': onDidRedirectNavigation,
+			'did-navigate': onDidNavigate,
+			'did-frame-navigate': onDidFrameNavigate,
+			'did-navigate-in-page': onDidNavigateInPage,
+			'will-prevent-unload': onWillPreventUnload,
+			crashed: onCrashed,
+			unresponsive: onUnresponsive,
+			responsive: onResponsive,
+			'plugin-crashed': onPluginCrashed,
+			destroyed: onDestroyed,
+			'before-input-event': onBeforeInputEvent,
+			'enter-html-full-screen': onEnterHtmlFullScreen,
+			'leave-html-full-screen': onLeaveHtmlFullScreen,
+			'zoom-changed': onZoomChanged,
+			'devtools-opened': onDevtoolsOpened,
+			'devtools-closed': onDevtoolsClosed,
+			'devtools-focused': onDevtoolsFocused,
+			'certificate-error': onCertificateError,
+			'select-client-certificate': onSelectClientCertificate,
+			login: onLogin,
+			'found-in-page': onFoundInPage,
+			'media-started-playing': onMediaStartedPlaying,
+			'media-paused': onMediaPaused,
+			'did-change-theme-color': onDidChangeThemeColor,
+			'update-target-url': onUpdateTargetUrl,
+			'cursor-changed': onCursorChanged,
+			'context-menu': onContextMenu,
+			'select-bluetooth-device': onSelectBluetoothDevice,
+			paint: onPaint,
+			'devtools-reload-page': onDevtoolsReloadPage,
+			'will-attach-webview': onWillAttachWebview,
+			'did-attach-webview': onDidAttachWebview,
+			'console-message': onConsoleMessage,
+			'preload-error': onPreloadError,
+			'ipc-message': onIpcMessage,
+			'ipc-message-sync': onIpcMessageSync,
+			'desktop-capturer-get-sources': onDesktopCapturerGetSources,
+			'remote-require': onRemoteRequire,
+			'remote-get-global': onRemoteGetGlobal,
+			'remote-get-builtin': onRemoteGetBuiltin,
+			'remote-get-current-window': onRemoteGetCurrentWindow,
+			'remote-get-current-web-contents': onRemoteGetCurrentWebContents,
+			'remote-get-guest-web-contents': onRemoteGetGuestWebContents,
 		};
 	}, [
-		onClose,
+		onBeforeInputEvent,
+		onCertificateError,
 		onConsoleMessage,
+		onContextMenu,
 		onCrashed,
+		onCursorChanged,
+		onDesktopCapturerGetSources,
 		onDestroyed,
 		onDevtoolsClosed,
 		onDevtoolsFocused,
 		onDevtoolsOpened,
-		onDidAttach,
+		onDevtoolsReloadPage,
+		onDidAttachWebview,
 		onDidChangeThemeColor,
 		onDidFailLoad,
+		onDidFailProvisionalLoad,
 		onDidFinishLoad,
 		onDidFrameFinishLoad,
+		onDidFrameNavigate,
 		onDidNavigate,
 		onDidNavigateInPage,
+		onDidRedirectNavigation,
 		onDidStartLoading,
+		onDidStartNavigation,
 		onDidStopLoading,
 		onDomReady,
 		onEnterHtmlFullScreen,
 		onFoundInPage,
 		onIpcMessage,
+		onIpcMessageSync,
 		onLeaveHtmlFullScreen,
-		onLoadCommit,
+		onLogin,
 		onMediaPaused,
 		onMediaStartedPlaying,
 		onNewWindow,
 		onPageFaviconUpdated,
 		onPageTitleUpdated,
+		onPaint,
 		onPluginCrashed,
+		onPreloadError,
+		onRemoteGetBuiltin,
+		onRemoteGetCurrentWebContents,
+		onRemoteGetCurrentWindow,
+		onRemoteGetGlobal,
+		onRemoteGetGuestWebContents,
+		onRemoteRequire,
+		onResponsive,
+		onSelectBluetoothDevice,
+		onSelectClientCertificate,
+		onUnresponsive,
 		onUpdateTargetUrl,
+		onWillAttachWebview,
 		onWillNavigate,
+		onWillPreventUnload,
+		onWillRedirect,
+		onZoomChanged,
 	]);
 
+	const webContentsRef = useRef(null);
+
 	useLayoutEffect(() => {
-		for (const eventName of Object.keys(eventsRef.current)) {
-			const listener = (...args) => eventsRef.current[eventName] && (0, eventsRef.current[eventName])(...args);
-			innerRef.current.addEventListener(eventName, listener);
-		}
+		innerRef.current.addEventListener('did-attach', () => {
+			const webContents = innerRef.current.getWebContents();
+			webContentsRef.current = webContents;
+
+			for (const eventName of Object.keys(webContentsEventsRef.current)) {
+				webContents.addListener(
+					eventName,
+					(...args) => {
+						webContentsEventsRef.current[eventName]
+						&& (0, webContentsEventsRef.current[eventName])(...args);
+					},
+				);
+			}
+
+			webContentsChangeEventRef.current && (0, webContentsChangeEventRef.current)(webContents);
+		});
+
+		innerRef.current.addEventListener('destroyed', () => {
+			webContentsRef.current = null;
+			webContentsChangeEventRef.current && (0, webContentsChangeEventRef.current)(null);
+		});
 	}, []);
 
 	useLayoutEffect(() => {

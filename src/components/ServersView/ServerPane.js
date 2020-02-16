@@ -64,14 +64,6 @@ export function ServerPane({
 	const webviewRef = useRef();
 	const [webContents, setWebContents] = useState(null);
 
-	const handleDidAttach = () => {
-		setWebContents(webviewRef.current.getWebContents());
-	};
-
-	const handleDestroyed = () => {
-		setWebContents(null);
-	};
-
 	useWebviewFocus(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 	useWebviewContextMenu(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 	useWebviewPreload(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
@@ -113,10 +105,12 @@ export function ServerPane({
 		setCounter(60);
 	};
 
+	const srcRef = useRef(lastPath || url);
+
 	return <>
 		<StyledWebView
 			ref={webviewRef}
-			src={lastPath || url}
+			src={srcRef.current}
 			popups
 			webSecurity={false}
 			remoteModule
@@ -125,8 +119,7 @@ export function ServerPane({
 			isSelected={isSelected}
 			isFailed={isFailed}
 			hasWebContents={!!webContents}
-			onDidAttach={handleDidAttach}
-			onDestroyed={handleDestroyed}
+			onWebContentsChange={(webContents) => setWebContents(webContents)}
 		/>
 		<ErrorPane isFull={isFull} isSelected={isSelected} isFailed={isFailed}>
 			<FailureImage style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }} />

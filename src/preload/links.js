@@ -1,7 +1,7 @@
-import { shell } from 'electron';
-const { BrowserWindow } = require('electron').remote;
-const PDFWindow = require('electron-pdf-window');
+import { shell, remote } from 'electron';
+import PDFWindow from 'electron-pdf-window';
 
+import { getSettings } from './rocketChat';
 
 const handleAnchorClick = (event) => {
 	const a = event.target.closest('a');
@@ -15,19 +15,17 @@ const handleAnchorClick = (event) => {
 
 	const isPdfFile = RegExp(/.*\.pdf$/).test(href) && !download;
 	if (isPdfFile) {
-		const absPathToPdf = `${ window.location.protocol }//${ window.location.hostname }${ href }`;
-		const pdfWindow = new BrowserWindow({ width: 800, height: 600, });
+		const pdfWindow = new remote.BrowserWindow({ width: 800, height: 600 });
 		PDFWindow.addSupport(pdfWindow);
-		pdfWindow.loadURL(absPathToPdf);
+		pdfWindow.loadURL(href);
 		event.stopPropagation();
 		return;
 	}
 
-	const isFileUpload = /^\/file-upload\//.test(href) && !download;
-	if (isFileUpload) {
-		const clone = a.cloneNode();
-		clone.setAttribute('download', 'download');
-		clone.click();
+	const canDownload = /^\/file-upload\//.test(href) || download;
+	if (canDownload) {
+		const downloadUrl = a.href;
+		remote.getCurrentWebContents().downloadURL(downloadUrl);
 		event.preventDefault();
 		return;
 	}
@@ -40,8 +38,8 @@ const handleAnchorClick = (event) => {
 		return;
 	}
 
-	const { Meteor } = window;
-	const isInsideDomain = Meteor && RegExp(`^${ Meteor.absoluteUrl() }`).test(href);
+	const settings = getSettings();
+	const isInsideDomain = settings && RegExp(`^${ settings.get('Site_Url') }`).test(href);
 	const isRelative = !/^([a-z]+:)?\/\//.test(href);
 	if (isInsideDomain || isRelative) {
 		return;

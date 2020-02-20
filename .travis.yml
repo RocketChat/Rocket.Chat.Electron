@@ -1,39 +1,36 @@
 language: node_js
 node_js: 10
+os: linux
 cache:
   yarn: true
   directories:
     - node_modules
 
-matrix:
+jobs:
   include:
   - os: linux
-    dist: trusty
-    sudo: true
+    dist: bionic
     addons:
       apt:
         packages:
           - rpm
-          - g++-multilib
-          - libxss-dev:i386
-          - snapd
-    before_install:
-      - sudo snap install snapcraft --classic
     deploy:
       - provider: snap
+        cleanup: false
+        skip_cleanup: true
         snap: dist/*.snap
         channel: beta
-        skip_cleanup: true
         on:
           branch: develop
       - provider: snap
+        cleanup: false
+        skip_cleanup: true
         snap: dist/*.snap
         channel: stable
-        skip_cleanup: true
         on:
           branch: master
   - os: osx
-    osx_image: xcode8.3
+    osx_image: xcode11.2
 
 branches:
   only:
@@ -48,10 +45,9 @@ notifications:
     on_failure: change
 
 install:
-  - yarn
+  - yarn --check-files
   - yarn test
-  - yarn e2e
 
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
-  - yarn release
+  - NODE_ENV=production yarn release

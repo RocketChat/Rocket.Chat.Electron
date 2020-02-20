@@ -1,20 +1,23 @@
-import { ipcRenderer } from 'electron';
-import setupContextMenuPreload from './preload/contextMenu';
-import setupEventsPreload from './preload/events';
+import { setupErrorHandling } from './errorHandling';
 import setupJitsiPreload from './preload/jitsi';
 import setupLinksPreload from './preload/links';
 import setupNotificationsPreload from './preload/notifications';
-import setupSidebarPreload from './preload/sidebar';
-import setupSpellcheckingPreload from './preload/spellchecking';
+import setupSpellcheckingPreload from './preload/spellChecking';
+import setupChangesPreload from './preload/changes';
+import setupUserPresencePreload from './preload/userPresence';
+import { setupI18next } from './i18n';
 
+const initialize = async () => {
+	setupErrorHandling('preload');
 
-setupContextMenuPreload();
-setupEventsPreload();
-setupJitsiPreload();
-setupLinksPreload();
-setupNotificationsPreload();
-setupSidebarPreload();
-setupSpellcheckingPreload();
+	await setupI18next();
 
-window.reloadServer = () => ipcRenderer.sendToHost('reload-server');
-window.i18n = require('./i18n');
+	setupJitsiPreload();
+	setupLinksPreload();
+	setupNotificationsPreload();
+	setupSpellcheckingPreload();
+	setupChangesPreload();
+	setupUserPresencePreload();
+};
+
+initialize();

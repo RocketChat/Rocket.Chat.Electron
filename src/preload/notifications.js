@@ -1,14 +1,46 @@
-import { ipcRenderer, nativeImage } from 'electron';
 import { EventEmitter } from 'events';
-import jetpack from 'fs-jetpack';
-import tmp from 'tmp';
 
+import { ipcRenderer, remote } from 'electron';
 
-const instances = new Map();
+const fetchWithoutOrigin = remote.require('electron-fetch').default;
+
+const avatarCache = {};
+
+const inferContentTypeFromImageData = (data) => {
+	const header = data.slice(0, 3).map((byte) => byte.toString(16)).join('');
+	switch (header) {
+		case '89504e':
+			return 'image/png';
+		case '474946':
+			return 'image/gif';
+		case 'ffd8ff':
+			return 'image/jpeg';
+	}
+};
+
+const getAvatarUrlAsDataUrl = async (avatarUrl) => {
+	if (/^data:/.test(avatarUrl)) {
+		return avatarUrl;
+	}
+
+	if (avatarCache[avatarUrl]) {
+		return avatarCache[avatarUrl];
+	}
+
+	const response = await fetchWithoutOrigin(avatarUrl);
+	const arrayBuffer = await response.arrayBuffer();
+	const byteArray = Array.from(new Uint8Array(arrayBuffer));
+	const binaryString = byteArray.reduce((binaryString, byte) => binaryString + String.fromCharCode(byte), '');
+	const base64String = btoa(binaryString);
+	const contentType = response.headers.get('content-type');
+	avatarCache[avatarUrl] = `data:${ inferContentTypeFromImageData(byteArray) || contentType };base64,${ base64String }`;
+	return avatarCache[avatarUrl];
+};
+
 
 class Notification extends EventEmitter {
 	static requestPermission() {
-		return;
+
 	}
 
 	static get permission() {
@@ -17,69 +49,76 @@ class Notification extends EventEmitter {
 
 	constructor(title, options) {
 		super();
-
 		this.create({ title, ...options });
 	}
 
-	async create({ icon, ...options }) {
-		if (icon) {
-			Notification.cachedIcons = Notification.cachedIcons || {};
+	addEventListener = ::this.addListener
 
-			if (!Notification.cachedIcons[icon]) {
-				Notification.cachedIcons[icon] = await new Promise((resolve, reject) =>
-					tmp.file((err, path) => (err ? reject(err) : resolve(path))));
-				const buffer = nativeImage.createFromDataURL(icon).toPNG();
-				await jetpack.writeAsync(Notification.cachedIcons[icon], buffer);
-			}
-			icon = Notification.cachedIcons[icon];
+	async create({ icon, canReply, ...options }) {
+		if (icon) {
+			icon = await getAvatarUrlAsDataUrl(icon);
 		}
 
-		this.id = ipcRenderer.sendSync('request-notification', { icon, ...options });
-		instances.set(this.id, this);
+		const notification = new remote.Notification({
+			icon: icon && remote.nativeImage.createFromDataURL(icon),
+			hasReply: canReply,
+			...options,
+		});
+
+		notification.addListener('show', this.handleShow.bind(this));
+		notification.addListener('close', this.handleClose.bind(this));
+		notification.addListener('click', this.handleClick.bind(this));
+		notification.addListener('reply', this.handleReply.bind(this));
+		notification.addListener('action', this.handleAction.bind(this));
+
+		notification.show();
+
+		this.notification = notification;
+	}
+
+	handleShow(event) {
+		event.currentTarget = this;
+		this.onshow && this.onshow.call(this, event);
+		this.emit('show', event);
+	}
+
+	handleClose(event) {
+		event.currentTarget = this;
+		this.onclose && this.onclose.call(this, event);
+		this.emit('close', event);
+	}
+
+	handleClick(event) {
+		ipcRenderer.sendToHost('focus');
+		event.currentTarget = this;
+		this.onclick && this.onclick.call(this, event);
+		this.emit('close', event);
+	}
+
+	handleReply(event, reply) {
+		event.currentTarget = this;
+		event.response = reply;
+		this.onreply && this.onreply.call(this, event);
+		this.emit('reply', event);
+	}
+
+	handleAction(event, index) {
+		event.currentTarget = this;
+		event.index = index;
+		this.onaction && this.onaction.call(this, event);
+		this.emit('action', event);
 	}
 
 	close() {
-		ipcRenderer.send('close-notification', this.id);
+		if (!this.notification) {
+			return;
+		}
+
+		this.notification.close();
+		this.notification = null;
 	}
 }
 
-const handleNotificationShown = (event, id) => {
-	const notification = instances.get(id);
-	if (!notification) {
-		return;
-	}
-
-	typeof notification.onshow === 'function' && notification.onshow.call(notification);
-	notification.emit('show');
-};
-
-const handleNotificationClicked = (event, id) => {
-	const notification = instances.get(id);
-	if (!notification) {
-		return;
-	}
-
-	ipcRenderer.send('focus');
-	ipcRenderer.sendToHost('focus');
-
-	typeof notification.onclick === 'function' && notification.onclick.call(notification);
-	notification.emit('click');
-};
-
-const handleNotificationClosed = (event, id) => {
-	const notification = instances.get(id);
-	if (!notification) {
-		return;
-	}
-
-	typeof notification.onclose === 'function' && notification.onclose.call(notification);
-	notification.emit('close');
-};
-
-
 export default () => {
 	window.Notification = Notification;
-	ipcRenderer.on('notification-shown', handleNotificationShown);
-	ipcRenderer.on('notification-clicked', handleNotificationClicked);
-	ipcRenderer.on('notification-closed', handleNotificationClosed);
 };

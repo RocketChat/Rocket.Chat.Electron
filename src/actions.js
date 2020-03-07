@@ -17,6 +17,7 @@ export const MAIN_WINDOW_STATE_CHANGED = 'main-window/state-changed';
 export const MAIN_WINDOW_WEBCONTENTS_FOCUSED = 'main-window/webcontents-focused';
 export const MENU_BAR_ABOUT_CLICKED = 'menu-bar/about-clicked';
 export const MENU_BAR_ADD_NEW_SERVER_CLICKED = 'menu-bar/add-new-server-clicked';
+export const MENU_BAR_DISABLE_GPU = 'menu-bar/disable-gpu';
 export const MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED = 'menu-bar/clear-trusted-certificates-clicked';
 export const MENU_BAR_GO_BACK_CLICKED = 'menu-bar/go-back-clicked';
 export const MENU_BAR_GO_FORWARD_CLICKED = 'menu-bar/go-forward-clicked';

@@ -7,6 +7,7 @@ import {
 	MENU_BAR_ABOUT_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	MENU_BAR_QUIT_CLICKED,
+	MENU_BAR_DISABLE_GPU,
 } from '../../actions';
 import { Menu } from '../electron/Menu';
 import { MenuItem } from '../electron/MenuItem';
@@ -51,6 +52,12 @@ export const AppMenu = forwardRef(function AppMenu(_, ref) {
 				/>
 				<MenuItem type='separator' />
 			</>}
+			<MenuItem
+				label={t('Disable GPU')}
+				enabled={!remote.app.commandLine.hasSwitch('disable-gpu')}
+				onClick={() => dispatch({ type: MENU_BAR_DISABLE_GPU })}
+			/>
+			<MenuItem type='separator' />
 			<MenuItem
 				label={t('menus.quit', { appName })}
 				accelerator={'CommandOrControl+Q'}

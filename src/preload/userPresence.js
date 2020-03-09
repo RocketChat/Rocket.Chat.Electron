@@ -1,4 +1,4 @@
-import { remote } from 'electron';
+import { remote, app } from 'electron';
 
 import { getMeteor, getTracker, getGetUserPreference, getUserPresence } from './rocketChat';
 
@@ -41,6 +41,18 @@ const handleUserPresence = () => {
 	}, 1000);
 };
 
+// if the system is put to sleep or screen is locked(windows OS), set userPresence to away
+const handleSystemActions = () => {
+	const Meteor = getMeteor();
+	remote.powerMonitor.on('suspend', () => {
+		Meteor.call('UserPresence:away');
+	});
+	// windows OS only
+	remote.powerMonitor.on('lock-screen', () => {
+		Meteor.call('UserPresence:away');
+	});
+};
 export default () => {
 	window.addEventListener('load', handleUserPresence);
+	window.addEventListener('load', handleSystemActions);
 };

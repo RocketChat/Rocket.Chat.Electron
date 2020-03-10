@@ -29,6 +29,12 @@ const prepareApp = () => {
 		process.argv.slice(app.isPackaged ? 1 : 2),
 	];
 
+	if (args.includes('--disable-gpu')) {
+		app.commandLine.appendSwitch('--disable-2d-canvas-image-chromium');
+		app.commandLine.appendSwitch('--disable-accelerated-2d-canvas');
+		app.commandLine.appendSwitch('--disable-gpu');
+	}
+
 	if (args.includes('--reset-app-data')) {
 		const dataDir = app.getPath('userData');
 		rimraf.sync(dataDir);

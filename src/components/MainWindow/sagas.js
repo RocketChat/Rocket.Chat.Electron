@@ -12,6 +12,7 @@ import {
 	MENU_BAR_GO_BACK_CLICKED,
 	MENU_BAR_GO_FORWARD_CLICKED,
 	MENU_BAR_QUIT_CLICKED,
+	MENU_BAR_DISABLE_GPU,
 	MENU_BAR_RELOAD_APP_CLICKED,
 	MENU_BAR_RELOAD_SERVER_CLICKED,
 	MENU_BAR_RESET_ZOOM_CLICKED,
@@ -303,6 +304,11 @@ function *takeActions(browserWindow) {
 		TRAY_ICON_QUIT_CLICKED,
 	], function *() {
 		browserWindow.destroy();
+	});
+
+	yield takeEvery(MENU_BAR_DISABLE_GPU, function *() {
+		remote.app.relaunch({ args: remote.process.argv.slice(1).concat('--disable-gpu') });
+		remote.app.exit();
 	});
 }
 

@@ -1,3 +1,13 @@
+## [2.17.8](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.7...2.17.8) (2020-03-01)
+
+
+### Bug Fixes
+
+* Allow MacOS users to browse for spell checking dictionaries ([3c75bfe](https://github.com/RocketChat/Rocket.Chat.Electron/commit/3c75bfe2270e5c2e434f85a27a717c875a63f9b0))
+* Patch Electron for MAS builds ([e9cd8ad](https://github.com/RocketChat/Rocket.Chat.Electron/commit/e9cd8ad4b9cf0aeb5011189f6cedb24b71548579))
+
+
+
 ## [2.17.7](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.6...2.17.7) (2020-02-11)
 
 

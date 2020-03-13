@@ -1,3 +1,12 @@
+## [2.17.9](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.8...2.17.9) (2020-03-12)
+
+
+### Bug Fixes
+
+* Update provision profile ([617c964](https://github.com/RocketChat/Rocket.Chat.Electron/commit/617c964dacde3738d86d28779f01fa0c9208b6b3))
+
+
+
 ## [2.17.8](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.7...2.17.8) (2020-03-01)
 
 

@@ -67,7 +67,7 @@ full, runnable application.
 
 ### The build pipeline
 
-Build process is founded upon [gulp] task runner and [rollup] bundler. There are
+The build process is founded upon [gulp] task runner and [rollup] bundler. There are
 two entry files for your code: `src/main.js` and `src/app.js`. Rollup will
 follow all `import` statements starting from those files and compile code of the
 whole dependency tree into one `.js` file for each entry point.
@@ -173,7 +173,7 @@ All packaging actions are handled by [electron-builder]. It has a lot of
 ## Default servers
 
 The `servers.json` file will define what servers the client will connect to and
-will populate the server list in the sidebar, it contains a list of default
+will populate the server list in the sidebar. It contains a list of default
 servers which will be added the first time the user runs the app (or when all
 servers are removed from the list).
 The file syntax is as follows:
@@ -192,7 +192,7 @@ located in the root of the project application (same level as the
 `package.json`). If the file is found, the initial "Connect to server" screen
 will be skipped and it will attempt to connect to the first server in the array
 that has been defined and drop the user right at the login screen. Note that the
-`servers.json` will only be checked if no other servers have already be added,
+`servers.json` will only be checked if no other servers have already been added,
 even if you uninstall the app without removing older preferences, it will not be
 triggered again.
 
@@ -203,17 +203,17 @@ If you can't (or don't want to) bundle the file inside the app, you can create a
 one. The file should be located in the `%APPDATA%/Rocket.Chat/` folder or the
 installation folder in case of a installation for all users (Windows only).
 
-For Windows the full paths are:
+For Windows, the full paths are:
 
 - `~\Users\<username>\AppData\Roaming\Rocket.Chat\`
 - `~\Program Files\Rocket.Chat\Resources\`
 
-On MacOS the full paths are:
+On macOS, the full paths are:
 
 - `~/Users/<username>/Library/Application Support/Rocket.Chat/`
 - `~/Applications/Rocket.Chat.app/Contents/Resources/`
 
-On Linux the full paths are:
+On Linux, the full paths are:
 
 - `/home/<username>/.config/Rocket.Chat/`
 - `/opt/Rocket.Chat/resources/`

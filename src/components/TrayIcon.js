@@ -17,7 +17,7 @@ import { createEventChannelFromEmitter } from '../sagaUtils';
 
 export function TrayIcon() {
 	const appName = remote.app.name;
-	const isMainWindowToBeShown = useSelector(({ mainWindowState: { visible } }) => !visible);
+	const isMainWindowToBeShown = useSelector(({ mainWindowState: { focused } }) => !focused);
 	const isTrayIconEnabled = useSelector(({ isTrayIconEnabled }) => isTrayIconEnabled);
 
 	const badge = useSelector(({ servers }) => {

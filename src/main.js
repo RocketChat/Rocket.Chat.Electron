@@ -70,7 +70,7 @@ const createMainWindow = () => {
 	const mainWindow = new BrowserWindow({
 		width: 1000,
 		height: 600,
-		minWidth: 600,
+		minWidth: 400,
 		minHeight: 400,
 		titleBarStyle: 'hidden',
 		backgroundColor: '#2f343d',

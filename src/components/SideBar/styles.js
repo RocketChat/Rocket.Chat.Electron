@@ -218,20 +218,22 @@ export const DownloadsManagerButton = styled.button`
 	line-height: 1.25;
 	display: flex;
 	flex-direction: row;
-	height: 40px;
+	height: 35px;
 	padding: 0;
 	color: inherit;
 	border: none;
 	background: none;
 	align-items: center;
 	justify-content: center;
+	margin-top: auto;
+	bottom: 5%;
 `;
 
 export const DownloadsManagerLabel = styled.span`
 	display: block;
 	line-height: 30px;
-	width: 40px;
-	height: 40px;
+	width: 35px;
+	height: 35px;
 	transition: opacity var(--transitions-duration);
 	opacity: 0.6;
 	color: inherit;

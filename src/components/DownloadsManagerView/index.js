@@ -19,7 +19,6 @@ import { RocketChatLogo } from '../RocketChatLogo';
 
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
-	console.log(isVisible);
 	return <Wrapper isVisible= {isVisible}>
 		<Content>
 			<Margins block='x16'>

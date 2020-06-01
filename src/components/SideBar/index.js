@@ -5,6 +5,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
+import { Icon } from '@rocket.chat/fuselage';
 
 import {
 	SIDE_BAR_SERVER_SELECTED,
@@ -199,7 +200,9 @@ export function SideBar() {
 				<DownloadsManagerLabel
 					tooltip='Downloads'
 					onClick={handelDownloadsButtonClicked}
-				>-</DownloadsManagerLabel>
+				>
+					<Icon name='download'/>
+				</DownloadsManagerLabel>
 			</DownloadsManagerButton>
 		</Content>
 	</Wrapper>;

@@ -13,11 +13,14 @@ import {
 	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 	WEBVIEW_FAVICON_CHANGED,
+	SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
 import {
 	AddServerButton,
 	AddServerButtonLabel,
+	DownloadsManagerButton,
+	DownloadsManagerLabel,
 	Avatar,
 	Badge,
 	Content,
@@ -158,6 +161,10 @@ export function SideBar() {
 		dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
 	};
 
+	const handelDownloadsButtonClicked = () => {
+		dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
+	};
+
 	const { t } = useTranslation();
 
 	return <Wrapper background={background} color={color} isVisible={isVisible}>
@@ -188,6 +195,12 @@ export function SideBar() {
 					onClick={handleAddServerButtonClicked}
 				>+</AddServerButtonLabel>
 			</AddServerButton>
+			<DownloadsManagerButton>
+				<DownloadsManagerLabel
+					tooltip='Downloads'
+					onClick={handelDownloadsButtonClicked}
+				>-</DownloadsManagerLabel>
+			</DownloadsManagerButton>
 		</Content>
 	</Wrapper>;
 }

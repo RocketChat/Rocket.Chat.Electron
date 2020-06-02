@@ -8,22 +8,30 @@ import {
 	Margins,
 	TextInput,
 	Tile,
+	Grid,
 } from '@rocket.chat/fuselage';
-import { useTranslation } from 'react-i18next';
-import React, { useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+// import { useTranslation } from 'react-i18next';
+import React from 'react';
+import { useSelector } from 'react-redux';
 
-import { Wrapper, Content } from './styles';
-import { RocketChatLogo } from '../RocketChatLogo';
-
+import { Wrapper, Content, Title, Subtitle } from './styles';
+import DownloadItem from '../DownloadsComponents/DownloadItem';
 
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
-	return <Wrapper isVisible= {isVisible}>
+	return <Wrapper isVisible={isVisible}>
 		<Content>
-			<Margins block='x16'>
-				<RocketChatLogo alternate/>
-			</Margins>
+			<Grid xl={true}>
+				<Grid.Item xl='8'>
+					<Tile>
+						<Title>Downloads Manager</Title>
+						<Subtitle>See all your downloads here</Subtitle>
+					</Tile>
+				</Grid.Item>
+				<Grid.Item xl='4'>
+
+				</Grid.Item>
+			</Grid>
 		</Content>
 	</Wrapper>;
 }

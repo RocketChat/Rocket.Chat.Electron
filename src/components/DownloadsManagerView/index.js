@@ -31,6 +31,10 @@ export function DownloadsManagerView() {
 				<Grid.Item xl='4'>
 
 				</Grid.Item>
+				<Grid.Item>
+					<DownloadItem>
+					</DownloadItem>
+				</Grid.Item>
 			</Grid>
 		</Content>
 	</Wrapper>;

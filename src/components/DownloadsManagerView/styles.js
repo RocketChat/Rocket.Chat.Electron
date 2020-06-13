@@ -8,11 +8,11 @@ export const Wrapper = styled.section`
 	top: 0;
 	right: 0;
 	bottom: 0;
-	background-color: bisque;
+	background-color: white;
 
 	overflow-y: auto;
 	// align-items: center;
-	-webkit-app-region: drag;
+	// -webkit-app-region: drag;
 	justify-content: center;
 
 	${ ({ isVisible }) => css`display: ${ isVisible ? 'flex' : 'none' };` };
@@ -20,8 +20,8 @@ export const Wrapper = styled.section`
 
 export const Content = styled.div`
 	position: relative;
-	top: 10%;
-	width: 90%;
+	// top: 10%;
+	width: 100%;
 	// height: 100%;
 	max-width: 100%;
 	// max-height: 100%;
@@ -35,9 +35,3 @@ export const Title = styled.h1`
 export const Subtitle = styled.h4`
 	color: lightslategrey;
 `;
-
-
-// export const MainGrid = styled.Grid`
-// 	height: 100%;
-// 	overflow-y: auto;
-// `;

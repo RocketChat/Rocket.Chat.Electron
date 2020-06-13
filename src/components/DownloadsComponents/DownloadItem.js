@@ -11,33 +11,36 @@ import {
 	Grid,
 	Icon,
 } from '@rocket.chat/fuselage';
+import React, { useEffect } from 'react';
+import { Progress } from 'react-sweet-progress';
+import 'react-sweet-progress/lib/style.css';
 
-import React from 'react';
+// recieve props for individual download item
+export default function DownloadItem({ filename, filesize, url }) {
+	// const date = new Date().toLocaleTimeString();
 
-
-export default function DownloadItem() {
-	return <Box height='x200' width='100%'>
-		<Grid md={true}>
-			<Grid.Item md='2'>
-				<Box height='200px' width='200px'>
-					<img src='' alt='' style={{ height: '200px', width: '200px' }} />
+	return <Margins all='x32'>
+		<Tile elevation='2' style={ { width: '75%' } }>
+			<Grid>
+				{/* Box component styles not working properly */}
+				<Box height='16.5rem' width='100%' display='flex' alignItems='center'>
+					<Grid.Item md={ 2 } style={ { height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' } }>
+						<div style={ { height: '200px', width: '200px', backgroundColor: 'lightblue', borderRadius: '10px' } }></div>
+					</Grid.Item>
+					<Grid.Item style={ { height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-around', padding: '1.2rem 0' } }>
+						<h3>{ 'filename' }</h3>
+						<div style={ { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '75%' } }>
+							<span>@Server</span> <span> { 'date' }</span> <span>{ 'filesize' || '25MB' }</span>
+						</div>
+						<Progress theme={ { default: { color: 'lightblue' } } } percent={ 88 } status='default' />
+						<p>{ 'url' || 'https://google.com' }</p>
+						<a href='#'> Show in Folder</a>
+					</Grid.Item>
+					<Grid.Item md='1'>
+						<Icon name='cross' size='x64' />
+					</Grid.Item>
 				</Box>
-			</Grid.Item>
-			<Grid.Item md='4'>
-				<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-					<h3>Filename.png</h3>
-					<div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-						<span>@Server</span> <span>11:00PM</span> <span>25MB</span>
-					</div>
-					<p>https://google.com</p>
-					<a href='#'>Show in Folder</a>
-				</div>
-			</Grid.Item>
-			<Grid.Item md='1'>
-				<div style={{ display: 'flex', justifyContent: 'center' }}>
-					<Icon name='cross' />
-				</div>
-			</Grid.Item>
-		</Grid>
-	</Box>;
+			</Grid>
+		</Tile>
+	</Margins>;
 }

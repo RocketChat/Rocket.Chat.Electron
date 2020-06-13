@@ -70,8 +70,8 @@ const createMainWindow = () => {
 	const mainWindow = new BrowserWindow({
 		width: 1000,
 		height: 600,
-		minWidth: 400,
-		minHeight: 400,
+		minWidth: 500,
+		minHeight: 500,
 		titleBarStyle: 'hidden',
 		backgroundColor: '#2f343d',
 		show: false,
@@ -81,13 +81,41 @@ const createMainWindow = () => {
 		},
 	});
 
-	mainWindow.addListener('close', preventEvent);
+	mainWindow.addListener('close', (e) => {
+		preventEvent(e);
+		console.log('closing');
+	});
 
 	mainWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
 		delete webPreferences.enableBlinkFeatures;
 	});
 
 	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
+
+	// Downloads handler. Handles all downloads from links. 
+	mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
+		// Set the save path, making Electron not to prompt a save dialog.
+
+		item.on('updated', (event, state) => {
+			if (state === 'interrupted') {
+				console.log('Download is interrupted but can be resumed');
+			} else if (state === 'progressing') {
+				if (item.isPaused()) {
+					console.log('Download is paused');
+				} else {
+					console.log(`Received bytes: ${ item.getReceivedBytes() }`);
+				}
+			}
+		});
+		item.once('done', (event, state) => {
+			if (state === 'completed') {
+				mainWindow.webContents.send('download-complete', item.getTotalBytes());
+				console.log('Download successfully');
+			} else {
+				console.log(`Download failed: ${ state }`);
+			}
+		});
+	});
 };
 
 const initialize = async () => {

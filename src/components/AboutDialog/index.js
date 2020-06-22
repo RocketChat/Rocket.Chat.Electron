@@ -1,4 +1,4 @@
-import { Box, Button, Field, Flex, Loading, Margins, ToggleSwitch } from '@rocket.chat/fuselage';
+import { Box, Button, Field, Flex, Throbber, Margins, ToggleSwitch } from '@rocket.chat/fuselage';
 import { useUniqueId } from '@rocket.chat/fuselage-hooks';
 import { remote } from 'electron';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
@@ -129,7 +129,7 @@ export function AboutDialog() {
 							<Margins block='x12'>
 								{checkingForUpdatesMessage
 									? <Box textStyle='c1' textColor='info'>{checkingForUpdatesMessage}</Box>
-									: <Loading size='x16' />}
+									: <Throbber size='x16' />}
 							</Margins>
 						</Box>}
 

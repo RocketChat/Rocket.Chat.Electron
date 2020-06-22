@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, Flex, Loading, Margins } from '@rocket.chat/fuselage';
+import { Box, Button, ButtonGroup, Flex, Throbber, Margins } from '@rocket.chat/fuselage';
 import { remote } from 'electron';
 import React, { useState, useRef, useEffect } from 'react';
 import { takeEvery } from 'redux-saga/effects';
@@ -141,7 +141,7 @@ export function ServerPane({
 
 							<Box>
 								{isReloading && <Margins block='x12'>
-									<Loading inheritColor size='x16' />
+									<Throbber inheritColor size='x16' />
 								</Margins>}
 
 								{!isReloading && <ButtonGroup align='center'>

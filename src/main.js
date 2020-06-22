@@ -4,6 +4,7 @@ import { app, BrowserWindow } from 'electron';
 import setupElectronReload from 'electron-reload';
 import rimraf from 'rimraf';
 
+import { readFromStorage } from './localStorage';
 import { setupErrorHandling } from './errorHandling';
 
 if (process.env.NODE_ENV === 'development') {
@@ -92,10 +93,23 @@ const createMainWindow = () => {
 
 	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
 
-	// Downloads handler. Handles all downloads from links. 
-	mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
-		// Set the save path, making Electron not to prompt a save dialog.
+	// Downloads handler. Handles all downloads from links.
+	mainWindow.webContents.session.on('will-download', (event, item, webContents, ...args) => {
+		console.log({ event, item, webContents, args });
+		// const servers = readFromStorage('servers');
+		// const currentServerUrl = readFromStorage('currentServerUrl');
+		// console.log(servers);
+		// console.log(currentServerUrl);
+		// let serverTitle;
+		// for (const server of servers) {
+		// 	if (server.url === currentServerUrl) {
+		// 		serverTitle = server.title;
+		// 	}
+		// }
 
+
+		// Set the save path, making Electron not to prompt a save dialog.
+		mainWindow.webContents.send('download-start', { totalBytes: item.getTotalBytes(), filename: item.getFilename(), url: item.getURL() });
 		item.on('updated', (event, state) => {
 			if (state === 'interrupted') {
 				console.log('Download is interrupted but can be resumed');
@@ -103,13 +117,14 @@ const createMainWindow = () => {
 				if (item.isPaused()) {
 					console.log('Download is paused');
 				} else {
+					mainWindow.webContents.send('downloading', item.getReceivedBytes());
 					console.log(`Received bytes: ${ item.getReceivedBytes() }`);
 				}
 			}
 		});
 		item.once('done', (event, state) => {
 			if (state === 'completed') {
-				mainWindow.webContents.send('download-complete', item.getTotalBytes());
+				// mainWindow.webContents.send('download-complete', item.getTotalBytes());
 				console.log('Download successfully');
 			} else {
 				console.log(`Download failed: ${ state }`);

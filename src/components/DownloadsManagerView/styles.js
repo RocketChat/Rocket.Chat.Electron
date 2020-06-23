@@ -20,7 +20,7 @@ export const Wrapper = styled.section`
 
 export const Content = styled.div`
 	position: relative;
-	// top: 10%;
+	top: 10%;
 	width: 100%;
 	// height: 100%;
 	max-width: 100%;

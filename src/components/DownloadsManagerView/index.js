@@ -1,4 +1,4 @@
-import { Box, Tile, Grid, Divider } from '@rocket.chat/fuselage';
+import { Box, Tile, Grid, Divider, SearchInput, Select, Icon } from '@rocket.chat/fuselage';
 // import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
@@ -78,15 +78,27 @@ export function DownloadsManagerView() {
 	return <Wrapper isVisible={ isVisible }>
 		<Content>
 			<Grid xl={ true } style={ { display: 'flex', justifyContent: 'center' } }>
+				<Grid.Item xl={ 4 } >
+					<SearchInput width='400px' placeholder='Search Downloads' addon={ <Icon name='send' size='x20' /> } />
+				</Grid.Item>
+				<Grid.Item xl={ 1 } >
+				</Grid.Item>
+				<Grid.Item xl={ 3 } >
+					<Select width='250px' placeholder='Filter Server' options={ [[1, 'Rocket.Chat'], [2, 'Server2'], [3, 'Test Server']] } />
+				</Grid.Item>
+				<Grid.Item xl={ 1 } >
+					<Icon name='medium-vew' size='x32' />
+				</Grid.Item>
+				<Grid.Item xl={ 1 } >
+					<Icon name='kebab' size='x32' />
+				</Grid.Item>
 
 				<Box width='70%' display='flex' flexDirection='row'>
 					<Grid.Item xl={ 8 }>
-						<Tile>
-							<Box>
-								<h1>Downloads</h1>
-								<h3>See all your downloads here</h3>
-							</Box>
-						</Tile>
+						<Box>
+							<h1>Downloads</h1>
+							<h3>See all your downloads here</h3>
+						</Box>
 					</Grid.Item>
 					<Grid.Item xl={ 4 }>
 					</Grid.Item>

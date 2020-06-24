@@ -1,13 +1,13 @@
 {
-  "name": "rocketchat",
+  "name": "oliveruc",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
   "version": "2.17.9",
-  "author": "Rocket.Chat Support <support@rocket.chat>",
-  "copyright": "© 2019, Rocket.Chat",
-  "homepage": "https://rocket.chat",
+  "author": "oliveruc Support <support@rocket.chat>",
+  "copyright": "© 2019, oliveruc.Chat",
+  "homepage": "https://oliveruc.chat",
   "license": "MIT",
   "keywords": [
-    "rocketchat",
+    "oliveruc",
     "desktop",
     "electron"
   ],
@@ -86,5 +86,5 @@
     "npm": ">=6.9.x",
     "yarn": ">=1.17.x"
   },
-  "productName": "Rocket.Chat"
+  "productName": "OliveUC"
 }

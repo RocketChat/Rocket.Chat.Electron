@@ -48,16 +48,16 @@ const createTemplate = ({
 					type: 'separator',
 				},
 			] : [],
-			...process.platform !== 'darwin' ? [
-				{
-					label: t('menus.addNewServer'),
-					accelerator: 'CommandOrControl+N',
-					click: () => events.emit('add-new-server'),
-				},
-			] : [],
-			{
-				type: 'separator',
-			},
+			// ...process.platform !== 'darwin' ? [
+			// 	{
+			// 		label: t('menus.addNewServer'),
+			// 		accelerator: 'CommandOrControl+N',
+			// 		click: () => events.emit('add-new-server'),
+			// 	},
+			// ] : [],
+			// {
+			// 	type: 'separator',
+			// },
 			{
 				label: t('menus.quit', { appName }),
 				accelerator: 'CommandOrControl+Q',
@@ -111,19 +111,19 @@ const createTemplate = ({
 				accelerator: 'CommandOrControl+R',
 				click: () => events.emit('reload-server'),
 			},
-			{
-				label: t('menus.reloadIgnoringCache'),
-				click: () => events.emit('reload-server', { ignoringCache: true }),
-			},
+			// {
+			// 	label: t('menus.reloadIgnoringCache'),
+			// 	click: () => events.emit('reload-server', { ignoringCache: true }),
+			// },
 			{
 				label: t('menus.clearTrustedCertificates'),
 				click: () => events.emit('reload-server', { ignoringCache: true, clearCertificates: true }),
 			},
-			{
-				label: t('menus.openDevTools'),
-				accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
-				click: () => events.emit('open-devtools-for-server'),
-			},
+			// {
+			// 	label: t('menus.openDevTools'),
+			// 	accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
+			// 	click: () => events.emit('open-devtools-for-server'),
+			// },
 			{
 				type: 'separator',
 			},
@@ -162,12 +162,12 @@ const createTemplate = ({
 					click: () => events.emit('toggle', 'showMenuBar'),
 				},
 			],
-			{
-				label: t('menus.showServerList'),
-				type: 'checkbox',
-				checked: showServerList,
-				click: () => events.emit('toggle', 'showServerList'),
-			},
+			// {
+			// 	label: t('menus.showServerList'),
+			// 	type: 'checkbox',
+			// 	checked: showServerList,
+			// 	click: () => events.emit('toggle', 'showServerList'),
+			// },
 			{
 				type: 'separator',
 			},
@@ -218,10 +218,10 @@ const createTemplate = ({
 				accelerator: 'CommandOrControl+Shift+R',
 				click: () => events.emit('reload-app'),
 			},
-			{
-				label: t('menus.toggleDevTools'),
-				click: () => events.emit('toggle-devtools'),
-			},
+			// {
+			// 	label: t('menus.toggleDevTools'),
+			// 	click: () => events.emit('toggle-devtools'),
+			// },
 			{
 				type: 'separator',
 			},
@@ -250,28 +250,28 @@ const createTemplate = ({
 		label: t('menus.helpMenu'),
 		role: 'help',
 		submenu: [
-			{
-				label: t('menus.documentation'),
-				click: () => events.emit('open-url', 'https://rocket.chat/docs'),
-			},
-			{
-				type: 'separator',
-			},
-			{
-				label: t('menus.reportIssue'),
-				click: () => events.emit('open-url', 'https://github.com/RocketChat/Rocket.Chat.Electron/issues/new'),
-			},
+			// {
+			// 	label: t('menus.documentation'),
+			// 	click: () => events.emit('open-url', 'https://rocket.chat/docs'),
+			// },
+			// {
+			// 	type: 'separator',
+			// },
+			// {
+			// 	label: t('menus.reportIssue'),
+			// 	click: () => events.emit('open-url', 'https://github.com/RocketChat/Rocket.Chat.Electron/issues/new'),
+			// },
 			{
 				label: t('menus.resetAppData'),
 				click: () => events.emit('reset-app-data'),
 			},
-			{
-				type: 'separator',
-			},
-			{
-				label: t('menus.learnMore'),
-				click: () => events.emit('open-url', 'https://rocket.chat'),
-			},
+			// {
+			// 	type: 'separator',
+			// },
+			// {
+			// 	label: t('menus.learnMore'),
+			// 	click: () => events.emit('open-url', 'https://rocket.chat'),
+			// },
 			...process.platform !== 'darwin' ? [
 				{
 					label: t('menus.about', { appName }),

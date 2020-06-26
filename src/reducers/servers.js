@@ -8,7 +8,7 @@ import {
 	WEBVIEW_TITLE_CHANGED,
 	WEBVIEW_UNREAD_CHANGED,
 	WEBVIEW_FAVICON_CHANGED,
-	WEBVIEW_SERVER_ID
+	// WEBVIEW_SERVER_ID,
 } from '../actions';
 
 const upsert = (state, server) => {
@@ -71,10 +71,12 @@ export const servers = (state = [], { type, payload }) => {
 
 			return state;
 		}
-		case WEBVIEW_SERVER_ID: {
-			const id = payload;
-			return url;
-		}
+		// case WEBVIEW_SERVER_ID: {
+		// 	const { servers } = state;
+		// 	const { id, url } = payload;
+
+		// 	console.log({ servers, id, url });
+		// }
 	}
 
 	return state;

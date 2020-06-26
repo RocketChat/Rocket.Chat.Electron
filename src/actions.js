@@ -84,3 +84,4 @@ export const WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN = 'webview/spell-che
 export const WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED = 'webview/spell-checking-dictionary-toggled';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
+// export const WEBVIEW_SERVER_ID = 'webview/server-id';

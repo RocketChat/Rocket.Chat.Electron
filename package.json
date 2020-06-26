@@ -32,7 +32,7 @@
     "@bugsnag/js": "^6.3.2",
     "@emotion/core": "^10.0.27",
     "@emotion/styled": "^10.0.27",
-    "@rocket.chat/icons": "^0.2.0-alpha.23",
+    "@rocket.chat/icons": "0.6.3-dev.57",
     "debug": "^4.1.1",
     "dictionary-de": "^2.0.3",
     "dictionary-en-gb": "^2.2.1",

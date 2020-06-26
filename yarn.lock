@@ -1125,10 +1125,10 @@
     invariant "^2.2.4"
     react-keyed-flatten-children "^1.2.0"
 
-"@rocket.chat/icons@^0.2.0-alpha.23":
-  version "0.2.0-alpha.28"
-  resolved "https://registry.yarnpkg.com/@rocket.chat/icons/-/icons-0.2.0-alpha.28.tgz#2c186c27eb0100c4cd115992a27846e830d3f52e"
-  integrity sha512-z+LrEdOLIY8Cj/0oRi73Lg3jZZ7lsXXNkqfwT0wJjA6WKaPC+cOIOEW0y3YSV3NgHVupvuBJh9pK6xJTnU66Wg==
+"@rocket.chat/icons@0.6.3-dev.57":
+  version "0.6.3-dev.57"
+  resolved "https://registry.yarnpkg.com/@rocket.chat/icons/-/icons-0.6.3-dev.57.tgz#1268f616a6c17c5ad1876bdeec993a78a10fd3dc"
+  integrity sha512-Agxr3iD+0fYTCikFX/Cesco0CAdlTbl03Uso3aOVLJynndWuzZyuB5eo5X4S+rL0L/L+MvALOSSbI/b3w1VjiA==
 
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"

@@ -7,30 +7,30 @@ import 'react-sweet-progress/lib/style.css';
 export default function DownloadItem({ filename, filesize, url, percentage, timeDownloaded }) {
 	console.log(percentage);
 	return <Margins all='x32'>
-		<Tile elevation='2' style={ { width: '75%' } }>
-			<Grid>
-				{/* Box component styles not working properly */ }
-				<Box height='16.5rem' width='100%' display='flex' alignItems='center'>
-					<Grid.Item md={ 2 } style={ { height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' } }>
-						<div style={ { height: '200px', width: '200px', backgroundColor: 'lightgrey', borderRadius: '10px' } }></div>
-						{/* <Box height='200px' width='200px' backgroundColor='lightgrey' borderRadius='10px' display='flex' justifyContent='center'>
-							<Icon size='12rem' name='clip' />
-						</Box> */}
-					</Grid.Item>
-					<Grid.Item style={ { height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-around', padding: '1.2rem 0' } }>
-						<h3>{ filename }</h3>
-						<div style={ { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '75%' } }>
-							<span>@Server</span> <span> { timeDownloaded }</span> <span>{ filesize || '25MB' }</span>
-						</div>
-						<Progress theme={ { default: { color: 'lightblue' } } } percent={ Math.floor(percentage) } status='default' />
-						<a href={ url }>{ `${ url.substring(0, 50) }...` || 'https://google.com' }</a>
-						<a href='#' style={ { textDecoration: 'none', color: '#2F80ED' } }> Show in Folder</a>
-					</Grid.Item>
-					<Grid.Item md='1' style={ { display: 'flex', justifyContent: 'center' } }>
-						<Icon name='cross' size='x32' />
-					</Grid.Item>
-				</Box>
-			</Grid>
+		{/* <Grid md={true}> */ }
+		<Tile elevation='2' style={ { width: '95%' } }>
+			<Box height='11.5rem' width='100%' display='flex' alignItems='center'>
+				<Grid.Item xl={ 2 } style={ { display: 'flex', alignItems: 'center', justifyContent: 'center' } }>
+					<Box height='150px' width='150px' backgroundColor='lightgrey' borderRadius='10px' display='flex' flexDirection='column' alignItems='center' justifyContent='center'>
+						<Icon size='7rem' name='clip' />
+						<Box fonScale='s2' color='primary-500' display='block'>.mp3</Box>
+					</Box>
+				</Grid.Item>
+				<Grid.Item xl={ 9 } style={ { height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-around', padding: '1.2rem 0' } }>
+					<Box fontSize='h1' lineHeight='h1'>filename</Box>
+					<Box display='flex' flexDirection='row' justifyContent='space-between' width='50%'>
+						<Box fontSize='s2' color='info'>@Server</Box> <Box fontSize='s2' color='info'> { 'date' }</Box> <Box fontSize='s2' color='info'>{ 'filesize' || '25MB' }</Box>
+					</Box>
+					<Progress theme={ { default: { color: '#2F80ED' } } } percent={ 88 } status='default' />
+					<Box fontSize='s2' >{ 'url' || 'https://google.com' }</Box>
+					<a href='#' style={ { textDecoration: 'none', color: '#2F80ED' } }>Show in Folder</a>
+				</Grid.Item>
+				<Grid.Item xl={ 1 } style={ { display: 'flex', justifyContent: 'center' } }>
+					<Icon name='cross' size='x32' />
+				</Grid.Item>
+			</Box>
 		</Tile>
+
+		{/* </Grid> */ }
 	</Margins>;
 }

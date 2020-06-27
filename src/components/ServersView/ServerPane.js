@@ -12,7 +12,7 @@ import {
 	WEBVIEW_LOADING_FAILED,
 	WEBVIEW_CERTIFICATE_DENIED,
 	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
-	// WEBVIEW_SERVER_ID,
+	WEBVIEW_SERVER_ID,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
 import { useWebviewFocus } from './useWebviewFocus';
@@ -119,8 +119,10 @@ export function ServerPane({
 			remoteModule
 			preload={`${ remote.app.getAppPath() }/app/preload.js`}
 			isVisible={!isFailed && !isReloading}
-			onWebContentsChange={(webContents) => setWebContents(webContents) }
-			// dispatch({ type: WEBVIEW_SERVER_ID, payload: { id: webContents.id, url } });
+			onWebContentsChange={(webContents) => {
+				dispatch({ type: WEBVIEW_SERVER_ID, payload: { id: webContents.id, serverUrl: url } });
+				return setWebContents(webContents);
+			}}
 		/>
 		<ErrorPane isVisible={isFailed || isReloading}>
 			<FailureImage style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0 }} />

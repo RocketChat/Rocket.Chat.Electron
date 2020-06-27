@@ -4,7 +4,7 @@ import { Progress } from 'react-sweet-progress';
 import 'react-sweet-progress/lib/style.css';
 
 // recieve props for individual download item
-export default function DownloadItem({ filename, filesize, url, percentage, timeDownloaded }) {
+export default function DownloadItem({ filename, filesize, url, percentage, timeDownloaded, serverTitle }) {
 	console.log(percentage);
 	return <Margins all='x32'>
 		{/* <Grid md={true}> */ }
@@ -19,7 +19,7 @@ export default function DownloadItem({ filename, filesize, url, percentage, time
 				<Grid.Item xl={ 9 } style={ { height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-around', padding: '1.2rem 0' } }>
 					<Box fontSize='h1' lineHeight='h1'>filename</Box>
 					<Box display='flex' flexDirection='row' justifyContent='space-between' width='50%'>
-						<Box fontSize='s2' color='info'>@Server</Box> <Box fontSize='s2' color='info'> { 'date' }</Box> <Box fontSize='s2' color='info'>{ 'filesize' || '25MB' }</Box>
+						<Box fontSize='s2' color='info'>{serverTitle || '@Server'}</Box> <Box fontSize='s2' color='info'> { 'date' }</Box> <Box fontSize='s2' color='info'>{ 'filesize' || '25MB' }</Box>
 					</Box>
 					<Progress theme={ { default: { color: '#2F80ED' } } } percent={ 88 } status='default' />
 					<Box fontSize='s2' >{ 'url' || 'https://google.com' }</Box>

@@ -31,52 +31,59 @@ export function DownloadsManagerView() {
 	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
 	console.log({ servers, currentServerUrl });
 
-	// const [url, setUrl] = useState('');
-	// const [percentage, setPercentage] = useState(0);
-	// const [filename, setFileName] = useState('');
-	// const [filesize, setFileSize] = useState(0);
-	// const [totalBytes, setTotalBytes] = useState(0);
+	const [url, setUrl] = useState('');
+	const [percentage, setPercentage] = useState(0);
+	const [filename, setFileName] = useState('');
+	const [filesize, setFileSize] = useState(0);
+	const [totalBytes, setTotalBytes] = useState(0);
+	const [serverTitle, setServerTitle] = useState('');
 	// let timeDownloaded;
-	// useEffect(() => {
-	// 	const handleFileSize = (event, props) => {
-	// 		console.log('hello yes changed');
-	// 		console.log(props);
-	// 		setFileName(props.filename);
-	// 		setTotalBytes(props.totalBytes);
-	// 		const filesize = formatBytes(props.totalBytes, 2, true);
-	// 		setFileSize(filesize);
-	// 		setUrl(props.url);
-	// 	};
+	useEffect(() => {
+		const handleFileSize = (event, props) => {
+			console.log('hello yes changed');
+			console.log(props);
+			setFileName(props.filename);
+			setTotalBytes(props.totalBytes);
+			const filesize = formatBytes(props.totalBytes, 2, true);
+			setFileSize(filesize);
+			setUrl(props.url);
+			const index = servers.findIndex(({ id }) => id === props.id);
+			setServerTitle(servers[index].title);
+		};
 
-	// 	ipcRenderer.on('download-start', handleFileSize);
-	// 	return () => {
-	// 		ipcRenderer.removeListener('download-start', handleFileSize);
-	// 	};
-	// }, []);
+		ipcRenderer.on('download-start', handleFileSize);
+		return () => {
+			ipcRenderer.removeListener('download-start', handleFileSize);
+		};
+	}, [servers]);
 
-	// useEffect(() => {
-	// 	const handleProgress = (event, bytes) => {
-	// 		console.log('progress');
-	// 		console.log(` Current Bytes: ${ bytes }`);
-	// 		console.log(formatBytes(bytes, 2, true));
-	// 		// console.log(` Total Filesize: ${ filesize } `);
-	// 		const percentage = (bytes / totalBytes) * 100;
-	// 		setPercentage(percentage);
-	// 		if (percentage === 100) {
-	// 			const downloadTime = new Date().toLocaleTimeString();
-	// 			timeDownloaded = downloadTime;
-	// 		}
-	// 	};
+	useEffect(() => {
+		const handleProgress = (event, bytes) => {
+			console.log('progress');
+			console.log(` Current Bytes: ${ bytes }`);
+			console.log(formatBytes(bytes, 2, true));
+			// console.log(` Total Filesize: ${ filesize } `);
+			const percentage = (bytes / totalBytes) * 100;
+			setPercentage(percentage);
+			if (percentage === 100) {
+				const downloadTime = new Date().toLocaleTimeString();
+				timeDownloaded = downloadTime;
+			}
+		};
 
-	// 	ipcRenderer.on('downloading', handleProgress);
-	// 	return () => {
-	// 		ipcRenderer.removeListener('downloading', handleProgress);
-	// 	};
-	// }, [totalBytes]);
+		ipcRenderer.on('downloading', handleProgress);
+		return () => {
+			ipcRenderer.removeListener('downloading', handleProgress);
+		};
+	}, [totalBytes]);
 
 	// Creat function to create download item, fill the global state with the new item.
 	// function newDownload
 
+	// const createNewDownload = () => {
+		
+	// 	return <DownloadItem/>
+	// }
 	// Save and load downloadItem information
 
 	return <Wrapper isVisible={ isVisible }>
@@ -121,7 +128,7 @@ export function DownloadsManagerView() {
 					</Grid.Item>
 
 					<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
-						<DownloadItem />
+						<DownloadItem serverTitle={serverTitle} percentage={percentage} filename={filename} filesize={filesize} url={url} />
 					</Grid.Item>
 
 				</Grid>

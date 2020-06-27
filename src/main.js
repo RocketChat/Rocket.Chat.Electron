@@ -109,7 +109,7 @@ const createMainWindow = () => {
 
 
 		// Set the save path, making Electron not to prompt a save dialog.
-		mainWindow.webContents.send('download-start', { totalBytes: item.getTotalBytes(), filename: item.getFilename(), url: item.getURL() });
+		mainWindow.webContents.send('download-start', { totalBytes: item.getTotalBytes(), filename: item.getFilename(), url: item.getURL(), id: webContents.id });
 		item.on('updated', (event, state) => {
 			if (state === 'interrupted') {
 				console.log('Download is interrupted but can be resumed');

@@ -87,7 +87,7 @@ const createMainWindow = () => {
 		},
 	});
 
-	mainWindow.addListener('close', (e) => {
+	mainWindow.addListener('close', async (e) => {
 		preventEvent(e);
 		console.log('closing');
 	});
@@ -98,17 +98,23 @@ const createMainWindow = () => {
 
 	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
 
+	console.log(store.get('downloads', {}));
+
 	// Load All Downloads from LocalStorage in Main Process
-	// const downloads = store.get('downloads', []);
-	// mainWindow.webContents.send('initalize-downloads', downloads);
+	ipcMain.on('load-downloads', async () => {
+		console.log('Loading Downloads');
+		const downloads = await store.get('downloads', {});
+		mainWindow.webContents.send('initialize-downloads', downloads);
+	});
+	// store.clear();
 
 
-	ipcMain.on('download-complete', (event, downloadItem) => {
-		const downloads = store.get('downloads', []);
-		downloads.push(downloadItem);
+	ipcMain.on('download-complete', async (event, downloadItem) => {
+		const downloads = await store.get('downloads', {});
+		downloads[downloadItem.fileName] = downloadItem;
 		console.log(downloads);
 		store.set('downloads', downloads);
-		console.log(downloadItem);
+		// console.log(downloadItem);
 	});
 	// Downloads handler. Handles all downloads from links.
 	mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
@@ -130,7 +136,7 @@ const createMainWindow = () => {
 		});
 		item.once('done', (event, state) => {
 			if (state === 'completed') {
-				// mainWindow.webContents.send('download-complete', item.getTotalBytes());
+				mainWindow.webContents.send('download-complete');
 				console.log('Download successfully');
 			} else {
 				console.log(`Download failed: ${ state }`);

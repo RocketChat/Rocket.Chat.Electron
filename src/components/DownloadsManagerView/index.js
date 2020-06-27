@@ -2,7 +2,7 @@ import { Box, Tile, Grid, Divider, SearchInput, Select, Icon, Button, Tabs } fro
 // import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { remote, ipcRenderer } from 'electron';
+import { ipcRenderer } from 'electron';
 
 import { Wrapper, Content } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';
@@ -44,33 +44,44 @@ export function DownloadsManagerView() {
 	const [serverTitle, setServerTitle] = useState('');
 	// let timeDownloaded;
 
-	// useEffect(() => {
-	// 	const intializeDownloads = (event, downloads) => {
-	// 		setDownloads(downloads);
-	// 		console.log(downloads);
-	// 	};
-	// 	ipcRenderer.on('initialize-downloads', intializeDownloads);
-	// 	return () => {
-	// 		ipcRenderer.removeListener('initialize-downloads', intializeDownloads);
-	// 	};
-	// }, [downloads]);
-
-	// useEffect(() => {
-	// 	console.log('trigger');
-
-	// }, [downloads, fileName, fileSize, serverTitle, url]);
 
 	useEffect(() => {
+		const intializeDownloads = (event, downloads) => {
+			console.log('Initialized Downloads');
+			setDownloads(Object.values(downloads));
+			console.log(downloads);
+		};
+		ipcRenderer.on('initialize-downloads', intializeDownloads);
+		return () => {
+			ipcRenderer.removeListener('initialize-downloads', intializeDownloads);
+		};
+	}, []);
+
+	// Download Completed, Send data back
+	useEffect(() => {
+		const downloadComplete = () => {
+			console.log('trigger');
+			ipcRenderer.send('download-complete', { url, fileName, fileSize, percentage: 100, serverTitle });
+		};
+
+		ipcRenderer.on('download-complete', downloadComplete);
+		return () => {
+			ipcRenderer.removeListener('download-complete', downloadComplete);
+		};
+	}, [fileName, fileSize, serverTitle, url]);
+
+	// Initalize  A Download
+	useEffect(() => {
 		const handleFileSize = (event, props) => {
-			console.log('hello yes changed');
-			console.log(props);
+			console.log('New Download');
+			// console.log(props);
 			setFileName(props.filename);
 			setTotalBytes(props.totalBytes);
 			const filesize = formatBytes(props.totalBytes, 2, true);
 			setFileSize(filesize);
 			setUrl(props.url);
 			const index = servers.findIndex(({ webContentId }) => webContentId === props.id);
-			console.log(index);
+			// console.log(index);
 			setServerTitle(servers[index].title);
 		};
 
@@ -80,29 +91,31 @@ export function DownloadsManagerView() {
 		};
 	}, [servers]);
 
+
+	// Hanndle Progress Percentage and Update
 	useEffect(() => {
 		const handleProgress = (event, bytes) => {
-			console.log('progress');
-			console.log(` Current Bytes: ${ bytes }`);
-			console.log(formatBytes(bytes, 2, true));
+			console.log('Progress');
+			// console.log(` Current Bytes: ${ bytes }`);
+			// console.log(formatBytes(bytes, 2, true));
 			// console.log(` Total Filesize: ${ filesize } `);
 			const percentage = (bytes / totalBytes) * 100;
 			setPercentage(percentage);
-			if (percentage === 100) {
-				// const downloadTime = new Date().toLocaleTimeString();
-				// timeDownloaded = downloadTime;
-				// const updatedDownloads = downloads;
-				// updatedDownloads.push({ url, fileName, fileSize, serverTitle, percentage: 100 });
-				// setDownloads(updatedDownloads);
-				ipcRenderer.send('download-complete', { url, fileName, fileSize });
-			}
+			// if (percentage === 100) {
+			// 	// const downloadTime = new Date().toLocaleTimeString();
+			// 	// timeDownloaded = downloadTime;
+			// 	// const updatedDownloads = downloads;
+			// 	// updatedDownloads.push({ url, fileName, fileSize, serverTitle, percentage: 100 });
+			// 	// setDownloads(updatedDownloads);
+			// 	ipcRenderer.send('download-complete', { url, fileName, fileSize, percentage, serverTitle });
+			// }
 		};
 
 		ipcRenderer.on('downloading', handleProgress);
 		return () => {
 			ipcRenderer.removeListener('downloading', handleProgress);
 		};
-	}, [fileName, fileSize, serverTitle, totalBytes, url]);
+	}, [totalBytes]);
 
 	// Creat function to create download item, fill the global state with the new item.
 	// function newDownload
@@ -111,6 +124,11 @@ export function DownloadsManagerView() {
 	// 	return <DownloadItem serverTitle={serverTitle} percentage={percentage} filename={fileName} filesize={fileSize} url={url} />;
 	// };
 	// Save and load downloadItem information
+
+	useEffect(() => {
+		console.log('Loading Downloads');
+		ipcRenderer.send('load-downloads');
+	}, []);
 
 	return <Wrapper isVisible={ isVisible }>
 		<Content>
@@ -154,7 +172,8 @@ export function DownloadsManagerView() {
 					</Grid.Item>
 
 					<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
-						<DownloadItem serverTitle={serverTitle} percentage={percentage} filename={fileName} filesize={fileSize} url={url} />
+						{ downloads.map((downloadItem) => <DownloadItem {...downloadItem} />)}
+
 					</Grid.Item>
 
 				</Grid>

@@ -98,7 +98,10 @@ const createMainWindow = () => {
 
 	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
 
-	console.log(store.get('downloads', {}));
+
+	// Logs and Helpers
+	// console.log(store.get('downloads', {}));
+	// store.clear();
 
 	// Load All Downloads from LocalStorage in Main Process
 	ipcMain.on('load-downloads', async () => {
@@ -106,7 +109,6 @@ const createMainWindow = () => {
 		const downloads = await store.get('downloads', {});
 		mainWindow.webContents.send('initialize-downloads', downloads);
 	});
-	// store.clear();
 
 
 	ipcMain.on('download-complete', async (event, downloadItem) => {

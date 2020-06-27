@@ -97,18 +97,8 @@ export function DownloadsManagerView() {
 		const handleProgress = (event, bytes) => {
 			console.log('Progress');
 			// console.log(` Current Bytes: ${ bytes }`);
-			// console.log(formatBytes(bytes, 2, true));
-			// console.log(` Total Filesize: ${ filesize } `);
 			const percentage = (bytes / totalBytes) * 100;
 			setPercentage(percentage);
-			// if (percentage === 100) {
-			// 	// const downloadTime = new Date().toLocaleTimeString();
-			// 	// timeDownloaded = downloadTime;
-			// 	// const updatedDownloads = downloads;
-			// 	// updatedDownloads.push({ url, fileName, fileSize, serverTitle, percentage: 100 });
-			// 	// setDownloads(updatedDownloads);
-			// 	ipcRenderer.send('download-complete', { url, fileName, fileSize, percentage, serverTitle });
-			// }
 		};
 
 		ipcRenderer.on('downloading', handleProgress);
@@ -123,7 +113,6 @@ export function DownloadsManagerView() {
 	// const createNewDownload = ({ url, percentage, fileSize, fileName, serverTitle }) => {
 	// 	return <DownloadItem serverTitle={serverTitle} percentage={percentage} filename={fileName} filesize={fileSize} url={url} />;
 	// };
-	// Save and load downloadItem information
 
 	useEffect(() => {
 		console.log('Loading Downloads');

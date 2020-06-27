@@ -1,11 +1,16 @@
 import path from 'path';
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import setupElectronReload from 'electron-reload';
 import rimraf from 'rimraf';
 
 import { readFromStorage } from './localStorage';
 import { setupErrorHandling } from './errorHandling';
+
+
+const Store = require('electron-store');
+
+const store = new Store();
 
 if (process.env.NODE_ENV === 'development') {
 	setupElectronReload(__dirname, {
@@ -93,20 +98,21 @@ const createMainWindow = () => {
 
 	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
 
-	// Downloads handler. Handles all downloads from links.
-	mainWindow.webContents.session.on('will-download', (event, item, webContents, ...args) => {
-		console.log({ event, item, webContents, args });
-		// const servers = readFromStorage('servers');
-		// const currentServerUrl = readFromStorage('currentServerUrl');
-		// console.log(servers);
-		// console.log(currentServerUrl);
-		// let serverTitle;
-		// for (const server of servers) {
-		// 	if (server.url === currentServerUrl) {
-		// 		serverTitle = server.title;
-		// 	}
-		// }
+	// Load All Downloads from LocalStorage in Main Process
+	// const downloads = store.get('downloads', []);
+	// mainWindow.webContents.send('initalize-downloads', downloads);
 
+
+	ipcMain.on('download-complete', (event, downloadItem) => {
+		const downloads = store.get('downloads', []);
+		downloads.push(downloadItem);
+		console.log(downloads);
+		store.set('downloads', downloads);
+		console.log(downloadItem);
+	});
+	// Downloads handler. Handles all downloads from links.
+	mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
+		// console.log({ event, item, webContents });
 
 		// Set the save path, making Electron not to prompt a save dialog.
 		mainWindow.webContents.send('download-start', { totalBytes: item.getTotalBytes(), filename: item.getFilename(), url: item.getURL(), id: webContents.id });

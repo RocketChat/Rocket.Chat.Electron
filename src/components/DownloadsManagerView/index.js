@@ -31,13 +31,17 @@ export function DownloadsManagerView() {
 	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
 	console.log({ servers, currentServerUrl });
 
+	// Downloads Array 
+	const [downloads setDownloads] = useState([]);
+
+
 	const [url, setUrl] = useState('');
 	const [percentage, setPercentage] = useState(0);
 	const [filename, setFileName] = useState('');
 	const [filesize, setFileSize] = useState(0);
 	const [totalBytes, setTotalBytes] = useState(0);
 	const [serverTitle, setServerTitle] = useState('');
-	// let timeDownloaded;
+	let timeDownloaded;
 	useEffect(() => {
 		const handleFileSize = (event, props) => {
 			console.log('hello yes changed');
@@ -80,10 +84,9 @@ export function DownloadsManagerView() {
 	// Creat function to create download item, fill the global state with the new item.
 	// function newDownload
 
-	// const createNewDownload = () => {
-		
-	// 	return <DownloadItem/>
-	// }
+	// const createNewDownload = ({ url, percentage, fileSize, fileName, serverTitle }) => {
+	// 	return <DownloadItem serverTitle={serverTitle} percentage={percentage} filename={fileName} filesize={fileSize} url={url} />;
+	// };
 	// Save and load downloadItem information
 
 	return <Wrapper isVisible={ isVisible }>

@@ -4,7 +4,6 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import setupElectronReload from 'electron-reload';
 import rimraf from 'rimraf';
 
-import { readFromStorage } from './localStorage';
 import { setupErrorHandling } from './errorHandling';
 
 
@@ -101,9 +100,9 @@ const createMainWindow = () => {
 
 	// Logs and Helpers
 	// console.log(store.get('downloads', {}));
-	// store.clear();
+	store.clear();
 
-	// Load All Downloads from LocalStorage in Main Process
+	// Load all downloads from LocalStorage into Main Process and send to Download Manager.
 	ipcMain.on('load-downloads', async () => {
 		console.log('Loading Downloads');
 		const downloads = await store.get('downloads', {});
@@ -111,19 +110,19 @@ const createMainWindow = () => {
 	});
 
 
+	// Listen and save a single download being completed.
 	ipcMain.on('download-complete', async (event, downloadItem) => {
 		const downloads = await store.get('downloads', {});
-		downloads[downloadItem.fileName] = downloadItem;
+		downloads[downloadItem.itemId] = downloadItem;
 		console.log(downloads);
 		store.set('downloads', downloads);
-		// console.log(downloadItem);
 	});
 	// Downloads handler. Handles all downloads from links.
 	mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
 		// console.log({ event, item, webContents });
+		const itemId = Date.now();
+		mainWindow.webContents.send('create-download-item', { itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url: item.getURL(), serverId: webContents.id }); // Request download item creation in UI and send unqiue ID.
 
-		// Set the save path, making Electron not to prompt a save dialog.
-		mainWindow.webContents.send('download-start', { totalBytes: item.getTotalBytes(), filename: item.getFilename(), url: item.getURL(), id: webContents.id });
 		item.on('updated', (event, state) => {
 			if (state === 'interrupted') {
 				console.log('Download is interrupted but can be resumed');
@@ -131,14 +130,15 @@ const createMainWindow = () => {
 				if (item.isPaused()) {
 					console.log('Download is paused');
 				} else {
-					mainWindow.webContents.send('downloading', item.getReceivedBytes());
+					// Sending Download Information. TODO: Seperate bytes as information sent is being repeated.
+					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: item.getReceivedBytes(), savePath: item.getSavePath() });
 					console.log(`Received bytes: ${ item.getReceivedBytes() }`);
 				}
 			}
 		});
 		item.once('done', (event, state) => {
 			if (state === 'completed') {
-				mainWindow.webContents.send('download-complete');
+				mainWindow.webContents.send(`download-complete-${ itemId }`); // Send to specific DownloadItem
 				console.log('Download successfully');
 			} else {
 				console.log(`Download failed: ${ state }`);

@@ -28,12 +28,3 @@ export const Content = styled.div`
 	justify-content: center;
 	// max-height: 100%;
 `;
-
-
-export const Title = styled.h1`
-	// color: blue;
-`;
-
-export const Subtitle = styled.h4`
-	color: lightslategrey;
-`;

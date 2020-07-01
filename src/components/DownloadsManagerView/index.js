@@ -2,53 +2,51 @@ import { Box, Tile, Grid, Divider, SearchInput, Select, Icon, Button, Tabs } fro
 // import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, shell } from 'electron';
 
 import { Wrapper, Content } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';
 
 
-function formatBytes(bytes, decimals = 2, size = false) {
-	if (bytes === 0) {
-		return '0 Bytes';
-	}
-
-	const k = 1024;
-	const dm = decimals < 0 ? 0 : decimals;
-	const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-	if (size) {
-		return `${ parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) } ${ sizes[i] }`;
-	}
-	return parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
-}
-
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
 	const servers = useSelector(({ servers }) => servers);
-	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
-	console.log({ servers, currentServerUrl });
 
+	// const servers = useSelector(({ servers }) => servers);
+	// console.log({ servers });
+
+	const handleLinks = (e) => {
+		e.preventDefault();
+		shell.openExternal(e.target.href);
+	};
+
+	const handleFileOpen = (e, path) => {
+		console.log(e);
+		shell.showItemInFolder(path);
+	};
 
 	// Downloads Array
 	const [downloads, setDownloads] = useState([]);
 
 
-	const [url, setUrl] = useState('');
-	const [percentage, setPercentage] = useState(0);
-	const [fileName, setFileName] = useState('');
-	const [fileSize, setFileSize] = useState(0);
-	const [totalBytes, setTotalBytes] = useState(0);
-	const [serverTitle, setServerTitle] = useState('');
-	// let timeDownloaded;
-
+	useEffect(() => {
+		const createDownload = (event, props) => {
+			console.log('Creating New Download');
+			const updatedDownloads = [...downloads];
+			updatedDownloads.push([props.itemId, props]);
+			setDownloads(updatedDownloads);
+			console.log(props.itemId);
+		};
+		ipcRenderer.on('create-download-item', createDownload);
+		return () => {
+			ipcRenderer.removeListener('create-download-item', createDownload);
+		};
+	}, [downloads]);
 
 	useEffect(() => {
 		const intializeDownloads = (event, downloads) => {
-			console.log('Initialized Downloads');
-			setDownloads(Object.values(downloads));
+			const updatedDownloads = Object.entries(downloads).map(([key, value]) => [key, value]);
+			setDownloads(updatedDownloads);
 			console.log(downloads);
 		};
 		ipcRenderer.on('initialize-downloads', intializeDownloads);
@@ -57,62 +55,12 @@ export function DownloadsManagerView() {
 		};
 	}, []);
 
-	// Download Completed, Send data back
-	useEffect(() => {
-		const downloadComplete = () => {
-			console.log('trigger');
-			ipcRenderer.send('download-complete', { url, fileName, fileSize, percentage: 100, serverTitle });
-		};
+	const updateDownloads = (itemId, downloadItem) => {
+		const updatedDownloads = [...downloads];
+		updatedDownloads.push([itemId, downloadItem]);
+		setDownloads(updatedDownloads);
+	};
 
-		ipcRenderer.on('download-complete', downloadComplete);
-		return () => {
-			ipcRenderer.removeListener('download-complete', downloadComplete);
-		};
-	}, [fileName, fileSize, serverTitle, url]);
-
-	// Initalize  A Download
-	useEffect(() => {
-		const handleFileSize = (event, props) => {
-			console.log('New Download');
-			// console.log(props);
-			setFileName(props.filename);
-			setTotalBytes(props.totalBytes);
-			const filesize = formatBytes(props.totalBytes, 2, true);
-			setFileSize(filesize);
-			setUrl(props.url);
-			const index = servers.findIndex(({ webContentId }) => webContentId === props.id);
-			// console.log(index);
-			setServerTitle(servers[index].title);
-		};
-
-		ipcRenderer.on('download-start', handleFileSize);
-		return () => {
-			ipcRenderer.removeListener('download-start', handleFileSize);
-		};
-	}, [servers]);
-
-
-	// Hanndle Progress Percentage and Update
-	useEffect(() => {
-		const handleProgress = (event, bytes) => {
-			console.log('Progress');
-			// console.log(` Current Bytes: ${ bytes }`);
-			const percentage = (bytes / totalBytes) * 100;
-			setPercentage(percentage);
-		};
-
-		ipcRenderer.on('downloading', handleProgress);
-		return () => {
-			ipcRenderer.removeListener('downloading', handleProgress);
-		};
-	}, [totalBytes]);
-
-	// Creat function to create download item, fill the global state with the new item.
-	// function newDownload
-
-	// const createNewDownload = ({ url, percentage, fileSize, fileName, serverTitle }) => {
-	// 	return <DownloadItem serverTitle={serverTitle} percentage={percentage} filename={fileName} filesize={fileSize} url={url} />;
-	// };
 
 	useEffect(() => {
 		console.log('Loading Downloads');
@@ -130,7 +78,7 @@ export function DownloadsManagerView() {
 					</Grid.Item>
 
 					<Grid.Item xl={ 4 } >
-						<Select width='300px' placeholder='Filter by Server' options={ [[1, 'Rocket.Chat'], [2, 'Server2'], [3, 'Test Server']] } />
+						<Select width='300px' placeholder='Filter by Server' options={ servers.map((server, index) => [index + 1, server.title]) } />
 					</Grid.Item>
 
 					<Grid.Item xl={ 1 } >
@@ -161,8 +109,8 @@ export function DownloadsManagerView() {
 					</Grid.Item>
 
 					<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
-						{ downloads.map((downloadItem) => <DownloadItem {...downloadItem} />)}
-
+						{/* Download Item List */}
+						{ downloads.map(([itemId, downloadItem]) => <DownloadItem itemId={itemId} {...downloadItem} updateDownloads = {updateDownloads} key={itemId} handleFileOpen={handleFileOpen} handleLinks={handleLinks} />)}
 					</Grid.Item>
 
 				</Grid>

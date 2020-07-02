@@ -100,7 +100,7 @@ const createMainWindow = () => {
 
 	// Logs and Helpers
 	// console.log(store.get('downloads', {}));
-	store.clear();
+	// store.clear();
 
 	// Load all downloads from LocalStorage into Main Process and send to Download Manager.
 	ipcMain.on('load-downloads', async () => {

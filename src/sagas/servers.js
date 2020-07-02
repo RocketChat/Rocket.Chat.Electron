@@ -129,8 +129,8 @@ function *loadCurrentServerUrl(servers) {
 		currentServerUrl = null;
 	}
 	// // During testing
-	return 'Downloads';
-	// return currentServerUrl;
+	// return 'Downloads';
+	return currentServerUrl;
 }
 
 export function *serversSaga() {

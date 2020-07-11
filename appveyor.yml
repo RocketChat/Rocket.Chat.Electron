@@ -27,9 +27,10 @@ install:
 build_script:
   - ps: |
       if ($env:CSC_LINK_0 -and $env:CSC_LINK_1) {
-        $env:CSC_LINK = $env:CSC_LINK_0 + $env:CSC_LINK_1
         Write-Output ("CSC_LINK_0 has {0} characters" -f $env:CSC_LINK_0.length)
         Write-Output ("CSC_LINK1 has {0} characters" -f $env:CSC_LINK_1.length)
+        Write-Output ("CSC_LINK2 has {0} characters" -f $env:CSC_LINK_2.length)
+        $env:CSC_LINK = $env:CSC_LINK_2 + $env:CSC_LINK_1
         Write-Output ("CSC_LINK has {0} characters" -f $env:CSC_LINK.length)
         $tmp = New-TemporaryFile
         [Convert]::FromBase64String($env:CSC_LINK) | Set-Content ($tmp.FullName + ".p12") -Encoding Byte

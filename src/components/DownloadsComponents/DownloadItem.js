@@ -39,6 +39,7 @@ export default function DownloadItem(props) {
 	const fileSize = props.fileSize || formatBytes(props.totalBytes, 2, true);
 	const [percentage, setPercentage] = useState(props.percentage);
 	const [path, setPath] = useState(props.path);
+	const [status, setStatus] = useState('Complete');
 
 	let serverTitle;
 
@@ -54,12 +55,12 @@ export default function DownloadItem(props) {
 	useEffect(() => {
 		const downloadComplete = () => {
 			console.log('Download Complete');
-			ipcRenderer.send('download-complete', { url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path });
+			ipcRenderer.send('download-complete', { status, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path });
 		};
 
 		ipcRenderer.on(`download-complete-${ itemId }`, downloadComplete);
 		return () => {
-			ipcRenderer.removeListener('download-complete', downloadComplete);
+			ipcRenderer.removeListener(`download-complete-${ itemId }`, downloadComplete);
 		};
 	});
 
@@ -72,6 +73,7 @@ export default function DownloadItem(props) {
 			const percentage = (props.bytes / totalBytes) * 100;
 			setPercentage(Math.floor(percentage));
 			setPath(props.savePath);
+			setStatus('Progressing');
 			// console.log(props);
 		};
 		// Listen on unique event only
@@ -81,28 +83,45 @@ export default function DownloadItem(props) {
 		};
 	}, [itemId, totalBytes]);
 
+
+	const handleCancel = () => {
+		setStatus('Cancelled');
+		ipcRenderer.send(`cancel-${ itemId }`);
+		ipcRenderer.send('download-complete', { status, url, fileName, fileSize, percentage, serverTitle, itemId, date, path });
+	};
+	const handlePause = () => {
+		setStatus('Paused');
+		ipcRenderer.send(`pause-${ itemId }`);
+	};
+
 	return <Margins all='x32'>
 
 		{/* <Grid md={true}> */ }
 		<Tile elevation='2' style={ { width: '95%' } }>
 			<Box height='11.5rem' width='100%' display='flex' alignItems='center'>
-				<Grid.Item xl={ 2 } style={ { display: 'flex', alignItems: 'center', justifyContent: 'center' } }>
+				<Grid.Item xl={ 2 } sm={ 2 } style={ { display: 'flex', alignItems: 'center', justifyContent: 'center' } }>
 					<Box height='150px' width='150px' backgroundColor='lightgrey' borderRadius='10px' display='flex' flexDirection='column' alignItems='center' justifyContent='center'>
 						<Icon size='7rem' name='clip' />
 						<Box fonScale='s2' color='primary-500' display='block'>.mp3</Box>
 					</Box>
 				</Grid.Item>
-				<Grid.Item xl={ 9 } style={ { height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-around', padding: '1.2rem 0' } }>
+				<Grid.Item xl={ 9 } sm={ 5 } style={ { height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-around', padding: '1.2rem 0' } }>
 					<Box fontSize='h1' lineHeight='h1'>{ fileName }</Box>
-					<Box display='flex' flexDirection='row' justifyContent='space-between' width='50%'>
+					<Box display='flex' flexDirection='row' justifyContent='space-between' width='100%'>
 						<Box fontSize='s2' color='info'>{ serverTitle || '@Server' }</Box> <Box fontSize='s2' color='info'> { date }</Box> <Box fontSize='s2' color='info'>{ fileSize || '25MB' }</Box>
+						<Box fontSize='s2' color='info'>{ '87KB/s' }</Box>
+						<Box fontSize='s2' color='info'>{ '60s Left' }</Box>
 					</Box>
 					<Progress theme={ { default: { color: '#2F80ED' } } } percent={ percentage } status='default' />
 					<Box fontSize='s2' >{ (url && url.substring(0, 45)) }</Box>
 					{/* // TODO: Implement Show in Folder */ }
-					<Box is={Button} ghost onClick={() => props.handleFileOpen(path)} style={ { textDecoration: 'none', color: '#2F80ED' } }>Show in Folder</Box>
+					<Box display='flex' flexDirection='row' justifyContent='space-between'>
+						<Box is={ Button } ghost onClick={ () => props.handleFileOpen(path) } style={ { textDecoration: 'none', color: '#2F80ED' } }>Show in Folder</Box>
+						<Box is={ Button } display={ false ? 'none' : 'inline' } ghost onClick={ () => handlePause() } style={ { textDecoration: 'none', color: '#2F80ED' } }>Pause</Box>
+						<Box is={ Button } ghost onClick={ () => handleCancel() } style={ { textDecoration: 'none', color: '#2F80ED' } }>Cancel</Box>
+					</Box>
 				</Grid.Item>
-				<Grid.Item xl={ 1 } style={ { display: 'flex', justifyContent: 'center' } }>
+				<Grid.Item xl={ 1 } sm={ 1 } style={ { display: 'flex', justifyContent: 'center' } }>
 					<Icon name='cross' size='x32' />
 				</Grid.Item>
 			</Box>

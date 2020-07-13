@@ -99,8 +99,8 @@ const createMainWindow = () => {
 
 
 	// Logs and Helpers
-	// console.log(store.get('downloads', {}));
-	// store.clear();
+	console.log(store.get('downloads', {}));
+	store.clear();
 
 	// Load all downloads from LocalStorage into Main Process and send to Download Manager.
 	ipcMain.on('load-downloads', async () => {
@@ -114,14 +114,31 @@ const createMainWindow = () => {
 	ipcMain.on('download-complete', async (event, downloadItem) => {
 		const downloads = await store.get('downloads', {});
 		downloads[downloadItem.itemId] = downloadItem;
-		console.log(downloads);
+		// console.log(downloads);
 		store.set('downloads', downloads);
 	});
 	// Downloads handler. Handles all downloads from links.
 	mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
+
 		// console.log({ event, item, webContents });
+		const mime = item.getMimeType();
+		let paused = false;
 		const itemId = Date.now();
-		mainWindow.webContents.send('create-download-item', { itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url: item.getURL(), serverId: webContents.id }); // Request download item creation in UI and send unqiue ID.
+		mainWindow.webContents.send('create-download-item', { itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url: item.getURL(), serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
+
+		// Cancelled Download
+		ipcMain.on(`cancel-${ itemId }`, () => item.cancel());
+
+		// Paused Download
+		ipcMain.on(`pause-${ itemId }`, () => {
+			console.log(item.getReceivedBytes());
+			if (paused) {
+				item.resume();
+			} else {
+				item.pause();
+			}
+			paused = !paused;
+		});
 
 		item.on('updated', (event, state) => {
 			if (state === 'interrupted') {
@@ -142,6 +159,7 @@ const createMainWindow = () => {
 				console.log('Download successfully');
 			} else {
 				console.log(`Download failed: ${ state }`);
+				mainWindow.webContents.send
 			}
 		});
 	});

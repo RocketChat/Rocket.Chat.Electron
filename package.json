@@ -1,7 +1,7 @@
 {
   "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
-  "version": "2.17.9",
+  "version": "2.17.10",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2019, Rocket.Chat",
   "homepage": "https://rocket.chat",

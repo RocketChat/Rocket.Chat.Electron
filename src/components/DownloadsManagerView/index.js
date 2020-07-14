@@ -3,6 +3,7 @@ import { Box, Tile, Grid, Divider, SearchInput, Select, Icon, Button, Tabs } fro
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { ipcRenderer, shell } from 'electron';
+import { createFilter } from 'react-search-input';
 
 import { Wrapper, Content } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';
@@ -11,6 +12,8 @@ import DownloadItem from '../DownloadsComponents/DownloadItem';
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
 	const servers = useSelector(({ servers }) => servers);
+	// const [filterValue, setFilterValue] = useState('');
+	const FILTER_KEY = 'fileName';
 
 	// const servers = useSelector(({ servers }) => servers);
 	// console.log({ servers });
@@ -20,20 +23,30 @@ export function DownloadsManagerView() {
 		shell.openExternal(e.target.href);
 	};
 
-	const handleFileOpen = (e, path) => {
-		console.log(e);
+	const handleFileOpen = (path) => {
+		console.log(path);
 		shell.showItemInFolder(path);
 	};
 
 	// Downloads Array
 	const [downloads, setDownloads] = useState([]);
+	const [filteredDownloads, setFilterDownloads] = useState([]);
 
+	const handleSearch = (event) => {
+		console.log(Boolean(event.target.value));
+		console.log(downloads);
+		// setFilterValue(event.target.value);
+
+		const filteredDownloads = event.target.value ? downloads.filter(createFilter(event.target.value, FILTER_KEY)) : downloads;
+		console.log(filteredDownloads);
+		setFilterDownloads(filteredDownloads);
+	};
 
 	useEffect(() => {
 		const createDownload = (event, props) => {
 			console.log('Creating New Download');
 			const updatedDownloads = [...downloads];
-			updatedDownloads.push([props.itemId, props]);
+			updatedDownloads.push(props);
 			setDownloads(updatedDownloads);
 			console.log(props.itemId);
 		};
@@ -45,9 +58,9 @@ export function DownloadsManagerView() {
 
 	useEffect(() => {
 		const intializeDownloads = (event, downloads) => {
-			const updatedDownloads = Object.entries(downloads).map(([key, value]) => [key, value]);
-			setDownloads(updatedDownloads);
-			console.log(downloads);
+			setDownloads(Object.values(downloads));
+			setFilterDownloads(Object.values(downloads));
+			console.log(Object.values(downloads));
 		};
 		ipcRenderer.on('initialize-downloads', intializeDownloads);
 		return () => {
@@ -74,7 +87,7 @@ export function DownloadsManagerView() {
 				<Grid xl={ true }>
 
 					<Grid.Item xl={ 6 } >
-						<SearchInput placeholder='Search Downloads' width='500px' addon={ <Icon name='send' size='x20' /> } />
+						<SearchInput onChange={ handleSearch } placeholder='Search Downloads' width='500px' addon={ <Icon name='send' size='x20' /> } />
 					</Grid.Item>
 
 					<Grid.Item xl={ 4 } >
@@ -109,8 +122,8 @@ export function DownloadsManagerView() {
 					</Grid.Item>
 
 					<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
-						{/* Download Item List */}
-						{ downloads.map(([itemId, downloadItem]) => <DownloadItem itemId={itemId} {...downloadItem} updateDownloads = {updateDownloads} key={itemId} handleFileOpen={handleFileOpen} handleLinks={handleLinks} />)}
+						{/* Download Item List */ }
+						{ filteredDownloads.map((downloadItem) => <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } />) }
 					</Grid.Item>
 
 				</Grid>

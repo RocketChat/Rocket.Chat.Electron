@@ -35,6 +35,7 @@ export default function DownloadItem(props) {
 	const { totalBytes } = props;
 	const { itemId } = props;
 	const { serverId } = props;
+	const { mime } = props;
 	const date = props.date || new Date(itemId).toDateString();
 	const fileSize = props.fileSize || formatBytes(props.totalBytes, 2, true);
 	const [percentage, setPercentage] = useState(props.percentage);
@@ -55,7 +56,8 @@ export default function DownloadItem(props) {
 	useEffect(() => {
 		const downloadComplete = () => {
 			console.log('Download Complete');
-			ipcRenderer.send('download-complete', { status, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path });
+			setStatus('Complete');
+			ipcRenderer.send('download-complete', { status, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path, mime });
 		};
 
 		ipcRenderer.on(`download-complete-${ itemId }`, downloadComplete);
@@ -87,7 +89,7 @@ export default function DownloadItem(props) {
 	const handleCancel = () => {
 		setStatus('Cancelled');
 		ipcRenderer.send(`cancel-${ itemId }`);
-		ipcRenderer.send('download-complete', { status, url, fileName, fileSize, percentage, serverTitle, itemId, date, path });
+		ipcRenderer.send('download-complete', { status, url, fileName, fileSize, percentage, serverTitle, itemId, date, path, mime });
 	};
 	const handlePause = () => {
 		setStatus('Paused');

@@ -1,3 +1,12 @@
+## [2.17.10](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.9...2.17.10) (2020-07-14)
+
+
+### Bug Fixes
+
+* Patch Electron ([d53ec40](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d53ec4096c8fd9004821b13a755c2c5e818aa9c6))
+
+
+
 ## [2.17.9](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.8...2.17.9) (2020-03-12)
 
 

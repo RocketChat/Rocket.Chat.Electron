@@ -1,11 +1,11 @@
 import builtinModules from 'builtin-modules';
 import glob from 'glob';
-import babel from 'rollup-plugin-babel';
-import commonjs from 'rollup-plugin-commonjs';
+import babel from '@rollup/plugin-babel';
+import commonjs from '@rollup/plugin-commonjs';
 import copy from 'rollup-plugin-copy';
-import json from 'rollup-plugin-json';
-import nodeResolve from 'rollup-plugin-node-resolve';
-import replace from 'rollup-plugin-replace';
+import json from '@rollup/plugin-json';
+import nodeResolve from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
 
 import appManifest from './package.json';
 
@@ -30,7 +30,9 @@ const bundleOptions = {
 			'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
 			'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
 		}),
-		babel(),
+		babel({
+			babelHelpers: 'bundled',
+		}),
 		nodeResolve(),
 		commonjs(),
 	],

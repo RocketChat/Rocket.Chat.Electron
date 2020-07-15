@@ -13,7 +13,9 @@ export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
 	const servers = useSelector(({ servers }) => servers);
 	// const [filterValue, setFilterValue] = useState('');
-	const FILTER_KEY = 'fileName';
+	const FILENAME_FILTER = 'fileName';
+	const SERVER_FILTER = 'serverTitle';
+	const MIME_FILTER = 'mime';
 
 	// const servers = useSelector(({ servers }) => servers);
 	// console.log({ servers });
@@ -37,7 +39,27 @@ export function DownloadsManagerView() {
 		console.log(downloads);
 		// setFilterValue(event.target.value);
 
-		const filteredDownloads = event.target.value ? downloads.filter(createFilter(event.target.value, FILTER_KEY)) : downloads;
+		const filteredDownloads = event.target.value ? downloads.filter(createFilter(event.target.value, FILENAME_FILTER)) : downloads;
+		console.log(filteredDownloads);
+		setFilterDownloads(filteredDownloads);
+	};
+
+	const handleServerFilter = (event) => {
+		console.log(Boolean(event.target.value));
+		console.log(downloads);
+		// setFilterValue(event.target.value);
+
+		const filteredDownloads = event.target.value ? downloads.filter(createFilter(event.target.value, SERVER_FILTER)) : downloads;
+		console.log(filteredDownloads);
+		setFilterDownloads(filteredDownloads);
+	};
+
+	const handleMimeFilter = (event) => {
+		console.log(Boolean(event.target.value));
+		console.log(downloads);
+		// setFilterValue(event.target.value);
+
+		const filteredDownloads = event.target.value ? downloads.filter(createFilter(event.target.value, MIME_FILTER)) : downloads;
 		console.log(filteredDownloads);
 		setFilterDownloads(filteredDownloads);
 	};
@@ -86,12 +108,16 @@ export function DownloadsManagerView() {
 
 				<Grid xl={ true }>
 
-					<Grid.Item xl={ 6 } >
+					<Grid.Item xl={ 4 } >
 						<SearchInput onChange={ handleSearch } placeholder='Search Downloads' width='500px' addon={ <Icon name='send' size='x20' /> } />
 					</Grid.Item>
 
-					<Grid.Item xl={ 4 } >
-						<Select width='300px' placeholder='Filter by Server' options={ servers.map((server, index) => [index + 1, server.title]) } />
+					<Grid.Item xl={ 3 } >
+						<Select width='300px' onChange={ handleServerFilter } placeholder='Filter by Server' options={ servers.map((server, index) => [index + 1, server.title]) } />
+					</Grid.Item>
+
+					<Grid.Item xl={ 2 } >
+						<Select width='300px' onChange={ handleMimeFilter } placeholder='Filter by File type' options={ [[1, 'audio'], [2, 'text'], [3, 'image'], [4, 'video'], [5, 'file']] } />
 					</Grid.Item>
 
 					<Grid.Item xl={ 1 } >

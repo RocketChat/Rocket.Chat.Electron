@@ -29,7 +29,7 @@ export default function DownloadItem(props) {
 	// console.log(props);
 	const servers = useSelector(({ servers }) => servers);
 	// console.log(servers);
-
+	let paused = false;
 	const { url } = props;
 	const { fileName } = props;
 	const { totalBytes } = props;
@@ -94,6 +94,7 @@ export default function DownloadItem(props) {
 	const handlePause = () => {
 		setStatus('Paused');
 		ipcRenderer.send(`pause-${ itemId }`);
+		paused = !paused;
 	};
 
 	return <Margins all='x32'>
@@ -104,13 +105,13 @@ export default function DownloadItem(props) {
 				<Grid.Item xl={ 2 } sm={ 2 } style={ { display: 'flex', alignItems: 'center', justifyContent: 'center' } }>
 					<Box height='150px' width='150px' backgroundColor='lightgrey' borderRadius='10px' display='flex' flexDirection='column' alignItems='center' justifyContent='center'>
 						<Icon size='7rem' name='clip' />
-						<Box fonScale='s2' color='primary-500' display='block'>.mp3</Box>
+						<Box fonScale='s2' color='primary-500' display='block'>{mime}</Box>
 					</Box>
 				</Grid.Item>
 				<Grid.Item xl={ 9 } sm={ 5 } style={ { height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-around', padding: '1.2rem 0' } }>
 					<Box fontSize='h1' lineHeight='h1'>{ fileName }</Box>
 					<Box display='flex' flexDirection='row' justifyContent='space-between' width='100%'>
-						<Box fontSize='s2' color='info'>{ serverTitle || '@Server' }</Box> <Box fontSize='s2' color='info'> { date }</Box> <Box fontSize='s2' color='info'>{ fileSize || '25MB' }</Box>
+						<Box fontSize='s2' color='info'>{ serverTitle }</Box> <Box fontSize='s2' color='info'> { date }</Box> <Box fontSize='s2' color='info'>{ fileSize || '25MB' }</Box>
 						<Box fontSize='s2' color='info'>{ '87KB/s' }</Box>
 						<Box fontSize='s2' color='info'>{ '60s Left' }</Box>
 					</Box>
@@ -118,9 +119,9 @@ export default function DownloadItem(props) {
 					<Box fontSize='s2' >{ (url && url.substring(0, 45)) }</Box>
 					{/* // TODO: Implement Show in Folder */ }
 					<Box display='flex' flexDirection='row' justifyContent='space-between'>
-						<Box is={ Button } ghost onClick={ () => props.handleFileOpen(path) } style={ { textDecoration: 'none', color: '#2F80ED' } }>Show in Folder</Box>
-						<Box is={ Button } display={ false ? 'none' : 'inline' } ghost onClick={ () => handlePause() } style={ { textDecoration: 'none', color: '#2F80ED' } }>Pause</Box>
-						<Box is={ Button } ghost onClick={ () => handleCancel() } style={ { textDecoration: 'none', color: '#2F80ED' } }>Cancel</Box>
+						<Box is={ Button } ghost display={ status === 'Complete' ? 'inline' : 'none' } onClick={ () => props.handleFileOpen(path) } style={ { textDecoration: 'none', color: '#2F80ED' } }>Show in Folder</Box>
+						<Box is={ Button } ghost display={ status === 'Complete' ? 'none' : 'inline' } onClick={ () => handlePause() } style={ { textDecoration: 'none', color: '#2F80ED' } }>{paused ? 'Resume' : 'Pause'}</Box>
+						<Box is={ Button } ghost display={ status === 'Complete' ? 'none' : 'inline' } onClick={ () => handleCancel() } style={ { textDecoration: 'none', color: '#2F80ED' } }>Cancel</Box>
 					</Box>
 				</Grid.Item>
 				<Grid.Item xl={ 1 } sm={ 1 } style={ { display: 'flex', justifyContent: 'center' } }>

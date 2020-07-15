@@ -126,7 +126,7 @@ export function AboutDialog() {
 						<Margins block='x12'>
 							{checkingForUpdatesMessage
 								? <Box fontScale='c1' color='info'>{checkingForUpdatesMessage}</Box>
-								: <Throbber size='x20' />}
+								: <Throbber size='x16' />}
 						</Margins>
 					</Box>}
 

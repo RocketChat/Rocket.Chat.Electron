@@ -61,7 +61,7 @@ export function UpdateDialog() {
 		<Flex.Container direction='column' alignItems='center'>
 			<Box>
 				<Margins block='x8'>
-					<Box textStyle='h1'>{t('dialog.update.announcement')}</Box>
+					<Box fontScale='h1'>{t('dialog.update.announcement')}</Box>
 					<Box>{t('dialog.update.message')}</Box>
 				</Margins>
 
@@ -70,16 +70,16 @@ export function UpdateDialog() {
 						<Box>
 							<Margins inline='x16'>
 								<Flex.Container direction='column' alignItems='center'>
-									<Box textColor='info'>
+									<Box color='info'>
 										<Box>{t('dialog.update.currentVersion')}</Box>
-										<Box textStyle='p2'>{currentVersion}</Box>
+										<Box fontScale='p2'>{currentVersion}</Box>
 									</Box>
 								</Flex.Container>
 								<Chevron right size='32' />
 								<Flex.Container direction='column' alignItems='center'>
 									<Box>
 										<Box>{t('dialog.update.newVersion')}</Box>
-										<Box textStyle='p2'>{newVersion}</Box>
+										<Box fontScale='p2'>{newVersion}</Box>
 									</Box>
 								</Flex.Container>
 							</Margins>

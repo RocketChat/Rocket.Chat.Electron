@@ -1,4 +1,4 @@
-import { Box, Button, Field, Flex, Loading, Margins, ToggleSwitch } from '@rocket.chat/fuselage';
+import { Box, Button, Field, Margins, Throbber, ToggleSwitch } from '@rocket.chat/fuselage';
 import { useUniqueId } from '@rocket.chat/fuselage-hooks';
 import { remote } from 'electron';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
@@ -102,57 +102,51 @@ export function AboutDialog() {
 		<Margins block='x16'>
 			<RocketChatLogo />
 
-			<Flex.Item align='center'>
-				<Box>
-					<Trans i18nKey='dialog.about.version' version={version}>
-							Version: <Box is='span' textStyle='p2' style={{ userSelect: 'text' }}>{{ version }}</Box>
-					</Trans>
-				</Box>
-			</Flex.Item>
+			<Box alignSelf='center'>
+				<Trans i18nKey='dialog.about.version' version={version}>
+						Version: <Box is='span' fontScale='p2' style={{ userSelect: 'text' }}>{{ version }}</Box>
+				</Trans>
+			</Box>
 
-			{canUpdate && <Flex.Container direction='column'>
-				<Box>
-					<Margins block='x8'>
-						{!checkingForUpdates && <Button
-							ref={checkForUpdatesButtonRef}
-							primary
-							type='button'
-							disabled={checkingForUpdates}
-							onClick={handleCheckForUpdatesButtonClick}
-						>
-							{t('dialog.about.checkUpdates')}
-						</Button>}
-					</Margins>
+			{canUpdate && <Box display='flex' flexDirection='column'>
+				<Margins block='x8'>
+					{!checkingForUpdates && <Button
+						ref={checkForUpdatesButtonRef}
+						primary
+						type='button'
+						disabled={checkingForUpdates}
+						onClick={handleCheckForUpdatesButtonClick}
+					>
+						{t('dialog.about.checkUpdates')}
+					</Button>}
+				</Margins>
 
-					<Margins inline='auto' block='x8'>
-						{checkingForUpdates && <Box>
-							<Margins block='x12'>
-								{checkingForUpdatesMessage
-									? <Box textStyle='c1' textColor='info'>{checkingForUpdatesMessage}</Box>
-									: <Loading size='x16' />}
-							</Margins>
-						</Box>}
+				<Margins inline='auto' block='x8'>
+					{checkingForUpdates && <Box>
+						<Margins block='x12'>
+							{checkingForUpdatesMessage
+								? <Box fontScale='c1' color='info'>{checkingForUpdatesMessage}</Box>
+								: <Throbber size='x20' />}
+						</Margins>
+					</Box>}
 
-						<Field.Row>
-							<ToggleSwitch
-								id={checkForUpdatesOnStartupToggleSwitchId}
-								checked={isCheckForUpdatesOnStartupChecked}
-								disabled={!canSetCheckForUpdatesOnStartup}
-								onChange={handleCheckForUpdatesOnStartCheckBoxChange}
-							/>
-							<Field.Label htmlFor={checkForUpdatesOnStartupToggleSwitchId}>
-								{t('dialog.about.checkUpdatesOnStart')}
-							</Field.Label>
-						</Field.Row>
-					</Margins>
-				</Box>
-			</Flex.Container>}
+					<Field.Row>
+						<ToggleSwitch
+							id={checkForUpdatesOnStartupToggleSwitchId}
+							checked={isCheckForUpdatesOnStartupChecked}
+							disabled={!canSetCheckForUpdatesOnStartup}
+							onChange={handleCheckForUpdatesOnStartCheckBoxChange}
+						/>
+						<Field.Label htmlFor={checkForUpdatesOnStartupToggleSwitchId}>
+							{t('dialog.about.checkUpdatesOnStart')}
+						</Field.Label>
+					</Field.Row>
+				</Margins>
+			</Box>}
 
-			<Flex.Item align='center'>
-				<Box textStyle='micro'>
-					{t('dialog.about.copyright', { copyright })}
-				</Box>
-			</Flex.Item>
+			<Box alignSelf='center' fontScale='micro'>
+				{t('dialog.about.copyright', { copyright })}
+			</Box>
 		</Margins>
 	</Dialog>;
 }

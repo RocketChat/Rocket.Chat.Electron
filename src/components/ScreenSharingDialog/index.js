@@ -43,7 +43,7 @@ export function ScreenSharingDialog() {
 
 	return <Dialog isVisible={isVisible} onClose={() => dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: null })}>
 		<Flex.Item align='center'>
-			<Box textStyle='h1'>{t('dialog.screenshare.announcement')}</Box>
+			<Box fontScale='h1'>{t('dialog.screenshare.announcement')}</Box>
 		</Flex.Item>
 		<Flex.Container wrap='wrap' alignItems='stretch' justifyContent='center'>
 			<Box>

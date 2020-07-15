@@ -22,7 +22,7 @@
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
     "start": "gulp start",
-    "test": "jest",
+    "test": "xvfb-maybe jest",
     "release": "gulp release",
     "icons": "gulp icons",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",

@@ -34,13 +34,13 @@ export function TrayIcon() {
 	const innerRef = useRef();
 
 	const [isDarkModeEnabled, setDarkModeEnabled] = useState(remote.nativeTheme.shouldUseDarkColors);
-	useSaga(function *(nativeTheme) {
-		const nativeThemeUpdatedEvent = createEventChannelFromEmitter(nativeTheme, 'updated');
+	useSaga(function *() {
+		const nativeThemeUpdatedEvent = createEventChannelFromEmitter(remote.nativeTheme, 'updated');
 
 		yield takeEvery(nativeThemeUpdatedEvent, function *() {
-			setDarkModeEnabled(nativeTheme.shouldUseDarkColors);
+			setDarkModeEnabled(remote.nativeTheme.shouldUseDarkColors);
 		});
-	}, [remote.nativeTheme]);
+	}, []);
 
 	const image = useMemo(() => getTrayIconPath({ badge, dark: isDarkModeEnabled }), [badge, isDarkModeEnabled]);
 
@@ -122,7 +122,7 @@ export function TrayIcon() {
 		innerRef.current.setContextMenu(menu);
 	}, [menu]);
 
-	useSaga(function *(appName, t) {
+	useSaga(function *() {
 		let prevIsMainWindowVisible = yield select(({ mainWindowState: { visible } }) => visible);
 		yield takeEvery(MAIN_WINDOW_STATE_CHANGED, function *() {
 			const isMainWindowVisible = yield select(({ mainWindowState: { visible } }) => visible);

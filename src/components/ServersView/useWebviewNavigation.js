@@ -194,5 +194,5 @@ export const useWebviewNavigation = (webviewRef, webContents, { url, active }) =
 
 			yield put({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { webContentsId, url, fingerprint } });
 		});
-	}, [webContents, url, active]);
+	}, [t, webContents, url, active]);
 };

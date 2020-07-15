@@ -73,7 +73,7 @@ function ServerButton({
 
 			setFavicon(favicon);
 		});
-	}, []);
+	}, [url]);
 
 	const contextMenuRef = useRef();
 

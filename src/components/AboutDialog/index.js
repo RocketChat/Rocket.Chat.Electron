@@ -76,7 +76,7 @@ export function AboutDialog() {
 				displayCheckingForUpdatesMessage(t('dialog.about.errorWhenLookingForUpdates'));
 			}
 		});
-	}, [canUpdate, checkingForUpdates]);
+	}, [t, canUpdate, checkingForUpdates]);
 
 	const handleCheckForUpdatesButtonClick = () => {
 		dispatch({ type: ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED });

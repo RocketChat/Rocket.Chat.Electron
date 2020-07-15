@@ -1,4 +1,4 @@
-import { remote, app } from 'electron';
+import { remote } from 'electron';
 
 import { getMeteor, getTracker, getGetUserPreference, getUserPresence } from './rocketChat';
 

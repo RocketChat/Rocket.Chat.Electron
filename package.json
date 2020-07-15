@@ -78,6 +78,8 @@
     "@rollup/plugin-node-resolve": "^8.4.0",
     "@rollup/plugin-replace": "^2.3.3",
     "@rollup/plugin-run": "^2.0.2",
+    "@rollup/plugin-typescript": "^5.0.2",
+    "@types/jest": "^26.0.4",
     "babel-eslint": "^10.1.0",
     "builtin-modules": "^3.1.0",
     "conventional-changelog-cli": "^2.0.34",
@@ -96,6 +98,8 @@
     "rollup": "^2.22.1",
     "rollup-plugin-copy": "^3.3.0",
     "to-ico": "^1.1.5",
+    "ts-jest": "^26.1.2",
+    "typescript": "^3.9.6",
     "xvfb-maybe": "^0.2.1"
   },
   "engines": {

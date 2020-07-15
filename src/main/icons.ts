@@ -1,6 +1,8 @@
 import { app, nativeTheme } from 'electron';
 
-const getTrayIconSet = ({ platform, dark }) => {
+type Platform = 'win32' | 'darwin'| 'linux';
+
+const getTrayIconSet = ({ platform, dark }: { platform: Platform, dark: boolean }) => {
 	if (platform === 'darwin') {
 		return `darwin${ dark ? '-dark' : '' }`;
 	}
@@ -34,7 +36,7 @@ const getTrayIconExtension = ({ platform }) => {
 
 export const getAppIconPath = () => `${ app.getAppPath() }/app/public/images/icon.png`;
 
-export const getTrayIconPath = ({ badge, platform, dark } = {}) => {
+export const getTrayIconPath = ({ badge = undefined, platform = undefined, dark = undefined } = {}) => {
 	if (typeof platform === 'undefined') {
 		platform = process.platform;
 	}

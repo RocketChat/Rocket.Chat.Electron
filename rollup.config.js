@@ -4,6 +4,7 @@ import json from '@rollup/plugin-json';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import run from '@rollup/plugin-run';
+import typescript from '@rollup/plugin-typescript';
 import builtinModules from 'builtin-modules';
 import electron from 'electron';
 import copy from 'rollup-plugin-copy';
@@ -27,6 +28,7 @@ export default [
 				'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
 				'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
 			}),
+			typescript(),
 			babel({
 				babelHelpers: 'bundled',
 			}),
@@ -35,13 +37,11 @@ export default [
 			}),
 			commonjs(),
 		],
-		output: [
-			{
-				file: 'app/app.js',
-				format: 'cjs',
-				sourcemap: true,
-			},
-		],
+		output: {
+			dir: 'app',
+			format: 'cjs',
+			sourcemap: true,
+		},
 	},
 	{
 		external: [
@@ -56,6 +56,7 @@ export default [
 				'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
 				'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
 			}),
+			typescript(),
 			babel({
 				babelHelpers: 'bundled',
 			}),
@@ -66,7 +67,7 @@ export default [
 		],
 		output: [
 			{
-				file: 'app/preload.js',
+				dir: 'app',
 				format: 'cjs',
 				sourcemap: 'inline',
 			},
@@ -92,6 +93,7 @@ export default [
 				'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
 				'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
 			}),
+			typescript(),
 			babel({
 				babelHelpers: 'bundled',
 			}),
@@ -103,9 +105,9 @@ export default [
 			}),
 		],
 		output: {
-			file: 'app/main.js',
+			dir: 'app',
 			format: 'cjs',
-			sourcemap: true,
+			sourcemap: 'inline',
 		},
 	},
 ];

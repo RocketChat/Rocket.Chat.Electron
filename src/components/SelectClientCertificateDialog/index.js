@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Margins, Scrollable, Tile } from '@rocket.chat/fuselage';
+import { Box, Button, Margins, Scrollable, Tile } from '@rocket.chat/fuselage';
 import React, { useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
@@ -48,33 +48,29 @@ export function SelectClientCertificateDialog() {
 				<Box>
 					<Margins all='x12'>
 						{certificateList.map((certificate, i) => <Tile key={i}>
-							<Flex.Container alignItems='end' justifyContent='space-between'>
-								<Margins inline='neg-x8'>
-									<Box>
-										<Margins inline='x8'>
-											<Box>
-												<Box fontScale='s1'>
-													{certificate.subjectName}
-												</Box>
-												<Box fontScale='p2'>
-													{certificate.issuerName}
-												</Box>
-												<Box fontScale='c1'>
-													{t('dialog.selectClientCertificate.validDates', {
-														validStart: new Date(certificate.validStart * 1000),
-														validExpiry: new Date(certificate.validExpiry * 1000),
-													})}
-												</Box>
+							<Margins inline='neg-x8'>
+								<Box display='flex' alignItems='end' justifyContent='space-between'>
+									<Margins inline='x8'>
+										<Box>
+											<Box fontScale='s1'>
+												{certificate.subjectName}
 											</Box>
-											<Flex.Item shrink={0}>
-												<Button primary onClick={handleSelect(certificate)}>
-													{t('dialog.selectClientCertificate.select')}
-												</Button>
-											</Flex.Item>
-										</Margins>
-									</Box>
-								</Margins>
-							</Flex.Container>
+											<Box fontScale='p2'>
+												{certificate.issuerName}
+											</Box>
+											<Box fontScale='c1'>
+												{t('dialog.selectClientCertificate.validDates', {
+													validStart: new Date(certificate.validStart * 1000),
+													validExpiry: new Date(certificate.validExpiry * 1000),
+												})}
+											</Box>
+										</Box>
+										<Button primary flexShrink={1} onClick={handleSelect(certificate)}>
+											{t('dialog.selectClientCertificate.select')}
+										</Button>
+									</Margins>
+								</Box>
+							</Margins>
 						</Tile>)}
 					</Margins>
 				</Box>

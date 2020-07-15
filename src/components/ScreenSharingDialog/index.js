@@ -1,4 +1,4 @@
-import { Box, Flex, Margins, Scrollable } from '@rocket.chat/fuselage';
+import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
 import { desktopCapturer } from 'electron';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
@@ -42,30 +42,18 @@ export function ScreenSharingDialog() {
 	};
 
 	return <Dialog isVisible={isVisible} onClose={() => dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: null })}>
-		<Flex.Item align='center'>
-			<Box textStyle='h1'>{t('dialog.screenshare.announcement')}</Box>
-		</Flex.Item>
-		<Flex.Container wrap='wrap' alignItems='stretch' justifyContent='center'>
-			<Box>
-				<Margins all='x8'>
-					{sources.map(({ id, name, thumbnail }) => <Scrollable key={id}>
-						<Flex.Container direction='column'>
-							<Source onClick={handleScreenSharingSourceClick(id)}>
-								<Flex.Item grow={1}>
-									<Flex.Container alignItems='center'>
-										<Box>
-											<Box is='img' src={thumbnail.toDataURL()} alt={name} style={{ width: '100%' }} />
-										</Box>
-									</Flex.Container>
-								</Flex.Item>
-								<Flex.Item grow={0}>
-									<Box>{name}</Box>
-								</Flex.Item>
-							</Source>
-						</Flex.Container>
-					</Scrollable>)}
-				</Margins>
-			</Box>
-		</Flex.Container>
+		<Box fontScale='h1' alignSelf='center'>{t('dialog.screenshare.announcement')}</Box>
+		<Box display='flex' flexWrap='wrap' alignItems='stretch' justifyContent='center'>
+			<Margins all='x8'>
+				{sources.map(({ id, name, thumbnail }) => <Scrollable key={id}>
+					<Source display='flex' flexDirection='column' onClick={handleScreenSharingSourceClick(id)}>
+						<Box flexGrow={1} display='flex' alignItems='center'>
+							<Box is='img' src={thumbnail.toDataURL()} alt={name} style={{ width: '100%' }} />
+						</Box>
+						<Box>{name}</Box>
+					</Source>
+				</Scrollable>)}
+			</Margins>
+		</Box>
 	</Dialog>;
 }

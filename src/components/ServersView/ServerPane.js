@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, Flex, Loading, Margins } from '@rocket.chat/fuselage';
+import { Box, Button, ButtonGroup, Margins, Throbber } from '@rocket.chat/fuselage';
 import { remote } from 'electron';
 import React, { useState, useRef, useEffect } from 'react';
 import { takeEvery } from 'redux-saga/effects';
@@ -121,39 +121,33 @@ export function ServerPane({
 		/>
 		<ErrorPane isVisible={isFailed || isReloading}>
 			<FailureImage style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0 }} />
-			<Flex.Container direction='column' justifyContent='center' alignItems='center'>
-				<Box is='section' textColor='alternative' style={{ zIndex: 1 }}>
-					<Flex.Item>
-						<Flex.Container direction='column'>
-							<Margins block='x12'>
-								<Box>
-									<Margins block='x8' inline='auto'>
-										<Box textStyle='h1'>
-											{t('loadingError.announcement')}
-										</Box>
-
-										<Box textStyle='s1'>
-											{t('loadingError.title')}
-										</Box>
-									</Margins>
-								</Box>
-							</Margins>
-
-							<Box>
-								{isReloading && <Margins block='x12'>
-									<Loading inheritColor size='x16' />
-								</Margins>}
-
-								{!isReloading && <ButtonGroup align='center'>
-									<Button primary onClick={handleReloadButtonClick}>
-										{t('loadingError.reload')} ({counter})
-									</Button>
-								</ButtonGroup>}
+			<Box is='section' color='alternative' display='flex' flexDirection='column' justifyContent='center' alignItems='center' zIndex={1}>
+				<Margins block='x12'>
+					<Box display='flex' flexDirection='column'>
+						<Margins block='x8' inline='auto'>
+							<Box fontScale='h1'>
+								{t('loadingError.announcement')}
 							</Box>
-						</Flex.Container>
-					</Flex.Item>
+
+							<Box fontScale='s1'>
+								{t('loadingError.title')}
+							</Box>
+						</Margins>
+					</Box>
+				</Margins>
+
+				<Box>
+					{isReloading && <Margins block='x12'>
+						<Throbber inheritColor size='x16' />
+					</Margins>}
+
+					{!isReloading && <ButtonGroup align='center'>
+						<Button primary onClick={handleReloadButtonClick}>
+							{t('loadingError.reload')} ({counter})
+						</Button>
+					</ButtonGroup>}
 				</Box>
-			</Flex.Container>
+			</Box>
 
 		</ErrorPane>
 	</Wrapper>;

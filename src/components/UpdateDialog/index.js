@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, Chevron, Flex, Margins } from '@rocket.chat/fuselage';
+import { Box, Button, ButtonGroup, Chevron, Margins } from '@rocket.chat/fuselage';
 import { remote } from 'electron';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useRef, useMemo } from 'react';
@@ -58,36 +58,28 @@ export function UpdateDialog() {
 	};
 
 	return <Dialog isVisible={isVisible} onClose={() => dispatch({ type: UPDATE_DIALOG_DISMISSED })}>
-		<Flex.Container direction='column' alignItems='center'>
-			<Box>
-				<Margins block='x8'>
-					<Box textStyle='h1'>{t('dialog.update.announcement')}</Box>
-					<Box>{t('dialog.update.message')}</Box>
-				</Margins>
+		<Box display='flex' flexDirection='column' alignItems='center'>
+			<Margins block='x8'>
+				<Box fontScale='h1'>{t('dialog.update.announcement')}</Box>
+				<Box>{t('dialog.update.message')}</Box>
+			</Margins>
 
-				<Margins block='x32'>
-					<Flex.Container alignItems='center' justifyContent='center'>
-						<Box>
-							<Margins inline='x16'>
-								<Flex.Container direction='column' alignItems='center'>
-									<Box textColor='info'>
-										<Box>{t('dialog.update.currentVersion')}</Box>
-										<Box textStyle='p2'>{currentVersion}</Box>
-									</Box>
-								</Flex.Container>
-								<Chevron right size='32' />
-								<Flex.Container direction='column' alignItems='center'>
-									<Box>
-										<Box>{t('dialog.update.newVersion')}</Box>
-										<Box textStyle='p2'>{newVersion}</Box>
-									</Box>
-								</Flex.Container>
-							</Margins>
+			<Margins block='x32'>
+				<Box display='flex' alignItems='center' justifyContent='center'>
+					<Margins inline='x16'>
+						<Box display='flex' flexDirection='column' alignItems='center' color='info'>
+							<Box>{t('dialog.update.currentVersion')}</Box>
+							<Box fontScale='p2'>{currentVersion}</Box>
 						</Box>
-					</Flex.Container>
-				</Margins>
-			</Box>
-		</Flex.Container>
+						<Chevron right size='32' />
+						<Box display='flex' flexDirection='column' alignItems='center'>
+							<Box>{t('dialog.update.newVersion')}</Box>
+							<Box fontScale='p2'>{newVersion}</Box>
+						</Box>
+					</Margins>
+				</Box>
+			</Margins>
+		</Box>
 
 		<ButtonGroup>
 			<Button type='button' onClick={handleSkipButtonClick}>

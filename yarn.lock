@@ -958,6 +958,13 @@
     pirates "^4.0.0"
     source-map-support "^0.5.16"
 
+"@babel/runtime@^7.10.1":
+  version "7.10.5"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.10.5.tgz#303d8bd440ecd5a491eae6117fd3367698674c5c"
+  integrity sha512-otddXKhdNn7d0ptoFRHtMLa8LqDxLYwTjB4nYgM1yy5N6gU/MUf8zqyyLltCH3yAVitBzmwK4us+DD0l/MauAg==
+  dependencies:
+    regenerator-runtime "^0.13.4"
+
 "@babel/runtime@^7.3.1", "@babel/runtime@^7.6.3":
   version "7.8.3"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.8.3.tgz#0811944f73a6c926bb2ad35e918dcc1bfab279f1"
@@ -5398,7 +5405,7 @@ hunspell-asm@^4.0.2:
     emscripten-wasm-loader "^3.0.3"
     nanoid "^2.1.5"
 
-i18next-node-fs-backend@^2.1.1:
+i18next-node-fs-backend@^2.1.3:
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/i18next-node-fs-backend/-/i18next-node-fs-backend-2.1.3.tgz#483fa9eda4c152d62a3a55bcae2a5727ba887559"
   integrity sha512-CreMFiVl3ChlMc5ys/e0QfuLFOZyFcL40Jj6jaKD6DxZ/GCUMxPI9BpU43QMWUgC7r+PClpxg2cGXAl0CjG04g==
@@ -5406,12 +5413,12 @@ i18next-node-fs-backend@^2.1.1:
     js-yaml "3.13.1"
     json5 "2.0.0"
 
-i18next@^19.0.0:
-  version "19.1.0"
-  resolved "https://registry.yarnpkg.com/i18next/-/i18next-19.1.0.tgz#fe1a1da3d208872946307c7d2d115da45d46159f"
-  integrity sha512-ISbmukX4L6Dz0QoH9+EW1AnBw7j+NRLoMu9uLPMaNSSTP9Eie9/oUL0dOyWX15baB3gYOpkHJpGZRHOqcnl0ew==
+i18next@^19.6.0:
+  version "19.6.0"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-19.6.0.tgz#3881b8e476e494dcdadcc8983e594080417fd82e"
+  integrity sha512-t+pA7iN2WtwS1UQc4PFKHDIO4HYZIl2Wo8UC8gqt70Q1qY50FflAF5vV4IbQEqy4DuK3I9wv3BL1PMvkk238WA==
   dependencies:
-    "@babel/runtime" "^7.3.1"
+    "@babel/runtime" "^7.10.1"
 
 iconv-lite@0.4.24, iconv-lite@^0.4.4, iconv-lite@~0.4.13:
   version "0.4.24"

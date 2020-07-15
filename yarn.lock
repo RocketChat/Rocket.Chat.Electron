@@ -3718,45 +3718,45 @@ detect-node@^2.0.4:
   resolved "https://registry.yarnpkg.com/detect-node/-/detect-node-2.0.4.tgz#014ee8f8f669c5c58023da64b8179c083a28c46c"
   integrity sha512-ZIzRpLJrOj7jjP2miAtgqIfmzbxa4ZOr5jJc601zklsfEx9oTzmmj2nVpIPRpNlRTIh8lc1kyViIY7BWSGNmKw==
 
-dictionary-de@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/dictionary-de/-/dictionary-de-2.0.3.tgz#df50c749fddbff601f5bd044aef4622a365a15b2"
-  integrity sha512-fbNcCIjDrdNvu7DzMzkOY77vIaGqiDQqf9vtwGud1fcSxVWwX6EdtHcosmgG7AA10u3QgDVkymMaX9mr3elwRw==
+dictionary-de@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/dictionary-de/-/dictionary-de-2.0.4.tgz#854134aee36c591d0985e368176746182f1837e5"
+  integrity sha512-TOTvLM7k4wJt3cgus1Ziuiqo5Tx0i+VEmXVDCDxsxHhRdSCnAQFonTx8/YlfGI+AQQIyMJhXfMnceKD56dZrMQ==
 
-dictionary-en-gb@^2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/dictionary-en-gb/-/dictionary-en-gb-2.2.1.tgz#8ef21b484b0ce89cdebd60c1b2b65f56df9a475f"
-  integrity sha512-kYhSoaD9yOaq/h14DyT/+hyjs5X96kFdnlmy582wr+hCOIRuv1hqAe9gWM+oUQAA1+MH8fAKzyAsTxS8ps/qsg==
+dictionary-en-gb@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/dictionary-en-gb/-/dictionary-en-gb-2.2.2.tgz#836ffaf70080977fdceb6ad769b5d22d1106c9c0"
+  integrity sha512-36Pz/2BGmJfXtAo5+IGOi+U6gwtxFsFXFJMOX0FC1z2YeLd1IXkxsfAhieC06OrdGie3SqCZmUOYeYgct5Hzzw==
 
-dictionary-en-us@^2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/dictionary-en-us/-/dictionary-en-us-2.2.1.tgz#f57ef9ae0edcfa0a70db6558843de5a01cb87771"
-  integrity sha512-Z8mycV0ywTfjbUTi0JZfQHqBZhu4CYFtpf7KluSGpt3xHpFlal2S/hiK50tlPynOtR5K3pG5wCradnz1yxwOHA==
+dictionary-en-us@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/dictionary-en-us/-/dictionary-en-us-3.0.0.tgz#1dec2716099f46a2b3577c401b278dc5fd28f1bc"
+  integrity sha512-hH033rB5pdVb51QBUBleq8z5XajVrs2tVRe26ZvIJzf5/c8BwZKlPXhr7rrW39AxZz5RQQhPpC/RMbmWtWtBUg==
 
-dictionary-es-es@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/dictionary-es-es/-/dictionary-es-es-1.0.1.tgz#c532b118b29c20854f7f6c32d901162b7950662e"
-  integrity sha512-DfKnkKC5B2NVH61jA6EKAC4re09VxMBHwZLEqrJXiKdpLkWsJXtf3+ITdVAIbk7sFvBYYmI2zEK9ETyv5E5/Dg==
+dictionary-es-es@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/dictionary-es-es/-/dictionary-es-es-2.0.0.tgz#ea41fa0efd273fd73e5ab0fb8eaba39e6bc90b25"
+  integrity sha512-/emSetXbySTmygtnOxqSeJpWKyjKlcy5ldxbSAQW1QOpD2KwBp8O1IzpA/g5McCgi6Mz/UyTQlDLyrUjZsA2wQ==
 
-dictionary-fr@^2.4.1:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/dictionary-fr/-/dictionary-fr-2.4.1.tgz#b013bb547f3ceae2fdb59a5bf4e618e7983ebb45"
-  integrity sha512-hgOBOvNNw1hf2AZajXzVqUuzI8Lnoqj2tqU+jerV6XshuRmGh6d0fNhNIH5juqsR+L4M8kCL0R91F1ONCden4Q==
+dictionary-fr@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/dictionary-fr/-/dictionary-fr-2.5.1.tgz#c91db15820664ed213f25f49e2d370012ff31ca0"
+  integrity sha512-+qxBM3HeRuY8XkIYDnn+Av9Wk0WM8jVFedYuw9EpPGBAU33tntLTtzxbJd6QEipJbj+Dbnb6b3dMw8tAWpx4eg==
 
-dictionary-pt-br@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/dictionary-pt-br/-/dictionary-pt-br-2.0.1.tgz#c1f363658735fb4c692b022066d5d9e9734853a7"
-  integrity sha512-TvPlZWXzKya6vnajLKfKr/FwOeT2bmGHlWlasA4MVhmTZeXH0Fif37uLigQGLWZlqncz7iX57iXGAwvN5SbDIg==
+dictionary-pt-br@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/dictionary-pt-br/-/dictionary-pt-br-3.0.0.tgz#d5982ea2c002da574a491ac7bd9de1556666d660"
+  integrity sha512-04zDhjSSrCmKNgMUb/ENK8c12qJvpoa1kGjcJeiy41mrme8ypzBYS9qC+HfLd+kG41ubMekEVGLRbwsMA5NXBg==
 
-dictionary-ru@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/dictionary-ru/-/dictionary-ru-2.0.1.tgz#92a763f821f629d985b2b5ed554a7d25eb055a46"
-  integrity sha512-jCBYpgYuu5UBaHVaTr8qIXRDVTa7skkhd5PdVL0sh1clg6pcinsqXJcM7qj7UnjwrnCr/k3zueHG4k025MZS+Q==
+dictionary-ru@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/dictionary-ru/-/dictionary-ru-2.0.2.tgz#9184325fbfcbe69f0468a18e41a0346d204ce6e7"
+  integrity sha512-TUJBv93c2AJ5hSUzTn0rT1cpr2ioV7/fOchMqv/c2QYdAf3Rv1YOddRs/S3wUwKEeoQZXo4zbZedi90icI/F5g==
 
-dictionary-tr@^1.3.3:
-  version "1.3.3"
-  resolved "https://registry.yarnpkg.com/dictionary-tr/-/dictionary-tr-1.3.3.tgz#85aa9aa434c8258cec5bc28b405e983543de7e2d"
-  integrity sha512-p054brtIocq0evXT7aiHR8x1eGMH3GMdWRzC7JlKF/7bWVW/Cp1LFudv2cEPPLG4G9EKPjWY6jOscjYU7HnSNA==
+dictionary-tr@^1.3.4:
+  version "1.3.4"
+  resolved "https://registry.yarnpkg.com/dictionary-tr/-/dictionary-tr-1.3.4.tgz#fdc5963b388ea5a8e41eb5c8e39627c11d2544bb"
+  integrity sha512-WcDWKhqgedsKG++2P9PnhFqdc6iYwUVKEGZP7AsfdBGSR+pCQYHF2Rh5b7+lF2EaCxik8zMPiqDwtUk9CeF1jw==
 
 diff-sequences@^25.2.6:
   version "25.2.6"

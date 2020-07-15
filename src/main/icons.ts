@@ -2,7 +2,7 @@ import { app, nativeTheme } from 'electron';
 
 type Platform = 'win32' | 'darwin'| 'linux';
 
-const getTrayIconSet = ({ platform, dark }: { platform: Platform, dark: boolean }) => {
+const getTrayIconSet = ({ platform, dark }: { platform: Platform, dark: boolean }): string => {
 	if (platform === 'darwin') {
 		return `darwin${ dark ? '-dark' : '' }`;
 	}
@@ -10,7 +10,7 @@ const getTrayIconSet = ({ platform, dark }: { platform: Platform, dark: boolean 
 	return platform;
 };
 
-const getTrayIconName = ({ badge, platform }) => {
+const getTrayIconName = ({ badge, platform }): string => {
 	if (platform === 'darwin') {
 		return badge ? 'notification' : 'default';
 	}
@@ -26,7 +26,7 @@ const getTrayIconName = ({ badge, platform }) => {
 	return 'default';
 };
 
-const getTrayIconExtension = ({ platform }) => {
+const getTrayIconExtension = ({ platform }): string => {
 	if (platform === 'win32') {
 		return 'ico';
 	}
@@ -34,9 +34,9 @@ const getTrayIconExtension = ({ platform }) => {
 	return 'png';
 };
 
-export const getAppIconPath = () => `${ app.getAppPath() }/app/public/images/icon.png`;
+export const getAppIconPath = (): string => `${ app.getAppPath() }/app/public/images/icon.png`;
 
-export const getTrayIconPath = ({ badge = undefined, platform = undefined, dark = undefined } = {}) => {
+export const getTrayIconPath = ({ badge = undefined, platform = undefined, dark = undefined } = {}): string => {
 	if (typeof platform === 'undefined') {
 		platform = process.platform;
 	}

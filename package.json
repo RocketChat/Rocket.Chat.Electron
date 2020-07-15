@@ -78,7 +78,7 @@
     "convert-svg-to-png": "^0.5.0",
     "electron": "~7.1.1",
     "electron-builder": "^22.1.0",
-    "electron-notarize": "^0.2.0",
+    "electron-notarize": "^1.0.0",
     "eslint": "^7.4.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-react": "^7.20.3",

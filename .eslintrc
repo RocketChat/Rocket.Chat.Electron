@@ -13,7 +13,9 @@
     "jsx-quotes": ["error", "prefer-single"],
     "generator-star-spacing": ["error", "before"],
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/exhaustive-deps": ["warn", {
+      "additionalHooks": "(useSaga|useCallableSaga)"
+    }]
   },
   "settings": {
     "react": {

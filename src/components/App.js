@@ -133,7 +133,7 @@ function AppContent() {
 
 			yield put({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { webContentsId, fingerprint } });
 		});
-	}, []);
+	}, [t]);
 
 	const dispatch = useDispatch();
 

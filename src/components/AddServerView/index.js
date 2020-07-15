@@ -10,7 +10,7 @@ import {
 	Tile,
 } from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
@@ -36,7 +36,7 @@ export function AddServerView() {
 
 	const validator = useServerValidation();
 
-	const validateServerUrl = async (serverUrl) => {
+	const validateServerUrl = useCallback(async (serverUrl) => {
 		setInput(serverUrl);
 
 		setValidationState('validating');
@@ -77,13 +77,13 @@ export function AddServerView() {
 				return validateServerUrl(`https://${ serverUrl }`);
 			}
 		}
-	};
+	}, [t, validator]);
 
 	useSaga(function *() {
 		yield takeEvery(CERTIFICATES_UPDATED, function *() {
 			validateServerUrl(input.trim());
 		});
-	}, [input, validator]);
+	}, [validateServerUrl, input]);
 
 	const handleFormSubmit = async (event) => {
 		event.preventDefault();

@@ -14,7 +14,7 @@ export const useSaga = (saga, deps) => {
 		};
 	};
 
-	useEffect(effect, deps);
+	useEffect(effect, deps); // eslint-disable-line react-hooks/exhaustive-deps
 };
 
 export const useCallableSaga = (saga, deps) => {
@@ -30,7 +30,7 @@ export const useCallableSaga = (saga, deps) => {
 		});
 	});
 
-	return useCallback(callback, deps);
+	return useCallback(callback, deps); // eslint-disable-line react-hooks/exhaustive-deps
 };
 
 export function SagaMiddlewareProvider({ children, sagaMiddleware }) {

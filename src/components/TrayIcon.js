@@ -40,7 +40,7 @@ export function TrayIcon() {
 		yield takeEvery(nativeThemeUpdatedEvent, function *() {
 			setDarkModeEnabled(nativeTheme.shouldUseDarkColors);
 		});
-	}, [remote.nativeTheme]);
+	}, []);
 
 	const image = useMemo(() => getTrayIconPath({ badge, dark: isDarkModeEnabled }), [badge, isDarkModeEnabled]);
 
@@ -137,7 +137,7 @@ export function TrayIcon() {
 
 			prevIsMainWindowVisible = isMainWindowVisible;
 		});
-	}, [appName, t]);
+	}, []);
 
 	return <>
 		<Menu ref={setMenu}>

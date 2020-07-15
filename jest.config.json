@@ -1,5 +1,5 @@
 {
-	"projects": [
+  "projects": [
     {
       "runner": "@jest-runner/electron",
       "testEnvironment": "@jest-runner/electron/environment",

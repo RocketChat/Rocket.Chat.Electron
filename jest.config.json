@@ -1,0 +1,9 @@
+{
+  "projects": [
+    {
+      "runner": "@jest-runner/electron",
+      "testEnvironment": "@jest-runner/electron/environment",
+      "testMatch": ["**/*.(spec|test).{js,ts,tsx}"]
+    }
+  ]
+}

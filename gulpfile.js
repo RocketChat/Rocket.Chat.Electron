@@ -16,12 +16,8 @@ task('clean', () => promisify(rimraf)('app'));
 task('build', execa.task('rollup -c', { env: { NODE_ENV } }));
 task('watch', execa.task('rollup -c -w', { env: { NODE_ENV } }));
 
-task('test:build', execa.task('rollup -c', { env: { NODE_ENV: 'test' } }));
-task('test:renderer', execa.task('xvfb-maybe electron-mocha --require source-map-support/register --renderer app/renderer.specs/*.js'));
-
-task('test', series('clean', 'test:build', 'test:renderer'));
 task('start:electron', execa.task('electron .'));
-task('start', series('build', parallel('watch', 'start:electron')));
+task('start', parallel('watch', 'start:electron'));
 
 task('release:linux', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --linux --c.productName=rocketchat`));
 task('release:win32', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --ia32 --win`));

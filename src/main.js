@@ -3,24 +3,14 @@ import { app, BrowserWindow } from 'electron';
 import { setupDevelopmentTools } from './main/dev';
 import { setupErrorHandling } from './main/errors';
 import { handleStartup } from './main/startup';
+import { setupAppEvents } from './main/events';
 
 if (require.main === module) {
 	setupDevelopmentTools();
 	setupErrorHandling();
 	handleStartup();
+	setupAppEvents();
 }
-
-const preventEvent = (event) => event.preventDefault();
-
-const prepareApp = () => {
-	app.addListener('certificate-error', preventEvent);
-	app.addListener('select-client-certificate', preventEvent);
-	app.addListener('login', preventEvent);
-	app.addListener('open-url', preventEvent);
-	app.addListener('window-all-closed', () => {
-		app.quit();
-	});
-};
 
 const createMainWindow = () => {
 	const mainWindow = new BrowserWindow({
@@ -37,7 +27,9 @@ const createMainWindow = () => {
 		},
 	});
 
-	mainWindow.addListener('close', preventEvent);
+	mainWindow.addListener('close', (event) => {
+		event.preventDefault();
+	});
 
 	mainWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
 		delete webPreferences.enableBlinkFeatures;
@@ -47,7 +39,6 @@ const createMainWindow = () => {
 };
 
 const initialize = async () => {
-	prepareApp();
 	await app.whenReady();
 	createMainWindow();
 };

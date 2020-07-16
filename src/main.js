@@ -1,15 +1,10 @@
-import path from 'path';
-
 import Bugsnag from '@bugsnag/js';
 import { app, BrowserWindow } from 'electron';
-import setupElectronReload from 'electron-reload';
 import rimraf from 'rimraf';
 
-if (process.env.NODE_ENV === 'development') {
-	setupElectronReload(__dirname, {
-		electron: process.execPath,
-	});
-}
+import { setupDevelopmentTools } from './main/dev';
+
+setupDevelopmentTools();
 
 const setupErrorHandling = () => {
 	if (process.env.BUGSNAG_API_KEY) {
@@ -42,10 +37,6 @@ const prepareApp = () => {
 
 	app.setAsDefaultProtocolClient('rocketchat');
 	app.setAppUserModelId('chat.rocket');
-
-	const dirName = process.env.NODE_ENV === 'production' ? app.name : `${ app.name } (${ process.env.NODE_ENV })`;
-
-	app.setPath('userData', path.join(app.getPath('appData'), dirName));
 
 	const [command, args] = [
 		process.argv.slice(0, app.isPackaged ? 1 : 2),

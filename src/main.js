@@ -1,16 +1,39 @@
 import path from 'path';
 
+import Bugsnag from '@bugsnag/js';
 import { app, BrowserWindow } from 'electron';
 import setupElectronReload from 'electron-reload';
 import rimraf from 'rimraf';
-
-import { setupErrorHandling } from './errorHandling';
 
 if (process.env.NODE_ENV === 'development') {
 	setupElectronReload(__dirname, {
 		electron: process.execPath,
 	});
 }
+
+const setupErrorHandling = () => {
+	if (process.env.BUGSNAG_API_KEY) {
+		Bugsnag.start({
+			apiKey: process.env.BUGSNAG_API_KEY,
+			appVersion: app.getVersion(),
+			appType: 'main',
+			collectUserIp: false,
+			releaseStage: process.env.NODE_ENV,
+		});
+
+		return;
+	}
+
+	process.addListener('uncaughtException', (error) => {
+		console.error(error);
+		app.quit(1);
+	});
+
+	process.addListener('unhandledRejection', (reason) => {
+		console.error(reason);
+		app.quit(1);
+	});
+};
 
 const preventEvent = (event) => event.preventDefault();
 

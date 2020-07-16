@@ -48,7 +48,7 @@ export default [
 			...builtinModules,
 			...Object.keys(appManifest.dependencies),
 			...Object.keys(appManifest.devDependencies),
-		],
+		].filter((moduleName) => moduleName !== '@bugsnag/js'),
 		input: 'src/app.js',
 		plugins: [
 			json(),
@@ -59,7 +59,9 @@ export default [
 			babel({
 				babelHelpers: 'bundled',
 			}),
-			nodeResolve(),
+			nodeResolve({
+				browser: true,
+			}),
 			commonjs(),
 		],
 		output: [
@@ -75,7 +77,7 @@ export default [
 			...builtinModules,
 			...Object.keys(appManifest.dependencies),
 			...Object.keys(appManifest.devDependencies),
-		],
+		].filter((moduleName) => moduleName !== '@bugsnag/js'),
 		input: 'src/preload.js',
 		plugins: [
 			json(),
@@ -86,7 +88,9 @@ export default [
 			babel({
 				babelHelpers: 'bundled',
 			}),
-			nodeResolve(),
+			nodeResolve({
+				browser: true,
+			}),
 			commonjs(),
 		],
 		output: [

@@ -29,7 +29,7 @@
     "eslint": "eslint src gulpfile.js"
   },
   "dependencies": {
-    "@bugsnag/js": "^6.3.2",
+    "@bugsnag/js": "^7.2.0",
     "@emotion/core": "^10.0.28",
     "@emotion/styled": "^10.0.27",
     "@rocket.chat/fuselage": "^0.13.0",
@@ -78,6 +78,7 @@
     "convert-svg-to-png": "^0.5.0",
     "electron": "~7.3.2",
     "electron-builder": "^22.7.0",
+    "electron-devtools-installer": "^3.1.0",
     "electron-notarize": "^1.0.0",
     "eslint": "^7.4.0",
     "eslint-plugin-import": "^2.22.0",

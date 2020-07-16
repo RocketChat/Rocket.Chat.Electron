@@ -1,40 +1,17 @@
-import Bugsnag from '@bugsnag/js';
 import { app, BrowserWindow } from 'electron';
 import rimraf from 'rimraf';
 
 import { setupDevelopmentTools } from './main/dev';
+import { setupErrorHandling } from './main/errors';
 
-setupDevelopmentTools();
-
-const setupErrorHandling = () => {
-	if (process.env.BUGSNAG_API_KEY) {
-		Bugsnag.start({
-			apiKey: process.env.BUGSNAG_API_KEY,
-			appVersion: app.getVersion(),
-			appType: 'main',
-			collectUserIp: false,
-			releaseStage: process.env.NODE_ENV,
-		});
-
-		return;
-	}
-
-	process.addListener('uncaughtException', (error) => {
-		console.error(error);
-		app.quit(1);
-	});
-
-	process.addListener('unhandledRejection', (reason) => {
-		console.error(reason);
-		app.quit(1);
-	});
-};
+if (require.main === module) {
+	setupDevelopmentTools();
+	setupErrorHandling();
+}
 
 const preventEvent = (event) => event.preventDefault();
 
 const prepareApp = () => {
-	setupErrorHandling('main');
-
 	app.setAsDefaultProtocolClient('rocketchat');
 	app.setAppUserModelId('chat.rocket');
 

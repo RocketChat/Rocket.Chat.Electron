@@ -2,8 +2,8 @@ import path from 'path';
 
 import { BrowserWindow, app } from 'electron';
 
-const createWindow = () => {
-	const window = new BrowserWindow({
+const createRootWindow = () => {
+	const rootWindow = new BrowserWindow({
 		width: 1000,
 		height: 600,
 		minWidth: 400,
@@ -17,17 +17,17 @@ const createWindow = () => {
 		},
 	});
 
-	window.addListener('close', (event) => {
+	rootWindow.addListener('close', (event) => {
 		event.preventDefault();
 	});
 
-	window.webContents.addListener('will-attach-webview', (event, webPreferences) => {
+	rootWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
 		delete webPreferences.enableBlinkFeatures;
 	});
 
-	window.loadFile(path.join(app.getAppPath(), 'app/public/app.html'));
+	rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/app.html'));
 };
 
-export const setupWindow = () => {
-	app.whenReady().then(() => createWindow());
+export const setupRootWindow = () => {
+	app.whenReady().then(() => createRootWindow());
 };

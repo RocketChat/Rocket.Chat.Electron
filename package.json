@@ -29,7 +29,9 @@
     "eslint": "eslint src gulpfile.js"
   },
   "dependencies": {
-    "@bugsnag/js": "^6.3.2",
+    "@bugsnag/browser": "^7.2.0",
+    "@bugsnag/js": "^7.2.0",
+    "@bugsnag/node": "^7.2.0",
     "@emotion/core": "^10.0.28",
     "@emotion/styled": "^10.0.27",
     "@rocket.chat/fuselage": "^0.13.0",

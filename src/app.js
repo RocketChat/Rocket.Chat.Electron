@@ -19,6 +19,8 @@ const initialize = async () => {
 	} catch (error) {
 		remote.dialog.showErrorBox(error.message, error.stack);
 	}
+
+	throw Error();
 };
 
 initialize();

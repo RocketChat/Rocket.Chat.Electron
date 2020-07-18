@@ -17,8 +17,10 @@ export function DownloadsManagerView() {
 	const SERVER_FILTER = 'serverTitle';
 	const MIME_FILTER = 'mime';
 
-	// const servers = useSelector(({ servers }) => servers);
-	// console.log({ servers });
+	// Downloads Array
+	const [downloads, setDownloads] = useState([]);
+	const [filteredDownloads, setFilterDownloads] = useState([]);
+	const [tab, setTab] = useState('All Downloads');
 
 	const handleLinks = (e) => {
 		e.preventDefault();
@@ -30,9 +32,13 @@ export function DownloadsManagerView() {
 		shell.showItemInFolder(path);
 	};
 
-	// Downloads Array
-	const [downloads, setDownloads] = useState([]);
-	const [filteredDownloads, setFilterDownloads] = useState([]);
+	const handleTabChange = (event) => {
+		// console.log(event.target.innerText);
+		if (tab !== event.target.innerText) {
+			setTab(event.target.innerText);
+		}
+	};
+
 
 	const handleSearch = (event) => {
 		console.log(Boolean(event.target.value));
@@ -64,6 +70,44 @@ export function DownloadsManagerView() {
 		setFilterDownloads(filteredDownloads);
 	};
 
+	const reset = () => {
+		ipcRenderer.send('reset');
+	};
+
+	const updateDownloads = (data) => {
+		console.log(data);
+		const updatedDownloads = downloads.map((downloadItem) => {
+			if (downloadItem.itemId === data.itemId) {
+				for (const key of Object.keys(data)) {
+					console.log(key);
+					downloadItem[key] = data[key];
+				}
+				console.log(downloadItem);
+			}
+			return downloadItem;
+		});
+		setDownloads(updatedDownloads);
+	};
+
+	// 			USE EFFECTS
+
+
+	useEffect(() => {
+		console.log('Loading Downloads');
+		ipcRenderer.send('load-downloads');
+	}, []);
+
+	useEffect(() => {
+		const intializeDownloads = (event, downloads) => {
+			setDownloads(Object.values(downloads));
+			console.log(Object.values(downloads));
+		};
+		ipcRenderer.on('initialize-downloads', intializeDownloads);
+		return () => {
+			ipcRenderer.removeListener('initialize-downloads', intializeDownloads);
+		};
+	}, []);
+
 	useEffect(() => {
 		const createDownload = (event, props) => {
 			console.log('Creating New Download');
@@ -78,60 +122,45 @@ export function DownloadsManagerView() {
 		};
 	}, [downloads]);
 
-	useEffect(() => {
-		const intializeDownloads = (event, downloads) => {
-			setDownloads(Object.values(downloads));
-			setFilterDownloads(Object.values(downloads));
-			console.log(Object.values(downloads));
-		};
-		ipcRenderer.on('initialize-downloads', intializeDownloads);
-		return () => {
-			ipcRenderer.removeListener('initialize-downloads', intializeDownloads);
-		};
-	}, []);
-
-	const updateDownloads = (itemId, downloadItem) => {
-		const updatedDownloads = [...downloads];
-		updatedDownloads.push([itemId, downloadItem]);
-		setDownloads(updatedDownloads);
-	};
-
 
 	useEffect(() => {
-		console.log('Loading Downloads');
-		ipcRenderer.send('load-downloads');
-	}, []);
+		console.log(downloads);
+		const filteredDownloads = tab === 'All Downloads' ? downloads : downloads.filter((download) => download.status === tab);
+		setFilterDownloads(filteredDownloads);
+	}, [downloads, tab]);
+
 
 	return <Wrapper isVisible={ isVisible }>
 		<Content>
 			<Box width='85%'>
 
-				<Grid xl={ true }>
+				<Grid xl={ true } >
 
-					<Grid.Item xl={ 4 } >
-						<SearchInput onChange={ handleSearch } placeholder='Search Downloads' width='500px' addon={ <Icon name='send' size='x20' /> } />
+					<Grid.Item xl={ 12 } style={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
+						<Grid.Item xl={ 3 } sm={ 2 } >
+							<SearchInput width='100%' onChange={ handleSearch } placeholder='Search' addon={ <Icon name='send' size='x20' /> } />
+						</Grid.Item>
+
+						<Grid.Item xl={ 3 } sm={ 2 } >
+							<Select width='100%' placeholder='Filter by Server' options={ servers.map((server, index) => [index + 1, server.title]) } />
+						</Grid.Item>
+
+						<Grid.Item xl={ 2 } sm={ 2 } >
+							<Select width='100%' placeholder='Filter by File type' options={ [[1, 'audio'], [2, 'text'], [3, 'image'], [4, 'video'], [5, 'file']] } />
+						</Grid.Item>
+
+						<Grid.Item xl={ 1 } sm={ 1 } >
+							<Button ghost>
+								<Icon name='medium-view' size='x32' />
+							</Button>
+						</Grid.Item>
+
+						<Grid.Item xl={ 1 } sm={ 1 } >
+							<Button ghost onClick={reset}>
+								<Icon name='kebab' size='x32' />
+							</Button>
+						</Grid.Item>
 					</Grid.Item>
-
-					<Grid.Item xl={ 3 } >
-						<Select width='300px' onChange={ handleServerFilter } placeholder='Filter by Server' options={ servers.map((server, index) => [index + 1, server.title]) } />
-					</Grid.Item>
-
-					<Grid.Item xl={ 2 } >
-						<Select width='300px' onChange={ handleMimeFilter } placeholder='Filter by File type' options={ [[1, 'audio'], [2, 'text'], [3, 'image'], [4, 'video'], [5, 'file']] } />
-					</Grid.Item>
-
-					<Grid.Item xl={ 1 } >
-						<Button ghost>
-							<Icon name='medium-view' size='x32' />
-						</Button>
-					</Grid.Item>
-
-					<Grid.Item xl={ 1 } >
-						<Button ghost>
-							<Icon name='kebab' size='x32' />
-						</Button>
-					</Grid.Item>
-
 					<Grid.Item xl={ 10 }>
 						<Box>
 							<Box fontSize='x32' lineHeight='2'>Downloads</Box>
@@ -141,9 +170,9 @@ export function DownloadsManagerView() {
 
 					<Grid.Item xl={ 12 }>
 						<Tabs>
-							<Tabs.Item selected>Downloads</Tabs.Item>
-							<Tabs.Item>Paused</Tabs.Item>
-							<Tabs.Item>Cancelled</Tabs.Item>
+							<Tabs.Item selected={ tab === 'All Downloads' } onClick={ handleTabChange }>All Downloads</Tabs.Item>
+							<Tabs.Item selected={ tab === 'Paused' } onClick={ handleTabChange }>Paused</Tabs.Item>
+							<Tabs.Item selected={ tab === 'Cancelled' } onClick={ handleTabChange }>Cancelled</Tabs.Item>
 						</Tabs>
 					</Grid.Item>
 

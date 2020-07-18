@@ -109,6 +109,13 @@ const createMainWindow = () => {
 		mainWindow.webContents.send('initialize-downloads', downloads);
 	});
 
+	ipcMain.on('reset', async () => {
+		console.log('Reset');
+		await store.clear();
+		const downloads = await store.get('downloads', {});
+		mainWindow.webContents.send('initialize-downloads', downloads);
+	});
+
 
 	// Listen and save a single download being completed.
 	ipcMain.on('download-complete', async (event, downloadItem) => {
@@ -124,7 +131,7 @@ const createMainWindow = () => {
 		const mime = item.getMimeType();
 		let paused = false;
 		const itemId = Date.now();
-		mainWindow.webContents.send('create-download-item', { itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url: item.getURL(), serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
+		mainWindow.webContents.send('create-download-item', { status: 'All Downloads', itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url: item.getURL(), serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
 
 		// Cancelled Download
 		ipcMain.on(`cancel-${ itemId }`, () => item.cancel());

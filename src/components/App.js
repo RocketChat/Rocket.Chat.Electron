@@ -18,7 +18,6 @@ import {
 } from '../actions';
 import { MainWindow } from './MainWindow';
 import { TrayIcon } from './TrayIcon';
-import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
 import { TouchBar } from './TouchBar';
 import { createReduxStoreAndSagaMiddleware } from '../storeAndEffects';
@@ -142,7 +141,6 @@ function AppContent() {
 	}, [dispatch]);
 
 	return <MainWindow>
-		<MenuBar />
 		<Shell />
 		<Dock />
 		<TrayIcon />

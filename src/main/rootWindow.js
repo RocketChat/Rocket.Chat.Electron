@@ -2,6 +2,9 @@ import path from 'path';
 
 import { BrowserWindow, app } from 'electron';
 
+import { setupMenuBar } from './menuBar';
+import { setupI18next } from '../i18n';
+
 const createRootWindow = () => {
 	const rootWindow = new BrowserWindow({
 		width: 1000,
@@ -26,6 +29,10 @@ const createRootWindow = () => {
 	});
 
 	rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/app.html'));
+
+	setupI18next().then(() => {
+		setupMenuBar(rootWindow);
+	});
 };
 
 export const setupRootWindow = () => {

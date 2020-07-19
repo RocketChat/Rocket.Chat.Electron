@@ -18,7 +18,6 @@ import {
 } from '../actions';
 import { MainWindow } from './MainWindow';
 import { TrayIcon } from './TrayIcon';
-import { Dock } from './Dock';
 import { createReduxStoreAndSagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
 import { validateServerUrl } from '../sagas/servers';
@@ -141,7 +140,6 @@ function AppContent() {
 
 	return <MainWindow>
 		<Shell />
-		<Dock />
 		<TrayIcon />
 	</MainWindow>;
 }

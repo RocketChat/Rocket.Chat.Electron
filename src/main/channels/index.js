@@ -1,13 +1,18 @@
 import { eventChannel, channel, buffers } from 'redux-saga';
 import { app } from 'electron';
 
-export const eventEmitterChannel = (eventEmitter, eventName) => eventChannel((emit) => {
-	eventEmitter.addListener(eventName, emit);
+const defaultEventListenerDecorator = (eventListener) => eventListener;
 
-	return () => {
-		eventEmitter.removeListener(eventName, emit);
-	};
-});
+export const eventEmitterChannel = (eventEmitter, eventName, decorator = defaultEventListenerDecorator) =>
+	eventChannel((emit) => {
+		const eventListener = decorator(emit);
+
+		eventEmitter.addListener(eventName, eventListener);
+
+		return () => {
+			eventEmitter.removeListener(eventName, eventListener);
+		};
+	});
 
 const READY = Symbol('READY');
 
@@ -16,6 +21,7 @@ export const appReadyChannel = () => {
 
 	app.whenReady().then(() => {
 		chan.put(READY);
+		chan.close();
 	});
 
 	return chan;

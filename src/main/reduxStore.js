@@ -11,6 +11,8 @@ const deferredStore = new Promise((resolve) => {
 	resolveStore = resolve;
 });
 
+export const getStore = () => deferredStore;
+
 const deferredSagaMiddleware = new Promise((resolve) => {
 	resolveSagaMiddleware = resolve;
 });

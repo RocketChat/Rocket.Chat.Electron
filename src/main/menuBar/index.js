@@ -1,18 +1,25 @@
 import { Menu } from 'electron';
+import { takeEvery, spawn } from 'redux-saga/effects';
 
-import { watch } from '../../sagaUtils';
 import { runSaga } from '../reduxStore';
-import { selectIsMenuBarEnabled, selectMenuTemplate } from './selectors';
+import { selectMenuTemplate } from './selectors';
+import { storeChangeChannel } from '../channels';
 
-function *menuBarSaga(rootWindow) {
+function *watchIsMenuBarEnabled(rootWindow) {
 	if (process.platform !== 'darwin') {
-		yield watch(selectIsMenuBarEnabled, function *(isMenuBarEnabled) {
+		const isMenuBarEnabledAction = storeChangeChannel((state) => state.isMenuBarEnabled);
+
+		yield takeEvery(isMenuBarEnabledAction, function *([isMenuBarEnabled]) {
 			rootWindow.autoHideMenuBar = !isMenuBarEnabled;
 			rootWindow.setMenuBarVisibility(isMenuBarEnabled);
 		});
 	}
+}
 
-	yield watch(selectMenuTemplate, function *(menuTemplate) {
+function *watchMenuTemplate(rootWindow) {
+	const menuTemplateAction = storeChangeChannel(selectMenuTemplate);
+
+	yield takeEvery(menuTemplateAction, function *([menuTemplate]) {
 		const menu = Menu.buildFromTemplate(menuTemplate);
 
 		if (process.platform === 'darwin') {
@@ -23,6 +30,11 @@ function *menuBarSaga(rootWindow) {
 		Menu.setApplicationMenu(null);
 		rootWindow.setMenu(menu);
 	});
+}
+
+function *menuBarSaga(rootWindow) {
+	yield spawn(watchIsMenuBarEnabled, rootWindow);
+	yield spawn(watchMenuTemplate, rootWindow);
 }
 
 export const setupMenuBar = (rootWindow) => {

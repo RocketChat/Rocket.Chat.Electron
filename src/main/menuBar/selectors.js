@@ -28,7 +28,7 @@ import {
 	MENU_BAR_ZOOM_OUT_CLICKED,
 } from '../../actions';
 
-export const selectIsMenuBarEnabled = (state) => state.isMenuBarEnabled;
+const selectIsMenuBarEnabled = (state) => state.isMenuBarEnabled;
 
 const selectAppName = () => app.name;
 

@@ -1,7 +1,6 @@
 import { app } from 'electron';
 import { takeEvery, select, put, call } from 'redux-saga/effects';
 import { createSelector } from 'reselect';
-import { eventChannel } from 'redux-saga';
 
 import {
 	DEEP_LINK_TRIGGERED,
@@ -34,6 +33,8 @@ import {
 } from '../../actions';
 import { getTrayIconPath, getAppIconPath } from '../../icons';
 import { watch } from '../../sagaUtils';
+import { eventEmitterChannel } from '../channels';
+import { appActivateEvent, appBeforeQuitEvent, appSecondInstanceEvent } from '../channels/app';
 
 const selectIsTrayIconEnabled = ({ isTrayIconEnabled }) => isTrayIconEnabled;
 
@@ -177,13 +178,7 @@ export function *rootWindowSaga(rootWindow) {
 		rootWindow.flashFrame(true);
 	});
 
-	const rootWindowEventChannel = (eventName) => eventChannel((emit) => {
-		rootWindow.addListener(eventName, emit);
-
-		return () => {
-			rootWindow.removeListener(eventName, emit);
-		};
-	});
+	const rootWindowEventChannel = (eventName) => eventEmitterChannel(rootWindow, eventName);
 
 	const showEvent = rootWindowEventChannel('show');
 	const hideEvent = rootWindowEventChannel('hide');
@@ -242,28 +237,16 @@ export function *rootWindowSaga(rootWindow) {
 		yield put({ type: MAIN_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
 	});
 
-	const appEventChannel = (eventName) => eventChannel((emit) => {
-		app.addListener(eventName, emit);
-
-		return () => {
-			app.removeListener(eventName, emit);
-		};
-	});
-
-	const activateEvent = appEventChannel('activate');
-	const beforeQuitEvent = appEventChannel('before-quit');
-	const secondInstanceEvent = appEventChannel('second-instance');
-
-	yield takeEvery(activateEvent, function *() {
+	yield takeEvery(appActivateEvent, function *() {
 		rootWindow.showInactive();
 		rootWindow.focus();
 	});
 
-	yield takeEvery(beforeQuitEvent, function *() {
+	yield takeEvery(appBeforeQuitEvent, function *() {
 		rootWindow.destroy();
 	});
 
-	yield takeEvery(secondInstanceEvent, function *() {
+	yield takeEvery(appSecondInstanceEvent, function *() {
 		rootWindow.showInactive();
 		rootWindow.focus();
 	});

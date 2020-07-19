@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 
 import { useSaga } from '../SagaMiddlewareProvider';
 import { mainWindowStateSaga } from './sagas';
-import { MAIN_WINDOW_WEBCONTENTS_FOCUSED, MAIN_WINDOW_EDIT_FLAGS_CHANGED } from '../../actions';
+import { ROOT_WINDOW_WEBCONTENTS_FOCUSED, ROOT_WINDOW_EDIT_FLAGS_CHANGED } from '../../actions';
 
 export function MainWindow({
 	browserWindow = remote.getCurrentWindow(),
@@ -19,11 +19,11 @@ export function MainWindow({
 				: browserWindow.webContents;
 
 			if (webContents.isDevToolsFocused()) {
-				dispatch({ type: MAIN_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
+				dispatch({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
 				return;
 			}
 
-			dispatch({ type: MAIN_WINDOW_WEBCONTENTS_FOCUSED, payload: webContents.id });
+			dispatch({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: webContents.id });
 		};
 
 		document.addEventListener('focus', fetchAndDispatchFocusedWebContentsId, true);
@@ -40,7 +40,7 @@ export function MainWindow({
 	useEffect(() => {
 		const fetchAndDispatchEditFlags = () => {
 			dispatch({
-				type: MAIN_WINDOW_EDIT_FLAGS_CHANGED,
+				type: ROOT_WINDOW_EDIT_FLAGS_CHANGED,
 				payload: {
 					canUndo: document.queryCommandEnabled('undo'),
 					canRedo: document.queryCommandEnabled('redo'),

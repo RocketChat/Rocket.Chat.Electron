@@ -4,7 +4,7 @@ import { call, put, select, takeEvery } from 'redux-saga/effects';
 import {
 	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
-	MAIN_WINDOW_INSTALL_UPDATE_CLICKED,
+	ROOT_WINDOW_INSTALL_UPDATE_CLICKED,
 	UPDATES_READY,
 	UPDATES_CHECKING_FOR_UPDATE,
 	UPDATES_ERROR_THROWN,
@@ -171,7 +171,7 @@ function *takeActions() {
 		yield *download();
 	});
 
-	yield takeEvery(MAIN_WINDOW_INSTALL_UPDATE_CLICKED, function *() {
+	yield takeEvery(ROOT_WINDOW_INSTALL_UPDATE_CLICKED, function *() {
 		yield *install();
 	});
 }

@@ -1,5 +1,5 @@
 import {
-	MAIN_WINDOW_STATE_CHANGED,
+	ROOT_WINDOW_STATE_CHANGED,
 } from '../actions';
 
 export const mainWindowState = (state = {
@@ -17,7 +17,7 @@ export const mainWindowState = (state = {
 	},
 }, { type, payload }) => {
 	switch (type) {
-		case MAIN_WINDOW_STATE_CHANGED:
+		case ROOT_WINDOW_STATE_CHANGED:
 			return payload;
 	}
 

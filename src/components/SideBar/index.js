@@ -1,6 +1,5 @@
 import { parse as parseUrl } from 'url';
 
-import { remote } from 'electron';
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,11 +7,9 @@ import { takeEvery } from 'redux-saga/effects';
 
 import {
 	SIDE_BAR_SERVER_SELECTED,
-	SIDE_BAR_RELOAD_SERVER_CLICKED,
-	SIDE_BAR_REMOVE_SERVER_CLICKED,
-	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 	WEBVIEW_FAVICON_CHANGED,
+	SIDE_BAR_CONTEXT_MENU_POPPED_UP,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
 import {
@@ -47,7 +44,6 @@ function ServerButton({
 	onDrop,
 }) {
 	const dispatch = useDispatch();
-	const { t } = useTranslation();
 
 	const [favicon, setFavicon] = useState(initialFavicon);
 	const [faviconLoaded, setFaviconLoaded] = useState(false);
@@ -75,23 +71,7 @@ function ServerButton({
 
 	const handleServerContextMenu = (event) => {
 		event.preventDefault();
-		const menuTemplate = [
-			{
-				label: t('sidebar.item.reload'),
-				click: () => dispatch({ type: SIDE_BAR_RELOAD_SERVER_CLICKED, payload: url }),
-			},
-			{
-				label: t('sidebar.item.remove'),
-				click: () => dispatch({ type: SIDE_BAR_REMOVE_SERVER_CLICKED, payload: url }),
-			},
-			{ type: 'separator' },
-			{
-				label: t('sidebar.item.openDevTools'),
-				click: () => dispatch({ type: SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, payload: url }),
-			},
-		];
-		const menu = remote.Menu.buildFromTemplate(menuTemplate);
-		menu.popup(remote.getCurrentWindow());
+		dispatch({ type: SIDE_BAR_CONTEXT_MENU_POPPED_UP, payload: url });
 	};
 
 	return <ServerButtonWrapper

@@ -10,8 +10,7 @@ import {
 	DEEP_LINK_TRIGGERED,
 	DEEP_LINKS_SERVER_ADDED,
 	DEEP_LINKS_SERVER_FOCUSED,
-	MAIN_WINDOW_INSTALL_UPDATE_CLICKED,
-	MENU_BAR_RESET_APP_DATA_CLICKED,
+	ROOT_WINDOW_INSTALL_UPDATE_CLICKED,
 	UPDATES_UPDATE_DOWNLOADED,
 	WEBVIEW_CERTIFICATE_DENIED,
 	WEBVIEW_CERTIFICATE_TRUSTED,
@@ -53,25 +52,6 @@ function AppContent() {
 			}
 		});
 
-		yield takeEvery(MENU_BAR_RESET_APP_DATA_CLICKED, function *() {
-			const { response } = yield call(::remote.dialog.showMessageBox, {
-				type: 'question',
-				buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
-				defaultId: 1,
-				title: t('dialog.resetAppData.title'),
-				message: t('dialog.resetAppData.message'),
-			});
-
-			if (response !== 0) {
-				return;
-			}
-
-			const command = remote.process.argv.slice(0, remote.app.isPackaged ? 1 : 2);
-
-			remote.app.relaunch({ args: [...command.slice(1), '--reset-app-data'] });
-			remote.app.quit();
-		});
-
 		yield takeEvery(UPDATES_UPDATE_DOWNLOADED, function *() {
 			const { response } = yield call(::remote.dialog.showMessageBox, remote.getCurrentWindow(), {
 				type: 'question',
@@ -95,7 +75,7 @@ function AppContent() {
 				return;
 			}
 
-			yield put({ type: MAIN_WINDOW_INSTALL_UPDATE_CLICKED });
+			yield put({ type: ROOT_WINDOW_INSTALL_UPDATE_CLICKED });
 		});
 
 		yield takeEvery(CERTIFICATE_TRUST_REQUESTED, function *({ payload }) {

@@ -1,13 +1,14 @@
 import path from 'path';
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Menu } from 'electron';
+import { t } from 'i18next';
 import { takeEvery, select, put, call, getContext, spawn } from 'redux-saga/effects';
 import { createSelector } from 'reselect';
 
 import {
 	DEEP_LINK_TRIGGERED,
-	MAIN_WINDOW_STATE_CHANGED,
-	MAIN_WINDOW_WEBCONTENTS_FOCUSED,
+	ROOT_WINDOW_STATE_CHANGED,
+	ROOT_WINDOW_WEBCONTENTS_FOCUSED,
 	MENU_BAR_ABOUT_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	MENU_BAR_GO_BACK_CLICKED,
@@ -28,6 +29,10 @@ import {
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 	TRAY_ICON_TOGGLE_CLICKED,
 	WEBVIEW_FOCUS_REQUESTED,
+	SIDE_BAR_CONTEXT_MENU_POPPED_UP,
+	SIDE_BAR_RELOAD_SERVER_CLICKED,
+	SIDE_BAR_REMOVE_SERVER_CLICKED,
+	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 } from '../../../actions';
 import { eventEmitterChannel, storeChangeChannel } from '../../channels';
 import { getTrayIconPath, getAppIconPath } from '../../../icons';
@@ -79,7 +84,7 @@ const fetchRootWindowState = (rootWindow) => ({
 
 function *fetchAndDispatchWindowState(rootWindow) {
 	yield put({
-		type: MAIN_WINDOW_STATE_CHANGED,
+		type: ROOT_WINDOW_STATE_CHANGED,
 		payload: fetchRootWindowState(rootWindow),
 	});
 }
@@ -140,7 +145,7 @@ function *watchRootWindow(rootWindow, store) {
 	});
 
 	yield takeEvery(eventEmitterChannel(rootWindow, 'devtools-focused'), function *() {
-		yield put({ type: MAIN_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
+		yield put({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
 	});
 
 	if (process.platform === 'linux' || process.platform === 'win32') {
@@ -239,6 +244,26 @@ function *watchRootWindow(rootWindow, store) {
 		}
 
 		rootWindow.hide();
+	});
+
+	yield takeEvery(SIDE_BAR_CONTEXT_MENU_POPPED_UP, function *({ payload: url }) {
+		const menuTemplate = [
+			{
+				label: t('sidebar.item.reload'),
+				click: () => store.dispatch({ type: SIDE_BAR_RELOAD_SERVER_CLICKED, payload: url }),
+			},
+			{
+				label: t('sidebar.item.remove'),
+				click: () => store.dispatch({ type: SIDE_BAR_REMOVE_SERVER_CLICKED, payload: url }),
+			},
+			{ type: 'separator' },
+			{
+				label: t('sidebar.item.openDevTools'),
+				click: () => store.dispatch({ type: SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, payload: url }),
+			},
+		];
+		const menu = Menu.buildFromTemplate(menuTemplate);
+		menu.popup(rootWindow);
 	});
 }
 

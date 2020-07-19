@@ -84,58 +84,39 @@ function *fetchAndDispatchWindowState(rootWindow) {
 	});
 }
 
-function *watchRootWindow(rootWindow) {
-	const store = yield getContext('store');
-
-	const appActivateEvent = eventEmitterChannel(app, 'activate');
-	const appBeforeQuitEvent = eventEmitterChannel(app, 'before-quit');
-	const appSecondInstanceEvent = eventEmitterChannel(app, 'second-instance');
-
-	yield takeEvery(appActivateEvent, function *() {
+function *watchRootWindow(rootWindow, store) {
+	yield takeEvery(eventEmitterChannel(app, 'activate'), function *() {
 		rootWindow.showInactive();
 		rootWindow.focus();
 	});
 
-	yield takeEvery(appBeforeQuitEvent, function *() {
+	yield takeEvery(eventEmitterChannel(app, 'before-quit'), function *() {
 		rootWindow.destroy();
 	});
 
-	yield takeEvery(appSecondInstanceEvent, function *() {
+	yield takeEvery(eventEmitterChannel(app, 'second-instance'), function *() {
 		rootWindow.showInactive();
 		rootWindow.focus();
 	});
 
-	const showEvent = eventEmitterChannel(rootWindow, 'show');
-	const hideEvent = eventEmitterChannel(rootWindow, 'hide');
-	const focusEvent = eventEmitterChannel(rootWindow, 'focus');
-	const blurEvent = eventEmitterChannel(rootWindow, 'blur');
-	const maximizeEvent = eventEmitterChannel(rootWindow, 'maximize');
-	const unmaximizeEvent = eventEmitterChannel(rootWindow, 'unmaximize');
-	const minimizeEvent = eventEmitterChannel(rootWindow, 'minimize');
-	const restoreEvent = eventEmitterChannel(rootWindow, 'restore');
-	const resizeEvent = eventEmitterChannel(rootWindow, 'resize');
-	const moveEvent = eventEmitterChannel(rootWindow, 'move');
-	const closeEvent = eventEmitterChannel(rootWindow, 'close');
-	const devtoolsFocusedEvent = eventEmitterChannel(rootWindow, 'devtools-focused');
+	yield takeEvery(eventEmitterChannel(rootWindow, 'show'), fetchAndDispatchWindowState, rootWindow);
+	yield takeEvery(eventEmitterChannel(rootWindow, 'hide'), fetchAndDispatchWindowState, rootWindow);
+	yield takeEvery(eventEmitterChannel(rootWindow, 'focus'), fetchAndDispatchWindowState, rootWindow);
+	yield takeEvery(eventEmitterChannel(rootWindow, 'blur'), fetchAndDispatchWindowState, rootWindow);
+	yield takeEvery(eventEmitterChannel(rootWindow, 'maximize'), fetchAndDispatchWindowState, rootWindow);
+	yield takeEvery(eventEmitterChannel(rootWindow, 'unmaximize'), fetchAndDispatchWindowState, rootWindow);
+	yield takeEvery(eventEmitterChannel(rootWindow, 'minimize'), fetchAndDispatchWindowState, rootWindow);
+	yield takeEvery(eventEmitterChannel(rootWindow, 'restore'), fetchAndDispatchWindowState, rootWindow);
+	yield takeEvery(eventEmitterChannel(rootWindow, 'resize'), fetchAndDispatchWindowState, rootWindow);
+	yield takeEvery(eventEmitterChannel(rootWindow, 'move'), fetchAndDispatchWindowState, rootWindow);
 
-	yield takeEvery(showEvent, fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(hideEvent, fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(blurEvent, fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(maximizeEvent, fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(unmaximizeEvent, fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(minimizeEvent, fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(restoreEvent, fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(resizeEvent, fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(moveEvent, fetchAndDispatchWindowState, rootWindow);
-
-	yield takeEvery(focusEvent, function *() {
-		yield call(fetchAndDispatchWindowState, rootWindow);
+	yield takeEvery(eventEmitterChannel(rootWindow, 'focus'), function *() {
 		rootWindow.flashFrame(false);
 	});
 
 	yield call(fetchAndDispatchWindowState, rootWindow);
 
-	yield takeEvery(closeEvent, function *() {
+	yield takeEvery(eventEmitterChannel(rootWindow, 'close'), function *() {
 		if (rootWindow.isFullScreen()) {
 			yield call(() => new Promise((resolve) => rootWindow.once('leave-full-screen', resolve)));
 			rootWindow.setFullScreen(false);
@@ -158,7 +139,7 @@ function *watchRootWindow(rootWindow) {
 		rootWindow.destroy();
 	});
 
-	yield takeEvery(devtoolsFocusedEvent, function *() {
+	yield takeEvery(eventEmitterChannel(rootWindow, 'devtools-focused'), function *() {
 		yield put({ type: MAIN_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
 	});
 
@@ -264,7 +245,9 @@ function *watchRootWindow(rootWindow) {
 export function *rootWindowSaga() {
 	const rootWindow = createRootWindow();
 
-	yield spawn(watchRootWindow, rootWindow);
+	const store = yield getContext('store');
+
+	yield spawn(watchRootWindow, rootWindow, store);
 
 	return rootWindow;
 }

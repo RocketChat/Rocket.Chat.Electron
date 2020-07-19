@@ -24,9 +24,7 @@ function *watchAppEvents() {
 	app.addListener('login', preventEvent);
 	app.addListener('open-url', preventEvent);
 
-	const appWindowAllClosedEvent = eventEmitterChannel(app, 'window-all-closed');
-
-	yield takeEvery(appWindowAllClosedEvent, function *() {
+	yield takeEvery(eventEmitterChannel(app, 'window-all-closed'), function *() {
 		app.quit();
 	});
 

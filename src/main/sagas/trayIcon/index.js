@@ -91,9 +91,7 @@ export function *trayIconSaga() {
 		trayIcon.setImage(image);
 	});
 
-	const nativeThemeUpdatedEvent = eventEmitterChannel(nativeTheme, 'updated');
-
-	yield takeEvery(nativeThemeUpdatedEvent, function *() {
+	yield takeEvery(eventEmitterChannel(nativeTheme, 'updated'), function *() {
 		if (!trayIcon) {
 			return;
 		}

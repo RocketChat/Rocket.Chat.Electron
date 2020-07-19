@@ -46,9 +46,12 @@ const selectIsSideBarEnabled = ({ isSideBarEnabled }) => isSideBarEnabled;
 const selectIsTrayIconEnabled = ({ isTrayIconEnabled }) => isTrayIconEnabled;
 const selectIsFullScreenEnabled = ({ mainWindowState: { fullscreen } }) => fullscreen;
 
-const selectServers = defaultMemoize(
-	({ servers }) => servers.map(({ url, title }) => ({ url, title })),
-	(a, b) => a === b || ((a.title === b.title) && (a.url === b.url)),
+const isSameServer = (a, b) => a === b || ((a.title === b.title) && (a.url === b.url));
+const isSameServers = (a, b) => a === b || (a.length === b.length && a.every((x, i) => isSameServer(x, b[i])));
+
+const selectServers = createSelector(
+	({ servers }) => servers,
+	defaultMemoize((servers) => servers, isSameServers),
 );
 const selectCurrentServerUrl = ({ currentServerUrl }) => currentServerUrl;
 const selectIsShowWindowOnUnreadChangedEnabled = ({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled;

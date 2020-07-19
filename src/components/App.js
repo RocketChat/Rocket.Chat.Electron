@@ -19,7 +19,6 @@ import {
 import { MainWindow } from './MainWindow';
 import { TrayIcon } from './TrayIcon';
 import { Dock } from './Dock';
-import { TouchBar } from './TouchBar';
 import { createReduxStoreAndSagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
 import { validateServerUrl } from '../sagas/servers';
@@ -144,7 +143,6 @@ function AppContent() {
 		<Shell />
 		<Dock />
 		<TrayIcon />
-		<TouchBar />
 	</MainWindow>;
 }
 

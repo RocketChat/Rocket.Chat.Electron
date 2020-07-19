@@ -4,6 +4,7 @@ import { BrowserWindow, app } from 'electron';
 
 import { setupMenuBar } from './menuBar';
 import { setupI18next } from '../i18n';
+import { setupTouchBar } from './touchBar';
 
 const createRootWindow = () => {
 	const rootWindow = new BrowserWindow({
@@ -32,6 +33,7 @@ const createRootWindow = () => {
 
 	setupI18next().then(() => {
 		setupMenuBar(rootWindow);
+		setupTouchBar(rootWindow);
 	});
 };
 

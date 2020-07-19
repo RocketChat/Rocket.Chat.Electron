@@ -29,7 +29,7 @@ import {
 	TRAY_ICON_TOGGLE_CLICKED,
 	WEBVIEW_FOCUS_REQUESTED,
 } from '../../../actions';
-import { eventEmitterChannel, storeValueChannel } from '../../channels';
+import { eventEmitterChannel, storeChangeChannel } from '../../channels';
 import { getTrayIconPath, getAppIconPath } from '../../../icons';
 import {
 	selectGlobalBadge,
@@ -163,9 +163,7 @@ function *watchRootWindow(rootWindow) {
 	});
 
 	if (process.platform === 'linux' || process.platform === 'win32') {
-		const isMenuBarEnabledChannel = storeValueChannel(store, selectIsMenuBarEnabled);
-
-		yield takeEvery(isMenuBarEnabledChannel, function *(isMenuBarEnabled) {
+		yield takeEvery(storeChangeChannel(store, selectIsMenuBarEnabled), function *([isMenuBarEnabled]) {
 			rootWindow.autoHideMenuBar = !isMenuBarEnabled;
 			rootWindow.setMenuBarVisibility(isMenuBarEnabled);
 		});
@@ -176,16 +174,12 @@ function *watchRootWindow(rootWindow) {
 		], (isTrayIconEnabled, badge) =>
 			(isTrayIconEnabled ? getTrayIconPath({ badge }) : getAppIconPath()));
 
-		const rootWindowIconChannel = storeValueChannel(store, selectRootWindowIcon);
-
-		yield takeEvery(rootWindowIconChannel, function *(icon) {
+		yield takeEvery(storeChangeChannel(store, selectRootWindowIcon), function *([icon]) {
 			rootWindow.setIcon(icon);
 		});
 	}
 
-	const globalBadgeCountChannel = storeValueChannel(store, selectGlobalBadgeCount);
-
-	yield takeEvery(globalBadgeCountChannel, function *(globalBadgeCount) {
+	yield takeEvery(storeChangeChannel(store, selectGlobalBadgeCount), function *([globalBadgeCount]) {
 		if (rootWindow.isFocused() || globalBadgeCount === 0) {
 			return;
 		}

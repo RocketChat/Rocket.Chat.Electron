@@ -8,11 +8,7 @@ import {
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
 } from '../../../actions';
-import {
-	eventEmitterChannel,
-	storeChangeChannel,
-	storeValueChannel,
-} from '../../channels';
+import { eventEmitterChannel, storeChangeChannel } from '../../channels';
 
 const selectAppName = () => app.name;
 const selectIsMainWindowVisible = ({ mainWindowState: { visible } }) => visible;
@@ -58,7 +54,7 @@ export function *trayIconSaga() {
 
 	const store = yield getContext('store');
 
-	yield takeEvery(storeValueChannel(store, selectIsTrayIconEnabled), function *(isTrayIconEnabled) {
+	yield takeEvery(storeChangeChannel(store, selectIsTrayIconEnabled), function *([isTrayIconEnabled]) {
 		if (!isTrayIconEnabled) {
 			if (trayIcon) {
 				trayIcon.destroy();
@@ -87,7 +83,7 @@ export function *trayIconSaga() {
 		});
 	});
 
-	yield takeEvery(storeValueChannel(store, selectImage), (image) => {
+	yield takeEvery(storeChangeChannel(store, selectImage), ([image]) => {
 		if (!trayIcon) {
 			return;
 		}
@@ -106,7 +102,7 @@ export function *trayIconSaga() {
 		trayIcon.setImage(image);
 	});
 
-	yield takeEvery(storeValueChannel(store, selectTitle), function *(title) {
+	yield takeEvery(storeChangeChannel(store, selectTitle), function *([title]) {
 		if (!trayIcon) {
 			return;
 		}
@@ -114,7 +110,7 @@ export function *trayIconSaga() {
 		trayIcon.setTitle(title);
 	});
 
-	yield takeEvery(storeValueChannel(store, selectToolTip), function *(toolTip) {
+	yield takeEvery(storeChangeChannel(store, selectToolTip), function *([toolTip]) {
 		if (!trayIcon) {
 			return;
 		}
@@ -133,7 +129,7 @@ export function *trayIconSaga() {
 		},
 	]);
 
-	yield takeEvery(storeValueChannel(store, selectMenuTemplate), function *(menuTemplate) {
+	yield takeEvery(storeChangeChannel(store, selectMenuTemplate), function *([menuTemplate]) {
 		if (!trayIcon) {
 			return;
 		}
@@ -142,12 +138,10 @@ export function *trayIconSaga() {
 		trayIcon.setContextMenu(menu);
 	});
 
-	const displayBalloonChannel = storeChangeChannel(store, createStructuredSelector({
+	yield takeEvery(storeChangeChannel(store, createStructuredSelector({
 		appName: selectAppName,
 		isMainWindowVisible: selectIsMainWindowVisible,
-	}));
-
-	yield takeEvery(displayBalloonChannel, function *([value, prevValue]) {
+	})), function *([value, prevValue]) {
 		const { appName, isMainWindowVisible } = value;
 		const { isMainWindowVisible: prevIsMainWindowVisible } = prevValue ?? [];
 

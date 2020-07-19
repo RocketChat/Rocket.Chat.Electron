@@ -7,7 +7,7 @@ import {
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 } from '../../../actions';
-import { storeValueChannel } from '../../channels';
+import { storeChangeChannel } from '../../channels';
 
 const isSameServer = (a, b) => a === b || ((a.title === b.title) && (a.url === b.url) && (a.favicon === b.favicon));
 const isSameServers = (a, b) => a === b || (a.length === b.length && a.every((x, i) => isSameServer(x, b[i])));
@@ -81,7 +81,7 @@ export function *touchBarSaga(rootWindow) {
 
 	rootWindow.setTouchBar(touchBar);
 
-	yield takeEvery(storeValueChannel(store, selectCurrentServer), function *(currentServer) {
+	yield takeEvery(storeChangeChannel(store, selectCurrentServer), function *([currentServer]) {
 		serverSelectionPopover.label = currentServer?.title ?? t('touchBar.selectServer');
 		serverSelectionPopover.icon = currentServer?.favicon
 			? nativeImage.createFromDataURL(currentServer?.favicon)
@@ -89,7 +89,7 @@ export function *touchBarSaga(rootWindow) {
 		rootWindow.setTouchBar(touchBar);
 	});
 
-	yield takeEvery(storeValueChannel(store, selectServers), function *(servers) {
+	yield takeEvery(storeChangeChannel(store, selectServers), function *([servers]) {
 		serverSelectionScrubber.items = servers.map((server) => ({
 			label: server.title.padEnd(30),
 			icon: server.favicon
@@ -99,7 +99,7 @@ export function *touchBarSaga(rootWindow) {
 		rootWindow.setTouchBar(touchBar);
 	});
 
-	yield takeEvery(storeValueChannel(store, selectIsMessageBoxFocused), function *(isMessageBoxFocused) {
+	yield takeEvery(storeChangeChannel(store, selectIsMessageBoxFocused), function *([isMessageBoxFocused]) {
 		messageBoxFormattingButtons.segments.forEach((segment) => {
 			segment.enabled = isMessageBoxFocused;
 		});

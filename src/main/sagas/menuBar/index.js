@@ -27,7 +27,7 @@ import {
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
 } from '../../../actions';
-import { storeValueChannel } from '../../channels';
+import { storeChangeChannel } from '../../channels';
 import {
 	selectAppName,
 	selectCanCopy,
@@ -359,9 +359,7 @@ function *watchMenuBarTemplate(store, rootWindow) {
 		selectHelpMenuTemplate,
 	], (...menus) => menus);
 
-	const menuBarTemplateChannel = storeValueChannel(store, selectMenuBarTemplate);
-
-	yield takeEvery(menuBarTemplateChannel, function *(menuBarTemplate) {
+	yield takeEvery(storeChangeChannel(store, selectMenuBarTemplate), function *([menuBarTemplate]) {
 		const menu = Menu.buildFromTemplate(menuBarTemplate);
 
 		if (process.platform === 'darwin') {

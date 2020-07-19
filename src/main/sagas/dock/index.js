@@ -1,21 +1,17 @@
 import { app } from 'electron';
 import { takeEvery, fork, getContext } from 'redux-saga/effects';
 
-import { storeChangeChannel, storeValueChannel } from '../../channels';
+import { storeChangeChannel } from '../../channels';
 import { selectGlobalBadgeText, selectGlobalBadgeCount } from '../../selectors';
 
 function *watchBadgeText(store) {
-	const badgeTextChannel = storeValueChannel(store, selectGlobalBadgeText);
-
-	yield takeEvery(badgeTextChannel, function *(badgeText) {
+	yield takeEvery(storeChangeChannel(store, selectGlobalBadgeText), function *([badgeText]) {
 		app.dock.setBadge(badgeText);
 	});
 }
 
 function *watchBadgeCount(store) {
-	const badgeCountChannel = storeChangeChannel(store, selectGlobalBadgeCount);
-
-	yield takeEvery(badgeCountChannel, function *([count, prevCount]) {
+	yield takeEvery(storeChangeChannel(store, selectGlobalBadgeCount), function *([count, prevCount]) {
 		if (count > 0 && prevCount === 0) {
 			app.dock.bounce();
 		}

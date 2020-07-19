@@ -27,31 +27,6 @@ export const appReadyChannel = () => {
 	return chan;
 };
 
-export const storeValueChannel = (store, selector, equalityFunction = Object.is) => {
-	const chan = channel(buffers.expanding());
-
-	let prevValue;
-	const unsubscribe = store.subscribe(() => {
-		const value = selector(store.getState());
-
-		if (!equalityFunction(value, prevValue)) {
-			chan.put(value);
-			prevValue = value;
-		}
-	});
-
-	const close = () => {
-		unsubscribe();
-		chan.close();
-	};
-
-	return {
-		take: chan.take,
-		flush: chan.flush,
-		close,
-	};
-};
-
 export const storeChangeChannel = (store, selector, equalityFunction = Object.is) => {
 	const chan = channel(buffers.expanding());
 

@@ -2,11 +2,13 @@ import path from 'path';
 
 import { BrowserWindow, app } from 'electron';
 
-import { setupMenuBar } from './menuBar';
-import { setupI18next } from '../i18n';
-import { setupTouchBar } from './touchBar';
-import { setupDock } from './dock';
-import { setupTrayIcon } from './trayIcon';
+import { setupMenuBar } from '../menuBar';
+import { setupI18next } from '../../i18n';
+import { setupTouchBar } from '../touchBar';
+import { setupDock } from '../dock';
+import { setupTrayIcon } from '../trayIcon';
+import { runSaga } from '../reduxStore';
+import { rootWindowSaga } from './sagas';
 
 const createRootWindow = () => {
 	const rootWindow = new BrowserWindow({
@@ -38,6 +40,7 @@ const createRootWindow = () => {
 		setupTouchBar(rootWindow);
 		setupDock();
 		setupTrayIcon();
+		runSaga(rootWindowSaga, rootWindow);
 	});
 };
 

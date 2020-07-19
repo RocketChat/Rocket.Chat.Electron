@@ -11,14 +11,6 @@ import {
 import { eventEmitterChannel } from '../channels';
 
 export function *appSaga(rootWindow) {
-	const preventEvent = (event) => {
-		event.preventDefault();
-	};
-
-	app.addListener('certificate-error', preventEvent);
-	app.addListener('select-client-certificate', preventEvent);
-	app.addListener('login', preventEvent);
-
 	yield takeEvery(eventEmitterChannel(app, 'window-all-closed'), function *() {
 		app.quit();
 	});

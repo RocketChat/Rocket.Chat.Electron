@@ -3,7 +3,7 @@ import { t } from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 import { select, takeEvery, getContext } from 'redux-saga/effects';
 
-import { getTrayIconPath, getAppIconPath } from '../../icons';
+import { getTrayIconPath, getAppIconPath } from '../icons';
 import {
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,

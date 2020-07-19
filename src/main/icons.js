@@ -1,21 +1,14 @@
-import {
-	app as mainApp,
-	nativeTheme as mainNativeTheme,
-	remote,
-} from 'electron';
+import { app, nativeTheme } from 'electron';
 
-const app = remote?.app ?? mainApp;
-const nativeTheme = remote?.nativeTheme ?? mainNativeTheme;
-
-function getTrayIconSet({ platform, dark }) {
+const getTrayIconSet = ({ platform, dark }) => {
 	if (platform === 'darwin') {
 		return `darwin${ dark ? '-dark' : '' }`;
 	}
 
 	return platform;
-}
+};
 
-function getTrayIconName({ badge, platform }) {
+const getTrayIconName = ({ badge, platform }) => {
 	if (platform === 'darwin') {
 		return badge ? 'notification' : 'default';
 	}
@@ -29,21 +22,19 @@ function getTrayIconName({ badge, platform }) {
 	}
 
 	return 'default';
-}
+};
 
-function getTrayIconExtension({ platform }) {
+const getTrayIconExtension = ({ platform }) => {
 	if (platform === 'win32') {
 		return 'ico';
 	}
 
 	return 'png';
-}
+};
 
-export function getAppIconPath() {
-	return `${ app.getAppPath() }/app/public/images/icon.png`;
-}
+export const getAppIconPath = () => `${ app.getAppPath() }/app/public/images/icon.png`;
 
-export function getTrayIconPath({ badge, platform, dark } = {}) {
+export const getTrayIconPath = ({ badge, platform, dark } = {}) => {
 	if (typeof platform === 'undefined') {
 		platform = process.platform;
 	}
@@ -57,4 +48,4 @@ export function getTrayIconPath({ badge, platform, dark } = {}) {
 	const name = getTrayIconName(params);
 	const extension = getTrayIconExtension(params);
 	return `${ app.getAppPath() }/app/public/images/tray/${ iconset }/${ name }.${ extension }`;
-}
+};

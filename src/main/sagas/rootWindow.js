@@ -35,7 +35,7 @@ import {
 	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 } from '../../actions';
 import { eventEmitterChannel, storeChangeChannel } from '../channels';
-import { getTrayIconPath, getAppIconPath } from '../../icons';
+import { getTrayIconPath, getAppIconPath } from '../icons';
 import {
 	selectGlobalBadge,
 	selectGlobalBadgeCount,

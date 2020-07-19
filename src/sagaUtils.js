@@ -3,7 +3,7 @@ import path from 'path';
 
 import { remote } from 'electron';
 import { eventChannel } from 'redux-saga';
-import { call, fork, select, take, takeEvery } from 'redux-saga/effects';
+import { select, takeEvery } from 'redux-saga/effects';
 
 import { writeToStorage } from './localStorage';
 
@@ -66,17 +66,3 @@ export const readConfigurationFile = async (filePath, {
 		return null;
 	}
 };
-
-export const watch = (selector, saga, ...args) => fork(function *() {
-	let prevValue;
-	do {
-		const value = yield select(selector);
-
-		if (!Object.is(value, prevValue)) {
-			yield call(saga, ...args, value);
-			prevValue = value;
-		}
-
-		yield take();
-	} while (true);
-});

@@ -1,8 +1,8 @@
 import { app } from 'electron';
+import { takeEvery, fork, getContext } from 'redux-saga/effects';
 import { createSelector } from 'reselect';
 
-import { runSaga } from '../reduxStore';
-import { watch } from '../../sagaUtils';
+import { storeChangeChannel, storeValueChannel } from '../../channels';
 
 const selectBadges = ({ servers }) => servers.map(({ badge }) => badge);
 
@@ -27,24 +27,31 @@ const selectBadgeText = createSelector(selectBadge, (badge) => {
 
 const selectBadgeCount = createSelector(selectBadge, (badge) => (Number.isInteger(badge) ? badge : 0));
 
-function *dockSaga() {
+function *watchBadgeText() {
+	const store = yield getContext('store');
+	const badgeTextChannel = storeValueChannel(store, selectBadgeText);
+
+	yield takeEvery(badgeTextChannel, function *(badgeText) {
+		app.dock.setBadge(badgeText);
+	});
+}
+
+function *watchBadgeCount() {
+	const store = yield getContext('store');
+	const badgeCountChannel = storeChangeChannel(store, selectBadgeCount);
+
+	yield takeEvery(badgeCountChannel, function *([count, prevCount]) {
+		if (count > 0 && prevCount === 0) {
+			app.dock.bounce();
+		}
+	});
+}
+
+export function *dockSaga() {
 	if (process.platform !== 'darwin') {
 		return;
 	}
 
-	yield watch(selectBadgeText, function *(badgeText) {
-		app.dock.setBadge(badgeText);
-	});
-
-	let prevCount;
-	yield watch(selectBadgeCount, function *(count) {
-		if (count > 0 && prevCount === 0) {
-			app.dock.bounce();
-		}
-		prevCount = count;
-	});
+	yield fork(watchBadgeText);
+	yield fork(watchBadgeCount);
 }
-
-export const setupDock = () => {
-	runSaga(dockSaga);
-};

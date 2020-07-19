@@ -1,14 +1,13 @@
 import { TouchBar, nativeImage, app } from 'electron';
 import { t } from 'i18next';
-import { select, put } from 'redux-saga/effects';
+import { select, takeEvery, getContext } from 'redux-saga/effects';
 import { createSelector, defaultMemoize } from 'reselect';
 
 import {
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
-} from '../../actions';
-import { watch } from '../../sagaUtils';
-import { runSaga, dispatch } from '../reduxStore';
+} from '../../../actions';
+import { storeValueChannel } from '../../channels';
 
 const isSameServer = (a, b) => a === b || ((a.title === b.title) && (a.url === b.url) && (a.favicon === b.favicon));
 const isSameServers = (a, b) => a === b || (a.length === b.length && a.every((x, i) => isSameServer(x, b[i])));
@@ -21,9 +20,15 @@ const selectCurrentServer = ({ servers, currentServerUrl }) => servers.find(({ u
 const selectIsMessageBoxFocused = ({ isMessageBoxFocused }) => isMessageBoxFocused;
 const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
 
-function *touchBarSaga(rootWindow) {
+export function *touchBarSaga(rootWindow) {
+	if (process.platform !== 'darwin') {
+		return;
+	}
+
 	const currentServer = yield select(selectCurrentServer);
 	const servers = yield select(selectServers);
+
+	const store = yield getContext('store');
 
 	const serverSelectionScrubber = new TouchBar.TouchBarScrubber({
 		selectedStyle: 'background',
@@ -36,10 +41,8 @@ function *touchBarSaga(rootWindow) {
 				: null,
 		})),
 		select: (index) => {
-			runSaga(function *() {
-				const url = yield select(({ servers }) => servers[index].url);
-				yield put({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
-			});
+			const url = (({ servers }) => servers[index].url)(store.getState());
+			store.dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
 		},
 	});
 
@@ -63,7 +66,7 @@ function *touchBarSaga(rootWindow) {
 			enabled: isMessageBoxFocused,
 		})),
 		change: (selectedIndex) => {
-			dispatch({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: ids[selectedIndex] });
+			store.dispatch({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: ids[selectedIndex] });
 		},
 	});
 
@@ -78,7 +81,7 @@ function *touchBarSaga(rootWindow) {
 
 	rootWindow.setTouchBar(touchBar);
 
-	yield watch(selectCurrentServer, function *(currentServer) {
+	yield takeEvery(storeValueChannel(store, selectCurrentServer), function *(currentServer) {
 		serverSelectionPopover.label = currentServer?.title ?? t('touchBar.selectServer');
 		serverSelectionPopover.icon = currentServer?.favicon
 			? nativeImage.createFromDataURL(currentServer?.favicon)
@@ -86,7 +89,7 @@ function *touchBarSaga(rootWindow) {
 		rootWindow.setTouchBar(touchBar);
 	});
 
-	yield watch(selectServers, function *(servers) {
+	yield takeEvery(storeValueChannel(store, selectServers), function *(servers) {
 		serverSelectionScrubber.items = servers.map((server) => ({
 			label: server.title.padEnd(30),
 			icon: server.favicon
@@ -96,18 +99,10 @@ function *touchBarSaga(rootWindow) {
 		rootWindow.setTouchBar(touchBar);
 	});
 
-	yield watch(selectIsMessageBoxFocused, function *(isMessageBoxFocused) {
+	yield takeEvery(storeValueChannel(store, selectIsMessageBoxFocused), function *(isMessageBoxFocused) {
 		messageBoxFormattingButtons.segments.forEach((segment) => {
 			segment.enabled = isMessageBoxFocused;
 		});
 		rootWindow.setTouchBar(touchBar);
 	});
 }
-
-export const setupTouchBar = (rootWindow) => {
-	if (process.platform !== 'darwin') {
-		return;
-	}
-
-	runSaga(touchBarSaga, rootWindow);
-};

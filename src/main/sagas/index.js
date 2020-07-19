@@ -8,6 +8,7 @@ import { rootWindowSaga } from './rootWindow';
 import { menuBarSaga } from './menuBar';
 import { touchBarSaga } from './touchBar';
 import { appSaga } from './app';
+import { deepLinksSaga } from './deepLinks';
 
 export function *rootSaga() {
 	yield take(appReadyChannel());
@@ -16,6 +17,7 @@ export function *rootSaga() {
 	const rootWindow = yield call(rootWindowSaga);
 
 	yield spawn(appSaga, rootWindow);
+	yield spawn(deepLinksSaga);
 	yield spawn(menuBarSaga, rootWindow);
 	yield spawn(touchBarSaga, rootWindow);
 	yield spawn(dockSaga);

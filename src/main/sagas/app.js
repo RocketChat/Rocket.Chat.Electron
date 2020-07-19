@@ -18,7 +18,6 @@ export function *appSaga(rootWindow) {
 	app.addListener('certificate-error', preventEvent);
 	app.addListener('select-client-certificate', preventEvent);
 	app.addListener('login', preventEvent);
-	app.addListener('open-url', preventEvent);
 
 	yield takeEvery(eventEmitterChannel(app, 'window-all-closed'), function *() {
 		app.quit();

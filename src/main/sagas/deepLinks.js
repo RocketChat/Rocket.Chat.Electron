@@ -1,11 +1,11 @@
 import querystring from 'querystring';
 import url from 'url';
 
-import { remote } from 'electron';
 import { all, fork, put, takeEvery } from 'redux-saga/effects';
+import { app } from 'electron';
 
-import { DEEP_LINK_TRIGGERED } from '../actions';
-import { createEventChannelFromEmitter } from '../sagaUtils';
+import { DEEP_LINK_TRIGGERED } from '../../actions';
+import { eventEmitterChannel } from '../channels';
 
 const normalizeUrl = (hostUrl, insecure = false) => {
 	if (!/^https?:\/\//.test(hostUrl)) {
@@ -45,22 +45,22 @@ function *processDeepLink(link) {
 	}
 }
 
-function *takeAppEvents() {
-	const openUrlChannel = createEventChannelFromEmitter(remote.app, 'open-url');
-	const secondInstanceChannel = createEventChannelFromEmitter(remote.app, 'second-instance');
+const preventDefaultDecorator = (listener) =>
+	(event, ...args) => {
+		event.preventDefault();
+		listener([event, ...args]);
+	};
 
-	yield takeEvery(openUrlChannel, function *([, url]) {
+export function *deepLinksSaga() {
+	yield takeEvery(eventEmitterChannel(app, 'open-url', preventDefaultDecorator), function *([, url]) {
 		yield fork(processDeepLink, url);
 	});
 
-	yield takeEvery(secondInstanceChannel, function *([, argv]) {
-		const args = argv.slice(remote.app.isPackaged ? 1 : 2);
+	yield takeEvery(eventEmitterChannel(app, 'second-instance', preventDefaultDecorator), function *([, argv]) {
+		const args = argv.slice(app.isPackaged ? 1 : 2);
 		yield all(args.map((arg) => fork(processDeepLink, arg)));
 	});
-}
 
-export function *deepLinksSaga() {
-	yield *takeAppEvents();
-	const args = remote.process.argv.slice(remote.app.isPackaged ? 1 : 2);
+	const args = process.argv.slice(app.isPackaged ? 1 : 2);
 	yield all(args.map((arg) => fork(processDeepLink, arg)));
 }

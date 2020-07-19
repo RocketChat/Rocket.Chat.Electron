@@ -1,44 +1,19 @@
 import { app } from 'electron';
 import { takeEvery, fork, getContext } from 'redux-saga/effects';
-import { createSelector } from 'reselect';
 
 import { storeChangeChannel, storeValueChannel } from '../../channels';
+import { selectGlobalBadgeText, selectGlobalBadgeCount } from '../../selectors';
 
-const selectBadges = ({ servers }) => servers.map(({ badge }) => badge);
-
-const selectBadge = createSelector(selectBadges, (badges) => {
-	const mentionCount = badges
-		.filter((badge) => Number.isInteger(badge))
-		.reduce((sum, count) => sum + count, 0);
-	return mentionCount || (badges.some((badge) => !!badge) && '•') || null;
-});
-
-const selectBadgeText = createSelector(selectBadge, (badge) => {
-	if (badge === '•') {
-		return '•';
-	}
-
-	if (Number.isInteger(badge)) {
-		return String(badge);
-	}
-
-	return '';
-});
-
-const selectBadgeCount = createSelector(selectBadge, (badge) => (Number.isInteger(badge) ? badge : 0));
-
-function *watchBadgeText() {
-	const store = yield getContext('store');
-	const badgeTextChannel = storeValueChannel(store, selectBadgeText);
+function *watchBadgeText(store) {
+	const badgeTextChannel = storeValueChannel(store, selectGlobalBadgeText);
 
 	yield takeEvery(badgeTextChannel, function *(badgeText) {
 		app.dock.setBadge(badgeText);
 	});
 }
 
-function *watchBadgeCount() {
-	const store = yield getContext('store');
-	const badgeCountChannel = storeChangeChannel(store, selectBadgeCount);
+function *watchBadgeCount(store) {
+	const badgeCountChannel = storeChangeChannel(store, selectGlobalBadgeCount);
 
 	yield takeEvery(badgeCountChannel, function *([count, prevCount]) {
 		if (count > 0 && prevCount === 0) {
@@ -52,6 +27,8 @@ export function *dockSaga() {
 		return;
 	}
 
-	yield fork(watchBadgeText);
-	yield fork(watchBadgeCount);
+	const store = yield getContext('store');
+
+	yield fork(watchBadgeText, store);
+	yield fork(watchBadgeCount, store);
 }

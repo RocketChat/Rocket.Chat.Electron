@@ -8,6 +8,11 @@ import { appReadyChannel, eventEmitterChannel } from '../channels';
 import { rootWindowSaga } from './rootWindow';
 import { menuBarSaga } from './menuBar';
 import { touchBarSaga } from './touchBar';
+import {
+	MENU_BAR_DISABLE_GPU,
+	MENU_BAR_QUIT_CLICKED,
+	TRAY_ICON_QUIT_CLICKED,
+} from '../../actions';
 
 function *watchAppEvents() {
 	const preventEvent = (event) => {
@@ -22,6 +27,18 @@ function *watchAppEvents() {
 	const appWindowAllClosedEvent = eventEmitterChannel(app, 'window-all-closed');
 
 	yield takeEvery(appWindowAllClosedEvent, function *() {
+		app.quit();
+	});
+
+	yield takeEvery(MENU_BAR_DISABLE_GPU, function *() {
+		app.relaunch({ args: process.argv.slice(1).concat('--disable-gpu') });
+		app.exit();
+	});
+
+	yield takeEvery([
+		MENU_BAR_QUIT_CLICKED,
+		TRAY_ICON_QUIT_CLICKED,
+	], function *() {
 		app.quit();
 	});
 }

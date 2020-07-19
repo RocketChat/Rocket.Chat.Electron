@@ -7,8 +7,8 @@ import {
 	MENU_BAR_QUIT_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
 	MENU_BAR_RESET_APP_DATA_CLICKED,
-} from '../../../actions';
-import { eventEmitterChannel } from '../../channels';
+} from '../../actions';
+import { eventEmitterChannel } from '../channels';
 
 export function *appSaga(rootWindow) {
 	const preventEvent = (event) => {

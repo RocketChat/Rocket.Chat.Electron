@@ -26,8 +26,8 @@ import {
 	MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
-} from '../../../actions';
-import { storeChangeChannel } from '../../channels';
+} from '../../actions';
+import { storeChangeChannel } from '../channels';
 import {
 	selectAppName,
 	selectCanCopy,
@@ -44,7 +44,7 @@ import {
 	selectIsSideBarEnabled,
 	selectIsTrayIconEnabled,
 	selectServers,
-} from '../../selectors';
+} from '../selectors';
 
 function *watchMenuBarTemplate(store, rootWindow) {
 	const selectAppMenuTemplate = createSelector(selectAppName, (appName) => ({

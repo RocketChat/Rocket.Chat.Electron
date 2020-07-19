@@ -3,12 +3,12 @@ import { t } from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 import { select, takeEvery, getContext } from 'redux-saga/effects';
 
-import { getTrayIconPath, getAppIconPath } from '../../../icons';
+import { getTrayIconPath, getAppIconPath } from '../../icons';
 import {
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
-} from '../../../actions';
-import { eventEmitterChannel, storeChangeChannel } from '../../channels';
+} from '../../actions';
+import { eventEmitterChannel, storeChangeChannel } from '../channels';
 
 const selectAppName = () => app.name;
 const selectIsMainWindowVisible = ({ mainWindowState: { visible } }) => visible;

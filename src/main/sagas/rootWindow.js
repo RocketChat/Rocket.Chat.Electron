@@ -33,16 +33,16 @@ import {
 	SIDE_BAR_RELOAD_SERVER_CLICKED,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
-} from '../../../actions';
-import { eventEmitterChannel, storeChangeChannel } from '../../channels';
-import { getTrayIconPath, getAppIconPath } from '../../../icons';
+} from '../../actions';
+import { eventEmitterChannel, storeChangeChannel } from '../channels';
+import { getTrayIconPath, getAppIconPath } from '../../icons';
 import {
 	selectGlobalBadge,
 	selectGlobalBadgeCount,
 	selectIsMenuBarEnabled,
 	selectIsTrayIconEnabled,
 	selectIsShowWindowOnUnreadChangedEnabled,
-} from '../../selectors';
+} from '../selectors';
 
 const createRootWindow = () => {
 	const rootWindow = new BrowserWindow({

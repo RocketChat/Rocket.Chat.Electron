@@ -1,8 +1,8 @@
 import { app } from 'electron';
 import { takeEvery, fork, getContext } from 'redux-saga/effects';
 
-import { storeChangeChannel } from '../../channels';
-import { selectGlobalBadgeText, selectGlobalBadgeCount } from '../../selectors';
+import { storeChangeChannel } from '../channels';
+import { selectGlobalBadgeText, selectGlobalBadgeCount } from '../selectors';
 
 function *watchBadgeText(store) {
 	yield takeEvery(storeChangeChannel(store, selectGlobalBadgeText), function *([badgeText]) {

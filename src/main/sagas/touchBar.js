@@ -6,8 +6,8 @@ import { createSelector, defaultMemoize } from 'reselect';
 import {
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
-} from '../../../actions';
-import { storeChangeChannel } from '../../channels';
+} from '../../actions';
+import { storeChangeChannel } from '../channels';
 
 const isSameServer = (a, b) => a === b || ((a.title === b.title) && (a.url === b.url) && (a.favicon === b.favicon));
 const isSameServers = (a, b) => a === b || (a.length === b.length && a.every((x, i) => isSameServer(x, b[i])));

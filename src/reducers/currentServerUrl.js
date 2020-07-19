@@ -21,7 +21,7 @@ export const currentServerUrl = (state = null, { type, payload }) => {
 			return null;
 
 		case MENU_BAR_SELECT_SERVER_CLICKED: {
-			const { url } = payload;
+			const url = payload;
 			return url;
 		}
 

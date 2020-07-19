@@ -1,6 +1,6 @@
 import { app, webContents } from 'electron';
 import { t } from 'i18next';
-import { createSelector } from 'reselect';
+import { createSelector, defaultMemoize } from 'reselect';
 
 import { dispatch } from '../reduxStore';
 import {
@@ -46,7 +46,10 @@ const selectIsSideBarEnabled = ({ isSideBarEnabled }) => isSideBarEnabled;
 const selectIsTrayIconEnabled = ({ isTrayIconEnabled }) => isTrayIconEnabled;
 const selectIsFullScreenEnabled = ({ mainWindowState: { fullscreen } }) => fullscreen;
 
-const selectServers = ({ servers }) => servers;
+const selectServers = defaultMemoize(
+	({ servers }) => servers.map(({ url, title }) => ({ url, title })),
+	(a, b) => a === b || ((a.title === b.title) && (a.url === b.url)),
+);
 const selectCurrentServerUrl = ({ currentServerUrl }) => currentServerUrl;
 const selectIsShowWindowOnUnreadChangedEnabled = ({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled;
 
@@ -280,7 +283,7 @@ const selectWindowMenuTemplate = createSelector(
 					label: server.title.replace(/&/g, '&&'),
 					checked: currentServerUrl === server.url,
 					accelerator: `CommandOrControl+${ i + 1 }`,
-					click: () => dispatch({ type: MENU_BAR_SELECT_SERVER_CLICKED, payload: server }),
+					click: () => dispatch({ type: MENU_BAR_SELECT_SERVER_CLICKED, payload: server.url }),
 				})),
 				{ type: 'separator' },
 			] : [],

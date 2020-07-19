@@ -6,6 +6,7 @@ import { setupMenuBar } from './menuBar';
 import { setupI18next } from '../i18n';
 import { setupTouchBar } from './touchBar';
 import { setupDock } from './dock';
+import { setupTrayIcon } from './trayIcon';
 
 const createRootWindow = () => {
 	const rootWindow = new BrowserWindow({
@@ -36,6 +37,7 @@ const createRootWindow = () => {
 		setupMenuBar(rootWindow);
 		setupTouchBar(rootWindow);
 		setupDock();
+		setupTrayIcon();
 	});
 };
 

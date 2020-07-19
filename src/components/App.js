@@ -17,7 +17,6 @@ import {
 	WEBVIEW_CERTIFICATE_TRUSTED,
 } from '../actions';
 import { MainWindow } from './MainWindow';
-import { TrayIcon } from './TrayIcon';
 import { createReduxStoreAndSagaMiddleware } from '../storeAndEffects';
 import { SagaMiddlewareProvider, useSaga } from './SagaMiddlewareProvider';
 import { validateServerUrl } from '../sagas/servers';
@@ -140,7 +139,6 @@ function AppContent() {
 
 	return <MainWindow>
 		<Shell />
-		<TrayIcon />
 	</MainWindow>;
 }
 

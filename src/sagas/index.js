@@ -6,8 +6,10 @@ import { preferencesSaga } from './preferences';
 import { serversSaga } from './servers';
 import { spellCheckingSaga } from './spellChecking';
 import { updatesSaga } from './updates';
+import { mainWindowStateSaga } from './rootWindow';
 
 export function *rootSaga() {
+	yield call(mainWindowStateSaga);
 	yield call(navigationEventsSaga);
 	yield call(preferencesSaga);
 	yield call(serversSaga);

@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { app, BrowserWindow, Menu } from 'electron';
+import { app, BrowserWindow, Menu, dialog } from 'electron';
 import { t } from 'i18next';
 import { takeEvery, select, put, call, getContext, spawn } from 'redux-saga/effects';
 import { createSelector } from 'reselect';
@@ -33,6 +33,11 @@ import {
 	SIDE_BAR_RELOAD_SERVER_CLICKED,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
+	UPDATES_UPDATE_DOWNLOADED,
+	ROOT_WINDOW_INSTALL_UPDATE_CLICKED,
+	CERTIFICATE_TRUST_REQUESTED,
+	WEBVIEW_CERTIFICATE_TRUSTED,
+	WEBVIEW_CERTIFICATE_DENIED,
 } from '../../actions';
 import { eventEmitterChannel, storeChangeChannel } from '../channels';
 import { getTrayIconPath, getAppIconPath } from '../icons';
@@ -264,6 +269,64 @@ function *watchRootWindow(rootWindow, store) {
 		];
 		const menu = Menu.buildFromTemplate(menuTemplate);
 		menu.popup(rootWindow);
+	});
+
+	yield takeEvery(UPDATES_UPDATE_DOWNLOADED, function *() {
+		const { response } = yield call(::dialog.showMessageBox, rootWindow, {
+			type: 'question',
+			title: t('dialog.updateReady.title'),
+			message: t('dialog.updateReady.message'),
+			buttons: [
+				t('dialog.updateReady.installLater'),
+				t('dialog.updateReady.installNow'),
+			],
+			defaultId: 1,
+		});
+
+		if (response === 0) {
+			yield call(::dialog.showMessageBox, rootWindow, {
+				type: 'info',
+				title: t('dialog.updateInstallLater.title'),
+				message: t('dialog.updateInstallLater.message'),
+				buttons: [t('dialog.updateInstallLater.ok')],
+				defaultId: 0,
+			});
+			return;
+		}
+
+		yield put({ type: ROOT_WINDOW_INSTALL_UPDATE_CLICKED });
+	});
+
+	yield takeEvery(CERTIFICATE_TRUST_REQUESTED, function *({ payload }) {
+		const { webContentsId, requestedUrl, error, fingerprint, issuerName, willBeReplaced } = payload;
+
+		if (webContentsId !== rootWindow.webContents.id) {
+			return;
+		}
+
+		let detail = `URL: ${ requestedUrl }\nError: ${ error }`;
+		if (willBeReplaced) {
+			detail = t('error.differentCertificate', { detail });
+		}
+
+		const { response } = yield call(::dialog.showMessageBox, rootWindow, {
+			title: t('dialog.certificateError.title'),
+			message: t('dialog.certificateError.message', { issuerName }),
+			detail,
+			type: 'warning',
+			buttons: [
+				t('dialog.certificateError.yes'),
+				t('dialog.certificateError.no'),
+			],
+			cancelId: 1,
+		});
+
+		if (response === 0) {
+			yield put({ type: WEBVIEW_CERTIFICATE_TRUSTED, payload: { webContentsId, fingerprint } });
+			return;
+		}
+
+		yield put({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { webContentsId, fingerprint } });
 	});
 }
 

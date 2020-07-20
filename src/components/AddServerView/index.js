@@ -9,8 +9,9 @@ import {
 	TextInput,
 	Tile,
 } from '@rocket.chat/fuselage';
+import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
@@ -117,16 +118,8 @@ export function AddServerView() {
 		};
 	}, []);
 
-	const [inputId] = useState(() => Math.random().toString(36).slice(2));
-	const inputRef = useRef();
-
-	useEffect(() => {
-		if (!isVisible || !inputRef.current) {
-			return;
-		}
-
-		inputRef.current.focus();
-	}, [isVisible]);
+	const inputId = useUniqueId();
+	const inputRef = useAutoFocus(isVisible);
 
 	return <Wrapper isVisible={isVisible}>
 		<Content>

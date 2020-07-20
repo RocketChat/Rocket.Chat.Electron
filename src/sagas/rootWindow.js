@@ -1,8 +1,8 @@
 import { remote } from 'electron';
 import { call, select } from 'redux-saga/effects';
 
-import { readFromStorage } from '../../localStorage';
-import { readConfigurationFile } from '../../sagaUtils';
+import { readFromStorage } from '../localStorage';
+import { readConfigurationFile } from '../sagaUtils';
 
 const isInsideSomeScreen = ({ x, y, width, height }) =>
 	remote.screen.getAllDisplays()
@@ -95,7 +95,8 @@ function *applyMainWindowState(browserWindow, mainWindowState) {
 	}
 }
 
-export function *mainWindowStateSaga(browserWindow) {
+export function *mainWindowStateSaga() {
+	const browserWindow = remote.getCurrentWindow();
 	const mainWindowState = yield *loadMainWindowState();
 	yield *applyMainWindowState(browserWindow, mainWindowState);
 }

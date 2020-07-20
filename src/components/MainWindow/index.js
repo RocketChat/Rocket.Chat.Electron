@@ -2,8 +2,6 @@ import { remote } from 'electron';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { useSaga } from '../SagaMiddlewareProvider';
-import { mainWindowStateSaga } from './sagas';
 import { ROOT_WINDOW_WEBCONTENTS_FOCUSED, ROOT_WINDOW_EDIT_FLAGS_CHANGED } from '../../actions';
 
 export function MainWindow({
@@ -60,8 +58,6 @@ export function MainWindow({
 			document.removeEventListener('selectionchange', fetchAndDispatchEditFlags);
 		};
 	}, [dispatch]);
-
-	useSaga(mainWindowStateSaga, [browserWindow]);
 
 	return children;
 }

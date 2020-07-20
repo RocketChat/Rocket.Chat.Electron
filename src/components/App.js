@@ -6,14 +6,9 @@ import { Provider, useDispatch } from 'react-redux';
 import { call, put, select, takeEvery } from 'redux-saga/effects';
 
 import {
-	CERTIFICATE_TRUST_REQUESTED,
 	DEEP_LINK_TRIGGERED,
 	DEEP_LINKS_SERVER_ADDED,
 	DEEP_LINKS_SERVER_FOCUSED,
-	ROOT_WINDOW_INSTALL_UPDATE_CLICKED,
-	UPDATES_UPDATE_DOWNLOADED,
-	WEBVIEW_CERTIFICATE_DENIED,
-	WEBVIEW_CERTIFICATE_TRUSTED,
 } from '../actions';
 import { MainWindow } from './MainWindow';
 import { createReduxStoreAndSagaMiddleware } from '../storeAndEffects';
@@ -50,64 +45,6 @@ function AppContent() {
 					remote.dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host: url }));
 				}
 			}
-		});
-
-		yield takeEvery(UPDATES_UPDATE_DOWNLOADED, function *() {
-			const { response } = yield call(::remote.dialog.showMessageBox, remote.getCurrentWindow(), {
-				type: 'question',
-				title: t('dialog.updateReady.title'),
-				message: t('dialog.updateReady.message'),
-				buttons: [
-					t('dialog.updateReady.installLater'),
-					t('dialog.updateReady.installNow'),
-				],
-				defaultId: 1,
-			});
-
-			if (response === 0) {
-				yield call(::remote.dialog.showMessageBox, remote.getCurrentWindow(), {
-					type: 'info',
-					title: t('dialog.updateInstallLater.title'),
-					message: t('dialog.updateInstallLater.message'),
-					buttons: [t('dialog.updateInstallLater.ok')],
-					defaultId: 0,
-				});
-				return;
-			}
-
-			yield put({ type: ROOT_WINDOW_INSTALL_UPDATE_CLICKED });
-		});
-
-		yield takeEvery(CERTIFICATE_TRUST_REQUESTED, function *({ payload }) {
-			const { webContentsId, requestedUrl, error, fingerprint, issuerName, willBeReplaced } = payload;
-
-			if (webContentsId !== remote.getCurrentWebContents().id) {
-				return;
-			}
-
-			let detail = `URL: ${ requestedUrl }\nError: ${ error }`;
-			if (willBeReplaced) {
-				detail = t('error.differentCertificate', { detail });
-			}
-
-			const { response } = yield call(remote.dialog.showMessageBox, remote.getCurrentWindow(), {
-				title: t('dialog.certificateError.title'),
-				message: t('dialog.certificateError.message', { issuerName }),
-				detail,
-				type: 'warning',
-				buttons: [
-					t('dialog.certificateError.yes'),
-					t('dialog.certificateError.no'),
-				],
-				cancelId: 1,
-			});
-
-			if (response === 0) {
-				yield put({ type: WEBVIEW_CERTIFICATE_TRUSTED, payload: { webContentsId, fingerprint } });
-				return;
-			}
-
-			yield put({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { webContentsId, fingerprint } });
 		});
 	}, [t]);
 

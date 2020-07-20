@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 
 import { ipcRenderer, remote } from 'electron';
 
-const fetchWithoutOrigin = remote.require('electron-fetch').default;
+const fetchWithoutOrigin = remote.require('electron-main-fetch').default;
 
 const avatarCache = {};
 

@@ -6,9 +6,10 @@ import { takeEvery, select, put, call, getContext, spawn } from 'redux-saga/effe
 import { createSelector } from 'reselect';
 
 import {
+	CERTIFICATE_TRUST_REQUESTED,
 	DEEP_LINK_TRIGGERED,
-	ROOT_WINDOW_STATE_CHANGED,
-	ROOT_WINDOW_WEBCONTENTS_FOCUSED,
+	DEEP_LINKS_SERVER_ADDED,
+	DEEP_LINKS_SERVER_FOCUSED,
 	MENU_BAR_ABOUT_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	MENU_BAR_GO_BACK_CLICKED,
@@ -25,19 +26,20 @@ import {
 	MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
+	ROOT_WINDOW_INSTALL_UPDATE_CLICKED,
+	ROOT_WINDOW_STATE_CHANGED,
+	ROOT_WINDOW_WEBCONTENTS_FOCUSED,
+	SIDE_BAR_CONTEXT_MENU_POPPED_UP,
+	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
+	SIDE_BAR_RELOAD_SERVER_CLICKED,
+	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 	TRAY_ICON_TOGGLE_CLICKED,
-	WEBVIEW_FOCUS_REQUESTED,
-	SIDE_BAR_CONTEXT_MENU_POPPED_UP,
-	SIDE_BAR_RELOAD_SERVER_CLICKED,
-	SIDE_BAR_REMOVE_SERVER_CLICKED,
-	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	UPDATES_UPDATE_DOWNLOADED,
-	ROOT_WINDOW_INSTALL_UPDATE_CLICKED,
-	CERTIFICATE_TRUST_REQUESTED,
-	WEBVIEW_CERTIFICATE_TRUSTED,
 	WEBVIEW_CERTIFICATE_DENIED,
+	WEBVIEW_CERTIFICATE_TRUSTED,
+	WEBVIEW_FOCUS_REQUESTED,
 } from '../../actions';
 import { eventEmitterChannel, storeChangeChannel } from '../channels';
 import { getTrayIconPath, getAppIconPath } from '../icons';
@@ -47,7 +49,9 @@ import {
 	selectIsMenuBarEnabled,
 	selectIsTrayIconEnabled,
 	selectIsShowWindowOnUnreadChangedEnabled,
+	selectServers,
 } from '../selectors';
+import { validateServerUrl, ValidationResult } from '../servers';
 
 const createRootWindow = () => {
 	const rootWindow = new BrowserWindow({
@@ -327,6 +331,35 @@ function *watchRootWindow(rootWindow, store) {
 		}
 
 		yield put({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { webContentsId, fingerprint } });
+	});
+
+	yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
+		const selectIsServerAlreadyAdded = createSelector(selectServers, (servers) => servers.some((server) => server.url === url));
+		const isServerAlreadyAdded = yield select(selectIsServerAlreadyAdded);
+
+		if (isServerAlreadyAdded) {
+			yield put({ type: DEEP_LINKS_SERVER_FOCUSED, payload: url });
+			return;
+		}
+
+		const { response } = yield call(::dialog.showMessageBox, rootWindow, {
+			type: 'question',
+			buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
+			defaultId: 0,
+			title: t('dialog.addServer.title'),
+			message: t('dialog.addServer.message', { host: url }),
+		});
+
+		if (response === 0) {
+			const result = yield call(validateServerUrl, url);
+
+			if (result !== ValidationResult.OK) {
+				dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host: url }));
+				return;
+			}
+
+			yield put({ type: DEEP_LINKS_SERVER_ADDED, payload: url });
+		}
 	});
 }
 

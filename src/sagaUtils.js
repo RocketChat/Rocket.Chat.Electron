@@ -2,38 +2,6 @@ import fs from 'fs';
 import path from 'path';
 
 import { remote } from 'electron';
-import { eventChannel } from 'redux-saga';
-import { select, takeEvery } from 'redux-saga/effects';
-
-import { writeToStorage } from './localStorage';
-
-export function *keepStoreValuePersisted(key) {
-	const selector = (state) => state[key];
-
-	let prevValue = yield select(selector);
-
-	yield takeEvery('*', function *() {
-		const value = yield select(selector);
-		if (prevValue !== value) {
-			writeToStorage(key, value);
-			prevValue = value;
-		}
-	});
-}
-
-export const createEventChannelFromEmitter = (emitter, eventName) => eventChannel((emit) => {
-	const listener = (...args) => emit(args);
-
-	const cleanUp = () => {
-		emitter.removeListener(eventName, listener);
-		window.removeEventListener('beforeunload', cleanUp);
-	};
-
-	emitter.addListener(eventName, listener);
-	window.addEventListener('beforeunload', cleanUp);
-
-	return cleanUp;
-});
 
 export const getConfigurationPath = (filePath, { appData = true } = {}) => path.join(
 	...appData ? [

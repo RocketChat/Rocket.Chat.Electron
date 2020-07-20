@@ -6,7 +6,7 @@ import {
 	UPDATES_ERROR_THROWN,
 } from '../actions';
 import { readFromStorage } from '../localStorage';
-import { keepStoreValuePersisted, readConfigurationFile } from '../sagaUtils';
+import { readConfigurationFile } from '../sagaUtils';
 
 const { autoUpdater } = remote.require('electron-updater');
 
@@ -129,9 +129,6 @@ export function *updatesSaga() {
 		doCheckForUpdatesOnStartup,
 		skippedUpdateVersion,
 	} = yield *loadConfiguration();
-
-	yield *keepStoreValuePersisted('doCheckForUpdatesOnStartup');
-	yield *keepStoreValuePersisted('skippedUpdateVersion');
 
 	yield put({
 		type: UPDATES_READY,

@@ -2,7 +2,7 @@ import { call, put, select } from 'redux-saga/effects';
 
 import { CERTIFICATES_READY } from '../actions';
 import { readFromStorage } from '../localStorage';
-import { keepStoreValuePersisted, readConfigurationFile } from '../sagaUtils';
+import { readConfigurationFile } from '../sagaUtils';
 
 const loadUserTrustedCertificates = async (trustedCertificates) => {
 	const userTrustedCertificates = await readConfigurationFile('certificate.json', { appData: false, purgeAfter: true });
@@ -31,9 +31,7 @@ function *loadTrustedCertificates() {
 }
 
 export function *navigationEventsSaga() {
-	const trustedCertificates = yield *loadTrustedCertificates();
-
-	yield *keepStoreValuePersisted('trustedCertificates');
+	const trustedCertificates = yield call(loadTrustedCertificates);
 
 	yield put({
 		type: CERTIFICATES_READY,

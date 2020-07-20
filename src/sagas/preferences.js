@@ -1,8 +1,7 @@
-import { put, select } from 'redux-saga/effects';
+import { put, select, call } from 'redux-saga/effects';
 
 import { PREFERENCES_READY } from '../actions';
 import { readFromStorage } from '../localStorage';
-import { keepStoreValuePersisted } from '../sagaUtils';
 
 function *loadIsMenuBarEnabled() {
 	const autohideMenu = localStorage.getItem('autohideMenu');
@@ -54,15 +53,10 @@ function *loadIsTrayIconEnabled() {
 }
 
 export function *preferencesSaga() {
-	const isMenuBarEnabled = yield *loadIsMenuBarEnabled();
-	const isShowWindowOnUnreadChangedEnabled = yield *loadIsShowWindowOnUnreadChangedEnabled();
-	const isSideBarEnabled = yield *loadIsSideBarEnabled();
-	const isTrayIconEnabled = yield *loadIsTrayIconEnabled();
-
-	yield *keepStoreValuePersisted('isMenuBarEnabled');
-	yield *keepStoreValuePersisted('isShowWindowOnUnreadChangedEnabled');
-	yield *keepStoreValuePersisted('isSideBarEnabled');
-	yield *keepStoreValuePersisted('isTrayIconEnabled');
+	const isMenuBarEnabled = yield call(loadIsMenuBarEnabled);
+	const isShowWindowOnUnreadChangedEnabled = yield call(loadIsShowWindowOnUnreadChangedEnabled);
+	const isSideBarEnabled = yield call(loadIsSideBarEnabled);
+	const isTrayIconEnabled = yield call(loadIsTrayIconEnabled);
 
 	yield put({
 		type: PREFERENCES_READY,

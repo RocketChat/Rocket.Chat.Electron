@@ -2,7 +2,7 @@ import { call, delay, put, race, select } from 'redux-saga/effects';
 
 import { SERVERS_READY } from '../actions';
 import { readFromStorage } from '../localStorage';
-import { keepStoreValuePersisted, readConfigurationFile } from '../sagaUtils';
+import { readConfigurationFile } from '../sagaUtils';
 
 export function *validateServerUrl(serverUrl, timeout = 5000) {
 	const url = new URL(serverUrl);
@@ -133,11 +133,8 @@ function *loadCurrentServerUrl(servers) {
 }
 
 export function *serversSaga() {
-	const servers = yield *loadServers();
-	const currentServerUrl = yield *loadCurrentServerUrl(servers);
-
-	yield *keepStoreValuePersisted('servers');
-	yield *keepStoreValuePersisted('currentServerUrl');
+	const servers = yield call(loadServers);
+	const currentServerUrl = yield call(loadCurrentServerUrl, servers);
 
 	yield put({
 		type: SERVERS_READY,

@@ -3,7 +3,7 @@ import url from 'url';
 import { app, shell } from 'electron';
 import { takeEvery, select, put, race, take } from 'redux-saga/effects';
 
-import { eventEmitterChannel } from '../channels';
+import { preventedEventEmitterChannel } from '../channels';
 import { selectServers } from '../selectors';
 import {
 	CERTIFICATE_TRUST_REQUESTED,
@@ -105,18 +105,12 @@ function *handleLogin([, , request, , callback]) {
 	}
 }
 
-const preventDefaultDecorator = (listener) =>
-	(event, ...args) => {
-		event.preventDefault();
-		listener([event, ...args]);
-	};
-
 export function *navigationSaga() {
-	yield takeEvery(eventEmitterChannel(app, 'login', preventDefaultDecorator), handleLogin);
+	yield takeEvery(preventedEventEmitterChannel(app, 'login'), handleLogin);
 
-	yield takeEvery(eventEmitterChannel(app, 'certificate-error', preventDefaultDecorator), handleCertificateError);
+	yield takeEvery(preventedEventEmitterChannel(app, 'certificate-error'), handleCertificateError);
 
-	yield takeEvery(eventEmitterChannel(app, 'select-client-certificate', preventDefaultDecorator), handleSelectClientCertificate);
+	yield takeEvery(preventedEventEmitterChannel(app, 'select-client-certificate'), handleSelectClientCertificate);
 
 	yield takeEvery(MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED, function *() {
 		yield put({ type: CERTIFICATES_CLEARED });

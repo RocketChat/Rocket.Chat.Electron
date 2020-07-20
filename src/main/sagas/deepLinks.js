@@ -5,7 +5,7 @@ import { all, fork, put, takeEvery } from 'redux-saga/effects';
 import { app } from 'electron';
 
 import { DEEP_LINK_TRIGGERED } from '../../actions';
-import { eventEmitterChannel } from '../channels';
+import { preventedEventEmitterChannel } from '../channels';
 
 const normalizeUrl = (hostUrl, insecure = false) => {
 	if (!/^https?:\/\//.test(hostUrl)) {
@@ -45,18 +45,12 @@ function *processDeepLink(link) {
 	}
 }
 
-const preventDefaultDecorator = (listener) =>
-	(event, ...args) => {
-		event.preventDefault();
-		listener([event, ...args]);
-	};
-
 export function *deepLinksSaga() {
-	yield takeEvery(eventEmitterChannel(app, 'open-url', preventDefaultDecorator), function *([, url]) {
+	yield takeEvery(preventedEventEmitterChannel(app, 'open-url'), function *([, url]) {
 		yield fork(processDeepLink, url);
 	});
 
-	yield takeEvery(eventEmitterChannel(app, 'second-instance', preventDefaultDecorator), function *([, argv]) {
+	yield takeEvery(preventedEventEmitterChannel(app, 'second-instance'), function *([, argv]) {
 		const args = argv.slice(app.isPackaged ? 1 : 2);
 		yield all(args.map((arg) => fork(processDeepLink, arg)));
 	});

@@ -66,7 +66,7 @@ function *install() {
 export function *updatesSaga() {
 	autoUpdater.autoDownload = false;
 
-	yield takeEvery(eventEmitterChannel(autoUpdater, 'checking-for-update', (l) => (e) => l(e ?? {})), function *() {
+	yield takeEvery(eventEmitterChannel(autoUpdater, 'checking-for-update'), function *() {
 		yield put({ type: UPDATES_CHECKING_FOR_UPDATE });
 	});
 

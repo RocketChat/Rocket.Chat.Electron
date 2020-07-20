@@ -1,8 +1,44 @@
+import fs from 'fs';
+import path from 'path';
+
+import { app } from 'electron';
 import { call, delay, put, race, select } from 'redux-saga/effects';
 
-import { SERVERS_READY } from '../actions';
-import { readFromStorage } from '../localStorage';
-import { readConfigurationFile } from '../sagaUtils';
+import { SERVERS_READY } from '../../actions';
+import { readFromStorage, readItem, removeItem } from '../localStorage';
+import { selectServers, selectCurrentServerUrl } from '../selectors';
+
+const getConfigurationPath = (filePath, { appData = true } = {}) => path.join(
+	...appData ? [
+		app.getAppPath(),
+		app.getAppPath().endsWith('app.asar') ? '..' : '.',
+	] : [app.getPath('userData')],
+	filePath,
+);
+
+const readConfigurationFile = async (filePath, {
+	appData = true,
+	purgeAfter = false,
+} = {}) => {
+	try {
+		const configurationFilePath = getConfigurationPath(filePath, { appData });
+
+		if (!await fs.promises.stat(filePath).then((stat) => stat.isFile(), () => false)) {
+			return null;
+		}
+
+		const content = JSON.parse(await fs.promises.readFile(configurationFilePath, 'utf8'));
+
+		if (!appData && purgeAfter) {
+			await fs.promises.unlink(configurationFilePath);
+		}
+
+		return content;
+	} catch (error) {
+		console.warn(error);
+		return null;
+	}
+};
 
 export function *validateServerUrl(serverUrl, timeout = 5000) {
 	const url = new URL(serverUrl);
@@ -65,18 +101,18 @@ const loadUserServers = async (serversMap) => {
 	}
 };
 
-function *loadServers() {
-	const servers = yield select(({ servers }) => servers);
+function *loadServers(rootWindow) {
+	const servers = yield select(selectServers);
 
 	const serversMap = new Map(
-		readFromStorage('servers', servers)
+		(yield call(readFromStorage, rootWindow, 'servers', servers))
 			.filter(Boolean)
 			.filter(({ url, title }) => typeof url === 'string' && typeof title === 'string')
 			.map((server) => [server.url, server]),
 	);
 
 	try {
-		const storedString = localStorage.getItem('rocket.chat.hosts');
+		const storedString = JSON.parse(yield call(readItem, rootWindow, 'rocket.chat.hosts'));
 
 		if (/^https?:\/\//.test(storedString)) {
 			serversMap.set(storedString, { url: storedString, title: storedString });
@@ -92,7 +128,7 @@ function *loadServers() {
 	} catch (error) {
 		console.warn(error);
 	} finally {
-		localStorage.removeItem('rocket.chat.hosts');
+		removeItem(rootWindow, 'rocket.chat.hosts');
 	}
 
 	if (serversMap.size === 0) {
@@ -101,11 +137,11 @@ function *loadServers() {
 	}
 
 	try {
-		const sorting = JSON.parse(localStorage.getItem('rocket.chat.sortOrder'));
+		const sorting = JSON.parse(yield call(readItem, rootWindow, 'rocket.chat.sortOrder'));
 		if (Array.isArray(sorting)) {
 			return [...serversMap.entries()].sort(([a], [b]) => sorting.indexOf(a) - sorting.indexOf(b));
 		}
-		localStorage.removeItem('rocket.chat.sortOrder');
+		removeItem(rootWindow, 'rocket.chat.sortOrder');
 	} catch (error) {
 		console.warn(error);
 	}
@@ -113,13 +149,13 @@ function *loadServers() {
 	return Array.from(serversMap.values());
 }
 
-function *loadCurrentServerUrl(servers) {
-	let currentServerUrl = yield select(({ currentServerUrl }) => currentServerUrl);
+function *loadCurrentServerUrl(rootWindow, servers) {
+	let currentServerUrl = yield select(selectCurrentServerUrl);
 
-	currentServerUrl = readFromStorage('currentServerUrl', currentServerUrl);
+	currentServerUrl = yield call(readFromStorage, rootWindow, 'currentServerUrl', currentServerUrl);
 
-	const storedValue = localStorage.getItem('rocket.chat.currentHost');
-	localStorage.removeItem('rocket.chat.currentHost');
+	const storedValue = yield call(readItem, rootWindow, 'rocket.chat.currentHost');
+	removeItem(rootWindow, 'rocket.chat.currentHost');
 
 	if (storedValue && storedValue !== 'null') {
 		currentServerUrl = storedValue;
@@ -132,9 +168,9 @@ function *loadCurrentServerUrl(servers) {
 	return currentServerUrl;
 }
 
-export function *serversSaga() {
-	const servers = yield call(loadServers);
-	const currentServerUrl = yield call(loadCurrentServerUrl, servers);
+export function *serversSaga(rootWindow) {
+	const servers = yield call(loadServers, rootWindow);
+	const currentServerUrl = yield call(loadCurrentServerUrl, rootWindow, servers);
 
 	yield put({
 		type: SERVERS_READY,

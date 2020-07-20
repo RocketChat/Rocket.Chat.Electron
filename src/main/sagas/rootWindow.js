@@ -1,8 +1,9 @@
+import fs from 'fs';
 import path from 'path';
 
-import { app, BrowserWindow, Menu, dialog, ipcMain, shell, clipboard } from 'electron';
+import { app, BrowserWindow, Menu, dialog, ipcMain, shell, clipboard, screen } from 'electron';
 import { t } from 'i18next';
-import { takeEvery, select, put, call, getContext, spawn } from 'redux-saga/effects';
+import { takeEvery, select, put, call, getContext, spawn, take } from 'redux-saga/effects';
 import { createSelector } from 'reselect';
 
 import {
@@ -56,9 +57,11 @@ import {
 	selectSpellCheckingDictionaries,
 	selectInstalledSpellCheckingDictionariesDirectoryPath,
 	selectFocusedWebContents,
+	selectMainWindowState,
 } from '../selectors';
 import { validateServerUrl, ValidationResult } from '../servers';
 import { getCorrectionsForMisspelling, getMisspelledWords } from './spellChecking';
+import { readFromStorage } from '../localStorage';
 
 const createRootWindow = () => {
 	const rootWindow = new BrowserWindow({
@@ -98,6 +101,129 @@ const fetchRootWindowState = (rootWindow) => ({
 	bounds: rootWindow.getNormalBounds(),
 });
 
+const getConfigurationPath = (filePath, { appData = true } = {}) => path.join(
+	...appData ? [
+		app.getAppPath(),
+		app.getAppPath().endsWith('app.asar') ? '..' : '.',
+	] : [app.getPath('userData')],
+	filePath,
+);
+
+const readConfigurationFile = async (filePath, {
+	appData = true,
+	purgeAfter = false,
+} = {}) => {
+	try {
+		const configurationFilePath = getConfigurationPath(filePath, { appData });
+
+		if (!await fs.promises.stat(filePath).then((stat) => stat.isFile(), () => false)) {
+			return null;
+		}
+
+		const content = JSON.parse(await fs.promises.readFile(configurationFilePath, 'utf8'));
+
+		if (!appData && purgeAfter) {
+			await fs.promises.unlink(configurationFilePath);
+		}
+
+		return content;
+	} catch (error) {
+		console.warn(error);
+		return null;
+	}
+};
+
+const isInsideSomeScreen = ({ x, y, width, height }) =>
+	screen.getAllDisplays()
+		.some(({ bounds }) => x >= bounds.x && y >= bounds.y
+			&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
+		);
+
+const loadUserMainWindowState = async () => {
+	const userMainWindowState = await readConfigurationFile('main-window-state.json',
+		{ appData: false, purgeAfter: true });
+
+	if (!userMainWindowState) {
+		return null;
+	}
+
+	const {
+		x,
+		y,
+		width,
+		height,
+		isMaximized,
+		isMinimized,
+		isHidden,
+	} = userMainWindowState;
+
+	return {
+		focused: true,
+		visible: !isHidden,
+		maximized: isMaximized,
+		minimized: isMinimized,
+		fullscreen: false,
+		normal: !isMinimized && !isMaximized,
+		bounds: { x, y, width, height },
+	};
+};
+
+function *loadMainWindowState(rootWindow) {
+	const userMainWindowState = yield call(loadUserMainWindowState);
+	if (userMainWindowState) {
+		return userMainWindowState;
+	}
+
+	const initialMainWindowState = yield select(selectMainWindowState);
+
+	return yield call(readFromStorage, rootWindow, 'mainWindowState', initialMainWindowState);
+}
+
+function *applyMainWindowState(rootWindow, mainWindowState) {
+	let { x, y } = mainWindowState.bounds;
+	const { width, height } = mainWindowState.bounds;
+	if (!isInsideSomeScreen({ x, y, width, height })) {
+		const {
+			bounds: {
+				width: primaryDisplayWidth,
+				height: primaryDisplayHeight,
+			},
+		} = screen.getPrimaryDisplay();
+		x = (primaryDisplayWidth - width) / 2;
+		y = (primaryDisplayHeight - height) / 2;
+	}
+
+	if (rootWindow.isVisible()) {
+		return;
+	}
+
+	rootWindow.setBounds({ x, y, width, height });
+
+	if (mainWindowState.maximized) {
+		rootWindow.maximize();
+	}
+
+	if (mainWindowState.minimized) {
+		rootWindow.minimize();
+	}
+
+	if (mainWindowState.fullscreen) {
+		rootWindow.setFullScreen(true);
+	}
+
+	if (mainWindowState.visible) {
+		rootWindow.showInactive();
+	}
+
+	if (mainWindowState.focused) {
+		rootWindow.focus();
+	}
+
+	if (process.env.NODE_ENV === 'development') {
+		rootWindow.webContents.openDevTools();
+	}
+}
+
 function *fetchAndDispatchWindowState(rootWindow) {
 	yield put({
 		type: ROOT_WINDOW_STATE_CHANGED,
@@ -112,6 +238,9 @@ function *watchRootWindow(rootWindow, store) {
 	});
 
 	yield takeEvery(eventEmitterChannel(app, 'before-quit'), function *() {
+		if (rootWindow.isDestroyed()) {
+			return;
+		}
 		rootWindow.destroy();
 	});
 
@@ -566,10 +695,14 @@ function *watchRootWindow(rootWindow, store) {
 
 export function *rootWindowSaga() {
 	const rootWindow = createRootWindow();
+	yield take(eventEmitterChannel(rootWindow, 'ready-to-show'));
 
 	const store = yield getContext('store');
 
 	yield spawn(watchRootWindow, rootWindow, store);
+
+	const mainWindowState = yield *loadMainWindowState(rootWindow);
+	yield *applyMainWindowState(rootWindow, mainWindowState);
 
 	return rootWindow;
 }

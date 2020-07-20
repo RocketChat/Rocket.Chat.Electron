@@ -22,12 +22,34 @@ const defaultValueCast = (defaultValue) => (value) => {
 	return typeof value === 'object' ? value : defaultValue;
 };
 
+export const readItem = async (rootWindow, key) => {
+	if (rootWindow.isDestroyed()) {
+		return;
+	}
+
+	const code = `JSON.stringify(localStorage.getItem(${ JSON.stringify(key) }))`;
+	return JSON.parse(await rootWindow.webContents.executeJavaScript(code));
+};
+
+export const removeItem = async (rootWindow, key) => {
+	if (rootWindow.isDestroyed()) {
+		return;
+	}
+
+	const code = `localStorage.removeItem(${ JSON.stringify(key) })`;
+	await rootWindow.webContents.executeJavaScript(code);
+};
+
 export const readFromStorage = async (rootWindow, key, defaultValue, cast = defaultValueCast(defaultValue)) => {
+	if (rootWindow.isDestroyed()) {
+		return;
+	}
+
 	console.assert(typeof defaultValue !== 'undefined');
 
 	try {
-		const code = `localStorage.getItem(${ JSON.stringify(key) })`;
-		const storedValue = JSON.parse(await rootWindow.webContents.executeJavaScript(code));
+		const code = `JSON.stringify(localStorage.getItem(${ JSON.stringify(key) }))`;
+		const storedValue = JSON.parse(JSON.parse(await rootWindow.webContents.executeJavaScript(code)));
 
 		if (storedValue === null) {
 			return defaultValue;
@@ -41,6 +63,10 @@ export const readFromStorage = async (rootWindow, key, defaultValue, cast = defa
 };
 
 export const writeToStorage = async (rootWindow, key, value) => {
+	if (rootWindow.isDestroyed()) {
+		return;
+	}
+
 	console.assert(typeof value !== 'undefined');
 
 	try {
@@ -50,11 +76,11 @@ export const writeToStorage = async (rootWindow, key, value) => {
 		}
 
 		if (value === null) {
-			const code = `localStorage.setItem(${ JSON.stringify(key) }, JSON.stringify(null))`;
+			const code = `localStorage.setItem(${ JSON.stringify(key) }, 'null')`;
 			return rootWindow.webContents.executeJavaScript(code);
 		}
 
-		const code = `localStorage.setItem(${ JSON.stringify(key) }, ${ JSON.stringify(value) })`;
+		const code = `localStorage.setItem(${ JSON.stringify(key) }, ${ JSON.stringify(JSON.stringify(value)) })`;
 		return rootWindow.webContents.executeJavaScript(code);
 	} catch (error) {
 		console.warn(error);

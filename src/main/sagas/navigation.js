@@ -1,7 +1,9 @@
+import fs from 'fs';
+import path from 'path';
 import url from 'url';
 
 import { app, shell } from 'electron';
-import { takeEvery, select, put, race, take } from 'redux-saga/effects';
+import { takeEvery, select, put, race, take, call } from 'redux-saga/effects';
 
 import { preventedEventEmitterChannel } from '../channels';
 import { selectServers, selectTrustedCertificates } from '../selectors';
@@ -15,7 +17,41 @@ import {
 	CERTIFICATES_CLEARED,
 	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
 	MENU_BAR_OPEN_URL_CLICKED,
+	CERTIFICATES_READY,
 } from '../../actions';
+import { readFromStorage } from '../localStorage';
+
+const getConfigurationPath = (filePath, { appData = true } = {}) => path.join(
+	...appData ? [
+		app.getAppPath(),
+		app.getAppPath().endsWith('app.asar') ? '..' : '.',
+	] : [app.getPath('userData')],
+	filePath,
+);
+
+const readConfigurationFile = async (filePath, {
+	appData = true,
+	purgeAfter = false,
+} = {}) => {
+	try {
+		const configurationFilePath = getConfigurationPath(filePath, { appData });
+
+		if (!await fs.promises.stat(filePath).then((stat) => stat.isFile(), () => false)) {
+			return null;
+		}
+
+		const content = JSON.parse(await fs.promises.readFile(configurationFilePath, 'utf8'));
+
+		if (!appData && purgeAfter) {
+			await fs.promises.unlink(configurationFilePath);
+		}
+
+		return content;
+	} catch (error) {
+		console.warn(error);
+		return null;
+	}
+};
 
 const serializeCertificate = (certificate) => `${ certificate.issuerName }\n${ certificate.data.toString() }`;
 
@@ -105,7 +141,40 @@ function *handleLogin([, , request, , callback]) {
 	}
 }
 
-export function *navigationSaga() {
+const loadUserTrustedCertificates = async (trustedCertificates) => {
+	const userTrustedCertificates = await readConfigurationFile('certificate.json', { appData: false, purgeAfter: true });
+
+	if (!userTrustedCertificates) {
+		return;
+	}
+
+	try {
+		for (const [host, certificate] of Object.entries(userTrustedCertificates)) {
+			trustedCertificates[host] = certificate;
+		}
+	} catch (error) {
+		console.warn(error);
+	}
+};
+
+function *loadTrustedCertificates(rootWindow) {
+	const trustedCertificates = yield select(({ trustedCertificates }) => trustedCertificates);
+
+	yield call(loadUserTrustedCertificates, trustedCertificates);
+
+	Object.assign(trustedCertificates, yield call(readFromStorage, rootWindow, 'trustedCertificates', {}));
+
+	return trustedCertificates;
+}
+
+export function *navigationSaga(rootWindow) {
+	const trustedCertificates = yield call(loadTrustedCertificates, rootWindow);
+
+	yield put({
+		type: CERTIFICATES_READY,
+		payload: trustedCertificates,
+	});
+
 	yield takeEvery(preventedEventEmitterChannel(app, 'login'), handleLogin);
 
 	yield takeEvery(preventedEventEmitterChannel(app, 'certificate-error'), handleCertificateError);

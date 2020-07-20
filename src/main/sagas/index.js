@@ -10,6 +10,7 @@ import { touchBarSaga } from './touchBar';
 import { appSaga } from './app';
 import { deepLinksSaga } from './deepLinks';
 import { navigationSaga } from './navigation';
+import { updatesSaga } from './updates';
 
 export function *rootSaga() {
 	yield take(appReadyChannel());
@@ -20,6 +21,7 @@ export function *rootSaga() {
 	yield spawn(appSaga, rootWindow);
 	yield spawn(deepLinksSaga);
 	yield spawn(navigationSaga);
+	yield spawn(updatesSaga);
 	yield spawn(menuBarSaga, rootWindow);
 	yield spawn(touchBarSaga, rootWindow);
 	yield spawn(dockSaga);

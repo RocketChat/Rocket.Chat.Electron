@@ -1,21 +1,14 @@
 import { remote } from 'electron';
-import { call, put, select, takeEvery } from 'redux-saga/effects';
+import { call, put, select } from 'redux-saga/effects';
 
 import {
-	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
-	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
-	ROOT_WINDOW_INSTALL_UPDATE_CLICKED,
 	UPDATES_READY,
-	UPDATES_CHECKING_FOR_UPDATE,
 	UPDATES_ERROR_THROWN,
-	UPDATES_NEW_VERSION_NOT_AVAILABLE,
-	UPDATES_NEW_VERSION_AVAILABLE,
-	UPDATES_UPDATE_DOWNLOADED,
 } from '../actions';
 import { readFromStorage } from '../localStorage';
-import { createEventChannelFromEmitter, keepStoreValuePersisted, readConfigurationFile } from '../sagaUtils';
+import { keepStoreValuePersisted, readConfigurationFile } from '../sagaUtils';
 
-const { autoUpdater, CancellationToken } = remote.require('electron-updater');
+const { autoUpdater } = remote.require('electron-updater');
 
 const isUpdatingAllowed = (process.platform === 'linux' && !!process.env.APPIMAGE)
 	|| (process.platform === 'win32' && !process.windowsStore)
@@ -128,90 +121,6 @@ function *check() {
 	}
 }
 
-let cancellationToken;
-
-function *download() {
-	const isUpdatingAllowed = yield select(({ isUpdatingAllowed }) => isUpdatingAllowed);
-	const isUpdatingEnabled = yield select(({ isUpdatingEnabled }) => isUpdatingEnabled);
-
-	if (!isUpdatingAllowed || !isUpdatingEnabled) {
-		return;
-	}
-
-	try {
-		cancellationToken = new CancellationToken();
-		yield call(::autoUpdater.downloadUpdate, cancellationToken);
-	} catch (error) {
-		yield put({ type: UPDATES_ERROR_THROWN, payload: error });
-	}
-}
-
-function *install() {
-	const isUpdatingAllowed = yield select(({ isUpdatingAllowed }) => isUpdatingAllowed);
-	const isUpdatingEnabled = yield select(({ isUpdatingEnabled }) => isUpdatingEnabled);
-
-	if (!isUpdatingAllowed || !isUpdatingEnabled) {
-		return;
-	}
-
-	try {
-		remote.app.removeAllListeners('window-all-closed');
-		yield call(::autoUpdater.quitAndInstall);
-	} catch (error) {
-		yield put({ type: UPDATES_ERROR_THROWN, payload: error });
-	}
-}
-
-function *takeActions() {
-	yield takeEvery(ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED, function *() {
-		yield *check();
-	});
-
-	yield takeEvery(UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED, function *() {
-		yield *download();
-	});
-
-	yield takeEvery(ROOT_WINDOW_INSTALL_UPDATE_CLICKED, function *() {
-		yield *install();
-	});
-}
-
-function *takeAutoUpdaterEvents() {
-	autoUpdater.autoDownload = false;
-
-	const checkingForUpdateChannel = createEventChannelFromEmitter(autoUpdater, 'checking-for-update');
-	const updateAvailableChannel = createEventChannelFromEmitter(autoUpdater, 'update-available');
-	const updateNotAvailableChannel = createEventChannelFromEmitter(autoUpdater, 'update-not-available');
-	const updateDownloadedChannel = createEventChannelFromEmitter(autoUpdater, 'update-downloaded');
-	const errorChannel = createEventChannelFromEmitter(autoUpdater, 'error');
-
-	yield takeEvery(checkingForUpdateChannel, function *() {
-		yield put({ type: UPDATES_CHECKING_FOR_UPDATE });
-	});
-
-	yield takeEvery(updateAvailableChannel, function *([{ version }]) {
-		const skippedUpdateVersion = yield select(({ skippedUpdateVersion }) => skippedUpdateVersion);
-		if (skippedUpdateVersion === version) {
-			yield put({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
-			return;
-		}
-
-		yield put({ type: UPDATES_NEW_VERSION_AVAILABLE, payload: version });
-	});
-
-	yield takeEvery(updateNotAvailableChannel, function *() {
-		yield put({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
-	});
-
-	yield takeEvery(updateDownloadedChannel, function *() {
-		yield put({ type: UPDATES_UPDATE_DOWNLOADED });
-	});
-
-	yield takeEvery(errorChannel, function *([error]) {
-		yield put({ type: UPDATES_ERROR_THROWN, payload: error });
-	});
-}
-
 export function *updatesSaga() {
 	const {
 		isUpdatingAllowed,
@@ -238,7 +147,4 @@ export function *updatesSaga() {
 	if (isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup) {
 		yield *check();
 	}
-
-	yield *takeAutoUpdaterEvents();
-	yield *takeActions();
 }

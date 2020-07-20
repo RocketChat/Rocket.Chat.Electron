@@ -26,14 +26,14 @@ export function *rootSaga() {
 	yield spawn(appSaga, rootWindow);
 	yield spawn(preferencesSaga, rootWindow);
 	yield spawn(serversSaga, rootWindow);
-	yield spawn(deepLinksSaga);
+	yield spawn(deepLinksSaga, rootWindow);
 	yield spawn(navigationSaga, rootWindow);
 	yield spawn(updatesSaga, rootWindow);
 	yield spawn(spellCheckingSaga, rootWindow);
 	yield spawn(menuBarSaga, rootWindow);
 	yield spawn(touchBarSaga, rootWindow);
-	yield spawn(dockSaga);
-	yield spawn(trayIconSaga);
+	yield spawn(dockSaga, rootWindow);
+	yield spawn(trayIconSaga, rootWindow);
 
 	const selectPersistableValues = createStructuredSelector({
 		currentServerUrl: ({ currentServerUrl }) => currentServerUrl ?? null,

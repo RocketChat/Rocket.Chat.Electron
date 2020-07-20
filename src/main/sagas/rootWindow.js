@@ -9,8 +9,6 @@ import { createSelector } from 'reselect';
 import {
 	CERTIFICATE_TRUST_REQUESTED,
 	DEEP_LINK_TRIGGERED,
-	DEEP_LINKS_SERVER_ADDED,
-	DEEP_LINKS_SERVER_FOCUSED,
 	MENU_BAR_ABOUT_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	MENU_BAR_GO_BACK_CLICKED,
@@ -53,13 +51,11 @@ import {
 	selectIsMenuBarEnabled,
 	selectIsTrayIconEnabled,
 	selectIsShowWindowOnUnreadChangedEnabled,
-	selectServers,
 	selectSpellCheckingDictionaries,
 	selectInstalledSpellCheckingDictionariesDirectoryPath,
 	selectFocusedWebContents,
 	selectMainWindowState,
 } from '../selectors';
-import { validateServerUrl, ValidationResult } from '../servers';
 import { getCorrectionsForMisspelling, getMisspelledWords } from './spellChecking';
 import { readFromStorage } from '../localStorage';
 
@@ -412,7 +408,7 @@ function *watchRootWindow(rootWindow, store) {
 	});
 
 	yield takeEvery(UPDATES_UPDATE_DOWNLOADED, function *() {
-		const { response } = yield call(::dialog.showMessageBox, rootWindow, {
+		const { response } = yield call(dialog.showMessageBox, rootWindow, {
 			type: 'question',
 			title: t('dialog.updateReady.title'),
 			message: t('dialog.updateReady.message'),
@@ -424,7 +420,7 @@ function *watchRootWindow(rootWindow, store) {
 		});
 
 		if (response === 0) {
-			yield call(::dialog.showMessageBox, rootWindow, {
+			yield call(dialog.showMessageBox, rootWindow, {
 				type: 'info',
 				title: t('dialog.updateInstallLater.title'),
 				message: t('dialog.updateInstallLater.message'),
@@ -449,7 +445,7 @@ function *watchRootWindow(rootWindow, store) {
 			detail = t('error.differentCertificate', { detail });
 		}
 
-		const { response } = yield call(::dialog.showMessageBox, rootWindow, {
+		const { response } = yield call(dialog.showMessageBox, rootWindow, {
 			title: t('dialog.certificateError.title'),
 			message: t('dialog.certificateError.message', { issuerName }),
 			detail,
@@ -467,35 +463,6 @@ function *watchRootWindow(rootWindow, store) {
 		}
 
 		yield put({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { webContentsId, fingerprint } });
-	});
-
-	yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
-		const selectIsServerAlreadyAdded = createSelector(selectServers, (servers) => servers.some((server) => server.url === url));
-		const isServerAlreadyAdded = yield select(selectIsServerAlreadyAdded);
-
-		if (isServerAlreadyAdded) {
-			yield put({ type: DEEP_LINKS_SERVER_FOCUSED, payload: url });
-			return;
-		}
-
-		const { response } = yield call(::dialog.showMessageBox, rootWindow, {
-			type: 'question',
-			buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
-			defaultId: 0,
-			title: t('dialog.addServer.title'),
-			message: t('dialog.addServer.message', { host: url }),
-		});
-
-		if (response === 0) {
-			const result = yield call(validateServerUrl, url);
-
-			if (result !== ValidationResult.OK) {
-				dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host: url }));
-				return;
-			}
-
-			yield put({ type: DEEP_LINKS_SERVER_ADDED, payload: url });
-		}
 	});
 
 	yield takeEvery(WEBVIEW_CONTEXT_MENU_POPPED_UP, function *({ payload: params }) {

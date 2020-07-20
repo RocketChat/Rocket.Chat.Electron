@@ -1,11 +1,19 @@
 import querystring from 'querystring';
 import url from 'url';
 
-import { all, fork, put, takeEvery } from 'redux-saga/effects';
-import { app } from 'electron';
+import { app, dialog } from 'electron';
+import { t } from 'i18next';
+import { all, fork, put, takeEvery, select, call } from 'redux-saga/effects';
+import { createSelector } from 'reselect';
 
-import { DEEP_LINK_TRIGGERED } from '../../actions';
+import {
+	DEEP_LINK_TRIGGERED,
+	DEEP_LINKS_SERVER_FOCUSED,
+	DEEP_LINKS_SERVER_ADDED,
+} from '../../actions';
 import { preventedEventEmitterChannel } from '../channels';
+import { selectServers } from '../selectors';
+import { validateServerUrl, ValidationResult } from '../servers';
 
 const normalizeUrl = (hostUrl, insecure = false) => {
 	if (!/^https?:\/\//.test(hostUrl)) {
@@ -45,7 +53,10 @@ function *processDeepLink(link) {
 	}
 }
 
-export function *deepLinksSaga() {
+export function *deepLinksSaga(rootWindow) {
+	const args = process.argv.slice(app.isPackaged ? 1 : 2);
+	yield all(args.map((arg) => fork(processDeepLink, arg)));
+
 	yield takeEvery(preventedEventEmitterChannel(app, 'open-url'), function *([, url]) {
 		yield fork(processDeepLink, url);
 	});
@@ -55,6 +66,32 @@ export function *deepLinksSaga() {
 		yield all(args.map((arg) => fork(processDeepLink, arg)));
 	});
 
-	const args = process.argv.slice(app.isPackaged ? 1 : 2);
-	yield all(args.map((arg) => fork(processDeepLink, arg)));
+	yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
+		const selectIsServerAlreadyAdded = createSelector(selectServers, (servers) => servers.some((server) => server.url === url));
+		const isServerAlreadyAdded = yield select(selectIsServerAlreadyAdded);
+
+		if (isServerAlreadyAdded) {
+			yield put({ type: DEEP_LINKS_SERVER_FOCUSED, payload: url });
+			return;
+		}
+
+		const { response } = yield call(dialog.showMessageBox, rootWindow, {
+			type: 'question',
+			buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
+			defaultId: 0,
+			title: t('dialog.addServer.title'),
+			message: t('dialog.addServer.message', { host: url }),
+		});
+
+		if (response === 0) {
+			const result = yield call(validateServerUrl, url);
+
+			if (result !== ValidationResult.OK) {
+				dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host: url }));
+				return;
+			}
+
+			yield put({ type: DEEP_LINKS_SERVER_ADDED, payload: url });
+		}
+	});
 }

@@ -13,10 +13,15 @@ import {
 	ROOT_WINDOW_INSTALL_UPDATE_CLICKED,
 } from '../../actions';
 import { eventEmitterChannel } from '../channels';
+import {
+	selectIsUpdatingAllowed,
+	selectIsUpdatingEnabled,
+	selectSkippedUpdateVersion,
+} from '../selectors';
 
 function *check() {
-	const isUpdatingAllowed = yield select(({ isUpdatingAllowed }) => isUpdatingAllowed);
-	const isUpdatingEnabled = yield select(({ isUpdatingEnabled }) => isUpdatingEnabled);
+	const isUpdatingAllowed = yield select(selectIsUpdatingAllowed);
+	const isUpdatingEnabled = yield select(selectIsUpdatingEnabled);
 
 	if (!isUpdatingAllowed || !isUpdatingEnabled) {
 		return;
@@ -32,8 +37,8 @@ function *check() {
 let cancellationToken;
 
 function *download() {
-	const isUpdatingAllowed = yield select(({ isUpdatingAllowed }) => isUpdatingAllowed);
-	const isUpdatingEnabled = yield select(({ isUpdatingEnabled }) => isUpdatingEnabled);
+	const isUpdatingAllowed = yield select(selectIsUpdatingAllowed);
+	const isUpdatingEnabled = yield select(selectIsUpdatingEnabled);
 
 	if (!isUpdatingAllowed || !isUpdatingEnabled) {
 		return;
@@ -48,8 +53,8 @@ function *download() {
 }
 
 function *install() {
-	const isUpdatingAllowed = yield select(({ isUpdatingAllowed }) => isUpdatingAllowed);
-	const isUpdatingEnabled = yield select(({ isUpdatingEnabled }) => isUpdatingEnabled);
+	const isUpdatingAllowed = yield select(selectIsUpdatingAllowed);
+	const isUpdatingEnabled = yield select(selectIsUpdatingEnabled);
 
 	if (!isUpdatingAllowed || !isUpdatingEnabled) {
 		return;
@@ -71,7 +76,7 @@ export function *updatesSaga() {
 	});
 
 	yield takeEvery(eventEmitterChannel(autoUpdater, 'update-available'), function *([{ version }]) {
-		const skippedUpdateVersion = yield select(({ skippedUpdateVersion }) => skippedUpdateVersion);
+		const skippedUpdateVersion = yield select(selectSkippedUpdateVersion);
 		if (skippedUpdateVersion === version) {
 			yield put({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
 			return;

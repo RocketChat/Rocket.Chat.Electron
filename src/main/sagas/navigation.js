@@ -4,7 +4,7 @@ import { app, shell } from 'electron';
 import { takeEvery, select, put, race, take } from 'redux-saga/effects';
 
 import { preventedEventEmitterChannel } from '../channels';
-import { selectServers } from '../selectors';
+import { selectServers, selectTrustedCertificates } from '../selectors';
 import {
 	CERTIFICATE_TRUST_REQUESTED,
 	WEBVIEW_CERTIFICATE_TRUSTED,
@@ -25,7 +25,7 @@ function *handleCertificateError([, webContents, requestedUrl, error, certificat
 	const serialized = serializeCertificate(certificate);
 	const { host } = url.parse(requestedUrl);
 
-	const trustedCertificates = yield select(({ trustedCertificates }) => trustedCertificates);
+	const trustedCertificates = yield select(selectTrustedCertificates);
 
 	const isTrusted = !!trustedCertificates[host] && trustedCertificates[host] === serialized;
 
@@ -64,7 +64,7 @@ function *handleCertificateError([, webContents, requestedUrl, error, certificat
 		queuedTrustRequests.get(fingerprint).forEach((cb) => cb(isTrustedByUser));
 		queuedTrustRequests.delete(fingerprint);
 
-		const trustedCertificates = yield select(({ trustedCertificates }) => trustedCertificates);
+		const trustedCertificates = yield select(selectTrustedCertificates);
 
 		if (isTrustedByUser) {
 			yield put({

@@ -7,15 +7,27 @@ const createArraySelector = createSelectorCreator(defaultMemoize, isArrayEquals)
 
 export const selectAppName = () => app.name;
 
-export const selectIsMenuBarEnabled = ({ isMenuBarEnabled }) => isMenuBarEnabled;
-export const selectIsSideBarEnabled = ({ isSideBarEnabled }) => isSideBarEnabled;
-export const selectIsTrayIconEnabled = ({ isTrayIconEnabled }) => isTrayIconEnabled;
-export const selectFocusedWebContentsId = ({ focusedWebContentsId }) => focusedWebContentsId;
-export const selectEditFlags = ({ editFlags }) => editFlags;
-export const selectServers = ({ servers }) => servers;
-export const selectMainWindowState = ({ mainWindowState }) => mainWindowState;
-export const selectCurrentServerUrl = ({ currentServerUrl }) => currentServerUrl;
-export const selectIsShowWindowOnUnreadChangedEnabled = ({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled;
+export const selectCurrentServerUrl = ({ currentServerUrl }) => currentServerUrl ?? null;
+export const selectDoCheckForUpdatesOnStartup = ({ doCheckForUpdatesOnStartup }) => doCheckForUpdatesOnStartup ?? true;
+export const selectEditFlags = ({ editFlags }) => editFlags ?? {};
+export const selectFocusedWebContentsId = ({ focusedWebContentsId }) => focusedWebContentsId ?? -1;
+export const selectInstalledSpellCheckingDictionariesDirectoryPath = ({ installedSpellCheckingDictionariesDirectoryPath }) => installedSpellCheckingDictionariesDirectoryPath ?? null;
+export const selectIsCheckingForUpdates = ({ isCheckingForUpdates }) => isCheckingForUpdates ?? false;
+export const selectIsEachUpdatesSettingConfigurable = ({ isEachUpdatesSettingConfigurable }) => isEachUpdatesSettingConfigurable ?? false;
+export const selectIsMenuBarEnabled = ({ isMenuBarEnabled }) => isMenuBarEnabled ?? true;
+export const selectIsMessageBoxFocused = ({ isMessageBoxFocused }) => isMessageBoxFocused ?? false;
+export const selectIsShowWindowOnUnreadChangedEnabled = ({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled ?? false;
+export const selectIsSideBarEnabled = ({ isSideBarEnabled }) => isSideBarEnabled ?? true;
+export const selectIsTrayIconEnabled = ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true;
+export const selectIsUpdatingAllowed = ({ isUpdatingAllowed }) => isUpdatingAllowed ?? true;
+export const selectIsUpdatingEnabled = ({ isUpdatingEnabled }) => isUpdatingEnabled ?? true;
+export const selectMainWindowState = ({ mainWindowState }) => mainWindowState ?? {};
+export const selectNewUpdateVersion = ({ newUpdateVersion }) => newUpdateVersion ?? null;
+export const selectOpenDialog = ({ openDialog }) => openDialog ?? null;
+export const selectServers = ({ servers }) => servers ?? [];
+export const selectSkippedUpdateVersion = ({ skippedUpdateVersion }) => skippedUpdateVersion ?? null;
+export const selectSpellCheckingDictionaries = ({ spellCheckingDictionaries }) => spellCheckingDictionaries ?? [];
+export const selectTrustedCertificates = ({ trustedCertificates }) => trustedCertificates ?? {};
 
 export const selectBadges = createArraySelector(selectServers, (servers) => servers.map(({ badge }) => badge));
 

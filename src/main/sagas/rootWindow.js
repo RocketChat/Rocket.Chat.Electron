@@ -129,7 +129,7 @@ function *watchRootWindow(rootWindow, store) {
 
 		rootWindow.blur();
 
-		const isTrayIconEnabled = yield select(({ isTrayIconEnabled }) => isTrayIconEnabled);
+		const isTrayIconEnabled = yield select(selectIsTrayIconEnabled);
 
 		if (process.platform === 'darwin' || isTrayIconEnabled) {
 			rootWindow.hide();

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { remote } from 'electron';
+import { remote, ipcRenderer } from 'electron';
 import { SpellCheckerProvider } from 'electron-hunspell';
 import { all, call, put, select, takeEvery } from 'redux-saga/effects';
 
@@ -193,12 +193,13 @@ export function *getMisspelledWords(words) {
 	return words.filter(isMisspelled);
 }
 
-export function *getCorrectionsForMisspelling(text) {
+ipcRenderer.on('get-corrections-for-misspelling', (event, text) => {
 	text = text.trim();
 
 	if (!text || spellCheckers.size === 0 || !isMisspelled(text)) {
-		return null;
+		event.sender.send('get-corrections-for-misspelling-response', null);
+		return;
 	}
 
-	return Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.suggest(text));
-}
+	event.sender.send('get-corrections-for-misspelling-response', Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.suggest(text)));
+});

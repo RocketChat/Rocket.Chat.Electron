@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { remote, ipcRenderer } from 'electron';
+import { app } from 'electron';
 import { SpellCheckerProvider } from 'electron-hunspell';
 import { all, call, put, select, takeEvery } from 'redux-saga/effects';
 
@@ -10,9 +10,16 @@ import {
 	SPELL_CHECKING_READY,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-} from '../actions';
+} from '../../actions';
 import { readFromStorage, writeToStorage } from '../localStorage';
-import { getConfigurationPath } from '../sagaUtils';
+
+const getConfigurationPath = (filePath, { appData = true } = {}) => path.join(
+	...appData ? [
+		app.getAppPath(),
+		app.getAppPath().endsWith('app.asar') ? '..' : '.',
+	] : [app.getPath('userData')],
+	filePath,
+);
 
 const provider = new SpellCheckerProvider();
 const spellCheckers = new Map();
@@ -54,7 +61,7 @@ const loadSpellCheckingDictionariesFromDirectory = async (dictionariesDirectoryP
 	}
 };
 
-function *loadSpellCheckingDictionaries() {
+function *loadSpellCheckingDictionaries(rootWindow) {
 	const embeddedDictionaries = ['de', 'en-GB', 'en-US', 'es-ES', 'fr', 'pt-BR', 'tr', 'ru'].map((name) => ({
 		name,
 		aff: path.join(require.resolve(`dictionary-${ name.toLowerCase() }/package.json`), '../index.aff'),
@@ -73,7 +80,7 @@ function *loadSpellCheckingDictionaries() {
 
 	const prevSpellCheckingDictionaries = yield select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
 
-	const enabledDictionaries = readFromStorage('enabledSpellCheckingDictionaries', [remote.app.getLocale()]);
+	const enabledDictionaries = yield call(readFromStorage, rootWindow, 'enabledSpellCheckingDictionaries', [app.getLocale()]);
 
 	return [
 		...prevSpellCheckingDictionaries,
@@ -117,11 +124,11 @@ function *toggleDictionary({ name, enabled, dic, aff }) {
 	}
 }
 
-function *takeEvents() {
+function *takeEvents(rootWindow) {
 	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, function *() {
 		const spellCheckingDictionaries = yield select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
 		yield all(spellCheckingDictionaries.map(toggleDictionary));
-		writeToStorage('enabledSpellCheckingDictionaries', Array.from(spellCheckers.keys()));
+		yield call(writeToStorage, rootWindow, 'enabledSpellCheckingDictionaries', Array.from(spellCheckers.keys()));
 	});
 
 	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, function *({ payload: filePaths }) {
@@ -161,9 +168,9 @@ function *takeEvents() {
 	});
 }
 
-export function *spellCheckingSaga() {
+export function *spellCheckingSaga(rootWindow) {
 	const installedSpellCheckingDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: false });
-	const spellCheckingDictionaries = yield *loadSpellCheckingDictionaries();
+	const spellCheckingDictionaries = yield call(loadSpellCheckingDictionaries, rootWindow);
 
 	yield call(::provider.initialize);
 	spellCheckers.clear();
@@ -177,7 +184,7 @@ export function *spellCheckingSaga() {
 		},
 	});
 
-	yield *takeEvents();
+	yield *takeEvents(rootWindow);
 }
 
 const isMisspelled = (word) => {
@@ -189,17 +196,14 @@ const isMisspelled = (word) => {
 		.every((spellChecker) => !spellChecker.spell(word));
 };
 
-export function *getMisspelledWords(words) {
-	return words.filter(isMisspelled);
-}
-
-ipcRenderer.on('get-corrections-for-misspelling', (event, text) => {
+export const getCorrectionsForMisspelling = async (text) => {
 	text = text.trim();
 
 	if (!text || spellCheckers.size === 0 || !isMisspelled(text)) {
-		event.sender.send('get-corrections-for-misspelling-response', null);
-		return;
+		return null;
 	}
 
-	event.sender.send('get-corrections-for-misspelling-response', Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.suggest(text)));
-});
+	return Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.suggest(text));
+};
+
+export const getMisspelledWords = async (words) => words.filter(isMisspelled);

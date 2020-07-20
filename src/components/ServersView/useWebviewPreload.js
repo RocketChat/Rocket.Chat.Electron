@@ -16,11 +16,9 @@ import {
 	WEBVIEW_EDIT_FLAGS_CHANGED,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
-import { useMisspellingDetection } from '../../hooks/useMisspellingDetection';
 
 export const useWebviewPreload = (webviewRef, webContents, { url, hasSidebar, active, failed }) => {
 	const dispatch = useDispatch();
-	const getMisspelledWords = useMisspellingDetection();
 
 	useEffect(() => {
 		if (!webContents) {
@@ -51,10 +49,6 @@ export const useWebviewPreload = (webviewRef, webContents, { url, hasSidebar, ac
 					dispatch({ type: WEBVIEW_SIDEBAR_STYLE_CHANGED, payload: { webContentsId: webContents.id, url, style: args[0] } });
 					break;
 
-				case 'get-misspelled-words':
-					webContents.send('misspelled-words', JSON.stringify(args[0]), await getMisspelledWords(args[0]));
-					break;
-
 				case 'favicon-changed':
 					dispatch({ type: WEBVIEW_FAVICON_CHANGED, payload: { webContentsId: webContents.id, url, favicon: args[0] } });
 					break;
@@ -79,7 +73,7 @@ export const useWebviewPreload = (webviewRef, webContents, { url, hasSidebar, ac
 		return () => {
 			webview.removeEventListener('ipc-message', handleIpcMessage);
 		};
-	}, [webviewRef, webContents, url, dispatch, getMisspelledWords]);
+	}, [webviewRef, webContents, url, dispatch]);
 
 	useEffect(() => {
 		if (!webContents || process.platform !== 'darwin') {

@@ -11,6 +11,7 @@ import { appSaga } from './app';
 import { deepLinksSaga } from './deepLinks';
 import { navigationSaga } from './navigation';
 import { updatesSaga } from './updates';
+import { spellCheckingSaga } from './spellChecking';
 
 export function *rootSaga() {
 	yield take(appReadyChannel());
@@ -22,6 +23,7 @@ export function *rootSaga() {
 	yield spawn(deepLinksSaga);
 	yield spawn(navigationSaga);
 	yield spawn(updatesSaga);
+	yield spawn(spellCheckingSaga, rootWindow);
 	yield spawn(menuBarSaga, rootWindow);
 	yield spawn(touchBarSaga, rootWindow);
 	yield spawn(dockSaga);

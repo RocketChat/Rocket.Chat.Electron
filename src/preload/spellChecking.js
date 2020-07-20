@@ -20,9 +20,11 @@ export default async () => {
 		webFrame.setSpellCheckProvider(language, {
 			spellCheck: async (words, callback) => {
 				const id = JSON.stringify(words);
-				ipcRenderer.sendToHost('get-misspelled-words', words);
+				ipcRenderer.send('get-misspelled-words', words);
 				requests.set(id, callback);
 			},
 		});
 	});
+
+	ipcRenderer.send('get-spell-checking-language');
 };

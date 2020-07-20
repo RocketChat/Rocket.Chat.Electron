@@ -58,6 +58,7 @@ import {
 	selectFocusedWebContents,
 } from '../selectors';
 import { validateServerUrl, ValidationResult } from '../servers';
+import { getCorrectionsForMisspelling, getMisspelledWords } from './spellChecking';
 
 const createRootWindow = () => {
 	const rootWindow = new BrowserWindow({
@@ -372,12 +373,6 @@ function *watchRootWindow(rootWindow, store) {
 		const dictionaries = yield select(selectSpellCheckingDictionaries);
 		const dictionariesDirectoryPath = yield select(selectInstalledSpellCheckingDictionariesDirectoryPath);
 
-		const getCorrectionsForMisspelling = (text) => new Promise((resolve) => {
-			ipcMain.once('get-corrections-for-misspelling-response', (event, response) => {
-				resolve(response);
-			});
-			rootWindow.webContents.send('get-corrections-for-misspelling', text);
-		});
 		const webContents = yield select(selectFocusedWebContents);
 
 		const createSpellCheckingMenuTemplate = ({
@@ -552,6 +547,20 @@ function *watchRootWindow(rootWindow, store) {
 
 		const menu = Menu.buildFromTemplate(template);
 		menu.popup({ window: rootWindow });
+	});
+
+	yield takeEvery(eventEmitterChannel(ipcMain, 'get-misspelled-words'), function *([event, words]) {
+		const misspelledWords = yield call(getMisspelledWords, words);
+		const id = JSON.stringify(words);
+		event.sender.send('misspelled-words', id, misspelledWords);
+	});
+
+	yield takeEvery(eventEmitterChannel(ipcMain, 'get-spell-checking-language'), function *([event]) {
+		const selectDictionaryName = createSelector(selectSpellCheckingDictionaries, (spellCheckingDictionaries) =>
+			spellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name)[0]);
+		const dictionaryName = yield select(selectDictionaryName);
+		const language = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
+		event.sender.send('set-spell-checking-language', language);
 	});
 }
 

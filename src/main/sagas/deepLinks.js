@@ -1,10 +1,8 @@
 import querystring from 'querystring';
 import url from 'url';
 
-import { app, dialog } from 'electron';
-import { t } from 'i18next';
-import { all, fork, put, takeEvery, select, call } from 'redux-saga/effects';
-import { createSelector } from 'reselect';
+import { app } from 'electron';
+import { all, call, fork, put, select, takeEvery } from 'redux-saga/effects';
 
 import {
 	DEEP_LINK_TRIGGERED,
@@ -12,42 +10,122 @@ import {
 	DEEP_LINKS_SERVER_ADDED,
 } from '../../actions';
 import { preventedEventEmitterChannel } from '../channels';
-import { selectServers } from '../selectors';
-import { validateServerUrl, ValidationResult } from '../servers';
+import { askForServerAddition, warnAboutInvalidServerUrl } from '../dialogs';
+import { normalizeServerUrl, getServerInfo } from '../servers';
 
-const normalizeUrl = (hostUrl, insecure = false) => {
-	if (!/^https?:\/\//.test(hostUrl)) {
-		return `${ insecure ? 'http' : 'https' }://${ hostUrl }`;
+const isRocketChatUrl = (parsedUrl) =>
+	parsedUrl.protocol === 'rocketchat:';
+
+const isGoRocketChatUrl = (parsedUrl) =>
+	parsedUrl.protocol === 'https:' && parsedUrl.hostname === 'go.rocket.chat';
+
+const parseDeepLink = (deepLink) => {
+	const parsedUrl = url.parse(deepLink);
+
+	if (isRocketChatUrl(parsedUrl)) {
+		const action = parsedUrl.hostname;
+		const args = querystring.parse(parsedUrl.query);
+		return { action, args };
 	}
 
-	return hostUrl;
+	if (isGoRocketChatUrl(parsedUrl)) {
+		const action = parsedUrl.pathname;
+		const args = querystring.parse(parsedUrl.query);
+		return { action, args };
+	}
+
+	return null;
 };
 
-function *processAuth({ host, token, userId, insecure }) {
-	const url = normalizeUrl(host, insecure === 'true');
-	yield put({ type: DEEP_LINK_TRIGGERED, payload: { type: 'auth', url, token, userId } });
+function *authenticateFromDeepLink(/* token, userId */) {
+	throw Error('unimplemented');
 }
 
-function *processRoom({ host, rid, path, insecure }) {
-	const url = normalizeUrl(host, insecure === 'true');
-	yield put({ type: DEEP_LINK_TRIGGERED, payload: { type: 'room', url, rid, path } });
+function *requestOpenRoom(/* rid, path */) {
+	throw Error('unimplemented');
 }
 
-function *processDeepLink(link) {
-	const { protocol, hostname:	action, query } = url.parse(link);
-
-	if (protocol !== 'rocketchat:') {
+function *performAuthentication(rootWindow, { host, token, userId }) {
+	const serverUrl = normalizeServerUrl(host);
+	if (!serverUrl) {
 		return;
 	}
 
+	const isServerAdded = yield select(({ servers }) => servers.some((server) => server.url === serverUrl));
+
+	if (isServerAdded) {
+		yield put({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
+		yield call(authenticateFromDeepLink, token, userId);
+		return;
+	}
+
+	const permitted = yield call(askForServerAddition, rootWindow, serverUrl);
+
+	if (!permitted) {
+		return;
+	}
+
+	const { server, error } = yield call(getServerInfo, serverUrl);
+
+	if (error) {
+		yield call(warnAboutInvalidServerUrl, rootWindow, serverUrl, error);
+	}
+
+	yield put({ type: DEEP_LINKS_SERVER_ADDED, payload: server });
+	yield put({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
+	yield call(authenticateFromDeepLink, token, userId);
+}
+
+function *performOpenRoom(rootWindow, { host, rid, path }) {
+	const serverUrl = normalizeServerUrl(host);
+	if (!serverUrl) {
+		return;
+	}
+
+	const isServerAdded = yield select(({ servers }) => servers.some((server) => server.url === serverUrl));
+
+	if (isServerAdded) {
+		yield put({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
+		yield call(requestOpenRoom, rid, path);
+		return;
+	}
+
+	const permitted = yield call(askForServerAddition, rootWindow, serverUrl);
+
+	if (!permitted) {
+		return;
+	}
+
+	const { server, error } = yield call(getServerInfo, serverUrl);
+
+	if (error) {
+		yield call(warnAboutInvalidServerUrl, rootWindow, serverUrl, error);
+	}
+
+	yield put({ type: DEEP_LINKS_SERVER_ADDED, payload: server });
+	yield put({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
+	yield call(requestOpenRoom, rid, path);
+}
+
+function *processDeepLink(rootWindow, deepLink) {
+	yield put({ type: DEEP_LINK_TRIGGERED });
+
+	const parsedDeepLink = parseDeepLink(deepLink);
+
+	if (!parsedDeepLink) {
+		return;
+	}
+
+	const { action, args } = parsedDeepLink;
+
 	switch (action) {
 		case 'auth': {
-			yield *processAuth(querystring.parse(query));
+			yield call(performAuthentication, rootWindow, args);
 			break;
 		}
 
 		case 'room': {
-			yield *processRoom(querystring.parse(query));
+			yield call(performOpenRoom, rootWindow, args);
 			break;
 		}
 	}
@@ -55,43 +133,14 @@ function *processDeepLink(link) {
 
 export function *deepLinksSaga(rootWindow) {
 	const args = process.argv.slice(app.isPackaged ? 1 : 2);
-	yield all(args.map((arg) => fork(processDeepLink, arg)));
+	yield all(args.map((arg) => fork(processDeepLink, rootWindow, arg)));
 
 	yield takeEvery(preventedEventEmitterChannel(app, 'open-url'), function *([, url]) {
-		yield fork(processDeepLink, url);
+		yield fork(processDeepLink, rootWindow, url);
 	});
 
 	yield takeEvery(preventedEventEmitterChannel(app, 'second-instance'), function *([, argv]) {
 		const args = argv.slice(app.isPackaged ? 1 : 2);
-		yield all(args.map((arg) => fork(processDeepLink, arg)));
-	});
-
-	yield takeEvery(DEEP_LINK_TRIGGERED, function *({ payload: { url } }) {
-		const selectIsServerAlreadyAdded = createSelector(selectServers, (servers) => servers.some((server) => server.url === url));
-		const isServerAlreadyAdded = yield select(selectIsServerAlreadyAdded);
-
-		if (isServerAlreadyAdded) {
-			yield put({ type: DEEP_LINKS_SERVER_FOCUSED, payload: url });
-			return;
-		}
-
-		const { response } = yield call(dialog.showMessageBox, rootWindow, {
-			type: 'question',
-			buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
-			defaultId: 0,
-			title: t('dialog.addServer.title'),
-			message: t('dialog.addServer.message', { host: url }),
-		});
-
-		if (response === 0) {
-			const result = yield call(validateServerUrl, url);
-
-			if (result !== ValidationResult.OK) {
-				dialog.showErrorBox(t('dialog.addServerError.title'), t('dialog.addServerError.message', { host: url }));
-				return;
-			}
-
-			yield put({ type: DEEP_LINKS_SERVER_ADDED, payload: url });
-		}
+		yield all(args.map((arg) => fork(processDeepLink, rootWindow, arg)));
 	});
 }

@@ -1,4 +1,4 @@
-import { parse } from 'url';
+import url from 'url';
 
 import fetch from 'electron-main-fetch';
 
@@ -13,7 +13,7 @@ export const validateServerUrl = async (serverUrl, timeout = 5000) => {
 		username,
 		password,
 		href,
-	} = parse(serverUrl);
+	} = url.parse(serverUrl);
 	let headers = {};
 
 	if (username && password) {
@@ -45,4 +45,28 @@ export const validateServerUrl = async (serverUrl, timeout = 5000) => {
 		console.error(error);
 		return ValidationResult.INVALID;
 	}
+};
+
+export const normalizeServerUrl = (hostUrl) => {
+	if (typeof hostUrl !== 'string') {
+		return;
+	}
+
+	let parsedUrl = url.parse(hostUrl);
+
+	if (!parsedUrl.hostname && parsedUrl.pathname) {
+		parsedUrl = url.parse(`https://${ parsedUrl.pathname }`);
+	}
+
+	const { protocol, auth, hostname, port, pathname } = parsedUrl;
+
+	if (!protocol || !hostname) {
+		return;
+	}
+
+	return url.format({ protocol, auth, hostname, port, pathname });
+};
+
+export const getServerInfo = async (/* serverUrl */) => {
+	throw Error('unimplemented');
 };

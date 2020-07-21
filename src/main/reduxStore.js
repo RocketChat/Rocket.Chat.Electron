@@ -11,9 +11,6 @@ export const setupReduxStore = () => {
 	const store = createStore(rootReducer, {}, middlewares);
 	replayActionMain(store);
 
-	sagaMiddleware.setContext({
-		store,
-		run: sagaMiddleware.run,
-	});
+	sagaMiddleware.setContext({ store });
 	sagaMiddleware.run(rootSaga);
 };

@@ -1,21 +1,21 @@
 import { spawn, call, take, takeEvery, select } from 'redux-saga/effects';
 import { createStructuredSelector } from 'reselect';
 
-import { dockSaga } from './dock';
-import { trayIconSaga } from './trayIcon';
-import { setupI18next } from '../../i18n';
 import { appReadyChannel } from '../channels';
-import { rootWindowSaga } from './rootWindow';
-import { menuBarSaga } from './menuBar';
-import { touchBarSaga } from './touchBar';
+import { writeToStorage } from '../localStorage';
 import { appSaga } from './app';
 import { deepLinksSaga } from './deepLinks';
+import { dockSaga } from './dock';
+import { menuBarSaga } from './menuBar';
 import { navigationSaga } from './navigation';
-import { updatesSaga } from './updates';
-import { spellCheckingSaga } from './spellChecking';
 import { preferencesSaga } from './preferences';
+import { rootWindowSaga } from './rootWindow';
 import { serversSaga } from './servers';
-import { writeToStorage } from '../localStorage';
+import { setupI18next } from '../../i18n';
+import { spellCheckingSaga } from './spellChecking';
+import { touchBarSaga } from './touchBar';
+import { trayIconSaga } from './trayIcon';
+import { updatesSaga } from './updates';
 
 export function *rootSaga() {
 	yield take(appReadyChannel());

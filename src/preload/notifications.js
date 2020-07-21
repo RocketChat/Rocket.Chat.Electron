@@ -69,11 +69,21 @@ class Notification extends EventEmitter {
 
 	async create({ icon, canReply, ...options }) {
 		if (icon) {
-			icon = await getAvatarUrlAsDataUrl(icon);
+			try {
+				const dataUrl = await getAvatarUrlAsDataUrl(icon);
+				if (dataUrl) {
+					icon = remote.nativeImage.createFromDataURL(dataUrl);
+				} else {
+					icon = undefined;
+				}
+			} catch (error) {
+				console.error(error);
+				icon = undefined;
+			}
 		}
 
 		const notification = new remote.Notification({
-			...icon && { icon: icon && remote.nativeImage.createFromDataURL(icon) },
+			...icon && { icon },
 			hasReply: canReply,
 			...options,
 		});

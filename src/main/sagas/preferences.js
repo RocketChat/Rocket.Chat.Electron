@@ -1,7 +1,12 @@
 import { put, select, call } from 'redux-saga/effects';
 
 import { PREFERENCES_READY } from '../../actions';
-import { selectIsTrayIconEnabled, selectIsSideBarEnabled, selectIsShowWindowOnUnreadChangedEnabled, selectIsMenuBarEnabled } from '../selectors';
+import {
+	selectIsMenuBarEnabled,
+	selectIsShowWindowOnUnreadChangedEnabled,
+	selectIsSideBarEnabled,
+	selectIsTrayIconEnabled,
+} from '../selectors';
 import { readItem, readFromStorage, removeItem } from '../localStorage';
 
 function *loadIsMenuBarEnabled(rootWindow) {

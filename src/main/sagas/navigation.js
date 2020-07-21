@@ -1,57 +1,24 @@
-import fs from 'fs';
-import path from 'path';
 import url from 'url';
 
 import { app, shell } from 'electron';
 import { takeEvery, select, put, race, take, call } from 'redux-saga/effects';
 
-import { preventedEventEmitterChannel } from '../channels';
-import { selectServers, selectTrustedCertificates } from '../selectors';
 import {
 	CERTIFICATE_TRUST_REQUESTED,
-	WEBVIEW_CERTIFICATE_TRUSTED,
-	WEBVIEW_CERTIFICATE_DENIED,
-	CERTIFICATES_UPDATED,
-	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
-	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
 	CERTIFICATES_CLEARED,
-	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-	MENU_BAR_OPEN_URL_CLICKED,
+	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
 	CERTIFICATES_READY,
+	CERTIFICATES_UPDATED,
+	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
+	MENU_BAR_OPEN_URL_CLICKED,
+	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
+	WEBVIEW_CERTIFICATE_DENIED,
+	WEBVIEW_CERTIFICATE_TRUSTED,
 } from '../../actions';
+import { preventedEventEmitterChannel } from '../channels';
 import { readFromStorage } from '../localStorage';
-
-const getConfigurationPath = (filePath, { appData = true } = {}) => path.join(
-	...appData ? [
-		app.getAppPath(),
-		app.getAppPath().endsWith('app.asar') ? '..' : '.',
-	] : [app.getPath('userData')],
-	filePath,
-);
-
-const readConfigurationFile = async (filePath, {
-	appData = true,
-	purgeAfter = false,
-} = {}) => {
-	try {
-		const configurationFilePath = getConfigurationPath(filePath, { appData });
-
-		if (!await fs.promises.stat(filePath).then((stat) => stat.isFile(), () => false)) {
-			return null;
-		}
-
-		const content = JSON.parse(await fs.promises.readFile(configurationFilePath, 'utf8'));
-
-		if (!appData && purgeAfter) {
-			await fs.promises.unlink(configurationFilePath);
-		}
-
-		return content;
-	} catch (error) {
-		console.warn(error);
-		return null;
-	}
-};
+import { selectServers, selectTrustedCertificates } from '../selectors';
+import { readConfigurationFile } from '../fileSystemStorage';
 
 const serializeCertificate = (certificate) => `${ certificate.issuerName }\n${ certificate.data.toString() }`;
 

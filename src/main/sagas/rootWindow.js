@@ -1,4 +1,3 @@
-import fs from 'fs';
 import path from 'path';
 
 import { app, BrowserWindow, Menu, dialog, ipcMain, shell, clipboard, screen } from 'electron';
@@ -58,6 +57,7 @@ import {
 } from '../selectors';
 import { getCorrectionsForMisspelling, getMisspelledWords } from './spellChecking';
 import { readFromStorage } from '../localStorage';
+import { readConfigurationFile } from '../fileSystemStorage';
 
 const createRootWindow = () => {
 	const rootWindow = new BrowserWindow({
@@ -97,47 +97,14 @@ const fetchRootWindowState = (rootWindow) => ({
 	bounds: rootWindow.getNormalBounds(),
 });
 
-const getConfigurationPath = (filePath, { appData = true } = {}) => path.join(
-	...appData ? [
-		app.getAppPath(),
-		app.getAppPath().endsWith('app.asar') ? '..' : '.',
-	] : [app.getPath('userData')],
-	filePath,
-);
-
-const readConfigurationFile = async (filePath, {
-	appData = true,
-	purgeAfter = false,
-} = {}) => {
-	try {
-		const configurationFilePath = getConfigurationPath(filePath, { appData });
-
-		if (!await fs.promises.stat(filePath).then((stat) => stat.isFile(), () => false)) {
-			return null;
-		}
-
-		const content = JSON.parse(await fs.promises.readFile(configurationFilePath, 'utf8'));
-
-		if (!appData && purgeAfter) {
-			await fs.promises.unlink(configurationFilePath);
-		}
-
-		return content;
-	} catch (error) {
-		console.warn(error);
-		return null;
-	}
-};
-
 const isInsideSomeScreen = ({ x, y, width, height }) =>
 	screen.getAllDisplays()
 		.some(({ bounds }) => x >= bounds.x && y >= bounds.y
 			&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
 		);
 
-const loadUserMainWindowState = async () => {
-	const userMainWindowState = await readConfigurationFile('main-window-state.json',
-		{ appData: false, purgeAfter: true });
+const loadWindowStateFromFileSystemStorage = async () => {
+	const userMainWindowState = await readConfigurationFile('main-window-state.json', { appData: false, purgeAfter: true });
 
 	if (!userMainWindowState) {
 		return null;
@@ -165,7 +132,7 @@ const loadUserMainWindowState = async () => {
 };
 
 function *loadMainWindowState(rootWindow) {
-	const userMainWindowState = yield call(loadUserMainWindowState);
+	const userMainWindowState = yield call(loadWindowStateFromFileSystemStorage);
 	if (userMainWindowState) {
 		return userMainWindowState;
 	}

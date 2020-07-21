@@ -1,5 +1,5 @@
-import { eventChannel, channel, buffers } from 'redux-saga';
 import { app } from 'electron';
+import { eventChannel, channel } from 'redux-saga';
 
 export const eventEmitterChannel = (eventEmitter, eventName) =>
 	eventChannel((emit) => {
@@ -43,7 +43,7 @@ export const appReadyChannel = () => {
 };
 
 export const storeChangeChannel = (store, selector, equalityFunction = Object.is) => {
-	const chan = channel(buffers.expanding());
+	const chan = channel();
 
 	let prevValue;
 	const unsubscribe = store.subscribe(() => {

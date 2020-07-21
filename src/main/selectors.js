@@ -24,7 +24,13 @@ export const selectIsUpdatingEnabled = ({ isUpdatingEnabled }) => isUpdatingEnab
 export const selectMainWindowState = ({ mainWindowState }) => mainWindowState ?? {};
 export const selectNewUpdateVersion = ({ newUpdateVersion }) => newUpdateVersion ?? null;
 export const selectOpenDialog = ({ openDialog }) => openDialog ?? null;
-export const selectServers = ({ servers }) => servers ?? [];
+export const selectServers = createSelector(
+	({ servers }) => servers ?? [],
+	defaultMemoize(
+		(servers) => servers,
+		(...args) => Object.is(...args.map((arg) => JSON.stringify(arg))),
+	),
+);
 export const selectSkippedUpdateVersion = ({ skippedUpdateVersion }) => skippedUpdateVersion ?? null;
 export const selectSpellCheckingDictionaries = ({ spellCheckingDictionaries }) => spellCheckingDictionaries ?? [];
 export const selectTrustedCertificates = ({ trustedCertificates }) => trustedCertificates ?? {};
@@ -64,3 +70,5 @@ export const selectCanPaste = createSelector(selectEditFlags, ({ canPaste }) => 
 export const selectCanSelectAll = createSelector(selectEditFlags, ({ canSelectAll }) => canSelectAll);
 
 export const selectIsFullScreenEnabled = createSelector(selectMainWindowState, ({ fullscreen }) => fullscreen);
+
+export const selectIsServerSelected = createSelector(selectCurrentServerUrl, (currentServerUrl) => !!currentServerUrl);

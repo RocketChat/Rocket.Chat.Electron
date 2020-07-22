@@ -62,10 +62,10 @@ const loadSpellCheckingDictionariesFromDirectory = async (dictionariesDirectoryP
 };
 
 function *loadSpellCheckingDictionaries(rootWindow) {
-	const embeddedDictionaries = ['de', 'en-GB', 'en-US', 'es-ES', 'fr', 'pt-BR', 'tr', 'ru'].map((name) => ({
+	const embeddedDictionaries = ['de', 'en-GB', 'en', 'es', 'fr', 'pt', 'tr', 'ru'].map((name) => ({
 		name,
-		aff: path.join(require.resolve(`dictionary-${ name.toLowerCase() }/package.json`), '../index.aff'),
-		dic: path.join(require.resolve(`dictionary-${ name.toLowerCase() }/package.json`), '../index.dic'),
+		aff: require.resolve(`dictionary-${ name.toLowerCase() }/index.aff`),
+		dic: require.resolve(`dictionary-${ name.toLowerCase() }/index.dic`),
 	}));
 
 	const appDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: true });

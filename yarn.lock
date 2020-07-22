@@ -3816,25 +3816,25 @@ dictionary-en-gb@^2.2.2:
   resolved "https://registry.yarnpkg.com/dictionary-en-gb/-/dictionary-en-gb-2.2.2.tgz#836ffaf70080977fdceb6ad769b5d22d1106c9c0"
   integrity sha512-36Pz/2BGmJfXtAo5+IGOi+U6gwtxFsFXFJMOX0FC1z2YeLd1IXkxsfAhieC06OrdGie3SqCZmUOYeYgct5Hzzw==
 
-dictionary-en-us@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/dictionary-en-us/-/dictionary-en-us-3.0.0.tgz#1dec2716099f46a2b3577c401b278dc5fd28f1bc"
-  integrity sha512-hH033rB5pdVb51QBUBleq8z5XajVrs2tVRe26ZvIJzf5/c8BwZKlPXhr7rrW39AxZz5RQQhPpC/RMbmWtWtBUg==
+dictionary-en@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/dictionary-en/-/dictionary-en-3.0.1.tgz#bebcd9efcd7e2adf45470eb8cded9ea6010ad45e"
+  integrity sha512-IMVLlTXYGlKwmzTMvRzLDx/BCl9Tq3l56xY7URaH4eZMIufl7myaaXJJyTH6qdjXOxKMOkzE2t3rp3Ql7QciBA==
 
-dictionary-es-es@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/dictionary-es-es/-/dictionary-es-es-2.0.0.tgz#ea41fa0efd273fd73e5ab0fb8eaba39e6bc90b25"
-  integrity sha512-/emSetXbySTmygtnOxqSeJpWKyjKlcy5ldxbSAQW1QOpD2KwBp8O1IzpA/g5McCgi6Mz/UyTQlDLyrUjZsA2wQ==
+dictionary-es@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/dictionary-es/-/dictionary-es-3.0.1.tgz#38a1d72732ab1d3ecadab94241b041b09b2d9d3d"
+  integrity sha512-3fVNS9Y8h2RTreELq2Sq33Ue/eATiJHG/C2CIcXyCxU0BCCW57s1dNLwGH5SGJUDmnPrNNluZWqAKmGcUZgYbQ==
 
 dictionary-fr@^2.5.1:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/dictionary-fr/-/dictionary-fr-2.5.1.tgz#c91db15820664ed213f25f49e2d370012ff31ca0"
   integrity sha512-+qxBM3HeRuY8XkIYDnn+Av9Wk0WM8jVFedYuw9EpPGBAU33tntLTtzxbJd6QEipJbj+Dbnb6b3dMw8tAWpx4eg==
 
-dictionary-pt-br@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/dictionary-pt-br/-/dictionary-pt-br-3.0.0.tgz#d5982ea2c002da574a491ac7bd9de1556666d660"
-  integrity sha512-04zDhjSSrCmKNgMUb/ENK8c12qJvpoa1kGjcJeiy41mrme8ypzBYS9qC+HfLd+kG41ubMekEVGLRbwsMA5NXBg==
+dictionary-pt@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/dictionary-pt/-/dictionary-pt-2.0.1.tgz#db712c4e41a8b7f224dab7026dcaf1d3ef0bc174"
+  integrity sha512-DmZ2mF6aF/523yKkethhA3gpQ9Kwp8/dv6H1/naWvxzjV1Csf5k3tHYTskQihWPpf+sYF5Z3rcl2waRi+aWbOg==
 
 dictionary-ru@^2.0.2:
   version "2.0.2"

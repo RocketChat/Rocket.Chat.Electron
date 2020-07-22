@@ -47,6 +47,7 @@
     "electron-main-fetch": "^1.0.0",
     "electron-redux": "^1.5.3",
     "electron-reloader": "^1.0.1",
+    "electron-store": "^6.0.0",
     "electron-updater": "^4.3.1",
     "i18next": "^19.6.2",
     "i18next-node-fs-backend": "^2.1.3",

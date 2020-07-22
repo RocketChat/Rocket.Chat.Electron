@@ -1,7 +1,6 @@
-import { spawn, call, take, takeEvery, select } from 'redux-saga/effects';
+import { spawn, call, takeEvery, select, getContext } from 'redux-saga/effects';
 import { createStructuredSelector } from 'reselect';
 
-import { appReadyChannel } from '../channels';
 import { writeToStorage } from '../localStorage';
 import { appSaga } from './app';
 import { deepLinksSaga } from './deepLinks';
@@ -11,19 +10,16 @@ import { navigationSaga } from './navigation';
 import { preferencesSaga } from './preferences';
 import { rootWindowSaga } from './rootWindow';
 import { serversSaga } from './servers';
-import { setupI18next } from '../../i18n';
 import { spellCheckingSaga } from './spellChecking';
 import { touchBarSaga } from './touchBar';
 import { trayIconSaga } from './trayIcon';
 import { updatesSaga } from './updates';
 
 export function *rootSaga() {
-	yield take(appReadyChannel());
-	yield call(setupI18next);
-
-	const rootWindow = yield call(rootWindowSaga);
+	const rootWindow = yield getContext('rootWindow');
 
 	yield spawn(appSaga, rootWindow);
+	yield spawn(rootWindowSaga, rootWindow);
 	yield spawn(preferencesSaga, rootWindow);
 	yield spawn(serversSaga, rootWindow);
 	yield spawn(deepLinksSaga, rootWindow);

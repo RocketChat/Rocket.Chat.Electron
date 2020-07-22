@@ -1,8 +1,6 @@
-import path from 'path';
-
-import { app, BrowserWindow, Menu, dialog, ipcMain, shell, clipboard, screen } from 'electron';
+import { app, Menu, dialog, ipcMain, shell, clipboard, screen } from 'electron';
 import { t } from 'i18next';
-import { takeEvery, select, put, call, getContext, spawn, take } from 'redux-saga/effects';
+import { call, getContext, put, select, spawn, takeEvery } from 'redux-saga/effects';
 import { createSelector } from 'reselect';
 
 import {
@@ -58,34 +56,6 @@ import {
 import { getCorrectionsForMisspelling, getMisspelledWords } from './spellChecking';
 import { readFromStorage } from '../localStorage';
 import { readConfigurationFile } from '../fileSystemStorage';
-
-const createRootWindow = () => {
-	const rootWindow = new BrowserWindow({
-		width: 1000,
-		height: 600,
-		minWidth: 400,
-		minHeight: 400,
-		titleBarStyle: 'hidden',
-		backgroundColor: '#2f343d',
-		show: false,
-		webPreferences: {
-			webviewTag: true,
-			nodeIntegration: true,
-		},
-	});
-
-	rootWindow.addListener('close', (event) => {
-		event.preventDefault();
-	});
-
-	rootWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
-		delete webPreferences.enableBlinkFeatures;
-	});
-
-	rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/app.html'));
-
-	return rootWindow;
-};
 
 const fetchRootWindowState = (rootWindow) => ({
 	focused: rootWindow.isFocused(),
@@ -627,10 +597,7 @@ function *watchRootWindow(rootWindow, store) {
 	});
 }
 
-export function *rootWindowSaga() {
-	const rootWindow = createRootWindow();
-	yield take(eventEmitterChannel(rootWindow, 'ready-to-show'));
-
+export function *rootWindowSaga(rootWindow) {
 	const store = yield getContext('store');
 
 	yield spawn(watchRootWindow, rootWindow, store);

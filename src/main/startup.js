@@ -7,7 +7,7 @@ export const relaunchApp = (...args) => {
 	app.exit();
 };
 
-export const handleStartup = () => {
+export const handleStartup = (next) => {
 	app.setAsDefaultProtocolClient('rocketchat');
 	app.setAppUserModelId('chat.rocket');
 
@@ -25,6 +25,7 @@ export const handleStartup = () => {
 
 	if (!canStart) {
 		app.exit();
+		return;
 	}
 
 	if (args.includes('--disable-gpu')) {
@@ -33,4 +34,6 @@ export const handleStartup = () => {
 		app.commandLine.appendSwitch('--disable-accelerated-2d-canvas');
 		app.commandLine.appendSwitch('--disable-gpu');
 	}
+
+	next();
 };

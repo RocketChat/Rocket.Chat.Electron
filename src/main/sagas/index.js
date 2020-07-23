@@ -1,6 +1,6 @@
-import { spawn, call, takeEvery, select, getContext, put } from 'redux-saga/effects';
+import { spawn, call, takeEvery, select, put, setContext } from 'redux-saga/effects';
 
-import { takeEveryForApp } from './app';
+import { waitForAppReady, watchApp } from './app';
 import { takeEveryForDeepLinks, processDeepLinksInArgs } from './deepLinks';
 import { handleDock } from './dock';
 import { handleMenuBar } from './menuBar';
@@ -14,10 +14,22 @@ import { handleTrayIcon } from './trayIcon';
 import { updatesSaga } from './updates';
 import { selectPersistableValues } from '../selectors';
 import { PREFERENCES_READY, CERTIFICATES_READY, SERVERS_READY } from '../../actions';
+import { createRootWindow } from '../rootWindow';
+import { setupI18next } from '../i18n';
+import { createElectronStore } from '../electronStore';
 
-export function *rootSaga() {
-	const rootWindow = yield getContext('rootWindow');
-	const electronStore = yield getContext('electronStore');
+export function *rootSaga({ reduxStore }) {
+	yield setContext({ reduxStore, store: reduxStore });
+
+	const electronStore = yield call(createElectronStore);
+	yield setContext({ electronStore });
+
+	yield *waitForAppReady();
+
+	yield call(setupI18next);
+
+	const rootWindow = yield call(createRootWindow);
+	yield setContext({ rootWindow });
 
 	const defaultValues = yield select(selectPersistableValues);
 
@@ -73,7 +85,7 @@ export function *rootSaga() {
 
 	yield *applyMainWindowState(persistedValues.mainWindowState);
 
-	yield spawn(takeEveryForApp);
+	yield spawn(watchApp);
 	yield spawn(takeEveryForDeepLinks);
 	yield spawn(takeEveryForNavigation);
 	yield spawn(rootWindowSaga, rootWindow);

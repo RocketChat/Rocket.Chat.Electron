@@ -23,10 +23,8 @@ const normalizeLocale = (locale) => {
 	return countryCode ? `${ languageCode }-${ countryCode }` : languageCode;
 };
 
-export const setupI18next = async () => {
-	await app.whenReady();
-
-	await i18next
+export const setupI18next = () =>
+	i18next
 		.use(i18nextNodeFileSystemBackend)
 		.init({
 			lng: normalizeLocale(app.getLocale()),
@@ -45,4 +43,3 @@ export const setupI18next = async () => {
 			},
 			initImmediate: true,
 		});
-};

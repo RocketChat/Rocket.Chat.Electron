@@ -8,16 +8,7 @@ import { rootSaga } from './sagas';
 export const setupReduxStore = () => {
 	const sagaMiddleware = createSagaMiddleware();
 	const middlewares = applyMiddleware(triggerAlias, sagaMiddleware, forwardToRenderer);
-	const store = createStore(rootReducer, {}, middlewares);
-	replayActionMain(store);
-
-	sagaMiddleware.setContext({ store });
-	sagaMiddleware.run(rootSaga);
-};
-
-export const createReduxStore = (sagaMiddleware) => {
-	const middlewares = applyMiddleware(triggerAlias, sagaMiddleware, forwardToRenderer);
-	const store = createStore(rootReducer, {}, middlewares);
-	replayActionMain(store);
-	return store;
+	const reduxStore = createStore(rootReducer, {}, middlewares);
+	replayActionMain(reduxStore);
+	sagaMiddleware.run(rootSaga, { reduxStore });
 };

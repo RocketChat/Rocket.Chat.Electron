@@ -11,7 +11,11 @@ import { eventEmitterChannel } from '../channels';
 import { askForAppDataReset } from '../dialogs';
 import { relaunchApp } from '../startup';
 
-export function *takeEveryForApp() {
+export function *waitForAppReady() {
+	yield call(app.whenReady);
+}
+
+export function *watchApp() {
 	yield takeEvery(eventEmitterChannel(app, 'window-all-closed'), function *() {
 		app.quit();
 	});

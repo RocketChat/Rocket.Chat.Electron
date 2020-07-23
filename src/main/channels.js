@@ -1,4 +1,3 @@
-import { app } from 'electron';
 import { eventChannel, channel } from 'redux-saga';
 
 export const eventEmitterChannel = (eventEmitter, eventName) =>
@@ -30,17 +29,6 @@ export const preventedEventEmitterChannel = (eventEmitter, eventName) =>
 			eventEmitter.removeListener(eventName, eventListener);
 		};
 	});
-
-export const appReadyChannel = () => {
-	const chan = channel();
-
-	app.whenReady().then(() => {
-		chan.put([]);
-		chan.close();
-	});
-
-	return chan;
-};
 
 export const storeChangeChannel = (store, selector, equalityFunction = Object.is) => {
 	const chan = channel();

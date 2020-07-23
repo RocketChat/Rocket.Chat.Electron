@@ -11,7 +11,6 @@ import {
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 } from '../../actions';
-import { readFromStorage, writeToStorage } from '../localStorage';
 
 const getConfigurationPath = (filePath, { appData = true } = {}) => path.join(
 	...appData ? [
@@ -61,7 +60,7 @@ const loadSpellCheckingDictionariesFromDirectory = async (dictionariesDirectoryP
 	}
 };
 
-function *loadSpellCheckingDictionaries(rootWindow) {
+function *loadSpellCheckingDictionaries() {
 	const embeddedDictionaries = ['de', 'en', 'en-GB', 'es', 'fr', 'pt', 'tr', 'ru'].map((name) => ({
 		name,
 		aff: require.resolve(`dictionary-${ name.toLowerCase() }/index.aff`),
@@ -80,7 +79,11 @@ function *loadSpellCheckingDictionaries(rootWindow) {
 
 	const prevSpellCheckingDictionaries = yield select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
 
-	const enabledDictionaries = yield call(readFromStorage, rootWindow, 'enabledSpellCheckingDictionaries', [app.getLocale()]);
+	const enabledDictionaries = prevSpellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name);
+	if (enabledDictionaries.length === 0) {
+		enabledDictionaries.push(app.getLocale().replace('_', '-'));
+		enabledDictionaries.push(app.getLocale().replace('-', '_'));
+	}
 
 	return [
 		...prevSpellCheckingDictionaries,
@@ -124,11 +127,10 @@ function *toggleDictionary({ name, enabled, dic, aff }) {
 	}
 }
 
-function *takeEvents(rootWindow) {
+function *takeEvents() {
 	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, function *() {
 		const spellCheckingDictionaries = yield select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
 		yield all(spellCheckingDictionaries.map(toggleDictionary));
-		yield call(writeToStorage, rootWindow, 'enabledSpellCheckingDictionaries', Array.from(spellCheckers.keys()));
 	});
 
 	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, function *({ payload: filePaths }) {

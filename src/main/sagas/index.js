@@ -1,19 +1,21 @@
-import { spawn, call, takeEvery, select, put, setContext } from 'redux-saga/effects';
+import { spawn, call, select, put, setContext, getContext } from 'redux-saga/effects';
 
-import { PREFERENCES_READY, CERTIFICATES_READY, SERVERS_READY } from '../../actions';
+import {
+	PREFERENCES_READY,
+	CERTIFICATES_READY,
+	SERVERS_READY,
+} from '../../actions';
 import { setupDock } from '../ui/dock';
 import { setupMenuBar } from '../ui/menuBar';
 import { setupTouchBar } from '../ui/touchBar';
 import { setupTrayIcon } from '../ui/trayIcon';
-import { createElectronStore } from '../electronStore';
+import { setupElectronStore, unlockAutoPersistenceOnElectronStore } from '../electronStore';
 import { setupI18next } from '../i18n';
-import { createRootWindow } from '../rootWindow';
 import { selectPersistableValues } from '../selectors';
 import { waitForAppReady, watchApp } from './app';
 import { takeEveryForDeepLinks, processDeepLinksInArgs } from './deepLinks';
 import { takeEveryForNavigation, migrateTrustedCertificates } from './navigation';
-import { migratePreferences } from './preferences';
-import { rootWindowSaga, migrateRootWindowState, applyMainWindowState } from './rootWindow';
+import { rootWindowSaga, migrateRootWindowState, applyMainWindowState, migratePreferences, setupRootWindow } from './rootWindow';
 import { migrateServers } from './servers';
 import { spellCheckingSaga } from './spellChecking';
 import { updatesSaga } from './updates';
@@ -21,17 +23,17 @@ import { updatesSaga } from './updates';
 export function *rootSaga({ reduxStore }) {
 	yield setContext({ reduxStore });
 
-	const electronStore = yield call(createElectronStore);
-	yield setContext({ electronStore });
-
+	yield *setupElectronStore();
 	yield *waitForAppReady();
-
 	yield call(setupI18next);
 
-	const rootWindow = yield call(createRootWindow);
-	yield setContext({ rootWindow });
+	yield *setupRootWindow();
+
+	const rootWindow = yield getContext('rootWindow');
 
 	const defaultValues = yield select(selectPersistableValues);
+
+	const electronStoreValues = Object.fromEntries(Array.from(yield getContext('electronStore')));
 
 	const localStorage = yield call(() => rootWindow.webContents.executeJavaScript('({...localStorage})'));
 	const localStorageValues = Object.fromEntries(
@@ -45,12 +47,10 @@ export function *rootSaga({ reduxStore }) {
 			}),
 	);
 
-	const electronStoreValues = Object.fromEntries(Array.from(electronStore));
-
 	const persistedValues = selectPersistableValues({
 		...defaultValues,
-		...localStorageValues,
 		...electronStoreValues,
+		...localStorageValues,
 	});
 
 	yield call(migratePreferences, persistedValues, localStorage);
@@ -97,12 +97,7 @@ export function *rootSaga({ reduxStore }) {
 	yield spawn(setupTouchBar);
 	yield spawn(setupTrayIcon);
 
-	yield takeEvery('*', function *() {
-		const values = yield select(selectPersistableValues);
-		for (const [key, value] of Object.entries(values)) {
-			electronStore.set(key, value);
-		}
-	});
+	yield *unlockAutoPersistenceOnElectronStore();
 
-	yield call(processDeepLinksInArgs);
+	yield *processDeepLinksInArgs();
 }

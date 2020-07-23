@@ -1,6 +1,8 @@
-import { app, Menu, dialog, ipcMain, shell, clipboard, screen } from 'electron';
+import path from 'path';
+
+import { app, Menu, dialog, ipcMain, shell, clipboard, screen, BrowserWindow } from 'electron';
 import { t } from 'i18next';
-import { call, getContext, put, select, spawn, takeEvery } from 'redux-saga/effects';
+import { call, getContext, put, select, spawn, takeEvery, setContext } from 'redux-saga/effects';
 import { createSelector } from 'reselect';
 
 import {
@@ -53,6 +55,41 @@ import {
 } from '../selectors';
 import { getCorrectionsForMisspelling, getMisspelledWords } from './spellChecking';
 import { readConfigurationFile } from '../fileSystemStorage';
+
+const createRootWindow = async () => {
+	await app.whenReady();
+
+	const rootWindow = new BrowserWindow({
+		width: 1000,
+		height: 600,
+		minWidth: 400,
+		minHeight: 400,
+		titleBarStyle: 'hidden',
+		backgroundColor: '#2f343d',
+		show: false,
+		webPreferences: {
+			webviewTag: true,
+			nodeIntegration: true,
+		},
+	});
+
+	rootWindow.addListener('close', (event) => {
+		event.preventDefault();
+	});
+
+	rootWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
+		delete webPreferences.enableBlinkFeatures;
+	});
+
+	rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/app.html'));
+
+	return new Promise((resolve) => {
+		rootWindow.on('ready-to-show', () => {
+			resolve(rootWindow);
+		});
+	});
+};
+
 
 const fetchRootWindowState = (rootWindow) => ({
 	focused: rootWindow.isFocused(),
@@ -584,4 +621,27 @@ export function *rootWindowSaga(rootWindow) {
 	yield spawn(watchRootWindow, rootWindow, store);
 
 	return rootWindow;
+}
+
+export const migratePreferences = (persistedValues, localStorage) => {
+	if (localStorage.autohideMenu) {
+		persistedValues.isMenuBarEnabled = localStorage.autohideMenu !== 'true';
+	}
+
+	if (localStorage.showWindowOnUnreadChanged) {
+		persistedValues.isShowWindowOnUnreadChangedEnabled = localStorage.showWindowOnUnreadChanged === 'true';
+	}
+
+	if (localStorage['sidebar-closed']) {
+		persistedValues.isSideBarEnabled = localStorage['sidebar-closed'] !== 'true';
+	}
+
+	if (localStorage.hideTray) {
+		persistedValues.isTrayIconEnabled = localStorage.hideTray !== 'true';
+	}
+};
+
+export function *setupRootWindow() {
+	const rootWindow = yield call(createRootWindow);
+	yield setContext({ rootWindow });
 }

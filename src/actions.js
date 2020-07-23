@@ -10,6 +10,7 @@ export const CERTIFICATES_UPDATED = 'certificates/updated';
 export const DEEP_LINK_TRIGGERED = 'deep-link/triggered';
 export const DEEP_LINKS_SERVER_ADDED = 'deep-links/server-added';
 export const DEEP_LINKS_SERVER_FOCUSED = 'deep-links/server-focused';
+export const ELECTRON_STORE_READY_TO_PERSIST = 'electron-store/ready-to-persist';
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED = 'loading-error-view/reload-server-clicked';
 export const MENU_BAR_ABOUT_CLICKED = 'menu-bar/about-clicked';
 export const MENU_BAR_ADD_NEW_SERVER_CLICKED = 'menu-bar/add-new-server-clicked';

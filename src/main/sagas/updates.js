@@ -19,7 +19,6 @@ import {
 	selectIsUpdatingEnabled,
 	selectSkippedUpdateVersion,
 } from '../selectors';
-import { readFromStorage } from '../localStorage';
 import { readConfigurationFile } from '../fileSystemStorage';
 
 const isUpdatingAllowed = (process.platform === 'linux' && !!process.env.APPIMAGE)
@@ -89,7 +88,7 @@ const loadUserConfiguration = async (configuration) => {
 	}
 };
 
-function *loadConfiguration(rootWindow) {
+function *loadConfiguration() {
 	const configuration = yield select(({
 		isEachUpdatesSettingConfigurable,
 		isUpdatingEnabled,
@@ -108,10 +107,6 @@ function *loadConfiguration(rootWindow) {
 	if (forced) {
 		return configuration;
 	}
-
-	configuration.isUpdatingEnabled = yield call(readFromStorage, rootWindow, 'isUpdatingEnabled', configuration.isUpdatingEnabled);
-	configuration.doCheckForUpdatesOnStartup = yield call(readFromStorage, rootWindow, 'doCheckForUpdatesOnStartup', configuration.doCheckForUpdatesOnStartup);
-	configuration.skippedUpdateVersion = yield call(readFromStorage, rootWindow, 'skippedUpdateVersion', configuration.skippedUpdateVersion);
 
 	yield call(loadUserConfiguration, configuration);
 

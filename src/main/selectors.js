@@ -1,11 +1,9 @@
 import { createSelector, createSelectorCreator, defaultMemoize, createStructuredSelector } from 'reselect';
-import { app, webContents } from 'electron';
+import { webContents } from 'electron';
 
 const isArrayEquals = (a, b) => Object.is(a, b) || (a.length === b.length && a.every((x, i) => Object.is(x, b[i])));
 
 const createArraySelector = createSelectorCreator(defaultMemoize, isArrayEquals);
-
-export const selectAppName = () => app.name;
 
 export const selectCurrentServerUrl = ({ currentServerUrl }) => currentServerUrl ?? null;
 export const selectDoCheckForUpdatesOnStartup = ({ doCheckForUpdatesOnStartup }) => doCheckForUpdatesOnStartup ?? true;

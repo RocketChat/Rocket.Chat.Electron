@@ -19,7 +19,7 @@ import { setupI18next } from '../i18n';
 import { createElectronStore } from '../electronStore';
 
 export function *rootSaga({ reduxStore }) {
-	yield setContext({ reduxStore, store: reduxStore });
+	yield setContext({ reduxStore });
 
 	const electronStore = yield call(createElectronStore);
 	yield setContext({ electronStore });

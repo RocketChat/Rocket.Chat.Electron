@@ -49,12 +49,9 @@ import {
 	selectIsTrayIconEnabled,
 	selectIsShowWindowOnUnreadChangedEnabled,
 	selectSpellCheckingDictionaries,
-	selectInstalledSpellCheckingDictionariesDirectoryPath,
 	selectFocusedWebContents,
-	selectMainWindowState,
 } from '../selectors';
 import { getCorrectionsForMisspelling, getMisspelledWords } from './spellChecking';
-import { readFromStorage } from '../localStorage';
 import { readConfigurationFile } from '../fileSystemStorage';
 
 const fetchRootWindowState = (rootWindow) => ({
@@ -73,46 +70,32 @@ const isInsideSomeScreen = ({ x, y, width, height }) =>
 			&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
 		);
 
-const loadWindowStateFromFileSystemStorage = async () => {
+export const migrateRootWindowState = async (persistedValues) => {
 	const userMainWindowState = await readConfigurationFile('main-window-state.json', { appData: false, purgeAfter: true });
 
-	if (!userMainWindowState) {
-		return null;
+	if (!userMainWindowState || typeof userMainWindowState !== 'object') {
+		return;
 	}
 
-	const {
-		x,
-		y,
-		width,
-		height,
-		isMaximized,
-		isMinimized,
-		isHidden,
-	} = userMainWindowState;
-
-	return {
+	Object.assign(persistedValues.mainWindowState, {
 		focused: true,
-		visible: !isHidden,
-		maximized: isMaximized,
-		minimized: isMinimized,
+		visible: !(userMainWindowState?.isHidden ?? !persistedValues.mainWindowState.visible),
+		maximized: userMainWindowState.isMaximized ?? persistedValues.mainWindowState.maximized,
+		minimized: userMainWindowState.isMinimized ?? persistedValues.mainWindowState.minimized,
 		fullscreen: false,
-		normal: !isMinimized && !isMaximized,
-		bounds: { x, y, width, height },
-	};
+		normal: !(userMainWindowState.isMinimized || userMainWindowState.isMaximized) ?? persistedValues.mainWindowState.normal,
+		bounds: {
+			x: userMainWindowState.x ?? persistedValues.mainWindowState.bounds?.x,
+			y: userMainWindowState.y ?? persistedValues.mainWindowState.bounds?.y,
+			width: userMainWindowState.width ?? persistedValues.mainWindowState.bounds?.width,
+			height: userMainWindowState.height ?? persistedValues.mainWindowState.bounds?.height,
+		},
+	});
 };
 
-function *loadMainWindowState(rootWindow) {
-	const userMainWindowState = yield call(loadWindowStateFromFileSystemStorage);
-	if (userMainWindowState) {
-		return userMainWindowState;
-	}
+export function *applyMainWindowState(mainWindowState) {
+	const rootWindow = yield getContext('rootWindow');
 
-	const initialMainWindowState = yield select(selectMainWindowState);
-
-	return yield call(readFromStorage, rootWindow, 'mainWindowState', initialMainWindowState);
-}
-
-function *applyMainWindowState(rootWindow, mainWindowState) {
 	let { x, y } = mainWindowState.bounds;
 	const { width, height } = mainWindowState.bounds;
 	if (!isInsideSomeScreen({ x, y, width, height })) {
@@ -404,7 +387,6 @@ function *watchRootWindow(rootWindow, store) {
 
 	yield takeEvery(WEBVIEW_CONTEXT_MENU_POPPED_UP, function *({ payload: params }) {
 		const dictionaries = yield select(selectSpellCheckingDictionaries);
-		const dictionariesDirectoryPath = yield select(selectInstalledSpellCheckingDictionariesDirectoryPath);
 
 		const webContents = yield select(selectFocusedWebContents);
 
@@ -420,7 +402,6 @@ function *watchRootWindow(rootWindow, store) {
 			const handleBrowserForLanguage = async () => {
 				const { filePaths } = await dialog.showOpenDialog(rootWindow, {
 					title: t('dialog.loadDictionary.title'),
-					defaultPath: dictionariesDirectoryPath,
 					filters: [
 						{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['dic', 'aff'] },
 						{ name: t('dialog.loadDictionary.allFiles'), extensions: ['*'] },
@@ -598,12 +579,9 @@ function *watchRootWindow(rootWindow, store) {
 }
 
 export function *rootWindowSaga(rootWindow) {
-	const store = yield getContext('store');
+	const store = yield getContext('reduxStore');
 
 	yield spawn(watchRootWindow, rootWindow, store);
-
-	const mainWindowState = yield *loadMainWindowState(rootWindow);
-	yield *applyMainWindowState(rootWindow, mainWindowState);
 
 	return rootWindow;
 }

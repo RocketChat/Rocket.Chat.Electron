@@ -1,58 +1,41 @@
-import { app, nativeTheme, Tray, Menu } from 'electron';
+import { app, nativeTheme, Menu, Tray } from 'electron';
 import { t } from 'i18next';
-import { createSelector, createStructuredSelector } from 'reselect';
-import { select, takeEvery, getContext } from 'redux-saga/effects';
+import { getContext, put, select, takeEvery } from 'redux-saga/effects';
+import { channel } from 'redux-saga';
+import { createSelector } from 'reselect';
 
-import { getTrayIconPath, getAppIconPath } from '../icons';
 import {
 	TRAY_ICON_TOGGLE_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
 } from '../../actions';
 import { eventEmitterChannel, storeChangeChannel } from '../channels';
+import { getTrayIconPath, getAppIconPath } from '../icons';
+import { selectIsTrayIconEnabled, selectIsMainWindowVisible, selectGlobalBadge } from '../selectors';
 
-const selectAppName = () => app.name;
-const selectIsMainWindowVisible = ({ mainWindowState: { visible } }) => visible;
-const selectIsTrayIconEnabled = ({ isTrayIconEnabled }) => isTrayIconEnabled;
+const selectTitle = createSelector(selectGlobalBadge, (badge) => (Number.isInteger(badge) ? String(badge) : ''));
 
-const selectBadges = ({ servers }) => servers.map(({ badge }) => badge);
-const selectBadge = createSelector(selectBadges, (badges) => {
-	const mentionCount = badges
-		.filter((badge) => Number.isInteger(badge))
-		.reduce((sum, count) => sum + count, 0);
-	return mentionCount || (badges.some((badge) => !!badge) && '•') || null;
+const selectToolTip = createSelector([selectGlobalBadge], (badge) => {
+	if (badge === '•') {
+		return t('tray.tooltip.unreadMessage', { appName: app.name });
+	}
+
+	if (Number.isInteger(badge)) {
+		return t('tray.tooltip.unreadMention', { appName: app.name, count: badge });
+	}
+
+	return t('tray.tooltip.noUnreadMessage', { appName: app.name });
 });
 
-const selectIsDarkModeEnabled = () => nativeTheme.shouldUseDarkColors;
+const toggleClickChannel = channel();
+const quitClickChannel = channel();
 
-const selectImage = createSelector(
-	[selectBadge, selectIsDarkModeEnabled],
-	(badge, isDarkModeEnabled) => getTrayIconPath({ badge, dark: isDarkModeEnabled }),
-);
+export function *handleTrayIcon() {
+	const store = yield getContext('reduxStore');
 
-const selectTitle = createSelector(
-	selectBadge,
-	(badge) => (Number.isInteger(badge) ? String(badge) : ''),
-);
-
-const selectToolTip = createSelector(
-	[selectAppName, selectBadge],
-	(appName, badge) => {
-		if (badge === '•') {
-			return t('tray.tooltip.unreadMessage', { appName });
-		}
-
-		if (Number.isInteger(badge)) {
-			return t('tray.tooltip.unreadMention', { appName, count: badge });
-		}
-
-		return t('tray.tooltip.noUnreadMessage', { appName });
-	},
-);
-
-export function *trayIconSaga() {
 	let trayIcon = null;
 
-	const store = yield getContext('store');
+	const selectImage = createSelector([selectGlobalBadge], (badge) =>
+		getTrayIconPath({ badge, dark: nativeTheme.shouldUseDarkColors }));
 
 	yield takeEvery(storeChangeChannel(store, selectIsTrayIconEnabled), function *([isTrayIconEnabled]) {
 		if (!isTrayIconEnabled) {
@@ -69,15 +52,17 @@ export function *trayIconSaga() {
 		}
 
 		const image = yield select(selectImage);
+
 		trayIcon = new Tray(image);
+
 		trayIcon.addListener('click', () => {
-			const isMainWindowVisible = selectIsMainWindowVisible(store.getState());
-			store.dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: !isMainWindowVisible });
+			toggleClickChannel.put(true);
 		});
+
 		trayIcon.addListener('balloon-click', () => {
-			const isMainWindowVisible = selectIsMainWindowVisible(store.getState());
-			store.dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: !isMainWindowVisible });
+			toggleClickChannel.put(true);
 		});
+
 		trayIcon.addListener('right-click', (event, bounds) => {
 			trayIcon.popUpContextMenu(undefined, bounds);
 		});
@@ -116,32 +101,37 @@ export function *trayIconSaga() {
 		trayIcon.setToolTip(toolTip);
 	});
 
-	const selectMenuTemplate = createSelector(selectIsMainWindowVisible, (isMainWindowVisible) => [
-		{
-			label: isMainWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
-			click: () => store.dispatch({ type: TRAY_ICON_TOGGLE_CLICKED, payload: !isMainWindowVisible }),
-		},
-		{
-			label: t('tray.menu.quit'),
-			click: () => store.dispatch({ type: TRAY_ICON_QUIT_CLICKED }),
-		},
-	]);
-
-	yield takeEvery(storeChangeChannel(store, selectMenuTemplate), function *([menuTemplate]) {
+	yield takeEvery(storeChangeChannel(store, selectIsMainWindowVisible), function *([isMainWindowVisible]) {
 		if (!trayIcon) {
 			return;
 		}
+
+		const menuTemplate = [
+			{
+				label: isMainWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
+				click: () => {
+					toggleClickChannel.put(true);
+				},
+			},
+			{
+				label: t('tray.menu.quit'),
+				click: () => {
+					quitClickChannel.put(true);
+				},
+			},
+		];
 
 		const menu = Menu.buildFromTemplate(menuTemplate);
 		trayIcon.setContextMenu(menu);
 	});
 
-	yield takeEvery(storeChangeChannel(store, createStructuredSelector({
-		appName: selectAppName,
-		isMainWindowVisible: selectIsMainWindowVisible,
-	})), function *([value, prevValue]) {
-		const { appName, isMainWindowVisible } = value;
-		const { isMainWindowVisible: prevIsMainWindowVisible } = prevValue ?? [];
+	yield takeEvery(storeChangeChannel(store, selectIsMainWindowVisible), function *([
+		isMainWindowVisible,
+		prevIsMainWindowVisible,
+	]) {
+		if (!trayIcon) {
+			return;
+		}
 
 		if (!prevIsMainWindowVisible || isMainWindowVisible) {
 			return;
@@ -149,8 +139,17 @@ export function *trayIconSaga() {
 
 		trayIcon.displayBalloon({
 			icon: getAppIconPath(),
-			title: t('tray.balloon.stillRunning.title', { appName }),
-			content: t('tray.balloon.stillRunning.content', { appName }),
+			title: t('tray.balloon.stillRunning.title', { appName: app.name }),
+			content: t('tray.balloon.stillRunning.content', { appName: app.name }),
 		});
+	});
+
+	yield takeEvery(toggleClickChannel, function *() {
+		const isMainWindowVisible = yield select(selectIsMainWindowVisible);
+		yield put({ type: TRAY_ICON_TOGGLE_CLICKED, payload: !isMainWindowVisible });
+	});
+
+	yield takeEvery(quitClickChannel, function *() {
+		yield put({ type: TRAY_ICON_QUIT_CLICKED });
 	});
 }

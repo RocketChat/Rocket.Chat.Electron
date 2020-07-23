@@ -4,12 +4,12 @@ import { takeEvery, getContext } from 'redux-saga/effects';
 import { storeChangeChannel } from '../channels';
 import { selectGlobalBadgeText, selectGlobalBadgeCount } from '../selectors';
 
-export function *dockSaga() {
+export function *handleDock() {
 	if (process.platform !== 'darwin') {
 		return;
 	}
 
-	const store = yield getContext('store');
+	const store = yield getContext('reduxStore');
 
 	yield takeEvery(storeChangeChannel(store, selectGlobalBadgeText), function *([badgeText]) {
 		app.dock.setBadge(badgeText);

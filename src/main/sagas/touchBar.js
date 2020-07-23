@@ -1,6 +1,7 @@
 import { TouchBar, nativeImage, app } from 'electron';
 import { t } from 'i18next';
-import { select, takeEvery, getContext } from 'redux-saga/effects';
+import { channel } from 'redux-saga';
+import { select, takeEvery, getContext, put, call } from 'redux-saga/effects';
 import { createSelector, defaultMemoize } from 'reselect';
 
 import {
@@ -20,53 +21,42 @@ const selectCurrentServer = ({ servers, currentServerUrl }) => servers.find(({ u
 const selectIsMessageBoxFocused = ({ isMessageBoxFocused }) => isMessageBoxFocused;
 const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
 
-export function *touchBarSaga(rootWindow) {
+const serverIndexSelectedChannel = channel();
+
+const formatButtonTouchedChannel = channel();
+
+export function *handleTouchBar() {
 	if (process.platform !== 'darwin') {
 		return;
 	}
-
-	const currentServer = yield select(selectCurrentServer);
-	const servers = yield select(selectServers);
-
-	const store = yield getContext('store');
 
 	const serverSelectionScrubber = new TouchBar.TouchBarScrubber({
 		selectedStyle: 'background',
 		mode: 'free',
 		continuous: false,
-		items: servers.map((server) => ({
-			label: server.title.padEnd(30),
-			icon: server.favicon
-				? nativeImage.createFromDataURL(server.favicon)
-				: null,
-		})),
+		items: [],
 		select: (index) => {
-			const url = (({ servers }) => servers[index].url)(store.getState());
-			store.dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
+			serverIndexSelectedChannel.put(index);
 		},
 	});
 
 	const serverSelectionPopover = new TouchBar.TouchBarPopover({
-		label: currentServer?.title ?? t('touchBar.selectServer'),
-		icon: currentServer?.favicon ? nativeImage.createFromDataURL(currentServer?.favicon) : null,
+		label: t('touchBar.selectServer'),
+		icon: null,
 		items: new TouchBar({
-			items: [
-				serverSelectionScrubber,
-			],
+			items: [serverSelectionScrubber],
 		}),
 		showCloseButton: true,
 	});
-
-	const isMessageBoxFocused = yield select(selectIsMessageBoxFocused);
 
 	const messageBoxFormattingButtons = new TouchBar.TouchBarSegmentedControl({
 		mode: 'buttons',
 		segments: ids.map((id) => ({
 			icon: nativeImage.createFromPath(`${ app.getAppPath() }/app/public/images/touch-bar/${ id }.png`),
-			enabled: isMessageBoxFocused,
+			enabled: false,
 		})),
 		change: (selectedIndex) => {
-			store.dispatch({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: ids[selectedIndex] });
+			formatButtonTouchedChannel.put(ids[selectedIndex]);
 		},
 	});
 
@@ -79,14 +69,19 @@ export function *touchBarSaga(rootWindow) {
 		],
 	});
 
-	rootWindow.setTouchBar(touchBar);
+	function *updateTouchBar() {
+		const rootWindow = yield getContext('rootWindow');
+		rootWindow.setTouchBar(touchBar);
+	}
+
+	const store = yield getContext('reduxStore');
 
 	yield takeEvery(storeChangeChannel(store, selectCurrentServer), function *([currentServer]) {
 		serverSelectionPopover.label = currentServer?.title ?? t('touchBar.selectServer');
 		serverSelectionPopover.icon = currentServer?.favicon
 			? nativeImage.createFromDataURL(currentServer?.favicon)
 			: null;
-		rootWindow.setTouchBar(touchBar);
+		yield call(updateTouchBar);
 	});
 
 	yield takeEvery(storeChangeChannel(store, selectServers), function *([servers]) {
@@ -96,13 +91,22 @@ export function *touchBarSaga(rootWindow) {
 				? nativeImage.createFromDataURL(server.favicon)
 				: null,
 		}));
-		rootWindow.setTouchBar(touchBar);
+		yield call(updateTouchBar);
 	});
 
 	yield takeEvery(storeChangeChannel(store, selectIsMessageBoxFocused), function *([isMessageBoxFocused]) {
 		messageBoxFormattingButtons.segments.forEach((segment) => {
 			segment.enabled = isMessageBoxFocused;
 		});
-		rootWindow.setTouchBar(touchBar);
+		yield call(updateTouchBar);
+	});
+
+	yield takeEvery(serverIndexSelectedChannel, function *(index) {
+		const url = yield select(({ servers }) => servers[index].url);
+		yield put({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
+	});
+
+	yield takeEvery(formatButtonTouchedChannel, function *(id) {
+		yield put({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: id });
 	});
 }

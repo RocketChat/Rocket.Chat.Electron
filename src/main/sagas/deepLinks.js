@@ -2,7 +2,7 @@ import querystring from 'querystring';
 import url from 'url';
 
 import { app } from 'electron';
-import { all, call, fork, put, select, takeEvery } from 'redux-saga/effects';
+import { call, fork, getContext, put, select, takeEvery } from 'redux-saga/effects';
 
 import {
 	DEEP_LINK_TRIGGERED,
@@ -45,7 +45,7 @@ function *requestOpenRoom(/* rid, path */) {
 	throw Error('unimplemented');
 }
 
-function *performAuthentication(rootWindow, { host, token, userId }) {
+function *performAuthentication({ host, token, userId }) {
 	const serverUrl = normalizeServerUrl(host);
 	if (!serverUrl) {
 		return;
@@ -59,7 +59,7 @@ function *performAuthentication(rootWindow, { host, token, userId }) {
 		return;
 	}
 
-	const permitted = yield call(askForServerAddition, rootWindow, serverUrl);
+	const permitted = yield call(askForServerAddition, yield getContext('rootWindow'), serverUrl);
 
 	if (!permitted) {
 		return;
@@ -68,7 +68,7 @@ function *performAuthentication(rootWindow, { host, token, userId }) {
 	const { server, error } = yield call(getServerInfo, serverUrl);
 
 	if (error) {
-		yield call(warnAboutInvalidServerUrl, rootWindow, serverUrl, error);
+		yield call(warnAboutInvalidServerUrl, yield getContext('rootWindow'), serverUrl, error);
 	}
 
 	yield put({ type: DEEP_LINKS_SERVER_ADDED, payload: server });
@@ -76,7 +76,7 @@ function *performAuthentication(rootWindow, { host, token, userId }) {
 	yield call(authenticateFromDeepLink, token, userId);
 }
 
-function *performOpenRoom(rootWindow, { host, rid, path }) {
+function *performOpenRoom({ host, rid, path }) {
 	const serverUrl = normalizeServerUrl(host);
 	if (!serverUrl) {
 		return;
@@ -90,7 +90,7 @@ function *performOpenRoom(rootWindow, { host, rid, path }) {
 		return;
 	}
 
-	const permitted = yield call(askForServerAddition, rootWindow, serverUrl);
+	const permitted = yield call(askForServerAddition, yield getContext('rootWindow'), serverUrl);
 
 	if (!permitted) {
 		return;
@@ -99,7 +99,7 @@ function *performOpenRoom(rootWindow, { host, rid, path }) {
 	const { server, error } = yield call(getServerInfo, serverUrl);
 
 	if (error) {
-		yield call(warnAboutInvalidServerUrl, rootWindow, serverUrl, error);
+		yield call(warnAboutInvalidServerUrl, yield getContext('rootWindow'), serverUrl, error);
 	}
 
 	yield put({ type: DEEP_LINKS_SERVER_ADDED, payload: server });
@@ -107,7 +107,7 @@ function *performOpenRoom(rootWindow, { host, rid, path }) {
 	yield call(requestOpenRoom, rid, path);
 }
 
-function *processDeepLink(rootWindow, deepLink) {
+function *processDeepLink(deepLink) {
 	yield put({ type: DEEP_LINK_TRIGGERED });
 
 	const parsedDeepLink = parseDeepLink(deepLink);
@@ -120,27 +120,35 @@ function *processDeepLink(rootWindow, deepLink) {
 
 	switch (action) {
 		case 'auth': {
-			yield call(performAuthentication, rootWindow, args);
+			yield call(performAuthentication, args);
 			break;
 		}
 
 		case 'room': {
-			yield call(performOpenRoom, rootWindow, args);
+			yield call(performOpenRoom, args);
 			break;
 		}
 	}
 }
 
-export function *deepLinksSaga(rootWindow) {
+export function *processDeepLinksInArgs() {
 	const args = process.argv.slice(app.isPackaged ? 1 : 2);
-	yield all(args.map((arg) => fork(processDeepLink, rootWindow, arg)));
 
+	for (const arg of args) {
+		yield call(processDeepLink, arg);
+	}
+}
+
+export function *takeEveryForDeepLinks() {
 	yield takeEvery(preventedEventEmitterChannel(app, 'open-url'), function *([, url]) {
-		yield fork(processDeepLink, rootWindow, url);
+		yield fork(processDeepLink, url);
 	});
 
 	yield takeEvery(preventedEventEmitterChannel(app, 'second-instance'), function *([, argv]) {
 		const args = argv.slice(app.isPackaged ? 1 : 2);
-		yield all(args.map((arg) => fork(processDeepLink, rootWindow, arg)));
+
+		for (const arg of args) {
+			yield call(processDeepLink, arg);
+		}
 	});
 }

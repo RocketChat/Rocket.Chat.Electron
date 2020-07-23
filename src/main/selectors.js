@@ -1,4 +1,4 @@
-import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect';
+import { createSelector, createSelectorCreator, defaultMemoize, createStructuredSelector } from 'reselect';
 import { app, webContents } from 'electron';
 
 const isArrayEquals = (a, b) => Object.is(a, b) || (a.length === b.length && a.every((x, i) => Object.is(x, b[i])));
@@ -11,7 +11,6 @@ export const selectCurrentServerUrl = ({ currentServerUrl }) => currentServerUrl
 export const selectDoCheckForUpdatesOnStartup = ({ doCheckForUpdatesOnStartup }) => doCheckForUpdatesOnStartup ?? true;
 export const selectEditFlags = ({ editFlags }) => editFlags ?? {};
 export const selectFocusedWebContentsId = ({ focusedWebContentsId }) => focusedWebContentsId ?? -1;
-export const selectInstalledSpellCheckingDictionariesDirectoryPath = ({ installedSpellCheckingDictionariesDirectoryPath }) => installedSpellCheckingDictionariesDirectoryPath ?? null;
 export const selectIsCheckingForUpdates = ({ isCheckingForUpdates }) => isCheckingForUpdates ?? false;
 export const selectIsEachUpdatesSettingConfigurable = ({ isEachUpdatesSettingConfigurable }) => isEachUpdatesSettingConfigurable ?? false;
 export const selectIsMenuBarEnabled = ({ isMenuBarEnabled }) => isMenuBarEnabled ?? true;
@@ -72,3 +71,19 @@ export const selectCanSelectAll = createSelector(selectEditFlags, ({ canSelectAl
 export const selectIsFullScreenEnabled = createSelector(selectMainWindowState, ({ fullscreen }) => fullscreen);
 
 export const selectIsServerSelected = createSelector(selectCurrentServerUrl, (currentServerUrl) => !!currentServerUrl);
+
+export const selectPersistableValues = createStructuredSelector({
+	currentServerUrl: selectCurrentServerUrl,
+	doCheckForUpdatesOnStartup: selectDoCheckForUpdatesOnStartup,
+	isMenuBarEnabled: selectIsMenuBarEnabled,
+	isShowWindowOnUnreadChangedEnabled: selectIsShowWindowOnUnreadChangedEnabled,
+	isSideBarEnabled: selectIsSideBarEnabled,
+	isTrayIconEnabled: selectIsTrayIconEnabled,
+	mainWindowState: selectMainWindowState,
+	servers: selectServers,
+	spellCheckingDictionaries: selectSpellCheckingDictionaries,
+	skippedUpdateVersion: selectSkippedUpdateVersion,
+	trustedCertificates: selectTrustedCertificates,
+});
+
+export const selectIsMainWindowVisible = createSelector(selectMainWindowState, ({ visible }) => visible);

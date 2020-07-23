@@ -1,13 +1,12 @@
 import url from 'url';
 
 import { app, shell } from 'electron';
-import { takeEvery, select, put, race, take, call } from 'redux-saga/effects';
+import { takeEvery, select, put, race, take } from 'redux-saga/effects';
 
 import {
 	CERTIFICATE_TRUST_REQUESTED,
 	CERTIFICATES_CLEARED,
 	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
-	CERTIFICATES_READY,
 	CERTIFICATES_UPDATED,
 	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
 	MENU_BAR_OPEN_URL_CLICKED,
@@ -16,7 +15,6 @@ import {
 	WEBVIEW_CERTIFICATE_TRUSTED,
 } from '../../actions';
 import { preventedEventEmitterChannel } from '../channels';
-import { readFromStorage } from '../localStorage';
 import { selectServers, selectTrustedCertificates } from '../selectors';
 import { readConfigurationFile } from '../fileSystemStorage';
 
@@ -108,40 +106,17 @@ function *handleLogin([, , request, , callback]) {
 	}
 }
 
-const loadUserTrustedCertificates = async (trustedCertificates) => {
+export const migrateTrustedCertificates = async (persistedValues) => {
 	const userTrustedCertificates = await readConfigurationFile('certificate.json', { appData: false, purgeAfter: true });
 
-	if (!userTrustedCertificates) {
+	if (!userTrustedCertificates || typeof userTrustedCertificates !== 'object') {
 		return;
 	}
 
-	try {
-		for (const [host, certificate] of Object.entries(userTrustedCertificates)) {
-			trustedCertificates[host] = certificate;
-		}
-	} catch (error) {
-		console.warn(error);
-	}
+	Object.assign(persistedValues.trustedCertificates, userTrustedCertificates);
 };
 
-function *loadTrustedCertificates(rootWindow) {
-	const trustedCertificates = yield select(({ trustedCertificates }) => trustedCertificates);
-
-	yield call(loadUserTrustedCertificates, trustedCertificates);
-
-	Object.assign(trustedCertificates, yield call(readFromStorage, rootWindow, 'trustedCertificates', {}));
-
-	return trustedCertificates;
-}
-
-export function *navigationSaga(rootWindow) {
-	const trustedCertificates = yield call(loadTrustedCertificates, rootWindow);
-
-	yield put({
-		type: CERTIFICATES_READY,
-		payload: trustedCertificates,
-	});
-
+export function *takeEveryForNavigation() {
 	yield takeEvery(preventedEventEmitterChannel(app, 'login'), handleLogin);
 
 	yield takeEvery(preventedEventEmitterChannel(app, 'certificate-error'), handleCertificateError);

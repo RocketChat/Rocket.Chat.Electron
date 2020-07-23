@@ -377,8 +377,8 @@ const selectMenuBarTemplate = createSelector([
 	selectHelpMenuTemplate,
 ], (...menus) => menus);
 
-export function *menuBarSaga(rootWindow) {
-	const store = yield getContext('store');
+export function *handleMenuBar() {
+	const store = yield getContext('reduxStore');
 
 	yield takeEvery(storeChangeChannel(store, selectMenuBarTemplate), function *([menuBarTemplate]) {
 		const menu = Menu.buildFromTemplate(menuBarTemplate);
@@ -389,6 +389,7 @@ export function *menuBarSaga(rootWindow) {
 		}
 
 		Menu.setApplicationMenu(null);
+		const rootWindow = yield getContext('rootWindow');
 		rootWindow.setMenu(menu);
 	});
 

@@ -62,7 +62,7 @@ const loadSpellCheckingDictionariesFromDirectory = async (dictionariesDirectoryP
 };
 
 function *loadSpellCheckingDictionaries(rootWindow) {
-	const embeddedDictionaries = ['de', 'en-GB', 'en', 'es', 'fr', 'pt', 'tr', 'ru'].map((name) => ({
+	const embeddedDictionaries = ['de', 'en', 'en-GB', 'es', 'fr', 'pt', 'tr', 'ru'].map((name) => ({
 		name,
 		aff: require.resolve(`dictionary-${ name.toLowerCase() }/index.aff`),
 		dic: require.resolve(`dictionary-${ name.toLowerCase() }/index.dic`),
@@ -169,7 +169,6 @@ function *takeEvents(rootWindow) {
 }
 
 export function *spellCheckingSaga(rootWindow) {
-	const installedSpellCheckingDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: false });
 	const spellCheckingDictionaries = yield call(loadSpellCheckingDictionaries, rootWindow);
 
 	yield call(::provider.initialize);
@@ -179,7 +178,6 @@ export function *spellCheckingSaga(rootWindow) {
 	yield put({
 		type: SPELL_CHECKING_READY,
 		payload: {
-			installedSpellCheckingDictionariesDirectoryPath,
 			spellCheckingDictionaries,
 		},
 	});

@@ -4,7 +4,6 @@ import { currentServerUrl } from './currentServerUrl';
 import { doCheckForUpdatesOnStartup } from './doCheckForUpdatesOnStartup';
 import { editFlags } from './editFlags';
 import { focusedWebContentsId } from './focusedWebContentsId';
-import { installedSpellCheckingDictionariesDirectoryPath } from './installedSpellCheckingDictionariesDirectoryPath';
 import { isCheckingForUpdates } from './isCheckingForUpdates';
 import { isEachUpdatesSettingConfigurable } from './isEachUpdatesSettingConfigurable';
 import { isMenuBarEnabled } from './isMenuBarEnabled';
@@ -27,7 +26,6 @@ export const rootReducer = combineReducers({
 	doCheckForUpdatesOnStartup,
 	editFlags,
 	focusedWebContentsId,
-	installedSpellCheckingDictionariesDirectoryPath,
 	isCheckingForUpdates,
 	isEachUpdatesSettingConfigurable,
 	isMenuBarEnabled,

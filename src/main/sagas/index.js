@@ -1,53 +1,96 @@
-import { spawn, call, takeEvery, select, getContext } from 'redux-saga/effects';
-import { createStructuredSelector } from 'reselect';
+import { spawn, call, takeEvery, select, getContext, put } from 'redux-saga/effects';
 
-import { writeToStorage } from '../localStorage';
-import { appSaga } from './app';
-import { deepLinksSaga } from './deepLinks';
-import { dockSaga } from './dock';
-import { menuBarSaga } from './menuBar';
-import { navigationSaga } from './navigation';
-import { preferencesSaga } from './preferences';
-import { rootWindowSaga } from './rootWindow';
-import { serversSaga } from './servers';
+import { takeEveryForApp } from './app';
+import { takeEveryForDeepLinks, processDeepLinksInArgs } from './deepLinks';
+import { handleDock } from './dock';
+import { handleMenuBar } from './menuBar';
+import { takeEveryForNavigation, migrateTrustedCertificates } from './navigation';
+import { migratePreferences } from './preferences';
+import { rootWindowSaga, migrateRootWindowState, applyMainWindowState } from './rootWindow';
+import { migrateServers } from './servers';
 import { spellCheckingSaga } from './spellChecking';
-import { touchBarSaga } from './touchBar';
-import { trayIconSaga } from './trayIcon';
+import { handleTouchBar } from './touchBar';
+import { handleTrayIcon } from './trayIcon';
 import { updatesSaga } from './updates';
+import { selectPersistableValues } from '../selectors';
+import { PREFERENCES_READY, CERTIFICATES_READY, SERVERS_READY } from '../../actions';
 
 export function *rootSaga() {
 	const rootWindow = yield getContext('rootWindow');
+	const electronStore = yield getContext('electronStore');
 
-	yield spawn(appSaga, rootWindow);
+	const defaultValues = yield select(selectPersistableValues);
+
+	const localStorage = yield call(() => rootWindow.webContents.executeJavaScript('({...localStorage})'));
+	const localStorageValues = Object.fromEntries(
+		Object.entries(localStorage)
+			.map(([key, value]) => {
+				try {
+					return [key, JSON.parse(value)];
+				} catch (error) {
+					return [];
+				}
+			}),
+	);
+
+	const electronStoreValues = Object.fromEntries(Array.from(electronStore));
+
+	const persistedValues = selectPersistableValues({
+		...defaultValues,
+		...localStorageValues,
+		...electronStoreValues,
+	});
+
+	yield call(migratePreferences, persistedValues, localStorage);
+	yield call(migrateServers, persistedValues, localStorage);
+	yield call(migrateTrustedCertificates, persistedValues);
+	yield call(migrateRootWindowState, persistedValues);
+
+	yield put({
+		type: PREFERENCES_READY,
+		payload: {
+			isMenuBarEnabled: persistedValues.isMenuBarEnabled,
+			isShowWindowOnUnreadChangedEnabled: persistedValues.isShowWindowOnUnreadChangedEnabled,
+			isSideBarEnabled: persistedValues.isSideBarEnabled,
+			isTrayIconEnabled: persistedValues.isTrayIconEnabled,
+		},
+	});
+
+	yield put({
+		type: CERTIFICATES_READY,
+		payload: persistedValues.trustedCertificates,
+	});
+
+	yield put({
+		type: SERVERS_READY,
+		payload: {
+			servers: persistedValues.servers,
+			currentServerUrl: persistedValues.currentServerUrl,
+		},
+	});
+
+	yield call(() => rootWindow.webContents.executeJavaScript('localStorage.clear()'));
+
+	yield *applyMainWindowState(persistedValues.mainWindowState);
+
+	yield spawn(takeEveryForApp);
+	yield spawn(takeEveryForDeepLinks);
+	yield spawn(takeEveryForNavigation);
 	yield spawn(rootWindowSaga, rootWindow);
-	yield spawn(preferencesSaga, rootWindow);
-	yield spawn(serversSaga, rootWindow);
-	yield spawn(deepLinksSaga, rootWindow);
-	yield spawn(navigationSaga, rootWindow);
 	yield spawn(updatesSaga, rootWindow);
 	yield spawn(spellCheckingSaga, rootWindow);
-	yield spawn(menuBarSaga, rootWindow);
-	yield spawn(touchBarSaga, rootWindow);
-	yield spawn(dockSaga, rootWindow);
-	yield spawn(trayIconSaga, rootWindow);
 
-	const selectPersistableValues = createStructuredSelector({
-		currentServerUrl: ({ currentServerUrl }) => currentServerUrl ?? null,
-		doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }) => doCheckForUpdatesOnStartup ?? true,
-		isMenuBarEnabled: ({ isMenuBarEnabled }) => isMenuBarEnabled ?? true,
-		isShowWindowOnUnreadChangedEnabled: ({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled ?? false,
-		isSideBarEnabled: ({ isSideBarEnabled }) => isSideBarEnabled ?? true,
-		isTrayIconEnabled: ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true,
-		mainWindowState: ({ mainWindowState }) => mainWindowState ?? {},
-		servers: ({ servers }) => servers ?? [],
-		skippedUpdateVersion: ({ skippedUpdateVersion }) => skippedUpdateVersion ?? null,
-		trustedCertificates: ({ trustedCertificates }) => trustedCertificates ?? {},
-	});
+	yield spawn(handleDock);
+	yield spawn(handleMenuBar);
+	yield spawn(handleTouchBar);
+	yield spawn(handleTrayIcon);
 
 	yield takeEvery('*', function *() {
 		const values = yield select(selectPersistableValues);
 		for (const [key, value] of Object.entries(values)) {
-			yield call(writeToStorage, rootWindow, key, value);
+			electronStore.set(key, value);
 		}
 	});
+
+	yield call(processDeepLinksInArgs);
 }

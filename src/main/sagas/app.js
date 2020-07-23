@@ -1,5 +1,5 @@
 import { app } from 'electron';
-import { takeEvery } from 'redux-saga/effects';
+import { takeEvery, getContext, call } from 'redux-saga/effects';
 
 import {
 	MENU_BAR_DISABLE_GPU,
@@ -11,7 +11,7 @@ import { eventEmitterChannel } from '../channels';
 import { askForAppDataReset } from '../dialogs';
 import { relaunchApp } from '../startup';
 
-export function *appSaga(rootWindow) {
+export function *takeEveryForApp() {
 	yield takeEvery(eventEmitterChannel(app, 'window-all-closed'), function *() {
 		app.quit();
 	});
@@ -25,7 +25,7 @@ export function *appSaga(rootWindow) {
 	});
 
 	yield takeEvery(MENU_BAR_RESET_APP_DATA_CLICKED, function *() {
-		const permitted = askForAppDataReset(rootWindow);
+		const permitted = yield call(askForAppDataReset, yield getContext('rootWindow'));
 
 		if (permitted) {
 			relaunchApp('--reset-app-data');

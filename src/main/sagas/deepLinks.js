@@ -10,7 +10,7 @@ import {
 	DEEP_LINKS_SERVER_ADDED,
 } from '../../actions';
 import { preventedEventEmitterChannel } from '../channels';
-import { askForServerAddition, warnAboutInvalidServerUrl } from '../dialogs';
+import { askForServerAddition, warnAboutInvalidServerUrl } from '../ui/dialogs';
 import { normalizeServerUrl, getServerInfo } from '../servers';
 
 const isRocketChatUrl = (parsedUrl) =>
@@ -38,11 +38,11 @@ const parseDeepLink = (deepLink) => {
 };
 
 function *authenticateFromDeepLink(/* token, userId */) {
-	throw Error('unimplemented');
+	throw Error('not implemented');
 }
 
 function *requestOpenRoom(/* rid, path */) {
-	throw Error('unimplemented');
+	throw Error('not implemented');
 }
 
 function *performAuthentication({ host, token, userId }) {

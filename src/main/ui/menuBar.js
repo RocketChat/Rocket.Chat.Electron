@@ -1,8 +1,8 @@
 import { Menu, app } from 'electron';
 import { t } from 'i18next';
-import { getContext, put, takeEvery } from 'redux-saga/effects';
-import { createSelector } from 'reselect';
 import { channel } from 'redux-saga';
+import { getContext, put, takeEvery, call } from 'redux-saga/effects';
+import { createSelector } from 'reselect';
 
 import {
 	MENU_BAR_ABOUT_CLICKED,
@@ -28,7 +28,6 @@ import {
 	MENU_BAR_ZOOM_IN_CLICKED,
 	MENU_BAR_ZOOM_OUT_CLICKED,
 } from '../../actions';
-import { storeChangeChannel } from '../channels';
 import {
 	selectCanCopy,
 	selectCanCut,
@@ -46,11 +45,13 @@ import {
 	selectServers,
 	selectIsServerSelected,
 } from '../selectors';
+import { watchValue } from '../sagas/utils';
+import { getPlatform } from '../app';
 
-const clicksChannel = channel();
+const eventsChannel = channel();
 
 const createActionDispatcher = (actionCreator) => (...args) => {
-	clicksChannel.put(function *click() {
+	eventsChannel.put(function *click() {
 		const action = actionCreator(...args);
 		if (action) {
 			yield put(action);
@@ -377,23 +378,37 @@ const selectMenuBarTemplate = createSelector([
 	selectHelpMenuTemplate,
 ], (...menus) => menus);
 
-export function *handleMenuBar() {
-	const store = yield getContext('reduxStore');
+function *updateApplicationMenu(menu) {
+	yield call(Menu.setApplicationMenu, menu);
+}
 
-	yield takeEvery(storeChangeChannel(store, selectMenuBarTemplate), function *([menuBarTemplate]) {
-		const menu = Menu.buildFromTemplate(menuBarTemplate);
+function *updateRootWindowMenu(menu) {
+	yield call(Menu.setApplicationMenu, null);
+	const rootWindow = yield getContext('rootWindow');
+	yield call(rootWindow.setMenu.bind(rootWindow), menu);
+}
 
-		if (process.platform === 'darwin') {
-			Menu.setApplicationMenu(menu);
+function *watchUpdates() {
+	yield watchValue(selectMenuBarTemplate, function *([menuBarTemplate]) {
+		const menu = yield call(Menu.buildFromTemplate, menuBarTemplate);
+		const platform = yield call(getPlatform);
+
+		if (platform === 'darwin') {
+			yield *updateApplicationMenu(menu);
 			return;
 		}
 
-		Menu.setApplicationMenu(null);
-		const rootWindow = yield getContext('rootWindow');
-		rootWindow.setMenu(menu);
+		yield *updateRootWindowMenu(menu);
 	});
+}
 
-	yield takeEvery(clicksChannel, function *(clickSaga) {
-		yield *clickSaga();
+function *watchEvents() {
+	yield takeEvery(eventsChannel, function *(saga) {
+		yield *saga();
 	});
+}
+
+export function *setupMenuBar() {
+	yield *watchUpdates();
+	yield *watchEvents();
 }

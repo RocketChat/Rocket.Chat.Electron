@@ -85,3 +85,5 @@ export const selectPersistableValues = createStructuredSelector({
 });
 
 export const selectIsMainWindowVisible = createSelector(selectMainWindowState, ({ visible }) => visible);
+
+export const selectCurrentServer = ({ servers, currentServerUrl }) => servers.find(({ url }) => url === currentServerUrl);

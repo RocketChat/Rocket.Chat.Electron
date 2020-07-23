@@ -1,8 +1,8 @@
 import { dialog } from 'electron';
 import { t } from 'i18next';
 
-export const askForAppDataReset = async (rootWindow) => {
-	const { response } = await dialog.showMessageBox(rootWindow, {
+export const askForAppDataReset = async (parentWindow) => {
+	const { response } = await dialog.showMessageBox(parentWindow, {
 		type: 'question',
 		buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
 		defaultId: 1,
@@ -13,8 +13,8 @@ export const askForAppDataReset = async (rootWindow) => {
 	return response === 0;
 };
 
-export const askForServerAddition = async (rootWindow, serverUrl) => {
-	const { response } = await dialog.showMessageBox(rootWindow, {
+export const askForServerAddition = async (parentWindow, serverUrl) => {
+	const { response } = await dialog.showMessageBox(parentWindow, {
 		type: 'question',
 		buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
 		defaultId: 0,
@@ -25,6 +25,6 @@ export const askForServerAddition = async (rootWindow, serverUrl) => {
 	return response === 0;
 };
 
-export const warnAboutInvalidServerUrl = (/* rootWindow, serverUrl, reason */) => {
-	throw Error('unimplemented');
+export const warnAboutInvalidServerUrl = (/* parentWindow, serverUrl, reason */) => {
+	throw Error('not implemented');
 };

@@ -1,22 +1,22 @@
 import { spawn, call, takeEvery, select, put, setContext } from 'redux-saga/effects';
 
+import { PREFERENCES_READY, CERTIFICATES_READY, SERVERS_READY } from '../../actions';
+import { setupDock } from '../ui/dock';
+import { setupMenuBar } from '../ui/menuBar';
+import { setupTouchBar } from '../ui/touchBar';
+import { setupTrayIcon } from '../ui/trayIcon';
+import { createElectronStore } from '../electronStore';
+import { setupI18next } from '../i18n';
+import { createRootWindow } from '../rootWindow';
+import { selectPersistableValues } from '../selectors';
 import { waitForAppReady, watchApp } from './app';
 import { takeEveryForDeepLinks, processDeepLinksInArgs } from './deepLinks';
-import { handleDock } from './dock';
-import { handleMenuBar } from './menuBar';
 import { takeEveryForNavigation, migrateTrustedCertificates } from './navigation';
 import { migratePreferences } from './preferences';
 import { rootWindowSaga, migrateRootWindowState, applyMainWindowState } from './rootWindow';
 import { migrateServers } from './servers';
 import { spellCheckingSaga } from './spellChecking';
-import { handleTouchBar } from './touchBar';
-import { handleTrayIcon } from './trayIcon';
 import { updatesSaga } from './updates';
-import { selectPersistableValues } from '../selectors';
-import { PREFERENCES_READY, CERTIFICATES_READY, SERVERS_READY } from '../../actions';
-import { createRootWindow } from '../rootWindow';
-import { setupI18next } from '../i18n';
-import { createElectronStore } from '../electronStore';
 
 export function *rootSaga({ reduxStore }) {
 	yield setContext({ reduxStore });
@@ -92,10 +92,10 @@ export function *rootSaga({ reduxStore }) {
 	yield spawn(updatesSaga, rootWindow);
 	yield spawn(spellCheckingSaga, rootWindow);
 
-	yield spawn(handleDock);
-	yield spawn(handleMenuBar);
-	yield spawn(handleTouchBar);
-	yield spawn(handleTrayIcon);
+	yield spawn(setupDock);
+	yield spawn(setupMenuBar);
+	yield spawn(setupTouchBar);
+	yield spawn(setupTrayIcon);
 
 	yield takeEvery('*', function *() {
 		const values = yield select(selectPersistableValues);

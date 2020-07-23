@@ -35,3 +35,5 @@ export const performStartup = () => {
 		app.commandLine.appendSwitch('--disable-gpu');
 	}
 };
+
+export const getPlatform = () => process.platform;

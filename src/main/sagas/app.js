@@ -8,7 +8,7 @@ import {
 	TRAY_ICON_QUIT_CLICKED,
 } from '../../actions';
 import { eventEmitterChannel } from '../channels';
-import { askForAppDataReset } from '../dialogs';
+import { askForAppDataReset } from '../ui/dialogs';
 import { relaunchApp } from '../app';
 
 export function *waitForAppReady() {

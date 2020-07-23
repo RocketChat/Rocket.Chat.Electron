@@ -68,5 +68,5 @@ export const normalizeServerUrl = (hostUrl) => {
 };
 
 export const getServerInfo = async (/* serverUrl */) => {
-	throw Error('unimplemented');
+	throw Error('not implemented');
 };

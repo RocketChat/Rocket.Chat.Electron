@@ -1,10 +1,27 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app, Menu, dialog, ipcMain, shell, clipboard, screen, BrowserWindow } from 'electron';
+import {
+	app,
+	BrowserWindow,
+	clipboard,
+	dialog,
+	ipcMain,
+	Menu,
+	screen,
+	shell,
+} from 'electron';
 import { t } from 'i18next';
-import { call, getContext, put, select, spawn, takeEvery, setContext } from 'redux-saga/effects';
+import {
+	call,
+	fork,
+	put,
+	select,
+	setContext,
+	takeEvery,
+} from 'redux-saga/effects';
 import { createSelector } from 'reselect';
+import { channel } from 'redux-saga';
 
 import {
 	CERTIFICATE_TRUST_REQUESTED,
@@ -44,7 +61,7 @@ import {
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 	PERSISTABLE_VALUES_MERGED,
 } from '../../actions';
-import { eventEmitterChannel, storeChangeChannel } from '../channels';
+import { eventEmitterChannel } from '../channels';
 import { getTrayIconPath, getAppIconPath } from '../icons';
 import {
 	selectGlobalBadge,
@@ -57,7 +74,9 @@ import {
 	selectPersistableValues,
 	selectMainWindowState,
 } from '../selectors';
-import { getCorrectionsForMisspelling, getMisspelledWords } from './spellChecking';
+import { getCorrectionsForMisspelling, getMisspelledWords } from '../sagas/spellChecking';
+import { getPlatform } from '../app';
+import { watchValue } from '../sagas/utils';
 
 const createRootWindow = async () => {
 	await app.whenReady();
@@ -93,6 +112,60 @@ const createRootWindow = async () => {
 	});
 };
 
+const isInsideSomeScreen = ({ x, y, width, height }) =>
+	screen.getAllDisplays()
+		.some(({ bounds }) => x >= bounds.x && y >= bounds.y
+			&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
+		);
+
+const applyMainWindowState = (rootWindow, rootWindowState) => {
+	let { x, y } = rootWindowState.bounds;
+	const { width, height } = rootWindowState.bounds;
+	if (!isInsideSomeScreen({ x, y, width, height })) {
+		const {
+			bounds: {
+				width: primaryDisplayWidth,
+				height: primaryDisplayHeight,
+			},
+		} = screen.getPrimaryDisplay();
+		x = (primaryDisplayWidth - width) / 2;
+		y = (primaryDisplayHeight - height) / 2;
+	}
+
+	if (rootWindow.isVisible()) {
+		return;
+	}
+
+	rootWindow.setBounds({ x, y, width, height });
+
+	if (rootWindowState.maximized) {
+		rootWindow.maximize();
+	}
+
+	if (rootWindowState.minimized) {
+		rootWindow.minimize();
+	}
+
+	if (rootWindowState.fullscreen) {
+		rootWindow.setFullScreen(true);
+	}
+
+	if (rootWindowState.visible) {
+		rootWindow.show();
+	}
+
+	if (rootWindowState.focused) {
+		rootWindow.focus();
+	}
+
+	if (process.env.NODE_ENV === 'development') {
+		rootWindow.webContents.openDevTools();
+	}
+};
+
+const getLocalStorage = (rootWindow) => rootWindow.webContents.executeJavaScript('({...localStorage})');
+
+const purgeLocalStorage = (rootWindow) => rootWindow.webContents.executeJavaScript('localStorage.clear()');
 
 const fetchRootWindowState = (rootWindow) => ({
 	focused: rootWindow.isFocused(),
@@ -104,20 +177,45 @@ const fetchRootWindowState = (rootWindow) => ({
 	bounds: rootWindow.getNormalBounds(),
 });
 
-const isInsideSomeScreen = ({ x, y, width, height }) =>
-	screen.getAllDisplays()
-		.some(({ bounds }) => x >= bounds.x && y >= bounds.y
-			&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
-		);
+function *watchUpdates(rootWindow) {
+	const platform = yield call(getPlatform);
 
-function *fetchAndDispatchWindowState(rootWindow) {
-	yield put({
-		type: ROOT_WINDOW_STATE_CHANGED,
-		payload: fetchRootWindowState(rootWindow),
+	if (platform === 'linux' || platform === 'win32') {
+		yield watchValue(selectIsMenuBarEnabled, function *([isMenuBarEnabled]) {
+			rootWindow.autoHideMenuBar = !isMenuBarEnabled;
+			rootWindow.setMenuBarVisibility(isMenuBarEnabled);
+		});
+
+		const selectRootWindowIcon = createSelector([
+			selectIsTrayIconEnabled,
+			selectGlobalBadge,
+		], (isTrayIconEnabled, globalBadge) => [isTrayIconEnabled, globalBadge]);
+
+		yield watchValue(selectRootWindowIcon, function *([[isTrayIconEnabled, globalBadge]]) {
+			const icon = isTrayIconEnabled ? getTrayIconPath({ badge: globalBadge }) : getAppIconPath();
+			rootWindow.setIcon(icon);
+		});
+	}
+
+	yield watchValue(selectGlobalBadgeCount, function *([globalBadgeCount]) {
+		if (rootWindow.isFocused() || globalBadgeCount === 0) {
+			return;
+		}
+
+		const isShowWindowOnUnreadChangedEnabled = yield select(selectIsShowWindowOnUnreadChangedEnabled);
+
+		if (isShowWindowOnUnreadChangedEnabled) {
+			rootWindow.showInactive();
+			return;
+		}
+
+		if (platform === 'win32') {
+			rootWindow.flashFrame(true);
+		}
 	});
 }
 
-function *watchRootWindow(rootWindow, store) {
+function *watchEvents(rootWindow) {
 	yield takeEvery(eventEmitterChannel(app, 'activate'), function *() {
 		rootWindow.showInactive();
 		rootWindow.focus();
@@ -134,6 +232,13 @@ function *watchRootWindow(rootWindow, store) {
 		rootWindow.showInactive();
 		rootWindow.focus();
 	});
+
+	function *fetchAndDispatchWindowState(rootWindow) {
+		yield put({
+			type: ROOT_WINDOW_STATE_CHANGED,
+			payload: fetchRootWindowState(rootWindow),
+		});
+	}
 
 	yield takeEvery(eventEmitterChannel(rootWindow, 'show'), fetchAndDispatchWindowState, rootWindow);
 	yield takeEvery(eventEmitterChannel(rootWindow, 'hide'), fetchAndDispatchWindowState, rootWindow);
@@ -179,38 +284,18 @@ function *watchRootWindow(rootWindow, store) {
 		yield put({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
 	});
 
-	if (process.platform === 'linux' || process.platform === 'win32') {
-		yield takeEvery(storeChangeChannel(store, selectIsMenuBarEnabled), function *([isMenuBarEnabled]) {
-			rootWindow.autoHideMenuBar = !isMenuBarEnabled;
-			rootWindow.setMenuBarVisibility(isMenuBarEnabled);
-		});
+	yield takeEvery(eventEmitterChannel(ipcMain, 'get-misspelled-words'), function *([event, words]) {
+		const misspelledWords = yield call(getMisspelledWords, words);
+		const id = JSON.stringify(words);
+		event.sender.send('misspelled-words', id, misspelledWords);
+	});
 
-		const selectRootWindowIcon = createSelector([
-			selectIsTrayIconEnabled,
-			selectGlobalBadge,
-		], (isTrayIconEnabled, badge) =>
-			(isTrayIconEnabled ? getTrayIconPath({ badge }) : getAppIconPath()));
-
-		yield takeEvery(storeChangeChannel(store, selectRootWindowIcon), function *([icon]) {
-			rootWindow.setIcon(icon);
-		});
-	}
-
-	yield takeEvery(storeChangeChannel(store, selectGlobalBadgeCount), function *([globalBadgeCount]) {
-		if (rootWindow.isFocused() || globalBadgeCount === 0) {
-			return;
-		}
-
-		const isShowWindowOnUnreadChangedEnabled = yield select(selectIsShowWindowOnUnreadChangedEnabled);
-
-		if (isShowWindowOnUnreadChangedEnabled) {
-			rootWindow.showInactive();
-			return;
-		}
-
-		if (process.platform === 'win32') {
-			rootWindow.flashFrame(true);
-		}
+	yield takeEvery(eventEmitterChannel(ipcMain, 'get-spell-checking-language'), function *([event]) {
+		const selectDictionaryName = createSelector(selectSpellCheckingDictionaries, (spellCheckingDictionaries) =>
+			spellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name)[0]);
+		const dictionaryName = yield select(selectDictionaryName);
+		const language = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
+		event.sender.send('set-spell-checking-language', language);
 	});
 
 	yield takeEvery([
@@ -277,20 +362,34 @@ function *watchRootWindow(rootWindow, store) {
 		rootWindow.hide();
 	});
 
+	const contextMenuChannel = channel();
+
 	yield takeEvery(SIDE_BAR_CONTEXT_MENU_POPPED_UP, function *({ payload: url }) {
 		const menuTemplate = [
 			{
 				label: t('sidebar.item.reload'),
-				click: () => store.dispatch({ type: SIDE_BAR_RELOAD_SERVER_CLICKED, payload: url }),
+				click: () => {
+					contextMenuChannel.put(function *() {
+						yield put({ type: SIDE_BAR_RELOAD_SERVER_CLICKED, payload: url });
+					});
+				},
 			},
 			{
 				label: t('sidebar.item.remove'),
-				click: () => store.dispatch({ type: SIDE_BAR_REMOVE_SERVER_CLICKED, payload: url }),
+				click: () => {
+					contextMenuChannel.put(function *() {
+						yield put({ type: SIDE_BAR_REMOVE_SERVER_CLICKED, payload: url });
+					});
+				},
 			},
 			{ type: 'separator' },
 			{
 				label: t('sidebar.item.openDevTools'),
-				click: () => store.dispatch({ type: SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, payload: url }),
+				click: () => {
+					contextMenuChannel.put(function *() {
+						yield put({ type: SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, payload: url });
+					});
+				},
 			},
 		];
 		const menu = Menu.buildFromTemplate(menuTemplate);
@@ -379,7 +478,9 @@ function *watchRootWindow(rootWindow, store) {
 					properties: ['openFile', 'multiSelections'],
 				});
 
-				store.dispatch({ type: WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, payload: filePaths });
+				contextMenuChannel.put(function *() {
+					yield put({ type: WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, payload: filePaths });
+				});
 			};
 
 			return [
@@ -414,10 +515,14 @@ function *watchRootWindow(rootWindow, store) {
 							label: name,
 							type: 'checkbox',
 							checked: enabled,
-							click: ({ checked }) => store.dispatch({
-								type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-								payload: { name, enabled: checked },
-							}),
+							click: ({ checked }) => {
+								contextMenuChannel.put(function *() {
+									yield put({
+										type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
+										payload: { name, enabled: checked },
+									});
+								});
+							},
 						})),
 						{ type: 'separator' },
 						{
@@ -533,28 +638,9 @@ function *watchRootWindow(rootWindow, store) {
 		menu.popup({ window: rootWindow });
 	});
 
-	yield takeEvery(eventEmitterChannel(ipcMain, 'get-misspelled-words'), function *([event, words]) {
-		const misspelledWords = yield call(getMisspelledWords, words);
-		const id = JSON.stringify(words);
-		event.sender.send('misspelled-words', id, misspelledWords);
+	yield takeEvery(contextMenuChannel, function *(saga) {
+		yield *saga();
 	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'get-spell-checking-language'), function *([event]) {
-		const selectDictionaryName = createSelector(selectSpellCheckingDictionaries, (spellCheckingDictionaries) =>
-			spellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name)[0]);
-		const dictionaryName = yield select(selectDictionaryName);
-		const language = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
-		event.sender.send('set-spell-checking-language', language);
-	});
-}
-
-export function *rootWindowSaga() {
-	const rootWindow = yield getContext('rootWindow');
-	const store = yield getContext('reduxStore');
-
-	yield spawn(watchRootWindow, rootWindow, store);
-
-	return rootWindow;
 }
 
 function *mergePersistableValues(localStorage) {
@@ -638,66 +724,20 @@ function *mergePersistableValues(localStorage) {
 	yield put({ type: PERSISTABLE_VALUES_MERGED, payload: values });
 }
 
-export function *setupRootWindow() {
+export function *setupRootWindow(consumeLocalStorage) {
 	const rootWindow = yield call(createRootWindow);
 	yield setContext({ rootWindow });
-}
 
-export function *consumeLocalStorage(saga) {
-	const rootWindow = yield getContext('rootWindow');
-
-	const localStorage = yield call(() => rootWindow.webContents.executeJavaScript('({...localStorage})'));
+	const localStorage = yield call(getLocalStorage, rootWindow);
 
 	yield *mergePersistableValues(localStorage);
-	yield *saga(localStorage);
+	yield *consumeLocalStorage(localStorage);
 
-	yield call(() => rootWindow.webContents.executeJavaScript('localStorage.clear()'));
-}
+	yield call(purgeLocalStorage, rootWindow);
 
-export function *applyMainWindowState() {
-	const rootWindow = yield getContext('rootWindow');
 	const rootWindowState = yield select(selectMainWindowState);
+	yield call(applyMainWindowState, rootWindow, rootWindowState);
 
-	let { x, y } = rootWindowState.bounds;
-	const { width, height } = rootWindowState.bounds;
-	if (!isInsideSomeScreen({ x, y, width, height })) {
-		const {
-			bounds: {
-				width: primaryDisplayWidth,
-				height: primaryDisplayHeight,
-			},
-		} = screen.getPrimaryDisplay();
-		x = (primaryDisplayWidth - width) / 2;
-		y = (primaryDisplayHeight - height) / 2;
-	}
-
-	if (rootWindow.isVisible()) {
-		return;
-	}
-
-	rootWindow.setBounds({ x, y, width, height });
-
-	if (rootWindowState.maximized) {
-		rootWindow.maximize();
-	}
-
-	if (rootWindowState.minimized) {
-		rootWindow.minimize();
-	}
-
-	if (rootWindowState.fullscreen) {
-		rootWindow.setFullScreen(true);
-	}
-
-	if (rootWindowState.visible) {
-		rootWindow.showInactive();
-	}
-
-	if (rootWindowState.focused) {
-		rootWindow.focus();
-	}
-
-	if (process.env.NODE_ENV === 'development') {
-		rootWindow.webContents.openDevTools();
-	}
+	yield fork(watchUpdates, rootWindow);
+	yield fork(watchEvents, rootWindow);
 }

@@ -117,7 +117,13 @@ export const migrateTrustedCertificates = async (persistedValues) => {
 	Object.assign(persistedValues.trustedCertificates, userTrustedCertificates);
 };
 
-export function *takeEveryForNavigation() {
+export function *loadNavigationConfiguration() {
+	const persistedValues = { ...yield select(selectPersistableValues) };
+	yield call(migrateTrustedCertificates, persistedValues);
+	yield put({ type: PERSISTABLE_VALUES_MERGED, payload: persistedValues });
+}
+
+export function *watchNavigationActions() {
 	yield takeEvery(preventedEventEmitterChannel(app, 'login'), handleLogin);
 
 	yield takeEvery(preventedEventEmitterChannel(app, 'certificate-error'), handleCertificateError);
@@ -148,10 +154,4 @@ export function *takeEveryForNavigation() {
 	yield takeEvery(MENU_BAR_OPEN_URL_CLICKED, function *({ payload: url }) {
 		shell.openExternal(url);
 	});
-}
-
-export function *loadNavigationConfiguration() {
-	const persistedValues = { ...yield select(selectPersistableValues) };
-	yield call(migrateTrustedCertificates, persistedValues);
-	yield put({ type: PERSISTABLE_VALUES_MERGED, payload: persistedValues });
 }

@@ -36,9 +36,9 @@ const loadUserServers = async (serversMap) => {
 	}
 };
 
-export const migrateServers = async (persistedValues, localStorage) => {
+export const migrateServers = async ({ servers, currentServerUrl }, localStorage) => {
 	const serversMap = new Map(
-		persistedValues.servers
+		servers
 			.filter(Boolean)
 			.filter(({ url, title }) => typeof url === 'string' && typeof title === 'string')
 			.map((server) => [server.url, server]),
@@ -70,27 +70,41 @@ export const migrateServers = async (persistedValues, localStorage) => {
 	}
 
 	if (localStorage['rocket.chat.currentHost'] && localStorage['rocket.chat.currentHost'] !== 'null') {
-		persistedValues.currentServerUrl = localStorage['rocket.chat.currentHost'];
+		currentServerUrl = localStorage['rocket.chat.currentHost'];
 	}
 
-	persistedValues.servers = Array.from(serversMap.values());
-	persistedValues.currentServerUrl = serversMap.get(persistedValues.currentServerUrl)?.url ?? null;
+	servers = Array.from(serversMap.values());
+	currentServerUrl = serversMap.get(currentServerUrl)?.url ?? null;
 
 	if (localStorage['rocket.chat.sortOrder']) {
 		try {
 			const sorting = JSON.parse(localStorage['rocket.chat.sortOrder']);
 			if (Array.isArray(sorting)) {
-				persistedValues.servers = [...serversMap.entries()]
+				servers = [...serversMap.entries()]
 					.sort(([a], [b]) => sorting.indexOf(a) - sorting.indexOf(b));
 			}
 		} catch (error) {
 			console.warn(error);
 		}
 	}
+
+	return { servers, currentServerUrl };
 };
 
 export function *loadServersConfiguration(localStorage) {
-	const persistedValues = { ...yield select(selectPersistableValues) };
-	yield call(migrateServers, persistedValues, localStorage);
-	yield put({ type: PERSISTABLE_VALUES_MERGED, payload: persistedValues });
+	const persistableValues = yield select(selectPersistableValues);
+
+	const {
+		servers,
+		currentServerUrl,
+	} = yield call(migrateServers, persistableValues, localStorage);
+
+	yield put({
+		type: PERSISTABLE_VALUES_MERGED,
+		payload: {
+			...persistableValues,
+			servers,
+			currentServerUrl,
+		},
+	});
 }

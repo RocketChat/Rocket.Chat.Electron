@@ -3,6 +3,7 @@ import path from 'path';
 import { app } from 'electron';
 import i18next from 'i18next';
 import i18nextNodeFileSystemBackend from 'i18next-node-fs-backend';
+import { call } from 'redux-saga/effects';
 
 const defaultLocale = 'en';
 
@@ -23,7 +24,7 @@ const normalizeLocale = (locale) => {
 	return countryCode ? `${ languageCode }-${ countryCode }` : languageCode;
 };
 
-export const setupI18next = () =>
+const initializeI18next = () =>
 	i18next
 		.use(i18nextNodeFileSystemBackend)
 		.init({
@@ -43,3 +44,7 @@ export const setupI18next = () =>
 			},
 			initImmediate: true,
 		});
+
+export function *setupI18n() {
+	yield call(initializeI18next);
+}

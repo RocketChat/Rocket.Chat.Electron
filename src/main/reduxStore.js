@@ -10,5 +10,5 @@ export const setupReduxStore = () => {
 	const middlewares = applyMiddleware(triggerAlias, sagaMiddleware, forwardToRenderer);
 	const reduxStore = createStore(rootReducer, {}, middlewares);
 	replayActionMain(reduxStore);
-	sagaMiddleware.run(rootSaga, { reduxStore });
+	sagaMiddleware.run(rootSaga);
 };

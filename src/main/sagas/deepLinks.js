@@ -139,7 +139,7 @@ export function *processDeepLinksInArgs() {
 	}
 }
 
-export function *takeEveryForDeepLinks() {
+export function *watchDeepLinksActions() {
 	yield takeEvery(preventedEventEmitterChannel(app, 'open-url'), function *([, url]) {
 		yield fork(processDeepLink, url);
 	});

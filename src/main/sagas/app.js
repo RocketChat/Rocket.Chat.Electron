@@ -15,7 +15,7 @@ export function *waitForAppReady() {
 	yield call(app.whenReady);
 }
 
-export function *watchApp() {
+export function *watchAppActions() {
 	yield takeEvery(eventEmitterChannel(app, 'window-all-closed'), function *() {
 		yield call(app.quit);
 	});

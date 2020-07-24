@@ -18,6 +18,7 @@ import {
 	selectIsUpdatingAllowed,
 	selectIsUpdatingEnabled,
 	selectSkippedUpdateVersion,
+	selectDoCheckForUpdatesOnStartup,
 } from '../selectors';
 import { readConfigurationFile } from '../fileSystemStorage';
 
@@ -162,27 +163,12 @@ function *install() {
 	}
 }
 
-export function *updatesSaga() {
+export function *watchUpdatesActions() {
 	autoUpdater.autoDownload = false;
 
-	const {
-		isUpdatingAllowed,
-		isEachUpdatesSettingConfigurable,
-		isUpdatingEnabled,
-		doCheckForUpdatesOnStartup,
-		skippedUpdateVersion,
-	} = yield *loadConfiguration();
-
-	yield put({
-		type: UPDATES_READY,
-		payload: {
-			isUpdatingAllowed,
-			isEachUpdatesSettingConfigurable,
-			isUpdatingEnabled,
-			doCheckForUpdatesOnStartup,
-			skippedUpdateVersion,
-		},
-	});
+	const isUpdatingAllowed = yield select(selectIsUpdatingAllowed);
+	const isUpdatingEnabled = yield select(selectIsUpdatingEnabled);
+	const doCheckForUpdatesOnStartup = yield select(selectDoCheckForUpdatesOnStartup);
 
 	if (isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup) {
 		yield *check();
@@ -228,5 +214,22 @@ export function *updatesSaga() {
 }
 
 export function *loadUpdatesConfiguration() {
-//
+	const {
+		isUpdatingAllowed,
+		isEachUpdatesSettingConfigurable,
+		isUpdatingEnabled,
+		doCheckForUpdatesOnStartup,
+		skippedUpdateVersion,
+	} = yield *loadConfiguration();
+
+	yield put({
+		type: UPDATES_READY,
+		payload: {
+			isUpdatingAllowed,
+			isEachUpdatesSettingConfigurable,
+			isUpdatingEnabled,
+			doCheckForUpdatesOnStartup,
+			skippedUpdateVersion,
+		},
+	});
 }

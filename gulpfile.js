@@ -4,20 +4,8 @@ const { promisify } = require('util');
 const { convert: convertToIcns } = require('@fiahfy/icns-convert');
 const { convert: convertSvgToPng } = require('convert-svg-to-png');
 const { parallel, series, task } = require('gulp');
-const execa = require('gulp-execa');
 const toIco = require('to-ico');
 const rimraf = require('rimraf');
-
-
-const NODE_ENV = process.env.NODE_ENV || 'development';
-
-task('build', execa.task('rollup -c', { env: { NODE_ENV } }));
-task('release:linux', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --linux --c.productName=rocketchat`));
-task('release:win32', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --ia32 --win`));
-task('release:darwin:non-mas', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --mac dmg pkg zip`));
-// task('release:darwin:mas', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --mac mas`));
-task('release:darwin', series('release:darwin:non-mas'/* , 'release:darwin:mas' */));
-task('release', series('build', `release:${ process.platform }`));
 
 task('icons:clean', async () => {
 	await promisify(rimraf)('src/public/images/tray/darwin');

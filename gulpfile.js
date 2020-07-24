@@ -11,14 +11,7 @@ const rimraf = require('rimraf');
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-task('clean', () => promisify(rimraf)('app'));
-
 task('build', execa.task('rollup -c', { env: { NODE_ENV } }));
-task('watch', execa.task('rollup -c -w', { env: { NODE_ENV } }));
-
-task('start:electron', execa.task('electron .'));
-task('start', parallel('watch', 'start:electron'));
-
 task('release:linux', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --linux --c.productName=rocketchat`));
 task('release:win32', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --ia32 --win`));
 task('release:darwin:non-mas', execa.task(`electron-builder --publish ${ NODE_ENV === 'production' ? 'onTagOrDraft' : 'never' } --x64 --mac dmg pkg zip`));

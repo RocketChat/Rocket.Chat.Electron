@@ -10,7 +10,7 @@ import { setupI18n } from '../i18n';
 import { waitForAppReady, watchAppActions } from './app';
 import { watchDeepLinksActions, processDeepLinksInArgs } from './deepLinks';
 import { watchNavigationActions, loadNavigationConfiguration } from './navigation';
-import { loadServersConfiguration } from './servers';
+import { setupServers } from '../servers';
 import { watchSpellCheckingActions, loadSpellCheckingConfiguration } from './spellChecking';
 import { setupUpdates } from '../updates';
 
@@ -20,7 +20,7 @@ export function *rootSaga() {
 	yield *setupI18n();
 
 	yield *setupRootWindow(function *(localStorage) {
-		yield *loadServersConfiguration(localStorage);
+		yield *setupServers(localStorage);
 		yield *loadSpellCheckingConfiguration(localStorage);
 	});
 

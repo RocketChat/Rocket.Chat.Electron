@@ -1,6 +1,5 @@
 import {
 	ADD_SERVER_VIEW_SERVER_ADDED,
-	SERVERS_READY,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	SIDE_BAR_SERVERS_SORTED,
 	WEBVIEW_DID_NAVIGATE,
@@ -23,11 +22,6 @@ const upsert = (state, server) => {
 
 export const servers = (state = [], { type, payload }) => {
 	switch (type) {
-		case SERVERS_READY: {
-			const { servers } = payload;
-			return servers;
-		}
-
 		case ADD_SERVER_VIEW_SERVER_ADDED: {
 			const url = payload;
 			return upsert(state, { url, title: url });
@@ -73,7 +67,7 @@ export const servers = (state = [], { type, payload }) => {
 		}
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { servers } = payload;
+			const { servers = state } = payload;
 			return servers;
 		}
 	}

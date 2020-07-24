@@ -16,7 +16,7 @@ export const isTrayIconEnabled = (state = process.platform !== 'linux', { type, 
 		}
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { isTrayIconEnabled } = payload;
+			const { isTrayIconEnabled = state } = payload;
 			return isTrayIconEnabled;
 		}
 	}

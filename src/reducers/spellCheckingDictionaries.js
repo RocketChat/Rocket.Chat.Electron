@@ -32,7 +32,7 @@ export const spellCheckingDictionaries = (state = [], { type, payload }) => {
 			return payload.sort(compare);
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { spellCheckingDictionaries } = payload;
+			const { spellCheckingDictionaries = state } = payload;
 			return spellCheckingDictionaries.sort(compare);
 		}
 

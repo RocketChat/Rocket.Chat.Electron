@@ -2,7 +2,6 @@ import {
 	ADD_SERVER_VIEW_SERVER_ADDED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
-	SERVERS_READY,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	SIDE_BAR_SERVER_SELECTED,
@@ -47,13 +46,8 @@ export const currentServerUrl = (state = null, { type, payload }) => {
 			return url;
 		}
 
-		case SERVERS_READY: {
-			const { currentServerUrl } = payload;
-			return currentServerUrl;
-		}
-
 		case PERSISTABLE_VALUES_MERGED: {
-			const { currentServerUrl } = payload;
+			const { currentServerUrl = state } = payload;
 			return currentServerUrl;
 		}
 	}

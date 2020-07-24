@@ -15,7 +15,7 @@ export const isSideBarEnabled = (state = true, { type, payload }) => {
 			return payload;
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { isSideBarEnabled } = payload;
+			const { isSideBarEnabled = state } = payload;
 			return isSideBarEnabled;
 		}
 	}

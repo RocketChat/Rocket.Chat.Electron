@@ -16,7 +16,7 @@ export const isMenuBarEnabled = (state = true, { type, payload }) => {
 		}
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { isMenuBarEnabled } = payload;
+			const { isMenuBarEnabled = state } = payload;
 			return isMenuBarEnabled;
 		}
 	}

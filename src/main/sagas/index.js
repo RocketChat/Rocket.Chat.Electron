@@ -12,7 +12,7 @@ import { watchDeepLinksActions, processDeepLinksInArgs } from './deepLinks';
 import { watchNavigationActions, loadNavigationConfiguration } from './navigation';
 import { loadServersConfiguration } from './servers';
 import { watchSpellCheckingActions, loadSpellCheckingConfiguration } from './spellChecking';
-import { watchUpdatesActions, loadUpdatesConfiguration } from './updates';
+import { setupUpdates } from '../updates';
 
 export function *rootSaga() {
 	yield *setupElectronStore();
@@ -25,7 +25,7 @@ export function *rootSaga() {
 	});
 
 	yield *loadNavigationConfiguration();
-	yield *loadUpdatesConfiguration();
+	yield *setupUpdates();
 
 	yield spawn(setupDock);
 	yield spawn(setupMenuBar);
@@ -35,7 +35,6 @@ export function *rootSaga() {
 	yield spawn(watchAppActions);
 	yield spawn(watchDeepLinksActions);
 	yield spawn(watchNavigationActions);
-	yield spawn(watchUpdatesActions);
 	yield spawn(watchSpellCheckingActions);
 
 	yield *unlockAutoPersistenceOnElectronStore();

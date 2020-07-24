@@ -17,7 +17,7 @@ export const doCheckForUpdatesOnStartup = (state = true, { type, payload }) => {
 		}
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { doCheckForUpdatesOnStartup } = payload;
+			const { doCheckForUpdatesOnStartup = state } = payload;
 			return doCheckForUpdatesOnStartup;
 		}
 	}

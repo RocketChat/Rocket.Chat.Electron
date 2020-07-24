@@ -15,7 +15,7 @@ export const isShowWindowOnUnreadChangedEnabled = (state = false, { type, payloa
 			return payload;
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { isShowWindowOnUnreadChangedEnabled } = payload;
+			const { isShowWindowOnUnreadChangedEnabled = state } = payload;
 			return isShowWindowOnUnreadChangedEnabled;
 		}
 	}

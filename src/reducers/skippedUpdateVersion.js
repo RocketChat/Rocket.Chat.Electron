@@ -17,7 +17,7 @@ export const skippedUpdateVersion = (state = null, { type, payload }) => {
 		}
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { skippedUpdateVersion } = payload;
+			const { skippedUpdateVersion = state } = payload;
 			return skippedUpdateVersion;
 		}
 	}

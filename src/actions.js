@@ -44,7 +44,6 @@ export const SCREEN_SHARING_DIALOG_DISMISSED = 'screen-sharing-dialog/dismissed'
 export const SCREEN_SHARING_DIALOG_SOURCE_SELECTED = 'screen-sharing-dialog/source-selected';
 export const SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED = 'select-client-certificate-dialog/certificate-selected';
 export const SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED = 'select-client-certificatedialog/dismissed';
-export const SERVERS_READY = 'servers/ready';
 export const SIDE_BAR_ADD_NEW_SERVER_CLICKED = 'side-bar/add-new-server-clicked';
 export const SIDE_BAR_CONTEXT_MENU_POPPED_UP = 'side-bar/context-menu-popped-up';
 export const SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED = 'side-bar/open-devtools-for-server-clicked';

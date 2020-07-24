@@ -17,7 +17,7 @@ export const trustedCertificates = (state = {}, { type, payload }) => {
 			return {};
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { trustedCertificates } = payload;
+			const { trustedCertificates = state } = payload;
 			return trustedCertificates;
 		}
 	}

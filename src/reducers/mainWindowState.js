@@ -22,7 +22,7 @@ export const mainWindowState = (state = {
 			return payload;
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { mainWindowState } = payload;
+			const { mainWindowState = state } = payload;
 			return mainWindowState;
 		}
 	}

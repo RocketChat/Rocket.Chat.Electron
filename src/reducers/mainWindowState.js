@@ -1,5 +1,6 @@
 import {
 	ROOT_WINDOW_STATE_CHANGED,
+	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
 
 export const mainWindowState = (state = {
@@ -19,6 +20,11 @@ export const mainWindowState = (state = {
 	switch (type) {
 		case ROOT_WINDOW_STATE_CHANGED:
 			return payload;
+
+		case PERSISTABLE_VALUES_MERGED: {
+			const { mainWindowState } = payload;
+			return mainWindowState;
+		}
 	}
 
 	return state;

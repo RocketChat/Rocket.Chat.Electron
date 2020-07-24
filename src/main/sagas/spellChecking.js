@@ -170,8 +170,8 @@ function *takeEvents() {
 	});
 }
 
-export function *spellCheckingSaga(rootWindow) {
-	const spellCheckingDictionaries = yield call(loadSpellCheckingDictionaries, rootWindow);
+export function *spellCheckingSaga() {
+	const spellCheckingDictionaries = yield call(loadSpellCheckingDictionaries);
 
 	yield call(::provider.initialize);
 	spellCheckers.clear();
@@ -184,7 +184,7 @@ export function *spellCheckingSaga(rootWindow) {
 		},
 	});
 
-	yield *takeEvents(rootWindow);
+	yield *takeEvents();
 }
 
 const isMisspelled = (word) => {
@@ -207,3 +207,7 @@ export const getCorrectionsForMisspelling = async (text) => {
 };
 
 export const getMisspelledWords = async (words) => words.filter(isMisspelled);
+
+export function *loadSpellCheckingConfiguration() {
+//
+}

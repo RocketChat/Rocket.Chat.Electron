@@ -21,10 +21,6 @@ import {
 } from '../selectors';
 import { readConfigurationFile } from '../fileSystemStorage';
 
-const isUpdatingAllowed = (process.platform === 'linux' && !!process.env.APPIMAGE)
-	|| (process.platform === 'win32' && !process.windowsStore)
-	|| (process.platform === 'darwin' && !process.mas);
-
 const loadAppConfiguration = async (configuration) => {
 	const appConfiguration = await readConfigurationFile('update.json', { appData: true });
 
@@ -89,6 +85,10 @@ const loadUserConfiguration = async (configuration) => {
 };
 
 function *loadConfiguration() {
+	const isUpdatingAllowed = (process.platform === 'linux' && !!process.env.APPIMAGE)
+	|| (process.platform === 'win32' && !process.windowsStore)
+	|| (process.platform === 'darwin' && !process.mas);
+
 	const configuration = yield select(({
 		isEachUpdatesSettingConfigurable,
 		isUpdatingEnabled,
@@ -162,7 +162,7 @@ function *install() {
 	}
 }
 
-export function *updatesSaga(rootWindow) {
+export function *updatesSaga() {
 	autoUpdater.autoDownload = false;
 
 	const {
@@ -171,7 +171,7 @@ export function *updatesSaga(rootWindow) {
 		isUpdatingEnabled,
 		doCheckForUpdatesOnStartup,
 		skippedUpdateVersion,
-	} = yield *loadConfiguration(rootWindow);
+	} = yield *loadConfiguration();
 
 	yield put({
 		type: UPDATES_READY,
@@ -225,4 +225,8 @@ export function *updatesSaga(rootWindow) {
 	yield takeEvery(ROOT_WINDOW_INSTALL_UPDATE_CLICKED, function *() {
 		yield *install();
 	});
+}
+
+export function *loadUpdatesConfiguration() {
+//
 }

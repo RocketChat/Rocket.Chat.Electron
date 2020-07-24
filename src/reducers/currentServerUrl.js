@@ -8,6 +8,7 @@ import {
 	SIDE_BAR_SERVER_SELECTED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 	WEBVIEW_FOCUS_REQUESTED,
+	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
 
 export const currentServerUrl = (state = null, { type, payload }) => {
@@ -47,6 +48,11 @@ export const currentServerUrl = (state = null, { type, payload }) => {
 		}
 
 		case SERVERS_READY: {
+			const { currentServerUrl } = payload;
+			return currentServerUrl;
+		}
+
+		case PERSISTABLE_VALUES_MERGED: {
 			const { currentServerUrl } = payload;
 			return currentServerUrl;
 		}

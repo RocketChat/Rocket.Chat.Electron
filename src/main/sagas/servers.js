@@ -1,4 +1,8 @@
+import { select, call, put } from 'redux-saga/effects';
+
 import { readConfigurationFile } from '../fileSystemStorage';
+import { selectPersistableValues } from '../selectors';
+import { PERSISTABLE_VALUES_MERGED } from '../../actions';
 
 const loadAppServers = async (serversMap) => {
 	const appConfiguration = await readConfigurationFile('servers.json', { appData: true });
@@ -84,3 +88,9 @@ export const migrateServers = async (persistedValues, localStorage) => {
 		}
 	}
 };
+
+export function *loadServersConfiguration(localStorage) {
+	const persistedValues = { ...yield select(selectPersistableValues) };
+	yield call(migrateServers, persistedValues, localStorage);
+	yield put({ type: PERSISTABLE_VALUES_MERGED, payload: persistedValues });
+}

@@ -8,6 +8,7 @@ import {
 	WEBVIEW_TITLE_CHANGED,
 	WEBVIEW_UNREAD_CHANGED,
 	WEBVIEW_FAVICON_CHANGED,
+	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
 
 const upsert = (state, server) => {
@@ -69,6 +70,11 @@ export const servers = (state = [], { type, payload }) => {
 			}
 
 			return state;
+		}
+
+		case PERSISTABLE_VALUES_MERGED: {
+			const { servers } = payload;
+			return servers;
 		}
 	}
 

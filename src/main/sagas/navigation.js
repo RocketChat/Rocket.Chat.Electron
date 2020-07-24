@@ -1,7 +1,7 @@
 import url from 'url';
 
 import { app, shell } from 'electron';
-import { takeEvery, select, put, race, take } from 'redux-saga/effects';
+import { takeEvery, select, put, race, take, call } from 'redux-saga/effects';
 
 import {
 	CERTIFICATE_TRUST_REQUESTED,
@@ -13,9 +13,10 @@ import {
 	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
 	WEBVIEW_CERTIFICATE_DENIED,
 	WEBVIEW_CERTIFICATE_TRUSTED,
+	PERSISTABLE_VALUES_MERGED,
 } from '../../actions';
 import { preventedEventEmitterChannel } from '../channels';
-import { selectServers, selectTrustedCertificates } from '../selectors';
+import { selectServers, selectTrustedCertificates, selectPersistableValues } from '../selectors';
 import { readConfigurationFile } from '../fileSystemStorage';
 
 const serializeCertificate = (certificate) => `${ certificate.issuerName }\n${ certificate.data.toString() }`;
@@ -147,4 +148,10 @@ export function *takeEveryForNavigation() {
 	yield takeEvery(MENU_BAR_OPEN_URL_CLICKED, function *({ payload: url }) {
 		shell.openExternal(url);
 	});
+}
+
+export function *loadNavigationConfiguration() {
+	const persistedValues = { ...yield select(selectPersistableValues) };
+	yield call(migrateTrustedCertificates, persistedValues);
+	yield put({ type: PERSISTABLE_VALUES_MERGED, payload: persistedValues });
 }

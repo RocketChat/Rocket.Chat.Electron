@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 
 import { app, Menu, dialog, ipcMain, shell, clipboard, screen, BrowserWindow } from 'electron';
@@ -41,6 +42,7 @@ import {
 	WEBVIEW_CONTEXT_MENU_POPPED_UP,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
+	PERSISTABLE_VALUES_MERGED,
 } from '../../actions';
 import { eventEmitterChannel, storeChangeChannel } from '../channels';
 import { getTrayIconPath, getAppIconPath } from '../icons';
@@ -52,9 +54,10 @@ import {
 	selectIsShowWindowOnUnreadChangedEnabled,
 	selectSpellCheckingDictionaries,
 	selectFocusedWebContents,
+	selectPersistableValues,
+	selectMainWindowState,
 } from '../selectors';
 import { getCorrectionsForMisspelling, getMisspelledWords } from './spellChecking';
-import { readConfigurationFile } from '../fileSystemStorage';
 
 const createRootWindow = async () => {
 	await app.whenReady();
@@ -106,76 +109,6 @@ const isInsideSomeScreen = ({ x, y, width, height }) =>
 		.some(({ bounds }) => x >= bounds.x && y >= bounds.y
 			&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
 		);
-
-export const migrateRootWindowState = async (persistedValues) => {
-	const userMainWindowState = await readConfigurationFile('main-window-state.json', { appData: false, purgeAfter: true });
-
-	if (!userMainWindowState || typeof userMainWindowState !== 'object') {
-		return;
-	}
-
-	Object.assign(persistedValues.mainWindowState, {
-		focused: true,
-		visible: !(userMainWindowState?.isHidden ?? !persistedValues.mainWindowState.visible),
-		maximized: userMainWindowState.isMaximized ?? persistedValues.mainWindowState.maximized,
-		minimized: userMainWindowState.isMinimized ?? persistedValues.mainWindowState.minimized,
-		fullscreen: false,
-		normal: !(userMainWindowState.isMinimized || userMainWindowState.isMaximized) ?? persistedValues.mainWindowState.normal,
-		bounds: {
-			x: userMainWindowState.x ?? persistedValues.mainWindowState.bounds?.x,
-			y: userMainWindowState.y ?? persistedValues.mainWindowState.bounds?.y,
-			width: userMainWindowState.width ?? persistedValues.mainWindowState.bounds?.width,
-			height: userMainWindowState.height ?? persistedValues.mainWindowState.bounds?.height,
-		},
-	});
-};
-
-export function *applyMainWindowState(mainWindowState) {
-	const rootWindow = yield getContext('rootWindow');
-
-	let { x, y } = mainWindowState.bounds;
-	const { width, height } = mainWindowState.bounds;
-	if (!isInsideSomeScreen({ x, y, width, height })) {
-		const {
-			bounds: {
-				width: primaryDisplayWidth,
-				height: primaryDisplayHeight,
-			},
-		} = screen.getPrimaryDisplay();
-		x = (primaryDisplayWidth - width) / 2;
-		y = (primaryDisplayHeight - height) / 2;
-	}
-
-	if (rootWindow.isVisible()) {
-		return;
-	}
-
-	rootWindow.setBounds({ x, y, width, height });
-
-	if (mainWindowState.maximized) {
-		rootWindow.maximize();
-	}
-
-	if (mainWindowState.minimized) {
-		rootWindow.minimize();
-	}
-
-	if (mainWindowState.fullscreen) {
-		rootWindow.setFullScreen(true);
-	}
-
-	if (mainWindowState.visible) {
-		rootWindow.showInactive();
-	}
-
-	if (mainWindowState.focused) {
-		rootWindow.focus();
-	}
-
-	if (process.env.NODE_ENV === 'development') {
-		rootWindow.webContents.openDevTools();
-	}
-}
 
 function *fetchAndDispatchWindowState(rootWindow) {
 	yield put({
@@ -615,7 +548,8 @@ function *watchRootWindow(rootWindow, store) {
 	});
 }
 
-export function *rootWindowSaga(rootWindow) {
+export function *rootWindowSaga() {
+	const rootWindow = yield getContext('rootWindow');
 	const store = yield getContext('reduxStore');
 
 	yield spawn(watchRootWindow, rootWindow, store);
@@ -623,25 +557,147 @@ export function *rootWindowSaga(rootWindow) {
 	return rootWindow;
 }
 
-export const migratePreferences = (persistedValues, localStorage) => {
+function *mergePersistableValues(localStorage) {
+	const localStorageValues = Object.fromEntries(
+		Object.entries(localStorage)
+			.map(([key, value]) => {
+				try {
+					return [key, JSON.parse(value)];
+				} catch (error) {
+					return [];
+				}
+			}),
+	);
+
+	const currentValues = yield select(selectPersistableValues);
+
+	let values = selectPersistableValues({
+		...currentValues,
+		...localStorageValues,
+	});
+
 	if (localStorage.autohideMenu) {
-		persistedValues.isMenuBarEnabled = localStorage.autohideMenu !== 'true';
+		values = {
+			...values,
+			isMenuBarEnabled: localStorage.autohideMenu !== 'true',
+		};
 	}
 
 	if (localStorage.showWindowOnUnreadChanged) {
-		persistedValues.isShowWindowOnUnreadChangedEnabled = localStorage.showWindowOnUnreadChanged === 'true';
+		values = {
+			...values,
+			isShowWindowOnUnreadChangedEnabled: localStorage.showWindowOnUnreadChanged === 'true',
+		};
 	}
 
 	if (localStorage['sidebar-closed']) {
-		persistedValues.isSideBarEnabled = localStorage['sidebar-closed'] !== 'true';
+		values = {
+			...values,
+			isSideBarEnabled: localStorage['sidebar-closed'] !== 'true',
+		};
 	}
 
 	if (localStorage.hideTray) {
-		persistedValues.isTrayIconEnabled = localStorage.hideTray !== 'true';
+		values = {
+			...values,
+			isTrayIconEnabled: localStorage.hideTray !== 'true',
+		};
 	}
-};
+
+	const userMainWindowState = yield call(async () => {
+		try {
+			const filePath = path.join(app.getPath('userData'), 'main-window-state.json');
+			const content = await fs.promises.readFile(filePath, 'utf8');
+			const json = JSON.parse(content);
+			await fs.promises.unlink(filePath);
+
+			return json && typeof json === 'object' ? json : {};
+		} catch (error) {
+			return {};
+		}
+	});
+
+	values = {
+		...values,
+		mainWindowState: {
+			focused: true,
+			visible: !(userMainWindowState?.isHidden ?? !values?.mainWindowState?.visible),
+			maximized: userMainWindowState.isMaximized ?? values?.mainWindowState?.maximized,
+			minimized: userMainWindowState.isMinimized ?? values?.mainWindowState?.minimized,
+			fullscreen: false,
+			normal: !(userMainWindowState.isMinimized || userMainWindowState.isMaximized) ?? values?.mainWindowState?.normal,
+			bounds: {
+				x: userMainWindowState.x ?? values?.mainWindowState?.bounds?.x,
+				y: userMainWindowState.y ?? values?.mainWindowState?.bounds?.y,
+				width: userMainWindowState.width ?? values?.mainWindowState?.bounds?.width,
+				height: userMainWindowState.height ?? values?.mainWindowState?.bounds?.height,
+			},
+		},
+	};
+
+	yield put({ type: PERSISTABLE_VALUES_MERGED, payload: values });
+}
 
 export function *setupRootWindow() {
 	const rootWindow = yield call(createRootWindow);
 	yield setContext({ rootWindow });
+}
+
+export function *consumeLocalStorage(saga) {
+	const rootWindow = yield getContext('rootWindow');
+
+	const localStorage = yield call(() => rootWindow.webContents.executeJavaScript('({...localStorage})'));
+
+	yield *mergePersistableValues(localStorage);
+	yield *saga(localStorage);
+
+	yield call(() => rootWindow.webContents.executeJavaScript('localStorage.clear()'));
+}
+
+export function *applyMainWindowState() {
+	const rootWindow = yield getContext('rootWindow');
+	const rootWindowState = yield select(selectMainWindowState);
+
+	let { x, y } = rootWindowState.bounds;
+	const { width, height } = rootWindowState.bounds;
+	if (!isInsideSomeScreen({ x, y, width, height })) {
+		const {
+			bounds: {
+				width: primaryDisplayWidth,
+				height: primaryDisplayHeight,
+			},
+		} = screen.getPrimaryDisplay();
+		x = (primaryDisplayWidth - width) / 2;
+		y = (primaryDisplayHeight - height) / 2;
+	}
+
+	if (rootWindow.isVisible()) {
+		return;
+	}
+
+	rootWindow.setBounds({ x, y, width, height });
+
+	if (rootWindowState.maximized) {
+		rootWindow.maximize();
+	}
+
+	if (rootWindowState.minimized) {
+		rootWindow.minimize();
+	}
+
+	if (rootWindowState.fullscreen) {
+		rootWindow.setFullScreen(true);
+	}
+
+	if (rootWindowState.visible) {
+		rootWindow.showInactive();
+	}
+
+	if (rootWindowState.focused) {
+		rootWindow.focus();
+	}
+
+	if (process.env.NODE_ENV === 'development') {
+		rootWindow.webContents.openDevTools();
+	}
 }

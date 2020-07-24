@@ -3,7 +3,7 @@ import { call, setContext, takeEvery, select, fork, take, put } from 'redux-saga
 
 import appManifest from '../../package.json';
 import { selectPersistableValues } from './selectors';
-import { ELECTRON_STORE_READY_TO_PERSIST } from '../actions';
+import { PERSISTABLE_VALUES_READY, PERSISTABLE_VALUES_MERGED } from '../actions';
 
 const migrations = {};
 
@@ -14,7 +14,7 @@ export const createElectronStore = () =>
 	});
 
 function *watchUpdates(electronStore) {
-	yield take(ELECTRON_STORE_READY_TO_PERSIST);
+	yield take(PERSISTABLE_VALUES_READY);
 
 	yield takeEvery('*', function *() {
 		const values = yield select(selectPersistableValues);
@@ -25,13 +25,31 @@ function *watchUpdates(electronStore) {
 	});
 }
 
+function *mergePersistableValues(electronStore) {
+	const currentValues = yield select(selectPersistableValues);
+
+	const electronStoreValues = Object.fromEntries(Array.from(electronStore));
+
+	const newValues = selectPersistableValues({
+		...currentValues,
+		...electronStoreValues,
+	});
+
+	yield put({
+		type: PERSISTABLE_VALUES_MERGED,
+		payload: newValues,
+	});
+}
+
 export function *setupElectronStore() {
 	const electronStore = yield call(createElectronStore);
 	yield setContext({ electronStore });
+
+	yield *mergePersistableValues(electronStore);
 
 	yield fork(watchUpdates, electronStore);
 }
 
 export function *unlockAutoPersistenceOnElectronStore() {
-	yield put({ type: ELECTRON_STORE_READY_TO_PERSIST });
+	yield put({ type: PERSISTABLE_VALUES_READY });
 }

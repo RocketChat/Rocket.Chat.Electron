@@ -13,6 +13,49 @@ import {
 } from '../actions';
 import { selectSpellCheckingDictionaries, selectPersistableValues } from './selectors';
 
+const embeddedDictionaries = [
+	{
+		name: 'de',
+		aff: require.resolve('dictionary-de/index.aff'),
+		dic: require.resolve('dictionary-de/index.dic'),
+	},
+	{
+		name: 'en',
+		aff: require.resolve('dictionary-en/index.aff'),
+		dic: require.resolve('dictionary-en/index.dic'),
+	},
+	{
+		name: 'en-GB',
+		aff: require.resolve('dictionary-en-gb/index.aff'),
+		dic: require.resolve('dictionary-en-gb/index.dic'),
+	},
+	{
+		name: 'es',
+		aff: require.resolve('dictionary-es/index.aff'),
+		dic: require.resolve('dictionary-es/index.dic'),
+	},
+	{
+		name: 'fr',
+		aff: require.resolve('dictionary-fr/index.aff'),
+		dic: require.resolve('dictionary-fr/index.dic'),
+	},
+	{
+		name: 'pt',
+		aff: require.resolve('dictionary-pt/index.aff'),
+		dic: require.resolve('dictionary-pt/index.dic'),
+	},
+	{
+		name: 'tr',
+		aff: require.resolve('dictionary-tr/index.aff'),
+		dic: require.resolve('dictionary-tr/index.dic'),
+	},
+	{
+		name: 'ru',
+		aff: require.resolve('dictionary-ru/index.aff'),
+		dic: require.resolve('dictionary-ru/index.dic'),
+	},
+];
+
 const getConfigurationPath = (filePath, { appData = true } = {}) => path.join(
 	...appData ? [
 		app.getAppPath(),
@@ -62,12 +105,6 @@ const loadSpellCheckingDictionariesFromDirectory = async (dictionariesDirectoryP
 };
 
 function *loadSpellCheckingDictionaries() {
-	const embeddedDictionaries = ['de', 'en', 'en-GB', 'es', 'fr', 'pt', 'tr', 'ru'].map((name) => ({
-		name,
-		aff: require.resolve(`dictionary-${ name.toLowerCase() }/index.aff`),
-		dic: require.resolve(`dictionary-${ name.toLowerCase() }/index.dic`),
-	}));
-
 	const appDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: true });
 	const userDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: false });
 

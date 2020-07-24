@@ -50,4 +50,4 @@ install:
 
 script:
   - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
-  - NODE_ENV=production yarn release
+  - NODE_ENV=production yarn electron-builder --publish onTagOrDraft --x64

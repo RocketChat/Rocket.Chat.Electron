@@ -1,22 +1,29 @@
 import path from 'path';
 
 import { app } from 'electron';
-import installExtension, {
-	REACT_DEVELOPER_TOOLS,
-	REDUX_DEVTOOLS,
-} from 'electron-devtools-installer';
-import setupElectronReloader from 'electron-reloader';
 
 export const setupDevelopmentTools = () => {
 	if (process.env.NODE_ENV !== 'development') {
 		return;
 	}
 
-	setupElectronReloader(require.main);
+	app.setPath('userData', path.join(app.getPath('appData'), `${ app.name } (development)`));
 
 	app.whenReady()
-		.then(() => installExtension(REACT_DEVELOPER_TOOLS))
-		.then(() => installExtension(REDUX_DEVTOOLS));
-
-	app.setPath('userData', path.join(app.getPath('appData'), `${ app.name } (development)`));
+		.then(() => Promise.all([
+			import('electron-reloader'),
+			import('electron-devtools-installer'),
+		]))
+		.then(([
+			{ default: setupElectronReloader },
+			{
+				default: installExtension,
+				REACT_DEVELOPER_TOOLS,
+				REDUX_DEVTOOLS,
+			},
+		]) => Promise.all([
+			setupElectronReloader(require.main),
+			installExtension(REACT_DEVELOPER_TOOLS),
+			installExtension(REDUX_DEVTOOLS),
+		]));
 };

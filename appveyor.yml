@@ -35,7 +35,7 @@ build_script:
       }
   - yarn test
   - set NODE_ENV=production
-  - yarn release
+  - yarn electron-builder --publish onTagOrDraft --x64 --ia32
 
 # on_finish:
 #  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

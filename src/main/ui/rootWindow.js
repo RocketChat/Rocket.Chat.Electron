@@ -4,7 +4,6 @@ import path from 'path';
 import {
 	app,
 	BrowserWindow,
-	dialog,
 	ipcMain,
 	screen,
 } from 'electron';
@@ -67,6 +66,13 @@ import { getPlatform } from '../app';
 import { watchValue } from '../sagas/utils';
 import { watchSideBarContextMenuEvents } from './contextMenus/sidebar';
 import { watchWebviewContextMenuEvents } from './contextMenus/webview';
+import {
+	askUpdateInstall,
+	AskUpdateInstallResponse,
+	warnAboutInstallUpdateLater,
+	askForCertificateTrust,
+	AskForCertificateTrustResponse,
+} from './dialogs';
 
 const createRootWindow = async () => {
 	await app.whenReady();
@@ -353,25 +359,10 @@ function *watchEvents(rootWindow) {
 	});
 
 	yield takeEvery(UPDATES_UPDATE_DOWNLOADED, function *() {
-		const { response } = yield call(dialog.showMessageBox, rootWindow, {
-			type: 'question',
-			title: t('dialog.updateReady.title'),
-			message: t('dialog.updateReady.message'),
-			buttons: [
-				t('dialog.updateReady.installLater'),
-				t('dialog.updateReady.installNow'),
-			],
-			defaultId: 1,
-		});
+		const response = yield call(askUpdateInstall, rootWindow);
 
-		if (response === 0) {
-			yield call(dialog.showMessageBox, rootWindow, {
-				type: 'info',
-				title: t('dialog.updateInstallLater.title'),
-				message: t('dialog.updateInstallLater.message'),
-				buttons: [t('dialog.updateInstallLater.ok')],
-				defaultId: 0,
-			});
+		if (response === AskUpdateInstallResponse.INSTALL_LATER) {
+			yield call(warnAboutInstallUpdateLater, rootWindow);
 			return;
 		}
 
@@ -390,19 +381,8 @@ function *watchEvents(rootWindow) {
 			detail = t('error.differentCertificate', { detail });
 		}
 
-		const { response } = yield call(dialog.showMessageBox, rootWindow, {
-			title: t('dialog.certificateError.title'),
-			message: t('dialog.certificateError.message', { issuerName }),
-			detail,
-			type: 'warning',
-			buttons: [
-				t('dialog.certificateError.yes'),
-				t('dialog.certificateError.no'),
-			],
-			cancelId: 1,
-		});
-
-		if (response === 0) {
+		const response = yield call(askForCertificateTrust, rootWindow, issuerName, detail);
+		if (response === AskForCertificateTrustResponse.YES) {
 			yield put({ type: WEBVIEW_CERTIFICATE_TRUSTED, payload: { webContentsId, fingerprint } });
 			return;
 		}

@@ -41,3 +41,66 @@ export const browseForSpellCheckingDictionary = async (parentWindow) => {
 
 	return filePaths;
 };
+
+export const AskUpdateInstallResponse = {
+	INSTALL_LATER: 0,
+	INSTALL_NOW: 1,
+};
+
+export const askUpdateInstall = async (parentWindow) => {
+	const { response } = await dialog.showMessageBox(parentWindow, {
+		type: 'question',
+		title: t('dialog.updateReady.title'),
+		message: t('dialog.updateReady.message'),
+		buttons: [
+			t('dialog.updateReady.installLater'),
+			t('dialog.updateReady.installNow'),
+		],
+		defaultId: 1,
+	});
+
+	if (response === 0) {
+		return AskUpdateInstallResponse.INSTALL_LATER;
+	}
+
+	if (response === 1) {
+		return AskUpdateInstallResponse.INSTALL_NOW;
+	}
+};
+
+export const warnAboutInstallUpdateLater = async (parentWindow) => {
+	await dialog.showMessageBox(parentWindow, {
+		type: 'info',
+		title: t('dialog.updateInstallLater.title'),
+		message: t('dialog.updateInstallLater.message'),
+		buttons: [t('dialog.updateInstallLater.ok')],
+		defaultId: 0,
+	});
+};
+
+export const AskForCertificateTrustResponse = {
+	YES: 0,
+	NO: 1,
+};
+
+export const askForCertificateTrust = async (parentWindow, issuerName, detail) => {
+	const { response } = await dialog.showMessageBox(parentWindow, {
+		title: t('dialog.certificateError.title'),
+		message: t('dialog.certificateError.message', { issuerName }),
+		detail,
+		type: 'warning',
+		buttons: [
+			t('dialog.certificateError.yes'),
+			t('dialog.certificateError.no'),
+		],
+		cancelId: 1,
+	});
+
+	if (response === 0) {
+		return AskForCertificateTrustResponse.YES;
+	}
+
+	if (response === 1) {
+		return AskForCertificateTrustResponse.NO;
+	}
+};

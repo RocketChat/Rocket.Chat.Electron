@@ -7,7 +7,6 @@ import { all, call, put, select, takeEvery } from 'redux-saga/effects';
 
 import {
 	SPELL_CHECKING_DICTIONARIES_UPDATED,
-	SPELL_CHECKING_READY,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 	PERSISTABLE_VALUES_MERGED,
@@ -222,7 +221,7 @@ export function *setupSpellChecking(localStorage) {
 	yield all(spellCheckingDictionaries.map(toggleDictionary));
 
 	yield put({
-		type: SPELL_CHECKING_READY,
+		type: PERSISTABLE_VALUES_MERGED,
 		payload: {
 			spellCheckingDictionaries,
 		},

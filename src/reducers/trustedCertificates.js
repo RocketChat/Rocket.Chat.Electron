@@ -1,5 +1,4 @@
 import {
-	CERTIFICATES_READY,
 	CERTIFICATES_UPDATED,
 	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
 	PERSISTABLE_VALUES_MERGED,
@@ -7,9 +6,6 @@ import {
 
 export const trustedCertificates = (state = {}, { type, payload }) => {
 	switch (type) {
-		case CERTIFICATES_READY:
-			return payload;
-
 		case CERTIFICATES_UPDATED:
 			return payload;
 

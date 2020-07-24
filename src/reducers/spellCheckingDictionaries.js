@@ -1,5 +1,4 @@
 import {
-	SPELL_CHECKING_READY,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 	SPELL_CHECKING_DICTIONARIES_UPDATED,
 	PERSISTABLE_VALUES_MERGED,
@@ -9,11 +8,6 @@ const compare = ({ name: a }, { name: b }) => a.localeCompare(b);
 
 export const spellCheckingDictionaries = (state = [], { type, payload }) => {
 	switch (type) {
-		case SPELL_CHECKING_READY: {
-			const { spellCheckingDictionaries } = payload;
-			return spellCheckingDictionaries.sort(compare);
-		}
-
 		case WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED: {
 			const { name, enabled } = payload;
 			return state.map((dictionary) => {

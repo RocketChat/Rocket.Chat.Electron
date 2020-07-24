@@ -2,6 +2,8 @@ import { EventEmitter } from 'events';
 
 import { ipcRenderer, remote } from 'electron';
 
+import { getMeteor } from './rocketChat';
+
 const fetchWithoutOrigin = remote.require('electron-main-fetch').default;
 
 const avatarCache = {};
@@ -23,20 +25,29 @@ const getAvatarUrlAsDataUrl = async (avatarUrl) => {
 		return avatarUrl;
 	}
 
+	if (!/^https?:\/\//.test(avatarUrl)) {
+		const Meteor = getMeteor();
+		avatarUrl = `${ Meteor.absoluteUrl() }${ avatarUrl.replace(/^\//, '') }`;
+	}
+
 	if (avatarCache[avatarUrl]) {
 		return avatarCache[avatarUrl];
 	}
 
-	const response = await fetchWithoutOrigin(avatarUrl);
-	const arrayBuffer = await response.arrayBuffer();
-	const byteArray = Array.from(new Uint8Array(arrayBuffer));
-	const binaryString = byteArray.reduce((binaryString, byte) => binaryString + String.fromCharCode(byte), '');
-	const base64String = btoa(binaryString);
-	const contentType = response.headers.get('content-type');
-	avatarCache[avatarUrl] = `data:${ inferContentTypeFromImageData(byteArray) || contentType };base64,${ base64String }`;
-	return avatarCache[avatarUrl];
+	try {
+		const response = await fetchWithoutOrigin(avatarUrl);
+		const arrayBuffer = await response.arrayBuffer();
+		const byteArray = Array.from(new Uint8Array(arrayBuffer));
+		const binaryString = byteArray.reduce((binaryString, byte) => binaryString + String.fromCharCode(byte), '');
+		const base64String = btoa(binaryString);
+		const contentType = response.headers.get('content-type');
+		avatarCache[avatarUrl] = `data:${ inferContentTypeFromImageData(byteArray) || contentType };base64,${ base64String }`;
+		return avatarCache[avatarUrl];
+	} catch (error) {
+		console.error(error);
+		return false;
+	}
 };
-
 
 class Notification extends EventEmitter {
 	static requestPermission() {
@@ -56,11 +67,21 @@ class Notification extends EventEmitter {
 
 	async create({ icon, canReply, ...options }) {
 		if (icon) {
-			icon = await getAvatarUrlAsDataUrl(icon);
+			try {
+				const dataUrl = await getAvatarUrlAsDataUrl(icon);
+				if (dataUrl) {
+					icon = remote.nativeImage.createFromDataURL(dataUrl);
+				} else {
+					icon = undefined;
+				}
+			} catch (error) {
+				console.error(error);
+				icon = undefined;
+			}
 		}
 
 		const notification = new remote.Notification({
-			icon: icon && remote.nativeImage.createFromDataURL(icon),
+			...icon && { icon },
 			hasReply: canReply,
 			...options,
 		});

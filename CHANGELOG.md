@@ -1,3 +1,13 @@
+## [2.17.11](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.10...2.17.11) (2020-07-21)
+
+
+### Bug Fixes
+
+* No notification when the avatar icon comes from a relative URL ([#1662](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1662)) ([bad1562](https://github.com/RocketChat/Rocket.Chat.Electron/commit/bad156246bab4b9a0c478693dc397b9548177a6c))
+* Remove wrong entitlements on MAS builds ([#1654](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1654)) ([76c19ee](https://github.com/RocketChat/Rocket.Chat.Electron/commit/76c19eedac827f9833b5090eda4965fa438b9e25))
+
+
+
 ## [2.17.10](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.9...2.17.10) (2020-07-14)
 
 

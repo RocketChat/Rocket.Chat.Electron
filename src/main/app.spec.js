@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import { call } from 'redux-saga/effects';
 
-import { waitForAppReady, watchApp } from './app';
+import { waitForAppReady, setupApp } from './app';
 
 describe('waitForAppReady', () => {
 	it('calls app.whenReady', () => {
@@ -14,7 +14,7 @@ describe('waitForAppReady', () => {
 
 describe('watchApp', () => {
 	it('only perform forks', () => {
-		const gen = watchApp();
+		const gen = setupApp();
 
 		for (const value of gen) {
 			expect(value.type).toBe('FORK');

@@ -8,10 +8,10 @@ import {
 	DEEP_LINK_TRIGGERED,
 	DEEP_LINKS_SERVER_FOCUSED,
 	DEEP_LINKS_SERVER_ADDED,
-} from '../../actions';
-import { preventedEventEmitterChannel } from '../channels';
-import { askForServerAddition, warnAboutInvalidServerUrl } from '../ui/dialogs';
-import { normalizeServerUrl, getServerInfo } from '../servers';
+} from '../actions';
+import { askForServerAddition, warnAboutInvalidServerUrl } from './ui/dialogs';
+import { preventedEventEmitterChannel } from './channels';
+import { normalizeServerUrl, getServerInfo } from './servers';
 
 const isRocketChatUrl = (parsedUrl) =>
 	parsedUrl.protocol === 'rocketchat:';
@@ -139,7 +139,7 @@ export function *processDeepLinksInArgs() {
 	}
 }
 
-export function *watchDeepLinksActions() {
+function *watchEvents() {
 	yield takeEvery(preventedEventEmitterChannel(app, 'open-url'), function *([, url]) {
 		yield fork(processDeepLink, url);
 	});
@@ -151,4 +151,8 @@ export function *watchDeepLinksActions() {
 			yield call(processDeepLink, arg);
 		}
 	});
+}
+
+export function *setupDeepLinks() {
+	yield *watchEvents();
 }

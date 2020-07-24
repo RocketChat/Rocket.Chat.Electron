@@ -1,7 +1,9 @@
+import fs from 'fs';
+import path from 'path';
 import url from 'url';
 
 import { app, shell } from 'electron';
-import { takeEvery, select, put, race, take, call } from 'redux-saga/effects';
+import { call, put, race, select, take, takeEvery } from 'redux-saga/effects';
 
 import {
 	CERTIFICATE_TRUST_REQUESTED,
@@ -14,10 +16,22 @@ import {
 	WEBVIEW_CERTIFICATE_DENIED,
 	WEBVIEW_CERTIFICATE_TRUSTED,
 	PERSISTABLE_VALUES_MERGED,
-} from '../../actions';
-import { preventedEventEmitterChannel } from '../channels';
-import { selectServers, selectTrustedCertificates, selectPersistableValues } from '../selectors';
-import { readConfigurationFile } from '../fileSystemStorage';
+} from '../actions';
+import { preventedEventEmitterChannel } from './channels';
+import { selectServers, selectTrustedCertificates } from './selectors';
+
+const loadUserTrustedCertificates = async () => {
+	try {
+		const filePath = path.join(app.getPath('userData'), 'certificate.json');
+		const content = await fs.promises.readFile(filePath, 'utf8');
+		const json = JSON.parse(content);
+		await fs.promises.unlink(filePath);
+
+		return json && typeof json === 'object' ? json : {};
+	} catch (error) {
+		return {};
+	}
+};
 
 const serializeCertificate = (certificate) => `${ certificate.issuerName }\n${ certificate.data.toString() }`;
 
@@ -107,23 +121,7 @@ function *handleLogin([, , request, , callback]) {
 	}
 }
 
-export const migrateTrustedCertificates = async (persistedValues) => {
-	const userTrustedCertificates = await readConfigurationFile('certificate.json', { appData: false, purgeAfter: true });
-
-	if (!userTrustedCertificates || typeof userTrustedCertificates !== 'object') {
-		return;
-	}
-
-	Object.assign(persistedValues.trustedCertificates, userTrustedCertificates);
-};
-
-export function *loadNavigationConfiguration() {
-	const persistedValues = { ...yield select(selectPersistableValues) };
-	yield call(migrateTrustedCertificates, persistedValues);
-	yield put({ type: PERSISTABLE_VALUES_MERGED, payload: persistedValues });
-}
-
-export function *watchNavigationActions() {
+export function *watchEvents() {
 	yield takeEvery(preventedEventEmitterChannel(app, 'login'), handleLogin);
 
 	yield takeEvery(preventedEventEmitterChannel(app, 'certificate-error'), handleCertificateError);
@@ -134,7 +132,9 @@ export function *watchNavigationActions() {
 		yield put({ type: CERTIFICATES_CLEARED });
 	});
 
-	yield takeEvery(SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, function *({ payload: { requestId, fingerprint } }) {
+	yield takeEvery(SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, function *({ payload }) {
+		const { requestId, fingerprint } = payload;
+
 		if (!queuedClientCertificateRequests.has(requestId)) {
 			return;
 		}
@@ -154,4 +154,21 @@ export function *watchNavigationActions() {
 	yield takeEvery(MENU_BAR_OPEN_URL_CLICKED, function *({ payload: url }) {
 		shell.openExternal(url);
 	});
+}
+
+export function *setupNavigation() {
+	const trustedCertificates = yield select(selectTrustedCertificates);
+	const userTrustedCertificates = yield call(loadUserTrustedCertificates);
+
+	yield put({
+		type: PERSISTABLE_VALUES_MERGED,
+		payload: {
+			trustedCertificates: {
+				...trustedCertificates,
+				...userTrustedCertificates,
+			},
+		},
+	});
+
+	yield *watchEvents();
 }

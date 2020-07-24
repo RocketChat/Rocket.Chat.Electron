@@ -74,7 +74,7 @@ import {
 	selectPersistableValues,
 	selectMainWindowState,
 } from '../selectors';
-import { getCorrectionsForMisspelling, getMisspelledWords } from '../sagas/spellChecking';
+import { getCorrectionsForMisspelling, getMisspelledWords } from '../spellChecking';
 import { getPlatform } from '../app';
 import { watchValue } from '../sagas/utils';
 

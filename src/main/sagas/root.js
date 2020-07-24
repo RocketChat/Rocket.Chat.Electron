@@ -5,14 +5,14 @@ import { setupMenuBar } from '../ui/menuBar';
 import { setupRootWindow } from '../ui/rootWindow';
 import { setupTouchBar } from '../ui/touchBar';
 import { setupTrayIcon } from '../ui/trayIcon';
+import { waitForAppReady, setupApp } from '../app';
 import { setupElectronStore, unlockAutoPersistenceOnElectronStore } from '../electronStore';
 import { setupI18n } from '../i18n';
-import { waitForAppReady, watchAppActions } from './app';
-import { watchDeepLinksActions, processDeepLinksInArgs } from './deepLinks';
-import { watchNavigationActions, loadNavigationConfiguration } from './navigation';
-import { setupServers } from '../servers';
-import { watchSpellCheckingActions, loadSpellCheckingConfiguration } from './spellChecking';
 import { setupUpdates } from '../updates';
+import { setupDeepLinks, processDeepLinksInArgs } from '../deepLinks';
+import { setupNavigation } from '../navigation';
+import { setupServers } from '../servers';
+import { setupSpellChecking } from '../spellChecking';
 
 export function *rootSaga() {
 	yield *setupElectronStore();
@@ -21,21 +21,18 @@ export function *rootSaga() {
 
 	yield *setupRootWindow(function *(localStorage) {
 		yield *setupServers(localStorage);
-		yield *loadSpellCheckingConfiguration(localStorage);
+		yield *setupSpellChecking(localStorage);
 	});
 
-	yield *loadNavigationConfiguration();
+	yield *setupApp();
+	yield *setupDeepLinks();
+	yield *setupNavigation();
 	yield *setupUpdates();
 
 	yield spawn(setupDock);
 	yield spawn(setupMenuBar);
 	yield spawn(setupTouchBar);
 	yield spawn(setupTrayIcon);
-
-	yield spawn(watchAppActions);
-	yield spawn(watchDeepLinksActions);
-	yield spawn(watchNavigationActions);
-	yield spawn(watchSpellCheckingActions);
 
 	yield *unlockAutoPersistenceOnElectronStore();
 

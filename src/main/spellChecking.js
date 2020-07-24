@@ -11,8 +11,8 @@ import {
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 	PERSISTABLE_VALUES_MERGED,
-} from '../../actions';
-import { selectSpellCheckingDictionaries, selectPersistableValues } from '../selectors';
+} from '../actions';
+import { selectSpellCheckingDictionaries, selectPersistableValues } from './selectors';
 
 const getConfigurationPath = (filePath, { appData = true } = {}) => path.join(
 	...appData ? [
@@ -129,7 +129,28 @@ function *toggleDictionary({ name, enabled, dic, aff }) {
 	}
 }
 
-function *takeEvents() {
+const isMisspelled = (word) => {
+	if (spellCheckers.size === 0) {
+		return false;
+	}
+
+	return Array.from(spellCheckers.values())
+		.every((spellChecker) => !spellChecker.spell(word));
+};
+
+export const getCorrectionsForMisspelling = async (text) => {
+	text = text.trim();
+
+	if (!text || spellCheckers.size === 0 || !isMisspelled(text)) {
+		return null;
+	}
+
+	return Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.suggest(text));
+};
+
+export const getMisspelledWords = async (words) => words.filter(isMisspelled);
+
+function *watchEvents() {
 	yield takeEvery(WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, function *() {
 		const spellCheckingDictionaries = yield select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
 		yield all(spellCheckingDictionaries.map(toggleDictionary));
@@ -172,7 +193,28 @@ function *takeEvents() {
 	});
 }
 
-export function *watchSpellCheckingActions() {
+export function *setupSpellChecking(localStorage) {
+	if (localStorage.enabledSpellCheckingDictionaries) {
+		try {
+			const enabledSpellCheckingDictionaries = JSON.parse(localStorage.enabledSpellCheckingDictionaries);
+
+			const initialSpellCheckingDictionaries = yield select(selectSpellCheckingDictionaries);
+
+			const spellCheckingDictionaries = initialSpellCheckingDictionaries.map((spellCheckingDictionary) => {
+				if (enabledSpellCheckingDictionaries.includes(spellCheckingDictionary.name)) {
+					return { ...spellCheckingDictionary, enabled: true };
+				}
+
+				return spellCheckingDictionary;
+			});
+
+			const persistableValues = yield select(selectPersistableValues);
+			yield put({ type: PERSISTABLE_VALUES_MERGED, payload: { ...persistableValues, spellCheckingDictionaries } });
+		} catch (error) {
+			console.error(error);
+		}
+	}
+
 	const spellCheckingDictionaries = yield call(loadSpellCheckingDictionaries);
 
 	yield call(::provider.initialize);
@@ -186,51 +228,5 @@ export function *watchSpellCheckingActions() {
 		},
 	});
 
-	yield *takeEvents();
-}
-
-const isMisspelled = (word) => {
-	if (spellCheckers.size === 0) {
-		return false;
-	}
-
-	return Array.from(spellCheckers.values())
-		.every((spellChecker) => !spellChecker.spell(word));
-};
-
-export const getCorrectionsForMisspelling = async (text) => {
-	text = text.trim();
-
-	if (!text || spellCheckers.size === 0 || !isMisspelled(text)) {
-		return null;
-	}
-
-	return Array.from(spellCheckers.values()).flatMap((spellChecker) => spellChecker.suggest(text));
-};
-
-export const getMisspelledWords = async (words) => words.filter(isMisspelled);
-
-export function *loadSpellCheckingConfiguration(localStorage) {
-	if (!localStorage.enabledSpellCheckingDictionaries) {
-		return;
-	}
-
-	try {
-		const enabledSpellCheckingDictionaries = JSON.parse(localStorage.enabledSpellCheckingDictionaries);
-
-		const initialSpellCheckingDictionaries = yield select(selectSpellCheckingDictionaries);
-
-		const spellCheckingDictionaries = initialSpellCheckingDictionaries.map((spellCheckingDictionary) => {
-			if (enabledSpellCheckingDictionaries.includes(spellCheckingDictionary.name)) {
-				return { ...spellCheckingDictionary, enabled: true };
-			}
-
-			return spellCheckingDictionary;
-		});
-
-		const persistableValues = yield select(selectPersistableValues);
-		yield put({ type: PERSISTABLE_VALUES_MERGED, payload: { ...persistableValues, spellCheckingDictionaries } });
-	} catch (error) {
-		console.error(error);
-	}
+	yield *watchEvents();
 }

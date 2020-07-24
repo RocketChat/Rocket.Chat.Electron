@@ -1,7 +1,7 @@
 import { Box, Button, Field, Margins, Throbber, ToggleSwitch } from '@rocket.chat/fuselage';
-import { useUniqueId } from '@rocket.chat/fuselage-hooks';
+import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
 import { remote } from 'electron';
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
@@ -16,9 +16,9 @@ import {
 	UPDATES_ERROR_THROWN,
 	UPDATES_CHECKING_FOR_UPDATE,
 } from '../../actions';
-import { RocketChatLogo } from '../RocketChatLogo.js';
+import { RocketChatLogo } from '../RocketChatLogo';
 import { useSaga } from '../SagaMiddlewareProvider';
-import { Dialog } from '../Dialog/index.js';
+import { Dialog } from '../Dialog';
 
 export function AboutDialog() {
 	const version = useMemo(() => remote.app.getVersion(), []);
@@ -86,15 +86,7 @@ export function AboutDialog() {
 		dispatch({ type: ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, payload: event.target.checked });
 	};
 
-	const checkForUpdatesButtonRef = useRef();
-
-	useEffect(() => {
-		if (!isVisible || !checkForUpdatesButtonRef.current) {
-			return;
-		}
-
-		checkForUpdatesButtonRef.current.focus();
-	}, [isVisible]);
+	const checkForUpdatesButtonRef = useAutoFocus(isVisible);
 
 	const checkForUpdatesOnStartupToggleSwitchId = useUniqueId();
 

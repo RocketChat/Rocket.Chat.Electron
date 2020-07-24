@@ -4,8 +4,7 @@ import { ipcRenderer, remote } from 'electron';
 
 import { getMeteor } from './rocketChat';
 
-
-const fetchWithoutOrigin = remote.require('electron-fetch').default;
+const fetchWithoutOrigin = remote.require('electron-main-fetch').default;
 
 const avatarCache = {};
 
@@ -49,7 +48,6 @@ const getAvatarUrlAsDataUrl = async (avatarUrl) => {
 		return false;
 	}
 };
-
 
 class Notification extends EventEmitter {
 	static requestPermission() {

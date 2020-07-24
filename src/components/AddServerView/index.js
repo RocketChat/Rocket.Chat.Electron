@@ -9,17 +9,17 @@ import {
 	TextInput,
 	Tile,
 } from '@rocket.chat/fuselage';
+import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { takeEvery } from 'redux-saga/effects';
+import { takeEvery, race, call, delay } from 'redux-saga/effects';
 
 import {
 	ADD_SERVER_VIEW_SERVER_ADDED,
 	CERTIFICATES_UPDATED,
 } from '../../actions';
-import { useSaga } from '../SagaMiddlewareProvider';
-import { useServerValidation } from '../../hooks/useServerValidation';
+import { useSaga, useCallableSaga } from '../SagaMiddlewareProvider';
 import { RocketChatLogo } from '../RocketChatLogo';
 import { Wrapper, Content } from './styles';
 
@@ -34,7 +34,34 @@ export function AddServerView() {
 	const [validationState, setValidationState] = useState('idle');
 	const [errorMessage, setErrorMessage] = useState(null);
 
-	const validator = useServerValidation();
+	const validator = useCallableSaga(function *validateServerUrl(serverUrl, timeout = 5000) {
+		const url = new URL(serverUrl);
+		const headers = new Headers();
+
+		if (url.username && url.password) {
+			headers.set('Authorization', `Basic ${ btoa(`${ url.username }:${ url.password }`) }`);
+		}
+
+		const [response] = yield race([
+			call(fetch, `${ url.href.replace(/\/$/, '') }/api/info`, { headers }),
+			delay(timeout),
+		]);
+
+		if (!response) {
+			// eslint-disable-next-line no-throw-literal
+			throw 'timeout';
+		}
+
+		if (!response.ok) {
+			// eslint-disable-next-line no-throw-literal
+			throw 'invalid';
+		}
+
+		if (!(yield call(::response.json)).success) {
+			// eslint-disable-next-line no-throw-literal
+			throw 'invalid';
+		}
+	}, []);
 
 	const validateServerUrl = useCallback(async (serverUrl) => {
 		setInput(serverUrl);
@@ -117,16 +144,8 @@ export function AddServerView() {
 		};
 	}, []);
 
-	const [inputId] = useState(() => Math.random().toString(36).slice(2));
-	const inputRef = useRef();
-
-	useEffect(() => {
-		if (!isVisible || !inputRef.current) {
-			return;
-		}
-
-		inputRef.current.focus();
-	}, [isVisible]);
+	const inputId = useUniqueId();
+	const inputRef = useAutoFocus(isVisible);
 
 	return <Wrapper isVisible={isVisible}>
 		<Content>

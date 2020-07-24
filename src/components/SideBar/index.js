@@ -1,18 +1,15 @@
 import { parse as parseUrl } from 'url';
 
-import { remote } from 'electron';
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
 
 import {
 	SIDE_BAR_SERVER_SELECTED,
-	SIDE_BAR_RELOAD_SERVER_CLICKED,
-	SIDE_BAR_REMOVE_SERVER_CLICKED,
-	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 	WEBVIEW_FAVICON_CHANGED,
+	SIDE_BAR_CONTEXT_MENU_POPPED_UP,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
 import {
@@ -30,8 +27,6 @@ import {
 } from './styles';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
-import { Menu } from '../electron/Menu';
-import { MenuItem } from '../electron/MenuItem';
 
 function ServerButton({
 	url,
@@ -49,7 +44,6 @@ function ServerButton({
 	onDrop,
 }) {
 	const dispatch = useDispatch();
-	const { t } = useTranslation();
 
 	const [favicon, setFavicon] = useState(initialFavicon);
 	const [faviconLoaded, setFaviconLoaded] = useState(false);
@@ -75,61 +69,42 @@ function ServerButton({
 		});
 	}, [url]);
 
-	const contextMenuRef = useRef();
-
 	const handleServerContextMenu = (event) => {
 		event.preventDefault();
-		contextMenuRef.current.popup(remote.getCurrentWindow());
+		dispatch({ type: SIDE_BAR_CONTEXT_MENU_POPPED_UP, payload: url });
 	};
 
-	return <>
-		<Menu ref={contextMenuRef}>
-			<MenuItem
-				label={t('sidebar.item.reload')}
-				onClick={() => dispatch({ type: SIDE_BAR_RELOAD_SERVER_CLICKED, payload: url })}
+	return <ServerButtonWrapper
+		draggable='true'
+		tooltip={title}
+		isSelected={isSelected}
+		isDragged={isDragged}
+		hasUnreadMessages={hasUnreadMessages}
+		onClick={handleServerClick}
+		onContextMenu={handleServerContextMenu}
+		onDragOver={(event) => event.preventDefault()}
+		onDragStart={onDragStart}
+		onDragEnd={onDragEnd}
+		onDragEnter={onDragEnter}
+		onDrop={onDrop}
+	>
+		<Avatar isSelected={isSelected}>
+			<Initials visible={!faviconLoaded}>
+				{initials}
+			</Initials>
+			<Favicon
+				draggable='false'
+				src={favicon}
+				visible={faviconLoaded}
+				onLoad={() => setFaviconLoaded(true)}
+				onError={() => setFaviconLoaded(false)}
 			/>
-			<MenuItem
-				label={t('sidebar.item.remove')}
-				onClick={() => dispatch({ type: SIDE_BAR_REMOVE_SERVER_CLICKED, payload: url })}
-			/>
-			<MenuItem type='separator' />
-			<MenuItem
-				label={t('sidebar.item.openDevTools')}
-				onClick={() => dispatch({ type: SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, payload: url })}
-			/>
-		</Menu>
-		<ServerButtonWrapper
-			draggable='true'
-			tooltip={title}
-			isSelected={isSelected}
-			isDragged={isDragged}
-			hasUnreadMessages={hasUnreadMessages}
-			onClick={handleServerClick}
-			onContextMenu={handleServerContextMenu}
-			onDragOver={(event) => event.preventDefault()}
-			onDragStart={onDragStart}
-			onDragEnd={onDragEnd}
-			onDragEnter={onDragEnter}
-			onDrop={onDrop}
-		>
-			<Avatar isSelected={isSelected}>
-				<Initials visible={!faviconLoaded}>
-					{initials}
-				</Initials>
-				<Favicon
-					draggable='false'
-					src={favicon}
-					visible={faviconLoaded}
-					onLoad={() => setFaviconLoaded(true)}
-					onError={() => setFaviconLoaded(false)}
-				/>
-			</Avatar>
-			{Number.isInteger(badge) && <Badge>{String(badge)}</Badge>}
-			{shortcutNumber && <KeyboardShortcut visible={isShortcutVisible}>
-				{process.platform === 'darwin' ? '⌘' : '^'}{shortcutNumber}
-			</KeyboardShortcut>}
-		</ServerButtonWrapper>
-	</>;
+		</Avatar>
+		{Number.isInteger(badge) && <Badge>{String(badge)}</Badge>}
+		{shortcutNumber && <KeyboardShortcut visible={isShortcutVisible}>
+			{process.platform === 'darwin' ? '⌘' : '^'}{shortcutNumber}
+		</KeyboardShortcut>}
+	</ServerButtonWrapper>;
 }
 
 export function SideBar() {

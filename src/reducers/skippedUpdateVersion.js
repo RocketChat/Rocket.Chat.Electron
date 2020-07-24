@@ -1,6 +1,7 @@
 import {
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATES_READY,
+	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
 
 export const skippedUpdateVersion = (state = null, { type, payload }) => {
@@ -12,6 +13,11 @@ export const skippedUpdateVersion = (state = null, { type, payload }) => {
 
 		case UPDATE_DIALOG_SKIP_UPDATE_CLICKED: {
 			const skippedUpdateVersion = payload;
+			return skippedUpdateVersion;
+		}
+
+		case PERSISTABLE_VALUES_MERGED: {
+			const { skippedUpdateVersion = state } = payload;
 			return skippedUpdateVersion;
 		}
 	}

@@ -3,7 +3,12 @@
     {
       "runner": "@jest-runner/electron",
       "testEnvironment": "@jest-runner/electron/environment",
-      "testMatch": ["**/*.(spec|test).{js,ts,tsx}"]
+      "testMatch": ["<rootDir>/src/!(main)/**/*.(spec|test).{js,ts,tsx}"]
+    },
+    {
+      "runner": "@jest-runner/electron/main",
+      "testEnvironment": "node",
+      "testMatch": ["<rootDir>/src/main/**/*.(spec|test).{js,ts,tsx}"]
     }
   ]
 }

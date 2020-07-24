@@ -4,12 +4,9 @@ import path from 'path';
 import {
 	app,
 	BrowserWindow,
-	clipboard,
 	dialog,
 	ipcMain,
-	Menu,
 	screen,
-	shell,
 } from 'electron';
 import { t } from 'i18next';
 import {
@@ -21,7 +18,6 @@ import {
 	takeEvery,
 } from 'redux-saga/effects';
 import { createSelector } from 'reselect';
-import { channel } from 'redux-saga';
 
 import {
 	CERTIFICATE_TRUST_REQUESTED,
@@ -45,10 +41,6 @@ import {
 	ROOT_WINDOW_INSTALL_UPDATE_CLICKED,
 	ROOT_WINDOW_STATE_CHANGED,
 	ROOT_WINDOW_WEBCONTENTS_FOCUSED,
-	SIDE_BAR_CONTEXT_MENU_POPPED_UP,
-	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
-	SIDE_BAR_RELOAD_SERVER_CLICKED,
-	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 	TRAY_ICON_TOGGLE_CLICKED,
@@ -56,9 +48,6 @@ import {
 	WEBVIEW_CERTIFICATE_DENIED,
 	WEBVIEW_CERTIFICATE_TRUSTED,
 	WEBVIEW_FOCUS_REQUESTED,
-	WEBVIEW_CONTEXT_MENU_POPPED_UP,
-	WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN,
-	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 	PERSISTABLE_VALUES_MERGED,
 } from '../../actions';
 import { eventEmitterChannel } from '../channels';
@@ -70,13 +59,14 @@ import {
 	selectIsTrayIconEnabled,
 	selectIsShowWindowOnUnreadChangedEnabled,
 	selectSpellCheckingDictionaries,
-	selectFocusedWebContents,
 	selectPersistableValues,
 	selectMainWindowState,
 } from '../selectors';
-import { getCorrectionsForMisspelling, getMisspelledWords } from '../spellChecking';
+import { getMisspelledWords } from '../spellChecking';
 import { getPlatform } from '../app';
 import { watchValue } from '../sagas/utils';
+import { watchSideBarContextMenuEvents } from './contextMenus/sidebar';
+import { watchWebviewContextMenuEvents } from './contextMenus/webview';
 
 const createRootWindow = async () => {
 	await app.whenReady();
@@ -362,40 +352,6 @@ function *watchEvents(rootWindow) {
 		rootWindow.hide();
 	});
 
-	const contextMenuChannel = channel();
-
-	yield takeEvery(SIDE_BAR_CONTEXT_MENU_POPPED_UP, function *({ payload: url }) {
-		const menuTemplate = [
-			{
-				label: t('sidebar.item.reload'),
-				click: () => {
-					contextMenuChannel.put(function *() {
-						yield put({ type: SIDE_BAR_RELOAD_SERVER_CLICKED, payload: url });
-					});
-				},
-			},
-			{
-				label: t('sidebar.item.remove'),
-				click: () => {
-					contextMenuChannel.put(function *() {
-						yield put({ type: SIDE_BAR_REMOVE_SERVER_CLICKED, payload: url });
-					});
-				},
-			},
-			{ type: 'separator' },
-			{
-				label: t('sidebar.item.openDevTools'),
-				click: () => {
-					contextMenuChannel.put(function *() {
-						yield put({ type: SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED, payload: url });
-					});
-				},
-			},
-		];
-		const menu = Menu.buildFromTemplate(menuTemplate);
-		menu.popup(rootWindow);
-	});
-
 	yield takeEvery(UPDATES_UPDATE_DOWNLOADED, function *() {
 		const { response } = yield call(dialog.showMessageBox, rootWindow, {
 			type: 'question',
@@ -454,193 +410,8 @@ function *watchEvents(rootWindow) {
 		yield put({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { webContentsId, fingerprint } });
 	});
 
-	yield takeEvery(WEBVIEW_CONTEXT_MENU_POPPED_UP, function *({ payload: params }) {
-		const dictionaries = yield select(selectSpellCheckingDictionaries);
-
-		const webContents = yield select(selectFocusedWebContents);
-
-		const createSpellCheckingMenuTemplate = ({
-			isEditable,
-			corrections,
-			dictionaries,
-		}) => {
-			if (!isEditable) {
-				return [];
-			}
-
-			const handleBrowserForLanguage = async () => {
-				const { filePaths } = await dialog.showOpenDialog(rootWindow, {
-					title: t('dialog.loadDictionary.title'),
-					filters: [
-						{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['dic', 'aff'] },
-						{ name: t('dialog.loadDictionary.allFiles'), extensions: ['*'] },
-					],
-					properties: ['openFile', 'multiSelections'],
-				});
-
-				contextMenuChannel.put(function *() {
-					yield put({ type: WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, payload: filePaths });
-				});
-			};
-
-			return [
-				...corrections ? [
-					...corrections.length === 0
-						? [
-							{
-								label: t('contextMenu.noSpellingSuggestions'),
-								enabled: false,
-							},
-						]
-						: corrections.slice(0, 6).map((correction) => ({
-							label: correction,
-							click: () => webContents.replaceMisspelling(correction),
-						})),
-					...corrections.length > 6 ? [
-						{
-							label: t('contextMenu.moreSpellingSuggestions'),
-							submenu: corrections.slice(6).map((correction) => ({
-								label: correction,
-								click: () => webContents.replaceMisspelling(correction),
-							})),
-						},
-					] : [],
-					{ type: 'separator' },
-				] : [],
-				{
-					label: t('contextMenu.spellingLanguages'),
-					enabled: dictionaries.length > 0,
-					submenu: [
-						...dictionaries.map(({ name, enabled }) => ({
-							label: name,
-							type: 'checkbox',
-							checked: enabled,
-							click: ({ checked }) => {
-								contextMenuChannel.put(function *() {
-									yield put({
-										type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-										payload: { name, enabled: checked },
-									});
-								});
-							},
-						})),
-						{ type: 'separator' },
-						{
-							label: t('contextMenu.browseForLanguage'),
-							click: handleBrowserForLanguage,
-						},
-					],
-				},
-				{ type: 'separator' },
-			];
-		};
-
-		const createImageMenuTemplate = ({
-			mediaType,
-			srcURL,
-		}) => (
-			mediaType === 'image' ? [
-				{
-					label: t('contextMenu.saveImageAs'),
-					click: () => webContents.downloadURL(srcURL),
-				},
-				{ type: 'separator' },
-			] : []
-		);
-
-		const createLinkMenuTemplate = ({
-			linkURL,
-			linkText,
-		}) => (
-			linkURL
-				? [
-					{
-						label: t('contextMenu.openLink'),
-						click: () => shell.openExternal(linkURL),
-					},
-					{
-						label: t('contextMenu.copyLinkText'),
-						click: () => clipboard.write({ text: linkText, bookmark: linkText }),
-						enabled: !!linkText,
-					},
-					{
-						label: t('contextMenu.copyLinkAddress'),
-						click: () => clipboard.write({ text: linkURL, bookmark: linkText }),
-					},
-					{ type: 'separator' },
-				]
-				: []
-		);
-
-		const createDefaultMenuTemplate = ({
-			editFlags: {
-				canUndo = false,
-				canRedo = false,
-				canCut = false,
-				canCopy = false,
-				canPaste = false,
-				canSelectAll = false,
-			} = {},
-		} = {}) => [
-			{
-				label: t('contextMenu.undo'),
-				role: 'undo',
-				accelerator: 'CommandOrControl+Z',
-				enabled: canUndo,
-			},
-			{
-				label: t('contextMenu.redo'),
-				role: 'redo',
-				accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
-				enabled: canRedo,
-			},
-			{ type: 'separator' },
-			{
-				label: t('contextMenu.cut'),
-				role: 'cut',
-				accelerator: 'CommandOrControl+X',
-				enabled: canCut,
-			},
-			{
-				label: t('contextMenu.copy'),
-				role: 'copy',
-				accelerator: 'CommandOrControl+C',
-				enabled: canCopy,
-			},
-			{
-				label: t('contextMenu.paste'),
-				role: 'paste',
-				accelerator: 'CommandOrControl+V',
-				enabled: canPaste,
-			},
-			{
-				label: t('contextMenu.selectAll'),
-				role: 'selectall',
-				accelerator: 'CommandOrControl+A',
-				enabled: canSelectAll,
-			},
-		];
-
-		const props = {
-			...params,
-			corrections: yield call(getCorrectionsForMisspelling, params.selectionText),
-			dictionaries,
-		};
-
-		const template = [
-			...createSpellCheckingMenuTemplate(props),
-			...createImageMenuTemplate(props),
-			...createLinkMenuTemplate(props),
-			...createDefaultMenuTemplate(props),
-		];
-
-		const menu = Menu.buildFromTemplate(template);
-		menu.popup({ window: rootWindow });
-	});
-
-	yield takeEvery(contextMenuChannel, function *(saga) {
-		yield *saga();
-	});
+	yield *watchSideBarContextMenuEvents(rootWindow);
+	yield *watchWebviewContextMenuEvents(rootWindow);
 }
 
 function *mergePersistableValues(localStorage) {

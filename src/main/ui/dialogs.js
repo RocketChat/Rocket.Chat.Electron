@@ -28,3 +28,16 @@ export const askForServerAddition = async (parentWindow, serverUrl) => {
 export const warnAboutInvalidServerUrl = (/* parentWindow, serverUrl, reason */) => {
 	throw Error('not implemented');
 };
+
+export const browseForSpellCheckingDictionary = async (parentWindow) => {
+	const { filePaths } = await dialog.showOpenDialog(parentWindow, {
+		title: t('dialog.loadDictionary.title'),
+		filters: [
+			{ name: t('dialog.loadDictionary.dictionaries'), extensions: ['dic', 'aff'] },
+			{ name: t('dialog.loadDictionary.allFiles'), extensions: ['*'] },
+		],
+		properties: ['openFile', 'multiSelections'],
+	});
+
+	return filePaths;
+};

@@ -22,7 +22,7 @@
   "scripts": {
     "postinstall": "run-s install-app-deps clean build",
     "start": "run-s clean build:watch",
-    "clean": "rimraf app",
+    "clean": "rimraf app dist",
     "build": "rollup -c",
     "build:watch": "rollup -c -w",
     "install-app-deps": "electron-builder install-app-deps",

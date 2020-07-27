@@ -21,10 +21,10 @@ class Notification extends EventTarget {
 	}
 
 	static requestPermission() {
-		return Promise.resolve(Notification.permissionx);
+		return Promise.resolve(Notification.permission);
 	}
 
-	constructor(title, { icon, canReply, ...options }) {
+	constructor(title, { icon, ...options }) {
 		super();
 
 		for (const eventType of ['show', 'close', 'click', 'reply', 'action']) {
@@ -47,7 +47,6 @@ class Notification extends EventTarget {
 		ipcRenderer.invoke('notification/create', {
 			title,
 			icon: normalizeIconUrl(icon),
-			hasReply: canReply,
 			...options,
 		}).then((id) => {
 			this.id = id;
@@ -67,31 +66,38 @@ class Notification extends EventTarget {
 	}
 }
 
-ipcRenderer.on('notification/shown', (event, id) => {
-	const notification = notifications.get(id);
-	notification?.dispatchEvent(new CustomEvent('show'));
-});
-
-ipcRenderer.on('notification/closed', (event, id) => {
-	const notification = notifications.get(id);
-	notification?.dispatchEvent(new CustomEvent('close'));
-});
-
-ipcRenderer.on('notification/clicked', (event, id) => {
-	const notification = notifications.get(id);
-	notification?.dispatchEvent(new CustomEvent('click'));
-});
-
-ipcRenderer.on('notification/replied', (event, id, response) => {
-	const notification = notifications.get(id);
-	notification?.dispatchEvent(new CustomEvent('reply', { response }));
-});
-
-ipcRenderer.on('notification/actioned', (event, id, index) => {
-	const notification = notifications.get(id);
-	notification?.dispatchEvent(new CustomEvent('action', { index }));
-});
-
 export const setupNotifications = () => {
 	window.Notification = Notification;
+
+	ipcRenderer.on('notification/shown', (event, id) => {
+		const notification = notifications.get(id);
+		const showEvent = new CustomEvent('show');
+		notification?.dispatchEvent(showEvent);
+	});
+
+	ipcRenderer.on('notification/closed', (event, id) => {
+		const notification = notifications.get(id);
+		const closeEvent = new CustomEvent('close');
+		notification?.dispatchEvent(closeEvent);
+	});
+
+	ipcRenderer.on('notification/clicked', (event, id) => {
+		const notification = notifications.get(id);
+		const clickEvent = new CustomEvent('click');
+		notification?.dispatchEvent(clickEvent);
+	});
+
+	ipcRenderer.on('notification/replied', (event, id, response) => {
+		const notification = notifications.get(id);
+		const replyEvent = new CustomEvent('reply', { detail: { response } });
+		replyEvent.response = response;
+		notification?.dispatchEvent(replyEvent);
+	});
+
+	ipcRenderer.on('notification/actioned', (event, id, index) => {
+		const notification = notifications.get(id);
+		const actionEvent = new CustomEvent('action', { detail: { index } });
+		actionEvent.index = index;
+		notification?.dispatchEvent(actionEvent);
+	});
 };

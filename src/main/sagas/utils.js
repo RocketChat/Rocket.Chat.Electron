@@ -20,7 +20,6 @@ function *waitAndCleanUpSaga(cleanUp) {
 			yield take();
 		}
 	} finally {
-		console.log('clean');
 		yield call(cleanUp);
 	}
 }

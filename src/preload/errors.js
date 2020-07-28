@@ -3,15 +3,17 @@ import { remote } from 'electron';
 
 export const setupErrorHandling = () => {
 	if (process.env.BUGSNAG_API_KEY) {
-		Bugsnag.start({
-			apiKey: process.env.BUGSNAG_API_KEY,
-			appVersion: remote.app.getVersion(),
-			appType: 'webviewPreload',
-			collectUserIp: false,
-			releaseStage: process.env.NODE_ENV,
-			onError: (event) => {
-				event.context = window.location.href;
-			},
+		window.addEventListener('load', () => {
+			Bugsnag.start({
+				apiKey: process.env.BUGSNAG_API_KEY,
+				appVersion: remote.app.getVersion(),
+				appType: 'webviewPreload',
+				collectUserIp: false,
+				releaseStage: process.env.NODE_ENV,
+				onError: (event) => {
+					event.context = window.location.href;
+				},
+			});
 		});
 
 		return;

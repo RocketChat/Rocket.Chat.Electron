@@ -1,6 +1,6 @@
 import setupJitsiPreload from './preload/jitsi';
 import setupLinksPreload from './preload/links';
-import setupNotificationsPreload from './preload/notifications';
+import { setupNotifications } from './preload/notifications';
 import setupSpellcheckingPreload from './preload/spellChecking';
 import setupChangesPreload from './preload/changes';
 import setupUserPresencePreload from './preload/userPresence';
@@ -12,14 +12,12 @@ const initialize = async () => {
 
 	setupJitsiPreload();
 	setupLinksPreload();
-	setupNotificationsPreload();
 	setupSpellcheckingPreload();
 	setupChangesPreload();
 	setupUserPresencePreload();
 };
 
-window.addEventListener('load', () => {
-	setupErrorHandling();
-});
-
 initialize();
+
+setupErrorHandling();
+setupNotifications();

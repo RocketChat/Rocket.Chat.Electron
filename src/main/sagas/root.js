@@ -2,6 +2,7 @@ import { spawn } from 'redux-saga/effects';
 
 import { setupDock } from '../ui/dock';
 import { setupMenuBar } from '../ui/menuBar';
+import { setupNotifications } from '../ui/notifications';
 import { setupRootWindow } from '../ui/rootWindow';
 import { setupTouchBar } from '../ui/touchBar';
 import { setupTrayIcon } from '../ui/trayIcon';
@@ -31,6 +32,7 @@ export function *rootSaga() {
 
 	yield spawn(setupDock);
 	yield spawn(setupMenuBar);
+	yield spawn(setupNotifications);
 	yield spawn(setupTouchBar);
 	yield spawn(setupTrayIcon);
 

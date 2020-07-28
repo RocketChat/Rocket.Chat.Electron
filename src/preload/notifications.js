@@ -1,145 +1,103 @@
-import { EventEmitter } from 'events';
+import { ipcRenderer } from 'electron';
 
-import { ipcRenderer, remote } from 'electron';
-
-import { getMeteor } from './rocketChat';
-
-const fetchWithoutOrigin = remote.require('electron-main-fetch').default;
-
-const avatarCache = {};
-
-const inferContentTypeFromImageData = (data) => {
-	const header = data.slice(0, 3).map((byte) => byte.toString(16)).join('');
-	switch (header) {
-		case '89504e':
-			return 'image/png';
-		case '474946':
-			return 'image/gif';
-		case 'ffd8ff':
-			return 'image/jpeg';
+const normalizeIconUrl = (iconUrl) => {
+	if (/^data:/.test(iconUrl)) {
+		return iconUrl;
 	}
+
+	if (!/^https?:\/\//.test(iconUrl)) {
+		const { Meteor } = window.require('meteor/meteor');
+		return Meteor.absoluteUrl(iconUrl);
+	}
+
+	return iconUrl;
 };
 
-const getAvatarUrlAsDataUrl = async (avatarUrl) => {
-	if (/^data:/.test(avatarUrl)) {
-		return avatarUrl;
-	}
+const notifications = new Map();
 
-	if (!/^https?:\/\//.test(avatarUrl)) {
-		const Meteor = getMeteor();
-		avatarUrl = `${ Meteor.absoluteUrl() }${ avatarUrl.replace(/^\//, '') }`;
-	}
-
-	if (avatarCache[avatarUrl]) {
-		return avatarCache[avatarUrl];
-	}
-
-	try {
-		const response = await fetchWithoutOrigin(avatarUrl);
-		const arrayBuffer = await response.arrayBuffer();
-		const byteArray = Array.from(new Uint8Array(arrayBuffer));
-		const binaryString = byteArray.reduce((binaryString, byte) => binaryString + String.fromCharCode(byte), '');
-		const base64String = btoa(binaryString);
-		const contentType = response.headers.get('content-type');
-		avatarCache[avatarUrl] = `data:${ inferContentTypeFromImageData(byteArray) || contentType };base64,${ base64String }`;
-		return avatarCache[avatarUrl];
-	} catch (error) {
-		console.error(error);
-		return false;
-	}
-};
-
-class Notification extends EventEmitter {
-	static requestPermission() {
-
-	}
-
+class Notification extends EventTarget {
 	static get permission() {
 		return 'granted';
 	}
 
-	constructor(title, options) {
-		super();
-		this.create({ title, ...options });
+	static requestPermission() {
+		return Promise.resolve(Notification.permission);
 	}
 
-	addEventListener = ::this.addListener
+	constructor(title, { icon, ...options }) {
+		super();
 
-	async create({ icon, canReply, ...options }) {
-		if (icon) {
-			try {
-				const dataUrl = await getAvatarUrlAsDataUrl(icon);
-				if (dataUrl) {
-					icon = remote.nativeImage.createFromDataURL(dataUrl);
-				} else {
-					icon = undefined;
-				}
-			} catch (error) {
-				console.error(error);
-				icon = undefined;
-			}
+		for (const eventType of ['show', 'close', 'click', 'reply', 'action']) {
+			Object.defineProperty(this, `on${ eventType }`, {
+				get: () => this[`_on${ eventType }`],
+				set: (value) => {
+					if (this[`_on${ eventType }`]) {
+						this.removeEventListener(eventType, this[`_on${ eventType }`]);
+					}
+
+					this[`_on${ eventType }`] = value;
+
+					if (this[`_on${ eventType }`]) {
+						this.addEventListener(eventType, this[`_on${ eventType }`]);
+					}
+				},
+			});
 		}
 
-		const notification = new remote.Notification({
-			...icon && { icon },
-			hasReply: canReply,
+		ipcRenderer.invoke('notification/create', {
+			title,
+			icon: normalizeIconUrl(icon),
 			...options,
+		}).then((id) => {
+			this.id = id;
+			notifications.set(this.id, this);
+			return ipcRenderer.invoke('notification/show', this.id);
 		});
-
-		notification.addListener('show', this.handleShow.bind(this));
-		notification.addListener('close', this.handleClose.bind(this));
-		notification.addListener('click', this.handleClick.bind(this));
-		notification.addListener('reply', this.handleReply.bind(this));
-		notification.addListener('action', this.handleAction.bind(this));
-
-		notification.show();
-
-		this.notification = notification;
-	}
-
-	handleShow(event) {
-		event.currentTarget = this;
-		this.onshow && this.onshow.call(this, event);
-		this.emit('show', event);
-	}
-
-	handleClose(event) {
-		event.currentTarget = this;
-		this.onclose && this.onclose.call(this, event);
-		this.emit('close', event);
-	}
-
-	handleClick(event) {
-		ipcRenderer.sendToHost('focus');
-		event.currentTarget = this;
-		this.onclick && this.onclick.call(this, event);
-		this.emit('close', event);
-	}
-
-	handleReply(event, reply) {
-		event.currentTarget = this;
-		event.response = reply;
-		this.onreply && this.onreply.call(this, event);
-		this.emit('reply', event);
-	}
-
-	handleAction(event, index) {
-		event.currentTarget = this;
-		event.index = index;
-		this.onaction && this.onaction.call(this, event);
-		this.emit('action', event);
 	}
 
 	close() {
-		if (!this.notification) {
+		if (!this.id) {
 			return;
 		}
 
-		this.notification.close();
-		this.notification = null;
+		ipcRenderer.invoke('notification/close', this.id);
+		notifications.delete(this.id);
+		this.id = null;
 	}
 }
 
-export default () => {
+export const setupNotifications = () => {
 	window.Notification = Notification;
+
+	ipcRenderer.on('notification/shown', (event, id) => {
+		const notification = notifications.get(id);
+		const showEvent = new CustomEvent('show');
+		notification?.dispatchEvent(showEvent);
+	});
+
+	ipcRenderer.on('notification/closed', (event, id) => {
+		const notification = notifications.get(id);
+		const closeEvent = new CustomEvent('close');
+		notification?.dispatchEvent(closeEvent);
+	});
+
+	ipcRenderer.on('notification/clicked', (event, id) => {
+		const notification = notifications.get(id);
+		const clickEvent = new CustomEvent('click');
+		notification?.dispatchEvent(clickEvent);
+	});
+
+	ipcRenderer.on('notification/replied', (event, id, response) => {
+		const notification = notifications.get(id);
+		const replyEvent = new CustomEvent('reply', { detail: { response } });
+		replyEvent.response = response;
+		notification?.dispatchEvent(replyEvent);
+	});
+
+	ipcRenderer.on('notification/actioned', (event, id, index) => {
+		const notification = notifications.get(id);
+		const actionEvent = new CustomEvent('action', { detail: { index } });
+		actionEvent.index = index;
+		notification?.dispatchEvent(actionEvent);
+	});
 };

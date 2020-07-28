@@ -1,6 +1,6 @@
 import { Box, Tile, Grid, Divider, SearchInput, Select, Icon, Button, Tabs } from '@rocket.chat/fuselage';
 // import { useTranslation } from 'react-i18next';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { ipcRenderer, shell } from 'electron';
 import { createFilter } from 'react-search-input';
@@ -11,16 +11,13 @@ import DownloadItem from '../DownloadsComponents/DownloadItem';
 
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
-	const servers = useSelector(({ servers }) => servers);
-	// const [filterValue, setFilterValue] = useState('');
-	const FILENAME_FILTER = 'fileName';
-	const SERVER_FILTER = 'serverTitle';
-	const MIME_FILTER = 'mime';
-
+	const options = [[1, 'All'], [2, 'Rocket.Chat'], [3, 'Rocket.Chat2']];
+	// const mimeTypes = []
 	// Downloads Array
 	const [downloads, setDownloads] = useState([]);
-	const [filteredDownloads, setFilterDownloads] = useState([]);
 	const [tab, setTab] = useState('All Downloads');
+	const [searchVal, setSearchVal] = useState('');
+	const [serverVal, setServerVal] = useState('');
 
 	const handleLinks = (e) => {
 		e.preventDefault();
@@ -39,25 +36,26 @@ export function DownloadsManagerView() {
 		}
 	};
 
-
-	const handleSearch = (event) => {
-		console.log(Boolean(event.target.value));
-		console.log(downloads);
-		// setFilterValue(event.target.value);
-
-		const filteredDownloads = event.target.value ? downloads.filter(createFilter(event.target.value, FILENAME_FILTER)) : downloads;
-		console.log(filteredDownloads);
-		setFilterDownloads(filteredDownloads);
+	const clear = (itemId) => {
+		const newDownloads = downloads.filter((download) => download.itemId !== itemId);
+		setDownloads(newDownloads);
+	};
+	const clearAll = () => {
+		ipcRenderer.send('reset');
 	};
 
-	const handleServerFilter = (event) => {
-		console.log(Boolean(event.target.value));
-		console.log(downloads);
-		// setFilterValue(event.target.value);
+	const handleSearch = (event) => {
+		// console.log(Boolean(event.target.value));
+		if (event.target.value !== searchVal) {
+			setSearchVal(event.target.value);
+		}
+	};
 
-		const filteredDownloads = event.target.value ? downloads.filter(createFilter(event.target.value, SERVER_FILTER)) : downloads;
-		console.log(filteredDownloads);
-		setFilterDownloads(filteredDownloads);
+	const handleServerFilter = (index) => {
+		console.log(index);
+		if (options[index - 1][1] !== serverVal) {
+			setServerVal(options[index - 1][1]);
+		}
 	};
 
 	const handleMimeFilter = (event) => {
@@ -70,19 +68,16 @@ export function DownloadsManagerView() {
 		setFilterDownloads(filteredDownloads);
 	};
 
-	const reset = () => {
-		ipcRenderer.send('reset');
-	};
 
 	const updateDownloads = (data) => {
 		console.log(data);
 		const updatedDownloads = downloads.map((downloadItem) => {
 			if (downloadItem.itemId === data.itemId) {
 				for (const key of Object.keys(data)) {
-					console.log(key);
+					// console.log(key);
 					downloadItem[key] = data[key];
 				}
-				console.log(downloadItem);
+				// console.log(downloadItem);
 			}
 			return downloadItem;
 		});
@@ -123,11 +118,22 @@ export function DownloadsManagerView() {
 	}, [downloads]);
 
 
-	useEffect(() => {
-		console.log(downloads);
-		const filteredDownloads = tab === 'All Downloads' ? downloads : downloads.filter((download) => download.status === tab);
-		setFilterDownloads(filteredDownloads);
-	}, [downloads, tab]);
+	// useEffect(() => {
+	// 	console.log(downloads);
+	// 	let filteredDownloads;
+	// 	if (prevValues.prevTab !== tab) {
+	// 		filteredDownloads = tab === 'All Downloads' ? downloads : downloads.filter((download) => download.status === tab);
+	// 	}
+	// 	if (prevValues.prevSearchVal !== searchVal) {
+	// 		filteredDownloads = searchVal ? filteredDownloads.filter(createFilter(searchVal, FILENAME_FILTER)) : filteredDownloads;
+	// 	}
+	// 	setFilterDownloads(filteredDownloads);
+	// }, [downloads, tab, searchVal, prevValues.prevTab, prevValues.prevSearchVal]);
+
+	const filteredDownloads = useMemo(() => {
+		const searchRegex = searchVal && new RegExp(`${ searchVal }`, 'gi');
+		return downloads.filter((download) => (!searchRegex || searchRegex.test(download.fileName)) && (!tab || download.status === tab) && (!serverVal || serverVal === download.serverTitle)).sort((a, b) => b.itemId - a.itemId);
+	}, [downloads, searchVal, tab, serverVal]);
 
 
 	return <Wrapper isVisible={ isVisible }>
@@ -142,11 +148,13 @@ export function DownloadsManagerView() {
 						</Grid.Item>
 
 						<Grid.Item xl={ 3 } sm={ 2 } >
-							<Select width='100%' placeholder='Filter by Server' options={ servers.map((server, index) => [index + 1, server.title]) } />
+							{/* <Select width='100%' onChange={ handleServerFilter } placeholder='Filter by Server' options={ servers.map((server, index) => [index + 1, server.title]) } /> */}
+							<Select width='100%' onChange={ handleServerFilter } placeholder='Filter by Server' options={ options } />
+
 						</Grid.Item>
 
 						<Grid.Item xl={ 2 } sm={ 2 } >
-							<Select width='100%' placeholder='Filter by File type' options={ [[1, 'audio'], [2, 'text'], [3, 'image'], [4, 'video'], [5, 'file']] } />
+							<Select width='100%' placeholder='Filter by File type' options={ [[1, 'Images'], [2, 'Videos'], [3, 'Audios'], [4, 'Texts'], [5, 'Files']] } />
 						</Grid.Item>
 
 						<Grid.Item xl={ 1 } sm={ 1 } >
@@ -156,7 +164,7 @@ export function DownloadsManagerView() {
 						</Grid.Item>
 
 						<Grid.Item xl={ 1 } sm={ 1 } >
-							<Button ghost onClick={reset}>
+							<Button ghost onClick={ clearAll }>
 								<Icon name='kebab' size='x32' />
 							</Button>
 						</Grid.Item>
@@ -178,7 +186,7 @@ export function DownloadsManagerView() {
 
 					<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
 						{/* Download Item List */ }
-						{ filteredDownloads.map((downloadItem) => <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } />) }
+						{ filteredDownloads.map((downloadItem) => <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } clear= { clear } />) }
 					</Grid.Item>
 
 				</Grid>

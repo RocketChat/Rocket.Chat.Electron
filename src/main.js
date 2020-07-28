@@ -125,20 +125,25 @@ const createMainWindow = () => {
 		store.set('downloads', downloads);
 	});
 	// Downloads handler. Handles all downloads from links.
-	mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
-
+	mainWindow.webContents.session.on('will-download', async (event, item, webContents) => {
+		// item.pause();
 		// console.log({ event, item, webContents });
 		const mime = item.getMimeType();
 		let paused = false;
 		const itemId = Date.now();
-		mainWindow.webContents.send('create-download-item', { status: 'All Downloads', itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url: item.getURL(), serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
-
+		const url = item.getURL()[0];
+		const serverTitle = url.split('#')[1];
+		// const savePath = await item.getSavePath();
+		// console.log(savePath);
+		console.log(serverTitle);
+		mainWindow.webContents.send('create-download-item', { status: 'All Downloads', serverTitle, itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url: item.getURLChain()[0], serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
+		let bytesRecieved;
 		// Cancelled Download
+		console.log(item.getURLChain());
 		ipcMain.on(`cancel-${ itemId }`, () => item.cancel());
 
 		// Paused Download
 		ipcMain.on(`pause-${ itemId }`, () => {
-			console.log(item.getReceivedBytes());
 			if (paused) {
 				item.resume();
 			} else {
@@ -151,9 +156,10 @@ const createMainWindow = () => {
 			if (state === 'interrupted') {
 				console.log('Download is interrupted but can be resumed');
 			} else if (state === 'progressing') {
-				if (item.isPaused()) {
+				if (item.isPaused() ) {
 					console.log('Download is paused');
 				} else {
+					// bytesRecieved = item.getReceivedBytes();
 					// Sending Download Information. TODO: Seperate bytes as information sent is being repeated.
 					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: item.getReceivedBytes(), savePath: item.getSavePath() });
 					console.log(`Received bytes: ${ item.getReceivedBytes() }`);

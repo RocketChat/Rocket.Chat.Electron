@@ -1,7 +1,7 @@
 import { Box, Margins, Tile, Grid, Icon, Button } from '@rocket.chat/fuselage';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote, clipboard } from 'electron';
 import { Progress } from 'react-sweet-progress';
 import 'react-sweet-progress/lib/style.css';
 
@@ -40,10 +40,12 @@ export default function DownloadItem(props) {
 	const { updateDownloads } = props;
 	const date = props.date || new Date(itemId).toDateString();
 	const fileSize = props.fileSize || formatBytes(props.totalBytes, 2, true);
-	const [percentage, setPercentage] = useState(props.percentage);
-	const [path, setPath] = useState(props.path);
-	const [status, setStatus] = useState('All Downloads');
+	// const [percentage, setPercentage] = useState(props.percentage || 0);
+	const [percentage, setPercentage] = useState(props.percentage || 0);
+	const [path, setPath] = useState(props.path || '');
+	const [status, setStatus] = useState(props.status || 'All Downloads');
 
+	const completed = useMemo(() => percentage === 100, [percentage]);
 	let serverTitle;
 
 	if (serverId) {
@@ -54,13 +56,34 @@ export default function DownloadItem(props) {
 	}
 
 
+	// TODO: Convert to only recieve dynamic progressed bytes data. NEED TO THROTTLE
+	useEffect(() => {
+		const handleProgress = (event, data) => {
+			console.log('Progress');
+			// console.log(` Current Bytes: ${ bytes }`);
+			const percentage = Math.floor((data.bytes / totalBytes) * 100);
+			// setPercentage(percentage);
+			updateDownloads({ status: 'All Downloads', percentage, serverTitle, itemId });
+			setPercentage(percentage);
+			setPath(data.savePath);
+			// console.log({ percentage, totalBytes });
+			// console.log(props);
+		};
+		// Listen on unique event only
+		ipcRenderer.on(`downloading-${ itemId }`, handleProgress);
+		return () => {
+			ipcRenderer.removeListener(`downloading-${ itemId }`, handleProgress);
+		};
+	}, [itemId, path, percentage, serverTitle, totalBytes, updateDownloads]);
+
+
 	// Download Completed, Send data back
 	useEffect(() => {
 		const downloadComplete = () => {
 			console.log('Download Complete');
 			setStatus('All Downloads');
-			props.updateDownloads({ status: 'All Downloads', serverTitle, itemId });
-			ipcRenderer.send('download-complete', { status: 'All Downloads', url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path, mime });
+			props.updateDownloads({ status: 'All Downloads', serverTitle: `${ serverTitle }2`, itemId });
+			ipcRenderer.send('download-complete', { status: 'All Downloads', url, fileName, fileSize, percentage: 100, serverTitle: `${ serverTitle }2`, itemId, date, path, mime });
 		};
 
 		ipcRenderer.on(`download-complete-${ itemId }`, downloadComplete);
@@ -70,42 +93,26 @@ export default function DownloadItem(props) {
 	});
 
 
-	// TODO: Convert to only recieve dynamic progressed bytes data.
-	useEffect(() => {
-		const handleProgress = (event, data) => {
-			console.log('Progress');
-			// console.log(` Current Bytes: ${ bytes }`);
-			const percentage = Math.floor((data.bytes / totalBytes) * 100);
-			updateDownloads({ status: 'All Downloads', percentage, serverTitle, itemId });
-			setPercentage(Math.floor(percentage));
-			setPath(data.savePath);
-			// setStatus('Downloads');
-			// console.log(props);
-		};
-		// Listen on unique event only
-		ipcRenderer.on(`downloading-${ itemId }`, handleProgress);
-		return () => {
-			ipcRenderer.removeListener(`downloading-${ itemId }`, handleProgress);
-		};
-	});
-
-
-	const handleCancel = async () => {
-		await setStatus('Cancelled');
+	const handleCancel = () => {
+		setStatus('Cancelled');
 		ipcRenderer.send(`cancel-${ itemId }`);
 		props.updateDownloads({ status: 'Cancelled', percentage, itemId });
 		ipcRenderer.send('download-complete', { status: 'Cancelled', url, fileName, fileSize, percentage, serverTitle, itemId, date, path, mime });
 	};
-	const handlePause = async () => {
+	const handlePause = () => {
 		console.log(percentage);
-		await setStatus('Paused');
+		setStatus('Paused');
 		ipcRenderer.send(`pause-${ itemId }`);
 		props.updateDownloads({ status: 'Paused', percentage, itemId });
 		paused = !paused;
 	};
+	const handleRetry = () => {
+		remote.getCurrentWebContents().downloadURL(`${ url }#${ serverTitle }`);
+		props.clear(itemId);
+	};
 
-	const printProgress = () => {
-		console.log(percentage);
+	const printProps = () => {
+		console.log({ path, totalBytes, percentage, completed, status });
 	};
 
 	return <Margins all='x32'>
@@ -116,7 +123,7 @@ export default function DownloadItem(props) {
 				<Grid.Item xl={ 2 } sm={ 2 } style={ { display: 'flex', alignItems: 'center', justifyContent: 'center' } }>
 					<Box height='150px' width='150px' backgroundColor='lightgrey' borderRadius='10px' display='flex' flexDirection='column' alignItems='center' justifyContent='center'>
 						<Icon size='7rem' name='clip' />
-						<Box fonScale='s2' color='primary-500' display='block'>{mime}</Box>
+						<Box fonScale='s2' color='primary-500' display='block'>{mime.split('/')[1]}</Box>
 					</Box>
 				</Grid.Item>
 				<Grid.Item xl={ 9 } sm={ 5 } style={ { height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-around', padding: '1.2rem 0' } }>
@@ -127,16 +134,22 @@ export default function DownloadItem(props) {
 						<Box fontSize='s2' color='info'>{ '60s Left' }</Box>
 					</Box>
 					<Progress theme={ { default: { color: '#2F80ED' } } } percent={ percentage } status='default' />
-					<Box fontSize='s2' >{ (url && url.substring(0, 45)) }</Box>
+					{/* <Box fontSize='s2' >{ (url && url.substring(0, 45)) }</Box> */}
 					{/* // TODO: Implement Show in Folder */ }
 					<Box display='flex' flexDirection='row' justifyContent='space-between'>
-						<Box is={ Button } ghost display={ status === 'Complete' ? 'inline' : 'none' } onClick={ () => props.handleFileOpen(path) } style={ { textDecoration: 'none', color: '#2F80ED' } }>Show in Folder</Box>
-						<Box is={ Button } ghost display={ status === 'Complete' ? 'none' : 'inline' } onClick={ () => handlePause() } style={ { textDecoration: 'none', color: '#2F80ED' } }>{paused ? 'Resume' : 'Pause'}</Box>
-						<Box is={ Button } ghost display={ status === 'Complete' ? 'none' : 'inline' } onClick={ () => handleCancel() } style={ { textDecoration: 'none', color: '#2F80ED' } }>Cancel</Box>
+						{/* Completed */}
+						<Box is={ Button } ghost display={ completed ? 'inline' : 'none' } onClick={ () => props.handleFileOpen(path) } style={ { textDecoration: 'none', color: '#2F80ED' } }>Show in Folder</Box>
+						<Box is={ Button } ghost display={ completed ? 'inline' : 'none' } onClick={ () => clipboard.write({ text: url }) } style={ { textDecoration: 'none', color: '#2F80ED' } }>Copy Link</Box>
+						{/* Progressing and Paused */}
+						<Box is={ Button } ghost display={ completed || status === 'Cancelled' ? 'none' : 'inline' } onClick={ () => handlePause() } style={ { textDecoration: 'none', color: '#2F80ED' } }>{paused ? 'Resume' : 'Pause'}</Box>
+						<Box is={ Button } ghost display={ completed || status === 'Cancelled' ? 'none' : 'inline' } onClick={ () => handleCancel() } style={ { textDecoration: 'none', color: '#2F80ED' } }>Cancel</Box>
+						{/* Cancelled */}
+						<Box is={ Button } ghost display={ status === 'Cancelled' ? 'inline' : 'none' } onClick={ handleRetry } style={ { textDecoration: 'none', color: '#2F80ED' } }>Retry</Box>
+
 					</Box>
 				</Grid.Item>
 				<Grid.Item xl={ 1 } sm={ 1 } style={ { display: 'flex', justifyContent: 'center' } }>
-					<Button ghost onClick={ printProgress} ><Icon name='cross' size='x32' /></Button>
+					<Button ghost onClick={ printProps } ><Icon name='cross' size='x32' /></Button>
 				</Grid.Item>
 			</Box>
 		</Tile>

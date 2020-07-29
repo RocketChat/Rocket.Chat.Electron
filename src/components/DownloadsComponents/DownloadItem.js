@@ -47,7 +47,7 @@ export default function DownloadItem(props) {
 
 	const completed = useMemo(() => percentage === 100, [percentage]);
 	let serverTitle;
-	let Mbps = props.Mbps || 0;
+	const Mbps = props.Mbps || 0;
 
 	if (props.serverTitle) {
 		serverTitle = props.serverTitle;
@@ -117,15 +117,54 @@ export default function DownloadItem(props) {
 		console.log({ path, totalBytes, percentage, completed, status, serverTitle, mime });
 	};
 
-	return <Margins all='x32'>
+	return props.layout === 'compact' ? (<Box width='100%' display='flex' justifyContent='center'>
+		<Grid.Item sm={ 2 }>
+			<Box display='flex' justifyContent='space-between' alignItems='center' height='50px'>
+				{/* <img src={ image } height='30px' width='30px' style={ { borderRadius: '5px' } } alt="" /> */}
+				<Box fontScale='p2'>1594.png</Box>
+				<Icon name='play'></Icon>
+				<Icon name='cross'></Icon>
+			</Box>
+		</Grid.Item>
 
+		<Grid.Item sm={ 1 }>
+			<Box fontWeight='p2' height='50px' verticalAlign='middle'>
+				<p>Rocket.Chat</p>
+			</Box>
+		</Grid.Item>
+		<Grid.Item sm={ 1 }>
+			<Box fontWeight='p2' height='50px' verticalAlign='middle'>
+				<p>3.24MB</p>
+			</Box>
+		</Grid.Item>
+		<Grid.Item sm={ 1 }>
+			<Box fontWeight='p2' height='50px' verticalAlign='middle'>
+				<p>0.3Mbps/s</p>
+			</Box>
+		</Grid.Item>
+		<Grid.Item sm={ 1 }>
+			<Box display='flex' alignItems='center' height='50px' >
+				<Progress theme={ { default: { color: '#2F80ED' } } } percent={ 80 } status='default' />
+			</Box>
+		</Grid.Item>
+		<Grid.Item sm={ 1 }>
+			<Box fontWeight='p2' height='50px' verticalAlign='middle'>
+				<p>Thu 2018</p>
+			</Box>
+		</Grid.Item>
+		<Grid.Item sm={ 1 }>
+			<Box display='flex' alignItems='center' height='50px'>
+				<Icon name='kebab'></Icon>
+			</Box>
+		</Grid.Item>
+	</Box>) : (<Margins all='x32'>
 		{/* <Grid md={true}> */ }
 		<Tile elevation='2' style={ { width: '95%' } }>
 			<Box height='11.5rem' width='100%' display='flex' alignItems='center'>
 				<Grid.Item xl={ 2 } sm={ 2 } style={ { display: 'flex', alignItems: 'center', justifyContent: 'center' } }>
 					<Box height='150px' width='150px' backgroundColor='lightgrey' borderRadius='10px' display='flex' flexDirection='column' alignItems='center' justifyContent='center'>
 						<Icon size='7rem' name='clip' />
-						<Box fonScale='s2' color='primary-500' display='block'>{mime.split('/')[1]}</Box>
+						<Box fonScale='s2' color='primary-500' display='block'>{ mime.split('/')[1] }</Box>
 					</Box>
 				</Grid.Item>
 				<Grid.Item xl={ 9 } sm={ 5 } style={ { height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-around', padding: '1.2rem 0' } }>
@@ -136,16 +175,15 @@ export default function DownloadItem(props) {
 						<Box fontSize='s2' color='info'>{ '60s Left' }</Box>
 					</Box>
 					<Progress theme={ { default: { color: '#2F80ED' } } } percent={ percentage } status='default' />
-					{/* <Box fontSize='s2' >{ (url && url.substring(0, 45)) }</Box> */}
 					{/* // TODO: Implement Show in Folder */ }
 					<Box display='flex' flexDirection='row' justifyContent='space-between'>
-						{/* Completed */}
+						{/* Completed */ }
 						<Box is={ Button } ghost display={ completed ? 'inline' : 'none' } onClick={ () => props.handleFileOpen(path) } style={ { textDecoration: 'none', color: '#2F80ED' } }>Show in Folder</Box>
 						<Box is={ Button } ghost display={ completed ? 'inline' : 'none' } onClick={ () => clipboard.write({ text: url }) } style={ { textDecoration: 'none', color: '#2F80ED' } }>Copy Link</Box>
-						{/* Progressing and Paused */}
-						<Box is={ Button } ghost display={ completed || status === 'Cancelled' ? 'none' : 'inline' } onClick={ () => handlePause() } style={ { textDecoration: 'none', color: '#2F80ED' } }>{paused ? 'Resume' : 'Pause'}</Box>
+						{/* Progressing and Paused */ }
+						<Box is={ Button } ghost display={ completed || status === 'Cancelled' ? 'none' : 'inline' } onClick={ () => handlePause() } style={ { textDecoration: 'none', color: '#2F80ED' } }>{ paused ? 'Resume' : 'Pause' }</Box>
 						<Box is={ Button } ghost display={ completed || status === 'Cancelled' ? 'none' : 'inline' } onClick={ () => handleCancel() } style={ { textDecoration: 'none', color: '#2F80ED' } }>Cancel</Box>
-						{/* Cancelled */}
+						{/* Cancelled */ }
 						<Box is={ Button } ghost display={ status === 'Cancelled' ? 'inline' : 'none' } onClick={ handleRetry } style={ { textDecoration: 'none', color: '#2F80ED' } }>Retry</Box>
 
 					</Box>
@@ -156,5 +194,5 @@ export default function DownloadItem(props) {
 			</Box>
 		</Tile>
 		{/* </Grid> */ }
-	</Margins>;
+	</Margins>);
 }

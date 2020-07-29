@@ -1,9 +1,8 @@
-import { Box, Tile, Grid, Divider, SearchInput, Select, Icon, Button, Tabs } from '@rocket.chat/fuselage';
+import { Box, Grid, SearchInput, Select, Icon, Button, Tabs } from '@rocket.chat/fuselage';
 // import { useTranslation } from 'react-i18next';
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { ipcRenderer, shell } from 'electron';
-import { createFilter } from 'react-search-input';
 
 import { Wrapper, Content } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';
@@ -27,6 +26,7 @@ export function DownloadsManagerView() {
 	const [searchVal, setSearchVal] = useState('');
 	const [serverVal, setServerVal] = useState('');
 	const [typeVal, setTypeVal] = useState('');
+	const [layout, setLayout] = useState('expanded');
 	let timeHeading;
 
 	const handleLinks = (e) => {
@@ -43,6 +43,13 @@ export function DownloadsManagerView() {
 		// console.log(event.target.innerText);
 		if (tab !== event.target.innerText) {
 			setTab(event.target.innerText);
+		}
+	};
+	const handleLayout = () => {
+		if (layout === 'compact') {
+			setLayout('expanded');
+		} else {
+			setLayout('compact');
 		}
 	};
 
@@ -165,7 +172,7 @@ export function DownloadsManagerView() {
 						</Grid.Item>
 
 						<Grid.Item xl={ 1 } sm={ 1 } >
-							<Button ghost>
+							<Button ghost onClick={ handleLayout }>
 								<Icon name='medium-view' size='x32' />
 							</Button>
 						</Grid.Item>
@@ -197,13 +204,13 @@ export function DownloadsManagerView() {
 							if (!timeHeading) {
 								timeHeading = new Date(downloadItem.itemId).toDateString();
 							} else if (timeHeading === new Date(downloadItem.itemId).toDateString()) {
-								return <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } clear= { clear } />;
+								return <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={layout} handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } clear= { clear } />;
 							}
 							timeHeading = new Date(downloadItem.itemId).toDateString();
 							return (
 								<>
 									<Box fontSize='x16' lineHeight='2' color='info' alignSelf='start' paddingInlineStart='x20'>{timeHeading}</Box>
-									<DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } clear= { clear } />
+									<DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={layout} handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } clear= { clear } />
 								</>
 							);
 						}) }

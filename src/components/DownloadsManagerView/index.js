@@ -9,15 +9,25 @@ import { Wrapper, Content } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';
 
 
+const mapping = {
+	application: 'Files',
+	image: 'Images',
+	video: 'Videos',
+	audio: 'Audios',
+};
+
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
 	const options = [[1, 'All'], [2, 'Rocket.Chat'], [3, 'Rocket.Chat2']];
+	const fileTypes = [[1, 'All'], [2, 'Images'], [3, 'Videos'], [4, 'Audios'], [5, 'Texts'], [6, 'Files']];
 	// const mimeTypes = []
 	// Downloads Array
 	const [downloads, setDownloads] = useState([]);
 	const [tab, setTab] = useState('All Downloads');
 	const [searchVal, setSearchVal] = useState('');
 	const [serverVal, setServerVal] = useState('');
+	const [typeVal, setTypeVal] = useState('');
+	let timeHeading;
 
 	const handleLinks = (e) => {
 		e.preventDefault();
@@ -58,14 +68,11 @@ export function DownloadsManagerView() {
 		}
 	};
 
-	const handleMimeFilter = (event) => {
-		console.log(Boolean(event.target.value));
-		console.log(downloads);
-		// setFilterValue(event.target.value);
-
-		const filteredDownloads = event.target.value ? downloads.filter(createFilter(event.target.value, MIME_FILTER)) : downloads;
-		console.log(filteredDownloads);
-		setFilterDownloads(filteredDownloads);
+	const handleMimeFilter = (index) => {
+		console.log(index);
+		if (fileTypes[index - 1][1] !== typeVal) {
+			setTypeVal(fileTypes[index - 1][1]);
+		}
 	};
 
 
@@ -106,10 +113,10 @@ export function DownloadsManagerView() {
 	useEffect(() => {
 		const createDownload = (event, props) => {
 			console.log('Creating New Download');
+			console.log(props);
 			const updatedDownloads = [...downloads];
 			updatedDownloads.push(props);
 			setDownloads(updatedDownloads);
-			console.log(props.itemId);
 		};
 		ipcRenderer.on('create-download-item', createDownload);
 		return () => {
@@ -132,8 +139,8 @@ export function DownloadsManagerView() {
 
 	const filteredDownloads = useMemo(() => {
 		const searchRegex = searchVal && new RegExp(`${ searchVal }`, 'gi');
-		return downloads.filter((download) => (!searchRegex || searchRegex.test(download.fileName)) && (!tab || download.status === tab) && (!serverVal || serverVal === download.serverTitle)).sort((a, b) => b.itemId - a.itemId);
-	}, [downloads, searchVal, tab, serverVal]);
+		return downloads.filter((download) => (!searchRegex || searchRegex.test(download.fileName)) && (!tab || download.status === tab) && (!serverVal || serverVal === download.serverTitle) && (!typeVal || mapping[download.mime.split('/')[0]] === typeVal)).sort((a, b) => b.itemId - a.itemId);
+	}, [searchVal, downloads, tab, serverVal, typeVal]);
 
 
 	return <Wrapper isVisible={ isVisible }>
@@ -154,7 +161,7 @@ export function DownloadsManagerView() {
 						</Grid.Item>
 
 						<Grid.Item xl={ 2 } sm={ 2 } >
-							<Select width='100%' placeholder='Filter by File type' options={ [[1, 'Images'], [2, 'Videos'], [3, 'Audios'], [4, 'Texts'], [5, 'Files']] } />
+							<Select width='100%' onChange={ handleMimeFilter } placeholder='Filter by File type' options={ fileTypes } />
 						</Grid.Item>
 
 						<Grid.Item xl={ 1 } sm={ 1 } >
@@ -186,7 +193,20 @@ export function DownloadsManagerView() {
 
 					<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
 						{/* Download Item List */ }
-						{ filteredDownloads.map((downloadItem) => <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } clear= { clear } />) }
+						{filteredDownloads.map((downloadItem) => {
+							if (!timeHeading) {
+								timeHeading = new Date(downloadItem.itemId).toDateString();
+							} else if (timeHeading === new Date(downloadItem.itemId).toDateString()) {
+								return <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } clear= { clear } />;
+							}
+							timeHeading = new Date(downloadItem.itemId).toDateString();
+							return (
+								<>
+									<Box fontSize='x16' lineHeight='2' color='info' alignSelf='start' paddingInlineStart='x20'>{timeHeading}</Box>
+									<DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } clear= { clear } />
+								</>
+							);
+						}) }
 					</Grid.Item>
 
 				</Grid>

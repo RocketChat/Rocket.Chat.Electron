@@ -131,12 +131,12 @@ const createMainWindow = () => {
 		const mime = item.getMimeType();
 		let paused = false;
 		const itemId = Date.now();
-		const url = item.getURL()[0];
+		const url = item.getURLChain()[0];
 		const serverTitle = url.split('#')[1];
-		// const savePath = await item.getSavePath();
-		// console.log(savePath);
-		console.log(serverTitle);
-		mainWindow.webContents.send('create-download-item', { status: 'All Downloads', serverTitle, itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url: item.getURLChain()[0], serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
+		console.log(url);
+		mainWindow.webContents.send('create-download-item', { status: 'All Downloads', serverTitle, itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url, serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
+		let startTime = new Date().getTime();
+		let endTime;
 		let bytesRecieved;
 		// Cancelled Download
 		console.log(item.getURLChain());
@@ -151,17 +151,22 @@ const createMainWindow = () => {
 			}
 			paused = !paused;
 		});
-
 		item.on('updated', (event, state) => {
 			if (state === 'interrupted') {
 				console.log('Download is interrupted but can be resumed');
 			} else if (state === 'progressing') {
-				if (item.isPaused() ) {
+				if (item.isPaused()) {
 					console.log('Download is paused');
 				} else {
-					// bytesRecieved = item.getReceivedBytes();
+					endTime = new Date().getTime();
+					const duration = (endTime - startTime) / 1000;
+					const bps = (item.getReceivedBytes() - bytesRecieved) / duration;
+					const Mbps = (bps / 1048576).toFixed(2);
+					startTime = endTime;
+					bytesRecieved = item.getReceivedBytes();
+
 					// Sending Download Information. TODO: Seperate bytes as information sent is being repeated.
-					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: item.getReceivedBytes(), savePath: item.getSavePath() });
+					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: bytesRecieved, savePath: item.getSavePath(), Mbps });
 					console.log(`Received bytes: ${ item.getReceivedBytes() }`);
 				}
 			}

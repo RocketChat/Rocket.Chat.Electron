@@ -34,7 +34,7 @@ export default function DownloadItem(props) {
 	const { fileName } = props;
 	const { totalBytes } = props;
 	const { itemId } = props;
-	const { serverId } = props;
+	// const { serverId } = props;
 	const { mime } = props;
 	// const { percentage } = props;
 	const { updateDownloads } = props;
@@ -47,34 +47,36 @@ export default function DownloadItem(props) {
 
 	const completed = useMemo(() => percentage === 100, [percentage]);
 	let serverTitle;
+	let Mbps = props.Mbps || 0;
 
-	if (serverId) {
+	if (props.serverTitle) {
+		serverTitle = props.serverTitle;
+	} else {
 		const index = servers.findIndex(({ webContentId }) => webContentId === props.serverId);
 		serverTitle = servers[index].title;
-	} else {
-		serverTitle = props.serverTitle;
 	}
 
 
+	const handleProgress = (event, data) => {
+		console.log('Progress');
+		// console.log(` Current Bytes: ${ bytes }`);
+		const percentage = Math.floor((data.bytes / totalBytes) * 100);
+		// setPercentage(percentage);
+		updateDownloads({ status: 'All Downloads', percentage, serverTitle, itemId, Mbps: data.Mbps });
+		setPercentage(percentage);
+		setPath(data.savePath);
+		// console.log({ percentage, totalBytes });
+		console.log(data.Mbps);
+		// Mbps = data.Mbps;
+	};
 	// TODO: Convert to only recieve dynamic progressed bytes data. NEED TO THROTTLE
 	useEffect(() => {
-		const handleProgress = (event, data) => {
-			console.log('Progress');
-			// console.log(` Current Bytes: ${ bytes }`);
-			const percentage = Math.floor((data.bytes / totalBytes) * 100);
-			// setPercentage(percentage);
-			updateDownloads({ status: 'All Downloads', percentage, serverTitle, itemId });
-			setPercentage(percentage);
-			setPath(data.savePath);
-			// console.log({ percentage, totalBytes });
-			// console.log(props);
-		};
 		// Listen on unique event only
 		ipcRenderer.on(`downloading-${ itemId }`, handleProgress);
 		return () => {
 			ipcRenderer.removeListener(`downloading-${ itemId }`, handleProgress);
 		};
-	}, [itemId, path, percentage, serverTitle, totalBytes, updateDownloads]);
+	});
 
 
 	// Download Completed, Send data back
@@ -112,7 +114,7 @@ export default function DownloadItem(props) {
 	};
 
 	const printProps = () => {
-		console.log({ path, totalBytes, percentage, completed, status });
+		console.log({ path, totalBytes, percentage, completed, status, serverTitle, mime });
 	};
 
 	return <Margins all='x32'>
@@ -130,7 +132,7 @@ export default function DownloadItem(props) {
 					<Box fontSize='h1' lineHeight='h1'>{ fileName }</Box>
 					<Box display='flex' flexDirection='row' justifyContent='space-between' width='100%'>
 						<Box fontSize='s2' color='info'>{ serverTitle }</Box> <Box fontSize='s2' color='info'> { date }</Box> <Box fontSize='s2' color='info'>{ fileSize || '25MB' }</Box>
-						<Box fontSize='s2' color='info'>{ '87KB/s' }</Box>
+						<Box fontSize='s2' color='info'>{ Mbps }</Box>
 						<Box fontSize='s2' color='info'>{ '60s Left' }</Box>
 					</Box>
 					<Progress theme={ { default: { color: '#2F80ED' } } } percent={ percentage } status='default' />

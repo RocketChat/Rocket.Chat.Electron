@@ -1,4 +1,4 @@
-import { Box, Grid, SearchInput, Select, Icon, Button, Tabs } from '@rocket.chat/fuselage';
+import { Box, Grid, SearchInput, Select, Icon, Button, Tabs, Tooltip } from '@rocket.chat/fuselage';
 // import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -6,20 +6,15 @@ import { ipcRenderer, shell } from 'electron';
 
 import { Wrapper, Content } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';
-
-
-const mapping = {
-	application: 'Files',
-	image: 'Images',
-	video: 'Videos',
-	audio: 'Audios',
-};
+import { mapping } from '../../downloadUtils';
 
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
-	const options = [[1, 'All'], [2, 'Rocket.Chat'], [3, 'Rocket.Chat2']];
+	const servers = useSelector(({ servers }) => servers);
+	const options = [[1, 'All']];
+	servers.map((server, index) => options.push([index + 2, server.title]));
 	const fileTypes = [[1, 'All'], [2, 'Images'], [3, 'Videos'], [4, 'Audios'], [5, 'Texts'], [6, 'Files']];
-	// const mimeTypes = []
+
 	// Downloads Array
 	const [downloads, setDownloads] = useState([]);
 	const [tab, setTab] = useState('All Downloads');
@@ -29,13 +24,8 @@ export function DownloadsManagerView() {
 	const [layout, setLayout] = useState('expanded');
 	let timeHeading;
 
-	const handleLinks = (e) => {
-		e.preventDefault();
-		shell.openExternal(e.target.href);
-	};
-
 	const handleFileOpen = (path) => {
-		console.log(path);
+		// console.log(path);
 		shell.showItemInFolder(path);
 	};
 
@@ -53,10 +43,13 @@ export function DownloadsManagerView() {
 		}
 	};
 
+	// Remove a single download from list
 	const clear = (itemId) => {
 		const newDownloads = downloads.filter((download) => download.itemId !== itemId);
 		setDownloads(newDownloads);
+		ipcRenderer.send('remove', itemId);
 	};
+	// Remove All downloads from list
 	const clearAll = () => {
 		ipcRenderer.send('reset');
 	};
@@ -88,10 +81,8 @@ export function DownloadsManagerView() {
 		const updatedDownloads = downloads.map((downloadItem) => {
 			if (downloadItem.itemId === data.itemId) {
 				for (const key of Object.keys(data)) {
-					// console.log(key);
 					downloadItem[key] = data[key];
 				}
-				// console.log(downloadItem);
 			}
 			return downloadItem;
 		});
@@ -99,7 +90,6 @@ export function DownloadsManagerView() {
 	};
 
 	// 			USE EFFECTS
-
 
 	useEffect(() => {
 		console.log('Loading Downloads');
@@ -132,21 +122,9 @@ export function DownloadsManagerView() {
 	}, [downloads]);
 
 
-	// useEffect(() => {
-	// 	console.log(downloads);
-	// 	let filteredDownloads;
-	// 	if (prevValues.prevTab !== tab) {
-	// 		filteredDownloads = tab === 'All Downloads' ? downloads : downloads.filter((download) => download.status === tab);
-	// 	}
-	// 	if (prevValues.prevSearchVal !== searchVal) {
-	// 		filteredDownloads = searchVal ? filteredDownloads.filter(createFilter(searchVal, FILENAME_FILTER)) : filteredDownloads;
-	// 	}
-	// 	setFilterDownloads(filteredDownloads);
-	// }, [downloads, tab, searchVal, prevValues.prevTab, prevValues.prevSearchVal]);
-
 	const filteredDownloads = useMemo(() => {
 		const searchRegex = searchVal && new RegExp(`${ searchVal }`, 'gi');
-		return downloads.filter((download) => (!searchRegex || searchRegex.test(download.fileName)) && (!tab || download.status === tab) && (!serverVal || serverVal === download.serverTitle) && (!typeVal || mapping[download.mime.split('/')[0]] === typeVal)).sort((a, b) => b.itemId - a.itemId);
+		return downloads.filter((download) => (!searchRegex || searchRegex.test(download.fileName)) && (tab === 'All Downloads' || download.status === tab) && (!serverVal || serverVal === 'All' || serverVal === download.serverTitle) && (!typeVal || typeVal === 'All' || mapping[download.mime.split('/')[0]] === typeVal)).sort((a, b) => b.itemId - a.itemId);
 	}, [searchVal, downloads, tab, serverVal, typeVal]);
 
 
@@ -158,11 +136,10 @@ export function DownloadsManagerView() {
 
 					<Grid.Item xl={ 12 } style={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
 						<Grid.Item xl={ 3 } sm={ 2 } >
-							<SearchInput width='100%' onChange={ handleSearch } placeholder='Search' addon={ <Icon name='send' size='x20' /> } />
+							<SearchInput width='150px' onChange={ handleSearch } placeholder='Search' addon={ <Icon name='send' size='x20' /> } />
 						</Grid.Item>
 
 						<Grid.Item xl={ 3 } sm={ 2 } >
-							{/* <Select width='100%' onChange={ handleServerFilter } placeholder='Filter by Server' options={ servers.map((server, index) => [index + 1, server.title]) } /> */}
 							<Select width='100%' onChange={ handleServerFilter } placeholder='Filter by Server' options={ options } />
 
 						</Grid.Item>
@@ -172,14 +149,19 @@ export function DownloadsManagerView() {
 						</Grid.Item>
 
 						<Grid.Item xl={ 1 } sm={ 1 } >
-							<Button ghost onClick={ handleLayout }>
-								<Icon name='medium-view' size='x32' />
-							</Button>
+							<Box width='100%' textAlign='end'>
+								<Button ghost onClick={ handleLayout }>
+									<Icon name='medium-view' size='x32' />
+									<Box>Change View</Box>
+								</Button>
+							</Box>
+
 						</Grid.Item>
 
-						<Grid.Item xl={ 1 } sm={ 1 } >
+						<Grid.Item xl={ 1 } sm={ 1 } className='tooltip' >
 							<Button ghost onClick={ clearAll }>
-								<Icon name='kebab' size='x32' />
+								<Icon name='trash' size='x32' />
+								<Box>Delete All</Box>
 							</Button>
 						</Grid.Item>
 					</Grid.Item>
@@ -198,19 +180,49 @@ export function DownloadsManagerView() {
 						</Tabs>
 					</Grid.Item>
 
+					{/* <Grid.Item sm={ 8 } style={  }>
+						<Grid.Item sm={ 2 }>
+							<Box >File Name</Box>
+						</Grid.Item>
+						<Grid.Item sm={ 1 }>
+							<Box >Server Title</Box>
+						</Grid.Item>
+						<Grid.Item sm={ 1 }>
+							<Box >File Size</Box>
+						</Grid.Item>
+						<Grid.Item sm={ 1 }>
+							<Box >Speed</Box>
+						</Grid.Item>
+						<Grid.Item sm={ 1 }>
+							<Box >Progress</Box>
+						</Grid.Item>
+						<Grid.Item sm={ 1 }>
+							<Box >Date</Box>
+						</Grid.Item>
+						<Grid.Item sm={ 1 }>
+							<Box >Remove</Box>
+						</Grid.Item>
+
+					</Grid.Item>
+
+					<Grid.Item sm={ 8 }>
+							<Divider />
+					</Grid.Item> */}
+
 					<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
 						{/* Download Item List */ }
-						{filteredDownloads.map((downloadItem) => {
+						{ filteredDownloads.map((downloadItem) => {
+							// Condition for Data Headings
 							if (!timeHeading) {
 								timeHeading = new Date(downloadItem.itemId).toDateString();
 							} else if (timeHeading === new Date(downloadItem.itemId).toDateString()) {
-								return <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={layout} handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } clear= { clear } />;
+								return <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ clear } />;
 							}
 							timeHeading = new Date(downloadItem.itemId).toDateString();
 							return (
 								<>
-									<Box fontSize='x16' lineHeight='2' color='info' alignSelf='start' paddingInlineStart='x20'>{timeHeading}</Box>
-									<DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={layout} handleFileOpen={ handleFileOpen } handleLinks={ handleLinks } clear= { clear } />
+									<Box fontSize='x16' lineHeight='2' color='info' alignSelf='start' paddingInlineStart='x20'>{ timeHeading }</Box>
+									<DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ clear } />
 								</>
 							);
 						}) }

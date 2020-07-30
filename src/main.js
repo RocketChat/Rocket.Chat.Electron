@@ -116,6 +116,11 @@ const createMainWindow = () => {
 		mainWindow.webContents.send('initialize-downloads', downloads);
 	});
 
+	ipcMain.on('remove', async (event, itemdId) => {
+		console.log(`Removing: ${ itemdId } `);
+		await store.delete(`downloads.${ itemdId }`);
+	});
+
 
 	// Listen and save a single download being completed.
 	ipcMain.on('download-complete', async (event, downloadItem) => {
@@ -173,7 +178,7 @@ const createMainWindow = () => {
 		});
 		item.once('done', (event, state) => {
 			if (state === 'completed') {
-				mainWindow.webContents.send(`download-complete-${ itemId }`); // Send to specific DownloadItem
+				mainWindow.webContents.send(`download-complete-${ itemId }`, { path, percentage: 100 }); // Send to specific DownloadItem
 				console.log('Download successfully');
 			} else {
 				console.log(`Download failed: ${ state }`);

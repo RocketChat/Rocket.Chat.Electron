@@ -1,3 +1,4 @@
+// Utility function for bytes conversion. TODO: seperate into another file.
 export function formatBytes(bytes, decimals = 2, size = false) {
 	if (bytes === 0) {
 		return '0 Bytes';
@@ -15,7 +16,7 @@ export function formatBytes(bytes, decimals = 2, size = false) {
 	return parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
 }
 
-
+//  Filetype to Mimetype mapping
 export const mapping = {
 	application: 'Files',
 	image: 'Images',

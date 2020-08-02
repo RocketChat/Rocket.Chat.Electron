@@ -4,23 +4,6 @@ import { t } from 'i18next';
 import { getMeteor, getTracker, getSettings } from './rocketChat';
 
 
-function handleTitleChange() {
-	const Tracker = getTracker();
-	const settings = getSettings();
-
-	if (!Tracker || !settings) {
-		return;
-	}
-
-	Tracker.autorun(() => {
-		const siteName = settings.get('Site_Name');
-		if (!siteName) {
-			return;
-		}
-		ipcRenderer.sendToHost('title-changed', siteName);
-	});
-}
-
 function handleFaviconChange() {
 	const Meteor = getMeteor();
 	const Tracker = getTracker();
@@ -90,7 +73,6 @@ const handleSidebarStyleChange = () => {
 };
 
 export default () => {
-	window.addEventListener('load', handleTitleChange);
 	window.addEventListener('load', handleFaviconChange);
 	window.addEventListener('load', handleSidebarStyleChange);
 

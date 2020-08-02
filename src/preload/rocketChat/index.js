@@ -14,6 +14,11 @@ export const isRocketChat = () => {
 	}
 };
 
+export const getServerUrl = () => {
+	const { Meteor } = window.require('meteor/meteor');
+	return Meteor.absoluteUrl().replace(/\/$/, '');
+};
+
 export const getMeteor = () => window.require('meteor/meteor').Meteor;
 
 export const getTracker = () => window.require('meteor/tracker').Tracker;

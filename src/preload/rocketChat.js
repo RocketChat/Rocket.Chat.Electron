@@ -1,72 +1,25 @@
-export function getMeteor() {
-	if (!window.require) {
-		return window.Meteor;
+import semver from 'semver';
+
+export const isRocketChat = () => {
+	if (typeof window.require !== 'function') {
+		return false;
 	}
 
 	try {
-		return window.require('meteor/meteor').Meteor;
+		const { Info } = window.require('/app/utils/rocketchat.info');
+		return semver.satisfies(semver.coerce(Info.version), '>=3.0.x');
 	} catch (error) {
 		console.error(error);
-		return null;
+		return false;
 	}
-}
+};
 
-export function getTracker() {
-	if (!window.require) {
-		return window.Tracker;
-	}
+export const getMeteor = () => window.require('meteor/meteor').Meteor;
 
-	try {
-		return window.require('meteor/tracker').Tracker;
-	} catch (error) {
-		console.error(error);
-		return null;
-	}
-}
+export const getTracker = () => window.require('meteor/tracker').Tracker;
 
-export function getUserPresence() {
-	if (!window.require) {
-		return window.UserPresence;
-	}
+export const getUserPresence = () => window.require('meteor/konecty:user-presence').UserPresence;
 
-	try {
-		return window.require('meteor/konecty:user-presence').UserPresence;
-	} catch (error) {
-		console.error(error);
-		return null;
-	}
-}
+export const getSettings = () => window.require('/app/settings').settings;
 
-export function getSettings() {
-	if (!window.require) {
-		return window.RocketChat && window.RocketChat.settings;
-	}
-
-	try {
-		return window.require('/app/settings').settings;
-	} catch (_) {
-		try {
-			return window.require('meteor/rocketchat:settings').settings;
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
-	}
-}
-
-export function getGetUserPreference() {
-	if (!window.require) {
-		return window.RocketChat && window.RocketChat.getUserPreference;
-	}
-
-	try {
-		return window.require('/app/utils').getUserPreference;
-	} catch (_) {
-		try {
-			return window.require('meteor/rocketchat:utils').getUserPreference;
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
-	}
-}
+export const getGetUserPreference = () => window.require('/app/utils').getUserPreference;

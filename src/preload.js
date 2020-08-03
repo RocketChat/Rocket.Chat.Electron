@@ -1,19 +1,18 @@
-import { isJitsi } from './preload/jitsi';
-import { setupNotifications } from './preload/rocketChat/notifications';
-import { setupSpellChecking } from './preload/spellChecking';
 import { setupEditFlagsChanges } from './preload/editFlags';
-import { setupUserPresenceChanges } from './preload/rocketChat/userPresence';
-import { setupI18next } from './i18n';
 import { setupErrorHandling } from './preload/errors';
-import { isRocketChat } from './preload/rocketChat';
-import { setupTitleChanges } from './preload/rocketChat/title';
-import { whenReady } from './preload/utils';
-import { setupFaviconChanges } from './preload/rocketChat/favicon';
-import { setupSidebarChanges } from './preload/rocketChat/sidebar';
-import { setupBadgeChanges } from './preload/rocketChat/badge';
-import { setupMessageBoxEvents } from './preload/rocketChat/messageBox';
-import { setupScreenSharingEvents } from './preload/screenSharing';
+import { isJitsi } from './preload/jitsi';
 import { setupJitsiMeetElectron } from './preload/jitsi/electron';
+import { isRocketChat } from './preload/rocketChat';
+import { setupBadgeChanges } from './preload/rocketChat/badge';
+import { setupFaviconChanges } from './preload/rocketChat/favicon';
+import { setupMessageBoxEvents } from './preload/rocketChat/messageBox';
+import { setupNotifications } from './preload/rocketChat/notifications';
+import { setupSidebarChanges } from './preload/rocketChat/sidebar';
+import { setupTitleChanges } from './preload/rocketChat/title';
+import { setupUserPresenceChanges } from './preload/rocketChat/userPresence';
+import { setupScreenSharingEvents } from './preload/screenSharing';
+import { setupSpellChecking } from './preload/spellChecking';
+import { whenReady } from './preload/utils';
 
 whenReady().then(() => {
 	setupErrorHandling();
@@ -29,12 +28,6 @@ whenReady().then(() => {
 		setupBadgeChanges();
 		setupMessageBoxEvents();
 		setupUserPresenceChanges();
-
-		setupI18next().then((t) => {
-			console.warn('%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
-			console.warn('%c%s', 'font-size: 20px;', t('selfxss.description'));
-			console.warn('%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
-		});
 	}
 
 	if (isJitsi()) {

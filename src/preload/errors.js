@@ -1,11 +1,11 @@
 import Bugsnag from '@bugsnag/js';
-import { remote } from 'electron';
+import { ipcRenderer } from 'electron';
 
-export const setupErrorHandling = () => {
+export const setupErrorHandling = async () => {
 	if (process.env.BUGSNAG_API_KEY) {
 		Bugsnag.start({
 			apiKey: process.env.BUGSNAG_API_KEY,
-			appVersion: remote.app.getVersion(),
+			appVersion: await ipcRenderer.invoke('app-version'),
 			appType: 'webviewPreload',
 			collectUserIp: false,
 			releaseStage: process.env.NODE_ENV,
@@ -18,7 +18,7 @@ export const setupErrorHandling = () => {
 	}
 
 	const log = (error) => {
-		remote.getGlobal('console').error(error && (error.stack || error));
+		ipcRenderer.send('log-error', error && (error.stack || error));
 	};
 
 	window.addEventListener('error', (event) => {

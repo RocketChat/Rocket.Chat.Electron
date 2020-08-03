@@ -112,6 +112,10 @@ const createRootWindow = async () => {
 	});
 
 	rootWindow.webContents.addListener('did-attach-webview', (event, webContents) => {
+		// webContents.send('console-warn', '%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
+		// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
+		// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
+
 		webContents.addListener('new-window', (event, url, frameName, disposition, options) => {
 			if (disposition === 'foreground-tab' || disposition === 'background-tab') {
 				event.preventDefault();
@@ -383,8 +387,15 @@ function *watchEvents(rootWindow) {
 		yield put({ type: WEBVIEW_EDIT_FLAGS_CHANGED, payload: { editFlags } });
 	});
 
+	yield takeEvery(eventEmitterChannel(ipcMain, 'log-error'), function *([, error]) {
+		yield call(() => {
+			console.error(error);
+		});
+	});
+
 	yield call(() => {
 		ipcMain.handle('get-webcontents-id', (event) => event.sender.id);
+		ipcMain.handle('app-version', () => app.getVersion());
 	});
 
 	yield takeEvery([

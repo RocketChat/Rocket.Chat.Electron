@@ -4,10 +4,7 @@ import path from 'path';
 import {
 	app,
 	BrowserWindow,
-	ipcMain,
 	screen,
-	webContents,
-	shell,
 } from 'electron';
 import { t } from 'i18next';
 import {
@@ -50,15 +47,6 @@ import {
 	WEBVIEW_CERTIFICATE_TRUSTED,
 	WEBVIEW_FOCUS_REQUESTED,
 	PERSISTABLE_VALUES_MERGED,
-	WEBVIEW_TITLE_CHANGED,
-	WEBVIEW_FAVICON_CHANGED,
-	WEBVIEW_SIDEBAR_STYLE_CHANGED,
-	WEBVIEW_UNREAD_CHANGED,
-	WEBVIEW_MESSAGE_BOX_FOCUSED,
-	WEBVIEW_MESSAGE_BOX_BLURRED,
-	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
-	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
-	WEBVIEW_EDIT_FLAGS_CHANGED,
 } from '../../actions';
 import { eventEmitterChannel } from '../channels';
 import { getTrayIconPath, getAppIconPath } from '../icons';
@@ -70,7 +58,6 @@ import {
 	selectIsShowWindowOnUnreadChangedEnabled,
 	selectPersistableValues,
 	selectMainWindowState,
-	selectIsSideBarVisible,
 } from '../selectors';
 import { getPlatform } from '../app';
 import { watchValue } from '../sagas/utils';
@@ -104,47 +91,6 @@ const createRootWindow = async () => {
 
 	rootWindow.addListener('close', (event) => {
 		event.preventDefault();
-	});
-
-	rootWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
-		delete webPreferences.enableBlinkFeatures;
-		webPreferences.preload = `${ app.getAppPath() }/app/preload.js`;
-		webPreferences.nodeIntegration = false;
-		webPreferences.nodeIntegrationInWorker = true;
-		webPreferences.nodeIntegrationInSubFrames = true;
-		webPreferences.enableRemoteModule = false;
-		webPreferences.webSecurity = true;
-	});
-
-	rootWindow.webContents.addListener('did-attach-webview', (event, webContents) => {
-		// webContents.send('console-warn', '%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
-		// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
-		// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
-
-		webContents.addListener('new-window', (event, url, frameName, disposition, options) => {
-			if (disposition === 'foreground-tab' || disposition === 'background-tab') {
-				event.preventDefault();
-				shell.openExternal(url);
-				return;
-			}
-
-			event.preventDefault();
-
-			const newWindow = new BrowserWindow({
-				...options,
-				show: false,
-			});
-
-			newWindow.once('ready-to-show', () => {
-				newWindow.show();
-			});
-
-			if (!options.webContents) {
-				newWindow.loadURL(url);
-			}
-
-			event.newGuest = newWindow;
-		});
 	});
 
 	rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/app.html'));
@@ -257,16 +203,6 @@ function *watchUpdates(rootWindow) {
 			rootWindow.flashFrame(true);
 		}
 	});
-
-	yield watchValue(selectIsSideBarVisible, function *([isSideBarVisible]) {
-		if (platform !== 'darwin') {
-			return;
-		}
-
-		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send('sidebar-visibility-changed', isSideBarVisible);
-		});
-	});
 }
 
 function *watchEvents(rootWindow) {
@@ -336,65 +272,6 @@ function *watchEvents(rootWindow) {
 
 	yield takeEvery(eventEmitterChannel(rootWindow, 'devtools-focused'), function *() {
 		yield put({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
-	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'title-changed'), function *([, { url, title }]) {
-		yield put({ type: WEBVIEW_TITLE_CHANGED, payload: { url, title } });
-	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'favicon-changed'), function *([, { url, favicon }]) {
-		yield put({ type: WEBVIEW_FAVICON_CHANGED, payload: { url, favicon } });
-	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'sidebar-style'), function *([, { url, style }]) {
-		yield put({ type: WEBVIEW_SIDEBAR_STYLE_CHANGED, payload: { url, style } });
-	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'unread-changed'), function *([, { url, badge }]) {
-		yield put({ type: WEBVIEW_UNREAD_CHANGED, payload: { url, badge } });
-	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'message-box-focus-changed'), function *([, { focused }]) {
-		if (focused) {
-			yield put({ type: WEBVIEW_MESSAGE_BOX_FOCUSED });
-		} else {
-			yield put({ type: WEBVIEW_MESSAGE_BOX_BLURRED });
-		}
-	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'screen-sharing-source-requested'), function *() {
-		yield put({ type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED });
-	});
-
-	yield takeEvery(SCREEN_SHARING_DIALOG_SOURCE_SELECTED, function *({ payload: sourceId }) {
-		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send('screen-sharing-source-selected', sourceId);
-		});
-	});
-
-	yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *({ payload: buttonId }) {
-		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send('format-button-touched', buttonId);
-		});
-	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'focus-requested'), function *([, { url }]) {
-		yield put({ type: WEBVIEW_FOCUS_REQUESTED, payload: { url } });
-	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'edit-flags-changed'), function *([, editFlags]) {
-		yield put({ type: WEBVIEW_EDIT_FLAGS_CHANGED, payload: { editFlags } });
-	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'log-error'), function *([, error]) {
-		yield call(() => {
-			console.error(error);
-		});
-	});
-
-	yield call(() => {
-		ipcMain.handle('get-webcontents-id', (event) => event.sender.id);
-		ipcMain.handle('app-version', () => app.getVersion());
 	});
 
 	yield takeEvery([

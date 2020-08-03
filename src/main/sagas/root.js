@@ -1,5 +1,6 @@
 import { spawn } from 'redux-saga/effects';
 
+import { setupBrowserViews } from '../ui/browserViews';
 import { setupDock } from '../ui/dock';
 import { setupMenuBar } from '../ui/menuBar';
 import { setupNotifications } from '../ui/notifications';
@@ -32,6 +33,7 @@ export function *rootSaga() {
 	yield *setupUpdates();
 	yield *setupPowerMonitor();
 
+	yield spawn(setupBrowserViews);
 	yield spawn(setupDock);
 	yield spawn(setupMenuBar);
 	yield spawn(setupNotifications);

@@ -1,4 +1,4 @@
-import setupJitsiPreload from './preload/jitsi';
+import { isJitsi } from './preload/jitsi';
 import { setupNotifications } from './preload/rocketChat/notifications';
 import { setupSpellChecking } from './preload/spellChecking';
 import { setupEditFlagsChanges } from './preload/editFlags';
@@ -13,12 +13,8 @@ import { setupSidebarChanges } from './preload/rocketChat/sidebar';
 import { setupBadgeChanges } from './preload/rocketChat/badge';
 import { setupMessageBoxEvents } from './preload/rocketChat/messageBox';
 import { setupScreenSharingEvents } from './preload/screenSharing';
+import { setupJitsiMeetElectron } from './preload/jitsi/electron';
 
-const initialize = () => {
-	setupJitsiPreload();
-};
-
-initialize();
 whenReady().then(() => {
 	setupErrorHandling();
 	setupScreenSharingEvents();
@@ -39,5 +35,9 @@ whenReady().then(() => {
 			console.warn('%c%s', 'font-size: 20px;', t('selfxss.description'));
 			console.warn('%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
 		});
+	}
+
+	if (isJitsi()) {
+		setupJitsiMeetElectron();
 	}
 });

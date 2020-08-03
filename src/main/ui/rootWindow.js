@@ -7,6 +7,7 @@ import {
 	ipcMain,
 	screen,
 	webContents,
+	shell,
 } from 'electron';
 import { t } from 'i18next';
 import {
@@ -97,6 +98,7 @@ const createRootWindow = async () => {
 		webPreferences: {
 			webviewTag: true,
 			nodeIntegration: true,
+			nodeIntegrationInSubFrames: true,
 		},
 	});
 
@@ -106,6 +108,40 @@ const createRootWindow = async () => {
 
 	rootWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
 		delete webPreferences.enableBlinkFeatures;
+		webPreferences.nodeIntegrationInSubFrames = true;
+	});
+
+	rootWindow.webContents.addListener('did-attach-webview', (event, webContents) => {
+		webContents.addListener('new-window', (event, url, frameName, disposition, options) => {
+			if (disposition === 'foreground-tab' || disposition === 'background-tab') {
+				event.preventDefault();
+				shell.openExternal(url);
+				return;
+			}
+
+			event.preventDefault();
+
+			const newWindow = new BrowserWindow({
+				...options,
+				webPreferences: {
+					...options.webPreferences,
+					webSecurity: true,
+					enableRemoteModule: true, // TODO: remove it
+					preload: `${ app.getAppPath() }/app/preload.js`,
+				},
+				show: false,
+			});
+
+			newWindow.once('ready-to-show', () => {
+				newWindow.show();
+			});
+
+			if (!options.webContents) {
+				newWindow.loadURL(url);
+			}
+
+			event.newGuest = newWindow;
+		});
 	});
 
 	rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/app.html'));

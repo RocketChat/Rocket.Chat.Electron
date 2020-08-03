@@ -118,8 +118,8 @@ const applyMainWindowState = (rootWindow, rootWindowState) => {
 				height: primaryDisplayHeight,
 			},
 		} = screen.getPrimaryDisplay();
-		x = (primaryDisplayWidth - width) / 2;
-		y = (primaryDisplayHeight - height) / 2;
+		x = Math.round((primaryDisplayWidth - width) / 2);
+		y = Math.round((primaryDisplayHeight - height) / 2);
 	}
 
 	if (rootWindow.isVisible()) {

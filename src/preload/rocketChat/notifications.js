@@ -1,5 +1,7 @@
 import { ipcRenderer } from 'electron';
 
+import { getServerUrl } from '.';
+
 const normalizeIconUrl = (iconUrl) => {
 	if (/^data:/.test(iconUrl)) {
 		return iconUrl;
@@ -85,6 +87,11 @@ export const setupNotifications = () => {
 		const notification = notifications.get(id);
 		const clickEvent = new CustomEvent('click');
 		notification?.dispatchEvent(clickEvent);
+
+		const payload = {
+			url: getServerUrl(),
+		};
+		ipcRenderer.send('focus-requested', payload);
 	});
 
 	ipcRenderer.on('notification/replied', (event, id, response) => {

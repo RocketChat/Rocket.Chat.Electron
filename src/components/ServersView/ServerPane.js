@@ -65,7 +65,7 @@ export function ServerPane({
 
 	useWebviewFocus(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 	useWebviewContextMenu(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
-	useWebviewPreload(webviewRef, webContents, { url, active: isSelected, failed: isFailed });
+	useWebviewPreload(webviewRef, webContents, { active: isSelected, failed: isFailed });
 	useWebviewNavigation(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 
 	const dispatch = useDispatch();

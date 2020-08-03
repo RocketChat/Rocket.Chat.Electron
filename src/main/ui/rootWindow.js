@@ -55,6 +55,9 @@ import {
 	WEBVIEW_UNREAD_CHANGED,
 	WEBVIEW_MESSAGE_BOX_FOCUSED,
 	WEBVIEW_MESSAGE_BOX_BLURRED,
+	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
+	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
+	WEBVIEW_EDIT_FLAGS_CHANGED,
 } from '../../actions';
 import { eventEmitterChannel } from '../channels';
 import { getTrayIconPath, getAppIconPath } from '../icons';
@@ -336,10 +339,28 @@ function *watchEvents(rootWindow) {
 		}
 	});
 
+	yield takeEvery(eventEmitterChannel(ipcMain, 'screen-sharing-source-requested'), function *() {
+		yield put({ type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED });
+	});
+
+	yield takeEvery(SCREEN_SHARING_DIALOG_SOURCE_SELECTED, function *({ payload: sourceId }) {
+		webContents.getAllWebContents().forEach((webContents) => {
+			webContents.send('screen-sharing-source-selected', sourceId);
+		});
+	});
+
 	yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *({ payload: buttonId }) {
 		webContents.getAllWebContents().forEach((webContents) => {
 			webContents.send('format-button-touched', buttonId);
 		});
+	});
+
+	yield takeEvery(eventEmitterChannel(ipcMain, 'focus-requested'), function *([, { url }]) {
+		yield put({ type: WEBVIEW_FOCUS_REQUESTED, payload: { url } });
+	});
+
+	yield takeEvery(eventEmitterChannel(ipcMain, 'edit-flags-changed'), function *([, editFlags]) {
+		yield put({ type: WEBVIEW_EDIT_FLAGS_CHANGED, payload: { editFlags } });
 	});
 
 	yield call(() => {

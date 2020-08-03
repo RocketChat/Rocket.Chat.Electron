@@ -34,7 +34,7 @@ export const setupI18next = async () => {
 		.filter((filename) => /^([a-z]{2}(\-[A-Z]{2})?)\.i18n\.json$/.test(filename))
 		.map((filename) => filename.split('.')[0]);
 
-	await i18next
+	return i18next
 		.use(i18nextNodeFileSystemBackend)
 		.use(initReactI18next)
 		.init({

@@ -2,7 +2,7 @@ import setupJitsiPreload from './preload/jitsi';
 import setupLinksPreload from './preload/links';
 import { setupNotifications } from './preload/rocketChat/notifications';
 import setupSpellcheckingPreload from './preload/spellChecking';
-import setupChangesPreload from './preload/changes';
+import { setupEditFlagsChanges } from './preload/editFlags';
 import setupUserPresencePreload from './preload/userPresence';
 import { setupI18next } from './i18n';
 import { setupErrorHandling } from './preload/errors';
@@ -13,6 +13,7 @@ import { setupFaviconChanges } from './preload/rocketChat/favicon';
 import { setupSidebarChanges } from './preload/rocketChat/sidebar';
 import { setupBadgeChanges } from './preload/rocketChat/badge';
 import { setupMessageBoxEvents } from './preload/rocketChat/messageBox';
+import { setupScreenSharingEvents } from './preload/screenSharing';
 
 const initialize = async () => {
 	await setupI18next();
@@ -20,13 +21,14 @@ const initialize = async () => {
 	setupJitsiPreload();
 	setupLinksPreload();
 	setupSpellcheckingPreload();
-	setupChangesPreload();
 	setupUserPresencePreload();
 };
 
 initialize();
 whenReady().then(() => {
 	setupErrorHandling();
+	setupScreenSharingEvents();
+	setupEditFlagsChanges();
 
 	if (isRocketChat()) {
 		setupNotifications();
@@ -35,5 +37,11 @@ whenReady().then(() => {
 		setupSidebarChanges();
 		setupBadgeChanges();
 		setupMessageBoxEvents();
+
+		setupI18next().then((t) => {
+			console.warn('%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
+			console.warn('%c%s', 'font-size: 20px;', t('selfxss.description'));
+			console.warn('%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
+		});
 	}
 });

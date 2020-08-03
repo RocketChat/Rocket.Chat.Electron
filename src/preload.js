@@ -9,6 +9,7 @@ import { setupErrorHandling } from './preload/errors';
 import { isRocketChat } from './preload/rocketChat';
 import { setupSiteNameChanges } from './preload/rocketChat/siteName';
 import { whenReady } from './preload/utils';
+import { setupAssetsFaviconChanges } from './preload/rocketChat/assetsFavicon';
 
 const initialize = async () => {
 	await setupI18next();
@@ -27,5 +28,6 @@ whenReady().then(() => {
 	if (isRocketChat()) {
 		setupNotifications();
 		setupSiteNameChanges();
+		setupAssetsFaviconChanges();
 	}
 });

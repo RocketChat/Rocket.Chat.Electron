@@ -12,10 +12,10 @@ export const setupSiteNameChanges = () => {
 			return;
 		}
 
-		getServerUrl()
-			.then((url) => ({ url, title: siteName }))
-			.then((payload) => {
-				ipcRenderer.send('title-changed', payload);
-			});
+		const payload = {
+			url: getServerUrl(),
+			title: siteName,
+		};
+		ipcRenderer.send('title-changed', payload);
 	});
 };

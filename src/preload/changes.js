@@ -3,38 +3,6 @@ import { t } from 'i18next';
 
 import { getMeteor, getTracker, getSettings } from './rocketChat';
 
-
-function handleFaviconChange() {
-	const Meteor = getMeteor();
-	const Tracker = getTracker();
-	const settings = getSettings();
-
-	if (!Meteor || !Tracker || !settings) {
-		return;
-	}
-
-	Tracker.autorun(async () => {
-		const { url, defaultUrl } = settings.get('Assets_favicon') || {};
-		const faviconUrl = (url || defaultUrl) && Meteor.absoluteUrl(url || defaultUrl);
-
-		if (faviconUrl) {
-			const canvas = document.createElement('canvas');
-			canvas.width = 100;
-			canvas.height = 100;
-			const ctx = canvas.getContext('2d');
-
-			const image = new Image();
-			image.src = faviconUrl;
-			image.onload = () => {
-				ctx.drawImage(image, 0, 0, 100, 100);
-				ipcRenderer.sendToHost('favicon-changed', canvas.toDataURL());
-			};
-		} else {
-			ipcRenderer.sendToHost('favicon-changed', null);
-		}
-	});
-}
-
 const handleSidebarStyleChange = () => {
 	const element = document.createElement('div');
 	element.classList.add('sidebar');
@@ -73,7 +41,6 @@ const handleSidebarStyleChange = () => {
 };
 
 export default () => {
-	window.addEventListener('load', handleFaviconChange);
 	window.addEventListener('load', handleSidebarStyleChange);
 
 	window.addEventListener('unread-changed', (event) => {

@@ -5,7 +5,6 @@ import { takeEvery } from 'redux-saga/effects';
 import {
 	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
-	WEBVIEW_FAVICON_CHANGED,
 	WEBVIEW_FOCUS_REQUESTED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	WEBVIEW_SIDEBAR_STYLE_CHANGED,
@@ -42,10 +41,6 @@ export const useWebviewPreload = (webviewRef, webContents, { url, hasSidebar, ac
 
 				case 'sidebar-style':
 					dispatch({ type: WEBVIEW_SIDEBAR_STYLE_CHANGED, payload: { webContentsId: webContents.id, url, style: args[0] } });
-					break;
-
-				case 'favicon-changed':
-					dispatch({ type: WEBVIEW_FAVICON_CHANGED, payload: { webContentsId: webContents.id, url, favicon: args[0] } });
 					break;
 
 				case 'message-box-focused':

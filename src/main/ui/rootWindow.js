@@ -49,6 +49,7 @@ import {
 	WEBVIEW_FOCUS_REQUESTED,
 	PERSISTABLE_VALUES_MERGED,
 	WEBVIEW_TITLE_CHANGED,
+	WEBVIEW_FAVICON_CHANGED,
 } from '../../actions';
 import { eventEmitterChannel } from '../channels';
 import { getTrayIconPath, getAppIconPath } from '../icons';
@@ -297,6 +298,10 @@ function *watchEvents(rootWindow) {
 
 	yield takeEvery(eventEmitterChannel(ipcMain, 'title-changed'), function *([, { url, title }]) {
 		yield put({ type: WEBVIEW_TITLE_CHANGED, payload: { url, title } });
+	});
+
+	yield takeEvery(eventEmitterChannel(ipcMain, 'favicon-changed'), function *([, { url, favicon }]) {
+		yield put({ type: WEBVIEW_FAVICON_CHANGED, payload: { url, favicon } });
 	});
 
 	yield call(() => {

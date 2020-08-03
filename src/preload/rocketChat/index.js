@@ -18,5 +18,3 @@ export const getServerUrl = () => {
 	const { Meteor } = window.require('meteor/meteor');
 	return Meteor.absoluteUrl().replace(/\/$/, '');
 };
-
-export const getSettings = () => window.require('/app/settings').settings;

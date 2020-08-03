@@ -29,6 +29,10 @@ export const setupUserPresenceChanges = () => {
 
 	let prevState;
 	setInterval(async () => {
+		if (!idleThreshold) {
+			return;
+		}
+
 		const state = await ipcRenderer.invoke('get-system-idle-state', idleThreshold);
 
 		if (prevState === state) {

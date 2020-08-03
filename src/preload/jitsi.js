@@ -2,9 +2,6 @@ import url from 'url';
 
 import { desktopCapturer, remote } from 'electron';
 
-import { getSettings } from './rocketChat';
-
-
 const JitsiMeetElectron = {
 	async obtainDesktopStreams(callback, errorCallback, options = {}) {
 		try {
@@ -16,7 +13,7 @@ const JitsiMeetElectron = {
 };
 
 const wrapWindowOpen = (defaultWindowOpen) => (href, frameName, features) => {
-	const settings = getSettings();
+	const { settings } = window.require('/app/settings');
 
 	if (settings && url.parse(href).host === settings.get('Jitsi_Domain')) {
 		features = [

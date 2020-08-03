@@ -1,5 +1,5 @@
 import { Box, Button, ButtonGroup, Margins, Throbber } from '@rocket.chat/fuselage';
-import { remote } from 'electron';
+import { remote, shell } from 'electron';
 import React, { useState, useRef, useEffect } from 'react';
 import { takeEvery } from 'redux-saga/effects';
 import { useTranslation } from 'react-i18next';
@@ -116,6 +116,13 @@ export function ServerPane({
 			preload={`${ remote.app.getAppPath() }/app/preload.js`}
 			isVisible={!isFailed && !isReloading}
 			onWebContentsChange={(webContents) => setWebContents(webContents)}
+			onNewWindow={(event, url, frameName, disposition, ...args) => {
+				if (disposition === 'foreground-tab' || disposition === 'background-tab') {
+					shell.openExternal(url);
+				}
+
+				remote.getGlobal('console').log(url, frameName, disposition, ...args);
+			}}
 		/>
 		<ErrorPane isVisible={isFailed || isReloading}>
 			<FailureImage style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0 }} />

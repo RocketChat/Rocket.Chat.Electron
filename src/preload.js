@@ -1,5 +1,4 @@
 import setupJitsiPreload from './preload/jitsi';
-import setupLinksPreload from './preload/links';
 import { setupNotifications } from './preload/rocketChat/notifications';
 import { setupSpellChecking } from './preload/spellChecking';
 import { setupEditFlagsChanges } from './preload/editFlags';
@@ -17,7 +16,6 @@ import { setupScreenSharingEvents } from './preload/screenSharing';
 
 const initialize = () => {
 	setupJitsiPreload();
-	setupLinksPreload();
 };
 
 initialize();

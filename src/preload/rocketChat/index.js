@@ -19,12 +19,4 @@ export const getServerUrl = () => {
 	return Meteor.absoluteUrl().replace(/\/$/, '');
 };
 
-export const getMeteor = () => window.require('meteor/meteor').Meteor;
-
-export const getTracker = () => window.require('meteor/tracker').Tracker;
-
-export const getUserPresence = () => window.require('meteor/konecty:user-presence').UserPresence;
-
 export const getSettings = () => window.require('/app/settings').settings;
-
-export const getGetUserPreference = () => window.require('/app/utils').getUserPreference;

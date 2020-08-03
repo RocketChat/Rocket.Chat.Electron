@@ -3,7 +3,7 @@ import setupLinksPreload from './preload/links';
 import { setupNotifications } from './preload/rocketChat/notifications';
 import { setupSpellChecking } from './preload/spellChecking';
 import { setupEditFlagsChanges } from './preload/editFlags';
-import setupUserPresencePreload from './preload/userPresence';
+import { setupUserPresenceChanges } from './preload/rocketChat/userPresence';
 import { setupI18next } from './i18n';
 import { setupErrorHandling } from './preload/errors';
 import { isRocketChat } from './preload/rocketChat';
@@ -15,12 +15,9 @@ import { setupBadgeChanges } from './preload/rocketChat/badge';
 import { setupMessageBoxEvents } from './preload/rocketChat/messageBox';
 import { setupScreenSharingEvents } from './preload/screenSharing';
 
-const initialize = async () => {
-	await setupI18next();
-
+const initialize = () => {
 	setupJitsiPreload();
 	setupLinksPreload();
-	setupUserPresencePreload();
 };
 
 initialize();
@@ -37,6 +34,7 @@ whenReady().then(() => {
 		setupSidebarChanges();
 		setupBadgeChanges();
 		setupMessageBoxEvents();
+		setupUserPresenceChanges();
 
 		setupI18next().then((t) => {
 			console.warn('%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));

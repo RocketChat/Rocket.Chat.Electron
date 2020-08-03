@@ -14,6 +14,7 @@ import { setupDeepLinks, processDeepLinksInArgs } from '../deepLinks';
 import { setupNavigation } from '../navigation';
 import { setupServers } from '../servers';
 import { setupSpellChecking } from '../spellChecking';
+import { setupPowerMonitor } from '../powerMonitor';
 
 export function *rootSaga() {
 	yield *setupElectronStore();
@@ -29,6 +30,7 @@ export function *rootSaga() {
 	yield *setupDeepLinks();
 	yield *setupNavigation();
 	yield *setupUpdates();
+	yield *setupPowerMonitor();
 
 	yield spawn(setupDock);
 	yield spawn(setupMenuBar);

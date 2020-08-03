@@ -1,5 +1,4 @@
 import { Box, Button, ButtonGroup, Margins, Throbber } from '@rocket.chat/fuselage';
-import { remote } from 'electron';
 import React, { useState, useRef, useEffect } from 'react';
 import { takeEvery } from 'redux-saga/effects';
 import { useTranslation } from 'react-i18next';
@@ -110,10 +109,6 @@ export function ServerPane({
 		<StyledWebView
 			ref={webviewRef}
 			src={srcRef.current}
-			popups
-			webSecurity={false}
-			remoteModule
-			preload={`${ remote.app.getAppPath() }/app/preload.js`}
 			isVisible={!isFailed && !isReloading}
 			onWebContentsChange={(webContents) => setWebContents(webContents)}
 		/>

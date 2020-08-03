@@ -108,7 +108,12 @@ const createRootWindow = async () => {
 
 	rootWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
 		delete webPreferences.enableBlinkFeatures;
+		webPreferences.preload = `${ app.getAppPath() }/app/preload.js`;
+		webPreferences.nodeIntegration = false;
+		webPreferences.nodeIntegrationInWorker = true;
 		webPreferences.nodeIntegrationInSubFrames = true;
+		webPreferences.enableRemoteModule = false;
+		webPreferences.webSecurity = true;
 	});
 
 	rootWindow.webContents.addListener('did-attach-webview', (event, webContents) => {
@@ -127,12 +132,6 @@ const createRootWindow = async () => {
 
 			const newWindow = new BrowserWindow({
 				...options,
-				webPreferences: {
-					...options.webPreferences,
-					webSecurity: true,
-					enableRemoteModule: true, // TODO: remove it
-					preload: `${ app.getAppPath() }/app/preload.js`,
-				},
 				show: false,
 			});
 

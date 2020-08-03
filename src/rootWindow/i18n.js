@@ -1,11 +1,11 @@
 import fs from 'fs';
 
-import { app as mainApp, remote } from 'electron';
+import { remote } from 'electron';
 import i18next from 'i18next';
 import i18nextNodeFileSystemBackend from 'i18next-node-fs-backend';
 import { initReactI18next } from 'react-i18next';
 
-const app = mainApp || remote.app;
+const { app } = remote;
 const languagesDirPath = `${ app.getAppPath() }/app/i18n`;
 const defaultLocale = 'en';
 let globalLocale = defaultLocale;

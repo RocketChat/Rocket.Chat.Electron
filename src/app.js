@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
-import { setupI18next } from './i18n';
+import { setupI18next } from './rootWindow/i18n';
 import { App } from './components/App';
 import { setupErrorHandling } from './rootWindow/errors';
 

@@ -2,7 +2,7 @@ import { forwardToMain, replayActionRenderer, getInitialStateRenderer } from 'el
 import { createStore, applyMiddleware, compose } from 'redux';
 import createSagaMiddleware from 'redux-saga';
 
-import { rootReducer } from './reducers';
+import { rootReducer } from '../reducers';
 
 export const createReduxStoreAndSagaMiddleware = () => {
 	const sagaMiddleware = createSagaMiddleware();

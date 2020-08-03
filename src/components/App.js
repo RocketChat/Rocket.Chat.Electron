@@ -4,7 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider, useDispatch } from 'react-redux';
 
 import { MainWindow } from './MainWindow';
-import { createReduxStoreAndSagaMiddleware } from '../storeAndEffects';
+import { createReduxStoreAndSagaMiddleware } from '../rootWindow/storeAndEffects';
 import { SagaMiddlewareProvider } from './SagaMiddlewareProvider';
 import { Shell } from './Shell';
 import { ErrorCatcher } from './utils/ErrorCatcher';

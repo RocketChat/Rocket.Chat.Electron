@@ -2,7 +2,7 @@ import { webFrame, ipcRenderer } from 'electron';
 
 const requests = new Map();
 
-export default async () => {
+export const setupSpellChecking = () => {
 	ipcRenderer.addListener('misspelled-words', (_, id, misspeledWords) => {
 		if (requests.has(id)) {
 			requests.get(id)(misspeledWords);

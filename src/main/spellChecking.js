@@ -1,9 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app } from 'electron';
+import { app, ipcMain } from 'electron';
 import { SpellCheckerProvider } from 'electron-hunspell';
 import { all, call, put, select, takeEvery } from 'redux-saga/effects';
+import { createSelector } from 'reselect';
 
 import {
 	SPELL_CHECKING_DICTIONARIES_UPDATED,
@@ -12,6 +13,7 @@ import {
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
 import { selectSpellCheckingDictionaries, selectPersistableValues } from './selectors';
+import { eventEmitterChannel } from './channels';
 
 const embeddedDictionaries = [
 	{
@@ -226,6 +228,20 @@ function *watchEvents() {
 			}, []);
 
 		yield put({ type: SPELL_CHECKING_DICTIONARIES_UPDATED, payload: spellCheckingDictionaries });
+	});
+
+	yield takeEvery(eventEmitterChannel(ipcMain, 'get-misspelled-words'), function *([event, words]) {
+		const misspelledWords = yield call(getMisspelledWords, words);
+		const id = JSON.stringify(words);
+		event.sender.send('misspelled-words', id, misspelledWords);
+	});
+
+	yield takeEvery(eventEmitterChannel(ipcMain, 'get-spell-checking-language'), function *([event]) {
+		const selectDictionaryName = createSelector(selectSpellCheckingDictionaries, (spellCheckingDictionaries) =>
+			spellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name)[0]);
+		const dictionaryName = yield select(selectDictionaryName);
+		const language = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
+		event.sender.send('set-spell-checking-language', language);
 	});
 }
 

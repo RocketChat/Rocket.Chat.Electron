@@ -15,7 +15,6 @@ import {
 import { useSaga } from '../SagaMiddlewareProvider';
 import { useWebviewFocus } from './useWebviewFocus';
 import { useWebviewContextMenu } from './useWebviewContextMenu';
-import { useWebviewPreload } from './useWebviewPreload';
 import { useWebviewNavigation } from './useWebviewNavigation';
 import {
 	ErrorPane,
@@ -65,7 +64,6 @@ export function ServerPane({
 
 	useWebviewFocus(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 	useWebviewContextMenu(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
-	useWebviewPreload(webviewRef, webContents, { active: isSelected, failed: isFailed });
 	useWebviewNavigation(webviewRef, webContents, { url, active: isSelected, failed: isFailed, hasSidebar: !isFull });
 
 	const dispatch = useDispatch();

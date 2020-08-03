@@ -67,12 +67,10 @@ import {
 	selectIsMenuBarEnabled,
 	selectIsTrayIconEnabled,
 	selectIsShowWindowOnUnreadChangedEnabled,
-	selectSpellCheckingDictionaries,
 	selectPersistableValues,
 	selectMainWindowState,
 	selectIsSideBarVisible,
 } from '../selectors';
-import { getMisspelledWords } from '../spellChecking';
 import { getPlatform } from '../app';
 import { watchValue } from '../sagas/utils';
 import { watchSideBarContextMenuEvents } from './contextMenus/sidebar';
@@ -299,20 +297,6 @@ function *watchEvents(rootWindow) {
 
 	yield takeEvery(eventEmitterChannel(rootWindow, 'devtools-focused'), function *() {
 		yield put({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
-	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'get-misspelled-words'), function *([event, words]) {
-		const misspelledWords = yield call(getMisspelledWords, words);
-		const id = JSON.stringify(words);
-		event.sender.send('misspelled-words', id, misspelledWords);
-	});
-
-	yield takeEvery(eventEmitterChannel(ipcMain, 'get-spell-checking-language'), function *([event]) {
-		const selectDictionaryName = createSelector(selectSpellCheckingDictionaries, (spellCheckingDictionaries) =>
-			spellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name)[0]);
-		const dictionaryName = yield select(selectDictionaryName);
-		const language = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
-		event.sender.send('set-spell-checking-language', language);
 	});
 
 	yield takeEvery(eventEmitterChannel(ipcMain, 'title-changed'), function *([, { url, title }]) {

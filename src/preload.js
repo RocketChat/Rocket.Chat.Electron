@@ -1,7 +1,7 @@
 import setupJitsiPreload from './preload/jitsi';
 import setupLinksPreload from './preload/links';
 import { setupNotifications } from './preload/rocketChat/notifications';
-import setupSpellcheckingPreload from './preload/spellChecking';
+import { setupSpellChecking } from './preload/spellChecking';
 import { setupEditFlagsChanges } from './preload/editFlags';
 import setupUserPresencePreload from './preload/userPresence';
 import { setupI18next } from './i18n';
@@ -20,7 +20,6 @@ const initialize = async () => {
 
 	setupJitsiPreload();
 	setupLinksPreload();
-	setupSpellcheckingPreload();
 	setupUserPresencePreload();
 };
 
@@ -29,6 +28,7 @@ whenReady().then(() => {
 	setupErrorHandling();
 	setupScreenSharingEvents();
 	setupEditFlagsChanges();
+	setupSpellChecking();
 
 	if (isRocketChat()) {
 		setupNotifications();

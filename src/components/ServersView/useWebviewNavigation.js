@@ -20,6 +20,7 @@ import {
 	WEBVIEW_LOADING_FAILED,
 	WEBVIEW_LOADING_STARTED,
 	CERTIFICATES_CLEARED,
+	WEBVIEW_MESSAGE_BOX_BLURRED,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
 
@@ -88,6 +89,7 @@ export const useWebviewNavigation = (webviewRef, webContents, { url, active }) =
 		}
 
 		const handleDidStartLoading = () => {
+			dispatch({ type: WEBVIEW_MESSAGE_BOX_BLURRED });
 			dispatch({ type: WEBVIEW_LOADING_STARTED, payload: { webContentsId: webContents, url } });
 		};
 

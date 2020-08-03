@@ -6,6 +6,7 @@ import {
 	BrowserWindow,
 	ipcMain,
 	screen,
+	webContents,
 } from 'electron';
 import { t } from 'i18next';
 import {
@@ -50,6 +51,10 @@ import {
 	PERSISTABLE_VALUES_MERGED,
 	WEBVIEW_TITLE_CHANGED,
 	WEBVIEW_FAVICON_CHANGED,
+	WEBVIEW_SIDEBAR_STYLE_CHANGED,
+	WEBVIEW_UNREAD_CHANGED,
+	WEBVIEW_MESSAGE_BOX_FOCUSED,
+	WEBVIEW_MESSAGE_BOX_BLURRED,
 } from '../../actions';
 import { eventEmitterChannel } from '../channels';
 import { getTrayIconPath, getAppIconPath } from '../icons';
@@ -62,6 +67,7 @@ import {
 	selectSpellCheckingDictionaries,
 	selectPersistableValues,
 	selectMainWindowState,
+	selectIsSideBarVisible,
 } from '../selectors';
 import { getMisspelledWords } from '../spellChecking';
 import { getPlatform } from '../app';
@@ -211,6 +217,16 @@ function *watchUpdates(rootWindow) {
 			rootWindow.flashFrame(true);
 		}
 	});
+
+	yield watchValue(selectIsSideBarVisible, function *([isSideBarVisible]) {
+		if (platform !== 'darwin') {
+			return;
+		}
+
+		webContents.getAllWebContents().forEach((webContents) => {
+			webContents.send('sidebar-visibility-changed', isSideBarVisible);
+		});
+	});
 }
 
 function *watchEvents(rootWindow) {
@@ -302,6 +318,28 @@ function *watchEvents(rootWindow) {
 
 	yield takeEvery(eventEmitterChannel(ipcMain, 'favicon-changed'), function *([, { url, favicon }]) {
 		yield put({ type: WEBVIEW_FAVICON_CHANGED, payload: { url, favicon } });
+	});
+
+	yield takeEvery(eventEmitterChannel(ipcMain, 'sidebar-style'), function *([, { url, style }]) {
+		yield put({ type: WEBVIEW_SIDEBAR_STYLE_CHANGED, payload: { url, style } });
+	});
+
+	yield takeEvery(eventEmitterChannel(ipcMain, 'unread-changed'), function *([, { url, badge }]) {
+		yield put({ type: WEBVIEW_UNREAD_CHANGED, payload: { url, badge } });
+	});
+
+	yield takeEvery(eventEmitterChannel(ipcMain, 'message-box-focus-changed'), function *([, { focused }]) {
+		if (focused) {
+			yield put({ type: WEBVIEW_MESSAGE_BOX_FOCUSED });
+		} else {
+			yield put({ type: WEBVIEW_MESSAGE_BOX_BLURRED });
+		}
+	});
+
+	yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *({ payload: buttonId }) {
+		webContents.getAllWebContents().forEach((webContents) => {
+			webContents.send('format-button-touched', buttonId);
+		});
 	});
 
 	yield call(() => {

@@ -7,9 +7,12 @@ import setupUserPresencePreload from './preload/userPresence';
 import { setupI18next } from './i18n';
 import { setupErrorHandling } from './preload/errors';
 import { isRocketChat } from './preload/rocketChat';
-import { setupSiteNameChanges } from './preload/rocketChat/siteName';
+import { setupTitleChanges } from './preload/rocketChat/title';
 import { whenReady } from './preload/utils';
-import { setupAssetsFaviconChanges } from './preload/rocketChat/assetsFavicon';
+import { setupFaviconChanges } from './preload/rocketChat/favicon';
+import { setupSidebarChanges } from './preload/rocketChat/sidebar';
+import { setupBadgeChanges } from './preload/rocketChat/badge';
+import { setupMessageBoxEvents } from './preload/rocketChat/messageBox';
 
 const initialize = async () => {
 	await setupI18next();
@@ -27,7 +30,10 @@ whenReady().then(() => {
 
 	if (isRocketChat()) {
 		setupNotifications();
-		setupSiteNameChanges();
-		setupAssetsFaviconChanges();
+		setupTitleChanges();
+		setupFaviconChanges();
+		setupSidebarChanges();
+		setupBadgeChanges();
+		setupMessageBoxEvents();
 	}
 });

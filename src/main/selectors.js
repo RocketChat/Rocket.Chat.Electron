@@ -94,3 +94,8 @@ export const selectUpdateConfiguration = createStructuredSelector({
 	doCheckForUpdatesOnStartup: selectDoCheckForUpdatesOnStartup,
 	skippedUpdateVersion: selectSkippedUpdateVersion,
 });
+
+export const selectIsSideBarVisible = createSelector([
+	selectServers,
+	selectIsSideBarEnabled,
+], (servers, isSideBarEnabled) => servers.length > 0 && isSideBarEnabled);

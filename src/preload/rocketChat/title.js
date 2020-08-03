@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron';
 
 import { getServerUrl } from '.';
 
-export const setupSiteNameChanges = () => {
+export const setupTitleChanges = () => {
 	const { Tracker } = window.require('meteor/tracker');
 	const { settings } = window.require('/app/settings');
 

@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron';
 
 import { getServerUrl } from '.';
 
-export const setupAssetsFaviconChanges = () => {
+export const setupFaviconChanges = () => {
 	const { Meteor } = window.require('meteor/meteor');
 	const { Tracker } = window.require('meteor/tracker');
 	const { settings } = window.require('/app/settings');

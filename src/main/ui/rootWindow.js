@@ -48,6 +48,7 @@ import {
 	WEBVIEW_CERTIFICATE_TRUSTED,
 	WEBVIEW_FOCUS_REQUESTED,
 	PERSISTABLE_VALUES_MERGED,
+	WEBVIEW_TITLE_CHANGED,
 } from '../../actions';
 import { eventEmitterChannel } from '../channels';
 import { getTrayIconPath, getAppIconPath } from '../icons';
@@ -292,6 +293,14 @@ function *watchEvents(rootWindow) {
 		const dictionaryName = yield select(selectDictionaryName);
 		const language = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
 		event.sender.send('set-spell-checking-language', language);
+	});
+
+	yield takeEvery(eventEmitterChannel(ipcMain, 'title-changed'), function *([, { url, title }]) {
+		yield put({ type: WEBVIEW_TITLE_CHANGED, payload: { url, title } });
+	});
+
+	yield call(() => {
+		ipcMain.handle('get-webcontents-id', (event) => event.sender.id);
 	});
 
 	yield takeEvery([

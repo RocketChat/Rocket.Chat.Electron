@@ -8,6 +8,7 @@ import { setupI18next } from './i18n';
 import { setupErrorHandling } from './preload/errors';
 import { isRocketChat } from './preload/rocketChat';
 import { setupSiteNameChanges } from './preload/rocketChat/siteName';
+import { whenReady } from './preload/utils';
 
 const initialize = async () => {
 	await setupI18next();
@@ -18,24 +19,6 @@ const initialize = async () => {
 	setupChangesPreload();
 	setupUserPresencePreload();
 };
-
-const whenReady = () => new Promise((resolve) => {
-	if (document.readyState !== 'loading') {
-		resolve();
-		return;
-	}
-
-	const handleReadyStateChange = () => {
-		if (document.readyState === 'loading') {
-			return;
-		}
-
-		document.removeEventListener('readystatechange', handleReadyStateChange);
-		resolve();
-	};
-
-	document.addEventListener('readystatechange', handleReadyStateChange);
-});
 
 initialize();
 whenReady().then(() => {

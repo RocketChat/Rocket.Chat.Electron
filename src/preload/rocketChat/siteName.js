@@ -1,5 +1,7 @@
 import { ipcRenderer } from 'electron';
 
+import { getServerUrl } from '.';
+
 export const setupSiteNameChanges = () => {
 	const { Tracker } = window.require('meteor/tracker');
 	const { settings } = window.require('/app/settings');
@@ -10,6 +12,10 @@ export const setupSiteNameChanges = () => {
 			return;
 		}
 
-		ipcRenderer.sendToHost('title-changed', siteName);
+		getServerUrl()
+			.then((url) => ({ url, title: siteName }))
+			.then((payload) => {
+				ipcRenderer.send('title-changed', payload);
+			});
 	});
 };

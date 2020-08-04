@@ -1,5 +1,4 @@
 export const INVOKE_APP_VERSION = 'app-version';
-export const INVOKE_WEBCONTENTS_ID = 'get-webcontents-id';
 export const SEND_LOG_ERROR = 'log-error';
 export const SEND_SCREEN_SHARING_SOURCE_REQUESTED = 'screen-sharing-source-requested';
 export const SEND_SCREEN_SHARING_SOURCE_SELECTED = 'screen-sharing-source-selected';

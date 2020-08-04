@@ -20,7 +20,6 @@ import { selectIsSideBarVisible } from '../selectors';
 import { watchValue } from '../sagas/utils';
 import {
 	INVOKE_APP_VERSION,
-	INVOKE_WEBCONTENTS_ID,
 	SEND_LOG_ERROR,
 	SEND_SCREEN_SHARING_SOURCE_REQUESTED,
 	SEND_SCREEN_SHARING_SOURCE_SELECTED,
@@ -87,7 +86,6 @@ export function *setupBrowserViews() {
 
 	yield call(() => {
 		ipcMain.handle(INVOKE_APP_VERSION, () => app.getVersion());
-		ipcMain.handle(INVOKE_WEBCONTENTS_ID, (event) => event.sender.id);
 
 		ipcMain.addListener(SEND_TITLE_CHANGED, (event, { url, title }) => {
 			events.put({ type: WEBVIEW_TITLE_CHANGED, payload: { url, title } });

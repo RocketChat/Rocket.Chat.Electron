@@ -1,6 +1,7 @@
 import { ipcRenderer } from 'electron';
 
 import { getServerUrl } from '.';
+import { SEND_MESSAGE_BOX_FOCUS_CHANGED, SEND_FORMAT_BUTTON_TOUCHED } from '../../ipc';
 
 export const setupMessageBoxEvents = () => {
 	const {
@@ -20,7 +21,7 @@ export const setupMessageBoxEvents = () => {
 			url: getServerUrl(),
 			focused: true,
 		};
-		ipcRenderer.send('message-box-focus-changed', payload);
+		ipcRenderer.send(SEND_MESSAGE_BOX_FOCUS_CHANGED, payload);
 	}, true);
 
 	document.addEventListener('blur', (event) => {
@@ -33,10 +34,10 @@ export const setupMessageBoxEvents = () => {
 			url: getServerUrl(),
 			focused: false,
 		};
-		ipcRenderer.send('message-box-focus-changed', payload);
+		ipcRenderer.send(SEND_MESSAGE_BOX_FOCUS_CHANGED, payload);
 	}, true);
 
-	ipcRenderer.addListener('format-button-touched', (_, buttonId) => {
+	ipcRenderer.addListener(SEND_FORMAT_BUTTON_TOUCHED, (_, buttonId) => {
 		if (!focusedMessageBoxInput) {
 			return;
 		}

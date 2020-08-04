@@ -1,6 +1,7 @@
 import { ipcRenderer } from 'electron';
 
 import { getServerUrl } from '.';
+import { SEND_FAVICON_CHANGED } from '../../ipc';
 
 export const setupFaviconChanges = () => {
 	const { Meteor } = window.require('meteor/meteor');
@@ -21,7 +22,7 @@ export const setupFaviconChanges = () => {
 			url: getServerUrl(),
 			favicon: canvas.toDataURL(),
 		};
-		ipcRenderer.send('favicon-changed', payload);
+		ipcRenderer.send(SEND_FAVICON_CHANGED, payload);
 	};
 
 	Tracker.autorun(async () => {

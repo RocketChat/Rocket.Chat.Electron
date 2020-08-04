@@ -1,5 +1,7 @@
 import { ipcRenderer } from 'electron';
 
+import { SEND_EDIT_FLAGS_CHANGED } from '../ipc';
+
 const getEditFlags = () => ({
 	canUndo: document.queryCommandEnabled('undo'),
 	canRedo: document.queryCommandEnabled('redo'),
@@ -11,10 +13,10 @@ const getEditFlags = () => ({
 
 export const setupEditFlagsChanges = () => {
 	document.addEventListener('focus', () => {
-		ipcRenderer.send('edit-flags-changed', getEditFlags());
+		ipcRenderer.send(SEND_EDIT_FLAGS_CHANGED, getEditFlags());
 	}, true);
 
 	document.addEventListener('selectionchange', () => {
-		ipcRenderer.send('edit-flags-changed', getEditFlags());
+		ipcRenderer.send(SEND_EDIT_FLAGS_CHANGED, getEditFlags());
 	}, true);
 };

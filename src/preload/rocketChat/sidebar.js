@@ -1,6 +1,7 @@
 import { ipcRenderer } from 'electron';
 
 import { getServerUrl } from '.';
+import { SEND_SIDEBAR_VISIBILITY_CHANGED, SEND_SIDEBAR_STYLE } from '../../ipc';
 
 let timer;
 let prevBackground;
@@ -24,7 +25,7 @@ const pollSidebarStyle = (referenceElement) => {
 				color,
 			},
 		};
-		ipcRenderer.send('sidebar-style', payload);
+		ipcRenderer.send(SEND_SIDEBAR_STYLE, payload);
 		prevBackground = background;
 		prevColor = color;
 	}
@@ -56,7 +57,7 @@ export const setupSidebarChanges = () => {
 	style.id = 'sidebar-padding';
 	document.head.append(style);
 
-	ipcRenderer.addListener('sidebar-visibility-changed', (_, hasSidebar) => {
+	ipcRenderer.addListener(SEND_SIDEBAR_VISIBILITY_CHANGED, (_, hasSidebar) => {
 		style.innerHTML = `
 			.sidebar {
 				padding-top: ${ hasSidebar ? '0' : '10px' } !important;

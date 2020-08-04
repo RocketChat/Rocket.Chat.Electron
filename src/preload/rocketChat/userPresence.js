@@ -1,16 +1,18 @@
 import { ipcRenderer } from 'electron';
 
+import { SEND_SUSPEND, SEND_LOCK_SCREEN, INVOKE_SYSTEM_IDLE_STATE } from '../../ipc';
+
 export const setupUserPresenceChanges = () => {
 	const { Meteor } = window.require('meteor/meteor');
 	const { Tracker } = window.require('meteor/tracker');
 	const { UserPresence } = window.require('meteor/konecty:user-presence');
 	const { getUserPreference } = window.require('/app/utils');
 
-	ipcRenderer.addListener('suspend', () => {
+	ipcRenderer.addListener(SEND_SUSPEND, () => {
 		Meteor.call('UserPresence:setDefaultStatus', 'away');
 	});
 
-	ipcRenderer.addListener('lock-screen', () => {
+	ipcRenderer.addListener(SEND_LOCK_SCREEN, () => {
 		Meteor.call('UserPresence:setDefaultStatus', 'away');
 	});
 
@@ -33,7 +35,7 @@ export const setupUserPresenceChanges = () => {
 			return;
 		}
 
-		const state = await ipcRenderer.invoke('get-system-idle-state', idleThreshold);
+		const state = await ipcRenderer.invoke(INVOKE_SYSTEM_IDLE_STATE, idleThreshold);
 
 		if (prevState === state) {
 			return;

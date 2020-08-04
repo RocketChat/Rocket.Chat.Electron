@@ -99,3 +99,8 @@ export const selectIsSideBarVisible = createSelector([
 	selectServers,
 	selectIsSideBarEnabled,
 ], (servers, isSideBarEnabled) => servers.length > 0 && isSideBarEnabled);
+
+export const selectDictionaryName = createSelector([
+	selectSpellCheckingDictionaries,
+], (spellCheckingDictionaries) =>
+	spellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name)[0]);

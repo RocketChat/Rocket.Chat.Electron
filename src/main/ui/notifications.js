@@ -2,6 +2,17 @@ import { ipcMain, Notification, webContents, nativeImage } from 'electron';
 import fetch from 'node-fetch';
 import { call } from 'redux-saga/effects';
 
+import {
+	SEND_NOTIFICATION_SHOWN,
+	SEND_NOTIFICATION_CLOSED,
+	SEND_NOTIFICATION_CLICKED,
+	SEND_NOTIFICATION_REPLIED,
+	SEND_NOTIFICATION_ACTIONED,
+	SEND_NOTIFICATION_CREATE,
+	SEND_NOTIFICATION_SHOW,
+	SEND_NOTIFICATION_CLOSE,
+} from '../../ipc';
+
 const iconCache = new Map();
 
 const inferContentTypeFromImageData = (data) => {
@@ -65,32 +76,32 @@ const createNotification = async (id, {
 
 	notification.addListener('show', () => {
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send('notification/shown', id);
+			webContents.send(SEND_NOTIFICATION_SHOWN, id);
 		});
 	});
 
 	notification.addListener('close', () => {
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send('notification/closed', id);
+			webContents.send(SEND_NOTIFICATION_CLOSED, id);
 			notifications.delete(id);
 		});
 	});
 
 	notification.addListener('click', () => {
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send('notification/clicked', id);
+			webContents.send(SEND_NOTIFICATION_CLICKED, id);
 		});
 	});
 
 	notification.addListener('reply', (event, reply) => {
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send('notification/replied', id, reply);
+			webContents.send(SEND_NOTIFICATION_REPLIED, id, reply);
 		});
 	});
 
 	notification.addListener('action', (event, index) => {
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send('notification/actioned', id, index);
+			webContents.send(SEND_NOTIFICATION_ACTIONED, id, index);
 		});
 	});
 
@@ -136,9 +147,9 @@ const handleCloseEvent = (event, id) => {
 };
 
 const attachEvents = () => {
-	ipcMain.handle('notification/create', handleCreateEvent);
-	ipcMain.handle('notification/show', handleShowEvent);
-	ipcMain.handle('notification/close', handleCloseEvent);
+	ipcMain.handle(SEND_NOTIFICATION_CREATE, handleCreateEvent);
+	ipcMain.handle(SEND_NOTIFICATION_SHOW, handleShowEvent);
+	ipcMain.handle(SEND_NOTIFICATION_CLOSE, handleCloseEvent);
 };
 
 export function *setupNotifications() {

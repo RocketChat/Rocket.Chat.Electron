@@ -1,10 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app, ipcMain } from 'electron';
+import { app, ipcMain, webContents } from 'electron';
 import { SpellCheckerProvider } from 'electron-hunspell';
 import { all, call, put, select, takeEvery } from 'redux-saga/effects';
-import { createSelector } from 'reselect';
 
 import {
 	SPELL_CHECKING_DICTIONARIES_UPDATED,
@@ -12,8 +11,17 @@ import {
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
-import { selectSpellCheckingDictionaries, selectPersistableValues } from './selectors';
-import { eventEmitterChannel } from './channels';
+import {
+	selectSpellCheckingDictionaries,
+	selectPersistableValues,
+	selectDictionaryName,
+} from './selectors';
+import {
+	INVOKE_SPELL_CHECKING_LANGUAGE,
+	SEND_SET_SPELL_CHECKING_LANGUAGE,
+	INVOKE_MISSPELT_WORDS,
+} from '../ipc';
+import { watchValue } from './sagas/utils';
 
 const embeddedDictionaries = [
 	{
@@ -230,18 +238,28 @@ function *watchEvents() {
 		yield put({ type: SPELL_CHECKING_DICTIONARIES_UPDATED, payload: spellCheckingDictionaries });
 	});
 
-	yield takeEvery(eventEmitterChannel(ipcMain, 'get-misspelled-words'), function *([event, words]) {
-		const misspelledWords = yield call(getMisspelledWords, words);
-		const id = JSON.stringify(words);
-		event.sender.send('misspelled-words', id, misspelledWords);
+	let dictionaryName;
+
+	yield watchValue(selectDictionaryName, function *([_dictionaryName]) {
+		dictionaryName = _dictionaryName;
+
+		yield call(() => {
+			webContents.getAllWebContents().forEach((webContents) => {
+				webContents.send(SEND_SET_SPELL_CHECKING_LANGUAGE, dictionaryName);
+			});
+		});
 	});
 
-	yield takeEvery(eventEmitterChannel(ipcMain, 'get-spell-checking-language'), function *([event]) {
-		const selectDictionaryName = createSelector(selectSpellCheckingDictionaries, (spellCheckingDictionaries) =>
-			spellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name)[0]);
-		const dictionaryName = yield select(selectDictionaryName);
-		const language = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
-		event.sender.send('set-spell-checking-language', language);
+	yield call(() => {
+		ipcMain.handle(INVOKE_SPELL_CHECKING_LANGUAGE, () => {
+			const language = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
+			return language;
+		});
+
+		ipcMain.handle(INVOKE_MISSPELT_WORDS, async (event, words) => {
+			const misspeltWords = await getMisspelledWords(words);
+			return misspeltWords;
+		});
 	});
 }
 

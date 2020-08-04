@@ -1,6 +1,17 @@
 import { ipcRenderer } from 'electron';
 
 import { getServerUrl } from '.';
+import {
+	SEND_NOTIFICATION_SHOWN,
+	SEND_NOTIFICATION_CLOSED,
+	SEND_NOTIFICATION_CLICKED,
+	SEND_FOCUS_REQUESTED,
+	SEND_NOTIFICATION_REPLIED,
+	SEND_NOTIFICATION_ACTIONED,
+	SEND_NOTIFICATION_CREATE,
+	SEND_NOTIFICATION_SHOW,
+	SEND_NOTIFICATION_CLOSE,
+} from '../../ipc';
 
 const normalizeIconUrl = (iconUrl) => {
 	if (/^data:/.test(iconUrl)) {
@@ -46,14 +57,14 @@ class Notification extends EventTarget {
 			});
 		}
 
-		ipcRenderer.invoke('notification/create', {
+		ipcRenderer.invoke(SEND_NOTIFICATION_CREATE, {
 			title,
 			icon: normalizeIconUrl(icon),
 			...options,
 		}).then((id) => {
 			this.id = id;
 			notifications.set(this.id, this);
-			return ipcRenderer.invoke('notification/show', this.id);
+			return ipcRenderer.invoke(SEND_NOTIFICATION_SHOW, this.id);
 		});
 	}
 
@@ -62,7 +73,7 @@ class Notification extends EventTarget {
 			return;
 		}
 
-		ipcRenderer.invoke('notification/close', this.id);
+		ipcRenderer.invoke(SEND_NOTIFICATION_CLOSE, this.id);
 		notifications.delete(this.id);
 		this.id = null;
 	}
@@ -71,19 +82,19 @@ class Notification extends EventTarget {
 export const setupNotifications = () => {
 	window.Notification = Notification;
 
-	ipcRenderer.on('notification/shown', (event, id) => {
+	ipcRenderer.addListener(SEND_NOTIFICATION_SHOWN, (event, id) => {
 		const notification = notifications.get(id);
 		const showEvent = new CustomEvent('show');
 		notification?.dispatchEvent(showEvent);
 	});
 
-	ipcRenderer.on('notification/closed', (event, id) => {
+	ipcRenderer.addListener(SEND_NOTIFICATION_CLOSED, (event, id) => {
 		const notification = notifications.get(id);
 		const closeEvent = new CustomEvent('close');
 		notification?.dispatchEvent(closeEvent);
 	});
 
-	ipcRenderer.on('notification/clicked', (event, id) => {
+	ipcRenderer.addListener(SEND_NOTIFICATION_CLICKED, (event, id) => {
 		const notification = notifications.get(id);
 		const clickEvent = new CustomEvent('click');
 		notification?.dispatchEvent(clickEvent);
@@ -91,17 +102,17 @@ export const setupNotifications = () => {
 		const payload = {
 			url: getServerUrl(),
 		};
-		ipcRenderer.send('focus-requested', payload);
+		ipcRenderer.send(SEND_FOCUS_REQUESTED, payload);
 	});
 
-	ipcRenderer.on('notification/replied', (event, id, response) => {
+	ipcRenderer.addListener(SEND_NOTIFICATION_REPLIED, (event, id, response) => {
 		const notification = notifications.get(id);
 		const replyEvent = new CustomEvent('reply', { detail: { response } });
 		replyEvent.response = response;
 		notification?.dispatchEvent(replyEvent);
 	});
 
-	ipcRenderer.on('notification/actioned', (event, id, index) => {
+	ipcRenderer.addListener(SEND_NOTIFICATION_ACTIONED, (event, id, index) => {
 		const notification = notifications.get(id);
 		const actionEvent = new CustomEvent('action', { detail: { index } });
 		actionEvent.index = index;

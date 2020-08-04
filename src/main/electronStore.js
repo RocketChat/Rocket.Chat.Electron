@@ -1,9 +1,8 @@
 import Store from 'electron-store';
-import { call, setContext, takeEvery, select, fork, take, put } from 'redux-saga/effects';
 
 import appManifest from '../../package.json';
 import { selectPersistableValues } from './selectors';
-import { PERSISTABLE_VALUES_READY, PERSISTABLE_VALUES_MERGED } from '../actions';
+import { PERSISTABLE_VALUES_MERGED } from '../actions';
 
 const migrations = {};
 
@@ -13,20 +12,14 @@ export const createElectronStore = () =>
 		projectVersion: appManifest.version,
 	});
 
-function *watchUpdates(electronStore) {
-	yield take(PERSISTABLE_VALUES_READY);
+export let unlock = () => undefined;
 
-	yield takeEvery('*', function *() {
-		const values = yield select(selectPersistableValues);
+const canWrite = new Promise((resolve) => {
+	unlock = resolve;
+});
 
-		for (const [key, value] of Object.entries(values)) {
-			electronStore.set(key, value);
-		}
-	});
-}
-
-function *mergePersistableValues(electronStore) {
-	const currentValues = yield select(selectPersistableValues);
+export const mergePersistableValues = async (reduxStore, electronStore) => {
+	const currentValues = selectPersistableValues(reduxStore.getState());
 
 	const electronStoreValues = Object.fromEntries(Array.from(electronStore));
 
@@ -35,21 +28,18 @@ function *mergePersistableValues(electronStore) {
 		...electronStoreValues,
 	});
 
-	yield put({
+	reduxStore.dispatch({
 		type: PERSISTABLE_VALUES_MERGED,
 		payload: newValues,
 	});
-}
 
-export function *setupElectronStore() {
-	const electronStore = yield call(createElectronStore);
-	yield setContext({ electronStore });
+	await canWrite;
 
-	yield *mergePersistableValues(electronStore);
+	reduxStore.subscribe(() => {
+		const values = selectPersistableValues(reduxStore.getState());
 
-	yield fork(watchUpdates, electronStore);
-}
-
-export function *unlockAutoPersistenceOnElectronStore() {
-	yield put({ type: PERSISTABLE_VALUES_READY });
-}
+		for (const [key, value] of Object.entries(values)) {
+			electronStore.set(key, value);
+		}
+	});
+};

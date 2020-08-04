@@ -1,16 +1,19 @@
 import Bugsnag from '@bugsnag/js';
 import { app } from 'electron';
 
+const setupBugsnag = (apiKey) => {
+	Bugsnag.start({
+		apiKey,
+		appVersion: app.getVersion(),
+		appType: 'main',
+		collectUserIp: false,
+		releaseStage: process.env.NODE_ENV,
+	});
+};
+
 export const setupErrorHandling = () => {
 	if (process.env.BUGSNAG_API_KEY) {
-		Bugsnag.start({
-			apiKey: process.env.BUGSNAG_API_KEY,
-			appVersion: app.getVersion(),
-			appType: 'main',
-			collectUserIp: false,
-			releaseStage: process.env.NODE_ENV,
-		});
-
+		setupBugsnag(process.env.BUGSNAG_API_KEY);
 		return;
 	}
 

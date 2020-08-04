@@ -5,10 +5,12 @@ import createSagaMiddleware from 'redux-saga';
 import { rootReducer } from '../reducers';
 import { rootSaga } from './sagas/root';
 
-export const setupReduxStore = () => {
+export const createReduxStore = () => {
 	const sagaMiddleware = createSagaMiddleware();
 	const middlewares = applyMiddleware(triggerAlias, sagaMiddleware, forwardToRenderer);
 	const reduxStore = createStore(rootReducer, {}, middlewares);
 	replayActionMain(reduxStore);
 	sagaMiddleware.run(rootSaga);
+
+	return reduxStore;
 };

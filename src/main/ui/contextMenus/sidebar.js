@@ -1,7 +1,7 @@
-import { t } from 'i18next';
-import { takeEvery, call, put } from 'redux-saga/effects';
-import { channel } from 'redux-saga';
 import { Menu } from 'electron';
+import { t } from 'i18next';
+import { channel } from 'redux-saga';
+import { takeEvery, call, put } from 'redux-saga/effects';
 
 import {
 	SIDE_BAR_CONTEXT_MENU_POPPED_UP,

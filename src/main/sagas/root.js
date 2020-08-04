@@ -1,4 +1,5 @@
-import { spawn } from 'redux-saga/effects';
+import { spawn, call } from 'redux-saga/effects';
+import { app } from 'electron';
 
 import { setupBrowserViews } from '../ui/browserViews';
 import { setupDock } from '../ui/dock';
@@ -7,9 +8,8 @@ import { setupNotifications } from '../ui/notifications';
 import { setupRootWindow } from '../ui/rootWindow';
 import { setupTouchBar } from '../ui/touchBar';
 import { setupTrayIcon } from '../ui/trayIcon';
-import { waitForAppReady, setupApp } from '../app';
-import { setupElectronStore, unlockAutoPersistenceOnElectronStore } from '../electronStore';
-import { setupI18n } from '../i18n';
+import { setupApp } from '../app';
+import { unlock } from '../electronStore';
 import { setupUpdates } from '../updates';
 import { setupDeepLinks, processDeepLinksInArgs } from '../deepLinks';
 import { setupNavigation } from '../navigation';
@@ -18,9 +18,7 @@ import { setupSpellChecking } from '../spellChecking';
 import { setupPowerMonitor } from '../powerMonitor';
 
 export function *rootSaga() {
-	yield *setupElectronStore();
-	yield *waitForAppReady();
-	yield *setupI18n();
+	yield call(app.whenReady);
 
 	yield *setupRootWindow(function *(localStorage) {
 		yield *setupServers(localStorage);
@@ -40,7 +38,7 @@ export function *rootSaga() {
 	yield spawn(setupTouchBar);
 	yield spawn(setupTrayIcon);
 
-	yield *unlockAutoPersistenceOnElectronStore();
+	yield call(unlock, true);
 
 	yield *processDeepLinksInArgs();
 }

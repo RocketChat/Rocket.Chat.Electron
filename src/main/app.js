@@ -8,12 +8,11 @@ import {
 	MENU_BAR_RESET_APP_DATA_CLICKED,
 	TRAY_ICON_QUIT_CLICKED,
 } from '../actions';
-import { eventEmitterChannel } from './channels';
-import { askForAppDataReset } from './ui/dialogs';
 import {
 	QUERY_APP_VERSION,
 	EVENT_ERROR_THROWN,
 } from '../ipc';
+import { askForAppDataReset } from './ui/dialogs';
 
 export const relaunchApp = (...args) => {
 	const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
@@ -52,15 +51,7 @@ export const performStartup = () => {
 
 export const getPlatform = () => process.platform;
 
-export function *waitForAppReady() {
-	yield call(app.whenReady);
-}
-
 function *watchEvents() {
-	yield takeEvery(eventEmitterChannel(app, 'window-all-closed'), function *() {
-		yield call(app.quit);
-	});
-
 	yield takeEvery([MENU_BAR_QUIT_CLICKED, TRAY_ICON_QUIT_CLICKED], function *() {
 		yield call(app.quit);
 	});
@@ -76,16 +67,20 @@ function *watchEvents() {
 			yield call(relaunchApp, '--reset-app-data');
 		}
 	});
+}
 
+export function *setupApp() {
 	yield call(() => {
+		app.addListener('window-all-closed', () => {
+			app.quit();
+		});
+
 		ipcMain.handle(QUERY_APP_VERSION, () => app.getVersion());
 
 		ipcMain.addListener(EVENT_ERROR_THROWN, (event, error) => {
 			console.error(error);
 		});
 	});
-}
 
-export function *setupApp() {
 	yield *watchEvents();
 }

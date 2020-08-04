@@ -33,7 +33,6 @@ export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED = 'menu-bar/toggle-is-
 export const MENU_BAR_ZOOM_IN_CLICKED = 'menu-bar/zoom-in-clicked';
 export const MENU_BAR_ZOOM_OUT_CLICKED = 'menu-bar/zoom-out-clicked';
 export const PERSISTABLE_VALUES_MERGED = 'persistable-values/merged';
-export const PERSISTABLE_VALUES_READY = 'persistable-values/ready';
 export const ROOT_WINDOW_EDIT_FLAGS_CHANGED = 'root-window/edit-flags-changed';
 export const ROOT_WINDOW_INSTALL_UPDATE_CLICKED = 'root-window/install-update-clicked';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';

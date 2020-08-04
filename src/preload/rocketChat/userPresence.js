@@ -1,6 +1,13 @@
 import { ipcRenderer } from 'electron';
 
-import { SEND_SUSPEND, SEND_LOCK_SCREEN, INVOKE_SYSTEM_IDLE_STATE } from '../../ipc';
+import {
+	EVENT_SYSTEM_LOCKING_SCREEN,
+	EVENT_SYSTEM_SUSPENDING,
+	QUERY_SYSTEM_IDLE_STATE,
+} from '../../ipc';
+
+let isAutoAwayEnabled;
+let idleThreshold;
 
 export const setupUserPresenceChanges = () => {
 	const { Meteor } = window.require('meteor/meteor');
@@ -8,16 +15,9 @@ export const setupUserPresenceChanges = () => {
 	const { UserPresence } = window.require('meteor/konecty:user-presence');
 	const { getUserPreference } = window.require('/app/utils');
 
-	ipcRenderer.addListener(SEND_SUSPEND, () => {
-		Meteor.call('UserPresence:setDefaultStatus', 'away');
-	});
+	const goOnline = () => Meteor.call('UserPresence:setDefaultStatus', 'online');
+	const goAway = () => Meteor.call('UserPresence:setDefaultStatus', 'away');
 
-	ipcRenderer.addListener(SEND_LOCK_SCREEN, () => {
-		Meteor.call('UserPresence:setDefaultStatus', 'away');
-	});
-
-	let isAutoAwayEnabled;
-	let idleThreshold;
 	Tracker.autorun(() => {
 		const uid = Meteor.userId();
 		isAutoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
@@ -29,26 +29,47 @@ export const setupUserPresenceChanges = () => {
 		}
 	});
 
-	let prevState;
-	setInterval(async () => {
-		if (!idleThreshold) {
+	ipcRenderer.addListener(EVENT_SYSTEM_SUSPENDING, () => {
+		if (!isAutoAwayEnabled) {
 			return;
 		}
 
-		const state = await ipcRenderer.invoke(INVOKE_SYSTEM_IDLE_STATE, idleThreshold);
+		goAway();
+	});
+
+	ipcRenderer.addListener(EVENT_SYSTEM_LOCKING_SCREEN, () => {
+		if (!isAutoAwayEnabled) {
+			return;
+		}
+
+		goAway();
+	});
+
+	let prevState;
+
+	const pollSystemIdleState = async () => {
+		if (!isAutoAwayEnabled || !idleThreshold) {
+			return;
+		}
+
+		const state = await ipcRenderer.invoke(QUERY_SYSTEM_IDLE_STATE, idleThreshold);
 
 		if (prevState === state) {
+			setTimeout(pollSystemIdleState, 1000);
 			return;
 		}
 
 		const isOnline = !isAutoAwayEnabled || state === 'active' || state === 'unknown';
 
 		if (isOnline) {
-			Meteor.call('UserPresence:setDefaultStatus', 'online');
+			goOnline();
 		} else {
-			Meteor.call('UserPresence:setDefaultStatus', 'away');
+			goAway();
 		}
 
 		prevState = state;
-	}, 1000);
+		setTimeout(pollSystemIdleState, 1000);
+	};
+
+	pollSystemIdleState();
 };

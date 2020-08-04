@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 
-import { SEND_EDIT_FLAGS_CHANGED } from '../ipc';
+import { EVENT_EDIT_FLAGS_CHANGED } from '../ipc';
 
 const getEditFlags = () => ({
 	canUndo: document.queryCommandEnabled('undo'),
@@ -11,12 +11,15 @@ const getEditFlags = () => ({
 	canSelectAll: document.queryCommandEnabled('selectAll'),
 });
 
-export const setupEditFlagsChanges = () => {
-	document.addEventListener('focus', () => {
-		ipcRenderer.send(SEND_EDIT_FLAGS_CHANGED, getEditFlags());
-	}, true);
+const handleFocusEvent = () => {
+	ipcRenderer.send(EVENT_EDIT_FLAGS_CHANGED, getEditFlags());
+};
 
-	document.addEventListener('selectionchange', () => {
-		ipcRenderer.send(SEND_EDIT_FLAGS_CHANGED, getEditFlags());
-	}, true);
+const handleSelectionChangeEvent = () => {
+	ipcRenderer.send(EVENT_EDIT_FLAGS_CHANGED, getEditFlags());
+};
+
+export const setupEditFlagsChanges = async () => {
+	document.addEventListener('focus', handleFocusEvent, true);
+	document.addEventListener('selectionchange', handleSelectionChangeEvent, true);
 };

@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron';
 
 import { getServerUrl } from '.';
-import { SEND_TITLE_CHANGED } from '../../ipc';
+import { EVENT_SERVER_TITLE_CHANGED } from '../../ipc';
 
 export const setupTitleChanges = () => {
 	const { Tracker } = window.require('meteor/tracker');
@@ -13,10 +13,9 @@ export const setupTitleChanges = () => {
 			return;
 		}
 
-		const payload = {
+		ipcRenderer.send(EVENT_SERVER_TITLE_CHANGED, {
 			url: getServerUrl(),
 			title: siteName,
-		};
-		ipcRenderer.send(SEND_TITLE_CHANGED, payload);
+		});
 	});
 };

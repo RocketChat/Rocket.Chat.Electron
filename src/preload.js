@@ -10,24 +10,24 @@ import { setupNotifications } from './preload/rocketChat/notifications';
 import { setupSidebarChanges } from './preload/rocketChat/sidebar';
 import { setupTitleChanges } from './preload/rocketChat/title';
 import { setupUserPresenceChanges } from './preload/rocketChat/userPresence';
-import { setupScreenSharingEvents } from './preload/screenSharing';
+import { setupScreenSharing } from './preload/screenSharing';
 import { setupSpellChecking } from './preload/spellChecking';
-import { whenReady } from './preload/utils';
+import { whenReady } from './preload/whenReady';
 
 whenReady().then(() => {
 	setupErrorHandling();
-	setupScreenSharingEvents();
 	setupEditFlagsChanges();
+	setupScreenSharing();
 	setupSpellChecking();
 
 	if (isRocketChat()) {
-		setupNotifications();
-		setupTitleChanges();
+		setupBadgeChanges();
 		setupFaviconChanges();
 		setupSidebarChanges();
-		setupBadgeChanges();
-		setupMessageBoxEvents();
+		setupTitleChanges();
 		setupUserPresenceChanges();
+		setupMessageBoxEvents();
+		setupNotifications();
 	}
 
 	if (isJitsi()) {

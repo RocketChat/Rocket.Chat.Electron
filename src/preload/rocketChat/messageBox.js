@@ -1,7 +1,30 @@
 import { ipcRenderer } from 'electron';
 
-import { getServerUrl } from '.';
-import { SEND_MESSAGE_BOX_FOCUS_CHANGED, SEND_FORMAT_BUTTON_TOUCHED } from '../../ipc';
+import {
+	EVENT_FORMAT_BUTTON_TOUCHED,
+	EVENT_MESSAGE_BOX_FOCUSED,
+	EVENT_MESSAGE_BOX_BLURRED,
+} from '../../ipc';
+
+let focusedMessageBoxInput = null;
+
+const handleFocusEvent = (event) => {
+	if (!event.target.classList.contains('js-input-message')) {
+		return;
+	}
+
+	focusedMessageBoxInput = event.target;
+	ipcRenderer.send(EVENT_MESSAGE_BOX_FOCUSED);
+};
+
+const handleBlurEvent = (event) => {
+	if (!event.target.classList.contains('js-input-message')) {
+		return;
+	}
+
+	focusedMessageBoxInput = null;
+	ipcRenderer.send(EVENT_MESSAGE_BOX_BLURRED);
+};
 
 export const setupMessageBoxEvents = () => {
 	const {
@@ -9,35 +32,10 @@ export const setupMessageBoxEvents = () => {
 		applyFormatting,
 	} = window.require('/app/ui-message/client/messageBox/messageBoxFormatting');
 
-	let focusedMessageBoxInput = null;
+	document.addEventListener('focus', handleFocusEvent, true);
+	document.addEventListener('blur', handleBlurEvent, true);
 
-	document.addEventListener('focus', (event) => {
-		if (!event.target.classList.contains('js-input-message')) {
-			return;
-		}
-
-		focusedMessageBoxInput = event.target;
-		const payload = {
-			url: getServerUrl(),
-			focused: true,
-		};
-		ipcRenderer.send(SEND_MESSAGE_BOX_FOCUS_CHANGED, payload);
-	}, true);
-
-	document.addEventListener('blur', (event) => {
-		if (!event.target.classList.contains('js-input-message')) {
-			return;
-		}
-
-		focusedMessageBoxInput = null;
-		const payload = {
-			url: getServerUrl(),
-			focused: false,
-		};
-		ipcRenderer.send(SEND_MESSAGE_BOX_FOCUS_CHANGED, payload);
-	}, true);
-
-	ipcRenderer.addListener(SEND_FORMAT_BUTTON_TOUCHED, (_, buttonId) => {
+	ipcRenderer.addListener(EVENT_FORMAT_BUTTON_TOUCHED, (event, buttonId) => {
 		if (!focusedMessageBoxInput) {
 			return;
 		}
@@ -45,6 +43,10 @@ export const setupMessageBoxEvents = () => {
 		const { pattern } = formattingButtons
 			.filter(({ condition }) => !condition || condition())
 			.find(({ label }) => label === buttonId) || {};
+
+		if (!pattern) {
+			return;
+		}
 
 		applyFormatting(pattern, focusedMessageBoxInput);
 	});

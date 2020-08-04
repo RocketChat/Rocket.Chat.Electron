@@ -17,9 +17,9 @@ import {
 	selectDictionaryName,
 } from './selectors';
 import {
-	INVOKE_SPELL_CHECKING_LANGUAGE,
-	SEND_SET_SPELL_CHECKING_LANGUAGE,
-	INVOKE_MISSPELT_WORDS,
+	QUERY_SPELL_CHECKING_LANGUAGE,
+	EVENT_SPELL_CHECKING_LANGUAGE_CHANGED,
+	QUERY_MISSPELT_WORDS,
 } from '../ipc';
 import { watchValue } from './sagas/utils';
 
@@ -245,18 +245,18 @@ function *watchEvents() {
 
 		yield call(() => {
 			webContents.getAllWebContents().forEach((webContents) => {
-				webContents.send(SEND_SET_SPELL_CHECKING_LANGUAGE, dictionaryName);
+				webContents.send(EVENT_SPELL_CHECKING_LANGUAGE_CHANGED, dictionaryName);
 			});
 		});
 	});
 
 	yield call(() => {
-		ipcMain.handle(INVOKE_SPELL_CHECKING_LANGUAGE, () => {
+		ipcMain.handle(QUERY_SPELL_CHECKING_LANGUAGE, () => {
 			const language = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
 			return language;
 		});
 
-		ipcMain.handle(INVOKE_MISSPELT_WORDS, async (event, words) => {
+		ipcMain.handle(QUERY_MISSPELT_WORDS, async (event, words) => {
 			const misspeltWords = await getMisspelledWords(words);
 			return misspeltWords;
 		});

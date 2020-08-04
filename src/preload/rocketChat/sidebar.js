@@ -1,7 +1,11 @@
 import { ipcRenderer } from 'electron';
 
 import { getServerUrl } from '.';
-import { SEND_SIDEBAR_VISIBILITY_CHANGED, SEND_SIDEBAR_STYLE } from '../../ipc';
+import {
+	EVENT_SERVER_SIDEBAR_STYLE_CHANGED,
+	EVENT_SIDEBAR_VISIBLE,
+	EVENT_SIDEBAR_HIDDEN,
+} from '../../ipc';
 
 let timer;
 let prevBackground;
@@ -18,14 +22,13 @@ const pollSidebarStyle = (referenceElement) => {
 	referenceElement.remove();
 
 	if (prevBackground !== background || prevColor !== color) {
-		const payload = {
+		ipcRenderer.send(EVENT_SERVER_SIDEBAR_STYLE_CHANGED, {
 			url: getServerUrl(),
 			style: {
 				background,
 				color,
 			},
-		};
-		ipcRenderer.send(SEND_SIDEBAR_STYLE, payload);
+		});
 		prevBackground = background;
 		prevColor = color;
 	}
@@ -44,12 +47,16 @@ export const setupSidebarChanges = () => {
 	const { Tracker } = window.require('meteor/tracker');
 	const { settings } = window.require('/app/settings');
 
-	Tracker.autorun(async () => {
+	Tracker.autorun(() => {
 		const { url, defaultUrl } = settings.get('Assets_background') || {};
 		const backgroundUrl = url || defaultUrl;
-		referenceElement.style.backgroundImage = backgroundUrl
-			? `url(${ JSON.stringify(Meteor.absoluteUrl(backgroundUrl)) })`
-			: null;
+
+		if (backgroundUrl) {
+			referenceElement.style.backgroundImage = `url(${ JSON.stringify(Meteor.absoluteUrl(backgroundUrl)) })`;
+		} else {
+			referenceElement.style.backgroundImage = null;
+		}
+
 		pollSidebarStyle(referenceElement);
 	});
 
@@ -57,10 +64,19 @@ export const setupSidebarChanges = () => {
 	style.id = 'sidebar-padding';
 	document.head.append(style);
 
-	ipcRenderer.addListener(SEND_SIDEBAR_VISIBILITY_CHANGED, (_, hasSidebar) => {
+	ipcRenderer.addListener(EVENT_SIDEBAR_VISIBLE, () => {
 		style.innerHTML = `
 			.sidebar {
-				padding-top: ${ hasSidebar ? '0' : '10px' } !important;
+				padding-top: 0 !important;
+				transition: padding-top 230ms ease-in-out !important;
+			}
+		`;
+	});
+
+	ipcRenderer.addListener(EVENT_SIDEBAR_HIDDEN, () => {
+		style.innerHTML = `
+			.sidebar {
+				padding-top: 10px !important;
 				transition: padding-top 230ms ease-in-out !important;
 			}
 		`;

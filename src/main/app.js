@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, ipcMain } from 'electron';
 import { takeEvery, getContext, call } from 'redux-saga/effects';
 import rimraf from 'rimraf';
 
@@ -10,6 +10,10 @@ import {
 } from '../actions';
 import { eventEmitterChannel } from './channels';
 import { askForAppDataReset } from './ui/dialogs';
+import {
+	QUERY_APP_VERSION,
+	EVENT_ERROR_THROWN,
+} from '../ipc';
 
 export const relaunchApp = (...args) => {
 	const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
@@ -71,6 +75,14 @@ function *watchEvents() {
 		if (permitted) {
 			yield call(relaunchApp, '--reset-app-data');
 		}
+	});
+
+	yield call(() => {
+		ipcMain.handle(QUERY_APP_VERSION, () => app.getVersion());
+
+		ipcMain.addListener(EVENT_ERROR_THROWN, (event, error) => {
+			console.error(error);
+		});
 	});
 }
 

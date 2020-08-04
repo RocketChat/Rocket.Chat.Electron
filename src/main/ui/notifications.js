@@ -3,14 +3,13 @@ import fetch from 'node-fetch';
 import { call } from 'redux-saga/effects';
 
 import {
-	SEND_NOTIFICATION_SHOWN,
-	SEND_NOTIFICATION_CLOSED,
-	SEND_NOTIFICATION_CLICKED,
-	SEND_NOTIFICATION_REPLIED,
-	SEND_NOTIFICATION_ACTIONED,
-	SEND_NOTIFICATION_CREATE,
-	SEND_NOTIFICATION_SHOW,
-	SEND_NOTIFICATION_CLOSE,
+	EVENT_NOTIFICATION_SHOWN,
+	EVENT_NOTIFICATION_CLOSED,
+	EVENT_NOTIFICATION_CLICKED,
+	EVENT_NOTIFICATION_REPLIED,
+	EVENT_NOTIFICATION_ACTIONED,
+	QUERY_NEW_NOTIFICATION,
+	EVENT_NOTIFICATION_CLOSING,
 } from '../../ipc';
 
 const iconCache = new Map();
@@ -76,36 +75,38 @@ const createNotification = async (id, {
 
 	notification.addListener('show', () => {
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(SEND_NOTIFICATION_SHOWN, id);
+			webContents.send(EVENT_NOTIFICATION_SHOWN, id);
 		});
 	});
 
 	notification.addListener('close', () => {
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(SEND_NOTIFICATION_CLOSED, id);
+			webContents.send(EVENT_NOTIFICATION_CLOSED, id);
 			notifications.delete(id);
 		});
 	});
 
 	notification.addListener('click', () => {
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(SEND_NOTIFICATION_CLICKED, id);
+			webContents.send(EVENT_NOTIFICATION_CLICKED, id);
 		});
 	});
 
 	notification.addListener('reply', (event, reply) => {
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(SEND_NOTIFICATION_REPLIED, id, reply);
+			webContents.send(EVENT_NOTIFICATION_REPLIED, id, reply);
 		});
 	});
 
 	notification.addListener('action', (event, index) => {
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(SEND_NOTIFICATION_ACTIONED, id, index);
+			webContents.send(EVENT_NOTIFICATION_ACTIONED, id, index);
 		});
 	});
 
 	notifications.set(id, notification);
+
+	notification.show();
 
 	return id;
 };
@@ -117,9 +118,18 @@ const updateNotification = (id, {
 	renotify,
 }) => {
 	const notification = notifications.get(id);
-	notification.title = title;
-	notification.body = body;
-	notification.silent = silent;
+
+	if (title) {
+		notification.title = title;
+	}
+
+	if (body) {
+		notification.body = body;
+	}
+
+	if (silent) {
+		notification.silent = silent;
+	}
 
 	if (renotify) {
 		notification.show();
@@ -138,18 +148,13 @@ const handleCreateEvent = async (event, {
 	return createNotification(id, options);
 };
 
-const handleShowEvent = (event, id) => {
-	notifications.get(id)?.show();
-};
-
 const handleCloseEvent = (event, id) => {
 	notifications.get(id)?.close();
 };
 
 const attachEvents = () => {
-	ipcMain.handle(SEND_NOTIFICATION_CREATE, handleCreateEvent);
-	ipcMain.handle(SEND_NOTIFICATION_SHOW, handleShowEvent);
-	ipcMain.handle(SEND_NOTIFICATION_CLOSE, handleCloseEvent);
+	ipcMain.handle(QUERY_NEW_NOTIFICATION, handleCreateEvent);
+	ipcMain.handle(EVENT_NOTIFICATION_CLOSING, handleCloseEvent);
 };
 
 export function *setupNotifications() {

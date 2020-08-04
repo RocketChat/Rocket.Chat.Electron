@@ -1,4 +1,4 @@
-import { getContext, call, takeEvery, put } from 'redux-saga/effects';
+import { getContext, call, takeEvery, put, spawn, take } from 'redux-saga/effects';
 import { app, BrowserWindow, shell, ipcMain, webContents } from 'electron';
 import { channel } from 'redux-saga';
 
@@ -19,19 +19,18 @@ import { getPlatform } from '../app';
 import { selectIsSideBarVisible } from '../selectors';
 import { watchValue } from '../sagas/utils';
 import {
-	INVOKE_APP_VERSION,
-	SEND_LOG_ERROR,
-	SEND_SCREEN_SHARING_SOURCE_REQUESTED,
-	SEND_SCREEN_SHARING_SOURCE_SELECTED,
-	SEND_EDIT_FLAGS_CHANGED,
-	SEND_FOCUS_REQUESTED,
-	SEND_TITLE_CHANGED,
-	SEND_FAVICON_CHANGED,
-	SEND_SIDEBAR_VISIBILITY_CHANGED,
-	SEND_BADGE_CHANGED,
-	SEND_SIDEBAR_STYLE,
-	SEND_MESSAGE_BOX_FOCUS_CHANGED,
-	SEND_FORMAT_BUTTON_TOUCHED,
+	EVENT_EDIT_FLAGS_CHANGED,
+	EVENT_SERVER_FOCUSED,
+	EVENT_SERVER_TITLE_CHANGED,
+	EVENT_SERVER_FAVICON_CHANGED,
+	EVENT_SERVER_BADGE_CHANGED,
+	EVENT_SERVER_SIDEBAR_STYLE_CHANGED,
+	EVENT_FORMAT_BUTTON_TOUCHED,
+	QUERY_SCREEN_SHARING_SOURCE,
+	EVENT_SIDEBAR_VISIBLE,
+	EVENT_SIDEBAR_HIDDEN,
+	EVENT_MESSAGE_BOX_BLURRED,
+	EVENT_MESSAGE_BOX_FOCUSED,
 } from '../../ipc';
 
 const handleWillAttachWebview = (event, webPreferences) => {
@@ -83,49 +82,58 @@ export function *setupBrowserViews() {
 	});
 
 	const events = channel();
+	const sagasChannel = channel();
 
 	yield call(() => {
-		ipcMain.handle(INVOKE_APP_VERSION, () => app.getVersion());
-
-		ipcMain.addListener(SEND_TITLE_CHANGED, (event, { url, title }) => {
+		ipcMain.addListener(EVENT_SERVER_TITLE_CHANGED, (event, { url, title }) => {
 			events.put({ type: WEBVIEW_TITLE_CHANGED, payload: { url, title } });
 		});
 
-		ipcMain.addListener(SEND_FAVICON_CHANGED, (event, { url, favicon }) => {
+		ipcMain.addListener(EVENT_SERVER_FAVICON_CHANGED, (event, { url, favicon }) => {
 			events.put({ type: WEBVIEW_FAVICON_CHANGED, payload: { url, favicon } });
 		});
 
-		ipcMain.addListener(SEND_SIDEBAR_STYLE, (event, { url, style }) => {
+		ipcMain.addListener(EVENT_SERVER_SIDEBAR_STYLE_CHANGED, (event, { url, style }) => {
 			events.put({ type: WEBVIEW_SIDEBAR_STYLE_CHANGED, payload: { url, style } });
 		});
 
-		ipcMain.addListener(SEND_BADGE_CHANGED, (event, { url, badge }) => {
+		ipcMain.addListener(EVENT_SERVER_BADGE_CHANGED, (event, { url, badge }) => {
 			events.put({ type: WEBVIEW_UNREAD_CHANGED, payload: { url, badge } });
 		});
 
-		ipcMain.addListener(SEND_MESSAGE_BOX_FOCUS_CHANGED, (event, { focused }) => {
-			if (focused) {
-				events.put({ type: WEBVIEW_MESSAGE_BOX_FOCUSED });
-			} else {
-				events.put({ type: WEBVIEW_MESSAGE_BOX_BLURRED });
-			}
+		ipcMain.addListener(EVENT_MESSAGE_BOX_FOCUSED, () => {
+			events.put({ type: WEBVIEW_MESSAGE_BOX_FOCUSED });
 		});
 
-		ipcMain.addListener(SEND_SCREEN_SHARING_SOURCE_REQUESTED, () => {
-			events.put({ type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED });
+		ipcMain.addListener(EVENT_MESSAGE_BOX_BLURRED, () => {
+			events.put({ type: WEBVIEW_MESSAGE_BOX_BLURRED });
 		});
 
-		ipcMain.addListener(SEND_FOCUS_REQUESTED, (event, { url }) => {
+		ipcMain.addListener(EVENT_SERVER_FOCUSED, (event, { url }) => {
 			events.put({ type: WEBVIEW_FOCUS_REQUESTED, payload: { url } });
 		});
 
-		ipcMain.addListener(SEND_EDIT_FLAGS_CHANGED, (event, editFlags) => {
+		ipcMain.addListener(EVENT_EDIT_FLAGS_CHANGED, (event, editFlags) => {
 			events.put({ type: WEBVIEW_EDIT_FLAGS_CHANGED, payload: { editFlags } });
 		});
 
-		ipcMain.addListener(SEND_LOG_ERROR, (event, error) => {
-			console.error(error);
-		});
+		ipcMain.handle(QUERY_SCREEN_SHARING_SOURCE, () => new Promise((resolve, reject) => {
+			sagasChannel.put(function *() {
+				yield put({ type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED });
+				const { payload: sourceId } = yield take(SCREEN_SHARING_DIALOG_SOURCE_SELECTED);
+
+				if (sourceId) {
+					resolve(sourceId);
+					return;
+				}
+
+				reject();
+			});
+		}));
+	});
+
+	yield takeEvery(sagasChannel, function *(saga) {
+		yield spawn(saga);
 	});
 
 	yield takeEvery(events, function *(action) {
@@ -140,19 +148,17 @@ export function *setupBrowserViews() {
 		}
 
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(SEND_SIDEBAR_VISIBILITY_CHANGED, isSideBarVisible);
-		});
-	});
-
-	yield takeEvery(SCREEN_SHARING_DIALOG_SOURCE_SELECTED, function *({ payload: sourceId }) {
-		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(SEND_SCREEN_SHARING_SOURCE_SELECTED, sourceId);
+			if (isSideBarVisible) {
+				webContents.send(EVENT_SIDEBAR_VISIBLE);
+			} else {
+				webContents.send(EVENT_SIDEBAR_HIDDEN);
+			}
 		});
 	});
 
 	yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *({ payload: buttonId }) {
 		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(SEND_FORMAT_BUTTON_TOUCHED, buttonId);
+			webContents.send(EVENT_FORMAT_BUTTON_TOUCHED, buttonId);
 		});
 	});
 }

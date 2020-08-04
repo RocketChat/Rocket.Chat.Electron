@@ -1,16 +1,16 @@
 import { ipcRenderer } from 'electron';
 
-import {
-	SEND_SCREEN_SHARING_SOURCE_REQUESTED,
-	SEND_SCREEN_SHARING_SOURCE_SELECTED,
-} from '../ipc';
+import { QUERY_SCREEN_SHARING_SOURCE } from '../ipc';
 
-export const setupScreenSharingEvents = () => {
-	window.addEventListener('get-sourceId', () => {
-		ipcRenderer.send(SEND_SCREEN_SHARING_SOURCE_REQUESTED);
-	});
+const handleGetSourceIdEvent = async () => {
+	try {
+		const sourceId = await ipcRenderer.invoke(QUERY_SCREEN_SHARING_SOURCE);
+		window.top.postMessage({ sourceId }, '*');
+	} catch (error) {
+		window.top.postMessage({ sourceId: 'PermissionDeniedError' }, '*');
+	}
+};
 
-	ipcRenderer.addListener(SEND_SCREEN_SHARING_SOURCE_SELECTED, (_, source) => {
-		window.parent.postMessage({ sourceId: source || 'PermissionDeniedError' }, '*');
-	});
+export const setupScreenSharing = async () => {
+	window.addEventListener('get-sourceId', handleGetSourceIdEvent);
 };

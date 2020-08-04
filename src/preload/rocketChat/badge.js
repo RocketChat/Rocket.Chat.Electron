@@ -1,14 +1,15 @@
 import { ipcRenderer } from 'electron';
 
 import { getServerUrl } from '.';
-import { SEND_BADGE_CHANGED } from '../../ipc';
+import { EVENT_SERVER_BADGE_CHANGED } from '../../ipc';
+
+const handleUnreadChangedEvent = (event) => {
+	ipcRenderer.send(EVENT_SERVER_BADGE_CHANGED, {
+		url: getServerUrl(),
+		badge: event.detail,
+	});
+};
 
 export const setupBadgeChanges = () => {
-	window.addEventListener('unread-changed', (event) => {
-		const payload = {
-			url: getServerUrl(),
-			badge: event.detail,
-		};
-		ipcRenderer.send(SEND_BADGE_CHANGED, payload);
-	});
+	window.addEventListener('unread-changed', handleUnreadChangedEvent);
 };

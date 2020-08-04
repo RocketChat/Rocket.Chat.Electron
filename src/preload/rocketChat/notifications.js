@@ -2,15 +2,14 @@ import { ipcRenderer } from 'electron';
 
 import { getServerUrl } from '.';
 import {
-	SEND_NOTIFICATION_SHOWN,
-	SEND_NOTIFICATION_CLOSED,
-	SEND_NOTIFICATION_CLICKED,
-	SEND_FOCUS_REQUESTED,
-	SEND_NOTIFICATION_REPLIED,
-	SEND_NOTIFICATION_ACTIONED,
-	SEND_NOTIFICATION_CREATE,
-	SEND_NOTIFICATION_SHOW,
-	SEND_NOTIFICATION_CLOSE,
+	EVENT_NOTIFICATION_ACTIONED,
+	EVENT_NOTIFICATION_CLICKED,
+	EVENT_NOTIFICATION_CLOSED,
+	EVENT_NOTIFICATION_CLOSING,
+	EVENT_NOTIFICATION_REPLIED,
+	EVENT_NOTIFICATION_SHOWN,
+	EVENT_SERVER_FOCUSED,
+	QUERY_NEW_NOTIFICATION,
 } from '../../ipc';
 
 const normalizeIconUrl = (iconUrl) => {
@@ -41,81 +40,103 @@ class Notification extends EventTarget {
 		super();
 
 		for (const eventType of ['show', 'close', 'click', 'reply', 'action']) {
-			Object.defineProperty(this, `on${ eventType }`, {
-				get: () => this[`_on${ eventType }`],
+			const propertyName = `on${ eventType }`;
+			const propertySymbol = Symbol(propertyName);
+
+			Object.defineProperty(this, propertyName, {
+				get: () => this[propertySymbol],
 				set: (value) => {
-					if (this[`_on${ eventType }`]) {
-						this.removeEventListener(eventType, this[`_on${ eventType }`]);
+					if (this[propertySymbol]) {
+						this.removeEventListener(eventType, this[propertySymbol]);
 					}
 
-					this[`_on${ eventType }`] = value;
+					this[propertySymbol] = value;
 
-					if (this[`_on${ eventType }`]) {
-						this.addEventListener(eventType, this[`_on${ eventType }`]);
+					if (this[propertySymbol]) {
+						this.addEventListener(eventType, this[propertySymbol]);
 					}
 				},
 			});
 		}
 
-		ipcRenderer.invoke(SEND_NOTIFICATION_CREATE, {
+		this._destroy = ipcRenderer.invoke(QUERY_NEW_NOTIFICATION, {
 			title,
 			icon: normalizeIconUrl(icon),
 			...options,
 		}).then((id) => {
-			this.id = id;
-			notifications.set(this.id, this);
-			return ipcRenderer.invoke(SEND_NOTIFICATION_SHOW, this.id);
+			notifications.set(id, this);
+
+			return () => {
+				ipcRenderer.send(EVENT_NOTIFICATION_CLOSING, id);
+				notifications.delete(id);
+			};
 		});
 	}
 
 	close() {
-		if (!this.id) {
+		if (!this._destroy) {
 			return;
 		}
 
-		ipcRenderer.invoke(SEND_NOTIFICATION_CLOSE, this.id);
-		notifications.delete(this.id);
-		this.id = null;
+		this._destroy.then((destroy) => {
+			delete this._destroy;
+			destroy();
+		});
 	}
 }
 
 export const setupNotifications = () => {
 	window.Notification = Notification;
 
-	ipcRenderer.addListener(SEND_NOTIFICATION_SHOWN, (event, id) => {
-		const notification = notifications.get(id);
+	ipcRenderer.addListener(EVENT_NOTIFICATION_SHOWN, (event, id) => {
+		if (!notifications.has(id)) {
+			return;
+		}
+
 		const showEvent = new CustomEvent('show');
-		notification?.dispatchEvent(showEvent);
+		notifications.get(id).dispatchEvent(showEvent);
 	});
 
-	ipcRenderer.addListener(SEND_NOTIFICATION_CLOSED, (event, id) => {
-		const notification = notifications.get(id);
+	ipcRenderer.addListener(EVENT_NOTIFICATION_CLOSED, (event, id) => {
+		if (!notifications.has(id)) {
+			return;
+		}
+
 		const closeEvent = new CustomEvent('close');
-		notification?.dispatchEvent(closeEvent);
+		notifications.get(id).dispatchEvent(closeEvent);
+		notifications.delete(id);
 	});
 
-	ipcRenderer.addListener(SEND_NOTIFICATION_CLICKED, (event, id) => {
-		const notification = notifications.get(id);
-		const clickEvent = new CustomEvent('click');
-		notification?.dispatchEvent(clickEvent);
+	ipcRenderer.addListener(EVENT_NOTIFICATION_CLICKED, (event, id) => {
+		if (!notifications.has(id)) {
+			return;
+		}
 
-		const payload = {
+		ipcRenderer.send(EVENT_SERVER_FOCUSED, {
 			url: getServerUrl(),
-		};
-		ipcRenderer.send(SEND_FOCUS_REQUESTED, payload);
+		});
+
+		const clickEvent = new CustomEvent('click');
+		notifications.get(id).dispatchEvent(clickEvent);
 	});
 
-	ipcRenderer.addListener(SEND_NOTIFICATION_REPLIED, (event, id, response) => {
-		const notification = notifications.get(id);
+	ipcRenderer.addListener(EVENT_NOTIFICATION_REPLIED, (event, id, response) => {
+		if (!notifications.has(id)) {
+			return;
+		}
+
 		const replyEvent = new CustomEvent('reply', { detail: { response } });
 		replyEvent.response = response;
-		notification?.dispatchEvent(replyEvent);
+		notifications.get(id).dispatchEvent(replyEvent);
 	});
 
-	ipcRenderer.addListener(SEND_NOTIFICATION_ACTIONED, (event, id, index) => {
-		const notification = notifications.get(id);
+	ipcRenderer.addListener(EVENT_NOTIFICATION_ACTIONED, (event, id, index) => {
+		if (!notifications.has(id)) {
+			return;
+		}
+
 		const actionEvent = new CustomEvent('action', { detail: { index } });
 		actionEvent.index = index;
-		notification?.dispatchEvent(actionEvent);
+		notifications.get(id).dispatchEvent(actionEvent);
 	});
 };

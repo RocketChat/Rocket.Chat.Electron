@@ -1,32 +1,36 @@
 import { ipcRenderer, webFrame } from 'electron';
 
 import {
-	INVOKE_MISSPELT_WORDS,
-	INVOKE_SPELL_CHECKING_LANGUAGE,
-	SEND_SET_SPELL_CHECKING_LANGUAGE,
+	QUERY_MISSPELT_WORDS,
+	QUERY_SPELL_CHECKING_LANGUAGE,
+	EVENT_SPELL_CHECKING_LANGUAGE_CHANGED,
 } from '../ipc';
+
+const noopSpellCheckProvider = {
+	spellCheck: (words, callback) => callback([]),
+};
+
+const remoteSpellCheckProvider = {
+	spellCheck: async (words, callback) => {
+		const misspeltWords = await ipcRenderer.invoke(QUERY_MISSPELT_WORDS, words);
+		callback(misspeltWords);
+	},
+};
 
 const setSpellCheckProvider = (language) => {
 	if (language === null) {
-		webFrame.setSpellCheckProvider('', {
-			spellCheck: (_, callback) => callback([]),
-		});
+		webFrame.setSpellCheckProvider('', noopSpellCheckProvider);
 		return;
 	}
 
-	webFrame.setSpellCheckProvider(language, {
-		spellCheck: async (words, callback) => {
-			const misspeledWords = await ipcRenderer.invoke(INVOKE_MISSPELT_WORDS, words);
-			callback(misspeledWords);
-		},
-	});
+	webFrame.setSpellCheckProvider(language, remoteSpellCheckProvider);
 };
 
 export const setupSpellChecking = async () => {
-	ipcRenderer.addListener(SEND_SET_SPELL_CHECKING_LANGUAGE, (_, spellCheckingLanguage) => {
+	ipcRenderer.addListener(EVENT_SPELL_CHECKING_LANGUAGE_CHANGED, (event, spellCheckingLanguage) => {
 		setSpellCheckProvider(spellCheckingLanguage);
 	});
 
-	const spellCheckingLanguage = await ipcRenderer.invoke(INVOKE_SPELL_CHECKING_LANGUAGE);
+	const spellCheckingLanguage = await ipcRenderer.invoke(QUERY_SPELL_CHECKING_LANGUAGE);
 	setSpellCheckProvider(spellCheckingLanguage);
 };

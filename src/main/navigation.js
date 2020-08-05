@@ -2,23 +2,16 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 
-import { app, shell } from 'electron';
-import { call, put, race, select, take, takeEvery } from 'redux-saga/effects';
+import { app, ipcMain } from 'electron';
+import { t } from 'i18next';
 
 import {
-	CERTIFICATE_TRUST_REQUESTED,
-	CERTIFICATES_CLEARED,
-	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
 	CERTIFICATES_UPDATED,
-	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
-	MENU_BAR_OPEN_URL_CLICKED,
-	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-	WEBVIEW_CERTIFICATE_DENIED,
-	WEBVIEW_CERTIFICATE_TRUSTED,
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
-import { preventedEventEmitterChannel } from './channels';
 import { selectServers, selectTrustedCertificates } from './selectors';
+import { AskForCertificateTrustResponse, askForCertificateTrust } from './ui/dialogs';
+import { EVENT_CLIENT_CERTIFICATE_SELECTED, EVENT_CLIENT_CERTIFICATE_REQUESTED } from '../ipc';
 
 const loadUserTrustedCertificates = async () => {
 	try {
@@ -37,130 +30,11 @@ const serializeCertificate = (certificate) => `${ certificate.issuerName }\n${ c
 
 const queuedTrustRequests = new Map();
 
-function *handleCertificateError([, webContents, requestedUrl, error, certificate, callback]) {
-	const serialized = serializeCertificate(certificate);
-	const { host } = url.parse(requestedUrl);
+export const setupNavigation = async (reduxStore, rootWindow) => {
+	const trustedCertificates = selectTrustedCertificates(reduxStore.getState());
+	const userTrustedCertificates = await loadUserTrustedCertificates();
 
-	const trustedCertificates = yield select(selectTrustedCertificates);
-
-	const isTrusted = !!trustedCertificates[host] && trustedCertificates[host] === serialized;
-
-	if (isTrusted) {
-		callback(true);
-		return;
-	}
-
-	if (queuedTrustRequests.has(certificate.fingerprint)) {
-		queuedTrustRequests.get(certificate.fingerprint).push(callback);
-		return;
-	}
-
-	queuedTrustRequests.set(certificate.fingerprint, [callback]);
-
-	yield put({
-		type: CERTIFICATE_TRUST_REQUESTED,
-		payload: {
-			webContentsId: webContents.id,
-			requestedUrl,
-			error,
-			fingerprint: certificate.fingerprint,
-			issuerName: certificate.issuerName,
-			willBeReplaced: !!trustedCertificates[host],
-		},
-	});
-
-	while (true) {
-		const { type, payload: { fingerprint } } = (yield race([
-			take(WEBVIEW_CERTIFICATE_TRUSTED),
-			take(WEBVIEW_CERTIFICATE_DENIED),
-		])).filter(Boolean)[0];
-
-		const isTrustedByUser = type === WEBVIEW_CERTIFICATE_TRUSTED;
-
-		queuedTrustRequests.get(fingerprint).forEach((cb) => cb(isTrustedByUser));
-		queuedTrustRequests.delete(fingerprint);
-
-		const trustedCertificates = yield select(selectTrustedCertificates);
-
-		if (isTrustedByUser) {
-			yield put({
-				type: CERTIFICATES_UPDATED,
-				payload: { ...trustedCertificates, [host]: serialized },
-			});
-		}
-	}
-}
-
-const queuedClientCertificateRequests = new Map();
-
-function *handleSelectClientCertificate([, , , certificateList, callback]) {
-	const requestId = Math.random().toString(36).slice(2);
-	queuedClientCertificateRequests.set(requestId, { certificateList, callback });
-
-	certificateList = JSON.parse(JSON.stringify(certificateList));
-	yield put({
-		type: CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
-		payload: { requestId, certificateList },
-	});
-}
-
-function *handleLogin([, , request, , callback]) {
-	const servers = yield select(selectServers);
-
-	for (const server of servers) {
-		const { host: serverHost, auth } = url.parse(server.url);
-		const requestHost = url.parse(request.url).host;
-
-		if (serverHost !== requestHost || !auth) {
-			callback();
-			return;
-		}
-
-		const [username, password] = auth.split(/:/);
-		callback(username, password);
-	}
-}
-
-export function *watchEvents() {
-	yield takeEvery(preventedEventEmitterChannel(app, 'login'), handleLogin);
-
-	yield takeEvery(preventedEventEmitterChannel(app, 'certificate-error'), handleCertificateError);
-
-	yield takeEvery(preventedEventEmitterChannel(app, 'select-client-certificate'), handleSelectClientCertificate);
-
-	yield takeEvery(MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED, function *() {
-		yield put({ type: CERTIFICATES_CLEARED });
-	});
-
-	yield takeEvery(SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, function *({ payload }) {
-		const { requestId, fingerprint } = payload;
-
-		if (!queuedClientCertificateRequests.has(requestId)) {
-			return;
-		}
-
-		const { certificateList, callback } = queuedClientCertificateRequests.get(requestId);
-		const certificate = certificateList.find((certificate) => certificate.fingerprint === fingerprint);
-
-		if (!certificate) {
-			callback(null);
-			return;
-		}
-
-		queuedClientCertificateRequests.delete(requestId);
-		callback(certificate);
-	});
-
-	yield takeEvery(MENU_BAR_OPEN_URL_CLICKED, function *({ payload: url }) {
-		shell.openExternal(url);
-	});
-}
-
-export function *setupNavigation() {
-	const trustedCertificates = yield select(selectTrustedCertificates);
-	const userTrustedCertificates = yield call(loadUserTrustedCertificates);
-
-	yield put({
+	reduxStore.dispatch({
 		type: PERSISTABLE_VALUES_MERGED,
 		payload: {
 			trustedCertificates: {
@@ -170,5 +44,102 @@ export function *setupNavigation() {
 		},
 	});
 
-	yield *watchEvents();
-}
+	app.addListener('certificate-error', async (event, webContents, requestedUrl, error, certificate, callback) => {
+		if (webContents.id !== rootWindow.webContents.id) {
+			return;
+		}
+
+		event.preventDefault();
+
+		const serialized = serializeCertificate(certificate);
+		const { host } = url.parse(requestedUrl);
+
+		let trustedCertificates = selectTrustedCertificates(reduxStore.getState());
+
+		const isTrusted = !!trustedCertificates[host] && trustedCertificates[host] === serialized;
+
+		if (isTrusted) {
+			callback(true);
+			return;
+		}
+
+		if (queuedTrustRequests.has(certificate.fingerprint)) {
+			queuedTrustRequests.get(certificate.fingerprint).push(callback);
+			return;
+		}
+
+		queuedTrustRequests.set(certificate.fingerprint, [callback]);
+
+		let isTrustedByUser = false;
+
+		let detail = `URL: ${ requestedUrl }\nError: ${ error }`;
+		if (trustedCertificates[host]) {
+			detail = t('error.differentCertificate', { detail });
+		}
+
+		const response = await askForCertificateTrust(rootWindow, certificate.issuerName, detail);
+
+		if (response === AskForCertificateTrustResponse.YES) {
+			isTrustedByUser = true;
+			return;
+		}
+
+		isTrustedByUser = false;
+
+		queuedTrustRequests.get(certificate.fingerprint).forEach((cb) => cb(isTrustedByUser));
+		queuedTrustRequests.delete(certificate.fingerprint);
+
+		trustedCertificates = selectTrustedCertificates(reduxStore.getState());
+
+		if (isTrustedByUser) {
+			reduxStore.dispatch({
+				type: CERTIFICATES_UPDATED,
+				payload: { ...trustedCertificates, [host]: serialized },
+			});
+		}
+	});
+
+	app.addListener('select-client-certificate', async (event, webContents, url, certificateList, callback) => {
+		event.preventDefault();
+
+		certificateList = JSON.parse(JSON.stringify(certificateList));
+
+		const response = new Promise((resolve) => {
+			ipcMain.prependOnceListener(EVENT_CLIENT_CERTIFICATE_SELECTED, (event, fingerprint) => {
+				resolve(fingerprint);
+			});
+
+			webContents.send(EVENT_CLIENT_CERTIFICATE_REQUESTED, certificateList);
+		});
+
+		const fingerprint = await response;
+
+		const certificate = certificateList.find((certificate) => certificate.fingerprint === fingerprint);
+
+		if (!certificate) {
+			callback(null);
+			return;
+		}
+
+		callback(certificate);
+	});
+
+	app.addListener('login', (event, webContents, authenticationResponseDetails, authInfo, callback) => {
+		event.preventDefault();
+
+		const servers = selectServers(reduxStore.getState());
+
+		for (const server of servers) {
+			const { host: serverHost, auth } = url.parse(server.url);
+			const requestHost = url.parse(authenticationResponseDetails.url).host;
+
+			if (serverHost !== requestHost || !auth) {
+				callback();
+				return;
+			}
+
+			const [username, password] = auth.split(/:/);
+			callback(username, password);
+		}
+	});
+};

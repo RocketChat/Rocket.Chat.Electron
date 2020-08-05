@@ -1,18 +1,10 @@
 import { app, ipcMain } from 'electron';
-import { takeEvery, getContext, call } from 'redux-saga/effects';
 import rimraf from 'rimraf';
 
-import {
-	MENU_BAR_DISABLE_GPU,
-	MENU_BAR_QUIT_CLICKED,
-	MENU_BAR_RESET_APP_DATA_CLICKED,
-	TRAY_ICON_QUIT_CLICKED,
-} from '../actions';
 import {
 	QUERY_APP_VERSION,
 	EVENT_ERROR_THROWN,
 } from '../ipc';
-import { askForAppDataReset } from './ui/dialogs';
 
 export const relaunchApp = (...args) => {
 	const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
@@ -51,36 +43,32 @@ export const performStartup = () => {
 
 export const getPlatform = () => process.platform;
 
-function *watchEvents() {
-	yield takeEvery([MENU_BAR_QUIT_CLICKED, TRAY_ICON_QUIT_CLICKED], function *() {
-		yield call(app.quit);
+export const setupApp = (reduxStore, rootWindow) => {
+	app.addListener('activate', () => {
+		rootWindow.showInactive();
+		rootWindow.focus();
 	});
 
-	yield takeEvery(MENU_BAR_DISABLE_GPU, function *() {
-		yield call(relaunchApp, '--disable-gpu');
-	});
-
-	yield takeEvery(MENU_BAR_RESET_APP_DATA_CLICKED, function *() {
-		const permitted = yield call(askForAppDataReset, yield getContext('rootWindow'));
-
-		if (permitted) {
-			yield call(relaunchApp, '--reset-app-data');
+	app.addListener('before-quit', () => {
+		if (rootWindow.isDestroyed()) {
+			return;
 		}
-	});
-}
 
-export function *setupApp() {
-	yield call(() => {
-		app.addListener('window-all-closed', () => {
-			app.quit();
-		});
-
-		ipcMain.handle(QUERY_APP_VERSION, () => app.getVersion());
-
-		ipcMain.addListener(EVENT_ERROR_THROWN, (event, error) => {
-			console.error(error);
-		});
+		rootWindow.destroy();
 	});
 
-	yield *watchEvents();
-}
+	app.addListener('second-instance', () => {
+		rootWindow.showInactive();
+		rootWindow.focus();
+	});
+
+	app.addListener('window-all-closed', () => {
+		app.quit();
+	});
+
+	ipcMain.handle(QUERY_APP_VERSION, () => app.getVersion());
+
+	ipcMain.addListener(EVENT_ERROR_THROWN, (event, error) => {
+		console.error(error);
+	});
+};

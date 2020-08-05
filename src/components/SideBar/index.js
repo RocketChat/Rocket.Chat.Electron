@@ -1,5 +1,6 @@
 import { parse as parseUrl } from 'url';
 
+import { ipcRenderer } from 'electron';
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,7 +10,6 @@ import {
 	SIDE_BAR_SERVER_SELECTED,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 	WEBVIEW_FAVICON_CHANGED,
-	SIDE_BAR_CONTEXT_MENU_POPPED_UP,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
 import {
@@ -27,6 +27,7 @@ import {
 } from './styles';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
+import { EVENT_SIDEBAR_CONTEXT_MENU_TRIGGERED } from '../../ipc';
 
 function ServerButton({
 	url,
@@ -71,7 +72,7 @@ function ServerButton({
 
 	const handleServerContextMenu = (event) => {
 		event.preventDefault();
-		dispatch({ type: SIDE_BAR_CONTEXT_MENU_POPPED_UP, payload: url });
+		ipcRenderer.send(EVENT_SIDEBAR_CONTEXT_MENU_TRIGGERED, url);
 	};
 
 	return <ServerButtonWrapper

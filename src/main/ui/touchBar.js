@@ -1,35 +1,26 @@
-import { TouchBar, nativeImage, app } from 'electron';
+import { TouchBar, nativeImage, app, webContents } from 'electron';
 import { t } from 'i18next';
-import { channel } from 'redux-saga';
-import { select, takeEvery, getContext, put, call } from 'redux-saga/effects';
 
-import {
-	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
-	TOUCH_BAR_SELECT_SERVER_TOUCHED,
-} from '../../actions';
-import { getPlatform } from '../app';
+import { TOUCH_BAR_SELECT_SERVER_TOUCHED } from '../../actions';
+import { EVENT_FORMAT_BUTTON_TOUCHED } from '../../ipc';
 import {
 	selectCurrentServer,
 	selectIsMessageBoxFocused,
 	selectServers,
 } from '../selectors';
-import { watchValue } from '../sagas/utils';
 
 const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
 
-const eventsChannel = channel();
-
-const createTouchBar = (rootWindow) => {
+const createTouchBar = (reduxStore, rootWindow) => {
 	const serverSelectionScrubber = new TouchBar.TouchBarScrubber({
 		selectedStyle: 'background',
 		mode: 'free',
 		continuous: false,
 		items: [],
 		select: (index) => {
-			eventsChannel.put(function *() {
-				const url = yield select(({ servers }) => servers[index].url);
-				yield put({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
-			});
+			rootWindow.show();
+			const url = (({ servers }) => servers[index].url)(reduxStore.getState());
+			reduxStore.dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
 		},
 	});
 
@@ -49,8 +40,9 @@ const createTouchBar = (rootWindow) => {
 			enabled: false,
 		})),
 		change: (selectedIndex) => {
-			eventsChannel.put(function *() {
-				yield put({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: ids[selectedIndex] });
+			rootWindow.show();
+			webContents.getAllWebContents().forEach((webContents) => {
+				webContents.send(EVENT_FORMAT_BUTTON_TOUCHED, ids[selectedIndex]);
 			});
 		},
 	});
@@ -100,37 +92,8 @@ const setRootWindowTouchBar = (rootWindow, touchBar) => {
 	rootWindow.setTouchBar(touchBar);
 };
 
-function *watchUpdates(
-	touchBar,
-	serverSelectionPopover,
-	serverSelectionScrubber,
-	messageBoxFormattingButtons,
-) {
-	yield watchValue(selectCurrentServer, function *([currentServer]) {
-		yield call(updateServerSelectionPopover, serverSelectionPopover, currentServer);
-		yield call(setRootWindowTouchBar, yield getContext('rootWindow'), touchBar);
-	});
-
-	yield watchValue(selectServers, function *([servers]) {
-		yield call(updateServerSelectionScrubber, serverSelectionScrubber, servers);
-		yield call(setRootWindowTouchBar, yield getContext('rootWindow'), touchBar);
-	});
-
-	yield watchValue(selectIsMessageBoxFocused, function *([isMessageBoxFocused]) {
-		yield call(toggleMessageFormattingButtons, messageBoxFormattingButtons, isMessageBoxFocused);
-		yield call(setRootWindowTouchBar, yield getContext('rootWindow'), touchBar);
-	});
-}
-
-function *watchEvents() {
-	yield takeEvery(eventsChannel, function *(saga) {
-		yield *saga();
-	});
-}
-
-export function *setupTouchBar() {
-	const platform = yield call(getPlatform);
-	if (platform !== 'darwin') {
+export const setupTouchBar = (reduxStore, rootWindow) => {
+	if (process.platform !== 'darwin') {
 		return;
 	}
 
@@ -139,13 +102,35 @@ export function *setupTouchBar() {
 		serverSelectionPopover,
 		serverSelectionScrubber,
 		messageBoxFormattingButtons,
-	] = yield call(createTouchBar, yield getContext('rootWindow'));
+	] = createTouchBar(reduxStore, rootWindow);
 
-	yield *watchUpdates(
-		touchBar,
-		serverSelectionPopover,
-		serverSelectionScrubber,
-		messageBoxFormattingButtons,
-	);
-	yield *watchEvents();
-}
+	let prevCurrentServer;
+	reduxStore.subscribe(() => {
+		const currentServer = selectCurrentServer(reduxStore.getState());
+		if (prevCurrentServer !== currentServer) {
+			updateServerSelectionPopover(serverSelectionPopover, currentServer);
+			setRootWindowTouchBar(rootWindow, touchBar);
+			prevCurrentServer = currentServer;
+		}
+	});
+
+	let prevServers;
+	reduxStore.subscribe(() => {
+		const servers = selectServers(reduxStore.getState());
+		if (prevServers !== servers) {
+			updateServerSelectionScrubber(serverSelectionScrubber, servers);
+			setRootWindowTouchBar(rootWindow, touchBar);
+			prevServers = servers;
+		}
+	});
+
+	let prevIsMessageBoxFocused;
+	reduxStore.subscribe(() => {
+		const isMessageBoxFocused = selectIsMessageBoxFocused(reduxStore.getState());
+		if (prevIsMessageBoxFocused !== isMessageBoxFocused) {
+			toggleMessageFormattingButtons(messageBoxFormattingButtons, isMessageBoxFocused);
+			setRootWindowTouchBar(rootWindow, touchBar);
+			prevIsMessageBoxFocused = isMessageBoxFocused;
+		}
+	});
+};

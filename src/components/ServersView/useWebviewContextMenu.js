@@ -1,7 +1,8 @@
+import { ipcRenderer } from 'electron';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { WEBVIEW_CONTEXT_MENU_POPPED_UP } from '../../actions';
+import { EVENT_BROWSER_VIEW_CONTEXT_MENU_TRIGGERED } from '../../ipc';
 
 export const useWebviewContextMenu = (webviewRef, webContents) => {
 	const dispatch = useDispatch();
@@ -13,7 +14,7 @@ export const useWebviewContextMenu = (webviewRef, webContents) => {
 
 		const handleContextMenu = async (event) => {
 			event.preventDefault();
-			dispatch({ type: WEBVIEW_CONTEXT_MENU_POPPED_UP, payload: event.params });
+			ipcRenderer.send(EVENT_BROWSER_VIEW_CONTEXT_MENU_TRIGGERED, event.params);
 		};
 
 		const root = webviewRef.current;

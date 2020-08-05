@@ -1,20 +1,16 @@
+import { clipboard, shell, Menu, ipcMain } from 'electron';
 import { t } from 'i18next';
-import { channel } from 'redux-saga';
-import { call, takeEvery, select, put } from 'redux-saga/effects';
-import { clipboard, shell, Menu } from 'electron';
 
-import { WEBVIEW_CONTEXT_MENU_POPPED_UP, WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED } from '../../../actions';
+import { WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED } from '../../../actions';
 import { selectSpellCheckingDictionaries, selectFocusedWebContents } from '../../selectors';
-import { getCorrectionsForMisspelling } from '../../spellChecking';
+import { getCorrectionsForMisspelling, importSpellCheckingDictionaries } from '../../spellChecking';
 import { browseForSpellCheckingDictionary } from '../dialogs';
+import { EVENT_BROWSER_VIEW_CONTEXT_MENU_TRIGGERED } from '../../../ipc';
 
-export function *watchWebviewContextMenuEvents(rootWindow) {
-	const contextMenuChannel = yield call(channel);
-
-	yield takeEvery(WEBVIEW_CONTEXT_MENU_POPPED_UP, function *({ payload: params }) {
-		const dictionaries = yield select(selectSpellCheckingDictionaries);
-
-		const webContents = yield select(selectFocusedWebContents);
+export const setupBrowserViewsContextMenu = (reduxStore, rootWindow) => {
+	ipcMain.addListener(EVENT_BROWSER_VIEW_CONTEXT_MENU_TRIGGERED, async (event, params) => {
+		const dictionaries = selectSpellCheckingDictionaries(reduxStore.getState());
+		const webContents = selectFocusedWebContents(reduxStore.getState());
 
 		const createSpellCheckingMenuTemplate = ({
 			isEditable,
@@ -36,14 +32,18 @@ export function *watchWebviewContextMenuEvents(rootWindow) {
 						]
 						: corrections.slice(0, 6).map((correction) => ({
 							label: correction,
-							click: () => webContents.replaceMisspelling(correction),
+							click: () => {
+								webContents.replaceMisspelling(correction);
+							},
 						})),
 					...corrections.length > 6 ? [
 						{
 							label: t('contextMenu.moreSpellingSuggestions'),
 							submenu: corrections.slice(6).map((correction) => ({
 								label: correction,
-								click: () => webContents.replaceMisspelling(correction),
+								click: () => {
+									webContents.replaceMisspelling(correction);
+								},
 							})),
 						},
 					] : [],
@@ -58,22 +58,18 @@ export function *watchWebviewContextMenuEvents(rootWindow) {
 							type: 'checkbox',
 							checked: enabled,
 							click: ({ checked }) => {
-								contextMenuChannel.put(function *() {
-									yield put({
-										type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-										payload: { name, enabled: checked },
-									});
+								reduxStore.dispatch({
+									type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
+									payload: { name, enabled: checked },
 								});
 							},
 						})),
 						{ type: 'separator' },
 						{
 							label: t('contextMenu.browseForLanguage'),
-							click: () => {
-								contextMenuChannel.put(function *() {
-									const filePaths = yield call(browseForSpellCheckingDictionary);
-									yield put({ type: WEBVIEW_SPELL_CHECKING_DICTIONARY_FILES_CHOSEN, payload: filePaths });
-								});
+							click: async () => {
+								const filePaths = await browseForSpellCheckingDictionary(rootWindow);
+								importSpellCheckingDictionaries(reduxStore, filePaths);
 							},
 						},
 					],
@@ -170,7 +166,7 @@ export function *watchWebviewContextMenuEvents(rootWindow) {
 
 		const props = {
 			...params,
-			corrections: yield call(getCorrectionsForMisspelling, params.selectionText),
+			corrections: await getCorrectionsForMisspelling(params.selectionText),
 			dictionaries,
 		};
 
@@ -184,8 +180,4 @@ export function *watchWebviewContextMenuEvents(rootWindow) {
 		const menu = Menu.buildFromTemplate(template);
 		menu.popup({ window: rootWindow });
 	});
-
-	yield takeEvery(contextMenuChannel, function *(saga) {
-		yield *saga();
-	});
-}
+};

@@ -1,11 +1,8 @@
-import { remote } from 'electron';
 import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { call, put, takeEvery } from 'redux-saga/effects';
+import { takeEvery } from 'redux-saga/effects';
 
 import {
-	CERTIFICATE_TRUST_REQUESTED,
 	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
 	MENU_BAR_GO_BACK_CLICKED,
 	MENU_BAR_GO_FORWARD_CLICKED,
@@ -13,8 +10,6 @@ import {
 	MENU_BAR_RELOAD_SERVER_CLICKED,
 	SIDE_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
 	SIDE_BAR_RELOAD_SERVER_CLICKED,
-	WEBVIEW_CERTIFICATE_DENIED,
-	WEBVIEW_CERTIFICATE_TRUSTED,
 	WEBVIEW_DID_NAVIGATE,
 	WEBVIEW_LOADING_DONE,
 	WEBVIEW_LOADING_FAILED,
@@ -26,8 +21,6 @@ import { useSaga } from '../SagaMiddlewareProvider';
 
 export const useWebviewNavigation = (webviewRef, webContents, { url, active }) => {
 	const dispatch = useDispatch();
-
-	const { t } = useTranslation();
 
 	useEffect(() => {
 		if (!webContents) {
@@ -164,37 +157,5 @@ export const useWebviewNavigation = (webviewRef, webContents, { url, active }) =
 		yield takeEvery(CERTIFICATES_CLEARED, function *() {
 			webContents.reloadIgnoringCache();
 		});
-
-		yield takeEvery(CERTIFICATE_TRUST_REQUESTED, function *({ payload }) {
-			const { webContentsId, requestedUrl, error, fingerprint, issuerName, willBeReplaced } = payload;
-
-			if (webContentsId !== webContents.id) {
-				return;
-			}
-
-			let detail = `URL: ${ requestedUrl }\nError: ${ error }`;
-			if (willBeReplaced) {
-				detail = t('error.differentCertificate', { detail });
-			}
-
-			const { response } = yield call(remote.dialog.showMessageBox, remote.getCurrentWindow(), {
-				title: t('dialog.certificateError.title'),
-				message: t('dialog.certificateError.message', { issuerName }),
-				detail,
-				type: 'warning',
-				buttons: [
-					t('dialog.certificateError.yes'),
-					t('dialog.certificateError.no'),
-				],
-				cancelId: 1,
-			});
-
-			if (response === 0) {
-				yield put({ type: WEBVIEW_CERTIFICATE_TRUSTED, payload: { webContentsId, url, fingerprint } });
-				return;
-			}
-
-			yield put({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { webContentsId, url, fingerprint } });
-		});
-	}, [t, webContents, url, active]);
+	}, [webContents, url, active]);
 };

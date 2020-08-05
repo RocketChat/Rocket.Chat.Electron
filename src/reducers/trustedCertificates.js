@@ -1,6 +1,6 @@
 import {
 	CERTIFICATES_UPDATED,
-	MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED,
+	CERTIFICATES_CLEARED,
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
 
@@ -9,7 +9,7 @@ export const trustedCertificates = (state = {}, { type, payload }) => {
 		case CERTIFICATES_UPDATED:
 			return payload;
 
-		case MENU_BAR_CLEAR_TRUSTED_CERTIFICATES_CLICKED:
+		case CERTIFICATES_CLEARED:
 			return {};
 
 		case PERSISTABLE_VALUES_MERGED: {

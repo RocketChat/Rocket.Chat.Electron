@@ -1,6 +1,5 @@
 import { ipcMain, Notification, webContents, nativeImage } from 'electron';
 import fetch from 'node-fetch';
-import { call } from 'redux-saga/effects';
 
 import {
 	EVENT_NOTIFICATION_SHOWN,
@@ -152,11 +151,7 @@ const handleCloseEvent = (event, id) => {
 	notifications.get(id)?.close();
 };
 
-const attachEvents = () => {
+export const setupNotifications = () => {
 	ipcMain.handle(QUERY_NEW_NOTIFICATION, handleCreateEvent);
 	ipcMain.handle(EVENT_NOTIFICATION_CLOSING, handleCloseEvent);
 };
-
-export function *setupNotifications() {
-	yield call(attachEvents);
-}

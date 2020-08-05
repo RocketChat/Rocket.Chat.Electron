@@ -8,7 +8,6 @@ import {
 	WEBVIEW_LOADING_STARTED,
 	WEBVIEW_LOADING_DONE,
 	WEBVIEW_LOADING_FAILED,
-	WEBVIEW_CERTIFICATE_DENIED,
 	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
@@ -48,7 +47,7 @@ export function ServerPane({
 			setReloading(false);
 		});
 
-		yield takeEvery([WEBVIEW_LOADING_FAILED, WEBVIEW_CERTIFICATE_DENIED], function *({ payload: { url: _url } }) {
+		yield takeEvery([WEBVIEW_LOADING_FAILED], function *({ payload: { url: _url } }) {
 			if (url !== _url) {
 				return;
 			}

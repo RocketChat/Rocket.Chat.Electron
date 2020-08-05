@@ -1,5 +1,5 @@
 import { Box, Button, ButtonGroup, Chevron, Margins } from '@rocket.chat/fuselage';
-import { remote } from 'electron';
+import { remote, ipcRenderer } from 'electron';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useRef, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,6 +11,7 @@ import {
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 } from '../../actions';
 import { Dialog } from '../Dialog';
+import { EVENT_UPDATE_DOWNLOAD_ALLOWED } from '../../ipc';
 
 export function UpdateDialog() {
 	const currentVersion = useMemo(() => remote.app.getVersion(), []);
@@ -55,6 +56,7 @@ export function UpdateDialog() {
 			defaultId: 0,
 		});
 		dispatch({ type: UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED });
+		ipcRenderer.send(EVENT_UPDATE_DOWNLOAD_ALLOWED);
 	};
 
 	return <Dialog isVisible={isVisible} onClose={() => dispatch({ type: UPDATE_DIALOG_DISMISSED })}>

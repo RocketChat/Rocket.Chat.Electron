@@ -1,39 +1,38 @@
 import { app, nativeTheme, Menu, Tray } from 'electron';
 import { t } from 'i18next';
-import { channel } from 'redux-saga';
-import { put, select, takeEvery, cancel, call, take, spawn } from 'redux-saga/effects';
 
-import {
-	TRAY_ICON_TOGGLE_CLICKED,
-	TRAY_ICON_QUIT_CLICKED,
-} from '../../actions';
-import { getPlatform } from '../app';
-import { eventEmitterChannel } from '../channels';
 import { getTrayIconPath, getAppIconPath } from '../icons';
 import {
 	selectIsTrayIconEnabled,
 	selectIsMainWindowVisible,
 	selectGlobalBadge,
 } from '../selectors';
-import { watchValue, waitAndCleanUp } from '../sagas/utils';
 
-const createTrayIcon = (eventsChannel) => {
+const createTrayIcon = (reduxStore, rootWindow) => {
 	const image = getTrayIconPath({ badge: null, dark: nativeTheme.shouldUseDarkColors });
 
 	const trayIcon = new Tray(image);
 
 	trayIcon.addListener('click', () => {
-		eventsChannel.put(function *() {
-			const isMainWindowVisible = yield select(selectIsMainWindowVisible);
-			yield put({ type: TRAY_ICON_TOGGLE_CLICKED, payload: !isMainWindowVisible });
-		});
+		const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
+
+		if (isMainWindowVisible) {
+			rootWindow.hide();
+			return;
+		}
+
+		rootWindow.show();
 	});
 
 	trayIcon.addListener('balloon-click', () => {
-		eventsChannel.put(function *() {
-			const isMainWindowVisible = yield select(selectIsMainWindowVisible);
-			yield put({ type: TRAY_ICON_TOGGLE_CLICKED, payload: !isMainWindowVisible });
-		});
+		const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
+
+		if (isMainWindowVisible) {
+			rootWindow.hide();
+			return;
+		}
+
+		rootWindow.show();
 	});
 
 	trayIcon.addListener('right-click', (event, bounds) => {
@@ -67,31 +66,6 @@ const updateTrayIconToolTip = (trayIcon, globalBadge) => {
 	trayIcon.setToolTip(t('tray.tooltip.noUnreadMessage', { appName: app.name }));
 };
 
-const updateTrayIconMenu = (trayIcon, eventsChannel, isRootWindowVisible) => {
-	const menuTemplate = [
-		{
-			label: isRootWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
-			click: () => {
-				eventsChannel.put(function *() {
-					const isRootWindowVisible = yield select(selectIsMainWindowVisible);
-					yield put({ type: TRAY_ICON_TOGGLE_CLICKED, payload: !isRootWindowVisible });
-				});
-			},
-		},
-		{
-			label: t('tray.menu.quit'),
-			click: () => {
-				eventsChannel.put(function *() {
-					yield put({ type: TRAY_ICON_QUIT_CLICKED });
-				});
-			},
-		},
-	];
-
-	const menu = Menu.buildFromTemplate(menuTemplate);
-	trayIcon.setContextMenu(menu);
-};
-
 const warnStillRunning = (trayIcon) => {
 	trayIcon.displayBalloon({
 		icon: getAppIconPath(),
@@ -100,69 +74,89 @@ const warnStillRunning = (trayIcon) => {
 	});
 };
 
-function *watchUpdates(trayIcon, eventsChannel) {
-	yield watchValue(selectGlobalBadge, function *([globalBadge]) {
-		yield call(updateTrayIconImage, trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
-		yield call(updateTrayIconTitle, trayIcon, globalBadge);
-		yield call(updateTrayIconToolTip, trayIcon, globalBadge);
-	});
+const manageTrayIcon = async (reduxStore, rootWindow) => {
+	const trayIcon = await createTrayIcon(reduxStore, rootWindow);
 
-	yield watchValue(selectIsMainWindowVisible, function *([isRootWindowVisible, prevIsRootWindowVisible]) {
-		yield call(updateTrayIconMenu, trayIcon, eventsChannel, isRootWindowVisible);
-
-		const platform = yield call(getPlatform);
-		if (prevIsRootWindowVisible && !isRootWindowVisible && platform === 'win32') {
-			yield call(warnStillRunning, trayIcon);
+	let prevGlobalBadge;
+	const unwatchGlobalBadge = reduxStore.subscribe(() => {
+		const globalBadge = selectGlobalBadge(reduxStore.getState());
+		if (prevGlobalBadge !== globalBadge) {
+			updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
+			updateTrayIconTitle(trayIcon, globalBadge);
+			updateTrayIconToolTip(trayIcon, globalBadge);
+			prevGlobalBadge = globalBadge;
 		}
 	});
-}
 
-function *watchEvents(trayIcon, eventsChannel) {
-	const nativeThemeUpdatedChannel = yield call(eventEmitterChannel, nativeTheme, 'updated');
+	let prevIsRootWindowVisible;
+	const unwatchIsRootWindowVisible = reduxStore.subscribe(() => {
+		const isRootWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
+		if (prevIsRootWindowVisible !== isRootWindowVisible) {
+			const menuTemplate = [
+				{
+					label: isRootWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
+					click: () => {
+						const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
 
-	yield takeEvery(nativeThemeUpdatedChannel, function *() {
-		const globalBadge = yield select(selectGlobalBadge);
-		yield call(updateTrayIconImage, trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
-		yield call(updateTrayIconTitle, trayIcon, globalBadge);
-		yield call(updateTrayIconToolTip, trayIcon, globalBadge);
+						if (isMainWindowVisible) {
+							rootWindow.hide();
+							return;
+						}
+
+						rootWindow.show();
+					},
+				},
+				{
+					label: t('tray.menu.quit'),
+					click: () => {
+						app.quit();
+					},
+				},
+			];
+
+			const menu = Menu.buildFromTemplate(menuTemplate);
+			trayIcon.setContextMenu(menu);
+
+			if (prevIsRootWindowVisible && !isRootWindowVisible && process.platform === 'win32') {
+				warnStillRunning(trayIcon);
+			}
+			prevIsRootWindowVisible = isRootWindowVisible;
+		}
 	});
 
-	yield takeEvery(eventsChannel, function *(saga) {
-		yield *saga();
-	});
-}
+	const handleNativeThemeUpdatedEvent = () => {
+		const globalBadge = selectGlobalBadge(reduxStore.getState());
+		updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
+		updateTrayIconTitle(trayIcon, globalBadge);
+		updateTrayIconToolTip(trayIcon, globalBadge);
+	};
 
-function *manageTrayIcon(eventsChannel) {
-	const trayIcon = yield call(createTrayIcon, eventsChannel);
-	const nativeThemeUpdatedChannel = yield call(eventEmitterChannel, nativeTheme, 'updated');
+	nativeTheme.addListener('updated', handleNativeThemeUpdatedEvent);
 
-	yield *watchUpdates(trayIcon, eventsChannel);
-	yield *watchEvents(trayIcon, eventsChannel);
-
-	yield waitAndCleanUp(() => {
-		nativeThemeUpdatedChannel.close();
+	return () => {
+		unwatchGlobalBadge();
+		unwatchIsRootWindowVisible();
+		nativeTheme.removeListener('updated', handleNativeThemeUpdatedEvent);
 		trayIcon.destroy();
-	});
-}
+	};
+};
 
-export function *setupTrayIcon({ eventsChannel = channel() } = {}) {
+export const setupTrayIcon = (reduxStore, rootWindow) => {
 	let trayIconTask = null;
 
 	let prevIsTrayIconEnabled;
+	reduxStore.subscribe(() => {
+		const isTrayIconEnabled = selectIsTrayIconEnabled(reduxStore.getState());
 
-	while (true) {
-		const isTrayIconEnabled = yield select(selectIsTrayIconEnabled);
-
-		if (isTrayIconEnabled !== prevIsTrayIconEnabled) {
+		if (prevIsTrayIconEnabled !== isTrayIconEnabled) {
 			if (!trayIconTask && isTrayIconEnabled) {
-				trayIconTask = yield spawn(manageTrayIcon, eventsChannel);
+				trayIconTask = manageTrayIcon(reduxStore, rootWindow);
 			} else if (trayIconTask && !isTrayIconEnabled) {
-				yield cancel(trayIconTask);
+				trayIconTask.then((cleanUp) => cleanUp());
 				trayIconTask = null;
 			}
-		}
 
-		prevIsTrayIconEnabled = isTrayIconEnabled;
-		yield take();
-	}
-}
+			prevIsTrayIconEnabled = isTrayIconEnabled;
+		}
+	});
+};

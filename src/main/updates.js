@@ -1,27 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app } from 'electron';
-import { autoUpdater, CancellationToken } from 'electron-updater';
-import { select, call, put, takeEvery, spawn } from 'redux-saga/effects';
+import { app, ipcMain } from 'electron';
+import { autoUpdater } from 'electron-updater';
 
 import {
 	UPDATES_ERROR_THROWN,
 	UPDATES_CHECKING_FOR_UPDATE,
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_NEW_VERSION_AVAILABLE,
-	UPDATES_UPDATE_DOWNLOADED,
-	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
-	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
-	ROOT_WINDOW_INSTALL_UPDATE_CLICKED,
 	UPDATES_READY,
 } from '../actions';
-import { eventEmitterChannel } from './channels';
 import {
 	selectSkippedUpdateVersion,
 	selectUpdateConfiguration,
 } from './selectors';
-import { getPlatform } from './app';
+import { askUpdateInstall, AskUpdateInstallResponse, warnAboutInstallUpdateLater } from './ui/dialogs';
+import { EVENT_UPDATE_DOWNLOAD_ALLOWED, EVENT_CHECK_FOR_UPDATES_REQUESTED } from '../ipc';
 
 const loadAppConfiguration = async () => {
 	try {
@@ -52,9 +47,9 @@ const loadUserConfiguration = async () => {
 	}
 };
 
-function *loadConfiguration() {
-	const defaultConfiguration = yield select(selectUpdateConfiguration);
-	const appConfiguration = yield call(loadAppConfiguration);
+const loadConfiguration = async (reduxStore) => {
+	const defaultConfiguration = selectUpdateConfiguration(reduxStore.getState());
+	const appConfiguration = await loadAppConfiguration();
 
 	const configuration = {
 		...defaultConfiguration,
@@ -65,7 +60,7 @@ function *loadConfiguration() {
 	};
 
 	if (configuration.isEachUpdatesSettingConfigurable) {
-		const userConfiguration = yield call(loadUserConfiguration);
+		const userConfiguration = await loadUserConfiguration();
 
 		if (userConfiguration.autoUpdate) {
 			configuration.doCheckForUpdatesOnStartup = true;
@@ -77,93 +72,23 @@ function *loadConfiguration() {
 	}
 
 	return configuration;
-}
-
-const checkForUpdates = () => {
-	autoUpdater.checkForUpdates();
 };
 
-let cancellationToken;
-
-const downloadUpdate = () => {
-	cancellationToken = new CancellationToken();
-	autoUpdater.downloadUpdate(cancellationToken);
-};
-
-const installUpdate = () => {
-	app.removeAllListeners('window-all-closed');
-	autoUpdater.quitAndInstall(true, true);
-};
-
-function *watchEvents() {
-	yield takeEvery(eventEmitterChannel(autoUpdater, 'checking-for-update'), function *() {
-		yield put({ type: UPDATES_CHECKING_FOR_UPDATE });
-	});
-
-	yield takeEvery(eventEmitterChannel(autoUpdater, 'update-available'), function *([{ version }]) {
-		const skippedUpdateVersion = yield select(selectSkippedUpdateVersion);
-		if (skippedUpdateVersion === version) {
-			yield put({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
-			return;
-		}
-
-		yield put({ type: UPDATES_NEW_VERSION_AVAILABLE, payload: version });
-	});
-
-	yield takeEvery(eventEmitterChannel(autoUpdater, 'update-not-available'), function *() {
-		yield put({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
-	});
-
-	yield takeEvery(eventEmitterChannel(autoUpdater, 'update-downloaded'), function *() {
-		yield put({ type: UPDATES_UPDATE_DOWNLOADED });
-	});
-
-	yield takeEvery(eventEmitterChannel(autoUpdater, 'error'), function *([error]) {
-		yield put({ type: UPDATES_ERROR_THROWN, payload: error });
-	});
-
-	yield takeEvery(ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED, function *() {
-		try {
-			yield call(checkForUpdates);
-		} catch (error) {
-			yield put({ type: UPDATES_ERROR_THROWN, payload: error });
-		}
-	});
-
-	yield takeEvery(UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED, function *() {
-		try {
-			yield call(downloadUpdate);
-		} catch (error) {
-			yield put({ type: UPDATES_ERROR_THROWN, payload: error });
-		}
-	});
-
-	yield takeEvery(ROOT_WINDOW_INSTALL_UPDATE_CLICKED, function *() {
-		try {
-			yield call(installUpdate);
-		} catch (error) {
-			yield put({ type: UPDATES_ERROR_THROWN, payload: error });
-		}
-	});
-}
-
-export function *setupUpdates() {
+export const setupUpdates = async (reduxStore, rootWindow) => {
 	autoUpdater.autoDownload = false;
 
-	const platform = yield call(getPlatform);
-
-	const isUpdatingAllowed = (platform === 'linux' && !!process.env.APPIMAGE)
-		|| (platform === 'win32' && !process.windowsStore)
-		|| (platform === 'darwin' && !process.mas);
+	const isUpdatingAllowed = (process.platform === 'linux' && !!process.env.APPIMAGE)
+		|| (process.platform === 'win32' && !process.windowsStore)
+		|| (process.platform === 'darwin' && !process.mas);
 
 	const {
 		isEachUpdatesSettingConfigurable,
 		isUpdatingEnabled,
 		doCheckForUpdatesOnStartup,
 		skippedUpdateVersion,
-	} = yield *loadConfiguration();
+	} = await loadConfiguration(reduxStore);
 
-	yield put({
+	reduxStore.dispatch({
 		type: UPDATES_READY,
 		payload: {
 			isUpdatingAllowed,
@@ -178,15 +103,65 @@ export function *setupUpdates() {
 		return;
 	}
 
-	if (doCheckForUpdatesOnStartup) {
-		yield spawn(function *() {
-			try {
-				yield call(checkForUpdates);
-			} catch (error) {
-				yield put({ type: UPDATES_ERROR_THROWN, payload: error });
-			}
-		});
-	}
+	autoUpdater.addListener('checking-for-update', () => {
+		reduxStore.dispatch({ type: UPDATES_CHECKING_FOR_UPDATE });
+	});
 
-	yield *watchEvents();
-}
+	autoUpdater.addListener('update-available', ({ version }) => {
+		const skippedUpdateVersion = selectSkippedUpdateVersion(reduxStore.getState());
+		if (skippedUpdateVersion === version) {
+			reduxStore.dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+			return;
+		}
+
+		reduxStore.dispatch({ type: UPDATES_NEW_VERSION_AVAILABLE, payload: version });
+	});
+
+	autoUpdater.addListener('update-not-available', () => {
+		reduxStore.dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+	});
+
+	autoUpdater.addListener('update-downloaded', async () => {
+		const response = await askUpdateInstall(rootWindow);
+
+		if (response === AskUpdateInstallResponse.INSTALL_LATER) {
+			await warnAboutInstallUpdateLater(rootWindow);
+			return;
+		}
+
+		try {
+			app.removeAllListeners('window-all-closed');
+			autoUpdater.quitAndInstall(true, true);
+		} catch (error) {
+			reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
+		}
+	});
+
+	autoUpdater.addListener('error', (error) => {
+		reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
+	});
+
+	ipcMain.addListener(EVENT_UPDATE_DOWNLOAD_ALLOWED, () => {
+		try {
+			autoUpdater.downloadUpdate();
+		} catch (error) {
+			reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
+		}
+	});
+
+	ipcMain.addListener(EVENT_CHECK_FOR_UPDATES_REQUESTED, () => {
+		try {
+			autoUpdater.checkForUpdates();
+		} catch (error) {
+			reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
+		}
+	});
+
+	if (doCheckForUpdatesOnStartup) {
+		try {
+			autoUpdater.checkForUpdates();
+		} catch (error) {
+			reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
+		}
+	}
+};

@@ -1,42 +1,41 @@
 import { Box, Button, Margins, Scrollable, Tile } from '@rocket.chat/fuselage';
-import React, { useRef, useState } from 'react';
+import { ipcRenderer } from 'electron';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { takeEvery } from 'redux-saga/effects';
 import { useTranslation } from 'react-i18next';
 
 import { Dialog } from '../Dialog';
-import { useSaga } from '../SagaMiddlewareProvider';
 import {
 	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
 	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
 } from '../../actions';
+import { EVENT_CLIENT_CERTIFICATE_REQUESTED, EVENT_CLIENT_CERTIFICATE_SELECTED } from '../../ipc';
 
 export function SelectClientCertificateDialog() {
 	const isVisible = useSelector(({ openDialog }) => openDialog === 'select-client-certificate');
-	const requestIdRef = useRef();
 	const [certificateList, setCertificateList] = useState([]);
 	const dispatch = useDispatch();
 
-	useSaga(function *() {
-		yield takeEvery(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, function *({ payload: { requestId, certificateList } }) {
-			requestIdRef.current = requestId;
+	useEffect(() => {
+		const handleClientCertificateRequestedEvent = (event, certificateList) => {
 			setCertificateList(certificateList);
-		});
-	});
+			dispatch({ type: CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED });
+		};
+
+		ipcRenderer.addListener(EVENT_CLIENT_CERTIFICATE_REQUESTED, handleClientCertificateRequestedEvent);
+
+		return () => {
+			ipcRenderer.removeListener(EVENT_CLIENT_CERTIFICATE_REQUESTED, handleClientCertificateRequestedEvent);
+		};
+	}, [dispatch]);
 
 	const handleClose = () => {
-		requestIdRef.current = null;
-		dispatch({ type: 'noop' });
+		setCertificateList([]);
 	};
 
 	const handleSelect = (certificate) => () => {
-		dispatch({
-			type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-			payload: {
-				requestId: requestIdRef.current,
-				fingerprint: certificate.fingerprint,
-			},
-		});
+		ipcRenderer.send(EVENT_CLIENT_CERTIFICATE_SELECTED, certificate.fingerprint);
+		dispatch({ type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED });
 	};
 
 	const { t } = useTranslation();

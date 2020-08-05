@@ -1,6 +1,6 @@
 import { Box, Button, Field, Margins, Throbber, ToggleSwitch } from '@rocket.chat/fuselage';
 import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
-import { remote } from 'electron';
+import { remote, ipcRenderer } from 'electron';
 import React, { useState, useRef, useMemo } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,7 +10,6 @@ import pkg from '../../../package.json';
 import {
 	ABOUT_DIALOG_DISMISSED,
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
-	ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_ERROR_THROWN,
@@ -19,6 +18,7 @@ import {
 import { RocketChatLogo } from '../RocketChatLogo';
 import { useSaga } from '../SagaMiddlewareProvider';
 import { Dialog } from '../Dialog';
+import { EVENT_CHECK_FOR_UPDATES_REQUESTED } from '../../ipc';
 
 export function AboutDialog() {
 	const version = useMemo(() => remote.app.getVersion(), []);
@@ -79,7 +79,7 @@ export function AboutDialog() {
 	}, [t, canUpdate, checkingForUpdates]);
 
 	const handleCheckForUpdatesButtonClick = () => {
-		dispatch({ type: ABOUT_DIALOG_CHECK_FOR_UPDATES_CLICKED });
+		ipcRenderer.send(EVENT_CHECK_FOR_UPDATES_REQUESTED);
 	};
 
 	const handleCheckForUpdatesOnStartCheckBoxChange = (event) => {

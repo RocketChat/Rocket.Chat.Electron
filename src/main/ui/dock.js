@@ -1,9 +1,6 @@
 import { app } from 'electron';
-import { call } from 'redux-saga/effects';
 
-import { getPlatform } from '../app';
 import { selectGlobalBadgeText, selectGlobalBadgeCount } from '../selectors';
-import { watchValue } from '../sagas/utils';
 
 const setBadge = (globalBadgeText) => {
 	app.dock.setBadge(globalBadgeText);
@@ -13,26 +10,31 @@ const bounce = () => {
 	app.dock.bounce();
 };
 
-function *watchUpdates() {
-	yield watchValue(selectGlobalBadgeText, function *([text]) {
-		yield call(setBadge, text);
-	});
-
-	yield watchValue(selectGlobalBadgeCount, function *([count, prevCount]) {
-		if (count <= 0 || prevCount > 0) {
-			return;
-		}
-
-		yield call(bounce);
-	});
-}
-
-export function *setupDock() {
-	const platform = yield call(getPlatform);
-
-	if (platform !== 'darwin') {
+export const setupDock = (reduxStore) => {
+	if (process.platform !== 'darwin') {
 		return;
 	}
 
-	yield *watchUpdates();
-}
+	let prevGlobalBadgeText;
+	reduxStore.subscribe(() => {
+		const globalBadgeText = selectGlobalBadgeText(reduxStore.getState());
+		if (prevGlobalBadgeText !== globalBadgeText) {
+			setBadge(globalBadgeText);
+			prevGlobalBadgeText = globalBadgeText;
+		}
+	});
+
+	let prevGlobalBadgeCount;
+	reduxStore.subscribe(() => {
+		const globalBadgeCount = selectGlobalBadgeCount(reduxStore.getState());
+		if (prevGlobalBadgeCount !== globalBadgeCount) {
+			if (globalBadgeCount <= 0 || prevGlobalBadgeCount > 0) {
+				return;
+			}
+
+			bounce();
+
+			prevGlobalBadgeCount = globalBadgeCount;
+		}
+	});
+};

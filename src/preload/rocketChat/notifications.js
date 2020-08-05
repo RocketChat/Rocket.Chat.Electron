@@ -36,7 +36,7 @@ class Notification extends EventTarget {
 		return Promise.resolve(Notification.permission);
 	}
 
-	constructor(title, { icon, ...options }) {
+	constructor(title, { icon, ...options } = {}) {
 		super();
 
 		for (const eventType of ['show', 'close', 'click', 'reply', 'action']) {

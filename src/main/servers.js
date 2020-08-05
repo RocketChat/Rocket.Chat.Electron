@@ -4,7 +4,6 @@ import url from 'url';
 
 import { app } from 'electron';
 import fetch from 'electron-main-fetch';
-import { select, call, put } from 'redux-saga/effects';
 
 import { PERSISTABLE_VALUES_MERGED } from '../actions';
 import { selectServers, selectCurrentServerUrl } from './selectors';
@@ -107,9 +106,9 @@ const loadUserServers = async () => {
 	}
 };
 
-export function *setupServers(localStorage) {
-	let servers = yield select(selectServers);
-	let currentServerUrl = yield select(selectCurrentServerUrl);
+export const setupServers = async (reduxStore, localStorage) => {
+	let servers = selectServers(reduxStore.getState());
+	let currentServerUrl = selectCurrentServerUrl(reduxStore.getState());
 
 	const serversMap = new Map(
 		servers
@@ -139,13 +138,13 @@ export function *setupServers(localStorage) {
 	}
 
 	if (serversMap.size === 0) {
-		const appConfiguration = yield call(loadAppServers);
+		const appConfiguration = await loadAppServers();
 
 		for (const [title, url] of Object.entries(appConfiguration)) {
 			serversMap.set(url, { url, title });
 		}
 
-		const userConfiguration = yield call(loadUserServers);
+		const userConfiguration = await loadUserServers();
 
 		for (const [title, url] of Object.entries(userConfiguration)) {
 			serversMap.set(url, { url, title });
@@ -171,11 +170,11 @@ export function *setupServers(localStorage) {
 		}
 	}
 
-	yield put({
+	reduxStore.dispatch({
 		type: PERSISTABLE_VALUES_MERGED,
 		payload: {
 			servers,
 			currentServerUrl,
 		},
 	});
-}
+};

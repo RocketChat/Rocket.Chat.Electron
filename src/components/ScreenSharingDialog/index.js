@@ -1,12 +1,11 @@
 import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
-import { desktopCapturer } from 'electron';
+import { desktopCapturer, ipcRenderer } from 'electron';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import {
-	SCREEN_SHARING_DIALOG_SOURCE_SELECTED,
-} from '../../actions';
+import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../actions';
+import { EVENT_SCREEN_SHARING_SOURCE_SELECTED } from '../../ipc';
 import { Dialog } from '../Dialog';
 import { Source } from './styles';
 
@@ -38,10 +37,16 @@ export function ScreenSharingDialog() {
 	}, [isVisible]);
 
 	const handleScreenSharingSourceClick = (id) => () => {
-		dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: id });
+		ipcRenderer.send(EVENT_SCREEN_SHARING_SOURCE_SELECTED, id);
+		dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
 	};
 
-	return <Dialog isVisible={isVisible} onClose={() => dispatch({ type: SCREEN_SHARING_DIALOG_SOURCE_SELECTED, payload: null })}>
+	const handleClose = () => {
+		ipcRenderer.send(EVENT_SCREEN_SHARING_SOURCE_SELECTED, null);
+		dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
+	};
+
+	return <Dialog isVisible={isVisible} onClose={handleClose}>
 		<Box fontScale='h1' alignSelf='center'>{t('dialog.screenshare.announcement')}</Box>
 		<Box display='flex' flexWrap='wrap' alignItems='stretch' justifyContent='center'>
 			<Margins all='x8'>

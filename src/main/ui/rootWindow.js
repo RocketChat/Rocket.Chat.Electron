@@ -1,54 +1,17 @@
-import fs from 'fs';
 import path from 'path';
 
 import {
 	app,
 	BrowserWindow,
 	screen,
+	shell,
 } from 'electron';
-import { t } from 'i18next';
-import {
-	call,
-	fork,
-	put,
-	select,
-	setContext,
-	takeEvery,
-} from 'redux-saga/effects';
 import { createSelector } from 'reselect';
 
 import {
-	CERTIFICATE_TRUST_REQUESTED,
-	DEEP_LINK_TRIGGERED,
-	MENU_BAR_ABOUT_CLICKED,
-	MENU_BAR_ADD_NEW_SERVER_CLICKED,
-	MENU_BAR_GO_BACK_CLICKED,
-	MENU_BAR_GO_FORWARD_CLICKED,
-	MENU_BAR_RELOAD_APP_CLICKED,
-	MENU_BAR_RELOAD_SERVER_CLICKED,
-	MENU_BAR_RESET_ZOOM_CLICKED,
-	MENU_BAR_SELECT_SERVER_CLICKED,
-	MENU_BAR_TOGGLE_DEVTOOLS_CLICKED,
-	MENU_BAR_TOGGLE_IS_FULL_SCREEN_ENABLED_CLICKED,
-	MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
-	MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
-	MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
-	MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-	MENU_BAR_ZOOM_IN_CLICKED,
-	MENU_BAR_ZOOM_OUT_CLICKED,
-	ROOT_WINDOW_INSTALL_UPDATE_CLICKED,
 	ROOT_WINDOW_STATE_CHANGED,
 	ROOT_WINDOW_WEBCONTENTS_FOCUSED,
-	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
-	TOUCH_BAR_SELECT_SERVER_TOUCHED,
-	TRAY_ICON_TOGGLE_CLICKED,
-	UPDATES_UPDATE_DOWNLOADED,
-	WEBVIEW_CERTIFICATE_DENIED,
-	WEBVIEW_CERTIFICATE_TRUSTED,
-	WEBVIEW_FOCUS_REQUESTED,
-	PERSISTABLE_VALUES_MERGED,
 } from '../../actions';
-import { eventEmitterChannel } from '../channels';
 import { getTrayIconPath, getAppIconPath } from '../icons';
 import {
 	selectGlobalBadge,
@@ -56,22 +19,49 @@ import {
 	selectIsMenuBarEnabled,
 	selectIsTrayIconEnabled,
 	selectIsShowWindowOnUnreadChangedEnabled,
-	selectPersistableValues,
-	selectMainWindowState,
 } from '../selectors';
-import { getPlatform } from '../app';
-import { watchValue } from '../sagas/utils';
-import { watchSideBarContextMenuEvents } from './contextMenus/sidebar';
-import { watchWebviewContextMenuEvents } from './contextMenus/webview';
-import {
-	askUpdateInstall,
-	AskUpdateInstallResponse,
-	warnAboutInstallUpdateLater,
-	askForCertificateTrust,
-	AskForCertificateTrustResponse,
-} from './dialogs';
 
-const createRootWindow = async () => {
+const handleWillAttachWebview = (event, webPreferences) => {
+	delete webPreferences.enableBlinkFeatures;
+	webPreferences.preload = `${ app.getAppPath() }/app/preload.js`;
+	webPreferences.nodeIntegration = false;
+	webPreferences.nodeIntegrationInWorker = true;
+	webPreferences.nodeIntegrationInSubFrames = true;
+	webPreferences.enableRemoteModule = false;
+	webPreferences.webSecurity = true;
+};
+
+const handleDidAttachWebview = (event, webContents) => {
+	// webContents.send('console-warn', '%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
+	// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
+	// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
+
+	webContents.addListener('new-window', (event, url, frameName, disposition, options) => {
+		event.preventDefault();
+
+		if (disposition === 'foreground-tab' || disposition === 'background-tab') {
+			shell.openExternal(url);
+			return;
+		}
+
+		const newWindow = new BrowserWindow({
+			...options,
+			show: false,
+		});
+
+		newWindow.once('ready-to-show', () => {
+			newWindow.show();
+		});
+
+		if (!options.webContents) {
+			newWindow.loadURL(url);
+		}
+
+		event.newGuest = newWindow;
+	});
+};
+
+export const createRootWindow = async () => {
 	await app.whenReady();
 
 	const rootWindow = new BrowserWindow({
@@ -93,6 +83,9 @@ const createRootWindow = async () => {
 		event.preventDefault();
 	});
 
+	rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);
+	rootWindow.webContents.addListener('did-attach-webview', handleDidAttachWebview);
+
 	rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/app.html'));
 
 	return new Promise((resolve) => {
@@ -108,7 +101,7 @@ const isInsideSomeScreen = ({ x, y, width, height }) =>
 			&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
 		);
 
-const applyMainWindowState = (rootWindow, rootWindowState) => {
+export const applyMainWindowState = (rootWindow, rootWindowState) => {
 	let { x, y } = rootWindowState.bounds;
 	const { width, height } = rootWindowState.bounds;
 	if (!isInsideSomeScreen({ x, y, width, height })) {
@@ -153,9 +146,9 @@ const applyMainWindowState = (rootWindow, rootWindowState) => {
 	}
 };
 
-const getLocalStorage = (rootWindow) => rootWindow.webContents.executeJavaScript('({...localStorage})');
+export const getLocalStorage = (rootWindow) => rootWindow.webContents.executeJavaScript('({...localStorage})');
 
-const purgeLocalStorage = (rootWindow) => rootWindow.webContents.executeJavaScript('localStorage.clear()');
+export const purgeLocalStorage = (rootWindow) => rootWindow.webContents.executeJavaScript('localStorage.clear()');
 
 const fetchRootWindowState = (rootWindow) => ({
 	focused: rootWindow.isFocused(),
@@ -167,11 +160,10 @@ const fetchRootWindowState = (rootWindow) => ({
 	bounds: rootWindow.getNormalBounds(),
 });
 
-function *watchUpdates(rootWindow) {
-	const platform = yield call(getPlatform);
-
-	if (platform === 'linux' || platform === 'win32') {
-		yield watchValue(selectIsMenuBarEnabled, function *([isMenuBarEnabled]) {
+export const setupRootWindow = (reduxStore, rootWindow) => {
+	if (process.platform === 'linux' || process.platform === 'win32') {
+		reduxStore.subscribe(() => {
+			const isMenuBarEnabled = selectIsMenuBarEnabled(reduxStore.getState());
 			rootWindow.autoHideMenuBar = !isMenuBarEnabled;
 			rootWindow.setMenuBarVisibility(isMenuBarEnabled);
 		});
@@ -181,81 +173,65 @@ function *watchUpdates(rootWindow) {
 			selectGlobalBadge,
 		], (isTrayIconEnabled, globalBadge) => [isTrayIconEnabled, globalBadge]);
 
-		yield watchValue(selectRootWindowIcon, function *([[isTrayIconEnabled, globalBadge]]) {
+		reduxStore.subscribe(() => {
+			const [isTrayIconEnabled, globalBadge] = selectRootWindowIcon(reduxStore.getState());
 			const icon = isTrayIconEnabled ? getTrayIconPath({ badge: globalBadge }) : getAppIconPath();
 			rootWindow.setIcon(icon);
 		});
 	}
 
-	yield watchValue(selectGlobalBadgeCount, function *([globalBadgeCount]) {
+	reduxStore.subscribe(() => {
+		const globalBadgeCount = selectGlobalBadgeCount(reduxStore.getState());
+
 		if (rootWindow.isFocused() || globalBadgeCount === 0) {
 			return;
 		}
 
-		const isShowWindowOnUnreadChangedEnabled = yield select(selectIsShowWindowOnUnreadChangedEnabled);
+		const isShowWindowOnUnreadChangedEnabled = selectIsShowWindowOnUnreadChangedEnabled(reduxStore.getState());
 
 		if (isShowWindowOnUnreadChangedEnabled) {
 			rootWindow.showInactive();
 			return;
 		}
 
-		if (platform === 'win32') {
+		if (process.platform === 'win32') {
 			rootWindow.flashFrame(true);
 		}
 	});
-}
 
-function *watchEvents(rootWindow) {
-	yield takeEvery(eventEmitterChannel(app, 'activate'), function *() {
-		rootWindow.showInactive();
-		rootWindow.focus();
-	});
-
-	yield takeEvery(eventEmitterChannel(app, 'before-quit'), function *() {
-		if (rootWindow.isDestroyed()) {
-			return;
-		}
-		rootWindow.destroy();
-	});
-
-	yield takeEvery(eventEmitterChannel(app, 'second-instance'), function *() {
-		rootWindow.showInactive();
-		rootWindow.focus();
-	});
-
-	function *fetchAndDispatchWindowState(rootWindow) {
-		yield put({
+	const fetchAndDispatchWindowState = () => {
+		reduxStore.dispatch({
 			type: ROOT_WINDOW_STATE_CHANGED,
 			payload: fetchRootWindowState(rootWindow),
 		});
-	}
+	};
 
-	yield takeEvery(eventEmitterChannel(rootWindow, 'show'), fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(eventEmitterChannel(rootWindow, 'hide'), fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(eventEmitterChannel(rootWindow, 'focus'), fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(eventEmitterChannel(rootWindow, 'blur'), fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(eventEmitterChannel(rootWindow, 'maximize'), fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(eventEmitterChannel(rootWindow, 'unmaximize'), fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(eventEmitterChannel(rootWindow, 'minimize'), fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(eventEmitterChannel(rootWindow, 'restore'), fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(eventEmitterChannel(rootWindow, 'resize'), fetchAndDispatchWindowState, rootWindow);
-	yield takeEvery(eventEmitterChannel(rootWindow, 'move'), fetchAndDispatchWindowState, rootWindow);
+	rootWindow.addListener('show', fetchAndDispatchWindowState);
+	rootWindow.addListener('hide', fetchAndDispatchWindowState);
+	rootWindow.addListener('focus', fetchAndDispatchWindowState);
+	rootWindow.addListener('blur', fetchAndDispatchWindowState);
+	rootWindow.addListener('maximize', fetchAndDispatchWindowState);
+	rootWindow.addListener('unmaximize', fetchAndDispatchWindowState);
+	rootWindow.addListener('minimize', fetchAndDispatchWindowState);
+	rootWindow.addListener('restore', fetchAndDispatchWindowState);
+	rootWindow.addListener('resize', fetchAndDispatchWindowState);
+	rootWindow.addListener('move', fetchAndDispatchWindowState);
 
-	yield takeEvery(eventEmitterChannel(rootWindow, 'focus'), function *() {
+	fetchAndDispatchWindowState();
+
+	rootWindow.addListener('focus', () => {
 		rootWindow.flashFrame(false);
 	});
 
-	yield call(fetchAndDispatchWindowState, rootWindow);
-
-	yield takeEvery(eventEmitterChannel(rootWindow, 'close'), function *() {
+	rootWindow.addListener('close', async () => {
 		if (rootWindow.isFullScreen()) {
-			yield call(() => new Promise((resolve) => rootWindow.once('leave-full-screen', resolve)));
+			await new Promise((resolve) => rootWindow.once('leave-full-screen', resolve));
 			rootWindow.setFullScreen(false);
 		}
 
 		rootWindow.blur();
 
-		const isTrayIconEnabled = yield select(selectIsTrayIconEnabled);
+		const isTrayIconEnabled = selectIsTrayIconEnabled(reduxStore.getState());
 
 		if (process.platform === 'darwin' || isTrayIconEnabled) {
 			rootWindow.hide();
@@ -270,205 +246,7 @@ function *watchEvents(rootWindow) {
 		rootWindow.destroy();
 	});
 
-	yield takeEvery(eventEmitterChannel(rootWindow, 'devtools-focused'), function *() {
-		yield put({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
+	rootWindow.addListener('devtools-focused', () => {
+		reduxStore.dispatch({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
 	});
-
-	yield takeEvery([
-		DEEP_LINK_TRIGGERED,
-		MENU_BAR_ABOUT_CLICKED,
-		MENU_BAR_ADD_NEW_SERVER_CLICKED,
-		MENU_BAR_GO_BACK_CLICKED,
-		MENU_BAR_GO_FORWARD_CLICKED,
-		MENU_BAR_RELOAD_SERVER_CLICKED,
-		MENU_BAR_SELECT_SERVER_CLICKED,
-		MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
-		MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
-		MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
-		MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-		TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
-		TOUCH_BAR_SELECT_SERVER_TOUCHED,
-		WEBVIEW_FOCUS_REQUESTED,
-	], function *() {
-		rootWindow.show();
-	});
-
-	yield takeEvery(MENU_BAR_RESET_ZOOM_CLICKED, function *() {
-		rootWindow.show();
-		rootWindow.webContents.zoomLevel = 0;
-	});
-
-	yield takeEvery(MENU_BAR_ZOOM_IN_CLICKED, function *() {
-		rootWindow.show();
-		if (rootWindow.webContents.zoomLevel >= 9) {
-			return;
-		}
-		rootWindow.webContents.zoomLevel++;
-	});
-
-	yield takeEvery(MENU_BAR_ZOOM_OUT_CLICKED, function *() {
-		rootWindow.show();
-		if (rootWindow.webContents.zoomLevel <= -9) {
-			return;
-		}
-		rootWindow.webContents.zoomLevel--;
-	});
-
-	yield takeEvery(MENU_BAR_RELOAD_APP_CLICKED, function *() {
-		rootWindow.show();
-		rootWindow.reload();
-	});
-
-	yield takeEvery(MENU_BAR_TOGGLE_DEVTOOLS_CLICKED, function *() {
-		rootWindow.show();
-		rootWindow.toggleDevTools();
-	});
-
-	yield takeEvery(MENU_BAR_TOGGLE_IS_FULL_SCREEN_ENABLED_CLICKED, function *({ payload: enabled }) {
-		rootWindow.show();
-		rootWindow.setFullScreen(enabled);
-	});
-
-	yield takeEvery(TRAY_ICON_TOGGLE_CLICKED, function *({ payload: visible }) {
-		if (visible) {
-			rootWindow.show();
-			return;
-		}
-
-		rootWindow.hide();
-	});
-
-	yield takeEvery(UPDATES_UPDATE_DOWNLOADED, function *() {
-		const response = yield call(askUpdateInstall, rootWindow);
-
-		if (response === AskUpdateInstallResponse.INSTALL_LATER) {
-			yield call(warnAboutInstallUpdateLater, rootWindow);
-			return;
-		}
-
-		yield put({ type: ROOT_WINDOW_INSTALL_UPDATE_CLICKED });
-	});
-
-	yield takeEvery(CERTIFICATE_TRUST_REQUESTED, function *({ payload }) {
-		const { webContentsId, requestedUrl, error, fingerprint, issuerName, willBeReplaced } = payload;
-
-		if (webContentsId !== rootWindow.webContents.id) {
-			return;
-		}
-
-		let detail = `URL: ${ requestedUrl }\nError: ${ error }`;
-		if (willBeReplaced) {
-			detail = t('error.differentCertificate', { detail });
-		}
-
-		const response = yield call(askForCertificateTrust, rootWindow, issuerName, detail);
-		if (response === AskForCertificateTrustResponse.YES) {
-			yield put({ type: WEBVIEW_CERTIFICATE_TRUSTED, payload: { webContentsId, fingerprint } });
-			return;
-		}
-
-		yield put({ type: WEBVIEW_CERTIFICATE_DENIED, payload: { webContentsId, fingerprint } });
-	});
-
-	yield *watchSideBarContextMenuEvents(rootWindow);
-	yield *watchWebviewContextMenuEvents(rootWindow);
-}
-
-function *mergePersistableValues(localStorage) {
-	const localStorageValues = Object.fromEntries(
-		Object.entries(localStorage)
-			.map(([key, value]) => {
-				try {
-					return [key, JSON.parse(value)];
-				} catch (error) {
-					return [];
-				}
-			}),
-	);
-
-	const currentValues = yield select(selectPersistableValues);
-
-	let values = selectPersistableValues({
-		...currentValues,
-		...localStorageValues,
-	});
-
-	if (localStorage.autohideMenu) {
-		values = {
-			...values,
-			isMenuBarEnabled: localStorage.autohideMenu !== 'true',
-		};
-	}
-
-	if (localStorage.showWindowOnUnreadChanged) {
-		values = {
-			...values,
-			isShowWindowOnUnreadChangedEnabled: localStorage.showWindowOnUnreadChanged === 'true',
-		};
-	}
-
-	if (localStorage['sidebar-closed']) {
-		values = {
-			...values,
-			isSideBarEnabled: localStorage['sidebar-closed'] !== 'true',
-		};
-	}
-
-	if (localStorage.hideTray) {
-		values = {
-			...values,
-			isTrayIconEnabled: localStorage.hideTray !== 'true',
-		};
-	}
-
-	const userMainWindowState = yield call(async () => {
-		try {
-			const filePath = path.join(app.getPath('userData'), 'main-window-state.json');
-			const content = await fs.promises.readFile(filePath, 'utf8');
-			const json = JSON.parse(content);
-			await fs.promises.unlink(filePath);
-
-			return json && typeof json === 'object' ? json : {};
-		} catch (error) {
-			return {};
-		}
-	});
-
-	values = {
-		...values,
-		mainWindowState: {
-			focused: true,
-			visible: !(userMainWindowState?.isHidden ?? !values?.mainWindowState?.visible),
-			maximized: userMainWindowState.isMaximized ?? values?.mainWindowState?.maximized,
-			minimized: userMainWindowState.isMinimized ?? values?.mainWindowState?.minimized,
-			fullscreen: false,
-			normal: !(userMainWindowState.isMinimized || userMainWindowState.isMaximized) ?? values?.mainWindowState?.normal,
-			bounds: {
-				x: userMainWindowState.x ?? values?.mainWindowState?.bounds?.x,
-				y: userMainWindowState.y ?? values?.mainWindowState?.bounds?.y,
-				width: userMainWindowState.width ?? values?.mainWindowState?.bounds?.width,
-				height: userMainWindowState.height ?? values?.mainWindowState?.bounds?.height,
-			},
-		},
-	};
-
-	yield put({ type: PERSISTABLE_VALUES_MERGED, payload: values });
-}
-
-export function *setupRootWindow(consumeLocalStorage) {
-	const rootWindow = yield call(createRootWindow);
-	yield setContext({ rootWindow });
-
-	const localStorage = yield call(getLocalStorage, rootWindow);
-
-	yield *mergePersistableValues(localStorage);
-	yield *consumeLocalStorage(localStorage);
-
-	yield call(purgeLocalStorage, rootWindow);
-
-	const rootWindowState = yield select(selectMainWindowState);
-	yield call(applyMainWindowState, rootWindow, rootWindowState);
-
-	yield fork(watchUpdates, rootWindow);
-	yield fork(watchEvents, rootWindow);
-}
+};

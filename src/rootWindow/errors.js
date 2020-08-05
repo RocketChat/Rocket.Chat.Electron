@@ -1,28 +1,39 @@
 import Bugsnag from '@bugsnag/js';
-import { remote } from 'electron';
+import { ipcRenderer } from 'electron';
+
+import {
+	QUERY_APP_VERSION,
+	EVENT_ERROR_THROWN,
+} from '../ipc';
+
+const setupBugsnag = async (apiKey) => {
+	const appVersion = await ipcRenderer.invoke(QUERY_APP_VERSION);
+
+	Bugsnag.start({
+		apiKey,
+		appVersion,
+		appType: 'rootWindow',
+		collectUserIp: false,
+		releaseStage: process.env.NODE_ENV,
+	});
+};
+
+const handleErrorEvent = (event) => {
+	const { error } = event;
+	ipcRenderer.send(EVENT_ERROR_THROWN, error && (error.stack || error));
+};
+
+const handleUnhandledRejectionEvent = (event) => {
+	const { reason } = event;
+	ipcRenderer.send(EVENT_ERROR_THROWN, reason && (reason.stack || reason));
+};
 
 export const setupErrorHandling = () => {
 	if (process.env.BUGSNAG_API_KEY) {
-		Bugsnag.start({
-			apiKey: process.env.BUGSNAG_API_KEY,
-			appVersion: remote.app.getVersion(),
-			appType: 'rootWindow',
-			collectUserIp: false,
-			releaseStage: process.env.NODE_ENV,
-		});
-
+		setupBugsnag(process.env.BUGSNAG_API_KEY);
 		return;
 	}
 
-	const log = (error) => {
-		remote.getGlobal('console').error(error && (error.stack || error));
-	};
-
-	window.addEventListener('error', (event) => {
-		log(event.error);
-	});
-
-	window.addEventListener('unhandledrejection', (event) => {
-		log(event.reason);
-	});
+	window.addEventListener('error', handleErrorEvent);
+	window.addEventListener('unhandledrejection', handleUnhandledRejectionEvent);
 };

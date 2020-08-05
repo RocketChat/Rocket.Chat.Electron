@@ -104,3 +104,21 @@ export const askForCertificateTrust = async (parentWindow, issuerName, detail) =
 		return AskForCertificateTrustResponse.NO;
 	}
 };
+
+export const warnAboutUpdateDownload = (rootWindow) =>
+	dialog.showMessageBox(rootWindow, {
+		type: 'info',
+		title: t('dialog.updateDownloading.title'),
+		message: t('dialog.updateDownloading.message'),
+		buttons: [t('dialog.updateDownloading.ok')],
+		defaultId: 0,
+	});
+
+export const warnAboutUpdateSkipped = (rootWindow) =>
+	dialog.showMessageBox(rootWindow, {
+		type: 'warning',
+		title: t('dialog.updateSkip.title'),
+		message: t('dialog.updateSkip.message'),
+		buttons: [t('dialog.updateSkip.ok')],
+		defaultId: 0,
+	});

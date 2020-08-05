@@ -1,8 +1,10 @@
 import path from 'path';
 
-import { app } from 'electron';
+import { app, ipcMain } from 'electron';
 import i18next from 'i18next';
 import i18nextNodeFileSystemBackend from 'i18next-node-fs-backend';
+
+import { QUERY_I18N_PARAMS } from '../ipc';
 
 const defaultLocale = 'en';
 
@@ -23,8 +25,8 @@ const normalizeLocale = (locale) => {
 	return countryCode ? `${ languageCode }-${ countryCode }` : languageCode;
 };
 
-export const setupI18n = () =>
-	i18next
+export const setupI18n = async () => {
+	await i18next
 		.use(i18nextNodeFileSystemBackend)
 		.init({
 			lng: normalizeLocale(app.getLocale()),
@@ -43,3 +45,13 @@ export const setupI18n = () =>
 			},
 			initImmediate: true,
 		});
+
+	ipcMain.handle(QUERY_I18N_PARAMS, () => ({
+		lng: i18next.language,
+		resources: {
+			[i18next.language]: {
+				translation: i18next.getResourceBundle(i18next.language, 'translation'),
+			},
+		},
+	}));
+};

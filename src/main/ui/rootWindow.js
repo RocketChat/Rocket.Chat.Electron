@@ -5,6 +5,8 @@ import {
 	BrowserWindow,
 	screen,
 	shell,
+	ipcMain,
+	webContents,
 } from 'electron';
 import { createSelector } from 'reselect';
 
@@ -20,6 +22,7 @@ import {
 	selectIsTrayIconEnabled,
 	selectIsShowWindowOnUnreadChangedEnabled,
 } from '../selectors';
+import { EVENT_WEB_CONTENTS_FOCUS_CHANGED } from '../../ipc';
 
 const handleWillAttachWebview = (event, webPreferences) => {
 	delete webPreferences.enableBlinkFeatures;
@@ -248,5 +251,19 @@ export const setupRootWindow = (reduxStore, rootWindow) => {
 
 	rootWindow.addListener('devtools-focused', () => {
 		reduxStore.dispatch({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
+	});
+
+	ipcMain.addListener(EVENT_WEB_CONTENTS_FOCUS_CHANGED, (event, webContentsId = rootWindow.webContents.id) => {
+		if (webContents.fromId(webContentsId).isDevToolsFocused()) {
+			reduxStore.dispatch({
+				type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
+				payload: -1,
+			});
+		}
+
+		reduxStore.dispatch({
+			type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
+			payload: webContentsId,
+		});
 	});
 };

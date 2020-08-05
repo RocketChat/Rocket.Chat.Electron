@@ -2,7 +2,6 @@ import { app, ipcMain } from 'electron';
 import rimraf from 'rimraf';
 
 import {
-	QUERY_APP_VERSION,
 	EVENT_ERROR_THROWN,
 } from '../ipc';
 
@@ -41,8 +40,6 @@ export const performStartup = () => {
 	}
 };
 
-export const getPlatform = () => process.platform;
-
 export const setupApp = (reduxStore, rootWindow) => {
 	app.addListener('activate', () => {
 		rootWindow.showInactive();
@@ -65,8 +62,6 @@ export const setupApp = (reduxStore, rootWindow) => {
 	app.addListener('window-all-closed', () => {
 		app.quit();
 	});
-
-	ipcMain.handle(QUERY_APP_VERSION, () => app.getVersion());
 
 	ipcMain.addListener(EVENT_ERROR_THROWN, (event, error) => {
 		console.error(error);

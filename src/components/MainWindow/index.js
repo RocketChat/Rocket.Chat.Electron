@@ -1,27 +1,23 @@
-import { remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { ROOT_WINDOW_WEBCONTENTS_FOCUSED, ROOT_WINDOW_EDIT_FLAGS_CHANGED } from '../../actions';
+import {
+	ROOT_WINDOW_EDIT_FLAGS_CHANGED,
+} from '../../actions';
+import { EVENT_WEB_CONTENTS_FOCUS_CHANGED } from '../../ipc';
 
-export function MainWindow({
-	browserWindow = remote.getCurrentWindow(),
-	children,
-}) {
+export function MainWindow({ children }) {
 	const dispatch = useDispatch();
 
 	useEffect(() => {
 		const fetchAndDispatchFocusedWebContentsId = () => {
-			const webContents = document.activeElement.matches('webview')
-				? document.activeElement.getWebContents()
-				: browserWindow.webContents;
-
-			if (webContents.isDevToolsFocused()) {
-				dispatch({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
+			if (document.activeElement.matches('webview')) {
+				ipcRenderer.send(EVENT_WEB_CONTENTS_FOCUS_CHANGED, document.activeElement.getWebContents().id);
 				return;
 			}
 
-			dispatch({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: webContents.id });
+			ipcRenderer.send(EVENT_WEB_CONTENTS_FOCUS_CHANGED);
 		};
 
 		document.addEventListener('focus', fetchAndDispatchFocusedWebContentsId, true);
@@ -33,7 +29,7 @@ export function MainWindow({
 			document.removeEventListener('focus', fetchAndDispatchFocusedWebContentsId);
 			document.removeEventListener('blur', fetchAndDispatchFocusedWebContentsId);
 		};
-	}, [browserWindow, dispatch]);
+	}, [dispatch]);
 
 	useEffect(() => {
 		const fetchAndDispatchEditFlags = () => {

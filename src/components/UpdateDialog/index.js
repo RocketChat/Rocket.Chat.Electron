@@ -1,20 +1,25 @@
 import { Box, Button, ButtonGroup, Chevron, Margins } from '@rocket.chat/fuselage';
-import { remote, ipcRenderer } from 'electron';
+import { ipcRenderer } from 'electron';
 import { useTranslation } from 'react-i18next';
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
 	UPDATE_DIALOG_DISMISSED,
-	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
-	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 } from '../../actions';
 import { Dialog } from '../Dialog';
-import { EVENT_UPDATE_DOWNLOAD_ALLOWED } from '../../ipc';
+import { EVENT_UPDATE_DOWNLOAD_ALLOWED, QUERY_APP_VERSION, EVENT_UPDATE_SKIPPED } from '../../ipc';
 
 export function UpdateDialog() {
-	const currentVersion = useMemo(() => remote.app.getVersion(), []);
+	const [currentVersion, setCurrentVersion] = useState('');
+
+	useEffect(() => {
+		ipcRenderer.invoke(QUERY_APP_VERSION).then((currentVersion) => {
+			setCurrentVersion(currentVersion);
+		});
+	}, []);
+
 	const newVersion = useSelector(({ newUpdateVersion }) => newUpdateVersion);
 	const isVisible = useSelector(({ openDialog }) => openDialog === 'update');
 
@@ -32,30 +37,15 @@ export function UpdateDialog() {
 		installButtonRef.current.focus();
 	}, [isVisible]);
 
-	const handleSkipButtonClick = async () => {
-		await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-			type: 'warning',
-			title: t('dialog.updateSkip.title'),
-			message: t('dialog.updateSkip.message'),
-			buttons: [t('dialog.updateSkip.ok')],
-			defaultId: 0,
-		});
-		dispatch({ type: UPDATE_DIALOG_SKIP_UPDATE_CLICKED, payload: newVersion });
+	const handleSkipButtonClick = () => {
+		ipcRenderer.send(EVENT_UPDATE_SKIPPED, newVersion);
 	};
 
 	const handleRemindLaterButtonClick = () => {
 		dispatch({ type: UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED });
 	};
 
-	const handleInstallButtonClick = async () => {
-		await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-			type: 'info',
-			title: t('dialog.updateDownloading.title'),
-			message: t('dialog.updateDownloading.message'),
-			buttons: [t('dialog.updateDownloading.ok')],
-			defaultId: 0,
-		});
-		dispatch({ type: UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED });
+	const handleInstallButtonClick = () => {
 		ipcRenderer.send(EVENT_UPDATE_DOWNLOAD_ALLOWED);
 	};
 

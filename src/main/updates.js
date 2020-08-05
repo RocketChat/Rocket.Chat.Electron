@@ -10,13 +10,15 @@ import {
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_READY,
+	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
+	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 } from '../actions';
 import {
 	selectSkippedUpdateVersion,
 	selectUpdateConfiguration,
 } from './selectors';
-import { askUpdateInstall, AskUpdateInstallResponse, warnAboutInstallUpdateLater } from './ui/dialogs';
-import { EVENT_UPDATE_DOWNLOAD_ALLOWED, EVENT_CHECK_FOR_UPDATES_REQUESTED } from '../ipc';
+import { askUpdateInstall, AskUpdateInstallResponse, warnAboutInstallUpdateLater, warnAboutUpdateDownload, warnAboutUpdateSkipped } from './ui/dialogs';
+import { EVENT_UPDATE_DOWNLOAD_ALLOWED, EVENT_CHECK_FOR_UPDATES_REQUESTED, EVENT_UPDATE_SKIPPED } from '../ipc';
 
 const loadAppConfiguration = async () => {
 	try {
@@ -141,7 +143,10 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 		reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
 	});
 
-	ipcMain.addListener(EVENT_UPDATE_DOWNLOAD_ALLOWED, () => {
+	ipcMain.addListener(EVENT_UPDATE_DOWNLOAD_ALLOWED, async () => {
+		await warnAboutUpdateDownload(rootWindow);
+		reduxStore.dispatch({ type: UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED });
+
 		try {
 			autoUpdater.downloadUpdate();
 		} catch (error) {
@@ -155,6 +160,11 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 		} catch (error) {
 			reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
 		}
+	});
+
+	ipcMain.addListener(EVENT_UPDATE_SKIPPED, async (newVersion) => {
+		await warnAboutUpdateSkipped(rootWindow);
+		reduxStore.dispatch({ type: UPDATE_DIALOG_SKIP_UPDATE_CLICKED, payload: newVersion });
 	});
 
 	if (doCheckForUpdatesOnStartup) {

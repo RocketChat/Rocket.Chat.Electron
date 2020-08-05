@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, ipcMain } from 'electron';
 
 import { setupDevelopmentTools } from './main/dev';
 import { setupErrorHandling } from './main/errors';
@@ -28,6 +28,7 @@ import { setupTrayIcon } from './main/ui/trayIcon';
 import { selectMainWindowState } from './main/selectors';
 import { setupSideBarContextMenu } from './main/ui/contextMenus/sidebar';
 import { setupBrowserViewsContextMenu } from './main/ui/contextMenus/webview';
+import { QUERY_APP_VERSION, QUERY_APP_PATH } from './ipc';
 
 if (require.main === module) {
 	setupDevelopmentTools();
@@ -36,6 +37,9 @@ if (require.main === module) {
 
 	const reduxStore = createReduxStore();
 	const electronStore = createElectronStore();
+
+	ipcMain.handle(QUERY_APP_VERSION, () => app.getVersion());
+	ipcMain.handle(QUERY_APP_PATH, () => app.getAppPath());
 
 	app.whenReady().then(async () => {
 		await setupI18n();

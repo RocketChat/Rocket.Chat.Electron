@@ -1,7 +1,7 @@
 import { Box, Button, Field, Margins, Throbber, ToggleSwitch } from '@rocket.chat/fuselage';
 import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
-import { remote, ipcRenderer } from 'electron';
-import React, { useState, useRef, useMemo } from 'react';
+import { ipcRenderer } from 'electron';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { takeEvery } from 'redux-saga/effects';
@@ -18,10 +18,17 @@ import {
 import { RocketChatLogo } from '../RocketChatLogo';
 import { useSaga } from '../SagaMiddlewareProvider';
 import { Dialog } from '../Dialog';
-import { EVENT_CHECK_FOR_UPDATES_REQUESTED } from '../../ipc';
+import { EVENT_CHECK_FOR_UPDATES_REQUESTED, QUERY_APP_VERSION } from '../../ipc';
 
 export function AboutDialog() {
-	const version = useMemo(() => remote.app.getVersion(), []);
+	const [version, setVersion] = useState('');
+
+	useEffect(() => {
+		ipcRenderer.invoke(QUERY_APP_VERSION).then((version) => {
+			setVersion(version);
+		});
+	}, []);
+
 	const { copyright } = pkg;
 	const isVisible = useSelector(({ openDialog }) => openDialog === 'about');
 	const canUpdate = useSelector(({ isUpdatingAllowed, isUpdatingEnabled }) => isUpdatingAllowed && isUpdatingEnabled);

@@ -4,8 +4,11 @@ import { render, unmountComponentAtNode } from 'react-dom';
 import { setupI18next } from './rootWindow/i18n';
 import { App } from './components/App';
 import { setupErrorHandling } from './rootWindow/errors';
+import { whenReady } from './whenReady';
 
-const initialize = async () => {
+whenReady().then(async () => {
+	setupErrorHandling();
+
 	await setupI18next();
 
 	render(<App />, document.getElementById('root'));
@@ -13,7 +16,4 @@ const initialize = async () => {
 	window.addEventListener('beforeunload', () => {
 		unmountComponentAtNode(document.getElementById('root'));
 	});
-};
-
-setupErrorHandling();
-initialize();
+});

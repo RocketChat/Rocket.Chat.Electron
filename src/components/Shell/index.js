@@ -1,4 +1,4 @@
-import { remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import React, { useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -10,12 +10,15 @@ import { AboutDialog } from '../AboutDialog';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';
 import { UpdateDialog } from '../UpdateDialog';
+import { QUERY_APP_PATH } from '../../ipc';
 
 export function Shell() {
 	useLayoutEffect(() => {
 		const linkElement = document.createElement('link');
 		linkElement.rel = 'stylesheet';
-		linkElement.href = `${ remote.app.getAppPath() }/app/icons/rocketchat.css`;
+		ipcRenderer.invoke(QUERY_APP_PATH).then((appPath) => {
+			linkElement.href = `${ appPath }/app/icons/rocketchat.css`;
+		});
 		document.head.append(linkElement);
 	}, []);
 

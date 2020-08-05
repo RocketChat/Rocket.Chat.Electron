@@ -1,4 +1,5 @@
 export const QUERY_APP_VERSION = 'query/app-version';
+export const QUERY_APP_PATH = 'query/app-path';
 export const EVENT_ERROR_THROWN = 'event/error-thrown';
 export const EVENT_EDIT_FLAGS_CHANGED = 'event/edit-flags-changed';
 export const QUERY_SCREEN_SHARING_SOURCE = 'query/screen-sharing-source';
@@ -32,3 +33,6 @@ export const EVENT_CLIENT_CERTIFICATE_SELECTED = 'event/client-certificate-selec
 export const EVENT_CLIENT_CERTIFICATE_REQUESTED = 'event/client-certificate-requested';
 export const EVENT_UPDATE_DOWNLOAD_ALLOWED = 'event/update-download-allowed';
 export const EVENT_CHECK_FOR_UPDATES_REQUESTED = 'event/check-for-updates-requested';
+export const EVENT_UPDATE_SKIPPED = 'event/update-skipped';
+export const EVENT_WEB_CONTENTS_FOCUS_CHANGED = 'event/web-contents-focus-changed';
+export const QUERY_I18N_PARAMS = 'query/i18n-params';

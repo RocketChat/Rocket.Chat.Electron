@@ -12,7 +12,7 @@ import { setupTitleChanges } from './preload/rocketChat/title';
 import { setupUserPresenceChanges } from './preload/rocketChat/userPresence';
 import { setupScreenSharing } from './preload/screenSharing';
 import { setupSpellChecking } from './preload/spellChecking';
-import { whenReady } from './preload/whenReady';
+import { whenReady } from './whenReady';
 
 whenReady().then(() => {
 	setupErrorHandling();

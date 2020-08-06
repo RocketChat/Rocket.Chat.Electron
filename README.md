@@ -232,3 +232,9 @@ Released under the MIT license.
 - Portuguese (Brazil): [LGPL-3.0 OR MPL-2.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/pt-BR/license)
 - Russian: [LGPL-3.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/ru/license)
 - Turkish: [MIT](https://github.com/wooorm/dictionaries/blob/master/dictionaries/tr/license)
+
+## Share your story
+We’d love to hear about [your experience](https://survey.zohopublic.com/zs/e4BUFG) and potentially feature it on our [Blog](https://rocket.chat/case-studies/?utm_source=github&utm_medium=readme&utm_campaign=community).
+
+## Subscribe for Updates
+Once a month our marketing team releases an email update with news about product releases, company related topics, events and use cases. [Sign Up!](https://rocket.chat/newsletter/?utm_source=github&utm_medium=readme&utm_campaign=community)

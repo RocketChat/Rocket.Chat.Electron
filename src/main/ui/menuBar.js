@@ -6,10 +6,6 @@ import {
 	MENU_BAR_ABOUT_CLICKED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	CERTIFICATES_CLEARED,
-	MENU_BAR_GO_BACK_CLICKED,
-	MENU_BAR_GO_FORWARD_CLICKED,
-	MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED,
-	MENU_BAR_RELOAD_SERVER_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
 	MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
 	MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
@@ -35,6 +31,7 @@ import {
 } from '../selectors';
 import { relaunchApp } from '../app';
 import { askForAppDataReset } from './dialogs';
+import { getWebContentsByServerUrl, getAllServerWebContents } from './rootWindow';
 
 export const setupMenuBar = (reduxStore, rootWindow) => {
 	const selectAppMenuTemplate = createSelector([], () => ({
@@ -112,49 +109,62 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 				label: t('menus.undo'),
 				accelerator: 'CommandOrControl+Z',
 				enabled: !!focusedWebContents && canUndo,
-				click: () => focusedWebContents.undo(),
+				click: () => {
+					focusedWebContents.undo();
+				},
 			},
 			{
 				label: t('menus.redo'),
 				accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
 				enabled: !!focusedWebContents && canRedo,
-				click: () => focusedWebContents.redo(),
+				click: () => {
+					focusedWebContents.redo();
+				},
 			},
 			{ type: 'separator' },
 			{
 				label: t('menus.cut'),
 				accelerator: 'CommandOrControl+X',
 				enabled: !!focusedWebContents && canCut,
-				click: () => focusedWebContents.cut(),
+				click: () => {
+					focusedWebContents.cut();
+				},
 			},
 			{
 				label: t('menus.copy'),
 				accelerator: 'CommandOrControl+C',
 				enabled: !!focusedWebContents && canCopy,
-				click: () => focusedWebContents.copy(),
+				click: () => {
+					focusedWebContents.copy();
+				},
 			},
 			{
 				label: t('menus.paste'),
 				accelerator: 'CommandOrControl+V',
 				enabled: !!focusedWebContents && canPaste,
-				click: () => focusedWebContents.paste(),
+				click: () => {
+					focusedWebContents.paste();
+				},
 			},
 			{
 				label: t('menus.selectAll'),
 				accelerator: 'CommandOrControl+A',
 				enabled: !!focusedWebContents && canSelectAll,
-				click: () => focusedWebContents.selectAll(),
+				click: () => {
+					focusedWebContents.selectAll();
+				},
 			},
 		],
 	}));
 
 	const selectViewMenuTemplate = createSelector([
+		selectCurrentServerUrl,
 		selectIsServerSelected,
 		selectIsSideBarEnabled,
 		selectIsTrayIconEnabled,
 		selectIsMenuBarEnabled,
 		selectIsFullScreenEnabled,
-	], (isServerSelected, isSideBarEnabled, isTrayIconEnabled, isMenuBarEnabled, isFullScreenEnabled) => ({
+	], (currentServerUrl, isServerSelected, isSideBarEnabled, isTrayIconEnabled, isMenuBarEnabled, isFullScreenEnabled) => ({
 		label: t('menus.viewMenu'),
 		submenu: [
 			{
@@ -163,7 +173,8 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 				enabled: isServerSelected,
 				click: () => {
 					rootWindow.show();
-					reduxStore.dispatch({ type: MENU_BAR_RELOAD_SERVER_CLICKED });
+					const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
+					guestWebContents.reload();
 				},
 			},
 			{
@@ -171,10 +182,8 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 				enabled: isServerSelected,
 				click: () => {
 					rootWindow.show();
-					reduxStore.dispatch({
-						type: MENU_BAR_RELOAD_SERVER_CLICKED,
-						payload: { ignoringCache: true },
-					});
+					const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
+					guestWebContents.reloadIgnoringCache();
 				},
 			},
 			{
@@ -182,7 +191,8 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 				enabled: isServerSelected,
 				accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
 				click: () => {
-					reduxStore.dispatch({ type: MENU_BAR_OPEN_DEVTOOLS_FOR_SERVER_CLICKED });
+					const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
+					guestWebContents.openDevTools();
 				},
 			},
 			{ type: 'separator' },
@@ -192,7 +202,8 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 				accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
 				click: () => {
 					rootWindow.show();
-					reduxStore.dispatch({ type: MENU_BAR_GO_BACK_CLICKED });
+					const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
+					guestWebContents.goBack();
 				},
 			},
 			{
@@ -201,7 +212,8 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 				accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
 				click: () => {
 					rootWindow.show();
-					reduxStore.dispatch({ type: MENU_BAR_GO_FORWARD_CLICKED });
+					const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
+					guestWebContents.goForward();
 				},
 			},
 			{ type: 'separator' },
@@ -387,6 +399,9 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 				click: () => {
 					rootWindow.show();
 					reduxStore.dispatch({ type: CERTIFICATES_CLEARED });
+					getAllServerWebContents().forEach((webContents) => {
+						webContents.reloadIgnoringCache();
+					});
 				},
 			},
 			{

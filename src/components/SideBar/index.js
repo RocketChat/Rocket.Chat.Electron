@@ -1,17 +1,14 @@
 import { parse as parseUrl } from 'url';
 
 import { ipcRenderer } from 'electron';
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { takeEvery } from 'redux-saga/effects';
 
 import {
 	SIDE_BAR_SERVER_SELECTED,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
-	WEBVIEW_FAVICON_CHANGED,
 } from '../../actions';
-import { useSaga } from '../SagaMiddlewareProvider';
 import {
 	AddServerButton,
 	AddServerButtonLabel,
@@ -34,7 +31,7 @@ function ServerButton({
 	title,
 	shortcutNumber,
 	isSelected,
-	favicon: initialFavicon,
+	favicon,
 	isShortcutVisible,
 	hasUnreadMessages,
 	badge,
@@ -46,9 +43,6 @@ function ServerButton({
 }) {
 	const dispatch = useDispatch();
 
-	const [favicon, setFavicon] = useState(initialFavicon);
-	const [faviconLoaded, setFaviconLoaded] = useState(false);
-
 	const handleServerClick = () => {
 		dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
 	};
@@ -59,16 +53,6 @@ function ServerButton({
 		.slice(0, 2)
 		.map((text) => text.slice(0, 1).toUpperCase())
 		.join(''), [title, url]);
-
-	useSaga(function *() {
-		yield takeEvery(WEBVIEW_FAVICON_CHANGED, function *({ payload: { url: _url, favicon } }) {
-			if (url !== _url) {
-				return;
-			}
-
-			setFavicon(favicon);
-		});
-	}, [url]);
 
 	const handleServerContextMenu = (event) => {
 		event.preventDefault();
@@ -90,15 +74,13 @@ function ServerButton({
 		onDrop={onDrop}
 	>
 		<Avatar isSelected={isSelected}>
-			<Initials visible={!faviconLoaded}>
+			<Initials visible={!favicon}>
 				{initials}
 			</Initials>
 			<Favicon
 				draggable='false'
-				src={favicon}
-				visible={faviconLoaded}
-				onLoad={() => setFaviconLoaded(true)}
-				onError={() => setFaviconLoaded(false)}
+				src={favicon ?? ''}
+				visible={!!favicon}
 			/>
 		</Avatar>
 		{Number.isInteger(badge) && <Badge>{String(badge)}</Badge>}

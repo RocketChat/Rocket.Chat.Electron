@@ -4,7 +4,6 @@ import { ipcRenderer } from 'electron';
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { takeEvery } from 'redux-saga/effects';
 
 import pkg from '../../../package.json';
 import {
@@ -15,10 +14,12 @@ import {
 	UPDATES_ERROR_THROWN,
 	UPDATES_CHECKING_FOR_UPDATE,
 } from '../../actions';
+import {
+	EVENT_CHECK_FOR_UPDATES_REQUESTED,
+	QUERY_APP_VERSION,
+} from '../../ipc';
 import { RocketChatLogo } from '../RocketChatLogo';
-import { useSaga } from '../SagaMiddlewareProvider';
 import { Dialog } from '../Dialog';
-import { EVENT_CHECK_FOR_UPDATES_REQUESTED, QUERY_APP_VERSION } from '../../ipc';
 
 export function AboutDialog() {
 	const [version, setVersion] = useState('');
@@ -59,31 +60,43 @@ export function AboutDialog() {
 		}, 5000);
 	};
 
-	useSaga(function *() {
+	useEffect(() => {
 		if (!canUpdate) {
 			return;
 		}
 
-		yield takeEvery(UPDATES_NEW_VERSION_AVAILABLE, function *() {
+		const handleNewVersionAvailable = () => {
 			setCheckingForUpdates(false);
 			setCheckingForUpdatesMessage(null);
-		});
+		};
 
-		yield takeEvery(UPDATES_NEW_VERSION_NOT_AVAILABLE, function *() {
+		const handleNewVersionNotAvailable = () => {
 			displayCheckingForUpdatesMessage(t('dialog.about.noUpdatesAvailable'));
-		});
+		};
 
-		yield takeEvery(UPDATES_CHECKING_FOR_UPDATE, function *() {
+		const handleCheckingForUpdate = () => {
 			setCheckingForUpdates(true);
 			setCheckingForUpdatesMessage(null);
-		});
+		};
 
-		yield takeEvery(UPDATES_ERROR_THROWN, function *() {
+		const handleErrorThrown = () => {
 			if (checkingForUpdates) {
 				displayCheckingForUpdatesMessage(t('dialog.about.errorWhenLookingForUpdates'));
 			}
-		});
-	}, [t, canUpdate, checkingForUpdates]);
+		};
+
+		ipcRenderer.addListener(UPDATES_NEW_VERSION_AVAILABLE, handleNewVersionAvailable);
+		ipcRenderer.addListener(UPDATES_NEW_VERSION_NOT_AVAILABLE, handleNewVersionNotAvailable);
+		ipcRenderer.addListener(UPDATES_CHECKING_FOR_UPDATE, handleCheckingForUpdate);
+		ipcRenderer.addListener(UPDATES_ERROR_THROWN, handleErrorThrown);
+
+		return () => {
+			ipcRenderer.removeListener(UPDATES_NEW_VERSION_AVAILABLE, handleNewVersionAvailable);
+			ipcRenderer.removeListener(UPDATES_NEW_VERSION_NOT_AVAILABLE, handleNewVersionNotAvailable);
+			ipcRenderer.removeListener(UPDATES_CHECKING_FOR_UPDATE, handleCheckingForUpdate);
+			ipcRenderer.removeListener(UPDATES_ERROR_THROWN, handleErrorThrown);
+		};
+	}, [canUpdate, checkingForUpdates, t]);
 
 	const handleCheckForUpdatesButtonClick = () => {
 		ipcRenderer.send(EVENT_CHECK_FOR_UPDATES_REQUESTED);

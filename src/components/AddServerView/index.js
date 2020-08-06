@@ -10,18 +10,15 @@ import {
 	Tile,
 } from '@rocket.chat/fuselage';
 import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
+import { ipcRenderer } from 'electron';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { takeEvery, race, call, delay } from 'redux-saga/effects';
 
-import {
-	ADD_SERVER_VIEW_SERVER_ADDED,
-	CERTIFICATES_UPDATED,
-} from '../../actions';
-import { useSaga, useCallableSaga } from '../SagaMiddlewareProvider';
+import { ADD_SERVER_VIEW_SERVER_ADDED } from '../../actions';
 import { RocketChatLogo } from '../RocketChatLogo';
 import { Wrapper, Content } from './styles';
+import { QUERY_SERVER_VALIDATION, EVENT_CERTIFICATES_UPDATED } from '../../ipc';
 
 const defaultServerUrl = 'https://open.rocket.chat';
 
@@ -34,35 +31,6 @@ export function AddServerView() {
 	const [validationState, setValidationState] = useState('idle');
 	const [errorMessage, setErrorMessage] = useState(null);
 
-	const validator = useCallableSaga(function *validateServerUrl(serverUrl, timeout = 5000) {
-		const url = new URL(serverUrl);
-		const headers = new Headers();
-
-		if (url.username && url.password) {
-			headers.set('Authorization', `Basic ${ btoa(`${ url.username }:${ url.password }`) }`);
-		}
-
-		const [response] = yield race([
-			call(fetch, `${ url.href.replace(/\/$/, '') }/api/info`, { headers }),
-			delay(timeout),
-		]);
-
-		if (!response) {
-			// eslint-disable-next-line no-throw-literal
-			throw 'timeout';
-		}
-
-		if (!response.ok) {
-			// eslint-disable-next-line no-throw-literal
-			throw 'invalid';
-		}
-
-		if (!(yield call(::response.json)).success) {
-			// eslint-disable-next-line no-throw-literal
-			throw 'invalid';
-		}
-	}, []);
-
 	const validateServerUrl = useCallback(async (serverUrl) => {
 		setInput(serverUrl);
 
@@ -74,43 +42,47 @@ export function AddServerView() {
 			return;
 		}
 
-		try {
-			await validator(serverUrl);
+		const validationResult = await ipcRenderer.invoke(QUERY_SERVER_VALIDATION, serverUrl);
+
+		if (validationResult === 'OK') {
 			setValidationState('idle');
 			return;
-		} catch (error) {
-			if (/^https?:\/\/.+/.test(serverUrl) || error === 'basic-auth') {
-				setValidationState('invalid');
-				switch (error) {
-					case 'basic-auth':
-						setErrorMessage(t('error.authNeeded', { auth: 'username:password@host' }));
-						break;
-					case 'timeout':
-						setErrorMessage(t('error.connectTimeout'));
-						break;
-					case 'invalid':
-					default:
-						setErrorMessage(t('error.noValidServerFound'));
-						break;
-				}
+		}
+
+		if (/^https?:\/\/.+/.test(serverUrl)) {
+			setValidationState('invalid');
+
+			if (validationResult === 'TIMEOUT') {
+				setErrorMessage(t('error.connectTimeout'));
 				return;
 			}
 
-			if (!/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(serverUrl)) {
-				return validateServerUrl(`https://${ serverUrl }.rocket.chat`);
-			}
-
-			if (!/^https?:\/\//.test(serverUrl)) {
-				return validateServerUrl(`https://${ serverUrl }`);
+			if (validationResult === 'INVALID') {
+				setErrorMessage(t('error.noValidServerFound'));
+				return;
 			}
 		}
-	}, [t, validator]);
 
-	useSaga(function *() {
-		yield takeEvery(CERTIFICATES_UPDATED, function *() {
+		if (!/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(serverUrl)) {
+			return validateServerUrl(`https://${ serverUrl }.rocket.chat`);
+		}
+
+		if (!/^https?:\/\//.test(serverUrl)) {
+			return validateServerUrl(`https://${ serverUrl }`);
+		}
+	}, [t]);
+
+	useEffect(() => {
+		const handleCertificatesUpdatedEvent = () => {
 			validateServerUrl(input.trim());
-		});
-	}, [validateServerUrl, input]);
+		};
+
+		ipcRenderer.addListener(EVENT_CERTIFICATES_UPDATED, handleCertificatesUpdatedEvent);
+
+		return () => {
+			ipcRenderer.removeListener(EVENT_CERTIFICATES_UPDATED, handleCertificatesUpdatedEvent);
+		};
+	}, [input, validateServerUrl]);
 
 	const handleFormSubmit = async (event) => {
 		event.preventDefault();

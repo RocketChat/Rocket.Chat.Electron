@@ -2,16 +2,17 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 
-import { app } from 'electron';
+import { app, ipcMain } from 'electron';
 import fetch from 'electron-main-fetch';
 
 import { PERSISTABLE_VALUES_MERGED } from '../actions';
 import { selectServers, selectCurrentServerUrl } from './selectors';
+import { QUERY_SERVER_VALIDATION } from '../ipc';
 
 export const ValidationResult = {
-	OK: Symbol('OK'),
-	TIMEOUT: Symbol('TIMEOUT'),
-	INVALID: Symbol('INVALID'),
+	OK: 'OK',
+	TIMEOUT: 'TIMEOUT',
+	INVALID: 'INVALID',
 };
 
 export const validateServerUrl = async (serverUrl, timeout = 5000) => {
@@ -177,4 +178,6 @@ export const setupServers = async (reduxStore, localStorage) => {
 			currentServerUrl,
 		},
 	});
+
+	ipcMain.handle(QUERY_SERVER_VALIDATION, (event, serverUrl, timeout) => validateServerUrl(serverUrl, timeout));
 };

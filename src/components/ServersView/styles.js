@@ -1,8 +1,6 @@
 import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 
-import { WebViewComponent } from '../electron/WebViewComponent';
-
 export const Wrapper = styled.section`
 	position: absolute;
 	left: 0;
@@ -14,7 +12,7 @@ export const Wrapper = styled.section`
 	${ ({ isVisible }) => css`display: ${ isVisible ? 'flex' : 'none' };` };
 `;
 
-export const StyledWebView = styled(WebViewComponent)`
+export const StyledWebView = styled('webview')`
 	position: absolute;
 	left: 0;
 	top: 0;

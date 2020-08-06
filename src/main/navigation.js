@@ -11,7 +11,7 @@ import {
 } from '../actions';
 import { selectServers, selectTrustedCertificates } from './selectors';
 import { AskForCertificateTrustResponse, askForCertificateTrust } from './ui/dialogs';
-import { EVENT_CLIENT_CERTIFICATE_SELECTED, EVENT_CLIENT_CERTIFICATE_REQUESTED } from '../ipc';
+import { EVENT_CLIENT_CERTIFICATE_SELECTED, EVENT_CLIENT_CERTIFICATE_REQUESTED, EVENT_CERTIFICATES_UPDATED } from '../ipc';
 
 const loadUserTrustedCertificates = async () => {
 	try {
@@ -70,8 +70,6 @@ export const setupNavigation = async (reduxStore, rootWindow) => {
 
 		queuedTrustRequests.set(certificate.fingerprint, [callback]);
 
-		let isTrustedByUser = false;
-
 		let detail = `URL: ${ requestedUrl }\nError: ${ error }`;
 		if (trustedCertificates[host]) {
 			detail = t('error.differentCertificate', { detail });
@@ -79,12 +77,7 @@ export const setupNavigation = async (reduxStore, rootWindow) => {
 
 		const response = await askForCertificateTrust(rootWindow, certificate.issuerName, detail);
 
-		if (response === AskForCertificateTrustResponse.YES) {
-			isTrustedByUser = true;
-			return;
-		}
-
-		isTrustedByUser = false;
+		const isTrustedByUser = response === AskForCertificateTrustResponse.YES;
 
 		queuedTrustRequests.get(certificate.fingerprint).forEach((cb) => cb(isTrustedByUser));
 		queuedTrustRequests.delete(certificate.fingerprint);
@@ -92,6 +85,7 @@ export const setupNavigation = async (reduxStore, rootWindow) => {
 		trustedCertificates = selectTrustedCertificates(reduxStore.getState());
 
 		if (isTrustedByUser) {
+			rootWindow.webContents.send(EVENT_CERTIFICATES_UPDATED);
 			reduxStore.dispatch({
 				type: CERTIFICATES_UPDATED,
 				payload: { ...trustedCertificates, [host]: serialized },

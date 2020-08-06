@@ -1,19 +1,15 @@
 import { forwardToMain, replayActionRenderer, getInitialStateRenderer } from 'electron-redux';
 import { createStore, applyMiddleware, compose } from 'redux';
-import createSagaMiddleware from 'redux-saga';
 
 import { rootReducer } from '../reducers';
 
-export const createReduxStoreAndSagaMiddleware = () => {
-	const sagaMiddleware = createSagaMiddleware();
+export const createReduxStore = () => {
 	const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-	const store = createStore(
+	const reduxStore = createStore(
 		rootReducer,
 		getInitialStateRenderer(),
-		composeEnhancers(applyMiddleware(forwardToMain, sagaMiddleware)),
+		composeEnhancers(applyMiddleware(forwardToMain)),
 	);
-
-	replayActionRenderer(store);
-
-	return [store, sagaMiddleware];
+	replayActionRenderer(reduxStore);
+	return reduxStore;
 };

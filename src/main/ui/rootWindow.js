@@ -7,12 +7,18 @@ import {
 	shell,
 	ipcMain,
 	webContents,
+	clipboard,
+	Menu,
 } from 'electron';
+import { t } from 'i18next';
 import { createSelector } from 'reselect';
 
 import {
 	ROOT_WINDOW_STATE_CHANGED,
 	ROOT_WINDOW_WEBCONTENTS_FOCUSED,
+	WEBVIEW_DID_NAVIGATE,
+	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 } from '../../actions';
 import { getTrayIconPath, getAppIconPath } from '../icons';
 import {
@@ -21,50 +27,281 @@ import {
 	selectIsMenuBarEnabled,
 	selectIsTrayIconEnabled,
 	selectIsShowWindowOnUnreadChangedEnabled,
+	selectSpellCheckingDictionaries,
+	selectFocusedWebContents,
 } from '../selectors';
-import { EVENT_WEB_CONTENTS_FOCUS_CHANGED } from '../../ipc';
+import { EVENT_WEB_CONTENTS_FOCUS_CHANGED, EVENT_BROWSER_VIEW_ATTACHED } from '../../ipc';
+import { browseForSpellCheckingDictionary } from './dialogs';
+import { importSpellCheckingDictionaries, getCorrectionsForMisspelling } from '../spellChecking';
 
-const handleWillAttachWebview = (event, webPreferences) => {
-	delete webPreferences.enableBlinkFeatures;
-	webPreferences.preload = `${ app.getAppPath() }/app/preload.js`;
-	webPreferences.nodeIntegration = false;
-	webPreferences.nodeIntegrationInWorker = true;
-	webPreferences.nodeIntegrationInSubFrames = true;
-	webPreferences.enableRemoteModule = false;
-	webPreferences.webSecurity = true;
-};
+const webContentsByServerUrl = new Map();
 
-const handleDidAttachWebview = (event, webContents) => {
-	// webContents.send('console-warn', '%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
-	// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
-	// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
+export const getWebContentsByServerUrl = (serverUrl) =>
+	webContentsByServerUrl.get(serverUrl);
 
-	webContents.addListener('new-window', (event, url, frameName, disposition, options) => {
-		event.preventDefault();
+export const getAllServerWebContents = () =>
+	Array.from(webContentsByServerUrl.values());
 
-		if (disposition === 'foreground-tab' || disposition === 'background-tab') {
-			shell.openExternal(url);
-			return;
-		}
+const attachGuestWebContentsEvents = (reduxStore, rootWindow) => {
+	const handleWillAttachWebview = (event, webPreferences) => {
+		delete webPreferences.enableBlinkFeatures;
+		webPreferences.preload = `${ app.getAppPath() }/app/preload.js`;
+		webPreferences.nodeIntegration = false;
+		webPreferences.nodeIntegrationInWorker = true;
+		webPreferences.nodeIntegrationInSubFrames = true;
+		webPreferences.enableRemoteModule = false;
+		webPreferences.webSecurity = true;
+	};
 
-		const newWindow = new BrowserWindow({
-			...options,
-			show: false,
+	const handleDidAttachWebview = (event, webContents) => {
+		// webContents.send('console-warn', '%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
+		// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
+		// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
+
+		webContents.addListener('new-window', (event, url, frameName, disposition, options) => {
+			event.preventDefault();
+
+			if (disposition === 'foreground-tab' || disposition === 'background-tab') {
+				shell.openExternal(url);
+				return;
+			}
+
+			const newWindow = new BrowserWindow({
+				...options,
+				show: false,
+			});
+
+			newWindow.once('ready-to-show', () => {
+				newWindow.show();
+			});
+
+			if (!options.webContents) {
+				newWindow.loadURL(url);
+			}
+
+			event.newGuest = newWindow;
+		});
+	};
+
+	ipcMain.addListener(EVENT_BROWSER_VIEW_ATTACHED, (event, serverUrl, webContentsId) => {
+		const guestWebContents = webContents.fromId(webContentsId);
+
+		webContentsByServerUrl.set(serverUrl, guestWebContents);
+
+		guestWebContents.addListener('destroyed', () => {
+			webContentsByServerUrl.delete(serverUrl);
 		});
 
-		newWindow.once('ready-to-show', () => {
-			newWindow.show();
-		});
+		const handleDidNavigateInPage = (event, pageUrl) => {
+			reduxStore.dispatch({
+				type: WEBVIEW_DID_NAVIGATE,
+				payload: {
+					webContentsId: webContents.id,
+					url: serverUrl,
+					pageUrl,
+				},
+			});
+		};
 
-		if (!options.webContents) {
-			newWindow.loadURL(url);
-		}
+		const handleContextMenu = async (event, params) => {
+			event.preventDefault();
 
-		event.newGuest = newWindow;
+			const dictionaries = selectSpellCheckingDictionaries(reduxStore.getState());
+			const webContents = selectFocusedWebContents(reduxStore.getState());
+
+			const createSpellCheckingMenuTemplate = ({
+				isEditable,
+				corrections,
+				dictionaries,
+			}) => {
+				if (!isEditable) {
+					return [];
+				}
+
+				return [
+					...corrections ? [
+						...corrections.length === 0
+							? [
+								{
+									label: t('contextMenu.noSpellingSuggestions'),
+									enabled: false,
+								},
+							]
+							: corrections.slice(0, 6).map((correction) => ({
+								label: correction,
+								click: () => {
+									webContents.replaceMisspelling(correction);
+								},
+							})),
+						...corrections.length > 6 ? [
+							{
+								label: t('contextMenu.moreSpellingSuggestions'),
+								submenu: corrections.slice(6).map((correction) => ({
+									label: correction,
+									click: () => {
+										webContents.replaceMisspelling(correction);
+									},
+								})),
+							},
+						] : [],
+						{ type: 'separator' },
+					] : [],
+					{
+						label: t('contextMenu.spellingLanguages'),
+						enabled: dictionaries.length > 0,
+						submenu: [
+							...dictionaries.map(({ name, enabled }) => ({
+								label: name,
+								type: 'checkbox',
+								checked: enabled,
+								click: ({ checked }) => {
+									reduxStore.dispatch({
+										type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
+										payload: { name, enabled: checked },
+									});
+								},
+							})),
+							{ type: 'separator' },
+							{
+								label: t('contextMenu.browseForLanguage'),
+								click: async () => {
+									const filePaths = await browseForSpellCheckingDictionary(rootWindow);
+									importSpellCheckingDictionaries(reduxStore, filePaths);
+								},
+							},
+						],
+					},
+					{ type: 'separator' },
+				];
+			};
+
+			const createImageMenuTemplate = ({
+				mediaType,
+				srcURL,
+			}) => (
+				mediaType === 'image' ? [
+					{
+						label: t('contextMenu.saveImageAs'),
+						click: () => webContents.downloadURL(srcURL),
+					},
+					{ type: 'separator' },
+				] : []
+			);
+
+			const createLinkMenuTemplate = ({
+				linkURL,
+				linkText,
+			}) => (
+				linkURL
+					? [
+						{
+							label: t('contextMenu.openLink'),
+							click: () => shell.openExternal(linkURL),
+						},
+						{
+							label: t('contextMenu.copyLinkText'),
+							click: () => clipboard.write({ text: linkText, bookmark: linkText }),
+							enabled: !!linkText,
+						},
+						{
+							label: t('contextMenu.copyLinkAddress'),
+							click: () => clipboard.write({ text: linkURL, bookmark: linkText }),
+						},
+						{ type: 'separator' },
+					]
+					: []
+			);
+
+			const createDefaultMenuTemplate = ({
+				editFlags: {
+					canUndo = false,
+					canRedo = false,
+					canCut = false,
+					canCopy = false,
+					canPaste = false,
+					canSelectAll = false,
+				} = {},
+			} = {}) => [
+				{
+					label: t('contextMenu.undo'),
+					role: 'undo',
+					accelerator: 'CommandOrControl+Z',
+					enabled: canUndo,
+				},
+				{
+					label: t('contextMenu.redo'),
+					role: 'redo',
+					accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
+					enabled: canRedo,
+				},
+				{ type: 'separator' },
+				{
+					label: t('contextMenu.cut'),
+					role: 'cut',
+					accelerator: 'CommandOrControl+X',
+					enabled: canCut,
+				},
+				{
+					label: t('contextMenu.copy'),
+					role: 'copy',
+					accelerator: 'CommandOrControl+C',
+					enabled: canCopy,
+				},
+				{
+					label: t('contextMenu.paste'),
+					role: 'paste',
+					accelerator: 'CommandOrControl+V',
+					enabled: canPaste,
+				},
+				{
+					label: t('contextMenu.selectAll'),
+					role: 'selectall',
+					accelerator: 'CommandOrControl+A',
+					enabled: canSelectAll,
+				},
+			];
+
+			const props = {
+				...params,
+				corrections: await getCorrectionsForMisspelling(params.selectionText),
+				dictionaries,
+			};
+
+			const template = [
+				...createSpellCheckingMenuTemplate(props),
+				...createImageMenuTemplate(props),
+				...createLinkMenuTemplate(props),
+				...createDefaultMenuTemplate(props),
+			];
+
+			const menu = Menu.buildFromTemplate(template);
+			menu.popup({ window: rootWindow });
+		};
+
+		const handleBeforeInputEvent = (event, { type, key }) => {
+			const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
+
+			if (key !== shortcutKey) {
+				return;
+			}
+
+			rootWindow.webContents.sendInputEvent({ type, keyCode: key });
+		};
+
+		guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
+		guestWebContents.addListener('context-menu', handleContextMenu);
+		guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
 	});
+
+	ipcMain.addListener(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (event, serverUrl) => {
+		getWebContentsByServerUrl(serverUrl).loadURL(serverUrl);
+	});
+
+	rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);
+	rootWindow.webContents.addListener('did-attach-webview', handleDidAttachWebview);
 };
 
-export const createRootWindow = async () => {
+export const createRootWindow = async (reduxStore) => {
 	await app.whenReady();
 
 	const rootWindow = new BrowserWindow({
@@ -86,8 +323,7 @@ export const createRootWindow = async () => {
 		event.preventDefault();
 	});
 
-	rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);
-	rootWindow.webContents.addListener('did-attach-webview', handleDidAttachWebview);
+	attachGuestWebContentsEvents(reduxStore, rootWindow);
 
 	rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/app.html'));
 

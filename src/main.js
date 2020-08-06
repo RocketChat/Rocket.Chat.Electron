@@ -27,7 +27,6 @@ import { setupTouchBar } from './main/ui/touchBar';
 import { setupTrayIcon } from './main/ui/trayIcon';
 import { selectMainWindowState } from './main/selectors';
 import { setupSideBarContextMenu } from './main/ui/contextMenus/sidebar';
-import { setupBrowserViewsContextMenu } from './main/ui/contextMenus/webview';
 import { QUERY_APP_VERSION, QUERY_APP_PATH } from './ipc';
 
 if (require.main === module) {
@@ -44,7 +43,7 @@ if (require.main === module) {
 	app.whenReady().then(async () => {
 		await setupI18n();
 
-		const rootWindow = await createRootWindow();
+		const rootWindow = await createRootWindow(reduxStore);
 
 		const localStorage = await getLocalStorage(rootWindow);
 
@@ -60,10 +59,9 @@ if (require.main === module) {
 		await setupNavigation(reduxStore, rootWindow);
 		await setupNotifications();
 		await setupPowerMonitor();
-		await setupUpdates(reduxStore);
+		await setupUpdates(reduxStore, rootWindow);
 
 		await setupBrowserViews(reduxStore, rootWindow);
-		await setupBrowserViewsContextMenu(reduxStore, rootWindow);
 		await setupDock(reduxStore);
 		await setupMenuBar(reduxStore, rootWindow);
 		await setupRootWindow(reduxStore, rootWindow);

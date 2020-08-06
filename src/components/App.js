@@ -1,32 +1,31 @@
 import i18n from 'i18next';
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { I18nextProvider } from 'react-i18next';
-import { Provider, useDispatch } from 'react-redux';
+import { Provider } from 'react-redux';
 
 import { MainWindow } from './MainWindow';
-import { createReduxStoreAndSagaMiddleware } from '../rootWindow/storeAndEffects';
-import { SagaMiddlewareProvider } from './SagaMiddlewareProvider';
+import { createReduxStore } from '../rootWindow/reduxStore';
 import { Shell } from './Shell';
 import { ErrorCatcher } from './utils/ErrorCatcher';
 
-function AppContent() {
-	window.dispatch = useDispatch();
-
-	return <MainWindow>
-		<Shell />
-	</MainWindow>;
-}
-
 export function App() {
-	const [[store, sagaMiddleware]] = useState(() => createReduxStoreAndSagaMiddleware());
+	const storeRef = useRef();
+
+	const getStore = () => {
+		if (!storeRef.current) {
+			storeRef.current = createReduxStore();
+		}
+
+		return storeRef.current;
+	};
 
 	return <ErrorCatcher>
-		<Provider store={store}>
-			<SagaMiddlewareProvider sagaMiddleware={sagaMiddleware}>
-				<I18nextProvider i18n={i18n}>
-					<AppContent />
-				</I18nextProvider>
-			</SagaMiddlewareProvider>
+		<Provider store={getStore()}>
+			<I18nextProvider i18n={i18n}>
+				<MainWindow>
+					<Shell />
+				</MainWindow>
+			</I18nextProvider>
 		</Provider>
 	</ErrorCatcher>;
 }

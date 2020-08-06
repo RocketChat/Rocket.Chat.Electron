@@ -1,11 +1,10 @@
 import { app, ipcMain } from 'electron';
 
 import { QUERY_APP_VERSION, QUERY_APP_PATH } from './ipc';
-import { performStartup, setupApp } from './main/app';
+import { setupApp } from './main/app';
 import { setupDeepLinks, processDeepLinksInArgs } from './main/deepLinks';
-import { setupDevelopmentTools } from './main/dev';
+import { setupElectronReloader, installDevTools } from './main/dev';
 import { createElectronStore, mergePersistableValues, watchAndPersistChanges } from './main/electronStore';
-import { setupErrorHandling } from './main/errors';
 import { setupI18n } from './main/i18n';
 import { setupNavigation } from './main/navigation';
 import { setupPowerMonitor } from './main/powerMonitor';
@@ -13,6 +12,7 @@ import { createReduxStore } from './main/reduxStore';
 import { selectMainWindowState } from './main/selectors';
 import { setupServers } from './main/servers';
 import { setupSpellChecking } from './main/spellChecking';
+import { performStartup } from './main/startup';
 import { setupBrowserViews } from './main/ui/browserViews';
 import { setupSideBarContextMenu } from './main/ui/contextMenus/sidebar';
 import { setupDock } from './main/ui/dock';
@@ -30,17 +30,17 @@ import { setupTrayIcon } from './main/ui/trayIcon';
 import { setupUpdates } from './main/updates';
 
 if (require.main === module) {
-	setupDevelopmentTools();
-	setupErrorHandling();
 	performStartup();
 
-	const reduxStore = createReduxStore();
-	const electronStore = createElectronStore();
-
-	ipcMain.handle(QUERY_APP_VERSION, () => app.getVersion());
-	ipcMain.handle(QUERY_APP_PATH, () => app.getAppPath());
-
 	app.whenReady().then(async () => {
+		const reduxStore = createReduxStore();
+		const electronStore = createElectronStore();
+
+		ipcMain.handle(QUERY_APP_VERSION, () => app.getVersion());
+		ipcMain.handle(QUERY_APP_PATH, () => app.getAppPath());
+
+		await setupElectronReloader();
+		await installDevTools();
 		await setupI18n();
 
 		const rootWindow = await createRootWindow(reduxStore);

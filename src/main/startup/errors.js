@@ -11,7 +11,7 @@ const setupBugsnag = (apiKey) => {
 	});
 };
 
-export const setupErrorHandling = () => {
+export const attachErrorHandlers = () => {
 	if (process.env.BUGSNAG_API_KEY) {
 		setupBugsnag(process.env.BUGSNAG_API_KEY);
 		return;

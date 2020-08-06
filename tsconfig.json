@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
+    "rootDir": ".",
     "module": "ESNext",
     "target": "ES2015",
     "lib": ["dom", "ES2015"],
@@ -21,6 +21,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": ["src"],
+  "include": ["src", "package.json"],
   "exclude": ["app", "node_modules", "src/**/*.spec.ts"]
 }

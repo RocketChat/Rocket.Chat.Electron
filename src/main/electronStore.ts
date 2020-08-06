@@ -1,6 +1,6 @@
 import Store from 'electron-store';
 
-import appManifest from '../appManifest.json';
+import appManifest from '../../package.json';
 
 const migrations = {};
 

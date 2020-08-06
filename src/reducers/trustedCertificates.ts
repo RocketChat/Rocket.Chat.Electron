@@ -1,10 +1,12 @@
+import { AnyAction } from 'redux';
+
 import {
 	CERTIFICATES_UPDATED,
 	CERTIFICATES_CLEARED,
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
 
-export const trustedCertificates = (state = {}, { type, payload }) => {
+export const trustedCertificates = (state = {}, { type, payload }: AnyAction): Record<string, string> => {
 	switch (type) {
 		case CERTIFICATES_UPDATED:
 			return payload;

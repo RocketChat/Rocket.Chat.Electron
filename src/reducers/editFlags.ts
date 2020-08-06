@@ -1,3 +1,6 @@
+import { EditFlags } from 'electron';
+import { AnyAction } from 'redux';
+
 import {
 	ROOT_WINDOW_EDIT_FLAGS_CHANGED,
 	WEBVIEW_EDIT_FLAGS_CHANGED,
@@ -10,7 +13,8 @@ export const editFlags = (state = {
 	canCopy: false,
 	canPaste: false,
 	canSelectAll: false,
-}, { type, payload }) => {
+	canDelete: false,
+}, { type, payload }: AnyAction): EditFlags => {
 	switch (type) {
 		case ROOT_WINDOW_EDIT_FLAGS_CHANGED:
 			return payload;

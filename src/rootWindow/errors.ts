@@ -6,7 +6,7 @@ import {
 	EVENT_ERROR_THROWN,
 } from '../ipc';
 
-const setupBugsnag = async (apiKey) => {
+const setupBugsnag = async (apiKey: string): Promise<void> => {
 	const appVersion = await ipcRenderer.invoke(QUERY_APP_VERSION);
 
 	Bugsnag.start({
@@ -18,19 +18,19 @@ const setupBugsnag = async (apiKey) => {
 	});
 };
 
-const handleErrorEvent = (event) => {
+const handleErrorEvent = (event: ErrorEvent): void => {
 	const { error } = event;
 	ipcRenderer.send(EVENT_ERROR_THROWN, error && (error.stack || error));
 };
 
-const handleUnhandledRejectionEvent = (event) => {
+const handleUnhandledRejectionEvent = (event: PromiseRejectionEvent): void => {
 	const { reason } = event;
 	ipcRenderer.send(EVENT_ERROR_THROWN, reason && (reason.stack || reason));
 };
 
-export const setupErrorHandling = () => {
+export const setupErrorHandling = async (): Promise<void> => {
 	if (process.env.BUGSNAG_API_KEY) {
-		setupBugsnag(process.env.BUGSNAG_API_KEY);
+		await setupBugsnag(process.env.BUGSNAG_API_KEY);
 		return;
 	}
 

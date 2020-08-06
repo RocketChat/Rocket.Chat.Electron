@@ -1,6 +1,8 @@
+import { AnyAction } from 'redux';
+
 import { WEBVIEW_MESSAGE_BOX_FOCUSED, WEBVIEW_MESSAGE_BOX_BLURRED } from '../actions';
 
-export const isMessageBoxFocused = (state = false, { type }) => {
+export const isMessageBoxFocused = (state = false, { type }: AnyAction): boolean => {
 	switch (type) {
 		case WEBVIEW_MESSAGE_BOX_FOCUSED:
 			return true;

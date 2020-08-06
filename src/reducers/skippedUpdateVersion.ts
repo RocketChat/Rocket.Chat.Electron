@@ -1,10 +1,12 @@
+import { AnyAction } from 'redux';
+
 import {
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATES_READY,
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
 
-export const skippedUpdateVersion = (state = null, { type, payload }) => {
+export const skippedUpdateVersion = (state = null, { type, payload }: AnyAction): string | null => {
 	switch (type) {
 		case UPDATES_READY: {
 			const { skippedUpdateVersion } = payload;

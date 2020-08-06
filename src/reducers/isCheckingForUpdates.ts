@@ -1,3 +1,5 @@
+import { AnyAction } from 'redux';
+
 import {
 	UPDATES_CHECKING_FOR_UPDATE,
 	UPDATES_ERROR_THROWN,
@@ -5,7 +7,7 @@ import {
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
 } from '../actions';
 
-export const isCheckingForUpdates = (state = false, { type }) => {
+export const isCheckingForUpdates = (state = false, { type }: AnyAction): boolean => {
 	switch (type) {
 		case UPDATES_CHECKING_FOR_UPDATE:
 			return true;

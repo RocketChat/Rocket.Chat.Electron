@@ -1,3 +1,5 @@
+import { AnyAction } from 'redux';
+
 import {
 	ADD_SERVER_VIEW_SERVER_ADDED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
@@ -10,7 +12,7 @@ import {
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
 
-export const currentServerUrl = (state = null, { type, payload }) => {
+export const currentServerUrl = (state = null, { type, payload }: AnyAction): string | null => {
 	switch (type) {
 		case ADD_SERVER_VIEW_SERVER_ADDED: {
 			const url = payload;

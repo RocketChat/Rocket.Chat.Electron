@@ -1,3 +1,5 @@
+import { AnyAction } from 'redux';
+
 import {
 	ADD_SERVER_VIEW_SERVER_ADDED,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
@@ -9,8 +11,9 @@ import {
 	WEBVIEW_FAVICON_CHANGED,
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
+import { Server } from '../structs/servers';
 
-const upsert = (state, server) => {
+const upsert = (state: Server[], server: Server): Server[] => {
 	const index = state.findIndex(({ url }) => url === server.url);
 
 	if (index === -1) {
@@ -20,7 +23,7 @@ const upsert = (state, server) => {
 	return state.map((_server, i) => (i === index ? { ..._server, ...server } : _server));
 };
 
-export const servers = (state = [], { type, payload }) => {
+export const servers = (state = [], { type, payload }: AnyAction): Server[] => {
 	switch (type) {
 		case ADD_SERVER_VIEW_SERVER_ADDED: {
 			const url = payload;

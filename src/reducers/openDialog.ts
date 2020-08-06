@@ -1,3 +1,5 @@
+import { AnyAction } from 'redux';
+
 import {
 	ABOUT_DIALOG_DISMISSED,
 	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
@@ -13,7 +15,7 @@ import {
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 } from '../actions';
 
-export const openDialog = (state = null, { type }) => {
+export const openDialog = (state = null, { type }: AnyAction): string => {
 	switch (type) {
 		case MENU_BAR_ABOUT_CLICKED:
 			return 'about';

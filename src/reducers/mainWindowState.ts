@@ -1,7 +1,10 @@
+import { AnyAction } from 'redux';
+
 import {
 	ROOT_WINDOW_STATE_CHANGED,
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
+import { WindowState } from '../structs/ui';
 
 export const mainWindowState = (state = {
 	focused: true,
@@ -16,7 +19,7 @@ export const mainWindowState = (state = {
 		width: 1000,
 		height: 600,
 	},
-}, { type, payload }) => {
+}, { type, payload }: AnyAction): WindowState => {
 	switch (type) {
 		case ROOT_WINDOW_STATE_CHANGED:
 			return payload;

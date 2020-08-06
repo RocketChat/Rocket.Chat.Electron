@@ -28,7 +28,7 @@ export default [
 				'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
 				'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
 			}),
-			typescript(),
+			typescript({ noEmitOnError: false }),
 			babel({
 				babelHelpers: 'bundled',
 			}),
@@ -56,7 +56,7 @@ export default [
 				'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
 				'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
 			}),
-			typescript(),
+			typescript({ noEmitOnError: false }),
 			babel({
 				babelHelpers: 'bundled',
 			}),
@@ -93,7 +93,7 @@ export default [
 				'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
 				'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
 			}),
-			typescript(),
+			typescript({ noEmitOnError: false }),
 			babel({
 				babelHelpers: 'bundled',
 			}),

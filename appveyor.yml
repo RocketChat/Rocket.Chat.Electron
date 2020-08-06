@@ -22,8 +22,6 @@ branches:
 
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
-  - git config core.symlinks true
-  - git reset --hard
   - yarn
 
 build_script:

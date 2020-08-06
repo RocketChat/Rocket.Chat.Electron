@@ -302,8 +302,6 @@ const attachGuestWebContentsEvents = (reduxStore, rootWindow) => {
 };
 
 export const createRootWindow = async (reduxStore) => {
-	await app.whenReady();
-
 	const rootWindow = new BrowserWindow({
 		width: 1000,
 		height: 600,

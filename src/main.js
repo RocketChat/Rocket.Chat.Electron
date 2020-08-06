@@ -2,9 +2,10 @@ import { app, ipcMain } from 'electron';
 
 import { QUERY_APP_VERSION, QUERY_APP_PATH } from './ipc';
 import { setupApp } from './main/app';
+import { mergePersistableValues, watchAndPersistChanges } from './main/data';
 import { setupDeepLinks, processDeepLinksInArgs } from './main/deepLinks';
 import { setupElectronReloader, installDevTools } from './main/dev';
-import { createElectronStore, mergePersistableValues, watchAndPersistChanges } from './main/electronStore';
+import { createElectronStore } from './main/electronStore';
 import { setupI18n } from './main/i18n';
 import { setupNavigation } from './main/navigation';
 import { setupPowerMonitor } from './main/powerMonitor';
@@ -39,8 +40,11 @@ if (require.main === module) {
 		ipcMain.handle(QUERY_APP_VERSION, () => app.getVersion());
 		ipcMain.handle(QUERY_APP_PATH, () => app.getAppPath());
 
-		await setupElectronReloader();
-		await installDevTools();
+		if (process.env.NODE_ENV === 'development') {
+			await setupElectronReloader();
+			await installDevTools();
+		}
+
 		await setupI18n();
 
 		const rootWindow = await createRootWindow(reduxStore);

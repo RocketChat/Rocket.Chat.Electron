@@ -3,7 +3,7 @@ import rimraf from 'rimraf';
 
 import { relaunchApp } from '../app';
 
-export const performElectronStartup = () => {
+export const performElectronStartup = (): void => {
 	app.setAsDefaultProtocolClient('rocketchat');
 	app.setAppUserModelId('chat.rocket');
 

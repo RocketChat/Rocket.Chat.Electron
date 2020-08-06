@@ -1,7 +1,7 @@
 import Bugsnag from '@bugsnag/js';
 import { app } from 'electron';
 
-const setupBugsnag = (apiKey) => {
+const setupBugsnag = (apiKey: string): void => {
 	Bugsnag.start({
 		apiKey,
 		appVersion: app.getVersion(),
@@ -11,7 +11,7 @@ const setupBugsnag = (apiKey) => {
 	});
 };
 
-export const attachErrorHandlers = () => {
+export const attachErrorHandlers = (): void => {
 	if (process.env.BUGSNAG_API_KEY) {
 		setupBugsnag(process.env.BUGSNAG_API_KEY);
 		return;
@@ -19,11 +19,11 @@ export const attachErrorHandlers = () => {
 
 	process.addListener('uncaughtException', (error) => {
 		console.error(error);
-		app.quit(1);
+		app.exit(1);
 	});
 
 	process.addListener('unhandledRejection', (reason) => {
 		console.error(reason);
-		app.quit(1);
+		app.exit(1);
 	});
 };

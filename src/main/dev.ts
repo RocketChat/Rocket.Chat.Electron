@@ -1,9 +1,9 @@
-export const setupElectronReloader = async () => {
+export const setupElectronReloader = async (): Promise<void> => {
 	const { default: setupElectronReloader } = await import('electron-reloader');
 	setupElectronReloader(require.main);
 };
 
-export const installDevTools = async () => {
+export const installDevTools = async (): Promise<void> => {
 	const {
 		default: installExtension,
 		REACT_DEVELOPER_TOOLS,

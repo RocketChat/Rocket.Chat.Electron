@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, Ref } from 'react';
 
-export const useDialog = (visible, onClose = () => {}) => {
-	const dialogRef = useRef();
-	const onCloseRef = useRef();
+export const useDialog = (visible: boolean, onClose = () => {}): Ref<HTMLDialogElement> => {
+	const dialogRef = useRef<HTMLDialogElement>();
+	const onCloseRef = useRef<() => void>();
 
 	useEffect(() => {
 		onCloseRef.current = onClose;

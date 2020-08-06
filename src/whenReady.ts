@@ -1,10 +1,10 @@
-export const whenReady = () => new Promise((resolve) => {
+export const whenReady = (): Promise<void> => new Promise((resolve) => {
 	if (document.readyState !== 'loading') {
 		resolve();
 		return;
 	}
 
-	const handleReadyStateChange = () => {
+	const handleReadyStateChange = (): void => {
 		if (document.readyState === 'loading') {
 			return;
 		}

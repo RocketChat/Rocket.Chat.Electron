@@ -1,7 +1,25 @@
 import { useUniqueId } from '@rocket.chat/fuselage-hooks';
-import React from 'react';
+import React, { FC } from 'react';
 
-export function FailureImage({
+type FailureImageProps = {
+	st3: string;
+	st15: string;
+	st11: string;
+	st1: string;
+	st14: string;
+	st12: string;
+	st2: string;
+	st23: string;
+	st22: string;
+	st21: string;
+	st20: string;
+	st8: string;
+	st19: string;
+	st4: string;
+	st13: string;
+};
+
+export const FailureImage: FC<FailureImageProps> = ({
 	st3 = '#030C1A',
 	st15 = '#030D19',
 	st11 = '#0B182B',
@@ -18,7 +36,7 @@ export function FailureImage({
 	st4 = '#FFCD52',
 	st13 = '#FFFFFF',
 	...props
-}) {
+}) => {
 	const a = useUniqueId();
 	const b = useUniqueId();
 	const c = useUniqueId();
@@ -4108,4 +4126,4 @@ export function FailureImage({
 			<path fill={st1} d='m1334 673.24c0.06 0.05 0.15 0.1 0.25 0.14-0.35-0.25-0.51-0.36-0.25-0.14z' />
 		</g>
 	</svg>;
-}
+};

@@ -6,7 +6,7 @@ import {
 	QUERY_SYSTEM_IDLE_STATE,
 } from '../ipc';
 
-export const setupPowerMonitor = () => {
+export const setupPowerMonitor = (): void => {
 	powerMonitor.addListener('suspend', () => {
 		webContents.getAllWebContents().forEach((webContents) => {
 			webContents.send(EVENT_SYSTEM_SUSPENDING);
@@ -19,6 +19,6 @@ export const setupPowerMonitor = () => {
 		});
 	});
 
-	ipcMain.handle(QUERY_SYSTEM_IDLE_STATE, (event, idleThreshold) =>
+	ipcMain.handle(QUERY_SYSTEM_IDLE_STATE, (_event, idleThreshold) =>
 		powerMonitor.getSystemIdleState(idleThreshold));
 };

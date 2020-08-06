@@ -8,7 +8,7 @@ import { QUERY_I18N_PARAMS } from '../ipc';
 
 const defaultLocale = 'en';
 
-const normalizeLocale = (locale) => {
+const normalizeLocale = (locale: string): string => {
 	let [languageCode, countryCode] = locale.split ? locale.split(/[-_]/) : [];
 	if (!languageCode || languageCode.length !== 2) {
 		return defaultLocale;
@@ -25,7 +25,7 @@ const normalizeLocale = (locale) => {
 	return countryCode ? `${ languageCode }-${ countryCode }` : languageCode;
 };
 
-export const setupI18n = async () => {
+export const setupI18n = async (): Promise<void> => {
 	await i18next
 		.use(i18nextNodeFileSystemBackend)
 		.init({
@@ -35,7 +35,7 @@ export const setupI18n = async () => {
 				loadPath: path.join(app.getAppPath(), 'app/i18n/{{lng}}.i18n.json'),
 			},
 			interpolation: {
-				format: (value, format, lng) => {
+				format: (value, _format, lng) => {
 					if (value instanceof Date) {
 						return new Intl.DateTimeFormat(lng).format(value);
 					}

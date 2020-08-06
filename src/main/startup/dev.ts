@@ -2,7 +2,7 @@ import path from 'path';
 
 import { app } from 'electron';
 
-export const setUserDataDirectory = () => {
+export const setUserDataDirectory = (): void => {
 	if (process.env.NODE_ENV !== 'development') {
 		return;
 	}

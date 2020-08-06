@@ -11,6 +11,6 @@ export class ErrorCatcher extends Component {
 	}
 
 	render(): ReactNode {
-		return this.props.children;
+		return this.props.children ?? null;
 	}
 }

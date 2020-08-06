@@ -101,8 +101,6 @@ export const watchAndPersistChanges = (reduxStore, electronStore) => {
 	reduxStore.subscribe(() => {
 		const values = selectPersistableValues(reduxStore.getState());
 
-		for (const [key, value] of Object.entries(values)) {
-			electronStore.set(key, value);
-		}
+		electronStore.set(values);
 	});
 };

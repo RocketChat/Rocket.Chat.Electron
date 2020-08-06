@@ -2,6 +2,7 @@ import { setupEditFlagsChanges } from './preload/editFlags';
 import { setupErrorHandling } from './preload/errors';
 import { isJitsi } from './preload/jitsi';
 import { setupJitsiMeetElectron } from './preload/jitsi/electron';
+import { createReduxStore } from './preload/reduxStore';
 import { isRocketChat } from './preload/rocketChat';
 import { setupBadgeChanges } from './preload/rocketChat/badge';
 import { setupFaviconChanges } from './preload/rocketChat/favicon';
@@ -14,7 +15,10 @@ import { setupScreenSharing } from './preload/screenSharing';
 import { setupSpellChecking } from './preload/spellChecking';
 import { whenReady } from './whenReady';
 
-whenReady().then(() => {
+Promise.all([
+	createReduxStore(),
+	whenReady(),
+]).then(() => {
 	setupErrorHandling();
 	setupEditFlagsChanges();
 	setupScreenSharing();

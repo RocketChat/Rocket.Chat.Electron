@@ -3787,14 +3787,6 @@ electron-publish@22.7.0:
     lazy-val "^1.0.4"
     mime "^2.4.5"
 
-electron-redux@^1.5.3:
-  version "1.5.3"
-  resolved "https://registry.yarnpkg.com/electron-redux/-/electron-redux-1.5.3.tgz#59dc17938e79d5388b6299dc1e1c6af03bee5c35"
-  integrity sha512-Nm/NLiLb0CCqo4gadbkfT6EI93jKmcMwUBEWol9SgnAT8Jwf9+2TyGNGmzZQuXvbQzSqfE/Abyh6RGLZwAjHWQ==
-  dependencies:
-    debug "^4.1.1"
-    redux "^4.0.1"
-
 electron-reloader@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/electron-reloader/-/electron-reloader-1.0.1.tgz#15b193219b6583aedd2c95fa143d9bfc244bfdec"
@@ -8031,7 +8023,7 @@ redent@^3.0.0:
     indent-string "^4.0.0"
     strip-indent "^3.0.0"
 
-redux@^4.0.1, redux@^4.0.5:
+redux@^4.0.5:
   version "4.0.5"
   resolved "https://registry.yarnpkg.com/redux/-/redux-4.0.5.tgz#4db5de5816e17891de8a80c424232d06f051d93f"
   integrity sha512-VSz1uMAH24DM6MF72vcojpYPtrTUu3ByVWfPL1nPfVRb5mZVTve5GnNCUV53QM/BZ66xfWrm0CTWoM+Xlz8V1w==

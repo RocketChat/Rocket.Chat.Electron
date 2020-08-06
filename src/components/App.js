@@ -1,5 +1,5 @@
 import i18n from 'i18next';
-import React, { useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 
@@ -9,23 +9,19 @@ import { Shell } from './Shell';
 import { ErrorCatcher } from './utils/ErrorCatcher';
 
 export function App() {
-	const storeRef = useRef();
+	const [store, setStore] = useState();
 
-	const getStore = () => {
-		if (!storeRef.current) {
-			storeRef.current = createReduxStore();
-		}
-
-		return storeRef.current;
-	};
+	useEffect(() => {
+		createReduxStore().then(setStore);
+	}, []);
 
 	return <ErrorCatcher>
-		<Provider store={getStore()}>
+		{store && <Provider store={store}>
 			<I18nextProvider i18n={i18n}>
 				<MainWindow>
 					<Shell />
 				</MainWindow>
 			</I18nextProvider>
-		</Provider>
+		</Provider>}
 	</ErrorCatcher>;
 }

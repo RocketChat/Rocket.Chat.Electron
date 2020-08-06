@@ -7,7 +7,7 @@ import {
 	selectCurrentServer,
 	selectIsMessageBoxFocused,
 	selectServers,
-} from '../selectors';
+} from '../../selectors';
 
 const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
 

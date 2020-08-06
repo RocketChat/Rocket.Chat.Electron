@@ -4,7 +4,11 @@ import path from 'path';
 import { app } from 'electron';
 
 import { PERSISTABLE_VALUES_MERGED } from '../actions';
-import { selectPersistableValues } from './selectors';
+import { selectPersistableValues } from '../selectors';
+
+export const getLocalStorage = (webContents) => webContents.executeJavaScript('({...localStorage})');
+
+export const purgeLocalStorage = (webContents) => webContents.executeJavaScript('localStorage.clear()');
 
 export const mergePersistableValues = async (reduxStore, electronStore, localStorage) => {
 	const initialValues = selectPersistableValues(reduxStore.getState());

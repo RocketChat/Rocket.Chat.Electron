@@ -25,7 +25,7 @@ import {
 	EVENT_MESSAGE_BOX_FOCUSED,
 	EVENT_SCREEN_SHARING_SOURCE_SELECTED,
 } from '../../ipc';
-import { selectIsSideBarVisible } from '../selectors';
+import { selectIsSideBarVisible } from '../../selectors';
 
 export const setupBrowserViews = (reduxStore, rootWindow) => {
 	ipcMain.addListener(EVENT_SERVER_TITLE_CHANGED, (event, { url, title }) => {

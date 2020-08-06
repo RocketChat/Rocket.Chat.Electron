@@ -1,12 +1,12 @@
 import { app, nativeTheme, Menu, Tray } from 'electron';
 import { t } from 'i18next';
 
-import { getTrayIconPath, getAppIconPath } from '../icons';
 import {
 	selectIsTrayIconEnabled,
 	selectIsMainWindowVisible,
 	selectGlobalBadge,
-} from '../selectors';
+} from '../../selectors';
+import { getTrayIconPath, getAppIconPath } from '../icons';
 
 const createTrayIcon = (reduxStore, rootWindow) => {
 	const image = getTrayIconPath({ badge: null, dark: nativeTheme.shouldUseDarkColors });

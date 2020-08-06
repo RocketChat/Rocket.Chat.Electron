@@ -1,6 +1,6 @@
 import { app } from 'electron';
 
-import { selectGlobalBadgeText, selectGlobalBadgeCount } from '../selectors';
+import { selectGlobalBadgeText, selectGlobalBadgeCount } from '../../selectors';
 
 const setBadge = (globalBadgeText) => {
 	app.dock.setBadge(globalBadgeText);

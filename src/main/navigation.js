@@ -10,7 +10,7 @@ import {
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
 import { EVENT_CLIENT_CERTIFICATE_SELECTED, EVENT_CLIENT_CERTIFICATE_REQUESTED, EVENT_CERTIFICATES_UPDATED } from '../ipc';
-import { selectServers, selectTrustedCertificates } from './selectors';
+import { selectServers, selectTrustedCertificates } from '../selectors';
 import { AskForCertificateTrustResponse, askForCertificateTrust } from './ui/dialogs';
 
 const loadUserTrustedCertificates = async () => {

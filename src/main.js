@@ -2,7 +2,7 @@ import { app, ipcMain } from 'electron';
 
 import { QUERY_APP_VERSION, QUERY_APP_PATH } from './ipc';
 import { setupApp } from './main/app';
-import { mergePersistableValues, watchAndPersistChanges } from './main/data';
+import { mergePersistableValues, watchAndPersistChanges, getLocalStorage, purgeLocalStorage } from './main/data';
 import { setupDeepLinks, processDeepLinksInArgs } from './main/deepLinks';
 import { setupElectronReloader, installDevTools } from './main/dev';
 import { createElectronStore } from './main/electronStore';
@@ -10,7 +10,6 @@ import { setupI18n } from './main/i18n';
 import { setupNavigation } from './main/navigation';
 import { setupPowerMonitor } from './main/powerMonitor';
 import { createReduxStore } from './main/reduxStore';
-import { selectMainWindowState } from './main/selectors';
 import { setupServers } from './main/servers';
 import { setupSpellChecking } from './main/spellChecking';
 import { performStartup } from './main/startup';
@@ -22,21 +21,20 @@ import { setupNotifications } from './main/ui/notifications';
 import {
 	setupRootWindow,
 	createRootWindow,
-	getLocalStorage,
-	purgeLocalStorage,
 	applyMainWindowState,
 } from './main/ui/rootWindow';
 import { setupTouchBar } from './main/ui/touchBar';
 import { setupTrayIcon } from './main/ui/trayIcon';
 import { setupUpdates } from './main/updates';
+import { selectMainWindowState } from './selectors';
 
 if (require.main === module) {
 	performStartup();
 
-	app.whenReady().then(async () => {
-		const reduxStore = createReduxStore();
-		const electronStore = createElectronStore();
+	const reduxStore = createReduxStore();
+	const electronStore = createElectronStore();
 
+	app.whenReady().then(async () => {
 		ipcMain.handle(QUERY_APP_VERSION, () => app.getVersion());
 		ipcMain.handle(QUERY_APP_PATH, () => app.getAppPath());
 
@@ -49,14 +47,11 @@ if (require.main === module) {
 
 		const rootWindow = await createRootWindow(reduxStore);
 
-		const localStorage = await getLocalStorage(rootWindow);
+		const localStorage = await getLocalStorage(rootWindow.webContents);
 
 		await mergePersistableValues(reduxStore, electronStore, localStorage);
 		await setupServers(reduxStore, localStorage);
 		await setupSpellChecking(reduxStore, localStorage);
-
-		const rootWindowState = selectMainWindowState(reduxStore.getState());
-		await applyMainWindowState(rootWindow, rootWindowState);
 
 		await setupApp(reduxStore, rootWindow);
 		await setupDeepLinks(reduxStore, rootWindow);
@@ -73,7 +68,10 @@ if (require.main === module) {
 		await setupTouchBar(reduxStore, rootWindow);
 		await setupTrayIcon(reduxStore, rootWindow);
 
-		await purgeLocalStorage(rootWindow);
+		const rootWindowState = selectMainWindowState(reduxStore.getState());
+		await applyMainWindowState(rootWindow, rootWindowState);
+
+		await purgeLocalStorage(rootWindow.webContents);
 		await watchAndPersistChanges(reduxStore, electronStore);
 		await processDeepLinksInArgs();
 	});

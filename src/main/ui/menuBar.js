@@ -12,7 +12,6 @@ import {
 	MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
 	MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
 } from '../../actions';
-import { relaunchApp } from '../app';
 import {
 	selectCanCopy,
 	selectCanCut,
@@ -29,7 +28,8 @@ import {
 	selectIsTrayIconEnabled,
 	selectServers,
 	selectIsServerSelected,
-} from '../selectors';
+} from '../../selectors';
+import { relaunchApp } from '../app';
 import { askForAppDataReset } from './dialogs';
 import { getWebContentsByServerUrl, getAllServerWebContents } from './rootWindow';
 

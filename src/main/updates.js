@@ -17,7 +17,7 @@ import { EVENT_UPDATE_DOWNLOAD_ALLOWED, EVENT_CHECK_FOR_UPDATES_REQUESTED, EVENT
 import {
 	selectSkippedUpdateVersion,
 	selectUpdateConfiguration,
-} from './selectors';
+} from '../selectors';
 import { askUpdateInstall, AskUpdateInstallResponse, warnAboutInstallUpdateLater, warnAboutUpdateDownload, warnAboutUpdateSkipped } from './ui/dialogs';
 
 const loadAppConfiguration = async () => {

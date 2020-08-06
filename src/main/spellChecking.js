@@ -17,7 +17,7 @@ import {
 	selectSpellCheckingDictionaries,
 	selectPersistableValues,
 	selectDictionaryName,
-} from './selectors';
+} from '../selectors';
 
 const embeddedDictionaries = [
 	{

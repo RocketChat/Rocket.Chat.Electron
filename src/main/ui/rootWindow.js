@@ -21,7 +21,6 @@ import {
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 } from '../../actions';
 import { EVENT_WEB_CONTENTS_FOCUS_CHANGED, EVENT_BROWSER_VIEW_ATTACHED } from '../../ipc';
-import { getTrayIconPath, getAppIconPath } from '../icons';
 import {
 	selectGlobalBadge,
 	selectGlobalBadgeCount,
@@ -30,7 +29,8 @@ import {
 	selectIsShowWindowOnUnreadChangedEnabled,
 	selectSpellCheckingDictionaries,
 	selectFocusedWebContents,
-} from '../selectors';
+} from '../../selectors';
+import { getTrayIconPath, getAppIconPath } from '../icons';
 import { importSpellCheckingDictionaries, getCorrectionsForMisspelling } from '../spellChecking';
 import { browseForSpellCheckingDictionary } from './dialogs';
 
@@ -382,10 +382,6 @@ export const applyMainWindowState = (rootWindow, rootWindowState) => {
 		rootWindow.webContents.openDevTools();
 	}
 };
-
-export const getLocalStorage = (rootWindow) => rootWindow.webContents.executeJavaScript('({...localStorage})');
-
-export const purgeLocalStorage = (rootWindow) => rootWindow.webContents.executeJavaScript('localStorage.clear()');
 
 const fetchRootWindowState = (rootWindow) => ({
 	focused: rootWindow.isFocused(),

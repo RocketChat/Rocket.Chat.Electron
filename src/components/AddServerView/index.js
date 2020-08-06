@@ -16,9 +16,9 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { ADD_SERVER_VIEW_SERVER_ADDED } from '../../actions';
+import { QUERY_SERVER_VALIDATION, EVENT_CERTIFICATES_UPDATED } from '../../ipc';
 import { RocketChatLogo } from '../RocketChatLogo';
 import { Wrapper, Content } from './styles';
-import { QUERY_SERVER_VALIDATION, EVENT_CERTIFICATES_UPDATED } from '../../ipc';
 
 const defaultServerUrl = 'https://open.rocket.chat';
 

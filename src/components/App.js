@@ -3,8 +3,8 @@ import React, { useRef } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 
-import { MainWindow } from './MainWindow';
 import { createReduxStore } from '../rootWindow/reduxStore';
+import { MainWindow } from './MainWindow';
 import { Shell } from './Shell';
 import { ErrorCatcher } from './utils/ErrorCatcher';
 

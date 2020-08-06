@@ -5,8 +5,8 @@ import { app } from 'electron';
 import Store from 'electron-store';
 
 import appManifest from '../../package.json';
-import { selectPersistableValues } from './selectors';
 import { PERSISTABLE_VALUES_MERGED } from '../actions';
+import { selectPersistableValues } from './selectors';
 
 const migrations = {};
 

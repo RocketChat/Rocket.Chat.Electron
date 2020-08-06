@@ -1,5 +1,5 @@
-import { createSelector, createSelectorCreator, defaultMemoize, createStructuredSelector } from 'reselect';
 import { webContents } from 'electron';
+import { createSelector, createSelectorCreator, defaultMemoize, createStructuredSelector } from 'reselect';
 
 const isArrayEquals = (a, b) => Object.is(a, b) || (a.length === b.length && a.every((x, i) => Object.is(x, b[i])));
 

@@ -7,13 +7,13 @@ import { useDispatch } from 'react-redux';
 import {
 	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, WEBVIEW_FOCUSED,
 } from '../../actions';
+import { EVENT_MESSAGE_BOX_BLURRED, EVENT_BROWSER_VIEW_ATTACHED } from '../../ipc';
+import { FailureImage } from '../FailureImage';
 import {
 	ErrorPane,
 	StyledWebView,
 	Wrapper,
 } from './styles';
-import { FailureImage } from '../FailureImage';
-import { EVENT_MESSAGE_BOX_BLURRED, EVENT_BROWSER_VIEW_ATTACHED } from '../../ipc';
 
 export function ServerPane({
 	lastPath,

@@ -13,12 +13,12 @@ import {
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 } from '../actions';
+import { EVENT_UPDATE_DOWNLOAD_ALLOWED, EVENT_CHECK_FOR_UPDATES_REQUESTED, EVENT_UPDATE_SKIPPED } from '../ipc';
 import {
 	selectSkippedUpdateVersion,
 	selectUpdateConfiguration,
 } from './selectors';
 import { askUpdateInstall, AskUpdateInstallResponse, warnAboutInstallUpdateLater, warnAboutUpdateDownload, warnAboutUpdateSkipped } from './ui/dialogs';
-import { EVENT_UPDATE_DOWNLOAD_ALLOWED, EVENT_CHECK_FOR_UPDATES_REQUESTED, EVENT_UPDATE_SKIPPED } from '../ipc';
 
 const loadAppConfiguration = async () => {
 	try {

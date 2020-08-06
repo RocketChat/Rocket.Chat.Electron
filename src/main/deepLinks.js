@@ -7,8 +7,8 @@ import {
 	DEEP_LINKS_SERVER_FOCUSED,
 	DEEP_LINKS_SERVER_ADDED,
 } from '../actions';
-import { askForServerAddition, warnAboutInvalidServerUrl } from './ui/dialogs';
 import { normalizeServerUrl, getServerInfo } from './servers';
+import { askForServerAddition, warnAboutInvalidServerUrl } from './ui/dialogs';
 
 const isRocketChatUrl = (parsedUrl) =>
 	parsedUrl.protocol === 'rocketchat:';

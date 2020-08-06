@@ -5,6 +5,13 @@
   "plugins": ["react", "react-hooks"],
   "parser": "babel-eslint",
   "rules": {
+    "import/order": ["error", {
+			"newlines-between": "always",
+			"groups": ["builtin", "external", "internal", ["parent", "sibling", "index"]],
+			"alphabetize": {
+				"order": "asc"
+			}
+		}],
     "react/jsx-uses-react": "error",
     "react/jsx-uses-vars": "error",
     "react/jsx-no-undef": "error",

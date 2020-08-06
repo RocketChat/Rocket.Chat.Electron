@@ -1,7 +1,7 @@
 import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
 import { desktopCapturer, ipcRenderer } from 'electron';
-import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../actions';

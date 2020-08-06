@@ -9,15 +9,15 @@ import {
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
 import {
-	selectSpellCheckingDictionaries,
-	selectPersistableValues,
-	selectDictionaryName,
-} from './selectors';
-import {
 	QUERY_SPELL_CHECKING_LANGUAGE,
 	EVENT_SPELL_CHECKING_LANGUAGE_CHANGED,
 	QUERY_MISSPELT_WORDS,
 } from '../ipc';
+import {
+	selectSpellCheckingDictionaries,
+	selectPersistableValues,
+	selectDictionaryName,
+} from './selectors';
 
 const embeddedDictionaries = [
 	{

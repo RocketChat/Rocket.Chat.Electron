@@ -2,15 +2,15 @@ import { ipcRenderer } from 'electron';
 import React, { useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
 
-import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
-import { SideBar } from '../SideBar';
-import { ServersView } from '../ServersView';
-import { AddServerView } from '../AddServerView';
+import { QUERY_APP_PATH } from '../../ipc';
 import { AboutDialog } from '../AboutDialog';
+import { AddServerView } from '../AddServerView';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';
+import { ServersView } from '../ServersView';
+import { SideBar } from '../SideBar';
 import { UpdateDialog } from '../UpdateDialog';
-import { QUERY_APP_PATH } from '../../ipc';
+import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 
 export function Shell() {
 	useLayoutEffect(() => {

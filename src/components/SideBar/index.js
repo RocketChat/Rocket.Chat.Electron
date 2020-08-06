@@ -9,6 +9,7 @@ import {
 	SIDE_BAR_SERVER_SELECTED,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 } from '../../actions';
+import { EVENT_SIDEBAR_CONTEXT_MENU_TRIGGERED } from '../../ipc';
 import {
 	AddServerButton,
 	AddServerButtonLabel,
@@ -24,7 +25,6 @@ import {
 } from './styles';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
-import { EVENT_SIDEBAR_CONTEXT_MENU_TRIGGERED } from '../../ipc';
 
 function ServerButton({
 	url,

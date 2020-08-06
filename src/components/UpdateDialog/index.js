@@ -1,15 +1,15 @@
 import { Box, Button, ButtonGroup, Chevron, Margins } from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
-import { useTranslation } from 'react-i18next';
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
 	UPDATE_DIALOG_DISMISSED,
 	UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
 } from '../../actions';
-import { Dialog } from '../Dialog';
 import { EVENT_UPDATE_DOWNLOAD_ALLOWED, QUERY_APP_VERSION, EVENT_UPDATE_SKIPPED } from '../../ipc';
+import { Dialog } from '../Dialog';
 
 export function UpdateDialog() {
 	const [currentVersion, setCurrentVersion] = useState('');

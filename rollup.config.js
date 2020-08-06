@@ -1,12 +1,12 @@
-import builtinModules from 'builtin-modules';
-import electron from 'electron';
 import babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
-import copy from 'rollup-plugin-copy';
 import json from '@rollup/plugin-json';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import run from '@rollup/plugin-run';
+import builtinModules from 'builtin-modules';
+import electron from 'electron';
+import copy from 'rollup-plugin-copy';
 
 import appManifest from './package.json';
 

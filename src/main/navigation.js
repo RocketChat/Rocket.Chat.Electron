@@ -9,9 +9,9 @@ import {
 	CERTIFICATES_UPDATED,
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
+import { EVENT_CLIENT_CERTIFICATE_SELECTED, EVENT_CLIENT_CERTIFICATE_REQUESTED, EVENT_CERTIFICATES_UPDATED } from '../ipc';
 import { selectServers, selectTrustedCertificates } from './selectors';
 import { AskForCertificateTrustResponse, askForCertificateTrust } from './ui/dialogs';
-import { EVENT_CLIENT_CERTIFICATE_SELECTED, EVENT_CLIENT_CERTIFICATE_REQUESTED, EVENT_CERTIFICATES_UPDATED } from '../ipc';
 
 const loadUserTrustedCertificates = async () => {
 	try {

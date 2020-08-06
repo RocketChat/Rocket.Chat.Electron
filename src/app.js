@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
-import { setupI18next } from './rootWindow/i18n';
 import { App } from './components/App';
 import { setupErrorHandling } from './rootWindow/errors';
+import { setupI18next } from './rootWindow/i18n';
 import { whenReady } from './whenReady';
 
 whenReady().then(async () => {

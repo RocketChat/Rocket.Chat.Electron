@@ -3,8 +3,8 @@ const { promisify } = require('util');
 
 const { convert: convertToIcns } = require('@fiahfy/icns-convert');
 const { createConverter } = require('convert-svg-to-png');
-const toIco = require('to-ico');
 const rimraf = require('rimraf');
+const toIco = require('to-ico');
 
 let deferredConverter = Promise.resolve(createConverter());
 

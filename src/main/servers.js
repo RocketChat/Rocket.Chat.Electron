@@ -6,8 +6,8 @@ import { app, ipcMain } from 'electron';
 import fetch from 'electron-main-fetch';
 
 import { PERSISTABLE_VALUES_MERGED } from '../actions';
-import { selectServers, selectCurrentServerUrl } from './selectors';
 import { QUERY_SERVER_VALIDATION } from '../ipc';
+import { selectServers, selectCurrentServerUrl } from './selectors';
 
 export const ValidationResult = {
 	OK: 'OK',

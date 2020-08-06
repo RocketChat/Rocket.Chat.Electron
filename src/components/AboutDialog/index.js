@@ -18,8 +18,8 @@ import {
 	EVENT_CHECK_FOR_UPDATES_REQUESTED,
 	QUERY_APP_VERSION,
 } from '../../ipc';
-import { RocketChatLogo } from '../RocketChatLogo';
 import { Dialog } from '../Dialog';
+import { RocketChatLogo } from '../RocketChatLogo';
 
 export function AboutDialog() {
 	const [version, setVersion] = useState('');

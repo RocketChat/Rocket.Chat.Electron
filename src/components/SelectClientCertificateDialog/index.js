@@ -1,15 +1,15 @@
 import { Box, Button, Margins, Scrollable, Tile } from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
 import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import { useSelector, useDispatch } from 'react-redux';
 
-import { Dialog } from '../Dialog';
 import {
 	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
 	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
 } from '../../actions';
 import { EVENT_CLIENT_CERTIFICATE_REQUESTED, EVENT_CLIENT_CERTIFICATE_SELECTED } from '../../ipc';
+import { Dialog } from '../Dialog';
 
 export function SelectClientCertificateDialog() {
 	const isVisible = useSelector(({ openDialog }) => openDialog === 'select-client-certificate');

@@ -20,6 +20,7 @@ import {
 	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 } from '../../actions';
+import { EVENT_WEB_CONTENTS_FOCUS_CHANGED, EVENT_BROWSER_VIEW_ATTACHED } from '../../ipc';
 import { getTrayIconPath, getAppIconPath } from '../icons';
 import {
 	selectGlobalBadge,
@@ -30,9 +31,8 @@ import {
 	selectSpellCheckingDictionaries,
 	selectFocusedWebContents,
 } from '../selectors';
-import { EVENT_WEB_CONTENTS_FOCUS_CHANGED, EVENT_BROWSER_VIEW_ATTACHED } from '../../ipc';
-import { browseForSpellCheckingDictionary } from './dialogs';
 import { importSpellCheckingDictionaries, getCorrectionsForMisspelling } from '../spellChecking';
+import { browseForSpellCheckingDictionary } from './dialogs';
 
 const webContentsByServerUrl = new Map();
 

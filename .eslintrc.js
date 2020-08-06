@@ -83,6 +83,7 @@ module.exports = {
 						order: 'asc',
 					},
 				}],
+				'no-extra-parens': 'off',
 				'no-useless-constructor': 'off',
 				'no-empty-function': 'off',
 				'no-spaced-func': 'off',

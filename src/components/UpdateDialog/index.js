@@ -1,6 +1,6 @@
 import { Box, Button, ButtonGroup, Chevron, Margins } from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -8,18 +8,11 @@ import {
 	UPDATE_DIALOG_DISMISSED,
 	UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
 } from '../../actions';
-import { EVENT_UPDATE_DOWNLOAD_ALLOWED, QUERY_APP_VERSION, EVENT_UPDATE_SKIPPED } from '../../ipc';
+import { EVENT_UPDATE_DOWNLOAD_ALLOWED, EVENT_UPDATE_SKIPPED } from '../../ipc';
 import { Dialog } from '../Dialog';
 
 export function UpdateDialog() {
-	const [currentVersion, setCurrentVersion] = useState('');
-
-	useEffect(() => {
-		ipcRenderer.invoke(QUERY_APP_VERSION).then((currentVersion) => {
-			setCurrentVersion(currentVersion);
-		});
-	}, []);
-
+	const currentVersion = useSelector(({ appVersion }) => appVersion);
 	const newVersion = useSelector(({ newUpdateVersion }) => newUpdateVersion);
 	const isVisible = useSelector(({ openDialog }) => openDialog === 'update');
 

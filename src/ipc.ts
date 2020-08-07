@@ -3,8 +3,6 @@ import { Middleware, MiddlewareAPI, Dispatch, AnyAction } from 'redux';
 
 import { isFSA, FluxStandardAction } from './structs/fsa';
 
-export const QUERY_APP_VERSION = 'query/app-version';
-export const QUERY_APP_PATH = 'query/app-path';
 export const EVENT_ERROR_THROWN = 'event/error-thrown';
 export const EVENT_EDIT_FLAGS_CHANGED = 'event/edit-flags-changed';
 export const QUERY_SCREEN_SHARING_SOURCE = 'query/screen-sharing-source';

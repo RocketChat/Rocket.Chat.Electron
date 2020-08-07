@@ -15,11 +15,9 @@ import { setupScreenSharing } from './preload/screenSharing';
 import { setupSpellChecking } from './preload/spellChecking';
 import { whenReady } from './whenReady';
 
-Promise.all([
-	createReduxStore(),
-	whenReady(),
-]).then(() => {
-	setupErrorHandling();
+whenReady().then(async () => {
+	const reduxStore = await createReduxStore();
+	setupErrorHandling(reduxStore);
 	setupEditFlagsChanges();
 	setupScreenSharing();
 	setupSpellChecking();

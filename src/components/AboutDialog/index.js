@@ -14,21 +14,12 @@ import {
 	UPDATES_ERROR_THROWN,
 	UPDATES_CHECKING_FOR_UPDATE,
 } from '../../actions';
-import {
-	EVENT_CHECK_FOR_UPDATES_REQUESTED,
-	QUERY_APP_VERSION,
-} from '../../ipc';
+import { EVENT_CHECK_FOR_UPDATES_REQUESTED } from '../../ipc';
 import { Dialog } from '../Dialog';
 import { RocketChatLogo } from '../RocketChatLogo';
 
 export function AboutDialog() {
-	const [version, setVersion] = useState('');
-
-	useEffect(() => {
-		ipcRenderer.invoke(QUERY_APP_VERSION).then((version) => {
-			setVersion(version);
-		});
-	}, []);
+	const currentVersion = useSelector(({ appVersion }) => appVersion);
 
 	const { copyright } = pkg;
 	const isVisible = useSelector(({ openDialog }) => openDialog === 'about');
@@ -115,8 +106,8 @@ export function AboutDialog() {
 			<RocketChatLogo />
 
 			<Box alignSelf='center'>
-				<Trans i18nKey='dialog.about.version' version={version}>
-						Version: <Box is='span' fontScale='p2' style={{ userSelect: 'text' }}>{{ version }}</Box>
+				<Trans i18nKey='dialog.about.version' version={currentVersion}>
+						Version: <Box is='span' fontScale='p2' style={{ userSelect: 'text' }}>{{ version: currentVersion }}</Box>
 				</Trans>
 			</Box>
 

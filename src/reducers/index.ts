@@ -1,5 +1,7 @@
 import { combineReducers } from 'redux';
 
+import { appPath } from './appPath';
+import { appVersion } from './appVersion';
 import { currentServerUrl } from './currentServerUrl';
 import { doCheckForUpdatesOnStartup } from './doCheckForUpdatesOnStartup';
 import { editFlags } from './editFlags';
@@ -22,6 +24,8 @@ import { spellCheckingDictionaries } from './spellCheckingDictionaries';
 import { trustedCertificates } from './trustedCertificates';
 
 export const rootReducer = combineReducers({
+	appPath,
+	appVersion,
 	currentServerUrl,
 	doCheckForUpdatesOnStartup,
 	editFlags,

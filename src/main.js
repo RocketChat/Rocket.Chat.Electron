@@ -1,6 +1,9 @@
-import { app, ipcMain } from 'electron';
+import { app } from 'electron';
 
-import { QUERY_APP_VERSION, QUERY_APP_PATH } from './ipc';
+import {
+	APP_PATH_SET,
+	APP_VERSION_SET,
+} from './actions';
 import { setupApp } from './main/app';
 import { mergePersistableValues, watchAndPersistChanges, getLocalStorage, purgeLocalStorage } from './main/data';
 import { setupDeepLinks, processDeepLinksInArgs } from './main/deepLinks';
@@ -35,8 +38,8 @@ if (require.main === module) {
 	const electronStore = createElectronStore();
 
 	app.whenReady().then(async () => {
-		ipcMain.handle(QUERY_APP_VERSION, () => app.getVersion());
-		ipcMain.handle(QUERY_APP_PATH, () => app.getAppPath());
+		reduxStore.dispatch({ type: APP_PATH_SET, payload: app.getAppPath() });
+		reduxStore.dispatch({ type: APP_VERSION_SET, payload: app.getVersion() });
 
 		if (process.env.NODE_ENV === 'development') {
 			await setupElectronReloader();

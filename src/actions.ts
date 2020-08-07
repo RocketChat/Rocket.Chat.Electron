@@ -1,6 +1,8 @@
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START = 'about-dialog/toggle-update-on-start';
 export const ADD_SERVER_VIEW_SERVER_ADDED = 'add-server/view-server-added';
+export const APP_PATH_SET = 'app/path-set';
+export const APP_VERSION_SET = 'app/version-set';
 export const CERTIFICATES_CLEARED = 'certificates/cleared';
 export const CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED = 'certificates/client-certificate-requested';
 export const CERTIFICATES_UPDATED = 'certificates/updated';

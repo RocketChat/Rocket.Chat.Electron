@@ -1,14 +1,10 @@
 import Bugsnag from '@bugsnag/js';
 import { ipcRenderer } from 'electron';
+import { Store } from 'redux';
 
-import {
-	QUERY_APP_VERSION,
-	EVENT_ERROR_THROWN,
-} from '../ipc';
+import { EVENT_ERROR_THROWN } from '../ipc';
 
-const setupBugsnag = async (apiKey) => {
-	const appVersion = await ipcRenderer.invoke(QUERY_APP_VERSION);
-
+const setupBugsnag = (apiKey: string, appVersion: string): void => {
 	Bugsnag.start({
 		apiKey,
 		appVersion,
@@ -21,19 +17,21 @@ const setupBugsnag = async (apiKey) => {
 	});
 };
 
-const handleErrorEvent = (event) => {
+const handleErrorEvent = (event: ErrorEvent): void => {
 	const { error } = event;
 	ipcRenderer.send(EVENT_ERROR_THROWN, error && (error.stack || error));
 };
 
-const handleUnhandledRejectionEvent = (event) => {
+const handleUnhandledRejectionEvent = (event: PromiseRejectionEvent): void => {
 	const { reason } = event;
 	ipcRenderer.send(EVENT_ERROR_THROWN, reason && (reason.stack || reason));
 };
 
-export const setupErrorHandling = () => {
+export const setupErrorHandling = (reduxStore: Store): void => {
 	if (process.env.BUGSNAG_API_KEY) {
-		setupBugsnag(process.env.BUGSNAG_API_KEY);
+		const apiKey = process.env.BUGSNAG_API_KEY;
+		const appVersion = (({ appVersion }) => appVersion)(reduxStore.getState());
+		setupBugsnag(apiKey, appVersion);
 		return;
 	}
 

@@ -82,6 +82,7 @@
     "@types/i18next-node-fs-backend": "^2.1.0",
     "@types/jest": "^26.0.4",
     "@types/react": "^16.9.44",
+    "@types/react-redux": "^7.1.9",
     "@types/rimraf": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^3.6.1",
     "@typescript-eslint/parser": "^3.6.1",

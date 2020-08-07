@@ -22,6 +22,7 @@ import { servers } from './servers';
 import { skippedUpdateVersion } from './skippedUpdateVersion';
 import { spellCheckingDictionaries } from './spellCheckingDictionaries';
 import { trustedCertificates } from './trustedCertificates';
+import { updateError } from './updateError';
 
 export const rootReducer = combineReducers({
 	appPath,
@@ -46,4 +47,5 @@ export const rootReducer = combineReducers({
 	skippedUpdateVersion,
 	spellCheckingDictionaries,
 	trustedCertificates,
+	updateError,
 });

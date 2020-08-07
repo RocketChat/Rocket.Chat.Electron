@@ -1,27 +1,21 @@
 import { Box, Button, Field, Margins, Throbber, ToggleSwitch } from '@rocket.chat/fuselage';
 import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
 import { ipcRenderer } from 'electron';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import pkg from '../../../package.json';
+import { copyright } from '../../../package.json';
 import {
 	ABOUT_DIALOG_DISMISSED,
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
-	UPDATES_NEW_VERSION_AVAILABLE,
-	UPDATES_NEW_VERSION_NOT_AVAILABLE,
-	UPDATES_ERROR_THROWN,
-	UPDATES_CHECKING_FOR_UPDATE,
 } from '../../actions';
 import { EVENT_CHECK_FOR_UPDATES_REQUESTED } from '../../ipc';
 import { Dialog } from '../Dialog';
 import { RocketChatLogo } from '../RocketChatLogo';
 
 export function AboutDialog() {
-	const currentVersion = useSelector(({ appVersion }) => appVersion);
-
-	const { copyright } = pkg;
+	const version = useSelector(({ appVersion }) => appVersion);
 	const isVisible = useSelector(({ openDialog }) => openDialog === 'about');
 	const canUpdate = useSelector(({ isUpdatingAllowed, isUpdatingEnabled }) => isUpdatingAllowed && isUpdatingEnabled);
 	const isCheckForUpdatesOnStartupChecked = useSelector(({
@@ -31,63 +25,49 @@ export function AboutDialog() {
 	}) => isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup);
 	const canSetCheckForUpdatesOnStartup = useSelector(({ isUpdatingAllowed, isEachUpdatesSettingConfigurable }) =>
 		isUpdatingAllowed && isEachUpdatesSettingConfigurable);
+	const updateError = useSelector(({ updateError }) => updateError);
+	const isCheckingForUpdates = useSelector(({ isCheckingForUpdates }) => isCheckingForUpdates);
+	const newUpdateVersion = useSelector(({ newUpdateVersion }) => newUpdateVersion);
 
 	const dispatch = useDispatch();
 
 	const { t } = useTranslation();
 
-	const [checkingForUpdates, setCheckingForUpdates] = useState(false);
-	const [checkingForUpdatesMessage, setCheckingForUpdatesMessage] = useState(null);
-
-	const checkingForUpdatesMessageTimerRef = useRef();
-
-	const displayCheckingForUpdatesMessage = (message) => {
-		setCheckingForUpdatesMessage(message);
-
-		clearTimeout(checkingForUpdatesMessageTimerRef.current);
-		checkingForUpdatesMessageTimerRef.current = setTimeout(() => {
-			setCheckingForUpdates(false);
-			setCheckingForUpdatesMessage(null);
-		}, 5000);
-	};
+	const [[checkingForUpdates, checkingForUpdatesMessage], setCheckingForUpdates] = useState([false, null]);
 
 	useEffect(() => {
-		if (!canUpdate) {
+		console.log(updateError, isCheckingForUpdates, newUpdateVersion);
+		if (updateError) {
+			setCheckingForUpdates([true, t('dialog.about.errorWhenLookingForUpdates')]);
+
+			const messageTimer = setTimeout(() => {
+				setCheckingForUpdates([false, null]);
+			}, 5000);
+
+			return () => {
+				clearTimeout(messageTimer);
+			};
+		}
+
+		if (isCheckingForUpdates) {
+			setCheckingForUpdates([true, null]);
 			return;
 		}
 
-		const handleNewVersionAvailable = () => {
-			setCheckingForUpdates(false);
-			setCheckingForUpdatesMessage(null);
-		};
+		if (newUpdateVersion) {
+			setCheckingForUpdates([false, null]);
+			return;
+		}
 
-		const handleNewVersionNotAvailable = () => {
-			displayCheckingForUpdatesMessage(t('dialog.about.noUpdatesAvailable'));
-		};
-
-		const handleCheckingForUpdate = () => {
-			setCheckingForUpdates(true);
-			setCheckingForUpdatesMessage(null);
-		};
-
-		const handleErrorThrown = () => {
-			if (checkingForUpdates) {
-				displayCheckingForUpdatesMessage(t('dialog.about.errorWhenLookingForUpdates'));
-			}
-		};
-
-		ipcRenderer.addListener(UPDATES_NEW_VERSION_AVAILABLE, handleNewVersionAvailable);
-		ipcRenderer.addListener(UPDATES_NEW_VERSION_NOT_AVAILABLE, handleNewVersionNotAvailable);
-		ipcRenderer.addListener(UPDATES_CHECKING_FOR_UPDATE, handleCheckingForUpdate);
-		ipcRenderer.addListener(UPDATES_ERROR_THROWN, handleErrorThrown);
+		setCheckingForUpdates([true, t('dialog.about.noUpdatesAvailable')]);
+		const messageTimer = setTimeout(() => {
+			setCheckingForUpdates([false, null]);
+		}, 5000);
 
 		return () => {
-			ipcRenderer.removeListener(UPDATES_NEW_VERSION_AVAILABLE, handleNewVersionAvailable);
-			ipcRenderer.removeListener(UPDATES_NEW_VERSION_NOT_AVAILABLE, handleNewVersionNotAvailable);
-			ipcRenderer.removeListener(UPDATES_CHECKING_FOR_UPDATE, handleCheckingForUpdate);
-			ipcRenderer.removeListener(UPDATES_ERROR_THROWN, handleErrorThrown);
+			clearTimeout(messageTimer);
 		};
-	}, [canUpdate, checkingForUpdates, t]);
+	}, [updateError, isCheckingForUpdates, newUpdateVersion, t]);
 
 	const handleCheckForUpdatesButtonClick = () => {
 		ipcRenderer.send(EVENT_CHECK_FOR_UPDATES_REQUESTED);
@@ -98,7 +78,6 @@ export function AboutDialog() {
 	};
 
 	const checkForUpdatesButtonRef = useAutoFocus(isVisible);
-
 	const checkForUpdatesOnStartupToggleSwitchId = useUniqueId();
 
 	return <Dialog isVisible={isVisible} onClose={() => dispatch({ type: ABOUT_DIALOG_DISMISSED })}>
@@ -106,8 +85,8 @@ export function AboutDialog() {
 			<RocketChatLogo />
 
 			<Box alignSelf='center'>
-				<Trans i18nKey='dialog.about.version' version={currentVersion}>
-						Version: <Box is='span' fontScale='p2' style={{ userSelect: 'text' }}>{{ version: currentVersion }}</Box>
+				<Trans i18nKey='dialog.about.version' version={version}>
+						Version: <Box is='span' fontScale='p2' style={{ userSelect: 'text' }}>{{ version }}</Box>
 				</Trans>
 			</Box>
 

@@ -106,7 +106,6 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 	}
 
 	autoUpdater.addListener('checking-for-update', () => {
-		rootWindow.webContents.send(UPDATES_CHECKING_FOR_UPDATE);
 		reduxStore.dispatch({ type: UPDATES_CHECKING_FOR_UPDATE });
 	});
 
@@ -117,12 +116,10 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 			return;
 		}
 
-		rootWindow.webContents.send(UPDATES_NEW_VERSION_AVAILABLE, version);
 		reduxStore.dispatch({ type: UPDATES_NEW_VERSION_AVAILABLE, payload: version });
 	});
 
 	autoUpdater.addListener('update-not-available', () => {
-		rootWindow.webContents.send(UPDATES_NEW_VERSION_NOT_AVAILABLE);
 		reduxStore.dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
 	});
 
@@ -138,14 +135,26 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 			app.removeAllListeners('window-all-closed');
 			autoUpdater.quitAndInstall(true, true);
 		} catch (error) {
-			rootWindow.webContents.send(UPDATES_ERROR_THROWN, error);
-			reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
+			reduxStore.dispatch({
+				type: UPDATES_ERROR_THROWN,
+				payload: {
+					message: error.message,
+					stack: error.stack,
+					name: error.name,
+				},
+			});
 		}
 	});
 
 	autoUpdater.addListener('error', (error) => {
-		rootWindow.webContents.send(UPDATES_ERROR_THROWN, error);
-		reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
+		reduxStore.dispatch({
+			type: UPDATES_ERROR_THROWN,
+			payload: {
+				message: error.message,
+				stack: error.stack,
+				name: error.name,
+			},
+		});
 	});
 
 	ipcMain.addListener(EVENT_UPDATE_DOWNLOAD_ALLOWED, async () => {
@@ -155,17 +164,29 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 		try {
 			autoUpdater.downloadUpdate();
 		} catch (error) {
-			rootWindow.webContents.send(UPDATES_ERROR_THROWN, error);
-			reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
+			reduxStore.dispatch({
+				type: UPDATES_ERROR_THROWN,
+				payload: {
+					message: error.message,
+					stack: error.stack,
+					name: error.name,
+				},
+			});
 		}
 	});
 
-	ipcMain.addListener(EVENT_CHECK_FOR_UPDATES_REQUESTED, () => {
+	ipcMain.addListener(EVENT_CHECK_FOR_UPDATES_REQUESTED, async () => {
 		try {
-			autoUpdater.checkForUpdates();
+			await autoUpdater.checkForUpdates();
 		} catch (error) {
-			rootWindow.webContents.send(UPDATES_ERROR_THROWN, error);
-			reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
+			reduxStore.dispatch({
+				type: UPDATES_ERROR_THROWN,
+				payload: {
+					message: error.message,
+					stack: error.stack,
+					name: error.name,
+				},
+			});
 		}
 	});
 
@@ -176,10 +197,16 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 
 	if (doCheckForUpdatesOnStartup) {
 		try {
-			autoUpdater.checkForUpdates();
+			await autoUpdater.checkForUpdates();
 		} catch (error) {
-			rootWindow.webContents.send(UPDATES_ERROR_THROWN, error);
-			reduxStore.dispatch({ type: UPDATES_ERROR_THROWN, payload: error });
+			reduxStore.dispatch({
+				type: UPDATES_ERROR_THROWN,
+				payload: {
+					message: error.message,
+					stack: error.stack,
+					name: error.name,
+				},
+			});
 		}
 	}
 };

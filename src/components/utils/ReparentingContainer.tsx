@@ -1,21 +1,14 @@
 import { useMergedRefs } from '@rocket.chat/fuselage-hooks';
-import React, { Children, useLayoutEffect, useRef, forwardRef } from 'react';
+import React, { useLayoutEffect, useRef, forwardRef, ReactElement, ReactText } from 'react';
 import { createPortal } from 'react-dom';
-
-const toArray = (elements) => [].concat(...Children.toArray(elements).map((element) => {
-	if (!element.type.render && element.props.children) {
-		return toArray(element.props.children);
-	}
-
-	return element;
-}));
+import flattenChildren from 'react-keyed-flatten-children';
 
 export const ReparentingContainer = forwardRef(function ReparentingContainer({ children, ...props }, ref) {
-	const innerRef = useRef();
+	const innerRef = useRef<HTMLDivElement>();
 
-	const childrenArray = toArray(children);
+	const childrenArray = flattenChildren(children) as ReactElement[];
 
-	const prevChildrenArrayRef = useRef([]);
+	const prevChildrenArrayRef = useRef<ReactElement[]>([]);
 	useLayoutEffect(() => {
 		prevChildrenArrayRef.current = childrenArray;
 	}, [childrenArray]);
@@ -27,21 +20,21 @@ export const ReparentingContainer = forwardRef(function ReparentingContainer({ c
 	const childrenKept = childrenArray.filter((child) => prevKeys.includes(child.key));
 	const childrenRemoved = prevChildrenArrayRef.current.filter((child) => !keys.includes(child.key));
 
-	const nodesRef = useRef(new Map());
+	const nodesRef = useRef(new Map<ReactText, Element>());
 
 	const portals = [
-		...childrenKept.map((child) => createPortal(child, nodesRef.current.get(child.key), child.key)),
+		...childrenKept.map((child) => createPortal(child, nodesRef.current.get(child.key), String(child.key))),
 		...childrenAdded.map((child) => {
 			const node = document.createElement('div');
 			nodesRef.current.set(child.key, node);
-			return createPortal(child, node, child.key);
+			return createPortal(child, node, String(child.key));
 		}),
 	];
 
 	useLayoutEffect(() => {
 		childrenAdded.forEach((child) => {
 			const node = nodesRef.current.get(child.key);
-			for (const { name, value } of innerRef.current.attributes) {
+			for (const { name, value } of Array.from(innerRef.current.attributes)) {
 				node.setAttribute(name, value);
 			}
 			node.toggleAttribute('data-container', true);

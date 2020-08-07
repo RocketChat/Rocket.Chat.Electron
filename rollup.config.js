@@ -21,7 +21,7 @@ export default [
 			...Object.keys(appManifest.dependencies),
 			...Object.keys(appManifest.devDependencies),
 		].filter((moduleName) => moduleName !== '@bugsnag/js'),
-		input: 'src/app.js',
+		input: 'src/rootWindow.ts',
 		plugins: [
 			json(),
 			replace({
@@ -49,7 +49,7 @@ export default [
 			...Object.keys(appManifest.dependencies),
 			...Object.keys(appManifest.devDependencies),
 		].filter((moduleName) => moduleName !== '@bugsnag/js'),
-		input: 'src/preload.js',
+		input: 'src/preload.ts',
 		plugins: [
 			json(),
 			replace({
@@ -79,7 +79,7 @@ export default [
 			...Object.keys(appManifest.dependencies),
 			...Object.keys(appManifest.devDependencies),
 		],
-		input: 'src/main.js',
+		input: 'src/main.ts',
 		plugins: [
 			copy({
 				targets: [

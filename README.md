@@ -67,10 +67,10 @@ full, runnable application.
 
 ### The build pipeline
 
-The build process is founded upon [gulp] task runner and [rollup] bundler. There are
-two entry files for your code: `src/main.js` and `src/app.js`. Rollup will
-follow all `import` statements starting from those files and compile code of the
-whole dependency tree into one `.js` file for each entry point.
+The build process is founded upon [gulp] task runner and [rollup] bundler. There
+are two entry files for your code: `src/main.ts` and `src/rootWindow.ts`. Rollup
+will follow all `import` statements starting from those files and compile code
+of the whole dependency tree into one `.js` file for each entry point.
 
 [gulp]: https://github.com/gulpjs/gulp
 [rollup]: https://github.com/rollup/rollup

@@ -350,7 +350,7 @@ export const createRootWindow = async (reduxStore) => {
 		rootWindow.webContents.openDevTools();
 	}
 
-	rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/app.html'));
+	rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/index.html'));
 
 	return new Promise((resolve) => {
 		rootWindow.on('ready-to-show', () => {

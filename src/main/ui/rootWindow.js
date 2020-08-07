@@ -346,6 +346,10 @@ export const createRootWindow = async (reduxStore) => {
 
 	attachGuestWebContentsEvents(reduxStore, rootWindow);
 
+	if (process.env.NODE_ENV === 'development') {
+		rootWindow.webContents.openDevTools();
+	}
+
 	rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/app.html'));
 
 	return new Promise((resolve) => {

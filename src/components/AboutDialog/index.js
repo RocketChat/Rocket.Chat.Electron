@@ -36,7 +36,6 @@ export function AboutDialog() {
 	const [[checkingForUpdates, checkingForUpdatesMessage], setCheckingForUpdates] = useState([false, null]);
 
 	useEffect(() => {
-		console.log(updateError, isCheckingForUpdates, newUpdateVersion);
 		if (updateError) {
 			setCheckingForUpdates([true, t('dialog.about.errorWhenLookingForUpdates')]);
 

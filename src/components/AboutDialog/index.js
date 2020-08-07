@@ -1,6 +1,5 @@
 import { Box, Button, Field, Margins, Throbber, ToggleSwitch } from '@rocket.chat/fuselage';
 import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
-import { ipcRenderer } from 'electron';
 import React, { useState, useEffect } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,25 +8,37 @@ import { copyright } from '../../../package.json';
 import {
 	ABOUT_DIALOG_DISMISSED,
 	ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
+	UPDATES_CHECK_FOR_UPDATES_REQUESTED,
 } from '../../actions';
-import { EVENT_CHECK_FOR_UPDATES_REQUESTED } from '../../ipc';
+import {
+	selectAppVersion,
+	selectOpenDialog,
+	selectIsUpdatingAllowed,
+	selectIsUpdatingEnabled,
+	selectDoCheckForUpdatesOnStartup,
+	selectIsEachUpdatesSettingConfigurable,
+	selectUpdateError,
+	selectIsCheckingForUpdates,
+	selectNewUpdateVersion,
+} from '../../selectors';
 import { Dialog } from '../Dialog';
 import { RocketChatLogo } from '../RocketChatLogo';
 
 export function AboutDialog() {
-	const version = useSelector(({ appVersion }) => appVersion);
-	const isVisible = useSelector(({ openDialog }) => openDialog === 'about');
-	const canUpdate = useSelector(({ isUpdatingAllowed, isUpdatingEnabled }) => isUpdatingAllowed && isUpdatingEnabled);
-	const isCheckForUpdatesOnStartupChecked = useSelector(({
-		isUpdatingAllowed,
-		isUpdatingEnabled,
-		doCheckForUpdatesOnStartup,
-	}) => isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup);
-	const canSetCheckForUpdatesOnStartup = useSelector(({ isUpdatingAllowed, isEachUpdatesSettingConfigurable }) =>
-		isUpdatingAllowed && isEachUpdatesSettingConfigurable);
-	const updateError = useSelector(({ updateError }) => updateError);
-	const isCheckingForUpdates = useSelector(({ isCheckingForUpdates }) => isCheckingForUpdates);
-	const newUpdateVersion = useSelector(({ newUpdateVersion }) => newUpdateVersion);
+	const appVersion = useSelector(selectAppVersion);
+	const doCheckForUpdatesOnStartup = useSelector(selectDoCheckForUpdatesOnStartup);
+	const isCheckingForUpdates = useSelector(selectIsCheckingForUpdates);
+	const isEachUpdatesSettingConfigurable = useSelector(selectIsEachUpdatesSettingConfigurable);
+	const isUpdatingAllowed = useSelector(selectIsUpdatingAllowed);
+	const isUpdatingEnabled = useSelector(selectIsUpdatingEnabled);
+	const newUpdateVersion = useSelector(selectNewUpdateVersion);
+	const openDialog = useSelector(selectOpenDialog);
+	const updateError = useSelector(selectUpdateError);
+
+	const isVisible = openDialog === 'about';
+	const canUpdate = isUpdatingAllowed && isUpdatingEnabled;
+	const isCheckForUpdatesOnStartupChecked = isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup;
+	const canSetCheckForUpdatesOnStartup = isUpdatingAllowed && isEachUpdatesSettingConfigurable;
 
 	const dispatch = useDispatch();
 
@@ -69,7 +80,7 @@ export function AboutDialog() {
 	}, [updateError, isCheckingForUpdates, newUpdateVersion, t]);
 
 	const handleCheckForUpdatesButtonClick = () => {
-		ipcRenderer.send(EVENT_CHECK_FOR_UPDATES_REQUESTED);
+		dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
 	};
 
 	const handleCheckForUpdatesOnStartCheckBoxChange = (event) => {
@@ -84,8 +95,8 @@ export function AboutDialog() {
 			<RocketChatLogo />
 
 			<Box alignSelf='center'>
-				<Trans i18nKey='dialog.about.version' version={version}>
-						Version: <Box is='span' fontScale='p2' style={{ userSelect: 'text' }}>{{ version }}</Box>
+				<Trans i18nKey='dialog.about.version' version={appVersion}>
+						Version: <Box is='span' fontScale='p2' style={{ userSelect: 'text' }}>{{ version: appVersion }}</Box>
 				</Trans>
 			</Box>
 

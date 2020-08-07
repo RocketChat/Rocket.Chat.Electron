@@ -9,7 +9,10 @@ import {
 	CERTIFICATES_UPDATED,
 	PERSISTABLE_VALUES_MERGED,
 } from '../actions';
-import { EVENT_CLIENT_CERTIFICATE_SELECTED, EVENT_CLIENT_CERTIFICATE_REQUESTED, EVENT_CERTIFICATES_UPDATED } from '../ipc';
+import {
+	EVENT_CLIENT_CERTIFICATE_SELECTED,
+	EVENT_CLIENT_CERTIFICATE_REQUESTED,
+} from '../ipc';
 import { selectServers, selectTrustedCertificates } from '../selectors';
 import { AskForCertificateTrustResponse, askForCertificateTrust } from './ui/dialogs';
 
@@ -85,7 +88,6 @@ export const setupNavigation = async (reduxStore, rootWindow) => {
 		trustedCertificates = selectTrustedCertificates(reduxStore.getState());
 
 		if (isTrustedByUser) {
-			rootWindow.webContents.send(EVENT_CERTIFICATES_UPDATED);
 			reduxStore.dispatch({
 				type: CERTIFICATES_UPDATED,
 				payload: { ...trustedCertificates, [host]: serialized },

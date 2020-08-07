@@ -3,6 +3,7 @@ import path from 'path';
 
 import { app, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
+import { takeEvery, call, put } from 'redux-saga/effects';
 
 import {
 	UPDATES_ERROR_THROWN,
@@ -12,13 +13,23 @@ import {
 	UPDATES_READY,
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
+	UPDATES_CHECK_FOR_UPDATES_REQUESTED,
 } from '../actions';
-import { EVENT_UPDATE_DOWNLOAD_ALLOWED, EVENT_CHECK_FOR_UPDATES_REQUESTED, EVENT_UPDATE_SKIPPED } from '../ipc';
+import {
+	EVENT_UPDATE_DOWNLOAD_ALLOWED,
+	EVENT_UPDATE_SKIPPED,
+} from '../ipc';
 import {
 	selectSkippedUpdateVersion,
 	selectUpdateConfiguration,
 } from '../selectors';
-import { askUpdateInstall, AskUpdateInstallResponse, warnAboutInstallUpdateLater, warnAboutUpdateDownload, warnAboutUpdateSkipped } from './ui/dialogs';
+import {
+	askUpdateInstall,
+	AskUpdateInstallResponse,
+	warnAboutInstallUpdateLater,
+	warnAboutUpdateDownload,
+	warnAboutUpdateSkipped,
+} from './ui/dialogs';
 
 const loadAppConfiguration = async () => {
 	try {
@@ -175,21 +186,6 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 		}
 	});
 
-	ipcMain.addListener(EVENT_CHECK_FOR_UPDATES_REQUESTED, async () => {
-		try {
-			await autoUpdater.checkForUpdates();
-		} catch (error) {
-			reduxStore.dispatch({
-				type: UPDATES_ERROR_THROWN,
-				payload: {
-					message: error.message,
-					stack: error.stack,
-					name: error.name,
-				},
-			});
-		}
-	});
-
 	ipcMain.addListener(EVENT_UPDATE_SKIPPED, async (newVersion) => {
 		await warnAboutUpdateSkipped(rootWindow);
 		reduxStore.dispatch({ type: UPDATE_DIALOG_SKIP_UPDATE_CLICKED, payload: newVersion });
@@ -210,3 +206,20 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 		}
 	}
 };
+
+export function *takeUpdateActions() {
+	yield takeEvery(UPDATES_CHECK_FOR_UPDATES_REQUESTED, function *() {
+		try {
+			yield call(() => autoUpdater.checkForUpdates());
+		} catch (error) {
+			yield put({
+				type: UPDATES_ERROR_THROWN,
+				payload: {
+					message: error.message,
+					stack: error.stack,
+					name: error.name,
+				},
+			});
+		}
+	});
+}

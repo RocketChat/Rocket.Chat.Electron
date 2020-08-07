@@ -104,3 +104,7 @@ export const selectDictionaryName = createSelector([
 	selectSpellCheckingDictionaries,
 ], (spellCheckingDictionaries) =>
 	spellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name)[0]);
+
+export const selectAppPath = ({ appPath }) => appPath;
+export const selectAppVersion = ({ appVersion }) => appVersion;
+export const selectUpdateError = ({ updateError }) => updateError;

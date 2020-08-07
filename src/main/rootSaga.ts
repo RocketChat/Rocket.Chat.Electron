@@ -15,7 +15,7 @@ import { createElectronStore } from './electronStore';
 import { setupI18n } from './i18n';
 import { setupNavigation } from './navigation';
 import { setupPowerMonitor } from './powerMonitor';
-import { setupServers } from './servers';
+import { setupServers, takeServersActions } from './servers';
 import { setupSpellChecking } from './spellChecking';
 import { setupBrowserViews } from './ui/browserViews';
 import { setupSideBarContextMenu } from './ui/contextMenus/sidebar';
@@ -25,7 +25,7 @@ import { setupNotifications } from './ui/notifications';
 import { createRootWindow, setupRootWindow, applyMainWindowState } from './ui/rootWindow';
 import { setupTouchBar } from './ui/touchBar';
 import { setupTrayIcon } from './ui/trayIcon';
-import { setupUpdates } from './updates';
+import { setupUpdates, takeUpdateActions } from './updates';
 
 export function *rootSaga(reduxStore: Store): Generator<Effect> {
 	yield put({ type: APP_PATH_SET, payload: app.getAppPath() });
@@ -73,6 +73,12 @@ export function *rootSaga(reduxStore: Store): Generator<Effect> {
 
 		await purgeLocalStorage(rootWindow.webContents);
 		watchAndPersistChanges(reduxStore, electronStore);
+	});
+
+	yield *takeServersActions();
+	yield *takeUpdateActions();
+
+	yield call(async () => {
 		await processDeepLinksInArgs();
 	});
 }

@@ -2,37 +2,34 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 
-import { app, ipcMain } from 'electron';
-import fetch from 'electron-main-fetch';
+import { app } from 'electron';
+import fetch from 'node-fetch';
+import { Store } from 'redux';
+import { takeEvery, call, put, Effect } from 'redux-saga/effects';
 
-import { PERSISTABLE_VALUES_MERGED } from '../actions';
-import { QUERY_SERVER_VALIDATION } from '../ipc';
+import {
+	PERSISTABLE_VALUES_MERGED,
+	SERVER_VALIDATION_REQUESTED,
+	SERVER_VALIDATION_RESPONDED,
+} from '../actions';
+import { RequestAction } from '../rootWindow/channels';
 import { selectServers, selectCurrentServerUrl } from '../selectors';
+import { ValidationResult, Server } from '../structs/servers';
 
-export const ValidationResult = {
-	OK: 'OK',
-	TIMEOUT: 'TIMEOUT',
-	INVALID: 'INVALID',
-};
-
-export const validateServerUrl = async (serverUrl, timeout = 5000) => {
-	const {
-		username,
-		password,
-		href,
-	} = url.parse(serverUrl);
-	let headers = {};
-
-	if (username && password) {
-		headers = {
-			Authorization: `Basic ${ btoa(`${ username }:${ password }`) }`,
-		};
-	}
-
+export const validateServerUrl = async (serverUrl: string, timeout = 5000): Promise<ValidationResult> => {
 	try {
-		const [response] = await Promise.race([
+		const { username, password, href } = new URL(serverUrl);
+		const headers: HeadersInit = [];
+
+		if (username && password) {
+			headers.push(['Authorization', `Basic ${ btoa(`${ username }:${ password }`) }`]);
+		}
+
+		const response = await Promise.race([
 			fetch(`${ href.replace(/\/$/, '') }/api/info`, { headers }),
-			new Promise((resolve) => setTimeout(resolve, timeout)),
+			new Promise<void>((resolve) => {
+				setTimeout(resolve, timeout);
+			}),
 		]);
 
 		if (!response) {
@@ -43,7 +40,9 @@ export const validateServerUrl = async (serverUrl, timeout = 5000) => {
 			return ValidationResult.INVALID;
 		}
 
-		if (!(await response.json()).success) {
+		const responseBody = await response.json();
+
+		if (!responseBody.success) {
 			return ValidationResult.INVALID;
 		}
 
@@ -54,7 +53,7 @@ export const validateServerUrl = async (serverUrl, timeout = 5000) => {
 	}
 };
 
-export const normalizeServerUrl = (hostUrl) => {
+export const normalizeServerUrl = (hostUrl: string): string => {
 	if (typeof hostUrl !== 'string') {
 		return;
 	}
@@ -74,11 +73,11 @@ export const normalizeServerUrl = (hostUrl) => {
 	return url.format({ protocol, auth, hostname, port, pathname });
 };
 
-export const getServerInfo = async (/* serverUrl */) => {
+export const getServerInfo = async (/* serverUrl */): Promise<never> => {
 	throw Error('not implemented');
 };
 
-const loadAppServers = async () => {
+const loadAppServers = async (): Promise<Record<string, string>> => {
 	try {
 		const filePath = path.join(
 			app.getAppPath(),
@@ -94,7 +93,7 @@ const loadAppServers = async () => {
 	}
 };
 
-const loadUserServers = async () => {
+const loadUserServers = async (): Promise<Record<string, string>> => {
 	try {
 		const filePath = path.join(app.getPath('userData'), 'servers.json');
 		const content = await fs.promises.readFile(filePath, 'utf8');
@@ -107,11 +106,11 @@ const loadUserServers = async () => {
 	}
 };
 
-export const setupServers = async (reduxStore, localStorage) => {
-	let servers = selectServers(reduxStore.getState());
+export const setupServers = async (reduxStore: Store, localStorage: Record<string, string>): Promise<void> => {
+	let servers = selectServers(reduxStore.getState()) as Server[];
 	let currentServerUrl = selectCurrentServerUrl(reduxStore.getState());
 
-	const serversMap = new Map(
+	const serversMap = new Map<Server['url'], Server>(
 		servers
 			.filter(Boolean)
 			.filter(({ url, title }) => typeof url === 'string' && typeof title === 'string')
@@ -163,8 +162,8 @@ export const setupServers = async (reduxStore, localStorage) => {
 		try {
 			const sorting = JSON.parse(localStorage['rocket.chat.sortOrder']);
 			if (Array.isArray(sorting)) {
-				servers = [...serversMap.entries()]
-					.sort(([a], [b]) => sorting.indexOf(a) - sorting.indexOf(b));
+				servers = [...serversMap.values()]
+					.sort((a, b) => sorting.indexOf(a.url) - sorting.indexOf(b.url));
 			}
 		} catch (error) {
 			console.warn(error);
@@ -178,6 +177,17 @@ export const setupServers = async (reduxStore, localStorage) => {
 			currentServerUrl,
 		},
 	});
-
-	ipcMain.handle(QUERY_SERVER_VALIDATION, (event, serverUrl, timeout) => validateServerUrl(serverUrl, timeout));
 };
+
+export function *takeServersActions(): Generator<Effect> {
+	yield takeEvery(SERVER_VALIDATION_REQUESTED, function *(action: RequestAction<{ serverUrl: string; timeout: number }>) {
+		const { meta: { id }, payload: { serverUrl, timeout } } = action;
+
+		try {
+			const validationResult = yield call(() => validateServerUrl(serverUrl, timeout));
+			yield put({ type: SERVER_VALIDATION_RESPONDED, meta: { id, response: true }, payload: validationResult });
+		} catch (error) {
+			yield put({ type: SERVER_VALIDATION_RESPONDED, meta: { id, response: true }, payload: error, error: true });
+		}
+	});
+}

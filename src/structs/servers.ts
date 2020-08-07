@@ -9,3 +9,9 @@ export type Server = {
 	};
 	lastPath?: string;
 };
+
+export enum ValidationResult {
+	OK = 'OK',
+	TIMEOUT = 'TIMEOUT',
+	INVALID = 'INVALID',
+}

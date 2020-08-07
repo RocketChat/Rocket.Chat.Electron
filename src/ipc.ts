@@ -35,12 +35,9 @@ export const EVENT_BROWSER_VIEW_CONTEXT_MENU_TRIGGERED = 'event/browser-view-con
 export const EVENT_CLIENT_CERTIFICATE_SELECTED = 'event/client-certificate-selected';
 export const EVENT_CLIENT_CERTIFICATE_REQUESTED = 'event/client-certificate-requested';
 export const EVENT_UPDATE_DOWNLOAD_ALLOWED = 'event/update-download-allowed';
-export const EVENT_CHECK_FOR_UPDATES_REQUESTED = 'event/check-for-updates-requested';
 export const EVENT_UPDATE_SKIPPED = 'event/update-skipped';
 export const EVENT_WEB_CONTENTS_FOCUS_CHANGED = 'event/web-contents-focus-changed';
 export const QUERY_I18N_PARAMS = 'query/i18n-params';
-export const QUERY_SERVER_VALIDATION = 'query/server-validation';
-export const EVENT_CERTIFICATES_UPDATED = 'event/certificates-updated';
 export const EVENT_BROWSER_VIEW_ATTACHED = 'event/browser-view-attached';
 
 enum ReduxIpcChannel {

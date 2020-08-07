@@ -12,7 +12,7 @@ export function ServersView() {
 		{servers.map((server) => <ServerPane
 			key={server.url}
 			lastPath={server.lastPath}
-			url={server.url}
+			serverUrl={server.url}
 			isSelected={currentServerUrl === server.url}
 		/>)}
 	</ReparentingContainer>;

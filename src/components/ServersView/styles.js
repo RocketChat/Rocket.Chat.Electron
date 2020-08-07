@@ -19,7 +19,7 @@ export const StyledWebView = styled('webview')`
 	right: 0;
 	bottom: 0;
 
-${ ({ isVisible }) => css`display: ${ isVisible ? 'flex' : 'none' };` }
+	${ ({ isFailed }) => css`display: ${ isFailed ? 'none' : 'flex' };` }
 `;
 
 export const ErrorPane = styled.div`

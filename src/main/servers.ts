@@ -5,12 +5,15 @@ import url from 'url';
 import { app } from 'electron';
 import fetch from 'node-fetch';
 import { Store } from 'redux';
-import { takeEvery, call, put, Effect } from 'redux-saga/effects';
+import { takeEvery, call, put, Effect, take } from 'redux-saga/effects';
 
 import {
 	PERSISTABLE_VALUES_MERGED,
 	SERVER_VALIDATION_REQUESTED,
 	SERVER_VALIDATION_RESPONDED,
+	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
+	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
+	SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../actions';
 import { RequestAction } from '../channels';
 import { selectServers, selectCurrentServerUrl } from '../selectors';
@@ -189,5 +192,20 @@ export function *takeServersActions(): Generator<Effect> {
 		} catch (error) {
 			yield put({ type: SERVER_VALIDATION_RESPONDED, meta: { id, response: true }, payload: error, error: true });
 		}
+	});
+
+	yield takeEvery(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, function *(action: RequestAction<unknown[]>) {
+		const { meta: { id } } = action;
+
+		const responseAction = yield take([
+			SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
+			SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
+		]);
+
+		const fingerprint = responseAction.type === SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED
+			? responseAction.payload
+			: null;
+
+		yield put({ type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, meta: { id, response: true }, payload: fingerprint });
 	});
 }

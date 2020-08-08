@@ -1,41 +1,30 @@
 import { Box, Button, Margins, Scrollable, Tile } from '@rocket.chat/fuselage';
-import { ipcRenderer } from 'electron';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
 
 import {
-	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
 	SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
+	SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../../actions';
-import { EVENT_CLIENT_CERTIFICATE_REQUESTED, EVENT_CLIENT_CERTIFICATE_SELECTED } from '../../ipc';
+import { selectOpenDialog, selectClientCertificates } from '../../selectors';
 import { Dialog } from '../Dialog';
 
 export function SelectClientCertificateDialog() {
-	const isVisible = useSelector(({ openDialog }) => openDialog === 'select-client-certificate');
-	const [certificateList, setCertificateList] = useState([]);
+	const openDialog = useSelector(selectOpenDialog);
+	const clientCertificates = useSelector(selectClientCertificates);
+	const isVisible = openDialog === 'select-client-certificate';
 	const dispatch = useDispatch();
 
-	useEffect(() => {
-		const handleClientCertificateRequestedEvent = (event, certificateList) => {
-			setCertificateList(certificateList);
-			dispatch({ type: CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED });
-		};
-
-		ipcRenderer.addListener(EVENT_CLIENT_CERTIFICATE_REQUESTED, handleClientCertificateRequestedEvent);
-
-		return () => {
-			ipcRenderer.removeListener(EVENT_CLIENT_CERTIFICATE_REQUESTED, handleClientCertificateRequestedEvent);
-		};
-	}, [dispatch]);
-
-	const handleClose = () => {
-		setCertificateList([]);
+	const handleSelect = (certificate) => () => {
+		dispatch({
+			type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
+			payload: certificate.fingerprint,
+		});
 	};
 
-	const handleSelect = (certificate) => () => {
-		ipcRenderer.send(EVENT_CLIENT_CERTIFICATE_SELECTED, certificate.fingerprint);
-		dispatch({ type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED });
+	const handleClose = () => {
+		dispatch({ type: SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED });
 	};
 
 	const { t } = useTranslation();
@@ -46,7 +35,7 @@ export function SelectClientCertificateDialog() {
 			<Scrollable>
 				<Box>
 					<Margins all='x12'>
-						{certificateList.map((certificate, i) => <Tile key={i}>
+						{clientCertificates.map((certificate, i) => <Tile key={i}>
 							<Margins inline='neg-x8'>
 								<Box display='flex' alignItems='end' justifyContent='space-between'>
 									<Margins inline='x8'>

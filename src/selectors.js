@@ -108,3 +108,4 @@ export const selectDictionaryName = createSelector([
 export const selectAppPath = ({ appPath }) => appPath;
 export const selectAppVersion = ({ appVersion }) => appVersion;
 export const selectUpdateError = ({ updateError }) => updateError;
+export const selectClientCertificates = ({ clientCertificates }) => clientCertificates ?? [];

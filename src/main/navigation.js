@@ -2,17 +2,15 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 
-import { app, ipcMain } from 'electron';
+import { app } from 'electron';
 import { t } from 'i18next';
 
 import {
 	CERTIFICATES_UPDATED,
 	PERSISTABLE_VALUES_MERGED,
+	CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
 } from '../actions';
-import {
-	EVENT_CLIENT_CERTIFICATE_SELECTED,
-	EVENT_CLIENT_CERTIFICATE_REQUESTED,
-} from '../ipc';
+import { request } from '../channels';
 import { selectServers, selectTrustedCertificates } from '../selectors';
 import { AskForCertificateTrustResponse, askForCertificateTrust } from './ui/dialogs';
 
@@ -98,18 +96,7 @@ export const setupNavigation = async (reduxStore, rootWindow) => {
 	app.addListener('select-client-certificate', async (event, webContents, url, certificateList, callback) => {
 		event.preventDefault();
 
-		certificateList = JSON.parse(JSON.stringify(certificateList));
-
-		const response = new Promise((resolve) => {
-			ipcMain.prependOnceListener(EVENT_CLIENT_CERTIFICATE_SELECTED, (event, fingerprint) => {
-				resolve(fingerprint);
-			});
-
-			webContents.send(EVENT_CLIENT_CERTIFICATE_REQUESTED, certificateList);
-		});
-
-		const fingerprint = await response;
-
+		const fingerprint = await request(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, JSON.parse(JSON.stringify(certificateList)));
 		const certificate = certificateList.find((certificate) => certificate.fingerprint === fingerprint);
 
 		if (!certificate) {

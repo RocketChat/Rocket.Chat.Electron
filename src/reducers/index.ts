@@ -2,6 +2,7 @@ import { combineReducers } from 'redux';
 
 import { appPath } from './appPath';
 import { appVersion } from './appVersion';
+import { clientCertificates } from './clientCertificates';
 import { currentServerUrl } from './currentServerUrl';
 import { doCheckForUpdatesOnStartup } from './doCheckForUpdatesOnStartup';
 import { editFlags } from './editFlags';
@@ -27,6 +28,7 @@ import { updateError } from './updateError';
 export const rootReducer = combineReducers({
 	appPath,
 	appVersion,
+	clientCertificates,
 	currentServerUrl,
 	doCheckForUpdatesOnStartup,
 	editFlags,

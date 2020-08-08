@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app, ipcMain } from 'electron';
+import { app } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import { takeEvery, call, put } from 'redux-saga/effects';
 
@@ -12,13 +12,10 @@ import {
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_READY,
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-	UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED,
 	UPDATES_CHECK_FOR_UPDATES_REQUESTED,
+	UPDATE_SKIPPED,
+	UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
 } from '../actions';
-import {
-	EVENT_UPDATE_DOWNLOAD_ALLOWED,
-	EVENT_UPDATE_SKIPPED,
-} from '../ipc';
 import {
 	selectSkippedUpdateVersion,
 	selectUpdateConfiguration,
@@ -168,29 +165,6 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 		});
 	});
 
-	ipcMain.addListener(EVENT_UPDATE_DOWNLOAD_ALLOWED, async () => {
-		await warnAboutUpdateDownload(rootWindow);
-		reduxStore.dispatch({ type: UPDATE_DIALOG_DOWNLOAD_UPDATE_CLICKED });
-
-		try {
-			autoUpdater.downloadUpdate();
-		} catch (error) {
-			reduxStore.dispatch({
-				type: UPDATES_ERROR_THROWN,
-				payload: {
-					message: error.message,
-					stack: error.stack,
-					name: error.name,
-				},
-			});
-		}
-	});
-
-	ipcMain.addListener(EVENT_UPDATE_SKIPPED, async (newVersion) => {
-		await warnAboutUpdateSkipped(rootWindow);
-		reduxStore.dispatch({ type: UPDATE_DIALOG_SKIP_UPDATE_CLICKED, payload: newVersion });
-	});
-
 	if (doCheckForUpdatesOnStartup) {
 		try {
 			await autoUpdater.checkForUpdates();
@@ -207,10 +181,33 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 	}
 };
 
-export function *takeUpdateActions() {
+export function *takeUpdateActions(rootWindow) {
 	yield takeEvery(UPDATES_CHECK_FOR_UPDATES_REQUESTED, function *() {
 		try {
 			yield call(() => autoUpdater.checkForUpdates());
+		} catch (error) {
+			yield put({
+				type: UPDATES_ERROR_THROWN,
+				payload: {
+					message: error.message,
+					stack: error.stack,
+					name: error.name,
+				},
+			});
+		}
+	});
+
+	yield takeEvery(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, function *(action) {
+		const { payload: newVersion } = action;
+		yield call(() => warnAboutUpdateSkipped(rootWindow));
+		yield put({ type: UPDATE_SKIPPED, payload: newVersion });
+	});
+
+	yield takeEvery(UPDATE_DIALOG_INSTALL_BUTTON_CLICKED, function *() {
+		yield call(() => warnAboutUpdateDownload(rootWindow));
+
+		try {
+			autoUpdater.downloadUpdate();
 		} catch (error) {
 			yield put({
 				type: UPDATES_ERROR_THROWN,

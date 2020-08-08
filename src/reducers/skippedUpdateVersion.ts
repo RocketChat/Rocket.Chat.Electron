@@ -1,9 +1,9 @@
 import { AnyAction } from 'redux';
 
 import {
-	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATES_READY,
 	PERSISTABLE_VALUES_MERGED,
+	UPDATE_SKIPPED,
 } from '../actions';
 
 export const skippedUpdateVersion = (state = null, { type, payload }: AnyAction): string | null => {
@@ -13,7 +13,7 @@ export const skippedUpdateVersion = (state = null, { type, payload }: AnyAction)
 			return skippedUpdateVersion;
 		}
 
-		case UPDATE_DIALOG_SKIP_UPDATE_CLICKED: {
+		case UPDATE_SKIPPED: {
 			const skippedUpdateVersion = payload;
 			return skippedUpdateVersion;
 		}

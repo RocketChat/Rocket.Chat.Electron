@@ -1,6 +1,5 @@
 import { parse as parseUrl } from 'url';
 
-import { ipcRenderer } from 'electron';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,8 +7,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
 	SIDE_BAR_SERVER_SELECTED,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
+	SIDE_BAR_CONTEXT_MENU_TRIGGERED,
 } from '../../actions';
-import { EVENT_SIDEBAR_CONTEXT_MENU_TRIGGERED } from '../../ipc';
 import {
 	AddServerButton,
 	AddServerButtonLabel,
@@ -56,7 +55,7 @@ function ServerButton({
 
 	const handleServerContextMenu = (event) => {
 		event.preventDefault();
-		ipcRenderer.send(EVENT_SIDEBAR_CONTEXT_MENU_TRIGGERED, url);
+		dispatch({ type: SIDE_BAR_CONTEXT_MENU_TRIGGERED, payload: url });
 	};
 
 	return <ServerButtonWrapper

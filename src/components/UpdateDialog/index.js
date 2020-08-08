@@ -1,5 +1,4 @@
 import { Box, Button, ButtonGroup, Chevron, Margins } from '@rocket.chat/fuselage';
-import { ipcRenderer } from 'electron';
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,8 +6,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
 	UPDATE_DIALOG_DISMISSED,
 	UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
+	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
+	UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
 } from '../../actions';
-import { EVENT_UPDATE_DOWNLOAD_ALLOWED, EVENT_UPDATE_SKIPPED } from '../../ipc';
 import { Dialog } from '../Dialog';
 
 export function UpdateDialog() {
@@ -31,7 +31,7 @@ export function UpdateDialog() {
 	}, [isVisible]);
 
 	const handleSkipButtonClick = () => {
-		ipcRenderer.send(EVENT_UPDATE_SKIPPED, newVersion);
+		dispatch({ type: UPDATE_DIALOG_SKIP_UPDATE_CLICKED, payload: newVersion });
 	};
 
 	const handleRemindLaterButtonClick = () => {
@@ -39,10 +39,14 @@ export function UpdateDialog() {
 	};
 
 	const handleInstallButtonClick = () => {
-		ipcRenderer.send(EVENT_UPDATE_DOWNLOAD_ALLOWED);
+		dispatch({ type: UPDATE_DIALOG_INSTALL_BUTTON_CLICKED });
 	};
 
-	return <Dialog isVisible={isVisible} onClose={() => dispatch({ type: UPDATE_DIALOG_DISMISSED })}>
+	const handleClose = () => {
+		dispatch({ type: UPDATE_DIALOG_DISMISSED });
+	};
+
+	return <Dialog isVisible={isVisible} onClose={handleClose}>
 		<Box display='flex' flexDirection='column' alignItems='center'>
 			<Margins block='x8'>
 				<Box fontScale='h1'>{t('dialog.update.announcement')}</Box>

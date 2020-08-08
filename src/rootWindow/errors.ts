@@ -1,8 +1,10 @@
 import Bugsnag from '@bugsnag/js';
-import { ipcRenderer } from 'electron';
 import { Store } from 'redux';
 
-import { EVENT_ERROR_THROWN } from '../ipc';
+import {
+	APP_ERROR_THROWN,
+} from '../actions';
+import { dispatch } from '../channels';
 
 const setupBugsnag = (apiKey: string, appVersion: string): void => {
 	Bugsnag.start({
@@ -16,12 +18,26 @@ const setupBugsnag = (apiKey: string, appVersion: string): void => {
 
 const handleErrorEvent = (event: ErrorEvent): void => {
 	const { error } = event;
-	ipcRenderer.send(EVENT_ERROR_THROWN, error && (error.stack || error));
+	dispatch({
+		type: APP_ERROR_THROWN,
+		payload: {
+			message: error.message,
+			stack: error.stack,
+			name: error.name,
+		},
+	});
 };
 
 const handleUnhandledRejectionEvent = (event: PromiseRejectionEvent): void => {
 	const { reason } = event;
-	ipcRenderer.send(EVENT_ERROR_THROWN, reason && (reason.stack || reason));
+	dispatch({
+		type: APP_ERROR_THROWN,
+		payload: {
+			message: reason.message,
+			stack: reason.stack,
+			name: reason.name,
+		},
+	});
 };
 
 export const setupErrorHandling = (reduxStore: Store): void => {

@@ -1,13 +1,22 @@
-import { ipcRenderer } from 'electron';
 import { Component, ReactNode, ErrorInfo } from 'react';
 
-import { EVENT_ERROR_THROWN } from '../../ipc';
+import {
+	APP_ERROR_THROWN,
+} from '../../actions';
+import { dispatch } from '../../channels';
 
 export class ErrorCatcher extends Component {
 	componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
 		console.error(error);
 		console.error(errorInfo.componentStack);
-		ipcRenderer.send(EVENT_ERROR_THROWN, error && (error.stack || error));
+		dispatch({
+			type: APP_ERROR_THROWN,
+			payload: {
+				message: error.message,
+				stack: error.stack,
+				name: error.name,
+			},
+		});
 	}
 
 	render(): ReactNode {

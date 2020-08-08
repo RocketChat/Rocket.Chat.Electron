@@ -24,6 +24,7 @@ export const isResponse = (action: AnyAction): action is RequestAction<unknown> 
 
 export const requestsChannel = channel<RequestAction<unknown>>();
 export const responsesChannel = stdChannel<ResponseAction<unknown>>();
+export const actionsChannel = channel<AnyAction>();
 
 export function *takeRequests(): Generator<Effect> {
 	yield takeEvery(requestsChannel, function *(action: AnyAction) {
@@ -32,6 +33,10 @@ export function *takeRequests(): Generator<Effect> {
 
 	yield takeEvery(isResponse, function *(action) {
 		yield put(responsesChannel, action);
+	});
+
+	yield takeEvery(actionsChannel, function *(action: AnyAction) {
+		yield put(action);
 	});
 }
 
@@ -59,3 +64,7 @@ export const request = <P, RP>(actionType: string, payload: P): Promise<RP> =>
 			resolve(action.payload);
 		}, (action) => action.meta.id === id);
 	});
+
+export const dispatch = (action: AnyAction): void => {
+	actionsChannel.put(action);
+};

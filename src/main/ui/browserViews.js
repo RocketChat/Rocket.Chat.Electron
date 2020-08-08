@@ -7,7 +7,6 @@ import {
 	WEBVIEW_UNREAD_CHANGED,
 	WEBVIEW_MESSAGE_BOX_FOCUSED,
 	WEBVIEW_MESSAGE_BOX_BLURRED,
-	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	WEBVIEW_FOCUS_REQUESTED,
 	WEBVIEW_EDIT_FLAGS_CHANGED,
 } from '../../actions';
@@ -18,14 +17,13 @@ import {
 	EVENT_SERVER_FAVICON_CHANGED,
 	EVENT_SERVER_BADGE_CHANGED,
 	EVENT_SERVER_SIDEBAR_STYLE_CHANGED,
-	QUERY_SCREEN_SHARING_SOURCE,
 	EVENT_SIDEBAR_VISIBLE,
 	EVENT_SIDEBAR_HIDDEN,
 	EVENT_MESSAGE_BOX_BLURRED,
 	EVENT_MESSAGE_BOX_FOCUSED,
-	EVENT_SCREEN_SHARING_SOURCE_SELECTED,
 } from '../../ipc';
 import { selectIsSideBarVisible } from '../../selectors';
+
 
 export const setupBrowserViews = (reduxStore, rootWindow) => {
 	ipcMain.addListener(EVENT_SERVER_TITLE_CHANGED, (event, { url, title }) => {
@@ -59,16 +57,6 @@ export const setupBrowserViews = (reduxStore, rootWindow) => {
 
 	ipcMain.addListener(EVENT_EDIT_FLAGS_CHANGED, (event, editFlags) => {
 		reduxStore.dispatch({ type: WEBVIEW_EDIT_FLAGS_CHANGED, payload: { editFlags } });
-	});
-
-	ipcMain.handle(QUERY_SCREEN_SHARING_SOURCE, async () => {
-		reduxStore.dispatch({ type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED });
-
-		return new Promise((resolve) => {
-			ipcMain.prependOnceListener(EVENT_SCREEN_SHARING_SOURCE_SELECTED, (event, sourceId) => {
-				resolve(sourceId);
-			});
-		});
 	});
 
 	let prevIsSideBarVisible;

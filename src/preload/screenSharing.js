@@ -1,10 +1,9 @@
-import { ipcRenderer } from 'electron';
-
-import { QUERY_SCREEN_SHARING_SOURCE } from '../ipc';
+import { WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED } from '../actions';
+import { request } from '../channels';
 
 const handleGetSourceIdEvent = async () => {
 	try {
-		const sourceId = await ipcRenderer.invoke(QUERY_SCREEN_SHARING_SOURCE);
+		const sourceId = await request(WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED);
 		window.top.postMessage({ sourceId }, '*');
 	} catch (error) {
 		window.top.postMessage({ sourceId: 'PermissionDeniedError' }, '*');

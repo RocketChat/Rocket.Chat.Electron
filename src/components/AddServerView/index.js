@@ -18,7 +18,7 @@ import {
 	SERVER_VALIDATION_REQUESTED,
 	ADD_SERVER_VIEW_SERVER_ADDED,
 } from '../../actions';
-import { request } from '../../rootWindow/channels';
+import { request } from '../../channels';
 import { selectCurrentServerUrl } from '../../selectors';
 import { ValidationResult } from '../../structs/servers';
 import { RocketChatLogo } from '../RocketChatLogo';

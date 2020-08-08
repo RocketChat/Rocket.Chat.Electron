@@ -11,6 +11,7 @@ import {
 	Menu,
 } from 'electron';
 import { t } from 'i18next';
+import { takeEvery, call } from 'redux-saga/effects';
 import { createSelector } from 'reselect';
 
 import {
@@ -23,8 +24,14 @@ import {
 	WEBVIEW_DID_START_LOADING,
 	WEBVIEW_DID_FAIL_LOAD,
 	WEBVIEW_DOM_READY,
+	SIDE_BAR_REMOVE_SERVER_CLICKED,
+	SIDE_BAR_CONTEXT_MENU_TRIGGERED,
 } from '../../actions';
-import { EVENT_WEB_CONTENTS_FOCUS_CHANGED, EVENT_BROWSER_VIEW_ATTACHED } from '../../ipc';
+import { dispatch } from '../../channels';
+import {
+	EVENT_WEB_CONTENTS_FOCUS_CHANGED,
+	EVENT_BROWSER_VIEW_ATTACHED,
+} from '../../ipc';
 import {
 	selectGlobalBadge,
 	selectGlobalBadgeCount,
@@ -520,3 +527,36 @@ export const setupRootWindow = (reduxStore, rootWindow) => {
 		});
 	});
 };
+
+export function *takeUiActions(rootWindow) {
+	yield takeEvery(SIDE_BAR_CONTEXT_MENU_TRIGGERED, function *(action) {
+		const { payload: serverUrl } = action;
+		yield call(() => {
+			const menuTemplate = [
+				{
+					label: t('sidebar.item.reload'),
+					click: () => {
+						const guestWebContents = getWebContentsByServerUrl(serverUrl);
+						guestWebContents.loadURL(serverUrl);
+					},
+				},
+				{
+					label: t('sidebar.item.remove'),
+					click: () => {
+						dispatch({ type: SIDE_BAR_REMOVE_SERVER_CLICKED, payload: serverUrl });
+					},
+				},
+				{ type: 'separator' },
+				{
+					label: t('sidebar.item.openDevTools'),
+					click: () => {
+						const guestWebContents = getWebContentsByServerUrl(serverUrl);
+						guestWebContents.openDevTools();
+					},
+				},
+			];
+			const menu = Menu.buildFromTemplate(menuTemplate);
+			menu.popup(rootWindow);
+		});
+	});
+}

@@ -1,6 +1,7 @@
 import { Store } from 'redux';
 import { Effect, call } from 'redux-saga/effects';
 
+import { takeRequests } from '../channels';
 import { whenReady } from '../whenReady';
 import { setupEditFlagsChanges } from './editFlags';
 import { setupErrorHandling } from './errors';
@@ -18,8 +19,10 @@ import { setupScreenSharing } from './screenSharing';
 import { setupSpellChecking } from './spellChecking';
 
 export function *rootSaga(reduxStore: Store): Generator<Effect> {
+	yield *takeRequests();
+
 	yield call(async () => {
-		whenReady();
+		await whenReady();
 
 		setupErrorHandling(reduxStore);
 		setupEditFlagsChanges();

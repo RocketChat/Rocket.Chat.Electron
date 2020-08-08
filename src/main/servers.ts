@@ -12,7 +12,7 @@ import {
 	SERVER_VALIDATION_REQUESTED,
 	SERVER_VALIDATION_RESPONDED,
 } from '../actions';
-import { RequestAction } from '../rootWindow/channels';
+import { RequestAction } from '../channels';
 import { selectServers, selectCurrentServerUrl } from '../selectors';
 import { ValidationResult, Server } from '../structs/servers';
 

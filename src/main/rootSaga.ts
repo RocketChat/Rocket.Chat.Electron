@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import { Store } from 'redux';
 import { call, put, Effect } from 'redux-saga/effects';
 
@@ -6,8 +6,9 @@ import {
 	APP_PATH_SET,
 	APP_VERSION_SET,
 } from '../actions';
+import { takeRequests } from '../channels';
 import { selectMainWindowState } from '../selectors';
-import { setupApp } from './app';
+import { setupApp, takeAppActions } from './app';
 import { getLocalStorage, mergePersistableValues, purgeLocalStorage, watchAndPersistChanges } from './data';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks';
 import { setupElectronReloader, installDevTools } from './dev';
@@ -15,14 +16,14 @@ import { createElectronStore } from './electronStore';
 import { setupI18n } from './i18n';
 import { setupNavigation } from './navigation';
 import { setupPowerMonitor } from './powerMonitor';
+import { takeScreenSharingActions } from './screenSharing';
 import { setupServers, takeServersActions } from './servers';
 import { setupSpellChecking } from './spellChecking';
 import { setupBrowserViews } from './ui/browserViews';
-import { setupSideBarContextMenu } from './ui/contextMenus/sidebar';
 import { setupDock } from './ui/dock';
 import { setupMenuBar } from './ui/menuBar';
 import { setupNotifications } from './ui/notifications';
-import { createRootWindow, setupRootWindow, applyMainWindowState } from './ui/rootWindow';
+import { createRootWindow, setupRootWindow, applyMainWindowState, takeUiActions } from './ui/rootWindow';
 import { setupTouchBar } from './ui/touchBar';
 import { setupTrayIcon } from './ui/trayIcon';
 import { setupUpdates, takeUpdateActions } from './updates';
@@ -44,9 +45,11 @@ export function *rootSaga(reduxStore: Store): Generator<Effect> {
 
 	yield call(async () => {
 		await setupI18n();
+	});
 
-		const rootWindow = await createRootWindow(reduxStore);
+	const rootWindow = (yield call(() => createRootWindow(reduxStore))) as BrowserWindow;
 
+	yield call(async () => {
 		const localStorage = await getLocalStorage(rootWindow.webContents);
 
 		await mergePersistableValues(reduxStore, electronStore, localStorage);
@@ -64,7 +67,6 @@ export function *rootSaga(reduxStore: Store): Generator<Effect> {
 		setupDock(reduxStore);
 		setupMenuBar(reduxStore, rootWindow);
 		setupRootWindow(reduxStore, rootWindow);
-		setupSideBarContextMenu(reduxStore, rootWindow);
 		setupTouchBar(reduxStore, rootWindow);
 		setupTrayIcon(reduxStore, rootWindow);
 
@@ -75,8 +77,12 @@ export function *rootSaga(reduxStore: Store): Generator<Effect> {
 		watchAndPersistChanges(reduxStore, electronStore);
 	});
 
+	yield *takeRequests();
+	yield *takeAppActions();
 	yield *takeServersActions();
-	yield *takeUpdateActions();
+	yield *takeUpdateActions(rootWindow);
+	yield *takeScreenSharingActions();
+	yield *takeUiActions(rootWindow);
 
 	yield call(async () => {
 		await processDeepLinksInArgs();

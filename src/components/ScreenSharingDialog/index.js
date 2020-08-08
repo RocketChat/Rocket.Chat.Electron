@@ -1,16 +1,20 @@
 import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
-import { desktopCapturer, ipcRenderer } from 'electron';
+import { desktopCapturer } from 'electron';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../actions';
-import { EVENT_SCREEN_SHARING_SOURCE_SELECTED } from '../../ipc';
+import {
+	SCREEN_SHARING_DIALOG_DISMISSED,
+	WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
+} from '../../actions';
+import { selectOpenDialog } from '../../selectors';
 import { Dialog } from '../Dialog';
 import { Source } from './styles';
 
 export function ScreenSharingDialog() {
-	const isVisible = useSelector(({ openDialog }) => openDialog === 'screen-sharing');
+	const openDialog = useSelector(selectOpenDialog);
+	const isVisible = openDialog === 'screen-sharing';
 	const dispatch = useDispatch();
 
 	const { t } = useTranslation();
@@ -37,12 +41,10 @@ export function ScreenSharingDialog() {
 	}, [isVisible]);
 
 	const handleScreenSharingSourceClick = (id) => () => {
-		ipcRenderer.send(EVENT_SCREEN_SHARING_SOURCE_SELECTED, id);
-		dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
+		dispatch({ type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, payload: id });
 	};
 
 	const handleClose = () => {
-		ipcRenderer.send(EVENT_SCREEN_SHARING_SOURCE_SELECTED, null);
 		dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
 	};
 

@@ -1,8 +1,11 @@
-import { app, ipcMain, BrowserWindow } from 'electron';
-import { Store } from 'redux';
+import { app, BrowserWindow } from 'electron';
+import { Store, AnyAction } from 'redux';
+import { Effect, takeEvery } from 'redux-saga/effects';
 import rimraf from 'rimraf';
 
-import { EVENT_ERROR_THROWN } from '../ipc';
+import {
+	APP_ERROR_THROWN,
+} from '../actions';
 
 export const relaunchApp = (...args: string[]): void => {
 	const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
@@ -61,8 +64,11 @@ export const setupApp = (_reduxStore: Store, rootWindow: BrowserWindow): void =>
 	app.addListener('window-all-closed', () => {
 		app.quit();
 	});
-
-	ipcMain.addListener(EVENT_ERROR_THROWN, (_event, error) => {
-		console.error(error);
-	});
 };
+
+export function *takeAppActions(): Generator<Effect> {
+	yield takeEvery(APP_ERROR_THROWN, function *(action: AnyAction) {
+		const { payload: error } = action;
+		console.error(error.stack);
+	});
+}

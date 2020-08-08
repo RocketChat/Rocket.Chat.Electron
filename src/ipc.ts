@@ -3,9 +3,7 @@ import { Middleware, MiddlewareAPI, Dispatch, AnyAction } from 'redux';
 
 import { isFSA, FluxStandardAction } from './structs/fsa';
 
-export const EVENT_ERROR_THROWN = 'event/error-thrown';
 export const EVENT_EDIT_FLAGS_CHANGED = 'event/edit-flags-changed';
-export const QUERY_SCREEN_SHARING_SOURCE = 'query/screen-sharing-source';
 export const QUERY_SPELL_CHECKING_LANGUAGE = 'query/spell-checking-language';
 export const EVENT_SPELL_CHECKING_LANGUAGE_CHANGED = 'event/spell-checking-language-changed';
 export const QUERY_MISSPELT_WORDS = 'query/misspelt-words';
@@ -29,13 +27,9 @@ export const EVENT_NOTIFICATION_CLICKED = 'event/notification-clicked';
 export const EVENT_NOTIFICATION_REPLIED = 'event/notification-replied';
 export const EVENT_NOTIFICATION_ACTIONED = 'event/notification-actioned';
 export const EVENT_SERVER_FOCUSED = 'event/server-focused';
-export const EVENT_SCREEN_SHARING_SOURCE_SELECTED = 'event/screen-sharing-source-selected';
-export const EVENT_SIDEBAR_CONTEXT_MENU_TRIGGERED = 'event/sidebar-context-menu-triggered';
 export const EVENT_BROWSER_VIEW_CONTEXT_MENU_TRIGGERED = 'event/browser-view-context-menu-triggered';
 export const EVENT_CLIENT_CERTIFICATE_SELECTED = 'event/client-certificate-selected';
 export const EVENT_CLIENT_CERTIFICATE_REQUESTED = 'event/client-certificate-requested';
-export const EVENT_UPDATE_DOWNLOAD_ALLOWED = 'event/update-download-allowed';
-export const EVENT_UPDATE_SKIPPED = 'event/update-skipped';
 export const EVENT_WEB_CONTENTS_FOCUS_CHANGED = 'event/web-contents-focus-changed';
 export const QUERY_I18N_PARAMS = 'query/i18n-params';
 export const EVENT_BROWSER_VIEW_ATTACHED = 'event/browser-view-attached';

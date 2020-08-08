@@ -36,11 +36,11 @@ export const setupI18n = async (): Promise<void> => {
 			},
 			interpolation: {
 				format: (value, _format, lng) => {
-					if (value instanceof Date) {
+					if (value instanceof Date && !Number.isNaN(value.getTime())) {
 						return new Intl.DateTimeFormat(lng).format(value);
 					}
 
-					return value;
+					return String(value);
 				},
 			},
 			initImmediate: true,
@@ -48,9 +48,13 @@ export const setupI18n = async (): Promise<void> => {
 
 	ipcMain.handle(QUERY_I18N_PARAMS, () => ({
 		lng: i18next.language,
+		fallbackLng: defaultLocale,
 		resources: {
 			[i18next.language]: {
 				translation: i18next.getResourceBundle(i18next.language, 'translation'),
+			},
+			[defaultLocale]: {
+				translation: i18next.getResourceBundle(defaultLocale, 'translation'),
 			},
 		},
 	}));

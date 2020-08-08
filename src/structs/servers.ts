@@ -8,6 +8,7 @@ export type Server = {
 		color: string | null;
 	};
 	lastPath?: string;
+	failed?: boolean;
 };
 
 export enum ValidationResult {

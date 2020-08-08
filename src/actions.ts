@@ -47,7 +47,6 @@ export const UPDATES_READY = 'updates/ready';
 export const WEBVIEW_DID_FAIL_LOAD = 'webview/did-fail-load';
 export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
 export const WEBVIEW_DID_START_LOADING = 'webview/did-start-loading';
-export const WEBVIEW_DOM_READY = 'webview/dom-ready';
 export const WEBVIEW_EDIT_FLAGS_CHANGED = 'webview/edit-flags-changed';
 export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
 export const WEBVIEW_FOCUS_REQUESTED = 'webview/focus-requested';

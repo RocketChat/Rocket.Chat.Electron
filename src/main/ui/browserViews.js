@@ -5,8 +5,6 @@ import {
 	WEBVIEW_FAVICON_CHANGED,
 	WEBVIEW_SIDEBAR_STYLE_CHANGED,
 	WEBVIEW_UNREAD_CHANGED,
-	WEBVIEW_MESSAGE_BOX_FOCUSED,
-	WEBVIEW_MESSAGE_BOX_BLURRED,
 	WEBVIEW_FOCUS_REQUESTED,
 	WEBVIEW_EDIT_FLAGS_CHANGED,
 } from '../../actions';
@@ -19,8 +17,6 @@ import {
 	EVENT_SERVER_SIDEBAR_STYLE_CHANGED,
 	EVENT_SIDEBAR_VISIBLE,
 	EVENT_SIDEBAR_HIDDEN,
-	EVENT_MESSAGE_BOX_BLURRED,
-	EVENT_MESSAGE_BOX_FOCUSED,
 } from '../../ipc';
 import { selectIsSideBarVisible } from '../../selectors';
 
@@ -40,14 +36,6 @@ export const setupBrowserViews = (reduxStore, rootWindow) => {
 
 	ipcMain.addListener(EVENT_SERVER_BADGE_CHANGED, (event, { url, badge }) => {
 		reduxStore.dispatch({ type: WEBVIEW_UNREAD_CHANGED, payload: { url, badge } });
-	});
-
-	ipcMain.addListener(EVENT_MESSAGE_BOX_FOCUSED, () => {
-		reduxStore.dispatch({ type: WEBVIEW_MESSAGE_BOX_FOCUSED });
-	});
-
-	ipcMain.addListener(EVENT_MESSAGE_BOX_BLURRED, () => {
-		reduxStore.dispatch({ type: WEBVIEW_MESSAGE_BOX_BLURRED });
 	});
 
 	ipcMain.addListener(EVENT_SERVER_FOCUSED, (event, { url }) => {

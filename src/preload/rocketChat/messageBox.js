@@ -1,9 +1,12 @@
 import { ipcRenderer } from 'electron';
 
 import {
+	WEBVIEW_MESSAGE_BOX_FOCUSED,
+	WEBVIEW_MESSAGE_BOX_BLURRED,
+} from '../../actions';
+import { dispatch } from '../../channels';
+import {
 	EVENT_FORMAT_BUTTON_TOUCHED,
-	EVENT_MESSAGE_BOX_FOCUSED,
-	EVENT_MESSAGE_BOX_BLURRED,
 } from '../../ipc';
 
 let focusedMessageBoxInput = null;
@@ -14,7 +17,7 @@ const handleFocusEvent = (event) => {
 	}
 
 	focusedMessageBoxInput = event.target;
-	ipcRenderer.send(EVENT_MESSAGE_BOX_FOCUSED);
+	dispatch({ type: WEBVIEW_MESSAGE_BOX_FOCUSED });
 };
 
 const handleBlurEvent = (event) => {
@@ -23,7 +26,7 @@ const handleBlurEvent = (event) => {
 	}
 
 	focusedMessageBoxInput = null;
-	ipcRenderer.send(EVENT_MESSAGE_BOX_BLURRED);
+	dispatch({ type: WEBVIEW_MESSAGE_BOX_BLURRED });
 };
 
 export const setupMessageBoxEvents = () => {

@@ -5,7 +5,9 @@ import { useDispatch } from 'react-redux';
 import {
 	ROOT_WINDOW_EDIT_FLAGS_CHANGED,
 } from '../../actions';
-import { EVENT_WEB_CONTENTS_FOCUS_CHANGED } from '../../ipc';
+import {
+	EVENT_WEB_CONTENTS_FOCUS_CHANGED,
+} from '../../ipc';
 
 export function MainWindow({ children }) {
 	const dispatch = useDispatch();
@@ -50,8 +52,8 @@ export function MainWindow({ children }) {
 		document.addEventListener('selectionchange', fetchAndDispatchEditFlags, true);
 
 		return () => {
-			document.removeEventListener('focus', fetchAndDispatchEditFlags);
-			document.removeEventListener('selectionchange', fetchAndDispatchEditFlags);
+			document.removeEventListener('focus', fetchAndDispatchEditFlags, true);
+			document.removeEventListener('selectionchange', fetchAndDispatchEditFlags, true);
 		};
 	}, [dispatch]);
 

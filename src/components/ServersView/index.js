@@ -1,12 +1,13 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 
+import { selectServers, selectCurrentServerUrl } from '../../selectors';
 import { ReparentingContainer } from '../utils/ReparentingContainer';
 import { ServerPane } from './ServerPane';
 
 export function ServersView() {
-	const servers = useSelector(({ servers }) => servers);
-	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
+	const servers = useSelector(selectServers);
+	const currentServerUrl = useSelector(selectCurrentServerUrl);
 
 	return <ReparentingContainer>
 		{servers.map((server) => <ServerPane
@@ -14,6 +15,7 @@ export function ServersView() {
 			lastPath={server.lastPath}
 			serverUrl={server.url}
 			isSelected={currentServerUrl === server.url}
+			isFailed={server.failed}
 		/>)}
 	</ReparentingContainer>;
 }

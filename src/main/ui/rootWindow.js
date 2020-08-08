@@ -20,10 +20,8 @@ import {
 	WEBVIEW_DID_NAVIGATE,
 	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-	WEBVIEW_MESSAGE_BOX_BLURRED,
 	WEBVIEW_DID_START_LOADING,
 	WEBVIEW_DID_FAIL_LOAD,
-	WEBVIEW_DOM_READY,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	SIDE_BAR_CONTEXT_MENU_TRIGGERED,
 } from '../../actions';
@@ -60,17 +58,25 @@ const initializeServerWebContents = (serverUrl, guestWebContents, reduxStore, ro
 		webContentsByServerUrl.delete(serverUrl);
 	});
 
-	const handleDidStartLoading = (event, ...args) => {
-		reduxStore.dispatch({ type: WEBVIEW_MESSAGE_BOX_BLURRED });
-		rootWindow.webContents.send(WEBVIEW_DID_START_LOADING, serverUrl, ...args);
+	const handleDidStartLoading = () => {
+		reduxStore.dispatch({ type: WEBVIEW_DID_START_LOADING, payload: { url: serverUrl } });
+		rootWindow.webContents.send(WEBVIEW_DID_START_LOADING, serverUrl);
 	};
 
-	const handleDidFailLoad = (event, ...args) => {
-		rootWindow.webContents.send(WEBVIEW_DID_FAIL_LOAD, serverUrl, ...args);
+	const handleDidFailLoad = (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+		if (errorCode === -3) {
+			console.warn('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
+			return;
+		}
+
+		reduxStore.dispatch({
+			type: WEBVIEW_DID_FAIL_LOAD,
+			payload: { url: serverUrl, errorCode, errorDescription, validatedURL, isMainFrame },
+		});
 	};
 
-	const handleDomReady = (event, ...args) => {
-		rootWindow.webContents.send(WEBVIEW_DOM_READY, serverUrl, ...args);
+	const handleDomReady = () => {
+		guestWebContents.focus();
 	};
 
 	const handleDidNavigateInPage = (event, pageUrl) => {

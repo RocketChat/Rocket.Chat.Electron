@@ -10,6 +10,8 @@ import {
 	WEBVIEW_UNREAD_CHANGED,
 	WEBVIEW_FAVICON_CHANGED,
 	PERSISTABLE_VALUES_MERGED,
+	WEBVIEW_DID_START_LOADING,
+	WEBVIEW_DID_FAIL_LOAD,
 } from '../actions';
 import { Server } from '../structs/servers';
 
@@ -64,6 +66,20 @@ export const servers = (state = [], { type, payload }: AnyAction): Server[] => {
 			const { url, pageUrl } = payload;
 			if (pageUrl.includes(url)) {
 				return upsert(state, { url, lastPath: pageUrl });
+			}
+
+			return state;
+		}
+
+		case WEBVIEW_DID_START_LOADING: {
+			const { url } = payload;
+			return upsert(state, { url, failed: false });
+		}
+
+		case WEBVIEW_DID_FAIL_LOAD: {
+			const { url, isMainFrame } = payload;
+			if (isMainFrame) {
+				return upsert(state, { url, failed: true });
 			}
 
 			return state;

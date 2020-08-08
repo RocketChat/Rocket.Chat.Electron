@@ -19,10 +19,8 @@ export const editFlags = (state = {
 		case ROOT_WINDOW_EDIT_FLAGS_CHANGED:
 			return payload;
 
-		case WEBVIEW_EDIT_FLAGS_CHANGED: {
-			const { editFlags } = payload;
-			return editFlags;
-		}
+		case WEBVIEW_EDIT_FLAGS_CHANGED:
+			return payload;
 	}
 
 	return state;

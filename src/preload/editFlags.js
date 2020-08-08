@@ -1,6 +1,5 @@
-import { ipcRenderer } from 'electron';
-
-import { EVENT_EDIT_FLAGS_CHANGED } from '../ipc';
+import { WEBVIEW_EDIT_FLAGS_CHANGED } from '../actions';
+import { dispatch } from '../channels';
 
 const getEditFlags = () => ({
 	canUndo: document.queryCommandEnabled('undo'),
@@ -12,11 +11,17 @@ const getEditFlags = () => ({
 });
 
 const handleFocusEvent = () => {
-	ipcRenderer.send(EVENT_EDIT_FLAGS_CHANGED, getEditFlags());
+	dispatch({
+		type: WEBVIEW_EDIT_FLAGS_CHANGED,
+		payload: getEditFlags(),
+	});
 };
 
 const handleSelectionChangeEvent = () => {
-	ipcRenderer.send(EVENT_EDIT_FLAGS_CHANGED, getEditFlags());
+	dispatch({
+		type: WEBVIEW_EDIT_FLAGS_CHANGED,
+		payload: getEditFlags(),
+	});
 };
 
 export const setupEditFlagsChanges = async () => {

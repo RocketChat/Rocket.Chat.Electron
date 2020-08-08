@@ -1,7 +1,6 @@
-import { ipcRenderer } from 'electron';
-
 import { getServerUrl } from '.';
-import { EVENT_SERVER_FAVICON_CHANGED } from '../../ipc';
+import { WEBVIEW_FAVICON_CHANGED } from '../../actions';
+import { dispatch } from '../../channels';
 
 const FAVICON_SIZE = 100;
 
@@ -18,9 +17,12 @@ export const setupFaviconChanges = () => {
 		ctx.clearRect(0, 0, FAVICON_SIZE, FAVICON_SIZE);
 		ctx.drawImage(image, 0, 0, FAVICON_SIZE, FAVICON_SIZE);
 
-		ipcRenderer.send(EVENT_SERVER_FAVICON_CHANGED, {
-			url: getServerUrl(),
-			favicon: canvas.toDataURL(),
+		dispatch({
+			type: WEBVIEW_FAVICON_CHANGED,
+			payload: {
+				url: getServerUrl(),
+				favicon: canvas.toDataURL(),
+			},
 		});
 	});
 

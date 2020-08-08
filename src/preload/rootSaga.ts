@@ -10,11 +10,11 @@ import { setupJitsiMeetElectron } from './jitsi/electron';
 import { isRocketChat } from './rocketChat';
 import { setupBadgeChanges } from './rocketChat/badge';
 import { setupFaviconChanges } from './rocketChat/favicon';
-import { setupMessageBoxEvents } from './rocketChat/messageBox';
-import { setupNotifications } from './rocketChat/notifications';
+import { setupMessageBoxEvents, takeMessageBoxActions } from './rocketChat/messageBox';
+import { setupNotifications, takeNotificationsActions } from './rocketChat/notifications';
 import { setupSidebarChanges } from './rocketChat/sidebar';
 import { setupTitleChanges } from './rocketChat/title';
-import { setupUserPresenceChanges } from './rocketChat/userPresence';
+import { setupUserPresenceChanges, takeUserPresenceActions } from './rocketChat/userPresence';
 import { setupScreenSharing } from './screenSharing';
 import { setupSpellChecking } from './spellChecking';
 
@@ -27,12 +27,12 @@ export function *rootSaga(reduxStore: Store): Generator<Effect> {
 		setupErrorHandling(reduxStore);
 		setupEditFlagsChanges();
 		setupScreenSharing();
-		setupSpellChecking();
+		setupSpellChecking(reduxStore);
 
 		if (isRocketChat()) {
 			setupBadgeChanges();
 			setupFaviconChanges();
-			setupSidebarChanges();
+			setupSidebarChanges(reduxStore);
 			setupTitleChanges();
 			setupUserPresenceChanges();
 			setupMessageBoxEvents();
@@ -43,4 +43,10 @@ export function *rootSaga(reduxStore: Store): Generator<Effect> {
 			setupJitsiMeetElectron();
 		}
 	});
+
+	if (yield call(() => isRocketChat())) {
+		yield *takeMessageBoxActions();
+		yield *takeUserPresenceActions();
+		yield *takeNotificationsActions();
+	}
 }

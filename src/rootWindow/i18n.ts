@@ -1,11 +1,13 @@
-import { ipcRenderer } from 'electron';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import { QUERY_I18N_PARAMS } from '../ipc';
+import {
+	I18N_PARAMS_REQUESTED,
+} from '../actions';
+import { request } from '../channels';
 
 export const setupI18next = async (): Promise<void> => {
-	const { lng, fallbackLng, resources } = await ipcRenderer.invoke(QUERY_I18N_PARAMS);
+	const { lng, fallbackLng, resources } = await request(I18N_PARAMS_REQUESTED, undefined);
 
 	await i18next
 		.use(initReactI18next)

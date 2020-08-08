@@ -1,13 +1,16 @@
-import { ipcRenderer } from 'electron';
+import { takeEvery } from 'redux-saga/effects';
 
 import {
-	EVENT_SYSTEM_LOCKING_SCREEN,
-	EVENT_SYSTEM_SUSPENDING,
-	QUERY_SYSTEM_IDLE_STATE,
-} from '../../ipc';
+	SYSTEM_SUSPENDING,
+	SYSTEM_LOCKING_SCREEN,
+	SYSTEM_IDLE_STATE_REQUESTED,
+} from '../../actions';
+import { request } from '../../channels';
 
 let isAutoAwayEnabled;
 let idleThreshold;
+let goOnline = () => undefined;
+let goAway = () => undefined;
 
 export const setupUserPresenceChanges = () => {
 	const { Meteor } = window.require('meteor/meteor');
@@ -15,8 +18,8 @@ export const setupUserPresenceChanges = () => {
 	const { UserPresence } = window.require('meteor/konecty:user-presence');
 	const { getUserPreference } = window.require('/app/utils');
 
-	const goOnline = () => Meteor.call('UserPresence:setDefaultStatus', 'online');
-	const goAway = () => Meteor.call('UserPresence:setDefaultStatus', 'away');
+	goOnline = () => Meteor.call('UserPresence:setDefaultStatus', 'online');
+	goAway = () => Meteor.call('UserPresence:setDefaultStatus', 'away');
 
 	Tracker.autorun(() => {
 		const uid = Meteor.userId();
@@ -29,22 +32,6 @@ export const setupUserPresenceChanges = () => {
 		}
 	});
 
-	ipcRenderer.addListener(EVENT_SYSTEM_SUSPENDING, () => {
-		if (!isAutoAwayEnabled) {
-			return;
-		}
-
-		goAway();
-	});
-
-	ipcRenderer.addListener(EVENT_SYSTEM_LOCKING_SCREEN, () => {
-		if (!isAutoAwayEnabled) {
-			return;
-		}
-
-		goAway();
-	});
-
 	let prevState;
 
 	const pollSystemIdleState = async () => {
@@ -52,7 +39,7 @@ export const setupUserPresenceChanges = () => {
 			return;
 		}
 
-		const state = await ipcRenderer.invoke(QUERY_SYSTEM_IDLE_STATE, idleThreshold);
+		const state = await request(SYSTEM_IDLE_STATE_REQUESTED, idleThreshold);
 
 		if (prevState === state) {
 			setTimeout(pollSystemIdleState, 1000);
@@ -73,3 +60,21 @@ export const setupUserPresenceChanges = () => {
 
 	pollSystemIdleState();
 };
+
+export function *takeUserPresenceActions() {
+	yield takeEvery(SYSTEM_SUSPENDING, function *() {
+		if (!isAutoAwayEnabled) {
+			return;
+		}
+
+		goAway();
+	});
+
+	yield takeEvery(SYSTEM_LOCKING_SCREEN, function *() {
+		if (!isAutoAwayEnabled) {
+			return;
+		}
+
+		goAway();
+	});
+}

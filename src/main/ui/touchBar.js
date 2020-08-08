@@ -1,8 +1,10 @@
-import { TouchBar, nativeImage, app, webContents } from 'electron';
+import { TouchBar, nativeImage, app } from 'electron';
 import { t } from 'i18next';
 
-import { TOUCH_BAR_SELECT_SERVER_TOUCHED } from '../../actions';
-import { EVENT_FORMAT_BUTTON_TOUCHED } from '../../ipc';
+import {
+	TOUCH_BAR_SELECT_SERVER_TOUCHED,
+	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
+} from '../../actions';
 import {
 	selectCurrentServer,
 	selectIsMessageBoxFocused,
@@ -41,9 +43,7 @@ const createTouchBar = (reduxStore, rootWindow) => {
 		})),
 		change: (selectedIndex) => {
 			rootWindow.show();
-			webContents.getAllWebContents().forEach((webContents) => {
-				webContents.send(EVENT_FORMAT_BUTTON_TOUCHED, ids[selectedIndex]);
-			});
+			reduxStore.dispatch({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: ids[selectedIndex] });
 		},
 	});
 
@@ -88,10 +88,6 @@ const toggleMessageFormattingButtons = (messageBoxFormattingButtons, isEnabled) 
 	});
 };
 
-const setRootWindowTouchBar = (rootWindow, touchBar) => {
-	rootWindow.setTouchBar(touchBar);
-};
-
 export const setupTouchBar = (reduxStore, rootWindow) => {
 	if (process.platform !== 'darwin') {
 		return;
@@ -109,7 +105,7 @@ export const setupTouchBar = (reduxStore, rootWindow) => {
 		const currentServer = selectCurrentServer(reduxStore.getState());
 		if (prevCurrentServer !== currentServer) {
 			updateServerSelectionPopover(serverSelectionPopover, currentServer);
-			setRootWindowTouchBar(rootWindow, touchBar);
+			rootWindow.setTouchBar(touchBar);
 			prevCurrentServer = currentServer;
 		}
 	});
@@ -119,7 +115,7 @@ export const setupTouchBar = (reduxStore, rootWindow) => {
 		const servers = selectServers(reduxStore.getState());
 		if (prevServers !== servers) {
 			updateServerSelectionScrubber(serverSelectionScrubber, servers);
-			setRootWindowTouchBar(rootWindow, touchBar);
+			rootWindow.setTouchBar(touchBar);
 			prevServers = servers;
 		}
 	});
@@ -129,7 +125,7 @@ export const setupTouchBar = (reduxStore, rootWindow) => {
 		const isMessageBoxFocused = selectIsMessageBoxFocused(reduxStore.getState());
 		if (prevIsMessageBoxFocused !== isMessageBoxFocused) {
 			toggleMessageFormattingButtons(messageBoxFormattingButtons, isMessageBoxFocused);
-			setRootWindowTouchBar(rootWindow, touchBar);
+			rootWindow.setTouchBar(touchBar);
 			prevIsMessageBoxFocused = isMessageBoxFocused;
 		}
 	});

@@ -1,22 +1,19 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app, ipcMain, webContents } from 'electron';
+import { app } from 'electron';
 import { SpellCheckerProvider } from 'electron-hunspell';
+import { takeEvery, call, put } from 'redux-saga/effects';
 
 import {
 	SPELL_CHECKING_DICTIONARIES_UPDATED,
 	PERSISTABLE_VALUES_MERGED,
+	SPELL_CHECKING_MISSPELT_WORDS_REQUESTED,
+	SPELL_CHECKING_MISSPELT_WORDS_RESPONDED,
 } from '../actions';
-import {
-	QUERY_SPELL_CHECKING_LANGUAGE,
-	EVENT_SPELL_CHECKING_LANGUAGE_CHANGED,
-	QUERY_MISSPELT_WORDS,
-} from '../ipc';
 import {
 	selectSpellCheckingDictionaries,
 	selectPersistableValues,
-	selectDictionaryName,
 } from '../selectors';
 
 const embeddedDictionaries = [
@@ -267,26 +264,20 @@ export const setupSpellChecking = async (reduxStore, localStorage) => {
 		const spellCheckingDictionaries = selectSpellCheckingDictionaries(reduxStore.getState());
 		spellCheckingDictionaries.map((dictionary) => toggleDictionary(dictionary));
 	});
-
-	let prevDictionaryName;
-	reduxStore.subscribe(() => {
-		const dictionaryName = selectDictionaryName(reduxStore.getState());
-		if (prevDictionaryName !== dictionaryName) {
-			webContents.getAllWebContents().forEach((webContents) => {
-				webContents.send(EVENT_SPELL_CHECKING_LANGUAGE_CHANGED, dictionaryName);
-			});
-			prevDictionaryName = dictionaryName;
-		}
-	});
-
-	ipcMain.handle(QUERY_SPELL_CHECKING_LANGUAGE, () => {
-		const dictionaryName = selectDictionaryName(reduxStore.getState());
-		const language = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
-		return language;
-	});
-
-	ipcMain.handle(QUERY_MISSPELT_WORDS, async (event, words) => {
-		const misspeltWords = await getMisspelledWords(words);
-		return misspeltWords;
-	});
 };
+
+export function *takeSpellCheckingActions() {
+	yield takeEvery(SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, function *(action) {
+		const { meta: { id }, payload: words } = action;
+		const misspeltWords = yield call(() => getMisspelledWords(words));
+		const responseAction = {
+			type: SPELL_CHECKING_MISSPELT_WORDS_RESPONDED,
+			payload: misspeltWords,
+			meta: {
+				response: true,
+				id,
+			},
+		};
+		yield put(responseAction);
+	});
+}

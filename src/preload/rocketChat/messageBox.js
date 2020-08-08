@@ -1,13 +1,11 @@
-import { ipcRenderer } from 'electron';
+import { takeEvery, call } from 'redux-saga/effects';
 
 import {
 	WEBVIEW_MESSAGE_BOX_FOCUSED,
 	WEBVIEW_MESSAGE_BOX_BLURRED,
+	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 } from '../../actions';
 import { dispatch } from '../../channels';
-import {
-	EVENT_FORMAT_BUTTON_TOUCHED,
-} from '../../ipc';
 
 let focusedMessageBoxInput = null;
 
@@ -30,27 +28,32 @@ const handleBlurEvent = (event) => {
 };
 
 export const setupMessageBoxEvents = () => {
-	const {
-		formattingButtons,
-		applyFormatting,
-	} = window.require('/app/ui-message/client/messageBox/messageBoxFormatting');
-
 	document.addEventListener('focus', handleFocusEvent, true);
 	document.addEventListener('blur', handleBlurEvent, true);
+};
 
-	ipcRenderer.addListener(EVENT_FORMAT_BUTTON_TOUCHED, (event, buttonId) => {
+export function *takeMessageBoxActions() {
+	yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *(action) {
 		if (!focusedMessageBoxInput) {
 			return;
 		}
 
-		const { pattern } = formattingButtons
-			.filter(({ condition }) => !condition || condition())
-			.find(({ label }) => label === buttonId) || {};
+		const { payload: buttonId } = action;
+		yield call(() => {
+			const {
+				formattingButtons,
+				applyFormatting,
+			} = window.require('/app/ui-message/client/messageBox/messageBoxFormatting');
 
-		if (!pattern) {
-			return;
-		}
+			const { pattern } = formattingButtons
+				.filter(({ condition }) => !condition || condition())
+				.find(({ label }) => label === buttonId) || {};
 
-		applyFormatting(pattern, focusedMessageBoxInput);
+			if (!pattern) {
+				return;
+			}
+
+			applyFormatting(pattern, focusedMessageBoxInput);
+		});
 	});
-};
+}

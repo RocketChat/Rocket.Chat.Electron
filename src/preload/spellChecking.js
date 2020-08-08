@@ -1,10 +1,10 @@
-import { ipcRenderer, webFrame } from 'electron';
+import { webFrame } from 'electron';
 
 import {
-	QUERY_MISSPELT_WORDS,
-	QUERY_SPELL_CHECKING_LANGUAGE,
-	EVENT_SPELL_CHECKING_LANGUAGE_CHANGED,
-} from '../ipc';
+	SPELL_CHECKING_MISSPELT_WORDS_REQUESTED,
+} from '../actions';
+import { request } from '../channels';
+import { selectDictionaryName } from '../selectors';
 
 const noopSpellCheckProvider = {
 	spellCheck: (words, callback) => callback([]),
@@ -12,7 +12,7 @@ const noopSpellCheckProvider = {
 
 const remoteSpellCheckProvider = {
 	spellCheck: async (words, callback) => {
-		const misspeltWords = await ipcRenderer.invoke(QUERY_MISSPELT_WORDS, words);
+		const misspeltWords = await request(SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, words);
 		callback(misspeltWords);
 	},
 };
@@ -26,11 +26,16 @@ const setSpellCheckProvider = (language) => {
 	webFrame.setSpellCheckProvider(language, remoteSpellCheckProvider);
 };
 
-export const setupSpellChecking = async () => {
-	ipcRenderer.addListener(EVENT_SPELL_CHECKING_LANGUAGE_CHANGED, (event, spellCheckingLanguage) => {
+export const setupSpellChecking = async (reduxStore) => {
+	let prevSpellCheckingLanguage;
+	reduxStore.subscribe(() => {
+		const dictionaryName = selectDictionaryName(reduxStore.getState());
+		const spellCheckingLanguage = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
+
+		if (prevSpellCheckingLanguage === spellCheckingLanguage) {
+			return;
+		}
+		prevSpellCheckingLanguage = spellCheckingLanguage;
 		setSpellCheckProvider(spellCheckingLanguage);
 	});
-
-	const spellCheckingLanguage = await ipcRenderer.invoke(QUERY_SPELL_CHECKING_LANGUAGE);
-	setSpellCheckProvider(spellCheckingLanguage);
 };

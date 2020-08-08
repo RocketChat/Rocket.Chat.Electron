@@ -1,11 +1,7 @@
-import { ipcRenderer } from 'electron';
-
 import { getServerUrl } from '.';
-import {
-	EVENT_SERVER_SIDEBAR_STYLE_CHANGED,
-	EVENT_SIDEBAR_VISIBLE,
-	EVENT_SIDEBAR_HIDDEN,
-} from '../../ipc';
+import { WEBVIEW_SIDEBAR_STYLE_CHANGED } from '../../actions';
+import { dispatch } from '../../channels';
+import { selectIsSideBarVisible } from '../../selectors';
 
 let timer;
 let prevBackground;
@@ -22,11 +18,14 @@ const pollSidebarStyle = (referenceElement) => {
 	referenceElement.remove();
 
 	if (prevBackground !== background || prevColor !== color) {
-		ipcRenderer.send(EVENT_SERVER_SIDEBAR_STYLE_CHANGED, {
-			url: getServerUrl(),
-			style: {
-				background,
-				color,
+		dispatch({
+			type: WEBVIEW_SIDEBAR_STYLE_CHANGED,
+			payload: {
+				url: getServerUrl(),
+				style: {
+					background,
+					color,
+				},
 			},
 		});
 		prevBackground = background;
@@ -36,7 +35,7 @@ const pollSidebarStyle = (referenceElement) => {
 	timer = setTimeout(() => pollSidebarStyle(referenceElement), 1000);
 };
 
-export const setupSidebarChanges = () => {
+export const setupSidebarChanges = (reduxStore) => {
 	const referenceElement = document.createElement('div');
 	referenceElement.classList.add('sidebar');
 	referenceElement.style.backgroundColor = 'var(--sidebar-background)';
@@ -64,21 +63,31 @@ export const setupSidebarChanges = () => {
 	style.id = 'sidebar-padding';
 	document.head.append(style);
 
-	ipcRenderer.addListener(EVENT_SIDEBAR_VISIBLE, () => {
-		style.innerHTML = `
-			.sidebar {
-				padding-top: 0 !important;
-				transition: padding-top 230ms ease-in-out !important;
+	let prevIsSideBarVisible;
+	reduxStore.subscribe(() => {
+		const isSideBarVisible = selectIsSideBarVisible(reduxStore.getState());
+		if (prevIsSideBarVisible !== isSideBarVisible) {
+			if (process.platform !== 'darwin') {
+				return;
 			}
-		`;
-	});
 
-	ipcRenderer.addListener(EVENT_SIDEBAR_HIDDEN, () => {
-		style.innerHTML = `
-			.sidebar {
-				padding-top: 10px !important;
-				transition: padding-top 230ms ease-in-out !important;
+			if (isSideBarVisible) {
+				style.innerHTML = `
+					.sidebar {
+						padding-top: 0 !important;
+						transition: padding-top 230ms ease-in-out !important;
+					}
+				`;
+			} else {
+				style.innerHTML = `
+					.sidebar {
+						padding-top: 10px !important;
+						transition: padding-top 230ms ease-in-out !important;
+					}
+				`;
 			}
-		`;
+
+			prevIsSideBarVisible = isSideBarVisible;
+		}
 	});
 };

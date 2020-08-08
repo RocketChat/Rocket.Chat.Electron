@@ -13,22 +13,30 @@ import { getLocalStorage, mergePersistableValues, purgeLocalStorage, watchAndPer
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks';
 import { setupElectronReloader, installDevTools } from './dev';
 import { createElectronStore } from './electronStore';
-import { setupI18n } from './i18n';
+import { setupI18n, takeI18nActions } from './i18n';
 import { setupNavigation } from './navigation';
-import { setupPowerMonitor } from './powerMonitor';
+import { setupPowerMonitor, takeSystemActions } from './powerMonitor';
 import { takeScreenSharingActions } from './screenSharing';
 import { setupServers, takeServersActions } from './servers';
-import { setupSpellChecking } from './spellChecking';
-import { setupBrowserViews } from './ui/browserViews';
+import { setupSpellChecking, takeSpellCheckingActions } from './spellChecking';
 import { setupDock } from './ui/dock';
 import { setupMenuBar } from './ui/menuBar';
-import { setupNotifications } from './ui/notifications';
+import { takeNotificationsActions } from './ui/notifications';
 import { createRootWindow, setupRootWindow, applyMainWindowState, takeUiActions } from './ui/rootWindow';
 import { setupTouchBar } from './ui/touchBar';
 import { setupTrayIcon } from './ui/trayIcon';
 import { setupUpdates, takeUpdateActions } from './updates';
 
 export function *rootSaga(reduxStore: Store): Generator<Effect> {
+	yield *takeRequests();
+	yield *takeAppActions();
+	yield *takeServersActions();
+	yield *takeScreenSharingActions();
+	yield *takeSystemActions();
+	yield *takeSpellCheckingActions();
+	yield *takeI18nActions();
+	yield *takeNotificationsActions();
+
 	yield put({ type: APP_PATH_SET, payload: app.getAppPath() });
 	yield put({ type: APP_VERSION_SET, payload: app.getVersion() });
 
@@ -59,11 +67,9 @@ export function *rootSaga(reduxStore: Store): Generator<Effect> {
 		setupApp(reduxStore, rootWindow);
 		setupDeepLinks(reduxStore, rootWindow);
 		await setupNavigation(reduxStore, rootWindow);
-		setupNotifications();
 		setupPowerMonitor();
 		await setupUpdates(reduxStore, rootWindow);
 
-		setupBrowserViews(reduxStore, rootWindow);
 		setupDock(reduxStore);
 		setupMenuBar(reduxStore, rootWindow);
 		setupRootWindow(reduxStore, rootWindow);
@@ -77,11 +83,7 @@ export function *rootSaga(reduxStore: Store): Generator<Effect> {
 		watchAndPersistChanges(reduxStore, electronStore);
 	});
 
-	yield *takeRequests();
-	yield *takeAppActions();
-	yield *takeServersActions();
 	yield *takeUpdateActions(rootWindow);
-	yield *takeScreenSharingActions();
 	yield *takeUiActions(rootWindow);
 
 	yield call(async () => {

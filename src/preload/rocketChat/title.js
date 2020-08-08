@@ -1,7 +1,6 @@
-import { ipcRenderer } from 'electron';
-
 import { getServerUrl } from '.';
-import { EVENT_SERVER_TITLE_CHANGED } from '../../ipc';
+import { WEBVIEW_TITLE_CHANGED } from '../../actions';
+import { dispatch } from '../../channels';
 
 export const setupTitleChanges = () => {
 	const { Tracker } = window.require('meteor/tracker');
@@ -13,9 +12,12 @@ export const setupTitleChanges = () => {
 			return;
 		}
 
-		ipcRenderer.send(EVENT_SERVER_TITLE_CHANGED, {
-			url: getServerUrl(),
-			title: siteName,
+		dispatch({
+			type: WEBVIEW_TITLE_CHANGED,
+			payload: {
+				url: getServerUrl(),
+				title: siteName,
+			},
 		});
 	});
 };

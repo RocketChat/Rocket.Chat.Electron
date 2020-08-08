@@ -1,12 +1,14 @@
-import { ipcRenderer } from 'electron';
-
 import { getServerUrl } from '.';
-import { EVENT_SERVER_BADGE_CHANGED } from '../../ipc';
+import { WEBVIEW_UNREAD_CHANGED } from '../../actions';
+import { dispatch } from '../../channels';
 
 const handleUnreadChangedEvent = (event) => {
-	ipcRenderer.send(EVENT_SERVER_BADGE_CHANGED, {
-		url: getServerUrl(),
-		badge: event.detail,
+	dispatch({
+		type: WEBVIEW_UNREAD_CHANGED,
+		payload: {
+			url: getServerUrl(),
+			badge: event.detail,
+		},
 	});
 };
 

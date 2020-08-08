@@ -1,10 +1,15 @@
 import path from 'path';
 
-import { app, ipcMain } from 'electron';
+import { app } from 'electron';
 import i18next from 'i18next';
 import i18nextNodeFileSystemBackend from 'i18next-node-fs-backend';
+import { takeEvery, call, put, Effect } from 'redux-saga/effects';
 
-import { QUERY_I18N_PARAMS } from '../ipc';
+import {
+	I18N_PARAMS_REQUESTED,
+	I18N_PARAMS_RESPONDED,
+} from '../actions';
+import { RequestAction } from '../channels';
 
 const defaultLocale = 'en';
 
@@ -45,17 +50,31 @@ export const setupI18n = async (): Promise<void> => {
 			},
 			initImmediate: true,
 		});
-
-	ipcMain.handle(QUERY_I18N_PARAMS, () => ({
-		lng: i18next.language,
-		fallbackLng: defaultLocale,
-		resources: {
-			[i18next.language]: {
-				translation: i18next.getResourceBundle(i18next.language, 'translation'),
-			},
-			[defaultLocale]: {
-				translation: i18next.getResourceBundle(defaultLocale, 'translation'),
-			},
-		},
-	}));
 };
+
+export function *takeI18nActions(): Generator<Effect> {
+	yield takeEvery(I18N_PARAMS_REQUESTED, function *(action: RequestAction<void>) {
+		const { meta: { id } } = action;
+		const params = yield call(() => ({
+			lng: i18next.language,
+			fallbackLng: defaultLocale,
+			resources: {
+				[i18next.language]: {
+					translation: i18next.getResourceBundle(i18next.language, 'translation'),
+				},
+				[defaultLocale]: {
+					translation: i18next.getResourceBundle(defaultLocale, 'translation'),
+				},
+			},
+		}));
+		const responseAction = {
+			type: I18N_PARAMS_RESPONDED,
+			payload: params,
+			meta: {
+				response: true,
+				id,
+			},
+		};
+		yield put(responseAction);
+	});
+}

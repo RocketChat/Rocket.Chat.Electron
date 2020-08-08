@@ -1,16 +1,19 @@
-import { ipcRenderer } from 'electron';
+import { takeEvery } from 'redux-saga/effects';
 
 import { getServerUrl } from '.';
 import {
-	EVENT_NOTIFICATION_ACTIONED,
-	EVENT_NOTIFICATION_CLICKED,
-	EVENT_NOTIFICATION_CLOSED,
-	EVENT_NOTIFICATION_CLOSING,
-	EVENT_NOTIFICATION_REPLIED,
-	EVENT_NOTIFICATION_SHOWN,
-	EVENT_SERVER_FOCUSED,
-	QUERY_NEW_NOTIFICATION,
-} from '../../ipc';
+	WEBVIEW_FOCUS_REQUESTED,
+	NOTIFICATIONS_CREATE_REQUESTED,
+
+	NOTIFICATIONS_NOTIFICATION_ACTIONED,
+	NOTIFICATIONS_NOTIFICATION_CLICKED,
+	NOTIFICATIONS_NOTIFICATION_CLOSED,
+	NOTIFICATIONS_NOTIFICATION_DISMISSED,
+	NOTIFICATIONS_NOTIFICATION_REPLIED,
+	NOTIFICATIONS_NOTIFICATION_SHOWN,
+} from '../../actions';
+import { dispatch, request } from '../../channels';
+
 
 const normalizeIconUrl = (iconUrl) => {
 	if (/^data:/.test(iconUrl)) {
@@ -59,7 +62,7 @@ class Notification extends EventTarget {
 			});
 		}
 
-		this._destroy = ipcRenderer.invoke(QUERY_NEW_NOTIFICATION, {
+		this._destroy = request(NOTIFICATIONS_CREATE_REQUESTED, {
 			title,
 			icon: normalizeIconUrl(icon),
 			...options,
@@ -67,7 +70,7 @@ class Notification extends EventTarget {
 			notifications.set(id, this);
 
 			return () => {
-				ipcRenderer.send(EVENT_NOTIFICATION_CLOSING, id);
+				dispatch({ type: NOTIFICATIONS_NOTIFICATION_DISMISSED, payload: { id } });
 				notifications.delete(id);
 			};
 		});
@@ -87,8 +90,12 @@ class Notification extends EventTarget {
 
 export const setupNotifications = () => {
 	window.Notification = Notification;
+};
 
-	ipcRenderer.addListener(EVENT_NOTIFICATION_SHOWN, (event, id) => {
+export function *takeNotificationsActions() {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_SHOWN, function *(action) {
+		const { payload: { id } } = action;
+
 		if (!notifications.has(id)) {
 			return;
 		}
@@ -97,7 +104,9 @@ export const setupNotifications = () => {
 		notifications.get(id).dispatchEvent(showEvent);
 	});
 
-	ipcRenderer.addListener(EVENT_NOTIFICATION_CLOSED, (event, id) => {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLOSED, function *(action) {
+		const { payload: { id } } = action;
+
 		if (!notifications.has(id)) {
 			return;
 		}
@@ -107,30 +116,39 @@ export const setupNotifications = () => {
 		notifications.delete(id);
 	});
 
-	ipcRenderer.addListener(EVENT_NOTIFICATION_CLICKED, (event, id) => {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLICKED, function *(action) {
+		const { payload: { id } } = action;
+
 		if (!notifications.has(id)) {
 			return;
 		}
 
-		ipcRenderer.send(EVENT_SERVER_FOCUSED, {
-			url: getServerUrl(),
+		dispatch({
+			type: WEBVIEW_FOCUS_REQUESTED,
+			payload: {
+				url: getServerUrl(),
+			},
 		});
 
 		const clickEvent = new CustomEvent('click');
 		notifications.get(id).dispatchEvent(clickEvent);
 	});
 
-	ipcRenderer.addListener(EVENT_NOTIFICATION_REPLIED, (event, id, response) => {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_REPLIED, function *(action) {
+		const { payload: { id, reply } } = action;
+
 		if (!notifications.has(id)) {
 			return;
 		}
 
-		const replyEvent = new CustomEvent('reply', { detail: { response } });
-		replyEvent.response = response;
+		const replyEvent = new CustomEvent('reply', { detail: { reply } });
+		replyEvent.reply = reply;
 		notifications.get(id).dispatchEvent(replyEvent);
 	});
 
-	ipcRenderer.addListener(EVENT_NOTIFICATION_ACTIONED, (event, id, index) => {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_ACTIONED, function *(action) {
+		const { payload: { id, index } } = action;
+
 		if (!notifications.has(id)) {
 			return;
 		}
@@ -139,4 +157,4 @@ export const setupNotifications = () => {
 		actionEvent.index = index;
 		notifications.get(id).dispatchEvent(actionEvent);
 	});
-};
+}

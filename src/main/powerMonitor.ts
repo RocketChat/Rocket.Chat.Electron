@@ -1,24 +1,35 @@
-import { powerMonitor, webContents, ipcMain } from 'electron';
+import { powerMonitor } from 'electron';
+import { takeEvery, call, put, Effect } from 'redux-saga/effects';
 
 import {
-	EVENT_SYSTEM_SUSPENDING,
-	EVENT_SYSTEM_LOCKING_SCREEN,
-	QUERY_SYSTEM_IDLE_STATE,
-} from '../ipc';
+	SYSTEM_SUSPENDING,
+	SYSTEM_LOCKING_SCREEN,
+	SYSTEM_IDLE_STATE_REQUESTED,
+} from '../actions';
+import { dispatch, RequestAction } from '../channels';
 
 export const setupPowerMonitor = (): void => {
 	powerMonitor.addListener('suspend', () => {
-		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(EVENT_SYSTEM_SUSPENDING);
-		});
+		dispatch({ type: SYSTEM_SUSPENDING });
 	});
 
 	powerMonitor.addListener('lock-screen', () => {
-		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(EVENT_SYSTEM_LOCKING_SCREEN);
-		});
+		dispatch({ type: SYSTEM_LOCKING_SCREEN });
 	});
-
-	ipcMain.handle(QUERY_SYSTEM_IDLE_STATE, (_event, idleThreshold) =>
-		powerMonitor.getSystemIdleState(idleThreshold));
 };
+
+export function *takeSystemActions(): Generator<Effect> {
+	yield takeEvery(SYSTEM_IDLE_STATE_REQUESTED, function *(action: RequestAction<number>) {
+		const { meta: { id }, payload: idleThreshold } = action;
+		const idleState = yield call(() => powerMonitor.getSystemIdleState(idleThreshold));
+		const responseAction = {
+			type: `${ SYSTEM_IDLE_STATE_REQUESTED }_RESPONDED`,
+			payload: idleState,
+			meta: {
+				response: true,
+				id,
+			},
+		};
+		yield put(responseAction);
+	});
+}

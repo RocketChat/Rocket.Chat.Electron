@@ -24,6 +24,7 @@ import {
 	WEBVIEW_DID_FAIL_LOAD,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	SIDE_BAR_CONTEXT_MENU_TRIGGERED,
+	WEBVIEW_FOCUS_REQUESTED,
 } from '../../actions';
 import { dispatch } from '../../channels';
 import {
@@ -275,12 +276,20 @@ const initializeServerWebContents = (serverUrl, guestWebContents, reduxStore, ro
 		rootWindow.webContents.sendInputEvent({ type, keyCode: key });
 	};
 
+	const handleDevToolsFocused = () => {
+		reduxStore.dispatch({
+			type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
+			payload: guestWebContents.isDevToolsFocused() ? guestWebContents.devToolsWebContents?.id : guestWebContents.id,
+		});
+	};
+
 	guestWebContents.addListener('did-start-loading', handleDidStartLoading);
 	guestWebContents.addListener('did-fail-load', handleDidFailLoad);
 	guestWebContents.addListener('dom-ready', handleDomReady);
 	guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
 	guestWebContents.addListener('context-menu', handleContextMenu);
 	guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
+	guestWebContents.addListener('devtools-focused', handleDevToolsFocused);
 };
 
 const attachGuestWebContentsEvents = (reduxStore, rootWindow) => {
@@ -327,10 +336,6 @@ const attachGuestWebContentsEvents = (reduxStore, rootWindow) => {
 	ipcMain.addListener(EVENT_BROWSER_VIEW_ATTACHED, (event, serverUrl, webContentsId) => {
 		const guestWebContents = webContents.fromId(webContentsId);
 		initializeServerWebContents(serverUrl, guestWebContents, reduxStore, rootWindow);
-	});
-
-	ipcMain.addListener(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (event, serverUrl) => {
-		getWebContentsByServerUrl(serverUrl).loadURL(serverUrl);
 	});
 
 	rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);
@@ -515,21 +520,25 @@ export const setupRootWindow = (reduxStore, rootWindow) => {
 		rootWindow.destroy();
 	});
 
-	rootWindow.addListener('devtools-focused', () => {
-		reduxStore.dispatch({ type: ROOT_WINDOW_WEBCONTENTS_FOCUSED, payload: -1 });
+	rootWindow.webContents.addListener('devtools-focused', () => {
+		reduxStore.dispatch({
+			type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
+			payload: rootWindow.webContents.devToolsWebContents.id,
+		});
+	});
+
+	rootWindow.webContents.addListener('devtools-closed', () => {
+		reduxStore.dispatch({
+			type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
+			payload: rootWindow.webContents.id,
+		});
 	});
 
 	ipcMain.addListener(EVENT_WEB_CONTENTS_FOCUS_CHANGED, (event, webContentsId = rootWindow.webContents.id) => {
-		if (webContents.fromId(webContentsId).isDevToolsFocused()) {
-			reduxStore.dispatch({
-				type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
-				payload: -1,
-			});
-		}
-
+		const focusedWebContents = webContents.fromId(webContentsId);
 		reduxStore.dispatch({
 			type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
-			payload: webContentsId,
+			payload: focusedWebContents.isDevToolsFocused() ? focusedWebContents.devToolsWebContents.id : webContentsId,
 		});
 	});
 };
@@ -564,5 +573,14 @@ export function *takeUiActions(rootWindow) {
 			const menu = Menu.buildFromTemplate(menuTemplate);
 			menu.popup(rootWindow);
 		});
+	});
+
+	yield takeEvery(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, function *(action) {
+		const { payload: { url } } = action;
+		getWebContentsByServerUrl(url).loadURL(url);
+	});
+
+	yield takeEvery(WEBVIEW_FOCUS_REQUESTED, function *() {
+		rootWindow.focus();
 	});
 }

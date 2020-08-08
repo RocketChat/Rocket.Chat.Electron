@@ -1,15 +1,20 @@
-import { ipcMain, Notification, webContents, nativeImage } from 'electron';
+import { Notification, nativeImage } from 'electron';
 import fetch from 'node-fetch';
+import { takeEvery, put, call } from 'redux-saga/effects';
 
 import {
-	EVENT_NOTIFICATION_SHOWN,
-	EVENT_NOTIFICATION_CLOSED,
-	EVENT_NOTIFICATION_CLICKED,
-	EVENT_NOTIFICATION_REPLIED,
-	EVENT_NOTIFICATION_ACTIONED,
-	QUERY_NEW_NOTIFICATION,
-	EVENT_NOTIFICATION_CLOSING,
-} from '../../ipc';
+	NOTIFICATIONS_CREATE_REQUESTED,
+	NOTIFICATIONS_CREATE_RESPONDED,
+
+	NOTIFICATIONS_NOTIFICATION_SHOWN,
+	NOTIFICATIONS_NOTIFICATION_CLOSED,
+	NOTIFICATIONS_NOTIFICATION_CLICKED,
+	NOTIFICATIONS_NOTIFICATION_REPLIED,
+	NOTIFICATIONS_NOTIFICATION_ACTIONED,
+	NOTIFICATIONS_NOTIFICATION_DISMISSED,
+} from '../../actions';
+import { dispatch } from '../../channels';
+
 
 const iconCache = new Map();
 
@@ -73,34 +78,24 @@ const createNotification = async (id, {
 	});
 
 	notification.addListener('show', () => {
-		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(EVENT_NOTIFICATION_SHOWN, id);
-		});
+		dispatch({ type: NOTIFICATIONS_NOTIFICATION_SHOWN, payload: { id } });
 	});
 
 	notification.addListener('close', () => {
-		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(EVENT_NOTIFICATION_CLOSED, id);
-			notifications.delete(id);
-		});
+		dispatch({ type: NOTIFICATIONS_NOTIFICATION_CLOSED, payload: { id } });
+		notifications.delete(id);
 	});
 
 	notification.addListener('click', () => {
-		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(EVENT_NOTIFICATION_CLICKED, id);
-		});
+		dispatch({ type: NOTIFICATIONS_NOTIFICATION_CLICKED, payload: { id } });
 	});
 
 	notification.addListener('reply', (event, reply) => {
-		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(EVENT_NOTIFICATION_REPLIED, id, reply);
-		});
+		dispatch({ type: NOTIFICATIONS_NOTIFICATION_REPLIED, payload: { id, reply } });
 	});
 
 	notification.addListener('action', (event, index) => {
-		webContents.getAllWebContents().forEach((webContents) => {
-			webContents.send(EVENT_NOTIFICATION_ACTIONED, id, index);
-		});
+		dispatch({ type: NOTIFICATIONS_NOTIFICATION_ACTIONED, payload: { id, index } });
 	});
 
 	notifications.set(id, notification);
@@ -135,7 +130,7 @@ const updateNotification = (id, {
 	}
 };
 
-const handleCreateEvent = async (event, {
+const handleCreateEvent = async ({
 	tag,
 	...options
 }) => {
@@ -147,11 +142,25 @@ const handleCreateEvent = async (event, {
 	return createNotification(id, options);
 };
 
-const handleCloseEvent = (event, id) => {
-	notifications.get(id)?.close();
-};
+export function *takeNotificationsActions() {
+	yield takeEvery(NOTIFICATIONS_CREATE_REQUESTED, function *(action) {
+		const { meta: { id }, payload } = action;
+		const notificationId = yield call(() => handleCreateEvent(payload));
+		const responseAction = {
+			type: NOTIFICATIONS_CREATE_RESPONDED,
+			payload: notificationId,
+			meta: {
+				response: true,
+				id,
+			},
+		};
+		yield put(responseAction);
+	});
 
-export const setupNotifications = () => {
-	ipcMain.handle(QUERY_NEW_NOTIFICATION, handleCreateEvent);
-	ipcMain.handle(EVENT_NOTIFICATION_CLOSING, handleCloseEvent);
-};
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_DISMISSED, function *(action) {
+		const { payload: { id: notificationId } } = action;
+		yield call(() => {
+			notifications.get(notificationId)?.close();
+		});
+	});
+}

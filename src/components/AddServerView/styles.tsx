@@ -1,7 +1,11 @@
 import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 
-export const Wrapper = styled.section`
+type WrapperProps = {
+	isVisible: boolean;
+};
+
+export const Wrapper = styled.section<WrapperProps>`
 	position: absolute;
 	left: 0;
 	top: 0;

@@ -1,6 +1,6 @@
 import { parse as parseUrl } from 'url';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, FC, DragEvent, MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -9,6 +9,7 @@ import {
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
 	SIDE_BAR_CONTEXT_MENU_TRIGGERED,
 } from '../../actions';
+import { selectServers, selectIsSideBarEnabled, selectCurrentServerUrl } from '../../selectors';
 import {
 	AddServerButton,
 	AddServerButtonLabel,
@@ -25,7 +26,23 @@ import {
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
 
-function ServerButton({
+type ServerButtonProps = {
+	url: string;
+	title: string;
+	shortcutNumber: string;
+	isSelected: boolean;
+	favicon: string;
+	isShortcutVisible: boolean;
+	hasUnreadMessages: boolean;
+	badge: string;
+	isDragged: boolean;
+	onDragStart: (event: DragEvent) => void;
+	onDragEnd: (event: DragEvent) => void;
+	onDragEnter: (event: DragEvent) => void;
+	onDrop: (event: DragEvent) => void;
+};
+
+const ServerButton: FC<ServerButtonProps> = ({
 	url,
 	title,
 	shortcutNumber,
@@ -39,10 +56,10 @@ function ServerButton({
 	onDragEnd,
 	onDragEnter,
 	onDrop,
-}) {
+}) => {
 	const dispatch = useDispatch();
 
-	const handleServerClick = () => {
+	const handleServerClick = (): void => {
 		dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
 	};
 
@@ -53,7 +70,7 @@ function ServerButton({
 		.map((text) => text.slice(0, 1).toUpperCase())
 		.join(''), [title, url]);
 
-	const handleServerContextMenu = (event) => {
+	const handleServerContextMenu = (event: MouseEvent): void => {
 		event.preventDefault();
 		dispatch({ type: SIDE_BAR_CONTEXT_MENU_TRIGGERED, payload: url });
 	};
@@ -87,17 +104,18 @@ function ServerButton({
 			{process.platform === 'darwin' ? '⌘' : '^'}{shortcutNumber}
 		</KeyboardShortcut>}
 	</ServerButtonWrapper>;
-}
+};
 
-export function SideBar() {
-	const isVisible = useSelector(({ servers, isSideBarEnabled }) => servers.length > 0 && isSideBarEnabled);
-	const servers = useSelector(({ servers }) => servers);
-	const currentServerUrl = useSelector(({ currentServerUrl }) => currentServerUrl);
+export const SideBar: FC = () => {
+	const servers = useSelector(selectServers);
+	const isSideBarEnabled = useSelector(selectIsSideBarEnabled);
+	const currentServerUrl = useSelector(selectCurrentServerUrl);
+	const isVisible = servers.length > 0 && isSideBarEnabled;
 
 	const {
 		background,
 		color,
-	} = useSelector(({ servers }) => servers.find(({ url }) => url === currentServerUrl)?.style || {});
+	} = servers.find(({ url }) => url === currentServerUrl)?.style || {};
 
 	const isEachShortcutVisible = useKeyboardShortcuts();
 	const {
@@ -111,7 +129,7 @@ export function SideBar() {
 
 	const dispatch = useDispatch();
 
-	const handleAddServerButtonClicked = () => {
+	const handleAddServerButtonClicked = (): void => {
 		dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
 	};
 
@@ -123,14 +141,14 @@ export function SideBar() {
 				{sortedServers.map((server, order) => <ServerButton
 					key={server.url}
 					url={server.url}
-					title={servers.title === 'Rocket.Chat' && parseUrl(server.url).host !== 'open.rocket.chat'
+					title={server.title === 'Rocket.Chat' && parseUrl(server.url).host !== 'open.rocket.chat'
 						? `${ server.title } - ${ server.url }`
 						: server.title}
 					shortcutNumber={order <= 9 ? String(order + 1) : undefined}
 					isSelected={currentServerUrl === server.url}
 					favicon={server.favicon}
 					hasUnreadMessages={!!server.badge}
-					badge={server.badge || server.badge === 0 ? parseInt(server.badge, 10) : null}
+					badge={(typeof server.badge === 'number' ? String(server.badge) : server.badge) ?? null}
 					isShortcutVisible={isEachShortcutVisible}
 					isDragged={draggedServerUrl === server.url}
 					onDragStart={handleDragStart(server.url)}
@@ -147,4 +165,4 @@ export function SideBar() {
 			</AddServerButton>
 		</Content>
 	</Wrapper>;
-}
+};

@@ -10,7 +10,7 @@ import {
 	Tile,
 } from '@rocket.chat/fuselage';
 import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, FC, FormEvent, ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -26,7 +26,7 @@ import { Wrapper, Content } from './styles';
 
 const defaultServerUrl = 'https://open.rocket.chat';
 
-export function AddServerView() {
+export const AddServerView: FC = () => {
 	const currentServerUrl = useSelector(selectCurrentServerUrl);
 
 	const isVisible = currentServerUrl === null;
@@ -78,7 +78,7 @@ export function AddServerView() {
 		}
 	}, [idleState, t]);
 
-	const handleFormSubmit = async (event) => {
+	const handleFormSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
 		event.preventDefault();
 
 		const serverUrl = (input || defaultServerUrl).trim();
@@ -91,7 +91,7 @@ export function AddServerView() {
 		}
 	};
 
-	const handleInputChange = (event) => {
+	const handleInputChange = (event: ChangeEvent<HTMLInputElement>): void => {
 		setInput(event.currentTarget.value);
 		setValidation(idleState);
 	};
@@ -99,7 +99,7 @@ export function AddServerView() {
 	const [isOnLine, setOnLine] = useState(() => navigator.onLine);
 
 	useEffect(() => {
-		const handleConnectionStatus = () => {
+		const handleConnectionStatus = (): void => {
 			setOnLine(navigator.onLine);
 		};
 
@@ -161,4 +161,4 @@ export function AddServerView() {
 				</Callout>}
 		</Content>
 	</Wrapper>;
-}
+};

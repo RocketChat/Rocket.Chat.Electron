@@ -1,13 +1,13 @@
-import { useEffect } from 'react';
+import React, { useEffect, FC } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { ROOT_WINDOW_EDIT_FLAGS_CHANGED } from '../../actions';
 
-export function MainWindow({ children }) {
+export const MainWindow: FC = ({ children }) => {
 	const dispatch = useDispatch();
 
 	useEffect(() => {
-		const fetchAndDispatchEditFlags = () => {
+		const fetchAndDispatchEditFlags = (): void => {
 			dispatch({
 				type: ROOT_WINDOW_EDIT_FLAGS_CHANGED,
 				payload: {
@@ -30,5 +30,5 @@ export function MainWindow({ children }) {
 		};
 	}, [dispatch]);
 
-	return children;
-}
+	return <>{children}</>;
+};

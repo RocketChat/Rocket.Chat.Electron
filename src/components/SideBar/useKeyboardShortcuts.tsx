@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 
-export const useKeyboardShortcuts = () => {
+export const useKeyboardShortcuts = (): boolean => {
 	const [isEachShortcutVisible, setShortcutsVisible] = useState(false);
 
 	useEffect(() => {
 		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 
-		const handleKeyChange = (down) => ({ key }) => {
+		const handleKeyChange = (down: boolean) => ({ key }: KeyboardEvent) => {
 			if (shortcutKey !== key) {
 				return;
 			}

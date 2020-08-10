@@ -1,5 +1,5 @@
 import { Box, Button, ButtonGroup, Chevron, Margins } from '@rocket.chat/fuselage';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -9,18 +9,20 @@ import {
 	UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 	UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
 } from '../../actions';
+import { selectAppVersion, selectNewUpdateVersion, selectOpenDialog } from '../../selectors';
 import { Dialog } from '../Dialog';
 
-export function UpdateDialog() {
-	const currentVersion = useSelector(({ appVersion }) => appVersion);
-	const newVersion = useSelector(({ newUpdateVersion }) => newUpdateVersion);
-	const isVisible = useSelector(({ openDialog }) => openDialog === 'update');
+export const UpdateDialog: FC = () => {
+	const currentVersion = useSelector(selectAppVersion);
+	const newVersion = useSelector(selectNewUpdateVersion);
+	const openDialog = useSelector(selectOpenDialog);
+	const isVisible = openDialog === 'update';
 
 	const dispatch = useDispatch();
 
 	const { t } = useTranslation();
 
-	const installButtonRef = useRef();
+	const installButtonRef = useRef<HTMLButtonElement>();
 
 	useEffect(() => {
 		if (!isVisible) {
@@ -30,19 +32,19 @@ export function UpdateDialog() {
 		installButtonRef.current.focus();
 	}, [isVisible]);
 
-	const handleSkipButtonClick = () => {
+	const handleSkipButtonClick = (): void => {
 		dispatch({ type: UPDATE_DIALOG_SKIP_UPDATE_CLICKED, payload: newVersion });
 	};
 
-	const handleRemindLaterButtonClick = () => {
+	const handleRemindLaterButtonClick = (): void => {
 		dispatch({ type: UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED });
 	};
 
-	const handleInstallButtonClick = () => {
+	const handleInstallButtonClick = (): void => {
 		dispatch({ type: UPDATE_DIALOG_INSTALL_BUTTON_CLICKED });
 	};
 
-	const handleClose = () => {
+	const handleClose = (): void => {
 		dispatch({ type: UPDATE_DIALOG_DISMISSED });
 	};
 
@@ -82,4 +84,4 @@ export function UpdateDialog() {
 			</Button>
 		</ButtonGroup>
 	</Dialog>;
-}
+};

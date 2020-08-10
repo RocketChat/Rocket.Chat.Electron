@@ -1,7 +1,11 @@
 import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 
-export const Wrapper = styled.section`
+type WrapperProps = {
+	isVisible: boolean;
+};
+
+export const Wrapper = styled.section<WrapperProps>`
 	position: absolute;
 	left: 0;
 	top: 0;
@@ -12,7 +16,11 @@ export const Wrapper = styled.section`
 	${ ({ isVisible }) => css`display: ${ isVisible ? 'flex' : 'none' };` };
 `;
 
-export const StyledWebView = styled('webview')`
+type StyledWebViewProps = {
+	isFailed: boolean;
+};
+
+export const StyledWebView = styled('webview')<StyledWebViewProps>`
 	position: absolute;
 	left: 0;
 	top: 0;
@@ -22,7 +30,11 @@ export const StyledWebView = styled('webview')`
 	${ ({ isFailed }) => css`display: ${ isFailed ? 'none' : 'flex' };` }
 `;
 
-export const ErrorPane = styled.div`
+type ErrorPaneProps = {
+	isVisible: boolean;
+};
+
+export const ErrorPane = styled.div<ErrorPaneProps>`
 	position: absolute;
 	left: 0;
 	top: 0;

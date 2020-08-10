@@ -1,7 +1,13 @@
-import { css } from '@emotion/core';
+import { css, SerializedStyles } from '@emotion/core';
 import styled from '@emotion/styled';
 
-export const Wrapper = styled.div`
+type WrapperProps = {
+	background: string;
+	color: string;
+	isVisible: boolean;
+};
+
+export const Wrapper = styled.div<WrapperProps>`
 	flex: 0 0 68px;
 	align-self: stretch;
 
@@ -24,7 +30,11 @@ export const Wrapper = styled.div`
 	` }
 `;
 
-export const Content = styled.div`
+type ContentProps = {
+	withWindowButtons: boolean;
+};
+
+export const Content = styled.div<ContentProps>`
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 0;
@@ -45,7 +55,7 @@ export const ServerList = styled.ol`
 	align-items: stretch;
 `;
 
-const withTooltip = ({ tooltip }) => css`
+const withTooltip = ({ tooltip }: { tooltip: string }): SerializedStyles => css`
 	&::after {
 		position: absolute;
 		top: 50%;
@@ -74,7 +84,14 @@ const withTooltip = ({ tooltip }) => css`
 	}
 `;
 
-export const ServerButtonWrapper = styled.li`
+type ServerButtonWrapperProps = {
+	isDragged: boolean;
+	hasUnreadMessages: boolean;
+	isSelected: boolean;
+	tooltip: string;
+};
+
+export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
 	position: relative;
 	flex: 0 0 auto;
 	box-sizing: border-box;
@@ -116,7 +133,11 @@ export const ServerButtonWrapper = styled.li`
 	${ withTooltip }
 `;
 
-export const Avatar = styled.span`
+type AvatarProps = {
+	isSelected: boolean;
+};
+
+export const Avatar = styled.span<AvatarProps>`
 	flex: 1 1 auto;
 	display: flex;
 	flex-flow: row nowrap;
@@ -132,13 +153,21 @@ export const Avatar = styled.span`
 	}
 `;
 
-export const Initials = styled.span`
+type InitialsProps = {
+	visible: boolean;
+};
+
+export const Initials = styled.span<InitialsProps>`
 	line-height: 42px;
 
 	${ ({ visible }) => css`display: ${ visible ? 'initial' : 'none' };` }
 `;
 
-export const Favicon = styled.img`
+type FaviconProps = {
+	visible: boolean;
+};
+
+export const Favicon = styled.img<FaviconProps>`
 	max-width: 100%;
 	height: 100%;
 	object-fit: contain;
@@ -162,7 +191,11 @@ export const Badge = styled.div`
 	line-height: 15px;
 `;
 
-export const KeyboardShortcut = styled.div`
+type KeyboardShortcutProps = {
+	visible: boolean;
+};
+
+export const KeyboardShortcut = styled.div<KeyboardShortcutProps>`
 	flex: 1 0 100%;
 	padding-top: 8px;
 	text-align: center;
@@ -190,7 +223,11 @@ export const AddServerButton = styled.button`
 	justify-content: center;
 `;
 
-export const AddServerButtonLabel = styled.span`
+type AddServerButtonLabelProps = {
+	tooltip: string;
+};
+
+export const AddServerButtonLabel = styled.span<AddServerButtonLabelProps>`
 	display: block;
 	line-height: 30px;
 	width: 40px;

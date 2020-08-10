@@ -1,10 +1,15 @@
 import { Scrollable, Tile } from '@rocket.chat/fuselage';
-import React from 'react';
+import React, { FC } from 'react';
 
 import { useDialog } from '../../hooks/useDialog';
 import { Wrapper } from './styles';
 
-export function Dialog({ children, isVisible, onClose }) {
+type DialogProps = {
+	isVisible?: boolean;
+	onClose?: () => void;
+};
+
+export const Dialog: FC<DialogProps> = ({ children, isVisible, onClose }) => {
 	const dialogRef = useDialog(isVisible, onClose);
 
 	return <Wrapper ref={dialogRef}>
@@ -14,4 +19,4 @@ export function Dialog({ children, isVisible, onClose }) {
 			</Tile>
 		</Scrollable>
 	</Wrapper>;
-}
+};

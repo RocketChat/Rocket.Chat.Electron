@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 
 type RocketChatLogoProps = {
-	alternate: boolean;
+	alternate?: boolean;
 }
 
 export const RocketChatLogo: FC<RocketChatLogoProps> = ({ alternate = false }) =>

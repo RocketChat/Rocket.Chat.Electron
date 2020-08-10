@@ -1,6 +1,6 @@
 import { Box, Button, Field, Margins, Throbber, ToggleSwitch } from '@rocket.chat/fuselage';
 import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC, ChangeEvent } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -24,7 +24,7 @@ import {
 import { Dialog } from '../Dialog';
 import { RocketChatLogo } from '../RocketChatLogo';
 
-export function AboutDialog() {
+export const AboutDialog: FC = () => {
 	const appVersion = useSelector(selectAppVersion);
 	const doCheckForUpdatesOnStartup = useSelector(selectDoCheckForUpdatesOnStartup);
 	const isCheckingForUpdates = useSelector(selectIsCheckingForUpdates);
@@ -79,11 +79,11 @@ export function AboutDialog() {
 		};
 	}, [updateError, isCheckingForUpdates, newUpdateVersion, t]);
 
-	const handleCheckForUpdatesButtonClick = () => {
+	const handleCheckForUpdatesButtonClick = (): void => {
 		dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
 	};
 
-	const handleCheckForUpdatesOnStartCheckBoxChange = (event) => {
+	const handleCheckForUpdatesOnStartCheckBoxChange = (event: ChangeEvent<HTMLInputElement>): void => {
 		dispatch({ type: ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, payload: event.target.checked });
 	};
 
@@ -95,7 +95,7 @@ export function AboutDialog() {
 			<RocketChatLogo />
 
 			<Box alignSelf='center'>
-				<Trans i18nKey='dialog.about.version' version={appVersion}>
+				<Trans t={t} i18nKey='dialog.about.version'>
 						Version: <Box is='span' fontScale='p2' style={{ userSelect: 'text' }}>{{ version: appVersion }}</Box>
 				</Trans>
 			</Box>
@@ -141,4 +141,4 @@ export function AboutDialog() {
 			</Box>
 		</Margins>
 	</Dialog>;
-}
+};

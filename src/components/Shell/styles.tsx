@@ -1,31 +1,33 @@
 import { Global, css } from '@emotion/core';
 import styled from '@emotion/styled';
-import React from 'react';
+import React, { FC } from 'react';
 
-export const GlobalStyles = () => <Global styles={css`
-	*,
-	*::before,
-	*::after {
-		box-sizing: border-box;
-	}
+export const GlobalStyles: FC = () =>
+	<Global
+		styles={css`
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+			}
 
-	:focus {
-		outline: 0 !important;
-		outline-style: none;
-		outline-color: transparent;
-	}
+			:focus {
+				outline: 0 !important;
+				outline-style: none;
+				outline-color: transparent;
+			}
 
-	body {
-		-webkit-font-smoothing: antialiased;
-		margin: 0;
-		padding: 0;
-		font-family: system-ui;
-		font-size: 0.875rem;
-		line-height: 1rem;
-		background-color: #2f343d;
-	}
-
-`} />;
+			body {
+				-webkit-font-smoothing: antialiased;
+				margin: 0;
+				padding: 0;
+				font-family: system-ui;
+				font-size: 0.875rem;
+				line-height: 1rem;
+				background-color: #2f343d;
+			}
+		`}
+	/>;
 
 export const WindowDragBar = styled.div`
 	position: fixed;

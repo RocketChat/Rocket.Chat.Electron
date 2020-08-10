@@ -1,22 +1,23 @@
 import { useUniqueId } from '@rocket.chat/fuselage-hooks';
-import React, { FC } from 'react';
+import React, { FC, CSSProperties } from 'react';
 
 type FailureImageProps = {
-	st3: string;
-	st15: string;
-	st11: string;
-	st1: string;
-	st14: string;
-	st12: string;
-	st2: string;
-	st23: string;
-	st22: string;
-	st21: string;
-	st20: string;
-	st8: string;
-	st19: string;
-	st4: string;
-	st13: string;
+	st3?: string;
+	st15?: string;
+	st11?: string;
+	st1?: string;
+	st14?: string;
+	st12?: string;
+	st2?: string;
+	st23?: string;
+	st22?: string;
+	st21?: string;
+	st20?: string;
+	st8?: string;
+	st19?: string;
+	st4?: string;
+	st13?: string;
+	style?: CSSProperties;
 };
 
 export const FailureImage: FC<FailureImageProps> = ({

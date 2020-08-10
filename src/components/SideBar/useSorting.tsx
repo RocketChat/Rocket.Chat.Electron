@@ -1,28 +1,36 @@
-import { useState } from 'react';
+import { useState, DragEvent } from 'react';
 import { useDispatch } from 'react-redux';
 
 import {
 	SIDE_BAR_SERVERS_SORTED,
 	SIDE_BAR_SERVER_SELECTED,
 } from '../../actions';
+import { Server } from '../../structs/servers';
 
-export const useSorting = (servers) => {
-	const [draggedServerUrl, setDraggedServerUrl] = useState(null);
-	const [serversSorting, setServersSorting] = useState(null);
+export const useSorting = (servers: Server[]): {
+	sortedServers: Server[];
+	draggedServerUrl: string;
+	handleDragStart: (url: string) => (event: DragEvent) => void;
+	handleDragEnd: (event: DragEvent) => void;
+	handleDragEnter: (url: string) => (event: DragEvent) => void;
+	handleDrop: (url: string) => (event: DragEvent) => void;
+} => {
+	const [draggedServerUrl, setDraggedServerUrl] = useState<string | null>(null);
+	const [serversSorting, setServersSorting] = useState<string[] | null>(null);
 
-	const handleDragStart = (url) => (event) => {
+	const handleDragStart = (url: string) => (event: DragEvent) => {
 		event.dataTransfer.dropEffect = 'move';
 		event.dataTransfer.effectAllowed = 'move';
 		setDraggedServerUrl(url);
 		setServersSorting(servers.map(({ url }) => url));
 	};
 
-	const handleDragEnd = () => {
+	const handleDragEnd = (): void => {
 		setDraggedServerUrl(null);
 		setServersSorting(null);
 	};
 
-	const handleDragEnter = (targetServerUrl) => () => {
+	const handleDragEnter = (targetServerUrl: string) => () => {
 		setServersSorting((serversSorting) => serversSorting.map((url) => {
 			if (url === targetServerUrl) {
 				return draggedServerUrl;
@@ -38,7 +46,7 @@ export const useSorting = (servers) => {
 
 	const dispatch = useDispatch();
 
-	const handleDrop = (url) => (event) => {
+	const handleDrop = (url: string) => (event: DragEvent) => {
 		event.preventDefault();
 
 		dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: serversSorting });

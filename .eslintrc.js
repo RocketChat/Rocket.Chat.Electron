@@ -87,6 +87,7 @@ module.exports = {
 				'no-useless-constructor': 'off',
 				'no-empty-function': 'off',
 				'no-spaced-func': 'off',
+				'no-unused-vars': 'off',
 				'react/jsx-uses-react': 'error',
 				'react/jsx-uses-vars': 'error',
 				'react/jsx-no-undef': 'error',
@@ -121,6 +122,8 @@ module.exports = {
 				'@typescript-eslint/explicit-function-return-type': ['warn', {
 					allowExpressions: true,
 				}],
+				'@typescript-eslint/no-unused-vars': 'off',
+				'@typescript-eslint/no-unused-vars-experimental': 'warn',
 			},
 			env: {
 				browser: true,

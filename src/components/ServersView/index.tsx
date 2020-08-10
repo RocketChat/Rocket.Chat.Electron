@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { FC } from 'react';
 import { useSelector } from 'react-redux';
 
 import { selectServers, selectCurrentServerUrl } from '../../selectors';
 import { ReparentingContainer } from '../utils/ReparentingContainer';
 import { ServerPane } from './ServerPane';
 
-export function ServersView() {
+export const ServersView: FC = () => {
 	const servers = useSelector(selectServers);
 	const currentServerUrl = useSelector(selectCurrentServerUrl);
 
@@ -18,4 +18,4 @@ export function ServersView() {
 			isFailed={server.failed}
 		/>)}
 	</ReparentingContainer>;
-}
+};

@@ -1,11 +1,16 @@
 import { Box, Button, ButtonGroup, Margins, Throbber } from '@rocket.chat/fuselage';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FailureImage } from '../FailureImage';
 import { ErrorPane } from './styles';
 
-const ErrorView = ({ isFailed, onReload }) => {
+type ErrorViewProps = {
+	isFailed: boolean;
+	onReload: () => void;
+};
+
+const ErrorView: FC<ErrorViewProps> = ({ isFailed, onReload }) => {
 	const { t } = useTranslation();
 
 	const [isReloading, setReloading] = useState(false);
@@ -38,7 +43,7 @@ const ErrorView = ({ isFailed, onReload }) => {
 		};
 	}, [isFailed, onReload]);
 
-	const handleReloadButtonClick = () => {
+	const handleReloadButtonClick = (): void => {
 		setReloading(true);
 		onReload();
 		setCounter(60);

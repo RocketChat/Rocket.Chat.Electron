@@ -1,5 +1,5 @@
 import { Box, Button, Margins, Scrollable, Tile } from '@rocket.chat/fuselage';
-import React from 'react';
+import React, { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -10,7 +10,7 @@ import {
 import { selectOpenDialog, selectClientCertificates } from '../../selectors';
 import { Dialog } from '../Dialog';
 
-export function SelectClientCertificateDialog() {
+export const SelectClientCertificateDialog: FC = () => {
 	const openDialog = useSelector(selectOpenDialog);
 	const clientCertificates = useSelector(selectClientCertificates);
 	const isVisible = openDialog === 'select-client-certificate';
@@ -23,7 +23,7 @@ export function SelectClientCertificateDialog() {
 		});
 	};
 
-	const handleClose = () => {
+	const handleClose = (): void => {
 		dispatch({ type: SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED });
 	};
 
@@ -65,4 +65,4 @@ export function SelectClientCertificateDialog() {
 			</Scrollable>
 		</Margins>
 	</Dialog>;
-}
+};

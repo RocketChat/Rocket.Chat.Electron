@@ -1,9 +1,13 @@
 import { useMergedRefs } from '@rocket.chat/fuselage-hooks';
-import React, { useLayoutEffect, useRef, forwardRef, ReactElement, ReactText } from 'react';
+import React, { useLayoutEffect, useRef, forwardRef, ReactElement, ReactText, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import flattenChildren from 'react-keyed-flatten-children';
 
-export const ReparentingContainer = forwardRef(function ReparentingContainer({ children, ...props }, ref) {
+type ReparentingContainerProps = {
+	children?: ReactNode;
+};
+
+export const ReparentingContainer = forwardRef<HTMLDivElement, ReparentingContainerProps>(function ReparentingContainer({ children, ...props }, ref) {
 	const innerRef = useRef<HTMLDivElement>();
 
 	const childrenArray = flattenChildren(children) as ReactElement[];

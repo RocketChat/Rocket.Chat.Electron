@@ -1,6 +1,7 @@
-import React, { useLayoutEffect } from 'react';
+import React, { useLayoutEffect, FC } from 'react';
 import { useSelector } from 'react-redux';
 
+import { selectAppPath } from '../../selectors';
 import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
@@ -10,8 +11,9 @@ import { SideBar } from '../SideBar';
 import { UpdateDialog } from '../UpdateDialog';
 import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 
-export function Shell() {
-	const appPath = useSelector(({ appPath }) => appPath);
+export const Shell: FC = () => {
+	const appPath = useSelector(selectAppPath);
+
 	useLayoutEffect(() => {
 		const linkElement = document.createElement('link');
 		linkElement.rel = 'stylesheet';
@@ -19,14 +21,12 @@ export function Shell() {
 		document.head.append(linkElement);
 	}, [appPath]);
 
-	const isFull = useSelector(({ servers, isSideBarEnabled }) => !(servers.length > 0 && isSideBarEnabled));
-
 	return <>
 		<GlobalStyles />
 		{process.platform === 'darwin' && <WindowDragBar />}
 		<Wrapper>
 			<SideBar />
-			<ViewsWrapper isFull={isFull}>
+			<ViewsWrapper>
 				<ServersView />
 				<AddServerView />
 			</ViewsWrapper>
@@ -36,4 +36,4 @@ export function Shell() {
 		<SelectClientCertificateDialog />
 		<UpdateDialog />
 	</>;
-}
+};

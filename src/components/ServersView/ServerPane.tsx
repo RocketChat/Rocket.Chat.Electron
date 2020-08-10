@@ -1,5 +1,5 @@
-import { ipcRenderer } from 'electron';
-import React, { useRef, useEffect } from 'react';
+import { ipcRenderer, WebviewTag } from 'electron';
+import React, { useRef, useEffect, FC } from 'react';
 import { useDispatch } from 'react-redux';
 
 import {
@@ -12,18 +12,25 @@ import {
 import ErrorView from './ErrorView';
 import { StyledWebView, Wrapper } from './styles';
 
-export function ServerPane({
+type ServerPaneProps = {
+	lastPath: string;
+	serverUrl: string;
+	isSelected: boolean;
+	isFailed: boolean;
+};
+
+export const ServerPane: FC<ServerPaneProps> = ({
 	lastPath,
 	serverUrl,
 	isSelected,
 	isFailed,
-}) {
+}) => {
 	const dispatch = useDispatch();
 
-	const webviewRef = useRef();
+	const webviewRef = useRef<WebviewTag>();
 
 	useEffect(() => {
-		const handleWindowFocus = () => {
+		const handleWindowFocus = (): void => {
 			if (!isSelected || isFailed) {
 				return;
 			}
@@ -39,19 +46,19 @@ export function ServerPane({
 	}, [isFailed, isSelected, serverUrl]);
 
 	useEffect(() => {
-		const handleDidAttach = () => {
-			ipcRenderer.send(EVENT_BROWSER_VIEW_ATTACHED, serverUrl, webviewRef.current.getWebContents().id);
+		const webview = webviewRef.current;
+
+		const handleDidAttach = (): void => {
+			ipcRenderer.send(EVENT_BROWSER_VIEW_ATTACHED, serverUrl, webview.getWebContents().id);
 		};
 
-		const handleFocus = () => {
-			ipcRenderer.send(EVENT_WEB_CONTENTS_FOCUS_CHANGED, document.activeElement.getWebContents().id);
+		const handleFocus = (): void => {
+			ipcRenderer.send(EVENT_WEB_CONTENTS_FOCUS_CHANGED, webview.getWebContents().id);
 		};
 
-		const handleBlur = () => {
+		const handleBlur = (): void => {
 			ipcRenderer.send(EVENT_WEB_CONTENTS_FOCUS_CHANGED);
 		};
-
-		const webview = webviewRef.current;
 
 		webview.addEventListener('did-attach', handleDidAttach);
 		webview.addEventListener('focus', handleFocus);
@@ -70,7 +77,7 @@ export function ServerPane({
 		}
 	}, [lastPath, serverUrl]);
 
-	const handleReload = () => {
+	const handleReload = (): void => {
 		dispatch({
 			type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
 			payload: { url: serverUrl },
@@ -81,4 +88,4 @@ export function ServerPane({
 		<StyledWebView ref={webviewRef} isFailed={isFailed} />
 		<ErrorView isFailed={isFailed} onReload={handleReload} />
 	</Wrapper>;
-}
+};

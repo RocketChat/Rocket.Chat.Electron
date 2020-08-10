@@ -1,6 +1,6 @@
 import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
 import { desktopCapturer } from 'electron';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -12,7 +12,7 @@ import { selectOpenDialog } from '../../selectors';
 import { Dialog } from '../Dialog';
 import { Source } from './styles';
 
-export function ScreenSharingDialog() {
+export const ScreenSharingDialog: FC = () => {
 	const openDialog = useSelector(selectOpenDialog);
 	const isVisible = openDialog === 'screen-sharing';
 	const dispatch = useDispatch();
@@ -26,7 +26,7 @@ export function ScreenSharingDialog() {
 			return;
 		}
 
-		const fetchSources = async () => {
+		const fetchSources = async (): Promise<void> => {
 			const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
 			setSources(sources);
 		};
@@ -40,11 +40,11 @@ export function ScreenSharingDialog() {
 		};
 	}, [isVisible]);
 
-	const handleScreenSharingSourceClick = (id) => () => {
+	const handleScreenSharingSourceClick = (id: string) => () => {
 		dispatch({ type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, payload: id });
 	};
 
-	const handleClose = () => {
+	const handleClose = (): void => {
 		dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
 	};
 
@@ -63,4 +63,4 @@ export function ScreenSharingDialog() {
 			</Margins>
 		</Box>
 	</Dialog>;
-}
+};

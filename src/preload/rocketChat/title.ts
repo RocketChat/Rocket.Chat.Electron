@@ -2,7 +2,7 @@ import { getServerUrl } from '.';
 import { WEBVIEW_TITLE_CHANGED } from '../../actions';
 import { dispatch } from '../../channels';
 
-export const setupTitleChanges = () => {
+export const setupTitleChanges = (): void => {
 	const { Tracker } = window.require('meteor/tracker');
 	const { settings } = window.require('/app/settings');
 

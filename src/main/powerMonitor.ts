@@ -5,6 +5,7 @@ import {
 	SYSTEM_SUSPENDING,
 	SYSTEM_LOCKING_SCREEN,
 	SYSTEM_IDLE_STATE_REQUESTED,
+	SYSTEM_IDLE_STATE_RESPONDED,
 } from '../actions';
 import { dispatch, RequestAction } from '../channels';
 
@@ -23,7 +24,7 @@ export function *takeSystemActions(): Generator<Effect> {
 		const { meta: { id }, payload: idleThreshold } = action;
 		const idleState = yield call(() => powerMonitor.getSystemIdleState(idleThreshold));
 		const responseAction = {
-			type: `${ SYSTEM_IDLE_STATE_REQUESTED }_RESPONDED`,
+			type: SYSTEM_IDLE_STATE_RESPONDED,
 			payload: idleState,
 			meta: {
 				response: true,

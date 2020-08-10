@@ -1,4 +1,5 @@
-import { takeEvery, call } from 'redux-saga/effects';
+import { AnyAction } from 'redux';
+import { takeEvery, call, Effect } from 'redux-saga/effects';
 
 import {
 	WEBVIEW_MESSAGE_BOX_FOCUSED,
@@ -7,9 +8,13 @@ import {
 } from '../../actions';
 import { dispatch } from '../../channels';
 
-let focusedMessageBoxInput = null;
+let focusedMessageBoxInput: Element = null;
 
-const handleFocusEvent = (event) => {
+const handleFocusEvent = (event: FocusEvent): void => {
+	if (!(event.target instanceof Element)) {
+		return;
+	}
+
 	if (!event.target.classList.contains('js-input-message')) {
 		return;
 	}
@@ -18,7 +23,11 @@ const handleFocusEvent = (event) => {
 	dispatch({ type: WEBVIEW_MESSAGE_BOX_FOCUSED });
 };
 
-const handleBlurEvent = (event) => {
+const handleBlurEvent = (event: FocusEvent): void => {
+	if (!(event.target instanceof Element)) {
+		return;
+	}
+
 	if (!event.target.classList.contains('js-input-message')) {
 		return;
 	}
@@ -27,13 +36,13 @@ const handleBlurEvent = (event) => {
 	dispatch({ type: WEBVIEW_MESSAGE_BOX_BLURRED });
 };
 
-export const setupMessageBoxEvents = () => {
+export const setupMessageBoxEvents = (): void => {
 	document.addEventListener('focus', handleFocusEvent, true);
 	document.addEventListener('blur', handleBlurEvent, true);
 };
 
-export function *takeMessageBoxActions() {
-	yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *(action) {
+export function *takeMessageBoxActions(): Generator<Effect> {
+	yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *(action: AnyAction) {
 		if (!focusedMessageBoxInput) {
 			return;
 		}

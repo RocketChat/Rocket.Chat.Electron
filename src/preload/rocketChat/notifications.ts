@@ -1,4 +1,5 @@
-import { takeEvery } from 'redux-saga/effects';
+import { AnyAction } from 'redux';
+import { takeEvery, Effect } from 'redux-saga/effects';
 
 import { getServerUrl } from '.';
 import {
@@ -15,7 +16,7 @@ import {
 import { dispatch, request } from '../../channels';
 
 
-const normalizeIconUrl = (iconUrl) => {
+const normalizeIconUrl = (iconUrl: string): string => {
 	if (/^data:/.test(iconUrl)) {
 		return iconUrl;
 	}
@@ -30,16 +31,18 @@ const normalizeIconUrl = (iconUrl) => {
 
 const notifications = new Map();
 
-class Notification extends EventTarget {
-	static get permission() {
-		return 'granted';
+class CustomNotification extends EventTarget implements Notification {
+	static readonly permission: NotificationPermission = 'granted';
+
+	static readonly maxActions: number = process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
+
+	static requestPermission(): Promise<NotificationPermission> {
+		return Promise.resolve(CustomNotification.permission);
 	}
 
-	static requestPermission() {
-		return Promise.resolve(Notification.permission);
-	}
+	private _destroy: Promise<() => void>;
 
-	constructor(title, { icon, ...options } = {}) {
+	constructor(title: string, { icon, ...options }: (NotificationOptions & { canReply?: boolean }) = {}) {
 		super();
 
 		for (const eventType of ['show', 'close', 'click', 'reply', 'action']) {
@@ -64,7 +67,9 @@ class Notification extends EventTarget {
 
 		this._destroy = request(NOTIFICATIONS_CREATE_REQUESTED, {
 			title,
-			icon: normalizeIconUrl(icon),
+			...icon ? {
+				icon: normalizeIconUrl(icon),
+			} : {},
 			...options,
 		}).then((id) => {
 			notifications.set(id, this);
@@ -74,9 +79,49 @@ class Notification extends EventTarget {
 				notifications.delete(id);
 			};
 		});
+
+		Object.assign(this, { title, icon, ...options });
 	}
 
-	close() {
+	actions: NotificationAction[];
+
+	badge: string;
+
+	body: string;
+
+	data: any;
+
+	dir: NotificationDirection;
+
+	icon: string;
+
+	image: string;
+
+	lang: string;
+
+	onclick: (this: Notification, ev: Event) => any;
+
+	onclose: (this: Notification, ev: Event) => any;
+
+	onerror: (this: Notification, ev: Event) => any;
+
+	onshow: (this: Notification, ev: Event) => any;
+
+	renotify: boolean;
+
+	requireInteraction: boolean;
+
+	silent: boolean;
+
+	tag: string;
+
+	timestamp: number;
+
+	title: string;
+
+	vibrate: readonly number[];
+
+	close(): void {
 		if (!this._destroy) {
 			return;
 		}
@@ -88,12 +133,12 @@ class Notification extends EventTarget {
 	}
 }
 
-export const setupNotifications = () => {
-	window.Notification = Notification;
+export const setupNotifications = (): void => {
+	window.Notification = CustomNotification;
 };
 
-export function *takeNotificationsActions() {
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_SHOWN, function *(action) {
+export function *takeNotificationsActions(): Generator<Effect> {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_SHOWN, function *(action: AnyAction) {
 		const { payload: { id } } = action;
 
 		if (!notifications.has(id)) {
@@ -104,7 +149,7 @@ export function *takeNotificationsActions() {
 		notifications.get(id).dispatchEvent(showEvent);
 	});
 
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLOSED, function *(action) {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLOSED, function *(action: AnyAction) {
 		const { payload: { id } } = action;
 
 		if (!notifications.has(id)) {
@@ -116,7 +161,7 @@ export function *takeNotificationsActions() {
 		notifications.delete(id);
 	});
 
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLICKED, function *(action) {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLICKED, function *(action: AnyAction) {
 		const { payload: { id } } = action;
 
 		if (!notifications.has(id)) {
@@ -134,27 +179,25 @@ export function *takeNotificationsActions() {
 		notifications.get(id).dispatchEvent(clickEvent);
 	});
 
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_REPLIED, function *(action) {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_REPLIED, function *(action: AnyAction) {
 		const { payload: { id, reply } } = action;
 
 		if (!notifications.has(id)) {
 			return;
 		}
 
-		const replyEvent = new CustomEvent('reply', { detail: { reply } });
-		replyEvent.reply = reply;
+		const replyEvent = new CustomEvent<{ reply: string }>('reply', { detail: { reply } });
 		notifications.get(id).dispatchEvent(replyEvent);
 	});
 
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_ACTIONED, function *(action) {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_ACTIONED, function *(action: AnyAction) {
 		const { payload: { id, index } } = action;
 
 		if (!notifications.has(id)) {
 			return;
 		}
 
-		const actionEvent = new CustomEvent('action', { detail: { index } });
-		actionEvent.index = index;
+		const actionEvent = new CustomEvent<{ index: number }>('action', { detail: { index } });
 		notifications.get(id).dispatchEvent(actionEvent);
 	});
 }

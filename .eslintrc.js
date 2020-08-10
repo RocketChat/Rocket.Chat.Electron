@@ -98,7 +98,7 @@ module.exports = {
 				'react-hooks/rules-of-hooks': 'error',
 				'react-hooks/exhaustive-deps': 'warn',
 				'@typescript-eslint/ban-ts-ignore': 'off',
-				'@typescript-eslint/func-call-spacing': ['error'],
+				'@typescript-eslint/func-call-spacing': 'error',
 				'@typescript-eslint/indent': [
 					'error',
 					'tab',

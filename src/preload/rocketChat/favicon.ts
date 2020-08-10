@@ -4,7 +4,7 @@ import { dispatch } from '../../channels';
 
 const FAVICON_SIZE = 100;
 
-export const setupFaviconChanges = () => {
+export const setupFaviconChanges = (): void => {
 	const canvas = document.createElement('canvas');
 	canvas.width = FAVICON_SIZE;
 	canvas.height = FAVICON_SIZE;

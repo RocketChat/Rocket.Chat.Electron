@@ -1,13 +1,15 @@
+import { Store } from 'redux';
+
 import { getServerUrl } from '.';
 import { WEBVIEW_SIDEBAR_STYLE_CHANGED } from '../../actions';
 import { dispatch } from '../../channels';
 import { selectIsSideBarVisible } from '../../selectors';
 
-let timer;
-let prevBackground;
-let prevColor;
+let timer: ReturnType<typeof setTimeout>;
+let prevBackground: string;
+let prevColor: string;
 
-const pollSidebarStyle = (referenceElement) => {
+const pollSidebarStyle = (referenceElement: Element): void => {
 	clearTimeout(timer);
 
 	document.body.append(referenceElement);
@@ -35,7 +37,7 @@ const pollSidebarStyle = (referenceElement) => {
 	timer = setTimeout(() => pollSidebarStyle(referenceElement), 1000);
 };
 
-export const setupSidebarChanges = (reduxStore) => {
+export const setupSidebarChanges = (reduxStore: Store): void => {
 	const referenceElement = document.createElement('div');
 	referenceElement.classList.add('sidebar');
 	referenceElement.style.backgroundColor = 'var(--sidebar-background)';
@@ -63,9 +65,9 @@ export const setupSidebarChanges = (reduxStore) => {
 	style.id = 'sidebar-padding';
 	document.head.append(style);
 
-	let prevIsSideBarVisible;
+	let prevIsSideBarVisible: boolean;
 	reduxStore.subscribe(() => {
-		const isSideBarVisible = selectIsSideBarVisible(reduxStore.getState());
+		const isSideBarVisible: boolean = selectIsSideBarVisible(reduxStore.getState());
 		if (prevIsSideBarVisible !== isSideBarVisible) {
 			if (process.platform !== 'darwin') {
 				return;

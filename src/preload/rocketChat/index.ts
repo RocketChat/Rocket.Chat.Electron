@@ -1,6 +1,6 @@
 import semver from 'semver';
 
-export const isRocketChat = () => {
+export const isRocketChat = (): boolean => {
 	if (typeof window.require !== 'function') {
 		return false;
 	}
@@ -14,7 +14,7 @@ export const isRocketChat = () => {
 	}
 };
 
-export const getServerUrl = () => {
+export const getServerUrl = (): string => {
 	const { Meteor } = window.require('meteor/meteor');
 	return Meteor.absoluteUrl().replace(/\/$/, '');
 };

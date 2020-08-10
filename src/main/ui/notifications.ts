@@ -79,7 +79,7 @@ const createNotification = async (id: string, {
 		icon: await resolveIcon(icon),
 		silent,
 		hasReply: canReply,
-		actions: actions.map((action) => ({
+		actions: actions?.map((action) => ({
 			type: 'button',
 			text: action.title,
 		})),

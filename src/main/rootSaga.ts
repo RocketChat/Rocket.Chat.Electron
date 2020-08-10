@@ -88,7 +88,5 @@ export function *rootSaga(reduxStore: Store): Generator<Effect> {
 	yield *takeUpdateActions(rootWindow);
 	yield *takeUiActions(rootWindow);
 
-	yield call(async () => {
-		await processDeepLinksInArgs();
-	});
+	yield call(() => processDeepLinksInArgs());
 }

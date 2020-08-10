@@ -13,7 +13,7 @@ import {
 } from '../../selectors';
 import { Server } from '../../structs/servers';
 
-const { t } = i18next;
+const t = i18next.t.bind(i18next);
 
 const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
 

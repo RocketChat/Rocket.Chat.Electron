@@ -15,7 +15,7 @@ import { request } from '../channels';
 import { selectServers, selectTrustedCertificates } from '../selectors';
 import { AskForCertificateTrustResponse, askForCertificateTrust } from './ui/dialogs';
 
-const { t } = i18next;
+const t = i18next.t.bind(i18next);
 
 const loadUserTrustedCertificates = async (): Promise<Record<string, unknown>> => {
 	try {

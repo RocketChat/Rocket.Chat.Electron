@@ -9,7 +9,7 @@ import {
 } from '../../selectors';
 import { getTrayIconPath, getAppIconPath } from '../icons';
 
-const { t } = i18next;
+const t = i18next.t.bind(i18next);
 
 const createTrayIcon = (reduxStore: Store, rootWindow: BrowserWindow): Tray => {
 	const image = getTrayIconPath({ badge: null, dark: nativeTheme.shouldUseDarkColors });

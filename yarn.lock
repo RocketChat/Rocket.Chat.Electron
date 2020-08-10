@@ -1710,13 +1710,6 @@
     "@rollup/pluginutils" "^3.0.8"
     magic-string "^0.25.5"
 
-"@rollup/plugin-run@^2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@rollup/plugin-run/-/plugin-run-2.0.2.tgz#9379f20de4836c05ebb17ddf6e16a85e7a35a327"
-  integrity sha512-ueUAPnd98mZlywKmG1BF3s00EljxStI8C695mkERbVd0ESAt5vFu0lZiwfxe/pxtBty/PbhheqjHTPIP7JJgzQ==
-  dependencies:
-    "@types/node" "13.1.6"
-
 "@rollup/plugin-typescript@^5.0.2":
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-typescript/-/plugin-typescript-5.0.2.tgz#e879b73354851868b805bbd43f15c229123b8a71"
@@ -1922,11 +1915,6 @@
   version "13.7.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-13.7.0.tgz#b417deda18cf8400f278733499ad5547ed1abec4"
   integrity sha512-GnZbirvmqZUzMgkFn70c74OQpTTUcCzlhQliTzYjQMqg+hVKcDnxdL19Ne3UdYzdMA/+W3eb646FWn/ZaT1NfQ==
-
-"@types/node@13.1.6":
-  version "13.1.6"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.1.6.tgz#076028d0b0400be8105b89a0a55550c86684ffec"
-  integrity sha512-Jg1F+bmxcpENHP23sVKkNuU3uaxPnsBMW0cLjleiikFKomJQbsn0Cqk2yDvQArqzZN6ABfBkZ0To7pQ8sLdWDg==
 
 "@types/node@^12.0.12":
   version "12.12.27"

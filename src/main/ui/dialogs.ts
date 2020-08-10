@@ -1,7 +1,7 @@
 import { dialog, BrowserWindow } from 'electron';
 import i18next from 'i18next';
 
-const { t } = i18next;
+const t = i18next.t.bind(i18next);
 
 export const askForAppDataReset = async (parentWindow: BrowserWindow): Promise<boolean> => {
 	const { response } = await dialog.showMessageBox(parentWindow, {

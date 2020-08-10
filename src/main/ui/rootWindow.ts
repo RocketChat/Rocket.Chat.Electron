@@ -55,7 +55,7 @@ import { getTrayIconPath, getAppIconPath } from '../icons';
 import { importSpellCheckingDictionaries, getCorrectionsForMisspelling } from '../spellChecking';
 import { browseForSpellCheckingDictionary } from './dialogs';
 
-const { t } = i18next;
+const t = i18next.t.bind(i18next);
 
 const webContentsByServerUrl = new Map();
 

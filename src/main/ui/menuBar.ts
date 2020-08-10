@@ -34,7 +34,7 @@ import { relaunchApp } from '../app';
 import { askForAppDataReset } from './dialogs';
 import { getWebContentsByServerUrl, getAllServerWebContents } from './rootWindow';
 
-const { t } = i18next;
+const t = i18next.t.bind(i18next);
 
 export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void => {
 	const selectAppMenuTemplate = createSelector([], (): MenuItemConstructorOptions => ({

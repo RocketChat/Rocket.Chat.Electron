@@ -1,16 +1,21 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app } from 'electron';
+import { app, WebContents } from 'electron';
+import ElectronStore from 'electron-store';
+import { Store } from 'redux';
 
 import { PERSISTABLE_VALUES_MERGED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 
-export const getLocalStorage = (webContents) => webContents.executeJavaScript('({...localStorage})');
+export const getLocalStorage = (webContents: WebContents): Promise<Record<string, string>> =>
+	webContents.executeJavaScript('({...localStorage})');
 
-export const purgeLocalStorage = (webContents) => webContents.executeJavaScript('localStorage.clear()');
+export const purgeLocalStorage = async (webContents: WebContents): Promise<void> => {
+	await webContents.executeJavaScript('localStorage.clear()');
+};
 
-export const mergePersistableValues = async (reduxStore, electronStore, localStorage) => {
+export const mergePersistableValues = async (reduxStore: Store, electronStore: ElectronStore, localStorage: Record<string, string>): Promise<void> => {
 	const initialValues = selectPersistableValues(reduxStore.getState());
 
 	const electronStoreValues = Object.fromEntries(Array.from(electronStore));
@@ -97,7 +102,7 @@ export const mergePersistableValues = async (reduxStore, electronStore, localSto
 	});
 };
 
-export const watchAndPersistChanges = (reduxStore, electronStore) => {
+export const watchAndPersistChanges = (reduxStore: Store, electronStore: ElectronStore): void => {
 	reduxStore.subscribe(() => {
 		const values = selectPersistableValues(reduxStore.getState());
 

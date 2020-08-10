@@ -9,9 +9,18 @@ import {
 	webContents,
 	clipboard,
 	Menu,
+	WebContents,
+	DidNavigateEvent,
+	DidFailLoadEvent,
+	MenuItemConstructorOptions,
+	Event,
+	Input,
+	WebPreferences,
+	IpcMainEvent,
 } from 'electron';
-import { t } from 'i18next';
-import { takeEvery, call } from 'redux-saga/effects';
+import i18next from 'i18next';
+import { Store, AnyAction } from 'redux';
+import { takeEvery, call, Effect } from 'redux-saga/effects';
 import { createSelector } from 'reselect';
 
 import {
@@ -39,32 +48,36 @@ import {
 	selectIsShowWindowOnUnreadChangedEnabled,
 	selectSpellCheckingDictionaries,
 	selectFocusedWebContents,
+	selectMainWindowState,
 } from '../../selectors';
+import { WindowState } from '../../structs/ui';
 import { getTrayIconPath, getAppIconPath } from '../icons';
 import { importSpellCheckingDictionaries, getCorrectionsForMisspelling } from '../spellChecking';
 import { browseForSpellCheckingDictionary } from './dialogs';
 
+const { t } = i18next;
+
 const webContentsByServerUrl = new Map();
 
-export const getWebContentsByServerUrl = (serverUrl) =>
+export const getWebContentsByServerUrl = (serverUrl: string): WebContents =>
 	webContentsByServerUrl.get(serverUrl);
 
-export const getAllServerWebContents = () =>
+export const getAllServerWebContents = (): WebContents[] =>
 	Array.from(webContentsByServerUrl.values());
 
-const initializeServerWebContents = (serverUrl, guestWebContents, reduxStore, rootWindow) => {
+const initializeServerWebContents = (serverUrl: string, guestWebContents: WebContents, reduxStore: Store, rootWindow: BrowserWindow): void => {
 	webContentsByServerUrl.set(serverUrl, guestWebContents);
 
 	guestWebContents.addListener('destroyed', () => {
 		webContentsByServerUrl.delete(serverUrl);
 	});
 
-	const handleDidStartLoading = () => {
+	const handleDidStartLoading = (): void => {
 		reduxStore.dispatch({ type: WEBVIEW_DID_START_LOADING, payload: { url: serverUrl } });
 		rootWindow.webContents.send(WEBVIEW_DID_START_LOADING, serverUrl);
 	};
 
-	const handleDidFailLoad = (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+	const handleDidFailLoad = (_event: DidFailLoadEvent, errorCode, errorDescription, validatedURL: string, isMainFrame: boolean): void => {
 		if (errorCode === -3) {
 			console.warn('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
 			return;
@@ -76,22 +89,22 @@ const initializeServerWebContents = (serverUrl, guestWebContents, reduxStore, ro
 		});
 	};
 
-	const handleDomReady = () => {
+	const handleDomReady = (): void => {
 		guestWebContents.focus();
 	};
 
-	const handleDidNavigateInPage = (event, pageUrl) => {
+	const handleDidNavigateInPage = (_event: DidNavigateEvent, pageUrl: string): void => {
 		reduxStore.dispatch({
 			type: WEBVIEW_DID_NAVIGATE,
 			payload: {
-				webContentsId: webContents.id,
+				webContentsId: guestWebContents.id,
 				url: serverUrl,
 				pageUrl,
 			},
 		});
 	};
 
-	const handleContextMenu = async (event, params) => {
+	const handleContextMenu = async (event, params): Promise<void> => {
 		event.preventDefault();
 
 		const dictionaries = selectSpellCheckingDictionaries(reduxStore.getState());
@@ -101,7 +114,7 @@ const initializeServerWebContents = (serverUrl, guestWebContents, reduxStore, ro
 			isEditable,
 			corrections,
 			dictionaries,
-		}) => {
+		}): MenuItemConstructorOptions[] => {
 			if (!isEditable) {
 				return [];
 			}
@@ -166,7 +179,7 @@ const initializeServerWebContents = (serverUrl, guestWebContents, reduxStore, ro
 		const createImageMenuTemplate = ({
 			mediaType,
 			srcURL,
-		}) => (
+		}): MenuItemConstructorOptions[] => (
 			mediaType === 'image' ? [
 				{
 					label: t('contextMenu.saveImageAs'),
@@ -179,7 +192,7 @@ const initializeServerWebContents = (serverUrl, guestWebContents, reduxStore, ro
 		const createLinkMenuTemplate = ({
 			linkURL,
 			linkText,
-		}) => (
+		}): MenuItemConstructorOptions[] => (
 			linkURL
 				? [
 					{
@@ -209,7 +222,7 @@ const initializeServerWebContents = (serverUrl, guestWebContents, reduxStore, ro
 				canPaste = false,
 				canSelectAll = false,
 			} = {},
-		} = {}) => [
+		} = {}): MenuItemConstructorOptions[] => [
 			{
 				label: t('contextMenu.undo'),
 				role: 'undo',
@@ -243,7 +256,7 @@ const initializeServerWebContents = (serverUrl, guestWebContents, reduxStore, ro
 			},
 			{
 				label: t('contextMenu.selectAll'),
-				role: 'selectall',
+				role: 'selectAll',
 				accelerator: 'CommandOrControl+A',
 				enabled: canSelectAll,
 			},
@@ -266,17 +279,21 @@ const initializeServerWebContents = (serverUrl, guestWebContents, reduxStore, ro
 		menu.popup({ window: rootWindow });
 	};
 
-	const handleBeforeInputEvent = (event, { type, key }) => {
+	const handleBeforeInputEvent = (_event: Event, { type, key }: Input): void => {
+		if (type !== 'keyUp' && type !== 'keyDown') {
+			return;
+		}
+
 		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 
 		if (key !== shortcutKey) {
 			return;
 		}
 
-		rootWindow.webContents.sendInputEvent({ type, keyCode: key });
+		rootWindow.webContents.sendInputEvent({ type, keyCode: key, modifiers: [] });
 	};
 
-	const handleDevToolsFocused = () => {
+	const handleDevToolsFocused = (): void => {
 		reduxStore.dispatch({
 			type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
 			payload: guestWebContents.isDevToolsFocused() ? guestWebContents.devToolsWebContents?.id : guestWebContents.id,
@@ -292,8 +309,8 @@ const initializeServerWebContents = (serverUrl, guestWebContents, reduxStore, ro
 	guestWebContents.addListener('devtools-focused', handleDevToolsFocused);
 };
 
-const attachGuestWebContentsEvents = (reduxStore, rootWindow) => {
-	const handleWillAttachWebview = (event, webPreferences) => {
+const attachGuestWebContentsEvents = (reduxStore: Store, rootWindow: BrowserWindow): void => {
+	const handleWillAttachWebview = (_event: Event, webPreferences: WebPreferences): void => {
 		delete webPreferences.enableBlinkFeatures;
 		webPreferences.preload = `${ app.getAppPath() }/app/preload.js`;
 		webPreferences.nodeIntegration = false;
@@ -303,12 +320,12 @@ const attachGuestWebContentsEvents = (reduxStore, rootWindow) => {
 		webPreferences.webSecurity = true;
 	};
 
-	const handleDidAttachWebview = (event, webContents) => {
+	const handleDidAttachWebview = (_event: Event, webContents: WebContents): void => {
 		// webContents.send('console-warn', '%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
 		// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
 		// webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
 
-		webContents.addListener('new-window', (event, url, frameName, disposition, options) => {
+		webContents.addListener('new-window', (event, url, _frameName, disposition, options) => {
 			event.preventDefault();
 
 			if (disposition === 'foreground-tab' || disposition === 'background-tab') {
@@ -325,15 +342,11 @@ const attachGuestWebContentsEvents = (reduxStore, rootWindow) => {
 				newWindow.show();
 			});
 
-			if (!options.webContents) {
-				newWindow.loadURL(url);
-			}
-
 			event.newGuest = newWindow;
 		});
 	};
 
-	ipcMain.addListener(EVENT_BROWSER_VIEW_ATTACHED, (event, serverUrl, webContentsId) => {
+	ipcMain.addListener(EVENT_BROWSER_VIEW_ATTACHED, (_event: IpcMainEvent, serverUrl, webContentsId) => {
 		const guestWebContents = webContents.fromId(webContentsId);
 		initializeServerWebContents(serverUrl, guestWebContents, reduxStore, rootWindow);
 	});
@@ -342,7 +355,7 @@ const attachGuestWebContentsEvents = (reduxStore, rootWindow) => {
 	rootWindow.webContents.addListener('did-attach-webview', handleDidAttachWebview);
 };
 
-export const createRootWindow = async (reduxStore) => {
+export const createRootWindow = async (reduxStore: Store): Promise<BrowserWindow> => {
 	const rootWindow = new BrowserWindow({
 		width: 1000,
 		height: 600,
@@ -377,13 +390,13 @@ export const createRootWindow = async (reduxStore) => {
 	});
 };
 
-const isInsideSomeScreen = ({ x, y, width, height }) =>
+const isInsideSomeScreen = ({ x, y, width, height }): boolean =>
 	screen.getAllDisplays()
 		.some(({ bounds }) => x >= bounds.x && y >= bounds.y
 			&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
 		);
 
-export const applyMainWindowState = (rootWindow, rootWindowState) => {
+export const applyMainWindowState = (rootWindow: BrowserWindow, rootWindowState: WindowState): void => {
 	let { x, y } = rootWindowState.bounds;
 	const { width, height } = rootWindowState.bounds;
 	if (!isInsideSomeScreen({ x, y, width, height })) {
@@ -424,7 +437,7 @@ export const applyMainWindowState = (rootWindow, rootWindowState) => {
 	}
 };
 
-const fetchRootWindowState = (rootWindow) => ({
+const fetchRootWindowState = (rootWindow: BrowserWindow): ReturnType<typeof selectMainWindowState> => ({
 	focused: rootWindow.isFocused(),
 	visible: rootWindow.isVisible(),
 	maximized: rootWindow.isMaximized(),
@@ -434,7 +447,7 @@ const fetchRootWindowState = (rootWindow) => ({
 	bounds: rootWindow.getNormalBounds(),
 });
 
-export const setupRootWindow = (reduxStore, rootWindow) => {
+export const setupRootWindow = (reduxStore: Store, rootWindow: BrowserWindow): void => {
 	if (process.platform === 'linux' || process.platform === 'win32') {
 		reduxStore.subscribe(() => {
 			const isMenuBarEnabled = selectIsMenuBarEnabled(reduxStore.getState());
@@ -473,7 +486,7 @@ export const setupRootWindow = (reduxStore, rootWindow) => {
 		}
 	});
 
-	const fetchAndDispatchWindowState = () => {
+	const fetchAndDispatchWindowState = (): void => {
 		reduxStore.dispatch({
 			type: ROOT_WINDOW_STATE_CHANGED,
 			payload: fetchRootWindowState(rootWindow),
@@ -534,7 +547,7 @@ export const setupRootWindow = (reduxStore, rootWindow) => {
 		});
 	});
 
-	ipcMain.addListener(EVENT_WEB_CONTENTS_FOCUS_CHANGED, (event, webContentsId = rootWindow.webContents.id) => {
+	ipcMain.addListener(EVENT_WEB_CONTENTS_FOCUS_CHANGED, (_event: IpcMainEvent, webContentsId = rootWindow.webContents.id) => {
 		const focusedWebContents = webContents.fromId(webContentsId);
 		reduxStore.dispatch({
 			type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
@@ -543,11 +556,11 @@ export const setupRootWindow = (reduxStore, rootWindow) => {
 	});
 };
 
-export function *takeUiActions(rootWindow) {
-	yield takeEvery(SIDE_BAR_CONTEXT_MENU_TRIGGERED, function *(action) {
+export function *takeUiActions(rootWindow: BrowserWindow): Generator<Effect> {
+	yield takeEvery(SIDE_BAR_CONTEXT_MENU_TRIGGERED, function *(action: AnyAction) {
 		const { payload: serverUrl } = action;
 		yield call(() => {
-			const menuTemplate = [
+			const menuTemplate: MenuItemConstructorOptions[] = [
 				{
 					label: t('sidebar.item.reload'),
 					click: () => {
@@ -571,11 +584,13 @@ export function *takeUiActions(rootWindow) {
 				},
 			];
 			const menu = Menu.buildFromTemplate(menuTemplate);
-			menu.popup(rootWindow);
+			menu.popup({
+				window: rootWindow,
+			});
 		});
 	});
 
-	yield takeEvery(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, function *(action) {
+	yield takeEvery(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, function *(action: AnyAction) {
 		const { payload: { url } } = action;
 		getWebContentsByServerUrl(url).loadURL(url);
 	});

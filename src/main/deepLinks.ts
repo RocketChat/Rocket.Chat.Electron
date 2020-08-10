@@ -1,57 +1,59 @@
-import querystring from 'querystring';
-import url from 'url';
+import { URL } from 'url';
 
-import { app } from 'electron';
+import { app, BrowserWindow } from 'electron';
+import { Store } from 'redux';
 
 import {
 	DEEP_LINKS_SERVER_FOCUSED,
 	DEEP_LINKS_SERVER_ADDED,
 } from '../actions';
+import { selectServers } from '../selectors';
 import { normalizeServerUrl, getServerInfo } from './servers';
 import { askForServerAddition, warnAboutInvalidServerUrl } from './ui/dialogs';
 
-const isRocketChatUrl = (parsedUrl) =>
+const isRocketChatUrl = (parsedUrl: URL): boolean =>
 	parsedUrl.protocol === 'rocketchat:';
 
-const isGoRocketChatUrl = (parsedUrl) =>
+const isGoRocketChatUrl = (parsedUrl: URL): boolean =>
 	parsedUrl.protocol === 'https:' && parsedUrl.hostname === 'go.rocket.chat';
 
-const parseDeepLink = (deepLink) => {
-	const parsedUrl = url.parse(deepLink);
+const parseDeepLink = (deepLink: string): { action: string, args: URLSearchParams } => {
+	const parsedUrl = new URL(deepLink);
 
 	if (isRocketChatUrl(parsedUrl)) {
 		const action = parsedUrl.hostname;
-		const args = querystring.parse(parsedUrl.query);
+		const args = parsedUrl.searchParams;
 		return { action, args };
 	}
 
 	if (isGoRocketChatUrl(parsedUrl)) {
 		const action = parsedUrl.pathname;
-		const args = querystring.parse(parsedUrl.query);
+		const args = parsedUrl.searchParams;
 		return { action, args };
 	}
 
 	return null;
 };
 
-const authenticateFromDeepLink = (/* token, userId */) => {
+const authenticateFromDeepLink = (_token: string, _userId: string): Promise<void> => {
 	throw Error('not implemented');
 };
 
-const requestOpenRoom = (/* rid, path */) => {
+const requestOpenRoom = (_rid: string, _path: string): Promise<void> => {
 	throw Error('not implemented');
 };
 
-export let processDeepLinksInArgs = async () => undefined;
+export let processDeepLinksInArgs = async (): Promise<void> => undefined;
 
-export const setupDeepLinks = (reduxStore, rootWindow) => {
-	const performAuthentication = async ({ host, token, userId }) => {
+export const setupDeepLinks = (reduxStore: Store, rootWindow: BrowserWindow): void => {
+	const performAuthentication = async ({ host, token, userId }): Promise<void> => {
 		const serverUrl = normalizeServerUrl(host);
 		if (!serverUrl) {
 			return;
 		}
 
-		const isServerAdded = (({ servers }) => servers.some((server) => server.url === serverUrl))(reduxStore.getState());
+		const servers = selectServers(reduxStore.getState());
+		const isServerAdded = servers.some((server) => server.url === serverUrl);
 
 		if (isServerAdded) {
 			reduxStore.dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
@@ -76,13 +78,14 @@ export const setupDeepLinks = (reduxStore, rootWindow) => {
 		await authenticateFromDeepLink(token, userId);
 	};
 
-	const performOpenRoom = async ({ host, rid, path }) => {
+	const performOpenRoom = async ({ host, rid, path }): Promise<void> => {
 		const serverUrl = normalizeServerUrl(host);
 		if (!serverUrl) {
 			return;
 		}
 
-		const isServerAdded = (({ servers }) => servers.some((server) => server.url === serverUrl))(reduxStore.getState());
+		const servers = selectServers(reduxStore.getState());
+		const isServerAdded = servers.some((server) => server.url === serverUrl);
 
 		if (isServerAdded) {
 			reduxStore.dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
@@ -107,7 +110,7 @@ export const setupDeepLinks = (reduxStore, rootWindow) => {
 		await requestOpenRoom(rid, path);
 	};
 
-	const processDeepLink = async (deepLink) => {
+	const processDeepLink = async (deepLink: string): Promise<void> => {
 		rootWindow.show();
 
 		const parsedDeepLink = parseDeepLink(deepLink);
@@ -120,24 +123,30 @@ export const setupDeepLinks = (reduxStore, rootWindow) => {
 
 		switch (action) {
 			case 'auth': {
-				await performAuthentication(args);
+				const host = args.get('host');
+				const token = args.get('token');
+				const userId = args.get('userId');
+				await performAuthentication({ host, token, userId });
 				break;
 			}
 
 			case 'room': {
-				await performOpenRoom(args);
+				const host = args.get('host');
+				const path = args.get('path');
+				const rid = args.get('rid');
+				await performOpenRoom({ host, path, rid });
 				break;
 			}
 		}
 	};
 
-	app.addListener('open-url', async (event, url) => {
+	app.addListener('open-url', async (event, url): Promise<void> => {
 		event.preventDefault();
 
 		await processDeepLink(url);
 	});
 
-	app.addListener('second-instance', async (event, argv) => {
+	app.addListener('second-instance', async (event, argv): Promise<void> => {
 		event.preventDefault();
 
 		const args = argv.slice(app.isPackaged ? 1 : 2);
@@ -148,7 +157,7 @@ export const setupDeepLinks = (reduxStore, rootWindow) => {
 		}
 	});
 
-	processDeepLinksInArgs = async () => {
+	processDeepLinksInArgs = async (): Promise<void> => {
 		const args = process.argv.slice(app.isPackaged ? 1 : 2);
 
 		for (const arg of args) {

@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from 'electron';
+import ElectronStore from 'electron-store';
 import { Store } from 'redux';
 import { call, put, Effect } from 'redux-saga/effects';
 
@@ -27,6 +28,7 @@ import { setupTouchBar } from './ui/touchBar';
 import { setupTrayIcon } from './ui/trayIcon';
 import { setupUpdates, takeUpdateActions } from './updates';
 
+
 export function *rootSaga(reduxStore: Store): Generator<Effect> {
 	yield *takeRequests();
 	yield *takeAppActions();
@@ -40,7 +42,7 @@ export function *rootSaga(reduxStore: Store): Generator<Effect> {
 	yield put({ type: APP_PATH_SET, payload: app.getAppPath() });
 	yield put({ type: APP_VERSION_SET, payload: app.getVersion() });
 
-	const electronStore = yield call(() => createElectronStore());
+	const electronStore = (yield call(() => createElectronStore())) as ElectronStore;
 
 	yield call(() => app.whenReady());
 

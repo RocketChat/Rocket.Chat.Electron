@@ -1,11 +1,11 @@
-import { Notification, nativeImage } from 'electron';
+import { Notification, nativeImage, NativeImage } from 'electron';
 import fetch from 'node-fetch';
-import { takeEvery, put, call } from 'redux-saga/effects';
+import { AnyAction } from 'redux';
+import { takeEvery, put, call, Effect } from 'redux-saga/effects';
 
 import {
 	NOTIFICATIONS_CREATE_REQUESTED,
 	NOTIFICATIONS_CREATE_RESPONDED,
-
 	NOTIFICATIONS_NOTIFICATION_SHOWN,
 	NOTIFICATIONS_NOTIFICATION_CLOSED,
 	NOTIFICATIONS_NOTIFICATION_CLICKED,
@@ -18,8 +18,8 @@ import { dispatch } from '../../channels';
 
 const iconCache = new Map();
 
-const inferContentTypeFromImageData = (data) => {
-	const header = data.slice(0, 3).map((byte) => byte.toString(16)).join('');
+const inferContentTypeFromImageData = (data: Buffer): string => {
+	const header = Array.from(data.slice(0, 3)).map((byte) => byte.toString(16)).join('');
 	switch (header) {
 		case '89504e':
 			return 'image/png';
@@ -30,7 +30,7 @@ const inferContentTypeFromImageData = (data) => {
 	}
 };
 
-const resolveIcon = async (iconUrl) => {
+const resolveIcon = async (iconUrl: string): Promise<NativeImage> => {
 	if (!iconUrl) {
 		return null;
 	}
@@ -60,21 +60,29 @@ const resolveIcon = async (iconUrl) => {
 
 const notifications = new Map();
 
-const createNotification = async (id, {
+type ExtendedNotificationOptions = NotificationOptions & {
+	canReply?: boolean;
+	title: string;
+};
+
+const createNotification = async (id: string, {
 	title,
 	body,
 	icon,
 	silent,
-	requireInteraction,
-	...options
-}) => {
+	canReply,
+	actions,
+}: ExtendedNotificationOptions): Promise<string> => {
 	const notification = new Notification({
 		title,
 		body,
 		icon: await resolveIcon(icon),
 		silent,
-		hasReply: true,
-		...options,
+		hasReply: canReply,
+		actions: actions.map((action) => ({
+			type: 'button',
+			text: action.title,
+		})),
 	});
 
 	notification.addListener('show', () => {
@@ -90,11 +98,11 @@ const createNotification = async (id, {
 		dispatch({ type: NOTIFICATIONS_NOTIFICATION_CLICKED, payload: { id } });
 	});
 
-	notification.addListener('reply', (event, reply) => {
+	notification.addListener('reply', (_event, reply) => {
 		dispatch({ type: NOTIFICATIONS_NOTIFICATION_REPLIED, payload: { id, reply } });
 	});
 
-	notification.addListener('action', (event, index) => {
+	notification.addListener('action', (_event, index) => {
 		dispatch({ type: NOTIFICATIONS_NOTIFICATION_ACTIONED, payload: { id, index } });
 	});
 
@@ -105,12 +113,12 @@ const createNotification = async (id, {
 	return id;
 };
 
-const updateNotification = (id, {
+const updateNotification = async (id: string, {
 	title,
 	body,
 	silent,
 	renotify,
-}) => {
+}: ExtendedNotificationOptions): Promise<string> => {
 	const notification = notifications.get(id);
 
 	if (title) {
@@ -128,12 +136,14 @@ const updateNotification = (id, {
 	if (renotify) {
 		notification.show();
 	}
+
+	return id;
 };
 
 const handleCreateEvent = async ({
 	tag,
 	...options
-}) => {
+}: ExtendedNotificationOptions): Promise<string> => {
 	if (tag && notifications.has(tag)) {
 		return updateNotification(tag, options);
 	}
@@ -142,8 +152,8 @@ const handleCreateEvent = async ({
 	return createNotification(id, options);
 };
 
-export function *takeNotificationsActions() {
-	yield takeEvery(NOTIFICATIONS_CREATE_REQUESTED, function *(action) {
+export function *takeNotificationsActions(): Generator<Effect> {
+	yield takeEvery(NOTIFICATIONS_CREATE_REQUESTED, function *(action: AnyAction) {
 		const { meta: { id }, payload } = action;
 		const notificationId = yield call(() => handleCreateEvent(payload));
 		const responseAction = {
@@ -157,7 +167,7 @@ export function *takeNotificationsActions() {
 		yield put(responseAction);
 	});
 
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_DISMISSED, function *(action) {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_DISMISSED, function *(action: AnyAction) {
 		const { payload: { id: notificationId } } = action;
 		yield call(() => {
 			notifications.get(notificationId)?.close();

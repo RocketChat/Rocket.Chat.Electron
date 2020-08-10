@@ -1,7 +1,7 @@
 export type Server = {
 	url: string;
 	title?: string;
-	badge?: '*' | number;
+	badge?: '•' | number;
 	favicon?: string | null;
 	style?: {
 		background: string | null;

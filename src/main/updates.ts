@@ -1,9 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import { takeEvery, call, put } from 'redux-saga/effects';
+import { Store, AnyAction } from 'redux';
+import { takeEvery, call, put, Effect } from 'redux-saga/effects';
 
 import {
 	UPDATES_ERROR_THROWN,
@@ -28,7 +29,7 @@ import {
 	warnAboutUpdateSkipped,
 } from './ui/dialogs';
 
-const loadAppConfiguration = async () => {
+const loadAppConfiguration = async (): Promise<Record<string, unknown>> => {
 	try {
 		const filePath = path.join(
 			app.getAppPath(),
@@ -44,7 +45,7 @@ const loadAppConfiguration = async () => {
 	}
 };
 
-const loadUserConfiguration = async () => {
+const loadUserConfiguration = async (): Promise<Record<string, unknown>> => {
 	try {
 		const filePath = path.join(app.getPath('userData'), 'update.json');
 		const content = await fs.promises.readFile(filePath, 'utf8');
@@ -57,7 +58,7 @@ const loadUserConfiguration = async () => {
 	}
 };
 
-const loadConfiguration = async (reduxStore) => {
+const loadConfiguration = async (reduxStore: Store): Promise<Record<string, unknown>> => {
 	const defaultConfiguration = selectUpdateConfiguration(reduxStore.getState());
 	const appConfiguration = await loadAppConfiguration();
 
@@ -84,7 +85,7 @@ const loadConfiguration = async (reduxStore) => {
 	return configuration;
 };
 
-export const setupUpdates = async (reduxStore, rootWindow) => {
+export const setupUpdates = async (reduxStore: Store, rootWindow: BrowserWindow): Promise<void> => {
 	autoUpdater.autoDownload = false;
 
 	const isUpdatingAllowed = (process.platform === 'linux' && !!process.env.APPIMAGE)
@@ -181,7 +182,7 @@ export const setupUpdates = async (reduxStore, rootWindow) => {
 	}
 };
 
-export function *takeUpdateActions(rootWindow) {
+export function *takeUpdateActions(rootWindow: BrowserWindow): Generator<Effect> {
 	yield takeEvery(UPDATES_CHECK_FOR_UPDATES_REQUESTED, function *() {
 		try {
 			yield call(() => autoUpdater.checkForUpdates());
@@ -197,7 +198,7 @@ export function *takeUpdateActions(rootWindow) {
 		}
 	});
 
-	yield takeEvery(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, function *(action) {
+	yield takeEvery(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, function *(action: AnyAction) {
 		const { payload: newVersion } = action;
 		yield call(() => warnAboutUpdateSkipped(rootWindow));
 		yield put({ type: UPDATE_SKIPPED, payload: newVersion });

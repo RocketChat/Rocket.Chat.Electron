@@ -1,5 +1,6 @@
-import { Menu, app, shell } from 'electron';
-import { t } from 'i18next';
+import { Menu, app, shell, BrowserWindow, MenuItemConstructorOptions } from 'electron';
+import i18next from 'i18next';
+import { Store } from 'redux';
 import { createSelector } from 'reselect';
 
 import {
@@ -33,11 +34,13 @@ import { relaunchApp } from '../app';
 import { askForAppDataReset } from './dialogs';
 import { getWebContentsByServerUrl, getAllServerWebContents } from './rootWindow';
 
-export const setupMenuBar = (reduxStore, rootWindow) => {
-	const selectAppMenuTemplate = createSelector([], () => ({
+const { t } = i18next;
+
+export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void => {
+	const selectAppMenuTemplate = createSelector([], (): MenuItemConstructorOptions => ({
 		label: process.platform === 'darwin' ? app.name : t('menus.fileMenu'),
 		submenu: [
-			...process.platform === 'darwin' ? [
+			...(process.platform === 'darwin' ? [
 				{
 					label: t('menus.about', { appName: app.name }),
 					click: () => {
@@ -64,8 +67,8 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 					role: 'unhide',
 				},
 				{ type: 'separator' },
-			] : [],
-			...process.platform !== 'darwin' ? [
+			] : []) as MenuItemConstructorOptions[],
+			...(process.platform !== 'darwin' ? [
 				{
 					label: t('menus.addNewServer'),
 					accelerator: 'CommandOrControl+N',
@@ -75,7 +78,7 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 					},
 				},
 				{ type: 'separator' },
-			] : [],
+			] : []) as MenuItemConstructorOptions[],
 			{
 				label: t('Disable GPU'),
 				enabled: !app.commandLine.hasSwitch('disable-gpu'),
@@ -102,7 +105,7 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 		selectCanCopy,
 		selectCanPaste,
 		selectCanSelectAll,
-	], (focusedWebContents, canUndo, canRedo, canCut, canCopy, canPaste, canSelectAll) => ({
+	], (focusedWebContents, canUndo, canRedo, canCut, canCopy, canPaste, canSelectAll): MenuItemConstructorOptions => ({
 		label: t('menus.editMenu'),
 		submenu: [
 			{
@@ -164,7 +167,7 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 		selectIsTrayIconEnabled,
 		selectIsMenuBarEnabled,
 		selectIsFullScreenEnabled,
-	], (currentServerUrl, isServerSelected, isSideBarEnabled, isTrayIconEnabled, isMenuBarEnabled, isFullScreenEnabled) => ({
+	], (currentServerUrl, isServerSelected, isSideBarEnabled, isTrayIconEnabled, isMenuBarEnabled, isFullScreenEnabled): MenuItemConstructorOptions => ({
 		label: t('menus.viewMenu'),
 		submenu: [
 			{
@@ -228,7 +231,7 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 					});
 				},
 			},
-			...process.platform === 'darwin' ? [
+			...(process.platform === 'darwin' ? [
 				{
 					label: t('menus.showFullScreen'),
 					type: 'checkbox',
@@ -239,8 +242,8 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 						rootWindow.setFullScreen(enabled);
 					},
 				},
-			] : [],
-			...process.platform !== 'darwin' ? [
+			] : []) as MenuItemConstructorOptions[],
+			...(process.platform !== 'darwin' ? [
 				{
 					label: t('menus.showMenuBar'),
 					type: 'checkbox',
@@ -253,7 +256,7 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 						});
 					},
 				},
-			] : [],
+			] : []) as MenuItemConstructorOptions[],
 			{
 				label: t('menus.showServerList'),
 				type: 'checkbox',
@@ -304,11 +307,11 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 		selectServers,
 		selectCurrentServerUrl,
 		selectIsShowWindowOnUnreadChangedEnabled,
-	], (servers, currentServerUrl, isShowWindowOnUnreadChangedEnabled) => ({
+	], (servers, currentServerUrl, isShowWindowOnUnreadChangedEnabled): MenuItemConstructorOptions => ({
 		label: t('menus.windowMenu'),
 		role: 'window',
 		submenu: [
-			...process.platform === 'darwin' ? [
+			...(process.platform === 'darwin' ? [
 				{
 					label: t('menus.addNewServer'),
 					accelerator: 'CommandOrControl+N',
@@ -318,8 +321,8 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 					},
 				},
 				{ type: 'separator' },
-			] : [],
-			...servers.length > 0 ? [
+			] : []) as MenuItemConstructorOptions[],
+			...(servers.length > 0 ? [
 				...servers.map((server, i) => ({
 					type: currentServerUrl ? 'checkbox' : 'normal',
 					label: server.title.replace(/&/g, '&&'),
@@ -334,7 +337,7 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 					},
 				})),
 				{ type: 'separator' },
-			] : [],
+			] : []) as MenuItemConstructorOptions[],
 			{
 				type: 'checkbox',
 				label: t('menus.showOnUnreadMessage'),
@@ -361,7 +364,7 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 		],
 	}));
 
-	const selectHelpMenuTemplate = createSelector([], () => ({
+	const selectHelpMenuTemplate = createSelector([], (): MenuItemConstructorOptions => ({
 		label: t('menus.helpMenu'),
 		role: 'help',
 		submenu: [
@@ -390,7 +393,7 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 				label: t('menus.toggleDevTools'),
 				click: () => {
 					rootWindow.show();
-					rootWindow.toggleDevTools();
+					rootWindow.webContents.toggleDevTools();
 				},
 			},
 			{ type: 'separator' },
@@ -441,7 +444,7 @@ export const setupMenuBar = (reduxStore, rootWindow) => {
 		selectHelpMenuTemplate,
 	], (...menus) => menus);
 
-	let prevMenuBarTemplate;
+	let prevMenuBarTemplate: MenuItemConstructorOptions[];
 	reduxStore.subscribe(() => {
 		const menuBarTemplate = selectMenuBarTemplate(reduxStore.getState());
 

@@ -1,5 +1,6 @@
-import { TouchBar, nativeImage, app } from 'electron';
-import { t } from 'i18next';
+import { TouchBar, nativeImage, app, BrowserWindow, TouchBarScrubber, TouchBarPopover, TouchBarSegmentedControl } from 'electron';
+import i18next from 'i18next';
+import { Store } from 'redux';
 
 import {
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
@@ -10,10 +11,18 @@ import {
 	selectIsMessageBoxFocused,
 	selectServers,
 } from '../../selectors';
+import { Server } from '../../structs/servers';
+
+const { t } = i18next;
 
 const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
 
-const createTouchBar = (reduxStore, rootWindow) => {
+const createTouchBar = (reduxStore: Store, rootWindow: BrowserWindow): [
+	TouchBar,
+	TouchBarPopover,
+	TouchBarScrubber,
+	TouchBarSegmentedControl,
+] => {
 	const serverSelectionScrubber = new TouchBar.TouchBarScrubber({
 		selectedStyle: 'background',
 		mode: 'free',
@@ -66,14 +75,14 @@ const createTouchBar = (reduxStore, rootWindow) => {
 	];
 };
 
-const updateServerSelectionPopover = (serverSelectionPopover, currentServer) => {
+const updateServerSelectionPopover = (serverSelectionPopover: TouchBarPopover, currentServer: Server): void => {
 	serverSelectionPopover.label = currentServer?.title ?? t('touchBar.selectServer');
 	serverSelectionPopover.icon = currentServer?.favicon
 		? nativeImage.createFromDataURL(currentServer?.favicon)
 		: null;
 };
 
-const updateServerSelectionScrubber = (serverSelectionScrubber, servers) => {
+const updateServerSelectionScrubber = (serverSelectionScrubber: TouchBarScrubber, servers: Server[]): void => {
 	serverSelectionScrubber.items = servers.map((server) => ({
 		label: server.title.padEnd(30),
 		icon: server.favicon
@@ -82,13 +91,13 @@ const updateServerSelectionScrubber = (serverSelectionScrubber, servers) => {
 	}));
 };
 
-const toggleMessageFormattingButtons = (messageBoxFormattingButtons, isEnabled) => {
+const toggleMessageFormattingButtons = (messageBoxFormattingButtons: TouchBarSegmentedControl, isEnabled: boolean): void => {
 	messageBoxFormattingButtons.segments.forEach((segment) => {
 		segment.enabled = isEnabled;
 	});
 };
 
-export const setupTouchBar = (reduxStore, rootWindow) => {
+export const setupTouchBar = (reduxStore: Store, rootWindow: BrowserWindow): void => {
 	if (process.platform !== 'darwin') {
 		return;
 	}

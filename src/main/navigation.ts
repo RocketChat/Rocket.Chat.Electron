@@ -2,8 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 
-import { app } from 'electron';
-import { t } from 'i18next';
+import { app, Certificate, BrowserWindow } from 'electron';
+import i18next from 'i18next';
+import { Store } from 'redux';
 
 import {
 	CERTIFICATES_UPDATED,
@@ -14,7 +15,9 @@ import { request } from '../channels';
 import { selectServers, selectTrustedCertificates } from '../selectors';
 import { AskForCertificateTrustResponse, askForCertificateTrust } from './ui/dialogs';
 
-const loadUserTrustedCertificates = async () => {
+const { t } = i18next;
+
+const loadUserTrustedCertificates = async (): Promise<Record<string, unknown>> => {
 	try {
 		const filePath = path.join(app.getPath('userData'), 'certificate.json');
 		const content = await fs.promises.readFile(filePath, 'utf8');
@@ -27,11 +30,12 @@ const loadUserTrustedCertificates = async () => {
 	}
 };
 
-const serializeCertificate = (certificate) => `${ certificate.issuerName }\n${ certificate.data.toString() }`;
+const serializeCertificate = (certificate: Certificate): string =>
+	`${ certificate.issuerName }\n${ certificate.data.toString() }`;
 
 const queuedTrustRequests = new Map();
 
-export const setupNavigation = async (reduxStore, rootWindow) => {
+export const setupNavigation = async (reduxStore: Store, rootWindow: BrowserWindow): Promise<void> => {
 	const trustedCertificates = selectTrustedCertificates(reduxStore.getState());
 	const userTrustedCertificates = await loadUserTrustedCertificates();
 
@@ -93,7 +97,7 @@ export const setupNavigation = async (reduxStore, rootWindow) => {
 		}
 	});
 
-	app.addListener('select-client-certificate', async (event, webContents, url, certificateList, callback) => {
+	app.addListener('select-client-certificate', async (event, _webContents, _url, certificateList, callback) => {
 		event.preventDefault();
 
 		const fingerprint = await request(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, JSON.parse(JSON.stringify(certificateList)));
@@ -107,7 +111,7 @@ export const setupNavigation = async (reduxStore, rootWindow) => {
 		callback(certificate);
 	});
 
-	app.addListener('login', (event, webContents, authenticationResponseDetails, authInfo, callback) => {
+	app.addListener('login', (event, _webContents, authenticationResponseDetails, _authInfo, callback) => {
 		event.preventDefault();
 
 		const servers = selectServers(reduxStore.getState());

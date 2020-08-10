@@ -76,7 +76,7 @@ export const normalizeServerUrl = (hostUrl: string): string => {
 	return url.format({ protocol, auth, hostname, port, pathname });
 };
 
-export const getServerInfo = async (/* serverUrl */): Promise<never> => {
+export const getServerInfo = async (_serverUrl: string): Promise<never> => {
 	throw Error('not implemented');
 };
 

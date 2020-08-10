@@ -1,5 +1,6 @@
-import { app, nativeTheme, Menu, Tray } from 'electron';
-import { t } from 'i18next';
+import { app, nativeTheme, Menu, Tray, BrowserWindow } from 'electron';
+import i18next from 'i18next';
+import { Store } from 'redux';
 
 import {
 	selectIsTrayIconEnabled,
@@ -8,7 +9,9 @@ import {
 } from '../../selectors';
 import { getTrayIconPath, getAppIconPath } from '../icons';
 
-const createTrayIcon = (reduxStore, rootWindow) => {
+const { t } = i18next;
+
+const createTrayIcon = (reduxStore: Store, rootWindow: BrowserWindow): Tray => {
 	const image = getTrayIconPath({ badge: null, dark: nativeTheme.shouldUseDarkColors });
 
 	const trayIcon = new Tray(image);
@@ -35,24 +38,24 @@ const createTrayIcon = (reduxStore, rootWindow) => {
 		rootWindow.show();
 	});
 
-	trayIcon.addListener('right-click', (event, bounds) => {
+	trayIcon.addListener('right-click', (_event, bounds) => {
 		trayIcon.popUpContextMenu(undefined, bounds);
 	});
 
 	return trayIcon;
 };
 
-const updateTrayIconImage = (trayIcon, badge, dark) => {
+const updateTrayIconImage = (trayIcon: Tray, badge: '•' | number, dark:boolean): void => {
 	const image = getTrayIconPath({ badge, dark });
 	trayIcon.setImage(image);
 };
 
-const updateTrayIconTitle = (trayIcon, globalBadge) => {
+const updateTrayIconTitle = (trayIcon: Tray, globalBadge: '•' | number): void => {
 	const title = Number.isInteger(globalBadge) ? String(globalBadge) : '';
 	trayIcon.setTitle(title);
 };
 
-const updateTrayIconToolTip = (trayIcon, globalBadge) => {
+const updateTrayIconToolTip = (trayIcon:Tray, globalBadge: '•' | number): void => {
 	if (globalBadge === '•') {
 		trayIcon.setToolTip(t('tray.tooltip.unreadMessage', { appName: app.name }));
 		return;
@@ -66,7 +69,7 @@ const updateTrayIconToolTip = (trayIcon, globalBadge) => {
 	trayIcon.setToolTip(t('tray.tooltip.noUnreadMessage', { appName: app.name }));
 };
 
-const warnStillRunning = (trayIcon) => {
+const warnStillRunning = (trayIcon: Tray): void => {
 	trayIcon.displayBalloon({
 		icon: getAppIconPath(),
 		title: t('tray.balloon.stillRunning.title', { appName: app.name }),
@@ -74,10 +77,10 @@ const warnStillRunning = (trayIcon) => {
 	});
 };
 
-const manageTrayIcon = async (reduxStore, rootWindow) => {
-	const trayIcon = await createTrayIcon(reduxStore, rootWindow);
+const manageTrayIcon = async (reduxStore: Store, rootWindow: BrowserWindow): Promise<() => void> => {
+	const trayIcon = createTrayIcon(reduxStore, rootWindow);
 
-	let prevGlobalBadge;
+	let prevGlobalBadge: '•' | number;
 	const unwatchGlobalBadge = reduxStore.subscribe(() => {
 		const globalBadge = selectGlobalBadge(reduxStore.getState());
 		if (prevGlobalBadge !== globalBadge) {
@@ -88,7 +91,7 @@ const manageTrayIcon = async (reduxStore, rootWindow) => {
 		}
 	});
 
-	let prevIsRootWindowVisible;
+	let prevIsRootWindowVisible: boolean;
 	const unwatchIsRootWindowVisible = reduxStore.subscribe(() => {
 		const isRootWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
 		if (prevIsRootWindowVisible !== isRootWindowVisible) {
@@ -124,7 +127,7 @@ const manageTrayIcon = async (reduxStore, rootWindow) => {
 		}
 	});
 
-	const handleNativeThemeUpdatedEvent = () => {
+	const handleNativeThemeUpdatedEvent = (): void => {
 		const globalBadge = selectGlobalBadge(reduxStore.getState());
 		updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
 		updateTrayIconTitle(trayIcon, globalBadge);
@@ -141,10 +144,10 @@ const manageTrayIcon = async (reduxStore, rootWindow) => {
 	};
 };
 
-export const setupTrayIcon = (reduxStore, rootWindow) => {
+export const setupTrayIcon = (reduxStore: Store, rootWindow: BrowserWindow): void => {
 	let trayIconTask = null;
 
-	let prevIsTrayIconEnabled;
+	let prevIsTrayIconEnabled: boolean;
 	reduxStore.subscribe(() => {
 		const isTrayIconEnabled = selectIsTrayIconEnabled(reduxStore.getState());
 

@@ -167,8 +167,7 @@ export function DownloadsManagerView() {
 					<Grid.Item xl={ 1 } sm={ 1 } >
 						<Box width='100%' textAlign='end'>
 							<Button ghost onClick={ handleLayout }>
-								<Icon name='medium-view' size='x32' />
-								<Box>Change View</Box>
+								<Icon name='medium-view' size='x32' title='Change Downloads View' />
 							</Button>
 						</Box>
 
@@ -176,40 +175,10 @@ export function DownloadsManagerView() {
 
 					<Grid.Item xl={ 1 } sm={ 1 } className='tooltip' >
 						<Button ghost onClick={ clearAll }>
-							<Icon name='trash' size='x32' />
-							<Box>Delete All</Box>
+							<Icon name='trash' size='x32' title='Remove All'/>
 						</Button>
 					</Grid.Item>
 				</Grid.Item>
-
-				{/* <Grid.Item sm={ 8 } style={  }>
-					<Grid.Item sm={ 2 }>
-						<Box >File Name</Box>
-					</Grid.Item>
-					<Grid.Item sm={ 1 }>
-						<Box >Server Title</Box>
-					</Grid.Item>
-					<Grid.Item sm={ 1 }>
-						<Box >File Size</Box>
-					</Grid.Item>
-					<Grid.Item sm={ 1 }>
-						<Box >Speed</Box>
-					</Grid.Item>
-					<Grid.Item sm={ 1 }>
-						<Box >Progress</Box>
-					</Grid.Item>
-					<Grid.Item sm={ 1 }>
-						<Box >Date</Box>
-					</Grid.Item>
-					<Grid.Item sm={ 1 }>
-						<Box >Remove</Box>
-					</Grid.Item>
-
-				</Grid.Item>
-
-				<Grid.Item sm={ 8 }>
-						<Divider />
-				</Grid.Item> */}
 
 				<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
 					{/* Download Item List */ }

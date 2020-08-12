@@ -7,7 +7,7 @@ import { ipcRenderer, shell } from 'electron';
 
 import { Wrapper } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';
-import { mapping, STATUS } from '../../downloadUtils';
+import { mapping, STATUS } from './downloadUtils';
 
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');

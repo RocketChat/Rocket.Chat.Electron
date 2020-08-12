@@ -1,3 +1,16 @@
+import { Box, Button } from '@rocket.chat/fuselage';
+import React, { useMemo } from 'react';
+import { Progress as SweetProgress } from 'react-sweet-progress';
+
+import 'react-sweet-progress/lib/style.css';
+
+export const Info = (props) => <Box fontSize='s1' color='info' {...props}/>;
+
+export const ActionButton = (props) => <Button color='primary-500' small ghost {...props}/>;
+
+export const Progress = ({ percent, ...props }) => <Box flexGrow={1} {...props}><SweetProgress theme={ useMemo(() => ({ default: { color: '#2F80ED' } }), []) } percent={ percent } status='default' /> </Box>;
+
+
 // Utility function for bytes conversion. TODO: seperate into another file.
 export function formatBytes(bytes, decimals = 2, size = false) {
 	if (bytes === 0) {

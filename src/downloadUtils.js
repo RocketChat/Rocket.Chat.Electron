@@ -23,3 +23,10 @@ export const mapping = {
 	video: 'Videos',
 	audio: 'Audios',
 };
+
+
+export const STATUS = {
+	CANCELLED: 'Cancelled',
+	PAUSED: 'Paused',
+	ALL: 'All Downloads',
+};

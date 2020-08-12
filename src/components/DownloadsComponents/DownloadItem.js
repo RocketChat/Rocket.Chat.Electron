@@ -6,14 +6,8 @@ import { ipcRenderer, remote, clipboard } from 'electron';
 import { Progress as SweetProgress } from 'react-sweet-progress';
 
 import 'react-sweet-progress/lib/style.css';
-import { formatBytes } from '../../downloadUtils';
+import { formatBytes, STATUS } from '../../downloadUtils';
 
-
-export const STATUS = {
-	CANCELLED: 'Cancelled',
-	PAUSED: 'Paused',
-	All: 'All Downloads',
-};
 
 // Recieve props for individual download item
 export default function DownloadItem({
@@ -34,7 +28,7 @@ export default function DownloadItem({
 
 	const [percentage, setPercentage] = useDebouncedState(props.percentage || 0, 100);
 	const [path, setPath] = useDebouncedState(props.path || '', 100);
-	const [status, setStatus] = useDebouncedState(props.status || 'All Downloads', 100);
+	const [status, setStatus] = useDebouncedState(props.status || STATUS.ALL, 100);
 
 	const completed = percentage === 100;
 	const paused = status === STATUS.PAUSED;
@@ -69,7 +63,7 @@ export default function DownloadItem({
 	useEffect(() => {
 		const downloadComplete = (data) => {
 			console.log('Download Complete');
-			setStatus('All Downloads');
+			setStatus(STATUS.ALL);
 			props.updateDownloads({ status: STATUS.ALL, serverTitle, itemId, percentage: 100 });
 			ipcRenderer.send('download-complete', { status: STATUS.ALL, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime });
 		};

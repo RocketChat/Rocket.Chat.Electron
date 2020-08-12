@@ -7,7 +7,7 @@ import { ipcRenderer, shell } from 'electron';
 
 import { Wrapper } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';
-import { mapping } from '../../downloadUtils';
+import { mapping, STATUS } from '../../downloadUtils';
 
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
@@ -19,7 +19,7 @@ export function DownloadsManagerView() {
 	// Downloads Array
 	const [downloads, setDownloads] = useState([]);
 
-	const [tab, setTab] = useLocalStorage('download-tab', 'All Downloads');
+	const [tab, setTab] = useLocalStorage('download-tab', STATUS.ALL);
 	const [searchVal, setSearchVal] = useState('');
 	const [serverVal, setServerVal] = useLocalStorage('download-server', '');
 	const [typeVal, setTypeVal] = useLocalStorage('download-type', '');
@@ -144,9 +144,9 @@ export function DownloadsManagerView() {
 
 				<Grid.Item xl={ 12 }>
 					<Tabs>
-						<Tabs.Item selected={ tab === 'All Downloads' } onClick={ handleTabChange }>All Downloads</Tabs.Item>
-						<Tabs.Item selected={ tab === 'Paused' } onClick={ handleTabChange }>Paused</Tabs.Item>
-						<Tabs.Item selected={ tab === 'Cancelled' } onClick={ handleTabChange }>Cancelled</Tabs.Item>
+						<Tabs.Item selected={ tab === STATUS.ALL } onClick={ handleTabChange }>All Downloads</Tabs.Item>
+						<Tabs.Item selected={ tab === STATUS.PAUSED } onClick={ handleTabChange }>Paused</Tabs.Item>
+						<Tabs.Item selected={ tab === STATUS.CANCELLED} onClick={ handleTabChange }>Cancelled</Tabs.Item>
 					</Tabs>
 				</Grid.Item>
 
@@ -175,7 +175,7 @@ export function DownloadsManagerView() {
 
 					<Grid.Item xl={ 1 } sm={ 1 } className='tooltip' >
 						<Button ghost onClick={ clearAll }>
-							<Icon name='trash' size='x32' title='Remove All'/>
+							<Icon name='trash' size='x32' title='Remove All' />
 						</Button>
 					</Grid.Item>
 				</Grid.Item>

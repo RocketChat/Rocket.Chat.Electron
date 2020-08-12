@@ -1,13 +1,14 @@
 import { Box, Grid, SearchInput, Select, Icon, Button, Tabs, Tooltip } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 // import { useTranslation } from 'react-i18next';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { ipcRenderer, shell } from 'electron';
 
 import { Wrapper } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';
 import { mapping, STATUS } from './downloadUtils';
+import WarningModal from '../DownloadsComponents/WarningModal';
 
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
@@ -18,7 +19,7 @@ export function DownloadsManagerView() {
 
 	// Downloads Array
 	const [downloads, setDownloads] = useState([]);
-
+	const [modal, setModal] = useState();
 	const [tab, setTab] = useLocalStorage('download-tab', STATUS.ALL);
 	const [searchVal, setSearchVal] = useState('');
 	const [serverVal, setServerVal] = useLocalStorage('download-server', '');
@@ -46,16 +47,16 @@ export function DownloadsManagerView() {
 		}
 	};
 
-	// Remove a single download from list
-	const clear = (itemId) => {
-		const newDownloads = downloads.filter((download) => download.itemId !== itemId);
-		setDownloads(newDownloads);
-		ipcRenderer.send('remove', itemId);
-	};
-	// Remove All downloads from list
-	const clearAll = () => {
-		ipcRenderer.send('reset');
-	};
+	// // Remove a single download from list
+	// const clear = (itemId) => {
+	// 	const newDownloads = downloads.filter((download) => download.itemId !== itemId);
+	// 	setDownloads(newDownloads);
+	// 	ipcRenderer.send('remove', itemId);
+	// };
+	// // Remove All downloads from list
+	// const clearAll = () => {
+	// 	ipcRenderer.send('reset');
+	// };
 
 	const handleSearch = (event) => {
 		// console.log(Boolean(event.target.value));
@@ -91,6 +92,40 @@ export function DownloadsManagerView() {
 		});
 		setDownloads(updatedDownloads);
 	};
+
+	// Modal Action
+
+	const closeModal = useCallback(() => {
+		setModal(null);
+	}, [setModal]);
+
+	const handleClearAll = useCallback(() => {
+		const clearAll = () => {
+			closeModal();
+			ipcRenderer.send('reset');
+		};
+		setModal(<WarningModal
+			close={ closeModal }
+			confirm={ clearAll }
+			text={ 'Remove All Downloads?' }
+			confirmText={ 'Yes' }
+		/>);
+	}, [closeModal]);
+
+	const handleClear = useCallback(() => {
+		const clear = (itemId) => {
+			closeModal();
+			const newDownloads = downloads.filter((download) => download.itemId !== itemId);
+			setDownloads(newDownloads);
+			ipcRenderer.send('remove', itemId);
+		};
+		setModal(<WarningModal
+			close={ closeModal }
+			confirm={ clear }
+			text={ 'Remove this download?' }
+			confirmText={ 'Yes' }
+		/>);
+	}, [closeModal, downloads]);
 
 	// 			USE EFFECTS
 
@@ -131,75 +166,76 @@ export function DownloadsManagerView() {
 	}, [searchVal, downloads, tab, serverVal, typeVal]);
 
 
-	return <Wrapper isVisible={ isVisible }>
-		<Box p='x24'>
+	return <>
+		<Wrapper isVisible={ isVisible }>
+			<Box p='x24'>
 
-			<Grid xl={ true } >
-				<Grid.Item xl={ 10 }>
-					<Box>
-						<Box fontSize='x32' lineHeight='2'>Downloads</Box>
-						<Box fontSize='x20' lineHeight='2' color='info'>See all your downloads here</Box>
-					</Box>
-				</Grid.Item>
-
-				<Grid.Item xl={ 12 }>
-					<Tabs>
-						<Tabs.Item selected={ tab === STATUS.ALL } onClick={ handleTabChange }>All Downloads</Tabs.Item>
-						<Tabs.Item selected={ tab === STATUS.PAUSED } onClick={ handleTabChange }>Paused</Tabs.Item>
-						<Tabs.Item selected={ tab === STATUS.CANCELLED} onClick={ handleTabChange }>Cancelled</Tabs.Item>
-					</Tabs>
-				</Grid.Item>
-
-				<Grid.Item xl={ 12 } style={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
-					<Grid.Item xl={ 3 } sm={ 2 } >
-						<SearchInput width='150px' onChange={ handleSearch } placeholder='Search' addon={ <Icon name='send' size='x20' /> } />
-					</Grid.Item>
-
-					<Grid.Item xl={ 3 } sm={ 2 } >
-						<Select width='100%' onChange={ handleServerFilter } placeholder='Filter by Server' options={ options } />
-
-					</Grid.Item>
-
-					<Grid.Item xl={ 2 } sm={ 2 } >
-						<Select width='100%' onChange={ handleMimeFilter } placeholder='Filter by File type' options={ fileTypes } />
-					</Grid.Item>
-
-					<Grid.Item xl={ 1 } sm={ 1 } >
-						<Box width='100%' textAlign='end'>
-							<Button ghost onClick={ handleLayout }>
-								<Icon name='medium-view' size='x32' title='Change Downloads View' />
-							</Button>
+				<Grid xl={ true } >
+					<Grid.Item xl={ 10 }>
+						<Box>
+							<Box fontSize='x32' lineHeight='2'>Downloads</Box>
+							<Box fontSize='x20' lineHeight='2' color='info'>See all your downloads here</Box>
 						</Box>
-
 					</Grid.Item>
 
-					<Grid.Item xl={ 1 } sm={ 1 } className='tooltip' >
-						<Button ghost onClick={ clearAll }>
-							<Icon name='trash' size='x32' title='Remove All' />
-						</Button>
+					<Grid.Item xl={ 12 }>
+						<Tabs>
+							<Tabs.Item selected={ tab === STATUS.ALL } onClick={ handleTabChange }>All Downloads</Tabs.Item>
+							<Tabs.Item selected={ tab === STATUS.PAUSED } onClick={ handleTabChange }>Paused</Tabs.Item>
+							<Tabs.Item selected={ tab === STATUS.CANCELLED } onClick={ handleTabChange }>Cancelled</Tabs.Item>
+						</Tabs>
 					</Grid.Item>
-				</Grid.Item>
 
-				<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
-					{/* Download Item List */ }
-					{ filteredDownloads.map((downloadItem) => {
-						// Condition for Data Headings
-						if (!timeHeading) {
+					<Grid.Item xl={ 12 } style={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
+						<Grid.Item xl={ 3 } sm={ 2 } >
+							<SearchInput width='150px' onChange={ handleSearch } placeholder='Search' addon={ <Icon name='send' size='x20' /> } />
+						</Grid.Item>
+
+						<Grid.Item xl={ 3 } sm={ 2 } >
+							<Select width='100%' onChange={ handleServerFilter } placeholder='Filter by Server' options={ options } />
+
+						</Grid.Item>
+
+						<Grid.Item xl={ 2 } sm={ 2 } >
+							<Select width='100%' onChange={ handleMimeFilter } placeholder='Filter by File type' options={ fileTypes } />
+						</Grid.Item>
+
+						<Grid.Item xl={ 1 } sm={ 1 } >
+							<Box width='100%' textAlign='end'>
+								<Button ghost onClick={ handleLayout }>
+									<Icon name='medium-view' size='x32' title='Change Downloads View' />
+								</Button>
+							</Box>
+
+						</Grid.Item>
+
+						<Grid.Item xl={ 1 } sm={ 1 } className='tooltip' >
+							<Button ghost onClick={ handleClearAll }>
+								<Icon name='trash' size='x32' title='Remove All' />
+							</Button>
+						</Grid.Item>
+					</Grid.Item>
+
+					<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
+						{/* Download Item List */ }
+						{ filteredDownloads.map((downloadItem) => {
+							// Condition for Data Headings
+							if (!timeHeading) {
+								timeHeading = new Date(downloadItem.itemId).toDateString();
+							} else if (timeHeading === new Date(downloadItem.itemId).toDateString()) {
+								return <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ handleClear } />;
+							}
 							timeHeading = new Date(downloadItem.itemId).toDateString();
-						} else if (timeHeading === new Date(downloadItem.itemId).toDateString()) {
-							return <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ clear } />;
-						}
-						timeHeading = new Date(downloadItem.itemId).toDateString();
-						return (
-							<>
-								<Box fontSize='x16' color='info' alignSelf='start'>{ timeHeading }</Box>
-								<DownloadItem mb='x16' { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ clear } />
-							</>
-						);
-					}) }
-				</Grid.Item>
+							return (
+								<>
+									<Box fontSize='x16' color='info' alignSelf='start'>{ timeHeading }</Box>
+									<DownloadItem mb='x16' { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ handleClear } />
+								</>
+							);
+						}) }
+					</Grid.Item>
 
-			</Grid>
-		</Box>
-	</Wrapper>;
+				</Grid>
+			</Box>
+		</Wrapper>{ modal }</>;
 }

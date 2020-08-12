@@ -11,7 +11,6 @@ import Extended from './Extended';
 import Compact from './Compact';
 
 
-
 // Recieve props for individual download item
 export default function DownloadItem({
 	url,

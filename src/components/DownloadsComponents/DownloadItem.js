@@ -9,9 +9,10 @@ import 'react-sweet-progress/lib/style.css';
 import { formatBytes } from '../../downloadUtils';
 
 
-const STATUS = {
-	CANCELLED: 'cancelled',
-	PAUSED: 'paused',
+export const STATUS = {
+	CANCELLED: 'Cancelled',
+	PAUSED: 'Paused',
+	All: 'All Downloads',
 };
 
 // Recieve props for individual download item
@@ -49,7 +50,7 @@ export default function DownloadItem({
 		console.log('Progress');
 		// console.log(` Current Bytes: ${ bytes }`);
 		const percentage = Math.floor((data.bytes / totalBytes) * 100);
-		updateDownloads({ status: 'All Downloads', percentage, serverTitle, itemId, Mbps: data.Mbps });
+		updateDownloads({ status: STATUS.ALL, percentage, serverTitle, itemId, Mbps: data.Mbps });
 		setPercentage(percentage);
 		setPath(data.savePath);
 	});
@@ -69,8 +70,8 @@ export default function DownloadItem({
 		const downloadComplete = (data) => {
 			console.log('Download Complete');
 			setStatus('All Downloads');
-			props.updateDownloads({ status: 'All Downloads', serverTitle, itemId, percentage: 100 });
-			ipcRenderer.send('download-complete', { status: 'All Downloads', url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime });
+			props.updateDownloads({ status: STATUS.ALL, serverTitle, itemId, percentage: 100 });
+			ipcRenderer.send('download-complete', { status: STATUS.ALL, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime });
 		};
 
 		ipcRenderer.on(`download-complete-${ itemId }`, downloadComplete);
@@ -94,6 +95,7 @@ export default function DownloadItem({
 	});
 
 	const handleRetry = useMutableCallback(() => {
+		// Adding ServerTitle to Download URL for use in retrying the cancelled download
 		remote.getCurrentWebContents().downloadURL(`${ url }#${ serverTitle }`);
 		props.clear(itemId);
 	});

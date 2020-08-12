@@ -115,7 +115,7 @@ export default function DownloadItem({
 		percentage={percentage}
 		isCompleted={completed}
 		isPaused={paused}
-		isCancelled={status !== STATUS.CANCELLED}
+		isCancelled={status === STATUS.CANCELLED}
 		handleFileOpen={handleFileOpen}
 		handleCopyLink={handleCopyLink}
 		handlePause={handlePause}
@@ -132,7 +132,7 @@ export default function DownloadItem({
 		percentage={percentage}
 		isCompleted={completed}
 		isPaused={paused}
-		isCancelled={status !== STATUS.CANCELLED}
+		isCancelled={status === STATUS.CANCELLED}
 		handleFileOpen={handleFileOpen}
 		handleCopyLink={handleCopyLink}
 		handlePause={handlePause}

@@ -1,9 +1,11 @@
 import path from 'path';
 
+import sharp from 'sharp';
 import { app, BrowserWindow, ipcMain } from 'electron';
 import setupElectronReload from 'electron-reload';
 import rimraf from 'rimraf';
 
+// import icon from './icons/icon.svg';
 import { setupErrorHandling } from './errorHandling';
 
 
@@ -176,9 +178,14 @@ const createMainWindow = () => {
 				}
 			}
 		});
-		item.once('done', (event, state) => {
+		item.once('done', async (event, state) => {
 			if (state === 'completed') {
-				mainWindow.webContents.send(`download-complete-${ itemId }`, { path, percentage: 100 }); // Send to specific DownloadItem
+				const path = item.savePath;
+				const thumb = await sharp(path).resize(100, 100).png().toBuffer();
+				// console.log(item.savePath);
+				// console.log(thumb);
+				console.log(`data:image/png;base64,${ thumb.toString('base64') }`);
+				mainWindow.webContents.send(`download-complete-${ itemId }`, { percentage: 100, path, thumb: `data:image/png;base64,${ thumb.toString('base64') }` }); // Send to specific DownloadItem
 				console.log('Download successfully');
 			} else {
 				console.log(`Download failed: ${ state }`);

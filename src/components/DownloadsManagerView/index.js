@@ -20,6 +20,7 @@ export function DownloadsManagerView() {
 	// Downloads Array
 	const [downloads, setDownloads] = useState([]);
 	const [modal, setModal] = useState();
+
 	const [tab, setTab] = useLocalStorage('download-tab', STATUS.ALL);
 	const [searchVal, setSearchVal] = useState('');
 	const [serverVal, setServerVal] = useLocalStorage('download-server', '');
@@ -46,17 +47,6 @@ export function DownloadsManagerView() {
 			setLayout('compact');
 		}
 	};
-
-	// // Remove a single download from list
-	// const clear = (itemId) => {
-	// 	const newDownloads = downloads.filter((download) => download.itemId !== itemId);
-	// 	setDownloads(newDownloads);
-	// 	ipcRenderer.send('remove', itemId);
-	// };
-	// // Remove All downloads from list
-	// const clearAll = () => {
-	// 	ipcRenderer.send('reset');
-	// };
 
 	const handleSearch = (event) => {
 		// console.log(Boolean(event.target.value));
@@ -112,8 +102,8 @@ export function DownloadsManagerView() {
 		/>);
 	}, [closeModal]);
 
-	const handleClear = useCallback(() => {
-		const clear = (itemId) => {
+	const handleClear = useCallback((itemId) => {
+		const clear = () => {
 			closeModal();
 			const newDownloads = downloads.filter((download) => download.itemId !== itemId);
 			setDownloads(newDownloads);

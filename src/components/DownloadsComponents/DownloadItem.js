@@ -1,11 +1,8 @@
-import { Box, Grid, Icon, Button, ButtonGroup } from '@rocket.chat/fuselage';
 import { useMutableCallback, useDebouncedState } from '@rocket.chat/fuselage-hooks';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { ipcRenderer, remote, clipboard } from 'electron';
-// import { Progress as SweetProgress } from 'react-sweet-progress';
 
-// import 'react-sweet-progress/lib/style.css';
 import { formatBytes, STATUS } from '../DownloadsManagerView/downloadUtils';
 import Extended from './Extended';
 import Compact from './Compact';
@@ -31,6 +28,7 @@ export default function DownloadItem({
 	const [percentage, setPercentage] = useDebouncedState(props.percentage || 0, 100);
 	const [path, setPath] = useDebouncedState(props.path || '', 100);
 	const [status, setStatus] = useDebouncedState(props.status || STATUS.ALL, 100);
+	const [thumb, setThumb] = useState();
 
 	const completed = percentage === 100;
 	const paused = status === STATUS.PAUSED;
@@ -46,7 +44,7 @@ export default function DownloadItem({
 		console.log('Progress');
 		// console.log(` Current Bytes: ${ bytes }`);
 		const percentage = Math.floor((data.bytes / totalBytes) * 100);
-		updateDownloads({ status: STATUS.ALL, percentage, serverTitle, itemId, Mbps: data.Mbps });
+		updateDownloads({ status: STATUS.ALL, percentage, serverTitle, itemId, Mbps: data.Mbps, path: data.savePath });
 		setPercentage(percentage);
 		setPath(data.savePath);
 	});
@@ -63,23 +61,25 @@ export default function DownloadItem({
 
 	// Download Completed, Send data back
 	useEffect(() => {
-		const downloadComplete = (data) => {
+		const downloadComplete = (event, data) => {
 			console.log('Download Complete');
+			console.log(data);
 			setStatus(STATUS.ALL);
-			props.updateDownloads({ status: STATUS.ALL, serverTitle, itemId, percentage: 100 });
-			ipcRenderer.send('download-complete', { status: STATUS.ALL, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime });
+			setThumb(data.thumb);
+			updateDownloads({ status: STATUS.ALL, serverTitle, itemId, percentage: 100 });
+			ipcRenderer.send('download-complete', { status: STATUS.ALL, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime, thumb: data.thumb });
 		};
 
 		ipcRenderer.on(`download-complete-${ itemId }`, downloadComplete);
 		return () => {
 			ipcRenderer.removeListener(`download-complete-${ itemId }`, downloadComplete);
 		};
-	}, [date, fileName, fileSize, itemId, mime, props, serverTitle, setStatus, url]);
+	}, [date, fileName, fileSize, itemId, mime, props, serverTitle, setStatus, updateDownloads, url]);
 
 	const handleCancel = useMutableCallback(() => {
 		setStatus(STATUS.CANCELLED);
 		ipcRenderer.send(`cancel-${ itemId }`);
-		props.updateDownloads({ status: STATUS.CANCELLED, percentage, itemId });
+		updateDownloads({ status: STATUS.CANCELLED, percentage, itemId });
 		ipcRenderer.send('download-complete', { status: STATUS.CANCELLED, url, fileName, fileSize, percentage, serverTitle, itemId, date, path, mime });
 	});
 
@@ -87,7 +87,7 @@ export default function DownloadItem({
 		console.log(percentage);
 		setStatus(STATUS.PAUSED);
 		ipcRenderer.send(`pause-${ itemId }`);
-		props.updateDownloads({ status: STATUS.PAUSED, percentage, itemId });
+		updateDownloads({ status: STATUS.PAUSED, percentage, itemId });
 	});
 
 	const handleRetry = useMutableCallback(() => {
@@ -102,6 +102,8 @@ export default function DownloadItem({
 
 	// TODO TOAST
 	const handleCopyLink = useMutableCallback(() => clipboard.write({ text: url }));
+
+	const printState = () => console.log({ path, thumb });
 
 	return props.layout === 'compact' ? <Compact
 		serverTitle={serverTitle}
@@ -121,6 +123,7 @@ export default function DownloadItem({
 		handleRetry={handleRetry}
 		handleDelete={handleDelete}
 		mb = {props.mb}/> : <Extended
+		thumbnail={thumb}
 		serverTitle={serverTitle}
 		mime={ mime.split('/')[1] }
 		date={date}
@@ -132,7 +135,7 @@ export default function DownloadItem({
 		isPaused={paused}
 		isCancelled={status === STATUS.CANCELLED}
 		handleFileOpen={handleFileOpen}
-		handleCopyLink={handleCopyLink}
+		handleCopyLink={printState}
 		handlePause={handlePause}
 		handleCancel={handleCancel}
 		handleRetry={handleRetry}
@@ -140,5 +143,3 @@ export default function DownloadItem({
 		mb = {props.mb}
 	/>;
 }
-
-

@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { Box, Icon, ButtonGroup } from '@rocket.chat/fuselage';
+import { Box, Icon, ButtonGroup, Avatar } from '@rocket.chat/fuselage';
 
 import { Info, Progress, ActionButton } from '../DownloadsManagerView/downloadUtils';
 
 
 export default React.memo(function Extended({
+	thumbnail,
 	serverTitle,
 	mime,
 	date,
@@ -26,10 +27,12 @@ export default React.memo(function Extended({
 }) {
 	return <Box width='100%' display='flex' alignItems='center' { ...props }>
 		{/* USE AVATAR FUSELAGE (TODO) */ }
-		<Box size='x124' flexShrink={ 0 } bg='neutral-500-50' borderRadius='4px' display='flex' flexDirection='column' alignItems='center' justifyContent='center'>
+
+		{ thumbnail ? <Avatar url={ thumbnail } size='x124' /> : <Box size='x124' flexShrink={ 0 } bg='neutral-500-50' borderRadius='4px' display='flex' flexDirection='column' alignItems='center' justifyContent='center'>
 			<Icon size='x60' name='clip' />
-			<Box fonScale='s2' color='primary-500' display='block'>{ mime }</Box>
-		</Box>
+			<Box fontScale='s2' color='primary-500' display='block'>{ mime }</Box>
+		</Box> }
+
 		<Box display='flex' flexDirection='column' flexGrow={ 1 } mi='x16'>
 			<Box fontSize='s2' withTruncatedText color='default' pbe='x8'>{ fileName }</Box>
 			<Box display='flex' flexDirection='row' justifyContent='space-between' mb='x8'>

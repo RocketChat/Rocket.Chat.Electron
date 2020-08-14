@@ -1,5 +1,5 @@
 import { Box, Grid, SearchInput, Select, Icon, Button, Tabs, Tooltip } from '@rocket.chat/fuselage';
-import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
+import { useLocalStorage, useMutableCallback } from '@rocket.chat/fuselage-hooks';
 // import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
@@ -28,49 +28,49 @@ export function DownloadsManagerView() {
 	const [layout, setLayout] = useLocalStorage('download-layout', 'expanded');
 	let timeHeading;
 
-	const handleFileOpen = (path) => {
+	const handleFileOpen = useMutableCallback((path) => {
 		// console.log(path);
 		shell.showItemInFolder(path);
-	};
+	});
 
-	const handleTabChange = (event) => {
+	const handleTabChange = useMutableCallback((event) => {
 		// console.log(event.target.innerText);
 		if (tab !== event.target.innerText) {
 			setTab(event.target.innerText);
 		}
-	};
+	});
 
-	const handleLayout = () => {
+	const handleLayout = useMutableCallback(() => {
 		if (layout === 'compact') {
 			setLayout('expanded');
 		} else {
 			setLayout('compact');
 		}
-	};
+	});
 
-	const handleSearch = (event) => {
+	const handleSearch = useMutableCallback((event) => {
 		// console.log(Boolean(event.target.value));
 		if (event.target.value !== searchVal) {
 			setSearchVal(event.target.value);
 		}
-	};
+	});
 
-	const handleServerFilter = (index) => {
+	const handleServerFilter = useMutableCallback((index) => {
 		console.log(index);
 		if (options[index - 1][1] !== serverVal) {
 			setServerVal(options[index - 1][1]);
 		}
-	};
+	});
 
-	const handleMimeFilter = (index) => {
+	const handleMimeFilter = useMutableCallback((index) => {
 		console.log(index);
 		if (fileTypes[index - 1][1] !== typeVal) {
 			setTypeVal(fileTypes[index - 1][1]);
 		}
-	};
+	});
 
 
-	const updateDownloads = (data) => {
+	const updateDownloads = useMutableCallback((data) => {
 		console.log(data);
 		const updatedDownloads = downloads.map((downloadItem) => {
 			if (downloadItem.itemId === data.itemId) {
@@ -81,7 +81,7 @@ export function DownloadsManagerView() {
 			return downloadItem;
 		});
 		setDownloads(updatedDownloads);
-	};
+	});
 
 	// Modal Action
 

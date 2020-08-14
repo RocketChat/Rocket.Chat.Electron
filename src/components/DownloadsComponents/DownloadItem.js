@@ -90,13 +90,14 @@ export default function DownloadItem({
 		updateDownloads({ status: STATUS.PAUSED, percentage, itemId });
 	});
 
+
+	const handleDelete = useMutableCallback(() => props.clear(itemId));
+
 	const handleRetry = useMutableCallback(() => {
 		// Adding ServerTitle to Download URL for use in retrying the cancelled download
 		remote.getCurrentWebContents().downloadURL(`${ url }#${ serverTitle }`);
-		props.clear(itemId);
+		handleDelete();
 	});
-
-	const handleDelete = useMutableCallback(() => props.clear(itemId));
 
 	const handleFileOpen = useMutableCallback(() => props.handleFileOpen(path));
 

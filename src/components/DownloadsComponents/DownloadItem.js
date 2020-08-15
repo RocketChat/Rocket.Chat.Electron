@@ -1,5 +1,5 @@
 import { useMutableCallback, useDebouncedState } from '@rocket.chat/fuselage-hooks';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { ipcRenderer, remote, clipboard } from 'electron';
 
@@ -10,6 +10,7 @@ import Compact from './Compact';
 
 // Recieve props for individual download item
 export default function DownloadItem({
+	thumbnail,
 	url,
 	fileName,
 	totalBytes,
@@ -18,6 +19,7 @@ export default function DownloadItem({
 	updateDownloads,
 	date = new Date(itemId).toDateString(),
 	Mbps: mbps,
+	Kbps: kbps,
 	serverTitle,
 	fileSize = formatBytes(totalBytes, 2, true),
 	...props
@@ -28,7 +30,6 @@ export default function DownloadItem({
 	const [percentage, setPercentage] = useDebouncedState(props.percentage || 0, 100);
 	const [path, setPath] = useDebouncedState(props.path || '', 100);
 	const [status, setStatus] = useDebouncedState(props.status || STATUS.ALL, 100);
-	const [thumb, setThumb] = useState();
 
 	const completed = percentage === 100;
 	const paused = status === STATUS.PAUSED;
@@ -42,14 +43,11 @@ export default function DownloadItem({
 
 	const handleProgress = useMutableCallback((event, data) => {
 		console.log('Progress');
-		// console.log(` Current Bytes: ${ bytes }`);
 		const percentage = Math.floor((data.bytes / totalBytes) * 100);
-		updateDownloads({ status: STATUS.ALL, percentage, serverTitle, itemId, Mbps: data.Mbps, path: data.savePath });
+		updateDownloads({ status: STATUS.ALL, percentage, serverTitle, itemId, Mbps: data.Mbps, Kbps: data.Kbps });
 		setPercentage(percentage);
-		setPath(data.savePath);
 	});
 
-	// TODO: Convert to only recieve dynamic progressed bytes data. NEED TO THROTTLE
 	useEffect(() => {
 		// Listen on unique event only
 		ipcRenderer.on(`downloading-${ itemId }`, handleProgress);
@@ -65,16 +63,16 @@ export default function DownloadItem({
 			console.log('Download Complete');
 			console.log(data);
 			setStatus(STATUS.ALL);
-			setThumb(data.thumb);
-			updateDownloads({ status: STATUS.ALL, serverTitle, itemId, percentage: 100 });
-			ipcRenderer.send('download-complete', { status: STATUS.ALL, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime, thumb: data.thumb });
+			setPath(data.Path);
+			updateDownloads({ status: STATUS.ALL, serverTitle, itemId, percentage: 100, thumbnail: data.thumbnail });
+			ipcRenderer.send('download-complete', { status: STATUS.ALL, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime, thumbnail: data.thumbnail });
 		};
 
 		ipcRenderer.on(`download-complete-${ itemId }`, downloadComplete);
 		return () => {
 			ipcRenderer.removeListener(`download-complete-${ itemId }`, downloadComplete);
 		};
-	}, [date, fileName, fileSize, itemId, mime, props, serverTitle, setStatus, updateDownloads, url]);
+	}, [date, fileName, fileSize, itemId, mime, props, serverTitle, setPath, setStatus, updateDownloads, url]);
 
 	const handleCancel = useMutableCallback(() => {
 		setStatus(STATUS.CANCELLED);
@@ -104,7 +102,7 @@ export default function DownloadItem({
 	// TODO TOAST
 	const handleCopyLink = useMutableCallback(() => clipboard.write({ text: url }));
 
-	const printState = () => console.log({ path, thumb });
+	// const printState = () => console.log({ path, thumbnail });
 
 	return props.layout === 'compact' ? <Compact
 		serverTitle={serverTitle}
@@ -124,19 +122,20 @@ export default function DownloadItem({
 		handleRetry={handleRetry}
 		handleDelete={handleDelete}
 		mb = {props.mb}/> : <Extended
-		thumbnail={thumb}
+		thumbnail={thumbnail}
 		serverTitle={serverTitle}
 		mime={ mime.split('/')[1] }
 		date={date}
 		fileName={fileName}
 		fileSize={fileSize}
 		mbps={mbps}
+		kbps= {kbps}
 		percentage={percentage}
 		isCompleted={completed}
 		isPaused={paused}
 		isCancelled={status === STATUS.CANCELLED}
 		handleFileOpen={handleFileOpen}
-		handleCopyLink={printState}
+		handleCopyLink={handleCopyLink}
 		handlePause={handlePause}
 		handleCancel={handleCancel}
 		handleRetry={handleRetry}

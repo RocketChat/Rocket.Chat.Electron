@@ -1,4 +1,4 @@
-import { Box, Grid, SearchInput, Select, Icon, Button, Tabs, Tooltip } from '@rocket.chat/fuselage';
+import { Box, Grid, SearchInput, Select, Icon, Button, Tabs } from '@rocket.chat/fuselage';
 import { useLocalStorage, useMutableCallback } from '@rocket.chat/fuselage-hooks';
 // import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
@@ -13,8 +13,8 @@ import WarningModal from '../DownloadsComponents/WarningModal';
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
 	const servers = useSelector(({ servers }) => servers);
-	const options = [[1, 'All']];
-	servers.map((server, index) => options.push([index + 2, server.title]));
+	const serverOptions = [[1, 'All']];
+	servers.map((server, index) => serverOptions.push([index + 2, server.title]));
 	const fileTypes = [[1, 'All'], [2, 'Images'], [3, 'Videos'], [4, 'Audios'], [5, 'Texts'], [6, 'Files']];
 
 	// Downloads Array
@@ -29,12 +29,10 @@ export function DownloadsManagerView() {
 	let timeHeading;
 
 	const handleFileOpen = useMutableCallback((path) => {
-		// console.log(path);
 		shell.showItemInFolder(path);
 	});
 
 	const handleTabChange = useMutableCallback((event) => {
-		// console.log(event.target.innerText);
 		if (tab !== event.target.innerText) {
 			setTab(event.target.innerText);
 		}
@@ -49,21 +47,18 @@ export function DownloadsManagerView() {
 	});
 
 	const handleSearch = useMutableCallback((event) => {
-		// console.log(Boolean(event.target.value));
 		if (event.target.value !== searchVal) {
 			setSearchVal(event.target.value);
 		}
 	});
 
 	const handleServerFilter = useMutableCallback((index) => {
-		console.log(index);
-		if (options[index - 1][1] !== serverVal) {
-			setServerVal(options[index - 1][1]);
+		if (serverOptions[index - 1][1] !== serverVal) {
+			setServerVal(serverOptions[index - 1][1]);
 		}
 	});
 
 	const handleMimeFilter = useMutableCallback((index) => {
-		console.log(index);
 		if (fileTypes[index - 1][1] !== typeVal) {
 			setTypeVal(fileTypes[index - 1][1]);
 		}
@@ -138,7 +133,7 @@ export function DownloadsManagerView() {
 	useEffect(() => {
 		const createDownload = (event, props) => {
 			console.log('Creating New Download');
-			console.log(props);
+			// console.log(props);
 			const updatedDownloads = [...downloads];
 			updatedDownloads.push(props);
 			setDownloads(updatedDownloads);
@@ -182,7 +177,7 @@ export function DownloadsManagerView() {
 						</Grid.Item>
 
 						<Grid.Item xl={ 3 } sm={ 2 } >
-							<Select width='100%' onChange={ handleServerFilter } placeholder='Filter by Server' options={ options } />
+							<Select width='100%' onChange={ handleServerFilter } placeholder='Filter by Server' options={ serverOptions } />
 
 						</Grid.Item>
 
@@ -213,12 +208,13 @@ export function DownloadsManagerView() {
 							if (!timeHeading) {
 								timeHeading = new Date(downloadItem.itemId).toDateString();
 							} else if (timeHeading === new Date(downloadItem.itemId).toDateString()) {
-								return <DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ handleClear } />;
+								return <DownloadItem mb='x16' { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ handleClear } />;
 							}
 							timeHeading = new Date(downloadItem.itemId).toDateString();
+							// console.log(timeHeading);
 							return (
 								<>
-									<Box fontSize='x16' color='info' alignSelf='start'>{ timeHeading }</Box>
+									{ <Box fontSize='x16' color='info' alignSelf='start'>{ timeHeading }</Box>}
 									<DownloadItem mb='x16' { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ handleClear } />
 								</>
 							);

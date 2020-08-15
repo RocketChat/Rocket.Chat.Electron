@@ -13,6 +13,7 @@ export default React.memo(function Extended({
 	fileName,
 	fileSize,
 	mbps,
+	kbps,
 	percentage,
 	isCompleted,
 	isPaused,
@@ -25,6 +26,7 @@ export default React.memo(function Extended({
 	handleDelete,
 	...props
 }) {
+	const speed = mbps > 0.1 ? `${ mbps }Mbps` : `${ kbps }Kbps`;
 	return <Box width='100%' display='flex' alignItems='center' { ...props }>
 		{/* USE AVATAR FUSELAGE (TODO) */ }
 
@@ -38,15 +40,15 @@ export default React.memo(function Extended({
 			<Box display='flex' flexDirection='row' justifyContent='space-between' mb='x8'>
 				<Info>{ serverTitle }</Info>
 				<Info> { date }</Info>
-				<Info>{ fileSize || '25MB' }</Info>
-				{ mbps > 0 && <Info>{ `${ mbps }Mbps/s` }</Info> }
+				<Info>{ fileSize }</Info>
+				{ isCompleted || <Info>{ speed }</Info> }
 				{/* ESTIMATED (TODO) */ }
 				{/* <Box fontSize='s2' color='info'>{ '60s Left' }</Box> */ }
 			</Box>
 			<Box mb='x8'>
 				<Progress percent={ percentage } />
 			</Box>
-			{/* // TODO: Implement Show in Folder */ }
+
 			<ButtonGroup>
 				{/* Completed */ }
 				{ isCompleted && <ActionButton onClick={ handleFileOpen }>Show in Folder</ActionButton> }

@@ -123,7 +123,6 @@ const createMainWindow = () => {
 		await store.delete(`downloads.${ itemdId }`);
 	});
 
-
 	// Listen and save a single download being completed.
 	ipcMain.on('download-complete', async (event, downloadItem) => {
 		const downloads = await store.get('downloads', {});
@@ -131,22 +130,20 @@ const createMainWindow = () => {
 		// console.log(downloads);
 		store.set('downloads', downloads);
 	});
+
 	// Downloads handler. Handles all downloads from links.
 	mainWindow.webContents.session.on('will-download', async (event, item, webContents) => {
-		// item.pause();
-		// console.log({ event, item, webContents });
 		const mime = item.getMimeType();
-		let paused = false;
 		const itemId = Date.now();
 		const url = item.getURLChain()[0];
 		const serverTitle = url.split('#')[1];
-		console.log(url);
-		mainWindow.webContents.send('create-download-item', { status: 'All Downloads', serverTitle, itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url, serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
-		let startTime = new Date().getTime();
+		const startTime = new Date().getTime();
+		let paused = false;
 		let endTime;
-		let bytesRecieved;
+
+		mainWindow.webContents.send('create-download-item', { status: 'All Downloads', serverTitle, itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url, serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
+
 		// Cancelled Download
-		console.log(item.getURLChain());
 		ipcMain.on(`cancel-${ itemId }`, () => item.cancel());
 
 		// Paused Download
@@ -167,25 +164,23 @@ const createMainWindow = () => {
 				} else {
 					endTime = new Date().getTime();
 					const duration = (endTime - startTime) / 1000;
-					const bps = (item.getReceivedBytes() - bytesRecieved) / duration;
-					const Mbps = (bps / 1048576).toFixed(2);
-					startTime = endTime;
-					bytesRecieved = item.getReceivedBytes();
+					const Bps = (item.getReceivedBytes() / duration).toFixed(2);
+					const Kbps = (Bps / 1024).toFixed(2);
+					const Mbps = (Kbps / 1024).toFixed(2);
 
 					// Sending Download Information. TODO: Seperate bytes as information sent is being repeated.
-					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: bytesRecieved, savePath: item.getSavePath(), Mbps });
+					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: item.getReceivedBytes(), Mbps, Kbps });
+					console.log(`Duration: ${ duration }`);
+					console.log(`Kbps: ${ Kbps }`);
 					console.log(`Received bytes: ${ item.getReceivedBytes() }`);
 				}
 			}
 		});
 		item.once('done', async (event, state) => {
 			if (state === 'completed') {
-				const path = item.savePath;
-				const thumb = await sharp(path).resize(100, 100).png().toBuffer();
-				// console.log(item.savePath);
-				// console.log(thumb);
-				console.log(`data:image/png;base64,${ thumb.toString('base64') }`);
-				mainWindow.webContents.send(`download-complete-${ itemId }`, { percentage: 100, path, thumb: `data:image/png;base64,${ thumb.toString('base64') }` }); // Send to specific DownloadItem
+				const path = item.getSavePath();
+				const thumbnail = mime.split('/')[0] === 'image' ? await sharp(path).resize(100, 100).png().toBuffer() : null;
+				mainWindow.webContents.send(`download-complete-${ itemId }`, { percentage: 100, path, thumbnail: thumbnail && `data:image/png;base64,${ thumbnail.toString('base64') }` }); // Send to specific DownloadItem
 				console.log('Download successfully');
 			} else {
 				console.log(`Download failed: ${ state }`);

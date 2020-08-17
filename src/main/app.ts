@@ -66,7 +66,7 @@ export const setupApp = (_reduxStore: Store, rootWindow: BrowserWindow): void =>
 	});
 };
 
-export function *takeAppActions(): Generator<Effect> {
+export function *takeAppActions(): Generator<Effect, void> {
 	yield takeEvery(APP_ERROR_THROWN, function *(action: AnyAction) {
 		const { payload: error } = action;
 		console.error(error.stack);

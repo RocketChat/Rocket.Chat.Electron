@@ -26,7 +26,7 @@ export const requestsChannel = channel<RequestAction<unknown>>();
 export const responsesChannel = stdChannel<ResponseAction<unknown>>();
 export const actionsChannel = channel<AnyAction>();
 
-export function *takeRequests(): Generator<Effect> {
+export function *takeRequests(): Generator<Effect, void> {
 	yield takeEvery(requestsChannel, function *(action: AnyAction) {
 		yield put(action);
 	});

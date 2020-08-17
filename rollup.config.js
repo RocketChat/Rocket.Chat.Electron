@@ -13,7 +13,7 @@ import copy from 'rollup-plugin-copy';
 import appManifest from './package.json';
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
-const watchMode = process.env.ROLLUP_WATCH === 'true';
+const canRun = process.env.ROLLUP_WATCH === 'true' && process.env.NO_RUN !== 'true';
 
 const run = () => {
 	let proc;
@@ -114,7 +114,7 @@ export default [
 			}),
 			nodeResolve(),
 			commonjs(),
-			watchMode && run({
+			canRun && run({
 				execPath: electron,
 				execArgv: ['.'],
 			}),

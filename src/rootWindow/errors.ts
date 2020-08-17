@@ -25,6 +25,7 @@ const handleErrorEvent = (event: ErrorEvent): void => {
 			stack: error.stack,
 			name: error.name,
 		},
+		error: true,
 	});
 };
 

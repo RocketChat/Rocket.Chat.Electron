@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import ElectronStore from 'electron-store';
 import { Store } from 'redux';
-import { call, put, Effect } from 'redux-saga/effects';
+import { call, put, Effect, all } from 'redux-saga/effects';
 
 import {
 	APP_PATH_SET,
@@ -28,9 +28,9 @@ import { setupTouchBar } from './ui/touchBar';
 import { setupTrayIcon } from './ui/trayIcon';
 import { setupUpdates, takeUpdateActions } from './updates';
 
-
-export function *rootSaga(reduxStore: Store): Generator<Effect> {
+export function *rootSaga(reduxStore: Store): Generator<Effect, void> {
 	yield *takeRequests();
+
 	yield *takeAppActions();
 	yield *takeServersActions();
 	yield *takeScreenSharingActions();
@@ -47,15 +47,13 @@ export function *rootSaga(reduxStore: Store): Generator<Effect> {
 	yield call(() => app.whenReady());
 
 	if (process.env.NODE_ENV === 'development') {
-		yield call(async () => {
-			await setupElectronReloader();
-			await installDevTools();
-		});
+		yield all([
+			call(() => setupElectronReloader()),
+			call(() => installDevTools()),
+		]);
 	}
 
-	yield call(async () => {
-		await setupI18n();
-	});
+	yield call(() => setupI18n());
 
 	const rootWindow = (yield call(() => createRootWindow(reduxStore))) as BrowserWindow;
 

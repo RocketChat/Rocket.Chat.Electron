@@ -28,6 +28,7 @@ const handleErrorEvent = (event: ErrorEvent): void => {
 			stack: error.stack,
 			name: error.name,
 		},
+		error: true,
 	});
 };
 
@@ -40,6 +41,7 @@ const handleUnhandledRejectionEvent = (event: PromiseRejectionEvent): void => {
 			stack: reason.stack,
 			name: reason.name,
 		},
+		error: true,
 	});
 };
 

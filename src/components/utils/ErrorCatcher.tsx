@@ -16,6 +16,7 @@ export class ErrorCatcher extends Component {
 				stack: error.stack,
 				name: error.name,
 			},
+			error: true,
 		});
 	}
 

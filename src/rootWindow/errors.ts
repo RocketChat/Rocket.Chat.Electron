@@ -1,5 +1,4 @@
 import Bugsnag from '@bugsnag/js';
-import { Store } from 'redux';
 import { Effect, select, call } from 'redux-saga/effects';
 
 import { APP_ERROR_THROWN } from '../actions';

@@ -114,10 +114,7 @@ export default [
 			}),
 			nodeResolve(),
 			commonjs(),
-			canRun && run({
-				execPath: electron,
-				execArgv: ['.'],
-			}),
+			canRun && run(),
 		],
 		output: {
 			dir: 'app',

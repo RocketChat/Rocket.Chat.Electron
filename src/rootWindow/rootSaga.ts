@@ -6,21 +6,24 @@ import { call, Effect } from 'redux-saga/effects';
 import { takeRequests } from '../channels';
 import { App } from '../components/App';
 import { whenReady } from '../whenReady';
-import { setupErrorHandling } from './errors';
+import { attachErrorHandling } from './errors';
 import { setupI18next } from './i18n';
 
 export function *rootSaga(reduxStore: Store): Generator<Effect> {
 	yield *takeRequests();
 
-	yield call(async () => {
-		await whenReady();
-		setupErrorHandling(reduxStore);
-		await setupI18next();
+	yield call(whenReady);
 
-		render(createElement(App, { reduxStore }), document.getElementById('root'));
+	yield *attachErrorHandling();
+	yield call(setupI18next);
+
+	yield call(() => {
+		const container = document.getElementById('root');
+
+		render(createElement(App, { reduxStore }), container);
 
 		window.addEventListener('beforeunload', () => {
-			unmountComponentAtNode(document.getElementById('root'));
+			unmountComponentAtNode(container);
 		});
 	});
 }

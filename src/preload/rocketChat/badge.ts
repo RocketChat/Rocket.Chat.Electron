@@ -1,17 +1,21 @@
-import { getServerUrl } from '.';
+import { Effect, takeEvery, put, call } from 'redux-saga/effects';
+
 import { WEBVIEW_UNREAD_CHANGED } from '../../actions';
-import { dispatch } from '../../channels';
+import { eventTargetEvent } from '../../channels';
+import { getServerUrl } from './getServerUrl';
 
-const handleUnreadChangedEvent = (event: CustomEvent<'•' | number>): void => {
-	dispatch({
-		type: WEBVIEW_UNREAD_CHANGED,
-		payload: {
-			url: getServerUrl(),
-			badge: event.detail,
-		},
+export function *listenToBadgeChanges(): Generator<Effect, void> {
+	const windowUnreadChangedEvent = eventTargetEvent<CustomEvent<'•' | number>>(window, 'unload', {
+		passive: false,
 	});
-};
 
-export const setupBadgeChanges = (): void => {
-	window.addEventListener('unread-changed', handleUnreadChangedEvent);
-};
+	yield takeEvery(windowUnreadChangedEvent, function *(event): Generator<Effect, void> {
+		yield put({
+			type: WEBVIEW_UNREAD_CHANGED,
+			payload: {
+				url: yield call(getServerUrl),
+				badge: event.detail,
+			},
+		});
+	});
+}

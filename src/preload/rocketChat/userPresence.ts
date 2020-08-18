@@ -1,5 +1,5 @@
 import { powerMonitor } from 'electron';
-import { takeEvery, Effect } from 'redux-saga/effects';
+import { takeEvery, Effect, call } from 'redux-saga/effects';
 
 import {
 	SYSTEM_SUSPENDING,
@@ -8,12 +8,14 @@ import {
 } from '../../actions';
 import { request } from '../../channels';
 
+type SystemIdleState = ReturnType<typeof powerMonitor.getSystemIdleState>;
+
 let isAutoAwayEnabled: boolean;
 let idleThreshold: number;
 let goOnline = (): void => undefined;
 let goAway = (): void => undefined;
 
-export const setupUserPresenceChanges = (): void => {
+const setupUserPresenceListening = (): void => {
 	const { Meteor } = window.require('meteor/meteor');
 	const { Tracker } = window.require('meteor/tracker');
 	const { UserPresence } = window.require('meteor/konecty:user-presence');
@@ -33,13 +35,13 @@ export const setupUserPresenceChanges = (): void => {
 		}
 	});
 
-	let prevState: ReturnType<typeof powerMonitor.getSystemIdleState>;
+	let prevState: SystemIdleState;
 	const pollSystemIdleState = async (): Promise<void> => {
 		if (!isAutoAwayEnabled || !idleThreshold) {
 			return;
 		}
 
-		const state: ReturnType<typeof powerMonitor.getSystemIdleState> = await request(SYSTEM_IDLE_STATE_REQUESTED, idleThreshold);
+		const state: SystemIdleState = await request(SYSTEM_IDLE_STATE_REQUESTED, idleThreshold);
 
 		if (prevState === state) {
 			setTimeout(pollSystemIdleState, 1000);
@@ -61,7 +63,9 @@ export const setupUserPresenceChanges = (): void => {
 	pollSystemIdleState();
 };
 
-export function *takeUserPresenceActions(): Generator<Effect> {
+export function *listenToUserPresenceChanges(): Generator<Effect, void> {
+	yield call(setupUserPresenceListening);
+
 	yield takeEvery(SYSTEM_SUSPENDING, function *() {
 		if (!isAutoAwayEnabled) {
 			return;

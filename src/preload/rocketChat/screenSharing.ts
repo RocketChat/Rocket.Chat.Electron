@@ -1,5 +1,7 @@
-import { WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED } from '../actions';
-import { request } from '../channels';
+import { call, Effect } from 'redux-saga/effects';
+
+import { WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED } from '../../actions';
+import { request } from '../../channels';
 
 const handleGetSourceIdEvent = async (): Promise<void> => {
 	try {
@@ -10,6 +12,10 @@ const handleGetSourceIdEvent = async (): Promise<void> => {
 	}
 };
 
-export const setupScreenSharing = (): void => {
+export const attachGetSourceIdEventListener = (): void => {
 	window.addEventListener('get-sourceId', handleGetSourceIdEvent);
 };
+
+export function *listenToScreenSharingRequests(): Generator<Effect, void> {
+	yield call(attachGetSourceIdEventListener);
+}

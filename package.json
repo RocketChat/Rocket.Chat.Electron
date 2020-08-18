@@ -81,6 +81,7 @@
     "@types/electron-devtools-installer": "^2.2.0",
     "@types/i18next-node-fs-backend": "^2.1.0",
     "@types/jest": "^26.0.4",
+    "@types/meteor": "^1.4.49",
     "@types/node-fetch": "^2.5.7",
     "@types/react": "^16.9.44",
     "@types/react-dom": "^16.9.8",

@@ -1,6 +1,6 @@
 import { AnyAction } from 'redux';
-import { channel, stdChannel } from 'redux-saga';
-import { takeEvery, put, Effect } from 'redux-saga/effects';
+import { channel, stdChannel, EventChannel, eventChannel } from 'redux-saga';
+import { takeEvery, put, Effect, take } from 'redux-saga/effects';
 
 export type RequestAction<P> = AnyAction & {
 	payload: P;
@@ -65,6 +65,45 @@ export const request = <P, RP>(actionType: string, payload: P): Promise<RP> =>
 		}, (action) => action.meta.id === id);
 	});
 
+export function *putAndTake<P, RP>(actionType: string, payload: P): Generator<Effect, RP> {
+	const id = Math.random().toString(36).slice(2);
+
+	const requestAction: RequestAction<P> = {
+		type: actionType,
+		payload,
+		meta: {
+			request: true,
+			id,
+		},
+	};
+
+	yield put(requestAction);
+
+	const action = (yield take((action: AnyAction) => action.meta.id === id)) as ResponseAction<RP>;
+
+	if (action.error) {
+		throw action.payload;
+	}
+
+	return action.payload;
+}
+
 export const dispatch = (action: AnyAction): void => {
 	actionsChannel.put(action);
 };
+
+export const eventTargetEvent = <E extends Event>(
+	eventTarget: EventTarget,
+	eventType: string,
+	options?: boolean | AddEventListenerOptions,
+): EventChannel<E> => eventChannel<E>((emit) => {
+	const handle = (event: E): void => {
+		emit(event);
+	};
+
+	eventTarget.addEventListener(eventType, handle, options);
+
+	return () => {
+		eventTarget.removeEventListener(eventType, handle, options);
+	};
+});

@@ -1,4 +1,14 @@
+import { Effect } from 'redux-saga/effects';
 import semver from 'semver';
+
+import { listenToBadgeChanges } from './badge';
+import { listenToFaviconChanges } from './favicon';
+import { listenToMessageBoxEvents } from './messageBox';
+import { listenToNotificationsRequests } from './notifications';
+import { listenToScreenSharingRequests } from './screenSharing';
+import { listenToSideBarChanges } from './sidebar';
+import { listenToTitleChanges } from './title';
+import { listenToUserPresenceChanges } from './userPresence';
 
 export const isRocketChat = (): boolean => {
 	if (typeof window.require !== 'function') {
@@ -14,7 +24,13 @@ export const isRocketChat = (): boolean => {
 	}
 };
 
-export const getServerUrl = (): string => {
-	const { Meteor } = window.require('meteor/meteor');
-	return Meteor.absoluteUrl().replace(/\/$/, '');
-};
+export function *setupRocketChatPage(): Generator<Effect, void> {
+	yield *listenToBadgeChanges();
+	yield *listenToFaviconChanges();
+	yield *listenToSideBarChanges();
+	yield *listenToTitleChanges();
+	yield *listenToUserPresenceChanges();
+	yield *listenToMessageBoxEvents();
+	yield *listenToNotificationsRequests();
+	yield *listenToScreenSharingRequests();
+}

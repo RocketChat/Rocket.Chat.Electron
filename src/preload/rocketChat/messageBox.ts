@@ -36,12 +36,12 @@ const handleBlurEvent = (event: FocusEvent): void => {
 	dispatch({ type: WEBVIEW_MESSAGE_BOX_BLURRED });
 };
 
-export const setupMessageBoxEvents = (): void => {
-	document.addEventListener('focus', handleFocusEvent, true);
-	document.addEventListener('blur', handleBlurEvent, true);
-};
+export function *listenToMessageBoxEvents(): Generator<Effect> {
+	yield call(() => {
+		document.addEventListener('focus', handleFocusEvent, true);
+		document.addEventListener('blur', handleBlurEvent, true);
+	});
 
-export function *takeMessageBoxActions(): Generator<Effect> {
 	yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *(action: AnyAction) {
 		if (!focusedMessageBoxInput) {
 			return;

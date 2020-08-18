@@ -1,7 +1,6 @@
 import { AnyAction } from 'redux';
-import { takeEvery, Effect } from 'redux-saga/effects';
+import { takeEvery, Effect, put, call } from 'redux-saga/effects';
 
-import { getServerUrl } from '.';
 import {
 	WEBVIEW_FOCUS_REQUESTED,
 	NOTIFICATIONS_CREATE_REQUESTED,
@@ -14,6 +13,7 @@ import {
 	NOTIFICATIONS_NOTIFICATION_SHOWN,
 } from '../../actions';
 import { dispatch, request } from '../../channels';
+import { getServerUrl } from './getServerUrl';
 
 
 const normalizeIconUrl = (iconUrl: string): string => {
@@ -133,11 +133,11 @@ class CustomNotification extends EventTarget implements Notification {
 	}
 }
 
-export const setupNotifications = (): void => {
-	window.Notification = CustomNotification;
-};
+export function *listenToNotificationsRequests(): Generator<Effect> {
+	yield call(() => {
+		window.Notification = CustomNotification;
+	});
 
-export function *takeNotificationsActions(): Generator<Effect> {
 	yield takeEvery(NOTIFICATIONS_NOTIFICATION_SHOWN, function *(action: AnyAction) {
 		const { payload: { id } } = action;
 
@@ -168,10 +168,10 @@ export function *takeNotificationsActions(): Generator<Effect> {
 			return;
 		}
 
-		dispatch({
+		yield put({
 			type: WEBVIEW_FOCUS_REQUESTED,
 			payload: {
-				url: getServerUrl(),
+				url: yield call(getServerUrl),
 			},
 		});
 

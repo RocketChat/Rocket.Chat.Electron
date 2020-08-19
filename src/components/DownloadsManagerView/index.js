@@ -4,6 +4,7 @@ import { useLocalStorage, useMutableCallback } from '@rocket.chat/fuselage-hooks
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { ipcRenderer, shell } from 'electron';
+import InfiniteScroll from 'react-infinite-scroller';
 
 import { Wrapper } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';

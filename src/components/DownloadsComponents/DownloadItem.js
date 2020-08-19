@@ -46,7 +46,7 @@ export default function DownloadItem({
 	const handleProgress = useMutableCallback((event, data) => {
 		console.log('Progress');
 		const percentage = Math.floor((data.bytes / totalBytes) * 100);
-		updateDownloads({ status: STATUS.ALL, percentage, serverTitle, itemId, Mbps: data.Mbps, Kbps: data.Kbps });
+		updateDownloads({ itemId, status: STATUS.ALL, percentage, serverTitle, Mbps: data.Mbps, Kbps: data.Kbps, fileName: data.fileName });
 		setPercentage(percentage);
 		setTimeLeft(data.timeLeft);
 	});

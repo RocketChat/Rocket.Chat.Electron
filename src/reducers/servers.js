@@ -75,7 +75,6 @@ export const servers = (state = [], { type, payload }) => {
 			const { id, serverUrl } = payload;
 			const index = state.findIndex(({ url }) => url === serverUrl);
 			state[index].webContentId = id;
-			console.log(state);
 			return state;
 		}
 	}

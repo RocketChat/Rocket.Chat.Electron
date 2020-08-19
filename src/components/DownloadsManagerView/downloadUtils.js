@@ -4,11 +4,11 @@ import { Progress as SweetProgress } from 'react-sweet-progress';
 
 import 'react-sweet-progress/lib/style.css';
 
-export const Info = (props) => <Box fontSize='s1' color='info' {...props}/>;
+export const Info = (props) => <Box fontSize='s1' color='info' { ...props } />;
 
-export const ActionButton = (props) => <Button color='primary-500' small ghost {...props}/>;
+export const ActionButton = (props) => <Button color='primary-500' small ghost { ...props } />;
 
-export const Progress = ({ percent, ...props }) => <Box flexGrow={1} {...props}><SweetProgress theme={ useMemo(() => ({ default: { color: '#2F80ED' } }), []) } percent={ percent } status='default' /> </Box>;
+export const Progress = ({ percent, ...props }) => <Box flexGrow={ 1 } { ...props }><SweetProgress theme={ useMemo(() => ({ default: { color: '#2F80ED' } }), []) } percent={ percent } status='default' /> </Box>;
 
 
 // Utility function for bytes conversion. TODO: seperate into another file.

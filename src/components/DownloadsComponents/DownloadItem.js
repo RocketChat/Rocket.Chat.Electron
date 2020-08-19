@@ -44,7 +44,6 @@ export default function DownloadItem({
 
 
 	const handleProgress = useMutableCallback((event, data) => {
-		console.log('Progress');
 		const percentage = Math.floor((data.bytes / totalBytes) * 100);
 		updateDownloads({ itemId, status: STATUS.ALL, percentage, serverTitle, Mbps: data.Mbps, Kbps: data.Kbps, fileName: data.fileName });
 		setPercentage(percentage);
@@ -63,8 +62,6 @@ export default function DownloadItem({
 	// Download Completed, Send data back
 	useEffect(() => {
 		const downloadComplete = (event, data) => {
-			console.log('Download Complete');
-			console.log(data);
 			setStatus(STATUS.ALL);
 			setPath(data.path);
 			updateDownloads({ status: STATUS.ALL, serverTitle, itemId, percentage: 100, thumbnail: data.thumbnail });
@@ -105,7 +102,6 @@ export default function DownloadItem({
 	// TODO TOAST
 	const handleCopyLink = useMutableCallback(() => clipboard.write({ text: url }));
 
-	// const printState = () => console.log({ path, thumbnail });
 
 	return props.layout === 'compact' ? <Compact
 		serverTitle={serverTitle}

@@ -4,7 +4,6 @@ import { useLocalStorage, useMutableCallback } from '@rocket.chat/fuselage-hooks
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { ipcRenderer, shell } from 'electron';
-import InfiniteScroll from 'react-infinite-scroller';
 
 import { Wrapper } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';
@@ -67,7 +66,6 @@ export function DownloadsManagerView() {
 
 
 	const updateDownloads = useMutableCallback((data) => {
-		console.log(data);
 		const updatedDownloads = downloads.map((downloadItem) => {
 			if (downloadItem.itemId === data.itemId) {
 				for (const key of Object.keys(data)) {
@@ -117,14 +115,12 @@ export function DownloadsManagerView() {
 	// 			USE EFFECTS
 
 	useEffect(() => {
-		console.log('Loading Downloads');
 		ipcRenderer.send(DOWNLOAD_EVENT.LOAD);
 	}, []);
 
 	useEffect(() => {
 		const intializeDownloads = (event, downloads) => {
 			setDownloads(Object.values(downloads));
-			console.log(Object.values(downloads));
 		};
 		ipcRenderer.on(DOWNLOAD_EVENT.INITIALIZE, intializeDownloads);
 		return () => {
@@ -134,8 +130,6 @@ export function DownloadsManagerView() {
 
 	useEffect(() => {
 		const createDownload = (event, props) => {
-			console.log('Creating New Download');
-			// console.log(props);
 			const updatedDownloads = [...downloads];
 			updatedDownloads.push(props);
 			setDownloads(updatedDownloads);
@@ -148,7 +142,6 @@ export function DownloadsManagerView() {
 
 	useEffect(() => {
 		const clear = (event, itemId) => {
-			console.log(itemId);
 			const newDownloads = downloads.filter((download) => download.itemId !== itemId);
 			setDownloads(newDownloads);
 		};

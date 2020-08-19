@@ -105,20 +105,17 @@ const createMainWindow = () => {
 
 	// Load all downloads from LocalStorage into Main Process and send to Download Manager.
 	ipcMain.on('load-downloads', async () => {
-		console.log('Loading Downloads');
 		const downloads = await store.get('downloads', {});
 		mainWindow.webContents.send('initialize-downloads', downloads);
 	});
 
 	ipcMain.on('reset', async () => {
-		console.log('Reset');
 		await store.clear();
 		const downloads = await store.get('downloads', {});
 		mainWindow.webContents.send('initialize-downloads', downloads);
 	});
 
 	ipcMain.on('remove', async (event, itemdId) => {
-		console.log(`Removing: ${ itemdId } `);
 		await store.delete(`downloads.${ itemdId }`);
 	});
 
@@ -126,7 +123,6 @@ const createMainWindow = () => {
 	ipcMain.on('download-complete', async (event, downloadItem) => {
 		const downloads = await store.get('downloads', {});
 		downloads[downloadItem.itemId] = downloadItem;
-		// console.log(downloads);
 		store.set('downloads', downloads);
 	});
 
@@ -175,10 +171,6 @@ const createMainWindow = () => {
 
 					// Sending Download Information. TODO: Seperate bytes as information sent is being repeated.
 					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: item.getReceivedBytes(), Mbps, Kbps, timeLeft, fileName });
-					// console.log(`Time Left: ${ timeLeft }`);
-					// console.log(`Duration: ${ duration }`);
-					// console.log(`Bps: ${ Bps }`);
-					console.log(`Received bytes: ${ item.getReceivedBytes() }`);
 				}
 			}
 		});
@@ -189,11 +181,8 @@ const createMainWindow = () => {
 				const fileName = pathsArray[pathsArray.length - 1];
 				const thumbnail = mime.split('/')[0] === 'image' ? await sharp(path).resize(100, 100).png().toBuffer() : null;
 				mainWindow.webContents.send(`download-complete-${ itemId }`, { percentage: 100, path, fileName, thumbnail: thumbnail && `data:image/png;base64,${ thumbnail.toString('base64') }` }); // Send to specific DownloadItem
-				console.log('Download successfully');
-				console.log(fileName);
 			} else {
 				mainWindow.webContents.send('download-cancelled', itemId); // Remove Item from UI if interrupted or cancelled
-				console.log(`Download failed: ${ state }`);
 			}
 		});
 	});

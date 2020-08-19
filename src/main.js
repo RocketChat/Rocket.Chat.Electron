@@ -187,6 +187,7 @@ const createMainWindow = () => {
 				mainWindow.webContents.send(`download-complete-${ itemId }`, { percentage: 100, path, thumbnail: thumbnail && `data:image/png;base64,${ thumbnail.toString('base64') }` }); // Send to specific DownloadItem
 				console.log('Download successfully');
 			} else {
+				mainWindow.webContents.send('download-cancelled', itemId); // Remove Item from UI if interrupted or cancelled
 				console.log(`Download failed: ${ state }`);
 			}
 		});

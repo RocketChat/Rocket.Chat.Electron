@@ -27,7 +27,6 @@ export default React.memo(function Extended({
 	handleDelete,
 	...props
 }) {
-	console.log(timeLeft);
 	const speed = mbps > 0.1 ? `${ mbps }Mbps` : `${ kbps }Kbps`;
 	return <Box width='100%' display='flex' alignItems='center' { ...props }>
 		{/* USE AVATAR FUSELAGE (TODO) */ }

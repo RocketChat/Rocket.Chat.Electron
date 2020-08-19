@@ -97,6 +97,7 @@ export function DownloadsManagerView() {
 		/>);
 	}, [closeModal]);
 
+
 	const handleClear = useCallback((itemId) => {
 		const clear = () => {
 			closeModal();
@@ -143,6 +144,18 @@ export function DownloadsManagerView() {
 			ipcRenderer.removeListener(DOWNLOAD_EVENT.CREATE, createDownload);
 		};
 	}, [downloads]);
+
+	useEffect(() => {
+		const clear = (event, itemId) => {
+			console.log(itemId);
+			const newDownloads = downloads.filter((download) => download.itemId !== itemId);
+			setDownloads(newDownloads);
+		};
+		ipcRenderer.on('download-cancelled', clear);
+		return () => {
+			ipcRenderer.removeListener('download-cancelled', clear);
+		};
+	});
 
 
 	const filteredDownloads = useMemo(() => {

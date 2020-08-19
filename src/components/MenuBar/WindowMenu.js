@@ -8,6 +8,7 @@ import {
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
 	MENU_BAR_SELECT_SERVER_CLICKED,
 	MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
+	SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
 } from '../../actions';
 
 export const WindowMenu = forwardRef(function WindowMenu(_, ref) {
@@ -38,6 +39,13 @@ export const WindowMenu = forwardRef(function WindowMenu(_, ref) {
 				/>)}
 				<MenuItem type='separator' />
 			</>}
+			<MenuItem
+				type='checkbox'
+				label={'Downloads Page'}
+				checked={currentServerUrl === 'Downloads'}
+				accelerator={'CommandOrControl+D'}
+				onClick={({ checked }) => dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED, payload: checked })}
+			/>
 			<MenuItem
 				type='checkbox'
 				label={t('menus.showOnUnreadMessage')}

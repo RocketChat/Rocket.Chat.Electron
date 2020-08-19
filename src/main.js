@@ -138,6 +138,7 @@ const createMainWindow = () => {
 		const url = item.getURLChain()[0];
 		const serverTitle = url.split('#')[1];
 		const startTime = new Date().getTime();
+		const totalBytes = item.getTotalBytes();
 		let paused = false;
 		let endTime;
 
@@ -167,11 +168,14 @@ const createMainWindow = () => {
 					const Bps = (item.getReceivedBytes() / duration).toFixed(2);
 					const Kbps = (Bps / 1024).toFixed(2);
 					const Mbps = (Kbps / 1024).toFixed(2);
+					const recievedBytes = item.getReceivedBytes();
+					const timeLeft = Bps ? Math.round((totalBytes - recievedBytes) / Bps) : null;
 
 					// Sending Download Information. TODO: Seperate bytes as information sent is being repeated.
-					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: item.getReceivedBytes(), Mbps, Kbps });
+					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: item.getReceivedBytes(), Mbps, Kbps, timeLeft });
+					console.log(`Time Left: ${ timeLeft }`);
 					console.log(`Duration: ${ duration }`);
-					console.log(`Kbps: ${ Kbps }`);
+					console.log(`Bps: ${ Bps }`);
 					console.log(`Received bytes: ${ item.getReceivedBytes() }`);
 				}
 			}

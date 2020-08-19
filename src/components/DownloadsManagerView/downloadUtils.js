@@ -37,6 +37,16 @@ export const mapping = {
 	audio: 'Audios',
 };
 
+export const DOWNLOAD_EVENT = {
+	PAUSE_ID: 'pause-',
+	CANCEL_ID: 'cancel-',
+	COMPLETE: 'download-complete',
+	COMPLETE_ID: 'download-complete-',
+	DOWNLOADING_ID: 'downloading-',
+	LOAD: 'load-downloads',
+	INITIALIZE: 'initialize-downloads',
+	CREATE: 'create-download-item',
+};
 
 export const STATUS = {
 	CANCELLED: 'Cancelled',

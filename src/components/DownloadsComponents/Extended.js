@@ -14,6 +14,7 @@ export default React.memo(function Extended({
 	fileSize,
 	mbps,
 	kbps,
+	timeLeft,
 	percentage,
 	isCompleted,
 	isPaused,
@@ -26,14 +27,16 @@ export default React.memo(function Extended({
 	handleDelete,
 	...props
 }) {
+	console.log(timeLeft);
 	const speed = mbps > 0.1 ? `${ mbps }Mbps` : `${ kbps }Kbps`;
 	return <Box width='100%' display='flex' alignItems='center' { ...props }>
 		{/* USE AVATAR FUSELAGE (TODO) */ }
 
-		{ thumbnail ? <Avatar url={ thumbnail } size='x124' /> : <Box size='x124' flexShrink={ 0 } bg='neutral-500-50' borderRadius='4px' display='flex' flexDirection='column' alignItems='center' justifyContent='center'>
-			<Icon size='x60' name='clip' />
-			<Box fontScale='s2' color='primary-500' display='block'>{ mime }</Box>
-		</Box> }
+		{ thumbnail ? <Avatar url={ thumbnail } size='x124' />
+			: <Box size='x124' flexShrink={ 0 } bg='neutral-500-50' borderRadius='4px' display='flex' flexDirection='column' alignItems='center' justifyContent='center'>
+				<Icon size='x60' name='clip' />
+				<Box fontScale='s2' color='primary-500' display='block'>{ mime }</Box>
+			</Box> }
 
 		<Box display='flex' flexDirection='column' flexGrow={ 1 } mi='x16'>
 			<Box fontSize='s2' withTruncatedText color='default' pbe='x8'>{ fileName }</Box>
@@ -43,7 +46,7 @@ export default React.memo(function Extended({
 				<Info>{ fileSize }</Info>
 				{ isCompleted || <Info>{ speed }</Info> }
 				{/* ESTIMATED (TODO) */ }
-				{/* <Box fontSize='s2' color='info'>{ '60s Left' }</Box> */ }
+				{ timeLeft && <Info>{ timeLeft }s left</Info> }
 			</Box>
 			<Box mb='x8'>
 				<Progress percent={ percentage } />

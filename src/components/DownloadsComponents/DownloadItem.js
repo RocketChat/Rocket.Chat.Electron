@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { ipcRenderer, remote, clipboard } from 'electron';
 
-import { formatBytes, STATUS } from '../DownloadsManagerView/downloadUtils';
+import { formatBytes, STATUS, DOWNLOAD_EVENT } from '../DownloadsManagerView/downloadUtils';
 import Extended from './Extended';
 import Compact from './Compact';
 
@@ -30,6 +30,8 @@ export default function DownloadItem({
 	const [percentage, setPercentage] = useDebouncedState(props.percentage || 0, 100);
 	const [path, setPath] = useDebouncedState(props.path || '', 100);
 	const [status, setStatus] = useDebouncedState(props.status || STATUS.ALL, 100);
+	const [timeLeft, setTimeLeft] = useDebouncedState(props.timeLeft || null, 100);
+
 
 	const completed = percentage === 100;
 	const paused = status === STATUS.PAUSED;
@@ -46,13 +48,14 @@ export default function DownloadItem({
 		const percentage = Math.floor((data.bytes / totalBytes) * 100);
 		updateDownloads({ status: STATUS.ALL, percentage, serverTitle, itemId, Mbps: data.Mbps, Kbps: data.Kbps });
 		setPercentage(percentage);
+		setTimeLeft(data.timeLeft);
 	});
 
 	useEffect(() => {
 		// Listen on unique event only
-		ipcRenderer.on(`downloading-${ itemId }`, handleProgress);
+		ipcRenderer.on(DOWNLOAD_EVENT.DOWNLOADING_ID.concat(itemId), handleProgress);
 		return () => {
-			ipcRenderer.removeListener(`downloading-${ itemId }`, handleProgress);
+			ipcRenderer.removeListener(DOWNLOAD_EVENT.DOWNLOADING_ID.concat(itemId), handleProgress);
 		};
 	}, [handleProgress, itemId]);
 
@@ -63,28 +66,28 @@ export default function DownloadItem({
 			console.log('Download Complete');
 			console.log(data);
 			setStatus(STATUS.ALL);
-			setPath(data.Path);
+			setPath(data.path);
 			updateDownloads({ status: STATUS.ALL, serverTitle, itemId, percentage: 100, thumbnail: data.thumbnail });
-			ipcRenderer.send('download-complete', { status: STATUS.ALL, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime, thumbnail: data.thumbnail });
+			ipcRenderer.send(DOWNLOAD_EVENT.COMPLETE, { status: STATUS.ALL, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime, thumbnail: data.thumbnail });
 		};
 
-		ipcRenderer.on(`download-complete-${ itemId }`, downloadComplete);
+		ipcRenderer.on(DOWNLOAD_EVENT.COMPLETE_ID.concat(itemId), downloadComplete);
 		return () => {
-			ipcRenderer.removeListener(`download-complete-${ itemId }`, downloadComplete);
+			ipcRenderer.removeListener(DOWNLOAD_EVENT.COMPLETE_ID.concat(itemId), downloadComplete);
 		};
 	}, [date, fileName, fileSize, itemId, mime, props, serverTitle, setPath, setStatus, updateDownloads, url]);
 
 	const handleCancel = useMutableCallback(() => {
 		setStatus(STATUS.CANCELLED);
-		ipcRenderer.send(`cancel-${ itemId }`);
+		ipcRenderer.send(DOWNLOAD_EVENT.CANCEL_ID.concat(itemId));
 		updateDownloads({ status: STATUS.CANCELLED, percentage, itemId });
-		ipcRenderer.send('download-complete', { status: STATUS.CANCELLED, url, fileName, fileSize, percentage, serverTitle, itemId, date, path, mime });
+		ipcRenderer.send(DOWNLOAD_EVENT.COMPLETE.concat(itemId), { status: STATUS.CANCELLED, url, fileName, fileSize, percentage, serverTitle, itemId, date, path, mime });
 	});
 
 	const handlePause = useMutableCallback(() => {
 		console.log(percentage);
 		setStatus(STATUS.PAUSED);
-		ipcRenderer.send(`pause-${ itemId }`);
+		ipcRenderer.send(DOWNLOAD_EVENT.PAUSE_ID.concat(itemId));
 		updateDownloads({ status: STATUS.PAUSED, percentage, itemId });
 	});
 
@@ -130,6 +133,7 @@ export default function DownloadItem({
 		fileSize={fileSize}
 		mbps={mbps}
 		kbps= {kbps}
+		timeLeft={timeLeft}
 		percentage={percentage}
 		isCompleted={completed}
 		isPaused={paused}

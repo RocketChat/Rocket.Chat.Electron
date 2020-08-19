@@ -7,7 +7,7 @@ import { ipcRenderer, shell } from 'electron';
 
 import { Wrapper } from './styles';
 import DownloadItem from '../DownloadsComponents/DownloadItem';
-import { mapping, STATUS } from './downloadUtils';
+import { mapping, STATUS, DOWNLOAD_EVENT } from './downloadUtils';
 import WarningModal from '../DownloadsComponents/WarningModal';
 
 export function DownloadsManagerView() {
@@ -116,7 +116,7 @@ export function DownloadsManagerView() {
 
 	useEffect(() => {
 		console.log('Loading Downloads');
-		ipcRenderer.send('load-downloads');
+		ipcRenderer.send(DOWNLOAD_EVENT.LOAD);
 	}, []);
 
 	useEffect(() => {
@@ -124,9 +124,9 @@ export function DownloadsManagerView() {
 			setDownloads(Object.values(downloads));
 			console.log(Object.values(downloads));
 		};
-		ipcRenderer.on('initialize-downloads', intializeDownloads);
+		ipcRenderer.on(DOWNLOAD_EVENT.INITIALIZE, intializeDownloads);
 		return () => {
-			ipcRenderer.removeListener('initialize-downloads', intializeDownloads);
+			ipcRenderer.removeListener(DOWNLOAD_EVENT.INITIALIZE, intializeDownloads);
 		};
 	}, []);
 
@@ -138,9 +138,9 @@ export function DownloadsManagerView() {
 			updatedDownloads.push(props);
 			setDownloads(updatedDownloads);
 		};
-		ipcRenderer.on('create-download-item', createDownload);
+		ipcRenderer.on(DOWNLOAD_EVENT.CREATE, createDownload);
 		return () => {
-			ipcRenderer.removeListener('create-download-item', createDownload);
+			ipcRenderer.removeListener(DOWNLOAD_EVENT.CREATE, createDownload);
 		};
 	}, [downloads]);
 

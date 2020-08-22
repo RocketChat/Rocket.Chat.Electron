@@ -8,7 +8,7 @@ export const Info = (props) => <Box fontSize='s1' color='info' { ...props } />;
 
 export const ActionButton = (props) => <Button color='primary-500' small ghost { ...props } />;
 
-export const Progress = ({ percent, ...props }) => <Box flexGrow={ 1 } { ...props }><SweetProgress theme={ useMemo(() => ({ default: { color: '#2F80ED' } }), []) } percent={ percent } status='default' /> </Box>;
+export const Progress = ({ percent, status, ...props }) => <Box flexGrow={ 1 } { ...props }><SweetProgress theme={ useMemo(() => ({ All: { color: '#2F80ED' }, Cancelled: { color: 'red' }, Paused: { color: 'orange' }, Success: { color: 'green' } }), []) } percent={ percent } status = { status } /> </Box>;
 
 
 // Utility function for bytes conversion. TODO: seperate into another file.
@@ -51,5 +51,5 @@ export const DOWNLOAD_EVENT = {
 export const STATUS = {
 	CANCELLED: 'Cancelled',
 	PAUSED: 'Paused',
-	ALL: 'All Downloads',
+	ALL: 'All',
 };

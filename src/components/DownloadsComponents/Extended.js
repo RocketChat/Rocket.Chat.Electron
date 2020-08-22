@@ -9,7 +9,7 @@ export default React.memo(function Extended({
 	thumbnail,
 	serverTitle,
 	mime,
-	date,
+	// date,
 	fileName,
 	fileSize,
 	mbps,
@@ -28,9 +28,8 @@ export default React.memo(function Extended({
 	...props
 }) {
 	const speed = mbps > 0.1 ? `${ mbps }Mbps` : `${ kbps }Kbps`;
+	const status = isCompleted ? 'Success' : props.status;
 	return <Box width='100%' display='flex' alignItems='center' { ...props }>
-		{/* USE AVATAR FUSELAGE (TODO) */ }
-
 		{ thumbnail ? <Avatar url={ thumbnail } size='x124' />
 			: <Box size='x124' flexShrink={ 0 } bg='neutral-500-50' borderRadius='4px' display='flex' flexDirection='column' alignItems='center' justifyContent='center'>
 				<Icon size='x60' name='clip' />
@@ -41,14 +40,13 @@ export default React.memo(function Extended({
 			<Box fontSize='s2' withTruncatedText color='default' pbe='x8'>{ fileName }</Box>
 			<Box display='flex' flexDirection='row' justifyContent='space-between' mb='x8'>
 				<Info>{ serverTitle }</Info>
-				<Info> { date }</Info>
+				{/* <Info> { date }</Info> */}
 				<Info>{ fileSize }</Info>
 				{ isCompleted || <Info>{ speed }</Info> }
-				{/* ESTIMATED (TODO) */ }
 				{ timeLeft && <Info>{ timeLeft }s left</Info> }
 			</Box>
 			<Box mb='x8'>
-				<Progress percent={ percentage } />
+				<Progress percent={ percentage } status = { status } />
 			</Box>
 
 			<ButtonGroup>

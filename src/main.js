@@ -136,11 +136,15 @@ const createMainWindow = () => {
 		const totalBytes = item.getTotalBytes();
 		let paused = false;
 		let endTime;
+		let isCancelledByDialog = true;
 
-		mainWindow.webContents.send('create-download-item', { status: 'All Downloads', serverTitle, itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url, serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
+		mainWindow.webContents.send('create-download-item', { status: 'All', serverTitle, itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url, serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
 
 		// Cancelled Download
-		ipcMain.on(`cancel-${ itemId }`, () => item.cancel());
+		ipcMain.on(`cancel-${ itemId }`, () => {
+			isCancelledByDialog = false;
+			item.cancel();
+		});
 
 		// Paused Download
 		ipcMain.on(`pause-${ itemId }`, () => {
@@ -181,7 +185,7 @@ const createMainWindow = () => {
 				const fileName = pathsArray[pathsArray.length - 1];
 				const thumbnail = mime.split('/')[0] === 'image' ? await sharp(path).resize(100, 100).png().toBuffer() : null;
 				mainWindow.webContents.send(`download-complete-${ itemId }`, { percentage: 100, path, fileName, thumbnail: thumbnail && `data:image/png;base64,${ thumbnail.toString('base64') }` }); // Send to specific DownloadItem
-			} else {
+			} else if (isCancelledByDialog) {
 				mainWindow.webContents.send('download-cancelled', itemId); // Remove Item from UI if interrupted or cancelled
 			}
 		});

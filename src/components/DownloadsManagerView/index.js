@@ -154,7 +154,7 @@ export function DownloadsManagerView() {
 
 	const filteredDownloads = useMemo(() => {
 		const searchRegex = searchVal && new RegExp(`${ searchVal }`, 'gi');
-		return downloads.filter((download) => (!searchRegex || searchRegex.test(download.fileName)) && (tab === 'All Downloads' || download.status === tab) && (!serverVal || serverVal === 'All' || serverVal === download.serverTitle) && (!typeVal || typeVal === 'All' || mapping[download.mime.split('/')[0]] === typeVal)).sort((a, b) => b.itemId - a.itemId);
+		return downloads.filter((download) => (!searchRegex || searchRegex.test(download.fileName)) && (tab === 'All' || download.status === tab) && (!serverVal || serverVal === 'All' || serverVal === download.serverTitle) && (!typeVal || typeVal === 'All' || mapping[download.mime.split('/')[0]] === typeVal)).sort((a, b) => b.itemId - a.itemId);
 	}, [searchVal, downloads, tab, serverVal, typeVal]);
 
 
@@ -172,7 +172,7 @@ export function DownloadsManagerView() {
 
 					<Grid.Item xl={ 12 }>
 						<Tabs>
-							<Tabs.Item selected={ tab === STATUS.ALL } onClick={ handleTabChange }>All Downloads</Tabs.Item>
+							<Tabs.Item selected={ tab === STATUS.ALL } onClick={ handleTabChange }>All</Tabs.Item>
 							<Tabs.Item selected={ tab === STATUS.PAUSED } onClick={ handleTabChange }>Paused</Tabs.Item>
 							<Tabs.Item selected={ tab === STATUS.CANCELLED } onClick={ handleTabChange }>Cancelled</Tabs.Item>
 						</Tabs>
@@ -195,7 +195,7 @@ export function DownloadsManagerView() {
 						<Grid.Item xl={ 1 } sm={ 1 } >
 							<Box width='100%' textAlign='end'>
 								<Button ghost onClick={ handleLayout }>
-									<Icon name='medium-view' size='x32' title='Change Downloads View' />
+									<Icon name={ layout === 'compact' ? 'extended-view' : 'condensed-view' } size='x32' title='Change Downloads View' />
 								</Button>
 							</Box>
 

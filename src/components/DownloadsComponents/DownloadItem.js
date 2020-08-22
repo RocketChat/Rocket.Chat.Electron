@@ -24,7 +24,6 @@ export default function DownloadItem({
 	fileSize = formatBytes(totalBytes, 2, true),
 	...props
 }) {
-	// console.log(props);
 	const servers = useSelector(({ servers }) => servers);
 
 	const [percentage, setPercentage] = useDebouncedState(props.percentage || 0, 100);
@@ -107,9 +106,11 @@ export default function DownloadItem({
 		serverTitle={serverTitle}
 		mime={ mime.split('/')[1] }
 		date={date}
+		status={status}
 		fileName={fileName}
 		fileSize={fileSize}
 		mbps={mbps}
+		kbps= {kbps}
 		percentage={percentage}
 		isCompleted={completed}
 		isPaused={paused}
@@ -125,6 +126,7 @@ export default function DownloadItem({
 		serverTitle={serverTitle}
 		mime={ mime.split('/')[1] }
 		date={date}
+		status={status}
 		fileName={fileName}
 		fileSize={fileSize}
 		mbps={mbps}

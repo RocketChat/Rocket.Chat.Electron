@@ -97,13 +97,18 @@ export function DownloadsManagerView() {
 	}, [closeModal]);
 
 
-	const handleClear = useCallback((itemId) => {
+	const handleClear = useCallback((itemId, isRetry) => {
 		const clear = () => {
 			closeModal();
 			const newDownloads = downloads.filter((download) => download.itemId !== itemId);
 			setDownloads(newDownloads);
 			ipcRenderer.send('remove', itemId);
 		};
+		console.log(Boolean(isRetry));
+		if (isRetry) {
+			clear();
+			return;
+		}
 		setModal(<WarningModal
 			close={ closeModal }
 			confirm={ clear }

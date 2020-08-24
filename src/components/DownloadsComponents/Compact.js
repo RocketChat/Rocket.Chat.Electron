@@ -36,7 +36,7 @@ export default React.memo(function Compact({
 				{ !isCompleted && !isCancelled && <ActionButton onClick={ handleCancel } title='Cancel'><Icon name='circle-cross' /></ActionButton> }
 				{/* Cancelled */ }
 				{ isCancelled && <ActionButton onClick={ handleRetry } title='Retry'><Icon name='refresh' /></ActionButton> }
-				<ActionButton onClick={ handleDelete } title='Remove'><Icon name='cross' /></ActionButton>
+				<ActionButton onClick={ () => handleDelete(false) } title='Remove'><Icon name='cross' /></ActionButton>
 
 			</Box>
 		</Box>

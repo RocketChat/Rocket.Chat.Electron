@@ -42,7 +42,7 @@ export default React.memo(function Extended({
 				<Info>{ serverTitle }</Info>
 				{/* <Info> { date }</Info> */}
 				<Info>{ fileSize }</Info>
-				{ isCompleted || <Info>{ speed }</Info> }
+				{ isCompleted || isCancelled || <Info>{ speed }</Info> }
 				{ timeLeft && <Info>{ timeLeft }s left</Info> }
 			</Box>
 			<Box mb='x8'>
@@ -58,7 +58,7 @@ export default React.memo(function Extended({
 				{ !isCompleted && !isCancelled && <ActionButton onClick={ handleCancel }>Cancel</ActionButton> }
 				{/* Cancelled */ }
 				{ isCancelled && <ActionButton onClick={ handleRetry }>Retry</ActionButton> }
-				<ActionButton onClick={ handleDelete }>Delete</ActionButton>
+				<ActionButton onClick={ () => handleDelete(false) }>Delete</ActionButton>
 			</ButtonGroup>
 		</Box>
 	</Box>;

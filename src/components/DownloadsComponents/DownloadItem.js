@@ -61,8 +61,10 @@ export default function DownloadItem({
 	// Download Completed, Send data back
 	useEffect(() => {
 		const downloadComplete = (event, data) => {
+			console.log('Saved');
 			setStatus(STATUS.ALL);
 			setPath(data.path);
+			setTimeLeft(null);
 			updateDownloads({ status: STATUS.ALL, serverTitle, itemId, percentage: 100, thumbnail: data.thumbnail });
 			ipcRenderer.send(DOWNLOAD_EVENT.COMPLETE, { status: STATUS.ALL, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime, thumbnail: data.thumbnail });
 		};
@@ -71,10 +73,11 @@ export default function DownloadItem({
 		return () => {
 			ipcRenderer.removeListener(DOWNLOAD_EVENT.COMPLETE_ID.concat(itemId), downloadComplete);
 		};
-	}, [date, fileName, fileSize, itemId, mime, props, serverTitle, setPath, setStatus, updateDownloads, url]);
+	}, [date, fileName, fileSize, itemId, mime, props, serverTitle, setPath, setPercentage, setStatus, setTimeLeft, updateDownloads, url]);
 
 	const handleCancel = useMutableCallback(() => {
 		setStatus(STATUS.CANCELLED);
+		setTimeLeft(null);
 		ipcRenderer.send(DOWNLOAD_EVENT.CANCEL_ID.concat(itemId));
 		updateDownloads({ status: STATUS.CANCELLED, percentage, itemId });
 		ipcRenderer.send(DOWNLOAD_EVENT.COMPLETE.concat(itemId), { status: STATUS.CANCELLED, url, fileName, fileSize, percentage, serverTitle, itemId, date, path, mime });
@@ -88,12 +91,12 @@ export default function DownloadItem({
 	});
 
 
-	const handleDelete = useMutableCallback(() => props.clear(itemId));
+	const handleDelete = useMutableCallback((isRetry) => props.clear(itemId, isRetry));
 
 	const handleRetry = useMutableCallback(() => {
 		// Adding ServerTitle to Download URL for use in retrying the cancelled download
 		remote.getCurrentWebContents().downloadURL(`${ url }#${ serverTitle }`);
-		handleDelete();
+		handleDelete(true);
 	});
 
 	const handleFileOpen = useMutableCallback(() => props.handleFileOpen(path));
@@ -103,45 +106,45 @@ export default function DownloadItem({
 
 
 	return props.layout === 'compact' ? <Compact
-		serverTitle={serverTitle}
+		serverTitle={ serverTitle }
 		mime={ mime.split('/')[1] }
-		date={date}
-		status={status}
-		fileName={fileName}
-		fileSize={fileSize}
-		mbps={mbps}
-		kbps= {kbps}
-		percentage={percentage}
-		isCompleted={completed}
-		isPaused={paused}
-		isCancelled={status === STATUS.CANCELLED}
-		handleFileOpen={handleFileOpen}
-		handleCopyLink={handleCopyLink}
-		handlePause={handlePause}
-		handleCancel={handleCancel}
-		handleRetry={handleRetry}
-		handleDelete={handleDelete}
-		mb = {props.mb}/> : <Extended
-		thumbnail={thumbnail}
-		serverTitle={serverTitle}
-		mime={ mime.split('/')[1] }
-		date={date}
-		status={status}
-		fileName={fileName}
-		fileSize={fileSize}
-		mbps={mbps}
-		kbps= {kbps}
-		timeLeft={timeLeft}
-		percentage={percentage}
-		isCompleted={completed}
-		isPaused={paused}
-		isCancelled={status === STATUS.CANCELLED}
-		handleFileOpen={handleFileOpen}
-		handleCopyLink={handleCopyLink}
-		handlePause={handlePause}
-		handleCancel={handleCancel}
-		handleRetry={handleRetry}
-		handleDelete={handleDelete}
-		mb = {props.mb}
-	/>;
+		date={ date }
+		status={ status }
+		fileName={ fileName }
+		fileSize={ fileSize }
+		mbps={ mbps }
+		kbps={ kbps }
+		percentage={ percentage }
+		isCompleted={ completed }
+		isPaused={ paused }
+		isCancelled={ status === STATUS.CANCELLED }
+		handleFileOpen={ handleFileOpen }
+		handleCopyLink={ handleCopyLink }
+		handlePause={ handlePause }
+		handleCancel={ handleCancel }
+		handleRetry={ handleRetry }
+		handleDelete={ handleDelete }
+		mb={ props.mb } /> : <Extended
+			thumbnail={ thumbnail }
+			serverTitle={ serverTitle }
+			mime={ mime.split('/')[1] }
+			date={ date }
+			status={ status }
+			fileName={ fileName }
+			fileSize={ fileSize }
+			mbps={ mbps }
+			kbps={ kbps }
+			timeLeft={ timeLeft }
+			percentage={ percentage }
+			isCompleted={ completed }
+			isPaused={ paused }
+			isCancelled={ status === STATUS.CANCELLED }
+			handleFileOpen={ handleFileOpen }
+			handleCopyLink={ handleCopyLink }
+			handlePause={ handlePause }
+			handleCancel={ handleCancel }
+			handleRetry={ handleRetry }
+			handleDelete={ handleDelete }
+			mb={ props.mb }
+		/>;
 }

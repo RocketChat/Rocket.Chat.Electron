@@ -1,5 +1,5 @@
 import { WebContents, ipcMain, ipcRenderer } from 'electron';
-import { Middleware, MiddlewareAPI, Dispatch, AnyAction } from 'redux';
+import { Middleware, MiddlewareAPI, Dispatch } from 'redux';
 
 import { isFSA, FluxStandardAction } from './structs/fsa';
 
@@ -34,7 +34,7 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
 		api.dispatch(action);
 	});
 
-	return (next: Dispatch) => (action: AnyAction) => {
+	return (next: Dispatch) => (action: FluxStandardAction<unknown>) => {
 		if (!isFSA(action)) {
 			return next(action);
 		}
@@ -67,7 +67,7 @@ export const forwardToMain: Middleware = (api: MiddlewareAPI) => {
 		api.dispatch(action);
 	});
 
-	return (next: Dispatch) => (action: AnyAction) => {
+	return (next: Dispatch) => (action: FluxStandardAction<unknown>) => {
 		if (!isFSA(action)) {
 			return next(action);
 		}

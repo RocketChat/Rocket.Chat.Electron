@@ -1,4 +1,3 @@
-import { AnyAction } from 'redux';
 import { takeEvery, Effect, put, call } from 'redux-saga/effects';
 
 import {
@@ -11,6 +10,11 @@ import {
 	NOTIFICATIONS_NOTIFICATION_DISMISSED,
 	NOTIFICATIONS_NOTIFICATION_REPLIED,
 	NOTIFICATIONS_NOTIFICATION_SHOWN,
+	NotificationsNotificationShownAction,
+	NotificationsNotificationClosedAction,
+	NotificationsNotificationClickedAction,
+	NotificationsNotificationRepliedAction,
+	NotificationsNotificationActionedAction,
 } from '../../actions';
 import { dispatch, request } from '../../channels';
 import { getServerUrl } from './getServerUrl';
@@ -138,7 +142,7 @@ export function *listenToNotificationsRequests(): Generator<Effect> {
 		window.Notification = CustomNotification;
 	});
 
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_SHOWN, function *(action: AnyAction) {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_SHOWN, function *(action: NotificationsNotificationShownAction) {
 		const { payload: { id } } = action;
 
 		if (!notifications.has(id)) {
@@ -149,7 +153,7 @@ export function *listenToNotificationsRequests(): Generator<Effect> {
 		notifications.get(id).dispatchEvent(showEvent);
 	});
 
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLOSED, function *(action: AnyAction) {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLOSED, function *(action: NotificationsNotificationClosedAction) {
 		const { payload: { id } } = action;
 
 		if (!notifications.has(id)) {
@@ -161,7 +165,7 @@ export function *listenToNotificationsRequests(): Generator<Effect> {
 		notifications.delete(id);
 	});
 
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLICKED, function *(action: AnyAction) {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLICKED, function *(action: NotificationsNotificationClickedAction) {
 		const { payload: { id } } = action;
 
 		if (!notifications.has(id)) {
@@ -179,7 +183,7 @@ export function *listenToNotificationsRequests(): Generator<Effect> {
 		notifications.get(id).dispatchEvent(clickEvent);
 	});
 
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_REPLIED, function *(action: AnyAction) {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_REPLIED, function *(action: NotificationsNotificationRepliedAction) {
 		const { payload: { id, reply } } = action;
 
 		if (!notifications.has(id)) {
@@ -190,7 +194,7 @@ export function *listenToNotificationsRequests(): Generator<Effect> {
 		notifications.get(id).dispatchEvent(replyEvent);
 	});
 
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_ACTIONED, function *(action: AnyAction) {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_ACTIONED, function *(action: NotificationsNotificationActionedAction) {
 		const { payload: { id, index } } = action;
 
 		if (!notifications.has(id)) {

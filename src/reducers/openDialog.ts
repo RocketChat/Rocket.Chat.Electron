@@ -1,4 +1,4 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
 import {
 	ABOUT_DIALOG_DISMISSED,
@@ -14,10 +14,11 @@ import {
 	UPDATES_NEW_VERSION_AVAILABLE,
 	WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
 	WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
+	OpenDialogActionTypes,
 } from '../actions';
 
-export const openDialog = (state = null, { type }: AnyAction): string => {
-	switch (type) {
+export const openDialog: Reducer<string | null, OpenDialogActionTypes> = (state = null, action) => {
+	switch (action.type) {
 		case MENU_BAR_ABOUT_CLICKED:
 			return 'about';
 
@@ -40,7 +41,8 @@ export const openDialog = (state = null, { type }: AnyAction): string => {
 		case UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED:
 		case UPDATE_DIALOG_INSTALL_BUTTON_CLICKED:
 			return null;
-	}
 
-	return state;
+		default:
+			return state;
+	}
 };

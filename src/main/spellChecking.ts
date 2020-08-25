@@ -3,7 +3,7 @@ import path from 'path';
 
 import { app } from 'electron';
 import { SpellCheckerProvider } from 'electron-hunspell';
-import { Store, AnyAction } from 'redux';
+import { Store } from 'redux';
 import { takeEvery, call, put, Effect } from 'redux-saga/effects';
 
 import {
@@ -11,6 +11,7 @@ import {
 	PERSISTABLE_VALUES_MERGED,
 	SPELL_CHECKING_MISSPELT_WORDS_REQUESTED,
 	SPELL_CHECKING_MISSPELT_WORDS_RESPONDED,
+	SpellCheckingMisspeltWordsRequestedAction,
 } from '../actions';
 import {
 	selectSpellCheckingDictionaries,
@@ -268,8 +269,8 @@ export const setupSpellChecking = async (reduxStore: Store, localStorage: Record
 	});
 };
 
-export function *takeSpellCheckingActions(): Generator<Effect> {
-	yield takeEvery(SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, function *(action: AnyAction) {
+export function *takeSpellCheckingActions(): Generator<Effect, void> {
+	yield takeEvery(SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, function *(action: SpellCheckingMisspeltWordsRequestedAction) {
 		const { meta: { id }, payload: words } = action;
 		const misspeltWords = yield call(() => getMisspelledWords(words));
 		const responseAction = {

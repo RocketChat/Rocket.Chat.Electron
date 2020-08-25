@@ -19,7 +19,7 @@ import {
 	IpcMainEvent,
 } from 'electron';
 import i18next from 'i18next';
-import { Store, AnyAction } from 'redux';
+import { Store } from 'redux';
 import { takeEvery, call, Effect } from 'redux-saga/effects';
 import { createSelector } from 'reselect';
 
@@ -34,6 +34,8 @@ import {
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	SIDE_BAR_CONTEXT_MENU_TRIGGERED,
 	WEBVIEW_FOCUS_REQUESTED,
+	SideBarContextMenuTriggeredAction,
+	LoadingErrorViewReloadServerClickedAction,
 } from '../../actions';
 import { dispatch } from '../../channels';
 import {
@@ -557,7 +559,7 @@ export const setupRootWindow = (reduxStore: Store, rootWindow: BrowserWindow): v
 };
 
 export function *takeUiActions(rootWindow: BrowserWindow): Generator<Effect> {
-	yield takeEvery(SIDE_BAR_CONTEXT_MENU_TRIGGERED, function *(action: AnyAction) {
+	yield takeEvery(SIDE_BAR_CONTEXT_MENU_TRIGGERED, function *(action: SideBarContextMenuTriggeredAction) {
 		const { payload: serverUrl } = action;
 		yield call(() => {
 			const menuTemplate: MenuItemConstructorOptions[] = [
@@ -590,7 +592,7 @@ export function *takeUiActions(rootWindow: BrowserWindow): Generator<Effect> {
 		});
 	});
 
-	yield takeEvery(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, function *(action: AnyAction) {
+	yield takeEvery(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, function *(action: LoadingErrorViewReloadServerClickedAction) {
 		const { payload: { url } } = action;
 		getWebContentsByServerUrl(url).loadURL(url);
 	});

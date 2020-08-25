@@ -1,24 +1,28 @@
-import { AnyAction } from 'redux';
+import { Certificate } from 'electron';
+import { Reducer } from 'redux';
 
 import {
 	CERTIFICATES_UPDATED,
 	CERTIFICATES_CLEARED,
 	PERSISTABLE_VALUES_MERGED,
+	TrustedCertificatesActionTypes,
 } from '../actions';
+import { Server } from '../structs/servers';
 
-export const trustedCertificates = (state = {}, { type, payload }: AnyAction): Record<string, string> => {
-	switch (type) {
+export const trustedCertificates: Reducer<Record<Server['url'], Certificate['fingerprint']>, TrustedCertificatesActionTypes> = (state = {}, action) => {
+	switch (action.type) {
 		case CERTIFICATES_UPDATED:
-			return payload;
+			return action.payload;
 
 		case CERTIFICATES_CLEARED:
 			return {};
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { trustedCertificates = state } = payload;
+			const { trustedCertificates = state } = action.payload;
 			return trustedCertificates;
 		}
-	}
 
-	return state;
+		default:
+			return state;
+	}
 };

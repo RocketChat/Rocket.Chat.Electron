@@ -1,12 +1,16 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
-import { APP_PATH_SET } from '../actions';
+import {
+	APP_PATH_SET,
+	AppPathActionTypes,
+} from '../actions';
 
-export const appPath = (state = null, { type, payload }: AnyAction): string | null => {
-	switch (type) {
+export const appPath: Reducer<string | null, AppPathActionTypes> = (state = null, action) => {
+	switch (action.type) {
 		case APP_PATH_SET:
-			return payload;
-	}
+			return action.payload;
 
-	return state;
+		default:
+			return state;
+	}
 };

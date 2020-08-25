@@ -1,6 +1,5 @@
 import { Notification, nativeImage, NativeImage } from 'electron';
 import fetch from 'node-fetch';
-import { AnyAction } from 'redux';
 import { takeEvery, put, call, Effect } from 'redux-saga/effects';
 
 import {
@@ -12,9 +11,11 @@ import {
 	NOTIFICATIONS_NOTIFICATION_REPLIED,
 	NOTIFICATIONS_NOTIFICATION_ACTIONED,
 	NOTIFICATIONS_NOTIFICATION_DISMISSED,
+	NotificationsNotificationDismissedAction,
+	NotificationsCreateRequestedAction,
 } from '../../actions';
 import { dispatch } from '../../channels';
-
+import { ExtendedNotificationOptions } from '../../structs/notifications';
 
 const iconCache = new Map();
 
@@ -59,11 +60,6 @@ const resolveIcon = async (iconUrl: string): Promise<NativeImage> => {
 };
 
 const notifications = new Map();
-
-type ExtendedNotificationOptions = NotificationOptions & {
-	canReply?: boolean;
-	title: string;
-};
 
 const createNotification = async (id: string, {
 	title,
@@ -153,7 +149,7 @@ const handleCreateEvent = async ({
 };
 
 export function *takeNotificationsActions(): Generator<Effect> {
-	yield takeEvery(NOTIFICATIONS_CREATE_REQUESTED, function *(action: AnyAction) {
+	yield takeEvery(NOTIFICATIONS_CREATE_REQUESTED, function *(action: NotificationsCreateRequestedAction) {
 		const { meta: { id }, payload } = action;
 		const notificationId = yield call(() => handleCreateEvent(payload));
 		const responseAction = {
@@ -167,7 +163,7 @@ export function *takeNotificationsActions(): Generator<Effect> {
 		yield put(responseAction);
 	});
 
-	yield takeEvery(NOTIFICATIONS_NOTIFICATION_DISMISSED, function *(action: AnyAction) {
+	yield takeEvery(NOTIFICATIONS_NOTIFICATION_DISMISSED, function *(action: NotificationsNotificationDismissedAction) {
 		const { payload: { id: notificationId } } = action;
 		yield call(() => {
 			notifications.get(notificationId)?.close();

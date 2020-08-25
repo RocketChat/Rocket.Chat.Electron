@@ -1,12 +1,13 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
 import {
 	ROOT_WINDOW_STATE_CHANGED,
 	PERSISTABLE_VALUES_MERGED,
+	MainWindowStateActionTypes,
 } from '../actions';
 import { WindowState } from '../structs/ui';
 
-export const mainWindowState = (state = {
+export const mainWindowState: Reducer<WindowState, MainWindowStateActionTypes> = (state = {
 	focused: true,
 	visible: true,
 	maximized: false,
@@ -19,13 +20,13 @@ export const mainWindowState = (state = {
 		width: 1000,
 		height: 600,
 	},
-}, { type, payload }: AnyAction): WindowState => {
-	switch (type) {
+}, action) => {
+	switch (action.type) {
 		case ROOT_WINDOW_STATE_CHANGED:
-			return payload;
+			return action.payload;
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { mainWindowState = state } = payload;
+			const { mainWindowState = state } = action.payload;
 			return mainWindowState;
 		}
 	}

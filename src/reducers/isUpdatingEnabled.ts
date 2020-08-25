@@ -1,18 +1,24 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
-import { UPDATES_READY, PERSISTABLE_VALUES_MERGED } from '../actions';
+import {
+	UPDATES_READY,
+	PERSISTABLE_VALUES_MERGED,
+	IsUpdatingEnabledActionTypes,
+} from '../actions';
 
-export const isUpdatingEnabled = (state = true, { type, payload }: AnyAction): boolean => {
-	switch (type) {
+export const isUpdatingEnabled: Reducer<boolean, IsUpdatingEnabledActionTypes> = (state = true, action) => {
+	switch (action.type) {
 		case UPDATES_READY: {
-			const { isUpdatingEnabled } = payload;
+			const { isUpdatingEnabled } = action.payload;
 			return isUpdatingEnabled;
 		}
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { isUpdatingEnabled = state } = payload;
+			const { isUpdatingEnabled = state } = action.payload;
 			return isUpdatingEnabled;
 		}
+
+		default:
+			return state;
 	}
-	return state;
 };

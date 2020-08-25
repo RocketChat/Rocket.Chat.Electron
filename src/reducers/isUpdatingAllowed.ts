@@ -1,13 +1,15 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
-import { UPDATES_READY } from '../actions';
+import { UPDATES_READY, IsUpdatingAllowedActionTypes } from '../actions';
 
-export const isUpdatingAllowed = (state = true, { type, payload }: AnyAction): boolean => {
-	switch (type) {
+export const isUpdatingAllowed: Reducer<boolean, IsUpdatingAllowedActionTypes> = (state = true, action) => {
+	switch (action.type) {
 		case UPDATES_READY: {
-			const { isUpdatingAllowed } = payload;
+			const { isUpdatingAllowed } = action.payload;
 			return isUpdatingAllowed;
 		}
+
+		default:
+			return state;
 	}
-	return state;
 };

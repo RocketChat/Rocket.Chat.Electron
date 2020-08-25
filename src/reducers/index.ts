@@ -51,3 +51,5 @@ export const rootReducer = combineReducers({
 	trustedCertificates,
 	updateError,
 });
+
+export type RootState = ReturnType<typeof rootReducer>;

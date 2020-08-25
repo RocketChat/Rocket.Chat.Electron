@@ -74,7 +74,7 @@ export const selectBadges = createArraySelector(selectServers, (servers) => serv
 export const selectGlobalBadge = createSelector(selectBadges, (badges) => {
 	const mentionCount = badges
 		.filter((badge) => Number.isInteger(badge))
-		.reduce((sum, count) => sum + count, 0);
+		.reduce<number>((sum, count: number) => sum + count, 0);
 	return mentionCount || (badges.some((badge) => !!badge) && '•') || null;
 });
 
@@ -90,8 +90,11 @@ export const selectGlobalBadgeText = createSelector(selectGlobalBadge, (badge) =
 	return '';
 });
 
-export const selectGlobalBadgeCount = createSelector(selectGlobalBadge, (badge) =>
-	(Number.isInteger(badge) ? badge : 0));
+const isBadgeCount = (badge: Server['badge']): badge is number =>
+	Number.isInteger(badge);
+
+export const selectGlobalBadgeCount = createSelector(selectGlobalBadge, (badge): number =>
+	(isBadgeCount(badge) ? badge : 0));
 
 export const selectFocusedWebContents = createSelector(selectFocusedWebContentsId, (focusedWebContentsId) =>
 	(focusedWebContentsId > -1 ? webContents.fromId(focusedWebContentsId) : null));

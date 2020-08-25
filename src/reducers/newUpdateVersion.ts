@@ -1,18 +1,20 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
 import {
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
+	NewUpdateVersionActionTypes,
 } from '../actions';
 
-export const newUpdateVersion = (state = null, { type, payload }: AnyAction): string | null => {
-	switch (type) {
+export const newUpdateVersion: Reducer<string | null, NewUpdateVersionActionTypes> = (state = null, action) => {
+	switch (action.type) {
 		case UPDATES_NEW_VERSION_AVAILABLE:
-			return payload;
+			return action.payload;
 
 		case UPDATES_NEW_VERSION_NOT_AVAILABLE:
 			return null;
-	}
 
-	return state;
+		default:
+			return state;
+	}
 };

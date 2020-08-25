@@ -1,5 +1,3 @@
-import { AnyAction } from 'redux';
-
 import {
 	ADD_SERVER_VIEW_SERVER_ADDED,
 	MENU_BAR_ADD_NEW_SERVER_CLICKED,
@@ -10,12 +8,15 @@ import {
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
 	WEBVIEW_FOCUS_REQUESTED,
 	PERSISTABLE_VALUES_MERGED,
+	CurrentServerUrlActionTypes,
 } from '../actions';
 
-export const currentServerUrl = (state = null, { type, payload }: AnyAction): string | null => {
-	switch (type) {
+type CurrentServerUrlState = string | null;
+
+export const currentServerUrl = (state: CurrentServerUrlState = null, action: CurrentServerUrlActionTypes): CurrentServerUrlState => {
+	switch (action.type) {
 		case ADD_SERVER_VIEW_SERVER_ADDED: {
-			const url = payload;
+			const url = action.payload;
 			return url;
 		}
 
@@ -23,18 +24,18 @@ export const currentServerUrl = (state = null, { type, payload }: AnyAction): st
 			return null;
 
 		case MENU_BAR_SELECT_SERVER_CLICKED: {
-			const url = payload;
+			const url = action.payload;
 			return url;
 		}
 
 		case TOUCH_BAR_SELECT_SERVER_TOUCHED:
-			return payload;
+			return action.payload;
 
 		case SIDE_BAR_SERVER_SELECTED:
-			return payload;
+			return action.payload;
 
 		case SIDE_BAR_REMOVE_SERVER_CLICKED: {
-			if (state === payload) {
+			if (state === action.payload) {
 				return null;
 			}
 			return state;
@@ -44,12 +45,12 @@ export const currentServerUrl = (state = null, { type, payload }: AnyAction): st
 			return null;
 
 		case WEBVIEW_FOCUS_REQUESTED: {
-			const { url } = payload;
+			const { url } = action.payload;
 			return url;
 		}
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { currentServerUrl = state } = payload;
+			const { currentServerUrl = state } = action.payload;
 			return currentServerUrl;
 		}
 	}

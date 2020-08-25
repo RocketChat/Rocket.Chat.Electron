@@ -1,12 +1,16 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
-import { ROOT_WINDOW_WEBCONTENTS_FOCUSED } from '../actions';
+import {
+	ROOT_WINDOW_WEBCONTENTS_FOCUSED,
+	FocusedWebContentsIdActionTypes,
+} from '../actions';
 
-export const focusedWebContentsId = (state = -1, { type, payload }: AnyAction): number => {
-	switch (type) {
+export const focusedWebContentsId: Reducer<number, FocusedWebContentsIdActionTypes> = (state = -1, action) => {
+	switch (action.type) {
 		case ROOT_WINDOW_WEBCONTENTS_FOCUSED:
-			return payload ?? null;
-	}
+			return action.payload ?? -1;
 
-	return state;
+		default:
+			return state;
+	}
 };

@@ -4,3 +4,6 @@ export type Dictionary = {
 	aff?: string;
 	dic?: string;
 };
+
+export const compareDictionaries = (a: Dictionary, b: Dictionary): number =>
+	a.name.localeCompare(b.name);

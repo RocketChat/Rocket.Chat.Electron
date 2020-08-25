@@ -1,10 +1,10 @@
-import { AnyAction } from 'redux';
 import { takeEvery, call, Effect } from 'redux-saga/effects';
 
 import {
 	WEBVIEW_MESSAGE_BOX_FOCUSED,
 	WEBVIEW_MESSAGE_BOX_BLURRED,
 	TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
+	TouchBarFormatButtonTouchedAction,
 } from '../../actions';
 import { dispatch } from '../../channels';
 
@@ -42,7 +42,7 @@ export function *listenToMessageBoxEvents(): Generator<Effect> {
 		document.addEventListener('blur', handleBlurEvent, true);
 	});
 
-	yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *(action: AnyAction) {
+	yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *(action: TouchBarFormatButtonTouchedAction) {
 		if (!focusedMessageBoxInput) {
 			return;
 		}

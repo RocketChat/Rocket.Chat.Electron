@@ -3,7 +3,7 @@ import path from 'path';
 
 import { app, BrowserWindow } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import { Store, AnyAction } from 'redux';
+import { Store } from 'redux';
 import { takeEvery, call, put, Effect } from 'redux-saga/effects';
 
 import {
@@ -16,6 +16,7 @@ import {
 	UPDATES_CHECK_FOR_UPDATES_REQUESTED,
 	UPDATE_SKIPPED,
 	UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
+	UpdateDialogSkipUpdateClickedAction,
 } from '../actions';
 import {
 	selectSkippedUpdateVersion,
@@ -198,7 +199,7 @@ export function *takeUpdateActions(rootWindow: BrowserWindow): Generator<Effect>
 		}
 	});
 
-	yield takeEvery(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, function *(action: AnyAction) {
+	yield takeEvery(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, function *(action: UpdateDialogSkipUpdateClickedAction) {
 		const { payload: newVersion } = action;
 		yield call(() => warnAboutUpdateSkipped(rootWindow));
 		yield put({ type: UPDATE_SKIPPED, payload: newVersion });

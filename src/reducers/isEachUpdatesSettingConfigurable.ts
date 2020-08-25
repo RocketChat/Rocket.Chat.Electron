@@ -1,18 +1,24 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
-import { UPDATES_READY, PERSISTABLE_VALUES_MERGED } from '../actions';
+import {
+	UPDATES_READY,
+	PERSISTABLE_VALUES_MERGED,
+	IsEachUpdatesSettingConfigurableActionTypes,
+} from '../actions';
 
-export const isEachUpdatesSettingConfigurable = (state = true, { type, payload }: AnyAction): boolean => {
-	switch (type) {
+export const isEachUpdatesSettingConfigurable: Reducer<boolean, IsEachUpdatesSettingConfigurableActionTypes> = (state = true, action) => {
+	switch (action.type) {
 		case UPDATES_READY: {
-			const { isEachUpdatesSettingConfigurable } = payload;
+			const { isEachUpdatesSettingConfigurable } = action.payload;
 			return isEachUpdatesSettingConfigurable;
 		}
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { isEachUpdatesSettingConfigurable = state } = payload;
+			const { isEachUpdatesSettingConfigurable = state } = action.payload;
 			return isEachUpdatesSettingConfigurable;
 		}
+
+		default:
+			return state;
 	}
-	return state;
 };

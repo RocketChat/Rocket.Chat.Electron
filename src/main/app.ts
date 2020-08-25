@@ -1,10 +1,10 @@
 import { app, BrowserWindow } from 'electron';
-import { Store, AnyAction } from 'redux';
+import { Store } from 'redux';
 import { Effect, takeEvery } from 'redux-saga/effects';
 import rimraf from 'rimraf';
 
 import {
-	APP_ERROR_THROWN,
+	APP_ERROR_THROWN, AppErrorThrown,
 } from '../actions';
 
 export const relaunchApp = (...args: string[]): void => {
@@ -67,7 +67,7 @@ export const setupApp = (_reduxStore: Store, rootWindow: BrowserWindow): void =>
 };
 
 export function *takeAppActions(): Generator<Effect, void> {
-	yield takeEvery(APP_ERROR_THROWN, function *(action: AnyAction) {
+	yield takeEvery(APP_ERROR_THROWN, function *(action: AppErrorThrown) {
 		const { payload: error } = action;
 		console.error(error.stack);
 	});

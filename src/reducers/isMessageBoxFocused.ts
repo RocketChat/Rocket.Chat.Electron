@@ -1,14 +1,15 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
 import {
 	WEBVIEW_MESSAGE_BOX_FOCUSED,
 	WEBVIEW_MESSAGE_BOX_BLURRED,
 	WEBVIEW_DID_START_LOADING,
 	WEBVIEW_DID_FAIL_LOAD,
+	IsMessageBoxFocusedActionTypes,
 } from '../actions';
 
-export const isMessageBoxFocused = (state = false, { type }: AnyAction): boolean => {
-	switch (type) {
+export const isMessageBoxFocused: Reducer<boolean, IsMessageBoxFocusedActionTypes> = (state = false, action) => {
+	switch (action.type) {
 		case WEBVIEW_MESSAGE_BOX_FOCUSED:
 			return true;
 
@@ -16,7 +17,8 @@ export const isMessageBoxFocused = (state = false, { type }: AnyAction): boolean
 		case WEBVIEW_MESSAGE_BOX_BLURRED:
 		case WEBVIEW_DID_FAIL_LOAD:
 			return false;
-	}
 
-	return state;
+		default:
+			return state;
+	}
 };

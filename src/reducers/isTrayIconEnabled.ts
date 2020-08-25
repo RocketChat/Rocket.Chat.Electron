@@ -1,21 +1,23 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
 import {
 	MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
 	PERSISTABLE_VALUES_MERGED,
+	IsTrayIconEnabledActionTypes,
 } from '../actions';
 
-export const isTrayIconEnabled = (state = process.platform !== 'linux', { type, payload }: AnyAction): boolean => {
-	switch (type) {
+export const isTrayIconEnabled: Reducer<boolean, IsTrayIconEnabledActionTypes> = (state = process.platform !== 'linux', action) => {
+	switch (action.type) {
 		case MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED: {
-			return payload;
+			return action.payload;
 		}
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { isTrayIconEnabled = state } = payload;
+			const { isTrayIconEnabled = state } = action.payload;
 			return isTrayIconEnabled;
 		}
-	}
 
-	return state;
+		default:
+			return state;
+	}
 };

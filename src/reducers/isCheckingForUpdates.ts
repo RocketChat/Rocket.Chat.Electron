@@ -1,14 +1,15 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
 import {
 	UPDATES_CHECKING_FOR_UPDATE,
 	UPDATES_ERROR_THROWN,
 	UPDATES_NEW_VERSION_AVAILABLE,
 	UPDATES_NEW_VERSION_NOT_AVAILABLE,
+	IsCheckingForUpdatesActionTypes,
 } from '../actions';
 
-export const isCheckingForUpdates = (state = false, { type }: AnyAction): boolean => {
-	switch (type) {
+export const isCheckingForUpdates: Reducer<boolean, IsCheckingForUpdatesActionTypes> = (state = false, action) => {
+	switch (action.type) {
 		case UPDATES_CHECKING_FOR_UPDATE:
 			return true;
 
@@ -20,7 +21,8 @@ export const isCheckingForUpdates = (state = false, { type }: AnyAction): boolea
 
 		case UPDATES_NEW_VERSION_AVAILABLE:
 			return false;
-	}
 
-	return state;
+		default:
+			return state;
+	}
 };

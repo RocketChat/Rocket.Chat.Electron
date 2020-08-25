@@ -1,18 +1,17 @@
-import { AnyAction } from 'redux';
+import { Reducer } from 'redux';
 
 import {
 	WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
 	SPELL_CHECKING_DICTIONARIES_UPDATED,
 	PERSISTABLE_VALUES_MERGED,
+	SpellCheckingDictionariesActionTypes,
 } from '../actions';
-import { Dictionary } from '../structs/spellChecking';
+import { Dictionary, compareDictionaries } from '../structs/spellChecking';
 
-const compare = ({ name: a }: Dictionary, { name: b }: Dictionary): number => a.localeCompare(b);
-
-export const spellCheckingDictionaries = (state = [], { type, payload }: AnyAction): Dictionary[] => {
-	switch (type) {
+export const spellCheckingDictionaries: Reducer<Dictionary[], SpellCheckingDictionariesActionTypes> = (state = [], action) => {
+	switch (action.type) {
 		case WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED: {
-			const { name, enabled } = payload;
+			const { name, enabled } = action.payload;
 			return state.map((dictionary) => {
 				if (name === dictionary.name) {
 					return {
@@ -26,11 +25,11 @@ export const spellCheckingDictionaries = (state = [], { type, payload }: AnyActi
 		}
 
 		case SPELL_CHECKING_DICTIONARIES_UPDATED:
-			return payload.sort(compare);
+			return action.payload.sort(compareDictionaries);
 
 		case PERSISTABLE_VALUES_MERGED: {
-			const { spellCheckingDictionaries = state } = payload;
-			return spellCheckingDictionaries.sort(compare);
+			const { spellCheckingDictionaries = state } = action.payload;
+			return spellCheckingDictionaries.sort(compareDictionaries);
 		}
 
 		default:

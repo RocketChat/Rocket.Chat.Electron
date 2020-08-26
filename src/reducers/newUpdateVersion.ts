@@ -3,13 +3,12 @@ import { Reducer } from 'redux';
 import {
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
-  UpdatesNewVersionAvailableAction,
-  UpdatesNewVersionNotAvailableAction,
+  ActionOf,
 } from '../actions';
 
 type NewUpdateVersionAction = (
-  UpdatesNewVersionAvailableAction
-  | UpdatesNewVersionNotAvailableAction
+  ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
+  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>
 )
 
 export const newUpdateVersion: Reducer<string | null, NewUpdateVersionAction> = (state = null, action) => {

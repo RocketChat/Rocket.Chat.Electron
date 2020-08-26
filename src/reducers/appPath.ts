@@ -1,10 +1,11 @@
 import { Reducer } from 'redux';
 
 import {
-  APP_PATH_SET, AppPathSetAction,
+  APP_PATH_SET,
+  ActionOf,
 } from '../actions';
 
-type AppPathAction = AppPathSetAction;
+type AppPathAction = ActionOf<typeof APP_PATH_SET>;
 
 export const appPath: Reducer<string | null, AppPathAction> = (state = null, action) => {
   switch (action.type) {

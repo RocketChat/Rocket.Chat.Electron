@@ -8,27 +8,19 @@ import {
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   WEBVIEW_FOCUS_REQUESTED,
   PERSISTABLE_VALUES_MERGED,
-  AddServerViewServerAddedAction,
-  MenuBarAddNewServerClickedAction,
-  MenuBarSelectServerClickedAction,
-  SideBarAddNewServerClickedAction,
-  SideBarRemoveServerClickedAction,
-  SideBarServerSelectedAction,
-  TouchBarSelectServerTouchedAction,
-  WebviewFocusRequestedAction,
-  PersistableValuesMergedAction,
+  ActionOf,
 } from '../actions';
 
 type CurrentServerUrlAction = (
-  AddServerViewServerAddedAction
-  | MenuBarAddNewServerClickedAction
-  | MenuBarSelectServerClickedAction
-  | SideBarAddNewServerClickedAction
-  | SideBarRemoveServerClickedAction
-  | SideBarServerSelectedAction
-  | TouchBarSelectServerTouchedAction
-  | WebviewFocusRequestedAction
-  | PersistableValuesMergedAction
+  ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
+  | ActionOf<typeof MENU_BAR_ADD_NEW_SERVER_CLICKED>
+  | ActionOf<typeof MENU_BAR_SELECT_SERVER_CLICKED>
+  | ActionOf<typeof SIDE_BAR_ADD_NEW_SERVER_CLICKED>
+  | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
+  | ActionOf<typeof SIDE_BAR_SERVER_SELECTED>
+  | ActionOf<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>
+  | ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>
+  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
 );
 
 type CurrentServerUrlState = string | null;

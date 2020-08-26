@@ -3,13 +3,12 @@ import { Reducer } from 'redux';
 import {
   MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
   PERSISTABLE_VALUES_MERGED,
-  MenuBarToggleIsShowWindowOnUnreadChangedEnabledClickedAction,
-  PersistableValuesMergedAction,
+  ActionOf,
 } from '../actions';
 
 type IsShowWindowOnUnreadChangedEnabledAction = (
-  MenuBarToggleIsShowWindowOnUnreadChangedEnabledClickedAction
-  | PersistableValuesMergedAction
+  ActionOf<typeof MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED>
+  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
 );
 
 export const isShowWindowOnUnreadChangedEnabled: Reducer<boolean, IsShowWindowOnUnreadChangedEnabledAction> = (state = false, action) => {

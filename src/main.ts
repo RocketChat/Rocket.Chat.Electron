@@ -9,7 +9,6 @@ import {
 } from './main/data';
 import { setupDeepLinks, processDeepLinksInArgs } from './main/deepLinks';
 import { setUserDataDirectory, setupElectronReloader, installDevTools } from './main/dev';
-import { createElectronStore } from './main/electronStore';
 import { attachErrorHandlers } from './main/errors';
 import { setupI18n } from './main/i18n';
 import { setupNavigation } from './main/navigation';
@@ -35,7 +34,6 @@ const start = async (): Promise<void> => {
   attachErrorHandlers();
   performElectronStartup();
 
-  createElectronStore();
   createMainReduxStore();
 
   await app.whenReady();

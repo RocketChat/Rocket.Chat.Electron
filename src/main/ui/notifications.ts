@@ -10,8 +10,6 @@ import {
   NOTIFICATIONS_NOTIFICATION_REPLIED,
   NOTIFICATIONS_NOTIFICATION_ACTIONED,
   NOTIFICATIONS_NOTIFICATION_DISMISSED,
-  NotificationsNotificationDismissedAction,
-  NotificationsCreateRequestedAction,
 } from '../../actions';
 import { dispatch, listen } from '../../store';
 import { ExtendedNotificationOptions } from '../../structs/notifications';
@@ -153,7 +151,7 @@ const handleCreateEvent = async ({
 };
 
 export const setupNotifications = (): void => {
-  listen(NOTIFICATIONS_CREATE_REQUESTED, async (action: NotificationsCreateRequestedAction) => {
+  listen(NOTIFICATIONS_CREATE_REQUESTED, async (action) => {
     dispatch({
       type: NOTIFICATIONS_CREATE_RESPONDED,
       payload: await handleCreateEvent(action.payload),
@@ -164,7 +162,7 @@ export const setupNotifications = (): void => {
     });
   });
 
-  listen(NOTIFICATIONS_NOTIFICATION_DISMISSED, (action: NotificationsNotificationDismissedAction) => {
+  listen(NOTIFICATIONS_NOTIFICATION_DISMISSED, (action) => {
     notifications.get(action.payload.id)?.close();
   });
 };

@@ -2,7 +2,6 @@ import {
   WEBVIEW_MESSAGE_BOX_FOCUSED,
   WEBVIEW_MESSAGE_BOX_BLURRED,
   TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
-  TouchBarFormatButtonTouchedAction,
 } from '../../actions';
 import { dispatch, listen } from '../../store';
 
@@ -35,7 +34,7 @@ const handleBlurEvent = (event: FocusEvent): void => {
 };
 
 export const listenToMessageBoxEvents = (): void => {
-  listen(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, (action: TouchBarFormatButtonTouchedAction) => {
+  listen(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, (action) => {
     if (!focusedMessageBoxInput) {
       return;
     }

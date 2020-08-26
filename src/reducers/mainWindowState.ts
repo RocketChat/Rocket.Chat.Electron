@@ -3,14 +3,13 @@ import { Reducer } from 'redux';
 import {
   ROOT_WINDOW_STATE_CHANGED,
   PERSISTABLE_VALUES_MERGED,
-  RootWindowStateChangedAction,
-  PersistableValuesMergedAction,
+  ActionOf,
 } from '../actions';
 import { WindowState } from '../structs/ui';
 
 type MainWindowStateAction = (
-  RootWindowStateChangedAction
-  | PersistableValuesMergedAction
+  ActionOf<typeof ROOT_WINDOW_STATE_CHANGED>
+  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
 );
 
 export const mainWindowState: Reducer<WindowState, MainWindowStateAction> = (state = {

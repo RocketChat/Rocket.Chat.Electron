@@ -7,7 +7,6 @@ import i18nextNodeFileSystemBackend from 'i18next-node-fs-backend';
 import {
   I18N_PARAMS_REQUESTED,
   I18N_PARAMS_RESPONDED,
-  I18nParamsRequestedAction,
 } from '../actions';
 import { listen, dispatch } from '../store';
 
@@ -51,7 +50,7 @@ export const setupI18n = async (): Promise<void> => {
       initImmediate: true,
     });
 
-  listen(I18N_PARAMS_REQUESTED, (action: I18nParamsRequestedAction) => {
+  listen(I18N_PARAMS_REQUESTED, (action) => {
     dispatch({
       type: I18N_PARAMS_RESPONDED,
       payload: {

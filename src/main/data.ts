@@ -6,7 +6,7 @@ import { app } from 'electron';
 import { PERSISTABLE_VALUES_MERGED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import { select, dispatch, watch } from '../store';
-import { getElectronStore } from './electronStore';
+import { getPersistedValues, persistValues } from './persistence';
 import { getRootWindow } from './ui/rootWindow';
 
 export const getLocalStorage = (): Promise<Record<string, string>> =>
@@ -19,8 +19,7 @@ export const purgeLocalStorage = async (): Promise<void> => {
 export const mergePersistableValues = async (localStorage: Record<string, string>): Promise<void> => {
   const initialValues = select(selectPersistableValues);
 
-  const electronStore = getElectronStore();
-  const electronStoreValues = Object.fromEntries(Array.from(electronStore));
+  const electronStoreValues = getPersistedValues();
 
   const localStorageValues = Object.fromEntries(
     Object.entries(localStorage)
@@ -106,6 +105,6 @@ export const mergePersistableValues = async (localStorage: Record<string, string
 
 export const watchAndPersistChanges = (): void => {
   watch(selectPersistableValues, (values) => {
-    getElectronStore().set(values);
+    persistValues(values);
   });
 };

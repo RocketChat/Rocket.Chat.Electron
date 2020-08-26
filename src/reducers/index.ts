@@ -53,3 +53,5 @@ const reducersMap = {
 };
 
 export const rootReducer = combineReducers<typeof reducersMap>(reducersMap);
+
+export type RootState = ReturnType<typeof rootReducer>;

@@ -2,12 +2,11 @@ import {
   WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
   WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
   SCREEN_SHARING_DIALOG_DISMISSED,
-  WebviewScreenSharingSourceRequestedAction,
 } from '../actions';
 import { dispatch, listen } from '../store';
 
 export const setupScreenSharing = (): void => {
-  listen(WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, (action: WebviewScreenSharingSourceRequestedAction) => {
+  listen(WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, (action) => {
     const isResponse: Parameters<typeof listen>[0] = (responseAction) =>
       [
         WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,

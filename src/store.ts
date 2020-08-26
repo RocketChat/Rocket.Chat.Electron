@@ -1,23 +1,18 @@
 import { applyMiddleware, createStore, Store, compose, Middleware, Dispatch } from 'redux';
 
-import { SideEffectAction } from './actions';
+import { RootAction, ActionOf } from './actions';
 import { forwardToRenderers, getInitialState, forwardToMain } from './ipc';
-import { rootReducer } from './reducers';
-
-type RootState = ReturnType<typeof rootReducer>;
-type RootAction = Parameters<typeof rootReducer>[1];
-type GenericAction = RootAction | SideEffectAction;
-type RootSelector<T> = (state: RootState) => T;
+import { rootReducer, RootState } from './reducers';
 
 let reduxStore: Store<RootState>;
 
 export const getReduxStore = (): Store<RootState> =>
   reduxStore;
 
-let lastAction: GenericAction;
+let lastAction: RootAction;
 
 const catchLastAction: Middleware = () =>
-  (next: Dispatch<GenericAction>) =>
+  (next: Dispatch<RootAction>) =>
     (action) => {
       lastAction = action;
       return next(action);
@@ -37,9 +32,11 @@ export const createRendererReduxStore = async (): Promise<void> => {
   reduxStore = createStore(rootReducer, initialState, enhancers);
 };
 
-export const dispatch = (action: GenericAction): void => {
+export const dispatch = (action: RootAction): void => {
   reduxStore.dispatch(action);
 };
+
+type RootSelector<T> = (state: RootState) => T;
 
 export const select = <T>(selector: RootSelector<T>): T =>
   selector(reduxStore.getState());
@@ -66,31 +63,34 @@ export const watchAll = (pairs: [RootSelector<unknown>, (curr: unknown, prev: un
   return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
 };
 
-export const listen = <A extends GenericAction = GenericAction>(
-  predicate: GenericAction['type'] | ((action: GenericAction) => boolean),
-  listener: (action: A) => void,
+export const listen = <T extends RootAction['type']>(
+  predicate: T | ((action: ActionOf<T>) => boolean),
+  listener: (action: ActionOf<T>) => void,
 ): (() => void) => {
   const effectivePredicate = typeof predicate === 'function'
-    ? (action: GenericAction): action is A => predicate(action)
-    : (action: GenericAction): action is A => action?.type === predicate;
+    ? (action: ActionOf<T>): action is ActionOf<T> => predicate(action)
+    : (action: ActionOf<T>): action is ActionOf<T> => action?.type === predicate;
 
   return reduxStore.subscribe(() => {
-    if (!effectivePredicate(lastAction)) {
+    if (!effectivePredicate(lastAction as ActionOf<T>)) {
       return;
     }
 
-    listener(lastAction);
+    listener(lastAction as ActionOf<T>);
   });
 };
 
-export const request = <Res extends GenericAction = GenericAction>(requestAction: GenericAction): Promise<Res['payload']> =>
-  new Promise<Res['payload']>((resolve, reject) => {
+export const request = <
+  ReqT extends RootAction['type'],
+  ResT extends RootAction['type'],
+>(requestAction: ActionOf<ReqT>): Promise<ActionOf<ResT>['payload']> =>
+  new Promise<ActionOf<ResT>['payload']>((resolve, reject) => {
     const id = Math.random().toString(36).slice(2);
 
-    const isResponse = (action: GenericAction): action is Res =>
+    const isResponse = (action: ActionOf<ResT>): action is ActionOf<ResT> =>
       action.meta?.response && action.meta?.id === id;
 
-    const unsubscribe = listen(isResponse, (action: Res) => {
+    const unsubscribe = listen(isResponse, (action: ActionOf<ResT>) => {
       unsubscribe();
 
       if (action.error) {

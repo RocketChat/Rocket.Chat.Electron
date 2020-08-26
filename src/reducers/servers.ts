@@ -12,32 +12,22 @@ import {
   PERSISTABLE_VALUES_MERGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
-  AddServerViewServerAddedAction,
-  SideBarRemoveServerClickedAction,
-  SideBarServersSortedAction,
-  WebviewDidNavigateAction,
-  WebviewSidebarStyleChangedAction,
-  WebviewTitleChangedAction,
-  WebviewUnreadChangedAction,
-  WebviewFaviconChangedAction,
-  PersistableValuesMergedAction,
-  WebviewDidStartLoadingAction,
-  WebviewDidFailLoadAction,
+  ActionOf,
 } from '../actions';
 import { Server } from '../structs/servers';
 
 type ServersActionTypes = (
-  AddServerViewServerAddedAction
-  | SideBarRemoveServerClickedAction
-  | SideBarServersSortedAction
-  | WebviewDidNavigateAction
-  | WebviewSidebarStyleChangedAction
-  | WebviewTitleChangedAction
-  | WebviewUnreadChangedAction
-  | WebviewFaviconChangedAction
-  | PersistableValuesMergedAction
-  | WebviewDidStartLoadingAction
-  | WebviewDidFailLoadAction
+  ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
+  | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
+  | ActionOf<typeof SIDE_BAR_SERVERS_SORTED>
+  | ActionOf<typeof WEBVIEW_DID_NAVIGATE>
+  | ActionOf<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED>
+  | ActionOf<typeof WEBVIEW_TITLE_CHANGED>
+  | ActionOf<typeof WEBVIEW_UNREAD_CHANGED>
+  | ActionOf<typeof WEBVIEW_FAVICON_CHANGED>
+  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof WEBVIEW_DID_START_LOADING>
+  | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
 );
 
 

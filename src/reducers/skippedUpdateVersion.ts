@@ -4,15 +4,13 @@ import {
   UPDATES_READY,
   PERSISTABLE_VALUES_MERGED,
   UPDATE_SKIPPED,
-  UpdatesReadyAction,
-  PersistableValuesMergedAction,
-  UpdateSkippedAction,
+  ActionOf,
 } from '../actions';
 
 type SkippedUpdateVersionAction = (
-  UpdatesReadyAction
-  | PersistableValuesMergedAction
-  | UpdateSkippedAction
+  ActionOf<typeof UPDATES_READY>
+  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof UPDATE_SKIPPED>
 );
 
 export const skippedUpdateVersion: Reducer<string | null, SkippedUpdateVersionAction> = (state = null, action) => {

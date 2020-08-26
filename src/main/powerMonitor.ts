@@ -5,7 +5,6 @@ import {
   SYSTEM_LOCKING_SCREEN,
   SYSTEM_IDLE_STATE_REQUESTED,
   SYSTEM_IDLE_STATE_RESPONDED,
-  SystemIdleStateRequestedAction,
 } from '../actions';
 import { dispatch, listen } from '../store';
 
@@ -18,7 +17,7 @@ export const setupPowerMonitor = (): void => {
     dispatch({ type: SYSTEM_LOCKING_SCREEN });
   });
 
-  listen(SYSTEM_IDLE_STATE_REQUESTED, (action: SystemIdleStateRequestedAction) => {
+  listen(SYSTEM_IDLE_STATE_REQUESTED, (action) => {
     dispatch({
       type: SYSTEM_IDLE_STATE_RESPONDED,
       payload: powerMonitor.getSystemIdleState(action.payload),

@@ -1,6 +1,9 @@
 import { webFrame, Provider } from 'electron';
 
-import { SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, SpellCheckingMisspeltWordsRespondedAction } from '../actions';
+import {
+  SPELL_CHECKING_MISSPELT_WORDS_REQUESTED,
+  SPELL_CHECKING_MISSPELT_WORDS_RESPONDED,
+} from '../actions';
 import { selectDictionaryName } from '../selectors';
 import { watch, request } from '../store';
 
@@ -10,7 +13,10 @@ const noopSpellCheckProvider: Provider = {
 
 const remoteSpellCheckProvider: Provider = {
   spellCheck: async (words, callback) => {
-    const misspeltWords: string[] = await request<SpellCheckingMisspeltWordsRespondedAction>({
+    const misspeltWords: string[] = await request<
+      typeof SPELL_CHECKING_MISSPELT_WORDS_REQUESTED,
+      typeof SPELL_CHECKING_MISSPELT_WORDS_RESPONDED
+    >({
       type: SPELL_CHECKING_MISSPELT_WORDS_REQUESTED,
       payload: words,
     });

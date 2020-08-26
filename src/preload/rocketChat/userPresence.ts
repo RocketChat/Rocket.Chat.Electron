@@ -4,7 +4,7 @@ import {
   SYSTEM_SUSPENDING,
   SYSTEM_LOCKING_SCREEN,
   SYSTEM_IDLE_STATE_REQUESTED,
-  SystemIdleStateRespondedAction,
+  SYSTEM_IDLE_STATE_RESPONDED,
 } from '../../actions';
 import { listen, request } from '../../store';
 
@@ -41,7 +41,10 @@ const setupUserPresenceListening = (): void => {
       return;
     }
 
-    const state: SystemIdleState = await request<SystemIdleStateRespondedAction>({
+    const state: SystemIdleState = await request<
+      typeof SYSTEM_IDLE_STATE_REQUESTED,
+      typeof SYSTEM_IDLE_STATE_RESPONDED
+    >({
       type: SYSTEM_IDLE_STATE_REQUESTED,
       payload: idleThreshold,
     });

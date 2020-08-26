@@ -5,7 +5,6 @@ import {
   APP_ERROR_THROWN,
   APP_PATH_SET,
   APP_VERSION_SET,
-  AppErrorThrownAction,
 } from '../actions';
 import { listen, dispatch } from '../store';
 import { getRootWindow } from './ui/rootWindow';
@@ -73,7 +72,7 @@ export const setupApp = (): void => {
     app.quit();
   });
 
-  listen(APP_ERROR_THROWN, (action: AppErrorThrownAction) => {
+  listen(APP_ERROR_THROWN, (action) => {
     console.error(action.payload);
   });
 

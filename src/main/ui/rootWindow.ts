@@ -34,8 +34,6 @@ import {
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   WEBVIEW_FOCUS_REQUESTED,
-  SideBarContextMenuTriggeredAction,
-  LoadingErrorViewReloadServerClickedAction,
 } from '../../actions';
 import {
   EVENT_WEB_CONTENTS_FOCUS_CHANGED,
@@ -578,7 +576,7 @@ export const setupRootWindow = (): void => {
     });
   });
 
-  listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action: SideBarContextMenuTriggeredAction) => {
+  listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {
     const { payload: serverUrl } = action;
 
     const menuTemplate: MenuItemConstructorOptions[] = [
@@ -610,7 +608,7 @@ export const setupRootWindow = (): void => {
     });
   });
 
-  listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action: LoadingErrorViewReloadServerClickedAction) => {
+  listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     getWebContentsByServerUrl(action.payload.url).loadURL(action.payload.url);
   });
 

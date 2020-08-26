@@ -9,7 +9,6 @@ import {
   PERSISTABLE_VALUES_MERGED,
   SPELL_CHECKING_MISSPELT_WORDS_REQUESTED,
   SPELL_CHECKING_MISSPELT_WORDS_RESPONDED,
-  SpellCheckingMisspeltWordsRequestedAction,
 } from '../actions';
 import {
   selectSpellCheckingDictionaries,
@@ -272,7 +271,7 @@ export const setupSpellChecking = async (localStorage: Record<string, string>): 
     spellCheckingDictionaries.map((dictionary) => toggleDictionary(dictionary));
   });
 
-  listen(SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, async (action: SpellCheckingMisspeltWordsRequestedAction) => {
+  listen(SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, async (action) => {
     const misspeltWords = await getMisspelledWords(action.payload);
     dispatch({
       type: SPELL_CHECKING_MISSPELT_WORDS_RESPONDED,

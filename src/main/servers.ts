@@ -12,8 +12,6 @@ import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-  ServerValidationRequestedAction,
-  CertificatesClientCertificateRequestedAction,
 } from '../actions';
 import { selectServers, selectCurrentServerUrl, selectPersistableValues } from '../selectors';
 import { select, dispatch, listen } from '../store';
@@ -110,7 +108,7 @@ const loadUserServers = async (): Promise<Record<string, string>> => {
 };
 
 export const setupServers = async (localStorage: Record<string, string>): Promise<void> => {
-  listen(SERVER_VALIDATION_REQUESTED, async (action: ServerValidationRequestedAction) => {
+  listen(SERVER_VALIDATION_REQUESTED, async (action) => {
     try {
       dispatch({
         type: SERVER_VALIDATION_RESPONDED,
@@ -133,7 +131,7 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
     }
   });
 
-  listen(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, (action: CertificatesClientCertificateRequestedAction) => {
+  listen(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, (action) => {
     const isResponse: Parameters<typeof listen>[0] = (responseAction) =>
       [
         SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,

@@ -17,7 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   SERVER_VALIDATION_REQUESTED,
   ADD_SERVER_VIEW_SERVER_ADDED,
-  ServerValidationRespondedAction,
+  SERVER_VALIDATION_RESPONDED,
 } from '../../actions';
 import { selectCurrentServerUrl } from '../../selectors';
 import { request } from '../../store';
@@ -48,7 +48,10 @@ export const AddServerView: FC = () => {
       return false;
     }
 
-    const validationResult = await request<ServerValidationRespondedAction>({
+    const validationResult = await request<
+      typeof SERVER_VALIDATION_REQUESTED,
+      typeof SERVER_VALIDATION_RESPONDED
+    >({
       type: SERVER_VALIDATION_REQUESTED,
       payload: {
         serverUrl,

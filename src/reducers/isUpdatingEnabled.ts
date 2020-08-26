@@ -3,13 +3,12 @@ import { Reducer } from 'redux';
 import {
   UPDATES_READY,
   PERSISTABLE_VALUES_MERGED,
-  UpdatesReadyAction,
-  PersistableValuesMergedAction,
+  ActionOf,
 } from '../actions';
 
 type IsUpdatingEnabledAction = (
-  UpdatesReadyAction
-  | PersistableValuesMergedAction
+  ActionOf<typeof UPDATES_READY>
+  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
 );
 
 export const isUpdatingEnabled: Reducer<boolean, IsUpdatingEnabledAction> = (state = true, action) => {

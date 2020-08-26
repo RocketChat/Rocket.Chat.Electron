@@ -1,19 +1,17 @@
 import { Reducer } from 'redux';
 
 import {
-  WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-  SPELL_CHECKING_DICTIONARIES_UPDATED,
   PERSISTABLE_VALUES_MERGED,
-  PersistableValuesMergedAction,
-  SpellCheckingDictionariesUpdatedAction,
-  WebviewSpellCheckingDictionaryToggledAction,
+  SPELL_CHECKING_DICTIONARIES_UPDATED,
+  WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
+  ActionOf,
 } from '../actions';
 import { Dictionary, compareDictionaries } from '../structs/spellChecking';
 
 type SpellCheckingDictionariesAction = (
-  PersistableValuesMergedAction
-  | SpellCheckingDictionariesUpdatedAction
-  | WebviewSpellCheckingDictionaryToggledAction
+  ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof SPELL_CHECKING_DICTIONARIES_UPDATED>
+  | ActionOf<typeof WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED>
 );
 
 export const spellCheckingDictionaries: Reducer<Dictionary[], SpellCheckingDictionariesAction> = (state = [], action) => {

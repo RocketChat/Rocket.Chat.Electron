@@ -3,13 +3,12 @@ import { Reducer } from 'redux';
 import {
   UPDATES_READY,
   PERSISTABLE_VALUES_MERGED,
-  UpdatesReadyAction,
-  PersistableValuesMergedAction,
+  ActionOf,
 } from '../actions';
 
 type IsEachUpdatesSettingConfigurableAction = (
-  UpdatesReadyAction
-  | PersistableValuesMergedAction
+  ActionOf<typeof UPDATES_READY>
+  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
 );
 
 export const isEachUpdatesSettingConfigurable: Reducer<boolean, IsEachUpdatesSettingConfigurableAction> = (state = true, action) => {

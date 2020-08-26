@@ -2,10 +2,10 @@ import { Reducer } from 'redux';
 
 import {
   ROOT_WINDOW_WEBCONTENTS_FOCUSED,
-  RootWindowWebContentsFocusedAction,
+  ActionOf,
 } from '../actions';
 
-type FocusedWebContentsIdAction = RootWindowWebContentsFocusedAction;
+type FocusedWebContentsIdAction = ActionOf<typeof ROOT_WINDOW_WEBCONTENTS_FOCUSED>;
 
 export const focusedWebContentsId: Reducer<number, FocusedWebContentsIdAction> = (state = -1, action) => {
   switch (action.type) {

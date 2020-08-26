@@ -5,17 +5,14 @@ import {
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
-  UpdatesCheckingForUpdateAction,
-  UpdatesErrorThrownAction,
-  UpdatesNewVersionAvailableAction,
-  UpdatesNewVersionNotAvailableAction,
+  ActionOf,
 } from '../actions';
 
 type UpdateErrorAction = (
-  UpdatesCheckingForUpdateAction
-  | UpdatesErrorThrownAction
-  | UpdatesNewVersionAvailableAction
-  | UpdatesNewVersionNotAvailableAction
+  ActionOf<typeof UPDATES_CHECKING_FOR_UPDATE>
+  | ActionOf<typeof UPDATES_ERROR_THROWN>
+  | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
+  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>
 );
 
 export const updateError: Reducer<Error | null, UpdateErrorAction> = (state = null, action) => {

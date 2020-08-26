@@ -4,15 +4,13 @@ import {
   ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
   UPDATES_READY,
   PERSISTABLE_VALUES_MERGED,
-  AboutDialogToggleUpdateOnStartAction,
-  UpdatesReadyAction,
-  PersistableValuesMergedAction,
+  ActionOf,
 } from '../actions';
 
 type DoCheckForUpdatesOnStartupAction = (
-  AboutDialogToggleUpdateOnStartAction
-  | UpdatesReadyAction
-  | PersistableValuesMergedAction
+  ActionOf<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>
+  | ActionOf<typeof UPDATES_READY>
+  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
 );
 
 export const doCheckForUpdatesOnStartup: Reducer<boolean, DoCheckForUpdatesOnStartupAction> = (state = true, action) => {

@@ -14,7 +14,6 @@ import {
   UPDATES_CHECK_FOR_UPDATES_REQUESTED,
   UPDATE_SKIPPED,
   UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
-  UpdateDialogSkipUpdateClickedAction,
 } from '../actions';
 import {
   selectSkippedUpdateVersion,
@@ -199,7 +198,7 @@ export const setupUpdates = async (): Promise<void> => {
     }
   });
 
-  listen(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, async (action: UpdateDialogSkipUpdateClickedAction) => {
+  listen(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, async (action) => {
     await warnAboutUpdateSkipped();
     dispatch({
       type: UPDATE_SKIPPED,

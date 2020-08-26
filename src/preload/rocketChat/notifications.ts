@@ -1,18 +1,13 @@
 import {
-  WEBVIEW_FOCUS_REQUESTED,
   NOTIFICATIONS_CREATE_REQUESTED,
+  NOTIFICATIONS_CREATE_RESPONDED,
   NOTIFICATIONS_NOTIFICATION_ACTIONED,
   NOTIFICATIONS_NOTIFICATION_CLICKED,
   NOTIFICATIONS_NOTIFICATION_CLOSED,
   NOTIFICATIONS_NOTIFICATION_DISMISSED,
   NOTIFICATIONS_NOTIFICATION_REPLIED,
   NOTIFICATIONS_NOTIFICATION_SHOWN,
-  NotificationsNotificationShownAction,
-  NotificationsNotificationClosedAction,
-  NotificationsNotificationClickedAction,
-  NotificationsNotificationRepliedAction,
-  NotificationsNotificationActionedAction,
-  NotificationsCreateRespondedAction,
+  WEBVIEW_FOCUS_REQUESTED,
 } from '../../actions';
 import { dispatch, listen, request } from '../../store';
 import { getServerUrl } from './getServerUrl';
@@ -66,7 +61,10 @@ class CustomNotification extends EventTarget implements Notification {
       });
     }
 
-    this._destroy = request<NotificationsCreateRespondedAction>({
+    this._destroy = request<
+      typeof NOTIFICATIONS_CREATE_REQUESTED,
+      typeof NOTIFICATIONS_CREATE_RESPONDED
+    >({
       type: NOTIFICATIONS_CREATE_REQUESTED,
       payload: {
         title,
@@ -138,7 +136,7 @@ class CustomNotification extends EventTarget implements Notification {
 }
 
 export const listenToNotificationsRequests = (): void => {
-  listen(NOTIFICATIONS_NOTIFICATION_SHOWN, (action: NotificationsNotificationShownAction) => {
+  listen(NOTIFICATIONS_NOTIFICATION_SHOWN, (action) => {
     const { payload: { id } } = action;
 
     if (!notifications.has(id)) {
@@ -149,7 +147,7 @@ export const listenToNotificationsRequests = (): void => {
     notifications.get(id).dispatchEvent(showEvent);
   });
 
-  listen(NOTIFICATIONS_NOTIFICATION_CLOSED, (action: NotificationsNotificationClosedAction) => {
+  listen(NOTIFICATIONS_NOTIFICATION_CLOSED, (action) => {
     const { payload: { id } } = action;
 
     if (!notifications.has(id)) {
@@ -161,7 +159,7 @@ export const listenToNotificationsRequests = (): void => {
     notifications.delete(id);
   });
 
-  listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action: NotificationsNotificationClickedAction) => {
+  listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action) => {
     const { payload: { id } } = action;
 
     if (!notifications.has(id)) {
@@ -179,7 +177,7 @@ export const listenToNotificationsRequests = (): void => {
     notifications.get(id).dispatchEvent(clickEvent);
   });
 
-  listen(NOTIFICATIONS_NOTIFICATION_REPLIED, (action: NotificationsNotificationRepliedAction) => {
+  listen(NOTIFICATIONS_NOTIFICATION_REPLIED, (action) => {
     const { payload: { id, reply } } = action;
 
     if (!notifications.has(id)) {
@@ -190,7 +188,7 @@ export const listenToNotificationsRequests = (): void => {
     notifications.get(id).dispatchEvent(replyEvent);
   });
 
-  listen(NOTIFICATIONS_NOTIFICATION_ACTIONED, (action: NotificationsNotificationActionedAction) => {
+  listen(NOTIFICATIONS_NOTIFICATION_ACTIONED, (action) => {
     const { payload: { id, index } } = action;
 
     if (!notifications.has(id)) {

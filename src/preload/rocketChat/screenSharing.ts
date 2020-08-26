@@ -1,12 +1,15 @@
 import {
   WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
-  WebviewScreenSharingSourceRespondedAction,
+  WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
 } from '../../actions';
 import { request } from '../../store';
 
 const handleGetSourceIdEvent = async (): Promise<void> => {
   try {
-    const sourceId = await request<WebviewScreenSharingSourceRespondedAction>({
+    const sourceId = await request<
+      typeof WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
+      typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED
+    >({
       type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
     });
     window.top.postMessage({ sourceId }, '*');

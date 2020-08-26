@@ -9,8 +9,8 @@ import {
   CERTIFICATES_UPDATED,
   PERSISTABLE_VALUES_MERGED,
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
-  SelectClientCertificateDialogCertificateSelectedAction,
-  SelectClientCertificateDialogDismissedAction,
+  SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
+  SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../actions';
 import { selectServers, selectTrustedCertificates, selectPersistableValues } from '../selectors';
 import { request, select, dispatch } from '../store';
@@ -89,7 +89,10 @@ export const setupNavigation = async (): Promise<void> => {
   app.addListener('select-client-certificate', async (event, _webContents, _url, certificateList, callback) => {
     event.preventDefault();
 
-    const fingerprint = await request<SelectClientCertificateDialogCertificateSelectedAction | SelectClientCertificateDialogDismissedAction>({
+    const fingerprint = await request<
+      typeof CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
+      typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED | typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED
+    >({
       type: CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
       payload: JSON.parse(JSON.stringify(certificateList)),
     });

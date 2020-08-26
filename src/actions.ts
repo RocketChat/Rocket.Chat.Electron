@@ -18,6 +18,8 @@ export const CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED = 'certificates/client-ce
 export const CERTIFICATES_UPDATED = 'certificates/updated';
 export const DEEP_LINKS_SERVER_ADDED = 'deep-links/server-added';
 export const DEEP_LINKS_SERVER_FOCUSED = 'deep-links/server-focused';
+export const I18N_PARAMS_REQUESTED = 'i18n/params-requested';
+export const I18N_PARAMS_RESPONDED = 'i18n/params-responded';
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED = 'loading-error-view/reload-server-clicked';
 export const MENU_BAR_ABOUT_CLICKED = 'menu-bar/about-clicked';
 export const MENU_BAR_ADD_NEW_SERVER_CLICKED = 'menu-bar/add-new-server-clicked';
@@ -26,6 +28,14 @@ export const MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED = 'menu-bar/toggle-is-m
 export const MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED = 'menu-bar/toggle-is-show-window-on-unread-changed-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED = 'menu-bar/toggle-is-side-bar-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED = 'menu-bar/toggle-is-tray-icon-enabled-clicked';
+export const NOTIFICATIONS_CREATE_REQUESTED = 'notifications/create-requested';
+export const NOTIFICATIONS_CREATE_RESPONDED = 'notifications/create-responded';
+export const NOTIFICATIONS_NOTIFICATION_ACTIONED = 'notifications/notification-actioned';
+export const NOTIFICATIONS_NOTIFICATION_CLICKED = 'notifications/notification-clicked';
+export const NOTIFICATIONS_NOTIFICATION_CLOSED = 'notifications/notification-closed';
+export const NOTIFICATIONS_NOTIFICATION_DISMISSED = 'notifications/notification-dismissed';
+export const NOTIFICATIONS_NOTIFICATION_REPLIED = 'notifications/notification-replied';
+export const NOTIFICATIONS_NOTIFICATION_SHOWN = 'notifications/notification-shown';
 export const PERSISTABLE_VALUES_MERGED = 'persistable-values/merged';
 export const ROOT_WINDOW_EDIT_FLAGS_CHANGED = 'root-window/edit-flags-changed';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';
@@ -75,141 +85,91 @@ export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
 export const WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED = 'webview/spell-checking-dictionary-toggled';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
-export const I18N_PARAMS_REQUESTED = 'i18n/params-requested';
-export const I18N_PARAMS_RESPONDED = 'i18n/params-responded';
-export const NOTIFICATIONS_CREATE_REQUESTED = 'notifications/create-requested';
-export const NOTIFICATIONS_CREATE_RESPONDED = 'notifications/create-responded';
-export const NOTIFICATIONS_NOTIFICATION_DISMISSED = 'notifications/notification-dismissed';
-export const NOTIFICATIONS_NOTIFICATION_SHOWN = 'notifications/notification-shown';
-export const NOTIFICATIONS_NOTIFICATION_CLOSED = 'notifications/notification-closed';
-export const NOTIFICATIONS_NOTIFICATION_CLICKED = 'notifications/notification-clicked';
-export const NOTIFICATIONS_NOTIFICATION_REPLIED = 'notifications/notification-replied';
-export const NOTIFICATIONS_NOTIFICATION_ACTIONED = 'notifications/notification-actioned';
 
-export type PersistableValuesMergedAction = FluxStandardAction<typeof PERSISTABLE_VALUES_MERGED, {
-  currentServerUrl: string | null;
-  doCheckForUpdatesOnStartup: boolean;
-  isEachUpdatesSettingConfigurable: boolean;
-  isMenuBarEnabled: boolean;
-  isShowWindowOnUnreadChangedEnabled: boolean;
-  isSideBarEnabled: boolean;
-  isTrayIconEnabled: boolean;
-  isUpdatingEnabled: boolean;
-  mainWindowState: WindowState;
-  servers: Server[];
-  skippedUpdateVersion: string | null;
-  spellCheckingDictionaries: Dictionary[];
-  trustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
-}>;
+type ActionTypeToPayloadMap = {
+  [ABOUT_DIALOG_DISMISSED]: never;
+  [ABOUT_DIALOG_TOGGLE_UPDATE_ON_START]: boolean;
+  [ADD_SERVER_VIEW_SERVER_ADDED]: Server['url'];
+  [APP_ERROR_THROWN]: Error;
+  [APP_PATH_SET]: string;
+  [APP_VERSION_SET]: string;
+  [CERTIFICATES_CLEARED]: never;
+  [CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED]: Certificate[];
+  [CERTIFICATES_UPDATED]: Record<Server['url'], Certificate['fingerprint']>;
+  [DEEP_LINKS_SERVER_ADDED]: Server['url'];
+  [DEEP_LINKS_SERVER_FOCUSED]: Server['url'];
+  [I18N_PARAMS_REQUESTED]: never;
+  [I18N_PARAMS_REQUESTED]: never;
+  [I18N_PARAMS_RESPONDED]: { lng: string, fallbackLng: string, resources: Resource };
+  [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
+  [MENU_BAR_ABOUT_CLICKED]: never;
+  [MENU_BAR_ADD_NEW_SERVER_CLICKED]: never;
+  [MENU_BAR_SELECT_SERVER_CLICKED]: Server['url'];
+  [MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED]: boolean;
+  [MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED]: boolean;
+  [MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED]: boolean;
+  [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
+  [NOTIFICATIONS_CREATE_REQUESTED]: ExtendedNotificationOptions;
+  [NOTIFICATIONS_CREATE_RESPONDED]: unknown;
+  [NOTIFICATIONS_NOTIFICATION_ACTIONED]: { id: unknown, index: number };
+  [NOTIFICATIONS_NOTIFICATION_CLICKED]: { id: unknown };
+  [NOTIFICATIONS_NOTIFICATION_CLOSED]: { id: unknown };
+  [NOTIFICATIONS_NOTIFICATION_DISMISSED]: { id: unknown };
+  [NOTIFICATIONS_NOTIFICATION_REPLIED]: { id: unknown, reply: string };
+  [NOTIFICATIONS_NOTIFICATION_SHOWN]: { id: unknown };
+  [PERSISTABLE_VALUES_MERGED]: { currentServerUrl: Server['url'] | null; doCheckForUpdatesOnStartup: boolean; isEachUpdatesSettingConfigurable: boolean; isMenuBarEnabled: boolean; isShowWindowOnUnreadChangedEnabled: boolean; isSideBarEnabled: boolean; isTrayIconEnabled: boolean; isUpdatingEnabled: boolean; mainWindowState: WindowState; servers: Server[]; skippedUpdateVersion: string | null; spellCheckingDictionaries: Dictionary[]; trustedCertificates: Record<Server['url'], Certificate['fingerprint']>; };
+  [ROOT_WINDOW_EDIT_FLAGS_CHANGED]: EditFlags;
+  [ROOT_WINDOW_STATE_CHANGED]: WindowState;
+  [ROOT_WINDOW_WEBCONTENTS_FOCUSED]: number;
+  [SCREEN_SHARING_DIALOG_DISMISSED]: never;
+  [SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED]: Certificate['fingerprint'];
+  [SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED]: never;
+  [SERVER_VALIDATION_REQUESTED]: { serverUrl: Server['url'], timeout?: number };
+  [SERVER_VALIDATION_RESPONDED]: ValidationResult;
+  [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: never;
+  [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
+  [SIDE_BAR_REMOVE_SERVER_CLICKED]: Server['url'];
+  [SIDE_BAR_SERVER_SELECTED]: Server['url'];
+  [SIDE_BAR_SERVERS_SORTED]: Server['url'][];
+  [SPELL_CHECKING_DICTIONARIES_UPDATED]: Dictionary[];
+  [SPELL_CHECKING_MISSPELT_WORDS_REQUESTED]: string[];
+  [SPELL_CHECKING_MISSPELT_WORDS_RESPONDED]: string[];
+  [SPELL_CHECKING_READY]: never;
+  [SYSTEM_IDLE_STATE_REQUESTED]: number;
+  [SYSTEM_IDLE_STATE_RESPONDED]: ReturnType<typeof powerMonitor.getSystemIdleState>;
+  [SYSTEM_LOCKING_SCREEN]: never;
+  [SYSTEM_LOCKING_SCREEN]: never;
+  [SYSTEM_SUSPENDING]: never;
+  [SYSTEM_SUSPENDING]: never;
+  [TOUCH_BAR_FORMAT_BUTTON_TOUCHED]: 'bold' | 'italic' | 'strike' | 'inline_code' | 'multi_line';
+  [TOUCH_BAR_SELECT_SERVER_TOUCHED]: string;
+  [UPDATE_DIALOG_DISMISSED]: never;
+  [UPDATE_DIALOG_INSTALL_BUTTON_CLICKED]: never;
+  [UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED]: never;
+  [UPDATE_DIALOG_SKIP_UPDATE_CLICKED]: never;
+  [UPDATE_SKIPPED]: never;
+  [UPDATES_CHECK_FOR_UPDATES_REQUESTED]: never;
+  [UPDATES_CHECKING_FOR_UPDATE]: never;
+  [UPDATES_ERROR_THROWN]: Error;
+  [UPDATES_NEW_VERSION_AVAILABLE]: string;
+  [UPDATES_NEW_VERSION_NOT_AVAILABLE]: never;
+  [UPDATES_READY]: { doCheckForUpdatesOnStartup: boolean; isEachUpdatesSettingConfigurable: boolean; isUpdatingAllowed: boolean; isUpdatingEnabled: boolean; skippedUpdateVersion: string | null; };
+  [WEBVIEW_DID_FAIL_LOAD]: { url: Server['url']; isMainFrame: boolean };
+  [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
+  [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
+  [WEBVIEW_EDIT_FLAGS_CHANGED]: EditFlags;
+  [WEBVIEW_FAVICON_CHANGED]: { url: Server['url']; favicon: Server['favicon'] };
+  [WEBVIEW_FOCUS_REQUESTED]: { url: string };
+  [WEBVIEW_MESSAGE_BOX_BLURRED]: never;
+  [WEBVIEW_MESSAGE_BOX_FOCUSED]: never;
+  [WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED]: never;
+  [WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED]: string;
+  [WEBVIEW_SIDEBAR_STYLE_CHANGED]: { url: Server['url']; style: Server['style'] };
+  [WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED]: Dictionary;
+  [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
+  [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
+};
 
-export type UpdatesReadyAction = FluxStandardAction<typeof UPDATES_READY, {
-  doCheckForUpdatesOnStartup: boolean;
-  isEachUpdatesSettingConfigurable: boolean;
-  isUpdatingAllowed: boolean;
-  isUpdatingEnabled: boolean;
-  skippedUpdateVersion: string | null;
-}>;
+export type ActionOf<T extends keyof ActionTypeToPayloadMap> = FluxStandardAction<T, ActionTypeToPayloadMap[T]>;
 
-export type AboutDialogDismissedAction = FluxStandardAction<typeof ABOUT_DIALOG_DISMISSED, never>;
-export type AboutDialogToggleUpdateOnStartAction = FluxStandardAction<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, boolean>;
-export type AddServerViewServerAddedAction = FluxStandardAction<typeof ADD_SERVER_VIEW_SERVER_ADDED, string>;
-export type AppErrorThrownAction = FluxStandardAction<typeof APP_ERROR_THROWN, Error>;
-export type AppPathSetAction = FluxStandardAction<typeof APP_PATH_SET, string>;
-export type AppVersionSetAction = FluxStandardAction<typeof APP_VERSION_SET, string>;
-export type CertificatesClearedAction = FluxStandardAction<typeof CERTIFICATES_CLEARED, never>;
-export type CertificatesClientCertificateRequestedAction = FluxStandardAction<typeof CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, Certificate[]>;
-export type CertificatesUpdatedAction = FluxStandardAction<typeof CERTIFICATES_UPDATED, Record<Server['url'], Certificate['fingerprint']>>;
-export type LoadingErrorViewReloadServerClickedAction = FluxStandardAction<typeof LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, { url: Server['url'] }>;
-export type MenuBarAboutClickedAction = FluxStandardAction<typeof MENU_BAR_ABOUT_CLICKED, never>;
-export type MenuBarAddNewServerClickedAction = FluxStandardAction<typeof MENU_BAR_ADD_NEW_SERVER_CLICKED, never>;
-export type MenuBarSelectServerClickedAction = FluxStandardAction<typeof MENU_BAR_SELECT_SERVER_CLICKED, string>;
-export type MenuBarToggleIsMenuBarEnabledClickedAction = FluxStandardAction<typeof MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED, boolean>;
-export type MenuBarToggleIsShowWindowOnUnreadChangedEnabledClickedAction = FluxStandardAction<typeof MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED, boolean>;
-export type MenuBarToggleIsSideBarEnabledClickedAction = FluxStandardAction<typeof MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED, boolean>;
-export type MenuBarToggleIsTrayIconEnabledClickedAction = FluxStandardAction<typeof MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED, boolean>;
-export type RootWindowEditFlagsChangedAction = FluxStandardAction<typeof ROOT_WINDOW_EDIT_FLAGS_CHANGED, EditFlags>;
-export type RootWindowStateChangedAction = FluxStandardAction<typeof ROOT_WINDOW_STATE_CHANGED, WindowState>;
-export type RootWindowWebContentsFocusedAction = FluxStandardAction<typeof ROOT_WINDOW_WEBCONTENTS_FOCUSED, number>;
-export type ScreenSharingDialogDismissedAction = FluxStandardAction<typeof SCREEN_SHARING_DIALOG_DISMISSED, never>;
-export type SelectClientCertificateDialogCertificateSelectedAction = FluxStandardAction<typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, Certificate['fingerprint']>;
-export type SelectClientCertificateDialogDismissedAction = FluxStandardAction<typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED, never>;
-export type SideBarAddNewServerClickedAction = FluxStandardAction<typeof SIDE_BAR_ADD_NEW_SERVER_CLICKED, never>;
-export type SideBarRemoveServerClickedAction = FluxStandardAction<typeof SIDE_BAR_REMOVE_SERVER_CLICKED, string>;
-export type SideBarServerSelectedAction = FluxStandardAction<typeof SIDE_BAR_SERVER_SELECTED, string>;
-export type SideBarServersSortedAction = FluxStandardAction<typeof SIDE_BAR_SERVERS_SORTED, string[]>;
-export type SideBarContextMenuTriggeredAction = FluxStandardAction<typeof SIDE_BAR_CONTEXT_MENU_TRIGGERED, Server['url']>;
-export type SpellCheckingDictionariesUpdatedAction = FluxStandardAction<typeof SPELL_CHECKING_DICTIONARIES_UPDATED, Dictionary[]>;
-export type SpellCheckingMisspeltWordsRequestedAction = FluxStandardAction<typeof SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, string[]>;
-export type SpellCheckingMisspeltWordsRespondedAction = FluxStandardAction<typeof SPELL_CHECKING_MISSPELT_WORDS_RESPONDED, string[]>;
-export type TouchBarFormatButtonTouchedAction = FluxStandardAction<typeof TOUCH_BAR_FORMAT_BUTTON_TOUCHED, 'bold' | 'italic' | 'strike' | 'inline_code' | 'multi_line'>;
-export type TouchBarSelectServerTouchedAction = FluxStandardAction<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED, string>;
-export type UpdateDialogDismissedAction = FluxStandardAction<typeof UPDATE_DIALOG_DISMISSED, never>;
-export type UpdateDialogInstallButtonClickedAction = FluxStandardAction<typeof UPDATE_DIALOG_INSTALL_BUTTON_CLICKED, never>;
-export type UpdateDialogRemindUpdateLaterClickedAction = FluxStandardAction<typeof UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED, never>;
-export type UpdateDialogSkipUpdateClickedAction = FluxStandardAction<typeof UPDATE_DIALOG_SKIP_UPDATE_CLICKED, never>;
-export type UpdatesCheckingForUpdateAction = FluxStandardAction<typeof UPDATES_CHECKING_FOR_UPDATE, never>;
-export type UpdatesErrorThrownAction = FluxStandardAction<typeof UPDATES_ERROR_THROWN, Error>;
-export type UpdateSkippedAction = FluxStandardAction<typeof UPDATE_SKIPPED, never>;
-export type UpdatesNewVersionAvailableAction = FluxStandardAction<typeof UPDATES_NEW_VERSION_AVAILABLE, string>;
-export type UpdatesNewVersionNotAvailableAction = FluxStandardAction<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE, never>;
-export type WebviewDidFailLoadAction = FluxStandardAction<typeof WEBVIEW_DID_FAIL_LOAD, { url: Server['url']; isMainFrame: boolean }>;
-export type WebviewDidNavigateAction = FluxStandardAction<typeof WEBVIEW_DID_NAVIGATE, { url: Server['url']; pageUrl: Server['lastPath'] }>;
-export type WebviewDidStartLoadingAction = FluxStandardAction<typeof WEBVIEW_DID_START_LOADING, { url: Server['url'] }>;
-export type WebviewEditFlagsChangedAction = FluxStandardAction<typeof WEBVIEW_EDIT_FLAGS_CHANGED, EditFlags>;
-export type WebviewFaviconChangedAction = FluxStandardAction<typeof WEBVIEW_FAVICON_CHANGED, { url: Server['url']; favicon: Server['favicon'] }>;
-export type WebviewFocusRequestedAction = FluxStandardAction<typeof WEBVIEW_FOCUS_REQUESTED, { url: string }>;
-export type WebviewMessageBoxBlurredAction = FluxStandardAction<typeof WEBVIEW_MESSAGE_BOX_BLURRED, never>;
-export type WebviewMessageBoxFocusedAction = FluxStandardAction<typeof WEBVIEW_MESSAGE_BOX_FOCUSED, never>;
-export type WebviewScreenSharingSourceRequestedAction = FluxStandardAction<typeof WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, never>;
-export type WebviewScreenSharingSourceRespondedAction = FluxStandardAction<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, string>;
-export type WebviewSidebarStyleChangedAction = FluxStandardAction<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED, { url: Server['url']; style: Server['style'] }>;
-export type WebviewSpellCheckingDictionaryToggledAction = FluxStandardAction<typeof WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, Dictionary>;
-export type WebviewTitleChangedAction = FluxStandardAction<typeof WEBVIEW_TITLE_CHANGED, { url: Server['url']; title: Server['title'] }>;
-export type WebviewUnreadChangedAction = FluxStandardAction<typeof WEBVIEW_UNREAD_CHANGED, { url: Server['url']; badge: Server['badge'] }>;
-export type NotificationsCreateRequestedAction = FluxStandardAction<typeof NOTIFICATIONS_CREATE_REQUESTED, ExtendedNotificationOptions>;
-export type NotificationsCreateRespondedAction = FluxStandardAction<typeof NOTIFICATIONS_CREATE_RESPONDED, unknown>;
-export type NotificationsNotificationDismissedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_DISMISSED, { id: unknown }>;
-export type NotificationsNotificationShownAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_SHOWN, { id: unknown }>;
-export type NotificationsNotificationClosedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_CLOSED, { id: unknown }>;
-export type NotificationsNotificationClickedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_CLICKED, { id: unknown }>;
-export type NotificationsNotificationRepliedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_REPLIED, { id: unknown, reply: string }>;
-export type NotificationsNotificationActionedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_ACTIONED, { id: unknown, index: number }>;
-export type SystemLockingScreenAction = FluxStandardAction<typeof SYSTEM_LOCKING_SCREEN, never>;
-export type SystemSuspendingAction = FluxStandardAction<typeof SYSTEM_SUSPENDING, never>;
-export type SystemIdleStateRequestedAction = FluxStandardAction<typeof SYSTEM_IDLE_STATE_REQUESTED, number>;
-export type SystemIdleStateRespondedAction = FluxStandardAction<typeof SYSTEM_IDLE_STATE_RESPONDED, ReturnType<typeof powerMonitor.getSystemIdleState>>;
-export type ServerValidationRequestedAction = FluxStandardAction<typeof SERVER_VALIDATION_REQUESTED, { serverUrl: Server['url'], timeout?: number }>;
-export type ServerValidationRespondedAction = FluxStandardAction<typeof SERVER_VALIDATION_RESPONDED, ValidationResult>;
-export type DeepLinksServerAddedAction = FluxStandardAction<typeof DEEP_LINKS_SERVER_ADDED, Server['url']>;
-export type DeepLinksServerFocusedAction = FluxStandardAction<typeof DEEP_LINKS_SERVER_FOCUSED, Server['url']>;
-export type I18nParamsRequestedAction = FluxStandardAction<typeof I18N_PARAMS_REQUESTED>;
-export type I18nParamsRespondedAction = FluxStandardAction<typeof I18N_PARAMS_RESPONDED, { lng: string, fallbackLng: string, resources: Resource }>;
-export type UpdatesCheckForUpdatesRequestedAction = FluxStandardAction<typeof UPDATES_CHECK_FOR_UPDATES_REQUESTED>;
-
-export type SideEffectAction = (
-  AppErrorThrownAction
-  | NotificationsCreateRequestedAction
-  | NotificationsCreateRespondedAction
-  | NotificationsNotificationDismissedAction
-  | NotificationsNotificationActionedAction
-  | NotificationsNotificationRepliedAction
-  | NotificationsNotificationClickedAction
-  | NotificationsNotificationClosedAction
-  | NotificationsNotificationShownAction
-  | ServerValidationRequestedAction
-  | ServerValidationRespondedAction
-  | SpellCheckingMisspeltWordsRequestedAction
-  | SpellCheckingMisspeltWordsRespondedAction
-  | SystemIdleStateRequestedAction
-  | SystemIdleStateRespondedAction
-  | SystemLockingScreenAction
-  | SystemSuspendingAction
-  | TouchBarFormatButtonTouchedAction
-  | DeepLinksServerAddedAction
-  | DeepLinksServerFocusedAction
-  | I18nParamsRequestedAction
-  | I18nParamsRespondedAction
-  | SideBarContextMenuTriggeredAction
-  | LoadingErrorViewReloadServerClickedAction
-  | UpdatesCheckForUpdatesRequestedAction
-);
+export type RootAction = ActionOf<keyof ActionTypeToPayloadMap>;

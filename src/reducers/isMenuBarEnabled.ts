@@ -3,13 +3,12 @@ import { Reducer } from 'redux';
 import {
   MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
   PERSISTABLE_VALUES_MERGED,
-  MenuBarToggleIsMenuBarEnabledClickedAction,
-  PersistableValuesMergedAction,
+  ActionOf,
 } from '../actions';
 
 type IsMenuBarEnabledAction = (
-  MenuBarToggleIsMenuBarEnabledClickedAction
-  | PersistableValuesMergedAction
+  ActionOf<typeof MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED>
+  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
 );
 
 export const isMenuBarEnabled: Reducer<boolean, IsMenuBarEnabledAction> = (state = true, action) => {

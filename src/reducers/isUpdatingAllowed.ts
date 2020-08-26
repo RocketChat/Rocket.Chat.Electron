@@ -2,10 +2,10 @@ import { Reducer } from 'redux';
 
 import {
   UPDATES_READY,
-  UpdatesReadyAction,
+  ActionOf,
 } from '../actions';
 
-type IsUpdatingAllowedAction = UpdatesReadyAction;
+type IsUpdatingAllowedAction = ActionOf<typeof UPDATES_READY>;
 
 export const isUpdatingAllowed: Reducer<boolean, IsUpdatingAllowedAction> = (state = true, action) => {
   switch (action.type) {

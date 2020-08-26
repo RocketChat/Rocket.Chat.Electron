@@ -5,17 +5,14 @@ import {
   WEBVIEW_MESSAGE_BOX_BLURRED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
-  WebviewMessageBoxFocusedAction,
-  WebviewMessageBoxBlurredAction,
-  WebviewDidStartLoadingAction,
-  WebviewDidFailLoadAction,
+  ActionOf,
 } from '../actions';
 
 type IsMessageBoxFocusedAction = (
-  WebviewMessageBoxFocusedAction
-  | WebviewMessageBoxBlurredAction
-  | WebviewDidStartLoadingAction
-  | WebviewDidFailLoadAction
+  ActionOf<typeof WEBVIEW_MESSAGE_BOX_FOCUSED>
+  | ActionOf<typeof WEBVIEW_DID_START_LOADING>
+  | ActionOf<typeof WEBVIEW_MESSAGE_BOX_BLURRED>
+  | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
 );
 
 

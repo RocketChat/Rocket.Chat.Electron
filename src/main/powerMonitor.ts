@@ -7,7 +7,8 @@ import {
   SYSTEM_IDLE_STATE_REQUESTED,
   SYSTEM_IDLE_STATE_RESPONDED,
 } from '../actions';
-import { dispatch, RequestAction } from '../channels';
+import { RequestAction } from '../channels';
+import { dispatch } from '../store';
 
 export const setupPowerMonitor = (): void => {
   powerMonitor.addListener('suspend', () => {

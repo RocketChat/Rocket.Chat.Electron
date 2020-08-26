@@ -5,11 +5,20 @@ import {
   CERTIFICATES_UPDATED,
   CERTIFICATES_CLEARED,
   PERSISTABLE_VALUES_MERGED,
-  TrustedCertificatesActionTypes,
+  CertificatesUpdatedAction,
+  CertificatesClearedAction,
+  PersistableValuesMergedAction,
 } from '../actions';
 import { Server } from '../structs/servers';
 
-export const trustedCertificates: Reducer<Record<Server['url'], Certificate['fingerprint']>, TrustedCertificatesActionTypes> = (state = {}, action) => {
+type TrustedCertificatesAction = (
+  CertificatesUpdatedAction
+  | CertificatesClearedAction
+  | PersistableValuesMergedAction
+);
+
+
+export const trustedCertificates: Reducer<Record<Server['url'], Certificate['fingerprint']>, TrustedCertificatesAction> = (state = {}, action) => {
   switch (action.type) {
     case CERTIFICATES_UPDATED:
       return action.payload;

@@ -3,10 +3,16 @@ import { Reducer } from 'redux';
 import {
   UPDATES_READY,
   PERSISTABLE_VALUES_MERGED,
-  IsEachUpdatesSettingConfigurableActionTypes,
+  UpdatesReadyAction,
+  PersistableValuesMergedAction,
 } from '../actions';
 
-export const isEachUpdatesSettingConfigurable: Reducer<boolean, IsEachUpdatesSettingConfigurableActionTypes> = (state = true, action) => {
+type IsEachUpdatesSettingConfigurableAction = (
+  UpdatesReadyAction
+  | PersistableValuesMergedAction
+);
+
+export const isEachUpdatesSettingConfigurable: Reducer<boolean, IsEachUpdatesSettingConfigurableAction> = (state = true, action) => {
   switch (action.type) {
     case UPDATES_READY: {
       const { isEachUpdatesSettingConfigurable } = action.payload;

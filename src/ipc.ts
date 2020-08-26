@@ -34,7 +34,7 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
     api.dispatch(action);
   });
 
-  return (next: Dispatch) => (action: FluxStandardAction<unknown>) => {
+  return (next: Dispatch) => (action: FluxStandardAction<string, unknown>) => {
     if (!isFSA(action)) {
       return next(action);
     }
@@ -43,7 +43,7 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
       return next(action);
     }
 
-    const rendererAction: FluxStandardAction<unknown> = {
+    const rendererAction: FluxStandardAction<string, unknown> = {
       ...action,
       meta: {
         ...action.meta,
@@ -67,7 +67,7 @@ export const forwardToMain: Middleware = (api: MiddlewareAPI) => {
     api.dispatch(action);
   });
 
-  return (next: Dispatch) => (action: FluxStandardAction<unknown>) => {
+  return (next: Dispatch) => (action: FluxStandardAction<string, unknown>) => {
     if (!isFSA(action)) {
       return next(action);
     }

@@ -3,10 +3,16 @@ import { Reducer } from 'redux';
 import {
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   PERSISTABLE_VALUES_MERGED,
-  IsTrayIconEnabledActionTypes,
+  MenuBarToggleIsTrayIconEnabledClickedAction,
+  PersistableValuesMergedAction,
 } from '../actions';
 
-export const isTrayIconEnabled: Reducer<boolean, IsTrayIconEnabledActionTypes> = (state = process.platform !== 'linux', action) => {
+type IsTrayIconEnabledAction = (
+  MenuBarToggleIsTrayIconEnabledClickedAction
+  | PersistableValuesMergedAction
+);
+
+export const isTrayIconEnabled: Reducer<boolean, IsTrayIconEnabledAction> = (state = process.platform !== 'linux', action) => {
   switch (action.type) {
     case MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED: {
       return action.payload;

@@ -2,8 +2,8 @@ import Bugsnag from '@bugsnag/js';
 import { Effect, select, call } from 'redux-saga/effects';
 
 import { APP_ERROR_THROWN } from '../actions';
-import { dispatch } from '../channels';
 import { selectAppVersion } from '../selectors';
+import { dispatch } from '../store';
 
 const setupBugsnag = (apiKey: string, appVersion: string): void => {
   Bugsnag.start({

@@ -3,7 +3,7 @@ import { takeEvery, put, Effect, take } from 'redux-saga/effects';
 
 import { FluxStandardAction } from './structs/fsa';
 
-export type RequestAction<P> = FluxStandardAction<P> & {
+export type RequestAction<P> = FluxStandardAction<string, P> & {
   payload: P;
   meta: {
     request: true;
@@ -11,10 +11,10 @@ export type RequestAction<P> = FluxStandardAction<P> & {
   }
 };
 
-export const isRequest = (action: FluxStandardAction<unknown>): action is RequestAction<unknown> =>
+export const isRequest = (action: FluxStandardAction<string, unknown>): action is RequestAction<unknown> =>
 	(action as RequestAction<unknown>)?.meta?.request;
 
-export type ResponseAction<P> = FluxStandardAction<P> & {
+export type ResponseAction<P> = FluxStandardAction<string, P> & {
   payload: P;
   meta: {
     response: true;
@@ -22,12 +22,11 @@ export type ResponseAction<P> = FluxStandardAction<P> & {
   }
 };
 
-export const isResponse = (action: FluxStandardAction<unknown>): action is ResponseAction<unknown> =>
+export const isResponse = (action: FluxStandardAction<string, unknown>): action is ResponseAction<unknown> =>
 	(action as ResponseAction<unknown>)?.meta?.response;
 
 export const requestsChannel = channel<RequestAction<unknown>>();
 export const responsesChannel = stdChannel<ResponseAction<unknown>>();
-export const actionsChannel = channel<FluxStandardAction<unknown>>();
 
 export function *takeRequests(): Generator<Effect, void> {
   yield takeEvery(requestsChannel, function *(action: RequestAction<unknown>) {
@@ -36,10 +35,6 @@ export function *takeRequests(): Generator<Effect, void> {
 
   yield takeEvery(isResponse, function *(action) {
     yield put(responsesChannel, action);
-  });
-
-  yield takeEvery(actionsChannel, function *(action: FluxStandardAction<unknown>) {
-    yield put(action);
   });
 }
 
@@ -82,7 +77,7 @@ export function *putAndTake<P, RP>(actionType: string, payload: P): Generator<Ef
 
   yield put(requestAction);
 
-  const action = (yield take((action: FluxStandardAction<RP>) => action.meta.id === id)) as ResponseAction<RP>;
+  const action = (yield take((action: FluxStandardAction<string, RP>) => action.meta.id === id)) as ResponseAction<RP>;
 
   if (action.error) {
     throw action.payload;
@@ -90,10 +85,6 @@ export function *putAndTake<P, RP>(actionType: string, payload: P): Generator<Ef
 
   return action.payload;
 }
-
-export const dispatch = (action: FluxStandardAction<unknown>): void => {
-  actionsChannel.put(action);
-};
 
 export const eventTargetEvent = <E extends Event>(
   eventTarget: EventTarget,

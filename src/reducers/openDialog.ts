@@ -14,10 +14,38 @@ import {
   UPDATES_NEW_VERSION_AVAILABLE,
   WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
   WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
-  OpenDialogActionTypes,
+  AboutDialogDismissedAction,
+  CertificatesClientCertificateRequestedAction,
+  MenuBarAboutClickedAction,
+  ScreenSharingDialogDismissedAction,
+  SelectClientCertificateDialogCertificateSelectedAction,
+  SelectClientCertificateDialogDismissedAction,
+  UpdateDialogDismissedAction,
+  UpdateDialogInstallButtonClickedAction,
+  UpdateDialogRemindUpdateLaterClickedAction,
+  UpdateDialogSkipUpdateClickedAction,
+  UpdatesNewVersionAvailableAction,
+  WebviewScreenSharingSourceRequestedAction,
+  WebviewScreenSharingSourceRespondedAction,
 } from '../actions';
 
-export const openDialog: Reducer<string | null, OpenDialogActionTypes> = (state = null, action) => {
+type OpenDialogAction = (
+  AboutDialogDismissedAction
+  | CertificatesClientCertificateRequestedAction
+  | MenuBarAboutClickedAction
+  | ScreenSharingDialogDismissedAction
+  | SelectClientCertificateDialogCertificateSelectedAction
+  | SelectClientCertificateDialogDismissedAction
+  | UpdateDialogDismissedAction
+  | UpdateDialogInstallButtonClickedAction
+  | UpdateDialogRemindUpdateLaterClickedAction
+  | UpdateDialogSkipUpdateClickedAction
+  | UpdatesNewVersionAvailableAction
+  | WebviewScreenSharingSourceRequestedAction
+  | WebviewScreenSharingSourceRespondedAction
+);
+
+export const openDialog: Reducer<string | null, OpenDialogAction> = (state = null, action) => {
   switch (action.type) {
     case MENU_BAR_ABOUT_CLICKED:
       return 'about';

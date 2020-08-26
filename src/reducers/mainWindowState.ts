@@ -3,11 +3,17 @@ import { Reducer } from 'redux';
 import {
   ROOT_WINDOW_STATE_CHANGED,
   PERSISTABLE_VALUES_MERGED,
-  MainWindowStateActionTypes,
+  RootWindowStateChangedAction,
+  PersistableValuesMergedAction,
 } from '../actions';
 import { WindowState } from '../structs/ui';
 
-export const mainWindowState: Reducer<WindowState, MainWindowStateActionTypes> = (state = {
+type MainWindowStateAction = (
+  RootWindowStateChangedAction
+  | PersistableValuesMergedAction
+);
+
+export const mainWindowState: Reducer<WindowState, MainWindowStateAction> = (state = {
   focused: true,
   visible: true,
   maximized: false,

@@ -6,7 +6,7 @@ import {
   TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
   TouchBarFormatButtonTouchedAction,
 } from '../../actions';
-import { dispatch } from '../../channels';
+import { dispatch } from '../../store';
 
 let focusedMessageBoxInput: Element = null;
 

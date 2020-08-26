@@ -2,7 +2,7 @@ import { EditFlags } from 'electron';
 import { Effect, call } from 'redux-saga/effects';
 
 import { WEBVIEW_EDIT_FLAGS_CHANGED } from '../actions';
-import { dispatch } from '../channels';
+import { dispatch } from '../store';
 
 const getEditFlags = (): EditFlags => ({
   canUndo: document.queryCommandEnabled('undo'),

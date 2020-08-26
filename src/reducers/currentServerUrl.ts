@@ -8,12 +8,32 @@ import {
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   WEBVIEW_FOCUS_REQUESTED,
   PERSISTABLE_VALUES_MERGED,
-  CurrentServerUrlActionTypes,
+  AddServerViewServerAddedAction,
+  MenuBarAddNewServerClickedAction,
+  MenuBarSelectServerClickedAction,
+  SideBarAddNewServerClickedAction,
+  SideBarRemoveServerClickedAction,
+  SideBarServerSelectedAction,
+  TouchBarSelectServerTouchedAction,
+  WebviewFocusRequestedAction,
+  PersistableValuesMergedAction,
 } from '../actions';
+
+type CurrentServerUrlAction = (
+  AddServerViewServerAddedAction
+  | MenuBarAddNewServerClickedAction
+  | MenuBarSelectServerClickedAction
+  | SideBarAddNewServerClickedAction
+  | SideBarRemoveServerClickedAction
+  | SideBarServerSelectedAction
+  | TouchBarSelectServerTouchedAction
+  | WebviewFocusRequestedAction
+  | PersistableValuesMergedAction
+);
 
 type CurrentServerUrlState = string | null;
 
-export const currentServerUrl = (state: CurrentServerUrlState = null, action: CurrentServerUrlActionTypes): CurrentServerUrlState => {
+export const currentServerUrl = (state: CurrentServerUrlState = null, action: CurrentServerUrlAction): CurrentServerUrlState => {
   switch (action.type) {
     case ADD_SERVER_VIEW_SERVER_ADDED: {
       const url = action.payload;

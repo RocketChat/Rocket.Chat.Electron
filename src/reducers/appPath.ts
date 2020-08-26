@@ -1,11 +1,12 @@
 import { Reducer } from 'redux';
 
 import {
-  APP_PATH_SET,
-  AppPathActionTypes,
+  APP_PATH_SET, AppPathSetAction,
 } from '../actions';
 
-export const appPath: Reducer<string | null, AppPathActionTypes> = (state = null, action) => {
+type AppPathAction = AppPathSetAction;
+
+export const appPath: Reducer<string | null, AppPathAction> = (state = null, action) => {
   switch (action.type) {
     case APP_PATH_SET:
       return action.payload;

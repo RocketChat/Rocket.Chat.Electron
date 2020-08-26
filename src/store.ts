@@ -1,10 +1,12 @@
 import { applyMiddleware, createStore, Store, compose } from 'redux';
 import createSagaMiddleware, { Saga } from 'redux-saga';
 
+import { SideEffectAction } from './actions';
 import { forwardToRenderers, getInitialState, forwardToMain } from './ipc';
 import { rootReducer } from './reducers';
 
 type RootState = ReturnType<typeof rootReducer>;
+type RootAction = Parameters<typeof rootReducer>[1];
 
 let reduxStore: Store<RootState>;
 
@@ -29,4 +31,8 @@ export const createRendererReduxStore = async (rootSaga: Saga): Promise<void> =>
   reduxStore = createStore(rootReducer, initialState, enhancers);
 
   sagaMiddleware.run(rootSaga, reduxStore);
+};
+
+export const dispatch = (action: RootAction | SideEffectAction): void => {
+  reduxStore.dispatch(action);
 };

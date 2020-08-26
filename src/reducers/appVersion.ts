@@ -2,10 +2,12 @@ import { Reducer } from 'redux';
 
 import {
   APP_VERSION_SET,
-  AppVersionActionTypes,
+  AppVersionSetAction,
 } from '../actions';
 
-export const appVersion: Reducer<string | null, AppVersionActionTypes> = (state = null, action) => {
+type AppVersionAction = AppVersionSetAction;
+
+export const appVersion: Reducer<string | null, AppVersionAction> = (state = null, action) => {
   switch (action.type) {
     case APP_VERSION_SET:
       return action.payload;

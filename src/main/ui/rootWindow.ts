@@ -39,7 +39,6 @@ import {
   SideBarContextMenuTriggeredAction,
   LoadingErrorViewReloadServerClickedAction,
 } from '../../actions';
-import { dispatch } from '../../channels';
 import {
   EVENT_WEB_CONTENTS_FOCUS_CHANGED,
   EVENT_BROWSER_VIEW_ATTACHED,
@@ -54,6 +53,7 @@ import {
   selectFocusedWebContents,
   selectMainWindowState,
 } from '../../selectors';
+import { dispatch } from '../../store';
 import { Dictionary } from '../../structs/spellChecking';
 import { WindowState } from '../../structs/ui';
 import { getTrayIconPath, getAppIconPath } from '../icons';

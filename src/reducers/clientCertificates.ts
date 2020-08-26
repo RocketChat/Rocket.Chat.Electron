@@ -5,8 +5,16 @@ import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-  ClientCertificatesActionTypes,
+  CertificatesClientCertificateRequestedAction,
+  SelectClientCertificateDialogCertificateSelectedAction,
+  SelectClientCertificateDialogDismissedAction,
 } from '../actions';
+
+type ClientCertificatesActionTypes = (
+  CertificatesClientCertificateRequestedAction
+  | SelectClientCertificateDialogCertificateSelectedAction
+  | SelectClientCertificateDialogDismissedAction
+);
 
 export const clientCertificates: Reducer<Certificate[], ClientCertificatesActionTypes> = (state = [], action) => {
   switch (action.type) {

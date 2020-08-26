@@ -3,10 +3,16 @@ import { Reducer } from 'redux';
 import {
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
-  NewUpdateVersionActionTypes,
+  UpdatesNewVersionAvailableAction,
+  UpdatesNewVersionNotAvailableAction,
 } from '../actions';
 
-export const newUpdateVersion: Reducer<string | null, NewUpdateVersionActionTypes> = (state = null, action) => {
+type NewUpdateVersionAction = (
+  UpdatesNewVersionAvailableAction
+  | UpdatesNewVersionNotAvailableAction
+)
+
+export const newUpdateVersion: Reducer<string | null, NewUpdateVersionAction> = (state = null, action) => {
   switch (action.type) {
     case UPDATES_NEW_VERSION_AVAILABLE:
       return action.payload;

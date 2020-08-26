@@ -16,7 +16,8 @@ import {
   NotificationsNotificationRepliedAction,
   NotificationsNotificationActionedAction,
 } from '../../actions';
-import { dispatch, request } from '../../channels';
+import { request } from '../../channels';
+import { dispatch } from '../../store';
 import { getServerUrl } from './getServerUrl';
 
 

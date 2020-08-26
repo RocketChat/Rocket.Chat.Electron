@@ -3,7 +3,7 @@ import { Component, ReactNode, ErrorInfo } from 'react';
 import {
   APP_ERROR_THROWN,
 } from '../../actions';
-import { dispatch } from '../../channels';
+import { dispatch } from '../../store';
 
 export class ErrorCatcher extends Component {
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {

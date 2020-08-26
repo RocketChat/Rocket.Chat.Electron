@@ -25,7 +25,7 @@ import { spellCheckingDictionaries } from './spellCheckingDictionaries';
 import { trustedCertificates } from './trustedCertificates';
 import { updateError } from './updateError';
 
-export const rootReducer = combineReducers({
+const reducersMap = {
   appPath,
   appVersion,
   clientCertificates,
@@ -50,6 +50,6 @@ export const rootReducer = combineReducers({
   spellCheckingDictionaries,
   trustedCertificates,
   updateError,
-});
+};
 
-export type RootState = ReturnType<typeof rootReducer>;
+export const rootReducer = combineReducers<typeof reducersMap>(reducersMap);

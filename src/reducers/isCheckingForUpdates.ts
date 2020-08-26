@@ -5,10 +5,20 @@ import {
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
-  IsCheckingForUpdatesActionTypes,
+  UpdatesCheckingForUpdateAction,
+  UpdatesErrorThrownAction,
+  UpdatesNewVersionAvailableAction,
+  UpdatesNewVersionNotAvailableAction,
 } from '../actions';
 
-export const isCheckingForUpdates: Reducer<boolean, IsCheckingForUpdatesActionTypes> = (state = false, action) => {
+type IsCheckingForUpdatesAction = (
+  UpdatesCheckingForUpdateAction
+  | UpdatesErrorThrownAction
+  | UpdatesNewVersionAvailableAction
+  | UpdatesNewVersionNotAvailableAction
+);
+
+export const isCheckingForUpdates: Reducer<boolean, IsCheckingForUpdatesAction> = (state = false, action) => {
   switch (action.type) {
     case UPDATES_CHECKING_FOR_UPDATE:
       return true;

@@ -4,10 +4,18 @@ import {
   UPDATES_READY,
   PERSISTABLE_VALUES_MERGED,
   UPDATE_SKIPPED,
-  SkippedUpdateVersionActionTypes,
+  UpdatesReadyAction,
+  PersistableValuesMergedAction,
+  UpdateSkippedAction,
 } from '../actions';
 
-export const skippedUpdateVersion: Reducer<string | null, SkippedUpdateVersionActionTypes> = (state = null, action) => {
+type SkippedUpdateVersionAction = (
+  UpdatesReadyAction
+  | PersistableValuesMergedAction
+  | UpdateSkippedAction
+);
+
+export const skippedUpdateVersion: Reducer<string | null, SkippedUpdateVersionAction> = (state = null, action) => {
   switch (action.type) {
     case UPDATES_READY: {
       const { skippedUpdateVersion } = action.payload;

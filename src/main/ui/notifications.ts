@@ -14,7 +14,7 @@ import {
   NotificationsNotificationDismissedAction,
   NotificationsCreateRequestedAction,
 } from '../../actions';
-import { dispatch } from '../../channels';
+import { dispatch } from '../../store';
 import { ExtendedNotificationOptions } from '../../structs/notifications';
 
 const iconCache = new Map();

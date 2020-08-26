@@ -4,10 +4,17 @@ import { Reducer } from 'redux';
 import {
   ROOT_WINDOW_EDIT_FLAGS_CHANGED,
   WEBVIEW_EDIT_FLAGS_CHANGED,
-  EditFlagsActionTypes,
+  RootWindowEditFlagsChangedAction,
+  WebviewEditFlagsChangedAction,
 } from '../actions';
 
-export const editFlags: Reducer<EditFlags, EditFlagsActionTypes> = (state = {
+type EditFlagsAction = (
+  RootWindowEditFlagsChangedAction
+  | WebviewEditFlagsChangedAction
+);
+
+
+export const editFlags: Reducer<EditFlags, EditFlagsAction> = (state = {
   canUndo: false,
   canRedo: false,
   canCut: false,

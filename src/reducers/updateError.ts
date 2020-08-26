@@ -5,10 +5,20 @@ import {
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
-  UpdateErrorActionTypes,
+  UpdatesCheckingForUpdateAction,
+  UpdatesErrorThrownAction,
+  UpdatesNewVersionAvailableAction,
+  UpdatesNewVersionNotAvailableAction,
 } from '../actions';
 
-export const updateError: Reducer<Error | null, UpdateErrorActionTypes> = (state = null, action) => {
+type UpdateErrorAction = (
+  UpdatesCheckingForUpdateAction
+  | UpdatesErrorThrownAction
+  | UpdatesNewVersionAvailableAction
+  | UpdatesNewVersionNotAvailableAction
+);
+
+export const updateError: Reducer<Error | null, UpdateErrorAction> = (state = null, action) => {
   switch (action.type) {
     case UPDATES_CHECKING_FOR_UPDATE:
       return null;

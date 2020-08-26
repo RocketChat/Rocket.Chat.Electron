@@ -4,11 +4,19 @@ import {
   WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
   SPELL_CHECKING_DICTIONARIES_UPDATED,
   PERSISTABLE_VALUES_MERGED,
-  SpellCheckingDictionariesActionTypes,
+  PersistableValuesMergedAction,
+  SpellCheckingDictionariesUpdatedAction,
+  WebviewSpellCheckingDictionaryToggledAction,
 } from '../actions';
 import { Dictionary, compareDictionaries } from '../structs/spellChecking';
 
-export const spellCheckingDictionaries: Reducer<Dictionary[], SpellCheckingDictionariesActionTypes> = (state = [], action) => {
+type SpellCheckingDictionariesAction = (
+  PersistableValuesMergedAction
+  | SpellCheckingDictionariesUpdatedAction
+  | WebviewSpellCheckingDictionaryToggledAction
+);
+
+export const spellCheckingDictionaries: Reducer<Dictionary[], SpellCheckingDictionariesAction> = (state = [], action) => {
   switch (action.type) {
     case WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED: {
       const { name, enabled } = action.payload;

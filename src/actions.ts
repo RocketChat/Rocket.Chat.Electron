@@ -85,7 +85,7 @@ export const NOTIFICATIONS_NOTIFICATION_CLICKED = 'notifications/notification-cl
 export const NOTIFICATIONS_NOTIFICATION_REPLIED = 'notifications/notification-replied';
 export const NOTIFICATIONS_NOTIFICATION_ACTIONED = 'notifications/notification-actioned';
 
-export type PersistableValuesMergedAction = FluxStandardAction<{
+export type PersistableValuesMergedAction = FluxStandardAction<typeof PERSISTABLE_VALUES_MERGED, {
   currentServerUrl: string | null;
   doCheckForUpdatesOnStartup: boolean;
   isEachUpdatesSettingConfigurable: boolean;
@@ -99,222 +99,90 @@ export type PersistableValuesMergedAction = FluxStandardAction<{
   skippedUpdateVersion: string | null;
   spellCheckingDictionaries: Dictionary[];
   trustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
-}, typeof PERSISTABLE_VALUES_MERGED>;
+}>;
 
-export type UpdatesReadyAction = FluxStandardAction<{
+export type UpdatesReadyAction = FluxStandardAction<typeof UPDATES_READY, {
   doCheckForUpdatesOnStartup: boolean;
   isEachUpdatesSettingConfigurable: boolean;
   isUpdatingAllowed: boolean;
   isUpdatingEnabled: boolean;
   skippedUpdateVersion: string | null;
-}, typeof UPDATES_READY>;
+}>;
 
-export type AboutDialogDismissedAction = FluxStandardAction<undefined, typeof ABOUT_DIALOG_DISMISSED>;
-export type AboutDialogToggleUpdateOnStartAction = FluxStandardAction<boolean, typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>;
-export type AddServerViewServerAddedAction = FluxStandardAction<string, typeof ADD_SERVER_VIEW_SERVER_ADDED>;
-export type AppErrorThrown = FluxStandardAction<Error, typeof APP_ERROR_THROWN>;
-export type AppPathSetAction = FluxStandardAction<string, typeof APP_PATH_SET>;
-export type AppVersionSetAction = FluxStandardAction<string, typeof APP_VERSION_SET>;
-export type CertificatesClearedAction = FluxStandardAction<undefined, typeof CERTIFICATES_CLEARED>;
-export type CertificatesClientCertificateRequestedAction = FluxStandardAction<Certificate[], typeof CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED>;
-export type CertificatesUpdatedAction = FluxStandardAction<Record<Server['url'], Certificate['fingerprint']>, typeof CERTIFICATES_UPDATED>;
-export type LoadingErrorViewReloadServerClickedAction = FluxStandardAction<{ url: Server['url'] }, typeof LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED>;
-export type MenuBarAboutClickedAction = FluxStandardAction<undefined, typeof MENU_BAR_ABOUT_CLICKED>;
-export type MenuBarAddNewServerClickedAction = FluxStandardAction<undefined, typeof MENU_BAR_ADD_NEW_SERVER_CLICKED>;
-export type MenuBarSelectServerClickedAction = FluxStandardAction<string, typeof MENU_BAR_SELECT_SERVER_CLICKED>;
-export type MenuBarToggleIsMenuBarEnabledClickedAction = FluxStandardAction<boolean, typeof MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED>;
-export type MenuBarToggleIsShowWindowOnUnreadChangedEnabledClickedAction = FluxStandardAction<boolean, typeof MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED>;
-export type MenuBarToggleIsSideBarEnabledClickedAction = FluxStandardAction<boolean, typeof MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED>;
-export type MenuBarToggleIsTrayIconEnabledClickedAction = FluxStandardAction<boolean, typeof MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED>;
-export type RootWindowEditFlagsChangedAction = FluxStandardAction<EditFlags, typeof ROOT_WINDOW_EDIT_FLAGS_CHANGED>;
-export type RootWindowStateChangedAction = FluxStandardAction<WindowState, typeof ROOT_WINDOW_STATE_CHANGED>;
-export type RootWindowWebContentsFocusedAction = FluxStandardAction<number, typeof ROOT_WINDOW_WEBCONTENTS_FOCUSED>;
-export type ScreenSharingDialogDismissedAction = FluxStandardAction<undefined, typeof SCREEN_SHARING_DIALOG_DISMISSED>;
-export type SelectClientCertificateDialogCertificateSelectedAction = FluxStandardAction<undefined, typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED>;
-export type SelectClientCertificateDialogDismissedAction = FluxStandardAction<undefined, typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED>;
-export type SideBarAddNewServerClickedAction = FluxStandardAction<undefined, typeof SIDE_BAR_ADD_NEW_SERVER_CLICKED>;
-export type SideBarRemoveServerClickedAction = FluxStandardAction<string, typeof SIDE_BAR_REMOVE_SERVER_CLICKED>;
-export type SideBarServerSelectedAction = FluxStandardAction<string, typeof SIDE_BAR_SERVER_SELECTED>;
-export type SideBarServersSortedAction = FluxStandardAction<string[], typeof SIDE_BAR_SERVERS_SORTED>;
-export type SideBarContextMenuTriggeredAction = FluxStandardAction<Server['url'], typeof SIDE_BAR_CONTEXT_MENU_TRIGGERED>;
-export type SpellCheckingDictionariesUpdatedAction = FluxStandardAction<Dictionary[], typeof SPELL_CHECKING_DICTIONARIES_UPDATED>;
-export type SpellCheckingMisspeltWordsRequestedAction = FluxStandardAction<string[], typeof SPELL_CHECKING_MISSPELT_WORDS_REQUESTED>;
-export type TouchBarFormatButtonTouchedAction = FluxStandardAction<'bold' | 'italic' | 'strike' | 'inline_code' | 'multi_line' | typeof TOUCH_BAR_FORMAT_BUTTON_TOUCHED>;
-export type TouchBarSelectServerTouchedAction = FluxStandardAction<string, typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>;
-export type UpdateDialogDismissedAction = FluxStandardAction<undefined, typeof UPDATE_DIALOG_DISMISSED>;
-export type UpdateDialogInstallButtonClickedAction = FluxStandardAction<undefined, typeof UPDATE_DIALOG_INSTALL_BUTTON_CLICKED>;
-export type UpdateDialogRemindUpdateLaterClickedAction = FluxStandardAction<undefined, typeof UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED>;
-export type UpdateDialogSkipUpdateClickedAction = FluxStandardAction<undefined, typeof UPDATE_DIALOG_SKIP_UPDATE_CLICKED>;
-export type UpdatesCheckingForUpdateAction = FluxStandardAction<undefined, typeof UPDATES_CHECKING_FOR_UPDATE>;
-export type UpdatesErrorThrownAction = FluxStandardAction<undefined, typeof UPDATES_ERROR_THROWN>;
-export type UpdateSkippedAction = FluxStandardAction<undefined, typeof UPDATE_SKIPPED>;
-export type UpdatesNewVersionAvailableAction = FluxStandardAction<undefined, typeof UPDATES_NEW_VERSION_AVAILABLE>;
-export type UpdatesNewVersionNotAvailableAction = FluxStandardAction<undefined, typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>;
-export type WebviewDidFailLoadAction = FluxStandardAction<{ url: Server['url']; isMainFrame: boolean }, typeof WEBVIEW_DID_FAIL_LOAD>;
-export type WebviewDidNavigateAction = FluxStandardAction<{ url: Server['url']; pageUrl: Server['lastPath'] }, typeof WEBVIEW_DID_NAVIGATE>;
-export type WebviewDidStartLoadingAction = FluxStandardAction<{ url: Server['url'] }, typeof WEBVIEW_DID_START_LOADING>;
-export type WebviewEditFlagsChangedAction = FluxStandardAction<EditFlags, typeof WEBVIEW_EDIT_FLAGS_CHANGED>;
-export type WebviewFaviconChangedAction = FluxStandardAction<{ url: Server['url']; favicon: Server['favicon'] }, typeof WEBVIEW_FAVICON_CHANGED>;
-export type WebviewFocusRequestedAction = FluxStandardAction<{ url: string }, typeof WEBVIEW_FOCUS_REQUESTED>;
-export type WebviewMessageBoxBlurredAction = FluxStandardAction<undefined, typeof WEBVIEW_MESSAGE_BOX_BLURRED>;
-export type WebviewMessageBoxFocusedAction = FluxStandardAction<undefined, typeof WEBVIEW_MESSAGE_BOX_FOCUSED>;
-export type WebviewScreenSharingSourceRequestedAction = FluxStandardAction<undefined, typeof WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED>;
-export type WebviewScreenSharingSourceRespondedAction = FluxStandardAction<undefined, typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED>;
-export type WebviewSidebarStyleChangedAction = FluxStandardAction<{ url: Server['url']; style: Server['style'] }, typeof WEBVIEW_SIDEBAR_STYLE_CHANGED>;
-export type WebviewSpellCheckingDictionaryToggledAction = FluxStandardAction<Dictionary, typeof WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED>;
-export type WebviewTitleChangedAction = FluxStandardAction<{ url: Server['url']; title: Server['title'] }, typeof WEBVIEW_TITLE_CHANGED>;
-export type WebviewUnreadChangedAction = FluxStandardAction<{ url: Server['url']; badge: Server['badge'] }, typeof WEBVIEW_UNREAD_CHANGED>;
-export type NotificationsCreateRequestedAction = FluxStandardAction<ExtendedNotificationOptions, typeof NOTIFICATIONS_CREATE_REQUESTED>;
-export type NotificationsCreateRespondedAction = FluxStandardAction<{ id: unknown }, typeof NOTIFICATIONS_CREATE_RESPONDED>;
-export type NotificationsNotificationDismissedAction = FluxStandardAction<{ id: unknown }, typeof NOTIFICATIONS_NOTIFICATION_DISMISSED>;
-export type NotificationsNotificationShownAction = FluxStandardAction<{ id: unknown }, typeof NOTIFICATIONS_NOTIFICATION_SHOWN>;
-export type NotificationsNotificationClosedAction = FluxStandardAction<{ id: unknown }, typeof NOTIFICATIONS_NOTIFICATION_CLOSED>;
-export type NotificationsNotificationClickedAction = FluxStandardAction<{ id: unknown }, typeof NOTIFICATIONS_NOTIFICATION_CLICKED>;
-export type NotificationsNotificationRepliedAction = FluxStandardAction<{ id: unknown, reply: string }, typeof NOTIFICATIONS_NOTIFICATION_REPLIED>;
-export type NotificationsNotificationActionedAction = FluxStandardAction<{ id: unknown, index: number }, typeof NOTIFICATIONS_NOTIFICATION_ACTIONED>;
+export type AboutDialogDismissedAction = FluxStandardAction<typeof ABOUT_DIALOG_DISMISSED, never>;
+export type AboutDialogToggleUpdateOnStartAction = FluxStandardAction<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, boolean>;
+export type AddServerViewServerAddedAction = FluxStandardAction<typeof ADD_SERVER_VIEW_SERVER_ADDED, string>;
+export type AppErrorThrownAction = FluxStandardAction<typeof APP_ERROR_THROWN, Error>;
+export type AppPathSetAction = FluxStandardAction<typeof APP_PATH_SET, string>;
+export type AppVersionSetAction = FluxStandardAction<typeof APP_VERSION_SET, string>;
+export type CertificatesClearedAction = FluxStandardAction<typeof CERTIFICATES_CLEARED, never>;
+export type CertificatesClientCertificateRequestedAction = FluxStandardAction<typeof CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, Certificate[]>;
+export type CertificatesUpdatedAction = FluxStandardAction<typeof CERTIFICATES_UPDATED, Record<Server['url'], Certificate['fingerprint']>>;
+export type LoadingErrorViewReloadServerClickedAction = FluxStandardAction<typeof LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, { url: Server['url'] }>;
+export type MenuBarAboutClickedAction = FluxStandardAction<typeof MENU_BAR_ABOUT_CLICKED, never>;
+export type MenuBarAddNewServerClickedAction = FluxStandardAction<typeof MENU_BAR_ADD_NEW_SERVER_CLICKED, never>;
+export type MenuBarSelectServerClickedAction = FluxStandardAction<typeof MENU_BAR_SELECT_SERVER_CLICKED, string>;
+export type MenuBarToggleIsMenuBarEnabledClickedAction = FluxStandardAction<typeof MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED, boolean>;
+export type MenuBarToggleIsShowWindowOnUnreadChangedEnabledClickedAction = FluxStandardAction<typeof MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED, boolean>;
+export type MenuBarToggleIsSideBarEnabledClickedAction = FluxStandardAction<typeof MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED, boolean>;
+export type MenuBarToggleIsTrayIconEnabledClickedAction = FluxStandardAction<typeof MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED, boolean>;
+export type RootWindowEditFlagsChangedAction = FluxStandardAction<typeof ROOT_WINDOW_EDIT_FLAGS_CHANGED, EditFlags>;
+export type RootWindowStateChangedAction = FluxStandardAction<typeof ROOT_WINDOW_STATE_CHANGED, WindowState>;
+export type RootWindowWebContentsFocusedAction = FluxStandardAction<typeof ROOT_WINDOW_WEBCONTENTS_FOCUSED, number>;
+export type ScreenSharingDialogDismissedAction = FluxStandardAction<typeof SCREEN_SHARING_DIALOG_DISMISSED, never>;
+export type SelectClientCertificateDialogCertificateSelectedAction = FluxStandardAction<typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, never>;
+export type SelectClientCertificateDialogDismissedAction = FluxStandardAction<typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED, never>;
+export type SideBarAddNewServerClickedAction = FluxStandardAction<typeof SIDE_BAR_ADD_NEW_SERVER_CLICKED, never>;
+export type SideBarRemoveServerClickedAction = FluxStandardAction<typeof SIDE_BAR_REMOVE_SERVER_CLICKED, string>;
+export type SideBarServerSelectedAction = FluxStandardAction<typeof SIDE_BAR_SERVER_SELECTED, string>;
+export type SideBarServersSortedAction = FluxStandardAction<typeof SIDE_BAR_SERVERS_SORTED, string[]>;
+export type SideBarContextMenuTriggeredAction = FluxStandardAction<typeof SIDE_BAR_CONTEXT_MENU_TRIGGERED, Server['url']>;
+export type SpellCheckingDictionariesUpdatedAction = FluxStandardAction<typeof SPELL_CHECKING_DICTIONARIES_UPDATED, Dictionary[]>;
+export type SpellCheckingMisspeltWordsRequestedAction = FluxStandardAction<typeof SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, string[]>;
+export type TouchBarFormatButtonTouchedAction = FluxStandardAction<typeof TOUCH_BAR_FORMAT_BUTTON_TOUCHED, 'bold' | 'italic' | 'strike' | 'inline_code' | 'multi_line' >;
+export type TouchBarSelectServerTouchedAction = FluxStandardAction<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED, string>;
+export type UpdateDialogDismissedAction = FluxStandardAction<typeof UPDATE_DIALOG_DISMISSED, never>;
+export type UpdateDialogInstallButtonClickedAction = FluxStandardAction<typeof UPDATE_DIALOG_INSTALL_BUTTON_CLICKED, never>;
+export type UpdateDialogRemindUpdateLaterClickedAction = FluxStandardAction<typeof UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED, never>;
+export type UpdateDialogSkipUpdateClickedAction = FluxStandardAction<typeof UPDATE_DIALOG_SKIP_UPDATE_CLICKED, never>;
+export type UpdatesCheckingForUpdateAction = FluxStandardAction<typeof UPDATES_CHECKING_FOR_UPDATE, never>;
+export type UpdatesErrorThrownAction = FluxStandardAction<typeof UPDATES_ERROR_THROWN, never>;
+export type UpdateSkippedAction = FluxStandardAction<typeof UPDATE_SKIPPED, never>;
+export type UpdatesNewVersionAvailableAction = FluxStandardAction<typeof UPDATES_NEW_VERSION_AVAILABLE, never>;
+export type UpdatesNewVersionNotAvailableAction = FluxStandardAction<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE, never>;
+export type WebviewDidFailLoadAction = FluxStandardAction<typeof WEBVIEW_DID_FAIL_LOAD, { url: Server['url']; isMainFrame: boolean }>;
+export type WebviewDidNavigateAction = FluxStandardAction<typeof WEBVIEW_DID_NAVIGATE, { url: Server['url']; pageUrl: Server['lastPath'] }>;
+export type WebviewDidStartLoadingAction = FluxStandardAction<typeof WEBVIEW_DID_START_LOADING, { url: Server['url'] }>;
+export type WebviewEditFlagsChangedAction = FluxStandardAction<typeof WEBVIEW_EDIT_FLAGS_CHANGED, EditFlags>;
+export type WebviewFaviconChangedAction = FluxStandardAction<typeof WEBVIEW_FAVICON_CHANGED, { url: Server['url']; favicon: Server['favicon'] }>;
+export type WebviewFocusRequestedAction = FluxStandardAction<typeof WEBVIEW_FOCUS_REQUESTED, { url: string }>;
+export type WebviewMessageBoxBlurredAction = FluxStandardAction<typeof WEBVIEW_MESSAGE_BOX_BLURRED, never>;
+export type WebviewMessageBoxFocusedAction = FluxStandardAction<typeof WEBVIEW_MESSAGE_BOX_FOCUSED, never>;
+export type WebviewScreenSharingSourceRequestedAction = FluxStandardAction<typeof WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, never>;
+export type WebviewScreenSharingSourceRespondedAction = FluxStandardAction<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, never>;
+export type WebviewSidebarStyleChangedAction = FluxStandardAction<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED, { url: Server['url']; style: Server['style'] }>;
+export type WebviewSpellCheckingDictionaryToggledAction = FluxStandardAction<typeof WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, Dictionary>;
+export type WebviewTitleChangedAction = FluxStandardAction<typeof WEBVIEW_TITLE_CHANGED, { url: Server['url']; title: Server['title'] }>;
+export type WebviewUnreadChangedAction = FluxStandardAction<typeof WEBVIEW_UNREAD_CHANGED, { url: Server['url']; badge: Server['badge'] }>;
+export type NotificationsCreateRequestedAction = FluxStandardAction<typeof NOTIFICATIONS_CREATE_REQUESTED, ExtendedNotificationOptions>;
+export type NotificationsCreateRespondedAction = FluxStandardAction<typeof NOTIFICATIONS_CREATE_RESPONDED, { id: unknown }>;
+export type NotificationsNotificationDismissedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_DISMISSED, { id: unknown }>;
+export type NotificationsNotificationShownAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_SHOWN, { id: unknown }>;
+export type NotificationsNotificationClosedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_CLOSED, { id: unknown }>;
+export type NotificationsNotificationClickedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_CLICKED, { id: unknown }>;
+export type NotificationsNotificationRepliedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_REPLIED, { id: unknown, reply: string }>;
+export type NotificationsNotificationActionedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_ACTIONED, { id: unknown, index: number }>;
+export type SystemLockingScreenAction = FluxStandardAction<typeof SYSTEM_LOCKING_SCREEN, never>;
+export type SystemSuspendingAction = FluxStandardAction<typeof SYSTEM_SUSPENDING, never>;
 
-export type AppPathActionTypes = AppPathSetAction;
-
-export type AppVersionActionTypes = AppVersionSetAction;
-
-export type ClientCertificatesActionTypes = (
-  CertificatesClientCertificateRequestedAction
-  | SelectClientCertificateDialogCertificateSelectedAction
-  | SelectClientCertificateDialogDismissedAction
-);
-
-export type CurrentServerUrlActionTypes = (
-  AddServerViewServerAddedAction
-  | MenuBarAddNewServerClickedAction
-  | MenuBarSelectServerClickedAction
-  | SideBarAddNewServerClickedAction
-  | SideBarRemoveServerClickedAction
-  | SideBarServerSelectedAction
-  | TouchBarSelectServerTouchedAction
-  | WebviewFocusRequestedAction
-  | PersistableValuesMergedAction
-);
-
-export type DoCheckForUpdatesOnStartupActionTypes = (
-  AboutDialogToggleUpdateOnStartAction
-  | UpdatesReadyAction
-  | PersistableValuesMergedAction
-);
-
-export type EditFlagsActionTypes = (
-  RootWindowEditFlagsChangedAction
-  | WebviewEditFlagsChangedAction
-);
-
-export type FocusedWebContentsIdActionTypes = RootWindowWebContentsFocusedAction;
-
-export type IsCheckingForUpdatesActionTypes = (
-  UpdatesCheckingForUpdateAction
-  | UpdatesErrorThrownAction
-  | UpdatesNewVersionAvailableAction
-  | UpdatesNewVersionNotAvailableAction
-);
-
-export type IsEachUpdatesSettingConfigurableActionTypes = (
-  UpdatesReadyAction
-  | PersistableValuesMergedAction
-);
-
-export type IsMenuBarEnabledActionTypes = (
-  MenuBarToggleIsMenuBarEnabledClickedAction
-  | PersistableValuesMergedAction
-);
-
-export type IsMessageBoxFocusedActionTypes = (
-  WebviewMessageBoxFocusedAction
-  | WebviewMessageBoxBlurredAction
-  | WebviewDidStartLoadingAction
-  | WebviewDidFailLoadAction
-)
-
-export type IsShowWindowOnUnreadChangedEnabledActionTypes = (
-  MenuBarToggleIsShowWindowOnUnreadChangedEnabledClickedAction
-  | PersistableValuesMergedAction
-);
-
-export type IsSideBarEnabledActionTypes = (
-  MenuBarToggleIsSideBarEnabledClickedAction
-  | PersistableValuesMergedAction
-);
-
-export type IsTrayIconEnabledActionTypes = (
-  MenuBarToggleIsTrayIconEnabledClickedAction
-  | PersistableValuesMergedAction
-);
-
-export type IsUpdatingAllowedActionTypes = UpdatesReadyAction;
-
-export type IsUpdatingEnabledActionTypes = (
-  UpdatesReadyAction
-  | PersistableValuesMergedAction
-);
-
-export type MainWindowStateActionTypes = (
-  RootWindowStateChangedAction
-  | PersistableValuesMergedAction
-);
-
-export type NewUpdateVersionActionTypes = (
-  UpdatesNewVersionAvailableAction
-  | UpdatesNewVersionNotAvailableAction
-);
-
-export type OpenDialogActionTypes = (
-  AboutDialogDismissedAction
-  | CertificatesClientCertificateRequestedAction
-  | MenuBarAboutClickedAction
-  | ScreenSharingDialogDismissedAction
-  | SelectClientCertificateDialogCertificateSelectedAction
-  | SelectClientCertificateDialogDismissedAction
-  | UpdateDialogDismissedAction
-  | UpdateDialogInstallButtonClickedAction
-  | UpdateDialogRemindUpdateLaterClickedAction
-  | UpdateDialogSkipUpdateClickedAction
-  | UpdatesNewVersionAvailableAction
-  | WebviewScreenSharingSourceRequestedAction
-  | WebviewScreenSharingSourceRespondedAction
-);
-
-export type ServersActionTypes = (
-  AddServerViewServerAddedAction
-  | SideBarRemoveServerClickedAction
-  | SideBarServersSortedAction
-  | WebviewDidNavigateAction
-  | WebviewSidebarStyleChangedAction
-  | WebviewTitleChangedAction
-  | WebviewUnreadChangedAction
-  | WebviewFaviconChangedAction
-  | PersistableValuesMergedAction
-  | WebviewDidStartLoadingAction
-  | WebviewDidFailLoadAction
-);
-
-export type SkippedUpdateVersionActionTypes = (
-  UpdatesReadyAction
-  | PersistableValuesMergedAction
-  | UpdateSkippedAction
-);
-
-export type SpellCheckingDictionariesActionTypes = (
-  PersistableValuesMergedAction
-  | SpellCheckingDictionariesUpdatedAction
-  | WebviewSpellCheckingDictionaryToggledAction
-);
-
-export type TrustedCertificatesActionTypes = (
-  CertificatesUpdatedAction
-  | CertificatesClearedAction
-  | PersistableValuesMergedAction
-);
-
-export type UpdateErrorActionTypes = (
-  UpdatesCheckingForUpdateAction
-  | UpdatesErrorThrownAction
-  | UpdatesNewVersionAvailableAction
-  | UpdatesNewVersionNotAvailableAction
+export type SideEffectAction = (
+  AppErrorThrownAction
+  | NotificationsNotificationDismissedAction
+  | NotificationsNotificationActionedAction
+  | NotificationsNotificationRepliedAction
+  | NotificationsNotificationClickedAction
+  | NotificationsNotificationClosedAction
+  | NotificationsNotificationShownAction
+  | SystemLockingScreenAction
+  | SystemSuspendingAction
 );

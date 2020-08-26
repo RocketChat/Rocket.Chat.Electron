@@ -12,9 +12,34 @@ import {
   PERSISTABLE_VALUES_MERGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
-  ServersActionTypes,
+  AddServerViewServerAddedAction,
+  SideBarRemoveServerClickedAction,
+  SideBarServersSortedAction,
+  WebviewDidNavigateAction,
+  WebviewSidebarStyleChangedAction,
+  WebviewTitleChangedAction,
+  WebviewUnreadChangedAction,
+  WebviewFaviconChangedAction,
+  PersistableValuesMergedAction,
+  WebviewDidStartLoadingAction,
+  WebviewDidFailLoadAction,
 } from '../actions';
 import { Server } from '../structs/servers';
+
+type ServersActionTypes = (
+  AddServerViewServerAddedAction
+  | SideBarRemoveServerClickedAction
+  | SideBarServersSortedAction
+  | WebviewDidNavigateAction
+  | WebviewSidebarStyleChangedAction
+  | WebviewTitleChangedAction
+  | WebviewUnreadChangedAction
+  | WebviewFaviconChangedAction
+  | PersistableValuesMergedAction
+  | WebviewDidStartLoadingAction
+  | WebviewDidFailLoadAction
+);
+
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);

@@ -52,6 +52,13 @@ export function *listenToMessageBoxEvents(): Generator<Effect> {
 			const {
 				formattingButtons,
 				applyFormatting,
+			}: {
+				formattingButtons: {
+					pattern: string;
+					condition?: () => boolean;
+					label: string;
+				}[];
+				applyFormatting: (pattern: string, messageBoxInput: Element) => void;
 			} = window.require('/app/ui-message/client/messageBox/messageBoxFormatting');
 
 			const { pattern } = formattingButtons

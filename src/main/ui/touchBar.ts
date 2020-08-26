@@ -109,7 +109,7 @@ export const setupTouchBar = (reduxStore: Store, rootWindow: BrowserWindow): voi
 		messageBoxFormattingButtons,
 	] = createTouchBar(reduxStore, rootWindow);
 
-	let prevCurrentServer;
+	let prevCurrentServer: Server;
 	reduxStore.subscribe(() => {
 		const currentServer = selectCurrentServer(reduxStore.getState());
 		if (prevCurrentServer !== currentServer) {
@@ -119,7 +119,7 @@ export const setupTouchBar = (reduxStore: Store, rootWindow: BrowserWindow): voi
 		}
 	});
 
-	let prevServers;
+	let prevServers: Server[];
 	reduxStore.subscribe(() => {
 		const servers = selectServers(reduxStore.getState());
 		if (prevServers !== servers) {
@@ -129,7 +129,7 @@ export const setupTouchBar = (reduxStore: Store, rootWindow: BrowserWindow): voi
 		}
 	});
 
-	let prevIsMessageBoxFocused;
+	let prevIsMessageBoxFocused: boolean;
 	reduxStore.subscribe(() => {
 		const isMessageBoxFocused = selectIsMessageBoxFocused(reduxStore.getState());
 		if (prevIsMessageBoxFocused !== isMessageBoxFocused) {

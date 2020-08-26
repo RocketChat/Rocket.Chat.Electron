@@ -77,5 +77,6 @@ export const forwardToMain: Middleware = (api: MiddlewareAPI) => {
 		}
 
 		ipcRenderer.send(ReduxIpcChannel.ACTION_DISPATCHED, action);
+		return action;
 	};
 };

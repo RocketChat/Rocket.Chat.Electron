@@ -37,7 +37,7 @@ export const AddServerView: FC = () => {
 	const idleState = useMemo(() => ['idle', null], []);
 	const [[validationState, errorMessage], setValidation] = useState(idleState);
 
-	const validateServerUrl = useCallback(async (serverUrl) => {
+	const validateServerUrl = useCallback(async (serverUrl): Promise<boolean> => {
 		setInput(serverUrl);
 
 		setValidation(['validating', null]);
@@ -76,6 +76,8 @@ export const AddServerView: FC = () => {
 		if (!/^https?:\/\//.test(serverUrl)) {
 			return validateServerUrl(`https://${ serverUrl }`);
 		}
+
+		return true;
 	}, [idleState, t]);
 
 	const handleFormSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {

@@ -44,7 +44,7 @@ export const browseForSpellCheckingDictionary = async (parentWindow: BrowserWind
 	return filePaths;
 };
 
-export enum AskUpdateInstallResponse {
+export const enum AskUpdateInstallResponse {
 	INSTALL_LATER = 0,
 	INSTALL_NOW = 1,
 }
@@ -61,13 +61,11 @@ export const askUpdateInstall = async (parentWindow: BrowserWindow): Promise<Ask
 		defaultId: 1,
 	});
 
-	if (response === 0) {
-		return AskUpdateInstallResponse.INSTALL_LATER;
-	}
-
 	if (response === 1) {
 		return AskUpdateInstallResponse.INSTALL_NOW;
 	}
+
+	return AskUpdateInstallResponse.INSTALL_LATER;
 };
 
 export const warnAboutInstallUpdateLater = async (parentWindow: BrowserWindow): Promise<void> => {
@@ -102,9 +100,7 @@ export const askForCertificateTrust = async (parentWindow: BrowserWindow, issuer
 		return AskForCertificateTrustResponse.YES;
 	}
 
-	if (response === 1) {
-		return AskForCertificateTrustResponse.NO;
-	}
+	return AskForCertificateTrustResponse.NO;
 };
 
 export const warnAboutUpdateDownload = async (rootWindow: BrowserWindow): Promise<void> => {

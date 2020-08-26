@@ -61,12 +61,12 @@ export const AboutDialog: FC = () => {
 
 		if (isCheckingForUpdates) {
 			setCheckingForUpdates([true, null]);
-			return;
+			return undefined;
 		}
 
 		if (newUpdateVersion) {
 			setCheckingForUpdates([false, null]);
-			return;
+			return undefined;
 		}
 
 		setCheckingForUpdates([true, t('dialog.about.noUpdatesAvailable')]);

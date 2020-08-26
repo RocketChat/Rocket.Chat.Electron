@@ -10,7 +10,7 @@ const getTrayIconSet = ({ platform, dark }: { platform: Platform, dark: boolean 
 	return platform;
 };
 
-const getTrayIconName = ({ badge, platform }): string => {
+const getTrayIconName = ({ badge, platform }: { badge: '•' | number, platform: NodeJS.Platform }): string => {
 	if (platform === 'darwin') {
 		return badge ? 'notification' : 'default';
 	}
@@ -26,7 +26,7 @@ const getTrayIconName = ({ badge, platform }): string => {
 	return 'default';
 };
 
-const getTrayIconExtension = ({ platform }): string => {
+const getTrayIconExtension = ({ platform }: { platform: NodeJS.Platform }): string => {
 	if (platform === 'win32') {
 		return 'ico';
 	}

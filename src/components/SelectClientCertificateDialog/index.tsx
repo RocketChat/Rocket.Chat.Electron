@@ -1,4 +1,5 @@
 import { Box, Button, Margins, Scrollable, Tile } from '@rocket.chat/fuselage';
+import { Certificate } from 'electron';
 import React, { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
@@ -16,7 +17,7 @@ export const SelectClientCertificateDialog: FC = () => {
 	const isVisible = openDialog === 'select-client-certificate';
 	const dispatch = useDispatch();
 
-	const handleSelect = (certificate) => () => {
+	const handleSelect = (certificate: Certificate) => () => {
 		dispatch({
 			type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
 			payload: certificate.fingerprint,

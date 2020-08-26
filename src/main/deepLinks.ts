@@ -45,8 +45,20 @@ const requestOpenRoom = (_rid: string, _path: string): Promise<void> => {
 
 export let processDeepLinksInArgs = async (): Promise<void> => undefined;
 
+type AuthenticationParams = {
+	host: string;
+	token: string;
+	userId: string;
+};
+
+type OpenRoomParams = {
+	host: string;
+	rid: string;
+	path: string;
+}
+
 export const setupDeepLinks = (reduxStore: Store, rootWindow: BrowserWindow): void => {
-	const performAuthentication = async ({ host, token, userId }): Promise<void> => {
+	const performAuthentication = async ({ host, token, userId }: AuthenticationParams): Promise<void> => {
 		const serverUrl = normalizeServerUrl(host);
 		if (!serverUrl) {
 			return;
@@ -78,7 +90,7 @@ export const setupDeepLinks = (reduxStore: Store, rootWindow: BrowserWindow): vo
 		await authenticateFromDeepLink(token, userId);
 	};
 
-	const performOpenRoom = async ({ host, rid, path }): Promise<void> => {
+	const performOpenRoom = async ({ host, rid, path }: OpenRoomParams): Promise<void> => {
 		const serverUrl = normalizeServerUrl(host);
 		if (!serverUrl) {
 			return;

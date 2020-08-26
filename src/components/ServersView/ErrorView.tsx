@@ -20,7 +20,7 @@ const ErrorView: FC<ErrorViewProps> = ({ isFailed, onReload }) => {
 		if (!isFailed) {
 			setReloading(false);
 			setCounter(60);
-			return;
+			return undefined;
 		}
 
 		const reloadCounterStepSize = 1;

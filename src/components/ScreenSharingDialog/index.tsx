@@ -23,7 +23,7 @@ export const ScreenSharingDialog: FC = () => {
 
 	useEffect(() => {
 		if (!isVisible) {
-			return;
+			return undefined;
 		}
 
 		const fetchSources = async (): Promise<void> => {

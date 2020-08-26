@@ -82,10 +82,12 @@
     "@types/i18next-node-fs-backend": "^2.1.0",
     "@types/jest": "^26.0.4",
     "@types/meteor": "^1.4.49",
+    "@types/node": "12",
     "@types/node-fetch": "^2.5.7",
     "@types/react": "^16.9.44",
     "@types/react-dom": "^16.9.8",
     "@types/react-redux": "^7.1.9",
+    "@types/resize-observer-browser": "^0.1.3",
     "@types/rimraf": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^3.6.1",
     "@typescript-eslint/parser": "^3.6.1",
@@ -112,12 +114,11 @@
     "xvfb-maybe": "^0.2.1"
   },
   "engines": {
-    "node": ">=10.16.x"
+    "node": ">=12.8.x"
   },
   "devEngines": {
-    "node": ">=10.16.x",
-    "npm": ">=6.9.x",
-    "yarn": ">=1.17.x"
+    "node": ">=12.8.x",
+    "yarn": ">=1.22.x"
   },
   "productName": "Rocket.Chat"
 }

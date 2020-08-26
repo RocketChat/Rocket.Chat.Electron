@@ -58,7 +58,7 @@ export const validateServerUrl = async (serverUrl: string, timeout = 5000): Prom
 
 export const normalizeServerUrl = (hostUrl: string): string => {
 	if (typeof hostUrl !== 'string') {
-		return;
+		return null;
 	}
 
 	let parsedUrl = url.parse(hostUrl);
@@ -70,7 +70,7 @@ export const normalizeServerUrl = (hostUrl: string): string => {
 	const { protocol, auth, hostname, port, pathname } = parsedUrl;
 
 	if (!protocol || !hostname) {
-		return;
+		return null;
 	}
 
 	return url.format({ protocol, auth, hostname, port, pathname });

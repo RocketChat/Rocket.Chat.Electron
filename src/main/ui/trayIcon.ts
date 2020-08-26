@@ -145,18 +145,18 @@ const manageTrayIcon = async (reduxStore: Store, rootWindow: BrowserWindow): Pro
 };
 
 export const setupTrayIcon = (reduxStore: Store, rootWindow: BrowserWindow): void => {
-	let trayIconTask = null;
+	let tearDownPromise: Promise<() => void> = null;
 
 	let prevIsTrayIconEnabled: boolean;
 	reduxStore.subscribe(() => {
 		const isTrayIconEnabled = selectIsTrayIconEnabled(reduxStore.getState());
 
 		if (prevIsTrayIconEnabled !== isTrayIconEnabled) {
-			if (!trayIconTask && isTrayIconEnabled) {
-				trayIconTask = manageTrayIcon(reduxStore, rootWindow);
-			} else if (trayIconTask && !isTrayIconEnabled) {
-				trayIconTask.then((cleanUp) => cleanUp());
-				trayIconTask = null;
+			if (!tearDownPromise && isTrayIconEnabled) {
+				tearDownPromise = manageTrayIcon(reduxStore, rootWindow);
+			} else if (tearDownPromise && !isTrayIconEnabled) {
+				tearDownPromise.then((cleanUp) => cleanUp());
+				tearDownPromise = null;
 			}
 
 			prevIsTrayIconEnabled = isTrayIconEnabled;

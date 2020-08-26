@@ -17,6 +17,8 @@ import {
 	Input,
 	WebPreferences,
 	IpcMainEvent,
+	Rectangle,
+	ContextMenuParams,
 } from 'electron';
 import i18next from 'i18next';
 import { Store } from 'redux';
@@ -52,6 +54,7 @@ import {
 	selectFocusedWebContents,
 	selectMainWindowState,
 } from '../../selectors';
+import { Dictionary } from '../../structs/spellChecking';
 import { WindowState } from '../../structs/ui';
 import { getTrayIconPath, getAppIconPath } from '../icons';
 import { importSpellCheckingDictionaries, getCorrectionsForMisspelling } from '../spellChecking';
@@ -79,7 +82,15 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 		rootWindow.webContents.send(WEBVIEW_DID_START_LOADING, serverUrl);
 	};
 
-	const handleDidFailLoad = (_event: DidFailLoadEvent, errorCode, errorDescription, validatedURL: string, isMainFrame: boolean): void => {
+	const handleDidFailLoad = (
+		_event: DidFailLoadEvent,
+		errorCode: number,
+		errorDescription: string,
+		validatedURL: string,
+		isMainFrame: boolean,
+		_frameProcessId: number,
+		_frameRoutingId: number,
+	): void => {
 		if (errorCode === -3) {
 			console.warn('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
 			return;
@@ -95,7 +106,13 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 		guestWebContents.focus();
 	};
 
-	const handleDidNavigateInPage = (_event: DidNavigateEvent, pageUrl: string): void => {
+	const handleDidNavigateInPage = (
+		_event: DidNavigateEvent,
+		pageUrl: string,
+		_isMainFrame: boolean,
+		_frameProcessId: number,
+		_frameRoutingId: number,
+	): void => {
 		reduxStore.dispatch({
 			type: WEBVIEW_DID_NAVIGATE,
 			payload: {
@@ -106,17 +123,22 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 		});
 	};
 
-	const handleContextMenu = async (event, params): Promise<void> => {
+	const handleContextMenu = async (event: Event, params: ContextMenuParams): Promise<void> => {
 		event.preventDefault();
 
 		const dictionaries = selectSpellCheckingDictionaries(reduxStore.getState());
 		const webContents = selectFocusedWebContents(reduxStore.getState());
 
+		type Params = Partial<ContextMenuParams> & {
+			corrections: string[];
+			dictionaries: Dictionary[];
+		};
+
 		const createSpellCheckingMenuTemplate = ({
 			isEditable,
 			corrections,
 			dictionaries,
-		}): MenuItemConstructorOptions[] => {
+		}: Params): MenuItemConstructorOptions[] => {
 			if (!isEditable) {
 				return [];
 			}
@@ -130,7 +152,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 								enabled: false,
 							},
 						]
-						: corrections.slice(0, 6).map((correction) => ({
+						: corrections.slice(0, 6).map<MenuItemConstructorOptions>((correction) => ({
 							label: correction,
 							click: () => {
 								webContents.replaceMisspelling(correction);
@@ -139,7 +161,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 					...corrections.length > 6 ? [
 						{
 							label: t('contextMenu.moreSpellingSuggestions'),
-							submenu: corrections.slice(6).map((correction) => ({
+							submenu: corrections.slice(6).map<MenuItemConstructorOptions>((correction) => ({
 								label: correction,
 								click: () => {
 									webContents.replaceMisspelling(correction);
@@ -148,12 +170,12 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 						},
 					] : [],
 					{ type: 'separator' },
-				] : [],
+				] as MenuItemConstructorOptions[] : [],
 				{
 					label: t('contextMenu.spellingLanguages'),
 					enabled: dictionaries.length > 0,
 					submenu: [
-						...dictionaries.map(({ name, enabled }) => ({
+						...dictionaries.map<MenuItemConstructorOptions>(({ name, enabled }) => ({
 							label: name,
 							type: 'checkbox',
 							checked: enabled,
@@ -181,7 +203,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 		const createImageMenuTemplate = ({
 			mediaType,
 			srcURL,
-		}): MenuItemConstructorOptions[] => (
+		}: Params): MenuItemConstructorOptions[] => (
 			mediaType === 'image' ? [
 				{
 					label: t('contextMenu.saveImageAs'),
@@ -194,7 +216,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 		const createLinkMenuTemplate = ({
 			linkURL,
 			linkText,
-		}): MenuItemConstructorOptions[] => (
+		}: Params): MenuItemConstructorOptions[] => (
 			linkURL
 				? [
 					{
@@ -223,8 +245,8 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 				canCopy = false,
 				canPaste = false,
 				canSelectAll = false,
-			} = {},
-		} = {}): MenuItemConstructorOptions[] => [
+			},
+		}: Params): MenuItemConstructorOptions[] => [
 			{
 				label: t('contextMenu.undo'),
 				role: 'undo',
@@ -392,7 +414,7 @@ export const createRootWindow = async (reduxStore: Store): Promise<BrowserWindow
 	});
 };
 
-const isInsideSomeScreen = ({ x, y, width, height }): boolean =>
+const isInsideSomeScreen = ({ x, y, width, height }: Rectangle): boolean =>
 	screen.getAllDisplays()
 		.some(({ bounds }) => x >= bounds.x && y >= bounds.y
 			&& x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,

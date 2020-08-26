@@ -33,7 +33,7 @@ const loadUserTrustedCertificates = async (): Promise<Record<string, unknown>> =
 const serializeCertificate = (certificate: Certificate): string =>
 	`${ certificate.issuerName }\n${ certificate.data.toString() }`;
 
-const queuedTrustRequests = new Map();
+const queuedTrustRequests = new Map<Certificate['fingerprint'], Array<(isTrusted: boolean) => void>>();
 
 export const setupNavigation = async (reduxStore: Store, rootWindow: BrowserWindow): Promise<void> => {
 	const trustedCertificates = selectTrustedCertificates(reduxStore.getState());

@@ -1,4 +1,5 @@
 import { Certificate, EditFlags, powerMonitor } from 'electron';
+import { Resource } from 'i18next';
 
 import { FluxStandardAction } from './structs/fsa';
 import { ExtendedNotificationOptions } from './structs/notifications';
@@ -130,7 +131,7 @@ export type RootWindowEditFlagsChangedAction = FluxStandardAction<typeof ROOT_WI
 export type RootWindowStateChangedAction = FluxStandardAction<typeof ROOT_WINDOW_STATE_CHANGED, WindowState>;
 export type RootWindowWebContentsFocusedAction = FluxStandardAction<typeof ROOT_WINDOW_WEBCONTENTS_FOCUSED, number>;
 export type ScreenSharingDialogDismissedAction = FluxStandardAction<typeof SCREEN_SHARING_DIALOG_DISMISSED, never>;
-export type SelectClientCertificateDialogCertificateSelectedAction = FluxStandardAction<typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, never>;
+export type SelectClientCertificateDialogCertificateSelectedAction = FluxStandardAction<typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, Certificate['fingerprint']>;
 export type SelectClientCertificateDialogDismissedAction = FluxStandardAction<typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED, never>;
 export type SideBarAddNewServerClickedAction = FluxStandardAction<typeof SIDE_BAR_ADD_NEW_SERVER_CLICKED, never>;
 export type SideBarRemoveServerClickedAction = FluxStandardAction<typeof SIDE_BAR_REMOVE_SERVER_CLICKED, string>;
@@ -140,16 +141,16 @@ export type SideBarContextMenuTriggeredAction = FluxStandardAction<typeof SIDE_B
 export type SpellCheckingDictionariesUpdatedAction = FluxStandardAction<typeof SPELL_CHECKING_DICTIONARIES_UPDATED, Dictionary[]>;
 export type SpellCheckingMisspeltWordsRequestedAction = FluxStandardAction<typeof SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, string[]>;
 export type SpellCheckingMisspeltWordsRespondedAction = FluxStandardAction<typeof SPELL_CHECKING_MISSPELT_WORDS_RESPONDED, string[]>;
-export type TouchBarFormatButtonTouchedAction = FluxStandardAction<typeof TOUCH_BAR_FORMAT_BUTTON_TOUCHED, 'bold' | 'italic' | 'strike' | 'inline_code' | 'multi_line' >;
+export type TouchBarFormatButtonTouchedAction = FluxStandardAction<typeof TOUCH_BAR_FORMAT_BUTTON_TOUCHED, 'bold' | 'italic' | 'strike' | 'inline_code' | 'multi_line'>;
 export type TouchBarSelectServerTouchedAction = FluxStandardAction<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED, string>;
 export type UpdateDialogDismissedAction = FluxStandardAction<typeof UPDATE_DIALOG_DISMISSED, never>;
 export type UpdateDialogInstallButtonClickedAction = FluxStandardAction<typeof UPDATE_DIALOG_INSTALL_BUTTON_CLICKED, never>;
 export type UpdateDialogRemindUpdateLaterClickedAction = FluxStandardAction<typeof UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED, never>;
 export type UpdateDialogSkipUpdateClickedAction = FluxStandardAction<typeof UPDATE_DIALOG_SKIP_UPDATE_CLICKED, never>;
 export type UpdatesCheckingForUpdateAction = FluxStandardAction<typeof UPDATES_CHECKING_FOR_UPDATE, never>;
-export type UpdatesErrorThrownAction = FluxStandardAction<typeof UPDATES_ERROR_THROWN, never>;
+export type UpdatesErrorThrownAction = FluxStandardAction<typeof UPDATES_ERROR_THROWN, Error>;
 export type UpdateSkippedAction = FluxStandardAction<typeof UPDATE_SKIPPED, never>;
-export type UpdatesNewVersionAvailableAction = FluxStandardAction<typeof UPDATES_NEW_VERSION_AVAILABLE, never>;
+export type UpdatesNewVersionAvailableAction = FluxStandardAction<typeof UPDATES_NEW_VERSION_AVAILABLE, string>;
 export type UpdatesNewVersionNotAvailableAction = FluxStandardAction<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE, never>;
 export type WebviewDidFailLoadAction = FluxStandardAction<typeof WEBVIEW_DID_FAIL_LOAD, { url: Server['url']; isMainFrame: boolean }>;
 export type WebviewDidNavigateAction = FluxStandardAction<typeof WEBVIEW_DID_NAVIGATE, { url: Server['url']; pageUrl: Server['lastPath'] }>;
@@ -166,7 +167,7 @@ export type WebviewSpellCheckingDictionaryToggledAction = FluxStandardAction<typ
 export type WebviewTitleChangedAction = FluxStandardAction<typeof WEBVIEW_TITLE_CHANGED, { url: Server['url']; title: Server['title'] }>;
 export type WebviewUnreadChangedAction = FluxStandardAction<typeof WEBVIEW_UNREAD_CHANGED, { url: Server['url']; badge: Server['badge'] }>;
 export type NotificationsCreateRequestedAction = FluxStandardAction<typeof NOTIFICATIONS_CREATE_REQUESTED, ExtendedNotificationOptions>;
-export type NotificationsCreateRespondedAction = FluxStandardAction<typeof NOTIFICATIONS_CREATE_RESPONDED, { id: unknown }>;
+export type NotificationsCreateRespondedAction = FluxStandardAction<typeof NOTIFICATIONS_CREATE_RESPONDED, unknown>;
 export type NotificationsNotificationDismissedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_DISMISSED, { id: unknown }>;
 export type NotificationsNotificationShownAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_SHOWN, { id: unknown }>;
 export type NotificationsNotificationClosedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_CLOSED, { id: unknown }>;
@@ -177,8 +178,13 @@ export type SystemLockingScreenAction = FluxStandardAction<typeof SYSTEM_LOCKING
 export type SystemSuspendingAction = FluxStandardAction<typeof SYSTEM_SUSPENDING, never>;
 export type SystemIdleStateRequestedAction = FluxStandardAction<typeof SYSTEM_IDLE_STATE_REQUESTED, number>;
 export type SystemIdleStateRespondedAction = FluxStandardAction<typeof SYSTEM_IDLE_STATE_RESPONDED, ReturnType<typeof powerMonitor.getSystemIdleState>>;
-export type ServerValidationRequestedAction = FluxStandardAction<typeof SERVER_VALIDATION_REQUESTED, { serverUrl: Server['url'] }>;
+export type ServerValidationRequestedAction = FluxStandardAction<typeof SERVER_VALIDATION_REQUESTED, { serverUrl: Server['url'], timeout?: number }>;
 export type ServerValidationRespondedAction = FluxStandardAction<typeof SERVER_VALIDATION_RESPONDED, ValidationResult>;
+export type DeepLinksServerAddedAction = FluxStandardAction<typeof DEEP_LINKS_SERVER_ADDED, Server['url']>;
+export type DeepLinksServerFocusedAction = FluxStandardAction<typeof DEEP_LINKS_SERVER_FOCUSED, Server['url']>;
+export type I18nParamsRequestedAction = FluxStandardAction<typeof I18N_PARAMS_REQUESTED>;
+export type I18nParamsRespondedAction = FluxStandardAction<typeof I18N_PARAMS_RESPONDED, { lng: string, fallbackLng: string, resources: Resource }>;
+export type UpdatesCheckForUpdatesRequestedAction = FluxStandardAction<typeof UPDATES_CHECK_FOR_UPDATES_REQUESTED>;
 
 export type SideEffectAction = (
   AppErrorThrownAction
@@ -199,4 +205,11 @@ export type SideEffectAction = (
   | SystemLockingScreenAction
   | SystemSuspendingAction
   | TouchBarFormatButtonTouchedAction
+  | DeepLinksServerAddedAction
+  | DeepLinksServerFocusedAction
+  | I18nParamsRequestedAction
+  | I18nParamsRespondedAction
+  | SideBarContextMenuTriggeredAction
+  | LoadingErrorViewReloadServerClickedAction
+  | UpdatesCheckForUpdatesRequestedAction
 );

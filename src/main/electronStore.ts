@@ -4,8 +4,14 @@ import appManifest from '../../package.json';
 
 const migrations = {};
 
-export const createElectronStore = (): ElectronStore =>
-  new ElectronStore({
+let electronStore: ElectronStore;
+
+export const getElectronStore = (): ElectronStore =>
+  electronStore;
+
+export const createElectronStore = (): void => {
+  electronStore = new ElectronStore({
     migrations,
     projectVersion: appManifest.version,
   } as unknown as ElectronStore.Options<Record<string, unknown>>);
+};

@@ -1,27 +1,35 @@
-import { takeEvery, take, put, Effect } from 'redux-saga/effects';
+import {
+  WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
+  WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
+  SCREEN_SHARING_DIALOG_DISMISSED,
+  WebviewScreenSharingSourceRequestedAction,
+} from '../actions';
+import { dispatch, listen } from '../store';
 
-import { WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, SCREEN_SHARING_DIALOG_DISMISSED } from '../actions';
-import { RequestAction } from '../channels';
+export const setupScreenSharing = (): void => {
+  listen(WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, (action: WebviewScreenSharingSourceRequestedAction) => {
+    const isResponse: Parameters<typeof listen>[0] = (responseAction) =>
+      [
+        WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
+        SCREEN_SHARING_DIALOG_DISMISSED,
+      ].includes(responseAction.type)
+      && responseAction.meta?.id === action.meta.id;
 
-export function *takeScreenSharingActions(): Generator<Effect> {
-  yield takeEvery(WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, function *(action: RequestAction<void>) {
-    const { meta: { id } } = action;
-    const responseAction = yield take([
-      WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
-      SCREEN_SHARING_DIALOG_DISMISSED,
-    ]);
+    const unsubscribe = listen(isResponse, (responseAction) => {
+      unsubscribe();
 
-    const sourceId = responseAction.type === WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED
-      ? responseAction.payload
-      : null;
+      const sourceId = responseAction.type === WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED
+        ? responseAction.payload
+        : null;
 
-    yield put({
-      type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
-      payload: sourceId,
-      meta: {
-        id,
-        response: true,
-      },
+      dispatch({
+        type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
+        payload: sourceId,
+        meta: {
+          response: true,
+          id: action.meta?.id,
+        },
+      });
     });
   });
-}
+};

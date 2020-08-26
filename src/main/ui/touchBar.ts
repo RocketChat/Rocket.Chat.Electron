@@ -1,6 +1,12 @@
-import { TouchBar, nativeImage, app, BrowserWindow, TouchBarScrubber, TouchBarPopover, TouchBarSegmentedControl } from 'electron';
+import {
+  TouchBar,
+  nativeImage,
+  app,
+  TouchBarScrubber,
+  TouchBarPopover,
+  TouchBarSegmentedControl,
+} from 'electron';
 import i18next from 'i18next';
-import { Store } from 'redux';
 
 import {
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
@@ -11,13 +17,15 @@ import {
   selectIsMessageBoxFocused,
   selectServers,
 } from '../../selectors';
+import { watch, select, dispatch } from '../../store';
 import { Server } from '../../structs/servers';
+import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 
-const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'];
+const ids = ['bold', 'italic', 'strike', 'inline_code', 'multi_line'] as const;
 
-const createTouchBar = (reduxStore: Store, rootWindow: BrowserWindow): [
+const createTouchBar = (): [
   TouchBar,
   TouchBarPopover,
   TouchBarScrubber,
@@ -29,9 +37,9 @@ const createTouchBar = (reduxStore: Store, rootWindow: BrowserWindow): [
     continuous: false,
     items: [],
     select: (index) => {
-      rootWindow.show();
-      const url = (({ servers }) => servers[index].url)(reduxStore.getState());
-      reduxStore.dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
+      getRootWindow().show();
+      const url = select(({ servers }) => servers[index].url);
+      dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
     },
   });
 
@@ -51,8 +59,11 @@ const createTouchBar = (reduxStore: Store, rootWindow: BrowserWindow): [
       enabled: false,
     })),
     change: (selectedIndex) => {
-      rootWindow.show();
-      reduxStore.dispatch({ type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED, payload: ids[selectedIndex] });
+      getRootWindow().show();
+      dispatch({
+        type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
+        payload: ids[selectedIndex],
+      });
     },
   });
 
@@ -65,7 +76,7 @@ const createTouchBar = (reduxStore: Store, rootWindow: BrowserWindow): [
     ],
   });
 
-  rootWindow.setTouchBar(touchBar);
+  getRootWindow().setTouchBar(touchBar);
 
   return [
     touchBar,
@@ -97,7 +108,7 @@ const toggleMessageFormattingButtons = (messageBoxFormattingButtons: TouchBarSeg
   });
 };
 
-export const setupTouchBar = (reduxStore: Store, rootWindow: BrowserWindow): void => {
+export const setupTouchBar = (): void => {
   if (process.platform !== 'darwin') {
     return;
   }
@@ -107,35 +118,20 @@ export const setupTouchBar = (reduxStore: Store, rootWindow: BrowserWindow): voi
     serverSelectionPopover,
     serverSelectionScrubber,
     messageBoxFormattingButtons,
-  ] = createTouchBar(reduxStore, rootWindow);
+  ] = createTouchBar();
 
-  let prevCurrentServer: Server;
-  reduxStore.subscribe(() => {
-    const currentServer = selectCurrentServer(reduxStore.getState());
-    if (prevCurrentServer !== currentServer) {
-      updateServerSelectionPopover(serverSelectionPopover, currentServer);
-      rootWindow.setTouchBar(touchBar);
-      prevCurrentServer = currentServer;
-    }
+  watch(selectCurrentServer, (currentServer) => {
+    updateServerSelectionPopover(serverSelectionPopover, currentServer);
+    getRootWindow().setTouchBar(touchBar);
   });
 
-  let prevServers: Server[];
-  reduxStore.subscribe(() => {
-    const servers = selectServers(reduxStore.getState());
-    if (prevServers !== servers) {
-      updateServerSelectionScrubber(serverSelectionScrubber, servers);
-      rootWindow.setTouchBar(touchBar);
-      prevServers = servers;
-    }
+  watch(selectServers, (servers) => {
+    updateServerSelectionScrubber(serverSelectionScrubber, servers);
+    getRootWindow().setTouchBar(touchBar);
   });
 
-  let prevIsMessageBoxFocused: boolean;
-  reduxStore.subscribe(() => {
-    const isMessageBoxFocused = selectIsMessageBoxFocused(reduxStore.getState());
-    if (prevIsMessageBoxFocused !== isMessageBoxFocused) {
-      toggleMessageFormattingButtons(messageBoxFormattingButtons, isMessageBoxFocused);
-      rootWindow.setTouchBar(touchBar);
-      prevIsMessageBoxFocused = isMessageBoxFocused;
-    }
+  watch(selectIsMessageBoxFocused, (isMessageBoxFocused) => {
+    toggleMessageFormattingButtons(messageBoxFormattingButtons, isMessageBoxFocused);
+    getRootWindow().setTouchBar(touchBar);
   });
 };

@@ -1,11 +1,14 @@
-import { app, BrowserWindow } from 'electron';
-import { Store } from 'redux';
-import { Effect, takeEvery } from 'redux-saga/effects';
+import { app } from 'electron';
 import rimraf from 'rimraf';
 
 import {
-  APP_ERROR_THROWN, AppErrorThrownAction,
+  APP_ERROR_THROWN,
+  APP_PATH_SET,
+  APP_VERSION_SET,
+  AppErrorThrownAction,
 } from '../actions';
+import { listen, dispatch } from '../store';
+import { getRootWindow } from './ui/rootWindow';
 
 export const relaunchApp = (...args: string[]): void => {
   const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
@@ -42,13 +45,16 @@ export const performElectronStartup = (): void => {
   }
 };
 
-export const setupApp = (_reduxStore: Store, rootWindow: BrowserWindow): void => {
+export const setupApp = (): void => {
   app.addListener('activate', () => {
+    const rootWindow = getRootWindow();
     rootWindow.showInactive();
     rootWindow.focus();
   });
 
   app.addListener('before-quit', () => {
+    const rootWindow = getRootWindow();
+
     if (rootWindow.isDestroyed()) {
       return;
     }
@@ -57,6 +63,8 @@ export const setupApp = (_reduxStore: Store, rootWindow: BrowserWindow): void =>
   });
 
   app.addListener('second-instance', () => {
+    const rootWindow = getRootWindow();
+
     rootWindow.showInactive();
     rootWindow.focus();
   });
@@ -64,11 +72,11 @@ export const setupApp = (_reduxStore: Store, rootWindow: BrowserWindow): void =>
   app.addListener('window-all-closed', () => {
     app.quit();
   });
-};
 
-export function *takeAppActions(): Generator<Effect, void> {
-  yield takeEvery(APP_ERROR_THROWN, function *(action: AppErrorThrownAction) {
-    const { payload: error } = action;
-    console.error(error.stack);
+  listen(APP_ERROR_THROWN, (action: AppErrorThrownAction) => {
+    console.error(action.payload);
   });
-}
+
+  dispatch({ type: APP_PATH_SET, payload: app.getAppPath() });
+  dispatch({ type: APP_VERSION_SET, payload: app.getVersion() });
+};

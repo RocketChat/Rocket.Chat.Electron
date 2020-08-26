@@ -1,7 +1,7 @@
 import { Scrollable, Tile } from '@rocket.chat/fuselage';
 import React, { FC } from 'react';
 
-import { useDialog } from '../../hooks/useDialog';
+import { useDialog } from './hooks';
 import { Wrapper } from './styles';
 
 type DialogProps = {

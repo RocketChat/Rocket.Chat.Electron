@@ -1,23 +1,25 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app, WebContents } from 'electron';
-import ElectronStore from 'electron-store';
-import { Store } from 'redux';
+import { app } from 'electron';
 
 import { PERSISTABLE_VALUES_MERGED } from '../actions';
 import { selectPersistableValues } from '../selectors';
+import { select, dispatch, watch } from '../store';
+import { getElectronStore } from './electronStore';
+import { getRootWindow } from './ui/rootWindow';
 
-export const getLocalStorage = (webContents: WebContents): Promise<Record<string, string>> =>
-  webContents.executeJavaScript('({...localStorage})');
+export const getLocalStorage = (): Promise<Record<string, string>> =>
+  getRootWindow().webContents.executeJavaScript('({...localStorage})');
 
-export const purgeLocalStorage = async (webContents: WebContents): Promise<void> => {
-  await webContents.executeJavaScript('localStorage.clear()');
+export const purgeLocalStorage = async (): Promise<void> => {
+  await getRootWindow().webContents.executeJavaScript('localStorage.clear()');
 };
 
-export const mergePersistableValues = async (reduxStore: Store, electronStore: ElectronStore, localStorage: Record<string, string>): Promise<void> => {
-  const initialValues = selectPersistableValues(reduxStore.getState());
+export const mergePersistableValues = async (localStorage: Record<string, string>): Promise<void> => {
+  const initialValues = select(selectPersistableValues);
 
+  const electronStore = getElectronStore();
   const electronStoreValues = Object.fromEntries(Array.from(electronStore));
 
   const localStorageValues = Object.fromEntries(
@@ -96,16 +98,14 @@ export const mergePersistableValues = async (reduxStore: Store, electronStore: E
     },
   };
 
-  reduxStore.dispatch({
+  dispatch({
     type: PERSISTABLE_VALUES_MERGED,
     payload: values,
   });
 };
 
-export const watchAndPersistChanges = (reduxStore: Store, electronStore: ElectronStore): void => {
-  reduxStore.subscribe(() => {
-    const values = selectPersistableValues(reduxStore.getState());
-
-    electronStore.set(values);
+export const watchAndPersistChanges = (): void => {
+  watch(selectPersistableValues, (values) => {
+    getElectronStore().set(values);
   });
 };

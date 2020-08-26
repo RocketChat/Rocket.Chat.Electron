@@ -122,6 +122,8 @@ export const selectPersistableValues = createStructuredSelector({
   spellCheckingDictionaries: selectSpellCheckingDictionaries,
   skippedUpdateVersion: selectSkippedUpdateVersion,
   trustedCertificates: selectTrustedCertificates,
+  isEachUpdatesSettingConfigurable: selectIsEachUpdatesSettingConfigurable,
+  isUpdatingEnabled: selectIsUpdatingEnabled,
 });
 
 export const selectIsMainWindowVisible = createSelector(selectMainWindowState, ({ visible }) => visible);

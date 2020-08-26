@@ -1,10 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app, BrowserWindow } from 'electron';
+import { app } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import { Store } from 'redux';
-import { takeEvery, call, put, Effect } from 'redux-saga/effects';
 
 import {
   UPDATES_ERROR_THROWN,
@@ -22,6 +20,7 @@ import {
   selectSkippedUpdateVersion,
   selectUpdateConfiguration,
 } from '../selectors';
+import { listen, dispatch, select } from '../store';
 import {
   askUpdateInstall,
   AskUpdateInstallResponse,
@@ -59,8 +58,8 @@ const loadUserConfiguration = async (): Promise<Record<string, unknown>> => {
   }
 };
 
-const loadConfiguration = async (reduxStore: Store): Promise<Record<string, unknown>> => {
-  const defaultConfiguration = selectUpdateConfiguration(reduxStore.getState());
+const loadConfiguration = async (): Promise<ReturnType<typeof selectUpdateConfiguration>> => {
+  const defaultConfiguration = select(selectUpdateConfiguration);
   const appConfiguration = await loadAppConfiguration();
 
   const configuration = {
@@ -86,7 +85,7 @@ const loadConfiguration = async (reduxStore: Store): Promise<Record<string, unkn
   return configuration;
 };
 
-export const setupUpdates = async (reduxStore: Store, rootWindow: BrowserWindow): Promise<void> => {
+export const setupUpdates = async (): Promise<void> => {
   autoUpdater.autoDownload = false;
 
   const isUpdatingAllowed = (process.platform === 'linux' && !!process.env.APPIMAGE)
@@ -98,9 +97,9 @@ export const setupUpdates = async (reduxStore: Store, rootWindow: BrowserWindow)
     isUpdatingEnabled,
     doCheckForUpdatesOnStartup,
     skippedUpdateVersion,
-  } = await loadConfiguration(reduxStore);
+  } = await loadConfiguration();
 
-  reduxStore.dispatch({
+  dispatch({
     type: UPDATES_READY,
     payload: {
       isUpdatingAllowed,
@@ -116,28 +115,31 @@ export const setupUpdates = async (reduxStore: Store, rootWindow: BrowserWindow)
   }
 
   autoUpdater.addListener('checking-for-update', () => {
-    reduxStore.dispatch({ type: UPDATES_CHECKING_FOR_UPDATE });
+    dispatch({ type: UPDATES_CHECKING_FOR_UPDATE });
   });
 
   autoUpdater.addListener('update-available', ({ version }) => {
-    const skippedUpdateVersion = selectSkippedUpdateVersion(reduxStore.getState());
+    const skippedUpdateVersion = select(selectSkippedUpdateVersion);
     if (skippedUpdateVersion === version) {
-      reduxStore.dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+      dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
       return;
     }
 
-    reduxStore.dispatch({ type: UPDATES_NEW_VERSION_AVAILABLE, payload: version });
+    dispatch({
+      type: UPDATES_NEW_VERSION_AVAILABLE,
+      payload: version as string,
+    });
   });
 
   autoUpdater.addListener('update-not-available', () => {
-    reduxStore.dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+    dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
   });
 
   autoUpdater.addListener('update-downloaded', async () => {
-    const response = await askUpdateInstall(rootWindow);
+    const response = await askUpdateInstall();
 
     if (response === AskUpdateInstallResponse.INSTALL_LATER) {
-      await warnAboutInstallUpdateLater(rootWindow);
+      await warnAboutInstallUpdateLater();
       return;
     }
 
@@ -145,7 +147,7 @@ export const setupUpdates = async (reduxStore: Store, rootWindow: BrowserWindow)
       app.removeAllListeners('window-all-closed');
       autoUpdater.quitAndInstall(true, true);
     } catch (error) {
-      reduxStore.dispatch({
+      dispatch({
         type: UPDATES_ERROR_THROWN,
         payload: {
           message: error.message,
@@ -157,7 +159,7 @@ export const setupUpdates = async (reduxStore: Store, rootWindow: BrowserWindow)
   });
 
   autoUpdater.addListener('error', (error) => {
-    reduxStore.dispatch({
+    dispatch({
       type: UPDATES_ERROR_THROWN,
       payload: {
         message: error.message,
@@ -171,7 +173,7 @@ export const setupUpdates = async (reduxStore: Store, rootWindow: BrowserWindow)
     try {
       await autoUpdater.checkForUpdates();
     } catch (error) {
-      reduxStore.dispatch({
+      dispatch({
         type: UPDATES_ERROR_THROWN,
         payload: {
           message: error.message,
@@ -181,14 +183,12 @@ export const setupUpdates = async (reduxStore: Store, rootWindow: BrowserWindow)
       });
     }
   }
-};
 
-export function *takeUpdateActions(rootWindow: BrowserWindow): Generator<Effect> {
-  yield takeEvery(UPDATES_CHECK_FOR_UPDATES_REQUESTED, function *() {
+  listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
     try {
-      yield call(() => autoUpdater.checkForUpdates());
+      await autoUpdater.checkForUpdates();
     } catch (error) {
-      yield put({
+      dispatch({
         type: UPDATES_ERROR_THROWN,
         payload: {
           message: error.message,
@@ -199,19 +199,21 @@ export function *takeUpdateActions(rootWindow: BrowserWindow): Generator<Effect>
     }
   });
 
-  yield takeEvery(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, function *(action: UpdateDialogSkipUpdateClickedAction) {
-    const { payload: newVersion } = action;
-    yield call(() => warnAboutUpdateSkipped(rootWindow));
-    yield put({ type: UPDATE_SKIPPED, payload: newVersion });
+  listen(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, async (action: UpdateDialogSkipUpdateClickedAction) => {
+    await warnAboutUpdateSkipped();
+    dispatch({
+      type: UPDATE_SKIPPED,
+      payload: action.payload,
+    });
   });
 
-  yield takeEvery(UPDATE_DIALOG_INSTALL_BUTTON_CLICKED, function *() {
-    yield call(() => warnAboutUpdateDownload(rootWindow));
+  listen(UPDATE_DIALOG_INSTALL_BUTTON_CLICKED, async () => {
+    await warnAboutUpdateDownload();
 
     try {
       autoUpdater.downloadUpdate();
     } catch (error) {
-      yield put({
+      dispatch({
         type: UPDATES_ERROR_THROWN,
         payload: {
           message: error.message,
@@ -221,4 +223,4 @@ export function *takeUpdateActions(rootWindow: BrowserWindow): Generator<Effect>
       });
     }
   });
-}
+};

@@ -1,6 +1,5 @@
-import { Menu, app, shell, BrowserWindow, MenuItemConstructorOptions } from 'electron';
+import { Menu, app, shell, MenuItemConstructorOptions } from 'electron';
 import i18next from 'i18next';
-import { Store } from 'redux';
 import { createSelector } from 'reselect';
 
 import {
@@ -30,13 +29,18 @@ import {
   selectServers,
   selectIsServerSelected,
 } from '../../selectors';
+import { dispatch, watch } from '../../store';
 import { relaunchApp } from '../app';
 import { askForAppDataReset } from './dialogs';
-import { getWebContentsByServerUrl, getAllServerWebContents } from './rootWindow';
+import {
+  getWebContentsByServerUrl,
+  getAllServerWebContents,
+  getRootWindow,
+} from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 
-export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void => {
+export const setupMenuBar = (): void => {
   const selectAppMenuTemplate = createSelector([], (): MenuItemConstructorOptions => ({
     label: process.platform === 'darwin' ? app.name : t('menus.fileMenu'),
     submenu: [
@@ -44,8 +48,8 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
         {
           label: t('menus.about', { appName: app.name }),
           click: () => {
-            rootWindow.show();
-            reduxStore.dispatch({ type: MENU_BAR_ABOUT_CLICKED });
+            getRootWindow().show();
+            dispatch({ type: MENU_BAR_ABOUT_CLICKED });
           },
         },
         { type: 'separator' },
@@ -73,8 +77,8 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
           label: t('menus.addNewServer'),
           accelerator: 'CommandOrControl+N',
           click: () => {
-            rootWindow.show();
-            reduxStore.dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
+            getRootWindow().show();
+            dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
           },
         },
         { type: 'separator' },
@@ -175,7 +179,7 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
         accelerator: 'CommandOrControl+R',
         enabled: isServerSelected,
         click: () => {
-          rootWindow.show();
+          getRootWindow().show();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.reload();
         },
@@ -184,7 +188,7 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
         label: t('menus.reloadIgnoringCache'),
         enabled: isServerSelected,
         click: () => {
-          rootWindow.show();
+          getRootWindow().show();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.reloadIgnoringCache();
         },
@@ -204,7 +208,7 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
         enabled: isServerSelected,
         accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
         click: () => {
-          rootWindow.show();
+          getRootWindow().show();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.goBack();
         },
@@ -214,7 +218,7 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
         enabled: isServerSelected,
         accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
         click: () => {
-          rootWindow.show();
+          getRootWindow().show();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.goForward();
         },
@@ -225,7 +229,7 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
         type: 'checkbox',
         checked: isTrayIconEnabled,
         click: ({ checked }) => {
-          reduxStore.dispatch({
+          dispatch({
             type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
             payload: checked,
           });
@@ -238,8 +242,8 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
           checked: isFullScreenEnabled,
           accelerator: 'Control+Command+F',
           click: ({ checked: enabled }) => {
-            rootWindow.show();
-            rootWindow.setFullScreen(enabled);
+            getRootWindow().show();
+            getRootWindow().setFullScreen(enabled);
           },
         },
       ] : []) as MenuItemConstructorOptions[],
@@ -249,8 +253,8 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
           type: 'checkbox',
           checked: isMenuBarEnabled,
           click: ({ checked }) => {
-            rootWindow.show();
-            reduxStore.dispatch({
+            getRootWindow().show();
+            dispatch({
               type: MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
               payload: checked,
             });
@@ -262,8 +266,8 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
         type: 'checkbox',
         checked: isSideBarEnabled,
         click: ({ checked }) => {
-          rootWindow.show();
-          reduxStore.dispatch({
+          getRootWindow().show();
+          dispatch({
             type: MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
             payload: checked,
           });
@@ -274,30 +278,30 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
         label: t('menus.resetZoom'),
         accelerator: 'CommandOrControl+0',
         click: () => {
-          rootWindow.show();
-          rootWindow.webContents.zoomLevel = 0;
+          getRootWindow().show();
+          getRootWindow().webContents.zoomLevel = 0;
         },
       },
       {
         label: t('menus.zoomIn'),
         accelerator: 'CommandOrControl+Plus',
         click: () => {
-          rootWindow.show();
-          if (rootWindow.webContents.zoomLevel >= 9) {
+          getRootWindow().show();
+          if (getRootWindow().webContents.zoomLevel >= 9) {
             return;
           }
-          rootWindow.webContents.zoomLevel++;
+          getRootWindow().webContents.zoomLevel++;
         },
       },
       {
         label: t('menus.zoomOut'),
         accelerator: 'CommandOrControl+-',
         click: () => {
-          rootWindow.show();
-          if (rootWindow.webContents.zoomLevel <= -9) {
+          getRootWindow().show();
+          if (getRootWindow().webContents.zoomLevel <= -9) {
             return;
           }
-          rootWindow.webContents.zoomLevel--;
+          getRootWindow().webContents.zoomLevel--;
         },
       },
     ],
@@ -316,8 +320,8 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
           label: t('menus.addNewServer'),
           accelerator: 'CommandOrControl+N',
           click: () => {
-            rootWindow.show();
-            reduxStore.dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
+            getRootWindow().show();
+            dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
           },
         },
         { type: 'separator' },
@@ -329,8 +333,8 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
           checked: currentServerUrl === server.url,
           accelerator: `CommandOrControl+${ i + 1 }`,
           click: () => {
-            rootWindow.show();
-            reduxStore.dispatch({
+            getRootWindow().show();
+            dispatch({
               type: MENU_BAR_SELECT_SERVER_CLICKED,
               payload: server.url,
             });
@@ -343,8 +347,8 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
         label: t('menus.showOnUnreadMessage'),
         checked: isShowWindowOnUnreadChangedEnabled,
         click: ({ checked }) => {
-          rootWindow.show();
-          reduxStore.dispatch({
+          getRootWindow().show();
+          dispatch({
             type: MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
             payload: checked,
           });
@@ -385,23 +389,23 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
         label: t('menus.reload'),
         accelerator: 'CommandOrControl+Shift+R',
         click: () => {
-          rootWindow.show();
-          rootWindow.reload();
+          getRootWindow().show();
+          getRootWindow().reload();
         },
       },
       {
         label: t('menus.toggleDevTools'),
         click: () => {
-          rootWindow.show();
-          rootWindow.webContents.toggleDevTools();
+          getRootWindow().show();
+          getRootWindow().webContents.toggleDevTools();
         },
       },
       { type: 'separator' },
       {
         label: t('menus.clearTrustedCertificates'),
         click: () => {
-          rootWindow.show();
-          reduxStore.dispatch({ type: CERTIFICATES_CLEARED });
+          getRootWindow().show();
+          dispatch({ type: CERTIFICATES_CLEARED });
           getAllServerWebContents().forEach((webContents) => {
             webContents.reloadIgnoringCache();
           });
@@ -410,7 +414,7 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
       {
         label: t('menus.resetAppData'),
         click: async () => {
-          const permitted = await askForAppDataReset(rootWindow);
+          const permitted = await askForAppDataReset();
 
           if (permitted) {
             relaunchApp('--reset-app-data');
@@ -428,8 +432,8 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
         {
           label: t('menus.about', { appName: app.name }),
           click: () => {
-            rootWindow.show();
-            reduxStore.dispatch({ type: MENU_BAR_ABOUT_CLICKED });
+            getRootWindow().show();
+            dispatch({ type: MENU_BAR_ABOUT_CLICKED });
           },
         },
       ] : [],
@@ -444,22 +448,15 @@ export const setupMenuBar = (reduxStore: Store, rootWindow: BrowserWindow): void
     selectHelpMenuTemplate,
   ], (...menus) => menus);
 
-  let prevMenuBarTemplate: MenuItemConstructorOptions[];
-  reduxStore.subscribe(() => {
-    const menuBarTemplate = selectMenuBarTemplate(reduxStore.getState());
+  watch(selectMenuBarTemplate, (menuBarTemplate) => {
+    const menu = Menu.buildFromTemplate(menuBarTemplate);
 
-    if (prevMenuBarTemplate !== menuBarTemplate) {
-      const menu = Menu.buildFromTemplate(menuBarTemplate);
-
-      if (process.platform === 'darwin') {
-        Menu.setApplicationMenu(menu);
-        return;
-      }
-
-      Menu.setApplicationMenu(null);
-      rootWindow.setMenu(menu);
-
-      prevMenuBarTemplate = menuBarTemplate;
+    if (process.platform === 'darwin') {
+      Menu.setApplicationMenu(menu);
+      return;
     }
+
+    Menu.setApplicationMenu(null);
+    getRootWindow().setMenu(menu);
   });
 };

@@ -1,5 +1,4 @@
 import { applyMiddleware, createStore, Store, compose, Middleware, Dispatch } from 'redux';
-import createSagaMiddleware, { Saga } from 'redux-saga';
 
 import { SideEffectAction } from './actions';
 import { forwardToRenderers, getInitialState, forwardToMain } from './ipc';
@@ -24,13 +23,10 @@ const catchLastAction: Middleware = () =>
       return next(action);
     };
 
-export const createMainReduxStore = (rootSaga: Saga): void => {
-  const sagaMiddleware = createSagaMiddleware();
-  const middlewares = applyMiddleware(sagaMiddleware, catchLastAction, forwardToRenderers);
+export const createMainReduxStore = (): void => {
+  const middlewares = applyMiddleware(catchLastAction, forwardToRenderers);
 
   reduxStore = createStore(rootReducer, {}, middlewares);
-
-  sagaMiddleware.run(rootSaga, reduxStore);
 };
 
 export const createRendererReduxStore = async (): Promise<void> => {
@@ -70,13 +66,16 @@ export const watchAll = (pairs: [RootSelector<unknown>, (curr: unknown, prev: un
   return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
 };
 
-export const listen = (predicate: GenericAction['type'] | ((action: GenericAction) => boolean), listener: (action: GenericAction) => void): (() => void) => {
+export const listen = <A extends GenericAction = GenericAction>(
+  predicate: GenericAction['type'] | ((action: GenericAction) => boolean),
+  listener: (action: A) => void,
+): (() => void) => {
   const effectivePredicate = typeof predicate === 'function'
-    ? () => predicate(lastAction)
-    : () => lastAction?.type === predicate;
+    ? (action: GenericAction): action is A => predicate(action)
+    : (action: GenericAction): action is A => action?.type === predicate;
 
   return reduxStore.subscribe(() => {
-    if (!effectivePredicate()) {
+    if (!effectivePredicate(lastAction)) {
       return;
     }
 
@@ -89,7 +88,7 @@ export const request = <Res extends GenericAction = GenericAction>(requestAction
     const id = Math.random().toString(36).slice(2);
 
     const isResponse = (action: GenericAction): action is Res =>
-      action?.meta?.response && action?.meta?.id === id;
+      action.meta?.response && action.meta?.id === id;
 
     const unsubscribe = listen(isResponse, (action: Res) => {
       unsubscribe();

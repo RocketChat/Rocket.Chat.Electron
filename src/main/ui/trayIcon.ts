@@ -1,42 +1,43 @@
-import { app, nativeTheme, Menu, Tray, BrowserWindow } from 'electron';
+import { app, nativeTheme, Menu, Tray } from 'electron';
 import i18next from 'i18next';
-import { Store } from 'redux';
 
 import {
   selectIsTrayIconEnabled,
   selectIsMainWindowVisible,
   selectGlobalBadge,
 } from '../../selectors';
+import { watch, select } from '../../store';
 import { Server } from '../../structs/servers';
 import { getTrayIconPath, getAppIconPath } from '../icons';
+import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 
-const createTrayIcon = (reduxStore: Store, rootWindow: BrowserWindow): Tray => {
+const createTrayIcon = (): Tray => {
   const image = getTrayIconPath({ badge: null, dark: nativeTheme.shouldUseDarkColors });
 
   const trayIcon = new Tray(image);
 
   trayIcon.addListener('click', () => {
-    const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
+    const isMainWindowVisible = select(selectIsMainWindowVisible);
 
     if (isMainWindowVisible) {
-      rootWindow.hide();
+      getRootWindow().hide();
       return;
     }
 
-    rootWindow.show();
+    getRootWindow().show();
   });
 
   trayIcon.addListener('balloon-click', () => {
-    const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
+    const isMainWindowVisible = select(selectIsMainWindowVisible);
 
     if (isMainWindowVisible) {
-      rootWindow.hide();
+      getRootWindow().hide();
       return;
     }
 
-    rootWindow.show();
+    getRootWindow().show();
   });
 
   trayIcon.addListener('right-click', (_event, bounds) => {
@@ -78,58 +79,48 @@ const warnStillRunning = (trayIcon: Tray): void => {
   });
 };
 
-const manageTrayIcon = async (reduxStore: Store, rootWindow: BrowserWindow): Promise<() => void> => {
-  const trayIcon = createTrayIcon(reduxStore, rootWindow);
+const manageTrayIcon = async (): Promise<() => void> => {
+  const trayIcon = createTrayIcon();
 
-  let prevGlobalBadge: Server['badge'];
-  const unwatchGlobalBadge = reduxStore.subscribe(() => {
-    const globalBadge = selectGlobalBadge(reduxStore.getState());
-    if (prevGlobalBadge !== globalBadge) {
-      updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
-      updateTrayIconTitle(trayIcon, globalBadge);
-      updateTrayIconToolTip(trayIcon, globalBadge);
-      prevGlobalBadge = globalBadge;
-    }
+  const unwatchGlobalBadge = watch(selectGlobalBadge, (globalBadge) => {
+    updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
+    updateTrayIconTitle(trayIcon, globalBadge);
+    updateTrayIconToolTip(trayIcon, globalBadge);
   });
 
-  let prevIsRootWindowVisible: boolean;
-  const unwatchIsRootWindowVisible = reduxStore.subscribe(() => {
-    const isRootWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
-    if (prevIsRootWindowVisible !== isRootWindowVisible) {
-      const menuTemplate = [
-        {
-          label: isRootWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
-          click: () => {
-            const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
+  const unwatchIsRootWindowVisible = watch(selectIsMainWindowVisible, (isRootWindowVisible, prevIsRootWindowVisible) => {
+    const menuTemplate = [
+      {
+        label: isRootWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
+        click: () => {
+          const isMainWindowVisible = select(selectIsMainWindowVisible);
 
-            if (isMainWindowVisible) {
-              rootWindow.hide();
-              return;
-            }
+          if (isMainWindowVisible) {
+            getRootWindow().hide();
+            return;
+          }
 
-            rootWindow.show();
-          },
+          getRootWindow().show();
         },
-        {
-          label: t('tray.menu.quit'),
-          click: () => {
-            app.quit();
-          },
+      },
+      {
+        label: t('tray.menu.quit'),
+        click: () => {
+          app.quit();
         },
-      ];
+      },
+    ];
 
-      const menu = Menu.buildFromTemplate(menuTemplate);
-      trayIcon.setContextMenu(menu);
+    const menu = Menu.buildFromTemplate(menuTemplate);
+    trayIcon.setContextMenu(menu);
 
-      if (prevIsRootWindowVisible && !isRootWindowVisible && process.platform === 'win32') {
-        warnStillRunning(trayIcon);
-      }
-      prevIsRootWindowVisible = isRootWindowVisible;
+    if (prevIsRootWindowVisible && !isRootWindowVisible && process.platform === 'win32') {
+      warnStillRunning(trayIcon);
     }
   });
 
   const handleNativeThemeUpdatedEvent = (): void => {
-    const globalBadge = selectGlobalBadge(reduxStore.getState());
+    const globalBadge = select(selectGlobalBadge);
     updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
     updateTrayIconTitle(trayIcon, globalBadge);
     updateTrayIconToolTip(trayIcon, globalBadge);
@@ -145,22 +136,15 @@ const manageTrayIcon = async (reduxStore: Store, rootWindow: BrowserWindow): Pro
   };
 };
 
-export const setupTrayIcon = (reduxStore: Store, rootWindow: BrowserWindow): void => {
+export const setupTrayIcon = (): void => {
   let tearDownPromise: Promise<() => void> = null;
 
-  let prevIsTrayIconEnabled: boolean;
-  reduxStore.subscribe(() => {
-    const isTrayIconEnabled = selectIsTrayIconEnabled(reduxStore.getState());
-
-    if (prevIsTrayIconEnabled !== isTrayIconEnabled) {
-      if (!tearDownPromise && isTrayIconEnabled) {
-        tearDownPromise = manageTrayIcon(reduxStore, rootWindow);
-      } else if (tearDownPromise && !isTrayIconEnabled) {
-        tearDownPromise.then((cleanUp) => cleanUp());
-        tearDownPromise = null;
-      }
-
-      prevIsTrayIconEnabled = isTrayIconEnabled;
+  watch(selectIsTrayIconEnabled, (isTrayIconEnabled) => {
+    if (!tearDownPromise && isTrayIconEnabled) {
+      tearDownPromise = manageTrayIcon();
+    } else if (tearDownPromise && !isTrayIconEnabled) {
+      tearDownPromise.then((cleanUp) => cleanUp());
+      tearDownPromise = null;
     }
   });
 };

@@ -1,15 +1,16 @@
 import { URL } from 'url';
 
-import { app, BrowserWindow } from 'electron';
-import { Store } from 'redux';
+import { app } from 'electron';
 
 import {
   DEEP_LINKS_SERVER_FOCUSED,
   DEEP_LINKS_SERVER_ADDED,
 } from '../actions';
 import { selectServers } from '../selectors';
+import { select, dispatch } from '../store';
 import { normalizeServerUrl, getServerInfo } from './servers';
 import { askForServerAddition, warnAboutInvalidServerUrl } from './ui/dialogs';
+import { getRootWindow } from './ui/rootWindow';
 
 const isRocketChatUrl = (parsedUrl: URL): boolean =>
   parsedUrl.protocol === 'rocketchat:';
@@ -57,23 +58,23 @@ type OpenRoomParams = {
   path: string;
 }
 
-export const setupDeepLinks = (reduxStore: Store, rootWindow: BrowserWindow): void => {
+export const setupDeepLinks = (): void => {
   const performAuthentication = async ({ host, token, userId }: AuthenticationParams): Promise<void> => {
     const serverUrl = normalizeServerUrl(host);
     if (!serverUrl) {
       return;
     }
 
-    const servers = selectServers(reduxStore.getState());
+    const servers = select(selectServers);
     const isServerAdded = servers.some((server) => server.url === serverUrl);
 
     if (isServerAdded) {
-      reduxStore.dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
+      dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
       await authenticateFromDeepLink(token, userId);
       return;
     }
 
-    const permitted = await askForServerAddition(rootWindow, serverUrl);
+    const permitted = await askForServerAddition(serverUrl);
 
     if (!permitted) {
       return;
@@ -82,11 +83,11 @@ export const setupDeepLinks = (reduxStore: Store, rootWindow: BrowserWindow): vo
     const { server, error } = await getServerInfo(serverUrl);
 
     if (error) {
-      await warnAboutInvalidServerUrl(rootWindow, serverUrl, error);
+      await warnAboutInvalidServerUrl(serverUrl, error);
     }
 
-    reduxStore.dispatch({ type: DEEP_LINKS_SERVER_ADDED, payload: server });
-    reduxStore.dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
+    dispatch({ type: DEEP_LINKS_SERVER_ADDED, payload: server });
+    dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
     await authenticateFromDeepLink(token, userId);
   };
 
@@ -96,16 +97,16 @@ export const setupDeepLinks = (reduxStore: Store, rootWindow: BrowserWindow): vo
       return;
     }
 
-    const servers = selectServers(reduxStore.getState());
+    const servers = select(selectServers);
     const isServerAdded = servers.some((server) => server.url === serverUrl);
 
     if (isServerAdded) {
-      reduxStore.dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
+      dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
       await requestOpenRoom(rid, path);
       return;
     }
 
-    const permitted = await askForServerAddition(rootWindow, serverUrl);
+    const permitted = await askForServerAddition(serverUrl);
 
     if (!permitted) {
       return;
@@ -114,16 +115,16 @@ export const setupDeepLinks = (reduxStore: Store, rootWindow: BrowserWindow): vo
     const { server, error } = await getServerInfo(serverUrl);
 
     if (error) {
-      await warnAboutInvalidServerUrl(rootWindow, serverUrl, error);
+      await warnAboutInvalidServerUrl(serverUrl, error);
     }
 
-    reduxStore.dispatch({ type: DEEP_LINKS_SERVER_ADDED, payload: server });
-    reduxStore.dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
+    dispatch({ type: DEEP_LINKS_SERVER_ADDED, payload: server });
+    dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
     await requestOpenRoom(rid, path);
   };
 
   const processDeepLink = async (deepLink: string): Promise<void> => {
-    rootWindow.show();
+    getRootWindow().show();
 
     const parsedDeepLink = parseDeepLink(deepLink);
 

@@ -3,8 +3,6 @@ import path from 'path';
 
 import { app } from 'electron';
 import { SpellCheckerProvider } from 'electron-hunspell';
-import { Store } from 'redux';
-import { takeEvery, call, put, Effect } from 'redux-saga/effects';
 
 import {
   SPELL_CHECKING_DICTIONARIES_UPDATED,
@@ -17,6 +15,7 @@ import {
   selectSpellCheckingDictionaries,
   selectPersistableValues,
 } from '../selectors';
+import { select, dispatch, watch, listen } from '../store';
 import { Dictionary } from '../structs/spellChecking';
 
 const embeddedDictionaries = [
@@ -110,7 +109,7 @@ const loadSpellCheckingDictionariesFromDirectory = async (dictionariesDirectoryP
   }
 };
 
-const loadSpellCheckingDictionaries = async (reduxStore: Store): Promise<Dictionary[]> => {
+const loadSpellCheckingDictionaries = async (): Promise<Dictionary[]> => {
   const appDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: true });
   const userDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: false });
 
@@ -121,7 +120,7 @@ const loadSpellCheckingDictionaries = async (reduxStore: Store): Promise<Diction
     loadSpellCheckingDictionariesFromDirectory(userDictionariesDirectoryPath),
   ]);
 
-  const prevSpellCheckingDictionaries = selectSpellCheckingDictionaries(reduxStore.getState());
+  const prevSpellCheckingDictionaries = select(selectSpellCheckingDictionaries);
 
   const enabledDictionaries = prevSpellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name);
   if (enabledDictionaries.length === 0) {
@@ -192,7 +191,7 @@ export const getCorrectionsForMisspelling = async (text: string): Promise<string
 
 export const getMisspelledWords = async (words: string[]): Promise<string[]> => words.filter(isMisspelled);
 
-export const importSpellCheckingDictionaries = async (reduxStore: Store, filePaths: string[]): Promise<void> => {
+export const importSpellCheckingDictionaries = async (filePaths: string[]): Promise<void> => {
   const userDictionariesDirectoryPath = getConfigurationPath('dictionaries', { appData: false });
 
   const newFilesPaths = await Promise.all(
@@ -211,7 +210,7 @@ export const importSpellCheckingDictionaries = async (reduxStore: Store, filePat
   );
 
   const installedDictionaries = await loadSpellCheckingDictionariesFromFiles(newFilesPaths);
-  const prevSpellCheckingDictionaries = selectSpellCheckingDictionaries(reduxStore.getState());
+  const prevSpellCheckingDictionaries = select(selectSpellCheckingDictionaries);
 
   const spellCheckingDictionaries = [...prevSpellCheckingDictionaries, ...installedDictionaries]
     .reduce((dictionaries, dictionary) => {
@@ -225,15 +224,15 @@ export const importSpellCheckingDictionaries = async (reduxStore: Store, filePat
       return dictionaries.map((dictionary) => (dictionary === replaced ? replacer : dictionary));
     }, []);
 
-  reduxStore.dispatch({ type: SPELL_CHECKING_DICTIONARIES_UPDATED, payload: spellCheckingDictionaries });
+  dispatch({ type: SPELL_CHECKING_DICTIONARIES_UPDATED, payload: spellCheckingDictionaries });
 };
 
-export const setupSpellChecking = async (reduxStore: Store, localStorage: Record<string, string>): Promise<void> => {
+export const setupSpellChecking = async (localStorage: Record<string, string>): Promise<void> => {
   if (localStorage.enabledSpellCheckingDictionaries) {
     try {
       const enabledSpellCheckingDictionaries = JSON.parse(localStorage.enabledSpellCheckingDictionaries);
 
-      const initialSpellCheckingDictionaries = selectSpellCheckingDictionaries(reduxStore.getState());
+      const initialSpellCheckingDictionaries = select(selectSpellCheckingDictionaries);
 
       const spellCheckingDictionaries = initialSpellCheckingDictionaries.map((spellCheckingDictionary) => {
         if (enabledSpellCheckingDictionaries.includes(spellCheckingDictionary.name)) {
@@ -243,44 +242,45 @@ export const setupSpellChecking = async (reduxStore: Store, localStorage: Record
         return spellCheckingDictionary;
       });
 
-      const persistableValues = selectPersistableValues(reduxStore.getState());
-      reduxStore.dispatch({ type: PERSISTABLE_VALUES_MERGED, payload: { ...persistableValues, spellCheckingDictionaries } });
+      dispatch({
+        type: PERSISTABLE_VALUES_MERGED,
+        payload: {
+          ...select(selectPersistableValues),
+          spellCheckingDictionaries,
+        },
+      });
     } catch (error) {
       console.error(error);
     }
   }
 
-  const spellCheckingDictionaries = await loadSpellCheckingDictionaries(reduxStore);
+  const spellCheckingDictionaries = await loadSpellCheckingDictionaries();
 
   await provider.initialize();
   spellCheckers.clear();
   await Promise.all(spellCheckingDictionaries.map(toggleDictionary));
 
-  reduxStore.dispatch({
+  dispatch({
     type: PERSISTABLE_VALUES_MERGED,
     payload: {
+      ...select(selectPersistableValues),
       spellCheckingDictionaries,
     },
   });
 
-  reduxStore.subscribe(() => {
-    const spellCheckingDictionaries = selectSpellCheckingDictionaries(reduxStore.getState());
+  watch(selectSpellCheckingDictionaries, (spellCheckingDictionaries) => {
     spellCheckingDictionaries.map((dictionary) => toggleDictionary(dictionary));
   });
-};
 
-export function *takeSpellCheckingActions(): Generator<Effect, void> {
-  yield takeEvery(SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, function *(action: SpellCheckingMisspeltWordsRequestedAction) {
-    const { meta: { id }, payload: words } = action;
-    const misspeltWords = yield call(() => getMisspelledWords(words));
-    const responseAction = {
+  listen(SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, async (action: SpellCheckingMisspeltWordsRequestedAction) => {
+    const misspeltWords = await getMisspelledWords(action.payload);
+    dispatch({
       type: SPELL_CHECKING_MISSPELT_WORDS_RESPONDED,
       payload: misspeltWords,
       meta: {
         response: true,
-        id,
+        id: action.meta?.id,
       },
-    };
-    yield put(responseAction);
+    });
   });
-}
+};

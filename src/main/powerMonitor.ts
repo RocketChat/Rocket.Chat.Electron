@@ -1,14 +1,13 @@
 import { powerMonitor } from 'electron';
-import { takeEvery, call, put, Effect } from 'redux-saga/effects';
 
 import {
   SYSTEM_SUSPENDING,
   SYSTEM_LOCKING_SCREEN,
   SYSTEM_IDLE_STATE_REQUESTED,
   SYSTEM_IDLE_STATE_RESPONDED,
+  SystemIdleStateRequestedAction,
 } from '../actions';
-import { RequestAction } from '../channels';
-import { dispatch } from '../store';
+import { dispatch, listen } from '../store';
 
 export const setupPowerMonitor = (): void => {
   powerMonitor.addListener('suspend', () => {
@@ -18,20 +17,15 @@ export const setupPowerMonitor = (): void => {
   powerMonitor.addListener('lock-screen', () => {
     dispatch({ type: SYSTEM_LOCKING_SCREEN });
   });
-};
 
-export function *takeSystemActions(): Generator<Effect> {
-  yield takeEvery(SYSTEM_IDLE_STATE_REQUESTED, function *(action: RequestAction<number>) {
-    const { meta: { id }, payload: idleThreshold } = action;
-    const idleState = yield call(() => powerMonitor.getSystemIdleState(idleThreshold));
-    const responseAction = {
+  listen(SYSTEM_IDLE_STATE_REQUESTED, (action: SystemIdleStateRequestedAction) => {
+    dispatch({
       type: SYSTEM_IDLE_STATE_RESPONDED,
-      payload: idleState,
+      payload: powerMonitor.getSystemIdleState(action.payload),
       meta: {
         response: true,
-        id,
+        id: action.meta?.id,
       },
-    };
-    yield put(responseAction);
+    });
   });
-}
+};

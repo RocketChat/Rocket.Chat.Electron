@@ -1,7 +1,7 @@
 import { app } from 'electron';
-import { Store } from 'redux';
 
 import { selectGlobalBadgeText, selectGlobalBadgeCount } from '../../selectors';
+import { watch } from '../../store';
 
 const setBadge = (globalBadgeText: string): void => {
   app.dock.setBadge(globalBadgeText);
@@ -11,31 +11,20 @@ const bounce = (): void => {
   app.dock.bounce();
 };
 
-export const setupDock = (reduxStore: Store): void => {
+export const setupDock = (): void => {
   if (process.platform !== 'darwin') {
     return;
   }
 
-  let prevGlobalBadgeText: string;
-  reduxStore.subscribe(() => {
-    const globalBadgeText = selectGlobalBadgeText(reduxStore.getState());
-    if (prevGlobalBadgeText !== globalBadgeText) {
-      setBadge(globalBadgeText);
-      prevGlobalBadgeText = globalBadgeText;
-    }
+  watch(selectGlobalBadgeText, (globalBadgeText) => {
+    setBadge(globalBadgeText);
   });
 
-  let prevGlobalBadgeCount: number;
-  reduxStore.subscribe(() => {
-    const globalBadgeCount = selectGlobalBadgeCount(reduxStore.getState());
-    if (prevGlobalBadgeCount !== globalBadgeCount) {
-      if (globalBadgeCount <= 0 || prevGlobalBadgeCount > 0) {
-        return;
-      }
-
-      bounce();
-
-      prevGlobalBadgeCount = globalBadgeCount;
+  watch(selectGlobalBadgeCount, (globalBadgeCount, prevGlobalBadgeCount) => {
+    if (globalBadgeCount <= 0 || prevGlobalBadgeCount > 0) {
+      return;
     }
+
+    bounce();
   });
 };

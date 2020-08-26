@@ -1,9 +1,11 @@
 import { dialog, BrowserWindow } from 'electron';
 import i18next from 'i18next';
 
+import { getRootWindow } from './rootWindow';
+
 const t = i18next.t.bind(i18next);
 
-export const askForAppDataReset = async (parentWindow: BrowserWindow): Promise<boolean> => {
+export const askForAppDataReset = async (parentWindow: BrowserWindow = getRootWindow()): Promise<boolean> => {
   const { response } = await dialog.showMessageBox(parentWindow, {
     type: 'question',
     buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
@@ -15,7 +17,7 @@ export const askForAppDataReset = async (parentWindow: BrowserWindow): Promise<b
   return response === 0;
 };
 
-export const askForServerAddition = async (parentWindow: BrowserWindow, serverUrl: string): Promise<boolean> => {
+export const askForServerAddition = async (serverUrl: string, parentWindow: BrowserWindow = getRootWindow()): Promise<boolean> => {
   const { response } = await dialog.showMessageBox(parentWindow, {
     type: 'question',
     buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],
@@ -27,7 +29,7 @@ export const askForServerAddition = async (parentWindow: BrowserWindow, serverUr
   return response === 0;
 };
 
-export const warnAboutInvalidServerUrl = (_parentWindow: BrowserWindow, _serverUrl: string, _reason: string): Promise<void> => {
+export const warnAboutInvalidServerUrl = (_serverUrl: string, _reason: string, _parentWindow: BrowserWindow = getRootWindow()): Promise<void> => {
   throw Error('not implemented');
 };
 
@@ -49,7 +51,7 @@ export const enum AskUpdateInstallResponse {
   INSTALL_NOW = 1,
 }
 
-export const askUpdateInstall = async (parentWindow: BrowserWindow): Promise<AskUpdateInstallResponse> => {
+export const askUpdateInstall = async (parentWindow: BrowserWindow = getRootWindow()): Promise<AskUpdateInstallResponse> => {
   const { response } = await dialog.showMessageBox(parentWindow, {
     type: 'question',
     title: t('dialog.updateReady.title'),
@@ -68,7 +70,7 @@ export const askUpdateInstall = async (parentWindow: BrowserWindow): Promise<Ask
   return AskUpdateInstallResponse.INSTALL_LATER;
 };
 
-export const warnAboutInstallUpdateLater = async (parentWindow: BrowserWindow): Promise<void> => {
+export const warnAboutInstallUpdateLater = async (parentWindow: BrowserWindow = getRootWindow()): Promise<void> => {
   await dialog.showMessageBox(parentWindow, {
     type: 'info',
     title: t('dialog.updateInstallLater.title'),
@@ -83,7 +85,7 @@ export enum AskForCertificateTrustResponse {
   NO = 1,
 }
 
-export const askForCertificateTrust = async (parentWindow: BrowserWindow, issuerName: string, detail: string): Promise<AskForCertificateTrustResponse> => {
+export const askForCertificateTrust = async (issuerName: string, detail: string, parentWindow: BrowserWindow = getRootWindow()): Promise<AskForCertificateTrustResponse> => {
   const { response } = await dialog.showMessageBox(parentWindow, {
     title: t('dialog.certificateError.title'),
     message: t('dialog.certificateError.message', { issuerName }),
@@ -103,8 +105,8 @@ export const askForCertificateTrust = async (parentWindow: BrowserWindow, issuer
   return AskForCertificateTrustResponse.NO;
 };
 
-export const warnAboutUpdateDownload = async (rootWindow: BrowserWindow): Promise<void> => {
-  await dialog.showMessageBox(rootWindow, {
+export const warnAboutUpdateDownload = async (parentWindow: BrowserWindow = getRootWindow()): Promise<void> => {
+  await dialog.showMessageBox(parentWindow, {
     type: 'info',
     title: t('dialog.updateDownloading.title'),
     message: t('dialog.updateDownloading.message'),
@@ -113,8 +115,8 @@ export const warnAboutUpdateDownload = async (rootWindow: BrowserWindow): Promis
   });
 };
 
-export const warnAboutUpdateSkipped = async (rootWindow: BrowserWindow): Promise<void> => {
-  await dialog.showMessageBox(rootWindow, {
+export const warnAboutUpdateSkipped = async (parentWindow: BrowserWindow = getRootWindow()): Promise<void> => {
+  await dialog.showMessageBox(parentWindow, {
     type: 'warning',
     title: t('dialog.updateSkip.title'),
     message: t('dialog.updateSkip.message'),

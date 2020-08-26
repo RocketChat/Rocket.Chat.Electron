@@ -4,8 +4,6 @@ import url from 'url';
 
 import { app } from 'electron';
 import fetch from 'node-fetch';
-import { Store } from 'redux';
-import { takeEvery, call, put, Effect, take } from 'redux-saga/effects';
 
 import {
   PERSISTABLE_VALUES_MERGED,
@@ -14,9 +12,11 @@ import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
+  ServerValidationRequestedAction,
+  CertificatesClientCertificateRequestedAction,
 } from '../actions';
-import { RequestAction } from '../channels';
-import { selectServers, selectCurrentServerUrl } from '../selectors';
+import { selectServers, selectCurrentServerUrl, selectPersistableValues } from '../selectors';
+import { select, dispatch, listen } from '../store';
 import { ValidationResult, Server } from '../structs/servers';
 
 export const validateServerUrl = async (serverUrl: string, timeout = 5000): Promise<ValidationResult> => {
@@ -109,9 +109,58 @@ const loadUserServers = async (): Promise<Record<string, string>> => {
   }
 };
 
-export const setupServers = async (reduxStore: Store, localStorage: Record<string, string>): Promise<void> => {
-  let servers = selectServers(reduxStore.getState()) as Server[];
-  let currentServerUrl = selectCurrentServerUrl(reduxStore.getState());
+export const setupServers = async (localStorage: Record<string, string>): Promise<void> => {
+  listen(SERVER_VALIDATION_REQUESTED, async (action: ServerValidationRequestedAction) => {
+    try {
+      dispatch({
+        type: SERVER_VALIDATION_RESPONDED,
+        payload: await validateServerUrl(action.payload.serverUrl, action.payload.timeout),
+        meta: {
+          response: true,
+          id: action.meta?.id,
+        },
+      });
+    } catch (error) {
+      dispatch({
+        type: SERVER_VALIDATION_RESPONDED,
+        payload: error,
+        error: true,
+        meta: {
+          response: true,
+          id: action.meta?.id,
+        },
+      });
+    }
+  });
+
+  listen(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, (action: CertificatesClientCertificateRequestedAction) => {
+    const isResponse: Parameters<typeof listen>[0] = (responseAction) =>
+      [
+        SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
+        SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
+      ].includes(responseAction.type)
+      && responseAction.meta?.id === action.meta.id;
+
+    const unsubscribe = listen(isResponse, (responseAction) => {
+      unsubscribe();
+
+      const fingerprint = responseAction.type === SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED
+        ? responseAction.payload
+        : null;
+
+      dispatch({
+        type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
+        payload: fingerprint,
+        meta: {
+          response: true,
+          id: action.meta?.id,
+        },
+      });
+    });
+  });
+
+  let servers = select(selectServers);
+  let currentServerUrl = select(selectCurrentServerUrl);
 
   const serversMap = new Map<Server['url'], Server>(
     servers
@@ -173,39 +222,12 @@ export const setupServers = async (reduxStore: Store, localStorage: Record<strin
     }
   }
 
-  reduxStore.dispatch({
+  dispatch({
     type: PERSISTABLE_VALUES_MERGED,
     payload: {
+      ...select(selectPersistableValues),
       servers,
       currentServerUrl,
     },
   });
 };
-
-export function *takeServersActions(): Generator<Effect> {
-  yield takeEvery(SERVER_VALIDATION_REQUESTED, function *(action: RequestAction<{ serverUrl: string; timeout: number }>) {
-    const { meta: { id }, payload: { serverUrl, timeout } } = action;
-
-    try {
-      const validationResult = yield call(() => validateServerUrl(serverUrl, timeout));
-      yield put({ type: SERVER_VALIDATION_RESPONDED, meta: { id, response: true }, payload: validationResult });
-    } catch (error) {
-      yield put({ type: SERVER_VALIDATION_RESPONDED, meta: { id, response: true }, payload: error, error: true });
-    }
-  });
-
-  yield takeEvery(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, function *(action: RequestAction<unknown[]>) {
-    const { meta: { id } } = action;
-
-    const responseAction = yield take([
-      SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-      SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-    ]);
-
-    const fingerprint = responseAction.type === SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED
-      ? responseAction.payload
-      : null;
-
-    yield put({ type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, meta: { id, response: true }, payload: fingerprint });
-  });
-}

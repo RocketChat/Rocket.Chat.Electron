@@ -1,3 +1,8 @@
-import { createReduxStore } from './preload/reduxStore';
+import { rootSaga } from './preload/rootSaga';
+import { createRendererReduxStore } from './store';
 
-createReduxStore();
+const start = async (): Promise<void> => {
+  await createRendererReduxStore(rootSaga);
+};
+
+start();

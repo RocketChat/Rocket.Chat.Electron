@@ -1,6 +1,5 @@
 import { app, BrowserWindow } from 'electron';
 import ElectronStore from 'electron-store';
-import { Store } from 'redux';
 import { call, put, Effect, all } from 'redux-saga/effects';
 
 import {
@@ -9,6 +8,7 @@ import {
 } from '../actions';
 import { takeRequests } from '../channels';
 import { selectMainWindowState } from '../selectors';
+import { getReduxStore } from '../store';
 import { setupApp, takeAppActions } from './app';
 import { getLocalStorage, mergePersistableValues, purgeLocalStorage, watchAndPersistChanges } from './data';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks';
@@ -28,7 +28,7 @@ import { setupTouchBar } from './ui/touchBar';
 import { setupTrayIcon } from './ui/trayIcon';
 import { setupUpdates, takeUpdateActions } from './updates';
 
-export function *rootSaga(reduxStore: Store): Generator<Effect, void> {
+export function *rootSaga(): Generator<Effect, void> {
   yield *takeRequests();
 
   yield *takeAppActions();
@@ -54,6 +54,8 @@ export function *rootSaga(reduxStore: Store): Generator<Effect, void> {
   }
 
   yield call(() => setupI18n());
+
+  const reduxStore = getReduxStore();
 
   const rootWindow = (yield call(() => createRootWindow(reduxStore))) as BrowserWindow;
 

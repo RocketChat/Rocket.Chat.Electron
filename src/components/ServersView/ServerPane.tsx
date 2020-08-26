@@ -49,11 +49,11 @@ export const ServerPane: FC<ServerPaneProps> = ({
 		const webview = webviewRef.current;
 
 		const handleDidAttach = (): void => {
-			ipcRenderer.send(EVENT_BROWSER_VIEW_ATTACHED, serverUrl, webview.getWebContents().id);
+			ipcRenderer.send(EVENT_BROWSER_VIEW_ATTACHED, serverUrl, webview.getWebContentsId());
 		};
 
 		const handleFocus = (): void => {
-			ipcRenderer.send(EVENT_WEB_CONTENTS_FOCUS_CHANGED, webview.getWebContents().id);
+			ipcRenderer.send(EVENT_WEB_CONTENTS_FOCUS_CHANGED, webview.getWebContentsId());
 		};
 
 		const handleBlur = (): void => {

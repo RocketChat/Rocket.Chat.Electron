@@ -40,7 +40,6 @@ export default React.memo(function Extended({
 			<Box fontSize='s2' withTruncatedText color='default' pbe='x8'>{ fileName }</Box>
 			<Box display='flex' flexDirection='row' justifyContent='space-between' mb='x8'>
 				<Info>{ serverTitle }</Info>
-				{/* <Info> { date }</Info> */}
 				<Info>{ fileSize }</Info>
 				{ isCompleted || isCancelled || <Info>{ speed }</Info> }
 				{ timeLeft && <Info>{ timeLeft }s left</Info> }

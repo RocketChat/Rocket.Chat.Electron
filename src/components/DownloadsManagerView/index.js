@@ -159,7 +159,7 @@ export function DownloadsManagerView() {
 
 	const filteredDownloads = useMemo(() => {
 		const searchRegex = searchVal && new RegExp(`${ searchVal }`, 'gi');
-		return downloads.filter((download) => (!searchRegex || searchRegex.test(download.fileName)) && (tab === 'All' || download.status === tab) && (!serverVal || serverVal === 'All' || serverVal === download.serverTitle) && (!typeVal || typeVal === 'All' || mapping[download.mime.split('/')[0]] === typeVal)).sort((a, b) => b.itemId - a.itemId);
+		return downloads.filter((download) => (!searchRegex || searchRegex.test(download.fileName)) && (tab === STATUS.ALL || download.status === tab) && (!serverVal || serverVal === 'All' || serverVal === download.serverTitle) && (!typeVal || typeVal === 'All' || mapping[download.mime.split('/')[0]] === typeVal)).sort((a, b) => b.itemId - a.itemId);
 	}, [searchVal, downloads, tab, serverVal, typeVal]);
 
 

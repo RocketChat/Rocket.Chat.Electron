@@ -43,12 +43,8 @@ export default React.memo(function Compact({
 		<Box display='flex' flexGrow={ 1 } width='100%'>
 			<Info withTruncatedText>{ serverTitle }</Info>
 			<Info withTruncatedText mi='x8'>{ fileSize }</Info>
-			{ isCompleted || <Info mi='x8'>{ speed }</Info> }
+			{ isCompleted || isCancelled || <Info mi='x8'>{ speed }</Info> }
 			<Progress percent={ percentage } status={ status } mi='x8' />
-			{/* <Info withTruncatedText mi='x8'>{ date }</Info> */ }
-			{/* <Box display='flex' alignItems='center'>
-			<Icon name='kebab'/> */}
-			{/* </Box> */ }
 		</Box>
 	</Box>;
 });

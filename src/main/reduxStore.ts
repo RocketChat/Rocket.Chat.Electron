@@ -6,9 +6,9 @@ import { rootReducer } from '../reducers';
 import { rootSaga } from './rootSaga';
 
 export const createReduxStore = (): Store<any> => {
-	const sagaMiddleware = createSagaMiddleware();
-	const middlewares = applyMiddleware(sagaMiddleware, forwardToRenderers);
-	const reduxStore = createStore(rootReducer, {}, middlewares);
-	sagaMiddleware.run(rootSaga, reduxStore);
-	return reduxStore;
+  const sagaMiddleware = createSagaMiddleware();
+  const middlewares = applyMiddleware(sagaMiddleware, forwardToRenderers);
+  const reduxStore = createStore(rootReducer, {}, middlewares);
+  sagaMiddleware.run(rootSaga, reduxStore);
+  return reduxStore;
 };

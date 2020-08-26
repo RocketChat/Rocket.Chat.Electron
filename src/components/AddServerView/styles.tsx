@@ -2,7 +2,7 @@ import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 
 type WrapperProps = {
-	isVisible: boolean;
+  isVisible: boolean;
 };
 
 export const Wrapper = styled.section<WrapperProps>`

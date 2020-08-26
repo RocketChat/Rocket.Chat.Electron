@@ -2,9 +2,9 @@ import { css, SerializedStyles } from '@emotion/core';
 import styled from '@emotion/styled';
 
 type WrapperProps = {
-	background: string;
-	color: string;
-	isVisible: boolean;
+  background: string;
+  color: string;
+  isVisible: boolean;
 };
 
 export const Wrapper = styled.div<WrapperProps>`
@@ -31,7 +31,7 @@ export const Wrapper = styled.div<WrapperProps>`
 `;
 
 type ContentProps = {
-	withWindowButtons: boolean;
+  withWindowButtons: boolean;
 };
 
 export const Content = styled.div<ContentProps>`
@@ -85,10 +85,10 @@ const withTooltip = ({ tooltip }: { tooltip: string }): SerializedStyles => css`
 `;
 
 type ServerButtonWrapperProps = {
-	isDragged: boolean;
-	hasUnreadMessages: boolean;
-	isSelected: boolean;
-	tooltip: string;
+  isDragged: boolean;
+  hasUnreadMessages: boolean;
+  isSelected: boolean;
+  tooltip: string;
 };
 
 export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
@@ -134,7 +134,7 @@ export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
 `;
 
 type AvatarProps = {
-	isSelected: boolean;
+  isSelected: boolean;
 };
 
 export const Avatar = styled.span<AvatarProps>`
@@ -154,7 +154,7 @@ export const Avatar = styled.span<AvatarProps>`
 `;
 
 type InitialsProps = {
-	visible: boolean;
+  visible: boolean;
 };
 
 export const Initials = styled.span<InitialsProps>`
@@ -164,7 +164,7 @@ export const Initials = styled.span<InitialsProps>`
 `;
 
 type FaviconProps = {
-	visible: boolean;
+  visible: boolean;
 };
 
 export const Favicon = styled.img<FaviconProps>`
@@ -192,7 +192,7 @@ export const Badge = styled.div`
 `;
 
 type KeyboardShortcutProps = {
-	visible: boolean;
+  visible: boolean;
 };
 
 export const KeyboardShortcut = styled.div<KeyboardShortcutProps>`
@@ -224,7 +224,7 @@ export const AddServerButton = styled.button`
 `;
 
 type AddServerButtonLabelProps = {
-	tooltip: string;
+  tooltip: string;
 };
 
 export const AddServerButtonLabel = styled.span<AddServerButtonLabelProps>`

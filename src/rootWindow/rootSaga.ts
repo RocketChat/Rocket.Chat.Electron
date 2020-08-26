@@ -10,20 +10,20 @@ import { attachErrorHandling } from './errors';
 import { setupI18next } from './i18n';
 
 export function *rootSaga(reduxStore: Store): Generator<Effect> {
-	yield *takeRequests();
+  yield *takeRequests();
 
-	yield call(whenReady);
+  yield call(whenReady);
 
-	yield *attachErrorHandling();
-	yield call(setupI18next);
+  yield *attachErrorHandling();
+  yield call(setupI18next);
 
-	yield call(() => {
-		const container = document.getElementById('root');
+  yield call(() => {
+    const container = document.getElementById('root');
 
-		render(createElement(App, { reduxStore }), container);
+    render(createElement(App, { reduxStore }), container);
 
-		window.addEventListener('beforeunload', () => {
-			unmountComponentAtNode(container);
-		});
-	});
+    window.addEventListener('beforeunload', () => {
+      unmountComponentAtNode(container);
+    });
+  });
 }

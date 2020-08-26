@@ -12,28 +12,28 @@ import { UpdateDialog } from '../UpdateDialog';
 import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 
 export const Shell: FC = () => {
-	const appPath = useSelector(selectAppPath);
+  const appPath = useSelector(selectAppPath);
 
-	useLayoutEffect(() => {
-		const linkElement = document.createElement('link');
-		linkElement.rel = 'stylesheet';
-		linkElement.href = `${ appPath }/app/icons/rocketchat.css`;
-		document.head.append(linkElement);
-	}, [appPath]);
+  useLayoutEffect(() => {
+    const linkElement = document.createElement('link');
+    linkElement.rel = 'stylesheet';
+    linkElement.href = `${ appPath }/app/icons/rocketchat.css`;
+    document.head.append(linkElement);
+  }, [appPath]);
 
-	return <>
-		<GlobalStyles />
-		{process.platform === 'darwin' && <WindowDragBar />}
-		<Wrapper>
-			<SideBar />
-			<ViewsWrapper>
-				<ServersView />
-				<AddServerView />
-			</ViewsWrapper>
-		</Wrapper>
-		<AboutDialog />
-		<ScreenSharingDialog />
-		<SelectClientCertificateDialog />
-		<UpdateDialog />
-	</>;
+  return <>
+    <GlobalStyles />
+    {process.platform === 'darwin' && <WindowDragBar />}
+    <Wrapper>
+      <SideBar />
+      <ViewsWrapper>
+        <ServersView />
+        <AddServerView />
+      </ViewsWrapper>
+    </Wrapper>
+    <AboutDialog />
+    <ScreenSharingDialog />
+    <SelectClientCertificateDialog />
+    <UpdateDialog />
+  </>;
 };

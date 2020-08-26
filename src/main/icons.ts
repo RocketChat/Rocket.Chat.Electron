@@ -3,51 +3,51 @@ import { app, nativeTheme } from 'electron';
 type Platform = 'win32' | 'darwin'| 'linux';
 
 const getTrayIconSet = ({ platform, dark }: { platform: Platform, dark: boolean }): string => {
-	if (platform === 'darwin') {
-		return `darwin${ dark ? '-dark' : '' }`;
-	}
+  if (platform === 'darwin') {
+    return `darwin${ dark ? '-dark' : '' }`;
+  }
 
-	return platform;
+  return platform;
 };
 
 const getTrayIconName = ({ badge, platform }: { badge: '•' | number, platform: NodeJS.Platform }): string => {
-	if (platform === 'darwin') {
-		return badge ? 'notification' : 'default';
-	}
+  if (platform === 'darwin') {
+    return badge ? 'notification' : 'default';
+  }
 
-	if (badge === '•') {
-		return 'notification-dot';
-	}
+  if (badge === '•') {
+    return 'notification-dot';
+  }
 
-	if (Number.isInteger(badge)) {
-		return badge > 9 ? 'notification-plus-9' : `notification-${ String(badge) }`;
-	}
+  if (Number.isInteger(badge)) {
+    return badge > 9 ? 'notification-plus-9' : `notification-${ String(badge) }`;
+  }
 
-	return 'default';
+  return 'default';
 };
 
 const getTrayIconExtension = ({ platform }: { platform: NodeJS.Platform }): string => {
-	if (platform === 'win32') {
-		return 'ico';
-	}
+  if (platform === 'win32') {
+    return 'ico';
+  }
 
-	return 'png';
+  return 'png';
 };
 
 export const getAppIconPath = (): string => `${ app.getAppPath() }/app/public/images/icon.png`;
 
 export const getTrayIconPath = ({ badge = undefined, platform = undefined, dark = undefined } = {}): string => {
-	if (typeof platform === 'undefined') {
-		platform = process.platform;
-	}
+  if (typeof platform === 'undefined') {
+    platform = process.platform;
+  }
 
-	if (platform === 'darwin' && typeof dark === 'undefined') {
-		dark = nativeTheme.shouldUseDarkColors;
-	}
+  if (platform === 'darwin' && typeof dark === 'undefined') {
+    dark = nativeTheme.shouldUseDarkColors;
+  }
 
-	const params = { badge, platform, dark };
-	const iconset = getTrayIconSet(params);
-	const name = getTrayIconName(params);
-	const extension = getTrayIconExtension(params);
-	return `${ app.getAppPath() }/app/public/images/tray/${ iconset }/${ name }.${ extension }`;
+  const params = { badge, platform, dark };
+  const iconset = getTrayIconSet(params);
+  const name = getTrayIconName(params);
+  const extension = getTrayIconExtension(params);
+  return `${ app.getAppPath() }/app/public/images/tray/${ iconset }/${ name }.${ extension }`;
 };

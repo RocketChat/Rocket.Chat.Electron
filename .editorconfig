@@ -8,10 +8,7 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[*.{js,html}]
-indent_style = tab
-
-[*.json]
+[*.{js,json,ts,html}]
 indent_style = space
 indent_size = 2
 

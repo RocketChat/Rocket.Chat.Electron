@@ -3,163 +3,163 @@ import i18next from 'i18next';
 import { Store } from 'redux';
 
 import {
-	selectIsTrayIconEnabled,
-	selectIsMainWindowVisible,
-	selectGlobalBadge,
+  selectIsTrayIconEnabled,
+  selectIsMainWindowVisible,
+  selectGlobalBadge,
 } from '../../selectors';
 import { getTrayIconPath, getAppIconPath } from '../icons';
 
 const t = i18next.t.bind(i18next);
 
 const createTrayIcon = (reduxStore: Store, rootWindow: BrowserWindow): Tray => {
-	const image = getTrayIconPath({ badge: null, dark: nativeTheme.shouldUseDarkColors });
+  const image = getTrayIconPath({ badge: null, dark: nativeTheme.shouldUseDarkColors });
 
-	const trayIcon = new Tray(image);
+  const trayIcon = new Tray(image);
 
-	trayIcon.addListener('click', () => {
-		const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
+  trayIcon.addListener('click', () => {
+    const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
 
-		if (isMainWindowVisible) {
-			rootWindow.hide();
-			return;
-		}
+    if (isMainWindowVisible) {
+      rootWindow.hide();
+      return;
+    }
 
-		rootWindow.show();
-	});
+    rootWindow.show();
+  });
 
-	trayIcon.addListener('balloon-click', () => {
-		const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
+  trayIcon.addListener('balloon-click', () => {
+    const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
 
-		if (isMainWindowVisible) {
-			rootWindow.hide();
-			return;
-		}
+    if (isMainWindowVisible) {
+      rootWindow.hide();
+      return;
+    }
 
-		rootWindow.show();
-	});
+    rootWindow.show();
+  });
 
-	trayIcon.addListener('right-click', (_event, bounds) => {
-		trayIcon.popUpContextMenu(undefined, bounds);
-	});
+  trayIcon.addListener('right-click', (_event, bounds) => {
+    trayIcon.popUpContextMenu(undefined, bounds);
+  });
 
-	return trayIcon;
+  return trayIcon;
 };
 
 const updateTrayIconImage = (trayIcon: Tray, badge: '•' | number, dark:boolean): void => {
-	const image = getTrayIconPath({ badge, dark });
-	trayIcon.setImage(image);
+  const image = getTrayIconPath({ badge, dark });
+  trayIcon.setImage(image);
 };
 
 const updateTrayIconTitle = (trayIcon: Tray, globalBadge: '•' | number): void => {
-	const title = Number.isInteger(globalBadge) ? String(globalBadge) : '';
-	trayIcon.setTitle(title);
+  const title = Number.isInteger(globalBadge) ? String(globalBadge) : '';
+  trayIcon.setTitle(title);
 };
 
 const updateTrayIconToolTip = (trayIcon:Tray, globalBadge: '•' | number): void => {
-	if (globalBadge === '•') {
-		trayIcon.setToolTip(t('tray.tooltip.unreadMessage', { appName: app.name }));
-		return;
-	}
+  if (globalBadge === '•') {
+    trayIcon.setToolTip(t('tray.tooltip.unreadMessage', { appName: app.name }));
+    return;
+  }
 
-	if (Number.isInteger(globalBadge)) {
-		trayIcon.setToolTip(t('tray.tooltip.unreadMention', { appName: app.name, count: globalBadge }));
-		return;
-	}
+  if (Number.isInteger(globalBadge)) {
+    trayIcon.setToolTip(t('tray.tooltip.unreadMention', { appName: app.name, count: globalBadge }));
+    return;
+  }
 
-	trayIcon.setToolTip(t('tray.tooltip.noUnreadMessage', { appName: app.name }));
+  trayIcon.setToolTip(t('tray.tooltip.noUnreadMessage', { appName: app.name }));
 };
 
 const warnStillRunning = (trayIcon: Tray): void => {
-	trayIcon.displayBalloon({
-		icon: getAppIconPath(),
-		title: t('tray.balloon.stillRunning.title', { appName: app.name }),
-		content: t('tray.balloon.stillRunning.content', { appName: app.name }),
-	});
+  trayIcon.displayBalloon({
+    icon: getAppIconPath(),
+    title: t('tray.balloon.stillRunning.title', { appName: app.name }),
+    content: t('tray.balloon.stillRunning.content', { appName: app.name }),
+  });
 };
 
 const manageTrayIcon = async (reduxStore: Store, rootWindow: BrowserWindow): Promise<() => void> => {
-	const trayIcon = createTrayIcon(reduxStore, rootWindow);
+  const trayIcon = createTrayIcon(reduxStore, rootWindow);
 
-	let prevGlobalBadge: '•' | number;
-	const unwatchGlobalBadge = reduxStore.subscribe(() => {
-		const globalBadge = selectGlobalBadge(reduxStore.getState());
-		if (prevGlobalBadge !== globalBadge) {
-			updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
-			updateTrayIconTitle(trayIcon, globalBadge);
-			updateTrayIconToolTip(trayIcon, globalBadge);
-			prevGlobalBadge = globalBadge;
-		}
-	});
+  let prevGlobalBadge: '•' | number;
+  const unwatchGlobalBadge = reduxStore.subscribe(() => {
+    const globalBadge = selectGlobalBadge(reduxStore.getState());
+    if (prevGlobalBadge !== globalBadge) {
+      updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
+      updateTrayIconTitle(trayIcon, globalBadge);
+      updateTrayIconToolTip(trayIcon, globalBadge);
+      prevGlobalBadge = globalBadge;
+    }
+  });
 
-	let prevIsRootWindowVisible: boolean;
-	const unwatchIsRootWindowVisible = reduxStore.subscribe(() => {
-		const isRootWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
-		if (prevIsRootWindowVisible !== isRootWindowVisible) {
-			const menuTemplate = [
-				{
-					label: isRootWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
-					click: () => {
-						const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
+  let prevIsRootWindowVisible: boolean;
+  const unwatchIsRootWindowVisible = reduxStore.subscribe(() => {
+    const isRootWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
+    if (prevIsRootWindowVisible !== isRootWindowVisible) {
+      const menuTemplate = [
+        {
+          label: isRootWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
+          click: () => {
+            const isMainWindowVisible = selectIsMainWindowVisible(reduxStore.getState());
 
-						if (isMainWindowVisible) {
-							rootWindow.hide();
-							return;
-						}
+            if (isMainWindowVisible) {
+              rootWindow.hide();
+              return;
+            }
 
-						rootWindow.show();
-					},
-				},
-				{
-					label: t('tray.menu.quit'),
-					click: () => {
-						app.quit();
-					},
-				},
-			];
+            rootWindow.show();
+          },
+        },
+        {
+          label: t('tray.menu.quit'),
+          click: () => {
+            app.quit();
+          },
+        },
+      ];
 
-			const menu = Menu.buildFromTemplate(menuTemplate);
-			trayIcon.setContextMenu(menu);
+      const menu = Menu.buildFromTemplate(menuTemplate);
+      trayIcon.setContextMenu(menu);
 
-			if (prevIsRootWindowVisible && !isRootWindowVisible && process.platform === 'win32') {
-				warnStillRunning(trayIcon);
-			}
-			prevIsRootWindowVisible = isRootWindowVisible;
-		}
-	});
+      if (prevIsRootWindowVisible && !isRootWindowVisible && process.platform === 'win32') {
+        warnStillRunning(trayIcon);
+      }
+      prevIsRootWindowVisible = isRootWindowVisible;
+    }
+  });
 
-	const handleNativeThemeUpdatedEvent = (): void => {
-		const globalBadge = selectGlobalBadge(reduxStore.getState());
-		updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
-		updateTrayIconTitle(trayIcon, globalBadge);
-		updateTrayIconToolTip(trayIcon, globalBadge);
-	};
+  const handleNativeThemeUpdatedEvent = (): void => {
+    const globalBadge = selectGlobalBadge(reduxStore.getState());
+    updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
+    updateTrayIconTitle(trayIcon, globalBadge);
+    updateTrayIconToolTip(trayIcon, globalBadge);
+  };
 
-	nativeTheme.addListener('updated', handleNativeThemeUpdatedEvent);
+  nativeTheme.addListener('updated', handleNativeThemeUpdatedEvent);
 
-	return () => {
-		unwatchGlobalBadge();
-		unwatchIsRootWindowVisible();
-		nativeTheme.removeListener('updated', handleNativeThemeUpdatedEvent);
-		trayIcon.destroy();
-	};
+  return () => {
+    unwatchGlobalBadge();
+    unwatchIsRootWindowVisible();
+    nativeTheme.removeListener('updated', handleNativeThemeUpdatedEvent);
+    trayIcon.destroy();
+  };
 };
 
 export const setupTrayIcon = (reduxStore: Store, rootWindow: BrowserWindow): void => {
-	let tearDownPromise: Promise<() => void> = null;
+  let tearDownPromise: Promise<() => void> = null;
 
-	let prevIsTrayIconEnabled: boolean;
-	reduxStore.subscribe(() => {
-		const isTrayIconEnabled = selectIsTrayIconEnabled(reduxStore.getState());
+  let prevIsTrayIconEnabled: boolean;
+  reduxStore.subscribe(() => {
+    const isTrayIconEnabled = selectIsTrayIconEnabled(reduxStore.getState());
 
-		if (prevIsTrayIconEnabled !== isTrayIconEnabled) {
-			if (!tearDownPromise && isTrayIconEnabled) {
-				tearDownPromise = manageTrayIcon(reduxStore, rootWindow);
-			} else if (tearDownPromise && !isTrayIconEnabled) {
-				tearDownPromise.then((cleanUp) => cleanUp());
-				tearDownPromise = null;
-			}
+    if (prevIsTrayIconEnabled !== isTrayIconEnabled) {
+      if (!tearDownPromise && isTrayIconEnabled) {
+        tearDownPromise = manageTrayIcon(reduxStore, rootWindow);
+      } else if (tearDownPromise && !isTrayIconEnabled) {
+        tearDownPromise.then((cleanUp) => cleanUp());
+        tearDownPromise = null;
+      }
 
-			prevIsTrayIconEnabled = isTrayIconEnabled;
-		}
-	});
+      prevIsTrayIconEnabled = isTrayIconEnabled;
+    }
+  });
 };

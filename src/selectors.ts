@@ -1,21 +1,21 @@
 import { webContents } from 'electron';
 import {
-	createSelector,
-	createSelectorCreator,
-	defaultMemoize,
-	createStructuredSelector,
+  createSelector,
+  createSelectorCreator,
+  defaultMemoize,
+  createStructuredSelector,
 } from 'reselect';
 
 import { rootReducer } from './reducers';
 import { Server } from './structs/servers';
 
 const isArrayEquals = <T>(a: T, b: T, _index: number): boolean =>
-	Object.is(a, b) || (
-		Array.isArray(a)
+  Object.is(a, b) || (
+    Array.isArray(a)
 		&& Array.isArray(b)
 		&& a.length === b.length
 		&& a.every((_x, i) => Object.is(a[i], b[i]))
-	);
+  );
 
 const createArraySelector = createSelectorCreator(defaultMemoize, isArrayEquals);
 
@@ -29,13 +29,13 @@ export const selectClientCertificates: DirectSelector<'clientCertificates'> = ({
 export const selectCurrentServerUrl: DirectSelector<'currentServerUrl'> = ({ currentServerUrl }) => currentServerUrl ?? null;
 export const selectDoCheckForUpdatesOnStartup: DirectSelector<'doCheckForUpdatesOnStartup'> = ({ doCheckForUpdatesOnStartup }: State): State['doCheckForUpdatesOnStartup'] => doCheckForUpdatesOnStartup ?? true;
 export const selectEditFlags: DirectSelector<'editFlags'> = ({ editFlags }) => editFlags ?? {
-	canCopy: false,
-	canCut: false,
-	canDelete: false,
-	canPaste: false,
-	canRedo: false,
-	canSelectAll: false,
-	canUndo: false,
+  canCopy: false,
+  canCut: false,
+  canDelete: false,
+  canPaste: false,
+  canRedo: false,
+  canSelectAll: false,
+  canUndo: false,
 };
 export const selectFocusedWebContentsId: DirectSelector<'focusedWebContentsId'> = ({ focusedWebContentsId }) => focusedWebContentsId ?? -1;
 export const selectIsCheckingForUpdates: DirectSelector<'isCheckingForUpdates'> = ({ isCheckingForUpdates }) => isCheckingForUpdates ?? false;
@@ -48,18 +48,18 @@ export const selectIsTrayIconEnabled: DirectSelector<'isTrayIconEnabled'> = ({ i
 export const selectIsUpdatingAllowed: DirectSelector<'isUpdatingAllowed'> = ({ isUpdatingAllowed }) => isUpdatingAllowed ?? true;
 export const selectIsUpdatingEnabled: DirectSelector<'isUpdatingEnabled'> = ({ isUpdatingEnabled }) => isUpdatingEnabled ?? true;
 export const selectMainWindowState: DirectSelector<'mainWindowState'> = ({ mainWindowState }) => mainWindowState ?? {
-	bounds: {
-		x: 0,
-		y: 0,
-		width: 0,
-		height: 0,
-	},
-	focused: false,
-	fullscreen: false,
-	maximized: false,
-	minimized: false,
-	normal: false,
-	visible: false,
+  bounds: {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  },
+  focused: false,
+  fullscreen: false,
+  maximized: false,
+  minimized: false,
+  normal: false,
+  visible: false,
 };
 export const selectNewUpdateVersion: DirectSelector<'newUpdateVersion'> = ({ newUpdateVersion }) => newUpdateVersion ?? null;
 export const selectOpenDialog: DirectSelector<'openDialog'> = ({ openDialog }) => openDialog ?? null;
@@ -72,32 +72,32 @@ export const selectTrustedCertificates: DirectSelector<'trustedCertificates'> = 
 export const selectBadges = createArraySelector(selectServers, (servers) => servers.map(({ badge }) => badge));
 
 export const selectGlobalBadge = createSelector(selectBadges, (badges) => {
-	const mentionCount = badges
-		.filter((badge) => Number.isInteger(badge))
-		.reduce<number>((sum, count: number) => sum + count, 0);
-	return mentionCount || (badges.some((badge) => !!badge) && '•') || null;
+  const mentionCount = badges
+    .filter((badge) => Number.isInteger(badge))
+    .reduce<number>((sum, count: number) => sum + count, 0);
+  return mentionCount || (badges.some((badge) => !!badge) && '•') || null;
 });
 
 export const selectGlobalBadgeText = createSelector(selectGlobalBadge, (badge) => {
-	if (badge === '•') {
-		return '•';
-	}
+  if (badge === '•') {
+    return '•';
+  }
 
-	if (Number.isInteger(badge)) {
-		return String(badge);
-	}
+  if (Number.isInteger(badge)) {
+    return String(badge);
+  }
 
-	return '';
+  return '';
 });
 
 const isBadgeCount = (badge: Server['badge']): badge is number =>
-	Number.isInteger(badge);
+  Number.isInteger(badge);
 
 export const selectGlobalBadgeCount = createSelector(selectGlobalBadge, (badge): number =>
-	(isBadgeCount(badge) ? badge : 0));
+  (isBadgeCount(badge) ? badge : 0));
 
 export const selectFocusedWebContents = createSelector(selectFocusedWebContentsId, (focusedWebContentsId) =>
-	(focusedWebContentsId > -1 ? webContents.fromId(focusedWebContentsId) : null));
+  (focusedWebContentsId > -1 ? webContents.fromId(focusedWebContentsId) : null));
 
 export const selectCanUndo = createSelector(selectEditFlags, ({ canUndo }) => canUndo);
 export const selectCanRedo = createSelector(selectEditFlags, ({ canRedo }) => canRedo);
@@ -111,17 +111,17 @@ export const selectIsFullScreenEnabled = createSelector(selectMainWindowState, (
 export const selectIsServerSelected = createSelector(selectCurrentServerUrl, (currentServerUrl) => !!currentServerUrl);
 
 export const selectPersistableValues = createStructuredSelector({
-	currentServerUrl: selectCurrentServerUrl,
-	doCheckForUpdatesOnStartup: selectDoCheckForUpdatesOnStartup,
-	isMenuBarEnabled: selectIsMenuBarEnabled,
-	isShowWindowOnUnreadChangedEnabled: selectIsShowWindowOnUnreadChangedEnabled,
-	isSideBarEnabled: selectIsSideBarEnabled,
-	isTrayIconEnabled: selectIsTrayIconEnabled,
-	mainWindowState: selectMainWindowState,
-	servers: selectServers,
-	spellCheckingDictionaries: selectSpellCheckingDictionaries,
-	skippedUpdateVersion: selectSkippedUpdateVersion,
-	trustedCertificates: selectTrustedCertificates,
+  currentServerUrl: selectCurrentServerUrl,
+  doCheckForUpdatesOnStartup: selectDoCheckForUpdatesOnStartup,
+  isMenuBarEnabled: selectIsMenuBarEnabled,
+  isShowWindowOnUnreadChangedEnabled: selectIsShowWindowOnUnreadChangedEnabled,
+  isSideBarEnabled: selectIsSideBarEnabled,
+  isTrayIconEnabled: selectIsTrayIconEnabled,
+  mainWindowState: selectMainWindowState,
+  servers: selectServers,
+  spellCheckingDictionaries: selectSpellCheckingDictionaries,
+  skippedUpdateVersion: selectSkippedUpdateVersion,
+  trustedCertificates: selectTrustedCertificates,
 });
 
 export const selectIsMainWindowVisible = createSelector(selectMainWindowState, ({ visible }) => visible);
@@ -129,18 +129,18 @@ export const selectIsMainWindowVisible = createSelector(selectMainWindowState, (
 export const selectCurrentServer = ({ servers, currentServerUrl }: State): Server => servers.find(({ url }) => url === currentServerUrl);
 
 export const selectUpdateConfiguration = createStructuredSelector({
-	isEachUpdatesSettingConfigurable: selectIsEachUpdatesSettingConfigurable,
-	isUpdatingEnabled: selectIsUpdatingEnabled,
-	doCheckForUpdatesOnStartup: selectDoCheckForUpdatesOnStartup,
-	skippedUpdateVersion: selectSkippedUpdateVersion,
+  isEachUpdatesSettingConfigurable: selectIsEachUpdatesSettingConfigurable,
+  isUpdatingEnabled: selectIsUpdatingEnabled,
+  doCheckForUpdatesOnStartup: selectDoCheckForUpdatesOnStartup,
+  skippedUpdateVersion: selectSkippedUpdateVersion,
 });
 
 export const selectIsSideBarVisible = createSelector([
-	selectServers,
-	selectIsSideBarEnabled,
+  selectServers,
+  selectIsSideBarEnabled,
 ], (servers, isSideBarEnabled) => servers.length > 0 && isSideBarEnabled);
 
 export const selectDictionaryName = createSelector([
-	selectSpellCheckingDictionaries,
+  selectSpellCheckingDictionaries,
 ], (spellCheckingDictionaries) =>
-	spellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name)[0]);
+  spellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name)[0]);

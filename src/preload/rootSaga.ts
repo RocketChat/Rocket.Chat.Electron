@@ -9,19 +9,19 @@ import { isRocketChat, setupRocketChatPage } from './rocketChat';
 import { attachSpellChecking } from './spellChecking';
 
 export function *rootSaga(): Generator<Effect, void> {
-	yield *takeRequests();
+  yield *takeRequests();
 
-	yield call(whenReady);
+  yield call(whenReady);
 
-	yield *attachErrorHandling();
-	yield *attachEditFlagsHandling();
-	yield *attachSpellChecking();
+  yield *attachErrorHandling();
+  yield *attachEditFlagsHandling();
+  yield *attachSpellChecking();
 
-	if (yield call(isRocketChat)) {
-		yield *setupRocketChatPage();
-	}
+  if (yield call(isRocketChat)) {
+    yield *setupRocketChatPage();
+  }
 
-	if (yield call(isJitsi)) {
-		yield *setupJitsiPage();
-	}
+  if (yield call(isJitsi)) {
+    yield *setupJitsiPage();
+  }
 }

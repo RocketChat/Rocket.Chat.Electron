@@ -11,26 +11,26 @@ import { listenToTitleChanges } from './title';
 import { listenToUserPresenceChanges } from './userPresence';
 
 export const isRocketChat = (): boolean => {
-	if (typeof window.require !== 'function') {
-		return false;
-	}
+  if (typeof window.require !== 'function') {
+    return false;
+  }
 
-	try {
-		const { Info } = window.require('/app/utils/rocketchat.info');
-		return semver.satisfies(semver.coerce(Info.version), '>=3.0.x');
-	} catch (error) {
-		console.error(error);
-		return false;
-	}
+  try {
+    const { Info } = window.require('/app/utils/rocketchat.info');
+    return semver.satisfies(semver.coerce(Info.version), '>=3.0.x');
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
 };
 
 export function *setupRocketChatPage(): Generator<Effect, void> {
-	yield *listenToBadgeChanges();
-	yield *listenToFaviconChanges();
-	yield *listenToSideBarChanges();
-	yield *listenToTitleChanges();
-	yield *listenToUserPresenceChanges();
-	yield *listenToMessageBoxEvents();
-	yield *listenToNotificationsRequests();
-	yield *listenToScreenSharingRequests();
+  yield *listenToBadgeChanges();
+  yield *listenToFaviconChanges();
+  yield *listenToSideBarChanges();
+  yield *listenToTitleChanges();
+  yield *listenToUserPresenceChanges();
+  yield *listenToMessageBoxEvents();
+  yield *listenToNotificationsRequests();
+  yield *listenToScreenSharingRequests();
 }

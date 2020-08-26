@@ -86,27 +86,27 @@ export const NOTIFICATIONS_NOTIFICATION_REPLIED = 'notifications/notification-re
 export const NOTIFICATIONS_NOTIFICATION_ACTIONED = 'notifications/notification-actioned';
 
 export type PersistableValuesMergedAction = FluxStandardAction<{
-	currentServerUrl: string | null;
-	doCheckForUpdatesOnStartup: boolean;
-	isEachUpdatesSettingConfigurable: boolean;
-	isMenuBarEnabled: boolean;
-	isShowWindowOnUnreadChangedEnabled: boolean;
-	isSideBarEnabled: boolean;
-	isTrayIconEnabled: boolean;
-	isUpdatingEnabled: boolean;
-	mainWindowState: WindowState;
-	servers: Server[];
-	skippedUpdateVersion: string | null;
-	spellCheckingDictionaries: Dictionary[];
-	trustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
+  currentServerUrl: string | null;
+  doCheckForUpdatesOnStartup: boolean;
+  isEachUpdatesSettingConfigurable: boolean;
+  isMenuBarEnabled: boolean;
+  isShowWindowOnUnreadChangedEnabled: boolean;
+  isSideBarEnabled: boolean;
+  isTrayIconEnabled: boolean;
+  isUpdatingEnabled: boolean;
+  mainWindowState: WindowState;
+  servers: Server[];
+  skippedUpdateVersion: string | null;
+  spellCheckingDictionaries: Dictionary[];
+  trustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
 }, typeof PERSISTABLE_VALUES_MERGED>;
 
 export type UpdatesReadyAction = FluxStandardAction<{
-	doCheckForUpdatesOnStartup: boolean;
-	isEachUpdatesSettingConfigurable: boolean;
-	isUpdatingAllowed: boolean;
-	isUpdatingEnabled: boolean;
-	skippedUpdateVersion: string | null;
+  doCheckForUpdatesOnStartup: boolean;
+  isEachUpdatesSettingConfigurable: boolean;
+  isUpdatingAllowed: boolean;
+  isUpdatingEnabled: boolean;
+  skippedUpdateVersion: string | null;
 }, typeof UPDATES_READY>;
 
 export type AboutDialogDismissedAction = FluxStandardAction<undefined, typeof ABOUT_DIALOG_DISMISSED>;
@@ -178,143 +178,143 @@ export type AppPathActionTypes = AppPathSetAction;
 export type AppVersionActionTypes = AppVersionSetAction;
 
 export type ClientCertificatesActionTypes = (
-	CertificatesClientCertificateRequestedAction
-	| SelectClientCertificateDialogCertificateSelectedAction
-	| SelectClientCertificateDialogDismissedAction
+  CertificatesClientCertificateRequestedAction
+  | SelectClientCertificateDialogCertificateSelectedAction
+  | SelectClientCertificateDialogDismissedAction
 );
 
 export type CurrentServerUrlActionTypes = (
-	AddServerViewServerAddedAction
-	| MenuBarAddNewServerClickedAction
-	| MenuBarSelectServerClickedAction
-	| SideBarAddNewServerClickedAction
-	| SideBarRemoveServerClickedAction
-	| SideBarServerSelectedAction
-	| TouchBarSelectServerTouchedAction
-	| WebviewFocusRequestedAction
-	| PersistableValuesMergedAction
+  AddServerViewServerAddedAction
+  | MenuBarAddNewServerClickedAction
+  | MenuBarSelectServerClickedAction
+  | SideBarAddNewServerClickedAction
+  | SideBarRemoveServerClickedAction
+  | SideBarServerSelectedAction
+  | TouchBarSelectServerTouchedAction
+  | WebviewFocusRequestedAction
+  | PersistableValuesMergedAction
 );
 
 export type DoCheckForUpdatesOnStartupActionTypes = (
-	AboutDialogToggleUpdateOnStartAction
-	| UpdatesReadyAction
-	| PersistableValuesMergedAction
+  AboutDialogToggleUpdateOnStartAction
+  | UpdatesReadyAction
+  | PersistableValuesMergedAction
 );
 
 export type EditFlagsActionTypes = (
-	RootWindowEditFlagsChangedAction
-	| WebviewEditFlagsChangedAction
+  RootWindowEditFlagsChangedAction
+  | WebviewEditFlagsChangedAction
 );
 
 export type FocusedWebContentsIdActionTypes = RootWindowWebContentsFocusedAction;
 
 export type IsCheckingForUpdatesActionTypes = (
-	UpdatesCheckingForUpdateAction
-	| UpdatesErrorThrownAction
-	| UpdatesNewVersionAvailableAction
-	| UpdatesNewVersionNotAvailableAction
+  UpdatesCheckingForUpdateAction
+  | UpdatesErrorThrownAction
+  | UpdatesNewVersionAvailableAction
+  | UpdatesNewVersionNotAvailableAction
 );
 
 export type IsEachUpdatesSettingConfigurableActionTypes = (
-	UpdatesReadyAction
-	| PersistableValuesMergedAction
+  UpdatesReadyAction
+  | PersistableValuesMergedAction
 );
 
 export type IsMenuBarEnabledActionTypes = (
-	MenuBarToggleIsMenuBarEnabledClickedAction
-	| PersistableValuesMergedAction
+  MenuBarToggleIsMenuBarEnabledClickedAction
+  | PersistableValuesMergedAction
 );
 
 export type IsMessageBoxFocusedActionTypes = (
-	WebviewMessageBoxFocusedAction
-	| WebviewMessageBoxBlurredAction
-	| WebviewDidStartLoadingAction
-	| WebviewDidFailLoadAction
+  WebviewMessageBoxFocusedAction
+  | WebviewMessageBoxBlurredAction
+  | WebviewDidStartLoadingAction
+  | WebviewDidFailLoadAction
 )
 
 export type IsShowWindowOnUnreadChangedEnabledActionTypes = (
-	MenuBarToggleIsShowWindowOnUnreadChangedEnabledClickedAction
-	| PersistableValuesMergedAction
+  MenuBarToggleIsShowWindowOnUnreadChangedEnabledClickedAction
+  | PersistableValuesMergedAction
 );
 
 export type IsSideBarEnabledActionTypes = (
-	MenuBarToggleIsSideBarEnabledClickedAction
-	| PersistableValuesMergedAction
+  MenuBarToggleIsSideBarEnabledClickedAction
+  | PersistableValuesMergedAction
 );
 
 export type IsTrayIconEnabledActionTypes = (
-	MenuBarToggleIsTrayIconEnabledClickedAction
-	| PersistableValuesMergedAction
+  MenuBarToggleIsTrayIconEnabledClickedAction
+  | PersistableValuesMergedAction
 );
 
 export type IsUpdatingAllowedActionTypes = UpdatesReadyAction;
 
 export type IsUpdatingEnabledActionTypes = (
-	UpdatesReadyAction
-	| PersistableValuesMergedAction
+  UpdatesReadyAction
+  | PersistableValuesMergedAction
 );
 
 export type MainWindowStateActionTypes = (
-	RootWindowStateChangedAction
-	| PersistableValuesMergedAction
+  RootWindowStateChangedAction
+  | PersistableValuesMergedAction
 );
 
 export type NewUpdateVersionActionTypes = (
-	UpdatesNewVersionAvailableAction
-	| UpdatesNewVersionNotAvailableAction
+  UpdatesNewVersionAvailableAction
+  | UpdatesNewVersionNotAvailableAction
 );
 
 export type OpenDialogActionTypes = (
-	AboutDialogDismissedAction
-	| CertificatesClientCertificateRequestedAction
-	| MenuBarAboutClickedAction
-	| ScreenSharingDialogDismissedAction
-	| SelectClientCertificateDialogCertificateSelectedAction
-	| SelectClientCertificateDialogDismissedAction
-	| UpdateDialogDismissedAction
-	| UpdateDialogInstallButtonClickedAction
-	| UpdateDialogRemindUpdateLaterClickedAction
-	| UpdateDialogSkipUpdateClickedAction
-	| UpdatesNewVersionAvailableAction
-	| WebviewScreenSharingSourceRequestedAction
-	| WebviewScreenSharingSourceRespondedAction
+  AboutDialogDismissedAction
+  | CertificatesClientCertificateRequestedAction
+  | MenuBarAboutClickedAction
+  | ScreenSharingDialogDismissedAction
+  | SelectClientCertificateDialogCertificateSelectedAction
+  | SelectClientCertificateDialogDismissedAction
+  | UpdateDialogDismissedAction
+  | UpdateDialogInstallButtonClickedAction
+  | UpdateDialogRemindUpdateLaterClickedAction
+  | UpdateDialogSkipUpdateClickedAction
+  | UpdatesNewVersionAvailableAction
+  | WebviewScreenSharingSourceRequestedAction
+  | WebviewScreenSharingSourceRespondedAction
 );
 
 export type ServersActionTypes = (
-	AddServerViewServerAddedAction
-	| SideBarRemoveServerClickedAction
-	| SideBarServersSortedAction
-	| WebviewDidNavigateAction
-	| WebviewSidebarStyleChangedAction
-	| WebviewTitleChangedAction
-	| WebviewUnreadChangedAction
-	| WebviewFaviconChangedAction
-	| PersistableValuesMergedAction
-	| WebviewDidStartLoadingAction
-	| WebviewDidFailLoadAction
+  AddServerViewServerAddedAction
+  | SideBarRemoveServerClickedAction
+  | SideBarServersSortedAction
+  | WebviewDidNavigateAction
+  | WebviewSidebarStyleChangedAction
+  | WebviewTitleChangedAction
+  | WebviewUnreadChangedAction
+  | WebviewFaviconChangedAction
+  | PersistableValuesMergedAction
+  | WebviewDidStartLoadingAction
+  | WebviewDidFailLoadAction
 );
 
 export type SkippedUpdateVersionActionTypes = (
-	UpdatesReadyAction
-	| PersistableValuesMergedAction
-	| UpdateSkippedAction
+  UpdatesReadyAction
+  | PersistableValuesMergedAction
+  | UpdateSkippedAction
 );
 
 export type SpellCheckingDictionariesActionTypes = (
-	PersistableValuesMergedAction
-	| SpellCheckingDictionariesUpdatedAction
-	| WebviewSpellCheckingDictionaryToggledAction
+  PersistableValuesMergedAction
+  | SpellCheckingDictionariesUpdatedAction
+  | WebviewSpellCheckingDictionaryToggledAction
 );
 
 export type TrustedCertificatesActionTypes = (
-	CertificatesUpdatedAction
-	| CertificatesClearedAction
-	| PersistableValuesMergedAction
+  CertificatesUpdatedAction
+  | CertificatesClearedAction
+  | PersistableValuesMergedAction
 );
 
 export type UpdateErrorActionTypes = (
-	UpdatesCheckingForUpdateAction
-	| UpdatesErrorThrownAction
-	| UpdatesNewVersionAvailableAction
-	| UpdatesNewVersionNotAvailableAction
+  UpdatesCheckingForUpdateAction
+  | UpdatesErrorThrownAction
+  | UpdatesNewVersionAvailableAction
+  | UpdatesNewVersionNotAvailableAction
 );

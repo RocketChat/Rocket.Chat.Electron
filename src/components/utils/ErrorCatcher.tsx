@@ -1,26 +1,26 @@
 import { Component, ReactNode, ErrorInfo } from 'react';
 
 import {
-	APP_ERROR_THROWN,
+  APP_ERROR_THROWN,
 } from '../../actions';
 import { dispatch } from '../../channels';
 
 export class ErrorCatcher extends Component {
-	componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-		console.error(error);
-		console.error(errorInfo.componentStack);
-		dispatch({
-			type: APP_ERROR_THROWN,
-			payload: {
-				message: error.message,
-				stack: error.stack,
-				name: error.name,
-			},
-			error: true,
-		});
-	}
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    console.error(error);
+    console.error(errorInfo.componentStack);
+    dispatch({
+      type: APP_ERROR_THROWN,
+      payload: {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      },
+      error: true,
+    });
+  }
 
-	render(): ReactNode {
-		return this.props.children ?? null;
-	}
+  render(): ReactNode {
+    return this.props.children ?? null;
+  }
 }

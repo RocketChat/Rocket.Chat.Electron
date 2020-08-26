@@ -4,8 +4,8 @@ import { attachErrorHandlers } from './main/errors';
 import { createReduxStore } from './main/reduxStore';
 
 if (require.main === module) {
-	setUserDataDirectory();
-	attachErrorHandlers();
-	performElectronStartup();
-	createReduxStore();
+  setUserDataDirectory();
+  attachErrorHandlers();
+  performElectronStartup();
+  createReduxStore();
 }

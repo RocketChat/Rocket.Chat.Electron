@@ -1,9 +1,9 @@
 import { Action } from 'redux';
 
 export type FluxStandardAction<T, A extends string = string> = Action<A> & {
-	payload?: T;
-	error?: boolean;
-	meta?: Record<string, unknown>;
+  payload?: T;
+  error?: boolean;
+  meta?: Record<string, unknown>;
 };
 
 export const isFSA = (action: unknown): action is FluxStandardAction<unknown> => typeof action === 'object'

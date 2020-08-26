@@ -9,16 +9,16 @@ import { Shell } from './Shell';
 import { ErrorCatcher } from './utils/ErrorCatcher';
 
 type AppProps = {
-	reduxStore: Store;
+  reduxStore: Store;
 };
 
 export const App: FC<AppProps> = ({ reduxStore }) =>
-	<ErrorCatcher>
-		<Provider store={reduxStore}>
-			<I18nextProvider i18n={i18n}>
-				<MainWindow>
-					<Shell />
-				</MainWindow>
-			</I18nextProvider>
-		</Provider>
-	</ErrorCatcher>;
+  <ErrorCatcher>
+    <Provider store={reduxStore}>
+      <I18nextProvider i18n={i18n}>
+        <MainWindow>
+          <Shell />
+        </MainWindow>
+      </I18nextProvider>
+    </Provider>
+  </ErrorCatcher>;

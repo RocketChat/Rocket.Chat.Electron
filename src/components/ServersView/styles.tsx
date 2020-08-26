@@ -2,7 +2,7 @@ import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 
 type WrapperProps = {
-	isVisible: boolean;
+  isVisible: boolean;
 };
 
 export const Wrapper = styled.section<WrapperProps>`
@@ -17,7 +17,7 @@ export const Wrapper = styled.section<WrapperProps>`
 `;
 
 type StyledWebViewProps = {
-	isFailed: boolean;
+  isFailed: boolean;
 };
 
 export const StyledWebView = styled('webview')<StyledWebViewProps>`
@@ -31,7 +31,7 @@ export const StyledWebView = styled('webview')<StyledWebViewProps>`
 `;
 
 type ErrorPaneProps = {
-	isVisible: boolean;
+  isVisible: boolean;
 };
 
 export const ErrorPane = styled.div<ErrorPaneProps>`

@@ -6,10 +6,10 @@ import { rootReducer } from '../reducers';
 import { rootSaga } from './rootSaga';
 
 export const createReduxStore = async (): Promise<void> => {
-	const sagaMiddleware = createSagaMiddleware();
-	const initialState = await getInitialState();
-	const composeEnhancers: typeof compose = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-	const enhancers = composeEnhancers(applyMiddleware(forwardToMain, sagaMiddleware));
-	const reduxStore = createStore(rootReducer, initialState, enhancers);
-	sagaMiddleware.run(rootSaga, reduxStore);
+  const sagaMiddleware = createSagaMiddleware();
+  const initialState = await getInitialState();
+  const composeEnhancers: typeof compose = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+  const enhancers = composeEnhancers(applyMiddleware(forwardToMain, sagaMiddleware));
+  const reduxStore = createStore(rootReducer, initialState, enhancers);
+  sagaMiddleware.run(rootSaga, reduxStore);
 };

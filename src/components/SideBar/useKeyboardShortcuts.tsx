@@ -1,30 +1,30 @@
 import { useEffect, useState } from 'react';
 
 export const useKeyboardShortcuts = (): boolean => {
-	const [isEachShortcutVisible, setShortcutsVisible] = useState(false);
+  const [isEachShortcutVisible, setShortcutsVisible] = useState(false);
 
-	useEffect(() => {
-		const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
+  useEffect(() => {
+    const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 
-		const handleKeyChange = (down: boolean) => ({ key }: KeyboardEvent) => {
-			if (shortcutKey !== key) {
-				return;
-			}
+    const handleKeyChange = (down: boolean) => ({ key }: KeyboardEvent) => {
+      if (shortcutKey !== key) {
+        return;
+      }
 
-			setShortcutsVisible(down);
-		};
+      setShortcutsVisible(down);
+    };
 
-		const handleKeyDown = handleKeyChange(true);
-		const handleKeyUp = handleKeyChange(false);
+    const handleKeyDown = handleKeyChange(true);
+    const handleKeyUp = handleKeyChange(false);
 
-		window.addEventListener('keydown', handleKeyDown);
-		window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
 
-		return () => {
-			window.removeEventListener('keydown', handleKeyDown);
-			window.removeEventListener('keyup', handleKeyUp);
-		};
-	}, []);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
-	return isEachShortcutVisible;
+  return isEachShortcutVisible;
 };

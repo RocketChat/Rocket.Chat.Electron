@@ -2,9 +2,9 @@ import { powerMonitor } from 'electron';
 import { takeEvery, Effect, call } from 'redux-saga/effects';
 
 import {
-	SYSTEM_SUSPENDING,
-	SYSTEM_LOCKING_SCREEN,
-	SYSTEM_IDLE_STATE_REQUESTED,
+  SYSTEM_SUSPENDING,
+  SYSTEM_LOCKING_SCREEN,
+  SYSTEM_IDLE_STATE_REQUESTED,
 } from '../../actions';
 import { request } from '../../channels';
 
@@ -16,69 +16,69 @@ let goOnline = (): void => undefined;
 let goAway = (): void => undefined;
 
 const setupUserPresenceListening = (): void => {
-	const { Meteor } = window.require('meteor/meteor');
-	const { Tracker } = window.require('meteor/tracker');
-	const { UserPresence } = window.require('meteor/konecty:user-presence');
-	const { getUserPreference } = window.require('/app/utils');
+  const { Meteor } = window.require('meteor/meteor');
+  const { Tracker } = window.require('meteor/tracker');
+  const { UserPresence } = window.require('meteor/konecty:user-presence');
+  const { getUserPreference } = window.require('/app/utils');
 
-	goOnline = () => Meteor.call('UserPresence:setDefaultStatus', 'online');
-	goAway = () => Meteor.call('UserPresence:setDefaultStatus', 'away');
+  goOnline = () => Meteor.call('UserPresence:setDefaultStatus', 'online');
+  goAway = () => Meteor.call('UserPresence:setDefaultStatus', 'away');
 
-	Tracker.autorun(() => {
-		const uid = Meteor.userId();
-		isAutoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
-		idleThreshold = getUserPreference(uid, 'idleTimeLimit');
+  Tracker.autorun(() => {
+    const uid = Meteor.userId();
+    isAutoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
+    idleThreshold = getUserPreference(uid, 'idleTimeLimit');
 
-		if (isAutoAwayEnabled) {
-			delete UserPresence.awayTime;
-			UserPresence.start();
-		}
-	});
+    if (isAutoAwayEnabled) {
+      delete UserPresence.awayTime;
+      UserPresence.start();
+    }
+  });
 
-	let prevState: SystemIdleState;
-	const pollSystemIdleState = async (): Promise<void> => {
-		if (!isAutoAwayEnabled || !idleThreshold) {
-			return;
-		}
+  let prevState: SystemIdleState;
+  const pollSystemIdleState = async (): Promise<void> => {
+    if (!isAutoAwayEnabled || !idleThreshold) {
+      return;
+    }
 
-		const state: SystemIdleState = await request(SYSTEM_IDLE_STATE_REQUESTED, idleThreshold);
+    const state: SystemIdleState = await request(SYSTEM_IDLE_STATE_REQUESTED, idleThreshold);
 
-		if (prevState === state) {
-			setTimeout(pollSystemIdleState, 1000);
-			return;
-		}
+    if (prevState === state) {
+      setTimeout(pollSystemIdleState, 1000);
+      return;
+    }
 
-		const isOnline = !isAutoAwayEnabled || state === 'active' || state === 'unknown';
+    const isOnline = !isAutoAwayEnabled || state === 'active' || state === 'unknown';
 
-		if (isOnline) {
-			goOnline();
-		} else {
-			goAway();
-		}
+    if (isOnline) {
+      goOnline();
+    } else {
+      goAway();
+    }
 
-		prevState = state;
-		setTimeout(pollSystemIdleState, 1000);
-	};
+    prevState = state;
+    setTimeout(pollSystemIdleState, 1000);
+  };
 
-	pollSystemIdleState();
+  pollSystemIdleState();
 };
 
 export function *listenToUserPresenceChanges(): Generator<Effect, void> {
-	yield call(setupUserPresenceListening);
+  yield call(setupUserPresenceListening);
 
-	yield takeEvery(SYSTEM_SUSPENDING, function *() {
-		if (!isAutoAwayEnabled) {
-			return;
-		}
+  yield takeEvery(SYSTEM_SUSPENDING, function *() {
+    if (!isAutoAwayEnabled) {
+      return;
+    }
 
-		goAway();
-	});
+    goAway();
+  });
 
-	yield takeEvery(SYSTEM_LOCKING_SCREEN, function *() {
-		if (!isAutoAwayEnabled) {
-			return;
-		}
+  yield takeEvery(SYSTEM_LOCKING_SCREEN, function *() {
+    if (!isAutoAwayEnabled) {
+      return;
+    }
 
-		goAway();
-	});
+    goAway();
+  });
 }

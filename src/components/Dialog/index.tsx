@@ -5,18 +5,18 @@ import { useDialog } from '../../hooks/useDialog';
 import { Wrapper } from './styles';
 
 type DialogProps = {
-	isVisible?: boolean;
-	onClose?: () => void;
+  isVisible?: boolean;
+  onClose?: () => void;
 };
 
 export const Dialog: FC<DialogProps> = ({ children, isVisible, onClose }) => {
-	const dialogRef = useDialog(isVisible, onClose);
+  const dialogRef = useDialog(isVisible, onClose);
 
-	return <Wrapper ref={dialogRef}>
-		<Scrollable>
-			<Tile elevation='2' padding='x32' display='flex' flexDirection='column'>
-				{children}
-			</Tile>
-		</Scrollable>
-	</Wrapper>;
+  return <Wrapper ref={dialogRef}>
+    <Scrollable>
+      <Tile elevation='2' padding='x32' display='flex' flexDirection='column'>
+        {children}
+      </Tile>
+    </Scrollable>
+  </Wrapper>;
 };

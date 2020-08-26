@@ -3,8 +3,8 @@ import styled from '@emotion/styled';
 import React, { FC } from 'react';
 
 export const GlobalStyles: FC = () =>
-	<Global
-		styles={css`
+  <Global
+    styles={css`
 			*,
 			*::before,
 			*::after {
@@ -27,7 +27,7 @@ export const GlobalStyles: FC = () =>
 				background-color: #2f343d;
 			}
 		`}
-	/>;
+  />;
 
 export const WindowDragBar = styled.div`
 	position: fixed;

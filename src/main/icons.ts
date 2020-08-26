@@ -1,5 +1,7 @@
 import { app, nativeTheme } from 'electron';
 
+import { Server } from '../structs/servers';
+
 type Platform = 'win32' | 'darwin'| 'linux';
 
 const getTrayIconSet = ({ platform, dark }: { platform: Platform, dark: boolean }): string => {
@@ -10,7 +12,7 @@ const getTrayIconSet = ({ platform, dark }: { platform: Platform, dark: boolean 
   return platform;
 };
 
-const getTrayIconName = ({ badge, platform }: { badge: '•' | number, platform: NodeJS.Platform }): string => {
+const getTrayIconName = ({ badge, platform }: { badge: Server['badge'], platform: NodeJS.Platform }): string => {
   if (platform === 'darwin') {
     return badge ? 'notification' : 'default';
   }

@@ -1,12 +1,12 @@
 import { powerMonitor } from 'electron';
-import { takeEvery, Effect, call } from 'redux-saga/effects';
 
 import {
   SYSTEM_SUSPENDING,
   SYSTEM_LOCKING_SCREEN,
   SYSTEM_IDLE_STATE_REQUESTED,
+  SystemIdleStateRespondedAction,
 } from '../../actions';
-import { request } from '../../channels';
+import { listen, request } from '../../store';
 
 type SystemIdleState = ReturnType<typeof powerMonitor.getSystemIdleState>;
 
@@ -41,7 +41,10 @@ const setupUserPresenceListening = (): void => {
       return;
     }
 
-    const state: SystemIdleState = await request(SYSTEM_IDLE_STATE_REQUESTED, idleThreshold);
+    const state: SystemIdleState = await request<SystemIdleStateRespondedAction>({
+      type: SYSTEM_IDLE_STATE_REQUESTED,
+      payload: idleThreshold,
+    });
 
     if (prevState === state) {
       setTimeout(pollSystemIdleState, 1000);
@@ -63,10 +66,10 @@ const setupUserPresenceListening = (): void => {
   pollSystemIdleState();
 };
 
-export function *listenToUserPresenceChanges(): Generator<Effect, void> {
-  yield call(setupUserPresenceListening);
+export const listenToUserPresenceChanges = (): void => {
+  setupUserPresenceListening();
 
-  yield takeEvery(SYSTEM_SUSPENDING, function *() {
+  listen(SYSTEM_SUSPENDING, () => {
     if (!isAutoAwayEnabled) {
       return;
     }
@@ -74,11 +77,11 @@ export function *listenToUserPresenceChanges(): Generator<Effect, void> {
     goAway();
   });
 
-  yield takeEvery(SYSTEM_LOCKING_SCREEN, function *() {
+  listen(SYSTEM_LOCKING_SCREEN, () => {
     if (!isAutoAwayEnabled) {
       return;
     }
 
     goAway();
   });
-}
+};

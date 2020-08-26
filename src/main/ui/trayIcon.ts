@@ -7,6 +7,7 @@ import {
   selectIsMainWindowVisible,
   selectGlobalBadge,
 } from '../../selectors';
+import { Server } from '../../structs/servers';
 import { getTrayIconPath, getAppIconPath } from '../icons';
 
 const t = i18next.t.bind(i18next);
@@ -45,17 +46,17 @@ const createTrayIcon = (reduxStore: Store, rootWindow: BrowserWindow): Tray => {
   return trayIcon;
 };
 
-const updateTrayIconImage = (trayIcon: Tray, badge: '•' | number, dark:boolean): void => {
+const updateTrayIconImage = (trayIcon: Tray, badge: Server['badge'], dark:boolean): void => {
   const image = getTrayIconPath({ badge, dark });
   trayIcon.setImage(image);
 };
 
-const updateTrayIconTitle = (trayIcon: Tray, globalBadge: '•' | number): void => {
+const updateTrayIconTitle = (trayIcon: Tray, globalBadge: Server['badge']): void => {
   const title = Number.isInteger(globalBadge) ? String(globalBadge) : '';
   trayIcon.setTitle(title);
 };
 
-const updateTrayIconToolTip = (trayIcon:Tray, globalBadge: '•' | number): void => {
+const updateTrayIconToolTip = (trayIcon:Tray, globalBadge: Server['badge']): void => {
   if (globalBadge === '•') {
     trayIcon.setToolTip(t('tray.tooltip.unreadMessage', { appName: app.name }));
     return;
@@ -80,7 +81,7 @@ const warnStillRunning = (trayIcon: Tray): void => {
 const manageTrayIcon = async (reduxStore: Store, rootWindow: BrowserWindow): Promise<() => void> => {
   const trayIcon = createTrayIcon(reduxStore, rootWindow);
 
-  let prevGlobalBadge: '•' | number;
+  let prevGlobalBadge: Server['badge'];
   const unwatchGlobalBadge = reduxStore.subscribe(() => {
     const globalBadge = selectGlobalBadge(reduxStore.getState());
     if (prevGlobalBadge !== globalBadge) {

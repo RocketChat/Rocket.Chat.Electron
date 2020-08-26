@@ -17,9 +17,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   SERVER_VALIDATION_REQUESTED,
   ADD_SERVER_VIEW_SERVER_ADDED,
+  ServerValidationRespondedAction,
 } from '../../actions';
-import { request } from '../../channels';
 import { selectCurrentServerUrl } from '../../selectors';
+import { request } from '../../store';
 import { ValidationResult } from '../../structs/servers';
 import { RocketChatLogo } from '../RocketChatLogo';
 import { Wrapper, Content } from './styles';
@@ -47,7 +48,12 @@ export const AddServerView: FC = () => {
       return false;
     }
 
-    const validationResult = await request(SERVER_VALIDATION_REQUESTED, { serverUrl });
+    const validationResult = await request<ServerValidationRespondedAction>({
+      type: SERVER_VALIDATION_REQUESTED,
+      payload: {
+        serverUrl,
+      },
+    });
 
     if (validationResult === ValidationResult.OK) {
       setValidation(idleState);

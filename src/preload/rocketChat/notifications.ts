@@ -1,9 +1,6 @@
-import { takeEvery, Effect, put, call } from 'redux-saga/effects';
-
 import {
   WEBVIEW_FOCUS_REQUESTED,
   NOTIFICATIONS_CREATE_REQUESTED,
-
   NOTIFICATIONS_NOTIFICATION_ACTIONED,
   NOTIFICATIONS_NOTIFICATION_CLICKED,
   NOTIFICATIONS_NOTIFICATION_CLOSED,
@@ -15,11 +12,10 @@ import {
   NotificationsNotificationClickedAction,
   NotificationsNotificationRepliedAction,
   NotificationsNotificationActionedAction,
+  NotificationsCreateRespondedAction,
 } from '../../actions';
-import { request } from '../../channels';
-import { dispatch } from '../../store';
+import { dispatch, listen, request } from '../../store';
 import { getServerUrl } from './getServerUrl';
-
 
 const normalizeIconUrl = (iconUrl: string): string => {
   if (/^data:/.test(iconUrl)) {
@@ -70,12 +66,15 @@ class CustomNotification extends EventTarget implements Notification {
       });
     }
 
-    this._destroy = request(NOTIFICATIONS_CREATE_REQUESTED, {
-      title,
-      ...icon ? {
-        icon: normalizeIconUrl(icon),
-      } : {},
-      ...options,
+    this._destroy = request<NotificationsCreateRespondedAction>({
+      type: NOTIFICATIONS_CREATE_REQUESTED,
+      payload: {
+        title,
+        ...icon ? {
+          icon: normalizeIconUrl(icon),
+        } : {},
+        ...options,
+      },
     }).then((id) => {
       notifications.set(id, this);
 
@@ -138,12 +137,8 @@ class CustomNotification extends EventTarget implements Notification {
   }
 }
 
-export function *listenToNotificationsRequests(): Generator<Effect> {
-  yield call(() => {
-    window.Notification = CustomNotification;
-  });
-
-  yield takeEvery(NOTIFICATIONS_NOTIFICATION_SHOWN, function *(action: NotificationsNotificationShownAction) {
+export const listenToNotificationsRequests = (): void => {
+  listen(NOTIFICATIONS_NOTIFICATION_SHOWN, (action: NotificationsNotificationShownAction) => {
     const { payload: { id } } = action;
 
     if (!notifications.has(id)) {
@@ -154,7 +149,7 @@ export function *listenToNotificationsRequests(): Generator<Effect> {
     notifications.get(id).dispatchEvent(showEvent);
   });
 
-  yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLOSED, function *(action: NotificationsNotificationClosedAction) {
+  listen(NOTIFICATIONS_NOTIFICATION_CLOSED, (action: NotificationsNotificationClosedAction) => {
     const { payload: { id } } = action;
 
     if (!notifications.has(id)) {
@@ -166,17 +161,17 @@ export function *listenToNotificationsRequests(): Generator<Effect> {
     notifications.delete(id);
   });
 
-  yield takeEvery(NOTIFICATIONS_NOTIFICATION_CLICKED, function *(action: NotificationsNotificationClickedAction) {
+  listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action: NotificationsNotificationClickedAction) => {
     const { payload: { id } } = action;
 
     if (!notifications.has(id)) {
       return;
     }
 
-    yield put({
+    dispatch({
       type: WEBVIEW_FOCUS_REQUESTED,
       payload: {
-        url: yield call(getServerUrl),
+        url: getServerUrl(),
       },
     });
 
@@ -184,7 +179,7 @@ export function *listenToNotificationsRequests(): Generator<Effect> {
     notifications.get(id).dispatchEvent(clickEvent);
   });
 
-  yield takeEvery(NOTIFICATIONS_NOTIFICATION_REPLIED, function *(action: NotificationsNotificationRepliedAction) {
+  listen(NOTIFICATIONS_NOTIFICATION_REPLIED, (action: NotificationsNotificationRepliedAction) => {
     const { payload: { id, reply } } = action;
 
     if (!notifications.has(id)) {
@@ -195,7 +190,7 @@ export function *listenToNotificationsRequests(): Generator<Effect> {
     notifications.get(id).dispatchEvent(replyEvent);
   });
 
-  yield takeEvery(NOTIFICATIONS_NOTIFICATION_ACTIONED, function *(action: NotificationsNotificationActionedAction) {
+  listen(NOTIFICATIONS_NOTIFICATION_ACTIONED, (action: NotificationsNotificationActionedAction) => {
     const { payload: { id, index } } = action;
 
     if (!notifications.has(id)) {
@@ -205,4 +200,6 @@ export function *listenToNotificationsRequests(): Generator<Effect> {
     const actionEvent = new CustomEvent<{ index: number }>('action', { detail: { index } });
     notifications.get(id).dispatchEvent(actionEvent);
   });
-}
+
+  window.Notification = CustomNotification;
+};

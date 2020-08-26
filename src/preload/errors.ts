@@ -1,9 +1,8 @@
 import Bugsnag from '@bugsnag/js';
-import { Effect, select, call } from 'redux-saga/effects';
 
 import { APP_ERROR_THROWN } from '../actions';
 import { selectAppVersion } from '../selectors';
-import { dispatch } from '../store';
+import { dispatch, select } from '../store';
 
 const setupBugsnag = (apiKey: string, appVersion: string): void => {
   Bugsnag.start({
@@ -44,16 +43,14 @@ const handleUnhandledRejectionEvent = (event: PromiseRejectionEvent): void => {
   });
 };
 
-export function *attachErrorHandling(): Generator<Effect, void> {
+export const setupErrorHandling = (): void => {
   if (process.env.BUGSNAG_API_KEY) {
     const apiKey = process.env.BUGSNAG_API_KEY;
-    const appVersion = yield select(selectAppVersion);
-    yield call(() => setupBugsnag(apiKey, appVersion as string));
+    const appVersion = select(selectAppVersion);
+    setupBugsnag(apiKey, appVersion);
     return;
   }
 
-  yield call(() => {
-    window.addEventListener('error', handleErrorEvent);
-    window.addEventListener('unhandledrejection', handleUnhandledRejectionEvent);
-  });
-}
+  window.addEventListener('error', handleErrorEvent);
+  window.addEventListener('unhandledrejection', handleUnhandledRejectionEvent);
+};

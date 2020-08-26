@@ -1,5 +1,4 @@
-import { Effect } from 'redux-saga/effects';
-import semver from 'semver';
+import { satisfies, coerce } from 'semver';
 
 import { listenToBadgeChanges } from './badge';
 import { listenToFaviconChanges } from './favicon';
@@ -17,20 +16,20 @@ export const isRocketChat = (): boolean => {
 
   try {
     const { Info } = window.require('/app/utils/rocketchat.info');
-    return semver.satisfies(semver.coerce(Info.version), '>=3.0.x');
+    return satisfies(coerce(Info.version), '>=3.0.x');
   } catch (error) {
     console.error(error);
     return false;
   }
 };
 
-export function *setupRocketChatPage(): Generator<Effect, void> {
-  yield *listenToBadgeChanges();
-  yield *listenToFaviconChanges();
-  yield *listenToSideBarChanges();
-  yield *listenToTitleChanges();
-  yield *listenToUserPresenceChanges();
-  yield *listenToMessageBoxEvents();
-  yield *listenToNotificationsRequests();
-  yield *listenToScreenSharingRequests();
-}
+export const setupRocketChatPage = (): void => {
+  listenToBadgeChanges();
+  listenToFaviconChanges();
+  listenToSideBarChanges();
+  listenToTitleChanges();
+  listenToUserPresenceChanges();
+  listenToMessageBoxEvents();
+  listenToNotificationsRequests();
+  listenToScreenSharingRequests();
+};

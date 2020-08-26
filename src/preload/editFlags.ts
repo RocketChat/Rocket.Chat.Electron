@@ -1,5 +1,4 @@
 import { EditFlags } from 'electron';
-import { Effect, call } from 'redux-saga/effects';
 
 import { WEBVIEW_EDIT_FLAGS_CHANGED } from '../actions';
 import { dispatch } from '../store';
@@ -28,9 +27,7 @@ const handleSelectionChangeEvent = (): void => {
   });
 };
 
-export function *attachEditFlagsHandling(): Generator<Effect, void> {
-  yield call(() => {
-    document.addEventListener('focus', handleFocusEvent, true);
-    document.addEventListener('selectionchange', handleSelectionChangeEvent, true);
-  });
-}
+export const setupEditFlagsHandling = (): void => {
+  document.addEventListener('focus', handleFocusEvent, true);
+  document.addEventListener('selectionchange', handleSelectionChangeEvent, true);
+};

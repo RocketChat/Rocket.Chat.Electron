@@ -1,10 +1,8 @@
 import { webFrame, Provider } from 'electron';
-import { Effect } from 'redux-saga/effects';
 
-import { SPELL_CHECKING_MISSPELT_WORDS_REQUESTED } from '../actions';
-import { request } from '../channels';
-import { selectChanges } from '../selectChanges';
+import { SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, SpellCheckingMisspeltWordsRespondedAction } from '../actions';
 import { selectDictionaryName } from '../selectors';
+import { watch, request } from '../store';
 
 const noopSpellCheckProvider: Provider = {
   spellCheck: (_words, callback) => callback([]),
@@ -12,7 +10,10 @@ const noopSpellCheckProvider: Provider = {
 
 const remoteSpellCheckProvider: Provider = {
   spellCheck: async (words, callback) => {
-    const misspeltWords: string[] = await request(SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, words);
+    const misspeltWords: string[] = await request<SpellCheckingMisspeltWordsRespondedAction>({
+      type: SPELL_CHECKING_MISSPELT_WORDS_REQUESTED,
+      payload: words,
+    });
     callback(misspeltWords);
   },
 };
@@ -26,9 +27,9 @@ const setSpellCheckProvider = (language: string): void => {
   webFrame.setSpellCheckProvider(language, remoteSpellCheckProvider);
 };
 
-export function *attachSpellChecking(): Generator<Effect, void> {
-  yield selectChanges(selectDictionaryName, function *(dictionaryName: string) {
+export const setupSpellChecking = (): void => {
+  watch(selectDictionaryName, (dictionaryName: string) => {
     const spellCheckingLanguage = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
     setSpellCheckProvider(spellCheckingLanguage);
   });
-}
+};

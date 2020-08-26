@@ -1,12 +1,10 @@
-import { takeEvery, call, Effect } from 'redux-saga/effects';
-
 import {
   WEBVIEW_MESSAGE_BOX_FOCUSED,
   WEBVIEW_MESSAGE_BOX_BLURRED,
   TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
   TouchBarFormatButtonTouchedAction,
 } from '../../actions';
-import { dispatch } from '../../store';
+import { dispatch, listen } from '../../store';
 
 let focusedMessageBoxInput: Element = null;
 
@@ -36,40 +34,36 @@ const handleBlurEvent = (event: FocusEvent): void => {
   dispatch({ type: WEBVIEW_MESSAGE_BOX_BLURRED });
 };
 
-export function *listenToMessageBoxEvents(): Generator<Effect> {
-  yield call(() => {
-    document.addEventListener('focus', handleFocusEvent, true);
-    document.addEventListener('blur', handleBlurEvent, true);
-  });
-
-  yield takeEvery(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, function *(action: TouchBarFormatButtonTouchedAction) {
+export const listenToMessageBoxEvents = (): void => {
+  listen(TOUCH_BAR_FORMAT_BUTTON_TOUCHED, (action: TouchBarFormatButtonTouchedAction) => {
     if (!focusedMessageBoxInput) {
       return;
     }
 
     const { payload: buttonId } = action;
-    yield call(() => {
-      const {
-        formattingButtons,
-        applyFormatting,
-      }: {
-        formattingButtons: {
-          pattern: string;
-          condition?: () => boolean;
-          label: string;
-        }[];
-        applyFormatting: (pattern: string, messageBoxInput: Element) => void;
-      } = window.require('/app/ui-message/client/messageBox/messageBoxFormatting');
+    const {
+      formattingButtons,
+      applyFormatting,
+    }: {
+      formattingButtons: {
+        pattern: string;
+        condition?: () => boolean;
+        label: string;
+      }[];
+      applyFormatting: (pattern: string, messageBoxInput: Element) => void;
+    } = window.require('/app/ui-message/client/messageBox/messageBoxFormatting');
 
-      const { pattern } = formattingButtons
-        .filter(({ condition }) => !condition || condition())
-        .find(({ label }) => label === buttonId) || {};
+    const { pattern } = formattingButtons
+      .filter(({ condition }) => !condition || condition())
+      .find(({ label }) => label === buttonId) || {};
 
-      if (!pattern) {
-        return;
-      }
+    if (!pattern) {
+      return;
+    }
 
-      applyFormatting(pattern, focusedMessageBoxInput);
-    });
+    applyFormatting(pattern, focusedMessageBoxInput);
   });
-}
+
+  document.addEventListener('focus', handleFocusEvent, true);
+  document.addEventListener('blur', handleBlurEvent, true);
+};

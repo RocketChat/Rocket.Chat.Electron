@@ -1,8 +1,8 @@
-import { Certificate, EditFlags } from 'electron';
+import { Certificate, EditFlags, powerMonitor } from 'electron';
 
 import { FluxStandardAction } from './structs/fsa';
 import { ExtendedNotificationOptions } from './structs/notifications';
-import { Server } from './structs/servers';
+import { Server, ValidationResult } from './structs/servers';
 import { Dictionary } from './structs/spellChecking';
 import { WindowState } from './structs/ui';
 
@@ -139,6 +139,7 @@ export type SideBarServersSortedAction = FluxStandardAction<typeof SIDE_BAR_SERV
 export type SideBarContextMenuTriggeredAction = FluxStandardAction<typeof SIDE_BAR_CONTEXT_MENU_TRIGGERED, Server['url']>;
 export type SpellCheckingDictionariesUpdatedAction = FluxStandardAction<typeof SPELL_CHECKING_DICTIONARIES_UPDATED, Dictionary[]>;
 export type SpellCheckingMisspeltWordsRequestedAction = FluxStandardAction<typeof SPELL_CHECKING_MISSPELT_WORDS_REQUESTED, string[]>;
+export type SpellCheckingMisspeltWordsRespondedAction = FluxStandardAction<typeof SPELL_CHECKING_MISSPELT_WORDS_RESPONDED, string[]>;
 export type TouchBarFormatButtonTouchedAction = FluxStandardAction<typeof TOUCH_BAR_FORMAT_BUTTON_TOUCHED, 'bold' | 'italic' | 'strike' | 'inline_code' | 'multi_line' >;
 export type TouchBarSelectServerTouchedAction = FluxStandardAction<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED, string>;
 export type UpdateDialogDismissedAction = FluxStandardAction<typeof UPDATE_DIALOG_DISMISSED, never>;
@@ -159,7 +160,7 @@ export type WebviewFocusRequestedAction = FluxStandardAction<typeof WEBVIEW_FOCU
 export type WebviewMessageBoxBlurredAction = FluxStandardAction<typeof WEBVIEW_MESSAGE_BOX_BLURRED, never>;
 export type WebviewMessageBoxFocusedAction = FluxStandardAction<typeof WEBVIEW_MESSAGE_BOX_FOCUSED, never>;
 export type WebviewScreenSharingSourceRequestedAction = FluxStandardAction<typeof WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, never>;
-export type WebviewScreenSharingSourceRespondedAction = FluxStandardAction<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, never>;
+export type WebviewScreenSharingSourceRespondedAction = FluxStandardAction<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, string>;
 export type WebviewSidebarStyleChangedAction = FluxStandardAction<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED, { url: Server['url']; style: Server['style'] }>;
 export type WebviewSpellCheckingDictionaryToggledAction = FluxStandardAction<typeof WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED, Dictionary>;
 export type WebviewTitleChangedAction = FluxStandardAction<typeof WEBVIEW_TITLE_CHANGED, { url: Server['url']; title: Server['title'] }>;
@@ -174,15 +175,28 @@ export type NotificationsNotificationRepliedAction = FluxStandardAction<typeof N
 export type NotificationsNotificationActionedAction = FluxStandardAction<typeof NOTIFICATIONS_NOTIFICATION_ACTIONED, { id: unknown, index: number }>;
 export type SystemLockingScreenAction = FluxStandardAction<typeof SYSTEM_LOCKING_SCREEN, never>;
 export type SystemSuspendingAction = FluxStandardAction<typeof SYSTEM_SUSPENDING, never>;
+export type SystemIdleStateRequestedAction = FluxStandardAction<typeof SYSTEM_IDLE_STATE_REQUESTED, number>;
+export type SystemIdleStateRespondedAction = FluxStandardAction<typeof SYSTEM_IDLE_STATE_RESPONDED, ReturnType<typeof powerMonitor.getSystemIdleState>>;
+export type ServerValidationRequestedAction = FluxStandardAction<typeof SERVER_VALIDATION_REQUESTED, { serverUrl: Server['url'] }>;
+export type ServerValidationRespondedAction = FluxStandardAction<typeof SERVER_VALIDATION_RESPONDED, ValidationResult>;
 
 export type SideEffectAction = (
   AppErrorThrownAction
+  | NotificationsCreateRequestedAction
+  | NotificationsCreateRespondedAction
   | NotificationsNotificationDismissedAction
   | NotificationsNotificationActionedAction
   | NotificationsNotificationRepliedAction
   | NotificationsNotificationClickedAction
   | NotificationsNotificationClosedAction
   | NotificationsNotificationShownAction
+  | ServerValidationRequestedAction
+  | ServerValidationRespondedAction
+  | SpellCheckingMisspeltWordsRequestedAction
+  | SpellCheckingMisspeltWordsRespondedAction
+  | SystemIdleStateRequestedAction
+  | SystemIdleStateRespondedAction
   | SystemLockingScreenAction
   | SystemSuspendingAction
+  | TouchBarFormatButtonTouchedAction
 );

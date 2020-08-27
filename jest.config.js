@@ -5,7 +5,7 @@ module.exports = {
       errorOnDeprecated: true,
       runner: '@jest-runner/electron',
       testEnvironment: '@jest-runner/electron/environment',
-      testMatch: ['<rootDir>/src/!(main)/**/*.(spec|test).{js,ts,tsx}'],
+      testMatch: ['<rootDir>/src/*/!(main)/**/*.(spec|test).{js,ts,tsx}'],
       globals: {
         'ts-jest': {
           tsConfig: {
@@ -20,7 +20,7 @@ module.exports = {
       errorOnDeprecated: true,
       runner: '@jest-runner/electron/main',
       testEnvironment: 'node',
-      testMatch: ['<rootDir>/src/main/**/*.(spec|test).{js,ts,tsx}'],
+      testMatch: ['<rootDir>/src/*/main/**/*.(spec|test).{js,ts,tsx}'],
       globals: {
         'ts-jest': {
           tsConfig: {

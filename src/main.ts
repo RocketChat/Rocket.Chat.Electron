@@ -1,5 +1,6 @@
 import { app } from 'electron';
 
+import { setupMainErrorHandling } from './errors';
 import { performElectronStartup, setupApp } from './main/app';
 import {
   getLocalStorage,
@@ -9,7 +10,6 @@ import {
 } from './main/data';
 import { setupDeepLinks, processDeepLinksInArgs } from './main/deepLinks';
 import { setUserDataDirectory, setupElectronReloader, installDevTools } from './main/dev';
-import { attachErrorHandlers } from './main/errors';
 import { setupI18n } from './main/i18n';
 import { setupNavigation } from './main/navigation';
 import { setupPowerMonitor } from './main/powerMonitor';
@@ -31,7 +31,7 @@ import { createMainReduxStore } from './store';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
-  attachErrorHandlers();
+  setupMainErrorHandling();
   performElectronStartup();
 
   createMainReduxStore();

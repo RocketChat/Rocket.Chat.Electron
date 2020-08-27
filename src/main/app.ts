@@ -2,11 +2,10 @@ import { app } from 'electron';
 import rimraf from 'rimraf';
 
 import {
-  APP_ERROR_THROWN,
   APP_PATH_SET,
   APP_VERSION_SET,
 } from '../actions';
-import { listen, dispatch } from '../store';
+import { dispatch } from '../store';
 import { getRootWindow } from './ui/rootWindow';
 
 export const relaunchApp = (...args: string[]): void => {
@@ -70,10 +69,6 @@ export const setupApp = (): void => {
 
   app.addListener('window-all-closed', () => {
     app.quit();
-  });
-
-  listen(APP_ERROR_THROWN, (action) => {
-    console.error(action.payload);
   });
 
   dispatch({ type: APP_PATH_SET, payload: app.getAppPath() });

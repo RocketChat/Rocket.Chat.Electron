@@ -7,9 +7,6 @@ import { Selector } from './selectors';
 
 let reduxStore: Store<RootState>;
 
-export const getReduxStore = (): Store<RootState> =>
-  reduxStore;
-
 let lastAction: RootAction;
 
 const catchLastAction: Middleware = () =>
@@ -25,12 +22,14 @@ export const createMainReduxStore = (): void => {
   reduxStore = createStore(rootReducer, {}, middlewares);
 };
 
-export const createRendererReduxStore = async (): Promise<void> => {
+export const createRendererReduxStore = async (): Promise<Store> => {
   const initialState = await getInitialState();
   const composeEnhancers: typeof compose = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
   const enhancers = composeEnhancers(applyMiddleware(forwardToMain, catchLastAction));
 
   reduxStore = createStore(rootReducer, initialState, enhancers);
+
+  return reduxStore;
 };
 
 export const dispatch = (action: RootAction): void => {

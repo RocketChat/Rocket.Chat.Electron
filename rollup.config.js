@@ -16,15 +16,16 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const canRun = process.env.ROLLUP_WATCH === 'true' && process.env.NO_RUN !== 'true';
 
 const run = () => {
-  let proc;
+  let firstRun = true;
 
   return {
     writeBundle: () => {
-      if (proc) {
-        proc.kill();
+      if (!firstRun) {
+        return;
       }
 
-      proc = spawn(electron, ['.'], { stdio: 'inherit' });
+      spawn(electron, ['.'], { stdio: 'inherit' });
+      firstRun = true;
     },
   };
 };

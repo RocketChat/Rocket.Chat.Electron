@@ -1,5 +1,5 @@
+import { setupRendererErrorHandling } from './errors';
 import { setupEditFlagsHandling } from './preload/editFlags';
-import { setupErrorHandling } from './preload/errors';
 import { isJitsi, setupJitsiPage } from './preload/jitsi';
 import { isRocketChat, setupRocketChatPage } from './preload/rocketChat';
 import { setupSpellChecking } from './preload/spellChecking';
@@ -11,7 +11,7 @@ const start = async (): Promise<void> => {
 
   await whenReady();
 
-  setupErrorHandling();
+  setupRendererErrorHandling('webviewPreload');
   setupEditFlagsHandling();
   setupSpellChecking();
 

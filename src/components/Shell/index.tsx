@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, FC } from 'react';
 import { useSelector } from 'react-redux';
 
-import { selectAppPath } from '../../selectors';
+import { RootState } from '../../reducers';
 import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
@@ -12,7 +12,7 @@ import { UpdateDialog } from '../UpdateDialog';
 import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 
 export const Shell: FC = () => {
-  const appPath = useSelector(selectAppPath);
+  const appPath = useSelector(({ appPath }: RootState) => appPath);
 
   useLayoutEffect(() => {
     const linkElement = document.createElement('link');

@@ -13,7 +13,7 @@ import {
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../actions';
-import { selectServers, selectCurrentServerUrl, selectPersistableValues } from '../selectors';
+import { selectPersistableValues } from '../selectors';
 import { select, dispatch, listen } from '../store';
 import { ValidationResult, Server } from '../structs/servers';
 
@@ -157,8 +157,8 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
     });
   });
 
-  let servers = select(selectServers);
-  let currentServerUrl = select(selectCurrentServerUrl);
+  let servers = select(({ servers }) => servers);
+  let currentServerUrl = select(({ currentServerUrl }) => currentServerUrl);
 
   const serversMap = new Map<Server['url'], Server>(
     servers

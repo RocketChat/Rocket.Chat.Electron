@@ -1,11 +1,8 @@
 import { app, nativeTheme, Menu, Tray } from 'electron';
 import i18next from 'i18next';
 
-import {
-  selectIsTrayIconEnabled,
-  selectIsMainWindowVisible,
-  selectGlobalBadge,
-} from '../../selectors';
+import { RootState } from '../../reducers';
+import { selectGlobalBadge } from '../../selectors';
 import { watch, select } from '../../store';
 import { Server } from '../../structs/servers';
 import { getTrayIconPath, getAppIconPath } from '../icons';
@@ -13,15 +10,18 @@ import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 
+const selectIsRootWindowVisible = ({ mainWindowState: { visible } }: RootState): boolean =>
+  visible;
+
 const createTrayIcon = (): Tray => {
   const image = getTrayIconPath({ badge: null, dark: nativeTheme.shouldUseDarkColors });
 
   const trayIcon = new Tray(image);
 
   trayIcon.addListener('click', () => {
-    const isMainWindowVisible = select(selectIsMainWindowVisible);
+    const isRootWindowVisible = select(selectIsRootWindowVisible);
 
-    if (isMainWindowVisible) {
+    if (isRootWindowVisible) {
       getRootWindow().hide();
       return;
     }
@@ -30,9 +30,9 @@ const createTrayIcon = (): Tray => {
   });
 
   trayIcon.addListener('balloon-click', () => {
-    const isMainWindowVisible = select(selectIsMainWindowVisible);
+    const isRootWindowVisible = select(selectIsRootWindowVisible);
 
-    if (isMainWindowVisible) {
+    if (isRootWindowVisible) {
       getRootWindow().hide();
       return;
     }
@@ -88,14 +88,14 @@ const manageTrayIcon = async (): Promise<() => void> => {
     updateTrayIconToolTip(trayIcon, globalBadge);
   });
 
-  const unwatchIsRootWindowVisible = watch(selectIsMainWindowVisible, (isRootWindowVisible, prevIsRootWindowVisible) => {
+  const unwatchIsRootWindowVisible = watch(selectIsRootWindowVisible, (isRootWindowVisible, prevIsRootWindowVisible) => {
     const menuTemplate = [
       {
         label: isRootWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
         click: () => {
-          const isMainWindowVisible = select(selectIsMainWindowVisible);
+          const isRootWindowVisible = select(selectIsRootWindowVisible);
 
-          if (isMainWindowVisible) {
+          if (isRootWindowVisible) {
             getRootWindow().hide();
             return;
           }
@@ -139,7 +139,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
 export const setupTrayIcon = (): void => {
   let tearDownPromise: Promise<() => void> = null;
 
-  watch(selectIsTrayIconEnabled, (isTrayIconEnabled) => {
+  watch(({ isTrayIconEnabled }) => isTrayIconEnabled ?? true, (isTrayIconEnabled) => {
     if (!tearDownPromise && isTrayIconEnabled) {
       tearDownPromise = manageTrayIcon();
     } else if (tearDownPromise && !isTrayIconEnabled) {

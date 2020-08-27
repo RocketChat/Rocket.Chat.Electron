@@ -6,6 +6,7 @@ import { ExtendedNotificationOptions } from './structs/notifications';
 import { Server, ValidationResult } from './structs/servers';
 import { Dictionary } from './structs/spellChecking';
 import { WindowState } from './structs/ui';
+import { UpdateConfiguration } from './structs/updates';
 
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START = 'about-dialog/toggle-update-on-start';
@@ -153,7 +154,7 @@ type ActionTypeToPayloadMap = {
   [UPDATES_ERROR_THROWN]: Error;
   [UPDATES_NEW_VERSION_AVAILABLE]: string;
   [UPDATES_NEW_VERSION_NOT_AVAILABLE]: never;
-  [UPDATES_READY]: { doCheckForUpdatesOnStartup: boolean; isEachUpdatesSettingConfigurable: boolean; isUpdatingAllowed: boolean; isUpdatingEnabled: boolean; skippedUpdateVersion: string | null; };
+  [UPDATES_READY]: UpdateConfiguration;
   [WEBVIEW_DID_FAIL_LOAD]: { url: Server['url']; isMainFrame: boolean };
   [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };

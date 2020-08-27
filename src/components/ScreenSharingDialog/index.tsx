@@ -3,19 +3,21 @@ import { desktopCapturer } from 'electron';
 import React, { useEffect, useState, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { Dispatch } from 'redux';
 
 import {
   SCREEN_SHARING_DIALOG_DISMISSED,
   WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
+  RootAction,
 } from '../../actions';
-import { selectOpenDialog } from '../../selectors';
+import { RootState } from '../../reducers';
 import { Dialog } from '../Dialog';
 import { Source } from './styles';
 
 export const ScreenSharingDialog: FC = () => {
-  const openDialog = useSelector(selectOpenDialog);
+  const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
   const isVisible = openDialog === 'screen-sharing';
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const { t } = useTranslation();
 

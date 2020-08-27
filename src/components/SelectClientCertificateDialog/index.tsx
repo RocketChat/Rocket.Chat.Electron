@@ -3,19 +3,21 @@ import { Certificate } from 'electron';
 import React, { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
+import { Dispatch } from 'redux';
 
 import {
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
+  RootAction,
 } from '../../actions';
-import { selectOpenDialog, selectClientCertificates } from '../../selectors';
+import { RootState } from '../../reducers';
 import { Dialog } from '../Dialog';
 
 export const SelectClientCertificateDialog: FC = () => {
-  const openDialog = useSelector(selectOpenDialog);
-  const clientCertificates = useSelector(selectClientCertificates);
+  const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
+  const clientCertificates = useSelector(({ clientCertificates }: RootState) => clientCertificates);
   const isVisible = openDialog === 'select-client-certificate';
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const handleSelect = (certificate: Certificate) => () => {
     dispatch({

@@ -1,8 +1,11 @@
 import { WEBVIEW_SIDEBAR_STYLE_CHANGED } from '../../actions';
-import { selectIsSideBarVisible } from '../../selectors';
+import { RootState } from '../../reducers';
 import { watch, dispatch } from '../../store';
 import { Server } from '../../structs/servers';
 import { getServerUrl } from './getServerUrl';
+
+const selectIsSideBarVisible = ({ servers, isSideBarEnabled }: RootState): boolean =>
+  servers.length > 0 && isSideBarEnabled;
 
 function handleTrafficLightsSpacing(): void {
   const style = document.getElementById('sidebar-padding') || document.createElement('style');

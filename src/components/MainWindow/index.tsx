@@ -1,10 +1,14 @@
 import React, { useEffect, FC } from 'react';
 import { useDispatch } from 'react-redux';
+import { Dispatch } from 'redux';
 
-import { ROOT_WINDOW_EDIT_FLAGS_CHANGED } from '../../actions';
+import {
+  ROOT_WINDOW_EDIT_FLAGS_CHANGED,
+  RootAction,
+} from '../../actions';
 
 export const MainWindow: FC = ({ children }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<Dispatch<RootAction>>();
 
   useEffect(() => {
     const fetchAndDispatchEditFlags = (): void => {

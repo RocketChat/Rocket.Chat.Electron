@@ -1,7 +1,6 @@
 import Bugsnag from '@bugsnag/js';
 
 import { APP_ERROR_THROWN } from '../actions';
-import { selectAppVersion } from '../selectors';
 import { dispatch, select } from '../store';
 
 const setupBugsnag = (apiKey: string, appVersion: string): void => {
@@ -46,7 +45,7 @@ const handleUnhandledRejectionEvent = (event: PromiseRejectionEvent): void => {
 export const setupErrorHandling = (): void => {
   if (process.env.BUGSNAG_API_KEY) {
     const apiKey = process.env.BUGSNAG_API_KEY;
-    const appVersion = select(selectAppVersion);
+    const appVersion = select(({ appVersion }) => appVersion);
     setupBugsnag(apiKey, appVersion);
     return;
   }

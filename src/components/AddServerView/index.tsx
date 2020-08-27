@@ -13,13 +13,15 @@ import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
 import React, { useCallback, useEffect, useState, useMemo, FC, FormEvent, ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { Dispatch } from 'redux';
 
 import {
   SERVER_VALIDATION_REQUESTED,
   ADD_SERVER_VIEW_SERVER_ADDED,
   SERVER_VALIDATION_RESPONDED,
+  RootAction,
 } from '../../actions';
-import { selectCurrentServerUrl } from '../../selectors';
+import { RootState } from '../../reducers';
 import { request } from '../../store';
 import { ValidationResult } from '../../structs/servers';
 import { RocketChatLogo } from '../RocketChatLogo';
@@ -28,10 +30,10 @@ import { Wrapper, Content } from './styles';
 const defaultServerUrl = 'https://open.rocket.chat';
 
 export const AddServerView: FC = () => {
-  const currentServerUrl = useSelector(selectCurrentServerUrl);
+  const currentServerUrl = useSelector(({ currentServerUrl }: RootState) => currentServerUrl);
 
   const isVisible = currentServerUrl === null;
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
   const [input, setInput] = useState('');
 

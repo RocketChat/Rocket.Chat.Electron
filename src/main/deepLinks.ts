@@ -6,7 +6,6 @@ import {
   DEEP_LINKS_SERVER_FOCUSED,
   DEEP_LINKS_SERVER_ADDED,
 } from '../actions';
-import { selectServers } from '../selectors';
 import { select, dispatch } from '../store';
 import { normalizeServerUrl, getServerInfo } from './servers';
 import { askForServerAddition, warnAboutInvalidServerUrl } from './ui/dialogs';
@@ -65,7 +64,7 @@ export const setupDeepLinks = (): void => {
       return;
     }
 
-    const servers = select(selectServers);
+    const servers = select(({ servers }) => servers);
     const isServerAdded = servers.some((server) => server.url === serverUrl);
 
     if (isServerAdded) {
@@ -97,7 +96,7 @@ export const setupDeepLinks = (): void => {
       return;
     }
 
-    const servers = select(selectServers);
+    const servers = select(({ servers }) => servers);
     const isServerAdded = servers.some((server) => server.url === serverUrl);
 
     if (isServerAdded) {

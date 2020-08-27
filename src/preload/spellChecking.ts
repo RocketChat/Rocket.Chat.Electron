@@ -4,8 +4,9 @@ import {
   SPELL_CHECKING_MISSPELT_WORDS_REQUESTED,
   SPELL_CHECKING_MISSPELT_WORDS_RESPONDED,
 } from '../actions';
-import { selectDictionaryName } from '../selectors';
+import { RootState } from '../reducers';
 import { watch, request } from '../store';
+import { Dictionary } from '../structs/spellChecking';
 
 const noopSpellCheckProvider: Provider = {
   spellCheck: (_words, callback) => callback([]),
@@ -25,7 +26,7 @@ const remoteSpellCheckProvider: Provider = {
 };
 
 const setSpellCheckProvider = (language: string): void => {
-  if (language === null) {
+  if (!language) {
     webFrame.setSpellCheckProvider('', noopSpellCheckProvider);
     return;
   }
@@ -33,9 +34,14 @@ const setSpellCheckProvider = (language: string): void => {
   webFrame.setSpellCheckProvider(language, remoteSpellCheckProvider);
 };
 
+const selectSpellCheckingLanguage = ({ spellCheckingDictionaries }: RootState): Dictionary['name'] | undefined =>
+  spellCheckingDictionaries
+    .filter(({ enabled }) => enabled)
+    .map(({ name }) => name)[0]
+    ?.split(/[-_]/g)[0];
+
 export const setupSpellChecking = (): void => {
-  watch(selectDictionaryName, (dictionaryName: string) => {
-    const spellCheckingLanguage = dictionaryName ? dictionaryName.split(/[-_]/g)[0] : null;
+  watch(selectSpellCheckingLanguage, (spellCheckingLanguage) => {
     setSpellCheckProvider(spellCheckingLanguage);
   });
 };

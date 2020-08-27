@@ -1,13 +1,13 @@
 import React, { FC } from 'react';
 import { useSelector } from 'react-redux';
 
-import { selectServers, selectCurrentServerUrl } from '../../selectors';
+import { RootState } from '../../reducers';
 import { ReparentingContainer } from '../utils/ReparentingContainer';
 import { ServerPane } from './ServerPane';
 
 export const ServersView: FC = () => {
-  const servers = useSelector(selectServers);
-  const currentServerUrl = useSelector(selectCurrentServerUrl);
+  const servers = useSelector(({ servers }: RootState) => servers);
+  const currentServerUrl = useSelector(({ currentServerUrl }: RootState) => currentServerUrl);
 
   return <ReparentingContainer>
     {servers.map((server) => <ServerPane

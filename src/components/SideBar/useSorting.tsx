@@ -1,9 +1,11 @@
 import { useState, DragEvent } from 'react';
 import { useDispatch } from 'react-redux';
+import { Dispatch } from 'redux';
 
 import {
   SIDE_BAR_SERVERS_SORTED,
   SIDE_BAR_SERVER_SELECTED,
+  RootAction,
 } from '../../actions';
 import { Server } from '../../structs/servers';
 
@@ -44,7 +46,7 @@ export const useSorting = (servers: Server[]): {
     }));
   };
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const handleDrop = (url: string) => (event: DragEvent) => {
     event.preventDefault();

@@ -3,13 +3,15 @@ import { parse as parseUrl } from 'url';
 import React, { useMemo, FC, DragEvent, MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { Dispatch } from 'redux';
 
 import {
   SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
+  RootAction,
 } from '../../actions';
-import { selectServers, selectIsSideBarEnabled, selectCurrentServerUrl } from '../../selectors';
+import { RootState } from '../../reducers';
 import {
   AddServerButton,
   AddServerButtonLabel,
@@ -57,7 +59,7 @@ const ServerButton: FC<ServerButtonProps> = ({
   onDragEnter,
   onDrop,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const handleServerClick = (): void => {
     dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
@@ -107,9 +109,9 @@ const ServerButton: FC<ServerButtonProps> = ({
 };
 
 export const SideBar: FC = () => {
-  const servers = useSelector(selectServers);
-  const isSideBarEnabled = useSelector(selectIsSideBarEnabled);
-  const currentServerUrl = useSelector(selectCurrentServerUrl);
+  const servers = useSelector(({ servers }: RootState) => servers);
+  const isSideBarEnabled = useSelector(({ isSideBarEnabled }: RootState) => isSideBarEnabled);
+  const currentServerUrl = useSelector(({ currentServerUrl }: RootState) => currentServerUrl);
   const isVisible = servers.length > 0 && isSideBarEnabled;
 
   const {
@@ -127,7 +129,7 @@ export const SideBar: FC = () => {
     handleDrop,
   } = useSorting(servers);
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const handleAddServerButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });

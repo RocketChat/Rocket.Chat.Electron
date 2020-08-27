@@ -1,9 +1,10 @@
 import { ipcRenderer, WebviewTag } from 'electron';
 import React, { useRef, useEffect, FC } from 'react';
 import { useDispatch } from 'react-redux';
+import { Dispatch } from 'redux';
 
 import {
-  LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+  LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, RootAction,
 } from '../../actions';
 import {
   EVENT_BROWSER_VIEW_ATTACHED,
@@ -25,7 +26,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
   isSelected,
   isFailed,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const webviewRef = useRef<WebviewTag>();
 

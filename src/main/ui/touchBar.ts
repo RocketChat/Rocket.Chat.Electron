@@ -12,11 +12,7 @@ import {
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 } from '../../actions';
-import {
-  selectCurrentServer,
-  selectIsMessageBoxFocused,
-  selectServers,
-} from '../../selectors';
+import { RootState } from '../../reducers';
 import { watch, select, dispatch } from '../../store';
 import { Server } from '../../structs/servers';
 import { getRootWindow } from './rootWindow';
@@ -108,6 +104,9 @@ const toggleMessageFormattingButtons = (messageBoxFormattingButtons: TouchBarSeg
   });
 };
 
+const selectCurrentServer = ({ servers, currentServerUrl }: RootState): Server =>
+  servers.find(({ url }) => url === currentServerUrl);
+
 export const setupTouchBar = (): void => {
   if (process.platform !== 'darwin') {
     return;
@@ -125,12 +124,12 @@ export const setupTouchBar = (): void => {
     getRootWindow().setTouchBar(touchBar);
   });
 
-  watch(selectServers, (servers) => {
+  watch(({ servers }) => servers, (servers) => {
     updateServerSelectionScrubber(serverSelectionScrubber, servers);
     getRootWindow().setTouchBar(touchBar);
   });
 
-  watch(selectIsMessageBoxFocused, (isMessageBoxFocused) => {
+  watch(({ isMessageBoxFocused }) => isMessageBoxFocused ?? false, (isMessageBoxFocused) => {
     toggleMessageFormattingButtons(messageBoxFormattingButtons, isMessageBoxFocused);
     getRootWindow().setTouchBar(touchBar);
   });

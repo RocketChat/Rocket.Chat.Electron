@@ -15,11 +15,9 @@ import {
   UPDATE_SKIPPED,
   UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
 } from '../actions';
-import {
-  selectSkippedUpdateVersion,
-  selectUpdateConfiguration,
-} from '../selectors';
+import { RootState } from '../reducers';
 import { listen, dispatch, select } from '../store';
+import { UpdateConfiguration } from '../structs/updates';
 import {
   askUpdateInstall,
   AskUpdateInstallResponse,
@@ -57,8 +55,22 @@ const loadUserConfiguration = async (): Promise<Record<string, unknown>> => {
   }
 };
 
-const loadConfiguration = async (): Promise<ReturnType<typeof selectUpdateConfiguration>> => {
-  const defaultConfiguration = select(selectUpdateConfiguration);
+const loadConfiguration = async (): Promise<UpdateConfiguration> => {
+  const defaultConfiguration = select(({
+    isEachUpdatesSettingConfigurable,
+    isUpdatingEnabled,
+    doCheckForUpdatesOnStartup,
+    skippedUpdateVersion,
+  }: RootState) => ({
+    isUpdatingAllowed:
+      (process.platform === 'linux' && !!process.env.APPIMAGE)
+        || (process.platform === 'win32' && !process.windowsStore)
+        || (process.platform === 'darwin' && !process.mas),
+    isEachUpdatesSettingConfigurable,
+    isUpdatingEnabled,
+    doCheckForUpdatesOnStartup,
+    skippedUpdateVersion,
+  }));
   const appConfiguration = await loadAppConfiguration();
 
   const configuration = {
@@ -87,11 +99,8 @@ const loadConfiguration = async (): Promise<ReturnType<typeof selectUpdateConfig
 export const setupUpdates = async (): Promise<void> => {
   autoUpdater.autoDownload = false;
 
-  const isUpdatingAllowed = (process.platform === 'linux' && !!process.env.APPIMAGE)
-		|| (process.platform === 'win32' && !process.windowsStore)
-		|| (process.platform === 'darwin' && !process.mas);
-
   const {
+    isUpdatingAllowed,
     isEachUpdatesSettingConfigurable,
     isUpdatingEnabled,
     doCheckForUpdatesOnStartup,
@@ -118,7 +127,7 @@ export const setupUpdates = async (): Promise<void> => {
   });
 
   autoUpdater.addListener('update-available', ({ version }) => {
-    const skippedUpdateVersion = select(selectSkippedUpdateVersion);
+    const skippedUpdateVersion = select(({ skippedUpdateVersion }) => skippedUpdateVersion);
     if (skippedUpdateVersion === version) {
       dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
       return;

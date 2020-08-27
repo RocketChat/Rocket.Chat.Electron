@@ -2,23 +2,25 @@ import { Box, Button, ButtonGroup, Chevron, Margins } from '@rocket.chat/fuselag
 import React, { useEffect, useRef, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { Dispatch } from 'redux';
 
 import {
   UPDATE_DIALOG_DISMISSED,
   UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
   UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
+  RootAction,
 } from '../../actions';
-import { selectAppVersion, selectNewUpdateVersion, selectOpenDialog } from '../../selectors';
+import { RootState } from '../../reducers';
 import { Dialog } from '../Dialog';
 
 export const UpdateDialog: FC = () => {
-  const currentVersion = useSelector(selectAppVersion);
-  const newVersion = useSelector(selectNewUpdateVersion);
-  const openDialog = useSelector(selectOpenDialog);
+  const currentVersion = useSelector(({ appVersion }: RootState) => appVersion);
+  const newVersion = useSelector(({ newUpdateVersion }: RootState) => newUpdateVersion);
+  const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
   const isVisible = openDialog === 'update';
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const { t } = useTranslation();
 

@@ -3,6 +3,7 @@ import { applyMiddleware, createStore, Store, compose, Middleware, Dispatch } fr
 import { RootAction, ActionOf } from './actions';
 import { forwardToRenderers, getInitialState, forwardToMain } from './ipc';
 import { rootReducer, RootState } from './reducers';
+import { Selector } from './selectors';
 
 let reduxStore: Store<RootState>;
 
@@ -36,12 +37,10 @@ export const dispatch = (action: RootAction): void => {
   reduxStore.dispatch(action);
 };
 
-type RootSelector<T> = (state: RootState) => T;
-
-export const select = <T>(selector: RootSelector<T>): T =>
+export const select = <T>(selector: Selector<T>): T =>
   selector(reduxStore.getState());
 
-export const watch = <T>(selector: RootSelector<T>, watcher: (curr: T, prev: T) => void): (() => void) => {
+export const watch = <T>(selector: Selector<T>, watcher: (curr: T, prev: T) => void): (() => void) => {
   const initial = Symbol('initial');
   let prev: T | typeof initial = initial;
 
@@ -58,7 +57,7 @@ export const watch = <T>(selector: RootSelector<T>, watcher: (curr: T, prev: T) 
   });
 };
 
-export const watchAll = (pairs: [RootSelector<unknown>, (curr: unknown, prev: unknown) => void][]): (() => void) => {
+export const watchAll = (pairs: [Selector<unknown>, (curr: unknown, prev: unknown) => void][]): (() => void) => {
   const unsubscribers = pairs.map(([selector, watcher]) => watch(selector, watcher));
   return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
 };

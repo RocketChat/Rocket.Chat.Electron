@@ -42,11 +42,6 @@ import {
 import {
   selectGlobalBadge,
   selectGlobalBadgeCount,
-  selectIsMenuBarEnabled,
-  selectIsTrayIconEnabled,
-  selectIsShowWindowOnUnreadChangedEnabled,
-  selectSpellCheckingDictionaries,
-  selectFocusedWebContents,
   selectMainWindowState,
 } from '../../selectors';
 import { dispatch, select, watch, listen } from '../../store';
@@ -69,6 +64,11 @@ let rootWindow: BrowserWindow;
 
 export const getRootWindow = (): BrowserWindow =>
   rootWindow;
+
+const selectFocusedWebContents = createSelector([
+  ({ focusedWebContentsId }) => focusedWebContentsId,
+], (focusedWebContentsId) =>
+  (focusedWebContentsId > -1 ? webContents.fromId(focusedWebContentsId) : null));
 
 const initializeServerWebContents = (serverUrl: string, guestWebContents: WebContents): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
@@ -125,7 +125,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
   const handleContextMenu = async (event: Event, params: ContextMenuParams): Promise<void> => {
     event.preventDefault();
 
-    const dictionaries = select(selectSpellCheckingDictionaries);
+    const dictionaries = select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
     const webContents = select(selectFocusedWebContents);
 
     type Params = Partial<ContextMenuParams> & {
@@ -474,13 +474,13 @@ const fetchRootWindowState = (): ReturnType<typeof selectMainWindowState> => ({
 
 export const setupRootWindow = (): void => {
   if (process.platform === 'linux' || process.platform === 'win32') {
-    watch(selectIsMenuBarEnabled, (isMenuBarEnabled) => {
+    watch(({ isMenuBarEnabled }) => isMenuBarEnabled, (isMenuBarEnabled) => {
       rootWindow.autoHideMenuBar = !isMenuBarEnabled;
       rootWindow.setMenuBarVisibility(isMenuBarEnabled);
     });
 
     const selectRootWindowIcon = createSelector([
-      selectIsTrayIconEnabled,
+      ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true,
       selectGlobalBadge,
     ], (isTrayIconEnabled, globalBadge) => [isTrayIconEnabled, globalBadge]);
 
@@ -495,7 +495,7 @@ export const setupRootWindow = (): void => {
       return;
     }
 
-    const isShowWindowOnUnreadChangedEnabled = select(selectIsShowWindowOnUnreadChangedEnabled);
+    const isShowWindowOnUnreadChangedEnabled = select(({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled);
 
     if (isShowWindowOnUnreadChangedEnabled) {
       rootWindow.showInactive();
@@ -539,7 +539,7 @@ export const setupRootWindow = (): void => {
 
     rootWindow.blur();
 
-    const isTrayIconEnabled = select(selectIsTrayIconEnabled);
+    const isTrayIconEnabled = select(({ isTrayIconEnabled }) => isTrayIconEnabled ?? true);
 
     if (process.platform === 'darwin' || isTrayIconEnabled) {
       rootWindow.hide();

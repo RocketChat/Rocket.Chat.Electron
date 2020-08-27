@@ -3,44 +3,36 @@ import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
 import React, { useState, useEffect, FC, ChangeEvent } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { Dispatch } from 'redux';
 
 import { copyright } from '../../../package.json';
 import {
   ABOUT_DIALOG_DISMISSED,
   ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
   UPDATES_CHECK_FOR_UPDATES_REQUESTED,
+  RootAction,
 } from '../../actions';
-import {
-  selectAppVersion,
-  selectOpenDialog,
-  selectIsUpdatingAllowed,
-  selectIsUpdatingEnabled,
-  selectDoCheckForUpdatesOnStartup,
-  selectIsEachUpdatesSettingConfigurable,
-  selectUpdateError,
-  selectIsCheckingForUpdates,
-  selectNewUpdateVersion,
-} from '../../selectors';
+import { RootState } from '../../reducers';
 import { Dialog } from '../Dialog';
 import { RocketChatLogo } from '../RocketChatLogo';
 
 export const AboutDialog: FC = () => {
-  const appVersion = useSelector(selectAppVersion);
-  const doCheckForUpdatesOnStartup = useSelector(selectDoCheckForUpdatesOnStartup);
-  const isCheckingForUpdates = useSelector(selectIsCheckingForUpdates);
-  const isEachUpdatesSettingConfigurable = useSelector(selectIsEachUpdatesSettingConfigurable);
-  const isUpdatingAllowed = useSelector(selectIsUpdatingAllowed);
-  const isUpdatingEnabled = useSelector(selectIsUpdatingEnabled);
-  const newUpdateVersion = useSelector(selectNewUpdateVersion);
-  const openDialog = useSelector(selectOpenDialog);
-  const updateError = useSelector(selectUpdateError);
+  const appVersion = useSelector(({ appVersion }: RootState) => appVersion);
+  const doCheckForUpdatesOnStartup = useSelector(({ doCheckForUpdatesOnStartup }: RootState) => doCheckForUpdatesOnStartup);
+  const isCheckingForUpdates = useSelector(({ isCheckingForUpdates }: RootState) => isCheckingForUpdates);
+  const isEachUpdatesSettingConfigurable = useSelector(({ isEachUpdatesSettingConfigurable }: RootState) => isEachUpdatesSettingConfigurable);
+  const isUpdatingAllowed = useSelector(({ isUpdatingAllowed }: RootState) => isUpdatingAllowed);
+  const isUpdatingEnabled = useSelector(({ isUpdatingEnabled }: RootState) => isUpdatingEnabled);
+  const newUpdateVersion = useSelector(({ newUpdateVersion }: RootState) => newUpdateVersion);
+  const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
+  const updateError = useSelector(({ updateError }: RootState) => updateError);
 
   const isVisible = openDialog === 'about';
   const canUpdate = isUpdatingAllowed && isUpdatingEnabled;
   const isCheckForUpdatesOnStartupChecked = isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup;
   const canSetCheckForUpdatesOnStartup = isUpdatingAllowed && isEachUpdatesSettingConfigurable;
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const { t } = useTranslation();
 

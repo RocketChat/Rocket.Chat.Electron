@@ -12,7 +12,7 @@ import {
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../actions';
-import { selectServers, selectTrustedCertificates, selectPersistableValues } from '../selectors';
+import { selectPersistableValues } from '../selectors';
 import { request, select, dispatch } from '../store';
 import { AskForCertificateTrustResponse, askForCertificateTrust } from './ui/dialogs';
 import { getRootWindow } from './ui/rootWindow';
@@ -48,7 +48,7 @@ export const setupNavigation = async (): Promise<void> => {
     const serialized = serializeCertificate(certificate);
     const { host } = url.parse(requestedUrl);
 
-    let trustedCertificates = select(selectTrustedCertificates);
+    let trustedCertificates = select(({ trustedCertificates }) => trustedCertificates);
 
     const isTrusted = !!trustedCertificates[host] && trustedCertificates[host] === serialized;
 
@@ -76,7 +76,7 @@ export const setupNavigation = async (): Promise<void> => {
     queuedTrustRequests.get(certificate.fingerprint).forEach((cb) => cb(isTrustedByUser));
     queuedTrustRequests.delete(certificate.fingerprint);
 
-    trustedCertificates = select(selectTrustedCertificates);
+    trustedCertificates = select(({ trustedCertificates }) => trustedCertificates);
 
     if (isTrustedByUser) {
       dispatch({
@@ -109,7 +109,7 @@ export const setupNavigation = async (): Promise<void> => {
   app.addListener('login', (event, _webContents, authenticationResponseDetails, _authInfo, callback) => {
     event.preventDefault();
 
-    const servers = select(selectServers);
+    const servers = select(({ servers }) => servers);
 
     for (const server of servers) {
       const { host: serverHost, auth } = url.parse(server.url);
@@ -125,7 +125,7 @@ export const setupNavigation = async (): Promise<void> => {
     }
   });
 
-  const trustedCertificates = select(selectTrustedCertificates);
+  const trustedCertificates = select(({ trustedCertificates }) => trustedCertificates);
   const userTrustedCertificates = await loadUserTrustedCertificates();
 
   dispatch({

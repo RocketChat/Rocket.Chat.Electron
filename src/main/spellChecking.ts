@@ -10,10 +10,7 @@ import {
   SPELL_CHECKING_MISSPELT_WORDS_REQUESTED,
   SPELL_CHECKING_MISSPELT_WORDS_RESPONDED,
 } from '../actions';
-import {
-  selectSpellCheckingDictionaries,
-  selectPersistableValues,
-} from '../selectors';
+import { selectPersistableValues } from '../selectors';
 import { select, dispatch, watch, listen } from '../store';
 import { Dictionary } from '../structs/spellChecking';
 
@@ -119,7 +116,7 @@ const loadSpellCheckingDictionaries = async (): Promise<Dictionary[]> => {
     loadSpellCheckingDictionariesFromDirectory(userDictionariesDirectoryPath),
   ]);
 
-  const prevSpellCheckingDictionaries = select(selectSpellCheckingDictionaries);
+  const prevSpellCheckingDictionaries = select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
 
   const enabledDictionaries = prevSpellCheckingDictionaries.filter(({ enabled }) => enabled).map(({ name }) => name);
   if (enabledDictionaries.length === 0) {
@@ -209,7 +206,7 @@ export const importSpellCheckingDictionaries = async (filePaths: string[]): Prom
   );
 
   const installedDictionaries = await loadSpellCheckingDictionariesFromFiles(newFilesPaths);
-  const prevSpellCheckingDictionaries = select(selectSpellCheckingDictionaries);
+  const prevSpellCheckingDictionaries = select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
 
   const spellCheckingDictionaries = [...prevSpellCheckingDictionaries, ...installedDictionaries]
     .reduce((dictionaries, dictionary) => {
@@ -231,7 +228,7 @@ export const setupSpellChecking = async (localStorage: Record<string, string>): 
     try {
       const enabledSpellCheckingDictionaries = JSON.parse(localStorage.enabledSpellCheckingDictionaries);
 
-      const initialSpellCheckingDictionaries = select(selectSpellCheckingDictionaries);
+      const initialSpellCheckingDictionaries = select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
 
       const spellCheckingDictionaries = initialSpellCheckingDictionaries.map((spellCheckingDictionary) => {
         if (enabledSpellCheckingDictionaries.includes(spellCheckingDictionary.name)) {
@@ -267,7 +264,7 @@ export const setupSpellChecking = async (localStorage: Record<string, string>): 
     },
   });
 
-  watch(selectSpellCheckingDictionaries, (spellCheckingDictionaries) => {
+  watch(({ spellCheckingDictionaries }) => spellCheckingDictionaries, (spellCheckingDictionaries) => {
     spellCheckingDictionaries.map((dictionary) => toggleDictionary(dictionary));
   });
 

@@ -118,6 +118,7 @@
     "close": "Close",
     "copy": "&Copy",
     "cut": "Cu&t",
+    "disableGpu": "Disable GPU",
     "documentation": "Documentation",
     "editMenu": "&Edit",
     "fileMenu": "&File",

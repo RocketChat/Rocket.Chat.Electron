@@ -23,9 +23,11 @@ import {
   createRootWindow,
   setupRootWindow,
   applyMainWindowState,
+  showRootWindow,
 } from './ui/main/rootWindow';
 import { setupTouchBar } from './ui/main/touchBar';
 import { setupTrayIcon } from './ui/main/trayIcon';
+import { attachGuestWebContentsEvents } from './ui/main/webviews';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
 
@@ -44,7 +46,11 @@ const start = async (): Promise<void> => {
     installDevTools();
   }
 
-  createRootWindow();
+  const rootWindow = createRootWindow();
+
+  attachGuestWebContentsEvents(rootWindow);
+
+  await showRootWindow(rootWindow);
 
   setupApp();
   setupNotifications();

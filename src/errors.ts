@@ -1,7 +1,7 @@
 import Bugsnag from '@bugsnag/js';
 import { app } from 'electron';
 
-import { APP_ERROR_THROWN } from './actions';
+import { APP_ERROR_THROWN } from './app/actions';
 import { select, dispatch, listen } from './store';
 import { whenReady } from './whenReady';
 

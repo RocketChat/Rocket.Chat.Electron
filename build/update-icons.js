@@ -16,7 +16,7 @@ const convertSvgToPng = (...args) => new Promise((resolve) => {
   });
 });
 
-const readSvg = (name) => fs.promises.readFile(`src/icons/${ name }.svg`, 'utf8');
+const readSvg = (name) => fs.promises.readFile(`src/ui/icons/${ name }.svg`, 'utf8');
 
 const writeTrayIcon = (name, data) => {
   console.log({ name });

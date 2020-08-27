@@ -3,8 +3,8 @@ import {
   createStructuredSelector,
 } from 'reselect';
 
-import { RootState } from './reducers';
-import { Server } from './structs/servers';
+import { Server } from './servers/common';
+import { RootState } from './store/rootReducer';
 
 export type Selector<T> = (state: RootState) => T;
 export type RootSelector<T extends keyof RootState> = Selector<RootState[T]>;

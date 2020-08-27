@@ -1,10 +1,10 @@
 import { createElement } from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
-import { App } from './components/App';
 import { setupRendererErrorHandling } from './errors';
 import { setupI18n } from './i18n/renderer';
 import { createRendererReduxStore } from './store';
+import { App } from './ui/components/App';
 import { whenReady } from './whenReady';
 
 const start = async (): Promise<void> => {

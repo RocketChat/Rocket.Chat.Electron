@@ -1,33 +1,33 @@
 import { app } from 'electron';
 
-import { setupMainErrorHandling } from './errors';
-import { setupI18n } from './i18n/main';
-import { performElectronStartup, setupApp } from './main/app';
+import { performElectronStartup, setupApp } from './app/main/app';
 import {
   getLocalStorage,
   mergePersistableValues,
   purgeLocalStorage,
   watchAndPersistChanges,
-} from './main/data';
-import { setupDeepLinks, processDeepLinksInArgs } from './main/deepLinks';
-import { setUserDataDirectory, setupElectronReloader, installDevTools } from './main/dev';
-import { setupNavigation } from './main/navigation';
-import { setupPowerMonitor } from './main/powerMonitor';
-import { setupScreenSharing } from './main/screenSharing';
-import { setupServers } from './main/servers';
-import { setupSpellChecking } from './main/spellChecking';
-import { setupDock } from './main/ui/dock';
-import { setupMenuBar } from './main/ui/menuBar';
-import { setupNotifications } from './main/ui/notifications';
+} from './app/main/data';
+import { setUserDataDirectory, setupElectronReloader, installDevTools } from './app/main/dev';
+import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
+import { setupMainErrorHandling } from './errors';
+import { setupI18n } from './i18n/main';
+import { setupNavigation } from './navigation/main';
+import { setupNotifications } from './notifications/main';
+import { setupScreenSharing } from './screenSharing/main';
+import { setupServers } from './servers/main';
+import { setupSpellChecking } from './spellChecking/main';
+import { createMainReduxStore } from './store';
+import { setupDock } from './ui/main/dock';
+import { setupMenuBar } from './ui/main/menuBar';
 import {
   createRootWindow,
   setupRootWindow,
   applyMainWindowState,
-} from './main/ui/rootWindow';
-import { setupTouchBar } from './main/ui/touchBar';
-import { setupTrayIcon } from './main/ui/trayIcon';
-import { setupUpdates } from './main/updates';
-import { createMainReduxStore } from './store';
+} from './ui/main/rootWindow';
+import { setupTouchBar } from './ui/main/touchBar';
+import { setupTrayIcon } from './ui/main/trayIcon';
+import { setupUpdates } from './updates/main';
+import { setupPowerMonitor } from './userPresence/main';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();

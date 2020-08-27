@@ -5,7 +5,6 @@ import {
   BrowserWindow,
   screen,
   shell,
-  ipcMain,
   webContents,
   clipboard,
   Menu,
@@ -16,7 +15,6 @@ import {
   Event,
   Input,
   WebPreferences,
-  IpcMainEvent,
   Rectangle,
   ContextMenuParams,
 } from 'electron';
@@ -32,12 +30,7 @@ import { Dictionary } from '../../spellChecking/common';
 import { importSpellCheckingDictionaries, getCorrectionsForMisspelling } from '../../spellChecking/main';
 import { dispatch, select, watch, listen } from '../../store';
 import {
-  EVENT_WEB_CONTENTS_FOCUS_CHANGED,
-  EVENT_BROWSER_VIEW_ATTACHED,
-} from '../../store/ipc';
-import {
   ROOT_WINDOW_STATE_CHANGED,
-  ROOT_WINDOW_WEBCONTENTS_FOCUSED,
   WEBVIEW_DID_NAVIGATE,
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
@@ -46,9 +39,10 @@ import {
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   WEBVIEW_FOCUS_REQUESTED,
-} from '../../ui/actions';
-import { getTrayIconPath, getAppIconPath } from '../../ui/main/icons';
+  WEBVIEW_ATTACHED,
+} from '../actions';
 import { browseForSpellCheckingDictionary } from './dialogs';
+import { getTrayIconPath, getAppIconPath } from './icons';
 
 const t = i18next.t.bind(i18next);
 
@@ -64,11 +58,6 @@ let rootWindow: BrowserWindow;
 
 export const getRootWindow = (): BrowserWindow =>
   rootWindow;
-
-const selectFocusedWebContents = createSelector([
-  ({ focusedWebContentsId }) => focusedWebContentsId,
-], (focusedWebContentsId) =>
-  (focusedWebContentsId > -1 ? webContents.fromId(focusedWebContentsId) : null));
 
 const initializeServerWebContents = (serverUrl: string, guestWebContents: WebContents): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
@@ -126,7 +115,6 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
     event.preventDefault();
 
     const dictionaries = select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
-    const webContents = select(selectFocusedWebContents);
 
     type Params = Partial<ContextMenuParams> & {
       corrections: string[];
@@ -154,7 +142,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
             : corrections.slice(0, 6).map<MenuItemConstructorOptions>((correction) => ({
               label: correction,
               click: () => {
-                webContents.replaceMisspelling(correction);
+                guestWebContents.replaceMisspelling(correction);
               },
             })),
           ...corrections.length > 6 ? [
@@ -163,7 +151,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
               submenu: corrections.slice(6).map<MenuItemConstructorOptions>((correction) => ({
                 label: correction,
                 click: () => {
-                  webContents.replaceMisspelling(correction);
+                  guestWebContents.replaceMisspelling(correction);
                 },
               })),
             },
@@ -206,7 +194,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
       mediaType === 'image' ? [
         {
           label: t('contextMenu.saveImageAs'),
-          click: () => webContents.downloadURL(srcURL),
+          click: () => guestWebContents.downloadURL(srcURL),
         },
         { type: 'separator' },
       ] : []
@@ -316,20 +304,12 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
     rootWindow.webContents.sendInputEvent({ type, keyCode: key, modifiers: [] });
   };
 
-  const handleDevToolsFocused = (): void => {
-    dispatch({
-      type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
-      payload: guestWebContents.isDevToolsFocused() ? guestWebContents.devToolsWebContents?.id : guestWebContents.id,
-    });
-  };
-
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
   guestWebContents.addListener('did-fail-load', handleDidFailLoad);
   guestWebContents.addListener('dom-ready', handleDomReady);
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
   guestWebContents.addListener('context-menu', handleContextMenu);
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
-  guestWebContents.addListener('devtools-focused', handleDevToolsFocused);
 };
 
 const attachGuestWebContentsEvents = (): void => {
@@ -369,9 +349,9 @@ const attachGuestWebContentsEvents = (): void => {
     });
   };
 
-  ipcMain.addListener(EVENT_BROWSER_VIEW_ATTACHED, (_event: IpcMainEvent, serverUrl, webContentsId) => {
-    const guestWebContents = webContents.fromId(webContentsId);
-    initializeServerWebContents(serverUrl, guestWebContents);
+  listen(WEBVIEW_ATTACHED, (action) => {
+    const guestWebContents = webContents.fromId(action.payload.webContentsId);
+    initializeServerWebContents(action.payload.url, guestWebContents);
   });
 
   rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);
@@ -553,28 +533,6 @@ export const setupRootWindow = (): void => {
     }
 
     rootWindow.destroy();
-  });
-
-  rootWindow.webContents.addListener('devtools-focused', () => {
-    dispatch({
-      type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
-      payload: rootWindow.webContents.devToolsWebContents.id,
-    });
-  });
-
-  rootWindow.webContents.addListener('devtools-closed', () => {
-    dispatch({
-      type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
-      payload: rootWindow.webContents.id,
-    });
-  });
-
-  ipcMain.addListener(EVENT_WEB_CONTENTS_FOCUS_CHANGED, (_event: IpcMainEvent, webContentsId = rootWindow.webContents.id) => {
-    const focusedWebContents = webContents.fromId(webContentsId);
-    dispatch({
-      type: ROOT_WINDOW_WEBCONTENTS_FOCUSED,
-      payload: focusedWebContents.isDevToolsFocused() ? focusedWebContents.devToolsWebContents.id : webContentsId,
-    });
   });
 
   listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {

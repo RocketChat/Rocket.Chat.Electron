@@ -11,7 +11,6 @@ import {
   servers,
 } from '../servers/reducers';
 import { spellCheckingDictionaries } from '../spellChecking/reducers';
-import { focusedWebContentsId } from '../ui/reducers/focusedWebContentsId';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
@@ -36,7 +35,6 @@ const reducersMap = {
   clientCertificates,
   currentServerUrl,
   doCheckForUpdatesOnStartup,
-  focusedWebContentsId,
   isCheckingForUpdates,
   isEachUpdatesSettingConfigurable,
   isMenuBarEnabled,

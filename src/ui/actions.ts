@@ -14,7 +14,6 @@ export const MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED = 
 export const MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED = 'menu-bar/toggle-is-side-bar-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED = 'menu-bar/toggle-is-tray-icon-enabled-clicked';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';
-export const ROOT_WINDOW_WEBCONTENTS_FOCUSED = 'root-window/webcontents-focused';
 export const SIDE_BAR_ADD_NEW_SERVER_CLICKED = 'side-bar/add-new-server-clicked';
 export const SIDE_BAR_CONTEXT_MENU_TRIGGERED = 'side-bar/context-menu-triggered';
 export const SIDE_BAR_REMOVE_SERVER_CLICKED = 'side-bar/remove-server-clicked';
@@ -39,6 +38,8 @@ export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
 export const WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED = 'webview/spell-checking-dictionary-toggled';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
+export const WEBVIEW_ATTACHED = 'webview/attached';
+export const WEBVIEW_DETACHED = 'webview/detached';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: never;
@@ -53,7 +54,6 @@ export type UiActionTypeToPayloadMap = {
   [MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
-  [ROOT_WINDOW_WEBCONTENTS_FOCUSED]: number;
   [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: never;
   [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
   [SIDE_BAR_REMOVE_SERVER_CLICKED]: Server['url'];
@@ -78,4 +78,6 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED]: Dictionary;
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
+  [WEBVIEW_ATTACHED]: { url: Server['url']; webContentsId: number };
+  [WEBVIEW_DETACHED]: { url: Server['url']; webContentsId: number };
 };

@@ -1,14 +1,10 @@
-import { ipcRenderer, WebviewTag } from 'electron';
+import { WebviewTag } from 'electron';
 import React, { useRef, useEffect, FC } from 'react';
 import { useDispatch } from 'react-redux';
 import { Dispatch } from 'redux';
 
 import { RootAction } from '../../../store/actions';
-import {
-  EVENT_BROWSER_VIEW_ATTACHED,
-  EVENT_WEB_CONTENTS_FOCUS_CHANGED,
-} from '../../../store/ipc';
-import { LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED } from '../../actions';
+import { LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, WEBVIEW_ATTACHED, WEBVIEW_DETACHED } from '../../actions';
 import ErrorView from './ErrorView';
 import { StyledWebView, Wrapper } from './styles';
 
@@ -49,27 +45,29 @@ export const ServerPane: FC<ServerPaneProps> = ({
     const webview = webviewRef.current;
 
     const handleDidAttach = (): void => {
-      ipcRenderer.send(EVENT_BROWSER_VIEW_ATTACHED, serverUrl, webview.getWebContentsId());
-    };
-
-    const handleFocus = (): void => {
-      ipcRenderer.send(EVENT_WEB_CONTENTS_FOCUS_CHANGED, webview.getWebContentsId());
-    };
-
-    const handleBlur = (): void => {
-      ipcRenderer.send(EVENT_WEB_CONTENTS_FOCUS_CHANGED);
+      dispatch({
+        type: WEBVIEW_ATTACHED,
+        payload: {
+          url: serverUrl,
+          webContentsId: webview.getWebContentsId(),
+        },
+      });
     };
 
     webview.addEventListener('did-attach', handleDidAttach);
-    webview.addEventListener('focus', handleFocus);
-    webview.addEventListener('blur', handleBlur);
 
     return () => {
+      dispatch({
+        type: WEBVIEW_DETACHED,
+        payload: {
+          url: serverUrl,
+          webContentsId: webview.getWebContentsId(),
+        },
+      });
+
       webview.removeEventListener('did-attach', handleDidAttach);
-      webview.removeEventListener('focus', handleFocus);
-      webview.removeEventListener('blur', handleBlur);
     };
-  }, [serverUrl]);
+  }, [dispatch, serverUrl]);
 
   useEffect(() => {
     if (!webviewRef.current.src) {

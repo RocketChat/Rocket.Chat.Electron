@@ -3,15 +3,12 @@ import { Middleware, MiddlewareAPI, Dispatch } from 'redux';
 
 import { isFSA, FluxStandardAction } from './fsa';
 
-export const EVENT_WEB_CONTENTS_FOCUS_CHANGED = 'event/web-contents-focus-changed';
-export const EVENT_BROWSER_VIEW_ATTACHED = 'event/browser-view-attached';
-
-enum ReduxIpcChannel {
+const enum ReduxIpcChannel {
   GET_INITIAL_STATE = 'redux/get-initial-state',
   ACTION_DISPATCHED = 'redux/action-dispatched',
 }
 
-enum ActionScope {
+const enum ActionScope {
   LOCAL = 'local',
 }
 

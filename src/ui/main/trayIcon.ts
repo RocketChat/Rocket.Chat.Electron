@@ -18,16 +18,18 @@ const createTrayIcon = (): Tray => {
 
   const trayIcon = new Tray(image);
 
-  trayIcon.addListener('click', () => {
-    const isRootWindowVisible = select(selectIsRootWindowVisible);
+  if (process.platform !== 'darwin') {
+    trayIcon.addListener('click', () => {
+      const isRootWindowVisible = select(selectIsRootWindowVisible);
 
-    if (isRootWindowVisible) {
-      getRootWindow().hide();
-      return;
-    }
+      if (isRootWindowVisible) {
+        getRootWindow().hide();
+        return;
+      }
 
-    getRootWindow().show();
-  });
+      getRootWindow().show();
+    });
+  }
 
   trayIcon.addListener('balloon-click', () => {
     const isRootWindowVisible = select(selectIsRootWindowVisible);

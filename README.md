@@ -10,8 +10,29 @@
 Desktop application for [Rocket.Chat] available for macOS, Windows and Linux
 using [Electron].
 
+![desktop-768x440](https://user-images.githubusercontent.com/2263066/91490997-c0bd0c80-e889-11ea-92c7-2cbcc3aabc98.png)
+
 [Rocket.Chat]: https://github.com/RocketChat/Rocket.Chat
 [Electron]: https://electronjs.org/
+
+---
+
+## Engage with us
+
+### Share your story
+We’d love to hear about [your experience][1] and potentially feature it on our
+[Blog][2].
+
+[1]: https://survey.zohopublic.com/zs/e4BUFG
+[2]: https://rocket.chat/case-studies/?utm_source=github&utm_medium=readme&utm_campaign=community
+
+### Subscribe for Updates
+Once a month our marketing team releases an email update with news about product
+releases, company related topics, events and use cases. [Sign Up!][sign-up]
+
+[sign-up]: https://rocket.chat/newsletter/?utm_source=github&utm_medium=readme&utm_campaign=community
+
+---
 
 ## Download
 
@@ -33,8 +54,7 @@ add the options below:
 - `/S` - Silent install
 - `/allusers` - Install for all users (requires admin)
 - `/currentuser` - Install for current user only (default)
-- `/disableAutoUpdates` - Disable autoupdates (Application will not update
-  automatically / User can't update via dialog)
+- `/disableAutoUpdates` - Disable automatic updates
 
 ## Development
 
@@ -65,44 +85,32 @@ The build process compiles all stuff from the `src` folder and puts it into the
 `app` folder, so after the build has finished, your `app` folder contains the
 full, runnable application.
 
+### TypeScript
+
+Following the [ongoing changes in Rocket.Chat codebase][1], the app was
+rewritten in TypeScript 4 to address issues regarding maintainability.
+
+[1]: https://forums.rocket.chat/t/moving-away-from-meteor-and-beyond/3270
+
 ### The build pipeline
 
-The build process is founded upon [gulp] task runner and [rollup] bundler. There
-are two entry files for your code: `src/main.ts` and `src/rootWindow.ts`. Rollup
-will follow all `import` statements starting from those files and compile code
-of the whole dependency tree into one `.js` file for each entry point.
+The build process is founded upon [rollup] bundler. There are three entry files
+for your code:
 
-[gulp]: https://github.com/gulpjs/gulp
+- `src/main.ts`, the script running at the main Electron process, orchestrating
+  the whole application;
+- `src/rootWindow.ts`, the script that renders the UI of the *root window*, the
+  app's main window;
+- and `src/preload.ts`, which runs in a privileged mode to connect the app and
+  the webviews rendering Rocket.Chat's web client.
+
 [rollup]: https://github.com/rollup/rollup
 
-#### Adding node modules
+#### Adding Node.js modules
 
 Remember to respect the split between `dependencies` and `devDependencies` in
 `package.json` file. Only modules listed in `dependencies` will be included into
 distributable app.
-
-#### Working with modules
-
-Thanks to [rollup] you can (and should) use ES6 modules for most code in `src`
-folder.
-
-[rollup]: https://github.com/rollup/rollup
-
-Use ES6 syntax in the `src` folder like this:
-
-```js
-import myStuff from './my_lib/my_stuff';
-```
-
-The exception is in `src/public`. ES6 will work inside this folder, but it is
-limited to what Electron/Chromium supports. The key thing to note is that you
-cannot use `import` and `export` statements. Imports and exports need to be done
-using CommonJS syntax:
-
-```js
-const myStuff = require('./my_lib/my_stuff');
-const { myFunction } =  require('./App');
-```
 
 ### Troubleshooting
 
@@ -147,11 +155,12 @@ and install Visual Studio.
 yarn test
 ```
 
-Using [electron-mocha] test runner with the [chai] assertion library. This task
-searches for all files in `src` directory which respect pattern `*.spec.js`.
+We use [Jest] testing framwork with the [Jest electron runner]. It searches for
+all files in `src` directory that match the glob pattern
+`*.(spec|test).{js,ts,tsx}`.
 
-[electron-mocha]: https://github.com/jprichardson/electron-mocha
-[chai]: http://chaijs.com/api/assert/
+[Jest]: https://jestjs.io/
+[Jest electron runner]: https://github.com/facebook-atom/jest-electron-runner
 
 ### Making a release
 
@@ -226,17 +235,9 @@ Released under the MIT license.
 
 - German: [GPL-2.0 OR GPL-3.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/de/license)
 - English (United Kingdom): [MIT AND BSD](https://github.com/wooorm/dictionaries/blob/master/dictionaries/en-GB/license)
-- English (United States): [MIT AND BSD](https://github.com/wooorm/dictionaries/blob/master/dictionaries/en-US/license)
-- Spanish (or Castilian; Spain): [GPL-3.0 OR LGPL-3.0 OR MPL-1.1](https://github.com/wooorm/dictionaries/blob/master/dictionaries/es-ES/license)
+- English (United States): [MIT AND BSD](https://github.com/wooorm/dictionaries/blob/main/dictionaries/en/license)
+- Spanish (or Castilian; Spain): [GPL-3.0 OR LGPL-3.0 OR MPL-1.1](https://github.com/wooorm/dictionaries/blob/main/dictionaries/es/license)
 - French: [MPL-2.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/fr/license)
-- Portuguese (Brazil): [LGPL-3.0 OR MPL-2.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/pt-BR/license)
+- Portuguese (Brazil): [LGPL-3.0 OR MPL-2.0](https://github.com/wooorm/dictionaries/blob/main/dictionaries/pt/license)
 - Russian: [LGPL-3.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/ru/license)
 - Turkish: [MIT](https://github.com/wooorm/dictionaries/blob/master/dictionaries/tr/license)
-
-
-# Engage with us
-## Share your story
-We’d love to hear about [your experience](https://survey.zohopublic.com/zs/e4BUFG) and potentially feature it on our [Blog](https://rocket.chat/case-studies/?utm_source=github&utm_medium=readme&utm_campaign=community).
-
-## Subscribe for Updates
-Once a month our marketing team releases an email update with news about product releases, company related topics, events and use cases. [Sign Up!](https://rocket.chat/newsletter/?utm_source=github&utm_medium=readme&utm_campaign=community)

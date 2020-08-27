@@ -185,7 +185,7 @@ export const listenToNotificationsRequests = (): void => {
     }
 
     const replyEvent = new CustomEvent<{ reply: string }>('reply', { detail: { reply } });
-    notifications.get(id).dispatchEvent(replyEvent);
+    notifications.get(id).dispatchEvent(Object.assign(replyEvent, { response: reply }));
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_ACTIONED, (action) => {

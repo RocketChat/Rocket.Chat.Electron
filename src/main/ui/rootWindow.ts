@@ -86,7 +86,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
     _event: DidFailLoadEvent,
     errorCode: number,
     _errorDescription: string,
-    validatedURL: string,
+    _validatedURL: string,
     isMainFrame: boolean,
     _frameProcessId: number,
     _frameRoutingId: number,
@@ -98,7 +98,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 
     dispatch({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: serverUrl, validatedURL, isMainFrame },
+      payload: { url: serverUrl, isMainFrame },
     });
   };
 
@@ -388,9 +388,10 @@ export const createRootWindow = async (): Promise<BrowserWindow> => {
     backgroundColor: '#2f343d',
     show: false,
     webPreferences: {
-      webviewTag: true,
       nodeIntegration: true,
       nodeIntegrationInSubFrames: true,
+      webviewTag: true,
+      worldSafeExecuteJavaScript: true,
     },
   });
 
@@ -404,7 +405,7 @@ export const createRootWindow = async (): Promise<BrowserWindow> => {
     rootWindow.webContents.openDevTools();
   }
 
-  rootWindow.loadFile(path.join(app.getAppPath(), 'app/public/index.html'));
+  rootWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 
   return new Promise((resolve) => {
     rootWindow.on('ready-to-show', () => {

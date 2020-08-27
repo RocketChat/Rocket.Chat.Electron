@@ -16,16 +16,18 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const canRun = process.env.ROLLUP_WATCH === 'true' && process.env.NO_RUN !== 'true';
 
 const run = () => {
-  let firstRun = true;
+  let proc;
 
   return {
     writeBundle: () => {
-      if (!firstRun) {
+      if (proc) {
         return;
       }
 
-      spawn(electron, ['.'], { stdio: 'inherit' });
-      firstRun = true;
+      proc = spawn(electron, ['.'], { stdio: 'inherit' });
+      proc.on('close', () => {
+        proc = undefined;
+      });
     },
   };
 };
@@ -44,7 +46,9 @@ export default [
         'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
       }),
-      typescript({ noEmitOnError: false }),
+      typescript({
+        noEmitOnError: false,
+      }),
       babel({
         babelHelpers: 'bundled',
       }),
@@ -99,8 +103,7 @@ export default [
     plugins: [
       copy({
         targets: [
-          { src: 'src/i18n/*.i18n.json', dest: 'app/i18n' },
-          { src: 'src/public/*', dest: 'app/public' },
+          { src: 'src/public/*', dest: 'app' },
           { src: 'node_modules/@rocket.chat/icons/dist/*', dest: 'app/icons' },
         ],
       }),

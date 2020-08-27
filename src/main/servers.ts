@@ -12,6 +12,7 @@ import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
+  ActionOf,
 } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import { select, dispatch, listen } from '../store';
@@ -139,7 +140,10 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
       ].includes(responseAction.type)
       && responseAction.meta?.id === action.meta.id;
 
-    const unsubscribe = listen(isResponse, (responseAction) => {
+    const unsubscribe = listen(isResponse, (responseAction: ActionOf<
+      typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED
+    | typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED
+    >) => {
       unsubscribe();
 
       const fingerprint = responseAction.type === SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED

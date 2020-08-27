@@ -36,7 +36,7 @@ const getTrayIconExtension = ({ platform }: { platform: NodeJS.Platform }): stri
   return 'png';
 };
 
-export const getAppIconPath = (): string => `${ app.getAppPath() }/app/public/images/icon.png`;
+export const getAppIconPath = (): string => `${ app.getAppPath() }/app/images/icon.png`;
 
 export const getTrayIconPath = ({ badge = undefined, platform = undefined, dark = undefined } = {}): string => {
   if (typeof platform === 'undefined') {
@@ -51,5 +51,5 @@ export const getTrayIconPath = ({ badge = undefined, platform = undefined, dark 
   const iconset = getTrayIconSet(params);
   const name = getTrayIconName(params);
   const extension = getTrayIconExtension(params);
-  return `${ app.getAppPath() }/app/public/images/tray/${ iconset }/${ name }.${ extension }`;
+  return `${ app.getAppPath() }/app/images/tray/${ iconset }/${ name }.${ extension }`;
 };

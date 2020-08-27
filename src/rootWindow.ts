@@ -3,7 +3,7 @@ import { render, unmountComponentAtNode } from 'react-dom';
 
 import { App } from './components/App';
 import { setupRendererErrorHandling } from './errors';
-import { setupI18next } from './rootWindow/i18n';
+import { setupI18n } from './i18n/renderer';
 import { createRendererReduxStore } from './store';
 import { whenReady } from './whenReady';
 
@@ -13,7 +13,7 @@ const start = async (): Promise<void> => {
   await whenReady();
 
   setupRendererErrorHandling('rootWindow');
-  await setupI18next();
+  await setupI18n();
 
   const container = document.getElementById('root');
 

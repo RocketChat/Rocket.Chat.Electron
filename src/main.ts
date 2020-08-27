@@ -1,6 +1,7 @@
 import { app } from 'electron';
 
 import { setupMainErrorHandling } from './errors';
+import { setupI18n } from './i18n/main';
 import { performElectronStartup, setupApp } from './main/app';
 import {
   getLocalStorage,
@@ -10,7 +11,6 @@ import {
 } from './main/data';
 import { setupDeepLinks, processDeepLinksInArgs } from './main/deepLinks';
 import { setUserDataDirectory, setupElectronReloader, installDevTools } from './main/dev';
-import { setupI18n } from './main/i18n';
 import { setupNavigation } from './main/navigation';
 import { setupPowerMonitor } from './main/powerMonitor';
 import { setupScreenSharing } from './main/screenSharing';
@@ -35,6 +35,7 @@ const start = async (): Promise<void> => {
   performElectronStartup();
 
   createMainReduxStore();
+  setupI18n();
 
   await app.whenReady();
 
@@ -42,8 +43,6 @@ const start = async (): Promise<void> => {
     setupElectronReloader();
     installDevTools();
   }
-
-  await setupI18n();
 
   createRootWindow();
 

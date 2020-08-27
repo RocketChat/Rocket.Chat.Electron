@@ -27,7 +27,6 @@ const t = i18next.t.bind(i18next);
 const menuItems = new Map<MenuItem['id'], MenuItem>();
 
 const createMenuItem = (options: MenuItemConstructorOptions & { id: MenuItemConstructorOptions['id'] }): MenuItem => {
-  console.log(options.id);
   if (!menuItems.has(options.id)) {
     menuItems.set(options.id, new MenuItem(options));
   }

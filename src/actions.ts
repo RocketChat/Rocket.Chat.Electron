@@ -1,6 +1,6 @@
 import { Certificate, EditFlags, powerMonitor } from 'electron';
-import { Resource } from 'i18next';
 
+import { I18nActionTypeToPayloadMap } from './i18n/actions';
 import { FluxStandardAction } from './structs/fsa';
 import { ExtendedNotificationOptions } from './structs/notifications';
 import { Server, ValidationResult } from './structs/servers';
@@ -19,8 +19,6 @@ export const CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED = 'certificates/client-ce
 export const CERTIFICATES_UPDATED = 'certificates/updated';
 export const DEEP_LINKS_SERVER_ADDED = 'deep-links/server-added';
 export const DEEP_LINKS_SERVER_FOCUSED = 'deep-links/server-focused';
-export const I18N_PARAMS_REQUESTED = 'i18n/params-requested';
-export const I18N_PARAMS_RESPONDED = 'i18n/params-responded';
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED = 'loading-error-view/reload-server-clicked';
 export const MENU_BAR_ABOUT_CLICKED = 'menu-bar/about-clicked';
 export const MENU_BAR_ADD_NEW_SERVER_CLICKED = 'menu-bar/add-new-server-clicked';
@@ -87,7 +85,7 @@ export const WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED = 'webview/spell-checking
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 
-type ActionTypeToPayloadMap = {
+type ActionTypeToPayloadMap = I18nActionTypeToPayloadMap & {
   [ABOUT_DIALOG_DISMISSED]: never;
   [ABOUT_DIALOG_TOGGLE_UPDATE_ON_START]: boolean;
   [ADD_SERVER_VIEW_SERVER_ADDED]: Server['url'];
@@ -99,9 +97,6 @@ type ActionTypeToPayloadMap = {
   [CERTIFICATES_UPDATED]: Record<Server['url'], Certificate['fingerprint']>;
   [DEEP_LINKS_SERVER_ADDED]: Server['url'];
   [DEEP_LINKS_SERVER_FOCUSED]: Server['url'];
-  [I18N_PARAMS_REQUESTED]: never;
-  [I18N_PARAMS_REQUESTED]: never;
-  [I18N_PARAMS_RESPONDED]: { lng: string, fallbackLng: string, resources: Resource };
   [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
   [MENU_BAR_ABOUT_CLICKED]: never;
   [MENU_BAR_ADD_NEW_SERVER_CLICKED]: never;

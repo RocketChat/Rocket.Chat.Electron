@@ -32,7 +32,7 @@ export const createRendererReduxStore = async (): Promise<Store> => {
   return reduxStore;
 };
 
-export const dispatch = (action: RootAction): void => {
+export const dispatch = <T extends RootAction['type']>(action: ActionOf<T>): void => {
   reduxStore.dispatch(action);
 };
 

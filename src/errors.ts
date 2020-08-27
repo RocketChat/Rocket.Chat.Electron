@@ -22,15 +22,11 @@ const setupBugsnag = (apiKey: string, appVersion: string, appType: AppType): voi
   });
 };
 
-export const setupMainErrorHandling = (): void => {
+export const setupMainErrorHandling = async (): Promise<void> => {
   if (process.env.BUGSNAG_API_KEY) {
     setupBugsnag(process.env.BUGSNAG_API_KEY, app.getVersion(), 'main');
     return;
   }
-
-  listen(APP_ERROR_THROWN, (action) => {
-    console.error(action.payload);
-  });
 
   process.addListener('uncaughtException', (error) => {
     console.error(error);
@@ -40,6 +36,12 @@ export const setupMainErrorHandling = (): void => {
   process.addListener('unhandledRejection', (reason) => {
     console.error(reason);
     app.exit(1);
+  });
+
+  await app.whenReady();
+
+  listen(APP_ERROR_THROWN, (action) => {
+    console.error(action.payload);
   });
 };
 

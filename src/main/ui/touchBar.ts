@@ -51,7 +51,7 @@ const createTouchBar = (): [
   const messageBoxFormattingButtons = new TouchBar.TouchBarSegmentedControl({
     mode: 'buttons',
     segments: ids.map((id) => ({
-      icon: nativeImage.createFromPath(`${ app.getAppPath() }/app/public/images/touch-bar/${ id }.png`),
+      icon: nativeImage.createFromPath(`${ app.getAppPath() }/app/images/touch-bar/${ id }.png`),
       enabled: false,
     })),
     change: (selectedIndex) => {

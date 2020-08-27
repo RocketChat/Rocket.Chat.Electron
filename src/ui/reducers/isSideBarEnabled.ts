@@ -1,12 +1,12 @@
 import { Reducer } from 'redux';
 
-import { PERSISTABLE_VALUES_MERGED } from '../../app/actions';
+import { APP_SETTINGS_LOADED } from '../../app/actions';
 import { ActionOf } from '../../store/actions';
 import { MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED } from '../actions';
 
 type IsSideBarEnabledAction = (
   ActionOf<typeof MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED>
-  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof APP_SETTINGS_LOADED>
 );
 
 export const isSideBarEnabled: Reducer<boolean, IsSideBarEnabledAction> = (state = true, action) => {
@@ -14,7 +14,7 @@ export const isSideBarEnabled: Reducer<boolean, IsSideBarEnabledAction> = (state
     case MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED:
       return action.payload;
 
-    case PERSISTABLE_VALUES_MERGED: {
+    case APP_SETTINGS_LOADED: {
       const { isSideBarEnabled = state } = action.payload;
       return isSideBarEnabled;
     }

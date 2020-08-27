@@ -4,13 +4,12 @@ import path from 'path';
 import { app } from 'electron';
 import { SpellCheckerProvider } from 'electron-hunspell';
 
-import { PERSISTABLE_VALUES_MERGED } from '../app/actions';
-import { selectPersistableValues } from '../selectors';
 import { select, dispatch, watch, listen } from '../store';
 import {
   SPELL_CHECKING_DICTIONARIES_UPDATED,
   SPELL_CHECKING_MISSPELT_WORDS_REQUESTED,
   SPELL_CHECKING_MISSPELT_WORDS_RESPONDED,
+  SPELL_CHECKING_DICTIONARIES_LOADED,
 } from './actions';
 import { Dictionary } from './common';
 
@@ -242,11 +241,8 @@ export const setupSpellChecking = async (localStorage: Record<string, string>): 
       });
 
       dispatch({
-        type: PERSISTABLE_VALUES_MERGED,
-        payload: {
-          ...select(selectPersistableValues),
-          spellCheckingDictionaries,
-        },
+        type: SPELL_CHECKING_DICTIONARIES_LOADED,
+        payload: spellCheckingDictionaries,
       });
     } catch (error) {
       console.error(error);
@@ -260,11 +256,8 @@ export const setupSpellChecking = async (localStorage: Record<string, string>): 
   await Promise.all(spellCheckingDictionaries.map(toggleDictionary));
 
   dispatch({
-    type: PERSISTABLE_VALUES_MERGED,
-    payload: {
-      ...select(selectPersistableValues),
-      spellCheckingDictionaries,
-    },
+    type: SPELL_CHECKING_DICTIONARIES_LOADED,
+    payload: spellCheckingDictionaries,
   });
 
   watch(({ spellCheckingDictionaries }) => spellCheckingDictionaries, (spellCheckingDictionaries) => {

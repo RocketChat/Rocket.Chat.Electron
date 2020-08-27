@@ -1,12 +1,12 @@
 import { Reducer } from 'redux';
 
-import { PERSISTABLE_VALUES_MERGED } from '../../app/actions';
+import { APP_SETTINGS_LOADED } from '../../app/actions';
 import { ActionOf } from '../../store/actions';
 import { MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED } from '../actions';
 
 type IsTrayIconEnabledAction = (
   ActionOf<typeof MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED>
-  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof APP_SETTINGS_LOADED>
 );
 
 export const isTrayIconEnabled: Reducer<boolean, IsTrayIconEnabledAction> = (state = process.platform !== 'linux', action) => {
@@ -15,7 +15,7 @@ export const isTrayIconEnabled: Reducer<boolean, IsTrayIconEnabledAction> = (sta
       return action.payload;
     }
 
-    case PERSISTABLE_VALUES_MERGED: {
+    case APP_SETTINGS_LOADED: {
       const { isTrayIconEnabled = state } = action.payload;
       return isTrayIconEnabled;
     }

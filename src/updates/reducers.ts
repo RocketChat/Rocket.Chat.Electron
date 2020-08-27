@@ -1,6 +1,6 @@
 import { Reducer } from 'redux';
 
-import { PERSISTABLE_VALUES_MERGED } from '../app/actions';
+import { APP_SETTINGS_LOADED } from '../app/actions';
 import { ActionOf } from '../store/actions';
 import { ABOUT_DIALOG_TOGGLE_UPDATE_ON_START } from '../ui/actions';
 import {
@@ -15,7 +15,7 @@ import {
 type DoCheckForUpdatesOnStartupAction = (
   ActionOf<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>
   | ActionOf<typeof UPDATES_READY>
-  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof APP_SETTINGS_LOADED>
 );
 
 export const doCheckForUpdatesOnStartup: Reducer<boolean, DoCheckForUpdatesOnStartupAction> = (state = true, action) => {
@@ -30,7 +30,7 @@ export const doCheckForUpdatesOnStartup: Reducer<boolean, DoCheckForUpdatesOnSta
       return doCheckForUpdatesOnStartup;
     }
 
-    case PERSISTABLE_VALUES_MERGED: {
+    case APP_SETTINGS_LOADED: {
       const { doCheckForUpdatesOnStartup = state } = action.payload;
       return doCheckForUpdatesOnStartup;
     }
@@ -68,7 +68,7 @@ export const isCheckingForUpdates: Reducer<boolean, IsCheckingForUpdatesAction> 
 
 type IsEachUpdatesSettingConfigurableAction = (
   ActionOf<typeof UPDATES_READY>
-  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof APP_SETTINGS_LOADED>
 );
 
 export const isEachUpdatesSettingConfigurable: Reducer<boolean, IsEachUpdatesSettingConfigurableAction> = (state = true, action) => {
@@ -78,7 +78,7 @@ export const isEachUpdatesSettingConfigurable: Reducer<boolean, IsEachUpdatesSet
       return isEachUpdatesSettingConfigurable;
     }
 
-    case PERSISTABLE_VALUES_MERGED: {
+    case APP_SETTINGS_LOADED: {
       const { isEachUpdatesSettingConfigurable = state } = action.payload;
       return isEachUpdatesSettingConfigurable;
     }
@@ -104,7 +104,7 @@ export const isUpdatingAllowed: Reducer<boolean, IsUpdatingAllowedAction> = (sta
 
 type IsUpdatingEnabledAction = (
   ActionOf<typeof UPDATES_READY>
-  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof APP_SETTINGS_LOADED>
 );
 
 export const isUpdatingEnabled: Reducer<boolean, IsUpdatingEnabledAction> = (state = true, action) => {
@@ -114,7 +114,7 @@ export const isUpdatingEnabled: Reducer<boolean, IsUpdatingEnabledAction> = (sta
       return isUpdatingEnabled;
     }
 
-    case PERSISTABLE_VALUES_MERGED: {
+    case APP_SETTINGS_LOADED: {
       const { isUpdatingEnabled = state } = action.payload;
       return isUpdatingEnabled;
     }
@@ -144,7 +144,7 @@ export const newUpdateVersion: Reducer<string | null, NewUpdateVersionAction> = 
 
 type SkippedUpdateVersionAction = (
   ActionOf<typeof UPDATES_READY>
-  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof UPDATE_SKIPPED>
 );
 
@@ -160,7 +160,7 @@ export const skippedUpdateVersion: Reducer<string | null, SkippedUpdateVersionAc
       return skippedUpdateVersion;
     }
 
-    case PERSISTABLE_VALUES_MERGED: {
+    case APP_SETTINGS_LOADED: {
       const { skippedUpdateVersion = state } = action.payload;
       return skippedUpdateVersion;
     }

@@ -1,6 +1,5 @@
 import { applyMiddleware, createStore, Store, compose, Middleware, Dispatch } from 'redux';
 
-import { Selector } from '../selectors';
 import { RootAction, ActionOf } from './actions';
 import { forwardToRenderers, getInitialState, forwardToMain } from './ipc';
 import { rootReducer, RootState } from './rootReducer';
@@ -35,6 +34,8 @@ export const createRendererReduxStore = async (): Promise<Store> => {
 export const dispatch = <T extends RootAction['type']>(action: ActionOf<T>): void => {
   reduxStore.dispatch(action);
 };
+
+type Selector<T> = (state: RootState) => T;
 
 export const select = <T>(selector: Selector<T>): T =>
   selector(reduxStore.getState());

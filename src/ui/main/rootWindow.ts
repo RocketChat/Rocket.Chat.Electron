@@ -21,14 +21,10 @@ import {
 import i18next from 'i18next';
 import { createSelector } from 'reselect';
 
-import {
-  selectGlobalBadge,
-  selectGlobalBadgeCount,
-  selectMainWindowState,
-} from '../../selectors';
 import { Dictionary } from '../../spellChecking/common';
 import { importSpellCheckingDictionaries, getCorrectionsForMisspelling } from '../../spellChecking/main';
 import { dispatch, select, watch, listen } from '../../store';
+import { RootState } from '../../store/rootReducer';
 import {
   ROOT_WINDOW_STATE_CHANGED,
   WEBVIEW_DID_NAVIGATE,
@@ -41,8 +37,28 @@ import {
   WEBVIEW_FOCUS_REQUESTED,
   WEBVIEW_ATTACHED,
 } from '../actions';
+import { WindowState } from '../common';
+import {
+  selectGlobalBadge,
+  selectGlobalBadgeCount,
+} from '../selectors';
 import { browseForSpellCheckingDictionary } from './dialogs';
 import { getTrayIconPath, getAppIconPath } from './icons';
+
+const selectMainWindowState = ({ mainWindowState }: RootState): WindowState => mainWindowState ?? {
+  bounds: {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  },
+  focused: false,
+  fullscreen: false,
+  maximized: false,
+  minimized: false,
+  normal: false,
+  visible: false,
+};
 
 const t = i18next.t.bind(i18next);
 

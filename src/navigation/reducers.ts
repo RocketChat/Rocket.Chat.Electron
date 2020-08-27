@@ -1,7 +1,7 @@
 import { Certificate } from 'electron';
 import { Reducer } from 'redux';
 
-import { PERSISTABLE_VALUES_MERGED } from '../app/actions';
+import { APP_SETTINGS_LOADED } from '../app/actions';
 import { Server } from '../servers/common';
 import { ActionOf } from '../store/actions';
 import {
@@ -10,6 +10,7 @@ import {
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
   CERTIFICATES_UPDATED,
   CERTIFICATES_CLEARED,
+  CERTIFICATES_LOADED,
 } from './actions';
 
 type ClientCertificatesActionTypes = (
@@ -33,20 +34,22 @@ export const clientCertificates: Reducer<Certificate[], ClientCertificatesAction
 };
 
 type TrustedCertificatesAction = (
-  ActionOf<typeof CERTIFICATES_UPDATED>
+  ActionOf<typeof CERTIFICATES_LOADED>
+  | ActionOf<typeof CERTIFICATES_UPDATED>
   | ActionOf<typeof CERTIFICATES_CLEARED>
-  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof APP_SETTINGS_LOADED>
 );
 
 export const trustedCertificates: Reducer<Record<Server['url'], Certificate['fingerprint']>, TrustedCertificatesAction> = (state = {}, action) => {
   switch (action.type) {
+    case CERTIFICATES_LOADED:
     case CERTIFICATES_UPDATED:
       return action.payload;
 
     case CERTIFICATES_CLEARED:
       return {};
 
-    case PERSISTABLE_VALUES_MERGED: {
+    case APP_SETTINGS_LOADED: {
       const { trustedCertificates = state } = action.payload;
       return trustedCertificates;
     }

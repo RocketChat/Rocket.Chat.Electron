@@ -3,10 +3,10 @@ import path from 'path';
 
 import { app } from 'electron';
 
-import { selectPersistableValues } from '../../selectors';
 import { select, dispatch, watch } from '../../store';
 import { getRootWindow } from '../../ui/main/rootWindow';
-import { PERSISTABLE_VALUES_MERGED } from '../actions';
+import { APP_SETTINGS_LOADED } from '../actions';
+import { selectPersistableValues } from '../selectors';
 import { getPersistedValues, persistValues } from './persistence';
 
 export const getLocalStorage = (): Promise<Record<string, string>> =>
@@ -98,7 +98,7 @@ export const mergePersistableValues = async (localStorage: Record<string, string
   };
 
   dispatch({
-    type: PERSISTABLE_VALUES_MERGED,
+    type: APP_SETTINGS_LOADED,
     payload: values,
   });
 };

@@ -1,6 +1,6 @@
 import { Reducer } from 'redux';
 
-import { PERSISTABLE_VALUES_MERGED } from '../app/actions';
+import { APP_SETTINGS_LOADED } from '../app/actions';
 import { ActionOf } from '../store/actions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
@@ -20,18 +20,20 @@ import {
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
 } from '../ui/actions';
+import { SERVERS_LOADED } from './actions';
 import { Server } from './common';
 
 type CurrentServerUrlAction = (
   ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
   | ActionOf<typeof MENU_BAR_ADD_NEW_SERVER_CLICKED>
   | ActionOf<typeof MENU_BAR_SELECT_SERVER_CLICKED>
+  | ActionOf<typeof SERVERS_LOADED>
   | ActionOf<typeof SIDE_BAR_ADD_NEW_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_SERVER_SELECTED>
   | ActionOf<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>
   | ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>
-  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof APP_SETTINGS_LOADED>
 );
 
 type CurrentServerUrlState = string | null;
@@ -72,7 +74,12 @@ export const currentServerUrl = (state: CurrentServerUrlState = null, action: Cu
       return url;
     }
 
-    case PERSISTABLE_VALUES_MERGED: {
+    case SERVERS_LOADED: {
+      const { currentServerUrl = state } = action.payload;
+      return currentServerUrl;
+    }
+
+    case APP_SETTINGS_LOADED: {
       const { currentServerUrl = state } = action.payload;
       return currentServerUrl;
     }
@@ -83,6 +90,7 @@ export const currentServerUrl = (state: CurrentServerUrlState = null, action: Cu
 
 type ServersActionTypes = (
   ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
+  | ActionOf<typeof SERVERS_LOADED>
   | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_SERVERS_SORTED>
   | ActionOf<typeof WEBVIEW_DID_NAVIGATE>
@@ -90,7 +98,7 @@ type ServersActionTypes = (
   | ActionOf<typeof WEBVIEW_TITLE_CHANGED>
   | ActionOf<typeof WEBVIEW_UNREAD_CHANGED>
   | ActionOf<typeof WEBVIEW_FAVICON_CHANGED>
-  | ActionOf<typeof PERSISTABLE_VALUES_MERGED>
+  | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
 );
@@ -165,7 +173,12 @@ export const servers: Reducer<Server[], ServersActionTypes> = (state = [], actio
       return state;
     }
 
-    case PERSISTABLE_VALUES_MERGED: {
+    case SERVERS_LOADED: {
+      const { servers = state } = action.payload;
+      return servers;
+    }
+
+    case APP_SETTINGS_LOADED: {
       const { servers = state } = action.payload;
       return servers;
     }

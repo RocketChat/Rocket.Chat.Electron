@@ -5,16 +5,14 @@ import url from 'url';
 import { app } from 'electron';
 import fetch from 'node-fetch';
 
-import { PERSISTABLE_VALUES_MERGED } from '../app/actions';
 import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../navigation/actions';
-import { selectPersistableValues } from '../selectors';
 import { select, dispatch, listen } from '../store';
 import { ActionOf } from '../store/actions';
-import { SERVER_VALIDATION_REQUESTED, SERVER_VALIDATION_RESPONDED } from './actions';
+import { SERVER_VALIDATION_REQUESTED, SERVER_VALIDATION_RESPONDED, SERVERS_LOADED } from './actions';
 import { ValidationResult, Server } from './common';
 
 export const validateServerUrl = async (serverUrl: string, timeout = 5000): Promise<ValidationResult> => {
@@ -224,9 +222,8 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
   }
 
   dispatch({
-    type: PERSISTABLE_VALUES_MERGED,
+    type: SERVERS_LOADED,
     payload: {
-      ...select(selectPersistableValues),
       servers,
       currentServerUrl,
     },

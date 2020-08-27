@@ -5,8 +5,6 @@ import url from 'url';
 import { app, Certificate } from 'electron';
 import i18next from 'i18next';
 
-import { PERSISTABLE_VALUES_MERGED } from '../app/actions';
-import { selectPersistableValues } from '../selectors';
 import { request, select, dispatch } from '../store';
 import { AskForCertificateTrustResponse, askForCertificateTrust } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
@@ -15,6 +13,7 @@ import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
+  CERTIFICATES_LOADED,
 } from './actions';
 
 const t = i18next.t.bind(i18next);
@@ -129,13 +128,10 @@ export const setupNavigation = async (): Promise<void> => {
   const userTrustedCertificates = await loadUserTrustedCertificates();
 
   dispatch({
-    type: PERSISTABLE_VALUES_MERGED,
+    type: CERTIFICATES_LOADED,
     payload: {
-      ...select(selectPersistableValues),
-      trustedCertificates: {
-        ...trustedCertificates,
-        ...userTrustedCertificates,
-      },
+      ...trustedCertificates,
+      ...userTrustedCertificates,
     },
   });
 };

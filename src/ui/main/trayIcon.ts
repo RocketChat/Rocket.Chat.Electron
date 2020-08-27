@@ -1,10 +1,10 @@
 import { app, nativeTheme, Menu, Tray } from 'electron';
 import i18next from 'i18next';
 
-import { selectGlobalBadge } from '../../selectors';
 import { Server } from '../../servers/common';
 import { watch, select } from '../../store';
 import { RootState } from '../../store/rootReducer';
+import { selectGlobalBadge } from '../selectors';
 import { getTrayIconPath, getAppIconPath } from './icons';
 import { getRootWindow } from './rootWindow';
 

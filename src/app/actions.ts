@@ -7,13 +7,13 @@ import { WindowState } from '../ui/common';
 export const APP_ERROR_THROWN = 'app/error-thrown';
 export const APP_PATH_SET = 'app/path-set';
 export const APP_VERSION_SET = 'app/version-set';
-export const PERSISTABLE_VALUES_MERGED = 'persistable-values/merged';
+export const APP_SETTINGS_LOADED = 'app/settings-loaded';
 
 export type AppActionTypeToPayloadMap = {
   [APP_ERROR_THROWN]: Error;
   [APP_PATH_SET]: string;
   [APP_VERSION_SET]: string;
-  [PERSISTABLE_VALUES_MERGED]: {
+  [APP_SETTINGS_LOADED]: {
     currentServerUrl: Server['url'] | null;
     doCheckForUpdatesOnStartup: boolean;
     isEachUpdatesSettingConfigurable: boolean;

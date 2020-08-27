@@ -1,7 +1,7 @@
 import ElectronStore from 'electron-store';
 
 import appManifest from '../../../package.json';
-import { selectPersistableValues } from '../../selectors';
+import { selectPersistableValues } from '../selectors';
 
 type PersistableValues = ReturnType<typeof selectPersistableValues>;
 

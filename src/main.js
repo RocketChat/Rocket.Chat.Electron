@@ -100,13 +100,25 @@ const createMainWindow = () => {
 
 	// Logs and Helpers
 	console.log(store.get('downloads', {}));
-	store.clear();
+	// store.clear();
 
 	// Load all downloads from LocalStorage into Main Process and send to Download Manager.
 	ipcMain.on('load-downloads', async () => {
 		console.log('Loading Downloads');
 		const downloads = await store.get('downloads', {});
 		mainWindow.webContents.send('initialize-downloads', downloads);
+	});
+
+	ipcMain.on('reset', async () => {
+		console.log('Reset');
+		await store.clear();
+		const downloads = await store.get('downloads', {});
+		mainWindow.webContents.send('initialize-downloads', downloads);
+	});
+
+	ipcMain.on('remove', async (event, itemdId) => {
+		console.log(`Removing: ${ itemdId } `);
+		await store.delete(`downloads.${ itemdId }`);
 	});
 
 
@@ -118,20 +130,25 @@ const createMainWindow = () => {
 		store.set('downloads', downloads);
 	});
 	// Downloads handler. Handles all downloads from links.
-	mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
-
+	mainWindow.webContents.session.on('will-download', async (event, item, webContents) => {
+		// item.pause();
 		// console.log({ event, item, webContents });
 		const mime = item.getMimeType();
 		let paused = false;
 		const itemId = Date.now();
-		mainWindow.webContents.send('create-download-item', { itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url: item.getURL(), serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
-
+		const url = item.getURLChain()[0];
+		const serverTitle = url.split('#')[1];
+		console.log(url);
+		mainWindow.webContents.send('create-download-item', { status: 'All Downloads', serverTitle, itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url, serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
+		let startTime = new Date().getTime();
+		let endTime;
+		let bytesRecieved;
 		// Cancelled Download
+		console.log(item.getURLChain());
 		ipcMain.on(`cancel-${ itemId }`, () => item.cancel());
 
 		// Paused Download
 		ipcMain.on(`pause-${ itemId }`, () => {
-			console.log(item.getReceivedBytes());
 			if (paused) {
 				item.resume();
 			} else {
@@ -139,7 +156,6 @@ const createMainWindow = () => {
 			}
 			paused = !paused;
 		});
-
 		item.on('updated', (event, state) => {
 			if (state === 'interrupted') {
 				console.log('Download is interrupted but can be resumed');
@@ -147,19 +163,25 @@ const createMainWindow = () => {
 				if (item.isPaused()) {
 					console.log('Download is paused');
 				} else {
+					endTime = new Date().getTime();
+					const duration = (endTime - startTime) / 1000;
+					const bps = (item.getReceivedBytes() - bytesRecieved) / duration;
+					const Mbps = (bps / 1048576).toFixed(2);
+					startTime = endTime;
+					bytesRecieved = item.getReceivedBytes();
+
 					// Sending Download Information. TODO: Seperate bytes as information sent is being repeated.
-					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: item.getReceivedBytes(), savePath: item.getSavePath() });
+					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: bytesRecieved, savePath: item.getSavePath(), Mbps });
 					console.log(`Received bytes: ${ item.getReceivedBytes() }`);
 				}
 			}
 		});
 		item.once('done', (event, state) => {
 			if (state === 'completed') {
-				mainWindow.webContents.send(`download-complete-${ itemId }`); // Send to specific DownloadItem
+				mainWindow.webContents.send(`download-complete-${ itemId }`, { path, percentage: 100 }); // Send to specific DownloadItem
 				console.log('Download successfully');
 			} else {
 				console.log(`Download failed: ${ state }`);
-				mainWindow.webContents.send
 			}
 		});
 	});

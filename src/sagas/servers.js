@@ -128,7 +128,8 @@ function *loadCurrentServerUrl(servers) {
 	if (!servers.some(({ url }) => url === currentServerUrl)) {
 		currentServerUrl = null;
 	}
-
+	// // During testing
+	// return 'Downloads';
 	return currentServerUrl;
 }
 

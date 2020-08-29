@@ -4,6 +4,7 @@ import {
 	MENU_BAR_SELECT_SERVER_CLICKED,
 	SERVERS_READY,
 	SIDE_BAR_ADD_NEW_SERVER_CLICKED,
+	SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
 	SIDE_BAR_REMOVE_SERVER_CLICKED,
 	SIDE_BAR_SERVER_SELECTED,
 	TOUCH_BAR_SELECT_SERVER_TOUCHED,
@@ -40,6 +41,10 @@ export const currentServerUrl = (state = null, { type, payload }) => {
 
 		case SIDE_BAR_ADD_NEW_SERVER_CLICKED:
 			return null;
+
+		case SIDE_BAR_DOWNLOADS_BUTTON_CLICKED:
+
+			return 'Downloads';
 
 		case WEBVIEW_FOCUS_REQUESTED: {
 			const { url } = payload;

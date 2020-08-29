@@ -1,9 +1,10 @@
-import { Box, Button, ButtonGroup, Flex, Loading, Margins } from '@rocket.chat/fuselage';
+import { Box, Button, ButtonGroup, Flex, Throbber, Margins } from '@rocket.chat/fuselage';
 import { remote } from 'electron';
 import React, { useState, useRef, useEffect } from 'react';
 import { takeEvery } from 'redux-saga/effects';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
+
 
 import {
 	WEBVIEW_LOADING_STARTED,
@@ -11,6 +12,7 @@ import {
 	WEBVIEW_LOADING_FAILED,
 	WEBVIEW_CERTIFICATE_DENIED,
 	LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+	WEBVIEW_SERVER_ID,
 } from '../../actions';
 import { useSaga } from '../SagaMiddlewareProvider';
 import { useWebviewFocus } from './useWebviewFocus';
@@ -117,7 +119,10 @@ export function ServerPane({
 			remoteModule
 			preload={`${ remote.app.getAppPath() }/app/preload.js`}
 			isVisible={!isFailed && !isReloading}
-			onWebContentsChange={(webContents) => setWebContents(webContents)}
+			onWebContentsChange={(webContents) => {
+				dispatch({ type: WEBVIEW_SERVER_ID, payload: { id: webContents.id, serverUrl: url } });
+				return setWebContents(webContents);
+			}}
 		/>
 		<ErrorPane isVisible={isFailed || isReloading}>
 			<FailureImage style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0 }} />
@@ -141,7 +146,7 @@ export function ServerPane({
 
 							<Box>
 								{isReloading && <Margins block='x12'>
-									<Loading inheritColor size='x16' />
+									<Throbber inheritColor size='x16' />
 								</Margins>}
 
 								{!isReloading && <ButtonGroup align='center'>

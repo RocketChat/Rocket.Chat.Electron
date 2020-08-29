@@ -1,10 +1,15 @@
 import path from 'path';
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import setupElectronReload from 'electron-reload';
 import rimraf from 'rimraf';
 
 import { setupErrorHandling } from './errorHandling';
+
+
+const Store = require('electron-store');
+
+const store = new Store();
 
 if (process.env.NODE_ENV === 'development') {
 	setupElectronReload(__dirname, {
@@ -70,8 +75,8 @@ const createMainWindow = () => {
 	const mainWindow = new BrowserWindow({
 		width: 1000,
 		height: 600,
-		minWidth: 400,
-		minHeight: 400,
+		minWidth: 500,
+		minHeight: 500,
 		titleBarStyle: 'hidden',
 		backgroundColor: '#2f343d',
 		show: false,
@@ -81,13 +86,83 @@ const createMainWindow = () => {
 		},
 	});
 
-	mainWindow.addListener('close', preventEvent);
+	mainWindow.addListener('close', async (e) => {
+		preventEvent(e);
+		console.log('closing');
+	});
 
 	mainWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
 		delete webPreferences.enableBlinkFeatures;
 	});
 
 	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
+
+
+	// Logs and Helpers
+	console.log(store.get('downloads', {}));
+	store.clear();
+
+	// Load all downloads from LocalStorage into Main Process and send to Download Manager.
+	ipcMain.on('load-downloads', async () => {
+		console.log('Loading Downloads');
+		const downloads = await store.get('downloads', {});
+		mainWindow.webContents.send('initialize-downloads', downloads);
+	});
+
+
+	// Listen and save a single download being completed.
+	ipcMain.on('download-complete', async (event, downloadItem) => {
+		const downloads = await store.get('downloads', {});
+		downloads[downloadItem.itemId] = downloadItem;
+		// console.log(downloads);
+		store.set('downloads', downloads);
+	});
+	// Downloads handler. Handles all downloads from links.
+	mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
+
+		// console.log({ event, item, webContents });
+		const mime = item.getMimeType();
+		let paused = false;
+		const itemId = Date.now();
+		mainWindow.webContents.send('create-download-item', { itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url: item.getURL(), serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
+
+		// Cancelled Download
+		ipcMain.on(`cancel-${ itemId }`, () => item.cancel());
+
+		// Paused Download
+		ipcMain.on(`pause-${ itemId }`, () => {
+			console.log(item.getReceivedBytes());
+			if (paused) {
+				item.resume();
+			} else {
+				item.pause();
+			}
+			paused = !paused;
+		});
+
+		item.on('updated', (event, state) => {
+			if (state === 'interrupted') {
+				console.log('Download is interrupted but can be resumed');
+			} else if (state === 'progressing') {
+				if (item.isPaused()) {
+					console.log('Download is paused');
+				} else {
+					// Sending Download Information. TODO: Seperate bytes as information sent is being repeated.
+					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: item.getReceivedBytes(), savePath: item.getSavePath() });
+					console.log(`Received bytes: ${ item.getReceivedBytes() }`);
+				}
+			}
+		});
+		item.once('done', (event, state) => {
+			if (state === 'completed') {
+				mainWindow.webContents.send(`download-complete-${ itemId }`); // Send to specific DownloadItem
+				console.log('Download successfully');
+			} else {
+				console.log(`Download failed: ${ state }`);
+				mainWindow.webContents.send
+			}
+		});
+	});
 };
 
 const initialize = async () => {

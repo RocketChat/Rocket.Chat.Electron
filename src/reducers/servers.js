@@ -8,6 +8,7 @@ import {
 	WEBVIEW_TITLE_CHANGED,
 	WEBVIEW_UNREAD_CHANGED,
 	WEBVIEW_FAVICON_CHANGED,
+	WEBVIEW_SERVER_ID,
 } from '../actions';
 
 const upsert = (state, server) => {
@@ -68,6 +69,13 @@ export const servers = (state = [], { type, payload }) => {
 				return upsert(state, { url, lastPath: pageUrl });
 			}
 
+			return state;
+		}
+		case WEBVIEW_SERVER_ID: {
+			const { id, serverUrl } = payload;
+			const index = state.findIndex(({ url }) => url === serverUrl);
+			state[index].webContentId = id;
+			console.log(state);
 			return state;
 		}
 	}

@@ -6,6 +6,7 @@ import copy from 'rollup-plugin-copy';
 import json from 'rollup-plugin-json';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import replace from 'rollup-plugin-replace';
+import postcss from 'rollup-plugin-postcss';
 
 import appManifest from './package.json';
 
@@ -33,6 +34,9 @@ const bundleOptions = {
 		babel(),
 		nodeResolve(),
 		commonjs(),
+		postcss({
+			plugins: [],
+		}),
 	],
 };
 

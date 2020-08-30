@@ -1,5 +1,6 @@
 import path from 'path';
 
+import sharp from 'sharp';
 import { app, BrowserWindow, ipcMain } from 'electron';
 import setupElectronReload from 'electron-reload';
 import rimraf from 'rimraf';
@@ -88,7 +89,6 @@ const createMainWindow = () => {
 
 	mainWindow.addListener('close', async (e) => {
 		preventEvent(e);
-		console.log('closing');
 	});
 
 	mainWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
@@ -98,54 +98,48 @@ const createMainWindow = () => {
 	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
 
 
-	// Logs and Helpers
-	console.log(store.get('downloads', {}));
-	// store.clear();
-
 	// Load all downloads from LocalStorage into Main Process and send to Download Manager.
 	ipcMain.on('load-downloads', async () => {
-		console.log('Loading Downloads');
 		const downloads = await store.get('downloads', {});
 		mainWindow.webContents.send('initialize-downloads', downloads);
 	});
 
 	ipcMain.on('reset', async () => {
-		console.log('Reset');
 		await store.clear();
 		const downloads = await store.get('downloads', {});
 		mainWindow.webContents.send('initialize-downloads', downloads);
 	});
 
 	ipcMain.on('remove', async (event, itemdId) => {
-		console.log(`Removing: ${ itemdId } `);
 		await store.delete(`downloads.${ itemdId }`);
 	});
-
 
 	// Listen and save a single download being completed.
 	ipcMain.on('download-complete', async (event, downloadItem) => {
 		const downloads = await store.get('downloads', {});
 		downloads[downloadItem.itemId] = downloadItem;
-		// console.log(downloads);
 		store.set('downloads', downloads);
 	});
+
 	// Downloads handler. Handles all downloads from links.
 	mainWindow.webContents.session.on('will-download', async (event, item, webContents) => {
-		// item.pause();
-		// console.log({ event, item, webContents });
 		const mime = item.getMimeType();
-		let paused = false;
 		const itemId = Date.now();
 		const url = item.getURLChain()[0];
 		const serverTitle = url.split('#')[1];
-		console.log(url);
-		mainWindow.webContents.send('create-download-item', { status: 'All Downloads', serverTitle, itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url, serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
-		let startTime = new Date().getTime();
+		const startTime = new Date().getTime();
+		const totalBytes = item.getTotalBytes();
+		let paused = false;
 		let endTime;
-		let bytesRecieved;
+		let isCancelledByDialog = true;
+
+		mainWindow.webContents.send('create-download-item', { status: 'All', serverTitle, itemId, totalBytes: item.getTotalBytes(), fileName: item.getFilename(), url, serverId: webContents.id, mime }); // Request download item creation in UI and send unqiue ID.
+
 		// Cancelled Download
-		console.log(item.getURLChain());
-		ipcMain.on(`cancel-${ itemId }`, () => item.cancel());
+		ipcMain.on(`cancel-${ itemId }`, () => {
+			isCancelledByDialog = false;
+			item.cancel();
+		});
 
 		// Paused Download
 		ipcMain.on(`pause-${ itemId }`, () => {
@@ -165,23 +159,29 @@ const createMainWindow = () => {
 				} else {
 					endTime = new Date().getTime();
 					const duration = (endTime - startTime) / 1000;
-					const bps = (item.getReceivedBytes() - bytesRecieved) / duration;
-					const Mbps = (bps / 1048576).toFixed(2);
-					startTime = endTime;
-					bytesRecieved = item.getReceivedBytes();
+					const Bps = (item.getReceivedBytes() / duration).toFixed(2);
+					const Kbps = (Bps / 1024).toFixed(2);
+					const Mbps = (Kbps / 1024).toFixed(2);
+					const recievedBytes = item.getReceivedBytes();
+					const timeLeft = Bps ? Math.round((totalBytes - recievedBytes) / Bps) : null;
+					const path = item.getSavePath();
+					const pathsArray = path.split('/');
+					const fileName = pathsArray[pathsArray.length - 1];
 
 					// Sending Download Information. TODO: Seperate bytes as information sent is being repeated.
-					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: bytesRecieved, savePath: item.getSavePath(), Mbps });
-					console.log(`Received bytes: ${ item.getReceivedBytes() }`);
+					mainWindow.webContents.send(`downloading-${ itemId }`, { bytes: item.getReceivedBytes(), Mbps, Kbps, timeLeft, fileName });
 				}
 			}
 		});
-		item.once('done', (event, state) => {
+		item.once('done', async (event, state) => {
 			if (state === 'completed') {
-				mainWindow.webContents.send(`download-complete-${ itemId }`, { path, percentage: 100 }); // Send to specific DownloadItem
-				console.log('Download successfully');
-			} else {
-				console.log(`Download failed: ${ state }`);
+				const path = item.getSavePath();
+				const pathsArray = path.split('/');
+				const fileName = pathsArray[pathsArray.length - 1];
+				const thumbnail = mime.split('/')[0] === 'image' ? await sharp(path).resize(100, 100).png().toBuffer() : null;
+				mainWindow.webContents.send(`download-complete-${ itemId }`, { percentage: 100, path, fileName, thumbnail: thumbnail && `data:image/png;base64,${ thumbnail.toString('base64') }` }); // Send to specific DownloadItem
+			} else if (isCancelledByDialog) {
+				mainWindow.webContents.send('download-cancelled', itemId); // Remove Item from UI if interrupted or cancelled
 			}
 		});
 	});

@@ -16,7 +16,6 @@ const handleAnchorClick = (event) => {
 	const canDownload = /^\/file-upload\//.test(href) || download;
 	if (canDownload) {
 		const downloadUrl = a.href;
-		console.log(downloadUrl);
 		remote.getCurrentWebContents().downloadURL(downloadUrl);
 		event.preventDefault();
 		return;

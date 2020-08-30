@@ -104,7 +104,6 @@ export function DownloadsManagerView() {
 			setDownloads(newDownloads);
 			ipcRenderer.send('remove', itemId);
 		};
-		console.log(Boolean(isRetry));
 		if (isRetry) {
 			clear();
 			return;
@@ -223,12 +222,11 @@ export function DownloadsManagerView() {
 								return <DownloadItem mb='x16' { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ handleClear } />;
 							}
 							timeHeading = new Date(downloadItem.itemId).toDateString();
-							// console.log(timeHeading);
 							return (
-								<>
-									{ <Box fontSize='x16' color='info' alignSelf='start'>{ timeHeading }</Box>}
-									<DownloadItem mb='x16' { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ handleClear } />
-								</>
+								<React.Fragment key={ downloadItem.itemId }>
+									{ <Box fontSize='x16' color='info' alignSelf='start'>{ timeHeading }</Box> }
+									<DownloadItem mb='x16' { ...downloadItem } updateDownloads={ updateDownloads }  layout={ layout } handleFileOpen={ handleFileOpen } clear={ handleClear } />
+								</React.Fragment>
 							);
 						}) }
 					</Grid.Item>

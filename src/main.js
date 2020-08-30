@@ -89,7 +89,6 @@ const createMainWindow = () => {
 
 	mainWindow.addListener('close', async (e) => {
 		preventEvent(e);
-		console.log('closing');
 	});
 
 	mainWindow.webContents.addListener('will-attach-webview', (event, webPreferences) => {
@@ -98,10 +97,6 @@ const createMainWindow = () => {
 
 	mainWindow.loadFile(`${ app.getAppPath() }/app/public/app.html`);
 
-
-	// Logs and Helpers
-	console.log(store.get('downloads', {}));
-	// store.clear();
 
 	// Load all downloads from LocalStorage into Main Process and send to Download Manager.
 	ipcMain.on('load-downloads', async () => {

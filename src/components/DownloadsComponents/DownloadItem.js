@@ -45,6 +45,7 @@ export default function DownloadItem({
 	const handleProgress = useMutableCallback((event, data) => {
 		const percentage = Math.floor((data.bytes / totalBytes) * 100);
 		updateDownloads({ itemId, status: STATUS.ALL, percentage, serverTitle, Mbps: data.Mbps, Kbps: data.Kbps, fileName: data.fileName });
+		setStatus(STATUS.ALL);
 		setPercentage(percentage);
 		setTimeLeft(data.timeLeft);
 	});
@@ -61,7 +62,6 @@ export default function DownloadItem({
 	// Download Completed, Send data back
 	useEffect(() => {
 		const downloadComplete = (event, data) => {
-			console.log('Saved');
 			setStatus(STATUS.ALL);
 			setPath(data.path);
 			setTimeLeft(null);
@@ -84,6 +84,7 @@ export default function DownloadItem({
 	});
 
 	const handlePause = useMutableCallback(() => {
+		console.log('paused');
 		console.log(percentage);
 		setStatus(STATUS.PAUSED);
 		ipcRenderer.send(DOWNLOAD_EVENT.PAUSE_ID.concat(itemId));

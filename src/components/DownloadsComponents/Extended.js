@@ -57,7 +57,7 @@ export default React.memo(function Extended({
 				{ !isCompleted && !isCancelled && <ActionButton onClick={ handleCancel }>Cancel</ActionButton> }
 				{/* Cancelled */ }
 				{ isCancelled && <ActionButton onClick={ handleRetry }>Retry</ActionButton> }
-				<ActionButton onClick={ () => handleDelete(false) }>Delete</ActionButton>
+				<ActionButton onClick={ () => handleDelete(false) }>Remove from List</ActionButton>
 			</ButtonGroup>
 		</Box>
 	</Box>;

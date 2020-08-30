@@ -35,6 +35,7 @@ export const mapping = {
 	image: 'Images',
 	video: 'Videos',
 	audio: 'Audios',
+	text: 'Texts',
 };
 
 export const DOWNLOAD_EVENT = {

@@ -68,7 +68,6 @@
     "@fiahfy/icns-convert": "^0.0.8",
     "@rocket.chat/css-in-js": "^0.13.1",
     "@rocket.chat/eslint-config": "^0.4.0",
-    "@rocket.chat/css-in-js": "^0.13.1",
 		"@rocket.chat/fuselage": "^0.13.2",
 		"@rocket.chat/fuselage-hooks": "^0.13.2",
 		"@rocket.chat/icons": "^0.13.1",

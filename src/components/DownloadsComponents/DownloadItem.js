@@ -65,7 +65,7 @@ export default function DownloadItem({
 			setStatus(STATUS.ALL);
 			setPath(data.path);
 			setTimeLeft(null);
-			updateDownloads({ status: STATUS.ALL, serverTitle, itemId, percentage: 100, thumbnail: data.thumbnail });
+			updateDownloads({ status: STATUS.ALL, serverTitle, itemId, percentage: 100, thumbnail: data.thumbnail, path: data.path });
 			ipcRenderer.send(DOWNLOAD_EVENT.COMPLETE, { status: STATUS.ALL, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime, thumbnail: data.thumbnail });
 		};
 

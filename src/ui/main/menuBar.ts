@@ -384,7 +384,7 @@ const createHelpMenu = (): MenuItem => createMenuItem({
       id: 'documentation',
       label: t('menus.documentation'),
       click: () => {
-        shell.openExternal('https://rocket.chat/docs');
+        shell.openExternal('https://docs.rocket.chat/');
       },
     }),
     createMenuItem({

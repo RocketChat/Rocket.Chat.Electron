@@ -91,6 +91,7 @@ module.exports = {
         'no-empty-function': 'off',
         'no-extra-parens': 'off',
         'no-spaced-func': 'off',
+        'no-undef': 'off',
         'no-unused-vars': 'off',
         'no-useless-constructor': 'off',
         'react/jsx-uses-react': 'error',

@@ -385,12 +385,23 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
 
   const webviewsSession = session.fromPartition('persist:rocketchat-server');
   webviewsSession.setPermissionRequestHandler((_webContents, permission, callback, details) => {
-    if (permission === 'openExternal') {
-      isProtocolAllowed(details.externalURL).then(callback);
-      return;
-    }
+    switch (permission) {
+      case 'media':
+      case 'geolocation':
+      case 'notifications':
+      case 'midiSysex':
+      case 'pointerLock':
+      case 'fullscreen':
+        callback(true);
+        return;
 
-    callback(false);
+      case 'openExternal':
+        isProtocolAllowed(details.externalURL).then(callback);
+        return;
+
+      default:
+        callback(false);
+    }
   });
 
   rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);

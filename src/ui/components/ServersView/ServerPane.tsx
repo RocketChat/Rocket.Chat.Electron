@@ -83,7 +83,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
   };
 
   return <Wrapper isVisible={isSelected}>
-    <StyledWebView ref={webviewRef} isFailed={isFailed} />
+    <StyledWebView ref={webviewRef} isFailed={isFailed} partition='persist:rocketchat-server' />
     <ErrorView isFailed={isFailed} onReload={handleReload} />
   </Wrapper>;
 };

@@ -20,7 +20,9 @@ type StyledWebViewProps = {
   isFailed: boolean;
 };
 
-export const StyledWebView = styled('webview')<StyledWebViewProps>`
+export const StyledWebView = styled('webview', {
+  shouldForwardProp: (propName) => propName === 'partition',
+})<StyledWebViewProps>`
 	position: absolute;
 	left: 0;
 	top: 0;

@@ -2,9 +2,9 @@ const fs = require('fs');
 const { promisify } = require('util');
 
 const { convert: convertToIcns } = require('@fiahfy/icns-convert');
+const { convert: convertToIco } = require('@fiahfy/ico-convert');
 const { createConverter } = require('convert-svg-to-png');
 const rimraf = require('rimraf');
-const toIco = require('to-ico');
 
 let deferredConverter = Promise.resolve(createConverter());
 
@@ -66,7 +66,7 @@ const createWindowsTrayIcon = async ({ src, dest }) => {
     readSvg(`grey/${ src }`),
   ]);
 
-  const ico = await toIco(await Promise.all([
+  const ico = await convertToIco(await Promise.all([
     convertSvgToPng(smallSvg, { width: 16, height: 16 }),
     convertSvgToPng(smallSvg, { width: 24, height: 24 }),
     convertSvgToPng(svg, { width: 32, height: 32 }),
@@ -113,7 +113,7 @@ const createAppIcon = async () => {
   ];
 
   const [ico, icns] = await Promise.all([
-    toIco([png16, png24, png32, png48, png64, png128, png256]),
+    convertToIco([png16, png24, png32, png48, png64, png128, png256]),
     convertToIcns([png1024, png512, png256, png128, png64, png32, png16]),
   ]);
 

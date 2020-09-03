@@ -14,6 +14,9 @@ import {
   WebPreferences,
   ContextMenuParams,
   session,
+  UploadRawData,
+  UploadBlob,
+  UploadFile,
 } from 'electron';
 import i18next from 'i18next';
 
@@ -314,7 +317,7 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
     // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
 
-    webContents.addListener('new-window', (event, url, _frameName, disposition, options) => {
+    webContents.addListener('new-window', (event, url, _frameName, disposition, options, _additionalFeatures, referrer, postBody) => {
       event.preventDefault();
 
       if (disposition === 'foreground-tab' || disposition === 'background-tab') {
@@ -335,6 +338,14 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
 
       newWindow.once('ready-to-show', () => {
         newWindow.show();
+      });
+
+      newWindow.loadURL(url, {
+        httpReferrer: referrer,
+        ...postBody && {
+          extraHeaders: `Content-Type: ${ postBody.contentType }; boundary=${ postBody.boundary }`,
+          postData: postBody.data as unknown as (UploadRawData[] | UploadBlob[] | UploadFile[]),
+        },
       });
 
       event.newGuest = newWindow;

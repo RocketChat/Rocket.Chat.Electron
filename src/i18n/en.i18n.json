@@ -95,6 +95,13 @@
       "announcement": "Select Certificate",
       "select": "Select",
       "validDates": "Valid from {{-validStart,}} to {{-validExpiry,}}"
+    },
+    "openingExternalProtocol": {
+      "title": "Link with custom protocol",
+      "message": "{{- protocol }} link requires an external application.",
+      "detail": "The requested link is {{- url }} . Do you want to continue?",
+      "yes": "Yes",
+      "no": "No"
     }
   },
   "error": {

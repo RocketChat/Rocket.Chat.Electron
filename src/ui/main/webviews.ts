@@ -30,7 +30,7 @@ import {
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
 } from '../actions';
-import { browseForSpellCheckingDictionary } from './dialogs';
+import { browseForSpellCheckingDictionary, askForOpeningExternalProtocol } from './dialogs';
 
 const t = i18next.t.bind(i18next);
 
@@ -295,6 +295,24 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
 };
 
+const handleExternalLink = async (rawUrl: string): Promise<void> => {
+  const url = new URL(rawUrl);
+
+  const allowedProtocols = ['http:', 'https:', 'mailto:'];
+
+  if (allowedProtocols.includes(url.protocol)) {
+    shell.openExternal(rawUrl);
+    return;
+  }
+
+  const { allowed } = await askForOpeningExternalProtocol(url);
+
+  if (allowed) {
+    shell.openExternal(rawUrl);
+  }
+};
+
+
 export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void => {
   const handleWillAttachWebview = (_event: Event, webPreferences: WebPreferences): void => {
     delete webPreferences.enableBlinkFeatures;
@@ -315,7 +333,7 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
       event.preventDefault();
 
       if (disposition === 'foreground-tab' || disposition === 'background-tab') {
-        shell.openExternal(url);
+        handleExternalLink(url);
         return;
       }
 

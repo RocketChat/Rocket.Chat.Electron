@@ -13,6 +13,7 @@ import {
   Input,
   WebPreferences,
   ContextMenuParams,
+  session,
 } from 'electron';
 import i18next from 'i18next';
 
@@ -296,19 +297,8 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
 };
 
-const handleExternalLink = async (rawUrl: string): Promise<void> => {
-  const url = new URL(rawUrl);
-
-  if (!await isProtocolAllowed(url)) {
-    return;
-  }
-
-  shell.openExternal(rawUrl);
-};
-
-
 export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void => {
-  const handleWillAttachWebview = (_event: Event, webPreferences: WebPreferences): void => {
+  const handleWillAttachWebview = (_event: Event, webPreferences: WebPreferences, _params: Record<string, string>): void => {
     delete webPreferences.enableBlinkFeatures;
     webPreferences.preload = `${ app.getAppPath() }/app/preload.js`;
     webPreferences.nodeIntegration = false;
@@ -316,6 +306,7 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     webPreferences.nodeIntegrationInSubFrames = true;
     webPreferences.enableRemoteModule = false;
     webPreferences.webSecurity = true;
+    webPreferences.contextIsolation = true;
   };
 
   const handleDidAttachWebview = (_event: Event, webContents: WebContents): void => {
@@ -327,7 +318,13 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
       event.preventDefault();
 
       if (disposition === 'foreground-tab' || disposition === 'background-tab') {
-        handleExternalLink(url);
+        isProtocolAllowed(url).then((allowed) => {
+          if (!allowed) {
+            return;
+          }
+
+          shell.openExternal(url);
+        });
         return;
       }
 
@@ -384,6 +381,16 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     menu.popup({
       window: rootWindow,
     });
+  });
+
+  const webviewsSession = session.fromPartition('persist:rocketchat-server');
+  webviewsSession.setPermissionRequestHandler((_webContents, permission, callback, details) => {
+    if (permission === 'openExternal') {
+      isProtocolAllowed(details.externalURL).then(callback);
+      return;
+    }
+
+    callback(false);
   });
 
   rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);

@@ -141,7 +141,9 @@ export const setupNavigation = async (): Promise<void> => {
   });
 };
 
-export const isProtocolAllowed = async (url: URL): Promise<boolean> => {
+export const isProtocolAllowed = async (rawUrl: string): Promise<boolean> => {
+  const url = new URL(rawUrl);
+
   const instrinsicProtocols = ['http:', 'https:', 'mailto:'];
   const persistedProtocols = Object.entries(select(({ externalProtocols }) => externalProtocols))
     .filter(([, allowed]) => allowed)

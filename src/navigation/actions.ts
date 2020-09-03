@@ -8,6 +8,7 @@ export const CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED = 'certificates/client-ce
 export const CERTIFICATES_UPDATED = 'certificates/updated';
 export const SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED = 'select-client-certificate-dialog/certificate-selected';
 export const SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED = 'select-client-certificatedialog/dismissed';
+export const EXTERNAL_PROTOCOL_PERMISSION_UPDATED = 'navigation/external-protocol-permission-updated';
 
 export type NavigationActionTypeToPayloadMap = {
   [CERTIFICATES_CLEARED]: never;
@@ -16,4 +17,5 @@ export type NavigationActionTypeToPayloadMap = {
   [CERTIFICATES_UPDATED]: Record<Server['url'], Certificate['fingerprint']>;
   [SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED]: Certificate['fingerprint'];
   [SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED]: never;
+  [EXTERNAL_PROTOCOL_PERMISSION_UPDATED]: { protocol: string; allowed: boolean };
 };

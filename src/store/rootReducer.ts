@@ -4,6 +4,7 @@ import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
 import {
   clientCertificates,
+  externalProtocols,
   trustedCertificates,
 } from '../navigation/reducers';
 import {
@@ -35,6 +36,7 @@ const reducersMap = {
   clientCertificates,
   currentServerUrl,
   doCheckForUpdatesOnStartup,
+  externalProtocols,
   isCheckingForUpdates,
   isEachUpdatesSettingConfigurable,
   isMenuBarEnabled,

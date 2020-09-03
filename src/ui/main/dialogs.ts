@@ -124,3 +124,24 @@ export const warnAboutUpdateSkipped = async (parentWindow: BrowserWindow = getRo
     defaultId: 0,
   });
 };
+
+export const askForOpeningExternalProtocol = async (url: URL, parentWindow: BrowserWindow = getRootWindow()): Promise<{
+  allowed: boolean;
+  dontAskAgain: boolean;
+}> => {
+  const { response, checkboxChecked } = await dialog.showMessageBox(parentWindow, {
+    type: 'warning',
+    buttons: [t('dialog.openingExternalProtocol.yes'), t('dialog.openingExternalProtocol.no')],
+    defaultId: 1,
+    title: t('dialog.openingExternalProtocol.title'),
+    message: t('dialog.openingExternalProtocol.message', { protocol: url.protocol }),
+    detail: t('dialog.openingExternalProtocol.detail', { url: url.toString() }),
+    checkboxLabel: t('dialog.openingExternalProtocol.dontAskAgain'),
+    checkboxChecked: false,
+  });
+
+  return {
+    allowed: response === 0,
+    dontAskAgain: checkboxChecked,
+  };
+};

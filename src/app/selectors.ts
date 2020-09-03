@@ -1,6 +1,10 @@
 import { createStructuredSelector } from 'reselect';
 
-export const selectPersistableValues = createStructuredSelector({
+import { ActionOf } from '../store/actions';
+import { RootState } from '../store/rootReducer';
+import { APP_SETTINGS_LOADED } from './actions';
+
+export const selectPersistableValues = createStructuredSelector<Partial<RootState>, ActionOf<typeof APP_SETTINGS_LOADED>['payload']>({
   currentServerUrl: ({ currentServerUrl }) => currentServerUrl,
   doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }) => doCheckForUpdatesOnStartup,
   isMenuBarEnabled: ({ isMenuBarEnabled }) => isMenuBarEnabled,
@@ -14,4 +18,5 @@ export const selectPersistableValues = createStructuredSelector({
   trustedCertificates: ({ trustedCertificates }) => trustedCertificates,
   isEachUpdatesSettingConfigurable: ({ isEachUpdatesSettingConfigurable }) => isEachUpdatesSettingConfigurable,
   isUpdatingEnabled: ({ isUpdatingEnabled }) => isUpdatingEnabled,
+  externalProtocols: ({ externalProtocols }) => externalProtocols,
 });

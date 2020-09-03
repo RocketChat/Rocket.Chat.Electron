@@ -11,6 +11,7 @@ import {
   CERTIFICATES_UPDATED,
   CERTIFICATES_CLEARED,
   CERTIFICATES_LOADED,
+  EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
 } from './actions';
 
 type ClientCertificatesActionTypes = (
@@ -52,6 +53,32 @@ export const trustedCertificates: Reducer<Record<Server['url'], Certificate['fin
     case APP_SETTINGS_LOADED: {
       const { trustedCertificates = state } = action.payload;
       return trustedCertificates;
+    }
+
+    default:
+      return state;
+  }
+};
+
+type ExternalProtocolsAction = (
+  ActionOf<typeof APP_SETTINGS_LOADED>
+  | ActionOf<typeof EXTERNAL_PROTOCOL_PERMISSION_UPDATED>
+);
+
+export const externalProtocols: Reducer<Record<string, boolean>, ExternalProtocolsAction> = (state = {}, action) => {
+  switch (action.type) {
+    case APP_SETTINGS_LOADED: {
+      const { externalProtocols } = action.payload;
+      state = externalProtocols;
+      return state;
+    }
+
+    case EXTERNAL_PROTOCOL_PERMISSION_UPDATED: {
+      state = {
+        ...state,
+        [action.payload.protocol]: action.payload.allowed,
+      };
+      return state;
     }
 
     default:

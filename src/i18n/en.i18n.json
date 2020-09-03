@@ -100,6 +100,7 @@
       "title": "Link with custom protocol",
       "message": "{{- protocol }} link requires an external application.",
       "detail": "The requested link is {{- url }} . Do you want to continue?",
+      "dontAskAgain": "Always open these types of links in the associated app",
       "yes": "Yes",
       "no": "No"
     }

@@ -6,7 +6,11 @@ import { app, Certificate } from 'electron';
 import i18next from 'i18next';
 
 import { request, select, dispatch } from '../store';
-import { AskForCertificateTrustResponse, askForCertificateTrust } from '../ui/main/dialogs';
+import {
+  AskForCertificateTrustResponse,
+  askForCertificateTrust,
+  askForOpeningExternalProtocol,
+} from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
   CERTIFICATES_UPDATED,
@@ -14,6 +18,7 @@ import {
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
   CERTIFICATES_LOADED,
+  EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
 } from './actions';
 
 const t = i18next.t.bind(i18next);
@@ -134,4 +139,30 @@ export const setupNavigation = async (): Promise<void> => {
       ...userTrustedCertificates,
     },
   });
+};
+
+export const isProtocolAllowed = async (url: URL): Promise<boolean> => {
+  const instrinsicProtocols = ['http:', 'https:', 'mailto:'];
+  const persistedProtocols = Object.entries(select(({ externalProtocols }) => externalProtocols))
+    .filter(([, allowed]) => allowed)
+    .map(([protocol]) => protocol);
+  const allowedProtocols = [...instrinsicProtocols, ...persistedProtocols];
+
+  if (allowedProtocols.includes(url.protocol)) {
+    return true;
+  }
+
+  const { allowed, dontAskAgain } = await askForOpeningExternalProtocol(url);
+
+  if (dontAskAgain) {
+    dispatch({
+      type: EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
+      payload: {
+        protocol: url.protocol,
+        allowed,
+      },
+    });
+  }
+
+  return allowed;
 };

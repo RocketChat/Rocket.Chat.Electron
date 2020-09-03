@@ -16,6 +16,7 @@ import {
 } from 'electron';
 import i18next from 'i18next';
 
+import { isProtocolAllowed } from '../../navigation/main';
 import { Server } from '../../servers/common';
 import { Dictionary } from '../../spellChecking/common';
 import { importSpellCheckingDictionaries, getCorrectionsForMisspelling } from '../../spellChecking/main';
@@ -30,7 +31,7 @@ import {
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
 } from '../actions';
-import { browseForSpellCheckingDictionary, askForOpeningExternalProtocol } from './dialogs';
+import { browseForSpellCheckingDictionary } from './dialogs';
 
 const t = i18next.t.bind(i18next);
 
@@ -298,18 +299,11 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 const handleExternalLink = async (rawUrl: string): Promise<void> => {
   const url = new URL(rawUrl);
 
-  const allowedProtocols = ['http:', 'https:', 'mailto:'];
-
-  if (allowedProtocols.includes(url.protocol)) {
-    shell.openExternal(rawUrl);
+  if (!await isProtocolAllowed(url)) {
     return;
   }
 
-  const { allowed } = await askForOpeningExternalProtocol(url);
-
-  if (allowed) {
-    shell.openExternal(rawUrl);
-  }
+  shell.openExternal(rawUrl);
 };
 
 

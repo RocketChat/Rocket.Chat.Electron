@@ -1,8 +1,23 @@
-import { Certificate } from 'electron';
-
-import { Server } from '../servers/common';
-import { Dictionary } from '../spellChecking/common';
-import { WindowState } from '../ui/common';
+import {
+  externalProtocols,
+  trustedCertificates,
+} from '../navigation/reducers';
+import {
+  currentServerUrl,
+  servers,
+} from '../servers/reducers';
+import { spellCheckingDictionaries } from '../spellChecking/reducers';
+import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
+import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
+import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
+import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
+import { mainWindowState } from '../ui/reducers/mainWindowState';
+import {
+  doCheckForUpdatesOnStartup,
+  isEachUpdatesSettingConfigurable,
+  isUpdatingEnabled,
+  skippedUpdateVersion,
+} from '../updates/reducers';
 
 export const APP_ERROR_THROWN = 'app/error-thrown';
 export const APP_PATH_SET = 'app/path-set';
@@ -14,18 +29,19 @@ export type AppActionTypeToPayloadMap = {
   [APP_PATH_SET]: string;
   [APP_VERSION_SET]: string;
   [APP_SETTINGS_LOADED]: {
-    currentServerUrl: Server['url'] | null;
-    doCheckForUpdatesOnStartup: boolean;
-    isEachUpdatesSettingConfigurable: boolean;
-    isMenuBarEnabled: boolean;
-    isShowWindowOnUnreadChangedEnabled: boolean;
-    isSideBarEnabled: boolean;
-    isTrayIconEnabled: boolean;
-    isUpdatingEnabled: boolean;
-    mainWindowState: WindowState;
-    servers: Server[];
-    skippedUpdateVersion: string | null;
-    spellCheckingDictionaries: Dictionary[];
-    trustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
+    currentServerUrl: ReturnType<typeof currentServerUrl>;
+    doCheckForUpdatesOnStartup: ReturnType<typeof doCheckForUpdatesOnStartup>;
+    externalProtocols: ReturnType<typeof externalProtocols>;
+    isEachUpdatesSettingConfigurable: ReturnType<typeof isEachUpdatesSettingConfigurable>;
+    isMenuBarEnabled: ReturnType<typeof isMenuBarEnabled>;
+    isShowWindowOnUnreadChangedEnabled: ReturnType<typeof isShowWindowOnUnreadChangedEnabled>;
+    isSideBarEnabled: ReturnType<typeof isSideBarEnabled>;
+    isTrayIconEnabled: ReturnType<typeof isTrayIconEnabled>;
+    isUpdatingEnabled: ReturnType<typeof isUpdatingEnabled>;
+    mainWindowState: ReturnType<typeof mainWindowState>;
+    servers: ReturnType<typeof servers>;
+    skippedUpdateVersion: ReturnType<typeof skippedUpdateVersion>;
+    spellCheckingDictionaries: ReturnType<typeof spellCheckingDictionaries>;
+    trustedCertificates: ReturnType<typeof trustedCertificates>;
   };
 };

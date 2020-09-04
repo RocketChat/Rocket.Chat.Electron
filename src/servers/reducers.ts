@@ -182,7 +182,8 @@ export const servers: Reducer<Server[], ServersActionTypes> = (state = [], actio
       const { servers = state } = action.payload;
       return servers;
     }
-  }
 
-  return state;
+    default:
+      return state;
+  }
 };

@@ -309,7 +309,7 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     webPreferences.nodeIntegrationInSubFrames = true;
     webPreferences.enableRemoteModule = false;
     webPreferences.webSecurity = true;
-    webPreferences.contextIsolation = true;
+    webPreferences.contextIsolation = false;
   };
 
   const handleDidAttachWebview = (_event: Event, webContents: WebContents): void => {

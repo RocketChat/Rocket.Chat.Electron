@@ -43,8 +43,10 @@ export const ServerPane: FC<ServerPaneProps> = ({
 
   useEffect(() => {
     const webview = webviewRef.current;
+    let attached = false;
 
     const handleDidAttach = (): void => {
+      attached = true;
       dispatch({
         type: WEBVIEW_ATTACHED,
         payload: {
@@ -57,6 +59,12 @@ export const ServerPane: FC<ServerPaneProps> = ({
     webview.addEventListener('did-attach', handleDidAttach);
 
     return () => {
+      webview.removeEventListener('did-attach', handleDidAttach);
+
+      if (!attached) {
+        return;
+      }
+
       dispatch({
         type: WEBVIEW_DETACHED,
         payload: {
@@ -64,8 +72,6 @@ export const ServerPane: FC<ServerPaneProps> = ({
           webContentsId: webview.getWebContentsId(),
         },
       });
-
-      webview.removeEventListener('did-attach', handleDidAttach);
     };
   }, [dispatch, serverUrl]);
 

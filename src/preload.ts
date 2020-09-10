@@ -1,5 +1,5 @@
 import { setupRendererErrorHandling } from './errors';
-import { isJitsi, setupJitsiMeetElectron } from './jitsi/preload';
+import { createJitsiMeetElectron, IJitsiMeetElectron } from './jitsi/preload';
 import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
 import { isRocketChat, setupRocketChatPage } from './servers/preload';
@@ -10,6 +10,12 @@ import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
 import { listenToUserPresenceChanges } from './userPresence/preload';
 import { whenReady } from './whenReady';
 
+declare global {
+  interface Window {
+    JitsiMeetElectron: IJitsiMeetElectron;
+  }
+}
+
 const start = async (): Promise<void> => {
   await createRendererReduxStore();
 
@@ -18,6 +24,10 @@ const start = async (): Promise<void> => {
   setupRendererErrorHandling('webviewPreload');
   setupSpellChecking();
 
+  const JitsiMeetElectron = createJitsiMeetElectron();
+
+  window.JitsiMeetElectron = JitsiMeetElectron;
+
   if (isRocketChat()) {
     setupRocketChatPage();
     listenToScreenSharingRequests();
@@ -25,10 +35,6 @@ const start = async (): Promise<void> => {
     listenToNotificationsRequests();
     listenToMessageBoxEvents();
     handleTrafficLightsSpacing();
-  }
-
-  if (isJitsi()) {
-    setupJitsiMeetElectron();
   }
 };
 

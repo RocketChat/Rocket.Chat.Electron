@@ -1,6 +1,6 @@
 import { setupRendererErrorHandling } from './errors';
-import { createJitsiMeetElectron, IJitsiMeetElectron } from './jitsi/preload';
-import { listenToNotificationsRequests } from './notifications/preload';
+import { createJitsiMeetElectronAPI, JitsiMeetElectronAPI } from './jitsi/preload';
+import { createNotificationAPI } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
 import { isRocketChat, setupRocketChatPage } from './servers/preload';
 import { setupSpellChecking } from './spellChecking/preload';
@@ -12,7 +12,7 @@ import { whenReady } from './whenReady';
 
 declare global {
   interface Window {
-    JitsiMeetElectron: IJitsiMeetElectron;
+    JitsiMeetElectron: JitsiMeetElectronAPI;
   }
 }
 
@@ -24,15 +24,14 @@ const start = async (): Promise<void> => {
   setupRendererErrorHandling('webviewPreload');
   setupSpellChecking();
 
-  const JitsiMeetElectron = createJitsiMeetElectron();
-
-  window.JitsiMeetElectron = JitsiMeetElectron;
+  window.JitsiMeetElectron = createJitsiMeetElectronAPI();
 
   if (isRocketChat()) {
+    window.Notification = createNotificationAPI();
+
     setupRocketChatPage();
     listenToScreenSharingRequests();
     listenToUserPresenceChanges();
-    listenToNotificationsRequests();
     listenToMessageBoxEvents();
     handleTrafficLightsSpacing();
   }

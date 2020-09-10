@@ -135,7 +135,7 @@ class CustomNotification extends EventTarget implements Notification {
   }
 }
 
-export const listenToNotificationsRequests = (): void => {
+const listenToNotificationsRequests = (): void => {
   listen(NOTIFICATIONS_NOTIFICATION_SHOWN, (action) => {
     const { payload: { id } } = action;
 
@@ -198,6 +198,10 @@ export const listenToNotificationsRequests = (): void => {
     const actionEvent = new CustomEvent<{ index: number }>('action', { detail: { index } });
     notifications.get(id).dispatchEvent(actionEvent);
   });
+};
 
-  window.Notification = CustomNotification;
+export const createNotificationAPI = (): typeof Notification => {
+  listenToNotificationsRequests();
+
+  return CustomNotification;
 };

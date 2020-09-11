@@ -8,7 +8,7 @@ export type JitsiMeetElectronAPI = {
   ) => Promise<void>;
 };
 
-export const createJitsiMeetElectronAPI = (): JitsiMeetElectronAPI => ({
+export const JitsiMeetElectron: JitsiMeetElectronAPI = {
   async obtainDesktopStreams(callback, errorCallback, options) {
     try {
       const sources = (await desktopCapturer.getSources(options)).map<DesktopCapturerSource>((source) => ({
@@ -28,4 +28,4 @@ export const createJitsiMeetElectronAPI = (): JitsiMeetElectronAPI => ({
       errorCallback(error);
     }
   },
-});
+};

@@ -1,10 +1,11 @@
-import { webFrame } from 'electron';
+import { contextBridge, webFrame } from 'electron';
 import { satisfies, coerce } from 'semver';
 
 import { setupRendererErrorHandling } from './errors';
-import { createJitsiMeetElectronAPI, JitsiMeetElectronAPI } from './jitsi/preload';
+import { JitsiMeetElectron, JitsiMeetElectronAPI } from './jitsi/preload';
+import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
-import { RocketChatDesktopAPI, createRocketChatDesktopAPI, serverInfo } from './servers/preload/api';
+import { RocketChatDesktop, RocketChatDesktopAPI, serverInfo } from './servers/preload/api';
 import { setupSpellChecking } from './spellChecking/preload';
 import { createRendererReduxStore } from './store';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';
@@ -19,6 +20,9 @@ declare global {
   }
 }
 
+contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
+contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
+
 const start = async (): Promise<void> => {
   await createRendererReduxStore();
 
@@ -26,9 +30,6 @@ const start = async (): Promise<void> => {
 
   setupRendererErrorHandling('webviewPreload');
   setupSpellChecking();
-
-  window.JitsiMeetElectron = createJitsiMeetElectronAPI();
-  window.RocketChatDesktop = createRocketChatDesktopAPI();
 
   await webFrame.executeJavaScript(`(() => {
     if (typeof window.require !== 'function') {
@@ -98,6 +99,7 @@ const start = async (): Promise<void> => {
     return;
   }
 
+  listenToNotificationsRequests();
   listenToScreenSharingRequests();
   listenToUserPresenceChanges();
   listenToMessageBoxEvents();

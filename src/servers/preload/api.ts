@@ -1,4 +1,4 @@
-import { createNotificationAPI } from '../../notifications/preload';
+import { RocketChatNotification } from '../../notifications/preload';
 import { setUserPresenceDetection } from '../../userPresence/preload';
 import { Server } from '../common';
 import { setBadge } from './badge';
@@ -28,7 +28,7 @@ export type RocketChatDesktopAPI = {
   Notification: typeof Notification;
 };
 
-export const createRocketChatDesktopAPI = (): RocketChatDesktopAPI => ({
+export const RocketChatDesktop: RocketChatDesktopAPI = {
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
   },
@@ -38,5 +38,5 @@ export const createRocketChatDesktopAPI = (): RocketChatDesktopAPI => ({
   setBackground,
   setTitle,
   setUserPresenceDetection,
-  Notification: createNotificationAPI(),
-});
+  Notification: RocketChatNotification,
+};

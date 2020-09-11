@@ -1,6 +1,6 @@
 import { dispatch } from '../../store';
 import { WEBVIEW_FAVICON_CHANGED } from '../../ui/actions';
-import { getServerUrl } from './urls';
+import { getAbsoluteUrl, getServerUrl } from './urls';
 
 const FAVICON_SIZE = 100;
 
@@ -41,5 +41,5 @@ export const setFavicon = (faviconUrl: string): void => {
   }
 
   const imageElement = getImageElement();
-  imageElement.src = Meteor.absoluteUrl(faviconUrl);
+  imageElement.src = getAbsoluteUrl(faviconUrl);
 };

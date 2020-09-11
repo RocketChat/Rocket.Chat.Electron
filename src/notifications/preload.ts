@@ -1,4 +1,4 @@
-import { getServerUrl, getAbsoluteUrl } from '../servers/preload/api';
+import { getServerUrl, getAbsoluteUrl } from '../servers/preload/urls';
 import { dispatch, listen, request } from '../store';
 import { WEBVIEW_FOCUS_REQUESTED } from '../ui/actions';
 import {

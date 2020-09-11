@@ -16,25 +16,6 @@ let goOnline = (): void => undefined;
 let goAway = (): void => undefined;
 
 const setupUserPresenceListening = (): void => {
-  const { Meteor } = window.require('meteor/meteor');
-  const { Tracker } = window.require('meteor/tracker');
-  const { UserPresence } = window.require('meteor/konecty:user-presence');
-  const { getUserPreference } = window.require('/app/utils');
-
-  goOnline = () => Meteor.call('UserPresence:setDefaultStatus', 'online');
-  goAway = () => Meteor.call('UserPresence:setDefaultStatus', 'away');
-
-  Tracker.autorun(() => {
-    const uid = Meteor.userId();
-    isAutoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
-    idleThreshold = getUserPreference(uid, 'idleTimeLimit');
-
-    if (isAutoAwayEnabled) {
-      delete UserPresence.awayTime;
-      UserPresence.start();
-    }
-  });
-
   let prevState: SystemIdleState;
   const pollSystemIdleState = async (): Promise<void> => {
     if (!isAutoAwayEnabled || !idleThreshold) {
@@ -87,4 +68,15 @@ export const listenToUserPresenceChanges = (): void => {
 
     goAway();
   });
+};
+
+export const setUserPresenceDetection = (options: {
+  isAutoAwayEnabled: boolean;
+  idleThreshold: number;
+  setUserOnline: (online: boolean) => void;
+}): void => {
+  isAutoAwayEnabled = options.isAutoAwayEnabled;
+  idleThreshold = options.idleThreshold;
+  goOnline = () => options.setUserOnline(true);
+  goAway = () => options.setUserOnline(false);
 };

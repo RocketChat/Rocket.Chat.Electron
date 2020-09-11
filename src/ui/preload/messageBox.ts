@@ -36,27 +36,9 @@ export const listenToMessageBoxEvents = (): void => {
     }
 
     const { payload: buttonId } = action;
-    const {
-      formattingButtons,
-      applyFormatting,
-    }: {
-      formattingButtons: {
-        pattern: string;
-        condition?: () => boolean;
-        label: string;
-      }[];
-      applyFormatting: (pattern: string, messageBoxInput: Element) => void;
-    } = window.require('/app/ui-message/client/messageBox/messageBoxFormatting');
 
-    const { pattern } = formattingButtons
-      .filter(({ condition }) => !condition || condition())
-      .find(({ label }) => label === buttonId) || {};
-
-    if (!pattern) {
-      return;
-    }
-
-    applyFormatting(pattern, focusedMessageBoxInput);
+    const button = document.querySelector<HTMLButtonElement>(`[data-id='${ buttonId }']`);
+    button.click();
   });
 
   document.addEventListener('focus', handleFocusEvent, true);

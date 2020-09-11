@@ -15,10 +15,18 @@ export const Shell: FC = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);
 
   useLayoutEffect(() => {
+    if (!appPath) {
+      return undefined;
+    }
+
     const linkElement = document.createElement('link');
     linkElement.rel = 'stylesheet';
     linkElement.href = `${ appPath }/app/icons/rocketchat.css`;
     document.head.append(linkElement);
+
+    return () => {
+      linkElement.remove();
+    };
   }, [appPath]);
 
   return <>

@@ -1,4 +1,4 @@
-import { getServerUrl } from '../servers/preload/getServerUrl';
+import { getServerUrl, getAbsoluteUrl } from '../servers/preload/urls';
 import { dispatch, listen, request } from '../store';
 import { WEBVIEW_FOCUS_REQUESTED } from '../ui/actions';
 import {
@@ -18,8 +18,7 @@ const normalizeIconUrl = (iconUrl: string): string => {
   }
 
   if (!/^https?:\/\//.test(iconUrl)) {
-    const { Meteor } = window.require('meteor/meteor');
-    return Meteor.absoluteUrl(iconUrl);
+    return getAbsoluteUrl(iconUrl);
   }
 
   return iconUrl;
@@ -27,13 +26,13 @@ const normalizeIconUrl = (iconUrl: string): string => {
 
 const notifications = new Map();
 
-class CustomNotification extends EventTarget implements Notification {
+export class RocketChatNotification extends EventTarget implements Notification {
   static readonly permission: NotificationPermission = 'granted';
 
   static readonly maxActions: number = process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
 
   static requestPermission(): Promise<NotificationPermission> {
-    return Promise.resolve(CustomNotification.permission);
+    return Promise.resolve(RocketChatNotification.permission);
   }
 
   private _destroy: Promise<() => void>;
@@ -198,6 +197,4 @@ export const listenToNotificationsRequests = (): void => {
     const actionEvent = new CustomEvent<{ index: number }>('action', { detail: { index } });
     notifications.get(id).dispatchEvent(actionEvent);
   });
-
-  window.Notification = CustomNotification;
 };

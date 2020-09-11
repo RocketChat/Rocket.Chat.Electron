@@ -1,18 +1,14 @@
 import { dispatch } from '../../store';
 import { WEBVIEW_UNREAD_CHANGED } from '../../ui/actions';
 import { Server } from '../common';
-import { getServerUrl } from './getServerUrl';
+import { getServerUrl } from './urls';
 
-const handleUnreadEvent = (event: CustomEvent<Server['badge']>): void => {
+export const setBadge = (badge: Server['badge']): void => {
   dispatch({
     type: WEBVIEW_UNREAD_CHANGED,
     payload: {
       url: getServerUrl(),
-      badge: event.detail,
+      badge,
     },
   });
-};
-
-export const listenToBadgeChanges = (): void => {
-  window.addEventListener('unread', handleUnreadEvent, { passive: false });
 };

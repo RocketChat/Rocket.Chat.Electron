@@ -13,6 +13,10 @@ import {
   Input,
   WebPreferences,
   ContextMenuParams,
+  session,
+  UploadRawData,
+  UploadBlob,
+  UploadFile,
 } from 'electron';
 import i18next from 'i18next';
 
@@ -296,19 +300,8 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
 };
 
-const handleExternalLink = async (rawUrl: string): Promise<void> => {
-  const url = new URL(rawUrl);
-
-  if (!await isProtocolAllowed(url)) {
-    return;
-  }
-
-  shell.openExternal(rawUrl);
-};
-
-
 export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void => {
-  const handleWillAttachWebview = (_event: Event, webPreferences: WebPreferences): void => {
+  const handleWillAttachWebview = (_event: Event, webPreferences: WebPreferences, _params: Record<string, string>): void => {
     delete webPreferences.enableBlinkFeatures;
     webPreferences.preload = `${ app.getAppPath() }/app/preload.js`;
     webPreferences.nodeIntegration = false;
@@ -316,6 +309,8 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     webPreferences.nodeIntegrationInSubFrames = true;
     webPreferences.enableRemoteModule = false;
     webPreferences.webSecurity = true;
+    webPreferences.contextIsolation = true;
+    webPreferences.worldSafeExecuteJavaScript = true;
   };
 
   const handleDidAttachWebview = (_event: Event, webContents: WebContents): void => {
@@ -323,11 +318,17 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
     // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
 
-    webContents.addListener('new-window', (event, url, _frameName, disposition, options) => {
+    webContents.addListener('new-window', (event, url, _frameName, disposition, options, _additionalFeatures, referrer, postBody) => {
       event.preventDefault();
 
       if (disposition === 'foreground-tab' || disposition === 'background-tab') {
-        handleExternalLink(url);
+        isProtocolAllowed(url).then((allowed) => {
+          if (!allowed) {
+            return;
+          }
+
+          shell.openExternal(url);
+        });
         return;
       }
 
@@ -338,6 +339,14 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
 
       newWindow.once('ready-to-show', () => {
         newWindow.show();
+      });
+
+      newWindow.loadURL(url, {
+        httpReferrer: referrer,
+        ...postBody && {
+          extraHeaders: `Content-Type: ${ postBody.contentType }; boundary=${ postBody.boundary }`,
+          postData: postBody.data as unknown as (UploadRawData[] | UploadBlob[] | UploadFile[]),
+        },
       });
 
       event.newGuest = newWindow;
@@ -384,6 +393,27 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     menu.popup({
       window: rootWindow,
     });
+  });
+
+  const webviewsSession = session.fromPartition('persist:rocketchat-server');
+  webviewsSession.setPermissionRequestHandler((_webContents, permission, callback, details) => {
+    switch (permission) {
+      case 'media':
+      case 'geolocation':
+      case 'notifications':
+      case 'midiSysex':
+      case 'pointerLock':
+      case 'fullscreen':
+        callback(true);
+        return;
+
+      case 'openExternal':
+        isProtocolAllowed(details.externalURL).then(callback);
+        return;
+
+      default:
+        callback(false);
+    }
   });
 
   rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);

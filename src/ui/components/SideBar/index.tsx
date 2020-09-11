@@ -36,7 +36,7 @@ type ServerButtonProps = {
   favicon: string;
   isShortcutVisible: boolean;
   hasUnreadMessages: boolean;
-  badge: string;
+  mentionCount?: number;
   isDragged: boolean;
   onDragStart: (event: DragEvent) => void;
   onDragEnd: (event: DragEvent) => void;
@@ -52,7 +52,7 @@ const ServerButton: FC<ServerButtonProps> = ({
   favicon,
   isShortcutVisible,
   hasUnreadMessages,
-  badge,
+  mentionCount,
   isDragged,
   onDragStart,
   onDragEnd,
@@ -101,7 +101,7 @@ const ServerButton: FC<ServerButtonProps> = ({
         visible={!!favicon}
       />
     </Avatar>
-    {Number.isInteger(badge) && <Badge>{String(badge)}</Badge>}
+    {mentionCount && <Badge>{mentionCount}</Badge>}
     {shortcutNumber && <KeyboardShortcut visible={isShortcutVisible}>
       {process.platform === 'darwin' ? '⌘' : '^'}{shortcutNumber}
     </KeyboardShortcut>}
@@ -150,7 +150,7 @@ export const SideBar: FC = () => {
           isSelected={currentServerUrl === server.url}
           favicon={server.favicon}
           hasUnreadMessages={!!server.badge}
-          badge={(typeof server.badge === 'number' ? String(server.badge) : server.badge) ?? null}
+          mentionCount={typeof server.badge === 'number' ? server.badge : undefined}
           isShortcutVisible={isEachShortcutVisible}
           isDragged={draggedServerUrl === server.url}
           onDragStart={handleDragStart(server.url)}

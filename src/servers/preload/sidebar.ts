@@ -1,7 +1,7 @@
 import { dispatch } from '../../store';
 import { WEBVIEW_SIDEBAR_STYLE_CHANGED } from '../../ui/actions';
 import { Server } from '../common';
-import { getServerUrl } from './getServerUrl';
+import { getServerUrl, getAbsoluteUrl } from './urls';
 
 let timer: ReturnType<typeof setTimeout>;
 let prevBackground: string;
@@ -29,35 +29,34 @@ const pollSidebarStyle = (referenceElement: Element, emit: (input: Server['style
   timer = setTimeout(() => pollSidebarStyle(referenceElement, emit), 1000);
 };
 
-export const listenToSideBarChanges = (): void => {
-  const referenceElement = document.createElement('div');
-  referenceElement.classList.add('sidebar');
-  referenceElement.style.backgroundColor = 'var(--sidebar-background)';
-  referenceElement.style.color = 'var(--sidebar-item-text-color)';
-  referenceElement.style.display = 'none';
+let element: HTMLElement;
 
-  const { Meteor } = window.require('meteor/meteor');
-  const { Tracker } = window.require('meteor/tracker');
-  const { settings } = window.require('/app/settings');
+const getElement = (): HTMLElement => {
+  if (!element) {
+    element = document.createElement('div');
+    element.classList.add('sidebar');
+    element.style.backgroundColor = 'var(--sidebar-background)';
+    element.style.color = 'var(--sidebar-item-text-color)';
+    element.style.display = 'none';
+  }
 
-  Tracker.autorun(() => {
-    const { url, defaultUrl } = settings.get('Assets_background') || {};
-    const backgroundUrl = url || defaultUrl;
+  return element;
+};
 
-    if (backgroundUrl) {
-      referenceElement.style.backgroundImage = `url(${ JSON.stringify(Meteor.absoluteUrl(backgroundUrl)) })`;
-    } else {
-      referenceElement.style.backgroundImage = null;
-    }
+export const setBackground = (imageUrl: string): void => {
+  const element = getElement();
 
-    pollSidebarStyle(referenceElement, (sideBarStyle) => {
-      dispatch({
-        type: WEBVIEW_SIDEBAR_STYLE_CHANGED,
-        payload: {
-          url: getServerUrl(),
-          style: sideBarStyle,
-        },
-      });
+  element.style.backgroundImage = imageUrl
+    ? `url(${ JSON.stringify(getAbsoluteUrl(imageUrl)) })`
+    : null;
+
+  pollSidebarStyle(element, (sideBarStyle) => {
+    dispatch({
+      type: WEBVIEW_SIDEBAR_STYLE_CHANGED,
+      payload: {
+        url: getServerUrl(),
+        style: sideBarStyle,
+      },
     });
   });
 };

@@ -1,45 +1,45 @@
 import { dispatch } from '../../store';
 import { WEBVIEW_FAVICON_CHANGED } from '../../ui/actions';
-import { getServerUrl } from './getServerUrl';
+import { getAbsoluteUrl, getServerUrl } from './urls';
 
 const FAVICON_SIZE = 100;
 
-export function listenToFaviconChanges(): void {
-  const canvas = document.createElement('canvas');
-  canvas.width = FAVICON_SIZE;
-  canvas.height = FAVICON_SIZE;
+let imageElement: HTMLImageElement;
 
-  const ctx = canvas.getContext('2d');
+const getImageElement = (): HTMLImageElement => {
+  if (!imageElement) {
+    const canvas = document.createElement('canvas');
+    canvas.width = FAVICON_SIZE;
+    canvas.height = FAVICON_SIZE;
 
-  const image = new Image();
+    const ctx = canvas.getContext('2d');
 
-  const { Meteor } = window.require('meteor/meteor');
-  const { Tracker } = window.require('meteor/tracker');
-  const { settings } = window.require('/app/settings');
+    imageElement = new Image();
 
-  Tracker.autorun(() => {
-    const { url, defaultUrl } = settings.get('Assets_favicon') || {};
-    const faviconUrl = url || defaultUrl;
+    const handleImageLoadEvent = (): void => {
+      ctx.clearRect(0, 0, FAVICON_SIZE, FAVICON_SIZE);
+      ctx.drawImage(imageElement, 0, 0, FAVICON_SIZE, FAVICON_SIZE);
 
-    if (typeof faviconUrl !== 'string') {
-      return;
-    }
+      dispatch({
+        type: WEBVIEW_FAVICON_CHANGED,
+        payload: {
+          url: getServerUrl(),
+          favicon: canvas.toDataURL(),
+        },
+      });
+    };
 
-    image.src = Meteor.absoluteUrl(faviconUrl);
-  });
+    imageElement.addEventListener('load', handleImageLoadEvent, { passive: true });
+  }
 
-  const handleImageLoadEvent = (): void => {
-    ctx.clearRect(0, 0, FAVICON_SIZE, FAVICON_SIZE);
-    ctx.drawImage(image, 0, 0, FAVICON_SIZE, FAVICON_SIZE);
+  return imageElement;
+};
 
-    dispatch({
-      type: WEBVIEW_FAVICON_CHANGED,
-      payload: {
-        url: getServerUrl(),
-        favicon: canvas.toDataURL(),
-      },
-    });
-  };
+export const setFavicon = (faviconUrl: string): void => {
+  if (typeof faviconUrl !== 'string') {
+    return;
+  }
 
-  image.addEventListener('load', handleImageLoadEvent, { passive: true });
-}
+  const imageElement = getImageElement();
+  imageElement.src = getAbsoluteUrl(faviconUrl);
+};

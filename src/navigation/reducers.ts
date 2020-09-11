@@ -68,7 +68,7 @@ type ExternalProtocolsAction = (
 export const externalProtocols: Reducer<Record<string, boolean>, ExternalProtocolsAction> = (state = {}, action) => {
   switch (action.type) {
     case APP_SETTINGS_LOADED: {
-      const { externalProtocols } = action.payload;
+      const { externalProtocols = {} } = action.payload;
       state = externalProtocols;
       return state;
     }

@@ -50,7 +50,7 @@
     "electron-store": "^6.0.0",
     "electron-updater": "^4.3.4",
     "i18next": "^19.7.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-i18next": "^11.7.2",

@@ -173,6 +173,16 @@ export const setupRootWindow = (): void => {
     }
   });
 
+  watch(({
+    servers,
+    currentServerUrl,
+  }) => {
+    const currentServer = servers.find(({ url }) => url === currentServerUrl);
+    return (currentServer && currentServer.title) || app.name;
+  }, (windowTitle) => {
+    rootWindow.setTitle(windowTitle);
+  });
+
   const fetchAndDispatchWindowState = (): void => {
     dispatch({
       type: ROOT_WINDOW_STATE_CHANGED,

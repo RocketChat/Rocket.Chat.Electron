@@ -20,7 +20,7 @@
   },
   "main": "app/main.js",
   "scripts": {
-    "postinstall": "run-s install-app-deps clean build",
+    "postinstall": "run-s install-app-deps clean",
     "start": "run-s clean build:watch",
     "clean": "rimraf app dist",
     "build": "rollup -c",

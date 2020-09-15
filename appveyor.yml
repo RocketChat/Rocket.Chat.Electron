@@ -8,7 +8,7 @@ shallow_clone: true
 clone_depth: 1
 cache:
   - "%LOCALAPPDATA%/Yarn"
-  - node_modules -> package.json
+  - node_modules -> yarn.lock
 
 branches:
   only:
@@ -22,7 +22,6 @@ branches:
 
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
-  - yarn
 
 build_script:
   - ps: |
@@ -33,9 +32,17 @@ build_script:
         [Convert]::FromBase64String($env:CSC_LINK) | Set-Content ($tmp.FullName + ".p12") -Encoding Byte
         $env:CSC_LINK = ($tmp.FullName + ".p12")
       }
-  - yarn test
+  - yarn --check-files --production=false
   - set NODE_ENV=production
+  - yarn build
+  - yarn test
   - yarn electron-builder --publish onTagOrDraft --x64 --ia32
+  - ps: |
+      $p = Start-Process -FilePath ".\dist\win-unpacked\Rocket.Chat.exe" -PassThru -RedirectStandardOutput .\output.log -RedirectStandardError .\error.log
+      Start-Sleep -s 30
+      $p.Kill()
+      Get-Content -Path .\output.log
+      Get-Content -Path .\error.log
 
 # on_finish:
 #  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

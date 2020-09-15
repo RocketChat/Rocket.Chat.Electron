@@ -1,10 +1,7 @@
 language: node_js
 node_js: 12
 os: linux
-cache:
-  yarn: true
-  directories:
-    - node_modules
+cache: yarn
 
 jobs:
   include:
@@ -17,14 +14,12 @@ jobs:
     deploy:
       - provider: snap
         cleanup: false
-        skip_cleanup: true
         snap: dist/*.snap
         channel: beta
         on:
           branch: develop
       - provider: snap
         cleanup: false
-        skip_cleanup: true
         snap: dist/*.snap
         channel: stable
         on:
@@ -44,10 +39,29 @@ notifications:
     on_success: never
     on_failure: change
 
-install:
-  - yarn --check-files
-  - yarn test
-
 script:
-  - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
-  - NODE_ENV=production yarn electron-builder --publish onTagOrDraft --x64
+  - yarn --check-files --production=false
+  - export NODE_ENV=production
+  - yarn build
+  - yarn test
+  - |
+      if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]
+      then
+        export CSC_IDENTITY_AUTO_DISCOVERY=false
+      fi
+  - yarn electron-builder --publish onTagOrDraft --x64
+  - |
+      if [[ "$TRAVIS_OS_NAME" == "osx" ]]
+      then
+        ./dist/mac/Rocket.Chat.app/Contents/MacOS/Rocket.Chat 1>output.log 2>error.log &
+        sleep 30
+        kill %1
+      fi
+      if [[ "$TRAVIS_OS_NAME" == "linux" ]]
+      then
+        ./dist/linux-unpacked/rocketchat-desktop 1>output.log 2>error.log &
+        sleep 30
+        kill %1
+      fi
+      cat output.log
+      cat error.log

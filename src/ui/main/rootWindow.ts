@@ -88,6 +88,7 @@ const isInsideSomeScreen = ({ x, y, width, height }: Rectangle): boolean =>
 
 export const applyMainWindowState = (): void => {
   const rootWindowState = select(selectMainWindowState);
+  const isTrayIconEnabled = select(({ isTrayIconEnabled }) => isTrayIconEnabled);
 
   let { x, y } = rootWindowState.bounds;
   const { width, height } = rootWindowState.bounds;
@@ -120,7 +121,7 @@ export const applyMainWindowState = (): void => {
     rootWindow.setFullScreen(true);
   }
 
-  if (rootWindowState.visible) {
+  if (rootWindowState.visible || !isTrayIconEnabled) {
     rootWindow.show();
   }
 

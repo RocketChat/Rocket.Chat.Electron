@@ -3,10 +3,11 @@ import path from 'path';
 import {
   app,
   BrowserWindow,
+  nativeImage,
   screen,
   Rectangle,
 } from 'electron';
-import { createSelector } from 'reselect';
+import { createStructuredSelector } from 'reselect';
 
 import { dispatch, select, watch, listen } from '../../store';
 import { RootState } from '../../store/rootReducer';
@@ -14,12 +15,12 @@ import {
   ROOT_WINDOW_STATE_CHANGED,
   WEBVIEW_FOCUS_REQUESTED,
 } from '../actions';
-import { WindowState } from '../common';
+import { RootWindowIcon, WindowState } from '../common';
 import {
   selectGlobalBadge,
   selectGlobalBadgeCount,
 } from '../selectors';
-import { getTrayIconPath, getAppIconPath } from './icons';
+import { getTrayIconPath } from './icons';
 
 const selectMainWindowState = ({ mainWindowState }: RootState): WindowState => mainWindowState ?? {
   bounds: {
@@ -145,14 +146,55 @@ export const setupRootWindow = (): void => {
       rootWindow.setMenuBarVisibility(isMenuBarEnabled);
     });
 
-    const selectRootWindowIcon = createSelector([
-      ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true,
-      selectGlobalBadge,
-    ], (isTrayIconEnabled, globalBadge) => [isTrayIconEnabled, globalBadge]);
+    const selectRootWindowIcon = createStructuredSelector<RootState, {
+      globalBadge: ReturnType<typeof selectGlobalBadge>;
+      rootWindowIcon: RootWindowIcon | undefined;
+    }>({
+      globalBadge: selectGlobalBadge,
+      rootWindowIcon: ({ rootWindowIcon }) => rootWindowIcon,
+    });
 
-    watch(selectRootWindowIcon, ([isTrayIconEnabled, globalBadge]) => {
-      const icon = isTrayIconEnabled ? getTrayIconPath({ badge: globalBadge }) : getAppIconPath();
+    watch(selectRootWindowIcon, ({ globalBadge, rootWindowIcon }) => {
+      if (!rootWindowIcon) {
+        rootWindow.setIcon(getTrayIconPath({ badge: globalBadge }));
+        return;
+      }
+
+      const icon = nativeImage.createEmpty();
+      const { scaleFactor } = screen.getPrimaryDisplay();
+
+      if (process.platform === 'linux') {
+        rootWindowIcon.icon.forEach((representation) => {
+          icon.addRepresentation({
+            ...representation,
+            scaleFactor,
+          });
+        });
+      }
+
+      if (process.platform === 'win32') {
+        rootWindowIcon.icon.forEach((representation) => {
+          icon.addRepresentation({
+            ...representation,
+            scaleFactor: representation.width / 32,
+          });
+        });
+      }
+
       rootWindow.setIcon(icon);
+
+      if (process.platform === 'win32' && rootWindowIcon.overlay) {
+        const overlayIcon = nativeImage.createEmpty();
+
+        rootWindowIcon.overlay.forEach((representation) => {
+          overlayIcon.addRepresentation({
+            ...representation,
+            scaleFactor: 1,
+          });
+        });
+
+        rootWindow.setOverlayIcon(overlayIcon, globalBadge ? String(globalBadge) : '');
+      }
     });
   }
 

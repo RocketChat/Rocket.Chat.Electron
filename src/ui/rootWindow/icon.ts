@@ -45,7 +45,7 @@ const getFaviconImage = async (src: string): Promise<HTMLImageElement> => {
 
     return new Promise((resolve, reject) => {
       faviconImage.onload = () => resolve(faviconImage);
-      faviconImage.onerror = (event) => reject(event);
+      faviconImage.onerror = (event: ErrorEvent) => reject(event.error);
     });
   }
 
@@ -80,7 +80,7 @@ const getBadgeImage = async (badge: RootWindowIconParams['badge']): Promise<HTML
 
     return new Promise((resolve, reject) => {
       badgeImage.onload = () => resolve(badgeImage);
-      badgeImage.onerror = (event) => reject(event);
+      badgeImage.onerror = (event: ErrorEvent) => reject(event.error);
     });
   }
 
@@ -102,6 +102,10 @@ const getCanvas = (size: number): HTMLCanvasElement => {
 
 export const updateRootWindowIconForLinux = async ({ badge, favicon }: RootWindowIconParams): Promise<void> => {
   if (!favicon) {
+    dispatch({
+      type: ROOT_WINDOW_ICON_CHANGED,
+      payload: null,
+    });
     return;
   }
 
@@ -147,6 +151,10 @@ export const updateRootWindowIconForLinux = async ({ badge, favicon }: RootWindo
 
 export const updateRootWindowIconForWindows = async ({ badge, favicon }: RootWindowIconParams): Promise<void> => {
   if (!favicon) {
+    dispatch({
+      type: ROOT_WINDOW_ICON_CHANGED,
+      payload: null,
+    });
     return;
   }
 

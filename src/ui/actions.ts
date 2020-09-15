@@ -1,6 +1,6 @@
 import { Server } from '../servers/common';
 import { Dictionary } from '../spellChecking/common';
-import { WindowState } from './common';
+import { RootWindowIcon, WindowState } from './common';
 
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START = 'about-dialog/toggle-update-on-start';
@@ -13,6 +13,7 @@ export const MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED = 'menu-bar/toggle-is-m
 export const MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED = 'menu-bar/toggle-is-show-window-on-unread-changed-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED = 'menu-bar/toggle-is-side-bar-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED = 'menu-bar/toggle-is-tray-icon-enabled-clicked';
+export const ROOT_WINDOW_ICON_CHANGED = 'root-window/icon-changed';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';
 export const SIDE_BAR_ADD_NEW_SERVER_CLICKED = 'side-bar/add-new-server-clicked';
 export const SIDE_BAR_CONTEXT_MENU_TRIGGERED = 'side-bar/context-menu-triggered';
@@ -25,6 +26,8 @@ export const UPDATE_DIALOG_DISMISSED = 'update-dialog/dismissed';
 export const UPDATE_DIALOG_INSTALL_BUTTON_CLICKED = 'update-dialog/install-button-clicked';
 export const UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED = 'update-dialog/remind-update-later-clicked';
 export const UPDATE_DIALOG_SKIP_UPDATE_CLICKED = 'update-dialog/skip-update-clicked';
+export const WEBVIEW_ATTACHED = 'webview/attached';
+export const WEBVIEW_DETACHED = 'webview/detached';
 export const WEBVIEW_DID_FAIL_LOAD = 'webview/did-fail-load';
 export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
 export const WEBVIEW_DID_START_LOADING = 'webview/did-start-loading';
@@ -38,8 +41,6 @@ export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
 export const WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED = 'webview/spell-checking-dictionary-toggled';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
-export const WEBVIEW_ATTACHED = 'webview/attached';
-export const WEBVIEW_DETACHED = 'webview/detached';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: never;
@@ -53,6 +54,7 @@ export type UiActionTypeToPayloadMap = {
   [MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
+  [ROOT_WINDOW_ICON_CHANGED]: RootWindowIcon | null;
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
   [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: never;
   [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
@@ -65,6 +67,8 @@ export type UiActionTypeToPayloadMap = {
   [UPDATE_DIALOG_INSTALL_BUTTON_CLICKED]: never;
   [UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED]: never;
   [UPDATE_DIALOG_SKIP_UPDATE_CLICKED]: never;
+  [WEBVIEW_ATTACHED]: { url: Server['url']; webContentsId: number };
+  [WEBVIEW_DETACHED]: { url: Server['url']; webContentsId: number };
   [WEBVIEW_DID_FAIL_LOAD]: { url: Server['url']; isMainFrame: boolean };
   [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
@@ -78,6 +82,4 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED]: Dictionary;
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
-  [WEBVIEW_ATTACHED]: { url: Server['url']; webContentsId: number };
-  [WEBVIEW_DETACHED]: { url: Server['url']; webContentsId: number };
 };

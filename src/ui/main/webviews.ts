@@ -341,12 +341,19 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
         newWindow.show();
       });
 
-      newWindow.loadURL(url, {
-        httpReferrer: referrer,
-        ...postBody && {
-          extraHeaders: `Content-Type: ${ postBody.contentType }; boundary=${ postBody.boundary }`,
-          postData: postBody.data as unknown as (UploadRawData[] | UploadBlob[] | UploadFile[]),
-        },
+      isProtocolAllowed(url).then((allowed) => {
+        if (!allowed) {
+          newWindow.destroy();
+          return;
+        }
+
+        newWindow.loadURL(url, {
+          httpReferrer: referrer,
+          ...postBody && {
+            extraHeaders: `Content-Type: ${ postBody.contentType }; boundary=${ postBody.boundary }`,
+            postData: postBody.data as unknown as (UploadRawData[] | UploadBlob[] | UploadFile[]),
+          },
+        });
       });
 
       event.newGuest = newWindow;

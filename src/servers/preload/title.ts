@@ -7,10 +7,23 @@ export const setTitle = (title: string): void => {
     return;
   }
 
+  const url = getServerUrl();
+
+  if (title === 'Rocket.Chat' && url !== 'https://open.rocket.chat') {
+    dispatch({
+      type: WEBVIEW_TITLE_CHANGED,
+      payload: {
+        url,
+        title: `${ title } - ${ url }`,
+      },
+    });
+    return;
+  }
+
   dispatch({
     type: WEBVIEW_TITLE_CHANGED,
     payload: {
-      url: getServerUrl(),
+      url,
       title,
     },
   });

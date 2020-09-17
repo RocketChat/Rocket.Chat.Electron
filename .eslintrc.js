@@ -94,6 +94,7 @@ module.exports = {
         'no-undef': 'off',
         'no-unused-vars': 'off',
         'no-useless-constructor': 'off',
+        'no-use-before-define': 'off',
         'react/jsx-uses-react': 'error',
         'react/jsx-uses-vars': 'error',
         'react/jsx-no-undef': 'error',
@@ -106,6 +107,7 @@ module.exports = {
         '@typescript-eslint/indent': ['error', 2, {
           SwitchCase: 1,
         }],
+        '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-extra-parens': ['error', 'all', {
           conditionalAssign: true,
           nestedBinaryExpressions: false,
@@ -113,7 +115,7 @@ module.exports = {
           ignoreJSX: 'all',
           enforceForArrowConditionals: false,
         }],
-        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-use-before-define': ['error'],
         '@typescript-eslint/interface-name-prefix': 'off',
         '@typescript-eslint/explicit-function-return-type': ['warn', {
           allowExpressions: true,

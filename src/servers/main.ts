@@ -3,6 +3,7 @@ import path from 'path';
 
 import { app } from 'electron';
 import fetch from 'node-fetch';
+import { satisfies, coerce } from 'semver';
 
 import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
@@ -43,6 +44,45 @@ export const normalizeServerUrl = (input: string): string => {
   }
 };
 
+export const getServerVersion = async (serverUrl: string): Promise<string> => {
+  const { username, password, href } = new URL(serverUrl);
+  const headers: HeadersInit = [];
+
+  if (username && password) {
+    headers.push(['Authorization', `Basic ${ btoa(`${ username }:${ password }`) }`]);
+  }
+
+  const endpoint = new URL('api/info', href);
+
+  const response = await fetch(endpoint, {
+    headers,
+    timeout: 5000,
+  });
+
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+
+  const responseBody: {
+    success: boolean;
+    version: string;
+  } = await response.json();
+
+  if (!responseBody.success) {
+    throw new Error();
+  }
+
+  return responseBody.version;
+};
+
+export const validateServer = async (serverUrl: string): Promise<void> => {
+  const version = await getServerVersion(serverUrl);
+
+  if (!satisfies(coerce(version), '>=3.0.x')) {
+    throw new Error(`incompatible server version (${ version }, expected >=3.0.x)`);
+  }
+};
+
 export const validateServerUrl = async (serverUrl: string, timeout = 5000): Promise<ValidationResult> => {
   try {
     const { username, password, href } = new URL(serverUrl);
@@ -78,10 +118,6 @@ export const validateServerUrl = async (serverUrl: string, timeout = 5000): Prom
     console.error(error);
     return ValidationResult.INVALID;
   }
-};
-
-export const getServerInfo = async (_serverUrl: string): Promise<never> => {
-  throw Error('not implemented');
 };
 
 const loadAppServers = async (): Promise<Record<string, string>> => {

@@ -1,6 +1,7 @@
 import { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
+import { DEEP_LINKS_SERVER_ADDED, DEEP_LINKS_SERVER_FOCUSED } from '../deepLinks/actions';
 import { ActionOf } from '../store/actions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
@@ -25,6 +26,8 @@ import { Server } from './common';
 
 type CurrentServerUrlAction = (
   ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
+  | ActionOf<typeof DEEP_LINKS_SERVER_ADDED>
+  | ActionOf<typeof DEEP_LINKS_SERVER_FOCUSED>
   | ActionOf<typeof MENU_BAR_ADD_NEW_SERVER_CLICKED>
   | ActionOf<typeof MENU_BAR_SELECT_SERVER_CLICKED>
   | ActionOf<typeof SERVERS_LOADED>
@@ -40,7 +43,9 @@ type CurrentServerUrlState = string | null;
 
 export const currentServerUrl = (state: CurrentServerUrlState = null, action: CurrentServerUrlAction): CurrentServerUrlState => {
   switch (action.type) {
-    case ADD_SERVER_VIEW_SERVER_ADDED: {
+    case ADD_SERVER_VIEW_SERVER_ADDED:
+    case DEEP_LINKS_SERVER_ADDED:
+    case DEEP_LINKS_SERVER_FOCUSED: {
       const url = action.payload;
       return url;
     }
@@ -90,6 +95,7 @@ export const currentServerUrl = (state: CurrentServerUrlState = null, action: Cu
 
 type ServersActionTypes = (
   ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
+  | ActionOf<typeof DEEP_LINKS_SERVER_ADDED>
   | ActionOf<typeof SERVERS_LOADED>
   | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_SERVERS_SORTED>
@@ -115,7 +121,8 @@ const upsert = (state: Server[], server: Server): Server[] => {
 
 export const servers: Reducer<Server[], ServersActionTypes> = (state = [], action) => {
   switch (action.type) {
-    case ADD_SERVER_VIEW_SERVER_ADDED: {
+    case ADD_SERVER_VIEW_SERVER_ADDED:
+    case DEEP_LINKS_SERVER_ADDED: {
       const url = action.payload;
       return upsert(state, { url, title: url });
     }

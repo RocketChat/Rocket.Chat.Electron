@@ -6,6 +6,7 @@ import { normalizeServerUrl, validateServer } from '../servers/main';
 import { select, dispatch } from '../store';
 import { askForServerAddition, warnAboutInvalidServerUrl } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
+import { getWebContentsByServerUrl } from '../ui/main/webviews';
 import {
   DEEP_LINKS_SERVER_FOCUSED,
   DEEP_LINKS_SERVER_ADDED,
@@ -39,15 +40,21 @@ export let processDeepLinksInArgs = async (): Promise<void> => undefined;
 
 type AuthenticationParams = {
   host: string;
-  token: string;
-  userId: string;
+  token?: string;
+  userId?: string;
 };
 
 type OpenRoomParams = {
   host: string;
   rid: string;
+  path?: string;
+};
+
+type InviteParams = {
+  host: string;
+  rid: string;
   path: string;
-}
+};
 
 const performOnServer = async (url: string, action: (serverUrl: string) => Promise<void>): Promise<void> => {
   const serverUrl = normalizeServerUrl(url);
@@ -87,42 +94,62 @@ const authenticateFromDeepLink = (_token: string, _userId: string): Promise<void
 const performAuthentication = async ({ host, token, userId }: AuthenticationParams): Promise<void> =>
   performOnServer(host, () => authenticateFromDeepLink(token, userId));
 
-const requestOpenRoom = (_rid: string, _path: string): Promise<void> => {
-  throw Error('not implemented');
-};
-
-const performOpenRoom = async ({ host, rid, path }: OpenRoomParams): Promise<void> =>
-  performOnServer(host, () => requestOpenRoom(rid, path));
-
-export const setupDeepLinks = (): void => {
-  const processDeepLink = async (deepLink: string): Promise<void> => {
-    const parsedDeepLink = parseDeepLink(deepLink);
-
-    if (!parsedDeepLink) {
+const performOpenRoom = async ({ host, path }: OpenRoomParams): Promise<void> =>
+  performOnServer(host, async (serverUrl) => {
+    if (!path) {
       return;
     }
 
-    const { action, args } = parsedDeepLink;
+    const webContents = getWebContentsByServerUrl(serverUrl);
+    webContents?.loadURL(new URL(path, serverUrl).href);
+  });
 
-    switch (action) {
-      case 'auth': {
-        const host = args.get('host');
-        const token = args.get('token');
-        const userId = args.get('userId');
-        await performAuthentication({ host, token, userId });
-        break;
-      }
-
-      case 'room': {
-        const host = args.get('host');
-        const path = args.get('path');
-        const rid = args.get('rid');
-        await performOpenRoom({ host, path, rid });
-        break;
-      }
+const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
+  performOnServer(host, async (serverUrl) => {
+    if (!path || !/^invite\//.test(path)) {
+      return;
     }
-  };
 
+    const webContents = getWebContentsByServerUrl(serverUrl);
+    webContents?.loadURL(new URL(path, serverUrl).href);
+  });
+
+const processDeepLink = async (deepLink: string): Promise<void> => {
+  const parsedDeepLink = parseDeepLink(deepLink);
+
+  if (!parsedDeepLink) {
+    return;
+  }
+
+  const { action, args } = parsedDeepLink;
+
+  switch (action) {
+    case 'auth': {
+      const host = args.get('host');
+      const token = args.get('token');
+      const userId = args.get('userId');
+      await performAuthentication({ host, token, userId });
+      break;
+    }
+
+    case 'room': {
+      const host = args.get('host');
+      const path = args.get('path');
+      const rid = args.get('rid');
+      await performOpenRoom({ host, path, rid });
+      break;
+    }
+
+    case 'invite': {
+      const host = args.get('host');
+      const path = args.get('path');
+      const rid = args.get('rid');
+      await performInvite({ host, path, rid });
+    }
+  }
+};
+
+export const setupDeepLinks = (): void => {
   app.addListener('open-url', async (event, url): Promise<void> => {
     event.preventDefault();
 

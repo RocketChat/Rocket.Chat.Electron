@@ -37,7 +37,7 @@ export const normalizeServerUrl = (input: string): string => {
       hostname,
       port,
       pathname,
-    }).toString();
+    }).href;
   } catch (error) {
     console.error(error);
     return null;

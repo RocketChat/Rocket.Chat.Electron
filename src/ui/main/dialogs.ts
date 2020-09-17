@@ -6,6 +6,8 @@ import { getRootWindow } from './rootWindow';
 const t = i18next.t.bind(i18next);
 
 export const askForAppDataReset = async (parentWindow: BrowserWindow = getRootWindow()): Promise<boolean> => {
+  parentWindow.show();
+
   const { response } = await dialog.showMessageBox(parentWindow, {
     type: 'question',
     buttons: [t('dialog.resetAppData.yes'), t('dialog.resetAppData.cancel')],
@@ -18,6 +20,8 @@ export const askForAppDataReset = async (parentWindow: BrowserWindow = getRootWi
 };
 
 export const askForServerAddition = async (serverUrl: string, parentWindow: BrowserWindow = getRootWindow()): Promise<boolean> => {
+  parentWindow.show();
+
   const { response } = await dialog.showMessageBox(parentWindow, {
     type: 'question',
     buttons: [t('dialog.addServer.add'), t('dialog.addServer.cancel')],

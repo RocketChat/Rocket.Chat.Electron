@@ -20,6 +20,7 @@ import {
 } from 'electron';
 import i18next from 'i18next';
 
+import { setupPreloadReload } from '../../app/main/dev';
 import { isProtocolAllowed } from '../../navigation/main';
 import { Server } from '../../servers/common';
 import { Dictionary } from '../../spellChecking/common';
@@ -317,6 +318,10 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     // webContents.send('console-warn', '%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
     // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
     // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
+
+    if (process.env.NODE_ENV === 'development') {
+      setupPreloadReload(webContents);
+    }
 
     webContents.addListener('new-window', (event, url, _frameName, disposition, options, _additionalFeatures, referrer, postBody) => {
       event.preventDefault();

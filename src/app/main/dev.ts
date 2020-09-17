@@ -1,6 +1,7 @@
 import path from 'path';
 
-import { app } from 'electron';
+import chokidar from 'chokidar';
+import { app, WebContents } from 'electron';
 
 export const setUserDataDirectory = (): void => {
   if (process.env.NODE_ENV !== 'development') {
@@ -10,9 +11,30 @@ export const setUserDataDirectory = (): void => {
   app.setPath('userData', path.join(app.getPath('appData'), `${ app.name } (development)`));
 };
 
-export const setupElectronReloader = async (): Promise<void> => {
-  const { default: setupElectronReloader } = await import('electron-reloader');
-  setupElectronReloader(require.main);
+export const setupRootWindowReload = (webContents: WebContents): void => {
+  chokidar.watch(path.join(app.getAppPath(), 'app/rootWindow.js'), {
+    awaitWriteFinish: true,
+  }).on('change', () => {
+    if (webContents.isDestroyed()) {
+      return;
+    }
+
+    console.log('Reloading root window...');
+    webContents.reload();
+  });
+};
+
+export const setupPreloadReload = (webContents: WebContents): void => {
+  chokidar.watch(path.join(app.getAppPath(), 'app/preload.js'), {
+    awaitWriteFinish: true,
+  }).on('change', () => {
+    if (webContents.isDestroyed()) {
+      return;
+    }
+
+    console.log('Reloading webview...');
+    webContents.reload();
+  });
 };
 
 export const installDevTools = async (): Promise<void> => {

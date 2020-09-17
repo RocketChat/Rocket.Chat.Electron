@@ -16,17 +16,25 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const canRun = process.env.ROLLUP_WATCH === 'true' && process.env.NO_RUN !== 'true';
 
 const run = () => {
-  let proc;
+  if (!canRun) {
+    return;
+  }
+
+  let proc = null;
 
   return {
-    writeBundle: () => {
+    writeBundle: async () => {
       if (proc) {
-        return;
+        proc.kill();
+        await new Promise((resolve) => proc.on('close', resolve));
       }
 
+      console.log(proc ? 'Restarting main process...' : 'Starting main process...');
+
       proc = spawn(electron, ['.'], { stdio: 'inherit' });
+
       proc.on('close', () => {
-        proc = undefined;
+        proc = null;
       });
     },
   };
@@ -118,7 +126,7 @@ export default [
       }),
       nodeResolve(),
       commonjs(),
-      canRun && run(),
+      run(),
     ],
     output: {
       dir: 'app',

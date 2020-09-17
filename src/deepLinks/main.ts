@@ -40,8 +40,8 @@ export let processDeepLinksInArgs = async (): Promise<void> => undefined;
 
 type AuthenticationParams = {
   host: string;
-  token?: string;
-  userId?: string;
+  token: string;
+  userId: string;
 };
 
 type OpenRoomParams = {
@@ -87,12 +87,19 @@ const performOnServer = async (url: string, action: (serverUrl: string) => Promi
   await action(serverUrl);
 };
 
-const authenticateFromDeepLink = (_token: string, _userId: string): Promise<void> => {
-  throw Error('not implemented');
-};
-
 const performAuthentication = async ({ host, token, userId }: AuthenticationParams): Promise<void> =>
-  performOnServer(host, () => authenticateFromDeepLink(token, userId));
+  performOnServer(host, async (serverUrl) => {
+    if (!token) {
+      return;
+    }
+
+    const url = new URL('home', serverUrl);
+    url.searchParams.append('resumeToken', token);
+    url.searchParams.append('userId', userId);
+
+    const webContents = getWebContentsByServerUrl(serverUrl);
+    webContents?.loadURL(url.href);
+  });
 
 const performOpenRoom = async ({ host, path }: OpenRoomParams): Promise<void> =>
   performOnServer(host, async (serverUrl) => {

@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import url from 'url';
 
 import { app } from 'electron';
 import fetch from 'node-fetch';
@@ -14,6 +13,35 @@ import { select, dispatch, listen } from '../store';
 import { ActionOf } from '../store/actions';
 import { SERVER_VALIDATION_REQUESTED, SERVER_VALIDATION_RESPONDED, SERVERS_LOADED } from './actions';
 import { ValidationResult, Server } from './common';
+
+export const normalizeServerUrl = (input: string): string => {
+  try {
+    if (typeof input !== 'string') {
+      throw new TypeError('server URL is not a string');
+    }
+
+    let parsedUrl: URL;
+
+    try {
+      parsedUrl = new URL(input);
+    } catch (error) {
+      parsedUrl = new URL(`https://${ input }`);
+    }
+
+    const { protocol, username, password, hostname, port, pathname } = parsedUrl;
+    return Object.assign(new URL('https://0.0.0.0'), {
+      protocol,
+      username,
+      password,
+      hostname,
+      port,
+      pathname,
+    }).toString();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
 
 export const validateServerUrl = async (serverUrl: string, timeout = 5000): Promise<ValidationResult> => {
   try {
@@ -50,26 +78,6 @@ export const validateServerUrl = async (serverUrl: string, timeout = 5000): Prom
     console.error(error);
     return ValidationResult.INVALID;
   }
-};
-
-export const normalizeServerUrl = (hostUrl: string): string => {
-  if (typeof hostUrl !== 'string') {
-    return null;
-  }
-
-  let parsedUrl = url.parse(hostUrl);
-
-  if (!parsedUrl.hostname && parsedUrl.pathname) {
-    parsedUrl = url.parse(`https://${ parsedUrl.pathname }`);
-  }
-
-  const { protocol, auth, hostname, port, pathname } = parsedUrl;
-
-  if (!protocol || !hostname) {
-    return null;
-  }
-
-  return url.format({ protocol, auth, hostname, port, pathname });
 };
 
 export const getServerInfo = async (_serverUrl: string): Promise<never> => {

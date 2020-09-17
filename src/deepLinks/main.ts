@@ -64,8 +64,7 @@ export const setupDeepLinks = (): void => {
       return;
     }
 
-    const servers = select(({ servers }) => servers);
-    const isServerAdded = servers.some((server) => server.url === serverUrl);
+    const isServerAdded = select(({ servers }) => servers.some((server) => server.url === serverUrl));
 
     if (isServerAdded) {
       dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
@@ -96,8 +95,7 @@ export const setupDeepLinks = (): void => {
       return;
     }
 
-    const servers = select(({ servers }) => servers);
-    const isServerAdded = servers.some((server) => server.url === serverUrl);
+    const isServerAdded = select(({ servers }) => servers.some((server) => server.url === serverUrl));
 
     if (isServerAdded) {
       dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });

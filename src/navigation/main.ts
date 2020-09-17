@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import url from 'url';
 
 import { app, Certificate } from 'electron';
 import i18next from 'i18next';
@@ -50,7 +49,7 @@ export const setupNavigation = async (): Promise<void> => {
     event.preventDefault();
 
     const serialized = serializeCertificate(certificate);
-    const { host } = url.parse(requestedUrl);
+    const { host } = new URL(requestedUrl);
 
     let trustedCertificates = select(({ trustedCertificates }) => trustedCertificates);
 
@@ -116,15 +115,14 @@ export const setupNavigation = async (): Promise<void> => {
     const servers = select(({ servers }) => servers);
 
     for (const server of servers) {
-      const { host: serverHost, auth } = url.parse(server.url);
-      const requestHost = url.parse(authenticationResponseDetails.url).host;
+      const { host: serverHost, username, password } = new URL(server.url);
+      const requestHost = new URL(authenticationResponseDetails.url).host;
 
-      if (serverHost !== requestHost || !auth) {
+      if (serverHost !== requestHost || !username) {
         callback();
         return;
       }
 
-      const [username, password] = auth.split(/:/);
       callback(username, password);
     }
   });

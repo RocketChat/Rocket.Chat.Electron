@@ -77,7 +77,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
 
   useEffect(() => {
     if (!webviewRef.current.src) {
-      // webviewRef.current.src = lastPath || serverUrl;
+      webviewRef.current.src = lastPath || serverUrl;
     }
   }, [lastPath, serverUrl]);
 

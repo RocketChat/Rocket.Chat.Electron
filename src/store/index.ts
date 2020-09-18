@@ -51,9 +51,9 @@ export const watch = <T>(selector: Selector<T>, watcher: (curr: T, prev: T) => v
       return;
     }
 
-    prev = curr;
+    watcher(curr, prev === initial ? undefined : prev);
 
-    watcher(curr, prev);
+    prev = curr;
   });
 };
 

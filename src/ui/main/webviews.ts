@@ -2,6 +2,7 @@ import path from 'path';
 
 import {
   app,
+  BrowserView,
   BrowserWindow,
   clipboard,
   ContextMenuParams,
@@ -28,7 +29,7 @@ import { isProtocolAllowed } from '../../navigation/main';
 import { Server } from '../../servers/common';
 import { Dictionary } from '../../spellChecking/common';
 import { importSpellCheckingDictionaries, getCorrectionsForMisspelling } from '../../spellChecking/main';
-import { dispatch, select, listen } from '../../store';
+import { dispatch, select, listen, watch } from '../../store';
 import {
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
@@ -60,7 +61,6 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 
   const handleDidStartLoading = (): void => {
     dispatch({ type: WEBVIEW_DID_START_LOADING, payload: { url: serverUrl } });
-    rootWindow.webContents.send(WEBVIEW_DID_START_LOADING, serverUrl);
   };
 
   const handleDidFailLoad = (
@@ -439,4 +439,107 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     (event) =>
       Array.from(webContentsByServerUrl.entries()).find(([, v]) => v === event.sender)[0],
   );
+
+  class ServerWebView {
+    browserView: BrowserView;
+
+    url: Server['url'];
+
+    unsubscribeFromIsSideBarVisible: () => void;
+
+    constructor(server: Server) {
+      this.url = server.url;
+      this.browserView = new BrowserView({
+        webPreferences: {
+          preload: path.join(app.getAppPath(), 'app/preload.js'),
+          nodeIntegration: false,
+          nodeIntegrationInWorker: true,
+          nodeIntegrationInSubFrames: true,
+          enableRemoteModule: false,
+          webSecurity: true,
+          contextIsolation: true,
+          worldSafeExecuteJavaScript: true,
+          partition: 'persist:rocketchat-server',
+        },
+      });
+      this.browserView.setBackgroundColor('#00000000');
+
+      setImmediate((lastPath, url) => {
+        handleDidAttachWebview(null, this.browserView.webContents);
+        initializeServerWebContents(url, this.browserView.webContents, rootWindow);
+
+        this.browserView.webContents.loadURL(lastPath ?? url);
+      }, server.lastPath, server.url);
+    }
+
+    destroy(): void {
+      rootWindow.removeBrowserView(this.browserView);
+      this.browserView.destroy();
+    }
+
+    show(): void {
+      rootWindow.addBrowserView(this.browserView);
+
+      this.unsubscribeFromIsSideBarVisible = watch(({
+        servers,
+        isSideBarEnabled,
+      }) => servers.length > 0 && isSideBarEnabled, (isSideBarVisible) => {
+        const sidebarWidth = isSideBarVisible ? 68 : 0;
+        this.browserView.setBounds({
+          x: sidebarWidth,
+          y: 0,
+          width: rootWindow.getContentBounds().width - sidebarWidth,
+          height: rootWindow.getContentBounds().height,
+        });
+      });
+
+      this.browserView.setAutoResize({
+        width: true,
+        height: true,
+      });
+    }
+
+    hide(): void {
+      this.unsubscribeFromIsSideBarVisible();
+      rootWindow.removeBrowserView(this.browserView);
+    }
+  }
+
+  const serverWebContents = new Set<ServerWebView>();
+
+  watch(({ servers }) => servers, (servers) => {
+    serverWebContents.forEach((serverWebView) => {
+      const kept = servers.some((server) => server.url === serverWebView.url);
+      if (kept) {
+        return;
+      }
+
+      serverWebView.destroy();
+      serverWebContents.delete(serverWebView);
+    });
+
+    servers.forEach((server) => {
+      const present = Array.from(serverWebContents.values()).some((serverWebView) => serverWebView.url === server.url);
+      if (present) {
+        return;
+      }
+
+      serverWebContents.add(new ServerWebView(server));
+    });
+  });
+
+  watch(({
+    currentServerUrl,
+    servers,
+  }) => (servers.find((server) => server.url === currentServerUrl)?.failed ? null : currentServerUrl), (currentServerUrl, prevCurrentServerUrl) => {
+    serverWebContents.forEach((serverWebView) => {
+      if (serverWebView.url === currentServerUrl) {
+        serverWebView.show();
+      }
+
+      if (serverWebView.url === prevCurrentServerUrl) {
+        serverWebView.hide();
+      }
+    });
+  });
 };

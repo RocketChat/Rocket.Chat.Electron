@@ -18,7 +18,6 @@ import {
   UploadBlob,
   UploadFile,
   UploadRawData,
-  webContents,
   WebContents,
   WebPreferences,
 } from 'electron';
@@ -35,7 +34,6 @@ import {
   WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
-  WEBVIEW_ATTACHED,
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
@@ -367,11 +365,6 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
       event.newGuest = newWindow;
     });
   };
-
-  listen(WEBVIEW_ATTACHED, (action) => {
-    const guestWebContents = webContents.fromId(action.payload.webContentsId);
-    initializeServerWebContents(action.payload.url, guestWebContents, rootWindow);
-  });
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);

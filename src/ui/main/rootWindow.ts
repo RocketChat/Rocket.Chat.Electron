@@ -55,7 +55,6 @@ export const createRootWindow = (): BrowserWindow => {
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInSubFrames: true,
-      webviewTag: true,
       worldSafeExecuteJavaScript: true,
     },
   });

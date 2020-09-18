@@ -75,13 +75,7 @@ export const showRootWindow = async (rootWindow: BrowserWindow): Promise<void> =
   }
 
   return new Promise((resolve) => {
-    rootWindow.addListener('ready-to-show', () => {
-      if (process.env.NODE_ENV === 'development') {
-        rootWindow.webContents.openDevTools();
-      }
-
-      resolve();
-    });
+    rootWindow.addListener('ready-to-show', () => resolve());
   });
 };
 

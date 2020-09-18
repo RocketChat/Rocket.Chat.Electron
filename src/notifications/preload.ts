@@ -31,9 +31,8 @@ export class RocketChatNotification extends EventTarget implements Notification 
 
   static readonly maxActions: number = process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
 
-  static requestPermission(): Promise<NotificationPermission> {
-    return Promise.resolve(RocketChatNotification.permission);
-  }
+  static requestPermission = (): Promise<NotificationPermission> =>
+    Promise.resolve(RocketChatNotification.permission)
 
   private _destroy: Promise<() => void>;
 

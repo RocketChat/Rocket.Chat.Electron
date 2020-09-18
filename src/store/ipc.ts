@@ -27,8 +27,14 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
     return api.getState();
   });
 
-  ipcMain.addListener(ReduxIpcChannel.ACTION_DISPATCHED, (_event, action) => {
-    api.dispatch(action);
+  ipcMain.addListener(ReduxIpcChannel.ACTION_DISPATCHED, (event, action) => {
+    api.dispatch({
+      ...action,
+      meta: {
+        ...action.meta,
+        webContentsId: event.sender.id,
+      },
+    });
   });
 
   return (next: Dispatch) => (action: FluxStandardAction<string, unknown>) => {

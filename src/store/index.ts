@@ -41,8 +41,10 @@ export const select = <T>(selector: Selector<T>): T =>
   selector(reduxStore.getState());
 
 export const watch = <T>(selector: Selector<T>, watcher: (curr: T, prev: T) => void): (() => void) => {
-  const initial = Symbol('initial');
-  let prev: T | typeof initial = initial;
+  const initial = select(selector);
+  watcher(initial, undefined);
+
+  let prev = initial;
 
   return reduxStore.subscribe(() => {
     const curr: T = select(selector);
@@ -51,7 +53,7 @@ export const watch = <T>(selector: Selector<T>, watcher: (curr: T, prev: T) => v
       return;
     }
 
-    watcher(curr, prev === initial ? undefined : prev);
+    watcher(curr, prev);
 
     prev = curr;
   });

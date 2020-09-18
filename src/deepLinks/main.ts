@@ -1,6 +1,6 @@
 import { URL } from 'url';
 
-import { app } from 'electron';
+import { app, WebContents } from 'electron';
 
 import { normalizeServerUrl, validateServer } from '../servers/main';
 import { select, dispatch } from '../store';
@@ -87,6 +87,21 @@ const performOnServer = async (url: string, action: (serverUrl: string) => Promi
   await action(serverUrl);
 };
 
+const getWebContents = (serverUrl: string): Promise<WebContents> =>
+  new Promise((resolve) => {
+    const poll = (): void => {
+      const webContents = getWebContentsByServerUrl(serverUrl);
+      if (webContents) {
+        resolve(webContents);
+        return;
+      }
+
+      setTimeout(poll, 100);
+    };
+
+    poll();
+  });
+
 const performAuthentication = async ({ host, token, userId }: AuthenticationParams): Promise<void> =>
   performOnServer(host, async (serverUrl) => {
     if (!token) {
@@ -97,8 +112,9 @@ const performAuthentication = async ({ host, token, userId }: AuthenticationPara
     url.searchParams.append('resumeToken', token);
     url.searchParams.append('userId', userId);
 
-    const webContents = getWebContentsByServerUrl(serverUrl);
-    webContents?.loadURL(url.href);
+    const webContents = await getWebContents(serverUrl);
+    console.log(url.href);
+    webContents.loadURL(url.href);
   });
 
 const performOpenRoom = async ({ host, path }: OpenRoomParams): Promise<void> =>
@@ -107,8 +123,8 @@ const performOpenRoom = async ({ host, path }: OpenRoomParams): Promise<void> =>
       return;
     }
 
-    const webContents = getWebContentsByServerUrl(serverUrl);
-    webContents?.loadURL(new URL(path, serverUrl).href);
+    const webContents = await getWebContents(serverUrl);
+    webContents.loadURL(new URL(path, serverUrl).href);
   });
 
 const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
@@ -117,8 +133,8 @@ const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
       return;
     }
 
-    const webContents = getWebContentsByServerUrl(serverUrl);
-    webContents?.loadURL(new URL(path, serverUrl).href);
+    const webContents = await getWebContents(serverUrl);
+    webContents.loadURL(new URL(path, serverUrl).href);
   });
 
 const processDeepLink = async (deepLink: string): Promise<void> => {

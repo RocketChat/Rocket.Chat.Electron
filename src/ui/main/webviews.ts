@@ -1,22 +1,25 @@
+import path from 'path';
+
 import {
   app,
   BrowserWindow,
-  shell,
-  webContents,
   clipboard,
-  Menu,
-  WebContents,
-  DidNavigateEvent,
+  ContextMenuParams,
   DidFailLoadEvent,
-  MenuItemConstructorOptions,
+  DidNavigateEvent,
   Event,
   Input,
-  WebPreferences,
-  ContextMenuParams,
+  ipcMain,
+  Menu,
+  MenuItemConstructorOptions,
   session,
-  UploadRawData,
+  shell,
   UploadBlob,
   UploadFile,
+  UploadRawData,
+  webContents,
+  WebContents,
+  WebPreferences,
 } from 'electron';
 import i18next from 'i18next';
 
@@ -304,7 +307,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void => {
   const handleWillAttachWebview = (_event: Event, webPreferences: WebPreferences, _params: Record<string, string>): void => {
     delete webPreferences.enableBlinkFeatures;
-    webPreferences.preload = `${ app.getAppPath() }/app/preload.js`;
+    webPreferences.preload = path.join(app.getAppPath(), 'app/preload.js');
     webPreferences.nodeIntegration = false;
     webPreferences.nodeIntegrationInWorker = true;
     webPreferences.nodeIntegrationInSubFrames = true;
@@ -430,4 +433,10 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
 
   rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);
   rootWindow.webContents.addListener('did-attach-webview', handleDidAttachWebview);
+
+  ipcMain.handle(
+    'server-url',
+    (event) =>
+      Array.from(webContentsByServerUrl.entries()).find(([, v]) => v === event.sender)[0],
+  );
 };

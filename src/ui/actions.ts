@@ -1,6 +1,6 @@
 import { Server } from '../servers/common';
 import { Dictionary } from '../spellChecking/common';
-import { PreloadInfo, RootWindowIcon, WindowState } from './common';
+import { RootWindowIcon, WindowState } from './common';
 
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START = 'about-dialog/toggle-update-on-start';
@@ -33,8 +33,6 @@ export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
 export const WEBVIEW_FOCUS_REQUESTED = 'webview/focus-requested';
 export const WEBVIEW_MESSAGE_BOX_BLURRED = 'webview/message-box-blurred';
 export const WEBVIEW_MESSAGE_BOX_FOCUSED = 'webview/message-box-focused';
-export const WEBVIEW_PRELOAD_INFO_REQUESTED = 'webview/preload-info-requested';
-export const WEBVIEW_PRELOAD_INFO_RESPONDED = 'webview/preload-info-responded';
 export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED = 'webview/screen-sharing-source-requested';
 export const WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED = 'webview/screen-sharing-source-responded';
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
@@ -74,8 +72,6 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_FOCUS_REQUESTED]: { url: string };
   [WEBVIEW_MESSAGE_BOX_BLURRED]: never;
   [WEBVIEW_MESSAGE_BOX_FOCUSED]: never;
-  [WEBVIEW_PRELOAD_INFO_REQUESTED]: never;
-  [WEBVIEW_PRELOAD_INFO_RESPONDED]: PreloadInfo;
   [WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED]: never;
   [WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED]: string;
   [WEBVIEW_SIDEBAR_STYLE_CHANGED]: { url: Server['url']; style: Server['style'] };

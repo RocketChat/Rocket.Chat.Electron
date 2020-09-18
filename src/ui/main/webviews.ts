@@ -4,24 +4,22 @@ import {
   app,
   BrowserView,
   BrowserWindow,
-  BrowserWindowConstructorOptions,
   clipboard,
   ContextMenuParams,
   DidFailLoadEvent,
   DidNavigateEvent,
   Event,
   Input,
+  ipcMain,
   Menu,
   MenuItemConstructorOptions,
-  NewWindowWebContentsEvent,
-  PostBody,
-  Referrer,
   session,
   shell,
   UploadBlob,
   UploadFile,
   UploadRawData,
   WebContents,
+  WebPreferences,
 } from 'electron';
 import i18next from 'i18next';
 
@@ -39,130 +37,31 @@ import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
-  WEBVIEW_PRELOAD_INFO_REQUESTED,
-  WEBVIEW_PRELOAD_INFO_RESPONDED,
 } from '../actions';
 import { browseForSpellCheckingDictionary } from './dialogs';
 
 const t = i18next.t.bind(i18next);
 
-class ServerWebView {
-  static instances = new Set<ServerWebView>();
+const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
-  url: Server['url'];
+export const getWebContentsByServerUrl = (serverUrl: string): WebContents =>
+  webContentsByServerUrl.get(serverUrl);
 
-  parent: BrowserWindow;
+export const getAllServerWebContents = (): WebContents[] =>
+  Array.from(webContentsByServerUrl.values());
 
-  browserView: BrowserView;
+const initializeServerWebContents = (serverUrl: string, guestWebContents: WebContents, rootWindow: BrowserWindow): void => {
+  webContentsByServerUrl.set(serverUrl, guestWebContents);
 
-  unsubscribeFromIsSideBarVisible: () => void;
+  guestWebContents.addListener('destroyed', () => {
+    webContentsByServerUrl.delete(serverUrl);
+  });
 
-  constructor(server: Server, parent: BrowserWindow) {
-    ServerWebView.instances.add(this);
+  const handleDidStartLoading = (): void => {
+    dispatch({ type: WEBVIEW_DID_START_LOADING, payload: { url: serverUrl } });
+  };
 
-    this.url = server.url;
-    this.parent = parent;
-
-    this.browserView = new BrowserView({
-      webPreferences: {
-        preload: path.join(app.getAppPath(), 'app/preload.js'),
-        nodeIntegration: false,
-        nodeIntegrationInWorker: true,
-        nodeIntegrationInSubFrames: true,
-        enableRemoteModule: false,
-        webSecurity: true,
-        contextIsolation: true,
-        worldSafeExecuteJavaScript: true,
-        partition: 'persist:rocketchat-server',
-      },
-    });
-
-    if (process.env.NODE_ENV === 'development') {
-      setupPreloadReload(this.browserView.webContents);
-    }
-
-    // webContents.send('console-warn', '%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
-    // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
-    // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
-
-    this.browserView.webContents.addListener('new-window', this.handleNewWindow);
-    this.browserView.webContents.addListener('did-start-loading', this.handleDidStartLoading);
-    this.browserView.webContents.addListener('did-fail-load', this.handleDidFailLoad);
-    this.browserView.webContents.addListener('dom-ready', this.handleDomReady);
-    this.browserView.webContents.addListener('did-navigate-in-page', this.handleDidNavigateInPage);
-    this.browserView.webContents.addListener('context-menu', this.handleContextMenu);
-    this.browserView.webContents.addListener('before-input-event', this.handleBeforeInputEvent);
-
-    setImmediate((lastPath, url) => {
-      this.browserView.webContents.loadURL(lastPath ?? url);
-    }, server.lastPath, server.url);
-  }
-
-  destroy(): void {
-    this.parent.removeBrowserView(this.browserView);
-    this.browserView.destroy();
-  }
-
-  handleNewWindow = (
-    event: NewWindowWebContentsEvent,
-    url: string,
-    _frameName: string,
-    disposition: ('default' | 'foreground-tab' | 'background-tab' | 'new-window' | 'save-to-disk' | 'other'),
-    options: BrowserWindowConstructorOptions,
-    _additionalFeatures: string[],
-    referrer: Referrer,
-    postBody: PostBody,
-  ): void => {
-    event.preventDefault();
-
-    if (disposition === 'foreground-tab' || disposition === 'background-tab') {
-      isProtocolAllowed(url).then((allowed) => {
-        if (!allowed) {
-          return;
-        }
-
-        shell.openExternal(url);
-      });
-      return;
-    }
-
-    const newWindow = new BrowserWindow({
-      ...options,
-      show: false,
-    });
-
-    newWindow.once('ready-to-show', () => {
-      newWindow.show();
-    });
-
-    isProtocolAllowed(url).then((allowed) => {
-      if (!allowed) {
-        newWindow.destroy();
-        return;
-      }
-
-      newWindow.loadURL(url, {
-        httpReferrer: referrer,
-        ...postBody && {
-          extraHeaders: `Content-Type: ${ postBody.contentType }; boundary=${ postBody.boundary }`,
-          postData: postBody.data as unknown as (UploadRawData[] | UploadBlob[] | UploadFile[]),
-        },
-      });
-    });
-
-    event.newGuest = newWindow;
-  }
-
-  handleDidStartLoading = (): void => {
-    dispatch({
-      type: WEBVIEW_DID_START_LOADING,
-      payload: {
-        url: this.url,
-      },
-    });
-  }
-
-  handleDidFailLoad = (
+  const handleDidFailLoad = (
     _event: DidFailLoadEvent,
     errorCode: number,
     _errorDescription: string,
@@ -178,18 +77,15 @@ class ServerWebView {
 
     dispatch({
       type: WEBVIEW_DID_FAIL_LOAD,
-      payload: {
-        url: this.url,
-        isMainFrame,
-      },
+      payload: { url: serverUrl, isMainFrame },
     });
   };
 
-  handleDomReady = (): void => {
-    this.browserView.webContents.focus();
-  }
+  const handleDomReady = (): void => {
+    guestWebContents.focus();
+  };
 
-  handleDidNavigateInPage = (
+  const handleDidNavigateInPage = (
     _event: DidNavigateEvent,
     pageUrl: string,
     _isMainFrame: boolean,
@@ -199,15 +95,13 @@ class ServerWebView {
     dispatch({
       type: WEBVIEW_DID_NAVIGATE,
       payload: {
-        url: this.url,
+        url: serverUrl,
         pageUrl,
       },
     });
-  }
+  };
 
-  handleContextMenu = async (event: Event, params: ContextMenuParams): Promise<void> => {
-    const serverWebContents = this.browserView.webContents;
-
+  const handleContextMenu = async (event: Event, params: ContextMenuParams): Promise<void> => {
     event.preventDefault();
 
     const dictionaries = select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
@@ -238,7 +132,7 @@ class ServerWebView {
             : corrections.slice(0, 6).map<MenuItemConstructorOptions>((correction) => ({
               label: correction,
               click: () => {
-                serverWebContents.replaceMisspelling(correction);
+                guestWebContents.replaceMisspelling(correction);
               },
             })),
           ...corrections.length > 6 ? [
@@ -247,7 +141,7 @@ class ServerWebView {
               submenu: corrections.slice(6).map<MenuItemConstructorOptions>((correction) => ({
                 label: correction,
                 click: () => {
-                  serverWebContents.replaceMisspelling(correction);
+                  guestWebContents.replaceMisspelling(correction);
                 },
               })),
             },
@@ -273,7 +167,7 @@ class ServerWebView {
             {
               label: t('contextMenu.browseForLanguage'),
               click: async () => {
-                const filePaths = await browseForSpellCheckingDictionary(this.parent);
+                const filePaths = await browseForSpellCheckingDictionary(rootWindow);
                 importSpellCheckingDictionaries(filePaths);
               },
             },
@@ -290,7 +184,7 @@ class ServerWebView {
       mediaType === 'image' ? [
         {
           label: t('contextMenu.saveImageAs'),
-          click: () => serverWebContents.downloadURL(srcURL),
+          click: () => guestWebContents.downloadURL(srcURL),
         },
         { type: 'separator' },
       ] : []
@@ -383,10 +277,10 @@ class ServerWebView {
     ];
 
     const menu = Menu.buildFromTemplate(template);
-    menu.popup({ window: this.parent });
-  }
+    menu.popup({ window: rootWindow });
+  };
 
-  handleBeforeInputEvent = (_event: Event, { type, key }: Input): void => {
+  const handleBeforeInputEvent = (_event: Event, { type, key }: Input): void => {
     if (type !== 'keyUp' && type !== 'keyDown') {
       return;
     }
@@ -397,68 +291,84 @@ class ServerWebView {
       return;
     }
 
-    this.parent.webContents.sendInputEvent({ type, keyCode: key, modifiers: [] });
-  }
+    rootWindow.webContents.sendInputEvent({ type, keyCode: key, modifiers: [] });
+  };
 
-  show(): void {
-    this.parent.addBrowserView(this.browserView);
-
-    this.unsubscribeFromIsSideBarVisible = watch(({
-      servers,
-      isSideBarEnabled,
-    }) => servers.length > 0 && isSideBarEnabled, (isSideBarVisible) => {
-      const sidebarWidth = isSideBarVisible ? 68 : 0;
-      this.browserView.setBounds({
-        x: sidebarWidth,
-        y: 0,
-        width: this.parent.getContentBounds().width - sidebarWidth,
-        height: this.parent.getContentBounds().height,
-      });
-    });
-
-    this.browserView.setAutoResize({
-      width: true,
-      height: true,
-    });
-  }
-
-  hide(): void {
-    this.unsubscribeFromIsSideBarVisible();
-    this.parent.removeBrowserView(this.browserView);
-  }
-}
-
-export const getWebContentsByServerUrl = (serverUrl: string): WebContents =>
-  Array.from(ServerWebView.instances.values()).find((serverWebView) => serverWebView.url === serverUrl)?.browserView.webContents;
-
-export const getAllServerWebContents = (): WebContents[] =>
-  Array.from(ServerWebView.instances.values(), (serverWebView) => serverWebView.browserView.webContents);
+  guestWebContents.addListener('did-start-loading', handleDidStartLoading);
+  guestWebContents.addListener('did-fail-load', handleDidFailLoad);
+  guestWebContents.addListener('dom-ready', handleDomReady);
+  guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
+  guestWebContents.addListener('context-menu', handleContextMenu);
+  guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
+};
 
 export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void => {
+  const handleWillAttachWebview = (_event: Event, webPreferences: WebPreferences, _params: Record<string, string>): void => {
+    delete webPreferences.enableBlinkFeatures;
+    webPreferences.preload = path.join(app.getAppPath(), 'app/preload.js');
+    webPreferences.nodeIntegration = false;
+    webPreferences.nodeIntegrationInWorker = true;
+    webPreferences.nodeIntegrationInSubFrames = true;
+    webPreferences.enableRemoteModule = false;
+    webPreferences.webSecurity = true;
+    webPreferences.contextIsolation = true;
+    webPreferences.worldSafeExecuteJavaScript = true;
+  };
+
+  const handleDidAttachWebview = (_event: Event, webContents: WebContents): void => {
+    // webContents.send('console-warn', '%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
+    // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
+    // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
+
+    if (process.env.NODE_ENV === 'development') {
+      setupPreloadReload(webContents);
+    }
+
+    webContents.addListener('new-window', (event, url, _frameName, disposition, options, _additionalFeatures, referrer, postBody) => {
+      event.preventDefault();
+
+      if (disposition === 'foreground-tab' || disposition === 'background-tab') {
+        isProtocolAllowed(url).then((allowed) => {
+          if (!allowed) {
+            return;
+          }
+
+          shell.openExternal(url);
+        });
+        return;
+      }
+
+      const newWindow = new BrowserWindow({
+        ...options,
+        show: false,
+      });
+
+      newWindow.once('ready-to-show', () => {
+        newWindow.show();
+      });
+
+      isProtocolAllowed(url).then((allowed) => {
+        if (!allowed) {
+          newWindow.destroy();
+          return;
+        }
+
+        newWindow.loadURL(url, {
+          httpReferrer: referrer,
+          ...postBody && {
+            extraHeaders: `Content-Type: ${ postBody.contentType }; boundary=${ postBody.boundary }`,
+            postData: postBody.data as unknown as (UploadRawData[] | UploadBlob[] | UploadFile[]),
+          },
+        });
+      });
+
+      event.newGuest = newWindow;
+    });
+  };
+
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
     guestWebContents.loadURL(action.payload.url);
-  });
-
-  listen(WEBVIEW_PRELOAD_INFO_REQUESTED, (action) => {
-    const { webContentsId } = action.meta;
-    const serverWebView = Array.from(ServerWebView.instances.values())
-      .find((serverWebView) => serverWebView.browserView.webContents.id === webContentsId);
-
-    if (!serverWebView) {
-      return;
-    }
-
-    dispatch({
-      type: WEBVIEW_PRELOAD_INFO_RESPONDED,
-      payload: {
-        url: serverWebView.url,
-      },
-      meta: {
-        response: true,
-        id: action.meta.id,
-      },
-    });
   });
 
   listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {
@@ -514,24 +424,100 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     }
   });
 
+  rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);
+  rootWindow.webContents.addListener('did-attach-webview', handleDidAttachWebview);
+
+  ipcMain.handle(
+    'server-url',
+    (event) =>
+      Array.from(webContentsByServerUrl.entries()).find(([, v]) => v === event.sender)[0],
+  );
+
+  class ServerWebView {
+    browserView: BrowserView;
+
+    url: Server['url'];
+
+    unsubscribeFromIsSideBarVisible: () => void;
+
+    constructor(server: Server) {
+      this.url = server.url;
+      this.browserView = new BrowserView({
+        webPreferences: {
+          preload: path.join(app.getAppPath(), 'app/preload.js'),
+          nodeIntegration: false,
+          nodeIntegrationInWorker: true,
+          nodeIntegrationInSubFrames: true,
+          enableRemoteModule: false,
+          webSecurity: true,
+          contextIsolation: true,
+          worldSafeExecuteJavaScript: true,
+          partition: 'persist:rocketchat-server',
+        },
+      });
+      this.browserView.setBackgroundColor('#00000000');
+
+      setImmediate((lastPath, url) => {
+        handleDidAttachWebview(null, this.browserView.webContents);
+        initializeServerWebContents(url, this.browserView.webContents, rootWindow);
+
+        this.browserView.webContents.loadURL(lastPath ?? url);
+      }, server.lastPath, server.url);
+    }
+
+    destroy(): void {
+      rootWindow.removeBrowserView(this.browserView);
+      this.browserView.destroy();
+    }
+
+    show(): void {
+      rootWindow.addBrowserView(this.browserView);
+
+      this.unsubscribeFromIsSideBarVisible = watch(({
+        servers,
+        isSideBarEnabled,
+      }) => servers.length > 0 && isSideBarEnabled, (isSideBarVisible) => {
+        const sidebarWidth = isSideBarVisible ? 68 : 0;
+        this.browserView.setBounds({
+          x: sidebarWidth,
+          y: 0,
+          width: rootWindow.getContentBounds().width - sidebarWidth,
+          height: rootWindow.getContentBounds().height,
+        });
+      });
+
+      this.browserView.setAutoResize({
+        width: true,
+        height: true,
+      });
+    }
+
+    hide(): void {
+      this.unsubscribeFromIsSideBarVisible();
+      rootWindow.removeBrowserView(this.browserView);
+    }
+  }
+
+  const serverWebContents = new Set<ServerWebView>();
+
   watch(({ servers }) => servers, (servers) => {
-    ServerWebView.instances.forEach((serverWebView) => {
+    serverWebContents.forEach((serverWebView) => {
       const kept = servers.some((server) => server.url === serverWebView.url);
       if (kept) {
         return;
       }
 
       serverWebView.destroy();
-      ServerWebView.instances.delete(serverWebView);
+      serverWebContents.delete(serverWebView);
     });
 
     servers.forEach((server) => {
-      const present = Array.from(ServerWebView.instances.values()).some((serverWebView) => serverWebView.url === server.url);
+      const present = Array.from(serverWebContents.values()).some((serverWebView) => serverWebView.url === server.url);
       if (present) {
         return;
       }
 
-      ServerWebView.instances.add(new ServerWebView(server, rootWindow));
+      serverWebContents.add(new ServerWebView(server));
     });
   });
 
@@ -539,7 +525,7 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     currentServerUrl,
     servers,
   }) => (servers.find((server) => server.url === currentServerUrl)?.failed ? null : currentServerUrl), (currentServerUrl, prevCurrentServerUrl) => {
-    ServerWebView.instances.forEach((serverWebView) => {
+    serverWebContents.forEach((serverWebView) => {
       if (serverWebView.url === currentServerUrl) {
         serverWebView.show();
       }

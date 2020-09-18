@@ -113,6 +113,7 @@ const performAuthentication = async ({ host, token, userId }: AuthenticationPara
     url.searchParams.append('userId', userId);
 
     const webContents = await getWebContents(serverUrl);
+    console.log(url.href);
     webContents.loadURL(url.href);
   });
 

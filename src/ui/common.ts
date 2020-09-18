@@ -1,7 +1,5 @@
 import { AddRepresentationOptions } from 'electron';
 
-import { Server } from '../servers/common';
-
 export type IconRepresentation = Omit<AddRepresentationOptions, 'scaleFactor'>;
 
 export type RootWindowIcon = {
@@ -22,8 +20,4 @@ export type WindowState = {
     width: number,
     height: number,
   }
-};
-
-export type PreloadInfo = {
-  url: Server['url'];
 };

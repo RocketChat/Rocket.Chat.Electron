@@ -1,4 +1,4 @@
-import { contextBridge, webFrame } from 'electron';
+import { contextBridge, ipcRenderer, webFrame } from 'electron';
 import { satisfies, coerce } from 'semver';
 
 import { setupRendererErrorHandling } from './errors';
@@ -8,8 +8,7 @@ import { listenToScreenSharingRequests } from './screenSharing/preload';
 import { RocketChatDesktop, RocketChatDesktopAPI, serverInfo } from './servers/preload/api';
 import { setServerUrl } from './servers/preload/urls';
 import { setupSpellChecking } from './spellChecking/preload';
-import { createRendererReduxStore, request } from './store';
-import { WEBVIEW_PRELOAD_INFO_REQUESTED, WEBVIEW_PRELOAD_INFO_RESPONDED } from './ui/actions';
+import { createRendererReduxStore } from './store';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';
 import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
 import { listenToUserPresenceChanges } from './userPresence/preload';
@@ -26,16 +25,10 @@ contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
 contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
 const start = async (): Promise<void> => {
+  const serverUrl = await ipcRenderer.invoke('server-url');
+  setServerUrl(serverUrl);
+
   await createRendererReduxStore();
-
-  const preloadInfo = await request<
-    typeof WEBVIEW_PRELOAD_INFO_REQUESTED,
-    typeof WEBVIEW_PRELOAD_INFO_RESPONDED
-  >({
-    type: WEBVIEW_PRELOAD_INFO_REQUESTED,
-  });
-
-  setServerUrl(preloadInfo.url);
 
   await whenReady();
 

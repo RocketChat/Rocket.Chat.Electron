@@ -9,6 +9,7 @@ import {
 } from 'electron';
 import { createStructuredSelector } from 'reselect';
 
+import { setupRootWindowReload } from '../../app/main/dev';
 import { dispatch, select, watch, listen } from '../../store';
 import { RootState } from '../../store/rootReducer';
 import {
@@ -69,14 +70,12 @@ export const createRootWindow = (): BrowserWindow => {
 export const showRootWindow = async (rootWindow: BrowserWindow): Promise<void> => {
   rootWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 
-  return new Promise((resolve) => {
-    rootWindow.addListener('ready-to-show', () => {
-      if (process.env.NODE_ENV === 'development') {
-        rootWindow.webContents.openDevTools();
-      }
+  if (process.env.NODE_ENV === 'development') {
+    setupRootWindowReload(rootWindow.webContents);
+  }
 
-      resolve();
-    });
+  return new Promise((resolve) => {
+    rootWindow.addListener('ready-to-show', () => resolve());
   });
 };
 

@@ -1,4 +1,4 @@
-import { contextBridge, webFrame } from 'electron';
+import { contextBridge, ipcRenderer, webFrame } from 'electron';
 import { satisfies, coerce } from 'semver';
 
 import { setupRendererErrorHandling } from './errors';
@@ -6,6 +6,7 @@ import { JitsiMeetElectron, JitsiMeetElectronAPI } from './jitsi/preload';
 import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
 import { RocketChatDesktop, RocketChatDesktopAPI, serverInfo } from './servers/preload/api';
+import { setServerUrl } from './servers/preload/urls';
 import { setupSpellChecking } from './spellChecking/preload';
 import { createRendererReduxStore } from './store';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';
@@ -24,6 +25,9 @@ contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
 contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
 const start = async (): Promise<void> => {
+  const serverUrl = await ipcRenderer.invoke('server-url');
+  setServerUrl(serverUrl);
+
   await createRendererReduxStore();
 
   await whenReady();

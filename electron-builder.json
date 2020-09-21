@@ -110,6 +110,7 @@
     "plugs": ["desktop", "desktop-legacy", "home", "x11", "unity7", "browser-support", "network", "gsettings", "pulseaudio", "opengl", "camera"]
   },
   "afterSign": "./build/notarize.js",
+  "generateUpdatesFilesForAllChannels": true,
   "publish": [
     {
       "provider": "github",

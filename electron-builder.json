@@ -150,6 +150,7 @@
     ]
   },
   "afterSign": "./build/notarize.js",
+  "generateUpdatesFilesForAllChannels": true,
   "publish": [
     {
       "provider": "github",

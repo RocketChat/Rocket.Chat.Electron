@@ -49,7 +49,7 @@ script:
       then
         export CSC_IDENTITY_AUTO_DISCOVERY=false
       fi
-  - yarn electron-builder --publish onTagOrDraft --x64
+  - yarn electron-builder --publish always --x64
   - |
       if [[ "$TRAVIS_OS_NAME" == "osx" ]]
       then

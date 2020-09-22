@@ -102,6 +102,30 @@ export default [
     ],
   },
   {
+    input: 'src/injected.ts',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+      }),
+      typescript({ noEmitOnError: false }),
+      babel({
+        babelHelpers: 'bundled',
+      }),
+      nodeResolve({
+        browser: true,
+      }),
+      commonjs(),
+    ],
+    output: [
+      {
+        dir: 'app',
+        format: 'iife',
+        sourcemap: 'inline',
+      },
+    ],
+  },
+  {
     external: [
       ...builtinModules,
       ...Object.keys(appManifest.dependencies),

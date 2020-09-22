@@ -26,7 +26,10 @@ export const setupRootWindowReload = async (webContents: WebContents): Promise<v
 
 export const setupPreloadReload = async (webContents: WebContents): Promise<void> => {
   const chokidar = await import('chokidar');
-  chokidar.watch(path.join(app.getAppPath(), 'app/preload.js'), {
+  chokidar.watch([
+    path.join(app.getAppPath(), 'app/preload.js'),
+    path.join(app.getAppPath(), 'app/injected.js'),
+  ], {
     awaitWriteFinish: true,
   }).on('change', () => {
     if (webContents.isDestroyed()) {

@@ -24,144 +24,68 @@ const normalizeIconUrl = (iconUrl: string): string => {
   return iconUrl;
 };
 
-const notifications = new Map();
+const eventHandlers = new Map<unknown, (eventDescriptor: { type: string; detail?: unknown }) => void>();
 
-export class RocketChatNotification extends EventTarget implements Notification {
-  static readonly permission: NotificationPermission = 'granted';
+export const createNotification = async ({
+  title,
+  icon,
+  onEvent,
+  ...options
+}: NotificationOptions & {
+  canReply?: boolean,
+  title: string,
+  onEvent: (eventDescriptor: { type: string; detail?: unknown }) => void,
+}): Promise<unknown> => {
+  const id = await request<
+    typeof NOTIFICATIONS_CREATE_REQUESTED,
+    typeof NOTIFICATIONS_CREATE_RESPONDED
+  >({
+    type: NOTIFICATIONS_CREATE_REQUESTED,
+    payload: {
+      title,
+      ...icon ? {
+        icon: normalizeIconUrl(icon),
+      } : {},
+      ...options,
+    },
+  });
 
-  static readonly maxActions: number = process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
+  eventHandlers.set(id, (event) => onEvent({ type: event.type, detail: event.detail }));
 
-  static requestPermission(): Promise<NotificationPermission> {
-    return Promise.resolve(RocketChatNotification.permission);
-  }
+  return id;
+};
 
-  private _destroy: Promise<() => void>;
-
-  constructor(title: string, { icon, ...options }: (NotificationOptions & { canReply?: boolean }) = {}) {
-    super();
-
-    for (const eventType of ['show', 'close', 'click', 'reply', 'action']) {
-      const propertyName = `on${ eventType }`;
-      const propertySymbol = Symbol(propertyName);
-
-      Object.defineProperty(this, propertyName, {
-        get: () => this[propertySymbol],
-        set: (value) => {
-          if (this[propertySymbol]) {
-            this.removeEventListener(eventType, this[propertySymbol]);
-          }
-
-          this[propertySymbol] = value;
-
-          if (this[propertySymbol]) {
-            this.addEventListener(eventType, this[propertySymbol]);
-          }
-        },
-      });
-    }
-
-    this._destroy = request<
-      typeof NOTIFICATIONS_CREATE_REQUESTED,
-      typeof NOTIFICATIONS_CREATE_RESPONDED
-    >({
-      type: NOTIFICATIONS_CREATE_REQUESTED,
-      payload: {
-        title,
-        ...icon ? {
-          icon: normalizeIconUrl(icon),
-        } : {},
-        ...options,
-      },
-    }).then((id) => {
-      notifications.set(id, this);
-
-      return () => {
-        dispatch({ type: NOTIFICATIONS_NOTIFICATION_DISMISSED, payload: { id } });
-        notifications.delete(id);
-      };
-    });
-
-    Object.assign(this, { title, icon, ...options });
-  }
-
-  actions: NotificationAction[];
-
-  badge: string;
-
-  body: string;
-
-  data: any;
-
-  dir: NotificationDirection;
-
-  icon: string;
-
-  image: string;
-
-  lang: string;
-
-  onclick: (this: Notification, ev: Event) => any;
-
-  onclose: (this: Notification, ev: Event) => any;
-
-  onerror: (this: Notification, ev: Event) => any;
-
-  onshow: (this: Notification, ev: Event) => any;
-
-  renotify: boolean;
-
-  requireInteraction: boolean;
-
-  silent: boolean;
-
-  tag: string;
-
-  timestamp: number;
-
-  title: string;
-
-  vibrate: readonly number[];
-
-  close(): void {
-    if (!this._destroy) {
-      return;
-    }
-
-    this._destroy.then((destroy) => {
-      delete this._destroy;
-      destroy();
-    });
-  }
-}
+export const destroyNotification = (id: unknown): void => {
+  dispatch({ type: NOTIFICATIONS_NOTIFICATION_DISMISSED, payload: { id } });
+  eventHandlers.delete(id);
+};
 
 export const listenToNotificationsRequests = (): void => {
   listen(NOTIFICATIONS_NOTIFICATION_SHOWN, (action) => {
     const { payload: { id } } = action;
 
-    if (!notifications.has(id)) {
+    if (!eventHandlers.has(id)) {
       return;
     }
 
-    const showEvent = new CustomEvent('show');
-    notifications.get(id).dispatchEvent(showEvent);
+    eventHandlers.get(id)({ type: 'show' });
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_CLOSED, (action) => {
     const { payload: { id } } = action;
 
-    if (!notifications.has(id)) {
+    if (!eventHandlers.has(id)) {
       return;
     }
 
-    const closeEvent = new CustomEvent('close');
-    notifications.get(id).dispatchEvent(closeEvent);
-    notifications.delete(id);
+    eventHandlers.get(id)({ type: 'close' });
+    eventHandlers.delete(id);
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action) => {
     const { payload: { id } } = action;
 
-    if (!notifications.has(id)) {
+    if (!eventHandlers.has(id)) {
       return;
     }
 
@@ -172,29 +96,26 @@ export const listenToNotificationsRequests = (): void => {
       },
     });
 
-    const clickEvent = new CustomEvent('click');
-    notifications.get(id).dispatchEvent(clickEvent);
+    eventHandlers.get(id)({ type: 'click' });
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_REPLIED, (action) => {
     const { payload: { id, reply } } = action;
 
-    if (!notifications.has(id)) {
+    if (!eventHandlers.has(id)) {
       return;
     }
 
-    const replyEvent = new CustomEvent<{ reply: string }>('reply', { detail: { reply } });
-    notifications.get(id).dispatchEvent(Object.assign(replyEvent, { response: reply }));
+    eventHandlers.get(id)({ type: 'reply', detail: { reply } });
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_ACTIONED, (action) => {
     const { payload: { id, index } } = action;
 
-    if (!notifications.has(id)) {
+    if (!eventHandlers.has(id)) {
       return;
     }
 
-    const actionEvent = new CustomEvent<{ index: number }>('action', { detail: { index } });
-    notifications.get(id).dispatchEvent(actionEvent);
+    eventHandlers.get(id)({ type: 'action', detail: { index } });
   });
 };

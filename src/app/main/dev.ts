@@ -1,6 +1,5 @@
 import path from 'path';
 
-import chokidar from 'chokidar';
 import { app, WebContents } from 'electron';
 
 export const setUserDataDirectory = (): void => {
@@ -11,7 +10,8 @@ export const setUserDataDirectory = (): void => {
   app.setPath('userData', path.join(app.getPath('appData'), `${ app.name } (development)`));
 };
 
-export const setupRootWindowReload = (webContents: WebContents): void => {
+export const setupRootWindowReload = async (webContents: WebContents): Promise<void> => {
+  const chokidar = await import('chokidar');
   chokidar.watch(path.join(app.getAppPath(), 'app/rootWindow.js'), {
     awaitWriteFinish: true,
   }).on('change', () => {
@@ -24,7 +24,8 @@ export const setupRootWindowReload = (webContents: WebContents): void => {
   });
 };
 
-export const setupPreloadReload = (webContents: WebContents): void => {
+export const setupPreloadReload = async (webContents: WebContents): Promise<void> => {
+  const chokidar = await import('chokidar');
   chokidar.watch(path.join(app.getAppPath(), 'app/preload.js'), {
     awaitWriteFinish: true,
   }).on('change', () => {

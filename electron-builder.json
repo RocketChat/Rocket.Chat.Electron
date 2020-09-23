@@ -61,7 +61,8 @@
   },
   "win": {
     "target": [
-      "nsis"
+      "nsis",
+      "msi"
     ],
     "icon": "build/icon.ico",
     "publisherName": "Sectigo RSA Code Signing CA"
@@ -71,6 +72,9 @@
     "perMachine": false,
     "allowElevation": true,
     "allowToChangeInstallationDirectory": true,
+    "artifactName": "rocketchat-setup-${version}.${ext}"
+  },
+  "msi": {
     "artifactName": "rocketchat-setup-${version}.${ext}"
   },
   "appx": {

@@ -6,7 +6,9 @@ import {
   nativeImage,
   screen,
   Rectangle,
+  NativeImage,
 } from 'electron';
+import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
 import { setupRootWindowReload } from '../../app/main/dev';
@@ -183,17 +185,23 @@ export const setupRootWindow = (): void => {
 
       rootWindow.setIcon(icon);
 
-      if (process.platform === 'win32' && rootWindowIcon.overlay) {
-        const overlayIcon = nativeImage.createEmpty();
+      if (process.platform === 'win32') {
+        let overlayIcon: NativeImage = null;
+        const overlayDescription = (typeof globalBadge === 'number' && i18next.t('unreadMention', { appName: app.name, count: globalBadge }))
+          || (globalBadge === '•' && i18next.t('unreadMessage', { appName: app.name }))
+          || i18next.t('noUnreadMessage', { appName: app.name });
+        if (rootWindowIcon.overlay) {
+          overlayIcon = nativeImage.createEmpty();
 
-        rootWindowIcon.overlay.forEach((representation) => {
-          overlayIcon.addRepresentation({
-            ...representation,
-            scaleFactor: 1,
+          rootWindowIcon.overlay.forEach((representation) => {
+            overlayIcon.addRepresentation({
+              ...representation,
+              scaleFactor: 1,
+            });
           });
-        });
+        }
 
-        rootWindow.setOverlayIcon(overlayIcon, globalBadge ? String(globalBadge) : '');
+        rootWindow.setOverlayIcon(overlayIcon, overlayDescription);
       }
     });
   }

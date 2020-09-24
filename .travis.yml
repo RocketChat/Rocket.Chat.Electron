@@ -13,12 +13,14 @@ jobs:
           - rpm
     deploy:
       - provider: snap
+        skip_cleanup: true
         cleanup: false
         snap: dist/*.snap
         channel: beta
         on:
           branch: develop
       - provider: snap
+        skip_cleanup: true
         cleanup: false
         snap: dist/*.snap
         channel: stable

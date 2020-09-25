@@ -141,12 +141,23 @@ const manageTrayIcon = async (): Promise<() => void> => {
 export const setupTrayIcon = (): void => {
   let tearDownPromise: Promise<() => void> = null;
 
-  watch(({ isTrayIconEnabled }) => isTrayIconEnabled ?? true, (isTrayIconEnabled) => {
-    if (!tearDownPromise && isTrayIconEnabled) {
-      tearDownPromise = manageTrayIcon();
-    } else if (tearDownPromise && !isTrayIconEnabled) {
-      tearDownPromise.then((cleanUp) => cleanUp());
+  const unsubscribers = [
+    watch(({ isTrayIconEnabled }) => isTrayIconEnabled ?? true, (isTrayIconEnabled) => {
+      if (!tearDownPromise && isTrayIconEnabled) {
+        tearDownPromise = manageTrayIcon();
+      } else if (tearDownPromise && !isTrayIconEnabled) {
+        tearDownPromise.then((cleanUp) => cleanUp());
+        tearDownPromise = null;
+      }
+    }),
+    () => {
+      tearDownPromise?.then((cleanUp) => cleanUp());
       tearDownPromise = null;
-    }
+    },
+  ];
+
+  app.addListener('before-quit', () => {
+    console.log('trayIcon/app/before-quit');
+    unsubscribers.forEach((unsubscriber) => unsubscriber());
   });
 };

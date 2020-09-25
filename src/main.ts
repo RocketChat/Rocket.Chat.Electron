@@ -17,7 +17,7 @@ import { setupScreenSharing } from './screenSharing/main';
 import { setupServers } from './servers/main';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
-import { setupDock } from './ui/main/dock';
+import dock from './ui/main/dock';
 import { setupMenuBar } from './ui/main/menuBar';
 import {
   createRootWindow,
@@ -32,6 +32,8 @@ import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
 
 const start = async (): Promise<void> => {
+  app.on('before-quit', () => console.log('before-quit'));
+
   setUserDataDirectory();
   setupMainErrorHandling();
   performElectronStartup();
@@ -67,12 +69,15 @@ const start = async (): Promise<void> => {
   setupPowerMonitor();
   await setupUpdates();
 
-  setupDock();
+  dock.setUp();
   setupMenuBar();
   setupRootWindow();
   setupTouchBar();
-
   setupTrayIcon();
+
+  app.addListener('before-quit', () => {
+    dock.tearDown();
+  });
 
   applyMainWindowState();
 

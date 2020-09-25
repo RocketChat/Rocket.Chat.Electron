@@ -47,16 +47,6 @@ export const setupApp = (): void => {
     rootWindow.focus();
   });
 
-  app.addListener('before-quit', () => {
-    const rootWindow = getRootWindow();
-
-    if (rootWindow.isDestroyed()) {
-      return;
-    }
-
-    rootWindow.destroy();
-  });
-
   app.addListener('second-instance', () => {
     const rootWindow = getRootWindow();
 
@@ -64,9 +54,7 @@ export const setupApp = (): void => {
     rootWindow.focus();
   });
 
-  app.addListener('window-all-closed', () => {
-    app.quit();
-  });
+  app.addListener('window-all-closed', (): void => undefined);
 
   dispatch({ type: APP_PATH_SET, payload: app.getAppPath() });
   dispatch({ type: APP_VERSION_SET, payload: app.getVersion() });

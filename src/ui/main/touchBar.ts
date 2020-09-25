@@ -119,18 +119,25 @@ export const setupTouchBar = (): void => {
     messageBoxFormattingButtons,
   ] = createTouchBar();
 
-  watch(selectCurrentServer, (currentServer) => {
-    updateServerSelectionPopover(serverSelectionPopover, currentServer);
-    getRootWindow().setTouchBar(touchBar);
-  });
+  const unsubscribers = [
+    watch(selectCurrentServer, (currentServer) => {
+      updateServerSelectionPopover(serverSelectionPopover, currentServer);
+      getRootWindow().setTouchBar(touchBar);
+    }),
 
-  watch(({ servers }) => servers, (servers) => {
-    updateServerSelectionScrubber(serverSelectionScrubber, servers);
-    getRootWindow().setTouchBar(touchBar);
-  });
+    watch(({ servers }) => servers, (servers) => {
+      updateServerSelectionScrubber(serverSelectionScrubber, servers);
+      getRootWindow().setTouchBar(touchBar);
+    }),
 
-  watch(({ isMessageBoxFocused }) => isMessageBoxFocused ?? false, (isMessageBoxFocused) => {
-    toggleMessageFormattingButtons(messageBoxFormattingButtons, isMessageBoxFocused);
-    getRootWindow().setTouchBar(touchBar);
+    watch(({ isMessageBoxFocused }) => isMessageBoxFocused ?? false, (isMessageBoxFocused) => {
+      toggleMessageFormattingButtons(messageBoxFormattingButtons, isMessageBoxFocused);
+      getRootWindow().setTouchBar(touchBar);
+    }),
+  ];
+
+  app.addListener('before-quit', () => {
+    console.log('touchBar/app/before-quit');
+    unsubscribers.forEach((unsubscriber) => unsubscriber());
   });
 };

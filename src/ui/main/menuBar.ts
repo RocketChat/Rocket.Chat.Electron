@@ -480,16 +480,23 @@ const selectMenuBarTemplateAsJson = createSelector(
 );
 
 export const setupMenuBar = (): void => {
-  watch(selectMenuBarTemplateAsJson, () => {
-    const menuBarTemplate = select(selectMenuBarTemplate);
-    const menu = Menu.buildFromTemplate(menuBarTemplate);
+  const unsubscribers = [
+    watch(selectMenuBarTemplateAsJson, () => {
+      const menuBarTemplate = select(selectMenuBarTemplate);
+      const menu = Menu.buildFromTemplate(menuBarTemplate);
 
-    if (process.platform === 'darwin') {
-      Menu.setApplicationMenu(menu);
-      return;
-    }
+      if (process.platform === 'darwin') {
+        Menu.setApplicationMenu(menu);
+        return;
+      }
 
-    Menu.setApplicationMenu(null);
-    getRootWindow().setMenu(menu);
+      Menu.setApplicationMenu(null);
+      getRootWindow().setMenu(menu);
+    }),
+  ];
+
+  app.addListener('before-quit', () => {
+    console.log('menuBar/app/before-quit');
+    unsubscribers.forEach((unsubscriber) => unsubscriber());
   });
 };

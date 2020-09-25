@@ -61,16 +61,40 @@
   },
   "win": {
     "target": [
-      "nsis"
+      "nsis",
+      "msi"
     ],
     "icon": "build/icon.ico",
-    "publisherName": "Sectigo RSA Code Signing CA"
+    "publisherName": "Sectigo RSA Code Signing CA",
+		"legalTrademarks": "",
+		"verifyUpdateCodeSignature": true,
+		"requestedExecutionLevel": "asInvoker",
+		"signAndEditExecutable": true,
+		"signDlls": false
   },
   "nsis": {
     "oneClick": false,
     "perMachine": false,
     "allowElevation": true,
     "allowToChangeInstallationDirectory": true,
+    "installerIcon": "build/installerIcon.ico",
+		"uninstallerIcon": "build/uninstallerIcon.ico",
+		"installerSidebar": "build/installerSidebar.bmp",
+		"uninstallerSidebar": "build/uninstallerSidebar.bmp",
+		"uninstallDisplayName": "${productName} ${version}",
+		"include": "build/installer.nsh",
+		"license": "LICENSE",
+		"artifactName": "rocketchat-setup-${version}.${ext}",
+		"deleteAppDataOnUninstall": false,
+		"displayLanguageSelector": false,
+		"unicode": true,
+		"warningsAsErrors": true,
+		"runAfterFinish": true,
+		"createDesktopShortcut": "always",
+		"createStartMenuShortcut": true,
+		"menuCategory": false
+  },
+  "msi": {
     "artifactName": "rocketchat-setup-${version}.${ext}"
   },
   "appx": {

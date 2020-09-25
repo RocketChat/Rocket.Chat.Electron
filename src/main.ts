@@ -10,7 +10,7 @@ import {
 import { setUserDataDirectory, installDevTools } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { setupMainErrorHandling } from './errors';
-import { setupI18n } from './i18n/main';
+import i18n from './i18n/main';
 import { setupNavigation } from './navigation/main';
 import { setupNotifications } from './notifications/main';
 import { setupScreenSharing } from './screenSharing/main';
@@ -40,7 +40,9 @@ const start = async (): Promise<void> => {
 
   await app.whenReady();
 
-  await setupI18n();
+  i18n.setUp();
+
+  await i18n.wait();
 
   if (process.env.NODE_ENV === 'development') {
     installDevTools();

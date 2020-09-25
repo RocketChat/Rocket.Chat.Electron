@@ -5,7 +5,6 @@ import { ipcRenderer, remote, clipboard } from 'electron';
 
 import { formatBytes, STATUS, DOWNLOAD_EVENT } from '../DownloadsManagerView/downloadUtils';
 import Extended from './Extended';
-import Compact from './Compact';
 
 
 // Recieve props for individual download item
@@ -84,8 +83,6 @@ export default function DownloadItem({
 	});
 
 	const handlePause = useMutableCallback(() => {
-		console.log('paused');
-		console.log(percentage);
 		setStatus(STATUS.PAUSED);
 		ipcRenderer.send(DOWNLOAD_EVENT.PAUSE_ID.concat(itemId));
 		updateDownloads({ status: STATUS.PAUSED, percentage, itemId });
@@ -106,26 +103,7 @@ export default function DownloadItem({
 	const handleCopyLink = useMutableCallback(() => clipboard.write({ text: url }));
 
 
-	return props.layout === 'compact' ? <Compact
-		serverTitle={ serverTitle }
-		mime={ mime.split('/')[1] }
-		date={ date }
-		status={ status }
-		fileName={ fileName }
-		fileSize={ fileSize }
-		mbps={ mbps }
-		kbps={ kbps }
-		percentage={ percentage }
-		isCompleted={ completed }
-		isPaused={ paused }
-		isCancelled={ status === STATUS.CANCELLED }
-		handleFileOpen={ handleFileOpen }
-		handleCopyLink={ handleCopyLink }
-		handlePause={ handlePause }
-		handleCancel={ handleCancel }
-		handleRetry={ handleRetry }
-		handleDelete={ handleDelete }
-		mb={ props.mb } /> : <Extended
+	return <Extended
 		thumbnail={ thumbnail }
 		serverTitle={ serverTitle }
 		mime={ mime.split('/')[1] }

@@ -1,6 +1,6 @@
-import { Box, Grid, SearchInput, Select, Icon, Button, Tabs } from '@rocket.chat/fuselage';
+import { Box, Grid, SearchInput, Select, Icon, Button, Pagination, Divider } from '@rocket.chat/fuselage';
 import { useLocalStorage, useMutableCallback } from '@rocket.chat/fuselage-hooks';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { ipcRenderer, shell } from 'electron';
@@ -13,9 +13,12 @@ import WarningModal from '../DownloadsComponents/WarningModal';
 export function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
 	const servers = useSelector(({ servers }) => servers);
-	const serverOptions = [[1, 'All']];
-	servers.map((server, index) => serverOptions.push([index + 2, server.title]));
-	const fileTypes = [[1, 'All'], [2, 'Images'], [3, 'Videos'], [4, 'Audios'], [5, 'Texts'], [6, 'Files']];
+	const serverOptions = [['all', 'All']];
+	servers.map((server) => serverOptions.push([server.title, server.title]));
+	const fileTypes = [['all', 'All'], ['images', 'Images'], ['videos', 'Videos'], ['audios', 'Audios'], ['text', 'Texts'], ['files', 'Files']];
+	const fileStatus = [[STATUS.ALL, 'All'], [STATUS.PAUSED, 'Paused'], [STATUS.CANCELLED, 'Cancelled']];
+	const { t } = useTranslation();
+
 
 	// Downloads Array
 	const [downloads, setDownloads] = useState([]);
@@ -25,43 +28,28 @@ export function DownloadsManagerView() {
 	const [searchVal, setSearchVal] = useState('');
 	const [serverVal, setServerVal] = useLocalStorage('download-server', '');
 	const [typeVal, setTypeVal] = useLocalStorage('download-type', '');
-	const [layout, setLayout] = useLocalStorage('download-layout', 'expanded');
-	let timeHeading;
+	const [currentPagination, setCurrentPagination] = useState(0);
+	const [itemsPerPage, setItemsPerPage] = useState(25);
 
 	const handleFileOpen = useMutableCallback((path) => {
 		shell.showItemInFolder(path);
 	});
 
 	const handleTabChange = useMutableCallback((event) => {
-		if (tab !== event.target.innerText) {
-			setTab(event.target.innerText);
-		}
-	});
-
-	const handleLayout = useMutableCallback(() => {
-		if (layout === 'compact') {
-			setLayout('expanded');
-		} else {
-			setLayout('compact');
-		}
+		setTab(event);
 	});
 
 	const handleSearch = useMutableCallback((event) => {
-		if (event.target.value !== searchVal) {
-			setSearchVal(event.target.value);
-		}
+		setSearchVal(event.target.value);
 	});
 
-	const handleServerFilter = useMutableCallback((index) => {
-		if (serverOptions[index - 1][1] !== serverVal) {
-			setServerVal(serverOptions[index - 1][1]);
-		}
+	const handleServerFilter = useMutableCallback((event) => {
+		setServerVal(event);
 	});
 
-	const handleMimeFilter = useMutableCallback((index) => {
-		if (fileTypes[index - 1][1] !== typeVal) {
-			setTypeVal(fileTypes[index - 1][1]);
-		}
+	const handleMimeFilter = useMutableCallback((event) => {
+		setTypeVal(event);
+
 	});
 
 
@@ -84,17 +72,11 @@ export function DownloadsManagerView() {
 	}, [setModal]);
 
 	const handleClearAll = useCallback(() => {
-		const clearAll = () => {
-			closeModal();
-			ipcRenderer.send('reset');
-		};
-		setModal(<WarningModal
-			close={ closeModal }
-			confirm={ clearAll }
-			text={ 'Remove All Downloads?' }
-			confirmText={ 'Yes' }
-		/>);
-	}, [closeModal]);
+		setSearchVal('');
+		setTypeVal('');
+		setServerVal('');
+		setTab('')
+	}, []);
 
 
 	const handleClear = useCallback((itemId, isRetry) => {
@@ -156,83 +138,66 @@ export function DownloadsManagerView() {
 		};
 	});
 
+	const showingResultsLabel = useCallback(({ count, current, itemsPerPage }) => `Showing results ${current + 1} - ${ Math.min(current + itemsPerPage, count)} of ${count}`, []);
 
 	const filteredDownloads = useMemo(() => {
 		const searchRegex = searchVal && new RegExp(`${ searchVal }`, 'gi');
-		return downloads.filter((download) => (!searchRegex || searchRegex.test(download.fileName)) && (tab === STATUS.ALL || download.status === tab) && (!serverVal || serverVal === 'All' || serverVal === download.serverTitle) && (!typeVal || typeVal === 'All' || mapping[download.mime.split('/')[0]] === typeVal)).sort((a, b) => b.itemId - a.itemId);
+		return downloads.filter((download) => (!searchRegex || searchRegex.test(download.fileName)) && (!tab || tab === STATUS.ALL || download.status === tab) && (!serverVal || serverVal === 'all' || serverVal === download.serverTitle) && (!typeVal || typeVal === 'all' || mapping[download.mime.split('/')[0]] === typeVal)).sort((a, b) => b.itemId - a.itemId);
 	}, [searchVal, downloads, tab, serverVal, typeVal]);
-
 
 	return <>
 		<Wrapper isVisible={ isVisible }>
-			<Box p='x24'>
+			<Box
+			minHeight='x64'
+			paddingBlock='x16'
+			paddingInline='x162'
+			display='flex'
+			flexDirection='row'
+			flexWrap='nowrap'
+			alignItems='center'
+			color='neutral-800'
+			>
+				<Box is='h1' fontScale='h1' flexGrow={1}>{t('Downloads')}</Box>
+			</Box>
+			<Divider></Divider>
+			<Box paddingInline='x162'>
 
-				<Grid xl={ true } >
-					<Grid.Item xl={ 10 }>
-						<Box>
-							<Box fontSize='x32' lineHeight='2'>Downloads</Box>
-							<Box fontSize='x20' lineHeight='2' color='info'>See all your downloads here</Box>
-						</Box>
-					</Grid.Item>
-
-					<Grid.Item xl={ 12 }>
-						<Tabs>
-							<Tabs.Item selected={ tab === STATUS.ALL } onClick={ handleTabChange }>All</Tabs.Item>
-							<Tabs.Item selected={ tab === STATUS.PAUSED } onClick={ handleTabChange }>Paused</Tabs.Item>
-							<Tabs.Item selected={ tab === STATUS.CANCELLED } onClick={ handleTabChange }>Cancelled</Tabs.Item>
-						</Tabs>
-					</Grid.Item>
-
-					<Grid.Item xl={ 12 } style={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
-						<Grid.Item xl={ 3 } sm={ 2 } >
-							<SearchInput width='150px' onChange={ handleSearch } placeholder='Search' addon={ <Icon name='send' size='x20' /> } />
-						</Grid.Item>
-
-						<Grid.Item xl={ 3 } sm={ 2 } >
-							<Select width='100%' onChange={ handleServerFilter } placeholder='Filter by Server' options={ serverOptions } />
-
-						</Grid.Item>
-
-						<Grid.Item xl={ 2 } sm={ 2 } >
-							<Select width='100%' onChange={ handleMimeFilter } placeholder='Filter by File type' options={ fileTypes } />
-						</Grid.Item>
-
-						<Grid.Item xl={ 1 } sm={ 1 } >
-							<Box width='100%' textAlign='end'>
-								<Button ghost onClick={ handleLayout }>
-									<Icon name={ layout === 'compact' ? 'extended-view' : 'condensed-view' } size='x32' title='Change Downloads View' />
-								</Button>
-							</Box>
-
-						</Grid.Item>
-
-						<Grid.Item xl={ 1 } sm={ 1 } className='tooltip' >
-							<Button ghost onClick={ handleClearAll }>
-								<Icon name='trash' size='x32' title='Remove All' />
-							</Button>
-						</Grid.Item>
-					</Grid.Item>
-
+				<Box display='flex' justifyContent='space-between' alignItems='center' mb='x40' height='x40'>
+					<Box display='flex' mie='x8' width='35%' >
+						<SearchInput value={searchVal} onChange={ handleSearch } placeholder='Search' addon={ <Icon color='neutral-700' name='magnifier' size='x20' /> } />
+					</Box>
+					<Select mie='x8' width='20%' value={serverVal} onChange={ handleServerFilter } placeholder='Filter by Server' options={ serverOptions } />
+					<Select mie='x8' width='20%' value={typeVal} onChange={ handleMimeFilter } placeholder='Filter by File type' options={ fileTypes } />
+					<Select mie='x8' width='20%' value={tab} onChange={ handleTabChange } placeholder='Filter by File Status' options={ fileStatus } />
+					<Box display='flex'>
+						<Button small ghost onClick={ handleClearAll }>
+							<Icon color='neutral-700' name='trash' size='x24' title='Clear Filters' />
+						</Button>
+					</Box>
+				</Box>
+				<Grid xl={ true } maxHeight='75vh' overflowY='scroll' >
 					<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
 						{/* Download Item List */ }
-						{ filteredDownloads.map((downloadItem) => {
+						{ filteredDownloads.slice(currentPagination, currentPagination + itemsPerPage).map((downloadItem) => {
 							// Condition for Data Headings
-							if (!timeHeading) {
-								timeHeading = new Date(downloadItem.itemId).toDateString();
-							} else if (timeHeading === new Date(downloadItem.itemId).toDateString()) {
-								return <DownloadItem mb='x16' { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ handleClear } />;
-							}
-							timeHeading = new Date(downloadItem.itemId).toDateString();
 							return (
 								<>
-									{ <Box fontSize='x16' color='info' alignSelf='start'>{ timeHeading }</Box>}
-									<DownloadItem mb='x16' { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } layout={ layout } handleFileOpen={ handleFileOpen } clear={ handleClear } />
+									<DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } handleFileOpen={ handleFileOpen } clear={ handleClear } />
 								</>
 							);
 						}) }
 					</Grid.Item>
-
 				</Grid>
 			</Box>
+			<Pagination
+					divider
+					paddingInline='x162'
+					current={currentPagination}
+					itemsPerPage={itemsPerPage}
+					showingResultsLabel={showingResultsLabel}
+					count={(filteredDownloads && filteredDownloads.length) || 0}
+					onSetItemsPerPage={setItemsPerPage}
+					onSetCurrent={setCurrentPagination}
+				/>
 		</Wrapper>{ modal }</>;
 }

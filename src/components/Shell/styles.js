@@ -49,4 +49,5 @@ export const ViewsWrapper = styled.div`
 	position: relative;
 	flex: 1 0 auto;
 	align-self: stretch;
+	max-width: 100%;
 `;

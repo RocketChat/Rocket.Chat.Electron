@@ -1,12 +1,14 @@
 import { Box, Button } from '@rocket.chat/fuselage';
 import React, { useMemo } from 'react';
 import { Progress as SweetProgress } from 'react-sweet-progress';
+import { ClickableLink } from './styles';
+
 
 import 'react-sweet-progress/lib/style.css';
 
-export const Info = (props) => <Box fontSize='s1' color='info' { ...props } />;
+export const Info = (props) => <Box fontSize='x12' withTruncatedText color='neutral-600' { ...props } />;
 
-export const ActionButton = (props) => <Button color='primary-500' small ghost { ...props } />;
+export const ActionButton = (props) => <ClickableLink fontSize='x12' withTruncatedText color='neutral-600' { ...props } />;
 
 export const Progress = ({ percent, status, ...props }) => <Box flexGrow={ 1 } { ...props }><SweetProgress theme={ useMemo(() => ({ All: { color: '#2F80ED' }, Cancelled: { color: '#f5455c' }, Paused: { color: '#f3be08' }, Success: { color: '#19ac7c' } }), []) } percent={ percent } status = { status } /> </Box>;
 

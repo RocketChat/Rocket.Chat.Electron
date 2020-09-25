@@ -293,7 +293,6 @@ export const setupRootWindow = (): void => {
   }
 
   app.addListener('before-quit', () => {
-    console.log('rootWindow/app/before-quit');
     unsubscribers.forEach((unsubscriber) => unsubscriber());
   });
 };

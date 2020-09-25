@@ -18,22 +18,20 @@ import { setupServers } from './servers/main';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
 import dock from './ui/main/dock';
-import { setupMenuBar } from './ui/main/menuBar';
+import menuBar from './ui/main/menuBar';
 import {
   createRootWindow,
   setupRootWindow,
   applyMainWindowState,
   showRootWindow,
 } from './ui/main/rootWindow';
-import { setupTouchBar } from './ui/main/touchBar';
-import { setupTrayIcon } from './ui/main/trayIcon';
+import touchBar from './ui/main/touchBar';
+import trayIcon from './ui/main/trayIcon';
 import { attachGuestWebContentsEvents } from './ui/main/webviews';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
 
 const start = async (): Promise<void> => {
-  app.on('before-quit', () => console.log('before-quit'));
-
   setUserDataDirectory();
   setupMainErrorHandling();
   performElectronStartup();
@@ -70,13 +68,16 @@ const start = async (): Promise<void> => {
   await setupUpdates();
 
   dock.setUp();
-  setupMenuBar();
+  menuBar.setUp();
+  touchBar.setUp();
+  trayIcon.setUp();
   setupRootWindow();
-  setupTouchBar();
-  setupTrayIcon();
 
   app.addListener('before-quit', () => {
     dock.tearDown();
+    menuBar.tearDown();
+    touchBar.tearDown();
+    trayIcon.tearDown();
   });
 
   applyMainWindowState();

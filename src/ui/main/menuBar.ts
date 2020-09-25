@@ -4,7 +4,7 @@ import { createSelector, createStructuredSelector } from 'reselect';
 
 import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
-import { dispatch, select, watch } from '../../store';
+import { dispatch, select, Service } from '../../store';
 import { RootState } from '../../store/rootReducer';
 import {
   MENU_BAR_ABOUT_CLICKED,
@@ -479,9 +479,9 @@ const selectMenuBarTemplateAsJson = createSelector(
   (template: unknown) => JSON.stringify(template),
 );
 
-export const setupMenuBar = (): void => {
-  const unsubscribers = [
-    watch(selectMenuBarTemplateAsJson, () => {
+class MenuBarService extends Service {
+  protected initialize(): void {
+    this.watch(selectMenuBarTemplateAsJson, () => {
       const menuBarTemplate = select(selectMenuBarTemplate);
       const menu = Menu.buildFromTemplate(menuBarTemplate);
 
@@ -492,11 +492,8 @@ export const setupMenuBar = (): void => {
 
       Menu.setApplicationMenu(null);
       getRootWindow().setMenu(menu);
-    }),
-  ];
+    });
+  }
+}
 
-  app.addListener('before-quit', () => {
-    console.log('menuBar/app/before-quit');
-    unsubscribers.forEach((unsubscriber) => unsubscriber());
-  });
-};
+export default new MenuBarService();

@@ -2,7 +2,7 @@ import { app, nativeTheme, Menu, Tray } from 'electron';
 import i18next from 'i18next';
 
 import { Server } from '../../servers/common';
-import { watch, select } from '../../store';
+import { watch, select, Service } from '../../store';
 import { RootState } from '../../store/rootReducer';
 import { selectGlobalBadge } from '../selectors';
 import { getTrayIconPath, getAppIconPath } from './icons';
@@ -138,26 +138,24 @@ const manageTrayIcon = async (): Promise<() => void> => {
   };
 };
 
-export const setupTrayIcon = (): void => {
-  let tearDownPromise: Promise<() => void> = null;
+class TrayIconService extends Service {
+  private tearDownPromise: Promise<() => void> = null
 
-  const unsubscribers = [
-    watch(({ isTrayIconEnabled }) => isTrayIconEnabled ?? true, (isTrayIconEnabled) => {
-      if (!tearDownPromise && isTrayIconEnabled) {
-        tearDownPromise = manageTrayIcon();
-      } else if (tearDownPromise && !isTrayIconEnabled) {
-        tearDownPromise.then((cleanUp) => cleanUp());
-        tearDownPromise = null;
+  protected initialize(): void {
+    this.watch(({ isTrayIconEnabled }) => isTrayIconEnabled ?? true, (isTrayIconEnabled) => {
+      if (!this.tearDownPromise && isTrayIconEnabled) {
+        this.tearDownPromise = manageTrayIcon();
+      } else if (this.tearDownPromise && !isTrayIconEnabled) {
+        this.tearDownPromise.then((cleanUp) => cleanUp());
+        this.tearDownPromise = null;
       }
-    }),
-    () => {
-      tearDownPromise?.then((cleanUp) => cleanUp());
-      tearDownPromise = null;
-    },
-  ];
+    });
+  }
 
-  app.addListener('before-quit', () => {
-    console.log('trayIcon/app/before-quit');
-    unsubscribers.forEach((unsubscriber) => unsubscriber());
-  });
-};
+  protected destroy(): void {
+    this.tearDownPromise?.then((cleanUp) => cleanUp());
+    this.tearDownPromise = null;
+  }
+}
+
+export default new TrayIconService();

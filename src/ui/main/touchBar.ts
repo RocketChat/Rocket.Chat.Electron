@@ -9,7 +9,7 @@ import {
 import i18next from 'i18next';
 
 import { Server } from '../../servers/common';
-import { watch, select, dispatch } from '../../store';
+import { select, dispatch, Service } from '../../store';
 import { RootState } from '../../store/rootReducer';
 import {
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
@@ -107,37 +107,34 @@ const toggleMessageFormattingButtons = (messageBoxFormattingButtons: TouchBarSeg
 const selectCurrentServer = ({ servers, currentServerUrl }: RootState): Server =>
   servers.find(({ url }) => url === currentServerUrl);
 
-export const setupTouchBar = (): void => {
-  if (process.platform !== 'darwin') {
-    return;
-  }
+class TouchBarService extends Service {
+  protected initialize(): void {
+    if (process.platform !== 'darwin') {
+      return;
+    }
 
-  const [
-    touchBar,
-    serverSelectionPopover,
-    serverSelectionScrubber,
-    messageBoxFormattingButtons,
-  ] = createTouchBar();
+    const [
+      touchBar,
+      serverSelectionPopover,
+      serverSelectionScrubber,
+      messageBoxFormattingButtons,
+    ] = createTouchBar();
 
-  const unsubscribers = [
-    watch(selectCurrentServer, (currentServer) => {
+    this.watch(selectCurrentServer, (currentServer) => {
       updateServerSelectionPopover(serverSelectionPopover, currentServer);
       getRootWindow().setTouchBar(touchBar);
-    }),
+    });
 
-    watch(({ servers }) => servers, (servers) => {
+    this.watch(({ servers }) => servers, (servers) => {
       updateServerSelectionScrubber(serverSelectionScrubber, servers);
       getRootWindow().setTouchBar(touchBar);
-    }),
+    });
 
-    watch(({ isMessageBoxFocused }) => isMessageBoxFocused ?? false, (isMessageBoxFocused) => {
+    this.watch(({ isMessageBoxFocused }) => isMessageBoxFocused ?? false, (isMessageBoxFocused) => {
       toggleMessageFormattingButtons(messageBoxFormattingButtons, isMessageBoxFocused);
       getRootWindow().setTouchBar(touchBar);
-    }),
-  ];
+    });
+  }
+}
 
-  app.addListener('before-quit', () => {
-    console.log('touchBar/app/before-quit');
-    unsubscribers.forEach((unsubscriber) => unsubscriber());
-  });
-};
+export default new TouchBarService();

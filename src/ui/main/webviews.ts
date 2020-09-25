@@ -12,6 +12,7 @@ import {
   ipcMain,
   Menu,
   MenuItemConstructorOptions,
+  Session,
   session,
   shell,
   UploadBlob,
@@ -26,9 +27,7 @@ import i18next from 'i18next';
 import { setupPreloadReload } from '../../app/main/dev';
 import { isProtocolAllowed } from '../../navigation/main';
 import { Server } from '../../servers/common';
-import { Dictionary } from '../../spellChecking/common';
-import { importSpellCheckingDictionaries, getCorrectionsForMisspelling } from '../../spellChecking/main';
-import { dispatch, select, listen } from '../../store';
+import { dispatch, listen } from '../../store';
 import {
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
@@ -39,7 +38,6 @@ import {
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
 } from '../actions';
-import { browseForSpellCheckingDictionary } from './dialogs';
 
 const t = i18next.t.bind(i18next);
 
@@ -106,44 +104,43 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
   const handleContextMenu = async (event: Event, params: ContextMenuParams): Promise<void> => {
     event.preventDefault();
 
-    const dictionaries = select(({ spellCheckingDictionaries }) => spellCheckingDictionaries);
-
     type Params = Partial<ContextMenuParams> & {
-      corrections: string[];
-      dictionaries: Dictionary[];
+      availableSpellCheckerLanguages: Session['availableSpellCheckerLanguages'];
+      spellCheckerLanguages: ReturnType<Session['getSpellCheckerLanguages']>;
     };
 
     const createSpellCheckingMenuTemplate = ({
       isEditable,
-      corrections,
-      dictionaries,
+      dictionarySuggestions,
+      availableSpellCheckerLanguages,
+      spellCheckerLanguages,
     }: Params): MenuItemConstructorOptions[] => {
       if (!isEditable) {
         return [];
       }
 
       return [
-        ...corrections ? [
-          ...corrections.length === 0
+        ...dictionarySuggestions ? [
+          ...dictionarySuggestions.length === 0
             ? [
               {
                 label: t('contextMenu.noSpellingSuggestions'),
                 enabled: false,
               },
             ]
-            : corrections.slice(0, 6).map<MenuItemConstructorOptions>((correction) => ({
-              label: correction,
+            : dictionarySuggestions.slice(0, 6).map<MenuItemConstructorOptions>((dictionarySuggestion) => ({
+              label: dictionarySuggestion,
               click: () => {
-                guestWebContents.replaceMisspelling(correction);
+                guestWebContents.replaceMisspelling(dictionarySuggestion);
               },
             })),
-          ...corrections.length > 6 ? [
+          ...dictionarySuggestions.length > 6 ? [
             {
               label: t('contextMenu.moreSpellingSuggestions'),
-              submenu: corrections.slice(6).map<MenuItemConstructorOptions>((correction) => ({
-                label: correction,
+              submenu: dictionarySuggestions.slice(6).map<MenuItemConstructorOptions>((dictionarySuggestion) => ({
+                label: dictionarySuggestion,
                 click: () => {
-                  guestWebContents.replaceMisspelling(correction);
+                  guestWebContents.replaceMisspelling(dictionarySuggestion);
                 },
               })),
             },
@@ -152,27 +149,22 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
         ] as MenuItemConstructorOptions[] : [],
         {
           label: t('contextMenu.spellingLanguages'),
-          enabled: dictionaries.length > 0,
+          enabled: availableSpellCheckerLanguages.length > 0,
           submenu: [
-            ...dictionaries.map<MenuItemConstructorOptions>(({ name, enabled }) => ({
-              label: name,
+            ...availableSpellCheckerLanguages.map<MenuItemConstructorOptions>((availableSpellCheckerLanguage) => ({
+              label: availableSpellCheckerLanguage,
               type: 'checkbox',
-              checked: enabled,
+              checked: spellCheckerLanguages.includes(availableSpellCheckerLanguage),
               click: ({ checked }) => {
                 dispatch({
                   type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-                  payload: { name, enabled: checked },
+                  payload: {
+                    name: availableSpellCheckerLanguage,
+                    enabled: checked,
+                  },
                 });
               },
             })),
-            { type: 'separator' },
-            {
-              label: t('contextMenu.browseForLanguage'),
-              click: async () => {
-                const filePaths = await browseForSpellCheckingDictionary(rootWindow);
-                importSpellCheckingDictionaries(filePaths);
-              },
-            },
           ],
         },
         { type: 'separator' },
@@ -267,8 +259,8 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 
     const props = {
       ...params,
-      corrections: await getCorrectionsForMisspelling(params.selectionText),
-      dictionaries,
+      availableSpellCheckerLanguages: guestWebContents.session.availableSpellCheckerLanguages,
+      spellCheckerLanguages: guestWebContents.session.getSpellCheckerLanguages(),
     };
 
     const template = [

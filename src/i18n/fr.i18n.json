@@ -7,7 +7,6 @@
     "undo": "&Annuler",
     "redo": "&Rétablir",
     "spellingLanguages": "Langages",
-    "browseForLanguage": "Rechercher un langage ...",
     "moreSpellingSuggestions": "Plus de suggestions d'orthographe",
     "noSpellingSuggestions": "Pas de suggestions",
     "copyLinkAddress": "Copier le lien",
@@ -36,9 +35,6 @@
       "message": "Vous faites confiance au certificat de \"{{- issuerName}}\" ?",
       "yes": "Oui",
       "no": "No"
-    },
-    "loadDictionary": {
-      "title": "Ouvrir le dictionnaire"
     },
     "resetAppData": {
       "yes": "Oui",

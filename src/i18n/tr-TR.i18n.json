@@ -7,7 +7,6 @@
     "undo": "Geri al",
     "redo": "Yinele",
     "spellingLanguages": "Spelling languages",
-    "browseForLanguage": "Dil için gözat...",
     "moreSpellingSuggestions": "More spelling suggestions",
     "noSpellingSuggestions": "No suggestions",
     "copyLinkAddress": "Bağlantı adresini kopyala",
@@ -39,15 +38,6 @@
       "message": "\"{{- issuerName}}\" sertifikasına güvenmek istiyor musunuz?",
       "yes": "Evet",
       "no": "Hayır"
-    },
-    "loadDictionary": {
-      "title": "Dil sözlüğünü açın",
-      "dictionaries": "Sözlükler",
-      "allFiles": "Tüm dosyalar"
-    },
-    "loadDictionaryError": {
-      "title": "Hata",
-      "message": "Sözlük dosyası kopyalanırken hata oluştu: {{- message}}"
     },
     "resetAppData": {
       "title": "Uygulama verisini sıfırla",

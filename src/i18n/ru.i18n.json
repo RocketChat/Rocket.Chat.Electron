@@ -7,7 +7,6 @@
     "undo": "&Отменить",
     "redo": "&Повторить",
     "spellingLanguages": "Правописание",
-    "browseForLanguage": "Поиск языков...",
     "moreSpellingSuggestions": "Другие варианты написания",
     "noSpellingSuggestions": "Нет предложений",
     "copyLinkAddress": "Копировать ссылку",
@@ -37,12 +36,6 @@
       "message": "Вы доверяете сертификату от \"{{- issuerName}}\"?",
       "yes": "Да",
       "no": "Нет"
-    },
-    "loadDictionary": {
-      "title": "Открыть словарь"
-    },
-    "loadDictionaryError": {
-      "title": "Ошибка"
     },
     "resetAppData": {
       "message": "Это осуществит выход из всех Ваших команд и вернет настройки по умолчанию. Это действие невозможно отменить.",

@@ -59,11 +59,6 @@ export const watch = <T>(selector: Selector<T>, watcher: (curr: T, prev: T) => v
   });
 };
 
-export const watchAll = (pairs: [Selector<unknown>, (curr: unknown, prev: unknown) => void][]): (() => void) => {
-  const unsubscribers = pairs.map(([selector, watcher]) => watch(selector, watcher));
-  return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
-};
-
 export const listen = <T extends RootAction['type']>(
   predicate: T | ((action: ActionOf<T>) => boolean),
   listener: (action: ActionOf<T>) => void,
@@ -80,6 +75,39 @@ export const listen = <T extends RootAction['type']>(
     listener(lastAction as ActionOf<T>);
   });
 };
+
+export abstract class Service {
+  private unsubscribers = new Set<() => void>()
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  protected initialize(): void {}
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  protected destroy(): void {}
+
+  protected watch<T>(
+    selector: Selector<T>,
+    watcher: (curr: T, prev: T) => void,
+  ): void {
+    this.unsubscribers.add(watch(selector, watcher));
+  }
+
+  protected listen<T extends RootAction['type']>(
+    predicate: T | ((action: ActionOf<T>) => boolean),
+    listener: (action: ActionOf<T>) => void,
+  ): void {
+    this.unsubscribers.add(listen(predicate, listener));
+  }
+
+  public setUp(): void {
+    this.initialize();
+  }
+
+  public tearDown(): void {
+    this.unsubscribers.forEach((unsubscribe) => unsubscribe());
+    this.destroy();
+  }
+}
 
 export const request = <
   ReqT extends RootAction['type'],

@@ -142,96 +142,38 @@ const fetchRootWindowState = (): ReturnType<typeof selectMainWindowState> => ({
 });
 
 export const setupRootWindow = (): void => {
-  if (process.platform === 'linux' || process.platform === 'win32') {
-    watch(({ isMenuBarEnabled }) => isMenuBarEnabled, (isMenuBarEnabled) => {
-      rootWindow.autoHideMenuBar = !isMenuBarEnabled;
-      rootWindow.setMenuBarVisibility(isMenuBarEnabled);
-    });
-
-    const selectRootWindowIcon = createStructuredSelector<RootState, {
-      globalBadge: ReturnType<typeof selectGlobalBadge>;
-      rootWindowIcon: RootWindowIcon | undefined;
-    }>({
-      globalBadge: selectGlobalBadge,
-      rootWindowIcon: ({ rootWindowIcon }) => rootWindowIcon,
-    });
-
-    watch(selectRootWindowIcon, ({ globalBadge, rootWindowIcon }) => {
-      if (!rootWindowIcon) {
-        rootWindow.setIcon(getTrayIconPath({ badge: globalBadge }));
+  const unsubscribers = [
+    watch(selectGlobalBadgeCount, (globalBadgeCount) => {
+      if (rootWindow.isFocused() || globalBadgeCount === 0) {
         return;
       }
 
-      const icon = nativeImage.createEmpty();
-      const { scaleFactor } = screen.getPrimaryDisplay();
+      const isShowWindowOnUnreadChangedEnabled = select(({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled);
 
-      if (process.platform === 'linux') {
-        rootWindowIcon.icon.forEach((representation) => {
-          icon.addRepresentation({
-            ...representation,
-            scaleFactor,
-          });
-        });
+      if (isShowWindowOnUnreadChangedEnabled) {
+        rootWindow.showInactive();
+        return;
       }
 
       if (process.platform === 'win32') {
-        rootWindowIcon.icon.forEach((representation) => {
-          icon.addRepresentation({
-            ...representation,
-            scaleFactor: representation.width / 32,
-          });
-        });
+        rootWindow.flashFrame(true);
       }
+    }),
 
-      rootWindow.setIcon(icon);
+    watch(({
+      servers,
+      currentServerUrl,
+    }) => {
+      const currentServer = servers.find(({ url }) => url === currentServerUrl);
+      return (currentServer && currentServer.title) || app.name;
+    }, (windowTitle) => {
+      rootWindow.setTitle(windowTitle);
+    }),
 
-      if (process.platform === 'win32') {
-        let overlayIcon: NativeImage = null;
-        const overlayDescription = (typeof globalBadge === 'number' && i18next.t('unreadMention', { appName: app.name, count: globalBadge }))
-          || (globalBadge === '•' && i18next.t('unreadMessage', { appName: app.name }))
-          || i18next.t('noUnreadMessage', { appName: app.name });
-        if (rootWindowIcon.overlay) {
-          overlayIcon = nativeImage.createEmpty();
-
-          rootWindowIcon.overlay.forEach((representation) => {
-            overlayIcon.addRepresentation({
-              ...representation,
-              scaleFactor: 1,
-            });
-          });
-        }
-
-        rootWindow.setOverlayIcon(overlayIcon, overlayDescription);
-      }
-    });
-  }
-
-  watch(selectGlobalBadgeCount, (globalBadgeCount) => {
-    if (rootWindow.isFocused() || globalBadgeCount === 0) {
-      return;
-    }
-
-    const isShowWindowOnUnreadChangedEnabled = select(({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled);
-
-    if (isShowWindowOnUnreadChangedEnabled) {
-      rootWindow.showInactive();
-      return;
-    }
-
-    if (process.platform === 'win32') {
-      rootWindow.flashFrame(true);
-    }
-  });
-
-  watch(({
-    servers,
-    currentServerUrl,
-  }) => {
-    const currentServer = servers.find(({ url }) => url === currentServerUrl);
-    return (currentServer && currentServer.title) || app.name;
-  }, (windowTitle) => {
-    rootWindow.setTitle(windowTitle);
-  });
+    listen(WEBVIEW_FOCUS_REQUESTED, () => {
+      rootWindow.focus();
+    }),
+  ];
 
   const fetchAndDispatchWindowState = (): void => {
     dispatch({
@@ -277,10 +219,80 @@ export const setupRootWindow = (): void => {
       return;
     }
 
+    app.quit();
+  });
+
+  unsubscribers.push(() => {
+    rootWindow.removeAllListeners();
     rootWindow.destroy();
   });
 
-  listen(WEBVIEW_FOCUS_REQUESTED, () => {
-    rootWindow.focus();
+  if (process.platform === 'linux' || process.platform === 'win32') {
+    const selectRootWindowIcon = createStructuredSelector<RootState, {
+      globalBadge: ReturnType<typeof selectGlobalBadge>;
+      rootWindowIcon: RootWindowIcon | undefined;
+    }>({
+      globalBadge: selectGlobalBadge,
+      rootWindowIcon: ({ rootWindowIcon }) => rootWindowIcon,
+    });
+
+    unsubscribers.push(
+      watch(selectRootWindowIcon, ({ globalBadge, rootWindowIcon }) => {
+        if (!rootWindowIcon) {
+          rootWindow.setIcon(getTrayIconPath({ badge: globalBadge }));
+          return;
+        }
+
+        const icon = nativeImage.createEmpty();
+        const { scaleFactor } = screen.getPrimaryDisplay();
+
+        if (process.platform === 'linux') {
+          rootWindowIcon.icon.forEach((representation) => {
+            icon.addRepresentation({
+              ...representation,
+              scaleFactor,
+            });
+          });
+        }
+
+        if (process.platform === 'win32') {
+          rootWindowIcon.icon.forEach((representation) => {
+            icon.addRepresentation({
+              ...representation,
+              scaleFactor: representation.width / 32,
+            });
+          });
+        }
+
+        rootWindow.setIcon(icon);
+
+        if (process.platform === 'win32') {
+          let overlayIcon: NativeImage = null;
+          const overlayDescription = (typeof globalBadge === 'number' && i18next.t('unreadMention', { appName: app.name, count: globalBadge }))
+          || (globalBadge === '•' && i18next.t('unreadMessage', { appName: app.name }))
+          || i18next.t('noUnreadMessage', { appName: app.name });
+          if (rootWindowIcon.overlay) {
+            overlayIcon = nativeImage.createEmpty();
+
+            rootWindowIcon.overlay.forEach((representation) => {
+              overlayIcon.addRepresentation({
+                ...representation,
+                scaleFactor: 1,
+              });
+            });
+          }
+
+          rootWindow.setOverlayIcon(overlayIcon, overlayDescription);
+        }
+      }),
+      watch(({ isMenuBarEnabled }) => isMenuBarEnabled, (isMenuBarEnabled) => {
+        rootWindow.autoHideMenuBar = !isMenuBarEnabled;
+        rootWindow.setMenuBarVisibility(isMenuBarEnabled);
+      }),
+    );
+  }
+
+  app.addListener('before-quit', () => {
+    unsubscribers.forEach((unsubscriber) => unsubscriber());
   });
 };

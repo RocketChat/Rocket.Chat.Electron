@@ -4,7 +4,7 @@ import { createSelector, createStructuredSelector } from 'reselect';
 
 import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
-import { dispatch, select, watch } from '../../store';
+import { dispatch, select, Service } from '../../store';
 import { RootState } from '../../store/rootReducer';
 import {
   MENU_BAR_ABOUT_CLICKED,
@@ -479,17 +479,21 @@ const selectMenuBarTemplateAsJson = createSelector(
   (template: unknown) => JSON.stringify(template),
 );
 
-export const setupMenuBar = (): void => {
-  watch(selectMenuBarTemplateAsJson, () => {
-    const menuBarTemplate = select(selectMenuBarTemplate);
-    const menu = Menu.buildFromTemplate(menuBarTemplate);
+class MenuBarService extends Service {
+  protected initialize(): void {
+    this.watch(selectMenuBarTemplateAsJson, () => {
+      const menuBarTemplate = select(selectMenuBarTemplate);
+      const menu = Menu.buildFromTemplate(menuBarTemplate);
 
-    if (process.platform === 'darwin') {
-      Menu.setApplicationMenu(menu);
-      return;
-    }
+      if (process.platform === 'darwin') {
+        Menu.setApplicationMenu(menu);
+        return;
+      }
 
-    Menu.setApplicationMenu(null);
-    getRootWindow().setMenu(menu);
-  });
-};
+      Menu.setApplicationMenu(null);
+      getRootWindow().setMenu(menu);
+    });
+  }
+}
+
+export default new MenuBarService();

@@ -1,7 +1,7 @@
 import { app } from 'electron';
-import i18next from 'i18next';
+import i18next, { TFunction } from 'i18next';
 
-import { listen, dispatch } from '../store';
+import { dispatch, Service } from '../store';
 import { I18N_LNG_REQUESTED, I18N_LNG_RESPONDED } from './actions';
 import { interpolation, fallbackLng } from './common';
 import resources from './resources';
@@ -36,36 +36,51 @@ const getLng = async (): Promise<keyof typeof resources> => {
   return null;
 };
 
-export const setupI18n = async (): Promise<void> => {
-  await app.whenReady();
-  const lng = await getLng();
+class I18nService extends Service {
+  private async initializeAsync(): Promise<void> {
+    const lng = await getLng();
 
-  await i18next
-    .init({
-      lng,
-      fallbackLng,
-      resources: {
-        ...lng in resources && {
-          [lng]: {
-            translation: await resources[lng](),
+    this.t = await i18next
+      .init({
+        lng,
+        fallbackLng,
+        resources: {
+          ...lng in resources && {
+            [lng]: {
+              translation: await resources[lng](),
+            },
+          },
+          [fallbackLng]: {
+            translation: await resources[fallbackLng](),
           },
         },
-        [fallbackLng]: {
-          translation: await resources[fallbackLng](),
-        },
-      },
-      interpolation,
-      initImmediate: true,
-    });
+        interpolation,
+        initImmediate: true,
+      });
+  }
 
-  listen(I18N_LNG_REQUESTED, (action) => {
-    dispatch({
-      type: I18N_LNG_RESPONDED,
-      payload: hasLng(i18next.language) ? i18next.language : fallbackLng,
-      meta: {
-        response: true,
-        id: action.meta?.id,
-      },
+  private initialization: Promise<void>;
+
+  protected initialize(): void {
+    this.initialization = this.initializeAsync();
+
+    this.listen(I18N_LNG_REQUESTED, (action) => {
+      dispatch({
+        type: I18N_LNG_RESPONDED,
+        payload: hasLng(i18next.language) ? i18next.language : fallbackLng,
+        meta: {
+          response: true,
+          id: action.meta?.id,
+        },
+      });
     });
-  });
-};
+  }
+
+  public wait(): Promise<void> {
+    return this.initialization;
+  }
+
+  public t: TFunction = i18next.t.bind(i18next)
+}
+
+export default new I18nService();

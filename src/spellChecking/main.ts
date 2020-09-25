@@ -1,6 +1,6 @@
+import { session } from 'electron';
+
 import { dispatch, select, watch } from '../store';
-import { getRootWindow } from '../ui/main/rootWindow';
-import { getAllServerWebContents } from '../ui/main/webviews';
 import { SPELL_CHECKING_DICTIONARIES_LOADED } from './actions';
 import { Dictionary } from './common';
 
@@ -10,7 +10,7 @@ const loadSpellCheckingDictionaries = async (): Promise<Dictionary[]> => {
       .filter((spellCheckingDictionary) => spellCheckingDictionary.enabled)
       .map((spellCheckingDictionary) => spellCheckingDictionary.name),
   );
-  return getRootWindow().webContents.session.availableSpellCheckerLanguages.map((availableSpellCheckerLanguage) => ({
+  return session.defaultSession.availableSpellCheckerLanguages.map((availableSpellCheckerLanguage) => ({
     name: availableSpellCheckerLanguage,
     enabled: spellCheckerLanguages.includes(availableSpellCheckerLanguage),
   }));
@@ -31,11 +31,8 @@ const toggleDictionary = ({ name, enabled }: Dictionary): void => {
     spellCheckerLanguages.delete(name);
   }
 
-  getRootWindow().webContents.session.setSpellCheckerLanguages(Array.from(spellCheckerLanguages));
-  getAllServerWebContents().forEach((webContents) => {
-    webContents.session.setSpellCheckerLanguages(Array.from(spellCheckerLanguages));
-    console.log(webContents.session.getSpellCheckerLanguages());
-  });
+  session.defaultSession.setSpellCheckerLanguages(Array.from(spellCheckerLanguages));
+  session.fromPartition('persist:rocketchat-server').setSpellCheckerLanguages(Array.from(spellCheckerLanguages));
 };
 
 export const setupSpellChecking = async (): Promise<void> => {

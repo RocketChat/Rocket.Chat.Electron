@@ -2,7 +2,10 @@ import { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
 import { ActionOf } from '../store/actions';
-import { WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED } from '../ui/actions';
+import {
+  WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
+  WEBVIEW_SPELL_CHECKING_TOGGLED,
+} from '../ui/actions';
 import {
   SPELL_CHECKING_DICTIONARIES_LOADED,
 } from './actions';
@@ -12,6 +15,7 @@ type SpellCheckingDictionariesAction = (
   ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof SPELL_CHECKING_DICTIONARIES_LOADED>
   | ActionOf<typeof WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED>
+  | ActionOf<typeof WEBVIEW_SPELL_CHECKING_TOGGLED>
 );
 
 export const spellCheckingDictionaries: Reducer<Dictionary[], SpellCheckingDictionariesAction> = (state = [], action) => {
@@ -28,6 +32,13 @@ export const spellCheckingDictionaries: Reducer<Dictionary[], SpellCheckingDicti
 
         return enabled ? { ...dictionary, enabled: false } : dictionary;
       });
+    }
+
+    case WEBVIEW_SPELL_CHECKING_TOGGLED: {
+      return state.map(({ name }) => ({
+        name,
+        enabled: action.payload,
+      }));
     }
 
     case SPELL_CHECKING_DICTIONARIES_LOADED:

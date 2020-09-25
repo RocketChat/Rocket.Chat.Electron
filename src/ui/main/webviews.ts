@@ -29,14 +29,15 @@ import { isProtocolAllowed } from '../../navigation/main';
 import { Server } from '../../servers/common';
 import { dispatch, listen } from '../../store';
 import {
-  WEBVIEW_DID_NAVIGATE,
-  WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-  WEBVIEW_DID_START_LOADING,
-  WEBVIEW_DID_FAIL_LOAD,
-  WEBVIEW_ATTACHED,
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
+  WEBVIEW_ATTACHED,
+  WEBVIEW_DID_FAIL_LOAD,
+  WEBVIEW_DID_NAVIGATE,
+  WEBVIEW_DID_START_LOADING,
+  WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
+  WEBVIEW_SPELL_CHECKING_TOGGLED,
 } from '../actions';
 
 const t = i18next.t.bind(i18next);
@@ -120,7 +121,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
       }
 
       return [
-        ...dictionarySuggestions ? [
+        ...spellCheckerLanguages.length > 0 && dictionarySuggestions ? [
           ...dictionarySuggestions.length === 0
             ? [
               {
@@ -147,15 +148,17 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
           ] : [],
           { type: 'separator' },
         ] as MenuItemConstructorOptions[] : [],
-        {
-          label: t('contextMenu.spellingLanguages'),
-          enabled: availableSpellCheckerLanguages.length > 0,
-          submenu: [
-            ...availableSpellCheckerLanguages.map<MenuItemConstructorOptions>((availableSpellCheckerLanguage) => ({
-              label: availableSpellCheckerLanguage,
-              type: 'checkbox',
-              checked: spellCheckerLanguages.includes(availableSpellCheckerLanguage),
-              click: ({ checked }) => {
+        ...(process.platform === 'darwin' ? [
+          {
+            label: t('contextMenu.spelling'),
+            type: 'checkbox',
+            checked: spellCheckerLanguages.length > 0,
+            click: ({ checked }) => {
+              dispatch({
+                type: WEBVIEW_SPELL_CHECKING_TOGGLED,
+                payload: checked,
+              });
+              availableSpellCheckerLanguages.forEach((availableSpellCheckerLanguage) => {
                 dispatch({
                   type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
                   payload: {
@@ -163,10 +166,31 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
                     enabled: checked,
                   },
                 });
-              },
-            })),
-          ],
-        },
+              });
+            },
+          },
+        ] : [
+          {
+            label: t('contextMenu.spellingLanguages'),
+            enabled: availableSpellCheckerLanguages.length > 0,
+            submenu: [
+              ...availableSpellCheckerLanguages.map<MenuItemConstructorOptions>((availableSpellCheckerLanguage) => ({
+                label: availableSpellCheckerLanguage,
+                type: 'checkbox',
+                checked: spellCheckerLanguages.includes(availableSpellCheckerLanguage),
+                click: ({ checked }) => {
+                  dispatch({
+                    type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
+                    payload: {
+                      name: availableSpellCheckerLanguage,
+                      enabled: checked,
+                    },
+                  });
+                },
+              })),
+            ],
+          },
+        ]) as MenuItemConstructorOptions[],
         { type: 'separator' },
       ];
     };

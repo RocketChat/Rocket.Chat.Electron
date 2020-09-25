@@ -37,7 +37,6 @@ const getLng = async (): Promise<keyof typeof resources> => {
 };
 
 export const setupI18n = async (): Promise<void> => {
-  await app.whenReady();
   const lng = await getLng();
 
   await i18next

@@ -37,9 +37,10 @@ const start = async (): Promise<void> => {
   performElectronStartup();
 
   createMainReduxStore();
-  setupI18n();
 
   await app.whenReady();
+
+  await setupI18n();
 
   if (process.env.NODE_ENV === 'development') {
     installDevTools();

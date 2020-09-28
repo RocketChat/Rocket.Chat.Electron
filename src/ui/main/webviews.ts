@@ -27,6 +27,10 @@ import i18next from 'i18next';
 import { setupPreloadReload } from '../../app/main/dev';
 import { isProtocolAllowed } from '../../navigation/main';
 import { Server } from '../../servers/common';
+import {
+  SPELL_CHECKING_LANGUAGE_TOGGLED,
+  SPELL_CHECKING_TOGGLED,
+} from '../../spellChecking/actions';
 import { dispatch, listen } from '../../store';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
@@ -36,8 +40,6 @@ import {
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
-  WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-  WEBVIEW_SPELL_CHECKING_TOGGLED,
 } from '../actions';
 
 const t = i18next.t.bind(i18next);
@@ -155,17 +157,8 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
             checked: spellCheckerLanguages.length > 0,
             click: ({ checked }) => {
               dispatch({
-                type: WEBVIEW_SPELL_CHECKING_TOGGLED,
+                type: SPELL_CHECKING_TOGGLED,
                 payload: checked,
-              });
-              availableSpellCheckerLanguages.forEach((availableSpellCheckerLanguage) => {
-                dispatch({
-                  type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
-                  payload: {
-                    name: availableSpellCheckerLanguage,
-                    enabled: checked,
-                  },
-                });
               });
             },
           },
@@ -180,7 +173,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
                 checked: spellCheckerLanguages.includes(availableSpellCheckerLanguage),
                 click: ({ checked }) => {
                   dispatch({
-                    type: WEBVIEW_SPELL_CHECKING_DICTIONARY_TOGGLED,
+                    type: SPELL_CHECKING_LANGUAGE_TOGGLED,
                     payload: {
                       name: availableSpellCheckerLanguage,
                       enabled: checked,

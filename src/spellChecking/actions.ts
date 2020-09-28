@@ -1,9 +1,7 @@
-import { Dictionary } from './common';
-
-export const SPELL_CHECKING_DICTIONARIES_LOADED = 'spell-checking/dictionaries-loaded';
-export const SPELL_CHECKING_READY = 'spell-checking/ready';
+export const SPELL_CHECKING_TOGGLED = 'spell-checking/toggled';
+export const SPELL_CHECKING_LANGUAGE_TOGGLED = 'spell-checking/language-toggled';
 
 export type SpellCheckingActionTypeToPayloadMap = {
-  [SPELL_CHECKING_DICTIONARIES_LOADED]: Dictionary[];
-  [SPELL_CHECKING_READY]: never;
+  [SPELL_CHECKING_TOGGLED]: boolean;
+  [SPELL_CHECKING_LANGUAGE_TOGGLED]: { name: string; enabled: boolean };
 };

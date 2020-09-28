@@ -37,19 +37,6 @@ export const warnAboutInvalidServerUrl = (_serverUrl: string, _reason: string, _
   throw Error('not implemented');
 };
 
-export const browseForSpellCheckingDictionary = async (parentWindow: BrowserWindow): Promise<string[]> => {
-  const { filePaths } = await dialog.showOpenDialog(parentWindow, {
-    title: t('dialog.loadDictionary.title'),
-    filters: [
-      { name: t('dialog.loadDictionary.dictionaries'), extensions: ['dic', 'aff'] },
-      { name: t('dialog.loadDictionary.allFiles'), extensions: ['*'] },
-    ],
-    properties: ['openFile', 'multiSelections'],
-  });
-
-  return filePaths;
-};
-
 export const enum AskUpdateInstallResponse {
   INSTALL_LATER = 0,
   INSTALL_NOW = 1,

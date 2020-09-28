@@ -6,8 +6,8 @@
     "selectAll": "Select &all",
     "undo": "&Undo",
     "redo": "&Redo",
+    "spelling": "Spelling",
     "spellingLanguages": "Spelling languages",
-    "browseForLanguage": "Browse for language...",
     "moreSpellingSuggestions": "More spelling suggestions",
     "noSpellingSuggestions": "No suggestions",
     "copyLinkAddress": "Copy link address",
@@ -40,15 +40,6 @@
       "message": "Do you trust certificate from \"{{- issuerName}}\"?",
       "yes": "Yes",
       "no": "No"
-    },
-    "loadDictionary": {
-      "title": "Open Language Dictionary",
-      "dictionaries": "Dictionaries",
-      "allFiles": "All files"
-    },
-    "loadDictionaryError": {
-      "title": "Error",
-      "message": "Error copying dictionary file: {{- message}}"
     },
     "resetAppData": {
       "title": "Reset app data",

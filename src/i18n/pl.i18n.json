@@ -7,7 +7,6 @@
     "undo": "&Cofnij",
     "redo": "&Ponów",
     "spellingLanguages": "Sprawdzanie pisowni",
-    "browseForLanguage": "Przeglądaj języki...",
     "moreSpellingSuggestions": "Więcej propozycji pisowni",
     "noSpellingSuggestions": "Brak sugestii",
     "copyLinkAddress": "Kopiuj adres odnośnika",
@@ -40,15 +39,6 @@
       "message": "Chcesz zaufać certyfikatowi od \"{{- issuerName}}\"?",
       "yes": "Tak",
       "no": "Nie"
-    },
-    "loadDictionary": {
-      "title": "Otwórz słownik języka",
-      "dictionaries": "Słowniki",
-      "allFiles": "Wszystkie pliki"
-    },
-    "loadDictionaryError": {
-      "title": "Błąd",
-      "message": "Błąd kopiowania pliku słownika: {{- message}}"
     },
     "resetAppData": {
       "title": "Reset danych aplikacji",

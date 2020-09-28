@@ -7,7 +7,6 @@
     "undo": "&Visszavonás",
     "redo": "&Ismétlés",
     "spellingLanguages": "Helyesírás-ellenőrzés nyelvei",
-    "browseForLanguage": "Nyelv tallózása…",
     "moreSpellingSuggestions": "Több helyesírási javaslat",
     "noSpellingSuggestions": "Nincsenek javaslatok",
     "copyLinkAddress": "Hivatkozás címének másolása",
@@ -40,15 +39,6 @@
       "message": "Megbízik a(z) „{{- issuerName}}” által kiadott tanúsítványban?",
       "yes": "Igen",
       "no": "Nem"
-    },
-    "loadDictionary": {
-      "title": "Nyelvi könyvtár megnyitása",
-      "dictionaries": "Szótárak",
-      "allFiles": "Összes fájl"
-    },
-    "loadDictionaryError": {
-      "title": "Hiba",
-      "message": "Hiba a szótárfájl másolásakor: {{- message}}"
     },
     "resetAppData": {
       "title": "Alkalmazásadatok visszaállítása",

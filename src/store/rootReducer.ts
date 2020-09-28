@@ -11,7 +11,6 @@ import {
   currentServerUrl,
   servers,
 } from '../servers/reducers';
-import { spellCheckingDictionaries } from '../spellChecking/reducers';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
@@ -53,7 +52,6 @@ const reducersMap = {
   rootWindowIcon,
   servers,
   skippedUpdateVersion,
-  spellCheckingDictionaries,
   trustedCertificates,
   updateError,
 };

@@ -7,7 +7,6 @@
     "undo": "&Скасувати",
     "redo": "&Повторити",
     "spellingLanguages": "Правопис",
-    "browseForLanguage": "Пошук мов...",
     "moreSpellingSuggestions": "Інші варіанти написання",
     "noSpellingSuggestions": "Пропозицій немає",
     "copyLinkAddress": "Копіювати посилання",
@@ -39,15 +38,6 @@
       "message": "Ви довіряєте сертифікату від \"{{- issuerName}}\"?",
       "yes": "Так",
       "no": "Ні"
-    },
-    "loadDictionary": {
-      "title": "Відкрити словник",
-      "dictionaries": "Словники",
-      "allFiles": "Усі файли"
-    },
-    "loadDictionaryError": {
-      "title": "Помилка",
-       "message": "Помилка копіювання файлу словника: {{- message}}"
     },
     "resetAppData": {
       "title": "Скинути даних програми",

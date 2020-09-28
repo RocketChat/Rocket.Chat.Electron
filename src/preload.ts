@@ -10,7 +10,6 @@ import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
 import { RocketChatDesktop, RocketChatDesktopAPI, serverInfo } from './servers/preload/api';
 import { setServerUrl } from './servers/preload/urls';
-import { setupSpellChecking } from './spellChecking/preload';
 import { createRendererReduxStore, select } from './store';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';
 import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
@@ -36,7 +35,6 @@ const start = async (): Promise<void> => {
   await whenReady();
 
   setupRendererErrorHandling('webviewPreload');
-  setupSpellChecking();
 
   const injectedCode = await fs.promises.readFile(
     path.join(select(({ appPath }) => appPath), 'app/injected.js'),

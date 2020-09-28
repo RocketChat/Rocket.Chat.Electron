@@ -6,7 +6,6 @@ import {
   currentServerUrl,
   servers,
 } from '../servers/reducers';
-import { spellCheckingDictionaries } from '../spellChecking/reducers';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
@@ -41,7 +40,6 @@ export type AppActionTypeToPayloadMap = {
     mainWindowState: ReturnType<typeof mainWindowState>;
     servers: ReturnType<typeof servers>;
     skippedUpdateVersion: ReturnType<typeof skippedUpdateVersion>;
-    spellCheckingDictionaries: ReturnType<typeof spellCheckingDictionaries>;
     trustedCertificates: ReturnType<typeof trustedCertificates>;
   };
 };

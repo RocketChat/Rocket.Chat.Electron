@@ -7,7 +7,6 @@
     "undo": "复原 (&U)",
     "redo": "重做 (&R)",
     "spellingLanguages": "拼写检查",
-    "browseForLanguage": "选择语言...",
     "moreSpellingSuggestions": "其他拼写建议",
     "noSpellingSuggestions": "没有拼写建议",
     "copyLinkAddress": "复制链接URL",
@@ -39,15 +38,6 @@
       "message": "您是否要信任來自 \"{{- issuerName}}\" 的证书？",
       "yes": "是",
       "no": "否"
-    },
-    "loadDictionary": {
-      "title": "打开语言字典",
-      "dictionaries": "字典",
-      "allFiles": "所有文件"
-    },
-    "loadDictionaryError": {
-      "title": "错误",
-      "message": "复制字典时发生错误: {{- message}}"
     },
     "resetAppData": {
       "title": "重置应用数据",

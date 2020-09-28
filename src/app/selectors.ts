@@ -13,7 +13,6 @@ export const selectPersistableValues = createStructuredSelector<Partial<RootStat
   isTrayIconEnabled: ({ isTrayIconEnabled }) => isTrayIconEnabled,
   mainWindowState: ({ mainWindowState }) => mainWindowState,
   servers: ({ servers }) => servers,
-  spellCheckingDictionaries: ({ spellCheckingDictionaries }) => spellCheckingDictionaries,
   skippedUpdateVersion: ({ skippedUpdateVersion }) => skippedUpdateVersion,
   trustedCertificates: ({ trustedCertificates }) => trustedCertificates,
   isEachUpdatesSettingConfigurable: ({ isEachUpdatesSettingConfigurable }) => isEachUpdatesSettingConfigurable,

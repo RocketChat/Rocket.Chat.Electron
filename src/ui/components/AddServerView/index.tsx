@@ -130,14 +130,13 @@ export const AddServerView: FC = () => {
 
   return <Wrapper isVisible={isVisible}>
     <Content>
-      <Margins block='x16'>
-        <Box>
-          <RocketChatLogo alternate />
-        </Box>
-      </Margins>
-
       {isOnLine
-        ? <Tile is='form' padding='x32' method='/' onSubmit={handleFormSubmit}>
+        ? <Tile width='x368' is='form' padding='x32' method='/' onSubmit={handleFormSubmit}>
+          <Margins inline='x16' block='x16'>
+            <Box>
+              <RocketChatLogo alternate />
+            </Box>
+          </Margins>
           <FieldGroup>
             <Field>
               <Field.Label htmlFor={inputId}>

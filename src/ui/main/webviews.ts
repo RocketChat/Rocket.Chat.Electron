@@ -37,6 +37,7 @@ import {
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   WEBVIEW_ATTACHED,
+  WEBVIEW_DETACHED,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
@@ -380,6 +381,12 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
   listen(WEBVIEW_ATTACHED, (action) => {
     const guestWebContents = webContents.fromId(action.payload.webContentsId);
     initializeServerWebContents(action.payload.url, guestWebContents, rootWindow);
+  });
+
+  listen(WEBVIEW_DETACHED, (action) => {
+    session.fromPartition('persist:rocketchat-server').clearStorageData({
+      origin: action.payload.url,
+    });
   });
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {

@@ -15,6 +15,7 @@ import {
   Session,
   session,
   shell,
+  systemPreferences,
   UploadBlob,
   UploadFile,
   UploadRawData,
@@ -427,9 +428,21 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
   });
 
   const webviewsSession = session.fromPartition('persist:rocketchat-server');
-  webviewsSession.setPermissionRequestHandler((_webContents, permission, callback, details) => {
+  webviewsSession.setPermissionRequestHandler(async (_webContents, permission, callback, details) => {
     switch (permission) {
-      case 'media':
+      case 'media': {
+        if (process.platform !== 'darwin') {
+          callback(true);
+          return;
+        }
+
+        const { mediaTypes } = details;
+        const allowed = (!mediaTypes.includes('audio') || await systemPreferences.askForMediaAccess('microphone'))
+          && (!mediaTypes.includes('video') || await systemPreferences.askForMediaAccess('camera'));
+        callback(allowed);
+        return;
+      }
+
       case 'geolocation':
       case 'notifications':
       case 'midiSysex':
@@ -438,9 +451,11 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
         callback(true);
         return;
 
-      case 'openExternal':
-        isProtocolAllowed(details.externalURL).then(callback);
+      case 'openExternal': {
+        const allowed = await isProtocolAllowed(details.externalURL);
+        callback(allowed);
         return;
+      }
 
       default:
         callback(false);

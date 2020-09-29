@@ -7,7 +7,6 @@
     "undo": "&Desfazer",
     "redo": "&Refazer",
     "spellingLanguages": "Idiomas",
-    "browseForLanguage": "Procurar idioma...",
     "moreSpellingSuggestions": "Mais sugestões de grafia",
     "noSpellingSuggestions": "Sem sugestões",
     "copyLinkAddress": "Copiar endereço do link",
@@ -39,15 +38,6 @@
       "message": "Você confia no certificado de \"{{- issuerName}}\"?",
       "yes": "Sim",
       "no": "Não"
-    },
-    "loadDictionary": {
-      "title": "Selecionar dicionário de idioma",
-      "dictionaries": "Dicionários",
-      "allFiles": "Todos os arquivos"
-    },
-    "loadDictionaryError": {
-      "title": "Erro",
-      "message": "Erro ao copiar arquivo de dicionário: {{- message}}"
     },
     "resetAppData": {
       "title": "Limpar dados do aplicativo",

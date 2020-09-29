@@ -7,7 +7,6 @@
     "undo": "復原 (&U)",
     "redo": "重做 (&R)",
     "spellingLanguages": "拼字檢查",
-    "browseForLanguage": "選擇語言...",
     "moreSpellingSuggestions": "更多拼字建議",
     "noSpellingSuggestions": "沒有拼字建議",
     "copyLinkAddress": "複製連結",
@@ -39,15 +38,6 @@
       "message": "您是否要信任來自 \"{{- issuerName}}\" 的憑證？",
       "yes": "是",
       "no": "否"
-    },
-    "loadDictionary": {
-      "title": "開啟語言字典",
-      "dictionaries": "字典",
-      "allFiles": "所有檔案"
-    },
-    "loadDictionaryError": {
-      "title": "錯誤",
-      "message": "複製字典檔時發生錯誤: {{- message}}"
     },
     "resetAppData": {
       "title": "回復程式設定",

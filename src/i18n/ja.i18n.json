@@ -7,7 +7,6 @@
     "undo": "元に戻す (&U)",
     "redo": "やり直し (&R)",
     "spellingLanguages": "スペルチェックの言語",
-    "browseForLanguage": "言語をブラウズ...",
     "moreSpellingSuggestions": "その他のスペルの提案",
     "noSpellingSuggestions": "提案はありません",
     "copyLinkAddress": "リンクURLをコピー",
@@ -39,15 +38,6 @@
       "message": "\"{{- issuerName}}\"から証明書を信頼しますか?",
       "yes": "はい",
       "no": "いいえ"
-    },
-    "loadDictionary": {
-      "title": "言語の辞書を開く",
-      "dictionaries": "辞書",
-      "allFiles": "すべてのファイル"
-    },
-    "loadDictionaryError": {
-      "title": "エラー",
-      "message": "辞書ファイルのコピーでエラー: {{- message}}"
     },
     "resetAppData": {
       "title": "アプリのデータをリセット",

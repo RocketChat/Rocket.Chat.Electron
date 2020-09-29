@@ -62,7 +62,7 @@ const start = async (): Promise<void> => {
 
   await mergePersistableValues(localStorage);
   await setupServers(localStorage);
-  await setupSpellChecking(localStorage);
+  await setupSpellChecking();
 
   setupDeepLinks();
   await setupNavigation();

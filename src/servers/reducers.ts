@@ -41,6 +41,9 @@ type CurrentServerUrlAction = (
 
 type CurrentServerUrlState = string | null;
 
+const ensureUrlFormat = (serverUrl: string | null): string =>
+  (serverUrl ? new URL(serverUrl).href : null);
+
 export const currentServerUrl = (state: CurrentServerUrlState = null, action: CurrentServerUrlAction): CurrentServerUrlState => {
   switch (action.type) {
     case ADD_SERVER_VIEW_SERVER_ADDED:
@@ -81,12 +84,12 @@ export const currentServerUrl = (state: CurrentServerUrlState = null, action: Cu
 
     case SERVERS_LOADED: {
       const { currentServerUrl = state } = action.payload;
-      return currentServerUrl;
+      return ensureUrlFormat(currentServerUrl);
     }
 
     case APP_SETTINGS_LOADED: {
       const { currentServerUrl = state } = action.payload;
-      return currentServerUrl;
+      return ensureUrlFormat(currentServerUrl);
     }
   }
 
@@ -182,12 +185,18 @@ export const servers: Reducer<Server[], ServersActionTypes> = (state = [], actio
 
     case SERVERS_LOADED: {
       const { servers = state } = action.payload;
-      return servers;
+      return servers.map((server) => ({
+        ...server,
+        url: ensureUrlFormat(server.url),
+      }));
     }
 
     case APP_SETTINGS_LOADED: {
       const { servers = state } = action.payload;
-      return servers;
+      return servers.map((server) => ({
+        ...server,
+        url: ensureUrlFormat(server.url),
+      }));
     }
 
     default:

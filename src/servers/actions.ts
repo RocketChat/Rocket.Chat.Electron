@@ -1,17 +1,14 @@
-import { ValidationResult, Server } from './common';
+import { Server, ServerUrlResolutionResult } from './common';
 
 export const SERVERS_LOADED = 'servers/loaded';
-export const SERVER_VALIDATION_REQUESTED = 'server/validation-requested';
-export const SERVER_VALIDATION_RESPONDED = 'server/validation-responded';
+export const SERVER_URL_RESOLUTION_REQUESTED = 'server/url-resolution-requested';
+export const SERVER_URL_RESOLVED = 'server/url-resolved';
 
 export type ServersActionTypeToPayloadMap = {
   [SERVERS_LOADED]: {
     servers: Server[];
     currentServerUrl: Server['url'];
   };
-  [SERVER_VALIDATION_REQUESTED]: {
-    serverUrl: Server['url'];
-    timeout?: number;
-  };
-  [SERVER_VALIDATION_RESPONDED]: ValidationResult;
+  [SERVER_URL_RESOLUTION_REQUESTED]: Server['url'];
+  [SERVER_URL_RESOLVED]: ServerUrlResolutionResult;
 };

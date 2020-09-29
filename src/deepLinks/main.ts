@@ -2,7 +2,8 @@ import { URL } from 'url';
 
 import { app, WebContents } from 'electron';
 
-import { normalizeServerUrl, validateServer } from '../servers/main';
+import { ServerUrlResolutionStatus } from '../servers/common';
+import { normalizeServerUrl, resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
 import { askForServerAddition, warnAboutInvalidServerUrl } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
@@ -57,8 +58,11 @@ type InviteParams = {
 };
 
 const performOnServer = async (url: string, action: (serverUrl: string) => Promise<void>): Promise<void> => {
-  const serverUrl = normalizeServerUrl(url);
-  if (!serverUrl) {
+  let serverUrl: string;
+
+  try {
+    serverUrl = normalizeServerUrl(url);
+  } catch (error) {
     return;
   }
 
@@ -76,15 +80,18 @@ const performOnServer = async (url: string, action: (serverUrl: string) => Promi
     return;
   }
 
-  try {
-    await validateServer(serverUrl);
-  } catch (error) {
-    await warnAboutInvalidServerUrl(serverUrl, error.message);
+  const [normalizedServerUrl, result, error] = await resolveServerUrl(serverUrl);
+
+  if (result !== ServerUrlResolutionStatus.OK) {
+    await warnAboutInvalidServerUrl(normalizedServerUrl, error.message);
     return;
   }
 
-  dispatch({ type: DEEP_LINKS_SERVER_ADDED, payload: serverUrl });
-  await action(serverUrl);
+  dispatch({
+    type: DEEP_LINKS_SERVER_ADDED,
+    payload: normalizedServerUrl,
+  });
+  await action(normalizedServerUrl);
 };
 
 const getWebContents = (serverUrl: string): Promise<WebContents> =>

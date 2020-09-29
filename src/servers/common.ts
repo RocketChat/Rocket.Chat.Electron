@@ -11,8 +11,18 @@ export type Server = {
   failed?: boolean;
 };
 
-export enum ValidationResult {
-  OK = 'OK',
-  TIMEOUT = 'TIMEOUT',
-  INVALID = 'INVALID',
+export const enum ServerUrlResolutionStatus {
+  OK = 'ok',
+  INVALID_URL = 'invalid-url',
+  TIMEOUT = 'timeout',
+  INVALID = 'invalid',
 }
+
+export type ServerUrlResolutionResult = (
+  [resolvedServerUrl: string, result: ServerUrlResolutionStatus.OK]
+  | [
+    resolvedServerUrl: string,
+    result: Exclude<ServerUrlResolutionStatus, 'OK'>,
+    error: Error,
+  ]
+);

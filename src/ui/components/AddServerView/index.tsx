@@ -15,10 +15,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 
 import {
-  SERVER_VALIDATION_RESPONDED,
-  SERVER_VALIDATION_REQUESTED,
+  SERVER_URL_RESOLVED,
+  SERVER_URL_RESOLUTION_REQUESTED,
 } from '../../../servers/actions';
-import { ValidationResult } from '../../../servers/common';
+import { ServerUrlResolutionStatus } from '../../../servers/common';
 import { request } from '../../../store';
 import { RootAction } from '../../../store/actions';
 import { RootState } from '../../../store/rootReducer';
@@ -39,73 +39,73 @@ export const AddServerView: FC = () => {
   const idleState = useMemo(() => ['idle', null], []);
   const [[validationState, errorMessage], setValidation] = useState(idleState);
 
-  const validateServerUrl = useCallback(async (serverUrl): Promise<boolean> => {
-    setInput(serverUrl);
+  const editInput = useCallback((input: string): void => {
+    setInput(input);
+    setValidation(idleState);
+  }, [idleState]);
 
+  const addServer = useCallback((serverUrl: string): void => {
+    editInput('');
+    dispatch({
+      type: ADD_SERVER_VIEW_SERVER_ADDED,
+      payload: serverUrl,
+    });
+  }, [dispatch, editInput]);
+
+  const beginValidation = useCallback((): void => {
     setValidation(['validating', null]);
+  }, []);
 
-    if (!serverUrl.length) {
-      setValidation(idleState);
-      return false;
-    }
+  const failValidation = useCallback((serverUrl: string, message: string): void => {
+    setInput(serverUrl);
+    setValidation(['invalid', message]);
+  }, []);
 
-    const validationResult = await request<
-      typeof SERVER_VALIDATION_REQUESTED,
-      typeof SERVER_VALIDATION_RESPONDED
+  const resolveServerUrl = useCallback(async (serverUrl): Promise<void> => {
+    beginValidation();
+
+    const [resolvedServerUrl, result] = await request<
+      typeof SERVER_URL_RESOLUTION_REQUESTED,
+      typeof SERVER_URL_RESOLVED
     >({
-      type: SERVER_VALIDATION_REQUESTED,
-      payload: {
-        serverUrl,
-      },
+      type: SERVER_URL_RESOLUTION_REQUESTED,
+      payload: serverUrl,
     });
 
-    if (validationResult === ValidationResult.OK) {
-      setValidation(idleState);
-      return true;
+    switch (result) {
+      case ServerUrlResolutionStatus.OK:
+        addServer(resolvedServerUrl);
+        return;
+
+      case ServerUrlResolutionStatus.INVALID_URL:
+      case ServerUrlResolutionStatus.INVALID:
+        failValidation(resolvedServerUrl, t('error.noValidServerFound'));
+        return;
+
+      case ServerUrlResolutionStatus.TIMEOUT:
+        failValidation(resolvedServerUrl, t('error.connectTimeout'));
+        return;
+
+      default:
+        failValidation(resolvedServerUrl, null);
     }
-
-    if (/^https?:\/\/.+/.test(serverUrl)) {
-      if (validationResult === ValidationResult.TIMEOUT) {
-        setValidation(['invalid', t('error.connectTimeout')]);
-        return false;
-      }
-
-      if (validationResult === ValidationResult.INVALID) {
-        setValidation(['invalid', t('error.noValidServerFound')]);
-        return false;
-      }
-
-      setValidation(['invalid', null]);
-      return false;
-    }
-
-    if (!/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(serverUrl)) {
-      return validateServerUrl(`https://${ serverUrl }.rocket.chat`);
-    }
-
-    if (!/^https?:\/\//.test(serverUrl)) {
-      return validateServerUrl(`https://${ serverUrl }`);
-    }
-
-    return true;
-  }, [idleState, t]);
+  }, [addServer, beginValidation, failValidation, t]);
 
   const handleFormSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
 
-    const serverUrl = (input || defaultServerUrl).trim();
+    const trimmedInput = input.trim();
 
-    const permitted = await validateServerUrl(serverUrl);
-
-    if (permitted) {
-      dispatch({ type: ADD_SERVER_VIEW_SERVER_ADDED, payload: serverUrl });
-      setInput('');
+    if (!trimmedInput) {
+      addServer(defaultServerUrl);
+      return;
     }
+
+    await resolveServerUrl(trimmedInput);
   };
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    setInput(event.currentTarget.value);
-    setValidation(idleState);
+    editInput(event.currentTarget.value);
   };
 
   const [isOnLine, setOnLine] = useState(() => navigator.onLine);

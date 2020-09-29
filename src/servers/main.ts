@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
+import AbortController from 'abort-controller';
 import { app } from 'electron';
 import fetch from 'node-fetch';
 import { satisfies, coerce } from 'semver';
@@ -12,36 +13,35 @@ import {
 } from '../navigation/actions';
 import { select, dispatch, listen } from '../store';
 import { ActionOf } from '../store/actions';
-import { SERVER_VALIDATION_REQUESTED, SERVER_VALIDATION_RESPONDED, SERVERS_LOADED } from './actions';
-import { ValidationResult, Server } from './common';
+import {
+  SERVER_URL_RESOLUTION_REQUESTED,
+  SERVER_URL_RESOLVED,
+  SERVERS_LOADED,
+} from './actions';
+import { ServerUrlResolutionStatus, Server, ServerUrlResolutionResult } from './common';
 
 export const normalizeServerUrl = (input: string): string => {
-  try {
-    if (typeof input !== 'string') {
-      throw new TypeError('server URL is not a string');
-    }
-
-    let parsedUrl: URL;
-
-    try {
-      parsedUrl = new URL(input);
-    } catch (error) {
-      parsedUrl = new URL(`https://${ input }`);
-    }
-
-    const { protocol, username, password, hostname, port, pathname } = parsedUrl;
-    return Object.assign(new URL('https://0.0.0.0'), {
-      protocol,
-      username,
-      password,
-      hostname,
-      port,
-      pathname,
-    }).href;
-  } catch (error) {
-    console.error(error);
-    return null;
+  if (typeof input !== 'string') {
+    throw new TypeError('server URL is not a string');
   }
+
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = new URL(input);
+  } catch (error) {
+    parsedUrl = new URL(`https://${ input }`);
+  }
+
+  const { protocol, username, password, hostname, port, pathname } = parsedUrl;
+  return Object.assign(new URL('https://0.0.0.0'), {
+    protocol,
+    username,
+    password,
+    hostname,
+    port,
+    pathname,
+  }).href;
 };
 
 export const getServerVersion = async (serverUrl: string): Promise<string> => {
@@ -49,15 +49,23 @@ export const getServerVersion = async (serverUrl: string): Promise<string> => {
   const headers: HeadersInit = [];
 
   if (username && password) {
-    headers.push(['Authorization', `Basic ${ btoa(`${ username }:${ password }`) }`]);
+    headers.push(['Authorization', `Basic ${ Buffer.from(`${ username }:${ password }`).toString('base64') }`]);
   }
 
   const endpoint = new URL('api/info', href);
 
+  const controller = new AbortController();
+
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, 5000);
+
   const response = await fetch(endpoint, {
     headers,
-    timeout: 5000,
+    signal: controller.signal,
   });
+
+  clearTimeout(timer);
 
   if (!response.ok) {
     throw new Error(response.statusText);
@@ -75,49 +83,34 @@ export const getServerVersion = async (serverUrl: string): Promise<string> => {
   return responseBody.version;
 };
 
-export const validateServer = async (serverUrl: string): Promise<void> => {
-  const version = await getServerVersion(serverUrl);
+export const resolveServerUrl = async (serverUrl: string): Promise<ServerUrlResolutionResult> => {
+  let normalizedServerUrl: string;
 
-  if (!satisfies(coerce(version), '>=3.0.x')) {
-    throw new Error(`incompatible server version (${ version }, expected >=3.0.x)`);
-  }
-};
-
-export const validateServerUrl = async (serverUrl: string, timeout = 5000): Promise<ValidationResult> => {
   try {
-    const { username, password, href } = new URL(serverUrl);
-    const headers: HeadersInit = [];
-
-    if (username && password) {
-      headers.push(['Authorization', `Basic ${ btoa(`${ username }:${ password }`) }`]);
-    }
-
-    const response = await Promise.race([
-      fetch(`${ href.replace(/\/$/, '') }/api/info`, { headers }),
-      new Promise<void>((resolve) => {
-        setTimeout(resolve, timeout);
-      }),
-    ]);
-
-    if (!response) {
-      return ValidationResult.TIMEOUT;
-    }
-
-    if (!response.ok) {
-      return ValidationResult.INVALID;
-    }
-
-    const responseBody = await response.json();
-
-    if (!responseBody.success) {
-      return ValidationResult.INVALID;
-    }
-
-    return ValidationResult.OK;
+    normalizedServerUrl = normalizeServerUrl(serverUrl);
   } catch (error) {
-    console.error(error);
-    return ValidationResult.INVALID;
+    return [serverUrl, ServerUrlResolutionStatus.INVALID_URL, error];
   }
+
+  try {
+    const version = await getServerVersion(serverUrl);
+
+    if (!satisfies(coerce(version), '>=3.0.x')) {
+      throw new Error(`incompatible server version (${ version }, expected >=3.0.x)`);
+    }
+  } catch (error) {
+    if (!/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(serverUrl)) {
+      return resolveServerUrl(`https://${ serverUrl }.rocket.chat`);
+    }
+
+    if (error.name === 'AbortError') {
+      return [normalizedServerUrl, ServerUrlResolutionStatus.TIMEOUT, error];
+    }
+
+    return [normalizedServerUrl, ServerUrlResolutionStatus.INVALID, error];
+  }
+
+  return [normalizedServerUrl, ServerUrlResolutionStatus.OK];
 };
 
 const loadAppServers = async (): Promise<Record<string, string>> => {
@@ -150,11 +143,11 @@ const loadUserServers = async (): Promise<Record<string, string>> => {
 };
 
 export const setupServers = async (localStorage: Record<string, string>): Promise<void> => {
-  listen(SERVER_VALIDATION_REQUESTED, async (action) => {
+  listen(SERVER_URL_RESOLUTION_REQUESTED, async (action) => {
     try {
       dispatch({
-        type: SERVER_VALIDATION_RESPONDED,
-        payload: await validateServerUrl(action.payload.serverUrl, action.payload.timeout),
+        type: SERVER_URL_RESOLVED,
+        payload: await resolveServerUrl(action.payload),
         meta: {
           response: true,
           id: action.meta?.id,
@@ -162,7 +155,7 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
       });
     } catch (error) {
       dispatch({
-        type: SERVER_VALIDATION_RESPONDED,
+        type: SERVER_URL_RESOLVED,
         payload: error,
         error: true,
         meta: {

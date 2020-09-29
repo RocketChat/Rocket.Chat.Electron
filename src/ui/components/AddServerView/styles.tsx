@@ -1,11 +1,6 @@
-import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 
-type WrapperProps = {
-  isVisible: boolean;
-};
-
-export const Wrapper = styled.section<WrapperProps>`
+export const Wrapper = styled.section`
 	position: absolute;
 	left: 0;
 	top: 0;
@@ -18,10 +13,5 @@ export const Wrapper = styled.section<WrapperProps>`
 	-webkit-app-region: drag;
 	justify-content: center;
 
-	${ ({ isVisible }) => css`display: ${ isVisible ? 'flex' : 'none' };` };
-`;
-
-export const Content = styled.div`
-	width: 520px;
-	max-width: 100%;
+	display: flex;
 `;

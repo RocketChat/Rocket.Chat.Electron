@@ -24,7 +24,7 @@ import { RootAction } from '../../../store/actions';
 import { RootState } from '../../../store/rootReducer';
 import { ADD_SERVER_VIEW_SERVER_ADDED } from '../../actions';
 import { RocketChatLogo } from '../RocketChatLogo';
-import { Wrapper, Content } from './styles';
+import { Wrapper } from './styles';
 
 const defaultServerUrl = 'https://open.rocket.chat';
 
@@ -127,47 +127,49 @@ export const AddServerView: FC = () => {
   const inputId = useUniqueId();
   const inputRef = useAutoFocus(isVisible);
 
-  return <Wrapper isVisible={isVisible}>
-    <Content>
-      {isOnLine
-        ? <Tile width='x368' is='form' padding='x24' method='/' onSubmit={handleFormSubmit}>
-          <Margins block='x16'>
-            <RocketChatLogo alternate />
-          </Margins>
-          <FieldGroup>
-            <Field>
-              <Field.Label htmlFor={inputId}>
-                {t('landing.inputUrl')}
-              </Field.Label>
-              <Field.Row>
-                <TextInput
-                  ref={inputRef}
-                  id={inputId}
-                  error={errorMessage}
-                  type='text'
-                  placeholder={defaultServerUrl}
-                  dir='auto'
-                  value={input}
-                  onChange={handleInputChange}
-                />
-              </Field.Row>
-              <Field.Error>
-                {errorMessage}
-              </Field.Error>
-            </Field>
+  if (!isVisible) {
+    return null;
+  }
 
-            <ButtonGroup align='center'>
-              <Button type='submit' primary disabled={validationState !== 'idle'}>
-                {(validationState === 'idle' && t('landing.connect'))
+  return <Wrapper>
+    {isOnLine
+      ? <Tile is='form' width='x368' maxWidth='100%' padding='x24' method='/' onSubmit={handleFormSubmit}>
+        <Margins block='x16'>
+          <RocketChatLogo alternate />
+        </Margins>
+        <FieldGroup>
+          <Field>
+            <Field.Label htmlFor={inputId}>
+              {t('landing.inputUrl')}
+            </Field.Label>
+            <Field.Row>
+              <TextInput
+                ref={inputRef}
+                id={inputId}
+                error={errorMessage}
+                type='text'
+                placeholder={defaultServerUrl}
+                dir='auto'
+                value={input}
+                onChange={handleInputChange}
+              />
+            </Field.Row>
+            <Field.Error>
+              {errorMessage}
+            </Field.Error>
+          </Field>
+
+          <ButtonGroup align='center'>
+            <Button type='submit' primary disabled={validationState !== 'idle'}>
+              {(validationState === 'idle' && t('landing.connect'))
 							|| (validationState === 'validating' && t('landing.validating'))
 							|| (validationState === 'invalid' && t('landing.invalidUrl'))}
-              </Button>
-            </ButtonGroup>
-          </FieldGroup>
-        </Tile>
-        : <Callout type='warning'>
-          {t('error.offline')}
-        </Callout>}
-    </Content>
+            </Button>
+          </ButtonGroup>
+        </FieldGroup>
+      </Tile>
+      : <Callout type='warning' width='x368' maxWidth='100%'>
+        {t('error.offline')}
+      </Callout>}
   </Wrapper>;
 };

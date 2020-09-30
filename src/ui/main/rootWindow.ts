@@ -25,7 +25,7 @@ import {
 } from '../selectors';
 import { getTrayIconPath } from './icons';
 
-const selectMainWindowState = ({ mainWindowState }: RootState): WindowState => mainWindowState ?? {
+const selectRootWindowState = ({ rootWindowState }: RootState): WindowState => rootWindowState ?? {
   bounds: {
     x: 0,
     y: 0,
@@ -69,26 +69,14 @@ export const createRootWindow = (): BrowserWindow => {
   return rootWindow;
 };
 
-export const showRootWindow = async (rootWindow: BrowserWindow): Promise<void> => {
-  rootWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
-
-  if (process.env.NODE_ENV === 'development') {
-    setupRootWindowReload(rootWindow.webContents);
-  }
-
-  return new Promise((resolve) => {
-    rootWindow.addListener('ready-to-show', () => resolve());
-  });
-};
-
 const isInsideSomeScreen = ({ x, y, width, height }: Rectangle): boolean =>
   screen.getAllDisplays()
     .some(({ bounds }) => x >= bounds.x && y >= bounds.y
       && x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
     );
 
-export const applyMainWindowState = (): void => {
-  const rootWindowState = select(selectMainWindowState);
+export const applyRootWindowState = (): void => {
+  const rootWindowState = select(selectRootWindowState);
   const isTrayIconEnabled = select(({ isTrayIconEnabled }) => isTrayIconEnabled);
 
   let { x, y } = rootWindowState.bounds;
@@ -108,7 +96,11 @@ export const applyMainWindowState = (): void => {
     return;
   }
 
-  rootWindow.setBounds({ x, y, width, height });
+  if (!x || !y) {
+    rootWindow.setBounds({ width, height });
+  } else {
+    rootWindow.setBounds({ x, y, width, height });
+  }
 
   if (rootWindowState.maximized) {
     rootWindow.maximize();
@@ -131,7 +123,7 @@ export const applyMainWindowState = (): void => {
   }
 };
 
-const fetchRootWindowState = (): ReturnType<typeof selectMainWindowState> => ({
+const fetchRootWindowState = (): ReturnType<typeof selectRootWindowState> => ({
   focused: rootWindow.isFocused(),
   visible: rootWindow.isVisible(),
   maximized: rootWindow.isMaximized(),
@@ -294,5 +286,20 @@ export const setupRootWindow = (): void => {
 
   app.addListener('before-quit', () => {
     unsubscribers.forEach((unsubscriber) => unsubscriber());
+  });
+};
+
+export const showRootWindow = async (rootWindow: BrowserWindow): Promise<void> => {
+  rootWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
+
+  if (process.env.NODE_ENV === 'development') {
+    setupRootWindowReload(rootWindow.webContents);
+  }
+
+  return new Promise((resolve) => {
+    rootWindow.addListener('ready-to-show', () => {
+      setupRootWindow();
+      resolve();
+    });
   });
 };

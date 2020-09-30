@@ -16,9 +16,9 @@ import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
-import { mainWindowState } from '../ui/reducers/mainWindowState';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
+import { rootWindowState } from '../ui/reducers/rootWindowState';
 import {
   doCheckForUpdatesOnStartup,
   isCheckingForUpdates,
@@ -46,10 +46,10 @@ const reducersMap = {
   isTrayIconEnabled,
   isUpdatingAllowed,
   isUpdatingEnabled,
-  mainWindowState,
   newUpdateVersion,
   openDialog,
   rootWindowIcon,
+  rootWindowState,
   servers,
   skippedUpdateVersion,
   trustedCertificates,

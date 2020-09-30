@@ -145,7 +145,7 @@ const selectViewDeps = createStructuredSelector({
   isSideBarEnabled: ({ isSideBarEnabled }: RootState) => isSideBarEnabled,
   isTrayIconEnabled: ({ isTrayIconEnabled }: RootState) => isTrayIconEnabled,
   isMenuBarEnabled: ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled,
-  mainWindowState: ({ mainWindowState }: RootState) => mainWindowState,
+  rootWindowState: ({ rootWindowState }: RootState) => rootWindowState,
 });
 
 const createViewMenu = createSelector(
@@ -155,7 +155,7 @@ const createViewMenu = createSelector(
     isSideBarEnabled,
     isTrayIconEnabled,
     isMenuBarEnabled,
-    mainWindowState,
+    rootWindowState,
   }): MenuItemConstructorOptions => ({
     id: 'viewMenu',
     label: t('menus.viewMenu'),
@@ -232,7 +232,7 @@ const createViewMenu = createSelector(
           id: 'showFullScreen',
           label: t('menus.showFullScreen'),
           type: 'checkbox',
-          checked: mainWindowState.visible,
+          checked: rootWindowState.visible,
           accelerator: 'Control+Command+F',
           click: ({ checked: enabled }) => {
             getRootWindow().show();

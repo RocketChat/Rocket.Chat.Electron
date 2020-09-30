@@ -7,7 +7,7 @@ import {
   purgeLocalStorage,
   watchAndPersistChanges,
 } from './app/main/data';
-import { setUserDataDirectory, installDevTools } from './app/main/dev';
+import { setUserDataDirectory } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
@@ -21,8 +21,7 @@ import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
 import {
   createRootWindow,
-  setupRootWindow,
-  applyMainWindowState,
+  applyRootWindowState,
   showRootWindow,
 } from './ui/main/rootWindow';
 import touchBar from './ui/main/touchBar';
@@ -44,15 +43,16 @@ const start = async (): Promise<void> => {
 
   await i18n.wait();
 
-  if (process.env.NODE_ENV === 'development') {
-    installDevTools();
-  }
-
   const rootWindow = createRootWindow();
 
   attachGuestWebContentsEvents(rootWindow);
 
   await showRootWindow(rootWindow);
+
+  // React DevTools is currently incompatible with Electron 10
+  // if (process.env.NODE_ENV === 'development') {
+  //   installDevTools();
+  // }
 
   setupApp();
   setupNotifications();
@@ -73,7 +73,6 @@ const start = async (): Promise<void> => {
   menuBar.setUp();
   touchBar.setUp();
   trayIcon.setUp();
-  setupRootWindow();
 
   app.addListener('before-quit', () => {
     dock.tearDown();
@@ -82,7 +81,7 @@ const start = async (): Promise<void> => {
     trayIcon.tearDown();
   });
 
-  applyMainWindowState();
+  applyRootWindowState();
 
   await purgeLocalStorage();
   watchAndPersistChanges();

@@ -10,7 +10,7 @@ import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 
-const selectIsRootWindowVisible = ({ mainWindowState: { visible } }: RootState): boolean =>
+const selectIsRootWindowVisible = ({ rootWindowState: { visible } }: RootState): boolean =>
   visible;
 
 const createTrayIcon = (): Tray => {

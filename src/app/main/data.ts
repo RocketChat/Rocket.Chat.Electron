@@ -66,7 +66,7 @@ export const mergePersistableValues = async (localStorage: Record<string, string
     };
   }
 
-  const userMainWindowState = await (async () => {
+  const userRootWindowState = await (async () => {
     try {
       const filePath = path.join(app.getPath('userData'), 'main-window-state.json');
       const content = await fs.promises.readFile(filePath, 'utf8');
@@ -81,18 +81,18 @@ export const mergePersistableValues = async (localStorage: Record<string, string
 
   values = {
     ...values,
-    mainWindowState: {
+    rootWindowState: {
       focused: true,
-      visible: !(userMainWindowState?.isHidden ?? !values?.mainWindowState?.visible),
-      maximized: userMainWindowState.isMaximized ?? values?.mainWindowState?.maximized,
-      minimized: userMainWindowState.isMinimized ?? values?.mainWindowState?.minimized,
+      visible: !(userRootWindowState?.isHidden ?? !values?.rootWindowState?.visible),
+      maximized: userRootWindowState.isMaximized ?? values?.rootWindowState?.maximized,
+      minimized: userRootWindowState.isMinimized ?? values?.rootWindowState?.minimized,
       fullscreen: false,
-      normal: !(userMainWindowState.isMinimized || userMainWindowState.isMaximized) ?? values?.mainWindowState?.normal,
+      normal: !(userRootWindowState.isMinimized || userRootWindowState.isMaximized) ?? values?.rootWindowState?.normal,
       bounds: {
-        x: userMainWindowState.x ?? values?.mainWindowState?.bounds?.x,
-        y: userMainWindowState.y ?? values?.mainWindowState?.bounds?.y,
-        width: userMainWindowState.width ?? values?.mainWindowState?.bounds?.width,
-        height: userMainWindowState.height ?? values?.mainWindowState?.bounds?.height,
+        x: userRootWindowState.x ?? values?.rootWindowState?.bounds?.x,
+        y: userRootWindowState.y ?? values?.rootWindowState?.bounds?.y,
+        width: userRootWindowState.width ?? values?.rootWindowState?.bounds?.width,
+        height: userRootWindowState.height ?? values?.rootWindowState?.bounds?.height,
       },
     },
   };

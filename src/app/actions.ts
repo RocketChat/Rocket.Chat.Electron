@@ -10,7 +10,7 @@ import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
-import { mainWindowState } from '../ui/reducers/mainWindowState';
+import { rootWindowState } from '../ui/reducers/rootWindowState';
 import {
   doCheckForUpdatesOnStartup,
   isEachUpdatesSettingConfigurable,
@@ -37,7 +37,7 @@ export type AppActionTypeToPayloadMap = {
     isSideBarEnabled: ReturnType<typeof isSideBarEnabled>;
     isTrayIconEnabled: ReturnType<typeof isTrayIconEnabled>;
     isUpdatingEnabled: ReturnType<typeof isUpdatingEnabled>;
-    mainWindowState: ReturnType<typeof mainWindowState>;
+    rootWindowState: ReturnType<typeof rootWindowState>;
     servers: ReturnType<typeof servers>;
     skippedUpdateVersion: ReturnType<typeof skippedUpdateVersion>;
     trustedCertificates: ReturnType<typeof trustedCertificates>;

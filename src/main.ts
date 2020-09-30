@@ -21,7 +21,7 @@ import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
 import {
   createRootWindow,
-  applyMainWindowState,
+  applyRootWindowState,
   showRootWindow,
 } from './ui/main/rootWindow';
 import touchBar from './ui/main/touchBar';
@@ -81,7 +81,7 @@ const start = async (): Promise<void> => {
     trayIcon.tearDown();
   });
 
-  applyMainWindowState();
+  applyRootWindowState();
 
   await purgeLocalStorage();
   watchAndPersistChanges();

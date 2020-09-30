@@ -5,12 +5,12 @@ import { ActionOf } from '../../store/actions';
 import { ROOT_WINDOW_STATE_CHANGED } from '../actions';
 import { WindowState } from '../common';
 
-type MainWindowStateAction = (
+type RootWindowStateAction = (
   ActionOf<typeof ROOT_WINDOW_STATE_CHANGED>
   | ActionOf<typeof APP_SETTINGS_LOADED>
 );
 
-export const mainWindowState: Reducer<WindowState, MainWindowStateAction> = (state = {
+export const rootWindowState: Reducer<WindowState, RootWindowStateAction> = (state = {
   focused: true,
   visible: true,
   maximized: false,
@@ -29,7 +29,7 @@ export const mainWindowState: Reducer<WindowState, MainWindowStateAction> = (sta
       return action.payload;
 
     case APP_SETTINGS_LOADED: {
-      const { mainWindowState = state } = action.payload;
+      const { rootWindowState: mainWindowState = state } = action.payload;
       return mainWindowState;
     }
   }

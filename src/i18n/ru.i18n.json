@@ -1,0 +1,156 @@
+{
+  "contextMenu": {
+    "cut": "В&ырезать",
+    "copy": "&Копировать",
+    "paste": "&Вставить",
+    "selectAll": "Выделить все",
+    "undo": "&Отменить",
+    "redo": "&Повторить",
+    "spellingLanguages": "Правописание",
+    "moreSpellingSuggestions": "Другие варианты написания",
+    "noSpellingSuggestions": "Нет предложений",
+    "copyLinkAddress": "Копировать ссылку",
+    "openLink": "Открыть ссылку"
+  },
+  "dialog": {
+    "about": {
+      "title": "О {{- appName}}",
+      "version": "Версия: <1>{{-version}}</1>",
+      "checkUpdates": "Проверить обновления",
+      "checkUpdatesOnStart": "Проверять обновления при запуске",
+      "noUpdatesAvailable": "Нет обновлений.",
+      "copyright": "Copyright {{copyright}}"
+    },
+    "addServer": {
+      "title": "Добавить сервер",
+      "message": "Вы хотите добавить \"{{- host}}\" в Ваш список серверов?",
+      "add": "Добавить",
+      "cancel": "Отменить"
+    },
+    "addServerError": {
+      "title": "Некорректный Хост",
+      "message": "Не удалось проверить Хост \"{{- host}}\", поэтому он не был добавлен."
+    },
+    "certificateError": {
+      "title": "Ошибка сертификата",
+      "message": "Вы доверяете сертификату от \"{{- issuerName}}\"?",
+      "yes": "Да",
+      "no": "Нет"
+    },
+    "resetAppData": {
+      "message": "Это осуществит выход из всех Ваших команд и вернет настройки по умолчанию. Это действие невозможно отменить.",
+      "yes": "Да",
+      "cancel": "Отменить"
+    },
+    "screenshare": {
+      "title": "Демонстрация Вашего экрана",
+      "announcement": "Выберите экран для совместного использования"
+    },
+    "update": {
+      "title": "Доступно обновление",
+      "announcement": "Доступно новое обновление",
+      "message": "Доступна новая версия приложения Rocket.Chat!",
+      "currentVersion": "Текущая версия:",
+      "newVersion": "Новая версия:",
+      "install": "Установить обновление",
+      "remindLater": "Напомнить позже",
+      "skip": "Пропустить эту версию"
+    },
+    "updateDownloading": {
+      "title": "Загрузка обновления",
+      "message": "Вы будете оповещены, когда обновление будет готово к установке"
+    },
+    "updateInstallLater": {
+      "title": "Обновление будет установлено позже",
+      "message": "Обновление будет установлено, когда Вы закроете приложение"
+    },
+    "updateReady": {
+      "title": "Обновление готово к установке",
+      "message": "Обновление загружено",
+      "installNow": "Установить сейчас",
+      "installLater": "Установить позже"
+    },
+    "updateSkip": {
+      "title": "Пропустить обновление",
+      "message": "Мы оповестим Вас, когда следующее обновление будет доступно.\nЕсли Вы передумаете, Вы можете проверить наличие обновлений в меню \"О Rocket.Chat\"."
+    }
+  },
+  "error": {
+    "authNeeded": "Требуется авторизация, попробуйте <strong>{{- auth}}</strong>",
+    "connectTimeout": "Превышено время ожидания при попытке подключения",
+    "differentCertificate": "Сертификат отличается от предыдущего.\n\n {{- detail}}",
+    "noValidServerFound": "По заданному URL не найден подходящий сервер",
+    "offline": "Проверьте Ваше интернет-соединение!"
+  },
+  "landing": {
+    "invalidUrl": "Некорректный url",
+    "validating": "Проверяем...",
+    "inputUrl": "Введите URL Вашего сервера",
+    "connect": "Подключиться"
+  },
+  "menus": {
+    "about": "О {{- appName}}",
+    "addNewServer": "Добавить &новый сервер",
+    "back": "&Назад",
+    "clearTrustedCertificates": "Очистить доверенные сертификаты",
+    "close": "Закрыть",
+    "copy": "&Копировать",
+    "cut": "В&ырезать",
+    "documentation": "Документация",
+    "editMenu": "&Правка",
+    "fileMenu": "&Файл",
+    "forward": "Вперед",
+    "helpMenu": "&Справка",
+    "learnMore": "Узнать больше",
+    "minimize": "Свернуть",
+    "openDevTools": "Открыть &DevTools",
+    "paste": "&Вставить",
+    "quit": "Вы&йти из {{- appName}}",
+    "redo": "&Повторить",
+    "reload": "П&ерезагрузить",
+    "reloadIgnoringCache": "Перезагрузить игнорируя кэш",
+    "reportIssue": "Сообщить о проблеме",
+    "resetAppData": "Сбросить данные приложения",
+    "resetZoom": "Восстановить масштаб",
+    "selectAll": "Выделить все",
+    "showFullScreen": "Полноэкранный режим",
+    "showMenuBar": "Главное меню",
+    "showOnUnreadMessage": "Развернуть при поступлении новых сообщений",
+    "showServerList": "Список серверов",
+    "showTrayIcon": "Значок в трее",
+    "toggleDevTools": "Открыть &DevTools",
+    "undo": "&Отменить",
+    "viewMenu": "&Вид",
+    "windowMenu": "&Окна",
+    "zoomIn": "Увеличить",
+    "zoomOut": "Уменьшить"
+  },
+  "loadingError": {
+    "title": "Не удалось загрузить сервер",
+    "announcement": "Хьюстон, у нас проблемы",
+    "reload": "Перезагрузить"
+  },
+  "sidebar": {
+    "addNewServer": "Добавить новый сервер",
+    "item": {
+      "reload": "Перезагрузить вкладку сервера",
+      "remove": "Удалить сервер",
+      "openDevTools": "Открыть DevTools"
+    }
+  },
+  "touchBar": {
+    "formatting": "Форматирование",
+    "selectServer": "Выбрать сервер"
+  },
+  "tray": {
+    "menu": {
+      "show": "Показать",
+      "hide": "Скрыть",
+      "quit": "Выйти"
+    },
+    "tooltip": {
+      "noUnreadMessage": "{{- appName}}: нет непрочитанных сообщений",
+      "unreadMessage": "{{- appName}}: у Вас непрочитанных сообщений"
+    }
+  }
+}

@@ -7,7 +7,7 @@ import {
   purgeLocalStorage,
   watchAndPersistChanges,
 } from './app/main/data';
-import { setUserDataDirectory, installDevTools } from './app/main/dev';
+import { setUserDataDirectory } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
@@ -43,15 +43,16 @@ const start = async (): Promise<void> => {
 
   await i18n.wait();
 
-  if (process.env.NODE_ENV === 'development') {
-    installDevTools();
-  }
-
   const rootWindow = createRootWindow();
 
   attachGuestWebContentsEvents(rootWindow);
 
   await showRootWindow(rootWindow);
+
+  // React DevTools is currently incompatible with Electron 10
+  // if (process.env.NODE_ENV === 'development') {
+  //   installDevTools();
+  // }
 
   setupApp();
   setupNotifications();

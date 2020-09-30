@@ -21,7 +21,6 @@ import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
 import {
   createRootWindow,
-  setupRootWindow,
   applyMainWindowState,
   showRootWindow,
 } from './ui/main/rootWindow';
@@ -73,7 +72,6 @@ const start = async (): Promise<void> => {
   menuBar.setUp();
   touchBar.setUp();
   trayIcon.setUp();
-  setupRootWindow();
 
   app.addListener('before-quit', () => {
     dock.tearDown();

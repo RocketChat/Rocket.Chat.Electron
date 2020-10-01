@@ -20,7 +20,7 @@ import {
 } from './actions';
 import { ServerUrlResolutionStatus, Server, ServerUrlResolutionResult } from './common';
 
-const REQUIRED_SERVER_VERSION_RANGE = '>=3.0.0';
+const REQUIRED_SERVER_VERSION_RANGE = '>=2.4.0';
 
 export const convertToURL = (input: string): URL => {
   let url: URL;

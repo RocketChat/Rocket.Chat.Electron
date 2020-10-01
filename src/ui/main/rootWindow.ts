@@ -7,6 +7,7 @@ import {
   screen,
   Rectangle,
   NativeImage,
+  WebPreferences,
 } from 'electron';
 import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
@@ -24,6 +25,14 @@ import {
   selectGlobalBadgeCount,
 } from '../selectors';
 import { getTrayIconPath } from './icons';
+
+
+const webPreferences: WebPreferences = {
+  nodeIntegration: true,
+  nodeIntegrationInSubFrames: true,
+  webviewTag: true,
+  worldSafeExecuteJavaScript: true,
+};
 
 const selectRootWindowState = ({ rootWindowState }: RootState): WindowState => rootWindowState ?? {
   bounds: {
@@ -54,12 +63,7 @@ export const createRootWindow = (): BrowserWindow => {
     titleBarStyle: 'hidden',
     backgroundColor: '#2f343d',
     show: false,
-    webPreferences: {
-      nodeIntegration: true,
-      nodeIntegrationInSubFrames: true,
-      webviewTag: true,
-      worldSafeExecuteJavaScript: true,
-    },
+    webPreferences,
   });
 
   rootWindow.addListener('close', (event) => {
@@ -302,4 +306,30 @@ export const showRootWindow = async (rootWindow: BrowserWindow): Promise<void> =
       resolve();
     });
   });
+};
+
+export const exportLocalStorage = async (): Promise<Record<string, string>> => {
+  try {
+    const tempWindow = new BrowserWindow({
+      show: false,
+      webPreferences,
+    });
+
+    tempWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
+
+    await new Promise((resolve) => {
+      tempWindow.addListener('ready-to-show', () => {
+        resolve();
+      });
+    });
+
+    return tempWindow.webContents.executeJavaScript(`(() => {
+      const data = ({...localStorage})
+      localStorage.clear();
+      return data;
+    })()`);
+  } catch (error) {
+    console.error(error);
+    return {};
+  }
 };

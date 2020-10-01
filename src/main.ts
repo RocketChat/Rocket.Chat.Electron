@@ -2,9 +2,7 @@ import { app } from 'electron';
 
 import { performElectronStartup, setupApp } from './app/main/app';
 import {
-  getLocalStorage,
   mergePersistableValues,
-  purgeLocalStorage,
   watchAndPersistChanges,
 } from './app/main/data';
 import { setUserDataDirectory } from './app/main/dev';
@@ -23,6 +21,7 @@ import {
   createRootWindow,
   applyRootWindowState,
   showRootWindow,
+  exportLocalStorage,
 } from './ui/main/rootWindow';
 import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
@@ -39,8 +38,11 @@ const start = async (): Promise<void> => {
 
   await app.whenReady();
 
-  i18n.setUp();
+  const localStorage = await exportLocalStorage();
+  await mergePersistableValues(localStorage);
+  await setupServers(localStorage);
 
+  i18n.setUp();
   await i18n.wait();
 
   const rootWindow = createRootWindow();
@@ -58,10 +60,6 @@ const start = async (): Promise<void> => {
   setupNotifications();
   setupScreenSharing();
 
-  const localStorage = await getLocalStorage();
-
-  await mergePersistableValues(localStorage);
-  await setupServers(localStorage);
   await setupSpellChecking();
 
   setupDeepLinks();
@@ -83,7 +81,6 @@ const start = async (): Promise<void> => {
 
   applyRootWindowState();
 
-  await purgeLocalStorage();
   watchAndPersistChanges();
 
   await processDeepLinksInArgs();

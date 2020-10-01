@@ -468,6 +468,8 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
   ipcMain.handle(
     'server-url',
     (event) =>
-      Array.from(webContentsByServerUrl.entries()).find(([, v]) => v === event.sender)[0],
+      Array.from(webContentsByServerUrl.entries())
+        .filter(([, v]) => v === event.sender)
+        .map(([k]) => k)[0],
   );
 };

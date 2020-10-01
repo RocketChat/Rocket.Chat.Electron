@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 
 import { contextBridge, ipcRenderer, webFrame } from 'electron';
-import { satisfies, coerce } from 'semver';
 
 import { setupRendererErrorHandling } from './errors';
 import { JitsiMeetElectron, JitsiMeetElectronAPI } from './jitsi/preload';
@@ -42,7 +41,7 @@ const start = async (): Promise<void> => {
   );
   await webFrame.executeJavaScript(injectedCode);
 
-  if (!satisfies(coerce(serverInfo?.version), '>=3.0.x')) {
+  if (!serverInfo) {
     return;
   }
 

@@ -29,10 +29,11 @@ export const rootWindowState: Reducer<WindowState, RootWindowStateAction> = (sta
       return action.payload;
 
     case APP_SETTINGS_LOADED: {
-      const { rootWindowState: mainWindowState = state } = action.payload;
-      return mainWindowState;
+      const { rootWindowState = state } = action.payload;
+      return rootWindowState;
     }
-  }
 
-  return state;
+    default:
+      return state;
+  }
 };

@@ -19,18 +19,28 @@ const isRocketChatUrl = (parsedUrl: URL): boolean =>
 const isGoRocketChatUrl = (parsedUrl: URL): boolean =>
   parsedUrl.protocol === 'https:' && parsedUrl.hostname === 'go.rocket.chat';
 
-const parseDeepLink = (deepLink: string): { action: string, args: URLSearchParams } => {
-  const parsedUrl = new URL(deepLink);
+const parseDeepLink = (input: string): { action: string, args: URLSearchParams } | null => {
+  if (/^--/.test(input)) { // input is a CLI flag
+    return null;
+  }
 
-  if (isRocketChatUrl(parsedUrl)) {
-    const action = parsedUrl.hostname;
-    const args = parsedUrl.searchParams;
+  let url: URL;
+
+  try {
+    url = new URL(input);
+  } catch (error) {
+    return null;
+  }
+
+  if (isRocketChatUrl(url)) {
+    const action = url.hostname;
+    const args = url.searchParams;
     return { action, args };
   }
 
-  if (isGoRocketChatUrl(parsedUrl)) {
-    const action = parsedUrl.pathname;
-    const args = parsedUrl.searchParams;
+  if (isGoRocketChatUrl(url)) {
+    const action = url.pathname;
+    const args = url.searchParams;
     return { action, args };
   }
 
@@ -58,11 +68,10 @@ type InviteParams = {
 };
 
 const performOnServer = async (url: string, action: (serverUrl: string) => Promise<void>): Promise<void> => {
-  let serverUrl: string;
+  const [serverUrl, status, error] = await resolveServerUrl(url);
 
-  try {
-    serverUrl = new URL(url).href;
-  } catch (error) {
+  if (status !== ServerUrlResolutionStatus.OK) {
+    await warnAboutInvalidServerUrl(serverUrl, error.message);
     return;
   }
 
@@ -80,18 +89,11 @@ const performOnServer = async (url: string, action: (serverUrl: string) => Promi
     return;
   }
 
-  const [normalizedServerUrl, result, error] = await resolveServerUrl(serverUrl);
-
-  if (result !== ServerUrlResolutionStatus.OK) {
-    await warnAboutInvalidServerUrl(normalizedServerUrl, error.message);
-    return;
-  }
-
   dispatch({
     type: DEEP_LINKS_SERVER_ADDED,
-    payload: normalizedServerUrl,
+    payload: serverUrl,
   });
-  await action(normalizedServerUrl);
+  await action(serverUrl);
 };
 
 const getWebContents = (serverUrl: string): Promise<WebContents> =>

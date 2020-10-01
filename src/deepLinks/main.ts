@@ -3,7 +3,7 @@ import { URL } from 'url';
 import { app, WebContents } from 'electron';
 
 import { ServerUrlResolutionStatus } from '../servers/common';
-import { normalizeServerUrl, resolveServerUrl } from '../servers/main';
+import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
 import { askForServerAddition, warnAboutInvalidServerUrl } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
@@ -61,7 +61,7 @@ const performOnServer = async (url: string, action: (serverUrl: string) => Promi
   let serverUrl: string;
 
   try {
-    serverUrl = normalizeServerUrl(url);
+    serverUrl = new URL(url).href;
   } catch (error) {
     return;
   }

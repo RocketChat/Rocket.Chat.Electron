@@ -83,24 +83,24 @@ export const getServerVersion = async (serverUrl: string): Promise<string> => {
   return responseBody.version;
 };
 
-export const resolveServerUrl = async (serverUrl: string): Promise<ServerUrlResolutionResult> => {
+export const resolveServerUrl = async (input: string): Promise<ServerUrlResolutionResult> => {
   let normalizedServerUrl: string;
 
   try {
-    normalizedServerUrl = normalizeServerUrl(serverUrl);
+    normalizedServerUrl = normalizeServerUrl(input);
   } catch (error) {
-    return [serverUrl, ServerUrlResolutionStatus.INVALID_URL, error];
+    return [input, ServerUrlResolutionStatus.INVALID_URL, error];
   }
 
   try {
-    const version = await getServerVersion(serverUrl);
+    const version = await getServerVersion(normalizedServerUrl);
 
     if (!satisfies(coerce(version), '>=3.0.x')) {
       throw new Error(`incompatible server version (${ version }, expected >=3.0.x)`);
     }
   } catch (error) {
-    if (!/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(serverUrl)) {
-      return resolveServerUrl(`https://${ serverUrl }.rocket.chat`);
+    if (!/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(input)) {
+      return resolveServerUrl(`https://${ input }.rocket.chat`);
     }
 
     if (error.name === 'AbortError') {

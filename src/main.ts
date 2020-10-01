@@ -19,7 +19,6 @@ import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
 import {
   createRootWindow,
-  applyRootWindowState,
   showRootWindow,
   exportLocalStorage,
 } from './ui/main/rootWindow';
@@ -78,8 +77,6 @@ const start = async (): Promise<void> => {
     touchBar.tearDown();
     trayIcon.tearDown();
   });
-
-  applyRootWindowState();
 
   watchAndPersistChanges();
 

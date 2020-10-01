@@ -302,6 +302,7 @@ export const showRootWindow = async (rootWindow: BrowserWindow): Promise<void> =
 
   return new Promise((resolve) => {
     rootWindow.addListener('ready-to-show', () => {
+      applyRootWindowState();
       setupRootWindow();
       resolve();
     });

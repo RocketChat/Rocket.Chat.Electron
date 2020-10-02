@@ -4,17 +4,9 @@ import path from 'path';
 import { app } from 'electron';
 
 import { select, dispatch, watch } from '../../store';
-import { getRootWindow } from '../../ui/main/rootWindow';
 import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import { getPersistedValues, persistValues } from './persistence';
-
-export const getLocalStorage = (): Promise<Record<string, string>> =>
-  getRootWindow().webContents.executeJavaScript('({...localStorage})');
-
-export const purgeLocalStorage = async (): Promise<void> => {
-  await getRootWindow().webContents.executeJavaScript('localStorage.clear()');
-};
 
 export const mergePersistableValues = async (localStorage: Record<string, string>): Promise<void> => {
   const initialValues = select(selectPersistableValues);

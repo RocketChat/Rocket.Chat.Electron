@@ -21,13 +21,7 @@ const getElectronStore = (): ElectronStore<PersistableValues> => {
 };
 
 export const getPersistedValues = (): PersistableValues =>
-  selectPersistableValues(
-    Object.fromEntries(
-      Array.from(
-        getElectronStore(),
-      ),
-    ),
-  );
+  getElectronStore().store;
 
 export const persistValues = (values: PersistableValues): void => {
   getElectronStore().set(values);

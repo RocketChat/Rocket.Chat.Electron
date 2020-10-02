@@ -15,8 +15,8 @@ export type WindowState = {
   fullscreen: boolean;
   normal: boolean;
   bounds: {
-    x: number | undefined,
-    y: number | undefined,
+    x?: number,
+    y?: number,
     width: number,
     height: number,
   }

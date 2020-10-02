@@ -19,9 +19,9 @@ export const enum ServerUrlResolutionStatus {
 }
 
 export type ServerUrlResolutionResult = (
-  [resolvedServerUrl: string, result: ServerUrlResolutionStatus.OK]
+  [resolvedServerUrl: Server['url'], result: ServerUrlResolutionStatus.OK]
   | [
-    resolvedServerUrl: string,
+    resolvedServerUrl: Server['url'],
     result: Exclude<ServerUrlResolutionStatus, 'OK'>,
     error: Error,
   ]

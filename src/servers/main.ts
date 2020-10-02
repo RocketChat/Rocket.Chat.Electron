@@ -20,39 +20,39 @@ import {
 } from './actions';
 import { ServerUrlResolutionStatus, Server, ServerUrlResolutionResult } from './common';
 
-export const normalizeServerUrl = (input: string): string => {
-  if (typeof input !== 'string') {
-    throw new TypeError('server URL is not a string');
+const REQUIRED_SERVER_VERSION_RANGE = '>=2.4.0';
+
+export const convertToURL = (input: string): URL => {
+  let url: URL;
+
+  if (/^https?:\/\//.test(input)) {
+    url = new URL(input);
+  } else {
+    url = new URL(`https://${ input }`);
   }
 
-  let parsedUrl: URL;
-
-  try {
-    parsedUrl = new URL(input);
-  } catch (error) {
-    parsedUrl = new URL(`https://${ input }`);
-  }
-
-  const { protocol, username, password, hostname, port, pathname } = parsedUrl;
+  const { protocol, username, password, hostname, port, pathname } = url;
   return Object.assign(new URL('https://0.0.0.0'), {
     protocol,
     username,
     password,
     hostname,
-    port,
-    pathname,
-  }).href;
+    port: (protocol === 'http' && port === '80' && undefined)
+      || (protocol === 'https' && port === '443' && undefined)
+      || port,
+    pathname: /\/$/.test(pathname) ? pathname : `${ pathname }/`,
+  });
 };
 
-export const getServerVersion = async (serverUrl: string): Promise<string> => {
-  const { username, password, href } = new URL(serverUrl);
+const fetchServerInformation = async (url: URL): Promise<[finalURL: URL, version: string]> => {
+  const { username, password } = url;
   const headers: HeadersInit = [];
 
   if (username && password) {
     headers.push(['Authorization', `Basic ${ Buffer.from(`${ username }:${ password }`).toString('base64') }`]);
   }
 
-  const endpoint = new URL('api/info', href);
+  const endpoint = new URL('api/info', url);
 
   const controller = new AbortController();
 
@@ -80,37 +80,43 @@ export const getServerVersion = async (serverUrl: string): Promise<string> => {
     throw new Error();
   }
 
-  return responseBody.version;
+  return [new URL('/', convertToURL(response.url)), responseBody.version];
 };
 
-export const resolveServerUrl = async (serverUrl: string): Promise<ServerUrlResolutionResult> => {
-  let normalizedServerUrl: string;
+export const resolveServerUrl = async (input: string): Promise<ServerUrlResolutionResult> => {
+  let url: URL;
 
   try {
-    normalizedServerUrl = normalizeServerUrl(serverUrl);
+    url = convertToURL(input);
   } catch (error) {
-    return [serverUrl, ServerUrlResolutionStatus.INVALID_URL, error];
+    return [input, ServerUrlResolutionStatus.INVALID_URL, error];
   }
 
-  try {
-    const version = await getServerVersion(serverUrl);
+  let version: string;
 
-    if (!satisfies(coerce(version), '>=3.0.x')) {
-      throw new Error(`incompatible server version (${ version }, expected >=3.0.x)`);
-    }
+  try {
+    [url, version] = await fetchServerInformation(url);
   } catch (error) {
-    if (!/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(serverUrl)) {
-      return resolveServerUrl(`https://${ serverUrl }.rocket.chat`);
+    if (!/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(input)) {
+      return resolveServerUrl(`https://${ input }.rocket.chat`);
     }
 
     if (error.name === 'AbortError') {
-      return [normalizedServerUrl, ServerUrlResolutionStatus.TIMEOUT, error];
+      return [url.href, ServerUrlResolutionStatus.TIMEOUT, error];
     }
 
-    return [normalizedServerUrl, ServerUrlResolutionStatus.INVALID, error];
+    return [url.href, ServerUrlResolutionStatus.INVALID, error];
   }
 
-  return [normalizedServerUrl, ServerUrlResolutionStatus.OK];
+  if (!satisfies(coerce(version), REQUIRED_SERVER_VERSION_RANGE)) {
+    return [
+      url.href,
+      ServerUrlResolutionStatus.INVALID,
+      new Error(`incompatible server version (${ version }, expected ${ REQUIRED_SERVER_VERSION_RANGE })`),
+    ];
+  }
+
+  return [url.href, ServerUrlResolutionStatus.OK];
 };
 
 const loadAppServers = async (): Promise<Record<string, string>> => {

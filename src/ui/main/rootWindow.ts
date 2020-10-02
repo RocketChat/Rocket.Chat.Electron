@@ -26,13 +26,17 @@ import {
 } from '../selectors';
 import { getTrayIconPath } from './icons';
 
-
 const webPreferences: WebPreferences = {
   nodeIntegration: true,
   nodeIntegrationInSubFrames: true,
   webviewTag: true,
   worldSafeExecuteJavaScript: true,
 };
+
+const immediate = <T>(fn: (...args: T[]) => void) =>
+  (...args: T[]): void => {
+    setImmediate(fn, ...args);
+  };
 
 const selectRootWindowState = ({ rootWindowState }: RootState): WindowState => rootWindowState ?? {
   bounds: {
@@ -139,7 +143,7 @@ const fetchRootWindowState = (): ReturnType<typeof selectRootWindowState> => ({
 
 export const setupRootWindow = (): void => {
   const unsubscribers = [
-    watch(selectGlobalBadgeCount, (globalBadgeCount) => {
+    watch(selectGlobalBadgeCount, immediate((globalBadgeCount) => {
       if (rootWindow.isFocused() || globalBadgeCount === 0) {
         return;
       }
@@ -154,7 +158,7 @@ export const setupRootWindow = (): void => {
       if (process.platform === 'win32') {
         rootWindow.flashFrame(true);
       }
-    }),
+    })),
 
     watch(({
       servers,
@@ -162,13 +166,13 @@ export const setupRootWindow = (): void => {
     }) => {
       const currentServer = servers.find(({ url }) => url === currentServerUrl);
       return (currentServer && currentServer.title) || app.name;
-    }, (windowTitle) => {
+    }, immediate((windowTitle) => {
       rootWindow.setTitle(windowTitle);
-    }),
+    })),
 
-    listen(WEBVIEW_FOCUS_REQUESTED, () => {
+    listen(WEBVIEW_FOCUS_REQUESTED, immediate(() => {
       rootWindow.focus();
-    }),
+    })),
   ];
 
   const fetchAndDispatchWindowState = (): void => {
@@ -178,24 +182,24 @@ export const setupRootWindow = (): void => {
     });
   };
 
-  rootWindow.addListener('show', fetchAndDispatchWindowState);
-  rootWindow.addListener('hide', fetchAndDispatchWindowState);
-  rootWindow.addListener('focus', fetchAndDispatchWindowState);
-  rootWindow.addListener('blur', fetchAndDispatchWindowState);
-  rootWindow.addListener('maximize', fetchAndDispatchWindowState);
-  rootWindow.addListener('unmaximize', fetchAndDispatchWindowState);
-  rootWindow.addListener('minimize', fetchAndDispatchWindowState);
-  rootWindow.addListener('restore', fetchAndDispatchWindowState);
-  rootWindow.addListener('resize', fetchAndDispatchWindowState);
-  rootWindow.addListener('move', fetchAndDispatchWindowState);
+  rootWindow.addListener('show', immediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('hide', immediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('focus', immediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('blur', immediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('maximize', immediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('unmaximize', immediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('minimize', immediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('restore', immediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('resize', immediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('move', immediate(fetchAndDispatchWindowState));
 
-  fetchAndDispatchWindowState();
+  setImmediate(fetchAndDispatchWindowState);
 
-  rootWindow.addListener('focus', () => {
+  rootWindow.addListener('focus', immediate(() => {
     rootWindow.flashFrame(false);
-  });
+  }));
 
-  rootWindow.addListener('close', async () => {
+  rootWindow.addListener('close', immediate(async () => {
     if (rootWindow.isFullScreen()) {
       await new Promise((resolve) => rootWindow.once('leave-full-screen', resolve));
       rootWindow.setFullScreen(false);
@@ -216,7 +220,7 @@ export const setupRootWindow = (): void => {
     }
 
     app.quit();
-  });
+  }));
 
   unsubscribers.push(() => {
     rootWindow.removeAllListeners();
@@ -233,7 +237,7 @@ export const setupRootWindow = (): void => {
     });
 
     unsubscribers.push(
-      watch(selectRootWindowIcon, ({ globalBadge, rootWindowIcon }) => {
+      watch(selectRootWindowIcon, immediate(({ globalBadge, rootWindowIcon }) => {
         if (!rootWindowIcon) {
           rootWindow.setIcon(getTrayIconPath({ badge: globalBadge }));
           return;
@@ -280,11 +284,11 @@ export const setupRootWindow = (): void => {
 
           rootWindow.setOverlayIcon(overlayIcon, overlayDescription);
         }
-      }),
-      watch(({ isMenuBarEnabled }) => isMenuBarEnabled, (isMenuBarEnabled) => {
+      })),
+      watch(({ isMenuBarEnabled }) => isMenuBarEnabled, immediate((isMenuBarEnabled) => {
         rootWindow.autoHideMenuBar = !isMenuBarEnabled;
         rootWindow.setMenuBarVisibility(isMenuBarEnabled);
-      }),
+      })),
     );
   }
 

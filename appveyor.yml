@@ -3,7 +3,6 @@ environment:
   nodejs_version: "12"
 platform:
   - x64
-skip_tags: true
 shallow_clone: true
 clone_depth: 1
 cache:
@@ -13,9 +12,6 @@ cache:
 branches:
   only:
     - master
-    - develop
-    - /^hotfix\/.*$/
-    - /^release\/.*$/
 
 # init:
 #   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

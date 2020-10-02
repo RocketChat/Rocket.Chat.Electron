@@ -13,32 +13,30 @@ jobs:
           - rpm
     deploy:
       - provider: snap
-        skip_cleanup: true
-        cleanup: false
+        edge: true
         snap: dist/*.snap
-        channel: beta
-        on:
-          branch: develop
-      - provider: snap
-        skip_cleanup: true
+        channel: edge
         cleanup: false
-        snap: dist/*.snap
-        channel: stable
         on:
           branch: master
+      - provider: snap
+        edge: true
+        snap: dist/*.snap
+        channel: stable
+        cleanup: false
+        on:
+          branch: master
+          condition: ! $TRAVIS_TAG =~ -(alpha|beta)$
   - os: osx
     osx_image: xcode11.2
 
 branches:
   only:
     - master
-    - develop
-    - /^hotfix\/.*$/
-    - /^release\/.*$/
 
 notifications:
   email:
-    on_success: never
+    on_success: change
     on_failure: change
 
 script:

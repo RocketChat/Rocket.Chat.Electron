@@ -1,3 +1,13 @@
+## [3.0.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.0...3.0.1) (2020-10-02)
+
+
+### Bug Fixes
+
+* Server validation ([#1756](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1756)) ([91f7c5a](https://github.com/RocketChat/Rocket.Chat.Electron/commit/91f7c5a2e4ad983c3d81a2383a96ef3b54850f51))
+* Window state loading ([#1758](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1758)) ([12ef49e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/12ef49e4f608324ffb5982ff4435623b43ece6f2))
+
+
+
 # [3.0.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.11...3.0.0) (2020-09-30)
 
 

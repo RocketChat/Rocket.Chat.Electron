@@ -102,6 +102,7 @@
     "close": "Fechar",
     "copy": "&Copiar",
     "cut": "Cor&tar",
+    "disableGpu": "Desabilitar GPU",
     "documentation": "Documentação",
     "editMenu": "&Editar",
     "fileMenu": "&Arquivo",

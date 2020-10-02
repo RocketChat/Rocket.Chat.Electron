@@ -462,6 +462,25 @@ export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void =>
     }
   });
 
+  webviewsSession.addListener('will-download', (_event, item, _webContents) => {
+    const extension = path.extname(item.getFilename())?.slice(1).toLowerCase();
+
+    if (extension) {
+      item.setSaveDialogOptions({
+        filters: [
+          {
+            name: `*.${ extension }`,
+            extensions: [extension],
+          },
+          {
+            name: '*.*',
+            extensions: ['*'],
+          },
+        ],
+      });
+    }
+  });
+
   rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);
   rootWindow.webContents.addListener('did-attach-webview', handleDidAttachWebview);
 

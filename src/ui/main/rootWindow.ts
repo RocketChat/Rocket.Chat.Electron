@@ -49,13 +49,17 @@ const selectRootWindowState = ({ rootWindowState }: RootState): WindowState => r
   visible: false,
 };
 
-let rootWindow: BrowserWindow;
+let _rootWindow: BrowserWindow;
 
-export const getRootWindow = (): BrowserWindow =>
-  rootWindow;
+export const getRootWindow = (): Promise<BrowserWindow> =>
+  new Promise((resolve, reject) => {
+    setImmediate(() => {
+      _rootWindow ? resolve(_rootWindow) : reject();
+    });
+  });
 
-export const createRootWindow = (): BrowserWindow => {
-  rootWindow = new BrowserWindow({
+export const createRootWindow = (): void => {
+  _rootWindow = new BrowserWindow({
     width: 1000,
     height: 600,
     minWidth: 400,
@@ -66,11 +70,9 @@ export const createRootWindow = (): BrowserWindow => {
     webPreferences,
   });
 
-  rootWindow.addListener('close', (event) => {
+  _rootWindow.addListener('close', (event) => {
     event.preventDefault();
   });
-
-  return rootWindow;
 };
 
 const isInsideSomeScreen = ({ x, y, width, height }: Rectangle): boolean =>
@@ -79,7 +81,7 @@ const isInsideSomeScreen = ({ x, y, width, height }: Rectangle): boolean =>
       && x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
     );
 
-export const applyRootWindowState = (): void => {
+export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
   const rootWindowState = select(selectRootWindowState);
   const isTrayIconEnabled = select(({ isTrayIconEnabled }) => isTrayIconEnabled);
 
@@ -96,63 +98,68 @@ export const applyRootWindowState = (): void => {
     y = Math.round((primaryDisplayHeight - height) / 2);
   }
 
-  if (rootWindow.isVisible()) {
+  if (browserWindow.isVisible()) {
     return;
   }
 
   if (!x || !y) {
-    rootWindow.setBounds({ width, height });
+    browserWindow.setBounds({ width, height });
   } else {
-    rootWindow.setBounds({ x, y, width, height });
+    browserWindow.setBounds({ x, y, width, height });
   }
 
   if (rootWindowState.maximized) {
-    rootWindow.maximize();
+    browserWindow.maximize();
   }
 
   if (rootWindowState.minimized) {
-    rootWindow.minimize();
+    browserWindow.minimize();
   }
 
   if (rootWindowState.fullscreen) {
-    rootWindow.setFullScreen(true);
+    browserWindow.setFullScreen(true);
   }
 
   if (rootWindowState.visible || !isTrayIconEnabled) {
-    rootWindow.show();
+    browserWindow.show();
   }
 
   if (rootWindowState.focused) {
-    rootWindow.focus();
+    browserWindow.focus();
   }
 };
 
-const fetchRootWindowState = (): ReturnType<typeof selectRootWindowState> => ({
-  focused: rootWindow.isFocused(),
-  visible: rootWindow.isVisible(),
-  maximized: rootWindow.isMaximized(),
-  minimized: rootWindow.isMinimized(),
-  fullscreen: rootWindow.isFullScreen(),
-  normal: rootWindow.isNormal(),
-  bounds: rootWindow.getNormalBounds(),
-});
+const fetchRootWindowState = async (): Promise<ReturnType<typeof selectRootWindowState>> => {
+  const browserWindow = await getRootWindow();
+  return {
+    focused: browserWindow.isFocused(),
+    visible: browserWindow.isVisible(),
+    maximized: browserWindow.isMaximized(),
+    minimized: browserWindow.isMinimized(),
+    fullscreen: browserWindow.isFullScreen(),
+    normal: browserWindow.isNormal(),
+    bounds: browserWindow.getNormalBounds(),
+  };
+};
 
 export const setupRootWindow = (): void => {
   const unsubscribers = [
-    watch(selectGlobalBadgeCount, (globalBadgeCount) => {
-      if (rootWindow.isFocused() || globalBadgeCount === 0) {
+    watch(selectGlobalBadgeCount, async (globalBadgeCount) => {
+      const browserWindow = await getRootWindow();
+
+      if (browserWindow.isFocused() || globalBadgeCount === 0) {
         return;
       }
 
       const isShowWindowOnUnreadChangedEnabled = select(({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled);
 
       if (isShowWindowOnUnreadChangedEnabled) {
-        rootWindow.showInactive();
+        browserWindow.showInactive();
         return;
       }
 
       if (process.platform === 'win32') {
-        rootWindow.flashFrame(true);
+        browserWindow.flashFrame(true);
       }
     }),
 
@@ -162,65 +169,69 @@ export const setupRootWindow = (): void => {
     }) => {
       const currentServer = servers.find(({ url }) => url === currentServerUrl);
       return (currentServer && currentServer.title) || app.name;
-    }, (windowTitle) => {
-      rootWindow.setTitle(windowTitle);
+    }, async (windowTitle) => {
+      const browserWindow = await getRootWindow();
+      browserWindow.setTitle(windowTitle);
     }),
 
-    listen(WEBVIEW_FOCUS_REQUESTED, () => {
-      rootWindow.focus();
+    listen(WEBVIEW_FOCUS_REQUESTED, async () => {
+      const browserWindow = await getRootWindow();
+      browserWindow.focus();
     }),
   ];
 
-  const fetchAndDispatchWindowState = (): void => {
+  const fetchAndDispatchWindowState = async (): Promise<void> => {
     dispatch({
       type: ROOT_WINDOW_STATE_CHANGED,
-      payload: fetchRootWindowState(),
+      payload: await fetchRootWindowState(),
     });
   };
 
-  rootWindow.addListener('show', fetchAndDispatchWindowState);
-  rootWindow.addListener('hide', fetchAndDispatchWindowState);
-  rootWindow.addListener('focus', fetchAndDispatchWindowState);
-  rootWindow.addListener('blur', fetchAndDispatchWindowState);
-  rootWindow.addListener('maximize', fetchAndDispatchWindowState);
-  rootWindow.addListener('unmaximize', fetchAndDispatchWindowState);
-  rootWindow.addListener('minimize', fetchAndDispatchWindowState);
-  rootWindow.addListener('restore', fetchAndDispatchWindowState);
-  rootWindow.addListener('resize', fetchAndDispatchWindowState);
-  rootWindow.addListener('move', fetchAndDispatchWindowState);
+  getRootWindow().then((rootWindow) => {
+    rootWindow.addListener('show', fetchAndDispatchWindowState);
+    rootWindow.addListener('hide', fetchAndDispatchWindowState);
+    rootWindow.addListener('focus', fetchAndDispatchWindowState);
+    rootWindow.addListener('blur', fetchAndDispatchWindowState);
+    rootWindow.addListener('maximize', fetchAndDispatchWindowState);
+    rootWindow.addListener('unmaximize', fetchAndDispatchWindowState);
+    rootWindow.addListener('minimize', fetchAndDispatchWindowState);
+    rootWindow.addListener('restore', fetchAndDispatchWindowState);
+    rootWindow.addListener('resize', fetchAndDispatchWindowState);
+    rootWindow.addListener('move', fetchAndDispatchWindowState);
 
-  fetchAndDispatchWindowState();
+    fetchAndDispatchWindowState();
 
-  rootWindow.addListener('focus', () => {
-    rootWindow.flashFrame(false);
-  });
+    rootWindow.addListener('focus', async () => {
+      rootWindow.flashFrame(false);
+    });
 
-  rootWindow.addListener('close', async () => {
-    if (rootWindow.isFullScreen()) {
-      await new Promise((resolve) => rootWindow.once('leave-full-screen', resolve));
-      rootWindow.setFullScreen(false);
-    }
+    rootWindow.addListener('close', async () => {
+      if (rootWindow.isFullScreen()) {
+        await new Promise((resolve) => rootWindow.once('leave-full-screen', resolve));
+        rootWindow.setFullScreen(false);
+      }
 
-    rootWindow.blur();
+      rootWindow.blur();
 
-    const isTrayIconEnabled = select(({ isTrayIconEnabled }) => isTrayIconEnabled ?? true);
+      const isTrayIconEnabled = select(({ isTrayIconEnabled }) => isTrayIconEnabled ?? true);
 
-    if (process.platform === 'darwin' || isTrayIconEnabled) {
-      rootWindow.hide();
-      return;
-    }
+      if (process.platform === 'darwin' || isTrayIconEnabled) {
+        rootWindow.hide();
+        return;
+      }
 
-    if (process.platform === 'win32') {
-      rootWindow.minimize();
-      return;
-    }
+      if (process.platform === 'win32') {
+        rootWindow.minimize();
+        return;
+      }
 
-    app.quit();
-  });
+      app.quit();
+    });
 
-  unsubscribers.push(() => {
-    rootWindow.removeAllListeners();
-    rootWindow.destroy();
+    unsubscribers.push(() => {
+      rootWindow.removeAllListeners();
+      rootWindow.destroy();
+    });
   });
 
   if (process.platform === 'linux' || process.platform === 'win32') {
@@ -233,9 +244,11 @@ export const setupRootWindow = (): void => {
     });
 
     unsubscribers.push(
-      watch(selectRootWindowIcon, ({ globalBadge, rootWindowIcon }) => {
+      watch(selectRootWindowIcon, async ({ globalBadge, rootWindowIcon }) => {
+        const browserWindow = await getRootWindow();
+
         if (!rootWindowIcon) {
-          rootWindow.setIcon(getTrayIconPath({ badge: globalBadge }));
+          browserWindow.setIcon(getTrayIconPath({ badge: globalBadge }));
           return;
         }
 
@@ -260,7 +273,7 @@ export const setupRootWindow = (): void => {
           });
         }
 
-        rootWindow.setIcon(icon);
+        browserWindow.setIcon(icon);
 
         if (process.platform === 'win32') {
           let overlayIcon: NativeImage = null;
@@ -278,12 +291,13 @@ export const setupRootWindow = (): void => {
             });
           }
 
-          rootWindow.setOverlayIcon(overlayIcon, overlayDescription);
+          browserWindow.setOverlayIcon(overlayIcon, overlayDescription);
         }
       }),
-      watch(({ isMenuBarEnabled }) => isMenuBarEnabled, (isMenuBarEnabled) => {
-        rootWindow.autoHideMenuBar = !isMenuBarEnabled;
-        rootWindow.setMenuBarVisibility(isMenuBarEnabled);
+      watch(({ isMenuBarEnabled }) => isMenuBarEnabled, async (isMenuBarEnabled) => {
+        const browserWindow = await getRootWindow();
+        browserWindow.autoHideMenuBar = !isMenuBarEnabled;
+        browserWindow.setMenuBarVisibility(isMenuBarEnabled);
       }),
     );
   }
@@ -293,16 +307,18 @@ export const setupRootWindow = (): void => {
   });
 };
 
-export const showRootWindow = async (rootWindow: BrowserWindow): Promise<void> => {
-  rootWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
+export const showRootWindow = async (): Promise<void> => {
+  const browserWindow = await getRootWindow();
+
+  browserWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 
   if (process.env.NODE_ENV === 'development') {
-    setupRootWindowReload(rootWindow.webContents);
+    setupRootWindowReload(browserWindow.webContents);
   }
 
   return new Promise((resolve) => {
-    rootWindow.addListener('ready-to-show', () => {
-      applyRootWindowState();
+    browserWindow.addListener('ready-to-show', () => {
+      applyRootWindowState(browserWindow);
       setupRootWindow();
       resolve();
     });

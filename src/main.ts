@@ -44,11 +44,9 @@ const start = async (): Promise<void> => {
   i18n.setUp();
   await i18n.wait();
 
-  const rootWindow = createRootWindow();
-
-  attachGuestWebContentsEvents(rootWindow);
-
-  await showRootWindow(rootWindow);
+  createRootWindow();
+  attachGuestWebContentsEvents();
+  await showRootWindow();
 
   // React DevTools is currently incompatible with Electron 10
   // if (process.env.NODE_ENV === 'development') {

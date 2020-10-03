@@ -42,7 +42,7 @@ const queuedTrustRequests = new Map<Certificate['fingerprint'], Array<(isTrusted
 
 export const setupNavigation = async (): Promise<void> => {
   app.addListener('certificate-error', async (event, webContents, requestedUrl, error, certificate, callback) => {
-    if (webContents.id !== getRootWindow().webContents.id) {
+    if (webContents.id !== (await getRootWindow()).webContents.id) {
       return;
     }
 

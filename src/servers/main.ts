@@ -80,7 +80,9 @@ const fetchServerInformation = async (url: URL): Promise<[finalURL: URL, version
     throw new Error();
   }
 
-  return [new URL('/', convertToURL(response.url)), responseBody.version];
+  const finalEndpoint = convertToURL(response.url);
+
+  return [new URL('../..', finalEndpoint), responseBody.version];
 };
 
 export const resolveServerUrl = async (input: string): Promise<ServerUrlResolutionResult> => {
@@ -95,7 +97,7 @@ export const resolveServerUrl = async (input: string): Promise<ServerUrlResoluti
   let version: string;
 
   try {
-    [, version] = await fetchServerInformation(url);
+    [url, version] = await fetchServerInformation(url);
   } catch (error) {
     if (!/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(input)) {
       return resolveServerUrl(`https://${ input }.rocket.chat`);

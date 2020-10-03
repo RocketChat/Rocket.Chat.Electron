@@ -1,3 +1,16 @@
+## [3.0.2](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.1...3.0.2) (2020-10-03)
+
+
+### Bug Fixes
+
+* Add extension filters to save download dialog ([#1772](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1772)) ([6c4fdcc](https://github.com/RocketChat/Rocket.Chat.Electron/commit/6c4fdcc894bac52fab875cca7b9146ee3cec40e1))
+* Asynchronous window state changes ([#1773](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1773)) ([0adc73c](https://github.com/RocketChat/Rocket.Chat.Electron/commit/0adc73c2ecfe7010adbb06583b22c55ff172a169))
+* Increase server version range ([#1770](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1770)) ([4ea6fea](https://github.com/RocketChat/Rocket.Chat.Electron/commit/4ea6fea99ed4dc4a11fe64119dc4d284d3a65a5f))
+* Update pt-BR.i18n.json ([#1774](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1774)) ([75f9c97](https://github.com/RocketChat/Rocket.Chat.Electron/commit/75f9c977b6a2ce895899f336dc06b2b9ccb86110))
+* Update tr-TR.i18n.json ([#1763](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1763)) ([61dac3e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/61dac3e1f66eb3908cb0155867cafdf4e6de0fea))
+
+
+
 ## [3.0.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.0...3.0.1) (2020-10-02)
 
 

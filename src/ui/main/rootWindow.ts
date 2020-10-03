@@ -33,11 +33,6 @@ const webPreferences: WebPreferences = {
   worldSafeExecuteJavaScript: true,
 };
 
-const immediate = <T>(fn: (...args: T[]) => void) =>
-  (...args: T[]): void => {
-    setImmediate(fn, ...args);
-  };
-
 const selectRootWindowState = ({ rootWindowState }: RootState): WindowState => rootWindowState ?? {
   bounds: {
     x: 0,
@@ -143,7 +138,7 @@ const fetchRootWindowState = (): ReturnType<typeof selectRootWindowState> => ({
 
 export const setupRootWindow = (): void => {
   const unsubscribers = [
-    watch(selectGlobalBadgeCount, immediate((globalBadgeCount) => {
+    watch(selectGlobalBadgeCount, (globalBadgeCount) => setImmediate(() => {
       if (rootWindow.isFocused() || globalBadgeCount === 0) {
         return;
       }
@@ -166,11 +161,11 @@ export const setupRootWindow = (): void => {
     }) => {
       const currentServer = servers.find(({ url }) => url === currentServerUrl);
       return (currentServer && currentServer.title) || app.name;
-    }, immediate((windowTitle) => {
+    }, (windowTitle) => setImmediate(() => {
       rootWindow.setTitle(windowTitle);
     })),
 
-    listen(WEBVIEW_FOCUS_REQUESTED, immediate(() => {
+    listen(WEBVIEW_FOCUS_REQUESTED, () => setImmediate(() => {
       rootWindow.focus();
     })),
   ];
@@ -182,24 +177,24 @@ export const setupRootWindow = (): void => {
     });
   };
 
-  rootWindow.addListener('show', immediate(fetchAndDispatchWindowState));
-  rootWindow.addListener('hide', immediate(fetchAndDispatchWindowState));
-  rootWindow.addListener('focus', immediate(fetchAndDispatchWindowState));
-  rootWindow.addListener('blur', immediate(fetchAndDispatchWindowState));
-  rootWindow.addListener('maximize', immediate(fetchAndDispatchWindowState));
-  rootWindow.addListener('unmaximize', immediate(fetchAndDispatchWindowState));
-  rootWindow.addListener('minimize', immediate(fetchAndDispatchWindowState));
-  rootWindow.addListener('restore', immediate(fetchAndDispatchWindowState));
-  rootWindow.addListener('resize', immediate(fetchAndDispatchWindowState));
-  rootWindow.addListener('move', immediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('show', () => setImmediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('hide', () => setImmediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('focus', () => setImmediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('blur', () => setImmediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('maximize', () => setImmediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('unmaximize', () => setImmediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('minimize', () => setImmediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('restore', () => setImmediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('resize', () => setImmediate(fetchAndDispatchWindowState));
+  rootWindow.addListener('move', () => setImmediate(fetchAndDispatchWindowState));
 
   setImmediate(fetchAndDispatchWindowState);
 
-  rootWindow.addListener('focus', immediate(() => {
+  rootWindow.addListener('focus', () => setImmediate(() => {
     rootWindow.flashFrame(false);
   }));
 
-  rootWindow.addListener('close', immediate(async () => {
+  rootWindow.addListener('close', () => setImmediate(async () => {
     if (rootWindow.isFullScreen()) {
       await new Promise((resolve) => rootWindow.once('leave-full-screen', resolve));
       rootWindow.setFullScreen(false);
@@ -237,7 +232,7 @@ export const setupRootWindow = (): void => {
     });
 
     unsubscribers.push(
-      watch(selectRootWindowIcon, immediate(({ globalBadge, rootWindowIcon }) => {
+      watch(selectRootWindowIcon, ({ globalBadge, rootWindowIcon }) => setImmediate(() => {
         if (!rootWindowIcon) {
           rootWindow.setIcon(getTrayIconPath({ badge: globalBadge }));
           return;
@@ -285,7 +280,7 @@ export const setupRootWindow = (): void => {
           rootWindow.setOverlayIcon(overlayIcon, overlayDescription);
         }
       })),
-      watch(({ isMenuBarEnabled }) => isMenuBarEnabled, immediate((isMenuBarEnabled) => {
+      watch(({ isMenuBarEnabled }) => isMenuBarEnabled, (isMenuBarEnabled) => setImmediate(() => {
         rootWindow.autoHideMenuBar = !isMenuBarEnabled;
         rootWindow.setMenuBarVisibility(isMenuBarEnabled);
       })),

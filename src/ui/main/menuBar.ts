@@ -9,11 +9,11 @@ import { RootState } from '../../store/rootReducer';
 import {
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
-  MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-  MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
-  MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_SELECT_SERVER_CLICKED,
+  MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
+  MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
+  MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
 } from '../actions';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
@@ -27,11 +27,6 @@ const on = (
 ): MenuItemConstructorOptions[] =>
   (condition ? getMenuItems() : []);
 
-const immediate = (fn: (...args: any[]) => void) =>
-  (...args: any[]): void => {
-    setImmediate(fn, ...args);
-  };
-
 const createAppMenu = createSelector(
   () => undefined,
   (): MenuItemConstructorOptions => ({
@@ -42,7 +37,7 @@ const createAppMenu = createSelector(
         {
           id: 'about',
           label: t('menus.about', { appName: app.name }),
-          click: immediate(() => {
+          click: () => setImmediate(() => {
             getRootWindow().show();
             dispatch({ type: MENU_BAR_ABOUT_CLICKED });
           }),
@@ -76,7 +71,7 @@ const createAppMenu = createSelector(
           id: 'addNewServer',
           label: t('menus.addNewServer'),
           accelerator: 'CommandOrControl+N',
-          click: immediate(() => {
+          click: () => setImmediate(() => {
             getRootWindow().show();
             dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
           }),
@@ -87,7 +82,7 @@ const createAppMenu = createSelector(
         id: 'disableGpu',
         label: t('menus.disableGpu'),
         enabled: !app.commandLine.hasSwitch('disable-gpu'),
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           relaunchApp('--disable-gpu');
         }),
       },
@@ -96,7 +91,7 @@ const createAppMenu = createSelector(
         id: 'quit',
         label: t('menus.quit', { appName: app.name }),
         accelerator: 'CommandOrControl+Q',
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           app.quit();
         }),
       },
@@ -170,7 +165,7 @@ const createViewMenu = createSelector(
         label: t('menus.reload'),
         accelerator: 'CommandOrControl+R',
         enabled: !!currentServerUrl,
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           getRootWindow().show();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.reload();
@@ -180,7 +175,7 @@ const createViewMenu = createSelector(
         id: 'reloadIgnoringCache',
         label: t('menus.reloadIgnoringCache'),
         enabled: !!currentServerUrl,
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           getRootWindow().show();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.reloadIgnoringCache();
@@ -191,7 +186,7 @@ const createViewMenu = createSelector(
         label: t('menus.openDevTools'),
         enabled: !!currentServerUrl,
         accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.toggleDevTools();
         }),
@@ -202,7 +197,7 @@ const createViewMenu = createSelector(
         label: t('menus.back'),
         enabled: !!currentServerUrl,
         accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           getRootWindow().show();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.goBack();
@@ -213,7 +208,7 @@ const createViewMenu = createSelector(
         label: t('menus.forward'),
         enabled: !!currentServerUrl,
         accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           getRootWindow().show();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.goForward();
@@ -225,7 +220,7 @@ const createViewMenu = createSelector(
         label: t('menus.showTrayIcon'),
         type: 'checkbox',
         checked: isTrayIconEnabled,
-        click: immediate(({ checked }) => {
+        click: ({ checked }) => setImmediate(() => {
           dispatch({
             type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
             payload: checked,
@@ -237,9 +232,9 @@ const createViewMenu = createSelector(
           id: 'showFullScreen',
           label: t('menus.showFullScreen'),
           type: 'checkbox',
-          checked: rootWindowState.visible,
+          checked: rootWindowState.fullscreen,
           accelerator: 'Control+Command+F',
-          click: immediate(({ checked: enabled }) => {
+          click: ({ checked: enabled }) => setImmediate(() => {
             getRootWindow().show();
             getRootWindow().setFullScreen(enabled);
           }),
@@ -251,7 +246,7 @@ const createViewMenu = createSelector(
           label: t('menus.showMenuBar'),
           type: 'checkbox',
           checked: isMenuBarEnabled,
-          click: immediate(({ checked }) => {
+          click: ({ checked }) => setImmediate(() => {
             getRootWindow().show();
             dispatch({
               type: MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
@@ -265,7 +260,7 @@ const createViewMenu = createSelector(
         label: t('menus.showServerList'),
         type: 'checkbox',
         checked: isSideBarEnabled,
-        click: immediate(({ checked }) => {
+        click: ({ checked }) => setImmediate(() => {
           getRootWindow().show();
           dispatch({
             type: MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
@@ -278,7 +273,7 @@ const createViewMenu = createSelector(
         id: 'resetZoom',
         label: t('menus.resetZoom'),
         accelerator: 'CommandOrControl+0',
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           getRootWindow().show();
           getRootWindow().webContents.zoomLevel = 0;
         }),
@@ -287,7 +282,7 @@ const createViewMenu = createSelector(
         id: 'zoomIn',
         label: t('menus.zoomIn'),
         accelerator: 'CommandOrControl+Plus',
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           getRootWindow().show();
           if (getRootWindow().webContents.zoomLevel >= 9) {
             return;
@@ -299,7 +294,7 @@ const createViewMenu = createSelector(
         id: 'zoomOut',
         label: t('menus.zoomOut'),
         accelerator: 'CommandOrControl+-',
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           getRootWindow().show();
           if (getRootWindow().webContents.zoomLevel <= -9) {
             return;
@@ -333,7 +328,7 @@ const createWindowMenu = createSelector(
           id: 'addNewServer',
           label: t('menus.addNewServer'),
           accelerator: 'CommandOrControl+N',
-          click: immediate(() => {
+          click: () => setImmediate(() => {
             getRootWindow().show();
             dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
           }),
@@ -347,7 +342,7 @@ const createWindowMenu = createSelector(
           label: server.title.replace(/&/g, '&&'),
           checked: currentServerUrl === server.url,
           accelerator: `CommandOrControl+${ i + 1 }`,
-          click: immediate(() => {
+          click: () => setImmediate(() => {
             getRootWindow().show();
             dispatch({
               type: MENU_BAR_SELECT_SERVER_CLICKED,
@@ -362,7 +357,7 @@ const createWindowMenu = createSelector(
         type: 'checkbox',
         label: t('menus.showOnUnreadMessage'),
         checked: isShowWindowOnUnreadChangedEnabled,
-        click: immediate(({ checked }) => {
+        click: ({ checked }) => setImmediate(() => {
           getRootWindow().show();
           dispatch({
             type: MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
@@ -397,14 +392,14 @@ const createHelpMenu = createSelector(
       {
         id: 'documentation',
         label: t('menus.documentation'),
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           shell.openExternal('https://docs.rocket.chat/');
         }),
       },
       {
         id: 'reportIssue',
         label: t('menus.reportIssue'),
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           shell.openExternal('https://github.com/RocketChat/Rocket.Chat/issues/new');
         }),
       },
@@ -413,7 +408,7 @@ const createHelpMenu = createSelector(
         id: 'reload-window',
         label: t('menus.reload'),
         accelerator: 'CommandOrControl+Shift+R',
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           getRootWindow().show();
           getRootWindow().reload();
         }),
@@ -421,7 +416,7 @@ const createHelpMenu = createSelector(
       {
         id: 'toggleDevTools',
         label: t('menus.toggleDevTools'),
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           getRootWindow().show();
           getRootWindow().webContents.toggleDevTools();
         }),
@@ -430,7 +425,7 @@ const createHelpMenu = createSelector(
       {
         id: 'clearTrustedCertificates',
         label: t('menus.clearTrustedCertificates'),
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           getRootWindow().show();
           dispatch({ type: CERTIFICATES_CLEARED });
           getAllServerWebContents().forEach((webContents) => {
@@ -441,7 +436,7 @@ const createHelpMenu = createSelector(
       {
         id: 'resetAppData',
         label: t('menus.resetAppData'),
-        click: immediate(async () => {
+        click: () => setImmediate(async () => {
           const permitted = await askForAppDataReset();
 
           if (permitted) {
@@ -453,7 +448,7 @@ const createHelpMenu = createSelector(
       {
         id: 'learnMore',
         label: t('menus.learnMore'),
-        click: immediate(() => {
+        click: () => setImmediate(() => {
           shell.openExternal('https://rocket.chat');
         }),
       },
@@ -461,7 +456,7 @@ const createHelpMenu = createSelector(
         {
           id: 'about',
           label: t('menus.about', { appName: app.name }),
-          click: immediate(() => {
+          click: () => setImmediate(() => {
             getRootWindow().show();
             dispatch({ type: MENU_BAR_ABOUT_CLICKED });
           }),

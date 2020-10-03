@@ -80,7 +80,9 @@ const fetchServerInformation = async (url: URL): Promise<[finalURL: URL, version
     throw new Error();
   }
 
-  return [new URL('/', convertToURL(response.url)), responseBody.version];
+  const finalEndpoint = convertToURL(response.url);
+
+  return [new URL('../..', finalEndpoint), responseBody.version];
 };
 
 export const resolveServerUrl = async (input: string): Promise<ServerUrlResolutionResult> => {

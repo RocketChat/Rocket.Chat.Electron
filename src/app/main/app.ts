@@ -41,17 +41,13 @@ export const performElectronStartup = (): void => {
 };
 
 export const setupApp = (): void => {
-  app.addListener('activate', () => {
-    const rootWindow = getRootWindow();
-    rootWindow.showInactive();
-    rootWindow.focus();
-  });
+  app.addListener('activate', async () => {
+    const browserWindow = await getRootWindow();
 
-  app.addListener('second-instance', () => {
-    const rootWindow = getRootWindow();
-
-    rootWindow.showInactive();
-    rootWindow.focus();
+    if (!browserWindow.isVisible()) {
+      browserWindow.showInactive();
+    }
+    browserWindow.focus();
   });
 
   app.addListener('window-all-closed', (): void => undefined);

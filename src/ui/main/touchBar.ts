@@ -32,8 +32,14 @@ const createTouchBar = (): [
     mode: 'free',
     continuous: false,
     items: [],
-    select: (index) => {
-      getRootWindow().show();
+    select: async (index) => {
+      const browserWindow = await getRootWindow();
+
+      if (!browserWindow.isVisible()) {
+        browserWindow.showInactive();
+      }
+      browserWindow.focus();
+
       const url = select(({ servers }) => servers[index].url);
       dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
     },
@@ -54,8 +60,14 @@ const createTouchBar = (): [
       icon: nativeImage.createFromPath(`${ app.getAppPath() }/app/images/touch-bar/${ id }.png`),
       enabled: false,
     })),
-    change: (selectedIndex) => {
-      getRootWindow().show();
+    change: async (selectedIndex) => {
+      const browserWindow = await getRootWindow();
+
+      if (!browserWindow.isVisible()) {
+        browserWindow.showInactive();
+      }
+      browserWindow.focus();
+
       dispatch({
         type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
         payload: ids[selectedIndex],
@@ -72,7 +84,7 @@ const createTouchBar = (): [
     ],
   });
 
-  getRootWindow().setTouchBar(touchBar);
+  getRootWindow().then((browserWindow) => browserWindow.setTouchBar(touchBar));
 
   return [
     touchBar,
@@ -122,17 +134,17 @@ class TouchBarService extends Service {
 
     this.watch(selectCurrentServer, (currentServer) => {
       updateServerSelectionPopover(serverSelectionPopover, currentServer);
-      getRootWindow().setTouchBar(touchBar);
+      getRootWindow().then((browserWindow) => browserWindow.setTouchBar(touchBar));
     });
 
     this.watch(({ servers }) => servers, (servers) => {
       updateServerSelectionScrubber(serverSelectionScrubber, servers);
-      getRootWindow().setTouchBar(touchBar);
+      getRootWindow().then((browserWindow) => browserWindow.setTouchBar(touchBar));
     });
 
     this.watch(({ isMessageBoxFocused }) => isMessageBoxFocused ?? false, (isMessageBoxFocused) => {
       toggleMessageFormattingButtons(messageBoxFormattingButtons, isMessageBoxFocused);
-      getRootWindow().setTouchBar(touchBar);
+      getRootWindow().then((browserWindow) => browserWindow.setTouchBar(touchBar));
     });
   }
 }

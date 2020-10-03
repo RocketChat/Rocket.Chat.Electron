@@ -37,10 +37,15 @@ const createAppMenu = createSelector(
         {
           id: 'about',
           label: t('menus.about', { appName: app.name }),
-          click: () => setImmediate(() => {
-            getRootWindow().show();
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
             dispatch({ type: MENU_BAR_ABOUT_CLICKED });
-          }),
+          },
         },
         { type: 'separator' },
         {
@@ -71,10 +76,15 @@ const createAppMenu = createSelector(
           id: 'addNewServer',
           label: t('menus.addNewServer'),
           accelerator: 'CommandOrControl+N',
-          click: () => setImmediate(() => {
-            getRootWindow().show();
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
             dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
-          }),
+          },
         },
         { type: 'separator' },
       ]),
@@ -82,18 +92,18 @@ const createAppMenu = createSelector(
         id: 'disableGpu',
         label: t('menus.disableGpu'),
         enabled: !app.commandLine.hasSwitch('disable-gpu'),
-        click: () => setImmediate(() => {
+        click: () => {
           relaunchApp('--disable-gpu');
-        }),
+        },
       },
       { type: 'separator' },
       {
         id: 'quit',
         label: t('menus.quit', { appName: app.name }),
         accelerator: 'CommandOrControl+Q',
-        click: () => setImmediate(() => {
+        click: () => {
           app.quit();
-        }),
+        },
       },
     ],
   }),
@@ -165,31 +175,41 @@ const createViewMenu = createSelector(
         label: t('menus.reload'),
         accelerator: 'CommandOrControl+R',
         enabled: !!currentServerUrl,
-        click: () => setImmediate(() => {
-          getRootWindow().show();
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.reload();
-        }),
+        },
       },
       {
         id: 'reloadIgnoringCache',
         label: t('menus.reloadIgnoringCache'),
         enabled: !!currentServerUrl,
-        click: () => setImmediate(() => {
-          getRootWindow().show();
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.reloadIgnoringCache();
-        }),
+        },
       },
       {
         id: 'openDevTools',
         label: t('menus.openDevTools'),
         enabled: !!currentServerUrl,
         accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
-        click: () => setImmediate(() => {
+        click: () => {
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.toggleDevTools();
-        }),
+        },
       },
       { type: 'separator' },
       {
@@ -197,22 +217,32 @@ const createViewMenu = createSelector(
         label: t('menus.back'),
         enabled: !!currentServerUrl,
         accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
-        click: () => setImmediate(() => {
-          getRootWindow().show();
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.goBack();
-        }),
+        },
       },
       {
         id: 'forward',
         label: t('menus.forward'),
         enabled: !!currentServerUrl,
         accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
-        click: () => setImmediate(() => {
-          getRootWindow().show();
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
           const guestWebContents = getWebContentsByServerUrl(currentServerUrl);
           guestWebContents.goForward();
-        }),
+        },
       },
       { type: 'separator' },
       {
@@ -220,12 +250,12 @@ const createViewMenu = createSelector(
         label: t('menus.showTrayIcon'),
         type: 'checkbox',
         checked: isTrayIconEnabled,
-        click: ({ checked }) => setImmediate(() => {
+        click: ({ checked }) => {
           dispatch({
             type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
             payload: checked,
           });
-        }),
+        },
       },
       ...on(process.platform === 'darwin', () => [
         {
@@ -234,10 +264,15 @@ const createViewMenu = createSelector(
           type: 'checkbox',
           checked: rootWindowState.fullscreen,
           accelerator: 'Control+Command+F',
-          click: ({ checked: enabled }) => setImmediate(() => {
-            getRootWindow().show();
-            getRootWindow().setFullScreen(enabled);
-          }),
+          click: async ({ checked: enabled }) => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            browserWindow.setFullScreen(enabled);
+          },
         },
       ]),
       ...on(process.platform !== 'darwin', () => [
@@ -246,13 +281,18 @@ const createViewMenu = createSelector(
           label: t('menus.showMenuBar'),
           type: 'checkbox',
           checked: isMenuBarEnabled,
-          click: ({ checked }) => setImmediate(() => {
-            getRootWindow().show();
+          click: async ({ checked }) => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
             dispatch({
               type: MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
               payload: checked,
             });
-          }),
+          },
         },
       ]),
       {
@@ -260,47 +300,67 @@ const createViewMenu = createSelector(
         label: t('menus.showServerList'),
         type: 'checkbox',
         checked: isSideBarEnabled,
-        click: ({ checked }) => setImmediate(() => {
-          getRootWindow().show();
+        click: async ({ checked }) => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
           dispatch({
             type: MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
             payload: checked,
           });
-        }),
+        },
       },
       { type: 'separator' },
       {
         id: 'resetZoom',
         label: t('menus.resetZoom'),
         accelerator: 'CommandOrControl+0',
-        click: () => setImmediate(() => {
-          getRootWindow().show();
-          getRootWindow().webContents.zoomLevel = 0;
-        }),
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          browserWindow.webContents.zoomLevel = 0;
+        },
       },
       {
         id: 'zoomIn',
         label: t('menus.zoomIn'),
         accelerator: 'CommandOrControl+Plus',
-        click: () => setImmediate(() => {
-          getRootWindow().show();
-          if (getRootWindow().webContents.zoomLevel >= 9) {
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          if (browserWindow.webContents.zoomLevel >= 9) {
             return;
           }
-          getRootWindow().webContents.zoomLevel++;
-        }),
+          browserWindow.webContents.zoomLevel++;
+        },
       },
       {
         id: 'zoomOut',
         label: t('menus.zoomOut'),
         accelerator: 'CommandOrControl+-',
-        click: () => setImmediate(() => {
-          getRootWindow().show();
-          if (getRootWindow().webContents.zoomLevel <= -9) {
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          if (browserWindow.webContents.zoomLevel <= -9) {
             return;
           }
-          getRootWindow().webContents.zoomLevel--;
-        }),
+          browserWindow.webContents.zoomLevel--;
+        },
       },
     ],
   }),
@@ -328,10 +388,15 @@ const createWindowMenu = createSelector(
           id: 'addNewServer',
           label: t('menus.addNewServer'),
           accelerator: 'CommandOrControl+N',
-          click: () => setImmediate(() => {
-            getRootWindow().show();
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
             dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
-          }),
+          },
         },
         { type: 'separator' },
       ]),
@@ -342,13 +407,18 @@ const createWindowMenu = createSelector(
           label: server.title.replace(/&/g, '&&'),
           checked: currentServerUrl === server.url,
           accelerator: `CommandOrControl+${ i + 1 }`,
-          click: () => setImmediate(() => {
-            getRootWindow().show();
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
             dispatch({
               type: MENU_BAR_SELECT_SERVER_CLICKED,
               payload: server.url,
             });
-          }),
+          },
         })),
         { type: 'separator' },
       ]),
@@ -357,13 +427,18 @@ const createWindowMenu = createSelector(
         type: 'checkbox',
         label: t('menus.showOnUnreadMessage'),
         checked: isShowWindowOnUnreadChangedEnabled,
-        click: ({ checked }) => setImmediate(() => {
-          getRootWindow().show();
+        click: async ({ checked }) => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
           dispatch({
             type: MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
             payload: checked,
           });
-        }),
+        },
       },
       { type: 'separator' },
       {
@@ -392,74 +467,94 @@ const createHelpMenu = createSelector(
       {
         id: 'documentation',
         label: t('menus.documentation'),
-        click: () => setImmediate(() => {
+        click: () => {
           shell.openExternal('https://docs.rocket.chat/');
-        }),
+        },
       },
       {
         id: 'reportIssue',
         label: t('menus.reportIssue'),
-        click: () => setImmediate(() => {
+        click: () => {
           shell.openExternal('https://github.com/RocketChat/Rocket.Chat/issues/new');
-        }),
+        },
       },
       { type: 'separator' },
       {
         id: 'reload-window',
         label: t('menus.reload'),
         accelerator: 'CommandOrControl+Shift+R',
-        click: () => setImmediate(() => {
-          getRootWindow().show();
-          getRootWindow().reload();
-        }),
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          browserWindow.webContents.reload();
+        },
       },
       {
         id: 'toggleDevTools',
         label: t('menus.toggleDevTools'),
-        click: () => setImmediate(() => {
-          getRootWindow().show();
-          getRootWindow().webContents.toggleDevTools();
-        }),
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          browserWindow.webContents.toggleDevTools();
+        },
       },
       { type: 'separator' },
       {
         id: 'clearTrustedCertificates',
         label: t('menus.clearTrustedCertificates'),
-        click: () => setImmediate(() => {
-          getRootWindow().show();
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
           dispatch({ type: CERTIFICATES_CLEARED });
           getAllServerWebContents().forEach((webContents) => {
             webContents.reloadIgnoringCache();
           });
-        }),
+        },
       },
       {
         id: 'resetAppData',
         label: t('menus.resetAppData'),
-        click: () => setImmediate(async () => {
+        click: async () => {
           const permitted = await askForAppDataReset();
 
           if (permitted) {
             relaunchApp('--reset-app-data');
           }
-        }),
+        },
       },
       { type: 'separator' },
       {
         id: 'learnMore',
         label: t('menus.learnMore'),
-        click: () => setImmediate(() => {
+        click: () => {
           shell.openExternal('https://rocket.chat');
-        }),
+        },
       },
       ...on(process.platform !== 'darwin', () => [
         {
           id: 'about',
           label: t('menus.about', { appName: app.name }),
-          click: () => setImmediate(() => {
-            getRootWindow().show();
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
             dispatch({ type: MENU_BAR_ABOUT_CLICKED });
-          }),
+          },
         },
       ]),
     ],
@@ -481,7 +576,7 @@ const selectMenuBarTemplateAsJson = createSelector(
 
 class MenuBarService extends Service {
   protected initialize(): void {
-    this.watch(selectMenuBarTemplateAsJson, () => {
+    this.watch(selectMenuBarTemplateAsJson, async () => {
       const menuBarTemplate = select(selectMenuBarTemplate);
       const menu = Menu.buildFromTemplate(menuBarTemplate);
 
@@ -491,7 +586,7 @@ class MenuBarService extends Service {
       }
 
       Menu.setApplicationMenu(null);
-      getRootWindow().setMenu(menu);
+      (await getRootWindow()).setMenu(menu);
     });
   }
 }

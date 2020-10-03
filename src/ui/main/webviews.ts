@@ -43,6 +43,7 @@ import {
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
 } from '../actions';
+import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 
@@ -315,7 +316,8 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
 };
 
-export const attachGuestWebContentsEvents = (rootWindow: BrowserWindow): void => {
+export const attachGuestWebContentsEvents = async (): Promise<void> => {
+  const rootWindow = await getRootWindow();
   const handleWillAttachWebview = (_event: Event, webPreferences: WebPreferences, _params: Record<string, string>): void => {
     delete webPreferences.enableBlinkFeatures;
     webPreferences.preload = path.join(app.getAppPath(), 'app/preload.js');

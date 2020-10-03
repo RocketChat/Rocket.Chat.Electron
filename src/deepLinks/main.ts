@@ -185,7 +185,12 @@ export const setupDeepLinks = (): void => {
   app.addListener('open-url', async (event, url): Promise<void> => {
     event.preventDefault();
 
-    getRootWindow().show();
+    const browserWindow = await getRootWindow();
+
+    if (!browserWindow.isVisible()) {
+      browserWindow.showInactive();
+    }
+    browserWindow.focus();
 
     await processDeepLink(url);
   });
@@ -193,7 +198,12 @@ export const setupDeepLinks = (): void => {
   app.addListener('second-instance', async (event, argv): Promise<void> => {
     event.preventDefault();
 
-    getRootWindow().show();
+    const browserWindow = await getRootWindow();
+
+    if (!browserWindow.isVisible()) {
+      browserWindow.showInactive();
+    }
+    browserWindow.focus();
 
     const args = argv.slice(app.isPackaged ? 1 : 2);
 

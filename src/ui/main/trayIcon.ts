@@ -19,27 +19,29 @@ const createTrayIcon = (): Tray => {
   const trayIcon = new Tray(image);
 
   if (process.platform !== 'darwin') {
-    trayIcon.addListener('click', () => {
+    trayIcon.addListener('click', async () => {
       const isRootWindowVisible = select(selectIsRootWindowVisible);
+      const browserWindow = await getRootWindow();
 
       if (isRootWindowVisible) {
-        getRootWindow().hide();
+        browserWindow.hide();
         return;
       }
 
-      getRootWindow().show();
+      browserWindow.show();
     });
   }
 
-  trayIcon.addListener('balloon-click', () => {
+  trayIcon.addListener('balloon-click', async () => {
     const isRootWindowVisible = select(selectIsRootWindowVisible);
+    const browserWindow = await getRootWindow();
 
     if (isRootWindowVisible) {
-      getRootWindow().hide();
+      browserWindow.hide();
       return;
     }
 
-    getRootWindow().show();
+    browserWindow.show();
   });
 
   trayIcon.addListener('right-click', (_event, bounds) => {
@@ -94,15 +96,16 @@ const manageTrayIcon = async (): Promise<() => void> => {
     const menuTemplate = [
       {
         label: isRootWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
-        click: () => {
+        click: async () => {
           const isRootWindowVisible = select(selectIsRootWindowVisible);
+          const browserWindow = await getRootWindow();
 
           if (isRootWindowVisible) {
-            getRootWindow().hide();
+            browserWindow.hide();
             return;
           }
 
-          getRootWindow().show();
+          browserWindow.show();
         },
       },
       {

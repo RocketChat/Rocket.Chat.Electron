@@ -1,9 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import AbortController from 'abort-controller';
-import { app } from 'electron';
-import fetch from 'node-fetch';
+import { app, ipcMain } from 'electron';
 import { satisfies, coerce } from 'semver';
 
 import {
@@ -13,12 +11,14 @@ import {
 } from '../navigation/actions';
 import { select, dispatch, listen } from '../store';
 import { ActionOf } from '../store/actions';
+import { getRootWindow } from '../ui/main/rootWindow';
 import {
   SERVER_URL_RESOLUTION_REQUESTED,
   SERVER_URL_RESOLVED,
   SERVERS_LOADED,
 } from './actions';
 import { ServerUrlResolutionStatus, Server, ServerUrlResolutionResult } from './common';
+
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 
@@ -45,44 +45,24 @@ export const convertToURL = (input: string): URL => {
 };
 
 const fetchServerInformation = async (url: URL): Promise<[finalURL: URL, version: string]> => {
-  const { username, password } = url;
-  const headers: HeadersInit = [];
+  const [urlHref, version] = await new Promise((resolve, reject) => {
+    const id = Math.random().toString(16).slice(2);
+    ipcMain.once(`fetch-server-info@${ id }`, (_, { resolved, rejected }) => {
+      if (rejected) {
+        const error = new Error(rejected.message);
+        error.name = rejected.name;
+        error.stack = rejected.stack;
+        reject(error);
+        return;
+      }
 
-  if (username && password) {
-    headers.push(['Authorization', `Basic ${ Buffer.from(`${ username }:${ password }`).toString('base64') }`]);
-  }
+      resolve(resolved);
+    });
 
-  const endpoint = new URL('api/info', url);
-
-  const controller = new AbortController();
-
-  const timer = setTimeout(() => {
-    controller.abort();
-  }, 5000);
-
-  const response = await fetch(endpoint, {
-    headers,
-    signal: controller.signal,
+    getRootWindow().then((rw) => rw.webContents.send('fetch-server-info', id, url.href));
   });
 
-  clearTimeout(timer);
-
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
-
-  const responseBody: {
-    success: boolean;
-    version: string;
-  } = await response.json();
-
-  if (!responseBody.success) {
-    throw new Error();
-  }
-
-  const finalEndpoint = convertToURL(response.url);
-
-  return [new URL('../..', finalEndpoint), responseBody.version];
+  return [convertToURL(urlHref), version];
 };
 
 export const resolveServerUrl = async (input: string): Promise<ServerUrlResolutionResult> => {
@@ -120,6 +100,12 @@ export const resolveServerUrl = async (input: string): Promise<ServerUrlResoluti
 
   return [url.href, ServerUrlResolutionStatus.OK];
 };
+
+app.once('ready', () => {
+  setTimeout(async () => {
+    console.log(await resolveServerUrl('https://self-signed.badssl.com'));
+  }, 5000);
+});
 
 const loadAppServers = async (): Promise<Record<string, string>> => {
   try {

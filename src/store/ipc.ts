@@ -1,12 +1,9 @@
-import { WebContents, ipcMain, ipcRenderer } from 'electron';
+import { WebContents } from 'electron';
 import { Middleware, MiddlewareAPI, Dispatch } from 'redux';
 
+import { handle as handleOnMain, invoke as invokeFromMain } from '../ipc/main';
+import { handle as handleFromRenderer, invoke as invokeFromRenderer } from '../ipc/renderer';
 import { isFSA, FluxStandardAction } from './fsa';
-
-const enum ReduxIpcChannel {
-  GET_INITIAL_STATE = 'redux/get-initial-state',
-  ACTION_DISPATCHED = 'redux/action-dispatched',
-}
 
 const enum ActionScope {
   LOCAL = 'local',
@@ -15,9 +12,7 @@ const enum ActionScope {
 export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
   const renderers = new Set<WebContents>();
 
-  ipcMain.handle(ReduxIpcChannel.GET_INITIAL_STATE, (event) => {
-    const webContents = event.sender;
-
+  handleOnMain('redux/get-initial-state', async (webContents) => {
     renderers.add(webContents);
 
     webContents.addListener('destroyed', () => {
@@ -27,7 +22,7 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
     return api.getState();
   });
 
-  ipcMain.addListener(ReduxIpcChannel.ACTION_DISPATCHED, (_event, action) => {
+  handleOnMain('redux/action-dispatched', async (_, action) => {
     api.dispatch(action);
   });
 
@@ -49,7 +44,7 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
     };
 
     renderers.forEach((webContents) => {
-      webContents.send(ReduxIpcChannel.ACTION_DISPATCHED, rendererAction);
+      invokeFromMain(webContents, 'redux/action-dispatched', rendererAction);
     });
 
     return next(action);
@@ -57,10 +52,10 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
 };
 
 export const getInitialState = (): Promise<any> =>
-  ipcRenderer.invoke(ReduxIpcChannel.GET_INITIAL_STATE);
+  invokeFromRenderer('redux/get-initial-state');
 
 export const forwardToMain: Middleware = (api: MiddlewareAPI) => {
-  ipcRenderer.addListener(ReduxIpcChannel.ACTION_DISPATCHED, (_event, action) => {
+  handleFromRenderer('redux/action-dispatched', async (action) => {
     api.dispatch(action);
   });
 
@@ -73,7 +68,7 @@ export const forwardToMain: Middleware = (api: MiddlewareAPI) => {
       return next(action);
     }
 
-    ipcRenderer.send(ReduxIpcChannel.ACTION_DISPATCHED, action);
+    invokeFromRenderer('redux/action-dispatched', action);
     return action;
   };
 };

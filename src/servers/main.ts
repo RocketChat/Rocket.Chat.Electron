@@ -1,9 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app, ipcMain } from 'electron';
+import { app } from 'electron';
 import { satisfies, coerce } from 'semver';
 
+import { invoke } from '../ipc/main';
 import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
@@ -45,23 +46,8 @@ export const convertToURL = (input: string): URL => {
 };
 
 const fetchServerInformation = async (url: URL): Promise<[finalURL: URL, version: string]> => {
-  const [urlHref, version] = await new Promise((resolve, reject) => {
-    const id = Math.random().toString(16).slice(2);
-    ipcMain.once(`fetch-server-info@${ id }`, (_, { resolved, rejected }) => {
-      if (rejected) {
-        const error = new Error(rejected.message);
-        error.name = rejected.name;
-        error.stack = rejected.stack;
-        reject(error);
-        return;
-      }
-
-      resolve(resolved);
-    });
-
-    getRootWindow().then((rw) => rw.webContents.send('fetch-server-info', id, url.href));
-  });
-
+  const { webContents } = await getRootWindow();
+  const [urlHref, version] = await invoke(webContents, 'servers/fetch-info', url.href);
   return [convertToURL(urlHref), version];
 };
 
@@ -103,8 +89,8 @@ export const resolveServerUrl = async (input: string): Promise<ServerUrlResoluti
 
 app.once('ready', () => {
   setTimeout(async () => {
-    console.log(await resolveServerUrl('https://self-signed.badssl.com'));
-  }, 5000);
+    console.log(await resolveServerUrl('https://client.badssl.com/'));
+  }, 2000);
 });
 
 const loadAppServers = async (): Promise<Record<string, string>> => {

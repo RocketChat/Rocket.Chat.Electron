@@ -29,8 +29,5 @@ export const handle = <N extends Channel>(
   channel: N,
   handler: (webContents: WebContents, ...args: Parameters<Handler<N>>) => Promise<ReturnType<Handler<N>>>,
 ): void => {
-  ipcMain.handle(channel, (event, ...args: Parameters<Handler<N>>) => {
-    console.log(channel, ...args);
-    return handler(event.sender, ...args);
-  });
+  ipcMain.handle(channel, (event, ...args: Parameters<Handler<N>>) => handler(event.sender, ...args));
 };

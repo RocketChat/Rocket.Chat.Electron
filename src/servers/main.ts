@@ -5,13 +5,7 @@ import { app } from 'electron';
 import { satisfies, coerce } from 'semver';
 
 import { invoke } from '../ipc/main';
-import {
-  CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
-  SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-  SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-} from '../navigation/actions';
 import { select, dispatch, listen } from '../store';
-import { ActionOf } from '../store/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
   SERVER_URL_RESOLUTION_REQUESTED,
@@ -144,35 +138,6 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
         },
       });
     }
-  });
-
-  listen(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, (action) => {
-    const isResponse: Parameters<typeof listen>[0] = (responseAction) =>
-      [
-        SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-        SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-      ].includes(responseAction.type)
-      && responseAction.meta?.id === action.meta.id;
-
-    const unsubscribe = listen(isResponse, (responseAction: ActionOf<
-      typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED
-    | typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED
-    >) => {
-      unsubscribe();
-
-      const fingerprint = responseAction.type === SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED
-        ? responseAction.payload
-        : null;
-
-      dispatch({
-        type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-        payload: fingerprint,
-        meta: {
-          response: true,
-          id: action.meta?.id,
-        },
-      });
-    });
   });
 
   let servers = select(({ servers }) => servers);

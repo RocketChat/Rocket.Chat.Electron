@@ -1,7 +1,8 @@
 import { Notification, nativeImage, NativeImage } from 'electron';
-import fetch from 'node-fetch';
 
+import { invoke } from '../ipc/main';
 import { dispatch, listen } from '../store';
+import { getRootWindow } from '../ui/main/rootWindow';
 import {
   NOTIFICATIONS_CREATE_REQUESTED,
   NOTIFICATIONS_CREATE_RESPONDED,
@@ -14,25 +15,6 @@ import {
 } from './actions';
 import { ExtendedNotificationOptions } from './common';
 
-const iconCache = new Map();
-
-const inferContentTypeFromImageData = (data: Buffer): string | null => {
-  const header = Array.from(data.slice(0, 3)).map((byte) => byte.toString(16)).join('');
-  switch (header) {
-    case '89504e':
-      return 'image/png';
-
-    case '474946':
-      return 'image/gif';
-
-    case 'ffd8ff':
-      return 'image/jpeg';
-
-    default:
-      return null;
-  }
-};
-
 const resolveIcon = async (iconUrl: string): Promise<NativeImage> => {
   if (!iconUrl) {
     return null;
@@ -42,19 +24,10 @@ const resolveIcon = async (iconUrl: string): Promise<NativeImage> => {
     return nativeImage.createFromDataURL(iconUrl);
   }
 
-  if (iconCache.has(iconUrl)) {
-    return iconCache.get(iconUrl);
-  }
-
   try {
-    const response = await fetch(iconUrl);
-    const buffer = await response.buffer();
-    const base64String = buffer.toString('base64');
-    const contentType = inferContentTypeFromImageData(buffer) || response.headers.get('content-type');
-    const dataUri = `data:${ contentType };base64,${ base64String }`;
-    const image = nativeImage.createFromDataURL(dataUri);
-    iconCache.set(iconUrl, image);
-    return image;
+    const { webContents } = await getRootWindow();
+    const dataUri = await invoke(webContents, 'notifications/get-icon', iconUrl);
+    return nativeImage.createFromDataURL(dataUri);
   } catch (error) {
     console.error(error);
     return null;

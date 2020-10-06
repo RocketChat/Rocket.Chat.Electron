@@ -81,12 +81,6 @@ export const resolveServerUrl = async (input: string): Promise<ServerUrlResoluti
   return [url.href, ServerUrlResolutionStatus.OK];
 };
 
-app.once('ready', () => {
-  setTimeout(async () => {
-    console.log(await resolveServerUrl('https://client.badssl.com/'));
-  }, 2000);
-});
-
 const loadAppServers = async (): Promise<Record<string, string>> => {
   try {
     const filePath = path.join(

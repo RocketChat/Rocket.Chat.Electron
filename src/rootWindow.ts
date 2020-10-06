@@ -7,6 +7,7 @@ import { createRendererReduxStore } from './store';
 import { App } from './ui/components/App';
 import { setupRootWindowIcon } from './ui/rootWindow/icon';
 import { whenReady } from './whenReady';
+import './notifications/renderer';
 import './servers/renderer';
 
 const start = async (): Promise<void> => {

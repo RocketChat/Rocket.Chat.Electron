@@ -87,6 +87,11 @@ export const setupNavigation = async (): Promise<void> => {
   app.addListener('select-client-certificate', async (event, _webContents, _url, certificateList, callback) => {
     event.preventDefault();
 
+    if (certificateList.length === 1) {
+      callback(certificateList[0]);
+      return;
+    }
+
     const fingerprint = await request<
       typeof CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
       typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED | typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED

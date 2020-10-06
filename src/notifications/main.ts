@@ -26,7 +26,7 @@ const resolveIcon = async (iconUrl: string): Promise<NativeImage> => {
 
   try {
     const { webContents } = await getRootWindow();
-    const dataUri = await invoke(webContents, 'notifications/get-icon', iconUrl);
+    const dataUri = await invoke(webContents, 'notifications/fetch-icon', iconUrl);
     return nativeImage.createFromDataURL(dataUri);
   } catch (error) {
     console.error(error);

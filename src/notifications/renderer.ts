@@ -19,7 +19,7 @@ const inferContentTypeFromImageData = (data: ArrayBuffer): string | null => {
   }
 };
 
-handle('notifications/get-icon', async (urlHref: string) => {
+handle('notifications/fetch-icon', async (urlHref: string) => {
   if (iconCache.has(urlHref)) {
     return iconCache.get(urlHref);
   }

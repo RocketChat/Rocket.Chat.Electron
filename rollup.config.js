@@ -48,6 +48,7 @@ export default [
       ...Object.keys(appManifest.devDependencies),
     ].filter((moduleName) => moduleName !== '@bugsnag/js'),
     input: 'src/rootWindow.ts',
+    preserveEntrySignatures: 'strict',
     plugins: [
       json(),
       replace({

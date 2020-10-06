@@ -1,24 +1,19 @@
 import fs from 'fs';
 import path from 'path';
 
-import AbortController from 'abort-controller';
 import { app } from 'electron';
-import fetch from 'node-fetch';
 import { satisfies, coerce } from 'semver';
 
-import {
-  CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
-  SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-  SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-} from '../navigation/actions';
+import { invoke } from '../ipc/main';
 import { select, dispatch, listen } from '../store';
-import { ActionOf } from '../store/actions';
+import { getRootWindow } from '../ui/main/rootWindow';
 import {
   SERVER_URL_RESOLUTION_REQUESTED,
   SERVER_URL_RESOLVED,
   SERVERS_LOADED,
 } from './actions';
 import { ServerUrlResolutionStatus, Server, ServerUrlResolutionResult } from './common';
+
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 
@@ -45,44 +40,9 @@ export const convertToURL = (input: string): URL => {
 };
 
 const fetchServerInformation = async (url: URL): Promise<[finalURL: URL, version: string]> => {
-  const { username, password } = url;
-  const headers: HeadersInit = [];
-
-  if (username && password) {
-    headers.push(['Authorization', `Basic ${ Buffer.from(`${ username }:${ password }`).toString('base64') }`]);
-  }
-
-  const endpoint = new URL('api/info', url);
-
-  const controller = new AbortController();
-
-  const timer = setTimeout(() => {
-    controller.abort();
-  }, 5000);
-
-  const response = await fetch(endpoint, {
-    headers,
-    signal: controller.signal,
-  });
-
-  clearTimeout(timer);
-
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
-
-  const responseBody: {
-    success: boolean;
-    version: string;
-  } = await response.json();
-
-  if (!responseBody.success) {
-    throw new Error();
-  }
-
-  const finalEndpoint = convertToURL(response.url);
-
-  return [new URL('../..', finalEndpoint), responseBody.version];
+  const { webContents } = await getRootWindow();
+  const [urlHref, version] = await invoke(webContents, 'servers/fetch-info', url.href);
+  return [convertToURL(urlHref), version];
 };
 
 export const resolveServerUrl = async (input: string): Promise<ServerUrlResolutionResult> => {
@@ -172,35 +132,6 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
         },
       });
     }
-  });
-
-  listen(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, (action) => {
-    const isResponse: Parameters<typeof listen>[0] = (responseAction) =>
-      [
-        SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-        SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-      ].includes(responseAction.type)
-      && responseAction.meta?.id === action.meta.id;
-
-    const unsubscribe = listen(isResponse, (responseAction: ActionOf<
-      typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED
-    | typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED
-    >) => {
-      unsubscribe();
-
-      const fingerprint = responseAction.type === SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED
-        ? responseAction.payload
-        : null;
-
-      dispatch({
-        type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-        payload: fingerprint,
-        meta: {
-          response: true,
-          id: action.meta?.id,
-        },
-      });
-    });
   });
 
   let servers = select(({ servers }) => servers);

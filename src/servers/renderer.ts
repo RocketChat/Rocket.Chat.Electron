@@ -1,8 +1,39 @@
 import { createStructuredSelector } from 'reselect';
 
-import { dispatch, watch } from '../../store';
-import { RootState } from '../../store/rootReducer';
-import { ROOT_WINDOW_ICON_CHANGED } from '../actions';
+import { handle } from '../ipc/renderer';
+import { dispatch, watch } from '../store';
+import { RootState } from '../store/rootReducer';
+import { ROOT_WINDOW_ICON_CHANGED } from '../ui/actions';
+
+handle('servers/fetch-info', async (urlHref): Promise<[urlHref: string, version: string]> => {
+  const url = new URL(urlHref);
+
+  const { username, password } = url;
+  const headers = new Headers();
+
+  if (username && password) {
+    headers.append('Authorization', `Basic ${ btoa(`${ username }:${ password }`) }`);
+  }
+
+  const endpoint = new URL('api/info', url);
+
+  const response = await fetch(endpoint.href, { headers });
+
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+
+  const responseBody: {
+    success: boolean;
+    version: string;
+  } = await response.json();
+
+  if (!responseBody.success) {
+    throw new Error();
+  }
+
+  return [new URL('../..', response.url).href, responseBody.version];
+});
 
 type RootWindowIconParams = {
   badge: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '+9' | '•' | undefined;
@@ -100,7 +131,7 @@ const getCanvas = (size: number): HTMLCanvasElement => {
   return canvas;
 };
 
-export const updateRootWindowIconForLinux = async ({ badge, favicon }: RootWindowIconParams): Promise<void> => {
+const updateRootWindowIconForLinux = async ({ badge, favicon }: RootWindowIconParams): Promise<void> => {
   if (!favicon) {
     dispatch({
       type: ROOT_WINDOW_ICON_CHANGED,
@@ -149,7 +180,7 @@ export const updateRootWindowIconForLinux = async ({ badge, favicon }: RootWindo
   });
 };
 
-export const updateRootWindowIconForWindows = async ({ badge, favicon }: RootWindowIconParams): Promise<void> => {
+const updateRootWindowIconForWindows = async ({ badge, favicon }: RootWindowIconParams): Promise<void> => {
   if (!favicon) {
     dispatch({
       type: ROOT_WINDOW_ICON_CHANGED,
@@ -209,12 +240,10 @@ export const updateRootWindowIconForWindows = async ({ badge, favicon }: RootWin
   });
 };
 
-export const setupRootWindowIcon = (): void => {
-  if (process.platform === 'linux') {
-    watch(selectBadgeAndFavicon, updateRootWindowIconForLinux);
-  }
+if (process.platform === 'linux') {
+  watch(selectBadgeAndFavicon, updateRootWindowIconForLinux);
+}
 
-  if (process.platform === 'win32') {
-    watch(selectBadgeAndFavicon, updateRootWindowIconForWindows);
-  }
-};
+if (process.platform === 'win32') {
+  watch(selectBadgeAndFavicon, updateRootWindowIconForWindows);
+}

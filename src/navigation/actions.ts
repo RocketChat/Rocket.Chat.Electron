@@ -7,7 +7,7 @@ export const CERTIFICATES_LOADED = 'certificates/loaded';
 export const CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED = 'certificates/client-certificate-requested';
 export const CERTIFICATES_UPDATED = 'certificates/updated';
 export const SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED = 'select-client-certificate-dialog/certificate-selected';
-export const SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED = 'select-client-certificatedialog/dismissed';
+export const SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED = 'select-client-certificate-dialog/dismissed';
 export const EXTERNAL_PROTOCOL_PERMISSION_UPDATED = 'navigation/external-protocol-permission-updated';
 
 export type NavigationActionTypeToPayloadMap = {

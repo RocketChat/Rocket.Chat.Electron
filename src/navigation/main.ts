@@ -10,7 +10,6 @@ import {
   askForCertificateTrust,
   askForOpeningExternalProtocol,
 } from '../ui/main/dialogs';
-import { getRootWindow } from '../ui/main/rootWindow';
 import {
   CERTIFICATES_UPDATED,
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
@@ -41,11 +40,7 @@ const serializeCertificate = (certificate: Certificate): string =>
 const queuedTrustRequests = new Map<Certificate['fingerprint'], Array<(isTrusted: boolean) => void>>();
 
 export const setupNavigation = async (): Promise<void> => {
-  app.addListener('certificate-error', async (event, webContents, requestedUrl, error, certificate, callback) => {
-    if (webContents.id !== (await getRootWindow()).webContents.id) {
-      return;
-    }
-
+  app.addListener('certificate-error', async (event, _webContents, requestedUrl, error, certificate, callback) => {
     event.preventDefault();
 
     const serialized = serializeCertificate(certificate);
@@ -91,6 +86,11 @@ export const setupNavigation = async (): Promise<void> => {
 
   app.addListener('select-client-certificate', async (event, _webContents, _url, certificateList, callback) => {
     event.preventDefault();
+
+    if (certificateList.length === 1) {
+      callback(certificateList[0]);
+      return;
+    }
 
     const fingerprint = await request<
       typeof CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,

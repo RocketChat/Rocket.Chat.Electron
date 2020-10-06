@@ -26,7 +26,7 @@ import { ADD_SERVER_VIEW_SERVER_ADDED } from '../../actions';
 import { RocketChatLogo } from '../RocketChatLogo';
 import { Wrapper } from './styles';
 
-const defaultServerUrl = 'https://open.rocket.chat';
+const defaultServerUrl = new URL('https://open.rocket.chat/');
 
 export const AddServerView: FC = () => {
   const currentServerUrl = useSelector(({ currentServerUrl }: RootState) => currentServerUrl);
@@ -97,7 +97,7 @@ export const AddServerView: FC = () => {
     const trimmedInput = input.trim();
 
     if (!trimmedInput) {
-      addServer(defaultServerUrl);
+      addServer(defaultServerUrl.href);
       return;
     }
 
@@ -148,7 +148,7 @@ export const AddServerView: FC = () => {
                 id={inputId}
                 error={errorMessage}
                 type='text'
-                placeholder={defaultServerUrl}
+                placeholder={defaultServerUrl.href}
                 dir='auto'
                 value={input}
                 onChange={handleInputChange}

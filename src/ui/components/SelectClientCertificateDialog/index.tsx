@@ -1,14 +1,16 @@
 import { Box, Button, Margins, Scrollable, Tile } from '@rocket.chat/fuselage';
 import { Certificate } from 'electron';
-import React, { FC } from 'react';
+import React, { FC, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
 import { Dispatch } from 'redux';
 
 import {
+  CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../../../navigation/actions';
+import { listen } from '../../../store';
 import { RootAction } from '../../../store/actions';
 import { RootState } from '../../../store/rootReducer';
 import { Dialog } from '../Dialog';
@@ -19,15 +21,31 @@ export const SelectClientCertificateDialog: FC = () => {
   const isVisible = openDialog === 'select-client-certificate';
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
+  const requestIdRef = useRef<unknown>();
+
+  useEffect(() => listen(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, (action) => {
+    requestIdRef.current = action.meta?.id;
+  }), [dispatch]);
+
   const handleSelect = (certificate: Certificate) => () => {
     dispatch({
       type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
       payload: certificate.fingerprint,
+      meta: {
+        response: true,
+        id: requestIdRef.current,
+      },
     });
   };
 
   const handleClose = (): void => {
-    dispatch({ type: SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED });
+    dispatch({
+      type: SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
+      meta: {
+        response: true,
+        id: requestIdRef.current,
+      },
+    });
   };
 
   const { t } = useTranslation();

@@ -62,7 +62,11 @@ const start = (): void => {
       isAutoAwayEnabled,
       idleThreshold,
       setUserOnline: (online) => {
-        Meteor.call('UserPresence:setDefaultStatus', online ? 'online' : 'away');
+        if (!online) {
+          Meteor.call('UserPresence:away');
+          return;
+        }
+        Meteor.call('UserPresence:online');
       },
     });
   });

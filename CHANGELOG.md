@@ -1,3 +1,15 @@
+## [3.0.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.2...3.0.3) (2020-10-13)
+
+
+### Bug Fixes
+
+* Cannot connect to server on subdirectory ([#1776](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1776)) ([50c8585](https://github.com/RocketChat/Rocket.Chat.Electron/commit/50c8585eddd68b3b62c769b3a501848a92859d0d))
+* Handle certificate errors and handshakes ([#1795](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1795)) ([220f8b1](https://github.com/RocketChat/Rocket.Chat.Electron/commit/220f8b10b897a40453850d4730b348ba4f6066ea))
+* Remove Electron and Chrome versions from User-Agent header ([#1809](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1809)) ([88cbb23](https://github.com/RocketChat/Rocket.Chat.Electron/commit/88cbb23c100a475498c6286c15d4b10e363a1079))
+* Set connection status ([#1800](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1800)) ([738f65c](https://github.com/RocketChat/Rocket.Chat.Electron/commit/738f65cd1348850a2c05e916449fe39428ef1243))
+
+
+
 ## [3.0.2](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.1...3.0.2) (2020-10-03)
 
 

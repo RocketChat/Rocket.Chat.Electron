@@ -153,8 +153,19 @@ export const setupRootWindow = (): void => {
 
       const isShowWindowOnUnreadChangedEnabled = select(({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled);
 
-      if (isShowWindowOnUnreadChangedEnabled) {
+      if (isShowWindowOnUnreadChangedEnabled && !browserWindow.isVisible()) {
+        const isMinimized = browserWindow.isMinimized();
+        const isMaximized = browserWindow.isMaximized();
+
         browserWindow.showInactive();
+
+        if (isMinimized) {
+          browserWindow.minimize();
+        }
+
+        if (isMaximized) {
+          browserWindow.maximize();
+        }
         return;
       }
 

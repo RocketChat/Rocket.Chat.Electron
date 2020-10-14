@@ -7,7 +7,10 @@ import {
 } from './actions';
 
 export const setupSpellChecking = async (): Promise<void> => {
-  const spellCheckerLanguages = session.defaultSession.getSpellCheckerLanguages();
+  const availaibleLanguages = session.fromPartition('persist:rocketchat-server').availableSpellCheckerLanguages;
+  console.log(availaibleLanguages);
+  const defaultSessionLanguage = session.defaultSession.getSpellCheckerLanguages();
+  const spellCheckerLanguages = availaibleLanguages.includes(defaultSessionLanguage[0]) ? defaultSessionLanguage : ["en-US"];
   session.fromPartition('persist:rocketchat-server').setSpellCheckerLanguages(spellCheckerLanguages);
 
   listen(SPELL_CHECKING_TOGGLED, (action) => {

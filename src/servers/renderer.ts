@@ -5,7 +5,7 @@ import { dispatch, watch } from '../store';
 import { RootState } from '../store/rootReducer';
 import { ROOT_WINDOW_ICON_CHANGED } from '../ui/actions';
 
-handle('servers/fetch-info', async (urlHref): Promise<[urlHref: string, version: string]> => {
+export const fetchInfo = async (urlHref: string): Promise<[urlHref: string, version: string]> => {
   const url = new URL(urlHref);
 
   const { username, password } = url;
@@ -15,25 +15,33 @@ handle('servers/fetch-info', async (urlHref): Promise<[urlHref: string, version:
     headers.append('Authorization', `Basic ${ btoa(`${ username }:${ password }`) }`);
   }
 
-  const endpoint = new URL('api/info', url);
+  const homeResponse = await fetch(url.href, { headers });
 
-  const response = await fetch(endpoint.href, { headers });
+  if (!homeResponse.ok) {
+    throw new Error(homeResponse.statusText);
+  }
 
-  if (!response.ok) {
-    throw new Error(response.statusText);
+  const endpoint = new URL('api/info', homeResponse.url);
+
+  const apiInfoResponse = await fetch(endpoint.href, { headers });
+
+  if (!apiInfoResponse.ok) {
+    throw new Error(apiInfoResponse.statusText);
   }
 
   const responseBody: {
     success: boolean;
     version: string;
-  } = await response.json();
+  } = await apiInfoResponse.json();
 
   if (!responseBody.success) {
     throw new Error();
   }
 
-  return [new URL('..', response.url).href, responseBody.version];
-});
+  return [new URL('..', apiInfoResponse.url).href, responseBody.version];
+};
+
+handle('servers/fetch-info', fetchInfo);
 
 type RootWindowIconParams = {
   badge: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '+9' | '•' | undefined;

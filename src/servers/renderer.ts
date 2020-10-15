@@ -41,8 +41,6 @@ export const fetchInfo = async (urlHref: string): Promise<[urlHref: string, vers
   return [new URL('..', apiInfoResponse.url).href, responseBody.version];
 };
 
-handle('servers/fetch-info', fetchInfo);
-
 type RootWindowIconParams = {
   badge: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '+9' | '•' | undefined;
   favicon: string | undefined;
@@ -248,10 +246,14 @@ const updateRootWindowIconForWindows = async ({ badge, favicon }: RootWindowIcon
   });
 };
 
-if (process.platform === 'linux') {
-  watch(selectBadgeAndFavicon, updateRootWindowIconForLinux);
-}
+export default (): void => {
+  handle('servers/fetch-info', fetchInfo);
 
-if (process.platform === 'win32') {
-  watch(selectBadgeAndFavicon, updateRootWindowIconForWindows);
-}
+  if (process.platform === 'linux') {
+    watch(selectBadgeAndFavicon, updateRootWindowIconForLinux);
+  }
+
+  if (process.platform === 'win32') {
+    watch(selectBadgeAndFavicon, updateRootWindowIconForWindows);
+  }
+};

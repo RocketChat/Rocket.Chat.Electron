@@ -19,7 +19,7 @@ const inferContentTypeFromImageData = (data: ArrayBuffer): string | null => {
   }
 };
 
-handle('notifications/fetch-icon', async (urlHref: string) => {
+const fetchIcon = async (urlHref: string): Promise<string> => {
   if (iconCache.has(urlHref)) {
     return iconCache.get(urlHref);
   }
@@ -31,4 +31,8 @@ handle('notifications/fetch-icon', async (urlHref: string) => {
   const dataUri = `data:${ contentType };base64,${ base64String }`;
   iconCache.set(urlHref, dataUri);
   return dataUri;
-});
+};
+
+export default (): void => {
+  handle('notifications/fetch-icon', fetchIcon);
+};

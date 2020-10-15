@@ -15,10 +15,10 @@ const start = async (): Promise<void> => {
   setupRendererErrorHandling('rootWindow');
   await setupI18n();
 
-  await Promise.all([
+  (await Promise.all([
     import('./notifications/renderer'),
     import('./servers/renderer'),
-  ]);
+  ])).forEach((module) => module.default());
 
   const container = document.getElementById('root');
 

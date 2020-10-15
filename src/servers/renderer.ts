@@ -32,7 +32,7 @@ handle('servers/fetch-info', async (urlHref): Promise<[urlHref: string, version:
     throw new Error();
   }
 
-  return [new URL('../..', response.url).href, responseBody.version];
+  return [new URL('..', response.url).href, responseBody.version];
 });
 
 type RootWindowIconParams = {

@@ -59,7 +59,6 @@ export const resolveServerUrl = async (input: string): Promise<ServerUrlResoluti
   try {
     [url, version] = await fetchServerInformation(url);
   } catch (error) {
-    console.log(error);
     if (!/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(input)) {
       return resolveServerUrl(`https://${ input }.rocket.chat`);
     }

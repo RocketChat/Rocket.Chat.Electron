@@ -63,7 +63,7 @@ export const resolveServerUrl = async (input: string): Promise<ServerUrlResoluti
       return resolveServerUrl(`https://${ input }.rocket.chat`);
     }
 
-    if (error.name === 'AbortError') {
+    if (error?.name === 'AbortError') {
       return [url.href, ServerUrlResolutionStatus.TIMEOUT, error];
     }
 

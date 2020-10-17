@@ -24,6 +24,7 @@
     "start": "run-s clean build:watch",
     "clean": "rimraf app dist",
     "build": "rollup -c",
+    "release": "yarn electron-builder --publish onTagOrDraft --x64",
     "build:watch": "rollup -c -w",
     "install-app-deps": "electron-builder install-app-deps",
     "test": "xvfb-maybe jest",

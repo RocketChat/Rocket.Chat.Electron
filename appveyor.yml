@@ -32,7 +32,7 @@ build_script:
   - set NODE_ENV=production
   - yarn build
   - yarn test
-  - yarn electron-builder --publish onTagOrDraft --x64 --ia32
+  - yarn release --ia32
   - ps: |
       $p = Start-Process -FilePath ".\dist\win-unpacked\Rocket.Chat.exe" -PassThru -RedirectStandardOutput .\output.log -RedirectStandardError .\error.log
       Start-Sleep -s 30

@@ -1,3 +1,14 @@
+## [3.0.4](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.3...3.0.4) (2020-10-17)
+
+
+### Bug Fixes
+
+* Recover minimized/maximized state on show window when unread count changes ([#1810](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1810)) ([15585f2](https://github.com/RocketChat/Rocket.Chat.Electron/commit/15585f21ff5405b6489edec833fd0fdadd589821))
+* Server in subdirectory ([#1820](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1820)) ([ff8b8a2](https://github.com/RocketChat/Rocket.Chat.Electron/commit/ff8b8a2e0aecc04edbd5279d80023bc99af46523))
+* Unavailable languages in electron.session() ([#1813](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1813)) ([ef32900](https://github.com/RocketChat/Rocket.Chat.Electron/commit/ef329006d323c4ac0089f6e445c33841f735a0d5))
+
+
+
 ## [3.0.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.2...3.0.3) (2020-10-13)
 
 

@@ -1,16 +1,13 @@
-import { powerMonitor } from 'electron';
-
 import { invoke } from '../ipc/renderer';
 import { listen } from '../store';
 import {
   SYSTEM_SUSPENDING,
   SYSTEM_LOCKING_SCREEN,
 } from './actions';
-
-type SystemIdleState = ReturnType<typeof powerMonitor.getSystemIdleState>;
+import { SystemIdleState } from './common';
 
 let isAutoAwayEnabled: boolean;
-let idleThreshold: number;
+let idleThreshold: number | null;
 let goOnline = (): void => undefined;
 let goAway = (): void => undefined;
 

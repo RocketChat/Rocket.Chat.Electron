@@ -50,8 +50,8 @@ const start = (): void => {
 
   Tracker.autorun(() => {
     const uid = Meteor.userId();
-    const isAutoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
-    const idleThreshold = getUserPreference(uid, 'idleTimeLimit');
+    const isAutoAwayEnabled: unknown = getUserPreference(uid, 'enableAutoAway');
+    const idleThreshold: unknown = getUserPreference(uid, 'idleTimeLimit');
 
     if (isAutoAwayEnabled) {
       delete UserPresence.awayTime;
@@ -59,8 +59,8 @@ const start = (): void => {
     }
 
     window.RocketChatDesktop.setUserPresenceDetection({
-      isAutoAwayEnabled,
-      idleThreshold,
+      isAutoAwayEnabled: Boolean(isAutoAwayEnabled),
+      idleThreshold: idleThreshold ? Number(idleThreshold) : null,
       setUserOnline: (online) => {
         if (!online) {
           Meteor.call('UserPresence:away');

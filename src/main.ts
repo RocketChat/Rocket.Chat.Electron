@@ -44,6 +44,8 @@ const start = async (): Promise<void> => {
   i18n.setUp();
   await i18n.wait();
 
+  setupApp();
+
   createRootWindow();
   attachGuestWebContentsEvents();
   await showRootWindow();
@@ -53,7 +55,6 @@ const start = async (): Promise<void> => {
   //   installDevTools();
   // }
 
-  setupApp();
   setupNotifications();
   setupScreenSharing();
 

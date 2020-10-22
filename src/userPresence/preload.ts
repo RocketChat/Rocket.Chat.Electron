@@ -1,11 +1,10 @@
 import { powerMonitor } from 'electron';
 
-import { listen, request } from '../store';
+import { invoke } from '../ipc/renderer';
+import { listen } from '../store';
 import {
   SYSTEM_SUSPENDING,
   SYSTEM_LOCKING_SCREEN,
-  SYSTEM_IDLE_STATE_REQUESTED,
-  SYSTEM_IDLE_STATE_RESPONDED,
 } from './actions';
 
 type SystemIdleState = ReturnType<typeof powerMonitor.getSystemIdleState>;
@@ -22,13 +21,7 @@ const setupUserPresenceListening = (): void => {
       return;
     }
 
-    const state: SystemIdleState = await request<
-      typeof SYSTEM_IDLE_STATE_REQUESTED,
-      typeof SYSTEM_IDLE_STATE_RESPONDED
-    >({
-      type: SYSTEM_IDLE_STATE_REQUESTED,
-      payload: idleThreshold,
-    });
+    const state = await invoke('power-monitor/get-system-idle-state', idleThreshold);
 
     if (prevState === state) {
       setTimeout(pollSystemIdleState, 1000);

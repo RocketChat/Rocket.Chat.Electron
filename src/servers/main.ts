@@ -183,7 +183,7 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
   }
 
   servers = Array.from(serversMap.values());
-  currentServerUrl = serversMap.get(currentServerUrl)?.url ?? null;
+  currentServerUrl = serversMap.get(currentServerUrl)?.url ?? servers[0]?.url ?? null;
 
   if (localStorage['rocket.chat.sortOrder']) {
     try {

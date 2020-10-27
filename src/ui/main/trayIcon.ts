@@ -75,13 +75,15 @@ const updateTrayIconToolTip = (trayIcon:Tray, globalBadge: Server['badge']): voi
   trayIcon.setToolTip(t('tray.tooltip.noUnreadMessage', { appName: app.name }));
 };
 
-const warnStillRunning = (trayIcon: Tray): void => {
-  trayIcon.displayBalloon({
-    icon: getAppIconPath(),
-    title: t('tray.balloon.stillRunning.title', { appName: app.name }),
-    content: t('tray.balloon.stillRunning.content', { appName: app.name }),
-  });
-};
+// TODO: uncomment this, and implement a setting to only display this
+// warning once.
+// const warnStillRunning = (trayIcon: Tray): void => {
+//   trayIcon.displayBalloon({
+//     icon: getAppIconPath(),
+//     title: t('tray.balloon.stillRunning.title', { appName: app.name }),
+//     content: t('tray.balloon.stillRunning.content', { appName: app.name }),
+//   });
+// };
 
 const manageTrayIcon = async (): Promise<() => void> => {
   const trayIcon = createTrayIcon();
@@ -119,9 +121,11 @@ const manageTrayIcon = async (): Promise<() => void> => {
     const menu = Menu.buildFromTemplate(menuTemplate);
     trayIcon.setContextMenu(menu);
 
-    if (prevIsRootWindowVisible && !isRootWindowVisible && process.platform === 'win32') {
-      warnStillRunning(trayIcon);
-    }
+    // TODO: uncomment this, and implement a setting to only display this
+    // warning once.
+    // if (prevIsRootWindowVisible && !isRootWindowVisible && process.platform === 'win32') {
+    //   warnStillRunning(trayIcon);
+    // }
   });
 
   const handleNativeThemeUpdatedEvent = (): void => {

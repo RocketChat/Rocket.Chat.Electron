@@ -24,7 +24,6 @@ export const useSorting = (servers: Server[]): {
     event.dataTransfer.dropEffect = 'move';
     event.dataTransfer.effectAllowed = 'move';
     setDraggedServerUrl(url);
-    setServersSorting(servers.map(({ url }) => url));
   };
 
   const handleDragEnd = (): void => {
@@ -33,17 +32,23 @@ export const useSorting = (servers: Server[]): {
   };
 
   const handleDragEnter = (targetServerUrl: string) => () => {
-    setServersSorting((serversSorting) => serversSorting.map((url) => {
-      if (url === targetServerUrl) {
-        return draggedServerUrl;
+    setServersSorting((serversSorting) => {
+      if (serversSorting === null) {
+        return servers.map(({ url }) => url);
       }
 
-      if (url === draggedServerUrl) {
-        return targetServerUrl;
-      }
+      return serversSorting.map((url) => {
+        if (url === targetServerUrl) {
+          return draggedServerUrl;
+        }
 
-      return url;
-    }));
+        if (url === draggedServerUrl) {
+          return targetServerUrl;
+        }
+
+        return url;
+      });
+    });
   };
 
   const dispatch = useDispatch<Dispatch<RootAction>>();

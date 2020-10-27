@@ -75,15 +75,13 @@ const updateTrayIconToolTip = (trayIcon:Tray, globalBadge: Server['badge']): voi
   trayIcon.setToolTip(t('tray.tooltip.noUnreadMessage', { appName: app.name }));
 };
 
-// TODO: uncomment this, and implement a setting to only display this
-// warning once.
-// const warnStillRunning = (trayIcon: Tray): void => {
-//   trayIcon.displayBalloon({
-//     icon: getAppIconPath(),
-//     title: t('tray.balloon.stillRunning.title', { appName: app.name }),
-//     content: t('tray.balloon.stillRunning.content', { appName: app.name }),
-//   });
-// };
+const warnStillRunning = (trayIcon: Tray): void => {
+  trayIcon.displayBalloon({
+    icon: getAppIconPath(),
+    title: t('tray.balloon.stillRunning.title', { appName: app.name }),
+    content: t('tray.balloon.stillRunning.content', { appName: app.name }),
+  });
+};
 
 const manageTrayIcon = async (): Promise<() => void> => {
   const trayIcon = createTrayIcon();
@@ -93,6 +91,8 @@ const manageTrayIcon = async (): Promise<() => void> => {
     updateTrayIconTitle(trayIcon, globalBadge);
     updateTrayIconToolTip(trayIcon, globalBadge);
   });
+
+  let firstTrayIconBalloonShown = false;
 
   const unwatchIsRootWindowVisible = watch(selectIsRootWindowVisible, (isRootWindowVisible, prevIsRootWindowVisible) => {
     const menuTemplate = [
@@ -121,11 +121,10 @@ const manageTrayIcon = async (): Promise<() => void> => {
     const menu = Menu.buildFromTemplate(menuTemplate);
     trayIcon.setContextMenu(menu);
 
-    // TODO: uncomment this, and implement a setting to only display this
-    // warning once.
-    // if (prevIsRootWindowVisible && !isRootWindowVisible && process.platform === 'win32') {
-    //   warnStillRunning(trayIcon);
-    // }
+    if (prevIsRootWindowVisible && !isRootWindowVisible && process.platform === 'win32' && !firstTrayIconBalloonShown) {
+      warnStillRunning(trayIcon);
+      firstTrayIconBalloonShown = true;
+    }
   });
 
   const handleNativeThemeUpdatedEvent = (): void => {

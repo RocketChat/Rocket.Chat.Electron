@@ -37,7 +37,8 @@ export const listenToMessageBoxEvents = (): void => {
 
     const { payload: buttonId } = action;
 
-    const button = document.querySelector<HTMLButtonElement>(`[data-id='${ buttonId }']`);
+    const ancestor = focusedMessageBoxInput.closest('.rc-message-box');
+    const button = ancestor.querySelector<HTMLButtonElement>(`[data-id='${ buttonId }']`);
     button.click();
   });
 

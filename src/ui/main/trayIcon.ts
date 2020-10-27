@@ -92,6 +92,8 @@ const manageTrayIcon = async (): Promise<() => void> => {
     updateTrayIconToolTip(trayIcon, globalBadge);
   });
 
+  let firstTrayIconBalloonShown = false;
+
   const unwatchIsRootWindowVisible = watch(selectIsRootWindowVisible, (isRootWindowVisible, prevIsRootWindowVisible) => {
     const menuTemplate = [
       {
@@ -119,8 +121,9 @@ const manageTrayIcon = async (): Promise<() => void> => {
     const menu = Menu.buildFromTemplate(menuTemplate);
     trayIcon.setContextMenu(menu);
 
-    if (prevIsRootWindowVisible && !isRootWindowVisible && process.platform === 'win32') {
+    if (prevIsRootWindowVisible && !isRootWindowVisible && process.platform === 'win32' && !firstTrayIconBalloonShown) {
       warnStillRunning(trayIcon);
+      firstTrayIconBalloonShown = true;
     }
   });
 

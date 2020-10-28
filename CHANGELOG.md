@@ -1,3 +1,17 @@
+## [3.0.5](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.4...3.0.5) (2020-10-28)
+
+
+### Bug Fixes
+
+* Apply TouchBar formatting button in focused message box ([#1851](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1851)) ([52ca145](https://github.com/RocketChat/Rocket.Chat.Electron/commit/52ca1451ac5333578520c900e86b86968c69f76c))
+* Bugsnag error reporting ([#1843](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1843)) ([de0fe7f](https://github.com/RocketChat/Rocket.Chat.Electron/commit/de0fe7fc7c95f66d8ed07abae68b8e7fcdf2311d))
+* Displaying warning every time the window is minimized to tray ([#1852](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1852)) ([769a210](https://github.com/RocketChat/Rocket.Chat.Electron/commit/769a210433dccd5c833cdaf74c7c5b276515e890))
+* Dragging and dropping outside content in servers list ([#1853](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1853)) ([1e68f50](https://github.com/RocketChat/Rocket.Chat.Electron/commit/1e68f507dc325d4384aedf6a949edd3dc272d5c6))
+* Select first server on startup ([#1850](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1850)) ([c883d45](https://github.com/RocketChat/Rocket.Chat.Electron/commit/c883d454b6df207b3b4b077c5e880967e9e5e798))
+* System idle threshold ([#1844](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1844)) ([6c6e2a9](https://github.com/RocketChat/Rocket.Chat.Electron/commit/6c6e2a98ca68a796fa685b75b41fd4287ee8ccbb))
+
+
+
 ## [3.0.4](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.3...3.0.4) (2020-10-17)
 
 

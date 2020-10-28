@@ -33,7 +33,7 @@ export const useSorting = (servers: Server[]): {
 
   const handleDragEnter = (targetServerUrl: string) => () => {
     setServersSorting((serversSorting) => {
-      if (serversSorting === null) {
+      if (serversSorting === null || draggedServerUrl == null) {
         return servers.map(({ url }) => url);
       }
 

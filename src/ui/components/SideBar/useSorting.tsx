@@ -31,7 +31,12 @@ export const useSorting = (servers: Server[]): {
     setServersSorting(null);
   };
 
-  const handleDragEnter = (targetServerUrl: string) => () => {
+  const handleDragEnter = (targetServerUrl: string) => (event: DragEvent) => {
+    if (event.dataTransfer.types.length > 0) {
+      event.preventDefault();
+      return;
+    }
+
     setServersSorting((serversSorting) => {
       if (serversSorting === null || draggedServerUrl == null) {
         return servers.map(({ url }) => url);
@@ -56,8 +61,10 @@ export const useSorting = (servers: Server[]): {
   const handleDrop = (url: string) => (event: DragEvent) => {
     event.preventDefault();
 
-    dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: serversSorting });
-    dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
+    if (event.dataTransfer.types.length === 0) {
+      dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: serversSorting });
+      dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
+    }
   };
 
   const sortedServers = serversSorting

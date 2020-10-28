@@ -24,7 +24,6 @@ export const useSorting = (servers: Server[]): {
     event.dataTransfer.dropEffect = 'move';
     event.dataTransfer.effectAllowed = 'move';
     setDraggedServerUrl(url);
-    setServersSorting(servers.map(({ url }) => url));
   };
 
   const handleDragEnd = (): void => {
@@ -32,18 +31,29 @@ export const useSorting = (servers: Server[]): {
     setServersSorting(null);
   };
 
-  const handleDragEnter = (targetServerUrl: string) => () => {
-    setServersSorting((serversSorting) => serversSorting.map((url) => {
-      if (url === targetServerUrl) {
-        return draggedServerUrl;
+  const handleDragEnter = (targetServerUrl: string) => (event: DragEvent) => {
+    if (event.dataTransfer.types.length > 0) {
+      event.preventDefault();
+      return;
+    }
+
+    setServersSorting((serversSorting) => {
+      if (serversSorting === null || draggedServerUrl == null) {
+        return servers.map(({ url }) => url);
       }
 
-      if (url === draggedServerUrl) {
-        return targetServerUrl;
-      }
+      return serversSorting.map((url) => {
+        if (url === targetServerUrl) {
+          return draggedServerUrl;
+        }
 
-      return url;
-    }));
+        if (url === draggedServerUrl) {
+          return targetServerUrl;
+        }
+
+        return url;
+      });
+    });
   };
 
   const dispatch = useDispatch<Dispatch<RootAction>>();
@@ -51,8 +61,10 @@ export const useSorting = (servers: Server[]): {
   const handleDrop = (url: string) => (event: DragEvent) => {
     event.preventDefault();
 
-    dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: serversSorting });
-    dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
+    if (event.dataTransfer.types.length === 0) {
+      dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: serversSorting });
+      dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
+    }
   };
 
   const sortedServers = serversSorting

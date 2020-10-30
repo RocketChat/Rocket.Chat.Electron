@@ -1,0 +1,76 @@
+name: Build for macOS
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+      - run: yarn --check-files
+      - run: yarn build
+        env:
+          NODE_ENV: production
+          BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
+      - run: yarn test
+      - run: yarn electron-builder --dir
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: ./dist
+
+  check:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: macos-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+      - run: yarn --check-files
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: ./dist
+      - run: |
+          xvfb-run ./dist/mac/Rocket.Chat.app/Contents/MacOS/Rocket.Chat 2>&1 1>output.log &
+          sleep 30
+          kill %1
+          cat output.log
+
+  deploy:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: macos-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+      - run: yarn --check-files
+      - run: yarn build
+        env:
+          NODE_ENV: production
+          BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
+      - run: sudo mdutil -a -i off
+      - run: yarn electron-builder
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLEID: ${{ secrets.APPLEID }}
+          APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
+          TRAVIS_PULL_REQUEST: false
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: ./dist

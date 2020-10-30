@@ -58,29 +58,21 @@ jobs:
         with:
           name: dist
           path: ./dist
-      - run: yarn electron-builder --prepackaged dist --linux 'tar.gz' 'deb' 'rpm'
+      - run: yarn electron-builder --prepackaged ./dist/linux-unpacked --linux 'tar.gz' 'deb' 'rpm'
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      - uses: actions/upload-artifact@v2
-        with:
-          name: rocketchat.tar.gz
-          path: ./dist/*.tar.gz
-      - uses: actions/upload-artifact@v2
-        with:
-          name: rocketchat.deb
-          path: ./dist/*.deb
-      - uses: actions/upload-artifact@v2
-        with:
-          name: rocketchat.rpm
-          path: ./dist/*.rpm
       - uses: samuelmeuli/action-snapcraft@v1
         with:
           snapcraft_token: ${{ secrets.SNAP_TOKEN }}
       - if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        run: yarn electron-builder --prepackaged dist --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channel=stable
+        run: yarn electron-builder --prepackaged ./dist/linux-unpacked --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channel=stable
       - if: ${{ github.ref == 'refs/heads/master' }}
-        run: yarn electron-builder --prepackaged dist --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channel=candidate
+        run: yarn electron-builder --prepackaged ./dist/linux-unpacked --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channel=candidate
       - if: ${{ startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/hotfix/') }}
-        run: yarn electron-builder --prepackaged dist --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channel=beta
+        run: yarn electron-builder --prepackaged ./dist/linux-unpacked --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channel=beta
       - if: ${{ startsWith(github.ref, 'refs/heads/') }}
-        run: yarn electron-builder --prepackaged dist --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channel=edge
+        run: yarn electron-builder --prepackaged ./dist/linux-unpacked --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channel=edge
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: ./dist

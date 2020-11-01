@@ -35,6 +35,7 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - run: yarn --check-files
+      - run: yarn eslint
       - run: yarn build
         env:
           NODE_ENV: production
@@ -155,12 +156,7 @@ jobs:
         with:
           name: app
           path: ./app
-      - run: yarn electron-builder --x64
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-      - run: yarn electron-builder --ia32
+      - run: yarn electron-builder
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}

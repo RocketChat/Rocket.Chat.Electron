@@ -184,6 +184,7 @@ jobs:
         with:
           name: app
           path: ./app
+      - run: mdutil -a -i off
       - run: yarn electron-builder
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}

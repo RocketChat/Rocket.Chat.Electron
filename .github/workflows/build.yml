@@ -184,15 +184,18 @@ jobs:
         with:
           name: app
           path: ./app
+      # Disable Spotlight indexing due to a error when generating DMG
+      # See https://github.com/electron-userland/electron-builder/issues/4606#issuecomment-667641621
       - run: mdutil -a -i off
       - run: yarn electron-builder
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          # Variables needed to notarization process:
+          IS_PULL_REQUEST: ${{ github.event_name == 'pull_request' }}
           APPLEID: ${{ secrets.APPLEID }}
           APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
-          TRAVIS_PULL_REQUEST: false
       - uses: actions/upload-artifact@v2
         with:
           name: macos-dist
@@ -216,6 +219,7 @@ jobs:
         with:
           name: app
           path: ./app
+      # Snap builds must be separate as they aren't published in GitHub Releases
       - run: yarn electron-builder --linux tar.gz deb rpm
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}

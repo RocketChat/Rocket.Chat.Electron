@@ -6,7 +6,10 @@ import { autoUpdater } from 'electron-updater';
 
 import { listen, dispatch, select } from '../store';
 import { RootState } from '../store/rootReducer';
-import { UPDATE_DIALOG_SKIP_UPDATE_CLICKED, UPDATE_DIALOG_INSTALL_BUTTON_CLICKED } from '../ui/actions';
+import {
+  UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
+  UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
+} from '../ui/actions';
 import {
   askUpdateInstall,
   AskUpdateInstallResponse,
@@ -23,7 +26,7 @@ import {
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
   UPDATES_READY,
 } from './actions';
-import { UpdateConfiguration } from './common';
+import { AppLevelUpdateConfiguration, UpdateConfiguration, UserLevelUpdateConfiguration } from './common';
 
 const readJsonObject = async (filePath: string): Promise<Record<string, unknown>> => {
   try {
@@ -50,11 +53,37 @@ const readUserJsonObject = async (basename: string): Promise<Record<string, unkn
   return readJsonObject(filePath);
 };
 
-const loadAppConfiguration = async (): Promise<Record<string, unknown>> =>
+const loadAppConfiguration = async (): Promise<AppLevelUpdateConfiguration> =>
   readAppJsonObject('update.json');
 
-const loadUserConfiguration = async (): Promise<Record<string, unknown>> =>
+const loadUserConfiguration = async (): Promise<UserLevelUpdateConfiguration> =>
   readUserJsonObject('update.json');
+
+const mergeConfigurations = (
+  defaultConfiguration: UpdateConfiguration,
+  appConfiguration: AppLevelUpdateConfiguration,
+  userConfiguration: UserLevelUpdateConfiguration,
+): UpdateConfiguration => {
+  const configuration = {
+    ...defaultConfiguration,
+    ...typeof appConfiguration.forced === 'boolean' && { isEachUpdatesSettingConfigurable: !appConfiguration.forced },
+    ...typeof appConfiguration.canUpdate === 'boolean' && { doCheckForUpdatesOnStartup: appConfiguration.canUpdate },
+    ...typeof appConfiguration.autoUpdate === 'boolean' && { doCheckForUpdatesOnStartup: appConfiguration.autoUpdate },
+    ...typeof appConfiguration.skip === 'string' && { skippedUpdateVersion: appConfiguration.skip },
+  };
+
+  if (configuration.isEachUpdatesSettingConfigurable) {
+    if (typeof userConfiguration.autoUpdate === 'boolean') {
+      configuration.doCheckForUpdatesOnStartup = userConfiguration.autoUpdate;
+    }
+
+    if (typeof userConfiguration.skip === 'string') {
+      configuration.skippedUpdateVersion = userConfiguration.skip;
+    }
+  }
+
+  return configuration;
+};
 
 const loadConfiguration = async (): Promise<UpdateConfiguration> => {
   const defaultConfiguration = select(({
@@ -72,28 +101,13 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
     skippedUpdateVersion,
   }));
   const appConfiguration = await loadAppConfiguration();
+  const userConfiguration = await loadUserConfiguration();
 
-  const configuration = {
-    ...defaultConfiguration,
-    ...typeof appConfiguration.forced === 'boolean' && { isEachUpdatesSettingConfigurable: !appConfiguration.forced },
-    ...typeof appConfiguration.canUpdate === 'boolean' && { doCheckForUpdatesOnStartup: appConfiguration.canUpdate },
-    ...typeof appConfiguration.autoUpdate === 'boolean' && { doCheckForUpdatesOnStartup: appConfiguration.autoUpdate },
-    ...typeof appConfiguration.skip === 'string' && { skippedUpdateVersion: appConfiguration.skip },
-  };
-
-  if (configuration.isEachUpdatesSettingConfigurable) {
-    const userConfiguration = await loadUserConfiguration();
-
-    if (typeof userConfiguration.autoUpdate === 'boolean') {
-      configuration.doCheckForUpdatesOnStartup = userConfiguration.autoUpdate;
-    }
-
-    if (typeof userConfiguration.skip === 'string') {
-      configuration.skippedUpdateVersion = userConfiguration.skip;
-    }
-  }
-
-  return configuration;
+  return mergeConfigurations(
+    defaultConfiguration,
+    appConfiguration,
+    userConfiguration,
+  );
 };
 
 export const setupUpdates = async (): Promise<void> => {

@@ -25,38 +25,39 @@ import {
 } from './actions';
 import { UpdateConfiguration } from './common';
 
-const loadAppConfiguration = async (): Promise<Record<string, unknown>> => {
+const readJsonObject = async (filePath: string): Promise<Record<string, unknown>> => {
   try {
-    const filePath = path.join(
-      app.getAppPath(),
-      app.getAppPath().endsWith('app.asar') ? '..' : '.',
-      'update.json',
-    );
     const content = await fs.promises.readFile(filePath, 'utf8');
     const json = JSON.parse(content);
 
-    return json && typeof json === 'object' ? json : {};
+    return json && typeof json === 'object' && !Array.isArray(json) ? json : {};
   } catch (error) {
     return {};
   }
 };
 
-const loadUserConfiguration = async (): Promise<Record<string, unknown>> => {
-  try {
-    const filePath = path.join(app.getPath('userData'), 'update.json');
-    const content = await fs.promises.readFile(filePath, 'utf8');
-    const json = JSON.parse(content);
-    await fs.promises.unlink(filePath);
-
-    return json && typeof json === 'object' ? json : {};
-  } catch (error) {
-    return {};
-  }
+const readAppJsonObject = async (basename: string): Promise<Record<string, unknown>> => {
+  const filePath = path.join(
+    app.getAppPath(),
+    app.getAppPath().endsWith('app.asar') ? '..' : '.',
+    basename,
+  );
+  return readJsonObject(filePath);
 };
+
+const readUserJsonObject = async (basename: string): Promise<Record<string, unknown>> => {
+  const filePath = path.join(app.getPath('userData'), basename);
+  return readJsonObject(filePath);
+};
+
+const loadAppConfiguration = async (): Promise<Record<string, unknown>> =>
+  readAppJsonObject('update.json');
+
+const loadUserConfiguration = async (): Promise<Record<string, unknown>> =>
+  readUserJsonObject('update.json');
 
 const loadConfiguration = async (): Promise<UpdateConfiguration> => {
   const defaultConfiguration = select(({
-    isEachUpdatesSettingConfigurable,
     isUpdatingEnabled,
     doCheckForUpdatesOnStartup,
     skippedUpdateVersion,
@@ -65,7 +66,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       (process.platform === 'linux' && !!process.env.APPIMAGE)
         || (process.platform === 'win32' && !process.windowsStore)
         || (process.platform === 'darwin' && !process.mas),
-    isEachUpdatesSettingConfigurable,
+    isEachUpdatesSettingConfigurable: true,
     isUpdatingEnabled,
     doCheckForUpdatesOnStartup,
     skippedUpdateVersion,
@@ -74,21 +75,21 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
 
   const configuration = {
     ...defaultConfiguration,
-    ...appConfiguration.forced ? { isEachUpdatesSettingConfigurable: false } : {},
-    ...appConfiguration.canUpdate ? { doCheckForUpdatesOnStartup: true } : {},
-    ...appConfiguration.autoUpdate ? { doCheckForUpdatesOnStartup: true } : {},
-    ...appConfiguration.skip ? { skippedUpdateVersion: String(appConfiguration.skip) } : {},
+    ...typeof appConfiguration.forced === 'boolean' && { isEachUpdatesSettingConfigurable: !appConfiguration.forced },
+    ...typeof appConfiguration.canUpdate === 'boolean' && { doCheckForUpdatesOnStartup: appConfiguration.canUpdate },
+    ...typeof appConfiguration.autoUpdate === 'boolean' && { doCheckForUpdatesOnStartup: appConfiguration.autoUpdate },
+    ...typeof appConfiguration.skip === 'string' && { skippedUpdateVersion: appConfiguration.skip },
   };
 
   if (configuration.isEachUpdatesSettingConfigurable) {
     const userConfiguration = await loadUserConfiguration();
 
-    if (userConfiguration.autoUpdate) {
-      configuration.doCheckForUpdatesOnStartup = true;
+    if (typeof userConfiguration.autoUpdate === 'boolean') {
+      configuration.doCheckForUpdatesOnStartup = userConfiguration.autoUpdate;
     }
 
-    if (userConfiguration.skip) {
-      configuration.skippedUpdateVersion = String(userConfiguration.skip);
+    if (typeof userConfiguration.skip === 'string') {
+      configuration.skippedUpdateVersion = userConfiguration.skip;
     }
   }
 

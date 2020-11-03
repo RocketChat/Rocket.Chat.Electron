@@ -59,7 +59,7 @@ const loadAppConfiguration = async (): Promise<AppLevelUpdateConfiguration> =>
 const loadUserConfiguration = async (): Promise<UserLevelUpdateConfiguration> =>
   readUserJsonObject('update.json');
 
-const mergeConfigurations = (
+export const mergeConfigurations = (
   defaultConfiguration: UpdateConfiguration,
   appConfiguration: AppLevelUpdateConfiguration,
   userConfiguration: UserLevelUpdateConfiguration,
@@ -67,19 +67,19 @@ const mergeConfigurations = (
   const configuration = {
     ...defaultConfiguration,
     ...typeof appConfiguration.forced === 'boolean' && { isEachUpdatesSettingConfigurable: !appConfiguration.forced },
-    ...typeof appConfiguration.canUpdate === 'boolean' && { doCheckForUpdatesOnStartup: appConfiguration.canUpdate },
+    ...typeof appConfiguration.canUpdate === 'boolean' && { isUpdatingEnabled: appConfiguration.canUpdate },
     ...typeof appConfiguration.autoUpdate === 'boolean' && { doCheckForUpdatesOnStartup: appConfiguration.autoUpdate },
     ...typeof appConfiguration.skip === 'string' && { skippedUpdateVersion: appConfiguration.skip },
   };
 
-  if (configuration.isEachUpdatesSettingConfigurable) {
-    if (typeof userConfiguration.autoUpdate === 'boolean') {
-      configuration.doCheckForUpdatesOnStartup = userConfiguration.autoUpdate;
-    }
+  if (typeof userConfiguration.autoUpdate === 'boolean'
+    && (configuration.isEachUpdatesSettingConfigurable || typeof appConfiguration.autoUpdate === 'undefined')) {
+    configuration.doCheckForUpdatesOnStartup = userConfiguration.autoUpdate;
+  }
 
-    if (typeof userConfiguration.skip === 'string') {
-      configuration.skippedUpdateVersion = userConfiguration.skip;
-    }
+  if (typeof userConfiguration.skip === 'string'
+    && (configuration.isEachUpdatesSettingConfigurable || typeof appConfiguration.skip === 'undefined')) {
+    configuration.skippedUpdateVersion = userConfiguration.skip;
   }
 
   return configuration;

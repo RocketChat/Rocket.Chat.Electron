@@ -1,3 +1,12 @@
+## [3.0.6](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.5...3.0.6) (2020-11-03)
+
+
+### Bug Fixes
+
+* update.json files ignored ([#1861](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1861)) ([d4c3368](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d4c336870c51f518fbadb2f062ba523effba44bf))
+
+
+
 ## [3.0.5](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.4...3.0.5) (2020-10-28)
 
 

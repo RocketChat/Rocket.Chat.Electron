@@ -6,11 +6,11 @@ import { useSelector } from 'react-redux';
 import { ipcRenderer, shell } from 'electron';
 
 import { Wrapper } from './styles';
-import DownloadItem from '../DownloadsComponents/DownloadItem';
+import DownloadItem from './DownloadItem';
 import { mapping, STATUS, DOWNLOAD_EVENT } from './downloadUtils';
-import WarningModal from '../DownloadsComponents/WarningModal';
+import WarningModal from './WarningModal';
 
-export function DownloadsManagerView() {
+function DownloadsManagerView() {
 	const isVisible = useSelector(({ currentServerUrl }) => currentServerUrl === 'Downloads');
 	const servers = useSelector(({ servers }) => servers);
 	const serverOptions = [['all', 'All']];
@@ -49,9 +49,7 @@ export function DownloadsManagerView() {
 
 	const handleMimeFilter = useMutableCallback((event) => {
 		setTypeVal(event);
-
 	});
-
 
 	const updateDownloads = useMutableCallback((data) => {
 		const updatedDownloads = downloads.map((downloadItem) => {
@@ -75,8 +73,8 @@ export function DownloadsManagerView() {
 		setSearchVal('');
 		setTypeVal('');
 		setServerVal('');
-		setTab('')
-	}, []);
+		setTab('');
+	}, [setServerVal, setTab, setTypeVal]);
 
 
 	const handleClear = useCallback((itemId, isRetry) => {
@@ -138,7 +136,7 @@ export function DownloadsManagerView() {
 		};
 	});
 
-	const showingResultsLabel = useCallback(({ count, current, itemsPerPage }) => `Showing results ${current + 1} - ${ Math.min(current + itemsPerPage, count)} of ${count}`, []);
+	const showingResultsLabel = useCallback(({ count, current, itemsPerPage }) => `Showing results ${ current + 1 } - ${ Math.min(current + itemsPerPage, count) } of ${ count }`, []);
 
 	const filteredDownloads = useMemo(() => {
 		const searchRegex = searchVal && new RegExp(`${ searchVal }`, 'gi');
@@ -148,14 +146,14 @@ export function DownloadsManagerView() {
 	return <>
 		<Wrapper isVisible={ isVisible }>
 			<Box
-			minHeight='x64'
-			paddingBlock='x16'
-			paddingInline='x162'
-			display='flex'
-			flexDirection='row'
-			flexWrap='nowrap'
-			alignItems='center'
-			color='neutral-800'
+				minHeight='x64'
+				paddingBlock='x16'
+				paddingInline='x162'
+				display='flex'
+				flexDirection='row'
+				flexWrap='nowrap'
+				alignItems='center'
+				color='neutral-800'
 			>
 				<Box is='h1' fontScale='h1' flexGrow={1}>{t('Downloads')}</Box>
 			</Box>
@@ -177,27 +175,23 @@ export function DownloadsManagerView() {
 				</Box>
 				<Grid xl={ true } maxHeight='75vh' overflowY='scroll' >
 					<Grid.Item xl={ 12 } style={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
-						{/* Download Item List */ }
-						{ filteredDownloads.slice(currentPagination, currentPagination + itemsPerPage).map((downloadItem) => {
-							// Condition for Data Headings
-							return (
-								<>
-									<DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } handleFileOpen={ handleFileOpen } clear={ handleClear } />
-								</>
-							);
-						}) }
+						{ filteredDownloads.slice(currentPagination, currentPagination + itemsPerPage).map((downloadItem) =>
+							<DownloadItem { ...downloadItem } updateDownloads={ updateDownloads } key={ downloadItem.itemId } handleFileOpen={ handleFileOpen } clear={ handleClear } />,
+						) }
 					</Grid.Item>
 				</Grid>
 			</Box>
 			<Pagination
-					divider
-					paddingInline='x162'
-					current={currentPagination}
-					itemsPerPage={itemsPerPage}
-					showingResultsLabel={showingResultsLabel}
-					count={(filteredDownloads && filteredDownloads.length) || 0}
-					onSetItemsPerPage={setItemsPerPage}
-					onSetCurrent={setCurrentPagination}
-				/>
+				divider
+				paddingInline='x162'
+				current={currentPagination}
+				itemsPerPage={itemsPerPage}
+				showingResultsLabel={showingResultsLabel}
+				count={(filteredDownloads && filteredDownloads.length) || 0}
+				onSetItemsPerPage={setItemsPerPage}
+				onSetCurrent={setCurrentPagination}
+			/>
 		</Wrapper>{ modal }</>;
 }
+
+export default DownloadsManagerView;

@@ -1,14 +1,14 @@
+import { Box, ButtonGroup, ProgressBar } from '@rocket.chat/fuselage';
 import { useMutableCallback, useDebouncedState } from '@rocket.chat/fuselage-hooks';
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { ipcRenderer, remote, clipboard } from 'electron';
 
-import { formatBytes, STATUS, DOWNLOAD_EVENT } from '../DownloadsManagerView/downloadUtils';
-import Extended from './Extended';
+import { formatBytes, STATUS, DOWNLOAD_EVENT } from './downloadUtils';
+import Info from './Info';
+import ActionButton from './ActionButton';
 
-
-// Recieve props for individual download item
-export default function DownloadItem({
+function DownloadItem({
 	thumbnail,
 	url,
 	fileName,
@@ -88,7 +88,6 @@ export default function DownloadItem({
 		updateDownloads({ status: STATUS.PAUSED, percentage, itemId });
 	});
 
-
 	const handleDelete = useMutableCallback((isRetry) => props.clear(itemId, isRetry));
 
 	const handleRetry = useMutableCallback(() => {
@@ -102,28 +101,47 @@ export default function DownloadItem({
 	// TODO TOAST
 	const handleCopyLink = useMutableCallback(() => clipboard.write({ text: url }));
 
+	const speed = mbps > 0.1 ? `${ mbps }Mbps` : `${ kbps }Kbps`;
+	const isCompleted = completed;
+	const isCancelled = status === STATUS.CANCELLED;
+	const isPaused = paused;
 
-	return <Extended
-		thumbnail={ thumbnail }
-		serverTitle={ serverTitle }
-		mime={ mime.split('/')[1] }
-		date={ date }
-		status={ status }
-		fileName={ fileName }
-		fileSize={ fileSize }
-		mbps={ mbps }
-		kbps={ kbps }
-		timeLeft={ timeLeft }
-		percentage={ percentage }
-		isCompleted={ completed }
-		isPaused={ paused }
-		isCancelled={ status === STATUS.CANCELLED }
-		handleFileOpen={ handleFileOpen }
-		handleCopyLink={ handleCopyLink }
-		handlePause={ handlePause }
-		handleCancel={ handleCancel }
-		handleRetry={ handleRetry }
-		handleDelete={ handleDelete }
-		mb={ props.mb }
-	/>;
+	return <Box width='100%' height='x44' mbe='x26' display='flex' alignItems='center' mb={props.mb}>
+		<Box width='x188' flexShrink={ 0 } borderRadius='4px' display='flex' flexDirection='row' alignItems='center' justifyContent='center'>
+			<Box display='flex' flexDirection='column' width='x36' height='x44'>
+				<Box is='img' src='images/file-icon.svg' alt={name} width='x36' />
+				<Box fontSize='x12' fontWeight='600' textAlign='center' mbs='-20px' color='neutral-600' display='block'>{ mime.split('/')[1] }</Box>
+			</Box>
+			<Box width='x144' mis='x8'>
+				<Box fontSize='x14' withTruncatedText color={ isCancelled ? 'danger-500' : 'default' } mbe='x4'>{ fileName }</Box>
+				<Info>{ serverTitle }</Info>
+			</Box>
+		</Box>
+
+		<Box display='flex' flexDirection='column' flexGrow={ 1 } mi='x16'>
+			<Box display='flex' flexDirection='row' mbe='x6' alignItems='center' justifyContent='space-between'>
+				<Box display='flex' flexDirection='row' alignItems='center'>
+					<Info mie='x12'>{percentage}% of { fileSize }</Info>
+					{ isCompleted || isCancelled || <Info mie='x12'>{ speed }</Info> }
+					{ timeLeft && <Info>{ timeLeft }s left</Info> }
+				</Box>
+				<ButtonGroup fontSize='x12' withTruncatedText color='neutral-700' >
+					{/* Completed */ }
+					{ isCompleted && !isCancelled && <ActionButton onClick={ handleFileOpen }>Show in Folder</ActionButton> }
+					{ isCompleted && !isCancelled && <ActionButton onClick={ handleCopyLink }>Copy Link</ActionButton> }
+					{/* Progressing and Paused */ }
+					{ !isCompleted && !isCancelled && <ActionButton onClick={ handlePause }>{ isPaused ? 'Resume' : 'Pause' }</ActionButton> }
+					{ !isCompleted && !isCancelled && <ActionButton onClick={ handleCancel }>Cancel</ActionButton> }
+					{/* Cancelled */ }
+					{ isCancelled && <ActionButton onClick={ handleRetry }>Retry</ActionButton> }
+					<ActionButton isRemove onClick={ () => handleDelete(false) }>Remove from List</ActionButton>
+				</ButtonGroup>
+			</Box>
+			<Box mbe='x8'>
+				<ProgressBar percentage={ percentage } error = { isCancelled ? 'Download Cancelled' : undefined } />
+			</Box>
+		</Box>
+	</Box>;
 }
+
+export default DownloadItem;

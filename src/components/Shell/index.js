@@ -6,7 +6,7 @@ import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 import { SideBar } from '../SideBar';
 import { ServersView } from '../ServersView';
 import { AddServerView } from '../AddServerView';
-import { DownloadsManagerView } from '../DownloadsManagerView';
+import DownloadsManagerView from '../DownloadsManagerView';
 import { AboutDialog } from '../AboutDialog';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';

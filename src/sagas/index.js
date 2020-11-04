@@ -5,7 +5,7 @@ import { navigationEventsSaga } from './navigationEvents';
 import { preferencesSaga } from './preferences';
 import { serversSaga } from './servers';
 import { spellCheckingSaga } from './spellChecking';
-// import { updatesSaga } from './updates';
+import { updatesSaga } from './updates';
 
 export function *rootSaga() {
 	yield fork(deepLinksSaga);
@@ -13,5 +13,5 @@ export function *rootSaga() {
 	yield fork(preferencesSaga);
 	yield fork(serversSaga);
 	yield fork(spellCheckingSaga);
-	// yield fork(updatesSaga);
+	yield fork(updatesSaga);
 }

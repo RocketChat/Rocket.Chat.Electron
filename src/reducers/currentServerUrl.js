@@ -43,7 +43,6 @@ export const currentServerUrl = (state = null, { type, payload }) => {
 			return null;
 
 		case SIDE_BAR_DOWNLOADS_BUTTON_CLICKED:
-
 			return 'Downloads';
 
 		case WEBVIEW_FOCUS_REQUESTED: {

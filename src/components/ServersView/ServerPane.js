@@ -127,17 +127,17 @@ export function ServerPane({
 		<ErrorPane isVisible={isFailed || isReloading}>
 			<FailureImage style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0 }} />
 			<Flex.Container direction='column' justifyContent='center' alignItems='center'>
-				<Box is='section' textColor='alternative' style={{ zIndex: 1 }}>
+				<Box is='section' color='alternative' style={{ zIndex: 1 }}>
 					<Flex.Item>
 						<Flex.Container direction='column'>
 							<Margins block='x12'>
 								<Box>
 									<Margins block='x8' inline='auto'>
-										<Box textStyle='h1'>
+										<Box fontScale='h1'>
 											{t('loadingError.announcement')}
 										</Box>
 
-										<Box textStyle='s1'>
+										<Box fontScale='s1'>
 											{t('loadingError.title')}
 										</Box>
 									</Margins>

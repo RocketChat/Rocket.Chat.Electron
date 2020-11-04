@@ -1090,10 +1090,10 @@
   resolved "https://registry.yarnpkg.com/@redux-saga/types/-/types-1.1.0.tgz#0e81ce56b4883b4b2a3001ebe1ab298b84237204"
   integrity sha512-afmTuJrylUU/0OtqzaRkbyYFFNgCF73Bvel/sw90pvGrWIZ+vyoIJqA6eMSoA6+nb443kTmulmBtC9NerXboNg==
 
-"@rocket.chat/css-in-js@^0.13.1":
-  version "0.13.1"
-  resolved "https://registry.yarnpkg.com/@rocket.chat/css-in-js/-/css-in-js-0.13.1.tgz#39c0cbf1cd8921d2046669f605033672c16a01d4"
-  integrity sha512-uNgsYE3ZV4Z+FGBsvnxDg763F5NdaUNnAxG58j3c304fY8j+camvly99WtR3onIqOGCi/ixhyYPbkFYF/3rvKw==
+"@rocket.chat/css-in-js@^0.17.2":
+  version "0.17.2"
+  resolved "https://registry.yarnpkg.com/@rocket.chat/css-in-js/-/css-in-js-0.17.2.tgz#700decac1a7ed475f46b57e44f0671bc4ff7e86e"
+  integrity sha512-MfUhoj/nxzGX3wJnvuQoLgTb0ML8O+FFwOfc1OKKnCj1A4+zjsZn5rQls+xtI5k4R5dhSrnHioWK9bRDxKjUjw==
   dependencies:
     "@emotion/hash" "^0.8.0"
     "@emotion/stylis" "^0.8.5"
@@ -1105,33 +1105,33 @@
   dependencies:
     eslint-plugin-import "^2.17.2"
 
-"@rocket.chat/fuselage-hooks@^0.13.2":
-  version "0.13.2"
-  resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage-hooks/-/fuselage-hooks-0.13.2.tgz#269cbc4608c18bfee277e1b9fe765c9e46d2c910"
-  integrity sha512-vjPgbFuJOmIao8VDuWstDiT+/Z+fmPcoDWYcwRUWeAlSyb47bojwbihYn9AJDFMRgo8Hq3yFz3OigvKeqq1oSA==
+"@rocket.chat/fuselage-hooks@^0.17.2":
+  version "0.17.2"
+  resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage-hooks/-/fuselage-hooks-0.17.2.tgz#27d95ab9a443de21b3b8fb9b07eebc397d872a35"
+  integrity sha512-p9LQezoHIRIgTBfX0jJEqMOc91aLqsIxjj367aFHfa30zB3B7eQr57M9WaZdkolSbqHb5GGDismInqA/9C61Dg==
   dependencies:
-    "@rocket.chat/fuselage-tokens" "^0.13.1"
+    "@rocket.chat/fuselage-tokens" "^0.17.2"
     use-subscription "^1.4.1"
 
-"@rocket.chat/fuselage-tokens@^0.13.1":
-  version "0.13.1"
-  resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage-tokens/-/fuselage-tokens-0.13.1.tgz#3d283d650d9330dd7187870f469f3a59b937865c"
-  integrity sha512-sPV3bWMNnJ44iZ1GJL/zVm/keCAEtUkSUqfrvgFS64OX9s9ChWPVDT9+u+VI1cbSMToThCC6ZrRSp9Ve+ATYhw==
+"@rocket.chat/fuselage-tokens@^0.17.2":
+  version "0.17.2"
+  resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage-tokens/-/fuselage-tokens-0.17.2.tgz#4cdf416ba9575d396fe140b8fff81d1b1efd4eae"
+  integrity sha512-Nw6CTu/7zJtAmuVtSY3BDNMIkN7lq0q39wW/aGkNreIdmU9DO+KcOYcbwVPrrmI5QTSFOFnu/mM5uo0Iih2v8w==
 
-"@rocket.chat/fuselage@^0.13.2":
-  version "0.13.2"
-  resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage/-/fuselage-0.13.2.tgz#65b7ad4dcdad03258780b13f664c6653dded2622"
-  integrity sha512-BGXYBEsjYGWSx8qx+6Ecr/dZZXEOA8AKkshyEcjP16Sd8h9Ux2Hivm+MIxNHPZv6+6fuZToq5K2megraCFrHcA==
+"@rocket.chat/fuselage@^0.17.2":
+  version "0.17.2"
+  resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage/-/fuselage-0.17.2.tgz#5841767ec00b203c6b279009aaca698bbb566aa3"
+  integrity sha512-wEAXpJ5uTEBYWka0pVvZ9cHTO29hdQBMpA9QyAvRdmp3K2wqQZEG2SQfwoYQnYYOwJyOm1NRBnrrbLamLGbuTg==
   dependencies:
-    "@rocket.chat/css-in-js" "^0.13.1"
-    "@rocket.chat/fuselage-tokens" "^0.13.1"
+    "@rocket.chat/css-in-js" "^0.17.2"
+    "@rocket.chat/fuselage-tokens" "^0.17.2"
     invariant "^2.2.4"
     react-keyed-flatten-children "^1.2.0"
 
-"@rocket.chat/icons@0.6.3-dev.57":
-  version "0.6.3-dev.57"
-  resolved "https://registry.yarnpkg.com/@rocket.chat/icons/-/icons-0.6.3-dev.57.tgz#1268f616a6c17c5ad1876bdeec993a78a10fd3dc"
-  integrity sha512-Agxr3iD+0fYTCikFX/Cesco0CAdlTbl03Uso3aOVLJynndWuzZyuB5eo5X4S+rL0L/L+MvALOSSbI/b3w1VjiA==
+"@rocket.chat/icons@^0.17.2":
+  version "0.17.2"
+  resolved "https://registry.yarnpkg.com/@rocket.chat/icons/-/icons-0.17.2.tgz#29b7c2537a810393d0425630414d179e893a50cf"
+  integrity sha512-2DjRTEQRpGn3eTS0lk2rrJrQCXO5mLTVouHrPWGD50dISJ/0AV/TVKKECLjyZybjx0PY9WvqIbuv2tx8sZQisA==
 
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"

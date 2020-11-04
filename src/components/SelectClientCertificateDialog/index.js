@@ -42,7 +42,7 @@ export function SelectClientCertificateDialog() {
 	const { t } = useTranslation();
 
 	return <Dialog isVisible={isVisible} onClose={handleClose}>
-		<Box textStyle='h1'>{t('dialog.selectClientCertificate.announcement')}</Box>
+		<Box fontScale='h1'>{t('dialog.selectClientCertificate.announcement')}</Box>
 		<Margins inline='neg-x12'>
 			<Scrollable>
 				<Box>
@@ -53,13 +53,13 @@ export function SelectClientCertificateDialog() {
 									<Box>
 										<Margins inline='x8'>
 											<Box>
-												<Box textStyle='s1'>
+												<Box fontScale='s1'>
 													{certificate.subjectName}
 												</Box>
-												<Box textStyle='p2'>
+												<Box fontScale='p2'>
 													{certificate.issuerName}
 												</Box>
-												<Box textStyle='c1'>
+												<Box fontScale='c1'>
 													{t('dialog.selectClientCertificate.validDates', {
 														validStart: new Date(certificate.validStart * 1000),
 														validExpiry: new Date(certificate.validExpiry * 1000),

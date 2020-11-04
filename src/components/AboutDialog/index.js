@@ -105,7 +105,7 @@ export function AboutDialog() {
 			<Flex.Item align='center'>
 				<Box>
 					<Trans i18nKey='dialog.about.version' version={version}>
-							Version: <Box is='span' textStyle='p2' style={{ userSelect: 'text' }}>{{ version }}</Box>
+							Version: <Box is='span' fontScale='p2' style={{ userSelect: 'text' }}>{{ version }}</Box>
 					</Trans>
 				</Box>
 			</Flex.Item>
@@ -128,7 +128,7 @@ export function AboutDialog() {
 						{checkingForUpdates && <Box>
 							<Margins block='x12'>
 								{checkingForUpdatesMessage
-									? <Box textStyle='c1' textColor='info'>{checkingForUpdatesMessage}</Box>
+									? <Box fontScale='c1' color='info'>{checkingForUpdatesMessage}</Box>
 									: <Throbber size='x16' />}
 							</Margins>
 						</Box>}
@@ -149,7 +149,7 @@ export function AboutDialog() {
 			</Flex.Container>}
 
 			<Flex.Item align='center'>
-				<Box textStyle='micro'>
+				<Box fontScale='micro'>
 					{t('dialog.about.copyright', { copyright })}
 				</Box>
 			</Flex.Item>

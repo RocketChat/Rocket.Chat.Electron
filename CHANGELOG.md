@@ -1,3 +1,133 @@
+## [3.0.6](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.5...3.0.6) (2020-11-03)
+
+
+### Bug Fixes
+
+* update.json files ignored ([#1861](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1861)) ([d4c3368](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d4c336870c51f518fbadb2f062ba523effba44bf))
+
+
+
+## [3.0.5](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.4...3.0.5) (2020-10-28)
+
+
+### Bug Fixes
+
+* Apply TouchBar formatting button in focused message box ([#1851](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1851)) ([52ca145](https://github.com/RocketChat/Rocket.Chat.Electron/commit/52ca1451ac5333578520c900e86b86968c69f76c))
+* Bugsnag error reporting ([#1843](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1843)) ([de0fe7f](https://github.com/RocketChat/Rocket.Chat.Electron/commit/de0fe7fc7c95f66d8ed07abae68b8e7fcdf2311d))
+* Displaying warning every time the window is minimized to tray ([#1852](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1852)) ([769a210](https://github.com/RocketChat/Rocket.Chat.Electron/commit/769a210433dccd5c833cdaf74c7c5b276515e890))
+* Dragging and dropping outside content in servers list ([#1853](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1853)) ([1e68f50](https://github.com/RocketChat/Rocket.Chat.Electron/commit/1e68f507dc325d4384aedf6a949edd3dc272d5c6))
+* Select first server on startup ([#1850](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1850)) ([c883d45](https://github.com/RocketChat/Rocket.Chat.Electron/commit/c883d454b6df207b3b4b077c5e880967e9e5e798))
+* System idle threshold ([#1844](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1844)) ([6c6e2a9](https://github.com/RocketChat/Rocket.Chat.Electron/commit/6c6e2a98ca68a796fa685b75b41fd4287ee8ccbb))
+
+
+
+## [3.0.4](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.3...3.0.4) (2020-10-17)
+
+
+### Bug Fixes
+
+* Recover minimized/maximized state on show window when unread count changes ([#1810](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1810)) ([15585f2](https://github.com/RocketChat/Rocket.Chat.Electron/commit/15585f21ff5405b6489edec833fd0fdadd589821))
+* Server in subdirectory ([#1820](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1820)) ([ff8b8a2](https://github.com/RocketChat/Rocket.Chat.Electron/commit/ff8b8a2e0aecc04edbd5279d80023bc99af46523))
+* Unavailable languages in electron.session() ([#1813](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1813)) ([ef32900](https://github.com/RocketChat/Rocket.Chat.Electron/commit/ef329006d323c4ac0089f6e445c33841f735a0d5))
+
+
+
+## [3.0.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.2...3.0.3) (2020-10-13)
+
+
+### Bug Fixes
+
+* Cannot connect to server on subdirectory ([#1776](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1776)) ([50c8585](https://github.com/RocketChat/Rocket.Chat.Electron/commit/50c8585eddd68b3b62c769b3a501848a92859d0d))
+* Handle certificate errors and handshakes ([#1795](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1795)) ([220f8b1](https://github.com/RocketChat/Rocket.Chat.Electron/commit/220f8b10b897a40453850d4730b348ba4f6066ea))
+* Remove Electron and Chrome versions from User-Agent header ([#1809](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1809)) ([88cbb23](https://github.com/RocketChat/Rocket.Chat.Electron/commit/88cbb23c100a475498c6286c15d4b10e363a1079))
+* Set connection status ([#1800](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1800)) ([738f65c](https://github.com/RocketChat/Rocket.Chat.Electron/commit/738f65cd1348850a2c05e916449fe39428ef1243))
+
+
+
+## [3.0.2](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.1...3.0.2) (2020-10-03)
+
+
+### Bug Fixes
+
+* Add extension filters to save download dialog ([#1772](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1772)) ([6c4fdcc](https://github.com/RocketChat/Rocket.Chat.Electron/commit/6c4fdcc894bac52fab875cca7b9146ee3cec40e1))
+* Asynchronous window state changes ([#1773](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1773)) ([0adc73c](https://github.com/RocketChat/Rocket.Chat.Electron/commit/0adc73c2ecfe7010adbb06583b22c55ff172a169))
+* Increase server version range ([#1770](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1770)) ([4ea6fea](https://github.com/RocketChat/Rocket.Chat.Electron/commit/4ea6fea99ed4dc4a11fe64119dc4d284d3a65a5f))
+* Update pt-BR.i18n.json ([#1774](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1774)) ([75f9c97](https://github.com/RocketChat/Rocket.Chat.Electron/commit/75f9c977b6a2ce895899f336dc06b2b9ccb86110))
+* Update tr-TR.i18n.json ([#1763](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1763)) ([61dac3e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/61dac3e1f66eb3908cb0155867cafdf4e6de0fea))
+
+
+
+## [3.0.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.0...3.0.1) (2020-10-02)
+
+
+### Bug Fixes
+
+* Server validation ([#1756](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1756)) ([91f7c5a](https://github.com/RocketChat/Rocket.Chat.Electron/commit/91f7c5a2e4ad983c3d81a2383a96ef3b54850f51))
+* Window state loading ([#1758](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1758)) ([12ef49e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/12ef49e4f608324ffb5982ff4435623b43ece6f2))
+
+
+
+# [3.0.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.11...3.0.0) (2020-09-30)
+
+
+### Bug Fixes
+
+* Add snap connection for camera ([#1484](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1484)) ([a6fe71d](https://github.com/RocketChat/Rocket.Chat.Electron/commit/a6fe71d054c08f2215017b5864067c41deb356ad))
+* Bugs related to focused webContents ([#1525](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1525)) ([402fec0](https://github.com/RocketChat/Rocket.Chat.Electron/commit/402fec00b3761fad55d5c570a2f93a1f968b20b0))
+* Command line args handling on packaged apps ([#1522](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1522)) ([cc99b78](https://github.com/RocketChat/Rocket.Chat.Electron/commit/cc99b7830f6636d9714969f879bf2d4bca8a91fc))
+* Context isolation in preload script and `openExternal` handling ([#1710](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1710)) ([c43a8a3](https://github.com/RocketChat/Rocket.Chat.Electron/commit/c43a8a31289290e61eacd0e30dba5f14619ee911))
+* Display tray icon balloon when main window is hidden ([#1518](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1518)) ([9291b1e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/9291b1edc7c865c3830adcf964e851db9136114a))
+* Error reporting on Bugsnag ([#1655](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1655)) ([a6746f9](https://github.com/RocketChat/Rocket.Chat.Electron/commit/a6746f9c23fb96d694c8ecdfe5e004d038ba3668))
+* Gracefully exit the app ([#1736](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1736)) ([4d0c28d](https://github.com/RocketChat/Rocket.Chat.Electron/commit/4d0c28d61813eb3855ccba3281249bddf5dbc808))
+* Media permissions ([#1740](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1740)) ([1a23d4b](https://github.com/RocketChat/Rocket.Chat.Electron/commit/1a23d4b5fc5758b5ab1a14828ad18ceef7241e65))
+* Menu bar crashing ([#1722](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1722)) ([20bfcbf](https://github.com/RocketChat/Rocket.Chat.Electron/commit/20bfcbfa577887b3067de3d368f9ae083635ed69))
+* Minimum width in split view on OS X is 600px ([#1549](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1549)) ([8630847](https://github.com/RocketChat/Rocket.Chat.Electron/commit/86308478a8131396b35bbbbcdc066fd3c7f2d4e0))
+* Missing tslib at runtime ([#1721](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1721)) ([101957f](https://github.com/RocketChat/Rocket.Chat.Electron/commit/101957f7d20ee2bfc3f8f468a4a80984bb8af433))
+* Opening links with external protocol ([#1709](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1709)) ([a497abc](https://github.com/RocketChat/Rocket.Chat.Electron/commit/a497abc676a0750a73cef0a47a1d4d9f9a4022a2))
+* Remove wrong entitlements on MAS builds ([#1654](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1654)) ([394b19c](https://github.com/RocketChat/Rocket.Chat.Electron/commit/394b19cbede1fce0c3bcde24e9d2bae90a5205ce))
+* Some structural issues ([#1515](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1515)) ([5604281](https://github.com/RocketChat/Rocket.Chat.Electron/commit/56042818d484bb7a68e4787e07c84b113492e936)), closes [#1514](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1514)
+* Verify url protocol in window.open ([#1723](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1723)) ([f21cca3](https://github.com/RocketChat/Rocket.Chat.Electron/commit/f21cca3d4302a103dcb1b9fcc32c08b82a78f8a9))
+
+
+### Features
+
+* Add Hungarian translation ([#1554](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1554)) ([f2345aa](https://github.com/RocketChat/Rocket.Chat.Electron/commit/f2345aadd896c979b8821404e049273941b53c02))
+* Add new locale for Ukrainian ([#1559](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1559)) ([26e6c48](https://github.com/RocketChat/Rocket.Chat.Electron/commit/26e6c48044af9979c3f8f7bb18f707682af26b2c))
+* Add Polish translation ([#1586](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1586)) ([a2f4885](https://github.com/RocketChat/Rocket.Chat.Electron/commit/a2f4885ba5c0ff995f3098e5280bc3e1f8d8d2dc))
+* Added option to disable GPU acceleration ([#1541](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1541)) ([18c850c](https://github.com/RocketChat/Rocket.Chat.Electron/commit/18c850cc4ca175af17b9a04b413f4fc73fc4c76a))
+* Deep links ([#1726](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1726)) ([fda4bad](https://github.com/RocketChat/Rocket.Chat.Electron/commit/fda4badc06938e67a68cbc4a5857dcbd4e6e79b9))
+* Embedded spell checking dictionaries ([#1523](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1523)) ([c897582](https://github.com/RocketChat/Rocket.Chat.Electron/commit/c897582a6df338eba1d0bc0a675687f66eb3cd5d))
+* Menu bar as components ([#1512](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1512)) ([67172f0](https://github.com/RocketChat/Rocket.Chat.Electron/commit/67172f0930ad25cf055d8c301e9039c99e6af73a))
+* MSI installer ([#1734](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1734)) ([64ab2f3](https://github.com/RocketChat/Rocket.Chat.Electron/commit/64ab2f3d9d602fba282853a045d1e11148838d8c))
+* New "Add Server" layout ([#1738](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1738)) ([e0183d3](https://github.com/RocketChat/Rocket.Chat.Electron/commit/e0183d3db0f0509450b927cc1650a6719d77b4bd))
+* Select client certificate dialog ([#1511](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1511)) ([68e79d8](https://github.com/RocketChat/Rocket.Chat.Electron/commit/68e79d8bfbcfa231b2ed2cf64ede24dcf3d5f079))
+* Use current server's favicon as window/taskbar icon ([#1720](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1720)) ([c3d53c6](https://github.com/RocketChat/Rocket.Chat.Electron/commit/c3d53c6813185c1652d39a25a0a56336858e0a3a))
+
+
+### Performance Improvements
+
+* Improve away detection ([#1542](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1542)) ([6449554](https://github.com/RocketChat/Rocket.Chat.Electron/commit/6449554dec8c75338e83606835d4875d5e3f128b))
+* Notifications on main process ([#1675](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1675)) ([062b4f9](https://github.com/RocketChat/Rocket.Chat.Electron/commit/062b4f958c942f2dc4eee9066ec8c28aa93db705))
+
+## [2.17.11](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.10...2.17.11) (2020-07-21)
+
+
+### Bug Fixes
+
+* No notification when the avatar icon comes from a relative URL ([#1662](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1662)) ([bad1562](https://github.com/RocketChat/Rocket.Chat.Electron/commit/bad156246bab4b9a0c478693dc397b9548177a6c))
+* Remove wrong entitlements on MAS builds ([#1654](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1654)) ([76c19ee](https://github.com/RocketChat/Rocket.Chat.Electron/commit/76c19eedac827f9833b5090eda4965fa438b9e25))
+
+
+
+## [2.17.10](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.9...2.17.10) (2020-07-14)
+
+
+### Bug Fixes
+
+* Patch Electron ([d53ec40](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d53ec4096c8fd9004821b13a755c2c5e818aa9c6))
+
+
+
 ## [2.17.9](https://github.com/RocketChat/Rocket.Chat.Electron/compare/2.17.8...2.17.9) (2020-03-12)
 
 

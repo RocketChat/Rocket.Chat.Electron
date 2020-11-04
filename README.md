@@ -1,23 +1,34 @@
 # Rocket.Chat Desktop App
 
-[![Build Status](https://img.shields.io/travis/RocketChat/Rocket.Chat.Electron/master.svg?logo=travis)](https://travis-ci.org/RocketChat/Rocket.Chat.Electron)
-[![Build status](https://img.shields.io/appveyor/ci/RocketChat/rocket-chat-electron/master.svg?logo=appveyor)](https://ci.appveyor.com/project/RocketChat/rocket-chat-electron)
+[![Travis CI Build Status](https://img.shields.io/travis/RocketChat/Rocket.Chat.Electron/master.svg?logo=travis)](https://travis-ci.org/RocketChat/Rocket.Chat.Electron)
+[![AppVeyor Build Status](https://img.shields.io/appveyor/ci/RocketChat/rocket-chat-electron/master.svg?logo=appveyor)](https://ci.appveyor.com/project/RocketChat/rocket-chat-electron)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3a87141c0a4442809d9a2bff455e3102)](https://www.codacy.com/app/tassoevan/Rocket.Chat.Electron?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RocketChat/Rocket.Chat.Electron&amp;utm_campaign=Badge_Grade)
 [![Project Dependencies](https://david-dm.org/RocketChat/Rocket.Chat.Electron.svg)](https://david-dm.org/RocketChat/Rocket.Chat.Electron)
 [![GitHub All Releases](https://img.shields.io/github/downloads/RocketChat/Rocket.Chat.Electron/total.svg)](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest)
 ![GitHub](https://img.shields.io/github/license/RocketChat/Rocket.Chat.Electron.svg)
 
-Desktop application for [Rocket.Chat] available for macOS, Windows and Linux
-using [Electron].
+Desktop application for [Rocket.Chat][] available for macOS, Windows and Linux
+using [Electron][].
 
-[Rocket.Chat]: https://github.com/RocketChat/Rocket.Chat
-[Electron]: https://electronjs.org/
+![Rocket.Chat Desktop App](https://user-images.githubusercontent.com/2263066/91490997-c0bd0c80-e889-11ea-92c7-2cbcc3aabc98.png)
+
+---
+
+## Engage with us
+
+### Share your story
+We’d love to hear about [your experience][] and potentially feature it on our
+[Blog][].
+
+### Subscribe for Updates
+Once a month our marketing team releases an email update with news about product
+releases, company related topics, events and use cases. [Sign Up!][]
+
+---
 
 ## Download
 
-You can download the latest version from the [Releases] page.
-
-[Releases]: https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest
+You can download the latest version from the [Releases][] page.
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/rocketchat-desktop)
 
@@ -32,9 +43,8 @@ add the options below:
 
 - `/S` - Silent install
 - `/allusers` - Install for all users (requires admin)
-- `/currentuser` - Install for current user only (default)
-- `/disableAutoUpdates` - Disable autoupdates (Application will not update
-  automatically / User can't update via dialog)
+- `/currentuser` - Install only the for current user (default)
+- `/disableAutoUpdates` - Disable automatic updates
 
 ## Development
 
@@ -65,52 +75,36 @@ The build process compiles all stuff from the `src` folder and puts it into the
 `app` folder, so after the build has finished, your `app` folder contains the
 full, runnable application.
 
+### TypeScript
+
+Following the [ongoing changes in Rocket.Chat codebase][], the app was
+rewritten in TypeScript 4 to address issues regarding maintainability.
+
 ### The build pipeline
 
-The build process is founded upon [gulp] task runner and [rollup] bundler. There are
-two entry files for your code: `src/main.js` and `src/app.js`. Rollup will
-follow all `import` statements starting from those files and compile code of the
-whole dependency tree into one `.js` file for each entry point.
+The build process is founded upon [rollup][] bundler. There are three entry files
+for your code:
 
-[gulp]: https://github.com/gulpjs/gulp
-[rollup]: https://github.com/rollup/rollup
+- `src/main.ts`, the script running at the main Electron process, orchestrating
+  the whole application;
 
-#### Adding node modules
+- `src/rootWindow.ts`, the script that renders the UI of the *root window*, the
+  app's main window;
+
+- and `src/preload.ts`, which runs in a privileged mode to connect the app and
+  the webviews rendering Rocket.Chat's web client.
+
+#### Adding Node.js modules
 
 Remember to respect the split between `dependencies` and `devDependencies` in
 `package.json` file. Only modules listed in `dependencies` will be included into
 distributable app.
 
-#### Working with modules
-
-Thanks to [rollup] you can (and should) use ES6 modules for most code in `src`
-folder.
-
-[rollup]: https://github.com/rollup/rollup
-
-Use ES6 syntax in the `src` folder like this:
-
-```js
-import myStuff from './my_lib/my_stuff';
-```
-
-The exception is in `src/public`. ES6 will work inside this folder, but it is
-limited to what Electron/Chromium supports. The key thing to note is that you
-cannot use `import` and `export` statements. Imports and exports need to be done
-using CommonJS syntax:
-
-```js
-const myStuff = require('./my_lib/my_stuff');
-const { myFunction } =  require('./App');
-```
-
 ### Troubleshooting
 
 #### node-gyp
 
-Follow the installation instruction on [node-gyp readme].
-
-[node-gyp readme]: https://github.com/nodejs/node-gyp#installation
+Follow the installation instruction on [node-gyp readme][].
 
 #### Ubuntu
 
@@ -137,8 +131,6 @@ gcc-c++
 On Windows 7 you may have to follow option 2 of the [node-gyp install guide]
 and install Visual Studio.
 
-[node-gyp install guide]: https://github.com/nodejs/node-gyp#installation
-
 ### Testing
 
 #### Unit tests
@@ -147,11 +139,9 @@ and install Visual Studio.
 yarn test
 ```
 
-Using [electron-mocha] test runner with the [chai] assertion library. This task
-searches for all files in `src` directory which respect pattern `*.spec.js`.
-
-[electron-mocha]: https://github.com/jprichardson/electron-mocha
-[chai]: http://chaijs.com/api/assert/
+We use [Jest][] testing framwork with the [Jest electron runner][]. It searches
+for all files in `src` directory that match the glob pattern
+`*.(spec|test).{js,ts,tsx}`.
 
 ### Making a release
 
@@ -164,11 +154,8 @@ yarn release
 It will start the packaging process for operating system you are running this
 command on. Ready for distribution file will be outputted to `dist` directory.
 
-All packaging actions are handled by [electron-builder]. It has a lot of
-[customization options].
-
-[electron-builder]: https://github.com/electron-userland/electron-builder
-[customization options]: https://github.com/electron-userland/electron-builder/wiki/Options
+All packaging actions are handled by [electron-builder][]. It has a lot of
+[customization options][].
 
 ## Default servers
 
@@ -222,13 +209,30 @@ On Linux, the full paths are:
 
 Released under the MIT license.
 
-### Spelling dictionaries
+[Rocket.Chat]: https://rocket.chat
 
-- German: [GPL-2.0 OR GPL-3.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/de/license)
-- English (United Kingdom): [MIT AND BSD](https://github.com/wooorm/dictionaries/blob/master/dictionaries/en-GB/license)
-- English (United States): [MIT AND BSD](https://github.com/wooorm/dictionaries/blob/master/dictionaries/en-US/license)
-- Spanish (or Castilian; Spain): [GPL-3.0 OR LGPL-3.0 OR MPL-1.1](https://github.com/wooorm/dictionaries/blob/master/dictionaries/es-ES/license)
-- French: [MPL-2.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/fr/license)
-- Portuguese (Brazil): [LGPL-3.0 OR MPL-2.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/pt-BR/license)
-- Russian: [LGPL-3.0](https://github.com/wooorm/dictionaries/blob/master/dictionaries/ru/license)
-- Turkish: [MIT](https://github.com/wooorm/dictionaries/blob/master/dictionaries/tr/license)
+[Electron]: https://electronjs.org/
+
+[your experience]: https://survey.zohopublic.com/zs/e4BUFG
+
+[Blog]: https://rocket.chat/case-studies/?utm_source=github&utm_medium=readme&utm_campaign=community
+
+[Sign Up!]: https://rocket.chat/newsletter/?utm_source=github&utm_medium=readme&utm_campaign=community
+
+[Releases]: https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest
+
+[ongoing changes in Rocket.Chat codebase]: https://forums.rocket.chat/t/moving-away-from-meteor-and-beyond/3270
+
+[rollup]: https://github.com/rollup/rollup
+
+[node-gyp readme]: https://github.com/nodejs/node-gyp#installation
+
+[Jest]: https://jestjs.io/
+
+[Jest electron runner]: https://github.com/facebook-atom/jest-electron-runner
+
+[electron-builder]: https://github.com/electron-userland/electron-builder
+
+[customization options]: https://github.com/electron-userland/electron-builder/wiki/Options
+
+[node-gyp install guide]: https://github.com/nodejs/node-gyp#installation

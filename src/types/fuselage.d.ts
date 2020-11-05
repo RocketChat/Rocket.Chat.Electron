@@ -217,6 +217,16 @@ declare module '@rocket.chat/fuselage' {
   type FieldGroupProps = BoxProps;
   export const FieldGroup: ForwardRefExoticComponent<FieldGroupProps>;
 
+  type GridProps = BoxProps & {
+    xl: number | boolean;
+  };
+  type GridItemProps = BoxProps & {
+    xl: number | boolean;
+  };
+  export const Grid: ForwardRefExoticComponent<GridProps> & {
+    Item: ForwardRefExoticComponent<GridItemProps>;
+  };
+
   type IconProps = Omit<BoxProps, 'size'> & {
     size?: BoxProps['width'];
   };
@@ -250,6 +260,7 @@ declare module '@rocket.chat/fuselage' {
   type PaginationProps = BoxProps & {
     count: number;
     current?: number;
+    divider?: boolean;
     itemsPerPage?: 25 | 50 | 100;
     itemsPerPageLabel?: () => string;
     showingResultsLabel?: (props: { count: number; current: number; itemsPerPage: 25 | 50 | 100 }) => string;
@@ -262,6 +273,12 @@ declare module '@rocket.chat/fuselage' {
     error?: string;
   };
   export const PasswordInput: ForwardRefExoticComponent<PasswordInputProps>;
+
+  type ProgressBarProps = BoxProps & {
+    percentage?: number;
+    error?: string;
+  };
+  export const ProgressBar: ForwardRefExoticComponent<ProgressBarProps>;
 
   type SearchInputProps = BoxProps & {
     addon?: ReactNode;
@@ -335,7 +352,7 @@ declare module '@rocket.chat/fuselage' {
   }>;
   export const Scrollable: ForwardRefExoticComponent<ScrollableProps>;
 
-  type SelectOptions = [string, string][];
+  type SelectOptions = readonly (readonly [string, string])[];
   type SelectProps = BoxProps & {
     error?: string;
     options: SelectOptions;

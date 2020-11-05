@@ -1,10 +1,10 @@
 import React, { useLayoutEffect, FC } from 'react';
 import { useSelector } from 'react-redux';
 
-import DownloadsManagerView from '../../../components/DownloadsManagerView';
 import { RootState } from '../../../store/rootReducer';
 import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
+import DownloadsManagerView from '../DownloadsManagerView';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';
 import { ServersView } from '../ServersView';

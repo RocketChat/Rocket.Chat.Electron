@@ -148,6 +148,10 @@ for all files in `src` directory that match the glob pattern
 To package your app into an installer use command:
 
 ```sh
+npm install --production
+$env:NODE_ENV="production"
+yarn
+yarn build
 yarn release
 ```
 

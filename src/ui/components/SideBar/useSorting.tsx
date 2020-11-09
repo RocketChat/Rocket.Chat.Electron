@@ -9,8 +9,8 @@ import {
   SIDE_BAR_SERVER_SELECTED,
 } from '../../actions';
 
-export const useSorting = (servers: Server[]): {
-  sortedServers: Server[];
+export const useSorting = <S extends Server>(servers: S[]): {
+  sortedServers: S[];
   draggedServerUrl: string;
   handleDragStart: (url: string) => (event: DragEvent) => void;
   handleDragEnd: (event: DragEvent) => void;

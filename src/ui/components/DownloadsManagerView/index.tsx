@@ -28,7 +28,7 @@ const fileStatus = [
 
 const DownloadsManagerView: FC = () => {
   const { t } = useTranslation();
-  const isVisible = useSelector(({ currentServerUrl }: RootState) => currentServerUrl === 'Downloads');
+  const isVisible = useSelector(({ currentView }: RootState) => currentView === 'downloads');
   const servers = useSelector(({ servers }: RootState) => servers);
   const serverOptions: [string, string][] = [['all', 'All']];
   servers.forEach((server) => {

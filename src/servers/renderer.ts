@@ -65,9 +65,9 @@ const selectBadgeAndFavicon = createStructuredSelector<RootState, RootWindowIcon
     return undefined;
   },
   favicon: ({
-    currentServerUrl,
+    currentView,
     servers,
-  }: RootState) => servers.find((server) => server.url === currentServerUrl)?.favicon,
+  }: RootState) => (typeof currentView === 'object' ? servers.find((server) => server.url === currentView.url)?.favicon : undefined),
 });
 
 let faviconImage: HTMLImageElement;

@@ -116,8 +116,8 @@ const toggleMessageFormattingButtons = (messageBoxFormattingButtons: TouchBarSeg
   });
 };
 
-const selectCurrentServer = ({ servers, currentServerUrl }: RootState): Server =>
-  servers.find(({ url }) => url === currentServerUrl);
+const selectCurrentServer = ({ servers, currentView }: RootState): Server =>
+  (typeof currentView === 'object' ? servers.find(({ url }) => url === currentView.url) : null);
 
 class TouchBarService extends Service {
   protected initialize(): void {

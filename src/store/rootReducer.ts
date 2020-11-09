@@ -7,10 +7,8 @@ import {
   externalProtocols,
   trustedCertificates,
 } from '../navigation/reducers';
-import {
-  currentServerUrl,
-  servers,
-} from '../servers/reducers';
+import { servers } from '../servers/reducers';
+import { currentView } from '../ui/reducers/currentView';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
@@ -34,7 +32,7 @@ const reducersMap = {
   appPath,
   appVersion,
   clientCertificates,
-  currentServerUrl,
+  currentView,
   doCheckForUpdatesOnStartup,
   externalProtocols,
   isCheckingForUpdates,

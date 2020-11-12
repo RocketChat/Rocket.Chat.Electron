@@ -103,6 +103,26 @@
     }
   },
   "downloads": {
+    "title": "Downloads",
+    "filters": {
+      "search": "Search",
+      "server": "Server",
+      "mimeType": "Type",
+      "status": "Status",
+      "clear": "Clear filters",
+      "all": "All",
+      "mimes": {
+        "images": "Images",
+        "videos": "Videos",
+        "audios": "Audios",
+        "texts": "Texts",
+        "files": "Files"
+      },
+      "statuses": {
+        "paused": "Paused",
+        "cancelled": "Cancelled"
+      }
+    },
     "item": {
       "cancel": "Cancel",
       "copyLink": "Copy link",
@@ -113,7 +133,8 @@
       "resume": "Resume",
       "retry": "Retry",
       "showInFolder": "Show in Folder"
-    }
+    },
+    "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
   },
   "error": {
     "authNeeded": "Auth needed, try <strong>{{- auth}}</strong>",

@@ -353,9 +353,10 @@ declare module '@rocket.chat/fuselage' {
   export const Scrollable: ForwardRefExoticComponent<ScrollableProps>;
 
   type SelectOptions = readonly (readonly [string, string])[];
-  type SelectProps = BoxProps & {
+  type SelectProps = Omit<BoxProps, 'onChange'> & {
     error?: string;
     options: SelectOptions;
+    onChange: (value: SelectOptions[number][0]) => void;
   };
   export const Select: ForwardRefExoticComponent<SelectProps>;
 

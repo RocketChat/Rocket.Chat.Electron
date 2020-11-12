@@ -11,7 +11,7 @@ module.exports = {
       ],
       globals: {
         'ts-jest': {
-          tsConfig: {
+          tsconfig: {
             noUnusedLocals: false,
             noUnusedParameters: false,
           },
@@ -29,7 +29,7 @@ module.exports = {
       ],
       globals: {
         'ts-jest': {
-          tsConfig: {
+          tsconfig: {
             noUnusedLocals: false,
             noUnusedParameters: false,
           },

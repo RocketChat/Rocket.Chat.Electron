@@ -7,7 +7,6 @@ import { useSelector } from 'react-redux';
 import { DownloadStatus } from '../../../downloads/common';
 import { RootState } from '../../../store/rootReducer';
 import DownloadItem from './DownloadItem';
-import { mapping } from './downloadUtils';
 import { Wrapper } from './styles';
 
 const fileTypes = [
@@ -24,6 +23,14 @@ const fileStatus = [
   [DownloadStatus.PAUSED, 'Paused'],
   [DownloadStatus.CANCELLED, 'Cancelled'],
 ] as const;
+
+const mapping = {
+  application: 'Files',
+  image: 'Images',
+  video: 'Videos',
+  audio: 'Audios',
+  text: 'Texts',
+} as const;
 
 const DownloadsManagerView: FC = () => {
   const isVisible = useSelector(({ currentView }: RootState) => currentView === 'downloads');

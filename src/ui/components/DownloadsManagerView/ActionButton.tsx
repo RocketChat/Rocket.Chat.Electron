@@ -1,8 +1,14 @@
-import React, { FC } from 'react';
+import { Box } from '@rocket.chat/fuselage';
+import React, { AllHTMLAttributes, FC } from 'react';
 
-import { ClickableLink, ClickableLinkProps } from './styles';
+type ActionButtonProps = {
+  onClick: AllHTMLAttributes<HTMLAnchorElement>['onClick'];
+}
 
-const ActionButton: FC<ClickableLinkProps> = (props) =>
-  <ClickableLink is='a' fontSize='x12' withTruncatedText color='neutral-600' {...props} />;
+const ActionButton: FC<ActionButtonProps> = (props) => <>
+  <Box marginInline={4} withRichContent>
+    <a href='#' {...props} />
+  </Box>
+</>;
 
 export default ActionButton;

@@ -41,6 +41,12 @@
       "yes": "Yes",
       "no": "No"
     },
+    "downloadRemoval": {
+      "title": "Are you sure?",
+      "message": "Remove this download?",
+      "yes": "Yes",
+      "no": "No"
+    },
     "resetAppData": {
       "title": "Reset app data",
       "message": "This will sign you out from all your teams and reset the app back to its original settings. This cannot be undone.",
@@ -96,6 +102,19 @@
       "no": "No"
     }
   },
+  "downloads": {
+    "item": {
+      "cancel": "Cancel",
+      "copyLink": "Copy link",
+      "errored": "Download cancelled",
+      "pause": "Pause",
+      "progressSize": "{{receivedBytes, byteSize}} of {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "Remove from list",
+      "resume": "Resume",
+      "retry": "Retry",
+      "showInFolder": "Show in Folder"
+    }
+  },
   "error": {
     "authNeeded": "Auth needed, try <strong>{{- auth}}</strong>",
     "connectTimeout": "Timeout trying to connect",
@@ -119,6 +138,7 @@
     "cut": "Cu&t",
     "disableGpu": "Disable GPU",
     "documentation": "Documentation",
+    "downloads": "Downloads",
     "editMenu": "&Edit",
     "fileMenu": "&File",
     "forward": "&Forward",
@@ -163,6 +183,7 @@
   },
   "sidebar": {
     "addNewServer": "Add new server",
+    "downloads": "Downloads",
     "item": {
       "reload": "Reload server",
       "remove": "Remove server",

@@ -405,7 +405,7 @@ const createWindowMenu = createSelector(
         ...servers.map((server, i): MenuItemConstructorOptions => ({
           id: server.url,
           type: typeof currentView === 'object' && currentView.url === server.url ? 'checkbox' : 'normal',
-          label: server.title.replace(/&/g, '&&'),
+          label: server.title?.replace(/&/g, '&&'),
           checked: typeof currentView === 'object' && currentView.url === server.url,
           accelerator: `CommandOrControl+${ i + 1 }`,
           click: async () => {

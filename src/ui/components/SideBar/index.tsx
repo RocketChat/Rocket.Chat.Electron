@@ -71,11 +71,11 @@ const ServerButton: FC<ServerButtonProps> = ({
   };
 
   const initials = useMemo(() => title
-    .replace(url, parseUrl(url).hostname)
-    .split(/[^A-Za-z0-9]+/g)
-    .slice(0, 2)
-    .map((text) => text.slice(0, 1).toUpperCase())
-    .join(''), [title, url]);
+    ?.replace(url, parseUrl(url).hostname)
+    ?.split(/[^A-Za-z0-9]+/g)
+    ?.slice(0, 2)
+    ?.map((text) => text.slice(0, 1).toUpperCase())
+    ?.join(''), [title, url]);
 
   const handleServerContextMenu = (event: MouseEvent): void => {
     event.preventDefault();

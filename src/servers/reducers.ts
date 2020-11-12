@@ -14,7 +14,8 @@ import {
   WEBVIEW_FAVICON_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
-  WEBVIEW_SERVER_ID,
+  WEBVIEW_ATTACHED,
+  WEBVIEW_DETACHED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import { Server } from './common';
@@ -41,7 +42,8 @@ type ServersActionTypes = (
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
-  | ActionOf<typeof WEBVIEW_SERVER_ID>
+  | ActionOf<typeof WEBVIEW_ATTACHED>
+  | ActionOf<typeof WEBVIEW_DETACHED>
 );
 
 const upsert = (state: Server[], server: Server): Server[] => {
@@ -49,6 +51,16 @@ const upsert = (state: Server[], server: Server): Server[] => {
 
   if (index === -1) {
     return [...state, server];
+  }
+
+  return state.map((_server, i) => (i === index ? { ..._server, ...server } : _server));
+};
+
+const update = (state: Server[], server: Server): Server[] => {
+  const index = state.findIndex(({ url }) => url === server.url);
+
+  if (index === -1) {
+    return state;
   }
 
   return state.map((_server, i) => (i === index ? { ..._server, ...server } : _server));
@@ -131,11 +143,14 @@ export const servers: Reducer<Server[], ServersActionTypes> = (state = [], actio
       }));
     }
 
-    case WEBVIEW_SERVER_ID: {
-      const { id, serverUrl } = action.payload;
-      const index = state.findIndex(({ url }) => url === serverUrl);
-      state[index].webContentId = id;
-      return state;
+    case WEBVIEW_ATTACHED: {
+      const { url, webContentsId } = action.payload;
+      return update(state, { url, webContentsId });
+    }
+
+    case WEBVIEW_DETACHED: {
+      const { url } = action.payload;
+      return update(state, { url, webContentsId: undefined });
     }
 
     default:

@@ -7,7 +7,7 @@ import {
 } from './app/main/data';
 import { setUserDataDirectory } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
-import { setupDownloads } from './downloads';
+import { setupDownloads } from './downloads/main';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { setupNavigation } from './navigation/main';
@@ -22,7 +22,6 @@ import {
   createRootWindow,
   showRootWindow,
   exportLocalStorage,
-  getRootWindow,
 } from './ui/main/rootWindow';
 import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
@@ -66,7 +65,7 @@ const start = async (): Promise<void> => {
   await setupNavigation();
   setupPowerMonitor();
   await setupUpdates();
-  setupDownloads(await getRootWindow());
+  setupDownloads();
 
   dock.setUp();
   menuBar.setUp();

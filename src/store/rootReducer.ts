@@ -2,6 +2,7 @@ import { combineReducers } from 'redux';
 
 import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
+import { downloads } from '../downloads/reducers/downloads';
 import {
   clientCertificates,
   externalProtocols,
@@ -34,6 +35,7 @@ const reducersMap = {
   clientCertificates,
   currentView,
   doCheckForUpdatesOnStartup,
+  downloads,
   externalProtocols,
   isCheckingForUpdates,
   isEachUpdatesSettingConfigurable,

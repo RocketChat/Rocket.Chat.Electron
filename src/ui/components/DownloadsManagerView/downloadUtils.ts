@@ -25,37 +25,3 @@ export const mapping = {
   audio: 'Audios',
   text: 'Texts',
 } as const;
-
-export const DOWNLOAD_EVENT = {
-  PAUSE_ID: 'pause-',
-  CANCEL_ID: 'cancel-',
-  COMPLETE: 'download-complete',
-  COMPLETE_ID: 'download-complete-',
-  DOWNLOADING_ID: 'downloading-',
-  LOAD: 'load-downloads',
-  INITIALIZE: 'initialize-downloads',
-  CREATE: 'create-download-item',
-} as const;
-
-export const STATUS = {
-  CANCELLED: 'Cancelled',
-  PAUSED: 'Paused',
-  ALL: 'All',
-} as const;
-
-export type Download = {
-  itemId: string;
-  status: typeof STATUS[keyof typeof STATUS];
-  percentage: number;
-  serverTitle?: unknown;
-  Mbps?: unknown;
-  Kbps?: unknown;
-  fileName?: string;
-  thumbnail?: unknown;
-  path?: string;
-  mime?: string;
-  url?: string;
-  totalBytes?: number;
-  timeLeft?: unknown;
-  serverId?: unknown;
-};

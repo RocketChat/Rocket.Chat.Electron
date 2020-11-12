@@ -1,3 +1,4 @@
+import { downloads } from '../downloads/reducers/downloads';
 import {
   externalProtocols,
   trustedCertificates,
@@ -28,6 +29,7 @@ export type AppActionTypeToPayloadMap = {
   [APP_SETTINGS_LOADED]: {
     currentView: ReturnType<typeof currentView>;
     doCheckForUpdatesOnStartup: ReturnType<typeof doCheckForUpdatesOnStartup>;
+    downloads: ReturnType<typeof downloads>;
     externalProtocols: ReturnType<typeof externalProtocols>;
     isEachUpdatesSettingConfigurable: ReturnType<typeof isEachUpdatesSettingConfigurable>;
     isMenuBarEnabled: ReturnType<typeof isMenuBarEnabled>;

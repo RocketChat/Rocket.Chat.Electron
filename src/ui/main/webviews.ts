@@ -32,13 +32,12 @@ import {
   SPELL_CHECKING_LANGUAGE_TOGGLED,
   SPELL_CHECKING_TOGGLED,
 } from '../../spellChecking/actions';
-import { dispatch, listen } from '../../store';
+import { dispatch, listen, select } from '../../store';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   WEBVIEW_ATTACHED,
-  WEBVIEW_DETACHED,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
@@ -60,6 +59,16 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 
   guestWebContents.addListener('destroyed', () => {
     webContentsByServerUrl.delete(serverUrl);
+
+    const hasServer = select(({ servers }) => servers.some((server) => server.url === serverUrl));
+
+    if (hasServer) {
+      return;
+    }
+
+    session.fromPartition('persist:rocketchat-server').clearStorageData({
+      origin: serverUrl,
+    });
   });
 
   const handleDidStartLoading = (): void => {
@@ -386,12 +395,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     initializeServerWebContents(action.payload.url, guestWebContents, rootWindow);
   });
 
-  listen(WEBVIEW_DETACHED, (action) => {
-    session.fromPartition('persist:rocketchat-server').clearStorageData({
-      origin: action.payload.url,
-    });
-  });
-
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
     guestWebContents.loadURL(action.payload.url);
@@ -461,25 +464,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
       default:
         callback(false);
-    }
-  });
-
-  webviewsSession.addListener('will-download', (_event, item, _webContents) => {
-    const extension = path.extname(item.getFilename())?.slice(1).toLowerCase();
-
-    if (extension) {
-      item.setSaveDialogOptions({
-        filters: [
-          {
-            name: `*.${ extension }`,
-            extensions: [extension],
-          },
-          {
-            name: '*.*',
-            extensions: ['*'],
-          },
-        ],
-      });
     }
   });
 

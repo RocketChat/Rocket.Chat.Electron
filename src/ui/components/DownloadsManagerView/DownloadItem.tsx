@@ -1,162 +1,141 @@
-import { Box, BoxProps, ButtonGroup, ProgressBar } from '@rocket.chat/fuselage';
-import { useMutableCallback, useDebouncedState } from '@rocket.chat/fuselage-hooks';
-import { ipcRenderer, remote, clipboard } from 'electron';
-import React, { FC, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { Box, BoxProps, ProgressBar } from '@rocket.chat/fuselage';
+import React, { FC, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { RootState } from '../../../store/rootReducer';
+import { Download } from '../../../downloads/common';
+import { invoke } from '../../../ipc/renderer';
 import ActionButton from './ActionButton';
-import Info from './Info';
-import { formatBytes, STATUS, DOWNLOAD_EVENT, Download } from './downloadUtils';
+import FileIcon from './FileIcon';
 
-type DownloadItemProps = BoxProps
-& Download
-& {
-  updateDownloads: (downloads: Download) => void;
-  clear: (itemId: string, isRetry: boolean) => void;
-  handleFileOpen: (path: string) => void;
-};
+type DownloadItemProps = (
+  Download
+  & BoxProps
+);
 
 const DownloadItem: FC<DownloadItemProps> = ({
-  thumbnail,
-  url,
-  fileName,
-  totalBytes,
   itemId,
-  mime,
-  updateDownloads,
-  Mbps: mbps,
-  Kbps: kbps,
+  state,
+  status,
+  fileName,
+  receivedBytes,
+  totalBytes,
+  startTime,
+  endTime,
+  url,
+  mimeType,
   serverTitle,
+  serverUrl,
+  savePath,
   ...props
 }) => {
-  const servers = useSelector(({ servers }: RootState) => servers);
-  const date = new Date(itemId).toDateString();
-  const fileSize = formatBytes(totalBytes, 2, true);
+  const { t, i18n } = useTranslation();
 
-  const [percentage, setPercentage] = useDebouncedState(props.percentage || 0, 100);
-  const [path, setPath] = useDebouncedState(props.path || '', 100);
-  const [status, setStatus] = useDebouncedState(props.status || STATUS.ALL, 100);
-  const [timeLeft, setTimeLeft] = useDebouncedState(props.timeLeft || null, 100);
+  const progressSize = useMemo(() => {
+    if (!receivedBytes || !totalBytes) {
+      return undefined;
+    }
 
-  const completed = percentage === 100;
-  const paused = status === STATUS.PAUSED;
+    if (state === 'completed') {
+      return i18n.format(totalBytes, 'byteSize');
+    }
 
-  if (!serverTitle) {
-    const index = servers.findIndex(({ webContentId }) => webContentId === props.serverId);
-    serverTitle = servers[index].title;
-  }
+    return t('downloads.item.progressSize', {
+      receivedBytes,
+      totalBytes,
+      ratio: receivedBytes / totalBytes,
+    });
+  }, [i18n, receivedBytes, state, t, totalBytes]);
 
-  const handleProgress = useMutableCallback((_event, data) => {
-    const percentage = Math.floor((data.bytes / totalBytes) * 100);
-    updateDownloads({ itemId, status: STATUS.ALL, percentage, serverTitle, Mbps: data.Mbps, Kbps: data.Kbps, fileName: data.fileName });
-    setStatus(STATUS.ALL);
-    setPercentage(percentage);
-    setTimeLeft(data.timeLeft);
-  });
+  const progressSpeed = useMemo(() => {
+    if (!receivedBytes || !totalBytes || !startTime || !endTime || state !== 'progressing') {
+      return undefined;
+    }
 
-  useEffect(() => {
-    // Listen on unique event only
-    ipcRenderer.on(DOWNLOAD_EVENT.DOWNLOADING_ID.concat(itemId), handleProgress);
-    return () => {
-      ipcRenderer.removeListener(DOWNLOAD_EVENT.DOWNLOADING_ID.concat(itemId), handleProgress);
-    };
-  }, [handleProgress, itemId]);
+    return i18n.format(receivedBytes / (endTime - startTime) * 1000, 'byteSpeed');
+  }, [endTime, i18n, receivedBytes, startTime, state, totalBytes]);
 
+  const estimatedTimeLeft = useMemo(() => {
+    if (!receivedBytes || !totalBytes || !startTime || !endTime || state !== 'progressing') {
+      return undefined;
+    }
 
-  // Download Completed, Send data back
-  useEffect(() => {
-    const downloadComplete = (_event: unknown, data: {
-      path: string;
-      thumbnail: unknown;
-    }): void => {
-      setStatus(STATUS.ALL);
-      setPath(data.path);
-      setTimeLeft(null);
-      updateDownloads({
-        status: STATUS.ALL,
-        serverTitle,
-        itemId,
-        percentage: 100,
-        thumbnail: data.thumbnail,
-        path: data.path,
-      });
-      ipcRenderer.send(DOWNLOAD_EVENT.COMPLETE, { status: STATUS.ALL, url, fileName, fileSize, percentage: 100, serverTitle, itemId, date, path: data.path, mime, thumbnail: data.thumbnail });
-    };
+    const remainingBytes = totalBytes - receivedBytes;
+    const speed = receivedBytes / (endTime - startTime);
+    return i18n.format(remainingBytes / speed, 'duration');
+  }, [endTime, i18n, receivedBytes, startTime, state, totalBytes]);
 
-    ipcRenderer.on(DOWNLOAD_EVENT.COMPLETE_ID.concat(itemId), downloadComplete);
-    return () => {
-      ipcRenderer.removeListener(DOWNLOAD_EVENT.COMPLETE_ID.concat(itemId), downloadComplete);
-    };
-  }, [date, fileName, fileSize, itemId, mime, props, serverTitle, setPath, setPercentage, setStatus, setTimeLeft, updateDownloads, url]);
+  const handlePause = useCallback(() => {
+    invoke('downloads/pause', itemId);
+  }, [itemId]);
 
-  const handleCancel = useMutableCallback(() => {
-    setStatus(STATUS.CANCELLED);
-    setTimeLeft(null);
-    ipcRenderer.send(DOWNLOAD_EVENT.CANCEL_ID.concat(itemId));
-    updateDownloads({ status: STATUS.CANCELLED, percentage, itemId });
-    ipcRenderer.send(DOWNLOAD_EVENT.COMPLETE, { status: STATUS.CANCELLED, url, fileName, fileSize, percentage, serverTitle, itemId, date, path, mime });
-  });
+  const handleResume = useCallback(() => {
+    invoke('downloads/resume', itemId);
+  }, [itemId]);
 
-  const handlePause = useMutableCallback(() => {
-    setStatus(STATUS.PAUSED);
-    ipcRenderer.send(DOWNLOAD_EVENT.PAUSE_ID.concat(itemId));
-    updateDownloads({ status: STATUS.PAUSED, percentage, itemId });
-  });
+  const handleCancel = useCallback(async () => {
+    invoke('downloads/cancel', itemId);
+  }, [itemId]);
 
-  const handleDelete = useMutableCallback((isRetry: boolean) => {
-    props.clear(itemId, isRetry);
-  });
+  const handleShowInFolder = useCallback((): void => {
+    invoke('downloads/show-in-folder', itemId);
+  }, [itemId]);
 
-  const handleRetry = useMutableCallback(() => {
-    // Adding ServerTitle to Download URL for use in retrying the cancelled download
-    remote.getCurrentWebContents().downloadURL(`${ url }#${ serverTitle }`);
-    handleDelete(true);
-  });
+  const handleRetry = useCallback(() => {
+    invoke('downloads/retry', itemId);
+  }, [itemId]);
 
-  const handleFileOpen = useMutableCallback(() => props.handleFileOpen(path));
+  const handleRemove = useCallback(() => {
+    invoke('downloads/remove', itemId);
+  }, [itemId]);
 
-  // TODO TOAST
-  const handleCopyLink = useMutableCallback(() => clipboard.write({ text: url }));
+  const handleCopyLink = useCallback(() => {
+    invoke('downloads/copy-link', itemId);
+  }, [itemId]);
 
-  const speed = mbps > 0.1 ? `${ mbps }Mbps` : `${ kbps }Kbps`;
-  const isCompleted = completed;
-  const isCancelled = status === STATUS.CANCELLED;
-  const isPaused = paused;
+  const errored = state === 'interrupted' || state === 'cancelled';
+  const percentage = useMemo(() => Math.floor(receivedBytes / totalBytes * 100), [receivedBytes, totalBytes]);
 
-  return <Box width='100%' height='x44' mbe='x26' display='flex' alignItems='center' mb={props.mb}>
-    <Box width='x188' flexShrink={ 0 } borderRadius='4px' display='flex' flexDirection='row' alignItems='center' justifyContent='center'>
-      <Box display='flex' flexDirection='column' width='x36' height='x44'>
-        <Box is='img' src='images/file-icon.svg' alt={name} width='x36' />
-        <Box fontSize='x12' fontWeight={600} textAlign='center' mbs='-20px' color='neutral-600' display='block'>{ mime.split('/')[1] }</Box>
-      </Box>
-      <Box width='x144' mis='x8'>
-        <Box fontSize='x14' withTruncatedText color={ isCancelled ? 'danger-500' : 'default' } mbe='x4'>{ fileName }</Box>
-        <Info>{ serverTitle }</Info>
+  return <Box width='100%' height={44} mbe={26} display='flex' alignItems='center' {...props}>
+    <Box width={188} flexShrink={0} display='flex' flexDirection='row' alignItems='center' justifyContent='center'>
+      <FileIcon fileName={fileName} mimeType={mimeType} />
+      <Box width={144} mis={8}>
+        <Box mbe={4} color={errored ? 'danger-500' : 'default'} fontScale='p1' withTruncatedText>{fileName}</Box>
+        <Box color='neutral-600' fontScale='c1' withTruncatedText>{serverTitle}</Box>
       </Box>
     </Box>
 
-    <Box display='flex' flexDirection='column' flexGrow={ 1 } mi='x16'>
-      <Box display='flex' flexDirection='row' mbe='x6' alignItems='center' justifyContent='space-between'>
+    <Box display='flex' flexDirection='column' flexGrow={1} mi={16}>
+      <Box display='flex' flexDirection='row' mbe={6} alignItems='center' justifyContent='space-between'>
         <Box display='flex' flexDirection='row' alignItems='center'>
-          <Info mie='x12'>{percentage}% of { fileSize }</Info>
-          { isCompleted || isCancelled || <Info mie='x12'>{ speed }</Info> }
-          { timeLeft && <Info>{ timeLeft }s left</Info> }
+          {progressSize ? <Box mie={12} color='neutral-600' fontScale='c1' withTruncatedText>{progressSize}</Box> : null}
+          {progressSpeed ? <Box mie={12} color='neutral-600' fontScale='c1' withTruncatedText>{progressSpeed}</Box> : null}
+          {estimatedTimeLeft ? <Box color='neutral-600' fontScale='c1' withTruncatedText>{estimatedTimeLeft}</Box> : null}
         </Box>
-        <ButtonGroup fontSize='x12' withTruncatedText color='neutral-700' >
-          {/* Completed */ }
-          { isCompleted && !isCancelled && <ActionButton onClick={ handleFileOpen }>Show in Folder</ActionButton> }
-          { isCompleted && !isCancelled && <ActionButton onClick={ handleCopyLink }>Copy Link</ActionButton> }
-          {/* Progressing and Paused */ }
-          { !isCompleted && !isCancelled && <ActionButton onClick={ handlePause }>{ isPaused ? 'Resume' : 'Pause' }</ActionButton> }
-          { !isCompleted && !isCancelled && <ActionButton onClick={ handleCancel }>Cancel</ActionButton> }
-          {/* Cancelled */ }
-          { isCancelled && <ActionButton onClick={ handleRetry }>Retry</ActionButton> }
-          <ActionButton isRemove onClick={ () => handleDelete(false) }>Remove from List</ActionButton>
-        </ButtonGroup>
+        <Box display='flex' fontScale='c1'>
+          <ActionButton onClick={handleCopyLink}>{t('downloads.item.copyLink')}</ActionButton>
+          {state === 'progressing' && <>
+            <ActionButton onClick={handlePause}>{t('downloads.item.pause')}</ActionButton>
+            <ActionButton onClick={handleCancel}>{t('downloads.item.cancel')}</ActionButton>
+          </>}
+          {state === 'paused' && <>
+            <ActionButton onClick={handleResume}>{t('downloads.item.resume')}</ActionButton>
+            <ActionButton onClick={handleCancel}>{t('downloads.item.cancel')}</ActionButton>
+          </>}
+          {state === 'completed' && <>
+            <ActionButton onClick={handleShowInFolder}>{t('downloads.item.showInFolder')}</ActionButton>
+            <ActionButton onClick={handleRemove}>{t('downloads.item.remove')}</ActionButton>
+          </>}
+          {errored && <>
+            <ActionButton onClick={handleRetry}>{t('downloads.item.retry')}</ActionButton>
+            <ActionButton onClick={handleRemove}>{t('downloads.item.remove')}</ActionButton>
+          </>}
+        </Box>
       </Box>
-      <Box mbe='x8'>
-        <ProgressBar percentage={percentage} error={isCancelled ? 'Download Cancelled' : undefined} />
+      <Box mbe={8} position='relative'>
+        <ProgressBar
+          percentage={percentage}
+          error={errored ? t('downloads.item.errored') : undefined}
+        />
       </Box>
     </Box>
   </Box>;

@@ -67,7 +67,7 @@ export const currentView = (state: CurrentViewState = 'add-new-server', action: 
       return 'add-new-server';
 
     case SIDE_BAR_REMOVE_SERVER_CLICKED: {
-      if (state === action.payload) {
+      if (typeof state === 'object' && state.url === action.payload) {
         return 'add-new-server';
       }
 

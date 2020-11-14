@@ -2,7 +2,6 @@ name: Build
 
 on:
   - push
-  - pull_request
 
 jobs:
   test:
@@ -139,7 +138,6 @@ jobs:
           fi
 
   windows-build:
-    if: ${{ github.event_name == 'push' }}
     needs: smoke-test-windows-build
     runs-on: windows-latest
     steps:
@@ -167,7 +165,6 @@ jobs:
           path: ./dist
 
   macos-build:
-    if: ${{ github.event_name == 'push' }}
     needs: smoke-test-macos-build
     runs-on: macos-latest
     steps:
@@ -193,7 +190,7 @@ jobs:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
           # Variables needed to notarization process:
-          IS_PULL_REQUEST: ${{ github.event_name == 'pull_request' }}
+          IS_PULL_REQUEST: false
           APPLEID: ${{ secrets.APPLEID }}
           APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
       - uses: actions/upload-artifact@v2
@@ -202,7 +199,6 @@ jobs:
           path: ./dist
 
   linux-build:
-    if: ${{ github.event_name == 'push' }}
     needs: smoke-test-linux-build
     runs-on: ubuntu-latest
     steps:

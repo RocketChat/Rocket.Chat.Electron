@@ -135,7 +135,7 @@ export const AddServerView: FC = () => {
     {isOnLine
       ? <Tile is='form' width='x368' maxWidth='100%' padding='x24' method='/' onSubmit={handleFormSubmit}>
         <Margins block='x16'>
-          <RocketChatLogo alternate />
+          <RocketChatLogo />
         </Margins>
         <FieldGroup>
           <Field>

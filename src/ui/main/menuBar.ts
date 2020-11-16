@@ -17,7 +17,7 @@ import {
 } from '../actions';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
-import { getAllServerWebContents, getWebContentsByServerUrl } from './webviews';
+import { getWebContentsByServerUrl } from './webviews';
 
 const t = i18next.t.bind(i18next);
 
@@ -518,9 +518,6 @@ const createHelpMenu = createSelector(
           }
           browserWindow.focus();
           dispatch({ type: CERTIFICATES_CLEARED });
-          getAllServerWebContents().forEach((webContents) => {
-            webContents.reloadIgnoringCache();
-          });
         },
       },
       {

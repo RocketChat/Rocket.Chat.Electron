@@ -26,6 +26,7 @@ import {
 import i18next from 'i18next';
 
 import { setupPreloadReload } from '../../app/main/dev';
+import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { isProtocolAllowed } from '../../navigation/main';
 import { Server } from '../../servers/common';
 import {
@@ -50,9 +51,6 @@ const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
 export const getWebContentsByServerUrl = (url: string): WebContents =>
   webContentsByServerUrl.get(url);
-
-export const getAllServerWebContents = (): WebContents[] =>
-  Array.from(webContentsByServerUrl.values());
 
 const initializeServerWebContents = (serverUrl: string, guestWebContents: WebContents, rootWindow: BrowserWindow): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
@@ -491,6 +489,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     const menu = Menu.buildFromTemplate(menuTemplate);
     menu.popup({
       window: rootWindow,
+    });
+  });
+
+  listen(CERTIFICATES_CLEARED, () => {
+    Array.from(webContentsByServerUrl.values()).forEach((webContents) => {
+      webContents.reloadIgnoringCache();
     });
   });
 

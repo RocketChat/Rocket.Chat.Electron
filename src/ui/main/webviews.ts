@@ -7,13 +7,13 @@ import {
   ContextMenuParams,
   DidFailLoadEvent,
   DidNavigateEvent,
+  DownloadItem,
   Event,
   Input,
   ipcMain,
   Menu,
   MenuItemConstructorOptions,
   Session,
-  session,
   shell,
   systemPreferences,
   UploadBlob,
@@ -32,13 +32,12 @@ import {
   SPELL_CHECKING_LANGUAGE_TOGGLED,
   SPELL_CHECKING_TOGGLED,
 } from '../../spellChecking/actions';
-import { dispatch, listen } from '../../store';
+import { dispatch, listen, select } from '../../store';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   WEBVIEW_ATTACHED,
-  WEBVIEW_DETACHED,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
@@ -49,8 +48,8 @@ const t = i18next.t.bind(i18next);
 
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
-export const getWebContentsByServerUrl = (serverUrl: string): WebContents =>
-  webContentsByServerUrl.get(serverUrl);
+export const getWebContentsByServerUrl = (url: string): WebContents =>
+  webContentsByServerUrl.get(url);
 
 export const getAllServerWebContents = (): WebContents[] =>
   Array.from(webContentsByServerUrl.values());
@@ -58,8 +57,19 @@ export const getAllServerWebContents = (): WebContents[] =>
 const initializeServerWebContents = (serverUrl: string, guestWebContents: WebContents, rootWindow: BrowserWindow): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
 
+  const webviewSession = guestWebContents.session;
+
   guestWebContents.addListener('destroyed', () => {
     webContentsByServerUrl.delete(serverUrl);
+
+    const canPurge = select(({ servers }) => !servers.some((server) => server.url === serverUrl));
+
+    if (canPurge) {
+      webviewSession.clearStorageData();
+      return;
+    }
+
+    webviewSession.flushStorageData();
   });
 
   const handleDidStartLoading = (): void => {
@@ -279,8 +289,8 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 
     const props = {
       ...params,
-      availableSpellCheckerLanguages: guestWebContents.session.availableSpellCheckerLanguages,
-      spellCheckerLanguages: guestWebContents.session.getSpellCheckerLanguages(),
+      availableSpellCheckerLanguages: webviewSession.availableSpellCheckerLanguages,
+      spellCheckerLanguages: webviewSession.getSpellCheckerLanguages(),
     };
 
     const template = [
@@ -381,15 +391,70 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     });
   };
 
+  const handlePermissionRequest: Parameters<Session['setPermissionRequestHandler']>[0] = async (
+    _webContents,
+    permission,
+    callback,
+    details,
+  ) => {
+    switch (permission) {
+      case 'media': {
+        if (process.platform !== 'darwin') {
+          callback(true);
+          return;
+        }
+
+        const { mediaTypes } = details;
+        const allowed = (!mediaTypes.includes('audio') || await systemPreferences.askForMediaAccess('microphone'))
+          && (!mediaTypes.includes('video') || await systemPreferences.askForMediaAccess('camera'));
+        callback(allowed);
+        return;
+      }
+
+      case 'geolocation':
+      case 'notifications':
+      case 'midiSysex':
+      case 'pointerLock':
+      case 'fullscreen':
+        callback(true);
+        return;
+
+      case 'openExternal': {
+        const allowed = await isProtocolAllowed(details.externalURL);
+        callback(allowed);
+        return;
+      }
+
+      default:
+        callback(false);
+    }
+  };
+
+  const handleWillDownload = (_event: Event, item: DownloadItem, _webContents: WebContents): void => {
+    const extension = path.extname(item.getFilename())?.slice(1).toLowerCase();
+
+    if (extension) {
+      item.setSaveDialogOptions({
+        filters: [
+          {
+            name: `*.${ extension }`,
+            extensions: [extension],
+          },
+          {
+            name: '*.*',
+            extensions: ['*'],
+          },
+        ],
+      });
+    }
+  };
+
   listen(WEBVIEW_ATTACHED, (action) => {
     const guestWebContents = webContents.fromId(action.payload.webContentsId);
     initializeServerWebContents(action.payload.url, guestWebContents, rootWindow);
-  });
 
-  listen(WEBVIEW_DETACHED, (action) => {
-    session.fromPartition('persist:rocketchat-server').clearStorageData({
-      origin: action.payload.url,
-    });
+    guestWebContents.session.setPermissionRequestHandler(handlePermissionRequest);
+    guestWebContents.session.on('will-download', handleWillDownload);
   });
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
@@ -427,60 +492,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     menu.popup({
       window: rootWindow,
     });
-  });
-
-  const webviewsSession = session.fromPartition('persist:rocketchat-server');
-  webviewsSession.setPermissionRequestHandler(async (_webContents, permission, callback, details) => {
-    switch (permission) {
-      case 'media': {
-        if (process.platform !== 'darwin') {
-          callback(true);
-          return;
-        }
-
-        const { mediaTypes } = details;
-        const allowed = (!mediaTypes.includes('audio') || await systemPreferences.askForMediaAccess('microphone'))
-          && (!mediaTypes.includes('video') || await systemPreferences.askForMediaAccess('camera'));
-        callback(allowed);
-        return;
-      }
-
-      case 'geolocation':
-      case 'notifications':
-      case 'midiSysex':
-      case 'pointerLock':
-      case 'fullscreen':
-        callback(true);
-        return;
-
-      case 'openExternal': {
-        const allowed = await isProtocolAllowed(details.externalURL);
-        callback(allowed);
-        return;
-      }
-
-      default:
-        callback(false);
-    }
-  });
-
-  webviewsSession.addListener('will-download', (_event, item, _webContents) => {
-    const extension = path.extname(item.getFilename())?.slice(1).toLowerCase();
-
-    if (extension) {
-      item.setSaveDialogOptions({
-        filters: [
-          {
-            name: `*.${ extension }`,
-            extensions: [extension],
-          },
-          {
-            name: '*.*',
-            extensions: ['*'],
-          },
-        ],
-      });
-    }
   });
 
   rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);

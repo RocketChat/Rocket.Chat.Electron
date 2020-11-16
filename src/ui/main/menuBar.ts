@@ -17,7 +17,7 @@ import {
 } from '../actions';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
-import { getWebContentsByServerUrl } from './webviews';
+import { getWebContentsByServerUrl } from './serverView';
 
 const t = i18next.t.bind(i18next);
 

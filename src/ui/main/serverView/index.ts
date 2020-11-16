@@ -3,7 +3,6 @@ import path from 'path';
 import {
   app,
   BrowserWindow,
-  clipboard,
   ContextMenuParams,
   DidFailLoadEvent,
   DidNavigateEvent,
@@ -25,15 +24,11 @@ import {
 } from 'electron';
 import i18next from 'i18next';
 
-import { setupPreloadReload } from '../../app/main/dev';
-import { CERTIFICATES_CLEARED } from '../../navigation/actions';
-import { isProtocolAllowed } from '../../navigation/main';
-import { Server } from '../../servers/common';
-import {
-  SPELL_CHECKING_LANGUAGE_TOGGLED,
-  SPELL_CHECKING_TOGGLED,
-} from '../../spellChecking/actions';
-import { dispatch, listen, select } from '../../store';
+import { setupPreloadReload } from '../../../app/main/dev';
+import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
+import { isProtocolAllowed } from '../../../navigation/main';
+import { Server } from '../../../servers/common';
+import { dispatch, listen, select } from '../../../store';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
@@ -42,8 +37,9 @@ import {
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
-} from '../actions';
-import { getRootWindow } from './rootWindow';
+} from '../../actions';
+import { getRootWindow } from '../rootWindow';
+import { createPopupMenuForServerView } from './popupMenu';
 
 const t = i18next.t.bind(i18next);
 
@@ -117,188 +113,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 
   const handleContextMenu = async (event: Event, params: ContextMenuParams): Promise<void> => {
     event.preventDefault();
-
-    type Params = Partial<ContextMenuParams> & {
-      availableSpellCheckerLanguages: Session['availableSpellCheckerLanguages'];
-      spellCheckerLanguages: ReturnType<Session['getSpellCheckerLanguages']>;
-    };
-
-    const createSpellCheckingMenuTemplate = ({
-      isEditable,
-      dictionarySuggestions,
-      availableSpellCheckerLanguages,
-      spellCheckerLanguages,
-    }: Params): MenuItemConstructorOptions[] => {
-      if (!isEditable) {
-        return [];
-      }
-
-      return [
-        ...spellCheckerLanguages.length > 0 && dictionarySuggestions ? [
-          ...dictionarySuggestions.length === 0
-            ? [
-              {
-                label: t('contextMenu.noSpellingSuggestions'),
-                enabled: false,
-              },
-            ]
-            : dictionarySuggestions.slice(0, 6).map<MenuItemConstructorOptions>((dictionarySuggestion) => ({
-              label: dictionarySuggestion,
-              click: () => {
-                guestWebContents.replaceMisspelling(dictionarySuggestion);
-              },
-            })),
-          ...dictionarySuggestions.length > 6 ? [
-            {
-              label: t('contextMenu.moreSpellingSuggestions'),
-              submenu: dictionarySuggestions.slice(6).map<MenuItemConstructorOptions>((dictionarySuggestion) => ({
-                label: dictionarySuggestion,
-                click: () => {
-                  guestWebContents.replaceMisspelling(dictionarySuggestion);
-                },
-              })),
-            },
-          ] : [],
-          { type: 'separator' },
-        ] as MenuItemConstructorOptions[] : [],
-        ...(process.platform === 'darwin' ? [
-          {
-            label: t('contextMenu.spelling'),
-            type: 'checkbox',
-            checked: spellCheckerLanguages.length > 0,
-            click: ({ checked }) => {
-              dispatch({
-                type: SPELL_CHECKING_TOGGLED,
-                payload: checked,
-              });
-            },
-          },
-        ] : [
-          {
-            label: t('contextMenu.spellingLanguages'),
-            enabled: availableSpellCheckerLanguages.length > 0,
-            submenu: [
-              ...availableSpellCheckerLanguages.map<MenuItemConstructorOptions>((availableSpellCheckerLanguage) => ({
-                label: availableSpellCheckerLanguage,
-                type: 'checkbox',
-                checked: spellCheckerLanguages.includes(availableSpellCheckerLanguage),
-                click: ({ checked }) => {
-                  dispatch({
-                    type: SPELL_CHECKING_LANGUAGE_TOGGLED,
-                    payload: {
-                      name: availableSpellCheckerLanguage,
-                      enabled: checked,
-                    },
-                  });
-                },
-              })),
-            ],
-          },
-        ]) as MenuItemConstructorOptions[],
-        { type: 'separator' },
-      ];
-    };
-
-    const createImageMenuTemplate = ({
-      mediaType,
-      srcURL,
-    }: Params): MenuItemConstructorOptions[] => (
-      mediaType === 'image' ? [
-        {
-          label: t('contextMenu.saveImageAs'),
-          click: () => guestWebContents.downloadURL(srcURL),
-        },
-        { type: 'separator' },
-      ] : []
-    );
-
-    const createLinkMenuTemplate = ({
-      linkURL,
-      linkText,
-    }: Params): MenuItemConstructorOptions[] => (
-      linkURL
-        ? [
-          {
-            label: t('contextMenu.openLink'),
-            click: () => shell.openExternal(linkURL),
-          },
-          {
-            label: t('contextMenu.copyLinkText'),
-            click: () => clipboard.write({ text: linkText, bookmark: linkText }),
-            enabled: !!linkText,
-          },
-          {
-            label: t('contextMenu.copyLinkAddress'),
-            click: () => clipboard.write({ text: linkURL, bookmark: linkText }),
-          },
-          { type: 'separator' },
-        ]
-        : []
-    );
-
-    const createDefaultMenuTemplate = ({
-      editFlags: {
-        canUndo = false,
-        canRedo = false,
-        canCut = false,
-        canCopy = false,
-        canPaste = false,
-        canSelectAll = false,
-      },
-    }: Params): MenuItemConstructorOptions[] => [
-      {
-        label: t('contextMenu.undo'),
-        role: 'undo',
-        accelerator: 'CommandOrControl+Z',
-        enabled: canUndo,
-      },
-      {
-        label: t('contextMenu.redo'),
-        role: 'redo',
-        accelerator: process.platform === 'win32' ? 'Control+Y' : 'CommandOrControl+Shift+Z',
-        enabled: canRedo,
-      },
-      { type: 'separator' },
-      {
-        label: t('contextMenu.cut'),
-        role: 'cut',
-        accelerator: 'CommandOrControl+X',
-        enabled: canCut,
-      },
-      {
-        label: t('contextMenu.copy'),
-        role: 'copy',
-        accelerator: 'CommandOrControl+C',
-        enabled: canCopy,
-      },
-      {
-        label: t('contextMenu.paste'),
-        role: 'paste',
-        accelerator: 'CommandOrControl+V',
-        enabled: canPaste,
-      },
-      {
-        label: t('contextMenu.selectAll'),
-        role: 'selectAll',
-        accelerator: 'CommandOrControl+A',
-        enabled: canSelectAll,
-      },
-    ];
-
-    const props = {
-      ...params,
-      availableSpellCheckerLanguages: webviewSession.availableSpellCheckerLanguages,
-      spellCheckerLanguages: webviewSession.getSpellCheckerLanguages(),
-    };
-
-    const template = [
-      ...createSpellCheckingMenuTemplate(props),
-      ...createImageMenuTemplate(props),
-      ...createLinkMenuTemplate(props),
-      ...createDefaultMenuTemplate(props),
-    ];
-
-    const menu = Menu.buildFromTemplate(template);
+    const menu = createPopupMenuForServerView(guestWebContents, params);
     menu.popup({ window: rootWindow });
   };
 
@@ -493,9 +308,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   });
 
   listen(CERTIFICATES_CLEARED, () => {
-    Array.from(webContentsByServerUrl.values()).forEach((webContents) => {
-      webContents.reloadIgnoringCache();
-    });
+    for (const serverViewWebContents of webContentsByServerUrl.values()) {
+      serverViewWebContents.reloadIgnoringCache();
+    }
   });
 
   rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);

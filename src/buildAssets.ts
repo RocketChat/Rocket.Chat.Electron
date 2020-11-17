@@ -4,6 +4,7 @@ import util from 'util';
 
 import * as icnsConvert from '@fiahfy/icns-convert';
 import * as icoConvert from '@fiahfy/ico-convert';
+import Jimp from 'jimp';
 import puppeteer from 'puppeteer';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -11,6 +12,7 @@ import rimraf from 'rimraf';
 
 import { Server } from './servers/common';
 import DmgBackground from './ui/assets/DmgBackground';
+import NsisSideBar from './ui/assets/NsisSideBar';
 import AppIcon from './ui/icons/AppIcon';
 import LinuxTrayIcon from './ui/icons/LinuxTrayIcon';
 import MacOSAppIcon from './ui/icons/MacOSAppIcon';
@@ -104,6 +106,14 @@ const createWindowsTrayIcons = async (): Promise<void> => {
   }
 };
 
+const createNsisSideBars = async (): Promise<void> => {
+  const sideBar = renderToStaticMarkup(createElement(NsisSideBar));
+  const [sideBarPng] = await convertSvgToPng(sideBar, [164, 314]);
+  const sidebarBitmap = await (await Jimp.read(sideBarPng)).getBufferAsync(Jimp.MIME_BMP);
+  await writeFile('build/installerSidebar.bmp', sidebarBitmap);
+  await writeFile('build/uninstallerSidebar.bmp', sidebarBitmap);
+};
+
 const createLinuxAppIcons = async (): Promise<void> => {
   const linuxAppIcon = renderToStaticMarkup(createElement(AppIcon));
   const pngs = await convertSvgToPng(linuxAppIcon, 16, 32, 48, 64, 128, 256, 512);
@@ -143,6 +153,7 @@ const run = async (): Promise<void> => {
   await createLinuxTrayIcons();
 
   await createDmgBackgrounds();
+  await createNsisSideBars();
 };
 
 if (require.main === module) {

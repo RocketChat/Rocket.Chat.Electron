@@ -14,7 +14,10 @@ const selectIsRootWindowVisible = ({ rootWindowState: { visible } }: RootState):
   visible;
 
 const createTrayIcon = (): Tray => {
-  const image = getTrayIconPath({ badge: null });
+  const image = getTrayIconPath({
+    platform: process.platform,
+    badge: null,
+  });
 
   const trayIcon = new Tray(image);
 
@@ -52,7 +55,10 @@ const createTrayIcon = (): Tray => {
 };
 
 const updateTrayIconImage = (trayIcon: Tray, badge: Server['badge']): void => {
-  const image = getTrayIconPath({ badge });
+  const image = getTrayIconPath({
+    platform: process.platform,
+    badge,
+  });
   trayIcon.setImage(image);
 };
 
@@ -76,8 +82,12 @@ const updateTrayIconToolTip = (trayIcon:Tray, globalBadge: Server['badge']): voi
 };
 
 const warnStillRunning = (trayIcon: Tray): void => {
+  if (process.platform !== 'win32') {
+    return;
+  }
+
   trayIcon.displayBalloon({
-    icon: getAppIconPath(),
+    icon: getAppIconPath({ platform: process.platform }),
     title: t('tray.balloon.stillRunning.title', { appName: app.name }),
     content: t('tray.balloon.stillRunning.content', { appName: app.name }),
   });

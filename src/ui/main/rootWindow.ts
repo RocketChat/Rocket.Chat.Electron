@@ -259,7 +259,10 @@ export const setupRootWindow = (): void => {
         const browserWindow = await getRootWindow();
 
         if (!rootWindowIcon) {
-          browserWindow.setIcon(getTrayIconPath({ badge: globalBadge }));
+          browserWindow.setIcon(getTrayIconPath({
+            platform: process.platform,
+            badge: globalBadge,
+          }));
           return;
         }
 

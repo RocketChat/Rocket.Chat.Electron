@@ -1,7 +1,7 @@
 import { getAppIconPath, getTrayIconPath } from './icons';
 
 it('app', () => {
-  expect(getAppIconPath()).toMatch(/images\/icon\.png$/);
+  expect(getAppIconPath({ platform: 'win32' })).toMatch(/images\/icon\.ico$/);
 });
 
 describe('getTrayIconPath', () => {
@@ -23,7 +23,7 @@ describe('getTrayIconPath', () => {
   it.each([
     ['linux'],
     ['win32'],
-  ])('find icon path', (platform) => {
+  ] as const)('find icon path', (platform) => {
     expect(getTrayIconPath({ platform })).toMatch(new RegExp(`images/tray/${ platform }/default.(png|ico)$`));
     expect(getTrayIconPath({ badge: '•', platform })).toMatch(new RegExp(`images/tray/${ platform }/(notification|notification-dot).(png|ico)$`));
     expect(getTrayIconPath({ badge: 1, platform })).toMatch(new RegExp(`images/tray/${ platform }/(notification|notification-1).(png|ico)$`));

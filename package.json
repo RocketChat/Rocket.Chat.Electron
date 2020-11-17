@@ -28,7 +28,7 @@
     "build:watch": "rollup -c -w",
     "install-app-deps": "electron-builder install-app-deps",
     "test": "xvfb-maybe jest",
-    "assets:icons": "ts-node -O '{\"module\":\"commonjs\"}' src/buildAssets.ts",
+    "build-assets": "ts-node -O '{\"module\":\"commonjs\"}' src/buildAssets.ts",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "eslint": "eslint src"
   },

@@ -7,6 +7,7 @@ import * as icoConvert from '@fiahfy/ico-convert';
 import puppeteer from 'puppeteer';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import rimraf from 'rimraf';
 
 import { Server } from './servers/common';
 import AppIcon from './ui/icons/AppIcon';
@@ -117,12 +118,13 @@ const createLinuxTrayIcons = async (): Promise<void> => {
 
 const run = async (): Promise<void> => {
   await createMacOSAppIcon();
-  await createMacOSTrayIcons();
-
   await createWindowsAppIcons();
-  await createWindowsTrayIcons();
-
   await createLinuxAppIcons();
+
+  await util.promisify(rimraf)('src/public/images/tray');
+
+  await createMacOSTrayIcons();
+  await createWindowsTrayIcons();
   await createLinuxTrayIcons();
 };
 

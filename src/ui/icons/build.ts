@@ -9,6 +9,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import { Server } from '../../servers/common';
 import AppIcon from './AppIcon';
+import LinuxTrayIcon from './LinuxTrayIcon';
 import MacOSAppIcon from './MacOSAppIcon';
 import MacOSTrayIcon from './MacOSTrayIcon';
 import WindowsTrayIcon from './WindowsTrayIcon';
@@ -78,14 +79,14 @@ const createWindowsTrayIcons = async (): Promise<void> => {
   const defaultIcon = renderToStaticMarkup(createElement(WindowsTrayIcon));
   const defaultIconPngs = await convertSvgToPng(defaultIcon, 16, 24, 32, 48, 64, 128, 256);
   const defaultIconIco = await icoConvert.convert(defaultIconPngs);
-  writeTrayIcon('win32/default.ico', defaultIconIco);
+  await writeTrayIcon('win32/default.ico', defaultIconIco);
 
   for await (const badge of ['•', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Server['badge'][]) {
     const notificationIcon = renderToStaticMarkup(createElement(WindowsTrayIcon, { badge }));
     const notificationIconPngs = await convertSvgToPng(notificationIcon, 16, 24, 32, 48, 64, 128, 256);
     const notificationIconIco = await icoConvert.convert(notificationIconPngs);
     const name = (badge === '•' && 'dot') || (badge > 9 && 'plus-9') || String(badge);
-    writeTrayIcon(`win32/notification-${ name }.ico`, notificationIconIco);
+    await writeTrayIcon(`win32/notification-${ name }.ico`, notificationIconIco);
   }
 };
 
@@ -101,6 +102,21 @@ const createLinuxAppIcons = async (): Promise<void> => {
   await writeBuildFile('icons/512x512.png', pngs[6]);
 };
 
+const createLinuxTrayIcons = async (): Promise<void> => {
+  const defaultIcon = renderToStaticMarkup(createElement(LinuxTrayIcon));
+  const defaultIconPngs = await convertSvgToPng(defaultIcon, 64, 128);
+  await writeTrayIcon('linux/default.png', defaultIconPngs[0]);
+  await writeTrayIcon('linux/default@2x.png', defaultIconPngs[1]);
+
+  for await (const badge of ['•', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Server['badge'][]) {
+    const notificationIcon = renderToStaticMarkup(createElement(LinuxTrayIcon, { badge }));
+    const notificationIconPngs = await convertSvgToPng(notificationIcon, 64, 128);
+    const name = (badge === '•' && 'dot') || (badge > 9 && 'plus-9') || String(badge);
+    await writeTrayIcon(`linux/notification-${ name }.png`, notificationIconPngs[0]);
+    await writeTrayIcon(`linux/notification-${ name }@2x.png`, notificationIconPngs[1]);
+  }
+};
+
 const run = async (): Promise<void> => {
   await createMacOSAppIcon();
   await createMacOSTrayIcons();
@@ -109,6 +125,7 @@ const run = async (): Promise<void> => {
   await createWindowsTrayIcons();
 
   await createLinuxAppIcons();
+  await createLinuxTrayIcons();
 };
 
 if (require.main === module) {

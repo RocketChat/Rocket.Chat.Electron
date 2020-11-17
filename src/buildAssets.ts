@@ -10,13 +10,14 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import rimraf from 'rimraf';
 
 import { Server } from './servers/common';
+import DmgBackground from './ui/assets/DmgBackground';
 import AppIcon from './ui/icons/AppIcon';
 import LinuxTrayIcon from './ui/icons/LinuxTrayIcon';
 import MacOSAppIcon from './ui/icons/MacOSAppIcon';
 import MacOSTrayIcon from './ui/icons/MacOSTrayIcon';
 import WindowsTrayIcon from './ui/icons/WindowsTrayIcon';
 
-const convertSvgToPng = async (svg: string, ...sizes: number[]): Promise<Buffer[]> => {
+const convertSvgToPng = async (svg: string, ...sizes: (number|[number, number])[]): Promise<Buffer[]> => {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
   await page.goto(`data:image/svg+xml;base64,${ Buffer.from(svg).toString('base64') }`);
@@ -25,8 +26,15 @@ const convertSvgToPng = async (svg: string, ...sizes: number[]): Promise<Buffer[
 
   for await (const size of sizes) {
     await page.setViewport({
-      width: size,
-      height: size,
+      ...typeof size === 'number'
+        ? {
+          width: size,
+          height: size,
+        }
+        : {
+          width: size[0],
+          height: size[1],
+        },
       deviceScaleFactor: 1,
     });
     const buffer = await page.screenshot({ type: 'png', omitBackground: true });
@@ -62,6 +70,13 @@ const createMacOSTrayIcons = async (): Promise<void> => {
   const notificationIconPngs = await convertSvgToPng(notificationIcon, 24, 48);
   await writeFile('src/public/images/tray/darwin/notificationTemplate.png', notificationIconPngs[0]);
   await writeFile('src/public/images/tray/darwin/notificationTemplate@2x.png', notificationIconPngs[1]);
+};
+
+const createDmgBackgrounds = async (): Promise<void> => {
+  const background = renderToStaticMarkup(createElement(DmgBackground));
+  const backgroundPngs = await convertSvgToPng(background, [600, 422], [2 * 600, 2 * 422]);
+  await writeFile('build/background.png', backgroundPngs[0]);
+  await writeFile('build/background@2x.png', backgroundPngs[1]);
 };
 
 const createWindowsAppIcons = async (): Promise<void> => {
@@ -126,6 +141,8 @@ const run = async (): Promise<void> => {
   await createMacOSTrayIcons();
   await createWindowsTrayIcons();
   await createLinuxTrayIcons();
+
+  await createDmgBackgrounds();
 };
 
 if (require.main === module) {

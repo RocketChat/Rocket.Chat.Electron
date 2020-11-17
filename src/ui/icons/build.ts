@@ -7,22 +7,13 @@ import puppeteer from 'puppeteer';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
+import { Server } from '../../servers/common';
 import AppIcon from './AppIcon';
 import MacOSAppIcon from './MacOSAppIcon';
 import MacOSTrayIcon from './MacOSTrayIcon';
+import WindowsTrayIcon from './WindowsTrayIcon';
 
-const convertSvgToPng = async (svg: string, { width, height }: { width: number; height: number }): Promise<Buffer> => {
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
-  await page.setViewport({ width, height, deviceScaleFactor: 1 });
-  await page.goto(`data:image/svg+xml;base64,${ Buffer.from(svg).toString('base64') }`);
-  const buffer = await page.screenshot({ type: 'png', omitBackground: true });
-  await page.close();
-  await browser.close();
-  return buffer;
-};
-
-const convertSvgToManyPng = async (svg: string, ...sizes: number[]): Promise<Buffer[]> => {
+const convertSvgToPng = async (svg: string, ...sizes: number[]): Promise<Buffer[]> => {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
   await page.goto(`data:image/svg+xml;base64,${ Buffer.from(svg).toString('base64') }`);
@@ -57,63 +48,57 @@ const writeTrayIcon = (name: string, data: Buffer): Promise<void> => {
 
 const createMacOSAppIcon = async (): Promise<void> => {
   const macOSAppIcon = renderToStaticMarkup(createElement(MacOSAppIcon));
-  const pngs = await convertSvgToManyPng(macOSAppIcon, 1024, 512, 256, 64, 32, 16);
+  const pngs = await convertSvgToPng(macOSAppIcon, 1024, 512, 256, 64, 32, 16);
   const icns = await icnsConvert.convert(pngs);
   await writeBuildFile('icon.icns', icns);
 };
 
 const createMacOSTrayIcons = async (): Promise<void> => {
   const defaultIcon = renderToStaticMarkup(createElement(MacOSTrayIcon));
+  const defaultIconPngs = await convertSvgToPng(defaultIcon, 24, 48);
+  await writeTrayIcon('darwin/defaultTemplate.png', defaultIconPngs[0]);
+  await writeTrayIcon('darwin/defaultTemplate@2x.png', defaultIconPngs[1]);
+
   const notificationIcon = renderToStaticMarkup(createElement(MacOSTrayIcon, { notification: true }));
-
-  const create = async (icon: string, name: string): Promise<void> => {
-    const png24 = await convertSvgToPng(icon, { width: 24, height: 24 });
-    const png48 = await convertSvgToPng(icon, { width: 48, height: 48 });
-
-    await writeTrayIcon(`darwin/${ name }Template.png`, png24);
-    await writeTrayIcon(`darwin/${ name }Template@2x.png`, png48);
-  };
-
-  await create(defaultIcon, 'default');
-  await create(notificationIcon, 'notification');
+  const notificationIconPngs = await convertSvgToPng(notificationIcon, 24, 48);
+  await writeTrayIcon('darwin/notificationTemplate.png', notificationIconPngs[0]);
+  await writeTrayIcon('darwin/notificationTemplate@2x.png', notificationIconPngs[1]);
 };
 
 const createWindowsAppIcons = async (): Promise<void> => {
   const windowsAppIcon = renderToStaticMarkup(createElement(AppIcon));
-
-  const png16 = await convertSvgToPng(windowsAppIcon, { width: 16, height: 16 });
-  const png24 = await convertSvgToPng(windowsAppIcon, { width: 24, height: 24 });
-  const png32 = await convertSvgToPng(windowsAppIcon, { width: 32, height: 32 });
-  const png48 = await convertSvgToPng(windowsAppIcon, { width: 48, height: 48 });
-  const png64 = await convertSvgToPng(windowsAppIcon, { width: 64, height: 64 });
-  const png128 = await convertSvgToPng(windowsAppIcon, { width: 128, height: 128 });
-  const png256 = await convertSvgToPng(windowsAppIcon, { width: 256, height: 256 });
-
-  const ico = await icoConvert.convert([png16, png24, png32, png48, png64, png128, png256]);
-
+  const pngs = await convertSvgToPng(windowsAppIcon, 16, 24, 32, 48, 64, 128, 256);
+  const ico = await icoConvert.convert(pngs);
   await writeBuildFile('installerIcon.ico', ico);
   await writeBuildFile('uninstallerIcon.ico', ico);
   await writeBuildFile('icon.ico', ico);
 };
 
+const createWindowsTrayIcons = async (): Promise<void> => {
+  const defaultIcon = renderToStaticMarkup(createElement(WindowsTrayIcon));
+  const defaultIconPngs = await convertSvgToPng(defaultIcon, 16, 24, 32, 48, 64, 128, 256);
+  const defaultIconIco = await icoConvert.convert(defaultIconPngs);
+  writeTrayIcon('win32/default.ico', defaultIconIco);
+
+  for await (const badge of ['•', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Server['badge'][]) {
+    const notificationIcon = renderToStaticMarkup(createElement(WindowsTrayIcon, { badge }));
+    const notificationIconPngs = await convertSvgToPng(notificationIcon, 16, 24, 32, 48, 64, 128, 256);
+    const notificationIconIco = await icoConvert.convert(notificationIconPngs);
+    const name = (badge === '•' && 'dot') || (badge > 9 && 'plus-9') || String(badge);
+    writeTrayIcon(`win32/notification-${ name }.ico`, notificationIconIco);
+  }
+};
+
 const createLinuxAppIcons = async (): Promise<void> => {
   const linuxAppIcon = renderToStaticMarkup(createElement(AppIcon));
-
-  const png16 = await convertSvgToPng(linuxAppIcon, { width: 16, height: 16 });
-  const png32 = await convertSvgToPng(linuxAppIcon, { width: 32, height: 32 });
-  const png48 = await convertSvgToPng(linuxAppIcon, { width: 48, height: 48 });
-  const png64 = await convertSvgToPng(linuxAppIcon, { width: 64, height: 64 });
-  const png128 = await convertSvgToPng(linuxAppIcon, { width: 128, height: 128 });
-  const png256 = await convertSvgToPng(linuxAppIcon, { width: 256, height: 256 });
-  const png512 = await convertSvgToPng(linuxAppIcon, { width: 512, height: 512 });
-
-  await writeBuildFile('icons/16x16.png', png16);
-  await writeBuildFile('icons/32x32.png', png32);
-  await writeBuildFile('icons/48x48.png', png48);
-  await writeBuildFile('icons/64x64.png', png64);
-  await writeBuildFile('icons/128x128.png', png128);
-  await writeBuildFile('icons/256x256.png', png256);
-  await writeBuildFile('icons/512x512.png', png512);
+  const pngs = await convertSvgToPng(linuxAppIcon, 16, 32, 48, 64, 128, 256, 512);
+  await writeBuildFile('icons/16x16.png', pngs[0]);
+  await writeBuildFile('icons/32x32.png', pngs[1]);
+  await writeBuildFile('icons/48x48.png', pngs[2]);
+  await writeBuildFile('icons/64x64.png', pngs[3]);
+  await writeBuildFile('icons/128x128.png', pngs[4]);
+  await writeBuildFile('icons/256x256.png', pngs[5]);
+  await writeBuildFile('icons/512x512.png', pngs[6]);
 };
 
 const run = async (): Promise<void> => {
@@ -121,6 +106,8 @@ const run = async (): Promise<void> => {
   await createMacOSTrayIcons();
 
   await createWindowsAppIcons();
+  await createWindowsTrayIcons();
+
   await createLinuxAppIcons();
 };
 

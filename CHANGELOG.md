@@ -1,3 +1,12 @@
+## [3.0.7](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.6...3.0.7) (2020-11-09)
+
+
+### Bug Fixes
+
+* **build:** Force 32 and 64-bit builds for Windows ([e808e7a](https://github.com/RocketChat/Rocket.Chat.Electron/commit/e808e7a991490e5079bc3b2be6b9012b1af0988f))
+
+
+
 ## [3.0.6](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.5...3.0.6) (2020-11-03)
 
 

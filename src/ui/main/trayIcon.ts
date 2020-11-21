@@ -1,4 +1,4 @@
-import { app, nativeTheme, Menu, Tray } from 'electron';
+import { app, Menu, Tray } from 'electron';
 import i18next from 'i18next';
 
 import { Server } from '../../servers/common';
@@ -14,7 +14,10 @@ const selectIsRootWindowVisible = ({ rootWindowState: { visible } }: RootState):
   visible;
 
 const createTrayIcon = (): Tray => {
-  const image = getTrayIconPath({ badge: null, dark: nativeTheme.shouldUseDarkColors });
+  const image = getTrayIconPath({
+    platform: process.platform,
+    badge: null,
+  });
 
   const trayIcon = new Tray(image);
 
@@ -51,8 +54,11 @@ const createTrayIcon = (): Tray => {
   return trayIcon;
 };
 
-const updateTrayIconImage = (trayIcon: Tray, badge: Server['badge'], dark:boolean): void => {
-  const image = getTrayIconPath({ badge, dark });
+const updateTrayIconImage = (trayIcon: Tray, badge: Server['badge']): void => {
+  const image = getTrayIconPath({
+    platform: process.platform,
+    badge,
+  });
   trayIcon.setImage(image);
 };
 
@@ -76,8 +82,12 @@ const updateTrayIconToolTip = (trayIcon:Tray, globalBadge: Server['badge']): voi
 };
 
 const warnStillRunning = (trayIcon: Tray): void => {
+  if (process.platform !== 'win32') {
+    return;
+  }
+
   trayIcon.displayBalloon({
-    icon: getAppIconPath(),
+    icon: getAppIconPath({ platform: process.platform }),
     title: t('tray.balloon.stillRunning.title', { appName: app.name }),
     content: t('tray.balloon.stillRunning.content', { appName: app.name }),
   });
@@ -87,7 +97,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
   const trayIcon = createTrayIcon();
 
   const unwatchGlobalBadge = watch(selectGlobalBadge, (globalBadge) => {
-    updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
+    updateTrayIconImage(trayIcon, globalBadge);
     updateTrayIconTitle(trayIcon, globalBadge);
     updateTrayIconToolTip(trayIcon, globalBadge);
   });
@@ -127,19 +137,9 @@ const manageTrayIcon = async (): Promise<() => void> => {
     }
   });
 
-  const handleNativeThemeUpdatedEvent = (): void => {
-    const globalBadge = select(selectGlobalBadge);
-    updateTrayIconImage(trayIcon, globalBadge, nativeTheme.shouldUseDarkColors);
-    updateTrayIconTitle(trayIcon, globalBadge);
-    updateTrayIconToolTip(trayIcon, globalBadge);
-  };
-
-  nativeTheme.addListener('updated', handleNativeThemeUpdatedEvent);
-
   return () => {
     unwatchGlobalBadge();
     unwatchIsRootWindowVisible();
-    nativeTheme.removeListener('updated', handleNativeThemeUpdatedEvent);
     trayIcon.destroy();
   };
 };

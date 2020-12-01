@@ -162,7 +162,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       setupPreloadReload(webContents);
     }
 
-    webContents.addListener('new-window', (event, url, _frameName, disposition, options, _additionalFeatures, referrer, postBody) => {
+    webContents.addListener('new-window', (event, url, frameName, disposition, options, _additionalFeatures, referrer, postBody) => {
       event.preventDefault();
 
       if (disposition === 'foreground-tab' || disposition === 'background-tab') {
@@ -191,7 +191,14 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
+        const isGoogleSignIn = frameName === 'Login'
+          && disposition === 'new-window'
+          && new URL(url).hostname.match(/accounts.google.com$/);
+
         newWindow.loadURL(url, {
+          userAgent: isGoogleSignIn
+            ? app.userAgentFallback.replace(`Electron/${ process.versions.electron } `, '')
+            : app.userAgentFallback,
           httpReferrer: referrer,
           ...postBody && {
             extraHeaders: `Content-Type: ${ postBody.contentType }; boundary=${ postBody.boundary }`,

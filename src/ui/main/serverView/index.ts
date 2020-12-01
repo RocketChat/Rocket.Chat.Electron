@@ -193,7 +193,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
         const isGoogleSignIn = frameName === 'Login'
           && disposition === 'new-window'
-          && new URL(url).hostname.match(/accounts.google.com$/);
+          && new URL(url).hostname.match(/(\.)?google\.com$/);
 
         newWindow.loadURL(url, {
           userAgent: isGoogleSignIn

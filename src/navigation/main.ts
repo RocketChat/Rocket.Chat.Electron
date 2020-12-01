@@ -40,8 +40,7 @@ const serializeCertificate = (certificate: Certificate): string =>
 const queuedTrustRequests = new Map<Certificate['fingerprint'], Array<(isTrusted: boolean) => void>>();
 
 export const setupNavigation = async (): Promise<void> => {
-  app.userAgentFallback = app.userAgentFallback.replace(`Electron/${ process.versions.electron }`, 'Electron');
-  app.userAgentFallback = app.userAgentFallback.replace(`Chrome/${ process.versions.chrome }`, 'Chrome');
+  app.userAgentFallback = app.userAgentFallback.replace(`${ app.name }/${ app.getVersion() } `, '');
 
   app.addListener('certificate-error', async (event, _webContents, requestedUrl, error, certificate, callback) => {
     event.preventDefault();

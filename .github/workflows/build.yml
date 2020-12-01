@@ -154,7 +154,17 @@ jobs:
         with:
           name: app
           path: ./app
-      - run: yarn electron-builder
+      - run: yarn electron-builder --ia32 --x64 --win nsis
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      - run: yarn electron-builder --ia32 --win msi
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      - run: yarn electron-builder --x64 --win msi
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}

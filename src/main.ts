@@ -23,9 +23,9 @@ import {
   showRootWindow,
   exportLocalStorage,
 } from './ui/main/rootWindow';
+import { attachGuestWebContentsEvents } from './ui/main/serverView';
 import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
-import { attachGuestWebContentsEvents } from './ui/main/webviews';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
 

@@ -9,6 +9,7 @@ module.exports = {
         '<rootDir>/src/*/!(main)/**/*.(spec|test).{js,ts,tsx}',
         '<rootDir>/src/**/renderer.(spec|test).{js,ts,tsx}',
       ],
+      setupFilesAfterEnv: ['./jest.setup.ts'],
       globals: {
         'ts-jest': {
           tsconfig: {
@@ -27,6 +28,7 @@ module.exports = {
         '<rootDir>/src/*/main/**/*.(spec|test).{js,ts,tsx}',
         '<rootDir>/src/**/main.(spec|test).{js,ts,tsx}',
       ],
+      setupFilesAfterEnv: ['./jest.setup.ts'],
       globals: {
         'ts-jest': {
           tsconfig: {

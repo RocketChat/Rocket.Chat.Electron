@@ -6,6 +6,7 @@
     "selectAll": "Öss&zes kijelölése",
     "undo": "&Visszavonás",
     "redo": "&Ismétlés",
+    "spelling": "Helyesírás",
     "spellingLanguages": "Helyesírás-ellenőrzés nyelvei",
     "moreSpellingSuggestions": "Több helyesírási javaslat",
     "noSpellingSuggestions": "Nincsenek javaslatok",
@@ -85,6 +86,14 @@
       "announcement": "Tanúsítvány kiválasztása",
       "select": "Kiválasztás",
       "validDates": "Érvényes {{-validStart,}} és {{-validExpiry,}} között"
+    },
+    "openingExternalProtocol": {
+      "title": "Hivatkozás egyéni protokollal",
+      "message": "A(z) {{- protocol }} hivatkozás külső alkalmazást igényel.",
+      "detail": "A kért hivatkozás: {{- url }} . Szeretné folytatni?",
+      "dontAskAgain": "Mindig a hozzárendelt alkalmazásban nyissa meg az ilyen típusú hivatkozásokat",
+      "yes": "Igen",
+      "no": "Nem"
     }
   },
   "error": {
@@ -108,6 +117,7 @@
     "close": "Bezárás",
     "copy": "&Másolás",
     "cut": "&Kivágás",
+    "disableGpu": "GPU letiltása",
     "documentation": "Dokumentáció",
     "editMenu": "S&zerkesztés",
     "fileMenu": "&Fájl",

@@ -1,4 +1,4 @@
-import { app, session } from 'electron';
+import { app, session, webContents } from 'electron';
 
 import { listen } from '../store';
 import {
@@ -13,7 +13,9 @@ const setSpellCheckerLanguages = async (languages: Set<string>): Promise<void> =
     .filter((language) => session.defaultSession.availableSpellCheckerLanguages.includes(language));
 
   session.defaultSession.setSpellCheckerLanguages(filteredLanguages);
-  session.fromPartition('persist:rocketchat-server').setSpellCheckerLanguages(filteredLanguages);
+  webContents.getAllWebContents().forEach((webContents) => {
+    webContents.session.setSpellCheckerLanguages(filteredLanguages);
+  });
 };
 
 export const setupSpellChecking = async (): Promise<void> => {

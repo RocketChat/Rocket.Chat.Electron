@@ -259,7 +259,10 @@ export const setupRootWindow = (): void => {
         const browserWindow = await getRootWindow();
 
         if (!rootWindowIcon) {
-          browserWindow.setIcon(getTrayIconPath({ badge: globalBadge }));
+          browserWindow.setIcon(getTrayIconPath({
+            platform: process.platform,
+            badge: globalBadge,
+          }));
           return;
         }
 
@@ -345,7 +348,7 @@ export const exportLocalStorage = async (): Promise<Record<string, string>> => {
 
     tempWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       tempWindow.addListener('ready-to-show', () => {
         resolve();
       });

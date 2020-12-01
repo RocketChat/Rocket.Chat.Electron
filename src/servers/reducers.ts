@@ -15,7 +15,6 @@ import {
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_ATTACHED,
-  WEBVIEW_DETACHED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import { Server } from './common';
@@ -43,7 +42,6 @@ type ServersActionTypes = (
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
   | ActionOf<typeof WEBVIEW_ATTACHED>
-  | ActionOf<typeof WEBVIEW_DETACHED>
 );
 
 const upsert = (state: Server[], server: Server): Server[] => {
@@ -146,11 +144,6 @@ export const servers: Reducer<Server[], ServersActionTypes> = (state = [], actio
     case WEBVIEW_ATTACHED: {
       const { url, webContentsId } = action.payload;
       return update(state, { url, webContentsId });
-    }
-
-    case WEBVIEW_DETACHED: {
-      const { url } = action.payload;
-      return update(state, { url, webContentsId: undefined });
     }
 
     default:

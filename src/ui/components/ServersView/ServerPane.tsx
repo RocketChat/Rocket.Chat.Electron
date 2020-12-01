@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { Dispatch } from 'redux';
 
 import { RootAction } from '../../../store/actions';
-import { LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, WEBVIEW_ATTACHED, WEBVIEW_DETACHED } from '../../actions';
+import { LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, WEBVIEW_ATTACHED } from '../../actions';
 import ErrorView from './ErrorView';
 import { StyledWebView, Wrapper } from './styles';
 
@@ -43,10 +43,8 @@ export const ServerPane: FC<ServerPaneProps> = ({
 
   useEffect(() => {
     const webview = webviewRef.current;
-    let attached = false;
 
     const handleDidAttach = (): void => {
-      attached = true;
       dispatch({
         type: WEBVIEW_ATTACHED,
         payload: {
@@ -60,18 +58,6 @@ export const ServerPane: FC<ServerPaneProps> = ({
 
     return () => {
       webview.removeEventListener('did-attach', handleDidAttach);
-
-      if (!attached) {
-        return;
-      }
-
-      dispatch({
-        type: WEBVIEW_DETACHED,
-        payload: {
-          url: serverUrl,
-          webContentsId: webview.getWebContentsId(),
-        },
-      });
     };
   }, [dispatch, serverUrl]);
 
@@ -89,7 +75,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
   };
 
   return <Wrapper isVisible={isSelected}>
-    <StyledWebView ref={webviewRef} isFailed={isFailed} partition='persist:rocketchat-server' />
+    <StyledWebView ref={webviewRef} isFailed={isFailed} partition={`persist:${ serverUrl }`} />
     <ErrorView isFailed={isFailed} onReload={handleReload} />
   </Wrapper>;
 };

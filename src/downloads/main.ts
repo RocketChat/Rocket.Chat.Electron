@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { clipboard, DownloadItem, Event, session, shell, WebContents, webContents } from 'electron';
+import { clipboard, DownloadItem, Event, shell, WebContents, webContents } from 'electron';
 
 import { handle } from '../ipc/main';
 import { dispatch, select } from '../store';
@@ -13,7 +13,7 @@ import { Download, DownloadStatus } from './common';
 
 const items = new Map<Download['itemId'], DownloadItem>();
 
-const handleWillDownloadEvent = async (_event: Event, item: DownloadItem, serverWebContents: WebContents): Promise<void> => {
+export const handleWillDownloadEvent = async (_event: Event, item: DownloadItem, serverWebContents: WebContents): Promise<void> => {
   const itemId = Date.now();
 
   items.set(itemId, item);
@@ -100,8 +100,6 @@ const handleWillDownloadEvent = async (_event: Event, item: DownloadItem, server
 };
 
 export const setupDownloads = (): void => {
-  session.fromPartition('persist:rocketchat-server').on('will-download', handleWillDownloadEvent);
-
   handle('downloads/show-in-folder', async (_webContents, itemId) => {
     const download = select(({ downloads }) => downloads[itemId]);
 

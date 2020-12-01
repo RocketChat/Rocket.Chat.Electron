@@ -1,55 +1,51 @@
-import { app, nativeTheme } from 'electron';
+import path from 'path';
+
+import { app } from 'electron';
 
 import { Server } from '../../servers/common';
 
-type Platform = 'win32' | 'darwin'| 'linux';
-
-const getTrayIconSet = ({ platform, dark }: { platform: Platform, dark: boolean }): string => {
-  if (platform === 'darwin') {
-    return `darwin${ dark ? '-dark' : '' }`;
+export const getAppIconPath = ({ platform }: { platform: NodeJS.Platform }): string => {
+  if (platform !== 'win32') {
+    throw Error('only win32 platform is supported');
   }
 
-  return platform;
+  return `${ app.getAppPath() }/app/images/icon.ico`;
 };
 
-const getTrayIconName = ({ badge, platform }: { badge: Server['badge'], platform: NodeJS.Platform }): string => {
-  if (platform === 'darwin') {
-    return badge ? 'notification' : 'default';
-  }
+const getMacOSTrayIconPath = (badge: Server['badge']): string =>
+  path.join(app.getAppPath(), `app/images/tray/darwin/${ badge ? 'notification' : 'default' }Template.png`);
 
-  if (badge === '•') {
-    return 'notification-dot';
-  }
-
-  if (Number.isInteger(badge)) {
-    return badge > 9 ? 'notification-plus-9' : `notification-${ String(badge) }`;
-  }
-
-  return 'default';
+const getWindowsTrayIconPath = (badge: Server['badge']): string => {
+  const name = (!badge && 'default')
+    || (badge === '•' && 'notification-dot')
+    || (badge > 9 && 'notification-plus-9')
+    || `notification-${ badge }`;
+  return path.join(app.getAppPath(), `app/images/tray/win32/${ name }.ico`);
 };
 
-const getTrayIconExtension = ({ platform }: { platform: NodeJS.Platform }): string => {
-  if (platform === 'win32') {
-    return 'ico';
-  }
-
-  return 'png';
+const getLinuxTrayIconPath = (badge: Server['badge']): string => {
+  const name = (!badge && 'default')
+    || (badge === '•' && 'notification-dot')
+    || (badge > 9 && 'notification-plus-9')
+    || `notification-${ badge }`;
+  return path.join(app.getAppPath(), `app/images/tray/linux/${ name }.png`);
 };
 
-export const getAppIconPath = (): string => `${ app.getAppPath() }/app/images/icon.png`;
+export const getTrayIconPath = ({ badge, platform }: {
+  badge?: Server['badge'];
+  platform: NodeJS.Platform;
+}): string => {
+  switch (platform ?? process.platform) {
+    case 'darwin':
+      return getMacOSTrayIconPath(badge);
 
-export const getTrayIconPath = ({ badge = undefined, platform = undefined, dark = undefined } = {}): string => {
-  if (typeof platform === 'undefined') {
-    platform = process.platform;
+    case 'win32':
+      return getWindowsTrayIconPath(badge);
+
+    case 'linux':
+      return getLinuxTrayIconPath(badge);
+
+    default:
+      throw Error(`unsupported platform (${ platform })`);
   }
-
-  if (platform === 'darwin' && typeof dark === 'undefined') {
-    dark = nativeTheme.shouldUseDarkColors;
-  }
-
-  const params = { badge, platform, dark };
-  const iconset = getTrayIconSet(params);
-  const name = getTrayIconName(params);
-  const extension = getTrayIconExtension(params);
-  return `${ app.getAppPath() }/app/images/tray/${ iconset }/${ name }.${ extension }`;
 };

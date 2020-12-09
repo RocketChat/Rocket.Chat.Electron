@@ -7,6 +7,7 @@ import {
 } from './app/main/data';
 import { setUserDataDirectory } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
+import { setupDownloads } from './downloads/main';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { setupNavigation } from './navigation/main';
@@ -64,6 +65,7 @@ const start = async (): Promise<void> => {
   await setupNavigation();
   setupPowerMonitor();
   await setupUpdates();
+  setupDownloads();
 
   dock.setUp();
   menuBar.setUp();

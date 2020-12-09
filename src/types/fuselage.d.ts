@@ -1,12 +1,17 @@
 declare module '@rocket.chat/fuselage' {
   import { css } from '@rocket.chat/css-in-js';
   import {
-    CSSProperties,
     AllHTMLAttributes,
+    Context,
+    CSSProperties,
+    Dispatch,
     ElementType,
     ForwardRefExoticComponent,
     PropsWithChildren,
+    ReactNode,
     RefAttributes,
+    SetStateAction,
+    SVGAttributes,
   } from 'react';
 
   type CssClassName = ReturnType<typeof css>;
@@ -141,50 +146,53 @@ declare module '@rocket.chat/fuselage' {
     minSize?: CSSProperties['blockSize'];
     maxSize?: CSSProperties['blockSize'];
     fontScale?: FontScale;
-  }> & AllHTMLAttributes<HTMLOrSVGElement> & RefAttributes<unknown>;
+  }>
+  & Omit<AllHTMLAttributes<HTMLOrSVGElement>, 'className'>
+  & Omit<SVGAttributes<SVGElement>, keyof AllHTMLAttributes<HTMLOrSVGElement>>
+  & RefAttributes<unknown>;
 
   export const Box: ForwardRefExoticComponent<BoxProps>;
 
-  type TileProps = BoxProps;
-  export const Tile: ForwardRefExoticComponent<TileProps>;
+  type AccordionProps = BoxProps;
+  type AccordionItemProps = Omit<BoxProps, 'title'> & {
+    defaultExpanded?: boolean;
+    title?: string;
+  };
+  export const Accordion: ForwardRefExoticComponent<AccordionProps> & {
+    Item: ForwardRefExoticComponent<AccordionItemProps>;
+  };
+
+  type AvatarProps = BoxProps;
+  export const Avatar: ForwardRefExoticComponent<AvatarProps> & {
+    Context: Context<{
+      baseUrl: string;
+    }>;
+  };
 
   type ButtonProps = BoxProps & {
     primary?: boolean;
+    ghost?: boolean;
+    danger?: boolean;
+    small?: boolean;
+    square?: boolean;
   };
   export const Button: ForwardRefExoticComponent<ButtonProps>;
 
-  type FieldProps = BoxProps;
-  export const Field: ForwardRefExoticComponent<FieldProps> & {
-    Row: ForwardRefExoticComponent<BoxProps>;
-    Label: ForwardRefExoticComponent<BoxProps>;
-    Hint: ForwardRefExoticComponent<BoxProps>;
-    Error: ForwardRefExoticComponent<BoxProps>;
-  };
-
-  type ThrobberProps = Omit<BoxProps, 'size'> & {
-    size?: BoxProps['width'];
-    inheritColor?: boolean;
-  };
-  export const Throbber: ForwardRefExoticComponent<ThrobberProps>;
-
-  type ToggleSwitchProps = BoxProps;
-  export const ToggleSwitch: ForwardRefExoticComponent<ToggleSwitchProps>;
-
   type ButtonGroupProps = BoxProps & {
     align?: 'start' | 'center' | 'end';
+    stretch?: boolean;
+    wrap?: boolean;
+    vertical?: boolean;
   };
   export const ButtonGroup: ForwardRefExoticComponent<ButtonGroupProps>;
 
   type CalloutProps = BoxProps;
   export const Callout: ForwardRefExoticComponent<CalloutProps>;
 
-  type FieldGroupProps = BoxProps;
-  export const FieldGroup: ForwardRefExoticComponent<FieldGroupProps>;
-
-  type TextInputProps = BoxProps & {
-    error?: string;
+  type CheckBoxProps = BoxProps & {
+    indeterminate?: boolean;
   };
-  export const TextInput: ForwardRefExoticComponent<TextInputProps>;
+  export const CheckBox: ForwardRefExoticComponent<CheckBoxProps>;
 
   type ChevronProps = Omit<BoxProps, 'size'> & {
     size?: BoxProps['width'];
@@ -194,6 +202,137 @@ declare module '@rocket.chat/fuselage' {
     bottom?: boolean;
   };
   export const Chevron: ForwardRefExoticComponent<ChevronProps>;
+
+  type ChipProps = BoxProps;
+  export const Chip: ForwardRefExoticComponent<ChipProps>;
+
+  type FieldProps = BoxProps;
+  export const Field: ForwardRefExoticComponent<FieldProps> & {
+    Row: ForwardRefExoticComponent<BoxProps>;
+    Label: ForwardRefExoticComponent<BoxProps>;
+    Hint: ForwardRefExoticComponent<BoxProps>;
+    Error: ForwardRefExoticComponent<BoxProps>;
+  };
+
+  type FieldGroupProps = BoxProps;
+  export const FieldGroup: ForwardRefExoticComponent<FieldGroupProps>;
+
+  type GridProps = BoxProps & {
+    xl: number | boolean;
+  };
+  type GridItemProps = BoxProps & {
+    xl: number | boolean;
+  };
+  export const Grid: ForwardRefExoticComponent<GridProps> & {
+    Item: ForwardRefExoticComponent<GridItemProps>;
+  };
+
+  type IconProps = Omit<BoxProps, 'size'> & {
+    size?: BoxProps['width'];
+  };
+  export const Icon: ForwardRefExoticComponent<IconProps>;
+
+  type InputBoxProps = BoxProps;
+  type InputBoxSkeletonProps = BoxProps;
+  export const InputBox: ForwardRefExoticComponent<InputBoxProps> & {
+    Skeleton: ForwardRefExoticComponent<InputBoxSkeletonProps>;
+  };
+
+  type ModalProps = BoxProps;
+  type ModalHeaderProps = BoxProps;
+  type ModalTitleProps = BoxProps;
+  type ModalCloseProps = BoxProps;
+  type ModalContentProps = BoxProps;
+  type ModalFooterProps = BoxProps;
+  type ModalBackdropProps = BoxProps;
+  export const Modal: ForwardRefExoticComponent<ModalProps> & {
+    Header: ForwardRefExoticComponent<ModalHeaderProps>;
+    Title: ForwardRefExoticComponent<ModalTitleProps>;
+    Close: ForwardRefExoticComponent<ModalCloseProps>;
+    Content: ForwardRefExoticComponent<ModalContentProps>;
+    Footer: ForwardRefExoticComponent<ModalFooterProps>;
+    Backdrop: ForwardRefExoticComponent<ModalBackdropProps>;
+  };
+
+  type NumberInputProps = BoxProps;
+  export const NumberInput: ForwardRefExoticComponent<NumberInputProps>;
+
+  type PaginationProps = BoxProps & {
+    count: number;
+    current?: number;
+    divider?: boolean;
+    itemsPerPage?: 25 | 50 | 100;
+    itemsPerPageLabel?: () => string;
+    showingResultsLabel?: (props: { count: number; current: number; itemsPerPage: 25 | 50 | 100 }) => string;
+    onSetCurrent?: Dispatch<SetStateAction<number>>;
+    onSetItemsPerPage?: Dispatch<SetStateAction<25 | 50 | 100>>;
+  };
+  export const Pagination: ForwardRefExoticComponent<PaginationProps>;
+
+  type PasswordInputProps = BoxProps & {
+    error?: string;
+  };
+  export const PasswordInput: ForwardRefExoticComponent<PasswordInputProps>;
+
+  type ProgressBarProps = BoxProps & {
+    percentage?: number;
+    error?: string;
+  };
+  export const ProgressBar: ForwardRefExoticComponent<ProgressBarProps>;
+
+  type SearchInputProps = BoxProps & {
+    addon?: ReactNode;
+    error?: string;
+  };
+  export const SearchInput: ForwardRefExoticComponent<SearchInputProps>;
+
+  type SkeletonProps = BoxProps & {
+    variant?: 'rect';
+  };
+  export const Skeleton: ForwardRefExoticComponent<SkeletonProps>;
+
+  type TableProps = BoxProps;
+  type TableHeadProps = BoxProps;
+  type TableBodyProps = BoxProps;
+  type TableRowProps = Omit<BoxProps, 'action'> & {
+    action?: boolean;
+  };
+  type TableCellProps = BoxProps & {
+    align?: 'start' | 'center' | 'end';
+    clickable?: boolean;
+  };
+  export const Table: ForwardRefExoticComponent<TableProps> & {
+    Head: ForwardRefExoticComponent<TableHeadProps>;
+    Body: ForwardRefExoticComponent<TableBodyProps>;
+    Row: ForwardRefExoticComponent<TableRowProps>;
+    Cell: ForwardRefExoticComponent<TableCellProps>;
+  };
+
+  type TagProps = BoxProps & {
+    variant?: 'secondary' | 'primary' | 'danger';
+  };
+  export const Tag: ForwardRefExoticComponent<TagProps>;
+
+  type TextAreaInputProps = BoxProps;
+  export const TextAreaInput: ForwardRefExoticComponent<TextAreaInputProps>;
+
+  type TextInputProps = BoxProps & {
+    addon?: ReactNode;
+    error?: string;
+  };
+  export const TextInput: ForwardRefExoticComponent<TextInputProps>;
+
+  type TileProps = BoxProps;
+  export const Tile: ForwardRefExoticComponent<TileProps>;
+
+  type ThrobberProps = Omit<BoxProps, 'size'> & {
+    size?: BoxProps['width'];
+    inheritColor?: boolean;
+  };
+  export const Throbber: ForwardRefExoticComponent<ThrobberProps>;
+
+  type ToggleSwitchProps = BoxProps;
+  export const ToggleSwitch: ForwardRefExoticComponent<ToggleSwitchProps>;
 
   type MarginsProps = PropsWithChildren<{
     all?: BoxProps['margin'];
@@ -209,6 +348,17 @@ declare module '@rocket.chat/fuselage' {
   type ScrollableProps = PropsWithChildren<{
     horizontal?: boolean;
     vertical?: boolean;
+    onScrollContent?: (touching: { top: boolean }) => void;
   }>;
   export const Scrollable: ForwardRefExoticComponent<ScrollableProps>;
+
+  type SelectOptions = readonly (readonly [string, string])[];
+  type SelectProps = Omit<BoxProps, 'onChange'> & {
+    error?: string;
+    options: SelectOptions;
+    onChange: (value: SelectOptions[number][0]) => void;
+  };
+  export const Select: ForwardRefExoticComponent<SelectProps>;
+
+  export const Divider: React.FC;
 }

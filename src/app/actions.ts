@@ -1,11 +1,10 @@
+import { downloads } from '../downloads/reducers/downloads';
 import {
   externalProtocols,
   trustedCertificates,
 } from '../navigation/reducers';
-import {
-  currentServerUrl,
-  servers,
-} from '../servers/reducers';
+import { servers } from '../servers/reducers';
+import { currentView } from '../ui/reducers/currentView';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
@@ -28,8 +27,9 @@ export type AppActionTypeToPayloadMap = {
   [APP_PATH_SET]: string;
   [APP_VERSION_SET]: string;
   [APP_SETTINGS_LOADED]: {
-    currentServerUrl: ReturnType<typeof currentServerUrl>;
+    currentView: ReturnType<typeof currentView>;
     doCheckForUpdatesOnStartup: ReturnType<typeof doCheckForUpdatesOnStartup>;
+    downloads: ReturnType<typeof downloads>;
     externalProtocols: ReturnType<typeof externalProtocols>;
     isEachUpdatesSettingConfigurable: ReturnType<typeof isEachUpdatesSettingConfigurable>;
     isMenuBarEnabled: ReturnType<typeof isMenuBarEnabled>;

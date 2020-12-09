@@ -244,3 +244,42 @@ export const AddServerButtonLabel = styled.span<AddServerButtonLabelProps>`
 
 	${ withTooltip }
 `;
+
+export const DownloadsManagerButton = styled.button`
+	font-family: inherit;
+	position: relative;
+	flex: 0 0 auto;
+	box-sizing: border-box;
+	margin: 4px 0;
+	font-size: 2.5rem;
+	line-height: 1.25;
+	display: flex;
+	flex-direction: row;
+	height: 35px;
+	padding: 0;
+	color: inherit;
+	border: none;
+	background: none;
+	align-items: center;
+	justify-content: center;
+	margin-top: auto;
+	bottom: 5%;
+`;
+
+export const DownloadsManagerLabel = styled.span`
+	display: block;
+	line-height: 30px;
+	width: 35px;
+	height: 35px;
+	transition: opacity var(--transitions-duration);
+	opacity: 0.6;
+	color: inherit;
+	background-color: rgba(0, 0, 0, 0.1);
+	cursor: pointer;
+
+	&:hover {
+		opacity: 1;
+	}
+
+	${ withTooltip }
+`;

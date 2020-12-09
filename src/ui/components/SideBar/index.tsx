@@ -1,9 +1,11 @@
 import { parse as parseUrl } from 'url';
 
+import { Icon } from '@rocket.chat/fuselage';
 import React, { useMemo, FC, DragEvent, MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
+import { createSelector } from 'reselect';
 
 import { RootAction } from '../../../store/actions';
 import { RootState } from '../../../store/rootReducer';
@@ -11,6 +13,7 @@ import {
   SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
+  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
 } from '../../actions';
 import {
   AddServerButton,
@@ -18,6 +21,8 @@ import {
   Avatar,
   Badge,
   Content,
+  DownloadsManagerButton,
+  DownloadsManagerLabel,
   Favicon,
   Initials,
   KeyboardShortcut,
@@ -66,11 +71,11 @@ const ServerButton: FC<ServerButtonProps> = ({
   };
 
   const initials = useMemo(() => title
-    .replace(url, parseUrl(url).hostname)
-    .split(/[^A-Za-z0-9]+/g)
-    .slice(0, 2)
-    .map((text) => text.slice(0, 1).toUpperCase())
-    .join(''), [title, url]);
+    ?.replace(url, parseUrl(url).hostname)
+    ?.split(/[^A-Za-z0-9]+/g)
+    ?.slice(0, 2)
+    ?.map((text) => text.slice(0, 1).toUpperCase())
+    ?.join(''), [title, url]);
 
   const handleServerContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
@@ -109,15 +114,22 @@ const ServerButton: FC<ServerButtonProps> = ({
 };
 
 export const SideBar: FC = () => {
-  const servers = useSelector(({ servers }: RootState) => servers);
+  const servers = useSelector(
+    createSelector(
+      ({ currentView }: RootState) => currentView,
+      ({ servers }: RootState) => servers,
+      (currentView, servers) => servers.map((server) => Object.assign(server, {
+        selected: typeof currentView === 'object' ? server.url === currentView.url : false,
+      })),
+    ),
+  );
   const isSideBarEnabled = useSelector(({ isSideBarEnabled }: RootState) => isSideBarEnabled);
-  const currentServerUrl = useSelector(({ currentServerUrl }: RootState) => currentServerUrl);
   const isVisible = servers.length > 0 && isSideBarEnabled;
 
   const {
     background,
     color,
-  } = servers.find(({ url }) => url === currentServerUrl)?.style || {};
+  } = servers.find(({ selected }) => selected)?.style || {};
 
   const isEachShortcutVisible = useKeyboardShortcuts();
   const {
@@ -135,6 +147,10 @@ export const SideBar: FC = () => {
     dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
   };
 
+  const handelDownloadsButtonClicked = (): void => {
+    dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
+  };
+
   const { t } = useTranslation();
 
   return <Wrapper background={background} color={color} isVisible={isVisible}>
@@ -147,7 +163,7 @@ export const SideBar: FC = () => {
             ? `${ server.title } - ${ server.url }`
             : server.title}
           shortcutNumber={order <= 9 ? String(order + 1) : undefined}
-          isSelected={currentServerUrl === server.url}
+          isSelected={server.selected}
           favicon={server.favicon}
           hasUnreadMessages={!!server.badge}
           mentionCount={typeof server.badge === 'number' ? server.badge : undefined}
@@ -165,6 +181,14 @@ export const SideBar: FC = () => {
           onClick={handleAddServerButtonClicked}
         >+</AddServerButtonLabel>
       </AddServerButton>
+      <DownloadsManagerButton>
+        <DownloadsManagerLabel
+          tooltip={t('sidebar.downloads')}
+          onClick={handelDownloadsButtonClicked}
+        >
+          <Icon name='download'/>
+        </DownloadsManagerLabel>
+      </DownloadsManagerButton>
     </Content>
   </Wrapper>;
 };

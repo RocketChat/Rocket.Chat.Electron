@@ -109,7 +109,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
       {
         label: isRootWindowVisible ? t('tray.menu.hide') : t('tray.menu.show'),
         click: async () => {
-          const isRootWindowVisible = select(selectIsRootWindowVisible);
+          const isRootWindowVisible = select(({ rootWindowState: { focused } }) => !focused);
           const browserWindow = await getRootWindow();
 
           if (isRootWindowVisible) {

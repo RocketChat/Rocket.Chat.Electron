@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/rootReducer';
 import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
+import DownloadsManagerView from '../DownloadsManagerView';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';
 import { ServersView } from '../ServersView';
@@ -37,6 +38,7 @@ export const Shell: FC = () => {
       <ViewsWrapper>
         <ServersView />
         <AddServerView />
+        <DownloadsManagerView />
       </ViewsWrapper>
     </Wrapper>
     <AboutDialog />

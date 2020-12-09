@@ -29,9 +29,7 @@ import { Wrapper } from './styles';
 const defaultServerUrl = new URL('https://open.rocket.chat/');
 
 export const AddServerView: FC = () => {
-  const currentServerUrl = useSelector(({ currentServerUrl }: RootState) => currentServerUrl);
-
-  const isVisible = currentServerUrl === null;
+  const isVisible = useSelector(({ currentView }: RootState) => currentView === 'add-new-server');
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
   const [input, setInput] = useState('');

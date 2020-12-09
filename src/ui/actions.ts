@@ -16,6 +16,7 @@ export const ROOT_WINDOW_ICON_CHANGED = 'root-window/icon-changed';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';
 export const SIDE_BAR_ADD_NEW_SERVER_CLICKED = 'side-bar/add-new-server-clicked';
 export const SIDE_BAR_CONTEXT_MENU_TRIGGERED = 'side-bar/context-menu-triggered';
+export const SIDE_BAR_DOWNLOADS_BUTTON_CLICKED = 'side-bar/downloads-button-clicked';
 export const SIDE_BAR_REMOVE_SERVER_CLICKED = 'side-bar/remove-server-clicked';
 export const SIDE_BAR_SERVER_SELECTED = 'side-bar/server-selected';
 export const SIDE_BAR_SERVERS_SORTED = 'side-bar/servers-sorted';
@@ -55,6 +56,7 @@ export type UiActionTypeToPayloadMap = {
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
   [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: never;
   [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
+  [SIDE_BAR_DOWNLOADS_BUTTON_CLICKED]: void;
   [SIDE_BAR_REMOVE_SERVER_CLICKED]: Server['url'];
   [SIDE_BAR_SERVER_SELECTED]: Server['url'];
   [SIDE_BAR_SERVERS_SORTED]: Server['url'][];

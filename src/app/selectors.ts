@@ -5,8 +5,9 @@ import { RootState } from '../store/rootReducer';
 import { APP_SETTINGS_LOADED } from './actions';
 
 export const selectPersistableValues = createStructuredSelector<Partial<RootState>, ActionOf<typeof APP_SETTINGS_LOADED>['payload']>({
-  currentServerUrl: ({ currentServerUrl }) => currentServerUrl,
+  currentView: ({ currentView }) => currentView,
   doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }) => doCheckForUpdatesOnStartup,
+  downloads: ({ downloads }) => downloads,
   isMenuBarEnabled: ({ isMenuBarEnabled }) => isMenuBarEnabled,
   isShowWindowOnUnreadChangedEnabled: ({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled,
   isSideBarEnabled: ({ isSideBarEnabled }) => isSideBarEnabled,

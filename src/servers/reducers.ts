@@ -1,17 +1,11 @@
 import { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
-import { DEEP_LINKS_SERVER_ADDED, DEEP_LINKS_SERVER_FOCUSED } from '../deepLinks/actions';
+import { DEEP_LINKS_SERVER_ADDED } from '../deepLinks/actions';
 import { ActionOf } from '../store/actions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
-  MENU_BAR_ADD_NEW_SERVER_CLICKED,
-  MENU_BAR_SELECT_SERVER_CLICKED,
-  SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
-  SIDE_BAR_SERVER_SELECTED,
-  TOUCH_BAR_SELECT_SERVER_TOUCHED,
-  WEBVIEW_FOCUS_REQUESTED,
   SIDE_BAR_SERVERS_SORTED,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_SIDEBAR_STYLE_CHANGED,
@@ -20,80 +14,17 @@ import {
   WEBVIEW_FAVICON_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
+  WEBVIEW_ATTACHED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import { Server } from './common';
 
-type CurrentServerUrlAction = (
-  ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
-  | ActionOf<typeof DEEP_LINKS_SERVER_ADDED>
-  | ActionOf<typeof DEEP_LINKS_SERVER_FOCUSED>
-  | ActionOf<typeof MENU_BAR_ADD_NEW_SERVER_CLICKED>
-  | ActionOf<typeof MENU_BAR_SELECT_SERVER_CLICKED>
-  | ActionOf<typeof SERVERS_LOADED>
-  | ActionOf<typeof SIDE_BAR_ADD_NEW_SERVER_CLICKED>
-  | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
-  | ActionOf<typeof SIDE_BAR_SERVER_SELECTED>
-  | ActionOf<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>
-  | ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>
-  | ActionOf<typeof APP_SETTINGS_LOADED>
-);
-
-type CurrentServerUrlState = string | null;
-
-const ensureUrlFormat = (serverUrl: string | null): string =>
-  (serverUrl ? new URL(serverUrl).href : null);
-
-export const currentServerUrl = (state: CurrentServerUrlState = null, action: CurrentServerUrlAction): CurrentServerUrlState => {
-  switch (action.type) {
-    case ADD_SERVER_VIEW_SERVER_ADDED:
-    case DEEP_LINKS_SERVER_ADDED:
-    case DEEP_LINKS_SERVER_FOCUSED: {
-      const url = action.payload;
-      return url;
-    }
-
-    case MENU_BAR_ADD_NEW_SERVER_CLICKED:
-      return null;
-
-    case MENU_BAR_SELECT_SERVER_CLICKED: {
-      const url = action.payload;
-      return url;
-    }
-
-    case TOUCH_BAR_SELECT_SERVER_TOUCHED:
-      return action.payload;
-
-    case SIDE_BAR_SERVER_SELECTED:
-      return action.payload;
-
-    case SIDE_BAR_REMOVE_SERVER_CLICKED: {
-      if (state === action.payload) {
-        return null;
-      }
-      return state;
-    }
-
-    case SIDE_BAR_ADD_NEW_SERVER_CLICKED:
-      return null;
-
-    case WEBVIEW_FOCUS_REQUESTED: {
-      const { url } = action.payload;
-      return url;
-    }
-
-    case SERVERS_LOADED: {
-      const { currentServerUrl = state } = action.payload;
-      return ensureUrlFormat(currentServerUrl);
-    }
-
-    case APP_SETTINGS_LOADED: {
-      const { currentServerUrl = state } = action.payload;
-      return ensureUrlFormat(currentServerUrl);
-    }
+const ensureUrlFormat = (serverUrl: string | null): string => {
+  try {
+    return serverUrl ? new URL(serverUrl).href : null;
+  } catch (error) {
+    return null;
   }
-
-  return state;
 };
 
 type ServersActionTypes = (
@@ -110,6 +41,7 @@ type ServersActionTypes = (
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
+  | ActionOf<typeof WEBVIEW_ATTACHED>
 );
 
 const upsert = (state: Server[], server: Server): Server[] => {
@@ -117,6 +49,16 @@ const upsert = (state: Server[], server: Server): Server[] => {
 
   if (index === -1) {
     return [...state, server];
+  }
+
+  return state.map((_server, i) => (i === index ? { ..._server, ...server } : _server));
+};
+
+const update = (state: Server[], server: Server): Server[] => {
+  const index = state.findIndex(({ url }) => url === server.url);
+
+  if (index === -1) {
+    return state;
   }
 
   return state.map((_server, i) => (i === index ? { ..._server, ...server } : _server));
@@ -197,6 +139,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (state = [], actio
         ...server,
         url: ensureUrlFormat(server.url),
       }));
+    }
+
+    case WEBVIEW_ATTACHED: {
+      const { url, webContentsId } = action.payload;
+      return update(state, { url, webContentsId });
     }
 
     default:

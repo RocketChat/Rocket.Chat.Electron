@@ -175,10 +175,10 @@ export const setupRootWindow = (): void => {
     }),
 
     watch(({
+      currentView,
       servers,
-      currentServerUrl,
     }) => {
-      const currentServer = servers.find(({ url }) => url === currentServerUrl);
+      const currentServer = typeof currentView === 'object' ? servers.find(({ url }) => url === currentView.url) : null;
       return (currentServer && currentServer.title) || app.name;
     }, async (windowTitle) => {
       const browserWindow = await getRootWindow();
@@ -348,7 +348,7 @@ export const exportLocalStorage = async (): Promise<Record<string, string>> => {
 
     tempWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       tempWindow.addListener('ready-to-show', () => {
         resolve();
       });

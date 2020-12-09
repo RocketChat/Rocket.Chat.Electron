@@ -6,7 +6,6 @@ import {
   ContextMenuParams,
   DidFailLoadEvent,
   DidNavigateEvent,
-  DownloadItem,
   Event,
   Input,
   ipcMain,
@@ -25,6 +24,7 @@ import {
 import i18next from 'i18next';
 
 import { setupPreloadReload } from '../../../app/main/dev';
+import { handleWillDownloadEvent } from '../../../downloads/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
 import { Server } from '../../../servers/common';
@@ -250,31 +250,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     }
   };
 
-  const handleWillDownload = (_event: Event, item: DownloadItem, _webContents: WebContents): void => {
-    const extension = path.extname(item.getFilename())?.slice(1).toLowerCase();
-
-    if (extension) {
-      item.setSaveDialogOptions({
-        filters: [
-          {
-            name: `*.${ extension }`,
-            extensions: [extension],
-          },
-          {
-            name: '*.*',
-            extensions: ['*'],
-          },
-        ],
-      });
-    }
-  };
-
   listen(WEBVIEW_ATTACHED, (action) => {
     const guestWebContents = webContents.fromId(action.payload.webContentsId);
     initializeServerWebContents(action.payload.url, guestWebContents, rootWindow);
 
     guestWebContents.session.setPermissionRequestHandler(handlePermissionRequest);
-    guestWebContents.session.on('will-download', handleWillDownload);
+    guestWebContents.session.on('will-download', handleWillDownloadEvent);
   });
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {

@@ -135,7 +135,7 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
   });
 
   let servers = select(({ servers }) => servers);
-  let currentServerUrl = select(({ currentServerUrl }) => currentServerUrl);
+  let currentServerUrl = select(({ currentView }) => (typeof currentView === 'object' ? currentView.url : null));
 
   const serversMap = new Map<Server['url'], Server>(
     servers
@@ -201,7 +201,7 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
     type: SERVERS_LOADED,
     payload: {
       servers,
-      currentServerUrl,
+      selected: currentServerUrl,
     },
   });
 };

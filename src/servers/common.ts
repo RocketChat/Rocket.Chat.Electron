@@ -9,6 +9,7 @@ export type Server = {
   };
   lastPath?: string;
   failed?: boolean;
+  webContentsId?: number;
 };
 
 export const enum ServerUrlResolutionStatus {

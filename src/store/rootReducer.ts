@@ -2,15 +2,14 @@ import { combineReducers } from 'redux';
 
 import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
+import { downloads } from '../downloads/reducers/downloads';
 import {
   clientCertificates,
   externalProtocols,
   trustedCertificates,
 } from '../navigation/reducers';
-import {
-  currentServerUrl,
-  servers,
-} from '../servers/reducers';
+import { servers } from '../servers/reducers';
+import { currentView } from '../ui/reducers/currentView';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
@@ -34,8 +33,9 @@ const reducersMap = {
   appPath,
   appVersion,
   clientCertificates,
-  currentServerUrl,
+  currentView,
   doCheckForUpdatesOnStartup,
+  downloads,
   externalProtocols,
   isCheckingForUpdates,
   isEachUpdatesSettingConfigurable,

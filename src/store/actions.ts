@@ -1,5 +1,6 @@
 import { AppActionTypeToPayloadMap } from '../app/actions';
 import { DeepLinksActionTypeToPayloadMap } from '../deepLinks/actions';
+import { DownloadsActionTypeToPayloadMap } from '../downloads/actions';
 import { I18nActionTypeToPayloadMap } from '../i18n/actions';
 import { NavigationActionTypeToPayloadMap } from '../navigation/actions';
 import { NotificationsActionTypeToPayloadMap } from '../notifications/actions';
@@ -14,6 +15,7 @@ import { FluxStandardAction } from './fsa';
 type ActionTypeToPayloadMap = (
   AppActionTypeToPayloadMap
   & DeepLinksActionTypeToPayloadMap
+  & DownloadsActionTypeToPayloadMap
   & I18nActionTypeToPayloadMap
   & NavigationActionTypeToPayloadMap
   & NotificationsActionTypeToPayloadMap

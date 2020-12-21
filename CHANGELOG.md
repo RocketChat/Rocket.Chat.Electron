@@ -1,3 +1,20 @@
+# [3.1.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.7...3.1.0) (2020-12-21)
+
+
+### Bug Fixes
+
+* Broken Jitsi's browser check ([#1902](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1902)) ([01fafff](https://github.com/RocketChat/Rocket.Chat.Electron/commit/01fafff822be397f33ebb8250c7b667be66df396))
+* Update hu.i18n.json ([#1886](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1886)) ([d36897e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d36897ee5deb4fe509cd4f36b6b39d4bb6bd47ce))
+
+
+### Features
+
+* Download Manager ([#1700](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1700)) ([ac30ab3](https://github.com/RocketChat/Rocket.Chat.Electron/commit/ac30ab396ec66f2437bbe2c3ce8ae5042a2c2b77))
+* Isolated server view sessions ([#1883](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1883)) ([4884d3f](https://github.com/RocketChat/Rocket.Chat.Electron/commit/4884d3f066d40f2d97d8649d0a1f8bf5b048f911))
+* Rebranding ([#1884](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1884)) ([12b4ca6](https://github.com/RocketChat/Rocket.Chat.Electron/commit/12b4ca6378689aa967d5b33d5a768561d408c67e))
+
+
+
 ## [3.0.7](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.6...3.0.7) (2020-11-09)
 
 

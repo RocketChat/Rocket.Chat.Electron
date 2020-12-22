@@ -1,15 +1,13 @@
-import fs from 'fs';
-import path from 'path';
-
-import { contextBridge, ipcRenderer, webFrame } from 'electron';
+import { contextBridge, webFrame } from 'electron';
 
 import { setupRendererErrorHandling } from './errors';
+import { invoke } from './ipc/renderer';
 import { JitsiMeetElectron, JitsiMeetElectronAPI } from './jitsi/preload';
 import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
 import { RocketChatDesktop, RocketChatDesktopAPI, serverInfo } from './servers/preload/api';
 import { setServerUrl } from './servers/preload/urls';
-import { createRendererReduxStore, select } from './store';
+import { createRendererReduxStore } from './store';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';
 import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
 import { listenToUserPresenceChanges } from './userPresence/preload';
@@ -26,7 +24,8 @@ contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
 contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
 const start = async (): Promise<void> => {
-  const serverUrl = await ipcRenderer.invoke('server-url');
+  const { serverUrl, injectableCode } = await invoke('server-view/get-initialization-data');
+
   setServerUrl(serverUrl);
 
   await createRendererReduxStore();
@@ -35,11 +34,7 @@ const start = async (): Promise<void> => {
 
   setupRendererErrorHandling('webviewPreload');
 
-  const injectedCode = await fs.promises.readFile(
-    path.join(select(({ appPath }) => appPath), 'app/injected.js'),
-    'utf8',
-  );
-  await webFrame.executeJavaScript(injectedCode);
+  await webFrame.executeJavaScript(injectableCode);
 
   if (!serverInfo) {
     return;

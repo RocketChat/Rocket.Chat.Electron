@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 
 import {
@@ -8,7 +9,6 @@ import {
   DidNavigateEvent,
   Event,
   Input,
-  ipcMain,
   Menu,
   MenuItemConstructorOptions,
   Session,
@@ -25,6 +25,7 @@ import i18next from 'i18next';
 
 import { setupPreloadReload } from '../../../app/main/dev';
 import { handleWillDownloadEvent } from '../../../downloads/main';
+import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
 import { Server } from '../../../servers/common';
@@ -304,11 +305,22 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);
   rootWindow.webContents.addListener('did-attach-webview', handleDidAttachWebview);
 
-  ipcMain.handle(
-    'server-url',
-    (event) =>
-      Array.from(webContentsByServerUrl.entries())
-        .filter(([, v]) => v === event.sender)
-        .map(([k]) => k)[0],
-  );
+  let injectableCode: string;
+
+  handle('server-view/get-initialization-data', async (webContents) => {
+    const serverUrl = Array.from(webContentsByServerUrl.entries())
+      .find(([, v]) => v === webContents)?.[0];
+
+    if (!injectableCode) {
+      injectableCode = await fs.promises.readFile(
+        path.join(select(({ appPath }) => appPath), 'app/injected.js'),
+        'utf8',
+      );
+    }
+
+    return {
+      serverUrl,
+      injectableCode,
+    };
+  });
 };

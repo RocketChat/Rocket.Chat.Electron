@@ -305,12 +305,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);
   rootWindow.webContents.addListener('did-attach-webview', handleDidAttachWebview);
 
+  handle('server-view/get-url', async (webContents) =>
+    Array.from(webContentsByServerUrl.entries())
+      .find(([, v]) => v === webContents)?.[0]);
+
   let injectableCode: string;
-
-  handle('server-view/get-initialization-data', async (webContents) => {
-    const serverUrl = Array.from(webContentsByServerUrl.entries())
-      .find(([, v]) => v === webContents)?.[0];
-
+  handle('server-view/ready', async (webContents) => {
     if (!injectableCode) {
       injectableCode = await fs.promises.readFile(
         path.join(select(({ appPath }) => appPath), 'app/injected.js'),
@@ -318,9 +318,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       );
     }
 
-    return {
-      serverUrl,
-      injectableCode,
-    };
+    webContents.executeJavaScript(injectableCode, true);
   });
 };

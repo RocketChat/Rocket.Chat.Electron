@@ -1,4 +1,4 @@
-import { contextBridge, webFrame } from 'electron';
+import { contextBridge } from 'electron';
 
 import { setupRendererErrorHandling } from './errors';
 import { invoke } from './ipc/renderer';
@@ -24,7 +24,7 @@ contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
 contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
 const start = async (): Promise<void> => {
-  const { serverUrl, injectableCode } = await invoke('server-view/get-initialization-data');
+  const serverUrl = await invoke('server-view/get-url');
 
   setServerUrl(serverUrl);
 
@@ -34,7 +34,7 @@ const start = async (): Promise<void> => {
 
   setupRendererErrorHandling('webviewPreload');
 
-  await webFrame.executeJavaScript(injectableCode);
+  await invoke('server-view/ready');
 
   if (!serverInfo) {
     return;

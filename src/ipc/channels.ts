@@ -1,6 +1,7 @@
 import { AnyAction } from 'redux';
 
 import { Download } from '../downloads/common';
+import { Server } from '../servers/common';
 import { SystemIdleState } from '../userPresence/common';
 
 type ChannelToArgsMap = {
@@ -16,6 +17,8 @@ type ChannelToArgsMap = {
   'downloads/cancel': (itemId: Download['itemId']) => void;
   'downloads/retry': (itemId: Download['itemId']) => void;
   'downloads/remove': (itemId: Download['itemId']) => void;
+  'server-view/get-url': () => Server['url'];
+  'server-view/ready': () => void;
 };
 
 export type Channel = keyof ChannelToArgsMap;

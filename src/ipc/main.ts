@@ -28,6 +28,10 @@ export const invoke = <N extends Channel>(
 export const handle = <N extends Channel>(
   channel: N,
   handler: (webContents: WebContents, ...args: Parameters<Handler<N>>) => Promise<ReturnType<Handler<N>>>,
-): void => {
+): (() => void) => {
   ipcMain.handle(channel, (event, ...args: Parameters<Handler<N>>) => handler(event.sender, ...args));
+
+  return () => {
+    ipcMain.removeHandler(channel);
+  };
 };

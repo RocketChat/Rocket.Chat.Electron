@@ -1,3 +1,13 @@
+## [3.1.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.1.0...3.1.1) (2020-12-25)
+
+
+### Bug Fixes
+
+* Apply sidebar padding change on macOS ([#1926](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1926)) ([428ccf9](https://github.com/RocketChat/Rocket.Chat.Electron/commit/428ccf984f0154f89c44c1ba596313a74d9c825e))
+* Preload script in sandboxed iframes ([#1925](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1925)) ([15e39f3](https://github.com/RocketChat/Rocket.Chat.Electron/commit/15e39f3153e7cf97d5d36632484c7b241547dc27))
+
+
+
 # [3.1.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.0.7...3.1.0) (2020-12-21)
 
 

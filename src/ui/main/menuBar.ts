@@ -21,6 +21,10 @@ import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
 
 const t = i18next.t.bind(i18next);
+const ZOOM_LEVEL = {
+  MIN: -9,
+  MAX: 9,
+};
 
 const on = (
   condition: boolean,
@@ -326,7 +330,8 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          browserWindow.webContents.zoomLevel = 0;
+          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
+          guestWebContents.setZoomLevel(0);
         },
       },
       {
@@ -340,10 +345,14 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          if (browserWindow.webContents.zoomLevel >= 9) {
+          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
+          const zoomLevel = guestWebContents.getZoomLevel();
+
+          if (zoomLevel >= ZOOM_LEVEL.MAX) {
             return;
           }
-          browserWindow.webContents.zoomLevel++;
+
+          guestWebContents.setZoomLevel(zoomLevel + 1);
         },
       },
       {
@@ -357,10 +366,14 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          if (browserWindow.webContents.zoomLevel <= -9) {
+          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
+          const zoomLevel = guestWebContents.getZoomLevel();
+
+          if (zoomLevel <= ZOOM_LEVEL.MIN) {
             return;
           }
-          browserWindow.webContents.zoomLevel--;
+
+          guestWebContents.setZoomLevel(zoomLevel - 1);
         },
       },
     ],

@@ -21,10 +21,6 @@ import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
 
 const t = i18next.t.bind(i18next);
-const ZOOM_LEVEL = {
-  MIN: -9,
-  MAX: 9,
-};
 
 const on = (
   condition: boolean,
@@ -348,7 +344,7 @@ const createViewMenu = createSelector(
           const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
           const zoomLevel = guestWebContents.getZoomLevel();
 
-          if (zoomLevel >= ZOOM_LEVEL.MAX) {
+          if (zoomLevel >= 9) {
             return;
           }
 
@@ -369,7 +365,7 @@ const createViewMenu = createSelector(
           const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
           const zoomLevel = guestWebContents.getZoomLevel();
 
-          if (zoomLevel <= ZOOM_LEVEL.MIN) {
+          if (zoomLevel <= -9) {
             return;
           }
 

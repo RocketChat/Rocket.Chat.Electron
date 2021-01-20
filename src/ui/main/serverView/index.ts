@@ -93,7 +93,10 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
   };
 
   const handleDomReady = (): void => {
-    guestWebContents.focus();
+    // Don't focus if a dom-ready is emitted, it might be a webpage reloading
+    // caused by bad network. And when user is working, he/she does not want
+    // to be bothered by focus grabbing caused by background webpage reloading.
+    // guestWebContents.focus();
   };
 
   const handleDidNavigateInPage = (

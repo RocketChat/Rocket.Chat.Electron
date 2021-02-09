@@ -14,7 +14,7 @@ import {
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
-  SIDE_BAR_BACK_BUTTON_CLICKED
+  SIDE_BAR_BACK_BUTTON_CLICKED,
 } from '../../actions';
 import {
   AddServerButton,
@@ -156,7 +156,7 @@ export const SideBar: FC = () => {
   };
 
   const handleBackButtonClicked = (): void => {
-    dispatch({ type: SIDE_BAR_BACK_BUTTON_CLICKED ,payload: typeof currentView === 'object' ? currentView.url : null} );
+    dispatch({ type: SIDE_BAR_BACK_BUTTON_CLICKED, payload: typeof currentView === 'object' ? currentView.url : null });
   };
 
   const { t } = useTranslation();

@@ -49,7 +49,7 @@ const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
 export const getWebContentsByServerUrl = (url: string): WebContents =>
   webContentsByServerUrl.get(url);
-  
+
 const initializeServerWebContents = (serverUrl: string, guestWebContents: WebContents, rootWindow: BrowserWindow): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
 
@@ -64,7 +64,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
       webviewSession.clearStorageData();
       return;
     }
-    
+
     webviewSession.flushStorageData();
   });
 

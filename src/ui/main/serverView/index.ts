@@ -32,6 +32,7 @@ import { Server } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+  SIDE_BAR_BACK_BUTTON_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   WEBVIEW_ATTACHED,
@@ -48,7 +49,7 @@ const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
 export const getWebContentsByServerUrl = (url: string): WebContents =>
   webContentsByServerUrl.get(url);
-
+  
 const initializeServerWebContents = (serverUrl: string, guestWebContents: WebContents, rootWindow: BrowserWindow): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
 
@@ -63,7 +64,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
       webviewSession.clearStorageData();
       return;
     }
-
+    
     webviewSession.flushStorageData();
   });
 
@@ -262,6 +263,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
     guestWebContents.loadURL(action.payload.url);
+  });
+
+  listen(SIDE_BAR_BACK_BUTTON_CLICKED, (action) => {
+    const { payload: serverUrl } = action;
+    const guestWebContents = getWebContentsByServerUrl(serverUrl);
+    guestWebContents.goBack();
   });
 
   listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {

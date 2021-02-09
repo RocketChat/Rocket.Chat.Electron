@@ -244,6 +244,43 @@ export const AddServerButtonLabel = styled.span<AddServerButtonLabelProps>`
 
 	${ withTooltip }
 `;
+export const BackButton = styled.button`
+	font-family: inherit;
+	position: relative;
+	flex: 0 0 auto;
+	box-sizing: border-box;
+	margin: 420px 0px 4px 0px;
+	font-size: 2.5rem;
+	line-height: 1.25;
+	display: flex;
+	flex-direction: row;
+	height: 40px;
+	padding: 0;
+	color: inherit;
+	border: none;
+	background: none;
+	align-items: center;
+	justify-content: center;
+	bottom: 0% !important;
+`;
+
+export const BackButtonLabel = styled.span`
+	display: block;
+	line-height: 30px;
+	width: 40px;
+	height: 40px;
+	transition: opacity var(--transitions-duration);
+	opacity: 0.6;
+	color: inherit;
+	background-color: rgba(0, 0, 0, 0.1);
+	cursor: pointer;
+
+	&:hover {
+		opacity: 1;
+	}
+
+	${ withTooltip }
+`;
 
 export const DownloadsManagerButton = styled.button`
 	font-family: inherit;

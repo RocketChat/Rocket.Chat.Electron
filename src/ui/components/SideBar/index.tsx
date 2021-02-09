@@ -14,11 +14,14 @@ import {
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+  SIDE_BAR_BACK_BUTTON_CLICKED
 } from '../../actions';
 import {
   AddServerButton,
   AddServerButtonLabel,
   Avatar,
+  BackButton,
+  BackButtonLabel,
   Badge,
   Content,
   DownloadsManagerButton,
@@ -125,6 +128,7 @@ export const SideBar: FC = () => {
   );
   const isSideBarEnabled = useSelector(({ isSideBarEnabled }: RootState) => isSideBarEnabled);
   const isVisible = servers.length > 0 && isSideBarEnabled;
+  const currentView = useSelector(({ currentView }: RootState) => currentView);
 
   const {
     background,
@@ -149,6 +153,10 @@ export const SideBar: FC = () => {
 
   const handelDownloadsButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
+  };
+
+  const handleBackButtonClicked = (): void => {
+    dispatch({ type: SIDE_BAR_BACK_BUTTON_CLICKED ,payload: typeof currentView === 'object' ? currentView.url : null} );
   };
 
   const { t } = useTranslation();
@@ -181,6 +189,14 @@ export const SideBar: FC = () => {
           onClick={handleAddServerButtonClicked}
         >+</AddServerButtonLabel>
       </AddServerButton>
+      <BackButton>
+        <BackButtonLabel
+          tooltip={t('sidebar.backButton')}
+          onClick={handleBackButtonClicked}
+        >
+          <Icon name='back' />
+        </BackButtonLabel>
+      </BackButton>
       <DownloadsManagerButton>
         <DownloadsManagerLabel
           tooltip={t('sidebar.downloads')}

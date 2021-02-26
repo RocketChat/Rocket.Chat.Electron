@@ -17,18 +17,17 @@ import {
 } from '../../actions';
 import {
   AddServerButton,
-  AddServerButtonLabel,
   Avatar,
   Badge,
   Content,
   DownloadsManagerButton,
-  DownloadsManagerLabel,
   Favicon,
   Initials,
   KeyboardShortcut,
   ServerButtonWrapper,
   ServerList,
   Wrapper,
+  SidebarActionButton,
 } from './styles';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
@@ -176,18 +175,18 @@ export const SideBar: FC = () => {
         />)}
       </ServerList>
       <AddServerButton>
-        <AddServerButtonLabel
+        <SidebarActionButton
           tooltip={t('sidebar.addNewServer')}
           onClick={handleAddServerButtonClicked}
-        >+</AddServerButtonLabel>
+        >+</SidebarActionButton>
       </AddServerButton>
       <DownloadsManagerButton>
-        <DownloadsManagerLabel
+        <SidebarActionButton
           tooltip={t('sidebar.downloads')}
           onClick={handelDownloadsButtonClicked}
         >
           <Icon name='download'/>
-        </DownloadsManagerLabel>
+        </SidebarActionButton>
       </DownloadsManagerButton>
     </Content>
   </Wrapper>;

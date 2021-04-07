@@ -52,6 +52,7 @@ export default [
     plugins: [
       json(),
       replace({
+        preventAssignment: true,
         'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
       }),
@@ -82,6 +83,7 @@ export default [
     plugins: [
       json(),
       replace({
+        preventAssignment: true,
         'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
       }),
@@ -107,6 +109,7 @@ export default [
     plugins: [
       json(),
       replace({
+        preventAssignment: true,
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
       }),
       typescript({ noEmitOnError: false }),
@@ -142,6 +145,7 @@ export default [
       }),
       json(),
       replace({
+        preventAssignment: true,
         'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
       }),

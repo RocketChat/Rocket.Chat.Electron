@@ -233,14 +233,14 @@ jobs:
       - uses: samuelmeuli/action-snapcraft@v1
         with:
           snapcraft_token: ${{ secrets.SNAP_TOKEN }}
-      - if: ${{ startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch' }}
-        run: yarn electron-builder --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channels.0=stable
+      - if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: yarn electron-builder --publish always --linux snap -c.snap.publish.provider=snapStore -c.snap.publish.channels=stable
       - if: ${{ github.ref == 'refs/heads/master' }}
-        run: yarn electron-builder --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channels.0=candidate
+        run: yarn electron-builder --publish always --linux snap -c.snap.publish.provider=snapStore -c.snap.publish.channels=candidate
       - if: ${{ startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/hotfix/') }}
-        run: yarn electron-builder --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channels.0=beta
+        run: yarn electron-builder --publish always --linux snap -c.snap.publish.provider=snapStore -c.snap.publish.channels=beta
       - if: ${{ startsWith(github.ref, 'refs/heads/') }}
-        run: yarn electron-builder --publish always --linux snap -c.publish.1.provider=snapStore -c.publish.1.channels.0=edge
+        run: yarn electron-builder --publish always --linux snap -c.snap.publish.provider=snapStore -c.snap.publish.channels=edge
       - uses: actions/upload-artifact@v2
         with:
           name: linux-dist

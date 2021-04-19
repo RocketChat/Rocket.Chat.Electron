@@ -169,9 +169,7 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      if (process.platform === 'win32') {
-        browserWindow.flashFrame(true);
-      }
+      browserWindow.flashFrame(true);
     }),
 
     watch(({

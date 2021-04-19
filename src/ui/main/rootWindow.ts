@@ -333,6 +333,14 @@ export const showRootWindow = async (): Promise<void> => {
   return new Promise((resolve) => {
     browserWindow.addListener('ready-to-show', () => {
       applyRootWindowState(browserWindow);
+
+      const isTrayIconEnabled = select(({ isTrayIconEnabled }) => isTrayIconEnabled);
+
+      if (app.commandLine.hasSwitch('start-hidden') && isTrayIconEnabled) {
+        console.debug('Start application in background');
+        browserWindow.hide();
+      }
+
       setupRootWindow();
       resolve();
     });

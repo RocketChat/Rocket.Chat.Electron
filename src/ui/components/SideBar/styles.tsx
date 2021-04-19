@@ -255,7 +255,7 @@ export const DownloadsManagerButton = styled.button`
 	line-height: 1.25;
 	display: flex;
 	flex-direction: row;
-	height: 35px;
+	height: 40px;
 	padding: 0;
 	color: inherit;
 	border: none;
@@ -269,8 +269,8 @@ export const DownloadsManagerButton = styled.button`
 export const DownloadsManagerLabel = styled.span`
 	display: block;
 	line-height: 30px;
-	width: 35px;
-	height: 35px;
+	width: 40px;
+	height: 40px;
 	transition: opacity var(--transitions-duration);
 	opacity: 0.6;
 	color: inherit;

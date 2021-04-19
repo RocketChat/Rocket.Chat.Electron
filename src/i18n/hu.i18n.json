@@ -41,6 +41,12 @@
       "yes": "Igen",
       "no": "Nem"
     },
+    "downloadRemoval": {
+      "title": "Biztos benne?",
+      "message": "Eltávolítja ezt a letöltést?",
+      "yes": "Igen",
+      "no": "Nem"
+    },
     "resetAppData": {
       "title": "Alkalmazásadatok visszaállítása",
       "message": "Ez kijelentkezteti az összes csapatból, és visszaállítja az alkalmazást az eredeti beállításokra. Ezt nem lehet visszavonni.",
@@ -96,6 +102,40 @@
       "no": "Nem"
     }
   },
+  "downloads": {
+    "title": "Letöltések",
+    "filters": {
+      "search": "Keresés",
+      "server": "Kiszolgáló",
+      "mimeType": "Típus",
+      "status": "Állapot",
+      "clear": "Szűrők törlése",
+      "all": "Összes",
+      "mimes": {
+        "images": "Képek",
+        "videos": "Videók",
+        "audios": "Hangok",
+        "texts": "Szövegek",
+        "files": "Fájlok"
+      },
+      "statuses": {
+        "paused": "Szüneteltetve",
+        "cancelled": "Megszakítva"
+      }
+    },
+    "item": {
+      "cancel": "Mégse",
+      "copyLink": "Hivatkozás másolása",
+      "errored": "Letöltés megszakítva",
+      "pause": "Szüneteltetés",
+      "progressSize": "{{receivedBytes, byteSize}} / {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "Eltávolítás a listáról",
+      "resume": "Folytatás",
+      "retry": "Újrapróbálás",
+      "showInFolder": "Megjelenítés mappában"
+    },
+    "showingResults": "Eredmények megjelenítése: {{first}} - {{last}} / {{count}}"
+  },
   "error": {
     "authNeeded": "Hitelesítés szükséges, próbálja ezt: <strong>{{- auth}}</strong>",
     "connectTimeout": "A kapcsolódási kísérlet túllépte az időkorlátot",
@@ -119,6 +159,7 @@
     "cut": "&Kivágás",
     "disableGpu": "GPU letiltása",
     "documentation": "Dokumentáció",
+    "downloads": "Letöltések",
     "editMenu": "S&zerkesztés",
     "fileMenu": "&Fájl",
     "forward": "&Előre",
@@ -163,6 +204,7 @@
   },
   "sidebar": {
     "addNewServer": "Új kiszolgáló hozzáadása",
+    "downloads": "Letöltések",
     "item": {
       "reload": "Kiszolgáló újratöltése",
       "remove": "Kiszolgáló eltávolítása",

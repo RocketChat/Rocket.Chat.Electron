@@ -1,0 +1,125 @@
+name: Build
+
+on:
+  - pull_request
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - run: yarn --check-files
+      - run: yarn test
+
+  bundle:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - run: yarn --check-files
+      - run: yarn eslint
+      - run: yarn build
+        env:
+          NODE_ENV: production
+      - uses: actions/upload-artifact@v2
+        with:
+          name: app
+          path: ./app
+
+  smoke-test-windows-build:
+    needs: bundle
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - run: yarn --check-files
+      - uses: actions/download-artifact@v2
+        with:
+          name: app
+          path: ./app
+      - run: yarn electron-builder --x64 --dir
+      - run: |
+          $job = Start-Job -ScriptBlock { .\dist\win-unpacked\Rocket.Chat.exe }
+          if (Wait-Job $job -Timeout 30) {
+            Write-Host $(Receive-Job -Job $job)
+          }
+          Remove-Job -force $job
+      - run: yarn electron-builder --ia32 --dir
+      - run: |
+          $job = Start-Job -ScriptBlock { .\dist\win-ia32-unpacked\Rocket.Chat.exe }
+          if (Wait-Job $job -Timeout 30) {
+            Write-Host $(Receive-Job -Job $job)
+          }
+          Remove-Job -force $job
+
+  smoke-test-macos-build:
+    needs: bundle
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - run: yarn --check-files
+      - uses: actions/download-artifact@v2
+        with:
+          name: app
+          path: ./app
+      - run: yarn electron-builder --dir
+      - run: |
+          brew install coreutils
+          gtimeout 30 ./dist/mac/Rocket.Chat.app/Contents/MacOS/Rocket.Chat || code=$?
+          if [[ $code -ne 124 && $code -ne 0 ]]; then
+            exit $code;
+          fi
+
+  smoke-test-linux-build:
+    needs: bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - run: yarn --check-files
+      - uses: actions/download-artifact@v2
+        with:
+          name: app
+          path: ./app
+      - run: yarn electron-builder --dir
+      - run: |
+          xvfb-run timeout 30 ./dist/linux-unpacked/rocketchat-desktop || code=$?
+          if [[ $code -ne 124 && $code -ne 0 ]]; then
+            exit $code;
+          fi

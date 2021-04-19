@@ -1,6 +1,0 @@
-{
-  "extends": [
-    "@rocket.chat/eslint-config"
-  ],
-  "parser": "babel-eslint"
-}

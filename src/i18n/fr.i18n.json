@@ -1,0 +1,145 @@
+{
+  "contextMenu": {
+    "cut": "Cou&per",
+    "copy": "&Copier",
+    "paste": "Co&ller",
+    "selectAll": "Sélectionner tout",
+    "undo": "&Annuler",
+    "redo": "&Rétablir",
+    "spellingLanguages": "Langages",
+    "moreSpellingSuggestions": "Plus de suggestions d'orthographe",
+    "noSpellingSuggestions": "Pas de suggestions",
+    "copyLinkAddress": "Copier le lien",
+    "openLink": "Ouvrir le lien"
+  },
+  "dialog": {
+    "about": {
+      "title": "À propos de {{- appName}}",
+      "version": "Version: <1>{{-version}}</1>",
+      "checkUpdates": "Vérifier l'existence de mises à jour",
+      "checkUpdatesOnStart": "Vérifier l'existence de mises à jour au démarrage",
+      "copyright": "Copyright {{copyright}}"
+    },
+    "addServer": {
+      "title": "Ajouter un serveur",
+      "message": "Vous voulez ajouter \"{{- host}}\" a votre liste de serveurs?",
+      "add": "Ajouter",
+      "cancel": "Annuler"
+    },
+    "addServerError": {
+      "title": "Hôte invalide",
+      "message": "L'hôte \"{{- host}}\" n'a pas pu être validé et ajouté."
+    },
+    "certificateError": {
+      "title": "Erreur de certificat",
+      "message": "Vous faites confiance au certificat de \"{{- issuerName}}\" ?",
+      "yes": "Oui",
+      "no": "No"
+    },
+    "resetAppData": {
+      "yes": "Oui",
+      "cancel": "Annuler"
+    },
+    "screenshare": {
+      "title": "Partagez votre écran",
+      "announcement": "Choisir un écran à partager"
+    },
+    "update": {
+      "title": "Une mise à jour est disponible",
+      "announcement": "Une nouvelle mise à jour est disponible",
+      "message": "Une mise à jour de Rocket.Chat Desktop App est disponible!",
+      "currentVersion": "Version utilisée:",
+      "newVersion": "Nouvelle version:",
+      "install": "Installer la mise à jour",
+      "remindLater": "Me rappeler plus tard",
+      "skip": "Ignorer cette version"
+    },
+    "updateDownloading": {
+      "title": "Téléchargement de la mise à jour",
+      "message": "Vous serez averti quand la mise à jour sera prête à être installée"
+    },
+    "updateInstallLater": {
+      "title": "L'installation se fera plus tard",
+      "message": "La mise à jour sera installé à la fermeture de l'application"
+    },
+    "updateReady": {
+      "title": "La mise à jour est prête a être installée",
+      "message": "La mise à jour a été téléchargée",
+      "installNow": "Installer maintenant",
+      "installLater": "Installer plus tard"
+    },
+    "updateSkip": {
+      "title": "Ignorer la mise à jour",
+      "message": "Vous serez averti quand la prochaine mise à jour sera disponible\nSi vous changez d'avis, vous pouvez vérifier si des mises à jour sont disponible dans le menu A propos."
+    }
+  },
+  "error": {
+    "authNeeded": "Authentification requise, essayez <strong>{{- auth}}</strong>",
+    "connectTimeout": "Échec de connexion",
+    "differentCertificate": "Le certificat est different du dernier utilisé.\n\n {{- detail}}",
+    "noValidServerFound": "Aucun serveur valide trouvé à cette adresse",
+    "offline": "Verifiez votre connexion à Internet !"
+  },
+  "landing": {
+    "invalidUrl": "URL invalide",
+    "validating": "Validation...",
+    "inputUrl": "Ajouter l'URL du serveur",
+    "connect": "Connexion"
+  },
+  "menus": {
+    "about": "À propos de {{- appName}}",
+    "addNewServer": "Ajouter un &nouveau serveur",
+    "back": "Page &précédente",
+    "clearTrustedCertificates": "Effacer les certificats de confiance",
+    "close": "Fermer",
+    "copy": "&Copier",
+    "cut": "Cou&per",
+    "documentation": "Documentation",
+    "editMenu": "&Éditer",
+    "fileMenu": "&Fichier",
+    "forward": "Page &suivante",
+    "helpMenu": "&Aide",
+    "learnMore": "En savoir plus",
+    "minimize": "Réduire",
+    "openDevTools": "Ouvrir &DevTools",
+    "paste": "Co&ller",
+    "quit": "&Quitter {{- appName}}",
+    "redo": "&Rétablir",
+    "reload": "Recharger",
+    "reloadIgnoringCache": "Recharger en ignorant le cache",
+    "reportIssue": "Signaler un problème",
+    "resetAppData": "Effacer les données de l'application",
+    "resetZoom": "Restaurer zoom",
+    "selectAll": "Sélectionner tout",
+    "showFullScreen": "En plein écran",
+    "showMenuBar": "Afficher la barre des menus",
+    "showOnUnreadMessage": "Afficher la fenêtre quand il y a des messages non-lus",
+    "showServerList": "Liste des serveurs",
+    "showTrayIcon": "Afficher l'icone dans le menu",
+    "toggleDevTools": "Afficher &DevTools",
+    "undo": "&Annuler",
+    "viewMenu": "&Voir",
+    "windowMenu": "Fe&nêtre",
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière"
+  },
+  "loadingError": {
+    "title": "Erreur du chargement du serveur",
+    "reload": "Recharger"
+  },
+  "sidebar": {
+    "addNewServer": "Ajouter un nouveau serveur",
+    "item": {
+      "reload": "Recharger le serveur",
+      "remove": "Effacer le serveur",
+      "openDevTools": "Ouvrir DevTools"
+    }
+  },
+  "tray": {
+    "menu": {
+      "show": "Afficher",
+      "hide": "Cacher",
+      "quit": "Quitter"
+    }
+  }
+}

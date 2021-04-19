@@ -92,10 +92,6 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
     });
   };
 
-  const handleDomReady = (): void => {
-    guestWebContents.focus();
-  };
-
   const handleDidNavigateInPage = (
     _event: DidNavigateEvent,
     pageUrl: string,
@@ -134,7 +130,6 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
   guestWebContents.addListener('did-fail-load', handleDidFailLoad);
-  guestWebContents.addListener('dom-ready', handleDomReady);
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
   guestWebContents.addListener('context-menu', handleContextMenu);
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);

@@ -102,7 +102,7 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     return;
   }
 
-  if (!x || !y) {
+  if (x === null || x === undefined || y === null || y === undefined) {
     browserWindow.setBounds({ width, height });
   } else {
     browserWindow.setBounds({ x, y, width, height });

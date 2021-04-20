@@ -204,6 +204,7 @@
   },
   "sidebar": {
     "addNewServer": "Add new server",
+    "backButton": "Go Back",
     "downloads": "Downloads",
     "item": {
       "reload": "Reload server",

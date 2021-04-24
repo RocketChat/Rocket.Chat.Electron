@@ -11,11 +11,11 @@ export const SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED = 'select-client-certifi
 export const EXTERNAL_PROTOCOL_PERMISSION_UPDATED = 'navigation/external-protocol-permission-updated';
 
 export type NavigationActionTypeToPayloadMap = {
-  [CERTIFICATES_CLEARED]: never;
+  [CERTIFICATES_CLEARED]: void;
   [CERTIFICATES_LOADED]: Record<Server['url'], Certificate['fingerprint']>;
   [CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED]: Certificate[];
   [CERTIFICATES_UPDATED]: Record<Server['url'], Certificate['fingerprint']>;
   [SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED]: Certificate['fingerprint'];
-  [SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED]: never;
+  [SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED]: void;
   [EXTERNAL_PROTOCOL_PERMISSION_UPDATED]: { protocol: string; allowed: boolean };
 };

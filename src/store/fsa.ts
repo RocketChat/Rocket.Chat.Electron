@@ -1,14 +1,40 @@
-import { Action } from 'redux';
-
-export type FluxStandardAction<A extends string = string, P = undefined> = Action<A> & {
-  payload?: P;
-  error?: true;
-  meta?: Record<string, unknown>;
+export type FluxStandardAction<Type extends string = string, Payload = void> = void extends Payload ? {
+  type: Type;
+} : {
+  type: Type;
+  payload: Payload;
 };
 
-export const isFSA = (action: unknown): action is FluxStandardAction<string, unknown> => typeof action === 'object'
+export const isFSA = <Action extends FluxStandardAction<string, unknown>>(action: unknown): action is Action =>
+  typeof action === 'object'
 	&& action !== null
 	&& !Array.isArray(action)
-	&& typeof (action as FluxStandardAction<string, unknown>).type === 'string'
-	&& ['undefined', 'boolean'].includes(typeof (action as FluxStandardAction<string, unknown>).error)
-	&& ['undefined', 'object'].includes(typeof (action as FluxStandardAction<string, unknown>).meta);
+  && 'type' in action
+	&& typeof (action as { type: string }).type === 'string';
+
+export const hasMeta = <Action extends FluxStandardAction<string, unknown>>(action: Action): action is Action & { meta: Record<string, unknown> } =>
+  'meta' in action
+  && typeof (action as Action & { meta: unknown }).meta === 'object'
+  && (action as Action & { meta: unknown }).meta !== null;
+
+export const isResponse = <Action extends FluxStandardAction<string, unknown>>(action: Action): action is Action & { meta: { response: boolean; id: unknown } } =>
+  hasMeta(action)
+  && (action as Action & { meta: { response: unknown; id: unknown } }).meta.response === true;
+
+export const isLocallyScoped = <Action extends FluxStandardAction<string, unknown>>(action: Action): action is Action & { meta: { scope: 'local' } } =>
+  hasMeta(action)
+  && (action as Action & { meta: { scope: unknown } }).meta.scope === 'local';
+
+export const isErrored = <Action extends FluxStandardAction<string, unknown>>(action: Action): action is Action & { error: true; payload: Error } =>
+  'meta' in action
+  && (action as Action & { error: unknown }).error === true
+  && (action as Action & { payload: unknown }).payload instanceof Error;
+
+export const hasPayload = <Action extends FluxStandardAction<string, unknown>>(action: Action): action is Action & { payload: Action extends { payload: infer P } ? P : never } =>
+  'payload' in action;
+
+export const isResponseTo = <Action extends FluxStandardAction<string, unknown>, Types extends [...string[]]>(id: unknown, ...types: Types) =>
+  (action: Action): action is Action & {
+    [Type in Types[number]]: { type: Type; meta: { response: boolean; id: unknown } }
+  }[Types[number]] =>
+    isResponse(action) && types.includes(action.type) && action.meta.id === id;

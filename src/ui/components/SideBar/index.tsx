@@ -1,4 +1,4 @@
-import { parse as parseUrl } from 'url';
+import { parse } from 'url';
 
 import { Icon } from '@rocket.chat/fuselage';
 import React, { useMemo, FC, DragEvent, MouseEvent } from 'react';
@@ -36,9 +36,9 @@ import { useSorting } from './useSorting';
 type ServerButtonProps = {
   url: string;
   title: string;
-  shortcutNumber: string;
+  shortcutNumber: string | null;
   isSelected: boolean;
-  favicon: string;
+  favicon: string | null;
   isShortcutVisible: boolean;
   hasUnreadMessages: boolean;
   mentionCount?: number;
@@ -71,7 +71,7 @@ const ServerButton: FC<ServerButtonProps> = ({
   };
 
   const initials = useMemo(() => title
-    ?.replace(url, parseUrl(url).hostname)
+    ?.replace(url, parse(url).hostname ?? '')
     ?.split(/[^A-Za-z0-9]+/g)
     ?.slice(0, 2)
     ?.map((text) => text.slice(0, 1).toUpperCase())
@@ -126,10 +126,7 @@ export const SideBar: FC = () => {
   const isSideBarEnabled = useSelector(({ isSideBarEnabled }: RootState) => isSideBarEnabled);
   const isVisible = servers.length > 0 && isSideBarEnabled;
 
-  const {
-    background,
-    color,
-  } = servers.find(({ selected }) => selected)?.style || {};
+  const style = useMemo(() => servers.find(({ selected }) => selected)?.style || {}, [servers]);
 
   const isEachShortcutVisible = useKeyboardShortcuts();
   const {
@@ -153,18 +150,18 @@ export const SideBar: FC = () => {
 
   const { t } = useTranslation();
 
-  return <Wrapper background={background} color={color} isVisible={isVisible}>
+  return <Wrapper sideBarStyle={style} isVisible={isVisible}>
     <Content withWindowButtons={process.platform === 'darwin'}>
       <ServerList>
         {sortedServers.map((server, order) => <ServerButton
           key={server.url}
           url={server.url}
-          title={server.title === 'Rocket.Chat' && parseUrl(server.url).host !== 'open.rocket.chat'
+          title={server.title === 'Rocket.Chat' && parse(server.url).hostname !== 'open.rocket.chat'
             ? `${ server.title } - ${ server.url }`
-            : server.title}
-          shortcutNumber={order <= 9 ? String(order + 1) : undefined}
+            : server.title ?? server.url}
+          shortcutNumber={typeof order === 'number' && order <= 9 ? String(order + 1) : null}
           isSelected={server.selected}
-          favicon={server.favicon}
+          favicon={server.favicon ?? null}
           hasUnreadMessages={!!server.badge}
           mentionCount={typeof server.badge === 'number' ? server.badge : undefined}
           isShortcutVisible={isEachShortcutVisible}

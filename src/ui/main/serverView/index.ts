@@ -5,8 +5,6 @@ import {
   app,
   BrowserWindow,
   ContextMenuParams,
-  DidFailLoadEvent,
-  DidNavigateEvent,
   Event,
   Input,
   Menu,
@@ -46,7 +44,7 @@ const t = i18next.t.bind(i18next);
 
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
-export const getWebContentsByServerUrl = (url: string): WebContents =>
+export const getWebContentsByServerUrl = (url: string): WebContents | undefined =>
   webContentsByServerUrl.get(url);
 
 const initializeServerWebContents = (serverUrl: string, guestWebContents: WebContents, rootWindow: BrowserWindow): void => {
@@ -73,7 +71,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
   };
 
   const handleDidFailLoad = (
-    _event: DidFailLoadEvent,
+    _event: Event,
     errorCode: number,
     _errorDescription: string,
     _validatedURL: string,
@@ -93,7 +91,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
   };
 
   const handleDidNavigateInPage = (
-    _event: DidNavigateEvent,
+    _event: Event,
     pageUrl: string,
     _isMainFrame: boolean,
     _frameProcessId: number,
@@ -220,7 +218,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
-        const { mediaTypes } = details;
+        const { mediaTypes = [] } = details;
         const allowed = (!mediaTypes.includes('audio') || await systemPreferences.askForMediaAccess('microphone'))
           && (!mediaTypes.includes('video') || await systemPreferences.askForMediaAccess('camera'));
         callback(allowed);
@@ -236,6 +234,11 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         return;
 
       case 'openExternal': {
+        if (!details.externalURL) {
+          callback(false);
+          return;
+        }
+
         const allowed = await isProtocolAllowed(details.externalURL);
         callback(allowed);
         return;
@@ -256,7 +259,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
-    guestWebContents.loadURL(action.payload.url);
+    guestWebContents?.loadURL(action.payload.url);
   });
 
   listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {
@@ -267,7 +270,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         label: t('sidebar.item.reload'),
         click: () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          guestWebContents.loadURL(serverUrl);
+          guestWebContents?.loadURL(serverUrl);
         },
       },
       {
@@ -281,7 +284,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         label: t('sidebar.item.openDevTools'),
         click: () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          guestWebContents.openDevTools();
+          guestWebContents?.openDevTools();
         },
       },
     ];
@@ -308,7 +311,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   handle('server-view/ready', async (webContents) => {
     if (!injectableCode) {
       injectableCode = await fs.promises.readFile(
-        path.join(select(({ appPath }) => appPath), 'app/injected.js'),
+        path.join(app.getAppPath(), 'app/injected.js'),
         'utf8',
       );
     }

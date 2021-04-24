@@ -34,12 +34,9 @@ export const createNotification = async ({
 }: NotificationOptions & {
   canReply?: boolean,
   title: string,
-  onEvent: (eventDescriptor: { type: string; detail?: unknown }) => void,
+  onEvent: (eventDescriptor: { type: string; detail: unknown }) => void,
 }): Promise<unknown> => {
-  const id = await request<
-    typeof NOTIFICATIONS_CREATE_REQUESTED,
-    typeof NOTIFICATIONS_CREATE_RESPONDED
-  >({
+  const id = await request({
     type: NOTIFICATIONS_CREATE_REQUESTED,
     payload: {
       title,
@@ -48,7 +45,7 @@ export const createNotification = async ({
       } : {},
       ...options,
     },
-  });
+  }, NOTIFICATIONS_CREATE_RESPONDED);
 
   eventHandlers.set(id, (event) => onEvent({ type: event.type, detail: event.detail }));
 
@@ -63,31 +60,19 @@ export const destroyNotification = (id: unknown): void => {
 export const listenToNotificationsRequests = (): void => {
   listen(NOTIFICATIONS_NOTIFICATION_SHOWN, (action) => {
     const { payload: { id } } = action;
-
-    if (!eventHandlers.has(id)) {
-      return;
-    }
-
-    eventHandlers.get(id)({ type: 'show' });
+    const eventHandler = eventHandlers.get(id);
+    eventHandler?.({ type: 'show' });
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_CLOSED, (action) => {
     const { payload: { id } } = action;
-
-    if (!eventHandlers.has(id)) {
-      return;
-    }
-
-    eventHandlers.get(id)({ type: 'close' });
+    const eventHandler = eventHandlers.get(id);
+    eventHandler?.({ type: 'close' });
     eventHandlers.delete(id);
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action) => {
     const { payload: { id } } = action;
-
-    if (!eventHandlers.has(id)) {
-      return;
-    }
 
     dispatch({
       type: WEBVIEW_FOCUS_REQUESTED,
@@ -96,26 +81,19 @@ export const listenToNotificationsRequests = (): void => {
       },
     });
 
-    eventHandlers.get(id)({ type: 'click' });
+    const eventHandler = eventHandlers.get(id);
+    eventHandler?.({ type: 'click' });
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_REPLIED, (action) => {
     const { payload: { id, reply } } = action;
-
-    if (!eventHandlers.has(id)) {
-      return;
-    }
-
-    eventHandlers.get(id)({ type: 'reply', detail: { reply } });
+    const eventHandler = eventHandlers.get(id);
+    eventHandler?.({ type: 'reply', detail: { reply } });
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_ACTIONED, (action) => {
     const { payload: { id, index } } = action;
-
-    if (!eventHandlers.has(id)) {
-      return;
-    }
-
-    eventHandlers.get(id)({ type: 'action', detail: { index } });
+    const eventHandler = eventHandlers.get(id);
+    eventHandler?.({ type: 'action', detail: { index } });
   });
 };

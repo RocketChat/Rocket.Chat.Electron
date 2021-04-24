@@ -16,7 +16,7 @@ const selectIsRootWindowVisible = ({ rootWindowState: { visible } }: RootState):
 const createTrayIcon = (): Tray => {
   const image = getTrayIconPath({
     platform: process.platform,
-    badge: null,
+    badge: undefined,
   });
 
   const trayIcon = new Tray(image);
@@ -145,7 +145,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
 };
 
 class TrayIconService extends Service {
-  private tearDownPromise: Promise<() => void> = null
+  private tearDownPromise: Promise<() => void> | null = null
 
   protected initialize(): void {
     this.watch(({ isTrayIconEnabled }) => isTrayIconEnabled ?? true, (isTrayIconEnabled) => {

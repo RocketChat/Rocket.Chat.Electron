@@ -20,8 +20,10 @@ const inferContentTypeFromImageData = (data: ArrayBuffer): string | null => {
 };
 
 const fetchIcon = async (urlHref: string): Promise<string> => {
-  if (iconCache.has(urlHref)) {
-    return iconCache.get(urlHref);
+  const cache = iconCache.get(urlHref);
+
+  if (cache) {
+    return cache;
   }
 
   const response = await fetch(urlHref);

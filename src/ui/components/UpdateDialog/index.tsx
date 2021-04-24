@@ -31,7 +31,7 @@ export const UpdateDialog: FC = () => {
       return;
     }
 
-    installButtonRef.current.focus();
+    installButtonRef.current?.focus();
   }, [isVisible]);
 
   const handleSkipButtonClick = (): void => {

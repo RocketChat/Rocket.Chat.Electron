@@ -55,7 +55,7 @@ const selectBadgeAndFavicon = createStructuredSelector<RootState, RootWindowIcon
     const badges = servers.map(({ badge }) => badge);
 
     const mentionCount = badges
-      .filter((badge) => Number.isInteger(badge))
+      .filter((badge): badge is number => Number.isInteger(badge))
       .reduce<number>((sum, count: number) => sum + count, 0);
 
     if (mentionCount > 0) {
@@ -71,7 +71,7 @@ const selectBadgeAndFavicon = createStructuredSelector<RootState, RootWindowIcon
   favicon: ({
     currentView,
     servers,
-  }: RootState) => (typeof currentView === 'object' ? servers.find((server) => server.url === currentView.url)?.favicon : undefined),
+  }: RootState) => (typeof currentView === 'object' ? servers.find((server) => server.url === currentView.url)?.favicon : undefined) ?? undefined,
 });
 
 let faviconImage: HTMLImageElement;
@@ -85,8 +85,12 @@ const getFaviconImage = async (src: string): Promise<HTMLImageElement> => {
     faviconImage.src = src;
 
     return new Promise((resolve, reject) => {
-      faviconImage.onload = () => resolve(faviconImage);
-      faviconImage.onerror = (event: ErrorEvent) => reject(event.error);
+      faviconImage.addEventListener('load', () => {
+        resolve(faviconImage);
+      });
+      faviconImage.addEventListener('error', (event) => {
+        reject(event.error);
+      });
     });
   }
 
@@ -105,8 +109,12 @@ const getBadgeImage = async (badge: RootWindowIconParams['badge']): Promise<HTML
     badgeImage.src = `data:image/svg+xml;base64,${ btoa(svg) }`;
 
     return new Promise((resolve, reject) => {
-      badgeImage.onload = () => resolve(badgeImage);
-      badgeImage.onerror = (event: ErrorEvent) => reject(event.error);
+      badgeImage.addEventListener('load', () => {
+        resolve(badgeImage);
+      });
+      badgeImage.addEventListener('error', (event) => {
+        reject(event.error);
+      });
     });
   }
 
@@ -141,6 +149,10 @@ const updateRootWindowIconForLinux = async ({ badge, favicon }: RootWindowIconPa
   const representations = [64, 48, 40, 32, 24, 20, 16].map((size) => {
     const canvas = getCanvas(size);
     const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('failed to create canvas 2d context');
+    }
 
     ctx.clearRect(0, 0, size, size);
     ctx.drawImage(faviconImage, 0, 0, size, size);
@@ -190,6 +202,10 @@ const updateRootWindowIconForWindows = async ({ badge, favicon }: RootWindowIcon
     const canvas = getCanvas(size);
     const ctx = canvas.getContext('2d');
 
+    if (!ctx) {
+      throw new Error('failed to create canvas 2d context');
+    }
+
     ctx.clearRect(0, 0, size, size);
     ctx.drawImage(faviconImage, 0, 0, size, size);
 
@@ -216,6 +232,10 @@ const updateRootWindowIconForWindows = async ({ badge, favicon }: RootWindowIcon
   const size = 32;
   const canvas = getCanvas(size);
   const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    throw new Error('failed to create canvas 2d context');
+  }
 
   ctx.clearRect(0, 0, size, size);
   ctx.drawImage(overlayImage, 0, 0, size, size);

@@ -1,5 +1,5 @@
 import { useMergedRefs } from '@rocket.chat/fuselage-hooks';
-import React, { useLayoutEffect, useRef, forwardRef, ReactElement, ReactText, ReactNode } from 'react';
+import React, { useLayoutEffect, useRef, forwardRef, ReactElement, ReactNode, Key } from 'react';
 import { createPortal } from 'react-dom';
 import flattenChildren from 'react-keyed-flatten-children';
 
@@ -8,7 +8,7 @@ type ReparentingContainerProps = {
 };
 
 export const ReparentingContainer = forwardRef<HTMLDivElement, ReparentingContainerProps>(function ReparentingContainer({ children, ...props }, ref) {
-  const innerRef = useRef<HTMLDivElement>();
+  const innerRef = useRef<HTMLDivElement>(null);
 
   const childrenArray = flattenChildren(children) as ReactElement[];
 
@@ -24,11 +24,18 @@ export const ReparentingContainer = forwardRef<HTMLDivElement, ReparentingContai
   const childrenKept = childrenArray.filter((child) => prevKeys.includes(child.key));
   const childrenRemoved = prevChildrenArrayRef.current.filter((child) => !keys.includes(child.key));
 
-  const nodesRef = useRef(new Map<ReactText, Element>());
+  const nodesRef = useRef(new Map<Key, Element>());
 
   const portals = [
-    ...childrenKept.map((child) => createPortal(child, nodesRef.current.get(child.key), String(child.key))),
+    ...childrenKept.map((child) => {
+      const element = child.key ? nodesRef.current.get(child.key) : undefined;
+      return element ? createPortal(child, element, String(child.key)) : null;
+    }),
     ...childrenAdded.map((child) => {
+      if (!child.key) {
+        return null;
+      }
+
       const node = document.createElement('div');
       nodesRef.current.set(child.key, node);
       return createPortal(child, node, String(child.key));
@@ -36,22 +43,39 @@ export const ReparentingContainer = forwardRef<HTMLDivElement, ReparentingContai
   ];
 
   useLayoutEffect(() => {
-    childrenAdded.forEach((child) => {
+    if (!innerRef.current) {
+      return;
+    }
+
+    for (const child of childrenAdded) {
+      if (!child.key) {
+        continue;
+      }
+
       const node = nodesRef.current.get(child.key);
+
+      if (!node) {
+        continue;
+      }
+
       for (const { name, value } of Array.from(innerRef.current.attributes)) {
         node.setAttribute(name, value);
       }
       node.toggleAttribute('data-container', true);
-      innerRef.current.parentElement.insertBefore(node, innerRef.current);
-    });
+      innerRef.current.parentElement?.insertBefore(node, innerRef.current);
+    }
   }, [childrenAdded]);
 
   useLayoutEffect(() => {
     setTimeout(() => {
-      childrenRemoved.forEach((child) => {
-        nodesRef.current.get(child.key).remove();
+      for (const child of childrenRemoved) {
+        if (!child.key) {
+          continue;
+        }
+
+        nodesRef.current.get(child.key)?.remove();
         nodesRef.current.delete(child.key);
-      });
+      }
     }, 1000);
   }, [childrenRemoved]);
 

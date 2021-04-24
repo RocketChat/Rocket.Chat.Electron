@@ -18,7 +18,7 @@ const getMacOSTrayIconPath = (badge: Server['badge']): string =>
 const getWindowsTrayIconPath = (badge: Server['badge']): string => {
   const name = (!badge && 'default')
     || (badge === '•' && 'notification-dot')
-    || (badge > 9 && 'notification-plus-9')
+    || (typeof badge === 'number' && badge > 9 && 'notification-plus-9')
     || `notification-${ badge }`;
   return path.join(app.getAppPath(), `app/images/tray/win32/${ name }.ico`);
 };
@@ -26,7 +26,7 @@ const getWindowsTrayIconPath = (badge: Server['badge']): string => {
 const getLinuxTrayIconPath = (badge: Server['badge']): string => {
   const name = (!badge && 'default')
     || (badge === '•' && 'notification-dot')
-    || (badge > 9 && 'notification-plus-9')
+    || (typeof badge === 'number' && badge > 9 && 'notification-plus-9')
     || `notification-${ badge }`;
   return path.join(app.getAppPath(), `app/images/tray/linux/${ name }.png`);
 };

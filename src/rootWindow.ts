@@ -22,6 +22,10 @@ const start = async (): Promise<void> => {
 
   const container = document.getElementById('root');
 
+  if (!container) {
+    throw new Error('cannot find the container node for React');
+  }
+
   render(createElement(App, { reduxStore }), container);
 
   window.addEventListener('beforeunload', () => {

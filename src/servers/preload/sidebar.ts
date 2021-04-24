@@ -48,7 +48,7 @@ export const setBackground = (imageUrl: string): void => {
 
   element.style.backgroundImage = imageUrl
     ? `url(${ JSON.stringify(getAbsoluteUrl(imageUrl)) })`
-    : null;
+    : 'none';
 
   pollSidebarStyle(element, (sideBarStyle) => {
     dispatch({

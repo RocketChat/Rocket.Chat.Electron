@@ -22,7 +22,7 @@ export type RocketChatDesktopAPI = {
   setTitle: (title: string) => void;
   setUserPresenceDetection: (options: {
     isAutoAwayEnabled: boolean;
-    idleThreshold: number;
+    idleThreshold: number | null;
     setUserOnline: (online: boolean) => void;
   }) => void;
   createNotification: (options: NotificationOptions & {

@@ -1,4 +1,4 @@
-import { Box, SearchInput, Select, Icon, Button, Pagination, PaginationProps, Scrollable } from '@rocket.chat/fuselage';
+import { Box, SearchInput, Select, Icon, Button, Pagination, Scrollable } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import React, { useState, useMemo, useCallback, FC, ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +23,7 @@ const DownloadsManagerView: FC = () => {
     ['*', t('downloads.filters.all')],
     ...Object.values(downloads)
       .filter(({ serverUrl, serverTitle }) => serverUrl && serverTitle)
-      .map<[string, string]>(({ serverUrl, serverTitle }) => [serverUrl, serverTitle]),
+      .map<[string, string]>(({ serverUrl, serverTitle }) => [serverUrl, serverTitle ?? serverUrl]),
   ]);
 
   const [serverFilter, setServerFilter] = useLocalStorage<(typeof serverFilterOptions)[number][0]>('download-server', '');
@@ -66,7 +66,7 @@ const DownloadsManagerView: FC = () => {
     setStatusFilter('');
   }, [setSearchFilter, setMimeTypeFilter, setServerFilter, setStatusFilter]);
 
-  const [itemsPerPage, setItemsPerPage] = useState<PaginationProps['itemsPerPage']>(25);
+  const [itemsPerPage, setItemsPerPage] = useState<25 | 50 | 100>(25);
   const [currentPagination, setCurrentPagination] = useState(0);
 
   const showingResultsLabel = useCallback(({ count, current, itemsPerPage }) => t('downloads.showingResults', {

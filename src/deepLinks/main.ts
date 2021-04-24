@@ -71,7 +71,7 @@ const performOnServer = async (url: string, action: (serverUrl: string) => Promi
   const [serverUrl, status, error] = await resolveServerUrl(url);
 
   if (status !== ServerUrlResolutionStatus.OK) {
-    await warnAboutInvalidServerUrl(serverUrl, error.message);
+    await warnAboutInvalidServerUrl(serverUrl, error?.message ?? '');
     return;
   }
 
@@ -113,16 +113,11 @@ const getWebContents = (serverUrl: string): Promise<WebContents> =>
 
 const performAuthentication = async ({ host, token, userId }: AuthenticationParams): Promise<void> =>
   performOnServer(host, async (serverUrl) => {
-    if (!token) {
-      return;
-    }
-
     const url = new URL('home', serverUrl);
     url.searchParams.append('resumeToken', token);
     url.searchParams.append('userId', userId);
 
     const webContents = await getWebContents(serverUrl);
-    console.log(url.href);
     webContents.loadURL(url.href);
   });
 
@@ -138,7 +133,7 @@ const performOpenRoom = async ({ host, path }: OpenRoomParams): Promise<void> =>
 
 const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
   performOnServer(host, async (serverUrl) => {
-    if (!path || !/^invite\//.test(path)) {
+    if (!/^invite\//.test(path)) {
       return;
     }
 
@@ -157,26 +152,32 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
 
   switch (action) {
     case 'auth': {
-      const host = args.get('host');
-      const token = args.get('token');
-      const userId = args.get('userId');
-      await performAuthentication({ host, token, userId });
+      const host = args.get('host') ?? undefined;
+      const token = args.get('token') ?? undefined;
+      const userId = args.get('userId') ?? undefined;
+      if (host && token && userId) {
+        await performAuthentication({ host, token, userId });
+      }
       break;
     }
 
     case 'room': {
-      const host = args.get('host');
-      const path = args.get('path');
-      const rid = args.get('rid');
-      await performOpenRoom({ host, path, rid });
+      const host = args.get('host') ?? undefined;
+      const path = args.get('path') ?? undefined;
+      const rid = args.get('rid') ?? undefined;
+      if (host && rid) {
+        await performOpenRoom({ host, path, rid });
+      }
       break;
     }
 
     case 'invite': {
-      const host = args.get('host');
-      const path = args.get('path');
-      const rid = args.get('rid');
-      await performInvite({ host, path, rid });
+      const host = args.get('host') ?? undefined;
+      const path = args.get('path') ?? undefined;
+      const rid = args.get('rid') ?? undefined;
+      if (host && path && rid) {
+        await performInvite({ host, path, rid });
+      }
     }
   }
 };

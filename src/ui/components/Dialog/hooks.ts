@@ -1,7 +1,7 @@
 import { useEffect, useRef, Ref } from 'react';
 
 export const useDialog = (visible: boolean, onClose = (): void => undefined): Ref<HTMLDialogElement> => {
-  const dialogRef = useRef<HTMLDialogElement>();
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const onCloseRef = useRef<() => void>();
 
   useEffect(() => {
@@ -12,6 +12,10 @@ export const useDialog = (visible: boolean, onClose = (): void => undefined): Re
     const dialog = dialogRef.current;
     const onClose = onCloseRef.current;
 
+    if (!dialog) {
+      return;
+    }
+
     if (!visible) {
       dialog.close();
       return;
@@ -21,7 +25,7 @@ export const useDialog = (visible: boolean, onClose = (): void => undefined): Re
 
     dialog.onclose = () => {
       dialog.close();
-      onClose();
+      onClose?.();
     };
 
     dialog.onclick = ({ clientX, clientY }) => {

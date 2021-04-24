@@ -58,7 +58,7 @@ export const currentView = (state: CurrentViewState = 'add-new-server', action: 
     }
 
     case APP_SETTINGS_LOADED: {
-      const { currentView } = action.payload;
+      const { currentView = state } = action.payload;
       return currentView;
     }
 

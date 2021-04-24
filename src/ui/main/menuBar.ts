@@ -151,12 +151,12 @@ const createEditMenu = createSelector(
   }),
 );
 
-const selectViewDeps = createStructuredSelector({
-  currentView: ({ currentView }: RootState) => currentView,
-  isSideBarEnabled: ({ isSideBarEnabled }: RootState) => isSideBarEnabled,
-  isTrayIconEnabled: ({ isTrayIconEnabled }: RootState) => isTrayIconEnabled,
-  isMenuBarEnabled: ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled,
-  rootWindowState: ({ rootWindowState }: RootState) => rootWindowState,
+const selectViewDeps = createStructuredSelector<RootState, Pick<RootState, 'currentView' | 'isSideBarEnabled' | 'isTrayIconEnabled' | 'isMenuBarEnabled' | 'rootWindowState'>>({
+  currentView: ({ currentView }) => currentView,
+  isSideBarEnabled: ({ isSideBarEnabled }) => isSideBarEnabled,
+  isTrayIconEnabled: ({ isTrayIconEnabled }) => isTrayIconEnabled,
+  isMenuBarEnabled: ({ isMenuBarEnabled }) => isMenuBarEnabled,
+  rootWindowState: ({ rootWindowState }) => rootWindowState,
 });
 
 const createViewMenu = createSelector(
@@ -183,8 +183,8 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          guestWebContents.reload();
+          const guestWebContents = typeof currentView === 'object' ? getWebContentsByServerUrl(currentView.url) : null;
+          guestWebContents?.reload();
         },
       },
       {
@@ -198,8 +198,8 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          guestWebContents.reloadIgnoringCache();
+          const guestWebContents = typeof currentView === 'object' ? getWebContentsByServerUrl(currentView.url) : null;
+          guestWebContents?.reloadIgnoringCache();
         },
       },
       {
@@ -208,8 +208,8 @@ const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
         click: () => {
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          guestWebContents.toggleDevTools();
+          const guestWebContents = typeof currentView === 'object' ? getWebContentsByServerUrl(currentView.url) : null;
+          guestWebContents?.toggleDevTools();
         },
       },
       { type: 'separator' },
@@ -225,8 +225,8 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          guestWebContents.goBack();
+          const guestWebContents = typeof currentView === 'object' ? getWebContentsByServerUrl(currentView.url) : null;
+          guestWebContents?.goBack();
         },
       },
       {
@@ -241,8 +241,8 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          guestWebContents.goForward();
+          const guestWebContents = typeof currentView === 'object' ? getWebContentsByServerUrl(currentView.url) : null;
+          guestWebContents?.goForward();
         },
       },
       { type: 'separator' },
@@ -367,10 +367,10 @@ const createViewMenu = createSelector(
   }),
 );
 
-const selectWindowDeps = createStructuredSelector({
-  servers: ({ servers }:RootState) => servers,
-  currentView: ({ currentView }: RootState) => currentView,
-  isShowWindowOnUnreadChangedEnabled: ({ isShowWindowOnUnreadChangedEnabled }:RootState) => isShowWindowOnUnreadChangedEnabled,
+const selectWindowDeps = createStructuredSelector<RootState, Pick<RootState, 'servers' | 'currentView' | 'isShowWindowOnUnreadChangedEnabled'>>({
+  servers: ({ servers }) => servers,
+  currentView: ({ currentView }) => currentView,
+  isShowWindowOnUnreadChangedEnabled: ({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled,
 });
 
 const createWindowMenu = createSelector(

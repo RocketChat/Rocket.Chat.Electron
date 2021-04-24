@@ -101,7 +101,7 @@ const createWindowsTrayIcons = async (): Promise<void> => {
     const notificationIcon = renderToStaticMarkup(createElement(WindowsTrayIcon, { badge }));
     const notificationIconPngs = await convertSvgToPng(notificationIcon, 16, 24, 32, 48, 64, 128, 256);
     const notificationIconIco = await icoConvert.convert(notificationIconPngs);
-    const name = (badge === '•' && 'dot') || (badge > 9 && 'plus-9') || String(badge);
+    const name = (badge === '•' && 'dot') || (typeof badge === 'number' && badge > 9 && 'plus-9') || String(badge);
     await writeFile(`src/public/images/tray/win32/notification-${ name }.ico`, notificationIconIco);
   }
 };
@@ -135,7 +135,7 @@ const createLinuxTrayIcons = async (): Promise<void> => {
   for await (const badge of ['•', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Server['badge'][]) {
     const notificationIcon = renderToStaticMarkup(createElement(LinuxTrayIcon, { badge }));
     const notificationIconPngs = await convertSvgToPng(notificationIcon, 64, 128);
-    const name = (badge === '•' && 'dot') || (badge > 9 && 'plus-9') || String(badge);
+    const name = (badge === '•' && 'dot') || (typeof badge === 'number' && badge > 9 && 'plus-9') || String(badge);
     await writeFile(`src/public/images/tray/linux/notification-${ name }.png`, notificationIconPngs[0]);
     await writeFile(`src/public/images/tray/linux/notification-${ name }@2x.png`, notificationIconPngs[1]);
   }

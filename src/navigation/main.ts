@@ -58,7 +58,7 @@ export const setupNavigation = async (): Promise<void> => {
     }
 
     if (queuedTrustRequests.has(certificate.fingerprint)) {
-      queuedTrustRequests.get(certificate.fingerprint).push(callback);
+      queuedTrustRequests.get(certificate.fingerprint)?.push(callback);
       return;
     }
 
@@ -73,7 +73,7 @@ export const setupNavigation = async (): Promise<void> => {
 
     const isTrustedByUser = response === AskForCertificateTrustResponse.YES;
 
-    queuedTrustRequests.get(certificate.fingerprint).forEach((cb) => cb(isTrustedByUser));
+    queuedTrustRequests.get(certificate.fingerprint)?.forEach((cb) => cb(isTrustedByUser));
     queuedTrustRequests.delete(certificate.fingerprint);
 
     trustedCertificates = select(({ trustedCertificates }) => trustedCertificates);
@@ -94,17 +94,14 @@ export const setupNavigation = async (): Promise<void> => {
       return;
     }
 
-    const fingerprint = await request<
-      typeof CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
-      typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED | typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED
-    >({
+    const fingerprint = await request({
       type: CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
       payload: JSON.parse(JSON.stringify(certificateList)),
-    });
+    }, SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED, SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED);
     const certificate = certificateList.find((certificate) => certificate.fingerprint === fingerprint);
 
     if (!certificate) {
-      callback(null);
+      callback(undefined);
       return;
     }
 

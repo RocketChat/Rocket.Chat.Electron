@@ -34,8 +34,12 @@ export const AddServerView: FC = () => {
   const { t } = useTranslation();
   const [input, setInput] = useState('');
 
-  const idleState = useMemo(() => ['idle', null], []);
-  const [[validationState, errorMessage], setValidation] = useState(idleState);
+  const idleState = useMemo(() => ['idle', null] as const, []);
+  const [[validationState, errorMessage], setValidation] = useState<
+  | readonly [state: 'idle', message: null]
+  | readonly [state: 'validating', message: null]
+  | readonly [state: 'invalid', message: string | null]
+  >(idleState);
 
   const editInput = useCallback((input: string): void => {
     setInput(input);
@@ -54,7 +58,7 @@ export const AddServerView: FC = () => {
     setValidation(['validating', null]);
   }, []);
 
-  const failValidation = useCallback((serverUrl: string, message: string): void => {
+  const failValidation = useCallback((serverUrl: string, message: string | null): void => {
     setInput(serverUrl);
     setValidation(['invalid', message]);
   }, []);
@@ -62,13 +66,10 @@ export const AddServerView: FC = () => {
   const resolveServerUrl = useCallback(async (serverUrl): Promise<void> => {
     beginValidation();
 
-    const [resolvedServerUrl, result] = await request<
-      typeof SERVER_URL_RESOLUTION_REQUESTED,
-      typeof SERVER_URL_RESOLVED
-    >({
+    const [resolvedServerUrl, result] = await request({
       type: SERVER_URL_RESOLUTION_REQUESTED,
       payload: serverUrl,
-    });
+    }, SERVER_URL_RESOLVED);
 
     switch (result) {
       case ServerUrlResolutionStatus.OK:
@@ -144,7 +145,7 @@ export const AddServerView: FC = () => {
               <TextInput
                 ref={inputRef}
                 id={inputId}
-                error={errorMessage}
+                error={errorMessage ?? undefined}
                 type='text'
                 placeholder={defaultServerUrl.href}
                 dir='auto'

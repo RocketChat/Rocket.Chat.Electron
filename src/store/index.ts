@@ -1,6 +1,7 @@
 import { applyMiddleware, createStore, Store, compose, Middleware, Dispatch } from 'redux';
 
-import { RootAction, ActionOf } from './actions';
+import { RootAction } from './actions';
+import { hasPayload, isErrored, isResponseTo } from './fsa';
 import { forwardToRenderers, getInitialState, forwardToMain } from './ipc';
 import { rootReducer, RootState } from './rootReducer';
 
@@ -31,7 +32,7 @@ export const createRendererReduxStore = async (): Promise<Store> => {
   return reduxStore;
 };
 
-export const dispatch = <T extends RootAction['type']>(action: ActionOf<T>): void => {
+export const dispatch = <Action extends RootAction>(action: Action): void => {
   reduxStore.dispatch(action);
 };
 
@@ -40,7 +41,7 @@ type Selector<T> = (state: RootState) => T;
 export const select = <T>(selector: Selector<T>): T =>
   selector(reduxStore.getState());
 
-export const watch = <T>(selector: Selector<T>, watcher: (curr: T, prev: T) => void): (() => void) => {
+export const watch = <T>(selector: Selector<T>, watcher: (curr: T, prev: T | undefined) => void): (() => void) => {
   const initial = select(selector);
   watcher(initial, undefined);
 
@@ -59,20 +60,23 @@ export const watch = <T>(selector: Selector<T>, watcher: (curr: T, prev: T) => v
   });
 };
 
-export const listen = <T extends RootAction['type']>(
-  predicate: T | ((action: ActionOf<T>) => boolean),
-  listener: (action: ActionOf<T>) => void,
+export const listen: {
+  <ActionType extends RootAction['type']>(type: ActionType, listener: (action: Extract<RootAction, { type: ActionType }>) => void): (() => void);
+  <Action extends RootAction>(predicate: ((action: RootAction) => action is Action), listener: (action: Action) => void): (() => void)
+} = <ActionType extends RootAction['type'], Action extends RootAction>(
+  typeOrPredicate: ActionType | ((action: RootAction) => action is Action),
+  listener: (action: RootAction) => void,
 ): (() => void) => {
-  const effectivePredicate = typeof predicate === 'function'
-    ? (action: ActionOf<T>): action is ActionOf<T> => predicate(action)
-    : (action: ActionOf<T>): action is ActionOf<T> => action?.type === predicate;
+  const effectivePredicate = typeof typeOrPredicate === 'function'
+    ? typeOrPredicate
+    : (action: RootAction): action is Action => action.type === typeOrPredicate;
 
   return reduxStore.subscribe(() => {
-    if (!effectivePredicate(lastAction as ActionOf<T>)) {
+    if (!effectivePredicate(lastAction)) {
       return;
     }
 
-    listener(lastAction as ActionOf<T>);
+    listener(lastAction);
   });
 };
 
@@ -87,16 +91,27 @@ export abstract class Service {
 
   protected watch<T>(
     selector: Selector<T>,
-    watcher: (curr: T, prev: T) => void,
+    watcher: (curr: T, prev: T | undefined) => void,
   ): void {
     this.unsubscribers.add(watch(selector, watcher));
   }
 
-  protected listen<T extends RootAction['type']>(
-    predicate: T | ((action: ActionOf<T>) => boolean),
-    listener: (action: ActionOf<T>) => void,
+  protected listen<ActionType extends RootAction['type']>(type: ActionType, listener: (action: Extract<RootAction, { type: ActionType }>) => void): void;
+
+  // eslint-disable-next-line no-dupe-class-members
+  protected listen<Action extends RootAction>(predicate: ((action: RootAction) => action is Action), listener: (action: Action) => void): void;
+
+  // eslint-disable-next-line no-dupe-class-members
+  protected listen<ActionType extends RootAction['type'], Action extends RootAction>(
+    typeOrPredicate: ActionType | ((action: RootAction) => action is Action),
+    listener: (action: RootAction) => void,
   ): void {
-    this.unsubscribers.add(listen(predicate, listener));
+    if (typeof typeOrPredicate === 'string') {
+      this.unsubscribers.add(listen(typeOrPredicate, listener));
+      return;
+    }
+
+    this.unsubscribers.add(listen(typeOrPredicate, listener));
   }
 
   public setUp(): void {
@@ -109,25 +124,31 @@ export abstract class Service {
   }
 }
 
+// const isResponseTo = <Response extends RootAction>(id: unknown, type: Response['type']) =>
+//   (action: RootAction): action is Response =>
+//     isResponse(action) && action.type === type && action.meta.id === id;
+
 export const request = <
-  ReqT extends RootAction['type'],
-  ResT extends RootAction['type'],
->(requestAction: ActionOf<ReqT>): Promise<ActionOf<ResT>['payload']> =>
-  new Promise<ActionOf<ResT>['payload']>((resolve, reject) => {
+  Request extends RootAction,
+  ResponseTypes extends [...RootAction['type'][]],
+  Response extends {
+    [Index in keyof ResponseTypes]: Extract<RootAction, { type: ResponseTypes[Index], payload: unknown }>;
+  }[number]
+>(requestAction: Request, ...types: ResponseTypes): Promise<Response['payload']> =>
+  new Promise((resolve, reject) => {
     const id = Math.random().toString(36).slice(2);
 
-    const isResponse = (action: ActionOf<ResT>): action is ActionOf<ResT> =>
-      action.meta?.response && action.meta?.id === id;
-
-    const unsubscribe = listen(isResponse, (action: ActionOf<ResT>) => {
+    const unsubscribe = listen(isResponseTo<RootAction, ResponseTypes>(id, ...types), (action) => {
       unsubscribe();
 
-      if (action.error) {
+      if (isErrored(action)) {
         reject(action.payload);
         return;
       }
 
-      resolve(action.payload);
+      if (hasPayload<RootAction>(action)) {
+        resolve(action.payload);
+      }
     });
 
     dispatch({

@@ -11,7 +11,7 @@ import {
 
 export const useSorting = <S extends Server>(servers: S[]): {
   sortedServers: S[];
-  draggedServerUrl: string;
+  draggedServerUrl: string | null;
   handleDragStart: (url: string) => (event: DragEvent) => void;
   handleDragEnd: (event: DragEvent) => void;
   handleDragEnter: (url: string) => (event: DragEvent) => void;
@@ -62,7 +62,9 @@ export const useSorting = <S extends Server>(servers: S[]): {
     event.preventDefault();
 
     if (event.dataTransfer.types.length === 0) {
-      dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: serversSorting });
+      if (serversSorting) {
+        dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: serversSorting });
+      }
       dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
     }
   };

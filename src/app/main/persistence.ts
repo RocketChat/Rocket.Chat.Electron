@@ -1,6 +1,6 @@
+import { app } from 'electron';
 import ElectronStore from 'electron-store';
 
-import appManifest from '../../../package.json';
 import { selectPersistableValues } from '../selectors';
 
 type PersistableValues = ReturnType<typeof selectPersistableValues>;
@@ -23,7 +23,7 @@ const getElectronStore = (): ElectronStore<PersistableValues> => {
   if (!electronStore) {
     electronStore = new ElectronStore({
       migrations,
-      projectVersion: appManifest.version,
+      projectVersion: app.getVersion(),
     } as ElectronStore.Options<PersistableValues>);
   }
 

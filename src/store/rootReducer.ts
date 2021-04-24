@@ -29,7 +29,7 @@ import {
   updateError,
 } from '../updates/reducers';
 
-const reducersMap = {
+export const rootReducer = combineReducers({
   appPath,
   appVersion,
   clientCertificates,
@@ -54,8 +54,6 @@ const reducersMap = {
   skippedUpdateVersion,
   trustedCertificates,
   updateError,
-};
-
-export const rootReducer = combineReducers<typeof reducersMap>(reducersMap);
+});
 
 export type RootState = ReturnType<typeof rootReducer>;

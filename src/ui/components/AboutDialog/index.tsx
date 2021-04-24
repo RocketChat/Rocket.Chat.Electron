@@ -5,13 +5,14 @@ import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 
-import { copyright } from '../../../../package.json';
 import { RootAction } from '../../../store/actions';
 import { RootState } from '../../../store/rootReducer';
 import { UPDATES_CHECK_FOR_UPDATES_REQUESTED } from '../../../updates/actions';
 import { ABOUT_DIALOG_TOGGLE_UPDATE_ON_START, ABOUT_DIALOG_DISMISSED } from '../../actions';
 import { Dialog } from '../Dialog';
 import { RocketChatLogo } from '../RocketChatLogo';
+
+const copyright = `© 2016-${ new Date().getFullYear() }, Rocket.Chat`;
 
 export const AboutDialog: FC = () => {
   const appVersion = useSelector(({ appVersion }: RootState) => appVersion);

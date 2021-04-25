@@ -7,7 +7,7 @@ export const SERVER_URL_RESOLVED = 'server/url-resolved';
 export type ServersActionTypeToPayloadMap = {
   [SERVERS_LOADED]: {
     servers: Server[];
-    selected: Server['url'];
+    selected: Server['url'] | null;
   };
   [SERVER_URL_RESOLUTION_REQUESTED]: Server['url'];
   [SERVER_URL_RESOLVED]: ServerUrlResolutionResult;

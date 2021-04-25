@@ -62,7 +62,7 @@ export const listenToUserPresenceChanges = (): void => {
 
 export const setUserPresenceDetection = (options: {
   isAutoAwayEnabled: boolean;
-  idleThreshold: number;
+  idleThreshold: number | null;
   setUserOnline: (online: boolean) => void;
 }): void => {
   isAutoAwayEnabled = options.isAutoAwayEnabled;

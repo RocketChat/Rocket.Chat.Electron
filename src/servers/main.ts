@@ -6,6 +6,7 @@ import { satisfies, coerce } from 'semver';
 
 import { invoke } from '../ipc/main';
 import { select, dispatch, listen } from '../store';
+import { hasMeta } from '../store/fsa';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
   SERVER_URL_RESOLUTION_REQUESTED,
@@ -70,7 +71,9 @@ export const resolveServerUrl = async (input: string): Promise<ServerUrlResoluti
     return [url.href, ServerUrlResolutionStatus.INVALID, error];
   }
 
-  if (!satisfies(coerce(version), REQUIRED_SERVER_VERSION_RANGE)) {
+  const semver = coerce(version);
+
+  if (!semver || !satisfies(semver, REQUIRED_SERVER_VERSION_RANGE)) {
     return [
       url.href,
       ServerUrlResolutionStatus.INVALID,
@@ -112,13 +115,17 @@ const loadUserServers = async (): Promise<Record<string, string>> => {
 
 export const setupServers = async (localStorage: Record<string, string>): Promise<void> => {
   listen(SERVER_URL_RESOLUTION_REQUESTED, async (action) => {
+    if (!hasMeta(action)) {
+      return;
+    }
+
     try {
       dispatch({
         type: SERVER_URL_RESOLVED,
         payload: await resolveServerUrl(action.payload),
         meta: {
           response: true,
-          id: action.meta?.id,
+          id: action.meta.id,
         },
       });
     } catch (error) {
@@ -128,7 +135,7 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
         error: true,
         meta: {
           response: true,
-          id: action.meta?.id,
+          id: action.meta.id,
         },
       });
     }
@@ -183,7 +190,7 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
   }
 
   servers = Array.from(serversMap.values());
-  currentServerUrl = serversMap.get(currentServerUrl)?.url ?? servers[0]?.url ?? null;
+  currentServerUrl = currentServerUrl ? serversMap.get(currentServerUrl)?.url ?? servers[0]?.url ?? null : null;
 
   if (localStorage['rocket.chat.sortOrder']) {
     try {

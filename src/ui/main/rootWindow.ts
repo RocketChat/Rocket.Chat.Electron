@@ -13,6 +13,7 @@ import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
 import { setupRootWindowReload } from '../../app/main/dev';
+import { Server } from '../../servers/common';
 import { dispatch, select, watch, listen } from '../../store';
 import { RootState } from '../../store/rootReducer';
 import {
@@ -54,7 +55,7 @@ let _rootWindow: BrowserWindow;
 export const getRootWindow = (): Promise<BrowserWindow> =>
   new Promise((resolve, reject) => {
     setImmediate(() => {
-      _rootWindow ? resolve(_rootWindow) : reject();
+      _rootWindow ? resolve(_rootWindow) : reject(new Error());
     });
   });
 
@@ -87,7 +88,7 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
 
   let { x, y } = rootWindowState.bounds;
   const { width, height } = rootWindowState.bounds;
-  if (!isInsideSomeScreen({ x, y, width, height })) {
+  if (x === null || x === undefined || y === null || y === undefined || !isInsideSomeScreen({ x, y, width, height })) {
     const {
       bounds: {
         width: primaryDisplayWidth,
@@ -245,8 +246,8 @@ export const setupRootWindow = (): void => {
 
   if (process.platform === 'linux' || process.platform === 'win32') {
     const selectRootWindowIcon = createStructuredSelector<RootState, {
-      globalBadge: ReturnType<typeof selectGlobalBadge>;
-      rootWindowIcon: RootWindowIcon | undefined;
+      globalBadge: Server['badge'];
+      rootWindowIcon: RootWindowIcon | null;
     }>({
       globalBadge: selectGlobalBadge,
       rootWindowIcon: ({ rootWindowIcon }) => rootWindowIcon,
@@ -277,30 +278,30 @@ export const setupRootWindow = (): void => {
         }
 
         if (process.platform === 'win32') {
-          rootWindowIcon.icon.forEach((representation) => {
+          for (const representation of rootWindowIcon.icon) {
             icon.addRepresentation({
               ...representation,
-              scaleFactor: representation.width / 32,
+              scaleFactor: representation.width ?? 0 / 32,
             });
-          });
+          }
         }
 
         browserWindow.setIcon(icon);
 
         if (process.platform === 'win32') {
-          let overlayIcon: NativeImage = null;
-          const overlayDescription = (typeof globalBadge === 'number' && i18next.t('unreadMention', { appName: app.name, count: globalBadge }))
+          let overlayIcon: NativeImage | null = null;
+          const overlayDescription: string = (typeof globalBadge === 'number' && i18next.t('unreadMention', { appName: app.name, count: globalBadge }))
           || (globalBadge === '•' && i18next.t('unreadMessage', { appName: app.name }))
           || i18next.t('noUnreadMessage', { appName: app.name });
           if (rootWindowIcon.overlay) {
             overlayIcon = nativeImage.createEmpty();
 
-            rootWindowIcon.overlay.forEach((representation) => {
+            for (const representation of rootWindowIcon.overlay) {
               overlayIcon.addRepresentation({
                 ...representation,
                 scaleFactor: 1,
               });
-            });
+            }
           }
 
           browserWindow.setOverlayIcon(overlayIcon, overlayDescription);

@@ -10,9 +10,9 @@ import { interpolation, fallbackLng } from './common';
 import resources from './resources';
 
 export const setupI18n = async (): Promise<void> => {
-  const lng = await request<typeof I18N_LNG_REQUESTED, typeof I18N_LNG_RESPONDED>({
+  const lng = await request({
     type: I18N_LNG_REQUESTED,
-  });
+  }, I18N_LNG_RESPONDED) ?? undefined;
 
   await i18next
     .use(initReactI18next)

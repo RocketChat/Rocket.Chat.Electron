@@ -3,7 +3,7 @@ import { Middleware, MiddlewareAPI, Dispatch } from 'redux';
 
 import { handle as handleOnMain, invoke as invokeFromMain } from '../ipc/main';
 import { handle as handleFromRenderer, invoke as invokeFromRenderer } from '../ipc/renderer';
-import { isFSA, FluxStandardAction } from './fsa';
+import { isFSA, FluxStandardAction, isLocallyScoped, hasMeta } from './fsa';
 
 const enum ActionScope {
   LOCAL = 'local',
@@ -27,18 +27,14 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
   });
 
   return (next: Dispatch) => (action: FluxStandardAction<string, unknown>) => {
-    if (!isFSA(action)) {
+    if (!isFSA(action) || isLocallyScoped(action)) {
       return next(action);
     }
 
-    if (action.meta && action.meta.scope === ActionScope.LOCAL) {
-      return next(action);
-    }
-
-    const rendererAction: FluxStandardAction<string, unknown> = {
+    const rendererAction = {
       ...action,
       meta: {
-        ...action.meta,
+        ...hasMeta(action) && action.meta,
         scope: ActionScope.LOCAL,
       },
     };
@@ -60,11 +56,7 @@ export const forwardToMain: Middleware = (api: MiddlewareAPI) => {
   });
 
   return (next: Dispatch) => (action: FluxStandardAction<string, unknown>) => {
-    if (!isFSA(action)) {
-      return next(action);
-    }
-
-    if (action.meta && action.meta.scope === ActionScope.LOCAL) {
+    if (!isFSA(action) || isLocallyScoped(action)) {
       return next(action);
     }
 

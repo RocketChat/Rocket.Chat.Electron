@@ -1,10 +1,9 @@
 import { createStructuredSelector } from 'reselect';
 
-import { ActionOf } from '../store/actions';
 import { RootState } from '../store/rootReducer';
-import { APP_SETTINGS_LOADED } from './actions';
+import { PersistableValues } from './PersistableValues';
 
-export const selectPersistableValues = createStructuredSelector<Partial<RootState>, ActionOf<typeof APP_SETTINGS_LOADED>['payload']>({
+export const selectPersistableValues = createStructuredSelector<RootState, PersistableValues>({
   currentView: ({ currentView }) => currentView,
   doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }) => doCheckForUpdatesOnStartup,
   downloads: ({ downloads }) => downloads,

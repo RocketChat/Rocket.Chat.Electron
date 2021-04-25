@@ -20,11 +20,11 @@ import { SERVERS_LOADED } from './actions';
 import { Server } from './common';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
-  try {
-    return serverUrl ? new URL(serverUrl).href : null;
-  } catch (error) {
-    return null;
+  if (serverUrl) {
+    return new URL(serverUrl).href;
   }
+
+  throw new Error('cannot handle null server URLs');
 };
 
 type ServersActionTypes = (
@@ -104,7 +104,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (state = [], actio
 
     case WEBVIEW_DID_NAVIGATE: {
       const { url, pageUrl } = action.payload;
-      if (pageUrl.includes(url)) {
+      if (pageUrl?.includes(url)) {
         return upsert(state, { url, lastPath: pageUrl });
       }
 

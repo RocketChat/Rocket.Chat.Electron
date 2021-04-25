@@ -14,7 +14,7 @@ class DockService extends Service {
     });
 
     this.watch(selectGlobalBadgeCount, (globalBadgeCount, prevGlobalBadgeCount) => {
-      if (globalBadgeCount <= 0 || prevGlobalBadgeCount > 0) {
+      if (globalBadgeCount <= 0 || (prevGlobalBadgeCount ?? 0) > 0) {
         return;
       }
 

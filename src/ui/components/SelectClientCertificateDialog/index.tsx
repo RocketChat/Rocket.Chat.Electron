@@ -12,6 +12,7 @@ import {
 } from '../../../navigation/actions';
 import { listen } from '../../../store';
 import { RootAction } from '../../../store/actions';
+import { isResponse } from '../../../store/fsa';
 import { RootState } from '../../../store/rootReducer';
 import { Dialog } from '../Dialog';
 
@@ -24,7 +25,11 @@ export const SelectClientCertificateDialog: FC = () => {
   const requestIdRef = useRef<unknown>();
 
   useEffect(() => listen(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, (action) => {
-    requestIdRef.current = action.meta?.id;
+    if (!isResponse(action)) {
+      return;
+    }
+
+    requestIdRef.current = action.meta.id;
   }), [dispatch]);
 
   const handleSelect = (certificate: Certificate) => () => {

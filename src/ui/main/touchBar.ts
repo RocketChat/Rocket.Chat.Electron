@@ -47,7 +47,7 @@ const createTouchBar = (): [
 
   const serverSelectionPopover = new TouchBar.TouchBarPopover({
     label: t('touchBar.selectServer'),
-    icon: null,
+    icon: undefined,
     items: new TouchBar({
       items: [serverSelectionScrubber],
     }),
@@ -94,11 +94,11 @@ const createTouchBar = (): [
   ];
 };
 
-const updateServerSelectionPopover = (serverSelectionPopover: TouchBarPopover, currentServer: Server): void => {
+const updateServerSelectionPopover = (serverSelectionPopover: TouchBarPopover, currentServer: Server | null): void => {
   serverSelectionPopover.label = currentServer?.title ?? t('touchBar.selectServer');
   serverSelectionPopover.icon = currentServer?.favicon
     ? nativeImage.createFromDataURL(currentServer?.favicon)
-    : null;
+    : nativeImage.createEmpty();
 };
 
 const updateServerSelectionScrubber = (serverSelectionScrubber: TouchBarScrubber, servers: Server[]): void => {
@@ -106,7 +106,7 @@ const updateServerSelectionScrubber = (serverSelectionScrubber: TouchBarScrubber
     label: server.title?.padEnd(30),
     icon: server.favicon
       ? nativeImage.createFromDataURL(server.favicon)
-      : null,
+      : undefined,
   }));
 };
 
@@ -116,8 +116,8 @@ const toggleMessageFormattingButtons = (messageBoxFormattingButtons: TouchBarSeg
   });
 };
 
-const selectCurrentServer = ({ servers, currentView }: RootState): Server =>
-  (typeof currentView === 'object' ? servers.find(({ url }) => url === currentView.url) : null);
+const selectCurrentServer = ({ servers, currentView }: RootState): Server | null =>
+  (typeof currentView === 'object' ? servers.find(({ url }) => url === currentView.url) ?? null : null);
 
 class TouchBarService extends Service {
   protected initialize(): void {

@@ -6,7 +6,7 @@ import { getRootWindow } from './rootWindow';
 const t = i18next.t.bind(i18next);
 
 export const askForAppDataReset = async (parentWindow?: BrowserWindow): Promise<boolean> => {
-  parentWindow.show();
+  parentWindow?.show();
 
   const { response } = await dialog.showMessageBox(parentWindow ?? await getRootWindow(), {
     type: 'question',
@@ -20,7 +20,7 @@ export const askForAppDataReset = async (parentWindow?: BrowserWindow): Promise<
 };
 
 export const askForServerAddition = async (serverUrl: string, parentWindow?: BrowserWindow): Promise<boolean> => {
-  parentWindow.show();
+  parentWindow?.show();
 
   const { response } = await dialog.showMessageBox(parentWindow ?? await getRootWindow(), {
     type: 'question',
@@ -34,6 +34,7 @@ export const askForServerAddition = async (serverUrl: string, parentWindow?: Bro
 };
 
 export const warnAboutInvalidServerUrl = (_serverUrl: string, _reason: string, _parentWindow?: BrowserWindow): Promise<void> => {
+  // TODO
   throw Error('not implemented');
 };
 

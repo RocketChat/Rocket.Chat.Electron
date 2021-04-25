@@ -20,11 +20,15 @@ declare global {
   }
 }
 
-contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
-contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
-
 const start = async (): Promise<void> => {
   const serverUrl = await invoke('server-view/get-url');
+
+  if (!serverUrl) {
+    return;
+  }
+
+  contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
+  contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
   setServerUrl(serverUrl);
 

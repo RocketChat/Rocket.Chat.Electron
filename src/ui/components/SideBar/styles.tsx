@@ -2,8 +2,10 @@ import { css, SerializedStyles } from '@emotion/core';
 import styled from '@emotion/styled';
 
 type WrapperProps = {
-  background: string;
-  color: string;
+  sideBarStyle: {
+    background?: string;
+    color?: string;
+  };
   isVisible: boolean;
 };
 
@@ -22,8 +24,8 @@ export const Wrapper = styled.div<WrapperProps>`
 		margin-inline-start 230ms ease-in-out,
 		visibility 230ms ease-in-out;
 
-	${ ({ background }) => css`background: ${ background || '#2f343d' };` }
-	${ ({ color }) => css`color: ${ color || '#ffffff' };` }
+	${ ({ sideBarStyle: { background } }) => css`background: ${ background ?? '#2f343d' };` }
+	${ ({ sideBarStyle: { color } }) => css`color: ${ color ?? '#ffffff' };` }
 	${ ({ isVisible }) => !isVisible && css`
 		margin-inline-start: -68px;
 		visibility: hidden;

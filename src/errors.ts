@@ -51,6 +51,11 @@ export const setupRendererErrorHandling = async (appType: AppType): Promise<void
   if (process.env.BUGSNAG_API_KEY) {
     const apiKey = process.env.BUGSNAG_API_KEY;
     const appVersion = select(({ appVersion }) => appVersion);
+
+    if (!appVersion) {
+      throw new Error('app version was not set');
+    }
+
     setupBugsnag(apiKey, appVersion, appType);
     return;
   }

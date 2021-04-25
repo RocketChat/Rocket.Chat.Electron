@@ -1,5 +1,5 @@
 import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
-import { desktopCapturer } from 'electron';
+import { desktopCapturer, DesktopCapturerSource } from 'electron';
 import React, { useEffect, useState, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,7 +19,7 @@ export const ScreenSharingDialog: FC = () => {
 
   const { t } = useTranslation();
 
-  const [sources, setSources] = useState([]);
+  const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
 
   useEffect(() => {
     if (!isVisible) {

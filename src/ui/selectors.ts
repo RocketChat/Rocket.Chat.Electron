@@ -6,14 +6,14 @@ import { RootState } from '../store/rootReducer';
 export type Selector<T> = (state: RootState) => T;
 export type RootSelector<T extends keyof RootState> = Selector<RootState[T]>;
 
-export const selectGlobalBadge = ({ servers }: RootState): Server['badge'] | null => {
+export const selectGlobalBadge = ({ servers }: RootState): Server['badge'] => {
   const badges = servers.map(({ badge }) => badge);
 
   const mentionCount = badges
-    .filter((badge) => Number.isInteger(badge))
+    .filter((badge): badge is number => Number.isInteger(badge))
     .reduce<number>((sum, count: number) => sum + count, 0);
 
-  return mentionCount || (badges.some((badge) => !!badge) && '•') || null;
+  return mentionCount || (badges.some((badge) => !!badge) && '•') || undefined;
 };
 
 export const selectGlobalBadgeText = createSelector(selectGlobalBadge, (badge) => {

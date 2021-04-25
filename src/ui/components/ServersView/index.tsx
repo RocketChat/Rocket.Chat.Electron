@@ -23,7 +23,7 @@ export const ServersView: FC = () => {
       lastPath={server.lastPath}
       serverUrl={server.url}
       isSelected={server.selected}
-      isFailed={server.failed}
+      isFailed={server.failed ?? false}
     />)}
   </ReparentingContainer>;
 };

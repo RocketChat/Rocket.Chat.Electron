@@ -5,7 +5,11 @@ import { invoke } from './ipc/renderer';
 import { JitsiMeetElectron, JitsiMeetElectronAPI } from './jitsi/preload';
 import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
-import { RocketChatDesktop, RocketChatDesktopAPI, serverInfo } from './servers/preload/api';
+import {
+  RocketChatDesktop,
+  RocketChatDesktopAPI,
+  serverInfo,
+} from './servers/preload/api';
 import { setServerUrl } from './servers/preload/urls';
 import { createRendererReduxStore } from './store';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';

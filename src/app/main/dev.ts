@@ -7,38 +7,52 @@ export const setUserDataDirectory = (): void => {
     return;
   }
 
-  app.setPath('userData', path.join(app.getPath('appData'), `${ app.name } (development)`));
+  app.setPath(
+    'userData',
+    path.join(app.getPath('appData'), `${app.name} (development)`)
+  );
 };
 
-export const setupRootWindowReload = async (webContents: WebContents): Promise<void> => {
+export const setupRootWindowReload = async (
+  webContents: WebContents
+): Promise<void> => {
   const chokidar = await import('chokidar');
-  chokidar.watch(path.join(app.getAppPath(), 'app/rootWindow.js'), {
-    awaitWriteFinish: true,
-  }).on('change', () => {
-    if (webContents.isDestroyed()) {
-      return;
-    }
+  chokidar
+    .watch(path.join(app.getAppPath(), 'app/rootWindow.js'), {
+      awaitWriteFinish: true,
+    })
+    .on('change', () => {
+      if (webContents.isDestroyed()) {
+        return;
+      }
 
-    console.log('Reloading root window...');
-    webContents.reload();
-  });
+      console.log('Reloading root window...');
+      webContents.reload();
+    });
 };
 
-export const setupPreloadReload = async (webContents: WebContents): Promise<void> => {
+export const setupPreloadReload = async (
+  webContents: WebContents
+): Promise<void> => {
   const chokidar = await import('chokidar');
-  chokidar.watch([
-    path.join(app.getAppPath(), 'app/preload.js'),
-    path.join(app.getAppPath(), 'app/injected.js'),
-  ], {
-    awaitWriteFinish: true,
-  }).on('change', () => {
-    if (webContents.isDestroyed()) {
-      return;
-    }
+  chokidar
+    .watch(
+      [
+        path.join(app.getAppPath(), 'app/preload.js'),
+        path.join(app.getAppPath(), 'app/injected.js'),
+      ],
+      {
+        awaitWriteFinish: true,
+      }
+    )
+    .on('change', () => {
+      if (webContents.isDestroyed()) {
+        return;
+      }
 
-    console.log('Reloading webview...');
-    webContents.reload();
-  });
+      console.log('Reloading webview...');
+      webContents.reload();
+    });
 };
 
 export const installDevTools = async (): Promise<void> => {

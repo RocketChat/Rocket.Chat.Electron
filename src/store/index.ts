@@ -1,4 +1,11 @@
-import { applyMiddleware, createStore, Store, compose, Middleware, Dispatch } from 'redux';
+import {
+  applyMiddleware,
+  createStore,
+  Store,
+  compose,
+  Middleware,
+  Dispatch,
+} from 'redux';
 
 import { RootAction } from './actions';
 import { hasPayload, isErrored, isResponseTo } from './fsa';
@@ -9,12 +16,12 @@ let reduxStore: Store<RootState>;
 
 let lastAction: RootAction;
 
-const catchLastAction: Middleware = () =>
-  (next: Dispatch<RootAction>) =>
-    (action) => {
-      lastAction = action;
-      return next(action);
-    };
+const catchLastAction: Middleware = () => (next: Dispatch<RootAction>) => (
+  action
+) => {
+  lastAction = action;
+  return next(action);
+};
 
 export const createMainReduxStore = (): void => {
   const middlewares = applyMiddleware(catchLastAction, forwardToRenderers);
@@ -24,8 +31,11 @@ export const createMainReduxStore = (): void => {
 
 export const createRendererReduxStore = async (): Promise<Store> => {
   const initialState = await getInitialState();
-  const composeEnhancers: typeof compose = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-  const enhancers = composeEnhancers(applyMiddleware(forwardToMain, catchLastAction));
+  const composeEnhancers: typeof compose =
+    (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+  const enhancers = composeEnhancers(
+    applyMiddleware(forwardToMain, catchLastAction)
+  );
 
   reduxStore = createStore(rootReducer, initialState, enhancers);
 
@@ -41,7 +51,10 @@ type Selector<T> = (state: RootState) => T;
 export const select = <T>(selector: Selector<T>): T =>
   selector(reduxStore.getState());
 
-export const watch = <T>(selector: Selector<T>, watcher: (curr: T, prev: T | undefined) => void): (() => void) => {
+export const watch = <T>(
+  selector: Selector<T>,
+  watcher: (curr: T, prev: T | undefined) => void
+): (() => void) => {
   const initial = select(selector);
   watcher(initial, undefined);
 
@@ -61,15 +74,23 @@ export const watch = <T>(selector: Selector<T>, watcher: (curr: T, prev: T | und
 };
 
 export const listen: {
-  <ActionType extends RootAction['type']>(type: ActionType, listener: (action: Extract<RootAction, { type: ActionType }>) => void): (() => void);
-  <Action extends RootAction>(predicate: ((action: RootAction) => action is Action), listener: (action: Action) => void): (() => void)
+  <ActionType extends RootAction['type']>(
+    type: ActionType,
+    listener: (action: Extract<RootAction, { type: ActionType }>) => void
+  ): () => void;
+  <Action extends RootAction>(
+    predicate: (action: RootAction) => action is Action,
+    listener: (action: Action) => void
+  ): () => void;
 } = <ActionType extends RootAction['type'], Action extends RootAction>(
   typeOrPredicate: ActionType | ((action: RootAction) => action is Action),
-  listener: (action: RootAction) => void,
+  listener: (action: RootAction) => void
 ): (() => void) => {
-  const effectivePredicate = typeof typeOrPredicate === 'function'
-    ? typeOrPredicate
-    : (action: RootAction): action is Action => action.type === typeOrPredicate;
+  const effectivePredicate =
+    typeof typeOrPredicate === 'function'
+      ? typeOrPredicate
+      : (action: RootAction): action is Action =>
+          action.type === typeOrPredicate;
 
   return reduxStore.subscribe(() => {
     if (!effectivePredicate(lastAction)) {
@@ -81,7 +102,7 @@ export const listen: {
 };
 
 export abstract class Service {
-  private unsubscribers = new Set<() => void>()
+  private unsubscribers = new Set<() => void>();
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   protected initialize(): void {}
@@ -91,20 +112,29 @@ export abstract class Service {
 
   protected watch<T>(
     selector: Selector<T>,
-    watcher: (curr: T, prev: T | undefined) => void,
+    watcher: (curr: T, prev: T | undefined) => void
   ): void {
     this.unsubscribers.add(watch(selector, watcher));
   }
 
-  protected listen<ActionType extends RootAction['type']>(type: ActionType, listener: (action: Extract<RootAction, { type: ActionType }>) => void): void;
+  protected listen<ActionType extends RootAction['type']>(
+    type: ActionType,
+    listener: (action: Extract<RootAction, { type: ActionType }>) => void
+  ): void;
 
   // eslint-disable-next-line no-dupe-class-members
-  protected listen<Action extends RootAction>(predicate: ((action: RootAction) => action is Action), listener: (action: Action) => void): void;
+  protected listen<Action extends RootAction>(
+    predicate: (action: RootAction) => action is Action,
+    listener: (action: Action) => void
+  ): void;
 
   // eslint-disable-next-line no-dupe-class-members
-  protected listen<ActionType extends RootAction['type'], Action extends RootAction>(
+  protected listen<
+    ActionType extends RootAction['type'],
+    Action extends RootAction
+  >(
     typeOrPredicate: ActionType | ((action: RootAction) => action is Action),
-    listener: (action: RootAction) => void,
+    listener: (action: RootAction) => void
   ): void {
     if (typeof typeOrPredicate === 'string') {
       this.unsubscribers.add(listen(typeOrPredicate, listener));
@@ -132,24 +162,33 @@ export const request = <
   Request extends RootAction,
   ResponseTypes extends [...RootAction['type'][]],
   Response extends {
-    [Index in keyof ResponseTypes]: Extract<RootAction, { type: ResponseTypes[Index], payload: unknown }>;
+    [Index in keyof ResponseTypes]: Extract<
+      RootAction,
+      { type: ResponseTypes[Index]; payload: unknown }
+    >;
   }[number]
->(requestAction: Request, ...types: ResponseTypes): Promise<Response['payload']> =>
+>(
+  requestAction: Request,
+  ...types: ResponseTypes
+): Promise<Response['payload']> =>
   new Promise((resolve, reject) => {
     const id = Math.random().toString(36).slice(2);
 
-    const unsubscribe = listen(isResponseTo<RootAction, ResponseTypes>(id, ...types), (action) => {
-      unsubscribe();
+    const unsubscribe = listen(
+      isResponseTo<RootAction, ResponseTypes>(id, ...types),
+      (action) => {
+        unsubscribe();
 
-      if (isErrored(action)) {
-        reject(action.payload);
-        return;
-      }
+        if (isErrored(action)) {
+          reject(action.payload);
+          return;
+        }
 
-      if (hasPayload<RootAction>(action)) {
-        resolve(action.payload);
+        if (hasPayload<RootAction>(action)) {
+          resolve(action.payload);
+        }
       }
-    });
+    );
 
     dispatch({
       ...requestAction,

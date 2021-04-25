@@ -16,20 +16,25 @@ export const selectGlobalBadge = ({ servers }: RootState): Server['badge'] => {
   return mentionCount || (badges.some((badge) => !!badge) && '•') || undefined;
 };
 
-export const selectGlobalBadgeText = createSelector(selectGlobalBadge, (badge) => {
-  if (badge === '•') {
-    return '•';
-  }
+export const selectGlobalBadgeText = createSelector(
+  selectGlobalBadge,
+  (badge) => {
+    if (badge === '•') {
+      return '•';
+    }
 
-  if (Number.isInteger(badge)) {
-    return String(badge);
-  }
+    if (Number.isInteger(badge)) {
+      return String(badge);
+    }
 
-  return '';
-});
+    return '';
+  }
+);
 
 const isBadgeCount = (badge: Server['badge']): badge is number =>
   Number.isInteger(badge);
 
-export const selectGlobalBadgeCount = createSelector(selectGlobalBadge, (badge): number =>
-  (isBadgeCount(badge) ? badge : 0));
+export const selectGlobalBadgeCount = createSelector(
+  selectGlobalBadge,
+  (badge): number => (isBadgeCount(badge) ? badge : 0)
+);

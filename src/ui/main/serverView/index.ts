@@ -44,10 +44,15 @@ const t = i18next.t.bind(i18next);
 
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
-export const getWebContentsByServerUrl = (url: string): WebContents | undefined =>
-  webContentsByServerUrl.get(url);
+export const getWebContentsByServerUrl = (
+  url: string
+): WebContents | undefined => webContentsByServerUrl.get(url);
 
-const initializeServerWebContents = (serverUrl: string, guestWebContents: WebContents, rootWindow: BrowserWindow): void => {
+const initializeServerWebContents = (
+  serverUrl: string,
+  guestWebContents: WebContents,
+  rootWindow: BrowserWindow
+): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
 
   const webviewSession = guestWebContents.session;
@@ -55,7 +60,9 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
   guestWebContents.addListener('destroyed', () => {
     webContentsByServerUrl.delete(serverUrl);
 
-    const canPurge = select(({ servers }) => !servers.some((server) => server.url === serverUrl));
+    const canPurge = select(
+      ({ servers }) => !servers.some((server) => server.url === serverUrl)
+    );
 
     if (canPurge) {
       webviewSession.clearStorageData();
@@ -77,10 +84,12 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
     _validatedURL: string,
     isMainFrame: boolean,
     _frameProcessId: number,
-    _frameRoutingId: number,
+    _frameRoutingId: number
   ): void => {
     if (errorCode === -3) {
-      console.warn('Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004');
+      console.warn(
+        'Ignoring likely spurious did-fail-load with errorCode -3, cf https://github.com/electron/electron/issues/14004'
+      );
       return;
     }
 
@@ -95,7 +104,7 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
     pageUrl: string,
     _isMainFrame: boolean,
     _frameProcessId: number,
-    _frameRoutingId: number,
+    _frameRoutingId: number
   ): void => {
     dispatch({
       type: WEBVIEW_DID_NAVIGATE,
@@ -106,13 +115,19 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
     });
   };
 
-  const handleContextMenu = async (event: Event, params: ContextMenuParams): Promise<void> => {
+  const handleContextMenu = async (
+    event: Event,
+    params: ContextMenuParams
+  ): Promise<void> => {
     event.preventDefault();
     const menu = createPopupMenuForServerView(guestWebContents, params);
     menu.popup({ window: rootWindow });
   };
 
-  const handleBeforeInputEvent = (_event: Event, { type, key }: Input): void => {
+  const handleBeforeInputEvent = (
+    _event: Event,
+    { type, key }: Input
+  ): void => {
     if (type !== 'keyUp' && type !== 'keyDown') {
       return;
     }
@@ -123,7 +138,11 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
       return;
     }
 
-    rootWindow.webContents.sendInputEvent({ type, keyCode: key, modifiers: [] });
+    rootWindow.webContents.sendInputEvent({
+      type,
+      keyCode: key,
+      modifiers: [],
+    });
   };
 
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
@@ -135,7 +154,11 @@ const initializeServerWebContents = (serverUrl: string, guestWebContents: WebCon
 
 export const attachGuestWebContentsEvents = async (): Promise<void> => {
   const rootWindow = await getRootWindow();
-  const handleWillAttachWebview = (_event: Event, webPreferences: WebPreferences, _params: Record<string, string>): void => {
+  const handleWillAttachWebview = (
+    _event: Event,
+    webPreferences: WebPreferences,
+    _params: Record<string, string>
+  ): void => {
     delete webPreferences.enableBlinkFeatures;
     webPreferences.preload = path.join(app.getAppPath(), 'app/preload.js');
     webPreferences.nodeIntegration = false;
@@ -147,7 +170,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     webPreferences.worldSafeExecuteJavaScript = true;
   };
 
-  const handleDidAttachWebview = (_event: Event, webContents: WebContents): void => {
+  const handleDidAttachWebview = (
+    _event: Event,
+    webContents: WebContents
+  ): void => {
     // webContents.send('console-warn', '%c%s', 'color: red; font-size: 32px;', t('selfxss.title'));
     // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.description'));
     // webContents.send('console-warn', '%c%s', 'font-size: 20px;', t('selfxss.moreInfo'));
@@ -156,61 +182,80 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       setupPreloadReload(webContents);
     }
 
-    webContents.addListener('new-window', (event, url, frameName, disposition, options, _additionalFeatures, referrer, postBody) => {
-      event.preventDefault();
+    webContents.addListener(
+      'new-window',
+      (
+        event,
+        url,
+        frameName,
+        disposition,
+        options,
+        _additionalFeatures,
+        referrer,
+        postBody
+      ) => {
+        event.preventDefault();
 
-      if (disposition === 'foreground-tab' || disposition === 'background-tab') {
-        isProtocolAllowed(url).then((allowed) => {
-          if (!allowed) {
-            return;
-          }
+        if (
+          disposition === 'foreground-tab' ||
+          disposition === 'background-tab'
+        ) {
+          isProtocolAllowed(url).then((allowed) => {
+            if (!allowed) {
+              return;
+            }
 
-          shell.openExternal(url);
-        });
-        return;
-      }
-
-      const newWindow = new BrowserWindow({
-        ...options,
-        show: false,
-      });
-
-      newWindow.once('ready-to-show', () => {
-        newWindow.show();
-      });
-
-      isProtocolAllowed(url).then((allowed) => {
-        if (!allowed) {
-          newWindow.destroy();
+            shell.openExternal(url);
+          });
           return;
         }
 
-        const isGoogleSignIn = frameName === 'Login'
-          && disposition === 'new-window'
-          && new URL(url).hostname.match(/(\.)?google\.com$/);
-
-        newWindow.loadURL(url, {
-          userAgent: isGoogleSignIn
-            ? app.userAgentFallback.replace(`Electron/${ process.versions.electron } `, '')
-            : app.userAgentFallback,
-          httpReferrer: referrer,
-          ...postBody && {
-            extraHeaders: `Content-Type: ${ postBody.contentType }; boundary=${ postBody.boundary }`,
-            postData: postBody.data as unknown as (UploadRawData[] | UploadBlob[] | UploadFile[]),
-          },
+        const newWindow = new BrowserWindow({
+          ...options,
+          show: false,
         });
-      });
 
-      event.newGuest = newWindow;
-    });
+        newWindow.once('ready-to-show', () => {
+          newWindow.show();
+        });
+
+        isProtocolAllowed(url).then((allowed) => {
+          if (!allowed) {
+            newWindow.destroy();
+            return;
+          }
+
+          const isGoogleSignIn =
+            frameName === 'Login' &&
+            disposition === 'new-window' &&
+            new URL(url).hostname.match(/(\.)?google\.com$/);
+
+          newWindow.loadURL(url, {
+            userAgent: isGoogleSignIn
+              ? app.userAgentFallback.replace(
+                  `Electron/${process.versions.electron} `,
+                  ''
+                )
+              : app.userAgentFallback,
+            httpReferrer: referrer,
+            ...(postBody && {
+              extraHeaders: `Content-Type: ${postBody.contentType}; boundary=${postBody.boundary}`,
+              postData: (postBody.data as unknown) as
+                | UploadRawData[]
+                | UploadBlob[]
+                | UploadFile[],
+            }),
+          });
+        });
+
+        event.newGuest = newWindow;
+      }
+    );
   };
 
-  const handlePermissionRequest: Parameters<Session['setPermissionRequestHandler']>[0] = async (
-    _webContents,
-    permission,
-    callback,
-    details,
-  ) => {
+  const handlePermissionRequest: Parameters<
+    Session['setPermissionRequestHandler']
+  >[0] = async (_webContents, permission, callback, details) => {
     switch (permission) {
       case 'media': {
         if (process.platform !== 'darwin') {
@@ -219,8 +264,11 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         }
 
         const { mediaTypes = [] } = details;
-        const allowed = (!mediaTypes.includes('audio') || await systemPreferences.askForMediaAccess('microphone'))
-          && (!mediaTypes.includes('video') || await systemPreferences.askForMediaAccess('camera'));
+        const allowed =
+          (!mediaTypes.includes('audio') ||
+            (await systemPreferences.askForMediaAccess('microphone'))) &&
+          (!mediaTypes.includes('video') ||
+            (await systemPreferences.askForMediaAccess('camera')));
         callback(allowed);
         return;
       }
@@ -251,9 +299,15 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
   listen(WEBVIEW_ATTACHED, (action) => {
     const guestWebContents = webContents.fromId(action.payload.webContentsId);
-    initializeServerWebContents(action.payload.url, guestWebContents, rootWindow);
+    initializeServerWebContents(
+      action.payload.url,
+      guestWebContents,
+      rootWindow
+    );
 
-    guestWebContents.session.setPermissionRequestHandler(handlePermissionRequest);
+    guestWebContents.session.setPermissionRequestHandler(
+      handlePermissionRequest
+    );
     guestWebContents.session.on('will-download', handleWillDownloadEvent);
   });
 
@@ -276,7 +330,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       {
         label: t('sidebar.item.remove'),
         click: () => {
-          dispatch({ type: SIDE_BAR_REMOVE_SERVER_CLICKED, payload: serverUrl });
+          dispatch({
+            type: SIDE_BAR_REMOVE_SERVER_CLICKED,
+            payload: serverUrl,
+          });
         },
       },
       { type: 'separator' },
@@ -300,19 +357,29 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     }
   });
 
-  rootWindow.webContents.addListener('will-attach-webview', handleWillAttachWebview);
-  rootWindow.webContents.addListener('did-attach-webview', handleDidAttachWebview);
+  rootWindow.webContents.addListener(
+    'will-attach-webview',
+    handleWillAttachWebview
+  );
+  rootWindow.webContents.addListener(
+    'did-attach-webview',
+    handleDidAttachWebview
+  );
 
-  handle('server-view/get-url', async (webContents) =>
-    Array.from(webContentsByServerUrl.entries())
-      .find(([, v]) => v === webContents)?.[0]);
+  handle(
+    'server-view/get-url',
+    async (webContents) =>
+      Array.from(webContentsByServerUrl.entries()).find(
+        ([, v]) => v === webContents
+      )?.[0]
+  );
 
   let injectableCode: string;
   handle('server-view/ready', async (webContents) => {
     if (!injectableCode) {
       injectableCode = await fs.promises.readFile(
         path.join(app.getAppPath(), 'app/injected.js'),
-        'utf8',
+        'utf8'
       );
     }
 

@@ -11,28 +11,28 @@ import { UiActionTypeToPayloadMap } from '../ui/actions';
 import { UpdatesActionTypeToPayloadMap } from '../updates/actions';
 import { UserPresenceActionTypeToPayloadMap } from '../userPresence/actions';
 
-type ActionTypeToPayloadMap = (
-  AppActionTypeToPayloadMap
-  & DeepLinksActionTypeToPayloadMap
-  & DownloadsActionTypeToPayloadMap
-  & I18nActionTypeToPayloadMap
-  & NavigationActionTypeToPayloadMap
-  & NotificationsActionTypeToPayloadMap
-  & ScreenSharingActionTypeToPayloadMap
-  & ServersActionTypeToPayloadMap
-  & SpellCheckingActionTypeToPayloadMap
-  & UiActionTypeToPayloadMap
-  & UpdatesActionTypeToPayloadMap
-  & UserPresenceActionTypeToPayloadMap
-);
+type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
+  DeepLinksActionTypeToPayloadMap &
+  DownloadsActionTypeToPayloadMap &
+  I18nActionTypeToPayloadMap &
+  NavigationActionTypeToPayloadMap &
+  NotificationsActionTypeToPayloadMap &
+  ScreenSharingActionTypeToPayloadMap &
+  ServersActionTypeToPayloadMap &
+  SpellCheckingActionTypeToPayloadMap &
+  UiActionTypeToPayloadMap &
+  UpdatesActionTypeToPayloadMap &
+  UserPresenceActionTypeToPayloadMap;
 
 type RootActions = {
-  [Type in keyof ActionTypeToPayloadMap]: void extends ActionTypeToPayloadMap[Type] ? {
-    type: Type;
-  } : {
-    type: Type;
-    payload: ActionTypeToPayloadMap[Type];
-  };
+  [Type in keyof ActionTypeToPayloadMap]: void extends ActionTypeToPayloadMap[Type]
+    ? {
+        type: Type;
+      }
+    : {
+        type: Type;
+        payload: ActionTypeToPayloadMap[Type];
+      };
 };
 
 export type ActionOf<Type extends keyof RootActions> = RootActions[Type];

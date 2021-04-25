@@ -8,20 +8,21 @@ import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import { getPersistedValues, persistValues } from './persistence';
 
-export const mergePersistableValues = async (localStorage: Record<string, string>): Promise<void> => {
+export const mergePersistableValues = async (
+  localStorage: Record<string, string>
+): Promise<void> => {
   const initialValues = select(selectPersistableValues);
 
   const electronStoreValues = getPersistedValues();
 
   const localStorageValues = Object.fromEntries(
-    Object.entries(localStorage)
-      .map(([key, value]) => {
-        try {
-          return [key, JSON.parse(value)];
-        } catch (error) {
-          return [];
-        }
-      }),
+    Object.entries(localStorage).map(([key, value]) => {
+      try {
+        return [key, JSON.parse(value)];
+      } catch (error) {
+        return [];
+      }
+    })
   );
 
   let values = selectPersistableValues({
@@ -40,7 +41,8 @@ export const mergePersistableValues = async (localStorage: Record<string, string
   if (localStorage.showWindowOnUnreadChanged) {
     values = {
       ...values,
-      isShowWindowOnUnreadChangedEnabled: localStorage.showWindowOnUnreadChanged === 'true',
+      isShowWindowOnUnreadChangedEnabled:
+        localStorage.showWindowOnUnreadChanged === 'true',
     };
   }
 
@@ -60,7 +62,10 @@ export const mergePersistableValues = async (localStorage: Record<string, string
 
   const userRootWindowState = await (async () => {
     try {
-      const filePath = path.join(app.getPath('userData'), 'main-window-state.json');
+      const filePath = path.join(
+        app.getPath('userData'),
+        'main-window-state.json'
+      );
       const content = await fs.promises.readFile(filePath, 'utf8');
       const json = JSON.parse(content);
       await fs.promises.unlink(filePath);
@@ -75,16 +80,24 @@ export const mergePersistableValues = async (localStorage: Record<string, string
     ...values,
     rootWindowState: {
       focused: true,
-      visible: !(userRootWindowState?.isHidden ?? !values?.rootWindowState?.visible),
-      maximized: userRootWindowState.isMaximized ?? values?.rootWindowState?.maximized,
-      minimized: userRootWindowState.isMinimized ?? values?.rootWindowState?.minimized,
+      visible: !(
+        userRootWindowState?.isHidden ?? !values?.rootWindowState?.visible
+      ),
+      maximized:
+        userRootWindowState.isMaximized ?? values?.rootWindowState?.maximized,
+      minimized:
+        userRootWindowState.isMinimized ?? values?.rootWindowState?.minimized,
       fullscreen: false,
-      normal: !(userRootWindowState.isMinimized || userRootWindowState.isMaximized) ?? values?.rootWindowState?.normal,
+      normal:
+        !(userRootWindowState.isMinimized || userRootWindowState.isMaximized) ??
+        values?.rootWindowState?.normal,
       bounds: {
         x: userRootWindowState.x ?? values?.rootWindowState?.bounds?.x,
         y: userRootWindowState.y ?? values?.rootWindowState?.bounds?.y,
-        width: userRootWindowState.width ?? values?.rootWindowState?.bounds?.width,
-        height: userRootWindowState.height ?? values?.rootWindowState?.bounds?.height,
+        width:
+          userRootWindowState.width ?? values?.rootWindowState?.bounds?.width,
+        height:
+          userRootWindowState.height ?? values?.rootWindowState?.bounds?.height,
       },
     },
   };

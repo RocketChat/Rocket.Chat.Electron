@@ -1,17 +1,18 @@
-export const whenReady = (): Promise<void> => new Promise((resolve) => {
-  if (document.readyState === 'complete') {
-    resolve();
-    return;
-  }
-
-  const handleReadyStateChange = (): void => {
-    if (document.readyState !== 'complete') {
+export const whenReady = (): Promise<void> =>
+  new Promise((resolve) => {
+    if (document.readyState === 'complete') {
+      resolve();
       return;
     }
 
-    document.removeEventListener('readystatechange', handleReadyStateChange);
-    resolve();
-  };
+    const handleReadyStateChange = (): void => {
+      if (document.readyState !== 'complete') {
+        return;
+      }
 
-  document.addEventListener('readystatechange', handleReadyStateChange);
-});
+      document.removeEventListener('readystatechange', handleReadyStateChange);
+      resolve();
+    };
+
+    document.addEventListener('readystatechange', handleReadyStateChange);
+  });

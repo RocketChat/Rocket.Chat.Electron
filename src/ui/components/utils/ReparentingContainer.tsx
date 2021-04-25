@@ -1,5 +1,12 @@
 import { useMergedRefs } from '@rocket.chat/fuselage-hooks';
-import React, { useLayoutEffect, useRef, forwardRef, ReactElement, ReactNode, Key } from 'react';
+import React, {
+  useLayoutEffect,
+  useRef,
+  forwardRef,
+  ReactElement,
+  ReactNode,
+  Key,
+} from 'react';
 import { createPortal } from 'react-dom';
 import flattenChildren from 'react-keyed-flatten-children';
 
@@ -7,7 +14,10 @@ type ReparentingContainerProps = {
   children?: ReactNode;
 };
 
-export const ReparentingContainer = forwardRef<HTMLDivElement, ReparentingContainerProps>(function ReparentingContainer({ children, ...props }, ref) {
+export const ReparentingContainer = forwardRef<
+  HTMLDivElement,
+  ReparentingContainerProps
+>(function ReparentingContainer({ children, ...props }, ref) {
   const innerRef = useRef<HTMLDivElement>(null);
 
   const childrenArray = flattenChildren(children) as ReactElement[];
@@ -20,9 +30,15 @@ export const ReparentingContainer = forwardRef<HTMLDivElement, ReparentingContai
   const prevKeys = prevChildrenArrayRef.current.map((child) => child.key);
   const keys = childrenArray.map((child) => child.key);
 
-  const childrenAdded = childrenArray.filter((child) => !prevKeys.includes(child.key));
-  const childrenKept = childrenArray.filter((child) => prevKeys.includes(child.key));
-  const childrenRemoved = prevChildrenArrayRef.current.filter((child) => !keys.includes(child.key));
+  const childrenAdded = childrenArray.filter(
+    (child) => !prevKeys.includes(child.key)
+  );
+  const childrenKept = childrenArray.filter((child) =>
+    prevKeys.includes(child.key)
+  );
+  const childrenRemoved = prevChildrenArrayRef.current.filter(
+    (child) => !keys.includes(child.key)
+  );
 
   const nodesRef = useRef(new Map<Key, Element>());
 
@@ -79,19 +95,24 @@ export const ReparentingContainer = forwardRef<HTMLDivElement, ReparentingContai
     }, 1000);
   }, [childrenRemoved]);
 
-  useLayoutEffect(() => () => {
-    setTimeout(() => {
-      nodesRef.current.forEach((node) => {
-        node.remove();
-      });
-      nodesRef.current.clear();
-    }, 1000);
-  }, []);
+  useLayoutEffect(
+    () => () => {
+      setTimeout(() => {
+        nodesRef.current.forEach((node) => {
+          node.remove();
+        });
+        nodesRef.current.clear();
+      }, 1000);
+    },
+    []
+  );
 
   const mergedRef = useMergedRefs(ref, innerRef);
 
-  return <>
-    <div ref={mergedRef} {...props} />
-    {portals}
-  </>;
+  return (
+    <>
+      <div ref={mergedRef} {...props} />
+      {portals}
+    </>
+  );
 });

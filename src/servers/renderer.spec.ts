@@ -3,7 +3,9 @@ import { createServer, Server } from 'http';
 import { fetchInfo } from './renderer';
 
 describe('servers/fetch-info', () => {
-  const serverVersion = Array.from({ length: 3 }, () => Math.round(Math.random() * 9)).join('.');
+  const serverVersion = Array.from({ length: 3 }, () =>
+    Math.round(Math.random() * 9)
+  ).join('.');
   let server: Server | null;
 
   beforeEach(() => {
@@ -15,12 +17,19 @@ describe('servers/fetch-info', () => {
         return;
       }
 
-      if (req.url === '/api/info' || req.url?.match(/^(\/subdir)+\/api\/info$/)) {
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.write(JSON.stringify({
-          success: true,
-          version: serverVersion,
-        }));
+      if (
+        req.url === '/api/info' ||
+        req.url?.match(/^(\/subdir)+\/api\/info$/)
+      ) {
+        res.writeHead(200, {
+          'Content-Type': 'application/json; charset=utf-8',
+        });
+        res.write(
+          JSON.stringify({
+            success: true,
+            version: serverVersion,
+          })
+        );
         res.end();
         return;
       }
@@ -51,19 +60,27 @@ describe('servers/fetch-info', () => {
   });
 
   it('reaches the server at subdirectory', async () => {
-    const [effectiveUrl, version] = await fetchInfo('http://localhost:3000/subdir/');
+    const [effectiveUrl, version] = await fetchInfo(
+      'http://localhost:3000/subdir/'
+    );
     expect(effectiveUrl).toStrictEqual('http://localhost:3000/subdir/');
     expect(version).toStrictEqual(serverVersion);
   });
 
   it('reaches the server at deep subdirectory', async () => {
-    const [effectiveUrl, version] = await fetchInfo('http://localhost:3000/subdir/subdir/subdir/');
-    expect(effectiveUrl).toStrictEqual('http://localhost:3000/subdir/subdir/subdir/');
+    const [effectiveUrl, version] = await fetchInfo(
+      'http://localhost:3000/subdir/subdir/subdir/'
+    );
+    expect(effectiveUrl).toStrictEqual(
+      'http://localhost:3000/subdir/subdir/subdir/'
+    );
     expect(version).toStrictEqual(serverVersion);
   });
 
   it('reaches the server after redirection', async () => {
-    const [effectiveUrl, version] = await fetchInfo('http://localhost:3000/redirect');
+    const [effectiveUrl, version] = await fetchInfo(
+      'http://localhost:3000/redirect'
+    );
     expect(effectiveUrl).toStrictEqual('http://localhost:3000/subdir/');
     expect(version).toStrictEqual(serverVersion);
   });

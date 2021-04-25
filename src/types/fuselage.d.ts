@@ -146,10 +146,10 @@ declare module '@rocket.chat/fuselage' {
     minSize?: CSSProperties['blockSize'];
     maxSize?: CSSProperties['blockSize'];
     fontScale?: FontScale;
-  }>
-  & Omit<AllHTMLAttributes<HTMLOrSVGElement>, 'className'>
-  & Omit<SVGAttributes<SVGElement>, keyof AllHTMLAttributes<HTMLOrSVGElement>>
-  & RefAttributes<unknown>;
+  }> &
+    Omit<AllHTMLAttributes<HTMLOrSVGElement>, 'className'> &
+    Omit<SVGAttributes<SVGElement>, keyof AllHTMLAttributes<HTMLOrSVGElement>> &
+    RefAttributes<unknown>;
 
   export const Box: ForwardRefExoticComponent<BoxProps>;
 
@@ -263,7 +263,11 @@ declare module '@rocket.chat/fuselage' {
     divider?: boolean;
     itemsPerPage?: 25 | 50 | 100;
     itemsPerPageLabel?: () => string;
-    showingResultsLabel?: (props: { count: number; current: number; itemsPerPage: 25 | 50 | 100 }) => string;
+    showingResultsLabel?: (props: {
+      count: number;
+      current: number;
+      itemsPerPage: 25 | 50 | 100;
+    }) => string;
     onSetCurrent?: Dispatch<SetStateAction<number>>;
     onSetItemsPerPage?: Dispatch<SetStateAction<25 | 50 | 100>>;
   };

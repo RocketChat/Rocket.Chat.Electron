@@ -26,9 +26,15 @@ import {
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
   UPDATES_READY,
 } from './actions';
-import { AppLevelUpdateConfiguration, UpdateConfiguration, UserLevelUpdateConfiguration } from './common';
+import {
+  AppLevelUpdateConfiguration,
+  UpdateConfiguration,
+  UserLevelUpdateConfiguration,
+} from './common';
 
-const readJsonObject = async (filePath: string): Promise<Record<string, unknown>> => {
+const readJsonObject = async (
+  filePath: string
+): Promise<Record<string, unknown>> => {
   try {
     const content = await fs.promises.readFile(filePath, 'utf8');
     const json = JSON.parse(content);
@@ -39,16 +45,20 @@ const readJsonObject = async (filePath: string): Promise<Record<string, unknown>
   }
 };
 
-const readAppJsonObject = async (basename: string): Promise<Record<string, unknown>> => {
+const readAppJsonObject = async (
+  basename: string
+): Promise<Record<string, unknown>> => {
   const filePath = path.join(
     app.getAppPath(),
     app.getAppPath().endsWith('app.asar') ? '..' : '.',
-    basename,
+    basename
   );
   return readJsonObject(filePath);
 };
 
-const readUserJsonObject = async (basename: string): Promise<Record<string, unknown>> => {
+const readUserJsonObject = async (
+  basename: string
+): Promise<Record<string, unknown>> => {
   const filePath = path.join(app.getPath('userData'), basename);
   return readJsonObject(filePath);
 };
@@ -62,23 +72,37 @@ const loadUserConfiguration = async (): Promise<UserLevelUpdateConfiguration> =>
 export const mergeConfigurations = (
   defaultConfiguration: UpdateConfiguration,
   appConfiguration: AppLevelUpdateConfiguration,
-  userConfiguration: UserLevelUpdateConfiguration,
+  userConfiguration: UserLevelUpdateConfiguration
 ): UpdateConfiguration => {
   const configuration = {
     ...defaultConfiguration,
-    ...typeof appConfiguration.forced === 'boolean' && { isEachUpdatesSettingConfigurable: !appConfiguration.forced },
-    ...typeof appConfiguration.canUpdate === 'boolean' && { isUpdatingEnabled: appConfiguration.canUpdate },
-    ...typeof appConfiguration.autoUpdate === 'boolean' && { doCheckForUpdatesOnStartup: appConfiguration.autoUpdate },
-    ...typeof appConfiguration.skip === 'string' && { skippedUpdateVersion: appConfiguration.skip },
+    ...(typeof appConfiguration.forced === 'boolean' && {
+      isEachUpdatesSettingConfigurable: !appConfiguration.forced,
+    }),
+    ...(typeof appConfiguration.canUpdate === 'boolean' && {
+      isUpdatingEnabled: appConfiguration.canUpdate,
+    }),
+    ...(typeof appConfiguration.autoUpdate === 'boolean' && {
+      doCheckForUpdatesOnStartup: appConfiguration.autoUpdate,
+    }),
+    ...(typeof appConfiguration.skip === 'string' && {
+      skippedUpdateVersion: appConfiguration.skip,
+    }),
   };
 
-  if (typeof userConfiguration.autoUpdate === 'boolean'
-    && (configuration.isEachUpdatesSettingConfigurable || typeof appConfiguration.autoUpdate === 'undefined')) {
+  if (
+    typeof userConfiguration.autoUpdate === 'boolean' &&
+    (configuration.isEachUpdatesSettingConfigurable ||
+      typeof appConfiguration.autoUpdate === 'undefined')
+  ) {
     configuration.doCheckForUpdatesOnStartup = userConfiguration.autoUpdate;
   }
 
-  if (typeof userConfiguration.skip === 'string'
-    && (configuration.isEachUpdatesSettingConfigurable || typeof appConfiguration.skip === 'undefined')) {
+  if (
+    typeof userConfiguration.skip === 'string' &&
+    (configuration.isEachUpdatesSettingConfigurable ||
+      typeof appConfiguration.skip === 'undefined')
+  ) {
     configuration.skippedUpdateVersion = userConfiguration.skip;
   }
 
@@ -86,27 +110,29 @@ export const mergeConfigurations = (
 };
 
 const loadConfiguration = async (): Promise<UpdateConfiguration> => {
-  const defaultConfiguration = select(({
-    isUpdatingEnabled,
-    doCheckForUpdatesOnStartup,
-    skippedUpdateVersion,
-  }: RootState) => ({
-    isUpdatingAllowed:
-      (process.platform === 'linux' && !!process.env.APPIMAGE)
-        || (process.platform === 'win32' && !process.windowsStore)
-        || (process.platform === 'darwin' && !process.mas),
-    isEachUpdatesSettingConfigurable: true,
-    isUpdatingEnabled,
-    doCheckForUpdatesOnStartup,
-    skippedUpdateVersion,
-  }));
+  const defaultConfiguration = select(
+    ({
+      isUpdatingEnabled,
+      doCheckForUpdatesOnStartup,
+      skippedUpdateVersion,
+    }: RootState) => ({
+      isUpdatingAllowed:
+        (process.platform === 'linux' && !!process.env.APPIMAGE) ||
+        (process.platform === 'win32' && !process.windowsStore) ||
+        (process.platform === 'darwin' && !process.mas),
+      isEachUpdatesSettingConfigurable: true,
+      isUpdatingEnabled,
+      doCheckForUpdatesOnStartup,
+      skippedUpdateVersion,
+    })
+  );
   const appConfiguration = await loadAppConfiguration();
   const userConfiguration = await loadUserConfiguration();
 
   return mergeConfigurations(
     defaultConfiguration,
     appConfiguration,
-    userConfiguration,
+    userConfiguration
   );
 };
 
@@ -141,7 +167,9 @@ export const setupUpdates = async (): Promise<void> => {
   });
 
   autoUpdater.addListener('update-available', ({ version }) => {
-    const skippedUpdateVersion = select(({ skippedUpdateVersion }) => skippedUpdateVersion);
+    const skippedUpdateVersion = select(
+      ({ skippedUpdateVersion }) => skippedUpdateVersion
+    );
     if (skippedUpdateVersion === version) {
       dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
       return;

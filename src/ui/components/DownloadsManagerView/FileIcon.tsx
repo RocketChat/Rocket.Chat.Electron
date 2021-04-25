@@ -19,20 +19,22 @@ const FileIcon: FC<FileIconProps> = ({ fileName, mimeType }) => {
     return /^\w+\/([-.\w]+)(?:\+[-.\w]+)?$/.exec(mimeType)?.[1];
   }, [fileName, mimeType]);
 
-  return <Box display='flex' flexDirection='column' width='x36' height='x44'>
-    <Box is='img' src='images/file-icon.svg' alt={label} width='x36' />
-    <Box
-      width={32}
-      mi={2}
-      mbs={-20}
-      color='neutral-600'
-      fontScale='c2'
-      textAlign='center'
-      withTruncatedText
-    >
-      {label}
+  return (
+    <Box display='flex' flexDirection='column' width='x36' height='x44'>
+      <Box is='img' src='images/file-icon.svg' alt={label} width='x36' />
+      <Box
+        width={32}
+        mi={2}
+        mbs={-20}
+        color='neutral-600'
+        fontScale='c2'
+        textAlign='center'
+        withTruncatedText
+      >
+        {label}
+      </Box>
     </Box>
-  </Box>;
+  );
 };
 
 export default FileIcon;

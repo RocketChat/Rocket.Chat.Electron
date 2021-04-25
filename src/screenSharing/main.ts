@@ -13,15 +13,24 @@ export const setupScreenSharing = (): void => {
       return;
     }
 
-    const predicate = (action: RootAction): action is ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED> | ActionOf<typeof SCREEN_SHARING_DIALOG_DISMISSED> =>
-      isResponseTo(requestAction.meta.id, WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, SCREEN_SHARING_DIALOG_DISMISSED)(action);
+    const predicate = (
+      action: RootAction
+    ): action is
+      | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED>
+      | ActionOf<typeof SCREEN_SHARING_DIALOG_DISMISSED> =>
+      isResponseTo(
+        requestAction.meta.id,
+        WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
+        SCREEN_SHARING_DIALOG_DISMISSED
+      )(action);
 
     const unsubscribe = listen(predicate, (responseAction) => {
       unsubscribe();
 
-      const sourceId = responseAction.type === WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED
-        ? responseAction.payload
-        : null;
+      const sourceId =
+        responseAction.type === WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED
+          ? responseAction.payload
+          : null;
 
       dispatch({
         type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,

@@ -14,13 +14,15 @@ import {
   EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
 } from './actions';
 
-type ClientCertificatesActionTypes = (
-  ActionOf<typeof CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED>
+type ClientCertificatesActionTypes =
+  | ActionOf<typeof CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED>
   | ActionOf<typeof SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED>
-  | ActionOf<typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED>
-);
+  | ActionOf<typeof SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED>;
 
-export const clientCertificates: Reducer<Certificate[], ClientCertificatesActionTypes> = (state = [], action) => {
+export const clientCertificates: Reducer<
+  Certificate[],
+  ClientCertificatesActionTypes
+> = (state = [], action) => {
   switch (action.type) {
     case CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED:
       return action.payload;
@@ -34,14 +36,16 @@ export const clientCertificates: Reducer<Certificate[], ClientCertificatesAction
   }
 };
 
-type TrustedCertificatesAction = (
-  ActionOf<typeof CERTIFICATES_LOADED>
+type TrustedCertificatesAction =
+  | ActionOf<typeof CERTIFICATES_LOADED>
   | ActionOf<typeof CERTIFICATES_UPDATED>
   | ActionOf<typeof CERTIFICATES_CLEARED>
-  | ActionOf<typeof APP_SETTINGS_LOADED>
-);
+  | ActionOf<typeof APP_SETTINGS_LOADED>;
 
-export const trustedCertificates: Reducer<Record<Server['url'], Certificate['fingerprint']>, TrustedCertificatesAction> = (state = {}, action) => {
+export const trustedCertificates: Reducer<
+  Record<Server['url'], Certificate['fingerprint']>,
+  TrustedCertificatesAction
+> = (state = {}, action) => {
   switch (action.type) {
     case CERTIFICATES_LOADED:
     case CERTIFICATES_UPDATED:
@@ -60,12 +64,14 @@ export const trustedCertificates: Reducer<Record<Server['url'], Certificate['fin
   }
 };
 
-type ExternalProtocolsAction = (
-  ActionOf<typeof APP_SETTINGS_LOADED>
-  | ActionOf<typeof EXTERNAL_PROTOCOL_PERMISSION_UPDATED>
-);
+type ExternalProtocolsAction =
+  | ActionOf<typeof APP_SETTINGS_LOADED>
+  | ActionOf<typeof EXTERNAL_PROTOCOL_PERMISSION_UPDATED>;
 
-export const externalProtocols: Reducer<Record<string, boolean>, ExternalProtocolsAction> = (state = {}, action) => {
+export const externalProtocols: Reducer<
+  Record<string, boolean>,
+  ExternalProtocolsAction
+> = (state = {}, action) => {
   switch (action.type) {
     case APP_SETTINGS_LOADED: {
       const { externalProtocols = {} } = action.payload;

@@ -21,12 +21,21 @@ type PersistableValues_0_0_0 = {
   trustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
 };
 
-type PersistableValues_3_1_0 = Omit<PersistableValues_0_0_0, 'currentServerUrl' | 'currentView'> & {
-  currentView?: Exclude<PersistableValues_0_0_0['currentView'], null> | { url: string; } | 'downloads';
+type PersistableValues_3_1_0 = Omit<
+  PersistableValues_0_0_0,
+  'currentServerUrl' | 'currentView'
+> & {
+  currentView?:
+    | Exclude<PersistableValues_0_0_0['currentView'], null>
+    | { url: string }
+    | 'downloads';
   downloads?: Record<Download['itemId'], Download>;
 };
 
-export type PersistableValues = Pick<PersistableValues_3_1_0, keyof PersistableValues_3_1_0>;
+export type PersistableValues = Pick<
+  PersistableValues_3_1_0,
+  keyof PersistableValues_3_1_0
+>;
 
 export const migrations = {
   '>=3.1.0': (before: PersistableValues_0_0_0): PersistableValues_3_1_0 => {
@@ -34,7 +43,9 @@ export const migrations = {
 
     return {
       ...rest,
-      currentView: currentServerUrl ? { url: currentServerUrl } : rest.currentView ?? 'add-new-server',
+      currentView: currentServerUrl
+        ? { url: currentServerUrl }
+        : rest.currentView ?? 'add-new-server',
       downloads: {},
     };
   },

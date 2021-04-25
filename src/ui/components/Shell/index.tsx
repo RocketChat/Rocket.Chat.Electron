@@ -22,7 +22,7 @@ export const Shell: FC = () => {
 
     const linkElement = document.createElement('link');
     linkElement.rel = 'stylesheet';
-    linkElement.href = `${ appPath }/app/icons/rocketchat.css`;
+    linkElement.href = `${appPath}/app/icons/rocketchat.css`;
     document.head.append(linkElement);
 
     return () => {
@@ -30,20 +30,22 @@ export const Shell: FC = () => {
     };
   }, [appPath]);
 
-  return <>
-    <GlobalStyles />
-    {process.platform === 'darwin' && <WindowDragBar />}
-    <Wrapper>
-      <SideBar />
-      <ViewsWrapper>
-        <ServersView />
-        <AddServerView />
-        <DownloadsManagerView />
-      </ViewsWrapper>
-    </Wrapper>
-    <AboutDialog />
-    <ScreenSharingDialog />
-    <SelectClientCertificateDialog />
-    <UpdateDialog />
-  </>;
+  return (
+    <>
+      <GlobalStyles />
+      {process.platform === 'darwin' && <WindowDragBar />}
+      <Wrapper>
+        <SideBar />
+        <ViewsWrapper>
+          <ServersView />
+          <AddServerView />
+          <DownloadsManagerView />
+        </ViewsWrapper>
+      </Wrapper>
+      <AboutDialog />
+      <ScreenSharingDialog />
+      <SelectClientCertificateDialog />
+      <UpdateDialog />
+    </>
+  );
 };

@@ -4,7 +4,10 @@ import { useDispatch } from 'react-redux';
 import { Dispatch } from 'redux';
 
 import { RootAction } from '../../../store/actions';
-import { LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, WEBVIEW_ATTACHED } from '../../actions';
+import {
+  LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+  WEBVIEW_ATTACHED,
+} from '../../actions';
 import ErrorView from './ErrorView';
 import { StyledWebView, Wrapper } from './styles';
 
@@ -87,8 +90,14 @@ export const ServerPane: FC<ServerPaneProps> = ({
     });
   };
 
-  return <Wrapper isVisible={isSelected}>
-    <StyledWebView ref={webviewRef} isFailed={isFailed} partition={`persist:${ serverUrl }`} />
-    <ErrorView isFailed={isFailed} onReload={handleReload} />
-  </Wrapper>;
+  return (
+    <Wrapper isVisible={isSelected}>
+      <StyledWebView
+        ref={webviewRef}
+        isFailed={isFailed}
+        partition={`persist:${serverUrl}`}
+      />
+      <ErrorView isFailed={isFailed} onReload={handleReload} />
+    </Wrapper>
+  );
 };

@@ -2,10 +2,20 @@ import { InitOptions } from 'i18next';
 
 export const fallbackLng = 'en' as const;
 
-const byteUnits = ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte', 'petabyte'];
+const byteUnits = [
+  'byte',
+  'kilobyte',
+  'megabyte',
+  'gigabyte',
+  'terabyte',
+  'petabyte',
+];
 
 const formatBytes = (bytes: number): string => {
-  const order = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), byteUnits.length - 1);
+  const order = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+    byteUnits.length - 1
+  );
   const unit = byteUnits[order];
 
   const formatter = new Intl.NumberFormat(undefined, {
@@ -18,8 +28,11 @@ const formatBytes = (bytes: number): string => {
 };
 
 const formatByteSpeed = (bytesPerSecond: number): string => {
-  const order = Math.min(Math.floor(Math.log(bytesPerSecond) / Math.log(1024)), byteUnits.length - 1);
-  const unit = `${ byteUnits[order] }-per-second`;
+  const order = Math.min(
+    Math.floor(Math.log(bytesPerSecond) / Math.log(1024)),
+    byteUnits.length - 1
+  );
+  const unit = `${byteUnits[order]}-per-second`;
 
   const formatter = new Intl.NumberFormat(undefined, {
     notation: 'compact',

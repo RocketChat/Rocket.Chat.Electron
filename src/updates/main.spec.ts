@@ -17,11 +17,13 @@ describe('mergeConfigurations', () => {
     const appConfiguration: AppLevelUpdateConfiguration = {};
     const userConfiguration: UserLevelUpdateConfiguration = {};
 
-    expect(mergeConfigurations(
-      defaultConfiguration,
-      appConfiguration,
-      userConfiguration,
-    )).toStrictEqual(defaultConfiguration);
+    expect(
+      mergeConfigurations(
+        defaultConfiguration,
+        appConfiguration,
+        userConfiguration
+      )
+    ).toStrictEqual(defaultConfiguration);
   });
 
   it('merges app configuration', () => {
@@ -38,11 +40,13 @@ describe('mergeConfigurations', () => {
     };
     const userConfiguration: UserLevelUpdateConfiguration = {};
 
-    expect(mergeConfigurations(
-      defaultConfiguration,
-      appConfiguration,
-      userConfiguration,
-    )).toStrictEqual({
+    expect(
+      mergeConfigurations(
+        defaultConfiguration,
+        appConfiguration,
+        userConfiguration
+      )
+    ).toStrictEqual({
       ...defaultConfiguration,
       doCheckForUpdatesOnStartup: false,
       isUpdatingEnabled: false,
@@ -66,11 +70,13 @@ describe('mergeConfigurations', () => {
       skip: 'x.y.z',
     };
 
-    expect(mergeConfigurations(
-      defaultConfiguration,
-      appConfiguration,
-      userConfiguration,
-    )).toStrictEqual({
+    expect(
+      mergeConfigurations(
+        defaultConfiguration,
+        appConfiguration,
+        userConfiguration
+      )
+    ).toStrictEqual({
       ...defaultConfiguration,
       doCheckForUpdatesOnStartup: true,
       isUpdatingEnabled: false,
@@ -96,11 +102,13 @@ describe('mergeConfigurations', () => {
       skip: 'x.y.z',
     };
 
-    expect(mergeConfigurations(
-      defaultConfiguration,
-      appConfiguration,
-      userConfiguration,
-    )).toStrictEqual({
+    expect(
+      mergeConfigurations(
+        defaultConfiguration,
+        appConfiguration,
+        userConfiguration
+      )
+    ).toStrictEqual({
       ...defaultConfiguration,
       isEachUpdatesSettingConfigurable: false,
       doCheckForUpdatesOnStartup: false,

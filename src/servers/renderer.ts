@@ -9,14 +9,16 @@ import { ROOT_WINDOW_ICON_CHANGED } from '../ui/actions';
 import Badge from '../ui/icons/Badge';
 import { Server } from './common';
 
-export const fetchInfo = async (urlHref: string): Promise<[urlHref: string, version: string]> => {
+export const fetchInfo = async (
+  urlHref: string
+): Promise<[urlHref: string, version: string]> => {
   const url = new URL(urlHref);
 
   const { username, password } = url;
   const headers = new Headers();
 
   if (username && password) {
-    headers.append('Authorization', `Basic ${ btoa(`${ username }:${ password }`) }`);
+    headers.append('Authorization', `Basic ${btoa(`${username}:${password}`)}`);
   }
 
   const homeResponse = await fetch(url.href, { headers });
@@ -48,9 +50,12 @@ export const fetchInfo = async (urlHref: string): Promise<[urlHref: string, vers
 type RootWindowIconParams = {
   badge: Server['badge'] | undefined;
   favicon: string | undefined;
-}
+};
 
-const selectBadgeAndFavicon = createStructuredSelector<RootState, RootWindowIconParams>({
+const selectBadgeAndFavicon = createStructuredSelector<
+  RootState,
+  RootWindowIconParams
+>({
   badge: ({ servers }: RootState) => {
     const badges = servers.map(({ badge }) => badge);
 
@@ -68,10 +73,10 @@ const selectBadgeAndFavicon = createStructuredSelector<RootState, RootWindowIcon
 
     return undefined;
   },
-  favicon: ({
-    currentView,
-    servers,
-  }: RootState) => (typeof currentView === 'object' ? servers.find((server) => server.url === currentView.url)?.favicon : undefined) ?? undefined,
+  favicon: ({ currentView, servers }: RootState) =>
+    (typeof currentView === 'object'
+      ? servers.find((server) => server.url === currentView.url)?.favicon
+      : undefined) ?? undefined,
 });
 
 let faviconImage: HTMLImageElement;
@@ -99,14 +104,16 @@ const getFaviconImage = async (src: string): Promise<HTMLImageElement> => {
 
 let badgeImage: HTMLImageElement;
 
-const getBadgeImage = async (badge: RootWindowIconParams['badge']): Promise<HTMLImageElement> => {
+const getBadgeImage = async (
+  badge: RootWindowIconParams['badge']
+): Promise<HTMLImageElement> => {
   if (!badgeImage) {
     badgeImage = new Image();
   }
 
   if (badgeImage.dataset.badge !== badge) {
     const svg = renderToStaticMarkup(createElement(Badge, { value: badge }));
-    badgeImage.src = `data:image/svg+xml;base64,${ btoa(svg) }`;
+    badgeImage.src = `data:image/svg+xml;base64,${btoa(svg)}`;
 
     return new Promise((resolve, reject) => {
       badgeImage.addEventListener('load', () => {
@@ -134,7 +141,10 @@ const getCanvas = (size: number): HTMLCanvasElement => {
   return canvas;
 };
 
-const updateRootWindowIconForLinux = async ({ badge, favicon }: RootWindowIconParams): Promise<void> => {
+const updateRootWindowIconForLinux = async ({
+  badge,
+  favicon,
+}: RootWindowIconParams): Promise<void> => {
   if (!favicon) {
     dispatch({
       type: ROOT_WINDOW_ICON_CHANGED,
@@ -160,11 +170,23 @@ const updateRootWindowIconForLinux = async ({ badge, favicon }: RootWindowIconPa
     if (badge) {
       const badgeSize = size / 3;
       const badgeHoleSize = size / 2;
-      const badgeOffset = size - badgeHoleSize + (badgeHoleSize - badgeSize) / 2;
+      const badgeOffset =
+        size - badgeHoleSize + (badgeHoleSize - badgeSize) / 2;
 
       ctx.beginPath();
-      ctx.arc(size - badgeHoleSize / 2, size - badgeHoleSize / 2, badgeHoleSize / 2, 0, 2 * Math.PI);
-      ctx.rect(size - badgeHoleSize / 2, size - badgeHoleSize / 2, badgeHoleSize / 2, badgeHoleSize / 2);
+      ctx.arc(
+        size - badgeHoleSize / 2,
+        size - badgeHoleSize / 2,
+        badgeHoleSize / 2,
+        0,
+        2 * Math.PI
+      );
+      ctx.rect(
+        size - badgeHoleSize / 2,
+        size - badgeHoleSize / 2,
+        badgeHoleSize / 2,
+        badgeHoleSize / 2
+      );
       ctx.closePath();
       ctx.clip();
       ctx.clearRect(0, 0, size, size);
@@ -187,7 +209,10 @@ const updateRootWindowIconForLinux = async ({ badge, favicon }: RootWindowIconPa
   });
 };
 
-const updateRootWindowIconForWindows = async ({ badge, favicon }: RootWindowIconParams): Promise<void> => {
+const updateRootWindowIconForWindows = async ({
+  badge,
+  favicon,
+}: RootWindowIconParams): Promise<void> => {
   if (!favicon) {
     dispatch({
       type: ROOT_WINDOW_ICON_CHANGED,

@@ -17,8 +17,8 @@ import {
   WEBVIEW_FOCUS_REQUESTED,
 } from '../actions';
 
-type CurrentViewAction = (
-  ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
+type CurrentViewAction =
+  | ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof DEEP_LINKS_SERVER_ADDED>
   | ActionOf<typeof DEEP_LINKS_SERVER_FOCUSED>
@@ -30,12 +30,14 @@ type CurrentViewAction = (
   | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_SERVER_SELECTED>
   | ActionOf<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>
-  | ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>
-);
+  | ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>;
 
-type CurrentViewState = 'add-new-server' | 'downloads' | { url: string; };
+type CurrentViewState = 'add-new-server' | 'downloads' | { url: string };
 
-export const currentView = (state: CurrentViewState = 'add-new-server', action: CurrentViewAction): CurrentViewState => {
+export const currentView = (
+  state: CurrentViewState = 'add-new-server',
+  action: CurrentViewAction
+): CurrentViewState => {
   switch (action.type) {
     case ADD_SERVER_VIEW_SERVER_ADDED:
     case DEEP_LINKS_SERVER_ADDED:

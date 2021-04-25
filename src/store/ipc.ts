@@ -2,7 +2,10 @@ import { WebContents } from 'electron';
 import { Middleware, MiddlewareAPI, Dispatch } from 'redux';
 
 import { handle as handleOnMain, invoke as invokeFromMain } from '../ipc/main';
-import { handle as handleFromRenderer, invoke as invokeFromRenderer } from '../ipc/renderer';
+import {
+  handle as handleFromRenderer,
+  invoke as invokeFromRenderer,
+} from '../ipc/renderer';
 import { isFSA, FluxStandardAction, isLocallyScoped, hasMeta } from './fsa';
 
 const enum ActionScope {
@@ -34,7 +37,7 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
     const rendererAction = {
       ...action,
       meta: {
-        ...hasMeta(action) && action.meta,
+        ...(hasMeta(action) && action.meta),
         scope: ActionScope.LOCAL,
       },
     };

@@ -33,7 +33,9 @@ const getImageElement = (): HTMLImageElement => {
       });
     };
 
-    imageElement.addEventListener('load', handleImageLoadEvent, { passive: true });
+    imageElement.addEventListener('load', handleImageLoadEvent, {
+      passive: true,
+    });
   }
 
   return imageElement;

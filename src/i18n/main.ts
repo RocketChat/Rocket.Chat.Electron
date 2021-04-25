@@ -7,15 +7,17 @@ import { I18N_LNG_REQUESTED, I18N_LNG_RESPONDED } from './actions';
 import { interpolation, fallbackLng } from './common';
 import resources from './resources';
 
-const hasLng = (lng: string): lng is keyof typeof resources =>
-  lng in resources;
+const hasLng = (lng: string): lng is keyof typeof resources => lng in resources;
 
 const getLng = async (): Promise<keyof typeof resources | undefined> => {
   await app.whenReady();
 
   const locale = app.getLocale();
 
-  let [languageCode, countryCode] = locale.split(/[-_]/) as [string, string | null];
+  let [languageCode, countryCode] = locale.split(/[-_]/) as [
+    string,
+    string | null
+  ];
   if (!languageCode || languageCode.length !== 2) {
     return fallbackLng;
   }
@@ -28,7 +30,7 @@ const getLng = async (): Promise<keyof typeof resources | undefined> => {
     countryCode = countryCode.toUpperCase();
   }
 
-  const lng = countryCode ? `${ languageCode }-${ countryCode }` : languageCode;
+  const lng = countryCode ? `${languageCode}-${countryCode}` : languageCode;
 
   if (hasLng(lng)) {
     return lng;
@@ -41,23 +43,23 @@ class I18nService extends Service {
   private async initializeAsync(): Promise<void> {
     const lng = await getLng();
 
-    this.t = await i18next
-      .init({
-        lng,
-        fallbackLng,
-        resources: {
-          ...lng && lng in resources && {
+    this.t = await i18next.init({
+      lng,
+      fallbackLng,
+      resources: {
+        ...(lng &&
+          lng in resources && {
             [lng]: {
               translation: await resources[lng](),
             },
-          },
-          [fallbackLng]: {
-            translation: await resources[fallbackLng](),
-          },
+          }),
+        [fallbackLng]: {
+          translation: await resources[fallbackLng](),
         },
-        interpolation,
-        initImmediate: true,
-      });
+      },
+      interpolation,
+      initImmediate: true,
+    });
   }
 
   private initialization: Promise<void> | undefined;
@@ -85,7 +87,7 @@ class I18nService extends Service {
     return this.initialization ?? Promise.reject(new Error('not initialized'));
   }
 
-  public t: TFunction = i18next.t.bind(i18next)
+  public t: TFunction = i18next.t.bind(i18next);
 }
 
 export default new I18nService();

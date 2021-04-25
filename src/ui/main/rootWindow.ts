@@ -16,17 +16,10 @@ import { setupRootWindowReload } from '../../app/main/dev';
 import { Server } from '../../servers/common';
 import { dispatch, select, watch, listen } from '../../store';
 import { RootState } from '../../store/rootReducer';
-import {
-  ROOT_WINDOW_STATE_CHANGED,
-  WEBVIEW_FOCUS_REQUESTED,
-} from '../actions';
+import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
 import { RootWindowIcon, WindowState } from '../common';
-import {
-  selectGlobalBadge,
-  selectGlobalBadgeCount,
-} from '../selectors';
+import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { getTrayIconPath } from './icons';
-
 
 const webPreferences: WebPreferences = {
   nodeIntegration: true,
@@ -35,20 +28,21 @@ const webPreferences: WebPreferences = {
   worldSafeExecuteJavaScript: true,
 };
 
-const selectRootWindowState = ({ rootWindowState }: RootState): WindowState => rootWindowState ?? {
-  bounds: {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-  },
-  focused: false,
-  fullscreen: false,
-  maximized: false,
-  minimized: false,
-  normal: false,
-  visible: false,
-};
+const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>
+  rootWindowState ?? {
+    bounds: {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+    },
+    focused: false,
+    fullscreen: false,
+    maximized: false,
+    minimized: false,
+    normal: false,
+    visible: false,
+  };
 
 let _rootWindow: BrowserWindow;
 
@@ -77,23 +71,33 @@ export const createRootWindow = (): void => {
 };
 
 const isInsideSomeScreen = ({ x, y, width, height }: Rectangle): boolean =>
-  screen.getAllDisplays()
-    .some(({ bounds }) => x >= bounds.x && y >= bounds.y
-      && x + width <= bounds.x + bounds.width && y + height <= bounds.y + bounds.height,
+  screen
+    .getAllDisplays()
+    .some(
+      ({ bounds }) =>
+        x >= bounds.x &&
+        y >= bounds.y &&
+        x + width <= bounds.x + bounds.width &&
+        y + height <= bounds.y + bounds.height
     );
 
 export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
   const rootWindowState = select(selectRootWindowState);
-  const isTrayIconEnabled = select(({ isTrayIconEnabled }) => isTrayIconEnabled);
+  const isTrayIconEnabled = select(
+    ({ isTrayIconEnabled }) => isTrayIconEnabled
+  );
 
   let { x, y } = rootWindowState.bounds;
   const { width, height } = rootWindowState.bounds;
-  if (x === null || x === undefined || y === null || y === undefined || !isInsideSomeScreen({ x, y, width, height })) {
+  if (
+    x === null ||
+    x === undefined ||
+    y === null ||
+    y === undefined ||
+    !isInsideSomeScreen({ x, y, width, height })
+  ) {
     const {
-      bounds: {
-        width: primaryDisplayWidth,
-        height: primaryDisplayHeight,
-      },
+      bounds: { width: primaryDisplayWidth, height: primaryDisplayHeight },
     } = screen.getPrimaryDisplay();
     x = Math.round((primaryDisplayWidth - width) / 2);
     y = Math.round((primaryDisplayHeight - height) / 2);
@@ -130,7 +134,9 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
   }
 };
 
-const fetchRootWindowState = async (): Promise<ReturnType<typeof selectRootWindowState>> => {
+const fetchRootWindowState = async (): Promise<
+  ReturnType<typeof selectRootWindowState>
+> => {
   const browserWindow = await getRootWindow();
   return {
     focused: browserWindow.isFocused(),
@@ -152,7 +158,10 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      const isShowWindowOnUnreadChangedEnabled = select(({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled);
+      const isShowWindowOnUnreadChangedEnabled = select(
+        ({ isShowWindowOnUnreadChangedEnabled }) =>
+          isShowWindowOnUnreadChangedEnabled
+      );
 
       if (isShowWindowOnUnreadChangedEnabled && !browserWindow.isVisible()) {
         const isMinimized = browserWindow.isMinimized();
@@ -173,16 +182,19 @@ export const setupRootWindow = (): void => {
       browserWindow.flashFrame(true);
     }),
 
-    watch(({
-      currentView,
-      servers,
-    }) => {
-      const currentServer = typeof currentView === 'object' ? servers.find(({ url }) => url === currentView.url) : null;
-      return (currentServer && currentServer.title) || app.name;
-    }, async (windowTitle) => {
-      const browserWindow = await getRootWindow();
-      browserWindow.setTitle(windowTitle);
-    }),
+    watch(
+      ({ currentView, servers }) => {
+        const currentServer =
+          typeof currentView === 'object'
+            ? servers.find(({ url }) => url === currentView.url)
+            : null;
+        return (currentServer && currentServer.title) || app.name;
+      },
+      async (windowTitle) => {
+        const browserWindow = await getRootWindow();
+        browserWindow.setTitle(windowTitle);
+      }
+    ),
 
     listen(WEBVIEW_FOCUS_REQUESTED, async () => {
       const browserWindow = await getRootWindow();
@@ -217,13 +229,17 @@ export const setupRootWindow = (): void => {
 
     rootWindow.addListener('close', async () => {
       if (rootWindow.isFullScreen()) {
-        await new Promise((resolve) => rootWindow.once('leave-full-screen', resolve));
+        await new Promise((resolve) =>
+          rootWindow.once('leave-full-screen', resolve)
+        );
         rootWindow.setFullScreen(false);
       }
 
       rootWindow.blur();
 
-      const isTrayIconEnabled = select(({ isTrayIconEnabled }) => isTrayIconEnabled ?? true);
+      const isTrayIconEnabled = select(
+        ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true
+      );
 
       if (process.platform === 'darwin' || isTrayIconEnabled) {
         rootWindow.hide();
@@ -245,10 +261,13 @@ export const setupRootWindow = (): void => {
   });
 
   if (process.platform === 'linux' || process.platform === 'win32') {
-    const selectRootWindowIcon = createStructuredSelector<RootState, {
-      globalBadge: Server['badge'];
-      rootWindowIcon: RootWindowIcon | null;
-    }>({
+    const selectRootWindowIcon = createStructuredSelector<
+      RootState,
+      {
+        globalBadge: Server['badge'];
+        rootWindowIcon: RootWindowIcon | null;
+      }
+    >({
       globalBadge: selectGlobalBadge,
       rootWindowIcon: ({ rootWindowIcon }) => rootWindowIcon,
     });
@@ -258,10 +277,12 @@ export const setupRootWindow = (): void => {
         const browserWindow = await getRootWindow();
 
         if (!rootWindowIcon) {
-          browserWindow.setIcon(getTrayIconPath({
-            platform: process.platform,
-            badge: globalBadge,
-          }));
+          browserWindow.setIcon(
+            getTrayIconPath({
+              platform: process.platform,
+              badge: globalBadge,
+            })
+          );
           return;
         }
 
@@ -290,9 +311,15 @@ export const setupRootWindow = (): void => {
 
         if (process.platform === 'win32') {
           let overlayIcon: NativeImage | null = null;
-          const overlayDescription: string = (typeof globalBadge === 'number' && i18next.t('unreadMention', { appName: app.name, count: globalBadge }))
-          || (globalBadge === '•' && i18next.t('unreadMessage', { appName: app.name }))
-          || i18next.t('noUnreadMessage', { appName: app.name });
+          const overlayDescription: string =
+            (typeof globalBadge === 'number' &&
+              i18next.t('unreadMention', {
+                appName: app.name,
+                count: globalBadge,
+              })) ||
+            (globalBadge === '•' &&
+              i18next.t('unreadMessage', { appName: app.name })) ||
+            i18next.t('noUnreadMessage', { appName: app.name });
           if (rootWindowIcon.overlay) {
             overlayIcon = nativeImage.createEmpty();
 
@@ -307,11 +334,14 @@ export const setupRootWindow = (): void => {
           browserWindow.setOverlayIcon(overlayIcon, overlayDescription);
         }
       }),
-      watch(({ isMenuBarEnabled }) => isMenuBarEnabled, async (isMenuBarEnabled) => {
-        const browserWindow = await getRootWindow();
-        browserWindow.autoHideMenuBar = !isMenuBarEnabled;
-        browserWindow.setMenuBarVisibility(isMenuBarEnabled);
-      }),
+      watch(
+        ({ isMenuBarEnabled }) => isMenuBarEnabled,
+        async (isMenuBarEnabled) => {
+          const browserWindow = await getRootWindow();
+          browserWindow.autoHideMenuBar = !isMenuBarEnabled;
+          browserWindow.setMenuBarVisibility(isMenuBarEnabled);
+        }
+      )
     );
   }
 
@@ -333,7 +363,9 @@ export const showRootWindow = async (): Promise<void> => {
     browserWindow.addListener('ready-to-show', () => {
       applyRootWindowState(browserWindow);
 
-      const isTrayIconEnabled = select(({ isTrayIconEnabled }) => isTrayIconEnabled);
+      const isTrayIconEnabled = select(
+        ({ isTrayIconEnabled }) => isTrayIconEnabled
+      );
 
       if (app.commandLine.hasSwitch('start-hidden') && isTrayIconEnabled) {
         console.debug('Start application in background');

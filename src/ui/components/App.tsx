@@ -11,11 +11,12 @@ type AppProps = {
   reduxStore: Store;
 };
 
-export const App: FC<AppProps> = ({ reduxStore }) =>
+export const App: FC<AppProps> = ({ reduxStore }) => (
   <ErrorCatcher>
     <Provider store={reduxStore}>
       <I18nextProvider i18n={i18n}>
         <Shell />
       </I18nextProvider>
     </Provider>
-  </ErrorCatcher>;
+  </ErrorCatcher>
+);

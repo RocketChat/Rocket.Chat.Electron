@@ -7,18 +7,22 @@ import { whenReady } from './whenReady';
 
 type AppType = 'main' | 'rootWindow' | 'webviewPreload';
 
-const setupBugsnag = (apiKey: string, appVersion: string, appType: AppType): void => {
+const setupBugsnag = (
+  apiKey: string,
+  appVersion: string,
+  appType: AppType
+): void => {
   Bugsnag.start({
     apiKey,
     appVersion,
     appType,
     collectUserIp: false,
     releaseStage: process.env.NODE_ENV,
-    ...appType === 'webviewPreload' && {
+    ...(appType === 'webviewPreload' && {
       onError: (event) => {
         event.context = window.location.href;
       },
-    },
+    }),
   });
 };
 
@@ -45,7 +49,9 @@ export const setupMainErrorHandling = async (): Promise<void> => {
   });
 };
 
-export const setupRendererErrorHandling = async (appType: AppType): Promise<void> => {
+export const setupRendererErrorHandling = async (
+  appType: AppType
+): Promise<void> => {
   await whenReady();
 
   if (process.env.BUGSNAG_API_KEY) {

@@ -25,7 +25,7 @@ const createTouchBar = (): [
   TouchBar,
   TouchBarPopover,
   TouchBarScrubber,
-  TouchBarSegmentedControl,
+  TouchBarSegmentedControl
 ] => {
   const serverSelectionScrubber = new TouchBar.TouchBarScrubber({
     selectedStyle: 'background',
@@ -57,7 +57,9 @@ const createTouchBar = (): [
   const messageBoxFormattingButtons = new TouchBar.TouchBarSegmentedControl({
     mode: 'buttons',
     segments: ids.map((id) => ({
-      icon: nativeImage.createFromPath(`${ app.getAppPath() }/app/images/touch-bar/${ id }.png`),
+      icon: nativeImage.createFromPath(
+        `${app.getAppPath()}/app/images/touch-bar/${id}.png`
+      ),
       enabled: false,
     })),
     change: async (selectedIndex) => {
@@ -94,14 +96,21 @@ const createTouchBar = (): [
   ];
 };
 
-const updateServerSelectionPopover = (serverSelectionPopover: TouchBarPopover, currentServer: Server | null): void => {
-  serverSelectionPopover.label = currentServer?.title ?? t('touchBar.selectServer');
+const updateServerSelectionPopover = (
+  serverSelectionPopover: TouchBarPopover,
+  currentServer: Server | null
+): void => {
+  serverSelectionPopover.label =
+    currentServer?.title ?? t('touchBar.selectServer');
   serverSelectionPopover.icon = currentServer?.favicon
     ? nativeImage.createFromDataURL(currentServer?.favicon)
     : nativeImage.createEmpty();
 };
 
-const updateServerSelectionScrubber = (serverSelectionScrubber: TouchBarScrubber, servers: Server[]): void => {
+const updateServerSelectionScrubber = (
+  serverSelectionScrubber: TouchBarScrubber,
+  servers: Server[]
+): void => {
   serverSelectionScrubber.items = servers.map((server) => ({
     label: server.title?.padEnd(30),
     icon: server.favicon
@@ -110,14 +119,22 @@ const updateServerSelectionScrubber = (serverSelectionScrubber: TouchBarScrubber
   }));
 };
 
-const toggleMessageFormattingButtons = (messageBoxFormattingButtons: TouchBarSegmentedControl, isEnabled: boolean): void => {
+const toggleMessageFormattingButtons = (
+  messageBoxFormattingButtons: TouchBarSegmentedControl,
+  isEnabled: boolean
+): void => {
   messageBoxFormattingButtons.segments.forEach((segment) => {
     segment.enabled = isEnabled;
   });
 };
 
-const selectCurrentServer = ({ servers, currentView }: RootState): Server | null =>
-  (typeof currentView === 'object' ? servers.find(({ url }) => url === currentView.url) ?? null : null);
+const selectCurrentServer = ({
+  servers,
+  currentView,
+}: RootState): Server | null =>
+  typeof currentView === 'object'
+    ? servers.find(({ url }) => url === currentView.url) ?? null
+    : null;
 
 class TouchBarService extends Service {
   protected initialize(): void {
@@ -134,18 +151,33 @@ class TouchBarService extends Service {
 
     this.watch(selectCurrentServer, (currentServer) => {
       updateServerSelectionPopover(serverSelectionPopover, currentServer);
-      getRootWindow().then((browserWindow) => browserWindow.setTouchBar(touchBar));
+      getRootWindow().then((browserWindow) =>
+        browserWindow.setTouchBar(touchBar)
+      );
     });
 
-    this.watch(({ servers }) => servers, (servers) => {
-      updateServerSelectionScrubber(serverSelectionScrubber, servers);
-      getRootWindow().then((browserWindow) => browserWindow.setTouchBar(touchBar));
-    });
+    this.watch(
+      ({ servers }) => servers,
+      (servers) => {
+        updateServerSelectionScrubber(serverSelectionScrubber, servers);
+        getRootWindow().then((browserWindow) =>
+          browserWindow.setTouchBar(touchBar)
+        );
+      }
+    );
 
-    this.watch(({ isMessageBoxFocused }) => isMessageBoxFocused ?? false, (isMessageBoxFocused) => {
-      toggleMessageFormattingButtons(messageBoxFormattingButtons, isMessageBoxFocused);
-      getRootWindow().then((browserWindow) => browserWindow.setTouchBar(touchBar));
-    });
+    this.watch(
+      ({ isMessageBoxFocused }) => isMessageBoxFocused ?? false,
+      (isMessageBoxFocused) => {
+        toggleMessageFormattingButtons(
+          messageBoxFormattingButtons,
+          isMessageBoxFocused
+        );
+        getRootWindow().then((browserWindow) =>
+          browserWindow.setTouchBar(touchBar)
+        );
+      }
+    );
   }
 }
 

@@ -9,7 +9,9 @@ import {
   SIDE_BAR_SERVER_SELECTED,
 } from '../../actions';
 
-export const useSorting = <S extends Server>(servers: S[]): {
+export const useSorting = <S extends Server>(
+  servers: S[]
+): {
   sortedServers: S[];
   draggedServerUrl: string | null;
   handleDragStart: (url: string) => (event: DragEvent) => void;
@@ -70,7 +72,10 @@ export const useSorting = <S extends Server>(servers: S[]): {
   };
 
   const sortedServers = serversSorting
-    ? servers.sort(({ url: a }, { url: b }) => serversSorting.indexOf(a) - serversSorting.indexOf(b))
+    ? servers.sort(
+        ({ url: a }, { url: b }) =>
+          serversSorting.indexOf(a) - serversSorting.indexOf(b)
+      )
     : servers;
 
   return {

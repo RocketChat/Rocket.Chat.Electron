@@ -1,9 +1,6 @@
 import { invoke } from '../ipc/renderer';
 import { listen } from '../store';
-import {
-  SYSTEM_SUSPENDING,
-  SYSTEM_LOCKING_SCREEN,
-} from './actions';
+import { SYSTEM_SUSPENDING, SYSTEM_LOCKING_SCREEN } from './actions';
 import { SystemIdleState } from './common';
 
 let isAutoAwayEnabled: boolean;
@@ -18,14 +15,18 @@ const setupUserPresenceListening = (): void => {
       return;
     }
 
-    const state = await invoke('power-monitor/get-system-idle-state', idleThreshold);
+    const state = await invoke(
+      'power-monitor/get-system-idle-state',
+      idleThreshold
+    );
 
     if (prevState === state) {
       setTimeout(pollSystemIdleState, 1000);
       return;
     }
 
-    const isOnline = !isAutoAwayEnabled || state === 'active' || state === 'unknown';
+    const isOnline =
+      !isAutoAwayEnabled || state === 'active' || state === 'unknown';
 
     if (isOnline) {
       goOnline();

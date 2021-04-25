@@ -2,10 +2,7 @@ import { powerMonitor } from 'electron';
 
 import { handle } from '../ipc/main';
 import { dispatch } from '../store';
-import {
-  SYSTEM_SUSPENDING,
-  SYSTEM_LOCKING_SCREEN,
-} from './actions';
+import { SYSTEM_SUSPENDING, SYSTEM_LOCKING_SCREEN } from './actions';
 
 export const setupPowerMonitor = (): void => {
   powerMonitor.addListener('suspend', () => {
@@ -19,6 +16,6 @@ export const setupPowerMonitor = (): void => {
   handle(
     'power-monitor/get-system-idle-state',
     async (_webContents, idleThreshold) =>
-      powerMonitor.getSystemIdleState(idleThreshold),
+      powerMonitor.getSystemIdleState(idleThreshold)
   );
 };

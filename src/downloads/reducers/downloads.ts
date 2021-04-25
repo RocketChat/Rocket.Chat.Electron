@@ -8,17 +8,16 @@ import {
 } from '../actions';
 import { Download } from '../common';
 
-type DownloadsAction = (
-  ActionOf<typeof APP_SETTINGS_LOADED>
+type DownloadsAction =
+  | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof DOWNLOAD_CREATED>
   | ActionOf<typeof DOWNLOAD_UPDATED>
   | ActionOf<typeof DOWNLOADS_CLEARED>
-  | ActionOf<typeof DOWNLOAD_REMOVED>
-);
+  | ActionOf<typeof DOWNLOAD_REMOVED>;
 
 export const downloads = (
   state: Record<Download['itemId'], Download> = {},
-  action: DownloadsAction,
+  action: DownloadsAction
 ): Record<Download['itemId'], Download> => {
   switch (action.type) {
     case APP_SETTINGS_LOADED:

@@ -5,13 +5,13 @@ import { app, WebContents } from 'electron';
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
-import { askForServerAddition, warnAboutInvalidServerUrl } from '../ui/main/dialogs';
+import {
+  askForServerAddition,
+  warnAboutInvalidServerUrl,
+} from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
-import {
-  DEEP_LINKS_SERVER_FOCUSED,
-  DEEP_LINKS_SERVER_ADDED,
-} from './actions';
+import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
 
 const isRocketChatUrl = (parsedUrl: URL): boolean =>
   parsedUrl.protocol === 'rocketchat:';
@@ -19,8 +19,11 @@ const isRocketChatUrl = (parsedUrl: URL): boolean =>
 const isGoRocketChatUrl = (parsedUrl: URL): boolean =>
   parsedUrl.protocol === 'https:' && parsedUrl.hostname === 'go.rocket.chat';
 
-const parseDeepLink = (input: string): { action: string, args: URLSearchParams } | null => {
-  if (/^--/.test(input)) { // input is a CLI flag
+const parseDeepLink = (
+  input: string
+): { action: string; args: URLSearchParams } | null => {
+  if (/^--/.test(input)) {
+    // input is a CLI flag
     return null;
   }
 
@@ -67,7 +70,10 @@ type InviteParams = {
   path: string;
 };
 
-const performOnServer = async (url: string, action: (serverUrl: string) => Promise<void>): Promise<void> => {
+const performOnServer = async (
+  url: string,
+  action: (serverUrl: string) => Promise<void>
+): Promise<void> => {
   const [serverUrl, status, error] = await resolveServerUrl(url);
 
   if (status !== ServerUrlResolutionStatus.OK) {
@@ -75,7 +81,9 @@ const performOnServer = async (url: string, action: (serverUrl: string) => Promi
     return;
   }
 
-  const isServerAdded = select(({ servers }) => servers.some((server) => server.url === serverUrl));
+  const isServerAdded = select(({ servers }) =>
+    servers.some((server) => server.url === serverUrl)
+  );
 
   if (isServerAdded) {
     dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
@@ -111,7 +119,11 @@ const getWebContents = (serverUrl: string): Promise<WebContents> =>
     poll();
   });
 
-const performAuthentication = async ({ host, token, userId }: AuthenticationParams): Promise<void> =>
+const performAuthentication = async ({
+  host,
+  token,
+  userId,
+}: AuthenticationParams): Promise<void> =>
   performOnServer(host, async (serverUrl) => {
     const url = new URL('home', serverUrl);
     url.searchParams.append('resumeToken', token);
@@ -183,36 +195,42 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
 };
 
 export const setupDeepLinks = (): void => {
-  app.addListener('open-url', async (event, url): Promise<void> => {
-    event.preventDefault();
+  app.addListener(
+    'open-url',
+    async (event, url): Promise<void> => {
+      event.preventDefault();
 
-    const browserWindow = await getRootWindow();
+      const browserWindow = await getRootWindow();
 
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
+      if (!browserWindow.isVisible()) {
+        browserWindow.showInactive();
+      }
+      browserWindow.focus();
+
+      await processDeepLink(url);
     }
-    browserWindow.focus();
+  );
 
-    await processDeepLink(url);
-  });
+  app.addListener(
+    'second-instance',
+    async (event, argv): Promise<void> => {
+      event.preventDefault();
 
-  app.addListener('second-instance', async (event, argv): Promise<void> => {
-    event.preventDefault();
+      const browserWindow = await getRootWindow();
 
-    const browserWindow = await getRootWindow();
+      if (!browserWindow.isVisible()) {
+        browserWindow.showInactive();
+      }
+      browserWindow.focus();
 
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
+      const args = argv.slice(app.isPackaged ? 1 : 2);
+
+      for (const arg of args) {
+        // eslint-disable-next-line no-await-in-loop
+        await processDeepLink(arg);
+      }
     }
-    browserWindow.focus();
-
-    const args = argv.slice(app.isPackaged ? 1 : 2);
-
-    for (const arg of args) {
-      // eslint-disable-next-line no-await-in-loop
-      await processDeepLink(arg);
-    }
-  });
+  );
 
   processDeepLinksInArgs = async (): Promise<void> => {
     const args = process.argv.slice(app.isPackaged ? 1 : 2);

@@ -16,7 +16,9 @@ import {
 } from './actions';
 import { ExtendedNotificationOptions } from './common';
 
-const resolveIcon = async (iconUrl: string | undefined): Promise<NativeImage | undefined> => {
+const resolveIcon = async (
+  iconUrl: string | undefined
+): Promise<NativeImage | undefined> => {
   if (!iconUrl) {
     return undefined;
   }
@@ -27,7 +29,11 @@ const resolveIcon = async (iconUrl: string | undefined): Promise<NativeImage | u
 
   try {
     const { webContents } = await getRootWindow();
-    const dataUri = await invoke(webContents, 'notifications/fetch-icon', iconUrl);
+    const dataUri = await invoke(
+      webContents,
+      'notifications/fetch-icon',
+      iconUrl
+    );
     return nativeImage.createFromDataURL(dataUri);
   } catch (error) {
     console.error(error);
@@ -37,14 +43,10 @@ const resolveIcon = async (iconUrl: string | undefined): Promise<NativeImage | u
 
 const notifications = new Map();
 
-const createNotification = async (id: string, {
-  title,
-  body,
-  icon,
-  silent,
-  canReply,
-  actions,
-}: ExtendedNotificationOptions): Promise<string> => {
+const createNotification = async (
+  id: string,
+  { title, body, icon, silent, canReply, actions }: ExtendedNotificationOptions
+): Promise<string> => {
   const notification = new Notification({
     title,
     body: body ?? '',
@@ -71,11 +73,17 @@ const createNotification = async (id: string, {
   });
 
   notification.addListener('reply', (_event, reply) => {
-    dispatch({ type: NOTIFICATIONS_NOTIFICATION_REPLIED, payload: { id, reply } });
+    dispatch({
+      type: NOTIFICATIONS_NOTIFICATION_REPLIED,
+      payload: { id, reply },
+    });
   });
 
   notification.addListener('action', (_event, index) => {
-    dispatch({ type: NOTIFICATIONS_NOTIFICATION_ACTIONED, payload: { id, index } });
+    dispatch({
+      type: NOTIFICATIONS_NOTIFICATION_ACTIONED,
+      payload: { id, index },
+    });
   });
 
   notifications.set(id, notification);
@@ -85,12 +93,10 @@ const createNotification = async (id: string, {
   return id;
 };
 
-const updateNotification = async (id: string, {
-  title,
-  body,
-  silent,
-  renotify,
-}: ExtendedNotificationOptions): Promise<string> => {
+const updateNotification = async (
+  id: string,
+  { title, body, silent, renotify }: ExtendedNotificationOptions
+): Promise<string> => {
   const notification = notifications.get(id);
 
   if (title) {

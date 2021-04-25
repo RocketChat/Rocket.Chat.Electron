@@ -1,6 +1,9 @@
 import { useEffect, useRef, Ref } from 'react';
 
-export const useDialog = (visible: boolean, onClose = (): void => undefined): Ref<HTMLDialogElement> => {
+export const useDialog = (
+  visible: boolean,
+  onClose = (): void => undefined
+): Ref<HTMLDialogElement> => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const onCloseRef = useRef<() => void>();
 
@@ -30,7 +33,11 @@ export const useDialog = (visible: boolean, onClose = (): void => undefined): Re
 
     dialog.onclick = ({ clientX, clientY }) => {
       const { left, top, width, height } = dialog.getBoundingClientRect();
-      const isInDialog = top <= clientY && clientY <= top + height && left <= clientX && clientX <= left + width;
+      const isInDialog =
+        top <= clientY &&
+        clientY <= top + height &&
+        left <= clientX &&
+        clientX <= left + width;
       if (!isInDialog) {
         dialog.close();
       }

@@ -26,7 +26,7 @@ Before submitting a PR you should get no errors on `eslint`.
 To check your files, run:
 
 ```sh
-yarn eslint
+yarn lint
 ```
 
 ## Contributor License Agreement

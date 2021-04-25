@@ -30,7 +30,9 @@
     "test": "xvfb-maybe jest",
     "build-assets": "ts-node -O '{\"module\":\"commonjs\"}' src/buildAssets.ts",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "eslint": "eslint src"
+    "lint": "run-s .:lint:eslint .:lint:tsc",
+    ".:lint:eslint": "eslint src",
+    ".:lint:tsc": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
     "@bugsnag/js": "^7.3.5",

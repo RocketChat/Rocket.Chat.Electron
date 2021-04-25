@@ -4,18 +4,18 @@ import { fetchInfo } from './renderer';
 
 describe('servers/fetch-info', () => {
   const serverVersion = Array.from({ length: 3 }, () => Math.round(Math.random() * 9)).join('.');
-  let server: Server;
+  let server: Server | null;
 
   beforeEach(() => {
     server = createServer((req, res) => {
-      if (req.url === '/' || /^(\/subdir)+\/$/.test(req.url)) {
+      if (req.url === '/' || req.url?.match(/^(\/subdir)+\/$/)) {
         res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
         res.write('Home');
         res.end();
         return;
       }
 
-      if (req.url === '/api/info' || /^(\/subdir)+\/api\/info$/.test(req.url)) {
+      if (req.url === '/api/info' || req.url?.match(/^(\/subdir)+\/api\/info$/)) {
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.write(JSON.stringify({
           success: true,
@@ -40,7 +40,7 @@ describe('servers/fetch-info', () => {
   });
 
   afterEach(() => {
-    server.close();
+    server?.close();
     server = null;
   });
 

@@ -40,6 +40,11 @@ const run = () => {
   };
 };
 
+const tsconfig = {
+  noEmitOnError: false,
+  exclude: ['src/**/*.spec.ts', 'src/.jest'],
+};
+
 export default [
   {
     external: [
@@ -55,9 +60,7 @@ export default [
         'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
       }),
-      typescript({
-        noEmitOnError: false,
-      }),
+      typescript(tsconfig),
       babel({
         babelHelpers: 'bundled',
       }),
@@ -85,7 +88,7 @@ export default [
         'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
       }),
-      typescript({ noEmitOnError: false }),
+      typescript(tsconfig),
       babel({
         babelHelpers: 'bundled',
       }),
@@ -109,7 +112,7 @@ export default [
       replace({
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
       }),
-      typescript({ noEmitOnError: false }),
+      typescript(tsconfig),
       babel({
         babelHelpers: 'bundled',
       }),
@@ -145,7 +148,7 @@ export default [
         'process.env.BUGSNAG_API_KEY': JSON.stringify(process.env.BUGSNAG_API_KEY),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
       }),
-      typescript({ noEmitOnError: false }),
+      typescript(tsconfig),
       babel({
         babelHelpers: 'bundled',
       }),

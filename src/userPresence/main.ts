@@ -1,3 +1,5 @@
+import { inspect } from 'util';
+
 import { powerMonitor } from 'electron';
 
 import { handle } from '../ipc/main';
@@ -15,7 +17,16 @@ export const setupPowerMonitor = (): void => {
 
   handle(
     'power-monitor/get-system-idle-state',
-    async (_webContents, idleThreshold) =>
-      powerMonitor.getSystemIdleState(idleThreshold)
+    async (_webContents, idleThreshold) => {
+      const state = powerMonitor.getSystemIdleState(idleThreshold);
+
+      console.log(
+        `powerMonitor.getSystemIdleState(${inspect(idleThreshold, {
+          colors: true,
+        })}) = ${inspect(state, { colors: true })}`
+      );
+
+      return state;
+    }
   );
 };

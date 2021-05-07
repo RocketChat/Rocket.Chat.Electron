@@ -8,6 +8,7 @@ let idleThreshold: number | null;
 let goOnline = (): void => undefined;
 let goAway = (): void => undefined;
 
+let prevInterval: NodeJS.Timeout;
 const setupUserPresenceListening = (): void => {
   let prevState: SystemIdleState;
   const pollSystemIdleState = async (): Promise<void> => {
@@ -21,7 +22,6 @@ const setupUserPresenceListening = (): void => {
     );
 
     if (prevState === state) {
-      setTimeout(pollSystemIdleState, 1000);
       return;
     }
 
@@ -35,15 +35,15 @@ const setupUserPresenceListening = (): void => {
     }
 
     prevState = state;
-    setTimeout(pollSystemIdleState, 1000);
   };
+  if (prevInterval) {
+    clearInterval(prevInterval);
+  }
 
-  pollSystemIdleState();
+  prevInterval = setInterval(pollSystemIdleState, 2000);
 };
 
 export const listenToUserPresenceChanges = (): void => {
-  setupUserPresenceListening();
-
   listen(SYSTEM_SUSPENDING, () => {
     if (!isAutoAwayEnabled) {
       return;
@@ -70,4 +70,5 @@ export const setUserPresenceDetection = (options: {
   idleThreshold = options.idleThreshold;
   goOnline = () => options.setUserOnline(true);
   goAway = () => options.setUserOnline(false);
+  setupUserPresenceListening();
 };

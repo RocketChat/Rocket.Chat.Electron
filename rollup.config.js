@@ -64,6 +64,7 @@ export default [
           process.env.BUGSNAG_API_KEY
         ),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
       }),
       typescript(tsconfig),
       babel({
@@ -94,6 +95,7 @@ export default [
           process.env.BUGSNAG_API_KEY
         ),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
       }),
       typescript(tsconfig),
       babel({
@@ -118,6 +120,7 @@ export default [
       json(),
       replace({
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
       }),
       typescript(tsconfig),
       babel({
@@ -156,6 +159,7 @@ export default [
           process.env.BUGSNAG_API_KEY
         ),
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
       }),
       typescript(tsconfig),
       babel({

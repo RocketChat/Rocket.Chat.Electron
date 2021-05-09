@@ -374,7 +374,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       )?.[0]
   );
 
-  let injectableCode: string;
+  let injectableCode: string | undefined;
   handle('server-view/ready', async (webContents) => {
     if (!injectableCode) {
       injectableCode = await fs.promises.readFile(
@@ -384,5 +384,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     }
 
     webContents.executeJavaScript(injectableCode, true);
+
+    if (process.env.NODE_ENV === 'development') {
+      injectableCode = undefined;
+    }
   });
 };

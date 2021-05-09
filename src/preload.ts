@@ -14,7 +14,6 @@ import { setServerUrl } from './servers/preload/urls';
 import { createRendererReduxStore } from './store';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';
 import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
-import { listenToUserPresenceChanges } from './userPresence/preload';
 import { whenReady } from './whenReady';
 
 declare global {
@@ -50,7 +49,6 @@ const start = async (): Promise<void> => {
 
   listenToNotificationsRequests();
   listenToScreenSharingRequests();
-  listenToUserPresenceChanges();
   listenToMessageBoxEvents();
   handleTrafficLightsSpacing();
 };

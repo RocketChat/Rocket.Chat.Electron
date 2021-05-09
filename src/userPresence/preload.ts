@@ -45,9 +45,7 @@ const attachCallbacks = ({
       return;
     }
 
-    const isOnline =
-      !isAutoAwayEnabled || state === 'active' || state === 'unknown';
-
+    const isOnline = state === 'active' || state === 'unknown';
     setUserOnline(isOnline);
 
     prevState = state;

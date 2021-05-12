@@ -25,7 +25,8 @@ const createSpellCheckingMenuTemplate = (
   }
 
   const { availableSpellCheckerLanguages } = serverViewWebContents.session;
-  const spellCheckerLanguages = serverViewWebContents.session.getSpellCheckerLanguages();
+  const spellCheckerLanguages =
+    serverViewWebContents.session.getSpellCheckerLanguages();
 
   return [
     ...(spellCheckerLanguages.length > 0 && dictionarySuggestions

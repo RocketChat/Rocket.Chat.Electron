@@ -195,42 +195,36 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
 };
 
 export const setupDeepLinks = (): void => {
-  app.addListener(
-    'open-url',
-    async (event, url): Promise<void> => {
-      event.preventDefault();
+  app.addListener('open-url', async (event, url): Promise<void> => {
+    event.preventDefault();
 
-      const browserWindow = await getRootWindow();
+    const browserWindow = await getRootWindow();
 
-      if (!browserWindow.isVisible()) {
-        browserWindow.showInactive();
-      }
-      browserWindow.focus();
-
-      await processDeepLink(url);
+    if (!browserWindow.isVisible()) {
+      browserWindow.showInactive();
     }
-  );
+    browserWindow.focus();
 
-  app.addListener(
-    'second-instance',
-    async (event, argv): Promise<void> => {
-      event.preventDefault();
+    await processDeepLink(url);
+  });
 
-      const browserWindow = await getRootWindow();
+  app.addListener('second-instance', async (event, argv): Promise<void> => {
+    event.preventDefault();
 
-      if (!browserWindow.isVisible()) {
-        browserWindow.showInactive();
-      }
-      browserWindow.focus();
+    const browserWindow = await getRootWindow();
 
-      const args = argv.slice(app.isPackaged ? 1 : 2);
-
-      for (const arg of args) {
-        // eslint-disable-next-line no-await-in-loop
-        await processDeepLink(arg);
-      }
+    if (!browserWindow.isVisible()) {
+      browserWindow.showInactive();
     }
-  );
+    browserWindow.focus();
+
+    const args = argv.slice(app.isPackaged ? 1 : 2);
+
+    for (const arg of args) {
+      // eslint-disable-next-line no-await-in-loop
+      await processDeepLink(arg);
+    }
+  });
 
   processDeepLinksInArgs = async (): Promise<void> => {
     const args = process.argv.slice(app.isPackaged ? 1 : 2);

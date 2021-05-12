@@ -6,13 +6,15 @@ export const useKeyboardShortcuts = (): boolean => {
   useEffect(() => {
     const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 
-    const handleKeyChange = (down: boolean) => ({ key }: KeyboardEvent) => {
-      if (shortcutKey !== key) {
-        return;
-      }
+    const handleKeyChange =
+      (down: boolean) =>
+      ({ key }: KeyboardEvent) => {
+        if (shortcutKey !== key) {
+          return;
+        }
 
-      setShortcutsVisible(down);
-    };
+        setShortcutsVisible(down);
+      };
 
     const handleKeyDown = handleKeyChange(true);
     const handleKeyUp = handleKeyChange(false);

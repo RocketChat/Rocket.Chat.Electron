@@ -16,12 +16,11 @@ let reduxStore: Store<RootState>;
 
 let lastAction: RootAction;
 
-const catchLastAction: Middleware = () => (next: Dispatch<RootAction>) => (
-  action
-) => {
-  lastAction = action;
-  return next(action);
-};
+const catchLastAction: Middleware =
+  () => (next: Dispatch<RootAction>) => (action) => {
+    lastAction = action;
+    return next(action);
+  };
 
 export const createMainReduxStore = (): void => {
   const middlewares = applyMiddleware(catchLastAction, forwardToRenderers);

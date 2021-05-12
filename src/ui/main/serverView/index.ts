@@ -240,7 +240,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
             httpReferrer: referrer,
             ...(postBody && {
               extraHeaders: `Content-Type: ${postBody.contentType}; boundary=${postBody.boundary}`,
-              postData: (postBody.data as unknown) as
+              postData: postBody.data as unknown as
                 | UploadRawData[]
                 | UploadBlob[]
                 | UploadFile[],

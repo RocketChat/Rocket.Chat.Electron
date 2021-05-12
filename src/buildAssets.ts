@@ -44,7 +44,10 @@ const convertSvgToPng = async (
           }),
       deviceScaleFactor: 1,
     });
-    const buffer = await page.screenshot({ type: 'png', omitBackground: true });
+    const buffer = (await page.screenshot({
+      type: 'png',
+      omitBackground: true,
+    })) as Buffer;
     buffers.push(buffer);
   }
 
@@ -179,9 +182,9 @@ const createWindowsTrayIcons = async (): Promise<void> => {
 const createNsisSideBars = async (): Promise<void> => {
   const sideBar = renderToStaticMarkup(createElement(NsisSideBar));
   const [sideBarPng] = await convertSvgToPng(sideBar, [164, 314]);
-  const sidebarBitmap = await (await Jimp.read(sideBarPng)).getBufferAsync(
-    Jimp.MIME_BMP
-  );
+  const sidebarBitmap = await (
+    await Jimp.read(sideBarPng)
+  ).getBufferAsync(Jimp.MIME_BMP);
   await writeFile('build/installerSidebar.bmp', sidebarBitmap);
   await writeFile('build/uninstallerSidebar.bmp', sidebarBitmap);
 };

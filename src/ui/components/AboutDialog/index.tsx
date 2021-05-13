@@ -126,7 +126,7 @@ export const AboutDialog: FC = () => {
 
         <Box alignSelf='center'>
           <Trans t={t} i18nKey='dialog.about.version'>
-            Version:{' '}
+            Version:
             <Box is='span' fontScale='p2' style={{ userSelect: 'text' }}>
               {{ version: appVersion }}
             </Box>

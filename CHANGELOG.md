@@ -1,3 +1,12 @@
+## [3.2.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.0...3.2.1) (2021-05-13)
+
+
+### Bug Fixes
+
+* **about-dialog:** About dialog not displaying version ([#2030](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2030)) ([f82823c](https://github.com/RocketChat/Rocket.Chat.Electron/commit/f82823c36a47eef448ed8a11045c8c0b162f4320))
+
+
+
 # [3.2.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.1.1...3.2.0) (2021-05-12)
 
 

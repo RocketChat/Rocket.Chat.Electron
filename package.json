@@ -1,9 +1,9 @@
 {
   "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
-  "version": "3.3.0-snapshot",
+  "version": "3.2.1",
   "author": "Rocket.Chat Support <support@rocket.chat>",
-  "copyright": "© 2016-2020, Rocket.Chat",
+  "copyright": "© 2016-2021, Rocket.Chat",
   "homepage": "https://rocket.chat",
   "license": "MIT",
   "keywords": [

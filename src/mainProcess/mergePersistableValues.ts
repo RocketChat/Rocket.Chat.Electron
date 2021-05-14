@@ -6,7 +6,7 @@ import { app } from 'electron';
 import { APP_SETTINGS_LOADED } from '../common/actions/appActions';
 import { selectPersistableValues } from '../common/selectPersistableValues';
 import { select, dispatch } from '../common/store';
-import { getPersistedValues } from './persistence';
+import { getPersistedValues } from './getPersistedValues';
 
 export const mergePersistableValues = async (
   localStorage: Record<string, string>

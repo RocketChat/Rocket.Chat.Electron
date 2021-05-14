@@ -1,7 +1,6 @@
 import { combineReducers } from 'redux';
 
-import { appPath } from './appPathReducer';
-import { appVersion } from './appVersionReducer';
+import { appReducer } from './appReducer';
 import { currentView } from './currentViewReducer';
 import { downloads } from './downloadsReducer';
 import { isMenuBarEnabled } from './isMenuBarEnabledReducer';
@@ -30,8 +29,7 @@ import {
 } from './updatesReducers';
 
 export const rootReducer = combineReducers({
-  appPath,
-  appVersion,
+  app: appReducer,
   clientCertificates,
   currentView,
   doCheckForUpdatesOnStartup,

@@ -1,5 +1,4 @@
 import type { ActionOf } from '../actions';
-import { APP_SETTINGS_LOADED } from '../actions/appActions';
 import {
   DOWNLOADS_CLEARED,
   DOWNLOAD_CREATED,
@@ -9,7 +8,6 @@ import {
 import type { Download } from '../types/Download';
 
 type DownloadsAction =
-  | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof DOWNLOAD_CREATED>
   | ActionOf<typeof DOWNLOAD_UPDATED>
   | ActionOf<typeof DOWNLOADS_CLEARED>
@@ -20,9 +18,6 @@ export const downloads = (
   action: DownloadsAction
 ): Record<Download['itemId'], Download> => {
   switch (action.type) {
-    case APP_SETTINGS_LOADED:
-      return action.payload.downloads ?? {};
-
     case DOWNLOAD_CREATED: {
       const download = action.payload;
       return {

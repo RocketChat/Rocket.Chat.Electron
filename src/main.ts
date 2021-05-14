@@ -1,18 +1,9 @@
 import { app } from 'electron';
 import i18next from 'i18next';
 
-import {
-  I18N_LNG_REQUESTED,
-  I18N_LNG_RESPONDED,
-} from './common/actions/i18nActions';
-import { fallbackTranslationLanguage } from './common/fallbackTranslationLanguage';
-import { hasMeta } from './common/fsa';
-import { getInitialState } from './common/getInitialState';
-import { getTranslationLanguage } from './common/getTranslationLanguage';
-import i18nResources from './common/i18nResources';
-import { interpolation } from './common/interpolation';
-import { isTranslationLanguage } from './common/isTranslationLanguage';
-import { dispatch, listen, setReduxStore } from './common/store';
+import { APP_ERROR_THROWN } from './common/actions/appActions';
+import { getI18nextInitOptions } from './common/getI18nextInitOptions';
+import { listen, setReduxStore } from './common/store';
 import { createMainReduxStore } from './mainProcess/createMainReduxStore';
 import {
   setupDeepLinks,
@@ -21,12 +12,7 @@ import {
 import { setUserDataDirectory } from './mainProcess/dev';
 import dock from './mainProcess/dock';
 import { setupDownloads } from './mainProcess/downloads';
-import { extractLocalStorage } from './mainProcess/extractLocalStorage';
 import menuBar from './mainProcess/menuBar';
-import { mergePersistableValues } from './mainProcess/mergePersistableValues';
-import { mergeServers } from './mainProcess/mergeServers';
-import { mergeTrustedCertificates } from './mainProcess/mergeTrustedCertificates';
-import { mergeUpdatesConfiguration } from './mainProcess/mergeUpdatesConfiguration';
 import { setupNotifications } from './mainProcess/notifications';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
 import { createRootWindow, showRootWindow } from './mainProcess/rootWindow';
@@ -48,39 +34,11 @@ const start = async (): Promise<void> => {
   setupMainErrorHandling();
   performElectronStartup();
 
-  setReduxStore(createMainReduxStore());
-
   await app.whenReady();
 
-  const lng = getTranslationLanguage(app.getLocale());
+  setReduxStore(await createMainReduxStore());
 
-  await i18next.init({
-    lng,
-    fallbackLng: fallbackTranslationLanguage,
-    resources: {
-      ...(lng &&
-        lng in i18nResources && {
-          [lng]: {
-            translation: await i18nResources[lng](),
-          },
-        }),
-      [fallbackTranslationLanguage]: {
-        translation: await i18nResources[fallbackTranslationLanguage](),
-      },
-    },
-    interpolation,
-    initImmediate: true,
-  });
-
-  const localStorage = await extractLocalStorage();
-
-  await Promise.resolve(getInitialState())
-    .then((state) => mergePersistableValues(state, localStorage))
-    .then((state) => mergeServers(state, localStorage))
-    .then((state) => mergeUpdatesConfiguration(state))
-    .then((state) => mergeTrustedCertificates(state));
-
-  setupApp();
+  await i18next.init(await getI18nextInitOptions(app.getLocale()));
 
   createRootWindow();
   attachGuestWebContentsEvents();
@@ -91,11 +49,10 @@ const start = async (): Promise<void> => {
   //   installDevTools();
   // }
 
+  setupApp();
   setupNotifications();
   setupScreenSharing();
-
-  await setupSpellChecking();
-
+  setupSpellChecking();
   setupDeepLinks();
   setupNavigation();
   setupPowerMonitor();
@@ -117,21 +74,8 @@ const start = async (): Promise<void> => {
 
   watchAndPersistChanges();
 
-  listen(I18N_LNG_REQUESTED, (action) => {
-    if (!hasMeta(action) || !action.meta.id) {
-      return;
-    }
-
-    dispatch({
-      type: I18N_LNG_RESPONDED,
-      payload: isTranslationLanguage(i18next.language)
-        ? i18next.language
-        : fallbackTranslationLanguage,
-      meta: {
-        response: true,
-        id: action.meta?.id,
-      },
-    });
+  listen(APP_ERROR_THROWN, (action) => {
+    console.error(action.payload);
   });
 
   await processDeepLinksInArgs();

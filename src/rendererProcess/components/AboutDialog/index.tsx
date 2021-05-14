@@ -23,7 +23,7 @@ import { Dialog } from '../Dialog';
 const copyright = `© 2016-${new Date().getFullYear()}, Rocket.Chat`;
 
 export const AboutDialog: FC = () => {
-  const appVersion = useAppSelector(({ appVersion }) => appVersion);
+  const appVersion = useAppSelector((state) => state.app.version);
   const doCheckForUpdatesOnStartup = useAppSelector(
     ({ doCheckForUpdatesOnStartup }) => doCheckForUpdatesOnStartup
   );

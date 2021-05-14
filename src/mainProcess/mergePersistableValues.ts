@@ -1,6 +1,4 @@
-import { APP_SETTINGS_LOADED } from '../common/actions/appActions';
 import { selectPersistableValues } from '../common/selectPersistableValues';
-import { dispatch } from '../common/store';
 import type { RootState } from '../common/types/RootState';
 import { extractPersistableValues } from './extractPersistableValues';
 import { getPersistedValues } from './getPersistedValues';
@@ -99,11 +97,6 @@ export const mergePersistableValues = async (
       },
     },
   };
-
-  dispatch({
-    type: APP_SETTINGS_LOADED,
-    payload: values,
-  });
 
   return {
     ...state,

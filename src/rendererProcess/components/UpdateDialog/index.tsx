@@ -19,7 +19,7 @@ import { useAppSelector } from '../../../common/hooks/useAppSelector';
 import { Dialog } from '../Dialog';
 
 export const UpdateDialog: FC = () => {
-  const currentVersion = useAppSelector(({ appVersion }) => appVersion);
+  const currentVersion = useAppSelector((state) => state.app.version);
   const newVersion = useAppSelector(({ newUpdateVersion }) => newUpdateVersion);
   const openDialog = useAppSelector(({ openDialog }) => openDialog);
   const isVisible = openDialog === 'update';

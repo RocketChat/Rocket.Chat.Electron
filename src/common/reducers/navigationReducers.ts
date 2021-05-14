@@ -2,14 +2,12 @@ import type { Certificate } from 'electron';
 import type { Reducer } from 'redux';
 
 import type { ActionOf } from '../actions';
-import { APP_SETTINGS_LOADED } from '../actions/appActions';
 import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
   CERTIFICATES_UPDATED,
   CERTIFICATES_CLEARED,
-  CERTIFICATES_LOADED,
   EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
 } from '../actions/navigationActions';
 import type { Server } from '../types/Server';
@@ -37,48 +35,34 @@ export const clientCertificates: Reducer<
 };
 
 type TrustedCertificatesAction =
-  | ActionOf<typeof CERTIFICATES_LOADED>
   | ActionOf<typeof CERTIFICATES_UPDATED>
-  | ActionOf<typeof CERTIFICATES_CLEARED>
-  | ActionOf<typeof APP_SETTINGS_LOADED>;
+  | ActionOf<typeof CERTIFICATES_CLEARED>;
 
 export const trustedCertificates: Reducer<
   Record<Server['url'], Certificate['fingerprint']>,
   TrustedCertificatesAction
 > = (state = {}, action) => {
   switch (action.type) {
-    case CERTIFICATES_LOADED:
     case CERTIFICATES_UPDATED:
       return action.payload;
 
     case CERTIFICATES_CLEARED:
       return {};
 
-    case APP_SETTINGS_LOADED: {
-      const { trustedCertificates = state } = action.payload;
-      return trustedCertificates;
-    }
-
     default:
       return state;
   }
 };
 
-type ExternalProtocolsAction =
-  | ActionOf<typeof APP_SETTINGS_LOADED>
-  | ActionOf<typeof EXTERNAL_PROTOCOL_PERMISSION_UPDATED>;
+type ExternalProtocolsAction = ActionOf<
+  typeof EXTERNAL_PROTOCOL_PERMISSION_UPDATED
+>;
 
 export const externalProtocols: Reducer<
   Record<string, boolean>,
   ExternalProtocolsAction
 > = (state = {}, action) => {
   switch (action.type) {
-    case APP_SETTINGS_LOADED: {
-      const { externalProtocols = {} } = action.payload;
-      state = externalProtocols;
-      return state;
-    }
-
     case EXTERNAL_PROTOCOL_PERMISSION_UPDATED: {
       state = {
         ...state,

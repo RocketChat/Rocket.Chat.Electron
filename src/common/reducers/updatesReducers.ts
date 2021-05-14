@@ -1,39 +1,26 @@
 import type { Reducer } from 'redux';
 
 import type { ActionOf } from '../actions';
-import { APP_SETTINGS_LOADED } from '../actions/appActions';
 import { ABOUT_DIALOG_TOGGLE_UPDATE_ON_START } from '../actions/uiActions';
 import {
   UPDATES_CHECKING_FOR_UPDATE,
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
-  UPDATES_READY,
   UPDATE_SKIPPED,
 } from '../actions/updatesActions';
 
-type DoCheckForUpdatesOnStartupAction =
-  | ActionOf<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>
-  | ActionOf<typeof UPDATES_READY>
-  | ActionOf<typeof APP_SETTINGS_LOADED>;
+type DoCheckForUpdatesOnStartupAction = ActionOf<
+  typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START
+>;
 
 export const doCheckForUpdatesOnStartup: Reducer<
   boolean,
   DoCheckForUpdatesOnStartupAction
 > = (state = true, action) => {
   switch (action.type) {
-    case UPDATES_READY: {
-      const { doCheckForUpdatesOnStartup } = action.payload;
-      return doCheckForUpdatesOnStartup;
-    }
-
     case ABOUT_DIALOG_TOGGLE_UPDATE_ON_START: {
       const doCheckForUpdatesOnStartup = action.payload;
-      return doCheckForUpdatesOnStartup;
-    }
-
-    case APP_SETTINGS_LOADED: {
-      const { doCheckForUpdatesOnStartup = state } = action.payload;
       return doCheckForUpdatesOnStartup;
     }
 
@@ -70,70 +57,13 @@ export const isCheckingForUpdates: Reducer<
   }
 };
 
-type IsEachUpdatesSettingConfigurableAction =
-  | ActionOf<typeof UPDATES_READY>
-  | ActionOf<typeof APP_SETTINGS_LOADED>;
+export const isEachUpdatesSettingConfigurable: Reducer<boolean, any> = (
+  state = true
+) => state;
 
-export const isEachUpdatesSettingConfigurable: Reducer<
-  boolean,
-  IsEachUpdatesSettingConfigurableAction
-> = (state = true, action) => {
-  switch (action.type) {
-    case UPDATES_READY: {
-      const { isEachUpdatesSettingConfigurable } = action.payload;
-      return isEachUpdatesSettingConfigurable;
-    }
+export const isUpdatingAllowed: Reducer<boolean, any> = (state = true) => state;
 
-    case APP_SETTINGS_LOADED: {
-      const { isEachUpdatesSettingConfigurable = state } = action.payload;
-      return isEachUpdatesSettingConfigurable;
-    }
-
-    default:
-      return state;
-  }
-};
-
-type IsUpdatingAllowedAction = ActionOf<typeof UPDATES_READY>;
-
-export const isUpdatingAllowed: Reducer<boolean, IsUpdatingAllowedAction> = (
-  state = true,
-  action
-) => {
-  switch (action.type) {
-    case UPDATES_READY: {
-      const { isUpdatingAllowed } = action.payload;
-      return isUpdatingAllowed;
-    }
-
-    default:
-      return state;
-  }
-};
-
-type IsUpdatingEnabledAction =
-  | ActionOf<typeof UPDATES_READY>
-  | ActionOf<typeof APP_SETTINGS_LOADED>;
-
-export const isUpdatingEnabled: Reducer<boolean, IsUpdatingEnabledAction> = (
-  state = true,
-  action
-) => {
-  switch (action.type) {
-    case UPDATES_READY: {
-      const { isUpdatingEnabled } = action.payload;
-      return isUpdatingEnabled;
-    }
-
-    case APP_SETTINGS_LOADED: {
-      const { isUpdatingEnabled = state } = action.payload;
-      return isUpdatingEnabled;
-    }
-
-    default:
-      return state;
-  }
-};
+export const isUpdatingEnabled: Reducer<boolean, any> = (state = true) => state;
 
 type NewUpdateVersionAction =
   | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
@@ -153,28 +83,15 @@ export const newUpdateVersion: Reducer<string | null, NewUpdateVersionAction> =
     }
   };
 
-type SkippedUpdateVersionAction =
-  | ActionOf<typeof UPDATES_READY>
-  | ActionOf<typeof APP_SETTINGS_LOADED>
-  | ActionOf<typeof UPDATE_SKIPPED>;
+type SkippedUpdateVersionAction = ActionOf<typeof UPDATE_SKIPPED>;
 
 export const skippedUpdateVersion: Reducer<
   string | null,
   SkippedUpdateVersionAction
 > = (state = null, action) => {
   switch (action.type) {
-    case UPDATES_READY: {
-      const { skippedUpdateVersion } = action.payload;
-      return skippedUpdateVersion;
-    }
-
     case UPDATE_SKIPPED: {
       const skippedUpdateVersion = action.payload;
-      return skippedUpdateVersion;
-    }
-
-    case APP_SETTINGS_LOADED: {
-      const { skippedUpdateVersion = state } = action.payload;
       return skippedUpdateVersion;
     }
 

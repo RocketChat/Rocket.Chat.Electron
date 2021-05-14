@@ -21,7 +21,7 @@ const setSpellCheckerLanguages = async (
   });
 };
 
-export const setupSpellChecking = async (): Promise<void> => {
+export const setupSpellChecking = (): void => {
   setSpellCheckerLanguages(
     new Set(session.defaultSession.getSpellCheckerLanguages())
   );

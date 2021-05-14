@@ -9,7 +9,7 @@ export const setupRendererErrorHandling = async (
 
   if (process.env.BUGSNAG_API_KEY) {
     const apiKey = process.env.BUGSNAG_API_KEY;
-    const appVersion = select(({ appVersion }) => appVersion);
+    const appVersion = select((state) => state.app.version);
 
     if (!appVersion) {
       throw new Error('app version was not set');

@@ -1,7 +1,6 @@
 import type { AppActionTypeToPayloadMap } from './appActions';
 import type { DeepLinksActionTypeToPayloadMap } from './deepLinksActions';
 import type { DownloadsActionTypeToPayloadMap } from './downloadsActions';
-import type { I18nActionTypeToPayloadMap } from './i18nActions';
 import type { NavigationActionTypeToPayloadMap } from './navigationActions';
 import type { NotificationsActionTypeToPayloadMap } from './notificationsActions';
 import type { ScreenSharingActionTypeToPayloadMap } from './screenSharingActions';
@@ -14,7 +13,6 @@ import type { UserPresenceActionTypeToPayloadMap } from './userPresenceActions';
 type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
   DeepLinksActionTypeToPayloadMap &
   DownloadsActionTypeToPayloadMap &
-  I18nActionTypeToPayloadMap &
   NavigationActionTypeToPayloadMap &
   NotificationsActionTypeToPayloadMap &
   ScreenSharingActionTypeToPayloadMap &

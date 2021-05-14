@@ -1,9 +1,7 @@
 import type { Reducer } from 'redux';
 
 import type { ActionOf } from '../actions';
-import { APP_SETTINGS_LOADED } from '../actions/appActions';
 import { DEEP_LINKS_SERVER_ADDED } from '../actions/deepLinksActions';
-import { SERVERS_LOADED } from '../actions/serversActions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
@@ -19,18 +17,9 @@ import {
 } from '../actions/uiActions';
 import type { Server } from '../types/Server';
 
-const ensureUrlFormat = (serverUrl: string | null): string => {
-  if (serverUrl) {
-    return new URL(serverUrl).href;
-  }
-
-  throw new Error('cannot handle null server URLs');
-};
-
 type ServersActionTypes =
   | ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
   | ActionOf<typeof DEEP_LINKS_SERVER_ADDED>
-  | ActionOf<typeof SERVERS_LOADED>
   | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_SERVERS_SORTED>
   | ActionOf<typeof WEBVIEW_DID_NAVIGATE>
@@ -38,7 +27,6 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_TITLE_CHANGED>
   | ActionOf<typeof WEBVIEW_UNREAD_CHANGED>
   | ActionOf<typeof WEBVIEW_FAVICON_CHANGED>
-  | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
   | ActionOf<typeof WEBVIEW_ATTACHED>;
@@ -131,22 +119,6 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       }
 
       return state;
-    }
-
-    case SERVERS_LOADED: {
-      const { servers = state } = action.payload;
-      return servers.map((server) => ({
-        ...server,
-        url: ensureUrlFormat(server.url),
-      }));
-    }
-
-    case APP_SETTINGS_LOADED: {
-      const { servers = state } = action.payload;
-      return servers.map((server) => ({
-        ...server,
-        url: ensureUrlFormat(server.url),
-      }));
     }
 
     case WEBVIEW_ATTACHED: {

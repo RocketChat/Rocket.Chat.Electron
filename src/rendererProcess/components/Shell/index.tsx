@@ -12,7 +12,7 @@ import { UpdateDialog } from '../UpdateDialog';
 import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 
 export const Shell: FC = () => {
-  const appPath = useAppSelector(({ appPath }) => appPath);
+  const appPath = useAppSelector((state) => state.app.path);
 
   useLayoutEffect(() => {
     if (!appPath) {

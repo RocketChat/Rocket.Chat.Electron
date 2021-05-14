@@ -1,10 +1,8 @@
 import type { ActionOf } from '../actions';
-import { APP_SETTINGS_LOADED } from '../actions/appActions';
 import {
   DEEP_LINKS_SERVER_ADDED,
   DEEP_LINKS_SERVER_FOCUSED,
 } from '../actions/deepLinksActions';
-import { SERVERS_LOADED } from '../actions/serversActions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
@@ -19,12 +17,10 @@ import {
 
 type CurrentViewAction =
   | ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
-  | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof DEEP_LINKS_SERVER_ADDED>
   | ActionOf<typeof DEEP_LINKS_SERVER_FOCUSED>
   | ActionOf<typeof MENU_BAR_ADD_NEW_SERVER_CLICKED>
   | ActionOf<typeof MENU_BAR_SELECT_SERVER_CLICKED>
-  | ActionOf<typeof SERVERS_LOADED>
   | ActionOf<typeof SIDE_BAR_ADD_NEW_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_DOWNLOADS_BUTTON_CLICKED>
   | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
@@ -52,16 +48,6 @@ export const currentView = (
     case WEBVIEW_FOCUS_REQUESTED: {
       const { url } = action.payload;
       return { url };
-    }
-
-    case SERVERS_LOADED: {
-      const { selected } = action.payload;
-      return selected ? { url: selected } : 'add-new-server';
-    }
-
-    case APP_SETTINGS_LOADED: {
-      const { currentView = state } = action.payload;
-      return currentView;
     }
 
     case MENU_BAR_ADD_NEW_SERVER_CLICKED:

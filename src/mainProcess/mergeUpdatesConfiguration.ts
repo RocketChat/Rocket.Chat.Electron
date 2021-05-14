@@ -1,5 +1,3 @@
-import { UPDATES_READY } from '../common/actions/updatesActions';
-import { dispatch } from '../common/store';
 import type { RootState } from '../common/types/RootState';
 import { joinAppPath } from './joinAppPath';
 import { joinUserPath } from './joinUserPath';
@@ -52,11 +50,6 @@ export const mergeUpdatesConfiguration = async (
   ) {
     configuration.skippedUpdateVersion = userConfiguration.skip;
   }
-
-  dispatch({
-    type: UPDATES_READY,
-    payload: configuration,
-  });
 
   return {
     ...state,

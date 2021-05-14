@@ -9,8 +9,9 @@ import {
 } from './preloadScript/RocketChatDesktop';
 import { handleTrafficLightsSpacing } from './preloadScript/handleTrafficLightsSpacing';
 import { listenToMessageBoxEvents } from './preloadScript/listenToMessageBoxEvents';
-import { listenToScreenSharingRequests } from './preloadScript/listenToScreenSharingRequests';
 import { listenToNotificationsRequests } from './preloadScript/notifications';
+import { rootSaga } from './preloadScript/sagas';
+import { listenToScreenSharingRequests } from './preloadScript/screenSharing';
 import { setServerUrl } from './preloadScript/setUrlResolver';
 import { createRendererReduxStore } from './rendererProcess/createRendererReduxStore';
 import { setupRendererErrorHandling } from './rendererProcess/setupRendererErrorHandling';
@@ -29,7 +30,8 @@ const start = async (): Promise<void> => {
 
   setServerUrl(serverUrl);
 
-  setReduxStore(await createRendererReduxStore());
+  const reduxStore = await createRendererReduxStore(rootSaga);
+  setReduxStore(reduxStore);
 
   await whenReady();
 

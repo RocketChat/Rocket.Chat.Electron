@@ -20,7 +20,6 @@ import { setupApp } from './mainProcess/setupApp';
 import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
 import { setupNavigation } from './mainProcess/setupNavigation';
 import { setupPowerMonitor } from './mainProcess/setupPowerMonitor';
-import { setupScreenSharing } from './mainProcess/setupScreenSharing';
 import { setupSpellChecking } from './mainProcess/setupSpellChecking';
 import touchBar from './mainProcess/touchBar';
 import trayIcon from './mainProcess/trayIcon';
@@ -49,7 +48,6 @@ const start = async (): Promise<void> => {
 
   setupApp();
   setupNotifications();
-  setupScreenSharing();
   setupSpellChecking();
   setupDeepLinks();
   setupNavigation();

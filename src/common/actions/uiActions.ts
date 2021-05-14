@@ -50,10 +50,6 @@ export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
 export const WEBVIEW_FOCUS_REQUESTED = 'webview/focus-requested';
 export const WEBVIEW_MESSAGE_BOX_BLURRED = 'webview/message-box-blurred';
 export const WEBVIEW_MESSAGE_BOX_FOCUSED = 'webview/message-box-focused';
-export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED =
-  'webview/screen-sharing-source-requested';
-export const WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED =
-  'webview/screen-sharing-source-responded';
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
@@ -97,8 +93,6 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_FOCUS_REQUESTED]: { url: string };
   [WEBVIEW_MESSAGE_BOX_BLURRED]: void;
   [WEBVIEW_MESSAGE_BOX_FOCUSED]: void;
-  [WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED]: void;
-  [WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED]: string | null;
   [WEBVIEW_SIDEBAR_STYLE_CHANGED]: {
     url: Server['url'];
     style: Server['style'];

@@ -3,8 +3,7 @@ import { desktopCapturer, DesktopCapturerSource } from 'electron';
 import React, { useEffect, useState, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../../common/actions/screenSharingActions';
-import { WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED } from '../../../common/actions/uiActions';
+import * as screenSharingActions from '../../../common/actions/screenSharingActions';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import { useAppSelector } from '../../../common/hooks/useAppSelector';
 import { Dialog } from '../Dialog';
@@ -41,11 +40,11 @@ export const ScreenSharingDialog: FC = () => {
   }, [isVisible]);
 
   const handleScreenSharingSourceClick = (id: string) => () => {
-    dispatch({ type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, payload: id });
+    dispatch(screenSharingActions.sourceSelected(id));
   };
 
   const handleClose = (): void => {
-    dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
+    dispatch(screenSharingActions.sourceDenied());
   };
 
   return (

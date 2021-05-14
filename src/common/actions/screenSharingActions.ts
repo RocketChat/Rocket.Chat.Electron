@@ -1,6 +1,12 @@
-export const SCREEN_SHARING_DIALOG_DISMISSED =
-  'screen-sharing-dialog/dismissed';
+import { createAction } from '@reduxjs/toolkit';
 
-export type ScreenSharingActionTypeToPayloadMap = {
-  [SCREEN_SHARING_DIALOG_DISMISSED]: void;
-};
+export const sourceRequested = createAction('screenSharing/sourceRequested');
+
+export const sourceSelected = createAction(
+  'screenSharing/sourceSelected',
+  (sourceId: string) => ({
+    payload: sourceId,
+  })
+);
+
+export const sourceDenied = createAction('screenSharing/sourceDenied');

@@ -1,11 +1,11 @@
 import { createElement } from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
-import { setupRendererErrorHandling } from './errors';
-import { setupI18n } from './i18n/renderer';
+import { App } from './rendererProcess/components/App';
+import { setupI18n } from './rendererProcess/setupI18n';
+import { setupRendererErrorHandling } from './rendererProcess/setupRendererErrorHandling';
+import { whenReady } from './rendererProcess/whenReady';
 import { createRendererReduxStore } from './store';
-import { App } from './ui/components/App';
-import { whenReady } from './whenReady';
 
 const start = async (): Promise<void> => {
   const reduxStore = await createRendererReduxStore();
@@ -17,8 +17,8 @@ const start = async (): Promise<void> => {
 
   (
     await Promise.all([
-      import('./notifications/renderer'),
-      import('./servers/renderer'),
+      import('./rendererProcess/notifications'),
+      import('./rendererProcess/servers'),
     ])
   ).forEach((module) => module.default());
 

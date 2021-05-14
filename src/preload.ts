@@ -2,17 +2,20 @@ import { contextBridge } from 'electron';
 
 import type { JitsiMeetElectronAPI } from './common/types/JitsiMeetElectronAPI';
 import type { RocketChatDesktopAPI } from './common/types/RocketChatDesktopAPI';
-import { setupRendererErrorHandling } from './errors';
 import { invoke } from './ipc/renderer';
-import { JitsiMeetElectron } from './jitsi/preload';
-import { listenToNotificationsRequests } from './notifications/preload';
-import { listenToScreenSharingRequests } from './screenSharing/preload';
-import { RocketChatDesktop, serverInfo } from './servers/preload/api';
-import { setServerUrl } from './servers/preload/urls';
+import { JitsiMeetElectron } from './preloadScript/JitsiMeetElectron';
+import {
+  RocketChatDesktop,
+  serverInfo,
+} from './preloadScript/RocketChatDesktop';
+import { handleTrafficLightsSpacing } from './preloadScript/handleTrafficLightsSpacing';
+import { listenToMessageBoxEvents } from './preloadScript/listenToMessageBoxEvents';
+import { listenToScreenSharingRequests } from './preloadScript/listenToScreenSharingRequests';
+import { listenToNotificationsRequests } from './preloadScript/notifications';
+import { setServerUrl } from './preloadScript/setUrlResolver';
+import { setupRendererErrorHandling } from './rendererProcess/setupRendererErrorHandling';
+import { whenReady } from './rendererProcess/whenReady';
 import { createRendererReduxStore } from './store';
-import { listenToMessageBoxEvents } from './ui/preload/messageBox';
-import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
-import { whenReady } from './whenReady';
 
 declare global {
   interface Window {

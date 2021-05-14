@@ -1,33 +1,37 @@
 import { app } from 'electron';
 
-import { performElectronStartup, setupApp } from './app/main/app';
 import {
   mergePersistableValues,
   watchAndPersistChanges,
-} from './app/main/data';
-import { setUserDataDirectory } from './app/main/dev';
-import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
-import { setupDownloads } from './downloads/main';
-import { setupMainErrorHandling } from './errors';
-import i18n from './i18n/main';
-import { setupNavigation } from './navigation/main';
-import { setupNotifications } from './notifications/main';
-import { setupScreenSharing } from './screenSharing/main';
-import { setupServers } from './servers/main';
-import { setupSpellChecking } from './spellChecking/main';
-import { createMainReduxStore } from './store';
-import dock from './ui/main/dock';
-import menuBar from './ui/main/menuBar';
+} from './mainProcess/data';
+import {
+  setupDeepLinks,
+  processDeepLinksInArgs,
+} from './mainProcess/deepLinks';
+import { setUserDataDirectory } from './mainProcess/dev';
+import dock from './mainProcess/dock';
+import { setupDownloads } from './mainProcess/downloads';
+import i18n from './mainProcess/i18n';
+import menuBar from './mainProcess/menuBar';
+import { setupNavigation } from './mainProcess/navigation';
+import { setupNotifications } from './mainProcess/notifications';
+import { performElectronStartup } from './mainProcess/performElectronStartup';
 import {
   createRootWindow,
   showRootWindow,
   exportLocalStorage,
-} from './ui/main/rootWindow';
-import { attachGuestWebContentsEvents } from './ui/main/serverView';
-import touchBar from './ui/main/touchBar';
-import trayIcon from './ui/main/trayIcon';
-import { setupUpdates } from './updates/main';
-import { setupPowerMonitor } from './userPresence/main';
+} from './mainProcess/rootWindow';
+import { attachGuestWebContentsEvents } from './mainProcess/serverView';
+import { setupServers } from './mainProcess/servers';
+import { setupApp } from './mainProcess/setupApp';
+import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
+import { setupPowerMonitor } from './mainProcess/setupPowerMonitor';
+import { setupScreenSharing } from './mainProcess/setupScreenSharing';
+import { setupSpellChecking } from './mainProcess/setupSpellChecking';
+import touchBar from './mainProcess/touchBar';
+import trayIcon from './mainProcess/trayIcon';
+import { setupUpdates } from './mainProcess/updates';
+import { createMainReduxStore } from './store';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();

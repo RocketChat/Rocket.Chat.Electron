@@ -15,8 +15,8 @@ import i18n from './mainProcess/i18n';
 import menuBar from './mainProcess/menuBar';
 import { mergePersistableValues } from './mainProcess/mergePersistableValues';
 import { mergeServers } from './mainProcess/mergeServers';
+import { mergeTrustedCertificates } from './mainProcess/mergeTrustedCertificates';
 import { mergeUpdatesConfiguration } from './mainProcess/mergeUpdatesConfiguration';
-import { setupNavigation } from './mainProcess/navigation';
 import { setupNotifications } from './mainProcess/notifications';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
 import { createRootWindow, showRootWindow } from './mainProcess/rootWindow';
@@ -24,6 +24,7 @@ import { attachGuestWebContentsEvents } from './mainProcess/serverView';
 import { setupServers } from './mainProcess/servers';
 import { setupApp } from './mainProcess/setupApp';
 import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
+import { setupNavigation } from './mainProcess/setupNavigation';
 import { setupPowerMonitor } from './mainProcess/setupPowerMonitor';
 import { setupScreenSharing } from './mainProcess/setupScreenSharing';
 import { setupSpellChecking } from './mainProcess/setupSpellChecking';
@@ -46,7 +47,8 @@ const start = async (): Promise<void> => {
   await Promise.resolve(getInitialState())
     .then((state) => mergePersistableValues(state, localStorage))
     .then((state) => mergeServers(state, localStorage))
-    .then((state) => mergeUpdatesConfiguration(state));
+    .then((state) => mergeUpdatesConfiguration(state))
+    .then((state) => mergeTrustedCertificates(state));
 
   i18n.setUp();
   await i18n.wait();
@@ -68,7 +70,7 @@ const start = async (): Promise<void> => {
   await setupSpellChecking();
 
   setupDeepLinks();
-  await setupNavigation();
+  setupNavigation();
   setupPowerMonitor();
   setupUpdates();
   setupDownloads();

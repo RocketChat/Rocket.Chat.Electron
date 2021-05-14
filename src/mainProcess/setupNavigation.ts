@@ -6,15 +6,12 @@ import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-  CERTIFICATES_LOADED,
 } from '../common/actions/navigationActions';
 import { request, select, dispatch } from '../common/store';
 import {
   AskForCertificateTrustResponse,
   askForCertificateTrust,
 } from './dialogs';
-import { joinUserPath } from './joinUserPath';
-import { readJsonObject } from './readJsonObject';
 
 const t = i18next.t.bind(i18next);
 
@@ -26,7 +23,7 @@ const queuedTrustRequests = new Map<
   Array<(isTrusted: boolean) => void>
 >();
 
-export const setupNavigation = async (): Promise<void> => {
+export const setupNavigation = (): void => {
   app.userAgentFallback = app.userAgentFallback.replace(
     `${app.name}/${app.getVersion()} `,
     ''
@@ -146,25 +143,4 @@ export const setupNavigation = async (): Promise<void> => {
       }
     }
   );
-
-  const trustedCertificates = select(
-    ({ trustedCertificates }) => trustedCertificates
-  );
-  const userTrustedCertificates = await readJsonObject(
-    joinUserPath('certificate.json'),
-    { discard: true }
-  );
-
-  dispatch({
-    type: CERTIFICATES_LOADED,
-    payload: {
-      ...trustedCertificates,
-      ...Object.fromEntries(
-        Object.entries(userTrustedCertificates).filter(
-          (pair): pair is [string, string] =>
-            typeof pair[0] === 'string' && typeof pair[1] === 'string'
-        )
-      ),
-    },
-  });
 };

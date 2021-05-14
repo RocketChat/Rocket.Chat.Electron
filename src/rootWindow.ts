@@ -1,10 +1,18 @@
+import i18next from 'i18next';
 import { createElement } from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
+import { initReactI18next } from 'react-i18next';
 
-import { setReduxStore } from './common/store';
+import {
+  I18N_LNG_REQUESTED,
+  I18N_LNG_RESPONDED,
+} from './common/actions/i18nActions';
+import { fallbackTranslationLanguage } from './common/fallbackTranslationLanguage';
+import i18nResources from './common/i18nResources';
+import { interpolation } from './common/interpolation';
+import { request, setReduxStore } from './common/store';
 import { App } from './rendererProcess/components/App';
 import { createRendererReduxStore } from './rendererProcess/createRendererReduxStore';
-import { setupI18n } from './rendererProcess/setupI18n';
 import { setupRendererErrorHandling } from './rendererProcess/setupRendererErrorHandling';
 import { whenReady } from './rendererProcess/whenReady';
 
@@ -15,7 +23,31 @@ const start = async (): Promise<void> => {
   await whenReady();
 
   setupRendererErrorHandling('rootWindow');
-  await setupI18n();
+
+  const lng =
+    (await request(
+      {
+        type: I18N_LNG_REQUESTED,
+      },
+      I18N_LNG_RESPONDED
+    )) ?? undefined;
+
+  await i18next.use(initReactI18next).init({
+    lng,
+    fallbackLng: fallbackTranslationLanguage,
+    resources: {
+      ...(lng && {
+        [lng]: {
+          translation: await i18nResources[lng](),
+        },
+      }),
+      [fallbackTranslationLanguage]: {
+        translation: await i18nResources[fallbackTranslationLanguage](),
+      },
+    },
+    interpolation,
+    initImmediate: true,
+  });
 
   (
     await Promise.all([

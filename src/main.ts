@@ -1,7 +1,18 @@
 import { app } from 'electron';
+import i18next from 'i18next';
 
+import {
+  I18N_LNG_REQUESTED,
+  I18N_LNG_RESPONDED,
+} from './common/actions/i18nActions';
+import { fallbackTranslationLanguage } from './common/fallbackTranslationLanguage';
+import { hasMeta } from './common/fsa';
 import { getInitialState } from './common/getInitialState';
-import { setReduxStore } from './common/store';
+import { getTranslationLanguage } from './common/getTranslationLanguage';
+import i18nResources from './common/i18nResources';
+import { interpolation } from './common/interpolation';
+import { isTranslationLanguage } from './common/isTranslationLanguage';
+import { dispatch, listen, setReduxStore } from './common/store';
 import { createMainReduxStore } from './mainProcess/createMainReduxStore';
 import {
   setupDeepLinks,
@@ -11,7 +22,6 @@ import { setUserDataDirectory } from './mainProcess/dev';
 import dock from './mainProcess/dock';
 import { setupDownloads } from './mainProcess/downloads';
 import { extractLocalStorage } from './mainProcess/extractLocalStorage';
-import i18n from './mainProcess/i18n';
 import menuBar from './mainProcess/menuBar';
 import { mergePersistableValues } from './mainProcess/mergePersistableValues';
 import { mergeServers } from './mainProcess/mergeServers';
@@ -42,6 +52,26 @@ const start = async (): Promise<void> => {
 
   await app.whenReady();
 
+  const lng = getTranslationLanguage(app.getLocale());
+
+  await i18next.init({
+    lng,
+    fallbackLng: fallbackTranslationLanguage,
+    resources: {
+      ...(lng &&
+        lng in i18nResources && {
+          [lng]: {
+            translation: await i18nResources[lng](),
+          },
+        }),
+      [fallbackTranslationLanguage]: {
+        translation: await i18nResources[fallbackTranslationLanguage](),
+      },
+    },
+    interpolation,
+    initImmediate: true,
+  });
+
   const localStorage = await extractLocalStorage();
 
   await Promise.resolve(getInitialState())
@@ -49,9 +79,6 @@ const start = async (): Promise<void> => {
     .then((state) => mergeServers(state, localStorage))
     .then((state) => mergeUpdatesConfiguration(state))
     .then((state) => mergeTrustedCertificates(state));
-
-  i18n.setUp();
-  await i18n.wait();
 
   setupApp();
 
@@ -89,6 +116,23 @@ const start = async (): Promise<void> => {
   });
 
   watchAndPersistChanges();
+
+  listen(I18N_LNG_REQUESTED, (action) => {
+    if (!hasMeta(action) || !action.meta.id) {
+      return;
+    }
+
+    dispatch({
+      type: I18N_LNG_RESPONDED,
+      payload: isTranslationLanguage(i18next.language)
+        ? i18next.language
+        : fallbackTranslationLanguage,
+      meta: {
+        response: true,
+        id: action.meta?.id,
+      },
+    });
+  });
 
   await processDeepLinksInArgs();
 };

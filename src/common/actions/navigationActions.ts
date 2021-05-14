@@ -1,6 +1,6 @@
 import type { Certificate } from 'electron';
 
-import type { Server } from '../common/types/Server';
+import type { Server } from '../types/Server';
 
 export const CERTIFICATES_CLEARED = 'certificates/cleared';
 export const CERTIFICATES_LOADED = 'certificates/loaded';

@@ -1,4 +1,4 @@
-import type { Server } from '../common/types/Server';
+import type { Server } from '../types/Server';
 
 export const DEEP_LINKS_SERVER_ADDED = 'deep-links/server-added';
 export const DEEP_LINKS_SERVER_FOCUSED = 'deep-links/server-focused';

@@ -1,9 +1,9 @@
 import type { Reducer } from 'redux';
 
-import { APP_SETTINGS_LOADED } from '../app/actions';
-import type { Server } from '../common/types/Server';
-import { DEEP_LINKS_SERVER_ADDED } from '../deepLinks/actions';
-import type { ActionOf } from '../store/actions';
+import type { ActionOf } from '../actions';
+import { APP_SETTINGS_LOADED } from '../actions/appActions';
+import { DEEP_LINKS_SERVER_ADDED } from '../actions/deepLinksActions';
+import { SERVERS_LOADED } from '../actions/serversActions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
@@ -16,8 +16,8 @@ import {
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_ATTACHED,
-} from '../ui/actions';
-import { SERVERS_LOADED } from './actions';
+} from '../actions/uiActions';
+import type { Server } from '../types/Server';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
   if (serverUrl) {

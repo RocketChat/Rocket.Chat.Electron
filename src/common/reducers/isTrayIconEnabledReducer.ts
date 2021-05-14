@@ -1,8 +1,8 @@
 import type { Reducer } from 'redux';
 
-import { APP_SETTINGS_LOADED } from '../../app/actions';
-import type { ActionOf } from '../../store/actions';
-import { MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED } from '../actions';
+import type { ActionOf } from '../actions';
+import { APP_SETTINGS_LOADED } from '../actions/appActions';
+import { MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED } from '../actions/uiActions';
 
 type IsTrayIconEnabledAction =
   | ActionOf<typeof MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED>

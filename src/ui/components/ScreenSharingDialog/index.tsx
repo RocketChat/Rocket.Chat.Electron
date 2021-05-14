@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
-import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../../screenSharing/actions';
-import type { RootAction } from '../../../store/actions';
-import type { RootState } from '../../../store/rootReducer';
-import { WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED } from '../../actions';
+import type { RootAction } from '../../../common/actions';
+import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../../common/actions/screenSharingActions';
+import { WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED } from '../../../common/actions/uiActions';
+import type { RootState } from '../../../common/reducers';
 import { Dialog } from '../Dialog';
 import { Source } from './styles';
 

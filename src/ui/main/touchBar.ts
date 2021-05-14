@@ -8,13 +8,13 @@ import {
 } from 'electron';
 import i18next from 'i18next';
 
-import type { Server } from '../../common/types/Server';
-import { select, dispatch, Service } from '../../store';
-import type { RootState } from '../../store/rootReducer';
 import {
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
-} from '../actions';
+} from '../../common/actions/uiActions';
+import type { RootState } from '../../common/reducers';
+import type { Server } from '../../common/types/Server';
+import { select, dispatch, Service } from '../../store';
 import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);

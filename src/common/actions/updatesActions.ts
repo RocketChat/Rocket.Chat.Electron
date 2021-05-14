@@ -1,4 +1,4 @@
-import type { UpdateConfiguration } from '../common/types/UpdateConfiguration';
+import type { UpdateConfiguration } from '../types/UpdateConfiguration';
 
 export const UPDATE_SKIPPED = 'update/skipped';
 export const UPDATES_CHECK_FOR_UPDATES_REQUESTED =

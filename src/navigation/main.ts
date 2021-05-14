@@ -4,12 +4,6 @@ import path from 'path';
 import { app, Certificate } from 'electron';
 import i18next from 'i18next';
 
-import { request, select, dispatch } from '../store';
-import {
-  AskForCertificateTrustResponse,
-  askForCertificateTrust,
-  askForOpeningExternalProtocol,
-} from '../ui/main/dialogs';
 import {
   CERTIFICATES_UPDATED,
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
@@ -17,7 +11,13 @@ import {
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
   CERTIFICATES_LOADED,
   EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
-} from './actions';
+} from '../common/actions/navigationActions';
+import { request, select, dispatch } from '../store';
+import {
+  AskForCertificateTrustResponse,
+  askForCertificateTrust,
+  askForOpeningExternalProtocol,
+} from '../ui/main/dialogs';
 
 const t = i18next.t.bind(i18next);
 

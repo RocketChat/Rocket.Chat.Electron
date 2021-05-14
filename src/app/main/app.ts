@@ -1,9 +1,9 @@
 import { app } from 'electron';
 import rimraf from 'rimraf';
 
+import { APP_PATH_SET, APP_VERSION_SET } from '../../common/actions/appActions';
 import { dispatch } from '../../store';
 import { getRootWindow } from '../../ui/main/rootWindow';
-import { APP_PATH_SET, APP_VERSION_SET } from '../actions';
 
 export const relaunchApp = (...args: string[]): void => {
   const command = process.argv.slice(1, app.isPackaged ? 1 : 2);

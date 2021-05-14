@@ -12,9 +12,9 @@ import React, { useState, useMemo, useCallback, FC, ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
+import type { RootState } from '../../../common/reducers';
 import type { Download } from '../../../common/types/Download';
 import { DownloadStatus } from '../../../common/types/DownloadStatus';
-import type { RootState } from '../../../store/rootReducer';
 import DownloadItem from './DownloadItem';
 
 const DownloadsManagerView: FC = () => {

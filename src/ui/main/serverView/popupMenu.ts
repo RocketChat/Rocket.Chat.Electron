@@ -11,7 +11,7 @@ import i18next from 'i18next';
 import {
   SPELL_CHECKING_LANGUAGE_TOGGLED,
   SPELL_CHECKING_TOGGLED,
-} from '../../../spellChecking/actions';
+} from '../../../common/actions/spellCheckingActions';
 import { dispatch } from '../../../store';
 
 const t = i18next.t.bind(i18next);

@@ -12,14 +12,14 @@ import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
-import { RocketChatLogo } from '../../../common/components/assets/RocketChatLogo';
-import type { RootAction } from '../../../store/actions';
-import type { RootState } from '../../../store/rootReducer';
-import { UPDATES_CHECK_FOR_UPDATES_REQUESTED } from '../../../updates/actions';
+import type { RootAction } from '../../../common/actions';
 import {
   ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
   ABOUT_DIALOG_DISMISSED,
-} from '../../actions';
+} from '../../../common/actions/uiActions';
+import { UPDATES_CHECK_FOR_UPDATES_REQUESTED } from '../../../common/actions/updatesActions';
+import { RocketChatLogo } from '../../../common/components/assets/RocketChatLogo';
+import type { RootState } from '../../../common/reducers';
 import { Dialog } from '../Dialog';
 
 const copyright = `© 2016-${new Date().getFullYear()}, Rocket.Chat`;

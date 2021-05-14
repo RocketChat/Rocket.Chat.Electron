@@ -1,6 +1,6 @@
 import { Component, ReactNode, ErrorInfo } from 'react';
 
-import { APP_ERROR_THROWN } from '../../../app/actions';
+import { APP_ERROR_THROWN } from '../../../common/actions/appActions';
 import { dispatch } from '../../../store';
 
 export class ErrorCatcher extends Component {

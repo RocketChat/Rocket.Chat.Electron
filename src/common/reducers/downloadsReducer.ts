@@ -1,12 +1,12 @@
-import { APP_SETTINGS_LOADED } from '../../app/actions';
-import type { Download } from '../../common/types/Download';
-import type { ActionOf } from '../../store/actions';
+import type { ActionOf } from '../actions';
+import { APP_SETTINGS_LOADED } from '../actions/appActions';
 import {
   DOWNLOADS_CLEARED,
   DOWNLOAD_CREATED,
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
-} from '../actions';
+} from '../actions/downloadsActions';
+import type { Download } from '../types/Download';
 
 type DownloadsAction =
   | ActionOf<typeof APP_SETTINGS_LOADED>

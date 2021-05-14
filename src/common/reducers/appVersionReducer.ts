@@ -1,7 +1,7 @@
 import type { Reducer } from 'redux';
 
-import type { ActionOf } from '../../store/actions';
-import { APP_VERSION_SET } from '../actions';
+import type { ActionOf } from '../actions';
+import { APP_VERSION_SET } from '../actions/appActions';
 
 type AppVersionAction = ActionOf<typeof APP_VERSION_SET>;
 

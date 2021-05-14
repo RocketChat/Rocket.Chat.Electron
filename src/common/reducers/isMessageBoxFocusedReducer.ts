@@ -1,12 +1,12 @@
 import type { Reducer } from 'redux';
 
-import type { ActionOf } from '../../store/actions';
+import type { ActionOf } from '../actions';
 import {
   WEBVIEW_MESSAGE_BOX_FOCUSED,
   WEBVIEW_MESSAGE_BOX_BLURRED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
-} from '../actions';
+} from '../actions/uiActions';
 
 type IsMessageBoxFocusedAction =
   | ActionOf<typeof WEBVIEW_MESSAGE_BOX_FOCUSED>

@@ -4,11 +4,11 @@ import React, { useMemo, FC, DragEvent, MouseEvent } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
-import type { RootAction } from '../../../store/actions';
+import type { RootAction } from '../../../common/actions';
 import {
   SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
-} from '../../actions';
+} from '../../../common/actions/uiActions';
 import {
   Avatar,
   Badge,

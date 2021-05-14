@@ -3,9 +3,7 @@ import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 
 import { relaunchApp } from '../../app/main/app';
-import { CERTIFICATES_CLEARED } from '../../navigation/actions';
-import { dispatch, select, Service } from '../../store';
-import type { RootState } from '../../store/rootReducer';
+import { CERTIFICATES_CLEARED } from '../../common/actions/navigationActions';
 import {
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
@@ -15,7 +13,9 @@ import {
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
-} from '../actions';
+} from '../../common/actions/uiActions';
+import type { RootState } from '../../common/reducers';
+import { dispatch, select, Service } from '../../store';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';

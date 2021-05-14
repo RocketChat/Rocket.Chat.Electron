@@ -3,8 +3,8 @@ import path from 'path';
 
 import { app } from 'electron';
 
+import { APP_SETTINGS_LOADED } from '../../common/actions/appActions';
 import { select, dispatch, watch } from '../../store';
-import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import { getPersistedValues, persistValues } from './persistence';
 

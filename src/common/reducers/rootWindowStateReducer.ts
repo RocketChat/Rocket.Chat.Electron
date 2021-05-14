@@ -1,9 +1,9 @@
 import type { Reducer } from 'redux';
 
-import { APP_SETTINGS_LOADED } from '../../app/actions';
-import type { WindowState } from '../../common/types/WindowState';
-import type { ActionOf } from '../../store/actions';
-import { ROOT_WINDOW_STATE_CHANGED } from '../actions';
+import type { ActionOf } from '../actions';
+import { APP_SETTINGS_LOADED } from '../actions/appActions';
+import { ROOT_WINDOW_STATE_CHANGED } from '../actions/uiActions';
+import type { WindowState } from '../types/WindowState';
 
 type RootWindowStateAction =
   | ActionOf<typeof ROOT_WINDOW_STATE_CHANGED>

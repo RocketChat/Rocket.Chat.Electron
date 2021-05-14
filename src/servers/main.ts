@@ -4,6 +4,11 @@ import path from 'path';
 import { app } from 'electron';
 import { satisfies, coerce } from 'semver';
 
+import {
+  SERVER_URL_RESOLUTION_REQUESTED,
+  SERVER_URL_RESOLVED,
+  SERVERS_LOADED,
+} from '../common/actions/serversActions';
 import type { Server } from '../common/types/Server';
 import type { ServerUrlResolutionResult } from '../common/types/ServerUrlResolutionResult';
 import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionStatus';
@@ -11,11 +16,6 @@ import { invoke } from '../ipc/main';
 import { select, dispatch, listen } from '../store';
 import { hasMeta } from '../store/fsa';
 import { getRootWindow } from '../ui/main/rootWindow';
-import {
-  SERVER_URL_RESOLUTION_REQUESTED,
-  SERVER_URL_RESOLVED,
-  SERVERS_LOADED,
-} from './actions';
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 

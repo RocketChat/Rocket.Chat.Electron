@@ -1,9 +1,9 @@
-import { dispatch, listen } from '../../store';
 import {
   WEBVIEW_MESSAGE_BOX_FOCUSED,
   WEBVIEW_MESSAGE_BOX_BLURRED,
   TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
-} from '../actions';
+} from '../../common/actions/uiActions';
+import { dispatch, listen } from '../../store';
 
 let focusedMessageBoxInput: Element | null = null;
 

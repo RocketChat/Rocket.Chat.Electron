@@ -1,8 +1,11 @@
+import type { RootAction } from '../common/actions';
+import {
+  SYSTEM_SUSPENDING,
+  SYSTEM_LOCKING_SCREEN,
+} from '../common/actions/userPresenceActions';
 import type { SystemIdleState } from '../common/types/SystemIdleState';
 import { invoke } from '../ipc/renderer';
 import { listen } from '../store';
-import type { RootAction } from '../store/actions';
-import { SYSTEM_SUSPENDING, SYSTEM_LOCKING_SCREEN } from './actions';
 
 let detachCallbacks: () => void;
 

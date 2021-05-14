@@ -1,8 +1,11 @@
 import { powerMonitor } from 'electron';
 
+import {
+  SYSTEM_SUSPENDING,
+  SYSTEM_LOCKING_SCREEN,
+} from '../common/actions/userPresenceActions';
 import { handle } from '../ipc/main';
 import { dispatch } from '../store';
-import { SYSTEM_SUSPENDING, SYSTEM_LOCKING_SCREEN } from './actions';
 
 export const setupPowerMonitor = (): void => {
   powerMonitor.addListener('suspend', () => {

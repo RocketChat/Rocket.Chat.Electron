@@ -10,14 +10,14 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
-import type { RootAction } from '../../../store/actions';
-import type { RootState } from '../../../store/rootReducer';
+import type { RootAction } from '../../../common/actions';
 import {
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
   UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
   UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
   UPDATE_DIALOG_DISMISSED,
-} from '../../actions';
+} from '../../../common/actions/uiActions';
+import type { RootState } from '../../../common/reducers';
 import { Dialog } from '../Dialog';
 
 export const UpdateDialog: FC = () => {

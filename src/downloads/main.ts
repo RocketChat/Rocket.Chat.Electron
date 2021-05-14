@@ -9,15 +9,15 @@ import {
   webContents,
 } from 'electron';
 
-import type { Download } from '../common/types/Download';
-import { DownloadStatus } from '../common/types/DownloadStatus';
-import { handle } from '../ipc/main';
-import { dispatch, select } from '../store';
 import {
   DOWNLOAD_CREATED,
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
-} from './actions';
+} from '../common/actions/downloadsActions';
+import type { Download } from '../common/types/Download';
+import { DownloadStatus } from '../common/types/DownloadStatus';
+import { handle } from '../ipc/main';
+import { dispatch, select } from '../store';
 
 const items = new Map<Download['itemId'], DownloadItem>();
 

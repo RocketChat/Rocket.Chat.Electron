@@ -1,5 +1,5 @@
-import type { Server } from '../common/types/Server';
-import type { ServerUrlResolutionResult } from '../common/types/ServerUrlResolutionResult';
+import type { Server } from '../types/Server';
+import type { ServerUrlResolutionResult } from '../types/ServerUrlResolutionResult';
 
 export const SERVERS_LOADED = 'servers/loaded';
 export const SERVER_URL_RESOLUTION_REQUESTED =

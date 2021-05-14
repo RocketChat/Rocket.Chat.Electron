@@ -1,7 +1,7 @@
 import { createStructuredSelector } from 'reselect';
 
+import type { RootState } from '../common/reducers';
 import type { PersistableValues } from '../common/types/PersistableValues';
-import type { RootState } from '../store/rootReducer';
 
 export const selectPersistableValues = createStructuredSelector<
   RootState,

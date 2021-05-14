@@ -3,11 +3,11 @@ import React, { useRef, useEffect, FC } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
-import type { RootAction } from '../../../store/actions';
+import type { RootAction } from '../../../common/actions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   WEBVIEW_ATTACHED,
-} from '../../actions';
+} from '../../../common/actions/uiActions';
 import ErrorView from './ErrorView';
 import { StyledWebView, Wrapper } from './styles';
 

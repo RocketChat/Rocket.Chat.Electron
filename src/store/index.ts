@@ -7,10 +7,10 @@ import {
   Dispatch,
 } from 'redux';
 
-import type { RootAction } from './actions';
+import type { RootAction } from '../common/actions';
+import { rootReducer, RootState } from '../common/reducers';
 import { hasPayload, isErrored, isResponseTo } from './fsa';
 import { forwardToRenderers, getInitialState, forwardToMain } from './ipc';
-import { rootReducer, RootState } from './rootReducer';
 
 let reduxStore: Store<RootState>;
 

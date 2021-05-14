@@ -1,11 +1,11 @@
-import { dispatch, listen } from '../store';
-import type { ActionOf, RootAction } from '../store/actions';
-import { hasMeta, isResponseTo } from '../store/fsa';
+import type { ActionOf, RootAction } from '../common/actions';
+import { SCREEN_SHARING_DIALOG_DISMISSED } from '../common/actions/screenSharingActions';
 import {
   WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
   WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
-} from '../ui/actions';
-import { SCREEN_SHARING_DIALOG_DISMISSED } from './actions';
+} from '../common/actions/uiActions';
+import { dispatch, listen } from '../store';
+import { hasMeta, isResponseTo } from '../store/fsa';
 
 export const setupScreenSharing = (): void => {
   listen(WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, (requestAction) => {

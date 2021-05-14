@@ -1,10 +1,10 @@
-import { APP_SETTINGS_LOADED } from '../../app/actions';
+import type { ActionOf } from '../actions';
+import { APP_SETTINGS_LOADED } from '../actions/appActions';
 import {
   DEEP_LINKS_SERVER_ADDED,
   DEEP_LINKS_SERVER_FOCUSED,
-} from '../../deepLinks/actions';
-import { SERVERS_LOADED } from '../../servers/actions';
-import type { ActionOf } from '../../store/actions';
+} from '../actions/deepLinksActions';
+import { SERVERS_LOADED } from '../actions/serversActions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
@@ -15,7 +15,7 @@ import {
   SIDE_BAR_SERVER_SELECTED,
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   WEBVIEW_FOCUS_REQUESTED,
-} from '../actions';
+} from '../actions/uiActions';
 
 type CurrentViewAction =
   | ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>

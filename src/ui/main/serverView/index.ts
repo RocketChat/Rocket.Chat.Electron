@@ -22,12 +22,7 @@ import {
 import i18next from 'i18next';
 
 import { setupPreloadReload } from '../../../app/main/dev';
-import type { Server } from '../../../common/types/Server';
-import { handleWillDownloadEvent } from '../../../downloads/main';
-import { handle } from '../../../ipc/main';
-import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
-import { isProtocolAllowed } from '../../../navigation/main';
-import { dispatch, listen, select } from '../../../store';
+import { CERTIFICATES_CLEARED } from '../../../common/actions/navigationActions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
@@ -36,7 +31,12 @@ import {
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
-} from '../../actions';
+} from '../../../common/actions/uiActions';
+import type { Server } from '../../../common/types/Server';
+import { handleWillDownloadEvent } from '../../../downloads/main';
+import { handle } from '../../../ipc/main';
+import { isProtocolAllowed } from '../../../navigation/main';
+import { dispatch, listen, select } from '../../../store';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
 

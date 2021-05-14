@@ -1,13 +1,12 @@
 import type { Reducer } from 'redux';
 
+import type { ActionOf } from '../actions';
 import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-} from '../../navigation/actions';
-import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../screenSharing/actions';
-import type { ActionOf } from '../../store/actions';
-import { UPDATES_NEW_VERSION_AVAILABLE } from '../../updates/actions';
+} from '../actions/navigationActions';
+import { SCREEN_SHARING_DIALOG_DISMISSED } from '../actions/screenSharingActions';
 import {
   ABOUT_DIALOG_DISMISSED,
   MENU_BAR_ABOUT_CLICKED,
@@ -17,7 +16,8 @@ import {
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
   WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
   WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
-} from '../actions';
+} from '../actions/uiActions';
+import { UPDATES_NEW_VERSION_AVAILABLE } from '../actions/updatesActions';
 
 type OpenDialogAction =
   | ActionOf<typeof ABOUT_DIALOG_DISMISSED>

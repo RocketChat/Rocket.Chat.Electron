@@ -1,6 +1,3 @@
-import { getServerUrl, getAbsoluteUrl } from '../servers/preload/urls';
-import { dispatch, listen, request } from '../store';
-import { WEBVIEW_FOCUS_REQUESTED } from '../ui/actions';
 import {
   NOTIFICATIONS_CREATE_REQUESTED,
   NOTIFICATIONS_CREATE_RESPONDED,
@@ -10,7 +7,10 @@ import {
   NOTIFICATIONS_NOTIFICATION_DISMISSED,
   NOTIFICATIONS_NOTIFICATION_REPLIED,
   NOTIFICATIONS_NOTIFICATION_SHOWN,
-} from './actions';
+} from '../common/actions/notificationsActions';
+import { WEBVIEW_FOCUS_REQUESTED } from '../common/actions/uiActions';
+import { getServerUrl, getAbsoluteUrl } from '../servers/preload/urls';
+import { dispatch, listen, request } from '../store';
 
 const normalizeIconUrl = (iconUrl: string): string => {
   if (/^data:/.test(iconUrl)) {

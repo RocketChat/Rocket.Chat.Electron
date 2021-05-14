@@ -5,15 +5,15 @@ import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import type { RootAction } from '../../../common/actions';
 import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-} from '../../../navigation/actions';
+} from '../../../common/actions/navigationActions';
+import type { RootState } from '../../../common/reducers';
 import { listen } from '../../../store';
-import type { RootAction } from '../../../store/actions';
 import { isResponse } from '../../../store/fsa';
-import type { RootState } from '../../../store/rootReducer';
 import { Dialog } from '../Dialog';
 
 export const SelectClientCertificateDialog: FC = () => {

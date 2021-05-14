@@ -1,9 +1,12 @@
 import { app } from 'electron';
 import i18next, { TFunction } from 'i18next';
 
+import {
+  I18N_LNG_REQUESTED,
+  I18N_LNG_RESPONDED,
+} from '../common/actions/i18nActions';
 import { dispatch, Service } from '../store';
 import { hasMeta } from '../store/fsa';
-import { I18N_LNG_REQUESTED, I18N_LNG_RESPONDED } from './actions';
 import { interpolation, fallbackLng } from './common';
 import resources from './resources';
 

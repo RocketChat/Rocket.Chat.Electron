@@ -1,5 +1,5 @@
+import { SPELL_CHECKING_LANGUAGE_TOGGLED } from '../common/actions/spellCheckingActions';
 import { createMainReduxStore, dispatch } from '../store';
-import { SPELL_CHECKING_LANGUAGE_TOGGLED } from './actions';
 import { setupSpellChecking } from './main';
 
 describe('setupSpellChecking', () => {

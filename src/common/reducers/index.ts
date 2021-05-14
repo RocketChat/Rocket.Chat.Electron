@@ -1,23 +1,23 @@
 import { combineReducers } from 'redux';
 
-import { appPath } from '../app/reducers/appPath';
-import { appVersion } from '../app/reducers/appVersion';
-import { downloads } from '../downloads/reducers/downloads';
+import { appPath } from './appPathReducer';
+import { appVersion } from './appVersionReducer';
+import { currentView } from './currentViewReducer';
+import { downloads } from './downloadsReducer';
+import { isMenuBarEnabled } from './isMenuBarEnabledReducer';
+import { isMessageBoxFocused } from './isMessageBoxFocusedReducer';
+import { isShowWindowOnUnreadChangedEnabled } from './isShowWindowOnUnreadChangedEnabledReducer';
+import { isSideBarEnabled } from './isSideBarEnabledReducer';
+import { isTrayIconEnabled } from './isTrayIconEnabledReducer';
 import {
   clientCertificates,
   externalProtocols,
   trustedCertificates,
-} from '../navigation/reducers';
-import { servers } from '../servers/reducers';
-import { currentView } from '../ui/reducers/currentView';
-import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
-import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
-import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
-import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
-import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
-import { openDialog } from '../ui/reducers/openDialog';
-import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
-import { rootWindowState } from '../ui/reducers/rootWindowState';
+} from './navigationReducers';
+import { openDialog } from './openDialogReducer';
+import { rootWindowIcon } from './rootWindowIconReducer';
+import { rootWindowState } from './rootWindowStateReducer';
+import { servers } from './serversReducer';
 import {
   doCheckForUpdatesOnStartup,
   isCheckingForUpdates,
@@ -27,7 +27,7 @@ import {
   newUpdateVersion,
   skippedUpdateVersion,
   updateError,
-} from '../updates/reducers';
+} from './updatesReducers';
 
 export const rootReducer = combineReducers({
   appPath,

@@ -2,6 +2,10 @@ import { URL } from 'url';
 
 import { app, WebContents } from 'electron';
 
+import {
+  DEEP_LINKS_SERVER_FOCUSED,
+  DEEP_LINKS_SERVER_ADDED,
+} from '../common/actions/deepLinksActions';
 import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionStatus';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
@@ -11,7 +15,6 @@ import {
 } from '../ui/main/dialogs';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
-import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
 
 const isRocketChatUrl = (parsedUrl: URL): boolean =>
   parsedUrl.protocol === 'rocketchat:';

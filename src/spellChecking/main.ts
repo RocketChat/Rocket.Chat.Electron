@@ -1,10 +1,10 @@
 import { app, session, webContents } from 'electron';
 
-import { listen } from '../store';
 import {
   SPELL_CHECKING_LANGUAGE_TOGGLED,
   SPELL_CHECKING_TOGGLED,
-} from './actions';
+} from '../common/actions/spellCheckingActions';
+import { listen } from '../store';
 
 const setSpellCheckerLanguages = async (
   languages: Set<string>

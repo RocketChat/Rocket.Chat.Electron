@@ -2,12 +2,12 @@ import { useState, DragEvent } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
-import type { Server } from '../../../common/types/Server';
-import type { RootAction } from '../../../store/actions';
+import type { RootAction } from '../../../common/actions';
 import {
   SIDE_BAR_SERVERS_SORTED,
   SIDE_BAR_SERVER_SELECTED,
-} from '../../actions';
+} from '../../../common/actions/uiActions';
+import type { Server } from '../../../common/types/Server';
 
 export const useSorting = <S extends Server>(
   servers: S[]

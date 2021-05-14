@@ -7,12 +7,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 import { createSelector } from 'reselect';
 
-import type { RootAction } from '../../../store/actions';
-import type { RootState } from '../../../store/rootReducer';
+import type { RootAction } from '../../../common/actions';
 import {
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
-} from '../../actions';
+} from '../../../common/actions/uiActions';
+import type { RootState } from '../../../common/reducers';
 import ServerButton from './ServerButton';
 import {
   AddServerButton,

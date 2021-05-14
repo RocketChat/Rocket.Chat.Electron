@@ -1,3 +1,13 @@
+## [3.2.2](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.1...3.2.2) (2021-05-14)
+
+
+### Bug Fixes
+
+* **i18n:** Language update from LingoHub 🤖 ([#2032](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2032)) ([39719ef](https://github.com/RocketChat/Rocket.Chat.Electron/commit/39719ef60284381abf5c6b0356f8377858878f0c))
+* **jitsi:** JitsiMeetElectron unavailable on preload script ([#2031](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2031)) ([1322938](https://github.com/RocketChat/Rocket.Chat.Electron/commit/1322938290e5aca5b9e6c2f335d1ee0f1132b2bc))
+
+
+
 ## [3.2.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.0...3.2.1) (2021-05-13)
 
 

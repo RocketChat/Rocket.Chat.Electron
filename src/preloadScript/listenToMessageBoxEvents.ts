@@ -3,7 +3,7 @@ import {
   WEBVIEW_MESSAGE_BOX_BLURRED,
   TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 } from '../common/actions/uiActions';
-import { dispatch, listen } from '../store';
+import { dispatch, listen } from '../common/store';
 
 let focusedMessageBoxInput: Element | null = null;
 

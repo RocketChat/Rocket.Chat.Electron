@@ -11,9 +11,9 @@ import {
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../../../common/actions/navigationActions';
+import { isResponse } from '../../../common/fsa';
 import type { RootState } from '../../../common/reducers';
-import { listen } from '../../../store';
-import { isResponse } from '../../../store/fsa';
+import { listen } from '../../../common/store';
 import { Dialog } from '../Dialog';
 
 export const SelectClientCertificateDialog: FC = () => {

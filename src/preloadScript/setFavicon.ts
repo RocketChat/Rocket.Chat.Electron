@@ -1,5 +1,5 @@
 import { WEBVIEW_FAVICON_CHANGED } from '../common/actions/uiActions';
-import { dispatch } from '../store';
+import { dispatch } from '../common/store';
 import { getAbsoluteUrl, getServerUrl } from './setUrlResolver';
 
 const FAVICON_SIZE = 100;

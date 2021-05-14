@@ -10,10 +10,10 @@ import {
   NOTIFICATIONS_NOTIFICATION_ACTIONED,
   NOTIFICATIONS_NOTIFICATION_DISMISSED,
 } from '../common/actions/notificationsActions';
+import { isResponse } from '../common/fsa';
+import { dispatch, listen } from '../common/store';
 import type { ExtendedNotificationOptions } from '../common/types/ExtendedNotificationOptions';
 import { invoke } from '../ipc/main';
-import { dispatch, listen } from '../store';
-import { isResponse } from '../store/fsa';
 import { getRootWindow } from './rootWindow';
 
 const resolveIcon = async (

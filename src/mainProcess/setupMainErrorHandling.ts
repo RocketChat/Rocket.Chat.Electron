@@ -2,7 +2,7 @@ import { app } from 'electron';
 
 import { APP_ERROR_THROWN } from '../common/actions/appActions';
 import { setupBugsnag } from '../common/setupBugsnag';
-import { listen } from '../store';
+import { listen } from '../common/store';
 
 export const setupMainErrorHandling = async (): Promise<void> => {
   if (process.env.BUGSNAG_API_KEY) {

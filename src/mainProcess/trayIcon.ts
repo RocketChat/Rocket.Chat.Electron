@@ -3,8 +3,8 @@ import i18next from 'i18next';
 
 import { selectGlobalBadge } from '../common/badgeSelectors';
 import type { RootState } from '../common/reducers';
+import { watch, select, Service } from '../common/store';
 import type { Server } from '../common/types/Server';
-import { watch, select, Service } from '../store';
 import { getTrayIconPath, getAppIconPath } from './icons';
 import { getRootWindow } from './rootWindow';
 

@@ -4,7 +4,7 @@ import {
   SPELL_CHECKING_LANGUAGE_TOGGLED,
   SPELL_CHECKING_TOGGLED,
 } from '../common/actions/spellCheckingActions';
-import { listen } from '../store';
+import { listen } from '../common/store';
 
 const setSpellCheckerLanguages = async (
   languages: Set<string>

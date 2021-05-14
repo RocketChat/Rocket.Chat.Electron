@@ -14,7 +14,7 @@ import {
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
 } from '../common/actions/uiActions';
 import type { RootState } from '../common/reducers';
-import { dispatch, select, Service } from '../store';
+import { dispatch, select, Service } from '../common/store';
 import { askForAppDataReset } from './dialogs';
 import { relaunchApp } from './relaunchApp';
 import { getRootWindow } from './rootWindow';

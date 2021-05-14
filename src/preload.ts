@@ -1,5 +1,6 @@
 import { contextBridge } from 'electron';
 
+import { setReduxStore } from './common/store';
 import type { JitsiMeetElectronAPI } from './common/types/JitsiMeetElectronAPI';
 import type { RocketChatDesktopAPI } from './common/types/RocketChatDesktopAPI';
 import { invoke } from './ipc/renderer';
@@ -13,9 +14,9 @@ import { listenToMessageBoxEvents } from './preloadScript/listenToMessageBoxEven
 import { listenToScreenSharingRequests } from './preloadScript/listenToScreenSharingRequests';
 import { listenToNotificationsRequests } from './preloadScript/notifications';
 import { setServerUrl } from './preloadScript/setUrlResolver';
+import { createRendererReduxStore } from './rendererProcess/createRendererReduxStore';
 import { setupRendererErrorHandling } from './rendererProcess/setupRendererErrorHandling';
 import { whenReady } from './rendererProcess/whenReady';
-import { createRendererReduxStore } from './store';
 
 declare global {
   interface Window {
@@ -37,7 +38,7 @@ const start = async (): Promise<void> => {
 
   setServerUrl(serverUrl);
 
-  await createRendererReduxStore();
+  setReduxStore(await createRendererReduxStore());
 
   await whenReady();
 

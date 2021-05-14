@@ -31,9 +31,9 @@ import {
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
 } from '../common/actions/uiActions';
+import { dispatch, listen, select } from '../common/store';
 import type { Server } from '../common/types/Server';
 import { handle } from '../ipc/main';
-import { dispatch, listen, select } from '../store';
 import { setupPreloadReload } from './dev';
 import { handleWillDownloadEvent } from './downloads';
 import { isProtocolAllowed } from './navigation';

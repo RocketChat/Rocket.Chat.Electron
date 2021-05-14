@@ -5,10 +5,10 @@ import {
   I18N_LNG_REQUESTED,
   I18N_LNG_RESPONDED,
 } from '../common/actions/i18nActions';
+import { hasMeta } from '../common/fsa';
 import { interpolation, fallbackLng } from '../common/i18n';
 import resources from '../common/i18nResources';
-import { dispatch, Service } from '../store';
-import { hasMeta } from '../store/fsa';
+import { dispatch, Service } from '../common/store';
 
 const hasLng = (lng: string): lng is keyof typeof resources => lng in resources;
 

@@ -14,10 +14,10 @@ import {
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
 } from '../common/actions/downloadsActions';
+import { dispatch, select } from '../common/store';
 import type { Download } from '../common/types/Download';
 import { DownloadStatus } from '../common/types/DownloadStatus';
 import { handle } from '../ipc/main';
-import { dispatch, select } from '../store';
 
 const items = new Map<Download['itemId'], DownloadItem>();
 

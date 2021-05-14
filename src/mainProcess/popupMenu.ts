@@ -12,7 +12,7 @@ import {
   SPELL_CHECKING_LANGUAGE_TOGGLED,
   SPELL_CHECKING_TOGGLED,
 } from '../common/actions/spellCheckingActions';
-import { dispatch } from '../store';
+import { dispatch } from '../common/store';
 
 const t = i18next.t.bind(i18next);
 

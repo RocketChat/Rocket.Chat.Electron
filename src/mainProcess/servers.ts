@@ -9,12 +9,12 @@ import {
   SERVER_URL_RESOLVED,
   SERVERS_LOADED,
 } from '../common/actions/serversActions';
+import { hasMeta } from '../common/fsa';
+import { select, dispatch, listen } from '../common/store';
 import type { Server } from '../common/types/Server';
 import type { ServerUrlResolutionResult } from '../common/types/ServerUrlResolutionResult';
 import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionStatus';
 import { invoke } from '../ipc/main';
-import { select, dispatch, listen } from '../store';
-import { hasMeta } from '../store/fsa';
 import { getRootWindow } from './rootWindow';
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';

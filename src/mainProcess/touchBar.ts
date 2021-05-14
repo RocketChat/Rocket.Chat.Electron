@@ -13,8 +13,8 @@ import {
   TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 } from '../common/actions/uiActions';
 import type { RootState } from '../common/reducers';
+import { select, dispatch, Service } from '../common/store';
 import type { Server } from '../common/types/Server';
-import { select, dispatch, Service } from '../store';
 import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);

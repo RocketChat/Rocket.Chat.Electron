@@ -1,44 +1,14 @@
-import {
-  applyMiddleware,
-  createStore,
-  Store,
-  compose,
-  Middleware,
-  Dispatch,
-} from 'redux';
+import type { Store } from 'redux';
 
-import type { RootAction } from '../common/actions';
-import { rootReducer, RootState } from '../common/reducers';
+import type { RootAction } from './actions';
+import { lastAction } from './catchLastAction';
 import { hasPayload, isErrored, isResponseTo } from './fsa';
-import { forwardToRenderers, getInitialState, forwardToMain } from './ipc';
+import type { RootState } from './reducers';
 
 let reduxStore: Store<RootState>;
 
-let lastAction: RootAction;
-
-const catchLastAction: Middleware =
-  () => (next: Dispatch<RootAction>) => (action) => {
-    lastAction = action;
-    return next(action);
-  };
-
-export const createMainReduxStore = (): void => {
-  const middlewares = applyMiddleware(catchLastAction, forwardToRenderers);
-
-  reduxStore = createStore(rootReducer, {}, middlewares);
-};
-
-export const createRendererReduxStore = async (): Promise<Store> => {
-  const initialState = await getInitialState();
-  const composeEnhancers: typeof compose =
-    (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-  const enhancers = composeEnhancers(
-    applyMiddleware(forwardToMain, catchLastAction)
-  );
-
-  reduxStore = createStore(rootReducer, initialState, enhancers);
-
-  return reduxStore;
+export const setReduxStore = (store: Store<RootState>): void => {
+  reduxStore = store;
 };
 
 export const dispatch = <Action extends RootAction>(action: Action): void => {
@@ -152,10 +122,6 @@ export abstract class Service {
     this.destroy();
   }
 }
-
-// const isResponseTo = <Response extends RootAction>(id: unknown, type: Response['type']) =>
-//   (action: RootAction): action is Response =>
-//     isResponse(action) && action.type === type && action.meta.id === id;
 
 export const request = <
   Request extends RootAction,

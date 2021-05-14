@@ -12,7 +12,7 @@ import {
   CERTIFICATES_LOADED,
   EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
 } from '../common/actions/navigationActions';
-import { request, select, dispatch } from '../store';
+import { request, select, dispatch } from '../common/store';
 import {
   AskForCertificateTrustResponse,
   askForCertificateTrust,

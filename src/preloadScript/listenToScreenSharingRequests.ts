@@ -2,7 +2,7 @@ import {
   WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
   WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
 } from '../common/actions/uiActions';
-import { request } from '../store';
+import { request } from '../common/store';
 
 const handleGetSourceIdEvent = async (): Promise<void> => {
   try {

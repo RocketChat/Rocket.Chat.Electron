@@ -30,8 +30,8 @@ import {
 import { ADD_SERVER_VIEW_SERVER_ADDED } from '../../../common/actions/uiActions';
 import { RocketChatLogo } from '../../../common/components/assets/RocketChatLogo';
 import type { RootState } from '../../../common/reducers';
+import { request } from '../../../common/store';
 import { ServerUrlResolutionStatus } from '../../../common/types/ServerUrlResolutionStatus';
-import { request } from '../../../store';
 import { Wrapper } from './styles';
 
 const defaultServerUrl = new URL('https://open.rocket.chat/');

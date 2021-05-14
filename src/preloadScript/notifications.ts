@@ -9,7 +9,7 @@ import {
   NOTIFICATIONS_NOTIFICATION_SHOWN,
 } from '../common/actions/notificationsActions';
 import { WEBVIEW_FOCUS_REQUESTED } from '../common/actions/uiActions';
-import { dispatch, listen, request } from '../store';
+import { dispatch, listen, request } from '../common/store';
 import { getServerUrl, getAbsoluteUrl } from './setUrlResolver';
 
 const normalizeIconUrl = (iconUrl: string): string => {

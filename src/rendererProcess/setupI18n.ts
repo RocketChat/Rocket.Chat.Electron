@@ -7,7 +7,7 @@ import {
 } from '../common/actions/i18nActions';
 import { interpolation, fallbackLng } from '../common/i18n';
 import resources from '../common/i18nResources';
-import { request } from '../store';
+import { request } from '../common/store';
 
 export const setupI18n = async (): Promise<void> => {
   const lng =

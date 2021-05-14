@@ -1,5 +1,5 @@
 import { setupBugsnag } from '../common/setupBugsnag';
-import { select } from '../store';
+import { select } from '../common/store';
 import { whenReady } from './whenReady';
 
 export const setupRendererErrorHandling = async (

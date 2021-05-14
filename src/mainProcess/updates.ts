@@ -18,10 +18,10 @@ import {
   UPDATES_READY,
 } from '../common/actions/updatesActions';
 import type { RootState } from '../common/reducers';
+import { listen, dispatch, select } from '../common/store';
 import type { AppLevelUpdateConfiguration } from '../common/types/AppLevelUpdateConfiguration';
 import type { UpdateConfiguration } from '../common/types/UpdateConfiguration';
 import type { UserLevelUpdateConfiguration } from '../common/types/UserLevelUpdateConfiguration';
-import { listen, dispatch, select } from '../store';
 import {
   askUpdateInstall,
   AskUpdateInstallResponse,

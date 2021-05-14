@@ -1,6 +1,6 @@
 import { WEBVIEW_UNREAD_CHANGED } from '../common/actions/uiActions';
+import { dispatch } from '../common/store';
 import type { Server } from '../common/types/Server';
-import { dispatch } from '../store';
 import { getServerUrl } from './setUrlResolver';
 
 export const setBadge = (badge: Server['badge']): void => {

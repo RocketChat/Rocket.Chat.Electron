@@ -1,14 +1,16 @@
 import { createElement } from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
+import { setReduxStore } from './common/store';
 import { App } from './rendererProcess/components/App';
+import { createRendererReduxStore } from './rendererProcess/createRendererReduxStore';
 import { setupI18n } from './rendererProcess/setupI18n';
 import { setupRendererErrorHandling } from './rendererProcess/setupRendererErrorHandling';
 import { whenReady } from './rendererProcess/whenReady';
-import { createRendererReduxStore } from './store';
 
 const start = async (): Promise<void> => {
   const reduxStore = await createRendererReduxStore();
+  setReduxStore(reduxStore);
 
   await whenReady();
 

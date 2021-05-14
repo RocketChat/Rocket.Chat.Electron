@@ -4,7 +4,7 @@ import {
   selectGlobalBadgeText,
   selectGlobalBadgeCount,
 } from '../common/badgeSelectors';
-import { Service } from '../store';
+import { Service } from '../common/store';
 
 class DockService extends Service {
   protected initialize(): void {

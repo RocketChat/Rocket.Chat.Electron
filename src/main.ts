@@ -1,5 +1,7 @@
 import { app } from 'electron';
 
+import { setReduxStore } from './common/store';
+import { createMainReduxStore } from './mainProcess/createMainReduxStore';
 import {
   mergePersistableValues,
   watchAndPersistChanges,
@@ -31,14 +33,13 @@ import { setupSpellChecking } from './mainProcess/setupSpellChecking';
 import touchBar from './mainProcess/touchBar';
 import trayIcon from './mainProcess/trayIcon';
 import { setupUpdates } from './mainProcess/updates';
-import { createMainReduxStore } from './store';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
   setupMainErrorHandling();
   performElectronStartup();
 
-  createMainReduxStore();
+  setReduxStore(createMainReduxStore());
 
   await app.whenReady();
 

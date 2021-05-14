@@ -6,8 +6,8 @@ import {
   DEEP_LINKS_SERVER_FOCUSED,
   DEEP_LINKS_SERVER_ADDED,
 } from '../common/actions/deepLinksActions';
+import { select, dispatch } from '../common/store';
 import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionStatus';
-import { select, dispatch } from '../store';
 import { askForServerAddition, warnAboutInvalidServerUrl } from './dialogs';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';

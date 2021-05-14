@@ -1,5 +1,5 @@
 import { WEBVIEW_TITLE_CHANGED } from '../common/actions/uiActions';
-import { dispatch } from '../store';
+import { dispatch } from '../common/store';
 import { getServerUrl } from './setUrlResolver';
 
 export const setTitle = (title: string): void => {

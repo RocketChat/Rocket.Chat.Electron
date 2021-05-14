@@ -21,10 +21,10 @@ import {
   selectGlobalBadgeCount,
 } from '../common/badgeSelectors';
 import type { RootState } from '../common/reducers';
+import { dispatch, select, watch, listen } from '../common/store';
 import type { RootWindowIcon } from '../common/types/RootWindowIcon';
 import type { Server } from '../common/types/Server';
 import type { WindowState } from '../common/types/WindowState';
-import { dispatch, select, watch, listen } from '../store';
 import { setupRootWindowReload } from './dev';
 import { getTrayIconPath } from './icons';
 

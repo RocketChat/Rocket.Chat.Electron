@@ -1,14 +1,17 @@
 import { APP_SETTINGS_LOADED } from '../common/actions/appActions';
+import type { RootState } from '../common/reducers';
 import { selectPersistableValues } from '../common/selectPersistableValues';
-import { select, dispatch } from '../common/store';
+import { dispatch } from '../common/store';
+import { extractPersistableValues } from './extractPersistableValues';
 import { getPersistedValues } from './getPersistedValues';
 import { joinUserPath } from './joinUserPath';
 import { readJsonObject } from './readJsonObject';
 
 export const mergePersistableValues = async (
+  state: RootState,
   localStorage: Record<string, string>
-): Promise<void> => {
-  const initialValues = select(selectPersistableValues);
+): Promise<RootState> => {
+  const initialValues = selectPersistableValues(state);
 
   const electronStoreValues = getPersistedValues();
 
@@ -20,9 +23,9 @@ export const mergePersistableValues = async (
         return [];
       }
     })
-  );
+  ) as Record<string, unknown>;
 
-  let values = selectPersistableValues({
+  let values = extractPersistableValues({
     ...initialValues,
     ...electronStoreValues,
     ...localStorageValues,
@@ -57,10 +60,8 @@ export const mergePersistableValues = async (
     };
   }
 
-  const userRootWindowState = await readJsonObject(
-    joinUserPath('main-window-state.json'),
-    { discard: true }
-  );
+  const filePath = joinUserPath('main-window-state.json');
+  const userRootWindowState = await readJsonObject(filePath, { discard: true });
 
   values = {
     ...values,
@@ -103,4 +104,23 @@ export const mergePersistableValues = async (
     type: APP_SETTINGS_LOADED,
     payload: values,
   });
+
+  return {
+    ...state,
+    currentView: values.currentView,
+    doCheckForUpdatesOnStartup: values.doCheckForUpdatesOnStartup,
+    downloads: values.downloads,
+    externalProtocols: values.externalProtocols,
+    isEachUpdatesSettingConfigurable: values.isEachUpdatesSettingConfigurable,
+    isMenuBarEnabled: values.isMenuBarEnabled,
+    isShowWindowOnUnreadChangedEnabled:
+      values.isShowWindowOnUnreadChangedEnabled,
+    isSideBarEnabled: values.isSideBarEnabled,
+    isTrayIconEnabled: values.isTrayIconEnabled,
+    isUpdatingEnabled: values.isUpdatingEnabled,
+    rootWindowState: values.rootWindowState,
+    servers: values.servers,
+    skippedUpdateVersion: values.skippedUpdateVersion,
+    trustedCertificates: values.trustedCertificates,
+  };
 };

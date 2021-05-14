@@ -1,5 +1,6 @@
 import { app } from 'electron';
 
+import { getInitialState } from './common/getInitialState';
 import { setReduxStore } from './common/store';
 import { createMainReduxStore } from './mainProcess/createMainReduxStore';
 import {
@@ -39,7 +40,11 @@ const start = async (): Promise<void> => {
   await app.whenReady();
 
   const localStorage = await extractLocalStorage();
-  await mergePersistableValues(localStorage);
+
+  await Promise.resolve(getInitialState()).then((state) =>
+    mergePersistableValues(state, localStorage)
+  );
+
   await setupServers(localStorage);
 
   i18n.setUp();

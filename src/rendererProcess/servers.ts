@@ -8,44 +8,7 @@ import { dispatch, watch } from '../common/store';
 import type { RootState } from '../common/types/RootState';
 import type { Server } from '../common/types/Server';
 import { handle } from '../ipc/renderer';
-
-export const fetchInfo = async (
-  urlHref: string
-): Promise<[urlHref: string, version: string]> => {
-  const url = new URL(urlHref);
-
-  const { username, password } = url;
-  const headers = new Headers();
-
-  if (username && password) {
-    headers.append('Authorization', `Basic ${btoa(`${username}:${password}`)}`);
-  }
-
-  const homeResponse = await fetch(url.href, { headers });
-
-  if (!homeResponse.ok) {
-    throw new Error(homeResponse.statusText);
-  }
-
-  const endpoint = new URL('api/info', homeResponse.url);
-
-  const apiInfoResponse = await fetch(endpoint.href, { headers });
-
-  if (!apiInfoResponse.ok) {
-    throw new Error(apiInfoResponse.statusText);
-  }
-
-  const responseBody: {
-    success: boolean;
-    version: string;
-  } = await apiInfoResponse.json();
-
-  if (!responseBody.success) {
-    throw new Error();
-  }
-
-  return [new URL('..', apiInfoResponse.url).href, responseBody.version];
-};
+import { resolveServerUrl } from './resolveServerUrl';
 
 type RootWindowIconParams = {
   badge: Server['badge'] | undefined;
@@ -281,7 +244,7 @@ const updateRootWindowIconForWindows = async ({
 };
 
 export default (): void => {
-  handle('servers/fetch-info', fetchInfo);
+  handle('servers/resolve-url', resolveServerUrl);
 
   if (process.platform === 'linux') {
     watch(selectBadgeAndFavicon, updateRootWindowIconForLinux);

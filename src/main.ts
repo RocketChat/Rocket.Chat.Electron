@@ -16,7 +16,6 @@ import { setupNotifications } from './mainProcess/notifications';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
 import { createRootWindow, showRootWindow } from './mainProcess/rootWindow';
 import { attachGuestWebContentsEvents } from './mainProcess/serverView';
-import { setupServers } from './mainProcess/servers';
 import { setupApp } from './mainProcess/setupApp';
 import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
 import { setupNavigation } from './mainProcess/setupNavigation';
@@ -57,7 +56,6 @@ const start = async (): Promise<void> => {
   setupPowerMonitor();
   setupUpdates();
   setupDownloads();
-  setupServers();
 
   dock.setUp();
   menuBar.setUp();

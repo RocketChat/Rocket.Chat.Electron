@@ -11,9 +11,9 @@ import { isRocketChatUrl } from '../common/helpers/isRocketChatUrl';
 import { select, dispatch } from '../common/store';
 import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionStatus';
 import { askForServerAddition, warnAboutInvalidServerUrl } from './dialogs';
+import { resolveServerUrl } from './resolveServerUrl';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
-import { resolveServerUrl } from './servers';
 
 const parseDeepLink = (
   input: string

@@ -20,16 +20,12 @@ import React, {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  SERVER_URL_RESOLVED,
-  SERVER_URL_RESOLUTION_REQUESTED,
-} from '../../../common/actions/serversActions';
 import { ADD_SERVER_VIEW_SERVER_ADDED } from '../../../common/actions/uiActions';
 import { RocketChatLogo } from '../../../common/components/assets/RocketChatLogo';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import { useAppSelector } from '../../../common/hooks/useAppSelector';
-import { request } from '../../../common/store';
 import { ServerUrlResolutionStatus } from '../../../common/types/ServerUrlResolutionStatus';
+import { resolveServerUrl } from '../../resolveServerUrl';
 import { Wrapper } from './styles';
 
 const defaultServerUrl = new URL('https://open.rocket.chat/');
@@ -81,17 +77,11 @@ export const AddServerView: FC = () => {
     []
   );
 
-  const resolveServerUrl = useCallback(
+  const resolveAndValidateServerUrl = useCallback(
     async (serverUrl): Promise<void> => {
       beginValidation();
 
-      const [resolvedServerUrl, result] = await request(
-        {
-          type: SERVER_URL_RESOLUTION_REQUESTED,
-          payload: serverUrl,
-        },
-        SERVER_URL_RESOLVED
-      );
+      const [resolvedServerUrl, result] = await resolveServerUrl(serverUrl);
 
       switch (result) {
         case ServerUrlResolutionStatus.OK:
@@ -126,7 +116,7 @@ export const AddServerView: FC = () => {
       return;
     }
 
-    await resolveServerUrl(trimmedInput);
+    await resolveAndValidateServerUrl(trimmedInput);
   };
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>): void => {

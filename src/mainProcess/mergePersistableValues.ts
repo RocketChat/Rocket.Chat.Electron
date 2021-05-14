@@ -1,12 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-
-import { app } from 'electron';
-
 import { APP_SETTINGS_LOADED } from '../common/actions/appActions';
 import { selectPersistableValues } from '../common/selectPersistableValues';
 import { select, dispatch } from '../common/store';
 import { getPersistedValues } from './getPersistedValues';
+import { joinUserPath } from './joinUserPath';
+import { readJsonObject } from './readJsonObject';
 
 export const mergePersistableValues = async (
   localStorage: Record<string, string>
@@ -60,44 +57,44 @@ export const mergePersistableValues = async (
     };
   }
 
-  const userRootWindowState = await (async () => {
-    try {
-      const filePath = path.join(
-        app.getPath('userData'),
-        'main-window-state.json'
-      );
-      const content = await fs.promises.readFile(filePath, 'utf8');
-      const json = JSON.parse(content);
-      await fs.promises.unlink(filePath);
-
-      return json && typeof json === 'object' ? json : {};
-    } catch (error) {
-      return {};
-    }
-  })();
+  const userRootWindowState = await readJsonObject(
+    joinUserPath('main-window-state.json'),
+    { discard: true }
+  );
 
   values = {
     ...values,
     rootWindowState: {
+      ...values.rootWindowState,
       focused: true,
-      visible: !(
-        userRootWindowState?.isHidden ?? !values?.rootWindowState?.visible
-      ),
-      maximized:
-        userRootWindowState.isMaximized ?? values?.rootWindowState?.maximized,
-      minimized:
-        userRootWindowState.isMinimized ?? values?.rootWindowState?.minimized,
+      ...(typeof userRootWindowState.isHidden === 'boolean' && {
+        visible: !userRootWindowState.isHidden,
+      }),
+      ...(typeof userRootWindowState.isMaximized === 'boolean' && {
+        maximized: userRootWindowState.isMaximized,
+      }),
+      ...(typeof userRootWindowState.isMinimized === 'boolean' && {
+        minimized: userRootWindowState.isMinimized,
+      }),
       fullscreen: false,
-      normal:
-        !(userRootWindowState.isMinimized || userRootWindowState.isMaximized) ??
-        values?.rootWindowState?.normal,
+      ...(!userRootWindowState.isMinimized &&
+        !userRootWindowState.isMaximized && {
+          normal: true,
+        }),
       bounds: {
-        x: userRootWindowState.x ?? values?.rootWindowState?.bounds?.x,
-        y: userRootWindowState.y ?? values?.rootWindowState?.bounds?.y,
-        width:
-          userRootWindowState.width ?? values?.rootWindowState?.bounds?.width,
-        height:
-          userRootWindowState.height ?? values?.rootWindowState?.bounds?.height,
+        ...values.rootWindowState.bounds,
+        ...(typeof userRootWindowState.x === 'number' && {
+          x: userRootWindowState.x,
+        }),
+        ...(typeof userRootWindowState.y === 'number' && {
+          y: userRootWindowState.y,
+        }),
+        ...(typeof userRootWindowState.width === 'number' && {
+          width: userRootWindowState.width,
+        }),
+        ...(typeof userRootWindowState.height === 'number' && {
+          height: userRootWindowState.height,
+        }),
       },
     },
   };

@@ -1,7 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-
-import { app } from 'electron';
 import { satisfies, coerce } from 'semver';
 
 import {
@@ -15,6 +11,9 @@ import type { Server } from '../common/types/Server';
 import type { ServerUrlResolutionResult } from '../common/types/ServerUrlResolutionResult';
 import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionStatus';
 import { invoke } from '../ipc/main';
+import { joinAppPath } from './joinAppPath';
+import { joinUserPath } from './joinUserPath';
+import { readJsonObject } from './readJsonObject';
 import { getRootWindow } from './rootWindow';
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
@@ -98,35 +97,6 @@ export const resolveServerUrl = async (
   return [url.href, ServerUrlResolutionStatus.OK];
 };
 
-const loadAppServers = async (): Promise<Record<string, string>> => {
-  try {
-    const filePath = path.join(
-      app.getAppPath(),
-      app.getAppPath().endsWith('app.asar') ? '..' : '.',
-      'servers.json'
-    );
-    const content = await fs.promises.readFile(filePath, 'utf8');
-    const json = JSON.parse(content);
-
-    return json && typeof json === 'object' ? json : {};
-  } catch (error) {
-    return {};
-  }
-};
-
-const loadUserServers = async (): Promise<Record<string, string>> => {
-  try {
-    const filePath = path.join(app.getPath('userData'), 'servers.json');
-    const content = await fs.promises.readFile(filePath, 'utf8');
-    const json = JSON.parse(content);
-    await fs.promises.unlink(filePath);
-
-    return json && typeof json === 'object' ? json : {};
-  } catch (error) {
-    return {};
-  }
-};
-
 export const setupServers = async (
   localStorage: Record<string, string>
 ): Promise<void> => {
@@ -197,15 +167,23 @@ export const setupServers = async (
   }
 
   if (serversMap.size === 0) {
-    const appConfiguration = await loadAppServers();
+    const appConfiguration = await readJsonObject(joinAppPath('servers.json'));
 
     for (const [title, url] of Object.entries(appConfiguration)) {
+      if (typeof url !== 'string') {
+        continue;
+      }
       serversMap.set(url, { url, title });
     }
 
-    const userConfiguration = await loadUserServers();
+    const userConfiguration = await readJsonObject(
+      joinUserPath('servers.json')
+    );
 
     for (const [title, url] of Object.entries(userConfiguration)) {
+      if (typeof url !== 'string') {
+        continue;
+      }
       serversMap.set(url, { url, title });
     }
   }

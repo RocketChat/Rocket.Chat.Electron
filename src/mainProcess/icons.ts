@@ -1,8 +1,7 @@
-import path from 'path';
-
 import { app } from 'electron';
 
 import type { Server } from '../common/types/Server';
+import { joinAsarPath } from './joinAsarPath';
 
 export const getAppIconPath = ({
   platform,
@@ -17,9 +16,8 @@ export const getAppIconPath = ({
 };
 
 const getMacOSTrayIconPath = (badge: Server['badge']): string =>
-  path.join(
-    app.getAppPath(),
-    `app/images/tray/darwin/${badge ? 'notification' : 'default'}Template.png`
+  joinAsarPath(
+    `images/tray/darwin/${badge ? 'notification' : 'default'}Template.png`
   );
 
 const getWindowsTrayIconPath = (badge: Server['badge']): string => {
@@ -28,7 +26,7 @@ const getWindowsTrayIconPath = (badge: Server['badge']): string => {
     (badge === '•' && 'notification-dot') ||
     (typeof badge === 'number' && badge > 9 && 'notification-plus-9') ||
     `notification-${badge}`;
-  return path.join(app.getAppPath(), `app/images/tray/win32/${name}.ico`);
+  return joinAsarPath(`images/tray/win32/${name}.ico`);
 };
 
 const getLinuxTrayIconPath = (badge: Server['badge']): string => {
@@ -37,7 +35,7 @@ const getLinuxTrayIconPath = (badge: Server['badge']): string => {
     (badge === '•' && 'notification-dot') ||
     (typeof badge === 'number' && badge > 9 && 'notification-plus-9') ||
     `notification-${badge}`;
-  return path.join(app.getAppPath(), `app/images/tray/linux/${name}.png`);
+  return joinAsarPath(`images/tray/linux/${name}.png`);
 };
 
 export const getTrayIconPath = ({

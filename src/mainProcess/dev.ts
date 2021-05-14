@@ -1,6 +1,8 @@
-import path from 'path';
+import { join } from 'path';
 
 import { app, WebContents } from 'electron';
+
+import { joinAsarPath } from './joinAsarPath';
 
 export const setUserDataDirectory = (): void => {
   if (process.env.NODE_ENV !== 'development') {
@@ -9,7 +11,7 @@ export const setUserDataDirectory = (): void => {
 
   app.setPath(
     'userData',
-    path.join(app.getPath('appData'), `${app.name} (development)`)
+    join(app.getPath('appData'), `${app.name} (development)`)
   );
 };
 
@@ -18,7 +20,7 @@ export const setupRootWindowReload = async (
 ): Promise<void> => {
   const chokidar = await import('chokidar');
   chokidar
-    .watch(path.join(app.getAppPath(), 'app/rootWindow.js'), {
+    .watch(joinAsarPath('rootWindow.js'), {
       awaitWriteFinish: true,
     })
     .on('change', () => {
@@ -36,15 +38,9 @@ export const setupPreloadReload = async (
 ): Promise<void> => {
   const chokidar = await import('chokidar');
   chokidar
-    .watch(
-      [
-        path.join(app.getAppPath(), 'app/preload.js'),
-        path.join(app.getAppPath(), 'app/injected.js'),
-      ],
-      {
-        awaitWriteFinish: true,
-      }
-    )
+    .watch([joinAsarPath('app/preload.js'), joinAsarPath('app/injected.js')], {
+      awaitWriteFinish: true,
+    })
     .on('change', () => {
       if (webContents.isDestroyed()) {
         return;

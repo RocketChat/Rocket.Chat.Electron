@@ -1,6 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-
 import { app } from 'electron';
 import { autoUpdater } from 'electron-updater';
 
@@ -29,44 +26,16 @@ import {
   warnAboutUpdateDownload,
   warnAboutUpdateSkipped,
 } from './dialogs';
+import { joinAppPath } from './joinAppPath';
+import { joinUserPath } from './joinUserPath';
 import { mergeConfigurations } from './mergeConfigurations';
-
-const readJsonObject = async (
-  filePath: string
-): Promise<Record<string, unknown>> => {
-  try {
-    const content = await fs.promises.readFile(filePath, 'utf8');
-    const json = JSON.parse(content);
-
-    return json && typeof json === 'object' && !Array.isArray(json) ? json : {};
-  } catch (error) {
-    return {};
-  }
-};
-
-const readAppJsonObject = async (
-  basename: string
-): Promise<Record<string, unknown>> => {
-  const filePath = path.join(
-    app.getAppPath(),
-    app.getAppPath().endsWith('app.asar') ? '..' : '.',
-    basename
-  );
-  return readJsonObject(filePath);
-};
-
-const readUserJsonObject = async (
-  basename: string
-): Promise<Record<string, unknown>> => {
-  const filePath = path.join(app.getPath('userData'), basename);
-  return readJsonObject(filePath);
-};
+import { readJsonObject } from './readJsonObject';
 
 const loadAppConfiguration = async (): Promise<AppLevelUpdateConfiguration> =>
-  readAppJsonObject('update.json');
+  readJsonObject(joinAppPath('update.json'));
 
 const loadUserConfiguration = async (): Promise<UserLevelUpdateConfiguration> =>
-  readUserJsonObject('update.json');
+  readJsonObject(joinUserPath('update.json'));
 
 const loadConfiguration = async (): Promise<UpdateConfiguration> => {
   const defaultConfiguration = select(

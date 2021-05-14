@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 
 import {
   app,
@@ -36,6 +35,7 @@ import type { Server } from '../common/types/Server';
 import { handle } from '../ipc/main';
 import { setupPreloadReload } from './dev';
 import { handleWillDownloadEvent } from './downloads';
+import { joinAsarPath } from './joinAsarPath';
 import { isProtocolAllowed } from './navigation';
 import { createPopupMenuForServerView } from './popupMenu';
 import { getRootWindow } from './rootWindow';
@@ -160,7 +160,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     _params: Record<string, string>
   ): void => {
     delete webPreferences.enableBlinkFeatures;
-    webPreferences.preload = path.join(app.getAppPath(), 'app/preload.js');
+    webPreferences.preload = joinAsarPath('preload.js');
     webPreferences.nodeIntegration = false;
     webPreferences.nodeIntegrationInWorker = true;
     webPreferences.nodeIntegrationInSubFrames = true;
@@ -378,7 +378,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   handle('server-view/ready', async (webContents) => {
     if (!injectableCode) {
       injectableCode = await fs.promises.readFile(
-        path.join(app.getAppPath(), 'app/injected.js'),
+        joinAsarPath('injected.js'),
         'utf8'
       );
     }

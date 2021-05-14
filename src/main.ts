@@ -9,17 +9,14 @@ import {
 import { setUserDataDirectory } from './mainProcess/dev';
 import dock from './mainProcess/dock';
 import { setupDownloads } from './mainProcess/downloads';
+import { extractLocalStorage } from './mainProcess/extractLocalStorage';
 import i18n from './mainProcess/i18n';
 import menuBar from './mainProcess/menuBar';
 import { mergePersistableValues } from './mainProcess/mergePersistableValues';
 import { setupNavigation } from './mainProcess/navigation';
 import { setupNotifications } from './mainProcess/notifications';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
-import {
-  createRootWindow,
-  showRootWindow,
-  exportLocalStorage,
-} from './mainProcess/rootWindow';
+import { createRootWindow, showRootWindow } from './mainProcess/rootWindow';
 import { attachGuestWebContentsEvents } from './mainProcess/serverView';
 import { setupServers } from './mainProcess/servers';
 import { setupApp } from './mainProcess/setupApp';
@@ -41,7 +38,7 @@ const start = async (): Promise<void> => {
 
   await app.whenReady();
 
-  const localStorage = await exportLocalStorage();
+  const localStorage = await extractLocalStorage();
   await mergePersistableValues(localStorage);
   await setupServers(localStorage);
 

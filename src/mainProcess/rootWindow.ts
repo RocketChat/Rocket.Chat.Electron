@@ -1,5 +1,3 @@
-import path from 'path';
-
 import {
   app,
   BrowserWindow,
@@ -27,6 +25,7 @@ import type { Server } from '../common/types/Server';
 import type { WindowState } from '../common/types/WindowState';
 import { setupRootWindowReload } from './dev';
 import { getTrayIconPath } from './icons';
+import { joinAsarPath } from './joinAsarPath';
 
 const webPreferences: WebPreferences = {
   nodeIntegration: true,
@@ -360,7 +359,7 @@ export const setupRootWindow = (): void => {
 export const showRootWindow = async (): Promise<void> => {
   const browserWindow = await getRootWindow();
 
-  browserWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
+  browserWindow.loadFile(joinAsarPath('index.html'));
 
   if (process.env.NODE_ENV === 'development') {
     setupRootWindowReload(browserWindow.webContents);
@@ -383,30 +382,4 @@ export const showRootWindow = async (): Promise<void> => {
       resolve();
     });
   });
-};
-
-export const exportLocalStorage = async (): Promise<Record<string, string>> => {
-  try {
-    const tempWindow = new BrowserWindow({
-      show: false,
-      webPreferences,
-    });
-
-    tempWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
-
-    await new Promise<void>((resolve) => {
-      tempWindow.addListener('ready-to-show', () => {
-        resolve();
-      });
-    });
-
-    return tempWindow.webContents.executeJavaScript(`(() => {
-      const data = ({...localStorage})
-      localStorage.clear();
-      return data;
-    })()`);
-  } catch (error) {
-    console.error(error);
-    return {};
-  }
 };

@@ -1,6 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-
 import { app, Certificate } from 'electron';
 import i18next from 'i18next';
 
@@ -18,23 +15,10 @@ import {
   askForCertificateTrust,
   askForOpeningExternalProtocol,
 } from './dialogs';
+import { joinUserPath } from './joinUserPath';
+import { readJsonObject } from './readJsonObject';
 
 const t = i18next.t.bind(i18next);
-
-const loadUserTrustedCertificates = async (): Promise<
-  Record<string, string>
-> => {
-  try {
-    const filePath = path.join(app.getPath('userData'), 'certificate.json');
-    const content = await fs.promises.readFile(filePath, 'utf8');
-    const json = JSON.parse(content);
-    await fs.promises.unlink(filePath);
-
-    return json && typeof json === 'object' ? json : {};
-  } catch (error) {
-    return {};
-  }
-};
 
 const serializeCertificate = (certificate: Certificate): string =>
   `${certificate.issuerName}\n${certificate.data.toString()}`;
@@ -168,13 +152,21 @@ export const setupNavigation = async (): Promise<void> => {
   const trustedCertificates = select(
     ({ trustedCertificates }) => trustedCertificates
   );
-  const userTrustedCertificates = await loadUserTrustedCertificates();
+  const userTrustedCertificates = await readJsonObject(
+    joinUserPath('certificate.json'),
+    { discard: true }
+  );
 
   dispatch({
     type: CERTIFICATES_LOADED,
     payload: {
       ...trustedCertificates,
-      ...userTrustedCertificates,
+      ...Object.fromEntries(
+        Object.entries(userTrustedCertificates).filter(
+          (pair): pair is [string, string] =>
+            typeof pair[0] === 'string' && typeof pair[1] === 'string'
+        )
+      ),
     },
   });
 };

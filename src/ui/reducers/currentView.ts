@@ -4,7 +4,7 @@ import {
   DEEP_LINKS_SERVER_FOCUSED,
 } from '../../deepLinks/actions';
 import { SERVERS_LOADED } from '../../servers/actions';
-import { ActionOf } from '../../store/actions';
+import type { ActionOf } from '../../store/actions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,

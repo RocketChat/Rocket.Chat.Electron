@@ -1,9 +1,9 @@
-import { Certificate } from 'electron';
-import { Reducer } from 'redux';
+import type { Certificate } from 'electron';
+import type { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
-import { Server } from '../servers/common';
-import { ActionOf } from '../store/actions';
+import type { Server } from '../common/types/Server';
+import type { ActionOf } from '../store/actions';
 import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,

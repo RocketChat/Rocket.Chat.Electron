@@ -22,11 +22,11 @@ import {
 import i18next from 'i18next';
 
 import { setupPreloadReload } from '../../../app/main/dev';
+import type { Server } from '../../../common/types/Server';
 import { handleWillDownloadEvent } from '../../../downloads/main';
 import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
-import { Server } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,

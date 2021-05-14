@@ -1,5 +1,5 @@
-import { WebContents } from 'electron';
-import { Middleware, MiddlewareAPI, Dispatch } from 'redux';
+import type { WebContents } from 'electron';
+import type { Middleware, MiddlewareAPI, Dispatch } from 'redux';
 
 import { handle as handleOnMain, invoke as invokeFromMain } from '../ipc/main';
 import {

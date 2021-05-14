@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 import { useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
 
-import { RootState } from '../../../store/rootReducer';
+import type { RootState } from '../../../store/rootReducer';
 import { ReparentingContainer } from '../utils/ReparentingContainer';
 import { ServerPane } from './ServerPane';
 

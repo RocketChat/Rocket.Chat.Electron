@@ -20,16 +20,16 @@ import React, {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
+import { ServerUrlResolutionStatus } from '../../../common/types/ServerUrlResolutionStatus';
 import {
   SERVER_URL_RESOLVED,
   SERVER_URL_RESOLUTION_REQUESTED,
 } from '../../../servers/actions';
-import { ServerUrlResolutionStatus } from '../../../servers/common';
 import { request } from '../../../store';
-import { RootAction } from '../../../store/actions';
-import { RootState } from '../../../store/rootReducer';
+import type { RootAction } from '../../../store/actions';
+import type { RootState } from '../../../store/rootReducer';
 import { ADD_SERVER_VIEW_SERVER_ADDED } from '../../actions';
 import { RocketChatLogo } from '../RocketChatLogo';
 import { Wrapper } from './styles';

@@ -1,8 +1,8 @@
-import { AnyAction } from 'redux';
+import type { AnyAction } from 'redux';
 
-import { Download } from '../downloads/common';
-import { Server } from '../servers/common';
-import { SystemIdleState } from '../userPresence/common';
+import type { Download } from '../common/types/Download';
+import type { Server } from '../common/types/Server';
+import type { SystemIdleState } from '../common/types/SystemIdleState';
 
 type ChannelToArgsMap = {
   'redux/get-initial-state': () => unknown;

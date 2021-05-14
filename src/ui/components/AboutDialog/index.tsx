@@ -10,10 +10,10 @@ import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
 import React, { useState, useEffect, FC, ChangeEvent } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
-import { RootAction } from '../../../store/actions';
-import { RootState } from '../../../store/rootReducer';
+import type { RootAction } from '../../../store/actions';
+import type { RootState } from '../../../store/rootReducer';
 import { UPDATES_CHECK_FOR_UPDATES_REQUESTED } from '../../../updates/actions';
 import {
   ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,

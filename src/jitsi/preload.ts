@@ -1,17 +1,6 @@
-import {
-  desktopCapturer,
-  SourcesOptions,
-  DesktopCapturerSource,
-  NativeImage,
-} from 'electron';
+import { desktopCapturer, DesktopCapturerSource, NativeImage } from 'electron';
 
-export type JitsiMeetElectronAPI = {
-  obtainDesktopStreams: (
-    callback: (sources: DesktopCapturerSource[]) => void,
-    errorCallback: (error: Error) => void,
-    options: SourcesOptions
-  ) => Promise<void>;
-};
+import type { JitsiMeetElectronAPI } from '../common/types/JitsiMeetElectronAPI';
 
 export const JitsiMeetElectron: JitsiMeetElectronAPI = {
   async obtainDesktopStreams(callback, errorCallback, options) {

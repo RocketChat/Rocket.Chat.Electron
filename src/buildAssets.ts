@@ -10,7 +10,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import rimraf from 'rimraf';
 
-import { Server } from './servers/common';
+import type { Server } from './common/types/Server';
 import DmgBackground from './ui/assets/DmgBackground';
 import NsisSideBar from './ui/assets/NsisSideBar';
 import AppIcon from './ui/icons/AppIcon';

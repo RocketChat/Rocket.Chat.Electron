@@ -4,11 +4,11 @@ import { Icon } from '@rocket.chat/fuselage';
 import React, { useMemo, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 import { createSelector } from 'reselect';
 
-import { RootAction } from '../../../store/actions';
-import { RootState } from '../../../store/rootReducer';
+import type { RootAction } from '../../../store/actions';
+import type { RootState } from '../../../store/rootReducer';
 import {
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,

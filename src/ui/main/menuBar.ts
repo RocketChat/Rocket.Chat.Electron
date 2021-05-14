@@ -5,7 +5,7 @@ import { createSelector, createStructuredSelector } from 'reselect';
 import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
-import { RootState } from '../../store/rootReducer';
+import type { RootState } from '../../store/rootReducer';
 import {
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,

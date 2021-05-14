@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Server } from '../../servers/common';
+import type { Server } from '../../common/types/Server';
 import AppIcon from './AppIcon';
 import Badge from './Badge';
 

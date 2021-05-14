@@ -1,5 +1,6 @@
 import { Notification, nativeImage, NativeImage } from 'electron';
 
+import type { ExtendedNotificationOptions } from '../common/types/ExtendedNotificationOptions';
 import { invoke } from '../ipc/main';
 import { dispatch, listen } from '../store';
 import { isResponse } from '../store/fsa';
@@ -14,7 +15,6 @@ import {
   NOTIFICATIONS_NOTIFICATION_ACTIONED,
   NOTIFICATIONS_NOTIFICATION_DISMISSED,
 } from './actions';
-import { ExtendedNotificationOptions } from './common';
 
 const resolveIcon = async (
   iconUrl: string | undefined

@@ -1,6 +1,6 @@
-import { Reducer } from 'redux';
+import type { Reducer } from 'redux';
 
-import { ActionOf } from '../../store/actions';
+import type { ActionOf } from '../../store/actions';
 import {
   WEBVIEW_MESSAGE_BOX_FOCUSED,
   WEBVIEW_MESSAGE_BOX_BLURRED,

@@ -7,7 +7,7 @@ import {
   Dispatch,
 } from 'redux';
 
-import { RootAction } from './actions';
+import type { RootAction } from './actions';
 import { hasPayload, isErrored, isResponseTo } from './fsa';
 import { forwardToRenderers, getInitialState, forwardToMain } from './ipc';
 import { rootReducer, RootState } from './rootReducer';

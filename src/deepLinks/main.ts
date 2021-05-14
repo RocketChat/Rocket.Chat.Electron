@@ -2,7 +2,7 @@ import { URL } from 'url';
 
 import { app, WebContents } from 'electron';
 
-import { ServerUrlResolutionStatus } from '../servers/common';
+import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionStatus';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
 import {

@@ -1,8 +1,6 @@
-import {
-  AppLevelUpdateConfiguration,
-  UpdateConfiguration,
-  UserLevelUpdateConfiguration,
-} from './common';
+import type { AppLevelUpdateConfiguration } from '../common/types/AppLevelUpdateConfiguration';
+import type { UpdateConfiguration } from '../common/types/UpdateConfiguration';
+import type { UserLevelUpdateConfiguration } from '../common/types/UserLevelUpdateConfiguration';
 import { mergeConfigurations } from './main';
 
 describe('mergeConfigurations', () => {

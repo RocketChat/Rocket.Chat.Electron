@@ -1,15 +1,15 @@
-import { AppActionTypeToPayloadMap } from '../app/actions';
-import { DeepLinksActionTypeToPayloadMap } from '../deepLinks/actions';
-import { DownloadsActionTypeToPayloadMap } from '../downloads/actions';
-import { I18nActionTypeToPayloadMap } from '../i18n/actions';
-import { NavigationActionTypeToPayloadMap } from '../navigation/actions';
-import { NotificationsActionTypeToPayloadMap } from '../notifications/actions';
-import { ScreenSharingActionTypeToPayloadMap } from '../screenSharing/actions';
-import { ServersActionTypeToPayloadMap } from '../servers/actions';
-import { SpellCheckingActionTypeToPayloadMap } from '../spellChecking/actions';
-import { UiActionTypeToPayloadMap } from '../ui/actions';
-import { UpdatesActionTypeToPayloadMap } from '../updates/actions';
-import { UserPresenceActionTypeToPayloadMap } from '../userPresence/actions';
+import type { AppActionTypeToPayloadMap } from '../app/actions';
+import type { DeepLinksActionTypeToPayloadMap } from '../deepLinks/actions';
+import type { DownloadsActionTypeToPayloadMap } from '../downloads/actions';
+import type { I18nActionTypeToPayloadMap } from '../i18n/actions';
+import type { NavigationActionTypeToPayloadMap } from '../navigation/actions';
+import type { NotificationsActionTypeToPayloadMap } from '../notifications/actions';
+import type { ScreenSharingActionTypeToPayloadMap } from '../screenSharing/actions';
+import type { ServersActionTypeToPayloadMap } from '../servers/actions';
+import type { SpellCheckingActionTypeToPayloadMap } from '../spellChecking/actions';
+import type { UiActionTypeToPayloadMap } from '../ui/actions';
+import type { UpdatesActionTypeToPayloadMap } from '../updates/actions';
+import type { UserPresenceActionTypeToPayloadMap } from '../userPresence/actions';
 
 type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
   DeepLinksActionTypeToPayloadMap &

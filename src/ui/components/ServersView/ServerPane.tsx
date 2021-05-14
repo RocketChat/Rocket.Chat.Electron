@@ -1,9 +1,9 @@
-import { WebviewTag } from 'electron';
+import type { WebviewTag } from 'electron';
 import React, { useRef, useEffect, FC } from 'react';
 import { useDispatch } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
-import { RootAction } from '../../../store/actions';
+import type { RootAction } from '../../../store/actions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   WEBVIEW_ATTACHED,

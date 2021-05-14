@@ -1,5 +1,6 @@
-import { Server } from '../servers/common';
-import { RootWindowIcon, WindowState } from './common';
+import type { RootWindowIcon } from '../common/types/RootWindowIcon';
+import type { Server } from '../common/types/Server';
+import type { WindowState } from '../common/types/WindowState';
 
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START =

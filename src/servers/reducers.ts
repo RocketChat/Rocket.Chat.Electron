@@ -1,8 +1,9 @@
-import { Reducer } from 'redux';
+import type { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
+import type { Server } from '../common/types/Server';
 import { DEEP_LINKS_SERVER_ADDED } from '../deepLinks/actions';
-import { ActionOf } from '../store/actions';
+import type { ActionOf } from '../store/actions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
@@ -17,7 +18,6 @@ import {
   WEBVIEW_ATTACHED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
-import { Server } from './common';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
   if (serverUrl) {

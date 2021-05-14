@@ -1,4 +1,4 @@
-import { PersistableValues } from './PersistableValues';
+import type { PersistableValues } from '../common/types/PersistableValues';
 
 export const APP_ERROR_THROWN = 'app/error-thrown';
 export const APP_PATH_SET = 'app/path-set';

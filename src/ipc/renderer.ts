@@ -1,6 +1,6 @@
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 
-import { Handler, Channel } from './channels';
+import type { Handler, Channel } from './channels';
 
 export const handle = <N extends Channel>(
   channel: N,

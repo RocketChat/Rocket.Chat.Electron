@@ -4,6 +4,9 @@ import path from 'path';
 import { app } from 'electron';
 import { satisfies, coerce } from 'semver';
 
+import type { Server } from '../common/types/Server';
+import type { ServerUrlResolutionResult } from '../common/types/ServerUrlResolutionResult';
+import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionStatus';
 import { invoke } from '../ipc/main';
 import { select, dispatch, listen } from '../store';
 import { hasMeta } from '../store/fsa';
@@ -13,11 +16,6 @@ import {
   SERVER_URL_RESOLVED,
   SERVERS_LOADED,
 } from './actions';
-import {
-  ServerUrlResolutionStatus,
-  Server,
-  ServerUrlResolutionResult,
-} from './common';
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 

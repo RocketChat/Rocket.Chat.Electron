@@ -9,6 +9,8 @@ import {
   webContents,
 } from 'electron';
 
+import type { Download } from '../common/types/Download';
+import { DownloadStatus } from '../common/types/DownloadStatus';
 import { handle } from '../ipc/main';
 import { dispatch, select } from '../store';
 import {
@@ -16,7 +18,6 @@ import {
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
 } from './actions';
-import { Download, DownloadStatus } from './common';
 
 const items = new Map<Download['itemId'], DownloadItem>();
 

@@ -1,4 +1,4 @@
-import { ServerUrlResolutionStatus } from './common';
+import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionResult';
 import { convertToURL, resolveServerUrl } from './main';
 
 describe('convertToUrl', () => {

@@ -1,15 +1,13 @@
 import { contextBridge } from 'electron';
 
+import type { JitsiMeetElectronAPI } from './common/types/JitsiMeetElectronAPI';
+import type { RocketChatDesktopAPI } from './common/types/RocketChatDesktopAPI';
 import { setupRendererErrorHandling } from './errors';
 import { invoke } from './ipc/renderer';
-import { JitsiMeetElectron, JitsiMeetElectronAPI } from './jitsi/preload';
+import { JitsiMeetElectron } from './jitsi/preload';
 import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
-import {
-  RocketChatDesktop,
-  RocketChatDesktopAPI,
-  serverInfo,
-} from './servers/preload/api';
+import { RocketChatDesktop, serverInfo } from './servers/preload/api';
 import { setServerUrl } from './servers/preload/urls';
 import { createRendererReduxStore } from './store';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';

@@ -1,7 +1,8 @@
 import { app } from 'electron';
 import ElectronStore from 'electron-store';
 
-import { PersistableValues, migrations } from '../PersistableValues';
+import type { PersistableValues } from '../../common/types/PersistableValues';
+import { migrations } from './migrations';
 
 let electronStore: ElectronStore<PersistableValues>;
 

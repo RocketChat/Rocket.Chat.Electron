@@ -1,4 +1,4 @@
-import { Download } from './common';
+import type { Download } from '../common/types/Download';
 
 export const DOWNLOAD_CREATED = 'downloads/created';
 export const DOWNLOAD_REMOVED = 'dowloads/removed';

@@ -4,8 +4,11 @@ import path from 'path';
 import { app } from 'electron';
 import { autoUpdater } from 'electron-updater';
 
+import type { AppLevelUpdateConfiguration } from '../common/types/AppLevelUpdateConfiguration';
+import type { UpdateConfiguration } from '../common/types/UpdateConfiguration';
+import type { UserLevelUpdateConfiguration } from '../common/types/UserLevelUpdateConfiguration';
 import { listen, dispatch, select } from '../store';
-import { RootState } from '../store/rootReducer';
+import type { RootState } from '../store/rootReducer';
 import {
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
   UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
@@ -26,11 +29,6 @@ import {
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
   UPDATES_READY,
 } from './actions';
-import {
-  AppLevelUpdateConfiguration,
-  UpdateConfiguration,
-  UserLevelUpdateConfiguration,
-} from './common';
 
 const readJsonObject = async (
   filePath: string

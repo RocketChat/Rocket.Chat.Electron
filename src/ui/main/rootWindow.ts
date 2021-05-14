@@ -13,11 +13,12 @@ import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
 import { setupRootWindowReload } from '../../app/main/dev';
-import { Server } from '../../servers/common';
+import type { RootWindowIcon } from '../../common/types/RootWindowIcon';
+import type { Server } from '../../common/types/Server';
+import type { WindowState } from '../../common/types/WindowState';
 import { dispatch, select, watch, listen } from '../../store';
-import { RootState } from '../../store/rootReducer';
+import type { RootState } from '../../store/rootReducer';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
-import { RootWindowIcon, WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { getTrayIconPath } from './icons';
 

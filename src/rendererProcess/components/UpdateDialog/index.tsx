@@ -7,28 +7,24 @@ import {
 } from '@rocket.chat/fuselage';
 import React, { useEffect, useRef, FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import type { Dispatch } from 'redux';
 
-import type { RootAction } from '../../../common/actions';
 import {
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
   UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
   UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
   UPDATE_DIALOG_DISMISSED,
 } from '../../../common/actions/uiActions';
-import type { RootState } from '../../../common/reducers';
+import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
+import { useAppSelector } from '../../../common/hooks/useAppSelector';
 import { Dialog } from '../Dialog';
 
 export const UpdateDialog: FC = () => {
-  const currentVersion = useSelector(({ appVersion }: RootState) => appVersion);
-  const newVersion = useSelector(
-    ({ newUpdateVersion }: RootState) => newUpdateVersion
-  );
-  const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
+  const currentVersion = useAppSelector(({ appVersion }) => appVersion);
+  const newVersion = useAppSelector(({ newUpdateVersion }) => newUpdateVersion);
+  const openDialog = useAppSelector(({ openDialog }) => openDialog);
   const isVisible = openDialog === 'update';
 
-  const dispatch = useDispatch<Dispatch<RootAction>>();
+  const dispatch = useAppDispatch();
 
   const { t } = useTranslation();
 

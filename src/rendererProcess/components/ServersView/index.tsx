@@ -1,16 +1,15 @@
 import React, { FC } from 'react';
-import { useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
 
-import type { RootState } from '../../../common/reducers';
+import { useAppSelector } from '../../../common/hooks/useAppSelector';
 import { ReparentingContainer } from '../utils/ReparentingContainer';
 import { ServerPane } from './ServerPane';
 
 export const ServersView: FC = () => {
-  const servers = useSelector(
+  const servers = useAppSelector(
     createSelector(
-      ({ currentView }: RootState) => currentView,
-      ({ servers }: RootState) => servers,
+      ({ currentView }) => currentView,
+      ({ servers }) => servers,
       (currentView, servers) =>
         servers.map((server) =>
           Object.assign(server, {

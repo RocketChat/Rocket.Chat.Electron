@@ -1,7 +1,6 @@
 import React, { useLayoutEffect, FC } from 'react';
-import { useSelector } from 'react-redux';
 
-import type { RootState } from '../../../common/reducers';
+import { useAppSelector } from '../../../common/hooks/useAppSelector';
 import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
 import DownloadsManagerView from '../DownloadsManagerView';
@@ -13,7 +12,7 @@ import { UpdateDialog } from '../UpdateDialog';
 import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 
 export const Shell: FC = () => {
-  const appPath = useSelector(({ appPath }: RootState) => appPath);
+  const appPath = useAppSelector(({ appPath }) => appPath);
 
   useLayoutEffect(() => {
     if (!appPath) {

@@ -1,14 +1,10 @@
-import { parse } from 'url';
-
 import React, { useMemo, FC, DragEvent, MouseEvent } from 'react';
-import { useDispatch } from 'react-redux';
-import type { Dispatch } from 'redux';
 
-import type { RootAction } from '../../../common/actions';
 import {
   SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
 } from '../../../common/actions/uiActions';
+import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import {
   Avatar,
   Badge,
@@ -49,7 +45,7 @@ const ServerButton: FC<ServerButtonProps> = ({
   onDragEnter,
   onDrop,
 }) => {
-  const dispatch = useDispatch<Dispatch<RootAction>>();
+  const dispatch = useAppDispatch();
 
   const handleServerClick = (): void => {
     dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
@@ -58,7 +54,7 @@ const ServerButton: FC<ServerButtonProps> = ({
   const initials = useMemo(
     () =>
       title
-        ?.replace(url, parse(url).hostname ?? '')
+        ?.replace(url, new URL(url).hostname ?? '')
         ?.split(/[^A-Za-z0-9]+/g)
         ?.slice(0, 2)
         ?.map((text) => text.slice(0, 1).toUpperCase())

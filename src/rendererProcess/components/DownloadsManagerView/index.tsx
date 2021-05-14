@@ -10,16 +10,15 @@ import {
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import React, { useState, useMemo, useCallback, FC, ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
-import type { RootState } from '../../../common/reducers';
+import { useAppSelector } from '../../../common/hooks/useAppSelector';
 import type { Download } from '../../../common/types/Download';
 import { DownloadStatus } from '../../../common/types/DownloadStatus';
 import DownloadItem from './DownloadItem';
 
 const DownloadsManagerView: FC = () => {
-  const isVisible = useSelector(
-    ({ currentView }: RootState) => currentView === 'downloads'
+  const isVisible = useAppSelector(
+    ({ currentView }) => currentView === 'downloads'
   );
 
   const [searchFilter, setSearchFilter] = useLocalStorage(
@@ -36,7 +35,7 @@ const DownloadsManagerView: FC = () => {
 
   const { t } = useTranslation();
 
-  const serverFilterOptions = useSelector<RootState, [string, string][]>(
+  const serverFilterOptions = useAppSelector<[string, string][]>(
     ({ downloads }) => [
       ['*', t('downloads.filters.all')],
       ...Object.values(downloads)
@@ -122,7 +121,7 @@ const DownloadsManagerView: FC = () => {
     [t]
   );
 
-  const downloads = useSelector(({ downloads }: RootState) => {
+  const downloads = useAppSelector(({ downloads }) => {
     type Predicate = (download: Download) => boolean;
     const searchPredicate: Predicate = searchFilter
       ? ({ fileName }) => fileName.indexOf(searchFilter) > -1

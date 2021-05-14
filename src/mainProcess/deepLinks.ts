@@ -6,18 +6,14 @@ import {
   DEEP_LINKS_SERVER_FOCUSED,
   DEEP_LINKS_SERVER_ADDED,
 } from '../common/actions/deepLinksActions';
+import { isGoRocketChatUrl } from '../common/helpers/isGoRocketChatUrl';
+import { isRocketChatUrl } from '../common/helpers/isRocketChatUrl';
 import { select, dispatch } from '../common/store';
 import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionStatus';
 import { askForServerAddition, warnAboutInvalidServerUrl } from './dialogs';
 import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
 import { resolveServerUrl } from './servers';
-
-const isRocketChatUrl = (parsedUrl: URL): boolean =>
-  parsedUrl.protocol === 'rocketchat:';
-
-const isGoRocketChatUrl = (parsedUrl: URL): boolean =>
-  parsedUrl.protocol === 'https:' && parsedUrl.hostname === 'go.rocket.chat';
 
 const parseDeepLink = (
   input: string

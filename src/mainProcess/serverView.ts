@@ -35,8 +35,8 @@ import type { Server } from '../common/types/Server';
 import { handle } from '../ipc/main';
 import { setupPreloadReload } from './dev';
 import { handleWillDownloadEvent } from './downloads';
+import { isProtocolAllowed } from './isProtocolAllowed';
 import { joinAsarPath } from './joinAsarPath';
-import { isProtocolAllowed } from './navigation';
 import { createPopupMenuForServerView } from './popupMenu';
 import { getRootWindow } from './rootWindow';
 

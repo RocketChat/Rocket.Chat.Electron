@@ -12,5 +12,6 @@ export const mergeAppInformation = async (
     path: app.getAppPath(),
     platform: process.platform,
     locale: app.getLocale(),
+    bugsnagApiKey: process.env.BUGSNAG_API_KEY,
   },
 });

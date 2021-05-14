@@ -6,6 +6,7 @@ type State = {
   readonly path: string;
   readonly platform: NodeJS.Platform;
   readonly locale: string;
+  readonly bugsnagApiKey: string | undefined;
 };
 
 export const appReducer = createReducer<State>(
@@ -15,6 +16,7 @@ export const appReducer = createReducer<State>(
     path: '',
     platform: 'linux',
     locale: 'en-US',
+    bugsnagApiKey: undefined,
   },
   (builder) => builder
 );

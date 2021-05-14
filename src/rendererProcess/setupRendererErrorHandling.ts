@@ -1,20 +1,15 @@
 import { setupBugsnag } from '../common/setupBugsnag';
 import { select } from '../common/store';
-import { whenReady } from './whenReady';
 
 export const setupRendererErrorHandling = async (
   appType: 'rootWindow' | 'webviewPreload'
 ): Promise<void> => {
-  await whenReady();
+  const { appVersion, bugsnagApiKey } = select((state) => ({
+    appVersion: state.app.version,
+    bugsnagApiKey: state.app.bugsnagApiKey,
+  }));
 
-  if (process.env.BUGSNAG_API_KEY) {
-    const apiKey = process.env.BUGSNAG_API_KEY;
-    const appVersion = select((state) => state.app.version);
-
-    if (!appVersion) {
-      throw new Error('app version was not set');
-    }
-
-    setupBugsnag(apiKey, appVersion, appType);
+  if (bugsnagApiKey) {
+    setupBugsnag(bugsnagApiKey, appVersion, appType);
   }
 };

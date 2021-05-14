@@ -1,4 +1,3 @@
-import type { AppActionTypeToPayloadMap } from './appActions';
 import type { DeepLinksActionTypeToPayloadMap } from './deepLinksActions';
 import type { DownloadsActionTypeToPayloadMap } from './downloadsActions';
 import type { NavigationActionTypeToPayloadMap } from './navigationActions';
@@ -10,8 +9,7 @@ import type { UiActionTypeToPayloadMap } from './uiActions';
 import type { UpdatesActionTypeToPayloadMap } from './updatesActions';
 import type { UserPresenceActionTypeToPayloadMap } from './userPresenceActions';
 
-type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
-  DeepLinksActionTypeToPayloadMap &
+type ActionTypeToPayloadMap = DeepLinksActionTypeToPayloadMap &
   DownloadsActionTypeToPayloadMap &
   NavigationActionTypeToPayloadMap &
   NotificationsActionTypeToPayloadMap &

@@ -52,6 +52,7 @@
     "i18next": "^20.2.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-error-boundary": "^3.1.3",
     "react-i18next": "^11.8.15",
     "react-keyed-flatten-children": "^1.3.0",
     "react-redux": "^7.2.4",

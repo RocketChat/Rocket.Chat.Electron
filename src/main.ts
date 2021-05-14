@@ -1,9 +1,8 @@
 import { app } from 'electron';
 import i18next from 'i18next';
 
-import { APP_ERROR_THROWN } from './common/actions/appActions';
 import { getI18nextInitOptions } from './common/getI18nextInitOptions';
-import { listen, setReduxStore } from './common/store';
+import { setReduxStore } from './common/store';
 import { createMainReduxStore } from './mainProcess/createMainReduxStore';
 import {
   setupDeepLinks,
@@ -73,10 +72,6 @@ const start = async (): Promise<void> => {
   });
 
   watchAndPersistChanges();
-
-  listen(APP_ERROR_THROWN, (action) => {
-    console.error(action.payload);
-  });
 
   await processDeepLinksInArgs();
 };

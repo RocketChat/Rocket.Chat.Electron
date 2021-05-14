@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, dialog } from 'electron';
 
 import { setupBugsnag } from '../common/setupBugsnag';
 
@@ -9,12 +9,13 @@ export const setupMainErrorHandling = (): void => {
   }
 
   process.addListener('uncaughtException', (error) => {
-    console.error(error);
+    dialog.showErrorBox(error.name, error.message);
     app.exit(1);
   });
 
   process.addListener('unhandledRejection', (reason) => {
-    console.error(reason);
+    const error = reason instanceof Error ? reason : new Error(String(reason));
+    dialog.showErrorBox(error.name, error.message);
     app.exit(1);
   });
 };

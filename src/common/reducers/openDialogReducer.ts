@@ -15,7 +15,7 @@ import {
   UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 } from '../actions/uiActions';
-import { UPDATES_NEW_VERSION_AVAILABLE } from '../actions/updatesActions';
+import * as updateCheckActions from '../actions/updateCheckActions';
 
 type OpenDialogAction =
   | ActionOf<typeof ABOUT_DIALOG_DISMISSED>
@@ -28,7 +28,7 @@ type OpenDialogAction =
   | ActionOf<typeof UPDATE_DIALOG_INSTALL_BUTTON_CLICKED>
   | ActionOf<typeof UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED>
   | ActionOf<typeof UPDATE_DIALOG_SKIP_UPDATE_CLICKED>
-  | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
+  | ActionOf<typeof updateCheckActions.newVersionAvailable.type>
   | ActionOf<typeof screenSharingActions.sourceRequested.type>
   | ActionOf<typeof screenSharingActions.sourceSelected.type>;
 
@@ -43,7 +43,7 @@ export const openDialog: Reducer<string | null, OpenDialogAction> = (
     case screenSharingActions.sourceRequested.type:
       return 'screen-sharing';
 
-    case UPDATES_NEW_VERSION_AVAILABLE:
+    case updateCheckActions.newVersionAvailable.type:
       return 'update';
 
     case CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED:

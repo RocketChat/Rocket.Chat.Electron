@@ -7,7 +7,8 @@ import type { NotificationsActionTypeToPayloadMap } from './notificationsActions
 import type * as screenSharingActions from './screenSharingActions';
 import type { SpellCheckingActionTypeToPayloadMap } from './spellCheckingActions';
 import type { UiActionTypeToPayloadMap } from './uiActions';
-import type { UpdatesActionTypeToPayloadMap } from './updatesActions';
+import type * as updateActions from './updateActions';
+import type * as updateCheckActions from './updateCheckActions';
 import type { UserPresenceActionTypeToPayloadMap } from './userPresenceActions';
 
 type ActionTypeToPayloadMap = DeepLinksActionTypeToPayloadMap &
@@ -16,7 +17,6 @@ type ActionTypeToPayloadMap = DeepLinksActionTypeToPayloadMap &
   NotificationsActionTypeToPayloadMap &
   SpellCheckingActionTypeToPayloadMap &
   UiActionTypeToPayloadMap &
-  UpdatesActionTypeToPayloadMap &
   UserPresenceActionTypeToPayloadMap;
 
 type ActionsFromModule<Module> = {
@@ -37,6 +37,8 @@ export type RootActions = {
         payload: ActionTypeToPayloadMap[Type];
       };
 } &
-  ActionsFromModule<typeof screenSharingActions>;
+  ActionsFromModule<typeof screenSharingActions> &
+  ActionsFromModule<typeof updateCheckActions> &
+  ActionsFromModule<typeof updateActions>;
 
 export type ActionOf<Type extends keyof RootActions> = RootActions[Type];

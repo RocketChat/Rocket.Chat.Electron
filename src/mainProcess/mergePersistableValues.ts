@@ -100,20 +100,26 @@ export const mergePersistableValues = async (
 
   return {
     ...state,
+    updates: {
+      ...state.updates,
+      settings: {
+        ...state.updates.settings,
+        editable: values.isEachUpdatesSettingConfigurable,
+        enabled: values.isUpdatingEnabled,
+        checkOnStartup: values.doCheckForUpdatesOnStartup,
+        skippedVersion: values.skippedUpdateVersion,
+      },
+    },
     currentView: values.currentView,
-    doCheckForUpdatesOnStartup: values.doCheckForUpdatesOnStartup,
     downloads: values.downloads,
     externalProtocols: values.externalProtocols,
-    isEachUpdatesSettingConfigurable: values.isEachUpdatesSettingConfigurable,
     isMenuBarEnabled: values.isMenuBarEnabled,
     isShowWindowOnUnreadChangedEnabled:
       values.isShowWindowOnUnreadChangedEnabled,
     isSideBarEnabled: values.isSideBarEnabled,
     isTrayIconEnabled: values.isTrayIconEnabled,
-    isUpdatingEnabled: values.isUpdatingEnabled,
     rootWindowState: values.rootWindowState,
     servers: values.servers,
-    skippedUpdateVersion: values.skippedUpdateVersion,
     trustedCertificates: values.trustedCertificates,
   };
 };

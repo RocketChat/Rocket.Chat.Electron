@@ -20,7 +20,11 @@ import { Dialog } from '../Dialog';
 
 export const UpdateDialog: FC = () => {
   const currentVersion = useAppSelector((state) => state.app.version);
-  const newVersion = useAppSelector(({ newUpdateVersion }) => newUpdateVersion);
+  const newVersion = useAppSelector((state) =>
+    state.updates.latest?.status === 'fulfilled'
+      ? state.updates.latest.version
+      : null
+  );
   const openDialog = useAppSelector(({ openDialog }) => openDialog);
   const isVisible = openDialog === 'update';
 

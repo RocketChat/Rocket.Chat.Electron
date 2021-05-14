@@ -15,6 +15,7 @@ import menuBar from './mainProcess/menuBar';
 import { setupNotifications } from './mainProcess/notifications';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
 import { createRootWindow, showRootWindow } from './mainProcess/rootWindow';
+import { rootSaga } from './mainProcess/sagas';
 import { attachGuestWebContentsEvents } from './mainProcess/serverView';
 import { setupApp } from './mainProcess/setupApp';
 import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
@@ -23,7 +24,6 @@ import { setupPowerMonitor } from './mainProcess/setupPowerMonitor';
 import { setupSpellChecking } from './mainProcess/setupSpellChecking';
 import touchBar from './mainProcess/touchBar';
 import trayIcon from './mainProcess/trayIcon';
-import { setupUpdates } from './mainProcess/updates';
 import { watchAndPersistChanges } from './mainProcess/watchAndPersistChanges';
 
 const start = async (): Promise<void> => {
@@ -33,7 +33,8 @@ const start = async (): Promise<void> => {
 
   await app.whenReady();
 
-  setReduxStore(await createMainReduxStore());
+  const reduxStore = await createMainReduxStore(rootSaga);
+  setReduxStore(reduxStore);
 
   await i18next.init(await getI18nextInitOptions(app.getLocale()));
 
@@ -52,7 +53,6 @@ const start = async (): Promise<void> => {
   setupDeepLinks();
   setupNavigation();
   setupPowerMonitor();
-  setupUpdates();
   setupDownloads();
 
   dock.setUp();

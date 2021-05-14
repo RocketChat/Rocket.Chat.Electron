@@ -14,7 +14,7 @@ import {
   ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
   ABOUT_DIALOG_DISMISSED,
 } from '../../../common/actions/uiActions';
-import { UPDATES_CHECK_FOR_UPDATES_REQUESTED } from '../../../common/actions/updatesActions';
+import * as updateCheckActions from '../../../common/actions/updateCheckActions';
 import { RocketChatLogo } from '../../../common/components/assets/RocketChatLogo';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import { useAppSelector } from '../../../common/hooks/useAppSelector';
@@ -24,33 +24,30 @@ const copyright = `© 2016-${new Date().getFullYear()}, Rocket.Chat`;
 
 export const AboutDialog: FC = () => {
   const appVersion = useAppSelector((state) => state.app.version);
-  const doCheckForUpdatesOnStartup = useAppSelector(
-    ({ doCheckForUpdatesOnStartup }) => doCheckForUpdatesOnStartup
+  const checkOnStartup = useAppSelector(
+    (state) => state.updates.settings.checkOnStartup
   );
   const isCheckingForUpdates = useAppSelector(
-    ({ isCheckingForUpdates }) => isCheckingForUpdates
+    (state) => state.updates.latest?.status === 'pending'
   );
-  const isEachUpdatesSettingConfigurable = useAppSelector(
-    ({ isEachUpdatesSettingConfigurable }) => isEachUpdatesSettingConfigurable
-  );
-  const isUpdatingAllowed = useAppSelector(
-    ({ isUpdatingAllowed }) => isUpdatingAllowed
-  );
-  const isUpdatingEnabled = useAppSelector(
-    ({ isUpdatingEnabled }) => isUpdatingEnabled
-  );
+  const editable = useAppSelector((state) => state.updates.settings.editable);
+  const allowed = useAppSelector((state) => state.updates.allowed);
+  const enabled = useAppSelector((state) => state.updates.settings.enabled);
   const newUpdateVersion = useAppSelector(
-    ({ newUpdateVersion }) => newUpdateVersion
+    (state) =>
+      state.updates.latest?.status === 'fulfilled' &&
+      state.updates.latest.version
   );
   const openDialog = useAppSelector(({ openDialog }) => openDialog);
-  const updateError = useAppSelector(({ updateError }) => updateError);
+  const updateError = useAppSelector(
+    (state) =>
+      state.updates.latest?.status === 'rejected' && state.updates.latest.error
+  );
 
   const isVisible = openDialog === 'about';
-  const canUpdate = isUpdatingAllowed && isUpdatingEnabled;
-  const isCheckForUpdatesOnStartupChecked =
-    isUpdatingAllowed && isUpdatingEnabled && doCheckForUpdatesOnStartup;
-  const canSetCheckForUpdatesOnStartup =
-    isUpdatingAllowed && isEachUpdatesSettingConfigurable;
+  const canUpdate = allowed && enabled;
+  const checkOnStartupChecked = allowed && enabled && checkOnStartup;
+  const canSetCheckForUpdatesOnStartup = allowed && editable;
 
   const dispatch = useAppDispatch();
 
@@ -98,7 +95,7 @@ export const AboutDialog: FC = () => {
   }, [updateError, isCheckingForUpdates, newUpdateVersion, t]);
 
   const handleCheckForUpdatesButtonClick = (): void => {
-    dispatch({ type: UPDATES_CHECK_FOR_UPDATES_REQUESTED });
+    dispatch(updateCheckActions.requested());
   };
 
   const handleCheckForUpdatesOnStartCheckBoxChange = (
@@ -164,7 +161,7 @@ export const AboutDialog: FC = () => {
               <Field.Row>
                 <ToggleSwitch
                   id={checkForUpdatesOnStartupToggleSwitchId}
-                  checked={isCheckForUpdatesOnStartupChecked}
+                  checked={checkOnStartupChecked}
                   disabled={!canSetCheckForUpdatesOnStartup}
                   onChange={handleCheckForUpdatesOnStartCheckBoxChange}
                 />

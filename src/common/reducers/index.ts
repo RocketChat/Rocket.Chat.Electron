@@ -17,39 +17,23 @@ import { openDialog } from './openDialogReducer';
 import { rootWindowIcon } from './rootWindowIconReducer';
 import { rootWindowState } from './rootWindowStateReducer';
 import { servers } from './serversReducer';
-import {
-  doCheckForUpdatesOnStartup,
-  isCheckingForUpdates,
-  isEachUpdatesSettingConfigurable,
-  isUpdatingAllowed,
-  isUpdatingEnabled,
-  newUpdateVersion,
-  skippedUpdateVersion,
-  updateError,
-} from './updatesReducers';
+import { updatesReducer } from './updatesReducer';
 
 export const rootReducer = combineReducers({
   app: appReducer,
+  updates: updatesReducer,
   clientCertificates,
   currentView,
-  doCheckForUpdatesOnStartup,
   downloads,
   externalProtocols,
-  isCheckingForUpdates,
-  isEachUpdatesSettingConfigurable,
   isMenuBarEnabled,
   isMessageBoxFocused,
   isShowWindowOnUnreadChangedEnabled,
   isSideBarEnabled,
   isTrayIconEnabled,
-  isUpdatingAllowed,
-  isUpdatingEnabled,
-  newUpdateVersion,
   openDialog,
   rootWindowIcon,
   rootWindowState,
   servers,
-  skippedUpdateVersion,
   trustedCertificates,
-  updateError,
 });

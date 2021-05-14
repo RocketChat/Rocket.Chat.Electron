@@ -1,149 +1,62 @@
 import { app } from 'electron';
 import { autoUpdater } from 'electron-updater';
 
-import {
-  UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-  UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
-} from '../common/actions/uiActions';
-import {
-  UPDATE_SKIPPED,
-  UPDATES_CHECK_FOR_UPDATES_REQUESTED,
-  UPDATES_CHECKING_FOR_UPDATE,
-  UPDATES_ERROR_THROWN,
-  UPDATES_NEW_VERSION_AVAILABLE,
-  UPDATES_NEW_VERSION_NOT_AVAILABLE,
-} from '../common/actions/updatesActions';
-import { listen, dispatch, select } from '../common/store';
-import {
-  askUpdateInstall,
-  AskUpdateInstallResponse,
-  warnAboutInstallUpdateLater,
-  warnAboutUpdateDownload,
-  warnAboutUpdateSkipped,
-} from './dialogs';
+import * as updateActions from '../common/actions/updateActions';
+import * as updateCheckActions from '../common/actions/updateCheckActions';
+import { dispatch, select } from '../common/store';
 
-const checkForUpdates = async (): Promise<void> => {
+export const checkForUpdates = async (): Promise<void> => {
   try {
     await autoUpdater.checkForUpdates();
   } catch (error) {
-    dispatch({
-      type: UPDATES_ERROR_THROWN,
-      payload: {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      },
-    });
+    dispatch(updateCheckActions.failed(error));
   }
 };
 
-export const setupUpdates = (): void => {
-  const { isUpdatingAllowed, isUpdatingEnabled, doCheckForUpdatesOnStartup } =
-    select(
-      ({
-        isUpdatingAllowed,
-        isUpdatingEnabled,
-        doCheckForUpdatesOnStartup,
-      }) => ({
-        isUpdatingAllowed,
-        isUpdatingEnabled,
-        doCheckForUpdatesOnStartup,
-      })
-    );
-
-  if (!isUpdatingAllowed || !isUpdatingEnabled) {
-    return;
+export const downloadUpdate = async (): Promise<void> => {
+  try {
+    autoUpdater.downloadUpdate();
+  } catch (error) {
+    dispatch(updateActions.failed(error));
   }
+};
 
+export const installUpdate = async (): Promise<void> => {
+  try {
+    app.removeAllListeners('window-all-closed');
+    autoUpdater.quitAndInstall(true, true);
+  } catch (error) {
+    dispatch(updateActions.failed(error));
+  }
+};
+
+export const attachUpdatesEvents = (): void => {
   autoUpdater.autoDownload = false;
 
   autoUpdater.addListener('checking-for-update', () => {
-    dispatch({ type: UPDATES_CHECKING_FOR_UPDATE });
+    dispatch(updateCheckActions.started());
   });
 
   autoUpdater.addListener('update-available', ({ version }) => {
     const skippedUpdateVersion = select(
-      ({ skippedUpdateVersion }) => skippedUpdateVersion
+      (state) => state.updates.settings.skippedVersion
     );
     if (skippedUpdateVersion === version) {
-      dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+      dispatch(updateCheckActions.upToDate());
       return;
     }
-
-    dispatch({
-      type: UPDATES_NEW_VERSION_AVAILABLE,
-      payload: version as string,
-    });
+    dispatch(updateCheckActions.newVersionAvailable(version));
   });
 
   autoUpdater.addListener('update-not-available', () => {
-    dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
+    dispatch(updateCheckActions.upToDate());
   });
 
   autoUpdater.addListener('update-downloaded', async () => {
-    const response = await askUpdateInstall();
-
-    if (response === AskUpdateInstallResponse.INSTALL_LATER) {
-      await warnAboutInstallUpdateLater();
-      return;
-    }
-
-    try {
-      app.removeAllListeners('window-all-closed');
-      autoUpdater.quitAndInstall(true, true);
-    } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
-    }
+    dispatch(updateActions.downloaded());
   });
 
   autoUpdater.addListener('error', (error) => {
-    dispatch({
-      type: UPDATES_ERROR_THROWN,
-      payload: {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      },
-    });
-  });
-
-  if (doCheckForUpdatesOnStartup) {
-    checkForUpdates();
-  }
-
-  listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, () => {
-    checkForUpdates();
-  });
-
-  listen(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, async (action) => {
-    await warnAboutUpdateSkipped();
-    dispatch({
-      type: UPDATE_SKIPPED,
-      payload: action.payload,
-    });
-  });
-
-  listen(UPDATE_DIALOG_INSTALL_BUTTON_CLICKED, async () => {
-    await warnAboutUpdateDownload();
-
-    try {
-      autoUpdater.downloadUpdate();
-    } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
-    }
+    dispatch(updateCheckActions.failed(error));
   });
 };

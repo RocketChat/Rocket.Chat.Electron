@@ -1,4 +1,5 @@
 import type { RootState } from '../common/types/RootState';
+import type { UpdateConfiguration } from '../common/types/UpdateConfiguration';
 import { joinAppPath } from './joinAppPath';
 import { joinUserPath } from './joinUserPath';
 import { readJsonObject } from './readJsonObject';
@@ -6,15 +7,15 @@ import { readJsonObject } from './readJsonObject';
 export const mergeUpdatesConfiguration = async (
   state: RootState
 ): Promise<RootState> => {
-  const defaultConfiguration = {
-    isUpdatingAllowed:
+  const defaultConfiguration: UpdateConfiguration = {
+    allowed:
       (process.platform === 'linux' && !!process.env.APPIMAGE) ||
       (process.platform === 'win32' && !process.windowsStore) ||
       (process.platform === 'darwin' && !process.mas),
-    isEachUpdatesSettingConfigurable: true,
-    isUpdatingEnabled: state.isUpdatingEnabled,
-    doCheckForUpdatesOnStartup: state.doCheckForUpdatesOnStartup,
-    skippedUpdateVersion: state.skippedUpdateVersion,
+    editable: true,
+    enabled: state.updates.settings.enabled,
+    checkOnStartup: state.updates.settings.checkOnStartup,
+    skippedVersion: state.updates.settings.skippedVersion,
   };
   const appConfiguration = await readJsonObject(joinAppPath('update.json'));
   const userConfiguration = await readJsonObject(joinUserPath('update.json'));
@@ -22,41 +23,46 @@ export const mergeUpdatesConfiguration = async (
   const configuration = {
     ...defaultConfiguration,
     ...(typeof appConfiguration.forced === 'boolean' && {
-      isEachUpdatesSettingConfigurable: !appConfiguration.forced,
+      editable: !appConfiguration.forced,
     }),
     ...(typeof appConfiguration.canUpdate === 'boolean' && {
-      isUpdatingEnabled: appConfiguration.canUpdate,
+      enabled: appConfiguration.canUpdate,
     }),
     ...(typeof appConfiguration.autoUpdate === 'boolean' && {
-      doCheckForUpdatesOnStartup: appConfiguration.autoUpdate,
+      checkOnStartup: appConfiguration.autoUpdate,
     }),
     ...(typeof appConfiguration.skip === 'string' && {
-      skippedUpdateVersion: appConfiguration.skip,
+      skippedVersion: appConfiguration.skip,
     }),
   };
 
   if (
     typeof userConfiguration.autoUpdate === 'boolean' &&
-    (configuration.isEachUpdatesSettingConfigurable ||
+    (configuration.editable ||
       typeof appConfiguration.autoUpdate === 'undefined')
   ) {
-    configuration.doCheckForUpdatesOnStartup = userConfiguration.autoUpdate;
+    configuration.checkOnStartup = userConfiguration.autoUpdate;
   }
 
   if (
     typeof userConfiguration.skip === 'string' &&
-    (configuration.isEachUpdatesSettingConfigurable ||
-      typeof appConfiguration.skip === 'undefined')
+    (configuration.editable || typeof appConfiguration.skip === 'undefined')
   ) {
-    configuration.skippedUpdateVersion = userConfiguration.skip;
+    configuration.skippedVersion = userConfiguration.skip;
   }
 
   return {
     ...state,
-    isUpdatingAllowed: state.isUpdatingAllowed,
-    isEachUpdatesSettingConfigurable: state.isEachUpdatesSettingConfigurable,
-    isUpdatingEnabled: state.isUpdatingEnabled,
-    doCheckForUpdatesOnStartup: state.doCheckForUpdatesOnStartup,
-    skippedUpdateVersion: state.skippedUpdateVersion,
+    updates: {
+      ...state.updates,
+      allowed: configuration.allowed,
+      settings: {
+        ...state.updates.settings,
+        editable: configuration.editable,
+        enabled: configuration.enabled,
+        checkOnStartup: configuration.checkOnStartup,
+        skippedVersion: configuration.skippedVersion,
+      },
+    },
   };
 };

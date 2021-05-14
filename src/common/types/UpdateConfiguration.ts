@@ -1,7 +1,7 @@
 export type UpdateConfiguration = {
-  doCheckForUpdatesOnStartup: boolean;
-  isEachUpdatesSettingConfigurable: boolean;
-  isUpdatingAllowed: boolean;
-  isUpdatingEnabled: boolean;
-  skippedUpdateVersion: string | null;
+  allowed: boolean;
+  editable: boolean;
+  enabled: boolean;
+  checkOnStartup: boolean;
+  skippedVersion: string | null;
 };

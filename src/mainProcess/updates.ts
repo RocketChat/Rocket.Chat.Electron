@@ -12,13 +12,8 @@ import {
   UPDATES_ERROR_THROWN,
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
-  UPDATES_READY,
 } from '../common/actions/updatesActions';
-import type { RootState } from '../common/reducers';
 import { listen, dispatch, select } from '../common/store';
-import type { AppLevelUpdateConfiguration } from '../common/types/AppLevelUpdateConfiguration';
-import type { UpdateConfiguration } from '../common/types/UpdateConfiguration';
-import type { UserLevelUpdateConfiguration } from '../common/types/UserLevelUpdateConfiguration';
 import {
   askUpdateInstall,
   AskUpdateInstallResponse,
@@ -26,69 +21,41 @@ import {
   warnAboutUpdateDownload,
   warnAboutUpdateSkipped,
 } from './dialogs';
-import { joinAppPath } from './joinAppPath';
-import { joinUserPath } from './joinUserPath';
-import { mergeConfigurations } from './mergeConfigurations';
-import { readJsonObject } from './readJsonObject';
 
-const loadAppConfiguration = async (): Promise<AppLevelUpdateConfiguration> =>
-  readJsonObject(joinAppPath('update.json'));
-
-const loadUserConfiguration = async (): Promise<UserLevelUpdateConfiguration> =>
-  readJsonObject(joinUserPath('update.json'));
-
-const loadConfiguration = async (): Promise<UpdateConfiguration> => {
-  const defaultConfiguration = select(
-    ({
-      isUpdatingEnabled,
-      doCheckForUpdatesOnStartup,
-      skippedUpdateVersion,
-    }: RootState) => ({
-      isUpdatingAllowed:
-        (process.platform === 'linux' && !!process.env.APPIMAGE) ||
-        (process.platform === 'win32' && !process.windowsStore) ||
-        (process.platform === 'darwin' && !process.mas),
-      isEachUpdatesSettingConfigurable: true,
-      isUpdatingEnabled,
-      doCheckForUpdatesOnStartup,
-      skippedUpdateVersion,
-    })
-  );
-  const appConfiguration = await loadAppConfiguration();
-  const userConfiguration = await loadUserConfiguration();
-
-  return mergeConfigurations(
-    defaultConfiguration,
-    appConfiguration,
-    userConfiguration
-  );
+const checkForUpdates = async (): Promise<void> => {
+  try {
+    await autoUpdater.checkForUpdates();
+  } catch (error) {
+    dispatch({
+      type: UPDATES_ERROR_THROWN,
+      payload: {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      },
+    });
+  }
 };
 
-export const setupUpdates = async (): Promise<void> => {
-  autoUpdater.autoDownload = false;
-
-  const {
-    isUpdatingAllowed,
-    isEachUpdatesSettingConfigurable,
-    isUpdatingEnabled,
-    doCheckForUpdatesOnStartup,
-    skippedUpdateVersion,
-  } = await loadConfiguration();
-
-  dispatch({
-    type: UPDATES_READY,
-    payload: {
-      isUpdatingAllowed,
-      isEachUpdatesSettingConfigurable,
-      isUpdatingEnabled,
-      doCheckForUpdatesOnStartup,
-      skippedUpdateVersion,
-    },
-  });
+export const setupUpdates = (): void => {
+  const { isUpdatingAllowed, isUpdatingEnabled, doCheckForUpdatesOnStartup } =
+    select(
+      ({
+        isUpdatingAllowed,
+        isUpdatingEnabled,
+        doCheckForUpdatesOnStartup,
+      }) => ({
+        isUpdatingAllowed,
+        isUpdatingEnabled,
+        doCheckForUpdatesOnStartup,
+      })
+    );
 
   if (!isUpdatingAllowed || !isUpdatingEnabled) {
     return;
   }
+
+  autoUpdater.autoDownload = false;
 
   autoUpdater.addListener('checking-for-update', () => {
     dispatch({ type: UPDATES_CHECKING_FOR_UPDATE });
@@ -148,33 +115,11 @@ export const setupUpdates = async (): Promise<void> => {
   });
 
   if (doCheckForUpdatesOnStartup) {
-    try {
-      await autoUpdater.checkForUpdates();
-    } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
-    }
+    checkForUpdates();
   }
 
-  listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
-    try {
-      await autoUpdater.checkForUpdates();
-    } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
-    }
+  listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, () => {
+    checkForUpdates();
   });
 
   listen(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, async (action) => {

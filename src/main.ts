@@ -15,6 +15,7 @@ import i18n from './mainProcess/i18n';
 import menuBar from './mainProcess/menuBar';
 import { mergePersistableValues } from './mainProcess/mergePersistableValues';
 import { mergeServers } from './mainProcess/mergeServers';
+import { mergeUpdatesConfiguration } from './mainProcess/mergeUpdatesConfiguration';
 import { setupNavigation } from './mainProcess/navigation';
 import { setupNotifications } from './mainProcess/notifications';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
@@ -44,7 +45,8 @@ const start = async (): Promise<void> => {
 
   await Promise.resolve(getInitialState())
     .then((state) => mergePersistableValues(state, localStorage))
-    .then((state) => mergeServers(state, localStorage));
+    .then((state) => mergeServers(state, localStorage))
+    .then((state) => mergeUpdatesConfiguration(state));
 
   i18n.setUp();
   await i18n.wait();
@@ -68,7 +70,7 @@ const start = async (): Promise<void> => {
   setupDeepLinks();
   await setupNavigation();
   setupPowerMonitor();
-  await setupUpdates();
+  setupUpdates();
   setupDownloads();
   setupServers();
 

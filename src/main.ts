@@ -3,10 +3,6 @@ import { app } from 'electron';
 import { setReduxStore } from './common/store';
 import { createMainReduxStore } from './mainProcess/createMainReduxStore';
 import {
-  mergePersistableValues,
-  watchAndPersistChanges,
-} from './mainProcess/data';
-import {
   setupDeepLinks,
   processDeepLinksInArgs,
 } from './mainProcess/deepLinks';
@@ -15,6 +11,7 @@ import dock from './mainProcess/dock';
 import { setupDownloads } from './mainProcess/downloads';
 import i18n from './mainProcess/i18n';
 import menuBar from './mainProcess/menuBar';
+import { mergePersistableValues } from './mainProcess/mergePersistableValues';
 import { setupNavigation } from './mainProcess/navigation';
 import { setupNotifications } from './mainProcess/notifications';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
@@ -33,6 +30,7 @@ import { setupSpellChecking } from './mainProcess/setupSpellChecking';
 import touchBar from './mainProcess/touchBar';
 import trayIcon from './mainProcess/trayIcon';
 import { setupUpdates } from './mainProcess/updates';
+import { watchAndPersistChanges } from './mainProcess/watchAndPersistChanges';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();

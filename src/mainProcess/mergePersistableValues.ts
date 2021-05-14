@@ -5,8 +5,8 @@ import { app } from 'electron';
 
 import { APP_SETTINGS_LOADED } from '../common/actions/appActions';
 import { selectPersistableValues } from '../common/selectPersistableValues';
-import { select, dispatch, watch } from '../common/store';
-import { getPersistedValues, persistValues } from './persistence';
+import { select, dispatch } from '../common/store';
+import { getPersistedValues } from './persistence';
 
 export const mergePersistableValues = async (
   localStorage: Record<string, string>
@@ -105,11 +105,5 @@ export const mergePersistableValues = async (
   dispatch({
     type: APP_SETTINGS_LOADED,
     payload: values,
-  });
-};
-
-export const watchAndPersistChanges = (): void => {
-  watch(selectPersistableValues, (values) => {
-    persistValues(values);
   });
 };

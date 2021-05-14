@@ -14,6 +14,7 @@ import { extractLocalStorage } from './mainProcess/extractLocalStorage';
 import i18n from './mainProcess/i18n';
 import menuBar from './mainProcess/menuBar';
 import { mergePersistableValues } from './mainProcess/mergePersistableValues';
+import { mergeServers } from './mainProcess/mergeServers';
 import { setupNavigation } from './mainProcess/navigation';
 import { setupNotifications } from './mainProcess/notifications';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
@@ -41,11 +42,9 @@ const start = async (): Promise<void> => {
 
   const localStorage = await extractLocalStorage();
 
-  await Promise.resolve(getInitialState()).then((state) =>
-    mergePersistableValues(state, localStorage)
-  );
-
-  await setupServers(localStorage);
+  await Promise.resolve(getInitialState())
+    .then((state) => mergePersistableValues(state, localStorage))
+    .then((state) => mergeServers(state, localStorage));
 
   i18n.setUp();
   await i18n.wait();
@@ -71,6 +70,7 @@ const start = async (): Promise<void> => {
   setupPowerMonitor();
   await setupUpdates();
   setupDownloads();
+  setupServers();
 
   dock.setUp();
   menuBar.setUp();

@@ -1,5 +1,5 @@
 import type { Dispatch } from 'redux';
 
-import type { RootAction } from '../actions';
+import type { RootAction } from './RootAction';
 
 export type AppDispatch = Dispatch<RootAction>;

@@ -1,9 +1,9 @@
-import type { RootAction } from '../common/actions';
 import {
   SYSTEM_SUSPENDING,
   SYSTEM_LOCKING_SCREEN,
 } from '../common/actions/userPresenceActions';
 import { listen } from '../common/store';
+import type { RootAction } from '../common/types/RootAction';
 import type { SystemIdleState } from '../common/types/SystemIdleState';
 import { invoke } from '../ipc/renderer';
 

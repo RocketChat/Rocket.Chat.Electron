@@ -4,8 +4,8 @@ import { createStructuredSelector } from 'reselect';
 
 import { ROOT_WINDOW_ICON_CHANGED } from '../common/actions/uiActions';
 import Badge from '../common/components/assets/Badge';
-import type { RootState } from '../common/reducers';
 import { dispatch, watch } from '../common/store';
+import type { RootState } from '../common/types/RootState';
 import type { Server } from '../common/types/Server';
 import { handle } from '../ipc/renderer';
 

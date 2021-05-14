@@ -1,9 +1,9 @@
 import type { Store } from 'redux';
 
-import type { RootAction } from './actions';
 import { lastAction } from './catchLastAction';
 import { hasPayload, isErrored, isResponseTo } from './fsa';
-import type { RootState } from './reducers';
+import type { RootAction } from './types/RootAction';
+import type { RootState } from './types/RootState';
 
 let reduxStore: Store<RootState>;
 

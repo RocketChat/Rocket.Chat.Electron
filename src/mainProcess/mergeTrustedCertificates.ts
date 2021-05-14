@@ -1,6 +1,6 @@
 import { CERTIFICATES_LOADED } from '../common/actions/navigationActions';
-import type { RootState } from '../common/reducers';
 import { dispatch } from '../common/store';
+import type { RootState } from '../common/types/RootState';
 import { joinUserPath } from './joinUserPath';
 import { readJsonObject } from './readJsonObject';
 

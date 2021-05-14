@@ -1,6 +1,6 @@
 import { UPDATES_READY } from '../common/actions/updatesActions';
-import type { RootState } from '../common/reducers';
 import { dispatch } from '../common/store';
+import type { RootState } from '../common/types/RootState';
 import { joinAppPath } from './joinAppPath';
 import { joinUserPath } from './joinUserPath';
 import { readJsonObject } from './readJsonObject';

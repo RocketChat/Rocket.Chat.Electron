@@ -24,7 +24,7 @@ type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
   UpdatesActionTypeToPayloadMap &
   UserPresenceActionTypeToPayloadMap;
 
-type RootActions = {
+export type RootActions = {
   [Type in keyof ActionTypeToPayloadMap]: void extends ActionTypeToPayloadMap[Type]
     ? {
         type: Type;
@@ -36,5 +36,3 @@ type RootActions = {
 };
 
 export type ActionOf<Type extends keyof RootActions> = RootActions[Type];
-
-export type RootAction = RootActions[keyof RootActions];

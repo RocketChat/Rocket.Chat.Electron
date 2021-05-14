@@ -1,6 +1,6 @@
 import type { Middleware, Dispatch } from 'redux';
 
-import type { RootAction } from './actions';
+import type { RootAction } from './types/RootAction';
 
 export let lastAction: RootAction;
 

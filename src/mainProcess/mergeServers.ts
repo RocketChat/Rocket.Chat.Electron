@@ -1,6 +1,6 @@
 import { SERVERS_LOADED } from '../common/actions/serversActions';
-import type { RootState } from '../common/reducers';
 import { dispatch } from '../common/store';
+import type { RootState } from '../common/types/RootState';
 import type { Server } from '../common/types/Server';
 import { joinAppPath } from './joinAppPath';
 import { joinUserPath } from './joinUserPath';

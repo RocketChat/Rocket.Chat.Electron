@@ -2,8 +2,8 @@ import { app, Menu, Tray } from 'electron';
 import i18next from 'i18next';
 
 import { selectGlobalBadge } from '../common/badgeSelectors';
-import type { RootState } from '../common/reducers';
 import { watch, select, Service } from '../common/store';
+import type { RootState } from '../common/types/RootState';
 import type { Server } from '../common/types/Server';
 import { getTrayIconPath, getAppIconPath } from './icons';
 import { getRootWindow } from './rootWindow';

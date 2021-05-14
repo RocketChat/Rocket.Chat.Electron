@@ -1,7 +1,7 @@
 import { APP_SETTINGS_LOADED } from '../common/actions/appActions';
-import type { RootState } from '../common/reducers';
 import { selectPersistableValues } from '../common/selectPersistableValues';
 import { dispatch } from '../common/store';
+import type { RootState } from '../common/types/RootState';
 import { extractPersistableValues } from './extractPersistableValues';
 import { getPersistedValues } from './getPersistedValues';
 import { joinUserPath } from './joinUserPath';

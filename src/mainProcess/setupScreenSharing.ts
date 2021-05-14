@@ -1,4 +1,4 @@
-import type { ActionOf, RootAction } from '../common/actions';
+import type { ActionOf } from '../common/actions';
 import { SCREEN_SHARING_DIALOG_DISMISSED } from '../common/actions/screenSharingActions';
 import {
   WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
@@ -6,6 +6,7 @@ import {
 } from '../common/actions/uiActions';
 import { hasMeta, isResponseTo } from '../common/fsa';
 import { dispatch, listen } from '../common/store';
+import type { RootAction } from '../common/types/RootAction';
 
 export const setupScreenSharing = (): void => {
   listen(WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, (requestAction) => {

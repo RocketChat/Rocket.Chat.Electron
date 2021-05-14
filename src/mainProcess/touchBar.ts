@@ -12,8 +12,8 @@ import {
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 } from '../common/actions/uiActions';
-import type { RootState } from '../common/reducers';
 import { select, dispatch, Service } from '../common/store';
+import type { RootState } from '../common/types/RootState';
 import type { Server } from '../common/types/Server';
 import { getRootWindow } from './rootWindow';
 

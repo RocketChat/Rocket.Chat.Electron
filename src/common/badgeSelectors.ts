@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 
-import type { RootState } from './reducers';
+import type { RootState } from './types/RootState';
 import type { Server } from './types/Server';
 
 export type Selector<T> = (state: RootState) => T;

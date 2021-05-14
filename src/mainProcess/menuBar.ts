@@ -13,8 +13,8 @@ import {
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
 } from '../common/actions/uiActions';
-import type { RootState } from '../common/reducers';
 import { dispatch, select, Service } from '../common/store';
+import type { RootState } from '../common/types/RootState';
 import { askForAppDataReset } from './dialogs';
 import { relaunchApp } from './relaunchApp';
 import { getRootWindow } from './rootWindow';

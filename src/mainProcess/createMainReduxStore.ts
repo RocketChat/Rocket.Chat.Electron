@@ -1,7 +1,8 @@
 import { applyMiddleware, createStore, Store } from 'redux';
 
 import { catchLastAction } from '../common/catchLastAction';
-import { rootReducer, RootState } from '../common/reducers';
+import { rootReducer } from '../common/reducers';
+import type { RootState } from '../common/types/RootState';
 import { forwardToRenderers } from './forwardToRenderers';
 
 export const createMainReduxStore = (): Store<RootState> => {

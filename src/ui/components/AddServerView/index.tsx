@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { RocketChatLogo } from '../../../common/components/assets/RocketChatLogo';
 import { ServerUrlResolutionStatus } from '../../../common/types/ServerUrlResolutionStatus';
 import {
   SERVER_URL_RESOLVED,
@@ -31,7 +32,6 @@ import { request } from '../../../store';
 import type { RootAction } from '../../../store/actions';
 import type { RootState } from '../../../store/rootReducer';
 import { ADD_SERVER_VIEW_SERVER_ADDED } from '../../actions';
-import { RocketChatLogo } from '../RocketChatLogo';
 import { Wrapper } from './styles';
 
 const defaultServerUrl = new URL('https://open.rocket.chat/');

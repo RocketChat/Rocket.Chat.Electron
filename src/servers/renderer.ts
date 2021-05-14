@@ -2,12 +2,12 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createStructuredSelector } from 'reselect';
 
+import Badge from '../common/components/assets/Badge';
 import type { Server } from '../common/types/Server';
 import { handle } from '../ipc/renderer';
 import { dispatch, watch } from '../store';
 import type { RootState } from '../store/rootReducer';
 import { ROOT_WINDOW_ICON_CHANGED } from '../ui/actions';
-import Badge from '../ui/icons/Badge';
 
 export const fetchInfo = async (
   urlHref: string

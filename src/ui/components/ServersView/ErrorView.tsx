@@ -8,7 +8,7 @@ import {
 import React, { useState, useEffect, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { FailureImage } from '../FailureImage';
+import { FailureImage } from '../../../common/components/assets/FailureImage';
 import { ErrorPane } from './styles';
 
 type ErrorViewProps = {

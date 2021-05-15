@@ -22,7 +22,9 @@ export const createMainReduxStore = async <
   });
 
   if (rootSaga) {
-    sagaMiddleware.run(rootSaga, ...args);
+    setTimeout(() => {
+      sagaMiddleware.run(rootSaga, ...args);
+    }, 0);
   }
 
   return store;

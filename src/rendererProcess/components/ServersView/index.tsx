@@ -11,14 +11,13 @@ export const ServersView: FC = () => {
       ({ currentView }) => currentView,
       ({ servers }) => servers,
       (currentView, servers) =>
-        servers.map((server) =>
-          Object.assign(server, {
-            selected:
-              typeof currentView === 'object'
-                ? server.url === currentView.url
-                : false,
-          })
-        )
+        servers.map((server) => ({
+          ...server,
+          selected:
+            typeof currentView === 'object'
+              ? server.url === currentView.url
+              : false,
+        }))
     )
   );
 

@@ -1,4 +1,4 @@
-import type { Reducer } from 'redux';
+import { createReducer } from '@reduxjs/toolkit';
 
 import type { ActionOf } from '../actions';
 import { DEEP_LINKS_SERVER_ADDED } from '../actions/deepLinksActions';
@@ -16,20 +16,6 @@ import {
   WEBVIEW_ATTACHED,
 } from '../actions/uiActions';
 import type { Server } from '../types/Server';
-
-type ServersActionTypes =
-  | ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
-  | ActionOf<typeof DEEP_LINKS_SERVER_ADDED>
-  | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
-  | ActionOf<typeof SIDE_BAR_SERVERS_SORTED>
-  | ActionOf<typeof WEBVIEW_DID_NAVIGATE>
-  | ActionOf<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED>
-  | ActionOf<typeof WEBVIEW_TITLE_CHANGED>
-  | ActionOf<typeof WEBVIEW_UNREAD_CHANGED>
-  | ActionOf<typeof WEBVIEW_FAVICON_CHANGED>
-  | ActionOf<typeof WEBVIEW_DID_START_LOADING>
-  | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
-  | ActionOf<typeof WEBVIEW_ATTACHED>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
@@ -55,78 +41,100 @@ const update = (state: Server[], server: Server): Server[] => {
   );
 };
 
-export const servers: Reducer<Server[], ServersActionTypes> = (
-  state = [],
-  action
-) => {
-  switch (action.type) {
-    case ADD_SERVER_VIEW_SERVER_ADDED:
-    case DEEP_LINKS_SERVER_ADDED: {
-      const url = action.payload;
-      return upsert(state, { url, title: url });
-    }
-
-    case SIDE_BAR_REMOVE_SERVER_CLICKED: {
-      const _url = action.payload;
-      return state.filter(({ url }) => url !== _url);
-    }
-
-    case SIDE_BAR_SERVERS_SORTED: {
-      const urls = action.payload;
-      return state.sort(
-        ({ url: a }, { url: b }) => urls.indexOf(a) - urls.indexOf(b)
-      );
-    }
-
-    case WEBVIEW_TITLE_CHANGED: {
-      const { url, title = url } = action.payload;
-      return upsert(state, { url, title });
-    }
-
-    case WEBVIEW_UNREAD_CHANGED: {
-      const { url, badge } = action.payload;
-      return upsert(state, { url, badge });
-    }
-
-    case WEBVIEW_SIDEBAR_STYLE_CHANGED: {
-      const { url, style } = action.payload;
-      return upsert(state, { url, style });
-    }
-
-    case WEBVIEW_FAVICON_CHANGED: {
-      const { url, favicon } = action.payload;
-      return upsert(state, { url, favicon });
-    }
-
-    case WEBVIEW_DID_NAVIGATE: {
-      const { url, pageUrl } = action.payload;
-      if (pageUrl?.includes(url)) {
-        return upsert(state, { url, lastPath: pageUrl });
+export const servers = createReducer<Server[]>([], (builder) =>
+  builder
+    .addCase(
+      ADD_SERVER_VIEW_SERVER_ADDED,
+      (state, action: ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>) => {
+        const url = action.payload;
+        return upsert(state, { url, title: url });
       }
-
-      return state;
-    }
-
-    case WEBVIEW_DID_START_LOADING: {
-      const { url } = action.payload;
-      return upsert(state, { url, failed: false });
-    }
-
-    case WEBVIEW_DID_FAIL_LOAD: {
-      const { url, isMainFrame } = action.payload;
-      if (isMainFrame) {
-        return upsert(state, { url, failed: true });
+    )
+    .addCase(
+      DEEP_LINKS_SERVER_ADDED,
+      (state, action: ActionOf<typeof DEEP_LINKS_SERVER_ADDED>) => {
+        const url = action.payload;
+        return upsert(state, { url, title: url });
       }
+    )
+    .addCase(
+      SIDE_BAR_REMOVE_SERVER_CLICKED,
+      (state, action: ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>) => {
+        const url = action.payload;
+        return state.filter((server) => server.url !== url);
+      }
+    )
+    .addCase(
+      SIDE_BAR_SERVERS_SORTED,
+      (state, action: ActionOf<typeof SIDE_BAR_SERVERS_SORTED>) => {
+        const urls = action.payload;
+        return state.sort(
+          ({ url: a }, { url: b }) => urls.indexOf(a) - urls.indexOf(b)
+        );
+      }
+    )
+    .addCase(
+      WEBVIEW_TITLE_CHANGED,
+      (state, action: ActionOf<typeof WEBVIEW_TITLE_CHANGED>) => {
+        const { url, title = url } = action.payload;
+        return upsert(state, { url, title });
+      }
+    )
+    .addCase(
+      WEBVIEW_UNREAD_CHANGED,
+      (state, action: ActionOf<typeof WEBVIEW_UNREAD_CHANGED>) => {
+        const { url, badge } = action.payload;
+        return upsert(state, { url, badge });
+      }
+    )
+    .addCase(
+      WEBVIEW_SIDEBAR_STYLE_CHANGED,
+      (state, action: ActionOf<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED>) => {
+        const { url, style } = action.payload;
+        return upsert(state, { url, style });
+      }
+    )
+    .addCase(
+      WEBVIEW_FAVICON_CHANGED,
+      (state, action: ActionOf<typeof WEBVIEW_FAVICON_CHANGED>) => {
+        const { url, favicon } = action.payload;
+        return upsert(state, { url, favicon });
+      }
+    )
+    .addCase(
+      WEBVIEW_DID_NAVIGATE,
+      (state, action: ActionOf<typeof WEBVIEW_DID_NAVIGATE>) => {
+        const { url, pageUrl } = action.payload;
+        if (pageUrl?.includes(url)) {
+          return upsert(state, { url, lastPath: pageUrl });
+        }
 
-      return state;
-    }
+        return state;
+      }
+    )
+    .addCase(
+      WEBVIEW_DID_START_LOADING,
+      (state, action: ActionOf<typeof WEBVIEW_DID_START_LOADING>) => {
+        const { url } = action.payload;
+        return upsert(state, { url, failed: false });
+      }
+    )
+    .addCase(
+      WEBVIEW_DID_FAIL_LOAD,
+      (state, action: ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>) => {
+        const { url, isMainFrame } = action.payload;
+        if (isMainFrame) {
+          return upsert(state, { url, failed: true });
+        }
 
-    case WEBVIEW_ATTACHED: {
-      const { url, webContentsId } = action.payload;
-      return update(state, { url, webContentsId });
-    }
-
-    default:
-      return state;
-  }
-};
+        return state;
+      }
+    )
+    .addCase(
+      WEBVIEW_ATTACHED,
+      (state, action: ActionOf<typeof WEBVIEW_ATTACHED>) => {
+        const { url, webContentsId } = action.payload;
+        return update(state, { url, webContentsId });
+      }
+    )
+);

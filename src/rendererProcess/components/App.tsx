@@ -14,7 +14,7 @@ type AppProps = {
 export const App: FC<AppProps> = ({ reduxStore }) => (
   <Provider store={reduxStore}>
     <I18nextProvider i18n={i18n}>
-      <ErrorBoundary fallback={null}>
+      <ErrorBoundary fallback={<div />}>
         <Shell />
       </ErrorBoundary>
     </I18nextProvider>

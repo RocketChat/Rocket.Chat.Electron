@@ -38,7 +38,7 @@ export const setupPreloadReload = async (
 ): Promise<void> => {
   const chokidar = await import('chokidar');
   chokidar
-    .watch([joinAsarPath('app/preload.js'), joinAsarPath('app/injected.js')], {
+    .watch([joinAsarPath('preload.js'), joinAsarPath('injected.js')], {
       awaitWriteFinish: true,
     })
     .on('change', () => {

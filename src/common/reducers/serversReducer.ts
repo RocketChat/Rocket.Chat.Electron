@@ -2,6 +2,7 @@ import { createReducer } from '@reduxjs/toolkit';
 
 import type { ActionOf } from '../actions';
 import { DEEP_LINKS_SERVER_ADDED } from '../actions/deepLinksActions';
+import * as serverActions from '../actions/serverActions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
@@ -16,6 +17,11 @@ import {
   WEBVIEW_ATTACHED,
 } from '../actions/uiActions';
 import type { Server } from '../types/Server';
+
+const findServer = (
+  servers: Server[],
+  url: Server['url']
+): Server | undefined => servers.find((server) => server.url === url);
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
@@ -137,4 +143,25 @@ export const servers = createReducer<Server[]>([], (builder) =>
         return update(state, { url, webContentsId });
       }
     )
+    .addCase(serverActions.presenceParamsSet, (state, action) => {
+      const { url, presence } = action.payload;
+      const server = findServer(state, url);
+
+      if (server) {
+        server.presence = presence.autoAwayEnabled
+          ? {
+              idleState: 'unknown',
+              ...presence,
+            }
+          : presence;
+      }
+    })
+    .addCase(serverActions.idleStateChanged, (state, action) => {
+      const { url, idleState } = action.payload;
+      const server = findServer(state, url);
+
+      if (server?.presence?.autoAwayEnabled) {
+        server.presence.idleState = idleState;
+      }
+    })
 );

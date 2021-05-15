@@ -5,19 +5,18 @@ import type { DownloadsActionTypeToPayloadMap } from './downloadsActions';
 import type { NavigationActionTypeToPayloadMap } from './navigationActions';
 import type { NotificationsActionTypeToPayloadMap } from './notificationsActions';
 import type * as screenSharingActions from './screenSharingActions';
+import type * as serverActions from './serverActions';
 import type { SpellCheckingActionTypeToPayloadMap } from './spellCheckingActions';
 import type { UiActionTypeToPayloadMap } from './uiActions';
 import type * as updateActions from './updateActions';
 import type * as updateCheckActions from './updateCheckActions';
-import type { UserPresenceActionTypeToPayloadMap } from './userPresenceActions';
 
 type ActionTypeToPayloadMap = DeepLinksActionTypeToPayloadMap &
   DownloadsActionTypeToPayloadMap &
   NavigationActionTypeToPayloadMap &
   NotificationsActionTypeToPayloadMap &
   SpellCheckingActionTypeToPayloadMap &
-  UiActionTypeToPayloadMap &
-  UserPresenceActionTypeToPayloadMap;
+  UiActionTypeToPayloadMap;
 
 type ActionsFromModule<Module> = {
   [Field in keyof Module as Module[Field] extends ActionCreator<infer A>
@@ -39,6 +38,7 @@ export type RootActions = {
 } &
   ActionsFromModule<typeof screenSharingActions> &
   ActionsFromModule<typeof updateCheckActions> &
-  ActionsFromModule<typeof updateActions>;
+  ActionsFromModule<typeof updateActions> &
+  ActionsFromModule<typeof serverActions>;
 
 export type ActionOf<Type extends keyof RootActions> = RootActions[Type];

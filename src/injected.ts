@@ -51,8 +51,8 @@ const start = (): void => {
 
   Tracker.autorun(() => {
     const uid = Meteor.userId();
-    const isAutoAwayEnabled: unknown = getUserPreference(uid, 'enableAutoAway');
-    const idleThreshold: unknown = getUserPreference(uid, 'idleTimeLimit');
+    const isAutoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
+    const idleThreshold = getUserPreference(uid, 'idleTimeLimit');
 
     if (isAutoAwayEnabled) {
       delete UserPresence.awayTime;
@@ -63,11 +63,13 @@ const start = (): void => {
       isAutoAwayEnabled: Boolean(isAutoAwayEnabled),
       idleThreshold: idleThreshold ? Number(idleThreshold) : null,
       setUserOnline: (online) => {
-        if (!online) {
-          Meteor.call('UserPresence:away');
-          return;
-        }
-        Meteor.call('UserPresence:online');
+        Tracker.nonreactive(() => {
+          if (!online) {
+            Meteor.call('UserPresence:away');
+            return;
+          }
+          Meteor.call('UserPresence:online');
+        });
       },
     });
   });

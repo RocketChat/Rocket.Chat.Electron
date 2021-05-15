@@ -1,3 +1,5 @@
+import type { SystemIdleState } from './SystemIdleState';
+
 export type Server = {
   url: string;
   title?: string;
@@ -10,4 +12,13 @@ export type Server = {
   lastPath?: string;
   failed?: boolean;
   webContentsId?: number;
+  presence?:
+    | {
+        autoAwayEnabled: false;
+      }
+    | {
+        autoAwayEnabled: true;
+        idleThreshold: number | null;
+        idleState: SystemIdleState;
+      };
 };

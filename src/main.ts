@@ -20,7 +20,6 @@ import { attachGuestWebContentsEvents } from './mainProcess/serverView';
 import { setupApp } from './mainProcess/setupApp';
 import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
 import { setupNavigation } from './mainProcess/setupNavigation';
-import { setupPowerMonitor } from './mainProcess/setupPowerMonitor';
 import { setupSpellChecking } from './mainProcess/setupSpellChecking';
 import touchBar from './mainProcess/touchBar';
 import trayIcon from './mainProcess/trayIcon';
@@ -52,7 +51,6 @@ const start = async (): Promise<void> => {
   setupSpellChecking();
   setupDeepLinks();
   setupNavigation();
-  setupPowerMonitor();
   setupDownloads();
 
   dock.setUp();

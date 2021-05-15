@@ -1,15 +1,10 @@
-import {
-  SYSTEM_SUSPENDING,
-  SYSTEM_LOCKING_SCREEN,
-} from '../common/actions/userPresenceActions';
-import { listen } from '../common/store';
-import type { RootAction } from '../common/types/RootAction';
-import type { SystemIdleState } from '../common/types/SystemIdleState';
-import { invoke } from '../ipc/renderer';
+import * as serverActions from '../common/actions/serverActions';
+import { dispatch, watch } from '../common/store';
+import { getServerUrl } from './setUrlResolver';
 
-let detachCallbacks: () => void;
+let unwatch: () => void;
 
-const attachCallbacks = ({
+export const setUserPresenceDetection = ({
   isAutoAwayEnabled,
   idleThreshold,
   setUserOnline,
@@ -17,56 +12,36 @@ const attachCallbacks = ({
   isAutoAwayEnabled: boolean;
   idleThreshold: number | null;
   setUserOnline: (online: boolean) => void;
-}): (() => void) => {
-  const unsubscribeFromPowerMonitorEvents = listen(
-    (action): action is RootAction =>
-      [SYSTEM_SUSPENDING, SYSTEM_LOCKING_SCREEN].includes(action.type),
-    () => {
-      if (!isAutoAwayEnabled) {
+}): void => {
+  unwatch?.();
+
+  if (!isAutoAwayEnabled) {
+    dispatch(
+      serverActions.presenceParamsSet(getServerUrl(), {
+        autoAwayEnabled: false,
+      })
+    );
+    return;
+  }
+
+  dispatch(
+    serverActions.presenceParamsSet(getServerUrl(), {
+      autoAwayEnabled: true,
+      idleThreshold,
+    })
+  );
+
+  unwatch = watch(
+    (state) => state.servers.find((server) => server.url === getServerUrl()),
+    (server) => {
+      if (!server?.presence?.autoAwayEnabled) {
         return;
       }
 
-      setUserOnline(false);
+      const { idleState } = server.presence;
+
+      const isOnline = idleState === 'active' || idleState === 'unknown';
+      setUserOnline(isOnline);
     }
   );
-
-  let pollingTimer: ReturnType<typeof setTimeout>;
-  let prevState: SystemIdleState;
-  const pollSystemIdleState = async (): Promise<void> => {
-    if (!isAutoAwayEnabled || !idleThreshold) {
-      return;
-    }
-
-    pollingTimer = setTimeout(pollSystemIdleState, 2000);
-
-    const state = await invoke(
-      'power-monitor/get-system-idle-state',
-      idleThreshold
-    );
-
-    if (prevState === state) {
-      return;
-    }
-
-    const isOnline = state === 'active' || state === 'unknown';
-    setUserOnline(isOnline);
-
-    prevState = state;
-  };
-
-  pollSystemIdleState();
-
-  return (): void => {
-    unsubscribeFromPowerMonitorEvents();
-    clearTimeout(pollingTimer);
-  };
-};
-
-export const setUserPresenceDetection = (options: {
-  isAutoAwayEnabled: boolean;
-  idleThreshold: number | null;
-  setUserOnline: (online: boolean) => void;
-}): void => {
-  detachCallbacks?.();
-  detachCallbacks = attachCallbacks(options);
 };

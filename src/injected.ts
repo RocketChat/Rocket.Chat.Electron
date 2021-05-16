@@ -13,65 +13,66 @@ const start = (): void => {
 
   const { Info: serverInfo = {} } =
     window.require('/app/utils/rocketchat.info') ?? {};
-
-  if (!serverInfo.version) {
-    return;
-  }
-
-  window.RocketChatDesktop.setServerInfo(serverInfo);
-
-  const { Meteor } = window.require('meteor/meteor');
-  const { Session } = window.require('meteor/session');
-  const { Tracker } = window.require('meteor/tracker');
+  const { Meteor } = window.require(
+    'meteor/meteor'
+  ) as typeof import('meteor/meteor');
+  const { Session } = window.require(
+    'meteor/session'
+  ) as typeof import('meteor/session');
+  const { Tracker } = window.require(
+    'meteor/tracker'
+  ) as typeof import('meteor/tracker');
   const { UserPresence } = window.require('meteor/konecty:user-presence');
   const { settings } = window.require('/app/settings');
   const { getUserPreference } = window.require('/app/utils');
 
-  window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
+  const { RocketChatDesktop } = window;
+
+  RocketChatDesktop.setCallbacks({
+    absoluteUrl: (path) => Meteor.absoluteUrl(path),
+    setUserOnline: (online) =>
+      Tracker.nonreactive(() => {
+        Meteor.call(online ? 'UserPresence:online' : 'UserPresence:away');
+      }),
+  });
+
+  RocketChatDesktop.versionChanged(serverInfo.version);
 
   Tracker.autorun(() => {
     const unread = Session.get('unread');
-    window.RocketChatDesktop.setBadge(unread);
+    RocketChatDesktop.badgeChanged(unread);
   });
 
   Tracker.autorun(() => {
     const { url, defaultUrl } = settings.get('Assets_favicon') || {};
-    window.RocketChatDesktop.setFavicon(url || defaultUrl);
+    const faviconUrl =
+      url ?? defaultUrl ? Meteor.absoluteUrl(url ?? defaultUrl) : undefined;
+    RocketChatDesktop.faviconChanged(faviconUrl);
   });
 
   Tracker.autorun(() => {
     const { url, defaultUrl } = settings.get('Assets_background') || {};
-    window.RocketChatDesktop.setBackground(url || defaultUrl);
+    const backgroundUrl =
+      url ?? defaultUrl ? Meteor.absoluteUrl(url ?? defaultUrl) : undefined;
+    RocketChatDesktop.backgroundChanged(backgroundUrl);
   });
 
   Tracker.autorun(() => {
     const siteName = settings.get('Site_Name');
-    window.RocketChatDesktop.setTitle(siteName);
+    RocketChatDesktop.titleChanged(siteName);
   });
 
   Tracker.autorun(() => {
     const uid = Meteor.userId();
-    const isAutoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
+    const autoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
     const idleThreshold = getUserPreference(uid, 'idleTimeLimit');
 
-    if (isAutoAwayEnabled) {
+    if (autoAwayEnabled) {
       delete UserPresence.awayTime;
       UserPresence.start();
     }
 
-    window.RocketChatDesktop.setUserPresenceDetection({
-      isAutoAwayEnabled: Boolean(isAutoAwayEnabled),
-      idleThreshold: idleThreshold ? Number(idleThreshold) : null,
-      setUserOnline: (online) => {
-        Tracker.nonreactive(() => {
-          if (!online) {
-            Meteor.call('UserPresence:away');
-            return;
-          }
-          Meteor.call('UserPresence:online');
-        });
-      },
-    });
+    RocketChatDesktop.userPresenceParamsChanged(autoAwayEnabled, idleThreshold);
   });
 
   const destroyPromiseSymbol = Symbol('destroyPromise');
@@ -117,12 +118,12 @@ const start = (): void => {
         });
       }
 
-      this[destroyPromiseSymbol] = window.RocketChatDesktop.createNotification({
+      this[destroyPromiseSymbol] = RocketChatDesktop.createNotification({
         title,
         ...options,
         onEvent: this.handleEvent,
       }).then((id) => () => {
-        window.RocketChatDesktop.destroyNotification(id);
+        RocketChatDesktop.destroyNotification(id);
       });
 
       Object.assign(this, { title, ...options });

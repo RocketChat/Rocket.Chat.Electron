@@ -10,7 +10,8 @@ import {
 } from '../common/actions/notificationsActions';
 import { WEBVIEW_FOCUS_REQUESTED } from '../common/actions/uiActions';
 import { dispatch, listen, request } from '../common/store';
-import { getServerUrl, getAbsoluteUrl } from './setUrlResolver';
+import { absoluteUrl } from './RocketChatDesktop';
+import { getServerUrl } from './setUrlResolver';
 
 const normalizeIconUrl = (iconUrl: string): string => {
   if (/^data:/.test(iconUrl)) {
@@ -18,7 +19,7 @@ const normalizeIconUrl = (iconUrl: string): string => {
   }
 
   if (!/^https?:\/\//.test(iconUrl)) {
-    return getAbsoluteUrl(iconUrl);
+    return absoluteUrl(iconUrl);
   }
 
   return iconUrl;

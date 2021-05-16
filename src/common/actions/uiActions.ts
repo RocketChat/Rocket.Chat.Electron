@@ -52,7 +52,6 @@ export const WEBVIEW_MESSAGE_BOX_BLURRED = 'webview/message-box-blurred';
 export const WEBVIEW_MESSAGE_BOX_FOCUSED = 'webview/message-box-focused';
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
-export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -98,5 +97,4 @@ export type UiActionTypeToPayloadMap = {
     style: Server['style'];
   };
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
-  [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
 };

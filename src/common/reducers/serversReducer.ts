@@ -10,7 +10,6 @@ import {
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_SIDEBAR_STYLE_CHANGED,
   WEBVIEW_TITLE_CHANGED,
-  WEBVIEW_UNREAD_CHANGED,
   WEBVIEW_FAVICON_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
@@ -87,13 +86,6 @@ export const servers = createReducer<Server[]>([], (builder) =>
       }
     )
     .addCase(
-      WEBVIEW_UNREAD_CHANGED,
-      (state, action: ActionOf<typeof WEBVIEW_UNREAD_CHANGED>) => {
-        const { url, badge } = action.payload;
-        return upsert(state, { url, badge });
-      }
-    )
-    .addCase(
       WEBVIEW_SIDEBAR_STYLE_CHANGED,
       (state, action: ActionOf<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED>) => {
         const { url, style } = action.payload;
@@ -143,7 +135,21 @@ export const servers = createReducer<Server[]>([], (builder) =>
         return update(state, { url, webContentsId });
       }
     )
-    .addCase(serverActions.presenceParamsSet, (state, action) => {
+    .addCase(serverActions.versionChanged, (state, action) => {
+      const { url, version } = action.payload;
+      const server = findServer(state, url);
+      if (server) {
+        server.version = version;
+      }
+    })
+    .addCase(serverActions.badgeChanged, (state, action) => {
+      const { url, badge } = action.payload;
+      const server = findServer(state, url);
+      if (server) {
+        server.badge = badge;
+      }
+    })
+    .addCase(serverActions.userPresenceParamsChanged, (state, action) => {
       const { url, presence } = action.payload;
       const server = findServer(state, url);
 

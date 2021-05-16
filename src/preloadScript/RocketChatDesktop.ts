@@ -1,25 +1,51 @@
+import * as serverActions from '../common/actions/serverActions';
+import { dispatch } from '../common/store';
 import type { RocketChatDesktopAPI } from '../common/types/RocketChatDesktopAPI';
-import type { ServerInfo } from '../common/types/ServerInfo';
 import { createNotification, destroyNotification } from './notifications';
-import { setBackground } from './setBackground';
-import { setBadge } from './setBadge';
-import { setFavicon } from './setFavicon';
-import { setTitle } from './setTitle';
-import { setUrlResolver } from './setUrlResolver';
-import { setUserPresenceDetection } from './setUserPresenceDetection';
+import { resolveFavicon } from './resolveFavicon';
+import { resolveStyle } from './resolveStyle';
+import { getServerUrl } from './setUrlResolver';
 
-export let serverInfo: ServerInfo;
+export let absoluteUrl: (path?: string) => string;
+export let setUserOnline: (online: boolean) => void;
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
-  setServerInfo: (_serverInfo) => {
-    serverInfo = _serverInfo;
+  versionChanged(version) {
+    dispatch(serverActions.versionChanged(getServerUrl(), version));
   },
-  setUrlResolver,
-  setBadge,
-  setFavicon,
-  setBackground,
-  setTitle,
-  setUserPresenceDetection,
+  badgeChanged(badge) {
+    dispatch(serverActions.badgeChanged(getServerUrl(), badge));
+  },
+  async faviconChanged(faviconUrl) {
+    const favicon = faviconUrl ? await resolveFavicon(faviconUrl) : undefined;
+    dispatch(serverActions.faviconChanged(getServerUrl(), favicon));
+  },
+  async backgroundChanged(backgroundUrl) {
+    const style = await resolveStyle(backgroundUrl);
+    dispatch(serverActions.styleChanged(getServerUrl(), style));
+  },
+  titleChanged(title) {
+    dispatch(serverActions.titleChanged(getServerUrl(), title));
+  },
+  userPresenceParamsChanged(autoAwayEnabled, idleThreshold) {
+    dispatch(
+      serverActions.userPresenceParamsChanged(
+        getServerUrl(),
+        autoAwayEnabled
+          ? {
+              autoAwayEnabled: true,
+              idleThreshold,
+            }
+          : {
+              autoAwayEnabled: false,
+            }
+      )
+    );
+  },
+  setCallbacks(callbacks) {
+    absoluteUrl = callbacks.absoluteUrl;
+    setUserOnline = callbacks.setUserOnline;
+  },
   createNotification,
   destroyNotification,
 };

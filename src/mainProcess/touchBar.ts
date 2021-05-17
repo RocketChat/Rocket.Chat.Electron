@@ -130,10 +130,10 @@ const toggleMessageFormattingButtons = (
 
 const selectCurrentServer = ({
   servers,
-  currentView,
+  ui: { view },
 }: RootState): Server | null =>
-  typeof currentView === 'object'
-    ? servers.find(({ url }) => url === currentView.url) ?? null
+  typeof view === 'object'
+    ? servers.find(({ url }) => url === view.url) ?? null
     : null;
 
 class TouchBarService extends Service {
@@ -167,7 +167,7 @@ class TouchBarService extends Service {
     );
 
     this.watch(
-      ({ isMessageBoxFocused }) => isMessageBoxFocused ?? false,
+      (state) => state.ui.messageBox.focused ?? false,
       (isMessageBoxFocused) => {
         toggleMessageFormattingButtons(
           messageBoxFormattingButtons,

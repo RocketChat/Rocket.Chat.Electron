@@ -15,7 +15,7 @@ import { listen } from '../../../common/store';
 import { Dialog } from '../Dialog';
 
 export const SelectClientCertificateDialog: FC = () => {
-  const openDialog = useAppSelector(({ openDialog }) => openDialog);
+  const openDialog = useAppSelector((state) => state.ui.openDialog);
   const clientCertificates = useAppSelector(
     ({ clientCertificates }) => clientCertificates
   );

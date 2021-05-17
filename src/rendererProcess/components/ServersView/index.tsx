@@ -8,15 +8,12 @@ import { ServerPane } from './ServerPane';
 export const ServersView: FC = () => {
   const servers = useAppSelector(
     createSelector(
-      ({ currentView }) => currentView,
+      ({ ui: { view } }) => view,
       ({ servers }) => servers,
-      (currentView, servers) =>
+      (view, servers) =>
         servers.map((server) => ({
           ...server,
-          selected:
-            typeof currentView === 'object'
-              ? server.url === currentView.url
-              : false,
+          selected: typeof view === 'object' ? server.url === view.url : false,
         }))
     )
   );

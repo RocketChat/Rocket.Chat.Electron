@@ -30,10 +30,10 @@
     "test": "xvfb-maybe jest",
     "build-assets": "ts-node -O '{\"module\":\"commonjs\"}' src/buildAssets.ts",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "lint": "run-s .:lint:eslint .:lint:tsc",
+    "lint": "run-s .:lint:tsc .:lint:eslint",
     ".:lint:eslint": "eslint .",
     ".:lint:tsc": "tsc --noEmit --skipLibCheck",
-    "lint-fix": "run-s .:lint-fix:eslint .:lint:tsc",
+    "lint-fix": "run-s .:lint:tsc .:lint-fix:eslint",
     ".:lint-fix:eslint": "eslint --fix ."
   },
   "dependencies": {

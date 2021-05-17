@@ -34,8 +34,12 @@ const webPreferences: WebPreferences = {
   worldSafeExecuteJavaScript: true,
 };
 
-const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>
-  rootWindowState ?? {
+const selectRootWindowState = ({
+  ui: {
+    rootWindow: { state },
+  },
+}: RootState): WindowState =>
+  state ?? {
     bounds: {
       x: 0,
       y: 0,
@@ -89,9 +93,7 @@ const isInsideSomeScreen = ({ x, y, width, height }: Rectangle): boolean =>
 
 export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
   const rootWindowState = select(selectRootWindowState);
-  const isTrayIconEnabled = select(
-    ({ isTrayIconEnabled }) => isTrayIconEnabled
-  );
+  const isTrayIconEnabled = select((state) => state.ui.trayIcon.enabled);
 
   let { x, y } = rootWindowState.bounds;
   const { width, height } = rootWindowState.bounds;
@@ -165,8 +167,7 @@ export const setupRootWindow = (): void => {
       }
 
       const isShowWindowOnUnreadChangedEnabled = select(
-        ({ isShowWindowOnUnreadChangedEnabled }) =>
-          isShowWindowOnUnreadChangedEnabled
+        (state) => state.ui.rootWindow.showOnBadgeChange
       );
 
       if (isShowWindowOnUnreadChangedEnabled && !browserWindow.isVisible()) {
@@ -189,10 +190,10 @@ export const setupRootWindow = (): void => {
     }),
 
     watch(
-      ({ currentView, servers }) => {
+      ({ servers, ui: { view } }) => {
         const currentServer =
-          typeof currentView === 'object'
-            ? servers.find(({ url }) => url === currentView.url)
+          typeof view === 'object'
+            ? servers.find(({ url }) => url === view.url)
             : null;
         return (currentServer && currentServer.title) || app.name;
       },
@@ -244,7 +245,7 @@ export const setupRootWindow = (): void => {
       rootWindow.blur();
 
       const isTrayIconEnabled = select(
-        ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true
+        (state) => state.ui.trayIcon.enabled ?? true
       );
 
       if (process.platform === 'darwin' || isTrayIconEnabled) {
@@ -275,7 +276,7 @@ export const setupRootWindow = (): void => {
       }
     >({
       globalBadge: selectGlobalBadge,
-      rootWindowIcon: ({ rootWindowIcon }) => rootWindowIcon,
+      rootWindowIcon: (state) => state.ui.rootWindow.icon,
     });
 
     unsubscribers.push(
@@ -341,7 +342,7 @@ export const setupRootWindow = (): void => {
         }
       }),
       watch(
-        ({ isMenuBarEnabled }) => isMenuBarEnabled,
+        (state) => state.ui.menuBar.enabled,
         async (isMenuBarEnabled) => {
           const browserWindow = await getRootWindow();
           browserWindow.autoHideMenuBar = !isMenuBarEnabled;
@@ -369,9 +370,7 @@ export const showRootWindow = async (): Promise<void> => {
     browserWindow.addListener('ready-to-show', () => {
       applyRootWindowState(browserWindow);
 
-      const isTrayIconEnabled = select(
-        ({ isTrayIconEnabled }) => isTrayIconEnabled
-      );
+      const isTrayIconEnabled = select((state) => state.ui.trayIcon.enabled);
 
       if (app.commandLine.hasSwitch('start-hidden') && isTrayIconEnabled) {
         console.debug('Start application in background');

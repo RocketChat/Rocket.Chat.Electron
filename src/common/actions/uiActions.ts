@@ -9,9 +9,6 @@ export const ADD_SERVER_VIEW_SERVER_ADDED = 'add-server/view-server-added';
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED =
   'loading-error-view/reload-server-clicked';
 export const MENU_BAR_ABOUT_CLICKED = 'menu-bar/about-clicked';
-export const MENU_BAR_ADD_NEW_SERVER_CLICKED =
-  'menu-bar/add-new-server-clicked';
-export const MENU_BAR_SELECT_SERVER_CLICKED = 'menu-bar/select-server-clicked';
 export const MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED =
   'menu-bar/toggle-is-menu-bar-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED =
@@ -22,8 +19,6 @@ export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED =
   'menu-bar/toggle-is-tray-icon-enabled-clicked';
 export const ROOT_WINDOW_ICON_CHANGED = 'root-window/icon-changed';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';
-export const SIDE_BAR_ADD_NEW_SERVER_CLICKED =
-  'side-bar/add-new-server-clicked';
 export const SIDE_BAR_CONTEXT_MENU_TRIGGERED =
   'side-bar/context-menu-triggered';
 export const SIDE_BAR_DOWNLOADS_BUTTON_CLICKED =
@@ -55,15 +50,12 @@ export type UiActionTypeToPayloadMap = {
   [ADD_SERVER_VIEW_SERVER_ADDED]: Server['url'];
   [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
   [MENU_BAR_ABOUT_CLICKED]: void;
-  [MENU_BAR_ADD_NEW_SERVER_CLICKED]: void;
-  [MENU_BAR_SELECT_SERVER_CLICKED]: Server['url'];
   [MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
   [ROOT_WINDOW_ICON_CHANGED]: RootWindowIcon | null;
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
-  [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: void;
   [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
   [SIDE_BAR_DOWNLOADS_BUTTON_CLICKED]: void;
   [SIDE_BAR_REMOVE_SERVER_CLICKED]: Server['url'];

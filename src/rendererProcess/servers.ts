@@ -36,9 +36,9 @@ const selectBadgeAndFavicon = createStructuredSelector<
 
     return undefined;
   },
-  favicon: ({ currentView, servers }: RootState) =>
-    (typeof currentView === 'object'
-      ? servers.find((server) => server.url === currentView.url)?.favicon
+  favicon: ({ servers, ui: { view } }: RootState) =>
+    (typeof view === 'object'
+      ? servers.find((server) => server.url === view.url)?.favicon
       : undefined) ?? undefined,
 });
 

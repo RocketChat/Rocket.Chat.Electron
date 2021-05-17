@@ -5,16 +5,17 @@ import { createSelector, createStructuredSelector } from 'reselect';
 import { CERTIFICATES_CLEARED } from '../common/actions/navigationActions';
 import {
   MENU_BAR_ABOUT_CLICKED,
-  MENU_BAR_ADD_NEW_SERVER_CLICKED,
-  MENU_BAR_SELECT_SERVER_CLICKED,
   MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
 } from '../common/actions/uiActions';
+import * as viewActions from '../common/actions/viewActions';
 import { dispatch, select, Service } from '../common/store';
 import type { RootState } from '../common/types/RootState';
+import type { Server } from '../common/types/Server';
+import type { WindowState } from '../common/types/WindowState';
 import { askForAppDataReset } from './dialogs';
 import { relaunchApp } from './relaunchApp';
 import { getRootWindow } from './rootWindow';
@@ -83,7 +84,7 @@ const createAppMenu = createSelector(
               browserWindow.showInactive();
             }
             browserWindow.focus();
-            dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
+            dispatch(viewActions.changed('add-new-server'));
           },
         },
         { type: 'separator' },
@@ -152,20 +153,24 @@ const createEditMenu = createSelector(
 
 const selectViewDeps = createStructuredSelector<
   RootState,
-  Pick<
-    RootState,
-    | 'currentView'
-    | 'isSideBarEnabled'
-    | 'isTrayIconEnabled'
-    | 'isMenuBarEnabled'
-    | 'rootWindowState'
-  >
+  {
+    currentView:
+      | 'add-new-server'
+      | 'downloads'
+      | {
+          url: string;
+        };
+    isSideBarEnabled: boolean;
+    isTrayIconEnabled: boolean;
+    isMenuBarEnabled: boolean;
+    rootWindowState: WindowState;
+  }
 >({
-  currentView: ({ currentView }) => currentView,
-  isSideBarEnabled: ({ isSideBarEnabled }) => isSideBarEnabled,
-  isTrayIconEnabled: ({ isTrayIconEnabled }) => isTrayIconEnabled,
-  isMenuBarEnabled: ({ isMenuBarEnabled }) => isMenuBarEnabled,
-  rootWindowState: ({ rootWindowState }) => rootWindowState,
+  currentView: (state) => state.ui.view,
+  isSideBarEnabled: (state) => state.ui.sideBar.enabled,
+  isTrayIconEnabled: (state) => state.ui.trayIcon.enabled,
+  isMenuBarEnabled: (state) => state.ui.menuBar.enabled,
+  rootWindowState: (state) => state.ui.rootWindow.state,
 });
 
 const createViewMenu = createSelector(
@@ -394,16 +399,21 @@ const createViewMenu = createSelector(
 
 const selectWindowDeps = createStructuredSelector<
   RootState,
-  Pick<
-    RootState,
-    'servers' | 'currentView' | 'isShowWindowOnUnreadChangedEnabled'
-  >
+  {
+    servers: Server[];
+    currentView:
+      | 'add-new-server'
+      | 'downloads'
+      | {
+          url: string;
+        };
+    isShowWindowOnUnreadChangedEnabled: boolean;
+  }
 >({
-  servers: ({ servers }) => servers,
-  currentView: ({ currentView }) => currentView,
-  isShowWindowOnUnreadChangedEnabled: ({
-    isShowWindowOnUnreadChangedEnabled,
-  }) => isShowWindowOnUnreadChangedEnabled,
+  servers: (state) => state.servers,
+  currentView: (state) => state.ui.view,
+  isShowWindowOnUnreadChangedEnabled: (state) =>
+    state.ui.rootWindow.showOnBadgeChange,
 });
 
 const createWindowMenu = createSelector(
@@ -429,7 +439,7 @@ const createWindowMenu = createSelector(
               browserWindow.showInactive();
             }
             browserWindow.focus();
-            dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
+            dispatch(viewActions.changed('add-new-server'));
           },
         },
         { type: 'separator' },
@@ -453,10 +463,7 @@ const createWindowMenu = createSelector(
                 browserWindow.showInactive();
               }
               browserWindow.focus();
-              dispatch({
-                type: MENU_BAR_SELECT_SERVER_CLICKED,
-                payload: server.url,
-              });
+              dispatch(viewActions.changed({ url: server.url }));
             },
           })
         ),

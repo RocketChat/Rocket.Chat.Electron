@@ -32,7 +32,7 @@ const defaultServerUrl = new URL('https://open.rocket.chat/');
 
 export const AddServerView: FC = () => {
   const isVisible = useAppSelector(
-    ({ currentView }) => currentView === 'add-new-server'
+    ({ ui: { view } }) => view === 'add-new-server'
   );
   const dispatch = useAppDispatch();
   const { t } = useTranslation();

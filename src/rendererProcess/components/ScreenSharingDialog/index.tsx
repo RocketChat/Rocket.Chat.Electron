@@ -10,7 +10,7 @@ import { Dialog } from '../Dialog';
 import { Source } from './styles';
 
 export const ScreenSharingDialog: FC = () => {
-  const openDialog = useAppSelector(({ openDialog }) => openDialog);
+  const openDialog = useAppSelector((state) => state.ui.openDialog);
   const isVisible = openDialog === 'screen-sharing';
   const dispatch = useAppDispatch();
 

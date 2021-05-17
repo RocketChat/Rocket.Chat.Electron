@@ -9,8 +9,10 @@ export const mergeServers = async (
   localStorage: Record<string, string>
 ): Promise<RootState> => {
   let { servers } = state;
-  let currentServerUrl =
-    typeof state.currentView === 'object' ? state.currentView.url : null;
+  const {
+    ui: { view },
+  } = state;
+  let currentServerUrl = typeof view === 'object' ? view.url : null;
 
   const serversMap = new Map<Server['url'], Server>(
     servers

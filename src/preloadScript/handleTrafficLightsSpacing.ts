@@ -1,10 +1,8 @@
 import { watch } from '../common/store';
 import type { RootState } from '../common/types/RootState';
 
-const selectIsSideBarVisible = ({
-  servers,
-  isSideBarEnabled,
-}: RootState): boolean => servers.length > 0 && isSideBarEnabled;
+const selectIsSideBarVisible = ({ servers, ui }: RootState): boolean =>
+  servers.length > 0 && ui.sideBar.enabled;
 
 export const handleTrafficLightsSpacing = (): void => {
   if (process.platform !== 'darwin') {

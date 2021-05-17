@@ -25,7 +25,7 @@ export const UpdateDialog: FC = () => {
       ? state.updates.latest.version
       : null
   );
-  const openDialog = useAppSelector(({ openDialog }) => openDialog);
+  const openDialog = useAppSelector((state) => state.ui.openDialog);
   const isVisible = openDialog === 'update';
 
   const dispatch = useAppDispatch();

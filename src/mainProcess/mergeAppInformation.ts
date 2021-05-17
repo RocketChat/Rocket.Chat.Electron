@@ -14,4 +14,11 @@ export const mergeAppInformation = async (
     locale: app.getLocale(),
     bugsnagApiKey: process.env.BUGSNAG_API_KEY,
   },
+  ui: {
+    ...state.ui,
+    trayIcon: {
+      ...state.ui.trayIcon,
+      enabled: process.platform !== 'linux',
+    },
+  },
 });

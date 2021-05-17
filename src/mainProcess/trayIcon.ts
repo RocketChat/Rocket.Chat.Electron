@@ -10,9 +10,8 @@ import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 
-const selectIsRootWindowVisible = ({
-  rootWindowState: { visible },
-}: RootState): boolean => visible;
+const selectIsRootWindowVisible = (state: RootState): boolean =>
+  state.ui.rootWindow.state.visible;
 
 const createTrayIcon = (): Tray => {
   const image = getTrayIconPath({
@@ -168,7 +167,7 @@ class TrayIconService extends Service {
 
   protected initialize(): void {
     this.watch(
-      ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true,
+      (state) => state.ui.trayIcon.enabled ?? true,
       (isTrayIconEnabled) => {
         if (!this.tearDownPromise && isTrayIconEnabled) {
           this.tearDownPromise = manageTrayIcon();

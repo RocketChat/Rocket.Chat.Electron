@@ -3,10 +3,8 @@ import React, { useMemo, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createSelector } from 'reselect';
 
-import {
-  SIDE_BAR_ADD_NEW_SERVER_CLICKED,
-  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
-} from '../../../common/actions/uiActions';
+import { SIDE_BAR_DOWNLOADS_BUTTON_CLICKED } from '../../../common/actions/uiActions';
+import * as viewActions from '../../../common/actions/viewActions';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import { useAppSelector } from '../../../common/hooks/useAppSelector';
 import ServerButton from './ServerButton';
@@ -24,7 +22,7 @@ import { useSorting } from './useSorting';
 export const SideBar: FC = () => {
   const servers = useAppSelector(
     createSelector(
-      ({ currentView }) => currentView,
+      ({ ui: { view } }) => view,
       ({ servers }) => servers,
       (currentView, servers) =>
         servers.map((server) => ({
@@ -36,9 +34,7 @@ export const SideBar: FC = () => {
         }))
     )
   );
-  const isSideBarEnabled = useAppSelector(
-    ({ isSideBarEnabled }) => isSideBarEnabled
-  );
+  const isSideBarEnabled = useAppSelector((state) => state.ui.sideBar.enabled);
   const isVisible = servers.length > 0 && isSideBarEnabled;
 
   const style = useMemo(
@@ -59,7 +55,7 @@ export const SideBar: FC = () => {
   const dispatch = useAppDispatch();
 
   const handleAddServerButtonClicked = (): void => {
-    dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
+    dispatch(viewActions.changed('add-new-server'));
   };
 
   const handelDownloadsButtonClicked = (): void => {

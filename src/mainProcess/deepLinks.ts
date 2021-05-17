@@ -2,10 +2,8 @@ import { URL } from 'url';
 
 import { app, WebContents } from 'electron';
 
-import {
-  DEEP_LINKS_SERVER_FOCUSED,
-  DEEP_LINKS_SERVER_ADDED,
-} from '../common/actions/deepLinksActions';
+import { DEEP_LINKS_SERVER_ADDED } from '../common/actions/deepLinksActions';
+import * as viewActions from '../common/actions/viewActions';
 import { isGoRocketChatUrl } from '../common/helpers/isGoRocketChatUrl';
 import { isRocketChatUrl } from '../common/helpers/isRocketChatUrl';
 import { select, dispatch } from '../common/store';
@@ -82,7 +80,7 @@ const performOnServer = async (
   );
 
   if (isServerAdded) {
-    dispatch({ type: DEEP_LINKS_SERVER_FOCUSED, payload: serverUrl });
+    dispatch(viewActions.changed({ url: serverUrl }));
     await action(serverUrl);
     return;
   }

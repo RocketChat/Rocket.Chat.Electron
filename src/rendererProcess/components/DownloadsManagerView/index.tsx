@@ -17,9 +17,7 @@ import { DownloadStatus } from '../../../common/types/DownloadStatus';
 import DownloadItem from './DownloadItem';
 
 const DownloadsManagerView: FC = () => {
-  const isVisible = useAppSelector(
-    ({ currentView }) => currentView === 'downloads'
-  );
+  const isVisible = useAppSelector(({ ui }) => ui.view === 'downloads');
 
   const [searchFilter, setSearchFilter] = useLocalStorage(
     'download-search',

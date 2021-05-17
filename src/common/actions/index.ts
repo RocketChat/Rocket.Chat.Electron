@@ -10,6 +10,7 @@ import type { SpellCheckingActionTypeToPayloadMap } from './spellCheckingActions
 import type { UiActionTypeToPayloadMap } from './uiActions';
 import type * as updateActions from './updateActions';
 import type * as updateCheckActions from './updateCheckActions';
+import type * as viewActions from './viewActions';
 
 type ActionTypeToPayloadMap = DeepLinksActionTypeToPayloadMap &
   DownloadsActionTypeToPayloadMap &
@@ -39,6 +40,7 @@ export type RootActions = {
   ActionsFromModule<typeof screenSharingActions> &
   ActionsFromModule<typeof updateCheckActions> &
   ActionsFromModule<typeof updateActions> &
-  ActionsFromModule<typeof serverActions>;
+  ActionsFromModule<typeof serverActions> &
+  ActionsFromModule<typeof viewActions>;
 
 export type ActionOf<Type extends keyof RootActions> = RootActions[Type];

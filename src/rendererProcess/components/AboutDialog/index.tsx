@@ -38,7 +38,7 @@ export const AboutDialog: FC = () => {
       state.updates.latest?.status === 'fulfilled' &&
       state.updates.latest.version
   );
-  const openDialog = useAppSelector(({ openDialog }) => openDialog);
+  const openDialog = useAppSelector((state) => state.ui.openDialog);
   const updateError = useAppSelector(
     (state) =>
       state.updates.latest?.status === 'rejected' && state.updates.latest.error

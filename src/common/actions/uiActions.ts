@@ -42,16 +42,12 @@ export const UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED =
   'update-dialog/remind-update-later-clicked';
 export const UPDATE_DIALOG_SKIP_UPDATE_CLICKED =
   'update-dialog/skip-update-clicked';
-export const WEBVIEW_ATTACHED = 'webview/attached';
 export const WEBVIEW_DID_FAIL_LOAD = 'webview/did-fail-load';
 export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
 export const WEBVIEW_DID_START_LOADING = 'webview/did-start-loading';
-export const WEBVIEW_FAVICON_CHANGED = 'webview/favicon-changed';
 export const WEBVIEW_FOCUS_REQUESTED = 'webview/focus-requested';
 export const WEBVIEW_MESSAGE_BOX_BLURRED = 'webview/message-box-blurred';
 export const WEBVIEW_MESSAGE_BOX_FOCUSED = 'webview/message-box-focused';
-export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
-export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -84,17 +80,10 @@ export type UiActionTypeToPayloadMap = {
   [UPDATE_DIALOG_INSTALL_BUTTON_CLICKED]: void;
   [UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED]: void;
   [UPDATE_DIALOG_SKIP_UPDATE_CLICKED]: string | null;
-  [WEBVIEW_ATTACHED]: { url: Server['url']; webContentsId: number };
   [WEBVIEW_DID_FAIL_LOAD]: { url: Server['url']; isMainFrame: boolean };
   [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
-  [WEBVIEW_FAVICON_CHANGED]: { url: Server['url']; favicon: Server['favicon'] };
   [WEBVIEW_FOCUS_REQUESTED]: { url: string };
   [WEBVIEW_MESSAGE_BOX_BLURRED]: void;
   [WEBVIEW_MESSAGE_BOX_FOCUSED]: void;
-  [WEBVIEW_SIDEBAR_STYLE_CHANGED]: {
-    url: Server['url'];
-    style: Server['style'];
-  };
-  [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
 };

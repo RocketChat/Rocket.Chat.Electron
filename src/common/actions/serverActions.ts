@@ -2,11 +2,6 @@ import { createAction } from '@reduxjs/toolkit';
 
 import type { Server } from '../types/Server';
 import type { SystemIdleState } from '../types/SystemIdleState';
-import {
-  WEBVIEW_FAVICON_CHANGED,
-  WEBVIEW_SIDEBAR_STYLE_CHANGED,
-  WEBVIEW_TITLE_CHANGED,
-} from './uiActions';
 
 export const versionChanged = createAction(
   'server/versionChanged',
@@ -29,7 +24,7 @@ export const badgeChanged = createAction(
 );
 
 export const faviconChanged = createAction(
-  WEBVIEW_FAVICON_CHANGED,
+  'server/faviconChanged',
   (url: Server['url'], favicon: Server['favicon']) => ({
     payload: {
       url,
@@ -39,7 +34,7 @@ export const faviconChanged = createAction(
 );
 
 export const styleChanged = createAction(
-  WEBVIEW_SIDEBAR_STYLE_CHANGED,
+  'server/styleChanged',
   (url: Server['url'], style: Server['style']) => ({
     payload: {
       url,
@@ -49,7 +44,7 @@ export const styleChanged = createAction(
 );
 
 export const titleChanged = createAction(
-  WEBVIEW_TITLE_CHANGED,
+  'server/titleChanged',
   (url: Server['url'], title: Server['title']) => ({
     payload: {
       url,
@@ -84,6 +79,16 @@ export const idleStateChanged = createAction(
     payload: {
       url,
       idleState,
+    },
+  })
+);
+
+export const webviewAttached = createAction(
+  'server/webviewAttached',
+  (url: Server['url'], webContentsId: number) => ({
+    payload: {
+      url,
+      webContentsId,
     },
   })
 );

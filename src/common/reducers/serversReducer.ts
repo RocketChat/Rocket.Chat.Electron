@@ -8,12 +8,8 @@ import {
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   SIDE_BAR_SERVERS_SORTED,
   WEBVIEW_DID_NAVIGATE,
-  WEBVIEW_SIDEBAR_STYLE_CHANGED,
-  WEBVIEW_TITLE_CHANGED,
-  WEBVIEW_FAVICON_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
-  WEBVIEW_ATTACHED,
 } from '../actions/uiActions';
 import type { Server } from '../types/Server';
 
@@ -27,18 +23,6 @@ const upsert = (state: Server[], server: Server): Server[] => {
 
   if (index === -1) {
     return [...state, server];
-  }
-
-  return state.map((_server, i) =>
-    i === index ? { ..._server, ...server } : _server
-  );
-};
-
-const update = (state: Server[], server: Server): Server[] => {
-  const index = state.findIndex(({ url }) => url === server.url);
-
-  if (index === -1) {
-    return state;
   }
 
   return state.map((_server, i) =>
@@ -79,27 +63,6 @@ export const servers = createReducer<Server[]>([], (builder) =>
       }
     )
     .addCase(
-      WEBVIEW_TITLE_CHANGED,
-      (state, action: ActionOf<typeof WEBVIEW_TITLE_CHANGED>) => {
-        const { url, title = url } = action.payload;
-        return upsert(state, { url, title });
-      }
-    )
-    .addCase(
-      WEBVIEW_SIDEBAR_STYLE_CHANGED,
-      (state, action: ActionOf<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED>) => {
-        const { url, style } = action.payload;
-        return upsert(state, { url, style });
-      }
-    )
-    .addCase(
-      WEBVIEW_FAVICON_CHANGED,
-      (state, action: ActionOf<typeof WEBVIEW_FAVICON_CHANGED>) => {
-        const { url, favicon } = action.payload;
-        return upsert(state, { url, favicon });
-      }
-    )
-    .addCase(
       WEBVIEW_DID_NAVIGATE,
       (state, action: ActionOf<typeof WEBVIEW_DID_NAVIGATE>) => {
         const { url, pageUrl } = action.payload;
@@ -128,13 +91,6 @@ export const servers = createReducer<Server[]>([], (builder) =>
         return state;
       }
     )
-    .addCase(
-      WEBVIEW_ATTACHED,
-      (state, action: ActionOf<typeof WEBVIEW_ATTACHED>) => {
-        const { url, webContentsId } = action.payload;
-        return update(state, { url, webContentsId });
-      }
-    )
     .addCase(serverActions.versionChanged, (state, action) => {
       const { url, version } = action.payload;
       const server = findServer(state, url);
@@ -147,6 +103,27 @@ export const servers = createReducer<Server[]>([], (builder) =>
       const server = findServer(state, url);
       if (server) {
         server.badge = badge;
+      }
+    })
+    .addCase(serverActions.faviconChanged, (state, action) => {
+      const { url, favicon } = action.payload;
+      const server = findServer(state, url);
+      if (server) {
+        server.favicon = favicon;
+      }
+    })
+    .addCase(serverActions.styleChanged, (state, action) => {
+      const { url, style } = action.payload;
+      const server = findServer(state, url);
+      if (server) {
+        server.style = style;
+      }
+    })
+    .addCase(serverActions.titleChanged, (state, action) => {
+      const { url, title = url } = action.payload;
+      const server = findServer(state, url);
+      if (server) {
+        server.title = title;
       }
     })
     .addCase(serverActions.userPresenceParamsChanged, (state, action) => {
@@ -168,6 +145,13 @@ export const servers = createReducer<Server[]>([], (builder) =>
 
       if (server?.presence?.autoAwayEnabled) {
         server.presence.idleState = idleState;
+      }
+    })
+    .addCase(serverActions.webviewAttached, (state, action) => {
+      const { url, webContentsId } = action.payload;
+      const server = findServer(state, url);
+      if (server) {
+        server.webContentsId = webContentsId;
       }
     })
 );

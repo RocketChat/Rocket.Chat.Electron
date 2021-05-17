@@ -21,11 +21,11 @@ import {
 import i18next from 'i18next';
 
 import { CERTIFICATES_CLEARED } from '../common/actions/navigationActions';
+import * as serverActions from '../common/actions/serverActions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
-  WEBVIEW_ATTACHED,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
@@ -297,7 +297,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     }
   };
 
-  listen(WEBVIEW_ATTACHED, (action) => {
+  listen(serverActions.webviewAttached.match, (action) => {
     const guestWebContents = webContents.fromId(action.payload.webContentsId);
     initializeServerWebContents(
       action.payload.url,

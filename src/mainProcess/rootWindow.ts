@@ -10,10 +10,8 @@ import {
 import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
-import {
-  ROOT_WINDOW_STATE_CHANGED,
-  WEBVIEW_FOCUS_REQUESTED,
-} from '../common/actions/uiActions';
+import * as rootWindowActions from '../common/actions/rootWindowActions';
+import { WEBVIEW_FOCUS_REQUESTED } from '../common/actions/uiActions';
 import {
   selectGlobalBadge,
   selectGlobalBadgeCount,
@@ -210,10 +208,7 @@ export const setupRootWindow = (): void => {
   ];
 
   const fetchAndDispatchWindowState = async (): Promise<void> => {
-    dispatch({
-      type: ROOT_WINDOW_STATE_CHANGED,
-      payload: await fetchRootWindowState(),
-    });
+    dispatch(rootWindowActions.stateChanged(await fetchRootWindowState()));
   };
 
   getRootWindow().then((rootWindow) => {

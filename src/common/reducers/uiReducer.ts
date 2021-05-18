@@ -17,7 +17,6 @@ import {
   MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-  ROOT_WINDOW_STATE_CHANGED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   SIDE_BAR_SERVER_SELECTED,
@@ -200,13 +199,10 @@ export const uiReducer = createReducer<State>(
         const { icon } = action.payload;
         state.rootWindow.icon = icon;
       })
-      .addCase(
-        ROOT_WINDOW_STATE_CHANGED,
-        (state, action: ActionOf<typeof ROOT_WINDOW_STATE_CHANGED>) => {
-          const windowState = action.payload;
-          state.rootWindow.state = windowState;
-        }
-      )
+      .addCase(rootWindowActions.stateChanged, (state, action) => {
+        const { state: windowState } = action.payload;
+        state.rootWindow.state = windowState;
+      })
       .addCase(
         MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
         (

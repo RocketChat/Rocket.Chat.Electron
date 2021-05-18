@@ -23,7 +23,6 @@ import { setupNavigation } from './mainProcess/setupNavigation';
 import { setupSpellChecking } from './mainProcess/setupSpellChecking';
 import touchBar from './mainProcess/touchBar';
 import trayIcon from './mainProcess/trayIcon';
-import { watchAndPersistChanges } from './mainProcess/watchAndPersistChanges';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
@@ -64,8 +63,6 @@ const start = async (): Promise<void> => {
     touchBar.tearDown();
     trayIcon.tearDown();
   });
-
-  watchAndPersistChanges();
 
   await processDeepLinksInArgs();
 };

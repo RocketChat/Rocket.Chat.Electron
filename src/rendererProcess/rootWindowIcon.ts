@@ -57,120 +57,130 @@ const getCanvas = (size: number): HTMLCanvasElement => {
   return canvas;
 };
 
-export const createRootWindowIconForLinux = async ({
-  favicon,
-  badge,
-}: {
-  favicon: string;
-  badge: '•' | number | undefined;
-}): Promise<RootWindowIcon> => {
-  const faviconImage = await getFaviconImage(favicon);
-  const badgeImage = await getBadgeImage(badge);
+export const createRootWindowIconForLinux = memoize(
+  async ({
+    favicon,
+    badge,
+  }: {
+    favicon: string;
+    badge: '•' | number | undefined;
+  }): Promise<RootWindowIcon> => {
+    const faviconImage = await getFaviconImage(favicon);
+    const badgeImage = await getBadgeImage(badge);
 
-  const representations = [64, 48, 40, 32, 24, 20, 16].map((size) => {
-    const canvas = getCanvas(size);
-    const ctx = canvas.getContext('2d');
+    const representations = [64, 48, 40, 32, 24, 20, 16].map((size) => {
+      const canvas = getCanvas(size);
+      const ctx = canvas.getContext('2d');
 
-    if (!ctx) {
-      throw new Error('failed to create canvas 2d context');
-    }
-
-    ctx.clearRect(0, 0, size, size);
-    ctx.drawImage(faviconImage, 0, 0, size, size);
-
-    if (badge) {
-      const badgeSize = size / 3;
-      const badgeHoleSize = size / 2;
-      const badgeOffset =
-        size - badgeHoleSize + (badgeHoleSize - badgeSize) / 2;
-
-      ctx.beginPath();
-      ctx.arc(
-        size - badgeHoleSize / 2,
-        size - badgeHoleSize / 2,
-        badgeHoleSize / 2,
-        0,
-        2 * Math.PI
-      );
-      ctx.rect(
-        size - badgeHoleSize / 2,
-        size - badgeHoleSize / 2,
-        badgeHoleSize / 2,
-        badgeHoleSize / 2
-      );
-      ctx.closePath();
-      ctx.clip();
+      if (!ctx) {
+        throw new Error('failed to create canvas 2d context');
+      }
 
       ctx.clearRect(0, 0, size, size);
-      ctx.drawImage(badgeImage, badgeOffset, badgeOffset, badgeSize, badgeSize);
-    }
+      ctx.drawImage(faviconImage, 0, 0, size, size);
 
-    return {
-      width: size,
-      height: size,
-      dataURL: canvas.toDataURL('image/png'),
-    };
-  });
+      if (badge) {
+        const badgeSize = size / 3;
+        const badgeHoleSize = size / 2;
+        const badgeOffset =
+          size - badgeHoleSize + (badgeHoleSize - badgeSize) / 2;
 
-  return {
-    icon: representations,
-  };
-};
+        ctx.beginPath();
+        ctx.arc(
+          size - badgeHoleSize / 2,
+          size - badgeHoleSize / 2,
+          badgeHoleSize / 2,
+          0,
+          2 * Math.PI
+        );
+        ctx.rect(
+          size - badgeHoleSize / 2,
+          size - badgeHoleSize / 2,
+          badgeHoleSize / 2,
+          badgeHoleSize / 2
+        );
+        ctx.closePath();
+        ctx.clip();
 
-export const createRootWindowIconForWindows = async ({
-  favicon,
-  badge,
-}: {
-  favicon: string;
-  badge: '•' | number | undefined;
-}): Promise<RootWindowIcon> => {
-  const faviconImage = await getFaviconImage(favicon);
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(
+          badgeImage,
+          badgeOffset,
+          badgeOffset,
+          badgeSize,
+          badgeSize
+        );
+      }
 
-  const representations = [256, 64, 48, 40, 32, 24, 20, 16].map((size) => {
-    const canvas = getCanvas(size);
-    const ctx = canvas.getContext('2d');
+      return {
+        width: size,
+        height: size,
+        dataURL: canvas.toDataURL('image/png'),
+      };
+    });
 
-    if (!ctx) {
-      throw new Error('failed to create canvas 2d context');
-    }
-
-    ctx.clearRect(0, 0, size, size);
-    ctx.drawImage(faviconImage, 0, 0, size, size);
-
-    return {
-      width: size,
-      height: size,
-      dataURL: canvas.toDataURL('image/png'),
-    };
-  });
-
-  if (!badge) {
     return {
       icon: representations,
     };
   }
+);
 
-  const overlayImage = await getBadgeImage(badge);
+export const createRootWindowIconForWindows = memoize(
+  async ({
+    favicon,
+    badge,
+  }: {
+    favicon: string;
+    badge: '•' | number | undefined;
+  }): Promise<RootWindowIcon> => {
+    const faviconImage = await getFaviconImage(favicon);
 
-  const size = 32;
-  const canvas = getCanvas(size);
-  const ctx = canvas.getContext('2d');
+    const representations = [256, 64, 48, 40, 32, 24, 20, 16].map((size) => {
+      const canvas = getCanvas(size);
+      const ctx = canvas.getContext('2d');
 
-  if (!ctx) {
-    throw new Error('failed to create canvas 2d context');
+      if (!ctx) {
+        throw new Error('failed to create canvas 2d context');
+      }
+
+      ctx.clearRect(0, 0, size, size);
+      ctx.drawImage(faviconImage, 0, 0, size, size);
+
+      return {
+        width: size,
+        height: size,
+        dataURL: canvas.toDataURL('image/png'),
+      };
+    });
+
+    if (!badge) {
+      return {
+        icon: representations,
+      };
+    }
+
+    const overlayImage = await getBadgeImage(badge);
+
+    const size = 32;
+    const canvas = getCanvas(size);
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('failed to create canvas 2d context');
+    }
+
+    ctx.clearRect(0, 0, size, size);
+    ctx.drawImage(overlayImage, 0, 0, size, size);
+
+    const overlayRepresentation = {
+      width: size,
+      height: size,
+      dataURL: canvas.toDataURL('image/png'),
+    };
+
+    return {
+      icon: representations,
+      overlay: [overlayRepresentation],
+    };
   }
-
-  ctx.clearRect(0, 0, size, size);
-  ctx.drawImage(overlayImage, 0, 0, size, size);
-
-  const overlayRepresentation = {
-    width: size,
-    height: size,
-    dataURL: canvas.toDataURL('image/png'),
-  };
-
-  return {
-    icon: representations,
-    overlay: [overlayRepresentation],
-  };
-};
+);

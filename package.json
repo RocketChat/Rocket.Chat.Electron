@@ -46,6 +46,7 @@
     "@rocket.chat/fuselage": "^0.24.0",
     "@rocket.chat/fuselage-hooks": "^0.24.0",
     "@rocket.chat/icons": "^0.24.0",
+    "@rocket.chat/memo": "^0.24.0",
     "abort-controller": "^3.0.0",
     "electron-store": "^6.0.1",
     "electron-updater": "^4.3.5",

@@ -1,10 +1,14 @@
 import { watch } from '../common/store';
-import { setUserOnline } from './RocketChatDesktop';
-import { getServerUrl } from './setUrlResolver';
+import type { RocketChatDesktopAPI } from '../common/types/RocketChatDesktopAPI';
 
-export const listenUserPresenceChanges = (): void => {
+export const listenUserPresenceChanges = (
+  rocketChatDesktop: RocketChatDesktopAPI
+): void => {
   watch(
-    (state) => state.servers.find((server) => server.url === getServerUrl()),
+    (state) =>
+      state.servers.find(
+        (server) => server.url === rocketChatDesktop.getServerUrl()
+      ),
     (server) => {
       if (!server?.presence?.autoAwayEnabled) {
         return;
@@ -13,7 +17,7 @@ export const listenUserPresenceChanges = (): void => {
       const { idleState } = server.presence;
 
       const isOnline = idleState === 'active' || idleState === 'unknown';
-      setUserOnline(isOnline);
+      rocketChatDesktop.setUserOnline(isOnline);
     }
   );
 };

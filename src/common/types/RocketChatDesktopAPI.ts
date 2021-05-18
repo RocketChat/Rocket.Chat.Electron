@@ -12,7 +12,7 @@ export type RocketChatDesktopAPI = {
   ): void;
   setCallbacks(callbacks: {
     absoluteUrl: (path?: string) => string;
-    setUserOnline(online: boolean): void;
+    setUserOnline: (online: boolean) => void;
   }): void;
   createNotification: (
     options: NotificationOptions & {
@@ -22,4 +22,7 @@ export type RocketChatDesktopAPI = {
     }
   ) => Promise<unknown>;
   destroyNotification: (id: unknown) => void;
+  absoluteUrl(path?: string): string;
+  setUserOnline(online: boolean): void;
+  getServerUrl(): Server['url'];
 };

@@ -3,7 +3,7 @@ import { contextBridge } from 'electron';
 import { setReduxStore } from './common/store';
 import { invoke } from './ipc/renderer';
 import { JitsiMeetElectron } from './preloadScript/JitsiMeetElectron';
-import { RocketChatDesktop } from './preloadScript/RocketChatDesktop';
+import { createRocketChatDesktopSingleton } from './preloadScript/createRocketChatDesktopSingleton';
 import { handleTrafficLightsSpacing } from './preloadScript/handleTrafficLightsSpacing';
 import { listenToMessageBoxEvents } from './preloadScript/listenToMessageBoxEvents';
 import { listenUserPresenceChanges } from './preloadScript/listenUserPresenceChanges';
@@ -17,7 +17,6 @@ import { whenReady } from './rendererProcess/whenReady';
 
 const start = async (): Promise<void> => {
   contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
-  contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
   const serverUrl = await invoke('server-view/get-url');
 
@@ -30,17 +29,24 @@ const start = async (): Promise<void> => {
   const reduxStore = await createRendererReduxStore(rootSaga);
   setReduxStore(reduxStore);
 
+  const rocketChatDesktop = createRocketChatDesktopSingleton(
+    serverUrl,
+    reduxStore
+  );
+
+  contextBridge.exposeInMainWorld('RocketChatDesktop', rocketChatDesktop);
+
   await whenReady();
 
   setupRendererErrorHandling('webviewPreload');
 
   await invoke('server-view/ready');
 
-  listenToNotificationsRequests();
+  listenToNotificationsRequests(rocketChatDesktop);
   listenToScreenSharingRequests();
   listenToMessageBoxEvents();
   handleTrafficLightsSpacing();
-  listenUserPresenceChanges();
+  listenUserPresenceChanges(rocketChatDesktop);
 };
 
 start();

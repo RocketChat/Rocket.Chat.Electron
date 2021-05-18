@@ -7,6 +7,7 @@ import {
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../actions/navigationActions';
+import * as rootWindowActions from '../actions/rootWindowActions';
 import * as screenSharingActions from '../actions/screenSharingActions';
 import {
   ABOUT_DIALOG_DISMISSED,
@@ -16,7 +17,6 @@ import {
   MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-  ROOT_WINDOW_ICON_CHANGED,
   ROOT_WINDOW_STATE_CHANGED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
@@ -51,7 +51,7 @@ type State = {
     | 'select-client-certificate'
     | null;
   rootWindow: {
-    icon: RootWindowIcon | null;
+    icon: RootWindowIcon | undefined;
     state: WindowState;
     showOnBadgeChange: boolean;
   };
@@ -74,7 +74,7 @@ export const uiReducer = createReducer<State>(
     },
     openDialog: null,
     rootWindow: {
-      icon: null,
+      icon: undefined,
       state: {
         focused: true,
         visible: true,
@@ -196,13 +196,10 @@ export const uiReducer = createReducer<State>(
       .addCase(UPDATE_DIALOG_INSTALL_BUTTON_CLICKED, (state) => {
         state.openDialog = null;
       })
-      .addCase(
-        ROOT_WINDOW_ICON_CHANGED,
-        (state, action: ActionOf<typeof ROOT_WINDOW_ICON_CHANGED>) => {
-          const icon = action.payload;
-          state.rootWindow.icon = icon;
-        }
-      )
+      .addCase(rootWindowActions.iconChanged, (state, action) => {
+        const { icon } = action.payload;
+        state.rootWindow.icon = icon;
+      })
       .addCase(
         ROOT_WINDOW_STATE_CHANGED,
         (state, action: ActionOf<typeof ROOT_WINDOW_STATE_CHANGED>) => {

@@ -4,6 +4,7 @@ import type { DeepLinksActionTypeToPayloadMap } from './deepLinksActions';
 import type { DownloadsActionTypeToPayloadMap } from './downloadsActions';
 import type { NavigationActionTypeToPayloadMap } from './navigationActions';
 import type { NotificationsActionTypeToPayloadMap } from './notificationsActions';
+import type * as rootWindowActions from './rootWindowActions';
 import type * as screenSharingActions from './screenSharingActions';
 import type * as serverActions from './serverActions';
 import type { SpellCheckingActionTypeToPayloadMap } from './spellCheckingActions';
@@ -37,6 +38,7 @@ export type RootActions = {
         payload: ActionTypeToPayloadMap[Type];
       };
 } &
+  ActionsFromModule<typeof rootWindowActions> &
   ActionsFromModule<typeof screenSharingActions> &
   ActionsFromModule<typeof updateCheckActions> &
   ActionsFromModule<typeof updateActions> &

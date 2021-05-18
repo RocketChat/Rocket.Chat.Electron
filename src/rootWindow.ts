@@ -5,13 +5,16 @@ import { initReactI18next } from 'react-i18next';
 
 import { getI18nextInitOptions } from './common/getI18nextInitOptions';
 import { setReduxStore } from './common/store';
+import { handle } from './ipc/renderer';
 import { App } from './rendererProcess/components/App';
 import { createRendererReduxStore } from './rendererProcess/createRendererReduxStore';
+import { resolveServerUrl } from './rendererProcess/resolveServerUrl';
+import { rootSaga } from './rendererProcess/sagas';
 import { setupRendererErrorHandling } from './rendererProcess/setupRendererErrorHandling';
 import { whenReady } from './rendererProcess/whenReady';
 
 const start = async (): Promise<void> => {
-  const reduxStore = await createRendererReduxStore();
+  const reduxStore = await createRendererReduxStore(rootSaga);
   setReduxStore(reduxStore);
 
   await whenReady();
@@ -22,12 +25,11 @@ const start = async (): Promise<void> => {
     .use(initReactI18next)
     .init(await getI18nextInitOptions(reduxStore.getState().app.locale));
 
-  (
-    await Promise.all([
-      import('./rendererProcess/notifications'),
-      import('./rendererProcess/servers'),
-    ])
-  ).forEach((module) => module.default());
+  (await Promise.all([import('./rendererProcess/notifications')])).forEach(
+    (module) => module.default()
+  );
+
+  handle('servers/resolve-url', resolveServerUrl);
 
   const container = document.getElementById('root');
 

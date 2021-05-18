@@ -10,36 +10,38 @@ import {
 } from '../common/actions/notificationsActions';
 import { WEBVIEW_FOCUS_REQUESTED } from '../common/actions/uiActions';
 import { dispatch, listen, request } from '../common/store';
-import { absoluteUrl } from './RocketChatDesktop';
-import { getServerUrl } from './setUrlResolver';
-
-const normalizeIconUrl = (iconUrl: string): string => {
-  if (/^data:/.test(iconUrl)) {
-    return iconUrl;
-  }
-
-  if (!/^https?:\/\//.test(iconUrl)) {
-    return absoluteUrl(iconUrl);
-  }
-
-  return iconUrl;
-};
+import type { RocketChatDesktopAPI } from '../common/types/RocketChatDesktopAPI';
 
 const eventHandlers = new Map<
   unknown,
   (eventDescriptor: { type: string; detail?: unknown }) => void
 >();
 
-export const createNotification = async ({
-  title,
-  icon,
-  onEvent,
-  ...options
-}: NotificationOptions & {
-  canReply?: boolean;
-  title: string;
-  onEvent: (eventDescriptor: { type: string; detail: unknown }) => void;
-}): Promise<unknown> => {
+export async function createNotification(
+  this: RocketChatDesktopAPI,
+  {
+    title,
+    icon,
+    onEvent,
+    ...options
+  }: NotificationOptions & {
+    canReply?: boolean;
+    title: string;
+    onEvent: (eventDescriptor: { type: string; detail: unknown }) => void;
+  }
+): Promise<unknown> {
+  const normalizeIconUrl = (iconUrl: string): string => {
+    if (/^data:/.test(iconUrl)) {
+      return iconUrl;
+    }
+
+    if (!/^https?:\/\//.test(iconUrl)) {
+      return this.absoluteUrl(iconUrl);
+    }
+
+    return iconUrl;
+  };
+
   const id = await request(
     {
       type: NOTIFICATIONS_CREATE_REQUESTED,
@@ -61,14 +63,16 @@ export const createNotification = async ({
   );
 
   return id;
-};
+}
 
-export const destroyNotification = (id: unknown): void => {
+export function destroyNotification(id: unknown): void {
   dispatch({ type: NOTIFICATIONS_NOTIFICATION_DISMISSED, payload: { id } });
   eventHandlers.delete(id);
-};
+}
 
-export const listenToNotificationsRequests = (): void => {
+export const listenToNotificationsRequests = (
+  rocketChatDesktop: RocketChatDesktopAPI
+): void => {
   listen(NOTIFICATIONS_NOTIFICATION_SHOWN, (action) => {
     const {
       payload: { id },
@@ -94,7 +98,7 @@ export const listenToNotificationsRequests = (): void => {
     dispatch({
       type: WEBVIEW_FOCUS_REQUESTED,
       payload: {
-        url: getServerUrl(),
+        url: rocketChatDesktop.getServerUrl(),
       },
     });
 

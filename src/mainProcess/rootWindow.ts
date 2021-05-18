@@ -272,7 +272,7 @@ export const setupRootWindow = (): void => {
       RootState,
       {
         globalBadge: Server['badge'];
-        rootWindowIcon: RootWindowIcon | null;
+        rootWindowIcon: RootWindowIcon | undefined;
       }
     >({
       globalBadge: selectGlobalBadge,

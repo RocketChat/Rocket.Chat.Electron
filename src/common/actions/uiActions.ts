@@ -1,4 +1,3 @@
-import type { RootWindowIcon } from '../types/RootWindowIcon';
 import type { Server } from '../types/Server';
 import type { WindowState } from '../types/WindowState';
 
@@ -17,7 +16,6 @@ export const MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED =
   'menu-bar/toggle-is-side-bar-enabled-clicked';
 export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED =
   'menu-bar/toggle-is-tray-icon-enabled-clicked';
-export const ROOT_WINDOW_ICON_CHANGED = 'root-window/icon-changed';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';
 export const SIDE_BAR_CONTEXT_MENU_TRIGGERED =
   'side-bar/context-menu-triggered';
@@ -54,7 +52,6 @@ export type UiActionTypeToPayloadMap = {
   [MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED]: boolean;
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
-  [ROOT_WINDOW_ICON_CHANGED]: RootWindowIcon | null;
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
   [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
   [SIDE_BAR_DOWNLOADS_BUTTON_CLICKED]: void;

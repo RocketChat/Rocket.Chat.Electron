@@ -350,6 +350,17 @@ export const setupRootWindow = (): void => {
   app.addListener('before-quit', () => {
     unsubscribers.forEach((unsubscriber) => unsubscriber());
   });
+
+  app.addListener('activate', async () => {
+    const browserWindow = await getRootWindow();
+
+    if (!browserWindow.isVisible()) {
+      browserWindow.showInactive();
+    }
+    browserWindow.focus();
+  });
+
+  app.addListener('window-all-closed', (): void => undefined);
 };
 
 export const showRootWindow = async (): Promise<void> => {

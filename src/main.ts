@@ -17,7 +17,6 @@ import { performElectronStartup } from './mainProcess/performElectronStartup';
 import { createRootWindow, showRootWindow } from './mainProcess/rootWindow';
 import { rootSaga } from './mainProcess/sagas';
 import { attachGuestWebContentsEvents } from './mainProcess/serverView';
-import { setupApp } from './mainProcess/setupApp';
 import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
 import { setupNavigation } from './mainProcess/setupNavigation';
 import { setupSpellChecking } from './mainProcess/setupSpellChecking';
@@ -45,7 +44,6 @@ const start = async (): Promise<void> => {
   //   installDevTools();
   // }
 
-  setupApp();
   setupNotifications();
   setupSpellChecking();
   setupDeepLinks();

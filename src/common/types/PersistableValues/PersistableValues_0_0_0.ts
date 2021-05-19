@@ -1,8 +1,5 @@
 import type { Certificate } from 'electron';
 
-import type { Server } from '../Server';
-import type { WindowState } from '../WindowState';
-
 export type PersistableValues_0_0_0 = {
   currentServerUrl: string;
   currentView: 'add-new-server' | null;
@@ -14,8 +11,34 @@ export type PersistableValues_0_0_0 = {
   isSideBarEnabled: boolean;
   isTrayIconEnabled: boolean;
   isUpdatingEnabled: boolean;
-  rootWindowState: WindowState;
-  servers: Server[];
+  rootWindowState: {
+    focused: boolean;
+    visible: boolean;
+    maximized: boolean;
+    minimized: boolean;
+    fullscreen: boolean;
+    normal: boolean;
+    bounds: {
+      x?: number;
+      y?: number;
+      width: number;
+      height: number;
+    };
+  };
+  servers: {
+    url: string;
+    version?: string;
+    badge?: '•' | number;
+    favicon?: string;
+    style?: {
+      background: string | null;
+      color: string | null;
+    };
+    title?: string;
+    lastPath?: string;
+    failed?: boolean;
+    webContentsId?: number;
+  }[];
   skippedUpdateVersion: string | null;
-  trustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
+  trustedCertificates: Record<string, Certificate['fingerprint']>;
 };

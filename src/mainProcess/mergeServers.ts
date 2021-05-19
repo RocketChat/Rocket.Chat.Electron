@@ -98,8 +98,9 @@ export const mergeServers = async (
   return {
     ...state,
     servers,
-    ...(currentServerUrl && {
-      currentView: { url: currentServerUrl },
-    }),
+    ui: {
+      ...state.ui,
+      view: currentServerUrl ? { url: currentServerUrl } : state.ui.view,
+    },
   };
 };

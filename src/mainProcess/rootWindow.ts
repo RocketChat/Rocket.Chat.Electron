@@ -5,18 +5,16 @@ import {
   screen,
   Rectangle,
   NativeImage,
-  WebPreferences,
 } from 'electron';
 import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
 import * as rootWindowActions from '../common/actions/rootWindowActions';
-import { WEBVIEW_FOCUS_REQUESTED } from '../common/actions/uiActions';
 import {
   selectGlobalBadge,
   selectGlobalBadgeCount,
 } from '../common/badgeSelectors';
-import { dispatch, select, watch, listen } from '../common/store';
+import { dispatch, select, watch } from '../common/store';
 import type { RootState } from '../common/types/RootState';
 import type { RootWindowIcon } from '../common/types/RootWindowIcon';
 import type { Server } from '../common/types/Server';
@@ -24,13 +22,6 @@ import type { WindowState } from '../common/types/WindowState';
 import { setupRootWindowReload } from './dev';
 import { getTrayIconPath } from './icons';
 import { joinAsarPath } from './joinAsarPath';
-
-const webPreferences: WebPreferences = {
-  nodeIntegration: true,
-  nodeIntegrationInSubFrames: true,
-  webviewTag: true,
-  worldSafeExecuteJavaScript: true,
-};
 
 const selectRootWindowState = ({
   ui: {
@@ -70,7 +61,12 @@ export const createRootWindow = (): void => {
     titleBarStyle: 'hidden',
     backgroundColor: '#2f343d',
     show: false,
-    webPreferences,
+    webPreferences: {
+      nodeIntegration: true,
+      nodeIntegrationInSubFrames: true,
+      webviewTag: true,
+      worldSafeExecuteJavaScript: true,
+    },
   });
 
   _rootWindow.addListener('close', (event) => {
@@ -200,11 +196,6 @@ export const setupRootWindow = (): void => {
         browserWindow.setTitle(windowTitle);
       }
     ),
-
-    listen(WEBVIEW_FOCUS_REQUESTED, async () => {
-      const browserWindow = await getRootWindow();
-      browserWindow.focus();
-    }),
   ];
 
   const fetchAndDispatchWindowState = async (): Promise<void> => {
@@ -352,12 +343,7 @@ export const setupRootWindow = (): void => {
   });
 
   app.addListener('activate', async () => {
-    const browserWindow = await getRootWindow();
-
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
-    }
-    browserWindow.focus();
+    dispatch(rootWindowActions.focused());
   });
 
   app.addListener('window-all-closed', (): void => undefined);

@@ -3,6 +3,7 @@ import { URL } from 'url';
 import { app, WebContents } from 'electron';
 
 import { DEEP_LINKS_SERVER_ADDED } from '../common/actions/deepLinksActions';
+import * as rootWindowActions from '../common/actions/rootWindowActions';
 import * as viewActions from '../common/actions/viewActions';
 import { isGoRocketChatUrl } from '../common/helpers/isGoRocketChatUrl';
 import { isRocketChatUrl } from '../common/helpers/isRocketChatUrl';
@@ -10,7 +11,6 @@ import { select, dispatch } from '../common/store';
 import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionStatus';
 import { askForServerAddition, warnAboutInvalidServerUrl } from './dialogs';
 import { resolveServerUrl } from './resolveServerUrl';
-import { getRootWindow } from './rootWindow';
 import { getWebContentsByServerUrl } from './serverView';
 
 const parseDeepLink = (
@@ -192,12 +192,7 @@ export const setupDeepLinks = (): void => {
   app.addListener('open-url', async (event, url): Promise<void> => {
     event.preventDefault();
 
-    const browserWindow = await getRootWindow();
-
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
-    }
-    browserWindow.focus();
+    dispatch(rootWindowActions.focused());
 
     await processDeepLink(url);
   });
@@ -205,12 +200,7 @@ export const setupDeepLinks = (): void => {
   app.addListener('second-instance', async (event, argv): Promise<void> => {
     event.preventDefault();
 
-    const browserWindow = await getRootWindow();
-
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
-    }
-    browserWindow.focus();
+    dispatch(rootWindowActions.focused());
 
     const args = argv.slice(app.isPackaged ? 1 : 2);
 

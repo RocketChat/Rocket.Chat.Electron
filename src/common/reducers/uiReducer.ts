@@ -27,7 +27,6 @@ import {
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_START_LOADING,
-  WEBVIEW_FOCUS_REQUESTED,
   WEBVIEW_MESSAGE_BOX_BLURRED,
   WEBVIEW_MESSAGE_BOX_FOCUSED,
 } from '../actions/uiActions';
@@ -53,6 +52,7 @@ type State = {
     icon: RootWindowIcon | undefined;
     state: WindowState;
     showOnBadgeChange: boolean;
+    devToolsOpen: boolean;
   };
   sideBar: {
     enabled: boolean;
@@ -89,6 +89,7 @@ export const uiReducer = createReducer<State>(
         },
       },
       showOnBadgeChange: false,
+      devToolsOpen: process.env.NODE_ENV === 'development',
     },
     sideBar: {
       enabled: true,
@@ -146,13 +147,6 @@ export const uiReducer = createReducer<State>(
           state.view = { url };
         }
       )
-      .addCase(
-        WEBVIEW_FOCUS_REQUESTED,
-        (state, action: ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>) => {
-          const { url } = action.payload;
-          state.view = { url };
-        }
-      )
       .addCase(MENU_BAR_ABOUT_CLICKED, (state) => {
         state.openDialog = 'about';
       })
@@ -202,6 +196,10 @@ export const uiReducer = createReducer<State>(
       .addCase(rootWindowActions.stateChanged, (state, action) => {
         const { state: windowState } = action.payload;
         state.rootWindow.state = windowState;
+      })
+      .addCase(rootWindowActions.devToolsToggled, (state, action) => {
+        const { enabled } = action.payload;
+        state.rootWindow.devToolsOpen = enabled;
       })
       .addCase(
         MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,

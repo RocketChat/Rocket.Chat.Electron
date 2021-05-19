@@ -1,12 +1,12 @@
 import { app, Menu, Tray } from 'electron';
 import i18next from 'i18next';
 
+import * as rootWindowActions from '../common/actions/rootWindowActions';
 import { selectGlobalBadge } from '../common/badgeSelectors';
-import { watch, select, Service } from '../common/store';
+import { watch, Service, dispatch } from '../common/store';
 import type { RootState } from '../common/types/RootState';
 import type { Server } from '../common/types/Server';
 import { getTrayIconPath, getAppIconPath } from './icons';
-import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 
@@ -22,29 +22,13 @@ const createTrayIcon = (): Tray => {
   const trayIcon = new Tray(image);
 
   if (process.platform !== 'darwin') {
-    trayIcon.addListener('click', async () => {
-      const isRootWindowVisible = select(selectIsRootWindowVisible);
-      const browserWindow = await getRootWindow();
-
-      if (isRootWindowVisible) {
-        browserWindow.hide();
-        return;
-      }
-
-      browserWindow.show();
+    trayIcon.addListener('click', () => {
+      dispatch(rootWindowActions.toggled());
     });
   }
 
   trayIcon.addListener('balloon-click', async () => {
-    const isRootWindowVisible = select(selectIsRootWindowVisible);
-    const browserWindow = await getRootWindow();
-
-    if (isRootWindowVisible) {
-      browserWindow.hide();
-      return;
-    }
-
-    browserWindow.show();
+    dispatch(rootWindowActions.toggled());
   });
 
   trayIcon.addListener('right-click', (_event, bounds) => {
@@ -121,15 +105,7 @@ const manageTrayIcon = async (): Promise<() => void> => {
             ? t('tray.menu.hide')
             : t('tray.menu.show'),
           click: async () => {
-            const isRootWindowVisible = select(selectIsRootWindowVisible);
-            const browserWindow = await getRootWindow();
-
-            if (isRootWindowVisible) {
-              browserWindow.hide();
-              return;
-            }
-
-            browserWindow.show();
+            dispatch(rootWindowActions.toggled());
           },
         },
         {

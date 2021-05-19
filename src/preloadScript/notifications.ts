@@ -8,7 +8,8 @@ import {
   NOTIFICATIONS_NOTIFICATION_REPLIED,
   NOTIFICATIONS_NOTIFICATION_SHOWN,
 } from '../common/actions/notificationsActions';
-import { WEBVIEW_FOCUS_REQUESTED } from '../common/actions/uiActions';
+import * as rootWindowActions from '../common/actions/rootWindowActions';
+import * as viewActions from '../common/actions/viewActions';
 import { dispatch, listen, request } from '../common/store';
 import type { RocketChatDesktopAPI } from '../common/types/RocketChatDesktopAPI';
 
@@ -95,12 +96,12 @@ export const listenToNotificationsRequests = (
       payload: { id },
     } = action;
 
-    dispatch({
-      type: WEBVIEW_FOCUS_REQUESTED,
-      payload: {
+    dispatch(rootWindowActions.focused());
+    dispatch(
+      viewActions.changed({
         url: rocketChatDesktop.getServerUrl(),
-      },
-    });
+      })
+    );
 
     const eventHandler = eventHandlers.get(id);
     eventHandler?.({ type: 'click' });

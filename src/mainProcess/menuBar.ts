@@ -3,6 +3,7 @@ import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 
 import { CERTIFICATES_CLEARED } from '../common/actions/navigationActions';
+import * as rootWindowActions from '../common/actions/rootWindowActions';
 import {
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
@@ -39,12 +40,7 @@ const createAppMenu = createSelector(
           id: 'about',
           label: t('menus.about', { appName: app.name }),
           click: async () => {
-            const browserWindow = await getRootWindow();
-
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
+            dispatch(rootWindowActions.focused());
             dispatch({ type: MENU_BAR_ABOUT_CLICKED });
           },
         },
@@ -78,12 +74,7 @@ const createAppMenu = createSelector(
           label: t('menus.addNewServer'),
           accelerator: 'CommandOrControl+N',
           click: async () => {
-            const browserWindow = await getRootWindow();
-
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
+            dispatch(rootWindowActions.focused());
             dispatch(viewActions.changed('add-new-server'));
           },
         },
@@ -191,12 +182,7 @@ const createViewMenu = createSelector(
         accelerator: 'CommandOrControl+R',
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
+          dispatch(rootWindowActions.focused());
           const guestWebContents =
             typeof currentView === 'object'
               ? getWebContentsByServerUrl(currentView.url)
@@ -209,12 +195,7 @@ const createViewMenu = createSelector(
         label: t('menus.reloadIgnoringCache'),
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
+          dispatch(rootWindowActions.focused());
           const guestWebContents =
             typeof currentView === 'object'
               ? getWebContentsByServerUrl(currentView.url)
@@ -243,12 +224,7 @@ const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
+          dispatch(rootWindowActions.focused());
           const guestWebContents =
             typeof currentView === 'object'
               ? getWebContentsByServerUrl(currentView.url)
@@ -262,12 +238,7 @@ const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
+          dispatch(rootWindowActions.focused());
           const guestWebContents =
             typeof currentView === 'object'
               ? getWebContentsByServerUrl(currentView.url)
@@ -296,13 +267,8 @@ const createViewMenu = createSelector(
           checked: rootWindowState.fullscreen,
           accelerator: 'Control+Command+F',
           click: async ({ checked: enabled }) => {
-            const browserWindow = await getRootWindow();
-
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
-            browserWindow.setFullScreen(enabled);
+            dispatch(rootWindowActions.focused());
+            dispatch(rootWindowActions.fullscreenToggled(enabled));
           },
         },
       ]),
@@ -313,12 +279,7 @@ const createViewMenu = createSelector(
           type: 'checkbox',
           checked: isMenuBarEnabled,
           click: async ({ checked }) => {
-            const browserWindow = await getRootWindow();
-
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
+            dispatch(rootWindowActions.focused());
             dispatch({
               type: MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
               payload: checked,
@@ -332,12 +293,7 @@ const createViewMenu = createSelector(
         type: 'checkbox',
         checked: isSideBarEnabled,
         click: async ({ checked }) => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
+          dispatch(rootWindowActions.focused());
           dispatch({
             type: MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
             payload: checked,
@@ -350,13 +306,8 @@ const createViewMenu = createSelector(
         label: t('menus.resetZoom'),
         accelerator: 'CommandOrControl+0',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          browserWindow.webContents.zoomLevel = 0;
+          dispatch(rootWindowActions.focused());
+          dispatch(rootWindowActions.zoomReset());
         },
       },
       {
@@ -364,16 +315,8 @@ const createViewMenu = createSelector(
         label: t('menus.zoomIn'),
         accelerator: 'CommandOrControl+Plus',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          if (browserWindow.webContents.zoomLevel >= 9) {
-            return;
-          }
-          browserWindow.webContents.zoomLevel++;
+          dispatch(rootWindowActions.focused());
+          dispatch(rootWindowActions.zoomedIn());
         },
       },
       {
@@ -381,16 +324,8 @@ const createViewMenu = createSelector(
         label: t('menus.zoomOut'),
         accelerator: 'CommandOrControl+-',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          if (browserWindow.webContents.zoomLevel <= -9) {
-            return;
-          }
-          browserWindow.webContents.zoomLevel--;
+          dispatch(rootWindowActions.focused());
+          dispatch(rootWindowActions.zoomedOut());
         },
       },
     ],
@@ -433,12 +368,7 @@ const createWindowMenu = createSelector(
           label: t('menus.addNewServer'),
           accelerator: 'CommandOrControl+N',
           click: async () => {
-            const browserWindow = await getRootWindow();
-
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
+            dispatch(rootWindowActions.focused());
             dispatch(viewActions.changed('add-new-server'));
           },
         },
@@ -457,12 +387,7 @@ const createWindowMenu = createSelector(
               typeof currentView === 'object' && currentView.url === server.url,
             accelerator: `CommandOrControl+${i + 1}`,
             click: async () => {
-              const browserWindow = await getRootWindow();
-
-              if (!browserWindow.isVisible()) {
-                browserWindow.showInactive();
-              }
-              browserWindow.focus();
+              dispatch(rootWindowActions.focused());
               dispatch(viewActions.changed({ url: server.url }));
             },
           })
@@ -484,12 +409,7 @@ const createWindowMenu = createSelector(
         label: t('menus.showOnUnreadMessage'),
         checked: isShowWindowOnUnreadChangedEnabled,
         click: async ({ checked }) => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
+          dispatch(rootWindowActions.focused());
           dispatch({
             type: MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
             payload: checked,
@@ -514,8 +434,8 @@ const createWindowMenu = createSelector(
 );
 
 const createHelpMenu = createSelector(
-  () => undefined,
-  (): MenuItemConstructorOptions => ({
+  (state: RootState) => state.ui.rootWindow.devToolsOpen,
+  (devToolsOpen): MenuItemConstructorOptions => ({
     id: 'helpMenu',
     label: t('menus.helpMenu'),
     role: 'help',
@@ -542,26 +462,18 @@ const createHelpMenu = createSelector(
         label: t('menus.reload'),
         accelerator: 'CommandOrControl+Shift+R',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          browserWindow.webContents.reload();
+          dispatch(rootWindowActions.focused());
+          dispatch(rootWindowActions.reloaded());
         },
       },
       {
         id: 'toggleDevTools',
         label: t('menus.toggleDevTools'),
+        type: 'checkbox',
+        checked: devToolsOpen,
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          browserWindow.webContents.toggleDevTools();
+          dispatch(rootWindowActions.focused());
+          dispatch(rootWindowActions.devToolsToggled(!devToolsOpen));
         },
       },
       { type: 'separator' },
@@ -569,12 +481,7 @@ const createHelpMenu = createSelector(
         id: 'clearTrustedCertificates',
         label: t('menus.clearTrustedCertificates'),
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
+          dispatch(rootWindowActions.focused());
           dispatch({ type: CERTIFICATES_CLEARED });
         },
       },
@@ -602,12 +509,7 @@ const createHelpMenu = createSelector(
           id: 'about',
           label: t('menus.about', { appName: app.name }),
           click: async () => {
-            const browserWindow = await getRootWindow();
-
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
+            dispatch(rootWindowActions.focused());
             dispatch({ type: MENU_BAR_ABOUT_CLICKED });
           },
         },

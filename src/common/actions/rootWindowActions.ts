@@ -20,3 +20,33 @@ export const stateChanged = createAction(
     },
   })
 );
+
+export const focused = createAction('rootWindow/focused');
+
+export const fullscreenToggled = createAction(
+  'rootWindow/fullscreenToggled',
+  (enabled: boolean) => ({
+    payload: {
+      enabled,
+    },
+  })
+);
+
+export const zoomReset = createAction('rootWindow/zoomReset');
+
+export const zoomedIn = createAction('rootWindow/zoomedIn');
+
+export const zoomedOut = createAction('rootWindow/zoomedOut');
+
+export const reloaded = createAction('rootWindow/reloaded');
+
+export const devToolsToggled = createAction(
+  'rootWindow/devToolsToggled',
+  (enabled: boolean) => ({
+    payload: {
+      enabled,
+    },
+  })
+);
+
+export const toggled = createAction('rootWindow/toggled');

@@ -74,7 +74,6 @@ const initializeServerWebContents = (
 
   const handleDidStartLoading = (): void => {
     dispatch({ type: WEBVIEW_DID_START_LOADING, payload: { url: serverUrl } });
-    rootWindow.webContents.send(WEBVIEW_DID_START_LOADING, serverUrl);
   };
 
   const handleDidFailLoad = (

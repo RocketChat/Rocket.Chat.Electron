@@ -1,5 +1,5 @@
 import type { Task } from 'redux-saga';
-import { StrictEffect, takeLatest } from 'redux-saga/effects';
+import { StrictEffect, takeLeading } from 'redux-saga/effects';
 
 import type { RootState } from '../types/RootState';
 import { select } from './select';
@@ -13,14 +13,14 @@ export function* watch<
 ): Generator<StrictEffect, Task> {
   let prev: T | undefined = undefined;
 
-  return (yield takeLatest('*', function* () {
+  return (yield takeLeading('*', function* () {
     const curr: T = yield* select(selector);
 
     if (Object.is(prev, curr)) {
       return;
     }
 
-    watcher(curr, prev);
+    yield* watcher(curr, prev);
 
     prev = curr;
   })) as Task;

@@ -8,6 +8,7 @@ import {
 } from 'electron';
 import i18next from 'i18next';
 
+import * as rootWindowActions from '../common/actions/rootWindowActions';
 import {
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
@@ -33,12 +34,7 @@ const createTouchBar = (): [
     continuous: false,
     items: [],
     select: async (index) => {
-      const browserWindow = await getRootWindow();
-
-      if (!browserWindow.isVisible()) {
-        browserWindow.showInactive();
-      }
-      browserWindow.focus();
+      dispatch(rootWindowActions.focused());
 
       const url = select(({ servers }) => servers[index].url);
       dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
@@ -63,13 +59,7 @@ const createTouchBar = (): [
       enabled: false,
     })),
     change: async (selectedIndex) => {
-      const browserWindow = await getRootWindow();
-
-      if (!browserWindow.isVisible()) {
-        browserWindow.showInactive();
-      }
-      browserWindow.focus();
-
+      dispatch(rootWindowActions.focused());
       dispatch({
         type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
         payload: ids[selectedIndex],

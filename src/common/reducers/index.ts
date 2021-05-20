@@ -1,7 +1,7 @@
 import { combineReducers } from 'redux';
 
 import { appReducer } from './appReducer';
-import { downloads } from './downloadsReducer';
+import { downloadsReducer } from './downloadsReducer';
 import {
   clientCertificates,
   externalProtocols,
@@ -13,10 +13,10 @@ import { updatesReducer } from './updatesReducer';
 
 export const rootReducer = combineReducers({
   app: appReducer,
+  downloads: downloadsReducer,
   updates: updatesReducer,
   ui: uiReducer,
   clientCertificates,
-  downloads,
   externalProtocols,
   servers,
   trustedCertificates,

@@ -1,7 +1,7 @@
 import type { Action, ActionCreator } from 'redux';
 
 import type * as deepLinksActions from './deepLinksActions';
-import type { DownloadsActionTypeToPayloadMap } from './downloadsActions';
+import type * as downloadActions from './downloadActions';
 import type { NavigationActionTypeToPayloadMap } from './navigationActions';
 import type { NotificationsActionTypeToPayloadMap } from './notificationsActions';
 import type * as rootWindowActions from './rootWindowActions';
@@ -13,8 +13,7 @@ import type * as updateActions from './updateActions';
 import type * as updateCheckActions from './updateCheckActions';
 import type * as viewActions from './viewActions';
 
-type ActionTypeToPayloadMap = DownloadsActionTypeToPayloadMap &
-  NavigationActionTypeToPayloadMap &
+type ActionTypeToPayloadMap = NavigationActionTypeToPayloadMap &
   NotificationsActionTypeToPayloadMap &
   UiActionTypeToPayloadMap;
 
@@ -37,6 +36,7 @@ export type RootActions = {
       };
 } &
   ActionsFromModule<typeof deepLinksActions> &
+  ActionsFromModule<typeof downloadActions> &
   ActionsFromModule<typeof rootWindowActions> &
   ActionsFromModule<typeof screenSharingActions> &
   ActionsFromModule<typeof spellCheckingActions> &

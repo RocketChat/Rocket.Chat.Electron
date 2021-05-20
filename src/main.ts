@@ -6,7 +6,6 @@ import { setReduxStore } from './common/store';
 import { createMainReduxStore } from './mainProcess/createMainReduxStore';
 import { setUserDataDirectory } from './mainProcess/dev';
 import dock from './mainProcess/dock';
-import { setupDownloads } from './mainProcess/downloads';
 import menuBar from './mainProcess/menuBar';
 import { setupNotifications } from './mainProcess/notifications';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
@@ -41,7 +40,6 @@ const start = async (): Promise<void> => {
 
   setupNotifications();
   setupNavigation();
-  setupDownloads();
 
   dock.setUp();
   menuBar.setUp();

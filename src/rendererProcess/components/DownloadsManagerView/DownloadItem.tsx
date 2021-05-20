@@ -2,8 +2,9 @@ import { Box, BoxProps, ProgressBar } from '@rocket.chat/fuselage';
 import React, { FC, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import * as downloadActions from '../../../common/actions/downloadActions';
+import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import type { Download } from '../../../common/types/Download';
-import { invoke } from '../../../ipc/renderer';
 import ActionButton from './ActionButton';
 import FileIcon from './FileIcon';
 
@@ -76,33 +77,35 @@ const DownloadItem: FC<DownloadItemProps> = ({
     return i18n.format(remainingBytes / speed, 'duration');
   }, [endTime, i18n, receivedBytes, startTime, state, totalBytes]);
 
+  const dispatch = useAppDispatch();
+
   const handlePause = useCallback(() => {
-    invoke('downloads/pause', itemId);
-  }, [itemId]);
+    dispatch(downloadActions.paused(itemId));
+  }, [dispatch, itemId]);
 
   const handleResume = useCallback(() => {
-    invoke('downloads/resume', itemId);
-  }, [itemId]);
+    dispatch(downloadActions.resumed(itemId));
+  }, [dispatch, itemId]);
 
   const handleCancel = useCallback(async () => {
-    invoke('downloads/cancel', itemId);
-  }, [itemId]);
+    dispatch(downloadActions.cancelled(itemId));
+  }, [dispatch, itemId]);
 
   const handleShowInFolder = useCallback((): void => {
-    invoke('downloads/show-in-folder', itemId);
-  }, [itemId]);
+    dispatch(downloadActions.shownInFolder(itemId));
+  }, [dispatch, itemId]);
 
   const handleRetry = useCallback(() => {
-    invoke('downloads/retry', itemId);
-  }, [itemId]);
+    dispatch(downloadActions.retried(itemId));
+  }, [dispatch, itemId]);
 
   const handleRemove = useCallback(() => {
-    invoke('downloads/remove', itemId);
-  }, [itemId]);
+    dispatch(downloadActions.removed(itemId));
+  }, [dispatch, itemId]);
 
   const handleCopyLink = useCallback(() => {
-    invoke('downloads/copy-link', itemId);
-  }, [itemId]);
+    dispatch(downloadActions.linkCopied(itemId));
+  }, [dispatch, itemId]);
 
   const errored = state === 'interrupted' || state === 'cancelled';
   const percentage = useMemo(

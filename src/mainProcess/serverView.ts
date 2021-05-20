@@ -1,9 +1,11 @@
 import fs from 'fs';
+import { extname } from 'path';
 
 import {
   app,
   BrowserWindow,
   ContextMenuParams,
+  DownloadItem,
   Event,
   Input,
   Menu,
@@ -20,6 +22,7 @@ import {
 } from 'electron';
 import i18next from 'i18next';
 
+import * as downloadActions from '../common/actions/downloadActions';
 import { CERTIFICATES_CLEARED } from '../common/actions/navigationActions';
 import * as serverActions from '../common/actions/serverActions';
 import {
@@ -31,10 +34,11 @@ import {
   WEBVIEW_DID_START_LOADING,
 } from '../common/actions/uiActions';
 import { dispatch, listen, select } from '../common/store';
+import { DownloadStatus } from '../common/types/DownloadStatus';
 import type { Server } from '../common/types/Server';
 import { handle } from '../ipc/main';
 import { setupPreloadReload } from './dev';
-import { handleWillDownloadEvent } from './downloads';
+import { registerDownloadItem, unregisterDownloadItem } from './downloads';
 import { isProtocolAllowed } from './isProtocolAllowed';
 import { joinAsarPath } from './joinAsarPath';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -307,6 +311,104 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.setPermissionRequestHandler(
       handlePermissionRequest
     );
+
+    const handleWillDownloadEvent = async (
+      _event: Event,
+      item: DownloadItem,
+      serverWebContents: WebContents
+    ): Promise<void> => {
+      const itemId = Date.now();
+
+      registerDownloadItem(itemId, item);
+
+      const fileName = item.getFilename();
+
+      const extension = extname(fileName)?.slice(1).toLowerCase();
+
+      if (extension) {
+        item.setSaveDialogOptions({
+          filters: [
+            {
+              name: `*.${extension}`,
+              extensions: [extension],
+            },
+            {
+              name: '*.*',
+              extensions: ['*'],
+            },
+          ],
+        });
+      }
+
+      const server = select(({ servers }) =>
+        servers.find((server) => server.webContentsId === serverWebContents.id)
+      );
+
+      if (!server) {
+        // TODO: check if the download always comes from the main frame webContents
+        throw new Error('could not match the server');
+      }
+
+      dispatch(
+        downloadActions.created({
+          itemId,
+          state: item.isPaused() ? 'paused' : item.getState(),
+          status: item.isPaused() ? DownloadStatus.PAUSED : DownloadStatus.ALL,
+          fileName: item.getFilename(),
+          receivedBytes: item.getReceivedBytes(),
+          totalBytes: item.getTotalBytes(),
+          startTime: item.getStartTime() * 1000,
+          endTime: undefined,
+          url: item.getURL(),
+          serverUrl: server?.url,
+          serverTitle: server?.title,
+          mimeType: item.getMimeType(),
+          savePath: item.getSavePath(),
+        })
+      );
+
+      item.on('updated', () => {
+        dispatch(
+          downloadActions.updated(itemId, {
+            state: item.isPaused() ? 'paused' : item.getState(),
+            status: item.isPaused()
+              ? DownloadStatus.PAUSED
+              : DownloadStatus.ALL,
+            fileName: item.getFilename(),
+            receivedBytes: item.getReceivedBytes(),
+            totalBytes: item.getTotalBytes(),
+            startTime: item.getStartTime() * 1000,
+            endTime: Date.now(),
+            url: item.getURL(),
+            mimeType: item.getMimeType(),
+            savePath: item.getSavePath(),
+          })
+        );
+      });
+
+      item.on('done', () => {
+        dispatch(
+          downloadActions.updated(itemId, {
+            state: item.isPaused() ? 'paused' : item.getState(),
+            status:
+              item.getState() === 'cancelled'
+                ? DownloadStatus.CANCELLED
+                : DownloadStatus.ALL,
+            fileName: item.getFilename(),
+            receivedBytes: item.getReceivedBytes(),
+            totalBytes: item.getTotalBytes(),
+            startTime: item.getStartTime() * 1000,
+            endTime: Date.now(),
+            url: item.getURL(),
+            mimeType: item.getMimeType(),
+            savePath: item.getSavePath(),
+          })
+        );
+
+        unregisterDownloadItem(itemId);
+      });
+    };
+
     guestWebContents.session.on('will-download', handleWillDownloadEvent);
   });
 

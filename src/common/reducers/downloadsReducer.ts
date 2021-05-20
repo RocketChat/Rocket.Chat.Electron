@@ -1,50 +1,28 @@
-import type { ActionOf } from '../actions';
-import {
-  DOWNLOADS_CLEARED,
-  DOWNLOAD_CREATED,
-  DOWNLOAD_REMOVED,
-  DOWNLOAD_UPDATED,
-} from '../actions/downloadsActions';
+import { createReducer } from '@reduxjs/toolkit';
+
+import * as downloadActions from '../actions/downloadActions';
 import type { Download } from '../types/Download';
 
-type DownloadsAction =
-  | ActionOf<typeof DOWNLOAD_CREATED>
-  | ActionOf<typeof DOWNLOAD_UPDATED>
-  | ActionOf<typeof DOWNLOADS_CLEARED>
-  | ActionOf<typeof DOWNLOAD_REMOVED>;
+type State = Record<Download['itemId'], Download>;
 
-export const downloads = (
-  state: Record<Download['itemId'], Download> = {},
-  action: DownloadsAction
-): Record<Download['itemId'], Download> => {
-  switch (action.type) {
-    case DOWNLOAD_CREATED: {
-      const download = action.payload;
-      return {
-        ...state,
-        [download.itemId]: download,
+export const downloadsReducer = createReducer<State>({}, (builder) =>
+  builder
+    .addCase(downloadActions.created, (state, action) => {
+      const { download } = action.payload;
+
+      state[download.itemId] = download;
+    })
+    .addCase(downloadActions.updated, (state, action) => {
+      const { itemId, changes } = action.payload;
+
+      state[itemId] = {
+        ...state[itemId],
+        ...changes,
       };
-    }
+    })
+    .addCase(downloadActions.removed, (state, action) => {
+      const { itemId } = action.payload;
 
-    case DOWNLOAD_UPDATED: {
-      const newState = { ...state };
-      newState[action.payload.itemId] = {
-        ...newState[action.payload.itemId],
-        ...action.payload,
-      };
-      return newState;
-    }
-
-    case DOWNLOAD_REMOVED: {
-      const newState = { ...state };
-      delete newState[action.payload];
-      return newState;
-    }
-
-    case DOWNLOADS_CLEARED:
-      return {};
-
-    default:
-      return state;
-  }
-};
+      delete state[itemId];
+    })
+);

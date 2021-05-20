@@ -15,7 +15,6 @@ import { rootSaga } from './mainProcess/sagas';
 import { attachGuestWebContentsEvents } from './mainProcess/serverView';
 import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
 import { setupNavigation } from './mainProcess/setupNavigation';
-import { setupSpellChecking } from './mainProcess/setupSpellChecking';
 import touchBar from './mainProcess/touchBar';
 import trayIcon from './mainProcess/trayIcon';
 
@@ -41,7 +40,6 @@ const start = async (): Promise<void> => {
   // }
 
   setupNotifications();
-  setupSpellChecking();
   setupNavigation();
   setupDownloads();
 

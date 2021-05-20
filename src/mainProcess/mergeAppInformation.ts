@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, session } from 'electron';
 
 import type { RootState } from '../common/types/RootState';
 
@@ -13,6 +13,10 @@ export const mergeAppInformation = async (
     platform: process.platform,
     locale: app.getLocale(),
     bugsnagApiKey: process.env.BUGSNAG_API_KEY,
+    spellCheckerLanguages: {
+      current: session.defaultSession.getSpellCheckerLanguages(),
+      available: session.defaultSession.availableSpellCheckerLanguages,
+    },
   },
   ui: {
     ...state.ui,

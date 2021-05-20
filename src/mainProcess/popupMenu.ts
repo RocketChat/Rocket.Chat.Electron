@@ -8,10 +8,7 @@ import {
 } from 'electron';
 import i18next from 'i18next';
 
-import {
-  SPELL_CHECKING_LANGUAGE_TOGGLED,
-  SPELL_CHECKING_TOGGLED,
-} from '../common/actions/spellCheckingActions';
+import * as spellCheckingActions from '../common/actions/spellCheckingActions';
 import { dispatch } from '../common/store';
 
 const t = i18next.t.bind(i18next);
@@ -77,10 +74,7 @@ const createSpellCheckingMenuTemplate = (
             type: 'checkbox',
             checked: spellCheckerLanguages.length > 0,
             click: ({ checked }) => {
-              dispatch({
-                type: SPELL_CHECKING_TOGGLED,
-                payload: checked,
-              });
+              dispatch(spellCheckingActions.toggled(checked));
             },
           },
         ]
@@ -97,13 +91,12 @@ const createSpellCheckingMenuTemplate = (
                     availableSpellCheckerLanguage
                   ),
                   click: ({ checked }) => {
-                    dispatch({
-                      type: SPELL_CHECKING_LANGUAGE_TOGGLED,
-                      payload: {
-                        name: availableSpellCheckerLanguage,
-                        enabled: checked,
-                      },
-                    });
+                    dispatch(
+                      spellCheckingActions.languageToggled(
+                        availableSpellCheckerLanguage,
+                        checked
+                      )
+                    );
                   },
                 })
               ),

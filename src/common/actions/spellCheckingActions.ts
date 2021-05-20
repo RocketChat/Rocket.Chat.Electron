@@ -1,8 +1,20 @@
-export const SPELL_CHECKING_TOGGLED = 'spell-checking/toggled';
-export const SPELL_CHECKING_LANGUAGE_TOGGLED =
-  'spell-checking/language-toggled';
+import { createAction } from '@reduxjs/toolkit';
 
-export type SpellCheckingActionTypeToPayloadMap = {
-  [SPELL_CHECKING_TOGGLED]: boolean;
-  [SPELL_CHECKING_LANGUAGE_TOGGLED]: { name: string; enabled: boolean };
-};
+export const toggled = createAction(
+  'spellChecking/toggled',
+  (enabled: boolean) => ({
+    payload: {
+      enabled,
+    },
+  })
+);
+
+export const languageToggled = createAction(
+  'spellChecking/languageToggled',
+  (language: string, enabled: boolean) => ({
+    payload: {
+      language,
+      enabled,
+    },
+  })
+);

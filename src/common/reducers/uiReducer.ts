@@ -1,7 +1,6 @@
 import { createReducer } from '@reduxjs/toolkit';
 
 import type { ActionOf } from '../actions';
-import { DEEP_LINKS_SERVER_ADDED } from '../actions/deepLinksActions';
 import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
@@ -122,13 +121,6 @@ export const uiReducer = createReducer<State>(
       .addCase(
         ADD_SERVER_VIEW_SERVER_ADDED,
         (state, action: ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>) => {
-          const url = action.payload;
-          state.view = { url };
-        }
-      )
-      .addCase(
-        DEEP_LINKS_SERVER_ADDED,
-        (state, action: ActionOf<typeof DEEP_LINKS_SERVER_ADDED>) => {
           const url = action.payload;
           state.view = { url };
         }

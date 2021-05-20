@@ -4,10 +4,6 @@ import i18next from 'i18next';
 import { getI18nextInitOptions } from './common/getI18nextInitOptions';
 import { setReduxStore } from './common/store';
 import { createMainReduxStore } from './mainProcess/createMainReduxStore';
-import {
-  setupDeepLinks,
-  processDeepLinksInArgs,
-} from './mainProcess/deepLinks';
 import { setUserDataDirectory } from './mainProcess/dev';
 import dock from './mainProcess/dock';
 import { setupDownloads } from './mainProcess/downloads';
@@ -46,7 +42,6 @@ const start = async (): Promise<void> => {
 
   setupNotifications();
   setupSpellChecking();
-  setupDeepLinks();
   setupNavigation();
   setupDownloads();
 
@@ -61,8 +56,6 @@ const start = async (): Promise<void> => {
     touchBar.tearDown();
     trayIcon.tearDown();
   });
-
-  await processDeepLinksInArgs();
 };
 
 if (require.main === module) {

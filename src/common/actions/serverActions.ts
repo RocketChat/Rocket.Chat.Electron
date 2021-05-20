@@ -92,3 +92,9 @@ export const webviewAttached = createAction(
     },
   })
 );
+
+export const added = createAction('server/added', (url: Server['url']) => ({
+  payload: {
+    url,
+  },
+}));

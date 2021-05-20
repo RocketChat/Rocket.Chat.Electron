@@ -1,221 +1,159 @@
 import { URL } from 'url';
 
-import { app, WebContents } from 'electron';
+import { app } from 'electron';
 
-import { DEEP_LINKS_SERVER_ADDED } from '../common/actions/deepLinksActions';
+import * as deepLinksActions from '../common/actions/deepLinksActions';
 import * as rootWindowActions from '../common/actions/rootWindowActions';
-import * as viewActions from '../common/actions/viewActions';
 import { isGoRocketChatUrl } from '../common/helpers/isGoRocketChatUrl';
+import { isNotUndefined } from '../common/helpers/isNotUndefined';
 import { isRocketChatUrl } from '../common/helpers/isRocketChatUrl';
-import { select, dispatch } from '../common/store';
-import { ServerUrlResolutionStatus } from '../common/types/ServerUrlResolutionStatus';
-import { askForServerAddition, warnAboutInvalidServerUrl } from './dialogs';
-import { resolveServerUrl } from './resolveServerUrl';
-import { getWebContentsByServerUrl } from './serverView';
+import { dispatch } from '../common/store';
+import type { DeepLink } from '../common/types/DeepLink';
 
-const parseDeepLink = (
-  input: string
-): { action: string; args: URLSearchParams } | null => {
-  if (/^--/.test(input)) {
-    // input is a CLI flag
-    return null;
+const isUrl = (arg: string) => {
+  if (arg.charAt(0) === '-') {
+    return false;
   }
-
-  let url: URL;
 
   try {
-    url = new URL(input);
+    new URL(arg);
+    return true;
   } catch (error) {
-    return null;
+    return false;
   }
+};
 
-  if (isRocketChatUrl(url)) {
-    const action = url.hostname;
-    const args = url.searchParams;
+const toUrl = (arg: string) => new URL(arg);
+
+const toDeepLinkParams = (arg: URL) => {
+  if (isRocketChatUrl(arg)) {
+    const action = arg.hostname;
+    const args = arg.searchParams;
     return { action, args };
   }
 
-  if (isGoRocketChatUrl(url)) {
-    const action = url.pathname;
-    const args = url.searchParams;
+  if (isGoRocketChatUrl(arg)) {
+    const action = arg.pathname;
+    const args = arg.searchParams;
     return { action, args };
   }
 
-  return null;
+  return undefined;
 };
 
-export let processDeepLinksInArgs = async (): Promise<void> => undefined;
+const toAuthLink = (args: URLSearchParams) => {
+  const host = args.get('host') ?? undefined;
+  const token = args.get('token') ?? undefined;
+  const userId = args.get('userId') ?? undefined;
 
-type AuthenticationParams = {
-  host: string;
-  token: string;
-  userId: string;
-};
-
-type OpenRoomParams = {
-  host: string;
-  rid: string;
-  path?: string;
-};
-
-type InviteParams = {
-  host: string;
-  rid: string;
-  path: string;
-};
-
-const performOnServer = async (
-  url: string,
-  action: (serverUrl: string) => Promise<void>
-): Promise<void> => {
-  const [serverUrl, status, error] = await resolveServerUrl(url);
-
-  if (status !== ServerUrlResolutionStatus.OK) {
-    await warnAboutInvalidServerUrl(serverUrl, error?.message ?? '');
-    return;
+  if (host === undefined || token === undefined || userId === undefined) {
+    return undefined;
   }
 
-  const isServerAdded = select(({ servers }) =>
-    servers.some((server) => server.url === serverUrl)
-  );
-
-  if (isServerAdded) {
-    dispatch(viewActions.changed({ url: serverUrl }));
-    await action(serverUrl);
-    return;
-  }
-
-  const permitted = await askForServerAddition(serverUrl);
-
-  if (!permitted) {
-    return;
-  }
-
-  dispatch({
-    type: DEEP_LINKS_SERVER_ADDED,
-    payload: serverUrl,
-  });
-  await action(serverUrl);
+  return {
+    type: 'auth' as const,
+    host,
+    token,
+    userId,
+  };
 };
 
-const getWebContents = (serverUrl: string): Promise<WebContents> =>
-  new Promise((resolve) => {
-    const poll = (): void => {
-      const webContents = getWebContentsByServerUrl(serverUrl);
-      if (webContents) {
-        resolve(webContents);
-        return;
-      }
+const toRoomLink = (args: URLSearchParams) => {
+  const host = args.get('host') ?? undefined;
+  const path = args.get('path') ?? undefined;
+  const rid = args.get('rid') ?? undefined;
 
-      setTimeout(poll, 100);
-    };
-
-    poll();
-  });
-
-const performAuthentication = async ({
-  host,
-  token,
-  userId,
-}: AuthenticationParams): Promise<void> =>
-  performOnServer(host, async (serverUrl) => {
-    const url = new URL('home', serverUrl);
-    url.searchParams.append('resumeToken', token);
-    url.searchParams.append('userId', userId);
-
-    const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(url.href);
-  });
-
-const performOpenRoom = async ({ host, path }: OpenRoomParams): Promise<void> =>
-  performOnServer(host, async (serverUrl) => {
-    if (!path) {
-      return;
-    }
-
-    const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(new URL(path, serverUrl).href);
-  });
-
-const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
-  performOnServer(host, async (serverUrl) => {
-    if (!/^invite\//.test(path)) {
-      return;
-    }
-
-    const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(new URL(path, serverUrl).href);
-  });
-
-const processDeepLink = async (deepLink: string): Promise<void> => {
-  const parsedDeepLink = parseDeepLink(deepLink);
-
-  if (!parsedDeepLink) {
-    return;
+  if (host === undefined || rid === undefined) {
+    return undefined;
   }
 
-  const { action, args } = parsedDeepLink;
+  return {
+    type: 'room' as const,
+    host,
+    path,
+    rid,
+  };
+};
+
+const toInviteLink = (args: URLSearchParams) => {
+  const host = args.get('host') ?? undefined;
+  const path = args.get('path') ?? undefined;
+  const rid = args.get('rid') ?? undefined;
+
+  if (host === undefined || path === undefined || rid === undefined) {
+    return undefined;
+  }
+
+  return {
+    type: 'invite' as const,
+    host,
+    path,
+    rid,
+  };
+};
+
+const toDeepLink = (
+  arg: { action: string; args: URLSearchParams } | undefined
+) => {
+  if (arg === undefined) {
+    return undefined;
+  }
+
+  console.log(arg);
+
+  const { action, args } = arg;
 
   switch (action) {
-    case 'auth': {
-      const host = args.get('host') ?? undefined;
-      const token = args.get('token') ?? undefined;
-      const userId = args.get('userId') ?? undefined;
-      if (host && token && userId) {
-        await performAuthentication({ host, token, userId });
-      }
-      break;
-    }
+    case 'auth':
+      return toAuthLink(args);
 
-    case 'room': {
-      const host = args.get('host') ?? undefined;
-      const path = args.get('path') ?? undefined;
-      const rid = args.get('rid') ?? undefined;
-      if (host && rid) {
-        await performOpenRoom({ host, path, rid });
-      }
-      break;
-    }
+    case 'room':
+      return toRoomLink(args);
 
-    case 'invite': {
-      const host = args.get('host') ?? undefined;
-      const path = args.get('path') ?? undefined;
-      const rid = args.get('rid') ?? undefined;
-      if (host && path && rid) {
-        await performInvite({ host, path, rid });
-      }
-    }
+    case 'invite':
+      return toInviteLink(args);
   }
+
+  return undefined;
 };
 
-export const setupDeepLinks = (): void => {
+const mapDeepLinks = (args: string[]): DeepLink[] =>
+  args
+    .filter(isUrl)
+    .map(toUrl)
+    .map(toDeepLinkParams)
+    .map(toDeepLink)
+    .filter(isNotUndefined);
+
+const fromArgv = (argv: string[]): string[] =>
+  argv.slice(app.isPackaged ? 1 : 2);
+
+const processDeepLinks = (args: string[]): void => {
+  const deepLinks = mapDeepLinks(args);
+  console.log(args, deepLinks);
+
+  if (deepLinks.length === 0) {
+    return;
+  }
+
+  dispatch(deepLinksActions.triggered(deepLinks));
+};
+
+export const attachDeepLinkEvents = (): void => {
   app.addListener('open-url', async (event, url): Promise<void> => {
     event.preventDefault();
 
-    dispatch(rootWindowActions.focused());
-
-    await processDeepLink(url);
+    processDeepLinks([url]);
   });
 
   app.addListener('second-instance', async (event, argv): Promise<void> => {
     event.preventDefault();
 
     dispatch(rootWindowActions.focused());
-
-    const args = argv.slice(app.isPackaged ? 1 : 2);
-
-    for (const arg of args) {
-      // eslint-disable-next-line no-await-in-loop
-      await processDeepLink(arg);
-    }
+    processDeepLinks(fromArgv(argv));
   });
+};
 
-  processDeepLinksInArgs = async (): Promise<void> => {
-    const args = process.argv.slice(app.isPackaged ? 1 : 2);
-
-    for (const arg of args) {
-      // eslint-disable-next-line no-await-in-loop
-      await processDeepLink(arg);
-    }
-  };
+export const processDeepLinksInArgv = (argv: string[]): void => {
+  processDeepLinks(fromArgv(argv));
 };

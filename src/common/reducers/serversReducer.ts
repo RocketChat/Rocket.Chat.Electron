@@ -1,7 +1,6 @@
 import { createReducer } from '@reduxjs/toolkit';
 
 import type { ActionOf } from '../actions';
-import { DEEP_LINKS_SERVER_ADDED } from '../actions/deepLinksActions';
 import * as serverActions from '../actions/serverActions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
@@ -35,13 +34,6 @@ export const servers = createReducer<Server[]>([], (builder) =>
     .addCase(
       ADD_SERVER_VIEW_SERVER_ADDED,
       (state, action: ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>) => {
-        const url = action.payload;
-        return upsert(state, { url, title: url });
-      }
-    )
-    .addCase(
-      DEEP_LINKS_SERVER_ADDED,
-      (state, action: ActionOf<typeof DEEP_LINKS_SERVER_ADDED>) => {
         const url = action.payload;
         return upsert(state, { url, title: url });
       }
@@ -152,6 +144,14 @@ export const servers = createReducer<Server[]>([], (builder) =>
       const server = findServer(state, url);
       if (server) {
         server.webContentsId = webContentsId;
+      }
+    })
+    .addCase(serverActions.added, (state, action) => {
+      const { url } = action.payload;
+      const server = findServer(state, url);
+
+      if (!server) {
+        state.push({ url });
       }
     })
 );

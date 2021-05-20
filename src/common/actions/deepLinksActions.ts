@@ -1,7 +1,12 @@
-import type { Server } from '../types/Server';
+import { createAction } from '@reduxjs/toolkit';
 
-export const DEEP_LINKS_SERVER_ADDED = 'deep-links/server-added';
+import type { DeepLink } from '../types/DeepLink';
 
-export type DeepLinksActionTypeToPayloadMap = {
-  [DEEP_LINKS_SERVER_ADDED]: Server['url'];
-};
+export const triggered = createAction(
+  'deepLinks/triggered',
+  (deepLinks: DeepLink[]) => ({
+    payload: {
+      deepLinks,
+    },
+  })
+);

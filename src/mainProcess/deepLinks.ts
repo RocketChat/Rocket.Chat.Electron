@@ -130,7 +130,6 @@ const fromArgv = (argv: string[]): string[] =>
 
 const processDeepLinks = (args: string[]): void => {
   const deepLinks = mapDeepLinks(args);
-  console.log(args, deepLinks);
 
   if (deepLinks.length === 0) {
     return;

@@ -1,56 +1,26 @@
-import { Notification, nativeImage, NativeImage } from 'electron';
+import { Notification, nativeImage } from 'electron';
 
-import {
-  NOTIFICATIONS_CREATE_REQUESTED,
-  NOTIFICATIONS_CREATE_RESPONDED,
-  NOTIFICATIONS_NOTIFICATION_SHOWN,
-  NOTIFICATIONS_NOTIFICATION_CLOSED,
-  NOTIFICATIONS_NOTIFICATION_CLICKED,
-  NOTIFICATIONS_NOTIFICATION_REPLIED,
-  NOTIFICATIONS_NOTIFICATION_ACTIONED,
-  NOTIFICATIONS_NOTIFICATION_DISMISSED,
-} from '../common/actions/notificationsActions';
-import { isResponse } from '../common/fsa';
-import { dispatch, listen } from '../common/store';
+import * as notificationActions from '../common/actions/notificationActions';
+import { dispatch } from '../common/store';
 import type { ExtendedNotificationOptions } from '../common/types/ExtendedNotificationOptions';
-import { invoke } from '../ipc/main';
-import { getRootWindow } from './rootWindow';
 
-const resolveIcon = async (
-  iconUrl: string | undefined
-): Promise<NativeImage | undefined> => {
-  if (!iconUrl) {
-    return undefined;
-  }
+const notifications = new Map<string, Notification>();
 
-  if (/^data:/.test(iconUrl)) {
-    return nativeImage.createFromDataURL(iconUrl);
-  }
-
-  try {
-    const { webContents } = await getRootWindow();
-    const dataUri = await invoke(
-      webContents,
-      'notifications/fetch-icon',
-      iconUrl
-    );
-    return nativeImage.createFromDataURL(dataUri);
-  } catch (error) {
-    console.error(error);
-    return undefined;
-  }
-};
-
-const notifications = new Map();
-
-const createNotification = async (
+const createNotification = (
   id: string,
-  { title, body, icon, silent, canReply, actions }: ExtendedNotificationOptions
-): Promise<string> => {
+  {
+    title,
+    body,
+    icon,
+    silent,
+    canReply,
+    actions,
+  }: Omit<ExtendedNotificationOptions, 'tag'>
+): void => {
   const notification = new Notification({
     title,
     body: body ?? '',
-    icon: await resolveIcon(icon),
+    icon: icon ? nativeImage.createFromDataURL(icon) : undefined,
     silent,
     hasReply: canReply,
     actions: actions?.map((action) => ({
@@ -60,45 +30,35 @@ const createNotification = async (
   });
 
   notification.addListener('show', () => {
-    dispatch({ type: NOTIFICATIONS_NOTIFICATION_SHOWN, payload: { id } });
+    dispatch(notificationActions.shown(id));
   });
 
   notification.addListener('close', () => {
-    dispatch({ type: NOTIFICATIONS_NOTIFICATION_CLOSED, payload: { id } });
+    dispatch(notificationActions.closed(id));
     notifications.delete(id);
   });
 
   notification.addListener('click', () => {
-    dispatch({ type: NOTIFICATIONS_NOTIFICATION_CLICKED, payload: { id } });
+    dispatch(notificationActions.clicked(id));
   });
 
   notification.addListener('reply', (_event, reply) => {
-    dispatch({
-      type: NOTIFICATIONS_NOTIFICATION_REPLIED,
-      payload: { id, reply },
-    });
+    dispatch(notificationActions.replied(id, reply));
   });
 
   notification.addListener('action', (_event, index) => {
-    dispatch({
-      type: NOTIFICATIONS_NOTIFICATION_ACTIONED,
-      payload: { id, index },
-    });
+    dispatch(notificationActions.actioned(id, index));
   });
 
   notifications.set(id, notification);
 
   notification.show();
-
-  return id;
 };
 
-const updateNotification = async (
-  id: string,
-  { title, body, silent, renotify }: ExtendedNotificationOptions
-): Promise<string> => {
-  const notification = notifications.get(id);
-
+const updateNotification = (
+  notification: Notification,
+  { title, body, silent, renotify }: Omit<ExtendedNotificationOptions, 'tag'>
+): void => {
   if (title) {
     notification.title = title;
   }
@@ -114,39 +74,22 @@ const updateNotification = async (
   if (renotify) {
     notification.show();
   }
-
-  return id;
 };
 
-const handleCreateEvent = async ({
+export const upsertNotification = ({
   tag,
   ...options
-}: ExtendedNotificationOptions): Promise<string> => {
-  if (tag && notifications.has(tag)) {
-    return updateNotification(tag, options);
+}: ExtendedNotificationOptions): void => {
+  const notification = notifications.get(tag);
+
+  if (notification) {
+    updateNotification(notification, options);
+    return;
   }
 
-  const id = tag || Math.random().toString(36).slice(2);
-  return createNotification(id, options);
+  createNotification(tag, options);
 };
 
-export const setupNotifications = (): void => {
-  listen(NOTIFICATIONS_CREATE_REQUESTED, async (action) => {
-    if (!isResponse(action)) {
-      return;
-    }
-
-    dispatch({
-      type: NOTIFICATIONS_CREATE_RESPONDED,
-      payload: await handleCreateEvent(action.payload),
-      meta: {
-        id: action.meta.id,
-        response: true,
-      },
-    });
-  });
-
-  listen(NOTIFICATIONS_NOTIFICATION_DISMISSED, (action) => {
-    notifications.get(action.payload.id)?.close();
-  });
+export const deleteNotification = (id: string): void => {
+  notifications.get(id)?.close();
 };

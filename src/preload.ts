@@ -7,7 +7,6 @@ import { createRocketChatDesktopSingleton } from './preloadScript/createRocketCh
 import { handleTrafficLightsSpacing } from './preloadScript/handleTrafficLightsSpacing';
 import { listenToMessageBoxEvents } from './preloadScript/listenToMessageBoxEvents';
 import { listenUserPresenceChanges } from './preloadScript/listenUserPresenceChanges';
-import { listenToNotificationsRequests } from './preloadScript/notifications';
 import { rootSaga } from './preloadScript/sagas';
 import { listenToScreenSharingRequests } from './preloadScript/screenSharing';
 import { setServerUrl } from './preloadScript/setUrlResolver';
@@ -26,7 +25,7 @@ const start = async (): Promise<void> => {
 
   setServerUrl(serverUrl);
 
-  const reduxStore = await createRendererReduxStore(rootSaga);
+  const reduxStore = await createRendererReduxStore(rootSaga, serverUrl);
   setReduxStore(reduxStore);
 
   const rocketChatDesktop = createRocketChatDesktopSingleton(
@@ -42,7 +41,6 @@ const start = async (): Promise<void> => {
 
   await invoke('server-view/ready');
 
-  listenToNotificationsRequests(rocketChatDesktop);
   listenToScreenSharingRequests();
   listenToMessageBoxEvents();
   handleTrafficLightsSpacing();

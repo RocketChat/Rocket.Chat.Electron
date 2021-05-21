@@ -20,8 +20,8 @@ export type RocketChatDesktopAPI = {
       title: string;
       onEvent: (eventDescriptor: { type: string; detail: unknown }) => void;
     }
-  ) => Promise<unknown>;
-  destroyNotification: (id: unknown) => void;
+  ) => string;
+  destroyNotification: (id: string) => void;
   absoluteUrl(path?: string): string;
   setUserOnline(online: boolean): void;
   getServerUrl(): Server['url'];

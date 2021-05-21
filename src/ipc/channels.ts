@@ -7,7 +7,6 @@ type ChannelToArgsMap = {
   'redux/get-initial-state': () => unknown;
   'redux/action-dispatched': (action: AnyAction) => void;
   'servers/resolve-url': (input: string) => ServerUrlResolutionResult;
-  'notifications/fetch-icon': (urlHref: string) => string;
   'server-view/get-url': () => Server['url'] | undefined;
   'server-view/ready': () => void;
 };

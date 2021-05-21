@@ -1,125 +1,86 @@
-import {
-  NOTIFICATIONS_CREATE_REQUESTED,
-  NOTIFICATIONS_CREATE_RESPONDED,
-  NOTIFICATIONS_NOTIFICATION_ACTIONED,
-  NOTIFICATIONS_NOTIFICATION_CLICKED,
-  NOTIFICATIONS_NOTIFICATION_CLOSED,
-  NOTIFICATIONS_NOTIFICATION_DISMISSED,
-  NOTIFICATIONS_NOTIFICATION_REPLIED,
-  NOTIFICATIONS_NOTIFICATION_SHOWN,
-} from '../common/actions/notificationsActions';
-import * as rootWindowActions from '../common/actions/rootWindowActions';
-import * as viewActions from '../common/actions/viewActions';
-import { dispatch, listen, request } from '../common/store';
-import type { RocketChatDesktopAPI } from '../common/types/RocketChatDesktopAPI';
+import { memoize } from '@rocket.chat/memo';
+
+import { inferContentTypeFromImageData } from '../common/helpers/inferContentTypeFromImageData';
+import type { ExtendedNotificationOptions } from '../common/types/ExtendedNotificationOptions';
 
 const eventHandlers = new Map<
   unknown,
   (eventDescriptor: { type: string; detail?: unknown }) => void
 >();
 
-export async function createNotification(
-  this: RocketChatDesktopAPI,
+const normalizeIconUrl = (
+  absoluteUrl: (path?: string) => string,
+  iconUrl: string
+): string => {
+  if (/^data:/.test(iconUrl)) {
+    return iconUrl;
+  }
+
+  if (!/^https?:\/\//.test(iconUrl)) {
+    return absoluteUrl(iconUrl);
+  }
+
+  return iconUrl;
+};
+
+const fetchIcon = memoize(async (iconUrl: string): Promise<string> => {
+  const response = await fetch(iconUrl);
+  const arrayBuffer = await response.arrayBuffer();
+  const base64String = btoa(
+    String.fromCharCode(...new Uint8Array(arrayBuffer))
+  );
+  const contentType =
+    inferContentTypeFromImageData(arrayBuffer) ||
+    response.headers.get('content-type');
+  return `data:${contentType};base64,${base64String}`;
+});
+
+export const toExtendedNotificationOptions = async (
+  id: string,
   {
     title,
     icon,
-    onEvent,
     ...options
   }: NotificationOptions & {
     canReply?: boolean;
     title: string;
-    onEvent: (eventDescriptor: { type: string; detail: unknown }) => void;
-  }
-): Promise<unknown> {
-  const normalizeIconUrl = (iconUrl: string): string => {
-    if (/^data:/.test(iconUrl)) {
-      return iconUrl;
-    }
+  },
+  absoluteUrl: (path?: string) => string
+): Promise<ExtendedNotificationOptions> => {
+  const resolvedIcon = icon
+    ? await fetchIcon(normalizeIconUrl(absoluteUrl, icon))
+    : undefined;
 
-    if (!/^https?:\/\//.test(iconUrl)) {
-      return this.absoluteUrl(iconUrl);
-    }
-
-    return iconUrl;
+  return {
+    tag: id,
+    title,
+    ...(resolvedIcon && {
+      icon: resolvedIcon,
+    }),
+    ...options,
   };
+};
 
-  const id = await request(
-    {
-      type: NOTIFICATIONS_CREATE_REQUESTED,
-      payload: {
-        title,
-        ...(icon
-          ? {
-              icon: normalizeIconUrl(icon),
-            }
-          : {}),
-        ...options,
-      },
-    },
-    NOTIFICATIONS_CREATE_RESPONDED
-  );
-
+export const registerNotificationEventHandler = (
+  id: string,
+  onEvent: (eventDescriptor: { type: string; detail: unknown }) => void
+): void => {
   eventHandlers.set(id, (event) =>
     onEvent({ type: event.type, detail: event.detail })
   );
+};
 
-  return id;
-}
-
-export function destroyNotification(id: unknown): void {
-  dispatch({ type: NOTIFICATIONS_NOTIFICATION_DISMISSED, payload: { id } });
+export const unregisterNotificationEventHandler = (id: string): void => {
   eventHandlers.delete(id);
-}
+};
 
-export const listenToNotificationsRequests = (
-  rocketChatDesktop: RocketChatDesktopAPI
+export const triggerNotificationEvent = (
+  id: unknown,
+  eventDescriptor: { type: string; detail?: unknown }
 ): void => {
-  listen(NOTIFICATIONS_NOTIFICATION_SHOWN, (action) => {
-    const {
-      payload: { id },
-    } = action;
-    const eventHandler = eventHandlers.get(id);
-    eventHandler?.({ type: 'show' });
-  });
+  eventHandlers.get(id)?.(eventDescriptor);
 
-  listen(NOTIFICATIONS_NOTIFICATION_CLOSED, (action) => {
-    const {
-      payload: { id },
-    } = action;
-    const eventHandler = eventHandlers.get(id);
-    eventHandler?.({ type: 'close' });
+  if (eventDescriptor.type === 'close') {
     eventHandlers.delete(id);
-  });
-
-  listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action) => {
-    const {
-      payload: { id },
-    } = action;
-
-    dispatch(rootWindowActions.focused());
-    dispatch(
-      viewActions.changed({
-        url: rocketChatDesktop.getServerUrl(),
-      })
-    );
-
-    const eventHandler = eventHandlers.get(id);
-    eventHandler?.({ type: 'click' });
-  });
-
-  listen(NOTIFICATIONS_NOTIFICATION_REPLIED, (action) => {
-    const {
-      payload: { id, reply },
-    } = action;
-    const eventHandler = eventHandlers.get(id);
-    eventHandler?.({ type: 'reply', detail: { reply } });
-  });
-
-  listen(NOTIFICATIONS_NOTIFICATION_ACTIONED, (action) => {
-    const {
-      payload: { id, index },
-    } = action;
-    const eventHandler = eventHandlers.get(id);
-    eventHandler?.({ type: 'action', detail: { index } });
-  });
+  }
 };

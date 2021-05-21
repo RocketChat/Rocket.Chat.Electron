@@ -25,10 +25,6 @@ const start = async (): Promise<void> => {
     .use(initReactI18next)
     .init(await getI18nextInitOptions(reduxStore.getState().app.locale));
 
-  (await Promise.all([import('./rendererProcess/notifications')])).forEach(
-    (module) => module.default()
-  );
-
   handle('servers/resolve-url', resolveServerUrl);
 
   const container = document.getElementById('root');

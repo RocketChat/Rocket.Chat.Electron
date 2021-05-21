@@ -7,7 +7,6 @@ import { createMainReduxStore } from './mainProcess/createMainReduxStore';
 import { setUserDataDirectory } from './mainProcess/dev';
 import dock from './mainProcess/dock';
 import menuBar from './mainProcess/menuBar';
-import { setupNotifications } from './mainProcess/notifications';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
 import { createRootWindow, showRootWindow } from './mainProcess/rootWindow';
 import { rootSaga } from './mainProcess/sagas';
@@ -38,7 +37,6 @@ const start = async (): Promise<void> => {
   //   installDevTools();
   // }
 
-  setupNotifications();
   setupNavigation();
 
   dock.setUp();

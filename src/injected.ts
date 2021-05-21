@@ -75,8 +75,6 @@ const start = (): void => {
     RocketChatDesktop.userPresenceParamsChanged(autoAwayEnabled, idleThreshold);
   });
 
-  const destroyPromiseSymbol = Symbol('destroyPromise');
-
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
     implements Notification
@@ -90,7 +88,7 @@ const start = (): void => {
       return Promise.resolve(RocketChatDesktopNotification.permission);
     }
 
-    [destroyPromiseSymbol]?: Promise<() => void>;
+    #id: string;
 
     constructor(
       title: string,
@@ -118,12 +116,10 @@ const start = (): void => {
         });
       }
 
-      this[destroyPromiseSymbol] = RocketChatDesktop.createNotification({
+      this.#id = RocketChatDesktop.createNotification({
         title,
         ...options,
         onEvent: this.handleEvent,
-      }).then((id) => () => {
-        RocketChatDesktop.destroyNotification(id);
       });
 
       Object.assign(this, { title, ...options });
@@ -193,14 +189,7 @@ const start = (): void => {
     };
 
     close(): void {
-      if (!this[destroyPromiseSymbol]) {
-        return;
-      }
-
-      this[destroyPromiseSymbol]?.then((destroy) => {
-        delete this[destroyPromiseSymbol];
-        destroy();
-      });
+      RocketChatDesktop.destroyNotification(this.#id);
     }
   };
 };

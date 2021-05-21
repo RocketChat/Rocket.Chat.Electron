@@ -1,11 +1,16 @@
 import type { Store } from 'redux';
 
+import * as notificationActions from '../common/actions/notificationActions';
 import * as serverActions from '../common/actions/serverActions';
 import type { RocketChatDesktopAPI } from '../common/types/RocketChatDesktopAPI';
 import type { RootAction } from '../common/types/RootAction';
 import type { RootState } from '../common/types/RootState';
 import type { Server } from '../common/types/Server';
-import { createNotification, destroyNotification } from './notifications';
+import {
+  registerNotificationEventHandler,
+  toExtendedNotificationOptions,
+  unregisterNotificationEventHandler,
+} from './notifications';
 import { resolveFavicon } from './resolveFavicon';
 import { resolveStyle } from './resolveStyle';
 
@@ -56,7 +61,33 @@ export const createRocketChatDesktopSingleton = (
     absoluteUrl: (path) => absoluteUrl(path),
     setUserOnline: (online) => setUserOnline(online),
     getServerUrl: () => serverUrl,
-    createNotification,
-    destroyNotification,
+    createNotification({
+      tag,
+      onEvent,
+      ...options
+    }: NotificationOptions & {
+      canReply?: boolean;
+      title: string;
+      onEvent: (eventDescriptor: { type: string; detail: unknown }) => void;
+    }): string {
+      const id = tag ?? Math.random().toString(36).slice(2);
+
+      registerNotificationEventHandler(id, onEvent);
+
+      toExtendedNotificationOptions(
+        id,
+        {
+          tag: id,
+          ...options,
+        },
+        this.absoluteUrl
+      ).then((options) => store.dispatch(notificationActions.created(options)));
+
+      return id;
+    },
+    destroyNotification(id: string): void {
+      unregisterNotificationEventHandler(id);
+      store.dispatch(notificationActions.dismissed(id));
+    },
   };
 };

@@ -1,9 +1,7 @@
 import { useState, DragEvent } from 'react';
 
-import {
-  SIDE_BAR_SERVERS_SORTED,
-  SIDE_BAR_SERVER_SELECTED,
-} from '../../../common/actions/uiActions';
+import * as serversActions from '../../../common/actions/serversActions';
+import * as viewActions from '../../../common/actions/viewActions';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import type { Server } from '../../../common/types/Server';
 
@@ -63,9 +61,9 @@ export const useSorting = <S extends Server>(
 
     if (event.dataTransfer.types.length === 0) {
       if (serversSorting) {
-        dispatch({ type: SIDE_BAR_SERVERS_SORTED, payload: serversSorting });
+        dispatch(serversActions.sorted(serversSorting));
       }
-      dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
+      dispatch(viewActions.changed({ url }));
     }
   };
 

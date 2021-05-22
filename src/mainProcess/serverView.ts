@@ -28,10 +28,6 @@ import * as serverActions from '../common/actions/serverActions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
-  SIDE_BAR_REMOVE_SERVER_CLICKED,
-  WEBVIEW_DID_FAIL_LOAD,
-  WEBVIEW_DID_NAVIGATE,
-  WEBVIEW_DID_START_LOADING,
 } from '../common/actions/uiActions';
 import { dispatch, listen, select } from '../common/store';
 import { DownloadStatus } from '../common/types/DownloadStatus';
@@ -77,7 +73,7 @@ const initializeServerWebContents = (
   });
 
   const handleDidStartLoading = (): void => {
-    dispatch({ type: WEBVIEW_DID_START_LOADING, payload: { url: serverUrl } });
+    dispatch(serverActions.loading(serverUrl));
   };
 
   const handleDidFailLoad = (
@@ -96,10 +92,9 @@ const initializeServerWebContents = (
       return;
     }
 
-    dispatch({
-      type: WEBVIEW_DID_FAIL_LOAD,
-      payload: { url: serverUrl, isMainFrame },
-    });
+    if (isMainFrame) {
+      dispatch(serverActions.failedToLoad(serverUrl));
+    }
   };
 
   const handleDidNavigateInPage = (
@@ -109,13 +104,16 @@ const initializeServerWebContents = (
     _frameProcessId: number,
     _frameRoutingId: number
   ): void => {
-    dispatch({
-      type: WEBVIEW_DID_NAVIGATE,
-      payload: {
-        url: serverUrl,
-        pageUrl,
-      },
-    });
+    const rootUrl = new URL(serverUrl);
+    const url = new URL(pageUrl, serverUrl);
+
+    if (rootUrl.host !== url.host) {
+      return;
+    }
+
+    dispatch(
+      serverActions.pathChanged(serverUrl, url.pathname + url.search + url.hash)
+    );
   };
 
   const handleContextMenu = async (
@@ -431,10 +429,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       {
         label: t('sidebar.item.remove'),
         click: () => {
-          dispatch({
-            type: SIDE_BAR_REMOVE_SERVER_CLICKED,
-            payload: serverUrl,
-          });
+          dispatch(serverActions.removed(serverUrl));
         },
       },
       { type: 'separator' },

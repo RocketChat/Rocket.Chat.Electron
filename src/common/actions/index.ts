@@ -7,6 +7,7 @@ import type * as notificationActions from './notificationActions';
 import type * as rootWindowActions from './rootWindowActions';
 import type * as screenSharingActions from './screenSharingActions';
 import type * as serverActions from './serverActions';
+import type * as serversActions from './serversActions';
 import type * as spellCheckingActions from './spellCheckingActions';
 import type { UiActionTypeToPayloadMap } from './uiActions';
 import type * as updateActions from './updateActions';
@@ -39,10 +40,11 @@ export type RootActions = {
   ActionsFromModule<typeof notificationActions> &
   ActionsFromModule<typeof rootWindowActions> &
   ActionsFromModule<typeof screenSharingActions> &
-  ActionsFromModule<typeof spellCheckingActions> &
-  ActionsFromModule<typeof updateCheckActions> &
-  ActionsFromModule<typeof updateActions> &
   ActionsFromModule<typeof serverActions> &
+  ActionsFromModule<typeof serversActions> &
+  ActionsFromModule<typeof spellCheckingActions> &
+  ActionsFromModule<typeof updateActions> &
+  ActionsFromModule<typeof updateCheckActions> &
   ActionsFromModule<typeof viewActions>;
 
 export type ActionOf<Type extends keyof RootActions> = RootActions[Type];

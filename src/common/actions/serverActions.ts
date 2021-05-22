@@ -98,3 +98,34 @@ export const added = createAction('server/added', (url: Server['url']) => ({
     url,
   },
 }));
+
+export const removed = createAction('server/removed', (url: Server['url']) => ({
+  payload: {
+    url,
+  },
+}));
+
+export const loading = createAction('server/loading', (url: Server['url']) => ({
+  payload: {
+    url,
+  },
+}));
+
+export const failedToLoad = createAction(
+  'server/failedToLoad',
+  (url: Server['url']) => ({
+    payload: {
+      url,
+    },
+  })
+);
+
+export const pathChanged = createAction(
+  'server/pathChanged',
+  (url: Server['url'], path: string) => ({
+    payload: {
+      url,
+      path,
+    },
+  })
+);

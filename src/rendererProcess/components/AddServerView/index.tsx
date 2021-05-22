@@ -20,7 +20,7 @@ import React, {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ADD_SERVER_VIEW_SERVER_ADDED } from '../../../common/actions/uiActions';
+import * as serverActions from '../../../common/actions/serverActions';
 import { RocketChatLogo } from '../../../common/components/assets/RocketChatLogo';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import { useAppSelector } from '../../../common/hooks/useAppSelector';
@@ -55,12 +55,9 @@ export const AddServerView: FC = () => {
   );
 
   const addServer = useCallback(
-    (serverUrl: string): void => {
+    (url: string): void => {
       editInput('');
-      dispatch({
-        type: ADD_SERVER_VIEW_SERVER_ADDED,
-        payload: serverUrl,
-      });
+      dispatch(serverActions.added(url));
     },
     [dispatch, editInput]
   );

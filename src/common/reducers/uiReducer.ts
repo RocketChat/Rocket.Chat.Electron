@@ -8,24 +8,21 @@ import {
 } from '../actions/navigationActions';
 import * as rootWindowActions from '../actions/rootWindowActions';
 import * as screenSharingActions from '../actions/screenSharingActions';
+import * as serverActions from '../actions/serverActions';
 import {
   ABOUT_DIALOG_DISMISSED,
-  ADD_SERVER_VIEW_SERVER_ADDED,
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
-  SIDE_BAR_REMOVE_SERVER_CLICKED,
   SIDE_BAR_SERVER_SELECTED,
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   UPDATE_DIALOG_DISMISSED,
   UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
   UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-  WEBVIEW_DID_FAIL_LOAD,
-  WEBVIEW_DID_START_LOADING,
   WEBVIEW_MESSAGE_BOX_BLURRED,
   WEBVIEW_MESSAGE_BOX_FOCUSED,
 } from '../actions/uiActions';
@@ -104,27 +101,19 @@ export const uiReducer = createReducer<State>(
         const { view } = action.payload;
         state.view = view;
       })
-      .addCase(
-        SIDE_BAR_REMOVE_SERVER_CLICKED,
-        (state, action: ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>) => {
-          if (
-            typeof state.view === 'object' &&
-            state.view.url === action.payload
-          ) {
-            state.view = 'add-new-server';
-          }
+      .addCase(serverActions.added, (state, action) => {
+        const { url } = action.payload;
+        state.view = { url };
+      })
+      .addCase(serverActions.removed, (state, action) => {
+        const { url } = action.payload;
+        if (typeof state.view === 'object' && state.view.url === url) {
+          state.view = 'add-new-server';
         }
-      )
+      })
       .addCase(SIDE_BAR_DOWNLOADS_BUTTON_CLICKED, (state) => {
         state.view = 'downloads';
       })
-      .addCase(
-        ADD_SERVER_VIEW_SERVER_ADDED,
-        (state, action: ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>) => {
-          const url = action.payload;
-          state.view = { url };
-        }
-      )
       .addCase(
         TOUCH_BAR_SELECT_SERVER_TOUCHED,
         (state, action: ActionOf<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>) => {
@@ -219,11 +208,17 @@ export const uiReducer = createReducer<State>(
       .addCase(WEBVIEW_MESSAGE_BOX_BLURRED, (state) => {
         state.messageBox.focused = false;
       })
-      .addCase(WEBVIEW_DID_START_LOADING, (state) => {
-        state.messageBox.focused = false;
+      .addCase(serverActions.loading, (state, action) => {
+        const { url } = action.payload;
+        if (typeof state.view === 'object' && state.view.url === url) {
+          state.messageBox.focused = false;
+        }
       })
-      .addCase(WEBVIEW_DID_FAIL_LOAD, (state) => {
-        state.messageBox.focused = false;
+      .addCase(serverActions.failedToLoad, (state, action) => {
+        const { url } = action.payload;
+        if (typeof state.view === 'object' && state.view.url === url) {
+          state.messageBox.focused = false;
+        }
       })
       .addCase(
         MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,

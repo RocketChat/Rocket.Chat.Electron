@@ -1,15 +1,7 @@
 import { createReducer } from '@reduxjs/toolkit';
 
-import type { ActionOf } from '../actions';
 import * as serverActions from '../actions/serverActions';
-import {
-  ADD_SERVER_VIEW_SERVER_ADDED,
-  SIDE_BAR_REMOVE_SERVER_CLICKED,
-  SIDE_BAR_SERVERS_SORTED,
-  WEBVIEW_DID_NAVIGATE,
-  WEBVIEW_DID_START_LOADING,
-  WEBVIEW_DID_FAIL_LOAD,
-} from '../actions/uiActions';
+import * as serversActions from '../actions/serversActions';
 import type { Server } from '../types/Server';
 
 const findServer = (
@@ -17,72 +9,32 @@ const findServer = (
   url: Server['url']
 ): Server | undefined => servers.find((server) => server.url === url);
 
-const upsert = (state: Server[], server: Server): Server[] => {
-  const index = state.findIndex(({ url }) => url === server.url);
+const findServerIndex = (servers: Server[], url: Server['url']): number =>
+  servers.findIndex((server) => server.url === url);
 
-  if (index === -1) {
-    return [...state, server];
-  }
-
-  return state.map((_server, i) =>
-    i === index ? { ..._server, ...server } : _server
-  );
-};
-
-export const servers = createReducer<Server[]>([], (builder) =>
+export const serversReducer = createReducer<Server[]>([], (builder) =>
   builder
-    .addCase(
-      ADD_SERVER_VIEW_SERVER_ADDED,
-      (state, action: ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>) => {
-        const url = action.payload;
-        return upsert(state, { url, title: url });
+    .addCase(serverActions.loading, (state, action) => {
+      const { url } = action.payload;
+      const server = findServer(state, url);
+      if (server) {
+        server.failed = false;
       }
-    )
-    .addCase(
-      SIDE_BAR_REMOVE_SERVER_CLICKED,
-      (state, action: ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>) => {
-        const url = action.payload;
-        return state.filter((server) => server.url !== url);
+    })
+    .addCase(serverActions.failedToLoad, (state, action) => {
+      const { url } = action.payload;
+      const server = findServer(state, url);
+      if (server) {
+        server.failed = true;
       }
-    )
-    .addCase(
-      SIDE_BAR_SERVERS_SORTED,
-      (state, action: ActionOf<typeof SIDE_BAR_SERVERS_SORTED>) => {
-        const urls = action.payload;
-        return state.sort(
-          ({ url: a }, { url: b }) => urls.indexOf(a) - urls.indexOf(b)
-        );
+    })
+    .addCase(serverActions.pathChanged, (state, action) => {
+      const { url, path } = action.payload;
+      const server = findServer(state, url);
+      if (server) {
+        server.lastPath = new URL(path, url).href;
       }
-    )
-    .addCase(
-      WEBVIEW_DID_NAVIGATE,
-      (state, action: ActionOf<typeof WEBVIEW_DID_NAVIGATE>) => {
-        const { url, pageUrl } = action.payload;
-        if (pageUrl?.includes(url)) {
-          return upsert(state, { url, lastPath: pageUrl });
-        }
-
-        return state;
-      }
-    )
-    .addCase(
-      WEBVIEW_DID_START_LOADING,
-      (state, action: ActionOf<typeof WEBVIEW_DID_START_LOADING>) => {
-        const { url } = action.payload;
-        return upsert(state, { url, failed: false });
-      }
-    )
-    .addCase(
-      WEBVIEW_DID_FAIL_LOAD,
-      (state, action: ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>) => {
-        const { url, isMainFrame } = action.payload;
-        if (isMainFrame) {
-          return upsert(state, { url, failed: true });
-        }
-
-        return state;
-      }
-    )
+    })
     .addCase(serverActions.versionChanged, (state, action) => {
       const { url, version } = action.payload;
       const server = findServer(state, url);
@@ -153,5 +105,17 @@ export const servers = createReducer<Server[]>([], (builder) =>
       if (!server) {
         state.push({ url });
       }
+    })
+    .addCase(serverActions.removed, (state, action) => {
+      const { url } = action.payload;
+      const index = findServerIndex(state, url);
+
+      if (index >= 0) {
+        state.splice(index, 1);
+      }
+    })
+    .addCase(serversActions.sorted, (state, action) => {
+      const { urls } = action.payload;
+      state.sort(({ url: a }, { url: b }) => urls.indexOf(a) - urls.indexOf(b));
     })
 );

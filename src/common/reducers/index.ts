@@ -7,17 +7,17 @@ import {
   externalProtocols,
   trustedCertificates,
 } from './navigationReducers';
-import { servers } from './serversReducer';
+import { serversReducer } from './serversReducer';
 import { uiReducer } from './uiReducer';
 import { updatesReducer } from './updatesReducer';
 
 export const rootReducer = combineReducers({
   app: appReducer,
   downloads: downloadsReducer,
+  servers: serversReducer,
   updates: updatesReducer,
   ui: uiReducer,
   clientCertificates,
   externalProtocols,
-  servers,
   trustedCertificates,
 });

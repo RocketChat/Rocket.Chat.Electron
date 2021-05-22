@@ -1,3 +1,4 @@
+import { nanoid } from '@reduxjs/toolkit';
 import type { Store } from 'redux';
 
 import { lastAction } from './catchLastAction';
@@ -137,7 +138,7 @@ export const request = <
   ...types: ResponseTypes
 ): Promise<Response['payload']> =>
   new Promise((resolve, reject) => {
-    const id = Math.random().toString(36).slice(2);
+    const id = nanoid();
 
     const unsubscribe = listen(
       isResponseTo<RootAction, ResponseTypes>(id, ...types),

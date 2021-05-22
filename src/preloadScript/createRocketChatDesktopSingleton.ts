@@ -1,3 +1,4 @@
+import { nanoid } from '@reduxjs/toolkit';
 import type { Store } from 'redux';
 
 import * as notificationActions from '../common/actions/notificationActions';
@@ -70,7 +71,7 @@ export const createRocketChatDesktopSingleton = (
       title: string;
       onEvent: (eventDescriptor: { type: string; detail: unknown }) => void;
     }): string {
-      const id = tag ?? Math.random().toString(36).slice(2);
+      const id = tag ?? nanoid();
 
       registerNotificationEventHandler(id, onEvent);
 

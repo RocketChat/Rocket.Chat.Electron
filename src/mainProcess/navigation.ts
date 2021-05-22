@@ -1,13 +1,10 @@
+import { nanoid } from '@reduxjs/toolkit';
 import { app, Certificate } from 'electron';
 import i18next from 'i18next';
 
-import {
-  CERTIFICATES_UPDATED,
-  CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
-  SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-  SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-} from '../common/actions/navigationActions';
-import { request, select, dispatch } from '../common/store';
+import * as clientCertificateActions from '../common/actions/clientCertificateActions';
+import { CERTIFICATES_UPDATED } from '../common/actions/navigationActions';
+import { select, dispatch } from '../common/store';
 import {
   AskForCertificateTrustResponse,
   askForCertificateTrust,
@@ -23,12 +20,12 @@ const queuedTrustRequests = new Map<
   Array<(isTrusted: boolean) => void>
 >();
 
-export const setupNavigation = (): void => {
-  app.userAgentFallback = app.userAgentFallback.replace(
-    `${app.name}/${app.getVersion()} `,
-    ''
-  );
+const clientCertificateRequests = new Map<
+  unknown,
+  (certificate: Certificate | undefined) => void
+>();
 
+export const setupNavigation = (): void => {
   app.addListener(
     'certificate-error',
     async (event, _webContents, requestedUrl, error, certificate, callback) => {
@@ -87,37 +84,6 @@ export const setupNavigation = (): void => {
   );
 
   app.addListener(
-    'select-client-certificate',
-    async (event, _webContents, _url, certificateList, callback) => {
-      event.preventDefault();
-
-      if (certificateList.length === 1) {
-        callback(certificateList[0]);
-        return;
-      }
-
-      const fingerprint = await request(
-        {
-          type: CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
-          payload: JSON.parse(JSON.stringify(certificateList)),
-        },
-        SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-        SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED
-      );
-      const certificate = certificateList.find(
-        (certificate) => certificate.fingerprint === fingerprint
-      );
-
-      if (!certificate) {
-        callback(undefined);
-        return;
-      }
-
-      callback(certificate);
-    }
-  );
-
-  app.addListener(
     'login',
     (
       event,
@@ -143,4 +109,35 @@ export const setupNavigation = (): void => {
       }
     }
   );
+};
+
+export const attachNavigationEvents = (): void => {
+  app.userAgentFallback = app.userAgentFallback.replace(
+    `${app.name}/${app.getVersion()} `,
+    ''
+  );
+
+  app.addListener(
+    'select-client-certificate',
+    async (event, _webContents, _url, certificates, callback) => {
+      event.preventDefault();
+
+      if (certificates.length === 1) {
+        callback(certificates[0]);
+        return;
+      }
+
+      const id = nanoid();
+      clientCertificateRequests.set(id, callback);
+      dispatch(clientCertificateActions.requestQueued(id, certificates));
+    }
+  );
+};
+
+export const commitClientCertificateRequest = (
+  id: unknown,
+  selected: Certificate | undefined
+): void => {
+  clientCertificateRequests.get(id)?.(selected);
+  clientCertificateRequests.delete(id);
 };

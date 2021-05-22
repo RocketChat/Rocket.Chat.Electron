@@ -7,12 +7,12 @@ import { createMainReduxStore } from './mainProcess/createMainReduxStore';
 import { setUserDataDirectory } from './mainProcess/dev';
 import dock from './mainProcess/dock';
 import menuBar from './mainProcess/menuBar';
+import { setupNavigation } from './mainProcess/navigation';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
 import { createRootWindow, showRootWindow } from './mainProcess/rootWindow';
 import { rootSaga } from './mainProcess/sagas';
 import { attachGuestWebContentsEvents } from './mainProcess/serverView';
 import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
-import { setupNavigation } from './mainProcess/setupNavigation';
 import touchBar from './mainProcess/touchBar';
 import trayIcon from './mainProcess/trayIcon';
 

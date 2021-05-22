@@ -1,5 +1,6 @@
 import type { Action, ActionCreator } from 'redux';
 
+import type * as clientCertificateActions from './clientCertificateActions';
 import type * as deepLinksActions from './deepLinksActions';
 import type * as downloadActions from './downloadActions';
 import type { NavigationActionTypeToPayloadMap } from './navigationActions';
@@ -35,6 +36,7 @@ export type RootActions = {
         payload: ActionTypeToPayloadMap[Type];
       };
 } &
+  ActionsFromModule<typeof clientCertificateActions> &
   ActionsFromModule<typeof deepLinksActions> &
   ActionsFromModule<typeof downloadActions> &
   ActionsFromModule<typeof notificationActions> &

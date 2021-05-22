@@ -1,60 +1,27 @@
 import { Box, Button, Margins, Scrollable, Tile } from '@rocket.chat/fuselage';
 import type { Certificate } from 'electron';
-import React, { FC, useEffect, useRef } from 'react';
+import React, { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
-  SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-  SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-} from '../../../common/actions/navigationActions';
-import { isResponse } from '../../../common/fsa';
+import * as clientCertificateActions from '../../../common/actions/clientCertificateActions';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import { useAppSelector } from '../../../common/hooks/useAppSelector';
-import { listen } from '../../../common/store';
 import { Dialog } from '../Dialog';
 
 export const SelectClientCertificateDialog: FC = () => {
   const openDialog = useAppSelector((state) => state.ui.openDialog);
   const clientCertificates = useAppSelector(
-    ({ clientCertificates }) => clientCertificates
+    (state) => state.navigation.clientCertificateRequest?.certificates ?? []
   );
   const isVisible = openDialog === 'select-client-certificate';
   const dispatch = useAppDispatch();
 
-  const requestIdRef = useRef<unknown>();
-
-  useEffect(
-    () =>
-      listen(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, (action) => {
-        if (!isResponse(action)) {
-          return;
-        }
-
-        requestIdRef.current = action.meta.id;
-      }),
-    [dispatch]
-  );
-
   const handleSelect = (certificate: Certificate) => () => {
-    dispatch({
-      type: SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-      payload: certificate.fingerprint,
-      meta: {
-        response: true,
-        id: requestIdRef.current,
-      },
-    });
+    dispatch(clientCertificateActions.selected(certificate.fingerprint));
   };
 
   const handleClose = (): void => {
-    dispatch({
-      type: SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-      meta: {
-        response: true,
-        id: requestIdRef.current,
-      },
-    });
+    dispatch(clientCertificateActions.dismissed());
   };
 
   const { t } = useTranslation();

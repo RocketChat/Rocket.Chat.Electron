@@ -2,11 +2,8 @@ import { combineReducers } from 'redux';
 
 import { appReducer } from './appReducer';
 import { downloadsReducer } from './downloadsReducer';
-import {
-  clientCertificates,
-  externalProtocols,
-  trustedCertificates,
-} from './navigationReducers';
+import { navigationReducer } from './navigationReducer';
+import { externalProtocols, trustedCertificates } from './navigationReducers';
 import { serversReducer } from './serversReducer';
 import { uiReducer } from './uiReducer';
 import { updatesReducer } from './updatesReducer';
@@ -14,10 +11,10 @@ import { updatesReducer } from './updatesReducer';
 export const rootReducer = combineReducers({
   app: appReducer,
   downloads: downloadsReducer,
+  navigation: navigationReducer,
   servers: serversReducer,
   updates: updatesReducer,
   ui: uiReducer,
-  clientCertificates,
   externalProtocols,
   trustedCertificates,
 });

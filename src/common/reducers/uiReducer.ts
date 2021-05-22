@@ -1,11 +1,7 @@
 import { createReducer } from '@reduxjs/toolkit';
 
 import type { ActionOf } from '../actions';
-import {
-  CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
-  SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-  SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-} from '../actions/navigationActions';
+import * as clientCertificateActions from '../actions/clientCertificateActions';
 import * as rootWindowActions from '../actions/rootWindowActions';
 import * as screenSharingActions from '../actions/screenSharingActions';
 import * as serverActions from '../actions/serverActions';
@@ -137,7 +133,7 @@ export const uiReducer = createReducer<State>(
       .addCase(screenSharingActions.sourceRequested, (state) => {
         state.openDialog = 'screen-sharing';
       })
-      .addCase(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, (state) => {
+      .addCase(clientCertificateActions.requested, (state) => {
         state.openDialog = 'select-client-certificate';
       })
       .addCase(ABOUT_DIALOG_DISMISSED, (state) => {
@@ -149,13 +145,10 @@ export const uiReducer = createReducer<State>(
       .addCase(screenSharingActions.sourceDenied, (state) => {
         state.openDialog = null;
       })
-      .addCase(
-        SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
-        (state) => {
-          state.openDialog = null;
-        }
-      )
-      .addCase(SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED, (state) => {
+      .addCase(clientCertificateActions.selected, (state) => {
+        state.openDialog = null;
+      })
+      .addCase(clientCertificateActions.dismissed, (state) => {
         state.openDialog = null;
       })
       .addCase(UPDATE_DIALOG_DISMISSED, (state) => {

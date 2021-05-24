@@ -4,7 +4,6 @@ import type { Store } from 'redux';
 import * as notificationActions from '../common/actions/notificationActions';
 import * as serverActions from '../common/actions/serverActions';
 import type { RocketChatDesktopAPI } from '../common/types/RocketChatDesktopAPI';
-import type { RootAction } from '../common/types/RootAction';
 import type { RootState } from '../common/types/RootState';
 import type { Server } from '../common/types/Server';
 import {
@@ -17,7 +16,7 @@ import { resolveStyle } from './resolveStyle';
 
 export const createRocketChatDesktopSingleton = (
   serverUrl: Server['url'],
-  store: Store<RootState, RootAction>
+  store: Store<RootState>
 ): RocketChatDesktopAPI => {
   let absoluteUrl: (path?: string) => string;
   let setUserOnline: (online: boolean) => void;

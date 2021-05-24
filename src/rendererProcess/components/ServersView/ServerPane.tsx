@@ -2,7 +2,6 @@ import type { WebviewTag } from 'electron';
 import React, { useRef, useEffect, FC } from 'react';
 
 import * as serverActions from '../../../common/actions/serverActions';
-import { LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED } from '../../../common/actions/uiActions';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import ErrorView from './ErrorView';
 import { StyledWebView, Wrapper } from './styles';
@@ -76,10 +75,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
   }, [lastPath, serverUrl]);
 
   const handleReload = (): void => {
-    dispatch({
-      type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
-      payload: { url: serverUrl },
-    });
+    dispatch(serverActions.reloaded(serverUrl));
   };
 
   return (

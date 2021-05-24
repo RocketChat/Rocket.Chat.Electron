@@ -1,18 +1,14 @@
 import { createReducer } from '@reduxjs/toolkit';
 
-import type { ActionOf } from '../actions';
 import * as clientCertificateActions from '../actions/clientCertificateActions';
 import * as dialogActions from '../actions/dialogActions';
+import * as menuBarActions from '../actions/menuBarActions';
 import * as messageBoxActions from '../actions/messageBoxActions';
 import * as rootWindowActions from '../actions/rootWindowActions';
 import * as screenSharingActions from '../actions/screenSharingActions';
 import * as serverActions from '../actions/serverActions';
-import {
-  MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
-  MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
-  MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
-  MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-} from '../actions/uiActions';
+import * as sideBarActions from '../actions/sideBarActions';
+import * as trayIconActions from '../actions/trayIconActions';
 import * as updateCheckActions from '../actions/updateCheckActions';
 import * as viewActions from '../actions/viewActions';
 import type { RootWindowIcon } from '../types/RootWindowIcon';
@@ -138,26 +134,14 @@ export const uiReducer = createReducer<State>(
         const { enabled } = action.payload;
         state.rootWindow.devToolsOpen = enabled;
       })
-      .addCase(
-        MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
-        (
-          state,
-          action: ActionOf<typeof MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED>
-        ) => {
-          const enabled = action.payload;
-          state.menuBar.enabled = enabled;
-        }
-      )
-      .addCase(
-        MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
-        (
-          state,
-          action: ActionOf<typeof MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED>
-        ) => {
-          const enabled = action.payload;
-          state.sideBar.enabled = enabled;
-        }
-      )
+      .addCase(menuBarActions.toggled, (state, action) => {
+        const { enabled } = action.payload;
+        state.menuBar.enabled = enabled;
+      })
+      .addCase(sideBarActions.toggled, (state, action) => {
+        const { enabled } = action.payload;
+        state.sideBar.enabled = enabled;
+      })
       .addCase(messageBoxActions.focused, (state) => {
         state.messageBox.focused = true;
       })
@@ -176,26 +160,12 @@ export const uiReducer = createReducer<State>(
           state.messageBox.focused = false;
         }
       })
-      .addCase(
-        MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-        (
-          state,
-          action: ActionOf<typeof MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED>
-        ) => {
-          const enabled = action.payload;
-          state.trayIcon.enabled = enabled;
-        }
-      )
-      .addCase(
-        MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
-        (
-          state,
-          action: ActionOf<
-            typeof MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED
-          >
-        ) => {
-          const enabled = action.payload;
-          state.rootWindow.showOnBadgeChange = enabled;
-        }
-      )
+      .addCase(trayIconActions.toggled, (state, action) => {
+        const { enabled } = action.payload;
+        state.trayIcon.enabled = enabled;
+      })
+      .addCase(rootWindowActions.showOnBadgeChangeToggled, (state, action) => {
+        const { enabled } = action.payload;
+        state.rootWindow.showOnBadgeChange = enabled;
+      })
 );

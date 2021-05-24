@@ -24,10 +24,6 @@ import i18next from 'i18next';
 
 import * as downloadActions from '../common/actions/downloadActions';
 import * as serverActions from '../common/actions/serverActions';
-import {
-  LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
-  SIDE_BAR_CONTEXT_MENU_TRIGGERED,
-} from '../common/actions/uiActions';
 import { dispatch, listen, select } from '../common/store';
 import { DownloadStatus } from '../common/types/DownloadStatus';
 import type { Server } from '../common/types/Server';
@@ -412,43 +408,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.on('will-download', handleWillDownloadEvent);
   });
 
-  listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
-    const guestWebContents = getWebContentsByServerUrl(action.payload.url);
-    guestWebContents?.loadURL(action.payload.url);
-  });
-
-  listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {
-    const { payload: serverUrl } = action;
-
-    const menuTemplate: MenuItemConstructorOptions[] = [
-      {
-        label: t('sidebar.item.reload'),
-        click: () => {
-          const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          guestWebContents?.loadURL(serverUrl);
-        },
-      },
-      {
-        label: t('sidebar.item.remove'),
-        click: () => {
-          dispatch(serverActions.removed(serverUrl));
-        },
-      },
-      { type: 'separator' },
-      {
-        label: t('sidebar.item.openDevTools'),
-        click: () => {
-          const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          guestWebContents?.openDevTools();
-        },
-      },
-    ];
-    const menu = Menu.buildFromTemplate(menuTemplate);
-    menu.popup({
-      window: rootWindow,
-    });
-  });
-
   rootWindow.webContents.addListener(
     'will-attach-webview',
     handleWillAttachWebview
@@ -480,5 +439,36 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     if (process.env.NODE_ENV === 'development') {
       injectableCode = undefined;
     }
+  });
+};
+
+export const triggerPopup = async (url: Server['url']): Promise<void> => {
+  const menuTemplate: MenuItemConstructorOptions[] = [
+    {
+      label: t('sidebar.item.reload'),
+      click: () => {
+        const guestWebContents = getWebContentsByServerUrl(url);
+        guestWebContents?.loadURL(url);
+      },
+    },
+    {
+      label: t('sidebar.item.remove'),
+      click: () => {
+        dispatch(serverActions.removed(url));
+      },
+    },
+    { type: 'separator' },
+    {
+      label: t('sidebar.item.openDevTools'),
+      click: () => {
+        const guestWebContents = getWebContentsByServerUrl(url);
+        guestWebContents?.openDevTools();
+      },
+    },
+  ];
+
+  const menu = Menu.buildFromTemplate(menuTemplate);
+  menu.popup({
+    window: await getRootWindow(),
   });
 };

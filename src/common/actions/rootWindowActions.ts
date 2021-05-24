@@ -50,3 +50,12 @@ export const devToolsToggled = createAction(
 );
 
 export const toggled = createAction('rootWindow/toggled');
+
+export const showOnBadgeChangeToggled = createAction(
+  'rootWindow/showOnBadgeChangeToggled',
+  (enabled: boolean) => ({
+    payload: {
+      enabled,
+    },
+  })
+);

@@ -1,6 +1,6 @@
 import React, { useMemo, FC, DragEvent, MouseEvent } from 'react';
 
-import { SIDE_BAR_CONTEXT_MENU_TRIGGERED } from '../../../common/actions/uiActions';
+import * as serverActions from '../../../common/actions/serverActions';
 import * as viewActions from '../../../common/actions/viewActions';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import {
@@ -62,7 +62,7 @@ const ServerButton: FC<ServerButtonProps> = ({
 
   const handleServerContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
-    dispatch({ type: SIDE_BAR_CONTEXT_MENU_TRIGGERED, payload: url });
+    dispatch(serverActions.popupTriggered(url));
   };
 
   return (

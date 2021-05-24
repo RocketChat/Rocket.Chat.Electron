@@ -4,13 +4,10 @@ import { createSelector, createStructuredSelector } from 'reselect';
 
 import * as certificatesActions from '../common/actions/certificatesActions';
 import * as dialogActions from '../common/actions/dialogActions';
+import * as menuBarActions from '../common/actions/menuBarActions';
 import * as rootWindowActions from '../common/actions/rootWindowActions';
-import {
-  MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
-  MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
-  MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
-  MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-} from '../common/actions/uiActions';
+import * as sideBarActions from '../common/actions/sideBarActions';
+import * as trayIconActions from '../common/actions/trayIconActions';
 import * as viewActions from '../common/actions/viewActions';
 import { dispatch, select, Service } from '../common/store';
 import type { RootState } from '../common/types/RootState';
@@ -252,10 +249,7 @@ const createViewMenu = createSelector(
         type: 'checkbox',
         checked: isTrayIconEnabled,
         click: ({ checked }) => {
-          dispatch({
-            type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-            payload: checked,
-          });
+          dispatch(trayIconActions.toggled(checked));
         },
       },
       ...on(process.platform === 'darwin', () => [
@@ -279,10 +273,7 @@ const createViewMenu = createSelector(
           checked: isMenuBarEnabled,
           click: async ({ checked }) => {
             dispatch(rootWindowActions.focused());
-            dispatch({
-              type: MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
-              payload: checked,
-            });
+            dispatch(menuBarActions.toggled(checked));
           },
         },
       ]),
@@ -293,10 +284,7 @@ const createViewMenu = createSelector(
         checked: isSideBarEnabled,
         click: async ({ checked }) => {
           dispatch(rootWindowActions.focused());
-          dispatch({
-            type: MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
-            payload: checked,
-          });
+          dispatch(sideBarActions.toggled(checked));
         },
       },
       { type: 'separator' },
@@ -409,10 +397,7 @@ const createWindowMenu = createSelector(
         checked: isShowWindowOnUnreadChangedEnabled,
         click: async ({ checked }) => {
           dispatch(rootWindowActions.focused());
-          dispatch({
-            type: MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
-            payload: checked,
-          });
+          dispatch(rootWindowActions.showOnBadgeChangeToggled(checked));
         },
       },
       { type: 'separator' },

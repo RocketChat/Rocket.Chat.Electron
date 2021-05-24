@@ -129,3 +129,21 @@ export const pathChanged = createAction(
     },
   })
 );
+
+export const reloaded = createAction(
+  'server/reloaded',
+  (url: Server['url']) => ({
+    payload: {
+      url,
+    },
+  })
+);
+
+export const popupTriggered = createAction(
+  'server/popupTriggered',
+  (url: Server['url']) => ({
+    payload: {
+      url,
+    },
+  })
+);

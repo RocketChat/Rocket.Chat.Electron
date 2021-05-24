@@ -6,6 +6,7 @@ import type * as clientCertificateActions from './clientCertificateActions';
 import type * as deepLinksActions from './deepLinksActions';
 import type * as downloadActions from './downloadActions';
 import type * as externalProtocolActions from './externalProtocolActions';
+import type * as messageBoxActions from './messageBoxActions';
 import type * as notificationActions from './notificationActions';
 import type * as rootWindowActions from './rootWindowActions';
 import type * as screenSharingActions from './screenSharingActions';
@@ -43,6 +44,7 @@ export type RootActions = {
   ActionsFromModule<typeof deepLinksActions> &
   ActionsFromModule<typeof downloadActions> &
   ActionsFromModule<typeof externalProtocolActions> &
+  ActionsFromModule<typeof messageBoxActions> &
   ActionsFromModule<typeof notificationActions> &
   ActionsFromModule<typeof rootWindowActions> &
   ActionsFromModule<typeof screenSharingActions> &

@@ -8,11 +8,9 @@ import {
 } from 'electron';
 import i18next from 'i18next';
 
+import * as messageBoxActions from '../common/actions/messageBoxActions';
 import * as rootWindowActions from '../common/actions/rootWindowActions';
-import {
-  TOUCH_BAR_SELECT_SERVER_TOUCHED,
-  TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
-} from '../common/actions/uiActions';
+import * as viewActions from '../common/actions/viewActions';
 import { select, dispatch, Service } from '../common/store';
 import type { RootState } from '../common/types/RootState';
 import type { Server } from '../common/types/Server';
@@ -36,8 +34,8 @@ const createTouchBar = (): [
     select: async (index) => {
       dispatch(rootWindowActions.focused());
 
-      const url = select(({ servers }) => servers[index].url);
-      dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
+      const url = select((state) => state.servers[index].url);
+      dispatch(viewActions.changed({ url }));
     },
   });
 
@@ -60,10 +58,7 @@ const createTouchBar = (): [
     })),
     change: async (selectedIndex) => {
       dispatch(rootWindowActions.focused());
-      dispatch({
-        type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
-        payload: ids[selectedIndex],
-      });
+      dispatch(messageBoxActions.formatButtonClicked(ids[selectedIndex]));
     },
   });
 

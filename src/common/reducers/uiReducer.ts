@@ -2,6 +2,7 @@ import { createReducer } from '@reduxjs/toolkit';
 
 import type { ActionOf } from '../actions';
 import * as clientCertificateActions from '../actions/clientCertificateActions';
+import * as messageBoxActions from '../actions/messageBoxActions';
 import * as rootWindowActions from '../actions/rootWindowActions';
 import * as screenSharingActions from '../actions/screenSharingActions';
 import * as serverActions from '../actions/serverActions';
@@ -14,13 +15,10 @@ import {
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SERVER_SELECTED,
-  TOUCH_BAR_SELECT_SERVER_TOUCHED,
   UPDATE_DIALOG_DISMISSED,
   UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
   UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-  WEBVIEW_MESSAGE_BOX_BLURRED,
-  WEBVIEW_MESSAGE_BOX_FOCUSED,
 } from '../actions/uiActions';
 import * as updateCheckActions from '../actions/updateCheckActions';
 import * as viewActions from '../actions/viewActions';
@@ -111,13 +109,6 @@ export const uiReducer = createReducer<State>(
         state.view = 'downloads';
       })
       .addCase(
-        TOUCH_BAR_SELECT_SERVER_TOUCHED,
-        (state, action: ActionOf<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>) => {
-          const url = action.payload;
-          state.view = { url };
-        }
-      )
-      .addCase(
         SIDE_BAR_SERVER_SELECTED,
         (state, action: ActionOf<typeof SIDE_BAR_SERVER_SELECTED>) => {
           const url = action.payload;
@@ -195,10 +186,10 @@ export const uiReducer = createReducer<State>(
           state.sideBar.enabled = enabled;
         }
       )
-      .addCase(WEBVIEW_MESSAGE_BOX_FOCUSED, (state) => {
+      .addCase(messageBoxActions.focused, (state) => {
         state.messageBox.focused = true;
       })
-      .addCase(WEBVIEW_MESSAGE_BOX_BLURRED, (state) => {
+      .addCase(messageBoxActions.blurred, (state) => {
         state.messageBox.focused = false;
       })
       .addCase(serverActions.loading, (state, action) => {

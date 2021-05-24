@@ -43,9 +43,6 @@ export const navigationReducer = createReducer<State>(
       .addCase(certificatesActions.cleared, (state) => {
         state.trustedCertificates = {};
       })
-      .addCase(certificatesActions.cleared, (state) => {
-        state.trustedCertificates = {};
-      })
       .addCase(externalProtocolActions.allowed, (state, action) => {
         const { protocol } = action.payload;
         state.externalProtocols[protocol] = true;

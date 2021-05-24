@@ -5,7 +5,6 @@ import { invoke } from './ipc/renderer';
 import { JitsiMeetElectron } from './preloadScript/JitsiMeetElectron';
 import { createRocketChatDesktopSingleton } from './preloadScript/createRocketChatDesktopSingleton';
 import { handleTrafficLightsSpacing } from './preloadScript/handleTrafficLightsSpacing';
-import { listenToMessageBoxEvents } from './preloadScript/listenToMessageBoxEvents';
 import { listenUserPresenceChanges } from './preloadScript/listenUserPresenceChanges';
 import { rootSaga } from './preloadScript/sagas';
 import { listenToScreenSharingRequests } from './preloadScript/screenSharing';
@@ -42,7 +41,6 @@ const start = async (): Promise<void> => {
   await invoke('server-view/ready');
 
   listenToScreenSharingRequests();
-  listenToMessageBoxEvents();
   handleTrafficLightsSpacing();
   listenUserPresenceChanges(rocketChatDesktop);
 };

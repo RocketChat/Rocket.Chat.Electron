@@ -10,7 +10,6 @@ import { App } from './rendererProcess/components/App';
 import { createRendererReduxStore } from './rendererProcess/createRendererReduxStore';
 import { resolveServerUrl } from './rendererProcess/resolveServerUrl';
 import { rootSaga } from './rendererProcess/sagas';
-import { setupRendererErrorHandling } from './rendererProcess/setupRendererErrorHandling';
 import { whenReady } from './rendererProcess/whenReady';
 
 const start = async (): Promise<void> => {
@@ -18,8 +17,6 @@ const start = async (): Promise<void> => {
   setReduxStore(reduxStore);
 
   await whenReady();
-
-  setupRendererErrorHandling('rootWindow');
 
   await i18next
     .use(initReactI18next)

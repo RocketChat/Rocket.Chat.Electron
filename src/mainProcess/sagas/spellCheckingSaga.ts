@@ -13,7 +13,7 @@ const getAllSessions = () =>
   );
 
 export function* spellCheckingSaga(): Generator {
-  yield watch(
+  yield* watch(
     (state) => state.app.spellCheckerLanguages.current,
     function* (languages) {
       for (const session of getAllSessions()) {

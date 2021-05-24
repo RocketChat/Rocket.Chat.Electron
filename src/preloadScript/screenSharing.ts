@@ -9,7 +9,7 @@ export const rejectScreenSharingRequest = (): void => {
   window.top.postMessage({ sourceId: 'PermissionDeniedError' }, '*');
 };
 
-export const listenToScreenSharingRequests = (): void => {
+export const attachScreenSharingEvents = (): void => {
   window.addEventListener('get-sourceId', () => {
     dispatch(screenSharingActions.sourceRequested());
   });

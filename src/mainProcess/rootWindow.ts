@@ -160,11 +160,11 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      const isShowWindowOnUnreadChangedEnabled = select(
+      const showOnBadgeChange = select(
         (state) => state.ui.rootWindow.showOnBadgeChange
       );
 
-      if (isShowWindowOnUnreadChangedEnabled && !browserWindow.isVisible()) {
+      if (showOnBadgeChange && !browserWindow.isVisible()) {
         const isMinimized = browserWindow.isMinimized();
         const isMaximized = browserWindow.isMaximized();
 
@@ -189,7 +189,7 @@ export const setupRootWindow = (): void => {
           typeof view === 'object'
             ? servers.find(({ url }) => url === view.url)
             : null;
-        return (currentServer && currentServer.title) || app.name;
+        return currentServer?.title ?? app.name;
       },
       async (windowTitle) => {
         const browserWindow = await getRootWindow();

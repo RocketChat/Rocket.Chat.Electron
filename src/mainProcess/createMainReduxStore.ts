@@ -1,7 +1,6 @@
 import { configureStore, Store } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 
-import { catchLastAction } from '../common/catchLastAction';
 import { rootReducer } from '../common/reducers';
 import type { RootState } from '../common/types/RootState';
 import { forwardToRenderers } from './forwardToRenderers';
@@ -18,7 +17,7 @@ export const createMainReduxStore = async <
   const store = configureStore({
     reducer: rootReducer,
     preloadedState: await getPreloadedState(),
-    middleware: [sagaMiddleware, catchLastAction, forwardToRenderers],
+    middleware: [sagaMiddleware, forwardToRenderers],
   });
 
   if (rootSaga) {

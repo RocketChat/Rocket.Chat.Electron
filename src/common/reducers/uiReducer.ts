@@ -2,23 +2,16 @@ import { createReducer } from '@reduxjs/toolkit';
 
 import type { ActionOf } from '../actions';
 import * as clientCertificateActions from '../actions/clientCertificateActions';
+import * as dialogActions from '../actions/dialogActions';
 import * as messageBoxActions from '../actions/messageBoxActions';
 import * as rootWindowActions from '../actions/rootWindowActions';
 import * as screenSharingActions from '../actions/screenSharingActions';
 import * as serverActions from '../actions/serverActions';
 import {
-  ABOUT_DIALOG_DISMISSED,
-  MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
-  SIDE_BAR_SERVER_SELECTED,
-  UPDATE_DIALOG_DISMISSED,
-  UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
-  UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
-  UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
 } from '../actions/uiActions';
 import * as updateCheckActions from '../actions/updateCheckActions';
 import * as viewActions from '../actions/viewActions';
@@ -105,18 +98,12 @@ export const uiReducer = createReducer<State>(
           state.view = 'add-new-server';
         }
       })
-      .addCase(SIDE_BAR_DOWNLOADS_BUTTON_CLICKED, (state) => {
-        state.view = 'downloads';
+      .addCase(dialogActions.push, (state, action) => {
+        const { name } = action.payload;
+        state.openDialog = name;
       })
-      .addCase(
-        SIDE_BAR_SERVER_SELECTED,
-        (state, action: ActionOf<typeof SIDE_BAR_SERVER_SELECTED>) => {
-          const url = action.payload;
-          state.view = { url };
-        }
-      )
-      .addCase(MENU_BAR_ABOUT_CLICKED, (state) => {
-        state.openDialog = 'about';
+      .addCase(dialogActions.pop, (state) => {
+        state.openDialog = null;
       })
       .addCase(updateCheckActions.newVersionAvailable, (state) => {
         state.openDialog = 'update';
@@ -126,9 +113,6 @@ export const uiReducer = createReducer<State>(
       })
       .addCase(clientCertificateActions.requested, (state) => {
         state.openDialog = 'select-client-certificate';
-      })
-      .addCase(ABOUT_DIALOG_DISMISSED, (state) => {
-        state.openDialog = null;
       })
       .addCase(screenSharingActions.sourceSelected, (state) => {
         state.openDialog = null;
@@ -140,18 +124,6 @@ export const uiReducer = createReducer<State>(
         state.openDialog = null;
       })
       .addCase(clientCertificateActions.dismissed, (state) => {
-        state.openDialog = null;
-      })
-      .addCase(UPDATE_DIALOG_DISMISSED, (state) => {
-        state.openDialog = null;
-      })
-      .addCase(UPDATE_DIALOG_SKIP_UPDATE_CLICKED, (state) => {
-        state.openDialog = null;
-      })
-      .addCase(UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED, (state) => {
-        state.openDialog = null;
-      })
-      .addCase(UPDATE_DIALOG_INSTALL_BUTTON_CLICKED, (state) => {
         state.openDialog = null;
       })
       .addCase(rootWindowActions.iconChanged, (state, action) => {

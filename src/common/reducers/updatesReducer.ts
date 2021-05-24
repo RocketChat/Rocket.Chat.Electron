@@ -1,7 +1,5 @@
 import { createReducer } from '@reduxjs/toolkit';
 
-import type { ActionOf } from '../actions';
-import { ABOUT_DIALOG_TOGGLE_UPDATE_ON_START } from '../actions/uiActions';
 import * as updateActions from '../actions/updateActions';
 import * as updateCheckActions from '../actions/updateCheckActions';
 
@@ -39,15 +37,10 @@ export const updatesReducer = createReducer<State>(
   },
   (builder) =>
     builder
-      .addCase(
-        ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
-        (
-          state,
-          action: ActionOf<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>
-        ) => {
-          state.settings.checkOnStartup = action.payload;
-        }
-      )
+      .addCase(updateCheckActions.checkOnStartupToggled, (state, action) => {
+        const { enabled } = action.payload;
+        state.settings.checkOnStartup = enabled;
+      })
       .addCase(updateCheckActions.started, (state) => {
         state.latest = {
           status: 'pending',

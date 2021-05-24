@@ -1,9 +1,7 @@
 import React, { useMemo, FC, DragEvent, MouseEvent } from 'react';
 
-import {
-  SIDE_BAR_SERVER_SELECTED,
-  SIDE_BAR_CONTEXT_MENU_TRIGGERED,
-} from '../../../common/actions/uiActions';
+import { SIDE_BAR_CONTEXT_MENU_TRIGGERED } from '../../../common/actions/uiActions';
+import * as viewActions from '../../../common/actions/viewActions';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import {
   Avatar,
@@ -48,7 +46,7 @@ const ServerButton: FC<ServerButtonProps> = ({
   const dispatch = useAppDispatch();
 
   const handleServerClick = (): void => {
-    dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
+    dispatch(viewActions.changed({ url }));
   };
 
   const initials = useMemo(

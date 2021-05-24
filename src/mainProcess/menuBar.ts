@@ -3,14 +3,13 @@ import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 
 import * as certificatesActions from '../common/actions/certificatesActions';
+import * as dialogActions from '../common/actions/dialogActions';
 import * as rootWindowActions from '../common/actions/rootWindowActions';
 import {
-  MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
 } from '../common/actions/uiActions';
 import * as viewActions from '../common/actions/viewActions';
 import { dispatch, select, Service } from '../common/store';
@@ -41,7 +40,7 @@ const createAppMenu = createSelector(
           label: t('menus.about', { appName: app.name }),
           click: async () => {
             dispatch(rootWindowActions.focused());
-            dispatch({ type: MENU_BAR_ABOUT_CLICKED });
+            dispatch(dialogActions.push('about'));
           },
         },
         { type: 'separator' },
@@ -400,7 +399,7 @@ const createWindowMenu = createSelector(
         checked: currentView === 'downloads',
         accelerator: 'CommandOrControl+D',
         click: () => {
-          dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
+          dispatch(viewActions.changed('downloads'));
         },
       },
       {
@@ -510,7 +509,7 @@ const createHelpMenu = createSelector(
           label: t('menus.about', { appName: app.name }),
           click: async () => {
             dispatch(rootWindowActions.focused());
-            dispatch({ type: MENU_BAR_ABOUT_CLICKED });
+            dispatch(dialogActions.push('about'));
           },
         },
       ]),

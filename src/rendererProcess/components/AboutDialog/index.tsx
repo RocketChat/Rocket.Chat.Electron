@@ -10,10 +10,7 @@ import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
 import React, { useState, useEffect, FC, ChangeEvent } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 
-import {
-  ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
-  ABOUT_DIALOG_DISMISSED,
-} from '../../../common/actions/uiActions';
+import * as dialogActions from '../../../common/actions/dialogActions';
 import * as updateCheckActions from '../../../common/actions/updateCheckActions';
 import { RocketChatLogo } from '../../../common/components/assets/RocketChatLogo';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
@@ -101,20 +98,18 @@ export const AboutDialog: FC = () => {
   const handleCheckForUpdatesOnStartCheckBoxChange = (
     event: ChangeEvent<HTMLInputElement>
   ): void => {
-    dispatch({
-      type: ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
-      payload: event.target.checked,
-    });
+    dispatch(updateCheckActions.checkOnStartupToggled(event.target.checked));
+  };
+
+  const handleClose = () => {
+    dispatch(dialogActions.pop());
   };
 
   const checkForUpdatesButtonRef = useAutoFocus(isVisible);
   const checkForUpdatesOnStartupToggleSwitchId = useUniqueId();
 
   return (
-    <Dialog
-      isVisible={isVisible}
-      onClose={() => dispatch({ type: ABOUT_DIALOG_DISMISSED })}
-    >
+    <Dialog isVisible={isVisible} onClose={handleClose}>
       <Margins block='x16'>
         <RocketChatLogo />
 

@@ -3,7 +3,6 @@ import React, { useMemo, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createSelector } from 'reselect';
 
-import { SIDE_BAR_DOWNLOADS_BUTTON_CLICKED } from '../../../common/actions/uiActions';
 import * as viewActions from '../../../common/actions/viewActions';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import { useAppSelector } from '../../../common/hooks/useAppSelector';
@@ -59,7 +58,7 @@ export const SideBar: FC = () => {
   };
 
   const handelDownloadsButtonClicked = (): void => {
-    dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
+    dispatch(viewActions.changed('downloads'));
   };
 
   const { t } = useTranslation();

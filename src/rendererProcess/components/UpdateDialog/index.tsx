@@ -8,12 +8,9 @@ import {
 import React, { useEffect, useRef, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-  UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
-  UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
-  UPDATE_DIALOG_DISMISSED,
-} from '../../../common/actions/uiActions';
+import * as dialogActions from '../../../common/actions/dialogActions';
+import * as updateActions from '../../../common/actions/updateActions';
+import * as updateCheckActions from '../../../common/actions/updateCheckActions';
 import { useAppDispatch } from '../../../common/hooks/useAppDispatch';
 import { useAppSelector } from '../../../common/hooks/useAppSelector';
 import { Dialog } from '../Dialog';
@@ -43,19 +40,27 @@ export const UpdateDialog: FC = () => {
   }, [isVisible]);
 
   const handleSkipButtonClick = (): void => {
-    dispatch({ type: UPDATE_DIALOG_SKIP_UPDATE_CLICKED, payload: newVersion });
+    dispatch(dialogActions.pop());
+
+    if (!newVersion) {
+      return;
+    }
+
+    dispatch(updateCheckActions.newVersionSkipped(newVersion));
   };
 
   const handleRemindLaterButtonClick = (): void => {
-    dispatch({ type: UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED });
+    dispatch(dialogActions.pop());
+    dispatch(updateCheckActions.newVersionSkippedForNow());
   };
 
   const handleInstallButtonClick = (): void => {
-    dispatch({ type: UPDATE_DIALOG_INSTALL_BUTTON_CLICKED });
+    dispatch(dialogActions.pop());
+    dispatch(updateActions.downloading());
   };
 
   const handleClose = (): void => {
-    dispatch({ type: UPDATE_DIALOG_DISMISSED });
+    dispatch(dialogActions.pop());
   };
 
   return (

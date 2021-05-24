@@ -12,4 +12,6 @@ export const failed = createAction('update/failed', (error: Error) => ({
   error: true,
 }));
 
+export const downloading = createAction('update/downloading');
+
 export const downloaded = createAction('update/downloaded');

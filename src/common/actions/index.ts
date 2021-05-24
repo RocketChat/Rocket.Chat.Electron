@@ -4,6 +4,7 @@ import type * as certificateActions from './certificateActions';
 import type * as certificatesActions from './certificatesActions';
 import type * as clientCertificateActions from './clientCertificateActions';
 import type * as deepLinksActions from './deepLinksActions';
+import type * as dialogActions from './dialogActions';
 import type * as downloadActions from './downloadActions';
 import type * as externalProtocolActions from './externalProtocolActions';
 import type * as messageBoxActions from './messageBoxActions';
@@ -42,6 +43,7 @@ export type RootActions = {
   ActionsFromModule<typeof certificatesActions> &
   ActionsFromModule<typeof clientCertificateActions> &
   ActionsFromModule<typeof deepLinksActions> &
+  ActionsFromModule<typeof dialogActions> &
   ActionsFromModule<typeof downloadActions> &
   ActionsFromModule<typeof externalProtocolActions> &
   ActionsFromModule<typeof messageBoxActions> &

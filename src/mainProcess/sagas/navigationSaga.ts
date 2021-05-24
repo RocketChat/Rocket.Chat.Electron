@@ -3,7 +3,6 @@ import i18next from 'i18next';
 import { StrictEffect, takeEvery } from 'redux-saga/effects';
 
 import * as certificateActions from '../../common/actions/certificateActions';
-import * as certificatesActions from '../../common/actions/certificatesActions';
 import * as clientCertificateActions from '../../common/actions/clientCertificateActions';
 import * as serversActions from '../../common/actions/serversActions';
 import { call } from '../../common/effects/call';
@@ -22,7 +21,6 @@ import {
   commitLoginRequest,
   denyLoginRequest,
 } from '../navigation';
-import { getAllServerWebContents } from '../serverView';
 
 function* takeClientCertificateRequests(): Generator<StrictEffect, void> {
   while (true) {
@@ -100,12 +98,6 @@ function* takeCertificateTrustRequests(): Generator<StrictEffect, void> {
 export function* navigationSaga(): Generator {
   yield* fork(takeClientCertificateRequests);
   yield* fork(takeCertificateTrustRequests);
-
-  yield takeEvery(certificatesActions.cleared.match, function* () {
-    for (const webContents of getAllServerWebContents()) {
-      webContents.reloadIgnoringCache();
-    }
-  });
 
   yield takeEvery(serversActions.loginRequested.match, function* (action) {
     const { id, authenticationResponseDetails } = action.payload;

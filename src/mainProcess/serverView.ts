@@ -23,7 +23,6 @@ import {
 import i18next from 'i18next';
 
 import * as downloadActions from '../common/actions/downloadActions';
-import { CERTIFICATES_CLEARED } from '../common/actions/navigationActions';
 import * as serverActions from '../common/actions/serverActions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
@@ -47,6 +46,9 @@ const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
+
+export const getAllServerWebContents = (): WebContents[] =>
+  Array.from(webContentsByServerUrl.values());
 
 const initializeServerWebContents = (
   serverUrl: string,
@@ -445,12 +447,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     menu.popup({
       window: rootWindow,
     });
-  });
-
-  listen(CERTIFICATES_CLEARED, () => {
-    for (const serverViewWebContents of webContentsByServerUrl.values()) {
-      serverViewWebContents.reloadIgnoringCache();
-    }
   });
 
   rootWindow.webContents.addListener(

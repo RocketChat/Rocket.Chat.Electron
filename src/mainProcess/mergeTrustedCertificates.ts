@@ -10,7 +10,7 @@ export const mergeTrustedCertificates = async (
   );
 
   const merged = {
-    ...state.trustedCertificates,
+    ...state.navigation.trustedCertificates,
     ...Object.fromEntries(
       Object.entries(userTrustedCertificates).filter(
         (pair): pair is [string, string] =>
@@ -21,6 +21,9 @@ export const mergeTrustedCertificates = async (
 
   return {
     ...state,
-    trustedCertificates: merged,
+    navigation: {
+      ...state.navigation,
+      trustedCertificates: merged,
+    },
   };
 };

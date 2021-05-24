@@ -2,7 +2,7 @@ import { Menu, app, shell, MenuItemConstructorOptions } from 'electron';
 import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 
-import { CERTIFICATES_CLEARED } from '../common/actions/navigationActions';
+import * as certificatesActions from '../common/actions/certificatesActions';
 import * as rootWindowActions from '../common/actions/rootWindowActions';
 import {
   MENU_BAR_ABOUT_CLICKED,
@@ -482,7 +482,7 @@ const createHelpMenu = createSelector(
         label: t('menus.clearTrustedCertificates'),
         click: async () => {
           dispatch(rootWindowActions.focused());
-          dispatch({ type: CERTIFICATES_CLEARED });
+          dispatch(certificatesActions.cleared());
         },
       },
       {

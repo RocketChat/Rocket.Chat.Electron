@@ -100,6 +100,11 @@ export const mergePersistableValues = async (
 
   return {
     ...state,
+    navigation: {
+      ...state.navigation,
+      externalProtocols: values.externalProtocols,
+      trustedCertificates: values.trustedCertificates,
+    },
     updates: {
       ...state.updates,
       settings: {
@@ -132,8 +137,6 @@ export const mergePersistableValues = async (
       view: values.currentView,
     },
     downloads: values.downloads,
-    externalProtocols: values.externalProtocols,
     servers: values.servers,
-    trustedCertificates: values.trustedCertificates,
   };
 };

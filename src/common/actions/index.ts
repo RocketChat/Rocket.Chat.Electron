@@ -1,9 +1,11 @@
 import type { Action, ActionCreator } from 'redux';
 
+import type * as certificateActions from './certificateActions';
+import type * as certificatesActions from './certificatesActions';
 import type * as clientCertificateActions from './clientCertificateActions';
 import type * as deepLinksActions from './deepLinksActions';
 import type * as downloadActions from './downloadActions';
-import type { NavigationActionTypeToPayloadMap } from './navigationActions';
+import type * as externalProtocolActions from './externalProtocolActions';
 import type * as notificationActions from './notificationActions';
 import type * as rootWindowActions from './rootWindowActions';
 import type * as screenSharingActions from './screenSharingActions';
@@ -15,8 +17,7 @@ import type * as updateActions from './updateActions';
 import type * as updateCheckActions from './updateCheckActions';
 import type * as viewActions from './viewActions';
 
-type ActionTypeToPayloadMap = NavigationActionTypeToPayloadMap &
-  UiActionTypeToPayloadMap;
+type ActionTypeToPayloadMap = UiActionTypeToPayloadMap;
 
 type ActionsFromModule<Module> = {
   [Field in keyof Module as Module[Field] extends ActionCreator<infer A>
@@ -36,9 +37,12 @@ export type RootActions = {
         payload: ActionTypeToPayloadMap[Type];
       };
 } &
+  ActionsFromModule<typeof certificateActions> &
+  ActionsFromModule<typeof certificatesActions> &
   ActionsFromModule<typeof clientCertificateActions> &
   ActionsFromModule<typeof deepLinksActions> &
   ActionsFromModule<typeof downloadActions> &
+  ActionsFromModule<typeof externalProtocolActions> &
   ActionsFromModule<typeof notificationActions> &
   ActionsFromModule<typeof rootWindowActions> &
   ActionsFromModule<typeof screenSharingActions> &

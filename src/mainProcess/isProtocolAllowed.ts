@@ -1,4 +1,4 @@
-import { EXTERNAL_PROTOCOL_PERMISSION_UPDATED } from '../common/actions/navigationActions';
+import * as externalProtocolActions from '../common/actions/externalProtocolActions';
 import { dispatch, select } from '../common/store';
 import { askForOpeningExternalProtocol } from './dialogs';
 
@@ -7,7 +7,7 @@ export const isProtocolAllowed = async (rawUrl: string): Promise<boolean> => {
 
   const instrinsicProtocols = ['http:', 'https:', 'mailto:'];
   const persistedProtocols = Object.entries(
-    select(({ externalProtocols }) => externalProtocols)
+    select((state) => state.navigation.externalProtocols)
   )
     .filter(([, allowed]) => allowed)
     .map(([protocol]) => protocol);
@@ -20,13 +20,11 @@ export const isProtocolAllowed = async (rawUrl: string): Promise<boolean> => {
   const { allowed, dontAskAgain } = await askForOpeningExternalProtocol(url);
 
   if (dontAskAgain) {
-    dispatch({
-      type: EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
-      payload: {
-        protocol: url.protocol,
-        allowed,
-      },
-    });
+    dispatch(
+      allowed
+        ? externalProtocolActions.allowed(url.protocol)
+        : externalProtocolActions.denied(url.protocol)
+    );
   }
 
   return allowed;

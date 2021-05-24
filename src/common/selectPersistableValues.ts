@@ -7,8 +7,8 @@ export const selectPersistableValues = createStructuredSelector<
   RootState,
   PersistableValues
 >({
-  currentView: ({ ui: { view } }) => view,
-  downloads: ({ downloads }) => downloads,
+  currentView: (state) => state.ui.view,
+  downloads: (state) => state.downloads,
   isMenuBarEnabled: (state) => state.ui.menuBar.enabled,
   isShowWindowOnUnreadChangedEnabled: (state) =>
     state.ui.rootWindow.showOnBadgeChange,
@@ -16,8 +16,8 @@ export const selectPersistableValues = createStructuredSelector<
   isTrayIconEnabled: (state) => state.ui.trayIcon.enabled,
   rootWindowState: (state) => state.ui.rootWindow.state,
   servers: (state) => state.servers,
-  trustedCertificates: ({ trustedCertificates }) => trustedCertificates,
-  externalProtocols: ({ externalProtocols }) => externalProtocols,
+  trustedCertificates: (state) => state.navigation.trustedCertificates,
+  externalProtocols: (state) => state.navigation.externalProtocols,
   isUpdatingEnabled: (state) => state.updates.settings.enabled,
   isEachUpdatesSettingConfigurable: (state) => state.updates.settings.editable,
   doCheckForUpdatesOnStartup: (state) => state.updates.settings.checkOnStartup,

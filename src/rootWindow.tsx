@@ -1,12 +1,12 @@
 import i18next from 'i18next';
-import { createElement } from 'react';
+import React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 import { initReactI18next } from 'react-i18next';
 
 import { getI18nextInitOptions } from './common/getI18nextInitOptions';
 import { setReduxStore } from './common/store';
 import { handle } from './ipc/renderer';
-import { App } from './rendererProcess/components/App';
+import AppRoot from './rendererProcess/components/AppRoot';
 import { createRendererReduxStore } from './rendererProcess/createRendererReduxStore';
 import { resolveServerUrl } from './rendererProcess/resolveServerUrl';
 import { rootSaga } from './rendererProcess/sagas';
@@ -30,7 +30,7 @@ const start = async (): Promise<void> => {
     throw new Error('cannot find the container node for React');
   }
 
-  render(createElement(App, { reduxStore }), container);
+  render(<AppRoot store={reduxStore} />, container);
 
   window.addEventListener('beforeunload', () => {
     unmountComponentAtNode(container);

@@ -1,11 +1,12 @@
 import { app } from 'electron';
 import i18next from 'i18next';
+import React from 'react';
 
 import { getI18nextInitOptions } from './common/getI18nextInitOptions';
 import { setReduxStore } from './common/store';
+import AppRoot from './mainProcess/components/AppRoot';
 import { createMainReduxStore } from './mainProcess/createMainReduxStore';
 import { setUserDataDirectory } from './mainProcess/dev';
-import dock from './mainProcess/dock';
 import menuBar from './mainProcess/menuBar';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
 import { createRootWindow, showRootWindow } from './mainProcess/rootWindow';
@@ -14,6 +15,7 @@ import { attachGuestWebContentsEvents } from './mainProcess/serverView';
 import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
 import touchBar from './mainProcess/touchBar';
 import trayIcon from './mainProcess/trayIcon';
+import { render } from './nullReconciler';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
@@ -22,8 +24,8 @@ const start = async (): Promise<void> => {
 
   await app.whenReady();
 
-  const reduxStore = await createMainReduxStore(rootSaga);
-  setReduxStore(reduxStore);
+  const store = await createMainReduxStore(rootSaga);
+  setReduxStore(store);
 
   await i18next.init(await getI18nextInitOptions(app.getLocale()));
 
@@ -36,13 +38,13 @@ const start = async (): Promise<void> => {
   //   installDevTools();
   // }
 
-  dock.setUp();
+  render(<AppRoot store={store} />);
+
   menuBar.setUp();
   touchBar.setUp();
   trayIcon.setUp();
 
   app.addListener('before-quit', () => {
-    dock.tearDown();
     menuBar.tearDown();
     touchBar.tearDown();
     trayIcon.tearDown();

@@ -18,7 +18,7 @@ const AppState = ({
 }: AppStateProps): ReactElement => (
   <Provider store={store}>
     <I18nextProvider i18n={i18next}>
-      <ErrorBoundary fallback={fallback}>{children}</ErrorBoundary>
+      <ErrorBoundary fallback={fallback ?? <></>}>{children}</ErrorBoundary>
     </I18nextProvider>
   </Provider>
 );

@@ -1,5 +1,3 @@
-import { app } from 'electron';
-
 import type { Server } from '../common/types/Server';
 import { joinAsarPath } from './joinAsarPath';
 
@@ -12,7 +10,7 @@ export const getAppIconPath = ({
     throw Error('only win32 platform is supported');
   }
 
-  return `${app.getAppPath()}/app/images/icon.ico`;
+  return joinAsarPath('images/icon.ico');
 };
 
 const getMacOSTrayIconPath = (badge: Server['badge']): string =>
@@ -42,7 +40,7 @@ export const getTrayIconPath = ({
   badge,
   platform,
 }: {
-  badge?: Server['badge'];
+  badge?: number | '•';
   platform: NodeJS.Platform;
 }): string => {
   switch (platform ?? process.platform) {

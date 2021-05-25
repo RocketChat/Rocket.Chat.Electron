@@ -22,7 +22,6 @@ const MenuBar = ({ rootWindow }: MenuBarProps): null => {
   const platform = useAppSelector((state) => state.app.platform);
 
   useEffect(() => {
-    console.log('.');
     const menu = Menu.buildFromTemplate([
       appMenu,
       editMenu,

@@ -3,11 +3,11 @@ import i18next from 'i18next';
 import React from 'react';
 
 import { getI18nextInitOptions } from './common/getI18nextInitOptions';
+import { render } from './common/helpers/nullReconciler';
 import { setReduxStore } from './common/store';
 import AppRoot from './mainProcess/components/AppRoot';
 import { createMainReduxStore } from './mainProcess/createMainReduxStore';
 import { setUserDataDirectory } from './mainProcess/dev';
-import menuBar from './mainProcess/menuBar';
 import { performElectronStartup } from './mainProcess/performElectronStartup';
 import { createRootWindow, showRootWindow } from './mainProcess/rootWindow';
 import { rootSaga } from './mainProcess/sagas';
@@ -15,7 +15,6 @@ import { attachGuestWebContentsEvents } from './mainProcess/serverView';
 import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
 import touchBar from './mainProcess/touchBar';
 import trayIcon from './mainProcess/trayIcon';
-import { render } from './nullReconciler';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
@@ -40,12 +39,10 @@ const start = async (): Promise<void> => {
 
   render(<AppRoot store={store} />);
 
-  menuBar.setUp();
   touchBar.setUp();
   trayIcon.setUp();
 
   app.addListener('before-quit', () => {
-    menuBar.tearDown();
     touchBar.tearDown();
     trayIcon.tearDown();
   });

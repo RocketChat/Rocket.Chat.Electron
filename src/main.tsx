@@ -13,7 +13,7 @@ import { createRootWindow, showRootWindow } from './mainProcess/rootWindow';
 import { rootSaga } from './mainProcess/sagas';
 import { attachGuestWebContentsEvents } from './mainProcess/serverView';
 import { setupMainErrorHandling } from './mainProcess/setupMainErrorHandling';
-import touchBar from './mainProcess/touchBar';
+// import touchBar from './mainProcess/touchBar';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
@@ -38,11 +38,11 @@ const start = async (): Promise<void> => {
 
   render(<AppRoot store={store} />);
 
-  touchBar.setUp();
+  // touchBar.setUp();
 
-  app.addListener('before-quit', () => {
-    touchBar.tearDown();
-  });
+  // app.addListener('before-quit', () => {
+  //   touchBar.tearDown();
+  // });
 };
 
 if (require.main === module) {

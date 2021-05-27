@@ -2,8 +2,8 @@
   "contextMenu": {
     "cut": "Cou&per",
     "copy": "&Copier",
-    "paste": "Co&ller",
-    "selectAll": "Tout sélectionner",
+    "paste": "&Coller",
+    "selectAll": "&Tout sélectionner",
     "undo": "&Annuler",
     "redo": "&Rétablir",
     "spelling": "Orthographe",
@@ -60,7 +60,7 @@
     "update": {
       "title": "Une mise à jour est disponible",
       "announcement": "Une nouvelle mise à jour est disponible",
-      "message": "Une mise à jour de Rocket.Chat Desktop App est disponible!",
+      "message": "Une mise à jour de Rocket.Chat Desktop App est disponible !",
       "currentVersion": "Version actuelle :",
       "newVersion": "Nouvelle version :",
       "install": "Installer la mise à jour",
@@ -85,7 +85,7 @@
     },
     "updateSkip": {
       "title": "Ignorer la mise à jour",
-      "message": "Vous serez averti quand la prochaine mise à jour sera disponible\nSi vous changez d'avis, vous pouvez vérifier si des mises à jour sont disponible dans le menu A propos.",
+      "message": "Vous serez averti quand la prochaine mise à jour sera disponible\nSi vous changez d'avis, vous pouvez vérifier les mises à jour dans le menu A propos.",
       "ok": "OK"
     },
     "selectClientCertificate": {
@@ -96,7 +96,7 @@
     "openingExternalProtocol": {
       "title": "Lien avec un protocole personnalisé",
       "message": "Lien {{- protocol }} nécessite une application externe.",
-      "detail": "Le lien demandé est {{- url }} . Voulez-vous continuer ?",
+      "detail": "Le lien demandé est {{- url }}. Voulez-vous continuer ?",
       "dontAskAgain": "Ouvrez toujours ces types de liens dans l'application associée",
       "yes": "Oui",
       "no": "Non"
@@ -131,14 +131,14 @@
       "progressSize": "{{receivedBytes, byteSize}} de {{totalBytes, byteSize}} ({{ratio, percentage}})",
       "remove": "Retirer de la liste",
       "resume": "Reprendre",
-      "retry": "Réessayez",
+      "retry": "Réessayer",
       "showInFolder": "Afficher dans le dossier"
     },
     "showingResults": "Affichage des résultats {{first}} - {{last}} de {{count}}"
   },
   "error": {
     "authNeeded": "Authentification requise, essayez <strong>{{- auth}}</strong>",
-    "connectTimeout": "Échec de connexion",
+    "connectTimeout": "Délai d'attente lors de la connexion",
     "differentCertificate": "Le certificat est different du dernier utilisé.\n\n {{- detail}}",
     "noValidServerFound": "Aucun serveur valide trouvé à cette adresse",
     "offline": "Vérifiez votre connexion Internet !"
@@ -152,7 +152,7 @@
   "menus": {
     "about": "À propos de {{- appName}}",
     "addNewServer": "Ajouter un &nouveau serveur",
-    "back": "Page &précédente",
+    "back": "&Retour",
     "clearTrustedCertificates": "Effacer les certificats de confiance",
     "close": "Fermer",
     "copy": "&Copier",
@@ -162,34 +162,34 @@
     "downloads": "Téléchargements",
     "editMenu": "&Éditer",
     "fileMenu": "&Fichier",
-    "forward": "Page &suivante",
+    "forward": "&Suivant",
     "helpMenu": "&Aide",
     "hide": "Masquer {{- appName}}",
     "hideOthers": "Masquer les autres",
     "learnMore": "En savoir plus",
     "minimize": "Réduire",
     "openDevTools": "Ouvrir &DevTools",
-    "paste": "Co&ller",
+    "paste": "&Coller",
     "quit": "&Quitter {{- appName}}",
     "redo": "&Rétablir",
     "reload": "Recharger",
     "reloadIgnoringCache": "Recharger en ignorant le cache",
     "reportIssue": "Signaler un problème",
     "resetAppData": "Effacer les données de l'application",
-    "resetZoom": "Restaurer zoom",
+    "resetZoom": "Réinitialiser le zoom",
     "selectAll": "Sélectionner tout",
     "services": "Services",
-    "showFullScreen": "En plein écran",
-    "showMenuBar": "Afficher la barre des menus",
-    "showOnUnreadMessage": "Afficher la fenêtre quand il y a des messages non-lus",
+    "showFullScreen": "Plein écran",
+    "showMenuBar": "Barre des menus",
+    "showOnUnreadMessage": "Afficher la fenêtre quand il y a des messages non lus",
     "showServerList": "Liste des serveurs",
-    "showTrayIcon": "Afficher l'icone dans le menu",
+    "showTrayIcon": "Icône dans la barre des tâches",
     "toggleDevTools": "Afficher &DevTools",
     "undo": "&Annuler",
-    "unhide": "Tout montrer",
+    "unhide": "Afficher tout",
     "viewMenu": "&Voir",
-    "windowMenu": "Fe&nêtre",
-    "zoomIn": "Zoom avant",
+    "windowMenu": "&Fenêtre",
+    "zoomIn": "Zoomer",
     "zoomOut": "Zoom arrière"
   },
   "loadingError": {
@@ -200,14 +200,14 @@
   "selfxss": {
     "title": "Stop !",
     "description": "Il s'agit d'une fonctionnalité de navigateur destinée aux développeurs. Si quelqu'un vous a dit de copier-coller quelque chose ici pour activer une fonctionnalité Rocket.Chat ou \"pirater\" le compte de quelqu'un, il s'agit d'une arnaque et ça lui donnera accès à votre compte Rocket.Chat.",
-    "moreInfo": "See https://go.rocket.chat/i/xss for more information."
+    "moreInfo": "Voir https://go.rocket.chat/i/xss pour plus d'informations."
   },
   "sidebar": {
     "addNewServer": "Ajouter un nouveau serveur",
     "downloads": "Téléchargements",
     "item": {
       "reload": "Recharger le serveur",
-      "remove": "Effacer le serveur",
+      "remove": "Retirer le serveur",
       "openDevTools": "Ouvrir DevTools"
     }
   },

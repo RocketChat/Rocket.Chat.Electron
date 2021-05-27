@@ -1,11 +1,15 @@
+import { call } from '../../common/effects/call';
 import { select } from '../../common/effects/select';
 import { watch } from '../../common/effects/watch';
+import { whenReady } from '../../rendererProcess/whenReady';
 
 export function* trafficLightsSaga(): Generator {
   const platform = yield* select((state) => state.app.platform);
   if (platform !== 'darwin') {
     return;
   }
+
+  yield* call(whenReady);
 
   const style =
     document.getElementById('sidebar-padding') ||

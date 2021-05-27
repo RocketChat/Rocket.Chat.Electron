@@ -39,29 +39,3 @@ export const watch = <T>(
     prev = curr;
   });
 };
-
-export abstract class Service {
-  private unsubscribers = new Set<() => void>();
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  protected initialize(): void {}
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  protected destroy(): void {}
-
-  protected watch<T>(
-    selector: Selector<T>,
-    watcher: (curr: T, prev: T | undefined) => void
-  ): void {
-    this.unsubscribers.add(watch(selector, watcher));
-  }
-
-  public setUp(): void {
-    this.initialize();
-  }
-
-  public tearDown(): void {
-    this.unsubscribers.forEach((unsubscribe) => unsubscribe());
-    this.destroy();
-  }
-}

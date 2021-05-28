@@ -7,7 +7,6 @@ import {
   attachServerView,
   getAllServerWebContents,
   getWebContentsByServerUrl,
-  triggerPopup,
 } from '../serverView';
 
 export function* serverViewSaga(): Generator {
@@ -21,11 +20,6 @@ export function* serverViewSaga(): Generator {
     const { url } = action.payload;
     const webContents = yield* call(getWebContentsByServerUrl, url);
     webContents?.loadURL(url);
-  });
-
-  yield takeEvery(serverActions.popupTriggered.match, function* (action) {
-    const { url } = action.payload;
-    yield* call(triggerPopup, url);
   });
 
   yield takeEvery(serverActions.webviewAttached.match, function* (action) {

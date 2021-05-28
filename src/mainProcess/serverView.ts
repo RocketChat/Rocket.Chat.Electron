@@ -8,8 +8,6 @@ import {
   DownloadItem,
   Event,
   Input,
-  Menu,
-  MenuItemConstructorOptions,
   Session,
   shell,
   systemPreferences,
@@ -20,7 +18,6 @@ import {
   WebContents,
   WebPreferences,
 } from 'electron';
-import i18next from 'i18next';
 
 import * as downloadActions from '../common/actions/downloadActions';
 import * as serverActions from '../common/actions/serverActions';
@@ -34,8 +31,6 @@ import { isProtocolAllowed } from './isProtocolAllowed';
 import { joinAsarPath } from './joinAsarPath';
 import { createPopupMenuForServerView } from './popupMenu';
 import { getRootWindow } from './rootWindow';
-
-const t = i18next.t.bind(i18next);
 
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
@@ -436,35 +431,4 @@ export const attachServerView = async (
   };
 
   guestWebContents.session.on('will-download', handleWillDownloadEvent);
-};
-
-export const triggerPopup = async (url: Server['url']): Promise<void> => {
-  const menuTemplate: MenuItemConstructorOptions[] = [
-    {
-      label: t('sidebar.item.reload'),
-      click: () => {
-        const guestWebContents = getWebContentsByServerUrl(url);
-        guestWebContents?.loadURL(url);
-      },
-    },
-    {
-      label: t('sidebar.item.remove'),
-      click: () => {
-        dispatch(serverActions.removed(url));
-      },
-    },
-    { type: 'separator' },
-    {
-      label: t('sidebar.item.openDevTools'),
-      click: () => {
-        const guestWebContents = getWebContentsByServerUrl(url);
-        guestWebContents?.openDevTools();
-      },
-    },
-  ];
-
-  const menu = Menu.buildFromTemplate(menuTemplate);
-  menu.popup({
-    window: await getRootWindow(),
-  });
 };

@@ -137,6 +137,6 @@ export const mergePersistableValues = async (
       view: values.currentView,
     },
     downloads: values.downloads,
-    servers: values.servers,
+    servers: values.servers.map(({ webContentsId: _, ...server }) => server),
   };
 };

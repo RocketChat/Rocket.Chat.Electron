@@ -4,9 +4,9 @@ import * as certificatesActions from '../../common/actions/certificatesActions';
 import * as serverActions from '../../common/actions/serverActions';
 import { call } from '../../common/effects/call';
 import {
-  attachServerView,
   getAllServerWebContents,
   getWebContentsByServerUrl,
+  purgeSessionStorageData,
 } from '../serverView';
 
 export function* serverViewSaga(): Generator {
@@ -22,8 +22,8 @@ export function* serverViewSaga(): Generator {
     webContents?.loadURL(url);
   });
 
-  yield takeEvery(serverActions.webviewAttached.match, function* (action) {
-    const { url, webContentsId } = action.payload;
-    yield* call(attachServerView, url, webContentsId);
+  yield takeEvery(serverActions.removed.match, function* (action) {
+    const { url } = action.payload;
+    yield* call(purgeSessionStorageData, url);
   });
 }

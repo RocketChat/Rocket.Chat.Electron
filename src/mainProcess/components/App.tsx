@@ -5,6 +5,7 @@ import { useAppSelector } from '../../common/hooks/useAppSelector';
 import { getRootWindow } from '../rootWindow';
 import Dock from './Dock';
 import MenuBar from './MenuBar';
+import ServerViews from './ServerViews';
 import TouchBar from './TouchBar';
 import TrayIcon from './TrayIcon';
 
@@ -23,6 +24,7 @@ const App = (): ReactElement => {
       {trayIconEnabled && <TrayIcon />}
       {platform === 'darwin' && <Dock />}
       {platform === 'darwin' && <TouchBar rootWindow={rootWindow} />}
+      <ServerViews />
     </>
   );
 };

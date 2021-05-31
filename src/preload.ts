@@ -1,57 +1,48 @@
 import { contextBridge } from 'electron';
 
-import { setupRendererErrorHandling } from './errors';
+import { setReduxStore } from './common/store';
+import type { RocketChatDesktopAPI } from './common/types/RocketChatDesktopAPI';
 import { invoke } from './ipc/renderer';
-import { JitsiMeetElectron, JitsiMeetElectronAPI } from './jitsi/preload';
-import { listenToNotificationsRequests } from './notifications/preload';
-import { listenToScreenSharingRequests } from './screenSharing/preload';
-import {
-  RocketChatDesktop,
-  RocketChatDesktopAPI,
-  serverInfo,
-} from './servers/preload/api';
-import { setServerUrl } from './servers/preload/urls';
-import { createRendererReduxStore } from './store';
-import { listenToMessageBoxEvents } from './ui/preload/messageBox';
-import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
-import { whenReady } from './whenReady';
-
-declare global {
-  interface Window {
-    JitsiMeetElectron: JitsiMeetElectronAPI;
-    RocketChatDesktop: RocketChatDesktopAPI;
-  }
-}
+import { JitsiMeetElectron } from './preloadScript/JitsiMeetElectron';
+import { createRocketChatDesktopSingleton } from './preloadScript/createRocketChatDesktopSingleton';
+import { rootSaga } from './preloadScript/sagas';
+import { setServerUrl } from './preloadScript/setUrlResolver';
+import { createRendererReduxStore } from './rendererProcess/createRendererReduxStore';
+import { whenReady } from './rendererProcess/whenReady';
 
 const start = async (): Promise<void> => {
-  const serverUrl = await invoke('server-view/get-url');
-
   contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
+
+  const serverUrl = await invoke('server-view/get-url');
 
   if (!serverUrl) {
     return;
   }
 
-  contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
-
   setServerUrl(serverUrl);
 
-  await createRendererReduxStore();
+  const rocketChatDesktopRef: { current: null | RocketChatDesktopAPI } = {
+    current: null,
+  };
+
+  const reduxStore = await createRendererReduxStore(
+    rootSaga,
+    serverUrl,
+    rocketChatDesktopRef
+  );
+  setReduxStore(reduxStore);
+
+  const rocketChatDesktop = createRocketChatDesktopSingleton(
+    serverUrl,
+    reduxStore
+  );
+  rocketChatDesktopRef.current = rocketChatDesktop;
+
+  contextBridge.exposeInMainWorld('RocketChatDesktop', rocketChatDesktop);
 
   await whenReady();
 
-  setupRendererErrorHandling('webviewPreload');
-
   await invoke('server-view/ready');
-
-  if (!serverInfo) {
-    return;
-  }
-
-  listenToNotificationsRequests();
-  listenToScreenSharingRequests();
-  listenToMessageBoxEvents();
-  handleTrafficLightsSpacing();
 };
 
 start();

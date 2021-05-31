@@ -1,6 +1,7 @@
+import { nanoid } from '@reduxjs/toolkit';
 import { ipcMain, WebContents } from 'electron';
 
-import { Handler, Channel } from './channels';
+import type { Handler, Channel } from './channels';
 
 export const invoke = <N extends Channel>(
   webContents: WebContents,
@@ -8,7 +9,7 @@ export const invoke = <N extends Channel>(
   ...args: Parameters<Handler<N>>
 ): Promise<ReturnType<Handler<N>>> =>
   new Promise<ReturnType<Handler<N>>>((resolve, reject) => {
-    const id = Math.random().toString(16).slice(2);
+    const id = nanoid();
 
     ipcMain.once(`${channel}@${id}`, (_, { resolved, rejected }) => {
       if (rejected) {

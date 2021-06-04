@@ -132,13 +132,14 @@ const handleCreateEvent = async ({
 
 export const setupNotifications = (): void => {
   listen(NOTIFICATIONS_CREATE_REQUESTED, async (action) => {
+    const payload = await handleCreateEvent(action.payload);
     if (!isResponse(action)) {
       return;
     }
 
     dispatch({
       type: NOTIFICATIONS_CREATE_RESPONDED,
-      payload: await handleCreateEvent(action.payload),
+      payload,
       meta: {
         id: action.meta.id,
         response: true,

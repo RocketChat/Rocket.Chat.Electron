@@ -75,6 +75,8 @@ export const mergeServers = async (
     localStorage['rocket.chat.currentHost'] !== 'null'
   ) {
     currentServerUrl = localStorage['rocket.chat.currentHost'];
+  } else if (serversMap.size >= 1) {
+    currentServerUrl = serversMap.keys().next().value;
   }
 
   servers = Array.from(serversMap.values());

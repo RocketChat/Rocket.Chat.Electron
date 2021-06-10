@@ -121,11 +121,15 @@
     "fsevents": "2.3.2"
   },
   "engines": {
-    "node": ">=12.8.x"
+    "node": ">=14.17.0"
   },
   "devEngines": {
-    "node": ">=12.8.x",
-    "yarn": ">=1.22.x"
+    "node": ">=14.17.0",
+    "yarn": ">=1.22.10"
   },
-  "productName": "Rocket.Chat"
+  "productName": "Rocket.Chat",
+  "volta": {
+    "node": "14.17.0",
+    "yarn": "1.22.10"
+  }
 }

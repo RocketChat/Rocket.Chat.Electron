@@ -39,12 +39,11 @@ export const AddServerView: FC = () => {
   const [input, setInput] = useState('');
 
   const idleState = useMemo(() => ['idle', null] as const, []);
-  const [[validationState, errorMessage], setValidation] =
-    useState<
-      | readonly [state: 'idle', message: null]
-      | readonly [state: 'validating', message: null]
-      | readonly [state: 'invalid', message: string | null]
-    >(idleState);
+  const [[validationState, errorMessage], setValidation] = useState<
+    | readonly [state: 'idle', message: null]
+    | readonly [state: 'validating', message: null]
+    | readonly [state: 'invalid', message: string | null]
+  >(idleState);
 
   const editInput = useCallback(
     (input: string): void => {

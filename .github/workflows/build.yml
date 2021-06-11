@@ -66,22 +66,30 @@ jobs:
         env:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      - if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
       - run: |
           $job = Start-Job -ScriptBlock { .\dist\win-unpacked\Rocket.Chat.exe }
           if (Wait-Job $job -Timeout 30) {
             Write-Host $(Receive-Job -Job $job)
           }
           Remove-Job -force $job
+      - if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
       - run: yarn electron-builder --ia32 --dir
         env:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      - if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
       - run: |
           $job = Start-Job -ScriptBlock { .\dist\win-ia32-unpacked\Rocket.Chat.exe }
           if (Wait-Job $job -Timeout 30) {
             Write-Host $(Receive-Job -Job $job)
           }
           Remove-Job -force $job
+      - if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
 
   smoke-test-macos-build:
     needs: bundle
@@ -104,12 +112,16 @@ jobs:
         env:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+      - if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
       - run: |
           brew install coreutils
           gtimeout 30 ./dist/mac/Rocket.Chat.app/Contents/MacOS/Rocket.Chat || code=$?
-          if [[ $code -ne 144 && $code -ne 0 ]]; then
+          if [[ $code -ne 124 && $code -ne 0 ]]; then
             exit $code;
           fi
+      - if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
 
   smoke-test-linux-build:
     needs: bundle
@@ -132,11 +144,15 @@ jobs:
         env:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+      - if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
       - run: |
           xvfb-run timeout 30 ./dist/linux-unpacked/rocketchat-desktop || code=$?
-          if [[ $code -ne 144 && $code -ne 0 ]]; then
+          if [[ $code -ne 124 && $code -ne 0 ]]; then
             exit $code;
           fi
+      - if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
 
   windows-build:
     needs: smoke-test-windows-build

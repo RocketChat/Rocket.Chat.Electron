@@ -3,6 +3,8 @@ module.exports = {
   rules: {
     'generator-star-spacing': 'off',
     'new-cap': ['error', { capIsNewExceptions: ['Reconciler'] }],
+    'no-use-before-define': 'off',
+    '@typescript-eslint/no-use-before-define': ['error'],
   },
   env: {
     browser: true,

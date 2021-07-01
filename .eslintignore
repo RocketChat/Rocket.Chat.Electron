@@ -1,2 +1,3 @@
 /node_modules
 /app
+/workspaces/desktop-release-action/dist

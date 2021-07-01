@@ -37,7 +37,7 @@ export const createNotification = async ({
 }: NotificationOptions & {
   canReply?: boolean;
   title: string;
-  onEvent: (eventDescriptor: { type: string; detail: unknown }) => void;
+  onEvent?: (eventDescriptor: { type: string; detail: unknown }) => void;
 }): Promise<unknown> => {
   const id = await request(
     {
@@ -56,7 +56,7 @@ export const createNotification = async ({
   );
 
   eventHandlers.set(id, (event) =>
-    onEvent({ type: event.type, detail: event.detail })
+    onEvent?.({ type: event.type, detail: event.detail })
   );
 
   return id;

@@ -180,7 +180,11 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      browserWindow.flashFrame(true);
+      const needFlashWindow = select((state) => state.ui.flashWindow.enabled);
+
+      if (needFlashWindow) {
+        browserWindow.flashFrame(true);
+      }
     }),
 
     watch(

@@ -13,6 +13,7 @@ export const selectPersistableValues = createStructuredSelector<
   isShowWindowOnUnreadChangedEnabled: (state) =>
     state.ui.rootWindow.showOnBadgeChange,
   isSideBarEnabled: (state) => state.ui.sideBar.enabled,
+  isFlashWindowEnabled: (state) => state.ui.flashWindow.enabled,
   isTrayIconEnabled: (state) => state.ui.trayIcon.enabled,
   rootWindowState: (state) => state.ui.rootWindow.state,
   servers: (state) => state.servers,

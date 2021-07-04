@@ -4,6 +4,7 @@ import type { MenuItemConstructorOptions } from 'electron';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import * as flashWindowActions from '../../../common/actions/flashWindowActions';
 import * as menuBarActions from '../../../common/actions/menuBarActions';
 import * as rootWindowActions from '../../../common/actions/rootWindowActions';
 import * as sideBarActions from '../../../common/actions/sideBarActions';
@@ -16,6 +17,9 @@ import { getWebContentsByServerUrl } from '../../serverView';
 export const useViewMenu = (): MenuItemConstructorOptions => {
   const platform = useAppSelector((state) => state.app.platform);
   const view = useAppSelector((state) => state.ui.view);
+  const flashWindowEnabled = useAppSelector(
+    (state) => state.ui.flashWindow.enabled
+  );
   const trayIconEnabled = useAppSelector((state) => state.ui.trayIcon.enabled);
   const menuBarEnabled = useAppSelector((state) => state.ui.menuBar.enabled);
   const sideBarEnabled = useAppSelector((state) => state.ui.sideBar.enabled);
@@ -108,6 +112,15 @@ export const useViewMenu = (): MenuItemConstructorOptions => {
             dispatch(trayIconActions.toggled(checked));
           }}
         />
+        <menuitem
+          id='enableFlashWindow'
+          label={t('menus.enableFlashWindow')}
+          type='checkbox'
+          checked={flashWindowEnabled}
+          click={({ checked }) => {
+            dispatch(flashWindowActions.toggled(checked));
+          }}
+        />
         {platform === 'darwin' && (
           <menu>
             <menuitem
@@ -183,6 +196,7 @@ export const useViewMenu = (): MenuItemConstructorOptions => {
       menuBarEnabled,
       sideBarEnabled,
       trayIconEnabled,
+      flashWindowEnabled,
       platform,
       fullscreen,
       t,

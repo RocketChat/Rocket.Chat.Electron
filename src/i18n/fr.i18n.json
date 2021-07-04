@@ -161,6 +161,7 @@
     "documentation": "Documentation",
     "downloads": "Téléchargements",
     "editMenu": "&Éditer",
+    "enableFlashWindow": "Fenêtre clignotante sur les notifications",
     "fileMenu": "&Fichier",
     "forward": "&Suivant",
     "helpMenu": "&Aide",

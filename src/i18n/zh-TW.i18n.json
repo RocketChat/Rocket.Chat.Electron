@@ -104,6 +104,7 @@
     "cut": "剪下 (&T)",
     "documentation": "文件",
     "editMenu": "編輯 (&E)",
+    "enableFlashWindow": "在通知上閃爍窗口",
     "fileMenu": "檔案 (&F)",
     "forward": "下一步 (&F)",
     "helpMenu": "幫助 (&H)",

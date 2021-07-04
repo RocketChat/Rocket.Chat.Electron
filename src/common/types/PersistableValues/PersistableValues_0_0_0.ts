@@ -6,6 +6,7 @@ export type PersistableValues_0_0_0 = {
   doCheckForUpdatesOnStartup: boolean;
   externalProtocols: Record<string, boolean>;
   isEachUpdatesSettingConfigurable: boolean;
+  isFlashWindowEnabled: boolean;
   isMenuBarEnabled: boolean;
   isShowWindowOnUnreadChangedEnabled: boolean;
   isSideBarEnabled: boolean;

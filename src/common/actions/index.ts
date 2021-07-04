@@ -7,6 +7,7 @@ import type * as deepLinksActions from './deepLinksActions';
 import type * as dialogActions from './dialogActions';
 import type * as downloadActions from './downloadActions';
 import type * as externalProtocolActions from './externalProtocolActions';
+import type * as flashWindowActions from './flashWindowActions';
 import type * as menuBarActions from './menuBarActions';
 import type * as messageBoxActions from './messageBoxActions';
 import type * as notificationActions from './notificationActions';
@@ -36,6 +37,7 @@ export type RootActions = ActionsFromModule<typeof certificateActions> &
   ActionsFromModule<typeof dialogActions> &
   ActionsFromModule<typeof downloadActions> &
   ActionsFromModule<typeof externalProtocolActions> &
+  ActionsFromModule<typeof flashWindowActions> &
   ActionsFromModule<typeof menuBarActions> &
   ActionsFromModule<typeof messageBoxActions> &
   ActionsFromModule<typeof notificationActions> &

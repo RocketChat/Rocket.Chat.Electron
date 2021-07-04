@@ -2,6 +2,7 @@ import { createReducer } from '@reduxjs/toolkit';
 
 import * as clientCertificateActions from '../actions/clientCertificateActions';
 import * as dialogActions from '../actions/dialogActions';
+import * as flashWindowActions from '../actions/flashWindowActions';
 import * as menuBarActions from '../actions/menuBarActions';
 import * as messageBoxActions from '../actions/messageBoxActions';
 import * as rootWindowActions from '../actions/rootWindowActions';
@@ -39,6 +40,9 @@ type State = {
   trayIcon: {
     enabled: boolean;
   };
+  flashWindow: {
+    enabled: boolean;
+  };
   view: 'add-new-server' | 'downloads' | { url: string };
 };
 
@@ -74,6 +78,9 @@ export const uiReducer = createReducer<State>(
       enabled: true,
     },
     trayIcon: {
+      enabled: process.platform !== 'linux',
+    },
+    flashWindow: {
       enabled: process.platform !== 'linux',
     },
     view: 'add-new-server',
@@ -163,6 +170,10 @@ export const uiReducer = createReducer<State>(
       .addCase(trayIconActions.toggled, (state, action) => {
         const { enabled } = action.payload;
         state.trayIcon.enabled = enabled;
+      })
+      .addCase(flashWindowActions.toggled, (state, action) => {
+        const { enabled } = action.payload;
+        state.flashWindow.enabled = enabled;
       })
       .addCase(rootWindowActions.showOnBadgeChangeToggled, (state, action) => {
         const { enabled } = action.payload;

@@ -58,6 +58,13 @@ export const mergePersistableValues = async (
     };
   }
 
+  if (localStorage.flashWindow) {
+    values = {
+      ...values,
+      isFlashWindowEnabled: localStorage.flashWindow === 'true',
+    };
+  }
+
   const filePath = joinUserPath('main-window-state.json');
   const userRootWindowState = await readJsonObject(filePath, { discard: true });
 
@@ -133,6 +140,10 @@ export const mergePersistableValues = async (
       trayIcon: {
         ...state.ui.trayIcon,
         enabled: values.isTrayIconEnabled,
+      },
+      flashWindow: {
+        ...state.ui.flashWindow,
+        enabled: values.isFlashWindowEnabled,
       },
       view: values.currentView,
     },

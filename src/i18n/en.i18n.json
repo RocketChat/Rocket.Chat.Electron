@@ -161,6 +161,7 @@
     "documentation": "Documentation",
     "downloads": "Downloads",
     "editMenu": "&Edit",
+    "enableFlashWindow": "Flash window on notifications",
     "fileMenu": "&File",
     "forward": "&Forward",
     "helpMenu": "&Help",

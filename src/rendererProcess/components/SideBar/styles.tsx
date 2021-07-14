@@ -271,7 +271,7 @@ export const AddServerButtonLabel = styled.span<AddServerButtonLabelProps>`
   transition: opacity var(--transitions-duration);
   opacity: 0.6;
   color: inherit;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0);
   cursor: pointer;
 
   &:hover {
@@ -310,7 +310,7 @@ export const DownloadsManagerLabel = styled.span`
   transition: opacity var(--transitions-duration);
   opacity: 0.6;
   color: inherit;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0);
   cursor: pointer;
 
   &:hover {

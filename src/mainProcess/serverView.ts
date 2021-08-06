@@ -6,7 +6,6 @@ import {
   Event,
   session,
   shell,
-  UploadBlob,
   UploadFile,
   UploadRawData,
   webContents,
@@ -131,7 +130,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
               extraHeaders: `Content-Type: ${postBody.contentType}; boundary=${postBody.boundary}`,
               postData: postBody.data as unknown as
                 | UploadRawData[]
-                | UploadBlob[]
                 | UploadFile[],
             }),
           });

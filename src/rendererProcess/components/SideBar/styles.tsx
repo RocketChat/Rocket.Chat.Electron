@@ -328,7 +328,6 @@ export const SidebarActionButton = styled.span`
   transition: opacity var(--transitions-duration);
   opacity: 0.6;
   color: inherit;
-  background-color: rgba(0, 0, 0, 0.1);
   cursor: pointer;
 
   &:hover {

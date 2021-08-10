@@ -1,0 +1,75 @@
+name: Validate pull request
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  check:
+    strategy:
+      fail-fast: true
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Disable git core.autocrlf
+        run: git config --global core.autocrlf false
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Node 14
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Setup node_modules cache
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: Install package dependencies
+        run: yarn install --check-files
+      - name: Lint
+        run: yarn lint
+      - name: Test
+        run: yarn test
+      - name: Build app/
+        run: yarn build
+        env:
+          NODE_ENV: production
+      - name: Build uncompressed on dist/
+        if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest' }}
+        run: yarn electron-builder --dir
+      - name: Build uncompressed on dist/
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: yarn electron-builder --x64 --ia32 --dir
+      - name: Running executable on ${{ runner.os }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          xvfb-run timeout 30 ./dist/linux-unpacked/rocketchat-desktop || code=$?
+          if [[ $code -ne 124 && $code -ne 0 ]]; then
+            exit $code;
+          fi
+      - name: Running executable on ${{ runner.os }}
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: |
+          brew install coreutils
+          gtimeout 30 ./dist/mac/Rocket.Chat.app/Contents/MacOS/Rocket.Chat || code=$?
+          if [[ $code -ne 124 && $code -ne 0 ]]; then
+            exit $code;
+          fi
+      - name: Running executable on ${{ runner.os }}
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          $job = Start-Job -ScriptBlock { .\dist\win-unpacked\Rocket.Chat.exe }
+          if (Wait-Job $job -Timeout 30) {
+            Write-Host $(Receive-Job -Job $job)
+          }
+          Remove-Job -force $job
+          $job = Start-Job -ScriptBlock { .\dist\win-ia32-unpacked\Rocket.Chat.exe }
+          if (Wait-Job $job -Timeout 30) {
+            Write-Host $(Receive-Job -Job $job)
+          }
+          Remove-Job -force $job

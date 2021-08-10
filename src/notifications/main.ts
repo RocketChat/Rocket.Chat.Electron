@@ -2,7 +2,7 @@ import { Notification, nativeImage, NativeImage } from 'electron';
 
 import { invoke } from '../ipc/main';
 import { dispatch, listen } from '../store';
-import { isResponse } from '../store/fsa';
+import { hasMeta } from '../store/fsa';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
   NOTIFICATIONS_CREATE_REQUESTED,
@@ -132,7 +132,7 @@ const handleCreateEvent = async ({
 
 export const setupNotifications = (): void => {
   listen(NOTIFICATIONS_CREATE_REQUESTED, async (action) => {
-    if (!isResponse(action)) {
+    if (!hasMeta(action)) {
       return;
     }
 

@@ -1,3 +1,12 @@
+## [3.2.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.2...3.2.3) (2021-07-01)
+
+
+### Bug Fixes
+
+* Desktop notifications not working ([2d4607d](https://github.com/RocketChat/Rocket.Chat.Electron/commit/2d4607dd3bb49dfb27c2df24f6a5b95d0b675ee4))
+
+
+
 ## [3.2.2](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.1...3.2.2) (2021-05-14)
 
 

@@ -1,7 +1,11 @@
 {
+  "private": true,
+  "workspaces": [
+    "workspaces/*"
+  ],
   "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
-  "version": "3.3.0-snapshot",
+  "version": "3.4.0-snapshot",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2016-2021, Rocket.Chat",
   "homepage": "https://rocket.chat",
@@ -23,7 +27,9 @@
     "postinstall": "run-s install-app-deps clean",
     "start": "run-s clean build:watch",
     "clean": "rimraf app dist",
-    "build": "rollup -c",
+    "build": "run-p .:build:rollup .:build:workspaces",
+    ".:build:rollup": "rollup -c",
+    ".:build:workspaces": "yarn workspaces run build",
     "release": "yarn electron-builder --publish onTagOrDraft --x64",
     "build:watch": "rollup -c -w",
     "install-app-deps": "electron-builder install-app-deps",

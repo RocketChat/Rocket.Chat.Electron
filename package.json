@@ -1,11 +1,7 @@
 {
-  "private": true,
-  "workspaces": [
-    "workspaces/*"
-  ],
   "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
-  "version": "3.4.0-snapshot",
+  "version": "3.3.0-snapshot",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2016-2021, Rocket.Chat",
   "homepage": "https://rocket.chat",
@@ -27,19 +23,17 @@
     "postinstall": "run-s install-app-deps clean",
     "start": "run-s clean build:watch",
     "clean": "rimraf app dist",
-    "build": "run-p .:build:rollup .:build:workspaces",
-    ".:build:rollup": "rollup -c",
-    ".:build:workspaces": "yarn workspaces run build",
+    "build": "rollup -c",
     "release": "yarn electron-builder --publish onTagOrDraft --x64",
     "build:watch": "rollup -c -w",
     "install-app-deps": "electron-builder install-app-deps",
     "test": "xvfb-maybe jest",
     "build-assets": "ts-node -O '{\"module\":\"commonjs\"}' src/buildAssets.ts",
-    "changelog": "conventional-changelog --preset angular --config changelog.config.js --infile CHANGELOG.md --same-file",
-    "lint": "run-s .:lint:tsc .:lint:eslint",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+    "lint": "run-s .:lint:eslint .:lint:tsc",
     ".:lint:eslint": "eslint .",
     ".:lint:tsc": "tsc --noEmit --skipLibCheck",
-    "lint-fix": "run-s .:lint:tsc .:lint-fix:eslint",
+    "lint-fix": "run-s .:lint-fix:eslint .:lint:tsc",
     ".:lint-fix:eslint": "eslint --fix ."
   },
   "dependencies": {
@@ -47,25 +41,20 @@
     "@emotion/css": "^11.1.3",
     "@emotion/react": "^11.4.0",
     "@emotion/styled": "^11.3.0",
-    "@reduxjs/toolkit": "^1.5.1",
     "@rocket.chat/css-in-js": "^0.24.0",
     "@rocket.chat/fuselage": "^0.24.0",
     "@rocket.chat/fuselage-hooks": "^0.24.0",
     "@rocket.chat/icons": "^0.24.0",
-    "@rocket.chat/memo": "^0.24.0",
     "abort-controller": "^3.0.0",
     "electron-store": "^6.0.1",
     "electron-updater": "^4.3.5",
     "i18next": "^20.2.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-error-boundary": "^3.1.3",
     "react-i18next": "^11.8.15",
     "react-keyed-flatten-children": "^1.3.0",
-    "react-reconciler": "^0.26.2",
     "react-redux": "^7.2.4",
     "redux": "^4.1.0",
-    "redux-saga": "^1.1.3",
     "reselect": "^4.0.0",
     "rimraf": "^3.0.2",
     "semver": "^7.3.5",
@@ -97,18 +86,16 @@
     "@types/node-fetch": "^2.5.7",
     "@types/react": "^17.0.5",
     "@types/react-dom": "^17.0.3",
-    "@types/react-reconciler": "^0.26.1",
     "@types/react-redux": "^7.1.9",
     "@types/resize-observer-browser": "^0.1.3",
     "@types/rimraf": "^3.0.0",
-    "@typescript-eslint/eslint-plugin": "^4.27.0",
-    "@typescript-eslint/parser": "^4.27.0",
+    "@typescript-eslint/parser": "^4.22.1",
     "builtin-modules": "^3.2.0",
     "chokidar": "^3.5.1",
     "conventional-changelog-cli": "^2.1.1",
     "convert-svg-to-png": "^0.5.0",
     "electron": "^10.2.0",
-    "electron-builder": "^22.10.5",
+    "electron-builder": "^22.11.3",
     "electron-devtools-installer": "^3.1.1",
     "electron-notarize": "^1.0.0",
     "eslint": "^7.26.0",
@@ -128,15 +115,11 @@
     "fsevents": "2.3.2"
   },
   "engines": {
-    "node": ">=14.17.0"
+    "node": ">=12.8.x"
   },
   "devEngines": {
-    "node": ">=14.17.0",
-    "yarn": ">=1.22.10"
+    "node": ">=12.8.x",
+    "yarn": ">=1.22.x"
   },
-  "productName": "Rocket.Chat",
-  "volta": {
-    "node": "14.17.0",
-    "yarn": "1.22.10"
-  }
+  "productName": "Rocket.Chat"
 }

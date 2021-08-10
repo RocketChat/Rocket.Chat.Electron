@@ -1,4 +1,4 @@
-import type { RocketChatDesktopAPI } from './common/types/RocketChatDesktopAPI';
+import { RocketChatDesktopAPI } from './servers/preload/api';
 
 declare global {
   interface Window {
@@ -13,67 +13,66 @@ const start = (): void => {
 
   const { Info: serverInfo = {} } =
     window.require('/app/utils/rocketchat.info') ?? {};
-  const { Meteor } = window.require(
-    'meteor/meteor'
-  ) as typeof import('meteor/meteor');
-  const { Session } = window.require(
-    'meteor/session'
-  ) as typeof import('meteor/session');
-  const { Tracker } = window.require(
-    'meteor/tracker'
-  ) as typeof import('meteor/tracker');
+
+  if (!serverInfo.version) {
+    return;
+  }
+
+  window.RocketChatDesktop.setServerInfo(serverInfo);
+
+  const { Meteor } = window.require('meteor/meteor');
+  const { Session } = window.require('meteor/session');
+  const { Tracker } = window.require('meteor/tracker');
   const { UserPresence } = window.require('meteor/konecty:user-presence');
   const { settings } = window.require('/app/settings');
   const { getUserPreference } = window.require('/app/utils');
 
-  const { RocketChatDesktop } = window;
-
-  RocketChatDesktop.setCallbacks({
-    absoluteUrl: (path) => Meteor.absoluteUrl(path),
-    setUserOnline: (online) =>
-      Tracker.nonreactive(() => {
-        Meteor.call(online ? 'UserPresence:online' : 'UserPresence:away');
-      }),
-  });
-
-  RocketChatDesktop.versionChanged(serverInfo.version);
+  window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
 
   Tracker.autorun(() => {
     const unread = Session.get('unread');
-    RocketChatDesktop.badgeChanged(unread);
+    window.RocketChatDesktop.setBadge(unread);
   });
 
   Tracker.autorun(() => {
     const { url, defaultUrl } = settings.get('Assets_favicon') || {};
-    const faviconUrl =
-      url ?? defaultUrl ? Meteor.absoluteUrl(url ?? defaultUrl) : undefined;
-    RocketChatDesktop.faviconChanged(faviconUrl);
+    window.RocketChatDesktop.setFavicon(url || defaultUrl);
   });
 
   Tracker.autorun(() => {
     const { url, defaultUrl } = settings.get('Assets_background') || {};
-    const backgroundUrl =
-      url ?? defaultUrl ? Meteor.absoluteUrl(url ?? defaultUrl) : undefined;
-    RocketChatDesktop.backgroundChanged(backgroundUrl);
+    window.RocketChatDesktop.setBackground(url || defaultUrl);
   });
 
   Tracker.autorun(() => {
     const siteName = settings.get('Site_Name');
-    RocketChatDesktop.titleChanged(siteName);
+    window.RocketChatDesktop.setTitle(siteName);
   });
 
   Tracker.autorun(() => {
     const uid = Meteor.userId();
-    const autoAwayEnabled = getUserPreference(uid, 'enableAutoAway');
-    const idleThreshold = getUserPreference(uid, 'idleTimeLimit');
+    const isAutoAwayEnabled: unknown = getUserPreference(uid, 'enableAutoAway');
+    const idleThreshold: unknown = getUserPreference(uid, 'idleTimeLimit');
 
-    if (autoAwayEnabled) {
+    if (isAutoAwayEnabled) {
       delete UserPresence.awayTime;
       UserPresence.start();
     }
 
-    RocketChatDesktop.userPresenceParamsChanged(autoAwayEnabled, idleThreshold);
+    window.RocketChatDesktop.setUserPresenceDetection({
+      isAutoAwayEnabled: Boolean(isAutoAwayEnabled),
+      idleThreshold: idleThreshold ? Number(idleThreshold) : null,
+      setUserOnline: (online) => {
+        if (!online) {
+          Meteor.call('UserPresence:away');
+          return;
+        }
+        Meteor.call('UserPresence:online');
+      },
+    });
   });
+
+  const destroyPromiseSymbol = Symbol('destroyPromise');
 
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
@@ -88,7 +87,7 @@ const start = (): void => {
       return Promise.resolve(RocketChatDesktopNotification.permission);
     }
 
-    #id: string;
+    [destroyPromiseSymbol]?: Promise<() => void>;
 
     constructor(
       title: string,
@@ -116,10 +115,12 @@ const start = (): void => {
         });
       }
 
-      this.#id = RocketChatDesktop.createNotification({
+      this[destroyPromiseSymbol] = window.RocketChatDesktop.createNotification({
         title,
         ...options,
         onEvent: this.handleEvent,
+      }).then((id) => () => {
+        window.RocketChatDesktop.destroyNotification(id);
       });
 
       Object.assign(this, { title, ...options });
@@ -189,7 +190,14 @@ const start = (): void => {
     };
 
     close(): void {
-      RocketChatDesktop.destroyNotification(this.#id);
+      if (!this[destroyPromiseSymbol]) {
+        return;
+      }
+
+      this[destroyPromiseSymbol]?.then((destroy) => {
+        delete this[destroyPromiseSymbol];
+        destroy();
+      });
     }
   };
 };

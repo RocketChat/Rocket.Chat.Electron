@@ -94,7 +94,7 @@
     "menuCategory": false
   },
   "msi": {
-    "artifactName": "rocketchat-setup-${version}-${arch}.${ext}"
+    "artifactName": "rocketchat-setup-${version}.${ext}"
   },
   "appx": {
     "backgroundColor": "#2f343d",

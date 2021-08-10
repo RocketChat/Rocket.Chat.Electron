@@ -82,13 +82,13 @@ rewritten in TypeScript 4 to address issues regarding maintainability.
 
 ### The build pipeline
 
-The build process is founded upon [rollup][] bundler. There are three entry
-files for your code:
+The build process is founded upon [rollup][] bundler. There are three entry files
+for your code:
 
-- `src/main.tsx`, the script running at the main Electron process, orchestrating
+- `src/main.ts`, the script running at the main Electron process, orchestrating
   the whole application;
 
-- `src/rootWindow.tsx`, the script that renders the UI of the *root window*, the
+- `src/rootWindow.ts`, the script that renders the UI of the *root window*, the
   app's main window;
 
 - and `src/preload.ts`, which runs in a privileged mode to connect the app and

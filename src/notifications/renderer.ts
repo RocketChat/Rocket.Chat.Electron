@@ -23,25 +23,22 @@ const inferContentTypeFromImageData = (data: ArrayBuffer): string | null => {
 
 const fetchIcon = async (urlHref: string): Promise<string> => {
   const cache = iconCache.get(urlHref);
+
   if (cache) {
     return cache;
   }
-  try {
-    const response = await fetch(urlHref);
-    const arrayBuffer = await response.arrayBuffer();
-    const base64String = btoa(
-      String.fromCharCode(...new Uint8Array(arrayBuffer))
-    );
-    const contentType =
-      inferContentTypeFromImageData(arrayBuffer) ||
-      response.headers.get('content-type');
-    const dataUri = `data:${contentType};base64,${base64String}`;
-    iconCache.set(urlHref, dataUri);
-    return dataUri;
 
-  } catch (error) {
-    return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-  }
+  const response = await fetch(urlHref);
+  const arrayBuffer = await response.arrayBuffer();
+  const base64String = btoa(
+    String.fromCharCode(...new Uint8Array(arrayBuffer))
+  );
+  const contentType =
+    inferContentTypeFromImageData(arrayBuffer) ||
+    response.headers.get('content-type');
+  const dataUri = `data:${contentType};base64,${base64String}`;
+  iconCache.set(urlHref, dataUri);
+  return dataUri;
 };
 
 export default (): void => {

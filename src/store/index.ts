@@ -26,6 +26,15 @@ export const createMainReduxStore = (): void => {
   const middlewares = applyMiddleware(catchLastAction, forwardToRenderers);
 
   reduxStore = createStore(rootReducer, {}, middlewares);
+
+
+  reduxStore.subscribe(() => {
+
+    if(lastAction.type === 'notifications/notification-clicked') {
+      console.log('NOTIFICATIONS: STORE SUBSCRIBE CLICKED ACTION');
+    }
+    
+  })
 };
 
 export const createRendererReduxStore = async (): Promise<Store> => {
@@ -42,6 +51,12 @@ export const createRendererReduxStore = async (): Promise<Store> => {
 };
 
 export const dispatch = <Action extends RootAction>(action: Action): void => {
+
+  if (action.type === 'notifications/notification-clicked') {
+    console.log('src/store/index.ts');
+    console.log('NOTIFICATIONS: dispatch function action: notifications/notification-clicked');
+  }
+
   reduxStore.dispatch(action);
 };
 

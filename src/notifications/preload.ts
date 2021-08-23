@@ -68,6 +68,9 @@ export const destroyNotification = (id: unknown): void => {
 };
 
 export const listenToNotificationsRequests = (): void => {
+
+  console.log('listenToNotificationsRequests');
+
   listen(NOTIFICATIONS_NOTIFICATION_SHOWN, (action) => {
     const {
       payload: { id },
@@ -86,6 +89,10 @@ export const listenToNotificationsRequests = (): void => {
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action) => {
+
+    console.log('---------------- src/notifications/preload.ts ------------------');
+    console.log('NOTIFICATIONS:listen callback');
+
     const {
       payload: { id },
     } = action;

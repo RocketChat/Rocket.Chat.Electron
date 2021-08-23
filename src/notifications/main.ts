@@ -69,6 +69,9 @@ const createNotification = async (
   });
 
   notification.addListener('click', () => {
+    console.log('src/notifications/main.ts');
+    console.log('NOTIFICATIONS:click');
+    
     dispatch({ type: NOTIFICATIONS_NOTIFICATION_CLICKED, payload: { id } });
   });
 

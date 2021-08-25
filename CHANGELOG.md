@@ -1,3 +1,23 @@
+# [3.4.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.3...3.4.0) (2021-08-25)
+
+
+### Bug Fixes
+
+* Prevents Notifications on Linux to show the message "Rocket.Chat is ready" ([#2122](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2122)) ([5ac093e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/5ac093ec33c6b5dccc603b1fa4e91d0eaeb1a7d2))
+* solve prettier errors ([bf16f55](https://github.com/RocketChat/Rocket.Chat.Electron/commit/bf16f550260e137883446229fd42cc126ab8e36c))
+
+
+
+# [3.3.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.2...3.3.0) (2021-06-17)
+
+
+### Bug Fixes
+
+* **i18n:** Language update from LingoHub 🤖 ([#2042](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2042)) ([cb07526](https://github.com/RocketChat/Rocket.Chat.Electron/commit/cb07526ed5f4831fd05458208561be8e81f5d218))
+* **i18n:** Language update from LingoHub 🤖 ([#2047](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2047)) ([891b7b7](https://github.com/RocketChat/Rocket.Chat.Electron/commit/891b7b70d9fb6382ca2070c1644669b3f38b17ef))
+
+
+
 ## [3.2.4](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.3...3.2.4) (2021-08-16)
 
 

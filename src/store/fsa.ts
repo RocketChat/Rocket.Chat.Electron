@@ -1,12 +1,14 @@
-export type FluxStandardAction<Type extends string = string, Payload = void> =
-  void extends Payload
-    ? {
-        type: Type;
-      }
-    : {
-        type: Type;
-        payload: Payload;
-      };
+export type FluxStandardAction<
+  Type extends string = string,
+  Payload = void
+> = void extends Payload
+  ? {
+      type: Type;
+    }
+  : {
+      type: Type;
+      payload: Payload;
+    };
 
 export const isFSA = <Action extends FluxStandardAction<string, unknown>>(
   action: unknown

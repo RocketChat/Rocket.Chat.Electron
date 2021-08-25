@@ -1,3 +1,12 @@
+## [3.2.4](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.3...3.2.4) (2021-08-16)
+
+
+### Bug Fixes
+
+* Prevents Notifications on Linux to show the message "Rocket.Chat is ready" ([#2122](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2122)) ([5ac093e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/5ac093ec33c6b5dccc603b1fa4e91d0eaeb1a7d2))
+
+
+
 # [3.3.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.2...3.3.0) (2021-06-17)
 
 
@@ -7,32 +16,13 @@
 * **i18n:** Language update from LingoHub 🤖 ([#2047](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2047)) ([891b7b7](https://github.com/RocketChat/Rocket.Chat.Electron/commit/891b7b70d9fb6382ca2070c1644669b3f38b17ef))
 
 
-### Code Refactoring
 
-* Main and renderer processes ([#2019](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2019)) ([cf62e7b](https://github.com/RocketChat/Rocket.Chat.Electron/commit/cf62e7bc4fb3fa4e042cd7dffefefc7a97592777))
-
-
-### Continuous Integration
-
-* Release action to work around electron-builder bug ([0ba135f](https://github.com/RocketChat/Rocket.Chat.Electron/commit/0ba135f4b5cabc1467cbecfdc62c14bad67a627c))
+## [3.2.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.2...3.2.3) (2021-07-01)
 
 
-### Documentation
+### Bug Fixes
 
-* **changelog:** Custom changelog format added ([dbf72d8](https://github.com/RocketChat/Rocket.Chat.Electron/commit/dbf72d84bedc587ccc6c020663ed6089ab53e94f))
-
-
-### Maintenance
-
-* **build:** Fix smoke tests ([999e13d](https://github.com/RocketChat/Rocket.Chat.Electron/commit/999e13d16a386b51ce7f6000b3f9f490e3d89042))
-* **build:** Refactor pull request workflow ([c02999f](https://github.com/RocketChat/Rocket.Chat.Electron/commit/c02999f1005682262c7ded7b83083a9c5aafaad0))
-* **deps:** Bump minimum Node.js version to 14 ([c5d1213](https://github.com/RocketChat/Rocket.Chat.Electron/commit/c5d1213e4e62abc32b60b7fc2c201879b33fbac7))
-* **deps:** Downgrade electron-builder to last stable version ([30f6fff](https://github.com/RocketChat/Rocket.Chat.Electron/commit/30f6fff93967fb4136e66ff956ba437c182af995))
-* **deps:** Upgrade dependencies ([af73bf6](https://github.com/RocketChat/Rocket.Chat.Electron/commit/af73bf6fba1ccab6ad0c127868a3e88fa0291060))
-* **i18n:** Language update from LingoHub 🤖 ([#2053](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2053)) ([094c025](https://github.com/RocketChat/Rocket.Chat.Electron/commit/094c0252664495481820562caca84df1402b9c40))
-* **i18n:** Language update from LingoHub 🤖 ([#2061](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2061)) ([4d37c7e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/4d37c7e489650ee177ea6c17bbc99245b466a81a))
-* **lint:** Fix Prettier issues ([a97e1f4](https://github.com/RocketChat/Rocket.Chat.Electron/commit/a97e1f4dd814e8d48395af13bf99107f9c1cba33))
-* Snapshot version ([6ef0c62](https://github.com/RocketChat/Rocket.Chat.Electron/commit/6ef0c62a4dc039463921be37f0d03bc55daadc59))
+* Desktop notifications not working ([2d4607d](https://github.com/RocketChat/Rocket.Chat.Electron/commit/2d4607dd3bb49dfb27c2df24f6a5b95d0b675ee4))
 
 
 

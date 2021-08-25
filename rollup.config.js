@@ -55,7 +55,7 @@ export default [
       ...Object.keys(appManifest.dependencies),
       ...Object.keys(appManifest.devDependencies),
     ].filter((moduleName) => moduleName !== '@bugsnag/js'),
-    input: 'src/rootWindow.tsx',
+    input: 'src/rootWindow.ts',
     preserveEntrySignatures: 'strict',
     plugins: [
       json(),
@@ -145,7 +145,7 @@ export default [
       ...Object.keys(appManifest.dependencies),
       ...Object.keys(appManifest.devDependencies),
     ],
-    input: 'src/main.tsx',
+    input: 'src/main.ts',
     plugins: [
       copy({
         targets: [

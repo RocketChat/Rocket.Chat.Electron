@@ -1,10 +1,10 @@
 import path from 'path';
 
-import { joinAsarPath } from '../mainProcess/joinAsarPath';
+import { app } from 'electron';
 
 expect.extend({
   toMatchAppPath(received: string, expected: string) {
-    const fullExpectedPath = joinAsarPath(expected);
+    const fullExpectedPath = path.join(app.getAppPath(), 'app', expected);
 
     const options = {
       comment: 'Paths should match',

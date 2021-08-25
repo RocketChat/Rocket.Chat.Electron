@@ -24,6 +24,7 @@ import { getTrayIconPath } from './icons';
 const webPreferences: WebPreferences = {
   nodeIntegration: true,
   nodeIntegrationInSubFrames: true,
+  contextIsolation: false,
   webviewTag: true,
   worldSafeExecuteJavaScript: true,
 };

@@ -160,6 +160,7 @@
     "disableGpu": "GPU letiltása",
     "documentation": "Dokumentáció",
     "downloads": "Letöltések",
+    "settings": "Paramètres",
     "editMenu": "S&zerkesztés",
     "fileMenu": "&Fájl",
     "forward": "&Előre",
@@ -205,6 +206,7 @@
   "sidebar": {
     "addNewServer": "Új kiszolgáló hozzáadása",
     "downloads": "Letöltések",
+    "settings": "Beállítások",
     "item": {
       "reload": "Kiszolgáló újratöltése",
       "remove": "Kiszolgáló eltávolítása",

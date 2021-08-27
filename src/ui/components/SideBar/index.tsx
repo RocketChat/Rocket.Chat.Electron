@@ -1,7 +1,7 @@
 import { parse } from 'url';
 
 import { Icon } from '@rocket.chat/fuselage';
-import React, { useMemo, FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -15,12 +15,13 @@ import {
 } from '../../actions';
 import ServerButton from './ServerButton';
 import {
-  AddServerButton,
-  Content,
-  DownloadsManagerButton,
-  ServerList,
   Wrapper,
+  Content,
+  ServerList,
+  AddServerButton,
   SidebarActionButton,
+  Button,
+  BottomButtons,
 } from './styles';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
@@ -45,12 +46,10 @@ export const SideBar: FC = () => {
     ({ isSideBarEnabled }: RootState) => isSideBarEnabled
   );
   const isVisible = servers.length > 0 && isSideBarEnabled;
-
   const style = useMemo(
     () => servers.find(({ selected }) => selected)?.style || {},
     [servers]
   );
-
   const isEachShortcutVisible = useKeyboardShortcuts();
   const {
     sortedServers,
@@ -60,17 +59,13 @@ export const SideBar: FC = () => {
     handleDragEnter,
     handleDrop,
   } = useSorting(servers);
-
   const dispatch = useDispatch<Dispatch<RootAction>>();
-
   const handleAddServerButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
   };
-
   const handelDownloadsButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
   };
-
   const { t } = useTranslation();
 
   return (
@@ -115,15 +110,25 @@ export const SideBar: FC = () => {
             +
           </SidebarActionButton>
         </AddServerButton>
-        <DownloadsManagerButton>
-          <SidebarActionButton
-            tooltip={t('sidebar.downloads')}
-            onClick={handelDownloadsButtonClicked}
-          >
-            <Icon name='download' />
-          </SidebarActionButton>
-        </DownloadsManagerButton>
+        <BottomButtons>
+          <Button>
+            <SidebarActionButton
+              tooltip={t('sidebar.downloads')}
+              onClick={handelDownloadsButtonClicked}
+            >
+              <Icon name='download' />
+            </SidebarActionButton>
+          </Button>
+          <Button>
+            <SidebarActionButton
+              tooltip={t('sidebar.settings')}
+              onClick={handelDownloadsButtonClicked}
+            >
+              <Icon name='download' />
+            </SidebarActionButton>
+          </Button>
+        </BottomButtons>
       </Content>
     </Wrapper>
   );
-};
+}

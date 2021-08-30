@@ -128,11 +128,11 @@ export const SideBar: FC = () => {
               tooltip={t('sidebar.settings')}
               onClick={handelSettingsButtonClicked}
             >
-              <Icon name='download' />
+              <Icon name='cog' />
             </SidebarActionButton>
           </Button>
         </BottomButtons>
       </Content>
     </Wrapper>
   );
-}
+};

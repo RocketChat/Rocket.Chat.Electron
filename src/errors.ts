@@ -1,8 +1,9 @@
 import Bugsnag from '@bugsnag/js';
 import { app } from 'electron';
 
-import { APP_ERROR_THROWN } from './app/actions';
-import { select, listen } from './store';
+// import { APP_ERROR_THROWN } from './app/actions';
+// import { select, listen } from './store';
+import { select } from './store';
 import { whenReady } from './whenReady';
 
 type AppType = 'main' | 'rootWindow' | 'webviewPreload';
@@ -32,21 +33,21 @@ export const setupMainErrorHandling = async (): Promise<void> => {
     return;
   }
 
-  process.addListener('uncaughtException', (error) => {
-    console.error(error);
-    app.exit(1);
-  });
+  // process.addListener('uncaughtException', (error) => {
+  //   console.error(error);
+  //   app.exit(1);
+  // });
 
-  process.addListener('unhandledRejection', (reason) => {
-    console.error(reason);
-    app.exit(1);
-  });
+  // process.addListener('unhandledRejection', (reason) => {
+  //   console.error(reason);
+  //   app.exit(1);
+  // });
 
   await app.whenReady();
 
-  listen(APP_ERROR_THROWN, (action) => {
-    console.error(action.payload);
-  });
+  // listen(APP_ERROR_THROWN, (action) => {
+  //   console.error(action.payload);
+  // });
 };
 
 export const setupRendererErrorHandling = async (

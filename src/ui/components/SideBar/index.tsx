@@ -12,6 +12,7 @@ import { RootState } from '../../../store/rootReducer';
 import {
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+  SIDE_BAR_SETTINGS_BUTTON_CLICKED,
 } from '../../actions';
 import ServerButton from './ServerButton';
 import {
@@ -66,6 +67,9 @@ export const SideBar: FC = () => {
   const handelDownloadsButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
   };
+  const handelSettingsButtonClicked = (): void => {
+    dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
+  };
   const { t } = useTranslation();
 
   return (
@@ -78,7 +82,7 @@ export const SideBar: FC = () => {
               url={server.url}
               title={
                 server.title === 'Rocket.Chat' &&
-                parse(server.url).hostname !== 'open.rocket.chat'
+                  parse(server.url).hostname !== 'open.rocket.chat'
                   ? `${server.title} - ${server.url}`
                   : server.title ?? server.url
               }
@@ -122,7 +126,7 @@ export const SideBar: FC = () => {
           <Button>
             <SidebarActionButton
               tooltip={t('sidebar.settings')}
-              onClick={handelDownloadsButtonClicked}
+              onClick={handelSettingsButtonClicked}
             >
               <Icon name='download' />
             </SidebarActionButton>

@@ -8,6 +8,7 @@ import DownloadsManagerView from '../DownloadsManagerView';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';
 import { ServersView } from '../ServersView';
+import SettingsView from '../SettingsView';
 import { SideBar } from '../SideBar';
 import { UpdateDialog } from '../UpdateDialog';
 import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
@@ -40,6 +41,7 @@ export const Shell: FC = () => {
           <ServersView />
           <AddServerView />
           <DownloadsManagerView />
+          <SettingsView />
         </ViewsWrapper>
       </Wrapper>
       <AboutDialog />

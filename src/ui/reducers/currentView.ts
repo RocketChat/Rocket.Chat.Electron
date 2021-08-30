@@ -11,6 +11,7 @@ import {
   MENU_BAR_SELECT_SERVER_CLICKED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+  SIDE_BAR_SETTINGS_BUTTON_CLICKED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   SIDE_BAR_SERVER_SELECTED,
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
@@ -27,12 +28,17 @@ type CurrentViewAction =
   | ActionOf<typeof SERVERS_LOADED>
   | ActionOf<typeof SIDE_BAR_ADD_NEW_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_DOWNLOADS_BUTTON_CLICKED>
+  | ActionOf<typeof SIDE_BAR_SETTINGS_BUTTON_CLICKED>
   | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_SERVER_SELECTED>
   | ActionOf<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>
   | ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>;
 
-type CurrentViewState = 'add-new-server' | 'downloads' | { url: string };
+type CurrentViewState =
+  | 'add-new-server'
+  | 'downloads'
+  | 'settings'
+  | { url: string };
 
 export const currentView = (
   state: CurrentViewState = 'add-new-server',
@@ -78,6 +84,9 @@ export const currentView = (
 
     case SIDE_BAR_DOWNLOADS_BUTTON_CLICKED:
       return 'downloads';
+
+    case SIDE_BAR_SETTINGS_BUTTON_CLICKED:
+      return 'settings';
   }
 
   return state;

@@ -27,6 +27,8 @@ export const SIDE_BAR_CONTEXT_MENU_TRIGGERED =
   'side-bar/context-menu-triggered';
 export const SIDE_BAR_DOWNLOADS_BUTTON_CLICKED =
   'side-bar/downloads-button-clicked';
+export const SIDE_BAR_SETTINGS_BUTTON_CLICKED =
+  'side-bar/settings-button-clicked';
 export const SIDE_BAR_REMOVE_SERVER_CLICKED = 'side-bar/remove-server-clicked';
 export const SIDE_BAR_SERVER_SELECTED = 'side-bar/server-selected';
 export const SIDE_BAR_SERVERS_SORTED = 'side-bar/servers-sorted';
@@ -74,15 +76,16 @@ export type UiActionTypeToPayloadMap = {
   [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: void;
   [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
   [SIDE_BAR_DOWNLOADS_BUTTON_CLICKED]: void;
+  [SIDE_BAR_SETTINGS_BUTTON_CLICKED]: void;
   [SIDE_BAR_REMOVE_SERVER_CLICKED]: Server['url'];
   [SIDE_BAR_SERVER_SELECTED]: Server['url'];
   [SIDE_BAR_SERVERS_SORTED]: Server['url'][];
   [TOUCH_BAR_FORMAT_BUTTON_TOUCHED]:
-    | 'bold'
-    | 'italic'
-    | 'strike'
-    | 'inline_code'
-    | 'multi_line';
+  | 'bold'
+  | 'italic'
+  | 'strike'
+  | 'inline_code'
+  | 'multi_line';
   [TOUCH_BAR_SELECT_SERVER_TOUCHED]: string;
   [UPDATE_DIALOG_DISMISSED]: void;
   [UPDATE_DIALOG_INSTALL_BUTTON_CLICKED]: void;

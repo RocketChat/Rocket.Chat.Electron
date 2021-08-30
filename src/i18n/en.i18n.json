@@ -136,6 +136,9 @@
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
   },
+  "settings": {
+    "title": "Settings"
+  },
   "error": {
     "authNeeded": "Auth needed, try <strong>{{- auth}}</strong>",
     "connectTimeout": "Timeout trying to connect",
@@ -160,6 +163,7 @@
     "disableGpu": "Disable GPU",
     "documentation": "Documentation",
     "downloads": "Downloads",
+    "settings": "Settings",
     "editMenu": "&Edit",
     "fileMenu": "&File",
     "forward": "&Forward",

@@ -28,7 +28,8 @@ type PersistableValues_3_1_0 = Omit<
   currentView?:
     | Exclude<PersistableValues_0_0_0['currentView'], null>
     | { url: string }
-    | 'downloads';
+    | 'downloads'
+    | 'settings';
   downloads?: Record<Download['itemId'], Download>;
 };
 

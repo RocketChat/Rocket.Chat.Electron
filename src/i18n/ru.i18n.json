@@ -136,6 +136,9 @@
     },
     "showingResults": "Показать результаты {{first}} - {{last}} из {{count}}"
   },
+  "settings": {
+    "title": "настройки"
+  },
   "error": {
     "authNeeded": "Требуется авторизация, попробуйте <strong>{{- auth}}</strong>",
     "connectTimeout": "Превышено время ожидания при попытке подключения",
@@ -160,6 +163,7 @@
     "disableGpu": "Отключить GPU",
     "documentation": "Документация",
     "downloads": "Загрузки",
+    "settings": "настройки",
     "editMenu": "&Правка",
     "fileMenu": "&Файл",
     "forward": "Вперед",

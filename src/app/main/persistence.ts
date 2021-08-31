@@ -5,7 +5,7 @@ import { PersistableValues, migrations } from '../PersistableValues';
 
 let electronStore: ElectronStore<PersistableValues>;
 
-const getElectronStore = (): ElectronStore<PersistableValues> => {
+export const getElectronStore = (): ElectronStore<PersistableValues> => {
   if (!electronStore) {
     electronStore = new ElectronStore<PersistableValues>({
       migrations: Object.fromEntries(

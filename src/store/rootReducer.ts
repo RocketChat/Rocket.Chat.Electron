@@ -10,6 +10,7 @@ import {
 } from '../navigation/reducers';
 import { servers } from '../servers/reducers';
 import { currentView } from '../ui/reducers/currentView';
+import { isBugsnagEnabled } from '../ui/reducers/isBugsnagEnabled';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
@@ -54,6 +55,7 @@ export const rootReducer = combineReducers({
   skippedUpdateVersion,
   trustedCertificates,
   updateError,
+  isBugsnagEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

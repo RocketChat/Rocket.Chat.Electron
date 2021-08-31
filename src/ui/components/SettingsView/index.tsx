@@ -4,14 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../store/rootReducer';
+import { BugsangOptInOutField } from './BugsnagOptInOutField';
 
 export const SettingsView: FC = () => {
   const isVisible = useSelector(
     ({ currentView }: RootState) => currentView === 'settings'
   );
   const { t } = useTranslation();
-  console.log(isVisible);
-
   return (
     <Box
       display={isVisible ? 'flex' : 'none'}
@@ -33,6 +32,12 @@ export const SettingsView: FC = () => {
         <Box is='div' color='default' fontScale='h1'>
           {t('settings.title')}
         </Box>
+      </Box>
+
+      <Box paddingInline={64}>
+        <form>
+          <BugsangOptInOutField />
+        </form>
       </Box>
     </Box>
   );

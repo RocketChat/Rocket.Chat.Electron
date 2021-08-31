@@ -19,6 +19,7 @@ type PersistableValues_0_0_0 = {
   servers: Server[];
   skippedUpdateVersion: string | null;
   trustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
+  isBugsnagEnabled: boolean;
 };
 
 type PersistableValues_3_1_0 = Omit<
@@ -26,10 +27,10 @@ type PersistableValues_3_1_0 = Omit<
   'currentServerUrl' | 'currentView'
 > & {
   currentView?:
-    | Exclude<PersistableValues_0_0_0['currentView'], null>
-    | { url: string }
-    | 'downloads'
-    | 'settings';
+  | Exclude<PersistableValues_0_0_0['currentView'], null>
+  | { url: string }
+  | 'downloads'
+  | 'settings';
   downloads?: Record<Download['itemId'], Download>;
 };
 

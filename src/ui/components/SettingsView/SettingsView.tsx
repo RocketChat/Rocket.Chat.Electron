@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../store/rootReducer';
-import { BugsangOptInOutField } from './BugsnagOptInOutField';
+import { BugsnagOptIn } from './features/BugsnagOptIn';
 
 export const SettingsView: FC = () => {
   const isVisible = useSelector(
@@ -36,11 +36,9 @@ export const SettingsView: FC = () => {
 
       <Box paddingInline={64}>
         <form>
-          <BugsangOptInOutField />
+          <BugsnagOptIn />
         </form>
       </Box>
     </Box>
   );
 };
-
-export default SettingsView;

@@ -137,7 +137,11 @@
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
   },
   "settings": {
-    "title": "Settings"
+    "title": "Settings",
+    "inner": {
+      "title": "Enable bugsnag monitoring (client only)",
+      "description": "Settings Bugsnag Description..."
+    }
   },
   "error": {
     "authNeeded": "Auth needed, try <strong>{{- auth}}</strong>",

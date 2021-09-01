@@ -136,9 +136,6 @@
     },
     "showingResults": "Affichage des résultats {{first}} - {{last}} de {{count}}"
   },
-  "settings": {
-    "title": "Paramètres"
-  },
   "error": {
     "authNeeded": "Authentification requise, essayez <strong>{{- auth}}</strong>",
     "connectTimeout": "Délai d'attente lors de la connexion",
@@ -163,7 +160,6 @@
     "disableGpu": "Désactiver le GPU",
     "documentation": "Documentation",
     "downloads": "Téléchargements",
-    "settings": "Paramètres",
     "editMenu": "&Éditer",
     "fileMenu": "&Fichier",
     "forward": "&Suivant",
@@ -209,7 +205,6 @@
   "sidebar": {
     "addNewServer": "Ajouter un nouveau serveur",
     "downloads": "Téléchargements",
-    "settings": "Paramètres",
     "item": {
       "reload": "Recharger le serveur",
       "remove": "Retirer le serveur",

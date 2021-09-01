@@ -136,9 +136,6 @@
     },
     "showingResults": "Eredmények megjelenítése: {{first}} - {{last}} / {{count}}"
   },
-  "settings": {
-    "title": "Beállítások"
-  },
   "error": {
     "authNeeded": "Hitelesítés szükséges, próbálja ezt: <strong>{{- auth}}</strong>",
     "connectTimeout": "A kapcsolódási kísérlet túllépte az időkorlátot",
@@ -163,7 +160,6 @@
     "disableGpu": "GPU letiltása",
     "documentation": "Dokumentáció",
     "downloads": "Letöltések",
-    "settings": "Beállítások",
     "editMenu": "S&zerkesztés",
     "fileMenu": "&Fájl",
     "forward": "&Előre",
@@ -209,7 +205,6 @@
   "sidebar": {
     "addNewServer": "Új kiszolgáló hozzáadása",
     "downloads": "Letöltések",
-    "settings": "Beállítások",
     "item": {
       "reload": "Kiszolgáló újratöltése",
       "remove": "Kiszolgáló eltávolítása",

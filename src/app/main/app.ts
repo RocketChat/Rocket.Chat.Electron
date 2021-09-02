@@ -53,22 +53,6 @@ export const setupApp = (): void => {
     browserWindow.focus();
   });
 
-  const isBugsnagEnabled = select(
-    ({ isBugsnagEnabled }: RootState) => isBugsnagEnabled
-  );
-
-  console.log('isBugsnagEnabled', isBugsnagEnabled);
-
-  if (isBugsnagEnabled) {
-    setupMainErrorHandling();
-  }
-
-  listen(SETTINGS_SET_BUGSNAG_OPT_IN, async () => {
-    app.relaunch();
-    app.quit();
-  });
-
-  // @TODO - Can I remove this line?
   app.addListener('window-all-closed', (): void => undefined);
 
   dispatch({ type: APP_PATH_SET, payload: app.getAppPath() });

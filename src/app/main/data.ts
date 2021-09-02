@@ -15,8 +15,6 @@ export const mergePersistableValues = async (
 
   const electronStoreValues = getPersistedValues();
 
-  console.log('electronStoreValues', electronStoreValues);
-
   const localStorageValues = Object.fromEntries(
     Object.entries(localStorage).map(([key, value]) => {
       try {

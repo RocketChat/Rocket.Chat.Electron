@@ -1,10 +1,7 @@
 import { app } from 'electron';
 import rimraf from 'rimraf';
 
-import { setupMainErrorHandling } from '../../errors';
-import { dispatch, listen, select } from '../../store';
-import { RootState } from '../../store/rootReducer';
-import { SETTINGS_SET_BUGSNAG_OPT_IN } from '../../ui/actions';
+import { dispatch } from '../../store';
 import { getRootWindow } from '../../ui/main/rootWindow';
 import { APP_PATH_SET, APP_VERSION_SET } from '../actions';
 

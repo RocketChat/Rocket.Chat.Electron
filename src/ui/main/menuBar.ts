@@ -476,7 +476,7 @@ const createWindowMenu = createSelector(
         id: 'settings',
         label: t('menus.settings'),
         checked: currentView === 'settings',
-        accelerator: 'CommandOrControl+P',
+        accelerator: 'CommandOrControl+I',
         click: () => {
           dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
         },

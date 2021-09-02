@@ -1,5 +1,5 @@
 import { ToggleSwitch, Field } from '@rocket.chat/fuselage';
-import React, { ChangeEvent, Dispatch, FC } from 'react';
+import React, { ChangeEvent, Dispatch, FC, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -15,10 +15,13 @@ export const BugsnagOptIn: FC = () => {
 
   const { t } = useTranslation();
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const isChecked = event.currentTarget.checked;
-    dispatch({ type: SETTINGS_SET_BUGSNAG_OPT_IN, payload: isChecked });
-  };
+  const handleChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const isChecked = event.currentTarget.checked;
+      dispatch({ type: SETTINGS_SET_BUGSNAG_OPT_IN, payload: isChecked });
+    },
+    [dispatch]
+  );
 
   return (
     <>

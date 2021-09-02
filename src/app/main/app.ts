@@ -1,7 +1,10 @@
 import { app } from 'electron';
 import rimraf from 'rimraf';
 
-import { dispatch } from '../../store';
+import { setupMainErrorHandling } from '../../errors';
+import { dispatch, listen, select } from '../../store';
+import { RootState } from '../../store/rootReducer';
+import { SETTINGS_SET_BUGSNAG_OPT_IN } from '../../ui/actions';
 import { getRootWindow } from '../../ui/main/rootWindow';
 import { APP_PATH_SET, APP_VERSION_SET } from '../actions';
 
@@ -50,6 +53,22 @@ export const setupApp = (): void => {
     browserWindow.focus();
   });
 
+  const isBugsnagEnabled = select(
+    ({ isBugsnagEnabled }: RootState) => isBugsnagEnabled
+  );
+
+  console.log('isBugsnagEnabled', isBugsnagEnabled);
+
+  if (isBugsnagEnabled) {
+    setupMainErrorHandling();
+  }
+
+  listen(SETTINGS_SET_BUGSNAG_OPT_IN, async () => {
+    app.relaunch();
+    app.quit();
+  });
+
+  // @TODO - Can I remove this line?
   app.addListener('window-all-closed', (): void => undefined);
 
   dispatch({ type: APP_PATH_SET, payload: app.getAppPath() });

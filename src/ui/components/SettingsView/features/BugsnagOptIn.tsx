@@ -12,9 +12,7 @@ export const BugsnagOptIn: FC = () => {
     ({ isBugsnagEnabled }: RootState) => isBugsnagEnabled
   );
   const dispatch = useDispatch<Dispatch<RootAction>>();
-
   const { t } = useTranslation();
-
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const isChecked = event.currentTarget.checked;
@@ -24,18 +22,16 @@ export const BugsnagOptIn: FC = () => {
   );
 
   return (
-    <>
-      <Field>
-        <Field.Row>
-          <ToggleSwitch onChange={handleChange} checked={isBugsnagEnabled} />
-          <Field.Label htmlFor='toggle-switch'>
-            {t('settings.inner.title')}
-          </Field.Label>
-        </Field.Row>
-        <Field.Row>
-          <Field.Hint>{t('settings.inner.description')}</Field.Hint>
-        </Field.Row>
-      </Field>
-    </>
+    <Field>
+      <Field.Row>
+        <ToggleSwitch onChange={handleChange} checked={isBugsnagEnabled} />
+        <Field.Label htmlFor='toggle-switch'>
+          {t('settings.inner.title')}
+        </Field.Label>
+      </Field.Row>
+      <Field.Row>
+        <Field.Hint>{t('settings.inner.description')}</Field.Hint>
+      </Field.Row>
+    </Field>
   );
 };

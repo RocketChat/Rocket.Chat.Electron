@@ -61,14 +61,6 @@ export const mergePersistableValues = async (
       isTrayIconEnabled: localStorage.hideTray !== 'true',
     };
   }
-
-  if (localStorage.bugsnagEnabled) {
-    values = {
-      ...values,
-      isBugsnagEnabled: localStorage.bugsnag === 'true',
-    };
-  }
-
   const userRootWindowState = await (async () => {
     try {
       const filePath = path.join(
@@ -109,7 +101,6 @@ export const mergePersistableValues = async (
           userRootWindowState.height ?? values?.rootWindowState?.bounds?.height,
       },
     },
-    isBugsnagEnabled: false,
   };
 
   dispatch({

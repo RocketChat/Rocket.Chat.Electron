@@ -19,7 +19,6 @@ type PersistableValues_0_0_0 = {
   servers: Server[];
   skippedUpdateVersion: string | null;
   trustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
-  isBugsnagEnabled: boolean;
 };
 
 type PersistableValues_3_1_0 = Omit<
@@ -33,10 +32,13 @@ type PersistableValues_3_1_0 = Omit<
     | 'settings';
   downloads?: Record<Download['itemId'], Download>;
 };
+type PersistableValues_3_5_0 = PersistableValues_3_1_0 & {
+  isBugsnagEnabled: boolean;
+};
 
 export type PersistableValues = Pick<
-  PersistableValues_3_1_0,
-  keyof PersistableValues_3_1_0
+  PersistableValues_3_5_0,
+  keyof PersistableValues_3_5_0
 >;
 
 export const migrations = {
@@ -51,4 +53,8 @@ export const migrations = {
       downloads: {},
     };
   },
+  '>=3.5.0': (before: PersistableValues_3_1_0): PersistableValues_3_5_0 => ({
+    ...before,
+    isBugsnagEnabled: true,
+  }),
 };

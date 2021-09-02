@@ -28,9 +28,9 @@ export const BugsnagOptIn: FC = () => {
           <Field.Label htmlFor='toggle-switch'>
             {t('settings.inner.title')}
           </Field.Label>
-          <Field.Label htmlFor='toggle-switch'>
-            {t('settings.inner.description')}
-          </Field.Label>
+        </Field.Row>
+        <Field.Row>
+          <Field.Hint>{t('settings.inner.description')}</Field.Hint>
         </Field.Row>
       </Field>
     </>

@@ -25,19 +25,14 @@ export const SettingsView: FC = () => {
         flexDirection='row'
         flexWrap='nowrap'
         alignItems='center'
-        borderBlockEndWidth={2}
-        borderBlockEndStyle='solid'
-        borderBlockEndColor='neutral-300'
       >
         <Box is='div' color='default' fontScale='h1'>
           {t('settings.title')}
         </Box>
       </Box>
 
-      <Box paddingInline={64}>
-        <form>
-          <BugsnagOptIn />
-        </form>
+      <Box is='form' padding={64}>
+        <BugsnagOptIn />
       </Box>
     </Box>
   );

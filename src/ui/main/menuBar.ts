@@ -15,6 +15,7 @@ import {
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+  SIDE_BAR_SETTINGS_BUTTON_CLICKED,
 } from '../actions';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
@@ -469,6 +470,15 @@ const createWindowMenu = createSelector(
         accelerator: 'CommandOrControl+D',
         click: () => {
           dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
+        },
+      },
+      {
+        id: 'settings',
+        label: t('menus.settings'),
+        checked: currentView === 'settings',
+        accelerator: 'CommandOrControl+I',
+        click: () => {
+          dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
         },
       },
       {

@@ -31,7 +31,9 @@ import { setupPowerMonitor } from './userPresence/main';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
+
   setupMainErrorHandling();
+
   performElectronStartup();
 
   createMainReduxStore();

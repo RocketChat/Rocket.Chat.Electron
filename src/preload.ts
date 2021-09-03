@@ -1,6 +1,5 @@
 import { contextBridge } from 'electron';
 
-import { setupRendererErrorHandling } from './errors';
 import { invoke } from './ipc/renderer';
 import { JitsiMeetElectron, JitsiMeetElectronAPI } from './jitsi/preload';
 import { listenToNotificationsRequests } from './notifications/preload';
@@ -40,7 +39,8 @@ const start = async (): Promise<void> => {
 
   await whenReady();
 
-  setupRendererErrorHandling('webviewPreload');
+  // This removes the server error handling
+  // setupRendererErrorHandling('webviewPreload');
 
   await invoke('server-view/ready');
 

@@ -25,4 +25,5 @@ export const selectPersistableValues = createStructuredSelector<
     isEachUpdatesSettingConfigurable,
   isUpdatingEnabled: ({ isUpdatingEnabled }) => isUpdatingEnabled,
   externalProtocols: ({ externalProtocols }) => externalProtocols,
+  isReportEnabled: ({ isReportEnabled }) => isReportEnabled,
 });

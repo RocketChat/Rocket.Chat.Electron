@@ -136,6 +136,15 @@
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
   },
+  "settings": {
+    "title": "Settings",
+    "options": {
+      "report": {
+        "title": "Report errors to developers",
+        "description": "Report errors anonymously to the developers. Shared information include app version number, operating system type, server URL, device language and error type. No content or usernames are shared."
+      }
+    }
+  },
   "error": {
     "authNeeded": "Auth needed, try <strong>{{- auth}}</strong>",
     "connectTimeout": "Timeout trying to connect",
@@ -160,6 +169,7 @@
     "disableGpu": "Disable GPU",
     "documentation": "Documentation",
     "downloads": "Downloads",
+    "settings": "Settings",
     "editMenu": "&Edit",
     "fileMenu": "&File",
     "forward": "&Forward",
@@ -205,6 +215,7 @@
   "sidebar": {
     "addNewServer": "Add new server",
     "downloads": "Downloads",
+    "settings": "Settings",
     "item": {
       "reload": "Reload server",
       "remove": "Remove server",

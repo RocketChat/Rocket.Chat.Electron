@@ -1,5 +1,7 @@
-import { css, SerializedStyles } from '@emotion/react';
+import { css } from '@emotion/react';
 import styled from '@emotion/styled';
+
+import { withTooltip } from './withTolltip';
 
 type WrapperProps = {
   sideBarStyle: {
@@ -68,36 +70,6 @@ export const ServerList = styled.ol`
   align-items: stretch;
 `;
 
-const withTooltip = ({ tooltip }: { tooltip: string }): SerializedStyles => css`
-  &::after {
-    position: absolute;
-    top: 50%;
-    left: 100%;
-    display: block;
-    visibility: hidden;
-    padding: 0.5rem 1rem;
-    content: ${JSON.stringify(tooltip)};
-    transition: all var(--transitions-duration) ease-out
-      var(--transitions-duration);
-    transform: translate(10px, -50%);
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    color: #ffffff;
-    border-radius: 2px;
-    background-color: #1f2329;
-    font-size: 0.875rem;
-    line-height: normal;
-    z-index: 100000;
-  }
-
-  &:hover::after {
-    visibility: visible;
-    transform: translate(0, -50%);
-    opacity: 1;
-  }
-`;
-
 type ServerButtonWrapperProps = {
   isDragged: boolean;
   hasUnreadMessages: boolean;
@@ -154,30 +126,20 @@ export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
   ${withTooltip}
 `;
 
-type AvatarProps = {
-  isSelected: boolean;
+type KeyboardShortcutProps = {
+  visible: boolean;
 };
 
-export const Avatar = styled.span<AvatarProps>`
-  flex: 1 1 auto;
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-  justify-content: center;
-  height: 42px;
-  transition: opacity var(--transitions-duration);
-
-  ${({ isSelected }) =>
+export const KeyboardShortcut = styled.div<KeyboardShortcutProps>`
+  flex: 1 0 100%;
+  padding-top: 8px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1;
+  ${({ visible }) =>
     css`
-      opacity: ${isSelected ? '1' : '0.6'};
+      visibility: ${visible ? 'visible' : 'hidden'};
     `}
-
-  &:hover {
-    ${({ isSelected }) =>
-      css`
-        opacity: ${isSelected ? '1' : '0.8'};
-      `}
-  }
 `;
 
 type InitialsProps = {
@@ -207,6 +169,32 @@ export const Favicon = styled.img<FaviconProps>`
     `}
 `;
 
+type AvatarProps = {
+  isSelected: boolean;
+};
+
+export const Avatar = styled.span<AvatarProps>`
+  flex: 1 1 auto;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  transition: opacity var(--transitions-duration);
+
+  ${({ isSelected }) =>
+    css`
+      opacity: ${isSelected ? '1' : '0.6'};
+    `}
+
+  &:hover {
+    ${({ isSelected }) =>
+      css`
+        opacity: ${isSelected ? '1' : '0.8'};
+      `}
+  }
+`;
+
 export const Badge = styled.div`
   position: absolute;
   z-index: 1;
@@ -222,22 +210,6 @@ export const Badge = styled.div`
   font-size: 10px;
   font-weight: bold;
   line-height: 15px;
-`;
-
-type KeyboardShortcutProps = {
-  visible: boolean;
-};
-
-export const KeyboardShortcut = styled.div<KeyboardShortcutProps>`
-  flex: 1 0 100%;
-  padding-top: 8px;
-  text-align: center;
-  font-size: 12px;
-  line-height: 1;
-  ${({ visible }) =>
-    css`
-      visibility: ${visible ? 'visible' : 'hidden'};
-    `}
 `;
 
 export const AddServerButton = styled.button`
@@ -281,45 +253,6 @@ export const AddServerButtonLabel = styled.span<AddServerButtonLabelProps>`
   ${withTooltip}
 `;
 
-export const DownloadsManagerButton = styled.button`
-  font-family: inherit;
-  position: relative;
-  flex: 0 0 auto;
-  box-sizing: border-box;
-  margin: 4px 0;
-  font-size: 2.5rem;
-  line-height: 1.25;
-  display: flex;
-  flex-direction: row;
-  height: 40px;
-  padding: 0;
-  color: inherit;
-  border: none;
-  background: none;
-  align-items: center;
-  justify-content: center;
-  margin-top: auto;
-  bottom: 5%;
-`;
-
-export const DownloadsManagerLabel = styled.span`
-  display: block;
-  line-height: 30px;
-  width: 40px;
-  height: 40px;
-  transition: opacity var(--transitions-duration);
-  opacity: 0.6;
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-
-  &:hover {
-    opacity: 1;
-  }
-
-  ${withTooltip}
-`;
-
 export const SidebarActionButton = styled.span`
   display: flex;
   justify-content: center;
@@ -330,7 +263,7 @@ export const SidebarActionButton = styled.span`
   transition: opacity var(--transitions-duration);
   opacity: 0.6;
   color: inherit;
-  background-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0);
   cursor: pointer;
 
   &:hover {
@@ -338,4 +271,26 @@ export const SidebarActionButton = styled.span`
   }
 
   ${withTooltip}
+`;
+
+export const BottomButtons = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 16px;
+`;
+
+export const Button = styled.button`
+  position: relative;
+  height: 40px;
+  border: none;
+  padding: 0;
+  margin-top: 14px;
+  font-size: 2.5rem;
+  line-height: 1.25;
+  background: rgba(0, 0, 0, 0);
+  color: inherit;
+  font-family: inherit;
 `;

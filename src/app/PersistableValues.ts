@@ -28,13 +28,17 @@ type PersistableValues_3_1_0 = Omit<
   currentView?:
     | Exclude<PersistableValues_0_0_0['currentView'], null>
     | { url: string }
-    | 'downloads';
+    | 'downloads'
+    | 'settings';
   downloads?: Record<Download['itemId'], Download>;
+};
+type PersistableValues_3_5_0 = PersistableValues_3_1_0 & {
+  isReportEnabled: boolean;
 };
 
 export type PersistableValues = Pick<
-  PersistableValues_3_1_0,
-  keyof PersistableValues_3_1_0
+  PersistableValues_3_5_0,
+  keyof PersistableValues_3_5_0
 >;
 
 export const migrations = {
@@ -49,4 +53,8 @@ export const migrations = {
       downloads: {},
     };
   },
+  '>=3.5.0': (before: PersistableValues_3_1_0): PersistableValues_3_5_0 => ({
+    ...before,
+    isReportEnabled: true,
+  }),
 };

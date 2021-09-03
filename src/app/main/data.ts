@@ -59,7 +59,6 @@ export const mergePersistableValues = async (
       isTrayIconEnabled: localStorage.hideTray !== 'true',
     };
   }
-
   const userRootWindowState = await (async () => {
     try {
       const filePath = path.join(

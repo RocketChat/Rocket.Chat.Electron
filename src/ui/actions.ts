@@ -27,6 +27,8 @@ export const SIDE_BAR_CONTEXT_MENU_TRIGGERED =
   'side-bar/context-menu-triggered';
 export const SIDE_BAR_DOWNLOADS_BUTTON_CLICKED =
   'side-bar/downloads-button-clicked';
+export const SIDE_BAR_SETTINGS_BUTTON_CLICKED =
+  'side-bar/settings-button-clicked';
 export const SIDE_BAR_REMOVE_SERVER_CLICKED = 'side-bar/remove-server-clicked';
 export const SIDE_BAR_SERVER_SELECTED = 'side-bar/server-selected';
 export const SIDE_BAR_SERVERS_SORTED = 'side-bar/servers-sorted';
@@ -56,6 +58,8 @@ export const WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED =
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
+export const SETTINGS_SET_REPORT_OPT_IN_CHANGED =
+  'settings/set-bugsnag-opt-in-changed';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -74,6 +78,7 @@ export type UiActionTypeToPayloadMap = {
   [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: void;
   [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
   [SIDE_BAR_DOWNLOADS_BUTTON_CLICKED]: void;
+  [SIDE_BAR_SETTINGS_BUTTON_CLICKED]: void;
   [SIDE_BAR_REMOVE_SERVER_CLICKED]: Server['url'];
   [SIDE_BAR_SERVER_SELECTED]: Server['url'];
   [SIDE_BAR_SERVERS_SORTED]: Server['url'][];
@@ -104,4 +109,5 @@ export type UiActionTypeToPayloadMap = {
   };
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
+  [SETTINGS_SET_REPORT_OPT_IN_CHANGED]: boolean;
 };

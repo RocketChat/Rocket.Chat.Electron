@@ -16,7 +16,11 @@ import { setupRootWindowReload } from '../../app/main/dev';
 import { Server } from '../../servers/common';
 import { dispatch, select, watch, listen } from '../../store';
 import { RootState } from '../../store/rootReducer';
-import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
+import {
+  ROOT_WINDOW_STATE_CHANGED,
+  SETTINGS_SET_FLASHFRAME_OPT_IN,
+  WEBVIEW_FOCUS_REQUESTED,
+} from '../actions';
 import { RootWindowIcon, WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { getTrayIconPath } from './icons';
@@ -159,10 +163,13 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      const isShowWindowOnUnreadChangedEnabled = select(
-        ({ isShowWindowOnUnreadChangedEnabled }) =>
-          isShowWindowOnUnreadChangedEnabled
-      );
+      const { isShowWindowOnUnreadChangedEnabled, isFlashFrameEnabled } =
+        select(
+          ({ isShowWindowOnUnreadChangedEnabled, isFlashFrameEnabled }) => ({
+            isShowWindowOnUnreadChangedEnabled,
+            isFlashFrameEnabled,
+          })
+        );
 
       if (isShowWindowOnUnreadChangedEnabled && !browserWindow.isVisible()) {
         const isMinimized = browserWindow.isMinimized();
@@ -180,11 +187,10 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      if (process.platform === 'win32' || process.platform === 'darwin') {
+      if (isFlashFrameEnabled) {
         browserWindow.flashFrame(true);
       }
     }),
-
     watch(
       ({ currentView, servers }) => {
         const currentServer =
@@ -200,6 +206,10 @@ export const setupRootWindow = (): void => {
     ),
 
     listen(WEBVIEW_FOCUS_REQUESTED, async () => {
+      const browserWindow = await getRootWindow();
+      browserWindow.focus();
+    }),
+    listen(SETTINGS_SET_FLASHFRAME_OPT_IN, async () => {
       const browserWindow = await getRootWindow();
       browserWindow.focus();
     }),

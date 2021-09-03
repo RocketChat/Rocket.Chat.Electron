@@ -138,9 +138,11 @@
   },
   "settings": {
     "title": "Settings",
-    "inner": {
-      "title": "Enable bugsnag monitoring (client only)",
-      "description": "Settings Bugsnag Description..."
+    "options": {
+      "bugsnag": {
+        "title": "Enable bugsnag monitoring (client only)",
+        "description": "Settings Bugsnag Description..."
+      }
     }
   },
   "error": {

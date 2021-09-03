@@ -26,11 +26,11 @@ export const BugsnagOptIn: FC = () => {
       <Field.Row>
         <ToggleSwitch onChange={handleChange} checked={isBugsnagEnabled} />
         <Field.Label htmlFor='toggle-switch'>
-          {t('settings.inner.title')}
+          {t('settings.options.bugsnag.title')}
         </Field.Label>
       </Field.Row>
       <Field.Row>
-        <Field.Hint>{t('settings.inner.description')}</Field.Hint>
+        <Field.Hint>{t('settings.options.bugsnag.description')}</Field.Hint>
       </Field.Row>
     </Field>
   );

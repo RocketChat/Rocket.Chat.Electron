@@ -58,7 +58,8 @@ export const WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED =
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
-export const SETTINGS_SET_BUGSNAG_OPT_IN = 'settings/set-bugsnag-opt-in';
+export const SETTINGS_SET_REPORT_OPT_IN_CHANGED =
+  'settings/set-bugsnag-opt-in-changed';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -108,5 +109,5 @@ export type UiActionTypeToPayloadMap = {
   };
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
-  [SETTINGS_SET_BUGSNAG_OPT_IN]: boolean;
+  [SETTINGS_SET_REPORT_OPT_IN_CHANGED]: boolean;
 };

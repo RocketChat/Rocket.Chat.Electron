@@ -17,21 +17,23 @@ export const SettingsView: FC = () => {
       flexDirection='column'
       height='100vh'
       backgroundColor='surface'
+      alignItems='center'
     >
       <Box
+        width='full'
         minHeight={64}
-        paddingInline={64}
+        paddingInline={24}
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
         alignItems='center'
+        color='default'
+        fontScale='h1'
       >
-        <Box is='div' color='default' fontScale='h1'>
-          {t('settings.title')}
-        </Box>
+        {t('settings.title')}
       </Box>
 
-      <Box is='form' padding={64}>
+      <Box is='form' padding={24} maxWidth={960}>
         <ReportErrors />
       </Box>
     </Box>

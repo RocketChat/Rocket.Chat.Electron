@@ -3,9 +3,11 @@ import { Reducer } from 'redux';
 import { APP_SETTINGS_LOADED } from '../../app/actions';
 import { ActionOf } from '../../store/actions';
 import { UPDATES_READY } from '../../updates/actions';
-import { SETTINGS_SET_BUGSNAG_OPT_IN } from '../actions';
+import { SETTINGS_SET_REPORT_OPT_IN_CHANGED } from '../actions';
 
-type isReportEnabledAction = ActionOf<typeof SETTINGS_SET_BUGSNAG_OPT_IN>;
+type isReportEnabledAction = ActionOf<
+  typeof SETTINGS_SET_REPORT_OPT_IN_CHANGED
+>;
 
 export const isReportEnabled: Reducer<
   boolean,
@@ -18,7 +20,7 @@ export const isReportEnabled: Reducer<
       return Boolean(action.payload.isReportEnabled);
     case UPDATES_READY:
       return action.payload.isReportEnabled;
-    case SETTINGS_SET_BUGSNAG_OPT_IN: {
+    case SETTINGS_SET_REPORT_OPT_IN_CHANGED: {
       return action.payload;
     }
     default:

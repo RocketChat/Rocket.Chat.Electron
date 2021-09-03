@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { RootAction } from '../../../../store/actions';
 import { RootState } from '../../../../store/rootReducer';
-import { SETTINGS_SET_BUGSNAG_OPT_IN } from '../../../actions';
+import { SETTINGS_SET_REPORT_OPT_IN_CHANGED } from '../../../actions';
 
 export const ReportErrors: FC = () => {
   const isReportEnabled = useSelector(
@@ -16,7 +16,10 @@ export const ReportErrors: FC = () => {
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const isChecked = event.currentTarget.checked;
-      dispatch({ type: SETTINGS_SET_BUGSNAG_OPT_IN, payload: isChecked });
+      dispatch({
+        type: SETTINGS_SET_REPORT_OPT_IN_CHANGED,
+        payload: isChecked,
+      });
     },
     [dispatch]
   );

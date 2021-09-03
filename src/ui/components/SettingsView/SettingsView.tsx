@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../store/rootReducer';
 import { BugsnagOptIn } from './features/BugsnagOptIn';
+import { FlashFrameOpt } from './features/FlashFrameOpt';
 
 export const SettingsView: FC = () => {
   const isVisible = useSelector(
@@ -33,6 +34,7 @@ export const SettingsView: FC = () => {
 
       <Box is='form' padding={64}>
         <BugsnagOptIn />
+        <FlashFrameOpt />
       </Box>
     </Box>
   );

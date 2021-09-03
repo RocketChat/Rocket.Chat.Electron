@@ -34,6 +34,7 @@ type PersistableValues_3_1_0 = Omit<
 };
 type PersistableValues_3_5_0 = PersistableValues_3_1_0 & {
   isBugsnagEnabled: boolean;
+  isFlashFrameEnabled: boolean;
 };
 
 export type PersistableValues = Pick<
@@ -56,5 +57,6 @@ export const migrations = {
   '>=3.5.0': (before: PersistableValues_3_1_0): PersistableValues_3_5_0 => ({
     ...before,
     isBugsnagEnabled: true,
+    isFlashFrameEnabled: true,
   }),
 };

@@ -5,6 +5,7 @@ export type UpdateConfiguration = {
   isUpdatingEnabled: boolean;
   skippedUpdateVersion: string | null;
   isBugsnagEnabled: boolean;
+  isFlashFrameEnabled: boolean;
 };
 
 export type AppLevelUpdateConfiguration = {

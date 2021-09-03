@@ -26,4 +26,5 @@ export const selectPersistableValues = createStructuredSelector<
   isUpdatingEnabled: ({ isUpdatingEnabled }) => isUpdatingEnabled,
   externalProtocols: ({ externalProtocols }) => externalProtocols,
   isBugsnagEnabled: ({ isBugsnagEnabled }) => isBugsnagEnabled,
+  isFlashFrameEnabled: ({ isFlashFrameEnabled }) => isFlashFrameEnabled,
 });

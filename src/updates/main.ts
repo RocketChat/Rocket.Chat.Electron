@@ -116,6 +116,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       doCheckForUpdatesOnStartup,
       skippedUpdateVersion,
       isBugsnagEnabled,
+      isFlashFrameEnabled,
     }: RootState) => ({
       isUpdatingAllowed:
         (process.platform === 'linux' && !!process.env.APPIMAGE) ||
@@ -126,6 +127,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       doCheckForUpdatesOnStartup,
       skippedUpdateVersion,
       isBugsnagEnabled,
+      isFlashFrameEnabled,
     })
   );
   const appConfiguration = await loadAppConfiguration();
@@ -148,6 +150,7 @@ export const setupUpdates = async (): Promise<void> => {
     doCheckForUpdatesOnStartup,
     skippedUpdateVersion,
     isBugsnagEnabled,
+    isFlashFrameEnabled,
   } = await loadConfiguration();
 
   dispatch({
@@ -159,6 +162,7 @@ export const setupUpdates = async (): Promise<void> => {
       doCheckForUpdatesOnStartup,
       skippedUpdateVersion,
       isBugsnagEnabled,
+      isFlashFrameEnabled,
     },
   });
 

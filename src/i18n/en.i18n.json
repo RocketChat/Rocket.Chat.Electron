@@ -142,6 +142,10 @@
       "bugsnag": {
         "title": "Enable bugsnag monitoring (client only)",
         "description": "Settings Bugsnag Description..."
+      },
+      "flashFrame": {
+        "title": "Enable Flash Frame",
+        "description": "Settings Flash Frame Description..."
       }
     }
   },

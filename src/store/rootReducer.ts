@@ -10,9 +10,9 @@ import {
 } from '../navigation/reducers';
 import { servers } from '../servers/reducers';
 import { currentView } from '../ui/reducers/currentView';
-import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
+import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';

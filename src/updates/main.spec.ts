@@ -13,7 +13,7 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
-      isBugsnagEnabled: false,
+      isReportEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {};
     const userConfiguration: UserLevelUpdateConfiguration = {};
@@ -34,7 +34,7 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
-      isBugsnagEnabled: false,
+      isReportEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       autoUpdate: false,
@@ -62,7 +62,7 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
-      isBugsnagEnabled: false,
+      isReportEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       autoUpdate: false,
@@ -94,7 +94,7 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
-      isBugsnagEnabled: false,
+      isReportEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       forced: true,

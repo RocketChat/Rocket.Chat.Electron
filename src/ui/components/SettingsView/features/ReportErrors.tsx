@@ -7,9 +7,9 @@ import { RootAction } from '../../../../store/actions';
 import { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_BUGSNAG_OPT_IN } from '../../../actions';
 
-export const BugsnagOptIn: FC = () => {
-  const isBugsnagEnabled = useSelector(
-    ({ isBugsnagEnabled }: RootState) => isBugsnagEnabled
+export const ReportErrors: FC = () => {
+  const isReportEnabled = useSelector(
+    ({ isReportEnabled }: RootState) => isReportEnabled
   );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
@@ -24,13 +24,13 @@ export const BugsnagOptIn: FC = () => {
   return (
     <Field>
       <Field.Row>
-        <ToggleSwitch onChange={handleChange} checked={isBugsnagEnabled} />
+        <ToggleSwitch onChange={handleChange} checked={isReportEnabled} />
         <Field.Label htmlFor='toggle-switch'>
-          {t('settings.options.bugsnag.title')}
+          {t('settings.options.report.title')}
         </Field.Label>
       </Field.Row>
       <Field.Row>
-        <Field.Hint>{t('settings.options.bugsnag.description')}</Field.Hint>
+        <Field.Hint>{t('settings.options.report.description')}</Field.Hint>
       </Field.Row>
     </Field>
   );

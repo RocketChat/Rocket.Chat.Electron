@@ -4,7 +4,7 @@ export type UpdateConfiguration = {
   isUpdatingAllowed: boolean;
   isUpdatingEnabled: boolean;
   skippedUpdateVersion: string | null;
-  isBugsnagEnabled: boolean;
+  isReportEnabled: boolean;
 };
 
 export type AppLevelUpdateConfiguration = {

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../store/rootReducer';
-import { BugsnagOptIn } from './features/BugsnagOptIn';
+import { ReportErrors } from './features/ReportErrors';
 
 export const SettingsView: FC = () => {
   const isVisible = useSelector(
@@ -32,7 +32,7 @@ export const SettingsView: FC = () => {
       </Box>
 
       <Box is='form' padding={64}>
-        <BugsnagOptIn />
+        <ReportErrors />
       </Box>
     </Box>
   );

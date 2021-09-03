@@ -22,8 +22,8 @@ const initBugsnag = (apiKey: string, appVersion: string, appType: AppType) =>
 
 const listenToBugsnagEnabledToggle = (bugsnagInstance: Client) => {
   listen(SETTINGS_SET_BUGSNAG_OPT_IN, async (action) => {
-    const isBugsnagEnabled = action.payload;
-    if (isBugsnagEnabled) {
+    const isReportEnabled = action.payload;
+    if (isReportEnabled) {
       bugsnagInstance.startSession();
     } else {
       bugsnagInstance.pauseSession();

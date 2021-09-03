@@ -5,19 +5,19 @@ import { ActionOf } from '../../store/actions';
 import { UPDATES_READY } from '../../updates/actions';
 import { SETTINGS_SET_BUGSNAG_OPT_IN } from '../actions';
 
-type IsBugsnagEnabledAction = ActionOf<typeof SETTINGS_SET_BUGSNAG_OPT_IN>;
+type isReportEnabledAction = ActionOf<typeof SETTINGS_SET_BUGSNAG_OPT_IN>;
 
-export const isBugsnagEnabled: Reducer<
+export const isReportEnabled: Reducer<
   boolean,
-  | IsBugsnagEnabledAction
+  | isReportEnabledAction
   | ActionOf<typeof UPDATES_READY>
   | ActionOf<typeof APP_SETTINGS_LOADED>
 > = (state = false, action) => {
   switch (action.type) {
     case APP_SETTINGS_LOADED:
-      return Boolean(action.payload.isBugsnagEnabled);
+      return Boolean(action.payload.isReportEnabled);
     case UPDATES_READY:
-      return action.payload.isBugsnagEnabled;
+      return action.payload.isReportEnabled;
     case SETTINGS_SET_BUGSNAG_OPT_IN: {
       return action.payload;
     }

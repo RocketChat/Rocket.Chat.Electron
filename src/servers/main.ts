@@ -222,7 +222,7 @@ export const setupServers = async (
   servers = Array.from(serversMap.values());
   currentServerUrl = currentServerUrl
     ? serversMap.get(currentServerUrl)?.url ?? servers[0]?.url ?? null
-    : null;
+    : servers[0]?.url;
 
   if (localStorage['rocket.chat.sortOrder']) {
     try {

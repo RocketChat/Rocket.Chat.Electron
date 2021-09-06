@@ -2,6 +2,7 @@ import { Notification, nativeImage, NativeImage } from 'electron';
 
 import { invoke } from '../ipc/main';
 import { dispatch, dispatchSingle, listen } from '../store';
+import { ActionIPCMeta } from '../store/actions';
 import { hasMeta } from '../store/fsa';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
@@ -46,7 +47,7 @@ const notifications = new Map();
 const createNotification = async (
   id: string,
   { title, body, icon, silent, canReply, actions }: ExtendedNotificationOptions,
-  meta?: any
+  ipcMeta?: ActionIPCMeta
 ): Promise<string> => {
   const notification = new Notification({
     title,
@@ -64,7 +65,7 @@ const createNotification = async (
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_SHOWN,
       payload: { id },
-      meta,
+      ipcMeta,
     });
   });
 
@@ -72,7 +73,7 @@ const createNotification = async (
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_CLOSED,
       payload: { id },
-      meta,
+      ipcMeta,
     });
     notifications.delete(id);
   });
@@ -81,7 +82,7 @@ const createNotification = async (
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_CLICKED,
       payload: { id },
-      meta,
+      ipcMeta,
     });
   });
 
@@ -89,7 +90,7 @@ const createNotification = async (
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_REPLIED,
       payload: { id, reply },
-      meta,
+      ipcMeta,
     });
   });
 
@@ -97,7 +98,7 @@ const createNotification = async (
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_ACTIONED,
       payload: { id, index },
-      meta,
+      ipcMeta,
     });
   });
 
@@ -135,14 +136,14 @@ const updateNotification = async (
 
 const handleCreateEvent = async (
   { tag, ...options }: ExtendedNotificationOptions,
-  meta: unknown
+  ipcMeta?: ActionIPCMeta
 ): Promise<string> => {
   if (tag && notifications.has(tag)) {
     return updateNotification(tag, options);
   }
 
   const id = tag || Math.random().toString(36).slice(2);
-  return createNotification(id, options, meta);
+  return createNotification(id, options, ipcMeta);
 };
 
 export const setupNotifications = (): void => {
@@ -152,7 +153,7 @@ export const setupNotifications = (): void => {
     }
     dispatch({
       type: NOTIFICATIONS_CREATE_RESPONDED,
-      payload: await handleCreateEvent(action.payload, action.meta),
+      payload: await handleCreateEvent(action.payload, action.ipcMeta),
       meta: {
         id: action.meta.id,
         response: true,

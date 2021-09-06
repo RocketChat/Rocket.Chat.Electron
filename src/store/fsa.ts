@@ -45,11 +45,10 @@ export const isSingleScoped = <
   Action extends FluxStandardAction<string, unknown>
 >(
   action: Action
-): action is Action & { meta: { scope: 'single'; webContentsId: number } } =>
-  hasMeta(action) &&
-  'webContentsId' in
-    (action as Action & { meta: { webContentsId: unknown } }).meta &&
-  (action as Action & { meta: { scope: unknown } }).meta.scope === 'single';
+): action is Action & { ipcMeta: { scope: 'single'; webContentsId: number } } =>
+  (action as any & { ipcMeta: { webContentsId: unknown } }).ipcMeta
+    ?.webContentsId &&
+  (action as any & { ipcMeta: { scope: unknown } }).ipcMeta?.scope === 'single';
 
 export const isErrored = <Action extends FluxStandardAction<string, unknown>>(
   action: Action

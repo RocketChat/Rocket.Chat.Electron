@@ -46,17 +46,22 @@ export const dispatch = <Action extends RootAction>(action: Action): void => {
 };
 
 export const dispatchSingle = <Action extends RootAction>(
-  action: Action & {
-    meta: { webContentsId: number };
-  }
+  action: Action
 ): void => {
-  reduxStore.dispatch({ ...action, meta: { ...action.meta, scope: 'single' } });
+  reduxStore.dispatch({
+    ...action,
+    ipcMeta: { ...action.ipcMeta, scope: 'single' },
+  });
 };
 
 export const dispatchLocal = <Action extends RootAction>(
   action: Action
 ): void => {
-  reduxStore.dispatch({ ...action, meta: { scope: 'local' } });
+  reduxStore.dispatch({
+    ...action,
+    ipcMeta: { ...action.ipcMeta, scope: 'local' },
+    meta: { scope: 'local' },
+  });
 };
 
 type Selector<T> = (state: RootState) => T;

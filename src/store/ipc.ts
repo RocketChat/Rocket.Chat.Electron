@@ -34,7 +34,7 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
   handleOnMain('redux/action-dispatched', async (webContents, action) => {
     api.dispatch({
       ...action,
-      meta: { ...action.meta, webContentsId: webContents.id },
+      ipcMeta: { webContentsId: webContents.id, ...action.ipcMeta },
     });
   });
 
@@ -42,7 +42,6 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
     if (!isFSA(action) || isLocallyScoped(action)) {
       return next(action);
     }
-
     const rendererAction = {
       ...action,
       meta: {
@@ -50,9 +49,8 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
         scope: ActionScope.LOCAL,
       },
     };
-
     if (isSingleScoped(action)) {
-      const { webContentsId } = action.meta;
+      const { webContentsId } = action.ipcMeta;
       [...renderers]
         .filter((w) => w.id === webContentsId)
         .forEach((w) => {

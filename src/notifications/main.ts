@@ -149,4 +149,12 @@ export const setupNotifications = (): void => {
   listen(NOTIFICATIONS_NOTIFICATION_DISMISSED, (action) => {
     notifications.get(action.payload.id)?.close();
   });
+  
+  listen(NOTIFICATIONS_NOTIFICATION_CLICKED, async (action) => {
+    notifications.get(action.payload.id)?.close();
+
+    const rootWindow = await getRootWindow();
+    rootWindow.show();
+    rootWindow.focus();
+  });
 };

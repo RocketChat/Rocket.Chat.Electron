@@ -45,6 +45,20 @@ export const dispatch = <Action extends RootAction>(action: Action): void => {
   reduxStore.dispatch(action);
 };
 
+export const dispatchSingle = <Action extends RootAction>(
+  action: Action & {
+    meta: { webContentsId: number };
+  }
+): void => {
+  reduxStore.dispatch({ ...action, meta: { ...action.meta, scope: 'single' } });
+};
+
+export const dispatchLocal = <Action extends RootAction>(
+  action: Action
+): void => {
+  reduxStore.dispatch({ ...action, meta: { scope: 'local' } });
+};
+
 type Selector<T> = (state: RootState) => T;
 
 export const select = <T>(selector: Selector<T>): T =>

@@ -41,6 +41,15 @@ export const isLocallyScoped = <
   hasMeta(action) &&
   (action as Action & { meta: { scope: unknown } }).meta.scope === 'local';
 
+export const isSingleScoped = <
+  Action extends FluxStandardAction<string, unknown>
+>(
+  action: Action
+): action is Action & { meta: { scope: 'single'; webContentsId: number } } =>
+  hasMeta(action) &&
+  'webContentsId' in
+    (action as Action & { meta: { webContentsId: unknown } }).meta && (action as Action & { meta: { scope: unknown } }).meta.scope === 'single';
+
 export const isErrored = <Action extends FluxStandardAction<string, unknown>>(
   action: Action
 ): action is Action & { error: true; payload: Error } =>

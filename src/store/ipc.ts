@@ -6,10 +6,17 @@ import {
   handle as handleFromRenderer,
   invoke as invokeFromRenderer,
 } from '../ipc/renderer';
-import { isFSA, FluxStandardAction, isLocallyScoped, hasMeta } from './fsa';
+import {
+  isFSA,
+  FluxStandardAction,
+  isLocallyScoped,
+  hasMeta,
+  isSingleScoped,
+} from './fsa';
 
 const enum ActionScope {
   LOCAL = 'local',
+  SINGLE = 'single',
 }
 
 export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
@@ -17,7 +24,6 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
 
   handleOnMain('redux/get-initial-state', async (webContents) => {
     renderers.add(webContents);
-
     webContents.addListener('destroyed', () => {
       renderers.delete(webContents);
     });
@@ -25,8 +31,11 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
     return api.getState();
   });
 
-  handleOnMain('redux/action-dispatched', async (_, action) => {
-    api.dispatch(action);
+  handleOnMain('redux/action-dispatched', async (webContents, action) => {
+    api.dispatch({
+      ...action,
+      meta: { ...action.meta, webContentsId: webContents.id },
+    });
   });
 
   return (next: Dispatch) => (action: FluxStandardAction<string, unknown>) => {
@@ -42,6 +51,15 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
       },
     };
 
+    if (isSingleScoped(action)) {
+      const { webContentsId } = action.meta;
+      [...renderers]
+        .filter((w) => w.id === webContentsId)
+        .forEach((w) => {
+          invokeFromMain(w, 'redux/action-dispatched', rendererAction);
+        });
+      return next(action);
+    }
     renderers.forEach((webContents) => {
       invokeFromMain(webContents, 'redux/action-dispatched', rendererAction);
     });

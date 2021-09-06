@@ -1,3 +1,19 @@
+# [3.5.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.4.0...3.5.0) (2021-09-06)
+
+
+### Bug Fixes
+
+* Set default server servers.json ([#2064](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2064)) ([3965307](https://github.com/RocketChat/Rocket.Chat.Electron/commit/3965307ed4605af7880b95ebb1d195e247734ea1))
+* Set default server servers.json and Open server on click notification ([#2144](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2144)) ([b748b10](https://github.com/RocketChat/Rocket.Chat.Electron/commit/b748b10017c9937388c995278aa5ee1f82dcd469))
+
+
+### Features
+
+* Settings allow enable/disable flashframe ([#2142](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2142)) ([1a48b69](https://github.com/RocketChat/Rocket.Chat.Electron/commit/1a48b6940a0aac2fbb2254817926cb5f6c4aee3e))
+* Settings page and report opt-out ([#2138](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2138)) ([12ca958](https://github.com/RocketChat/Rocket.Chat.Electron/commit/12ca9589f45298fa430bd9fd30e7053637ecc84f))
+
+
+
 # [3.4.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.3...3.4.0) (2021-08-25)
 
 

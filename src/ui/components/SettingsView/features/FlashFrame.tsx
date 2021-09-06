@@ -5,9 +5,9 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { RootAction } from '../../../../store/actions';
 import { RootState } from '../../../../store/rootReducer';
-import { SETTINGS_SET_FLASHFRAME_OPT_IN } from '../../../actions';
+import { SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED } from '../../../actions';
 
-export const FlashFrameOpt: FC = () => {
+export const FlashFrame: FC = () => {
   const isFlashFrameEnabled = useSelector(
     ({ isFlashFrameEnabled }: RootState) => isFlashFrameEnabled
   );
@@ -16,7 +16,10 @@ export const FlashFrameOpt: FC = () => {
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const isChecked = event.currentTarget.checked;
-      dispatch({ type: SETTINGS_SET_FLASHFRAME_OPT_IN, payload: isChecked });
+      dispatch({
+        type: SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED,
+        payload: isChecked,
+      });
     },
     [dispatch]
   );

@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../store/rootReducer';
-import { BugsnagOptIn } from './features/BugsnagOptIn';
-import { FlashFrameOpt } from './features/FlashFrameOpt';
+import { FlashFrame } from './features/FlashFrame';
+import { ReportErrors } from './features/ReportErrors';
 
 export const SettingsView: FC = () => {
   const isVisible = useSelector(
@@ -18,23 +18,26 @@ export const SettingsView: FC = () => {
       flexDirection='column'
       height='100vh'
       backgroundColor='surface'
+      alignItems='center'
     >
       <Box
+        width='full'
         minHeight={64}
-        paddingInline={64}
+        paddingInline={36}
+        margin={12}
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
         alignItems='center'
+        color='default'
+        fontScale='h1'
       >
-        <Box is='div' color='default' fontScale='h1'>
-          {t('settings.title')}
-        </Box>
+        {t('settings.title')}
       </Box>
 
-      <Box is='form' padding={64}>
-        <BugsnagOptIn />
-        <FlashFrameOpt />
+      <Box is='form' maxWidth={960}>
+        <ReportErrors />
+        <FlashFrame />
       </Box>
     </Box>
   );

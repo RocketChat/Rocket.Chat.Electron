@@ -18,7 +18,7 @@ import { dispatch, select, watch, listen } from '../../store';
 import { RootState } from '../../store/rootReducer';
 import {
   ROOT_WINDOW_STATE_CHANGED,
-  SETTINGS_SET_FLASHFRAME_OPT_IN,
+  SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED,
   WEBVIEW_FOCUS_REQUESTED,
 } from '../actions';
 import { RootWindowIcon, WindowState } from '../common';
@@ -209,7 +209,7 @@ export const setupRootWindow = (): void => {
       const browserWindow = await getRootWindow();
       browserWindow.focus();
     }),
-    listen(SETTINGS_SET_FLASHFRAME_OPT_IN, async () => {
+    listen(SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED, async () => {
       const browserWindow = await getRootWindow();
       browserWindow.focus();
     }),

@@ -13,7 +13,7 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
-      isBugsnagEnabled: false,
+      isReportEnabled: true,
       isFlashFrameEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {};
@@ -35,7 +35,7 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
-      isBugsnagEnabled: false,
+      isReportEnabled: true,
       isFlashFrameEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
@@ -64,7 +64,7 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
-      isBugsnagEnabled: false,
+      isReportEnabled: true,
       isFlashFrameEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
@@ -97,7 +97,7 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
-      isBugsnagEnabled: false,
+      isReportEnabled: true,
       isFlashFrameEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {

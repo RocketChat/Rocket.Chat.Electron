@@ -115,7 +115,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       isUpdatingEnabled,
       doCheckForUpdatesOnStartup,
       skippedUpdateVersion,
-      isBugsnagEnabled,
+      isReportEnabled,
       isFlashFrameEnabled,
     }: RootState) => ({
       isUpdatingAllowed:
@@ -126,7 +126,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       isUpdatingEnabled,
       doCheckForUpdatesOnStartup,
       skippedUpdateVersion,
-      isBugsnagEnabled,
+      isReportEnabled,
       isFlashFrameEnabled,
     })
   );
@@ -149,7 +149,8 @@ export const setupUpdates = async (): Promise<void> => {
     isUpdatingEnabled,
     doCheckForUpdatesOnStartup,
     skippedUpdateVersion,
-    isBugsnagEnabled,
+
+    isReportEnabled,
     isFlashFrameEnabled,
   } = await loadConfiguration();
 
@@ -161,7 +162,7 @@ export const setupUpdates = async (): Promise<void> => {
       isUpdatingEnabled,
       doCheckForUpdatesOnStartup,
       skippedUpdateVersion,
-      isBugsnagEnabled,
+      isReportEnabled,
       isFlashFrameEnabled,
     },
   });

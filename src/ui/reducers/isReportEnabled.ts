@@ -5,13 +5,13 @@ import { ActionOf } from '../../store/actions';
 import { UPDATES_READY } from '../../updates/actions';
 import { SETTINGS_SET_REPORT_OPT_IN_CHANGED } from '../actions';
 
-type IsBugsnagEnabledAction = ActionOf<
+type isReportEnabledAction = ActionOf<
   typeof SETTINGS_SET_REPORT_OPT_IN_CHANGED
 >;
 
-export const isBugsnagEnabled: Reducer<
+export const isReportEnabled: Reducer<
   boolean,
-  | IsBugsnagEnabledAction
+  | isReportEnabledAction
   | ActionOf<typeof UPDATES_READY>
   | ActionOf<typeof APP_SETTINGS_LOADED>
 > = (state = false, action) => {

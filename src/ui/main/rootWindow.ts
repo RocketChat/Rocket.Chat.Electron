@@ -209,10 +209,6 @@ export const setupRootWindow = (): void => {
       const browserWindow = await getRootWindow();
       browserWindow.focus();
     }),
-    listen(SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED, async () => {
-      const browserWindow = await getRootWindow();
-      browserWindow.focus();
-    }),
   ];
 
   const fetchAndDispatchWindowState = async (): Promise<void> => {

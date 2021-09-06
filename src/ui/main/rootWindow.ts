@@ -159,10 +159,13 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      const isShowWindowOnUnreadChangedEnabled = select(
-        ({ isShowWindowOnUnreadChangedEnabled }) =>
-          isShowWindowOnUnreadChangedEnabled
-      );
+      const { isShowWindowOnUnreadChangedEnabled, isFlashFrameEnabled } =
+        select(
+          ({ isShowWindowOnUnreadChangedEnabled, isFlashFrameEnabled }) => ({
+            isShowWindowOnUnreadChangedEnabled,
+            isFlashFrameEnabled,
+          })
+        );
 
       if (isShowWindowOnUnreadChangedEnabled && !browserWindow.isVisible()) {
         const isMinimized = browserWindow.isMinimized();
@@ -180,11 +183,10 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      if (process.platform === 'win32' || process.platform === 'darwin') {
+      if (isFlashFrameEnabled) {
         browserWindow.flashFrame(true);
       }
     }),
-
     watch(
       ({ currentView, servers }) => {
         const currentServer =

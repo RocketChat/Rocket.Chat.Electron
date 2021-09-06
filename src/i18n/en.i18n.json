@@ -142,6 +142,10 @@
       "report": {
         "title": "Report errors to developers",
         "description": "Report errors anonymously to the developers. Shared information include app version number, operating system type, server URL, device language and error type. No content or usernames are shared."
+      },
+      "flashFrame": {
+        "title": "Enable Flash Frame",
+        "description": "Settings Flash Frame Description..."
       }
     }
   },

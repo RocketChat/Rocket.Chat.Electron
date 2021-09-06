@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../store/rootReducer';
+import { FlashFrame } from './features/FlashFrame';
 import { ReportErrors } from './features/ReportErrors';
 
 export const SettingsView: FC = () => {
@@ -22,7 +23,8 @@ export const SettingsView: FC = () => {
       <Box
         width='full'
         minHeight={64}
-        paddingInline={24}
+        paddingInline={36}
+        margin={12}
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
@@ -33,8 +35,9 @@ export const SettingsView: FC = () => {
         {t('settings.title')}
       </Box>
 
-      <Box is='form' padding={24} maxWidth={960}>
+      <Box is='form' maxWidth={960}>
         <ReportErrors />
+        <FlashFrame />
       </Box>
     </Box>
   );

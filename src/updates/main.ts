@@ -116,6 +116,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       doCheckForUpdatesOnStartup,
       skippedUpdateVersion,
       isReportEnabled,
+      isFlashFrameEnabled,
     }: RootState) => ({
       isUpdatingAllowed:
         (process.platform === 'linux' && !!process.env.APPIMAGE) ||
@@ -126,6 +127,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       doCheckForUpdatesOnStartup,
       skippedUpdateVersion,
       isReportEnabled,
+      isFlashFrameEnabled,
     })
   );
   const appConfiguration = await loadAppConfiguration();
@@ -147,7 +149,9 @@ export const setupUpdates = async (): Promise<void> => {
     isUpdatingEnabled,
     doCheckForUpdatesOnStartup,
     skippedUpdateVersion,
+
     isReportEnabled,
+    isFlashFrameEnabled,
   } = await loadConfiguration();
 
   dispatch({
@@ -159,6 +163,7 @@ export const setupUpdates = async (): Promise<void> => {
       doCheckForUpdatesOnStartup,
       skippedUpdateVersion,
       isReportEnabled,
+      isFlashFrameEnabled,
     },
   });
 

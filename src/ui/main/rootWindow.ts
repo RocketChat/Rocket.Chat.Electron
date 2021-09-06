@@ -211,7 +211,7 @@ export const setupRootWindow = (): void => {
       type: ROOT_WINDOW_STATE_CHANGED,
       payload: await fetchRootWindowState(),
     });
-  }, 300);
+  }, 1000);
 
   getRootWindow().then((rootWindow) => {
     rootWindow.addListener('show', fetchAndDispatchWindowState);

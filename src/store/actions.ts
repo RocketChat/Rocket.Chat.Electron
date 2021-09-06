@@ -37,4 +37,11 @@ type RootActions = {
 
 export type ActionOf<Type extends keyof RootActions> = RootActions[Type];
 
-export type RootAction = RootActions[keyof RootActions];
+export type RootAction = RootActions[keyof RootActions] & {
+  ipcMeta?: ActionIPCMeta;
+};
+
+export type ActionIPCMeta = {
+  type: 'single' | 'local';
+  webContentsId?: number;
+};

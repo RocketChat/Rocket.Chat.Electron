@@ -144,11 +144,16 @@ const initializeServerWebContents = (
     });
   };
 
+  const handleWillNavigate = (event: Event): void => {
+    event.preventDefault();
+  };
+
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
   guestWebContents.addListener('did-fail-load', handleDidFailLoad);
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
   guestWebContents.addListener('context-menu', handleContextMenu);
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
+  guestWebContents.addListener('will-navigate', handleWillNavigate);
 };
 
 export const attachGuestWebContentsEvents = async (): Promise<void> => {

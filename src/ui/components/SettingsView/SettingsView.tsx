@@ -16,26 +16,23 @@ export const SettingsView: FC = () => {
     <Box
       display={isVisible ? 'flex' : 'none'}
       flexDirection='column'
-      height='100vh'
+      height='full'
       backgroundColor='surface'
-      alignItems='center'
     >
       <Box
         width='full'
         minHeight={64}
-        paddingInline={36}
-        margin={12}
+        padding={24}
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
-        alignItems='center'
         color='default'
         fontScale='h1'
       >
         {t('settings.title')}
       </Box>
 
-      <Box is='form' maxWidth={960}>
+      <Box is='form' margin={24} maxWidth={960} flexGrow={1} flexShrink={1}>
         <ReportErrors />
         <FlashFrame />
       </Box>

@@ -50,7 +50,7 @@ export const Wrapper = styled.div`
 
 export const ViewsWrapper = styled.div`
   position: relative;
-  flex: 1 0 auto;
+  flex: 1 1 auto;
   align-self: stretch;
   max-width: 100%;
 `;

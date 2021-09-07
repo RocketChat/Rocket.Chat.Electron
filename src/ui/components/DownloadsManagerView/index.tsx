@@ -155,14 +155,11 @@ const DownloadsManagerView: FC = () => {
     >
       <Box
         minHeight={64}
-        paddingInline={64}
+        padding={24}
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
         alignItems='center'
-        borderBlockEndWidth={2}
-        borderBlockEndStyle='solid'
-        borderBlockEndColor='neutral-300'
       >
         <Box is='div' color='default' fontScale='h1'>
           {t('downloads.title')}
@@ -173,7 +170,7 @@ const DownloadsManagerView: FC = () => {
         justifyContent='space-between'
         alignItems='center'
         marginBlock={8}
-        paddingInline={64}
+        padding={24}
       >
         <Box
           display='flex'

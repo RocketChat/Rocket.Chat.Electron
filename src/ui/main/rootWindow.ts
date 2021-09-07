@@ -201,10 +201,10 @@ export const setupRootWindow = (): void => {
         browserWindow.setTitle(windowTitle);
       }
     ),
-
     listen(WEBVIEW_FOCUS_REQUESTED, async () => {
-      const browserWindow = await getRootWindow();
-      browserWindow.focus();
+      const rootWindow = await getRootWindow();
+      rootWindow.restore();
+      rootWindow.show();
     }),
   ];
 

@@ -23,7 +23,7 @@
       "checkUpdatesOnStart": "Check for Updates on Start",
       "noUpdatesAvailable": "No updates are available.",
       "copyright": "Copyright {{copyright}}",
-      "errorWhenLookingForUpdates": "As error has occurred when looking for updates"
+      "errorWhenLookingForUpdates": "An error has occurred when looking for updates"
     },
     "addServer": {
       "title": "Add Server",

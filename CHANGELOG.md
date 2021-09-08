@@ -1,3 +1,14 @@
+## [3.5.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.0...3.5.1) (2021-09-08)
+
+
+### Bug Fixes
+
+* Prevent Webcontent to navigate (outside) ([abd7a08](https://github.com/RocketChat/Rocket.Chat.Electron/commit/abd7a080c3cbdd99d9b398a2f724313b7a038648))
+* Restore window on focus request ([ca0b8c6](https://github.com/RocketChat/Rocket.Chat.Electron/commit/ca0b8c6b8d9e7f0099655f2dc9bad7b5b08f71b1))
+* Settings and Download view ([fecdd5a](https://github.com/RocketChat/Rocket.Chat.Electron/commit/fecdd5ad90edfe578474e9df6cf0fb20b36ab925))
+
+
+
 # [3.5.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.4.0...3.5.0) (2021-09-06)
 
 

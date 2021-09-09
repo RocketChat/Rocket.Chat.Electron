@@ -96,6 +96,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
         ref={webviewRef}
         isFailed={isFailed}
         partition={`persist:${serverUrl}`}
+        {...({ allowpopups: 'allowpopups' } as any)}
       />
       <ErrorView isFailed={isFailed} onReload={handleReload} />
     </Wrapper>

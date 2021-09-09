@@ -24,7 +24,10 @@ type StyledWebViewProps = {
 };
 
 export const StyledWebView = styled('webview', {
-  shouldForwardProp: (propName) => propName === 'partition',
+  shouldForwardProp: (propName) =>
+    propName === 'partition' ||
+    propName === 'allowpopups' ||
+    propName === 'webpreferences',
 })<StyledWebViewProps>`
   position: absolute;
   left: 0;

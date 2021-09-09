@@ -1,3 +1,15 @@
+## [3.5.2](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.1...3.5.2) (2021-09-09)
+
+
+### Bug Fixes
+
+* Bugsnag ([#2153](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2153)) ([e3b1be7](https://github.com/RocketChat/Rocket.Chat.Electron/commit/e3b1be72db0facaa9890a07c5d8b38b7bf685fe9))
+* Click Notification ([#2154](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2154)) ([fb56545](https://github.com/RocketChat/Rocket.Chat.Electron/commit/fb565450ff0314e2cbc35140c287d6b7651f84bf))
+* oauth ([#2152](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2152)) ([898f3b4](https://github.com/RocketChat/Rocket.Chat.Electron/commit/898f3b49d2c58fe0c677025db4e2b5e89fe0aa59))
+* remove typo text ([#2150](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2150)) ([143fd48](https://github.com/RocketChat/Rocket.Chat.Electron/commit/143fd4810fc25538324db3db65e158b79601880d))
+
+
+
 ## [3.5.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.0...3.5.1) (2021-09-08)
 
 

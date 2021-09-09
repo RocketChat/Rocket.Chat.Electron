@@ -171,6 +171,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     webPreferences.enableRemoteModule = false;
     webPreferences.webSecurity = true;
     webPreferences.contextIsolation = true;
+    webPreferences.nativeWindowOpen = true;
     webPreferences.worldSafeExecuteJavaScript = true;
   };
 

@@ -1,5 +1,4 @@
 import Bugsnag from '@bugsnag/js';
-import { app } from 'electron';
 
 import { select, listen } from './store';
 import { SETTINGS_SET_REPORT_OPT_IN_CHANGED } from './ui/actions';
@@ -25,12 +24,16 @@ const listenToBugsnagEnabledToggle = async (appType: AppType) => {
   if (!apiKey) {
     return;
   }
-  await app.whenReady();
-  const appVersion = select(({ appVersion }) => appVersion);
+  const { appVersion, isReportEnabled } = select(
+    ({ appVersion, isReportEnabled }) => ({ appVersion, isReportEnabled })
+  );
   if (!appVersion) {
     throw new Error('app version was not set');
   }
+
   const bugsnagInstance = initBugsnag(apiKey, appVersion, appType);
+
+  isReportEnabled && bugsnagInstance.startSession();
   listen(SETTINGS_SET_REPORT_OPT_IN_CHANGED, async (action) => {
     const isReportEnabled = action.payload;
     if (isReportEnabled) {

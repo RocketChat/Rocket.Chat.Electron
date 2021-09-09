@@ -34,7 +34,13 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
   handleOnMain('redux/action-dispatched', async (webContents, action) => {
     api.dispatch({
       ...action,
-      ipcMeta: { webContentsId: webContents.id, ...action.ipcMeta },
+      ipcMeta: {
+        webContentsId: webContents.id,
+        ...(webContents.hostWebContents?.id && {
+          viewInstanceId: webContents.hostWebContents?.id,
+        }),
+        ...action.ipcMeta,
+      },
     });
   });
 
@@ -50,12 +56,16 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
       },
     };
     if (isSingleScoped(action)) {
-      const { webContentsId } = action.ipcMeta;
+      const { webContentsId, viewInstanceId } = action.ipcMeta;
       [...renderers]
-        .filter((w) => w.id === webContentsId)
-        .forEach((w) => {
-          invokeFromMain(w, 'redux/action-dispatched', rendererAction);
-        });
+        .filter(
+          (w) =>
+            w.id === webContentsId ||
+            (viewInstanceId && w.id === viewInstanceId)
+        )
+        .forEach((w) =>
+          invokeFromMain(w, 'redux/action-dispatched', rendererAction)
+        );
       return next(action);
     }
     renderers.forEach((webContents) => {

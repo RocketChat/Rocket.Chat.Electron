@@ -45,7 +45,9 @@ export const isSingleScoped = <
   Action extends FluxStandardAction<string, unknown>
 >(
   action: Action
-): action is Action & { ipcMeta: { scope: 'single'; webContentsId: number } } =>
+): action is Action & {
+  ipcMeta: { scope: 'single'; webContentsId: number; viewInstanceId?: number };
+} =>
   (action as any & { ipcMeta: { webContentsId: unknown } }).ipcMeta
     ?.webContentsId &&
   (action as any & { ipcMeta: { scope: unknown } }).ipcMeta?.scope === 'single';

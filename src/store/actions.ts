@@ -44,4 +44,5 @@ export type RootAction = RootActions[keyof RootActions] & {
 export type ActionIPCMeta = {
   type: 'single' | 'local';
   webContentsId?: number;
+  viewInstanceId?: number;
 };

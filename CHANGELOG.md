@@ -1,3 +1,14 @@
+## [3.5.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.2...3.5.3) (2021-09-09)
+
+
+### Bug Fixes
+
+* Fix OAuth ([#2158](https://github.com/RocketChat/Rocket.Chat.Electron/pull/2158))([76bbba4](https://github.com/RocketChat/Rocket.Chat.Electron/commit/76bbba4d57bed9834c4fee9193b0d310ebccb907))
+* Remove preventDefault from download ([#2159](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2159)) ([4030e34](https://github.com/RocketChat/Rocket.Chat.Electron/commit/4030e34561c6c88d4825106869cea649cfe42c44))
+* Removes rid param/conditional to fix deeplink ([#2160](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2160)) ([2a72853](https://github.com/RocketChat/Rocket.Chat.Electron/commit/2a7285356c26af884496ad0763aa8591f43211c2))
+
+
+
 ## [3.5.2](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.1...3.5.2) (2021-09-09)
 
 

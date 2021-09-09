@@ -34,12 +34,9 @@ const start = async (): Promise<void> => {
 
   await app.whenReady();
 
-  setupMainErrorHandling();
-
   performElectronStartup();
 
   createMainReduxStore();
-
 
   const localStorage = await exportLocalStorage();
   await mergePersistableValues(localStorage);
@@ -49,6 +46,8 @@ const start = async (): Promise<void> => {
   await i18n.wait();
 
   setupApp();
+
+  setupMainErrorHandling();
 
   createRootWindow();
   attachGuestWebContentsEvents();

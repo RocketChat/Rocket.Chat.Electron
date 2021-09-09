@@ -174,7 +174,7 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
     case 'room': {
       const host = args.get('host') ?? undefined;
       const path = args.get('path') ?? undefined;
-      if (host) {
+      if (host && path) {
         await performOpenRoom({ host, path });
       }
       break;

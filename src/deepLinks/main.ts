@@ -60,13 +60,11 @@ type AuthenticationParams = {
 
 type OpenRoomParams = {
   host: string;
-  rid: string;
   path?: string;
 };
 
 type InviteParams = {
   host: string;
-  rid: string;
   path: string;
 };
 
@@ -176,9 +174,8 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
     case 'room': {
       const host = args.get('host') ?? undefined;
       const path = args.get('path') ?? undefined;
-      const rid = args.get('rid') ?? undefined;
-      if (host && rid) {
-        await performOpenRoom({ host, path, rid });
+      if (host) {
+        await performOpenRoom({ host, path });
       }
       break;
     }
@@ -186,9 +183,8 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
     case 'invite': {
       const host = args.get('host') ?? undefined;
       const path = args.get('path') ?? undefined;
-      const rid = args.get('rid') ?? undefined;
-      if (host && path && rid) {
-        await performInvite({ host, path, rid });
+      if (host && path) {
+        await performInvite({ host, path });
       }
     }
   }

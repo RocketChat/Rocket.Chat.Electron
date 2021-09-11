@@ -352,8 +352,11 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          guestWebContents.setZoomLevel(0);
+          const url = typeof currentView === 'object' ? currentView.url : null;
+          if (url) {
+            const guestWebContents = getWebContentsByServerUrl(url);
+            guestWebContents?.setZoomLevel(0);
+          }
         },
       },
       {
@@ -362,19 +365,19 @@ const createViewMenu = createSelector(
         accelerator: 'CommandOrControl+Plus',
         click: async () => {
           const browserWindow = await getRootWindow();
-
           if (!browserWindow.isVisible()) {
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          const zoomLevel = guestWebContents.getZoomLevel();
-
-          if (zoomLevel >= 9) {
-            return;
+          const url = typeof currentView === 'object' ? currentView.url : null;
+          if (url) {
+            const guestWebContents = getWebContentsByServerUrl(url);
+            const zoomLevel = guestWebContents?.getZoomLevel();
+            if (zoomLevel && zoomLevel >= 9) {
+              return;
+            }
+            zoomLevel && guestWebContents?.setZoomLevel(zoomLevel + 1);
           }
-
-          guestWebContents.setZoomLevel(zoomLevel + 1);
         },
       },
       {
@@ -388,14 +391,18 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          const zoomLevel = guestWebContents.getZoomLevel();
 
-          if (zoomLevel <= -9) {
-            return;
+          const url = typeof currentView === 'object' ? currentView.url : null;
+
+          if (url) {
+            const guestWebContents = getWebContentsByServerUrl(url);
+            const zoomLevel = guestWebContents?.getZoomLevel();
+            if (zoomLevel && zoomLevel <= -9) {
+              return;
+            }
+
+            zoomLevel && guestWebContents?.setZoomLevel(zoomLevel - 1);
           }
-
-          guestWebContents.setZoomLevel(zoomLevel - 1);
         },
       },
     ],

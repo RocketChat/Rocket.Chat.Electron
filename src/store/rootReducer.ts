@@ -10,8 +10,10 @@ import {
 } from '../navigation/reducers';
 import { servers } from '../servers/reducers';
 import { currentView } from '../ui/reducers/currentView';
+import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
+import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
@@ -29,7 +31,7 @@ import {
   updateError,
 } from '../updates/reducers';
 
-const reducersMap = {
+export const rootReducer = combineReducers({
   appPath,
   appVersion,
   clientCertificates,
@@ -54,8 +56,8 @@ const reducersMap = {
   skippedUpdateVersion,
   trustedCertificates,
   updateError,
-};
-
-export const rootReducer = combineReducers<typeof reducersMap>(reducersMap);
+  isReportEnabled,
+  isFlashFrameEnabled,
+});
 
 export type RootState = ReturnType<typeof rootReducer>;

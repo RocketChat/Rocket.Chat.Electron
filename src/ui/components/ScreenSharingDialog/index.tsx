@@ -1,5 +1,5 @@
 import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
-import { desktopCapturer } from 'electron';
+import { desktopCapturer, DesktopCapturerSource } from 'electron';
 import React, { useEffect, useState, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,7 +19,7 @@ export const ScreenSharingDialog: FC = () => {
 
   const { t } = useTranslation();
 
-  const [sources, setSources] = useState([]);
+  const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
 
   useEffect(() => {
     if (!isVisible) {
@@ -27,7 +27,9 @@ export const ScreenSharingDialog: FC = () => {
     }
 
     const fetchSources = async (): Promise<void> => {
-      const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
+      const sources = await desktopCapturer.getSources({
+        types: ['window', 'screen'],
+      });
       setSources(sources);
     };
 
@@ -48,19 +50,39 @@ export const ScreenSharingDialog: FC = () => {
     dispatch({ type: SCREEN_SHARING_DIALOG_DISMISSED });
   };
 
-  return <Dialog isVisible={isVisible} onClose={handleClose}>
-    <Box fontScale='h1' alignSelf='center'>{t('dialog.screenshare.announcement')}</Box>
-    <Box display='flex' flexWrap='wrap' alignItems='stretch' justifyContent='center'>
-      <Margins all='x8'>
-        {sources.map(({ id, name, thumbnail }) => <Scrollable key={id}>
-          <Source display='flex' flexDirection='column' onClick={handleScreenSharingSourceClick(id)}>
-            <Box flexGrow={1} display='flex' alignItems='center'>
-              <Box is='img' src={thumbnail.toDataURL()} alt={name} style={{ width: '100%' }} />
-            </Box>
-            <Box>{name}</Box>
-          </Source>
-        </Scrollable>)}
-      </Margins>
-    </Box>
-  </Dialog>;
+  return (
+    <Dialog isVisible={isVisible} onClose={handleClose}>
+      <Box fontScale='h1' alignSelf='center'>
+        {t('dialog.screenshare.announcement')}
+      </Box>
+      <Box
+        display='flex'
+        flexWrap='wrap'
+        alignItems='stretch'
+        justifyContent='center'
+      >
+        <Margins all='x8'>
+          {sources.map(({ id, name, thumbnail }) => (
+            <Scrollable key={id}>
+              <Source
+                display='flex'
+                flexDirection='column'
+                onClick={handleScreenSharingSourceClick(id)}
+              >
+                <Box flexGrow={1} display='flex' alignItems='center'>
+                  <Box
+                    is='img'
+                    src={thumbnail.toDataURL()}
+                    alt={name}
+                    style={{ width: '100%' }}
+                  />
+                </Box>
+                <Box>{name}</Box>
+              </Source>
+            </Scrollable>
+          ))}
+        </Margins>
+      </Box>
+    </Dialog>
+  );
 };

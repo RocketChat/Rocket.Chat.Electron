@@ -1,22 +1,30 @@
 import { createStructuredSelector } from 'reselect';
 
-import { ActionOf } from '../store/actions';
 import { RootState } from '../store/rootReducer';
-import { APP_SETTINGS_LOADED } from './actions';
+import { PersistableValues } from './PersistableValues';
 
-export const selectPersistableValues = createStructuredSelector<Partial<RootState>, ActionOf<typeof APP_SETTINGS_LOADED>['payload']>({
+export const selectPersistableValues = createStructuredSelector<
+  RootState,
+  PersistableValues
+>({
   currentView: ({ currentView }) => currentView,
-  doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }) => doCheckForUpdatesOnStartup,
+  doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }) =>
+    doCheckForUpdatesOnStartup,
   downloads: ({ downloads }) => downloads,
   isMenuBarEnabled: ({ isMenuBarEnabled }) => isMenuBarEnabled,
-  isShowWindowOnUnreadChangedEnabled: ({ isShowWindowOnUnreadChangedEnabled }) => isShowWindowOnUnreadChangedEnabled,
+  isShowWindowOnUnreadChangedEnabled: ({
+    isShowWindowOnUnreadChangedEnabled,
+  }) => isShowWindowOnUnreadChangedEnabled,
   isSideBarEnabled: ({ isSideBarEnabled }) => isSideBarEnabled,
   isTrayIconEnabled: ({ isTrayIconEnabled }) => isTrayIconEnabled,
   rootWindowState: ({ rootWindowState }) => rootWindowState,
   servers: ({ servers }) => servers,
   skippedUpdateVersion: ({ skippedUpdateVersion }) => skippedUpdateVersion,
   trustedCertificates: ({ trustedCertificates }) => trustedCertificates,
-  isEachUpdatesSettingConfigurable: ({ isEachUpdatesSettingConfigurable }) => isEachUpdatesSettingConfigurable,
+  isEachUpdatesSettingConfigurable: ({ isEachUpdatesSettingConfigurable }) =>
+    isEachUpdatesSettingConfigurable,
   isUpdatingEnabled: ({ isUpdatingEnabled }) => isUpdatingEnabled,
   externalProtocols: ({ externalProtocols }) => externalProtocols,
+  isReportEnabled: ({ isReportEnabled }) => isReportEnabled,
+  isFlashFrameEnabled: ({ isFlashFrameEnabled }) => isFlashFrameEnabled,
 });

@@ -7,14 +7,14 @@ let timer: ReturnType<typeof setTimeout>;
 let prevBackground: string;
 let prevColor: string;
 
-const pollSidebarStyle = (referenceElement: Element, emit: (input: Server['style']) => void): void => {
+const pollSidebarStyle = (
+  referenceElement: Element,
+  emit: (input: Server['style']) => void
+): void => {
   clearTimeout(timer);
 
   document.body.append(referenceElement);
-  const {
-    background,
-    color,
-  } = window.getComputedStyle(referenceElement);
+  const { background, color } = window.getComputedStyle(referenceElement);
   referenceElement.remove();
 
   if (prevBackground !== background || prevColor !== color) {
@@ -47,8 +47,8 @@ export const setBackground = (imageUrl: string): void => {
   const element = getElement();
 
   element.style.backgroundImage = imageUrl
-    ? `url(${ JSON.stringify(getAbsoluteUrl(imageUrl)) })`
-    : null;
+    ? `url(${JSON.stringify(getAbsoluteUrl(imageUrl))})`
+    : 'none';
 
   pollSidebarStyle(element, (sideBarStyle) => {
     dispatch({

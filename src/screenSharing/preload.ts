@@ -6,12 +6,12 @@ import {
 
 const handleGetSourceIdEvent = async (): Promise<void> => {
   try {
-    const sourceId = await request<
-      typeof WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
-      typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED
-    >({
-      type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
-    });
+    const sourceId = await request(
+      {
+        type: WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
+      },
+      WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED
+    );
     window.top.postMessage({ sourceId }, '*');
   } catch (error) {
     window.top.postMessage({ sourceId: 'PermissionDeniedError' }, '*');

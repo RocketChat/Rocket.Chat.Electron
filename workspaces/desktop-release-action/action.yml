@@ -1,0 +1,45 @@
+name: Rocket.Chat Desktop App Release Action
+description: Releases the Rocket.Chat Desktop app
+
+inputs:
+  ref:
+    description: 'Forced ref to override github.context.payload.ref'
+    required: false
+  repository_owner:
+    description: 'Owner of the repository where the release will be made'
+    required: false
+  repository_name:
+    description: 'Name of the repository where the release will be made'
+    required: false
+  mac_csc_link:
+    description: 'The base64-encoded data of certificates (*.p12) for code signing for macOS'
+    required: true
+  mac_csc_key_password:
+    description: 'The password to decrypt the certificates for code signing for macOS'
+    required: true
+  mac_apple_id:
+    description: 'The Apple ID for notarization'
+    required: true
+  mac_apple_id_password:
+    description: 'The password associated to Apple ID for notarization'
+    required: true
+  mac_asc_provider:
+    description: 'The membership account associated with the Apple Developer account'
+    required: true
+  win_csc_link:
+    description: 'The base64-encoded data of certificates (*.p12) for code signing for Windows'
+    required: true
+  win_csc_key_password:
+    description: 'The password to decrypt the certificates for code signing for Windows'
+    required: true
+  github_token:
+    description: 'The GitHub token to publish releases'
+    required: true
+  snapcraft_token:
+    description: 'The Snapcraft token to publish releases'
+    required: true
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+

@@ -15,6 +15,7 @@ import {
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+  SIDE_BAR_SETTINGS_BUTTON_CLICKED,
 } from '../actions';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
@@ -24,9 +25,8 @@ const t = i18next.t.bind(i18next);
 
 const on = (
   condition: boolean,
-  getMenuItems: () => MenuItemConstructorOptions[],
-): MenuItemConstructorOptions[] =>
-  (condition ? getMenuItems() : []);
+  getMenuItems: () => MenuItemConstructorOptions[]
+): MenuItemConstructorOptions[] => (condition ? getMenuItems() : []);
 
 const createAppMenu = createSelector(
   () => undefined,
@@ -107,7 +107,7 @@ const createAppMenu = createSelector(
         },
       },
     ],
-  }),
+  })
 );
 
 const createEditMenu = createSelector(
@@ -148,15 +148,25 @@ const createEditMenu = createSelector(
         role: 'selectAll',
       },
     ],
-  }),
+  })
 );
 
-const selectViewDeps = createStructuredSelector({
-  currentView: ({ currentView }: RootState) => currentView,
-  isSideBarEnabled: ({ isSideBarEnabled }: RootState) => isSideBarEnabled,
-  isTrayIconEnabled: ({ isTrayIconEnabled }: RootState) => isTrayIconEnabled,
-  isMenuBarEnabled: ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled,
-  rootWindowState: ({ rootWindowState }: RootState) => rootWindowState,
+const selectViewDeps = createStructuredSelector<
+  RootState,
+  Pick<
+    RootState,
+    | 'currentView'
+    | 'isSideBarEnabled'
+    | 'isTrayIconEnabled'
+    | 'isMenuBarEnabled'
+    | 'rootWindowState'
+  >
+>({
+  currentView: ({ currentView }) => currentView,
+  isSideBarEnabled: ({ isSideBarEnabled }) => isSideBarEnabled,
+  isTrayIconEnabled: ({ isTrayIconEnabled }) => isTrayIconEnabled,
+  isMenuBarEnabled: ({ isMenuBarEnabled }) => isMenuBarEnabled,
+  rootWindowState: ({ rootWindowState }) => rootWindowState,
 });
 
 const createViewMenu = createSelector(
@@ -183,8 +193,11 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          guestWebContents.reload();
+          const guestWebContents =
+            typeof currentView === 'object'
+              ? getWebContentsByServerUrl(currentView.url)
+              : null;
+          guestWebContents?.reload();
         },
       },
       {
@@ -198,18 +211,25 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          guestWebContents.reloadIgnoringCache();
+          const guestWebContents =
+            typeof currentView === 'object'
+              ? getWebContentsByServerUrl(currentView.url)
+              : null;
+          guestWebContents?.reloadIgnoringCache();
         },
       },
       {
         id: 'openDevTools',
         label: t('menus.openDevTools'),
         enabled: typeof currentView === 'object' && !!currentView.url,
-        accelerator: process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
+        accelerator:
+          process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
         click: () => {
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          guestWebContents.toggleDevTools();
+          const guestWebContents =
+            typeof currentView === 'object'
+              ? getWebContentsByServerUrl(currentView.url)
+              : null;
+          guestWebContents?.toggleDevTools();
         },
       },
       { type: 'separator' },
@@ -225,8 +245,11 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          guestWebContents.goBack();
+          const guestWebContents =
+            typeof currentView === 'object'
+              ? getWebContentsByServerUrl(currentView.url)
+              : null;
+          guestWebContents?.goBack();
         },
       },
       {
@@ -241,8 +264,11 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          const guestWebContents = getWebContentsByServerUrl(typeof currentView === 'object' ? currentView.url : null);
-          guestWebContents.goForward();
+          const guestWebContents =
+            typeof currentView === 'object'
+              ? getWebContentsByServerUrl(currentView.url)
+              : null;
+          guestWebContents?.goForward();
         },
       },
       { type: 'separator' },
@@ -373,13 +399,21 @@ const createViewMenu = createSelector(
         },
       },
     ],
-  }),
+  })
 );
 
-const selectWindowDeps = createStructuredSelector({
-  servers: ({ servers }:RootState) => servers,
-  currentView: ({ currentView }: RootState) => currentView,
-  isShowWindowOnUnreadChangedEnabled: ({ isShowWindowOnUnreadChangedEnabled }:RootState) => isShowWindowOnUnreadChangedEnabled,
+const selectWindowDeps = createStructuredSelector<
+  RootState,
+  Pick<
+    RootState,
+    'servers' | 'currentView' | 'isShowWindowOnUnreadChangedEnabled'
+  >
+>({
+  servers: ({ servers }) => servers,
+  currentView: ({ currentView }) => currentView,
+  isShowWindowOnUnreadChangedEnabled: ({
+    isShowWindowOnUnreadChangedEnabled,
+  }) => isShowWindowOnUnreadChangedEnabled,
 });
 
 const createWindowMenu = createSelector(
@@ -411,25 +445,31 @@ const createWindowMenu = createSelector(
         { type: 'separator' },
       ]),
       ...on(servers.length > 0, () => [
-        ...servers.map((server, i): MenuItemConstructorOptions => ({
-          id: server.url,
-          type: typeof currentView === 'object' && currentView.url === server.url ? 'checkbox' : 'normal',
-          label: server.title?.replace(/&/g, '&&'),
-          checked: typeof currentView === 'object' && currentView.url === server.url,
-          accelerator: `CommandOrControl+${ i + 1 }`,
-          click: async () => {
-            const browserWindow = await getRootWindow();
+        ...servers.map(
+          (server, i): MenuItemConstructorOptions => ({
+            id: server.url,
+            type:
+              typeof currentView === 'object' && currentView.url === server.url
+                ? 'checkbox'
+                : 'normal',
+            label: server.title?.replace(/&/g, '&&'),
+            checked:
+              typeof currentView === 'object' && currentView.url === server.url,
+            accelerator: `CommandOrControl+${i + 1}`,
+            click: async () => {
+              const browserWindow = await getRootWindow();
 
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
-            dispatch({
-              type: MENU_BAR_SELECT_SERVER_CLICKED,
-              payload: server.url,
-            });
-          },
-        })),
+              if (!browserWindow.isVisible()) {
+                browserWindow.showInactive();
+              }
+              browserWindow.focus();
+              dispatch({
+                type: MENU_BAR_SELECT_SERVER_CLICKED,
+                payload: server.url,
+              });
+            },
+          })
+        ),
         { type: 'separator' },
       ]),
       {
@@ -439,6 +479,15 @@ const createWindowMenu = createSelector(
         accelerator: 'CommandOrControl+D',
         click: () => {
           dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
+        },
+      },
+      {
+        id: 'settings',
+        label: t('menus.settings'),
+        checked: currentView === 'settings',
+        accelerator: 'CommandOrControl+I',
+        click: () => {
+          dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
         },
       },
       {
@@ -473,7 +522,7 @@ const createWindowMenu = createSelector(
         accelerator: 'CommandOrControl+W',
       },
     ],
-  }),
+  })
 );
 
 const createHelpMenu = createSelector(
@@ -494,7 +543,9 @@ const createHelpMenu = createSelector(
         id: 'reportIssue',
         label: t('menus.reportIssue'),
         click: () => {
-          shell.openExternal('https://github.com/RocketChat/Rocket.Chat/issues/new');
+          shell.openExternal(
+            'https://github.com/RocketChat/Rocket.Chat/issues/new'
+          );
         },
       },
       { type: 'separator' },
@@ -574,20 +625,23 @@ const createHelpMenu = createSelector(
         },
       ]),
     ],
-  }),
+  })
 );
 
-const selectMenuBarTemplate = createSelector([
-  createAppMenu,
-  createEditMenu,
-  createViewMenu,
-  createWindowMenu,
-  createHelpMenu,
-], (...menus) => menus);
+const selectMenuBarTemplate = createSelector(
+  [
+    createAppMenu,
+    createEditMenu,
+    createViewMenu,
+    createWindowMenu,
+    createHelpMenu,
+  ],
+  (...menus) => menus
+);
 
 const selectMenuBarTemplateAsJson = createSelector(
   selectMenuBarTemplate,
-  (template: unknown) => JSON.stringify(template),
+  (template: unknown) => JSON.stringify(template)
 );
 
 class MenuBarService extends Service {

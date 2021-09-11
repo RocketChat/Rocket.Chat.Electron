@@ -43,7 +43,6 @@ export const performElectronStartup = (): void => {
 export const setupApp = (): void => {
   app.addListener('activate', async () => {
     const browserWindow = await getRootWindow();
-
     if (!browserWindow.isVisible()) {
       browserWindow.showInactive();
     }

@@ -1,6 +1,13 @@
 import path from 'path';
 
-import { clipboard, DownloadItem, Event, shell, WebContents, webContents } from 'electron';
+import {
+  clipboard,
+  DownloadItem,
+  Event,
+  shell,
+  WebContents,
+  webContents,
+} from 'electron';
 
 import { handle } from '../ipc/main';
 import { dispatch, select } from '../store';
@@ -13,7 +20,11 @@ import { Download, DownloadStatus } from './common';
 
 const items = new Map<Download['itemId'], DownloadItem>();
 
-export const handleWillDownloadEvent = async (_event: Event, item: DownloadItem, serverWebContents: WebContents): Promise<void> => {
+export const handleWillDownloadEvent = async (
+  _event: Event,
+  item: DownloadItem,
+  serverWebContents: WebContents
+): Promise<void> => {
   const itemId = Date.now();
 
   items.set(itemId, item);
@@ -26,7 +37,7 @@ export const handleWillDownloadEvent = async (_event: Event, item: DownloadItem,
     item.setSaveDialogOptions({
       filters: [
         {
-          name: `*.${ extension }`,
+          name: `*.${extension}`,
           extensions: [extension],
         },
         {
@@ -37,7 +48,14 @@ export const handleWillDownloadEvent = async (_event: Event, item: DownloadItem,
     });
   }
 
-  const server = select(({ servers }) => servers.find((server) => server.webContentsId === serverWebContents.id));
+  const server = select(({ servers }) =>
+    servers.find((server) => server.webContentsId === serverWebContents.id)
+  );
+
+  if (!server) {
+    // TODO: check if the download always comes from the main frame webContents
+    throw new Error('could not match the server');
+  }
 
   dispatch({
     type: DOWNLOAD_CREATED,
@@ -83,7 +101,10 @@ export const handleWillDownloadEvent = async (_event: Event, item: DownloadItem,
       payload: {
         itemId,
         state: item.isPaused() ? 'paused' : item.getState(),
-        status: item.getState() === 'cancelled' ? DownloadStatus.CANCELLED : DownloadStatus.ALL,
+        status:
+          item.getState() === 'cancelled'
+            ? DownloadStatus.CANCELLED
+            : DownloadStatus.ALL,
         fileName: item.getFilename(),
         receivedBytes: item.getReceivedBytes(),
         totalBytes: item.getTotalBytes(),
@@ -127,11 +148,11 @@ export const setupDownloads = (): void => {
 
     const item = items.get(itemId);
 
-    if (item.isPaused()) {
+    if (item?.isPaused()) {
       return;
     }
 
-    item.pause();
+    item?.pause();
   });
 
   handle('downloads/resume', async (_webContent, itemId) => {
@@ -141,11 +162,11 @@ export const setupDownloads = (): void => {
 
     const item = items.get(itemId);
 
-    if (!item.canResume()) {
+    if (!item?.canResume()) {
       return;
     }
 
-    item.resume();
+    item?.resume();
   });
 
   handle('downloads/cancel', async (_webContent, itemId) => {
@@ -154,13 +175,14 @@ export const setupDownloads = (): void => {
     }
 
     const item = items.get(itemId);
-    item.cancel();
+    item?.cancel();
   });
 
   handle('downloads/retry', async (_webContent, itemId) => {
     const { url, webContentsId } = select(({ downloads, servers }) => {
       const { url, serverUrl } = downloads[itemId];
-      const { webContentsId } = servers.find((server) => server.url === serverUrl);
+      const { webContentsId } =
+        servers.find((server) => server.url === serverUrl) ?? {};
       return { url, webContentsId };
     });
 
@@ -169,13 +191,15 @@ export const setupDownloads = (): void => {
       payload: itemId,
     });
 
-    webContents.fromId(webContentsId).downloadURL(url);
+    if (webContentsId) {
+      webContents.fromId(webContentsId).downloadURL(url);
+    }
   });
 
   handle('downloads/remove', async (_webContent, itemId) => {
     if (items.has(itemId)) {
       const item = items.get(itemId);
-      item.cancel();
+      item?.cancel();
     }
 
     dispatch({

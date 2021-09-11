@@ -1,3 +1,149 @@
+## [3.5.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.2...3.5.3) (2021-09-09)
+
+
+### Bug Fixes
+
+* Fix OAuth ([#2158](https://github.com/RocketChat/Rocket.Chat.Electron/pull/2158))([76bbba4](https://github.com/RocketChat/Rocket.Chat.Electron/commit/76bbba4d57bed9834c4fee9193b0d310ebccb907))
+* Remove preventDefault from download ([#2159](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2159)) ([4030e34](https://github.com/RocketChat/Rocket.Chat.Electron/commit/4030e34561c6c88d4825106869cea649cfe42c44))
+* Removes rid param/conditional to fix deeplink ([#2160](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2160)) ([2a72853](https://github.com/RocketChat/Rocket.Chat.Electron/commit/2a7285356c26af884496ad0763aa8591f43211c2))
+
+
+
+## [3.5.2](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.1...3.5.2) (2021-09-09)
+
+
+### Bug Fixes
+
+* Bugsnag ([#2153](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2153)) ([e3b1be7](https://github.com/RocketChat/Rocket.Chat.Electron/commit/e3b1be72db0facaa9890a07c5d8b38b7bf685fe9))
+* Click Notification ([#2154](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2154)) ([fb56545](https://github.com/RocketChat/Rocket.Chat.Electron/commit/fb565450ff0314e2cbc35140c287d6b7651f84bf))
+* oauth ([#2152](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2152)) ([898f3b4](https://github.com/RocketChat/Rocket.Chat.Electron/commit/898f3b49d2c58fe0c677025db4e2b5e89fe0aa59))
+* remove typo text ([#2150](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2150)) ([143fd48](https://github.com/RocketChat/Rocket.Chat.Electron/commit/143fd4810fc25538324db3db65e158b79601880d))
+
+
+
+## [3.5.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.0...3.5.1) (2021-09-08)
+
+
+### Bug Fixes
+
+* Prevent Webcontent to navigate (outside) ([abd7a08](https://github.com/RocketChat/Rocket.Chat.Electron/commit/abd7a080c3cbdd99d9b398a2f724313b7a038648))
+* Restore window on focus request ([ca0b8c6](https://github.com/RocketChat/Rocket.Chat.Electron/commit/ca0b8c6b8d9e7f0099655f2dc9bad7b5b08f71b1))
+* Settings and Download view ([fecdd5a](https://github.com/RocketChat/Rocket.Chat.Electron/commit/fecdd5ad90edfe578474e9df6cf0fb20b36ab925))
+
+
+
+# [3.5.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.4.0...3.5.0) (2021-09-06)
+
+
+### Bug Fixes
+
+* Set default server servers.json ([#2064](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2064)) ([3965307](https://github.com/RocketChat/Rocket.Chat.Electron/commit/3965307ed4605af7880b95ebb1d195e247734ea1))
+* Set default server servers.json and Open server on click notification ([#2144](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2144)) ([b748b10](https://github.com/RocketChat/Rocket.Chat.Electron/commit/b748b10017c9937388c995278aa5ee1f82dcd469))
+
+
+### Features
+
+* Settings allow enable/disable flashframe ([#2142](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2142)) ([1a48b69](https://github.com/RocketChat/Rocket.Chat.Electron/commit/1a48b6940a0aac2fbb2254817926cb5f6c4aee3e))
+* Settings page and report opt-out ([#2138](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2138)) ([12ca958](https://github.com/RocketChat/Rocket.Chat.Electron/commit/12ca9589f45298fa430bd9fd30e7053637ecc84f))
+
+
+
+# [3.4.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.3...3.4.0) (2021-08-25)
+
+
+### Bug Fixes
+
+* Prevents Notifications on Linux to show the message "Rocket.Chat is ready" ([#2122](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2122)) ([5ac093e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/5ac093ec33c6b5dccc603b1fa4e91d0eaeb1a7d2))
+* solve prettier errors ([bf16f55](https://github.com/RocketChat/Rocket.Chat.Electron/commit/bf16f550260e137883446229fd42cc126ab8e36c))
+
+
+
+# [3.3.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.2...3.3.0) (2021-06-17)
+
+
+### Bug Fixes
+
+* **i18n:** Language update from LingoHub 🤖 ([#2042](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2042)) ([cb07526](https://github.com/RocketChat/Rocket.Chat.Electron/commit/cb07526ed5f4831fd05458208561be8e81f5d218))
+* **i18n:** Language update from LingoHub 🤖 ([#2047](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2047)) ([891b7b7](https://github.com/RocketChat/Rocket.Chat.Electron/commit/891b7b70d9fb6382ca2070c1644669b3f38b17ef))
+
+
+
+## [3.2.4](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.3...3.2.4) (2021-08-16)
+
+
+### Bug Fixes
+
+* Prevents Notifications on Linux to show the message "Rocket.Chat is ready" ([#2122](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2122)) ([5ac093e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/5ac093ec33c6b5dccc603b1fa4e91d0eaeb1a7d2))
+
+
+
+# [3.3.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.2...3.3.0) (2021-06-17)
+
+
+### Bug Fixes
+
+* **i18n:** Language update from LingoHub 🤖 ([#2042](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2042)) ([cb07526](https://github.com/RocketChat/Rocket.Chat.Electron/commit/cb07526ed5f4831fd05458208561be8e81f5d218))
+* **i18n:** Language update from LingoHub 🤖 ([#2047](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2047)) ([891b7b7](https://github.com/RocketChat/Rocket.Chat.Electron/commit/891b7b70d9fb6382ca2070c1644669b3f38b17ef))
+
+
+
+## [3.2.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.2...3.2.3) (2021-07-01)
+
+
+### Bug Fixes
+
+* Desktop notifications not working ([2d4607d](https://github.com/RocketChat/Rocket.Chat.Electron/commit/2d4607dd3bb49dfb27c2df24f6a5b95d0b675ee4))
+
+
+
+## [3.2.2](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.1...3.2.2) (2021-05-14)
+
+
+### Bug Fixes
+
+* **i18n:** Language update from LingoHub 🤖 ([#2032](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2032)) ([39719ef](https://github.com/RocketChat/Rocket.Chat.Electron/commit/39719ef60284381abf5c6b0356f8377858878f0c))
+* **jitsi:** JitsiMeetElectron unavailable on preload script ([#2031](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2031)) ([1322938](https://github.com/RocketChat/Rocket.Chat.Electron/commit/1322938290e5aca5b9e6c2f335d1ee0f1132b2bc))
+
+
+
+## [3.2.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.2.0...3.2.1) (2021-05-13)
+
+
+### Bug Fixes
+
+* **about-dialog:** About dialog not displaying version ([#2030](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2030)) ([f82823c](https://github.com/RocketChat/Rocket.Chat.Electron/commit/f82823c36a47eef448ed8a11045c8c0b162f4320))
+
+
+
+# [3.2.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.1.1...3.2.0) (2021-05-12)
+
+
+### Bug Fixes
+
+* **deps:** Update electron-builder ([b704680](https://github.com/RocketChat/Rocket.Chat.Electron/commit/b7046803e3394c288fa7ecf280c5221ac8e3d718))
+* User presence not updating ([#2023](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2023)) ([f10f24f](https://github.com/RocketChat/Rocket.Chat.Electron/commit/f10f24fbdbde4f21b2025f36b881066da846bd10))
+* **deps:** Patch dependencies ([1e976cc](https://github.com/RocketChat/Rocket.Chat.Electron/commit/1e976cc09d526ec639fc4ba35a4d1e30cbf31b3a))
+* **deps:** Upgrade build dependencies ([61aee42](https://github.com/RocketChat/Rocket.Chat.Electron/commit/61aee42123b7fbb7a02bc7963318100f2eb7c9f6))
+* Download button size ([#1960](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1960)) ([3424e6d](https://github.com/RocketChat/Rocket.Chat.Electron/commit/3424e6d297b48719c97362c7bb9fdad3cb068183))
+* macOS dock icon size ([#1941](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1941)) ([0eeb8b2](https://github.com/RocketChat/Rocket.Chat.Electron/commit/0eeb8b27c4f2b5b58ce12892aba5254801bb30bc))
+* Missing French translations ([#2014](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2014)) ([929e556](https://github.com/RocketChat/Rocket.Chat.Electron/commit/929e556352fb8043299958097180091f8360f2ec))
+* Stop grabbing focus when dom-ready is emitted; and restore window position correctly when x or y is 0 ([#1954](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1954)) ([c3ca0ef](https://github.com/RocketChat/Rocket.Chat.Electron/commit/c3ca0ef75ac29eb19934cfc8ddf0ad9d15681b3e)), closes [#1934](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1934) [#1934](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1934)
+* Tray icon toggle action ([#2006](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2006)) ([4d50b80](https://github.com/RocketChat/Rocket.Chat.Electron/commit/4d50b8085813398c55c51faa238c6f92819c2e7c)), closes [#1700](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1700) [#1935](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1935)
+* Update hu.i18n.json ([#1944](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1944)) ([e801f0f](https://github.com/RocketChat/Rocket.Chat.Electron/commit/e801f0f9d291fa7daefeefb085d240b13e0c425e))
+
+
+### Features
+
+* CLI argument '--start-hidden' to put the app in background on start ([#1407](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1407)) ([223a698](https://github.com/RocketChat/Rocket.Chat.Electron/commit/223a698a73bb0c0157d649189e5f2a68ea369e2e))
+* Flash root window on all platforms ([#1949](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1949)) ([5934c56](https://github.com/RocketChat/Rocket.Chat.Electron/commit/5934c56f7a4551e3b527ba7ffb788648d501b80c))
+
+
+### Performance Improvements
+
+* TypeScript's strict mode ([#2015](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2015)) ([1d5e612](https://github.com/RocketChat/Rocket.Chat.Electron/commit/1d5e61216ba91f77a8fc5fa676134cbbe9919af9))
+
+
+
 ## [3.1.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.1.0...3.1.1) (2020-12-25)
 
 

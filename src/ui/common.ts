@@ -5,7 +5,7 @@ export type IconRepresentation = Omit<AddRepresentationOptions, 'scaleFactor'>;
 export type RootWindowIcon = {
   icon: IconRepresentation[];
   overlay?: IconRepresentation[];
-}
+};
 
 export type WindowState = {
   focused: boolean;
@@ -15,9 +15,9 @@ export type WindowState = {
   fullscreen: boolean;
   normal: boolean;
   bounds: {
-    x?: number,
-    y?: number,
-    width: number,
-    height: number,
-  }
+    x?: number;
+    y?: number;
+    width: number;
+    height: number;
+  };
 };

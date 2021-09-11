@@ -1,29 +1,22 @@
+import { app } from 'electron';
 import ElectronStore from 'electron-store';
 
-import appManifest from '../../../package.json';
-import { selectPersistableValues } from '../selectors';
-
-type PersistableValues = ReturnType<typeof selectPersistableValues>;
-
-const migrations = {
-  '>=3.1.0': (store: ElectronStore<PersistableValues & { currentServerUrl: string }>) => {
-    if (!store.has('currentServerUrl')) {
-      return;
-    }
-
-    const currentServerUrl = store.get('currentServerUrl');
-    store.set('currentView', currentServerUrl ? { url: currentServerUrl } : 'add-new-server');
-    store.delete('currentServerUrl');
-  },
-};
+import { PersistableValues, migrations } from '../PersistableValues';
 
 let electronStore: ElectronStore<PersistableValues>;
 
 const getElectronStore = (): ElectronStore<PersistableValues> => {
   if (!electronStore) {
-    electronStore = new ElectronStore({
-      migrations,
-      projectVersion: appManifest.version,
+    electronStore = new ElectronStore<PersistableValues>({
+      migrations: Object.fromEntries(
+        Object.entries(migrations).map(([semver, transform]) => [
+          semver,
+          (store: { store: PersistableValues }) => {
+            store.store = transform(store.store as any) as any;
+          },
+        ])
+      ),
+      projectVersion: app.getVersion(),
     } as ElectronStore.Options<PersistableValues>);
   }
 

@@ -20,15 +20,15 @@ import { SERVERS_LOADED } from './actions';
 import { Server } from './common';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
-  try {
-    return serverUrl ? new URL(serverUrl).href : null;
-  } catch (error) {
-    return null;
+  if (serverUrl) {
+    return new URL(serverUrl).href;
   }
+
+  throw new Error('cannot handle null server URLs');
 };
 
-type ServersActionTypes = (
-  ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
+type ServersActionTypes =
+  | ActionOf<typeof ADD_SERVER_VIEW_SERVER_ADDED>
   | ActionOf<typeof DEEP_LINKS_SERVER_ADDED>
   | ActionOf<typeof SERVERS_LOADED>
   | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
@@ -41,8 +41,7 @@ type ServersActionTypes = (
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
-  | ActionOf<typeof WEBVIEW_ATTACHED>
-);
+  | ActionOf<typeof WEBVIEW_ATTACHED>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
@@ -51,7 +50,9 @@ const upsert = (state: Server[], server: Server): Server[] => {
     return [...state, server];
   }
 
-  return state.map((_server, i) => (i === index ? { ..._server, ...server } : _server));
+  return state.map((_server, i) =>
+    i === index ? { ..._server, ...server } : _server
+  );
 };
 
 const update = (state: Server[], server: Server): Server[] => {
@@ -61,10 +62,15 @@ const update = (state: Server[], server: Server): Server[] => {
     return state;
   }
 
-  return state.map((_server, i) => (i === index ? { ..._server, ...server } : _server));
+  return state.map((_server, i) =>
+    i === index ? { ..._server, ...server } : _server
+  );
 };
 
-export const servers: Reducer<Server[], ServersActionTypes> = (state = [], action) => {
+export const servers: Reducer<Server[], ServersActionTypes> = (
+  state = [],
+  action
+) => {
   switch (action.type) {
     case ADD_SERVER_VIEW_SERVER_ADDED:
     case DEEP_LINKS_SERVER_ADDED: {
@@ -79,7 +85,9 @@ export const servers: Reducer<Server[], ServersActionTypes> = (state = [], actio
 
     case SIDE_BAR_SERVERS_SORTED: {
       const urls = action.payload;
-      return state.sort(({ url: a }, { url: b }) => urls.indexOf(a) - urls.indexOf(b));
+      return state.sort(
+        ({ url: a }, { url: b }) => urls.indexOf(a) - urls.indexOf(b)
+      );
     }
 
     case WEBVIEW_TITLE_CHANGED: {
@@ -104,7 +112,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (state = [], actio
 
     case WEBVIEW_DID_NAVIGATE: {
       const { url, pageUrl } = action.payload;
-      if (pageUrl.includes(url)) {
+      if (pageUrl?.includes(url)) {
         return upsert(state, { url, lastPath: pageUrl });
       }
 

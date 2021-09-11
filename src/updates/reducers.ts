@@ -12,13 +12,15 @@ import {
   UPDATE_SKIPPED,
 } from './actions';
 
-type DoCheckForUpdatesOnStartupAction = (
-  ActionOf<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>
+type DoCheckForUpdatesOnStartupAction =
+  | ActionOf<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>
   | ActionOf<typeof UPDATES_READY>
-  | ActionOf<typeof APP_SETTINGS_LOADED>
-);
+  | ActionOf<typeof APP_SETTINGS_LOADED>;
 
-export const doCheckForUpdatesOnStartup: Reducer<boolean, DoCheckForUpdatesOnStartupAction> = (state = true, action) => {
+export const doCheckForUpdatesOnStartup: Reducer<
+  boolean,
+  DoCheckForUpdatesOnStartupAction
+> = (state = true, action) => {
   switch (action.type) {
     case UPDATES_READY: {
       const { doCheckForUpdatesOnStartup } = action.payload;
@@ -40,14 +42,16 @@ export const doCheckForUpdatesOnStartup: Reducer<boolean, DoCheckForUpdatesOnSta
   }
 };
 
-type IsCheckingForUpdatesAction = (
-  ActionOf<typeof UPDATES_CHECKING_FOR_UPDATE>
+type IsCheckingForUpdatesAction =
+  | ActionOf<typeof UPDATES_CHECKING_FOR_UPDATE>
   | ActionOf<typeof UPDATES_ERROR_THROWN>
   | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
-  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>
-);
+  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>;
 
-export const isCheckingForUpdates: Reducer<boolean, IsCheckingForUpdatesAction> = (state = false, action) => {
+export const isCheckingForUpdates: Reducer<
+  boolean,
+  IsCheckingForUpdatesAction
+> = (state = false, action) => {
   switch (action.type) {
     case UPDATES_CHECKING_FOR_UPDATE:
       return true;
@@ -66,12 +70,14 @@ export const isCheckingForUpdates: Reducer<boolean, IsCheckingForUpdatesAction> 
   }
 };
 
-type IsEachUpdatesSettingConfigurableAction = (
-  ActionOf<typeof UPDATES_READY>
-  | ActionOf<typeof APP_SETTINGS_LOADED>
-);
+type IsEachUpdatesSettingConfigurableAction =
+  | ActionOf<typeof UPDATES_READY>
+  | ActionOf<typeof APP_SETTINGS_LOADED>;
 
-export const isEachUpdatesSettingConfigurable: Reducer<boolean, IsEachUpdatesSettingConfigurableAction> = (state = true, action) => {
+export const isEachUpdatesSettingConfigurable: Reducer<
+  boolean,
+  IsEachUpdatesSettingConfigurableAction
+> = (state = true, action) => {
   switch (action.type) {
     case UPDATES_READY: {
       const { isEachUpdatesSettingConfigurable } = action.payload;
@@ -90,7 +96,10 @@ export const isEachUpdatesSettingConfigurable: Reducer<boolean, IsEachUpdatesSet
 
 type IsUpdatingAllowedAction = ActionOf<typeof UPDATES_READY>;
 
-export const isUpdatingAllowed: Reducer<boolean, IsUpdatingAllowedAction> = (state = true, action) => {
+export const isUpdatingAllowed: Reducer<boolean, IsUpdatingAllowedAction> = (
+  state = true,
+  action
+) => {
   switch (action.type) {
     case UPDATES_READY: {
       const { isUpdatingAllowed } = action.payload;
@@ -102,12 +111,14 @@ export const isUpdatingAllowed: Reducer<boolean, IsUpdatingAllowedAction> = (sta
   }
 };
 
-type IsUpdatingEnabledAction = (
-  ActionOf<typeof UPDATES_READY>
-  | ActionOf<typeof APP_SETTINGS_LOADED>
-);
+type IsUpdatingEnabledAction =
+  | ActionOf<typeof UPDATES_READY>
+  | ActionOf<typeof APP_SETTINGS_LOADED>;
 
-export const isUpdatingEnabled: Reducer<boolean, IsUpdatingEnabledAction> = (state = true, action) => {
+export const isUpdatingEnabled: Reducer<boolean, IsUpdatingEnabledAction> = (
+  state = true,
+  action
+) => {
   switch (action.type) {
     case UPDATES_READY: {
       const { isUpdatingEnabled } = action.payload;
@@ -124,31 +135,33 @@ export const isUpdatingEnabled: Reducer<boolean, IsUpdatingEnabledAction> = (sta
   }
 };
 
-type NewUpdateVersionAction = (
-  ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
-  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>
-)
+type NewUpdateVersionAction =
+  | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
+  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>;
 
-export const newUpdateVersion: Reducer<string | null, NewUpdateVersionAction> = (state = null, action) => {
-  switch (action.type) {
-    case UPDATES_NEW_VERSION_AVAILABLE:
-      return action.payload;
+export const newUpdateVersion: Reducer<string | null, NewUpdateVersionAction> =
+  (state = null, action) => {
+    switch (action.type) {
+      case UPDATES_NEW_VERSION_AVAILABLE:
+        return action.payload;
 
-    case UPDATES_NEW_VERSION_NOT_AVAILABLE:
-      return null;
+      case UPDATES_NEW_VERSION_NOT_AVAILABLE:
+        return null;
 
-    default:
-      return state;
-  }
-};
+      default:
+        return state;
+    }
+  };
 
-type SkippedUpdateVersionAction = (
-  ActionOf<typeof UPDATES_READY>
+type SkippedUpdateVersionAction =
+  | ActionOf<typeof UPDATES_READY>
   | ActionOf<typeof APP_SETTINGS_LOADED>
-  | ActionOf<typeof UPDATE_SKIPPED>
-);
+  | ActionOf<typeof UPDATE_SKIPPED>;
 
-export const skippedUpdateVersion: Reducer<string | null, SkippedUpdateVersionAction> = (state = null, action) => {
+export const skippedUpdateVersion: Reducer<
+  string | null,
+  SkippedUpdateVersionAction
+> = (state = null, action) => {
   switch (action.type) {
     case UPDATES_READY: {
       const { skippedUpdateVersion } = action.payload;
@@ -170,15 +183,16 @@ export const skippedUpdateVersion: Reducer<string | null, SkippedUpdateVersionAc
   }
 };
 
-
-type UpdateErrorAction = (
-  ActionOf<typeof UPDATES_CHECKING_FOR_UPDATE>
+type UpdateErrorAction =
+  | ActionOf<typeof UPDATES_CHECKING_FOR_UPDATE>
   | ActionOf<typeof UPDATES_ERROR_THROWN>
   | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
-  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>
-);
+  | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>;
 
-export const updateError: Reducer<Error | null, UpdateErrorAction> = (state = null, action) => {
+export const updateError: Reducer<Error | null, UpdateErrorAction> = (
+  state = null,
+  action
+) => {
   switch (action.type) {
     case UPDATES_CHECKING_FOR_UPDATE:
       return null;

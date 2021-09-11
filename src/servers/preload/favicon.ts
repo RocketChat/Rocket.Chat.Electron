@@ -14,6 +14,10 @@ const getImageElement = (): HTMLImageElement => {
 
     const ctx = canvas.getContext('2d');
 
+    if (!ctx) {
+      throw new Error('failed to create canvas 2d context');
+    }
+
     imageElement = new Image();
 
     const handleImageLoadEvent = (): void => {
@@ -29,7 +33,9 @@ const getImageElement = (): HTMLImageElement => {
       });
     };
 
-    imageElement.addEventListener('load', handleImageLoadEvent, { passive: true });
+    imageElement.addEventListener('load', handleImageLoadEvent, {
+      passive: true,
+    });
   }
 
   return imageElement;

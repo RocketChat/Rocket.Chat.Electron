@@ -1,5 +1,5 @@
 import { createMainReduxStore, dispatch } from '../store';
-import { SPELL_CHECKING_LANGUAGE_TOGGLED, SPELL_CHECKING_TOGGLED } from './actions';
+import { SPELL_CHECKING_LANGUAGE_TOGGLED } from './actions';
 import { setupSpellChecking } from './main';
 
 describe('setupSpellChecking', () => {
@@ -13,10 +13,6 @@ describe('setupSpellChecking', () => {
 
   it('handles invalid languages', async () => {
     await setupSpellChecking();
-    dispatch({
-      type: SPELL_CHECKING_TOGGLED,
-    });
-
     dispatch({
       type: SPELL_CHECKING_LANGUAGE_TOGGLED,
       payload: {

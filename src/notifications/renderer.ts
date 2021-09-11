@@ -3,7 +3,9 @@ import { handle } from '../ipc/renderer';
 const iconCache = new Map<string, string>();
 
 const inferContentTypeFromImageData = (data: ArrayBuffer): string | null => {
-  const header = Array.from(new Uint8Array(data.slice(0, 3))).map((byte) => byte.toString(16)).join('');
+  const header = Array.from(new Uint8Array(data.slice(0, 3)))
+    .map((byte) => byte.toString(16))
+    .join('');
   switch (header) {
     case '89504e':
       return 'image/png';
@@ -20,15 +22,21 @@ const inferContentTypeFromImageData = (data: ArrayBuffer): string | null => {
 };
 
 const fetchIcon = async (urlHref: string): Promise<string> => {
-  if (iconCache.has(urlHref)) {
-    return iconCache.get(urlHref);
+  const cache = iconCache.get(urlHref);
+
+  if (cache) {
+    return cache;
   }
 
   const response = await fetch(urlHref);
   const arrayBuffer = await response.arrayBuffer();
-  const base64String = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-  const contentType = inferContentTypeFromImageData(arrayBuffer) || response.headers.get('content-type');
-  const dataUri = `data:${ contentType };base64,${ base64String }`;
+  const base64String = btoa(
+    String.fromCharCode(...new Uint8Array(arrayBuffer))
+  );
+  const contentType =
+    inferContentTypeFromImageData(arrayBuffer) ||
+    response.headers.get('content-type');
+  const dataUri = `data:${contentType};base64,${base64String}`;
   iconCache.set(urlHref, dataUri);
   return dataUri;
 };

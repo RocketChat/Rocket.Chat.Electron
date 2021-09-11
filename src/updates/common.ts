@@ -4,6 +4,8 @@ export type UpdateConfiguration = {
   isUpdatingAllowed: boolean;
   isUpdatingEnabled: boolean;
   skippedUpdateVersion: string | null;
+  isReportEnabled: boolean;
+  isFlashFrameEnabled: boolean;
 };
 
 export type AppLevelUpdateConfiguration = {

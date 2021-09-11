@@ -10,4 +10,4 @@ export type DownloadsActionTypeToPayloadMap = {
   [DOWNLOAD_UPDATED]: Pick<Download, 'itemId'> & Partial<Download>;
   [DOWNLOAD_REMOVED]: Download['itemId'];
   [DOWNLOADS_CLEARED]: void;
-}
+};

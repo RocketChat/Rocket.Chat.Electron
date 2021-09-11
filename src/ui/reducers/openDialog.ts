@@ -19,8 +19,8 @@ import {
   WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
 } from '../actions';
 
-type OpenDialogAction = (
-  ActionOf<typeof ABOUT_DIALOG_DISMISSED>
+type OpenDialogAction =
+  | ActionOf<typeof ABOUT_DIALOG_DISMISSED>
   | ActionOf<typeof CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED>
   | ActionOf<typeof MENU_BAR_ABOUT_CLICKED>
   | ActionOf<typeof SCREEN_SHARING_DIALOG_DISMISSED>
@@ -32,10 +32,12 @@ type OpenDialogAction = (
   | ActionOf<typeof UPDATE_DIALOG_SKIP_UPDATE_CLICKED>
   | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
   | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED>
-  | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED>
-);
+  | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED>;
 
-export const openDialog: Reducer<string | null, OpenDialogAction> = (state = null, action) => {
+export const openDialog: Reducer<string | null, OpenDialogAction> = (
+  state = null,
+  action
+) => {
   switch (action.type) {
     case MENU_BAR_ABOUT_CLICKED:
       return 'about';

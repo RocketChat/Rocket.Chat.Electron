@@ -14,7 +14,7 @@ export const setTitle = (title: string): void => {
       type: WEBVIEW_TITLE_CHANGED,
       payload: {
         url,
-        title: `${ title } - ${ url }`,
+        title: `${title} - ${url}`,
       },
     });
     return;

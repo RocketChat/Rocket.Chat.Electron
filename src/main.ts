@@ -31,12 +31,12 @@ import { setupPowerMonitor } from './userPresence/main';
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
-  setupMainErrorHandling();
+
+  await app.whenReady();
+
   performElectronStartup();
 
   createMainReduxStore();
-
-  await app.whenReady();
 
   const localStorage = await exportLocalStorage();
   await mergePersistableValues(localStorage);
@@ -46,6 +46,8 @@ const start = async (): Promise<void> => {
   await i18n.wait();
 
   setupApp();
+
+  setupMainErrorHandling();
 
   createRootWindow();
   attachGuestWebContentsEvents();

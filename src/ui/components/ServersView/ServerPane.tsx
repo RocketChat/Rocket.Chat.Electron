@@ -4,12 +4,15 @@ import { useDispatch } from 'react-redux';
 import { Dispatch } from 'redux';
 
 import { RootAction } from '../../../store/actions';
-import { LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, WEBVIEW_ATTACHED } from '../../actions';
+import {
+  LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
+  WEBVIEW_ATTACHED,
+} from '../../actions';
 import ErrorView from './ErrorView';
 import { StyledWebView, Wrapper } from './styles';
 
 type ServerPaneProps = {
-  lastPath: string;
+  lastPath: string | undefined;
   serverUrl: string;
   isSelected: boolean;
   isFailed: boolean;
@@ -23,15 +26,20 @@ export const ServerPane: FC<ServerPaneProps> = ({
 }) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
-  const webviewRef = useRef<WebviewTag>();
+  const webviewRef = useRef<WebviewTag>(null);
 
   useEffect(() => {
+    const webview = webviewRef.current;
+    if (!webview) {
+      return;
+    }
+
     const handleWindowFocus = (): void => {
       if (!isSelected || isFailed) {
         return;
       }
 
-      webviewRef.current.focus();
+      webview.focus();
     };
 
     window.addEventListener('focus', handleWindowFocus);
@@ -43,6 +51,9 @@ export const ServerPane: FC<ServerPaneProps> = ({
 
   useEffect(() => {
     const webview = webviewRef.current;
+    if (!webview) {
+      return;
+    }
 
     const handleDidAttach = (): void => {
       dispatch({
@@ -62,8 +73,13 @@ export const ServerPane: FC<ServerPaneProps> = ({
   }, [dispatch, serverUrl]);
 
   useEffect(() => {
-    if (!webviewRef.current.src) {
-      webviewRef.current.src = lastPath || serverUrl;
+    const webview = webviewRef.current;
+    if (!webview) {
+      return;
+    }
+
+    if (!webview.src) {
+      webview.src = lastPath || serverUrl;
     }
   }, [lastPath, serverUrl]);
 
@@ -74,8 +90,15 @@ export const ServerPane: FC<ServerPaneProps> = ({
     });
   };
 
-  return <Wrapper isVisible={isSelected}>
-    <StyledWebView ref={webviewRef} isFailed={isFailed} partition={`persist:${ serverUrl }`} />
-    <ErrorView isFailed={isFailed} onReload={handleReload} />
-  </Wrapper>;
+  return (
+    <Wrapper isVisible={isSelected}>
+      <StyledWebView
+        ref={webviewRef}
+        isFailed={isFailed}
+        partition={`persist:${serverUrl}`}
+        {...({ allowpopups: 'allowpopups' } as any)}
+      />
+      <ErrorView isFailed={isFailed} onReload={handleReload} />
+    </Wrapper>
+  );
 };

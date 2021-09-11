@@ -13,15 +13,19 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
+      isReportEnabled: true,
+      isFlashFrameEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {};
     const userConfiguration: UserLevelUpdateConfiguration = {};
 
-    expect(mergeConfigurations(
-      defaultConfiguration,
-      appConfiguration,
-      userConfiguration,
-    )).toStrictEqual(defaultConfiguration);
+    expect(
+      mergeConfigurations(
+        defaultConfiguration,
+        appConfiguration,
+        userConfiguration
+      )
+    ).toStrictEqual(defaultConfiguration);
   });
 
   it('merges app configuration', () => {
@@ -31,6 +35,8 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
+      isReportEnabled: true,
+      isFlashFrameEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       autoUpdate: false,
@@ -38,11 +44,13 @@ describe('mergeConfigurations', () => {
     };
     const userConfiguration: UserLevelUpdateConfiguration = {};
 
-    expect(mergeConfigurations(
-      defaultConfiguration,
-      appConfiguration,
-      userConfiguration,
-    )).toStrictEqual({
+    expect(
+      mergeConfigurations(
+        defaultConfiguration,
+        appConfiguration,
+        userConfiguration
+      )
+    ).toStrictEqual({
       ...defaultConfiguration,
       doCheckForUpdatesOnStartup: false,
       isUpdatingEnabled: false,
@@ -56,6 +64,8 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
+      isReportEnabled: true,
+      isFlashFrameEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       autoUpdate: false,
@@ -66,11 +76,13 @@ describe('mergeConfigurations', () => {
       skip: 'x.y.z',
     };
 
-    expect(mergeConfigurations(
-      defaultConfiguration,
-      appConfiguration,
-      userConfiguration,
-    )).toStrictEqual({
+    expect(
+      mergeConfigurations(
+        defaultConfiguration,
+        appConfiguration,
+        userConfiguration
+      )
+    ).toStrictEqual({
       ...defaultConfiguration,
       doCheckForUpdatesOnStartup: true,
       isUpdatingEnabled: false,
@@ -85,6 +97,8 @@ describe('mergeConfigurations', () => {
       isUpdatingAllowed: true,
       isUpdatingEnabled: true,
       skippedUpdateVersion: null,
+      isReportEnabled: true,
+      isFlashFrameEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       forced: true,
@@ -96,11 +110,13 @@ describe('mergeConfigurations', () => {
       skip: 'x.y.z',
     };
 
-    expect(mergeConfigurations(
-      defaultConfiguration,
-      appConfiguration,
-      userConfiguration,
-    )).toStrictEqual({
+    expect(
+      mergeConfigurations(
+        defaultConfiguration,
+        appConfiguration,
+        userConfiguration
+      )
+    ).toStrictEqual({
       ...defaultConfiguration,
       isEachUpdatesSettingConfigurable: false,
       doCheckForUpdatesOnStartup: false,

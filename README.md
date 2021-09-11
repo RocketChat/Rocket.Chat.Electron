@@ -139,7 +139,7 @@ and install Visual Studio.
 yarn test
 ```
 
-We use [Jest][] testing framwork with the [Jest electron runner][]. It searches
+We use [Jest][] testing framework with the [Jest electron runner][]. It searches
 for all files in `src` directory that match the glob pattern
 `*.(spec|test).{js,ts,tsx}`.
 
@@ -188,7 +188,7 @@ triggered again.
 If you can't (or don't want to) bundle the file inside the app, you can create a
 `servers.json` in the user preferences folder which will overwrite the packaged
 one. The file should be located in the `%APPDATA%/Rocket.Chat/` folder or the
-installation folder in case of a installation for all users (Windows only).
+installation folder in case of an installation for all users (Windows only).
 
 For Windows, the full paths are:
 

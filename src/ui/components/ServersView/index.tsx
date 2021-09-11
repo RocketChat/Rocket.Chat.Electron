@@ -11,19 +11,29 @@ export const ServersView: FC = () => {
     createSelector(
       ({ currentView }: RootState) => currentView,
       ({ servers }: RootState) => servers,
-      (currentView, servers) => servers.map((server) => Object.assign(server, {
-        selected: typeof currentView === 'object' ? server.url === currentView.url : false,
-      })),
-    ),
+      (currentView, servers) =>
+        servers.map((server) =>
+          Object.assign(server, {
+            selected:
+              typeof currentView === 'object'
+                ? server.url === currentView.url
+                : false,
+          })
+        )
+    )
   );
 
-  return <ReparentingContainer>
-    {servers.map((server) => <ServerPane
-      key={server.url}
-      lastPath={server.lastPath}
-      serverUrl={server.url}
-      isSelected={server.selected}
-      isFailed={server.failed}
-    />)}
-  </ReparentingContainer>;
+  return (
+    <ReparentingContainer>
+      {servers.map((server) => (
+        <ServerPane
+          key={server.url}
+          lastPath={server.lastPath}
+          serverUrl={server.url}
+          isSelected={server.selected}
+          isFailed={server.failed ?? false}
+        />
+      ))}
+    </ReparentingContainer>
+  );
 };

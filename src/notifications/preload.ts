@@ -24,7 +24,10 @@ const normalizeIconUrl = (iconUrl: string): string => {
   return iconUrl;
 };
 
-const eventHandlers = new Map<unknown, (eventDescriptor: { type: string; detail?: unknown }) => void>();
+const eventHandlers = new Map<
+  unknown,
+  (eventDescriptor: { type: string; detail?: unknown }) => void
+>();
 
 export const createNotification = async ({
   title,
@@ -32,25 +35,29 @@ export const createNotification = async ({
   onEvent,
   ...options
 }: NotificationOptions & {
-  canReply?: boolean,
-  title: string,
-  onEvent: (eventDescriptor: { type: string; detail?: unknown }) => void,
+  canReply?: boolean;
+  title: string;
+  onEvent?: (eventDescriptor: { type: string; detail: unknown }) => void;
 }): Promise<unknown> => {
-  const id = await request<
-    typeof NOTIFICATIONS_CREATE_REQUESTED,
-    typeof NOTIFICATIONS_CREATE_RESPONDED
-  >({
-    type: NOTIFICATIONS_CREATE_REQUESTED,
-    payload: {
-      title,
-      ...icon ? {
-        icon: normalizeIconUrl(icon),
-      } : {},
-      ...options,
+  const id = await request(
+    {
+      type: NOTIFICATIONS_CREATE_REQUESTED,
+      payload: {
+        title,
+        ...(icon
+          ? {
+              icon: normalizeIconUrl(icon),
+            }
+          : {}),
+        ...options,
+      },
     },
-  });
+    NOTIFICATIONS_CREATE_RESPONDED
+  );
 
-  eventHandlers.set(id, (event) => onEvent({ type: event.type, detail: event.detail }));
+  eventHandlers.set(id, (event) =>
+    onEvent?.({ type: event.type, detail: event.detail })
+  );
 
   return id;
 };
@@ -62,32 +69,26 @@ export const destroyNotification = (id: unknown): void => {
 
 export const listenToNotificationsRequests = (): void => {
   listen(NOTIFICATIONS_NOTIFICATION_SHOWN, (action) => {
-    const { payload: { id } } = action;
-
-    if (!eventHandlers.has(id)) {
-      return;
-    }
-
-    eventHandlers.get(id)({ type: 'show' });
+    const {
+      payload: { id },
+    } = action;
+    const eventHandler = eventHandlers.get(id);
+    eventHandler?.({ type: 'show' });
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_CLOSED, (action) => {
-    const { payload: { id } } = action;
-
-    if (!eventHandlers.has(id)) {
-      return;
-    }
-
-    eventHandlers.get(id)({ type: 'close' });
+    const {
+      payload: { id },
+    } = action;
+    const eventHandler = eventHandlers.get(id);
+    eventHandler?.({ type: 'close' });
     eventHandlers.delete(id);
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action) => {
-    const { payload: { id } } = action;
-
-    if (!eventHandlers.has(id)) {
-      return;
-    }
+    const {
+      payload: { id },
+    } = action;
 
     dispatch({
       type: WEBVIEW_FOCUS_REQUESTED,
@@ -96,26 +97,23 @@ export const listenToNotificationsRequests = (): void => {
       },
     });
 
-    eventHandlers.get(id)({ type: 'click' });
+    const eventHandler = eventHandlers.get(id);
+    eventHandler?.({ type: 'click' });
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_REPLIED, (action) => {
-    const { payload: { id, reply } } = action;
-
-    if (!eventHandlers.has(id)) {
-      return;
-    }
-
-    eventHandlers.get(id)({ type: 'reply', detail: { reply } });
+    const {
+      payload: { id, reply },
+    } = action;
+    const eventHandler = eventHandlers.get(id);
+    eventHandler?.({ type: 'reply', detail: { reply } });
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_ACTIONED, (action) => {
-    const { payload: { id, index } } = action;
-
-    if (!eventHandlers.has(id)) {
-      return;
-    }
-
-    eventHandlers.get(id)({ type: 'action', detail: { index } });
+    const {
+      payload: { id, index },
+    } = action;
+    const eventHandler = eventHandlers.get(id);
+    eventHandler?.({ type: 'action', detail: { index } });
   });
 };

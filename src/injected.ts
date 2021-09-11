@@ -11,7 +11,8 @@ const start = (): void => {
     return;
   }
 
-  const { Info: serverInfo = {} } = window.require('/app/utils/rocketchat.info') ?? {};
+  const { Info: serverInfo = {} } =
+    window.require('/app/utils/rocketchat.info') ?? {};
 
   if (!serverInfo.version) {
     return;
@@ -73,22 +74,29 @@ const start = (): void => {
 
   const destroyPromiseSymbol = Symbol('destroyPromise');
 
-  window.Notification = class RocketChatDesktopNotification extends EventTarget implements Notification {
+  window.Notification = class RocketChatDesktopNotification
+    extends EventTarget
+    implements Notification
+  {
     static readonly permission: NotificationPermission = 'granted';
 
-    static readonly maxActions: number = process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
+    static readonly maxActions: number =
+      process.platform === 'darwin' ? Number.MAX_SAFE_INTEGER : 0;
 
     static requestPermission(): Promise<NotificationPermission> {
       return Promise.resolve(RocketChatDesktopNotification.permission);
     }
 
-    [destroyPromiseSymbol]: Promise<() => void>
+    [destroyPromiseSymbol]?: Promise<() => void>;
 
-    constructor(title: string, options: (NotificationOptions & { canReply?: boolean }) = {}) {
+    constructor(
+      title: string,
+      options: NotificationOptions & { canReply?: boolean } = {}
+    ) {
       super();
 
       for (const eventType of ['show', 'close', 'click', 'reply', 'action']) {
-        const propertyName = `on${ eventType }`;
+        const propertyName = `on${eventType}`;
         const propertySymbol = Symbol(propertyName);
 
         Object.defineProperty(this, propertyName, {
@@ -118,58 +126,75 @@ const start = (): void => {
       Object.assign(this, { title, ...options });
     }
 
-    handleEvent = ({ type, detail }: CustomEvent): void => {
+    actions: readonly NotificationAction[] = [];
+
+    badge = '';
+
+    body = '';
+
+    data: any = undefined;
+
+    dir: NotificationDirection = 'auto';
+
+    icon = '';
+
+    image = '';
+
+    lang = document.documentElement.lang;
+
+    onclick: ((this: Notification, ev: Event) => any) | null = null;
+
+    onclose: ((this: Notification, ev: Event) => any) | null = null;
+
+    onerror: ((this: Notification, ev: Event) => any) | null = null;
+
+    onshow: ((this: Notification, ev: Event) => any) | null = null;
+
+    renotify = false;
+
+    requireInteraction = false;
+
+    silent = false;
+
+    tag = '';
+
+    timestamp: number = Date.now();
+
+    title = '';
+
+    vibrate: readonly number[] = [];
+
+    private handleEvent = ({
+      type,
+      detail,
+    }: {
+      type: string;
+      detail: unknown;
+    }): void => {
       const mainWorldEvent = new CustomEvent(type, { detail });
-      if (type === 'reply') {
-        (mainWorldEvent as any).response = detail?.reply;
+
+      const isReplyEvent = (
+        type: string,
+        detail: unknown
+      ): detail is { reply: string } =>
+        type === 'reply' &&
+        typeof detail === 'object' &&
+        detail !== null &&
+        'reply' in detail &&
+        typeof (detail as { reply: string }).reply === 'string';
+
+      if (isReplyEvent(type, detail)) {
+        (mainWorldEvent as any).response = detail.reply;
       }
       this.dispatchEvent(mainWorldEvent);
-    }
-
-    actions: NotificationAction[];
-
-    badge: string;
-
-    body: string;
-
-    data: any;
-
-    dir: NotificationDirection;
-
-    icon: string;
-
-    image: string;
-
-    lang: string;
-
-    onclick: (this: Notification, ev: Event) => any;
-
-    onclose: (this: Notification, ev: Event) => any;
-
-    onerror: (this: Notification, ev: Event) => any;
-
-    onshow: (this: Notification, ev: Event) => any;
-
-    renotify: boolean;
-
-    requireInteraction: boolean;
-
-    silent: boolean;
-
-    tag: string;
-
-    timestamp: number;
-
-    title: string;
-
-    vibrate: readonly number[];
+    };
 
     close(): void {
       if (!this[destroyPromiseSymbol]) {
         return;
       }
 
-      this[destroyPromiseSymbol].then((destroy) => {
+      this[destroyPromiseSymbol]?.then((destroy) => {
         delete this[destroyPromiseSymbol];
         destroy();
       });

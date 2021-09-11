@@ -13,13 +13,16 @@ class DockService extends Service {
       app.dock.setBadge(globalBadgeText);
     });
 
-    this.watch(selectGlobalBadgeCount, (globalBadgeCount, prevGlobalBadgeCount) => {
-      if (globalBadgeCount <= 0 || prevGlobalBadgeCount > 0) {
-        return;
-      }
+    this.watch(
+      selectGlobalBadgeCount,
+      (globalBadgeCount, prevGlobalBadgeCount) => {
+        if (globalBadgeCount <= 0 || (prevGlobalBadgeCount ?? 0) > 0) {
+          return;
+        }
 
-      app.dock.bounce();
-    });
+        app.dock.bounce();
+      }
+    );
   }
 }
 

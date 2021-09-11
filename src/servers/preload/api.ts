@@ -1,4 +1,7 @@
-import { createNotification, destroyNotification } from '../../notifications/preload';
+import {
+  createNotification,
+  destroyNotification,
+} from '../../notifications/preload';
 import { setUserPresenceDetection } from '../../userPresence/preload';
 import { Server } from '../common';
 import { setBadge } from './badge';
@@ -22,14 +25,16 @@ export type RocketChatDesktopAPI = {
   setTitle: (title: string) => void;
   setUserPresenceDetection: (options: {
     isAutoAwayEnabled: boolean;
-    idleThreshold: number;
+    idleThreshold: number | null;
     setUserOnline: (online: boolean) => void;
   }) => void;
-  createNotification: (options: NotificationOptions & {
-    canReply?: boolean,
-    title: string,
-    onEvent: (eventDescriptor: { type: string; detail: unknown }) => void,
-  }) => Promise<unknown>;
+  createNotification: (
+    options: NotificationOptions & {
+      canReply?: boolean;
+      title: string;
+      onEvent: (eventDescriptor: { type: string; detail: unknown }) => void;
+    }
+  ) => Promise<unknown>;
   destroyNotification: (id: unknown) => void;
 };
 

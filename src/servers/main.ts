@@ -6,14 +6,18 @@ import { satisfies, coerce } from 'semver';
 
 import { invoke } from '../ipc/main';
 import { select, dispatch, listen } from '../store';
+import { hasMeta } from '../store/fsa';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
   SERVER_URL_RESOLUTION_REQUESTED,
   SERVER_URL_RESOLVED,
   SERVERS_LOADED,
 } from './actions';
-import { ServerUrlResolutionStatus, Server, ServerUrlResolutionResult } from './common';
-
+import {
+  ServerUrlResolutionStatus,
+  Server,
+  ServerUrlResolutionResult,
+} from './common';
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 
@@ -23,7 +27,7 @@ export const convertToURL = (input: string): URL => {
   if (/^https?:\/\//.test(input)) {
     url = new URL(input);
   } else {
-    url = new URL(`https://${ input }`);
+    url = new URL(`https://${input}`);
   }
 
   const { protocol, username, password, hostname, port, pathname } = url;
@@ -32,20 +36,29 @@ export const convertToURL = (input: string): URL => {
     username,
     password,
     hostname,
-    port: (protocol === 'http' && port === '80' && undefined)
-      || (protocol === 'https' && port === '443' && undefined)
-      || port,
-    pathname: /\/$/.test(pathname) ? pathname : `${ pathname }/`,
+    port:
+      (protocol === 'http' && port === '80' && undefined) ||
+      (protocol === 'https' && port === '443' && undefined) ||
+      port,
+    pathname: /\/$/.test(pathname) ? pathname : `${pathname}/`,
   });
 };
 
-const fetchServerInformation = async (url: URL): Promise<[finalURL: URL, version: string]> => {
+const fetchServerInformation = async (
+  url: URL
+): Promise<[finalURL: URL, version: string]> => {
   const { webContents } = await getRootWindow();
-  const [urlHref, version] = await invoke(webContents, 'servers/fetch-info', url.href);
+  const [urlHref, version] = await invoke(
+    webContents,
+    'servers/fetch-info',
+    url.href
+  );
   return [convertToURL(urlHref), version];
 };
 
-export const resolveServerUrl = async (input: string): Promise<ServerUrlResolutionResult> => {
+export const resolveServerUrl = async (
+  input: string
+): Promise<ServerUrlResolutionResult> => {
   let url: URL;
 
   try {
@@ -59,8 +72,10 @@ export const resolveServerUrl = async (input: string): Promise<ServerUrlResoluti
   try {
     [url, version] = await fetchServerInformation(url);
   } catch (error) {
-    if (!/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(input)) {
-      return resolveServerUrl(`https://${ input }.rocket.chat`);
+    if (
+      !/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(input)
+    ) {
+      return resolveServerUrl(`https://${input}.rocket.chat`);
     }
 
     if (error?.name === 'AbortError') {
@@ -70,11 +85,15 @@ export const resolveServerUrl = async (input: string): Promise<ServerUrlResoluti
     return [url.href, ServerUrlResolutionStatus.INVALID, error];
   }
 
-  if (!satisfies(coerce(version), REQUIRED_SERVER_VERSION_RANGE)) {
+  const semver = coerce(version);
+
+  if (!semver || !satisfies(semver, REQUIRED_SERVER_VERSION_RANGE)) {
     return [
       url.href,
       ServerUrlResolutionStatus.INVALID,
-      new Error(`incompatible server version (${ version }, expected ${ REQUIRED_SERVER_VERSION_RANGE })`),
+      new Error(
+        `incompatible server version (${version}, expected ${REQUIRED_SERVER_VERSION_RANGE})`
+      ),
     ];
   }
 
@@ -86,7 +105,7 @@ const loadAppServers = async (): Promise<Record<string, string>> => {
     const filePath = path.join(
       app.getAppPath(),
       app.getAppPath().endsWith('app.asar') ? '..' : '.',
-      'servers.json',
+      'servers.json'
     );
     const content = await fs.promises.readFile(filePath, 'utf8');
     const json = JSON.parse(content);
@@ -110,15 +129,21 @@ const loadUserServers = async (): Promise<Record<string, string>> => {
   }
 };
 
-export const setupServers = async (localStorage: Record<string, string>): Promise<void> => {
+export const setupServers = async (
+  localStorage: Record<string, string>
+): Promise<void> => {
   listen(SERVER_URL_RESOLUTION_REQUESTED, async (action) => {
+    if (!hasMeta(action)) {
+      return;
+    }
+
     try {
       dispatch({
         type: SERVER_URL_RESOLVED,
         payload: await resolveServerUrl(action.payload),
         meta: {
           response: true,
-          id: action.meta?.id,
+          id: action.meta.id,
         },
       });
     } catch (error) {
@@ -128,20 +153,24 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
         error: true,
         meta: {
           response: true,
-          id: action.meta?.id,
+          id: action.meta.id,
         },
       });
     }
   });
 
   let servers = select(({ servers }) => servers);
-  let currentServerUrl = select(({ currentView }) => (typeof currentView === 'object' ? currentView.url : null));
+  let currentServerUrl = select(({ currentView }) =>
+    typeof currentView === 'object' ? currentView.url : null
+  );
 
   const serversMap = new Map<Server['url'], Server>(
     servers
       .filter(Boolean)
-      .filter(({ url, title }) => typeof url === 'string' && typeof title === 'string')
-      .map((server) => [server.url, server]),
+      .filter(
+        ({ url, title }) => typeof url === 'string' && typeof title === 'string'
+      )
+      .map((server) => [server.url, server])
   );
 
   if (localStorage['rocket.chat.hosts']) {
@@ -149,14 +178,19 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
       const storedString = JSON.parse(localStorage['rocket.chat.hosts']);
 
       if (/^https?:\/\//.test(storedString)) {
-        serversMap.set(storedString, { url: storedString, title: storedString });
+        serversMap.set(storedString, {
+          url: storedString,
+          title: storedString,
+        });
       } else {
         const storedValue = JSON.parse(storedString);
 
         if (Array.isArray(storedValue)) {
-          storedValue.map((url) => url.replace(/\/$/, '')).forEach((url) => {
-            serversMap.set(url, { url, title: url });
-          });
+          storedValue
+            .map((url) => url.replace(/\/$/, ''))
+            .forEach((url) => {
+              serversMap.set(url, { url, title: url });
+            });
         }
       }
     } catch (error) {
@@ -178,19 +212,25 @@ export const setupServers = async (localStorage: Record<string, string>): Promis
     }
   }
 
-  if (localStorage['rocket.chat.currentHost'] && localStorage['rocket.chat.currentHost'] !== 'null') {
+  if (
+    localStorage['rocket.chat.currentHost'] &&
+    localStorage['rocket.chat.currentHost'] !== 'null'
+  ) {
     currentServerUrl = localStorage['rocket.chat.currentHost'];
   }
 
   servers = Array.from(serversMap.values());
-  currentServerUrl = serversMap.get(currentServerUrl)?.url ?? servers[0]?.url ?? null;
+  currentServerUrl = currentServerUrl
+    ? serversMap.get(currentServerUrl)?.url ?? servers[0]?.url ?? null
+    : servers[0]?.url;
 
   if (localStorage['rocket.chat.sortOrder']) {
     try {
       const sorting = JSON.parse(localStorage['rocket.chat.sortOrder']);
       if (Array.isArray(sorting)) {
-        servers = [...serversMap.values()]
-          .sort((a, b) => sorting.indexOf(a.url) - sorting.indexOf(b.url));
+        servers = [...serversMap.values()].sort(
+          (a, b) => sorting.indexOf(a.url) - sorting.indexOf(b.url)
+        );
       }
     } catch (error) {
       console.warn(error);

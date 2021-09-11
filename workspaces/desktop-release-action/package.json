@@ -1,0 +1,36 @@
+{
+  "private": true,
+  "name": "@rocket.chat/desktop-release-action",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "ncc build src/index.ts -o dist"
+  },
+  "devDependencies": {
+    "@rocket.chat/eslint-config-alt": "^0.26.0",
+    "@rocket.chat/prettier-config": "^0.26.0",
+    "@types/node": "12.20.15",
+    "@vercel/ncc": "^0.28.6",
+    "cross-env": "^7.0.3",
+    "eslint": "^7.28.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.3.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.3.2"
+  },
+  "dependencies": {
+    "@actions/core": "^1.4.0",
+    "@actions/github": "^5.0.0",
+    "@octokit/webhooks-types": "^3.77.1",
+    "fast-glob": "^3.2.5",
+    "semver": "^7.3.5",
+    "tslib": "^2.3.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "extends": "@rocket.chat/eslint-config-alt/typescript",
+    "rules": {
+      "no-await-in-loop": "off"
+    }
+  },
+  "prettier": "@rocket.chat/prettier-config/fuselage"
+}

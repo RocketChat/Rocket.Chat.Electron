@@ -376,7 +376,8 @@ const createViewMenu = createSelector(
             if (zoomLevel && zoomLevel >= 9) {
               return;
             }
-            zoomLevel && guestWebContents?.setZoomLevel(zoomLevel + 1);
+            (zoomLevel || zoomLevel === 0) &&
+              guestWebContents?.setZoomLevel(zoomLevel + 1);
           }
         },
       },
@@ -391,17 +392,15 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-
           const url = typeof currentView === 'object' ? currentView.url : null;
-
           if (url) {
             const guestWebContents = getWebContentsByServerUrl(url);
             const zoomLevel = guestWebContents?.getZoomLevel();
             if (zoomLevel && zoomLevel <= -9) {
               return;
             }
-
-            zoomLevel && guestWebContents?.setZoomLevel(zoomLevel - 1);
+            (zoomLevel || zoomLevel === 0) &&
+              guestWebContents?.setZoomLevel(zoomLevel - 1);
           }
         },
       },

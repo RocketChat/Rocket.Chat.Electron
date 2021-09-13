@@ -10,7 +10,6 @@ import {
   Menu,
   MenuItemConstructorOptions,
   Session,
-  shell,
   systemPreferences,
   UploadFile,
   UploadRawData,
@@ -195,20 +194,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         postBody
       ) => {
         event.preventDefault();
-
-        if (
-          disposition === 'foreground-tab' ||
-          disposition === 'background-tab'
-        ) {
-          isProtocolAllowed(url).then((allowed) => {
-            if (!allowed) {
-              return;
-            }
-
-            shell.openExternal(url);
-          });
-          return;
-        }
 
         const newWindow = new BrowserWindow({
           ...options,

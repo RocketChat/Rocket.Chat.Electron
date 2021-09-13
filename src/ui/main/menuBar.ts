@@ -177,137 +177,163 @@ const createViewMenu = createSelector(
     isTrayIconEnabled,
     isMenuBarEnabled,
     rootWindowState,
-  }): MenuItemConstructorOptions => ({
-    id: 'viewMenu',
-    label: t('menus.viewMenu'),
-    submenu: [
-      {
-        id: 'reload',
-        label: t('menus.reload'),
-        accelerator: 'CommandOrControl+R',
-        enabled: typeof currentView === 'object' && !!currentView.url,
-        click: async () => {
-          const browserWindow = await getRootWindow();
+  }): MenuItemConstructorOptions => {
+    const zoomURLError = new Error('Error applying zoom in/out: url not found');
+    const zoomContentsError = new Error(
+      'Error applying zoom in/out: webContents not found'
+    );
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
-          guestWebContents?.reload();
-        },
-      },
-      {
-        id: 'reloadIgnoringCache',
-        label: t('menus.reloadIgnoringCache'),
-        enabled: typeof currentView === 'object' && !!currentView.url,
-        click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
-          guestWebContents?.reloadIgnoringCache();
-        },
-      },
-      {
-        id: 'openDevTools',
-        label: t('menus.openDevTools'),
-        enabled: typeof currentView === 'object' && !!currentView.url,
-        accelerator:
-          process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
-        click: () => {
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
-          guestWebContents?.toggleDevTools();
-        },
-      },
-      { type: 'separator' },
-      {
-        id: 'back',
-        label: t('menus.back'),
-        enabled: typeof currentView === 'object' && !!currentView.url,
-        accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
-        click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
-          guestWebContents?.goBack();
-        },
-      },
-      {
-        id: 'forward',
-        label: t('menus.forward'),
-        enabled: typeof currentView === 'object' && !!currentView.url,
-        accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
-        click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
-          guestWebContents?.goForward();
-        },
-      },
-      { type: 'separator' },
-      {
-        id: 'showTrayIcon',
-        label: t('menus.showTrayIcon'),
-        type: 'checkbox',
-        checked: isTrayIconEnabled,
-        click: ({ checked }) => {
-          dispatch({
-            type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-            payload: checked,
-          });
-        },
-      },
-      ...on(process.platform === 'darwin', () => [
+    return {
+      id: 'viewMenu',
+      label: t('menus.viewMenu'),
+      submenu: [
         {
-          id: 'showFullScreen',
-          label: t('menus.showFullScreen'),
-          type: 'checkbox',
-          checked: rootWindowState.fullscreen,
-          accelerator: 'Control+Command+F',
-          click: async ({ checked: enabled }) => {
+          id: 'reload',
+          label: t('menus.reload'),
+          accelerator: 'CommandOrControl+R',
+          enabled: typeof currentView === 'object' && !!currentView.url,
+          click: async () => {
             const browserWindow = await getRootWindow();
 
             if (!browserWindow.isVisible()) {
               browserWindow.showInactive();
             }
             browserWindow.focus();
-            browserWindow.setFullScreen(enabled);
+            const guestWebContents =
+              typeof currentView === 'object'
+                ? getWebContentsByServerUrl(currentView.url)
+                : null;
+            guestWebContents?.reload();
           },
         },
-      ]),
-      ...on(process.platform !== 'darwin', () => [
         {
-          id: 'showMenuBar',
-          label: t('menus.showMenuBar'),
+          id: 'reloadIgnoringCache',
+          label: t('menus.reloadIgnoringCache'),
+          enabled: typeof currentView === 'object' && !!currentView.url,
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            const guestWebContents =
+              typeof currentView === 'object'
+                ? getWebContentsByServerUrl(currentView.url)
+                : null;
+            guestWebContents?.reloadIgnoringCache();
+          },
+        },
+        {
+          id: 'openDevTools',
+          label: t('menus.openDevTools'),
+          enabled: typeof currentView === 'object' && !!currentView.url,
+          accelerator:
+            process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
+          click: () => {
+            const guestWebContents =
+              typeof currentView === 'object'
+                ? getWebContentsByServerUrl(currentView.url)
+                : null;
+            guestWebContents?.toggleDevTools();
+          },
+        },
+        { type: 'separator' },
+        {
+          id: 'back',
+          label: t('menus.back'),
+          enabled: typeof currentView === 'object' && !!currentView.url,
+          accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            const guestWebContents =
+              typeof currentView === 'object'
+                ? getWebContentsByServerUrl(currentView.url)
+                : null;
+            guestWebContents?.goBack();
+          },
+        },
+        {
+          id: 'forward',
+          label: t('menus.forward'),
+          enabled: typeof currentView === 'object' && !!currentView.url,
+          accelerator:
+            process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            const guestWebContents =
+              typeof currentView === 'object'
+                ? getWebContentsByServerUrl(currentView.url)
+                : null;
+            guestWebContents?.goForward();
+          },
+        },
+        { type: 'separator' },
+        {
+          id: 'showTrayIcon',
+          label: t('menus.showTrayIcon'),
           type: 'checkbox',
-          checked: isMenuBarEnabled,
+          checked: isTrayIconEnabled,
+          click: ({ checked }) => {
+            dispatch({
+              type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
+              payload: checked,
+            });
+          },
+        },
+        ...on(process.platform === 'darwin', () => [
+          {
+            id: 'showFullScreen',
+            label: t('menus.showFullScreen'),
+            type: 'checkbox',
+            checked: rootWindowState.fullscreen,
+            accelerator: 'Control+Command+F',
+            click: async ({ checked: enabled }) => {
+              const browserWindow = await getRootWindow();
+
+              if (!browserWindow.isVisible()) {
+                browserWindow.showInactive();
+              }
+              browserWindow.focus();
+              browserWindow.setFullScreen(enabled);
+            },
+          },
+        ]),
+        ...on(process.platform !== 'darwin', () => [
+          {
+            id: 'showMenuBar',
+            label: t('menus.showMenuBar'),
+            type: 'checkbox',
+            checked: isMenuBarEnabled,
+            click: async ({ checked }) => {
+              const browserWindow = await getRootWindow();
+
+              if (!browserWindow.isVisible()) {
+                browserWindow.showInactive();
+              }
+              browserWindow.focus();
+              dispatch({
+                type: MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
+                payload: checked,
+              });
+            },
+          },
+        ]),
+        {
+          id: 'showServerList',
+          label: t('menus.showServerList'),
+          type: 'checkbox',
+          checked: isSideBarEnabled,
           click: async ({ checked }) => {
             const browserWindow = await getRootWindow();
 
@@ -316,96 +342,76 @@ const createViewMenu = createSelector(
             }
             browserWindow.focus();
             dispatch({
-              type: MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
+              type: MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
               payload: checked,
             });
           },
         },
-      ]),
-      {
-        id: 'showServerList',
-        label: t('menus.showServerList'),
-        type: 'checkbox',
-        checked: isSideBarEnabled,
-        click: async ({ checked }) => {
-          const browserWindow = await getRootWindow();
+        { type: 'separator' },
+        {
+          id: 'resetZoom',
+          label: t('menus.resetZoom'),
+          accelerator: 'CommandOrControl+0',
+          click: async () => {
+            const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          dispatch({
-            type: MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
-            payload: checked,
-          });
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            const url =
+              typeof currentView === 'object' ? currentView.url : null;
+            if (url) {
+              const guestWebContents = getWebContentsByServerUrl(url);
+              guestWebContents?.setZoomLevel(0);
+            }
+          },
         },
-      },
-      { type: 'separator' },
-      {
-        id: 'resetZoom',
-        label: t('menus.resetZoom'),
-        accelerator: 'CommandOrControl+0',
-        click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const url = typeof currentView === 'object' ? currentView.url : null;
-          if (url) {
-            const guestWebContents = getWebContentsByServerUrl(url);
-            guestWebContents?.setZoomLevel(0);
-          }
-        },
-      },
-      {
-        id: 'zoomIn',
-        label: t('menus.zoomIn'),
-        accelerator: 'CommandOrControl+Plus',
-        click: async () => {
-          const browserWindow = await getRootWindow();
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const url = typeof currentView === 'object' ? currentView.url : null;
-          if (url) {
+        {
+          id: 'zoomIn',
+          label: t('menus.zoomIn'),
+          accelerator: 'CommandOrControl+Plus',
+          click: async () => {
+            const browserWindow = await getRootWindow();
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            const url =
+              typeof currentView === 'object' ? currentView.url : null;
+            if (!url) throw zoomURLError;
             const guestWebContents = getWebContentsByServerUrl(url);
             const zoomLevel = guestWebContents?.getZoomLevel();
-            if (zoomLevel && zoomLevel >= 9) {
-              return;
-            }
-            (zoomLevel || zoomLevel === 0) &&
-              guestWebContents?.setZoomLevel(zoomLevel + 1);
-          }
+            if (typeof zoomLevel !== 'number') return;
+            if (zoomLevel >= 9) return;
+            if (!guestWebContents) throw zoomContentsError;
+            guestWebContents.setZoomLevel(zoomLevel + 1);
+          },
         },
-      },
-      {
-        id: 'zoomOut',
-        label: t('menus.zoomOut'),
-        accelerator: 'CommandOrControl+-',
-        click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const url = typeof currentView === 'object' ? currentView.url : null;
-          if (url) {
+        {
+          id: 'zoomOut',
+          label: t('menus.zoomOut'),
+          accelerator: 'CommandOrControl+-',
+          click: async () => {
+            const browserWindow = await getRootWindow();
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            const url =
+              typeof currentView === 'object' ? currentView.url : null;
+            if (!url) throw zoomURLError;
             const guestWebContents = getWebContentsByServerUrl(url);
             const zoomLevel = guestWebContents?.getZoomLevel();
-            if (zoomLevel && zoomLevel <= -9) {
-              return;
-            }
-            (zoomLevel || zoomLevel === 0) &&
-              guestWebContents?.setZoomLevel(zoomLevel - 1);
-          }
+            if (typeof zoomLevel !== 'number') return;
+            if (zoomLevel <= -9) return;
+            if (!guestWebContents) throw zoomContentsError;
+            guestWebContents.setZoomLevel(zoomLevel - 1);
+          },
         },
-      },
-    ],
-  })
+      ],
+    };
+  }
 );
 
 const selectWindowDeps = createStructuredSelector<

@@ -352,7 +352,12 @@ const createViewMenu = createSelector(
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          browserWindow.webContents.zoomLevel = 0;
+          const url = typeof currentView === 'object' ? currentView.url : null;
+          if (!url) {
+            return;
+          }
+          const guestWebContents = getWebContentsByServerUrl(url);
+          guestWebContents?.setZoomLevel(0);
         },
       },
       {
@@ -361,15 +366,24 @@ const createViewMenu = createSelector(
         accelerator: 'CommandOrControl+Plus',
         click: async () => {
           const browserWindow = await getRootWindow();
-
           if (!browserWindow.isVisible()) {
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          if (browserWindow.webContents.zoomLevel >= 9) {
+          const url = typeof currentView === 'object' ? currentView.url : null;
+          if (!url) {
             return;
           }
-          browserWindow.webContents.zoomLevel++;
+          const guestWebContents = getWebContentsByServerUrl(url);
+          if (!guestWebContents) {
+            return;
+          }
+          const zoomLevel = guestWebContents?.getZoomLevel();
+          if (zoomLevel >= 9) {
+            return;
+          }
+
+          guestWebContents.setZoomLevel(zoomLevel + 1);
         },
       },
       {
@@ -378,15 +392,26 @@ const createViewMenu = createSelector(
         accelerator: 'CommandOrControl+-',
         click: async () => {
           const browserWindow = await getRootWindow();
-
           if (!browserWindow.isVisible()) {
             browserWindow.showInactive();
           }
           browserWindow.focus();
-          if (browserWindow.webContents.zoomLevel <= -9) {
+          const url = typeof currentView === 'object' ? currentView.url : null;
+          if (!url) {
             return;
           }
-          browserWindow.webContents.zoomLevel--;
+
+          const guestWebContents = getWebContentsByServerUrl(url);
+          if (!guestWebContents) {
+            return;
+          }
+
+          const zoomLevel = guestWebContents.getZoomLevel();
+          if (zoomLevel <= -9) {
+            return;
+          }
+
+          guestWebContents.setZoomLevel(zoomLevel - 1);
         },
       },
     ],

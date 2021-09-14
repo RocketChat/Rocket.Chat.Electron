@@ -1,4 +1,4 @@
-import { contextBridge } from 'electron';
+import { contextBridge, webFrame } from 'electron';
 
 import { invoke } from './ipc/renderer';
 import { JitsiMeetElectron, JitsiMeetElectronAPI } from './jitsi/preload';
@@ -10,7 +10,9 @@ import {
   serverInfo,
 } from './servers/preload/api';
 import { setServerUrl } from './servers/preload/urls';
-import { createRendererReduxStore } from './store';
+import { createRendererReduxStore, listen, select } from './store';
+import { WEBVIEW_DID_NAVIGATE } from './ui/actions';
+import { debounce } from './ui/main/debounce';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';
 import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
 import { whenReady } from './whenReady';
@@ -47,6 +49,17 @@ const start = async (): Promise<void> => {
   if (!serverInfo) {
     return;
   }
+
+  listen(
+    WEBVIEW_DID_NAVIGATE,
+    debounce(() => {
+      const resources = webFrame.getResourceUsage();
+      // TODO: make this configurable
+      if (resources.images.size > 50 * 1024 * 1024) {
+        webFrame.clearCache();
+      }
+    }, 1000 * 30)
+  );
 
   listenToNotificationsRequests();
   listenToScreenSharingRequests();

@@ -10,7 +10,7 @@ import {
   serverInfo,
 } from './servers/preload/api';
 import { setServerUrl } from './servers/preload/urls';
-import { createRendererReduxStore, listen, select } from './store';
+import { createRendererReduxStore, listen } from './store';
 import { WEBVIEW_DID_NAVIGATE } from './ui/actions';
 import { debounce } from './ui/main/debounce';
 import { listenToMessageBoxEvents } from './ui/preload/messageBox';

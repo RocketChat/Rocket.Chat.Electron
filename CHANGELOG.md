@@ -1,3 +1,13 @@
+## [3.5.4](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.3...3.5.4) (2021-09-16)
+
+
+### Bug Fixes
+
+* After zoom/reset navigating displays "white screen" ([#1947](https://github.com/RocketChat/Rocket.Chat.Electron/issues/1947)) ([a1323df](https://github.com/RocketChat/Rocket.Chat.Electron/commit/a1323df9ddb4dff8af6811e994d8e9b12f6fb24d))
+* Fix memory leak after navigation ([#2168](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2168)) ([8ef2d67](https://github.com/RocketChat/Rocket.Chat.Electron/commit/8ef2d67b361ce72d40b8b1d54d858730b2c9021f))
+
+
+
 ## [3.5.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.2...3.5.3) (2021-09-09)
 
 

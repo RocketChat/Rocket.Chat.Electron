@@ -1,22 +1,16 @@
-import Bugsnag from '@bugsnag/js';
+import Bugsnag from '@bugsnag/electron';
 
 import { select, listen } from './store';
 import { SETTINGS_SET_REPORT_OPT_IN_CHANGED } from './ui/actions';
 
-type AppType = 'main' | 'rootWindow' | 'webviewPreload';
+type AppType = 'main' | 'rootWindow';
 
 const initBugsnag = (apiKey: string, appVersion: string, appType: AppType) =>
   Bugsnag.start({
     apiKey,
     appVersion,
     appType,
-    collectUserIp: false,
     releaseStage: process.env.NODE_ENV,
-    ...(appType === 'webviewPreload' && {
-      onError: (event) => {
-        event.context = window.location.href;
-      },
-    }),
   });
 
 const listenToBugsnagEnabledToggle = async (appType: AppType) => {

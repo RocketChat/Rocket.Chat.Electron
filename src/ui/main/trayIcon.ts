@@ -1,4 +1,4 @@
-import { app, Menu, Tray } from 'electron';
+import { app, Menu, nativeImage, Tray } from 'electron';
 import i18next from 'i18next';
 
 import { Server } from '../../servers/common';
@@ -20,7 +20,7 @@ const createTrayIcon = (): Tray => {
     badge: undefined,
   });
 
-  const trayIcon = new Tray(image);
+  const trayIcon = new Tray(nativeImage.createEmpty());
 
   if (process.platform !== 'darwin') {
     trayIcon.addListener('click', async () => {
@@ -52,6 +52,8 @@ const createTrayIcon = (): Tray => {
     trayIcon.popUpContextMenu(undefined, bounds);
   });
 
+  trayIcon.setImage(nativeImage.createFromPath(image));
+
   return trayIcon;
 };
 
@@ -60,7 +62,7 @@ const updateTrayIconImage = (trayIcon: Tray, badge: Server['badge']): void => {
     platform: process.platform,
     badge,
   });
-  trayIcon.setImage(image);
+  trayIcon.setImage(nativeImage.createFromPath(image));
 };
 
 const updateTrayIconTitle = (

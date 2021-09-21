@@ -1,4 +1,4 @@
-import Bugsnag from '@bugsnag/electron';
+import Bugsnag from '@bugsnag/js';
 
 import { select, listen } from './store';
 import { SETTINGS_SET_REPORT_OPT_IN_CHANGED } from './ui/actions';

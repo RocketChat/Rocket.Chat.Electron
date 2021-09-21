@@ -1,3 +1,12 @@
+## [3.5.5](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.4...3.5.5) (2021-09-21)
+
+
+### Bug Fixes
+
+* Prevent errors on startup : Fix icon and window positioning errors ([#2173](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2173)) ([d42ce30](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d42ce30794d62ef494dbafd739e6eb0a5ce65b21))
+
+
+
 ## [3.5.4](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.3...3.5.4) (2021-09-16)
 
 

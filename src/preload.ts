@@ -41,9 +41,6 @@ const start = async (): Promise<void> => {
 
   await whenReady();
 
-  // This removes the server error handling
-  // setupRendererErrorHandling('webviewPreload');
-
   await invoke('server-view/ready');
 
   if (!serverInfo) {

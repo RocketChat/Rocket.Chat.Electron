@@ -109,12 +109,13 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     return;
   }
 
-  if (x === null || x === undefined || y === null || y === undefined) {
-    browserWindow.setBounds({ width, height });
-  } else {
-    browserWindow.setBounds({ x, y, width, height });
+  if (Number.isInteger(width) && Number.isInteger(height)) {
+    browserWindow.setBounds({
+      width,
+      height,
+      ...(Number.isInteger(x) && Number.isInteger(y) && { x, y }),
+    });
   }
-
   if (rootWindowState.maximized) {
     browserWindow.maximize();
   }

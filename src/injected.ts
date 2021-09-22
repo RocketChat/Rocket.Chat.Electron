@@ -39,6 +39,17 @@ const start = (): void => {
     window.RocketChatDesktop.setFavicon(url || defaultUrl);
   });
 
+  const open = window.open.bind(window);
+  Tracker.autorun(() => {
+    const jitsiDomain = settings.get('Jitsi_Domain') || '';
+    window.open = (url, name, features = '') => {
+      if (typeof url === 'string' && url.includes(jitsiDomain)) {
+        return open(url, name, `scrollbars=true,${features}`);
+      }
+
+      return open(url, name, features);
+    };
+  });
   Tracker.autorun(() => {
     const { url, defaultUrl } = settings.get('Assets_background') || {};
     window.RocketChatDesktop.setBackground(url || defaultUrl);

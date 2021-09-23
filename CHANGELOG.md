@@ -1,3 +1,17 @@
+## [3.5.6](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.5...3.5.6) (2021-09-23)
+
+
+### Bug Fixes
+
+* Jitisi opening on browser ([#2180](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2180)) ([1d34690](https://github.com/RocketChat/Rocket.Chat.Electron/commit/1d3469025e0f1b7988e542d02a8890308f136f6f))
+
+
+### Features
+
+* apple silicon universal support ([#2170](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2170)) ([6f180c6](https://github.com/RocketChat/Rocket.Chat.Electron/commit/6f180c693fb9a4d22b981a1e891499bc547a1b61))
+
+
+
 ## [3.5.5](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.4...3.5.5) (2021-09-21)
 
 

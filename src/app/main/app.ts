@@ -3,7 +3,8 @@ import rimraf from 'rimraf';
 
 import { dispatch } from '../../store';
 import { getRootWindow } from '../../ui/main/rootWindow';
-import { APP_PATH_SET, APP_VERSION_SET } from '../actions';
+import { APP_MODE, APP_PATH_SET, APP_VERSION_SET } from '../actions';
+import { DevelopmentMode } from './dev';
 
 export const relaunchApp = (...args: string[]): void => {
   const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
@@ -11,13 +12,17 @@ export const relaunchApp = (...args: string[]): void => {
   app.exit();
 };
 
+export class App {
+  static args = process.argv.slice(app.isPackaged ? 1 : 2);
+}
+
 export const performElectronStartup = (): void => {
   app.setAsDefaultProtocolClient('rocketchat');
   app.setAppUserModelId('chat.rocket');
 
   app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
 
-  const args = process.argv.slice(app.isPackaged ? 1 : 2);
+  const { args } = App;
 
   if (args.includes('--reset-app-data')) {
     rimraf.sync(app.getPath('userData'));
@@ -53,4 +58,9 @@ export const setupApp = (): void => {
 
   dispatch({ type: APP_PATH_SET, payload: app.getAppPath() });
   dispatch({ type: APP_VERSION_SET, payload: app.getVersion() });
+
+  dispatch({
+    type: APP_MODE,
+    payload: DevelopmentMode.isDevelopment() ? 'development' : 'production',
+  });
 };

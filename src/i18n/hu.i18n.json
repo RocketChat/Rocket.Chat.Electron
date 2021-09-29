@@ -136,6 +136,19 @@
     },
     "showingResults": "Eredmények megjelenítése: {{first}} - {{last}} / {{count}}"
   },
+  "settings": {
+    "title": "Beállítások",
+    "options": {
+      "report": {
+        "title": "Hibák jelentése a fejlesztőknek",
+        "description": "A hibák névtelenül történő jelentése a fejlesztőknek. A megosztott információk az alkalmazás verziószámát, az operációs rendszer típusát, a kiszolgáló URL-ét, az eszköz nyelvét és a hiba típusát tartalmazzák. Tartalom vagy felhasználónevek nem kerülnek megosztásra."
+      },
+      "flashFrame": {
+        "title": "Keret felvillantásának engedélyezése",
+        "description": "A keretfelvillantás beállításainak leírásának…"
+      }
+    }
+  },
   "error": {
     "authNeeded": "Hitelesítés szükséges, próbálja ezt: <strong>{{- auth}}</strong>",
     "connectTimeout": "A kapcsolódási kísérlet túllépte az időkorlátot",
@@ -160,6 +173,7 @@
     "disableGpu": "GPU letiltása",
     "documentation": "Dokumentáció",
     "downloads": "Letöltések",
+    "settings": "Beállítások",
     "editMenu": "S&zerkesztés",
     "fileMenu": "&Fájl",
     "forward": "&Előre",
@@ -199,12 +213,13 @@
   },
   "selfxss": {
     "title": "Megállj!",
-    "description": "Ez a böngészőfunkció fejlesztők számára készült. Ha valaki azt mondja, hogy másoljon le és illesszen be valamit ide, azért hogy egy Rocket.Chat funkciót engedélyezzen vagy feltörje valaki más fiókját, akkor az átverés, és hozzáférést fog adni nekik az Ön Rocket.Chat fiókjához.",
+    "description": "Ez a böngészőfunkció fejlesztők számára készült. Ha valaki azt mondja, hogy másoljon le és illesszen be valamit ide, azért hogy egy Rocket.Chat funkciót engedélyezzen vagy „feltörje” valaki más fiókját, akkor az átverés, és hozzáférést fog adni nekik az Ön Rocket.Chat fiókjához.",
     "moreInfo": "További információkért nézze meg a https://go.rocket.chat/i/xss oldalt."
   },
   "sidebar": {
     "addNewServer": "Új kiszolgáló hozzáadása",
     "downloads": "Letöltések",
+    "settings": "Beállítások",
     "item": {
       "reload": "Kiszolgáló újratöltése",
       "remove": "Kiszolgáló eltávolítása",

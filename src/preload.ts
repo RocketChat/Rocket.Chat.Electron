@@ -37,9 +37,9 @@ const start = async (): Promise<void> => {
 
   setServerUrl(serverUrl);
 
-  await createRendererReduxStore();
-
   await whenReady();
+
+  await createRendererReduxStore();
 
   await invoke('server-view/ready');
 

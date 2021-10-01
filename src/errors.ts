@@ -11,6 +11,7 @@ const initBugsnag = (apiKey: string, appVersion: string, appType: AppType) =>
     appVersion,
     appType,
     releaseStage: process.env.NODE_ENV,
+    redactedKeys: [/\/Users\/[^\/]+/],
   });
 
 const listenToBugsnagEnabledToggle = async (appType: AppType) => {

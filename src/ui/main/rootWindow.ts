@@ -285,10 +285,12 @@ export const setupRootWindow = (): void => {
 
         if (!rootWindowIcon) {
           browserWindow.setIcon(
-            getTrayIconPath({
-              platform: process.platform,
-              badge: globalBadge,
-            })
+            nativeImage.createFromPath(
+              getTrayIconPath({
+                platform: process.platform,
+                badge: globalBadge,
+              })
+            )
           );
           return;
         }

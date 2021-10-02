@@ -52,6 +52,7 @@
     "@rocket.chat/fuselage-hooks": "^0.28.0",
     "@rocket.chat/icons": "^0.28.0",
     "abort-controller": "^3.0.0",
+    "electron-dl": "^3.2.1",
     "electron-store": "^6.0.1",
     "electron-updater": "^4.3.9",
     "i18next": "^20.4.0",

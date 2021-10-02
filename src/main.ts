@@ -1,4 +1,5 @@
 import { app } from 'electron';
+import electronDl from 'electron-dl';
 
 import { performElectronStartup, setupApp } from './app/main/app';
 import {
@@ -28,6 +29,8 @@ import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
+
+electronDl({ saveAs: true });
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();

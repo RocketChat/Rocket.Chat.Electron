@@ -131,12 +131,15 @@ const performAuthentication = async ({
     webContents.loadURL(url.href);
   });
 
+// https://developer.rocket.chat/rocket.chat/deeplink#channel-group-dm
 const performOpenRoom = async ({ host, path }: OpenRoomParams): Promise<void> =>
   performOnServer(host, async (serverUrl) => {
     if (!path) {
       return;
     }
-
+    if (!/^\/?(direct|group|channel|livechat)\/[0-9a-zA-Z-_.]+/.test(path)) {
+      return;
+    }
     const webContents = await getWebContents(serverUrl);
     webContents.loadURL(new URL(path, serverUrl).href);
   });
@@ -146,7 +149,6 @@ const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
     if (!/^invite\//.test(path)) {
       return;
     }
-
     const webContents = await getWebContents(serverUrl);
     webContents.loadURL(new URL(path, serverUrl).href);
   });

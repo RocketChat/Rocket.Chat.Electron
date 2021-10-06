@@ -1,3 +1,20 @@
+## [3.5.7](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.6...3.5.7) (2021-10-06)
+
+
+### Bug Fixes
+
+* Prevent error if can reach the icon ([#2197](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2197)) ([8c5217f](https://github.com/RocketChat/Rocket.Chat.Electron/commit/8c5217f96160fea0f24fa29e8b9f162ff9c906b6))
+* Prevent invalid range for unit format ([#2195](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2195)) ([cc4037b](https://github.com/RocketChat/Rocket.Chat.Electron/commit/cc4037b1fc0acd50f3cf8434434ccdc534568228))
+* Prevent store send messages before the screen is ready ([#2198](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2198)) ([34d185d](https://github.com/RocketChat/Rocket.Chat.Electron/commit/34d185d6b8781e60f446d298c487e5f418b44fe5))
+* Redact info ([#2196](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2196)) ([7a62f33](https://github.com/RocketChat/Rocket.Chat.Electron/commit/7a62f33f0a24bcbf6ceb928b87147490d03cc1f2))
+
+
+### Features
+
+* Electron dl for improve download experience ([#2200](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2200)) ([a132009](https://github.com/RocketChat/Rocket.Chat.Electron/commit/a1320093880fe98f59be4f7cac0f3093e9195d33))
+
+
+
 ## [3.5.6](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.5...3.5.6) (2021-09-23)
 
 

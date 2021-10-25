@@ -136,6 +136,19 @@
     },
     "showingResults": "Affichage des résultats {{first}} - {{last}} de {{count}}"
   },
+  "settings": {
+    "title": "Paramètres",
+    "options": {
+      "report": {
+        "title": "Signaler les erreurs aux développeurs",
+        "description": "Signaler les erreurs de manière anonyme aux développeurs. Les informations partagées incluent le numéro de version de l'application, le type de système d'exploitation, l'URL du serveur, la langue de l'appareil et le type d'erreur. Aucun contenu ou nom d'utilisateur n'est partagé."
+      },
+      "flashFrame": {
+        "title": "Activer le cadre Flash",
+        "description": "Paramètre cadre Flash description..."
+      }
+    }
+  },
   "error": {
     "authNeeded": "Authentification requise, essayez <strong>{{- auth}}</strong>",
     "connectTimeout": "Délai d'attente lors de la connexion",
@@ -160,6 +173,7 @@
     "disableGpu": "Désactiver le GPU",
     "documentation": "Documentation",
     "downloads": "Téléchargements",
+    "settings": "Paramètres",
     "editMenu": "&Éditer",
     "fileMenu": "&Fichier",
     "forward": "&Suivant",
@@ -205,6 +219,7 @@
   "sidebar": {
     "addNewServer": "Ajouter un nouveau serveur",
     "downloads": "Téléchargements",
+    "settings": "Paramètres",
     "item": {
       "reload": "Recharger le serveur",
       "remove": "Retirer le serveur",

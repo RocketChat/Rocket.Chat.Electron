@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../store/rootReducer';
 import { FlashFrame } from './features/FlashFrame';
+import { InternalVideoChatWindow } from './features/InternalVideoChatWindow';
 import { ReportErrors } from './features/ReportErrors';
 
 export const SettingsView: FC = () => {
@@ -35,6 +36,7 @@ export const SettingsView: FC = () => {
       <Box is='form' margin={24} maxWidth={960} flexGrow={1} flexShrink={1}>
         <ReportErrors />
         <FlashFrame />
+        <InternalVideoChatWindow />
       </Box>
     </Box>
   );

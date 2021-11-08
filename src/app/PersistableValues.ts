@@ -26,15 +26,16 @@ type PersistableValues_3_1_0 = Omit<
   'currentServerUrl' | 'currentView'
 > & {
   currentView?:
-    | Exclude<PersistableValues_0_0_0['currentView'], null>
-    | { url: string }
-    | 'downloads'
-    | 'settings';
+  | Exclude<PersistableValues_0_0_0['currentView'], null>
+  | { url: string }
+  | 'downloads'
+  | 'settings';
   downloads?: Record<Download['itemId'], Download>;
 };
 type PersistableValues_3_5_0 = PersistableValues_3_1_0 & {
   isReportEnabled: boolean;
   isFlashFrameEnabled: boolean;
+  isInternalVideoChatWindowEnabled: boolean;
 };
 
 export type PersistableValues = Pick<
@@ -57,6 +58,7 @@ export const migrations = {
   '>=3.5.0': (before: PersistableValues_3_1_0): PersistableValues_3_5_0 => ({
     ...before,
     isReportEnabled: true,
+    isInternalVideoChatWindowEnabled: true,
     isFlashFrameEnabled:
       process.platform === 'win32' || process.platform === 'darwin',
   }),

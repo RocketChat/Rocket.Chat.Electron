@@ -117,6 +117,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isInternalVideoChatWindowEnabled,
     }: RootState) => ({
       isUpdatingAllowed:
         (process.platform === 'linux' && !!process.env.APPIMAGE) ||
@@ -128,6 +129,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isInternalVideoChatWindowEnabled,
     })
   );
   const appConfiguration = await loadAppConfiguration();
@@ -149,9 +151,9 @@ export const setupUpdates = async (): Promise<void> => {
     isUpdatingEnabled,
     doCheckForUpdatesOnStartup,
     skippedUpdateVersion,
-
     isReportEnabled,
     isFlashFrameEnabled,
+    isInternalVideoChatWindowEnabled,
   } = await loadConfiguration();
 
   dispatch({
@@ -164,6 +166,7 @@ export const setupUpdates = async (): Promise<void> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isInternalVideoChatWindowEnabled,
     },
   });
 

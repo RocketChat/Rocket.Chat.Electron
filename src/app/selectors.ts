@@ -27,6 +27,5 @@ export const selectPersistableValues = createStructuredSelector<
   externalProtocols: ({ externalProtocols }) => externalProtocols,
   isReportEnabled: ({ isReportEnabled }) => isReportEnabled,
   isFlashFrameEnabled: ({ isFlashFrameEnabled }) => isFlashFrameEnabled,
-  isInternalVideoChatWindowEnabled: ({ isInternalVideoChatWindowEnabled }) =>
-    isInternalVideoChatWindowEnabled,
+  isInternalVideoChatWindowEnabled: ({ isInternalVideoChatWindowEnabled }) => isInternalVideoChatWindowEnabled,
 });

@@ -9,7 +9,8 @@ import { SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED } from '../../../ac
 
 export const InternalVideoChatWindow: FC = () => {
   const isInternalVideoChatWindowEnabled = useSelector(
-    ({ isInternalVideoChatWindowEnabled }: RootState) => isInternalVideoChatWindowEnabled
+    ({ isInternalVideoChatWindowEnabled }: RootState) =>
+      isInternalVideoChatWindowEnabled
   );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();

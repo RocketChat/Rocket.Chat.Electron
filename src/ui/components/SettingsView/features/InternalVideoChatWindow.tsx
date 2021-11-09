@@ -7,7 +7,11 @@ import { RootAction } from '../../../../store/actions';
 import { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED } from '../../../actions';
 
-export const InternalVideoChatWindow: FC = () => {
+type Props = {
+  className?: string;
+};
+
+export const InternalVideoChatWindow: FC<Props> = (props) => {
   const isInternalVideoChatWindowEnabled = useSelector(
     ({ isInternalVideoChatWindowEnabled }: RootState) =>
       isInternalVideoChatWindowEnabled
@@ -26,7 +30,7 @@ export const InternalVideoChatWindow: FC = () => {
   );
 
   return (
-    <Field>
+    <Field className={props.className}>
       <Field.Row>
         <ToggleSwitch
           onChange={handleChange}

@@ -1,4 +1,4 @@
-import { Box } from '@rocket.chat/fuselage';
+import { Box, FieldGroup } from '@rocket.chat/fuselage';
 import React, { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -34,9 +34,11 @@ export const SettingsView: FC = () => {
       </Box>
 
       <Box is='form' margin={24} maxWidth={960} flexGrow={1} flexShrink={1}>
-        <ReportErrors />
-        <FlashFrame />
-        <InternalVideoChatWindow />
+        <FieldGroup>
+          <ReportErrors />
+          <FlashFrame />
+          <InternalVideoChatWindow />
+        </FieldGroup>
       </Box>
     </Box>
   );

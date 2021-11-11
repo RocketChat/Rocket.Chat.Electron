@@ -233,9 +233,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           newWindow.loadURL(url, {
             userAgent: isGoogleSignIn
               ? app.userAgentFallback.replace(
-                `Electron/${process.versions.electron} `,
-                ''
-              )
+                  `Electron/${process.versions.electron} `,
+                  ''
+                )
               : app.userAgentFallback,
             httpReferrer: referrer,
             ...(postBody && {

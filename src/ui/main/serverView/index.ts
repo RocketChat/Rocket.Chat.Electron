@@ -233,9 +233,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           newWindow.loadURL(url, {
             userAgent: isGoogleSignIn
               ? app.userAgentFallback.replace(
-                  `Electron/${process.versions.electron} `,
-                  ''
-                )
+                `Electron/${process.versions.electron} `,
+                ''
+              )
               : app.userAgentFallback,
             httpReferrer: referrer,
             ...(postBody && {
@@ -341,6 +341,20 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         click: () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
           guestWebContents?.openDevTools();
+        },
+      },
+      {
+        label: t('sidebar.item.clearCache'),
+        click: async () => {
+          const guestWebContents = getWebContentsByServerUrl(serverUrl);
+          await guestWebContents?.session.clearCache();
+        },
+      },
+      {
+        label: t('sidebar.item.clearStorageData'),
+        click: async () => {
+          const guestWebContents = getWebContentsByServerUrl(serverUrl);
+          await guestWebContents?.session.clearStorageData();
         },
       },
     ];

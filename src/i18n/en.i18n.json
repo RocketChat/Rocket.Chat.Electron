@@ -228,7 +228,9 @@
     "item": {
       "reload": "Reload server",
       "remove": "Remove server",
-      "openDevTools": "Open DevTools"
+      "openDevTools": "Open DevTools",
+      "clearCache": "Clear Cache",
+      "clearStorageData": "Clear Storage Data"
     }
   },
   "touchBar": {

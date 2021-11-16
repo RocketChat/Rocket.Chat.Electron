@@ -6,6 +6,7 @@ export type UpdateConfiguration = {
   skippedUpdateVersion: string | null;
   isReportEnabled: boolean;
   isFlashFrameEnabled: boolean;
+  isInternalVideoChatWindowEnabled: boolean;
 };
 
 export type AppLevelUpdateConfiguration = {

@@ -1,10 +1,11 @@
-import { Box } from '@rocket.chat/fuselage';
+import { Box, FieldGroup } from '@rocket.chat/fuselage';
 import React, { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../store/rootReducer';
 import { FlashFrame } from './features/FlashFrame';
+import { InternalVideoChatWindow } from './features/InternalVideoChatWindow';
 import { ReportErrors } from './features/ReportErrors';
 
 export const SettingsView: FC = () => {
@@ -33,8 +34,11 @@ export const SettingsView: FC = () => {
       </Box>
 
       <Box is='form' margin={24} maxWidth={960} flexGrow={1} flexShrink={1}>
-        <ReportErrors />
-        <FlashFrame />
+        <FieldGroup>
+          <ReportErrors />
+          <FlashFrame />
+          <InternalVideoChatWindow />
+        </FieldGroup>
       </Box>
     </Box>
   );

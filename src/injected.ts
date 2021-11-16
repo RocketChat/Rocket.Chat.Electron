@@ -43,13 +43,18 @@ const start = (): void => {
   Tracker.autorun(() => {
     const jitsiDomain = settings.get('Jitsi_Domain') || '';
     window.open = (url, name, features = '') => {
-      if (typeof url === 'string' && url.includes(jitsiDomain)) {
+      if (
+        typeof url === 'string' &&
+        url.includes(jitsiDomain) &&
+        window.RocketChatDesktop.getInternalVideoChatWindowEnabled()
+      ) {
         return open(url, name, `scrollbars=true,${features}`);
       }
 
       return open(url, name, features);
     };
   });
+
   Tracker.autorun(() => {
     const { url, defaultUrl } = settings.get('Assets_background') || {};
     window.RocketChatDesktop.setBackground(url || defaultUrl);

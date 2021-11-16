@@ -62,6 +62,8 @@ export const SETTINGS_SET_REPORT_OPT_IN_CHANGED =
   'settings/set-bugsnag-opt-in-changed';
 export const SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED =
   'settings/set-flashframe-opt-in-changed';
+export const SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED =
+  'settings/set-internalvideochatwindow-opt-in-changed';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -113,4 +115,5 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
   [SETTINGS_SET_REPORT_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED]: boolean;
+  [SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED]: boolean;
 };

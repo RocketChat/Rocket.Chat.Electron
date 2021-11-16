@@ -1,3 +1,19 @@
+# [3.6.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.7...3.6.0) (2021-11-16)
+
+
+### Bug Fixes
+
+* Add back desktop version to userAgent string ([#2217](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2217)) ([07c6079](https://github.com/RocketChat/Rocket.Chat.Electron/commit/07c6079060a40d2549bc1502b55fc5d53219e018))
+* Missing entitlements on mac app ([#2191](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2191)) ([ce52cbc](https://github.com/RocketChat/Rocket.Chat.Electron/commit/ce52cbcf749a3e2147723ffa8f2d42a3b20f8047))
+
+
+### Features
+
+* Add clear cache and clear storage data options to server ([#2229](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2229)) ([d65e73a](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d65e73a6e87d10785d861ccf67a434d301698223))
+* Setting to open video chat on application window or external browser ([#2227](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2227)) ([d3364fd](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d3364fdcf73b440d758af6a3ad59f63d972986e8))
+
+
+
 ## [3.5.7](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.6...3.5.7) (2021-10-06)
 
 

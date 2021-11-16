@@ -45,11 +45,6 @@ const queuedTrustRequests = new Map<
 >();
 
 export const setupNavigation = async (): Promise<void> => {
-  app.userAgentFallback = app.userAgentFallback.replace(
-    `${app.name}/${app.getVersion()} `,
-    ''
-  );
-
   app.addListener(
     'certificate-error',
     async (event, _webContents, requestedUrl, error, certificate, callback) => {

@@ -342,6 +342,20 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           guestWebContents?.openDevTools();
         },
       },
+      {
+        label: t('sidebar.item.clearCache'),
+        click: async () => {
+          const guestWebContents = getWebContentsByServerUrl(serverUrl);
+          await guestWebContents?.session.clearCache();
+        },
+      },
+      {
+        label: t('sidebar.item.clearStorageData'),
+        click: async () => {
+          const guestWebContents = getWebContentsByServerUrl(serverUrl);
+          await guestWebContents?.session.clearStorageData();
+        },
+      },
     ];
     const menu = Menu.buildFromTemplate(menuTemplate);
     menu.popup({

@@ -27,7 +27,6 @@ const webPreferences: WebPreferences = {
   nodeIntegrationInSubFrames: true,
   contextIsolation: false,
   webviewTag: true,
-  worldSafeExecuteJavaScript: true,
 };
 
 const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>

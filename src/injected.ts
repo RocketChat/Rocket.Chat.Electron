@@ -6,8 +6,13 @@ declare global {
   }
 }
 
+console.log('[Rocket.Chat Desktop] Injected.ts');
+
 const start = (): void => {
   if (typeof window.require !== 'function') {
+    console.log('[Rocket.Chat Desktop] window.require is not defined');
+    console.log('[Rocket.Chat Desktop] Inject start - retrying in 1 seconds');
+    setTimeout(start, 1000);
     return;
   }
 
@@ -40,8 +45,14 @@ const start = (): void => {
   });
 
   const open = window.open.bind(window);
+
   Tracker.autorun(() => {
     const jitsiDomain = settings.get('Jitsi_Domain') || '';
+
+    console.log(
+      '[Rocket.Chat Desktop] window.open for Jitsi overloaded',
+      jitsiDomain
+    );
     window.open = (url, name, features = '') => {
       if (
         typeof url === 'string' &&

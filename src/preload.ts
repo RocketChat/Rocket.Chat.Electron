@@ -41,6 +41,8 @@ const start = async (): Promise<void> => {
 
   await createRendererReduxStore();
 
+  await invoke('server-view/ready');
+
   if (!serverInfo) {
     return;
   }
@@ -60,8 +62,6 @@ const start = async (): Promise<void> => {
   listenToScreenSharingRequests();
   listenToMessageBoxEvents();
   handleTrafficLightsSpacing();
-
-  await invoke('server-view/ready');
 };
 
 start();

@@ -1,3 +1,12 @@
+# [3.7.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.6.0...3.7.0) (2021-11-30)
+
+
+### Bug Fixes
+
+* Empty screen from a fresh start + servers.json ([#2243](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2243)) ([407c562](https://github.com/RocketChat/Rocket.Chat.Electron/commit/407c562531b5af841b40006f25aa657db56979f4))
+
+
+
 # [3.6.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.7...3.6.0) (2021-11-16)
 
 

@@ -12,9 +12,9 @@ const handleGetSourceIdEvent = async (): Promise<void> => {
       },
       WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED
     );
-    window.top.postMessage({ sourceId }, '*');
+    window.top?.postMessage({ sourceId }, '*');
   } catch (error) {
-    window.top.postMessage({ sourceId: 'PermissionDeniedError' }, '*');
+    window.top?.postMessage({ sourceId: 'PermissionDeniedError' }, '*');
   }
 };
 

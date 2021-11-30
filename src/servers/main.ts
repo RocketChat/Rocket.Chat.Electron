@@ -17,6 +17,7 @@ import {
   ServerUrlResolutionStatus,
   Server,
   ServerUrlResolutionResult,
+  isServerUrlResolutionResult,
 } from './common';
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
@@ -64,7 +65,7 @@ export const resolveServerUrl = async (
   try {
     url = convertToURL(input);
   } catch (error) {
-    return [input, ServerUrlResolutionStatus.INVALID_URL, error];
+    return [input, ServerUrlResolutionStatus.INVALID_URL, error as Error];
   }
 
   let version: string;
@@ -72,6 +73,9 @@ export const resolveServerUrl = async (
   try {
     [url, version] = await fetchServerInformation(url);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
     if (
       !/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(input)
     ) {
@@ -147,15 +151,16 @@ export const setupServers = async (
         },
       });
     } catch (error) {
-      dispatch({
-        type: SERVER_URL_RESOLVED,
-        payload: error,
-        error: true,
-        meta: {
-          response: true,
-          id: action.meta.id,
-        },
-      });
+      isServerUrlResolutionResult(error) &&
+        dispatch({
+          type: SERVER_URL_RESOLVED,
+          payload: error,
+          error: true,
+          meta: {
+            response: true,
+            id: action.meta.id,
+          },
+        });
     }
   });
 

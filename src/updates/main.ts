@@ -209,14 +209,15 @@ export const setupUpdates = async (): Promise<void> => {
       app.removeAllListeners('window-all-closed');
       autoUpdater.quitAndInstall(true, true);
     } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
+      error instanceof Error &&
+        dispatch({
+          type: UPDATES_ERROR_THROWN,
+          payload: {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          },
+        });
     }
   });
 
@@ -235,14 +236,15 @@ export const setupUpdates = async (): Promise<void> => {
     try {
       await autoUpdater.checkForUpdates();
     } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
+      error instanceof Error &&
+        dispatch({
+          type: UPDATES_ERROR_THROWN,
+          payload: {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          },
+        });
     }
   }
 
@@ -250,14 +252,15 @@ export const setupUpdates = async (): Promise<void> => {
     try {
       await autoUpdater.checkForUpdates();
     } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
+      error instanceof Error &&
+        dispatch({
+          type: UPDATES_ERROR_THROWN,
+          payload: {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          },
+        });
     }
   });
 
@@ -275,14 +278,15 @@ export const setupUpdates = async (): Promise<void> => {
     try {
       autoUpdater.downloadUpdate();
     } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
+      error instanceof Error &&
+        dispatch({
+          type: UPDATES_ERROR_THROWN,
+          payload: {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          },
+        });
     }
   });
 };

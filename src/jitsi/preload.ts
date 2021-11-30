@@ -32,7 +32,7 @@ export const JitsiMeetElectron: JitsiMeetElectronAPI = {
 
       callback(sources);
     } catch (error) {
-      errorCallback(error);
+      error instanceof Error && errorCallback(error);
     }
   },
 };

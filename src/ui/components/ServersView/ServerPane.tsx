@@ -1,4 +1,3 @@
-import { WebviewTag } from 'electron';
 import React, { useRef, useEffect, FC } from 'react';
 import { useDispatch } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -26,7 +25,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
 }) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
-  const webviewRef = useRef<WebviewTag>(null);
+  const webviewRef = useRef<ReturnType<typeof document['createElement']>>(null);
 
   useEffect(() => {
     const webview = webviewRef.current;

@@ -5,7 +5,6 @@ import React, { FC, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
-import { createSelector } from 'reselect';
 
 import { RootAction } from '../../../store/actions';
 import { RootState } from '../../../store/rootReducer';
@@ -14,6 +13,7 @@ import {
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
 } from '../../actions';
+import { useServers } from '../hooks/useServers';
 import ServerButton from './ServerButton';
 import {
   Wrapper,
@@ -28,21 +28,8 @@ import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
 
 export const SideBar: FC = () => {
-  const servers = useSelector(
-    createSelector(
-      ({ currentView }: RootState) => currentView,
-      ({ servers }: RootState) => servers,
-      (currentView, servers) =>
-        servers.map((server) =>
-          Object.assign(server, {
-            selected:
-              typeof currentView === 'object'
-                ? server.url === currentView.url
-                : false,
-          })
-        )
-    )
-  );
+  const servers = useServers();
+
   const isSideBarEnabled = useSelector(
     ({ isSideBarEnabled }: RootState) => isSideBarEnabled
   );

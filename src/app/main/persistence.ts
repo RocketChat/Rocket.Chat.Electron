@@ -17,6 +17,7 @@ const getElectronStore = (): ElectronStore<PersistableValues> => {
         ])
       ),
       projectVersion: app.getVersion(),
+      configFileMode: 0o666,
     } as ElectronStore.Options<PersistableValues>);
   }
 

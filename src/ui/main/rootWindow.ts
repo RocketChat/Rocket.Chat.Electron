@@ -54,7 +54,8 @@ export const getRootWindow = (): Promise<BrowserWindow> =>
     });
   });
 
-const platformTitleBarStyle = process.platform === 'darwin' ? 'hidden' : 'default';
+const platformTitleBarStyle =
+  process.platform === 'darwin' ? 'hidden' : 'default';
 
 export const createRootWindow = (): void => {
   _rootWindow = new BrowserWindow({

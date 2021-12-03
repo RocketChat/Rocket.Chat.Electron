@@ -582,6 +582,7 @@ const createHelpMenu = createSelector(
       {
         id: 'toggleDevTools',
         label: t('menus.toggleDevTools'),
+        accelerator: 'CommandOrControl+Shift+D',
         click: async () => {
           const browserWindow = await getRootWindow();
 

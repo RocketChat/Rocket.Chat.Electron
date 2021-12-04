@@ -144,8 +144,13 @@
         "description": "A hibák névtelenül történő jelentése a fejlesztőknek. A megosztott információk az alkalmazás verziószámát, az operációs rendszer típusát, a kiszolgáló URL-ét, az eszköz nyelvét és a hiba típusát tartalmazzák. Tartalom vagy felhasználónevek nem kerülnek megosztásra."
       },
       "flashFrame": {
-        "title": "Keret felvillantásának engedélyezése",
-        "description": "A keretfelvillantás beállításainak leírásának…"
+        "title": "Keret villogtatásának engedélyezése",
+        "description": "Villogtatja az ablakot, hogy felhívja a felhasználó figyelmét.",
+        "onLinux": "Egyes Linux disztribúciók nem támogatják ezt a funkciót."
+      },
+      "internalVideoChatWindow": {
+        "title": "Videocsevegés megnyitása alkalmazásablak használatával",
+        "description": "Ha be van állítva, akkor a videocsevegés egy alkalmazás ablakával nyílik meg, egyébként az alapértelmezett böngésző lesz használva."
       }
     }
   },
@@ -223,7 +228,9 @@
     "item": {
       "reload": "Kiszolgáló újratöltése",
       "remove": "Kiszolgáló eltávolítása",
-      "openDevTools": "Fejlesztői eszközök megnyitása"
+      "openDevTools": "Fejlesztői eszközök megnyitása",
+      "clearCache": "Gyorsítótár törlése",
+      "clearStorageData": "Tárolóadatok törlése"
     }
   },
   "touchBar": {

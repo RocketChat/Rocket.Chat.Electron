@@ -97,9 +97,6 @@
   "msi": {
     "artifactName": "rocketchat-setup-${version}.${ext}"
   },
-  "zip": {
-    "artifactName": "rocketchat-${os}-${version}.${ext}"
-  },
   "appx": {
     "backgroundColor": "#2f343d",
     "displayName": "Rocket.Chat",

@@ -55,6 +55,14 @@ export const ServerPane: FC<ServerPaneProps> = ({
     }
 
     const handleDidAttach = (): void => {
+
+      try {
+        webview.getWebContentsId();
+      } catch (e) {
+        setTimeout(handleDidAttach, 1000);
+        return;
+      }
+
       dispatch({
         type: WEBVIEW_ATTACHED,
         payload: {

@@ -55,7 +55,6 @@ export const ServerPane: FC<ServerPaneProps> = ({
     }
 
     const handleDidAttach = (): void => {
-
       try {
         webview.getWebContentsId();
       } catch (e) {

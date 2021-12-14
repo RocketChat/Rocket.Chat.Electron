@@ -493,7 +493,13 @@ const createWindowMenu = createSelector(
         label: t('menus.downloads'),
         checked: currentView === 'downloads',
         accelerator: 'CommandOrControl+D',
-        click: () => {
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
           dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
         },
       },
@@ -502,7 +508,13 @@ const createWindowMenu = createSelector(
         label: t('menus.settings'),
         checked: currentView === 'settings',
         accelerator: 'CommandOrControl+I',
-        click: () => {
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
           dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
         },
       },

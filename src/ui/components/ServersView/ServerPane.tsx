@@ -53,21 +53,34 @@ export const ServerPane: FC<ServerPaneProps> = ({
     if (!webview) {
       return;
     }
-
-    const handleDidAttach = (): void => {
-      dispatch({
-        type: WEBVIEW_ATTACHED,
-        payload: {
-          url: serverUrl,
-          webContentsId: webview.getWebContentsId(),
-        },
+    let step = false;
+    const addEventListenerOnce = (
+      e: 'did-attach' | 'dom-ready',
+      cb: () => void
+    ): void => {
+      webview.addEventListener(e, () => {
+        cb();
+        webview.removeEventListener(e, cb);
       });
     };
 
-    webview.addEventListener('did-attach', handleDidAttach);
+    const handleAttachReady = (): void => {
+      step &&
+        dispatch({
+          type: WEBVIEW_ATTACHED,
+          payload: {
+            url: serverUrl,
+            webContentsId: webview.getWebContentsId(),
+          },
+        });
+      step = true;
+    };
+    addEventListenerOnce('did-attach', handleAttachReady);
+    addEventListenerOnce('dom-ready', handleAttachReady);
 
     return () => {
-      webview.removeEventListener('did-attach', handleDidAttach);
+      webview.removeEventListener('did-attach', handleAttachReady);
+      webview.removeEventListener('dom-ready', handleAttachReady);
     };
   }, [dispatch, serverUrl]);
 

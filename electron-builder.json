@@ -61,7 +61,8 @@
   "win": {
     "target": [
       "nsis",
-      "msi"
+      "msi",
+      "zip"
     ],
     "icon": "build/icon.ico",
     "publisherName": "Sectigo RSA Code Signing CA",

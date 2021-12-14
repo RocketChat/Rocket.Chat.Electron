@@ -8,8 +8,5 @@ export const packOnWindows = async (): Promise<void> => {
     CSC_KEY_PASSWORD: core.getInput('win_csc_key_password'),
   });
 
-  await runElectronBuilder(`--x64 --ia32 --win appx`, {
-    CSC_LINK: core.getInput('win_csc_link'),
-    CSC_KEY_PASSWORD: core.getInput('win_csc_key_password'),
-  });
+  await runElectronBuilder(`--x64 --ia32 --win appx`);
 };

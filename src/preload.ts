@@ -24,26 +24,14 @@ declare global {
   }
 }
 
-const start = async (): Promise<void> => {
-  const serverUrl = await invoke('server-view/get-url');
+console.log('[Rocket.Chat Desktop] Preload.ts');
 
-  contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
-
-  if (!serverUrl) {
-    return;
-  }
-
-  contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
-
-  setServerUrl(serverUrl);
-
-  await whenReady();
-
-  await createRendererReduxStore();
-
-  await invoke('server-view/ready');
-
+const startWithServerInfo = async (): Promise<void> => {
   if (!serverInfo) {
+    console.log('[Rocket.Chat Desktop] serverInfo is not defined');
+    console.log("Breaking here because it's not possible to continue");
+    console.log('Retry in 1 seconds');
+    setTimeout(startWithServerInfo, 1000);
     return;
   }
 
@@ -62,6 +50,32 @@ const start = async (): Promise<void> => {
   listenToScreenSharingRequests();
   listenToMessageBoxEvents();
   handleTrafficLightsSpacing();
+};
+
+const start = async (): Promise<void> => {
+  const serverUrl = await invoke('server-view/get-url');
+
+  if (!serverUrl) {
+    console.log('[Rocket.Chat Desktop] serverUrl is not defined');
+    console.log('[Rocket.Chat Desktop] Preload start - retrying in 1 seconds');
+    setTimeout(start, 1000);
+    return;
+  }
+
+  console.log('[Rocket.Chat Desktop] serverUrl:', serverUrl);
+
+  contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
+  contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
+
+  setServerUrl(serverUrl);
+
+  await whenReady();
+
+  await createRendererReduxStore();
+
+  await invoke('server-view/ready');
+
+  startWithServerInfo();
 };
 
 start();

@@ -39,6 +39,8 @@ const start = async (): Promise<void> => {
 
   await invoke('server-view/ready');
 
+  window.removeEventListener('load', start);
+
   RocketChatDesktop.onReady(() => {
     listen(
       WEBVIEW_DID_NAVIGATE,

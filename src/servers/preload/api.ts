@@ -43,7 +43,7 @@ export type RocketChatDesktopAPI = {
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
-  onReady: (c) => (cb = c),
+  onReady: (c) => { cb = c },
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
     cb(_serverInfo);

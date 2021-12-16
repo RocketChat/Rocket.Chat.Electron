@@ -4,10 +4,7 @@ import { invoke } from './ipc/renderer';
 import { JitsiMeetElectron, JitsiMeetElectronAPI } from './jitsi/preload';
 import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
-import {
-  RocketChatDesktop,
-  RocketChatDesktopAPI,
-} from './servers/preload/api';
+import { RocketChatDesktop, RocketChatDesktopAPI } from './servers/preload/api';
 import { setServerUrl } from './servers/preload/urls';
 import { createRendererReduxStore, listen } from './store';
 import { WEBVIEW_DID_NAVIGATE } from './ui/actions';
@@ -59,6 +56,6 @@ const start = async (): Promise<void> => {
     listenToMessageBoxEvents();
     handleTrafficLightsSpacing();
   });
-}
+};
 
 window.addEventListener('load', start);

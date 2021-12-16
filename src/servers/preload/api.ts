@@ -16,8 +16,10 @@ type ServerInfo = {
 };
 
 export let serverInfo: ServerInfo;
+let cb = (_serverInfo: ServerInfo): void => undefined;
 
 export type RocketChatDesktopAPI = {
+  onReady: (cb: (serverInfo: ServerInfo) => void) => void;
   setServerInfo: (serverInfo: ServerInfo) => void;
   setUrlResolver: (getAbsoluteUrl: (relativePath?: string) => string) => void;
   setBadge: (badge: Server['badge']) => void;
@@ -41,8 +43,10 @@ export type RocketChatDesktopAPI = {
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
+  onReady: (c) => (cb = c),
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
+    cb(_serverInfo);
   },
   setUrlResolver,
   setBadge,

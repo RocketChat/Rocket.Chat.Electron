@@ -91,8 +91,12 @@ export const mergePersistableValues = async (
         !(userRootWindowState.isMinimized || userRootWindowState.isMaximized) ??
         values?.rootWindowState?.normal,
       bounds: {
-        x: userRootWindowState.x ?? values?.rootWindowState?.bounds?.x,
-        y: userRootWindowState.y ?? values?.rootWindowState?.bounds?.y,
+        x:
+          userRootWindowState.x ??
+          parseInt(String(values?.rootWindowState?.bounds?.x)),
+        y:
+          userRootWindowState.y ??
+          parseInt(String(values?.rootWindowState?.bounds?.y)),
         width:
           userRootWindowState.width ?? values?.rootWindowState?.bounds?.width,
         height:

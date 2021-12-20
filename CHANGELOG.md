@@ -1,3 +1,13 @@
+## [3.7.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.7.0...3.7.1) (2021-12-20)
+
+
+### Bug Fixes
+
+* add Windows zip to releases and fix Windows architecture switching on release ([#2258](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2258)) ([a67818e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/a67818e7fea9f93c6b2e45873981547babca4ede))
+* Run menu bar event listeners asynchronously ([#2254](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2254)) ([d99352a](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d99352afde37494910a9509e026c9fdf86aef18d))
+
+
+
 # [3.7.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.6.0...3.7.0) (2021-11-30)
 
 

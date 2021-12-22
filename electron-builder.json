@@ -65,7 +65,7 @@
       "zip"
     ],
     "icon": "build/icon.ico",
-    "publisherName": "Sectigo RSA Code Signing CA",
+    "publisherName": "Rocket.Chat Technologies Corp.",
     "legalTrademarks": "",
     "verifyUpdateCodeSignature": true,
     "requestedExecutionLevel": "asInvoker",

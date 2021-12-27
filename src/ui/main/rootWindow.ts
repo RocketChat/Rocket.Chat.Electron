@@ -148,7 +148,7 @@ const fetchRootWindowState = async (): Promise<
     visible: browserWindow.isVisible(),
     maximized: browserWindow.isMaximized(),
     minimized: browserWindow.isMinimized(),
-    fullscreen: browserWindow.isFullScreen(),
+    fullscreen: false, // browserWindow.isFullScreen(),
     normal: browserWindow.isNormal(),
     bounds: browserWindow.getNormalBounds(),
   };
@@ -236,13 +236,13 @@ export const setupRootWindow = (): void => {
       rootWindow.flashFrame(false);
     });
 
-    rootWindow.addListener('close', async () => {
-      if (rootWindow.isFullScreen()) {
-        await new Promise((resolve) =>
-          rootWindow.once('leave-full-screen', resolve)
-        );
-        rootWindow.setFullScreen(false);
-      }
+    rootWindow.addListener('close', () => {
+      // if (rootWindow.isFullScreen()) {
+      //   await new Promise((resolve) =>
+      //     rootWindow.once('leave-full-screen', resolve)
+      //   );
+      //   rootWindow.setFullScreen(false);
+      // }
 
       rootWindow.blur();
 

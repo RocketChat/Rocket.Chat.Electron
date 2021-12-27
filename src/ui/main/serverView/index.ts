@@ -161,8 +161,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     delete webPreferences.enableBlinkFeatures;
     webPreferences.preload = path.join(app.getAppPath(), 'app/preload.js');
     webPreferences.nodeIntegration = false;
-    webPreferences.nodeIntegrationInWorker = true;
-    webPreferences.nodeIntegrationInSubFrames = true;
+    webPreferences.nodeIntegrationInWorker = false;
+    webPreferences.nodeIntegrationInSubFrames = false;
     webPreferences.webSecurity = true;
     webPreferences.contextIsolation = true;
     webPreferences.nativeWindowOpen = true;

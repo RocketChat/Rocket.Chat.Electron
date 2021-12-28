@@ -33,7 +33,6 @@ const start = (): void => {
   const { getUserPreference } = window.require('/app/utils');
 
   window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
-  window.RocketChatDesktop.setJitsiDomain(settings.get('Jitsi_Domain'));
 
   Tracker.autorun(() => {
     const unread = Session.get('unread');
@@ -104,7 +103,8 @@ const start = (): void => {
 
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
-    implements Notification {
+    implements Notification
+  {
     static readonly permission: NotificationPermission = 'granted';
 
     static readonly maxActions: number =

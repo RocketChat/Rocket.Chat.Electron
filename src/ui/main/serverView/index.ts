@@ -214,10 +214,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           show: false,
         });
 
-        const isJitsiDomain = new URL(url).hostname === jitsiDomain;
-
         // create a new window without inheriting the root window's settings to open Jitsi
-        if (isJitsiDomain) {
+        if (frameName === 'Jitsi Meet') {
           newWindow = new BrowserWindow({
             webPreferences: {
               preload: path.join(app.getAppPath(), 'app/preload.js'),
@@ -244,8 +242,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           newWindow.loadURL(url, {
             userAgent: isGoogleSignIn
               ? app.userAgentFallback
-                  .replace(`Electron/${process.versions.electron} `, '')
-                  .replace(`${app.name}/${app.getVersion()} `, '')
+                .replace(`Electron/${process.versions.electron} `, '')
+                .replace(`${app.name}/${app.getVersion()} `, '')
               : app.userAgentFallback,
             httpReferrer: referrer,
             ...(postBody && {

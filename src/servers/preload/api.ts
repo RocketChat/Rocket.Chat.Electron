@@ -16,11 +16,13 @@ type ServerInfo = {
 };
 
 export let serverInfo: ServerInfo;
+export let jitsiDomain: string;
 let cb = (_serverInfo: ServerInfo): void => undefined;
 
 export type RocketChatDesktopAPI = {
   onReady: (cb: (serverInfo: ServerInfo) => void) => void;
   setServerInfo: (serverInfo: ServerInfo) => void;
+  setJitsiDomain: (jitsiDomain: string) => void;
   setUrlResolver: (getAbsoluteUrl: (relativePath?: string) => string) => void;
   setBadge: (badge: Server['badge']) => void;
   setFavicon: (faviconUrl: string) => void;
@@ -49,6 +51,9 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
     cb(_serverInfo);
+  },
+  setJitsiDomain: (_jitsiDomain) => {
+    jitsiDomain = _jitsiDomain;
   },
   setUrlResolver,
   setBadge,

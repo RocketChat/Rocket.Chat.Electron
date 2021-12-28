@@ -26,6 +26,7 @@ import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
 import { Server } from '../../../servers/common';
+import { jitsiDomain } from '../../../servers/preload/api';
 import { dispatch, listen, select } from '../../../store';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
@@ -208,10 +209,22 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
-        const newWindow = new BrowserWindow({
+        let newWindow = new BrowserWindow({
           ...options,
           show: false,
         });
+
+        const isJitsiDomain = new URL(url).hostname === jitsiDomain;
+
+        // create a new window without inheriting the root window's settings to open Jitsi
+        if (isJitsiDomain) {
+          newWindow = new BrowserWindow({
+            webPreferences: {
+              preload: path.join(app.getAppPath(), 'app/preload.js'),
+            },
+            show: false,
+          });
+        }
 
         newWindow.once('ready-to-show', () => {
           newWindow.show();
@@ -231,8 +244,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           newWindow.loadURL(url, {
             userAgent: isGoogleSignIn
               ? app.userAgentFallback
-                  .replace(`Electron/${process.versions.electron} `, '')
-                  .replace(`${app.name}/${app.getVersion()} `, '')
+                .replace(`Electron/${process.versions.electron} `, '')
+                .replace(`${app.name}/${app.getVersion()} `, '')
               : app.userAgentFallback,
             httpReferrer: referrer,
             ...(postBody && {

@@ -217,7 +217,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
                   preload: path.join(app.getAppPath(), 'app/preload.js'),
                 },
               }
-            : { ...options }),
+            : options),
           show: false,
         });
 

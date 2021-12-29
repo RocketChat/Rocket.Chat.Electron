@@ -208,20 +208,18 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
-        let newWindow = new BrowserWindow({
-          ...options,
+        const isJitsiMeet = frameName === 'Jitsi Meet';
+
+        const newWindow = new BrowserWindow({
+          ...(isJitsiMeet
+            ? {
+                webPreferences: {
+                  preload: path.join(app.getAppPath(), 'app/preload.js'),
+                },
+              }
+            : { ...options }),
           show: false,
         });
-
-        // create a new window without inheriting the root window's settings to open Jitsi
-        if (frameName === 'Jitsi Meet') {
-          newWindow = new BrowserWindow({
-            webPreferences: {
-              preload: path.join(app.getAppPath(), 'app/preload.js'),
-            },
-            show: false,
-          });
-        }
 
         newWindow.once('ready-to-show', () => {
           newWindow.show();

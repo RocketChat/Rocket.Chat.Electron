@@ -244,7 +244,7 @@ export const setupRootWindow = (): void => {
       //   rootWindow.setFullScreen(false);
       // }
 
-      rootWindow.blur();
+      if (process.platform !== 'linux') rootWindow.blur();
 
       const isTrayIconEnabled = select(
         ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true

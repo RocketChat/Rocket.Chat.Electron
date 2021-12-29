@@ -208,8 +208,16 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
+        const isJitsiMeet = frameName === 'Jitsi Meet';
+
         const newWindow = new BrowserWindow({
-          ...options,
+          ...(isJitsiMeet
+            ? {
+                webPreferences: {
+                  preload: path.join(app.getAppPath(), 'app/preload.js'),
+                },
+              }
+            : options),
           show: false,
         });
 

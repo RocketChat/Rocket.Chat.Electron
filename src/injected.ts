@@ -59,7 +59,7 @@ const start = (): void => {
         url.includes(jitsiDomain) &&
         window.RocketChatDesktop.getInternalVideoChatWindowEnabled()
       ) {
-        return open(url, name, `scrollbars=true,${features}`);
+        return open(url, 'Jitsi Meet', `scrollbars=true,${features}`);
       }
 
       return open(url, name, features);

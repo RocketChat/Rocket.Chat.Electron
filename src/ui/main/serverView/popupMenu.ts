@@ -8,6 +8,7 @@ import {
 } from 'electron';
 import i18next from 'i18next';
 
+import { isProtocolAllowed } from '../../../navigation/main';
 import {
   SPELL_CHECKING_LANGUAGE_TOGGLED,
   SPELL_CHECKING_TOGGLED,
@@ -136,7 +137,15 @@ const createLinkMenuTemplate = (
     ? [
         {
           label: t('contextMenu.openLink'),
-          click: () => shell.openExternal(linkURL),
+          click: () => {
+            isProtocolAllowed(linkURL).then((allowed) => {
+              if (!allowed) {
+                return;
+              }
+
+              shell.openExternal(linkURL);
+            });
+          },
         },
         {
           label: t('contextMenu.copyLinkText'),

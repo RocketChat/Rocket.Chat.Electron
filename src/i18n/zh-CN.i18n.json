@@ -12,7 +12,8 @@
     "copyLinkAddress": "复制链接URL",
     "copyLinkText": "复制链接文字",
     "openLink": "打开链接",
-    "saveImageAs": "保存图片..."
+    "saveImageAs": "保存图片...",
+    "copyImage": "复制图片"
   },
   "dialog": {
     "about": {

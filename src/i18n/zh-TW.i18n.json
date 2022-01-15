@@ -12,7 +12,8 @@
     "copyLinkAddress": "複製連結",
     "copyLinkText": "複製連結文字",
     "openLink": "開啟連結",
-    "saveImageAs": "儲存影像為..."
+    "saveImageAs": "儲存影像為...",
+    "copyImage": "複製影像"
   },
   "dialog": {
     "about": {

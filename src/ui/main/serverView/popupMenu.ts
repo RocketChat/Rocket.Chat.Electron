@@ -127,7 +127,7 @@ const createImageMenuTemplate = (
         },
         {
           label: t('contextMenu.copyImage'),
-          click: () => serverViewWebContents.copyImageAt(x, y)
+          click: () => serverViewWebContents.copyImageAt(x, y),
         },
         { type: 'separator' },
       ]

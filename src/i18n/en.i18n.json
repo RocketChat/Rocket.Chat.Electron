@@ -13,7 +13,8 @@
     "copyLinkAddress": "Copy link address",
     "copyLinkText": "Copy link text",
     "openLink": "Open link",
-    "saveImageAs": "Save image as..."
+    "saveImageAs": "Save image as...",
+    "copyImage": "Copy image"
   },
   "dialog": {
     "about": {

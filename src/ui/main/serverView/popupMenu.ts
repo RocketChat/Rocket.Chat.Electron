@@ -117,13 +117,17 @@ const createSpellCheckingMenuTemplate = (
 
 const createImageMenuTemplate = (
   serverViewWebContents: WebContents,
-  { mediaType, srcURL }: ContextMenuParams
+  { mediaType, srcURL, x, y }: ContextMenuParams
 ): MenuItemConstructorOptions[] =>
   mediaType === 'image'
     ? [
         {
           label: t('contextMenu.saveImageAs'),
           click: () => serverViewWebContents.downloadURL(srcURL),
+        },
+        {
+          label: t('contextMenu.copyImage'),
+          click: () => serverViewWebContents.copyImageAt(x, y)
         },
         { type: 'separator' },
       ]

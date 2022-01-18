@@ -82,6 +82,58 @@
       "ok": "好"
     }
   },
+  "downloads": {
+    "title": "下载",
+    "filters": {
+      "search": "搜索",
+      "server": "服务器",
+      "mimeType": "类型",
+      "status": "状态",
+      "clear": "清除筛选器",
+      "all": "全部",
+      "mimes": {
+        "images": "图片",
+        "videos": "视频",
+        "audios": "音频",
+        "texts": "文本",
+        "files": "文件"
+      },
+      "statuses": {
+        "paused": "已暂停",
+        "cancelled": "已取消"
+      }
+    },
+    "item": {
+      "cancel": "取消",
+      "copyLink": "复制链接",
+      "errored": "下载已取消",
+      "pause": "暂停",
+      "progressSize": "{{receivedBytes, byteSize}} of {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "从列表中删除",
+      "resume": "暂停",
+      "retry": "重试",
+      "showInFolder": "在文件夹中显示"
+    },
+    "showingResults": "显示{{count}}个中的第{{first}} - {{last}}个"
+  },
+  "settings": {
+    "title": "设置",
+    "options": {
+      "report": {
+        "title": "向开发者报告错误",
+        "description": "匿名向开发者报告错误。会发送包括程序版本号、操作系统类型、服务器地址、设备语言和错误类型。不会发送聊天内容和用户名等信息。"
+      },
+      "flashFrame": {
+        "title": "允许闪屏",
+        "description": "使用闪屏来吸引用户的注意。",
+        "onLinux": "在一些Linux系统上这个功能不可用。"
+      },
+      "internalVideoChatWindow": {
+        "title": "在程序窗口中打开视频通话",
+        "description": "视频通话会在程序窗口中打开，否则会在默认的浏览器窗口中打开。"
+      }
+    }
+  },
   "error": {
     "authNeeded": "需要验证，请重新验证 <strong>{{- auth}}</strong>",
     "connectTimeout": "连接超时",
@@ -103,7 +155,10 @@
     "close": "关闭",
     "copy": "复制 (&C)",
     "cut": "剪切 (&T)",
+    "disableGpu": "禁用GPU",
     "documentation": "文件",
+    "downloads": "下载",
+    "settings": "设置",
     "editMenu": "编辑 (&E)",
     "fileMenu": "文件 (&F)",
     "forward": "下一步 (&F)",
@@ -112,7 +167,7 @@
     "minimize": "最小化",
     "openDevTools": "开启开发工具 (&D)",
     "paste": "粘贴 (&P)",
-    "quit": "结束 (&Q) {{- appName}}",
+    "quit": "结束(&Q){{- appName}}",
     "redo": "重做 (&R)",
     "reload": "重新载入 (&R)",
     "reloadIgnoringCache": "忽略缓存并重新加载",
@@ -139,10 +194,14 @@
   },
   "sidebar": {
     "addNewServer": "新增服务器",
+    "downloads": "下载",
+    "settings": "设置",
     "item": {
       "reload": "重新载入服务器",
       "remove": "移除服务器",
-      "openDevTools": "开启开发工具"
+      "openDevTools": "开启开发工具",
+      "clearCache": "清除缓存",
+      "clearStorageData": "清除存储数据"
     }
   },
   "touchBar": {

@@ -29,6 +29,8 @@ const start = async (): Promise<void> => {
     return;
   }
 
+  window.removeEventListener('load', start);
+
   contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
   setServerUrl(serverUrl);
@@ -38,8 +40,6 @@ const start = async (): Promise<void> => {
   await createRendererReduxStore();
 
   await invoke('server-view/ready');
-
-  window.removeEventListener('load', start);
 
   RocketChatDesktop.onReady(() => {
     listen(

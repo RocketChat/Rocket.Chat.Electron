@@ -2,8 +2,6 @@ import path from 'path';
 
 import { app } from 'electron';
 
-import { Server } from '../../servers/common';
-
 export const getAppIconPath = ({
   platform,
 }: {
@@ -16,46 +14,37 @@ export const getAppIconPath = ({
   return `${app.getAppPath()}/app/images/icon.ico`;
 };
 
-const getMacOSTrayIconPath = (badge: Server['badge']): string =>
+const getMacOSTrayIconPath = (visible: boolean): string =>
   path.join(
     app.getAppPath(),
-    `app/images/tray/darwin/${badge ? 'notification' : 'default'}Template.png`
+    `app/images/tray/darwin/${visible ? 'defaultTemplate' : 'invisible'}.png`
   );
 
-const getWindowsTrayIconPath = (badge: Server['badge']): string => {
-  const name =
-    (!badge && 'default') ||
-    (badge === '•' && 'notification-dot') ||
-    (typeof badge === 'number' && badge > 9 && 'notification-plus-9') ||
-    `notification-${badge}`;
+const getWindowsTrayIconPath = (visible: boolean): string => {
+  const name = visible ? 'default' : 'invisible';
   return path.join(app.getAppPath(), `app/images/tray/win32/${name}.ico`);
 };
 
-const getLinuxTrayIconPath = (badge: Server['badge']): string => {
-  const name =
-    (!badge && 'default') ||
-    (badge === '•' && 'notification-dot') ||
-    (typeof badge === 'number' && badge > 9 && 'notification-plus-9') ||
-    `notification-${badge}`;
-  return path.join(app.getAppPath(), `app/images/tray/linux/${name}.png`);
+const getLinuxTrayIconPath = (visible: boolean): string => {
+  return path.join(app.getAppPath(),`app/images/tray/linux/${visible ? 'default' : 'invisible'}.png`);
 };
 
 export const getTrayIconPath = ({
-  badge,
   platform,
+  visible,
 }: {
-  badge?: Server['badge'];
   platform: NodeJS.Platform;
+  visible: boolean;
 }): string => {
   switch (platform ?? process.platform) {
     case 'darwin':
-      return getMacOSTrayIconPath(badge);
+      return getMacOSTrayIconPath(visible);
 
     case 'win32':
-      return getWindowsTrayIconPath(badge);
+      return getWindowsTrayIconPath(visible);
 
     case 'linux':
-      return getLinuxTrayIconPath(badge);
+      return getLinuxTrayIconPath(visible);
 
     default:
       throw Error(`unsupported platform (${platform})`);

@@ -9,6 +9,7 @@ import { getTrayIconPath, getAppIconPath } from './icons';
 import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
+let blinkTimer: ReturnType<typeof setInterval> | null = null;
 
 const selectIsRootWindowVisible = ({
   rootWindowState: { visible },
@@ -17,7 +18,7 @@ const selectIsRootWindowVisible = ({
 const createTrayIcon = (): Tray => {
   const image = getTrayIconPath({
     platform: process.platform,
-    badge: undefined,
+    visible: true,
   });
 
   const trayIcon = new Tray(nativeImage.createEmpty());
@@ -58,11 +59,30 @@ const createTrayIcon = (): Tray => {
 };
 
 const updateTrayIconImage = (trayIcon: Tray, badge: Server['badge']): void => {
-  const image = getTrayIconPath({
-    platform: process.platform,
-    badge,
-  });
-  trayIcon.setImage(nativeImage.createFromPath(image));
+  if (badge && badge > 0) {
+    if (blinkTimer) {
+      clearInterval(blinkTimer);
+    }
+
+    let count = 0;
+    blinkTimer = setInterval(() => {
+      count++;
+      if (count % 2 == 0) {
+        const imageEmpty = getTrayIconPath({ platform: process.platform, visible: false });
+        trayIcon.setImage(nativeImage.createFromPath(imageEmpty));
+      } else {
+        const imageDefault = getTrayIconPath({ platform: process.platform, visible: true });
+        trayIcon.setImage(nativeImage.createFromPath(imageDefault));
+      }
+    }, 500)
+  } else {
+		if (blinkTimer) {
+			clearInterval(blinkTimer);
+			blinkTimer = null;
+		}
+    const image = getTrayIconPath({ platform: process.platform, visible: true });
+    trayIcon.setImage(nativeImage.createFromPath(image));
+  }
 };
 
 const updateTrayIconTitle = (

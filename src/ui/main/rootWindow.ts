@@ -290,7 +290,7 @@ export const setupRootWindow = (): void => {
             nativeImage.createFromPath(
               getTrayIconPath({
                 platform: process.platform,
-                badge: globalBadge,
+                visible: true,
               })
             )
           );

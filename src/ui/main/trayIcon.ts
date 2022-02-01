@@ -67,20 +67,29 @@ const updateTrayIconImage = (trayIcon: Tray, badge: Server['badge']): void => {
     let count = 0;
     blinkTimer = setInterval(() => {
       count++;
-      if (count % 2 == 0) {
-        const imageEmpty = getTrayIconPath({ platform: process.platform, visible: false });
+      if (count % 2 === 0) {
+        const imageEmpty = getTrayIconPath({
+          platform: process.platform,
+          visible: false,
+        });
         trayIcon.setImage(nativeImage.createFromPath(imageEmpty));
       } else {
-        const imageDefault = getTrayIconPath({ platform: process.platform, visible: true });
+        const imageDefault = getTrayIconPath({
+          platform: process.platform,
+          visible: true,
+        });
         trayIcon.setImage(nativeImage.createFromPath(imageDefault));
       }
-    }, 500)
+    }, 500);
   } else {
-		if (blinkTimer) {
-			clearInterval(blinkTimer);
-			blinkTimer = null;
-		}
-    const image = getTrayIconPath({ platform: process.platform, visible: true });
+    if (blinkTimer) {
+      clearInterval(blinkTimer);
+      blinkTimer = null;
+    }
+    const image = getTrayIconPath({
+      platform: process.platform,
+      visible: true,
+    });
     trayIcon.setImage(nativeImage.createFromPath(image));
   }
 };

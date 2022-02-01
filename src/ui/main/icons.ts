@@ -25,9 +25,11 @@ const getWindowsTrayIconPath = (visible: boolean): string => {
   return path.join(app.getAppPath(), `app/images/tray/win32/${name}.ico`);
 };
 
-const getLinuxTrayIconPath = (visible: boolean): string => {
-  return path.join(app.getAppPath(),`app/images/tray/linux/${visible ? 'default' : 'invisible'}.png`);
-};
+const getLinuxTrayIconPath = (visible: boolean): string =>
+  path.join(
+    app.getAppPath(),
+    `app/images/tray/linux/${visible ? 'default' : 'invisible'}.png`
+  );
 
 export const getTrayIconPath = ({
   platform,

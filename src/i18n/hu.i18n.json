@@ -13,7 +13,8 @@
     "copyLinkAddress": "Hivatkozás címének másolása",
     "copyLinkText": "Hivatkozás szövegének másolása",
     "openLink": "Hivatkozás megnyitása",
-    "saveImageAs": "Kép mentése másként…"
+    "saveImageAs": "Kép mentése másként…",
+    "copyImage": "Kép másolása"
   },
   "dialog": {
     "about": {

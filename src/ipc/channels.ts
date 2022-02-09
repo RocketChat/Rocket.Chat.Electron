@@ -21,6 +21,9 @@ type ChannelToArgsMap = {
   'downloads/remove': (itemId: Download['itemId']) => void;
   'server-view/get-url': () => Server['url'] | undefined;
   'server-view/ready': () => void;
+  'desktop-capturer-get-sources': (
+    options: Electron.SourcesOptions
+  ) => Electron.DesktopCapturerSource[];
 };
 
 export type Channel = keyof ChannelToArgsMap;

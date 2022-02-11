@@ -18,8 +18,7 @@ export const handleDesktopCapturerGetSources = () => {
       const askResult = await isJitsiServerAllowed(opts[1]);
       permitted = askResult.allowed;
       dontAskAgain = askResult.dontAskAgain;
-    } else {
-      return [];
     }
+    return [];
   });
 };

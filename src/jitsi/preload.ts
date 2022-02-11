@@ -3,11 +3,12 @@ import {
   DesktopCapturerSource,
   NativeImage,
   ipcRenderer,
+  DesktopCapturer,
 } from 'electron';
 
 const jitsiDomain = window.location.origin;
 
-const desktopCapturer = {
+const desktopCapturer: DesktopCapturer = {
   getSources: (opts: SourcesOptions) =>
     ipcRenderer.invoke('desktop-capturer-get-sources', [opts, jitsiDomain]),
 };

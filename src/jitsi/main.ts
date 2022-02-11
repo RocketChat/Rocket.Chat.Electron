@@ -4,18 +4,18 @@ import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSION_UPDATED } from './actions';
 
 export const isJitsiServerAllowed = async (
   rawUrl: string
-): Promise<boolean> => {
+): Promise<{
+  allowed: boolean;
+  dontAskAgain: boolean;
+}> => {
   const url = new URL(rawUrl);
 
   const persistedServers = Object.entries(
     select(({ allowedJitsiServers }) => allowedJitsiServers)
-  )
-    .filter(([, allowed]) => allowed)
-    .map(([server]) => server);
-  const allowedServers = [...persistedServers];
+  ).filter(([key]) => key === url.host);
 
-  if (allowedServers.includes(url.hostname)) {
-    return true;
+  if (persistedServers.length) {
+    return { allowed: persistedServers[0][1], dontAskAgain: true };
   }
 
   const { allowed, dontAskAgain } = await askForJitsiCaptureScreenPermission(
@@ -32,5 +32,5 @@ export const isJitsiServerAllowed = async (
     });
   }
 
-  return allowed;
+  return { allowed, dontAskAgain };
 };

@@ -5,7 +5,7 @@ import {
   ipcRenderer,
 } from 'electron';
 
-const jitsiDomain = window.location.host;
+const jitsiDomain = window.location.origin;
 
 const desktopCapturer = {
   getSources: (opts: SourcesOptions) =>

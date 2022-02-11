@@ -5,9 +5,11 @@ import {
   ipcRenderer,
 } from 'electron';
 
+const jitsiDomain = window.location.host;
+
 const desktopCapturer = {
   getSources: (opts: SourcesOptions) =>
-    ipcRenderer.invoke('desktop-capturer-get-sources', opts),
+    ipcRenderer.invoke('desktop-capturer-get-sources', [opts, jitsiDomain]),
 };
 
 export type JitsiMeetElectronAPI = {

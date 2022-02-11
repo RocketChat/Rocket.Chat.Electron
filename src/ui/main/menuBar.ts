@@ -1,4 +1,4 @@
-import { Menu, app, shell, MenuItemConstructorOptions } from 'electron';
+import { Menu, app, shell, MenuItemConstructorOptions, BrowserWindow } from 'electron';
 import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 
@@ -225,11 +225,15 @@ const createViewMenu = createSelector(
         accelerator:
           process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
         click: () => {
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
-          guestWebContents?.toggleDevTools();
+          // const guestWebContents =
+          //   typeof currentView === 'object'
+          //     ? getWebContentsByServerUrl(currentView.url)
+          //     : null;
+          // guestWebContents?.toggleDevTools();
+          const windows = BrowserWindow.getAllWindows();
+          windows.forEach((window) => {
+            window.webContents.toggleDevTools();
+          });
         },
       },
       { type: 'separator' },

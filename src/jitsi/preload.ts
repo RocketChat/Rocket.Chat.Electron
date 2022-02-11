@@ -25,7 +25,7 @@ export const JitsiMeetElectron: JitsiMeetElectronAPI = {
     try {
       const sources = (
         await desktopCapturer.getSources(options)
-      ).map<DesktopCapturerSource>((source) => ({
+      ).map<DesktopCapturerSource>((source: any) => ({
         id: source.id,
         name: source.name,
         display_id: source.display_id,

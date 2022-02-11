@@ -28,13 +28,13 @@ type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
 
 type RootActions = {
   [Type in keyof ActionTypeToPayloadMap]: void extends ActionTypeToPayloadMap[Type]
-  ? {
-    type: Type;
-  }
-  : {
-    type: Type;
-    payload: ActionTypeToPayloadMap[Type];
-  };
+    ? {
+        type: Type;
+      }
+    : {
+        type: Type;
+        payload: ActionTypeToPayloadMap[Type];
+      };
 };
 
 export type ActionOf<Type extends keyof RootActions> = RootActions[Type];

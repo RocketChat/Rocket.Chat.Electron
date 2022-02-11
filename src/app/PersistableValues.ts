@@ -8,6 +8,7 @@ type PersistableValues_0_0_0 = {
   currentServerUrl: string;
   currentView: 'add-new-server' | null;
   doCheckForUpdatesOnStartup: boolean;
+  allowedJitsiServers: Record<string, boolean>;
   externalProtocols: Record<string, boolean>;
   isEachUpdatesSettingConfigurable: boolean;
   isMenuBarEnabled: boolean;
@@ -26,10 +27,10 @@ type PersistableValues_3_1_0 = Omit<
   'currentServerUrl' | 'currentView'
 > & {
   currentView?:
-    | Exclude<PersistableValues_0_0_0['currentView'], null>
-    | { url: string }
-    | 'downloads'
-    | 'settings';
+  | Exclude<PersistableValues_0_0_0['currentView'], null>
+  | { url: string }
+  | 'downloads'
+  | 'settings';
   downloads?: Record<Download['itemId'], Download>;
 };
 type PersistableValues_3_5_0 = PersistableValues_3_1_0 & {

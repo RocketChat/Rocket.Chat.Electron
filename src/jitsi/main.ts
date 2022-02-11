@@ -1,45 +1,36 @@
-import { dispatch, listen } from '../store';
-import { ActionOf, RootAction } from '../store/actions';
-import { hasMeta, isResponseTo } from '../store/fsa';
-import {
-  WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
-  WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
-} from '../ui/actions';
-import { SCREEN_SHARING_DIALOG_DISMISSED } from './actions';
+import { dispatch, select } from '../store';
+import { askForJitsiCaptureScreenPermission } from '../ui/main/dialogs';
+import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSION_UPDATED } from './actions';
 
-export const setupScreenSharing = (): void => {
-  listen(WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, (requestAction) => {
-    if (!hasMeta(requestAction) || !requestAction.meta.id) {
-      return;
-    }
+export const isJitsiServerAllowed = async (
+  rawUrl: string
+): Promise<boolean> => {
+  const url = new URL(rawUrl);
 
-    const predicate = (
-      action: RootAction
-    ): action is
-      | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED>
-      | ActionOf<typeof SCREEN_SHARING_DIALOG_DISMISSED> =>
-      isResponseTo(
-        requestAction.meta.id,
-        WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
-        SCREEN_SHARING_DIALOG_DISMISSED
-      )(action);
+  const persistedServers = Object.entries(
+    select(({ allowedJitsiServers }) => allowedJitsiServers)
+  )
+    .filter(([, allowed]) => allowed)
+    .map(([server]) => server);
+  const allowedServers = [...persistedServers];
 
-    const unsubscribe = listen(predicate, (responseAction) => {
-      unsubscribe();
+  if (allowedServers.includes(url.hostname)) {
+    return true;
+  }
 
-      const sourceId =
-        responseAction.type === WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED
-          ? responseAction.payload
-          : null;
+  const { allowed, dontAskAgain } = await askForJitsiCaptureScreenPermission(
+    url
+  );
 
-      dispatch({
-        type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
-        payload: sourceId,
-        meta: {
-          response: true,
-          id: requestAction.meta?.id,
-        },
-      });
+  if (dontAskAgain) {
+    dispatch({
+      type: JITSI_SERVER_CAPTURE_SCREEN_PERMISSION_UPDATED,
+      payload: {
+        jitsiServer: url.hostname,
+        allowed,
+      },
     });
-  });
+  }
+
+  return allowed;
 };

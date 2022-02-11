@@ -2,6 +2,7 @@ import { AppActionTypeToPayloadMap } from '../app/actions';
 import { DeepLinksActionTypeToPayloadMap } from '../deepLinks/actions';
 import { DownloadsActionTypeToPayloadMap } from '../downloads/actions';
 import { I18nActionTypeToPayloadMap } from '../i18n/actions';
+import { JitsiServerActionTypeToPayloadMap } from '../jitsi/actions';
 import { NavigationActionTypeToPayloadMap } from '../navigation/actions';
 import { NotificationsActionTypeToPayloadMap } from '../notifications/actions';
 import { ScreenSharingActionTypeToPayloadMap } from '../screenSharing/actions';
@@ -15,6 +16,7 @@ type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
   DeepLinksActionTypeToPayloadMap &
   DownloadsActionTypeToPayloadMap &
   I18nActionTypeToPayloadMap &
+  JitsiServerActionTypeToPayloadMap &
   NavigationActionTypeToPayloadMap &
   NotificationsActionTypeToPayloadMap &
   ScreenSharingActionTypeToPayloadMap &
@@ -26,13 +28,13 @@ type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
 
 type RootActions = {
   [Type in keyof ActionTypeToPayloadMap]: void extends ActionTypeToPayloadMap[Type]
-    ? {
-        type: Type;
-      }
-    : {
-        type: Type;
-        payload: ActionTypeToPayloadMap[Type];
-      };
+  ? {
+    type: Type;
+  }
+  : {
+    type: Type;
+    payload: ActionTypeToPayloadMap[Type];
+  };
 };
 
 export type ActionOf<Type extends keyof RootActions> = RootActions[Type];

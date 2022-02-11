@@ -3,6 +3,7 @@ import { combineReducers } from 'redux';
 import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
 import { downloads } from '../downloads/reducers/downloads';
+import { allowedJitsiServers } from '../jitsi/reducers';
 import {
   clientCertificates,
   externalProtocols,
@@ -33,6 +34,7 @@ import {
 } from '../updates/reducers';
 
 export const rootReducer = combineReducers({
+  allowedJitsiServers,
   appPath,
   appVersion,
   clientCertificates,

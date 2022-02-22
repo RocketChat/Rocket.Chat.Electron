@@ -211,10 +211,10 @@ export const setupDeepLinks = (): void => {
 
     const browserWindow = await getRootWindow();
 
-    if (!browserWindow.isVisible()) {
+    if (browserWindow && !browserWindow.isVisible()) {
       browserWindow.showInactive();
     }
-    browserWindow.focus();
+    if (browserWindow) browserWindow.focus();
 
     const args = argv.slice(app.isPackaged ? 1 : 2);
 

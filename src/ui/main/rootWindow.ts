@@ -111,7 +111,7 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     return;
   }
 
-  if (Number.isInteger(width) && Number.isInteger(height)) {
+  if (browserWindow && Number.isInteger(width) && Number.isInteger(height)) {
     browserWindow.setBounds({
       width,
       height,
@@ -144,13 +144,13 @@ const fetchRootWindowState = async (): Promise<
 > => {
   const browserWindow = await getRootWindow();
   return {
-    focused: browserWindow.isFocused(),
-    visible: browserWindow.isVisible(),
-    maximized: browserWindow.isMaximized(),
-    minimized: browserWindow.isMinimized(),
-    fullscreen: false, // browserWindow.isFullScreen(),
-    normal: browserWindow.isNormal(),
-    bounds: browserWindow.getNormalBounds(),
+    focused: browserWindow && browserWindow.isFocused(),
+    visible: browserWindow && browserWindow.isVisible(),
+    maximized: browserWindow && browserWindow.isMaximized(),
+    minimized: browserWindow && browserWindow.isMinimized(),
+    fullscreen: browserWindow && browserWindow.isFullScreen(),
+    normal: browserWindow && browserWindow.isNormal(),
+    bounds: browserWindow && browserWindow.getNormalBounds(),
   };
 };
 
@@ -236,13 +236,13 @@ export const setupRootWindow = (): void => {
       rootWindow.flashFrame(false);
     });
 
-    rootWindow.addListener('close', () => {
-      // if (rootWindow.isFullScreen()) {
-      //   await new Promise((resolve) =>
-      //     rootWindow.once('leave-full-screen', resolve)
-      //   );
-      //   rootWindow.setFullScreen(false);
-      // }
+    rootWindow.addListener('close', async () => {
+      if (rootWindow && rootWindow.isFullScreen()) {
+        await new Promise((resolve) =>
+          rootWindow.once('leave-full-screen', resolve)
+        );
+        rootWindow.setFullScreen(false);
+      }
 
       if (process.platform !== 'linux') rootWindow.blur();
 

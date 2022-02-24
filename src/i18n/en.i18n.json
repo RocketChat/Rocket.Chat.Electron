@@ -101,6 +101,14 @@
       "dontAskAgain": "Always open these types of links in the associated app",
       "yes": "Yes",
       "no": "No"
+    },
+    "allowJitsiCaptureScreen": {
+      "title": "Jitsi is trying to capture your screen",
+      "message": "Jitsi is requesting permission to capture your screen.",
+      "detail": "Jitsi from the server {{- url }} requires permission in order to share your screen with others.",
+      "dontAskAgain": "Always allow Jitsi from this server to capture your screen",
+      "yes": "Allow",
+      "no": "Cancel"
     }
   },
   "downloads": {

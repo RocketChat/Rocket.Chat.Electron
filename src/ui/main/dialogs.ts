@@ -183,3 +183,35 @@ export const askForOpeningExternalProtocol = async (
     dontAskAgain: checkboxChecked,
   };
 };
+
+export const askForJitsiCaptureScreenPermission = async (
+  url: URL,
+  parentWindow?: BrowserWindow
+): Promise<{
+  allowed: boolean;
+  dontAskAgain: boolean;
+}> => {
+  const { response, checkboxChecked } = await dialog.showMessageBox(
+    parentWindow ?? (await getRootWindow()),
+    {
+      type: 'warning',
+      buttons: [
+        t('dialog.allowJitsiCaptureScreen.yes'),
+        t('dialog.allowJitsiCaptureScreen.no'),
+      ],
+      defaultId: 1,
+      title: t('dialog.allowJitsiCaptureScreen.title'),
+      message: t('dialog.allowJitsiCaptureScreen.message'),
+      detail: t('dialog.allowJitsiCaptureScreen.detail', {
+        url: url.toString(),
+      }),
+      checkboxLabel: t('dialog.allowJitsiCaptureScreen.dontAskAgain'),
+      checkboxChecked: false,
+    }
+  );
+
+  return {
+    allowed: response === 0,
+    dontAskAgain: checkboxChecked,
+  };
+};

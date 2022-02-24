@@ -25,6 +25,7 @@ export const selectPersistableValues = createStructuredSelector<
     isEachUpdatesSettingConfigurable,
   isUpdatingEnabled: ({ isUpdatingEnabled }) => isUpdatingEnabled,
   externalProtocols: ({ externalProtocols }) => externalProtocols,
+  allowedJitsiServers: ({ allowedJitsiServers }) => allowedJitsiServers,
   isReportEnabled: ({ isReportEnabled }) => isReportEnabled,
   isFlashFrameEnabled: ({ isFlashFrameEnabled }) => isFlashFrameEnabled,
   isInternalVideoChatWindowEnabled: ({ isInternalVideoChatWindowEnabled }) =>

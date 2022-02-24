@@ -8,6 +8,7 @@ type PersistableValues_0_0_0 = {
   currentServerUrl: string;
   currentView: 'add-new-server' | null;
   doCheckForUpdatesOnStartup: boolean;
+  allowedJitsiServers: Record<string, boolean>;
   externalProtocols: Record<string, boolean>;
   isEachUpdatesSettingConfigurable: boolean;
   isMenuBarEnabled: boolean;

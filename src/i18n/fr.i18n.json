@@ -9,7 +9,7 @@
     "spelling": "Orthographe",
     "spellingLanguages": "Langues d'orthographe",
     "moreSpellingSuggestions": "Plus de suggestions d'orthographe",
-    "noSpellingSuggestions": "Pas de suggestions",
+    "noSpellingSuggestions": "Aucunes suggestions",
     "copyLinkAddress": "Copier le lien",
     "copyLinkText": "Copier le texte du lien",
     "openLink": "Ouvrir le lien",
@@ -43,7 +43,7 @@
       "no": "Non"
     },
     "downloadRemoval": {
-      "title": "Etes-vous sûr ?",
+      "title": "Êtes-vous sûr ?",
       "message": "Supprimer ce téléchargement ?",
       "yes": "Oui",
       "no": "Non"

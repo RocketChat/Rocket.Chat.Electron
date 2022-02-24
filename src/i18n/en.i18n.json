@@ -104,11 +104,11 @@
     },
     "allowJitsiCaptureScreen": {
       "title": "Jitsi is trying to capture your screen",
-      "message": "Jitsi is requesting your permission to capture your screen.",
-      "detail": "You will need to allow this server to share with others your screen. The requester server is {{- url }} . Do you want to continue?",
+      "message": "Jitsi is requesting permission to capture your screen.",
+      "detail": "Jitsi from the server {{- url }} requires permission in order to share your screen with others.",
       "dontAskAgain": "Always allow Jitsi from this server to capture your screen",
-      "yes": "Yes",
-      "no": "No"
+      "yes": "Allow",
+      "no": "Cancel"
     }
   },
   "downloads": {

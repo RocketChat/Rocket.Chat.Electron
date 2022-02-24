@@ -1,9 +1,15 @@
 import {
-  desktopCapturer,
   SourcesOptions,
   DesktopCapturerSource,
   NativeImage,
+  ipcRenderer,
+  DesktopCapturer,
 } from 'electron';
+
+const desktopCapturer: DesktopCapturer = {
+  getSources: (opts: SourcesOptions) =>
+    ipcRenderer.invoke('desktop-capturer-get-sources', opts),
+};
 
 export type JitsiMeetElectronAPI = {
   obtainDesktopStreams: (
@@ -33,6 +39,7 @@ export const JitsiMeetElectron: JitsiMeetElectronAPI = {
       callback(sources);
     } catch (error) {
       error instanceof Error && errorCallback(error);
+      console.log(error);
     }
   },
 };

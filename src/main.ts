@@ -11,6 +11,7 @@ import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { setupDownloads } from './downloads/main';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
+import { handleDesktopCapturerGetSources } from './jitsi/ipc';
 import { setupNavigation } from './navigation/main';
 import { setupNotifications } from './notifications/main';
 import { setupScreenSharing } from './screenSharing/main';
@@ -85,6 +86,8 @@ const start = async (): Promise<void> => {
   });
 
   watchAndPersistChanges();
+
+  handleDesktopCapturerGetSources();
 
   await processDeepLinksInArgs();
 };

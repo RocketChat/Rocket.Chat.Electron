@@ -36,9 +36,9 @@ electronDl({ saveAs: true });
 const start = async (): Promise<void> => {
   setUserDataDirectory();
 
-  await app.whenReady();
-
   performElectronStartup();
+
+  await app.whenReady();
 
   createMainReduxStore();
 

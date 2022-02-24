@@ -6,13 +6,15 @@
     "selectAll": "&Selecionar tudo",
     "undo": "&Desfazer",
     "redo": "&Refazer",
+    "spelling": "Verificação ortográfica",
     "spellingLanguages": "Idiomas",
     "moreSpellingSuggestions": "Mais sugestões de grafia",
     "noSpellingSuggestions": "Sem sugestões",
     "copyLinkAddress": "Copiar endereço do link",
     "copyLinkText": "Copiar texto do link",
     "openLink": "Abrir link",
-    "saveImageAs": "Salvar imagem como..."
+    "saveImageAs": "Salvar imagem como...",
+    "copyImage": "Copiar imagem"
   },
   "dialog": {
     "about": {
@@ -93,11 +95,20 @@
       "validDates": "Válido de {{-validStart,}} a {{-validExpiry,}}"
     },
     "openingExternalProtocol": {
+      "title": "Link com protocolo externo",
       "message": "O link {{- protocol }} requer uma aplicação externa.",
       "detail": "O link solicitado é {{- url }} . Você quer continuar?",
       "dontAskAgain": "Abrir sempre estes tipos de links no aplicativo associado",
       "yes": "Sim",
       "no": "Não"
+    },
+    "allowJitsiCaptureScreen": {
+      "title": "Permitir Captura de Tela pelo Jitsi",
+      "message": "Jitsi está solicitando permissão para capturar sua tela.",
+      "detail": "Jitsi do servidor {{- server}} requer permissão para a captura de tela.",
+      "dontAskAgain": "Sempre permitir a captura de tela pelo Jitsi neste servidor",
+      "yes": "Permitir",
+      "no": "Cancelar"
     }
   },
   "downloads": {
@@ -108,6 +119,7 @@
       "mimeType": "Tipo",
       "status": "Status",
       "clear": "Limpar filtros",
+      "all": "Todos",
       "mimes": {
         "images": "Imagens",
         "videos": "Vídeos",
@@ -141,7 +153,13 @@
         "description": "Reporte os erros anonimamente aos desenvolvedores. As informações compartilhadas incluem número de versão do aplicativo, tipo de sistema operacional, URL do servidor, idioma do dispositivo e tipo de erro. Nenhum conteúdo ou nome de usuário é compartilhado."
       },
       "flashFrame": {
+        "title": "Piscar janela",
+        "description": "Pisca a janela para atrair a atenção do usuário.",
         "onLinux": "Algumas distribuições Linux não possuem suporte a esta funcionalidade."
+      },
+      "internalVideoChatWindow": {
+        "title": "Abrir chat em video em uma janela da aplicação",
+        "description": "Quando ativo o chat em video será aberto em uma janela da aplicação, caso contrário será aberto em uma nova janela do navegador."
       }
     }
   },
@@ -208,6 +226,7 @@
     "reload": "Recarregar"
   },
   "selfxss": {
+    "title": "Pare!",
     "description": "Esta é uma funcionalidade do navegador destinada aos desenvolvedores. Se alguém lhe disse para copiar-colar algo aqui para activar uma funcionalidade Rocket.Chat ou \"hackear\" a conta de alguém, é um golpe e dará acesso à sua conta Rocket.Chat.",
     "moreInfo": "Veja https://go.rocket.chat/i/xss para mais informações."
   },
@@ -218,7 +237,9 @@
     "item": {
       "reload": "Recarregar servidor",
       "remove": "Remover servidor",
-      "openDevTools": "Abrir DevTools"
+      "openDevTools": "Abrir DevTools",
+      "clearCache": "Limpar cache",
+      "clearStorageData": "Limpar dados de armazenamento"
     }
   },
   "touchBar": {

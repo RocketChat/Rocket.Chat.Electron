@@ -265,7 +265,7 @@ export const setupRootWindow = (): void => {
 
     unsubscribers.push(() => {
       rootWindow.removeAllListeners();
-      rootWindow.destroy();
+      rootWindow.close();
     });
   });
 

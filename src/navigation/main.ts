@@ -11,7 +11,8 @@ import {
   askForOpeningExternalProtocol,
 } from '../ui/main/dialogs';
 import {
-  CERTIFICATES_UPDATED,
+  TRUSTED_CERTIFICATES_UPDATED,
+  NOT_TRUSTED_CERTIFICATES_UPDATED,
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
@@ -53,6 +54,8 @@ export const setupNavigation = async (): Promise<void> => {
       const serialized = serializeCertificate(certificate);
       const { host } = new URL(requestedUrl);
 
+      console.log({ host });
+
       let trustedCertificates = select(
         ({ trustedCertificates }) => trustedCertificates
       );
@@ -62,6 +65,19 @@ export const setupNavigation = async (): Promise<void> => {
 
       if (isTrusted) {
         callback(true);
+        return;
+      }
+
+      let notTrustedCertificates = select(
+        ({ notTrustedCertificates }) => notTrustedCertificates
+      );
+
+      const isNotTrusted =
+        !!notTrustedCertificates[host] &&
+        notTrustedCertificates[host] === serialized;
+
+      if (isNotTrusted) {
+        callback(false);
         return;
       }
 
@@ -82,21 +98,41 @@ export const setupNavigation = async (): Promise<void> => {
         detail
       );
 
-      const isTrustedByUser = response === AskForCertificateTrustResponse.YES;
+      const isTrustedByUser = response;
 
       queuedTrustRequests
         .get(certificate.fingerprint)
-        ?.forEach((cb) => cb(isTrustedByUser));
+        ?.forEach((cb) =>
+          cb(isTrustedByUser === AskForCertificateTrustResponse.YES)
+        );
       queuedTrustRequests.delete(certificate.fingerprint);
 
       trustedCertificates = select(
         ({ trustedCertificates }) => trustedCertificates
       );
 
-      if (isTrustedByUser) {
+      if (isTrustedByUser === AskForCertificateTrustResponse.YES) {
         dispatch({
-          type: CERTIFICATES_UPDATED,
+          type: TRUSTED_CERTIFICATES_UPDATED,
           payload: { ...trustedCertificates, [host]: serialized },
+        });
+      }
+
+      queuedTrustRequests
+        .get(certificate.fingerprint)
+        ?.forEach((cb) =>
+          cb(isTrustedByUser === AskForCertificateTrustResponse.NO)
+        );
+      queuedTrustRequests.delete(certificate.fingerprint);
+
+      notTrustedCertificates = select(
+        ({ notTrustedCertificates }) => notTrustedCertificates
+      );
+
+      if (isTrustedByUser === AskForCertificateTrustResponse.NO) {
+        dispatch({
+          type: NOT_TRUSTED_CERTIFICATES_UPDATED,
+          payload: { ...notTrustedCertificates, [host]: serialized },
         });
       }
     }
@@ -163,12 +199,18 @@ export const setupNavigation = async (): Promise<void> => {
   const trustedCertificates = select(
     ({ trustedCertificates }) => trustedCertificates
   );
+
+  const notTrustedCertificates = select(
+    ({ notTrustedCertificates }) => notTrustedCertificates
+  );
+
   const userTrustedCertificates = await loadUserTrustedCertificates();
 
   dispatch({
     type: CERTIFICATES_LOADED,
     payload: {
       ...trustedCertificates,
+      ...notTrustedCertificates,
       ...userTrustedCertificates,
     },
   });

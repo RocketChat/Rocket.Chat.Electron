@@ -8,6 +8,7 @@ import {
   clientCertificates,
   externalProtocols,
   trustedCertificates,
+  notTrustedCertificates,
 } from '../navigation/reducers';
 import { servers } from '../servers/reducers';
 import { currentView } from '../ui/reducers/currentView';
@@ -58,6 +59,7 @@ export const rootReducer = combineReducers({
   servers,
   skippedUpdateVersion,
   trustedCertificates,
+  notTrustedCertificates,
   updateError,
   isReportEnabled,
   isFlashFrameEnabled,

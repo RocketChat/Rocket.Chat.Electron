@@ -28,7 +28,7 @@ const listenToBugsnagEnabledToggle = async (appType: AppType) => {
 
   if (isReportEnabled) {
     const bugsnagInstance = initBugsnag(apiKey, appVersion, appType);
-    isReportEnabled && bugsnagInstance.startSession();
+    bugsnagInstance.startSession();
 
     listen(SETTINGS_SET_REPORT_OPT_IN_CHANGED, async (action) => {
       const isReportEnabled = action.payload;

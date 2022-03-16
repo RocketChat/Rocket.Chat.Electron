@@ -197,6 +197,7 @@
     "learnMore": "Saiba mais",
     "minimize": "Minimizar",
     "openDevTools": "Abrir &DevTools",
+    "openDevToolsOnAllWindows": "Abrir &DevTools em todas as janelas",
     "paste": "Co&lar",
     "quit": "&Sair do {{- appName}}",
     "redo": "&Refazer",

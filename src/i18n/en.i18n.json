@@ -197,6 +197,7 @@
     "learnMore": "Learn more",
     "minimize": "Minimize",
     "openDevTools": "Open &DevTools",
+    "openDevToolsOnAllWindows": "Open &DevTools on all windows",
     "paste": "&Paste",
     "quit": "&Quit {{- appName}}",
     "redo": "&Redo",

@@ -26,17 +26,19 @@ const listenToBugsnagEnabledToggle = async (appType: AppType) => {
     throw new Error('app version was not set');
   }
 
-  const bugsnagInstance = initBugsnag(apiKey, appVersion, appType);
+  if (isReportEnabled) {
+    const bugsnagInstance = initBugsnag(apiKey, appVersion, appType);
+    isReportEnabled && bugsnagInstance.startSession();
 
-  isReportEnabled && bugsnagInstance.startSession();
-  listen(SETTINGS_SET_REPORT_OPT_IN_CHANGED, async (action) => {
-    const isReportEnabled = action.payload;
-    if (isReportEnabled) {
-      bugsnagInstance.startSession();
-    } else {
-      bugsnagInstance.pauseSession();
-    }
-  });
+    listen(SETTINGS_SET_REPORT_OPT_IN_CHANGED, async (action) => {
+      const isReportEnabled = action.payload;
+      if (isReportEnabled) {
+        bugsnagInstance.startSession();
+      } else {
+        bugsnagInstance.pauseSession();
+      }
+    });
+  }
 };
 
 export const setupRendererErrorHandling = async (

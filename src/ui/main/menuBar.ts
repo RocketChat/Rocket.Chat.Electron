@@ -236,12 +236,9 @@ const createViewMenu = createSelector(
               ? getWebContentsByServerUrl(currentView.url)
               : null;
           guestWebContents?.toggleDevTools();
-          // const windows = BrowserWindow.getAllWindows();
-          // windows.forEach((window) => {
-          //   window.webContents.toggleDevTools();
-          // });
         },
-      }, {
+      },
+      {
         id: 'openDevToolsOnAllWindows',
         label: t('menus.openDevToolsOnAllWindows'),
         enabled: typeof currentView === 'object' && !!currentView.url,

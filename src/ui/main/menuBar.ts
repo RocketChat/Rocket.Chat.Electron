@@ -300,10 +300,12 @@ const createViewMenu = createSelector(
         type: 'checkbox',
         checked: isTrayIconEnabled,
         click: ({ checked }) => {
-          dispatch({
-            type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-            payload: checked,
-          });
+          setTimeout(() => {
+            dispatch({
+              type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
+              payload: checked,
+            });
+          }, 10);
         },
       },
       ...on(process.platform === 'darwin', () => [

@@ -160,6 +160,10 @@
       "internalVideoChatWindow": {
         "title": "Abrir chat em video em uma janela da aplicação",
         "description": "Quando ativo o chat em video será aberto em uma janela da aplicação, caso contrário será aberto em uma nova janela do navegador."
+      },
+      "minimizeOnClose": {
+        "title": "Minimizar ao fechar",
+        "description": "Quando fechado o aplicativo será minimizado para a barra de tarefas, senão será fechado."
       }
     }
   },

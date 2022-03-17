@@ -15,6 +15,7 @@ import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isInternalVideoChatWindowEnabled } from '../ui/reducers/isInternalVideoChatWindowEnabled';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
+import { isMinimizeOnCloseEnabled } from '../ui/reducers/isMinimizeOnCloseEnabled';
 import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
@@ -49,6 +50,7 @@ export const rootReducer = combineReducers({
   isShowWindowOnUnreadChangedEnabled,
   isSideBarEnabled,
   isTrayIconEnabled,
+  isMinimizeOnCloseEnabled,
   isUpdatingAllowed,
   isUpdatingEnabled,
   newUpdateVersion,

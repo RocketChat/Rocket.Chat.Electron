@@ -160,6 +160,10 @@
       "internalVideoChatWindow": {
         "title": "Open Video Chat using Application Window",
         "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used."
+      },
+      "minimizeOnClose": {
+        "title": "Minimize on close",
+        "description": "When closed the app will be minimized, otherwise it will quit the application."
       }
     }
   },

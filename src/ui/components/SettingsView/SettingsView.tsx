@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/rootReducer';
 import { FlashFrame } from './features/FlashFrame';
 import { InternalVideoChatWindow } from './features/InternalVideoChatWindow';
+import { MinimizeOnClose } from './features/MinimizeOnClose';
 import { ReportErrors } from './features/ReportErrors';
 
 export const SettingsView: FC = () => {
@@ -38,6 +39,7 @@ export const SettingsView: FC = () => {
           <ReportErrors />
           <FlashFrame />
           <InternalVideoChatWindow />
+          {process.platform === 'win32' && <MinimizeOnClose />}
         </FieldGroup>
       </Box>
     </Box>

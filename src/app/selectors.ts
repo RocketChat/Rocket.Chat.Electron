@@ -32,4 +32,6 @@ export const selectPersistableValues = createStructuredSelector<
   isFlashFrameEnabled: ({ isFlashFrameEnabled }) => isFlashFrameEnabled,
   isInternalVideoChatWindowEnabled: ({ isInternalVideoChatWindowEnabled }) =>
     isInternalVideoChatWindowEnabled,
+  isMinimizeOnCloseEnabled: ({ isMinimizeOnCloseEnabled }) =>
+    isMinimizeOnCloseEnabled,
 });

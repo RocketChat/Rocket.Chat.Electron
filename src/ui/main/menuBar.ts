@@ -241,7 +241,8 @@ const createViewMenu = createSelector(
           //   window.webContents.toggleDevTools();
           // });
         },
-      }, {
+      },
+      {
         id: 'openDevToolsOnAllWindows',
         label: t('menus.openDevToolsOnAllWindows'),
         enabled: typeof currentView === 'object' && !!currentView.url,

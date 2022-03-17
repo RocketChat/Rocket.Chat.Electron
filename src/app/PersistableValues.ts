@@ -15,6 +15,7 @@ type PersistableValues_0_0_0 = {
   isShowWindowOnUnreadChangedEnabled: boolean;
   isSideBarEnabled: boolean;
   isTrayIconEnabled: boolean;
+  isMinimizeOnCloseEnabled: boolean;
   isUpdatingEnabled: boolean;
   rootWindowState: WindowState;
   servers: Server[];
@@ -40,6 +41,10 @@ type PersistableValues_3_5_0 = PersistableValues_3_1_0 & {
   isInternalVideoChatWindowEnabled: boolean;
 };
 
+type PersistableValues_3_7_9 = PersistableValues_3_5_0 & {
+  isMinimizeOnCloseEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
   PersistableValues_3_5_0,
   keyof PersistableValues_3_5_0
@@ -63,5 +68,9 @@ export const migrations = {
     isInternalVideoChatWindowEnabled: true,
     isFlashFrameEnabled:
       process.platform === 'win32' || process.platform === 'darwin',
+  }),
+  '>=3.7.9': (before: PersistableValues_3_5_0): PersistableValues_3_7_9 => ({
+    ...before,
+    isMinimizeOnCloseEnabled: process.platform === 'win32',
   }),
 };

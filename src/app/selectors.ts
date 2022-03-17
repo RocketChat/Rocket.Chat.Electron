@@ -21,6 +21,8 @@ export const selectPersistableValues = createStructuredSelector<
   servers: ({ servers }) => servers,
   skippedUpdateVersion: ({ skippedUpdateVersion }) => skippedUpdateVersion,
   trustedCertificates: ({ trustedCertificates }) => trustedCertificates,
+  notTrustedCertificates: ({ notTrustedCertificates }) =>
+    notTrustedCertificates,
   isEachUpdatesSettingConfigurable: ({ isEachUpdatesSettingConfigurable }) =>
     isEachUpdatesSettingConfigurable,
   isUpdatingEnabled: ({ isUpdatingEnabled }) => isUpdatingEnabled,
@@ -30,4 +32,6 @@ export const selectPersistableValues = createStructuredSelector<
   isFlashFrameEnabled: ({ isFlashFrameEnabled }) => isFlashFrameEnabled,
   isInternalVideoChatWindowEnabled: ({ isInternalVideoChatWindowEnabled }) =>
     isInternalVideoChatWindowEnabled,
+  isMinimizeOnCloseEnabled: ({ isMinimizeOnCloseEnabled }) =>
+    isMinimizeOnCloseEnabled,
 });

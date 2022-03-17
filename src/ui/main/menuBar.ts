@@ -231,11 +231,24 @@ const createViewMenu = createSelector(
         accelerator:
           process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
         click: () => {
-          // const guestWebContents =
-          //   typeof currentView === 'object'
-          //     ? getWebContentsByServerUrl(currentView.url)
-          //     : null;
-          // guestWebContents?.toggleDevTools();
+          const guestWebContents =
+            typeof currentView === 'object'
+              ? getWebContentsByServerUrl(currentView.url)
+              : null;
+          guestWebContents?.toggleDevTools();
+          // const windows = BrowserWindow.getAllWindows();
+          // windows.forEach((window) => {
+          //   window.webContents.toggleDevTools();
+          // });
+        },
+      },
+      {
+        id: 'openDevToolsOnAllWindows',
+        label: t('menus.openDevToolsOnAllWindows'),
+        enabled: typeof currentView === 'object' && !!currentView.url,
+        accelerator:
+          process.platform === 'darwin' ? 'Command+Alt+G' : 'Ctrl+Shift+G',
+        click: () => {
           const windows = BrowserWindow.getAllWindows();
           windows.forEach((window) => {
             window.webContents.toggleDevTools();
@@ -288,10 +301,12 @@ const createViewMenu = createSelector(
         type: 'checkbox',
         checked: isTrayIconEnabled,
         click: ({ checked }) => {
-          dispatch({
-            type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-            payload: checked,
-          });
+          setTimeout(() => {
+            dispatch({
+              type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
+              payload: checked,
+            });
+          }, 10);
         },
       },
       ...on(process.platform === 'darwin', () => [

@@ -18,6 +18,7 @@ import { select, watch, listen, dispatchLocal } from '../../store';
 import { RootState } from '../../store/rootReducer';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
 import { RootWindowIcon, WindowState } from '../common';
+import { isMinimizeOnCloseEnabled } from '../reducers/isMinimizeOnCloseEnabled';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
 import { getTrayIconPath } from './icons';
@@ -255,7 +256,7 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      if (process.platform === 'win32') {
+      if (process.platform === 'win32' && isMinimizeOnCloseEnabled) {
         rootWindow.minimize();
         return;
       }
@@ -265,7 +266,7 @@ export const setupRootWindow = (): void => {
 
     unsubscribers.push(() => {
       rootWindow.removeAllListeners();
-      rootWindow.destroy();
+      rootWindow.close();
     });
   });
 

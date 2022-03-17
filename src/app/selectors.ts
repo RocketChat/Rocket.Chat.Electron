@@ -21,6 +21,8 @@ export const selectPersistableValues = createStructuredSelector<
   servers: ({ servers }) => servers,
   skippedUpdateVersion: ({ skippedUpdateVersion }) => skippedUpdateVersion,
   trustedCertificates: ({ trustedCertificates }) => trustedCertificates,
+  notTrustedCertificates: ({ notTrustedCertificates }) =>
+    notTrustedCertificates,
   isEachUpdatesSettingConfigurable: ({ isEachUpdatesSettingConfigurable }) =>
     isEachUpdatesSettingConfigurable,
   isUpdatingEnabled: ({ isUpdatingEnabled }) => isUpdatingEnabled,

@@ -20,6 +20,7 @@ type PersistableValues_0_0_0 = {
   servers: Server[];
   skippedUpdateVersion: string | null;
   trustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
+  notTrustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
 };
 
 type PersistableValues_3_1_0 = Omit<

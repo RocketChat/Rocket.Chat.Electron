@@ -163,7 +163,7 @@
       },
       "minimizeOnClose": {
         "title": "Minimizar ao fechar",
-        "description": "Quando fechado o aplicativo será minimizado para a barra de tarefas, senão será fechado."
+        "description": "Quando fechado o aplicativo será minimizado para a barra de tarefas, senão será fechado. Ícone da bandeja precisa estar desativado para que isto funcione."
       }
     }
   },

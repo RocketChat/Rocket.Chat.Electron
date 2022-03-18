@@ -163,7 +163,7 @@
       },
       "minimizeOnClose": {
         "title": "Minimize on close",
-        "description": "When closed the app will be minimized, otherwise it will quit the application."
+        "description": "When closed the app will be minimized, otherwise it will quit the application. Tray Icon need to be disabled to this take effect."
       }
     }
   },

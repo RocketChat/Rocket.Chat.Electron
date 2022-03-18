@@ -207,7 +207,7 @@ export const setupRootWindow = (): void => {
     ),
     listen(WEBVIEW_FOCUS_REQUESTED, async () => {
       const rootWindow = await getRootWindow();
-      rootWindow.restore();
+      rootWindow.focus();
       rootWindow.show();
     }),
   ];

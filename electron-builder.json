@@ -20,7 +20,7 @@
     "bundleVersion": "82",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
-    "artifactName": "rocketchat-${version}.${ext}",
+    "artifactName": "rocketchat-${version}-${os}.${ext}",
     "extendInfo": {
       "NSMicrophoneUsageDescription": "I need access to your microphone to record the audio you want to send.",
       "NSCameraUsageDescription": "I need access to your camera to record the video you want to send."
@@ -60,9 +60,26 @@
   },
   "win": {
     "target": [
-      "nsis",
-      "msi",
-      "zip"
+      {
+        "target": "nsis",
+        "arch": [
+          "x64",
+          "ia32"
+        ]
+      },{
+        "target": "msi",
+        "arch": [
+          "x64",
+          "ia32"
+        ]
+      },
+      {
+        "target": "zip",
+        "arch": [
+          "x64",
+          "ia32"
+        ]
+      }
     ],
     "icon": "build/icon.ico",
     "publisherName": "Rocket.Chat Technologies Corp.",
@@ -70,7 +87,8 @@
     "verifyUpdateCodeSignature": true,
     "requestedExecutionLevel": "asInvoker",
     "signAndEditExecutable": true,
-    "signDlls": false
+    "signDlls": false,
+    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
   },
   "nsis": {
     "oneClick": false,
@@ -84,7 +102,6 @@
     "uninstallDisplayName": "${productName} ${version}",
     "include": "build/installer.nsh",
     "license": "LICENSE",
-    "artifactName": "rocketchat-setup-${version}.${ext}",
     "deleteAppDataOnUninstall": false,
     "displayLanguageSelector": false,
     "unicode": true,
@@ -95,7 +112,6 @@
     "menuCategory": false
   },
   "msi": {
-    "artifactName": "rocketchat-setup-${version}.${ext}"
   },
   "appx": {
     "backgroundColor": "#2f343d",
@@ -105,15 +121,15 @@
       "en-US",
       "en-GB",
       "pt-BR"
-    ],
-    "artifactName": "rocketchat-${version}-${arch}.${ext}"
+    ]
   },
   "linux": {
     "target": [
       "tar.gz",
       "deb",
       "rpm",
-      "snap"
+      "snap",
+      "appimage"
     ],
     "executableName": "rocketchat-desktop",
     "category": "GNOME;GTK;Network;InstantMessaging",
@@ -121,16 +137,9 @@
       "StartupWMClass": "Rocket.Chat",
       "MimeType": "x-scheme-handler/rocketchat"
     },
-    "artifactName": "rocketchat-${version}.${ext}"
-  },
-  "deb": {
-    "artifactName": "rocketchat_${version}_${arch}.${ext}"
-  },
-  "rpm": {
-    "artifactName": "rocketchat-${version}.${arch}.${ext}"
+    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
   },
   "snap": {
-    "artifactName": "rocketchat_${version}_${arch}.${ext}",
     "plugs": [
       "desktop",
       "desktop-legacy",

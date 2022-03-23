@@ -46,7 +46,7 @@ const getFilesToUpload = () =>
     'dist/*.zip',
     'dist/*.dmg',
     'dist/*.dmg.blockmap',
-    'dist/mas/*.pkg',
+    'dist/mas-universal/*.pkg',
     'dist/latest.yml',
     'dist/*.appx',
     'dist/*.msi',

@@ -111,8 +111,6 @@
     "createStartMenuShortcut": true,
     "menuCategory": false
   },
-  "msi": {
-  },
   "appx": {
     "backgroundColor": "#2f343d",
     "displayName": "Rocket.Chat",

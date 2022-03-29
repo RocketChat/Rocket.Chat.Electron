@@ -123,11 +123,11 @@
   },
   "linux": {
     "target": [
+      "AppImage",
       "tar.gz",
       "deb",
       "rpm",
-      "snap",
-      "appimage"
+      "snap"
     ],
     "executableName": "rocketchat-desktop",
     "category": "GNOME;GTK;Network;InstantMessaging",

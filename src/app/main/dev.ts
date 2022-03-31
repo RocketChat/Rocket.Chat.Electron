@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 
 import { app, WebContents } from 'electron';
 
@@ -7,9 +8,14 @@ export const setUserDataDirectory = (): void => {
     return;
   }
 
+  const folder = path.join(app.getPath('appData'), `${app.name} (development)`);
+  if (!fs.existsSync(folder)) {
+    fs.mkdirSync(folder, { recursive: true });
+  }
+
   app.setPath(
     'userData',
-    path.join(app.getPath('appData'), `${app.name} (development)`)
+    folder
   );
 };
 

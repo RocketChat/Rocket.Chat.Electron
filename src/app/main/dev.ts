@@ -1,5 +1,5 @@
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 
 import { app, WebContents } from 'electron';
 
@@ -13,10 +13,7 @@ export const setUserDataDirectory = (): void => {
     fs.mkdirSync(folder, { recursive: true });
   }
 
-  app.setPath(
-    'userData',
-    folder
-  );
+  app.setPath('userData', folder);
 };
 
 export const setupRootWindowReload = async (

@@ -144,10 +144,17 @@ const initializeServerWebContents = (
     });
   };
 
+  // TODO: fix the reload issue where it repeat two times the WEBVIEW_ATTACHED event on ServerPane.tsx
+  // this issue makes we need to removeAllListeners on the webContents
+  guestWebContents.removeAllListeners('did-start-loading');
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
+  guestWebContents.removeAllListeners('did-fail-load');
   guestWebContents.addListener('did-fail-load', handleDidFailLoad);
+  guestWebContents.removeAllListeners('did-navigate-in-page');
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
+  guestWebContents.removeAllListeners('context-menu');
   guestWebContents.addListener('context-menu', handleContextMenu);
+  guestWebContents.removeAllListeners('before-input-event');
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
 };
 
@@ -213,10 +220,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         const newWindow = new BrowserWindow({
           ...(isJitsiMeet
             ? {
-                webPreferences: {
-                  preload: path.join(app.getAppPath(), 'app/preload.js'),
-                },
-              }
+              webPreferences: {
+                preload: path.join(app.getAppPath(), 'app/preload.js'),
+              },
+            }
             : options),
           show: false,
         });
@@ -239,8 +246,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           newWindow.loadURL(url, {
             userAgent: isGoogleSignIn
               ? app.userAgentFallback
-                  .replace(`Electron/${process.versions.electron} `, '')
-                  .replace(`${app.name}/${app.getVersion()} `, '')
+                .replace(`Electron/${process.versions.electron} `, '')
+                .replace(`${app.name}/${app.getVersion()} `, '')
               : app.userAgentFallback,
             httpReferrer: referrer,
             ...(postBody && {

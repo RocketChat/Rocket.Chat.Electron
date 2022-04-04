@@ -28,7 +28,7 @@ const listenToBugsnagEnabledToggle = async (appType: AppType) => {
 
   let bugsnagInstance: ReturnType<typeof initBugsnag>;
 
-  if (isReportEnabled) {
+  if (isReportEnabled && !process.mas) {
     bugsnagInstance = initBugsnag(apiKey, appVersion, appType);
     bugsnagInstance.startSession();
   }

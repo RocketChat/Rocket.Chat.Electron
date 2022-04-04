@@ -31,13 +31,21 @@ export const ReportErrors: FC<Props> = (props) => {
   return (
     <Field className={props.className}>
       <Field.Row>
-        <ToggleSwitch onChange={handleChange} checked={isReportEnabled} />
+        <ToggleSwitch
+          disabled={process.mas}
+          onChange={handleChange}
+          checked={isReportEnabled}
+        />
         <Field.Label htmlFor='toggle-switch'>
           {t('settings.options.report.title')}
         </Field.Label>
       </Field.Row>
       <Field.Row>
-        <Field.Hint>{t('settings.options.report.description')}</Field.Hint>
+        {process.mas ? (
+          <Field.Hint>{t('settings.options.report.masDescription')}</Field.Hint>
+        ) : (
+          <Field.Hint>{t('settings.options.report.description')}</Field.Hint>
+        )}
       </Field.Row>
     </Field>
   );

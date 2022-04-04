@@ -165,7 +165,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     webPreferences.nodeIntegrationInSubFrames = false;
     webPreferences.webSecurity = true;
     webPreferences.contextIsolation = true;
-    webPreferences.nativeWindowOpen = true;
   };
 
   const handleDidAttachWebview = (

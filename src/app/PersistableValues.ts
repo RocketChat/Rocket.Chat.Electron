@@ -45,6 +45,10 @@ type PersistableValues_3_7_9 = PersistableValues_3_5_0 & {
   isMinimizeOnCloseEnabled: boolean;
 };
 
+type PersistableValues_3_8_1 = PersistableValues_3_7_9 & {
+  isReportEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
   PersistableValues_3_5_0,
   keyof PersistableValues_3_5_0
@@ -72,5 +76,9 @@ export const migrations = {
   '>=3.7.9': (before: PersistableValues_3_5_0): PersistableValues_3_7_9 => ({
     ...before,
     isMinimizeOnCloseEnabled: process.platform === 'win32',
+  }),
+  '>=3.8.0': (before: PersistableValues_3_7_9): PersistableValues_3_8_1 => ({
+    ...before,
+    isReportEnabled: !process.mas,
   }),
 };

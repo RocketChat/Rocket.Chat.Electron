@@ -150,7 +150,8 @@
     "options": {
       "report": {
         "title": "Report errors to developers",
-        "description": "Report errors anonymously to the developers. Shared information include app version number, operating system type, server URL, device language and error type. No content or usernames are shared."
+        "description": "Report errors anonymously to the developers. Shared information include app version number, operating system type, server URL, device language and error type. No content or usernames are shared.",
+        "masDescription" : "This option is disabled when installed from the Mac App Store, the errors will be reported through the Mac App Store error report process."
       },
       "flashFrame": {
         "title": "Enable Flash Frame",

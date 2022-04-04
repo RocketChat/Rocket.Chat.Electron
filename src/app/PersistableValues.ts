@@ -29,10 +29,10 @@ type PersistableValues_3_1_0 = Omit<
   'currentServerUrl' | 'currentView'
 > & {
   currentView?:
-    | Exclude<PersistableValues_0_0_0['currentView'], null>
-    | { url: string }
-    | 'downloads'
-    | 'settings';
+  | Exclude<PersistableValues_0_0_0['currentView'], null>
+  | { url: string }
+  | 'downloads'
+  | 'settings';
   downloads?: Record<Download['itemId'], Download>;
 };
 type PersistableValues_3_5_0 = PersistableValues_3_1_0 & {
@@ -43,6 +43,10 @@ type PersistableValues_3_5_0 = PersistableValues_3_1_0 & {
 
 type PersistableValues_3_7_9 = PersistableValues_3_5_0 & {
   isMinimizeOnCloseEnabled: boolean;
+};
+
+type PersistableValues_3_8_1 = PersistableValues_3_7_9 & {
+  isReportEnabled: boolean;
 };
 
 export type PersistableValues = Pick<
@@ -72,5 +76,9 @@ export const migrations = {
   '>=3.7.9': (before: PersistableValues_3_5_0): PersistableValues_3_7_9 => ({
     ...before,
     isMinimizeOnCloseEnabled: process.platform === 'win32',
+  }),
+  '>=3.8.0': (before: PersistableValues_3_7_9): PersistableValues_3_8_1 => ({
+    ...before,
+    isReportEnabled: !process.mas,
   }),
 };

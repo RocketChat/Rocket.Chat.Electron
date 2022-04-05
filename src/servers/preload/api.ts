@@ -44,6 +44,9 @@ export type RocketChatDesktopAPI = {
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
   onReady: (c) => {
+    if (serverInfo) {
+      c(serverInfo);
+    }
     cb = c;
   },
   setServerInfo: (_serverInfo) => {

@@ -58,10 +58,11 @@ export const ServerPane: FC<ServerPaneProps> = ({
       e: 'did-attach' | 'dom-ready',
       cb: () => void
     ): void => {
-      webview.addEventListener(e, () => {
+      const handler = () => {
         cb();
-        webview.removeEventListener(e, cb);
-      });
+        webview.removeEventListener(e, handler);
+      };
+      webview.addEventListener(e, handler);
     };
 
     const handleAttachReady = (): void => {

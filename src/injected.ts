@@ -9,6 +9,7 @@ declare global {
 console.log('[Rocket.Chat Desktop] Injected.ts');
 
 const start = (): void => {
+  console.log('[Rocket.Chat Desktop] Injected.ts start fired');
   if (typeof window.require !== 'function') {
     console.log('[Rocket.Chat Desktop] window.require is not defined');
     console.log('[Rocket.Chat Desktop] Inject start - retrying in 1 seconds');
@@ -20,8 +21,11 @@ const start = (): void => {
     window.require('/app/utils/rocketchat.info') ?? {};
 
   if (!serverInfo.version) {
+    console.log('[Rocket.Chat Desktop] serverInfo.version is not defined');
     return;
   }
+
+  console.log('[Rocket.Chat Desktop] Injected.ts serverInfo', serverInfo);
 
   window.RocketChatDesktop.setServerInfo(serverInfo);
 
@@ -100,6 +104,8 @@ const start = (): void => {
   });
 
   const destroyPromiseSymbol = Symbol('destroyPromise');
+
+  console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
 
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
@@ -228,5 +234,7 @@ const start = (): void => {
     }
   };
 };
+
+console.log('[Rocket.Chat Desktop] Injected');
 
 start();

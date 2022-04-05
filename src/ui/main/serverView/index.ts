@@ -214,6 +214,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
             ? {
                 webPreferences: {
                   preload: path.join(app.getAppPath(), 'app/preload.js'),
+                  sandbox: process.mas,
                 },
               }
             : options),

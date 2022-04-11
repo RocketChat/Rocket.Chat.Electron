@@ -647,7 +647,9 @@ const createHelpMenu = createSelector(
           const permitted = await askForAppDataReset();
 
           if (permitted) {
-            relaunchApp('--reset-app-data');
+            setTimeout(() => {
+              relaunchApp('--reset-app-data');
+            }, 1000);
           }
         },
       },

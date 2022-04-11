@@ -640,7 +640,7 @@ const createHelpMenu = createSelector(
           dispatch({ type: CERTIFICATES_CLEARED });
         },
       },
-      ...on(process.mas, () => [
+      ...on(!process.mas, () => [
         {
           id: 'resetAppData',
           label: t('menus.resetAppData'),

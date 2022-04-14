@@ -250,7 +250,9 @@ export const setupUpdates = async (): Promise<void> => {
 
   listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
     try {
-      await autoUpdater.checkForUpdates();
+      setTimeout(() => {
+        autoUpdater.checkForUpdates();
+      }, 100);
     } catch (error) {
       error instanceof Error &&
         dispatch({

@@ -150,7 +150,8 @@
     "options": {
       "report": {
         "title": "Relatar erros aos desenvolvedores",
-        "description": "Reporte os erros anonimamente aos desenvolvedores. As informações compartilhadas incluem número de versão do aplicativo, tipo de sistema operacional, URL do servidor, idioma do dispositivo e tipo de erro. Nenhum conteúdo ou nome de usuário é compartilhado."
+        "description": "Reporte os erros anonimamente aos desenvolvedores. As informações compartilhadas incluem número de versão do aplicativo, tipo de sistema operacional, URL do servidor, idioma do dispositivo e tipo de erro. Nenhum conteúdo ou nome de usuário é compartilhado.",
+        "masDescription": "Essa opção é desabilitada quando instalada a partir da Mac App Store, os erros serão reportados através do processo de reportação da Mac App Store"
       },
       "flashFrame": {
         "title": "Piscar janela",

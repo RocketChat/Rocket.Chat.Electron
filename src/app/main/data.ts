@@ -8,12 +8,27 @@ import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import { getPersistedValues, persistValues } from './persistence';
 
+const loadOverriddenSettings = async (): Promise<Record<string, string>> => {
+  try {
+    const filePath = path.join(
+      app.getPath('userData'),
+      'overridden-settings.json'
+    );
+    const content = await fs.promises.readFile(filePath, 'utf8');
+    const json = JSON.parse(content);
+
+    return json && typeof json === 'object' ? json : {};
+  } catch (error) {
+    return {};
+  }
+};
+
 export const mergePersistableValues = async (
   localStorage: Record<string, string>
 ): Promise<void> => {
   const initialValues = select(selectPersistableValues);
-
   const electronStoreValues = getPersistedValues();
+  const overriddenSettings = await loadOverriddenSettings();
 
   const localStorageValues = Object.fromEntries(
     Object.entries(localStorage).map(([key, value]) => {
@@ -29,6 +44,7 @@ export const mergePersistableValues = async (
     ...initialValues,
     ...electronStoreValues,
     ...localStorageValues,
+    ...overriddenSettings,
   });
 
   if (localStorage.autohideMenu) {

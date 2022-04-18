@@ -12,6 +12,7 @@ import {
 } from '../navigation/reducers';
 import { servers } from '../servers/reducers';
 import { currentView } from '../ui/reducers/currentView';
+import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isInternalVideoChatWindowEnabled } from '../ui/reducers/isInternalVideoChatWindowEnabled';
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
@@ -66,6 +67,7 @@ export const rootReducer = combineReducers({
   isReportEnabled,
   isFlashFrameEnabled,
   isInternalVideoChatWindowEnabled,
+  isAddNewServersEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

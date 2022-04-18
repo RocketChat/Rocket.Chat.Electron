@@ -34,9 +34,17 @@ const on = (
   getMenuItems: () => MenuItemConstructorOptions[]
 ): MenuItemConstructorOptions[] => (condition ? getMenuItems() : []);
 
+const selectAddServersDeps = createStructuredSelector<
+  RootState,
+  Pick<RootState, 'isAddNewServersEnabled'>
+>({
+  isAddNewServersEnabled: ({ isAddNewServersEnabled }) =>
+    isAddNewServersEnabled,
+});
+
 const createAppMenu = createSelector(
-  () => undefined,
-  (): MenuItemConstructorOptions => ({
+  selectAddServersDeps,
+  ({ isAddNewServersEnabled }): MenuItemConstructorOptions => ({
     id: 'appMenu',
     label: process.platform === 'darwin' ? app.name : t('menus.fileMenu'),
     submenu: [
@@ -78,7 +86,7 @@ const createAppMenu = createSelector(
         },
         { type: 'separator' },
       ]),
-      ...on(process.platform !== 'darwin', () => [
+      ...on(process.platform !== 'darwin' && isAddNewServersEnabled, () => [
         {
           id: 'addNewServer',
           label: t('menus.addNewServer'),
@@ -443,7 +451,10 @@ const selectWindowDeps = createStructuredSelector<
   RootState,
   Pick<
     RootState,
-    'servers' | 'currentView' | 'isShowWindowOnUnreadChangedEnabled'
+    'servers'
+    | 'currentView'
+    | 'isShowWindowOnUnreadChangedEnabled'
+    | 'isAddNewServersEnabled'
   >
 >({
   servers: ({ servers }) => servers,
@@ -451,6 +462,8 @@ const selectWindowDeps = createStructuredSelector<
   isShowWindowOnUnreadChangedEnabled: ({
     isShowWindowOnUnreadChangedEnabled,
   }) => isShowWindowOnUnreadChangedEnabled,
+  isAddNewServersEnabled: ({ isAddNewServersEnabled }) =>
+    isAddNewServersEnabled,
 });
 
 const createWindowMenu = createSelector(
@@ -459,12 +472,13 @@ const createWindowMenu = createSelector(
     servers,
     currentView,
     isShowWindowOnUnreadChangedEnabled,
+    isAddNewServersEnabled,
   }): MenuItemConstructorOptions => ({
     id: 'windowMenu',
     label: t('menus.windowMenu'),
     role: 'windowMenu',
     submenu: [
-      ...on(process.platform === 'darwin', () => [
+      ...on(process.platform === 'darwin' && isAddNewServersEnabled, () => [
         {
           id: 'addNewServer',
           label: t('menus.addNewServer'),

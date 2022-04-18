@@ -33,6 +33,10 @@ export const SideBar: FC = () => {
   const isSideBarEnabled = useSelector(
     ({ isSideBarEnabled }: RootState) => isSideBarEnabled
   );
+
+  const isAddNewServersEnabled = useSelector(
+    ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled
+  );
   const isVisible = servers.length > 0 && isSideBarEnabled;
   const style = useMemo(
     () => servers.find(({ selected }) => selected)?.style || {},
@@ -93,14 +97,16 @@ export const SideBar: FC = () => {
             />
           ))}
         </ServerList>
-        <AddServerButton>
-          <SidebarActionButton
-            tooltip={t('sidebar.addNewServer')}
-            onClick={handleAddServerButtonClicked}
-          >
-            +
-          </SidebarActionButton>
-        </AddServerButton>
+        {isAddNewServersEnabled && (
+          <AddServerButton>
+            <SidebarActionButton
+              tooltip={t('sidebar.addNewServer')}
+              onClick={handleAddServerButtonClicked}
+            >
+              +
+            </SidebarActionButton>
+          </AddServerButton>
+        )}
         <BottomButtons>
           <Button>
             <SidebarActionButton

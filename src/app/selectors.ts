@@ -34,4 +34,6 @@ export const selectPersistableValues = createStructuredSelector<
     isInternalVideoChatWindowEnabled,
   isMinimizeOnCloseEnabled: ({ isMinimizeOnCloseEnabled }) =>
     isMinimizeOnCloseEnabled,
+  isAddNewServersEnabled: ({ isAddNewServersEnabled }) =>
+    isAddNewServersEnabled,
 });

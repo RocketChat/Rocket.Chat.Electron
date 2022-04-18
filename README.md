@@ -213,7 +213,7 @@ The file should be located in the `%APPDATA%/Rocket.Chat/` folder or the
 installation folder in case of an installation for all users (Windows only).
 
 Every setting set on the file will override the default and user settings. Then
-you can use it for disabling  the default features like auto-update and even create
+you can use it for disabling the default features like auto-update and even create
 a single server mode.
 
 #### The settings that can be overridden are:
@@ -226,9 +226,25 @@ a single server mode.
 | `"isMinimizeOnCloseEnabled": false,`         | Sets if the app will be minimized on close.
 |`"doCheckForUpdatesOnStartup": true,`         | Sets if the app will check for updates on startup.
 | `"isMenuBarEnabled": true,`                  | Sets if the menu bar will be enabled.
-|`"isTrayIconEnabled": true,`                  | Sets if the tray icon will be enabled.
+|`"isTrayIconEnabled": true,`                  | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"`
 |`"isUpdatingEnabled": true,`                  | Sets if the app can be updated by the user.
+|`"isAddNewServersEnabled: true,`              | Sets if the user can add new servers.
 
+##### Single server mode
+If the setting `"isAddNewServersEnabled": false` is set, the user will not be able to add new servers.
+The buttons and shortcuts will be disabled. Then you will have to add the server to the `servers.json` file.
+With this, you can create a single server mode or just don't let the user to add new servers by his own.
+
+##### Example configuration
+`overridden-settings.json` file:
+
+    {
+	   "isTrayIconEnabled": false,
+	   "isMinimizeOnCloseEnabled": false,
+    }
+When `isTrayIconEnabled` is enabled, the app will be hidden on close.
+When `isMinimizeOnCloseEnabled` is enabled, the app will be minimized on close.
+When both are disabled, the app will quit on close.
 ## License
 
 Released under the MIT license.

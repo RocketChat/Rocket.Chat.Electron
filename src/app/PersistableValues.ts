@@ -10,6 +10,7 @@ type PersistableValues_0_0_0 = {
   doCheckForUpdatesOnStartup: boolean;
   allowedJitsiServers: Record<string, boolean>;
   externalProtocols: Record<string, boolean>;
+  isAddNewServersEnabled: boolean;
   isEachUpdatesSettingConfigurable: boolean;
   isMenuBarEnabled: boolean;
   isShowWindowOnUnreadChangedEnabled: boolean;
@@ -29,10 +30,10 @@ type PersistableValues_3_1_0 = Omit<
   'currentServerUrl' | 'currentView'
 > & {
   currentView?:
-    | Exclude<PersistableValues_0_0_0['currentView'], null>
-    | { url: string }
-    | 'downloads'
-    | 'settings';
+  | Exclude<PersistableValues_0_0_0['currentView'], null>
+  | { url: string }
+  | 'downloads'
+  | 'settings';
   downloads?: Record<Download['itemId'], Download>;
 };
 type PersistableValues_3_5_0 = PersistableValues_3_1_0 & {
@@ -51,6 +52,7 @@ type PersistableValues_3_8_1 = PersistableValues_3_7_9 & {
 
 type PersistableValues_3_8_4 = PersistableValues_3_8_1 & {
   isInternalVideoChatWindowEnabled: boolean;
+  isAddNewServersEnabled: boolean;
 };
 
 export type PersistableValues = Pick<
@@ -88,5 +90,6 @@ export const migrations = {
   '>=3.8.4': (before: PersistableValues_3_8_1): PersistableValues_3_8_4 => ({
     ...before,
     isInternalVideoChatWindowEnabled: !process.mas,
+    isAddNewServersEnabled: true,
   }),
 };

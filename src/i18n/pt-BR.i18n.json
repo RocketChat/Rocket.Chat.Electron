@@ -151,7 +151,7 @@
       "report": {
         "title": "Relatar erros aos desenvolvedores",
         "description": "Reporte os erros anonimamente aos desenvolvedores. As informações compartilhadas incluem número de versão do aplicativo, tipo de sistema operacional, URL do servidor, idioma do dispositivo e tipo de erro. Nenhum conteúdo ou nome de usuário é compartilhado.",
-        "masDescription": "Essa opção é desabilitada quando instalada a partir da Mac App Store, os erros serão reportados através do processo de reportação da Mac App Store"
+        "masDescription" : "Esta opção esta desativada quando for instalado através da Mac App Store, os erros serão reportados através do processo de relatórios de erros da Mac Apple Store."
       },
       "flashFrame": {
         "title": "Piscar janela",
@@ -160,7 +160,8 @@
       },
       "internalVideoChatWindow": {
         "title": "Abrir chat em video em uma janela da aplicação",
-        "description": "Quando ativo o chat em video será aberto em uma janela da aplicação, caso contrário será aberto em uma nova janela do navegador."
+        "description": "Quando ativo o chat em video será aberto em uma janela da aplicação, caso contrário será aberto em uma nova janela do navegador.",
+        "masDescription" : "Esta opção esta desativada quando for instalado através da Mac App Store, por motivos de segurança o chat em video sera aberto usando o navegador por padrão."
       },
       "minimizeOnClose": {
         "title": "Minimizar ao fechar",

@@ -33,6 +33,7 @@ export const InternalVideoChatWindow: FC<Props> = (props) => {
     <Field className={props.className}>
       <Field.Row>
         <ToggleSwitch
+          disabled={process.mas}
           onChange={handleChange}
           checked={isInternalVideoChatWindowEnabled}
         />
@@ -41,9 +42,15 @@ export const InternalVideoChatWindow: FC<Props> = (props) => {
         </Field.Label>
       </Field.Row>
       <Field.Row>
-        <Field.Hint>
-          {t('settings.options.internalVideoChatWindow.description')}
-        </Field.Hint>
+        {process.mas ? (
+          <Field.Hint>
+            {t('settings.options.internalVideoChatWindow.masDescription')}
+          </Field.Hint>
+        ) : (
+          <Field.Hint>
+            {t('settings.options.internalVideoChatWindow.description')}
+          </Field.Hint>
+        )}
       </Field.Row>
     </Field>
   );

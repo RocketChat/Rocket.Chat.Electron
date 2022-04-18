@@ -61,6 +61,7 @@ const start = (): void => {
       if (
         typeof url === 'string' &&
         url.includes(jitsiDomain) &&
+        !process.mas &&
         window.RocketChatDesktop.getInternalVideoChatWindowEnabled()
       ) {
         return open(url, 'Jitsi Meet', `scrollbars=true,${features}`);
@@ -109,8 +110,7 @@ const start = (): void => {
 
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
-    implements Notification
-  {
+    implements Notification {
     static readonly permission: NotificationPermission = 'granted';
 
     static readonly maxActions: number =

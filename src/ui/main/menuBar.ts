@@ -640,17 +640,19 @@ const createHelpMenu = createSelector(
           dispatch({ type: CERTIFICATES_CLEARED });
         },
       },
-      {
-        id: 'resetAppData',
-        label: t('menus.resetAppData'),
-        click: async () => {
-          const permitted = await askForAppDataReset();
+      ...on(!process.mas, () => [
+        {
+          id: 'resetAppData',
+          label: t('menus.resetAppData'),
+          click: async () => {
+            const permitted = await askForAppDataReset();
 
-          if (permitted) {
-            relaunchApp('--reset-app-data');
-          }
+            if (permitted) {
+              relaunchApp('--reset-app-data');
+            }
+          },
         },
-      },
+      ]),
       { type: 'separator' },
       {
         id: 'learnMore',

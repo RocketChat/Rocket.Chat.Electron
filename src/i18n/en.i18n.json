@@ -160,7 +160,8 @@
       },
       "internalVideoChatWindow": {
         "title": "Open Video Chat using Application Window",
-        "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used."
+        "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used.",
+        "masDescription" : "This option is disabled when installed from the Mac App Store, for security reasons it will open Video Chat using the browser by default."
       },
       "minimizeOnClose": {
         "title": "Minimize on close",

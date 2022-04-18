@@ -207,7 +207,7 @@ On Linux, the full paths are:
 
 ### Overridden settings
 
-You can overridden the user settings by creating a `overridden-settings.json` in
+You can override the user settings by creating an `overridden-settings.json` in
 the user preferences folder.
 The file should be located in the `%APPDATA%/Rocket.Chat/` folder or the
 installation folder in case of an installation for all users (Windows only).

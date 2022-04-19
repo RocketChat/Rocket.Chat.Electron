@@ -110,7 +110,8 @@ const start = (): void => {
 
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
-    implements Notification {
+    implements Notification
+  {
     static readonly permission: NotificationPermission = 'granted';
 
     static readonly maxActions: number =

@@ -451,7 +451,7 @@ const selectWindowDeps = createStructuredSelector<
   RootState,
   Pick<
     RootState,
-    'servers'
+    | 'servers'
     | 'currentView'
     | 'isShowWindowOnUnreadChangedEnabled'
     | 'isAddNewServersEnabled'

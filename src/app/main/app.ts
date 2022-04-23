@@ -16,6 +16,7 @@ export const performElectronStartup = (): void => {
   app.setAppUserModelId('chat.rocket');
 
   app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
+  app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling,MediaSessionService');
 
   const args = process.argv.slice(app.isPackaged ? 1 : 2);
 

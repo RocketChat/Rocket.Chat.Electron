@@ -240,7 +240,7 @@ With this, you can create a single server mode or just don't let the user to add
 
     {
 	   "isTrayIconEnabled": false,
-	   "isMinimizeOnCloseEnabled": false,
+	   "isMinimizeOnCloseEnabled": false
     }
 When `isTrayIconEnabled` is enabled, the app will be hidden on close.
 When `isMinimizeOnCloseEnabled` is enabled, the app will be minimized on close.

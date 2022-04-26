@@ -1,14 +1,14 @@
 export type FluxStandardAction<
   Type extends string = string,
   Payload = void
-> = void extends Payload
+  > = void extends Payload
   ? {
-      type: Type;
-    }
+    type: Type;
+  }
   : {
-      type: Type;
-      payload: Payload;
-    };
+    type: Type;
+    payload: Payload;
+  };
 
 export const isFSA = <Action extends FluxStandardAction<string, unknown>>(
   action: unknown
@@ -32,6 +32,13 @@ export const isResponse = <Action extends FluxStandardAction<string, unknown>>(
   hasMeta(action) &&
   (action as Action & { meta: { response: unknown; id: unknown } }).meta
     .response === true;
+
+export const isRequest = <Action extends FluxStandardAction<string, unknown>>(
+  action: Action
+): action is Action & { meta: { request: boolean; id: unknown } } =>
+  hasMeta(action) &&
+  (action as Action & { meta: { request: unknown; id: unknown } }).meta
+    .request === true;
 
 export const isLocallyScoped = <
   Action extends FluxStandardAction<string, unknown>
@@ -73,13 +80,13 @@ export const isResponseTo =
     id: unknown,
     ...types: Types
   ) =>
-  (
-    action: Action
-  ): action is Action &
+    (
+      action: Action
+    ): action is Action &
     {
       [Type in Types[number]]: {
         type: Type;
         meta: { response: boolean; id: unknown };
       };
     }[Types[number]] =>
-    isResponse(action) && types.includes(action.type) && action.meta.id === id;
+      isResponse(action) && types.includes(action.type) && action.meta.id === id;

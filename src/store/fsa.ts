@@ -1,14 +1,14 @@
 export type FluxStandardAction<
   Type extends string = string,
   Payload = void
-  > = void extends Payload
+> = void extends Payload
   ? {
-    type: Type;
-  }
+      type: Type;
+    }
   : {
-    type: Type;
-    payload: Payload;
-  };
+      type: Type;
+      payload: Payload;
+    };
 
 export const isFSA = <Action extends FluxStandardAction<string, unknown>>(
   action: unknown
@@ -80,13 +80,13 @@ export const isResponseTo =
     id: unknown,
     ...types: Types
   ) =>
-    (
-      action: Action
-    ): action is Action &
+  (
+    action: Action
+  ): action is Action &
     {
       [Type in Types[number]]: {
         type: Type;
         meta: { response: boolean; id: unknown };
       };
     }[Types[number]] =>
-      isResponse(action) && types.includes(action.type) && action.meta.id === id;
+    isResponse(action) && types.includes(action.type) && action.meta.id === id;

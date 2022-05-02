@@ -150,7 +150,8 @@
     "options": {
       "report": {
         "title": "Signaler les erreurs aux développeurs",
-        "description": "Signaler les erreurs de manière anonyme aux développeurs. Les informations partagées incluent le numéro de version de l'application, le type de système d'exploitation, l'URL du serveur, la langue de l'appareil et le type d'erreur. Aucun contenu ou nom d'utilisateur n'est partagé."
+        "description": "Signaler les erreurs de manière anonyme aux développeurs. Les informations partagées incluent le numéro de version de l'application, le type de système d'exploitation, l'URL du serveur, la langue de l'appareil et le type d'erreur. Aucun contenu ou nom d'utilisateur n'est partagé.",
+        "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store, les erreurs seront signalisées via le processus de rapport d'erreur du Mac App Store."
       },
       "flashFrame": {
         "title": "Activer le cadre Flash",
@@ -159,7 +160,8 @@
       },
       "internalVideoChatWindow": {
         "title": "Ouvrir le chat vidéo à l'aide de la fenêtre de l'application",
-        "description": "Une fois défini, le chat vidéo sera ouvert à l'aide d'une fenêtre d'application, sinon le navigateur par défaut sera utilisé."
+        "description": "Une fois défini, le chat vidéo sera ouvert à l'aide d'une fenêtre d'application, sinon le navigateur par défaut sera utilisé.",
+        "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store, pour des raisons de sécurité, elle ouvrira le chat vidéo en utilisant le navigateur par défaut."
       },
       "minimizeOnClose": {
         "title": "Minimiser à la fermeture",

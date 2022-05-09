@@ -149,6 +149,7 @@ const initializeServerWebContents = (
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
   guestWebContents.addListener('context-menu', handleContextMenu);
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
+  guestWebContents.reload();
 };
 
 export const attachGuestWebContentsEvents = async (): Promise<void> => {

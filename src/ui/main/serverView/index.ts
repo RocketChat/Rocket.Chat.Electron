@@ -31,10 +31,11 @@ import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
-  WEBVIEW_ATTACHED,
+  WEBVIEW_READY,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
+  WEBVIEW_ATTACHED,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -47,7 +48,23 @@ export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
 
-const initializeServerWebContents = (
+const initializeServerWebContentsAfterAttach = (
+  _serverUrl: string,
+  guestWebContents: WebContents,
+  rootWindow: BrowserWindow
+): void => {
+  const handleContextMenu = async (
+    event: Event,
+    params: ContextMenuParams
+  ): Promise<void> => {
+    event.preventDefault();
+    const menu = createPopupMenuForServerView(guestWebContents, params);
+    menu.popup({ window: rootWindow });
+  };
+  guestWebContents.addListener('context-menu', handleContextMenu);
+};
+
+const initializeServerWebContentsAfterReady = (
   serverUrl: string,
   guestWebContents: WebContents,
   rootWindow: BrowserWindow
@@ -114,15 +131,6 @@ const initializeServerWebContents = (
     });
   };
 
-  const handleContextMenu = async (
-    event: Event,
-    params: ContextMenuParams
-  ): Promise<void> => {
-    event.preventDefault();
-    const menu = createPopupMenuForServerView(guestWebContents, params);
-    menu.popup({ window: rootWindow });
-  };
-
   const handleBeforeInputEvent = (
     _event: Event,
     { type, key }: Input
@@ -147,9 +155,7 @@ const initializeServerWebContents = (
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
   guestWebContents.addListener('did-fail-load', handleDidFailLoad);
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
-  guestWebContents.addListener('context-menu', handleContextMenu);
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
-  guestWebContents.reload();
 };
 
 export const attachGuestWebContentsEvents = async (): Promise<void> => {
@@ -301,9 +307,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     }
   };
 
-  listen(WEBVIEW_ATTACHED, (action) => {
+  listen(WEBVIEW_READY, (action) => {
     const guestWebContents = webContents.fromId(action.payload.webContentsId);
-    initializeServerWebContents(
+    initializeServerWebContentsAfterReady(
       action.payload.url,
       guestWebContents,
       rootWindow
@@ -313,6 +319,15 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       handlePermissionRequest
     );
     guestWebContents.session.on('will-download', handleWillDownloadEvent);
+  });
+
+  listen(WEBVIEW_ATTACHED, (action) => {
+    const guestWebContents = webContents.fromId(action.payload.webContentsId);
+    initializeServerWebContentsAfterAttach(
+      action.payload.url,
+      guestWebContents,
+      rootWindow
+    );
   });
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {

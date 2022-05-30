@@ -48,7 +48,7 @@ export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
 
-const initializeServerWebContentsAfterAttach = (
+const initializeServerWebContentsAfterReady = (
   _serverUrl: string,
   guestWebContents: WebContents,
   rootWindow: BrowserWindow
@@ -64,7 +64,7 @@ const initializeServerWebContentsAfterAttach = (
   guestWebContents.addListener('context-menu', handleContextMenu);
 };
 
-const initializeServerWebContentsAfterReady = (
+const initializeServerWebContentsAfterAttach = (
   serverUrl: string,
   guestWebContents: WebContents,
   rootWindow: BrowserWindow

@@ -14,6 +14,7 @@ import {
   WEBVIEW_FAVICON_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
+  WEBVIEW_READY,
   WEBVIEW_ATTACHED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
@@ -41,6 +42,7 @@ type ServersActionTypes =
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
+  | ActionOf<typeof WEBVIEW_READY>
   | ActionOf<typeof WEBVIEW_ATTACHED>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
@@ -147,6 +149,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         ...server,
         url: ensureUrlFormat(server.url),
       }));
+    }
+
+    case WEBVIEW_READY: {
+      const { url, webContentsId } = action.payload;
+      return update(state, { url, webContentsId });
     }
 
     case WEBVIEW_ATTACHED: {

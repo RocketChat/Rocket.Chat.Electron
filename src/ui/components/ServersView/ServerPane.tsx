@@ -6,6 +6,7 @@ import { RootAction } from '../../../store/actions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   WEBVIEW_ATTACHED,
+  WEBVIEW_READY,
 } from '../../actions';
 import ErrorView from './ErrorView';
 import { StyledWebView, Wrapper } from './styles';
@@ -68,7 +69,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
     const handleAttachReady = (): void => {
       step &&
         dispatch({
-          type: WEBVIEW_ATTACHED,
+          type: WEBVIEW_READY,
           payload: {
             url: serverUrl,
             webContentsId: webview.getWebContentsId(),
@@ -82,6 +83,36 @@ export const ServerPane: FC<ServerPaneProps> = ({
     return () => {
       webview.removeEventListener('did-attach', handleAttachReady);
       webview.removeEventListener('dom-ready', handleAttachReady);
+    };
+  }, [dispatch, serverUrl]);
+
+  useEffect(() => {
+    const webview = webviewRef.current;
+    if (!webview) {
+      return;
+    }
+    const addEventListenerOnce = (e: 'did-attach', cb: () => void): void => {
+      const handler = () => {
+        cb();
+        webview.removeEventListener(e, handler);
+      };
+      webview.addEventListener(e, handler);
+    };
+
+    const handleAttachReady = (): void => {
+      dispatch({
+        type: WEBVIEW_ATTACHED,
+        payload: {
+          url: serverUrl,
+          webContentsId: webview.getWebContentsId(),
+        },
+      });
+    };
+
+    addEventListenerOnce('did-attach', handleAttachReady);
+
+    return () => {
+      webview.removeEventListener('did-attach', handleAttachReady);
     };
   }, [dispatch, serverUrl]);
 

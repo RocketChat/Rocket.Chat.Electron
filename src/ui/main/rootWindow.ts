@@ -354,6 +354,20 @@ export const setupRootWindow = (): void => {
             }
           }
 
+          const isTrayIconEnabled = select(
+            ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true
+          );
+
+          if (!isTrayIconEnabled) {
+            const t = i18next.t.bind(i18next);
+            const translate = `taskbar.${overlayDescription}`;
+            const taskbarTitle =
+              globalBadge !== undefined
+                ? `(${globalBadge}) ${t(translate)}`
+                : t(translate);
+
+            browserWindow.setTitle(taskbarTitle);
+          }
           browserWindow.setOverlayIcon(overlayIcon, overlayDescription);
         }
       }),

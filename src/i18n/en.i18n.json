@@ -254,6 +254,8 @@
     "selectServer": "Select server"
   },
   "tray": {
+    "unreadMessage": "Unread messages",
+    "unreadMention": "Unread mentions",
     "menu": {
       "show": "Show",
       "hide": "Hide",
@@ -271,5 +273,10 @@
         "content": "{{- appName }} is set to stay running in the system tray/notification area."
       }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Unread messages",
+    "unreadMention": "Unread mentions",
+    "noUnreadMessage": "No unread messages"
   }
 }

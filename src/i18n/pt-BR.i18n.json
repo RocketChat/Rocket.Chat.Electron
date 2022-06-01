@@ -271,5 +271,10 @@
         "content": "{{- appName }} está configurado para permanecer em funcionamento na bandeja do sistema/área de notificação."
       }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Mensagens não lidas",
+    "unreadMention": "Menções não lidas",
+    "noUnreadMessage": "Nenhuma mensagem"
   }
 }

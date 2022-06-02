@@ -254,8 +254,6 @@
     "selectServer": "Select server"
   },
   "tray": {
-    "unreadMessage": "Unread messages",
-    "unreadMention": "Unread mentions",
     "menu": {
       "show": "Show",
       "hide": "Hide",

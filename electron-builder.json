@@ -1,21 +1,10 @@
 {
-  "files": [
-    "app/**/*",
-    "package.json"
-  ],
-  "extraResources": [
-    "build/icon.ico",
-    "servers.json"
-  ],
+  "files": ["app/**/*", "package.json"],
+  "extraResources": ["build/icon.ico", "servers.json"],
   "appId": "chat.rocket",
   "mac": {
     "category": "public.app-category.productivity",
-    "target": [
-      "dmg",
-      "pkg",
-      "zip",
-      "mas"
-    ],
+    "target": ["dmg", "pkg", "zip", "mas"],
     "icon": "build/icon.icns",
     "bundleVersion": "88",
     "helperBundleId": "chat.rocket.electron.helper",
@@ -53,32 +42,22 @@
     "entitlements": "build/entitlements.mas.plist",
     "entitlementsInherit": "build/entitlements.mas.inherit.plist",
     "hardenedRuntime": true,
-    "asarUnpack": [
-      "node_modules"
-    ],
+    "asarUnpack": ["node_modules"],
     "artifactName": "rocketchat-${version}-mas.${ext}"
   },
   "win": {
     "target": [
       {
         "target": "nsis",
-        "arch": [
-          "x64",
-          "ia32"
-        ]
-      },{
+        "arch": ["x64", "ia32"]
+      },
+      {
         "target": "msi",
-        "arch": [
-          "x64",
-          "ia32"
-        ]
+        "arch": ["x64", "ia32"]
       },
       {
         "target": "zip",
-        "arch": [
-          "x64",
-          "ia32"
-        ]
+        "arch": ["x64", "ia32"]
       }
     ],
     "icon": "build/icon.ico",
@@ -115,20 +94,10 @@
     "backgroundColor": "#2f343d",
     "displayName": "Rocket.Chat",
     "publisherDisplayName": "Rocket.Chat",
-    "languages": [
-      "en-US",
-      "en-GB",
-      "pt-BR"
-    ]
+    "languages": ["en-US", "en-GB", "pt-BR"]
   },
   "linux": {
-    "target": [
-      "AppImage",
-      "tar.gz",
-      "deb",
-      "rpm",
-      "snap"
-    ],
+    "target": ["AppImage", "tar.gz", "deb", "rpm", "snap"],
     "executableName": "rocketchat-desktop",
     "category": "GNOME;GTK;Network;InstantMessaging",
     "desktop": {
@@ -136,9 +105,6 @@
       "MimeType": "x-scheme-handler/rocketchat"
     },
     "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
-  },
-  "rpm": {
-    "fpm": ["--rpm-rpmbuild-define=_build_id_links none"]
   },
   "snap": {
     "plugs": [

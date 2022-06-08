@@ -160,7 +160,7 @@
       },
       "hardwareAcceleration": {
         "title": "Aceleração de hardware",
-        "description": "Ativa aceleração de hardware quando disponível."
+        "description": "Ativa aceleração de hardware quando disponível. O aplicativo será reiniciado ao ser alterado."
       },
       "internalVideoChatWindow": {
         "title": "Abrir chat em video em uma janela da aplicação",

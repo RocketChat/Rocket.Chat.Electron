@@ -160,7 +160,7 @@
       },
       "hardwareAcceleration": {
         "title": "Hardware Acceleration",
-        "description": "Enables the use of hardware acceleration when available."
+        "description": "Enables the use of hardware acceleration when available. The application will reload on change."
       },
       "internalVideoChatWindow": {
         "title": "Open Video Chat using Application Window",

@@ -4,6 +4,7 @@ import path from 'path';
 import { app } from 'electron';
 
 import { select, dispatch, watch } from '../../store';
+import { normalizeNumber } from '../../ui/main/rootWindow';
 import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import { getPersistedValues, persistValues } from './persistence';
@@ -131,10 +132,10 @@ export const mergePersistableValues = async (
       bounds: {
         x:
           userRootWindowState.x ??
-          parseInt(String(values?.rootWindowState?.bounds?.x)),
+          normalizeNumber(values?.rootWindowState?.bounds?.x),
         y:
           userRootWindowState.y ??
-          parseInt(String(values?.rootWindowState?.bounds?.y)),
+          normalizeNumber(values?.rootWindowState?.bounds?.y),
         width:
           userRootWindowState.width ?? values?.rootWindowState?.bounds?.width,
         height:

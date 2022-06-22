@@ -143,6 +143,19 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
 };
 
 export const setupUpdates = async (): Promise<void> => {
+  // This is necessary to make the updater work in development mode
+  if (process.env.NODE_ENV === 'development') {
+    Object.defineProperty(app, 'isPackaged', {
+      get() {
+        return true;
+      },
+    });
+    autoUpdater.updateConfigPath = path.join(
+      app.getAppPath(),
+      'dev-app-update.yml'
+    );
+  }
+
   autoUpdater.autoDownload = false;
 
   const {

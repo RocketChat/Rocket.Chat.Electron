@@ -12,6 +12,7 @@ type PersistableValues_0_0_0 = {
   externalProtocols: Record<string, boolean>;
   isAddNewServersEnabled: boolean;
   isEachUpdatesSettingConfigurable: boolean;
+  isHardwareAccelerationEnabled: boolean;
   isMenuBarEnabled: boolean;
   isShowWindowOnUnreadChangedEnabled: boolean;
   isSideBarEnabled: boolean;
@@ -55,6 +56,10 @@ type PersistableValues_3_8_4 = PersistableValues_3_8_1 & {
   isAddNewServersEnabled: boolean;
 };
 
+type PersistableValues_3_8_7 = PersistableValues_3_8_4 & {
+  isHardwareAccelerationEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
   PersistableValues_3_5_0,
   keyof PersistableValues_3_5_0
@@ -91,5 +96,9 @@ export const migrations = {
     ...before,
     isInternalVideoChatWindowEnabled: !process.mas,
     isAddNewServersEnabled: true,
+  }),
+  '>=3.8.7': (before: PersistableValues_3_8_4): PersistableValues_3_8_7 => ({
+    ...before,
+    isHardwareAccelerationEnabled: true,
   }),
 };

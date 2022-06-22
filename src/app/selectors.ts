@@ -26,6 +26,8 @@ export const selectPersistableValues = createStructuredSelector<
   isEachUpdatesSettingConfigurable: ({ isEachUpdatesSettingConfigurable }) =>
     isEachUpdatesSettingConfigurable,
   isUpdatingEnabled: ({ isUpdatingEnabled }) => isUpdatingEnabled,
+  isHardwareAccelerationEnabled: ({ isHardwareAccelerationEnabled }) =>
+    isHardwareAccelerationEnabled,
   externalProtocols: ({ externalProtocols }) => externalProtocols,
   allowedJitsiServers: ({ allowedJitsiServers }) => allowedJitsiServers,
   isReportEnabled: ({ isReportEnabled }) => isReportEnabled,

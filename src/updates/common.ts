@@ -5,6 +5,7 @@ export type UpdateConfiguration = {
   isUpdatingEnabled: boolean;
   skippedUpdateVersion: string | null;
   isReportEnabled: boolean;
+  isHardwareAccelerationEnabled: boolean;
   isFlashFrameEnabled: boolean;
   isInternalVideoChatWindowEnabled: boolean;
 };

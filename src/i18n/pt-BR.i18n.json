@@ -158,6 +158,10 @@
         "description": "Pisca a janela para atrair a atenção do usuário.",
         "onLinux": "Algumas distribuições Linux não possuem suporte a esta funcionalidade."
       },
+      "hardwareAcceleration": {
+        "title": "Aceleração de hardware",
+        "description": "Ativa aceleração de hardware quando disponível. O aplicativo será reiniciado ao ser alterado."
+      },
       "internalVideoChatWindow": {
         "title": "Abrir chat em video em uma janela da aplicação",
         "description": "Quando ativo o chat em video será aberto em uma janela da aplicação, caso contrário será aberto em uma nova janela do navegador.",

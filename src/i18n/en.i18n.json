@@ -158,6 +158,10 @@
         "description": "Flashes the window to attract user's attention.",
         "onLinux": "Some Linux distros don't have support for this feature."
       },
+      "hardwareAcceleration": {
+        "title": "Hardware Acceleration",
+        "description": "Enables the use of hardware acceleration when available. The application will reload on change."
+      },
       "internalVideoChatWindow": {
         "title": "Open Video Chat using Application Window",
         "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used.",

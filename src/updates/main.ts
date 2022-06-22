@@ -117,6 +117,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
     }: RootState) => ({
       isUpdatingAllowed:
@@ -129,6 +130,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
     })
   );
@@ -153,6 +155,7 @@ export const setupUpdates = async (): Promise<void> => {
     skippedUpdateVersion,
     isReportEnabled,
     isFlashFrameEnabled,
+    isHardwareAccelerationEnabled,
     isInternalVideoChatWindowEnabled,
   } = await loadConfiguration();
 
@@ -166,6 +169,7 @@ export const setupUpdates = async (): Promise<void> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
     },
   });

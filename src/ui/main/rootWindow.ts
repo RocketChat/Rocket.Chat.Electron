@@ -74,6 +74,9 @@ export const createRootWindow = (): void => {
   });
 };
 
+export const normalizeNumber = (value: number | undefined): number =>
+  value && isFinite(1 / value) ? value : 0;
+
 const isInsideSomeScreen = ({ x, y, width, height }: Rectangle): boolean =>
   screen
     .getAllDisplays()
@@ -118,6 +121,8 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     Number.isInteger(x) &&
     Number.isInteger(y)
   ) {
+    x = normalizeNumber(x);
+    y = normalizeNumber(y);
     browserWindow.setBounds({
       width,
       height,

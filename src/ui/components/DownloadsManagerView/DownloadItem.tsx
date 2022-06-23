@@ -120,15 +120,15 @@ const DownloadItem: FC<DownloadItemProps> = ({
       {...props}
     >
       <Box
-        width={188}
+        width={388}
         flexShrink={0}
         display='flex'
         flexDirection='row'
-        alignItems='center'
+        alignItems='left'
         justifyContent='center'
       >
         <FileIcon fileName={fileName} mimeType={mimeType} />
-        <Box width={144} mis={8}>
+        <Box width={344} mis={8}>
           <Box
             mbe={4}
             color={errored ? 'danger-500' : 'default'}

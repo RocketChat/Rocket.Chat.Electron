@@ -92,11 +92,11 @@ export type UiActionTypeToPayloadMap = {
   [SIDE_BAR_SERVER_SELECTED]: Server['url'];
   [SIDE_BAR_SERVERS_SORTED]: Server['url'][];
   [TOUCH_BAR_FORMAT_BUTTON_TOUCHED]:
-    | 'bold'
-    | 'italic'
-    | 'strike'
-    | 'inline_code'
-    | 'multi_line';
+  | 'bold'
+  | 'italic'
+  | 'strike'
+  | 'inline_code'
+  | 'multi_line';
   [TOUCH_BAR_SELECT_SERVER_TOUCHED]: string;
   [UPDATE_DIALOG_DISMISSED]: void;
   [UPDATE_DIALOG_INSTALL_BUTTON_CLICKED]: void;
@@ -108,7 +108,7 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
   [WEBVIEW_FAVICON_CHANGED]: { url: Server['url']; favicon: Server['favicon'] };
-  [WEBVIEW_FOCUS_REQUESTED]: { url: string };
+  [WEBVIEW_FOCUS_REQUESTED]: { url: string; view: 'server' | 'downloads' };
   [WEBVIEW_MESSAGE_BOX_BLURRED]: void;
   [WEBVIEW_MESSAGE_BOX_FOCUSED]: void;
   [WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED]: void;

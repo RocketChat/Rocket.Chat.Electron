@@ -37,6 +37,7 @@ export const createNotification = async ({
 }: NotificationOptions & {
   canReply?: boolean;
   title: string;
+  subtitle?: string;
   onEvent?: (eventDescriptor: { type: string; detail: unknown }) => void;
 }): Promise<unknown> => {
   const id = await request(
@@ -46,8 +47,8 @@ export const createNotification = async ({
         title,
         ...(icon
           ? {
-              icon: normalizeIconUrl(icon),
-            }
+            icon: normalizeIconUrl(icon),
+          }
           : {}),
         ...options,
       },
@@ -87,13 +88,14 @@ export const listenToNotificationsRequests = (): void => {
 
   listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action) => {
     const {
-      payload: { id },
+      payload: { id, title },
     } = action;
 
     dispatch({
       type: WEBVIEW_FOCUS_REQUESTED,
       payload: {
         url: getServerUrl(),
+        view: title === 'Downloads' ? 'downloads' : 'server',
       },
     });
 

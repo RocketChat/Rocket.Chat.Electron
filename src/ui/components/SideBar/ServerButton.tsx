@@ -24,6 +24,7 @@ type ServerButtonProps = {
   shortcutNumber: string | null;
   isSelected: boolean;
   favicon: string | null;
+  userLoggedIn?: boolean;
   isShortcutVisible: boolean;
   hasUnreadMessages: boolean;
   mentionCount?: number;
@@ -43,6 +44,7 @@ const ServerButton: FC<ServerButtonProps> = ({
   isShortcutVisible,
   hasUnreadMessages,
   mentionCount,
+  userLoggedIn,
   isDragged,
   onDragStart,
   onDragEnd,
@@ -91,6 +93,7 @@ const ServerButton: FC<ServerButtonProps> = ({
         <Favicon draggable='false' src={favicon ?? ''} visible={!!favicon} />
       </Avatar>
       {mentionCount && <Badge>{mentionCount}</Badge>}
+      {!userLoggedIn && <Badge>!</Badge>}
       {shortcutNumber && (
         <KeyboardShortcut visible={isShortcutVisible}>
           {process.platform === 'darwin' ? '⌘' : '^'}

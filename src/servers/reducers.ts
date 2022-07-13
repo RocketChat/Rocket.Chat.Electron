@@ -11,6 +11,7 @@ import {
   WEBVIEW_SIDEBAR_STYLE_CHANGED,
   WEBVIEW_TITLE_CHANGED,
   WEBVIEW_UNREAD_CHANGED,
+  WEBVIEW_USER_LOGGED_IN,
   WEBVIEW_FAVICON_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
@@ -38,6 +39,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED>
   | ActionOf<typeof WEBVIEW_TITLE_CHANGED>
   | ActionOf<typeof WEBVIEW_UNREAD_CHANGED>
+  | ActionOf<typeof WEBVIEW_USER_LOGGED_IN>
   | ActionOf<typeof WEBVIEW_FAVICON_CHANGED>
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
@@ -100,6 +102,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_UNREAD_CHANGED: {
       const { url, badge } = action.payload;
       return upsert(state, { url, badge });
+    }
+
+    case WEBVIEW_USER_LOGGED_IN: {
+      const { url, userLoggedIn } = action.payload;
+      return upsert(state, { url, userLoggedIn });
     }
 
     case WEBVIEW_SIDEBAR_STYLE_CHANGED: {

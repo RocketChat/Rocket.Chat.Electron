@@ -85,6 +85,7 @@ export const SideBar: FC = () => {
               isSelected={server.selected}
               favicon={server.favicon ?? null}
               hasUnreadMessages={!!server.badge}
+              userLoggedIn={server.userLoggedIn}
               mentionCount={
                 typeof server.badge === 'number' ? server.badge : undefined
               }

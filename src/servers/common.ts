@@ -10,6 +10,7 @@ export type Server = {
   lastPath?: string;
   failed?: boolean;
   webContentsId?: number;
+  userLoggedIn?: boolean;
 };
 
 export const enum ServerUrlResolutionStatus {

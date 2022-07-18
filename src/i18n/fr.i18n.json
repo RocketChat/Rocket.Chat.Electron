@@ -271,5 +271,10 @@
         "content": "{{- appName }} est configuré pour continuer à fonctionner dans la barre d'état système / zone de notification."
       }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Messages non lus",
+    "unreadMention": "Mentions non lues",
+    "noUnreadMessage": "Pas de messages non lus"
   }
 }

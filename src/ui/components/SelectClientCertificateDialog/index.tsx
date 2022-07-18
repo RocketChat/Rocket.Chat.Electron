@@ -80,7 +80,7 @@ export const SelectClientCertificateDialog: FC = () => {
                     >
                       <Margins inline='x8'>
                         <Box>
-                          <Box fontScale='s1'>{certificate.subjectName}</Box>
+                          <Box fontScale='p1'>{certificate.subjectName}</Box>
                           <Box fontScale='p2'>{certificate.issuerName}</Box>
                           <Box fontScale='c1'>
                             {t('dialog.selectClientCertificate.validDates', {

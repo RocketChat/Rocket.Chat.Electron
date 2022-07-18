@@ -145,6 +145,12 @@
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
   },
+  "certificatesManager" : {
+    "title": "Certificates manager",
+    "item": {
+      "remove": "Remove"
+    }
+  },
   "settings": {
     "title": "Settings",
     "options": {

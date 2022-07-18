@@ -16,6 +16,7 @@ import {
   SIDE_BAR_SERVER_SELECTED,
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   WEBVIEW_FOCUS_REQUESTED,
+  SETTINGS_CERTIFICATES_MANAGER_BUTTON_CLICKED,
 } from '../actions';
 
 type CurrentViewAction =
@@ -29,6 +30,7 @@ type CurrentViewAction =
   | ActionOf<typeof SIDE_BAR_ADD_NEW_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_DOWNLOADS_BUTTON_CLICKED>
   | ActionOf<typeof SIDE_BAR_SETTINGS_BUTTON_CLICKED>
+  | ActionOf<typeof SETTINGS_CERTIFICATES_MANAGER_BUTTON_CLICKED>
   | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_SERVER_SELECTED>
   | ActionOf<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>
@@ -38,6 +40,7 @@ type CurrentViewState =
   | 'add-new-server'
   | 'downloads'
   | 'settings'
+  | 'certificatesManager'
   | { url: string };
 
 export const currentView = (
@@ -81,6 +84,9 @@ export const currentView = (
 
       return state;
     }
+
+    case SETTINGS_CERTIFICATES_MANAGER_BUTTON_CLICKED:
+      return 'certificatesManager';
 
     case SIDE_BAR_DOWNLOADS_BUTTON_CLICKED:
       return 'downloads';

@@ -1,5 +1,5 @@
-import { Box, BoxProps, ProgressBar } from '@rocket.chat/fuselage';
-import React, { FC, useCallback, useMemo } from 'react';
+import { Box, ProgressBar } from '@rocket.chat/fuselage';
+import React, { ComponentProps, FC, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Download } from '../../../downloads/common';
@@ -7,7 +7,7 @@ import { invoke } from '../../../ipc/renderer';
 import ActionButton from './ActionButton';
 import FileIcon from './FileIcon';
 
-type DownloadItemProps = Download & BoxProps;
+type DownloadItemProps = Download & ComponentProps<typeof Box>;
 
 const DownloadItem: FC<DownloadItemProps> = ({
   itemId,

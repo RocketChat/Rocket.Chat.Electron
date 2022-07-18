@@ -69,6 +69,8 @@ export const SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED =
   'settings/set-internalvideochatwindow-opt-in-changed';
 export const SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED =
   'settings/set-minimize-on-close-opt-in-changed';
+export const SETTINGS_CERTIFICATES_MANAGER_BUTTON_CLICKED =
+  'settings/certificates-manager-button-clicked';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -124,4 +126,5 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED]: boolean;
+  [SETTINGS_CERTIFICATES_MANAGER_BUTTON_CLICKED]: void;
 };

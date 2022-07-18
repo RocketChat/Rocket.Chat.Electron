@@ -18,6 +18,7 @@ import { setupScreenSharing } from './screenSharing/main';
 import { setupServers } from './servers/main';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
+import { handleCertificatesManager } from './ui/components/CertificatesManager/main';
 import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
 import {
@@ -72,6 +73,7 @@ const start = async (): Promise<void> => {
   setupPowerMonitor();
   await setupUpdates();
   setupDownloads();
+  handleCertificatesManager();
 
   dock.setUp();
   menuBar.setUp();

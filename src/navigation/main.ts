@@ -54,8 +54,6 @@ export const setupNavigation = async (): Promise<void> => {
       const serialized = serializeCertificate(certificate);
       const { host } = new URL(requestedUrl);
 
-      console.log({ host });
-
       let trustedCertificates = select(
         ({ trustedCertificates }) => trustedCertificates
       );

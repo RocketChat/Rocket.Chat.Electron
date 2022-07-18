@@ -34,6 +34,7 @@ type PersistableValues_3_1_0 = Omit<
     | Exclude<PersistableValues_0_0_0['currentView'], null>
     | { url: string }
     | 'downloads'
+    | 'certificatesManager'
     | 'settings';
   downloads?: Record<Download['itemId'], Download>;
 };

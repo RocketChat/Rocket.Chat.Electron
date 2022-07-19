@@ -69,8 +69,6 @@ export const SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED =
   'settings/set-internalvideochatwindow-opt-in-changed';
 export const SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED =
   'settings/set-minimize-on-close-opt-in-changed';
-export const SETTINGS_CERTIFICATES_MANAGER_BUTTON_CLICKED =
-  'settings/certificates-manager-button-clicked';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -94,11 +92,11 @@ export type UiActionTypeToPayloadMap = {
   [SIDE_BAR_SERVER_SELECTED]: Server['url'];
   [SIDE_BAR_SERVERS_SORTED]: Server['url'][];
   [TOUCH_BAR_FORMAT_BUTTON_TOUCHED]:
-    | 'bold'
-    | 'italic'
-    | 'strike'
-    | 'inline_code'
-    | 'multi_line';
+  | 'bold'
+  | 'italic'
+  | 'strike'
+  | 'inline_code'
+  | 'multi_line';
   [TOUCH_BAR_SELECT_SERVER_TOUCHED]: string;
   [UPDATE_DIALOG_DISMISSED]: void;
   [UPDATE_DIALOG_INSTALL_BUTTON_CLICKED]: void;
@@ -126,5 +124,4 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED]: boolean;
-  [SETTINGS_CERTIFICATES_MANAGER_BUTTON_CLICKED]: void;
 };

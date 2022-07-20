@@ -1,4 +1,5 @@
 import { Box, Tabs } from '@rocket.chat/fuselage';
+import '@rocket.chat/fuselage-polyfills';
 import React, { FC, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';

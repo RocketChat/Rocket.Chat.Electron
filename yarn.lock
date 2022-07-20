@@ -2016,6 +2016,11 @@
     "@babel/runtime" "^7.7.2"
     regenerator-runtime "^0.13.3"
 
+"@juggle/resize-observer@^3.3.1":
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/@juggle/resize-observer/-/resize-observer-3.3.1.tgz#b50a781709c81e10701004214340f25475a171a0"
+  integrity sha512-zMM9Ds+SawiUkakS7y94Ymqx+S0ORzpG3frZirN3l+UlXUmSUR7hF4wxCVqW+ei94JzV5kt0uXBcoOEAuiydrw==
+
 "@malept/cross-spawn-promise@^1.1.0":
   version "1.1.1"
   resolved "https://registry.npmjs.org/@malept/cross-spawn-promise/-/cross-spawn-promise-1.1.1.tgz"
@@ -2205,6 +2210,18 @@
   version "0.31.1"
   resolved "https://registry.npmjs.org/@rocket.chat/fuselage-hooks/-/fuselage-hooks-0.31.1.tgz"
   integrity sha512-pAnY6itGrgeeJXOCGHnoLBY5Ppd50oyfgfD243cSZxGu8OiquVRLJLFJBHMPAveYAbc05q4A/Kz1iEXgxBJXlw==
+
+"@rocket.chat/fuselage-polyfills@^0.31.14":
+  version "0.31.14"
+  resolved "https://registry.yarnpkg.com/@rocket.chat/fuselage-polyfills/-/fuselage-polyfills-0.31.14.tgz#95d4d761327f4bed7b0a983af9b475393ce8da28"
+  integrity sha512-ECRjuah3hbKdLevgqpIMDsGxjbDr0Y8DiFfPuu1Z8RtTYaYSp4NgOSGkDChavRnBQoi5QctsQxfvhX7clSfLZA==
+  dependencies:
+    "@juggle/resize-observer" "^3.3.1"
+    clipboard-polyfill "^3.0.3"
+    element-closest-polyfill "^1.0.4"
+    focus-visible "^5.2.0"
+    focus-within-polyfill "^5.2.1"
+    new-event-polyfill "^1.0.1"
 
 "@rocket.chat/fuselage-tokens@^0.31.1":
   version "0.31.1"
@@ -3896,6 +3913,11 @@ cli-truncate@^2.1.0:
     slice-ansi "^3.0.0"
     string-width "^4.2.0"
 
+clipboard-polyfill@^3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/clipboard-polyfill/-/clipboard-polyfill-3.0.3.tgz#159ea0768e20edc7ffda404bd13c54c73de4ff40"
+  integrity sha512-hts0o01ZkwjA1qHA5gFePzAj/780W7v+eyN3GdaCRyDnapzcPsKRV5aodv77gcr40NDIcyNjNmc+HvfKV+jD0g==
+
 cliui@^6.0.0:
   version "6.0.0"
   resolved "https://registry.npmjs.org/cliui/-/cliui-6.0.0.tgz"
@@ -4848,6 +4870,11 @@ electron@^17.4.2:
     "@types/node" "^14.6.2"
     extract-zip "^1.0.3"
 
+element-closest-polyfill@^1.0.4:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/element-closest-polyfill/-/element-closest-polyfill-1.0.5.tgz#adb93927754125e5dacd3c2cbf7603b772fc1169"
+  integrity sha512-MvAZcwG3nRRQK4Dk8kYyRHMJ4IOzFIIyakVMozwgCaAyItjAW8YbZAR63yyOJE0C3lf4E1CQzW+73rFj1YDUyw==
+
 emittery@^0.7.1:
   version "0.7.2"
   resolved "https://registry.npmjs.org/emittery/-/emittery-0.7.2.tgz"
@@ -5553,6 +5580,16 @@ flow-parser@0.*:
   version "0.150.1"
   resolved "https://registry.npmjs.org/flow-parser/-/flow-parser-0.150.1.tgz"
   integrity sha512-BGzmgjz6Ma6LN6rfrnVGDo/2wsAGHbcCASDVpWu8/GAriikDQCiiIND/6HBVBxhy1Uga1Sgmfl8iiIln+t3kCw==
+
+focus-visible@^5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/focus-visible/-/focus-visible-5.2.0.tgz#3a9e41fccf587bd25dcc2ef045508284f0a4d6b3"
+  integrity sha512-Rwix9pBtC1Nuy5wysTmKy+UjbDJpIfg8eHjw0rjZ1mX4GNLz1Bmd16uDpI3Gk1i70Fgcs8Csg2lPm8HULFg9DQ==
+
+focus-within-polyfill@^5.2.1:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/focus-within-polyfill/-/focus-within-polyfill-5.2.1.tgz#bea7ed0689516ef76f3f226a7a66399ce5c45789"
+  integrity sha512-24dSGm2euJ0V+blff5Yj0IXtemjjGIoT6/OjmvICZ80NIgnyXDpthfxdkJAJWCDs0BaUvdB+2RParJ9b7X4EuQ==
 
 for-in@^1.0.2:
   version "1.0.2"
@@ -8180,6 +8217,11 @@ neo-async@^2.5.0, neo-async@^2.6.0:
   version "2.6.2"
   resolved "https://registry.npmjs.org/neo-async/-/neo-async-2.6.2.tgz"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
+
+new-event-polyfill@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/new-event-polyfill/-/new-event-polyfill-1.0.1.tgz#9ec8d8b8e90ba70ac27204dd2bcc8370345798e5"
+  integrity sha512-cgNgv9yb3C8xIz9mn9dp98bHVcBv1uxyCq/7R2ZiRC+joyLpgBWvLNJMDzoECnGUC7EAxLEnXh1SxHE0nAQ6gA==
 
 nice-try@^1.0.4:
   version "1.0.5"

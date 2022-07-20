@@ -71,7 +71,6 @@ export const notTrustedCertificates: Reducer<
   CertificatesAction
 > = (state = {}, action) => {
   switch (action.type) {
-    case CERTIFICATES_LOADED:
     case NOT_TRUSTED_CERTIFICATES_UPDATED:
       return action.payload;
 

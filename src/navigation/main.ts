@@ -198,17 +198,12 @@ export const setupNavigation = async (): Promise<void> => {
     ({ trustedCertificates }) => trustedCertificates
   );
 
-  const notTrustedCertificates = select(
-    ({ notTrustedCertificates }) => notTrustedCertificates
-  );
-
   const userTrustedCertificates = await loadUserTrustedCertificates();
 
   dispatch({
     type: CERTIFICATES_LOADED,
     payload: {
       ...trustedCertificates,
-      ...notTrustedCertificates,
       ...userTrustedCertificates,
     },
   });

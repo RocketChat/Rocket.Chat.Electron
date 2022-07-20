@@ -63,6 +63,8 @@ export const SideBar: FC = () => {
   };
   const { t } = useTranslation();
 
+  const currentView = useSelector(({ currentView }: RootState) => currentView);
+
   return (
     <Wrapper sideBarStyle={style} isVisible={isVisible}>
       <Content withWindowButtons={process.platform === 'darwin'}>
@@ -112,6 +114,7 @@ export const SideBar: FC = () => {
             <SidebarActionButton
               tooltip={t('sidebar.downloads')}
               onClick={handelDownloadsButtonClicked}
+              isSelected={currentView === 'downloads'}
             >
               <Icon name='download' />
             </SidebarActionButton>
@@ -120,6 +123,7 @@ export const SideBar: FC = () => {
             <SidebarActionButton
               tooltip={t('sidebar.settings')}
               onClick={handelSettingsButtonClicked}
+              isSelected={currentView === 'settings'}
             >
               <Icon name='cog' />
             </SidebarActionButton>

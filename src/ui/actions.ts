@@ -94,11 +94,11 @@ export type UiActionTypeToPayloadMap = {
   [SIDE_BAR_SERVER_SELECTED]: Server['url'];
   [SIDE_BAR_SERVERS_SORTED]: Server['url'][];
   [TOUCH_BAR_FORMAT_BUTTON_TOUCHED]:
-  | 'bold'
-  | 'italic'
-  | 'strike'
-  | 'inline_code'
-  | 'multi_line';
+    | 'bold'
+    | 'italic'
+    | 'strike'
+    | 'inline_code'
+    | 'multi_line';
   [TOUCH_BAR_SELECT_SERVER_TOUCHED]: string;
   [UPDATE_DIALOG_DISMISSED]: void;
   [UPDATE_DIALOG_INSTALL_BUTTON_CLICKED]: void;

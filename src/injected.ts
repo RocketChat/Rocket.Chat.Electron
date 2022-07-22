@@ -82,6 +82,11 @@ const start = (): void => {
   });
 
   Tracker.autorun(() => {
+    const { gitCommitHash } = Meteor;
+    window.RocketChatDesktop.setGitCommitHash(gitCommitHash);
+  });
+
+  Tracker.autorun(() => {
     const uid = Meteor.userId();
     const isAutoAwayEnabled: unknown = getUserPreference(uid, 'enableAutoAway');
     const idleThreshold: unknown = getUserPreference(uid, 'idleTimeLimit');

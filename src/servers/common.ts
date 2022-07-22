@@ -10,6 +10,7 @@ export type Server = {
   lastPath?: string;
   failed?: boolean;
   webContentsId?: number;
+  gitCommitHash?: string;
 };
 
 export const enum ServerUrlResolutionStatus {

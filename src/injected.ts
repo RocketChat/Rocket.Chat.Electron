@@ -83,6 +83,7 @@ const start = (): void => {
 
   Tracker.autorun(() => {
     const { gitCommitHash } = Meteor;
+    if (!gitCommitHash) return;
     window.RocketChatDesktop.setGitCommitHash(gitCommitHash);
   });
 

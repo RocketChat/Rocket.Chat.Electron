@@ -50,6 +50,7 @@
     "@rocket.chat/css-in-js": "^0.31.1",
     "@rocket.chat/fuselage": "^0.31.1",
     "@rocket.chat/fuselage-hooks": "^0.31.1",
+    "@rocket.chat/fuselage-polyfills": "^0.31.14",
     "@rocket.chat/icons": "^0.31.1",
     "abort-controller": "^3.0.0",
     "electron-dl": "^3.3.1",

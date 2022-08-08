@@ -7,7 +7,9 @@ import { satisfies, coerce } from 'semver';
 import { invoke } from '../ipc/main';
 import { select, dispatch, listen } from '../store';
 import { hasMeta } from '../store/fsa';
+import { WEBVIEW_GIT_COMMIT_HASH_CHANGED } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
+import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import {
   SERVER_URL_RESOLUTION_REQUESTED,
   SERVER_URL_RESOLVED,
@@ -164,7 +166,22 @@ export const setupServers = async (
     }
   });
 
+  listen(WEBVIEW_GIT_COMMIT_HASH_CHANGED, async (action) => {
+    const { url, gitCommitHash } = action.payload;
+
+    const servers = select(({ servers }) => servers);
+
+    const server = servers.find((server) => server.url === url);
+
+    if (server?.gitCommitHash !== gitCommitHash) {
+      const guestWebContents = getWebContentsByServerUrl(url);
+      await guestWebContents?.session.clearCache();
+      guestWebContents?.reload();
+    }
+  });
+
   let servers = select(({ servers }) => servers);
+
   let currentServerUrl = select(({ currentView }) =>
     typeof currentView === 'object' ? currentView.url : null
   );

@@ -2,6 +2,10 @@
   "files": ["app/**/*", "package.json"],
   "extraResources": ["build/icon.ico", "servers.json"],
   "appId": "chat.rocket",
+  "protocols": {
+        "name": "Rocket.Chat",
+        "schemes": ["rocketchat"]
+  },
   "mac": {
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],

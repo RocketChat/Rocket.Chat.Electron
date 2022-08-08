@@ -113,6 +113,9 @@
   },
   "downloads": {
     "title": "Downloads",
+    "notifications": {
+      "downloadFinished": "Download finalizado"
+    },
     "filters": {
       "search": "Buscar",
       "server": "Servidor",

@@ -8,8 +8,10 @@ import {
   WebContents,
   webContents,
 } from 'electron';
+import { t } from 'i18next';
 
 import { handle } from '../ipc/main';
+import { createNotification } from '../notifications/preload';
 import { dispatch, select } from '../store';
 import {
   DOWNLOAD_CREATED,
@@ -96,6 +98,12 @@ export const handleWillDownloadEvent = async (
   });
 
   item.on('done', () => {
+    createNotification({
+      title: 'Downloads',
+      body: item.getFilename(),
+      subtitle: t('downloads.notifications.downloadFinished'),
+    });
+
     dispatch({
       type: DOWNLOAD_UPDATED,
       payload: {

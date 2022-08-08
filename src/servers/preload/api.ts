@@ -6,6 +6,7 @@ import { setUserPresenceDetection } from '../../userPresence/preload';
 import { Server } from '../common';
 import { setBadge } from './badge';
 import { setFavicon } from './favicon';
+import { setGitCommitHash } from './gitCommitHash';
 import { getInternalVideoChatWindowEnabled } from './internalVideoChatWindow';
 import { setBackground } from './sidebar';
 import { setTitle } from './title';
@@ -42,6 +43,7 @@ export type RocketChatDesktopAPI = {
   ) => Promise<unknown>;
   destroyNotification: (id: unknown) => void;
   getInternalVideoChatWindowEnabled: () => boolean;
+  setGitCommitHash: (gitCommitHash: string) => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -65,4 +67,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   createNotification,
   destroyNotification,
   getInternalVideoChatWindowEnabled,
+  setGitCommitHash,
 };

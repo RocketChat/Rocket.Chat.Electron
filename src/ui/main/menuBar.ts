@@ -304,6 +304,8 @@ const createViewMenu = createSelector(
         label: t('menus.showTrayIcon'),
         type: 'checkbox',
         checked: isTrayIconEnabled,
+        accelerator:
+          process.platform === 'darwin' ? 'Shift+Command+T' : 'Ctrl+Shift+T',
         click: ({ checked }) => {
           setTimeout(() => {
             dispatch({
@@ -337,6 +339,8 @@ const createViewMenu = createSelector(
           label: t('menus.showMenuBar'),
           type: 'checkbox',
           checked: isMenuBarEnabled,
+          accelerator:
+            process.platform === 'darwin' ? 'Shift+Command+M' : 'Ctrl+Shift+M',
           click: async ({ checked }) => {
             const browserWindow = await getRootWindow();
 
@@ -356,6 +360,8 @@ const createViewMenu = createSelector(
         label: t('menus.showServerList'),
         type: 'checkbox',
         checked: isSideBarEnabled,
+        accelerator:
+          process.platform === 'darwin' ? 'Shift+Command+S' : 'Ctrl+Shift+S',
         click: async ({ checked }) => {
           const browserWindow = await getRootWindow();
 

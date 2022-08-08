@@ -11,6 +11,7 @@ export type Server = {
   failed?: boolean;
   webContentsId?: number;
   userLoggedIn?: boolean;
+  gitCommitHash?: string;
 };
 
 export const enum ServerUrlResolutionStatus {

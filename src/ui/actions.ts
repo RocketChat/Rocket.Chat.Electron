@@ -57,6 +57,8 @@ export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED =
 export const WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED =
   'webview/screen-sharing-source-responded';
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
+export const WEBVIEW_GIT_COMMIT_HASH_CHANGED =
+  'webview/git-commit-hash-changed';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 export const WEBVIEW_USER_LOGGED_IN = 'webview/user-loggedin';
@@ -109,7 +111,7 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
   [WEBVIEW_FAVICON_CHANGED]: { url: Server['url']; favicon: Server['favicon'] };
-  [WEBVIEW_FOCUS_REQUESTED]: { url: string };
+  [WEBVIEW_FOCUS_REQUESTED]: { url: string; view: 'server' | 'downloads' };
   [WEBVIEW_MESSAGE_BOX_BLURRED]: void;
   [WEBVIEW_MESSAGE_BOX_FOCUSED]: void;
   [WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED]: void;
@@ -123,6 +125,9 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_USER_LOGGED_IN]: {
     url: Server['url'];
     userLoggedIn: Server['userLoggedIn'];
+  [WEBVIEW_GIT_COMMIT_HASH_CHANGED]: {
+    url: Server['url'];
+    gitCommitHash: Server['gitCommitHash'];
   };
   [SETTINGS_SET_REPORT_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED]: boolean;

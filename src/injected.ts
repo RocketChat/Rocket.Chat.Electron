@@ -85,6 +85,12 @@ const start = (): void => {
     const userId = Meteor.userId();
     window.RocketChatDesktop.setUserLoggedIn(userId !== null);
   });
+  
+  Tracker.autorun(() => {
+    const { gitCommitHash } = Meteor;
+    if (!gitCommitHash) return;
+    window.RocketChatDesktop.setGitCommitHash(gitCommitHash);
+  });
 
   Tracker.autorun(() => {
     const uid = Meteor.userId();

@@ -253,7 +253,12 @@ export const AddServerButtonLabel = styled.span<AddServerButtonLabelProps>`
   ${withTooltip}
 `;
 
-export const SidebarActionButton = styled.span`
+type SidebarActionButtonProps = {
+  isSelected?: boolean;
+  tooltip: string;
+};
+
+export const SidebarActionButton = styled.span<SidebarActionButtonProps>`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -265,6 +270,12 @@ export const SidebarActionButton = styled.span`
   color: inherit;
   background: rgba(0, 0, 0, 0);
   cursor: pointer;
+
+  ${({ isSelected }) =>
+    isSelected &&
+    css`
+      opacity: 1;
+    `}
 
   &:hover {
     opacity: 1;

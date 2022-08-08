@@ -148,7 +148,19 @@
     },
     "showingResults": "Mostrando resultados {{first}} - {{last}} de {{count}}"
   },
+  "certificatesManager": {
+    "title": "Gerenciador de certificados",
+    "trustedCertificates": "Certificados confiáveis",
+    "notTrustedCertificates": "Certificados não confiáveis",
+    "item": {
+      "domain": "Domínio",
+      "actions": "Ações",
+      "remove": "Remover"
+    }
+  },
   "settings": {
+    "general": "Geral",
+    "certificates": "Certificados",
     "title": "Configurações",
     "options": {
       "report": {

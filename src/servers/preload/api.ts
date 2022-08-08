@@ -11,6 +11,7 @@ import { getInternalVideoChatWindowEnabled } from './internalVideoChatWindow';
 import { setBackground } from './sidebar';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
+import { setUserLoggedIn } from './userLoggedIn';
 
 type ServerInfo = {
   version: string;
@@ -27,6 +28,7 @@ export type RocketChatDesktopAPI = {
   setFavicon: (faviconUrl: string) => void;
   setBackground: (imageUrl: string) => void;
   setTitle: (title: string) => void;
+  setUserLoggedIn: (userLoggedIn: boolean) => void;
   setUserPresenceDetection: (options: {
     isAutoAwayEnabled: boolean;
     idleThreshold: number | null;
@@ -61,6 +63,7 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   setBackground,
   setTitle,
   setUserPresenceDetection,
+  setUserLoggedIn,
   createNotification,
   destroyNotification,
   getInternalVideoChatWindowEnabled,

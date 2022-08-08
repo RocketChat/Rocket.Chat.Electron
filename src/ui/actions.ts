@@ -57,6 +57,8 @@ export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED =
 export const WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED =
   'webview/screen-sharing-source-responded';
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
+export const WEBVIEW_GIT_COMMIT_HASH_CHANGED =
+  'webview/git-commit-hash-changed';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 export const SETTINGS_SET_REPORT_OPT_IN_CHANGED =
@@ -119,6 +121,10 @@ export type UiActionTypeToPayloadMap = {
   };
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
+  [WEBVIEW_GIT_COMMIT_HASH_CHANGED]: {
+    url: Server['url'];
+    gitCommitHash: Server['gitCommitHash'];
+  };
   [SETTINGS_SET_REPORT_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED]: boolean;

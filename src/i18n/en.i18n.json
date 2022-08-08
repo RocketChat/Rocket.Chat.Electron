@@ -145,8 +145,20 @@
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
   },
+  "certificatesManager" : {
+    "title": "Certificates manager",
+    "trustedCertificates": "Trusted certificates",
+    "notTrustedCertificates": "Not trusted certificates",
+    "item": {
+      "domain": "Domain",
+      "actions": "Actions",
+      "remove": "Remove"
+    }
+  },
   "settings": {
     "title": "Settings",
+    "general": "General",
+    "certificates": "Certificates",
     "options": {
       "report": {
         "title": "Report errors to developers",

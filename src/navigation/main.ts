@@ -54,8 +54,6 @@ export const setupNavigation = async (): Promise<void> => {
       const serialized = serializeCertificate(certificate);
       const { host } = new URL(requestedUrl);
 
-      console.log({ host });
-
       let trustedCertificates = select(
         ({ trustedCertificates }) => trustedCertificates
       );
@@ -200,17 +198,12 @@ export const setupNavigation = async (): Promise<void> => {
     ({ trustedCertificates }) => trustedCertificates
   );
 
-  const notTrustedCertificates = select(
-    ({ notTrustedCertificates }) => notTrustedCertificates
-  );
-
   const userTrustedCertificates = await loadUserTrustedCertificates();
 
   dispatch({
     type: CERTIFICATES_LOADED,
     payload: {
       ...trustedCertificates,
-      ...notTrustedCertificates,
       ...userTrustedCertificates,
     },
   });

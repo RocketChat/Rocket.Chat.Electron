@@ -125,6 +125,7 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_USER_LOGGED_IN]: {
     url: Server['url'];
     userLoggedIn: Server['userLoggedIn'];
+  };
   [WEBVIEW_GIT_COMMIT_HASH_CHANGED]: {
     url: Server['url'];
     gitCommitHash: Server['gitCommitHash'];

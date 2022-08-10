@@ -170,8 +170,10 @@
       },
       "flashFrame": {
         "title": "Enable Flash Frame",
+        "titleOSX": "Toggle Dock Bounce on alert",
         "description": "Flashes the window to attract user's attention.",
-        "onLinux": "Some Linux distros don't have support for this feature."
+        "onLinux": "Some Linux distros don't have support for this feature.",
+        "descriptionOSX": "Bounces the app icon in the dock to attract user's attention."
       },
       "hardwareAcceleration": {
         "title": "Hardware Acceleration",

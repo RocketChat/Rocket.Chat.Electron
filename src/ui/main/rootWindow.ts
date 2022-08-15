@@ -200,7 +200,7 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      if (isFlashFrameEnabled) {
+      if (isFlashFrameEnabled && process.platform !== 'darwin') {
         browserWindow.flashFrame(true);
       }
     }),

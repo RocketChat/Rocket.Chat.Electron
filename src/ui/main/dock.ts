@@ -1,6 +1,6 @@
 import { app } from 'electron';
 
-import { Service } from '../../store';
+import { select, Service } from '../../store';
 import { selectGlobalBadgeText, selectGlobalBadgeCount } from '../selectors';
 
 class DockService extends Service {
@@ -16,11 +16,17 @@ class DockService extends Service {
     this.watch(
       selectGlobalBadgeCount,
       (globalBadgeCount, prevGlobalBadgeCount) => {
+        const { isFlashFrameEnabled } = select(({ isFlashFrameEnabled }) => ({
+          isFlashFrameEnabled,
+        }));
+
         if (globalBadgeCount <= 0 || (prevGlobalBadgeCount ?? 0) > 0) {
           return;
         }
 
-        app.dock.bounce();
+        if (isFlashFrameEnabled) {
+          app.dock.bounce();
+        }
       }
     );
   }

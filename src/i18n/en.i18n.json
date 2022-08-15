@@ -148,7 +148,7 @@
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
   },
-  "certificatesManager" : {
+  "certificatesManager": {
     "title": "Certificates manager",
     "trustedCertificates": "Trusted certificates",
     "notTrustedCertificates": "Not trusted certificates",

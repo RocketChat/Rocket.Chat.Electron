@@ -46,6 +46,7 @@ const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>
   };
 
 let _rootWindow: BrowserWindow;
+let tempWindow: BrowserWindow;
 
 export const getRootWindow = (): Promise<BrowserWindow> =>
   new Promise((resolve, reject) => {
@@ -72,6 +73,8 @@ export const createRootWindow = (): void => {
   _rootWindow.addListener('close', (event) => {
     event.preventDefault();
   });
+
+  tempWindow.destroy();
 };
 
 export const normalizeNumber = (value: number | undefined): number =>
@@ -422,7 +425,7 @@ export const showRootWindow = async (): Promise<void> => {
 
 export const exportLocalStorage = async (): Promise<Record<string, string>> => {
   try {
-    const tempWindow = new BrowserWindow({
+    tempWindow = new BrowserWindow({
       show: false,
       webPreferences,
     });

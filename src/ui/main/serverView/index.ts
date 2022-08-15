@@ -5,6 +5,7 @@ import {
   app,
   BrowserWindow,
   ContextMenuParams,
+  dialog,
   Event,
   Input,
   Menu,
@@ -318,7 +319,15 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.setPermissionRequestHandler(
       handlePermissionRequest
     );
-    guestWebContents.session.on('will-download', handleWillDownloadEvent);
+    guestWebContents.session.on('will-download', (event, item, webContents) => {
+      let savePath = dialog.showSaveDialogSync(rootWindow, {defaultPath : item.getFilename()})
+      if (savePath !== undefined){
+        item.setSavePath(savePath)
+        handleWillDownloadEvent(event, item, webContents);
+        return;
+      }
+      event.preventDefault();
+    });
   });
 
   listen(WEBVIEW_ATTACHED, (action) => {

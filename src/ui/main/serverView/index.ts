@@ -319,10 +319,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.setPermissionRequestHandler(
       handlePermissionRequest
     );
-    guestWebContents.session.on('will-download', (event, item, webContents) => {
-      let savePath = dialog.showSaveDialogSync(rootWindow, {defaultPath : item.getFilename()})
-      if (savePath !== undefined){
-        item.setSavePath(savePath)
+    guestWebContents.session.on("will-download", (event, item, webContents) => {
+      const savePath = dialog.showSaveDialogSync(rootWindow, {
+        defaultPath: item.getFilename(),
+      });
+      if (savePath !== undefined) {
+        item.setSavePath(savePath);
         handleWillDownloadEvent(event, item, webContents);
         return;
       }

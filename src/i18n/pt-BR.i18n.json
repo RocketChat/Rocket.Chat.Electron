@@ -170,8 +170,10 @@
       },
       "flashFrame": {
         "title": "Piscar janela",
+        "titleDarwin": "Ícone deve saltar na dock",
         "description": "Pisca a janela para atrair a atenção do usuário.",
-        "onLinux": "Algumas distribuições Linux não possuem suporte a esta funcionalidade."
+        "onLinux": "Algumas distribuições Linux não possuem suporte a esta funcionalidade.",
+        "descriptionDarwin": "Faz o ícone da aplicação saltar na dock quando recebe notificação."
       },
       "hardwareAcceleration": {
         "title": "Aceleração de hardware",

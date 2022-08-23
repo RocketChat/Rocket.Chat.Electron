@@ -99,6 +99,7 @@ const start = (): void => {
 
   Tracker.autorun(() => {
     const uid = Meteor.userId();
+    if (!uid) return;
     const isAutoAwayEnabled: unknown = getUserPreference(uid, 'enableAutoAway');
     const idleThreshold: unknown = getUserPreference(uid, 'idleTimeLimit');
 

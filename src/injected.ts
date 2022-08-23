@@ -51,24 +51,29 @@ const start = (): void => {
   const open = window.open.bind(window);
 
   Tracker.autorun(() => {
-    const jitsiDomain = settings.get('Jitsi_Domain') || '';
+    const serverMainVersion = serverInfo.version.split('.')[0];
 
-    console.log(
-      '[Rocket.Chat Desktop] window.open for Jitsi overloaded',
-      jitsiDomain
-    );
-    window.open = (url, name, features = '') => {
-      if (
-        typeof url === 'string' &&
-        url.includes(jitsiDomain) &&
-        !process.mas &&
-        window.RocketChatDesktop.getInternalVideoChatWindowEnabled()
-      ) {
-        return open(url, 'Jitsi Meet', `scrollbars=true,${features}`);
-      }
+    // Server version above 5.0.0 will change the way the jitsi integration is handled, now we have video provider as an app
+    if (serverMainVersion < 5) {
+      const jitsiDomain = settings.get('Jitsi_Domain') || '';
 
-      return open(url, name, features);
-    };
+      console.log(
+        '[Rocket.Chat Desktop] window.open for Jitsi overloaded',
+        jitsiDomain
+      );
+      window.open = (url, name, features = '') => {
+        if (
+          typeof url === 'string' &&
+          url.includes(jitsiDomain) &&
+          !process.mas &&
+          window.RocketChatDesktop.getInternalVideoChatWindowEnabled()
+        ) {
+          return open(url, 'Jitsi Meet', `scrollbars=true,${features}`);
+        }
+
+        return open(url, name, features);
+      };
+    }
   });
 
   Tracker.autorun(() => {
@@ -121,8 +126,7 @@ const start = (): void => {
 
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
-    implements Notification
-  {
+    implements Notification {
     static readonly permission: NotificationPermission = 'granted';
 
     static readonly maxActions: number =

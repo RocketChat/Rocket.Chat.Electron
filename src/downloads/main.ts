@@ -97,11 +97,14 @@ export const handleWillDownloadEvent = async (
     });
   });
 
-  item.on('done', () => {
+  item.on('done', (_event, state) => {
     createNotification({
       title: 'Downloads',
       body: item.getFilename(),
-      subtitle: t('downloads.notifications.downloadFinished'),
+      subtitle:
+        state === 'completed'
+          ? t('downloads.notifications.downloadFinished')
+          : t('downloads.notifications.downloadCancelled'),
     });
 
     dispatch({

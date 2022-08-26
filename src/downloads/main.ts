@@ -197,7 +197,7 @@ export const setupDownloads = (): void => {
     );
 
     const downloadStartTimestamp = new URL(url).searchParams.get('X-Amz-Date');
-    const expiryTime = new URL(url).searchParams.get('X-Amz-Expires') ?? 120;
+    const expiresIn = new URL(url).searchParams.get('X-Amz-Expires') ?? 120;
     const parsedStartTime = {
       year: downloadStartTimestamp?.substring(0, 4),
       month: downloadStartTimestamp?.substring(4, 6),
@@ -212,7 +212,7 @@ export const setupDownloads = (): void => {
       new Date(
         `${parsedStartTime.year}-${parsedStartTime.month}-${parsedStartTime.day}T${parsedStartTime.hour}:${parsedStartTime.minute}:${parsedStartTime.second}Z`
       ).getTime() +
-        +expiryTime * 1000;
+        +expiresIn * 1000;
 
     if (s3Expired) {
       createNotification({

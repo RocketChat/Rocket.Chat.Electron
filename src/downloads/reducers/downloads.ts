@@ -6,7 +6,7 @@ import {
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
 } from '../actions';
-import { Download } from '../common';
+import { Download, DownloadStatus } from '../common';
 
 type DownloadsAction =
   | ActionOf<typeof APP_SETTINGS_LOADED>
@@ -20,8 +20,16 @@ export const downloads = (
   action: DownloadsAction
 ): Record<Download['itemId'], Download> => {
   switch (action.type) {
-    case APP_SETTINGS_LOADED:
-      return action.payload.downloads ?? {};
+    case APP_SETTINGS_LOADED: {
+      const initDownloads = action.payload.downloads ?? {};
+      Object.values(initDownloads).forEach((value) => {
+        if (value.state === 'progressing' || value.state === 'paused') {
+          value.state = 'cancelled';
+          value.status = DownloadStatus.CANCELLED;
+        }
+      });
+      return initDownloads ?? {};
+    }
 
     case DOWNLOAD_CREATED: {
       const download = action.payload;

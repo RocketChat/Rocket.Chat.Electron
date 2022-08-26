@@ -117,7 +117,8 @@
       "downloadFinished": "Download Finished",
       "downloadInterrupted": "Download Interrupted",
       "downloadCancelled": "Download Cancelled",
-      "downloadFailed": "Download could not be completed"
+      "downloadFailed": "Download Failed",
+      "downloadRetryMessage" : "Please restart the download from source."
     },
     "filters": {
       "search": "Search",

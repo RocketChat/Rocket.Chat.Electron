@@ -216,9 +216,9 @@ export const setupDownloads = (): void => {
 
     if (s3Expired) {
       createNotification({
-        title: 'Downloads',
-        body: fileName,
-        subtitle: t('downloads.notifications.downloadFailed'),
+        title: t('downloads.notifications.downloadFailed'),
+        body: t('downloads.notifications.downloadRetryMessage'),
+        subtitle: fileName,
       });
 
       return;

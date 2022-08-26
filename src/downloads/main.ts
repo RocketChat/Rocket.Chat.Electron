@@ -187,12 +187,42 @@ export const setupDownloads = (): void => {
   });
 
   handle('downloads/retry', async (_webContent, itemId) => {
-    const { url, webContentsId } = select(({ downloads, servers }) => {
-      const { url, serverUrl } = downloads[itemId];
-      const { webContentsId } =
-        servers.find((server) => server.url === serverUrl) ?? {};
-      return { url, webContentsId };
-    });
+    const { url, webContentsId, fileName } = select(
+      ({ downloads, servers }) => {
+        const { url, serverUrl, fileName } = downloads[itemId];
+        const { webContentsId } =
+          servers.find((server) => server.url === serverUrl) ?? {};
+        return { url, webContentsId, fileName };
+      }
+    );
+
+    const downloadStartTimestamp = new URL(url).searchParams.get('X-Amz-Date');
+    const expiryTime = new URL(url).searchParams.get('X-Amz-Expires') ?? 120;
+    const parsedStartTime = {
+      year: downloadStartTimestamp?.substring(0, 4),
+      month: downloadStartTimestamp?.substring(4, 6),
+      day: downloadStartTimestamp?.substring(6, 8),
+      hour: downloadStartTimestamp?.substring(9, 11),
+      minute: downloadStartTimestamp?.substring(11, 13),
+      second: downloadStartTimestamp?.substring(13, 15),
+    };
+
+    const s3Expired =
+      new Date().getTime() >
+      new Date(
+        `${parsedStartTime.year}-${parsedStartTime.month}-${parsedStartTime.day}T${parsedStartTime.hour}:${parsedStartTime.minute}:${parsedStartTime.second}Z`
+      ).getTime() +
+        +expiryTime * 1000;
+
+    if (s3Expired) {
+      createNotification({
+        title: 'Downloads',
+        body: fileName,
+        subtitle: t('downloads.notifications.downloadFailed'),
+      });
+
+      return;
+    }
 
     dispatch({
       type: DOWNLOAD_REMOVED,

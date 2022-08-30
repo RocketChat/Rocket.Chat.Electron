@@ -187,17 +187,18 @@ export const setupDownloads = (): void => {
   });
 
   handle('downloads/retry', async (_webContent, itemId) => {
-    const { url, webContentsId, fileName } = select(
-      ({ downloads, servers }) => {
-        const { url, serverUrl, fileName } = downloads[itemId];
-        const { webContentsId } =
-          servers.find((server) => server.url === serverUrl) ?? {};
-        return { url, webContentsId, fileName };
-      }
-    );
+    const { download, webContentsId } = select(({ downloads, servers }) => {
+      const download = downloads[itemId];
+      const { webContentsId } =
+        servers.find((server) => server.url === download.serverUrl) ?? {};
+      return { download, webContentsId };
+    });
 
-    const downloadStartTimestamp = new URL(url).searchParams.get('X-Amz-Date');
-    const expiresIn = new URL(url).searchParams.get('X-Amz-Expires') ?? 120;
+    const downloadStartTimestamp = new URL(download.url).searchParams.get(
+      'X-Amz-Date'
+    );
+    const expiresIn =
+      new URL(download.url).searchParams.get('X-Amz-Expires') ?? 120;
     const parsedStartTime = {
       year: downloadStartTimestamp?.substring(0, 4),
       month: downloadStartTimestamp?.substring(4, 6),
@@ -216,9 +217,18 @@ export const setupDownloads = (): void => {
 
     if (s3Expired) {
       createNotification({
-        title: t('downloads.notifications.downloadFailed'),
-        body: t('downloads.notifications.downloadRetryMessage'),
-        subtitle: fileName,
+        title: t('downloads.notifications.downloadExpired'),
+        body: t('downloads.notifications.downloadExpiredMessage'),
+        subtitle: download.fileName,
+      });
+
+      dispatch({
+        type: DOWNLOAD_UPDATED,
+        payload: {
+          ...download,
+          state: 'expired',
+          status: DownloadStatus.CANCELLED,
+        },
       });
 
       return;
@@ -230,7 +240,7 @@ export const setupDownloads = (): void => {
     });
 
     if (webContentsId) {
-      webContents.fromId(webContentsId).downloadURL(url);
+      webContents.fromId(webContentsId).downloadURL(download.url);
     }
   });
 

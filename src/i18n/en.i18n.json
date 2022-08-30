@@ -118,7 +118,8 @@
       "downloadInterrupted": "Download Interrupted",
       "downloadCancelled": "Download Cancelled",
       "downloadFailed": "Download Failed",
-      "downloadRetryMessage" : "Please restart the download from source."
+      "downloadExpired" : "Downlaod Expired",
+      "downloadExpiredMessage" : "Please retry downloading from source."
     },
     "filters": {
       "search": "Search",

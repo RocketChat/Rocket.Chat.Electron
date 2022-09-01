@@ -117,7 +117,9 @@
       "downloadFinished": "Download Finished",
       "downloadInterrupted": "Download Interrupted",
       "downloadCancelled": "Download Cancelled",
-      "downloadFailed": "Download could not be completed"
+      "downloadFailed": "Download Failed",
+      "downloadExpired" : "Downlaod Expired",
+      "downloadExpiredMessage" : "Please retry downloading from source."
     },
     "filters": {
       "search": "Search",

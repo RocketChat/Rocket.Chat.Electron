@@ -105,6 +105,7 @@ const DownloadItem: FC<DownloadItemProps> = ({
   }, [itemId]);
 
   const errored = state === 'interrupted' || state === 'cancelled';
+  const expired = state === 'expired';
   const percentage = useMemo(
     () => Math.floor((receivedBytes / totalBytes) * 100),
     [receivedBytes, totalBytes]
@@ -131,7 +132,7 @@ const DownloadItem: FC<DownloadItemProps> = ({
         <Box width={344} mis={8}>
           <Box
             mbe={4}
-            color={errored ? 'danger-500' : 'default'}
+            color={errored || expired ? 'danger-500' : 'default'}
             fontScale='p1'
             withTruncatedText
           >
@@ -179,9 +180,16 @@ const DownloadItem: FC<DownloadItemProps> = ({
             ) : null}
           </Box>
           <Box display='flex' fontScale='c1'>
-            <ActionButton onClick={handleCopyLink}>
-              {t('downloads.item.copyLink')}
-            </ActionButton>
+            {expired && (
+              <ActionButton onClick={handleRemove}>
+                {t('downloads.item.remove')}
+              </ActionButton>
+            )}
+            {!expired && (
+              <ActionButton onClick={handleCopyLink}>
+                {t('downloads.item.copyLink')}
+              </ActionButton>
+            )}
             {state === 'progressing' && (
               <>
                 <ActionButton onClick={handlePause}>

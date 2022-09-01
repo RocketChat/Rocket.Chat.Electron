@@ -190,12 +190,52 @@ export const setupDownloads = (): void => {
   });
 
   handle('downloads/retry', async (_webContent, itemId) => {
-    const { url, webContentsId } = select(({ downloads, servers }) => {
-      const { url, serverUrl } = downloads[itemId];
+    const { download, webContentsId } = select(({ downloads, servers }) => {
+      const download = downloads[itemId];
       const { webContentsId } =
-        servers.find((server) => server.url === serverUrl) ?? {};
-      return { url, webContentsId };
+        servers.find((server) => server.url === download.serverUrl) ?? {};
+      return { download, webContentsId };
     });
+
+    const downloadStartTimestamp = new URL(download.url).searchParams.get(
+      'X-Amz-Date'
+    );
+    const expiresIn =
+      new URL(download.url).searchParams.get('X-Amz-Expires') ?? 120;
+    const parsedStartTime = {
+      year: downloadStartTimestamp?.substring(0, 4),
+      month: downloadStartTimestamp?.substring(4, 6),
+      day: downloadStartTimestamp?.substring(6, 8),
+      hour: downloadStartTimestamp?.substring(9, 11),
+      minute: downloadStartTimestamp?.substring(11, 13),
+      second: downloadStartTimestamp?.substring(13, 15),
+    };
+
+    const s3Expired =
+      new Date().getTime() >
+      new Date(
+        `${parsedStartTime.year}-${parsedStartTime.month}-${parsedStartTime.day}T${parsedStartTime.hour}:${parsedStartTime.minute}:${parsedStartTime.second}Z`
+      ).getTime() +
+        +expiresIn * 1000;
+
+    if (s3Expired) {
+      createNotification({
+        title: t('downloads.notifications.downloadExpired'),
+        body: t('downloads.notifications.downloadExpiredMessage'),
+        subtitle: download.fileName,
+      });
+
+      dispatch({
+        type: DOWNLOAD_UPDATED,
+        payload: {
+          ...download,
+          state: 'expired',
+          status: DownloadStatus.CANCELLED,
+        },
+      });
+
+      return;
+    }
 
     dispatch({
       type: DOWNLOAD_REMOVED,
@@ -203,7 +243,7 @@ export const setupDownloads = (): void => {
     });
 
     if (webContentsId) {
-      webContents.fromId(webContentsId).downloadURL(url);
+      webContents.fromId(webContentsId).downloadURL(download.url);
     }
   });
 

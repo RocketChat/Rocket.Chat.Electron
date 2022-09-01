@@ -111,7 +111,7 @@ export const handleWillDownloadEvent = async (
       type: DOWNLOAD_UPDATED,
       payload: {
         itemId,
-        state: item.isPaused() ? 'paused' : item.getState(),
+        state: item.getState(),
         status:
           item.getState() === 'cancelled'
             ? DownloadStatus.CANCELLED

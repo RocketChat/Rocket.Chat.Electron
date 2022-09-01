@@ -114,7 +114,10 @@
   "downloads": {
     "title": "Downloads",
     "notifications": {
-      "downloadFinished": "Download finished"
+      "downloadFinished": "Download Finished",
+      "downloadInterrupted": "Download Interrupted",
+      "downloadCancelled": "Download Cancelled",
+      "downloadFailed": "Download could not be completed"
     },
     "filters": {
       "search": "Search",

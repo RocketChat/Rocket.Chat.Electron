@@ -215,10 +215,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
-        const isJitsiMeet = frameName === 'Jitsi Meet';
+        const isVideoCall = frameName === 'Video Call';
 
         const newWindow = new BrowserWindow({
-          ...(isJitsiMeet
+          ...(isVideoCall
             ? {
                 webPreferences: {
                   preload: path.join(app.getAppPath(), 'app/preload.js'),

@@ -50,6 +50,15 @@ const start = (): void => {
 
   const open = window.open.bind(window);
 
+  function isValidURL(url: string): boolean {
+    try {
+      new URL(url);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
   Tracker.autorun(() => {
     const serverMainVersion = serverInfo.version.split('.')[0];
 
@@ -64,11 +73,11 @@ const start = (): void => {
       );
       window.open = (url, name, features = '') => {
         if (
-          typeof url === 'string' &&
-          new URL(jitsiDomain) &&
-          url.includes(jitsiDomain) &&
           !process.mas &&
-          window.RocketChatDesktop.getInternalVideoChatWindowEnabled()
+          window.RocketChatDesktop.getInternalVideoChatWindowEnabled() &&
+          typeof url === 'string' &&
+          isValidURL(jitsiDomain) &&
+          url.includes(jitsiDomain)
         ) {
           return open(url, 'Video Call', `scrollbars=true,${features}`);
         }

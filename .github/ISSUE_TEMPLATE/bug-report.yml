@@ -1,4 +1,4 @@
-name: Bug report
+name: Report a Bug
 title: '[Bug][Module Name] Bug title'
 description: Problems and issues with code of Rocket.Chat.Electron
 labels: ['type/bug']

@@ -8,7 +8,7 @@ body:
       value: >
         - Please make sure what you are reporting is indeed a bug with reproducible steps
 
-        - If you want to ask questions or share ideas, you can
+        - If you want to ask questions or share ideas, you can,
           -  Head to our [Forums](https://forums.rocket.chat) Page
           - [Join our Open Server]( https://open.rocket.chat/channel/support) and send your question
 
@@ -28,23 +28,25 @@ body:
 
   - type: textarea
     attributes:
-      label: Describe the bug you're facing
-      description: A clear and concise description of what the bug is
-      placeholder: >
+      label: Describe the bug
+      description: |
         Please provide the context in which the problem occurred and explain what happened
 
         1. What operating system and which version?
-        2. Which version of Rocket.Chat (Server)?
-        3. Which version of Rocket.Chat.Electron (Electron/Desktop)?
-        4. Is there any setting relevant changed?
+        2. Which version of Rocket.Chat ([Server](https://github.com/RocketChat/Rocket.Chat/releases))?
+            - You could check your Rocket.Chat server's version by going to `<your server>/api/info`, e.g. [http://localhost:3000/api/info](http://localhost:3000/api/info)
+        3. Which version of Rocket.Chat.Electron ([Electron/Desktop](https://github.com/RocketChat/Rocket.Chat.Electron/releases))?
+        4. Is there any setting relevant to the problem that changed?
+      placeholder: A clear and concise description of what the bug is
+
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: How to reproduce your bug
-      description: >
-        Steps to reproduce the behavior:
+      label: How to Reproduce
+      description: |
+        Explain the steps to reproduce the behavior:
         1. Go to '...'
         2. Click on '....'
         3. Scroll down to '....'
@@ -55,37 +57,38 @@ body:
     validations:
       required: true
 
-
   - type: textarea
     attributes:
       label: Describe your Expected behavior
-      description: A clear and concise description of what you expected to happen.
-      placeholder: >
+      description: |
         - Please explain why you think the behaviour is erroneous.
 
         - It will be extremely helpful if you copy and paste
           screenshots for UI problems
-
-        **You can include files by dragging and dropping them here**
+      placeholder: A clear and concise description of what you expected to happen.
     validations:
       required: true
 
   - type: textarea
     attributes:
       label: Anything else
-      description: Anything else we need to know?
-      placeholder: >
-        - How often does this problem occur? (Once? Every time? Only when certain conditions are met?)
-        - Any relevant logs to include? Put them here inside fenced
-          ``` ``` blocks or inside a collapsable details tag if it's too long:
-          <details><summary>x.log</summary> lots of stuff </details>
+      description: |
+        1. How often does this problem occur?
+            - Once?
+            - Every time?
+            - Only when certain conditions are met?
+        2. Any relevant logs to include?
+            - Put them here inside fenced \``` \``` blocks
+            - Or put them inside a collapsable details tag if it's too long, like so:
+              - `<details><summary>x.log</summary> lots of stuff </details>`
+      placeholder: Anything else we need to know?
 
   - type: checkboxes
     attributes:
       label: Are you willing to submit PR?
-      description: >
-        We would be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the fix.
-        Rocket.Chat.Electron is a community-driven project and we love to bring new contributors in.
+      description: |
+        - We would be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the fix.
+        - Rocket.Chat.Electron is a community-driven project and we would love to bring new contributors in.
       options:
         - label: Yes, I am willing to submit a PR!
 

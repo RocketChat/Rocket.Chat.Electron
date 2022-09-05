@@ -35,9 +35,9 @@ body:
   - type: checkboxes
     attributes:
       label: Are you willing to submit a PR?
-      description: >
-        We would be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the feature.
-        Rocket.Chat.Electron is a community-driven project and we love to bring new contributors in.
+      description: |
+        - We would be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the fix.
+        - Rocket.Chat.Electron is a community-driven project and we would love to bring new contributors in.
       options:
         - label: Yes I am willing to submit a PR!
 

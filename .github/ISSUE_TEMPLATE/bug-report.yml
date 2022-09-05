@@ -26,6 +26,18 @@ body:
             no similar issues.
           required: true
 
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: >
+        Which platform are you facing these issues at?
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - Web Browser
+
   - type: textarea
     attributes:
       label: Describe the bug

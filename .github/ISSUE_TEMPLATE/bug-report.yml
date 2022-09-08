@@ -1,7 +1,7 @@
-name: Report a Bug
-title: '[Bug][Module Name] Bug title'
-description: Problems and issues with code of Rocket.Chat.Electron
-labels: ['type/bug']
+name: Bug report
+title: 'Bug title'
+description: Report issues with Rocket.Chat Desktop App
+labels: ['type: bug']
 body:
   - type: markdown
     attributes:
@@ -12,7 +12,7 @@ body:
           -  Head to our [Forums](https://forums.rocket.chat) Page
           - [Join our Open Server]( https://open.rocket.chat/channel/support) and send your question
 
-        For better global communication, please write in English.
+        For better global communication, English is the language used.
 
   - type: checkboxes
     attributes:
@@ -26,31 +26,63 @@ body:
             no similar issues.
           required: true
 
-  - type: dropdown
-    id: platform
+  - type: checkboxes
     attributes:
-      label: Platform
+      label: Operating System
       description: >
-        Which platform are you facing these issues at?
+        Please select in which operating system you found the issue.
       options:
-        - macOS
-        - Windows
-        - Linux
-        - Web Browser
+        - label: macOS
+        - label: Windows
+        - label: Linux
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Operating System Version
+      description: >
+        Please specify the version of the operating system.
+      placeholder: Windows 10, macOS 10.15, Ubuntu 18.04
+
+  - type: dropdown
+    id: browser-tested
+    attributes:
+      label: It happens on the web browser too?
+      description: >
+        Please test if the issue happens on the web browser too. It's very important to understand if the issue is related to the desktop app or the web app.
+      options:
+        - 'Yes, it happens on the web browser too'
+        - 'No, it just happens on the Desktop app'
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Rocket.Chat Desktop App Version
+      description: >
+        Please specify the version of the Rocket.Chat Desktop App.
+      placeholder: 3.8.9
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Rocket.Chat Server Version
+      description: >
+        Please specify the version of the Rocket.Chat Rocket.Chat ([Server](https://github.com/RocketChat/Rocket.Chat/releases))
+          - You could check your Rocket.Chat server's version by going to `<your server>/api/info`, e.g. [http://localhost:3000/api/info](http://localhost:3000/api/info)
+      placeholder: 4.8.2
+    validations:
+      required: true
 
   - type: textarea
     attributes:
       label: Describe the bug
       description: |
         Please provide the context in which the problem occurred and explain what happened
-
-        1. What operating system and which version?
-        2. Which version of Rocket.Chat ([Server](https://github.com/RocketChat/Rocket.Chat/releases))?
-            - You could check your Rocket.Chat server's version by going to `<your server>/api/info`, e.g. [http://localhost:3000/api/info](http://localhost:3000/api/info)
-        3. Which version of Rocket.Chat.Electron ([Electron/Desktop](https://github.com/RocketChat/Rocket.Chat.Electron/releases))?
-        4. Is there any setting relevant to the problem that changed?
+        Is there any setting relevant to the problem that changed?
       placeholder: A clear and concise description of what the bug is
-
     validations:
       required: true
 
@@ -65,21 +97,19 @@ body:
         4. See error
       placeholder: >
         Please make sure you provide a reproducible step-by-step case of how to reproduce the problem
-        as minimally and precisely as possible
+        as minimally and precisely as possible. Screenshots are welcome.
     validations:
       required: true
 
   - type: textarea
     attributes:
       label: Describe your Expected behavior
-      description: |
-        - Please explain why you think the behaviour is erroneous.
+      description: >
+        - Please explain why you think the behavior is erroneous.
 
         - It will be extremely helpful if you copy and paste
           screenshots for UI problems
       placeholder: A clear and concise description of what you expected to happen.
-    validations:
-      required: true
 
   - type: textarea
     attributes:
@@ -91,19 +121,14 @@ body:
             - Only when certain conditions are met?
         2. Any relevant logs to include?
             - Put them here inside fenced \``` \``` blocks
-            - Or put them inside a collapsable details tag if it's too long, like so:
+            - Or put them inside a collapsible details tag if it's too long, like so:
               - `<details><summary>x.log</summary> lots of stuff </details>`
       placeholder: Anything else we need to know?
 
   - type: checkboxes
     attributes:
-      label: Are you willing to submit PR?
+      label: Are you willing to submit a code contribution?
       description: |
         - We would be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the fix.
-        - Rocket.Chat.Electron is a community-driven project and we would love to bring new contributors in.
       options:
-        - label: Yes, I am willing to submit a PR!
-
-  - type: markdown
-    attributes:
-      value: 'Thank you for submitting your issue, we really appreciate it!'
+        - label: Yes, I am willing to submit a Pull Request!

@@ -333,6 +333,14 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         event.preventDefault();
       }
     );
+
+    // prevent the guest webContents from navigating away from the server URL
+    guestWebContents.on('will-navigate', (e, redirectUrl) => {
+      if (!redirectUrl.startsWith(action.payload.url)) {
+        e.preventDefault();
+        shell.openExternal(redirectUrl);
+      }
+    });
   });
 
   listen(WEBVIEW_ATTACHED, (action) => {

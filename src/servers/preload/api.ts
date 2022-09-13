@@ -8,6 +8,7 @@ import { setBadge } from './badge';
 import { setFavicon } from './favicon';
 import { setGitCommitHash } from './gitCommitHash';
 import { getInternalVideoChatWindowEnabled } from './internalVideoChatWindow';
+import { setServerAllowedRedirects } from './serverAllowedRedirects';
 import { setBackground } from './sidebar';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
@@ -44,6 +45,7 @@ export type RocketChatDesktopAPI = {
   destroyNotification: (id: unknown) => void;
   getInternalVideoChatWindowEnabled: () => boolean;
   setGitCommitHash: (gitCommitHash: string) => void;
+  setServerAllowedRedirects: (allowedRedirects: string[]) => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -68,4 +70,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   destroyNotification,
   getInternalVideoChatWindowEnabled,
   setGitCommitHash,
+  setServerAllowedRedirects,
 };

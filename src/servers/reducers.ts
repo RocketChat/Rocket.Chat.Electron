@@ -18,6 +18,7 @@ import {
   WEBVIEW_READY,
   WEBVIEW_ATTACHED,
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+  WEBVIEW_ALLOWED_REDIRECTS_CHANGED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import { Server } from './common';
@@ -42,6 +43,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_TITLE_CHANGED>
   | ActionOf<typeof WEBVIEW_UNREAD_CHANGED>
   | ActionOf<typeof WEBVIEW_USER_LOGGED_IN>
+  | ActionOf<typeof WEBVIEW_ALLOWED_REDIRECTS_CHANGED>
   | ActionOf<typeof WEBVIEW_FAVICON_CHANGED>
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
@@ -109,6 +111,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_USER_LOGGED_IN: {
       const { url, userLoggedIn } = action.payload;
       return upsert(state, { url, userLoggedIn });
+    }
+
+    case WEBVIEW_ALLOWED_REDIRECTS_CHANGED: {
+      const { url, allowedRedirects } = action.payload;
+      return upsert(state, { url, allowedRedirects });
     }
 
     case WEBVIEW_SIDEBAR_STYLE_CHANGED: {

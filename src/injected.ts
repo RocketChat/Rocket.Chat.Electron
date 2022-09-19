@@ -53,10 +53,20 @@ const start = (): void => {
 
   const open = window.open.bind(window);
 
+  function isValidURL(url: string): boolean {
+    try {
+      new URL(url);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
   Tracker.autorun(() => {
     const serverMainVersion = serverInfo.version.split('.')[0];
 
     // Server version above 5.0.0 will change the way the jitsi integration is handled, now we have video provider as an app
+    // if the server is above 5.1.1 it will use window.RocketChatDesktop?.openInternalVideoChatWindow to open the video call
     if (serverMainVersion < 5) {
       const jitsiDomain = settings.get('Jitsi_Domain') || '';
 
@@ -66,12 +76,13 @@ const start = (): void => {
       );
       window.open = (url, name, features = '') => {
         if (
-          typeof url === 'string' &&
-          url.includes(jitsiDomain) &&
           !process.mas &&
-          window.RocketChatDesktop.getInternalVideoChatWindowEnabled()
+          window.RocketChatDesktop.getInternalVideoChatWindowEnabled() &&
+          typeof url === 'string' &&
+          isValidURL(jitsiDomain) &&
+          url.includes(jitsiDomain)
         ) {
-          return open(url, 'Jitsi Meet', `scrollbars=true,${features}`);
+          return open(url, 'Video Call', `scrollbars=true,${features}`);
         }
 
         return open(url, name, features);

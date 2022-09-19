@@ -333,6 +333,28 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         event.preventDefault();
       }
     );
+
+    const servers = select(({ servers }) => servers);
+    // prevent the guest webContents from navigating away from the server URL
+    guestWebContents.on('will-navigate', (e, redirectUrl) => {
+      const server = servers.find(
+        (server) => server.url === action.payload.url
+      );
+
+      const isAllowedRedirect =
+        server &&
+        server.allowedRedirects &&
+        server.allowedRedirects.findIndex((allowedRedirect) =>
+          redirectUrl.startsWith(allowedRedirect)
+        ) > -1;
+
+      console.log('isAllowedRedirect', isAllowedRedirect);
+
+      if (!redirectUrl.startsWith(action.payload.url) && !isAllowedRedirect) {
+        e.preventDefault();
+        shell.openExternal(redirectUrl);
+      }
+    });
   });
 
   listen(WEBVIEW_ATTACHED, (action) => {

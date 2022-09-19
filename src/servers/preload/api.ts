@@ -11,6 +11,7 @@ import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
+import { setServerAllowedRedirects } from './serverAllowedRedirects';
 import { setBackground } from './sidebar';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
@@ -48,6 +49,7 @@ export type RocketChatDesktopAPI = {
   getInternalVideoChatWindowEnabled: () => boolean;
   openInternalVideoChatWindow: (url: string, options: undefined) => void;
   setGitCommitHash: (gitCommitHash: string) => void;
+  setServerAllowedRedirects: (allowedRedirects: string[]) => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -73,4 +75,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
   setGitCommitHash,
+  setServerAllowedRedirects,
 };

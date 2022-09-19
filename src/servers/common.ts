@@ -12,6 +12,7 @@ export type Server = {
   webContentsId?: number;
   userLoggedIn?: boolean;
   gitCommitHash?: string;
+  allowedRedirects?: string[];
 };
 
 export const enum ServerUrlResolutionStatus {

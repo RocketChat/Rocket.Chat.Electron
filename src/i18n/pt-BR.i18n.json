@@ -159,9 +159,9 @@
     }
   },
   "settings": {
+    "title": "Configurações",
     "general": "Geral",
     "certificates": "Certificados",
-    "title": "Configurações",
     "options": {
       "report": {
         "title": "Relatar erros aos desenvolvedores",

@@ -1,0 +1,134 @@
+name: Bug report
+title: 'Bug title'
+description: Report issues with Rocket.Chat Desktop App
+labels: ['type: bug']
+body:
+  - type: markdown
+    attributes:
+      value: >
+        - Please make sure what you are reporting is indeed a bug with reproducible steps
+
+        - If you want to ask questions or share ideas, you can,
+          -  Head to our [Forums](https://forums.rocket.chat) Page
+          - [Join our Open Server]( https://open.rocket.chat/channel/support) and send your question
+
+        For better global communication, English is the language used.
+
+  - type: checkboxes
+    attributes:
+      label: Search before asking
+      description: >
+        Please make sure to search in the existing [issues](https://github.com/RocketChat/Rocket.Chat.Electron/issues?q=is%3Aissue)
+        first to see whether the same issue was reported already.
+      options:
+        - label: >
+            I had searched in the [issues](https://github.com/RocketChat/Rocket.Chat.Electron/issues?q=is%3Aissue) and found
+            no similar issues.
+          required: true
+
+  - type: checkboxes
+    attributes:
+      label: Operating System
+      description: >
+        Please select in which operating system you found the issue.
+      options:
+        - label: macOS
+        - label: Windows
+        - label: Linux
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Operating System Version
+      description: >
+        Please specify the version of the operating system.
+      placeholder: Windows 10, macOS 10.15, Ubuntu 18.04
+
+  - type: dropdown
+    id: browser-tested
+    attributes:
+      label: It happens on the web browser too?
+      description: >
+        Please test if the issue happens on the web browser too. It's very important to understand if the issue is related to the desktop app or the web app.
+      options:
+        - 'Yes, it happens on the web browser too'
+        - 'No, it just happens on the Desktop app'
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Rocket.Chat Desktop App Version
+      description: >
+        Please specify the version of the Rocket.Chat Desktop App.
+      placeholder: 3.8.9
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Rocket.Chat Server Version
+      description: >
+        Please specify the version of the Rocket.Chat Rocket.Chat ([Server](https://github.com/RocketChat/Rocket.Chat/releases))
+          - You could check your Rocket.Chat server's version by going to `<your server>/api/info`, e.g. [http://localhost:3000/api/info](http://localhost:3000/api/info)
+      placeholder: 4.8.2
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Describe the bug
+      description: |
+        Please provide the context in which the problem occurred and explain what happened
+        Is there any setting relevant to the problem that changed?
+      placeholder: A clear and concise description of what the bug is
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: How to Reproduce
+      description: |
+        Explain the steps to reproduce the behavior:
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+      placeholder: >
+        Please make sure you provide a reproducible step-by-step case of how to reproduce the problem
+        as minimally and precisely as possible. Screenshots are welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Describe your Expected behavior
+      description: >
+        - Please explain why you think the behavior is erroneous.
+
+        - It will be extremely helpful if you copy and paste
+          screenshots for UI problems
+      placeholder: A clear and concise description of what you expected to happen.
+
+  - type: textarea
+    attributes:
+      label: Anything else
+      description: |
+        1. How often does this problem occur?
+            - Once?
+            - Every time?
+            - Only when certain conditions are met?
+        2. Any relevant logs to include?
+            - Put them here inside fenced \``` \``` blocks
+            - Or put them inside a collapsible details tag if it's too long, like so:
+              - `<details><summary>x.log</summary> lots of stuff </details>`
+      placeholder: Anything else we need to know?
+
+  - type: checkboxes
+    attributes:
+      label: Are you willing to submit a code contribution?
+      description: |
+        - We would be happy to guide you in the contribution process especially if you already have a good understanding of how to implement the fix.
+      options:
+        - label: Yes, I am willing to submit a Pull Request!

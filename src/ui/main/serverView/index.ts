@@ -348,8 +348,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           redirectUrl.startsWith(allowedRedirect)
         ) > -1;
 
-      console.log('isAllowedRedirect', isAllowedRedirect);
-
       if (!redirectUrl.startsWith(action.payload.url) && !isAllowedRedirect) {
         e.preventDefault();
         shell.openExternal(redirectUrl);

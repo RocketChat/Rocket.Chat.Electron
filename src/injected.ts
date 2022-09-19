@@ -103,7 +103,6 @@ const start = (): void => {
   Tracker.autorun(() => {
     const { url, defaultUrl } = settings.get('Assets_background') || {};
 
-    console.log('Assets_background', url);
     window.RocketChatDesktop.setBackground(url || defaultUrl);
   });
 

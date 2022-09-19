@@ -118,8 +118,8 @@
       "downloadInterrupted": "Download Interrupted",
       "downloadCancelled": "Download Cancelled",
       "downloadFailed": "Download Failed",
-      "downloadExpired" : "Downlaod Expired",
-      "downloadExpiredMessage" : "Please retry downloading from source."
+      "downloadExpired": "Downlaod Expired",
+      "downloadExpiredMessage": "Please retry downloading from source."
     },
     "filters": {
       "search": "Search",
@@ -153,7 +153,7 @@
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
   },
-  "certificatesManager" : {
+  "certificatesManager": {
     "title": "Certificates manager",
     "trustedCertificates": "Trusted certificates",
     "notTrustedCertificates": "Not trusted certificates",

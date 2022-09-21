@@ -15,6 +15,9 @@ export const MinimizeOnClose: FC<Props> = (props) => {
   const isMinimizeOnCloseEnabled = useSelector(
     ({ isMinimizeOnCloseEnabled }: RootState) => isMinimizeOnCloseEnabled
   );
+  const isTrayIconEnabled = useSelector(
+    ({ isTrayIconEnabled }: RootState) => isTrayIconEnabled
+  );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
   const handleChange = useCallback(
@@ -32,6 +35,7 @@ export const MinimizeOnClose: FC<Props> = (props) => {
     <Field className={props.className}>
       <Field.Row>
         <ToggleSwitch
+          disabled={isTrayIconEnabled}
           onChange={handleChange}
           checked={isMinimizeOnCloseEnabled}
         />

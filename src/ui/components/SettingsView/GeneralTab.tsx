@@ -18,9 +18,9 @@ export const GeneralTab: FC = () => (
       <HardwareAcceleration />
       <InternalVideoChatWindow />
       <TrayIcon />
+      {process.platform === 'win32' && <MinimizeOnClose />}
       <SideBar />
       {process.platform !== 'darwin' && <MenuBar />}
-      {process.platform === 'win32' && <MinimizeOnClose />}
     </FieldGroup>
   </Box>
 );

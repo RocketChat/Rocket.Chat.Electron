@@ -5,18 +5,15 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { RootAction } from '../../../../store/actions';
 import { RootState } from '../../../../store/rootReducer';
-import { SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED } from '../../../actions';
+import { SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED } from '../../../actions';
 
 type Props = {
   className?: string;
 };
 
-export const MinimizeOnClose: FC<Props> = (props) => {
-  const isMinimizeOnCloseEnabled = useSelector(
-    ({ isMinimizeOnCloseEnabled }: RootState) => isMinimizeOnCloseEnabled
-  );
-  const isTrayIconEnabled = useSelector(
-    ({ isTrayIconEnabled }: RootState) => isTrayIconEnabled
+export const MenuBar: FC<Props> = (props) => {
+  const isMenuBarEnabled = useSelector(
+    ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled
   );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
@@ -24,7 +21,7 @@ export const MinimizeOnClose: FC<Props> = (props) => {
     (event: ChangeEvent<HTMLInputElement>) => {
       const isChecked = event.currentTarget.checked;
       dispatch({
-        type: SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED,
+        type: SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED,
         payload: isChecked,
       });
     },
@@ -34,19 +31,13 @@ export const MinimizeOnClose: FC<Props> = (props) => {
   return (
     <Field className={props.className}>
       <Field.Row>
-        <ToggleSwitch
-          disabled={isTrayIconEnabled}
-          onChange={handleChange}
-          checked={isMinimizeOnCloseEnabled}
-        />
+        <ToggleSwitch onChange={handleChange} checked={isMenuBarEnabled} />
         <Field.Label htmlFor='toggle-switch'>
-          {t('settings.options.minimizeOnClose.title')}
+          {t('settings.options.menubar.title')}
         </Field.Label>
       </Field.Row>
       <Field.Row>
-        <Field.Hint>
-          {t('settings.options.minimizeOnClose.description')}
-        </Field.Hint>
+        <Field.Hint>{t('settings.options.menubar.description')}</Field.Hint>
       </Field.Row>
     </Field>
   );

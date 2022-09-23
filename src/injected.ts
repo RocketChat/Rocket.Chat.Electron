@@ -32,9 +32,6 @@ const start = (): void => {
   const { Meteor } = window.require('meteor/meteor');
   const { Session } = window.require('meteor/session');
   const { Tracker } = window.require('meteor/tracker');
-  const { ServiceConfiguration } = window.require(
-    'meteor/service-configuration'
-  );
   const { UserPresence } = window.require('meteor/konecty:user-presence');
   const { settings } = window.require('/app/settings');
   const { getUserPreference } = window.require('/app/utils');
@@ -142,7 +139,8 @@ const start = (): void => {
 
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
-    implements Notification {
+    implements Notification
+  {
     static readonly permission: NotificationPermission = 'granted';
 
     static readonly maxActions: number =

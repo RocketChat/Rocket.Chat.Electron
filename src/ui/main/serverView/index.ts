@@ -334,21 +334,16 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       }
     );
 
-    const servers = select(({ servers }) => servers);
     // prevent the guest webContents from navigating away from the server URL
     guestWebContents.on('will-navigate', (e, redirectUrl) => {
+      const servers = select(({ servers }) => servers);
       const server = servers.find(
         (server) => server.url === action.payload.url
       );
 
-      const isAllowedRedirect =
-        server &&
-        server.allowedRedirects &&
-        server.allowedRedirects.findIndex((allowedRedirect) =>
-          redirectUrl.startsWith(allowedRedirect)
-        ) > -1;
+      const isUserLoggedIn = server && server.userLoggedIn === true;
 
-      if (!redirectUrl.startsWith(action.payload.url) && !isAllowedRedirect) {
+      if (!redirectUrl.startsWith(action.payload.url) && isUserLoggedIn) {
         e.preventDefault();
         shell.openExternal(redirectUrl);
       }

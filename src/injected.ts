@@ -91,16 +91,6 @@ const start = (): void => {
   });
 
   Tracker.autorun(() => {
-    const loginsWithRedirect = ServiceConfiguration.configurations
-      .find({ loginStyle: 'redirect' }, { fields: { serverURL: 1 } })
-      .fetch();
-    const array = loginsWithRedirect.map(
-      (url: { serverURL: string }) => url?.serverURL
-    );
-    window.RocketChatDesktop.setServerAllowedRedirects(array || []);
-  });
-
-  Tracker.autorun(() => {
     const { url, defaultUrl } = settings.get('Assets_background') || {};
 
     window.RocketChatDesktop.setBackground(url || defaultUrl);
@@ -152,8 +142,7 @@ const start = (): void => {
 
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
-    implements Notification
-  {
+    implements Notification {
     static readonly permission: NotificationPermission = 'granted';
 
     static readonly maxActions: number =

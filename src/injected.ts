@@ -53,15 +53,6 @@ const start = (): void => {
 
   const open = window.open.bind(window);
 
-  function isValidURL(url: string): boolean {
-    try {
-      new URL(url);
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-
   Tracker.autorun(() => {
     const serverMainVersion = serverInfo.version.split('.')[0];
 
@@ -79,7 +70,7 @@ const start = (): void => {
           !process.mas &&
           window.RocketChatDesktop.getInternalVideoChatWindowEnabled() &&
           typeof url === 'string' &&
-          isValidURL(jitsiDomain) &&
+          jitsiDomain.length > 0 &&
           url.includes(jitsiDomain)
         ) {
           return open(url, 'Video Call', `scrollbars=true,${features}`);
@@ -152,8 +143,7 @@ const start = (): void => {
 
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
-    implements Notification
-  {
+    implements Notification {
     static readonly permission: NotificationPermission = 'granted';
 
     static readonly maxActions: number =

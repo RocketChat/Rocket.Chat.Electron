@@ -43,6 +43,7 @@ const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>
     minimized: false,
     normal: false,
     visible: false,
+    skipTaskbar: false,
   };
 
 let _rootWindow: BrowserWindow;

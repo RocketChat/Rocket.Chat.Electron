@@ -55,6 +55,37 @@ export default [
       ...Object.keys(appManifest.dependencies),
       ...Object.keys(appManifest.devDependencies),
     ].filter((moduleName) => moduleName !== '@bugsnag/js'),
+    input: 'src/desktopNotifications/desktopNotifications.ts',
+    preserveEntrySignatures: 'strict',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      typescript(tsconfig),
+      babel({
+        babelHelpers: 'bundled',
+      }),
+      nodeResolve({
+        browser: true,
+      }),
+      commonjs(),
+    ],
+    output: [
+      {
+        dir: 'app',
+        format: 'cjs',
+        sourcemap: 'inline',
+      },
+    ],
+  },
+  {
+    external: [
+      ...builtinModules,
+      ...Object.keys(appManifest.dependencies),
+      ...Object.keys(appManifest.devDependencies),
+    ].filter((moduleName) => moduleName !== '@bugsnag/js'),
     input: 'src/rootWindow.ts',
     preserveEntrySignatures: 'strict',
     plugins: [

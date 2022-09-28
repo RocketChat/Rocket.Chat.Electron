@@ -8,6 +8,7 @@ import {
 } from './app/main/data';
 import { setUserDataDirectory } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
+import { createNotificationWindow } from './desktopNotifications/customNotification';
 import { setupDownloads } from './downloads/main';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
@@ -92,6 +93,12 @@ const start = async (): Promise<void> => {
   handleDesktopCapturerGetSources();
 
   await processDeepLinksInArgs();
+
+  createNotificationWindow({
+    body: 'Hello',
+    edge: 'bottom-right',
+    size: { width: 300, height: 100 },
+  });
 };
 
 if (require.main === module) {

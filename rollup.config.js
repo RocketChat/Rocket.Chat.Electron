@@ -55,7 +55,7 @@ export default [
       ...Object.keys(appManifest.dependencies),
       ...Object.keys(appManifest.devDependencies),
     ].filter((moduleName) => moduleName !== '@bugsnag/js'),
-    input: 'src/desktopNotifications/desktopNotifications.ts',
+    input: 'src/desktopNotifications/desktopNotifications-renderer.tsx',
     preserveEntrySignatures: 'strict',
     plugins: [
       json(),

@@ -96,7 +96,7 @@ const start = async (): Promise<void> => {
 
   createNotificationWindow({
     body: 'Hello',
-    edge: 'bottom-right',
+    edge: 'top-right',
     size: { width: 300, height: 100 },
   });
 };

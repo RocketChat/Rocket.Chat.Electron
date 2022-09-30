@@ -56,9 +56,17 @@ export function createNotificationWindow(notification: CustomNotification) {
       nodeIntegrationInSubFrames: true,
       contextIsolation: false,
       webviewTag: true,
-      // preload: join(__dirname, 'bridge.js'),
     },
   });
   win.setWindowButtonVisibility(false);
   win.loadFile(path.join(app.getAppPath(), 'app/notification.html'));
+  // win.webContents.send('notification', notification.body);
+
+  // ipcRenderer.send('notification-receive', notification);
+  // setTimeout(() => {
+  //   win.destroy();
+  // }, 3000);
+  setTimeout(() => {
+    win.webContents.send('notification', notification.body);
+  }, 1500);
 }

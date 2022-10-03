@@ -1,5 +1,6 @@
 import { Notification, nativeImage, NativeImage } from 'electron';
 
+import { createNotificationWindow } from '../desktopNotifications/customNotification';
 import { invoke } from '../ipc/main';
 import { dispatch, dispatchSingle, listen } from '../store';
 import { ActionIPCMeta } from '../store/actions';
@@ -152,6 +153,20 @@ const handleCreateEvent = async (
   }
 
   const id = tag || Math.random().toString(36).slice(2);
+
+  console.log('Creating notification', options);
+
+  createNotificationWindow({
+    id,
+    options,
+    avatar: options.icon ?? '',
+    title: options.title ?? '',
+    body: options.body ?? '',
+    edge: 'bottom-right',
+    size: { width: 300, height: 100 },
+    ipcMeta,
+  });
+
   return createNotification(id, options, ipcMeta);
 };
 

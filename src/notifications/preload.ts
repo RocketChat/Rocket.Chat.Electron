@@ -47,8 +47,8 @@ export const createNotification = async ({
         title,
         ...(icon
           ? {
-              icon: normalizeIconUrl(icon),
-            }
+            icon: normalizeIconUrl(icon),
+          }
           : {}),
         ...options,
       },

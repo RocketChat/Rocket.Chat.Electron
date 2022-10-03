@@ -1,13 +1,24 @@
 import path from 'path';
 
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, screen } from 'electron';
+
+import { NOTIFICATIONS_NOTIFICATION_CLICKED } from '../notifications/actions';
+import { ExtendedNotificationOptions } from '../notifications/common';
+import { dispatchSingle } from '../store';
+import { ActionIPCMeta } from '../store/actions';
 
 type ScreenEdge = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 export type CustomNotification = {
+  id: string;
+  options: ExtendedNotificationOptions;
+  avatar: string;
+  title: string;
   body: string;
   edge: ScreenEdge;
   size: { width: number; height: number };
+  timeout?: number;
+  ipcMeta?: ActionIPCMeta;
 };
 
 function setPositionByEdge(
@@ -60,13 +71,27 @@ export function createNotificationWindow(notification: CustomNotification) {
   });
   win.setWindowButtonVisibility(false);
   win.loadFile(path.join(app.getAppPath(), 'app/notification.html'));
-  // win.webContents.send('notification', notification.body);
 
-  // ipcRenderer.send('notification-receive', notification);
-  // setTimeout(() => {
-  //   win.destroy();
-  // }, 3000);
+  ipcMain.once('desktopNotificationReady', (_event, _arg) => {
+    console.log('desktopNotificationReady');
+    win.webContents.send('notification', notification);
+  });
+
+  ipcMain.on('desktopNotificationClick', (_event, notification) => {
+    const { id, title, ipcMeta } = notification;
+    console.log('desktopNotificationClick', id);
+    dispatchSingle({
+      type: NOTIFICATIONS_NOTIFICATION_CLICKED,
+      payload: { id, title },
+      ipcMeta,
+    });
+    win.destroy();
+  });
+
   setTimeout(() => {
-    win.webContents.send('notification', notification.body);
-  }, 1500);
+    if (!win.isDestroyed()) {
+      win.hide();
+      win.destroy();
+    }
+  }, notification.timeout || 5000);
 }

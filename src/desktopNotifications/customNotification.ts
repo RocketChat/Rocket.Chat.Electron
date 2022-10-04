@@ -48,7 +48,7 @@ export function createNotificationWindow(notification: CustomNotification) {
   const { x, y } = setPositionByEdge(notification.edge, notification.size);
   const { width, height } = notification.size;
   const win = new BrowserWindow({
-    title: 'TITLE',
+    title: 'Rocket.Chat Notification',
     frame: false,
     center: false,
     resizable: false,
@@ -69,7 +69,7 @@ export function createNotificationWindow(notification: CustomNotification) {
       webviewTag: true,
     },
   });
-  win.setWindowButtonVisibility(false);
+  process.platform === 'darwin' && win.setWindowButtonVisibility(false);
   win.loadFile(path.join(app.getAppPath(), 'app/notification.html'));
 
   ipcMain.once('desktopNotificationReady', (_event, _arg) => {

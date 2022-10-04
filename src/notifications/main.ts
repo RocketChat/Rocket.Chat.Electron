@@ -162,8 +162,8 @@ const handleCreateEvent = async (
     avatar: options.icon ?? '',
     title: options.title ?? '',
     body: options.body ?? '',
-    edge: 'bottom-right',
-    size: { width: 300, height: 100 },
+    edge: 'top-right',
+    size: { width: 300, height: 150 },
     ipcMeta,
   });
 

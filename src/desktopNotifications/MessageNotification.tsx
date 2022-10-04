@@ -1,4 +1,11 @@
-import { Avatar, Box, Button, Icon, Label } from '@rocket.chat/fuselage';
+import {
+  Avatar,
+  Box,
+  Button,
+  Icon,
+  Label,
+  Message,
+} from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
 import React, { useEffect, useState } from 'react';
 
@@ -23,17 +30,40 @@ export function MessageNotification() {
   console.log('desktopNotificationReady');
 
   return (
-    <div
-      className='notification'
-      onClick={handleNotificationClick}
-      style={{ height: '100vh' }}
-    >
-      <Box h='x50' display='flex' alignItems='center' p='x16'>
-        <Avatar rounded size='x48' url={String(notification?.avatar)} />
-        <Label>{notification?.title}</Label>
-      </Box>
-      <Box width='x100'>
-        <span>{notification?.body}</span>
+    // <div
+    //   className='notification'
+    //   onClick={handleNotificationClick}
+    //   style={{ height: '100vh' }}
+    // >
+    //   <Box h='x50' display='flex' alignItems='center' p='x16'>
+    //     <Avatar size='x48' url={String(notification?.avatar)} />
+    //     <Box paddingInlineStart='x16'>
+    //       <Label>{notification?.title}</Label>
+    //     </Box>
+    //   </Box>
+    //   <Box p='x16' width='x80'>
+    //     {notification?.body}
+    //   </Box>
+    // </div>
+    <div>
+      <Box
+        p='x4'
+        maxWidth='x276'
+        borderRadius='x10'
+        backgroundColor='white'
+        onClick={handleNotificationClick}
+      >
+        <Message>
+          <Message.LeftContainer>
+            <Avatar url={String(notification?.avatar)} size={'x36'} />
+          </Message.LeftContainer>
+          <Message.Container>
+            <Message.Header>
+              <Message.Name>{notification?.title}</Message.Name>
+            </Message.Header>
+            <Message.Body>{notification?.body}</Message.Body>
+          </Message.Container>
+        </Message>
       </Box>
     </div>
   );

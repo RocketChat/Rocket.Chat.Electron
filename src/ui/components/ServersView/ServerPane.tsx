@@ -39,7 +39,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
         return;
       }
 
-      webview.focus();
+      if (webview) webview.focus();
     };
 
     window.addEventListener('focus', handleWindowFocus);

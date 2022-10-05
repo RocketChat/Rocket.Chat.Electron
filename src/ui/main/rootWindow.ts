@@ -98,7 +98,7 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
   );
 
   let { x, y } = rootWindowState.bounds;
-  const { width, height } = rootWindowState.bounds;
+  let { width, height } = rootWindowState.bounds;
   if (
     x === null ||
     x === undefined ||
@@ -117,6 +117,11 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     return;
   }
 
+  x = normalizeNumber(x);
+  y = normalizeNumber(y);
+  width = normalizeNumber(width);
+  height = normalizeNumber(height);
+
   if (
     browserWindow &&
     Number.isInteger(width) &&
@@ -124,8 +129,6 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     Number.isInteger(x) &&
     Number.isInteger(y)
   ) {
-    x = normalizeNumber(x);
-    y = normalizeNumber(y);
     browserWindow.setBounds({
       width,
       height,

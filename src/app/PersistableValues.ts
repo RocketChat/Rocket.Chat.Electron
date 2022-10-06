@@ -28,10 +28,10 @@ type PersistableValues_3_1_0 = Omit<
   'currentServerUrl' | 'currentView'
 > & {
   currentView?:
-  | Exclude<PersistableValues_0_0_0['currentView'], null>
-  | { url: string }
-  | 'downloads'
-  | 'settings';
+    | Exclude<PersistableValues_0_0_0['currentView'], null>
+    | { url: string }
+    | 'downloads'
+    | 'settings';
   downloads?: Record<Download['itemId'], Download>;
 };
 type PersistableValues_3_5_0 = PersistableValues_3_1_0 & {
@@ -57,7 +57,7 @@ type PersistableValues_3_8_7 = PersistableValues_3_8_4 & {
 type PersistableValues_3_8_9 = PersistableValues_3_8_7;
 
 type PersistableValues_3_8_12 = PersistableValues_3_8_9 & {
-  hasHideOnTrayNotificationShown: false;
+  hasHideOnTrayNotificationShown: boolean;
 };
 
 export type PersistableValues = Pick<

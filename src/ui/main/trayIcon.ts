@@ -2,8 +2,9 @@ import { app, Menu, nativeImage, Tray } from 'electron';
 import i18next from 'i18next';
 
 import { Server } from '../../servers/common';
-import { watch, select, Service } from '../../store';
+import { watch, select, Service, dispatch } from '../../store';
 import { RootState } from '../../store/rootReducer';
+import { SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN } from '../actions';
 import { selectGlobalBadge } from '../selectors';
 import { getTrayIconPath, getAppIconPath } from './icons';
 import { getRootWindow } from './rootWindow';
@@ -13,6 +14,10 @@ const t = i18next.t.bind(i18next);
 const selectIsRootWindowVisible = ({
   rootWindowState: { visible },
 }: RootState): boolean => visible;
+
+const selectHasHideOnTrayNotificationShown = ({
+  hasHideOnTrayNotificationShown,
+}: RootState): boolean => hasHideOnTrayNotificationShown;
 
 const createTrayIcon = (): Tray => {
   const image = getTrayIconPath({
@@ -97,11 +102,21 @@ const warnStillRunning = (trayIcon: Tray): void => {
     return;
   }
 
-  trayIcon.displayBalloon({
-    icon: getAppIconPath({ platform: process.platform }),
-    title: t('tray.balloon.stillRunning.title', { appName: app.name }),
-    content: t('tray.balloon.stillRunning.content', { appName: app.name }),
-  });
+  const hasHideOnTrayNotificationShown = select(
+    selectHasHideOnTrayNotificationShown
+  );
+
+  if (!hasHideOnTrayNotificationShown) {
+    trayIcon.displayBalloon({
+      icon: getAppIconPath({ platform: process.platform }),
+      title: t('tray.balloon.stillRunning.title', { appName: app.name }),
+      content: t('tray.balloon.stillRunning.content', { appName: app.name }),
+    });
+    dispatch({
+      type: SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN,
+      payload: true,
+    });
+  }
 };
 
 const manageTrayIcon = async (): Promise<() => void> => {

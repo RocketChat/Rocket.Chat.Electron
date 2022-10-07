@@ -12,6 +12,7 @@ import {
 } from '../navigation/reducers';
 import { servers } from '../servers/reducers';
 import { currentView } from '../ui/reducers/currentView';
+import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../ui/reducers/isHardwareAccelerationEnabled';
@@ -70,6 +71,7 @@ export const rootReducer = combineReducers({
   isHardwareAccelerationEnabled,
   isInternalVideoChatWindowEnabled,
   isAddNewServersEnabled,
+  hasHideOnTrayNotificationShown,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

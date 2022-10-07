@@ -56,9 +56,13 @@ type PersistableValues_3_8_7 = PersistableValues_3_8_4 & {
 
 type PersistableValues_3_8_9 = PersistableValues_3_8_7;
 
+type PersistableValues_3_8_12 = PersistableValues_3_8_9 & {
+  hasHideOnTrayNotificationShown: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_3_8_9,
-  keyof PersistableValues_3_8_9
+  PersistableValues_3_8_12,
+  keyof PersistableValues_3_8_12
 >;
 
 export const migrations = {
@@ -100,5 +104,9 @@ export const migrations = {
   '>=3.8.9': (before: PersistableValues_3_8_7): PersistableValues_3_8_9 => ({
     ...before,
     isAddNewServersEnabled: true,
+  }),
+  '>=3.8.12': (before: PersistableValues_3_8_9): PersistableValues_3_8_12 => ({
+    ...before,
+    hasHideOnTrayNotificationShown: false,
   }),
 };

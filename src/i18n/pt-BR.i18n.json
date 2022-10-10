@@ -188,11 +188,11 @@
         "title": "Minimizar ao fechar",
         "description": "Quando fechado o aplicativo será minimizado para a barra de tarefas, senão será fechado. Ícone da bandeja precisa estar desativado para que isto funcione."
       },
-      "menubar" : {
+      "menubar": {
         "title": "Barra de menus",
         "description": "Mostra a barra de menus no topo da aplicação"
       },
-      "sidebar" : {
+      "sidebar": {
         "title": "Barra lateral",
         "description": "Mostra a barra na lateral da janela com a lista de servidores, downloads e configurações."
       },

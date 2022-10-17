@@ -106,13 +106,15 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     y === undefined ||
     !isInsideSomeScreen({ x, y, width, height })
   ) {
+    const primaryDisplay = screen.getPrimaryDisplay();
     const {
       bounds: { width: primaryDisplayWidth, height: primaryDisplayHeight },
-    } = screen.getPrimaryDisplay();
+    } = primaryDisplay;
     x = Math.round((primaryDisplayWidth - width) / 2);
     y = Math.round((primaryDisplayHeight - height) / 2);
+    width = normalizeNumber(primaryDisplay.workAreaSize.width * 0.9);
+    height = normalizeNumber(primaryDisplay.workAreaSize.height * 0.9);
   }
-
   if (browserWindow.isVisible()) {
     return;
   }

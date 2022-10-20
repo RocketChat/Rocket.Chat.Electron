@@ -126,6 +126,17 @@ export const ServerPane: FC<ServerPaneProps> = ({
     });
   };
 
+  useEffect(() => {
+    const webview = webviewRef.current;
+    if (isSelected) {
+      setTimeout(() => {
+        webview?.focus();
+      }, 100);
+    } else {
+      webview?.blur();
+    }
+  }, [isSelected]);
+
   return (
     <Wrapper isVisible={isSelected}>
       <StyledWebView

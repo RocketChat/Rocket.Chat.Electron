@@ -520,10 +520,12 @@ const createWindowMenu = createSelector(
                 browserWindow.showInactive();
               }
               browserWindow.focus();
-              dispatch({
-                type: MENU_BAR_SELECT_SERVER_CLICKED,
-                payload: server.url,
-              });
+              setTimeout(() => {
+                dispatch({
+                  type: MENU_BAR_SELECT_SERVER_CLICKED,
+                  payload: server.url,
+                });
+              }, 100);
             },
           })
         ),

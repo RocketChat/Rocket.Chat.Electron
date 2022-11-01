@@ -6,11 +6,15 @@
     "selectAll": "Alle auswählen",
     "undo": "Wider&rufen",
     "redo": "Wieder&holen",
+    "spelling": "Rechtschreibung",
     "spellingLanguages": "Sprachen für die Rechtschreibprüfung",
     "moreSpellingSuggestions": "Mehr Rechtschreibvorschläge",
     "noSpellingSuggestions": "Keine Vorschläge",
     "copyLinkAddress": "Link kopieren",
-    "openLink": "Link öffnen"
+    "copyLinkText": "Linktext kopieren",
+    "openLink": "Link öffnen",
+    "saveImageAs": "Bild speichern als...",
+    "copyImage": "Kopiere das Bild"
   },
   "dialog": {
     "about": {
@@ -18,7 +22,9 @@
       "version": "Version: <1>{{-version}}</1>",
       "checkUpdates": "Auf Aktualisierungen prüfen",
       "checkUpdatesOnStart": "Beim Start auf Aktualisierungen prüfen",
-      "copyright": "Copyright {{copyright}}"
+      "noUpdatesAvailable": "Es sind keine Aktualisierungen verfügbar.",
+      "copyright": "Copyright {{copyright}}",
+      "errorWhenLookingForUpdates": "Bei der Suche nach Updates ist ein Fehler aufgetreten"
     },
     "addServer": {
       "title": "Server hinzufügen",
@@ -36,9 +42,17 @@
       "yes": "Ja",
       "no": "Nein"
     },
-    "resetAppData": {
+    "downloadRemoval": {
+      "title": "Bist du dir sicher?",
+      "message": "Diesen Download entfernen?",
       "yes": "Ja",
-      "cancel": "Abbrechen"
+      "no": "Nein"
+    },
+    "resetAppData": {
+      "title": "Bist du dir sicher?",
+      "yes": "Ja",
+      "cancel": "Abbrechen",
+      "no": "Nein"
     },
     "screenshare": {
       "title": "Bildschirm teilen",
@@ -56,11 +70,13 @@
     },
     "updateDownloading": {
       "title": "Aktualisierung wird heruntergeladen",
-      "message": "Sie werden benachrichtigt, wenn die Aktualisierung bereit zur Installation ist"
+      "message": "Sie werden benachrichtigt, wenn die Aktualisierung bereit zur Installation ist",
+      "ok": "OK"
     },
     "updateInstallLater": {
       "title": "Wird später installiert",
-      "message": "Die Aktualisierung wird durchgeführt, wenn Sie die App beenden"
+      "message": "Die Aktualisierung wird durchgeführt, wenn Sie die App beenden",
+      "ok": "OK"
     },
     "updateReady": {
       "title": "Aktualisierung bereit zur Installation",
@@ -70,7 +86,125 @@
     },
     "updateSkip": {
       "title": "Aktualisierung überspringen",
-      "message": "Wir werden Sie benachrichtigen, wenn die nächste Aktualisierung verfügbar ist\n Wenn Sie Ihre Meinung ändern, können Sie im Über Menü nach Aktualisierungen suchen."
+      "message": "Wir werden Sie benachrichtigen, wenn die nächste Aktualisierung verfügbar ist\n Wenn Sie Ihre Meinung ändern, können Sie im Über Menü nach Aktualisierungen suchen.",
+      "ok": "OK"
+    },
+    "selectClientCertificate": {
+      "announcement": "Wählen Sie Zertifikat aus",
+      "select": "Auswählen",
+      "validDates": "Gültig ab {{-validStart,}} zu {{-validExpiry,}}"
+    },
+    "openingExternalProtocol": {
+      "title": "Link mit benutzerdefiniertem Protokoll",
+      "message": "{{- protocol }} Link erfordert eine externe Anwendung.",
+      "detail": "Der angeforderte Link ist {{- url }} . Möchtest du weiter machen?",
+      "dontAskAgain": "Öffnen Sie solche Links immer in der zugehörigen App",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "allowJitsiCaptureScreen": {
+      "title": "Jitsi versucht, Ihren Bildschirm zu erfassen",
+      "message": "Jitsi bittet um Erlaubnis, Ihren Bildschirm aufzunehmen.",
+      "detail": "Jitsi vom Server {{- url }} erfordert eine Erlaubnis, um Ihren Bildschirm mit anderen zu teilen.",
+      "dontAskAgain": "Erlauben Sie Jitsi von diesem Server immer, Ihren Bildschirm zu erfassen",
+      "yes": "Erlauben",
+      "no": "Absagen"
+    }
+  },
+  "downloads": {
+    "title": "Downloads",
+    "notifications": {
+      "downloadFinished": "Fertig herunterladen",
+      "downloadInterrupted": "Herunterladen unterbrochen",
+      "downloadCancelled": "Herunterladen abgebrochen",
+      "downloadFailed": "Herunterladen fehlgeschlagen",
+      "downloadExpired": "Herunterladen abgelaufen",
+      "downloadExpiredMessage": "Bitte versuchen Sie erneut, von der Quelle herunterzuladen."
+    },
+    "filters": {
+      "search": "Suche",
+      "server": "Server",
+      "mimeType": "Typ",
+      "status": "Status",
+      "clear": "Filter löschen",
+      "all": "Alle",
+      "mimes": {
+        "images": "Bilder",
+        "videos": "Videos",
+        "audios": "Audios",
+        "texts": "Texte",
+        "files": "Dateien"
+      },
+      "statuses": {
+        "paused": "Angehalten",
+        "cancelled": "Abgesagt"
+      }
+    },
+    "item": {
+      "cancel": "Absagen",
+      "copyLink": "Link kopieren",
+      "errored": "Herunterladen abgebrochen",
+      "pause": "Pause",
+      "progressSize": "{{receivedBytes, byteSize}} von {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "Aus Liste entfernen",
+      "resume": "Fortsetzen",
+      "retry": "Wiederholen",
+      "showInFolder": "Im Ordner anzeigen"
+    },
+    "showingResults": "Ergebnisse anzeigen {{first}} - {{last}} von {{count}}"
+  },
+  "certificatesManager": {
+    "title": "Zertifikatsmanager",
+    "trustedCertificates": "Vertrauenswürdige Zertifikate",
+    "notTrustedCertificates": "Nicht vertrauenswürdige Zertifikate",
+    "item": {
+      "domain": "Domain",
+      "actions": "Aktionen",
+      "remove": "Entfernen"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "general": "Allgemein",
+    "certificates": "Zertifikate",
+    "options": {
+      "report": {
+        "title": "Fehler an Entwickler melden",
+        "description": "Melden Sie Fehler anonym an die Entwickler. Zu den freigegebenen Informationen gehören App-Versionsnummer, Betriebssystemtyp, Server-URL, Gerätesprache und Fehlertyp. Es werden keine Inhalte oder Benutzernamen geteilt.",
+        "masDescription": "Diese Option ist bei der Installation aus dem Mac App Store deaktiviert, die Fehler werden über den Fehlerberichtsprozess des Mac App Store gemeldet."
+      },
+      "flashFrame": {
+        "title": "Flashframe aktivieren",
+        "titleDarwin": "Schalten Sie Dock Bounce bei Alarm um",
+        "description": "Lässt das Fenster blinken, um die Aufmerksamkeit des Benutzers zu erregen.",
+        "onLinux": "Einige Linux-Distributionen unterstützen diese Funktion nicht.",
+        "descriptionDarwin": "Lässt das App-Symbol im Dock hüpfen, um die Aufmerksamkeit des Benutzers zu erregen."
+      },
+      "hardwareAcceleration": {
+        "title": "Hardware-Beschleunigung",
+        "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."
+      },
+      "internalVideoChatWindow": {
+        "title": "Öffnen Sie den Video-Chat mit dem Anwendungsfenster",
+        "description": "Wenn eingestellt, wird der Video-Chat über das Fenster einer Anwendung geöffnet, andernfalls wird der Standardbrowser verwendet.",
+        "masDescription": "Diese Option ist deaktiviert, wenn sie aus dem Mac App Store installiert wird. Aus Sicherheitsgründen wird der Video-Chat standardmäßig über den Browser geöffnet."
+      },
+      "minimizeOnClose": {
+        "title": "Beim Schließen minimieren",
+        "description": "Beim Schließen wird die App minimiert, andernfalls wird die Anwendung beendet. Das Taskleistensymbol muss deaktiviert werden, damit dies wirksam wird."
+      },
+      "menubar": {
+        "title": "Menüleiste",
+        "description": "Menüleiste oben im Fenster anzeigen."
+      },
+      "sidebar": {
+        "title": "Seitenleiste",
+        "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen."
+      },
+      "trayIcon": {
+        "title": "Benachrichtigungssymbol",
+        "description": "Taskleistensymbol in der Taskleiste anzeigen. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste ausgeblendet. Andernfalls wird die Anwendung beendet."
+      }
     }
   },
   "error": {
@@ -89,31 +223,42 @@
   "menus": {
     "about": "Über {{- appName}}",
     "addNewServer": "&Neuen server hinzufügen",
+    "back": "&Der Rücken",
     "clearTrustedCertificates": "Vertraute zertifikate löschen",
     "close": "Schließen",
     "copy": "&Kopieren",
     "cut": "&Ausschneiden",
+    "disableGpu": "GPU deaktivieren",
     "documentation": "Dokumentation",
+    "downloads": "Downloads",
+    "settings": "Einstellungen",
     "editMenu": "&Bearbeiten",
     "fileMenu": "&Datei",
+    "forward": "&Nach vorne",
     "helpMenu": "&Hilfe",
+    "hide": "Ausblenden {{- appName}}",
     "learnMore": "Mehr erfahren",
     "minimize": "Minimieren",
     "openDevTools": "&DevTools öffnen",
+    "openDevToolsOnAllWindows": "Öffnen Sie &DevTools in allen Fenstern",
     "paste": "&Einfügen",
     "quit": "{{- appName}} &beenden",
     "redo": "Wieder&holen",
     "reload": "&Neu laden",
+    "reloadIgnoringCache": "Cache ignorieren und neu laden",
     "reportIssue": "Problem melden",
     "resetAppData": "Appdaten löschen",
     "resetZoom": "Originalgröße",
     "selectAll": "Alle auswählen",
+    "services": "Dienstleistungen",
     "showFullScreen": "Vollbildmodus",
     "showMenuBar": "MenuBar",
+    "showOnUnreadMessage": "Bei ungelesenen Nachrichten anzeigen",
     "showServerList": "Server liste",
     "showTrayIcon": "Symbole in menüleiste",
     "toggleDevTools": "&DevTools ein-/ausblenden",
     "undo": "Wider&rufen",
+    "unhide": "Zeige alles",
     "viewMenu": "Darstellung",
     "windowMenu": "&Fenster",
     "zoomIn": "Vergrößern",
@@ -121,21 +266,52 @@
   },
   "loadingError": {
     "title": "Server konnte nicht geladen werden",
+    "announcement": "Houston, we have a problem",
     "reload": "Neu laden"
+  },
+  "selfxss": {
+    "title": "Halt!",
+    "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren, oder \"hack\" das Konto einer anderen Person, ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
+    "moreInfo": "Weitere Informationen finden Sie unter https://go.rocket.chat/i/xss."
   },
   "sidebar": {
     "addNewServer": "Neuen Server hinzufügen",
+    "downloads": "Downloads",
+    "settings": "Einstellungen",
     "item": {
       "reload": "Server neu laden",
       "remove": "Server entfernen",
-      "openDevTools": "DevTools öffnen"
+      "openDevTools": "DevTools öffnen",
+      "clearCache": "Cache leeren",
+      "clearStorageData": "Speicherdaten löschen"
     }
+  },
+  "touchBar": {
+    "formatting": "Formatierung",
+    "selectServer": "Server auswählen"
   },
   "tray": {
     "menu": {
       "show": "Anzeigen",
       "hide": "Ausblenden",
       "quit": "Beenden"
+    },
+    "tooltip": {
+      "noUnreadMessage": "{{- appName}}: keine ungelesene Nachricht",
+      "unreadMention": "{{- appName}}: Sie haben eine ungelesene Erwähnung/Direktnachricht",
+      "unreadMention_plural": "{{- appName}}: you have {{- count}} ungelesene Erwähnungen/Direktnachrichten",
+      "unreadMessage": "{{- appName}}: Sie haben ungelesene Nachrichten"
+    },
+    "balloon": {
+      "stillRunning": {
+        "title": "{{- appName}} läuft noch",
+        "content": "{{- appName }} ist so eingestellt, dass es in der Taskleiste/im Benachrichtigungsbereich ausgeführt wird."
+      }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Ungelesene Nachrichten",
+    "unreadMention": "Ungelesene Erwähnungen",
+    "noUnreadMessage": "Keine ungelesenen Nachrichten"
   }
 }

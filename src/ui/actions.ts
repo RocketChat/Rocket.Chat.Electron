@@ -43,6 +43,7 @@ export const UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED =
   'update-dialog/remind-update-later-clicked';
 export const UPDATE_DIALOG_SKIP_UPDATE_CLICKED =
   'update-dialog/skip-update-clicked';
+export const WEBVIEW_READY = 'webview/ready';
 export const WEBVIEW_ATTACHED = 'webview/attached';
 export const WEBVIEW_DID_FAIL_LOAD = 'webview/did-fail-load';
 export const WEBVIEW_DID_NAVIGATE = 'webview/did-navigate';
@@ -56,16 +57,31 @@ export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED =
 export const WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED =
   'webview/screen-sharing-source-responded';
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
+export const WEBVIEW_GIT_COMMIT_HASH_CHANGED =
+  'webview/git-commit-hash-changed';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
+export const WEBVIEW_USER_LOGGED_IN = 'webview/user-loggedin';
+export const WEBVIEW_ALLOWED_REDIRECTS_CHANGED =
+  'webview/allowed-redirects-changed';
 export const SETTINGS_SET_REPORT_OPT_IN_CHANGED =
   'settings/set-bugsnag-opt-in-changed';
 export const SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED =
   'settings/set-flashframe-opt-in-changed';
+export const SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED =
+  'settings/set-hardware-acceleration-opt-in-changed';
 export const SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED =
   'settings/set-internalvideochatwindow-opt-in-changed';
 export const SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED =
   'settings/set-minimize-on-close-opt-in-changed';
+export const SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED =
+  'settings/set-is-tray-icon-enabled-changed';
+export const SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED =
+  'settings/set-is-side-bar-enabled-changed';
+export const SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED =
+  'settings/set-is-menu-bar-enabled-changed';
+export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
+  'notifications/set-has-tray-minimize-notification-shown';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -99,12 +115,13 @@ export type UiActionTypeToPayloadMap = {
   [UPDATE_DIALOG_INSTALL_BUTTON_CLICKED]: void;
   [UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED]: void;
   [UPDATE_DIALOG_SKIP_UPDATE_CLICKED]: string | null;
+  [WEBVIEW_READY]: { url: Server['url']; webContentsId: number };
   [WEBVIEW_ATTACHED]: { url: Server['url']; webContentsId: number };
   [WEBVIEW_DID_FAIL_LOAD]: { url: Server['url']; isMainFrame: boolean };
   [WEBVIEW_DID_NAVIGATE]: { url: Server['url']; pageUrl: Server['lastPath'] };
   [WEBVIEW_DID_START_LOADING]: { url: Server['url'] };
   [WEBVIEW_FAVICON_CHANGED]: { url: Server['url']; favicon: Server['favicon'] };
-  [WEBVIEW_FOCUS_REQUESTED]: { url: string };
+  [WEBVIEW_FOCUS_REQUESTED]: { url: string; view: 'server' | 'downloads' };
   [WEBVIEW_MESSAGE_BOX_BLURRED]: void;
   [WEBVIEW_MESSAGE_BOX_FOCUSED]: void;
   [WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED]: void;
@@ -115,8 +132,25 @@ export type UiActionTypeToPayloadMap = {
   };
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
+  [WEBVIEW_USER_LOGGED_IN]: {
+    url: Server['url'];
+    userLoggedIn: Server['userLoggedIn'];
+  };
+  [WEBVIEW_GIT_COMMIT_HASH_CHANGED]: {
+    url: Server['url'];
+    gitCommitHash: Server['gitCommitHash'];
+  };
+  [WEBVIEW_ALLOWED_REDIRECTS_CHANGED]: {
+    url: Server['url'];
+    allowedRedirects: Server['allowedRedirects'];
+  };
   [SETTINGS_SET_REPORT_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED]: boolean;
+  [SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED]: boolean;
+  [SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
+  [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
 };

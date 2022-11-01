@@ -11,10 +11,14 @@ import {
   WEBVIEW_SIDEBAR_STYLE_CHANGED,
   WEBVIEW_TITLE_CHANGED,
   WEBVIEW_UNREAD_CHANGED,
+  WEBVIEW_USER_LOGGED_IN,
   WEBVIEW_FAVICON_CHANGED,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_DID_FAIL_LOAD,
+  WEBVIEW_READY,
   WEBVIEW_ATTACHED,
+  WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+  WEBVIEW_ALLOWED_REDIRECTS_CHANGED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import { Server } from './common';
@@ -35,12 +39,16 @@ type ServersActionTypes =
   | ActionOf<typeof SIDE_BAR_SERVERS_SORTED>
   | ActionOf<typeof WEBVIEW_DID_NAVIGATE>
   | ActionOf<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED>
+  | ActionOf<typeof WEBVIEW_GIT_COMMIT_HASH_CHANGED>
   | ActionOf<typeof WEBVIEW_TITLE_CHANGED>
   | ActionOf<typeof WEBVIEW_UNREAD_CHANGED>
+  | ActionOf<typeof WEBVIEW_USER_LOGGED_IN>
+  | ActionOf<typeof WEBVIEW_ALLOWED_REDIRECTS_CHANGED>
   | ActionOf<typeof WEBVIEW_FAVICON_CHANGED>
   | ActionOf<typeof APP_SETTINGS_LOADED>
   | ActionOf<typeof WEBVIEW_DID_START_LOADING>
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
+  | ActionOf<typeof WEBVIEW_READY>
   | ActionOf<typeof WEBVIEW_ATTACHED>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
@@ -100,9 +108,24 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return upsert(state, { url, badge });
     }
 
+    case WEBVIEW_USER_LOGGED_IN: {
+      const { url, userLoggedIn } = action.payload;
+      return upsert(state, { url, userLoggedIn });
+    }
+
+    case WEBVIEW_ALLOWED_REDIRECTS_CHANGED: {
+      const { url, allowedRedirects } = action.payload;
+      return upsert(state, { url, allowedRedirects });
+    }
+
     case WEBVIEW_SIDEBAR_STYLE_CHANGED: {
       const { url, style } = action.payload;
       return upsert(state, { url, style });
+    }
+
+    case WEBVIEW_GIT_COMMIT_HASH_CHANGED: {
+      const { url, gitCommitHash } = action.payload;
+      return upsert(state, { url, gitCommitHash });
     }
 
     case WEBVIEW_FAVICON_CHANGED: {
@@ -147,6 +170,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         ...server,
         url: ensureUrlFormat(server.url),
       }));
+    }
+
+    case WEBVIEW_READY: {
+      const { url, webContentsId } = action.payload;
+      return update(state, { url, webContentsId });
     }
 
     case WEBVIEW_ATTACHED: {

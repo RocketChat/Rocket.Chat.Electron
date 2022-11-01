@@ -117,6 +117,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
     }: RootState) => ({
       isUpdatingAllowed:
@@ -129,6 +130,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
     })
   );
@@ -143,6 +145,19 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
 };
 
 export const setupUpdates = async (): Promise<void> => {
+  // This is necessary to make the updater work in development mode
+  if (process.env.NODE_ENV === 'development') {
+    Object.defineProperty(app, 'isPackaged', {
+      get() {
+        return true;
+      },
+    });
+    autoUpdater.updateConfigPath = path.join(
+      app.getAppPath(),
+      'dev-app-update.yml'
+    );
+  }
+
   autoUpdater.autoDownload = false;
 
   const {
@@ -153,6 +168,7 @@ export const setupUpdates = async (): Promise<void> => {
     skippedUpdateVersion,
     isReportEnabled,
     isFlashFrameEnabled,
+    isHardwareAccelerationEnabled,
     isInternalVideoChatWindowEnabled,
   } = await loadConfiguration();
 
@@ -166,6 +182,7 @@ export const setupUpdates = async (): Promise<void> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
     },
   });

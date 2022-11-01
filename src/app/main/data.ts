@@ -4,14 +4,35 @@ import path from 'path';
 import { app } from 'electron';
 
 import { select, dispatch, watch } from '../../store';
+import { normalizeNumber } from '../../ui/main/rootWindow';
 import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
 import { getPersistedValues, persistValues } from './persistence';
 
-const loadOverriddenSettings = async (): Promise<Record<string, string>> => {
+const loadUserDataOverriddenSettings = async (): Promise<
+  Record<string, string>
+> => {
   try {
     const filePath = path.join(
       app.getPath('userData'),
+      'overridden-settings.json'
+    );
+    const content = await fs.promises.readFile(filePath, 'utf8');
+    const json = JSON.parse(content);
+
+    return json && typeof json === 'object' ? json : {};
+  } catch (error) {
+    return {};
+  }
+};
+
+const loadAppAsarOverriddenSettings = async (): Promise<
+  Record<string, string>
+> => {
+  try {
+    const filePath = path.join(
+      app.getAppPath(),
+      app.getAppPath().endsWith('app.asar') ? '..' : '.',
       'overridden-settings.json'
     );
     const content = await fs.promises.readFile(filePath, 'utf8');
@@ -28,7 +49,8 @@ export const mergePersistableValues = async (
 ): Promise<void> => {
   const initialValues = select(selectPersistableValues);
   const electronStoreValues = getPersistedValues();
-  const overriddenSettings = await loadOverriddenSettings();
+  const userDataOverriddenSettings = await loadUserDataOverriddenSettings();
+  const appAsarOverriddenSettings = await loadAppAsarOverriddenSettings();
 
   const localStorageValues = Object.fromEntries(
     Object.entries(localStorage).map(([key, value]) => {
@@ -44,7 +66,8 @@ export const mergePersistableValues = async (
     ...initialValues,
     ...electronStoreValues,
     ...localStorageValues,
-    ...overriddenSettings,
+    ...userDataOverriddenSettings,
+    ...appAsarOverriddenSettings,
   });
 
   if (localStorage.autohideMenu) {
@@ -109,10 +132,10 @@ export const mergePersistableValues = async (
       bounds: {
         x:
           userRootWindowState.x ??
-          parseInt(String(values?.rootWindowState?.bounds?.x)),
+          normalizeNumber(values?.rootWindowState?.bounds?.x),
         y:
           userRootWindowState.y ??
-          parseInt(String(values?.rootWindowState?.bounds?.y)),
+          normalizeNumber(values?.rootWindowState?.bounds?.y),
         width:
           userRootWindowState.width ?? values?.rootWindowState?.bounds?.width,
         height:

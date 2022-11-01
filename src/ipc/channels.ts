@@ -19,6 +19,7 @@ type ChannelToArgsMap = {
   'downloads/cancel': (itemId: Download['itemId']) => void;
   'downloads/retry': (itemId: Download['itemId']) => void;
   'downloads/remove': (itemId: Download['itemId']) => void;
+  'certificatesManager/remove': (domain: string) => void;
   'server-view/get-url': () => Server['url'] | undefined;
   'server-view/ready': () => void;
   'desktop-capturer-get-sources': (

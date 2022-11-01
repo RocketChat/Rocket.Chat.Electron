@@ -113,6 +113,14 @@
   },
   "downloads": {
     "title": "Downloads",
+    "notifications": {
+      "downloadFinished": "Download Finished",
+      "downloadInterrupted": "Download Interrupted",
+      "downloadCancelled": "Download Cancelled",
+      "downloadFailed": "Download Failed",
+      "downloadExpired": "Downlaod Expired",
+      "downloadExpiredMessage": "Please retry downloading from source."
+    },
     "filters": {
       "search": "Search",
       "server": "Server",
@@ -145,8 +153,20 @@
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
   },
+  "certificatesManager": {
+    "title": "Certificates manager",
+    "trustedCertificates": "Trusted certificates",
+    "notTrustedCertificates": "Not trusted certificates",
+    "item": {
+      "domain": "Domain",
+      "actions": "Actions",
+      "remove": "Remove"
+    }
+  },
   "settings": {
     "title": "Settings",
+    "general": "General",
+    "certificates": "Certificates",
     "options": {
       "report": {
         "title": "Report errors to developers",
@@ -155,17 +175,35 @@
       },
       "flashFrame": {
         "title": "Enable Flash Frame",
+        "titleDarwin": "Toggle Dock Bounce on alert",
         "description": "Flashes the window to attract user's attention.",
-        "onLinux": "Some Linux distros don't have support for this feature."
+        "onLinux": "Some Linux distros don't have support for this feature.",
+        "descriptionDarwin": "Bounces the app icon in the dock to attract user's attention."
+      },
+      "hardwareAcceleration": {
+        "title": "Hardware Acceleration",
+        "description": "Enables the use of hardware acceleration when available. The application will reload on change."
       },
       "internalVideoChatWindow": {
         "title": "Open Video Chat using Application Window",
         "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used.",
-        "masDescription" : "This option is disabled when installed from the Mac App Store, for security reasons it will open Video Chat using the browser by default."
+        "masDescription": "This option is disabled when installed from the Mac App Store, for security reasons it will open Video Chat using the browser by default."
       },
       "minimizeOnClose": {
         "title": "Minimize on close",
         "description": "When closed the app will be minimized, otherwise it will quit the application. Tray Icon need to be disabled to this take effect."
+      },
+      "menubar": {
+        "title": "Menu bar",
+        "description": "Show menu bar on the top of the window."
+      },
+      "sidebar": {
+        "title": "Sidebar",
+        "description": "Show sidebar on the left of the window with the Server List, Downloads and Settings."
+      },
+      "trayIcon": {
+        "title": "Tray Icon",
+        "description": "Show tray icon on the system tray. If tray icon is active the app will be hidden to tray on close. Otherwise it will quit the application."
       }
     }
   },
@@ -271,5 +309,10 @@
         "content": "{{- appName }} is set to stay running in the system tray/notification area."
       }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Unread messages",
+    "unreadMention": "Unread mentions",
+    "noUnreadMessage": "No unread messages"
   }
 }

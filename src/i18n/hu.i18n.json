@@ -101,6 +101,14 @@
       "dontAskAgain": "Mindig a hozzárendelt alkalmazásban nyissa meg az ilyen típusú hivatkozásokat",
       "yes": "Igen",
       "no": "Nem"
+    },
+    "allowJitsiCaptureScreen": {
+      "title": "A Jitsi megpróbálja rögzíteni a képernyőjét",
+      "message": "A Jitsi jogosultságot kér a képernyő rögzítéséhez.",
+      "detail": "A(z) {{- url }} kiszolgálóról futó Jitsinek jogosultságra van szüksége azért, hogy megossza az Ön képernyőjét másokkal.",
+      "dontAskAgain": "Engedélyezés mindig, hogy az erről a kiszolgálóról futó Jitsi rögzítse a képernyőjét",
+      "yes": "Engedélyezés",
+      "no": "Mégse"
     }
   },
   "downloads": {
@@ -142,7 +150,8 @@
     "options": {
       "report": {
         "title": "Hibák jelentése a fejlesztőknek",
-        "description": "A hibák névtelenül történő jelentése a fejlesztőknek. A megosztott információk az alkalmazás verziószámát, az operációs rendszer típusát, a kiszolgáló URL-ét, az eszköz nyelvét és a hiba típusát tartalmazzák. Tartalom vagy felhasználónevek nem kerülnek megosztásra."
+        "description": "A hibák névtelenül történő jelentése a fejlesztőknek. A megosztott információk az alkalmazás verziószámát, az operációs rendszer típusát, a kiszolgáló URL-ét, az eszköz nyelvét és a hiba típusát tartalmazzák. Tartalom vagy felhasználónevek nem kerülnek megosztásra.",
+        "masDescription": "Ez a beállítás a Mac alkalmazásboltból történő telepítéskor le van tiltva. A hibák a Mac alkalmazásbolt hibajelentési folyamatán keresztül lesznek bejelentve."
       },
       "flashFrame": {
         "title": "Keret villogtatásának engedélyezése",
@@ -151,7 +160,12 @@
       },
       "internalVideoChatWindow": {
         "title": "Videocsevegés megnyitása alkalmazásablak használatával",
-        "description": "Ha be van állítva, akkor a videocsevegés egy alkalmazás ablakával nyílik meg, egyébként az alapértelmezett böngésző lesz használva."
+        "description": "Ha be van állítva, akkor a videocsevegés egy alkalmazás ablakával nyílik meg, egyébként az alapértelmezett böngésző lesz használva.",
+        "masDescription": "Ez a beállítás a Mac alkalmazásboltból történő telepítéskor le van tiltva. Biztonsági okokból a videocsevegést alapértelmezetten a böngésző használatával fogja megnyitni."
+      },
+      "minimizeOnClose": {
+        "title": "Kis méret bezáráskor",
+        "description": "Bezáráskor az alkalmazás kis méretű lesz, egyébként kilép az alkalmazásból. A tálca ikonját le kell tiltani, hogy ez érvényesüljön."
       }
     }
   },
@@ -189,6 +203,7 @@
     "learnMore": "További információk",
     "minimize": "Kis méret",
     "openDevTools": "&Fejlesztői eszközök megnyitása",
+    "openDevToolsOnAllWindows": "&Fejlesztői eszközök megnyitása az összes ablakban",
     "paste": "&Beillesztés",
     "quit": "&Kilépés a {{- appName}} programból",
     "redo": "&Ismétlés",

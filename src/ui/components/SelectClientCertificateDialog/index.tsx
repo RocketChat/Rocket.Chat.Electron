@@ -12,7 +12,7 @@ import {
 } from '../../../navigation/actions';
 import { listen } from '../../../store';
 import { RootAction } from '../../../store/actions';
-import { isResponse } from '../../../store/fsa';
+import { isRequest } from '../../../store/fsa';
 import { RootState } from '../../../store/rootReducer';
 import { Dialog } from '../Dialog';
 
@@ -29,7 +29,7 @@ export const SelectClientCertificateDialog: FC = () => {
   useEffect(
     () =>
       listen(CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED, (action) => {
-        if (!isResponse(action)) {
+        if (!isRequest(action)) {
           return;
         }
 
@@ -80,7 +80,7 @@ export const SelectClientCertificateDialog: FC = () => {
                     >
                       <Margins inline='x8'>
                         <Box>
-                          <Box fontScale='s1'>{certificate.subjectName}</Box>
+                          <Box fontScale='p1'>{certificate.subjectName}</Box>
                           <Box fontScale='p2'>{certificate.issuerName}</Box>
                           <Box fontScale='c1'>
                             {t('dialog.selectClientCertificate.validDates', {

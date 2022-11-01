@@ -33,7 +33,9 @@ export const FlashFrame: FC<Props> = (props) => {
       <Field.Row>
         <ToggleSwitch onChange={handleChange} checked={isFlashFrameEnabled} />
         <Field.Label htmlFor='toggle-switch'>
-          {t('settings.options.flashFrame.title')}
+          {process.platform !== 'darwin'
+            ? t('settings.options.flashFrame.title')
+            : t('settings.options.flashFrame.titleDarwin')}
         </Field.Label>
       </Field.Row>
       {process.platform === 'linux' && (
@@ -43,7 +45,11 @@ export const FlashFrame: FC<Props> = (props) => {
         />
       )}
       <Field.Row>
-        <Field.Hint>{t('settings.options.flashFrame.description')}</Field.Hint>
+        <Field.Hint>
+          {process.platform !== 'darwin'
+            ? t('settings.options.flashFrame.description')
+            : t('settings.options.flashFrame.descriptionDarwin')}
+        </Field.Hint>
       </Field.Row>
     </Field>
   );

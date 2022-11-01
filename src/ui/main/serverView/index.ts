@@ -5,6 +5,7 @@ import {
   app,
   BrowserWindow,
   ContextMenuParams,
+  dialog,
   Event,
   Input,
   Menu,
@@ -31,10 +32,11 @@ import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
-  WEBVIEW_ATTACHED,
+  WEBVIEW_READY,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
+  WEBVIEW_ATTACHED,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -47,7 +49,23 @@ export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
 
-const initializeServerWebContents = (
+const initializeServerWebContentsAfterReady = (
+  _serverUrl: string,
+  guestWebContents: WebContents,
+  rootWindow: BrowserWindow
+): void => {
+  const handleContextMenu = async (
+    event: Event,
+    params: ContextMenuParams
+  ): Promise<void> => {
+    event.preventDefault();
+    const menu = createPopupMenuForServerView(guestWebContents, params);
+    menu.popup({ window: rootWindow });
+  };
+  guestWebContents.addListener('context-menu', handleContextMenu);
+};
+
+const initializeServerWebContentsAfterAttach = (
   serverUrl: string,
   guestWebContents: WebContents,
   rootWindow: BrowserWindow
@@ -114,15 +132,6 @@ const initializeServerWebContents = (
     });
   };
 
-  const handleContextMenu = async (
-    event: Event,
-    params: ContextMenuParams
-  ): Promise<void> => {
-    event.preventDefault();
-    const menu = createPopupMenuForServerView(guestWebContents, params);
-    menu.popup({ window: rootWindow });
-  };
-
   const handleBeforeInputEvent = (
     _event: Event,
     { type, key }: Input
@@ -147,7 +156,6 @@ const initializeServerWebContents = (
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
   guestWebContents.addListener('did-fail-load', handleDidFailLoad);
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
-  guestWebContents.addListener('context-menu', handleContextMenu);
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
 };
 
@@ -207,10 +215,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
-        const isJitsiMeet = frameName === 'Jitsi Meet';
+        const isVideoCall = frameName === 'Video Call';
 
         const newWindow = new BrowserWindow({
-          ...(isJitsiMeet
+          ...(isVideoCall
             ? {
                 webPreferences: {
                   preload: path.join(app.getAppPath(), 'app/preload.js'),
@@ -300,9 +308,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     }
   };
 
-  listen(WEBVIEW_ATTACHED, (action) => {
+  listen(WEBVIEW_READY, (action) => {
     const guestWebContents = webContents.fromId(action.payload.webContentsId);
-    initializeServerWebContents(
+    initializeServerWebContentsAfterReady(
       action.payload.url,
       guestWebContents,
       rootWindow
@@ -311,7 +319,44 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.setPermissionRequestHandler(
       handlePermissionRequest
     );
-    guestWebContents.session.on('will-download', handleWillDownloadEvent);
+    guestWebContents.session.on(
+      'will-download',
+      (event, item, _webContents) => {
+        const savePath = dialog.showSaveDialogSync(rootWindow, {
+          defaultPath: item.getFilename(),
+        });
+        if (savePath !== undefined) {
+          item.setSavePath(savePath);
+          handleWillDownloadEvent(event, item, _webContents);
+          return;
+        }
+        event.preventDefault();
+      }
+    );
+
+    // prevent the guest webContents from navigating away from the server URL
+    guestWebContents.on('will-navigate', (e, redirectUrl) => {
+      const servers = select(({ servers }) => servers);
+      const server = servers.find(
+        (server) => server.url === action.payload.url
+      );
+
+      const isUserLoggedIn = server && server.userLoggedIn === true;
+
+      if (!redirectUrl.startsWith(action.payload.url) && isUserLoggedIn) {
+        e.preventDefault();
+        shell.openExternal(redirectUrl);
+      }
+    });
+  });
+
+  listen(WEBVIEW_ATTACHED, (action) => {
+    const guestWebContents = webContents.fromId(action.payload.webContentsId);
+    initializeServerWebContentsAfterAttach(
+      action.payload.url,
+      guestWebContents,
+      rootWindow
+    );
   });
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {

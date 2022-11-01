@@ -1,7 +1,9 @@
 import { app } from 'electron';
 import rimraf from 'rimraf';
 
-import { dispatch } from '../../store';
+import { dispatch, listen } from '../../store';
+import { readSetting } from '../../store/readSetting';
+import { SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED } from '../../ui/actions';
 import { getRootWindow } from '../../ui/main/rootWindow';
 import { APP_PATH_SET, APP_VERSION_SET } from '../actions';
 
@@ -33,7 +35,15 @@ export const performElectronStartup = (): void => {
     return;
   }
 
-  if (args.includes('--disable-gpu')) {
+  const isHardwareAccelerationEnabled = readSetting(
+    'isHardwareAccelerationEnabled'
+  );
+
+  if (
+    args.includes('--disable-gpu') ||
+    isHardwareAccelerationEnabled === false
+  ) {
+    console.log('Disabling Hardware acceleration');
     app.disableHardwareAcceleration();
     app.commandLine.appendSwitch('--disable-2d-canvas-image-chromium');
     app.commandLine.appendSwitch('--disable-accelerated-2d-canvas');
@@ -52,6 +62,10 @@ export const setupApp = (): void => {
 
   app.addListener('window-all-closed', () => {
     app.quit();
+  });
+
+  listen(SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED, (_action) => {
+    relaunchApp();
   });
 
   dispatch({ type: APP_PATH_SET, payload: app.getAppPath() });

@@ -195,7 +195,7 @@ For Windows, the full paths are:
 - `~\Users\<username>\AppData\Roaming\Rocket.Chat\`
 - `~\Program Files\Rocket.Chat\Resources\`
 
-On macOS, the full paths are:
+On macOS, the full path is:
 
 - `~/Users/<username>/Library/Application Support/Rocket.Chat/`
 

@@ -198,6 +198,7 @@ For Windows, the full paths are:
 On macOS, the full path is:
 
 - `~/Users/<username>/Library/Application Support/Rocket.Chat/`
+- `/Library/Preferences/Rocket.Chat/`
 
 On Linux, the full paths are:
 

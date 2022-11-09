@@ -175,6 +175,9 @@ export const setupServers = async (
 
     if (server?.gitCommitHash !== gitCommitHash) {
       const guestWebContents = getWebContentsByServerUrl(url);
+      await guestWebContents?.session.clearStorageData({
+        storages: ['indexdb'],
+      });
       await guestWebContents?.session.clearCache();
       guestWebContents?.reload();
     }

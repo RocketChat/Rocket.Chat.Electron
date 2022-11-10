@@ -108,11 +108,17 @@ export const resolveServerUrl = async (
 
 const loadAppServers = async (): Promise<Record<string, string>> => {
   try {
-    const filePath = path.join(
+    let filePath = path.join(
       app.getAppPath(),
       app.getAppPath().endsWith('app.asar') ? '..' : '.',
       'servers.json'
     );
+
+    if (process.platform === 'darwin') {
+      const darwinFilePath = '/Library/Preferences/Rocket.Chat/servers.json';
+      if (fs.existsSync(darwinFilePath)) filePath = darwinFilePath;
+    }
+
     const content = await fs.promises.readFile(filePath, 'utf8');
     const json = JSON.parse(content);
 

@@ -7,7 +7,10 @@ import { satisfies, coerce } from 'semver';
 import { invoke } from '../ipc/main';
 import { select, dispatch, listen } from '../store';
 import { hasMeta } from '../store/fsa';
-import { WEBVIEW_GIT_COMMIT_HASH_CHANGED } from '../ui/actions';
+import {
+  WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+  WEBVIEW_GIT_COMMIT_HASH_CHECK,
+} from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import {
@@ -166,14 +169,24 @@ export const setupServers = async (
     }
   });
 
-  listen(WEBVIEW_GIT_COMMIT_HASH_CHANGED, async (action) => {
+  listen(WEBVIEW_GIT_COMMIT_HASH_CHECK, async (action) => {
     const { url, gitCommitHash } = action.payload;
 
     const servers = select(({ servers }) => servers);
 
     const server = servers.find((server) => server.url === url);
 
-    if (server?.gitCommitHash !== gitCommitHash) {
+    if (
+      server?.gitCommitHash !== gitCommitHash &&
+      server?.gitCommitHash !== undefined
+    ) {
+      dispatch({
+        type: WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+        payload: {
+          url,
+          gitCommitHash,
+        },
+      });
       const guestWebContents = getWebContentsByServerUrl(url);
       await guestWebContents?.session.clearStorageData({
         storages: ['indexdb'],

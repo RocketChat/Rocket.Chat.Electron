@@ -334,16 +334,11 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       }
     );
 
-    // prevent the guest webContents from navigating away from the server URL
+    // prevents the webview from navigating because of twitter preview links
     guestWebContents.on('will-navigate', (e, redirectUrl) => {
-      const servers = select(({ servers }) => servers);
-      const server = servers.find(
-        (server) => server.url === action.payload.url
-      );
+      const preventNavigateHosts = ['t.co', 'twitter.com'];
 
-      const isUserLoggedIn = server && server.userLoggedIn === true;
-
-      if (!redirectUrl.startsWith(action.payload.url) && isUserLoggedIn) {
+      if (preventNavigateHosts.includes(new URL(redirectUrl).hostname)) {
         e.preventDefault();
         shell.openExternal(redirectUrl);
       }

@@ -51,8 +51,7 @@
     "resetAppData": {
       "title": "Bist du dir sicher?",
       "yes": "Ja",
-      "cancel": "Abbrechen",
-      "no": "Nein"
+      "cancel": "Abbrechen"
     },
     "screenshare": {
       "title": "Bildschirm teilen",

@@ -173,6 +173,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     webPreferences.nodeIntegrationInSubFrames = false;
     webPreferences.webSecurity = true;
     webPreferences.contextIsolation = true;
+    webPreferences.sandbox = false;
   };
 
   const handleDidAttachWebview = (

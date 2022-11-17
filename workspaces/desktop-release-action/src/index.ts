@@ -8,6 +8,7 @@ import fg from 'fast-glob';
 import { parse, SemVer } from 'semver';
 
 import {
+  getDevelopmentRelease,
   getReleaseAssets,
   getSnapshotRelease,
   getTaggedRelease,
@@ -53,6 +54,25 @@ const getFilesToUpload = () =>
     'dist/*.exe',
     'dist/*.exe.blockmap',
   ]);
+
+const releaseDevelopment = async (commitSha: string) => {
+  await pack();
+
+  const release = await getDevelopmentRelease(commitSha);
+  const assets = await getReleaseAssets(release.id);
+
+  for (const path of await getFilesToUpload()) {
+    const name = basename(path);
+    const extension = extname(path).toLowerCase();
+    const { size } = await promises.stat(path);
+    const data = await promises.readFile(path);
+
+    await overrideAsset(release, assets, name, size, data);
+    if (extension === '.snap') {
+      await uploadSnap(path, 'edge');
+    }
+  }
+};
 
 const releaseSnapshot = async (commitSha: string) => {
   await pack();
@@ -113,6 +133,14 @@ const start = async () => {
 
   const payload = github.context.payload as PushEvent;
   const ref = core.getInput('ref') || payload.ref;
+
+  if (ref === 'refs/heads/develop') {
+    core.info(
+      `push event on develop branch detected, performing development release`
+    );
+    await releaseDevelopment(payload.after);
+    return;
+  }
 
   if (ref === 'refs/heads/master') {
     core.info(

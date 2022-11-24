@@ -220,10 +220,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         const newWindow = new BrowserWindow({
           ...(isVideoCall
             ? {
-              webPreferences: {
-                preload: path.join(app.getAppPath(), 'app/preload.js'),
-              },
-            }
+                webPreferences: {
+                  preload: path.join(app.getAppPath(), 'app/preload.js'),
+                },
+              }
             : options),
           show: false,
         });
@@ -246,8 +246,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           newWindow.loadURL(url, {
             userAgent: isGoogleSignIn
               ? app.userAgentFallback
-                .replace(`Electron/${process.versions.electron} `, '')
-                .replace(`${app.name}/${app.getVersion()} `, '')
+                  .replace(`Electron/${process.versions.electron} `, '')
+                  .replace(`${app.name}/${app.getVersion()} `, '')
               : app.userAgentFallback,
             httpReferrer: referrer,
             ...(postBody && {

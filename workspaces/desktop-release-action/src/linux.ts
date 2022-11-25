@@ -10,11 +10,12 @@ export const setupSnapcraft = (): Promise<void> =>
     await run(`echo /snap/bin >> ${process.env.GITHUB_PATH}`);
     await run('sudo chown root:root /');
 
-    const snapcraftToken = core.getInput('snapcraft_token');
-    const snapcraftTokenFile = './snapcraft-token.txt';
-    await promises.writeFile(snapcraftTokenFile, snapcraftToken, 'utf-8');
-    await run(`/snap/bin/snapcraft login --with ${snapcraftTokenFile}`);
-    await promises.unlink(snapcraftTokenFile);
+    // const snapcraftToken = core.getInput('snapcraft_token');
+    // const snapcraftTokenFile = './snapcraft-token.txt';
+    // await promises.writeFile(snapcraftTokenFile, snapcraftToken, 'utf-8');
+    // await run(`/snap/bin/snapcraft login --with ${snapcraftTokenFile}`);
+    // await promises.unlink(snapcraftTokenFile);
+    await run(`/snap/bin/snapcraft login`);
   });
 
 export const packOnLinux = (): Promise<void> =>

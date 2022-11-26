@@ -7,6 +7,7 @@ import { run, runElectronBuilder } from './shell';
 export const setupSnapcraft = (): Promise<void> =>
   core.group('Setup Snapcraft', async () => {
     await run(`sudo snap install snapcraft --classic --channel stable`);
+    await run(`sudo apt install gnome-keyring`);
     await run(`echo /snap/bin >> ${process.env.GITHUB_PATH}`);
     await run('sudo chown root:root /');
 

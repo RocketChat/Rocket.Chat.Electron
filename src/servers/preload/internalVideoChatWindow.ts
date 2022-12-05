@@ -14,6 +14,10 @@ export const openInternalVideoChatWindow = (
   if (!process.mas && getInternalVideoChatWindowEnabled()) {
     window.open(url, 'Video Call', `scrollbars=true`);
   } else {
-    shell.openExternal(url);
+    const validUrl = new URL(url);
+    const allowedProtocols = ['http:', 'https:'];
+    if (allowedProtocols.includes(validUrl.protocol)) {
+      shell.openExternal(validUrl.href);
+    }
   }
 };

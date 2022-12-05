@@ -340,7 +340,13 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
       if (preventNavigateHosts.includes(new URL(redirectUrl).hostname)) {
         e.preventDefault();
-        shell.openExternal(redirectUrl);
+        isProtocolAllowed(redirectUrl).then((allowed) => {
+          if (!allowed) {
+            return;
+          }
+
+          shell.openExternal(redirectUrl);
+        });
       }
     });
   });

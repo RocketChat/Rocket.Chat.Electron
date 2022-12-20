@@ -12,7 +12,7 @@ import { TrayIcon } from './features/TrayIcon';
 
 export const GeneralTab: FC = () => (
   <Box is='form' margin={24} maxWidth={960} flexGrow={1} flexShrink={1}>
-    <FieldGroup>
+    <FieldGroup >
       <ReportErrors />
       <FlashFrame />
       <HardwareAcceleration />

@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, session } from 'electron';
 import electronDl from 'electron-dl';
 
 import { performElectronStartup, setupApp } from './app/main/app';
@@ -92,6 +92,12 @@ const start = async (): Promise<void> => {
   handleDesktopCapturerGetSources();
 
   await processDeepLinksInArgs();
+
+  session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
+    // Allow the tab to capture itself.
+
+    callback({ video: request.frame });
+  });
 };
 
 if (require.main === module) {

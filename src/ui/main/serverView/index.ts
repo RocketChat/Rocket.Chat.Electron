@@ -5,6 +5,7 @@ import {
   app,
   BrowserWindow,
   ContextMenuParams,
+  desktopCapturer,
   dialog,
   Event,
   Input,
@@ -227,6 +228,16 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         window.once('ready-to-show', () => {
           window.show();
         });
+
+        window.webContents.session.setDisplayMediaRequestHandler(
+          (_request, cb) => {
+            desktopCapturer
+              .getSources({ types: ['screen'] })
+              .then((sources) => {
+                cb({ video: sources[0] });
+              });
+          }
+        );
 
         isProtocolAllowed(url).then((allowed) => {
           if (!allowed) {

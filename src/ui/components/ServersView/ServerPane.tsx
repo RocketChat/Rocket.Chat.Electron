@@ -68,12 +68,14 @@ export const ServerPane: FC<ServerPaneProps> = ({
 
     const handleAttachReady = (): void => {
       step &&
-        dispatch({
-          type: WEBVIEW_READY,
-          payload: {
-            url: serverUrl,
-            webContentsId: webview.getWebContentsId(),
-          },
+        setImmediate(() => {
+          dispatch({
+            type: WEBVIEW_READY,
+            payload: {
+              url: serverUrl,
+              webContentsId: webview.getWebContentsId(),
+            },
+          });
         });
       step = true;
     };
@@ -100,12 +102,14 @@ export const ServerPane: FC<ServerPaneProps> = ({
     };
 
     const handleAttachReady = (): void => {
-      dispatch({
-        type: WEBVIEW_ATTACHED,
-        payload: {
-          url: serverUrl,
-          webContentsId: webview.getWebContentsId(),
-        },
+      setImmediate(() => {
+        dispatch({
+          type: WEBVIEW_ATTACHED,
+          payload: {
+            url: serverUrl,
+            webContentsId: webview.getWebContentsId(),
+          },
+        });
       });
     };
 

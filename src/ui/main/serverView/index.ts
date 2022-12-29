@@ -211,10 +211,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         overrideBrowserWindowOptions: {
           ...(isVideoCall
             ? {
-              webPreferences: {
-                preload: path.join(app.getAppPath(), 'app/preload.js'),
-              },
-            }
+                webPreferences: {
+                  preload: path.join(app.getAppPath(), 'app/preload.js'),
+                },
+              }
             : {}),
           show: false,
         },
@@ -242,8 +242,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           window.loadURL(url, {
             userAgent: isGoogleSignIn
               ? app.userAgentFallback
-                .replace(`Electron/${process.versions.electron} `, '')
-                .replace(`${app.name}/${app.getVersion()} `, '')
+                  .replace(`Electron/${process.versions.electron} `, '')
+                  .replace(`${app.name}/${app.getVersion()} `, '')
               : app.userAgentFallback,
             httpReferrer: referrer,
             ...(postBody && {

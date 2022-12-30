@@ -173,6 +173,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     webPreferences.nodeIntegrationInSubFrames = false;
     webPreferences.webSecurity = true;
     webPreferences.contextIsolation = true;
+    webPreferences.sandbox = false;
   };
 
   const handleDidAttachWebview = (
@@ -187,54 +188,49 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       setupPreloadReload(webContents);
     }
 
-    webContents.addListener(
-      'new-window',
-      (
-        event,
-        url,
-        frameName,
-        disposition,
-        options,
-        _additionalFeatures,
-        referrer,
-        postBody
-      ) => {
-        event.preventDefault();
+    webContents.setWindowOpenHandler(({ url, frameName, disposition }) => {
+      if (
+        disposition === 'foreground-tab' ||
+        disposition === 'background-tab'
+      ) {
+        isProtocolAllowed(url).then((allowed) => {
+          if (!allowed) {
+            return { action: 'deny' };
+          }
 
-        if (
-          disposition === 'foreground-tab' ||
-          disposition === 'background-tab'
-        ) {
-          isProtocolAllowed(url).then((allowed) => {
-            if (!allowed) {
-              return;
-            }
+          shell.openExternal(url);
+          return { action: 'deny' };
+        });
+        return { action: 'deny' };
+      }
 
-            shell.openExternal(url);
-          });
-          return;
-        }
+      const isVideoCall = frameName === 'Video Call';
 
-        const isVideoCall = frameName === 'Video Call';
-
-        const newWindow = new BrowserWindow({
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
           ...(isVideoCall
             ? {
                 webPreferences: {
                   preload: path.join(app.getAppPath(), 'app/preload.js'),
                 },
               }
-            : options),
+            : {}),
           show: false,
-        });
+        },
+      };
+    });
 
-        newWindow.once('ready-to-show', () => {
-          newWindow.show();
+    webContents.addListener(
+      'did-create-window',
+      (window, { url, frameName, disposition, referrer, postBody }) => {
+        window.once('ready-to-show', () => {
+          window.show();
         });
 
         isProtocolAllowed(url).then((allowed) => {
           if (!allowed) {
-            newWindow.destroy();
+            window.destroy();
             return;
           }
 
@@ -243,7 +239,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
             disposition === 'new-window' &&
             new URL(url).hostname.match(/(\.)?google\.com$/);
 
-          newWindow.loadURL(url, {
+          window.loadURL(url, {
             userAgent: isGoogleSignIn
               ? app.userAgentFallback
                   .replace(`Electron/${process.versions.electron} `, '')
@@ -258,8 +254,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
             }),
           });
         });
-
-        event.newGuest = newWindow;
       }
     );
   };

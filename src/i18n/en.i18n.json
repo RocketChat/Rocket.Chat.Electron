@@ -13,7 +13,8 @@
     "copyLinkAddress": "Copy link address",
     "copyLinkText": "Copy link text",
     "openLink": "Open link",
-    "saveImageAs": "Save image as..."
+    "saveImageAs": "Save image as...",
+    "copyImage": "Copy image"
   },
   "dialog": {
     "about": {
@@ -100,10 +101,26 @@
       "dontAskAgain": "Always open these types of links in the associated app",
       "yes": "Yes",
       "no": "No"
+    },
+    "allowJitsiCaptureScreen": {
+      "title": "Jitsi is trying to capture your screen",
+      "message": "Jitsi is requesting permission to capture your screen.",
+      "detail": "Jitsi from the server {{- url }} requires permission in order to share your screen with others.",
+      "dontAskAgain": "Always allow Jitsi from this server to capture your screen",
+      "yes": "Allow",
+      "no": "Cancel"
     }
   },
   "downloads": {
     "title": "Downloads",
+    "notifications": {
+      "downloadFinished": "Download Finished",
+      "downloadInterrupted": "Download Interrupted",
+      "downloadCancelled": "Download Cancelled",
+      "downloadFailed": "Download Failed",
+      "downloadExpired": "Downlaod Expired",
+      "downloadExpiredMessage": "Please retry downloading from source."
+    },
     "filters": {
       "search": "Search",
       "server": "Server",
@@ -136,16 +153,57 @@
     },
     "showingResults": "Showing results {{first}} - {{last}} of {{count}}"
   },
+  "certificatesManager": {
+    "title": "Certificates manager",
+    "trustedCertificates": "Trusted certificates",
+    "notTrustedCertificates": "Not trusted certificates",
+    "item": {
+      "domain": "Domain",
+      "actions": "Actions",
+      "remove": "Remove"
+    }
+  },
   "settings": {
     "title": "Settings",
+    "general": "General",
+    "certificates": "Certificates",
     "options": {
       "report": {
         "title": "Report errors to developers",
-        "description": "Report errors anonymously to the developers. Shared information include app version number, operating system type, server URL, device language and error type. No content or usernames are shared."
+        "description": "Report errors anonymously to the developers. Shared information include app version number, operating system type, server URL, device language and error type. No content or usernames are shared.",
+        "masDescription": "This option is disabled when installed from the Mac App Store, the errors will be reported through the Mac App Store error report process."
       },
       "flashFrame": {
         "title": "Enable Flash Frame",
-        "description": "Settings Flash Frame Description..."
+        "titleDarwin": "Toggle Dock Bounce on alert",
+        "description": "Flashes the window to attract user's attention.",
+        "onLinux": "Some Linux distros don't have support for this feature.",
+        "descriptionDarwin": "Bounces the app icon in the dock to attract user's attention."
+      },
+      "hardwareAcceleration": {
+        "title": "Hardware Acceleration",
+        "description": "Enables the use of hardware acceleration when available. The application will reload on change."
+      },
+      "internalVideoChatWindow": {
+        "title": "Open Video Chat using Application Window",
+        "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used.",
+        "masDescription": "This option is disabled when installed from the Mac App Store, for security reasons it will open Video Chat using the browser by default."
+      },
+      "minimizeOnClose": {
+        "title": "Minimize on close",
+        "description": "When closed the app will be minimized, otherwise it will quit the application. Tray Icon need to be disabled to this take effect."
+      },
+      "menubar": {
+        "title": "Menu bar",
+        "description": "Show menu bar on the top of the window."
+      },
+      "sidebar": {
+        "title": "Sidebar",
+        "description": "Show sidebar on the left of the window with the Server List, Downloads and Settings."
+      },
+      "trayIcon": {
+        "title": "Tray Icon",
+        "description": "Show tray icon on the system tray. If tray icon is active the app will be hidden to tray on close. Otherwise it will quit the application."
       }
     }
   },
@@ -183,6 +241,7 @@
     "learnMore": "Learn more",
     "minimize": "Minimize",
     "openDevTools": "Open &DevTools",
+    "openDevToolsOnAllWindows": "Open &DevTools on all windows",
     "paste": "&Paste",
     "quit": "&Quit {{- appName}}",
     "redo": "&Redo",
@@ -224,7 +283,9 @@
     "item": {
       "reload": "Reload server",
       "remove": "Remove server",
-      "openDevTools": "Open DevTools"
+      "openDevTools": "Open DevTools",
+      "clearCache": "Clear Cache",
+      "clearStorageData": "Clear Storage Data"
     }
   },
   "touchBar": {
@@ -249,5 +310,10 @@
         "content": "{{- appName }} is set to stay running in the system tray/notification area."
       }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Unread messages",
+    "unreadMention": "Unread mentions",
+    "noUnreadMessage": "No unread messages"
   }
 }

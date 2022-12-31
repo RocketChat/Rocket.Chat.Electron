@@ -1,3 +1,78 @@
+## [3.7.3](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.7.2...3.7.3) (2021-12-27)
+
+
+### Bug Fixes
+
+* Object has destroyed message ([#2273](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2273)) ([3560b93](https://github.com/RocketChat/Rocket.Chat.Electron/commit/3560b93a541d5ae0b00cb886228942e4525f7246))
+
+
+
+## [3.7.1](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.7.0...3.7.1) (2021-12-20)
+
+
+### Bug Fixes
+
+* add Windows zip to releases and fix Windows architecture switching on release ([#2258](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2258)) ([a67818e](https://github.com/RocketChat/Rocket.Chat.Electron/commit/a67818e7fea9f93c6b2e45873981547babca4ede))
+* Run menu bar event listeners asynchronously ([#2254](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2254)) ([d99352a](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d99352afde37494910a9509e026c9fdf86aef18d))
+
+
+
+# [3.7.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.6.0...3.7.0) (2021-11-30)
+
+
+### Bug Fixes
+
+* Empty screen from a fresh start + servers.json ([#2243](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2243)) ([407c562](https://github.com/RocketChat/Rocket.Chat.Electron/commit/407c562531b5af841b40006f25aa657db56979f4))
+
+
+
+# [3.6.0](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.7...3.6.0) (2021-11-16)
+
+
+### Bug Fixes
+
+* Add back desktop version to userAgent string ([#2217](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2217)) ([07c6079](https://github.com/RocketChat/Rocket.Chat.Electron/commit/07c6079060a40d2549bc1502b55fc5d53219e018))
+* Missing entitlements on mac app ([#2191](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2191)) ([ce52cbc](https://github.com/RocketChat/Rocket.Chat.Electron/commit/ce52cbcf749a3e2147723ffa8f2d42a3b20f8047))
+
+
+### Features
+
+* Add clear cache and clear storage data options to server ([#2229](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2229)) ([d65e73a](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d65e73a6e87d10785d861ccf67a434d301698223))
+* Setting to open video chat on application window or external browser ([#2227](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2227)) ([d3364fd](https://github.com/RocketChat/Rocket.Chat.Electron/commit/d3364fdcf73b440d758af6a3ad59f63d972986e8))
+
+
+
+## [3.5.7](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.6...3.5.7) (2021-10-06)
+
+
+### Bug Fixes
+
+* Prevent error if can reach the icon ([#2197](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2197)) ([8c5217f](https://github.com/RocketChat/Rocket.Chat.Electron/commit/8c5217f96160fea0f24fa29e8b9f162ff9c906b6))
+* Prevent invalid range for unit format ([#2195](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2195)) ([cc4037b](https://github.com/RocketChat/Rocket.Chat.Electron/commit/cc4037b1fc0acd50f3cf8434434ccdc534568228))
+* Prevent store send messages before the screen is ready ([#2198](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2198)) ([34d185d](https://github.com/RocketChat/Rocket.Chat.Electron/commit/34d185d6b8781e60f446d298c487e5f418b44fe5))
+* Redact info ([#2196](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2196)) ([7a62f33](https://github.com/RocketChat/Rocket.Chat.Electron/commit/7a62f33f0a24bcbf6ceb928b87147490d03cc1f2))
+
+
+### Features
+
+* Electron dl for improve download experience ([#2200](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2200)) ([a132009](https://github.com/RocketChat/Rocket.Chat.Electron/commit/a1320093880fe98f59be4f7cac0f3093e9195d33))
+
+
+
+## [3.5.6](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.5...3.5.6) (2021-09-23)
+
+
+### Bug Fixes
+
+* Jitisi opening on browser ([#2180](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2180)) ([1d34690](https://github.com/RocketChat/Rocket.Chat.Electron/commit/1d3469025e0f1b7988e542d02a8890308f136f6f))
+
+
+### Features
+
+* apple silicon universal support ([#2170](https://github.com/RocketChat/Rocket.Chat.Electron/issues/2170)) ([6f180c6](https://github.com/RocketChat/Rocket.Chat.Electron/commit/6f180c693fb9a4d22b981a1e891499bc547a1b61))
+
+
+
 ## [3.5.5](https://github.com/RocketChat/Rocket.Chat.Electron/compare/3.5.4...3.5.5) (2021-09-21)
 
 

@@ -7,7 +7,11 @@ import { RootAction } from '../../../../store/actions';
 import { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_REPORT_OPT_IN_CHANGED } from '../../../actions';
 
-export const ReportErrors: FC = () => {
+type Props = {
+  className?: string;
+};
+
+export const ReportErrors: FC<Props> = (props) => {
   const isReportEnabled = useSelector(
     ({ isReportEnabled }: RootState) => isReportEnabled
   );
@@ -25,15 +29,23 @@ export const ReportErrors: FC = () => {
   );
 
   return (
-    <Field>
+    <Field className={props.className}>
       <Field.Row>
-        <ToggleSwitch onChange={handleChange} checked={isReportEnabled} />
+        <ToggleSwitch
+          disabled={process.mas}
+          onChange={handleChange}
+          checked={isReportEnabled}
+        />
         <Field.Label htmlFor='toggle-switch'>
           {t('settings.options.report.title')}
         </Field.Label>
       </Field.Row>
       <Field.Row>
-        <Field.Hint>{t('settings.options.report.description')}</Field.Hint>
+        {process.mas ? (
+          <Field.Hint>{t('settings.options.report.masDescription')}</Field.Hint>
+        ) : (
+          <Field.Hint>{t('settings.options.report.description')}</Field.Hint>
+        )}
       </Field.Row>
     </Field>
   );

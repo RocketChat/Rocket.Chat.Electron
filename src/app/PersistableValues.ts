@@ -8,6 +8,7 @@ type PersistableValues_0_0_0 = {
   currentServerUrl: string;
   currentView: 'add-new-server' | null;
   doCheckForUpdatesOnStartup: boolean;
+  allowedJitsiServers: Record<string, boolean>;
   externalProtocols: Record<string, boolean>;
   isEachUpdatesSettingConfigurable: boolean;
   isMenuBarEnabled: boolean;
@@ -19,6 +20,7 @@ type PersistableValues_0_0_0 = {
   servers: Server[];
   skippedUpdateVersion: string | null;
   trustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
+  notTrustedCertificates: Record<Server['url'], Certificate['fingerprint']>;
 };
 
 type PersistableValues_3_1_0 = Omit<
@@ -35,11 +37,32 @@ type PersistableValues_3_1_0 = Omit<
 type PersistableValues_3_5_0 = PersistableValues_3_1_0 & {
   isReportEnabled: boolean;
   isFlashFrameEnabled: boolean;
+  isInternalVideoChatWindowEnabled: boolean;
+};
+
+type PersistableValues_3_7_9 = PersistableValues_3_5_0 & {
+  isMinimizeOnCloseEnabled: boolean;
+};
+
+type PersistableValues_3_8_1 = PersistableValues_3_7_9;
+
+type PersistableValues_3_8_4 = PersistableValues_3_8_1 & {
+  isAddNewServersEnabled: boolean;
+};
+
+type PersistableValues_3_8_7 = PersistableValues_3_8_4 & {
+  isHardwareAccelerationEnabled: boolean;
+};
+
+type PersistableValues_3_8_9 = PersistableValues_3_8_7;
+
+type PersistableValues_3_8_12 = PersistableValues_3_8_9 & {
+  hasHideOnTrayNotificationShown: boolean;
 };
 
 export type PersistableValues = Pick<
-  PersistableValues_3_5_0,
-  keyof PersistableValues_3_5_0
+  PersistableValues_3_8_12,
+  keyof PersistableValues_3_8_12
 >;
 
 export const migrations = {
@@ -57,7 +80,33 @@ export const migrations = {
   '>=3.5.0': (before: PersistableValues_3_1_0): PersistableValues_3_5_0 => ({
     ...before,
     isReportEnabled: true,
+    isInternalVideoChatWindowEnabled: true,
     isFlashFrameEnabled:
       process.platform === 'win32' || process.platform === 'darwin',
+  }),
+  '>=3.7.9': (before: PersistableValues_3_5_0): PersistableValues_3_7_9 => ({
+    ...before,
+    isMinimizeOnCloseEnabled: process.platform === 'win32',
+  }),
+  '>=3.8.0': (before: PersistableValues_3_7_9): PersistableValues_3_8_1 => ({
+    ...before,
+    isReportEnabled: !process.mas,
+  }),
+  '>=3.8.4': (before: PersistableValues_3_8_1): PersistableValues_3_8_4 => ({
+    ...before,
+    isInternalVideoChatWindowEnabled: !process.mas,
+    isAddNewServersEnabled: true,
+  }),
+  '>=3.8.7': (before: PersistableValues_3_8_4): PersistableValues_3_8_7 => ({
+    ...before,
+    isHardwareAccelerationEnabled: true,
+  }),
+  '>=3.8.9': (before: PersistableValues_3_8_7): PersistableValues_3_8_9 => ({
+    ...before,
+    isAddNewServersEnabled: true,
+  }),
+  '>=3.8.12': (before: PersistableValues_3_8_9): PersistableValues_3_8_12 => ({
+    ...before,
+    hasHideOnTrayNotificationShown: false,
   }),
 };

@@ -6,8 +6,14 @@ declare global {
   }
 }
 
+console.log('[Rocket.Chat Desktop] Injected.ts');
+
 const start = (): void => {
+  console.log('[Rocket.Chat Desktop] Injected.ts start fired');
   if (typeof window.require !== 'function') {
+    console.log('[Rocket.Chat Desktop] window.require is not defined');
+    console.log('[Rocket.Chat Desktop] Inject start - retrying in 1 seconds');
+    setTimeout(start, 1000);
     return;
   }
 
@@ -15,8 +21,11 @@ const start = (): void => {
     window.require('/app/utils/rocketchat.info') ?? {};
 
   if (!serverInfo.version) {
+    console.log('[Rocket.Chat Desktop] serverInfo.version is not defined');
     return;
   }
+
+  console.log('[Rocket.Chat Desktop] Injected.ts serverInfo', serverInfo);
 
   window.RocketChatDesktop.setServerInfo(serverInfo);
 
@@ -40,18 +49,38 @@ const start = (): void => {
   });
 
   const open = window.open.bind(window);
-  Tracker.autorun(() => {
-    const jitsiDomain = settings.get('Jitsi_Domain') || '';
-    window.open = (url, name, features = '') => {
-      if (typeof url === 'string' && url.includes(jitsiDomain)) {
-        return open(url, name, `scrollbars=true,${features}`);
-      }
 
-      return open(url, name, features);
-    };
+  Tracker.autorun(() => {
+    const serverMainVersion = serverInfo.version.split('.')[0];
+
+    // Server version above 5.0.0 will change the way the jitsi integration is handled, now we have video provider as an app
+    // if the server is above 5.1.1 it will use window.RocketChatDesktop?.openInternalVideoChatWindow to open the video call
+    if (serverMainVersion < 5) {
+      const jitsiDomain = settings.get('Jitsi_Domain') || '';
+
+      console.log(
+        '[Rocket.Chat Desktop] window.open for Jitsi overloaded',
+        jitsiDomain
+      );
+      window.open = (url, name, features = '') => {
+        if (
+          !process.mas &&
+          window.RocketChatDesktop.getInternalVideoChatWindowEnabled() &&
+          typeof url === 'string' &&
+          jitsiDomain.length > 0 &&
+          url.includes(jitsiDomain)
+        ) {
+          return open(url, 'Video Call', `scrollbars=true,${features}`);
+        }
+
+        return open(url, name, features);
+      };
+    }
   });
+
   Tracker.autorun(() => {
     const { url, defaultUrl } = settings.get('Assets_background') || {};
+
     window.RocketChatDesktop.setBackground(url || defaultUrl);
   });
 
@@ -61,7 +90,19 @@ const start = (): void => {
   });
 
   Tracker.autorun(() => {
+    const userId = Meteor.userId();
+    window.RocketChatDesktop.setUserLoggedIn(userId !== null);
+  });
+
+  Tracker.autorun(() => {
+    const { gitCommitHash } = Meteor;
+    if (!gitCommitHash) return;
+    window.RocketChatDesktop.setGitCommitHash(gitCommitHash);
+  });
+
+  Tracker.autorun(() => {
     const uid = Meteor.userId();
+    if (!uid) return;
     const isAutoAwayEnabled: unknown = getUserPreference(uid, 'enableAutoAway');
     const idleThreshold: unknown = getUserPreference(uid, 'idleTimeLimit');
 
@@ -84,6 +125,8 @@ const start = (): void => {
   });
 
   const destroyPromiseSymbol = Symbol('destroyPromise');
+
+  console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
 
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
@@ -212,5 +255,7 @@ const start = (): void => {
     }
   };
 };
+
+console.log('[Rocket.Chat Desktop] Injected');
 
 start();

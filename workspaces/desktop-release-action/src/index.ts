@@ -1,5 +1,5 @@
 import { promises } from 'fs';
-import { basename, extname } from 'path';
+import { basename } from 'path';
 
 import * as core from '@actions/core';
 import * as github from '@actions/github';
@@ -8,19 +8,20 @@ import fg from 'fast-glob';
 import { parse, SemVer } from 'semver';
 
 import {
+  getDevelopmentRelease,
   getReleaseAssets,
   getSnapshotRelease,
   getTaggedRelease,
   overrideAsset,
 } from './github';
-import { packOnLinux, uploadSnap, setupSnapcraft } from './linux';
+import { packOnLinux } from './linux';
 import { disableSpotlightIndexing, packOnMacOS } from './macos';
 import { packOnWindows } from './windows';
 
 const pack = async () => {
   switch (process.platform) {
     case 'linux':
-      await setupSnapcraft();
+      // await setupSnapcraft();
       await packOnLinux();
       break;
 
@@ -46,13 +47,32 @@ const getFilesToUpload = () =>
     'dist/*.zip',
     'dist/*.dmg',
     'dist/*.dmg.blockmap',
-    'dist/mas/*.pkg',
+    'dist/mas-universal/*.pkg',
     'dist/latest.yml',
     'dist/*.appx',
     'dist/*.msi',
     'dist/*.exe',
     'dist/*.exe.blockmap',
   ]);
+
+const releaseDevelopment = async (commitSha: string) => {
+  await pack();
+
+  const release = await getDevelopmentRelease(commitSha);
+  const assets = await getReleaseAssets(release.id);
+
+  for (const path of await getFilesToUpload()) {
+    const name = basename(path);
+    // const extension = extname(path).toLowerCase();
+    const { size } = await promises.stat(path);
+    const data = await promises.readFile(path);
+
+    await overrideAsset(release, assets, name, size, data);
+    // if (extension === '.snap') {
+    //   await uploadSnap(path, 'edge');
+    // }
+  }
+};
 
 const releaseSnapshot = async (commitSha: string) => {
   await pack();
@@ -62,14 +82,14 @@ const releaseSnapshot = async (commitSha: string) => {
 
   for (const path of await getFilesToUpload()) {
     const name = basename(path);
-    const extension = extname(path).toLowerCase();
+    // const extension = extname(path).toLowerCase();
     const { size } = await promises.stat(path);
     const data = await promises.readFile(path);
 
     await overrideAsset(release, assets, name, size, data);
-    if (extension === '.snap') {
-      await uploadSnap(path, 'edge');
-    }
+    // if (extension === '.snap') {
+    //   await uploadSnap(path, 'edge');
+    // }
   }
 };
 
@@ -86,20 +106,20 @@ const releaseTagged = async (version: SemVer, commitSha: string) => {
 
   for (const path of await getFilesToUpload()) {
     const name = basename(path);
-    const extension = extname(path).toLowerCase();
+    // const extension = extname(path).toLowerCase();
     const { size } = await promises.stat(path);
     const data = await promises.readFile(path);
 
     await overrideAsset(release, assets, name, size, data);
-    if (extension === '.snap') {
-      await uploadSnap(
-        path,
-        (!version.prerelease && 'stable') ||
-          (version.prerelease[0] === 'candidate' && 'candidate') ||
-          (version.prerelease[0] === 'beta' && 'beta') ||
-          'edge'
-      );
-    }
+    // if (extension === '.snap') {
+    //   await uploadSnap(
+    //     path,
+    //     (!version.prerelease && 'stable') ||
+    //     (version.prerelease[0] === 'candidate' && 'candidate') ||
+    //     (version.prerelease[0] === 'beta' && 'beta') ||
+    //     'edge'
+    //   );
+    // }
   }
 };
 
@@ -113,6 +133,14 @@ const start = async () => {
 
   const payload = github.context.payload as PushEvent;
   const ref = core.getInput('ref') || payload.ref;
+
+  if (ref === 'refs/heads/develop') {
+    core.info(
+      `push event on develop branch detected, performing development release`
+    );
+    await releaseDevelopment(payload.after);
+    return;
+  }
 
   if (ref === 'refs/heads/master') {
     core.info(

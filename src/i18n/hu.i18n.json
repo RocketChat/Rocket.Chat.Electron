@@ -13,7 +13,8 @@
     "copyLinkAddress": "Hivatkozás címének másolása",
     "copyLinkText": "Hivatkozás szövegének másolása",
     "openLink": "Hivatkozás megnyitása",
-    "saveImageAs": "Kép mentése másként…"
+    "saveImageAs": "Kép mentése másként…",
+    "copyImage": "Kép másolása"
   },
   "dialog": {
     "about": {
@@ -100,10 +101,26 @@
       "dontAskAgain": "Mindig a hozzárendelt alkalmazásban nyissa meg az ilyen típusú hivatkozásokat",
       "yes": "Igen",
       "no": "Nem"
+    },
+    "allowJitsiCaptureScreen": {
+      "title": "A Jitsi megpróbálja rögzíteni a képernyőjét",
+      "message": "A Jitsi jogosultságot kér a képernyő rögzítéséhez.",
+      "detail": "A(z) {{- url }} kiszolgálóról futó Jitsinek jogosultságra van szüksége azért, hogy megossza az Ön képernyőjét másokkal.",
+      "dontAskAgain": "Engedélyezés mindig, hogy az erről a kiszolgálóról futó Jitsi rögzítse a képernyőjét",
+      "yes": "Engedélyezés",
+      "no": "Mégse"
     }
   },
   "downloads": {
     "title": "Letöltések",
+    "notifications": {
+      "downloadFinished": "Letöltés befejezve",
+      "downloadInterrupted": "Letöltés megszakítva",
+      "downloadCancelled": "Letöltés megszakítva",
+      "downloadFailed": "A letöltés sikertelen",
+      "downloadExpired": "A letöltés lejárt",
+      "downloadExpiredMessage": "Próbálja meg újra letölteni a forrásból."
+    },
     "filters": {
       "search": "Keresés",
       "server": "Kiszolgáló",
@@ -136,6 +153,60 @@
     },
     "showingResults": "Eredmények megjelenítése: {{first}} - {{last}} / {{count}}"
   },
+  "certificatesManager": {
+    "title": "Tanúsítványok kezelője",
+    "trustedCertificates": "Megbízható tanúsítványok",
+    "notTrustedCertificates": "Nem megbízható tanúsítványok",
+    "item": {
+      "domain": "Tartomány",
+      "actions": "Műveletek",
+      "remove": "Eltávolítás"
+    }
+  },
+  "settings": {
+    "title": "Beállítások",
+    "general": "Általános",
+    "certificates": "Tanúsítványok",
+    "options": {
+      "report": {
+        "title": "Hibák jelentése a fejlesztőknek",
+        "description": "A hibák névtelenül történő jelentése a fejlesztőknek. A megosztott információk az alkalmazás verziószámát, az operációs rendszer típusát, a kiszolgáló URL-ét, az eszköz nyelvét és a hiba típusát tartalmazzák. Tartalom vagy felhasználónevek nem kerülnek megosztásra.",
+        "masDescription": "Ez a beállítás a Mac alkalmazásboltból történő telepítéskor le van tiltva. A hibák a Mac alkalmazásbolt hibajelentési folyamatán keresztül lesznek bejelentve."
+      },
+      "flashFrame": {
+        "title": "Keret villogtatásának engedélyezése",
+        "titleDarwin": "A dokk pattogásának be- és kikapcsolása riasztáskor",
+        "description": "Villogtatja az ablakot, hogy felhívja a felhasználó figyelmét.",
+        "onLinux": "Egyes Linux disztribúciók nem támogatják ezt a funkciót.",
+        "descriptionDarwin": "Pattogtatja az alkalmazás ikonját a dokkban, hogy felhívja a felhasználó figyelmét."
+      },
+      "hardwareAcceleration": {
+        "title": "Hardveres gyorsítás",
+        "description": "Engedélyezi a hardveres gyorsítás használatát, ha elérhető. Az alkalmazás újratöltődik a megváltoztatásakor."
+      },
+      "internalVideoChatWindow": {
+        "title": "Videocsevegés megnyitása alkalmazásablak használatával",
+        "description": "Ha be van állítva, akkor a videocsevegés egy alkalmazás ablakával nyílik meg, egyébként az alapértelmezett böngésző lesz használva.",
+        "masDescription": "Ez a beállítás a Mac alkalmazásboltból történő telepítéskor le van tiltva. Biztonsági okokból a videocsevegést alapértelmezetten a böngésző használatával fogja megnyitni."
+      },
+      "minimizeOnClose": {
+        "title": "Kis méret bezáráskor",
+        "description": "Bezáráskor az alkalmazás kis méretű lesz, egyébként kilép az alkalmazásból. A tálca ikonját le kell tiltani, hogy ez érvényesüljön."
+      },
+      "menubar": {
+        "title": "Menüsáv",
+        "description": "Menüsáv megjelenítése az ablak tetején."
+      },
+      "sidebar": {
+        "title": "Oldalsáv",
+        "description": "Oldalsáv megjelenítése az ablak bal oldalán a kiszolgálók listájával, a letöltésekkel és a beállításokkal."
+      },
+      "trayIcon": {
+        "title": "Tálcaikon",
+        "description": "Tálcaikon megjelenítése a rendszer tálcáján. Ha a tálcaikon aktív, akkor az alkalmazás a tálcára lesz elrejtve a bezáráskor. Egyébként kilép az alkalmazásból."
+      }
+    }
+  },
   "error": {
     "authNeeded": "Hitelesítés szükséges, próbálja ezt: <strong>{{- auth}}</strong>",
     "connectTimeout": "A kapcsolódási kísérlet túllépte az időkorlátot",
@@ -160,6 +231,7 @@
     "disableGpu": "GPU letiltása",
     "documentation": "Dokumentáció",
     "downloads": "Letöltések",
+    "settings": "Beállítások",
     "editMenu": "S&zerkesztés",
     "fileMenu": "&Fájl",
     "forward": "&Előre",
@@ -169,6 +241,7 @@
     "learnMore": "További információk",
     "minimize": "Kis méret",
     "openDevTools": "&Fejlesztői eszközök megnyitása",
+    "openDevToolsOnAllWindows": "&Fejlesztői eszközök megnyitása az összes ablakban",
     "paste": "&Beillesztés",
     "quit": "&Kilépés a {{- appName}} programból",
     "redo": "&Ismétlés",
@@ -199,16 +272,19 @@
   },
   "selfxss": {
     "title": "Megállj!",
-    "description": "Ez a böngészőfunkció fejlesztők számára készült. Ha valaki azt mondja, hogy másoljon le és illesszen be valamit ide, azért hogy egy Rocket.Chat funkciót engedélyezzen vagy feltörje valaki más fiókját, akkor az átverés, és hozzáférést fog adni nekik az Ön Rocket.Chat fiókjához.",
+    "description": "Ez a böngészőfunkció fejlesztők számára készült. Ha valaki azt mondja, hogy másoljon le és illesszen be valamit ide, azért hogy egy Rocket.Chat funkciót engedélyezzen vagy „feltörje” valaki más fiókját, akkor az átverés, és hozzáférést fog adni nekik az Ön Rocket.Chat fiókjához.",
     "moreInfo": "További információkért nézze meg a https://go.rocket.chat/i/xss oldalt."
   },
   "sidebar": {
     "addNewServer": "Új kiszolgáló hozzáadása",
     "downloads": "Letöltések",
+    "settings": "Beállítások",
     "item": {
       "reload": "Kiszolgáló újratöltése",
       "remove": "Kiszolgáló eltávolítása",
-      "openDevTools": "Fejlesztői eszközök megnyitása"
+      "openDevTools": "Fejlesztői eszközök megnyitása",
+      "clearCache": "Gyorsítótár törlése",
+      "clearStorageData": "Tárolóadatok törlése"
     }
   },
   "touchBar": {
@@ -233,5 +309,10 @@
         "content": "A {{- appName }} úgy lett beállítva, hogy futva maradjon a rendszertálcán vagy az értesítési területen."
       }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Olvasatlan üzenetek",
+    "unreadMention": "Olvasatlan említések",
+    "noUnreadMessage": "Nincsenek olvasatlan üzenetek"
   }
 }

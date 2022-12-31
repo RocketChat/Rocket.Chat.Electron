@@ -8,7 +8,8 @@ import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
-  CERTIFICATES_UPDATED,
+  TRUSTED_CERTIFICATES_UPDATED,
+  NOT_TRUSTED_CERTIFICATES_UPDATED,
   CERTIFICATES_CLEARED,
   CERTIFICATES_LOADED,
   EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
@@ -36,19 +37,20 @@ export const clientCertificates: Reducer<
   }
 };
 
-type TrustedCertificatesAction =
+type CertificatesAction =
   | ActionOf<typeof CERTIFICATES_LOADED>
-  | ActionOf<typeof CERTIFICATES_UPDATED>
+  | ActionOf<typeof TRUSTED_CERTIFICATES_UPDATED>
+  | ActionOf<typeof NOT_TRUSTED_CERTIFICATES_UPDATED>
   | ActionOf<typeof CERTIFICATES_CLEARED>
   | ActionOf<typeof APP_SETTINGS_LOADED>;
 
 export const trustedCertificates: Reducer<
   Record<Server['url'], Certificate['fingerprint']>,
-  TrustedCertificatesAction
+  CertificatesAction
 > = (state = {}, action) => {
   switch (action.type) {
     case CERTIFICATES_LOADED:
-    case CERTIFICATES_UPDATED:
+    case TRUSTED_CERTIFICATES_UPDATED:
       return action.payload;
 
     case CERTIFICATES_CLEARED:
@@ -57,6 +59,27 @@ export const trustedCertificates: Reducer<
     case APP_SETTINGS_LOADED: {
       const { trustedCertificates = state } = action.payload;
       return trustedCertificates;
+    }
+
+    default:
+      return state;
+  }
+};
+
+export const notTrustedCertificates: Reducer<
+  Record<Server['url'], Certificate['fingerprint']>,
+  CertificatesAction
+> = (state = {}, action) => {
+  switch (action.type) {
+    case NOT_TRUSTED_CERTIFICATES_UPDATED:
+      return action.payload;
+
+    case CERTIFICATES_CLEARED:
+      return {};
+
+    case APP_SETTINGS_LOADED: {
+      const { notTrustedCertificates = state } = action.payload;
+      return notTrustedCertificates;
     }
 
     default:

@@ -1,26 +1,19 @@
 {
-  "files": [
-    "app/**/*",
-    "package.json"
-  ],
-  "extraResources": [
-    "build/icon.ico",
-    "servers.json"
-  ],
+  "files": ["app/**/*", "package.json"],
+  "extraResources": ["build/icon.ico", "servers.json"],
   "appId": "chat.rocket",
+  "protocols": {
+        "name": "Rocket.Chat",
+        "schemes": ["rocketchat"]
+  },
   "mac": {
     "category": "public.app-category.productivity",
-    "target": [
-      "dmg",
-      "pkg",
-      "zip",
-      "mas"
-    ],
+    "target": ["dmg", "pkg", "zip", "mas"],
     "icon": "build/icon.icns",
-    "bundleVersion": "82",
+    "bundleVersion": "100",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
-    "artifactName": "rocketchat-${version}.${ext}",
+    "artifactName": "rocketchat-${version}-${os}.${ext}",
     "extendInfo": {
       "NSMicrophoneUsageDescription": "I need access to your microphone to record the audio you want to send.",
       "NSCameraUsageDescription": "I need access to your camera to record the video you want to send."
@@ -53,23 +46,32 @@
     "entitlements": "build/entitlements.mas.plist",
     "entitlementsInherit": "build/entitlements.mas.inherit.plist",
     "hardenedRuntime": true,
-    "asarUnpack": [
-      "node_modules"
-    ],
+    "asarUnpack": ["node_modules"],
     "artifactName": "rocketchat-${version}-mas.${ext}"
   },
   "win": {
     "target": [
-      "nsis",
-      "msi"
+      {
+        "target": "nsis",
+        "arch": ["x64", "ia32"]
+      },
+      {
+        "target": "msi",
+        "arch": ["x64", "ia32"]
+      },
+      {
+        "target": "zip",
+        "arch": ["x64", "ia32"]
+      }
     ],
     "icon": "build/icon.ico",
-    "publisherName": "Sectigo RSA Code Signing CA",
+    "publisherName": "Rocket.Chat Technologies Corp.",
     "legalTrademarks": "",
     "verifyUpdateCodeSignature": true,
     "requestedExecutionLevel": "asInvoker",
     "signAndEditExecutable": true,
-    "signDlls": false
+    "signDlls": false,
+    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
   },
   "nsis": {
     "oneClick": false,
@@ -83,7 +85,6 @@
     "uninstallDisplayName": "${productName} ${version}",
     "include": "build/installer.nsh",
     "license": "LICENSE",
-    "artifactName": "rocketchat-setup-${version}.${ext}",
     "deleteAppDataOnUninstall": false,
     "displayLanguageSelector": false,
     "unicode": true,
@@ -93,43 +94,26 @@
     "createStartMenuShortcut": true,
     "menuCategory": false
   },
-  "msi": {
-    "artifactName": "rocketchat-setup-${version}.${ext}"
-  },
   "appx": {
     "backgroundColor": "#2f343d",
     "displayName": "Rocket.Chat",
     "publisherDisplayName": "Rocket.Chat",
-    "languages": [
-      "en-US",
-      "en-GB",
-      "pt-BR"
-    ],
-    "artifactName": "rocketchat-${version}-${arch}.${ext}"
+    "languages": ["en-US", "en-GB", "pt-BR"]
   },
   "linux": {
-    "target": [
-      "tar.gz",
-      "deb",
-      "rpm",
-      "snap"
-    ],
+    "target": ["AppImage", "tar.gz", "deb", "rpm", "snap"],
     "executableName": "rocketchat-desktop",
     "category": "GNOME;GTK;Network;InstantMessaging",
     "desktop": {
       "StartupWMClass": "Rocket.Chat",
       "MimeType": "x-scheme-handler/rocketchat"
     },
-    "artifactName": "rocketchat-${version}.${ext}"
-  },
-  "deb": {
-    "artifactName": "rocketchat_${version}_${arch}.${ext}"
+    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
   },
   "rpm": {
-    "artifactName": "rocketchat-${version}.${arch}.${ext}"
+    "fpm": ["--rpm-rpmbuild-define=_build_id_links none"]
   },
   "snap": {
-    "artifactName": "rocketchat_${version}_${arch}.${ext}",
     "plugs": [
       "desktop",
       "desktop-legacy",

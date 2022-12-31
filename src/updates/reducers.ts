@@ -139,19 +139,21 @@ type NewUpdateVersionAction =
   | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
   | ActionOf<typeof UPDATES_NEW_VERSION_NOT_AVAILABLE>;
 
-export const newUpdateVersion: Reducer<string | null, NewUpdateVersionAction> =
-  (state = null, action) => {
-    switch (action.type) {
-      case UPDATES_NEW_VERSION_AVAILABLE:
-        return action.payload;
+export const newUpdateVersion: Reducer<
+  string | null,
+  NewUpdateVersionAction
+> = (state = null, action) => {
+  switch (action.type) {
+    case UPDATES_NEW_VERSION_AVAILABLE:
+      return action.payload;
 
-      case UPDATES_NEW_VERSION_NOT_AVAILABLE:
-        return null;
+    case UPDATES_NEW_VERSION_NOT_AVAILABLE:
+      return null;
 
-      default:
-        return state;
-    }
-  };
+    default:
+      return state;
+  }
+};
 
 type SkippedUpdateVersionAction =
   | ActionOf<typeof UPDATES_READY>

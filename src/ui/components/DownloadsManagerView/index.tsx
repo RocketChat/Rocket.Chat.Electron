@@ -43,7 +43,11 @@ const DownloadsManagerView: FC = () => {
         .map<[string, string]>(({ serverUrl, serverTitle }) => [
           serverUrl,
           serverTitle ?? serverUrl,
-        ]),
+        ])
+        .filter(
+          (value, index, array) =>
+            array.findIndex((valueTwo) => valueTwo[0] === value[0]) === index
+        ),
     ]
   );
 

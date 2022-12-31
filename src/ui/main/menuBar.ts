@@ -1,4 +1,10 @@
-import { Menu, app, shell, MenuItemConstructorOptions } from 'electron';
+import {
+  Menu,
+  app,
+  shell,
+  MenuItemConstructorOptions,
+  BrowserWindow,
+} from 'electron';
 import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 
@@ -28,9 +34,17 @@ const on = (
   getMenuItems: () => MenuItemConstructorOptions[]
 ): MenuItemConstructorOptions[] => (condition ? getMenuItems() : []);
 
+const selectAddServersDeps = createStructuredSelector<
+  RootState,
+  Pick<RootState, 'isAddNewServersEnabled'>
+>({
+  isAddNewServersEnabled: ({ isAddNewServersEnabled }) =>
+    isAddNewServersEnabled,
+});
+
 const createAppMenu = createSelector(
-  () => undefined,
-  (): MenuItemConstructorOptions => ({
+  selectAddServersDeps,
+  ({ isAddNewServersEnabled }): MenuItemConstructorOptions => ({
     id: 'appMenu',
     label: process.platform === 'darwin' ? app.name : t('menus.fileMenu'),
     submenu: [
@@ -72,7 +86,7 @@ const createAppMenu = createSelector(
         },
         { type: 'separator' },
       ]),
-      ...on(process.platform !== 'darwin', () => [
+      ...on(process.platform !== 'darwin' && isAddNewServersEnabled, () => [
         {
           id: 'addNewServer',
           label: t('menus.addNewServer'),
@@ -232,6 +246,19 @@ const createViewMenu = createSelector(
           guestWebContents?.toggleDevTools();
         },
       },
+      {
+        id: 'openDevToolsOnAllWindows',
+        label: t('menus.openDevToolsOnAllWindows'),
+        enabled: typeof currentView === 'object' && !!currentView.url,
+        accelerator:
+          process.platform === 'darwin' ? 'Command+Alt+G' : 'Ctrl+Shift+G',
+        click: () => {
+          const windows = BrowserWindow.getAllWindows();
+          windows.forEach((window) => {
+            window.webContents.toggleDevTools();
+          });
+        },
+      },
       { type: 'separator' },
       {
         id: 'back',
@@ -277,11 +304,15 @@ const createViewMenu = createSelector(
         label: t('menus.showTrayIcon'),
         type: 'checkbox',
         checked: isTrayIconEnabled,
+        accelerator:
+          process.platform === 'darwin' ? 'Shift+Command+T' : 'Ctrl+Shift+T',
         click: ({ checked }) => {
-          dispatch({
-            type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
-            payload: checked,
-          });
+          setTimeout(() => {
+            dispatch({
+              type: MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
+              payload: checked,
+            });
+          }, 10);
         },
       },
       ...on(process.platform === 'darwin', () => [
@@ -308,6 +339,8 @@ const createViewMenu = createSelector(
           label: t('menus.showMenuBar'),
           type: 'checkbox',
           checked: isMenuBarEnabled,
+          accelerator:
+            process.platform === 'darwin' ? 'Shift+Command+M' : 'Ctrl+Shift+M',
           click: async ({ checked }) => {
             const browserWindow = await getRootWindow();
 
@@ -327,6 +360,8 @@ const createViewMenu = createSelector(
         label: t('menus.showServerList'),
         type: 'checkbox',
         checked: isSideBarEnabled,
+        accelerator:
+          process.platform === 'darwin' ? 'Shift+Command+S' : 'Ctrl+Shift+S',
         click: async ({ checked }) => {
           const browserWindow = await getRootWindow();
 
@@ -422,7 +457,10 @@ const selectWindowDeps = createStructuredSelector<
   RootState,
   Pick<
     RootState,
-    'servers' | 'currentView' | 'isShowWindowOnUnreadChangedEnabled'
+    | 'servers'
+    | 'currentView'
+    | 'isShowWindowOnUnreadChangedEnabled'
+    | 'isAddNewServersEnabled'
   >
 >({
   servers: ({ servers }) => servers,
@@ -430,6 +468,8 @@ const selectWindowDeps = createStructuredSelector<
   isShowWindowOnUnreadChangedEnabled: ({
     isShowWindowOnUnreadChangedEnabled,
   }) => isShowWindowOnUnreadChangedEnabled,
+  isAddNewServersEnabled: ({ isAddNewServersEnabled }) =>
+    isAddNewServersEnabled,
 });
 
 const createWindowMenu = createSelector(
@@ -438,12 +478,13 @@ const createWindowMenu = createSelector(
     servers,
     currentView,
     isShowWindowOnUnreadChangedEnabled,
+    isAddNewServersEnabled,
   }): MenuItemConstructorOptions => ({
     id: 'windowMenu',
     label: t('menus.windowMenu'),
     role: 'windowMenu',
     submenu: [
-      ...on(process.platform === 'darwin', () => [
+      ...on(process.platform === 'darwin' && isAddNewServersEnabled, () => [
         {
           id: 'addNewServer',
           label: t('menus.addNewServer'),
@@ -479,10 +520,12 @@ const createWindowMenu = createSelector(
                 browserWindow.showInactive();
               }
               browserWindow.focus();
-              dispatch({
-                type: MENU_BAR_SELECT_SERVER_CLICKED,
-                payload: server.url,
-              });
+              setTimeout(() => {
+                dispatch({
+                  type: MENU_BAR_SELECT_SERVER_CLICKED,
+                  payload: server.url,
+                });
+              }, 100);
             },
           })
         ),
@@ -493,7 +536,13 @@ const createWindowMenu = createSelector(
         label: t('menus.downloads'),
         checked: currentView === 'downloads',
         accelerator: 'CommandOrControl+D',
-        click: () => {
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
           dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
         },
       },
@@ -502,7 +551,13 @@ const createWindowMenu = createSelector(
         label: t('menus.settings'),
         checked: currentView === 'settings',
         accelerator: 'CommandOrControl+I',
-        click: () => {
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
           dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
         },
       },
@@ -582,6 +637,7 @@ const createHelpMenu = createSelector(
       {
         id: 'toggleDevTools',
         label: t('menus.toggleDevTools'),
+        accelerator: 'CommandOrControl+Shift+D',
         click: async () => {
           const browserWindow = await getRootWindow();
 
@@ -614,17 +670,19 @@ const createHelpMenu = createSelector(
           dispatch({ type: CERTIFICATES_CLEARED });
         },
       },
-      {
-        id: 'resetAppData',
-        label: t('menus.resetAppData'),
-        click: async () => {
-          const permitted = await askForAppDataReset();
+      ...on(!process.mas, () => [
+        {
+          id: 'resetAppData',
+          label: t('menus.resetAppData'),
+          click: async () => {
+            const permitted = await askForAppDataReset();
 
-          if (permitted) {
-            relaunchApp('--reset-app-data');
-          }
+            if (permitted) {
+              relaunchApp('--reset-app-data');
+            }
+          },
         },
-      },
+      ]),
       { type: 'separator' },
       {
         id: 'learnMore',

@@ -41,6 +41,41 @@ const getChangelog = async () =>
     .join('\n')
     .trim();
 
+export const getDevelopmentRelease = async (commitSha: string) => {
+  const body = await getChangelog();
+
+  const release = await findRelease(
+    (release: Release) => release.name === 'Development'
+  );
+
+  if (release) {
+    return (
+      await octokit.request(
+        'PATCH /repos/{owner}/{repo}/releases/{release_id}',
+        {
+          ...getRepoParams(),
+          release_id: release.id,
+          draft: true,
+          body,
+          tag_name: `development-${commitSha}`,
+          target_commitish: commitSha,
+        }
+      )
+    ).data;
+  }
+
+  return (
+    await octokit.request('POST /repos/{owner}/{repo}/releases', {
+      ...getRepoParams(),
+      draft: true,
+      name: 'Development',
+      body,
+      tag_name: `development-${commitSha}`,
+      target_commitish: commitSha,
+    })
+  ).data;
+};
+
 export const getSnapshotRelease = async (commitSha: string) => {
   const body = await getChangelog();
 

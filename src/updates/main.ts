@@ -117,6 +117,8 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isHardwareAccelerationEnabled,
+      isInternalVideoChatWindowEnabled,
     }: RootState) => ({
       isUpdatingAllowed:
         (process.platform === 'linux' && !!process.env.APPIMAGE) ||
@@ -128,6 +130,8 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isHardwareAccelerationEnabled,
+      isInternalVideoChatWindowEnabled,
     })
   );
   const appConfiguration = await loadAppConfiguration();
@@ -141,6 +145,19 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
 };
 
 export const setupUpdates = async (): Promise<void> => {
+  // This is necessary to make the updater work in development mode
+  if (process.env.NODE_ENV === 'development') {
+    Object.defineProperty(app, 'isPackaged', {
+      get() {
+        return true;
+      },
+    });
+    autoUpdater.updateConfigPath = path.join(
+      app.getAppPath(),
+      'dev-app-update.yml'
+    );
+  }
+
   autoUpdater.autoDownload = false;
 
   const {
@@ -149,9 +166,10 @@ export const setupUpdates = async (): Promise<void> => {
     isUpdatingEnabled,
     doCheckForUpdatesOnStartup,
     skippedUpdateVersion,
-
     isReportEnabled,
     isFlashFrameEnabled,
+    isHardwareAccelerationEnabled,
+    isInternalVideoChatWindowEnabled,
   } = await loadConfiguration();
 
   dispatch({
@@ -164,6 +182,8 @@ export const setupUpdates = async (): Promise<void> => {
       skippedUpdateVersion,
       isReportEnabled,
       isFlashFrameEnabled,
+      isHardwareAccelerationEnabled,
+      isInternalVideoChatWindowEnabled,
     },
   });
 
@@ -206,14 +226,15 @@ export const setupUpdates = async (): Promise<void> => {
       app.removeAllListeners('window-all-closed');
       autoUpdater.quitAndInstall(true, true);
     } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
+      error instanceof Error &&
+        dispatch({
+          type: UPDATES_ERROR_THROWN,
+          payload: {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          },
+        });
     }
   });
 
@@ -232,29 +253,33 @@ export const setupUpdates = async (): Promise<void> => {
     try {
       await autoUpdater.checkForUpdates();
     } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
+      error instanceof Error &&
+        dispatch({
+          type: UPDATES_ERROR_THROWN,
+          payload: {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          },
+        });
     }
   }
 
   listen(UPDATES_CHECK_FOR_UPDATES_REQUESTED, async () => {
     try {
-      await autoUpdater.checkForUpdates();
+      setTimeout(() => {
+        autoUpdater.checkForUpdates();
+      }, 100);
     } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
+      error instanceof Error &&
+        dispatch({
+          type: UPDATES_ERROR_THROWN,
+          payload: {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          },
+        });
     }
   });
 
@@ -272,14 +297,15 @@ export const setupUpdates = async (): Promise<void> => {
     try {
       autoUpdater.downloadUpdate();
     } catch (error) {
-      dispatch({
-        type: UPDATES_ERROR_THROWN,
-        payload: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
-      });
+      error instanceof Error &&
+        dispatch({
+          type: UPDATES_ERROR_THROWN,
+          payload: {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          },
+        });
     }
   });
 };

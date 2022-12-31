@@ -9,11 +9,12 @@
     "spelling": "Orthographe",
     "spellingLanguages": "Langues d'orthographe",
     "moreSpellingSuggestions": "Plus de suggestions d'orthographe",
-    "noSpellingSuggestions": "Pas de suggestions",
+    "noSpellingSuggestions": "Aucunes suggestions",
     "copyLinkAddress": "Copier le lien",
     "copyLinkText": "Copier le texte du lien",
     "openLink": "Ouvrir le lien",
-    "saveImageAs": "Enregistrer l'image sous..."
+    "saveImageAs": "Enregistrer l'image sous...",
+    "copyImage": "Copier l'image"
   },
   "dialog": {
     "about": {
@@ -42,7 +43,7 @@
       "no": "Non"
     },
     "downloadRemoval": {
-      "title": "Etes-vous sûr ?",
+      "title": "Êtes-vous sûr ?",
       "message": "Supprimer ce téléchargement ?",
       "yes": "Oui",
       "no": "Non"
@@ -100,6 +101,14 @@
       "dontAskAgain": "Ouvrez toujours ces types de liens dans l'application associée",
       "yes": "Oui",
       "no": "Non"
+    },
+    "allowJitsiCaptureScreen": {
+      "title": "Jitsi essaie de capturer votre écran",
+      "message": "Jitsi demande la permission de capturer votre écran.",
+      "detail": "Jitsi du serveur {{- url }} nécessite une autorisation afin de partager votre écran avec d'autres.",
+      "dontAskAgain": "Toujours autoriser Jitsi de ce serveur de capturer votre écran ",
+      "yes": "Autoriser",
+      "no": "Annuler"
     }
   },
   "downloads": {
@@ -136,6 +145,30 @@
     },
     "showingResults": "Affichage des résultats {{first}} - {{last}} de {{count}}"
   },
+  "settings": {
+    "title": "Paramètres",
+    "options": {
+      "report": {
+        "title": "Signaler les erreurs aux développeurs",
+        "description": "Signaler les erreurs de manière anonyme aux développeurs. Les informations partagées incluent le numéro de version de l'application, le type de système d'exploitation, l'URL du serveur, la langue de l'appareil et le type d'erreur. Aucun contenu ou nom d'utilisateur n'est partagé.",
+        "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store, les erreurs seront signalisées via le processus de rapport d'erreur du Mac App Store."
+      },
+      "flashFrame": {
+        "title": "Activer le cadre Flash",
+        "description": "Clignote la fenêtre pour attirer l'attention de l'utilisateur.",
+        "onLinux": "Certaines distributions Linux ne prennent pas en charge cette fonctionnalité."
+      },
+      "internalVideoChatWindow": {
+        "title": "Ouvrir le chat vidéo à l'aide de la fenêtre de l'application",
+        "description": "Une fois défini, le chat vidéo sera ouvert à l'aide d'une fenêtre d'application, sinon le navigateur par défaut sera utilisé.",
+        "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store, pour des raisons de sécurité, elle ouvrira le chat vidéo en utilisant le navigateur par défaut."
+      },
+      "minimizeOnClose": {
+        "title": "Minimiser à la fermeture",
+        "description": "Une fois fermée, l'application sera minimisée, sinon elle quittera l'application. L'icône de la barre d'état doit être désactivée pour que cela prenne effet."
+      }
+    }
+  },
   "error": {
     "authNeeded": "Authentification requise, essayez <strong>{{- auth}}</strong>",
     "connectTimeout": "Délai d'attente lors de la connexion",
@@ -160,6 +193,7 @@
     "disableGpu": "Désactiver le GPU",
     "documentation": "Documentation",
     "downloads": "Téléchargements",
+    "settings": "Paramètres",
     "editMenu": "&Éditer",
     "fileMenu": "&Fichier",
     "forward": "&Suivant",
@@ -169,6 +203,7 @@
     "learnMore": "En savoir plus",
     "minimize": "Réduire",
     "openDevTools": "Ouvrir &DevTools",
+    "openDevToolsOnAllWindows": "Ouvrir &DevTools sur toutes les fenêtres",
     "paste": "&Coller",
     "quit": "&Quitter {{- appName}}",
     "redo": "&Rétablir",
@@ -205,10 +240,13 @@
   "sidebar": {
     "addNewServer": "Ajouter un nouveau serveur",
     "downloads": "Téléchargements",
+    "settings": "Paramètres",
     "item": {
       "reload": "Recharger le serveur",
       "remove": "Retirer le serveur",
-      "openDevTools": "Ouvrir DevTools"
+      "openDevTools": "Ouvrir DevTools",
+      "clearCache": "Vider le cache",
+      "clearStorageData": "Effacer les données de stockage"
     }
   },
   "touchBar": {
@@ -233,5 +271,10 @@
         "content": "{{- appName }} est configuré pour continuer à fonctionner dans la barre d'état système / zone de notification."
       }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Messages non lus",
+    "unreadMention": "Mentions non lues",
+    "noUnreadMessage": "Pas de messages non lus"
   }
 }

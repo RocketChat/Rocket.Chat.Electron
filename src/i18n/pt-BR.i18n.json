@@ -6,13 +6,15 @@
     "selectAll": "&Selecionar tudo",
     "undo": "&Desfazer",
     "redo": "&Refazer",
+    "spelling": "Verificação ortográfica",
     "spellingLanguages": "Idiomas",
     "moreSpellingSuggestions": "Mais sugestões de grafia",
     "noSpellingSuggestions": "Sem sugestões",
     "copyLinkAddress": "Copiar endereço do link",
     "copyLinkText": "Copiar texto do link",
     "openLink": "Abrir link",
-    "saveImageAs": "Salvar imagem como..."
+    "saveImageAs": "Salvar imagem como...",
+    "copyImage": "Copiar imagem"
   },
   "dialog": {
     "about": {
@@ -21,7 +23,8 @@
       "checkUpdates": "Verificar Atualizações",
       "checkUpdatesOnStart": "Verificar Atualizações ao Abrir",
       "noUpdatesAvailable": "Não há atualizações disponíveis.",
-      "copyright": "{{copyright}}. Todos os direitos reservados."
+      "copyright": "{{copyright}} Todos os direitos reservados.",
+      "errorWhenLookingForUpdates": "Ocorreu um erro ao procurar por atualizações"
     },
     "addServer": {
       "title": "Adicionar Servidor",
@@ -39,6 +42,12 @@
       "yes": "Sim",
       "no": "Não"
     },
+    "downloadRemoval": {
+      "title": "Você tem certeza?",
+      "message": "Remover este download?",
+      "yes": "Sim",
+      "no": "Não"
+    },
     "resetAppData": {
       "title": "Limpar dados do aplicativo",
       "message": "Isto vai deslogá-lo de todos os times e resetar o aplicativo para suas configurações originais. Isto não pode ser desfeito.",
@@ -46,13 +55,13 @@
       "cancel": "Cancelar"
     },
     "screenshare": {
-      "title": "Compartilhamento de tela",
+      "title": "Compartilhe sua tela",
       "announcement": "Selecione uma tela para compartilhar"
     },
     "update": {
       "title": "Atualização Disponível",
       "announcement": "Nova versão está disponível",
-      "message": "Uma nova versão do Rocket.Chat Desktop App está disponível!",
+      "message": "Uma nova versão do aplicativo desktop Rocket.Chat está disponível!",
       "currentVersion": "Versão Atual:",
       "newVersion": "Nova Versão:",
       "install": "Instalar Atualização",
@@ -79,6 +88,118 @@
       "title": "Pular Atualização",
       "message": "Nós iremos lembrá-lo quando a próxima atualização estiver disponível.\nSe você mudar de ideia, pode verificar as atualizações no menu Sobre.",
       "ok": "OK"
+    },
+    "selectClientCertificate": {
+      "announcement": "Selecione o Certificado",
+      "select": "Selecionar",
+      "validDates": "Válido de {{-validStart,}} a {{-validExpiry,}}"
+    },
+    "openingExternalProtocol": {
+      "title": "Link com protocolo externo",
+      "message": "O link {{- protocol }} requer uma aplicação externa.",
+      "detail": "O link solicitado é {{- url }} . Você quer continuar?",
+      "dontAskAgain": "Abrir sempre estes tipos de links no aplicativo associado",
+      "yes": "Sim",
+      "no": "Não"
+    },
+    "allowJitsiCaptureScreen": {
+      "title": "Permitir Captura de Tela pelo Jitsi",
+      "message": "Jitsi está solicitando permissão para capturar sua tela.",
+      "detail": "Jitsi do servidor {{- url }} requer permissão para compartilhar sua tela com outros.",
+      "dontAskAgain": "Sempre permitir a captura de tela pelo Jitsi neste servidor",
+      "yes": "Permitir",
+      "no": "Cancelar"
+    }
+  },
+  "downloads": {
+    "title": "Downloads",
+    "notifications": {
+      "downloadFinished": "Download finalizado"
+    },
+    "filters": {
+      "search": "Buscar",
+      "server": "Servidor",
+      "mimeType": "Tipo",
+      "status": "Status",
+      "clear": "Limpar filtros",
+      "all": "Todos",
+      "mimes": {
+        "images": "Imagens",
+        "videos": "Vídeos",
+        "audios": "Áudio",
+        "texts": "Textos",
+        "files": "Arquivos"
+      },
+      "statuses": {
+        "paused": "Pausado",
+        "cancelled": "Cancelado"
+      }
+    },
+    "item": {
+      "cancel": "Cancelar",
+      "copyLink": "Copiar link",
+      "errored": "Download cancelado",
+      "pause": "Pause",
+      "progressSize": "{{receivedBytes, byteSize}} de {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "Remover da lista",
+      "resume": "Continuar",
+      "retry": "Tentar novamente",
+      "showInFolder": "Mostrar na Pasta"
+    },
+    "showingResults": "Mostrando resultados {{first}} - {{last}} de {{count}}"
+  },
+  "certificatesManager": {
+    "title": "Gerenciador de certificados",
+    "trustedCertificates": "Certificados confiáveis",
+    "notTrustedCertificates": "Certificados não confiáveis",
+    "item": {
+      "domain": "Domínio",
+      "actions": "Ações",
+      "remove": "Remover"
+    }
+  },
+  "settings": {
+    "title": "Configurações",
+    "general": "Geral",
+    "certificates": "Certificados",
+    "options": {
+      "report": {
+        "title": "Relatar erros aos desenvolvedores",
+        "description": "Reporte os erros anonimamente aos desenvolvedores. As informações compartilhadas incluem número de versão do aplicativo, tipo de sistema operacional, URL do servidor, idioma do dispositivo e tipo de erro. Nenhum conteúdo ou nome de usuário é compartilhado.",
+        "masDescription": "Esta opção esta desativada quando for instalado através da Mac App Store, os erros serão reportados através do processo de relatórios de erros da Mac Apple Store."
+      },
+      "flashFrame": {
+        "title": "Piscar janela",
+        "titleDarwin": "Ícone deve saltar na dock",
+        "description": "Pisca a janela para atrair a atenção do usuário.",
+        "onLinux": "Algumas distribuições Linux não possuem suporte a esta funcionalidade.",
+        "descriptionDarwin": "Faz o ícone da aplicação saltar na dock quando recebe notificação."
+      },
+      "hardwareAcceleration": {
+        "title": "Aceleração de hardware",
+        "description": "Ativa aceleração de hardware quando disponível. O aplicativo será reiniciado ao ser alterado."
+      },
+      "internalVideoChatWindow": {
+        "title": "Abrir chat em video em uma janela da aplicação",
+        "description": "Quando ativo o chat em video será aberto em uma janela da aplicação, caso contrário será aberto em uma nova janela do navegador.",
+        "masDescription": "Esta opção esta desativada quando for instalado através da Mac App Store, por motivos de segurança o chat em video sera aberto usando o navegador por padrão."
+      },
+      "minimizeOnClose": {
+        "title": "Minimizar ao fechar",
+        "description": "Quando fechado o aplicativo será minimizado para a barra de tarefas, senão será fechado. Ícone da bandeja precisa estar desativado para que isto funcione."
+      },
+      "menubar": {
+        "title": "Barra de menus",
+        "description": "Mostra a barra de menus no topo da aplicação"
+      },
+      "sidebar": {
+        "title": "Barra lateral",
+        "description": "Mostra a barra na lateral da janela com a lista de servidores, downloads e configurações."
+      },
+      "trayIcon": {
+        "title": "Ícone da bandeja",
+        "description": "Mostra um ícone na bandeja do sistema para acessar rapidamente a aplicação. Se o ícone da bandeja estiver ativado, a aplicação será minimizada para a barra de tarefas ao ser fechada. Por outro lado se o ícone da bandeja estiver desativado, a aplicação será finalizada ao ser fechada."
+      }
     }
   },
   "error": {
@@ -104,13 +225,18 @@
     "cut": "Cor&tar",
     "disableGpu": "Desabilitar GPU",
     "documentation": "Documentação",
+    "downloads": "Downloads",
+    "settings": "Configurações",
     "editMenu": "&Editar",
     "fileMenu": "&Arquivo",
     "forward": "&Avançar",
     "helpMenu": "Aj&uda",
+    "hide": "Ocultar {{- appName}}",
+    "hideOthers": "Ocultar Outros",
     "learnMore": "Saiba mais",
     "minimize": "Minimizar",
     "openDevTools": "Abrir &DevTools",
+    "openDevToolsOnAllWindows": "Abrir &DevTools em todas as janelas",
     "paste": "Co&lar",
     "quit": "&Sair do {{- appName}}",
     "redo": "&Refazer",
@@ -120,6 +246,7 @@
     "resetAppData": "Limpar dados do aplicativo",
     "resetZoom": "Redefinir zoom",
     "selectAll": "&Selecionar tudo",
+    "services": "Serviços",
     "showFullScreen": "Tela cheia",
     "showMenuBar": "Barra de menus",
     "showOnUnreadMessage": "Exibir quando há mensagens não lidas",
@@ -127,6 +254,7 @@
     "showTrayIcon": "Ícone da bandeja",
     "toggleDevTools": "Alternar &DevTools",
     "undo": "&Desfazer",
+    "unhide": "Mostrar todos",
     "viewMenu": "&Exibir",
     "windowMenu": "&Janela",
     "zoomIn": "Aumentar zoom",
@@ -137,12 +265,21 @@
     "announcement": "Houston, nós temos um problema",
     "reload": "Recarregar"
   },
+  "selfxss": {
+    "title": "Pare!",
+    "description": "Esta é uma funcionalidade do navegador destinada aos desenvolvedores. Se alguém lhe disse para copiar-colar algo aqui para activar uma funcionalidade Rocket.Chat ou \"hackear\" a conta de alguém, é um golpe e dará acesso à sua conta Rocket.Chat.",
+    "moreInfo": "Veja https://go.rocket.chat/i/xss para mais informações."
+  },
   "sidebar": {
     "addNewServer": "Adicionar novo servidor",
+    "downloads": "Downloads",
+    "settings": "Configurações",
     "item": {
       "reload": "Recarregar servidor",
       "remove": "Remover servidor",
-      "openDevTools": "Abrir DevTools"
+      "openDevTools": "Abrir DevTools",
+      "clearCache": "Limpar cache",
+      "clearStorageData": "Limpar dados de armazenamento"
     }
   },
   "touchBar": {
@@ -160,6 +297,17 @@
       "unreadMention": "{{- appName}}: você tem uma menção/mensagem direta não lida",
       "unreadMention_plural": "{{- appName}}: você tem {{- count}} menções/mensagens diretas não lidas",
       "unreadMessage": "{{- appName}}: você tem mensagens não lidas"
+    },
+    "balloon": {
+      "stillRunning": {
+        "title": "{{- appName}} ainda está rodando",
+        "content": "{{- appName }} está configurado para permanecer em funcionamento na bandeja do sistema/área de notificação."
+      }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Mensagens não lidas",
+    "unreadMention": "Menções não lidas",
+    "noUnreadMessage": "Nenhuma mensagem"
   }
 }

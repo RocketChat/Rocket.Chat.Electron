@@ -33,6 +33,13 @@ export const isResponse = <Action extends FluxStandardAction<string, unknown>>(
   (action as Action & { meta: { response: unknown; id: unknown } }).meta
     .response === true;
 
+export const isRequest = <Action extends FluxStandardAction<string, unknown>>(
+  action: Action
+): action is Action & { meta: { request: boolean; id: unknown } } =>
+  hasMeta(action) &&
+  (action as Action & { meta: { request: unknown; id: unknown } }).meta
+    .request === true;
+
 export const isLocallyScoped = <
   Action extends FluxStandardAction<string, unknown>
 >(

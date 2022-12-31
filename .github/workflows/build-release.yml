@@ -4,13 +4,14 @@ on:
   push:
     branches:
       - master
+      - develop
     tags:
       - '*'
 
 jobs:
   build:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest

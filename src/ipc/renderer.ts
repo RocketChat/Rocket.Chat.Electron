@@ -16,13 +16,14 @@ export const handle = <N extends Channel>(
 
       ipcRenderer.send(`${channel}@${id}`, { resolved });
     } catch (error) {
-      ipcRenderer.send(`${channel}@${id}`, {
-        rejected: {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        },
-      });
+      error instanceof Error &&
+        ipcRenderer.send(`${channel}@${id}`, {
+          rejected: {
+            name: (error as Error).name,
+            message: (error as Error).message,
+            stack: (error as Error).stack,
+          },
+        });
     }
   };
 

@@ -15,6 +15,8 @@ describe('mergeConfigurations', () => {
       skippedUpdateVersion: null,
       isReportEnabled: true,
       isFlashFrameEnabled: true,
+      isHardwareAccelerationEnabled: true,
+      isInternalVideoChatWindowEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {};
     const userConfiguration: UserLevelUpdateConfiguration = {};
@@ -37,6 +39,8 @@ describe('mergeConfigurations', () => {
       skippedUpdateVersion: null,
       isReportEnabled: true,
       isFlashFrameEnabled: true,
+      isHardwareAccelerationEnabled: true,
+      isInternalVideoChatWindowEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       autoUpdate: false,
@@ -66,6 +70,8 @@ describe('mergeConfigurations', () => {
       skippedUpdateVersion: null,
       isReportEnabled: true,
       isFlashFrameEnabled: true,
+      isHardwareAccelerationEnabled: true,
+      isInternalVideoChatWindowEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       autoUpdate: false,
@@ -99,6 +105,8 @@ describe('mergeConfigurations', () => {
       skippedUpdateVersion: null,
       isReportEnabled: true,
       isFlashFrameEnabled: true,
+      isHardwareAccelerationEnabled: true,
+      isInternalVideoChatWindowEnabled: true,
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
       forced: true,

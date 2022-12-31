@@ -16,7 +16,12 @@ const formatBytes = (bytes: number): string => {
     Math.floor(Math.log(bytes) / Math.log(1024)),
     byteUnits.length - 1
   );
+
   const unit = byteUnits[order];
+
+  if (!unit) {
+    return '???';
+  }
 
   const formatter = new Intl.NumberFormat(undefined, {
     notation: 'compact',
@@ -32,12 +37,17 @@ const formatByteSpeed = (bytesPerSecond: number): string => {
     Math.floor(Math.log(bytesPerSecond) / Math.log(1024)),
     byteUnits.length - 1
   );
-  const unit = `${byteUnits[order]}-per-second`;
+
+  const unit = byteUnits[order];
+
+  if (!unit) {
+    return '???';
+  }
 
   const formatter = new Intl.NumberFormat(undefined, {
     notation: 'compact',
     style: 'unit',
-    unit,
+    unit: `${unit}-per-second`,
     maximumFractionDigits: 1,
   });
   return formatter.format(bytesPerSecond / Math.pow(1024, order));

@@ -5,6 +5,7 @@ import {
   app,
   BrowserWindow,
   ContextMenuParams,
+  dialog,
   Event,
   Input,
   Menu,
@@ -31,10 +32,11 @@ import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
-  WEBVIEW_ATTACHED,
+  WEBVIEW_READY,
   WEBVIEW_DID_FAIL_LOAD,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
+  WEBVIEW_ATTACHED,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -47,7 +49,23 @@ export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
 
-const initializeServerWebContents = (
+const initializeServerWebContentsAfterReady = (
+  _serverUrl: string,
+  guestWebContents: WebContents,
+  rootWindow: BrowserWindow
+): void => {
+  const handleContextMenu = async (
+    event: Event,
+    params: ContextMenuParams
+  ): Promise<void> => {
+    event.preventDefault();
+    const menu = createPopupMenuForServerView(guestWebContents, params);
+    menu.popup({ window: rootWindow });
+  };
+  guestWebContents.addListener('context-menu', handleContextMenu);
+};
+
+const initializeServerWebContentsAfterAttach = (
   serverUrl: string,
   guestWebContents: WebContents,
   rootWindow: BrowserWindow
@@ -114,15 +132,6 @@ const initializeServerWebContents = (
     });
   };
 
-  const handleContextMenu = async (
-    event: Event,
-    params: ContextMenuParams
-  ): Promise<void> => {
-    event.preventDefault();
-    const menu = createPopupMenuForServerView(guestWebContents, params);
-    menu.popup({ window: rootWindow });
-  };
-
   const handleBeforeInputEvent = (
     _event: Event,
     { type, key }: Input
@@ -147,7 +156,6 @@ const initializeServerWebContents = (
   guestWebContents.addListener('did-start-loading', handleDidStartLoading);
   guestWebContents.addListener('did-fail-load', handleDidFailLoad);
   guestWebContents.addListener('did-navigate-in-page', handleDidNavigateInPage);
-  guestWebContents.addListener('context-menu', handleContextMenu);
   guestWebContents.addListener('before-input-event', handleBeforeInputEvent);
 };
 
@@ -161,13 +169,11 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     delete webPreferences.enableBlinkFeatures;
     webPreferences.preload = path.join(app.getAppPath(), 'app/preload.js');
     webPreferences.nodeIntegration = false;
-    webPreferences.nodeIntegrationInWorker = true;
-    webPreferences.nodeIntegrationInSubFrames = true;
-    webPreferences.enableRemoteModule = false;
+    webPreferences.nodeIntegrationInWorker = false;
+    webPreferences.nodeIntegrationInSubFrames = false;
     webPreferences.webSecurity = true;
     webPreferences.contextIsolation = true;
-    webPreferences.nativeWindowOpen = true;
-    webPreferences.worldSafeExecuteJavaScript = true;
+    webPreferences.sandbox = false;
   };
 
   const handleDidAttachWebview = (
@@ -182,46 +188,49 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       setupPreloadReload(webContents);
     }
 
-    webContents.addListener(
-      'new-window',
-      (
-        event,
-        url,
-        frameName,
-        disposition,
-        options,
-        _additionalFeatures,
-        referrer,
-        postBody
-      ) => {
-        event.preventDefault();
+    webContents.setWindowOpenHandler(({ url, frameName, disposition }) => {
+      if (
+        disposition === 'foreground-tab' ||
+        disposition === 'background-tab'
+      ) {
+        isProtocolAllowed(url).then((allowed) => {
+          if (!allowed) {
+            return { action: 'deny' };
+          }
 
-        if (
-          disposition === 'foreground-tab' ||
-          disposition === 'background-tab'
-        ) {
-          isProtocolAllowed(url).then((allowed) => {
-            if (!allowed) {
-              return;
-            }
-
-            shell.openExternal(url);
-          });
-          return;
-        }
-
-        const newWindow = new BrowserWindow({
-          ...options,
-          show: false,
+          shell.openExternal(url);
+          return { action: 'deny' };
         });
+        return { action: 'deny' };
+      }
 
-        newWindow.once('ready-to-show', () => {
-          newWindow.show();
+      const isVideoCall = frameName === 'Video Call';
+
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          ...(isVideoCall
+            ? {
+                webPreferences: {
+                  preload: path.join(app.getAppPath(), 'app/preload.js'),
+                },
+              }
+            : {}),
+          show: false,
+        },
+      };
+    });
+
+    webContents.addListener(
+      'did-create-window',
+      (window, { url, frameName, disposition, referrer, postBody }) => {
+        window.once('ready-to-show', () => {
+          window.show();
         });
 
         isProtocolAllowed(url).then((allowed) => {
           if (!allowed) {
-            newWindow.destroy();
+            window.destroy();
             return;
           }
 
@@ -230,12 +239,11 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
             disposition === 'new-window' &&
             new URL(url).hostname.match(/(\.)?google\.com$/);
 
-          newWindow.loadURL(url, {
+          window.loadURL(url, {
             userAgent: isGoogleSignIn
-              ? app.userAgentFallback.replace(
-                  `Electron/${process.versions.electron} `,
-                  ''
-                )
+              ? app.userAgentFallback
+                  .replace(`Electron/${process.versions.electron} `, '')
+                  .replace(`${app.name}/${app.getVersion()} `, '')
               : app.userAgentFallback,
             httpReferrer: referrer,
             ...(postBody && {
@@ -246,8 +254,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
             }),
           });
         });
-
-        event.newGuest = newWindow;
       }
     );
   };
@@ -296,9 +302,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     }
   };
 
-  listen(WEBVIEW_ATTACHED, (action) => {
+  listen(WEBVIEW_READY, (action) => {
     const guestWebContents = webContents.fromId(action.payload.webContentsId);
-    initializeServerWebContents(
+    initializeServerWebContentsAfterReady(
       action.payload.url,
       guestWebContents,
       rootWindow
@@ -307,7 +313,45 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.setPermissionRequestHandler(
       handlePermissionRequest
     );
-    guestWebContents.session.on('will-download', handleWillDownloadEvent);
+    guestWebContents.session.on(
+      'will-download',
+      (event, item, _webContents) => {
+        const savePath = dialog.showSaveDialogSync(rootWindow, {
+          defaultPath: item.getFilename(),
+        });
+        if (savePath !== undefined) {
+          item.setSavePath(savePath);
+          handleWillDownloadEvent(event, item, _webContents);
+          return;
+        }
+        event.preventDefault();
+      }
+    );
+
+    // prevents the webview from navigating because of twitter preview links
+    guestWebContents.on('will-navigate', (e, redirectUrl) => {
+      const preventNavigateHosts = ['t.co', 'twitter.com'];
+
+      if (preventNavigateHosts.includes(new URL(redirectUrl).hostname)) {
+        e.preventDefault();
+        isProtocolAllowed(redirectUrl).then((allowed) => {
+          if (!allowed) {
+            return;
+          }
+
+          shell.openExternal(redirectUrl);
+        });
+      }
+    });
+  });
+
+  listen(WEBVIEW_ATTACHED, (action) => {
+    const guestWebContents = webContents.fromId(action.payload.webContentsId);
+    initializeServerWebContentsAfterAttach(
+      action.payload.url,
+      guestWebContents,
+      rootWindow
+    );
   });
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
@@ -341,6 +385,20 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         click: () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
           guestWebContents?.openDevTools();
+        },
+      },
+      {
+        label: t('sidebar.item.clearCache'),
+        click: async () => {
+          const guestWebContents = getWebContentsByServerUrl(serverUrl);
+          await guestWebContents?.session.clearCache();
+        },
+      },
+      {
+        label: t('sidebar.item.clearStorageData'),
+        click: async () => {
+          const guestWebContents = getWebContentsByServerUrl(serverUrl);
+          await guestWebContents?.session.clearStorageData();
         },
       },
     ];

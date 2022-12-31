@@ -46,11 +46,20 @@ const notifications = new Map();
 
 const createNotification = async (
   id: string,
-  { title, body, icon, silent, canReply, actions }: ExtendedNotificationOptions,
+  {
+    title,
+    subtitle,
+    body,
+    icon,
+    silent,
+    canReply,
+    actions,
+  }: ExtendedNotificationOptions,
   ipcMeta?: ActionIPCMeta
 ): Promise<string> => {
   const notification = new Notification({
     title,
+    subtitle,
     body: body ?? '',
     icon: await resolveIcon(icon),
     silent,
@@ -81,7 +90,7 @@ const createNotification = async (
   notification.addListener('click', () => {
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_CLICKED,
-      payload: { id },
+      payload: { id, title },
       ipcMeta,
     });
   });

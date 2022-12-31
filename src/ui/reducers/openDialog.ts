@@ -52,6 +52,11 @@ export const openDialog: Reducer<string | null, OpenDialogAction> = (
       return 'select-client-certificate';
 
     case ABOUT_DIALOG_DISMISSED:
+      if (state === 'about') {
+        return null;
+      }
+      return state;
+
     case SCREEN_SHARING_DIALOG_DISMISSED:
     case WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED:
     case SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED:

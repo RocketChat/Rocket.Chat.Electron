@@ -56,7 +56,8 @@ export const currentView = (
     }
 
     case WEBVIEW_FOCUS_REQUESTED: {
-      const { url } = action.payload;
+      const { url, view } = action.payload;
+      if (view === 'downloads') return 'downloads';
       return { url };
     }
 

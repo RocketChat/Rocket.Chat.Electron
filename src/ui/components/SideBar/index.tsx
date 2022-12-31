@@ -5,7 +5,6 @@ import React, { FC, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
-import { createSelector } from 'reselect';
 
 import { RootAction } from '../../../store/actions';
 import { RootState } from '../../../store/rootReducer';
@@ -14,6 +13,7 @@ import {
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
 } from '../../actions';
+import { useServers } from '../hooks/useServers';
 import ServerButton from './ServerButton';
 import {
   Wrapper,
@@ -28,23 +28,14 @@ import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
 
 export const SideBar: FC = () => {
-  const servers = useSelector(
-    createSelector(
-      ({ currentView }: RootState) => currentView,
-      ({ servers }: RootState) => servers,
-      (currentView, servers) =>
-        servers.map((server) =>
-          Object.assign(server, {
-            selected:
-              typeof currentView === 'object'
-                ? server.url === currentView.url
-                : false,
-          })
-        )
-    )
-  );
+  const servers = useServers();
+
   const isSideBarEnabled = useSelector(
     ({ isSideBarEnabled }: RootState) => isSideBarEnabled
+  );
+
+  const isAddNewServersEnabled = useSelector(
+    ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled
   );
   const isVisible = servers.length > 0 && isSideBarEnabled;
   const style = useMemo(
@@ -72,6 +63,8 @@ export const SideBar: FC = () => {
   };
   const { t } = useTranslation();
 
+  const currentView = useSelector(({ currentView }: RootState) => currentView);
+
   return (
     <Wrapper sideBarStyle={style} isVisible={isVisible}>
       <Content withWindowButtons={process.platform === 'darwin'}>
@@ -94,6 +87,7 @@ export const SideBar: FC = () => {
               isSelected={server.selected}
               favicon={server.favicon ?? null}
               hasUnreadMessages={!!server.badge}
+              userLoggedIn={server.userLoggedIn}
               mentionCount={
                 typeof server.badge === 'number' ? server.badge : undefined
               }
@@ -106,19 +100,22 @@ export const SideBar: FC = () => {
             />
           ))}
         </ServerList>
-        <AddServerButton>
-          <SidebarActionButton
-            tooltip={t('sidebar.addNewServer')}
-            onClick={handleAddServerButtonClicked}
-          >
-            +
-          </SidebarActionButton>
-        </AddServerButton>
+        {isAddNewServersEnabled && (
+          <AddServerButton>
+            <SidebarActionButton
+              tooltip={t('sidebar.addNewServer')}
+              onClick={handleAddServerButtonClicked}
+            >
+              +
+            </SidebarActionButton>
+          </AddServerButton>
+        )}
         <BottomButtons>
           <Button>
             <SidebarActionButton
               tooltip={t('sidebar.downloads')}
               onClick={handelDownloadsButtonClicked}
+              isSelected={currentView === 'downloads'}
             >
               <Icon name='download' />
             </SidebarActionButton>
@@ -127,6 +124,7 @@ export const SideBar: FC = () => {
             <SidebarActionButton
               tooltip={t('sidebar.settings')}
               onClick={handelSettingsButtonClicked}
+              isSelected={currentView === 'settings'}
             >
               <Icon name='cog' />
             </SidebarActionButton>

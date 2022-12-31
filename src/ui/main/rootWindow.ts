@@ -27,7 +27,6 @@ const webPreferences: WebPreferences = {
   nodeIntegrationInSubFrames: true,
   contextIsolation: false,
   webviewTag: true,
-  worldSafeExecuteJavaScript: true,
 };
 
 const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>
@@ -47,6 +46,7 @@ const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>
   };
 
 let _rootWindow: BrowserWindow;
+let tempWindow: BrowserWindow;
 
 export const getRootWindow = (): Promise<BrowserWindow> =>
   new Promise((resolve, reject) => {
@@ -55,13 +55,16 @@ export const getRootWindow = (): Promise<BrowserWindow> =>
     });
   });
 
+const platformTitleBarStyle =
+  process.platform === 'darwin' ? 'hidden' : 'default';
+
 export const createRootWindow = (): void => {
   _rootWindow = new BrowserWindow({
     width: 1000,
     height: 600,
     minWidth: 400,
     minHeight: 400,
-    titleBarStyle: 'hidden',
+    titleBarStyle: platformTitleBarStyle,
     backgroundColor: '#2f343d',
     show: false,
     webPreferences,
@@ -70,7 +73,12 @@ export const createRootWindow = (): void => {
   _rootWindow.addListener('close', (event) => {
     event.preventDefault();
   });
+
+  tempWindow.destroy();
 };
+
+export const normalizeNumber = (value: number | undefined): number =>
+  value && isFinite(1 / value) ? value : 0;
 
 const isInsideSomeScreen = ({ x, y, width, height }: Rectangle): boolean =>
   screen
@@ -90,7 +98,7 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
   );
 
   let { x, y } = rootWindowState.bounds;
-  const { width, height } = rootWindowState.bounds;
+  let { width, height } = rootWindowState.bounds;
   if (
     x === null ||
     x === undefined ||
@@ -98,24 +106,39 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     y === undefined ||
     !isInsideSomeScreen({ x, y, width, height })
   ) {
+    const primaryDisplay = screen.getPrimaryDisplay();
     const {
       bounds: { width: primaryDisplayWidth, height: primaryDisplayHeight },
-    } = screen.getPrimaryDisplay();
+    } = primaryDisplay;
     x = Math.round((primaryDisplayWidth - width) / 2);
     y = Math.round((primaryDisplayHeight - height) / 2);
+    width = normalizeNumber(primaryDisplay.workAreaSize.width * 0.9);
+    height = normalizeNumber(primaryDisplay.workAreaSize.height * 0.9);
   }
-
   if (browserWindow.isVisible()) {
     return;
   }
 
-  if (Number.isInteger(width) && Number.isInteger(height)) {
+  x = normalizeNumber(x);
+  y = normalizeNumber(y);
+  width = normalizeNumber(width);
+  height = normalizeNumber(height);
+
+  if (
+    browserWindow &&
+    Number.isInteger(width) &&
+    Number.isInteger(height) &&
+    Number.isInteger(x) &&
+    Number.isInteger(y)
+  ) {
     browserWindow.setBounds({
       width,
       height,
-      ...(Number.isInteger(x) && Number.isInteger(y) && { x, y }),
+      x,
+      y,
     });
   }
+
   if (rootWindowState.maximized) {
     browserWindow.maximize();
   }
@@ -142,13 +165,13 @@ const fetchRootWindowState = async (): Promise<
 > => {
   const browserWindow = await getRootWindow();
   return {
-    focused: browserWindow.isFocused(),
-    visible: browserWindow.isVisible(),
-    maximized: browserWindow.isMaximized(),
-    minimized: browserWindow.isMinimized(),
-    fullscreen: browserWindow.isFullScreen(),
-    normal: browserWindow.isNormal(),
-    bounds: browserWindow.getNormalBounds(),
+    focused: browserWindow && browserWindow.isFocused(),
+    visible: browserWindow && browserWindow.isVisible(),
+    maximized: browserWindow && browserWindow.isMaximized(),
+    minimized: browserWindow && browserWindow.isMinimized(),
+    fullscreen: browserWindow && browserWindow.isFullScreen(),
+    normal: browserWindow && browserWindow.isNormal(),
+    bounds: browserWindow && browserWindow.getNormalBounds(),
   };
 };
 
@@ -185,7 +208,7 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      if (isFlashFrameEnabled) {
+      if (isFlashFrameEnabled && process.platform !== 'darwin') {
         browserWindow.flashFrame(true);
       }
     }),
@@ -204,7 +227,7 @@ export const setupRootWindow = (): void => {
     ),
     listen(WEBVIEW_FOCUS_REQUESTED, async () => {
       const rootWindow = await getRootWindow();
-      rootWindow.restore();
+      rootWindow.focus();
       rootWindow.show();
     }),
   ];
@@ -235,14 +258,14 @@ export const setupRootWindow = (): void => {
     });
 
     rootWindow.addListener('close', async () => {
-      if (rootWindow.isFullScreen()) {
+      if (rootWindow && rootWindow.isFullScreen()) {
         await new Promise((resolve) =>
           rootWindow.once('leave-full-screen', resolve)
         );
         rootWindow.setFullScreen(false);
       }
 
-      rootWindow.blur();
+      if (process.platform !== 'linux') rootWindow.blur();
 
       const isTrayIconEnabled = select(
         ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true
@@ -253,7 +276,11 @@ export const setupRootWindow = (): void => {
         return;
       }
 
-      if (process.platform === 'win32') {
+      const isMinimizeOnCloseEnabled = select(
+        ({ isMinimizeOnCloseEnabled }) => isMinimizeOnCloseEnabled ?? true
+      );
+
+      if (process.platform === 'win32' && isMinimizeOnCloseEnabled) {
         rootWindow.minimize();
         return;
       }
@@ -263,7 +290,7 @@ export const setupRootWindow = (): void => {
 
     unsubscribers.push(() => {
       rootWindow.removeAllListeners();
-      rootWindow.destroy();
+      rootWindow.close();
     });
   });
 
@@ -285,10 +312,12 @@ export const setupRootWindow = (): void => {
 
         if (!rootWindowIcon) {
           browserWindow.setIcon(
-            getTrayIconPath({
-              platform: process.platform,
-              badge: globalBadge,
-            })
+            nativeImage.createFromPath(
+              getTrayIconPath({
+                platform: process.platform,
+                badge: globalBadge,
+              })
+            )
           );
           return;
         }
@@ -338,6 +367,20 @@ export const setupRootWindow = (): void => {
             }
           }
 
+          const isTrayIconEnabled = select(
+            ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true
+          );
+
+          if (!isTrayIconEnabled) {
+            const t = i18next.t.bind(i18next);
+            const translate = `taskbar.${overlayDescription}`;
+            const taskbarTitle =
+              globalBadge !== undefined
+                ? `(${globalBadge}) ${t(translate)}`
+                : t(translate);
+
+            browserWindow.setTitle(taskbarTitle);
+          }
           browserWindow.setOverlayIcon(overlayIcon, overlayDescription);
         }
       }),
@@ -390,7 +433,7 @@ export const showRootWindow = async (): Promise<void> => {
 
 export const exportLocalStorage = async (): Promise<Record<string, string>> => {
   try {
-    const tempWindow = new BrowserWindow({
+    tempWindow = new BrowserWindow({
       show: false,
       webPreferences,
     });

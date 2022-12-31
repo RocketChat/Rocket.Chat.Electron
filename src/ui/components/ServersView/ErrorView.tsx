@@ -81,7 +81,7 @@ const ErrorView: FC<ErrorViewProps> = ({ isFailed, onReload }) => {
             <Margins block='x8' inline='auto'>
               <Box fontScale='h1'>{t('loadingError.announcement')}</Box>
 
-              <Box fontScale='s1'>{t('loadingError.title')}</Box>
+              <Box fontScale='p1'>{t('loadingError.title')}</Box>
             </Margins>
           </Box>
         </Margins>

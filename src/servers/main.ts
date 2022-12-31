@@ -7,7 +7,12 @@ import { satisfies, coerce } from 'semver';
 import { invoke } from '../ipc/main';
 import { select, dispatch, listen } from '../store';
 import { hasMeta } from '../store/fsa';
+import {
+  WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+  WEBVIEW_GIT_COMMIT_HASH_CHECK,
+} from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
+import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import {
   SERVER_URL_RESOLUTION_REQUESTED,
   SERVER_URL_RESOLVED,
@@ -17,6 +22,7 @@ import {
   ServerUrlResolutionStatus,
   Server,
   ServerUrlResolutionResult,
+  isServerUrlResolutionResult,
 } from './common';
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
@@ -64,7 +70,7 @@ export const resolveServerUrl = async (
   try {
     url = convertToURL(input);
   } catch (error) {
-    return [input, ServerUrlResolutionStatus.INVALID_URL, error];
+    return [input, ServerUrlResolutionStatus.INVALID_URL, error as Error];
   }
 
   let version: string;
@@ -72,6 +78,9 @@ export const resolveServerUrl = async (
   try {
     [url, version] = await fetchServerInformation(url);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
     if (
       !/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(input)
     ) {
@@ -102,11 +111,17 @@ export const resolveServerUrl = async (
 
 const loadAppServers = async (): Promise<Record<string, string>> => {
   try {
-    const filePath = path.join(
+    let filePath = path.join(
       app.getAppPath(),
       app.getAppPath().endsWith('app.asar') ? '..' : '.',
       'servers.json'
     );
+
+    if (process.platform === 'darwin') {
+      const darwinFilePath = '/Library/Preferences/Rocket.Chat/servers.json';
+      if (fs.existsSync(darwinFilePath)) filePath = darwinFilePath;
+    }
+
     const content = await fs.promises.readFile(filePath, 'utf8');
     const json = JSON.parse(content);
 
@@ -147,19 +162,48 @@ export const setupServers = async (
         },
       });
     } catch (error) {
+      isServerUrlResolutionResult(error) &&
+        dispatch({
+          type: SERVER_URL_RESOLVED,
+          payload: error,
+          error: true,
+          meta: {
+            response: true,
+            id: action.meta.id,
+          },
+        });
+    }
+  });
+
+  listen(WEBVIEW_GIT_COMMIT_HASH_CHECK, async (action) => {
+    const { url, gitCommitHash } = action.payload;
+
+    const servers = select(({ servers }) => servers);
+
+    const server = servers.find((server) => server.url === url);
+
+    if (
+      server?.gitCommitHash !== gitCommitHash &&
+      server?.gitCommitHash !== undefined
+    ) {
       dispatch({
-        type: SERVER_URL_RESOLVED,
-        payload: error,
-        error: true,
-        meta: {
-          response: true,
-          id: action.meta.id,
+        type: WEBVIEW_GIT_COMMIT_HASH_CHANGED,
+        payload: {
+          url,
+          gitCommitHash,
         },
       });
+      const guestWebContents = getWebContentsByServerUrl(url);
+      await guestWebContents?.session.clearStorageData({
+        storages: ['indexdb'],
+      });
+      await guestWebContents?.session.clearCache();
+      guestWebContents?.reload();
     }
   });
 
   let servers = select(({ servers }) => servers);
+
   let currentServerUrl = select(({ currentView }) =>
     typeof currentView === 'object' ? currentView.url : null
   );

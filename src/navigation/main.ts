@@ -11,7 +11,8 @@ import {
   askForOpeningExternalProtocol,
 } from '../ui/main/dialogs';
 import {
-  CERTIFICATES_UPDATED,
+  TRUSTED_CERTIFICATES_UPDATED,
+  NOT_TRUSTED_CERTIFICATES_UPDATED,
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
@@ -45,11 +46,6 @@ const queuedTrustRequests = new Map<
 >();
 
 export const setupNavigation = async (): Promise<void> => {
-  app.userAgentFallback = app.userAgentFallback.replace(
-    `${app.name}/${app.getVersion()} `,
-    ''
-  );
-
   app.addListener(
     'certificate-error',
     async (event, _webContents, requestedUrl, error, certificate, callback) => {
@@ -70,6 +66,19 @@ export const setupNavigation = async (): Promise<void> => {
         return;
       }
 
+      let notTrustedCertificates = select(
+        ({ notTrustedCertificates }) => notTrustedCertificates
+      );
+
+      const isNotTrusted =
+        !!notTrustedCertificates[host] &&
+        notTrustedCertificates[host] === serialized;
+
+      if (isNotTrusted) {
+        callback(false);
+        return;
+      }
+
       if (queuedTrustRequests.has(certificate.fingerprint)) {
         queuedTrustRequests.get(certificate.fingerprint)?.push(callback);
         return;
@@ -87,21 +96,41 @@ export const setupNavigation = async (): Promise<void> => {
         detail
       );
 
-      const isTrustedByUser = response === AskForCertificateTrustResponse.YES;
+      const isTrustedByUser = response;
 
       queuedTrustRequests
         .get(certificate.fingerprint)
-        ?.forEach((cb) => cb(isTrustedByUser));
+        ?.forEach((cb) =>
+          cb(isTrustedByUser === AskForCertificateTrustResponse.YES)
+        );
       queuedTrustRequests.delete(certificate.fingerprint);
 
       trustedCertificates = select(
         ({ trustedCertificates }) => trustedCertificates
       );
 
-      if (isTrustedByUser) {
+      if (isTrustedByUser === AskForCertificateTrustResponse.YES) {
         dispatch({
-          type: CERTIFICATES_UPDATED,
+          type: TRUSTED_CERTIFICATES_UPDATED,
           payload: { ...trustedCertificates, [host]: serialized },
+        });
+      }
+
+      queuedTrustRequests
+        .get(certificate.fingerprint)
+        ?.forEach((cb) =>
+          cb(isTrustedByUser === AskForCertificateTrustResponse.NO)
+        );
+      queuedTrustRequests.delete(certificate.fingerprint);
+
+      notTrustedCertificates = select(
+        ({ notTrustedCertificates }) => notTrustedCertificates
+      );
+
+      if (isTrustedByUser === AskForCertificateTrustResponse.NO) {
+        dispatch({
+          type: NOT_TRUSTED_CERTIFICATES_UPDATED,
+          payload: { ...notTrustedCertificates, [host]: serialized },
         });
       }
     }
@@ -168,6 +197,7 @@ export const setupNavigation = async (): Promise<void> => {
   const trustedCertificates = select(
     ({ trustedCertificates }) => trustedCertificates
   );
+
   const userTrustedCertificates = await loadUserTrustedCertificates();
 
   dispatch({

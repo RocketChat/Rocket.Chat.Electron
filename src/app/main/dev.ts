@@ -12,10 +12,12 @@ export const setUserDataDirectory = (): void => {
     return;
   }
 
-  app.setPath(
-    'userData',
-    path.join(app.getPath('appData'), `${app.name} (development)`)
-  );
+  const folder = path.join(app.getPath('appData'), `${app.name} (development)`);
+  if (!fs.existsSync(folder)) {
+    fs.mkdirSync(folder, { recursive: true });
+  }
+
+  app.setPath('userData', folder);
 };
 
 export const setupRootWindowReload = async (

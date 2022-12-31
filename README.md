@@ -195,16 +195,56 @@ For Windows, the full paths are:
 - `~\Users\<username>\AppData\Roaming\Rocket.Chat\`
 - `~\Program Files\Rocket.Chat\Resources\`
 
-On macOS, the full paths are:
+On macOS, the full path is:
 
 - `~/Users/<username>/Library/Application Support/Rocket.Chat/`
-- `~/Applications/Rocket.Chat.app/Contents/Resources/`
+- `/Library/Preferences/Rocket.Chat/`
 
 On Linux, the full paths are:
 
 - `/home/<username>/.config/Rocket.Chat/`
 - `/opt/Rocket.Chat/resources/`
 
+### Overridden settings
+
+You can override the user settings by creating an `overridden-settings.json` in
+the user preferences folder.
+The file should be located in the `%APPDATA%/Rocket.Chat/` folder or the
+installation folder in case of an installation for all users (Windows only).
+
+Every setting set on the file will override the default and user settings. Then
+you can use it for disabling the default features like auto-update and even create
+a single server mode.
+
+#### The settings that can be overridden are:
+
+| Setting      | Description |
+| ----------- | ----------- |
+| `"isReportEnabled": true,`                   | Sets if the bugs will be reported to developers.
+| `"isInternalVideoChatWindowEnabled": true,`  | Sets the video calls will be opened in an internal window.
+| `"isFlashFrameEnabled": true,`               | Sets if the flash frame will be enabled.
+| `"isMinimizeOnCloseEnabled": false,`         | Sets if the app will be minimized on close.
+|`"doCheckForUpdatesOnStartup": true,`         | Sets if the app will check for updates on startup.
+| `"isMenuBarEnabled": true,`                  | Sets if the menu bar will be enabled.
+|`"isTrayIconEnabled": true,`                  | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"`
+|`"isUpdatingEnabled": true,`                  | Sets if the app can be updated by the user.
+|`"isAddNewServersEnabled: true,`              | Sets if the user can add new servers.
+
+##### Single server mode
+If the setting `"isAddNewServersEnabled": false` is set, the user will not be able to add new servers.
+The buttons and shortcuts will be disabled. Then you will have to add the server to the `servers.json` file.
+With this, you can create a single server mode or just don't let the user to add new servers by his own.
+
+##### Example configuration
+`overridden-settings.json` file:
+
+    {
+	   "isTrayIconEnabled": false,
+	   "isMinimizeOnCloseEnabled": false
+    }
+When `isTrayIconEnabled` is enabled, the app will be hidden on close.
+When `isMinimizeOnCloseEnabled` is enabled, the app will be minimized on close.
+When both are disabled, the app will quit on close.
 ## License
 
 Released under the MIT license.

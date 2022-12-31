@@ -22,7 +22,6 @@ export const SettingsView: FC = () => {
       flexDirection='column'
       height='full'
       backgroundColor='surface'
-     
     >
       <Box
         width='full'

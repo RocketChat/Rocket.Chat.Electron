@@ -33,6 +33,7 @@
     ".:build:rollup": "rollup -c",
     ".:build:workspaces": "yarn workspaces run build",
     "release": "yarn electron-builder --publish onTagOrDraft --x64",
+    "release-arm64": "yarn electron-builder --publish onTagOrDraft --arm64",
     "build:watch": "rollup -c -w",
     "install-app-deps": "electron-builder install-app-deps",
     "test": "xvfb-maybe jest",

@@ -1,7 +1,6 @@
 import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
 import { DesktopCapturerSource } from 'electron';
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { desktopCapturer } from '../jitsi/preload';
 import { Dialog } from '../ui/components/Dialog';

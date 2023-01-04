@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, webContents } from 'electron';
 
 import { handle } from '../ipc/main';
 
@@ -22,7 +22,7 @@ export const startVideoCallWindowHandler = (): void => {
           // preload: `${__dirname}/video-call-window.js`,
         },
 
-        // show: false,
+        show: false,
       });
       // videoCallWindow.loadURL(validUrl.href);
       videoCallWindow.loadFile(
@@ -31,10 +31,30 @@ export const startVideoCallWindowHandler = (): void => {
       videoCallWindow.once('ready-to-show', () => {
         console.log('[Rocket.Chat Desktop] ready-to-show', url);
         videoCallWindow.webContents.send('video-call-window/open-url', url);
-        // videoCallWindow.show();
+        videoCallWindow.show();
       });
+
       // videoCallWindow.webContents.executeJavaScript('videoCallURL = $url;');
       videoCallWindow.webContents.openDevTools();
     }
+  });
+  handle('video-call-window/web-contents-id', async (_event, webContentsId) => {
+    console.log('[Rocket.Chat Desktop] webContents-id', webContentsId);
+    const videocallWebContents = webContents.fromId(webContentsId);
+    videocallWebContents.openDevTools();
+    console.log('[Rocket.Chat Desktop] session', videocallWebContents.session);
+    // webContents.fromId(webContentsId).openDevTools();
+    // webContents.fromId(webContentsId).addListener('dom-ready', (window) => {
+    //   console.log('[Rocket.Chat Desktop] dom-ready', webContentsId);
+    //   console.log('[Rocket.Chat Desktop] ready-to-show', webContentsId);
+    //   console.log('[Rocket.Chat Desktop] ready-to-show', window);
+    // });
+    // webContents
+    //   .fromId(webContentsId)
+    //   .session.setDisplayMediaRequestHandler((_request, cb) => {
+    //     desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
+    //       cb({ video: sources[0] });
+    //     });
+    //   });
   });
 };

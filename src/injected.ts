@@ -70,6 +70,7 @@ const start = (): void => {
           jitsiDomain.length > 0 &&
           url.includes(jitsiDomain)
         ) {
+          console.log('[Rocket.Chat Desktop] window.open for Jitsi fired');
           return open(url, 'Video Call', `scrollbars=true,${features}`);
         }
 
@@ -130,8 +131,7 @@ const start = (): void => {
 
   window.Notification = class RocketChatDesktopNotification
     extends EventTarget
-    implements Notification
-  {
+    implements Notification {
     static readonly permission: NotificationPermission = 'granted';
 
     static readonly maxActions: number =

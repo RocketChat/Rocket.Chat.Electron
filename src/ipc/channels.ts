@@ -22,6 +22,8 @@ type ChannelToArgsMap = {
   'certificatesManager/remove': (domain: string) => void;
   'server-view/get-url': () => Server['url'] | undefined;
   'server-view/ready': () => void;
+  'video-call-window/open-window': (url: string) => void;
+  'video-call-window/open-url': (url: string) => void;
   'desktop-capturer-get-sources': (
     options: Electron.SourcesOptions
   ) => Electron.DesktopCapturerSource[];

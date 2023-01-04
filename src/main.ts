@@ -31,6 +31,7 @@ import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
+import { startVideoCallWindowHandler } from './videoCallWindow/ipc';
 
 electronDl({ saveAs: true });
 
@@ -65,6 +66,7 @@ const start = async (): Promise<void> => {
 
   setupNotifications();
   setupScreenSharing();
+  startVideoCallWindowHandler();
 
   await setupSpellChecking();
 

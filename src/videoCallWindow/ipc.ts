@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { app, BrowserWindow, webContents } from 'electron';
+import { app, BrowserWindow, desktopCapturer, WebContents } from 'electron';
 
 import { handle } from '../ipc/main';
 
@@ -24,7 +24,6 @@ export const startVideoCallWindowHandler = (): void => {
 
         show: false,
       });
-      // videoCallWindow.loadURL(validUrl.href);
       videoCallWindow.loadFile(
         path.join(app.getAppPath(), 'app/video-call-window.html')
       );
@@ -34,27 +33,26 @@ export const startVideoCallWindowHandler = (): void => {
         videoCallWindow.show();
       });
 
-      // videoCallWindow.webContents.executeJavaScript('videoCallURL = $url;');
       videoCallWindow.webContents.openDevTools();
+
+      const handleDidAttachWebview = (
+        _event: Event,
+        webContents: WebContents
+      ): void => {
+        console.log('[Rocket.Chat Desktop] did-attach-webview');
+        webContents.openDevTools();
+        webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
+          console.log('[Rocket.Chat Desktop] setDisplayMediaRequestHandler');
+          desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
+            cb({ video: sources[0] });
+          });
+        });
+      };
+
+      videoCallWindow.webContents.addListener(
+        'did-attach-webview',
+        handleDidAttachWebview
+      );
     }
-  });
-  handle('video-call-window/web-contents-id', async (_event, webContentsId) => {
-    console.log('[Rocket.Chat Desktop] webContents-id', webContentsId);
-    const videocallWebContents = webContents.fromId(webContentsId);
-    videocallWebContents.openDevTools();
-    console.log('[Rocket.Chat Desktop] session', videocallWebContents.session);
-    // webContents.fromId(webContentsId).openDevTools();
-    // webContents.fromId(webContentsId).addListener('dom-ready', (window) => {
-    //   console.log('[Rocket.Chat Desktop] dom-ready', webContentsId);
-    //   console.log('[Rocket.Chat Desktop] ready-to-show', webContentsId);
-    //   console.log('[Rocket.Chat Desktop] ready-to-show', window);
-    // });
-    // webContents
-    //   .fromId(webContentsId)
-    //   .session.setDisplayMediaRequestHandler((_request, cb) => {
-    //     desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
-    //       cb({ video: sources[0] });
-    //     });
-    //   });
   });
 };

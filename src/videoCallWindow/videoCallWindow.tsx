@@ -18,27 +18,6 @@ function VideoCallWindow() {
     );
   }, [videoCallUrl]);
 
-  const handleAttachReady = (): void => {
-    console.log('handleAttachReady');
-    const webview = webviewRef.current;
-    if (!webview) {
-      return;
-    }
-    console.log('webview', webview);
-    console.log('webview.getWebContents()', webview.getWebContentsId());
-    // webview.removeEventListener('dom-ready', handleAttachReady);
-    const webContentsId = webview.getWebContentsId();
-    ipcRenderer.invoke('video-call-window/web-contents-id', webContentsId);
-  };
-
-  useEffect(() => {
-    const webview = webviewRef.current;
-    if (!webview) {
-      return;
-    }
-    webview.addEventListener('dom-ready', handleAttachReady);
-  }, [videoCallUrl]);
-
   return (
     <div>
       <ScreenSharePicker />

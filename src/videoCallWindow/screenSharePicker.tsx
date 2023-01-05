@@ -6,10 +6,11 @@ import { desktopCapturer } from '../jitsi/preload';
 import { Dialog } from '../ui/components/Dialog';
 import { Source } from '../ui/components/ScreenSharingDialog/styles';
 
-let isVisible = false;
+let isVisible = true;
 
 export function ScreenSharePicker() {
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
+  const [selectedSource, setSelectedSource] = useState<string | undefined>();
 
   useEffect(() => {
     ipcRenderer.on('video-call-window/open-screen-picker', () => {
@@ -45,24 +46,25 @@ export function ScreenSharePicker() {
     const timer = setInterval(() => {
       ipcRenderer.send(
         'video-call-window/screen-sharing-source-responded',
-        'screen:1:0'
+        selectedSource
       );
-      console.log('timer');
+      console.log('selectedSource', selectedSource);
     }, 2000);
 
     return () => {
       clearInterval(timer);
     };
-  }, [isVisible]);
+  }, [selectedSource]);
 
   const handleScreenSharingSourceClick = (id: string) => () => {
     // dispatch({ type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, payload: id });
     console.log('handleScreenSharingSourceClick', id);
+    setSelectedSource(id);
     // isVisible = false;
-    ipcRenderer.send(
-      'video-call-window/screen-sharing-source-responded',
-      'screen:1:0'
-    );
+    // ipcRenderer.send(
+    //   'video-call-window/screen-sharing-source-responded',
+    //   'screen:1:0'
+    // );
     // ipcRenderer.invoke('video-call-window/screen-sharing-source-responded', id);
   };
 

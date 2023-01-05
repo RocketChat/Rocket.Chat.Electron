@@ -7,16 +7,21 @@ import { Dialog } from '../ui/components/Dialog';
 import { Source } from '../ui/components/ScreenSharingDialog/styles';
 
 export function ScreenSharePicker() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
-  const [selectedSource, setSelectedSource] = useState<string | undefined>();
+
+  const fetchSources = async (): Promise<void> => {
+    const sources = await desktopCapturer.getSources({
+      types: ['window', 'screen'],
+    });
+    setSources(sources);
+  };
+
+  fetchSources();
 
   useEffect(() => {
     ipcRenderer.on('video-call-window/open-screen-picker', () => {
-      console.log('isVisible', visible);
-      console.log('video-call-window/open-screen-picker');
       setVisible(true);
-      console.log('isVisible', visible);
     });
   }, [visible]);
 
@@ -24,13 +29,6 @@ export function ScreenSharePicker() {
     if (!visible) {
       return undefined;
     }
-
-    const fetchSources = async (): Promise<void> => {
-      const sources = await desktopCapturer.getSources({
-        types: ['window', 'screen'],
-      });
-      setSources(sources);
-    };
 
     const timer = setInterval(() => {
       fetchSources();
@@ -41,35 +39,13 @@ export function ScreenSharePicker() {
     };
   }, [visible]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      ipcRenderer.send(
-        'video-call-window/screen-sharing-source-responded',
-        selectedSource
-      );
-      console.log('selectedSource', selectedSource);
-    }, 2000);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, [selectedSource]);
-
   const handleScreenSharingSourceClick = (id: string) => () => {
-    // dispatch({ type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, payload: id });
-    console.log('handleScreenSharingSourceClick', id);
-    setSelectedSource(id);
     setVisible(false);
-    ipcRenderer.send(
-      'video-call-window/screen-sharing-source-responded',
-      'screen:1:0'
-    );
-    ipcRenderer.invoke('video-call-window/screen-sharing-source-responded', id);
+    ipcRenderer.send('video-call-window/screen-sharing-source-responded', id);
   };
 
   const handleClose = (): void => {
     setVisible(false);
-    console.log('handleClose');
   };
 
   return (

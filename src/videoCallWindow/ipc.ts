@@ -38,14 +38,14 @@ export const startVideoCallWindowHandler = (): void => {
         videoCallWindow.show();
       });
 
-      videoCallWindow.webContents.openDevTools();
+      // videoCallWindow.webContents.openDevTools();
 
       const handleDidAttachWebview = (
         _event: Event,
         webContents: WebContents
       ): void => {
         console.log('[Rocket.Chat Desktop] did-attach-webview');
-        webContents.openDevTools();
+        // webContents.openDevTools();
         webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
           videoCallWindow.webContents.send(
             'video-call-window/open-screen-picker'

@@ -1,11 +1,16 @@
 import path from 'path';
 
-import { app, BrowserWindow, WebContents } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  desktopCapturer,
+  ipcMain,
+  WebContents,
+} from 'electron';
 
 import { handle } from '../ipc/main';
 
 export const startVideoCallWindowHandler = (): void => {
-  console.log('[Rocket.Chat Desktop] startVideoCallWindowHandler');
   handle('video-call-window/open-window', async (_event, url) => {
     console.log('[Rocket.Chat Desktop] open-internal-video-chat-window', url);
     const validUrl = new URL(url);
@@ -42,13 +47,19 @@ export const startVideoCallWindowHandler = (): void => {
         console.log('[Rocket.Chat Desktop] did-attach-webview');
         webContents.openDevTools();
         webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
-          console.log('[Rocket.Chat Desktop] setDisplayMediaRequestHandler');
           videoCallWindow.webContents.send(
             'video-call-window/open-screen-picker'
           );
-          // desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
-          //   cb({ video: sources[0] });
-          // });
+          ipcMain.once(
+            'video-call-window/screen-sharing-source-responded',
+            (_event, id) => {
+              desktopCapturer
+                .getSources({ types: ['window', 'screen'] })
+                .then((sources) => {
+                  cb({ video: sources.find((s) => s.id === id) });
+                });
+            }
+          );
         });
       };
 

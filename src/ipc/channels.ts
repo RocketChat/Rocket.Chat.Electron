@@ -26,6 +26,7 @@ type ChannelToArgsMap = {
   'video-call-window/open-url': (url: string) => void;
   'video-call-window/web-contents-id': (webContentsId: number) => void;
   'video-call-window/open-screen-picker': () => void;
+  'video-call-window/screen-sharing-source-responded': (source: string) => void;
   'desktop-capturer-get-sources': (
     options: Electron.SourcesOptions
   ) => Electron.DesktopCapturerSource[];

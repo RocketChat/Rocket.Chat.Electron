@@ -1,15 +1,25 @@
 import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
-import { DesktopCapturerSource } from 'electron';
+import { DesktopCapturerSource, ipcRenderer } from 'electron';
 import React, { useEffect, useState } from 'react';
 
 import { desktopCapturer } from '../jitsi/preload';
 import { Dialog } from '../ui/components/Dialog';
 import { Source } from '../ui/components/ScreenSharingDialog/styles';
 
-const isVisible = true;
+let isVisible = true;
 
 export function ScreenSharePicker() {
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
+
+  useEffect(() => {
+    ipcRenderer.on('video-call-window/open-screen-picker', () => {
+      console.log('isVisible', isVisible);
+      console.log('video-call-window/open-screen-picker');
+      isVisible = true;
+      console.log('isVisible', isVisible);
+    });
+  }, []);
+
   useEffect(() => {
     if (!isVisible) {
       return undefined;
@@ -34,9 +44,11 @@ export function ScreenSharePicker() {
   const handleScreenSharingSourceClick = (id: string) => () => {
     // dispatch({ type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, payload: id });
     console.log('handleScreenSharingSourceClick', id);
+    isVisible = false;
   };
 
   const handleClose = (): void => {
+    isVisible = false;
     console.log('handleClose');
   };
 

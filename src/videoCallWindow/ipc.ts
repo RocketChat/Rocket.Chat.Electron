@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { app, BrowserWindow, desktopCapturer, WebContents } from 'electron';
+import { app, BrowserWindow, WebContents } from 'electron';
 
 import { handle } from '../ipc/main';
 
@@ -43,9 +43,12 @@ export const startVideoCallWindowHandler = (): void => {
         webContents.openDevTools();
         webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
           console.log('[Rocket.Chat Desktop] setDisplayMediaRequestHandler');
-          desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
-            cb({ video: sources[0] });
-          });
+          videoCallWindow.webContents.send(
+            'video-call-window/open-screen-picker'
+          );
+          // desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
+          //   cb({ video: sources[0] });
+          // });
         });
       };
 

@@ -6,23 +6,22 @@ import { desktopCapturer } from '../jitsi/preload';
 import { Dialog } from '../ui/components/Dialog';
 import { Source } from '../ui/components/ScreenSharingDialog/styles';
 
-let isVisible = true;
-
 export function ScreenSharePicker() {
+  const [visible, setVisible] = useState(true);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
   const [selectedSource, setSelectedSource] = useState<string | undefined>();
 
   useEffect(() => {
     ipcRenderer.on('video-call-window/open-screen-picker', () => {
-      console.log('isVisible', isVisible);
+      console.log('isVisible', visible);
       console.log('video-call-window/open-screen-picker');
-      isVisible = true;
-      console.log('isVisible', isVisible);
+      setVisible(true);
+      console.log('isVisible', visible);
     });
-  }, []);
+  }, [visible]);
 
   useEffect(() => {
-    if (!isVisible) {
+    if (!visible) {
       return undefined;
     }
 
@@ -40,7 +39,7 @@ export function ScreenSharePicker() {
     return () => {
       clearInterval(timer);
     };
-  }, [isVisible]);
+  }, [visible]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -60,21 +59,21 @@ export function ScreenSharePicker() {
     // dispatch({ type: WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED, payload: id });
     console.log('handleScreenSharingSourceClick', id);
     setSelectedSource(id);
-    // isVisible = false;
-    // ipcRenderer.send(
-    //   'video-call-window/screen-sharing-source-responded',
-    //   'screen:1:0'
-    // );
-    // ipcRenderer.invoke('video-call-window/screen-sharing-source-responded', id);
+    setVisible(false);
+    ipcRenderer.send(
+      'video-call-window/screen-sharing-source-responded',
+      'screen:1:0'
+    );
+    ipcRenderer.invoke('video-call-window/screen-sharing-source-responded', id);
   };
 
   const handleClose = (): void => {
-    isVisible = false;
+    setVisible(false);
     console.log('handleClose');
   };
 
   return (
-    <Dialog isVisible={isVisible} onClose={handleClose}>
+    <Dialog isVisible={visible} onClose={handleClose}>
       <Box fontScale='h1' alignSelf='center'>
         Select a screen to share
       </Box>

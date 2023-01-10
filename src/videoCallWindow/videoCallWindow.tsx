@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ScreenSharePicker } from './screenSharePicker';
 
 function VideoCallWindow() {
-  const [videoCallUrl, setVideoCallUrl] = useState('http://tibia.com');
+  const [videoCallUrl, setVideoCallUrl] = useState('');
 
   const webviewRef = useRef<ReturnType<typeof document['createElement']>>(null);
 

@@ -70,6 +70,7 @@ const start = (): void => {
           jitsiDomain.length > 0 &&
           url.includes(jitsiDomain)
         ) {
+          console.log('[Rocket.Chat Desktop] window.open for Jitsi fired');
           return open(url, 'Video Call', `scrollbars=true,${features}`);
         }
 

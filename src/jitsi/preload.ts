@@ -8,7 +8,7 @@ import {
 
 const jitsiDomain = window.location.origin;
 
-const desktopCapturer: DesktopCapturer = {
+export const desktopCapturer: DesktopCapturer = {
   getSources: (opts: SourcesOptions) =>
     ipcRenderer.invoke('desktop-capturer-get-sources', [opts, jitsiDomain]),
 };

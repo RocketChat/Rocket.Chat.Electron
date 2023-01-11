@@ -50,7 +50,7 @@ export const SettingsView: FC = () => {
           {t('settings.certificates')}
         </Tabs.Item>
       </Tabs>
-      <Box m='x24'>
+      <Box m='x24' overflowY='auto'>
         {(currentTab === 'general' && <GeneralTab />) ||
           (currentTab === 'certificates' && <CertificatesTab />)}
       </Box>

@@ -113,6 +113,14 @@
   },
   "downloads": {
     "title": "Letöltések",
+    "notifications": {
+      "downloadFinished": "Letöltés befejezve",
+      "downloadInterrupted": "Letöltés megszakítva",
+      "downloadCancelled": "Letöltés megszakítva",
+      "downloadFailed": "A letöltés sikertelen",
+      "downloadExpired": "A letöltés lejárt",
+      "downloadExpiredMessage": "Próbálja meg újra letölteni a forrásból."
+    },
     "filters": {
       "search": "Keresés",
       "server": "Kiszolgáló",
@@ -145,8 +153,20 @@
     },
     "showingResults": "Eredmények megjelenítése: {{first}} - {{last}} / {{count}}"
   },
+  "certificatesManager": {
+    "title": "Tanúsítványok kezelője",
+    "trustedCertificates": "Megbízható tanúsítványok",
+    "notTrustedCertificates": "Nem megbízható tanúsítványok",
+    "item": {
+      "domain": "Tartomány",
+      "actions": "Műveletek",
+      "remove": "Eltávolítás"
+    }
+  },
   "settings": {
     "title": "Beállítások",
+    "general": "Általános",
+    "certificates": "Tanúsítványok",
     "options": {
       "report": {
         "title": "Hibák jelentése a fejlesztőknek",
@@ -155,8 +175,14 @@
       },
       "flashFrame": {
         "title": "Keret villogtatásának engedélyezése",
+        "titleDarwin": "A dokk pattogásának be- és kikapcsolása riasztáskor",
         "description": "Villogtatja az ablakot, hogy felhívja a felhasználó figyelmét.",
-        "onLinux": "Egyes Linux disztribúciók nem támogatják ezt a funkciót."
+        "onLinux": "Egyes Linux disztribúciók nem támogatják ezt a funkciót.",
+        "descriptionDarwin": "Pattogtatja az alkalmazás ikonját a dokkban, hogy felhívja a felhasználó figyelmét."
+      },
+      "hardwareAcceleration": {
+        "title": "Hardveres gyorsítás",
+        "description": "Engedélyezi a hardveres gyorsítás használatát, ha elérhető. Az alkalmazás újratöltődik a megváltoztatásakor."
       },
       "internalVideoChatWindow": {
         "title": "Videocsevegés megnyitása alkalmazásablak használatával",
@@ -166,6 +192,18 @@
       "minimizeOnClose": {
         "title": "Kis méret bezáráskor",
         "description": "Bezáráskor az alkalmazás kis méretű lesz, egyébként kilép az alkalmazásból. A tálca ikonját le kell tiltani, hogy ez érvényesüljön."
+      },
+      "menubar": {
+        "title": "Menüsáv",
+        "description": "Menüsáv megjelenítése az ablak tetején."
+      },
+      "sidebar": {
+        "title": "Oldalsáv",
+        "description": "Oldalsáv megjelenítése az ablak bal oldalán a kiszolgálók listájával, a letöltésekkel és a beállításokkal."
+      },
+      "trayIcon": {
+        "title": "Tálcaikon",
+        "description": "Tálcaikon megjelenítése a rendszer tálcáján. Ha a tálcaikon aktív, akkor az alkalmazás a tálcára lesz elrejtve a bezáráskor. Egyébként kilép az alkalmazásból."
       }
     }
   },
@@ -271,5 +309,10 @@
         "content": "A {{- appName }} úgy lett beállítva, hogy futva maradjon a rendszertálcán vagy az értesítési területen."
       }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Olvasatlan üzenetek",
+    "unreadMention": "Olvasatlan említések",
+    "noUnreadMessage": "Nincsenek olvasatlan üzenetek"
   }
 }

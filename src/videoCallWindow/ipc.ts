@@ -17,8 +17,8 @@ export const startVideoCallWindowHandler = (): void => {
     const allowedProtocols = ['http:', 'https:'];
     if (allowedProtocols.includes(validUrl.protocol)) {
       const videoCallWindow = new BrowserWindow({
-        width: 1800,
-        height: 1200,
+        width: 800,
+        height: 800,
         webPreferences: {
           nodeIntegration: true,
           nodeIntegrationInSubFrames: true,

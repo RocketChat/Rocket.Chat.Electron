@@ -102,11 +102,11 @@
       "yes": "Sim",
       "no": "Não"
     },
-    "allowJitsiCaptureScreen": {
-      "title": "Permitir Captura de Tela pelo Jitsi",
-      "message": "Jitsi está solicitando permissão para capturar sua tela.",
-      "detail": "Jitsi do servidor {{- url }} requer permissão para compartilhar sua tela com outros.",
-      "dontAskAgain": "Sempre permitir a captura de tela pelo Jitsi neste servidor",
+    "allowVideoCallCaptureScreen": {
+      "title": "Permitir Captura de Tela pela Video Chamada",
+      "message": "A Video chamada está solicitando permissão para capturar sua tela.",
+      "detail": "A video chamada do servidor {{- url }} requer permissão para compartilhar sua tela com outros.",
+      "dontAskAgain": "Sempre permitir a captura de tela por video chamadas neste servidor",
       "yes": "Permitir",
       "no": "Cancelar"
     }

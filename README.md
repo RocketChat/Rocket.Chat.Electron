@@ -228,7 +228,7 @@ a single server mode.
 | `"isMenuBarEnabled": true,`                  | Sets if the menu bar will be enabled.
 |`"isTrayIconEnabled": true,`                  | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"`
 |`"isUpdatingEnabled": true,`                  | Sets if the app can be updated by the user.
-|`"isAddNewServersEnabled: true,`              | Sets if the user can add new servers.
+|`"isAddNewServersEnabled": true,`              | Sets if the user can add new servers.
 
 ##### Single server mode
 If the setting `"isAddNewServersEnabled": false` is set, the user will not be able to add new servers.

@@ -10,7 +10,7 @@
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],
     "icon": "build/icon.icns",
-    "bundleVersion": "104",
+    "bundleVersion": "108",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
     "artifactName": "rocketchat-${version}-${os}.${ext}",
@@ -45,7 +45,8 @@
   "mas": {
     "entitlements": "build/entitlements.mas.plist",
     "entitlementsInherit": "build/entitlements.mas.inherit.plist",
-    "hardenedRuntime": true,
+    "entitlementsLoginHelper": "build/entitlements.mas.inherit.plist",
+    "hardenedRuntime": false,
     "asarUnpack": ["node_modules"],
     "artifactName": "rocketchat-${version}-mas.${ext}"
   },

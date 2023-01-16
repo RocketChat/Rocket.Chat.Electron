@@ -98,6 +98,9 @@
   "appx": {
     "backgroundColor": "#2f343d",
     "displayName": "Rocket.Chat",
+    "identityName": "0B67C87C.RocketChat",
+    "familyName": "0B67C87C.RocketChat_g9vc3nvqbdxh8",
+    "publisher": "CN=0B67C87C.RocketChat_g9vc3nvqbdxh8",
     "publisherDisplayName": "Rocket.Chat Technologies Corp.",
     "languages": ["en-US", "en-GB", "pt-BR"]
   },

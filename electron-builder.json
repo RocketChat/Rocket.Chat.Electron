@@ -97,11 +97,12 @@
   },
   "appx": {
     "backgroundColor": "#2f343d",
-    "displayName": "Rocket.Chat",
-    "identityName": "RocketChat",
-    "publisher": "CN=0B67C87C.RocketChat_g9vc3nvqbdxh8",
+    "languages": ["en-US", "en-GB", "pt-BR"],
+    "identityName": "0B67C87C.RocketChat",
+    "publisher": "CN=BBFF7141-7CAF-4FCD-8930-083FCDE6E854",
     "publisherDisplayName": "Rocket.Chat Technologies Corp.",
-    "languages": ["en-US", "en-GB", "pt-BR"]
+    "applicationId": "RocketChat",
+    "displayName": "Rocket.Chat"
   },
   "linux": {
     "target": ["AppImage", "tar.gz", "deb", "rpm", "snap"],

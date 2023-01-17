@@ -44,7 +44,7 @@ export const startVideoCallWindowHandler = (): void => {
         _event: Event,
         webContents: WebContents
       ): void => {
-        console.log('[Rocket.Chat Desktop] did-attach-webview');
+        // console.log('[Rocket.Chat Desktop] did-attach-webview');
         webContents.openDevTools();
         webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
           videoCallWindow.webContents.send(

@@ -45,7 +45,7 @@ export const startVideoCallWindowHandler = (): void => {
         webContents: WebContents
       ): void => {
         console.log('[Rocket.Chat Desktop] did-attach-webview');
-        // webContents.openDevTools();
+        webContents.openDevTools();
         webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
           videoCallWindow.webContents.send(
             'video-call-window/open-screen-picker'
@@ -53,6 +53,13 @@ export const startVideoCallWindowHandler = (): void => {
           ipcMain.once(
             'video-call-window/screen-sharing-source-responded',
             (_event, id) => {
+              if (!id) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                cb(null);
+                return;
+              }
+
               desktopCapturer
                 .getSources({ types: ['window', 'screen'] })
                 .then((sources) => {

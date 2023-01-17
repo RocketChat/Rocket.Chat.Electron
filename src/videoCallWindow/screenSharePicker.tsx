@@ -46,6 +46,7 @@ export function ScreenSharePicker() {
 
   const handleClose = (): void => {
     setVisible(false);
+    ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
   };
 
   return (

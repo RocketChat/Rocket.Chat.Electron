@@ -12,10 +12,14 @@ export const setupSnapcraft = (): Promise<void> =>
     // await run(`echo /snap/bin >> ${process.env.GITHUB_PATH}`);
     // await run('sudo chown root:root /');
 
-    await run(`printenv SNAPCRAFT_STORE_CREDENTIALS`);
     const snapcraftToken = core.getInput('snapcraft_token');
+    const snapcraft_store_credentials = core.getInput(
+      'snapcraft_store_credentials'
+    );
+    core.debug(`snapcraftToken: ${snapcraftToken}`);
+    core.debug(`SNAPCRAFT_STORE_CREDENTIALS 1: ${snapcraft_store_credentials}`);
     await run(`export SNAPCRAFT_STORE_CREDENTIALS=${snapcraftToken}`);
-    await run(`printenv SNAPCRAFT_STORE_CREDENTIALS`);
+    core.debug(`SNAPCRAFT_STORE_CREDENTIALS 2: ${snapcraft_store_credentials}`);
   });
 
 export const packOnLinux = (): Promise<void> =>

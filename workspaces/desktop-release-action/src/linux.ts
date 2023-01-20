@@ -1,5 +1,3 @@
-import { promises } from 'fs';
-
 import * as core from '@actions/core';
 
 import { run, runElectronBuilder } from './shell';

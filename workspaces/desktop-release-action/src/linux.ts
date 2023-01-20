@@ -14,14 +14,10 @@ export const setupSnapcraft = (): Promise<void> =>
     // await run(`echo /snap/bin >> ${process.env.GITHUB_PATH}`);
     // await run('sudo chown root:root /');
 
+    await run(`printenv SNAPCRAFT_STORE_CREDENTIALS`);
     const snapcraftToken = core.getInput('snapcraft_token');
-    const snapcraftTokenFile = './snapcraft-token.txt';
-    await promises.writeFile(snapcraftTokenFile, snapcraftToken, 'utf-8');
-    await run(
-      `export SNAPCRAFT_STORE_CREDENTIALS=$(cat ${snapcraftTokenFile})`
-    );
-    // await run(`/snap/bin/snapcraft login`);
-    await promises.unlink(snapcraftTokenFile);
+    await run(`export SNAPCRAFT_STORE_CREDENTIALS=${snapcraftToken}`);
+    await run(`printenv SNAPCRAFT_STORE_CREDENTIALS`);
   });
 
 export const packOnLinux = (): Promise<void> =>
@@ -38,6 +34,7 @@ export const uploadSnap = async (
   for (const channel of channels) {
     await core.group(
       `uploading ${snapFilePath} to Snapcraft in channel ${channel}`,
+      () => run(`printenv SNAPCRAFT_STORE_CREDENTIALS`),
       () => run(`snapcraft upload --release=${channel} "${snapFilePath}"`)
     );
   }

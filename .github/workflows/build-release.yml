@@ -55,4 +55,4 @@ jobs:
           win_csc_link: ${{ secrets.WIN_CSC_LINK }}
           win_csc_key_password: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
           github_token: ${{ secrets.GH_TOKEN }}
-          snapcraft_token: ${{ secrets.SNAP_TOKEN }}
+          snapcraft_store_credentials: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}

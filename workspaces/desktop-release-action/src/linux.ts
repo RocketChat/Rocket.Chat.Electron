@@ -32,7 +32,6 @@ export const uploadSnap = async (
   for (const channel of channels) {
     await core.group(
       `uploading ${snapFilePath} to Snapcraft in channel ${channel}`,
-      () => run(`printenv SNAPCRAFT_STORE_CREDENTIALS`),
       () => run(`snapcraft upload --release=${channel} "${snapFilePath}"`)
     );
   }

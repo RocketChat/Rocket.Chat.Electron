@@ -105,7 +105,7 @@
     "displayName": "Rocket.Chat"
   },
   "linux": {
-    "target": ["AppImage", "tar.gz", "deb", "rpm", "snap"],
+    "target": ["AppImage", "tar.gz", "deb", "rpm", "snap", "flatpak"],
     "executableName": "rocketchat-desktop",
     "category": "GNOME;GTK;Network;InstantMessaging",
     "desktop": {

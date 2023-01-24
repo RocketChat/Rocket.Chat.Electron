@@ -14,7 +14,7 @@ export const setupSnapcraft = (): Promise<void> =>
   });
 
 export const packOnLinux = (): Promise<void> =>
-  runElectronBuilder(`--linux tar.gz deb rpm snap`);
+  runElectronBuilder(`--linux tar.gz deb rpm snap flatpak AppImage`);
 
 const snapChannels = ['edge', 'beta', 'candidate', 'stable'] as const;
 

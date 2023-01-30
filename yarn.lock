@@ -4819,10 +4819,10 @@ electron-updater@^5.3.0:
     semver "^7.3.5"
     typed-emitter "^2.1.0"
 
-electron@^21.3.5:
-  version "21.3.5"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-21.3.5.tgz#5cb152f326f83bf2a3a0d32a5bd8a5bb35f70278"
-  integrity sha512-KV/qACdMsppgrleKuPNKk2kynO/o+hCDbl6MfGFbqY3d8RnhLixCBuertBrcap04dQ5vspMiDHekMOpSDS3SaA==
+electron@^21.4.0:
+  version "21.4.0"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-21.4.0.tgz#58c56e9ca7cebf45d9bfa1ea6d976400ffdc3cf0"
+  integrity sha512-eko9hBBgJujF6er/LYhft1Os4NKaw/lcitF2HWjDsjw2B2aCxWLkw+gPslJVhW6OfusC/vzpvqi26XEgnVnnOg==
   dependencies:
     "@electron/get" "^1.14.1"
     "@types/node" "^16.11.26"

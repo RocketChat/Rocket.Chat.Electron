@@ -5,6 +5,7 @@ import {
 import { setUserPresenceDetection } from '../../userPresence/preload';
 import { Server } from '../common';
 import { setBadge } from './badge';
+import { writeTextToClipboard } from './clipboard';
 import { setFavicon } from './favicon';
 import { setGitCommitHash } from './gitCommitHash';
 import {
@@ -48,6 +49,7 @@ export type RocketChatDesktopAPI = {
   getInternalVideoChatWindowEnabled: () => boolean;
   openInternalVideoChatWindow: (url: string, options: undefined) => void;
   setGitCommitHash: (gitCommitHash: string) => void;
+  writeTextToClipboard: (text: string) => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -73,4 +75,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
   setGitCommitHash,
+  writeTextToClipboard,
 };

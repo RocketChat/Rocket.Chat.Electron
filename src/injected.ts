@@ -38,6 +38,9 @@ const start = (): void => {
 
   window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
 
+  navigator.clipboard.writeText = async (...args) =>
+    window.RocketChatDesktop.writeTextToClipboard(...args);
+
   Tracker.autorun(() => {
     const unread = Session.get('unread');
     window.RocketChatDesktop.setBadge(unread);

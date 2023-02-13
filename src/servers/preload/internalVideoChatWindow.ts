@@ -12,7 +12,6 @@ export const openInternalVideoChatWindow = (
   _options: undefined
 ): void => {
   if (!process.mas && getInternalVideoChatWindowEnabled()) {
-    console.log('[Rocket.Chat Desktop] video call window open fired');
     ipcRenderer.invoke('video-call-window/open-window', url, _options);
   } else {
     const validUrl = new URL(url);

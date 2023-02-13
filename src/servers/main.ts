@@ -4,6 +4,7 @@ import path from 'path';
 import { app } from 'electron';
 import { satisfies, coerce } from 'semver';
 
+import { packageJsonInformation } from '../app/main/app';
 import { invoke } from '../ipc/main';
 import { select, dispatch, listen } from '../store';
 import { hasMeta } from '../store/fsa';
@@ -118,7 +119,7 @@ const loadAppServers = async (): Promise<Record<string, string>> => {
     );
 
     if (process.platform === 'darwin') {
-      const darwinFilePath = '/Library/Preferences/Rocket.Chat/servers.json';
+      const darwinFilePath = `/Library/Preferences/${packageJsonInformation.productName}/servers.json`;
       if (fs.existsSync(darwinFilePath)) filePath = darwinFilePath;
     }
 

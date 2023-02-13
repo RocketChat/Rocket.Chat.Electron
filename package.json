@@ -3,6 +3,7 @@
   "workspaces": [
     "workspaces/*"
   ],
+  "productName": "Rocket.Chat",
   "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
   "version": "3.9.1",
@@ -131,6 +132,5 @@
   "devEngines": {
     "node": ">=12.8.x",
     "yarn": ">=1.22.x"
-  },
-  "productName": "Rocket.Chat"
+  }
 }

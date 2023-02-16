@@ -1,4 +1,5 @@
-import { ipcRenderer } from 'electron';
+import { app, ipcRenderer } from 'electron';
+import path from 'path';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { ScreenSharePicker } from './screenSharePicker';
@@ -21,7 +22,8 @@ function VideoCallWindow() {
   return (
     <div>
       <ScreenSharePicker />
-      <webview ref={webviewRef} src={videoCallUrl}></webview>
+      <webview ref={webviewRef} src={videoCallUrl} preload={'./preload.js'} webpreferences="nodeIntegration"></webview>
+
     </div>
   );
 }

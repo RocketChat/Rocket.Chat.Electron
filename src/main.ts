@@ -11,7 +11,7 @@ import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { setupDownloads } from './downloads/main';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
-import { handleDesktopCapturerGetSources } from './jitsi/ipc';
+import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { setupNavigation } from './navigation/main';
 import { setupNotifications } from './notifications/main';
 import { setupScreenSharing } from './screenSharing/main';
@@ -31,7 +31,7 @@ import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
-import { startVideoCallWindowHandler } from './videoCallWindow/ipc';
+import { handleDesktopCapturerGetSources, startVideoCallWindowHandler } from './videoCallWindow/ipc';
 
 electronDl({ saveAs: true });
 
@@ -90,7 +90,7 @@ const start = async (): Promise<void> => {
   });
 
   watchAndPersistChanges();
-
+  handleJitsiDesktopCapturerGetSources();
   handleDesktopCapturerGetSources();
 
   await processDeepLinksInArgs();

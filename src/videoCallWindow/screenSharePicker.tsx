@@ -1,10 +1,15 @@
 import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
-import { DesktopCapturerSource, ipcRenderer } from 'electron';
+import { DesktopCapturer, DesktopCapturerSource, ipcRenderer, SourcesOptions } from 'electron';
 import React, { useEffect, useState } from 'react';
 
-import { desktopCapturer } from '../jitsi/preload';
 import { Dialog } from '../ui/components/Dialog';
 import { Source } from '../ui/components/ScreenSharingDialog/styles';
+
+
+const desktopCapturer: DesktopCapturer = {
+  getSources: (opts: SourcesOptions) =>
+    ipcRenderer.invoke('desktop-capturer-get-sources', [opts]),
+};
 
 export function ScreenSharePicker() {
   const [visible, setVisible] = useState(false);

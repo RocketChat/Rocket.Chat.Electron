@@ -1,10 +1,14 @@
 import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
-import { DesktopCapturer, DesktopCapturerSource, ipcRenderer, SourcesOptions } from 'electron';
+import {
+  DesktopCapturer,
+  DesktopCapturerSource,
+  ipcRenderer,
+  SourcesOptions,
+} from 'electron';
 import React, { useEffect, useState } from 'react';
 
 import { Dialog } from '../ui/components/Dialog';
 import { Source } from '../ui/components/ScreenSharingDialog/styles';
-
 
 const desktopCapturer: DesktopCapturer = {
   getSources: (opts: SourcesOptions) =>

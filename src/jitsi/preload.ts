@@ -10,7 +10,10 @@ const jitsiDomain = window.location.origin;
 
 export const desktopCapturer: DesktopCapturer = {
   getSources: (opts: SourcesOptions) =>
-    ipcRenderer.invoke('jitsi-desktop-capturer-get-sources', [opts, jitsiDomain]),
+    ipcRenderer.invoke('jitsi-desktop-capturer-get-sources', [
+      opts,
+      jitsiDomain,
+    ]),
 };
 
 export type JitsiMeetElectronAPI = {

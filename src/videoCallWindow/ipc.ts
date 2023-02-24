@@ -11,9 +11,9 @@ import {
 import { handle } from '../ipc/main';
 
 export const handleDesktopCapturerGetSources = () => {
-  handle('desktop-capturer-get-sources', async (_event, opts) => {
-    return desktopCapturer.getSources(opts[0]);
-  });
+  handle('desktop-capturer-get-sources', async (_event, opts) =>
+    desktopCapturer.getSources(opts[0])
+  );
 };
 
 export const startVideoCallWindowHandler = (): void => {

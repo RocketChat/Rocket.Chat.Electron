@@ -31,7 +31,10 @@ import touchBar from './ui/main/touchBar';
 import trayIcon from './ui/main/trayIcon';
 import { setupUpdates } from './updates/main';
 import { setupPowerMonitor } from './userPresence/main';
-import { handleDesktopCapturerGetSources, startVideoCallWindowHandler } from './videoCallWindow/ipc';
+import {
+  handleDesktopCapturerGetSources,
+  startVideoCallWindowHandler,
+} from './videoCallWindow/ipc';
 
 electronDl({ saveAs: true });
 

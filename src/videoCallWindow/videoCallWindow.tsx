@@ -21,8 +21,13 @@ function VideoCallWindow() {
   return (
     <div>
       <ScreenSharePicker />
-      <webview ref={webviewRef} src={videoCallUrl} preload={'./preload.js'} webpreferences="nodeIntegration"></webview>
-
+      <webview
+        ref={webviewRef}
+        src={videoCallUrl}
+        preload={'./preload.js'}
+        webpreferences='nodeIntegration,nativeWindowOpen=true'
+        allowpopups={'true' as any}
+      ></webview>
     </div>
   );
 }

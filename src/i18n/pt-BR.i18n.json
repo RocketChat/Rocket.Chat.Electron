@@ -54,6 +54,12 @@
       "yes": "Sim",
       "cancel": "Cancelar"
     },
+    "clearPermittedScreenCaptureServers": {
+      "title": "Limpar permissões de servidores com captura de tela",
+      "message": "Isto vai limpar todas as permissões de servidores com captura de tela. Isto não pode ser desfeito.",
+      "yes": "Sim",
+      "cancel": "Cancelar"
+    },
     "screenshare": {
       "title": "Compartilhe sua tela",
       "announcement": "Selecione uma tela para compartilhar"

@@ -1,6 +1,7 @@
 import { Box, FieldGroup } from '@rocket.chat/fuselage';
 import React, { FC } from 'react';
 
+import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
 import { FlashFrame } from './features/FlashFrame';
 import { HardwareAcceleration } from './features/HardwareAcceleration';
 import { InternalVideoChatWindow } from './features/InternalVideoChatWindow';
@@ -21,6 +22,7 @@ export const GeneralTab: FC = () => (
       {process.platform === 'win32' && <MinimizeOnClose />}
       <SideBar />
       {process.platform !== 'darwin' && <MenuBar />}
+      <ClearPermittedScreenCaptureServers />
     </FieldGroup>
   </Box>
 );

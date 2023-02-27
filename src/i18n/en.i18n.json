@@ -54,6 +54,12 @@
       "yes": "Yes",
       "cancel": "Cancel"
     },
+    "clearPermittedScreenCaptureServers": {
+      "title": "Clear Permitted Screen Capture Servers",
+      "message": "This will clear all the permissions for screen capture servers, making them ask again for permission. This cannot be undone.",
+      "yes": "Yes",
+      "cancel": "Cancel"
+    },
     "screenshare": {
       "title": "Share Your Screen",
       "announcement": "Select a screen to share"
@@ -204,6 +210,10 @@
       "trayIcon": {
         "title": "Tray Icon",
         "description": "Show tray icon on the system tray. If tray icon is active the app will be hidden to tray on close. Otherwise it will quit the application."
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Clear Screen Capture Permissions",
+        "description": "Clear the screen capture permissions that was selected to not ask again on video calls."
       }
     }
   },

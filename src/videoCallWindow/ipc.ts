@@ -6,9 +6,11 @@ import {
   desktopCapturer,
   ipcMain,
   WebContents,
+  screen,
 } from 'electron';
 
 import { handle } from '../ipc/main';
+import { getRootWindow } from '../ui/main/rootWindow';
 
 export const handleDesktopCapturerGetSources = () => {
   handle('desktop-capturer-get-sources', async (_event, opts) =>
@@ -22,9 +24,29 @@ export const startVideoCallWindowHandler = (): void => {
     const validUrl = new URL(url);
     const allowedProtocols = ['http:', 'https:'];
     if (allowedProtocols.includes(validUrl.protocol)) {
+      const mainWindow = await getRootWindow();
+      const winBounds = await mainWindow.getBounds();
+      const actualScreen = screen.getDisplayNearestPoint({
+        x: winBounds.x,
+        y: winBounds.y,
+      });
+
+      let { x, y } = actualScreen.bounds;
+      let { width, height } = actualScreen.bounds;
+
+      width = Math.round(actualScreen.workAreaSize.width * 0.8);
+      height = Math.round(actualScreen.workAreaSize.height * 0.8);
+
+      x = Math.round(
+        (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
+      );
+      y = Math.round(
+        (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
+      );
+
       const videoCallWindow = new BrowserWindow({
-        width: 800,
-        height: 800,
+        width,
+        height,
         webPreferences: {
           nodeIntegration: true,
           nodeIntegrationInSubFrames: true,
@@ -35,6 +57,14 @@ export const startVideoCallWindowHandler = (): void => {
 
         show: false,
       });
+
+      videoCallWindow.setBounds({
+        width,
+        height,
+        x,
+        y,
+      });
+
       videoCallWindow.loadFile(
         path.join(app.getAppPath(), 'app/video-call-window.html')
       );

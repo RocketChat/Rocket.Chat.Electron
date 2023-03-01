@@ -25,10 +25,16 @@ export const startVideoCallWindowHandler = (): void => {
     const allowedProtocols = ['http:', 'https:'];
     if (allowedProtocols.includes(validUrl.protocol)) {
       const mainWindow = await getRootWindow();
-      const winBounds = await mainWindow.getBounds();
+      const winBounds = await mainWindow.getNormalBounds();
+
+      const centeredWindowPosition = {
+        x: winBounds.x + winBounds.width / 2,
+        y: winBounds.y + winBounds.height / 2,
+      };
+
       const actualScreen = screen.getDisplayNearestPoint({
-        x: winBounds.x,
-        y: winBounds.y,
+        x: centeredWindowPosition.x,
+        y: centeredWindowPosition.y,
       });
 
       let { x, y } = actualScreen.bounds;

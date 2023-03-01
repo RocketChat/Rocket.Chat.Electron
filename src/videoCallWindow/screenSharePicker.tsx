@@ -26,7 +26,9 @@ export function ScreenSharePicker() {
     setSources(sources);
   };
 
-  fetchSources();
+  useEffect(() => {
+    fetchSources();
+  }, []);
 
   useEffect(() => {
     ipcRenderer.on('video-call-window/open-screen-picker', () => {
@@ -41,7 +43,7 @@ export function ScreenSharePicker() {
 
     const timer = setInterval(() => {
       fetchSources();
-    }, 1000);
+    }, 2000);
 
     return () => {
       clearInterval(timer);

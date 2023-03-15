@@ -10,7 +10,6 @@ import electronBuilderJson from '../../../electron-builder.json';
 // eslint-disable-next-line import/order, @typescript-eslint/no-unused-vars
 import packageJson from '../../../package.json';
 import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED } from '../../jitsi/actions';
-
 import { dispatch, listen } from '../../store';
 import { readSetting } from '../../store/readSetting';
 import {

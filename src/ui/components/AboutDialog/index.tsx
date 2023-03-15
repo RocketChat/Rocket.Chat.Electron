@@ -12,6 +12,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 
+import { packageJsonInformation } from '../../../app/main/app';
 import { RootAction } from '../../../store/actions';
 import { RootState } from '../../../store/rootReducer';
 import { UPDATES_CHECK_FOR_UPDATES_REQUESTED } from '../../../updates/actions';
@@ -22,7 +23,9 @@ import {
 import { Dialog } from '../Dialog';
 import { RocketChatLogo } from '../RocketChatLogo';
 
-const copyright = `© 2016-${new Date().getFullYear()}, Rocket.Chat`;
+const copyright = `© 2016-${new Date().getFullYear()}, ${
+  packageJsonInformation.productName
+}`;
 
 export const AboutDialog: FC = () => {
   const appVersion = useSelector(({ appVersion }: RootState) => appVersion);

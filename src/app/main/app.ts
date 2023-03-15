@@ -10,6 +10,7 @@ import electronBuilderJson from '../../../electron-builder.json';
 // eslint-disable-next-line import/order, @typescript-eslint/no-unused-vars
 import packageJson from '../../../package.json';
 import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED } from '../../jitsi/actions';
+
 import { dispatch, listen } from '../../store';
 import { readSetting } from '../../store/readSetting';
 import {
@@ -20,6 +21,15 @@ import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
 import { APP_PATH_SET, APP_VERSION_SET } from '../actions';
 
+export const packageJsonInformation = {
+  productName: packageJson.productName,
+};
+
+export const electronBuilderJsonInformation = {
+  appId: electronBuilderJson.appId,
+  protocol: electronBuilderJson.protocols.schemes[0],
+};
+
 export const relaunchApp = (...args: string[]): void => {
   const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
   app.relaunch({ args: [...command, ...args] });
@@ -27,8 +37,8 @@ export const relaunchApp = (...args: string[]): void => {
 };
 
 export const performElectronStartup = (): void => {
-  app.setAsDefaultProtocolClient('rocketchat');
-  app.setAppUserModelId('chat.rocket');
+  app.setAsDefaultProtocolClient(electronBuilderJsonInformation.protocol);
+  app.setAppUserModelId(electronBuilderJsonInformation.appId);
 
   app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
   app.commandLine.appendSwitch(

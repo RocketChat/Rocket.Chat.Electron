@@ -215,3 +215,25 @@ export const askForJitsiCaptureScreenPermission = async (
     dontAskAgain: checkboxChecked,
   };
 };
+
+export const askForClearScreenCapturePermission = async (
+  parentWindow?: BrowserWindow
+): Promise<boolean> => {
+  parentWindow?.show();
+
+  const { response } = await dialog.showMessageBox(
+    parentWindow ?? (await getRootWindow()),
+    {
+      type: 'question',
+      buttons: [
+        t('dialog.clearPermittedScreenCaptureServers.yes'),
+        t('dialog.clearPermittedScreenCaptureServers.cancel'),
+      ],
+      defaultId: 1,
+      title: t('dialog.clearPermittedScreenCaptureServers.title'),
+      message: t('dialog.clearPermittedScreenCaptureServers.message'),
+    }
+  );
+
+  return response === 0;
+};

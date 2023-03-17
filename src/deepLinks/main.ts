@@ -153,6 +153,15 @@ const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
     webContents.loadURL(new URL(path, serverUrl).href);
   });
 
+const performConference = async ({ host, path }: InviteParams): Promise<void> =>
+  performOnServer(host, async (serverUrl) => {
+    if (!/^conference\//.test(path)) {
+      return;
+    }
+    const webContents = await getWebContents(serverUrl);
+    webContents.loadURL(new URL(path, serverUrl).href);
+  });
+
 const processDeepLink = async (deepLink: string): Promise<void> => {
   const parsedDeepLink = parseDeepLink(deepLink);
 
@@ -188,6 +197,16 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
       if (host && path) {
         await performInvite({ host, path });
       }
+      break;
+    }
+
+    case 'conference': {
+      const host = args.get('host') ?? undefined;
+      const path = args.get('path') ?? undefined;
+      if (host && path) {
+        await performConference({ host, path });
+      }
+      break;
     }
   }
 };

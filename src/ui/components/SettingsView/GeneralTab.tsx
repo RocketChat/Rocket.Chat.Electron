@@ -22,7 +22,7 @@ export const GeneralTab: FC = () => (
       {process.platform === 'win32' && <MinimizeOnClose />}
       <SideBar />
       {process.platform !== 'darwin' && <MenuBar />}
-      <ClearPermittedScreenCaptureServers />
+      {!process.mas && <ClearPermittedScreenCaptureServers />}
     </FieldGroup>
   </Box>
 );

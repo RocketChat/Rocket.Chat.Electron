@@ -1,4 +1,4 @@
-import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
+import { Box, Margins } from '@rocket.chat/fuselage';
 import {
   DesktopCapturer,
   DesktopCapturerSource,
@@ -70,26 +70,30 @@ export function ScreenSharePicker() {
         flexWrap='wrap'
         alignItems='stretch'
         justifyContent='center'
+        maxSize='x800'
       >
-        <Margins all='x8'>
+        <Margins all='x4' blockEnd='x16'>
           {sources.map(({ id, name, thumbnail }) => (
-            <Scrollable key={id}>
-              <Source
+            <Source
+              display='flex'
+              flexDirection='column'
+              onClick={handleScreenSharingSourceClick(id)}
+            >
+              <Box
+                flexGrow={1}
                 display='flex'
-                flexDirection='column'
-                onClick={handleScreenSharingSourceClick(id)}
+                alignItems='center'
+                justifyContent='center'
               >
-                <Box flexGrow={1} display='flex' alignItems='center'>
-                  <Box
-                    is='img'
-                    src={thumbnail.toDataURL()}
-                    alt={name}
-                    style={{ width: '100%' }}
-                  />
-                </Box>
-                <Box>{name}</Box>
-              </Source>
-            </Scrollable>
+                <Box
+                  is='img'
+                  src={thumbnail.toDataURL()}
+                  alt={name}
+                  style={{ maxWidth: '148px', maxHeight: '148px' }}
+                />
+              </Box>
+              <Box>{name}</Box>
+            </Source>
           ))}
         </Margins>
       </Box>

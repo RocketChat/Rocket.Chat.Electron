@@ -133,7 +133,6 @@
     "node": ">=12.8.x",
     "yarn": ">=1.22.x"
   },
-  "productName": "Rocket.Chat",
   "resolutions": {
     "@fiahfy/icns-convert/sharp": "0.29.3",
     "@fiahfy/ico-convert/sharp": "0.29.3"

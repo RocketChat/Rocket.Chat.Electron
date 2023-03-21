@@ -1,4 +1,4 @@
-import { Box, Margins } from '@rocket.chat/fuselage';
+import { Box, Button, Icon, Margins, Scrollable } from '@rocket.chat/fuselage';
 import {
   DesktopCapturer,
   DesktopCapturerSource,
@@ -62,40 +62,48 @@ export function ScreenSharePicker() {
 
   return (
     <Dialog isVisible={visible} onClose={handleClose}>
-      <Box fontScale='h1' alignSelf='center'>
-        Select a screen to share
+      <Box alignSelf='center' display='flex'>
+        <Box fontScale='h1' alignSelf='left'>
+          Select a screen to share
+        </Box>
       </Box>
-      <Box
-        display='flex'
-        flexWrap='wrap'
-        alignItems='stretch'
-        justifyContent='center'
-        maxSize='x800'
-      >
-        <Margins all='x4' blockEnd='x16'>
-          {sources.map(({ id, name, thumbnail }) => (
-            <Source
-              display='flex'
-              flexDirection='column'
-              onClick={handleScreenSharingSourceClick(id)}
-            >
-              <Box
-                flexGrow={1}
+
+      <Scrollable>
+        <Margins blockStart='x16' blockEnd='x16'>
+          <Box
+            display='flex'
+            flexWrap='wrap'
+            alignItems='stretch'
+            justifyContent='center'
+            maxSize='x800'
+          >
+            {sources.map(({ id, name, thumbnail }) => (
+              <Source
                 display='flex'
-                alignItems='center'
-                justifyContent='center'
+                flexDirection='column'
+                onClick={handleScreenSharingSourceClick(id)}
               >
                 <Box
-                  is='img'
-                  src={thumbnail.toDataURL()}
-                  alt={name}
-                  style={{ maxWidth: '148px', maxHeight: '148px' }}
-                />
-              </Box>
-              <Box>{name}</Box>
-            </Source>
-          ))}
+                  flexGrow={1}
+                  display='flex'
+                  alignItems='center'
+                  justifyContent='center'
+                >
+                  <Box
+                    is='img'
+                    src={thumbnail.toDataURL()}
+                    alt={name}
+                    style={{ maxWidth: '148px', maxHeight: '148px' }}
+                  />
+                </Box>
+                <Box>{name}</Box>
+              </Source>
+            ))}
+          </Box>
         </Margins>
+      </Scrollable>
+      <Box alignSelf='center' display='flex'>
+        <Button onClick={handleClose}>Cancel</Button>
       </Box>
     </Dialog>
   );

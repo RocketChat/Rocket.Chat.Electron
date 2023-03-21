@@ -1,4 +1,10 @@
-import { Box, Button, Icon, Margins, Scrollable } from '@rocket.chat/fuselage';
+import {
+  Box,
+  Button,
+  Callout,
+  Margins,
+  Scrollable,
+} from '@rocket.chat/fuselage';
 import {
   DesktopCapturer,
   DesktopCapturerSource,
@@ -18,6 +24,10 @@ const desktopCapturer: DesktopCapturer = {
 export function ScreenSharePicker() {
   const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
+  const [
+    isScreenRecordingPermissionGranted,
+    setIsScreenRecordingPermissionGranted,
+  ] = useState(false);
 
   const fetchSources = async (): Promise<void> => {
     const sources = await desktopCapturer.getSources({
@@ -25,6 +35,18 @@ export function ScreenSharePicker() {
     });
     setSources(sources);
   };
+
+  useEffect(() => {
+    const checkScreenRecordingPermission = async () => {
+      const result = await ipcRenderer.invoke(
+        'video-call-window/screen-recording-is-permission-granted'
+      );
+      setIsScreenRecordingPermissionGranted(result);
+      console.log('isPermissionGranted', result);
+    };
+
+    checkScreenRecordingPermission().catch(console.error);
+  }, [visible]);
 
   useEffect(() => {
     fetchSources();
@@ -62,48 +84,65 @@ export function ScreenSharePicker() {
 
   return (
     <Dialog isVisible={visible} onClose={handleClose}>
-      <Box alignSelf='center' display='flex'>
-        <Box fontScale='h1' alignSelf='left'>
-          Select a screen to share
+      <Box
+        display='flex'
+        flexWrap='wrap'
+        alignItems='stretch'
+        justifyContent='center'
+        maxWidth='x800'
+      >
+        {isScreenRecordingPermissionGranted && (
+          <Box alignSelf='center' display='flex'>
+            <Callout title='Screen Recording Permissions Denied' type='danger'>
+              The screen sharing feature requires screen recording permissions
+              to be granted. Please grant screen recording permissions in your
+              system settings and try again.
+            </Callout>
+          </Box>
+        )}
+        <Box alignSelf='center' display='flex'>
+          <Box fontScale='h1' alignSelf='left'>
+            Select a screen to share
+          </Box>
         </Box>
-      </Box>
 
-      <Scrollable>
-        <Margins blockStart='x16' blockEnd='x16'>
-          <Box
-            display='flex'
-            flexWrap='wrap'
-            alignItems='stretch'
-            justifyContent='center'
-            maxSize='x800'
-          >
-            {sources.map(({ id, name, thumbnail }) => (
-              <Source
-                display='flex'
-                flexDirection='column'
-                onClick={handleScreenSharingSourceClick(id)}
-              >
-                <Box
-                  flexGrow={1}
+        <Box alignSelf='bottom' display='flex'>
+          <Button onClick={handleClose}>Cancel</Button>
+        </Box>
+        <Scrollable>
+          <Margins blockStart='x16' blockEnd='x16'>
+            <Box
+              display='flex'
+              flexWrap='wrap'
+              alignItems='stretch'
+              justifyContent='center'
+              maxSize='x730'
+            >
+              {sources.map(({ id, name, thumbnail }) => (
+                <Source
                   display='flex'
-                  alignItems='center'
-                  justifyContent='center'
+                  flexDirection='column'
+                  onClick={handleScreenSharingSourceClick(id)}
                 >
                   <Box
-                    is='img'
-                    src={thumbnail.toDataURL()}
-                    alt={name}
-                    style={{ maxWidth: '148px', maxHeight: '148px' }}
-                  />
-                </Box>
-                <Box>{name}</Box>
-              </Source>
-            ))}
-          </Box>
-        </Margins>
-      </Scrollable>
-      <Box alignSelf='center' display='flex'>
-        <Button onClick={handleClose}>Cancel</Button>
+                    flexGrow={1}
+                    display='flex'
+                    alignItems='center'
+                    justifyContent='center'
+                  >
+                    <Box
+                      is='img'
+                      src={thumbnail.toDataURL()}
+                      alt={name}
+                      style={{ maxWidth: '148px', maxHeight: '148px' }}
+                    />
+                  </Box>
+                  <Box>{name}</Box>
+                </Source>
+              ))}
+            </Box>
+          </Margins>
+        </Scrollable>
       </Box>
     </Dialog>
   );

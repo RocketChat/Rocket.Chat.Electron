@@ -27,6 +27,7 @@ type ChannelToArgsMap = {
   'video-call-window/web-contents-id': (webContentsId: number) => void;
   'video-call-window/open-screen-picker': () => void;
   'video-call-window/screen-sharing-source-responded': (source: string) => void;
+  'video-call-window/screen-recording-is-permission-granted': () => boolean;
   'jitsi-desktop-capturer-get-sources': (
     options: Electron.SourcesOptions
   ) => Electron.DesktopCapturerSource[];

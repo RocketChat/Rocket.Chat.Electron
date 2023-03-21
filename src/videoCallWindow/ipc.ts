@@ -7,6 +7,7 @@ import {
   ipcMain,
   WebContents,
   screen,
+  systemPreferences,
 } from 'electron';
 
 import { handle } from '../ipc/main';
@@ -19,6 +20,18 @@ export const handleDesktopCapturerGetSources = () => {
 };
 
 export const startVideoCallWindowHandler = (): void => {
+  handle(
+    'video-call-window/screen-recording-is-permission-granted',
+    async () => {
+      console.log(
+        '[Rocket.Chat Desktop] screen-recording-is-permission-granted'
+      );
+      const permission = systemPreferences.getMediaAccessStatus('screen');
+      console.log('[Rocket.Chat Desktop] permission', permission);
+      return permission === 'granted';
+    }
+  );
+
   handle('video-call-window/open-window', async (_event, url) => {
     console.log('[Rocket.Chat Desktop] open-internal-video-chat-window', url);
     const validUrl = new URL(url);

@@ -91,12 +91,20 @@ export function ScreenSharePicker() {
         justifyContent='center'
         maxWidth='x800'
       >
-        {isScreenRecordingPermissionGranted && (
+        {!isScreenRecordingPermissionGranted && (
           <Box alignSelf='center' display='flex'>
-            <Callout title='Screen Recording Permissions Denied' type='danger'>
+            <Callout
+              title='Screen Recording Permissions Denied'
+              type='danger'
+              maxWidth='100%'
+            >
               The screen sharing feature requires screen recording permissions
               to be granted. Please grant screen recording permissions in your
               system settings and try again.
+              <br />
+              Open <b>System Preferences</b> -<b> Security & Privacy</b> -
+              <b> Screen Recording</b> and check
+              <b> Rocket.Chat</b>
             </Callout>
           </Box>
         )}
@@ -104,10 +112,6 @@ export function ScreenSharePicker() {
           <Box fontScale='h1' alignSelf='left'>
             Select a screen to share
           </Box>
-        </Box>
-
-        <Box alignSelf='bottom' display='flex'>
-          <Button onClick={handleClose}>Cancel</Button>
         </Box>
         <Scrollable>
           <Margins blockStart='x16' blockEnd='x16'>
@@ -143,6 +147,9 @@ export function ScreenSharePicker() {
             </Box>
           </Margins>
         </Scrollable>
+      </Box>
+      <Box alignSelf='center' display='flex'>
+        <Button onClick={handleClose}>Cancel</Button>
       </Box>
     </Dialog>
   );

@@ -42,7 +42,6 @@ export function ScreenSharePicker() {
         'video-call-window/screen-recording-is-permission-granted'
       );
       setIsScreenRecordingPermissionGranted(result);
-      console.log('isPermissionGranted', result);
     };
 
     checkScreenRecordingPermission().catch(console.error);

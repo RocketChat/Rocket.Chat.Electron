@@ -23,11 +23,7 @@ export const startVideoCallWindowHandler = (): void => {
   handle(
     'video-call-window/screen-recording-is-permission-granted',
     async () => {
-      console.log(
-        '[Rocket.Chat Desktop] screen-recording-is-permission-granted'
-      );
       const permission = systemPreferences.getMediaAccessStatus('screen');
-      console.log('[Rocket.Chat Desktop] permission', permission);
       return permission === 'granted';
     }
   );

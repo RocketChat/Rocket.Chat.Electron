@@ -1,4 +1,10 @@
-import { Box, Margins } from '@rocket.chat/fuselage';
+import {
+  Box,
+  Button,
+  Callout,
+  Margins,
+  Scrollable,
+} from '@rocket.chat/fuselage';
 import {
   DesktopCapturer,
   DesktopCapturerSource,
@@ -18,13 +24,31 @@ const desktopCapturer: DesktopCapturer = {
 export function ScreenSharePicker() {
   const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
+  const [
+    isScreenRecordingPermissionGranted,
+    setIsScreenRecordingPermissionGranted,
+  ] = useState(false);
 
   const fetchSources = async (): Promise<void> => {
     const sources = await desktopCapturer.getSources({
       types: ['window', 'screen'],
     });
-    setSources(sources);
+    const filteredSources = sources.filter(
+      (source) => source.thumbnail.isEmpty() === false
+    );
+    setSources(filteredSources);
   };
+
+  useEffect(() => {
+    const checkScreenRecordingPermission = async () => {
+      const result = await ipcRenderer.invoke(
+        'video-call-window/screen-recording-is-permission-granted'
+      );
+      setIsScreenRecordingPermissionGranted(result);
+    };
+
+    checkScreenRecordingPermission().catch(console.error);
+  }, [visible]);
 
   useEffect(() => {
     fetchSources();
@@ -62,40 +86,72 @@ export function ScreenSharePicker() {
 
   return (
     <Dialog isVisible={visible} onClose={handleClose}>
-      <Box fontScale='h1' alignSelf='center'>
-        Select a screen to share
-      </Box>
       <Box
         display='flex'
         flexWrap='wrap'
         alignItems='stretch'
         justifyContent='center'
-        maxSize='x800'
+        maxWidth='x800'
       >
-        <Margins all='x4' blockEnd='x16'>
-          {sources.map(({ id, name, thumbnail }) => (
-            <Source
-              display='flex'
-              flexDirection='column'
-              onClick={handleScreenSharingSourceClick(id)}
+        {!isScreenRecordingPermissionGranted && (
+          <Box alignSelf='center' display='flex'>
+            <Callout
+              title='Screen Recording Permissions Denied'
+              type='danger'
+              maxWidth='100%'
             >
-              <Box
-                flexGrow={1}
-                display='flex'
-                alignItems='center'
-                justifyContent='center'
-              >
-                <Box
-                  is='img'
-                  src={thumbnail.toDataURL()}
-                  alt={name}
-                  style={{ maxWidth: '148px', maxHeight: '148px' }}
-                />
-              </Box>
-              <Box>{name}</Box>
-            </Source>
-          ))}
-        </Margins>
+              The screen sharing feature requires screen recording permissions
+              to be granted. Please grant screen recording permissions in your
+              system settings and try again.
+              <br />
+              Open <b>System Preferences</b> -<b> Security & Privacy</b> -
+              <b> Screen Recording</b> and check
+              <b> Rocket.Chat</b>
+            </Callout>
+          </Box>
+        )}
+        <Box alignSelf='center' display='flex'>
+          <Box fontScale='h1' alignSelf='left'>
+            Select a screen to share
+          </Box>
+        </Box>
+        <Scrollable>
+          <Margins blockStart='x16' blockEnd='x16'>
+            <Box
+              display='flex'
+              flexWrap='wrap'
+              alignItems='stretch'
+              justifyContent='center'
+              maxSize='x730'
+            >
+              {sources.map(({ id, name, thumbnail }) => (
+                <Source
+                  display='flex'
+                  flexDirection='column'
+                  onClick={handleScreenSharingSourceClick(id)}
+                >
+                  <Box
+                    flexGrow={1}
+                    display='flex'
+                    alignItems='center'
+                    justifyContent='center'
+                  >
+                    <Box
+                      is='img'
+                      src={thumbnail.toDataURL()}
+                      alt={name}
+                      style={{ maxWidth: '148px', maxHeight: '148px' }}
+                    />
+                  </Box>
+                  <Box>{name}</Box>
+                </Source>
+              ))}
+            </Box>
+          </Margins>
+        </Scrollable>
+      </Box>
+      <Box alignSelf='center' display='flex'>
+        <Button onClick={handleClose}>Cancel</Button>
       </Box>
     </Dialog>
   );

@@ -33,7 +33,10 @@ export function ScreenSharePicker() {
     const sources = await desktopCapturer.getSources({
       types: ['window', 'screen'],
     });
-    setSources(sources);
+    const filteredSources = sources.filter(
+      (source) => source.thumbnail.isEmpty() === false
+    );
+    setSources(filteredSources);
   };
 
   useEffect(() => {

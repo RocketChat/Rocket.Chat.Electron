@@ -7,8 +7,8 @@ let permitted = false;
 let dontAskAgain = false;
 let firstAskPermission = true;
 
-export const handleDesktopCapturerGetSources = () => {
-  handle('desktop-capturer-get-sources', async (_event, opts) => {
+export const handleJitsiDesktopCapturerGetSources = () => {
+  handle('jitsi-desktop-capturer-get-sources', async (_event, opts) => {
     if (permitted) return desktopCapturer.getSources(opts[0]);
 
     if (dontAskAgain) return [];

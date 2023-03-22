@@ -102,7 +102,7 @@
       "yes": "Igen",
       "no": "Nem"
     },
-    "allowJitsiCaptureScreen": {
+    "allowVideoCallCaptureScreen": {
       "title": "A Jitsi megpróbálja rögzíteni a képernyőjét",
       "message": "A Jitsi jogosultságot kér a képernyő rögzítéséhez.",
       "detail": "A(z) {{- url }} kiszolgálóról futó Jitsinek jogosultságra van szüksége azért, hogy megossza az Ön képernyőjét másokkal.",

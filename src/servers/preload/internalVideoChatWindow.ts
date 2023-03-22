@@ -1,4 +1,4 @@
-import { shell } from 'electron';
+import { ipcRenderer, shell } from 'electron';
 
 import { select } from '../../store';
 
@@ -12,7 +12,7 @@ export const openInternalVideoChatWindow = (
   _options: undefined
 ): void => {
   if (!process.mas && getInternalVideoChatWindowEnabled()) {
-    window.open(url, 'Video Call', `scrollbars=true`);
+    ipcRenderer.invoke('video-call-window/open-window', url, _options);
   } else {
     const validUrl = new URL(url);
     const allowedProtocols = ['http:', 'https:'];

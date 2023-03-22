@@ -3,8 +3,8 @@ import { Tile } from '@rocket.chat/fuselage';
 
 export const Source = styled(Tile)`
   cursor: pointer;
-  width: 150px;
-  height: 150px;
+  width: 180px;
+  height: 200px;
   overflow: hidden;
   text-align: center;
 

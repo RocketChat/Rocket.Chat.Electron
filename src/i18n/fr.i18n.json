@@ -102,11 +102,11 @@
       "yes": "Oui",
       "no": "Non"
     },
-    "allowJitsiCaptureScreen": {
-      "title": "Jitsi essaie de capturer votre écran",
-      "message": "Jitsi demande la permission de capturer votre écran.",
-      "detail": "Jitsi du serveur {{- url }} nécessite une autorisation afin de partager votre écran avec d'autres.",
-      "dontAskAgain": "Toujours autoriser Jitsi de ce serveur de capturer votre écran ",
+    "allowVideoCallCaptureScreen": {
+      "title": "L'appel vidéo tente de capturer votre écran",
+      "message": "L'appel vidéo demande la permission de capturer votre écran.",
+      "detail": "Le serveur d'appels vidéo {{- url }} nécessite une autorisation pour partager votre écran avec d'autres personnes.",
+      "dontAskAgain": "Toujours autoriser les appels vidéo de ce serveur pour capturer votre écran",
       "yes": "Autoriser",
       "no": "Annuler"
     }

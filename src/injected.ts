@@ -38,6 +38,9 @@ const start = (): void => {
 
   window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
 
+  navigator.clipboard.writeText = async (...args) =>
+    window.RocketChatDesktop.writeTextToClipboard(...args);
+
   Tracker.autorun(() => {
     const unread = Session.get('unread');
     window.RocketChatDesktop.setBadge(unread);
@@ -70,6 +73,7 @@ const start = (): void => {
           jitsiDomain.length > 0 &&
           url.includes(jitsiDomain)
         ) {
+          console.log('[Rocket.Chat Desktop] window.open for Jitsi fired');
           return open(url, 'Video Call', `scrollbars=true,${features}`);
         }
 

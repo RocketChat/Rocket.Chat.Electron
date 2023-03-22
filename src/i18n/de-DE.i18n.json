@@ -101,11 +101,11 @@
       "yes": "Ja",
       "no": "Nein"
     },
-    "allowJitsiCaptureScreen": {
-      "title": "Jitsi versucht, Ihren Bildschirm zu erfassen",
-      "message": "Jitsi bittet um Erlaubnis, Ihren Bildschirm aufzunehmen.",
-      "detail": "Jitsi vom Server {{- url }} erfordert eine Erlaubnis, um Ihren Bildschirm mit anderen zu teilen.",
-      "dontAskAgain": "Erlauben Sie Jitsi von diesem Server immer, Ihren Bildschirm zu erfassen",
+    "allowVideoCallCaptureScreen": {
+      "title": "Der Videoanruf versucht, Ihren Bildschirm aufnehmen",
+      "message": "Der Videoanruf fragt nach der Erlaubnis, Ihren Bildschirm aufzunehmen.",
+      "detail": "Der Videoanrufserver {{- url }} benötigt die Erlaubnis, deinen Bildschirm mit anderen zu teilen.",
+      "dontAskAgain": "Lassen Sie immer zu, dass Videoanrufe von diesem Server Ihren Bildschirm erfassen",
       "yes": "Erlauben",
       "no": "Absagen"
     }

@@ -196,16 +196,16 @@ export const askForJitsiCaptureScreenPermission = async (
     {
       type: 'warning',
       buttons: [
-        t('dialog.allowJitsiCaptureScreen.yes'),
-        t('dialog.allowJitsiCaptureScreen.no'),
+        t('dialog.allowVideoCallCaptureScreen.yes'),
+        t('dialog.allowVideoCallCaptureScreen.no'),
       ],
       defaultId: 1,
-      title: t('dialog.allowJitsiCaptureScreen.title'),
-      message: t('dialog.allowJitsiCaptureScreen.message'),
-      detail: t('dialog.allowJitsiCaptureScreen.detail', {
+      title: t('dialog.allowVideoCallCaptureScreen.title'),
+      message: t('dialog.allowVideoCallCaptureScreen.message'),
+      detail: t('dialog.allowVideoCallCaptureScreen.detail', {
         url: url.toString(),
       }),
-      checkboxLabel: t('dialog.allowJitsiCaptureScreen.dontAskAgain'),
+      checkboxLabel: t('dialog.allowVideoCallCaptureScreen.dontAskAgain'),
       checkboxChecked: false,
     }
   );

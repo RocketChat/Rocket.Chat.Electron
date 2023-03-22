@@ -3,11 +3,11 @@ import rimraf from 'rimraf';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore:next-line
-// eslint-disable-next-line import/order
+// eslint-disable-next-line import/order, @typescript-eslint/no-unused-vars
 import electronBuilderJson from '../../../electron-builder.json';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore:next-line
-// eslint-disable-next-line import/order
+// eslint-disable-next-line import/order, @typescript-eslint/no-unused-vars
 import packageJson from '../../../package.json';
 import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED } from '../../jitsi/actions';
 import { dispatch, listen } from '../../store';

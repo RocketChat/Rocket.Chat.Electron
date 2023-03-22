@@ -115,9 +115,9 @@ const releaseTagged = async (version: SemVer, commitSha: string) => {
     //   await uploadSnap(
     //     path,
     //     (!version.prerelease && 'stable') ||
-    //     (version.prerelease[0] === 'candidate' && 'candidate') ||
-    //     (version.prerelease[0] === 'beta' && 'beta') ||
-    //     'edge'
+    //       (version.prerelease[0] === 'candidate' && 'candidate') ||
+    //       (version.prerelease[0] === 'beta' && 'beta') ||
+    //       'edge'
     //   );
     // }
   }

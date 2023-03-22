@@ -45,6 +45,7 @@ jobs:
         env:
           NODE_ENV: production
           BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
       - uses: ./workspaces/desktop-release-action
         with:
           mac_csc_link: ${{ secrets.MAC_CSC_LINK }}
@@ -55,4 +56,3 @@ jobs:
           win_csc_link: ${{ secrets.WIN_CSC_LINK }}
           win_csc_key_password: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
           github_token: ${{ secrets.GH_TOKEN }}
-          snapcraft_token: ${{ secrets.SNAP_TOKEN }}

@@ -285,7 +285,8 @@
       "remove": "Remover servidor",
       "openDevTools": "Abrir DevTools",
       "clearCache": "Limpar cache",
-      "clearStorageData": "Limpar dados de armazenamento"
+      "clearStorageData": "Limpar dados de armazenamento",
+      "copyCurrentUrl": "Copiar URL atual"
     }
   },
   "touchBar": {

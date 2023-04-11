@@ -33,8 +33,8 @@ const start = (): void => {
   const { Session } = window.require('meteor/session');
   const { Tracker } = window.require('meteor/tracker');
   const { UserPresence } = window.require('meteor/konecty:user-presence');
-  const { settings } = window.require('/app/settings');
-  const { getUserPreference } = window.require('/app/utils');
+  const { settings } = window.require('/app/settings/client');
+  const { getUserPreference } = window.require('/app/utils/client');
 
   window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
 

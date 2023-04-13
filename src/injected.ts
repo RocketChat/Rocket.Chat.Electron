@@ -29,12 +29,19 @@ const start = (): void => {
 
   window.RocketChatDesktop.setServerInfo(serverInfo);
 
+  function requireLegacyLibrary(path: string): any {
+    if (serverInfo.version.split('.')[0] >= 6) {
+      path += '/client/index.ts';
+    }
+    return window.require(path);
+  }
+
   const { Meteor } = window.require('meteor/meteor');
   const { Session } = window.require('meteor/session');
   const { Tracker } = window.require('meteor/tracker');
   const { UserPresence } = window.require('meteor/konecty:user-presence');
-  const { settings } = window.require('/app/settings/client/index.ts');
-  const { getUserPreference } = window.require('/app/utils/client/index.ts');
+  const { settings } = requireLegacyLibrary('/app/settings');
+  const { getUserPreference } = requireLegacyLibrary('/app/utils');
 
   window.RocketChatDesktop.setUrlResolver(Meteor.absoluteUrl);
 

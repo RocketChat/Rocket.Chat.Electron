@@ -24,9 +24,6 @@
     "url": "https://github.com/RocketChat/Rocket.Chat.Electron/issues"
   },
   "main": "app/main.js",
-  "build": {
-    "generateUpdatesFilesForAllChannels": true
-  },
   "scripts": {
     "postinstall": "run-s install-app-deps clean",
     "start": "run-s clean build:watch",

@@ -5,6 +5,7 @@ import {
   destroyNotification,
 } from '../../notifications/preload';
 import { getOutlookEvents } from '../../outlookCalendar/getOutlookEvents';
+import { checkOutlookConnection } from '../../outlookCalendar/outlookCredentials';
 import { setUserPresenceDetection } from '../../userPresence/preload';
 import { Server } from '../common';
 import { setBadge } from './badge';
@@ -54,6 +55,7 @@ export type RocketChatDesktopAPI = {
   setGitCommitHash: (gitCommitHash: string) => void;
   writeTextToClipboard: (text: string) => void;
   getOutlookEvents: (date: Date) => Promise<Appointment[]>;
+  checkOutlookConnection: () => boolean;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -81,4 +83,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   setGitCommitHash,
   writeTextToClipboard,
   getOutlookEvents,
+  checkOutlookConnection,
 };

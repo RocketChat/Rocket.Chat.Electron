@@ -19,6 +19,7 @@ import {
   WEBVIEW_ATTACHED,
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
   WEBVIEW_ALLOWED_REDIRECTS_CHANGED,
+  OUTLOOK_SET_CREDENTIALS,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import { Server } from './common';
@@ -50,6 +51,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
   | ActionOf<typeof WEBVIEW_READY>
   | ActionOf<typeof WEBVIEW_ATTACHED>;
+  | ActionOf<typeof OUTLOOK_SET_CREDENTIALS>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
@@ -180,6 +182,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_ATTACHED: {
       const { url, webContentsId } = action.payload;
       return update(state, { url, webContentsId });
+    }
+
+    case OUTLOOK_SET_CREDENTIALS: {
+      const { url, credentials } = action.payload;
+      return upsert(state, { url, credentials });
     }
 
     default:

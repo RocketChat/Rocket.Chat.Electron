@@ -86,6 +86,7 @@ export const SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS =
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
+export const OUTLOOK_SET_CREDENTIALS = 'outlook/set-credentials';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -163,4 +164,5 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS]: void;
   [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
+  [OUTLOOK_SET_CREDENTIALS]: { email: string; password: string };
 };

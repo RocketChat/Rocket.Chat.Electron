@@ -14,6 +14,11 @@ import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { setupNavigation } from './navigation/main';
 import { setupNotifications } from './notifications/main';
+import { getOutlookEvents } from './outlookCalendar/getOutlookEvents';
+import {
+  checkOutlookConnection,
+  setOutlookCredentials,
+} from './outlookCalendar/outlookCredentials';
 import { setupScreenSharing } from './screenSharing/main';
 import { setupServers } from './servers/main';
 import { setupSpellChecking } from './spellChecking/main';
@@ -97,6 +102,9 @@ const start = async (): Promise<void> => {
   handleDesktopCapturerGetSources();
 
   await processDeepLinksInArgs();
+
+  console.log('appointments', await getOutlookEvents(new Date(Date.now())));
+  setOutlookCredentials('login', 'password');
 };
 
 if (require.main === module) {

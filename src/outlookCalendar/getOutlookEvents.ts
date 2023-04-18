@@ -1,30 +1,19 @@
 import {
-  ExchangeService,
-  ExchangeVersion,
-  Uri,
   FolderId,
   CalendarView,
   DateTime,
   WellKnownFolderName,
-  WebCredentials,
   Appointment,
   BasePropertySet,
   PropertySet,
 } from 'ews-javascript-api';
 
+import { createOutlookExchangeService } from './outlookCredentials';
+
 require('dotenv').config();
 
 export const getOutlookEvents = async (date: Date): Promise<Appointment[]> => {
-  const exchange = new ExchangeService(ExchangeVersion.Exchange2013);
-
-  const outlookUser = `${process.env.OUTLOOK_DOMAIN}\\${process.env.OUTLOOK_USER}`;
-  const outlookPassword = process.env.OUTLOOK_PASSWORD || '';
-  const outlookServer = process.env.OUTLOOK_SERVER || '';
-
-  // exchange.Credentials = new TokenCredentials(token);
-  exchange.Credentials = new WebCredentials(outlookUser, outlookPassword);
-  // exchange.Url = new Uri(server);
-  exchange.Url = new Uri(outlookServer);
+  const exchange = await createOutlookExchangeService();
 
   const folderId = new FolderId(WellKnownFolderName.Calendar);
   const view = new CalendarView(
@@ -40,10 +29,13 @@ export const getOutlookEvents = async (date: Date): Promise<Appointment[]> => {
   );
 
   // eslint-disable-next-line new-cap
-  const appointments = (await exchange.FindAppointments(folderId, view))
+  const appointments = (await exchange?.FindAppointments(folderId, view))
     .Items as Appointment[];
 
   console.log(appointments);
+  if (appointments.length === 0) {
+    return [];
+  }
 
   const propertySet = new PropertySet(BasePropertySet.FirstClassProperties);
 

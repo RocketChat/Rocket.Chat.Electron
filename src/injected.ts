@@ -94,6 +94,16 @@ const start = (): void => {
   });
 
   Tracker.autorun(() => {
+    const outlookCalendarExchangeUrl = settings.get(
+      'Outlook_Calendar_Exchange_Url'
+    );
+    console.log(
+      '[Rocket.Chat Desktop] outlookCalendarExchangeUrl',
+      outlookCalendarExchangeUrl
+    );
+  });
+
+  Tracker.autorun(() => {
     const userId = Meteor.userId();
     window.RocketChatDesktop.setUserLoggedIn(userId !== null);
   });

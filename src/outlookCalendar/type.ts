@@ -1,7 +1,7 @@
-export type OutlookCredential = {
+export type OutlookCredentials = {
   userId: string;
   serverUrl: string;
   login: string;
   password: string;
-  lastLogin: EpochTimeStamp;
+  lastLogin?: EpochTimeStamp;
 };

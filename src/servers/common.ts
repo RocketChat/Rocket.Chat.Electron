@@ -1,4 +1,4 @@
-import { OutlookCredential } from '../outlookCalendar/type';
+import { OutlookCredentials } from '../outlookCalendar/type';
 
 export type Server = {
   url: string;
@@ -15,7 +15,7 @@ export type Server = {
   userLoggedIn?: boolean;
   gitCommitHash?: string;
   allowedRedirects?: string[];
-  outlookCredentials?: OutlookCredential[];
+  outlookCredentials?: OutlookCredentials;
 };
 
 export const enum ServerUrlResolutionStatus {

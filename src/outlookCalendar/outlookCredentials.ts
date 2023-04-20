@@ -6,8 +6,9 @@ import {
   WebCredentials,
 } from 'ews-javascript-api';
 
-import { Server } from '../servers/common';
-import { getOutlookEvents } from './getOutlookEvents';
+import { getServerUrl } from '../servers/preload/urls';
+import { dispatch } from '../store';
+import { OUTLOOK_CALENDAR_SET_CREDENTIALS } from './actions';
 
 let outlookExchangeService = null;
 
@@ -18,15 +19,19 @@ export const setOutlookCredentials = async (
   console.log(safeStorage.isEncryptionAvailable());
   const encriptedLogin = await safeStorage.encryptString(login);
   const encriptedPassword = await safeStorage.encryptString(password);
-
-  console.log('login', encriptedLogin.toString());
-  console.log('password', encriptedPassword.toString());
-
-  console.log('login', safeStorage.decryptString(encriptedLogin).toString());
-  console.log(
-    'password',
-    safeStorage.decryptString(encriptedPassword).toString()
-  );
+  console.log('getServerUrl', getServerUrl());
+  dispatch({
+    type: OUTLOOK_CALENDAR_SET_CREDENTIALS,
+    payload: {
+      url: 'http://localhost:3000/',
+      outlookCredentials: {
+        userId: '',
+        serverUrl: '',
+        login: encriptedLogin.toString(),
+        password: encriptedPassword.toString(),
+      },
+    },
+  });
 };
 
 export const createOutlookExchangeService = async () => {
@@ -49,7 +54,6 @@ export const createOutlookExchangeService = async () => {
   try {
     // eslint-disable-next-line new-cap
     const manifest = await outlookExchangeService.GetAppManifests();
-    console.log(manifest);
     return outlookExchangeService;
   } catch (error) {
     console.log(error);
@@ -64,4 +68,8 @@ export const checkOutlookConnection = async () => {
     return true;
   }
   return false;
+};
+
+export const setOutlookExchangeUrl = async (url: string) => {
+  outlookExchangeService.Url = new Uri(url);
 };

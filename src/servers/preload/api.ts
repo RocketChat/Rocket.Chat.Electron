@@ -1,9 +1,8 @@
-import { Appointment } from 'ews-javascript-api';
-
 import {
   createNotification,
   destroyNotification,
 } from '../../notifications/preload';
+import type { AppointmentData } from '../../outlookCalendar/AppointmentData';
 import { getOutlookEvents } from '../../outlookCalendar/getOutlookEvents';
 import { setUserPresenceDetection } from '../../userPresence/preload';
 import { Server } from '../common';
@@ -53,7 +52,7 @@ export type RocketChatDesktopAPI = {
   openInternalVideoChatWindow: (url: string, options: undefined) => void;
   setGitCommitHash: (gitCommitHash: string) => void;
   writeTextToClipboard: (text: string) => void;
-  getOutlookEvents: (date: Date) => Promise<Appointment[]>;
+  getOutlookEvents: (date: Date) => Promise<AppointmentData[]>;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {

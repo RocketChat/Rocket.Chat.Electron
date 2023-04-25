@@ -1308,6 +1308,24 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@ewsjs/ntlm-client@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@ewsjs/ntlm-client/-/ntlm-client-1.0.0.tgz#992698347f6cebe7b41e1de7234ab8df81880af7"
+  integrity sha512-UVH0fRaOBO4qiAtJ33pp5aVEf5lIYT0aTCfhy4Rq+1AsCGv7krvx5DTp7dee5dMCvUk4HQXrS946u6RBHZbOkQ==
+  dependencies:
+    extend "^3.0.0"
+    request "^2.66.0"
+
+"@ewsjs/xhr@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@ewsjs/xhr/-/xhr-1.5.0.tgz#82b6b13534e4f4e36230475f2a21599e30f428ca"
+  integrity sha512-vjdpkfJS4v8ZbTcWBX622X7fR2C1K6Ap0p7k8aNdmv+YkvmYp+49TMciJO6mFH9mEANAZxZXj8eUSRwLELMWzA==
+  dependencies:
+    "@ewsjs/ntlm-client" "^1.0.0"
+    bluebird "^3.4.6"
+    fetch "^1.0.1"
+    request "^2.88.0"
+
 "@fiahfy/icns-convert@^0.0.12":
   version "0.0.12"
   resolved "https://registry.npmjs.org/@fiahfy/icns-convert/-/icns-convert-0.0.12.tgz"
@@ -3552,7 +3570,7 @@ bluebird-lst@^1.0.9:
   dependencies:
     bluebird "^3.5.5"
 
-bluebird@^3.5.0, bluebird@^3.5.5, bluebird@^3.7.2:
+bluebird@^3.4.6, bluebird@^3.5.0, bluebird@^3.5.5, bluebird@^3.7.2:
   version "3.7.2"
   resolved "https://registry.npmjs.org/bluebird/-/bluebird-3.7.2.tgz"
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
@@ -5343,7 +5361,7 @@ extend-shallow@^3.0.0, extend-shallow@^3.0.2:
     assign-symbols "^1.0.0"
     is-extendable "^1.0.1"
 
-extend@~3.0.2:
+extend@^3.0.0, extend@~3.0.2:
   version "3.0.2"
   resolved "https://registry.npmjs.org/extend/-/extend-3.0.2.tgz"
   integrity sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==
@@ -5445,7 +5463,7 @@ fd-slicer@~1.1.0:
   dependencies:
     pend "~1.2.0"
 
-fetch@^1.1.0:
+fetch@^1.0.1, fetch@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/fetch/-/fetch-1.1.0.tgz#0a8279f06be37f9f0ebb567560a30a480da59a2e"
   integrity sha512-5O8TwrGzoNblBG/jtK4NFuZwNCkZX6s5GfRNOaGtm+QGJEuNakSC/i2RW0R93KX6E0jVjNXm6O3CRN4Ql3K+yA==
@@ -9174,7 +9192,7 @@ request-promise-native@^1.0.7:
     stealthy-require "^1.1.1"
     tough-cookie "^2.3.3"
 
-request@^2.88.0:
+request@^2.66.0, request@^2.88.0:
   version "2.88.2"
   resolved "https://registry.npmjs.org/request/-/request-2.88.2.tgz"
   integrity sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw==

@@ -22,6 +22,7 @@ import { APP_PATH_SET, APP_VERSION_SET } from '../actions';
 
 export const packageJsonInformation = {
   productName: packageJson.productName,
+  goUrlShortener: packageJson.goUrlShortener,
 };
 
 export const electronBuilderJsonInformation = {

@@ -11,6 +11,7 @@
   "copyright": "© 2016-2021, Rocket.Chat",
   "homepage": "https://rocket.chat",
   "license": "MIT",
+  "goUrlShortener": "go.rocket.chat",
   "keywords": [
     "rocketchat",
     "desktop",

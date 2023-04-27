@@ -28,8 +28,9 @@ const pollSidebarStyle = (
     });
     prevBackground = background;
     prevColor = color;
-    timer = setTimeout(() => pollSidebarStyle(referenceElement, emit), 1000);
   }
+
+  timer = setTimeout(() => pollSidebarStyle(referenceElement, emit), 5000);
 };
 
 let element: HTMLElement;

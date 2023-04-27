@@ -9,18 +9,26 @@ import {
   BasePropertySet,
   PropertySet,
   ConfigurationApi,
+  WebCredentials,
+  ExchangeService,
+  ExchangeVersion,
+  Uri,
 } from 'ews-javascript-api';
 
 import type { AppointmentData } from './AppointmentData';
+import { OutlookCredentials } from './type';
 
 require('dotenv').config();
 
 export const getOutlookEvents = async (
+  credentials: OutlookCredentials,
   date: Date
 ): Promise<AppointmentData[]> => {
-  const outlookUser = process.env.OUTLOOK_USER || '';
-  const outlookPassword = process.env.OUTLOOK_PASSWORD || '';
-  const outlookServer = process.env.OUTLOOK_SERVER || '';
+  const outlookUser = process.env.OUTLOOK_USER || 'pierre';
+  const outlookPassword = process.env.OUTLOOK_PASSWORD || '--20CAceta';
+  const outlookServer =
+    process.env.OUTLOOK_SERVER ||
+    'https://owa.dev.rocket.chat/EWS/Exchange.asmx';
 
   const xhrApi = new XhrApi({ gzip: true });
   xhrApi.useNtlmAuthentication(outlookUser, outlookPassword);
@@ -32,16 +40,18 @@ export const getOutlookEvents = async (
   exchange.Credentials = new WebCredentials(outlookUser, outlookPassword);
   exchange.Url = new Uri(`${outlookServer}/ews/exchange.asmx`);
 
+  const validated_date = new Date(date);
+
   const folderId = new FolderId(WellKnownFolderName.Calendar);
   const minTime = new DateTime(
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate()
+    validated_date.getFullYear(),
+    validated_date.getMonth() + 1,
+    validated_date.getDate()
   );
   const maxTime = new DateTime(
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate(),
+    validated_date.getFullYear(),
+    validated_date.getMonth() + 1,
+    validated_date.getDate(),
     23,
     59,
     59

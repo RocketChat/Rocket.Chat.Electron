@@ -89,18 +89,16 @@ const start = (): void => {
   });
 
   Tracker.autorun(() => {
-    const siteName = settings.get('Site_Name');
-    window.RocketChatDesktop.setTitle(siteName);
+    const outlookExchangeUrl = settings.get('Outlook_Calendar_Exchange_Url');
+    const userId = Meteor.userId();
+    console.log('[Rocket.Chat Desktop] outlookExchangeUrl', outlookExchangeUrl);
+    if (!outlookExchangeUrl) return;
+    window.RocketChatDesktop.setOutlookExchangeUrl(outlookExchangeUrl, userId);
   });
 
   Tracker.autorun(() => {
-    const outlookCalendarExchangeUrl = settings.get(
-      'Outlook_Calendar_Exchange_Url'
-    );
-    console.log(
-      '[Rocket.Chat Desktop] outlookCalendarExchangeUrl',
-      outlookCalendarExchangeUrl
-    );
+    const siteName = settings.get('Site_Name');
+    window.RocketChatDesktop.setTitle(siteName);
   });
 
   Tracker.autorun(() => {

@@ -1,75 +1,68 @@
 import { safeStorage } from 'electron';
 import {
+  FolderId,
+  CalendarView,
+  DateTime,
+  WellKnownFolderName,
+  Appointment,
+  BasePropertySet,
+  PropertySet,
+  ConfigurationApi,
+  WebCredentials,
   ExchangeService,
   ExchangeVersion,
   Uri,
-  WebCredentials,
 } from 'ews-javascript-api';
 
-import { getServerUrl } from '../servers/preload/urls';
+import { Server } from '../servers/common';
 import { dispatch } from '../store';
 import { OUTLOOK_CALENDAR_SET_CREDENTIALS } from './actions';
 
-let outlookExchangeService = null;
-
 export const setOutlookCredentials = async (
+  url: Server['url'],
   login: string,
-  password: string
+  password: string,
+  serverUrl: string,
+  userId: string
 ) => {
-  console.log(safeStorage.isEncryptionAvailable());
-  const encriptedLogin = await safeStorage.encryptString(login);
-  const encriptedPassword = await safeStorage.encryptString(password);
-  console.log('getServerUrl', getServerUrl());
+  const encryptedLogin = await safeStorage.encryptString(login);
+  const encryptedPassword = await safeStorage.encryptString(password);
   dispatch({
     type: OUTLOOK_CALENDAR_SET_CREDENTIALS,
     payload: {
-      url: 'http://localhost:3000/',
+      url,
       outlookCredentials: {
-        userId: '',
-        serverUrl: '',
-        login: encriptedLogin.toString(),
-        password: encriptedPassword.toString(),
+        userId,
+        serverUrl,
+        login: encryptedLogin.toString(),
+        password: encryptedPassword.toString(),
       },
     },
   });
 };
 
-export const createOutlookExchangeService = async () => {
-  if (!outlookExchangeService) {
-    outlookExchangeService = new ExchangeService(ExchangeVersion.Exchange2013);
-  }
+export const checkOutlookConnection = async (
+  credendials: Server['outlookCredentials']
+): Promise<boolean> => {
+  console.log('checkOutlookConnection', credendials);
+  if (!credendials) return false;
+  // if (!credendials.login || !credendials.password) return false;
+  const { serverUrl, login, password } = credendials;
+  // const decryptedLogin = await safeStorage.decryptString(login);
+  // const decryptedPassword = await safeStorage.decryptString(password);
 
-  const outlookUser = `${process.env.OUTLOOK_DOMAIN}\\${process.env.OUTLOOK_USER}`;
-  const outlookPassword = process.env.OUTLOOK_PASSWORD || '';
-  const outlookServer = process.env.OUTLOOK_SERVER || '';
-
-  // exchange.Credentials = new TokenCredentials(token);
-  outlookExchangeService.Credentials = new WebCredentials(
-    outlookUser,
-    outlookPassword
-  );
-  // exchange.Url = new Uri(server);
-  outlookExchangeService.Url = new Uri(outlookServer);
-
+  const exchange = new ExchangeService(ExchangeVersion.Exchange2013);
+  exchange.Credentials = new WebCredentials('DEV-DC\\pierre', '--20CAceta');
+  exchange.Url = new Uri(serverUrl);
+  // eslint-disable-next-line new-cap
+  let response = [];
   try {
-    // eslint-disable-next-line new-cap
-    const manifest = await outlookExchangeService.GetAppManifests();
-    return outlookExchangeService;
-  } catch (error) {
-    console.log(error);
-    return null;
+    response = await exchange.GetAppManifests();
+    console.log('response', response);
+  } catch (e) {
+    console.log('error', e);
+    return false;
   }
-};
 
-export const checkOutlookConnection = async () => {
-  const outlookExchangeService = await createOutlookExchangeService();
-
-  if (outlookExchangeService) {
-    return true;
-  }
-  return false;
-};
-
-export const setOutlookExchangeUrl = async (url: string) => {
-  outlookExchangeService.Url = new Uri(url);
+  return response.length < 0;
 };

@@ -15,18 +15,21 @@ const pollSidebarStyle = (
 
   document.body.append(referenceElement);
   const { background, color } = window.getComputedStyle(referenceElement);
+
   referenceElement.remove();
+
+  const newBgg = prevBackground !== background ? background : prevBackground;
+  const newColor = prevColor !== color ? color : prevColor;
 
   if (prevBackground !== background || prevColor !== color) {
     emit({
-      background,
-      color,
+      background: newBgg,
+      color: newColor,
     });
     prevBackground = background;
     prevColor = color;
+    timer = setTimeout(() => pollSidebarStyle(referenceElement, emit), 1000);
   }
-
-  timer = setTimeout(() => pollSidebarStyle(referenceElement, emit), 1000);
 };
 
 let element: HTMLElement;
@@ -34,7 +37,7 @@ let element: HTMLElement;
 const getElement = (): HTMLElement => {
   if (!element) {
     element = document.createElement('div');
-    element.classList.add('sidebar');
+    element.classList.add('rcx-sidebar--main');
     element.style.backgroundColor = 'var(--sidebar-background)';
     element.style.color = 'var(--sidebar-item-text-color)';
     element.style.display = 'none';

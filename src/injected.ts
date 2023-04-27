@@ -39,7 +39,7 @@ const start = (): void => {
   const { Meteor } = window.require('meteor/meteor');
   const { Session } = window.require('meteor/session');
   const { Tracker } = window.require('meteor/tracker');
-  const { UserPresence } = window.require('meteor/konecty:user-presence');
+  const { UserPresence } = window.require('meteor/rocketchat:user-presence');
   const { settings } = requireLegacyLibrary('/app/settings');
   const { getUserPreference } = requireLegacyLibrary('/app/utils');
 

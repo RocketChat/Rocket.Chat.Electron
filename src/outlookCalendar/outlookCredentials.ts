@@ -40,29 +40,3 @@ export const setOutlookCredentials = async (
     },
   });
 };
-
-export const checkOutlookConnection = async (
-  credendials: Server['outlookCredentials']
-): Promise<boolean> => {
-  console.log('checkOutlookConnection', credendials);
-  if (!credendials) return false;
-  // if (!credendials.login || !credendials.password) return false;
-  const { serverUrl, login, password } = credendials;
-  // const decryptedLogin = await safeStorage.decryptString(login);
-  // const decryptedPassword = await safeStorage.decryptString(password);
-
-  const exchange = new ExchangeService(ExchangeVersion.Exchange2013);
-  exchange.Credentials = new WebCredentials('DEV-DC\\pierre', '--20CAceta');
-  exchange.Url = new Uri(serverUrl);
-  // eslint-disable-next-line new-cap
-  let response = [];
-  try {
-    response = await exchange.GetAppManifests();
-    console.log('response', response);
-  } catch (e) {
-    console.log('error', e);
-    return false;
-  }
-
-  return response.length < 0;
-};

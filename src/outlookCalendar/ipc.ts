@@ -4,9 +4,9 @@ import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
 import { Server } from '../servers/common';
 import { dispatch, select } from '../store';
+import { OUTLOOK_CALENDAR_ASK_CREDENTIALS } from '../ui/actions';
 import { OUTLOOK_CALENDAR_SET_CREDENTIALS } from './actions';
 import { getOutlookEvents } from './getOutlookEvents';
-import { checkOutlookConnection } from './outlookCredentials';
 
 const getServerInformationByWebContentsId = (webContentsId: number): Server => {
   const { servers } = select(selectPersistableValues);
@@ -47,8 +47,16 @@ export const startOutlookCalendarUrlHandler = (): void => {
     console.log('[Rocket.Chat Desktop] outlook-calendar/get-events', date);
     const server = getServerInformationByWebContentsId(event.id);
     const { outlookCredentials } = server;
-    if (!outlookCredentials) return [];
-    if (!checkOutlookConnection(outlookCredentials)) return [];
+    if (
+      !outlookCredentials ||
+      !outlookCredentials.login ||
+      !outlookCredentials.password
+    ) {
+      dispatch({
+        type: OUTLOOK_CALENDAR_ASK_CREDENTIALS,
+        payload: { server, userId: outlookCredentials?.userId },
+      });
+    }
     const appointments = await getOutlookEvents(outlookCredentials, date);
     return appointments;
   });

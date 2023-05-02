@@ -5,6 +5,7 @@ import {
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../../navigation/actions';
+import { OUTLOOK_CALENDAR_DIALOG_DISMISSED } from '../../outlookCalendar/actions';
 import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../screenSharing/actions';
 import { ActionOf } from '../../store/actions';
 import { UPDATES_NEW_VERSION_AVAILABLE } from '../../updates/actions';
@@ -17,6 +18,7 @@ import {
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
   WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
   WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
+  OUTLOOK_CALENDAR_ASK_CREDENTIALS,
 } from '../actions';
 
 type OpenDialogAction =
@@ -32,7 +34,8 @@ type OpenDialogAction =
   | ActionOf<typeof UPDATE_DIALOG_SKIP_UPDATE_CLICKED>
   | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
   | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED>
-  | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED>;
+  | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED>
+  | ActionOf<typeof OUTLOOK_CALENDAR_ASK_CREDENTIALS>;
 
 export const openDialog: Reducer<string | null, OpenDialogAction> = (
   state = null,
@@ -57,6 +60,9 @@ export const openDialog: Reducer<string | null, OpenDialogAction> = (
       }
       return state;
 
+    case OUTLOOK_CALENDAR_ASK_CREDENTIALS:
+      return 'outlook-credentials';
+
     case SCREEN_SHARING_DIALOG_DISMISSED:
     case WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED:
     case SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED:
@@ -65,6 +71,7 @@ export const openDialog: Reducer<string | null, OpenDialogAction> = (
     case UPDATE_DIALOG_SKIP_UPDATE_CLICKED:
     case UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED:
     case UPDATE_DIALOG_INSTALL_BUTTON_CLICKED:
+    case OUTLOOK_CALENDAR_DIALOG_DISMISSED:
       return null;
 
     default:

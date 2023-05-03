@@ -3,10 +3,16 @@ import { contextIsolated } from 'process';
 import {
   Box,
   Button,
+  Callout,
+  CheckBox,
+  Field,
+  FieldGroup,
   InputBox,
   Label,
   Margins,
+  PasswordInput,
   Scrollable,
+  TextInput,
   Tile,
 } from '@rocket.chat/fuselage';
 import React, { ChangeEvent, FC, useEffect, useRef, useState } from 'react';
@@ -16,11 +22,13 @@ import { Dispatch } from 'redux';
 
 import {
   OUTLOOK_CALENDAR_ASK_CREDENTIALS,
+  OUTLOOK_CALENDAR_DIALOG_DISMISSED,
   OUTLOOK_CALENDAR_SET_CREDENTIALS,
 } from '../../../outlookCalendar/actions';
 import { Server } from '../../../servers/common';
 import { listen } from '../../../store';
 import { RootAction } from '../../../store/actions';
+import { isRequest } from '../../../store/fsa';
 import { RootState } from '../../../store/rootReducer';
 import { Dialog } from '../Dialog';
 
@@ -38,6 +46,11 @@ export const OutlookCredentialsDialog: FC = () => {
   useEffect(
     () =>
       listen(OUTLOOK_CALENDAR_ASK_CREDENTIALS, (action) => {
+        if (!isRequest(action)) {
+          return;
+        }
+
+        requestIdRef.current = action.meta.id;
         setServer(action.payload.server);
         setUserId(action.payload.userId);
       }),
@@ -77,7 +90,12 @@ export const OutlookCredentialsDialog: FC = () => {
           serverUrl: server?.outlookCredentials?.serverUrl,
         },
       },
+      meta: {
+        response: true,
+        id: requestIdRef.current,
+      },
     });
+    dispatch({ type: OUTLOOK_CALENDAR_DIALOG_DISMISSED });
   };
 
   const { t } = useTranslation();
@@ -85,39 +103,43 @@ export const OutlookCredentialsDialog: FC = () => {
   return (
     <Dialog isVisible={isVisible} onClose={handleClose}>
       <Box fontScale='h3'>Please enter your Outlook credentials</Box>
+      <FieldGroup>
+        <Field>
+          <Label>{t('Login')}</Label>
+          <Field.Row>
+            <TextInput onChange={handleUsernameChange} />
+          </Field.Row>
+        </Field>
+        <Field>
+          <Label>{t('Password')}</Label>
+          <Field.Row>
+            <PasswordInput onChange={handlePasswordChange} />
+          </Field.Row>
+        </Field>
+        <Callout title='Security warning' type='warning'>
+          Your credentials will be saved on plain text. Do not share your
+          browser session.
+        </Callout>
 
-      <Box fontScale='h5'>for server :</Box>
-      <Box
-        display='flex'
-        flexDirection='row'
-        flexWrap='nowrap'
-        alignItems='center'
-      >
-        <Margins block='x8'>
-          <Label>Username</Label>
-          <InputBox
-            type='text'
-            defaultValue=''
-            onChange={handleUsernameChange}
-          />
-          <Label>Password</Label>
-          <InputBox
-            type='password'
-            defaultValue='Password'
-            onChange={handlePasswordChange}
-          />
-        </Margins>
-      </Box>
-      <Box>
-        <Margins block='x8'>
-          <Button danger onClick={handleClose}>
-            {t('Cancel')}
-          </Button>
-          <Button primary onClick={handleSubmit}>
-            {t('Submit')}
-          </Button>
-        </Margins>
-      </Box>
+        <Field>
+          <Field.Row>
+            <CheckBox id='check-box' />
+            <Field.Label htmlFor='check-box'>
+              Remember my credentials
+            </Field.Label>
+          </Field.Row>
+        </Field>
+        <Box>
+          <Margins block='x8'>
+            <Button danger onClick={handleClose}>
+              {t('Cancel')}
+            </Button>
+            <Button primary onClick={handleSubmit}>
+              {t('Submit')}
+            </Button>
+          </Margins>
+        </Box>
+      </FieldGroup>
     </Dialog>
   );
 };

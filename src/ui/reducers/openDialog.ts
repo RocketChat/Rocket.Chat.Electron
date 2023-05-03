@@ -5,7 +5,10 @@ import {
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../../navigation/actions';
-import { OUTLOOK_CALENDAR_DIALOG_DISMISSED } from '../../outlookCalendar/actions';
+import {
+  OUTLOOK_CALENDAR_DIALOG_DISMISSED,
+  OUTLOOK_CALENDAR_ASK_CREDENTIALS,
+} from '../../outlookCalendar/actions';
 import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../screenSharing/actions';
 import { ActionOf } from '../../store/actions';
 import { UPDATES_NEW_VERSION_AVAILABLE } from '../../updates/actions';
@@ -18,7 +21,6 @@ import {
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
   WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
   WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
-  OUTLOOK_CALENDAR_ASK_CREDENTIALS,
 } from '../actions';
 
 type OpenDialogAction =
@@ -35,7 +37,8 @@ type OpenDialogAction =
   | ActionOf<typeof UPDATES_NEW_VERSION_AVAILABLE>
   | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED>
   | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED>
-  | ActionOf<typeof OUTLOOK_CALENDAR_ASK_CREDENTIALS>;
+  | ActionOf<typeof OUTLOOK_CALENDAR_ASK_CREDENTIALS>
+  | ActionOf<typeof OUTLOOK_CALENDAR_DIALOG_DISMISSED>;
 
 export const openDialog: Reducer<string | null, OpenDialogAction> = (
   state = null,

@@ -24,6 +24,7 @@ export const getOutlookEvents = async (
   credentials: OutlookCredentials,
   date: Date
 ): Promise<AppointmentData[]> => {
+  console.log('[Rocket.Chat Desktop] getOutlookEvents', date, credentials);
   const outlookUser = process.env.OUTLOOK_USER || 'pierre';
   const outlookPassword = process.env.OUTLOOK_PASSWORD || '--20CAceta';
   const outlookServer =
@@ -58,9 +59,15 @@ export const getOutlookEvents = async (
   );
 
   const view = new CalendarView(minTime, maxTime);
+  let appointments: Appointment[] = [];
 
-  const appointments = (await exchange.FindAppointments(folderId, view))
-    .Items as Appointment[];
+  try {
+    appointments = (await exchange.FindAppointments(folderId, view))
+      .Items as Appointment[];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
 
   // Filter out appointments that end exactly at midnight
   const filtered = appointments.filter(

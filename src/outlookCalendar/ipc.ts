@@ -1,11 +1,16 @@
+import { ipcMain, safeStorage } from 'electron';
 import { Appointment } from 'ews-javascript-api';
 
 import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
 import { Server } from '../servers/common';
-import { dispatch, select } from '../store';
-import { OUTLOOK_CALENDAR_ASK_CREDENTIALS } from '../ui/actions';
-import { OUTLOOK_CALENDAR_SET_CREDENTIALS } from './actions';
+import { dispatch, request, select } from '../store';
+import { AppointmentData } from './AppointmentData';
+import {
+  OUTLOOK_CALENDAR_SET_CREDENTIALS,
+  OUTLOOK_CALENDAR_ASK_CREDENTIALS,
+  OUTLOOK_CALENDAR_DIALOG_DISMISSED,
+} from './actions';
 import { getOutlookEvents } from './getOutlookEvents';
 
 const getServerInformationByWebContentsId = (webContentsId: number): Server => {
@@ -43,21 +48,41 @@ export const startOutlookCalendarUrlHandler = (): void => {
     }
   );
 
-  handle('outlook-calendar/get-events', async (event, date: Date) => {
-    console.log('[Rocket.Chat Desktop] outlook-calendar/get-events', date);
-    const server = getServerInformationByWebContentsId(event.id);
-    const { outlookCredentials } = server;
-    if (
-      !outlookCredentials ||
-      !outlookCredentials.login ||
-      !outlookCredentials.password
-    ) {
-      dispatch({
-        type: OUTLOOK_CALENDAR_ASK_CREDENTIALS,
-        payload: { server, userId: outlookCredentials?.userId },
-      });
+  handle(
+    'outlook-calendar/get-events',
+    async (event, date: Date): Promise<AppointmentData[]> => {
+      console.log('[Rocket.Chat Desktop] outlook-calendar/get-events', date);
+      const server = getServerInformationByWebContentsId(event.id);
+      const { outlookCredentials } = server;
+      const isEncryptionAvailable = await safeStorage.isEncryptionAvailable();
+      let credentials = outlookCredentials;
+      if (
+        !outlookCredentials ||
+        !outlookCredentials.userId ||
+        !outlookCredentials.serverUrl ||
+        !outlookCredentials.login ||
+        !outlookCredentials.password
+      ) {
+        credentials = await request(
+          {
+            type: OUTLOOK_CALENDAR_ASK_CREDENTIALS,
+            payload: {
+              server,
+              userId: outlookCredentials.userId,
+              isEncryptionAvailable,
+            },
+          },
+          OUTLOOK_CALENDAR_SET_CREDENTIALS,
+          OUTLOOK_CALENDAR_DIALOG_DISMISSED
+        );
+      }
+
+      console.log('credentials', credentials);
+
+      let appointments: AppointmentData[] = [];
+      appointments = await getOutlookEvents(credentials, date);
+
+      return appointments;
     }
-    const appointments = await getOutlookEvents(outlookCredentials, date);
-    return appointments;
-  });
+  );
 };

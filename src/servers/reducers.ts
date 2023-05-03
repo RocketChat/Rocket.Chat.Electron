@@ -2,7 +2,7 @@ import { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
 import { DEEP_LINKS_SERVER_ADDED } from '../deepLinks/actions';
-import { OUTLOOK_CALENDAR_SET_CREDENTIALS } from '../outlookCalendar/actions';
+import { OUTLOOK_CALENDAR_SAVE_CREDENTIALS } from '../outlookCalendar/actions';
 import { ActionOf } from '../store/actions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
@@ -51,7 +51,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
   | ActionOf<typeof WEBVIEW_READY>
   | ActionOf<typeof WEBVIEW_ATTACHED>
-  | ActionOf<typeof OUTLOOK_CALENDAR_SET_CREDENTIALS>;
+  | ActionOf<typeof OUTLOOK_CALENDAR_SAVE_CREDENTIALS>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
@@ -184,7 +184,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return update(state, { url, webContentsId });
     }
 
-    case OUTLOOK_CALENDAR_SET_CREDENTIALS: {
+    case OUTLOOK_CALENDAR_SAVE_CREDENTIALS: {
       const { url, outlookCredentials } = action.payload;
       return upsert(state, { url, outlookCredentials });
     }

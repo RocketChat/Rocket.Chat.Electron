@@ -10,8 +10,10 @@ import {
   OUTLOOK_CALENDAR_SET_CREDENTIALS,
   OUTLOOK_CALENDAR_ASK_CREDENTIALS,
   OUTLOOK_CALENDAR_DIALOG_DISMISSED,
+  OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
 } from './actions';
 import { getOutlookEvents } from './getOutlookEvents';
+import { OutlookCredentials } from './type';
 
 const getServerInformationByWebContentsId = (webContentsId: number): Server => {
   const { servers } = select(selectPersistableValues);
@@ -33,7 +35,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
         outlookCredentials?.serverUrl !== url
       ) {
         dispatch({
-          type: OUTLOOK_CALENDAR_SET_CREDENTIALS,
+          type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
           payload: {
             url: server.url,
             outlookCredentials: {
@@ -55,15 +57,16 @@ export const startOutlookCalendarUrlHandler = (): void => {
       const server = getServerInformationByWebContentsId(event.id);
       const { outlookCredentials } = server;
       const isEncryptionAvailable = await safeStorage.isEncryptionAvailable();
-      let credentials = outlookCredentials;
+      let credentials: OutlookCredentials;
       if (
         !outlookCredentials ||
+        !outlookCredentials !== undefined ||
         !outlookCredentials.userId ||
         !outlookCredentials.serverUrl ||
         !outlookCredentials.login ||
         !outlookCredentials.password
       ) {
-        credentials = await request(
+        const response = await request(
           {
             type: OUTLOOK_CALENDAR_ASK_CREDENTIALS,
             payload: {
@@ -75,9 +78,10 @@ export const startOutlookCalendarUrlHandler = (): void => {
           OUTLOOK_CALENDAR_SET_CREDENTIALS,
           OUTLOOK_CALENDAR_DIALOG_DISMISSED
         );
+        credentials = response?.outlookCredentials;
+      } else {
+        credentials = outlookCredentials;
       }
-
-      console.log('credentials', credentials);
 
       let appointments: AppointmentData[] = [];
       appointments = await getOutlookEvents(credentials, date);

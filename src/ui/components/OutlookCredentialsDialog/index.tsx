@@ -1,5 +1,3 @@
-import { contextIsolated } from 'process';
-
 import {
   Box,
   Button,
@@ -7,13 +5,10 @@ import {
   CheckBox,
   Field,
   FieldGroup,
-  InputBox,
   Label,
   Margins,
   PasswordInput,
-  Scrollable,
   TextInput,
-  Tile,
 } from '@rocket.chat/fuselage';
 import React, { ChangeEvent, FC, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +31,7 @@ export const OutlookCredentialsDialog: FC = () => {
   const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
   const isVisible = openDialog === 'outlook-credentials';
   const dispatch = useDispatch<Dispatch<RootAction>>();
-  const [outlookUsername, setOutlookUsername] = useState('');
+  const [outlookLogin, setOutlookLogin] = useState('');
   const [outlookPassword, setOutlookPassword] = useState('');
   const [server, setServer] = useState<Server | undefined>();
   const [userId, setUserId] = useState<string>('');
@@ -57,8 +52,6 @@ export const OutlookCredentialsDialog: FC = () => {
     [dispatch]
   );
 
-  useEffect(() => console.log('server', server), [server]);
-
   const handleClose = (): void => {
     dispatch({
       type: OUTLOOK_CALENDAR_DIALOG_DISMISSED,
@@ -73,21 +66,22 @@ export const OutlookCredentialsDialog: FC = () => {
     setOutlookPassword(event.currentTarget.value);
   };
 
-  const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    setOutlookUsername(event.currentTarget.value);
+  const handleLoginChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    setOutlookLogin(event.currentTarget.value);
   };
 
   const handleSubmit = (): void => {
-    console.log('handleSubmit');
+    if (!server || !server.outlookCredentials) return;
+
     dispatch({
       type: OUTLOOK_CALENDAR_SET_CREDENTIALS,
       payload: {
-        url: server?.url,
+        url: server.url,
         outlookCredentials: {
-          username: outlookUsername,
+          login: outlookLogin,
           password: outlookPassword,
           userId,
-          serverUrl: server?.outlookCredentials?.serverUrl,
+          serverUrl: server.outlookCredentials.serverUrl,
         },
       },
       meta: {
@@ -107,7 +101,7 @@ export const OutlookCredentialsDialog: FC = () => {
         <Field>
           <Label>{t('Login')}</Label>
           <Field.Row>
-            <TextInput onChange={handleUsernameChange} />
+            <TextInput onChange={handleLoginChange} />
           </Field.Row>
         </Field>
         <Field>

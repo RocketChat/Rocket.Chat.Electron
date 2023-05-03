@@ -24,22 +24,17 @@ export const getOutlookEvents = async (
   credentials: OutlookCredentials,
   date: Date
 ): Promise<AppointmentData[]> => {
-  console.log('[Rocket.Chat Desktop] getOutlookEvents', date, credentials);
-  const outlookUser = process.env.OUTLOOK_USER || 'pierre';
-  const outlookPassword = process.env.OUTLOOK_PASSWORD || '--20CAceta';
-  const outlookServer =
-    process.env.OUTLOOK_SERVER ||
-    'https://owa.dev.rocket.chat/EWS/Exchange.asmx';
+  const { login, password, serverUrl } = credentials;
 
   const xhrApi = new XhrApi({ gzip: true });
-  xhrApi.useNtlmAuthentication(outlookUser, outlookPassword);
+  xhrApi.useNtlmAuthentication(login, password);
 
   ConfigurationApi.ConfigureXHR(xhrApi);
 
   const exchange = new ExchangeService(ExchangeVersion.Exchange2013);
   // This credentials object isn't used when ntlm is active, but the lib still requires it.
-  exchange.Credentials = new WebCredentials(outlookUser, outlookPassword);
-  exchange.Url = new Uri(`${outlookServer}/ews/exchange.asmx`);
+  exchange.Credentials = new WebCredentials(login, password);
+  exchange.Url = new Uri(`${serverUrl}/ews/exchange.asmx`);
 
   const validated_date = new Date(date);
 

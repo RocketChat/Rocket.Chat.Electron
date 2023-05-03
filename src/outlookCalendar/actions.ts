@@ -15,7 +15,11 @@ export type OutlookCalendarActionTypeToPayloadMap = {
     url: Server['url'];
     outlookCredentials: OutlookCredentials;
   };
-  [OUTLOOK_CALENDAR_ASK_CREDENTIALS]: { server: Server; userId: string };
+  [OUTLOOK_CALENDAR_ASK_CREDENTIALS]: {
+    server: Server;
+    userId: string;
+    isEncryptionAvailable: boolean;
+  };
   [OUTLOOK_CALENDAR_DIALOG_DISMISSED]: void;
   [OUTLOOK_CALENDAR_SAVE_CREDENTIALS]: {
     url: Server['url'];

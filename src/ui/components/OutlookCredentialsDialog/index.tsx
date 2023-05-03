@@ -35,6 +35,8 @@ export const OutlookCredentialsDialog: FC = () => {
   const [outlookPassword, setOutlookPassword] = useState('');
   const [server, setServer] = useState<Server | undefined>();
   const [userId, setUserId] = useState<string>('');
+  const [isEncryptionAvailable, setIsEncryptionAvailable] = useState(false);
+  const [saveCredentials, setSaveCredentials] = useState(false);
 
   const requestIdRef = useRef<unknown>();
 
@@ -48,6 +50,7 @@ export const OutlookCredentialsDialog: FC = () => {
         requestIdRef.current = action.meta.id;
         setServer(action.payload.server);
         setUserId(action.payload.userId);
+        setIsEncryptionAvailable(action.payload.isEncryptionAvailable);
       }),
     [dispatch]
   );
@@ -68,6 +71,12 @@ export const OutlookCredentialsDialog: FC = () => {
 
   const handleLoginChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setOutlookLogin(event.currentTarget.value);
+  };
+
+  const handleSaveCredentialsCheckboxChange = (
+    event: ChangeEvent<HTMLInputElement>
+  ): void => {
+    setSaveCredentials(event.target.checked);
   };
 
   const handleSubmit = (): void => {
@@ -110,14 +119,19 @@ export const OutlookCredentialsDialog: FC = () => {
             <PasswordInput onChange={handlePasswordChange} />
           </Field.Row>
         </Field>
-        <Callout title='Security warning' type='warning'>
-          Your credentials will be saved on plain text. Do not share your
-          browser session.
-        </Callout>
-
+        {!isEncryptionAvailable && saveCredentials && (
+          <Callout title='Encryption unavailable' type='warning'>
+            Your operational system don't support encryption. Your credentials
+            will be stored in plain text.
+          </Callout>
+        )}
         <Field>
           <Field.Row>
-            <CheckBox id='check-box' />
+            <CheckBox
+              id='check-box'
+              default={false}
+              onChange={handleSaveCredentialsCheckboxChange}
+            />
             <Field.Label htmlFor='check-box'>
               Remember my credentials
             </Field.Label>

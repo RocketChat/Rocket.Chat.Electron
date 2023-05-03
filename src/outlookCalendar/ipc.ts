@@ -53,7 +53,6 @@ export const startOutlookCalendarUrlHandler = (): void => {
   handle(
     'outlook-calendar/get-events',
     async (event, date: Date): Promise<AppointmentData[]> => {
-      console.log('[Rocket.Chat Desktop] outlook-calendar/get-events', date);
       const server = getServerInformationByWebContentsId(event.id);
       const { outlookCredentials } = server;
       const isEncryptionAvailable = await safeStorage.isEncryptionAvailable();
@@ -78,7 +77,17 @@ export const startOutlookCalendarUrlHandler = (): void => {
           OUTLOOK_CALENDAR_SET_CREDENTIALS,
           OUTLOOK_CALENDAR_DIALOG_DISMISSED
         );
+
         credentials = response?.outlookCredentials;
+        if (response.saveCredentials) {
+          dispatch({
+            type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
+            payload: {
+              url: server.url,
+              outlookCredentials: credentials,
+            },
+          });
+        }
       } else {
         credentials = outlookCredentials;
       }

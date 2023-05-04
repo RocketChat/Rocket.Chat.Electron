@@ -3,5 +3,4 @@ export type OutlookCredentials = {
   serverUrl: string;
   login: string;
   password: string;
-  lastLogin?: EpochTimeStamp;
 };

@@ -1,5 +1,4 @@
-import { ipcMain, safeStorage } from 'electron';
-import { Appointment } from 'ews-javascript-api';
+import { safeStorage } from 'electron';
 
 import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
@@ -22,6 +21,56 @@ const getServerInformationByWebContentsId = (webContentsId: number): Server => {
   );
   return server || ({} as Server);
 };
+
+function validateOutlookCredentials(
+  credentials: any
+): credentials is OutlookCredentials {
+  if (!credentials || typeof credentials !== 'object') {
+    return false;
+  }
+
+  const { login, password, userId, serverUrl } = credentials;
+  if (
+    typeof login !== 'string' ||
+    login === '' ||
+    typeof password !== 'string' ||
+    password === '' ||
+    typeof userId !== 'string' ||
+    userId === '' ||
+    typeof serverUrl !== 'string' ||
+    serverUrl === ''
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function encryptedCredentials(
+  credentials: OutlookCredentials
+): OutlookCredentials {
+  return {
+    ...credentials,
+    login: safeStorage.encryptString(credentials.login).toString('base64'),
+    password: safeStorage
+      .encryptString(credentials.password)
+      .toString('base64'),
+  };
+}
+
+function decryptedCredentials(
+  credentials: OutlookCredentials
+): OutlookCredentials {
+  return {
+    ...credentials,
+    login: safeStorage
+      .decryptString(Buffer.from(credentials.login, 'base64'))
+      .toString(),
+    password: safeStorage
+      .decryptString(Buffer.from(credentials.password, 'base64'))
+      .toString(),
+  };
+}
 
 export const startOutlookCalendarUrlHandler = (): void => {
   handle(
@@ -55,16 +104,17 @@ export const startOutlookCalendarUrlHandler = (): void => {
     async (event, date: Date): Promise<AppointmentData[]> => {
       const server = getServerInformationByWebContentsId(event.id);
       const { outlookCredentials } = server;
-      const isEncryptionAvailable = await safeStorage.isEncryptionAvailable();
-      let credentials: OutlookCredentials;
       if (
         !outlookCredentials ||
-        !outlookCredentials !== undefined ||
         !outlookCredentials.userId ||
-        !outlookCredentials.serverUrl ||
-        !outlookCredentials.login ||
-        !outlookCredentials.password
+        !outlookCredentials.serverUrl
       ) {
+        return Promise.reject(new Error('No credentials'));
+      }
+      const isEncryptionAvailable = await safeStorage.isEncryptionAvailable();
+      let credentials: OutlookCredentials;
+      let saveCredentials = false;
+      if (!validateOutlookCredentials(outlookCredentials)) {
         const response = await request(
           {
             type: OUTLOOK_CALENDAR_ASK_CREDENTIALS,
@@ -78,22 +128,38 @@ export const startOutlookCalendarUrlHandler = (): void => {
           OUTLOOK_CALENDAR_DIALOG_DISMISSED
         );
 
-        credentials = response?.outlookCredentials;
-        if (response.saveCredentials) {
-          dispatch({
-            type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
-            payload: {
-              url: server.url,
-              outlookCredentials: credentials,
-            },
-          });
-        }
+        if (response.dismissDialog === true)
+          return Promise.reject(new Error('Dismissed'));
+        if (!validateOutlookCredentials(response?.outlookCredentials))
+          return Promise.reject(new Error('Invalid credentials'));
+
+        credentials = response.outlookCredentials;
+        saveCredentials = response.saveCredentials || false;
       } else {
-        credentials = outlookCredentials;
+        credentials = isEncryptionAvailable
+          ? decryptedCredentials(outlookCredentials)
+          : outlookCredentials;
       }
 
       let appointments: AppointmentData[] = [];
-      appointments = await getOutlookEvents(credentials, date);
+      try {
+        appointments = await getOutlookEvents(credentials, date);
+      } catch (e) {
+        console.error('error', e);
+        return Promise.reject(e);
+      }
+
+      if (saveCredentials) {
+        dispatch({
+          type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
+          payload: {
+            url: server.url,
+            outlookCredentials: isEncryptionAvailable
+              ? encryptedCredentials(credentials)
+              : credentials,
+          },
+        });
+      }
 
       return appointments;
     }

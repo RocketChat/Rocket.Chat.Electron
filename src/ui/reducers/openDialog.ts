@@ -8,6 +8,7 @@ import {
 import {
   OUTLOOK_CALENDAR_DIALOG_DISMISSED,
   OUTLOOK_CALENDAR_ASK_CREDENTIALS,
+  OUTLOOK_CALENDAR_SET_CREDENTIALS,
 } from '../../outlookCalendar/actions';
 import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../screenSharing/actions';
 import { ActionOf } from '../../store/actions';
@@ -38,7 +39,8 @@ type OpenDialogAction =
   | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED>
   | ActionOf<typeof WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED>
   | ActionOf<typeof OUTLOOK_CALENDAR_ASK_CREDENTIALS>
-  | ActionOf<typeof OUTLOOK_CALENDAR_DIALOG_DISMISSED>;
+  | ActionOf<typeof OUTLOOK_CALENDAR_DIALOG_DISMISSED>
+  | ActionOf<typeof OUTLOOK_CALENDAR_SET_CREDENTIALS>;
 
 export const openDialog: Reducer<string | null, OpenDialogAction> = (
   state = null,
@@ -75,6 +77,7 @@ export const openDialog: Reducer<string | null, OpenDialogAction> = (
     case UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED:
     case UPDATE_DIALOG_INSTALL_BUTTON_CLICKED:
     case OUTLOOK_CALENDAR_DIALOG_DISMISSED:
+    case OUTLOOK_CALENDAR_SET_CREDENTIALS:
       return null;
 
     default:

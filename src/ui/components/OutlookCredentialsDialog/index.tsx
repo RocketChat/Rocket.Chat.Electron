@@ -42,11 +42,10 @@ export const OutlookCredentialsDialog: FC = () => {
 
   useEffect(
     () =>
-      listen(OUTLOOK_CALENDAR_ASK_CREDENTIALS, (action) => {
+      listen(OUTLOOK_CALENDAR_ASK_CREDENTIALS, async (action) => {
         if (!isRequest(action)) {
           return;
         }
-
         requestIdRef.current = action.meta.id;
         setServer(action.payload.server);
         setUserId(action.payload.userId);
@@ -58,6 +57,7 @@ export const OutlookCredentialsDialog: FC = () => {
   const handleClose = (): void => {
     dispatch({
       type: OUTLOOK_CALENDAR_DIALOG_DISMISSED,
+      payload: { dismissDialog: true },
       meta: {
         response: true,
         id: requestIdRef.current,
@@ -92,13 +92,13 @@ export const OutlookCredentialsDialog: FC = () => {
           userId,
           serverUrl: server.outlookCredentials.serverUrl,
         },
+        saveCredentials,
       },
       meta: {
         response: true,
         id: requestIdRef.current,
       },
     });
-    dispatch({ type: OUTLOOK_CALENDAR_DIALOG_DISMISSED });
   };
 
   const { t } = useTranslation();
@@ -121,8 +121,8 @@ export const OutlookCredentialsDialog: FC = () => {
         </Field>
         {!isEncryptionAvailable && saveCredentials && (
           <Callout title='Encryption unavailable' type='warning'>
-            Your operational system don't support encryption. Your credentials
-            will be stored in plain text.
+            Your operational system don't support encryption. <br />
+            Your credentials will be stored in plain text.
           </Callout>
         )}
         <Field>

@@ -14,7 +14,8 @@ export type OutlookCalendarActionTypeToPayloadMap = {
   [OUTLOOK_CALENDAR_SET_CREDENTIALS]: {
     url: Server['url'];
     outlookCredentials: OutlookCredentials;
-    saveCredentials: boolean;
+    saveCredentials?: boolean;
+    dismissDialog?: boolean;
   };
   [OUTLOOK_CALENDAR_ASK_CREDENTIALS]: {
     server: Server;

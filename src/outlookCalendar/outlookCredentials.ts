@@ -1,18 +1,4 @@
 import { safeStorage } from 'electron';
-import {
-  FolderId,
-  CalendarView,
-  DateTime,
-  WellKnownFolderName,
-  Appointment,
-  BasePropertySet,
-  PropertySet,
-  ConfigurationApi,
-  WebCredentials,
-  ExchangeService,
-  ExchangeVersion,
-  Uri,
-} from 'ews-javascript-api';
 
 import { Server } from '../servers/common';
 import { dispatch } from '../store';

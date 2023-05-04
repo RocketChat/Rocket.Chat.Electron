@@ -58,7 +58,6 @@
     "@rocket.chat/fuselage-polyfills": "^0.31.14",
     "@rocket.chat/icons": "^0.31.1",
     "abort-controller": "^3.0.0",
-    "dotenv": "^16.0.3",
     "electron-dl": "^3.5.0",
     "electron-store": "^8.1.0",
     "electron-updater": "^5.3.0",

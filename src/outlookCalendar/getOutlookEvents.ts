@@ -18,8 +18,6 @@ import {
 import type { AppointmentData } from './AppointmentData';
 import { OutlookCredentials } from './type';
 
-require('dotenv').config();
-
 export const getOutlookEvents = async (
   credentials: OutlookCredentials,
   date: Date

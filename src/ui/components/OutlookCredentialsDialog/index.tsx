@@ -80,7 +80,13 @@ export const OutlookCredentialsDialog: FC = () => {
   };
 
   const handleSubmit = (): void => {
-    if (!server || !server.outlookCredentials) return;
+    if (
+      !server ||
+      !server.outlookCredentials ||
+      outlookLogin === '' ||
+      outlookPassword === ''
+    )
+      return;
 
     dispatch({
       type: OUTLOOK_CALENDAR_SET_CREDENTIALS,
@@ -110,13 +116,13 @@ export const OutlookCredentialsDialog: FC = () => {
         <Field>
           <Label>{t('Login')}</Label>
           <Field.Row>
-            <TextInput onChange={handleLoginChange} />
+            <TextInput onChange={handleLoginChange} required />
           </Field.Row>
         </Field>
         <Field>
           <Label>{t('Password')}</Label>
           <Field.Row>
-            <PasswordInput onChange={handlePasswordChange} />
+            <PasswordInput onChange={handlePasswordChange} required />
           </Field.Row>
         </Field>
         {!isEncryptionAvailable && saveCredentials && (
@@ -137,7 +143,7 @@ export const OutlookCredentialsDialog: FC = () => {
             </Field.Label>
           </Field.Row>
         </Field>
-        <Box>
+        <Box display='flex' alignItems='end' justifyContent='space-between'>
           <Margins block='x8'>
             <Button danger onClick={handleClose}>
               {t('Cancel')}

@@ -29,17 +29,46 @@ const start = (): void => {
 
   window.RocketChatDesktop.setServerInfo(serverInfo);
 
+  function versionIsGreaterOrEqualsTo(
+    version1: string,
+    version2: string
+  ): boolean {
+    const v1 = version1.match(/\d+/g)?.map(Number) || [];
+    const v2 = version2.match(/\d+/g)?.map(Number) || [];
+
+    for (let i = 0; i < 3; i++) {
+      const n1 = v1[i] || 0;
+      const n2 = v2[i] || 0;
+
+      if (n1 > n2) {
+        return true;
+      }
+      if (n1 < n2) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   function requireLegacyLibrary(path: string): any {
-    if (serverInfo.version.split('.')[0] >= 6) {
+    if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0')) {
       path += '/client/index.ts';
     }
     return window.require(path);
   }
 
+  const userPresenceRequire: string = versionIsGreaterOrEqualsTo(
+    serverInfo.version,
+    '6.3.0'
+  )
+    ? 'meteor/rocketchat:user-presence'
+    : 'meteor/konecty:user-presence';
+
   const { Meteor } = window.require('meteor/meteor');
   const { Session } = window.require('meteor/session');
   const { Tracker } = window.require('meteor/tracker');
-  const { UserPresence } = window.require('meteor/konecty:user-presence');
+  const { UserPresence } = window.require(userPresenceRequire);
   const { settings } = requireLegacyLibrary('/app/settings');
   const { getUserPreference } = requireLegacyLibrary('/app/utils');
 

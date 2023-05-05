@@ -22,28 +22,15 @@ const getServerInformationByWebContentsId = (webContentsId: number): Server => {
   return server || ({} as Server);
 };
 
-function validateOutlookCredentials(
-  credentials: any
-): credentials is OutlookCredentials {
-  if (!credentials || typeof credentials !== 'object') {
-    return false;
-  }
-
-  const { login, password, userId, serverUrl } = credentials;
-  if (
-    typeof login !== 'string' ||
-    login === '' ||
-    typeof password !== 'string' ||
-    password === '' ||
-    typeof userId !== 'string' ||
-    userId === '' ||
-    typeof serverUrl !== 'string' ||
-    serverUrl === ''
-  ) {
-    return false;
-  }
-
-  return true;
+function checkIfCredentialsAreNotEmpty(
+  credentials: OutlookCredentials
+): boolean {
+  return (
+    credentials.login.trim() !== '' &&
+    credentials.password.trim() !== '' &&
+    credentials.userId.trim() !== '' &&
+    credentials.serverUrl.trim() !== ''
+  );
 }
 
 function encryptedCredentials(
@@ -111,10 +98,11 @@ export const startOutlookCalendarUrlHandler = (): void => {
       ) {
         return Promise.reject(new Error('No credentials'));
       }
+
       const isEncryptionAvailable = await safeStorage.isEncryptionAvailable();
       let credentials: OutlookCredentials;
       let saveCredentials = false;
-      if (!validateOutlookCredentials(outlookCredentials)) {
+      if (!checkIfCredentialsAreNotEmpty(outlookCredentials)) {
         const response = await request(
           {
             type: OUTLOOK_CALENDAR_ASK_CREDENTIALS,
@@ -130,7 +118,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
 
         if (response.dismissDialog === true)
           return Promise.reject(new Error('Dismissed'));
-        if (!validateOutlookCredentials(response?.outlookCredentials))
+        if (!checkIfCredentialsAreNotEmpty(response?.outlookCredentials))
           return Promise.reject(new Error('Invalid credentials'));
 
         credentials = response.outlookCredentials;

@@ -6,6 +6,7 @@ export type Server = {
   style?: {
     background: string | null;
     color: string | null;
+    border: string | null;
   };
   lastPath?: string;
   failed?: boolean;

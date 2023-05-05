@@ -6,6 +6,7 @@ import { getServerUrl, getAbsoluteUrl } from './urls';
 let timer: ReturnType<typeof setTimeout>;
 let prevBackground: string;
 let prevColor: string;
+let prevBorder: string;
 
 const pollSidebarStyle = (
   referenceElement: Element,
@@ -14,20 +15,28 @@ const pollSidebarStyle = (
   clearTimeout(timer);
 
   document.body.append(referenceElement);
-  const { background, color } = window.getComputedStyle(referenceElement);
+  const { background, color, border } =
+    window.getComputedStyle(referenceElement);
 
   referenceElement.remove();
 
   const newBgg = prevBackground !== background ? background : prevBackground;
   const newColor = prevColor !== color ? color : prevColor;
+  const newBorder = prevBorder !== border ? border : prevBorder;
 
-  if (prevBackground !== background || prevColor !== color) {
+  if (
+    prevBackground !== background ||
+    prevColor !== color ||
+    newBorder !== border
+  ) {
     emit({
       background: newBgg,
       color: newColor,
+      border: newBorder,
     });
     prevBackground = background;
     prevColor = color;
+    prevBorder = border;
   }
 
   timer = setTimeout(() => pollSidebarStyle(referenceElement, emit), 5000);
@@ -41,6 +50,7 @@ const getElement = (): HTMLElement => {
     element.classList.add('rcx-sidebar--main');
     element.style.backgroundColor = 'var(--sidebar-background)';
     element.style.color = 'var(--sidebar-item-text-color)';
+    element.style.border = '1px solid var(--sidebar-border-color)';
     element.style.display = 'none';
   }
 

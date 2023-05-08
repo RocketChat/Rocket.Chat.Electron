@@ -15,3 +15,10 @@ export const getOutlookEvents = async (
 export const setOutlookExchangeUrl = (url: string, userId: string): void => {
   ipcRenderer.invoke('outlook-calendar/set-exchange-url', url, userId);
 };
+
+export const hasOutlookCredentials = async (): Promise<boolean> =>
+  ipcRenderer.invoke('outlook-calendar/has-credentials');
+
+export const clearOutlookCredentials = (): void => {
+  ipcRenderer.invoke('outlook-calendar/clear-credentials');
+};

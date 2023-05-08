@@ -127,8 +127,7 @@ const start = (): void => {
   Tracker.autorun(() => {
     const outlookExchangeUrl = settings.get('Outlook_Calendar_Exchange_Url');
     const userId = Meteor.userId();
-    console.log('[Rocket.Chat Desktop] outlookExchangeUrl', outlookExchangeUrl);
-    if (!outlookExchangeUrl) return;
+    if (!outlookExchangeUrl || !userId) return;
     window.RocketChatDesktop.setOutlookExchangeUrl(outlookExchangeUrl, userId);
   });
 

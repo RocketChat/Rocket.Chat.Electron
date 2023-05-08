@@ -58,30 +58,58 @@ function decryptedCredentials(
   };
 }
 
+export const clearOutlookCredentials = (
+  url: Server['url'],
+  outlookCredentials: OutlookCredentials
+): void => {
+  const { userId, serverUrl } = outlookCredentials;
+  dispatch({
+    type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
+    payload: {
+      url,
+      outlookCredentials: {
+        userId,
+        serverUrl,
+        login: '',
+        password: '',
+      },
+    },
+  });
+};
+
 export const startOutlookCalendarUrlHandler = (): void => {
+  handle('outlook-calendar/clear-credentials', async (event) => {
+    const server = getServerInformationByWebContentsId(event.id);
+    if (!server) return;
+    const { outlookCredentials } = server;
+    if (!outlookCredentials) return;
+    clearOutlookCredentials(server.url, outlookCredentials);
+  });
+
   handle(
     'outlook-calendar/set-exchange-url',
     async (event, url: string, userId: string) => {
       const server = getServerInformationByWebContentsId(event.id);
       if (!server) return;
       const { outlookCredentials } = server;
+      if (!outlookCredentials) return;
       if (
         outlookCredentials?.userId !== userId ||
         outlookCredentials?.serverUrl !== url
       ) {
-        dispatch({
-          type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
-          payload: {
-            url: server.url,
-            outlookCredentials: {
-              userId,
-              serverUrl: url,
-              login: '',
-              password: '',
-            },
-          },
-        });
+        clearOutlookCredentials(server.url, outlookCredentials);
       }
+    }
+  );
+
+  handle(
+    'outlook-calendar/has-credentials',
+    async (event): Promise<Promise<boolean>> => {
+      const server = getServerInformationByWebContentsId(event.id);
+      if (!server) return false;
+      const { outlookCredentials } = server;
+      if (!outlookCredentials) return false;
+      return checkIfCredentialsAreNotEmpty(outlookCredentials);
     }
   );
 

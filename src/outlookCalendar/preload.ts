@@ -1,12 +1,15 @@
 import { ipcRenderer } from 'electron';
 
-import { AppointmentData } from './AppointmentData';
+import { OutlookEventsResponse } from './type';
 
 export const getOutlookEvents = async (
   date: Date
-): Promise<AppointmentData[]> => {
-  const events = await ipcRenderer.invoke('outlook-calendar/get-events', date);
-  return events;
+): Promise<OutlookEventsResponse> => {
+  const response = await ipcRenderer.invoke(
+    'outlook-calendar/get-events',
+    date
+  );
+  return response;
 };
 
 export const setOutlookExchangeUrl = (url: string, userId: string): void => {

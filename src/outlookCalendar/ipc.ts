@@ -4,7 +4,6 @@ import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
 import { Server } from '../servers/common';
 import { dispatch, request, select } from '../store';
-import { AppointmentData } from './AppointmentData';
 import {
   OUTLOOK_CALENDAR_SET_CREDENTIALS,
   OUTLOOK_CALENDAR_ASK_CREDENTIALS,
@@ -12,7 +11,7 @@ import {
   OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
 } from './actions';
 import { getOutlookEvents } from './getOutlookEvents';
-import { OutlookCredentials } from './type';
+import type { OutlookCredentials, AppointmentData, OutlookEventsResponse } from './type';
 
 const getServerInformationByWebContentsId = (webContentsId: number): Server => {
   const { servers } = select(selectPersistableValues);
@@ -88,7 +87,8 @@ export const startOutlookCalendarUrlHandler = (): void => {
 
   handle(
     'outlook-calendar/get-events',
-    async (event, date: Date): Promise<AppointmentData[]> => {
+    async (event, date: Date): Promise<OutlookEventsResponse> => {
+      console.log('get-events');
       const server = getServerInformationByWebContentsId(event.id);
       const { outlookCredentials } = server;
       if (
@@ -116,10 +116,15 @@ export const startOutlookCalendarUrlHandler = (): void => {
           OUTLOOK_CALENDAR_DIALOG_DISMISSED
         );
 
-        if (response.dismissDialog === true)
-          return Promise.reject(new Error('Dismissed'));
-        if (!checkIfCredentialsAreNotEmpty(response?.outlookCredentials))
+        if (response.dismissDialog === true) {
+          return {
+            status: 'canceled',
+          };
+        }
+
+        if (!checkIfCredentialsAreNotEmpty(response?.outlookCredentials)) {
           return Promise.reject(new Error('Invalid credentials'));
+        }
 
         credentials = response.outlookCredentials;
         saveCredentials = response.saveCredentials || false;
@@ -149,7 +154,10 @@ export const startOutlookCalendarUrlHandler = (): void => {
         });
       }
 
-      return appointments;
+      return {
+        status: 'success',
+        data: appointments,
+      };
     }
   );
 };

@@ -1,7 +1,7 @@
 import { AnyAction } from 'redux';
 
 import { Download } from '../downloads/common';
-import { AppointmentData } from '../outlookCalendar/AppointmentData';
+import { OutlookEventsResponse } from '../outlookCalendar/type';
 import { Server } from '../servers/common';
 import { SystemIdleState } from '../userPresence/common';
 
@@ -35,7 +35,7 @@ type ChannelToArgsMap = {
   'desktop-capturer-get-sources': (
     options: Electron.SourcesOptions
   ) => Electron.DesktopCapturerSource[];
-  'outlook-calendar/get-events': (date: Date) => AppointmentData[];
+  'outlook-calendar/get-events': (date: Date) => OutlookEventsResponse;
   'outlook-calendar/set-exchange-url': (url: string, userId: string) => void;
 };
 

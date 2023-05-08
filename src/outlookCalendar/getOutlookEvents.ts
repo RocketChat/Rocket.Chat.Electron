@@ -15,8 +15,7 @@ import {
   Uri,
 } from 'ews-javascript-api';
 
-import type { AppointmentData } from './AppointmentData';
-import { OutlookCredentials } from './type';
+import type { OutlookCredentials, AppointmentData } from './type';
 
 export const getOutlookEvents = async (
   credentials: OutlookCredentials,

@@ -2,11 +2,11 @@ import {
   createNotification,
   destroyNotification,
 } from '../../notifications/preload';
-import type { AppointmentData } from '../../outlookCalendar/AppointmentData';
 import {
   getOutlookEvents,
   setOutlookExchangeUrl,
 } from '../../outlookCalendar/preload';
+import type { OutlookEventsResponse } from '../../outlookCalendar/type';
 import { setUserPresenceDetection } from '../../userPresence/preload';
 import { Server } from '../common';
 import { setBadge } from './badge';
@@ -55,7 +55,7 @@ export type RocketChatDesktopAPI = {
   openInternalVideoChatWindow: (url: string, options: undefined) => void;
   setGitCommitHash: (gitCommitHash: string) => void;
   writeTextToClipboard: (text: string) => void;
-  getOutlookEvents: (date: Date) => Promise<AppointmentData[]>;
+  getOutlookEvents: (date: Date) => Promise<OutlookEventsResponse>;
   setOutlookExchangeUrl: (url: string, userId: string) => void;
 };
 

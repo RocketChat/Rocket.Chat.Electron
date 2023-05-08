@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app } from 'electron';
+import { BrowserWindow, app, autoUpdater as nativeUpdater } from 'electron';
 import { autoUpdater } from 'electron-updater';
 
 import { listen, dispatch, select } from '../store';
@@ -214,6 +214,14 @@ export const setupUpdates = async (): Promise<void> => {
     dispatch({ type: UPDATES_NEW_VERSION_NOT_AVAILABLE });
   });
 
+  const nativeUpdateDownloadedCallback = () => {
+    nativeUpdater.removeListener(
+      'update-downloaded',
+      nativeUpdateDownloadedCallback
+    );
+    nativeUpdater.quitAndInstall();
+  };
+
   autoUpdater.addListener('update-downloaded', async () => {
     const response = await askUpdateInstall();
 
@@ -223,8 +231,16 @@ export const setupUpdates = async (): Promise<void> => {
     }
 
     try {
-      app.removeAllListeners('window-all-closed');
-      autoUpdater.quitAndInstall(true, true);
+      setImmediate(() => {
+        app.removeAllListeners('window-all-closed');
+        const allBrowserWindows = BrowserWindow.getAllWindows();
+        allBrowserWindows.forEach((browserWindow) => {
+          browserWindow.removeAllListeners('close');
+          browserWindow.destroy();
+        });
+        nativeUpdater.checkForUpdates();
+        nativeUpdater.on('update-downloaded', nativeUpdateDownloadedCallback);
+      });
     } catch (error) {
       error instanceof Error &&
         dispatch({

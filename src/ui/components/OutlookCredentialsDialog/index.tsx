@@ -137,6 +137,9 @@ export const OutlookCredentialsDialog: FC = () => {
         id: requestIdRef.current,
       },
     });
+
+    setOutlookLogin({ value: '', required: false });
+    setOutlookPassword({ value: '', required: false });
   };
 
   const { t } = useTranslation();
@@ -152,6 +155,7 @@ export const OutlookCredentialsDialog: FC = () => {
               onChange={handleInputChange(setOutlookLogin)}
               onBlur={handleInputBlur(setOutlookLogin)}
               required={outlookLogin.required}
+              value={outlookLogin.value}
             />
           </Field.Row>
           {outlookLogin.required && (
@@ -164,6 +168,7 @@ export const OutlookCredentialsDialog: FC = () => {
             <PasswordInput
               onChange={handleInputChange(setOutlookPassword)}
               onBlur={handleInputBlur(setOutlookPassword)}
+              value={outlookPassword.value}
               required={outlookPassword.required}
             />
           </Field.Row>

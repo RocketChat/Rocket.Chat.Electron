@@ -31,14 +31,33 @@ export const OutlookCredentialsDialog: FC = () => {
   const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
   const isVisible = openDialog === 'outlook-credentials';
   const dispatch = useDispatch<Dispatch<RootAction>>();
-  const [outlookLogin, setOutlookLogin] = useState('');
-  const [outlookPassword, setOutlookPassword] = useState('');
   const [server, setServer] = useState<Server | undefined>();
   const [userId, setUserId] = useState<string>('');
   const [isEncryptionAvailable, setIsEncryptionAvailable] = useState(false);
   const [saveCredentials, setSaveCredentials] = useState(false);
 
   const requestIdRef = useRef<unknown>();
+
+  const [outlookLogin, setOutlookLogin] = useState<InputState>({
+    value: '',
+    required: false,
+  });
+  const [outlookPassword, setOutlookPassword] = useState<InputState>({
+    value: '',
+    required: false,
+  });
+
+  function handleInputChange(
+    setState: React.Dispatch<React.SetStateAction<InputState>>
+  ) {
+    return function (event: React.ChangeEvent<HTMLInputElement>) {
+      setState((prevState) => ({
+        ...prevState,
+        value: event.target.value,
+        required: event.target.value.trim() === '',
+      }));
+    };
+  }
 
   useEffect(
     () =>
@@ -54,7 +73,7 @@ export const OutlookCredentialsDialog: FC = () => {
     [dispatch]
   );
 
-  const handleClose = (): void => {
+  const handleCancel = (): void => {
     dispatch({
       type: OUTLOOK_CALENDAR_DIALOG_DISMISSED,
       payload: { dismissDialog: true },
@@ -65,13 +84,10 @@ export const OutlookCredentialsDialog: FC = () => {
     });
   };
 
-  const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    setOutlookPassword(event.currentTarget.value);
-  };
-
-  const handleLoginChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    setOutlookLogin(event.currentTarget.value);
-  };
+  interface InputState {
+    value: string;
+    required: boolean;
+  }
 
   const handleSaveCredentialsCheckboxChange = (
     event: ChangeEvent<HTMLInputElement>
@@ -79,22 +95,38 @@ export const OutlookCredentialsDialog: FC = () => {
     setSaveCredentials(event.target.checked);
   };
 
-  const handleSubmit = (): void => {
+  function handleInputBlur(
+    setState: React.Dispatch<React.SetStateAction<InputState>>
+  ) {
+    return function () {
+      console.log('handleInputBlur');
+      setState((prevState) => ({
+        ...prevState,
+        required: prevState.value.trim() === '',
+      }));
+    };
+  }
+
+  const handleSubmit = async (): Promise<void> => {
     if (
       !server ||
       !server.outlookCredentials ||
-      outlookLogin === '' ||
-      outlookPassword === ''
-    )
+      outlookLogin.value === '' ||
+      outlookPassword.value === ''
+    ) {
+      console.log('empty fields');
+      handleInputBlur(setOutlookLogin)();
+      handleInputBlur(setOutlookPassword)();
       return;
+    }
 
     dispatch({
       type: OUTLOOK_CALENDAR_SET_CREDENTIALS,
       payload: {
         url: server.url,
         outlookCredentials: {
-          login: outlookLogin,
-          password: outlookPassword,
+          login: outlookLogin.value,
+          password: outlookPassword.value,
           userId,
           serverUrl: server.outlookCredentials.serverUrl,
         },
@@ -110,20 +142,34 @@ export const OutlookCredentialsDialog: FC = () => {
   const { t } = useTranslation();
 
   return (
-    <Dialog isVisible={isVisible} onClose={handleClose}>
+    <Dialog isVisible={isVisible} onClose={handleCancel}>
       <Box fontScale='h3'>Please enter your Outlook credentials</Box>
       <FieldGroup>
         <Field>
           <Label>{t('Login')}</Label>
           <Field.Row>
-            <TextInput onChange={handleLoginChange} required />
+            <TextInput
+              onChange={handleInputChange(setOutlookLogin)}
+              onBlur={handleInputBlur(setOutlookLogin)}
+              required={outlookLogin.required}
+            />
           </Field.Row>
+          {outlookLogin.required && (
+            <Field.Error>{t('Field_required')}</Field.Error>
+          )}
         </Field>
         <Field>
           <Label>{t('Password')}</Label>
           <Field.Row>
-            <PasswordInput onChange={handlePasswordChange} required />
+            <PasswordInput
+              onChange={handleInputChange(setOutlookPassword)}
+              onBlur={handleInputBlur(setOutlookPassword)}
+              required={outlookPassword.required}
+            />
           </Field.Row>
+          {outlookPassword.required && (
+            <Field.Error>{t('Field_required')}</Field.Error>
+          )}
         </Field>
         {!isEncryptionAvailable && saveCredentials && (
           <Callout title='Encryption unavailable' type='warning'>
@@ -145,7 +191,7 @@ export const OutlookCredentialsDialog: FC = () => {
         </Field>
         <Box display='flex' alignItems='end' justifyContent='space-between'>
           <Margins block='x8'>
-            <Button danger onClick={handleClose}>
+            <Button danger onClick={handleCancel}>
               {t('Cancel')}
             </Button>
             <Button primary onClick={handleSubmit}>

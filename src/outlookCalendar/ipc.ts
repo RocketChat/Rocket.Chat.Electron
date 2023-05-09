@@ -11,7 +11,11 @@ import {
   OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
 } from './actions';
 import { getOutlookEvents } from './getOutlookEvents';
-import type { OutlookCredentials, AppointmentData, OutlookEventsResponse } from './type';
+import type {
+  OutlookCredentials,
+  AppointmentData,
+  OutlookEventsResponse,
+} from './type';
 
 const getServerInformationByWebContentsId = (webContentsId: number): Server => {
   const { servers } = select(selectPersistableValues);
@@ -58,46 +62,49 @@ function decryptedCredentials(
   };
 }
 
-export const clearOutlookCredentials = (
-  url: Server['url'],
-  outlookCredentials: OutlookCredentials
-): void => {
-  const { userId, serverUrl } = outlookCredentials;
-  dispatch({
-    type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
-    payload: {
-      url,
-      outlookCredentials: {
-        userId,
-        serverUrl,
-        login: '',
-        password: '',
-      },
-    },
-  });
-};
-
 export const startOutlookCalendarUrlHandler = (): void => {
   handle('outlook-calendar/clear-credentials', async (event) => {
     const server = getServerInformationByWebContentsId(event.id);
     if (!server) return;
     const { outlookCredentials } = server;
     if (!outlookCredentials) return;
-    clearOutlookCredentials(server.url, outlookCredentials);
+    dispatch({
+      type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
+      payload: {
+        url: server.url,
+        outlookCredentials: {
+          userId: outlookCredentials.userId,
+          serverUrl: outlookCredentials.serverUrl,
+          login: '',
+          password: '',
+        },
+      },
+    });
   });
 
   handle(
     'outlook-calendar/set-exchange-url',
     async (event, url: string, userId: string) => {
+      console.log('handle set-exchange-url', url, userId);
       const server = getServerInformationByWebContentsId(event.id);
       if (!server) return;
       const { outlookCredentials } = server;
-      if (!outlookCredentials) return;
       if (
         outlookCredentials?.userId !== userId ||
         outlookCredentials?.serverUrl !== url
       ) {
-        clearOutlookCredentials(server.url, outlookCredentials);
+        dispatch({
+          type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
+          payload: {
+            url: server.url,
+            outlookCredentials: {
+              userId,
+              serverUrl: url,
+              login: '',
+              password: '',
+            },
+          },
+        });
       }
     }
   );

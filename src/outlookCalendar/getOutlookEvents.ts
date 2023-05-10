@@ -61,18 +61,21 @@ export const getOutlookEvents = async (
       console.error(error);
       return Promise.reject(error);
     }
-
     // Filter out appointments that end exactly at midnight
     const filtered = appointments.filter(
       (appointment) => appointment.End > minTime
     );
 
-    if (appointments.length === 0) {
+    if (filtered.length === 0) {
       return [];
     }
 
     const propertySet = new PropertySet(BasePropertySet.FirstClassProperties);
-    await exchange.LoadPropertiesForItems(filtered, propertySet);
+    try {
+      await exchange.LoadPropertiesForItems(filtered, propertySet);
+    } catch (error) {
+      return Promise.reject(error);
+    }
     return filtered.map<AppointmentData>((appointment) => ({
       id: appointment.Id.UniqueId,
       subject: appointment.Subject,

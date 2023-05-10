@@ -115,7 +115,18 @@
       "dontAskAgain": "Always allow video calls from this server to capture your screen",
       "yes": "Allow",
       "no": "Cancel"
+    },
+    "outlookCalendar": {
+      "title": "Outlook Calendar app",
+      "encryptionUnavailableTitle": "Encryption unavailable",
+      "encryptionUnavailable": "Your operational system don't support encryption.\nYour credentials will be stored in plain text.",
+      "field_required": "This field is required",
+      "remember_credentials": "Remember my credentials",
+      "cancel":" Cancel",
+      "submit": "Submit"
+
     }
+
   },
   "downloads": {
     "title": "Downloads",

@@ -114,13 +114,14 @@ export const OutlookCredentialsDialog: FC = () => {
     });
     resetField('password');
     resetField('login');
+    resetField('rememberCredentials');
   };
 
   return (
     <Dialog isVisible={isVisible} onClose={handleCancel}>
-      <Box minWidth='x336'>
+      <Box width='x336'>
         <Box fontScale='h3' mbe='x16'>
-          Outlook Calendar app
+          {t('dialog.outlookCalendar.title')}
         </Box>
         <FieldGroup>
           <Field>
@@ -128,7 +129,11 @@ export const OutlookCredentialsDialog: FC = () => {
             <Field.Row>
               <TextInput {...register('login', { required: true })} />
             </Field.Row>
-            {errors.login && <Field.Error>{t('Field_required')}</Field.Error>}
+            {errors.login && (
+              <Field.Error>
+                {t('dialog.outlookCalendar.field_required')}
+              </Field.Error>
+            )}
           </Field>
           <Field>
             <Label>{t('Password')}</Label>
@@ -136,13 +141,17 @@ export const OutlookCredentialsDialog: FC = () => {
               <PasswordInput {...register('password', { required: true })} />
             </Field.Row>
             {errors.password && (
-              <Field.Error>{t('Field_required')}</Field.Error>
+              <Field.Error>
+                {t('dialog.outlookCalendar.field_required')}
+              </Field.Error>
             )}
           </Field>
           {!isEncryptionAvailable && rememberCredentials && (
-            <Callout title='Encryption unavailable' type='warning'>
-              Your operational system don't support encryption. <br />
-              Your credentials will be stored in plain text.
+            <Callout
+              title={t('dialog.outlookCalendar.encryptionUnavailableTitle')}
+              type='warning'
+            >
+              {t('dialog.outlookCalendar.encryptionUnavailable')}
             </Callout>
           )}
           <Field>
@@ -160,20 +169,22 @@ export const OutlookCredentialsDialog: FC = () => {
                 )}
               />
               <Field.Label htmlFor='check-box'>
-                {t('Remember_my_credentials')}
+                {t('dialog.outlookCalendar.remember_credentials')}
               </Field.Label>
             </Field.Row>
           </Field>
           <Box display='flex' alignItems='end' justifyContent='space-between'>
             <Margins block='x8'>
               <ButtonGroup>
-                <Button onClick={handleCancel}>{t('Cancel')}</Button>
+                <Button onClick={handleCancel}>
+                  {t('dialog.outlookCalendar.cancel')}
+                </Button>
                 <Button
                   primary
                   disabled={isSubmitting}
                   onClick={handleSubmit(handleAuth)}
                 >
-                  {t('Submit')}
+                  {t('dialog.outlookCalendar.submit')}
                 </Button>
               </ButtonGroup>
             </Margins>

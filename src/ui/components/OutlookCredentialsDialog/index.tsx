@@ -47,6 +47,20 @@ export const OutlookCredentialsDialog: FC = () => {
   const [userId, setUserId] = useState<string>('');
   const [isEncryptionAvailable, setIsEncryptionAvailable] = useState(false);
 
+  const {
+    register,
+    handleSubmit,
+    watch,
+    control,
+    resetField,
+    formState: { errors, isSubmitting },
+  } = useForm<AuthPayload>({
+    mode: 'onChange',
+    defaultValues: { rememberCredentials: false },
+  });
+
+  const { rememberCredentials } = watch();
+
   useEffect(
     () =>
       listen(OUTLOOK_CALENDAR_ASK_CREDENTIALS, async (action) => {
@@ -77,7 +91,7 @@ export const OutlookCredentialsDialog: FC = () => {
     password,
     rememberCredentials,
   }: AuthPayload): Promise<void> => {
-    if (!server && !server?.outlookCredentials) {
+    if (!server || !server?.outlookCredentials) {
       return;
     }
 
@@ -98,20 +112,9 @@ export const OutlookCredentialsDialog: FC = () => {
         id: requestIdRef.current,
       },
     });
+    resetField('password');
+    resetField('login');
   };
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    control,
-    formState: { errors, isSubmitting },
-  } = useForm<AuthPayload>({
-    mode: 'onChange',
-    defaultValues: { rememberCredentials: false },
-  });
-
-  const { rememberCredentials } = watch();
 
   return (
     <Dialog isVisible={isVisible} onClose={handleCancel}>

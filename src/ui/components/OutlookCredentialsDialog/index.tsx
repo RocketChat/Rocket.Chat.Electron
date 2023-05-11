@@ -84,7 +84,18 @@ export const OutlookCredentialsDialog: FC = () => {
         id: requestIdRef.current,
       },
     });
+
+    resetField('password');
+    resetField('login');
+    resetField('rememberCredentials');
   };
+
+  useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
+    window.focus();
+  }, [isVisible]);
 
   const handleAuth = async ({
     login,

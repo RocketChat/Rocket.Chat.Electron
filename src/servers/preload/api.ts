@@ -7,6 +7,7 @@ import {
   setOutlookExchangeUrl,
   hasOutlookCredentials,
   clearOutlookCredentials,
+  setUserToken,
 } from '../../outlookCalendar/preload';
 import type { OutlookEventsResponse } from '../../outlookCalendar/type';
 import { setUserPresenceDetection } from '../../userPresence/preload';
@@ -61,6 +62,7 @@ export type RocketChatDesktopAPI = {
   setOutlookExchangeUrl: (url: string, userId: string) => void;
   hasOutlookCredentials: () => Promise<boolean>;
   clearOutlookCredentials: () => void;
+  setUserToken: (token: string, userId: string) => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -91,4 +93,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   setOutlookExchangeUrl,
   hasOutlookCredentials,
   clearOutlookCredentials,
+  setUserToken,
 };

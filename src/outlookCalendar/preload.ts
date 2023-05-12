@@ -22,3 +22,8 @@ export const hasOutlookCredentials = async (): Promise<boolean> =>
 export const clearOutlookCredentials = (): void => {
   ipcRenderer.invoke('outlook-calendar/clear-credentials');
 };
+
+export const setUserToken = (token: string, userId: string): void => {
+  console.log('setUserToken on preload', token, userId);
+  ipcRenderer.invoke('outlook-calendar/set-user-token', token, userId);
+};

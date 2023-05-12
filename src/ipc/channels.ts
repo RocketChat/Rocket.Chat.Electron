@@ -39,6 +39,7 @@ type ChannelToArgsMap = {
   'outlook-calendar/set-exchange-url': (url: string, userId: string) => void;
   'outlook-calendar/has-credentials': () => Promise<boolean>;
   'outlook-calendar/clear-credentials': () => void;
+  'outlook-calendar/set-user-token': (token: string, userId: string) => void;
 };
 
 export type Channel = keyof ChannelToArgsMap;

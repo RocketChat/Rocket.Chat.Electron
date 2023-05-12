@@ -62,7 +62,64 @@ function decryptedCredentials(
   };
 }
 
+let recurringSyncTaskId: NodeJS.Timeout;
+
+async function recurringSyncTask(
+  credentials: OutlookCredentials,
+  token: string
+) {
+  try {
+    console.log('recurringSyncTask');
+    console.log('token', token);
+    let appointments: AppointmentData[] = [];
+    try {
+      appointments = await getOutlookEvents(credentials, new Date(Date.now()));
+    } catch (e) {
+      console.error('error', e);
+    }
+    console.log('appointments', appointments);
+    console.log('Recurring task executed');
+  } catch (error) {
+    console.error('Error occurred:', error);
+    clearInterval(recurringSyncTaskId);
+  }
+}
+
+let userRocketApiToken: string;
+
+function startRecurringSyncTask(credentials: OutlookCredentials) {
+  console.log('startRecurringSyncTask');
+  if (!userRocketApiToken) return;
+  console.log('token', userRocketApiToken);
+  recurringSyncTaskId = setInterval(
+    () => recurringSyncTask(credentials, userRocketApiToken),
+    2000
+  );
+}
+
 export const startOutlookCalendarUrlHandler = (): void => {
+  handle('outlook-calendar/set-user-token', async (event, token, userId) => {
+    userRocketApiToken = token;
+    console.log('handle set-user-token', token, userId);
+    const server = getServerInformationByWebContentsId(event.id);
+    if (!server) return;
+    console.log('server', server);
+    const { outlookCredentials } = server;
+    console.log('outlookCredentials', outlookCredentials);
+    if (!outlookCredentials) return;
+    if (outlookCredentials.userId !== userId || !userRocketApiToken) return;
+    console.log('with userId and token', userId, token);
+    if (!checkIfCredentialsAreNotEmpty(outlookCredentials)) return;
+    console.log('with non empty credentials');
+    const isEncryptionAvailable = await safeStorage.isEncryptionAvailable();
+    console.log('isEncryptionAvailable', isEncryptionAvailable);
+    const credentials = isEncryptionAvailable
+      ? decryptedCredentials(outlookCredentials)
+      : outlookCredentials;
+    console.log('creating recurringSyncTask', credentials, token);
+    startRecurringSyncTask(credentials);
+  });
+
   handle('outlook-calendar/clear-credentials', async (event) => {
     const server = getServerInformationByWebContentsId(event.id);
     if (!server) return;
@@ -178,6 +235,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
       }
 
       if (saveCredentials) {
+        startRecurringSyncTask(credentials);
         dispatch({
           type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
           payload: {

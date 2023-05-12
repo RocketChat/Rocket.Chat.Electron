@@ -117,16 +117,14 @@
       "no": "Cancel"
     },
     "outlookCalendar": {
-      "title": "Outlook Calendar app",
+      "title": "Outlook Calendar",
       "encryptionUnavailableTitle": "Encryption unavailable",
       "encryptionUnavailable": "Your operational system don't support encryption.\nYour credentials will be stored in plain text.",
       "field_required": "This field is required",
       "remember_credentials": "Remember my credentials",
       "cancel":" Cancel",
       "submit": "Login"
-
     }
-
   },
   "downloads": {
     "title": "Downloads",

@@ -14,7 +14,10 @@ import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { setupNavigation } from './navigation/main';
 import { setupNotifications } from './notifications/main';
-import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
+import {
+  sendEventsToChatServer,
+  startOutlookCalendarUrlHandler,
+} from './outlookCalendar/ipc';
 import { setupScreenSharing } from './screenSharing/main';
 import { setupServers } from './servers/main';
 import { setupSpellChecking } from './spellChecking/main';

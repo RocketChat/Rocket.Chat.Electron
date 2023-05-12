@@ -125,27 +125,25 @@ const start = (): void => {
   });
 
   Tracker.autorun(() => {
-    const outlookExchangeUrl = settings.get('Outlook_Calendar_Exchange_Url');
-    const userId = Meteor.userId();
-    if (!outlookExchangeUrl || !userId) return;
-    window.RocketChatDesktop.setOutlookExchangeUrl(outlookExchangeUrl, userId);
-  });
-
-  Tracker.autorun(() => {
     const userToken = Meteor._localStorage.getItem('Meteor.loginToken');
     const userId = Meteor.userId();
     const outlookCalendarEnabled = settings.get('Outlook_Calendar_Enabled');
+    const outlookExchangeUrl = settings.get('Outlook_Calendar_Exchange_Url');
     console.log(
       '[Rocket.Chat Desktop] outlookCalendarEnabled',
       outlookCalendarEnabled
     );
     console.log('[Rocket.Chat Desktop] userToken', userToken);
     console.log('[Rocket.Chat Desktop] userId', userId);
-    if (!userToken || !userId || !outlookCalendarEnabled) return;
+    console.log('[Rocket.Chat Desktop] outlookExchangeUrl', outlookExchangeUrl);
+    if (!userToken || !userId || !outlookCalendarEnabled || !outlookExchangeUrl)
+      return;
     console.log(
       '[Rocket.Chat Desktop] window.RocketChatDesktop.setUserToken fired'
     );
     window.RocketChatDesktop.setUserToken(userToken, userId);
+
+    window.RocketChatDesktop.setOutlookExchangeUrl(outlookExchangeUrl, userId);
   });
 
   Tracker.autorun(() => {

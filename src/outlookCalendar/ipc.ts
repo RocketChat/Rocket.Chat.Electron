@@ -1,4 +1,7 @@
-import { safeStorage } from 'electron';
+import { error } from 'console';
+
+import axios from 'axios';
+import { app, safeStorage } from 'electron';
 
 import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
@@ -17,6 +20,8 @@ import type {
   OutlookEventsResponse,
 } from './type';
 
+const isEncryptionAvailable = safeStorage.isEncryptionAvailable();
+
 const getServerInformationByWebContentsId = (webContentsId: number): Server => {
   const { servers } = select(selectPersistableValues);
   const server = servers.find(
@@ -24,6 +29,33 @@ const getServerInformationByWebContentsId = (webContentsId: number): Server => {
   );
   return server || ({} as Server);
 };
+
+export async function sendEventsToChatServer(
+  appointments: AppointmentData[],
+  serverUrl: string,
+  userId: string,
+  token: string
+) {
+  try {
+    const response = await axios.post(
+      `${serverUrl}/api/v1/calendar-events.import`,
+      {
+        appointments,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+          'X-User-Id': userId,
+        },
+      }
+    );
+
+    console.log('Message sent:', response.data);
+  } catch (error) {
+    console.error('Error sending message:', error);
+  }
+}
 
 function checkIfCredentialsAreNotEmpty(
   credentials: OutlookCredentials
@@ -63,19 +95,32 @@ function decryptedCredentials(
 }
 
 let recurringSyncTaskId: NodeJS.Timeout;
+let userAPIToken: string;
 
-async function recurringSyncTask(
-  credentials: OutlookCredentials,
-  token: string
-) {
+async function recurringSyncTask(server: Server) {
   try {
     console.log('recurringSyncTask');
-    console.log('token', token);
+    if (!userAPIToken) throw new Error('No user token');
+    if (!server.outlookCredentials) throw new Error('No credentials');
+    if (!checkIfCredentialsAreNotEmpty(server.outlookCredentials))
+      throw new Error('Credentials are empty');
+
     let appointments: AppointmentData[] = [];
     try {
+      console.log('server.outlookCredentials', server.outlookCredentials);
+      const credentials = isEncryptionAvailable
+        ? decryptedCredentials(server.outlookCredentials)
+        : server.outlookCredentials;
+      console.log('credentials', credentials);
       appointments = await getOutlookEvents(credentials, new Date(Date.now()));
+      sendEventsToChatServer(
+        appointments,
+        server.url,
+        server.outlookCredentials.userId,
+        userAPIToken
+      );
     } catch (e) {
-      console.error('error', e);
+      console.error('Error sending events to server', e);
     }
     console.log('appointments', appointments);
     console.log('Recurring task executed');
@@ -85,39 +130,33 @@ async function recurringSyncTask(
   }
 }
 
-let userRocketApiToken: string;
-
-function startRecurringSyncTask(credentials: OutlookCredentials) {
+function startRecurringSyncTask(server: Server) {
   console.log('startRecurringSyncTask');
-  if (!userRocketApiToken) return;
-  console.log('token', userRocketApiToken);
-  recurringSyncTaskId = setInterval(
-    () => recurringSyncTask(credentials, userRocketApiToken),
-    2000
-  );
+  if (!userAPIToken) return;
+  console.log('token', userAPIToken);
+  recurringSyncTaskId = setInterval(() => recurringSyncTask(server), 2000);
 }
 
 export const startOutlookCalendarUrlHandler = (): void => {
   handle('outlook-calendar/set-user-token', async (event, token, userId) => {
-    userRocketApiToken = token;
     console.log('handle set-user-token', token, userId);
+    userAPIToken = token;
     const server = getServerInformationByWebContentsId(event.id);
     if (!server) return;
     console.log('server', server);
     const { outlookCredentials } = server;
     console.log('outlookCredentials', outlookCredentials);
     if (!outlookCredentials) return;
-    if (outlookCredentials.userId !== userId || !userRocketApiToken) return;
-    console.log('with userId and token', userId, token);
+    if (outlookCredentials.userId !== userId || !userAPIToken) return;
+    console.log('with userId and token', userId, userAPIToken);
     if (!checkIfCredentialsAreNotEmpty(outlookCredentials)) return;
     console.log('with non empty credentials');
-    const isEncryptionAvailable = await safeStorage.isEncryptionAvailable();
     console.log('isEncryptionAvailable', isEncryptionAvailable);
     const credentials = isEncryptionAvailable
       ? decryptedCredentials(outlookCredentials)
       : outlookCredentials;
     console.log('creating recurringSyncTask', credentials, token);
-    startRecurringSyncTask(credentials);
+    startRecurringSyncTask(server);
   });
 
   handle('outlook-calendar/clear-credentials', async (event) => {
@@ -191,7 +230,6 @@ export const startOutlookCalendarUrlHandler = (): void => {
         return Promise.reject(new Error('No credentials'));
       }
 
-      const isEncryptionAvailable = await safeStorage.isEncryptionAvailable();
       let credentials: OutlookCredentials;
       let saveCredentials = false;
       if (!checkIfCredentialsAreNotEmpty(outlookCredentials)) {
@@ -235,7 +273,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
       }
 
       if (saveCredentials) {
-        startRecurringSyncTask(credentials);
+        startRecurringSyncTask(server);
         dispatch({
           type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
           payload: {

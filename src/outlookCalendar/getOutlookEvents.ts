@@ -79,8 +79,8 @@ export const getOutlookEvents = async (
     return filtered.map<AppointmentData>((appointment) => ({
       id: appointment.Id.UniqueId,
       subject: appointment.Subject,
-      startTime: new Date(appointment.Start.ToISOString()),
-      endTime: new Date(appointment.End.ToISOString()),
+      startTime: appointment.Start.ToISOString(),
+      endTime: appointment.End.ToISOString(),
       description: appointment.Body?.Text || '',
       isAllDay: appointment.IsAllDayEvent ?? false,
       isCanceled: appointment.IsCancelled ?? false,
@@ -89,7 +89,7 @@ export const getOutlookEvents = async (
       reminderMinutesBeforeStart:
         appointment.ReminderMinutesBeforeStart ?? undefined,
       reminderDueBy: appointment.ReminderDueBy
-        ? new Date(appointment.ReminderDueBy.ToISOString())
+        ? appointment.ReminderDueBy.ToISOString()
         : undefined,
     }));
   } catch (error) {

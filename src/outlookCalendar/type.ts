@@ -6,10 +6,12 @@ export type OutlookCredentials = {
 };
 
 export type AppointmentData = {
+  externalId?: string;
+  _id?: string;
   id: string;
   subject: string;
-  startTime: Date;
-  endTime: Date;
+  startTime: string;
+  endTime: string;
   description: string;
 
   isAllDay: boolean;
@@ -17,13 +19,12 @@ export type AppointmentData = {
   organizer?: string;
   meetingUrl?: string;
   reminderMinutesBeforeStart?: number;
-  reminderDueBy?: Date;
+  reminderDueBy?: string;
 };
 
 export type OutlookEventsResponse =
   | {
       status: 'success';
-      data: AppointmentData[];
     }
   | {
       status: 'canceled';

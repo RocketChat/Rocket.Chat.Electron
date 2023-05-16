@@ -1,7 +1,5 @@
-import { error } from 'console';
-
 import axios from 'axios';
-import { app, safeStorage } from 'electron';
+import { safeStorage } from 'electron';
 
 import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
@@ -30,17 +28,47 @@ const getServerInformationByWebContentsId = (webContentsId: number): Server => {
   return server || ({} as Server);
 };
 
-export async function sendEventsToChatServer(
-  appointments: AppointmentData[],
+async function listEventsFromRocketChatServer(
   serverUrl: string,
   userId: string,
   token: string
 ) {
   try {
-    const response = await axios.post(
-      `${serverUrl}/api/v1/calendar-events.import`,
+    const response = await axios.get(
+      `${serverUrl}api/v1/calendar-events.list`,
       {
-        appointments,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+          'X-User-Id': userId,
+        },
+        params: {
+          date: new Date().toISOString(),
+        },
+      }
+    );
+    console.log('response', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error sending message:', error);
+  }
+}
+
+async function createEventOnRocketChatServer(
+  serverUrl: string,
+  userId: string,
+  token: string,
+  event: AppointmentData
+) {
+  try {
+    const response = await axios.post(
+      `${serverUrl}api/v1/calendar-events.import`,
+      {
+        externalId: event.id,
+        subject: event.subject,
+        startTime: event.startTime,
+        description: event.description,
+        reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
       },
       {
         headers: {
@@ -50,10 +78,174 @@ export async function sendEventsToChatServer(
         },
       }
     );
-
-    console.log('Message sent:', response.data);
+    console.log('createEventOnRocketChatServer response', response.data);
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error('Error saving event on server:', error);
+  }
+}
+
+async function updateEventOnRocketChatServer(
+  serverUrl: string,
+  userId: string,
+  token: string,
+  rocketChatEventId: string,
+  event: AppointmentData
+) {
+  try {
+    const response = await axios.post(
+      `${serverUrl}api/v1/calendar-events.update`,
+      {
+        eventId: rocketChatEventId,
+        subject: event.subject,
+        startTime: event.startTime,
+        description: event.description,
+        reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+          'X-User-Id': userId,
+        },
+      }
+    );
+    console.log('updateventOnRocketChatServer response');
+  } catch (error) {
+    console.error('Error updating event on server:', error);
+  }
+}
+
+async function deleteEventOnRocketChatServer(
+  serverUrl: string,
+  userId: string,
+  token: string,
+  rocketChatEventId: string
+) {
+  try {
+    const response = await axios.post(
+      `${serverUrl}api/v1/calendar-events.delete`,
+      {
+        eventId: rocketChatEventId,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token,
+          'X-User-Id': userId,
+        },
+      }
+    );
+    console.log('deleteEventOnRocketChatServer response');
+  } catch (error) {
+    console.error('Error deleting event on server:', error);
+  }
+}
+
+export async function syncEventsWithRocketChatServer(
+  server: Server,
+  token: string
+) {
+  if (!server.outlookCredentials) return;
+  const credentials = isEncryptionAvailable
+    ? decryptedCredentials(server.outlookCredentials)
+    : server.outlookCredentials;
+
+  const eventsOnOutlookServer = await getOutlookEvents(
+    credentials,
+    new Date(Date.now())
+  );
+
+  console.log('eventsOnOutlookServer', eventsOnOutlookServer);
+
+  const eventsOnRocketChatServer = await listEventsFromRocketChatServer(
+    server.url,
+    server.outlookCredentials.userId,
+    token
+  );
+  console.log('eventsOnRocketChatServer', eventsOnRocketChatServer.data.length);
+
+  const appointmentsFound = eventsOnOutlookServer.map(
+    (appointment) => appointment.id
+  );
+
+  const externalEventsFromRocketChatServer =
+    eventsOnRocketChatServer?.data.filter(
+      ({ externalId }: { externalId?: string }) => externalId
+    );
+
+  for await (const appointment of eventsOnOutlookServer) {
+    try {
+      console.log('appointment', appointment.id);
+      const alreadyOnRocketChatServer = externalEventsFromRocketChatServer.find(
+        ({ externalId }: { externalId?: string }) =>
+          externalId === appointment.id
+      );
+
+      const {
+        id: externalId,
+        subject,
+        startTime,
+        description,
+        reminderMinutesBeforeStart,
+      } = appointment;
+
+      // If the appointment is not in the rocket.chat calendar for today, add it.
+      if (!alreadyOnRocketChatServer) {
+        console.log('createEventOnRocketChatServer');
+        createEventOnRocketChatServer(
+          server.url,
+          server.outlookCredentials.userId,
+          token,
+          appointment
+        );
+        continue;
+      }
+
+      // If nothing on the event has changed, do nothing.
+      if (
+        alreadyOnRocketChatServer.subject === subject &&
+        alreadyOnRocketChatServer.startTime === startTime &&
+        alreadyOnRocketChatServer.description === description &&
+        alreadyOnRocketChatServer.reminderMinutesBeforeStart ===
+          reminderMinutesBeforeStart
+      ) {
+        console.log('nothing changed');
+        continue;
+      }
+
+      // If the appointment is in the rocket.chat calendar for today, but something has changed, update it.
+      console.log('updateEventOnRocketChatServer');
+      await updateEventOnRocketChatServer(
+        server.url,
+        server.outlookCredentials.userId,
+        token,
+        alreadyOnRocketChatServer._id,
+        appointment
+      );
+    } catch (error) {
+      console.error('Error syncing event:', error);
+    }
+  }
+
+  if (!eventsOnOutlookServer.length) {
+    return;
+  }
+
+  for await (const event of eventsOnRocketChatServer.data) {
+    if (!event.externalId || appointmentsFound.includes(event.externalId)) {
+      continue;
+    }
+
+    try {
+      await deleteEventOnRocketChatServer(
+        server.url,
+        server.outlookCredentials.userId,
+        token,
+        event._id
+      );
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 
@@ -113,12 +305,7 @@ async function recurringSyncTask(server: Server) {
         : server.outlookCredentials;
       console.log('credentials', credentials);
       appointments = await getOutlookEvents(credentials, new Date(Date.now()));
-      sendEventsToChatServer(
-        appointments,
-        server.url,
-        server.outlookCredentials.userId,
-        userAPIToken
-      );
+      syncEventsWithRocketChatServer(server, userAPIToken);
     } catch (e) {
       console.error('Error sending events to server', e);
     }
@@ -130,7 +317,7 @@ async function recurringSyncTask(server: Server) {
   }
 }
 
-function startRecurringSyncTask(server: Server) {
+function startRecurringSyncTask(server: Server, token: string) {
   console.log('startRecurringSyncTask');
   if (!userAPIToken) return;
   console.log('token', userAPIToken);
@@ -156,7 +343,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
       ? decryptedCredentials(outlookCredentials)
       : outlookCredentials;
     console.log('creating recurringSyncTask', credentials, token);
-    startRecurringSyncTask(server);
+    // startRecurringSyncTask(server);
   });
 
   handle('outlook-calendar/clear-credentials', async (event) => {
@@ -218,7 +405,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
 
   handle(
     'outlook-calendar/get-events',
-    async (event, date: Date): Promise<OutlookEventsResponse> => {
+    async (event, _date: Date): Promise<OutlookEventsResponse> => {
       console.log('get-events');
       const server = getServerInformationByWebContentsId(event.id);
       const { outlookCredentials } = server;
@@ -264,16 +451,14 @@ export const startOutlookCalendarUrlHandler = (): void => {
           : outlookCredentials;
       }
 
-      let appointments: AppointmentData[] = [];
       try {
-        appointments = await getOutlookEvents(credentials, date);
+        syncEventsWithRocketChatServer(server, userAPIToken);
       } catch (e) {
-        console.error('error', e);
-        return Promise.reject(e);
+        console.error('Error syncing events with Rocket.Chat server', e);
       }
 
       if (saveCredentials) {
-        startRecurringSyncTask(server);
+        startRecurringSyncTask(server, userAPIToken);
         dispatch({
           type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
           payload: {
@@ -284,10 +469,9 @@ export const startOutlookCalendarUrlHandler = (): void => {
           },
         });
       }
-
+      const appointments: AppointmentData[] = [];
       return {
         status: 'success',
-        data: appointments,
       };
     }
   );

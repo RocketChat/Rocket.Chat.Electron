@@ -7,6 +7,29 @@ let timer: ReturnType<typeof setTimeout>;
 let prevBackground: string;
 let prevColor: string;
 let prevBorder: string;
+let serverVersion: string;
+
+function versionIsGreaterOrEqualsTo(
+  version1: string,
+  version2: string
+): boolean {
+  const v1 = version1.match(/\d+/g)?.map(Number) || [];
+  const v2 = version2.match(/\d+/g)?.map(Number) || [];
+
+  for (let i = 0; i < 3; i++) {
+    const n1 = v1[i] || 0;
+    const n2 = v2[i] || 0;
+
+    if (n1 > n2) {
+      return true;
+    }
+    if (n1 < n2) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 const pollSidebarStyle = (
   referenceElement: Element,
@@ -47,14 +70,22 @@ let element: HTMLElement;
 const getElement = (): HTMLElement => {
   if (!element) {
     element = document.createElement('div');
-    element.classList.add('rcx-sidebar--main');
     element.style.backgroundColor = 'var(--sidebar-background)';
     element.style.color = 'var(--sidebar-item-text-color)';
-    element.style.border = '1px solid var(--sidebar-border-color)';
     element.style.display = 'none';
+    if (versionIsGreaterOrEqualsTo(serverVersion, '6.3.0')) {
+      element.classList.add('rcx-sidebar--main');
+      element.style.border = '1px solid var(--sidebar-border-color)';
+    } else {
+      element.classList.add('sidebar');
+    }
   }
 
   return element;
+};
+
+export const setServerVersionToSidebar = (version: string): void => {
+  serverVersion = version;
 };
 
 export const setBackground = (imageUrl: string): void => {

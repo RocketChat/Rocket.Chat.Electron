@@ -210,13 +210,8 @@ export async function syncEventsWithRocketChatServer(
           externalId === appointment.id
       );
 
-      const {
-        id: externalId,
-        subject,
-        startTime,
-        description,
-        reminderMinutesBeforeStart,
-      } = appointment;
+      const { subject, startTime, description, reminderMinutesBeforeStart } =
+        appointment;
 
       // If the appointment is not in the rocket.chat calendar for today, add it.
       if (!alreadyOnRocketChatServer) {

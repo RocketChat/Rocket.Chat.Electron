@@ -175,22 +175,19 @@ async function deleteEventOnRocketChatServer(
 }
 
 export async function syncEventsWithRocketChatServer(
-  server: Server,
+  serverUrl: string,
+  credentials: OutlookCredentials,
   token: string
 ) {
-  if (!server.outlookCredentials) return;
-  const credentials = isEncryptionAvailable
-    ? decryptedCredentials(server.outlookCredentials)
-    : server.outlookCredentials;
-
+  if (!checkIfCredentialsAreNotEmpty(credentials)) return;
   const eventsOnOutlookServer = await getOutlookEvents(
     credentials,
     new Date(Date.now())
   );
 
   const eventsOnRocketChatServer = await listEventsFromRocketChatServer(
-    server.url,
-    server.outlookCredentials.userId,
+    serverUrl,
+    credentials.userId,
     token
   );
 
@@ -216,8 +213,8 @@ export async function syncEventsWithRocketChatServer(
       // If the appointment is not in the rocket.chat calendar for today, add it.
       if (!alreadyOnRocketChatServer) {
         createEventOnRocketChatServer(
-          server.url,
-          server.outlookCredentials.userId,
+          serverUrl,
+          credentials.userId,
           token,
           appointment
         );
@@ -237,8 +234,8 @@ export async function syncEventsWithRocketChatServer(
 
       // If the appointment is in the rocket.chat calendar for today, but something has changed, update it.
       await updateEventOnRocketChatServer(
-        server.url,
-        server.outlookCredentials.userId,
+        serverUrl,
+        credentials.userId,
         token,
         alreadyOnRocketChatServer._id,
         appointment
@@ -259,8 +256,8 @@ export async function syncEventsWithRocketChatServer(
 
     try {
       await deleteEventOnRocketChatServer(
-        server.url,
-        server.outlookCredentials.userId,
+        serverUrl,
+        credentials.userId,
         token,
         event._id
       );
@@ -273,15 +270,27 @@ export async function syncEventsWithRocketChatServer(
 let recurringSyncTaskId: NodeJS.Timeout;
 let userAPIToken: string;
 
-async function recurringSyncTask(server: Server) {
+async function recurringSyncTask(serverToSync: Server) {
   try {
     console.log('Executing recurring task');
     if (!userAPIToken) throw new Error('No user token');
+    if (!serverToSync.webContentsId) throw new Error('No webContentsId');
+    const server = getServerInformationByWebContentsId(
+      serverToSync.webContentsId
+    );
     if (!server.outlookCredentials) throw new Error('No credentials');
-    if (!checkIfCredentialsAreNotEmpty(server.outlookCredentials))
+    const credentials = isEncryptionAvailable
+      ? decryptedCredentials(server.outlookCredentials)
+      : server.outlookCredentials;
+    console.log('server.outlookCredentials', credentials);
+    if (!checkIfCredentialsAreNotEmpty(credentials))
       throw new Error('Credentials are empty');
     try {
-      await syncEventsWithRocketChatServer(server, userAPIToken);
+      await syncEventsWithRocketChatServer(
+        server.url,
+        credentials,
+        userAPIToken
+      );
       console.log('Recurring task executed successfully');
     } catch (e) {
       console.error('Error sending events to server', e);
@@ -416,7 +425,11 @@ export const startOutlookCalendarUrlHandler = (): void => {
       }
 
       try {
-        syncEventsWithRocketChatServer(server, userAPIToken);
+        await syncEventsWithRocketChatServer(
+          server.url,
+          credentials,
+          userAPIToken
+        );
       } catch (e) {
         console.error('Error syncing events with Rocket.Chat server', e);
       }

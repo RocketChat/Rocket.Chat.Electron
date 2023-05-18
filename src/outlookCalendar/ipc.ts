@@ -270,31 +270,31 @@ export async function syncEventsWithRocketChatServer(
 let recurringSyncTaskId: NodeJS.Timeout;
 let userAPIToken: string;
 
+async function maybeSyncEvents(serverToSync: Server) {
+  if (!userAPIToken) throw new Error('No user token');
+  if (!serverToSync.webContentsId) throw new Error('No webContentsId');
+  const server = getServerInformationByWebContentsId(
+    serverToSync.webContentsId
+  );
+  if (!server.outlookCredentials) throw new Error('No credentials');
+  const credentials = isEncryptionAvailable
+    ? decryptedCredentials(server.outlookCredentials)
+    : server.outlookCredentials;
+
+  if (!checkIfCredentialsAreNotEmpty(credentials))
+    throw new Error('Credentials are empty');
+  try {
+    await syncEventsWithRocketChatServer(server.url, credentials, userAPIToken);
+    console.log('Recurring task executed successfully');
+  } catch (e) {
+    console.error('Error sending events to server', e);
+  }
+}
+
 async function recurringSyncTask(serverToSync: Server) {
   try {
     console.log('Executing recurring task');
-    if (!userAPIToken) throw new Error('No user token');
-    if (!serverToSync.webContentsId) throw new Error('No webContentsId');
-    const server = getServerInformationByWebContentsId(
-      serverToSync.webContentsId
-    );
-    if (!server.outlookCredentials) throw new Error('No credentials');
-    const credentials = isEncryptionAvailable
-      ? decryptedCredentials(server.outlookCredentials)
-      : server.outlookCredentials;
-    console.log('server.outlookCredentials', credentials);
-    if (!checkIfCredentialsAreNotEmpty(credentials))
-      throw new Error('Credentials are empty');
-    try {
-      await syncEventsWithRocketChatServer(
-        server.url,
-        credentials,
-        userAPIToken
-      );
-      console.log('Recurring task executed successfully');
-    } catch (e) {
-      console.error('Error sending events to server', e);
-    }
+    await maybeSyncEvents(serverToSync);
   } catch (error) {
     console.error('Error occurred:', error);
     clearInterval(recurringSyncTaskId);
@@ -319,6 +319,14 @@ export const startOutlookCalendarUrlHandler = (): void => {
     if (outlookCredentials.userId !== userId || !userAPIToken) return;
     if (!checkIfCredentialsAreNotEmpty(outlookCredentials)) return;
     startRecurringSyncTask(server);
+
+    setImmediate(() => {
+      try {
+        maybeSyncEvents(server);
+      } catch (e) {
+        console.error('Failed to sync outlook events on startup.', e);
+      }
+    });
   });
 
   handle('outlook-calendar/clear-credentials', async (event) => {

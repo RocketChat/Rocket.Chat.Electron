@@ -432,6 +432,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
         );
       } catch (e) {
         console.error('Error syncing events with Rocket.Chat server', e);
+        return Promise.reject(e);
       }
 
       if (saveCredentials) {

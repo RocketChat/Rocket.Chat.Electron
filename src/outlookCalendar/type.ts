@@ -22,10 +22,4 @@ export type AppointmentData = {
   reminderDueBy?: string;
 };
 
-export type OutlookEventsResponse =
-  | {
-      status: 'success';
-    }
-  | {
-      status: 'canceled';
-    };
+export type OutlookEventsResponse = { status: 'success' | 'canceled' };

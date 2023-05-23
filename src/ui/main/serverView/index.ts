@@ -4,6 +4,7 @@ import path from 'path';
 import {
   app,
   BrowserWindow,
+  clipboard,
   ContextMenuParams,
   dialog,
   Event,
@@ -213,6 +214,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
             ? {
                 webPreferences: {
                   preload: path.join(app.getAppPath(), 'app/preload.js'),
+                  sandbox: false,
                 },
               }
             : {}),
@@ -385,6 +387,14 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         click: () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
           guestWebContents?.openDevTools();
+        },
+      },
+      {
+        label: t('sidebar.item.copyCurrentUrl'),
+        click: async () => {
+          const guestWebContents = getWebContentsByServerUrl(serverUrl);
+          const currentUrl = await guestWebContents?.getURL();
+          clipboard.writeText(currentUrl || '');
         },
       },
       {

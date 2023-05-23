@@ -7,6 +7,7 @@ type WrapperProps = {
   sideBarStyle: {
     background?: string;
     color?: string;
+    border?: string;
   };
   isVisible: boolean;
 };
@@ -33,6 +34,10 @@ export const Wrapper = styled.div<WrapperProps>`
     css`
       color: ${color ?? '#ffffff'};
     `}
+  ${({ sideBarStyle: { border } }) =>
+    css`
+      border: ${border ?? 'none'};
+    `}
 	${({ isVisible }) =>
     !isVisible &&
     css`
@@ -50,7 +55,6 @@ export const Content = styled.div<ContentProps>`
   flex-direction: column;
   flex: 1 1 0;
   padding-top: 10px;
-  background-color: rgba(0, 0, 0, 0.1);
   align-items: stretch;
 
   ${({ withWindowButtons }) =>

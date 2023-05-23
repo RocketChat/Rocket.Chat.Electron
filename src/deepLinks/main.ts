@@ -2,6 +2,10 @@ import { URL } from 'url';
 
 import { app, WebContents } from 'electron';
 
+import {
+  electronBuilderJsonInformation,
+  packageJsonInformation,
+} from '../app/main/app';
 import { ServerUrlResolutionStatus } from '../servers/common';
 import { resolveServerUrl } from '../servers/main';
 import { select, dispatch } from '../store';
@@ -13,11 +17,12 @@ import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
 import { DEEP_LINKS_SERVER_FOCUSED, DEEP_LINKS_SERVER_ADDED } from './actions';
 
-const isRocketChatUrl = (parsedUrl: URL): boolean =>
-  parsedUrl.protocol === 'rocketchat:';
+const isDefinedProtocol = (parsedUrl: URL): boolean =>
+  parsedUrl.protocol === `${electronBuilderJsonInformation.protocol}:`;
 
-const isGoRocketChatUrl = (parsedUrl: URL): boolean =>
-  parsedUrl.protocol === 'https:' && parsedUrl.hostname === 'go.rocket.chat';
+const isGoUrlShortener = (parsedUrl: URL): boolean =>
+  parsedUrl.protocol === 'https:' &&
+  parsedUrl.hostname === packageJsonInformation.goUrlShortener;
 
 const parseDeepLink = (
   input: string
@@ -35,13 +40,13 @@ const parseDeepLink = (
     return null;
   }
 
-  if (isRocketChatUrl(url)) {
+  if (isDefinedProtocol(url)) {
     const action = url.hostname;
     const args = url.searchParams;
     return { action, args };
   }
 
-  if (isGoRocketChatUrl(url)) {
+  if (isGoUrlShortener(url)) {
     const action = url.pathname;
     const args = url.searchParams;
     return { action, args };

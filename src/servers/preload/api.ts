@@ -12,7 +12,7 @@ import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
-import { setBackground } from './sidebar';
+import { setBackground, setServerVersionToSidebar } from './sidebar';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
@@ -62,6 +62,7 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   setServerInfo: (_serverInfo) => {
     serverInfo = _serverInfo;
     cb(_serverInfo);
+    setServerVersionToSidebar(_serverInfo.version);
   },
   setUrlResolver,
   setBadge,

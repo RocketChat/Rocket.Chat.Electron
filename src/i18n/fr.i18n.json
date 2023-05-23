@@ -54,6 +54,12 @@
       "yes": "Oui",
       "cancel": "Annuler"
     },
+    "clearPermittedScreenCaptureServers": {
+      "title": "Effacer les serveurs de capture d'écran autorisés",
+      "message": "Cela effacera toutes les autorisations pour les serveurs de capture d'écran, les obligeant à redemander l'autorisation. Ça ne peut pas être annulé.",
+      "yes": "Oui",
+      "cancel": "Annuler"
+    },
     "screenshare": {
       "title": "Partagez votre écran",
       "announcement": "Sélectionnez un écran à partager"
@@ -103,7 +109,7 @@
       "no": "Non"
     },
     "allowVideoCallCaptureScreen": {
-      "title": "L'appel vidéo tente de capturer votre écran",
+      "title": "L'appel vidéo essaie de capturer votre écran",
       "message": "L'appel vidéo demande la permission de capturer votre écran.",
       "detail": "Le serveur d'appels vidéo {{- url }} nécessite une autorisation pour partager votre écran avec d'autres personnes.",
       "dontAskAgain": "Toujours autoriser les appels vidéo de ce serveur pour capturer votre écran",
@@ -113,6 +119,14 @@
   },
   "downloads": {
     "title": "Téléchargements",
+    "notifications": {
+      "downloadFinished": "Téléchargement terminé",
+      "downloadInterrupted": "Téléchargement interrompu",
+      "downloadCancelled": "Téléchargement annulé",
+      "downloadFailed": "Echec du téléchargement",
+      "downloadExpired": "Téléchargement expiré",
+      "downloadExpiredMessage": "Veuillez réessayer le téléchargement à partir de la source."
+    },
     "filters": {
       "search": "Rechercher",
       "server": "Serveur",
@@ -145,8 +159,20 @@
     },
     "showingResults": "Affichage des résultats {{first}} - {{last}} de {{count}}"
   },
+  "certificatesManager": {
+    "title": "Gestionnaire de certificats",
+    "trustedCertificates": "Certificats de confiance",
+    "notTrustedCertificates": "Certificats non fiables",
+    "item": {
+      "domain": "Domaine",
+      "actions": "Actions",
+      "remove": "Supprimer"
+    }
+  },
   "settings": {
     "title": "Paramètres",
+    "general": "Général",
+    "certificates": "Certificats",
     "options": {
       "report": {
         "title": "Signaler les erreurs aux développeurs",
@@ -155,8 +181,14 @@
       },
       "flashFrame": {
         "title": "Activer le cadre Flash",
+        "titleDarwin": "Basculer le Dock Bounce en cas d'alerte",
         "description": "Clignote la fenêtre pour attirer l'attention de l'utilisateur.",
-        "onLinux": "Certaines distributions Linux ne prennent pas en charge cette fonctionnalité."
+        "onLinux": "Certaines distributions Linux ne prennent pas en charge cette fonctionnalité.",
+        "descriptionDarwin": "Fait rebondir l'icône de l'application dans le dock pour attirer l'attention de l'utilisateur."
+      },
+      "hardwareAcceleration": {
+        "title": "Accélération matérielle",
+        "description": "Active l'utilisation de l'accélération matérielle lorsqu'elle est disponible. L'application se rechargera en cas de changement."
       },
       "internalVideoChatWindow": {
         "title": "Ouvrir le chat vidéo à l'aide de la fenêtre de l'application",
@@ -166,6 +198,22 @@
       "minimizeOnClose": {
         "title": "Minimiser à la fermeture",
         "description": "Une fois fermée, l'application sera minimisée, sinon elle quittera l'application. L'icône de la barre d'état doit être désactivée pour que cela prenne effet."
+      },
+      "menubar": {
+        "title": "Barre de menu",
+        "description": "Afficher la barre de menus en haut de la fenêtre."
+      },
+      "sidebar": {
+        "title": "Barre latérale",
+        "description": "Afficher la barre latérale à gauche de la fenêtre avec la liste des serveurs, les téléchargements et les paramètres."
+      },
+      "trayIcon": {
+        "title": "Icône de la barre",
+        "description": "Afficher l'icône de la barre d'état système sur la barre d'état système. Si l'icône de la barre d'état est active, l'application sera masquée dans la barre d'état à la fermeture. Sinon, il quittera l'application."
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Effacer les autorisations de capture d'écran",
+        "description": "Effacez les autorisations de capture d'écran qui ont été sélectionnées pour ne plus demander lors des appels vidéo."
       }
     }
   },

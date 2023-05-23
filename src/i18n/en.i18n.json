@@ -294,7 +294,8 @@
       "remove": "Remove server",
       "openDevTools": "Open DevTools",
       "clearCache": "Clear Cache",
-      "clearStorageData": "Clear Storage Data"
+      "clearStorageData": "Clear Storage Data",
+      "copyCurrentUrl": "Copy current URL"
     }
   },
   "touchBar": {

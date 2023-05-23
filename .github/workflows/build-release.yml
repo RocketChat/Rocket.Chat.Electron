@@ -22,15 +22,15 @@ jobs:
       - name: Disable git core.autocrlf
         run: git config --global core.autocrlf false
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Setup Node 14
-        uses: actions/setup-node@v2
+      - name: Setup Node 16
+        uses: actions/setup-node@v3
         with:
-          node-version: '14'
+          node-version: '16'
       - name: Setup node_modules cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
@@ -45,6 +45,7 @@ jobs:
         env:
           NODE_ENV: production
           BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
       - uses: ./workspaces/desktop-release-action
         with:
           mac_csc_link: ${{ secrets.MAC_CSC_LINK }}
@@ -55,4 +56,3 @@ jobs:
           win_csc_link: ${{ secrets.WIN_CSC_LINK }}
           win_csc_key_password: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
           github_token: ${{ secrets.GH_TOKEN }}
-          snapcraft_token: ${{ secrets.SNAP_TOKEN }}

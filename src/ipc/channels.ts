@@ -1,6 +1,7 @@
 import { AnyAction } from 'redux';
 
 import { Download } from '../downloads/common';
+import { OutlookEventsResponse } from '../outlookCalendar/type';
 import { Server } from '../servers/common';
 import { SystemIdleState } from '../userPresence/common';
 
@@ -34,6 +35,11 @@ type ChannelToArgsMap = {
   'desktop-capturer-get-sources': (
     options: Electron.SourcesOptions
   ) => Electron.DesktopCapturerSource[];
+  'outlook-calendar/get-events': (date: Date) => OutlookEventsResponse;
+  'outlook-calendar/set-exchange-url': (url: string, userId: string) => void;
+  'outlook-calendar/has-credentials': () => Promise<boolean>;
+  'outlook-calendar/clear-credentials': () => void;
+  'outlook-calendar/set-user-token': (token: string, userId: string) => void;
 };
 
 export type Channel = keyof ChannelToArgsMap;

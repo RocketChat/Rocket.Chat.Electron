@@ -242,8 +242,13 @@ export const setupDownloads = (): void => {
       payload: itemId,
     });
 
-    if (webContentsId) {
-      webContents.fromId(webContentsId).downloadURL(download.url);
+    if (webContentsId && webContents !== undefined) {
+      if (webContents.fromId !== undefined) {
+        const webContentsInstance = webContents.fromId(webContentsId);
+        if (webContentsInstance !== undefined) {
+          webContentsInstance.downloadURL(download.url);
+        }
+      }
     }
   });
 

@@ -305,7 +305,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   };
 
   listen(WEBVIEW_READY, (action) => {
-    const guestWebContents = webContents.fromId(action.payload.webContentsId);
+    const guestWebContents = webContents.fromId(
+      action.payload.webContentsId
+    ) as WebContents;
     initializeServerWebContentsAfterReady(
       action.payload.url,
       guestWebContents,
@@ -348,7 +350,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   });
 
   listen(WEBVIEW_ATTACHED, (action) => {
-    const guestWebContents = webContents.fromId(action.payload.webContentsId);
+    const guestWebContents = webContents.fromId(
+      action.payload.webContentsId
+    ) as WebContents;
     initializeServerWebContentsAfterAttach(
       action.payload.url,
       guestWebContents,

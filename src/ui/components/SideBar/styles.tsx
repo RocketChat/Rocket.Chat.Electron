@@ -264,6 +264,7 @@ type SidebarActionButtonProps = {
 };
 
 export const SidebarActionButton = styled.span<SidebarActionButtonProps>`
+  -webkit-app-region: no-drag;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -290,7 +291,6 @@ export const SidebarActionButton = styled.span<SidebarActionButtonProps>`
 `;
 
 export const BottomButtons = styled.div`
-  -webkit-app-region: no-drag;
   display: flex;
   flex: 1;
   flex-direction: column;

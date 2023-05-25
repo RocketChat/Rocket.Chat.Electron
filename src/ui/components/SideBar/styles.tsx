@@ -217,6 +217,7 @@ export const Badge = styled.div`
 `;
 
 export const AddServerButton = styled.button`
+  -webkit-app-region: no-drag;
   font-family: inherit;
   position: relative;
   flex: 0 0 auto;
@@ -289,6 +290,7 @@ export const SidebarActionButton = styled.span<SidebarActionButtonProps>`
 `;
 
 export const BottomButtons = styled.div`
+  -webkit-app-region: no-drag;
   display: flex;
   flex: 1;
   flex-direction: column;

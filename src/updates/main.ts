@@ -233,13 +233,17 @@ export const setupUpdates = async (): Promise<void> => {
     try {
       setImmediate(() => {
         app.removeAllListeners('window-all-closed');
-        const allBrowserWindows = BrowserWindow.getAllWindows();
-        allBrowserWindows.forEach((browserWindow) => {
-          browserWindow.removeAllListeners('close');
-          browserWindow.destroy();
-        });
-        nativeUpdater.checkForUpdates();
-        nativeUpdater.on('update-downloaded', nativeUpdateDownloadedCallback);
+        if (process.platform === 'darwin') {
+          const allBrowserWindows = BrowserWindow.getAllWindows();
+          allBrowserWindows.forEach((browserWindow) => {
+            browserWindow.removeAllListeners('close');
+            browserWindow.destroy();
+          });
+          nativeUpdater.checkForUpdates();
+          nativeUpdater.on('update-downloaded', nativeUpdateDownloadedCallback);
+        } else {
+          autoUpdater.quitAndInstall(true, true);
+        }
       });
     } catch (error) {
       error instanceof Error &&

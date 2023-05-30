@@ -1,6 +1,7 @@
 import { URL } from 'url';
 
-import { app, WebContents } from 'electron';
+import type { WebContents } from 'electron';
+import { app } from 'electron';
 
 import {
   electronBuilderJsonInformation,

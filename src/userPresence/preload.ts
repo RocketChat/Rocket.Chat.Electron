@@ -1,8 +1,8 @@
 import { invoke } from '../ipc/renderer';
 import { listen } from '../store';
-import { RootAction } from '../store/actions';
+import type { RootAction } from '../store/actions';
 import { SYSTEM_SUSPENDING, SYSTEM_LOCKING_SCREEN } from './actions';
-import { SystemIdleState } from './common';
+import type { SystemIdleState } from './common';
 
 let detachCallbacks: () => void;
 

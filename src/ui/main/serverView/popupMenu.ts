@@ -1,11 +1,9 @@
-import {
+import type {
   ContextMenuParams,
   MenuItemConstructorOptions,
-  shell,
-  clipboard,
-  Menu,
   WebContents,
 } from 'electron';
+import { shell, clipboard, Menu } from 'electron';
 import i18next from 'i18next';
 
 import { isProtocolAllowed } from '../../../navigation/main';

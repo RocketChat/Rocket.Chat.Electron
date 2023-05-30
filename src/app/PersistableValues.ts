@@ -1,8 +1,8 @@
 import type { Certificate } from 'electron';
 
-import { Download } from '../downloads/common';
-import { Server } from '../servers/common';
-import { WindowState } from '../ui/common';
+import type { Download } from '../downloads/common';
+import type { Server } from '../servers/common';
+import type { WindowState } from '../ui/common';
 
 type PersistableValues_0_0_0 = {
   currentServerUrl: string;

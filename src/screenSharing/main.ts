@@ -1,5 +1,5 @@
 import { dispatch, listen } from '../store';
-import { ActionOf, RootAction } from '../store/actions';
+import type { ActionOf, RootAction } from '../store/actions';
 import { hasMeta, isResponseTo } from '../store/fsa';
 import {
   WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,

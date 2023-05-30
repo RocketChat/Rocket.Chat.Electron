@@ -1,13 +1,7 @@
 import path from 'path';
 
-import {
-  clipboard,
-  DownloadItem,
-  Event,
-  shell,
-  WebContents,
-  webContents,
-} from 'electron';
+import type { DownloadItem, Event, WebContents } from 'electron';
+import { clipboard, shell, webContents } from 'electron';
 import { t } from 'i18next';
 
 import { handle } from '../ipc/main';
@@ -18,7 +12,8 @@ import {
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
 } from './actions';
-import { Download, DownloadStatus } from './common';
+import type { Download } from './common';
+import { DownloadStatus } from './common';
 
 const items = new Map<Download['itemId'], DownloadItem>();
 

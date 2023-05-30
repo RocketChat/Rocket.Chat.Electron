@@ -1,4 +1,4 @@
-import { Server } from '../servers/common';
+import type { Server } from '../servers/common';
 
 export const DownloadStatus = {
   ALL: 'All',

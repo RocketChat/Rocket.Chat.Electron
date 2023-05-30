@@ -1,10 +1,11 @@
 import { parse } from 'url';
 
-import React, { useMemo, FC, DragEvent, MouseEvent } from 'react';
+import type { FC, DragEvent, MouseEvent } from 'react';
+import React, { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
-import { RootAction } from '../../../store/actions';
+import type { RootAction } from '../../../store/actions';
 import {
   SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,

@@ -27,7 +27,7 @@ function VideoCallWindow() {
         preload={'./preload.js'}
         webpreferences='nodeIntegration,nativeWindowOpen=true'
         allowpopups={'true' as any}
-      ></webview>
+      />
     </div>
   );
 }

@@ -8,12 +8,14 @@ import {
   Scrollable,
 } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
-import React, { useState, useMemo, useCallback, FC, ChangeEvent } from 'react';
+import type { FC, ChangeEvent } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { Download, DownloadStatus } from '../../../downloads/common';
-import { RootState } from '../../../store/rootReducer';
+import type { Download } from '../../../downloads/common';
+import { DownloadStatus } from '../../../downloads/common';
+import type { RootState } from '../../../store/rootReducer';
 import DownloadItem from './DownloadItem';
 
 const DownloadsManagerView: FC = () => {

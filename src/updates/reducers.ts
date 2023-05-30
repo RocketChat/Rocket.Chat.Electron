@@ -1,7 +1,7 @@
-import { Reducer } from 'redux';
+import type { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
-import { ActionOf } from '../store/actions';
+import type { ActionOf } from '../store/actions';
 import { ABOUT_DIALOG_TOGGLE_UPDATE_ON_START } from '../ui/actions';
 import {
   UPDATES_CHECKING_FOR_UPDATE,

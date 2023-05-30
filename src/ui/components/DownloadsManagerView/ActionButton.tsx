@@ -1,5 +1,6 @@
 import { Box } from '@rocket.chat/fuselage';
-import React, { AllHTMLAttributes, FC } from 'react';
+import type { AllHTMLAttributes, FC } from 'react';
+import React from 'react';
 
 type ActionButtonProps = {
   onClick: AllHTMLAttributes<HTMLAnchorElement>['onClick'];

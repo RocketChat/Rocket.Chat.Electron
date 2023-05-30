@@ -1,5 +1,6 @@
 import { Box, FieldGroup } from '@rocket.chat/fuselage';
-import React, { FC } from 'react';
+import type { FC } from 'react';
+import React from 'react';
 
 import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
 import { FlashFrame } from './features/FlashFrame';

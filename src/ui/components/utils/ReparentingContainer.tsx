@@ -1,12 +1,6 @@
 import { useMergedRefs } from '@rocket.chat/fuselage-hooks';
-import React, {
-  useLayoutEffect,
-  useRef,
-  forwardRef,
-  ReactElement,
-  ReactNode,
-  Key,
-} from 'react';
+import type { ReactElement, ReactNode, Key } from 'react';
+import React, { useLayoutEffect, useRef, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import flattenChildren from 'react-keyed-flatten-children';
 

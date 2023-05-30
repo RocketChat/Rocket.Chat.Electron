@@ -1,6 +1,7 @@
 import { Global, css } from '@emotion/react';
 import styled from '@emotion/styled';
-import React, { FC } from 'react';
+import type { FC } from 'react';
+import React from 'react';
 
 export const GlobalStyles: FC = () => (
   <Global

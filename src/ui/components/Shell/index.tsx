@@ -1,7 +1,8 @@
-import React, { useLayoutEffect, FC } from 'react';
+import type { FC } from 'react';
+import React, { useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
 
-import { RootState } from '../../../store/rootReducer';
+import type { RootState } from '../../../store/rootReducer';
 import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
 import DownloadsManagerView from '../DownloadsManagerView';

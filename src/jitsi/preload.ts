@@ -1,10 +1,10 @@
-import {
+import type {
   SourcesOptions,
   DesktopCapturerSource,
   NativeImage,
-  ipcRenderer,
   DesktopCapturer,
 } from 'electron';
+import { ipcRenderer } from 'electron';
 
 const jitsiDomain = window.location.origin;
 

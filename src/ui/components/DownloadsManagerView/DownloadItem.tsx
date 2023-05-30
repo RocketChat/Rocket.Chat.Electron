@@ -1,8 +1,9 @@
 import { Box, ProgressBar } from '@rocket.chat/fuselage';
-import React, { ComponentProps, FC, useCallback, useMemo } from 'react';
+import type { ComponentProps, FC } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Download } from '../../../downloads/common';
+import type { Download } from '../../../downloads/common';
 import { invoke } from '../../../ipc/renderer';
 import ActionButton from './ActionButton';
 import FileIcon from './FileIcon';

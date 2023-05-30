@@ -1,8 +1,9 @@
-import { Notification, nativeImage, NativeImage } from 'electron';
+import type { NativeImage } from 'electron';
+import { Notification, nativeImage } from 'electron';
 
 import { invoke } from '../ipc/main';
 import { dispatch, dispatchSingle, listen } from '../store';
-import { ActionIPCMeta } from '../store/actions';
+import type { ActionIPCMeta } from '../store/actions';
 import { hasMeta } from '../store/fsa';
 import { getRootWindow } from '../ui/main/rootWindow';
 import {
@@ -15,7 +16,7 @@ import {
   NOTIFICATIONS_NOTIFICATION_ACTIONED,
   NOTIFICATIONS_NOTIFICATION_DISMISSED,
 } from './actions';
-import { ExtendedNotificationOptions } from './common';
+import type { ExtendedNotificationOptions } from './common';
 
 const resolveIcon = async (
   iconUrl: string | undefined

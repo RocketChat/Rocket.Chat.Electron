@@ -1,17 +1,12 @@
-import {
-  Menu,
-  app,
-  shell,
-  MenuItemConstructorOptions,
-  BrowserWindow,
-} from 'electron';
+import type { MenuItemConstructorOptions } from 'electron';
+import { Menu, app, shell, BrowserWindow } from 'electron';
 import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 
 import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
-import { RootState } from '../../store/rootReducer';
+import type { RootState } from '../../store/rootReducer';
 import {
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
@@ -713,7 +708,7 @@ const selectMenuBarTemplate = createSelector(
 );
 
 const selectMenuBarTemplateAsJson = createSelector(
-  selectMenuBarTemplate,
+  (_state: any) => selectMenuBarTemplate,
   (template: unknown) => JSON.stringify(template)
 );
 

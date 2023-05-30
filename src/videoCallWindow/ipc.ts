@@ -1,11 +1,11 @@
 import path from 'path';
 
+import type { WebContents } from 'electron';
 import {
   app,
   BrowserWindow,
   desktopCapturer,
   ipcMain,
-  WebContents,
   screen,
   systemPreferences,
 } from 'electron';

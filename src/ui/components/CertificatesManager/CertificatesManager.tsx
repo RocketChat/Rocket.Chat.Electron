@@ -1,9 +1,10 @@
 import { Label, Box, Table } from '@rocket.chat/fuselage';
-import React, { FC } from 'react';
+import type { FC } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { RootState } from '../../../store/rootReducer';
+import type { RootState } from '../../../store/rootReducer';
 import CertificateItem from './CertificateItem';
 
 export const CertificatesManager: FC = () => {

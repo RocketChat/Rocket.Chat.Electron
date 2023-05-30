@@ -3,7 +3,7 @@ import {
   destroyNotification,
 } from '../../notifications/preload';
 import { setUserPresenceDetection } from '../../userPresence/preload';
-import { Server } from '../common';
+import type { Server } from '../common';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
 import { setFavicon } from './favicon';

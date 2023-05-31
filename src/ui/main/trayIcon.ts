@@ -1,13 +1,13 @@
 import { app, Menu, nativeImage, Tray } from 'electron';
 import i18next from 'i18next';
 
+import { getTrayIconPath, getAppIconPath } from './icons';
+import { getRootWindow } from './rootWindow';
 import type { Server } from '../../servers/common';
 import { watch, select, Service, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import { SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN } from '../actions';
 import { selectGlobalBadge } from '../selectors';
-import { getTrayIconPath, getAppIconPath } from './icons';
-import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 

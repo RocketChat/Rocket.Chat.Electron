@@ -3,6 +3,9 @@ import { Menu, app, shell, BrowserWindow } from 'electron';
 import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 
+import { askForAppDataReset } from './dialogs';
+import { getRootWindow } from './rootWindow';
+import { getWebContentsByServerUrl } from './serverView';
 import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
@@ -18,9 +21,6 @@ import {
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
 } from '../actions';
-import { askForAppDataReset } from './dialogs';
-import { getRootWindow } from './rootWindow';
-import { getWebContentsByServerUrl } from './serverView';
 
 const t = i18next.t.bind(i18next);
 

@@ -1,5 +1,7 @@
 import type { Reducer } from 'redux';
 
+import { SERVERS_LOADED } from './actions';
+import type { Server } from './common';
 import { APP_SETTINGS_LOADED } from '../app/actions';
 import { DEEP_LINKS_SERVER_ADDED } from '../deepLinks/actions';
 import type { ActionOf } from '../store/actions';
@@ -20,8 +22,6 @@ import {
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
   WEBVIEW_ALLOWED_REDIRECTS_CHANGED,
 } from '../ui/actions';
-import { SERVERS_LOADED } from './actions';
-import type { Server } from './common';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
   if (serverUrl) {

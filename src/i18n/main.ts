@@ -2,11 +2,11 @@ import { app } from 'electron';
 import type { TFunction } from 'i18next';
 import i18next from 'i18next';
 
-import { dispatch, Service } from '../store';
-import { hasMeta } from '../store/fsa';
 import { I18N_LNG_REQUESTED, I18N_LNG_RESPONDED } from './actions';
 import { interpolation, fallbackLng } from './common';
 import resources from './resources';
+import { dispatch, Service } from '../store';
+import { hasMeta } from '../store/fsa';
 
 const hasLng = (lng: string): lng is keyof typeof resources => lng in resources;
 

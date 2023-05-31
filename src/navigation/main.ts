@@ -5,12 +5,6 @@ import type { Certificate } from 'electron';
 import { app } from 'electron';
 import i18next from 'i18next';
 
-import { request, select, dispatch } from '../store';
-import {
-  AskForCertificateTrustResponse,
-  askForCertificateTrust,
-  askForOpeningExternalProtocol,
-} from '../ui/main/dialogs';
 import {
   TRUSTED_CERTIFICATES_UPDATED,
   NOT_TRUSTED_CERTIFICATES_UPDATED,
@@ -20,6 +14,12 @@ import {
   CERTIFICATES_LOADED,
   EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
 } from './actions';
+import { request, select, dispatch } from '../store';
+import {
+  AskForCertificateTrustResponse,
+  askForCertificateTrust,
+  askForOpeningExternalProtocol,
+} from '../ui/main/dialogs';
 
 const t = i18next.t.bind(i18next);
 

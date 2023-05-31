@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import React, { useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
 
+import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 import type { RootState } from '../../../store/rootReducer';
 import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
@@ -12,7 +13,6 @@ import { ServersView } from '../ServersView';
 import { SettingsView } from '../SettingsView';
 import { SideBar } from '../SideBar';
 import { UpdateDialog } from '../UpdateDialog';
-import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 
 export const Shell: FC = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);

@@ -1,10 +1,10 @@
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import { request } from '../store';
 import { I18N_LNG_REQUESTED, I18N_LNG_RESPONDED } from './actions';
 import { interpolation, fallbackLng } from './common';
 import resources from './resources';
+import { request } from '../store';
 
 export const setupI18n = async (): Promise<void> => {
   const lng =

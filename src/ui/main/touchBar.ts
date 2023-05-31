@@ -6,6 +6,7 @@ import type {
 import { TouchBar, nativeImage, app } from 'electron';
 import i18next from 'i18next';
 
+import { getRootWindow } from './rootWindow';
 import type { Server } from '../../servers/common';
 import { select, dispatch, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
@@ -13,7 +14,6 @@ import {
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
 } from '../actions';
-import { getRootWindow } from './rootWindow';
 
 const t = i18next.t.bind(i18next);
 

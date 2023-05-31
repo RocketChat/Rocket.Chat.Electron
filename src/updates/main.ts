@@ -4,19 +4,6 @@ import path from 'path';
 import { BrowserWindow, app, autoUpdater as nativeUpdater } from 'electron';
 import { autoUpdater } from 'electron-updater';
 
-import { listen, dispatch, select } from '../store';
-import type { RootState } from '../store/rootReducer';
-import {
-  UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
-  UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
-} from '../ui/actions';
-import {
-  askUpdateInstall,
-  AskUpdateInstallResponse,
-  warnAboutInstallUpdateLater,
-  warnAboutUpdateDownload,
-  warnAboutUpdateSkipped,
-} from '../ui/main/dialogs';
 import {
   UPDATE_SKIPPED,
   UPDATES_CHECK_FOR_UPDATES_REQUESTED,
@@ -31,6 +18,19 @@ import type {
   UpdateConfiguration,
   UserLevelUpdateConfiguration,
 } from './common';
+import { listen, dispatch, select } from '../store';
+import type { RootState } from '../store/rootReducer';
+import {
+  UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
+  UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
+} from '../ui/actions';
+import {
+  askUpdateInstall,
+  AskUpdateInstallResponse,
+  warnAboutInstallUpdateLater,
+  warnAboutUpdateDownload,
+  warnAboutUpdateSkipped,
+} from '../ui/main/dialogs';
 
 const readJsonObject = async (
   filePath: string

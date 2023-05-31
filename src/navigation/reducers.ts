@@ -1,9 +1,6 @@
 import type { Certificate } from 'electron';
 import type { Reducer } from 'redux';
 
-import { APP_SETTINGS_LOADED } from '../app/actions';
-import type { Server } from '../servers/common';
-import type { ActionOf } from '../store/actions';
 import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
   SELECT_CLIENT_CERTIFICATE_DIALOG_CERTIFICATE_SELECTED,
@@ -14,6 +11,9 @@ import {
   CERTIFICATES_LOADED,
   EXTERNAL_PROTOCOL_PERMISSION_UPDATED,
 } from './actions';
+import { APP_SETTINGS_LOADED } from '../app/actions';
+import type { Server } from '../servers/common';
+import type { ActionOf } from '../store/actions';
 
 type ClientCertificatesActionTypes =
   | ActionOf<typeof CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED>

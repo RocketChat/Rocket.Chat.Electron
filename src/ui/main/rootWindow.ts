@@ -5,6 +5,8 @@ import { app, BrowserWindow, nativeImage, screen } from 'electron';
 import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
+import { debounce } from './debounce';
+import { getTrayIconPath } from './icons';
 import { setupRootWindowReload } from '../../app/main/dev';
 import type { Server } from '../../servers/common';
 import { select, watch, listen, dispatchLocal } from '../../store';
@@ -12,8 +14,6 @@ import type { RootState } from '../../store/rootReducer';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
 import type { RootWindowIcon, WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
-import { debounce } from './debounce';
-import { getTrayIconPath } from './icons';
 
 const webPreferences: WebPreferences = {
   nodeIntegration: true,

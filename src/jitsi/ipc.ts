@@ -1,7 +1,7 @@
 import { desktopCapturer } from 'electron';
 
-import { handle } from '../ipc/main';
 import { isJitsiServerAllowed } from './main';
+import { handle } from '../ipc/main';
 
 let permitted = false;
 let dontAskAgain = false;

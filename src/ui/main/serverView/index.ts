@@ -24,6 +24,7 @@ import {
 } from 'electron';
 import i18next from 'i18next';
 
+import { createPopupMenuForServerView } from './popupMenu';
 import { setupPreloadReload } from '../../../app/main/dev';
 import { handleWillDownloadEvent } from '../../../downloads/main';
 import { handle } from '../../../ipc/main';
@@ -42,7 +43,6 @@ import {
   WEBVIEW_ATTACHED,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
-import { createPopupMenuForServerView } from './popupMenu';
 
 const t = i18next.t.bind(i18next);
 

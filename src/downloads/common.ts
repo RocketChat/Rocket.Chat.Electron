@@ -15,7 +15,7 @@ export type Download = {
     | 'cancelled'
     | 'interrupted'
     | 'expired';
-  status: typeof DownloadStatus[keyof typeof DownloadStatus];
+  status: (typeof DownloadStatus)[keyof typeof DownloadStatus];
   fileName: string;
   receivedBytes: number;
   totalBytes: number;

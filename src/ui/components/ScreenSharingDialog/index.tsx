@@ -7,12 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { Source } from './styles';
 import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../../screenSharing/actions';
 import type { RootAction } from '../../../store/actions';
 import type { RootState } from '../../../store/rootReducer';
 import { WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED } from '../../actions';
 import { Dialog } from '../Dialog';
-import { Source } from './styles';
 
 export const ScreenSharingDialog: FC = () => {
   const openDialog = useSelector(({ openDialog }: RootState) => openDialog);

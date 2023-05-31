@@ -1,3 +1,4 @@
+import { SCREEN_SHARING_DIALOG_DISMISSED } from './actions';
 import { dispatch, listen } from '../store';
 import type { ActionOf, RootAction } from '../store/actions';
 import { hasMeta, isResponseTo } from '../store/fsa';
@@ -5,7 +6,6 @@ import {
   WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED,
   WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED,
 } from '../ui/actions';
-import { SCREEN_SHARING_DIALOG_DISMISSED } from './actions';
 
 export const setupScreenSharing = (): void => {
   listen(WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED, (requestAction) => {

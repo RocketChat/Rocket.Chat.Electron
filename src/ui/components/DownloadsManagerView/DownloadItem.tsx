@@ -3,10 +3,10 @@ import type { ComponentProps, FC } from 'react';
 import React, { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { Download } from '../../../downloads/common';
-import { invoke } from '../../../ipc/renderer';
 import ActionButton from './ActionButton';
 import FileIcon from './FileIcon';
+import type { Download } from '../../../downloads/common';
+import { invoke } from '../../../ipc/renderer';
 
 type DownloadItemProps = Download & ComponentProps<typeof Box>;
 

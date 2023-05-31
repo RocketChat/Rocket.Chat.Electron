@@ -20,7 +20,7 @@ const snapChannels = ['edge', 'beta', 'candidate', 'stable'] as const;
 
 export const uploadSnap = async (
   snapFilePath: string,
-  level: typeof snapChannels[number]
+  level: (typeof snapChannels)[number]
 ): Promise<void> => {
   const channels = snapChannels.slice(0, snapChannels.indexOf(level) + 1);
 

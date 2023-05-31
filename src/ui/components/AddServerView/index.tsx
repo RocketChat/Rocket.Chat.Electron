@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { Wrapper } from './styles';
 import {
   SERVER_URL_RESOLVED,
   SERVER_URL_RESOLUTION_REQUESTED,
@@ -25,7 +26,6 @@ import type { RootAction } from '../../../store/actions';
 import type { RootState } from '../../../store/rootReducer';
 import { ADD_SERVER_VIEW_SERVER_ADDED } from '../../actions';
 import { RocketChatLogo } from '../RocketChatLogo';
-import { Wrapper } from './styles';
 
 const defaultServerUrl = new URL('https://open.rocket.chat/');
 
@@ -171,13 +171,12 @@ export const AddServerView: FC = () => {
               </Field.Label>
               <Field.Row>
                 <TextInput
-                  ref={inputRef}
+                  ref={inputRef as React.Ref<HTMLInputElement>}
                   id={inputId}
-                  error={errorMessage ?? undefined}
-                  type='text'
                   placeholder={defaultServerUrl.href}
-                  dir='auto'
+                  error={errorMessage ?? undefined}
                   value={input}
+                  dir='auto'
                   onChange={handleInputChange}
                 />
               </Field.Row>

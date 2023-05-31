@@ -22,7 +22,7 @@ export class ErrorCatcher extends Component<ErrorCatcherProps> {
     });
   }
 
-  render(): ReactNode {
-    return this.props.children ?? null;
+  render() {
+    return <>{this.props.children ?? null}</>;
   }
 }

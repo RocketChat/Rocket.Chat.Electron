@@ -142,7 +142,9 @@ export const AboutDialog: FC = () => {
             <Margins block='x8'>
               {!checkingForUpdates && (
                 <Button
-                  ref={checkForUpdatesButtonRef}
+                  ref={
+                    checkForUpdatesButtonRef as React.RefObject<HTMLButtonElement>
+                  }
                   primary
                   type='button'
                   disabled={checkingForUpdates}

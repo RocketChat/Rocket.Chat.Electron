@@ -225,7 +225,6 @@ const DownloadsManagerView: FC = () => {
         <Box display='flex' flexGrow={1} flexShrink={1} paddingInline={2}>
           <Button
             small
-            ghost
             title={t('downloads.filters.clear')}
             onClick={handleClearAll}
           >

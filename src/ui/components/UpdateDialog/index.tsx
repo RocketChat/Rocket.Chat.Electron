@@ -33,7 +33,7 @@ export const UpdateDialog: FC = () => {
 
   const { t } = useTranslation();
 
-  const installButtonRef = useRef<HTMLButtonElement>();
+  const installButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!isVisible) {

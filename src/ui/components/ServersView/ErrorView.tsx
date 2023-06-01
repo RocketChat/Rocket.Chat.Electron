@@ -9,8 +9,8 @@ import type { FC } from 'react';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ErrorPane } from './styles';
 import { FailureImage } from '../FailureImage';
+import { ErrorPane } from './styles';
 
 type ErrorViewProps = {
   isFailed: boolean;

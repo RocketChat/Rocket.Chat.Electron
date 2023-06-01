@@ -3,8 +3,8 @@ import type { FC } from 'react';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import ActionButton from './ActionButton';
 import { invoke } from '../../../ipc/renderer';
+import ActionButton from './ActionButton';
 
 type CertificateItemProps = {
   url: string;

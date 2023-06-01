@@ -1,6 +1,6 @@
-import { getAbsoluteUrl, getServerUrl } from './urls';
 import { dispatch } from '../../store';
 import { WEBVIEW_FAVICON_CHANGED } from '../../ui/actions';
+import { getAbsoluteUrl, getServerUrl } from './urls';
 
 const FAVICON_SIZE = 100;
 

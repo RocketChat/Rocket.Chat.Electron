@@ -1,6 +1,6 @@
-import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSION_UPDATED } from './actions';
 import { dispatch, select } from '../store';
 import { askForJitsiCaptureScreenPermission } from '../ui/main/dialogs';
+import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSION_UPDATED } from './actions';
 
 export const isJitsiServerAllowed = async (
   rawUrl: string

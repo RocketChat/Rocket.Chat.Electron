@@ -5,9 +5,9 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
+import type { RootState } from '../../../store/rootReducer';
 import { CertificatesTab } from './CertificatesTab';
 import { GeneralTab } from './GeneralTab';
-import type { RootState } from '../../../store/rootReducer';
 
 export const SettingsView: FC = () => {
   const isVisible = useSelector(

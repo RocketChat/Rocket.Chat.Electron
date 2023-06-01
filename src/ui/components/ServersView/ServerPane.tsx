@@ -3,14 +3,14 @@ import React, { useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
-import ErrorView from './ErrorView';
-import { StyledWebView, Wrapper } from './styles';
 import type { RootAction } from '../../../store/actions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   WEBVIEW_ATTACHED,
   WEBVIEW_READY,
 } from '../../actions';
+import ErrorView from './ErrorView';
+import { StyledWebView, Wrapper } from './styles';
 
 type ServerPaneProps = {
   lastPath: string | undefined;

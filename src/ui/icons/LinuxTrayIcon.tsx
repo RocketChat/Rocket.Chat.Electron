@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 import React from 'react';
 
+import type { Server } from '../../servers/common';
 import AppIcon from './AppIcon';
 import Badge from './Badge';
-import type { Server } from '../../servers/common';
 
 type LinuxTrayIconProps = {
   badge?: Server['badge'];

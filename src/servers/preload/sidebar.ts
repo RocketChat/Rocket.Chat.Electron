@@ -1,7 +1,7 @@
-import { getServerUrl, getAbsoluteUrl } from './urls';
 import { dispatch } from '../../store';
 import { WEBVIEW_SIDEBAR_STYLE_CHANGED } from '../../ui/actions';
 import type { Server } from '../common';
+import { getServerUrl, getAbsoluteUrl } from './urls';
 
 let timer: ReturnType<typeof setTimeout>;
 let prevBackground: string;

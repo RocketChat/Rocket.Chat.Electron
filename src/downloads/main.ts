@@ -4,6 +4,9 @@ import type { DownloadItem, Event, WebContents } from 'electron';
 import { clipboard, shell, webContents } from 'electron';
 import { t } from 'i18next';
 
+import { handle } from '../ipc/main';
+import { createNotification } from '../notifications/preload';
+import { dispatch, select } from '../store';
 import {
   DOWNLOAD_CREATED,
   DOWNLOAD_REMOVED,
@@ -11,9 +14,6 @@ import {
 } from './actions';
 import type { Download } from './common';
 import { DownloadStatus } from './common';
-import { handle } from '../ipc/main';
-import { createNotification } from '../notifications/preload';
-import { dispatch, select } from '../store';
 
 const items = new Map<Download['itemId'], DownloadItem>();
 

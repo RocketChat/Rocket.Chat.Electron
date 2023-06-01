@@ -1,11 +1,11 @@
 import type { Reducer } from 'redux';
 
+import { APP_SETTINGS_LOADED } from '../app/actions';
+import type { ActionOf } from '../store/actions';
 import {
   JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED,
   JITSI_SERVER_CAPTURE_SCREEN_PERMISSION_UPDATED,
 } from './actions';
-import { APP_SETTINGS_LOADED } from '../app/actions';
-import type { ActionOf } from '../store/actions';
 
 type JitsiServerAction =
   | ActionOf<typeof APP_SETTINGS_LOADED>

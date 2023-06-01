@@ -1,3 +1,9 @@
+import {
+  createNotification,
+  destroyNotification,
+} from '../../notifications/preload';
+import { setUserPresenceDetection } from '../../userPresence/preload';
+import type { Server } from '../common';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
 import { setFavicon } from './favicon';
@@ -10,12 +16,6 @@ import { setBackground, setServerVersionToSidebar } from './sidebar';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
-import {
-  createNotification,
-  destroyNotification,
-} from '../../notifications/preload';
-import { setUserPresenceDetection } from '../../userPresence/preload';
-import type { Server } from '../common';
 
 type ServerInfo = {
   version: string;

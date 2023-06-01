@@ -13,10 +13,10 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import DownloadItem from './DownloadItem';
 import type { Download } from '../../../downloads/common';
 import { DownloadStatus } from '../../../downloads/common';
 import type { RootState } from '../../../store/rootReducer';
+import DownloadItem from './DownloadItem';
 
 const DownloadsManagerView: FC = () => {
   const isVisible = useSelector(

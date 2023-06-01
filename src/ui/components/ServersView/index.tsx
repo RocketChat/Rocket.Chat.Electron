@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 import React from 'react';
 
-import { ServerPane } from './ServerPane';
 import { useServers } from '../hooks/useServers';
 import { ReparentingContainer } from '../utils/ReparentingContainer';
+import { ServerPane } from './ServerPane';
 
 export const ServersView: FC = () => {
   const servers = useServers();

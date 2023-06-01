@@ -5,6 +5,11 @@ import React, { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import type { RootAction } from '../../../store/actions';
+import {
+  SIDE_BAR_SERVER_SELECTED,
+  SIDE_BAR_CONTEXT_MENU_TRIGGERED,
+} from '../../actions';
 import {
   Avatar,
   Badge,
@@ -13,11 +18,6 @@ import {
   KeyboardShortcut,
   ServerButtonWrapper,
 } from './styles';
-import type { RootAction } from '../../../store/actions';
-import {
-  SIDE_BAR_SERVER_SELECTED,
-  SIDE_BAR_CONTEXT_MENU_TRIGGERED,
-} from '../../actions';
 
 type ServerButtonProps = {
   url: string;

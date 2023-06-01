@@ -4,16 +4,6 @@ import path from 'path';
 import { app } from 'electron';
 import { satisfies, coerce } from 'semver';
 
-import {
-  SERVER_URL_RESOLUTION_REQUESTED,
-  SERVER_URL_RESOLVED,
-  SERVERS_LOADED,
-} from './actions';
-import type { Server, ServerUrlResolutionResult } from './common';
-import {
-  ServerUrlResolutionStatus,
-  isServerUrlResolutionResult,
-} from './common';
 import { packageJsonInformation } from '../app/main/app';
 import { invoke } from '../ipc/main';
 import { select, dispatch, listen } from '../store';
@@ -24,6 +14,16 @@ import {
 } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
+import {
+  SERVER_URL_RESOLUTION_REQUESTED,
+  SERVER_URL_RESOLVED,
+  SERVERS_LOADED,
+} from './actions';
+import {
+  ServerUrlResolutionStatus,
+  isServerUrlResolutionResult,
+} from './common';
+import type { Server, ServerUrlResolutionResult } from './common';
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 

@@ -4,8 +4,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import CertificateItem from './CertificateItem';
 import type { RootState } from '../../../store/rootReducer';
+import CertificateItem from './CertificateItem';
 
 export const CertificatesManager: FC = () => {
   const trustedCertificates = useSelector(

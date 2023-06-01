@@ -7,6 +7,14 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import type { RootAction } from '../../../store/actions';
+import type { RootState } from '../../../store/rootReducer';
+import {
+  SIDE_BAR_ADD_NEW_SERVER_CLICKED,
+  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+  SIDE_BAR_SETTINGS_BUTTON_CLICKED,
+} from '../../actions';
+import { useServers } from '../hooks/useServers';
 import ServerButton from './ServerButton';
 import {
   Wrapper,
@@ -19,14 +27,6 @@ import {
 } from './styles';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
-import type { RootAction } from '../../../store/actions';
-import type { RootState } from '../../../store/rootReducer';
-import {
-  SIDE_BAR_ADD_NEW_SERVER_CLICKED,
-  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
-  SIDE_BAR_SETTINGS_BUTTON_CLICKED,
-} from '../../actions';
-import { useServers } from '../hooks/useServers';
 
 export const SideBar: FC = () => {
   const servers = useServers();

@@ -1,6 +1,6 @@
-import { getServerUrl } from './urls';
 import { dispatch } from '../../store';
 import { WEBVIEW_TITLE_CHANGED } from '../../ui/actions';
+import { getServerUrl } from './urls';
 
 export const setTitle = (title: string): void => {
   if (typeof title !== 'string') {

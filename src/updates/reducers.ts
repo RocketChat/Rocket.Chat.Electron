@@ -1,5 +1,8 @@
 import type { Reducer } from 'redux';
 
+import { APP_SETTINGS_LOADED } from '../app/actions';
+import type { ActionOf } from '../store/actions';
+import { ABOUT_DIALOG_TOGGLE_UPDATE_ON_START } from '../ui/actions';
 import {
   UPDATES_CHECKING_FOR_UPDATE,
   UPDATES_ERROR_THROWN,
@@ -8,9 +11,6 @@ import {
   UPDATES_READY,
   UPDATE_SKIPPED,
 } from './actions';
-import { APP_SETTINGS_LOADED } from '../app/actions';
-import type { ActionOf } from '../store/actions';
-import { ABOUT_DIALOG_TOGGLE_UPDATE_ON_START } from '../ui/actions';
 
 type DoCheckForUpdatesOnStartupAction =
   | ActionOf<typeof ABOUT_DIALOG_TOGGLE_UPDATE_ON_START>

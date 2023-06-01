@@ -1,7 +1,7 @@
-import { getServerUrl } from './urls';
 import { dispatch } from '../../store';
 import { WEBVIEW_GIT_COMMIT_HASH_CHECK } from '../../ui/actions';
 import type { Server } from '../common';
+import { getServerUrl } from './urls';
 
 export const setGitCommitHash = (
   gitCommitHash: Server['gitCommitHash']

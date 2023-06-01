@@ -3,11 +3,11 @@ import path from 'path';
 
 import { app } from 'electron';
 
-import { getPersistedValues, persistValues } from './persistence';
 import { select, dispatch, watch } from '../../store';
 import { normalizeNumber } from '../../ui/main/rootWindow';
 import { APP_SETTINGS_LOADED } from '../actions';
 import { selectPersistableValues } from '../selectors';
+import { getPersistedValues, persistValues } from './persistence';
 
 const loadUserDataOverriddenSettings = async (): Promise<
   Record<string, string>

@@ -1,6 +1,6 @@
+import { createMainReduxStore, dispatch } from '../store';
 import { SPELL_CHECKING_LANGUAGE_TOGGLED } from './actions';
 import { setupSpellChecking } from './main';
-import { createMainReduxStore, dispatch } from '../store';
 
 describe('setupSpellChecking', () => {
   beforeAll(() => {

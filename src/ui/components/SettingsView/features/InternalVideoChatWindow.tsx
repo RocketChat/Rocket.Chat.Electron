@@ -1,6 +1,6 @@
 import { ToggleSwitch, Field } from '@rocket.chat/fuselage';
 import React, { ChangeEvent, Dispatch, FC, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { RootAction } from '../../../../store/actions';
@@ -48,7 +48,16 @@ export const InternalVideoChatWindow: FC<Props> = (props) => {
           </Field.Hint>
         ) : (
           <Field.Hint>
-            {t('settings.options.internalVideoChatWindow.description')}
+            <Trans
+              i18nKey='settings.options.internalVideoChatWindow.description'
+              t={t}
+            >
+              When set Video Chat will be opened using an application's window,
+              otherwise the default browser will be used.
+              <strong>Google Meet</strong> share screen is not supported in
+              Electron applications, so this configuration don't change Meet
+              calls behavior, that will open on browser.
+            </Trans>
           </Field.Hint>
         )}
       </Field.Row>

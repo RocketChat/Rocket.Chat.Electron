@@ -236,6 +236,8 @@ const DownloadItem: FC<DownloadItemProps> = ({
           <ProgressBar
             percentage={percentage}
             error={errored ? t('downloads.item.errored') : undefined}
+            // TODO: get complete file details, such as file-size from different cloud storages
+            animated={percentage !== 100}
           />
         </Box>
       </Box>

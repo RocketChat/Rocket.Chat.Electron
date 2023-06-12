@@ -245,7 +245,7 @@ export async function syncEventsWithRocketChatServer(
     }
   }
 
-  if (!eventsOnRocketChatServer.length) {
+  if (!eventsOnRocketChatServer.data.length) {
     return;
   }
 

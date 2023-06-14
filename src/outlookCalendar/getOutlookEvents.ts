@@ -76,22 +76,30 @@ export const getOutlookEvents = async (
     } catch (error) {
       return Promise.reject(error);
     }
-    return filtered.map<AppointmentData>((appointment) => ({
-      id: appointment.Id.UniqueId,
-      subject: appointment.Subject,
-      startTime: appointment.Start.ToISOString(),
-      endTime: appointment.End.ToISOString(),
-      description: appointment.Body?.Text || '',
-      isAllDay: appointment.IsAllDayEvent ?? false,
-      isCanceled: appointment.IsCancelled ?? false,
-      organizer: appointment.Organizer?.Name || undefined,
-      meetingUrl: appointment.JoinOnlineMeetingUrl ?? undefined,
-      reminderMinutesBeforeStart:
-        appointment.ReminderMinutesBeforeStart ?? undefined,
-      reminderDueBy: appointment.ReminderDueBy
-        ? appointment.ReminderDueBy.ToISOString()
-        : undefined,
-    }));
+
+    return filtered.map<AppointmentData>((appointment) => {
+      let description = '';
+      try {
+        if (appointment.Body?.Text) {
+          description = appointment.Body.Text;
+        }
+      } catch {
+        // Ignore errors when the appointment body is missing.
+      }
+
+      return {
+        id: appointment.Id.UniqueId,
+        subject: appointment.Subject,
+        startTime: appointment.Start.ToISOString(),
+        endTime: appointment.End.ToISOString(),
+        description,
+        isAllDay: appointment.IsAllDayEvent ?? false,
+        isCanceled: appointment.IsCancelled ?? false,
+        meetingUrl: appointment.JoinOnlineMeetingUrl ?? undefined,
+        reminderMinutesBeforeStart:
+          appointment.ReminderMinutesBeforeStart ?? undefined,
+      };
+    });
   } catch (error) {
     console.error(error);
     return Promise.reject(error);

@@ -16,10 +16,8 @@ export type AppointmentData = {
 
   isAllDay: boolean;
   isCanceled: boolean;
-  organizer?: string;
   meetingUrl?: string;
   reminderMinutesBeforeStart?: number;
-  reminderDueBy?: string;
 };
 
 export type OutlookEventsResponse = { status: 'success' | 'canceled' };

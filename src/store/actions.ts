@@ -5,6 +5,7 @@ import { I18nActionTypeToPayloadMap } from '../i18n/actions';
 import { JitsiServerActionTypeToPayloadMap } from '../jitsi/actions';
 import { NavigationActionTypeToPayloadMap } from '../navigation/actions';
 import { NotificationsActionTypeToPayloadMap } from '../notifications/actions';
+import { OutlookCalendarActionTypeToPayloadMap } from '../outlookCalendar/actions';
 import { ScreenSharingActionTypeToPayloadMap } from '../screenSharing/actions';
 import { ServersActionTypeToPayloadMap } from '../servers/actions';
 import { SpellCheckingActionTypeToPayloadMap } from '../spellChecking/actions';
@@ -24,7 +25,8 @@ type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
   SpellCheckingActionTypeToPayloadMap &
   UiActionTypeToPayloadMap &
   UpdatesActionTypeToPayloadMap &
-  UserPresenceActionTypeToPayloadMap;
+  UserPresenceActionTypeToPayloadMap &
+  OutlookCalendarActionTypeToPayloadMap;
 
 type RootActions = {
   [Type in keyof ActionTypeToPayloadMap]: void extends ActionTypeToPayloadMap[Type]

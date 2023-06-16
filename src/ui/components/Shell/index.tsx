@@ -5,6 +5,7 @@ import { RootState } from '../../../store/rootReducer';
 import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
 import DownloadsManagerView from '../DownloadsManagerView';
+import { OutlookCredentialsDialog } from '../OutlookCredentialsDialog';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';
 import { ServersView } from '../ServersView';
@@ -48,6 +49,7 @@ export const Shell: FC = () => {
       <ScreenSharingDialog />
       <SelectClientCertificateDialog />
       <UpdateDialog />
+      <OutlookCredentialsDialog />
     </>
   );
 };

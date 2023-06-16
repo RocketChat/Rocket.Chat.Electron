@@ -18,8 +18,6 @@ import type {
   OutlookEventsResponse,
 } from './type';
 
-const isEncryptionAvailable = safeStorage.isEncryptionAvailable();
-
 const getServerInformationByWebContentsId = (webContentsId: number): Server => {
   const { servers } = select(selectPersistableValues);
   const server = servers.find(
@@ -277,7 +275,7 @@ async function maybeSyncEvents(serverToSync: Server) {
     serverToSync.webContentsId
   );
   if (!server.outlookCredentials) throw new Error('No credentials');
-  const credentials = isEncryptionAvailable
+  const credentials = safeStorage.isEncryptionAvailable()
     ? decryptedCredentials(server.outlookCredentials)
     : server.outlookCredentials;
 
@@ -407,7 +405,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
             payload: {
               server,
               userId: outlookCredentials.userId,
-              isEncryptionAvailable,
+              isEncryptionAvailable: safeStorage.isEncryptionAvailable(),
             },
           },
           OUTLOOK_CALENDAR_SET_CREDENTIALS,
@@ -427,7 +425,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
         credentials = response.outlookCredentials;
         saveCredentials = response.saveCredentials || false;
       } else {
-        credentials = isEncryptionAvailable
+        credentials = safeStorage.isEncryptionAvailable()
           ? decryptedCredentials(outlookCredentials)
           : outlookCredentials;
       }
@@ -449,7 +447,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
           type: OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
           payload: {
             url: server.url,
-            outlookCredentials: isEncryptionAvailable
+            outlookCredentials: safeStorage.isEncryptionAvailable()
               ? encryptedCredentials(credentials)
               : credentials,
           },

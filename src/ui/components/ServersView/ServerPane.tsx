@@ -68,7 +68,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
 
     const handleAttachReady = (): void => {
       step &&
-        setImmediate(() => {
+        setTimeout(() => {
           dispatch({
             type: WEBVIEW_READY,
             payload: {
@@ -76,7 +76,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
               webContentsId: webview.getWebContentsId(),
             },
           });
-        });
+        }, 300);
       step = true;
     };
     addEventListenerOnce('did-attach', handleAttachReady);
@@ -102,7 +102,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
     };
 
     const handleAttachReady = (): void => {
-      setImmediate(() => {
+      setTimeout(() => {
         dispatch({
           type: WEBVIEW_ATTACHED,
           payload: {
@@ -110,7 +110,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
             webContentsId: webview.getWebContentsId(),
           },
         });
-      });
+      }, 300);
     };
 
     addEventListenerOnce('did-attach', handleAttachReady);

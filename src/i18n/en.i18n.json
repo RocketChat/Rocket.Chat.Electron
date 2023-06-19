@@ -122,7 +122,7 @@
       "encryptionUnavailable": "Your operational system don't support encryption.\nYour credentials will be stored in plain text.",
       "field_required": "This field is required",
       "remember_credentials": "Remember my credentials",
-      "cancel":" Cancel",
+      "cancel": " Cancel",
       "submit": "Login"
     }
   },

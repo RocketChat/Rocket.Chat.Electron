@@ -18,12 +18,12 @@ exports.default = function notarizing(context) {
     }, 15000);
 
     notarize({
-      tool: 'notarytool',
       appBundleId: 'chat.rocket',
       appPath: `${appOutDir}/${appName}.app`,
       appleId: process.env.APPLEID,
       appleIdPassword: process.env.APPLEIDPASS,
       ascProvider: 'S6UPZG7ZR3',
+      teamId: 'S6UPZG7ZR3',
     })
       .then(() => {
         clearTimeout(timer);

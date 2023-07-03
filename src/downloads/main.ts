@@ -1,5 +1,3 @@
-import path from 'path';
-
 import {
   clipboard,
   DownloadItem,
@@ -30,25 +28,6 @@ export const handleWillDownloadEvent = async (
   const itemId = Date.now();
 
   items.set(itemId, item);
-
-  const fileName = item.getFilename();
-
-  const extension = path.extname(fileName)?.slice(1).toLowerCase();
-
-  if (extension) {
-    item.setSaveDialogOptions({
-      filters: [
-        {
-          name: `*.${extension}`,
-          extensions: [extension],
-        },
-        {
-          name: '*.*',
-          extensions: ['*'],
-        },
-      ],
-    });
-  }
 
   const server = select(({ servers }) =>
     servers.find((server) => server.webContentsId === serverWebContents.id)

@@ -1,5 +1,3 @@
-import path from 'path';
-
 import {
   clipboard,
   DownloadItem,
@@ -197,7 +195,7 @@ export const setupDownloads = (): void => {
       new Date(
         `${parsedStartTime.year}-${parsedStartTime.month}-${parsedStartTime.day}T${parsedStartTime.hour}:${parsedStartTime.minute}:${parsedStartTime.second}Z`
       ).getTime() +
-      +expiresIn * 1000;
+        +expiresIn * 1000;
 
     if (s3Expired) {
       createNotification({

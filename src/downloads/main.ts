@@ -31,25 +31,6 @@ export const handleWillDownloadEvent = async (
 
   items.set(itemId, item);
 
-  const fileName = item.getFilename();
-
-  const extension = path.extname(fileName)?.slice(1).toLowerCase();
-
-  if (extension) {
-    item.setSaveDialogOptions({
-      filters: [
-        {
-          name: `*.${extension}`,
-          extensions: [extension],
-        },
-        {
-          name: '*.*',
-          extensions: ['*'],
-        },
-      ],
-    });
-  }
-
   const server = select(({ servers }) =>
     servers.find((server) => server.webContentsId === serverWebContents.id)
   );
@@ -216,7 +197,7 @@ export const setupDownloads = (): void => {
       new Date(
         `${parsedStartTime.year}-${parsedStartTime.month}-${parsedStartTime.day}T${parsedStartTime.hour}:${parsedStartTime.minute}:${parsedStartTime.second}Z`
       ).getTime() +
-        +expiresIn * 1000;
+      +expiresIn * 1000;
 
     if (s3Expired) {
       createNotification({

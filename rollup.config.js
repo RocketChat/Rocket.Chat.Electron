@@ -146,6 +146,39 @@ export default [
     ],
   },
   {
+    external: [
+      ...builtinModules,
+      ...Object.keys(appManifest.dependencies),
+      ...Object.keys(appManifest.devDependencies),
+    ].filter((moduleName) => moduleName !== '@bugsnag/js'),
+    input: 'src/videoCallWindow/video-call-window-preload.ts',
+    plugins: [
+      json(),
+      replace({
+        'process.env.BUGSNAG_API_KEY': JSON.stringify(
+          process.env.BUGSNAG_API_KEY
+        ),
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      typescript(tsconfig),
+      babel({
+        babelHelpers: 'bundled',
+      }),
+      nodeResolve({
+        browser: true,
+      }),
+      commonjs(),
+    ],
+    output: [
+      {
+        dir: 'app',
+        format: 'cjs',
+        sourcemap: 'inline',
+      },
+    ],
+  },
+  {
     input: 'src/injected.ts',
     plugins: [
       json(),

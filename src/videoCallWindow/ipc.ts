@@ -131,6 +131,11 @@ export const startVideoCallWindowHandler = (): void => {
         'did-attach-webview',
         handleDidAttachWebview
       );
+
+      videoCallWindow.addListener('close', (event) => {
+        event.preventDefault();
+        videoCallWindow.close();
+      });
     }
   });
 };

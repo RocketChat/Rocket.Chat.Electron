@@ -4,6 +4,7 @@ import {
   shell,
   MenuItemConstructorOptions,
   BrowserWindow,
+  webContents,
 } from 'electron';
 import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
@@ -256,6 +257,16 @@ const createViewMenu = createSelector(
           const windows = BrowserWindow.getAllWindows();
           windows.forEach((window) => {
             window.webContents.toggleDevTools();
+          });
+        },
+      },
+      {
+        id: 'openDevToolsOnAllWebviews',
+        label: t('menus.openDevToolsOnAllWebviews'),
+        enabled: typeof currentView === 'object' && !!currentView.url,
+        click: () => {
+          webContents.getAllWebContents().forEach((webContents) => {
+            webContents.openDevTools();
           });
         },
       },

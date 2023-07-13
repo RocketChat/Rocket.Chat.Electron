@@ -9,10 +9,18 @@ export const getInternalVideoChatWindowEnabled = (): boolean =>
 
 export const openInternalVideoChatWindow = (
   url: string,
+  _providerName: string | undefined,
   _options: undefined
 ): void => {
   if (!process.mas && getInternalVideoChatWindowEnabled()) {
-    ipcRenderer.invoke('video-call-window/open-window', url, _options);
+    switch (_providerName) {
+      case 'jitsi':
+        window.open(url, 'Jitsi Meet', 'nodeIntegration=no');
+        return;
+      default:
+        ipcRenderer.invoke('video-call-window/open-window', url, _options);
+        break;
+    }
   } else {
     const validUrl = new URL(url);
     const allowedProtocols = ['http:', 'https:'];

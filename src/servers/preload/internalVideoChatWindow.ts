@@ -12,10 +12,14 @@ export const openInternalVideoChatWindow = (
   _providerName: string | undefined,
   _options: undefined
 ): void => {
+  console.log('openInternalVideoChatWindow', url, _providerName, _options);
   if (!process.mas && getInternalVideoChatWindowEnabled()) {
     switch (_providerName) {
       case 'jitsi':
-        window.open(url, 'Jitsi Meet', 'nodeIntegration=no');
+        window.open(url, 'Video Call', 'scrollbars=true');
+        return;
+      case 'googlemeet':
+        shell.openExternal(url);
         return;
       default:
         ipcRenderer.invoke('video-call-window/open-window', url, _options);

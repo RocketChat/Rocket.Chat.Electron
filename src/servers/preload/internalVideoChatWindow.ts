@@ -9,15 +9,31 @@ export const getInternalVideoChatWindowEnabled = (): boolean =>
 
 export const openInternalVideoChatWindow = (
   url: string,
+  providerName: string | undefined,
   _options: undefined
 ): void => {
+  const validUrl = new URL(url);
+  const allowedProtocols = ['http:', 'https:'];
+  if (!allowedProtocols.includes(validUrl.protocol)) {
+    return;
+  }
   if (!process.mas && getInternalVideoChatWindowEnabled()) {
-    ipcRenderer.invoke('video-call-window/open-window', url, _options);
-  } else {
-    const validUrl = new URL(url);
-    const allowedProtocols = ['http:', 'https:'];
-    if (allowedProtocols.includes(validUrl.protocol)) {
-      shell.openExternal(validUrl.href);
+    switch (providerName) {
+      case 'jitsi':
+        window.open(validUrl.href, 'Video Call', 'scrollbars=true');
+        break;
+      case 'googlemeet':
+        shell.openExternal(validUrl.href);
+        break;
+      default:
+        ipcRenderer.invoke(
+          'video-call-window/open-window',
+          validUrl.href,
+          _options
+        );
+        break;
     }
+  } else {
+    shell.openExternal(validUrl.href);
   }
 };

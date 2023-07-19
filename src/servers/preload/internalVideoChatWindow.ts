@@ -7,10 +7,13 @@ export const getInternalVideoChatWindowEnabled = (): boolean =>
     isInternalVideoChatWindowEnabled,
   })).isInternalVideoChatWindowEnabled;
 
+export type videoCallWindowOptions = {
+  providerName?: string | undefined;
+};
+
 export const openInternalVideoChatWindow = (
   url: string,
-  providerName: string | undefined,
-  _options: undefined
+  options: videoCallWindowOptions | undefined
 ): void => {
   const validUrl = new URL(url);
   const allowedProtocols = ['http:', 'https:'];
@@ -18,7 +21,7 @@ export const openInternalVideoChatWindow = (
     return;
   }
   if (!process.mas && getInternalVideoChatWindowEnabled()) {
-    switch (providerName) {
+    switch (options?.providerName) {
       case 'jitsi':
         window.open(validUrl.href, 'Video Call', 'scrollbars=true');
         break;
@@ -29,7 +32,7 @@ export const openInternalVideoChatWindow = (
         ipcRenderer.invoke(
           'video-call-window/open-window',
           validUrl.href,
-          _options
+          options
         );
         break;
     }

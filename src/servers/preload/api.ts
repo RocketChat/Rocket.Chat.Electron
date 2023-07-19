@@ -19,6 +19,7 @@ import { setGitCommitHash } from './gitCommitHash';
 import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
+  videoCallWindowOptions,
 } from './internalVideoChatWindow';
 import { setBackground, setServerVersionToSidebar } from './sidebar';
 import { setTitle } from './title';
@@ -57,8 +58,7 @@ export type RocketChatDesktopAPI = {
   getInternalVideoChatWindowEnabled: () => boolean;
   openInternalVideoChatWindow: (
     url: string,
-    providerName: string | undefined,
-    options: undefined
+    options: videoCallWindowOptions
   ) => void;
   setGitCommitHash: (gitCommitHash: string) => void;
   writeTextToClipboard: (text: string) => void;

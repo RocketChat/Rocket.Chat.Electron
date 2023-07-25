@@ -34,9 +34,11 @@ export const Wrapper = styled.div<WrapperProps>`
     css`
       color: ${color ?? '#ffffff'};
     `}
+
   ${({ sideBarStyle: { border } }) =>
+    border &&
     css`
-      border: ${border ?? 'none'};
+      border-right: ${border ?? 'none'};
     `}
 	${({ isVisible }) =>
     !isVisible &&
@@ -94,38 +96,14 @@ export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
   align-items: center;
   flex-flow: row wrap;
   justify-content: space-between;
+  margin-left: 14px;
+  margin-right: 12px;
 
   ${({ isDragged }) =>
     isDragged &&
     css`
       opacity: 0.5;
     `}
-
-  &::before {
-    flex: 0 0 auto;
-    width: 5px;
-    height: 0;
-    margin-right: -5px;
-    content: '';
-    transition: height var(--transitions-duration),
-      opacity var(--transitions-duration);
-    border-radius: 0 3px 3px 0;
-    background-color: #ffffff;
-
-    ${({ hasUnreadMessages }) =>
-      hasUnreadMessages &&
-      css`
-        height: 6px;
-        opacity: 0.6;
-      `}
-
-    ${({ isSelected }) =>
-      isSelected &&
-      css`
-        height: 30px;
-        opacity: 1;
-      `}
-  }
 
   ${withTooltip}
 `;

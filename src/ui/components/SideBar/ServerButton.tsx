@@ -1,5 +1,6 @@
 import { parse } from 'url';
 
+import { IconButton } from '@rocket.chat/fuselage';
 import type { FC, DragEvent, MouseEvent } from 'react';
 import React, { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
@@ -89,10 +90,19 @@ const ServerButton: FC<ServerButtonProps> = ({
       onDragEnter={onDragEnter}
       onDrop={onDrop}
     >
-      <Avatar isSelected={isSelected}>
-        <Initials visible={!favicon}>{initials}</Initials>
-        <Favicon draggable='false' src={favicon ?? ''} visible={!!favicon} />
-      </Avatar>
+      <IconButton
+        pressed={isSelected}
+        icon={
+          <Avatar isSelected={isSelected}>
+            <Initials visible={!favicon}>{initials}</Initials>
+            <Favicon
+              draggable='false'
+              src={favicon ?? ''}
+              visible={!!favicon}
+            />
+          </Avatar>
+        }
+      />
       {mentionCount && <Badge>{mentionCount}</Badge>}
       {!userLoggedIn && <Badge>!</Badge>}
       {shortcutNumber && (

@@ -1,4 +1,12 @@
-import { Label, Box, Table } from '@rocket.chat/fuselage';
+import {
+  Label,
+  Box,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+} from '@rocket.chat/fuselage';
 import type { FC } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,37 +30,37 @@ export const CertificatesManager: FC = () => {
       <Box flexGrow={1} flexShrink={1} paddingBlock={8}>
         <Label>{t('certificatesManager.trustedCertificates')}</Label>
         <Table sticky striped fixed>
-          <Table.Head>
-            <Table.Row>
-              <Table.Cell>{t('certificatesManager.item.domain')}</Table.Cell>
-              <Table.Cell align='end'>
+          <TableHead>
+            <TableRow>
+              <TableCell>{t('certificatesManager.item.domain')}</TableCell>
+              <TableCell align='end'>
                 {t('certificatesManager.item.actions')}
-              </Table.Cell>
-            </Table.Row>
-          </Table.Head>
-          <Table.Body>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {Object.keys(trustedCertificates).map((url) => (
               <CertificateItem url={url} />
             ))}
-          </Table.Body>
+          </TableBody>
         </Table>
       </Box>
       <Box marginBlockStart={50} flexGrow={1} flexShrink={1} paddingBlock={8}>
         <Label>{t('certificatesManager.notTrustedCertificates')}</Label>
         <Table sticky striped fixed>
-          <Table.Head>
-            <Table.Row>
-              <Table.Cell>{t('certificatesManager.item.domain')}</Table.Cell>
-              <Table.Cell align='end'>
+          <TableHead>
+            <TableRow>
+              <TableCell>{t('certificatesManager.item.domain')}</TableCell>
+              <TableCell align='end'>
                 {t('certificatesManager.item.actions')}
-              </Table.Cell>
-            </Table.Row>
-          </Table.Head>
-          <Table.Body>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {Object.keys(notTrustedCertificates).map((url) => (
               <CertificateItem url={url} />
             ))}
-          </Table.Body>
+          </TableBody>
         </Table>
       </Box>
     </Box>

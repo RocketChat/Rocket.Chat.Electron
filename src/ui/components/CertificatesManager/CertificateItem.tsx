@@ -1,4 +1,4 @@
-import { Icon, Table } from '@rocket.chat/fuselage';
+import { Icon, TableCell, TableRow } from '@rocket.chat/fuselage';
 import type { FC } from 'react';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,17 +18,17 @@ const CertificateItem: FC<CertificateItemProps> = ({ url }) => {
   }, [url]);
 
   return (
-    <Table.Row key={url}>
-      <Table.Cell>
+    <TableRow key={url}>
+      <TableCell>
         <Icon name='key' size='x16' />
         {url}
-      </Table.Cell>
-      <Table.Cell align='end'>
+      </TableCell>
+      <TableCell align='end'>
         <ActionButton onClick={handleRemove}>
           {t('certificatesManager.item.remove')}
         </ActionButton>
-      </Table.Cell>
-    </Table.Row>
+      </TableCell>
+    </TableRow>
   );
 };
 

@@ -6,6 +6,7 @@ import {
 import { SERVERS_LOADED } from '../../servers/actions';
 import type { ActionOf } from '../../store/actions';
 import {
+  DOWNLOADS_BACK_BUTTON_CLICKED,
   ADD_SERVER_VIEW_SERVER_ADDED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
   MENU_BAR_SELECT_SERVER_CLICKED,
@@ -16,7 +17,6 @@ import {
   SIDE_BAR_SERVER_SELECTED,
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   WEBVIEW_FOCUS_REQUESTED,
-  DOWNLOADS_BACK_BUTTON_CLICKED,
 } from '../actions';
 
 type CurrentViewAction =
@@ -92,8 +92,7 @@ export const currentView = (
       return 'settings';
 
     case DOWNLOADS_BACK_BUTTON_CLICKED:
-      console.log('DOWNLOADS_BACK_BUTTON_CLICKED');
-      return 'settings';
+      return { url: action.payload };
 
     default:
       return state;

@@ -14,7 +14,11 @@ export const lastSelectedServerUrl: Reducer<
 > = (state = '', action) => {
   switch (action.type) {
     case APP_SETTINGS_LOADED: {
-      const { lastSelectedServerUrl = state } = action.payload;
+      const { lastSelectedServerUrl = state, servers } = action.payload;
+      if (state === '' && servers && servers.length > 0) {
+        return servers[0].url;
+      }
+
       return lastSelectedServerUrl;
     }
 

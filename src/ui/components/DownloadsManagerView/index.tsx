@@ -16,7 +16,7 @@ import { useSelector } from 'react-redux';
 
 import type { Download } from '../../../downloads/common';
 import { DownloadStatus } from '../../../downloads/common';
-import { dispatch } from '../../../store';
+import { dispatch, select } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import { DOWNLOADS_BACK_BUTTON_CLICKED } from '../../actions';
 import DownloadItem from './DownloadItem';
@@ -29,6 +29,14 @@ const DownloadsManagerView: FC = () => {
   const [searchFilter, setSearchFilter] = useLocalStorage(
     'download-search',
     ''
+  );
+
+  const isSideBarEnabled = useSelector(
+    ({ isSideBarEnabled }: RootState) => isSideBarEnabled
+  );
+
+  const lastSelectedServerUrl = useSelector(
+    ({ lastSelectedServerUrl }: RootState) => lastSelectedServerUrl
   );
 
   const handleSearchFilterChange = useCallback(
@@ -158,12 +166,9 @@ const DownloadsManagerView: FC = () => {
   const handleBackButton = function (): void {
     dispatch({
       type: DOWNLOADS_BACK_BUTTON_CLICKED,
+      payload: lastSelectedServerUrl,
     });
   };
-
-  const isSideBarEnabled = useSelector(
-    ({ isSideBarEnabled }: RootState) => isSideBarEnabled
-  );
 
   return (
     <Box
@@ -180,7 +185,7 @@ const DownloadsManagerView: FC = () => {
         flexWrap='nowrap'
         alignItems='center'
       >
-        {isSideBarEnabled && (
+        {!isSideBarEnabled && (
           <IconButton icon='arrow-back' onClick={handleBackButton} />
         )}
         <Box is='div' color='default' fontScale='h1'>

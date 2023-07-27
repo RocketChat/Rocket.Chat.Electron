@@ -6,6 +6,7 @@ import {
   Button,
   Pagination,
   Scrollable,
+  IconButton,
 } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import type { FC, ChangeEvent } from 'react';
@@ -15,7 +16,9 @@ import { useSelector } from 'react-redux';
 
 import type { Download } from '../../../downloads/common';
 import { DownloadStatus } from '../../../downloads/common';
+import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
+import { DOWNLOADS_BACK_BUTTON_CLICKED } from '../../actions';
 import DownloadItem from './DownloadItem';
 
 const DownloadsManagerView: FC = () => {
@@ -152,6 +155,16 @@ const DownloadsManagerView: FC = () => {
       .sort((a, b) => b.itemId - a.itemId);
   });
 
+  const handleBackButton = function (): void {
+    dispatch({
+      type: DOWNLOADS_BACK_BUTTON_CLICKED,
+    });
+  };
+
+  const isSideBarEnabled = useSelector(
+    ({ isSideBarEnabled }: RootState) => isSideBarEnabled
+  );
+
   return (
     <Box
       display={isVisible ? 'flex' : 'none'}
@@ -167,6 +180,9 @@ const DownloadsManagerView: FC = () => {
         flexWrap='nowrap'
         alignItems='center'
       >
+        {isSideBarEnabled && (
+          <IconButton icon='arrow-back' onClick={handleBackButton} />
+        )}
         <Box is='div' color='default' fontScale='h1'>
           {t('downloads.title')}
         </Box>

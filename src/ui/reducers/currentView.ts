@@ -16,6 +16,7 @@ import {
   SIDE_BAR_SERVER_SELECTED,
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   WEBVIEW_FOCUS_REQUESTED,
+  DOWNLOADS_BACK_BUTTON_CLICKED,
 } from '../actions';
 
 type CurrentViewAction =
@@ -32,7 +33,8 @@ type CurrentViewAction =
   | ActionOf<typeof SIDE_BAR_REMOVE_SERVER_CLICKED>
   | ActionOf<typeof SIDE_BAR_SERVER_SELECTED>
   | ActionOf<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>
-  | ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>;
+  | ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>
+  | ActionOf<typeof DOWNLOADS_BACK_BUTTON_CLICKED>;
 
 type CurrentViewState =
   | 'add-new-server'
@@ -88,7 +90,12 @@ export const currentView = (
 
     case SIDE_BAR_SETTINGS_BUTTON_CLICKED:
       return 'settings';
-  }
 
-  return state;
+    case DOWNLOADS_BACK_BUTTON_CLICKED:
+      console.log('DOWNLOADS_BACK_BUTTON_CLICKED');
+      return 'settings';
+
+    default:
+      return state;
+  }
 };

@@ -16,7 +16,7 @@ import { useSelector } from 'react-redux';
 
 import type { Download } from '../../../downloads/common';
 import { DownloadStatus } from '../../../downloads/common';
-import { dispatch, select } from '../../../store';
+import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import { DOWNLOADS_BACK_BUTTON_CLICKED } from '../../actions';
 import DownloadItem from './DownloadItem';

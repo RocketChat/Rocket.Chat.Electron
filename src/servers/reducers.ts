@@ -2,8 +2,8 @@ import type { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
 import { DEEP_LINKS_SERVER_ADDED } from '../deepLinks/actions';
-import type { ActionOf } from '../store/actions';
 import { OUTLOOK_CALENDAR_SAVE_CREDENTIALS } from '../outlookCalendar/actions';
+import type { ActionOf } from '../store/actions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,

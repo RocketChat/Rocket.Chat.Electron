@@ -11,22 +11,23 @@ import {
   TextInput,
   ButtonGroup,
 } from '@rocket.chat/fuselage';
-import React, { FC, useEffect, useRef, useState, ReactElement } from 'react';
+import type { FC, ReactElement } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
 import {
   OUTLOOK_CALENDAR_ASK_CREDENTIALS,
   OUTLOOK_CALENDAR_DIALOG_DISMISSED,
   OUTLOOK_CALENDAR_SET_CREDENTIALS,
 } from '../../../outlookCalendar/actions';
-import { Server } from '../../../servers/common';
+import type { Server } from '../../../servers/common';
 import { listen } from '../../../store';
-import { RootAction } from '../../../store/actions';
+import type { RootAction } from '../../../store/actions';
 import { isRequest } from '../../../store/fsa';
-import { RootState } from '../../../store/rootReducer';
+import type { RootState } from '../../../store/rootReducer';
 import { Dialog } from '../Dialog';
 
 export type AuthPayload = {

@@ -5,13 +5,13 @@ import type { I18nActionTypeToPayloadMap } from '../i18n/actions';
 import type { JitsiServerActionTypeToPayloadMap } from '../jitsi/actions';
 import type { NavigationActionTypeToPayloadMap } from '../navigation/actions';
 import type { NotificationsActionTypeToPayloadMap } from '../notifications/actions';
+import type { OutlookCalendarActionTypeToPayloadMap } from '../outlookCalendar/actions';
 import type { ScreenSharingActionTypeToPayloadMap } from '../screenSharing/actions';
 import type { ServersActionTypeToPayloadMap } from '../servers/actions';
 import type { SpellCheckingActionTypeToPayloadMap } from '../spellChecking/actions';
 import type { UiActionTypeToPayloadMap } from '../ui/actions';
 import type { UpdatesActionTypeToPayloadMap } from '../updates/actions';
 import type { UserPresenceActionTypeToPayloadMap } from '../userPresence/actions';
-import type { OutlookCalendarActionTypeToPayloadMap } from '../outlookCalendar/actions';
 
 type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
   DeepLinksActionTypeToPayloadMap &

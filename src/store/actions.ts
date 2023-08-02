@@ -11,6 +11,7 @@ import type { SpellCheckingActionTypeToPayloadMap } from '../spellChecking/actio
 import type { UiActionTypeToPayloadMap } from '../ui/actions';
 import type { UpdatesActionTypeToPayloadMap } from '../updates/actions';
 import type { UserPresenceActionTypeToPayloadMap } from '../userPresence/actions';
+import type { OutlookCalendarActionTypeToPayloadMap } from '../outlookCalendar/actions';
 
 type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
   DeepLinksActionTypeToPayloadMap &
@@ -24,7 +25,8 @@ type ActionTypeToPayloadMap = AppActionTypeToPayloadMap &
   SpellCheckingActionTypeToPayloadMap &
   UiActionTypeToPayloadMap &
   UpdatesActionTypeToPayloadMap &
-  UserPresenceActionTypeToPayloadMap;
+  UserPresenceActionTypeToPayloadMap &
+  OutlookCalendarActionTypeToPayloadMap;
 
 type RootActions = {
   [Type in keyof ActionTypeToPayloadMap]: void extends ActionTypeToPayloadMap[Type]

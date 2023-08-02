@@ -2,6 +2,14 @@ import {
   createNotification,
   destroyNotification,
 } from '../../notifications/preload';
+import {
+  getOutlookEvents,
+  setOutlookExchangeUrl,
+  hasOutlookCredentials,
+  clearOutlookCredentials,
+  setUserToken,
+} from '../../outlookCalendar/preload';
+import type { OutlookEventsResponse } from '../../outlookCalendar/type';
 import { setUserPresenceDetection } from '../../userPresence/preload';
 import type { Server } from '../common';
 import { setBadge } from './badge';
@@ -50,6 +58,11 @@ export type RocketChatDesktopAPI = {
   openInternalVideoChatWindow: (url: string, options: undefined) => void;
   setGitCommitHash: (gitCommitHash: string) => void;
   writeTextToClipboard: (text: string) => void;
+  getOutlookEvents: (date: Date) => Promise<OutlookEventsResponse>;
+  setOutlookExchangeUrl: (url: string, userId: string) => void;
+  hasOutlookCredentials: () => Promise<boolean>;
+  clearOutlookCredentials: () => void;
+  setUserToken: (token: string, userId: string) => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -77,4 +90,9 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   openInternalVideoChatWindow,
   setGitCommitHash,
   writeTextToClipboard,
+  getOutlookEvents,
+  setOutlookExchangeUrl,
+  hasOutlookCredentials,
+  clearOutlookCredentials,
+  setUserToken,
 };

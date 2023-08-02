@@ -1,4 +1,5 @@
-import { dialog, BrowserWindow } from 'electron';
+import type { BrowserWindow } from 'electron';
+import { dialog } from 'electron';
 import i18next from 'i18next';
 
 import { getRootWindow } from './rootWindow';

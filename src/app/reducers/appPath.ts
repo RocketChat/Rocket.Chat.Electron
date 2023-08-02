@@ -1,6 +1,6 @@
-import { Reducer } from 'redux';
+import type { Reducer } from 'redux';
 
-import { ActionOf } from '../../store/actions';
+import type { ActionOf } from '../../store/actions';
 import { APP_PATH_SET } from '../actions';
 
 type AppPathAction = ActionOf<typeof APP_PATH_SET>;

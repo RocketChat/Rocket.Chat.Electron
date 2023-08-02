@@ -1,23 +1,16 @@
 import path from 'path';
 
-import {
-  app,
-  BrowserWindow,
-  nativeImage,
-  screen,
-  Rectangle,
-  NativeImage,
-  WebPreferences,
-} from 'electron';
+import type { Rectangle, NativeImage, WebPreferences } from 'electron';
+import { app, BrowserWindow, nativeImage, screen } from 'electron';
 import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
 import { setupRootWindowReload } from '../../app/main/dev';
-import { Server } from '../../servers/common';
+import type { Server } from '../../servers/common';
 import { select, watch, listen, dispatchLocal } from '../../store';
-import { RootState } from '../../store/rootReducer';
+import type { RootState } from '../../store/rootReducer';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
-import { RootWindowIcon, WindowState } from '../common';
+import type { RootWindowIcon, WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
 import { getTrayIconPath } from './icons';

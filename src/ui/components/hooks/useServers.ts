@@ -1,8 +1,8 @@
 import { useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
 
-import { Server } from '../../../servers/common';
-import { RootState } from '../../../store/rootReducer';
+import type { Server } from '../../../servers/common';
+import type { RootState } from '../../../store/rootReducer';
 // TODO: change currentView.url string to URL type
 export const useServers = (): (Server & { selected: boolean })[] =>
   useSelector(

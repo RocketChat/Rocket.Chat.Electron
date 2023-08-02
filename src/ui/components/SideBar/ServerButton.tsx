@@ -1,10 +1,12 @@
 import { parse } from 'url';
 
-import React, { useMemo, FC, DragEvent, MouseEvent } from 'react';
+import { IconButton } from '@rocket.chat/fuselage';
+import type { FC, DragEvent, MouseEvent } from 'react';
+import React, { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
-import { RootAction } from '../../../store/actions';
+import type { RootAction } from '../../../store/actions';
 import {
   SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
@@ -88,10 +90,19 @@ const ServerButton: FC<ServerButtonProps> = ({
       onDragEnter={onDragEnter}
       onDrop={onDrop}
     >
-      <Avatar isSelected={isSelected}>
-        <Initials visible={!favicon}>{initials}</Initials>
-        <Favicon draggable='false' src={favicon ?? ''} visible={!!favicon} />
-      </Avatar>
+      <IconButton
+        pressed={isSelected}
+        icon={
+          <Avatar isSelected={isSelected}>
+            <Initials visible={!favicon}>{initials}</Initials>
+            <Favicon
+              draggable='false'
+              src={favicon ?? ''}
+              visible={!!favicon}
+            />
+          </Avatar>
+        }
+      />
       {mentionCount && <Badge>{mentionCount}</Badge>}
       {!userLoggedIn && <Badge>!</Badge>}
       {shortcutNumber && (

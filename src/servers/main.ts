@@ -21,10 +21,9 @@ import {
 } from './actions';
 import {
   ServerUrlResolutionStatus,
-  Server,
-  ServerUrlResolutionResult,
   isServerUrlResolutionResult,
 } from './common';
+import type { Server, ServerUrlResolutionResult } from './common';
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 

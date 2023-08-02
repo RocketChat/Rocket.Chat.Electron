@@ -1,4 +1,4 @@
-import { Reducer } from 'redux';
+import type { Reducer } from 'redux';
 
 import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
@@ -11,7 +11,7 @@ import {
   OUTLOOK_CALENDAR_SET_CREDENTIALS,
 } from '../../outlookCalendar/actions';
 import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../screenSharing/actions';
-import { ActionOf } from '../../store/actions';
+import type { ActionOf } from '../../store/actions';
 import { UPDATES_NEW_VERSION_AVAILABLE } from '../../updates/actions';
 import {
   ABOUT_DIALOG_DISMISSED,

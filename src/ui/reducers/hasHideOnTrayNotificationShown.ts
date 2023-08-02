@@ -1,7 +1,7 @@
-import { Reducer } from 'redux';
+import type { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../../app/actions';
-import { ActionOf } from '../../store/actions';
+import type { ActionOf } from '../../store/actions';
 import { SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN } from '../actions';
 
 export const hasHideOnTrayNotificationShown: Reducer<

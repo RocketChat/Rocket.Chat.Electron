@@ -11,15 +11,15 @@ import {
 } from '../../outlookCalendar/preload';
 import type { OutlookEventsResponse } from '../../outlookCalendar/type';
 import { setUserPresenceDetection } from '../../userPresence/preload';
-import { Server } from '../common';
+import type { Server } from '../common';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
 import { setFavicon } from './favicon';
 import { setGitCommitHash } from './gitCommitHash';
+import type { videoCallWindowOptions } from './internalVideoChatWindow';
 import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
-  videoCallWindowOptions,
 } from './internalVideoChatWindow';
 import { setBackground, setServerVersionToSidebar } from './sidebar';
 import { setTitle } from './title';

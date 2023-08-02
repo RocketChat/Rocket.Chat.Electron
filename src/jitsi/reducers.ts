@@ -1,7 +1,7 @@
-import { Reducer } from 'redux';
+import type { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
-import { ActionOf } from '../store/actions';
+import type { ActionOf } from '../store/actions';
 import {
   JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED,
   JITSI_SERVER_CAPTURE_SCREEN_PERMISSION_UPDATED,

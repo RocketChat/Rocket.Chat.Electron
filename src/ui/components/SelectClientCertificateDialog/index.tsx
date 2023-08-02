@@ -1,9 +1,10 @@
 import { Box, Button, Margins, Scrollable, Tile } from '@rocket.chat/fuselage';
-import { Certificate } from 'electron';
-import React, { FC, useEffect, useRef } from 'react';
+import type { Certificate } from 'electron';
+import type { FC } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
 import {
   CERTIFICATES_CLIENT_CERTIFICATE_REQUESTED,
@@ -11,9 +12,9 @@ import {
   SELECT_CLIENT_CERTIFICATE_DIALOG_DISMISSED,
 } from '../../../navigation/actions';
 import { listen } from '../../../store';
-import { RootAction } from '../../../store/actions';
+import type { RootAction } from '../../../store/actions';
 import { isRequest } from '../../../store/fsa';
-import { RootState } from '../../../store/rootReducer';
+import type { RootState } from '../../../store/rootReducer';
 import { Dialog } from '../Dialog';
 
 export const SelectClientCertificateDialog: FC = () => {
@@ -68,6 +69,7 @@ export const SelectClientCertificateDialog: FC = () => {
       </Box>
       <Margins inline='neg-x12'>
         <Scrollable>
+          yarn l
           <Box>
             <Margins all='x12'>
               {clientCertificates.map((certificate, i) => (

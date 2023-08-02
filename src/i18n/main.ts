@@ -1,5 +1,6 @@
 import { app } from 'electron';
-import i18next, { TFunction } from 'i18next';
+import type { TFunction } from 'i18next';
+import i18next from 'i18next';
 
 import { dispatch, Service } from '../store';
 import { hasMeta } from '../store/fsa';

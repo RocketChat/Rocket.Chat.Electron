@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app, WebContents } from 'electron';
+import type { WebContents } from 'electron';
+import { app } from 'electron';
 
 export const setUserDataDirectory = (): void => {
   if (process.env.NODE_ENV !== 'development' || process.mas) {

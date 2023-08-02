@@ -1,6 +1,7 @@
-import { ipcMain, WebContents } from 'electron';
+import type { WebContents } from 'electron';
+import { ipcMain } from 'electron';
 
-import { Handler, Channel } from './channels';
+import type { Handler, Channel } from './channels';
 
 export const invoke = <N extends Channel>(
   webContents: WebContents,

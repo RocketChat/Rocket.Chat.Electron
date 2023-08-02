@@ -1,7 +1,8 @@
 import path from 'path';
 
 import { Box } from '@rocket.chat/fuselage';
-import React, { FC, useMemo } from 'react';
+import type { FC } from 'react';
+import React, { useMemo } from 'react';
 
 type FileIconProps = {
   fileName: string;

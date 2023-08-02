@@ -1,9 +1,10 @@
-import { useState, DragEvent } from 'react';
+import type { DragEvent } from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
-import { Server } from '../../../servers/common';
-import { RootAction } from '../../../store/actions';
+import type { Server } from '../../../servers/common';
+import type { RootAction } from '../../../store/actions';
 import {
   SIDE_BAR_SERVERS_SORTED,
   SIDE_BAR_SERVER_SELECTED,

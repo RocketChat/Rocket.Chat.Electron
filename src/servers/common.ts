@@ -1,4 +1,4 @@
-import { OutlookCredentials } from '../outlookCalendar/type';
+import type { OutlookCredentials } from '../outlookCalendar/type';
 
 export type Server = {
   url: string;

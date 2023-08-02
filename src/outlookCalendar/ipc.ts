@@ -3,7 +3,7 @@ import { safeStorage } from 'electron';
 
 import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
-import { Server } from '../servers/common';
+import type { Server } from '../servers/common';
 import { dispatch, request, select } from '../store';
 import {
   OUTLOOK_CALENDAR_SET_CREDENTIALS,

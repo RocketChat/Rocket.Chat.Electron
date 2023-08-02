@@ -1,4 +1,4 @@
-import { AddRepresentationOptions } from 'electron';
+import type { AddRepresentationOptions } from 'electron';
 
 export type IconRepresentation = Omit<AddRepresentationOptions, 'scaleFactor'>;
 

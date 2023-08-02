@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 
-import { OutlookEventsResponse } from './type';
+import type { OutlookEventsResponse } from './type';
 
 export const getOutlookEvents = async (
   date: Date

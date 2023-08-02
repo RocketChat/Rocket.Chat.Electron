@@ -5,7 +5,7 @@ import { BrowserWindow, app, autoUpdater as nativeUpdater } from 'electron';
 import { autoUpdater } from 'electron-updater';
 
 import { listen, dispatch, select } from '../store';
-import { RootState } from '../store/rootReducer';
+import type { RootState } from '../store/rootReducer';
 import {
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
   UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
@@ -26,7 +26,7 @@ import {
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
   UPDATES_READY,
 } from './actions';
-import {
+import type {
   AppLevelUpdateConfiguration,
   UpdateConfiguration,
   UserLevelUpdateConfiguration,

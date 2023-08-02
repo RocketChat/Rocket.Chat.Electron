@@ -5,7 +5,8 @@ import {
   Margins,
   Throbber,
 } from '@rocket.chat/fuselage';
-import React, { useState, useEffect, FC } from 'react';
+import type { FC } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FailureImage } from '../FailureImage';

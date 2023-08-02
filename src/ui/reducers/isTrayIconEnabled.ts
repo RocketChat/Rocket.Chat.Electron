@@ -1,7 +1,7 @@
-import { Reducer } from 'redux';
+import type { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../../app/actions';
-import { ActionOf } from '../../store/actions';
+import type { ActionOf } from '../../store/actions';
 import {
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED,

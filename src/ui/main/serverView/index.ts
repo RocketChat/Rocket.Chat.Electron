@@ -1,24 +1,26 @@
 import fs from 'fs';
 import path from 'path';
 
-import {
-  app,
+import type {
   BrowserWindow,
-  clipboard,
   ContextMenuParams,
-  dialog,
   Event,
   Input,
-  Menu,
   MenuItemConstructorOptions,
   Session,
-  shell,
-  systemPreferences,
   UploadFile,
   UploadRawData,
-  webContents,
   WebContents,
   WebPreferences,
+} from 'electron';
+import {
+  app,
+  clipboard,
+  dialog,
+  Menu,
+  shell,
+  systemPreferences,
+  webContents,
 } from 'electron';
 import i18next from 'i18next';
 
@@ -27,7 +29,7 @@ import { handleWillDownloadEvent } from '../../../downloads/main';
 import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
-import { Server } from '../../../servers/common';
+import type { Server } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
@@ -307,7 +309,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   };
 
   listen(WEBVIEW_READY, (action) => {
-    const guestWebContents = webContents.fromId(action.payload.webContentsId);
+    const guestWebContents = webContents.fromId(
+      action.payload.webContentsId
+    ) as WebContents;
     initializeServerWebContentsAfterReady(
       action.payload.url,
       guestWebContents,
@@ -363,7 +367,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   });
 
   listen(WEBVIEW_ATTACHED, (action) => {
-    const guestWebContents = webContents.fromId(action.payload.webContentsId);
+    const guestWebContents = webContents.fromId(
+      action.payload.webContentsId
+    ) as WebContents;
     initializeServerWebContentsAfterAttach(
       action.payload.url,
       guestWebContents,

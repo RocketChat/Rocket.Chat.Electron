@@ -8,12 +8,14 @@ import {
   Scrollable,
 } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
-import React, { useState, useMemo, useCallback, FC, ChangeEvent } from 'react';
+import type { FC, ChangeEvent } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { Download, DownloadStatus } from '../../../downloads/common';
-import { RootState } from '../../../store/rootReducer';
+import type { Download } from '../../../downloads/common';
+import { DownloadStatus } from '../../../downloads/common';
+import type { RootState } from '../../../store/rootReducer';
 import DownloadItem from './DownloadItem';
 
 const DownloadsManagerView: FC = () => {
@@ -52,11 +54,11 @@ const DownloadsManagerView: FC = () => {
   );
 
   const [serverFilter, setServerFilter] = useLocalStorage<
-    typeof serverFilterOptions[number][0]
+    (typeof serverFilterOptions)[number][0]
   >('download-server', '');
 
   const handleServerFilterChange = useCallback(
-    (value: typeof serverFilterOptions[number][0]) => {
+    (value: (typeof serverFilterOptions)[number][0]) => {
       setServerFilter(value);
     },
     [setServerFilter]
@@ -75,11 +77,11 @@ const DownloadsManagerView: FC = () => {
   );
 
   const [mimeTypeFilter, setMimeTypeFilter] = useLocalStorage<
-    typeof mimeTypeOptions[number][0]
+    (typeof mimeTypeOptions)[number][0]
   >('download-type', '');
 
   const handleMimeFilter = useCallback(
-    (value: typeof mimeTypeOptions[number][0]) => {
+    (value: (typeof mimeTypeOptions)[number][0]) => {
       setMimeTypeFilter(value);
     },
     [setMimeTypeFilter]
@@ -95,11 +97,11 @@ const DownloadsManagerView: FC = () => {
   );
 
   const [statusFilter, setStatusFilter] = useLocalStorage<
-    typeof statusFilterOptions[number][0]
+    (typeof statusFilterOptions)[number][0]
   >('download-tab', DownloadStatus.ALL);
 
   const handleTabChange = useCallback(
-    (value: typeof statusFilterOptions[number][0]) => {
+    (value: (typeof statusFilterOptions)[number][0]) => {
       setStatusFilter(value);
     },
     [setStatusFilter]
@@ -223,7 +225,6 @@ const DownloadsManagerView: FC = () => {
         <Box display='flex' flexGrow={1} flexShrink={1} paddingInline={2}>
           <Button
             small
-            ghost
             title={t('downloads.filters.clear')}
             onClick={handleClearAll}
           >

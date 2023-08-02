@@ -1,4 +1,4 @@
-import { ExtendedNotificationOptions } from './common';
+import type { ExtendedNotificationOptions } from './common';
 
 export const NOTIFICATIONS_CREATE_REQUESTED = 'notifications/create-requested';
 export const NOTIFICATIONS_CREATE_RESPONDED = 'notifications/create-responded';

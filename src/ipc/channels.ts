@@ -1,9 +1,9 @@
-import { AnyAction } from 'redux';
+import type { AnyAction } from 'redux';
 
-import { Download } from '../downloads/common';
-import { OutlookEventsResponse } from '../outlookCalendar/type';
-import { Server } from '../servers/common';
-import { SystemIdleState } from '../userPresence/common';
+import type { Download } from '../downloads/common';
+import type { OutlookEventsResponse } from '../outlookCalendar/type';
+import type { Server } from '../servers/common';
+import type { SystemIdleState } from '../userPresence/common';
 
 type ChannelToArgsMap = {
   'redux/get-initial-state': () => unknown;

@@ -8,6 +8,7 @@ import { HardwareAcceleration } from './features/HardwareAcceleration';
 import { InternalVideoChatWindow } from './features/InternalVideoChatWindow';
 import { MenuBar } from './features/MenuBar';
 import { MinimizeOnClose } from './features/MinimizeOnClose';
+import { NTLMCredentials } from './features/NTLMCredentials';
 import { ReportErrors } from './features/ReportErrors';
 import { SideBar } from './features/SideBar';
 import { TrayIcon } from './features/TrayIcon';
@@ -23,6 +24,7 @@ export const GeneralTab: FC = () => (
       {process.platform === 'win32' && <MinimizeOnClose />}
       <SideBar />
       {process.platform !== 'darwin' && <MenuBar />}
+      <NTLMCredentials />
       {!process.mas && <ClearPermittedScreenCaptureServers />}
     </FieldGroup>
   </Box>

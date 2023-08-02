@@ -214,6 +214,15 @@
       "clearPermittedScreenCaptureServers": {
         "title": "Clear Screen Capture Permissions",
         "description": "Clear the screen capture permissions that was selected to not ask again on video calls."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Allow Screen Capture on Video Calls",
+        "description": "Allow screen capture on video calls. This will ask for permission on each video call."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM Credentials",
+        "description": "Allow NTLM Credentials to be used when connecting to a server.",
+        "domains": "Domains that will use the credentials. Separated by comma. Use * to match all domains."
       }
     }
   },

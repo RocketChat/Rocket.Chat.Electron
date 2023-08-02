@@ -7999,6 +7999,7 @@ fetch-blob@^3.1.2, fetch-blob@^3.1.4:
   dependencies:
     node-domexception "^1.0.0"
     web-streams-polyfill "^3.0.3"
+
 fetch@^1.0.1, fetch@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/fetch/-/fetch-1.1.0.tgz#0a8279f06be37f9f0ebb567560a30a480da59a2e"
@@ -8126,6 +8127,13 @@ follow-redirects@^1.15.0:
   version "1.15.2"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
   integrity sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==
+
+for-each@^0.3.3:
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/for-each/-/for-each-0.3.3.tgz#69b447e88a0a5d32c3e7084f3f1710034b21376e"
+  integrity sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==
+  dependencies:
+    is-callable "^1.1.3"
 
 for-in@^1.0.2:
   version "1.0.2"
@@ -10813,6 +10821,26 @@ moment@^2.29.4:
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
   integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
 
+mongodb-connection-string-url@^2.5.4:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/mongodb-connection-string-url/-/mongodb-connection-string-url-2.6.0.tgz#57901bf352372abdde812c81be47b75c6b2ec5cf"
+  integrity sha512-WvTZlI9ab0QYtTYnuMLgobULWhokRjtC7db9LtcVfJ+Hsnyr5eo6ZtNAt3Ly24XZScGMelOcGtm7lSn0332tPQ==
+  dependencies:
+    "@types/whatwg-url" "^8.2.1"
+    whatwg-url "^11.0.0"
+
+mongodb@^4.3.1:
+  version "4.16.0"
+  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-4.16.0.tgz#8b0043de7b577c6a7e0ce44a2ca7315b9c0a7927"
+  integrity sha512-0EB113Fsucaq1wsY0dOhi1fmZOwFtLOtteQkiqOXGklvWMnSH3g2QS53f0KTP+/6qOkuoXE2JksubSZNmxeI+g==
+  dependencies:
+    bson "^4.7.2"
+    mongodb-connection-string-url "^2.5.4"
+    socks "^2.7.1"
+  optionalDependencies:
+    "@aws-sdk/credential-providers" "^3.186.0"
+    saslprep "^1.0.3"
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -11596,12 +11624,7 @@ proxy-from-env@1.1.0, proxy-from-env@^1.0.0, proxy-from-env@^1.1.0:
   resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-1.1.0.tgz#e102f16ca355424865755d2c9e8ea4f24d58c3e2"
   integrity sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==
 
-psl@^1.1.28, psl@^1.1.33:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/psl/-/psl-1.9.0.tgz#d0df2a137f00794565fcaf3b2c00cd09f8d5a5a7"
-  integrity sha512-E/ZsdU4HLs/68gYzgGTkMicWTLPdAftJLfJFlLUAAKZGkStNU72sZjT66SnMDVOfOWY/YAoiD7Jxa9iHvngcag==
-
-psl@^1.1.7:
+psl@^1.1.28, psl@^1.1.33, psl@^1.1.7:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/psl/-/psl-1.9.0.tgz#d0df2a137f00794565fcaf3b2c00cd09f8d5a5a7"
   integrity sha512-E/ZsdU4HLs/68gYzgGTkMicWTLPdAftJLfJFlLUAAKZGkStNU72sZjT66SnMDVOfOWY/YAoiD7Jxa9iHvngcag==

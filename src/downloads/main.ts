@@ -1,7 +1,6 @@
-import path from 'path';
-
 import type { DownloadItem, Event, WebContents } from 'electron';
 import { clipboard, shell, webContents } from 'electron';
+
 import { t } from 'i18next';
 
 import { handle } from '../ipc/main';
@@ -25,25 +24,6 @@ export const handleWillDownloadEvent = async (
   const itemId = Date.now();
 
   items.set(itemId, item);
-
-  const fileName = item.getFilename();
-
-  const extension = path.extname(fileName)?.slice(1).toLowerCase();
-
-  if (extension) {
-    item.setSaveDialogOptions({
-      filters: [
-        {
-          name: `*.${extension}`,
-          extensions: [extension],
-        },
-        {
-          name: '*.*',
-          extensions: ['*'],
-        },
-      ],
-    });
-  }
 
   const server = select(({ servers }) =>
     servers.find((server) => server.webContentsId === serverWebContents.id)

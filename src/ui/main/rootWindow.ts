@@ -43,9 +43,9 @@ let tempWindow: BrowserWindow;
 
 export const getRootWindow = (): Promise<BrowserWindow> =>
   new Promise((resolve, reject) => {
-    setImmediate(() => {
+    setTimeout(() => {
       _rootWindow ? resolve(_rootWindow) : reject(new Error());
-    });
+    }, 300);
   });
 
 const platformTitleBarStyle =

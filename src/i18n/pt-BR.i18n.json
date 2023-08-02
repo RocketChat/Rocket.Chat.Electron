@@ -187,7 +187,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Abrir chat em video em uma janela da aplicação",
-        "description": "Quando ativo o chat em video será aberto em uma janela da aplicação, caso contrário será aberto em uma nova janela do navegador.",
+        "description": "Quando ativado, o Video Chat será aberto usando a janela do aplicativo, caso contrário, o navegador padrão será usado. O compartilhamento de tela do <strong>Google Meet</strong> não é suportado em aplicativos Electron, portanto, essa configuração não altera o comportamento das chamadas no Meet, que serão abertas no navegador.",
         "masDescription": "Esta opção esta desativada quando for instalado através da Mac App Store, por motivos de segurança o chat em video sera aberto usando o navegador por padrão."
       },
       "minimizeOnClose": {

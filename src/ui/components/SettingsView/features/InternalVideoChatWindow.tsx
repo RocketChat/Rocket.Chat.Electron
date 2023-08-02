@@ -1,12 +1,5 @@
 import { ToggleSwitch, Field } from '@rocket.chat/fuselage';
-import type {
-  ChangeEvent,
-  Dispatch,
-  FC,
-  ChangeEvent,
-  Dispatch,
-  FC,
-} from 'react';
+import type { ChangeEvent, Dispatch, FC } from 'react';
 import React, { useCallback } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';

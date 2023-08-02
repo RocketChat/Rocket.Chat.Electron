@@ -1,6 +1,5 @@
 import type { DownloadItem, Event, WebContents } from 'electron';
 import { clipboard, shell, webContents } from 'electron';
-
 import { t } from 'i18next';
 
 import { handle } from '../ipc/main';

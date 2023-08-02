@@ -1,5 +1,5 @@
-import { Server } from '../servers/common';
-import { OutlookCredentials } from './type';
+import type { Server } from '../servers/common';
+import type { OutlookCredentials } from './type';
 
 export const OUTLOOK_CALENDAR_SET_CREDENTIALS =
   'outlook-calendar/set-credentials';

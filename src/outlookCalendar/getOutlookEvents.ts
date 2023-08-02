@@ -1,11 +1,11 @@
 /* eslint-disable new-cap */
 import { XhrApi } from '@ewsjs/xhr';
+import type { Appointment } from 'ews-javascript-api';
 import {
   FolderId,
   CalendarView,
   DateTime,
   WellKnownFolderName,
-  Appointment,
   BasePropertySet,
   PropertySet,
   ConfigurationApi,

@@ -205,6 +205,19 @@
       "trayIcon": {
         "title": "Ícone da bandeja",
         "description": "Mostra um ícone na bandeja do sistema para acessar rapidamente a aplicação. Se o ícone da bandeja estiver ativado, a aplicação será minimizada para a barra de tarefas ao ser fechada. Por outro lado se o ícone da bandeja estiver desativado, a aplicação será finalizada ao ser fechada."
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Limpar Permissões de Captura de Tela",
+        "description": "Limpar as permissões de captura de tela que foram selecionadas para não perguntar novamente em chamadas de vídeo."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Permitir Captura de Tela em Chamadas de Vídeo",
+        "description": "Permitir captura de tela em chamadas de vídeo. Isso solicitará permissão em cada chamada de vídeo."
+      },
+      "ntlmCredentials": {
+        "title": "Credenciais NTLM",
+        "description": "Permitir o uso de credenciais NTLM ao conectar-se a um servidor.",
+        "domains": "Domínios que usarão as credenciais. Separados por vírgula. Use * para permitir todos os domínios."
       }
     }
   },

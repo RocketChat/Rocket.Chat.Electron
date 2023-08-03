@@ -60,13 +60,15 @@ type PersistableValues_3_8_12 = PersistableValues_3_8_9 & {
   hasHideOnTrayNotificationShown: boolean;
 };
 
-type PersistableValues_3_9_5 = PersistableValues_3_8_12 & {
+type PersistableValues_3_9_6 = PersistableValues_3_8_12 & {
   lastSelectedServerUrl: string;
+  allowedNTLMCredentialsDomains: string | null;
+  isNTLMCredentialsEnabled: boolean;
 };
 
 export type PersistableValues = Pick<
-  PersistableValues_3_9_5,
-  keyof PersistableValues_3_9_5
+  PersistableValues_3_9_6,
+  keyof PersistableValues_3_9_6
 >;
 
 export const migrations = {
@@ -112,5 +114,11 @@ export const migrations = {
   '>=3.8.12': (before: PersistableValues_3_8_9): PersistableValues_3_8_12 => ({
     ...before,
     hasHideOnTrayNotificationShown: false,
+  }),
+  '>=3.9.6': (before: PersistableValues_3_8_12): PersistableValues_3_9_6 => ({
+    ...before,
+    isNTLMCredentialsEnabled: false,
+    allowedNTLMCredentialsDomains: null,
+    lastSelectedServerUrl: '',
   }),
 };

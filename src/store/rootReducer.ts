@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux';
 
+import { allowedNTLMCredentialsDomains } from '../app/reducers/allowedNTLMCredentialsDomains';
 import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
 import { downloads } from '../downloads/reducers/downloads';
@@ -20,6 +21,7 @@ import { isInternalVideoChatWindowEnabled } from '../ui/reducers/isInternalVideo
 import { isMenuBarEnabled } from '../ui/reducers/isMenuBarEnabled';
 import { isMessageBoxFocused } from '../ui/reducers/isMessageBoxFocused';
 import { isMinimizeOnCloseEnabled } from '../ui/reducers/isMinimizeOnCloseEnabled';
+import { isNTLMCredentialsEnabled } from '../ui/reducers/isNTLMCredentialsEnabled';
 import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
@@ -74,6 +76,8 @@ export const rootReducer = combineReducers({
   isAddNewServersEnabled,
   hasHideOnTrayNotificationShown,
   lastSelectedServerUrl,
+  allowedNTLMCredentialsDomains,
+  isNTLMCredentialsEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

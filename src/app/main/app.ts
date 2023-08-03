@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, session } from 'electron';
 import rimraf from 'rimraf';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -14,11 +14,16 @@ import { dispatch, listen } from '../../store';
 import { readSetting } from '../../store/readSetting';
 import {
   SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
+  SETTINGS_NTLM_CREDENTIALS_CHANGED,
   SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED,
 } from '../../ui/actions';
 import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
-import { APP_PATH_SET, APP_VERSION_SET } from '../actions';
+import {
+  APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET,
+  APP_PATH_SET,
+  APP_VERSION_SET,
+} from '../actions';
 
 export const packageJsonInformation = {
   productName: packageJson.productName,
@@ -94,6 +99,29 @@ export const setupApp = (): void => {
     relaunchApp();
   });
 
+  listen(APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET, (action) => {
+    if (action.payload.length > 0) {
+      session.defaultSession.allowNTLMCredentialsForDomains(action.payload);
+    }
+  });
+
+  listen(SETTINGS_NTLM_CREDENTIALS_CHANGED, (action) => {
+    if (action.payload === true) {
+      const allowedNTLMCredentialsDomains = readSetting(
+        'allowedNTLMCredentialsDomains'
+      );
+      if (allowedNTLMCredentialsDomains) {
+        console.log('Setting NTLM credentials', allowedNTLMCredentialsDomains);
+        session.defaultSession.allowNTLMCredentialsForDomains(
+          allowedNTLMCredentialsDomains
+        );
+      }
+    } else {
+      console.log('Clearing NTLM credentials');
+      session.defaultSession.allowNTLMCredentialsForDomains('');
+    }
+  });
+
   listen(
     SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
     async (_action) => {
@@ -107,6 +135,19 @@ export const setupApp = (): void => {
       }
     }
   );
+
+  const allowedNTLMCredentialsDomains = readSetting(
+    'allowedNTLMCredentialsDomains'
+  );
+
+  const isNTLMCredentialsEnabled = readSetting('isNTLMCredentialsEnabled');
+
+  if (isNTLMCredentialsEnabled && allowedNTLMCredentialsDomains.length > 0) {
+    console.log('Setting NTLM credentials', allowedNTLMCredentialsDomains);
+    session.defaultSession.allowNTLMCredentialsForDomains(
+      allowedNTLMCredentialsDomains
+    );
+  }
 
   dispatch({ type: APP_PATH_SET, payload: app.getAppPath() });
   dispatch({ type: APP_VERSION_SET, payload: app.getVersion() });

@@ -41,4 +41,8 @@ export const selectPersistableValues = createStructuredSelector<
   hasHideOnTrayNotificationShown: ({ hasHideOnTrayNotificationShown }) =>
     hasHideOnTrayNotificationShown,
   lastSelectedServerUrl: ({ lastSelectedServerUrl }) => lastSelectedServerUrl,
+  allowedNTLMCredentialsDomains: ({ allowedNTLMCredentialsDomains }) =>
+    allowedNTLMCredentialsDomains,
+  isNTLMCredentialsEnabled: ({ isNTLMCredentialsEnabled }) =>
+    isNTLMCredentialsEnabled,
 });

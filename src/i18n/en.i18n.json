@@ -115,6 +115,15 @@
       "dontAskAgain": "Always allow video calls from this server to capture your screen",
       "yes": "Allow",
       "no": "Cancel"
+    },
+    "outlookCalendar": {
+      "title": "Outlook Calendar",
+      "encryptionUnavailableTitle": "Encryption unavailable",
+      "encryptionUnavailable": "Your operational system don't support encryption.\nYour credentials will be stored in plain text.",
+      "field_required": "This field is required",
+      "remember_credentials": "Remember my credentials",
+      "cancel": " Cancel",
+      "submit": "Login"
     }
   },
   "downloads": {
@@ -192,7 +201,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Open Video Chat using Application Window",
-        "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used.",
+        "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used. <strong>Google Meet</strong> share screen is not supported in Electron applications, so this configuration don't change Meet calls behavior, that will open on browser.",
         "masDescription": "This option is disabled when installed from the Mac App Store, for security reasons it will open Video Chat using the browser by default."
       },
       "minimizeOnClose": {

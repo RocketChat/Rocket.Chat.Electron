@@ -60,9 +60,13 @@ type PersistableValues_3_8_12 = PersistableValues_3_8_9 & {
   hasHideOnTrayNotificationShown: boolean;
 };
 
+type PersistableValues_3_9_5 = PersistableValues_3_8_12 & {
+  lastSelectedServerUrl: string;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_3_8_12,
-  keyof PersistableValues_3_8_12
+  PersistableValues_3_9_5,
+  keyof PersistableValues_3_9_5
 >;
 
 export const migrations = {

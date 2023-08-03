@@ -40,4 +40,5 @@ export const selectPersistableValues = createStructuredSelector<
     isAddNewServersEnabled,
   hasHideOnTrayNotificationShown: ({ hasHideOnTrayNotificationShown }) =>
     hasHideOnTrayNotificationShown,
+  lastSelectedServerUrl: ({ lastSelectedServerUrl }) => lastSelectedServerUrl,
 });

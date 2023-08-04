@@ -30,7 +30,7 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: Install package dependencies
-        run: yarn install --check-files
+        run: yarn install
       - name: Lint
         run: yarn lint
       - name: Test

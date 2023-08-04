@@ -53,12 +53,12 @@
     "@emotion/css": "^11.7.1",
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
+    "@ewsjs/xhr": "^1.5.0",
     "@rocket.chat/css-in-js": "^0.31.23-dev.165",
     "@rocket.chat/fuselage": "^0.32.0-dev.391",
     "@rocket.chat/fuselage-hooks": "^0.32.0-dev.304",
     "@rocket.chat/fuselage-polyfills": "^0.31.23-dev.165",
     "@rocket.chat/icons": "^0.32.0-dev.373",
-    "@ewsjs/xhr": "^1.5.0",
     "abort-controller": "^3.0.0",
     "axios": "^1.4.0",
     "electron-dl": "^3.5.0",
@@ -142,5 +142,10 @@
   "resolutions": {
     "@fiahfy/icns-convert/sharp": "0.29.3",
     "@fiahfy/ico-convert/sharp": "0.29.3"
-  }
+  },
+  "volta": {
+    "node": "14.21.3",
+    "yarn": "1.22.18"
+  },
+  "packageManager": "yarn@3.2.2"
 }

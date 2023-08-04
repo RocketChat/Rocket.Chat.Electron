@@ -24,7 +24,7 @@ export const GeneralTab: FC = () => (
       {process.platform === 'win32' && <MinimizeOnClose />}
       <SideBar />
       {process.platform !== 'darwin' && <MenuBar />}
-      <NTLMCredentials />
+      {process.platform === 'win32' && <NTLMCredentials />}
       {!process.mas && <ClearPermittedScreenCaptureServers />}
     </FieldGroup>
   </Box>

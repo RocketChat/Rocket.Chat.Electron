@@ -6262,7 +6262,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-babel@npm:^5.3.0":
+"@rollup/plugin-babel@npm:~5.3.1":
   version: 5.3.1
   resolution: "@rollup/plugin-babel@npm:5.3.1"
   dependencies:
@@ -6279,7 +6279,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-commonjs@npm:^21.0.1":
+"@rollup/plugin-commonjs@npm:~21.1.0":
   version: 21.1.0
   resolution: "@rollup/plugin-commonjs@npm:21.1.0"
   dependencies:
@@ -6296,7 +6296,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-json@npm:^4.1.0":
+"@rollup/plugin-json@npm:~4.1.0":
   version: 4.1.0
   resolution: "@rollup/plugin-json@npm:4.1.0"
   dependencies:
@@ -6307,7 +6307,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-node-resolve@npm:^13.1.3":
+"@rollup/plugin-node-resolve@npm:~13.3.0":
   version: 13.3.0
   resolution: "@rollup/plugin-node-resolve@npm:13.3.0"
   dependencies:
@@ -6323,7 +6323,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-replace@npm:^3.0.1":
+"@rollup/plugin-replace@npm:~3.1.0":
   version: 3.1.0
   resolution: "@rollup/plugin-replace@npm:3.1.0"
   dependencies:
@@ -6332,23 +6332,6 @@ __metadata:
   peerDependencies:
     rollup: ^1.20.0 || ^2.0.0
   checksum: 9f833d40f7ebd6bb32b1c7a118fedd27a6d63e591018543740c78d3bc6fe67efa7048c6457bcadf8f982385b78e33ff8e38a67ddd4d11c15d9c81898a0757c13
-  languageName: node
-  linkType: hard
-
-"@rollup/plugin-typescript@npm:^8.3.0":
-  version: 8.5.0
-  resolution: "@rollup/plugin-typescript@npm:8.5.0"
-  dependencies:
-    "@rollup/pluginutils": ^3.1.0
-    resolve: ^1.17.0
-  peerDependencies:
-    rollup: ^2.14.0
-    tslib: "*"
-    typescript: ">=3.7.0"
-  peerDependenciesMeta:
-    tslib:
-      optional: true
-  checksum: 2f100a73cdeb9bf82feaf8665fe791dabf5dcc17f6e727eb7b1825e7c7cf815ccd3f79f9f43ca53d7806c50686565c71f35fffcfc773b811a5c1e39eab167529
   languageName: node
   linkType: hard
 
@@ -16903,12 +16886,11 @@ __metadata:
     "@rocket.chat/fuselage-polyfills": ^0.31.23-dev.165
     "@rocket.chat/icons": ^0.32.0-dev.373
     "@rocket.chat/prettier-config": ^0.31.23-dev.165
-    "@rollup/plugin-babel": ^5.3.0
-    "@rollup/plugin-commonjs": ^21.0.1
-    "@rollup/plugin-json": ^4.1.0
-    "@rollup/plugin-node-resolve": ^13.1.3
-    "@rollup/plugin-replace": ^3.0.1
-    "@rollup/plugin-typescript": ^8.3.0
+    "@rollup/plugin-babel": ~5.3.1
+    "@rollup/plugin-commonjs": ~21.1.0
+    "@rollup/plugin-json": ~4.1.0
+    "@rollup/plugin-node-resolve": ~13.3.0
+    "@rollup/plugin-replace": ~3.1.0
     "@types/electron-devtools-installer": ^2.2.1
     "@types/jest": ^27.4.0
     "@types/meteor": ^2.0.4
@@ -16953,8 +16935,8 @@ __metadata:
     redux: ^4.1.2
     reselect: 4.1.6
     rimraf: ^3.0.2
-    rollup: ^2.66.1
-    rollup-plugin-copy: ^3.4.0
+    rollup: ~2.79.1
+    rollup-plugin-copy: ~3.4.0
     semver: ^7.3.5
     ts-jest: ^26.5.6
     ts-node: ^10.4.0
@@ -16967,7 +16949,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"rollup-plugin-copy@npm:^3.4.0":
+"rollup-plugin-copy@npm:~3.4.0":
   version: 3.4.0
   resolution: "rollup-plugin-copy@npm:3.4.0"
   dependencies:
@@ -16980,7 +16962,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^2.66.1":
+"rollup@npm:~2.79.1":
   version: 2.79.1
   resolution: "rollup@npm:2.79.1"
   dependencies:

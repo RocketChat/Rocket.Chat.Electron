@@ -5,7 +5,6 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
-import typescript from '@rollup/plugin-typescript';
 import builtinModules from 'builtin-modules';
 import electron from 'electron';
 import copy from 'rollup-plugin-copy';
@@ -43,10 +42,7 @@ const run = () => {
   };
 };
 
-const tsconfig = {
-  noEmitOnError: false,
-  exclude: ['src/**/*.spec.ts', 'src/.jest'],
-};
+const extensions = ['.js', '.ts', '.tsx'];
 
 export default [
   {
@@ -63,12 +59,13 @@ export default [
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
         'preventAssignment': true,
       }),
-      typescript(tsconfig),
       babel({
         babelHelpers: 'bundled',
+        extensions,
       }),
       nodeResolve({
         browser: true,
+        extensions,
       }),
       commonjs(),
     ],
@@ -97,12 +94,13 @@ export default [
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
         'preventAssignment': true,
       }),
-      typescript(tsconfig),
       babel({
         babelHelpers: 'bundled',
+        extensions,
       }),
       nodeResolve({
         browser: true,
+        extensions,
       }),
       commonjs(),
     ],
@@ -128,12 +126,13 @@ export default [
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
         'preventAssignment': true,
       }),
-      typescript(tsconfig),
       babel({
         babelHelpers: 'bundled',
+        extensions,
       }),
       nodeResolve({
         browser: true,
+        extensions,
       }),
       commonjs(),
     ],
@@ -153,12 +152,13 @@ export default [
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
         'preventAssignment': true,
       }),
-      typescript(tsconfig),
       babel({
         babelHelpers: 'bundled',
+        extensions,
       }),
       nodeResolve({
         browser: true,
+        extensions,
       }),
       commonjs(),
     ],
@@ -192,11 +192,11 @@ export default [
         'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
         'preventAssignment': true,
       }),
-      typescript(tsconfig),
       babel({
         babelHelpers: 'bundled',
+        extensions,
       }),
-      nodeResolve(),
+      nodeResolve({ extensions }),
       commonjs(),
       run(),
     ],

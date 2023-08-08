@@ -10,6 +10,7 @@ export type Server = {
     color: string | null;
     border: string | null;
   };
+  customTheme?: string;
   lastPath?: string;
   failed?: boolean;
   webContentsId?: number;

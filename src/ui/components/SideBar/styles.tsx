@@ -10,6 +10,7 @@ type WrapperProps = {
     border?: string;
   };
   isVisible: boolean;
+  customTheme?: string;
 };
 
 export const Wrapper = styled.div<WrapperProps>`
@@ -46,6 +47,7 @@ export const Wrapper = styled.div<WrapperProps>`
       margin-inline-start: -68px;
       visibility: hidden;
     `}
+  ${({ customTheme }) => customTheme}
 `;
 
 type ContentProps = {

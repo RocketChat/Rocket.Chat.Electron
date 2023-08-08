@@ -120,8 +120,15 @@ const start = (): void => {
 
   Tracker.autorun(() => {
     const { url, defaultUrl } = settings.get('Assets_background') || {};
-
     window.RocketChatDesktop.setBackground(url || defaultUrl);
+  });
+
+  Tracker.autorun(() => {
+    const meteorCustomTheme = Meteor.settings['theme-custom-css'] || '';
+    console.log('[Rocket.Chat Desktop] meteorCustomTheme', meteorCustomTheme);
+    if (meteorCustomTheme.length > 0) {
+      window.RocketChatDesktop.setSidebarCustomTheme(meteorCustomTheme);
+    }
   });
 
   Tracker.autorun(() => {

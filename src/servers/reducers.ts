@@ -20,6 +20,7 @@ import {
   WEBVIEW_ATTACHED,
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
   WEBVIEW_ALLOWED_REDIRECTS_CHANGED,
+  WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import type { Server } from './common';
@@ -40,6 +41,7 @@ type ServersActionTypes =
   | ActionOf<typeof SIDE_BAR_SERVERS_SORTED>
   | ActionOf<typeof WEBVIEW_DID_NAVIGATE>
   | ActionOf<typeof WEBVIEW_SIDEBAR_STYLE_CHANGED>
+  | ActionOf<typeof WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED>
   | ActionOf<typeof WEBVIEW_GIT_COMMIT_HASH_CHANGED>
   | ActionOf<typeof WEBVIEW_TITLE_CHANGED>
   | ActionOf<typeof WEBVIEW_UNREAD_CHANGED>
@@ -123,6 +125,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_SIDEBAR_STYLE_CHANGED: {
       const { url, style } = action.payload;
       return upsert(state, { url, style });
+    }
+
+    case WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED: {
+      const { url, customTheme } = action.payload;
+      return upsert(state, { url, customTheme });
     }
 
     case WEBVIEW_GIT_COMMIT_HASH_CHANGED: {

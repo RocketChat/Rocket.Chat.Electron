@@ -69,11 +69,11 @@ yarn start
 ### Structure of the project
 
 The source is located in the `src` folder. Everything in this folder will be
-built automatically when running the app with `yarn start`.
+built automatically when running the app using the `yarn start` command.
 
 The build process compiles all stuff from the `src` folder and puts it into the
-`app` folder, so after the build has finished, your `app` folder contains the
-full, runnable application.
+`app` folder, so after the build is finished, your `app` folder contains the
+full, executable application.
 
 ### TypeScript
 
@@ -88,7 +88,7 @@ for your code:
 - `src/main.ts`, the script running at the main Electron process, orchestrating
   the whole application;
 
-- `src/rootWindow.ts`, the script that renders the UI of the *root window*, the
+- `src/rootWindow.ts`, the script that renders the UI of the *root window*, i.e the
   app's main window;
 
 - and `src/preload.ts`, which runs in a privileged mode to connect the app and
@@ -97,7 +97,7 @@ for your code:
 #### Adding Node.js modules
 
 Remember to respect the split between `dependencies` and `devDependencies` in
-`package.json` file. Only modules listed in `dependencies` will be included into
+`package.json` file. Only modules listed in `dependencies` will be included into the
 distributable app.
 
 ### Troubleshooting
@@ -152,7 +152,7 @@ yarn release
 ```
 
 It will start the packaging process for operating system you are running this
-command on. Ready for distribution file will be outputted to `dist` directory.
+command on. The distributable file will be outputted to `dist` directory.
 
 All packaging actions are handled by [electron-builder][]. It has a lot of
 [customization options][].
@@ -161,9 +161,8 @@ All packaging actions are handled by [electron-builder][]. It has a lot of
 
 The `servers.json` file will define what servers the client will connect to and
 will populate the server list in the sidebar. It contains a list of default
-servers which will be added the first time the user runs the app (or when all
-servers are removed from the list).
-The file syntax is as follows:
+servers which will be added when the user runs the app for the first time (or when all
+servers are removed from the list).The file syntax is as follows:
 
 ```json
 {

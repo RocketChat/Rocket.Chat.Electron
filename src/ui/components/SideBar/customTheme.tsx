@@ -7,7 +7,7 @@ interface CustomThemeProps {
 
 const CustomTheme: React.FC<CustomThemeProps> = ({ customTheme }) => {
   useEffect(() => {
-    const styleElement = document.createElement('customTheme');
+    const styleElement = document.createElement('style');
     styleElement.textContent = customTheme;
 
     document.head.appendChild(styleElement);

@@ -69,7 +69,7 @@ export type RocketChatDesktopAPI = {
   setUserToken: (token: string, userId: string) => void;
 };
 
-export const RocketChatDesktop: RocketChatDesktopAPI = {
+const RocketChatDesktopDefinition: RocketChatDesktopAPI = {
   onReady: (c) => {
     if (serverInfo) {
       c(serverInfo);
@@ -100,3 +100,27 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   clearOutlookCredentials,
   setUserToken,
 };
+
+function wrapFunctionsWithTryCatch(obj: any): any {
+  const wrappedObject = {};
+
+  for (const prop in obj) {
+    if (typeof obj[prop] === 'function') {
+      wrappedObject[prop] = async (...args: any[]) => {
+        try {
+          return await obj[prop](...args);
+        } catch (error) {
+          console.error(`Error in ${prop}:`, error);
+        }
+      };
+    } else {
+      wrappedObject[prop] = obj[prop];
+    }
+  }
+
+  return wrappedObject;
+}
+
+export const RocketChatDesktop = wrapFunctionsWithTryCatch(
+  RocketChatDesktopDefinition
+);

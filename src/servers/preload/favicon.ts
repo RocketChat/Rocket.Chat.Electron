@@ -33,6 +33,8 @@ const getImageElement = (): HTMLImageElement => {
       });
     };
 
+    imageElement.crossOrigin = 'anonymous';
+
     imageElement.addEventListener('load', handleImageLoadEvent, {
       passive: true,
     });

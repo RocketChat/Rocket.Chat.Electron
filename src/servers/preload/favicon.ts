@@ -24,11 +24,18 @@ const getImageElement = (): HTMLImageElement => {
       ctx.clearRect(0, 0, FAVICON_SIZE, FAVICON_SIZE);
       ctx.drawImage(imageElement, 0, 0, FAVICON_SIZE, FAVICON_SIZE);
 
+      let favicon;
+      try {
+        favicon = canvas.toDataURL();
+      } catch (error) {
+        console.log('Error on Favicon loading:', error);
+      }
+
       dispatch({
         type: WEBVIEW_FAVICON_CHANGED,
         payload: {
           url: getServerUrl(),
-          favicon: canvas.toDataURL(),
+          favicon,
         },
       });
     };

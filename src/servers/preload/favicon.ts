@@ -29,6 +29,7 @@ const getImageElement = (): HTMLImageElement => {
         favicon = canvas.toDataURL();
       } catch (error) {
         console.log('Error on Favicon loading:', error);
+        return;
       }
 
       dispatch({

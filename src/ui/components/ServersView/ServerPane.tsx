@@ -10,6 +10,7 @@ import {
   WEBVIEW_READY,
 } from '../../actions';
 import ErrorView from './ErrorView';
+import UnsupportedServer from './UnsupportedServer';
 import { StyledWebView, Wrapper } from './styles';
 
 type ServerPaneProps = {
@@ -160,6 +161,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
         {...({ allowpopups: 'allowpopups' } as any)}
       />
       <ErrorView isFailed={isFailed} onReload={handleReload} />
+      <UnsupportedServer isFailed={!isFailed} onReload={handleReload} />
     </Wrapper>
   );
 };

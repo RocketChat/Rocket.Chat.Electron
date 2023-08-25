@@ -101,18 +101,25 @@ const RocketChatDesktopDefinition: RocketChatDesktopAPI = {
   setUserToken,
 };
 
-function wrapFunctionsWithTryCatch(obj: any): any {
+function wrapFunctionsWithTryCatch(
+  obj: any,
+  excludedFunctions: string[] = []
+): any {
   const wrappedObject = {};
 
   for (const prop in obj) {
     if (typeof obj[prop] === 'function') {
-      wrappedObject[prop] = async (...args: any[]) => {
-        try {
-          return await obj[prop](...args);
-        } catch (error) {
-          console.error(`Error in ${prop}:`, error);
-        }
-      };
+      if (!excludedFunctions.includes(prop)) {
+        wrappedObject[prop] = async (...args: any[]) => {
+          try {
+            return await obj[prop](...args);
+          } catch (error) {
+            console.error(`Error in ${prop}:`, error);
+          }
+        };
+      } else {
+        wrappedObject[prop] = obj[prop];
+      }
     } else {
       wrappedObject[prop] = obj[prop];
     }
@@ -121,6 +128,8 @@ function wrapFunctionsWithTryCatch(obj: any): any {
   return wrappedObject;
 }
 
+const excludedFunctions = ['getInternalVideoChatWindowEnabled'];
 export const RocketChatDesktop = wrapFunctionsWithTryCatch(
-  RocketChatDesktopDefinition
+  RocketChatDesktopDefinition,
+  excludedFunctions
 );

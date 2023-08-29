@@ -92,7 +92,16 @@ const start = (): void => {
   Tracker.autorun(() => {
     const serverMainVersion = serverInfo.version.split('.')[0];
 
-    // Server version above 5.0.0 will change the way the jitsi integration is handled, now we have video provider as an app
+    window.RocketChatDesktop.setServerInfo({
+      version: "1.2.3",
+      success: true,
+      supportedVersions: "sample_serialized_jwt_supported_versions",
+      minimumClientVersions: {
+        desktop: "2.0.0",
+        mobile: "1.5.0",
+      });
+      
+      // Server version above 5.0.0 will change the way the jitsi integration is handled, now we have video provider as an app
     // if the server is above 5.1.1 it will use window.RocketChatDesktop?.openInternalVideoChatWindow to open the video call
     if (serverMainVersion < 5) {
       const jitsiDomain = settings.get('Jitsi_Domain') || '';

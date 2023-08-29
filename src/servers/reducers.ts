@@ -20,6 +20,7 @@ import {
   WEBVIEW_ATTACHED,
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
   WEBVIEW_ALLOWED_REDIRECTS_CHANGED,
+  WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import type { Server } from './common';
@@ -103,6 +104,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_TITLE_CHANGED: {
       const { url, title = url } = action.payload;
       return upsert(state, { url, title });
+    }
+
+    case WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED: {
+      const { url, supportedVersions } = action.payload;
+      return upsert(state, { url, supportedVersions });
     }
 
     case WEBVIEW_UNREAD_CHANGED: {

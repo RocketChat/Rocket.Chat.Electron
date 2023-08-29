@@ -89,6 +89,8 @@ export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
 export const DOWNLOADS_BACK_BUTTON_CLICKED = 'downloads/back-button-clicked';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED =
+  'webview/server-supported-versions-updated';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -168,4 +170,8 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
   [DOWNLOADS_BACK_BUTTON_CLICKED]: string;
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED]: {
+    url: Server['url'];
+    supportedVersions: Server['supportedVersions'];
+  };
 };

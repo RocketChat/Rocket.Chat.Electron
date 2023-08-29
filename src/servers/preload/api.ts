@@ -21,6 +21,7 @@ import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
+import { setLicenseInfo } from './licenseInfo';
 import { setBackground, setServerVersionToSidebar } from './sidebar';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
@@ -99,4 +100,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   hasOutlookCredentials,
   clearOutlookCredentials,
   setUserToken,
+  setLicenseInfo,
 };

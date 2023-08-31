@@ -91,6 +91,8 @@ export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
 export const DOWNLOADS_BACK_BUTTON_CLICKED = 'downloads/back-button-clicked';
 export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED =
   'webview/server-supported-versions-updated';
+export const WEBVIEW_SERVER_WORKSPACE_UID_UPDATED =
+  'webview/server-workspace-uid-updated';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -173,5 +175,9 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED]: {
     url: Server['url'];
     supportedVersions: Server['supportedVersions'];
+  };
+  [WEBVIEW_SERVER_WORKSPACE_UID_UPDATED]: {
+    url: Server['url'];
+    workspaceUID: Server['workspaceUID'];
   };
 };

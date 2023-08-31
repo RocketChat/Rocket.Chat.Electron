@@ -21,11 +21,12 @@ import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
-import { setLicenseInfo } from './licenseInfo';
 import { setBackground, setServerVersionToSidebar } from './sidebar';
+import { setSupportedVersions } from './supportedVersions';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
+import { setWorkspaceUID } from './workspaceUID';
 
 type ServerInfo = {
   version: string;
@@ -68,6 +69,10 @@ export type RocketChatDesktopAPI = {
   hasOutlookCredentials: () => Promise<boolean>;
   clearOutlookCredentials: () => void;
   setUserToken: (token: string, userId: string) => void;
+  setSupportedVersions: (
+    supportedVersions: Server['supportedVersions']
+  ) => void;
+  setWorkspaceUID: (workspaceUID: string) => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -100,5 +105,6 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   hasOutlookCredentials,
   clearOutlookCredentials,
   setUserToken,
-  setLicenseInfo,
+  setSupportedVersions,
+  setWorkspaceUID,
 };

@@ -17,6 +17,7 @@ import { setupNotifications } from './notifications/main';
 import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
 import { setupScreenSharing } from './screenSharing/main';
 import { setupServers } from './servers/main';
+import { buildSupportedVersions } from './servers/supportedVersions/types';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
 import { handleCertificatesManager } from './ui/components/CertificatesManager/main';
@@ -97,6 +98,8 @@ const start = async (): Promise<void> => {
   handleJitsiDesktopCapturerGetSources();
   handleDesktopCapturerGetSources();
   startOutlookCalendarUrlHandler();
+
+  console.log('buildSupportedVersions', buildSupportedVersions);
 
   await processDeepLinksInArgs();
 };

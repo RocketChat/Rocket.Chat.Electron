@@ -89,19 +89,27 @@ const start = (): void => {
 
   const open = window.open.bind(window);
 
+  const mockServerInfo = {
+    version: serverInfo.version,
+    success: true,
+    supportedVersions:
+      'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aW1lc3RhbXAiOiIyMDIzLTA3LTEyVDAwOjAwOjAwLjAwMFoiLCJpMThuIjp7ImVuIjp7Im1lc3NhZ2VfdG9rZW4iOiJZb3VyIHNlcnZlciBpcyBhYm91dCB0byBiZSBkZXByZWNhdGVkLiBQbGVhc2UgdXBkYXRlIHRvIHRoZSBsYXRlc3QgdmVyc2lvbi4ifX0sIm1lc3NhZ2VzIjpbeyJyZW1haW5pbmdEYXlzIjoxNSwibWVzc2FnZSI6Im1lc3NhZ2VfdG9rZW4iLCJ0eXBlIjoiaW5mbyJ9XSwidmVyc2lvbnMiOlt7InZlcnNpb24iOiI2LjUuMCIsImV4cGlyYXRpb24iOiIyMDIzLTA5LTExVDAwOjAwOjAwLjAwMFoifSx7InZlcnNpb24iOiI2LjQuMCIsImV4cGlyYXRpb24iOiIyMDIzLTA4LTExVDAwOjAwOjAwLjAwMFoifV0sImlhdCI6MTY5MzQxNzU1Nn0.KXZfoDieGDZd1IMdorgJX1R_p_Gqc36sjUa4fWh98Pct24JeeNzAgRt-nPI9c_uV3U0FN8CZg8Uqm00-PxRfsuNXHhGjExFLoyTrhf2K_FJPVE3Gk-7UvZl1oQC2BL45UoMYZVBfQAeYVUdWcbbI7j92Cng8EV-SUxZSJTsMTSvrmY5887v6Ywpt2NhhHjUFo8_XK81TpF_ETb1q9867c9NkC5ga4R82SD-ViywzeKNWKW-uB8C-cOMdYZR6-nZXx-Iyhzvi96Q_vvKJ9boIFGy92bHbO56Mn4UMOSuBVQkmHaGCRBm-N3DnK1g5tlEG5xbo9WZ65PO81mE-sbzrkt3LnFDXKd3MnOPePQTO_TBwhDvtbYDC0hTryfd8sgJpMXDdpBaqJW66EDUr18LGRwA0mSKdXeTj1bt74G21UiHVaLNQlPNV5mnilkIuHjMbwdG3BxOJMQfPL0lPO5Ep-KuIqSmDIyFhhLSSBIlATh8OKfWOKYs3qzfd0mxSy537OIrZyi8-lD4Jp1kJp75Z3U2ZuZ8eYSwB0rbIYi0EtkDKkLHALxaISqgZrgckf8oBJCpN1jjE_TRPH1c9FP1FtDhGF5Pif8A6sCMOYxvy3IpfMK1V-XgTwaOZcYHeg9xUKnCGfuNqCW4xGzGQ5UxX5zTujAg9Dcw2XOxY0uhPrmY',
+    minimumClientVersions: {
+      desktop: '3.9.0',
+      mobile: '1.5.0',
+    },
+  };
+  console.log('mockServerInfo', mockServerInfo);
+  window.RocketChatDesktop.setSupportedVersions(mockServerInfo);
+
+  const workspaceUID = settings.get('uniqueID') || '';
+  console.log('workspaceUID', workspaceUID);
+  window.RocketChatDesktop.setWorkspaceUID(workspaceUID);
+
   Tracker.autorun(() => {
     const serverMainVersion = serverInfo.version.split('.')[0];
 
-    window.RocketChatDesktop.setServerInfo({
-      version: "1.2.3",
-      success: true,
-      supportedVersions: "sample_serialized_jwt_supported_versions",
-      minimumClientVersions: {
-        desktop: "2.0.0",
-        mobile: "1.5.0",
-      });
-      
-      // Server version above 5.0.0 will change the way the jitsi integration is handled, now we have video provider as an app
+    // Server version above 5.0.0 will change the way the jitsi integration is handled, now we have video provider as an app
     // if the server is above 5.1.1 it will use window.RocketChatDesktop?.openInternalVideoChatWindow to open the video call
     if (serverMainVersion < 5) {
       const jitsiDomain = settings.get('Jitsi_Domain') || '';

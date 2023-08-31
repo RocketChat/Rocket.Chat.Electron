@@ -1,64 +1,76 @@
 import jwt from 'jsonwebtoken';
 
-type SerializedJWT<T> = string;
+import type {
+  LTSCloudInfo,
+  LTSDictionary,
+  LTSMessages,
+  LTSSupportedVersions,
+  LTSVersion,
+} from './types';
 
-type Dictionary = {
-  [lng: string]: Record<string, string>;
+const sampleDictionary: LTSDictionary = {
+  en: {
+    welcome: 'Welcome',
+    goodbye: 'Goodbye',
+  },
+  es: {
+    welcome: 'Bienvenido',
+    goodbye: 'Adiós',
+  },
 };
 
-type Messages = {
-  remainingDays: number;
-  message: 'message_token';
-  type: 'info' | 'alert' | 'error';
-  params: Record<string, unknown>;
+const sampleMessages: LTSMessages = {
+  remainingDays: 7,
+  message: 'message_token',
+  type: 'info',
+  params: {
+    param1: 'value1',
+    param2: 'value2',
+  },
 };
 
-type Version = {
-  version: string;
-  expiration: Date;
-  messages?: Messages[];
+const sampleVersion: LTSVersion = {
+  version: '1.0.0',
+  expiration: new Date('2023-12-31T23:59:59.999Z'),
+  messages: [sampleMessages],
 };
 
-interface SupportedVersions {
-  timestamp: string;
-  messages?: Messages[];
-  versions: Version[];
-  exceptions?: {
-    domain: string;
-    uniqueId: string;
-    messages?: Messages[];
-    versions: Version[];
-  };
-  i18n?: Dictionary;
-}
+export const sampleServerSupportedVersions: LTSSupportedVersions = {
+  timestamp: '2023-08-28T10:24:00.000Z',
+  messages: [sampleMessages],
+  versions: [sampleVersion],
+  exceptions: {
+    domain: 'open.rocket.chat',
+    uniqueId: '1234567890',
+    messages: [sampleMessages],
+    versions: [sampleVersion],
+  },
+  i18n: sampleDictionary,
+};
 
-export interface ServerInfo {
-  version: string;
-  success: boolean;
-  supportedVersions?: SerializedJWT<SupportedVersions>;
-  minimumClientVersions?: {
-    desktop: string;
-    mobile: string;
-  };
-}
+export const sampleServerInfo = {
+  version: '6.3.0',
+  success: true,
+  supportedVersions: 'sdadsa',
+  minimumClientVersions: {
+    desktop: '2.0.0',
+    mobile: '1.5.0',
+  },
+};
 
-interface CloudInfo {
-  signed: SerializedJWT<SupportedVersions>;
-  timestamp: string;
-  messages?: Messages[];
-  versions: Version[];
-  exceptions?: {
-    domain: string;
-    uniqueId: string;
-    messages?: Messages[];
-    versions: Version[];
-  };
-}
-
-const publicKey = `
------BEGIN PUBLIC KEY-----
-MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEArbSdeyXHhgBAX93ndDDxCuMhIh9XYCJUHG+vGNKzl4i16W5Fj5bua5gSxbIdhl0S7BtYJM3trpp7vnf3Cp6+tFoyKREYr8D/sdznSv7nRgZGgcuwZpXwf3bPN69dPPZvKS9exhlQ13nn1kOUYOgRwOrdZ8sFzJTasKeTCEjEZa4UFU4Q5lvJGOQt7hA3TvFmH4RUQC7Cu8GgHfUQD4fDuRqG4KFteTOJABpvXqJJG7DWiX6N5ssh2qRoaoapK7E+bTYWAzQnR9eAFV1ajCjhm2TqmUbAKWCM2X27ArsCJ9SWzDIj7sAm0G3DtbUKnzCDmZQHXlxcXcMDqWb8w+JQFs8b4pf56SmZn1Bro7TxdXBEgRQCTck1hginBTKciuh8gbv71bLyjPxOxnAQaukxhYpZPJAFrsfps0vKp1EPwNTboDLHHeuGSeaBP/c8ipHqPmraFLR78O07EdsCzJpBvggG7GcgSikjWDjK/eIdsUro7BKFmxjrmT72dmr7Ero9cmtd1aO/6PAenwHafCKnaxGcIGLUCNOXhk+uTPoV2LrN4L5LN75NNu6hd5L4++ngjwVsGsX3JP3seFPaZ2C76TD+Rd6OT+8guZFCGjPzXbDAb6ScQUJb11pyyLooPkz7Xdy5fCBRoeIWtjs6UwH4n57SJ/gkzkmUykX0WT3wqhkCAwEAAQ==
------END PUBLIC KEY-----`;
+export const sampleCloudInfo: LTSCloudInfo = {
+  signed:
+    'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aW1lc3RhbXAiOiIyMDIzLTA3LTEyVDAwOjAwOjAwLjAwMFoiLCJpMThuIjp7ImVuIjp7Im1lc3NhZ2VfdG9rZW4iOiJZb3VyIHNlcnZlciBpcyBhYm91dCB0byBiZSBkZXByZWNhdGVkLiBQbGVhc2UgdXBkYXRlIHRvIHRoZSBsYXRlc3QgdmVyc2lvbi4ifX0sIm1lc3NhZ2VzIjpbeyJyZW1haW5pbmdEYXlzIjoxNSwibWVzc2FnZSI6Im1lc3NhZ2VfdG9rZW4iLCJ0eXBlIjoiaW5mbyJ9XSwidmVyc2lvbnMiOlt7InZlcnNpb24iOiI2LjUuMCIsImV4cGlyYXRpb24iOiIyMDIzLTA5LTExVDAwOjAwOjAwLjAwMFoifSx7InZlcnNpb24iOiI2LjQuMCIsImV4cGlyYXRpb24iOiIyMDIzLTA4LTExVDAwOjAwOjAwLjAwMFoifV0sImlhdCI6MTY5MzQxNzU1Nn0.KXZfoDieGDZd1IMdorgJX1R_p_Gqc36sjUa4fWh98Pct24JeeNzAgRt-nPI9c_uV3U0FN8CZg8Uqm00-PxRfsuNXHhGjExFLoyTrhf2K_FJPVE3Gk-7UvZl1oQC2BL45UoMYZVBfQAeYVUdWcbbI7j92Cng8EV-SUxZSJTsMTSvrmY5887v6Ywpt2NhhHjUFo8_XK81TpF_ETb1q9867c9NkC5ga4R82SD-ViywzeKNWKW-uB8C-cOMdYZR6-nZXx-Iyhzvi96Q_vvKJ9boIFGy92bHbO56Mn4UMOSuBVQkmHaGCRBm-N3DnK1g5tlEG5xbo9WZ65PO81mE-sbzrkt3LnFDXKd3MnOPePQTO_TBwhDvtbYDC0hTryfd8sgJpMXDdpBaqJW66EDUr18LGRwA0mSKdXeTj1bt74G21UiHVaLNQlPNV5mnilkIuHjMbwdG3BxOJMQfPL0lPO5Ep-KuIqSmDIyFhhLSSBIlATh8OKfWOKYs3qzfd0mxSy537OIrZyi8-lD4Jp1kJp75Z3U2ZuZ8eYSwB0rbIYi0EtkDKkLHALxaISqgZrgckf8oBJCpN1jjE_TRPH1c9FP1FtDhGF5Pif8A6sCMOYxvy3IpfMK1V-XgTwaOZcYHeg9xUKnCGfuNqCW4xGzGQ5UxX5zTujAg9Dcw2XOxY0uhPrmY',
+  timestamp: '2023-08-28T10:24:00.000Z',
+  messages: [sampleMessages],
+  versions: [sampleVersion],
+  exceptions: {
+    domain: 'mobile.rocket.chat',
+    uniqueId: '1234567890',
+    messages: [sampleMessages],
+    versions: [sampleVersion],
+  },
+};
 
 const privateKey = `    
 -----BEGIN PUBLIC KEY-----
@@ -66,12 +78,7 @@ MIIJQwIBADANBgkqhkiG9w0BAQEFAASCCS0wggkpAgEAAoICAQCttJ17JceGAEBf3ed0MPEK4yEiH1dg
 -----END PUBLIC KEY-----
 `;
 
-function decode<T>(token: string, publicKey: string): T {
-  const decodedToken = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
-  return decodedToken as T;
+export function generateSignedJWT(payload: object) {
+  const token = jwt.sign(payload, privateKey, { algorithm: 'RS256' });
+  return token;
 }
-
-const serverSupportedVersions = decode<SupportedVersions>(
-  serverInfo.supportedVersions || '',
-  publicKey
-);

@@ -18,6 +18,7 @@ type ServerPaneProps = {
   serverUrl: string;
   isSelected: boolean;
   isFailed: boolean;
+  isSupported: boolean;
 };
 
 export const ServerPane: FC<ServerPaneProps> = ({
@@ -25,6 +26,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
   serverUrl,
   isSelected,
   isFailed,
+  isSupported,
 }) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
@@ -161,7 +163,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
         {...({ allowpopups: 'allowpopups' } as any)}
       />
       <ErrorView isFailed={isFailed} onReload={handleReload} />
-      <UnsupportedServer isFailed={!isFailed} onReload={handleReload} />
+      <UnsupportedServer isSupported={isSupported} onReload={handleReload} />
     </Wrapper>
   );
 };

@@ -13,18 +13,18 @@ import { FailureImage } from '../FailureImage';
 import { ErrorPane } from './styles';
 
 type ErrorViewProps = {
-  isFailed: boolean;
+  isSupported: boolean;
   onReload: () => void;
 };
 
-const UnsupportedServer: FC<ErrorViewProps> = ({ isFailed, onReload }) => {
+const UnsupportedServer: FC<ErrorViewProps> = ({ isSupported, onReload }) => {
   const { t } = useTranslation();
 
   const [isReloading, setReloading] = useState(false);
   const [counter, setCounter] = useState(60);
 
   useEffect(() => {
-    if (!isFailed) {
+    if (!isSupported) {
       setReloading(false);
       setCounter(60);
       return undefined;
@@ -48,7 +48,7 @@ const UnsupportedServer: FC<ErrorViewProps> = ({ isFailed, onReload }) => {
     return () => {
       clearInterval(timer);
     };
-  }, [isFailed, onReload]);
+  }, [isSupported, onReload]);
 
   const handleReloadButtonClick = (): void => {
     setReloading(true);
@@ -57,7 +57,7 @@ const UnsupportedServer: FC<ErrorViewProps> = ({ isFailed, onReload }) => {
   };
 
   return (
-    <ErrorPane isVisible={isFailed || isReloading}>
+    <ErrorPane isVisible={!isSupported || isReloading}>
       <FailureImage
         style={{
           position: 'absolute',

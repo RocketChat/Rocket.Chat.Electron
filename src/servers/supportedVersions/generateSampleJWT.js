@@ -18,8 +18,11 @@ const supportedVersionsData = {
   messages: [
     {
       remainingDays: 15,
-      message: 'message_token',
+      title: 'title',
+      subtitle: 'subtitle',
+      description: 'description',
       type: 'info',
+      link: 'Docs page',
     },
   ],
   versions: [

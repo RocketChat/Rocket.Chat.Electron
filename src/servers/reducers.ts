@@ -23,6 +23,7 @@ import {
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
   WEBVIEW_SERVER_WORKSPACE_UID_UPDATED,
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+  WEBVIEW_SERVER_VERSION_UPDATED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import type { Server } from './common';
@@ -57,7 +58,8 @@ type ServersActionTypes =
   | ActionOf<typeof OUTLOOK_CALENDAR_SAVE_CREDENTIALS>
   | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED>
   | ActionOf<typeof WEBVIEW_SERVER_WORKSPACE_UID_UPDATED>
-  | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>;
+  | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>
+  | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
@@ -124,6 +126,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_SERVER_IS_SUPPORTED_VERSION: {
       const { url, isSupportedVersion } = action.payload;
       return upsert(state, { url, isSupportedVersion });
+    }
+
+    case WEBVIEW_SERVER_VERSION_UPDATED: {
+      const { url, version } = action.payload;
+      return upsert(state, { url, version });
     }
 
     case WEBVIEW_UNREAD_CHANGED: {

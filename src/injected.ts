@@ -96,6 +96,10 @@ const start = (): void => {
   });
 
   Tracker.autorun(() => {
+    window.RocketChatDesktop.setVersion(serverInfo.version);
+  });
+
+  Tracker.autorun(() => {
     const serverMainVersion = serverInfo.version.split('.')[0];
 
     // Server version above 5.0.0 will change the way the jitsi integration is handled, now we have video provider as an app

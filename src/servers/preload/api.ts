@@ -25,6 +25,7 @@ import { setBackground, setServerVersionToSidebar } from './sidebar';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
+import { setVersion } from './version';
 import { setWorkspaceUID } from './workspaceUID';
 
 type ServerInfo = {
@@ -69,6 +70,7 @@ export type RocketChatDesktopAPI = {
   clearOutlookCredentials: () => void;
   setUserToken: (token: string, userId: string) => void;
   setWorkspaceUID: (workspaceUID: string) => void;
+  setVersion: (version: string) => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -102,4 +104,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   clearOutlookCredentials,
   setUserToken,
   setWorkspaceUID,
+  setVersion,
 };

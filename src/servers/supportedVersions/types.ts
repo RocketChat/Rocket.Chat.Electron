@@ -1,7 +1,7 @@
 import fs from 'fs';
 
-import { app } from 'electron';
 import jwt from 'jsonwebtoken';
+import { satisfies } from 'semver';
 
 import type { Server } from '../common';
 import { sampleCloudInfo, sampleServerSupportedVersions } from './samples';
@@ -12,7 +12,7 @@ export type LTSDictionary = {
   [lng: string]: Record<string, string>;
 };
 
-export type LTSMessages = {
+export type LTSMessage = {
   remainingDays: number;
   message: 'message_token';
   type: 'info' | 'alert' | 'error';
@@ -22,17 +22,17 @@ export type LTSMessages = {
 export type LTSVersion = {
   version: string;
   expiration: Date;
-  messages?: LTSMessages[];
+  messages?: LTSMessage[];
 };
 
 export interface LTSSupportedVersions {
   timestamp: string;
-  messages?: LTSMessages[];
+  messages?: LTSMessage[];
   versions: LTSVersion[];
   exceptions?: {
     domain: string;
     uniqueId: string;
-    messages?: LTSMessages[];
+    messages?: LTSMessage[];
     versions: LTSVersion[];
   };
   i18n?: LTSDictionary;
@@ -51,12 +51,12 @@ export interface LTSServerInfo {
 export interface LTSCloudInfo {
   signed: SerializedJWT<LTSSupportedVersions>;
   timestamp: string;
-  messages?: LTSMessages[];
+  messages?: LTSMessage[];
   versions: LTSVersion[];
   exceptions?: {
     domain: string;
     uniqueId: string;
-    messages?: LTSMessages[];
+    messages?: LTSMessage[];
     versions: LTSVersion[];
   };
 }
@@ -84,13 +84,16 @@ function readBuiltinSupportedVersions(): LTSSupportedVersions {
   }
 }
 
-const getLTSCloudInfo = (_workspaceId: string): LTSCloudInfo => {
+const getLTSCloudInfo = (_workspaceId: string): LTSSupportedVersions => {
   // get cloud info from server
   const cloudInfo = sampleCloudInfo;
-  return cloudInfo;
+  const decoded = decode(cloudInfo.signed) as LTSSupportedVersions;
+  return decoded;
 };
 
-const getLTSServerInfo = (serverUrl: string): Promise<LTSServerInfo | null> =>
+export const getLTSServerInfo = (
+  serverUrl: string
+): Promise<LTSServerInfo | null> =>
   fetch(`${serverUrl}/api/info`)
     .then((response) => {
       if (!response.ok) {
@@ -110,41 +113,59 @@ const getLTSServerInfo = (serverUrl: string): Promise<LTSServerInfo | null> =>
 const getSupportedVersionsData = async (
   server: Server
 ): Promise<LTSSupportedVersions> => {
-  const serverInfo = await getLTSServerInfo(server.url);
+  const { supportedVersions } = server;
   const buildSupportedVersions = await readBuiltinSupportedVersions();
-  if (!serverInfo || !serverInfo.supportedVersions || !server.workspaceUID) {
+  if (!supportedVersions || !server.workspaceUID) {
     return buildSupportedVersions;
   }
-  if (!serverInfo || server.workspaceUID) {
-    const cloudInfo = getLTSCloudInfo(server.workspaceUID);
+  if (!supportedVersions || server.workspaceUID) {
+    const cloudInfo = await getLTSCloudInfo(server.workspaceUID);
     return cloudInfo;
   }
-  const serverSupportedVersions = decode(
-    serverInfo.supportedVersions
+  const decodedServerSupportedVersions = decode(
+    supportedVersions
   ) as LTSSupportedVersions;
   if (
-    !serverSupportedVersions ||
-    serverSupportedVersions.timestamp < buildSupportedVersions?.timestamp
+    !decodedServerSupportedVersions ||
+    decodedServerSupportedVersions.timestamp < buildSupportedVersions?.timestamp
   )
-    return readBuiltinSupportedVersions();
+    return buildSupportedVersions;
 
-  return serverSupportedVersions;
+  return decodedServerSupportedVersions;
 };
 
 export const isServerVersionSupported = async (
   server: Server
 ): Promise<boolean> => {
-  const serverInfo = await getLTSServerInfo(server.url);
-  if (!serverInfo) return false;
-  if (
-    serverInfo.minimumClientVersions?.desktop &&
-    serverInfo.minimumClientVersions?.desktop > app.getVersion()
-  )
-    return false;
-  const decodedSupportedVersions = await getSupportedVersionsData(server);
-  const supportedVersion = decodedSupportedVersions.versions.find(
-    ({ version }) => version === serverInfo.version
+  const { versions, exceptions } = await getSupportedVersionsData(server);
+  const serverVersion = server.version;
+  if (!serverVersion) return false;
+
+  // 1.2.3 -> ~1.2
+  const serverVersionTilde = `~${serverVersion
+    .split('.')
+    .slice(0, 2)
+    .join('.')}`;
+
+  const supportedVersion = versions.find(({ version }) =>
+    satisfies(version, serverVersionTilde)
   );
-  if (!supportedVersion) return false;
-  return true;
+
+  if (supportedVersion) {
+    if (new Date(supportedVersion.expiration) > new Date()) {
+      return true;
+    }
+  }
+
+  const exception = exceptions?.versions.find(({ version }) =>
+    satisfies(version, serverVersionTilde)
+  );
+
+  if (exception) {
+    if (new Date(exception.expiration) > new Date()) {
+      return true;
+    }
+  }
+
+  return false;
 };

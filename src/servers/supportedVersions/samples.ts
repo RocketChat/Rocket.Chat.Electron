@@ -34,36 +34,68 @@ const sampleDictionary: Dictionary = {
   },
 };
 
-const sampleMessages: Message = {
-  remainingDays: 30,
-  title: 'message_token',
-  subtitle: 'message_token',
-  description: 'message_token',
-  type: 'info',
-  params: {
-    instance_ws_name: 'WorkspaceName',
-    instance_username: 'UserName',
-    instance_email: 'Email',
-    instance_domain: 'Domain',
-    remaining_days: 30,
+const sampleMessages: Message[] = [
+  {
+    remainingDays: 30,
+    title: 'message_token',
+    subtitle: 'message_token',
+    description: 'message_token',
+    type: 'info',
+    params: {
+      instance_ws_name: 'WorkspaceName',
+      instance_username: 'UserName',
+      instance_email: 'Email',
+      instance_domain: 'Domain',
+      remaining_days: 30,
+    },
+    link: 'http://link.example.com',
   },
-  link: 'http://link.example.com',
-};
+  {
+    remainingDays: 15,
+    title: 'message_token',
+    subtitle: 'message_token',
+    description: 'message_token',
+    type: 'alert',
+    params: {
+      instance_ws_name: 'WorkspaceName',
+      instance_username: 'UserName',
+      instance_email: 'Email',
+      instance_domain: 'Domain',
+      remaining_days: 30,
+    },
+    link: 'http://link.example.com',
+  },
+  {
+    remainingDays: 7,
+    title: 'message_token',
+    subtitle: 'message_token',
+    description: 'message_token',
+    type: 'error',
+    params: {
+      instance_ws_name: 'WorkspaceName',
+      instance_username: 'UserName',
+      instance_email: 'Email',
+      instance_domain: 'Domain',
+      remaining_days: 30,
+    },
+    link: 'http://link.example.com',
+  },
+];
 
 const sampleVersion: Version = {
   version: '6.4.0',
-  expiration: new Date('2023-12-31T23:59:59.999Z'),
-  messages: [sampleMessages],
+  expiration: new Date('2023-09-31T23:59:59.999Z'),
+  messages: sampleMessages,
 };
 
 export const sampleServerSupportedVersions: SupportedVersions = {
-  timestamp: '2023-08-28T10:24:00.000Z',
-  messages: [sampleMessages],
+  timestamp: '2023-09-02T10:24:00.000Z',
+  messages: sampleMessages,
   versions: [sampleVersion],
   exceptions: {
     domain: 'open.rocket.chat',
     uniqueId: '1234567890',
-    messages: [sampleMessages],
+    messages: sampleMessages,
     versions: [sampleVersion],
   },
   i18n: sampleDictionary,
@@ -81,25 +113,25 @@ export const sampleServerInfo = {
 
 export const sampleCloudInfo: CloudInfo = {
   signed: generateSignedJWT(sampleServerSupportedVersions),
-  timestamp: '2023-08-28T10:24:00.000Z',
-  messages: [sampleMessages],
+  timestamp: '2023-09-03T10:24:00.000Z',
+  messages: sampleMessages,
   versions: [sampleVersion],
   exceptions: {
     domain: 'open.rocket.chat',
     uniqueId: '1234567890',
-    messages: [sampleMessages],
+    messages: sampleMessages,
     versions: [sampleVersion],
   },
 };
 
 export const builtinSupportedVersions: SupportedVersions = {
-  timestamp: '2023-08-28T10:24:00.000Z',
-  messages: [sampleMessages],
+  timestamp: '2023-09-01T10:24:00.000Z',
+  messages: sampleMessages,
   versions: [sampleVersion],
   exceptions: {
     domain: 'open.rocket.chat',
     uniqueId: '1234567890',
-    messages: [sampleMessages],
+    messages: sampleMessages,
     versions: [sampleVersion],
   },
   i18n: sampleDictionary,

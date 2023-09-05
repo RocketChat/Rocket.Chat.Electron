@@ -67,6 +67,7 @@
     "ews-javascript-api": "^0.12.0",
     "i18next": "^21.6.10",
     "jsonwebtoken": "^9.0.1",
+    "moment": "^2.29.4",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-hook-form": "^7.43.9",

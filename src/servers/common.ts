@@ -1,5 +1,5 @@
 import type { OutlookCredentials } from '../outlookCalendar/type';
-import type { SupportedVersions } from './supportedVersions/types';
+import type { Message, SupportedVersions } from './supportedVersions/types';
 
 export type Server = {
   url: string;
@@ -22,6 +22,7 @@ export type Server = {
   supportedVersions?: SupportedVersions;
   workspaceUID?: string;
   version?: string;
+  expirationMessage?: Message;
 };
 
 export const enum ServerUrlResolutionStatus {

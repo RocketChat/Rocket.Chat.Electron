@@ -1,8 +1,11 @@
 import fs from 'fs';
 
 import jwt from 'jsonwebtoken';
+import moment from 'moment';
 import { satisfies } from 'semver';
 
+import { dispatch } from '../../store';
+import { SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED } from '../../ui/actions';
 import type { Server } from '../common';
 import {
   builtinSupportedVersions,
@@ -149,7 +152,6 @@ export const getSupportedVersionsData = async (
 ): Promise<SupportedVersions> => {
   const { supportedVersions } = server;
   const buildSupportedVersions = await readBuiltinSupportedVersions();
-  console.log('buildSupportedVersions', buildSupportedVersions);
   if (!supportedVersions || !server.workspaceUID) {
     return buildSupportedVersions;
   }
@@ -168,6 +170,33 @@ export const getSupportedVersionsData = async (
     return buildSupportedVersions;
 
   return decodedServerSupportedVersions;
+};
+
+export const getExpirationMessage = ({
+  messages,
+  expiration,
+}: {
+  messages?: Message[];
+  expiration?: Date;
+}): Message | undefined => {
+  if (
+    !messages?.length ||
+    !expiration ||
+    moment(expiration).diff(new Date(), 'days') < 0
+  ) {
+    return;
+  }
+  const sortedMessages = messages.sort(
+    (a, b) => a.remainingDays - b.remainingDays
+  );
+  console.log('sortedMessages', sortedMessages);
+  const message = sortedMessages.find(
+    ({ remainingDays }) =>
+      moment(expiration).diff(new Date(), 'days') <= remainingDays
+  );
+
+  console.log('getExpirationMessage', message);
+  return message;
 };
 
 export const isServerVersionSupported = async (
@@ -189,6 +218,16 @@ export const isServerVersionSupported = async (
 
   if (supportedVersion) {
     if (new Date(supportedVersion.expiration) > new Date()) {
+      dispatch({
+        type: SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
+        payload: {
+          url: server.url,
+          expirationMessage: getExpirationMessage({
+            messages: supportedVersion.messages,
+            expiration: supportedVersion.expiration,
+          }),
+        },
+      });
       return true;
     }
   }
@@ -199,6 +238,16 @@ export const isServerVersionSupported = async (
 
   if (exception) {
     if (new Date(exception.expiration) > new Date()) {
+      dispatch({
+        type: SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
+        payload: {
+          url: server.url,
+          expirationMessage: getExpirationMessage({
+            messages: exception.messages,
+            expiration: exception.expiration,
+          }),
+        },
+      });
       return true;
     }
   }

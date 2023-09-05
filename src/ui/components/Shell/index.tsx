@@ -12,6 +12,7 @@ import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog'
 import { ServersView } from '../ServersView';
 import { SettingsView } from '../SettingsView';
 import { SideBar } from '../SideBar';
+import { SupportedVersionDialog } from '../SupportedVersionDialog';
 import { UpdateDialog } from '../UpdateDialog';
 import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 
@@ -47,6 +48,7 @@ export const Shell: FC = () => {
         </ViewsWrapper>
       </Wrapper>
       <AboutDialog />
+      <SupportedVersionDialog />
       <ScreenSharingDialog />
       <SelectClientCertificateDialog />
       <UpdateDialog />

@@ -163,7 +163,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
         {...({ allowpopups: 'allowpopups' } as any)}
       />
       <ErrorView isFailed={isFailed} onReload={handleReload} />
-      <UnsupportedServer isSupported={isSupported} onReload={handleReload} />
+      <UnsupportedServer isSupported={isSupported} />
     </Wrapper>
   );
 };

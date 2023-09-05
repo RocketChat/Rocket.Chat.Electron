@@ -1,12 +1,6 @@
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  Margins,
-  Throbber,
-} from '@rocket.chat/fuselage';
+import { Box, Button, ButtonGroup, Margins } from '@rocket.chat/fuselage';
 import type { FC } from 'react';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FailureImage } from '../FailureImage';
@@ -14,50 +8,19 @@ import { ErrorPane } from './styles';
 
 type ErrorViewProps = {
   isSupported: boolean;
-  onReload: () => void;
 };
 
-const UnsupportedServer: FC<ErrorViewProps> = ({ isSupported, onReload }) => {
+const UnsupportedServer: FC<ErrorViewProps> = ({ isSupported }) => {
   const { t } = useTranslation();
 
-  const [isReloading, setReloading] = useState(false);
-  const [counter, setCounter] = useState(60);
-
-  useEffect(() => {
-    if (!isSupported) {
-      setReloading(false);
-      setCounter(60);
-      return undefined;
-    }
-
-    const reloadCounterStepSize = 1;
-    const timer = setInterval(() => {
-      setCounter((counter) => {
-        counter -= reloadCounterStepSize;
-
-        if (counter <= 0) {
-          setReloading(true);
-          onReload();
-          return 60;
-        }
-
-        return counter;
-      });
-    }, reloadCounterStepSize * 1000);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, [isSupported, onReload]);
-
-  const handleReloadButtonClick = (): void => {
-    setReloading(true);
-    onReload();
-    setCounter(60);
+  const handleMoreInfoButtonClick = (): void => {
+    window.open(
+      'https://docs.rocket.chat/resources/rocket.chats-support-structure/enterprise-support-and-version-durability'
+    );
   };
 
   return (
-    <ErrorPane isVisible={!isSupported || isReloading}>
+    <ErrorPane isVisible={!isSupported}>
       <FailureImage
         style={{
           position: 'absolute',
@@ -88,19 +51,11 @@ const UnsupportedServer: FC<ErrorViewProps> = ({ isSupported, onReload }) => {
         </Margins>
 
         <Box>
-          {isReloading && (
-            <Margins block='x12'>
-              <Throbber inheritColor size='x16' />
-            </Margins>
-          )}
-
-          {!isReloading && (
-            <ButtonGroup align='center'>
-              <Button primary onClick={handleReloadButtonClick}>
-                {t('unsupportedServer.moreInformation')} ({counter})
-              </Button>
-            </ButtonGroup>
-          )}
+          <ButtonGroup align='center'>
+            <Button primary onClick={handleMoreInfoButtonClick}>
+              {t('unsupportedServer.moreInformation')}
+            </Button>
+          </ButtonGroup>
         </Box>
       </Box>
     </ErrorPane>

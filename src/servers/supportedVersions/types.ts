@@ -4,60 +4,96 @@ import jwt from 'jsonwebtoken';
 import { satisfies } from 'semver';
 
 import type { Server } from '../common';
-import { sampleCloudInfo, sampleServerSupportedVersions } from './samples';
+import {
+  builtinSupportedVersions,
+  builtinSupportedVersionsJWT,
+  sampleCloudInfo,
+  sampleServerSupportedVersions,
+} from './samples';
 
 export type SerializedJWT<T> = string;
 
-export type LTSDictionary = {
+export type Dictionary = {
   [lng: string]: Record<string, string>;
 };
 
-export type LTSMessage = {
+export type Message = {
   remainingDays: number;
-  message: 'message_token';
+  title: 'message_token';
+  subtitle: 'message_token';
+  description: 'message_token';
   type: 'info' | 'alert' | 'error';
-  params: Record<string, unknown>;
+  params: Record<string, unknown> & {
+    instance_ws_name: string;
+    instance_username: string;
+    instance_email: string;
+    instance_domain: string;
+    remaining_days: number;
+  };
+  link: string;
 };
 
-export type LTSVersion = {
+export type Version = {
   version: string;
   expiration: Date;
-  messages?: LTSMessage[];
+  messages?: Message[];
 };
 
-export interface LTSSupportedVersions {
+export interface SupportedVersions {
   timestamp: string;
-  messages?: LTSMessage[];
-  versions: LTSVersion[];
+  messages?: Message[];
+  versions: Version[];
   exceptions?: {
     domain: string;
     uniqueId: string;
-    messages?: LTSMessage[];
-    versions: LTSVersion[];
+    messages?: Message[];
+    versions: Version[];
   };
-  i18n?: LTSDictionary;
+  i18n?: Dictionary;
 }
 
-export interface LTSServerInfo {
-  version: string;
+export interface ServerInfo {
+  info?: {
+    // only for authenticated users
+    version: string;
+    build: {
+      date: string;
+      nodeVersion: string;
+      arch: string;
+      platform: string;
+      osRelease: string;
+      totalMemory: number;
+      freeMemory: number;
+      cpus: number;
+    };
+    marketplaceApiVersion: string;
+    commit: {
+      hash: string;
+      date: Date;
+      author: string;
+      subject: string;
+      tag: string;
+      branch: string;
+    };
+  };
   success: boolean;
-  supportedVersions?: SerializedJWT<LTSSupportedVersions>;
+  supportedVersions?: SerializedJWT<SupportedVersions>;
   minimumClientVersions?: {
     desktop: string;
     mobile: string;
   };
 }
 
-export interface LTSCloudInfo {
-  signed: SerializedJWT<LTSSupportedVersions>;
+export interface CloudInfo {
+  signed: SerializedJWT<SupportedVersions>;
   timestamp: string;
-  messages?: LTSMessage[];
-  versions: LTSVersion[];
+  messages?: Message[];
+  versions: Version[];
   exceptions?: {
     domain: string;
     uniqueId: string;
-    messages?: LTSMessage[];
-    versions: LTSVersion[];
+    messages?: Message[];
+    versions: Version[];
   };
 }
 
@@ -71,29 +107,27 @@ function decode(token: string) {
   return decoded;
 }
 
-function readBuiltinSupportedVersions(): LTSSupportedVersions {
+function readBuiltinSupportedVersions(): SupportedVersions {
   try {
-    const builtinSupportedVersionsJWT = fs.readFileSync(
-      'supportedVersions.jwt',
-      'utf8'
-    );
-    return decode(builtinSupportedVersionsJWT) as LTSSupportedVersions;
+    // const builtinSupportedVersionsJWT = fs.readFileSync(
+    //   'supportedVersions.jwt',
+    //   'utf8'
+    // );
+    return decode(builtinSupportedVersionsJWT) as SupportedVersions;
   } catch (e) {
     console.log('Error loading supportedVersions.jwt', e);
     return sampleServerSupportedVersions;
   }
 }
 
-const getLTSCloudInfo = (_workspaceId: string): LTSSupportedVersions => {
+const getCloudInfo = (_workspaceId: string): SupportedVersions => {
   // get cloud info from server
   const cloudInfo = sampleCloudInfo;
-  const decoded = decode(cloudInfo.signed) as LTSSupportedVersions;
+  const decoded = decode(cloudInfo.signed) as SupportedVersions;
   return decoded;
 };
 
-export const getLTSServerInfo = (
-  serverUrl: string
-): Promise<LTSServerInfo | null> =>
+export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
   fetch(`${serverUrl}/api/info`)
     .then((response) => {
       if (!response.ok) {
@@ -103,28 +137,30 @@ export const getLTSServerInfo = (
     })
     .then((data) => {
       console.log(data);
-      return data as LTSServerInfo;
+      return data as ServerInfo;
     })
     .catch((error) => {
       console.error('Fetching Server Info error:', error);
       return null;
     });
 
-const getSupportedVersionsData = async (
+export const getSupportedVersionsData = async (
   server: Server
-): Promise<LTSSupportedVersions> => {
+): Promise<SupportedVersions> => {
   const { supportedVersions } = server;
   const buildSupportedVersions = await readBuiltinSupportedVersions();
+  console.log('buildSupportedVersions', buildSupportedVersions);
   if (!supportedVersions || !server.workspaceUID) {
     return buildSupportedVersions;
   }
   if (!supportedVersions || server.workspaceUID) {
-    const cloudInfo = await getLTSCloudInfo(server.workspaceUID);
+    const cloudInfo = await getCloudInfo(server.workspaceUID);
     return cloudInfo;
   }
-  const decodedServerSupportedVersions = decode(
-    supportedVersions
-  ) as LTSSupportedVersions;
+  // const decodedServerSupportedVersions = decode(
+  //   supportedVersions
+  // ) as SupportedVersions;
+  const decodedServerSupportedVersions = supportedVersions;
   if (
     !decodedServerSupportedVersions ||
     decodedServerSupportedVersions.timestamp < buildSupportedVersions?.timestamp

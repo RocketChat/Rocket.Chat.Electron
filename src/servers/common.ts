@@ -1,8 +1,5 @@
 import type { OutlookCredentials } from '../outlookCalendar/type';
-import type {
-  LTSServerInfo,
-  LTSSupportedVersions,
-} from './supportedVersions/types';
+import type { SupportedVersions } from './supportedVersions/types';
 
 export type Server = {
   url: string;
@@ -22,7 +19,7 @@ export type Server = {
   allowedRedirects?: string[];
   outlookCredentials?: OutlookCredentials;
   isSupportedVersion?: boolean;
-  supportedVersions?: string;
+  supportedVersions?: SupportedVersions;
   workspaceUID?: string;
   version?: string;
 };

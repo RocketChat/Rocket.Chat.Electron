@@ -11,6 +11,7 @@ import {
   sampleServerSupportedVersions,
 } from './samples';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type SerializedJWT<T> = string;
 
 export type Dictionary = {
@@ -225,7 +226,7 @@ export const getExpirationMessageTranslated = (
     ...message?.params,
   };
 
-  if (!message || !i18n) {
+  if (!message || !i18n || params.remaining_days > 15) {
     return null;
   }
 

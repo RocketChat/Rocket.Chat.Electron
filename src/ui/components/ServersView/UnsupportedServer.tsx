@@ -1,11 +1,4 @@
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  Icon,
-  Margins,
-  Skeleton,
-} from '@rocket.chat/fuselage';
+import { Box, Button, ButtonGroup, Icon, Margins } from '@rocket.chat/fuselage';
 import type { FC } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';

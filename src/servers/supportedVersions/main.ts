@@ -50,7 +50,7 @@ export function checkSupportedVersionServers(): void {
       (server) =>
         server.url === action.payload.url && server.url === currentServerUrl
     );
-    if (!server || !server.expirationMessage) return;
+    if (!server || server.expirationMessage === null) return;
     const { expirationMessage, expirationMessageLastTimeShown } = server;
     if (!expirationMessage) return;
     if (

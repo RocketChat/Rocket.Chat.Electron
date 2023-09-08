@@ -2,7 +2,6 @@ import moment from 'moment';
 
 import { dispatch, listen, select } from '../../store';
 import {
-  MENU_BAR_ABOUT_CLICKED,
   SUPPORTED_VERSION_DIALOG_OPEN,
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
@@ -44,8 +43,12 @@ export function checkSupportedVersionServers(): void {
   });
 
   listen(WEBVIEW_DID_NAVIGATE, async (action) => {
+    const currentServerUrl = select(({ currentView }) =>
+      typeof currentView === 'object' ? currentView.url : null
+    );
     const server = select(({ servers }) => servers).find(
-      (server) => server.url === action.payload.url
+      (server) =>
+        server.url === action.payload.url && server.url === currentServerUrl
     );
     if (!server || !server.expirationMessage) return;
     const { expirationMessage, expirationMessageLastTimeShown } = server;

@@ -1,4 +1,4 @@
-import { Box, Button, Margins } from '@rocket.chat/fuselage';
+import { Box, Button, Modal } from '@rocket.chat/fuselage';
 import type { FC } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import type { RootAction } from '../../../store/actions';
 import type { RootState } from '../../../store/rootReducer';
 import { SUPPORTED_VERSION_DIALOG_DISMISS } from '../../actions';
 import { Dialog } from '../Dialog';
+import ModalBackdrop from '../Modal/ModalBackdrop';
 import { useServers } from '../hooks/useServers';
 
 export const SupportedVersionDialog: FC = () => {
@@ -34,30 +35,39 @@ export const SupportedVersionDialog: FC = () => {
 
   const handleMoreInfoButtonClick = (): void => {
     dismissTimeUpdate();
-    window.open(expirationMessage?.link);
+    if (!expirationMessage?.link) return;
+    window.open(new URL(expirationMessage?.link));
   };
 
   return (
     <Dialog isVisible={isVisible} onClose={() => dismissTimeUpdate()}>
-      <Margins block='x16'>
-        <Box alignSelf='center' fontScale='h1'>
-          {expirationMessage?.title}
-        </Box>
+      <ModalBackdrop onDismiss={handleMoreInfoButtonClick}>
+        <Modal>
+          <Modal.Header>
+            <Modal.Icon name='warning' color='danger' />
+            <Modal.HeaderText>
+              <Modal.Title>{expirationMessage?.title}</Modal.Title>
+            </Modal.HeaderText>
+            <Modal.Close />
+          </Modal.Header>
+          <Modal.Content>
+            <Box alignSelf='center' fontScale='h5'>
+              {expirationMessage?.subtitle}
+            </Box>
 
-        <Box alignSelf='center' fontScale='h4'>
-          {expirationMessage?.subtitle}
-        </Box>
-
-        <Box alignSelf='center' fontScale='p1'>
-          {expirationMessage?.description}
-        </Box>
-
-        <Box alignSelf='center'>
-          <Button onClick={handleMoreInfoButtonClick}>
-            {t('dialog.unsupportedServer.moreInformation')}
-          </Button>
-        </Box>
-      </Margins>
+            <Box alignSelf='center' fontScale='p1'>
+              {expirationMessage?.description}
+            </Box>
+          </Modal.Content>
+          <Modal.Footer>
+            <Modal.FooterControllers>
+              <Button secondary onClick={handleMoreInfoButtonClick}>
+                {t('unsupportedServer.moreInformation')}
+              </Button>
+            </Modal.FooterControllers>
+          </Modal.Footer>
+        </Modal>
+      </ModalBackdrop>
     </Dialog>
   );
 };

@@ -147,7 +147,8 @@ export const getExpirationMessageTranslated = (
     ...message?.params,
   };
 
-  if (!message || !i18n || params.remaining_days > 15) {
+  if (!message || !i18n) {
+    // || params.remaining_days > 15
     return null;
   }
 

@@ -20,12 +20,11 @@ export function generateSignedJWT(payload: object) {
 
 const sampleDictionary: Dictionary = {
   'en': {
-    title:
-      '{{instance_ws_name}} is running an unsupported version of Rocket.Chat',
+    title: 'Workspace version unsupported',
     subtitle:
-      'Mobile and desktop app access to {{instance_domain}} will be cut off in {{remaining_days}} days.',
+      'Desktop and mobile app access to {{instance_ws_name}} will be cut off in {{remaining_days}} days.',
     description:
-      'User: {{instance_username}}\nEmail: {{instance_email}}\nExtra params: {{test_a}} {{test_b}}',
+      '{{instance_ws_name}} is running an unsupported version of Rocket.Chat. An automatic 30-day warning period has been applied to allow time for a workspace admin to update workspace to a supported software version.',
   },
   'pt-BR': {
     title: 'Versão não suportada do Rocket.Chat',
@@ -48,7 +47,7 @@ const sampleMessages: Message[] = [
       // instance_domain: 'Domain',
       // remaining_days: 30,
     },
-    link: 'http://link.example.com',
+    link: 'https://docs.rocket.chat/resources/rocket.chats-support-structure/enterprise-support-and-version-durability',
   },
   {
     remainingDays: 15,

@@ -19,6 +19,7 @@ type ServerPaneProps = {
   isSelected: boolean;
   isFailed: boolean;
   isSupported: boolean;
+  title: string | undefined;
 };
 
 export const ServerPane: FC<ServerPaneProps> = ({
@@ -27,6 +28,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
   isSelected,
   isFailed,
   isSupported,
+  title,
 }) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
@@ -163,7 +165,10 @@ export const ServerPane: FC<ServerPaneProps> = ({
         {...({ allowpopups: 'allowpopups' } as any)}
       />
       <ErrorView isFailed={isFailed} onReload={handleReload} />
-      <UnsupportedServer isSupported={isSupported} />
+      <UnsupportedServer
+        isSupported={isSupported}
+        workspaceName={title || 'Rocket.Chat'}
+      />
     </Wrapper>
   );
 };

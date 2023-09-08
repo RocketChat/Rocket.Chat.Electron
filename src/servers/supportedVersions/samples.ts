@@ -20,16 +20,16 @@ export function generateSignedJWT(payload: object) {
 
 const sampleDictionary: Dictionary = {
   'en': {
-    title_token:
+    title:
       '{{instance_ws_name}} is running an unsupported version of Rocket.Chat',
-    subtitle_token:
+    subtitle:
       'Mobile and desktop app access to {{instance_domain}} will be cut off in {{remaining_days}} days.',
-    description_token:
-      'User: {{instance_username}} Email: {{instance_email}} Extra params: {{test_a}} {{test_b}}',
+    description:
+      'User: {{instance_username}}\nEmail: {{instance_email}}\nExtra params: {{test_a}} {{test_b}}',
   },
   'pt-BR': {
-    title_token: 'Versão não suportada do Rocket.Chat',
-    subtitle_token:
+    title: 'Versão não suportada do Rocket.Chat',
+    subtitle:
       '{{instance_ws_name}} {{instance_domain}} {{remaining_days}} {{instance_username}} {{instance_email}} {{test_a}} {{test_b}}',
   },
 };
@@ -37,16 +37,16 @@ const sampleDictionary: Dictionary = {
 const sampleMessages: Message[] = [
   {
     remainingDays: 30,
-    title: 'message_token',
-    subtitle: 'message_token',
-    description: 'message_token',
-    type: 'info',
+    title: 'title',
+    subtitle: 'subtitle',
+    description: 'description',
+    type: 'primary',
     params: {
       instance_ws_name: 'WorkspaceName',
       instance_username: 'UserName',
-      instance_email: 'Email',
-      instance_domain: 'Domain',
-      remaining_days: 30,
+      // instance_email: 'Email',
+      // instance_domain: 'Domain',
+      // remaining_days: 30,
     },
     link: 'http://link.example.com',
   },
@@ -55,7 +55,7 @@ const sampleMessages: Message[] = [
     title: 'message_token',
     subtitle: 'message_token',
     description: 'message_token',
-    type: 'alert',
+    type: 'warning',
     params: {
       instance_ws_name: 'WorkspaceName',
       instance_username: 'UserName',
@@ -70,7 +70,7 @@ const sampleMessages: Message[] = [
     title: 'message_token',
     subtitle: 'message_token',
     description: 'message_token',
-    type: 'error',
+    type: 'danger',
     params: {
       instance_ws_name: 'WorkspaceName',
       instance_username: 'UserName',

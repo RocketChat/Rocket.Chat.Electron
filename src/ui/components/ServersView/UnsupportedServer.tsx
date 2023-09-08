@@ -1,16 +1,26 @@
-import { Box, Button, ButtonGroup, Margins } from '@rocket.chat/fuselage';
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Icon,
+  Margins,
+  Skeleton,
+} from '@rocket.chat/fuselage';
 import type { FC } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { FailureImage } from '../FailureImage';
 import { ErrorPane } from './styles';
 
-type ErrorViewProps = {
+type UnsupportedServerProps = {
   isSupported: boolean;
+  workspaceName: string;
 };
 
-const UnsupportedServer: FC<ErrorViewProps> = ({ isSupported }) => {
+const UnsupportedServer: FC<UnsupportedServerProps> = ({
+  isSupported,
+  workspaceName,
+}) => {
   const { t } = useTranslation();
 
   const handleMoreInfoButtonClick = (): void => {
@@ -21,7 +31,10 @@ const UnsupportedServer: FC<ErrorViewProps> = ({ isSupported }) => {
 
   return (
     <ErrorPane isVisible={!isSupported}>
-      <FailureImage
+      <Box
+        backgroundColor='white'
+        display='flex'
+        flexDirection='column'
         style={{
           position: 'absolute',
           top: 0,
@@ -30,32 +43,38 @@ const UnsupportedServer: FC<ErrorViewProps> = ({ isSupported }) => {
           height: '100vh',
           zIndex: 0,
         }}
-      />
-      <Box
-        is='section'
-        color='alternative'
-        display='flex'
-        flexDirection='column'
         justifyContent='center'
         alignItems='center'
         zIndex={1}
       >
-        <Margins block='x12'>
-          <Box display='flex' flexDirection='column'>
-            <Margins block='x8' inline='auto'>
-              <Box fontScale='h1'>{t('unsupportedServer.title')}</Box>
-
-              <Box fontScale='p1'>{t('unsupportedServer.announcement')}</Box>
-            </Margins>
-          </Box>
-        </Margins>
-
         <Box>
-          <ButtonGroup align='center'>
-            <Button primary onClick={handleMoreInfoButtonClick}>
-              {t('unsupportedServer.moreInformation')}
-            </Button>
-          </ButtonGroup>
+          <Margins block='x12'>
+            <Box display='flex' flexDirection='column'>
+              <Icon
+                color='danger'
+                name='warning'
+                size={64}
+                style={{ alignSelf: 'center' }}
+              />
+              <Margins block='x8' inline='auto'>
+                <Box fontScale='h3'>
+                  {t('unsupportedServer.title', {
+                    workspaceName,
+                  })}
+                </Box>
+
+                <Box fontScale='p2'>{t('unsupportedServer.announcement')}</Box>
+              </Margins>
+            </Box>
+          </Margins>
+
+          <Box>
+            <ButtonGroup align='center'>
+              <Button secondary onClick={handleMoreInfoButtonClick}>
+                {t('unsupportedServer.moreInformation')}
+              </Button>
+            </ButtonGroup>
+          </Box>
         </Box>
       </Box>
     </ErrorPane>

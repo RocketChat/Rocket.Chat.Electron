@@ -197,7 +197,8 @@ export type UiActionTypeToPayloadMap = {
     version: Server['version'];
   };
   [SUPPORTED_VERSION_DIALOG_OPEN]: void;
-  [SUPPORTED_VERSION_DIALOG_DISMISS]: void;
+  [SUPPORTED_VERSION_DIALOG_DISMISS]: { url: Server['url'] };
+
   [SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED]: {
     url: Server['url'];
     expirationMessage: Server['expirationMessage'];

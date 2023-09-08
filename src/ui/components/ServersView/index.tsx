@@ -18,6 +18,7 @@ export const ServersView: FC = () => {
           isSelected={server.selected}
           isFailed={server.failed ?? false}
           isSupported={server.isSupportedVersion ?? false}
+          title={server.title}
         />
       ))}
     </ReparentingContainer>

@@ -52,7 +52,7 @@ export const openDialog: Reducer<string | null, OpenDialogAction> = (
 ) => {
   switch (action.type) {
     case MENU_BAR_ABOUT_CLICKED:
-      return 'supported-version';
+      return 'about';
 
     case SUPPORTED_VERSION_DIALOG_OPEN:
       return 'supported-version';

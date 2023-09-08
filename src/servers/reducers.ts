@@ -25,6 +25,7 @@ import {
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
   WEBVIEW_SERVER_VERSION_UPDATED,
   SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
+  SUPPORTED_VERSION_DIALOG_DISMISS,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import type { Server } from './common';
@@ -61,7 +62,8 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SERVER_WORKSPACE_UID_UPDATED>
   | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
-  | ActionOf<typeof SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED>;
+  | ActionOf<typeof SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED>
+  | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
@@ -122,12 +124,12 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
 
     case SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED: {
       const { url, expirationMessage } = action.payload;
-
-      console.log(
-        'SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED',
-        expirationMessage
-      );
       return upsert(state, { url, expirationMessage });
+    }
+
+    case SUPPORTED_VERSION_DIALOG_DISMISS: {
+      const { url } = action.payload;
+      return upsert(state, { url, expirationMessageLastTimeShown: new Date() });
     }
 
     case WEBVIEW_SERVER_WORKSPACE_UID_UPDATED: {

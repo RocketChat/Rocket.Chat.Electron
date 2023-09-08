@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { satisfies } from 'semver';
@@ -8,7 +6,6 @@ import { dispatch } from '../../store';
 import { SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED } from '../../ui/actions';
 import type { Server } from '../common';
 import {
-  builtinSupportedVersions,
   builtinSupportedVersionsJWT,
   sampleCloudInfo,
   sampleServerSupportedVersions,
@@ -22,18 +19,25 @@ export type Dictionary = {
 
 export type Message = {
   remainingDays: number;
-  title: 'message_token';
-  subtitle: 'message_token';
-  description: 'message_token';
-  type: 'info' | 'alert' | 'error';
+  title: string;
+  subtitle: string;
+  description: string;
+  type: 'primary' | 'warning' | 'danger';
   params: Record<string, unknown> & {
-    instance_ws_name: string;
-    instance_username: string;
-    instance_email: string;
-    instance_domain: string;
-    remaining_days: number;
+    instance_ws_name?: string;
+    instance_username?: string;
+    instance_email?: string;
+    instance_domain?: string;
+    remaining_days?: number;
   };
   link: string;
+};
+
+export type MessageTranslated = {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  link?: string;
 };
 
 export type Version = {
@@ -189,14 +193,55 @@ export const getExpirationMessage = ({
   const sortedMessages = messages.sort(
     (a, b) => a.remainingDays - b.remainingDays
   );
-  console.log('sortedMessages', sortedMessages);
   const message = sortedMessages.find(
     ({ remainingDays }) =>
       moment(expiration).diff(new Date(), 'days') <= remainingDays
   );
-
-  console.log('getExpirationMessage', message);
   return message;
+};
+
+export const getExpirationMessageTranslated = (
+  i18n: Dictionary | undefined,
+  message: Message,
+  expiration: Date,
+  language: string,
+  // username: string,
+  // email: string,
+  serverName: Server['title'],
+  serverUrl: Server['url']
+) => {
+  const applyParams = (message: string, params: Record<string, unknown>) => {
+    const keys = Object.keys(params);
+    const regex = new RegExp(`{{(${keys.join('|')})}}`, 'g');
+    return message.replace(regex, (_, p1) => params[p1] as string);
+  };
+
+  const params = {
+    // instance_username: username,
+    // instance_email: email,
+    instance_ws_name: serverName,
+    instance_domain: serverUrl,
+    remaining_days: moment(expiration).diff(new Date(), 'days'),
+    ...message?.params,
+  };
+
+  if (!message || !i18n) {
+    return null;
+  }
+
+  const i18nLang = i18n[language] ?? i18n.en;
+
+  const getTranslation = (key: string) =>
+    key && i18nLang[key] ? applyParams(i18nLang[key], params) : undefined;
+
+  const translatedMessage = {
+    title: getTranslation(message.title),
+    subtitle: getTranslation(message.subtitle),
+    description: getTranslation(message.description),
+    link: message.link,
+  };
+
+  return translatedMessage;
 };
 
 export const isServerVersionSupported = async (
@@ -218,14 +263,25 @@ export const isServerVersionSupported = async (
 
   if (supportedVersion) {
     if (new Date(supportedVersion.expiration) > new Date()) {
+      const selectedExpirationMessage = getExpirationMessage({
+        messages: supportedVersion.messages,
+        expiration: supportedVersion.expiration,
+      }) as Message;
+
+      const translatedMessage = getExpirationMessageTranslated(
+        server.supportedVersions?.i18n,
+        selectedExpirationMessage,
+        supportedVersion.expiration,
+        'en',
+        server.title,
+        server.url
+      ) as MessageTranslated;
+
       dispatch({
         type: SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
         payload: {
           url: server.url,
-          expirationMessage: getExpirationMessage({
-            messages: supportedVersion.messages,
-            expiration: supportedVersion.expiration,
-          }),
+          expirationMessage: translatedMessage,
         },
       });
       return true;
@@ -238,14 +294,25 @@ export const isServerVersionSupported = async (
 
   if (exception) {
     if (new Date(exception.expiration) > new Date()) {
+      const selectedExpirationMessage = getExpirationMessage({
+        messages: exception.messages,
+        expiration: exception.expiration,
+      }) as Message;
+
+      const translatedMessage = getExpirationMessageTranslated(
+        server.supportedVersions?.i18n,
+        selectedExpirationMessage,
+        exception.expiration,
+        'en',
+        server.title,
+        server.url
+      ) as MessageTranslated;
+
       dispatch({
         type: SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
         payload: {
           url: server.url,
-          expirationMessage: getExpirationMessage({
-            messages: exception.messages,
-            expiration: exception.expiration,
-          }),
+          expirationMessage: translatedMessage,
         },
       });
       return true;

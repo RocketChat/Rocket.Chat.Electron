@@ -1,5 +1,10 @@
+import moment from 'moment';
+
 import { dispatch, listen, select } from '../../store';
 import {
+  MENU_BAR_ABOUT_CLICKED,
+  SUPPORTED_VERSION_DIALOG_OPEN,
+  WEBVIEW_DID_NAVIGATE,
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
   WEBVIEW_SERVER_VERSION_UPDATED,
@@ -36,5 +41,21 @@ export function checkSupportedVersionServers(): void {
         supportedVersions,
       },
     });
+  });
+
+  listen(WEBVIEW_DID_NAVIGATE, async (action) => {
+    const server = select(({ servers }) => servers).find(
+      (server) => server.url === action.payload.url
+    );
+    if (!server || !server.expirationMessage) return;
+    const { expirationMessage, expirationMessageLastTimeShown } = server;
+    if (!expirationMessage) return;
+    if (
+      expirationMessageLastTimeShown &&
+      moment().diff(expirationMessageLastTimeShown, 'seconds') < 12
+    )
+      return;
+
+    dispatch({ type: SUPPORTED_VERSION_DIALOG_OPEN });
   });
 }

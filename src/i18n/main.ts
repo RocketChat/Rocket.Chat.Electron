@@ -40,6 +40,14 @@ const getLng = async (): Promise<keyof typeof resources | undefined> => {
   return undefined;
 };
 
+export const getLanguage = async (): Promise<string> => {
+  const lng = await getLng();
+  if (lng !== undefined) {
+    return lng;
+  }
+  return fallbackLng;
+};
+
 class I18nService extends Service {
   private async initializeAsync(): Promise<void> {
     const lng = await getLng();

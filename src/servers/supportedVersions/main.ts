@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { satisfies } from 'semver';
 
+import { getLanguage } from '../../i18n/main';
 import { dispatch, listen, select } from '../../store';
 import {
   SUPPORTED_VERSION_DIALOG_OPEN,
@@ -172,6 +173,8 @@ export const isServerVersionSupported = async (
   const serverVersion = server.version;
   if (!serverVersion) return false;
 
+  const appLanguage = (await getLanguage()) ?? 'en';
+
   // 1.2.3 -> ~1.2
   const serverVersionTilde = `~${serverVersion
     .split('.')
@@ -193,7 +196,7 @@ export const isServerVersionSupported = async (
         server.supportedVersions?.i18n,
         selectedExpirationMessage,
         supportedVersion.expiration,
-        'en',
+        appLanguage,
         server.title,
         server.url
       ) as MessageTranslated;
@@ -224,7 +227,7 @@ export const isServerVersionSupported = async (
         server.supportedVersions?.i18n,
         selectedExpirationMessage,
         exception.expiration,
-        'en',
+        appLanguage,
         server.title,
         server.url
       ) as MessageTranslated;

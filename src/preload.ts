@@ -7,6 +7,7 @@ import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
 import type { RocketChatDesktopAPI } from './servers/preload/api';
 import { RocketChatDesktop } from './servers/preload/api';
+import type { videoCallWindowOptions } from './servers/preload/internalVideoChatWindow';
 import { setServerUrl } from './servers/preload/urls';
 import { createRendererReduxStore, listen } from './store';
 import { WEBVIEW_DID_NAVIGATE } from './ui/actions';
@@ -21,6 +22,18 @@ declare global {
     RocketChatDesktop: RocketChatDesktopAPI;
   }
 }
+
+const openInternalVideoChatWindowQueue: Array<
+  [string, videoCallWindowOptions]
+> = [];
+
+window.RocketChatDesktop = {
+  ...RocketChatDesktop,
+  openInternalVideoChatWindow: (url, options) => {
+    console.log('Queueing openInternalVideoChatWindow', url, options);
+    openInternalVideoChatWindowQueue.push([url, options]);
+  },
+};
 
 contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
 
@@ -63,6 +76,10 @@ const start = async (): Promise<void> => {
     listenToScreenSharingRequests();
     listenToMessageBoxEvents();
     handleTrafficLightsSpacing();
+    openInternalVideoChatWindowQueue.forEach((args) => {
+      console.log('Executing openInternalVideoChatWindowQueue', args);
+      window.RocketChatDesktop.openInternalVideoChatWindow(...args);
+    });
   });
 };
 

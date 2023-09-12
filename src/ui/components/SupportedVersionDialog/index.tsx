@@ -41,7 +41,11 @@ export const SupportedVersionDialog: FC = () => {
 
   return (
     <Dialog isVisible={isVisible} onClose={() => dismissTimeUpdate()}>
-      <ModalBackdrop onDismiss={handleMoreInfoButtonClick}>
+      <ModalBackdrop
+        onDismiss={() => {
+          dismissTimeUpdate();
+        }}
+      >
         <Modal>
           <Modal.Header>
             <Modal.Icon name='warning' color='danger' />

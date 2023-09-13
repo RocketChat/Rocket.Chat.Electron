@@ -1,4 +1,12 @@
-import { Box, Button, ButtonGroup, Icon, Margins } from '@rocket.chat/fuselage';
+import {
+  Box,
+  Button,
+  States,
+  StatesActions,
+  StatesIcon,
+  StatesSubtitle,
+  StatesTitle,
+} from '@rocket.chat/fuselage';
 import type { FC } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -40,35 +48,20 @@ const UnsupportedServer: FC<UnsupportedServerProps> = ({
         alignItems='center'
         zIndex={1}
       >
-        <Box>
-          <Margins block='x12'>
-            <Box display='flex' flexDirection='column'>
-              <Icon
-                color='danger'
-                name='warning'
-                size={64}
-                style={{ alignSelf: 'center' }}
-              />
-              <Margins block='x8' inline='auto'>
-                <Box fontScale='h3'>
-                  {t('unsupportedServer.title', {
-                    workspaceName,
-                  })}
-                </Box>
-
-                <Box fontScale='p2'>{t('unsupportedServer.announcement')}</Box>
-              </Margins>
-            </Box>
-          </Margins>
-
-          <Box>
-            <ButtonGroup align='center'>
-              <Button secondary onClick={handleMoreInfoButtonClick}>
-                {t('unsupportedServer.moreInformation')}
-              </Button>
-            </ButtonGroup>
-          </Box>
-        </Box>
+        <States>
+          <StatesIcon name='warning' />
+          <StatesTitle>
+            {t('unsupportedServer.title', {
+              workspaceName,
+            })}
+          </StatesTitle>
+          <StatesSubtitle>{t('unsupportedServer.announcement')}</StatesSubtitle>
+          <StatesActions>
+            <Button secondary onClick={handleMoreInfoButtonClick}>
+              {t('unsupportedServer.moreInformation')}
+            </Button>
+          </StatesActions>
+        </States>
       </Box>
     </ErrorPane>
   );

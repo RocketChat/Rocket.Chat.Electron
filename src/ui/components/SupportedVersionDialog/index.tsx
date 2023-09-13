@@ -55,11 +55,9 @@ export const SupportedVersionDialog: FC = () => {
             <Modal.Close />
           </Modal.Header>
           <Modal.Content>
-            <Box alignSelf='center' fontScale='h5'>
-              {expirationMessage?.subtitle}
-            </Box>
+            <Box fontScale='p2b'>{expirationMessage?.subtitle}</Box>
 
-            <Box alignSelf='center' fontScale='p1'>
+            <Box fontScale='p2' mbs={20}>
               {expirationMessage?.description}
             </Box>
           </Modal.Content>

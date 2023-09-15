@@ -70,5 +70,4 @@ export const runAndBuffer = (
 export const runElectronBuilder = (
   args: string,
   env?: Record<string, string>
-): Promise<void> =>
-  run(`yarn electron-builder --publish never ${args}`, env);
+): Promise<void> => run(`yarn electron-builder --publish never ${args}`, env);

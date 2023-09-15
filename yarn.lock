@@ -7274,10 +7274,10 @@ electron-updater@^5.3.0:
     semver "^7.3.5"
     typed-emitter "^2.1.0"
 
-electron@24.7.0:
-  version "24.7.0"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-24.7.0.tgz#513a459a002b27effcb44348cf39eb5150aa0d99"
-  integrity sha512-AtIvZiyD6ZSOIpMJ09tvJdUex4TKiF8grX2c1BDDByTqPkkC2A0PakOI9NXe+HctYcEnhGXVLgBQuRAxQDcORg==
+electron@24.8.3:
+  version "24.8.3"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-24.8.3.tgz#ea842167eaf0323961ff3bcce7237bdaf4f1317d"
+  integrity sha512-6YTsEOIMIQNnOz0Fj5gAWtwCuDd66iYKkuRJGyc80jKKYI49jBeH+R7ZZry9uiVu4T4bZgBN2FAN24XfCioQZA==
   dependencies:
     "@electron/get" "^2.0.0"
     "@types/node" "^18.11.18"

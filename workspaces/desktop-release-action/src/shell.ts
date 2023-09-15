@@ -71,4 +71,4 @@ export const runElectronBuilder = (
   args: string,
   env?: Record<string, string>
 ): Promise<void> =>
-  run(`yarn --silent electron-builder --publish never ${args}`, env);
+  run(`yarn electron-builder --publish never ${args}`, env);

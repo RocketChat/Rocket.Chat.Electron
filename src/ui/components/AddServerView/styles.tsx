@@ -10,7 +10,6 @@ export const Wrapper = styled.section`
 
   overflow-y: auto;
   align-items: center;
-  -webkit-app-region: drag;
   justify-content: center;
 
   display: flex;

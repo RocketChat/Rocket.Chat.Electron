@@ -10,6 +10,7 @@ type WrapperProps = {
     border?: string;
   };
   isVisible: boolean;
+  customTheme?: string;
 };
 
 export const Wrapper = styled.div<WrapperProps>`
@@ -46,6 +47,7 @@ export const Wrapper = styled.div<WrapperProps>`
       margin-inline-start: -68px;
       visibility: hidden;
     `}
+  ${({ customTheme }) => customTheme}
 `;
 
 type ContentProps = {
@@ -175,23 +177,6 @@ export const Avatar = styled.span<AvatarProps>`
         opacity: ${isSelected ? '1' : '0.8'};
       `}
   }
-`;
-
-export const Badge = styled.div`
-  position: absolute;
-  z-index: 1;
-  top: 2px;
-  right: 8px;
-  display: block;
-  min-width: 15px;
-  text-align: center;
-  color: #ffffff;
-  border-radius: 20px;
-  background-color: #e43325;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-  font-size: 10px;
-  font-weight: bold;
-  line-height: 15px;
 `;
 
 export const AddServerButton = styled.button`

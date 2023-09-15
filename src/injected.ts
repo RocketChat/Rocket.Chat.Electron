@@ -150,11 +150,12 @@ const start = async () => {
     }
   });
 
-  Tracker.autorun(() => {
-    const { url, defaultUrl } = settings.get('Assets_background') || {};
-
-    window.RocketChatDesktop.setBackground(url || defaultUrl);
-  });
+  if (!versionIsGreaterOrEqualsTo(serverInfo.version, '6.4.0')) {
+    Tracker.autorun(() => {
+      const { url, defaultUrl } = settings.get('Assets_background') || {};
+      window.RocketChatDesktop.setBackground(url || defaultUrl);
+    });
+  }
 
   Tracker.autorun(() => {
     const userToken = Meteor._localStorage.getItem('Meteor.loginToken');

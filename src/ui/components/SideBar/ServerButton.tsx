@@ -1,6 +1,7 @@
 import { parse } from 'url';
 
-import { IconButton } from '@rocket.chat/fuselage';
+import { css } from '@rocket.chat/css-in-js';
+import { IconButton, Badge, Box } from '@rocket.chat/fuselage';
 import type { FC, DragEvent, MouseEvent } from 'react';
 import React, { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
@@ -13,7 +14,6 @@ import {
 } from '../../actions';
 import {
   Avatar,
-  Badge,
   Favicon,
   Initials,
   KeyboardShortcut,
@@ -103,8 +103,17 @@ const ServerButton: FC<ServerButtonProps> = ({
           </Avatar>
         }
       />
-      {mentionCount && <Badge>{mentionCount}</Badge>}
-      {!userLoggedIn && <Badge>!</Badge>}
+      <Box
+        className={css`
+          top: 0;
+          right: 0;
+          transform: translate(30%, -30%);
+        `}
+        position='absolute'
+      >
+        {mentionCount && <Badge variant='danger'>{mentionCount}</Badge>}
+        {!userLoggedIn && <Badge variant='danger'>!</Badge>}
+      </Box>
       {shortcutNumber && (
         <KeyboardShortcut visible={isShortcutVisible}>
           {process.platform === 'darwin' ? '⌘' : '^'}

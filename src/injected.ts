@@ -83,19 +83,21 @@ const start = async () => {
     ? 'meteor/rocketchat:user-presence'
     : 'meteor/konecty:user-presence';
 
-  const settingsModulePath = versionIsGreaterOrEqualsTo(
-    serverInfo.version,
-    '6.0.0'
-  )
-    ? '/app/settings/client/index.ts'
-    : '/app/settings/client';
+  const settingsModulePath = (() => {
+    if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
+      return '/app/settings/client/index.ts';
+    if (versionIsGreaterOrEqualsTo(serverInfo.version, '5.0.0'))
+      return '/app/settings/client';
+    return '/app/settings';
+  })();
 
-  const utilsModulePath = versionIsGreaterOrEqualsTo(
-    serverInfo.version,
-    '6.0.0'
-  )
-    ? '/app/utils/client/index.ts'
-    : '/app/utils/client';
+  const utilsModulePath = (() => {
+    if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
+      return '/app/utils/client/index.ts';
+    if (versionIsGreaterOrEqualsTo(serverInfo.version, '5.0.0'))
+      return '/app/utils/client';
+    return '/app/utils';
+  })();
 
   const { Meteor } = await tryRequire('meteor/meteor');
   const { Session } = await tryRequire('meteor/session');

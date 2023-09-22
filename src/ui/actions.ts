@@ -57,6 +57,8 @@ export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED =
 export const WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED =
   'webview/screen-sharing-source-responded';
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
+export const WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED =
+  'webview/sidebar-custom-theme-changed';
 export const WEBVIEW_GIT_COMMIT_HASH_CHANGED =
   'webview/git-commit-hash-changed';
 export const WEBVIEW_GIT_COMMIT_HASH_CHECK = 'webview/git-commit-hash-check';
@@ -148,6 +150,10 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_SIDEBAR_STYLE_CHANGED]: {
     url: Server['url'];
     style: Server['style'];
+  };
+  [WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED]: {
+    url: Server['url'];
+    customTheme: Server['customTheme'];
   };
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };

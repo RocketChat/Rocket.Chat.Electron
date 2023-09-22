@@ -16,6 +16,7 @@ import {
 } from '../../actions';
 import { useServers } from '../hooks/useServers';
 import ServerButton from './ServerButton';
+import CustomTheme from './customTheme';
 import {
   Wrapper,
   Content,
@@ -43,6 +44,11 @@ export const SideBar: FC = () => {
     () => servers.find(({ selected }) => selected)?.style || {},
     [servers]
   );
+
+  const customTheme = useMemo(
+    () => servers.find(({ selected }) => selected)?.customTheme || '',
+    [servers]
+  );
   const isEachShortcutVisible = useKeyboardShortcuts();
   const {
     sortedServers,
@@ -67,7 +73,12 @@ export const SideBar: FC = () => {
   const currentView = useSelector(({ currentView }: RootState) => currentView);
 
   return (
-    <Wrapper sideBarStyle={style} isVisible={isVisible}>
+    <Wrapper
+      className='rcx-sidebar--main'
+      sideBarStyle={style}
+      isVisible={isVisible}
+    >
+      <CustomTheme customTheme={customTheme} />
       <Content withWindowButtons={process.platform === 'darwin'}>
         <ServerList>
           {sortedServers.map((server, order) => (

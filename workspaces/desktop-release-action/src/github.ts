@@ -35,7 +35,7 @@ const findRelease = async (filter: (release: any) => boolean) => {
 };
 
 const getChangelog = async () =>
-  (await runAndBuffer(`yarn --silent conventional-changelog -p angular`))
+  (await runAndBuffer(`yarn conventional-changelog -p angular`))
     .split('\n')
     .slice(1)
     .join('\n')

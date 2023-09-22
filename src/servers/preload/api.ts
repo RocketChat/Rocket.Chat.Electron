@@ -21,7 +21,11 @@ import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
-import { setBackground, setServerVersionToSidebar } from './sidebar';
+import {
+  setBackground,
+  setServerVersionToSidebar,
+  setSidebarCustomTheme,
+} from './sidebar';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
@@ -42,6 +46,7 @@ export type RocketChatDesktopAPI = {
   setBadge: (badge: Server['badge']) => void;
   setFavicon: (faviconUrl: string) => void;
   setBackground: (imageUrl: string) => void;
+  setSidebarCustomTheme: (customTheme: string) => void;
   setTitle: (title: string) => void;
   setUserLoggedIn: (userLoggedIn: boolean) => void;
   setUserPresenceDetection: (options: {
@@ -105,4 +110,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   setUserToken,
   setWorkspaceUID,
   setVersion,
+  setSidebarCustomTheme,
 };

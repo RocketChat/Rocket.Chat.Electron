@@ -19,11 +19,11 @@ import {
   SERVER_URL_RESOLVED,
   SERVERS_LOADED,
 } from './actions';
+import type { Server, ServerUrlResolutionResult } from './common';
 import {
   ServerUrlResolutionStatus,
   isServerUrlResolutionResult,
 } from './common';
-import type { Server, ServerUrlResolutionResult } from './common';
 
 const REQUIRED_SERVER_VERSION_RANGE = '>=2.0.0';
 

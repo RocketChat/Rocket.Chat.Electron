@@ -17,10 +17,7 @@
   "mac": {
     "category": "public.app-category.productivity",
     "target": [
-      "dmg",
-      "pkg",
-      "zip",
-      "mas"
+      "zip"
     ],
     "icon": "build/icon.icns",
     "bundleVersion": "118",

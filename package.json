@@ -27,13 +27,13 @@
   "main": "app/main.js",
   "scripts": {
     "postinstall": "run-s install-app-deps clean",
-    "start": "run-s clean build:watch",
+    "start": "run-s build:watch",
     "clean": "rimraf app dist",
-    "build": "rollup -c",
+    "build": "yarn build-get-cloud-info && rollup -c ",
     "build:watch": "rollup -c -w",
-    "build-mac": "yarn electron-builder --publish never --mac --universal",
-    "build-win": "yarn electron-builder --publish never --win",
-    "build-linux": "yarn electron-builder --publish never --linux",
+    "build-mac": "yarn build && yarn electron-builder --publish never --mac --universal",
+    "build-win": "yarn build && yarn electron-builder --publish never --win",
+    "build-linux": "yarn build && yarn electron-builder --publish never --linux",
     "build-assets": "ts-node -O '{\"module\":\"commonjs\"}' src/buildAssets.ts",
     "build-assets-win": "ts-node -O \"{\\\"module\\\":\\\"commonjs\\\"}\" src/buildAssets.ts",
     "release": "yarn electron-builder --publish onTagOrDraft --x64",
@@ -45,7 +45,8 @@
     ".:lint:tsc": "tsc --noEmit --skipLibCheck",
     "lint-fix": "run-s .:lint-fix:eslint .:lint:tsc",
     ".:lint-fix:eslint": "eslint --fix .",
-    "workspaces:build": "yarn workspaces foreach -t run build"
+    "workspaces:build": "yarn workspaces foreach -t run build",
+    "build-get-cloud-info": "ts-node -O \"{\\\"module\\\":\\\"commonjs\\\"}\" src/servers/supportedVersions/downloadFromCloud.ts"
   },
   "dependencies": {
     "@bugsnag/js": "^7.16.0",
@@ -60,6 +61,7 @@
     "@rocket.chat/icons": "^0.32.0-dev.373",
     "abort-controller": "^3.0.0",
     "axios": "^1.4.0",
+    "dotenv": "~16.3.1",
     "electron-dl": "^3.5.0",
     "electron-store": "^8.1.0",
     "electron-updater": "^5.3.0",

@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export type SerializedJWT<T> = string;
-
 export type Dictionary = {
   [lng: string]: Record<string, string>;
 };
@@ -12,8 +9,7 @@ export type Message = {
   description: string;
   type: 'primary' | 'warning' | 'danger';
   params: Record<string, unknown> & {
-    instance_ws_name?: string;
-    instance_username?: string;
+    instance_version?: string;
     instance_email?: string;
     instance_domain?: string;
     remaining_days?: number;
@@ -72,7 +68,9 @@ export interface ServerInfo {
     };
   };
   success: boolean;
-  supportedVersions?: SerializedJWT<SupportedVersions>;
+  supportedVersions?: {
+    signed: string;
+  };
   minimumClientVersions?: {
     desktop: string;
     mobile: string;
@@ -80,7 +78,7 @@ export interface ServerInfo {
 }
 
 export interface CloudInfo {
-  signed: SerializedJWT<SupportedVersions>;
+  signed: string;
   timestamp: string;
   messages?: Message[];
   versions: Version[];

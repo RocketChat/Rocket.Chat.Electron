@@ -1,6 +1,10 @@
+import fs from 'fs';
+import path from 'path';
+
+import { app } from 'electron';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
-import { satisfies } from 'semver';
+import { coerce, ltr } from 'semver';
 
 import { getLanguage } from '../../i18n/main';
 import { dispatch, listen, select } from '../../store';
@@ -13,11 +17,6 @@ import {
   SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
 } from '../../ui/actions';
 import type { Server } from '../common';
-import {
-  builtinSupportedVersionsJWT,
-  sampleCloudInfo,
-  sampleServerSupportedVersions,
-} from './samples';
 import type {
   Dictionary,
   Message,
@@ -26,35 +25,45 @@ import type {
   SupportedVersions,
 } from './types';
 
-const publicKey = `
------BEGIN PUBLIC KEY-----
-MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEArbSdeyXHhgBAX93ndDDxCuMhIh9XYCJUHG+vGNKzl4i16W5Fj5bua5gSxbIdhl0S7BtYJM3trpp7vnf3Cp6+tFoyKREYr8D/sdznSv7nRgZGgcuwZpXwf3bPN69dPPZvKS9exhlQ13nn1kOUYOgRwOrdZ8sFzJTasKeTCEjEZa4UFU4Q5lvJGOQt7hA3TvFmH4RUQC7Cu8GgHfUQD4fDuRqG4KFteTOJABpvXqJJG7DWiX6N5ssh2qRoaoapK7E+bTYWAzQnR9eAFV1ajCjhm2TqmUbAKWCM2X27ArsCJ9SWzDIj7sAm0G3DtbUKnzCDmZQHXlxcXcMDqWb8w+JQFs8b4pf56SmZn1Bro7TxdXBEgRQCTck1hginBTKciuh8gbv71bLyjPxOxnAQaukxhYpZPJAFrsfps0vKp1EPwNTboDLHHeuGSeaBP/c8ipHqPmraFLR78O07EdsCzJpBvggG7GcgSikjWDjK/eIdsUro7BKFmxjrmT72dmr7Ero9cmtd1aO/6PAenwHafCKnaxGcIGLUCNOXhk+uTPoV2LrN4L5LN75NNu6hd5L4++ngjwVsGsX3JP3seFPaZ2C76TD+Rd6OT+8guZFCGjPzXbDAb6ScQUJb11pyyLooPkz7Xdy5fCBRoeIWtjs6UwH4n57SJ/gkzkmUykX0WT3wqhkCAwEAAQ==
+const publicKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvZ/T/RHOr6+yo/iMLUlf
+agMiMLFxQR/5Qtc85ykMBvKZqbBGb9zU68VB9n54alrbZG5FdcHkSJXgJIBXF2bk
+TGTfBi58JmltZirSWzvXoXnT4ieGNZv+BqnP9zzj9HXOVhVncbRmJPEIJOZfL9AQ
+beix3rPgZx3ZepAaoMQnz11dZKDGzkMN75WkTdf324X3DeFgLVmjsYuAcLl/AJMA
+uPKSSt0XOQUsfrT7rEqXIrj8rIJcWxIHICMRrwfjw2Qh+3pfIrh7XSzxlW4zCKBN
+RpavrrCnpOFRfkC5T9eMKLgyapjufOtbjuzu25N3urBsg6oRFNzsGXWp1C7DwUO2
+kwIDAQAB
 -----END PUBLIC KEY-----`;
 
-function decode(token: string) {
+export function decode(token: string) {
+  if (!publicKey) {
+    return jwt.decode(token);
+  }
   const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
   return decoded;
 }
 
-function readBuiltinSupportedVersions(): SupportedVersions {
+export async function readBuiltinSupportedVersions(): Promise<SupportedVersions | null> {
   try {
-    // const builtinSupportedVersionsJWT = fs.readFileSync(
-    //   'supportedVersions.jwt',
-    //   'utf8'
-    // );
+    let filePath;
+    if (process.env.NODE_ENV === 'development') {
+      filePath = path.join(__dirname, 'supportedVersions.jwt');
+    } else {
+      filePath = path.join(app.getAppPath(), 'supportedVersions.jwt');
+    }
+    const builtinSupportedVersionsJWT = await fs.promises.readFile(
+      filePath,
+      'utf8'
+    );
     return decode(builtinSupportedVersionsJWT) as SupportedVersions;
   } catch (e) {
     console.log('Error loading supportedVersions.jwt', e);
-    return sampleServerSupportedVersions;
+    return null;
   }
 }
 
-const getCloudInfo = (_workspaceId: string): SupportedVersions => {
-  // get cloud info from server
-  const cloudInfo = sampleCloudInfo;
-  const decoded = decode(cloudInfo.signed) as SupportedVersions;
-  return decoded;
-};
+// const getCloudInfo = (_workspaceId: string): SupportedVersions | null =>
+//   sampleCloudInfo;
 
 export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
   fetch(`${serverUrl}/api/info`)
@@ -64,10 +73,7 @@ export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
       }
       return response.json();
     })
-    .then((data) => {
-      console.log(data);
-      return data as ServerInfo;
-    })
+    .then((data) => data as ServerInfo)
     .catch((error) => {
       console.error('Fetching Server Info error:', error);
       return null;
@@ -75,27 +81,37 @@ export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
 
 export const getSupportedVersionsData = async (
   server: Server
-): Promise<SupportedVersions> => {
-  const { supportedVersions } = server;
+): Promise<SupportedVersions | null> => {
   const buildSupportedVersions = await readBuiltinSupportedVersions();
-  if (!supportedVersions || !server.workspaceUID) {
-    return buildSupportedVersions;
-  }
-  if (!supportedVersions || server.workspaceUID) {
-    const cloudInfo = await getCloudInfo(server.workspaceUID);
-    return cloudInfo;
-  }
-  // const decodedServerSupportedVersions = decode(
-  //   supportedVersions
-  // ) as SupportedVersions;
-  const decodedServerSupportedVersions = supportedVersions;
-  if (
-    !decodedServerSupportedVersions ||
-    decodedServerSupportedVersions.timestamp < buildSupportedVersions?.timestamp
-  )
-    return buildSupportedVersions;
+  const serverInfo = await getServerInfo(server.url);
+  const serverSupportedVersions = serverInfo?.supportedVersions;
 
-  return decodedServerSupportedVersions;
+  if (!serverSupportedVersions && !buildSupportedVersions) return null;
+
+  if (!serverSupportedVersions && buildSupportedVersions) {
+    return buildSupportedVersions;
+  }
+
+  if (!serverSupportedVersions?.signed) {
+    return null;
+  }
+
+  const decodedServerSupportedVersions = decode(
+    serverSupportedVersions.signed
+  ) as SupportedVersions;
+
+  if (
+    decodedServerSupportedVersions &&
+    decodedServerSupportedVersions &&
+    buildSupportedVersions &&
+    decodedServerSupportedVersions?.timestamp <
+      buildSupportedVersions?.timestamp
+  ) {
+    return buildSupportedVersions;
+  }
+
+  if (decodedServerSupportedVersions) return decodedServerSupportedVersions;
+  return null;
 };
 
 export const getExpirationMessage = ({
@@ -127,10 +143,9 @@ export const getExpirationMessageTranslated = (
   message: Message,
   expiration: Date,
   language: string,
-  // username: string,
-  // email: string,
   serverName: Server['title'],
-  serverUrl: Server['url']
+  serverUrl: Server['url'],
+  serverVersion: Server['version']
 ) => {
   const applyParams = (message: string, params: Record<string, unknown>) => {
     const keys = Object.keys(params);
@@ -139,8 +154,7 @@ export const getExpirationMessageTranslated = (
   };
 
   const params = {
-    // instance_username: username,
-    // instance_email: email,
+    instance_version: serverVersion,
     instance_ws_name: serverName,
     instance_domain: serverUrl,
     remaining_days: moment(expiration).diff(new Date(), 'days'),
@@ -170,26 +184,27 @@ export const getExpirationMessageTranslated = (
 export const isServerVersionSupported = async (
   server: Server
 ): Promise<boolean> => {
-  const { versions, exceptions } = await getSupportedVersionsData(server);
+  const supportedVersionsData = await getSupportedVersionsData(server);
+  const builtInSupportedVersions = await readBuiltinSupportedVersions();
+  const versions = supportedVersionsData?.versions;
+  const exceptions = supportedVersionsData?.exceptions;
   const serverVersion = server.version;
   if (!serverVersion) return false;
+  if (!versions) return false;
 
   const appLanguage = (await getLanguage()) ?? 'en';
 
-  // 1.2.3 -> ~1.2
-  const serverVersionTilde = `~${serverVersion
-    .split('.')
-    .slice(0, 2)
-    .join('.')}`;
-
-  const supportedVersion = versions.find(({ version }) =>
-    satisfies(version, serverVersionTilde)
+  const supportedVersion = versions.find(
+    ({ version }) =>
+      coerce(version)?.version === coerce(server.version)?.version
   );
 
   if (supportedVersion) {
     if (new Date(supportedVersion.expiration) > new Date()) {
+      const messages =
+        supportedVersionsData?.messages || builtInSupportedVersions?.messages;
       const selectedExpirationMessage = getExpirationMessage({
-        messages: supportedVersion.messages,
+        messages,
         expiration: supportedVersion.expiration,
       }) as Message;
 
@@ -199,7 +214,8 @@ export const isServerVersionSupported = async (
         supportedVersion.expiration,
         appLanguage,
         server.title,
-        server.url
+        server.url,
+        server.version
       ) as MessageTranslated;
 
       dispatch({
@@ -213,8 +229,9 @@ export const isServerVersionSupported = async (
     }
   }
 
-  const exception = exceptions?.versions.find(({ version }) =>
-    satisfies(version, serverVersionTilde)
+  const exception = exceptions?.versions.find(
+    ({ version }) =>
+      coerce(version)?.version === coerce(server.version)?.version
   );
 
   if (exception) {
@@ -230,7 +247,8 @@ export const isServerVersionSupported = async (
         exception.expiration,
         appLanguage,
         server.title,
-        server.url
+        server.url,
+        server.version
       ) as MessageTranslated;
 
       dispatch({
@@ -243,7 +261,6 @@ export const isServerVersionSupported = async (
       return true;
     }
   }
-
   return false;
 };
 
@@ -270,6 +287,7 @@ export function checkSupportedVersionServers(): void {
     if (!server || !server.version) return;
     // if (ltr(server.version, '1.4.0')) return; // FALLBACK EXCEPTIONS
     const supportedVersions = await getSupportedVersionsData(server);
+    if (!supportedVersions) return;
     dispatch({
       type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
       payload: {

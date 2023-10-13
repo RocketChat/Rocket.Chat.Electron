@@ -31,6 +31,7 @@ export type Version = {
 };
 
 export interface SupportedVersions {
+  enforcementStartDate: string;
   timestamp: string;
   messages?: Message[];
   versions: Version[];
@@ -78,6 +79,7 @@ export interface ServerInfo {
 }
 
 export interface CloudInfo {
+  enforcementStartDate: string;
   signed: string;
   timestamp: string;
   messages?: Message[];

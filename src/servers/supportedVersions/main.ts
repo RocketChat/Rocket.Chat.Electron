@@ -261,6 +261,35 @@ export const isServerVersionSupported = async (
       return true;
     }
   }
+  const enforcementStartDate = new Date(
+    supportedVersionsData?.enforcementStartDate
+  );
+  if (enforcementStartDate > new Date()) {
+    const selectedExpirationMessage = getExpirationMessage({
+      messages: supportedVersionsData.messages,
+      expiration: enforcementStartDate,
+    }) as Message;
+
+    const translatedMessage = getExpirationMessageTranslated(
+      server.supportedVersions?.i18n,
+      selectedExpirationMessage,
+      enforcementStartDate,
+      appLanguage,
+      server.title,
+      server.url,
+      server.version
+    ) as MessageTranslated;
+
+    dispatch({
+      type: SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
+      payload: {
+        url: server.url,
+        expirationMessage: translatedMessage,
+      },
+    });
+    return true;
+  }
+
   return false;
 };
 

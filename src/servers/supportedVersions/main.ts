@@ -18,6 +18,7 @@ import {
 } from '../../ui/actions';
 import type { Server } from '../common';
 import type {
+  CloudInfo,
   Dictionary,
   Message,
   MessageTranslated,
@@ -62,8 +63,27 @@ export async function readBuiltinSupportedVersions(): Promise<SupportedVersions 
   }
 }
 
-// const getCloudInfo = (_workspaceId: string): SupportedVersions | null =>
-//   sampleCloudInfo;
+const getCloudInfo = (
+  serverDomain: string,
+  workspaceId: string
+): CloudInfo | null => {
+  console.log('Getting Cloud Info...', serverDomain, workspaceId);
+  fetch(
+    `https://releases.rocket.chat/v2/server/supportedVersions?domain=${serverDomain}&uniqueId=${workspaceId}&source=desktop`
+  )
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Couldn't load Cloud Info: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => data as CloudInfo)
+    .catch((error) => {
+      console.error('Fetching Cloud Info error:', error);
+      return null;
+    });
+  return null;
+};
 
 export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
   fetch(`${serverUrl}/api/info`)
@@ -93,7 +113,17 @@ export const getSupportedVersionsData = async (
   }
 
   if (!serverSupportedVersions?.signed) {
-    return null;
+    if (!server.workspaceUID) return null;
+    const serverDomain = new URL(server.url).hostname;
+    const cloudSupportedVersions = await getCloudInfo(
+      serverDomain,
+      server.workspaceUID
+    );
+    if (!cloudSupportedVersions || !cloudSupportedVersions.signed) return null;
+    const decodedCloudSupportedVersions = decode(
+      cloudSupportedVersions.signed
+    ) as SupportedVersions;
+    return decodedCloudSupportedVersions;
   }
 
   const decodedServerSupportedVersions = decode(

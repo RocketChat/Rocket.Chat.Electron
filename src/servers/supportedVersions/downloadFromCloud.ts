@@ -3,7 +3,8 @@ import fs from 'fs';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
 
-const apiUrl = 'https://releases.rocket.chat/v2/server/supportedVersions';
+const apiUrl =
+  'https://releases.rocket.chat/v2/server/supportedVersions?source=desktop';
 const outputFilePath = './app/supportedVersions.jwt';
 
 interface SupportedVersionsResponse {

@@ -16,7 +16,9 @@ const resolveWithExponentialBackoff = <T>(
     if (maxRetries === 0) {
       throw error;
     }
-
+    console.log(
+      '[Rocket.Chat Desktop] Inject resolveWithExponentialBackoff - retrying in 1 seconds'
+    );
     return new Promise<T>((resolve) => {
       setTimeout(() => {
         resolve(
@@ -84,18 +86,18 @@ const start = async () => {
     : 'meteor/konecty:user-presence';
 
   const settingsModulePath = (() => {
-    if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
-      return '/app/settings/client/index.ts';
+    // if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
+    //   return '/app/settings/client';
     if (versionIsGreaterOrEqualsTo(serverInfo.version, '5.0.0'))
-      return '/app/settings/client';
+      return '/app/settings/client/index.ts';
     return '/app/settings';
   })();
 
   const utilsModulePath = (() => {
-    if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
-      return '/app/utils/client/index.ts';
+    // if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
+    //   return '/app/utils/client';
     if (versionIsGreaterOrEqualsTo(serverInfo.version, '5.0.0'))
-      return '/app/utils/client';
+      return '/app/utils/client/index.ts';
     return '/app/utils';
   })();
 

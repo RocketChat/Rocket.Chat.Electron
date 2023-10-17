@@ -124,6 +124,9 @@
       "remember_credentials": "Remember my credentials",
       "cancel": " Cancel",
       "submit": "Login"
+    },
+    "supportedVersion":{
+      "title": "Workspace version unsupported"
     }
   },
   "downloads": {

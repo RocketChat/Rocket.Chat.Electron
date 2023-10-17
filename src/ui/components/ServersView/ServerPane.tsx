@@ -18,7 +18,7 @@ type ServerPaneProps = {
   serverUrl: string;
   isSelected: boolean;
   isFailed: boolean;
-  isSupported: boolean;
+  isSupported: boolean | undefined;
   title: string | undefined;
 };
 
@@ -163,12 +163,12 @@ export const ServerPane: FC<ServerPaneProps> = ({
         isFailed={isFailed}
         partition={`persist:${serverUrl}`}
         {...({ allowpopups: 'allowpopups' } as any)}
-      />
-      <ErrorView isFailed={isFailed} onReload={handleReload} />
+      />{' '}
       <UnsupportedServer
         isSupported={isSupported}
         workspaceName={title || 'Rocket.Chat'}
       />
+      <ErrorView isFailed={isFailed} onReload={handleReload} />
     </Wrapper>
   );
 };

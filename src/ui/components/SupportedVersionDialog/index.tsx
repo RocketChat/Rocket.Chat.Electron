@@ -35,8 +35,9 @@ export const SupportedVersionDialog: FC = () => {
 
   const handleMoreInfoButtonClick = (): void => {
     dismissTimeUpdate();
-    if (!expirationMessage?.link) return;
-    window.open(new URL(expirationMessage?.link));
+    if (expirationMessage?.link && expirationMessage?.link !== '')
+      window.open(new URL(expirationMessage?.link));
+    window.open(new URL('https://go.rocket.chat/i/supported-versions'));
   };
 
   return (
@@ -50,7 +51,7 @@ export const SupportedVersionDialog: FC = () => {
           <Modal.Header>
             <Modal.Icon name='warning' color='danger' />
             <Modal.HeaderText>
-              <Modal.Title>{expirationMessage?.title}</Modal.Title>
+              <Modal.Title>{t('dialog.supportedVersion.title')}</Modal.Title>
             </Modal.HeaderText>
             <Modal.Close />
           </Modal.Header>

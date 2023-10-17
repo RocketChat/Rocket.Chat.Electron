@@ -17,7 +17,7 @@ export const ServersView: FC = () => {
           serverUrl={server.url}
           isSelected={server.selected}
           isFailed={server.failed ?? false}
-          isSupported={server.isSupportedVersion ?? false}
+          isSupported={server.isSupportedVersion}
           title={server.title}
         />
       ))}

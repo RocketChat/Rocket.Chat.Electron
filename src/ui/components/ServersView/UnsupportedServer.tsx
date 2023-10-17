@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { ErrorPane } from './styles';
 
 type UnsupportedServerProps = {
-  isSupported: boolean;
+  isSupported: boolean | undefined;
   workspaceName: string;
 };
 
@@ -31,7 +31,7 @@ const UnsupportedServer: FC<UnsupportedServerProps> = ({
   };
 
   return (
-    <ErrorPane isVisible={!isSupported}>
+    <ErrorPane isVisible={isSupported === false}>
       <Box
         backgroundColor='white'
         display='flex'

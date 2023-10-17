@@ -23,6 +23,7 @@ type ChannelToArgsMap = {
   'certificatesManager/remove': (domain: string) => void;
   'server-view/get-url': () => Server['url'] | undefined;
   'server-view/ready': () => void;
+  'server-view/open-url-on-browser': (url: string) => void;
   'video-call-window/open-window': (url: string) => void;
   'video-call-window/open-url': (url: string) => void;
   'video-call-window/web-contents-id': (webContentsId: number) => void;

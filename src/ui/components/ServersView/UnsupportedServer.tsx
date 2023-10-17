@@ -7,6 +7,7 @@ import {
   StatesSubtitle,
   StatesTitle,
 } from '@rocket.chat/fuselage';
+import { ipcRenderer } from 'electron';
 import type { FC } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,8 +26,9 @@ const UnsupportedServer: FC<UnsupportedServerProps> = ({
   const { t } = useTranslation();
 
   const handleMoreInfoButtonClick = (): void => {
-    window.open(
-      'https://docs.rocket.chat/resources/rocket.chats-support-structure/enterprise-support-and-version-durability'
+    ipcRenderer.invoke(
+      'server-view/open-url-on-browser',
+      'https://go.rocket.chat/i/supported-versions'
     );
   };
 

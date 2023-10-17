@@ -1,4 +1,5 @@
 import { Box, Button, Modal } from '@rocket.chat/fuselage';
+import { ipcRenderer } from 'electron';
 import type { FC } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -35,9 +36,16 @@ export const SupportedVersionDialog: FC = () => {
 
   const handleMoreInfoButtonClick = (): void => {
     dismissTimeUpdate();
-    if (expirationMessage?.link && expirationMessage?.link !== '')
-      window.open(new URL(expirationMessage?.link));
-    window.open(new URL('https://go.rocket.chat/i/supported-versions'));
+    if (expirationMessage?.link && expirationMessage?.link !== '') {
+      ipcRenderer.invoke(
+        'server-view/open-url-on-browser',
+        expirationMessage?.link
+      );
+    }
+    ipcRenderer.invoke(
+      'server-view/open-url-on-browser',
+      'https://go.rocket.chat/i/supported-versions'
+    );
   };
 
   return (

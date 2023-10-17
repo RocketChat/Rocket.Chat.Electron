@@ -477,4 +477,13 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       injectableCode = undefined;
     }
   });
+
+  handle('server-view/open-url-on-browser', async (_webContents, url) => {
+    const allowed = await isProtocolAllowed(url);
+    if (!allowed) {
+      return;
+    }
+
+    shell.openExternal(url);
+  });
 };

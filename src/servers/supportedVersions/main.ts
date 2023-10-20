@@ -4,7 +4,7 @@ import path from 'path';
 import { app } from 'electron';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
-import { coerce, ltr } from 'semver';
+import { coerce, satisfies } from 'semver';
 
 import { getLanguage } from '../../i18n/main';
 import { dispatch, listen, select } from '../../store';
@@ -245,9 +245,13 @@ export const isServerVersionSupported = async (
 
   const appLanguage = (await getLanguage()) ?? 'en';
 
-  const supportedVersion = versions.find(
-    ({ version }) =>
-      coerce(version)?.version === coerce(server.version)?.version
+  const serverVersionTilde = `~${serverVersion
+    .split('.')
+    .slice(0, 2)
+    .join('.')}`;
+
+  const supportedVersion = versions.find(({ version }) =>
+    satisfies(coerce(version)?.version ?? '', serverVersionTilde)
   );
 
   if (supportedVersion) {
@@ -280,9 +284,8 @@ export const isServerVersionSupported = async (
     }
   }
 
-  const exception = exceptions?.versions?.find(
-    ({ version }) =>
-      coerce(version)?.version === coerce(server.version)?.version
+  const exception = exceptions?.versions?.find(({ version }) =>
+    satisfies(coerce(version)?.version ?? '', serverVersionTilde)
   );
 
   if (exception) {

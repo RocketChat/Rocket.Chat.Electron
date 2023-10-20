@@ -1,8 +1,8 @@
-import { Reducer } from 'redux';
+import type { Reducer } from 'redux';
 
-import { ActionOf } from '../../store/actions';
+import type { ActionOf } from '../../store/actions';
 import { ROOT_WINDOW_ICON_CHANGED } from '../actions';
-import { RootWindowIcon } from '../common';
+import type { RootWindowIcon } from '../common';
 
 type RootWindowIconAction = ActionOf<typeof ROOT_WINDOW_ICON_CHANGED>;
 

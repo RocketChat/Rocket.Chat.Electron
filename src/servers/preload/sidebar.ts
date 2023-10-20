@@ -1,6 +1,9 @@
 import { dispatch } from '../../store';
-import { WEBVIEW_SIDEBAR_STYLE_CHANGED } from '../../ui/actions';
-import { Server } from '../common';
+import {
+  WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
+  WEBVIEW_SIDEBAR_STYLE_CHANGED,
+} from '../../ui/actions';
+import type { Server } from '../common';
 import { getServerUrl, getAbsoluteUrl } from './urls';
 
 let timer: ReturnType<typeof setTimeout>;
@@ -103,5 +106,15 @@ export const setBackground = (imageUrl: string): void => {
         style: sideBarStyle,
       },
     });
+  });
+};
+
+export const setSidebarCustomTheme = (customTheme: string): void => {
+  dispatch({
+    type: WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
+    payload: {
+      url: getServerUrl(),
+      customTheme,
+    },
   });
 };

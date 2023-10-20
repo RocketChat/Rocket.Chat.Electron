@@ -1,10 +1,11 @@
 import { Box, Tabs } from '@rocket.chat/fuselage';
 import '@rocket.chat/fuselage-polyfills';
-import React, { FC, useState } from 'react';
+import type { FC } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { RootState } from '../../../store/rootReducer';
+import type { RootState } from '../../../store/rootReducer';
 import { CertificatesTab } from './CertificatesTab';
 import { GeneralTab } from './GeneralTab';
 

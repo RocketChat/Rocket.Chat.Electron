@@ -1,14 +1,16 @@
-import React, { useRef, useEffect, FC } from 'react';
+import type { FC } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
-import { RootAction } from '../../../store/actions';
+import type { RootAction } from '../../../store/actions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   WEBVIEW_ATTACHED,
   WEBVIEW_READY,
 } from '../../actions';
 import ErrorView from './ErrorView';
+import UnsupportedServer from './UnsupportedServer';
 import { StyledWebView, Wrapper } from './styles';
 
 type ServerPaneProps = {
@@ -16,6 +18,8 @@ type ServerPaneProps = {
   serverUrl: string;
   isSelected: boolean;
   isFailed: boolean;
+  isSupported: boolean | undefined;
+  title: string | undefined;
 };
 
 export const ServerPane: FC<ServerPaneProps> = ({
@@ -23,10 +27,13 @@ export const ServerPane: FC<ServerPaneProps> = ({
   serverUrl,
   isSelected,
   isFailed,
+  isSupported,
+  title,
 }) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
-  const webviewRef = useRef<ReturnType<typeof document['createElement']>>(null);
+  const webviewRef =
+    useRef<ReturnType<(typeof document)['createElement']>>(null);
 
   useEffect(() => {
     const webview = webviewRef.current;
@@ -68,7 +75,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
 
     const handleAttachReady = (): void => {
       step &&
-        setImmediate(() => {
+        setTimeout(() => {
           dispatch({
             type: WEBVIEW_READY,
             payload: {
@@ -76,7 +83,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
               webContentsId: webview.getWebContentsId(),
             },
           });
-        });
+        }, 300);
       step = true;
     };
     addEventListenerOnce('did-attach', handleAttachReady);
@@ -102,7 +109,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
     };
 
     const handleAttachReady = (): void => {
-      setImmediate(() => {
+      setTimeout(() => {
         dispatch({
           type: WEBVIEW_ATTACHED,
           payload: {
@@ -110,7 +117,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
             webContentsId: webview.getWebContentsId(),
           },
         });
-      });
+      }, 300);
     };
 
     addEventListenerOnce('did-attach', handleAttachReady);
@@ -156,6 +163,10 @@ export const ServerPane: FC<ServerPaneProps> = ({
         isFailed={isFailed}
         partition={`persist:${serverUrl}`}
         {...({ allowpopups: 'allowpopups' } as any)}
+      />{' '}
+      <UnsupportedServer
+        isSupported={isSupported}
+        workspaceName={title || 'Rocket.Chat'}
       />
       <ErrorView isFailed={isFailed} onReload={handleReload} />
     </Wrapper>

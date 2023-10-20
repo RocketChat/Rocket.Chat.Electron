@@ -1,8 +1,9 @@
 import { Box, ProgressBar } from '@rocket.chat/fuselage';
-import React, { ComponentProps, FC, useCallback, useMemo } from 'react';
+import type { ComponentProps, FC } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Download } from '../../../downloads/common';
+import type { Download } from '../../../downloads/common';
 import { invoke } from '../../../ipc/renderer';
 import ActionButton from './ActionButton';
 import FileIcon from './FileIcon';
@@ -236,6 +237,8 @@ const DownloadItem: FC<DownloadItemProps> = ({
           <ProgressBar
             percentage={percentage}
             error={errored ? t('downloads.item.errored') : undefined}
+            // TODO: get complete file details, such as file-size from different cloud storages
+            animated={percentage !== 100}
           />
         </Box>
       </Box>

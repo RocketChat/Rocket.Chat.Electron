@@ -1,18 +1,13 @@
-import { WebContents } from 'electron';
-import { Middleware, MiddlewareAPI, Dispatch } from 'redux';
+import type { WebContents } from 'electron';
+import type { Middleware, MiddlewareAPI, Dispatch } from 'redux';
 
 import { handle as handleOnMain, invoke as invokeFromMain } from '../ipc/main';
 import {
   handle as handleFromRenderer,
   invoke as invokeFromRenderer,
 } from '../ipc/renderer';
-import {
-  isFSA,
-  FluxStandardAction,
-  isLocallyScoped,
-  hasMeta,
-  isSingleScoped,
-} from './fsa';
+import type { FluxStandardAction } from './fsa';
+import { isFSA, isLocallyScoped, hasMeta, isSingleScoped } from './fsa';
 
 const enum ActionScope {
   LOCAL = 'local',

@@ -17,16 +17,14 @@
   "mac": {
     "category": "public.app-category.productivity",
     "target": [
-      "dmg",
-      "pkg",
-      "zip",
-      "mas"
+      "zip"
     ],
     "icon": "build/icon.icns",
-    "bundleVersion": "113",
+    "bundleVersion": "118",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
     "artifactName": "rocketchat-${version}-${os}.${ext}",
+    "mergeASARs": false,
     "extendInfo": {
       "NSMicrophoneUsageDescription": "I need access to your microphone to record the audio you want to send.",
       "NSCameraUsageDescription": "I need access to your camera to record the video you want to send.",

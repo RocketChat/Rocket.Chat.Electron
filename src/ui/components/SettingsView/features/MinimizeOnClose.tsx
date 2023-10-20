@@ -1,10 +1,11 @@
 import { ToggleSwitch, Field } from '@rocket.chat/fuselage';
-import React, { ChangeEvent, Dispatch, FC, useCallback } from 'react';
+import type { ChangeEvent, Dispatch, FC } from 'react';
+import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { RootAction } from '../../../../store/actions';
-import { RootState } from '../../../../store/rootReducer';
+import type { RootAction } from '../../../../store/actions';
+import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED } from '../../../actions';
 
 type Props = {

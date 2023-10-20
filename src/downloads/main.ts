@@ -1,13 +1,5 @@
-import path from 'path';
-
-import {
-  clipboard,
-  DownloadItem,
-  Event,
-  shell,
-  WebContents,
-  webContents,
-} from 'electron';
+import type { DownloadItem, Event, WebContents } from 'electron';
+import { clipboard, shell, webContents } from 'electron';
 import { t } from 'i18next';
 
 import { handle } from '../ipc/main';
@@ -18,7 +10,8 @@ import {
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
 } from './actions';
-import { Download, DownloadStatus } from './common';
+import type { Download } from './common';
+import { DownloadStatus } from './common';
 
 const items = new Map<Download['itemId'], DownloadItem>();
 
@@ -30,25 +23,6 @@ export const handleWillDownloadEvent = async (
   const itemId = Date.now();
 
   items.set(itemId, item);
-
-  const fileName = item.getFilename();
-
-  const extension = path.extname(fileName)?.slice(1).toLowerCase();
-
-  if (extension) {
-    item.setSaveDialogOptions({
-      filters: [
-        {
-          name: `*.${extension}`,
-          extensions: [extension],
-        },
-        {
-          name: '*.*',
-          extensions: ['*'],
-        },
-      ],
-    });
-  }
 
   const server = select(({ servers }) =>
     servers.find((server) => server.webContentsId === serverWebContents.id)
@@ -242,8 +216,13 @@ export const setupDownloads = (): void => {
       payload: itemId,
     });
 
-    if (webContentsId) {
-      webContents.fromId(webContentsId).downloadURL(download.url);
+    if (webContentsId && webContents !== undefined) {
+      if (webContents.fromId !== undefined) {
+        const webContentsInstance = webContents.fromId(webContentsId);
+        if (webContentsInstance !== undefined) {
+          webContentsInstance.downloadURL(download.url);
+        }
+      }
     }
   });
 

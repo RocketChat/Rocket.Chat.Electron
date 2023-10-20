@@ -1,7 +1,7 @@
 import { createStructuredSelector } from 'reselect';
 
-import { RootState } from '../store/rootReducer';
-import { PersistableValues } from './PersistableValues';
+import type { RootState } from '../store/rootReducer';
+import type { PersistableValues } from './PersistableValues';
 
 export const selectPersistableValues = createStructuredSelector<
   RootState,
@@ -40,4 +40,9 @@ export const selectPersistableValues = createStructuredSelector<
     isAddNewServersEnabled,
   hasHideOnTrayNotificationShown: ({ hasHideOnTrayNotificationShown }) =>
     hasHideOnTrayNotificationShown,
+  lastSelectedServerUrl: ({ lastSelectedServerUrl }) => lastSelectedServerUrl,
+  allowedNTLMCredentialsDomains: ({ allowedNTLMCredentialsDomains }) =>
+    allowedNTLMCredentialsDomains,
+  isNTLMCredentialsEnabled: ({ isNTLMCredentialsEnabled }) =>
+    isNTLMCredentialsEnabled,
 });

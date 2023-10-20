@@ -1,5 +1,5 @@
 import { watch } from '../../store';
-import { RootState } from '../../store/rootReducer';
+import type { RootState } from '../../store/rootReducer';
 
 const selectIsSideBarVisible = ({
   servers,

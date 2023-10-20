@@ -19,10 +19,9 @@ import {
   SERVER_URL_RESOLVED,
   SERVERS_LOADED,
 } from './actions';
+import type { Server, ServerUrlResolutionResult } from './common';
 import {
   ServerUrlResolutionStatus,
-  Server,
-  ServerUrlResolutionResult,
   isServerUrlResolutionResult,
 } from './common';
 

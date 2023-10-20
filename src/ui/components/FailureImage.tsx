@@ -1,5 +1,6 @@
 import { useUniqueId } from '@rocket.chat/fuselage-hooks';
-import React, { FC, CSSProperties } from 'react';
+import type { FC, CSSProperties } from 'react';
+import React from 'react';
 
 type FailureImageProps = {
   st3?: string;

@@ -10,6 +10,7 @@ export type Server = {
     color: string | null;
     border: string | null;
   };
+  customTheme?: string;
   lastPath?: string;
   failed?: boolean;
   webContentsId?: number;
@@ -17,6 +18,13 @@ export type Server = {
   gitCommitHash?: string;
   allowedRedirects?: string[];
   outlookCredentials?: OutlookCredentials;
+  version?: string;
+  workspaceUID?: string;
+  isSupportedVersion?: boolean;
+  supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
+  supportedVersions?: SupportedVersions;
+  expirationMessage?: MessageTranslated;
+  expirationMessageLastTimeShown?: Date;
 };
 
 export const enum ServerUrlResolutionStatus {

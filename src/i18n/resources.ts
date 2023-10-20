@@ -1,4 +1,4 @@
-import { Resource } from 'i18next';
+import type { Resource } from 'i18next';
 
 export default {
   'de-DE': (): Promise<Resource> => import('./de-DE.i18n.json'),

@@ -54,6 +54,12 @@
       "yes": "Igen",
       "cancel": "Mégse"
     },
+    "clearPermittedScreenCaptureServers": {
+      "title": "Engedélyezett képernyőfelvételi kiszolgálók törlése",
+      "message": "Ez törölni fogja a képernyőfelvételi kiszolgálók összes engedélyét, így azoktól újra engedélyt kell kérni. Ezt nem lehet visszavonni.",
+      "yes": "Igen",
+      "cancel": "Mégse"
+    },
     "screenshare": {
       "title": "Képernyő megosztása",
       "announcement": "Megosztandó képernyő kiválasztása"
@@ -103,12 +109,21 @@
       "no": "Nem"
     },
     "allowVideoCallCaptureScreen": {
-      "title": "A Jitsi megpróbálja rögzíteni a képernyőjét",
-      "message": "A Jitsi jogosultságot kér a képernyő rögzítéséhez.",
-      "detail": "A(z) {{- url }} kiszolgálóról futó Jitsinek jogosultságra van szüksége azért, hogy megossza az Ön képernyőjét másokkal.",
-      "dontAskAgain": "Engedélyezés mindig, hogy az erről a kiszolgálóról futó Jitsi rögzítse a képernyőjét",
+      "title": "A videohívás megpróbálja rögzíteni a képernyőjét",
+      "message": "A videóhívás engedélyt kér az Ön képernyőjének rögzítéséhez.",
+      "detail": "A(z) {{- url }} kiszolgálóról érkező videohívásnak engedélyre van szüksége ahhoz, hogy megossza az Ön képernyőjét a többiekkel.",
+      "dontAskAgain": "Mindig engedélyezze, hogy az erről a kiszolgálóról érkező videohívások rögzítsék az Ön képernyőjét",
       "yes": "Engedélyezés",
       "no": "Mégse"
+    },
+    "outlookCalendar": {
+      "title": "Outlook naptár",
+      "encryptionUnavailableTitle": "A titkosítás nem érhető el",
+      "encryptionUnavailable": "Az operációs rendszer nem támogatja a titkosítást.\nA hitelesítési adatok egyszerű szöveges formában lesznek tárolva.",
+      "field_required": "Ez a mező kötelező",
+      "remember_credentials": "Saját hitelesítési adatok megjegyzése",
+      "cancel": " Mégse",
+      "submit": "Bejelentkezés"
     }
   },
   "downloads": {
@@ -186,7 +201,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Videocsevegés megnyitása alkalmazásablak használatával",
-        "description": "Ha be van állítva, akkor a videocsevegés egy alkalmazás ablakával nyílik meg, egyébként az alapértelmezett böngésző lesz használva.",
+        "description": "Ha be van állítva, akkor a videocsevegés egy alkalmazás ablakával nyílik meg, egyébként az alapértelmezett böngésző lesz használva. A <strong>Google Meet</strong> megosztási képernyője nem támogatott az Electront használó alkalmazásokban, így ez a beállítás nem változtatja meg azoknak a Meet-hívásoknak a viselkedését, amelyek a böngészőben fognak megnyílni.",
         "masDescription": "Ez a beállítás a Mac alkalmazásboltból történő telepítéskor le van tiltva. Biztonsági okokból a videocsevegést alapértelmezetten a böngésző használatával fogja megnyitni."
       },
       "minimizeOnClose": {
@@ -204,6 +219,10 @@
       "trayIcon": {
         "title": "Tálcaikon",
         "description": "Tálcaikon megjelenítése a rendszer tálcáján. Ha a tálcaikon aktív, akkor az alkalmazás a tálcára lesz elrejtve a bezáráskor. Egyébként kilép az alkalmazásból."
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Képernyőfelvételi engedélyek törlése",
+        "description": "Azon képernyőfelvételi engedélyek törlése, amelyek úgy lettek kiválasztva, hogy ne kérdezzenek újra a videohívásoknál."
       }
     }
   },
@@ -284,7 +303,8 @@
       "remove": "Kiszolgáló eltávolítása",
       "openDevTools": "Fejlesztői eszközök megnyitása",
       "clearCache": "Gyorsítótár törlése",
-      "clearStorageData": "Tárolóadatok törlése"
+      "clearStorageData": "Tárolóadatok törlése",
+      "copyCurrentUrl": "Jelenlegi URL másolása"
     }
   },
   "touchBar": {

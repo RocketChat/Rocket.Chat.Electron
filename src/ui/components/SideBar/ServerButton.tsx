@@ -1,17 +1,19 @@
 import { parse } from 'url';
 
-import React, { useMemo, FC, DragEvent, MouseEvent } from 'react';
+import { css } from '@rocket.chat/css-in-js';
+import { IconButton, Badge, Box } from '@rocket.chat/fuselage';
+import type { FC, DragEvent, MouseEvent } from 'react';
+import React, { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
-import { RootAction } from '../../../store/actions';
+import type { RootAction } from '../../../store/actions';
 import {
   SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
 } from '../../actions';
 import {
   Avatar,
-  Badge,
   Favicon,
   Initials,
   KeyboardShortcut,
@@ -88,12 +90,30 @@ const ServerButton: FC<ServerButtonProps> = ({
       onDragEnter={onDragEnter}
       onDrop={onDrop}
     >
-      <Avatar isSelected={isSelected}>
-        <Initials visible={!favicon}>{initials}</Initials>
-        <Favicon draggable='false' src={favicon ?? ''} visible={!!favicon} />
-      </Avatar>
-      {mentionCount && <Badge>{mentionCount}</Badge>}
-      {!userLoggedIn && <Badge>!</Badge>}
+      <IconButton
+        pressed={isSelected}
+        icon={
+          <Avatar isSelected={isSelected}>
+            <Initials visible={!favicon}>{initials}</Initials>
+            <Favicon
+              draggable='false'
+              src={favicon ?? ''}
+              visible={!!favicon}
+            />
+          </Avatar>
+        }
+      />
+      <Box
+        className={css`
+          top: 0;
+          right: 0;
+          transform: translate(30%, -30%);
+        `}
+        position='absolute'
+      >
+        {mentionCount && <Badge variant='danger'>{mentionCount}</Badge>}
+        {!userLoggedIn && <Badge variant='danger'>!</Badge>}
+      </Box>
       {shortcutNumber && (
         <KeyboardShortcut visible={isShortcutVisible}>
           {process.platform === 'darwin' ? '⌘' : '^'}

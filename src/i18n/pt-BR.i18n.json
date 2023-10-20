@@ -115,6 +115,9 @@
       "dontAskAgain": "Sempre permitir a captura de tela por video chamadas neste servidor",
       "yes": "Permitir",
       "no": "Cancelar"
+    },
+    "supportedVersion":{
+      "title": "Versão de workspace não suportada"
     }
   },
   "downloads": {
@@ -187,7 +190,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Abrir chat em video em uma janela da aplicação",
-        "description": "Quando ativo o chat em video será aberto em uma janela da aplicação, caso contrário será aberto em uma nova janela do navegador.",
+        "description": "Quando ativado, o Video Chat será aberto usando a janela do aplicativo, caso contrário, o navegador padrão será usado. O compartilhamento de tela do <strong>Google Meet</strong> não é suportado em aplicativos Electron, portanto, essa configuração não altera o comportamento das chamadas no Meet, que serão abertas no navegador.",
         "masDescription": "Esta opção esta desativada quando for instalado através da Mac App Store, por motivos de segurança o chat em video sera aberto usando o navegador por padrão."
       },
       "minimizeOnClose": {
@@ -205,6 +208,19 @@
       "trayIcon": {
         "title": "Ícone da bandeja",
         "description": "Mostra um ícone na bandeja do sistema para acessar rapidamente a aplicação. Se o ícone da bandeja estiver ativado, a aplicação será minimizada para a barra de tarefas ao ser fechada. Por outro lado se o ícone da bandeja estiver desativado, a aplicação será finalizada ao ser fechada."
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Limpar Permissões de Captura de Tela",
+        "description": "Limpar as permissões de captura de tela que foram selecionadas para não perguntar novamente em chamadas de vídeo."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Permitir Captura de Tela em Chamadas de Vídeo",
+        "description": "Permitir captura de tela em chamadas de vídeo. Isso solicitará permissão em cada chamada de vídeo."
+      },
+      "ntlmCredentials": {
+        "title": "Credenciais NTLM",
+        "description": "Permitir o uso de credenciais NTLM ao conectar-se a um servidor.",
+        "domains": "Domínios que usarão as credenciais. Separados por vírgula. Use * para permitir todos os domínios."
       }
     }
   },

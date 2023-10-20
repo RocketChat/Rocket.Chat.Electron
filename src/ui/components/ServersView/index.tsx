@@ -1,4 +1,5 @@
-import React, { FC } from 'react';
+import type { FC } from 'react';
+import React from 'react';
 
 import { useServers } from '../hooks/useServers';
 import { ReparentingContainer } from '../utils/ReparentingContainer';
@@ -16,6 +17,8 @@ export const ServersView: FC = () => {
           serverUrl={server.url}
           isSelected={server.selected}
           isFailed={server.failed ?? false}
+          isSupported={server.isSupportedVersion}
+          title={server.title}
         />
       ))}
     </ReparentingContainer>

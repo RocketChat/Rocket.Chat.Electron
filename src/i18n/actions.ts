@@ -1,4 +1,4 @@
-import resources from './resources';
+import type resources from './resources';
 
 export const I18N_LNG_REQUESTED = 'i18n/lng-requested';
 export const I18N_LNG_RESPONDED = 'i18n/lng-responded';

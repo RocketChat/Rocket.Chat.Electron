@@ -2,7 +2,7 @@ import path from 'path';
 
 import { app } from 'electron';
 
-import { Server } from '../../servers/common';
+import type { Server } from '../../servers/common';
 
 export const getAppIconPath = ({
   platform,

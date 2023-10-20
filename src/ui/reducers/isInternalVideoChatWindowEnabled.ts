@@ -1,7 +1,7 @@
-import { Reducer } from 'redux';
+import type { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../../app/actions';
-import { ActionOf } from '../../store/actions';
+import type { ActionOf } from '../../store/actions';
 import { UPDATES_READY } from '../../updates/actions';
 import { SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED } from '../actions';
 

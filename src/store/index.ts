@@ -1,16 +1,11 @@
-import {
-  applyMiddleware,
-  createStore,
-  Store,
-  compose,
-  Middleware,
-  Dispatch,
-} from 'redux';
+import type { Store, Middleware, Dispatch } from 'redux';
+import { applyMiddleware, createStore, compose } from 'redux';
 
-import { RootAction } from './actions';
+import type { RootAction } from './actions';
 import { hasPayload, isErrored, isResponseTo } from './fsa';
 import { forwardToRenderers, getInitialState, forwardToMain } from './ipc';
-import { rootReducer, RootState } from './rootReducer';
+import type { RootState } from './rootReducer';
+import { rootReducer } from './rootReducer';
 
 let reduxStore: Store<RootState>;
 

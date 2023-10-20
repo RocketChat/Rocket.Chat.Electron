@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app, Certificate } from 'electron';
+import type { Certificate } from 'electron';
+import { app } from 'electron';
 import i18next from 'i18next';
 
 import { request, select, dispatch } from '../store';

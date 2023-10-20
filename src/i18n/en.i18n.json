@@ -122,8 +122,11 @@
       "encryptionUnavailable": "Your operational system don't support encryption.\nYour credentials will be stored in plain text.",
       "field_required": "This field is required",
       "remember_credentials": "Remember my credentials",
-      "cancel":" Cancel",
+      "cancel": " Cancel",
       "submit": "Login"
+    },
+    "supportedVersion":{
+      "title": "Workspace version unsupported"
     }
   },
   "downloads": {
@@ -201,7 +204,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Open Video Chat using Application Window",
-        "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used.",
+        "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used. <strong>Google Meet</strong> share screen is not supported in Electron applications, so this configuration don't change Meet calls behavior, that will open on browser.",
         "masDescription": "This option is disabled when installed from the Mac App Store, for security reasons it will open Video Chat using the browser by default."
       },
       "minimizeOnClose": {
@@ -223,6 +226,15 @@
       "clearPermittedScreenCaptureServers": {
         "title": "Clear Screen Capture Permissions",
         "description": "Clear the screen capture permissions that was selected to not ask again on video calls."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Allow Screen Capture on Video Calls",
+        "description": "Allow screen capture on video calls. This will ask for permission on each video call."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM Credentials",
+        "description": "Allow NTLM Credentials to be used when connecting to a server.",
+        "domains": "Domains that will use the credentials. Separated by comma. Use * to match all domains."
       }
     }
   },
@@ -288,6 +300,11 @@
     "title": "Server Failed to Load",
     "announcement": "Houston, we have a problem",
     "reload": "Reload"
+  },
+  "unsupportedServer": {
+    "title": "{{workspaceName}} is running an unsupported version of Rocket.Chat",
+    "announcement": "An admin needs to update this workspace to a supported version in order to restore access from desktop and mobile apps.",
+    "moreInformation": "Learn more"
   },
   "selfxss": {
     "title": "Stop!",

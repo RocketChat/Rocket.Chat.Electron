@@ -185,7 +185,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Öffnen Sie den Video-Chat mit dem Anwendungsfenster",
-        "description": "Wenn eingestellt, wird der Video-Chat über das Fenster einer Anwendung geöffnet, andernfalls wird der Standardbrowser verwendet.",
+        "description": "Wenn diese Option aktiviert ist, wird der Video-Chat über ein Anwendungsfenster geöffnet, andernfalls wird der Standardbrowser verwendet. <strong> Der Freigabebildschirm von Google Meet </strong> wird in Electron-Anwendungen nicht unterstützt, daher ändert diese Konfiguration nicht das Verhalten von Meet-Anrufen, die im Browser geöffnet werden.",
         "masDescription": "Diese Option ist deaktiviert, wenn sie aus dem Mac App Store installiert wird. Aus Sicherheitsgründen wird der Video-Chat standardmäßig über den Browser geöffnet."
       },
       "minimizeOnClose": {

@@ -63,8 +63,8 @@ export const isErrored = <Action extends FluxStandardAction<string, unknown>>(
   action: Action
 ): action is Action & { error: true; payload: Error } =>
   'meta' in action &&
-  (action as Action & { error: unknown }).error === true &&
-  (action as Action & { payload: unknown }).payload instanceof Error;
+  (action as unknown as Action & { error: unknown }).error === true &&
+  (action as unknown as Action & { payload: unknown }).payload instanceof Error;
 
 export const hasPayload = <Action extends FluxStandardAction<string, unknown>>(
   action: Action

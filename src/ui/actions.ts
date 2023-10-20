@@ -1,5 +1,5 @@
-import { Server } from '../servers/common';
-import { RootWindowIcon, WindowState } from './common';
+import type { Server } from '../servers/common';
+import type { RootWindowIcon, WindowState } from './common';
 
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START =
@@ -57,6 +57,8 @@ export const WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED =
 export const WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED =
   'webview/screen-sharing-source-responded';
 export const WEBVIEW_SIDEBAR_STYLE_CHANGED = 'webview/sidebar-style-changed';
+export const WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED =
+  'webview/sidebar-custom-theme-changed';
 export const WEBVIEW_GIT_COMMIT_HASH_CHANGED =
   'webview/git-commit-hash-changed';
 export const WEBVIEW_GIT_COMMIT_HASH_CHECK = 'webview/git-commit-hash-check';
@@ -83,9 +85,26 @@ export const SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED =
   'settings/set-is-menu-bar-enabled-changed';
 export const SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS =
   'settings/clear-permitted-screen-capture-permissions';
+export const SETTINGS_NTLM_CREDENTIALS_CHANGED =
+  'settings/ntlm-credentials-changed';
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
+export const DOWNLOADS_BACK_BUTTON_CLICKED = 'downloads/back-button-clicked';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED =
+  'webview/server-supported-versions-updated';
+export const WEBVIEW_SERVER_WORKSPACE_UID_UPDATED =
+  'webview/server-workspace-uid-updated';
+export const WEBVIEW_SERVER_IS_SUPPORTED_VERSION =
+  'webview/server-is-supported-version';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED =
+  'webview/server-supported-versions-source-updated';
+export const WEBVIEW_SERVER_VERSION_UPDATED = 'webview/version-updated';
+export const SUPPORTED_VERSION_DIALOG_OPEN = 'supported-versions-dialog/open';
+export const SUPPORTED_VERSION_DIALOG_DISMISS =
+  'supported-versions-dialog/dismiss';
+export const SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED =
+  'supported-versions/expiration-message-updated';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -134,6 +153,10 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
     style: Server['style'];
   };
+  [WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED]: {
+    url: Server['url'];
+    customTheme: Server['customTheme'];
+  };
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
   [WEBVIEW_USER_LOGGED_IN]: {
@@ -162,5 +185,34 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS]: void;
   [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
+  [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
+  [DOWNLOADS_BACK_BUTTON_CLICKED]: string;
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED]: {
+    url: Server['url'];
+    supportedVersions: Server['supportedVersions'];
+  };
+  [WEBVIEW_SERVER_WORKSPACE_UID_UPDATED]: {
+    url: Server['url'];
+    workspaceUID: Server['workspaceUID'];
+  };
+  [WEBVIEW_SERVER_IS_SUPPORTED_VERSION]: {
+    url: Server['url'];
+    isSupportedVersion: Server['isSupportedVersion'];
+  };
+  [WEBVIEW_SERVER_VERSION_UPDATED]: {
+    url: Server['url'];
+    version: Server['version'];
+  };
+  [SUPPORTED_VERSION_DIALOG_OPEN]: void;
+  [SUPPORTED_VERSION_DIALOG_DISMISS]: { url: Server['url'] };
+
+  [SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED]: {
+    url: Server['url'];
+    expirationMessage: Server['expirationMessage'];
+  };
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED]: {
+    url: Server['url'];
+    supportedVersionsSource: Server['supportedVersionsSource'];
+  };
 };

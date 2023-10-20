@@ -1,8 +1,8 @@
 import type { Certificate } from 'electron';
 
-import { Download } from '../downloads/common';
-import { Server } from '../servers/common';
-import { WindowState } from '../ui/common';
+import type { Download } from '../downloads/common';
+import type { Server } from '../servers/common';
+import type { WindowState } from '../ui/common';
 
 type PersistableValues_0_0_0 = {
   currentServerUrl: string;
@@ -60,9 +60,15 @@ type PersistableValues_3_8_12 = PersistableValues_3_8_9 & {
   hasHideOnTrayNotificationShown: boolean;
 };
 
+type PersistableValues_3_9_6 = PersistableValues_3_8_12 & {
+  lastSelectedServerUrl: string;
+  allowedNTLMCredentialsDomains: string | null;
+  isNTLMCredentialsEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_3_8_12,
-  keyof PersistableValues_3_8_12
+  PersistableValues_3_9_6,
+  keyof PersistableValues_3_9_6
 >;
 
 export const migrations = {
@@ -108,5 +114,11 @@ export const migrations = {
   '>=3.8.12': (before: PersistableValues_3_8_9): PersistableValues_3_8_12 => ({
     ...before,
     hasHideOnTrayNotificationShown: false,
+  }),
+  '>=3.9.6': (before: PersistableValues_3_8_12): PersistableValues_3_9_6 => ({
+    ...before,
+    isNTLMCredentialsEnabled: false,
+    allowedNTLMCredentialsDomains: null,
+    lastSelectedServerUrl: '',
   }),
 };

@@ -6,7 +6,8 @@ import { ScreenSharePicker } from './screenSharePicker';
 function VideoCallWindow() {
   const [videoCallUrl, setVideoCallUrl] = useState('');
 
-  const webviewRef = useRef<ReturnType<typeof document['createElement']>>(null);
+  const webviewRef =
+    useRef<ReturnType<(typeof document)['createElement']>>(null);
 
   useEffect(() => {
     ipcRenderer.once(
@@ -27,7 +28,7 @@ function VideoCallWindow() {
         preload={'./preload.js'}
         webpreferences='nodeIntegration,nativeWindowOpen=true'
         allowpopups={'true' as any}
-      ></webview>
+      />
     </div>
   );
 }

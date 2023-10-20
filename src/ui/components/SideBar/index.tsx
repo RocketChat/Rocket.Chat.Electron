@@ -1,13 +1,14 @@
 import { parse } from 'url';
 
 import { Icon } from '@rocket.chat/fuselage';
-import React, { FC, useMemo } from 'react';
+import type { FC } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
-import { RootAction } from '../../../store/actions';
-import { RootState } from '../../../store/rootReducer';
+import type { RootAction } from '../../../store/actions';
+import type { RootState } from '../../../store/rootReducer';
 import {
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
@@ -15,6 +16,7 @@ import {
 } from '../../actions';
 import { useServers } from '../hooks/useServers';
 import ServerButton from './ServerButton';
+import CustomTheme from './customTheme';
 import {
   Wrapper,
   Content,
@@ -42,6 +44,11 @@ export const SideBar: FC = () => {
     () => servers.find(({ selected }) => selected)?.style || {},
     [servers]
   );
+
+  const customTheme = useMemo(
+    () => servers.find(({ selected }) => selected)?.customTheme || '',
+    [servers]
+  );
   const isEachShortcutVisible = useKeyboardShortcuts();
   const {
     sortedServers,
@@ -66,7 +73,12 @@ export const SideBar: FC = () => {
   const currentView = useSelector(({ currentView }: RootState) => currentView);
 
   return (
-    <Wrapper sideBarStyle={style} isVisible={isVisible}>
+    <Wrapper
+      className='rcx-sidebar--main'
+      sideBarStyle={style}
+      isVisible={isVisible}
+    >
+      <CustomTheme customTheme={customTheme} />
       <Content withWindowButtons={process.platform === 'darwin'}>
         <ServerList>
           {sortedServers.map((server, order) => (

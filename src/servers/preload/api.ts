@@ -11,19 +11,26 @@ import {
 } from '../../outlookCalendar/preload';
 import type { OutlookEventsResponse } from '../../outlookCalendar/type';
 import { setUserPresenceDetection } from '../../userPresence/preload';
-import { Server } from '../common';
+import type { Server } from '../common';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
 import { setFavicon } from './favicon';
 import { setGitCommitHash } from './gitCommitHash';
+import type { videoCallWindowOptions } from './internalVideoChatWindow';
 import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
-import { setBackground, setServerVersionToSidebar } from './sidebar';
+import {
+  setBackground,
+  setServerVersionToSidebar,
+  setSidebarCustomTheme,
+} from './sidebar';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
+import { setVersion } from './version';
+import { setWorkspaceUID } from './workspaceUID';
 
 type ServerInfo = {
   version: string;
@@ -39,6 +46,7 @@ export type RocketChatDesktopAPI = {
   setBadge: (badge: Server['badge']) => void;
   setFavicon: (faviconUrl: string) => void;
   setBackground: (imageUrl: string) => void;
+  setSidebarCustomTheme: (customTheme: string) => void;
   setTitle: (title: string) => void;
   setUserLoggedIn: (userLoggedIn: boolean) => void;
   setUserPresenceDetection: (options: {
@@ -55,7 +63,10 @@ export type RocketChatDesktopAPI = {
   ) => Promise<unknown>;
   destroyNotification: (id: unknown) => void;
   getInternalVideoChatWindowEnabled: () => boolean;
-  openInternalVideoChatWindow: (url: string, options: undefined) => void;
+  openInternalVideoChatWindow: (
+    url: string,
+    options: videoCallWindowOptions
+  ) => void;
   setGitCommitHash: (gitCommitHash: string) => void;
   writeTextToClipboard: (text: string) => void;
   getOutlookEvents: (date: Date) => Promise<OutlookEventsResponse>;
@@ -63,6 +74,8 @@ export type RocketChatDesktopAPI = {
   hasOutlookCredentials: () => Promise<boolean>;
   clearOutlookCredentials: () => void;
   setUserToken: (token: string, userId: string) => void;
+  setWorkspaceUID: (workspaceUID: string) => void;
+  setVersion: (version: string) => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -95,4 +108,7 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   hasOutlookCredentials,
   clearOutlookCredentials,
   setUserToken,
+  setWorkspaceUID,
+  setVersion,
+  setSidebarCustomTheme,
 };

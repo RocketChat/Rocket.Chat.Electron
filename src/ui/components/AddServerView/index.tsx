@@ -9,18 +9,11 @@ import {
   Tile,
 } from '@rocket.chat/fuselage';
 import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
-import React, {
-  useCallback,
-  useEffect,
-  useState,
-  useMemo,
-  FC,
-  FormEvent,
-  ChangeEvent,
-} from 'react';
+import type { FC, FormEvent, ChangeEvent } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
 import {
   SERVER_URL_RESOLVED,
@@ -28,8 +21,8 @@ import {
 } from '../../../servers/actions';
 import { ServerUrlResolutionStatus } from '../../../servers/common';
 import { request } from '../../../store';
-import { RootAction } from '../../../store/actions';
-import { RootState } from '../../../store/rootReducer';
+import type { RootAction } from '../../../store/actions';
+import type { RootState } from '../../../store/rootReducer';
 import { ADD_SERVER_VIEW_SERVER_ADDED } from '../../actions';
 import { RocketChatLogo } from '../RocketChatLogo';
 import { Wrapper } from './styles';
@@ -178,13 +171,12 @@ export const AddServerView: FC = () => {
               </Field.Label>
               <Field.Row>
                 <TextInput
-                  ref={inputRef}
+                  ref={inputRef as React.Ref<HTMLInputElement>}
                   id={inputId}
-                  error={errorMessage ?? undefined}
-                  type='text'
                   placeholder={defaultServerUrl.href}
-                  dir='auto'
+                  error={errorMessage ?? undefined}
                   value={input}
+                  dir='auto'
                   onChange={handleInputChange}
                 />
               </Field.Row>

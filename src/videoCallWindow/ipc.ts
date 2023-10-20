@@ -1,13 +1,14 @@
 import path from 'path';
 
+import type { WebContents } from 'electron';
 import {
   app,
   BrowserWindow,
   desktopCapturer,
   ipcMain,
-  WebContents,
   screen,
   systemPreferences,
+  shell,
 } from 'electron';
 
 import { packageJsonInformation } from '../app/main/app';
@@ -32,6 +33,10 @@ export const startVideoCallWindowHandler = (): void => {
   handle('video-call-window/open-window', async (_event, url) => {
     const validUrl = new URL(url);
     const allowedProtocols = ['http:', 'https:'];
+    if (validUrl.hostname.match(/(\.)?g\.co$/)) {
+      shell.openExternal(validUrl.toString());
+      return;
+    }
     if (allowedProtocols.includes(validUrl.protocol)) {
       const mainWindow = await getRootWindow();
       const winBounds = await mainWindow.getNormalBounds();

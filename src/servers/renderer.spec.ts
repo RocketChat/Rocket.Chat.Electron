@@ -1,4 +1,5 @@
-import { createServer, Server } from 'http';
+import type { Server } from 'http';
+import { createServer } from 'http';
 
 import { fetchInfo } from './renderer';
 

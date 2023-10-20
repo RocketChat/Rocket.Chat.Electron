@@ -1,9 +1,9 @@
 import { app, Menu, nativeImage, Tray } from 'electron';
 import i18next from 'i18next';
 
-import { Server } from '../../servers/common';
+import type { Server } from '../../servers/common';
 import { watch, select, Service, dispatch } from '../../store';
-import { RootState } from '../../store/rootReducer';
+import type { RootState } from '../../store/rootReducer';
 import { SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN } from '../actions';
 import { selectGlobalBadge } from '../selectors';
 import { getTrayIconPath, getAppIconPath } from './icons';

@@ -1,6 +1,7 @@
-import React, { FC } from 'react';
+import type { FC } from 'react';
+import React from 'react';
 
-import { Server } from '../../servers/common';
+import type { Server } from '../../servers/common';
 
 type BadgeProps = {
   value: Server['badge'];

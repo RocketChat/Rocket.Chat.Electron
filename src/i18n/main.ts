@@ -1,5 +1,6 @@
 import { app } from 'electron';
-import i18next, { TFunction } from 'i18next';
+import type { TFunction } from 'i18next';
+import i18next from 'i18next';
 
 import { dispatch, Service } from '../store';
 import { hasMeta } from '../store/fsa';
@@ -37,6 +38,14 @@ const getLng = async (): Promise<keyof typeof resources | undefined> => {
   }
 
   return undefined;
+};
+
+export const getLanguage = async (): Promise<string> => {
+  const lng = await getLng();
+  if (lng !== undefined) {
+    return lng;
+  }
+  return fallbackLng;
 };
 
 class I18nService extends Service {

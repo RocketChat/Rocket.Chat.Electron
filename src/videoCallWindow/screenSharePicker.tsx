@@ -5,12 +5,12 @@ import {
   Margins,
   Scrollable,
 } from '@rocket.chat/fuselage';
-import {
+import type {
   DesktopCapturer,
   DesktopCapturerSource,
-  ipcRenderer,
   SourcesOptions,
 } from 'electron';
+import { ipcRenderer } from 'electron';
 import React, { useEffect, useState } from 'react';
 
 import { Dialog } from '../ui/components/Dialog';

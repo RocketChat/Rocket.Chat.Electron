@@ -1,9 +1,14 @@
-import { Component, ReactNode, ErrorInfo } from 'react';
+import type { ReactNode, ErrorInfo } from 'react';
+import React, { Component } from 'react';
 
 import { APP_ERROR_THROWN } from '../../../app/actions';
 import { dispatch } from '../../../store';
 
-export class ErrorCatcher extends Component {
+interface ErrorCatcherProps {
+  children?: ReactNode;
+}
+
+export class ErrorCatcher extends Component<ErrorCatcherProps> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error(error);
     console.error(errorInfo.componentStack);
@@ -17,7 +22,7 @@ export class ErrorCatcher extends Component {
     });
   }
 
-  render(): ReactNode {
-    return this.props.children ?? null;
+  render() {
+    return <>{this.props.children ?? null}</>;
   }
 }

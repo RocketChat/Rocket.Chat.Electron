@@ -7,17 +7,36 @@ export const getInternalVideoChatWindowEnabled = (): boolean =>
     isInternalVideoChatWindowEnabled,
   })).isInternalVideoChatWindowEnabled;
 
+export type videoCallWindowOptions = {
+  providerName?: string | undefined;
+};
+
 export const openInternalVideoChatWindow = (
   url: string,
-  _options: undefined
+  options: videoCallWindowOptions | undefined
 ): void => {
+  const validUrl = new URL(url);
+  const allowedProtocols = ['http:', 'https:'];
+  if (!allowedProtocols.includes(validUrl.protocol)) {
+    return;
+  }
   if (!process.mas && getInternalVideoChatWindowEnabled()) {
-    ipcRenderer.invoke('video-call-window/open-window', url, _options);
-  } else {
-    const validUrl = new URL(url);
-    const allowedProtocols = ['http:', 'https:'];
-    if (allowedProtocols.includes(validUrl.protocol)) {
-      shell.openExternal(validUrl.href);
+    switch (options?.providerName) {
+      case 'jitsi':
+        window.open(validUrl.href, 'Video Call', 'scrollbars=true');
+        break;
+      case 'googlemeet':
+        shell.openExternal(validUrl.href);
+        break;
+      default:
+        ipcRenderer.invoke(
+          'video-call-window/open-window',
+          validUrl.href,
+          options
+        );
+        break;
     }
+  } else {
+    shell.openExternal(validUrl.href);
   }
 };

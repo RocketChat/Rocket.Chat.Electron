@@ -27,6 +27,7 @@ import {
   SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
+  WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import type { Server } from './common';
@@ -65,7 +66,8 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
   | ActionOf<typeof SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED>
-  | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>;
+  | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
+  | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
@@ -127,6 +129,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED: {
       const { url, expirationMessage } = action.payload;
       return upsert(state, { url, expirationMessage });
+    }
+
+    case WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED: {
+      const { url, supportedVersionsSource } = action.payload;
+      return upsert(state, { url, supportedVersionsSource });
     }
 
     case SUPPORTED_VERSION_DIALOG_DISMISS: {

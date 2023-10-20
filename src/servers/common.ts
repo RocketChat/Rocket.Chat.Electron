@@ -22,10 +22,11 @@ export type Server = {
   gitCommitHash?: string;
   allowedRedirects?: string[];
   outlookCredentials?: OutlookCredentials;
-  isSupportedVersion?: boolean;
-  supportedVersions?: SupportedVersions;
-  workspaceUID?: string;
   version?: string;
+  workspaceUID?: string;
+  isSupportedVersion?: boolean;
+  supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
+  supportedVersions?: SupportedVersions;
   expirationMessage?: MessageTranslated;
   expirationMessageLastTimeShown?: Date;
 };

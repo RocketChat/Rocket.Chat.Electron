@@ -59,7 +59,7 @@ export const SupportedVersionDialog: FC = () => {
           <Modal.Header>
             <Modal.Icon name='warning' color='danger' />
             <Modal.HeaderText>
-              <Modal.Title>{t('dialog.supportedVersion.title')}</Modal.Title>
+              <Modal.Title>{expirationMessage?.title}</Modal.Title>
             </Modal.HeaderText>
             <Modal.Close />
           </Modal.Header>

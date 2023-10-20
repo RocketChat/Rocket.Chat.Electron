@@ -15,6 +15,7 @@ import {
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
   WEBVIEW_SERVER_VERSION_UPDATED,
   SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
+  WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
 } from '../../ui/actions';
 import type { Server } from '../common';
 import type {
@@ -99,6 +100,19 @@ export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
       return null;
     });
 
+const updateSupportedVersionsSource = (
+  source: 'server' | 'cloud' | 'builtin',
+  server: Server
+): void => {
+  dispatch({
+    type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
+    payload: {
+      url: server.url,
+      supportedVersionsSource: source,
+    },
+  });
+};
+
 export const getSupportedVersionsData = async (
   server: Server
 ): Promise<SupportedVersions | null> => {
@@ -106,25 +120,31 @@ export const getSupportedVersionsData = async (
   const serverInfo = await getServerInfo(server.url);
   const serverSupportedVersions = serverInfo?.supportedVersions;
 
+  if (!serverSupportedVersions?.signed) {
+    if (server.workspaceUID) {
+      const serverDomain = new URL(server.url).hostname;
+      const cloudSupportedVersions = await getCloudInfo(
+        serverDomain,
+        server.workspaceUID
+      );
+      if (!cloudSupportedVersions || !cloudSupportedVersions.signed)
+        return null;
+      const decodedCloudSupportedVersions = decode(
+        cloudSupportedVersions.signed
+      ) as SupportedVersions;
+      updateSupportedVersionsSource('cloud', server);
+      return decodedCloudSupportedVersions;
+    }
+  }
+
   if (!serverSupportedVersions && !buildSupportedVersions) return null;
 
   if (!serverSupportedVersions && buildSupportedVersions) {
+    updateSupportedVersionsSource('builtin', server);
     return buildSupportedVersions;
   }
 
-  if (!serverSupportedVersions?.signed) {
-    if (!server.workspaceUID) return null;
-    const serverDomain = new URL(server.url).hostname;
-    const cloudSupportedVersions = await getCloudInfo(
-      serverDomain,
-      server.workspaceUID
-    );
-    if (!cloudSupportedVersions || !cloudSupportedVersions.signed) return null;
-    const decodedCloudSupportedVersions = decode(
-      cloudSupportedVersions.signed
-    ) as SupportedVersions;
-    return decodedCloudSupportedVersions;
-  }
+  if (!serverSupportedVersions?.signed) return null;
 
   const decodedServerSupportedVersions = decode(
     serverSupportedVersions.signed
@@ -137,9 +157,11 @@ export const getSupportedVersionsData = async (
     decodedServerSupportedVersions?.timestamp <
       buildSupportedVersions?.timestamp
   ) {
+    updateSupportedVersionsSource('builtin', server);
     return buildSupportedVersions;
   }
 
+  updateSupportedVersionsSource('server', server);
   if (decodedServerSupportedVersions) return decodedServerSupportedVersions;
   return null;
 };
@@ -258,7 +280,7 @@ export const isServerVersionSupported = async (
     }
   }
 
-  const exception = exceptions?.versions.find(
+  const exception = exceptions?.versions?.find(
     ({ version }) =>
       coerce(version)?.version === coerce(server.version)?.version
   );
@@ -368,7 +390,7 @@ export function checkSupportedVersionServers(): void {
     if (!expirationMessage) return;
     if (
       expirationMessageLastTimeShown &&
-      moment().diff(expirationMessageLastTimeShown, 'hours') < 12
+      moment().diff(expirationMessageLastTimeShown, 'seconds') < 12
     )
       return;
 

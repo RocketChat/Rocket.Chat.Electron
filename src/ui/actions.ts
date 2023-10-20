@@ -97,6 +97,8 @@ export const WEBVIEW_SERVER_WORKSPACE_UID_UPDATED =
   'webview/server-workspace-uid-updated';
 export const WEBVIEW_SERVER_IS_SUPPORTED_VERSION =
   'webview/server-is-supported-version';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED =
+  'webview/server-supported-versions-source-updated';
 export const WEBVIEW_SERVER_VERSION_UPDATED = 'webview/version-updated';
 export const SUPPORTED_VERSION_DIALOG_OPEN = 'supported-versions-dialog/open';
 export const SUPPORTED_VERSION_DIALOG_DISMISS =
@@ -208,5 +210,9 @@ export type UiActionTypeToPayloadMap = {
   [SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED]: {
     url: Server['url'];
     expirationMessage: Server['expirationMessage'];
+  };
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED]: {
+    url: Server['url'];
+    supportedVersionsSource: Server['supportedVersionsSource'];
   };
 };

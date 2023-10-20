@@ -67,6 +67,8 @@ type AuthenticationParams = {
 type OpenRoomParams = {
   host: string;
   path?: string;
+  token?: string;
+  userId?: string;
 };
 
 type InviteParams = {
@@ -138,7 +140,12 @@ const performAuthentication = async ({
   });
 
 // https://developer.rocket.chat/rocket.chat/deeplink#channel-group-dm
-const performOpenRoom = async ({ host, path }: OpenRoomParams): Promise<void> =>
+const performOpenRoom = async ({
+  host,
+  path,
+  token,
+  userId,
+}: OpenRoomParams): Promise<void> =>
   performOnServer(host, async (serverUrl) => {
     if (!path) {
       return;
@@ -146,8 +153,14 @@ const performOpenRoom = async ({ host, path }: OpenRoomParams): Promise<void> =>
     if (!/^\/?(direct|group|channel|livechat)\/[0-9a-zA-Z-_.]+/.test(path)) {
       return;
     }
+    const url = new URL(path, serverUrl);
+    if (token && userId) {
+      url.searchParams.append('resumeToken', token);
+      url.searchParams.append('userId', userId);
+    }
+
     const webContents = await getWebContents(serverUrl);
-    webContents.loadURL(new URL(path, serverUrl).href);
+    webContents.loadURL(url.href);
   });
 
 const performInvite = async ({ host, path }: InviteParams): Promise<void> =>
@@ -191,8 +204,10 @@ const processDeepLink = async (deepLink: string): Promise<void> => {
     case 'room': {
       const host = args.get('host') ?? undefined;
       const path = args.get('path') ?? undefined;
+      const token = args.get('token') ?? undefined;
+      const userId = args.get('userId') ?? undefined;
       if (host && path) {
-        await performOpenRoom({ host, path });
+        await performOpenRoom({ host, path, token, userId });
       }
       break;
     }

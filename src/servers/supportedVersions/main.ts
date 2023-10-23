@@ -74,7 +74,8 @@ const getCloudInfo = (
   )
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`Couldn't load Cloud Info: ${response.status}`);
+        console.log(`Couldn't load Cloud Info: ${response.status}`);
+        return null;
       }
       return response.json();
     })
@@ -90,7 +91,8 @@ export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
   fetch(`${serverUrl}/api/info`)
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`Couldn't load Server Info: ${response.status}`);
+        console.log(`Couldn't load Server Info: ${response.status}`);
+        return null;
       }
       return response.json();
     })
@@ -127,13 +129,13 @@ export const getSupportedVersionsData = async (
         serverDomain,
         server.workspaceUID
       );
-      if (!cloudSupportedVersions || !cloudSupportedVersions.signed)
-        return null;
-      const decodedCloudSupportedVersions = decode(
-        cloudSupportedVersions.signed
-      ) as SupportedVersions;
-      updateSupportedVersionsSource('cloud', server);
-      return decodedCloudSupportedVersions;
+      if (cloudSupportedVersions && cloudSupportedVersions.signed) {
+        const decodedCloudSupportedVersions = decode(
+          cloudSupportedVersions.signed
+        ) as SupportedVersions;
+        updateSupportedVersionsSource('cloud', server);
+        return decodedCloudSupportedVersions;
+      }
     }
   }
 

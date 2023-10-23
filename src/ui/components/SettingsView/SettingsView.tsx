@@ -22,7 +22,7 @@ export const SettingsView: FC = () => {
       display={isVisible ? 'flex' : 'none'}
       flexDirection='column'
       height='full'
-      backgroundColor='surface'
+      backgroundColor='light'
     >
       <Box
         width='full'

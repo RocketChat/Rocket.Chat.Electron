@@ -1,4 +1,11 @@
-import { ToggleSwitch, Field, Callout } from '@rocket.chat/fuselage';
+import {
+  ToggleSwitch,
+  Field,
+  Callout,
+  FieldRow,
+  FieldLabel,
+  FieldHint,
+} from '@rocket.chat/fuselage';
 import type { ChangeEvent, Dispatch, FC } from 'react';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,27 +38,27 @@ export const FlashFrame: FC<Props> = (props) => {
 
   return (
     <Field className={props.className}>
-      <Field.Row>
+      <FieldRow>
         <ToggleSwitch onChange={handleChange} checked={isFlashFrameEnabled} />
-        <Field.Label htmlFor='toggle-switch'>
+        <FieldLabel htmlFor='toggle-switch'>
           {process.platform !== 'darwin'
             ? t('settings.options.flashFrame.title')
             : t('settings.options.flashFrame.titleDarwin')}
-        </Field.Label>
-      </Field.Row>
+        </FieldLabel>
+      </FieldRow>
       {process.platform === 'linux' && (
         <Callout
           title={t('settings.options.flashFrame.onLinux')}
           type='warning'
         />
       )}
-      <Field.Row>
-        <Field.Hint>
+      <FieldRow>
+        <FieldHint>
           {process.platform !== 'darwin'
             ? t('settings.options.flashFrame.description')
             : t('settings.options.flashFrame.descriptionDarwin')}
-        </Field.Hint>
-      </Field.Row>
+        </FieldHint>
+      </FieldRow>
     </Field>
   );
 };

@@ -2,6 +2,8 @@ import {
   Box,
   Button,
   Field,
+  FieldLabel,
+  FieldRow,
   Margins,
   Throbber,
   ToggleSwitch,
@@ -170,17 +172,19 @@ export const AboutDialog: FC = () => {
                 </Box>
               )}
 
-              <Field.Row>
-                <ToggleSwitch
-                  id={checkForUpdatesOnStartupToggleSwitchId}
-                  checked={isCheckForUpdatesOnStartupChecked}
-                  disabled={!canSetCheckForUpdatesOnStartup}
-                  onChange={handleCheckForUpdatesOnStartCheckBoxChange}
-                />
-                <Field.Label htmlFor={checkForUpdatesOnStartupToggleSwitchId}>
-                  {t('dialog.about.checkUpdatesOnStart')}
-                </Field.Label>
-              </Field.Row>
+              <Field>
+                <FieldRow>
+                  <ToggleSwitch
+                    id={checkForUpdatesOnStartupToggleSwitchId}
+                    checked={isCheckForUpdatesOnStartupChecked}
+                    disabled={!canSetCheckForUpdatesOnStartup}
+                    onChange={handleCheckForUpdatesOnStartCheckBoxChange}
+                  />
+                  <FieldLabel htmlFor={checkForUpdatesOnStartupToggleSwitchId}>
+                    {t('dialog.about.checkUpdatesOnStart')}
+                  </FieldLabel>
+                </FieldRow>
+              </Field>
             </Margins>
           </Box>
         )}

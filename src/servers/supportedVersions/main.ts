@@ -47,12 +47,7 @@ export function decode(token: string) {
 
 export async function readBuiltinSupportedVersions(): Promise<SupportedVersions | null> {
   try {
-    let filePath;
-    if (process.env.NODE_ENV === 'development') {
-      filePath = path.join(__dirname, 'supportedVersions.jwt');
-    } else {
-      filePath = path.join(app.getAppPath(), 'supportedVersions.jwt');
-    }
+    const filePath = path.join(__dirname, 'supportedVersions.jwt');
     const builtinSupportedVersionsJWT = await fs.promises.readFile(
       filePath,
       'utf8'

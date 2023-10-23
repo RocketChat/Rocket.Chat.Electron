@@ -132,7 +132,9 @@ const start = async () => {
   });
 
   Tracker.autorun(() => {
-    window.RocketChatDesktop.setVersion(serverInfo.version);
+    const serverVersion = serverInfo.version;
+    console.log('[Rocket.Chat Desktop] Server Version', serverVersion);
+    window.RocketChatDesktop.setVersion(serverVersion);
   });
 
   Tracker.autorun(() => {

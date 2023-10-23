@@ -129,13 +129,13 @@ export const getSupportedVersionsData = async (
         serverDomain,
         server.workspaceUID
       );
-      if (!cloudSupportedVersions || !cloudSupportedVersions.signed)
-        return null;
-      const decodedCloudSupportedVersions = decode(
-        cloudSupportedVersions.signed
-      ) as SupportedVersions;
-      updateSupportedVersionsSource('cloud', server);
-      return decodedCloudSupportedVersions;
+      if (cloudSupportedVersions && cloudSupportedVersions.signed) {
+        const decodedCloudSupportedVersions = decode(
+          cloudSupportedVersions.signed
+        ) as SupportedVersions;
+        updateSupportedVersionsSource('cloud', server);
+        return decodedCloudSupportedVersions;
+      }
     }
   }
 

@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 
-import { app } from 'electron';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { coerce, satisfies } from 'semver';

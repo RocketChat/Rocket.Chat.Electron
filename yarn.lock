@@ -17030,6 +17030,7 @@ __metadata:
     chokidar: ^3.5.3
     conventional-changelog-cli: ^2.2.2
     convert-svg-to-png: ^0.5.0
+    dotenv: ~16.3.1
     electron: 24.8.5
     electron-builder: ^23.6.0
     electron-devtools-installer: ^3.2.0

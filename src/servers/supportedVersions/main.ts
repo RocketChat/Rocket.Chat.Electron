@@ -63,11 +63,11 @@ export async function readBuiltinSupportedVersions(): Promise<SupportedVersions 
 
 const getCloudInfo = (
   serverDomain: string,
-  workspaceId: string
+  uniqueID: string
 ): CloudInfo | null => {
-  console.log('Getting Cloud Info...', serverDomain, workspaceId);
+  console.log('Getting Cloud Info...', serverDomain, uniqueID);
   fetch(
-    `https://releases.rocket.chat/v2/server/supportedVersions?domain=${serverDomain}&uniqueId=${workspaceId}&source=desktop`
+    `https://releases.rocket.chat/v2/server/supportedVersions?domain=${serverDomain}&uniqueId=${uniqueID}&source=desktop`
   )
     .then((response) => {
       if (!response.ok) {
@@ -184,7 +184,7 @@ export const getExpirationMessage = ({
   );
   const message = sortedMessages.find(
     ({ remainingDays }) =>
-      moment(expiration).diff(new Date(), 'days') <= remainingDays
+      moment(expiration).diff(new Date(), 'hours') <= remainingDays * 24
   );
   return message;
 };

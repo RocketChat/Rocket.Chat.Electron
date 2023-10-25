@@ -23,7 +23,7 @@ export type Server = {
   allowedRedirects?: string[];
   outlookCredentials?: OutlookCredentials;
   version?: string;
-  workspaceUID?: string;
+  uniqueID?: string;
   isSupportedVersion?: boolean;
   supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
   supportedVersions?: SupportedVersions;

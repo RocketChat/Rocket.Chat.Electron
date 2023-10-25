@@ -125,17 +125,17 @@ const start = async () => {
 
   const open = window.open.bind(window);
 
-  Tracker.autorun(() => {
-    const workspaceUID = settings.get('uniqueID');
-    if (!workspaceUID) return;
-    window.RocketChatDesktop.setWorkspaceUID(workspaceUID);
-  });
+  // Tracker.autorun(() => {
+  //   const uniqueID = settings.get('uniqueID');
+  //   if (!uniqueID) return;
+  //   window.RocketChatDesktop.setWorkspaceUID(uniqueID);
+  // });
 
-  Tracker.autorun(() => {
-    const serverVersion = serverInfo.version;
-    console.log('[Rocket.Chat Desktop] Server Version', serverVersion);
-    window.RocketChatDesktop.setVersion(serverVersion);
-  });
+  // Tracker.autorun(() => {
+  //   const serverVersion = serverInfo.version;
+  //   console.log('[Rocket.Chat Desktop] Server Version', serverVersion);
+  //   window.RocketChatDesktop.setVersion(serverVersion);
+  // });
 
   Tracker.autorun(() => {
     const serverMainVersion = serverInfo.version.split('.')[0];

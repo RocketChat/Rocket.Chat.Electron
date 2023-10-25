@@ -21,7 +21,7 @@ import {
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
   WEBVIEW_ALLOWED_REDIRECTS_CHANGED,
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
-  WEBVIEW_SERVER_WORKSPACE_UID_UPDATED,
+  WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
   WEBVIEW_SERVER_VERSION_UPDATED,
   SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
@@ -62,7 +62,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_ATTACHED>
   | ActionOf<typeof OUTLOOK_CALENDAR_SAVE_CREDENTIALS>
   | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED>
-  | ActionOf<typeof WEBVIEW_SERVER_WORKSPACE_UID_UPDATED>
+  | ActionOf<typeof WEBVIEW_SERVER_UNIQUE_ID_UPDATED>
   | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
   | ActionOf<typeof SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED>
@@ -141,9 +141,9 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return upsert(state, { url, expirationMessageLastTimeShown: new Date() });
     }
 
-    case WEBVIEW_SERVER_WORKSPACE_UID_UPDATED: {
-      const { url, workspaceUID } = action.payload;
-      return upsert(state, { url, workspaceUID });
+    case WEBVIEW_SERVER_UNIQUE_ID_UPDATED: {
+      const { url, uniqueID } = action.payload;
+      return upsert(state, { url, uniqueID });
     }
 
     case WEBVIEW_SERVER_IS_SUPPORTED_VERSION: {

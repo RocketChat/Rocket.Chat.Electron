@@ -1,3 +1,5 @@
+import { uniqueId } from 'underscore';
+
 export type Dictionary = {
   [lng: string]: Record<string, string>;
 };
@@ -45,28 +47,26 @@ export interface SupportedVersions {
 }
 
 export interface ServerInfo {
-  info?: {
-    // only for authenticated users
-    version: string;
-    build: {
-      date: string;
-      nodeVersion: string;
-      arch: string;
-      platform: string;
-      osRelease: string;
-      totalMemory: number;
-      freeMemory: number;
-      cpus: number;
-    };
-    marketplaceApiVersion: string;
-    commit: {
-      hash: string;
-      date: Date;
-      author: string;
-      subject: string;
-      tag: string;
-      branch: string;
-    };
+  version: string;
+  uniqueId: string;
+  build: {
+    date: string;
+    nodeVersion: string;
+    arch: string;
+    platform: string;
+    osRelease: string;
+    totalMemory: number;
+    freeMemory: number;
+    cpus: number;
+  };
+  marketplaceApiVersion: string;
+  commit: {
+    hash: string;
+    date: Date;
+    author: string;
+    subject: string;
+    tag: string;
+    branch: string;
   };
   success: boolean;
   supportedVersions?: {

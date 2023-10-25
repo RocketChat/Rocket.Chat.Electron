@@ -4,6 +4,7 @@ import path from 'path';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { coerce, satisfies } from 'semver';
+import { get } from 'underscore';
 
 import { getLanguage } from '../../i18n/main';
 import { dispatch, listen, select } from '../../store';
@@ -15,6 +16,8 @@ import {
   WEBVIEW_SERVER_VERSION_UPDATED,
   SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
+  WEBVIEW_READY,
+  WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
 } from '../../ui/actions';
 import type { Server } from '../common';
 import type {
@@ -82,7 +85,7 @@ const getCloudInfo = (
 };
 
 export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
-  fetch(`${serverUrl}/api/info`)
+  fetch(`${serverUrl}api/info`)
     .then((response) => {
       if (!response.ok) {
         console.log(`Couldn't load Server Info: ${response.status}`);
@@ -117,11 +120,11 @@ export const getSupportedVersionsData = async (
   const serverSupportedVersions = serverInfo?.supportedVersions;
 
   if (!serverSupportedVersions?.signed) {
-    if (server.workspaceUID) {
+    if (server.uniqueID) {
       const serverDomain = new URL(server.url).hostname;
       const cloudSupportedVersions = await getCloudInfo(
         serverDomain,
-        server.workspaceUID
+        server.uniqueID
       );
       if (cloudSupportedVersions && cloudSupportedVersions.signed) {
         const decodedCloudSupportedVersions = decode(
@@ -343,7 +346,40 @@ export const isServerVersionSupported = async (
   return false;
 };
 
+const getUniqueId = async (serverUrl: string): Promise<string> => {
+  const response = await fetch(
+    `${serverUrl}/api/v1/settings.public?query={"_id": "uniqueID"}`
+  );
+  const result = await response.json();
+  return result?.settings?.[0]?.value;
+};
+
 export function checkSupportedVersionServers(): void {
+  listen(WEBVIEW_READY, async (action) => {
+    const server = select(({ servers }) => servers).find(
+      (server) => server.url === action.payload.url
+    );
+    if (!server) return;
+    const serverInfo = await getServerInfo(server.url);
+    if (!serverInfo) return;
+    console.log('Server version: ', serverInfo.version);
+    dispatch({
+      type: WEBVIEW_SERVER_VERSION_UPDATED,
+      payload: {
+        url: server.url,
+        version: serverInfo.version,
+      },
+    });
+    const uniqueID = await getUniqueId(server.url);
+    dispatch({
+      type: WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
+      payload: {
+        url: server.url,
+        uniqueID,
+      },
+    });
+  });
+
   listen(WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED, async (action) => {
     const server = select(({ servers }) => servers).find(
       (server) => server.url === action.payload.url

@@ -27,10 +27,10 @@ import {
   setSidebarCustomTheme,
 } from './sidebar';
 import { setTitle } from './title';
+// import { setWorkspaceUID } from './uniqueID';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
-import { setVersion } from './version';
-import { setWorkspaceUID } from './workspaceUID';
+// import { setVersion } from './version';
 
 type ServerInfo = {
   version: string;
@@ -74,7 +74,7 @@ export type RocketChatDesktopAPI = {
   hasOutlookCredentials: () => Promise<boolean>;
   clearOutlookCredentials: () => void;
   setUserToken: (token: string, userId: string) => void;
-  setWorkspaceUID: (workspaceUID: string) => void;
+  setWorkspaceUID: (uniqueID: string) => void;
   setVersion: (version: string) => void;
 };
 

@@ -1,5 +1,3 @@
-import { uniqueId } from 'underscore';
-
 export type Dictionary = {
   [lng: string]: Record<string, string>;
 };

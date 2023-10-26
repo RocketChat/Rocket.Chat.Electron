@@ -4,7 +4,6 @@ import path from 'path';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { coerce, satisfies } from 'semver';
-import { get } from 'underscore';
 
 import { getLanguage } from '../../i18n/main';
 import { dispatch, listen, select } from '../../store';

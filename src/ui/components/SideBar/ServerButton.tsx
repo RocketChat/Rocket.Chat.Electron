@@ -91,7 +91,7 @@ const ServerButton: FC<ServerButtonProps> = ({
       onDrop={onDrop}
     >
       <IconButton
-        pressed={isSelected}
+        className={[isSelected && 'is-focused'].filter(Boolean).join(' ')}
         icon={
           <Avatar isSelected={isSelected}>
             <Initials visible={!favicon}>{initials}</Initials>

@@ -63,8 +63,7 @@ export async function readBuiltinSupportedVersions(): Promise<SupportedVersions 
 const getCloudInfo = (
   serverDomain: string,
   uniqueID: string
-): CloudInfo | null => {
-  console.log('Getting Cloud Info...', serverDomain, uniqueID);
+): Promise<CloudInfo | null> =>
   fetch(
     `https://releases.rocket.chat/v2/server/supportedVersions?domain=${serverDomain}&uniqueId=${uniqueID}&source=desktop`
   )
@@ -80,8 +79,6 @@ const getCloudInfo = (
       console.error('Fetching Cloud Info error:', error);
       return null;
     });
-  return null;
-};
 
 export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
   fetch(`${serverUrl}api/info`)
@@ -361,7 +358,6 @@ export function checkSupportedVersionServers(): void {
     if (!server) return;
     const serverInfo = await getServerInfo(server.url);
     if (!serverInfo) return;
-    console.log('Server version: ', serverInfo.version);
     dispatch({
       type: WEBVIEW_SERVER_VERSION_UPDATED,
       payload: {

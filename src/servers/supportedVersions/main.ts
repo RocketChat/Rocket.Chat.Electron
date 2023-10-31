@@ -61,6 +61,14 @@ export async function readBuiltinSupportedVersions(): Promise<SupportedVersions 
   }
 }
 
+const getUniqueId = async (serverUrl: string): Promise<string> => {
+  const response = await fetch(
+    `${serverUrl}/api/v1/settings.public?query={"_id": "uniqueID"}`
+  );
+  const result = await response.json();
+  return result?.settings?.[0]?.value;
+};
+
 const getCloudInfo = (
   serverDomain: string,
   uniqueID: string
@@ -393,14 +401,6 @@ const checkSupportedVersion = async (serverUrl: string): Promise<void> => {
     return;
   updateSupportedVersionsData(serverUrl);
   dispatch({ type: SUPPORTED_VERSION_DIALOG_OPEN });
-};
-
-const getUniqueId = async (serverUrl: string): Promise<string> => {
-  const response = await fetch(
-    `${serverUrl}/api/v1/settings.public?query={"_id": "uniqueID"}`
-  );
-  const result = await response.json();
-  return result?.settings?.[0]?.value;
 };
 
 export function checkSupportedVersionServers(): void {

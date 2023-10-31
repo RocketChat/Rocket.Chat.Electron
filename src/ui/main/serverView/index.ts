@@ -40,6 +40,7 @@ import {
   WEBVIEW_DID_NAVIGATE,
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_ATTACHED,
+  WEBVIEW_SERVER_RELOADED,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -391,6 +392,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         click: () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
           guestWebContents?.loadURL(serverUrl);
+          if (serverUrl) {
+            dispatch({
+              type: WEBVIEW_SERVER_RELOADED,
+              payload: { url: serverUrl },
+            });
+          }
         },
       },
       {

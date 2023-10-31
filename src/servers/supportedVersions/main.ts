@@ -17,6 +17,7 @@ import {
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
   WEBVIEW_READY,
   WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
+  WEBVIEW_SERVER_RELOADED,
 } from '../../ui/actions';
 import type { Server } from '../common';
 import type {
@@ -347,6 +348,53 @@ export const isServerVersionSupported = async (
   return false;
 };
 
+const updateSupportedVersionsData = async (
+  serverUrl: string
+): Promise<void> => {
+  const server = select(({ servers }) => servers).find(
+    (server) => server.url === serverUrl
+  );
+  if (!server) return;
+  console.log('updateSupportedVersionsData', server.url);
+  const serverInfo = await getServerInfo(server.url);
+  if (!serverInfo) return;
+  dispatch({
+    type: WEBVIEW_SERVER_VERSION_UPDATED,
+    payload: {
+      url: server.url,
+      version: serverInfo.version,
+    },
+  });
+  const uniqueID = await getUniqueId(server.url);
+  dispatch({
+    type: WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
+    payload: {
+      url: server.url,
+      uniqueID,
+    },
+  });
+};
+
+const checkSupportedVersion = async (serverUrl: string): Promise<void> => {
+  const currentServerUrl = select(({ currentView }) =>
+    typeof currentView === 'object' ? currentView.url : null
+  );
+  const server = select(({ servers }) => servers).find(
+    (server) => server.url === serverUrl && server.url === currentServerUrl
+  );
+  console.log('checkSupportedVersion', serverUrl);
+  if (!server || server.expirationMessage === null) return;
+  const { expirationMessage, expirationMessageLastTimeShown } = server;
+  if (!expirationMessage) return;
+  if (
+    expirationMessageLastTimeShown &&
+    moment().diff(expirationMessageLastTimeShown, 'hours') < 12
+  )
+    return;
+  updateSupportedVersionsData(serverUrl);
+  dispatch({ type: SUPPORTED_VERSION_DIALOG_OPEN });
+};
+
 const getUniqueId = async (serverUrl: string): Promise<string> => {
   const response = await fetch(
     `${serverUrl}/api/v1/settings.public?query={"_id": "uniqueID"}`
@@ -357,27 +405,11 @@ const getUniqueId = async (serverUrl: string): Promise<string> => {
 
 export function checkSupportedVersionServers(): void {
   listen(WEBVIEW_READY, async (action) => {
-    const server = select(({ servers }) => servers).find(
-      (server) => server.url === action.payload.url
-    );
-    if (!server) return;
-    const serverInfo = await getServerInfo(server.url);
-    if (!serverInfo) return;
-    dispatch({
-      type: WEBVIEW_SERVER_VERSION_UPDATED,
-      payload: {
-        url: server.url,
-        version: serverInfo.version,
-      },
-    });
-    const uniqueID = await getUniqueId(server.url);
-    dispatch({
-      type: WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
-      payload: {
-        url: server.url,
-        uniqueID,
-      },
-    });
+    updateSupportedVersionsData(action.payload.url);
+  });
+
+  listen(WEBVIEW_SERVER_RELOADED, async (action) => {
+    updateSupportedVersionsData(action.payload.url);
   });
 
   listen(WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED, async (action) => {
@@ -393,6 +425,7 @@ export function checkSupportedVersionServers(): void {
         isSupportedVersion,
       },
     });
+    checkSupportedVersion(server.url);
   });
 
   listen(WEBVIEW_SERVER_VERSION_UPDATED, async (action) => {
@@ -413,22 +446,6 @@ export function checkSupportedVersionServers(): void {
   });
 
   listen(WEBVIEW_DID_NAVIGATE, async (action) => {
-    const currentServerUrl = select(({ currentView }) =>
-      typeof currentView === 'object' ? currentView.url : null
-    );
-    const server = select(({ servers }) => servers).find(
-      (server) =>
-        server.url === action.payload.url && server.url === currentServerUrl
-    );
-    if (!server || server.expirationMessage === null) return;
-    const { expirationMessage, expirationMessageLastTimeShown } = server;
-    if (!expirationMessage) return;
-    if (
-      expirationMessageLastTimeShown &&
-      moment().diff(expirationMessageLastTimeShown, 'seconds') < 12
-    )
-      return;
-
-    dispatch({ type: SUPPORTED_VERSION_DIALOG_OPEN });
+    checkSupportedVersion(action.payload.url);
   });
 }

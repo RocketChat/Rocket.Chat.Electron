@@ -105,6 +105,7 @@ export const SUPPORTED_VERSION_DIALOG_DISMISS =
   'supported-versions-dialog/dismiss';
 export const SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED =
   'supported-versions/expiration-message-updated';
+export const WEBVIEW_SERVER_RELOADED = 'webview/server-reloaded';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -214,5 +215,8 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED]: {
     url: Server['url'];
     supportedVersionsSource: Server['supportedVersionsSource'];
+  };
+  [WEBVIEW_SERVER_RELOADED]: {
+    url: Server['url'];
   };
 };

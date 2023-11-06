@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
+import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { coerce, satisfies } from 'semver';
@@ -63,45 +64,45 @@ export async function readBuiltinSupportedVersions(): Promise<SupportedVersions 
 }
 
 const getUniqueId = async (serverUrl: string): Promise<string> => {
-  const response = await fetch(
-    `${serverUrl}/api/v1/settings.public?query={"_id": "uniqueID"}`
-  );
-  const result = await response.json();
-  return result?.settings?.[0]?.value;
+  try {
+    const response = await axios.get(
+      `${serverUrl}/api/v1/settings.public?query={"_id": "uniqueID"}`
+    );
+    return response.data?.settings?.[0]?.value;
+  } catch (error) {
+    console.error('Error fetching unique ID:', error);
+    throw error;
+  }
 };
 
 const getCloudInfo = (
   serverDomain: string,
   uniqueID: string
 ): Promise<CloudInfo | null> =>
-  fetch(
-    `https://releases.rocket.chat/v2/server/supportedVersions?domain=${serverDomain}&uniqueId=${uniqueID}&source=desktop`
-  )
-    .then((response) => {
-      if (!response.ok) {
-        console.log(`Couldn't load Cloud Info: ${response.status}`);
-        return null;
-      }
-      return response.json();
-    })
-    .then((data) => data as CloudInfo)
+  axios
+    .get(
+      `https://releases.rocket.chat/v2/server/supportedVersions?domain=${serverDomain}&uniqueId=${uniqueID}&source=desktop`
+    )
+    .then((response) => response.data as CloudInfo)
     .catch((error) => {
-      console.error('Fetching Cloud Info error:', error);
+      if (error.response) {
+        console.log(`Couldn't load Cloud Info: ${error.response.status}`);
+      } else {
+        console.error('Fetching Cloud Info error:', error.message);
+      }
       return null;
     });
 
 export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
-  fetch(`${serverUrl}api/info`)
-    .then((response) => {
-      if (!response.ok) {
-        console.log(`Couldn't load Server Info: ${response.status}`);
-        return null;
-      }
-      return response.json();
-    })
-    .then((data) => data as ServerInfo)
+  axios
+    .get(`${serverUrl}api/info`)
+    .then((response) => response.data as ServerInfo)
     .catch((error) => {
-      console.error('Fetching Server Info error:', error);
+      if (error.response) {
+        console.log(`Couldn't load Server Info: ${error.response.status}`);
+      } else {
+        console.error('Fetching Server Info error:', error.message);
+      }
       return null;
     });
 

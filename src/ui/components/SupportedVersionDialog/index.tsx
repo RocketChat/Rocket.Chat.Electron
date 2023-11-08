@@ -1,30 +1,40 @@
 import { Box, Button, Modal } from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
+import moment from 'moment';
 import type { FC } from 'react';
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { getLanguage } from '../../../i18n/main';
+import {
+  getExpirationMessageTranslated,
+  isServerVersionSupported,
+} from '../../../servers/supportedVersions/main';
+import type { MessageTranslated } from '../../../servers/supportedVersions/types';
 import type { RootAction } from '../../../store/actions';
-import type { RootState } from '../../../store/rootReducer';
-import { SUPPORTED_VERSION_DIALOG_DISMISS } from '../../actions';
+import {
+  SUPPORTED_VERSION_DIALOG_DISMISS,
+  WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+} from '../../actions';
 import { Dialog } from '../Dialog';
 import ModalBackdrop from '../Modal/ModalBackdrop';
 import { useServers } from '../hooks/useServers';
 
 export const SupportedVersionDialog: FC = () => {
-  const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
-  const isVisible = openDialog === 'supported-version';
+  const [isVisible, setIsVisible] = React.useState(false);
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const servers = useServers();
   const server = servers.find((server) => server.selected === true);
-  const expirationMessage = server?.expirationMessage;
+  const [expirationMessage, setExpirationMessage] =
+    React.useState<MessageTranslated>();
 
   const { t } = useTranslation();
 
   const dismissTimeUpdate = (): void => {
+    setIsVisible(false);
     if (!server) return;
     dispatch({
       type: SUPPORTED_VERSION_DIALOG_DISMISS,
@@ -33,6 +43,51 @@ export const SupportedVersionDialog: FC = () => {
       },
     });
   };
+
+  const checkServerVersion = useCallback(async () => {
+    if (!server || !server?.supportedVersions) return;
+
+    const supported = await isServerVersionSupported(
+      server,
+      server?.supportedVersions
+    );
+
+    dispatch({
+      type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+      payload: {
+        url: server.url,
+        isSupportedVersion: supported.supported,
+      },
+    });
+
+    if (!supported.message || !supported.expiration) return;
+
+    if (
+      server.expirationMessageLastTimeShown &&
+      moment().diff(server.expirationMessageLastTimeShown, 'hours') < 12
+    )
+      return;
+
+    const translatedMessage = getExpirationMessageTranslated(
+      supported?.i18n,
+      supported.message,
+      supported.expiration,
+      getLanguage ?? 'en',
+      server.title,
+      server.url,
+      server.version
+    ) as MessageTranslated;
+
+    if (translatedMessage) {
+      setExpirationMessage(translatedMessage);
+      setIsVisible(supported.supported);
+    }
+  }, [server, dispatch, setExpirationMessage, setIsVisible]);
+
+  useEffect(() => {
+    checkServerVersion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [server?.supportedVersions, server?.lastPath]);
 
   const handleMoreInfoButtonClick = (): void => {
     dismissTimeUpdate();

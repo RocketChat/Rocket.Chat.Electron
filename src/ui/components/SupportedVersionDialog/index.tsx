@@ -18,6 +18,7 @@ import {
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
 } from '../../actions';
+import { currentView } from '../../reducers/currentView';
 import { Dialog } from '../Dialog';
 import ModalBackdrop from '../Modal/ModalBackdrop';
 import { useServers } from '../hooks/useServers';
@@ -60,6 +61,7 @@ export const SupportedVersionDialog: FC = () => {
       },
     });
 
+    console.log('supported.message', supported);
     if (!supported.message || !supported.expiration) return;
 
     if (
@@ -86,8 +88,9 @@ export const SupportedVersionDialog: FC = () => {
 
   useEffect(() => {
     checkServerVersion();
+    console.log('checkServerVersion');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [server?.supportedVersions, server?.lastPath]);
+  }, [server?.supportedVersions, server?.lastPath, currentView]);
 
   const handleMoreInfoButtonClick = (): void => {
     dismissTimeUpdate();

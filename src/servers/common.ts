@@ -27,7 +27,6 @@ export type Server = {
   isSupportedVersion?: boolean;
   supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
   supportedVersions?: SupportedVersions;
-  expirationMessage?: MessageTranslated;
   expirationMessageLastTimeShown?: Date;
 };
 

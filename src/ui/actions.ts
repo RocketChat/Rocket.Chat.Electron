@@ -100,11 +100,8 @@ export const WEBVIEW_SERVER_IS_SUPPORTED_VERSION =
 export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED =
   'webview/server-supported-versions-source-updated';
 export const WEBVIEW_SERVER_VERSION_UPDATED = 'webview/version-updated';
-export const SUPPORTED_VERSION_DIALOG_OPEN = 'supported-versions-dialog/open';
 export const SUPPORTED_VERSION_DIALOG_DISMISS =
   'supported-versions-dialog/dismiss';
-export const SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED =
-  'supported-versions/expiration-message-updated';
 export const WEBVIEW_SERVER_RELOADED = 'webview/server-reloaded';
 
 export type UiActionTypeToPayloadMap = {
@@ -205,13 +202,7 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
     version: Server['version'];
   };
-  [SUPPORTED_VERSION_DIALOG_OPEN]: void;
   [SUPPORTED_VERSION_DIALOG_DISMISS]: { url: Server['url'] };
-
-  [SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED]: {
-    url: Server['url'];
-    expirationMessage: Server['expirationMessage'];
-  };
   [WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED]: {
     url: Server['url'];
     supportedVersionsSource: Server['supportedVersionsSource'];

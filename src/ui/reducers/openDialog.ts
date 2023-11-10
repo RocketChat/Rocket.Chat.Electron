@@ -13,11 +13,10 @@ import {
 import { SCREEN_SHARING_DIALOG_DISMISSED } from '../../screenSharing/actions';
 import type { ActionOf } from '../../store/actions';
 import { UPDATES_NEW_VERSION_AVAILABLE } from '../../updates/actions';
+import type { SUPPORTED_VERSION_DIALOG_DISMISS } from '../actions';
 import {
   ABOUT_DIALOG_DISMISSED,
   MENU_BAR_ABOUT_CLICKED,
-  SUPPORTED_VERSION_DIALOG_DISMISS,
-  SUPPORTED_VERSION_DIALOG_OPEN,
   UPDATE_DIALOG_DISMISSED,
   UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
   UPDATE_DIALOG_REMIND_UPDATE_LATER_CLICKED,
@@ -43,7 +42,6 @@ type OpenDialogAction =
   | ActionOf<typeof OUTLOOK_CALENDAR_ASK_CREDENTIALS>
   | ActionOf<typeof OUTLOOK_CALENDAR_DIALOG_DISMISSED>
   | ActionOf<typeof OUTLOOK_CALENDAR_SET_CREDENTIALS>
-  | ActionOf<typeof SUPPORTED_VERSION_DIALOG_OPEN>
   | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>;
 
 export const openDialog: Reducer<string | null, OpenDialogAction> = (
@@ -53,15 +51,6 @@ export const openDialog: Reducer<string | null, OpenDialogAction> = (
   switch (action.type) {
     case MENU_BAR_ABOUT_CLICKED:
       return 'about';
-
-    case SUPPORTED_VERSION_DIALOG_OPEN:
-      return 'supported-version';
-
-    case SUPPORTED_VERSION_DIALOG_DISMISS:
-      if (state === 'supported-version') {
-        return null;
-      }
-      return state;
 
     case WEBVIEW_SCREEN_SHARING_SOURCE_REQUESTED:
       return 'screen-sharing';

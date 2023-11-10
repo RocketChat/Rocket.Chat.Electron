@@ -223,6 +223,15 @@
       "clearPermittedScreenCaptureServers": {
         "title": "Képernyőfelvételi engedélyek törlése",
         "description": "Azon képernyőfelvételi engedélyek törlése, amelyek úgy lettek kiválasztva, hogy ne kérdezzenek újra a videohívásoknál."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Képernyőrögzítés engedélyezése videohívásoknál",
+        "description": "Képernyőrögzítés engedélyezése videohívásoknál. Engedélyt fog kérni minden egyes videohívásnál."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM hitelesítési adatok",
+        "description": "Egy kiszolgálóhoz való kapcsolódáskor használandó NTLM hitelesítési adatok engedélyezése.",
+        "domains": "A hitelesítési adatokat használó tartományok, vesszővel elválasztva. Használjon * karaktert az összes tartományra való illesztéshez."
       }
     }
   },

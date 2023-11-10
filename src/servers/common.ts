@@ -1,8 +1,5 @@
 import type { OutlookCredentials } from '../outlookCalendar/type';
-import type {
-  MessageTranslated,
-  SupportedVersions,
-} from './supportedVersions/types';
+import type { SupportedVersions } from './supportedVersions/types';
 
 export type Server = {
   url: string;

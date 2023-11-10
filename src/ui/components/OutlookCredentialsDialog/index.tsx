@@ -10,6 +10,9 @@ import {
   PasswordInput,
   TextInput,
   ButtonGroup,
+  FieldRow,
+  FieldError,
+  FieldLabel,
 } from '@rocket.chat/fuselage';
 import type { FC, ReactElement } from 'react';
 import React, { useEffect, useRef, useState } from 'react';
@@ -138,24 +141,24 @@ export const OutlookCredentialsDialog: FC = () => {
         <FieldGroup>
           <Field>
             <Label>{t('Login')}</Label>
-            <Field.Row>
+            <FieldRow>
               <TextInput {...register('login', { required: true })} />
-            </Field.Row>
+            </FieldRow>
             {errors.login && (
-              <Field.Error>
+              <FieldError>
                 {t('dialog.outlookCalendar.field_required')}
-              </Field.Error>
+              </FieldError>
             )}
           </Field>
           <Field>
             <Label>{t('Password')}</Label>
-            <Field.Row>
+            <FieldRow>
               <PasswordInput {...register('password', { required: true })} />
-            </Field.Row>
+            </FieldRow>
             {errors.password && (
-              <Field.Error>
+              <FieldError>
                 {t('dialog.outlookCalendar.field_required')}
-              </Field.Error>
+              </FieldError>
             )}
           </Field>
           {!isEncryptionAvailable && rememberCredentials && (
@@ -167,7 +170,7 @@ export const OutlookCredentialsDialog: FC = () => {
             </Callout>
           )}
           <Field>
-            <Field.Row>
+            <FieldRow>
               <Controller
                 control={control}
                 name='rememberCredentials'
@@ -180,10 +183,10 @@ export const OutlookCredentialsDialog: FC = () => {
                   />
                 )}
               />
-              <Field.Label htmlFor='check-box'>
+              <FieldLabel htmlFor='check-box'>
                 {t('dialog.outlookCalendar.remember_credentials')}
-              </Field.Label>
-            </Field.Row>
+              </FieldLabel>
+            </FieldRow>
           </Field>
           <Box display='flex' alignItems='end' justifyContent='space-between'>
             <Margins block='x8'>

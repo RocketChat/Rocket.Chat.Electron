@@ -1,4 +1,10 @@
-import { ToggleSwitch, Field } from '@rocket.chat/fuselage';
+import {
+  ToggleSwitch,
+  Field,
+  FieldRow,
+  FieldLabel,
+  FieldHint,
+} from '@rocket.chat/fuselage';
 import type { ChangeEvent, Dispatch, FC } from 'react';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,23 +37,23 @@ export const ReportErrors: FC<Props> = (props) => {
 
   return (
     <Field className={props.className}>
-      <Field.Row>
+      <FieldRow>
         <ToggleSwitch
           disabled={process.mas}
           onChange={handleChange}
           checked={isReportEnabled}
         />
-        <Field.Label htmlFor='toggle-switch'>
+        <FieldLabel htmlFor='toggle-switch'>
           {t('settings.options.report.title')}
-        </Field.Label>
-      </Field.Row>
-      <Field.Row>
+        </FieldLabel>
+      </FieldRow>
+      <FieldRow>
         {process.mas ? (
-          <Field.Hint>{t('settings.options.report.masDescription')}</Field.Hint>
+          <FieldHint>{t('settings.options.report.masDescription')}</FieldHint>
         ) : (
-          <Field.Hint>{t('settings.options.report.description')}</Field.Hint>
+          <FieldHint>{t('settings.options.report.description')}</FieldHint>
         )}
-      </Field.Row>
+      </FieldRow>
     </Field>
   );
 };

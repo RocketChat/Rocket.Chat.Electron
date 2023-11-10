@@ -1,4 +1,10 @@
-import { ToggleSwitch, Field } from '@rocket.chat/fuselage';
+import {
+  ToggleSwitch,
+  Field,
+  FieldRow,
+  FieldLabel,
+  FieldHint,
+} from '@rocket.chat/fuselage';
 import type { ChangeEvent, Dispatch, FC } from 'react';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -32,20 +38,20 @@ export const HardwareAcceleration: FC<Props> = (props) => {
 
   return (
     <Field className={props.className}>
-      <Field.Row>
+      <FieldRow>
         <ToggleSwitch
           onChange={handleChange}
           checked={isHardwareAccelerationEnabled}
         />
-        <Field.Label htmlFor='toggle-switch'>
+        <FieldLabel htmlFor='toggle-switch'>
           {t('settings.options.hardwareAcceleration.title')}
-        </Field.Label>
-      </Field.Row>
-      <Field.Row>
-        <Field.Hint>
+        </FieldLabel>
+      </FieldRow>
+      <FieldRow>
+        <FieldHint>
           {t('settings.options.hardwareAcceleration.description')}
-        </Field.Hint>
-      </Field.Row>
+        </FieldHint>
+      </FieldRow>
     </Field>
   );
 };

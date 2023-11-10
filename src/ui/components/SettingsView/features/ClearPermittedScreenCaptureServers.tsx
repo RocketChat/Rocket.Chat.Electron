@@ -1,4 +1,4 @@
-import { Field, Button } from '@rocket.chat/fuselage';
+import { Field, Button, FieldRow, FieldHint } from '@rocket.chat/fuselage';
 import type { FC } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +15,7 @@ export const ClearPermittedScreenCaptureServers: FC<Props> = (props) => {
 
   return (
     <Field className={props.className}>
-      <Field.Row>
+      <FieldRow>
         <Button
           danger
           onClick={async () => {
@@ -27,12 +27,12 @@ export const ClearPermittedScreenCaptureServers: FC<Props> = (props) => {
         >
           {t('settings.options.clearPermittedScreenCaptureServers.title')}
         </Button>
-      </Field.Row>
-      <Field.Row>
-        <Field.Hint>
+      </FieldRow>
+      <FieldRow>
+        <FieldHint>
           {t('settings.options.clearPermittedScreenCaptureServers.description')}
-        </Field.Hint>
-      </Field.Row>
+        </FieldHint>
+      </FieldRow>
     </Field>
   );
 };

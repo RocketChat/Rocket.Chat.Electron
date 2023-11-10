@@ -1,4 +1,11 @@
-import { Field, InputBox, ToggleSwitch } from '@rocket.chat/fuselage';
+import {
+  Field,
+  FieldHint,
+  FieldLabel,
+  FieldRow,
+  InputBox,
+  ToggleSwitch,
+} from '@rocket.chat/fuselage';
 import React, {
   useCallback,
   type ChangeEvent,
@@ -52,22 +59,22 @@ export const NTLMCredentials: FC<Props> = (props) => {
 
   return (
     <Field className={props.className}>
-      <Field.Row>
+      <FieldRow>
         <ToggleSwitch
           onChange={handleToggleChange}
           checked={isNTLMCredentialsEnabled}
         />
-        <Field.Label htmlFor='toggle-switch'>
+        <FieldLabel htmlFor='toggle-switch'>
           {t('settings.options.ntlmCredentials.title')}
-        </Field.Label>
-      </Field.Row>
-      <Field.Row>
-        <Field.Hint>
+        </FieldLabel>
+      </FieldRow>
+      <FieldRow>
+        <FieldHint>
           {t('settings.options.ntlmCredentials.description')}
-        </Field.Hint>
-      </Field.Row>
-      <Field.Row>
-        <Field.Row size={'100%'}>
+        </FieldHint>
+      </FieldRow>
+      <FieldRow>
+        <FieldRow size={'100%'}>
           <InputBox
             defaultValue={allowedNTLMCredentialsDomains as string}
             onBlur={handleDomainsChange}
@@ -75,11 +82,11 @@ export const NTLMCredentials: FC<Props> = (props) => {
             disabled={!isNTLMCredentialsEnabled}
             placeholder='*example.com, *foobar.com, *baz'
           />
-        </Field.Row>
-      </Field.Row>
-      <Field.Row>
-        <Field.Hint>{t('settings.options.ntlmCredentials.domains')}</Field.Hint>
-      </Field.Row>
+        </FieldRow>
+      </FieldRow>
+      <FieldRow>
+        <FieldHint>{t('settings.options.ntlmCredentials.domains')}</FieldHint>
+      </FieldRow>
     </Field>
   );
 };

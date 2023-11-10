@@ -3,7 +3,10 @@ import {
   ButtonGroup,
   Callout,
   Field,
+  FieldError,
   FieldGroup,
+  FieldLabel,
+  FieldRow,
   Margins,
   TextInput,
   Tile,
@@ -166,10 +169,8 @@ export const AddServerView: FC = () => {
           </Margins>
           <FieldGroup>
             <Field>
-              <Field.Label htmlFor={inputId}>
-                {t('landing.inputUrl')}
-              </Field.Label>
-              <Field.Row>
+              <FieldLabel htmlFor={inputId}>{t('landing.inputUrl')}</FieldLabel>
+              <FieldRow>
                 <TextInput
                   ref={inputRef as React.Ref<HTMLInputElement>}
                   id={inputId}
@@ -179,8 +180,8 @@ export const AddServerView: FC = () => {
                   dir='auto'
                   onChange={handleInputChange}
                 />
-              </Field.Row>
-              <Field.Error>{errorMessage}</Field.Error>
+              </FieldRow>
+              <FieldError>{errorMessage}</FieldError>
             </Field>
 
             <ButtonGroup align='center'>

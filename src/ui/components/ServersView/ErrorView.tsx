@@ -70,7 +70,7 @@ const ErrorView: FC<ErrorViewProps> = ({ isFailed, onReload }) => {
       />
       <Box
         is='section'
-        color='alternative'
+        color='pure-white'
         display='flex'
         flexDirection='column'
         justifyContent='center'

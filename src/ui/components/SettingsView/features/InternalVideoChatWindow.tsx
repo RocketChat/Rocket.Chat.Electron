@@ -1,4 +1,10 @@
-import { ToggleSwitch, Field } from '@rocket.chat/fuselage';
+import {
+  ToggleSwitch,
+  Field,
+  FieldRow,
+  FieldLabel,
+  FieldHint,
+} from '@rocket.chat/fuselage';
 import type { ChangeEvent, Dispatch, FC } from 'react';
 import React, { useCallback } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
@@ -32,23 +38,23 @@ export const InternalVideoChatWindow: FC<Props> = (props) => {
 
   return (
     <Field className={props.className}>
-      <Field.Row>
+      <FieldRow>
         <ToggleSwitch
           disabled={process.mas}
           onChange={handleChange}
           checked={isInternalVideoChatWindowEnabled}
         />
-        <Field.Label htmlFor='toggle-switch'>
+        <FieldLabel htmlFor='toggle-switch'>
           {t('settings.options.internalVideoChatWindow.title')}
-        </Field.Label>
-      </Field.Row>
-      <Field.Row>
+        </FieldLabel>
+      </FieldRow>
+      <FieldRow>
         {process.mas ? (
-          <Field.Hint>
+          <FieldHint>
             {t('settings.options.internalVideoChatWindow.masDescription')}
-          </Field.Hint>
+          </FieldHint>
         ) : (
-          <Field.Hint>
+          <FieldHint>
             <Trans
               i18nKey='settings.options.internalVideoChatWindow.description'
               t={t}
@@ -59,9 +65,9 @@ export const InternalVideoChatWindow: FC<Props> = (props) => {
               Electron applications, so this configuration don't change Meet
               calls behavior, that will open on browser.
             </Trans>
-          </Field.Hint>
+          </FieldHint>
         )}
-      </Field.Row>
+      </FieldRow>
     </Field>
   );
 };

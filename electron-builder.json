@@ -17,8 +17,9 @@
   "mac": {
     "category": "public.app-category.productivity",
     "target": [
-      "zip",
       "dmg",
+      "pkg",
+      "zip",
       "mas"
     ],
     "icon": "build/icon.icns",

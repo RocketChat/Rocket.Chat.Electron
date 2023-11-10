@@ -190,7 +190,6 @@ const getCurrentViewWebcontents = async () => {
   if (!url) {
     return null;
   }
-  console.log('zoom url', url);
   return getWebContentsByServerUrl(url);
 };
 

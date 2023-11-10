@@ -178,6 +178,21 @@ const selectViewDeps = createStructuredSelector<
   rootWindowState: ({ rootWindowState }) => rootWindowState,
 });
 
+const getCurrentViewWebcontents = async () => {
+  const browserWindow = await getRootWindow();
+
+  if (!browserWindow.isVisible()) {
+    browserWindow.showInactive();
+  }
+  browserWindow.focus();
+  const currentView = select(({ currentView }) => currentView);
+  const url = typeof currentView === 'object' ? currentView.url : null;
+  if (!url) {
+    return null;
+  }
+  return getWebContentsByServerUrl(url);
+};
+
 const createViewMenu = createSelector(
   selectViewDeps,
   ({
@@ -376,17 +391,7 @@ const createViewMenu = createSelector(
         label: t('menus.resetZoom'),
         accelerator: 'CommandOrControl+0',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const url = typeof currentView === 'object' ? currentView.url : null;
-          if (!url) {
-            return;
-          }
-          const guestWebContents = getWebContentsByServerUrl(url);
+          const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.setZoomLevel(0);
         },
       },
@@ -395,16 +400,7 @@ const createViewMenu = createSelector(
         label: t('menus.zoomIn'),
         accelerator: 'CommandOrControl+Plus',
         click: async () => {
-          const browserWindow = await getRootWindow();
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const url = typeof currentView === 'object' ? currentView.url : null;
-          if (!url) {
-            return;
-          }
-          const guestWebContents = getWebContentsByServerUrl(url);
+          const guestWebContents = await getCurrentViewWebcontents();
           if (!guestWebContents) {
             return;
           }
@@ -421,21 +417,10 @@ const createViewMenu = createSelector(
         label: t('menus.zoomOut'),
         accelerator: 'CommandOrControl+-',
         click: async () => {
-          const browserWindow = await getRootWindow();
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const url = typeof currentView === 'object' ? currentView.url : null;
-          if (!url) {
-            return;
-          }
-
-          const guestWebContents = getWebContentsByServerUrl(url);
+          const guestWebContents = await getCurrentViewWebcontents();
           if (!guestWebContents) {
             return;
           }
-
           const zoomLevel = guestWebContents.getZoomLevel();
           if (zoomLevel <= -9) {
             return;

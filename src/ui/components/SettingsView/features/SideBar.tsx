@@ -1,4 +1,10 @@
-import { ToggleSwitch, Field } from '@rocket.chat/fuselage';
+import {
+  ToggleSwitch,
+  Field,
+  FieldRow,
+  FieldLabel,
+  FieldHint,
+} from '@rocket.chat/fuselage';
 import type { ChangeEvent, Dispatch, FC } from 'react';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,15 +37,15 @@ export const SideBar: FC<Props> = (props) => {
 
   return (
     <Field className={props.className}>
-      <Field.Row>
+      <FieldRow>
         <ToggleSwitch onChange={handleChange} checked={isSideBarEnabled} />
-        <Field.Label htmlFor='toggle-switch'>
+        <FieldLabel htmlFor='toggle-switch'>
           {t('settings.options.sidebar.title')}
-        </Field.Label>
-      </Field.Row>
-      <Field.Row>
-        <Field.Hint>{t('settings.options.sidebar.description')}</Field.Hint>
-      </Field.Row>
+        </FieldLabel>
+      </FieldRow>
+      <FieldRow>
+        <FieldHint>{t('settings.options.sidebar.description')}</FieldHint>
+      </FieldRow>
     </Field>
   );
 };

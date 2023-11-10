@@ -1,4 +1,10 @@
-import { ToggleSwitch, Field } from '@rocket.chat/fuselage';
+import {
+  ToggleSwitch,
+  Field,
+  FieldRow,
+  FieldLabel,
+  FieldHint,
+} from '@rocket.chat/fuselage';
 import type { ChangeEvent, Dispatch, FC } from 'react';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -34,21 +40,21 @@ export const MinimizeOnClose: FC<Props> = (props) => {
 
   return (
     <Field className={props.className}>
-      <Field.Row>
+      <FieldRow>
         <ToggleSwitch
           disabled={isTrayIconEnabled}
           onChange={handleChange}
           checked={isMinimizeOnCloseEnabled}
         />
-        <Field.Label htmlFor='toggle-switch'>
+        <FieldLabel htmlFor='toggle-switch'>
           {t('settings.options.minimizeOnClose.title')}
-        </Field.Label>
-      </Field.Row>
-      <Field.Row>
-        <Field.Hint>
+        </FieldLabel>
+      </FieldRow>
+      <FieldRow>
+        <FieldHint>
           {t('settings.options.minimizeOnClose.description')}
-        </Field.Hint>
-      </Field.Row>
+        </FieldHint>
+      </FieldRow>
     </Field>
   );
 };

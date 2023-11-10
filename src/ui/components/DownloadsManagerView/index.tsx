@@ -1,12 +1,12 @@
 import {
   Box,
   SearchInput,
-  Select,
   Icon,
   Button,
   Pagination,
   Scrollable,
   IconButton,
+  SelectLegacy,
 } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import type { FC, ChangeEvent } from 'react';
@@ -175,7 +175,7 @@ const DownloadsManagerView: FC = () => {
       display={isVisible ? 'flex' : 'none'}
       flexDirection='column'
       height='100vh'
-      backgroundColor='surface'
+      backgroundColor='light'
     >
       <Box
         minHeight={64}
@@ -209,7 +209,7 @@ const DownloadsManagerView: FC = () => {
           <SearchInput
             value={searchFilter}
             placeholder={t('downloads.filters.search')}
-            addon={<Icon color='neutral-700' name='magnifier' size={20} />}
+            addon={<Icon name='magnifier' size={20} />}
             onChange={handleSearchFilterChange}
           />
         </Box>
@@ -220,7 +220,7 @@ const DownloadsManagerView: FC = () => {
           flexBasis='0'
           paddingInline={2}
         >
-          <Select
+          <SelectLegacy
             value={serverFilter}
             placeholder={t('downloads.filters.server')}
             options={serverFilterOptions}
@@ -228,7 +228,7 @@ const DownloadsManagerView: FC = () => {
           />
         </Box>
         <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2}>
-          <Select
+          <SelectLegacy
             value={mimeTypeFilter}
             placeholder={t('downloads.filters.mimeType')}
             options={mimeTypeOptions}
@@ -236,7 +236,7 @@ const DownloadsManagerView: FC = () => {
           />
         </Box>
         <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2}>
-          <Select
+          <SelectLegacy
             value={statusFilter}
             placeholder={t('downloads.filters.status')}
             options={statusFilterOptions}
@@ -249,7 +249,7 @@ const DownloadsManagerView: FC = () => {
             title={t('downloads.filters.clear')}
             onClick={handleClearAll}
           >
-            <Icon color='neutral-700' name='trash' size={24} />
+            <Icon name='trash' size={24} />
           </Button>
         </Box>
       </Box>

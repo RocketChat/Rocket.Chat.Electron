@@ -115,6 +115,9 @@
       "dontAskAgain": "Sempre permitir a captura de tela por video chamadas neste servidor",
       "yes": "Permitir",
       "no": "Cancelar"
+    },
+    "supportedVersion":{
+      "title": "Versão de workspace não suportada"
     }
   },
   "downloads": {

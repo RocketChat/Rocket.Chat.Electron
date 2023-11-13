@@ -17,6 +17,7 @@ import {
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
+  WEBVIEW_SERVER_RELOADED,
 } from '../actions';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
@@ -222,6 +223,12 @@ const createViewMenu = createSelector(
               ? getWebContentsByServerUrl(currentView.url)
               : null;
           guestWebContents?.reload();
+          if (typeof currentView === 'object' && !!currentView.url) {
+            dispatch({
+              type: WEBVIEW_SERVER_RELOADED,
+              payload: { url: currentView.url },
+            });
+          }
         },
       },
       {
@@ -240,6 +247,12 @@ const createViewMenu = createSelector(
               ? getWebContentsByServerUrl(currentView.url)
               : null;
           guestWebContents?.reloadIgnoringCache();
+          if (typeof currentView === 'object' && !!currentView.url) {
+            dispatch({
+              type: WEBVIEW_SERVER_RELOADED,
+              payload: { url: currentView.url },
+            });
+          }
         },
       },
       {

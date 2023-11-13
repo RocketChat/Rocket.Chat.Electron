@@ -10,6 +10,7 @@ import {
   WEBVIEW_READY,
 } from '../../actions';
 import ErrorView from './ErrorView';
+import UnsupportedServer from './UnsupportedServer';
 import { StyledWebView, Wrapper } from './styles';
 
 type ServerPaneProps = {
@@ -17,6 +18,8 @@ type ServerPaneProps = {
   serverUrl: string;
   isSelected: boolean;
   isFailed: boolean;
+  isSupported: boolean | undefined;
+  title: string | undefined;
 };
 
 export const ServerPane: FC<ServerPaneProps> = ({
@@ -24,6 +27,8 @@ export const ServerPane: FC<ServerPaneProps> = ({
   serverUrl,
   isSelected,
   isFailed,
+  isSupported,
+  title,
 }) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
@@ -158,6 +163,10 @@ export const ServerPane: FC<ServerPaneProps> = ({
         isFailed={isFailed}
         partition={`persist:${serverUrl}`}
         {...({ allowpopups: 'allowpopups' } as any)}
+      />{' '}
+      <UnsupportedServer
+        isSupported={isSupported}
+        workspaceName={title || 'Rocket.Chat'}
       />
       <ErrorView isFailed={isFailed} onReload={handleReload} />
     </Wrapper>

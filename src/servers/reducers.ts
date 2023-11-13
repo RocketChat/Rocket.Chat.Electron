@@ -20,7 +20,13 @@ import {
   WEBVIEW_ATTACHED,
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
   WEBVIEW_ALLOWED_REDIRECTS_CHANGED,
+  WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
+  WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
+  WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+  WEBVIEW_SERVER_VERSION_UPDATED,
+  SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
+  WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
 } from '../ui/actions';
 import { SERVERS_LOADED } from './actions';
 import type { Server } from './common';
@@ -53,7 +59,13 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_DID_FAIL_LOAD>
   | ActionOf<typeof WEBVIEW_READY>
   | ActionOf<typeof WEBVIEW_ATTACHED>
-  | ActionOf<typeof OUTLOOK_CALENDAR_SAVE_CREDENTIALS>;
+  | ActionOf<typeof OUTLOOK_CALENDAR_SAVE_CREDENTIALS>
+  | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED>
+  | ActionOf<typeof WEBVIEW_SERVER_UNIQUE_ID_UPDATED>
+  | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>
+  | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
+  | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
+  | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
@@ -105,6 +117,36 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_TITLE_CHANGED: {
       const { url, title = url } = action.payload;
       return upsert(state, { url, title });
+    }
+
+    case WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED: {
+      const { url, supportedVersions } = action.payload;
+      return upsert(state, { url, supportedVersions });
+    }
+
+    case WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED: {
+      const { url, supportedVersionsSource } = action.payload;
+      return upsert(state, { url, supportedVersionsSource });
+    }
+
+    case SUPPORTED_VERSION_DIALOG_DISMISS: {
+      const { url } = action.payload;
+      return upsert(state, { url, expirationMessageLastTimeShown: new Date() });
+    }
+
+    case WEBVIEW_SERVER_UNIQUE_ID_UPDATED: {
+      const { url, uniqueID } = action.payload;
+      return upsert(state, { url, uniqueID });
+    }
+
+    case WEBVIEW_SERVER_IS_SUPPORTED_VERSION: {
+      const { url, isSupportedVersion } = action.payload;
+      return upsert(state, { url, isSupportedVersion });
+    }
+
+    case WEBVIEW_SERVER_VERSION_UPDATED: {
+      const { url, version } = action.payload;
+      return upsert(state, { url, version });
     }
 
     case WEBVIEW_UNREAD_CHANGED: {

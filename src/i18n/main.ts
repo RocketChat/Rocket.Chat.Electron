@@ -40,9 +40,12 @@ const getLng = async (): Promise<keyof typeof resources | undefined> => {
   return undefined;
 };
 
+export let getLanguage = 'en';
+
 class I18nService extends Service {
   private async initializeAsync(): Promise<void> {
     const lng = await getLng();
+    getLanguage = lng || 'en';
 
     this.t = await i18next.init({
       lng,

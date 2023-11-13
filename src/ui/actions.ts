@@ -91,6 +91,18 @@ export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
 export const DOWNLOADS_BACK_BUTTON_CLICKED = 'downloads/back-button-clicked';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED =
+  'webview/server-supported-versions-updated';
+export const WEBVIEW_SERVER_UNIQUE_ID_UPDATED =
+  'webview/server-workspace-uid-updated';
+export const WEBVIEW_SERVER_IS_SUPPORTED_VERSION =
+  'webview/server-is-supported-version';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED =
+  'webview/server-supported-versions-source-updated';
+export const WEBVIEW_SERVER_VERSION_UPDATED = 'webview/version-updated';
+export const SUPPORTED_VERSION_DIALOG_DISMISS =
+  'supported-versions-dialog/dismiss';
+export const WEBVIEW_SERVER_RELOADED = 'webview/server-reloaded';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -174,4 +186,28 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
   [DOWNLOADS_BACK_BUTTON_CLICKED]: string;
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED]: {
+    url: Server['url'];
+    supportedVersions: Server['supportedVersions'];
+  };
+  [WEBVIEW_SERVER_UNIQUE_ID_UPDATED]: {
+    url: Server['url'];
+    uniqueID: Server['uniqueID'];
+  };
+  [WEBVIEW_SERVER_IS_SUPPORTED_VERSION]: {
+    url: Server['url'];
+    isSupportedVersion: Server['isSupportedVersion'];
+  };
+  [WEBVIEW_SERVER_VERSION_UPDATED]: {
+    url: Server['url'];
+    version: Server['version'];
+  };
+  [SUPPORTED_VERSION_DIALOG_DISMISS]: { url: Server['url'] };
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED]: {
+    url: Server['url'];
+    supportedVersionsSource: Server['supportedVersionsSource'];
+  };
+  [WEBVIEW_SERVER_RELOADED]: {
+    url: Server['url'];
+  };
 };

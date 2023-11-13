@@ -1,1 +1,5 @@
 @import '../node_modules/@rocket.chat/fuselage/dist/fuselage.css';
+
+:root {
+    --rcx-color-surface-overlay: rgba(47, 52, 61, 0.5)
+}

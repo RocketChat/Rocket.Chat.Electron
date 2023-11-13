@@ -1,4 +1,5 @@
 import type { OutlookCredentials } from '../outlookCalendar/type';
+import type { SupportedVersions } from './supportedVersions/types';
 
 export type Server = {
   url: string;
@@ -18,6 +19,12 @@ export type Server = {
   gitCommitHash?: string;
   allowedRedirects?: string[];
   outlookCredentials?: OutlookCredentials;
+  version?: string;
+  uniqueID?: string;
+  isSupportedVersion?: boolean;
+  supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
+  supportedVersions?: SupportedVersions;
+  expirationMessageLastTimeShown?: Date;
 };
 
 export const enum ServerUrlResolutionStatus {

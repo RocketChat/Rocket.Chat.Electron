@@ -16,7 +16,9 @@ const resolveWithExponentialBackoff = <T>(
     if (maxRetries === 0) {
       throw error;
     }
-
+    console.log(
+      '[Rocket.Chat Desktop] Inject resolveWithExponentialBackoff - retrying in 1 seconds'
+    );
     return new Promise<T>((resolve) => {
       setTimeout(() => {
         resolve(
@@ -84,18 +86,18 @@ const start = async () => {
     : 'meteor/konecty:user-presence';
 
   const settingsModulePath = (() => {
-    if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
-      return '/app/settings/client/index.ts';
+    // if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
+    //   return '/app/settings/client';
     if (versionIsGreaterOrEqualsTo(serverInfo.version, '5.0.0'))
-      return '/app/settings/client';
+      return '/app/settings/client/index.ts';
     return '/app/settings';
   })();
 
   const utilsModulePath = (() => {
-    if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
-      return '/app/utils/client/index.ts';
+    // if (versionIsGreaterOrEqualsTo(serverInfo.version, '6.0.0'))
+    //   return '/app/utils/client';
     if (versionIsGreaterOrEqualsTo(serverInfo.version, '5.0.0'))
-      return '/app/utils/client';
+      return '/app/utils/client/index.ts';
     return '/app/utils';
   })();
 
@@ -166,6 +168,28 @@ const start = async () => {
     const outlookExchangeUrl = settings.get('Outlook_Calendar_Exchange_Url');
     if (!userToken || !userId || !outlookCalendarEnabled || !outlookExchangeUrl)
       return;
+    window.RocketChatDesktop.setUserToken(userToken, userId);
+
+    window.RocketChatDesktop.setOutlookExchangeUrl(outlookExchangeUrl, userId);
+  });
+
+  Tracker.autorun(() => {
+    const userToken = Meteor._localStorage.getItem('Meteor.loginToken');
+    const userId = Meteor.userId();
+    const outlookCalendarEnabled = settings.get('Outlook_Calendar_Enabled');
+    const outlookExchangeUrl = settings.get('Outlook_Calendar_Exchange_Url');
+    console.log(
+      '[Rocket.Chat Desktop] outlookCalendarEnabled',
+      outlookCalendarEnabled
+    );
+    console.log('[Rocket.Chat Desktop] userToken', userToken);
+    console.log('[Rocket.Chat Desktop] userId', userId);
+    console.log('[Rocket.Chat Desktop] outlookExchangeUrl', outlookExchangeUrl);
+    if (!userToken || !userId || !outlookCalendarEnabled || !outlookExchangeUrl)
+      return;
+    console.log(
+      '[Rocket.Chat Desktop] window.RocketChatDesktop.setUserToken fired'
+    );
     window.RocketChatDesktop.setUserToken(userToken, userId);
 
     window.RocketChatDesktop.setOutlookExchangeUrl(outlookExchangeUrl, userId);

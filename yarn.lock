@@ -6762,17 +6762,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^16.11.26":
+  version: 16.18.61
+  resolution: "@types/node@npm:16.18.61"
+  checksum: fdd162829eddc9b0b82a1ec485ba3876428ff3bd94c5869b13f4a36eb2aa9bddd22ea7e8ee3b2faa91a0f70ff08d8fd8d4be7dd0d143f8ee776907d6a1d2ed25
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:^17.0.13":
   version: 17.0.45
   resolution: "@types/node@npm:17.0.45"
   checksum: aa04366b9103b7d6cfd6b2ef64182e0eaa7d4462c3f817618486ea0422984c51fc69fd0d436eae6c9e696ddfdbec9ccaa27a917f7c2e8c75c5d57827fe3d95e8
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^18.11.18":
-  version: 18.16.16
-  resolution: "@types/node@npm:18.16.16"
-  checksum: 0efad726dd1e0bef71c392c708fc5d78c5b39c46b0ac5186fee74de4ccb1b2e847b3fa468da67d62812f56569da721b15bf31bdc795e6c69b56c73a45079ed2d
   languageName: node
   linkType: hard
 
@@ -10018,16 +10018,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:24.8.5":
-  version: 24.8.5
-  resolution: "electron@npm:24.8.5"
+"electron@npm:22.3.27":
+  version: 22.3.27
+  resolution: "electron@npm:22.3.27"
   dependencies:
     "@electron/get": ^2.0.0
-    "@types/node": ^18.11.18
+    "@types/node": ^16.11.26
     extract-zip: ^2.0.1
   bin:
     electron: cli.js
-  checksum: f4be9639c3eb681f987f3d13bbfce72f81f2f1e1ad0c1fee860053ba80659c861f980bec6a14c049915729c2d5dd111281897ee82a7334dc5745ced697ed2d1c
+  checksum: b9c5ad263c45065b42f612931de95e0e29f9e735d4f47f51298700788492e6a107d72f4982d421afc71f25364660579d5d15061f8198211ac9d507372ca8bbe1
   languageName: node
   linkType: hard
 
@@ -17103,7 +17103,7 @@ __metadata:
     conventional-changelog-cli: ^2.2.2
     convert-svg-to-png: ^0.5.0
     dotenv: ~16.3.1
-    electron: 24.8.5
+    electron: 22.3.27
     electron-builder: ^23.6.0
     electron-devtools-installer: ^3.2.0
     electron-dl: ^3.5.0

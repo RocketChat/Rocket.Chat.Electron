@@ -6,14 +6,10 @@ import {
   InputBox,
   ToggleSwitch,
 } from '@rocket.chat/fuselage';
-import React, {
-  useCallback,
-  type ChangeEvent,
-  type Dispatch,
-  type FC,
-} from 'react';
+import React, { useCallback, type ChangeEvent, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import { APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET } from '../../../../app/actions';
 import type { RootAction } from '../../../../store/actions';

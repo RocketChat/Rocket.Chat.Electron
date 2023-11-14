@@ -24,7 +24,7 @@ export const getOutlookEvents = async (
   try {
     const { login, password, serverUrl } = credentials;
 
-    const xhrApi = new XhrApi({ gzip: true });
+    const xhrApi = new XhrApi({ decompress: true });
     xhrApi.useNtlmAuthentication(login, password);
 
     ConfigurationApi.ConfigureXHR(xhrApi);

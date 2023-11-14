@@ -22,8 +22,7 @@
     "@actions/github": "^5.0.0",
     "@octokit/webhooks-types": "^3.77.1",
     "fast-glob": "^3.2.5",
-    "semver": "^7.3.5",
-    "tslib": "^2.3.0"
+    "semver": "^7.3.5"
   },
   "eslintConfig": {
     "root": true,

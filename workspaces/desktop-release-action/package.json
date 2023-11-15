@@ -3,10 +3,13 @@
   "name": "@rocket.chat/desktop-release-action",
   "version": "1.0.0",
   "scripts": {
-    "build": "ncc build src/index.ts -o dist"
+    "build": "ncc build src/index.ts -o dist",
+    "lint": "run-s .:lint:eslint .:lint:tsc",
+    ".:lint:eslint": "eslint .",
+    ".:lint:tsc": "tsc --noEmit"
   },
   "devDependencies": {
-    "@rocket.chat/eslint-config-alt": "~0.31.25",
+    "@rocket.chat/eslint-config": "~0.6.0",
     "@rocket.chat/prettier-config": "~0.31.25",
     "@types/node": "12.20.55",
     "@typescript-eslint/eslint-plugin": "~5.60.1",
@@ -14,10 +17,12 @@
     "@vercel/ncc": "^0.28.6",
     "cross-env": "^7.0.3",
     "eslint": "~8.53.0",
+    "eslint-config-prettier": "~9.0.0",
     "eslint-import-resolver-typescript": "~3.6.1",
     "eslint-plugin-import": "~2.26.0",
+    "eslint-plugin-prettier": "~4.2.1",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.3.1",
+    "prettier": "~2.8.8",
     "rimraf": "^3.0.2",
     "typescript": "~5.2.2"
   },

@@ -40,7 +40,7 @@ export const CertificatesManager: FC = () => {
           </TableHead>
           <TableBody>
             {Object.keys(trustedCertificates).map((url) => (
-              <CertificateItem url={url} />
+              <CertificateItem key={url} url={url} />
             ))}
           </TableBody>
         </Table>
@@ -58,7 +58,7 @@ export const CertificatesManager: FC = () => {
           </TableHead>
           <TableBody>
             {Object.keys(notTrustedCertificates).map((url) => (
-              <CertificateItem url={url} />
+              <CertificateItem key={url} url={url} />
             ))}
           </TableBody>
         </Table>

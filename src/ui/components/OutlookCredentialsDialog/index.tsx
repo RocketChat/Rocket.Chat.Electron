@@ -106,7 +106,7 @@ export const OutlookCredentialsDialog: FC = () => {
     password,
     rememberCredentials,
   }: AuthPayload): Promise<void> => {
-    if (!server || !server?.outlookCredentials) {
+    if (!server?.outlookCredentials) {
       return;
     }
 

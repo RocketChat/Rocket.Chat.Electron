@@ -70,11 +70,11 @@ export const NTLMCredentials: FC<Props> = (props) => {
         </FieldHint>
       </FieldRow>
       <FieldRow>
-        <FieldRow size={'100%'}>
+        <FieldRow size='100%'>
           <InputBox
             defaultValue={allowedNTLMCredentialsDomains as string}
             onBlur={handleDomainsChange}
-            type={'text'}
+            type='text'
             disabled={!isNTLMCredentialsEnabled}
             placeholder='*example.com, *foobar.com, *baz'
           />

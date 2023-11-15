@@ -269,7 +269,7 @@ const DownloadsManagerView: FC = () => {
           divider
           current={currentPagination}
           itemsPerPage={itemsPerPage}
-          count={(downloads && downloads.length) || 0}
+          count={downloads?.length || 0}
           showingResultsLabel={showingResultsLabel}
           onSetItemsPerPage={setItemsPerPage}
           onSetCurrent={setCurrentPagination}

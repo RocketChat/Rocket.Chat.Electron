@@ -128,7 +128,7 @@ export const getSupportedVersionsData = async (
         serverDomain,
         serverUniqueID
       );
-      if (cloudSupportedVersions && cloudSupportedVersions.signed) {
+      if (cloudSupportedVersions?.signed) {
         const decodedCloudSupportedVersions = decode(
           cloudSupportedVersions.signed
         ) as SupportedVersions;

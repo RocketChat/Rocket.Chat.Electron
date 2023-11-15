@@ -30,7 +30,7 @@ export type Version = {
   messages?: Message[];
 };
 
-export interface SupportedVersions {
+export type SupportedVersions = {
   enforcementStartDate: string;
   timestamp: string;
   messages?: Message[];
@@ -42,9 +42,9 @@ export interface SupportedVersions {
     versions: Version[];
   };
   i18n?: Dictionary;
-}
+};
 
-export interface ServerInfo {
+export type ServerInfo = {
   version: string;
   uniqueId: string;
   build: {
@@ -74,9 +74,9 @@ export interface ServerInfo {
     desktop: string;
     mobile: string;
   };
-}
+};
 
-export interface CloudInfo {
+export type CloudInfo = {
   enforcementStartDate: string;
   signed: string;
   timestamp: string;
@@ -88,4 +88,4 @@ export interface CloudInfo {
     messages?: Message[];
     versions: Version[];
   };
-}
+};

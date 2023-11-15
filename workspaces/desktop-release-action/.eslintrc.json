@@ -1,5 +1,5 @@
 {
-  "extends": "@rocket.chat/eslint-config-alt/typescript",
+  "extends": "@rocket.chat/eslint-config",
   "rules": {
     "no-await-in-loop": "off"
   }

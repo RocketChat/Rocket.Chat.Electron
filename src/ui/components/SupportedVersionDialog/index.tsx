@@ -46,7 +46,7 @@ export const SupportedVersionDialog: FC = () => {
   };
 
   const checkServerVersion = useCallback(async () => {
-    if (!server || !server?.supportedVersions) return;
+    if (!server?.supportedVersions) return;
 
     const supported = await isServerVersionSupported(
       server,

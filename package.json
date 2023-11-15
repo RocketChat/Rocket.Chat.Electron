@@ -88,6 +88,7 @@
     "@babel/plugin-proposal-function-bind": "^7.16.7",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.16.7",
+    "@babel/preset-typescript": "~7.23.3",
     "@fiahfy/icns-convert": "^0.0.12",
     "@fiahfy/ico-convert": "^0.0.12",
     "@kayahr/jest-electron-runner": "~29.10.0",

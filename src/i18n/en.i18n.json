@@ -125,7 +125,7 @@
       "cancel": " Cancel",
       "submit": "Login"
     },
-    "supportedVersion":{
+    "supportedVersion": {
       "title": "Workspace version unsupported"
     }
   },

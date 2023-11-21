@@ -19,9 +19,9 @@ import {
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
 } from '../../actions';
 import { currentView } from '../../reducers/currentView';
-import { Dialog } from '../Dialog';
 import ModalBackdrop from '../Modal/ModalBackdrop';
 import { useServers } from '../hooks/useServers';
+import { Wrapper } from './styles';
 
 export const SupportedVersionDialog: FC = () => {
   const [isVisible, setIsVisible] = React.useState(false);
@@ -93,7 +93,6 @@ export const SupportedVersionDialog: FC = () => {
   }, [server?.supportedVersions, server?.lastPath, currentView]);
 
   const handleMoreInfoButtonClick = (): void => {
-    dismissTimeUpdate();
     if (expirationMessage?.link && expirationMessage?.link !== '') {
       ipcRenderer.invoke(
         'server-view/open-url-on-browser',
@@ -107,19 +106,15 @@ export const SupportedVersionDialog: FC = () => {
   };
 
   return (
-    <Dialog isVisible={isVisible} onClose={() => dismissTimeUpdate()}>
-      <ModalBackdrop
-        onDismiss={() => {
-          dismissTimeUpdate();
-        }}
-      >
+    <Wrapper isVisible={isVisible}>
+      <ModalBackdrop>
         <Modal>
           <Modal.Header>
             <Modal.Icon name='warning' color='danger' />
             <Modal.HeaderText>
               <Modal.Title>{expirationMessage?.title}</Modal.Title>
             </Modal.HeaderText>
-            <Modal.Close />
+            <Modal.Close onClick={dismissTimeUpdate} />
           </Modal.Header>
           <Modal.Content>
             <Box fontScale='p2b'>{expirationMessage?.subtitle}</Box>
@@ -137,6 +132,6 @@ export const SupportedVersionDialog: FC = () => {
           </Modal.Footer>
         </Modal>
       </ModalBackdrop>
-    </Dialog>
+    </Wrapper>
   );
 };

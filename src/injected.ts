@@ -179,18 +179,8 @@ const start = async () => {
     const userId = Meteor.userId();
     const outlookCalendarEnabled = settings.get('Outlook_Calendar_Enabled');
     const outlookExchangeUrl = settings.get('Outlook_Calendar_Exchange_Url');
-    console.log(
-      '[Rocket.Chat Desktop] outlookCalendarEnabled',
-      outlookCalendarEnabled
-    );
-    console.log('[Rocket.Chat Desktop] userToken', userToken);
-    console.log('[Rocket.Chat Desktop] userId', userId);
-    console.log('[Rocket.Chat Desktop] outlookExchangeUrl', outlookExchangeUrl);
     if (!userToken || !userId || !outlookCalendarEnabled || !outlookExchangeUrl)
       return;
-    console.log(
-      '[Rocket.Chat Desktop] window.RocketChatDesktop.setUserToken fired'
-    );
     window.RocketChatDesktop.setUserToken(userToken, userId);
 
     window.RocketChatDesktop.setOutlookExchangeUrl(outlookExchangeUrl, userId);

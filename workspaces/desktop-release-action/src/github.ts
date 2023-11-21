@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import type { Release, ReleaseAsset } from '@octokit/webhooks-types';

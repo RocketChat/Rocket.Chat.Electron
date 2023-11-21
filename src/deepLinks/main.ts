@@ -1,5 +1,3 @@
-import { URL } from 'url';
-
 import type { WebContents } from 'electron';
 import { app } from 'electron';
 

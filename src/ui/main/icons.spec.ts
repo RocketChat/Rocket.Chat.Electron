@@ -3,6 +3,7 @@ import { getAppIconPath, getTrayIconPath } from './icons';
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     interface Matchers<R> {
       toMatchAppPath(expected: string): R;
     }

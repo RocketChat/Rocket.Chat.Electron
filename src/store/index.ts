@@ -198,7 +198,7 @@ export const request = <
         }
 
         if (hasPayload<RootAction>(action)) {
-          resolve(action.payload);
+          resolve(action.payload as Response['payload']);
         }
       }
     );

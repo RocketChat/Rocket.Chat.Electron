@@ -1,0 +1,13 @@
+{
+	"eslint.workingDirectories": [
+		{
+			"pattern": "workspaces/*",
+			"changeProcessCWD": true
+		},
+		{
+			"pattern": ".",
+			"changeProcessCWD": true
+		}
+	],
+	"typescript.tsdk": "./node_modules/typescript/lib"
+}

@@ -1,5 +1,3 @@
-import { parse } from 'url';
-
 import { css } from '@rocket.chat/css-in-js';
 import { IconButton, Badge, Box } from '@rocket.chat/fuselage';
 import type { FC, DragEvent, MouseEvent } from 'react';
@@ -62,7 +60,7 @@ const ServerButton: FC<ServerButtonProps> = ({
   const initials = useMemo(
     () =>
       title
-        ?.replace(url, parse(url).hostname ?? '')
+        ?.replace(url, new URL(url).hostname ?? '')
         ?.split(/[^A-Za-z0-9]+/g)
         ?.slice(0, 2)
         ?.map((text) => text.slice(0, 1).toUpperCase())

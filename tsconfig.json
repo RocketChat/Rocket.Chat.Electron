@@ -3,7 +3,7 @@
     "rootDir": "./src",
     "module": "ESNext",
     "target": "ES2015",
-    "lib": ["DOM", "ES2015"],
+    "lib": ["DOM", "ES2021"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
@@ -13,12 +13,13 @@
     "strict": true,
     // "noEmit": true,
     "noImplicitReturns": true,
-    "ignoreDeprecations": "5.0",  
+    "ignoreDeprecations": "5.0",
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true
   },
   "include": ["src"],
 }

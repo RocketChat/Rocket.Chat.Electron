@@ -1,5 +1,3 @@
-import { parse } from 'url';
-
 import { Icon } from '@rocket.chat/fuselage';
 import type { FC } from 'react';
 import React, { useMemo } from 'react';
@@ -87,7 +85,7 @@ export const SideBar: FC = () => {
               url={server.url}
               title={
                 server.title === 'Rocket.Chat' &&
-                parse(server.url).hostname !== 'open.rocket.chat'
+                new URL(server.url).hostname !== 'open.rocket.chat'
                   ? `${server.title} - ${server.url}`
                   : server.title ?? server.url
               }

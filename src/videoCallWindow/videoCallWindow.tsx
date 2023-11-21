@@ -25,7 +25,7 @@ function VideoCallWindow() {
       <webview
         ref={webviewRef}
         src={videoCallUrl}
-        preload={'./preload.js'}
+        preload='./preload.js'
         webpreferences='nodeIntegration,nativeWindowOpen=true'
         allowpopups={'true' as any}
       />

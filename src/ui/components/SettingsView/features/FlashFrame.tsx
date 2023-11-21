@@ -6,10 +6,11 @@ import {
   FieldLabel,
   FieldHint,
 } from '@rocket.chat/fuselage';
-import type { ChangeEvent, Dispatch, FC } from 'react';
+import type { ChangeEvent, FC } from 'react';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';

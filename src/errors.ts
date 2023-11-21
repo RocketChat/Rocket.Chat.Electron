@@ -41,7 +41,7 @@ const listenToBugsnagEnabledToggle = async (appType: AppType) => {
         bugsnagInstance || initBugsnag(apiKey, appVersion, appType);
       bugsnagInstance.startSession();
     } else {
-      bugsnagInstance && bugsnagInstance.pauseSession();
+      bugsnagInstance?.pauseSession();
     }
   });
 };

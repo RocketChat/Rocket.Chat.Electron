@@ -16,6 +16,7 @@ import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
 import { whenReady } from './whenReady';
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Window {
     JitsiMeetElectron: JitsiMeetElectronAPI;
     RocketChatDesktop: RocketChatDesktopAPI;

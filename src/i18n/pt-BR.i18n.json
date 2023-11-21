@@ -116,7 +116,7 @@
       "yes": "Permitir",
       "no": "Cancelar"
     },
-    "supportedVersion":{
+    "supportedVersion": {
       "title": "Versão de workspace não suportada"
     }
   },

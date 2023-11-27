@@ -124,6 +124,9 @@
       "remember_credentials": "Saját hitelesítési adatok megjegyzése",
       "cancel": " Mégse",
       "submit": "Bejelentkezés"
+    },
+    "supportedVersion": {
+      "title": "A munkaterület verziója nem támogatott"
     }
   },
   "downloads": {
@@ -297,6 +300,11 @@
     "title": "Kiszolgáló betöltése sikertelen",
     "announcement": "Houston, baj van!",
     "reload": "Újratöltés"
+  },
+  "unsupportedServer": {
+    "title": "{{workspaceName}} a Rocket.Chat nem támogatott verzióját futtatja",
+    "announcement": "Az adminisztrátornak frissítenie kell ezt a munkaterületet egy támogatott verzióra, hogy visszaállítsa a hozzáférést az asztali és mobilalkalmazásokból.",
+    "moreInformation": "Tudjon meg többet"
   },
   "selfxss": {
     "title": "Megállj!",

@@ -258,6 +258,32 @@ export const isServerVersionSupported = async (
 
   if (!supportedVersionsData) return { supported: false };
 
+  const exception = exceptions?.versions?.find(({ version }) =>
+    satisfies(coerce(version)?.version ?? '', serverVersionTilde)
+  );
+
+  if (exception) {
+    if (new Date(exception.expiration) > new Date()) {
+      const messages =
+        exception?.messages ||
+        exceptions?.messages ||
+        builtInSupportedVersions?.messages;
+      const selectedExpirationMessage = getExpirationMessage({
+        messages,
+        expiration: exception.expiration,
+      }) as Message;
+
+      return {
+        supported: true,
+        message: selectedExpirationMessage,
+        i18n: selectedExpirationMessage
+          ? supportedVersionsData?.i18n
+          : undefined,
+        expiration: exception.expiration,
+      };
+    }
+  }
+
   const supportedVersion = versions.find(({ version }) =>
     satisfies(coerce(version)?.version ?? '', serverVersionTilde)
   );
@@ -283,32 +309,6 @@ export const isServerVersionSupported = async (
     }
   }
 
-  const exception = exceptions?.versions?.find(({ version }) =>
-    satisfies(coerce(version)?.version ?? '', serverVersionTilde)
-  );
-
-  if (exception) {
-    if (new Date(exception.expiration) > new Date()) {
-      const messages =
-        exception?.messages ||
-        exceptions?.messages ||
-        supportedVersion?.messages ||
-        builtInSupportedVersions?.messages;
-      const selectedExpirationMessage = getExpirationMessage({
-        messages,
-        expiration: exception.expiration,
-      }) as Message;
-
-      return {
-        supported: true,
-        message: selectedExpirationMessage,
-        i18n: selectedExpirationMessage
-          ? supportedVersionsData?.i18n
-          : undefined,
-        expiration: exception.expiration,
-      };
-    }
-  }
   const enforcementStartDate = new Date(
     supportedVersionsData?.enforcementStartDate
   );

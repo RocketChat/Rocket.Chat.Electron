@@ -11,7 +11,7 @@ export type Message = {
   params: Record<string, unknown> & {
     instance_version?: string;
     instance_email?: string;
-    instance_domain?: string;
+    instanceDomain?: string;
     remaining_days?: number;
   };
   link: string;

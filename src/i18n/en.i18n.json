@@ -302,8 +302,8 @@
     "reload": "Reload"
   },
   "unsupportedServer": {
-    "title": "{{workspaceName}} is running an unsupported version of Rocket.Chat",
-    "announcement": "An admin needs to update this workspace to a supported version in order to restore access from desktop and mobile apps.",
+    "title": "{{instanceDomain}} is running an unsupported version of Rocket.Chat",
+    "announcement": "An admin needs to update the workspace to a supported version in order to reenable access from mobile and desktop apps.",
     "moreInformation": "Learn more"
   },
   "selfxss": {

@@ -16,12 +16,12 @@ import { ErrorPane } from './styles';
 
 type UnsupportedServerProps = {
   isSupported: boolean | undefined;
-  workspaceName: string;
+  instanceDomain: string;
 };
 
 const UnsupportedServer: FC<UnsupportedServerProps> = ({
   isSupported,
-  workspaceName,
+  instanceDomain,
 }) => {
   const { t } = useTranslation();
 
@@ -54,7 +54,7 @@ const UnsupportedServer: FC<UnsupportedServerProps> = ({
           <StatesIcon name='warning' />
           <StatesTitle>
             {t('unsupportedServer.title', {
-              workspaceName,
+              instanceDomain,
             })}
           </StatesTitle>
           <StatesSubtitle>{t('unsupportedServer.announcement')}</StatesSubtitle>

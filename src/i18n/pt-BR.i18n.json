@@ -287,6 +287,11 @@
     "announcement": "Houston, nós temos um problema",
     "reload": "Recarregar"
   },
+  "unsupportedServer": {
+    "title": "{{instanceDomain}} está executando uma versão não suportada do Rocket.Chat",
+    "announcement": "Um administrador precisa atualizar o workspace para uma versão suportada para reativar o acesso aos aplicativos móveis e desktop.",
+    "moreInformation": "Saiba mais"
+  },
   "selfxss": {
     "title": "Pare!",
     "description": "Esta é uma funcionalidade do navegador destinada aos desenvolvedores. Se alguém lhe disse para copiar-colar algo aqui para activar uma funcionalidade Rocket.Chat ou \"hackear\" a conta de alguém, é um golpe e dará acesso à sua conta Rocket.Chat.",

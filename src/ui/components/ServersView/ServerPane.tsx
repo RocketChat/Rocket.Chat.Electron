@@ -166,7 +166,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
       />{' '}
       <UnsupportedServer
         isSupported={isSupported}
-        workspaceName={title || 'Rocket.Chat'}
+        instanceDomain={new URL(serverUrl).hostname}
       />
       <ErrorView isFailed={isFailed} onReload={handleReload} />
     </Wrapper>

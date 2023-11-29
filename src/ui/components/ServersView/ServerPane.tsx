@@ -28,7 +28,6 @@ export const ServerPane: FC<ServerPaneProps> = ({
   isSelected,
   isFailed,
   isSupported,
-  title,
 }) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 

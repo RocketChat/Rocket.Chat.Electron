@@ -74,7 +74,7 @@ export const SupportedVersionDialog: FC = () => {
       supported?.i18n,
       supported.message,
       supported.expiration,
-      getLanguage ?? 'en',
+      getLanguage,
       server.title,
       server.url,
       server.version

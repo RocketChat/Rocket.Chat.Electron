@@ -210,7 +210,7 @@ export const getExpirationMessageTranslated = (
   const params = {
     instance_version: serverVersion,
     instance_ws_name: serverName,
-    instanceDomain: serverUrl,
+    instance_domain: serverUrl,
     remaining_days: moment(expiration).diff(new Date(), 'days'),
     ...message?.params,
   };

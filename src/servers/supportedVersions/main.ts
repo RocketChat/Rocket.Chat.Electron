@@ -6,15 +6,10 @@ import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { coerce, satisfies } from 'semver';
 
-import { getLanguage } from '../../i18n/main';
 import { dispatch, listen, select } from '../../store';
 import {
-  SUPPORTED_VERSION_DIALOG_OPEN,
-  WEBVIEW_DID_NAVIGATE,
-  WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
   WEBVIEW_SERVER_VERSION_UPDATED,
-  SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
   WEBVIEW_READY,
   WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
@@ -26,7 +21,6 @@ import type {
   CloudInfo,
   Dictionary,
   Message,
-  MessageTranslated,
   ServerInfo,
   SupportedVersions,
 } from './types';
@@ -143,7 +137,7 @@ export const getSupportedVersionsData = async (
       }
     }
   }
-  console.log('serverSupportedVersions', serverSupportedVersions);
+
   if (!serverSupportedVersions && !buildSupportedVersions) return null;
 
   if (!serverSupportedVersions && buildSupportedVersions) {
@@ -222,7 +216,6 @@ export const getExpirationMessageTranslated = (
   };
 
   if (!message || !i18n) {
-    // || params.remaining_days > 15)
     return null;
   }
 
@@ -243,21 +236,27 @@ export const getExpirationMessageTranslated = (
 
 export const isServerVersionSupported = async (
   server: Server,
-  supportedVersionsData: SupportedVersions
-): Promise<boolean> => {
+  supportedVersionsData?: SupportedVersions
+): Promise<{
+  supported: boolean;
+  message?: Message | undefined;
+  i18n?: Dictionary | undefined;
+  expiration?: Date | undefined;
+}> => {
   const builtInSupportedVersions = await readBuiltinSupportedVersions();
+
   const versions = supportedVersionsData?.versions;
   const exceptions = supportedVersionsData?.exceptions;
   const serverVersion = server.version;
-  if (!serverVersion) return false;
-  if (!versions) return false;
-
-  const appLanguage = (await getLanguage()) ?? 'en';
+  if (!serverVersion) return { supported: false };
+  if (!versions) return { supported: false };
 
   const serverVersionTilde = `~${serverVersion
     .split('.')
     .slice(0, 2)
     .join('.')}`;
+
+  if (!supportedVersionsData) return { supported: false };
 
   const supportedVersion = versions.find(({ version }) =>
     satisfies(coerce(version)?.version ?? '', serverVersionTilde)
@@ -273,24 +272,14 @@ export const isServerVersionSupported = async (
         expiration: supportedVersion.expiration,
       }) as Message;
 
-      const translatedMessage = getExpirationMessageTranslated(
-        supportedVersionsData?.i18n,
-        selectedExpirationMessage,
-        supportedVersion.expiration,
-        appLanguage,
-        server.title,
-        server.url,
-        server.version
-      ) as MessageTranslated;
-
-      dispatch({
-        type: SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
-        payload: {
-          url: server.url,
-          expirationMessage: translatedMessage,
-        },
-      });
-      return true;
+      return {
+        supported: true,
+        message: selectedExpirationMessage,
+        i18n: selectedExpirationMessage
+          ? supportedVersionsData?.i18n
+          : undefined,
+        expiration: supportedVersion.expiration,
+      };
     }
   }
 
@@ -310,24 +299,14 @@ export const isServerVersionSupported = async (
         expiration: exception.expiration,
       }) as Message;
 
-      const translatedMessage = getExpirationMessageTranslated(
-        supportedVersionsData.i18n,
-        selectedExpirationMessage,
-        exception.expiration,
-        appLanguage,
-        server.title,
-        server.url,
-        server.version
-      ) as MessageTranslated;
-
-      dispatch({
-        type: SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
-        payload: {
-          url: server.url,
-          expirationMessage: translatedMessage,
-        },
-      });
-      return true;
+      return {
+        supported: true,
+        message: selectedExpirationMessage,
+        i18n: selectedExpirationMessage
+          ? supportedVersionsData?.i18n
+          : undefined,
+        expiration: exception.expiration,
+      };
     }
   }
   const enforcementStartDate = new Date(
@@ -339,34 +318,14 @@ export const isServerVersionSupported = async (
       expiration: enforcementStartDate,
     }) as Message;
 
-    const translatedMessage = getExpirationMessageTranslated(
-      supportedVersionsData?.i18n,
-      selectedExpirationMessage,
-      enforcementStartDate,
-      appLanguage,
-      server.title,
-      server.url,
-      server.version
-    ) as MessageTranslated;
-
-    dispatch({
-      type: SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
-      payload: {
-        url: server.url,
-        expirationMessage: translatedMessage,
-      },
-    });
-    return true;
+    return {
+      supported: true,
+      message: selectedExpirationMessage,
+      i18n: selectedExpirationMessage ? supportedVersionsData?.i18n : undefined,
+      expiration: enforcementStartDate,
+    };
   }
-
-  dispatch({
-    type: SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
-    payload: {
-      url: server.url,
-      expirationMessage: undefined,
-    },
-  });
-  return false;
+  return { supported: false };
 };
 
 const updateSupportedVersionsData = async (
@@ -378,7 +337,6 @@ const updateSupportedVersionsData = async (
   if (!server) return;
   const serverInfo = await getServerInfo(server.url);
   if (!serverInfo) return;
-  // saves server version
   dispatch({
     type: WEBVIEW_SERVER_VERSION_UPDATED,
     payload: {
@@ -386,7 +344,6 @@ const updateSupportedVersionsData = async (
       version: serverInfo.version,
     },
   });
-  // saves server uniqueID
   const uniqueID = await getUniqueId(server.url);
   dispatch({
     type: WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
@@ -395,43 +352,19 @@ const updateSupportedVersionsData = async (
       uniqueID,
     },
   });
-  // if (ltr(server.version, '1.4.0')) return; // FALLBACK EXCEPTIONS
+
   const supportedVersions = await getSupportedVersionsData(
     server.url,
     uniqueID
   );
   if (!supportedVersions) return;
-  const isSupportedVersion = await isServerVersionSupported(
-    server,
-    supportedVersions
-  );
   dispatch({
-    type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
+    type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
     payload: {
       url: server.url,
-      isSupportedVersion,
+      supportedVersions,
     },
   });
-};
-
-const checkSupportedVersion = async (serverUrl: string): Promise<void> => {
-  const currentServerUrl = select(({ currentView }) =>
-    typeof currentView === 'object' ? currentView.url : null
-  );
-  const server = select(({ servers }) => servers).find(
-    (server) => server.url === serverUrl && server.url === currentServerUrl
-  );
-  if (!server || server.expirationMessage === null) return;
-  const { expirationMessage, expirationMessageLastTimeShown } = server;
-  if (!expirationMessage) return;
-  if (
-    expirationMessageLastTimeShown &&
-    moment().diff(expirationMessageLastTimeShown, 'seconds') < 12
-  )
-    return;
-  if (expirationMessage.description && expirationMessage.description !== '') {
-    dispatch({ type: SUPPORTED_VERSION_DIALOG_OPEN });
-  }
 };
 
 export function checkSupportedVersionServers(): void {
@@ -445,13 +378,5 @@ export function checkSupportedVersionServers(): void {
 
   listen(WEBVIEW_SERVER_RELOADED, async (action) => {
     updateSupportedVersionsData(action.payload.url);
-  });
-
-  listen(WEBVIEW_SERVER_IS_SUPPORTED_VERSION, async (action) => {
-    checkSupportedVersion(action.payload.url);
-  });
-
-  listen(WEBVIEW_DID_NAVIGATE, async (action) => {
-    checkSupportedVersion(action.payload.url);
   });
 }

@@ -28,15 +28,16 @@ const getElectronStore = (): ElectronStore<PersistableValues> => {
 export const getPersistedValues = (): PersistableValues =>
   getElectronStore().store;
 
-let lastSavedTime = 0;
+// let lastSavedTime = 0;
 
 export const persistValues = (values: PersistableValues): void => {
-  if (Date.now() - lastSavedTime > 1000) {
-    try {
-      getElectronStore().set(values);
-    } catch (error) {
-      error instanceof Error && console.error(error);
-    }
-    lastSavedTime = Date.now();
+  // console.log('persistValues', values);
+  // if (Date.now() - lastSavedTime > 1000) {
+  try {
+    getElectronStore().set(values);
+  } catch (error) {
+    error instanceof Error && console.error(error);
   }
+  //   lastSavedTime = Date.now();
+  // }
 };

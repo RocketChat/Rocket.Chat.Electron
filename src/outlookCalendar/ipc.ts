@@ -389,6 +389,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
       const server = getServerInformationByWebContentsId(event.id);
       const { outlookCredentials } = server;
       if (
+        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
         !outlookCredentials ||
         !outlookCredentials.userId ||
         !outlookCredentials.serverUrl

@@ -1,9 +1,9 @@
 import type React from 'react';
 import { useEffect } from 'react';
 
-interface CustomThemeProps {
+type CustomThemeProps = {
   customTheme: string;
-}
+};
 
 const CustomTheme: React.FC<CustomThemeProps> = ({ customTheme }) => {
   useEffect(() => {

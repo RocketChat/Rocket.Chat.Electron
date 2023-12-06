@@ -8,9 +8,9 @@ const apiUrl =
   'https://releases.rocket.chat/v2/server/supportedVersions?source=desktop';
 const outputFilePath = path.join('.', 'app', 'supportedVersions.jwt');
 
-interface SupportedVersionsResponse {
+type SupportedVersionsResponse = {
   signed?: string;
-}
+};
 
 export async function downloadAndSaveSupportedVersionsFromCloud(): Promise<void> {
   console.log('Getting Supported Versions from Cloud...');
@@ -22,7 +22,7 @@ export async function downloadAndSaveSupportedVersionsFromCloud(): Promise<void>
     if (response.status === 200) {
       const jsonData: SupportedVersionsResponse = response.data;
 
-      if (jsonData && jsonData.signed) {
+      if (jsonData?.signed) {
         const signedContent: string = jsonData.signed;
         const directory = path.dirname(outputFilePath);
         if (!fs.existsSync(directory)) {

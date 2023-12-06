@@ -126,6 +126,7 @@ export function ScreenSharePicker() {
             >
               {sources.map(({ id, name, thumbnail }) => (
                 <Source
+                  key={id}
                   display='flex'
                   flexDirection='column'
                   onClick={handleScreenSharingSourceClick(id)}

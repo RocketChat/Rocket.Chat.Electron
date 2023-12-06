@@ -121,7 +121,7 @@ const createAppMenu = createSelector(
 );
 
 const createEditMenu = createSelector(
-  () => undefined,
+  (_: RootState) => undefined,
   (): MenuItemConstructorOptions => ({
     id: 'editMenu',
     label: t('menus.editMenu'),
@@ -589,7 +589,7 @@ const createWindowMenu = createSelector(
 );
 
 const createHelpMenu = createSelector(
-  () => undefined,
+  (_: RootState) => undefined,
   (): MenuItemConstructorOptions => ({
     id: 'helpMenu',
     label: t('menus.helpMenu'),

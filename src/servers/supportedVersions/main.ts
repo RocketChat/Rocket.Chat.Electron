@@ -18,6 +18,7 @@ import {
   WEBVIEW_READY,
   WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
   WEBVIEW_SERVER_RELOADED,
+  SUPPORTED_VERSION_DIALOG_DISMISS,
 } from '../../ui/actions';
 import type { Server } from '../common';
 import type {
@@ -180,6 +181,7 @@ export const getExpirationMessage = ({
   if (
     !messages?.length ||
     !expiration ||
+    expiration < new Date() ||
     moment(expiration).diff(new Date(), 'days') < 0
   ) {
     return;
@@ -354,6 +356,13 @@ export const isServerVersionSupported = async (
     return true;
   }
 
+  dispatch({
+    type: SUPPORTED_VERSION_EXPIRATION_MESSAGE_UPDATED,
+    payload: {
+      url: server.url,
+      expirationMessage: undefined,
+    },
+  });
   return false;
 };
 
@@ -397,15 +406,22 @@ const checkSupportedVersion = async (serverUrl: string): Promise<void> => {
   if (!expirationMessage) return;
   if (
     expirationMessageLastTimeShown &&
-    moment().diff(expirationMessageLastTimeShown, 'hours') < 12
+    moment().diff(expirationMessageLastTimeShown, 'seconds') < 1
   )
     return;
-  updateSupportedVersionsData(serverUrl);
-  dispatch({ type: SUPPORTED_VERSION_DIALOG_OPEN });
+  await updateSupportedVersionsData(serverUrl);
+  if (expirationMessage.description && expirationMessage.description !== '') {
+    dispatch({ type: SUPPORTED_VERSION_DIALOG_OPEN });
+  }
 };
 
 export function checkSupportedVersionServers(): void {
   listen(WEBVIEW_READY, async (action) => {
+    await updateSupportedVersionsData(action.payload.url);
+    checkSupportedVersion(action.payload.url);
+  });
+
+  listen(SUPPORTED_VERSION_DIALOG_DISMISS, async (action) => {
     updateSupportedVersionsData(action.payload.url);
   });
 

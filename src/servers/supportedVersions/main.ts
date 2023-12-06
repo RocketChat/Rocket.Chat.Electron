@@ -406,7 +406,7 @@ const checkSupportedVersion = async (serverUrl: string): Promise<void> => {
   if (!expirationMessage) return;
   if (
     expirationMessageLastTimeShown &&
-    moment().diff(expirationMessageLastTimeShown, 'seconds') < 1
+    moment().diff(expirationMessageLastTimeShown, 'hours') < 12
   )
     return;
   await updateSupportedVersionsData(serverUrl);
@@ -426,7 +426,8 @@ export function checkSupportedVersionServers(): void {
   });
 
   listen(WEBVIEW_SERVER_RELOADED, async (action) => {
-    updateSupportedVersionsData(action.payload.url);
+    await updateSupportedVersionsData(action.payload.url);
+    checkSupportedVersion(action.payload.url);
   });
 
   listen(WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED, async (action) => {

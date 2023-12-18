@@ -28,7 +28,7 @@ import {
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
 } from '../ui/actions';
-import { SERVERS_LOADED } from './actions';
+import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from './actions';
 import type { Server } from './common';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
@@ -65,7 +65,8 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
   | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
-  | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED>;
+  | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED>
+  | ActionOf<typeof SERVER_DOCUMENT_VIEWER_OPEN_URL>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
@@ -236,6 +237,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case OUTLOOK_CALENDAR_SAVE_CREDENTIALS: {
       const { url, outlookCredentials } = action.payload;
       return upsert(state, { url, outlookCredentials });
+    }
+
+    case SERVER_DOCUMENT_VIEWER_OPEN_URL: {
+      const { server, documentUrl } = action.payload;
+      return upsert(state, { url: server, documentViewerOpenUrl: documentUrl });
     }
 
     default:

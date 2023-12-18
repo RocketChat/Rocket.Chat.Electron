@@ -1,14 +1,16 @@
 import type { FC } from 'react';
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../../../servers/actions';
 import type { RootAction } from '../../../store/actions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   WEBVIEW_ATTACHED,
   WEBVIEW_READY,
 } from '../../actions';
+import DocumentViewer from './DocumentViewer';
 import ErrorView from './ErrorView';
 import UnsupportedServer from './UnsupportedServer';
 import { StyledWebView, Wrapper } from './styles';
@@ -20,6 +22,7 @@ type ServerPaneProps = {
   isFailed: boolean;
   isSupported: boolean | undefined;
   title: string | undefined;
+  documentViewerOpenUrl: string | undefined;
 };
 
 export const ServerPane: FC<ServerPaneProps> = ({
@@ -28,8 +31,11 @@ export const ServerPane: FC<ServerPaneProps> = ({
   isSelected,
   isFailed,
   isSupported,
+  documentViewerOpenUrl,
 }) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
+
+  const [documentViewerActive, setDocumentViewerActive] = useState(false);
 
   const webviewRef =
     useRef<ReturnType<(typeof document)['createElement']>>(null);
@@ -137,6 +143,19 @@ export const ServerPane: FC<ServerPaneProps> = ({
     }
   }, [lastPath, serverUrl]);
 
+  useEffect(() => {
+    const webview = webviewRef.current;
+    if (!webview) {
+      return;
+    }
+
+    if (isSelected && documentViewerOpenUrl && documentViewerOpenUrl !== '') {
+      setDocumentViewerActive(true);
+    } else {
+      setDocumentViewerActive(false);
+    }
+  }, [documentViewerOpenUrl, isSelected]);
+
   const handleReload = (): void => {
     dispatch({
       type: LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
@@ -153,7 +172,16 @@ export const ServerPane: FC<ServerPaneProps> = ({
     } else {
       webview?.blur();
     }
+    // setdocumentViewerActive(true);
   }, [isSelected]);
+
+  const closeDocumentViewer = () => {
+    dispatch({
+      type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
+      payload: { server: serverUrl, documentUrl: '' },
+    });
+    setDocumentViewerActive(false);
+  };
 
   return (
     <Wrapper isVisible={isSelected}>
@@ -163,6 +191,12 @@ export const ServerPane: FC<ServerPaneProps> = ({
         partition={`persist:${serverUrl}`}
         {...({ allowpopups: 'allowpopups' } as any)}
       />{' '}
+      <DocumentViewer
+        url={documentViewerOpenUrl || ''}
+        isActive={documentViewerActive}
+        partition={`persist:${serverUrl}`}
+        closeDocumentViewer={closeDocumentViewer}
+      />
       <UnsupportedServer
         isSupported={isSupported}
         instanceDomain={new URL(serverUrl).hostname}

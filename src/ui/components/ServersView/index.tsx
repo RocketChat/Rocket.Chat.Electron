@@ -19,6 +19,7 @@ export const ServersView: FC = () => {
           isFailed={server.failed ?? false}
           isSupported={server.isSupportedVersion}
           title={server.title}
+          documentViewerOpenUrl={server.documentViewerOpenUrl}
         />
       ))}
     </ReparentingContainer>

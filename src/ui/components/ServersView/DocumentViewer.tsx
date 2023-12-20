@@ -24,7 +24,7 @@ const DynamicWebview = ({
             height: '100%',
             position: 'absolute',
             left: 0,
-            top: 64,
+            top: 50,
             right: 0,
             bottom: 0,
           }}
@@ -47,12 +47,12 @@ const DynamicWebview = ({
           content='center'
           alignItems='center'
         >
-          <Box padding={5} display='flex'>
+          <Box content='center' alignItems='center' display='flex'>
             <IconButton icon='arrow-back' onClick={closeDocumentViewer} />
             <h2>PDF Viewer</h2>
           </Box>
 
-          <div>{webView}</div>
+          <Box>{webView}</Box>
         </Box>
       )}
     </>

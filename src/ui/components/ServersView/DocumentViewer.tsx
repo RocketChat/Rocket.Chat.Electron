@@ -48,7 +48,11 @@ const DynamicWebview = ({
           alignItems='center'
         >
           <Box content='center' alignItems='center' display='flex'>
-            <IconButton icon='arrow-back' onClick={closeDocumentViewer} />
+            <IconButton
+              icon='arrow-back'
+              onClick={closeDocumentViewer}
+              mi='x8'
+            />
             <h2>PDF Viewer</h2>
           </Box>
 

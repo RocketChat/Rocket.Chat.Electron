@@ -19,10 +19,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RocketChat/Rocket.Chat.Electron.git"
+    "url": "git+https://github.com/RocketChat/Rocket.Chat.Desktop.git"
   },
   "bugs": {
-    "url": "https://github.com/RocketChat/Rocket.Chat.Electron/issues"
+    "url": "https://github.com/RocketChat/Rocket.Chat.Desktop/issues"
   },
   "main": "app/main.js",
   "scripts": {

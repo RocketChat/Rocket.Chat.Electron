@@ -144,7 +144,7 @@
     {
       "provider": "github",
       "owner": "RocketChat",
-      "repo": "Rocket.Chat.Electron",
+      "repo": "Rocket.Chat.Desktop",
       "vPrefixedTagName": false
     }
   ]

@@ -18,11 +18,11 @@ body:
     attributes:
       label: Search before asking
       description: >
-        Please make sure to search in the existing [issues](https://github.com/RocketChat/Rocket.Chat.Electron/issues?q=is%3Aissue)
+        Please make sure to search in the existing [issues](https://github.com/RocketChat/Rocket.Chat.Desktop/issues?q=is%3Aissue)
         first to see whether the same issue was reported already.
       options:
         - label: >
-            I had searched in the [issues](https://github.com/RocketChat/Rocket.Chat.Electron/issues?q=is%3Aissue) and found
+            I had searched in the [issues](https://github.com/RocketChat/Rocket.Chat.Desktop/issues?q=is%3Aissue) and found
             no similar issues.
           required: true
 

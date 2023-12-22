@@ -1,8 +1,18 @@
+# Important Update: Project Repository Moved
+
+The project has been migrated to a new repository: [Rocket.Chat.Desktop on GitHub](https://github.com/RocketChat/Rocket.Chat.Desktop).
+
+## Notice for Windows 7 and 8.1 Users:
+
+Version 3.x, available in this repository, is the last version supporting Windows 7 and 8.1. Starting from version 4.0, automatic updates will no longer be available for Windows 7 and 8.1 due to compatibility issues with newer versions of Electron.
+
+Future updates will be available in the new repository and will not be compatible with older versions of Windows. Therefore, the auto-update feature on Windows 7 and 8.1 will function only up to version 3.x in this repository.
+
 # Rocket.Chat Desktop App
 
 [![Travis CI Build Status](https://img.shields.io/travis/RocketChat/Rocket.Chat.Electron/master.svg?logo=travis)](https://travis-ci.org/RocketChat/Rocket.Chat.Electron)
 [![AppVeyor Build Status](https://img.shields.io/appveyor/ci/RocketChat/rocket-chat-electron/master.svg?logo=appveyor)](https://ci.appveyor.com/project/RocketChat/rocket-chat-electron)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3a87141c0a4442809d9a2bff455e3102)](https://www.codacy.com/app/tassoevan/Rocket.Chat.Electron?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RocketChat/Rocket.Chat.Electron&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3a87141c0a4442809d9a2bff455e3102)](https://www.codacy.com/app/tassoevan/Rocket.Chat.Electron?utm_source=github.com&utm_medium=referral&utm_content=RocketChat/Rocket.Chat.Electron&utm_campaign=Badge_Grade)
 [![Project Dependencies](https://david-dm.org/RocketChat/Rocket.Chat.Electron.svg)](https://david-dm.org/RocketChat/Rocket.Chat.Electron)
 [![GitHub All Releases](https://img.shields.io/github/downloads/RocketChat/Rocket.Chat.Electron/total.svg)](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest)
 ![GitHub](https://img.shields.io/github/license/RocketChat/Rocket.Chat.Electron.svg)
@@ -17,10 +27,12 @@ using [Electron][].
 ## Engage with us
 
 ### Share your story
+
 We’d love to hear about [your experience][] and potentially feature it on our
 [Blog][].
 
 ### Subscribe for Updates
+
 Once a month our marketing team releases an email update with news about product
 releases, company related topics, events and use cases. [Sign Up!][]
 
@@ -88,7 +100,7 @@ for your code:
 - `src/main.ts`, the script running at the main Electron process, orchestrating
   the whole application;
 
-- `src/rootWindow.ts`, the script that renders the UI of the *root window*, the
+- `src/rootWindow.ts`, the script that renders the UI of the _root window_, the
   app's main window;
 
 - and `src/preload.ts`, which runs in a privileged mode to connect the app and
@@ -218,61 +230,52 @@ a single server mode.
 
 #### The settings that can be overridden are:
 
-| Setting      | Description |
-| ----------- | ----------- |
-| `"isReportEnabled": true,`                   | Sets if the bugs will be reported to developers.
-| `"isInternalVideoChatWindowEnabled": true,`  | Sets the video calls will be opened in an internal window.
-| `"isFlashFrameEnabled": true,`               | Sets if the flash frame will be enabled.
-| `"isMinimizeOnCloseEnabled": false,`         | Sets if the app will be minimized on close.
-|`"doCheckForUpdatesOnStartup": true,`         | Sets if the app will check for updates on startup.
-| `"isMenuBarEnabled": true,`                  | Sets if the menu bar will be enabled.
-|`"isTrayIconEnabled": true,`                  | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"`
-|`"isUpdatingEnabled": true,`                  | Sets if the app can be updated by the user.
-|`"isAddNewServersEnabled": true,`              | Sets if the user can add new servers.
+| Setting                                     | Description                                                                                            |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `"isReportEnabled": true,`                  | Sets if the bugs will be reported to developers.                                                       |
+| `"isInternalVideoChatWindowEnabled": true,` | Sets the video calls will be opened in an internal window.                                             |
+| `"isFlashFrameEnabled": true,`              | Sets if the flash frame will be enabled.                                                               |
+| `"isMinimizeOnCloseEnabled": false,`        | Sets if the app will be minimized on close.                                                            |
+| `"doCheckForUpdatesOnStartup": true,`       | Sets if the app will check for updates on startup.                                                     |
+| `"isMenuBarEnabled": true,`                 | Sets if the menu bar will be enabled.                                                                  |
+| `"isTrayIconEnabled": true,`                | Enables Tray Icon, the app will be hidden to the tray on close. Overrides `"isMinimizeOnCloseEnabled"` |
+| `"isUpdatingEnabled": true,`                | Sets if the app can be updated by the user.                                                            |
+| `"isAddNewServersEnabled": true,`           | Sets if the user can add new servers.                                                                  |
 
 ##### Single server mode
+
 If the setting `"isAddNewServersEnabled": false` is set, the user will not be able to add new servers.
 The buttons and shortcuts will be disabled. Then you will have to add the server to the `servers.json` file.
 With this, you can create a single server mode or just don't let the user to add new servers by his own.
 
 ##### Example configuration
+
 `overridden-settings.json` file:
 
     {
-	   "isTrayIconEnabled": false,
-	   "isMinimizeOnCloseEnabled": false
+       "isTrayIconEnabled": false,
+       "isMinimizeOnCloseEnabled": false
     }
+
 When `isTrayIconEnabled` is enabled, the app will be hidden on close.
 When `isMinimizeOnCloseEnabled` is enabled, the app will be minimized on close.
 When both are disabled, the app will quit on close.
+
 ## License
 
 Released under the MIT license.
 
 [Rocket.Chat]: https://rocket.chat
-
 [Electron]: https://electronjs.org/
-
 [your experience]: https://survey.zohopublic.com/zs/e4BUFG
-
 [Blog]: https://rocket.chat/case-studies/?utm_source=github&utm_medium=readme&utm_campaign=community
-
 [Sign Up!]: https://rocket.chat/newsletter/?utm_source=github&utm_medium=readme&utm_campaign=community
-
 [Releases]: https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest
-
 [ongoing changes in Rocket.Chat codebase]: https://forums.rocket.chat/t/moving-away-from-meteor-and-beyond/3270
-
 [rollup]: https://github.com/rollup/rollup
-
 [node-gyp readme]: https://github.com/nodejs/node-gyp#installation
-
 [Jest]: https://jestjs.io/
-
 [Jest electron runner]: https://github.com/facebook-atom/jest-electron-runner
-
 [electron-builder]: https://github.com/electron-userland/electron-builder
-
 [customization options]: https://github.com/electron-userland/electron-builder/wiki/Options
-
 [node-gyp install guide]: https://github.com/nodejs/node-gyp#installation

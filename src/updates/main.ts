@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 
 import { BrowserWindow, app, autoUpdater as nativeUpdater } from 'electron';
@@ -110,6 +111,8 @@ export const mergeConfigurations = (
 };
 
 const loadConfiguration = async (): Promise<UpdateConfiguration> => {
+  const isWindows10OrNewer =
+    process.platform === 'win32' && parseInt(os.release().split('.')[0]) >= 10;
   const defaultConfiguration = select(
     ({
       isUpdatingEnabled,
@@ -123,7 +126,8 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       isUpdatingAllowed:
         (process.platform === 'linux' && !!process.env.APPIMAGE) ||
         (process.platform === 'win32' && !process.windowsStore) ||
-        (process.platform === 'darwin' && !process.mas),
+        (process.platform === 'darwin' && !process.mas) ||
+        !isWindows10OrNewer,
       isEachUpdatesSettingConfigurable: true,
       isUpdatingEnabled,
       doCheckForUpdatesOnStartup,

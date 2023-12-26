@@ -285,8 +285,13 @@ export const isServerVersionSupported = async (
 
   if (exception) {
     if (new Date(exception.expiration) > new Date()) {
+      const messages =
+        exception?.messages ||
+        exceptions?.messages ||
+        supportedVersion?.messages ||
+        builtInSupportedVersions?.messages;
       const selectedExpirationMessage = getExpirationMessage({
-        messages: exception.messages,
+        messages,
         expiration: exception.expiration,
       }) as Message;
 

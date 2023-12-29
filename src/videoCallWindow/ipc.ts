@@ -78,7 +78,7 @@ export const startVideoCallWindowHandler = (): void => {
         show: false,
       });
 
-      videoCallWindow.setBounds({
+      videoCallWindow?.setBounds({
         width,
         height,
         x,
@@ -90,9 +90,9 @@ export const startVideoCallWindowHandler = (): void => {
       );
 
       videoCallWindow.once('ready-to-show', () => {
-        videoCallWindow.setTitle(packageJsonInformation.productName);
-        videoCallWindow.webContents.send('video-call-window/open-url', url);
-        videoCallWindow.show();
+        videoCallWindow?.setTitle(packageJsonInformation.productName);
+        videoCallWindow?.webContents.send('video-call-window/open-url', url);
+        videoCallWindow?.show();
       });
 
       // videoCallWindow.webContents.openDevTools();
@@ -104,7 +104,7 @@ export const startVideoCallWindowHandler = (): void => {
         // console.log('[Rocket.Chat Desktop] did-attach-webview');
         // webContents.openDevTools();
         webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
-          videoCallWindow.webContents.send(
+          videoCallWindow?.webContents.send(
             'video-call-window/open-screen-picker'
           );
           ipcMain.once(
@@ -127,7 +127,7 @@ export const startVideoCallWindowHandler = (): void => {
         });
       };
 
-      videoCallWindow.webContents.addListener(
+      videoCallWindow?.webContents.addListener(
         'did-attach-webview',
         handleDidAttachWebview
       );

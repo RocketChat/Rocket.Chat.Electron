@@ -33,10 +33,10 @@ const createTouchBar = (): [
     select: async (index) => {
       const browserWindow = await getRootWindow();
 
-      if (!browserWindow.isVisible()) {
-        browserWindow.showInactive();
+      if (!browserWindow?.isVisible()) {
+        browserWindow?.showInactive();
       }
-      browserWindow.focus();
+      browserWindow?.focus();
 
       const url = select(({ servers }) => servers[index].url);
       dispatch({ type: TOUCH_BAR_SELECT_SERVER_TOUCHED, payload: url });
@@ -63,10 +63,10 @@ const createTouchBar = (): [
     change: async (selectedIndex) => {
       const browserWindow = await getRootWindow();
 
-      if (!browserWindow.isVisible()) {
-        browserWindow.showInactive();
+      if (!browserWindow?.isVisible()) {
+        browserWindow?.showInactive();
       }
-      browserWindow.focus();
+      browserWindow?.focus();
 
       dispatch({
         type: TOUCH_BAR_FORMAT_BUTTON_TOUCHED,
@@ -84,7 +84,7 @@ const createTouchBar = (): [
     ],
   });
 
-  getRootWindow().then((browserWindow) => browserWindow.setTouchBar(touchBar));
+  getRootWindow().then((browserWindow) => browserWindow?.setTouchBar(touchBar));
 
   return [
     touchBar,
@@ -150,7 +150,7 @@ class TouchBarService extends Service {
     this.watch(selectCurrentServer, (currentServer) => {
       updateServerSelectionPopover(serverSelectionPopover, currentServer);
       getRootWindow().then((browserWindow) =>
-        browserWindow.setTouchBar(touchBar)
+        browserWindow?.setTouchBar(touchBar)
       );
     });
 
@@ -159,7 +159,7 @@ class TouchBarService extends Service {
       (servers) => {
         updateServerSelectionScrubber(serverSelectionScrubber, servers);
         getRootWindow().then((browserWindow) =>
-          browserWindow.setTouchBar(touchBar)
+          browserWindow?.setTouchBar(touchBar)
         );
       }
     );
@@ -172,7 +172,7 @@ class TouchBarService extends Service {
           isMessageBoxFocused
         );
         getRootWindow().then((browserWindow) =>
-          browserWindow.setTouchBar(touchBar)
+          browserWindow?.setTouchBar(touchBar)
         );
       }
     );

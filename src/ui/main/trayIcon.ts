@@ -33,11 +33,11 @@ const createTrayIcon = (): Tray => {
       const browserWindow = await getRootWindow();
 
       if (isRootWindowVisible) {
-        browserWindow.hide();
+        browserWindow?.hide();
         return;
       }
 
-      browserWindow.show();
+      browserWindow?.show();
     });
   }
 
@@ -46,11 +46,11 @@ const createTrayIcon = (): Tray => {
     const browserWindow = await getRootWindow();
 
     if (isRootWindowVisible) {
-      browserWindow.hide();
+      browserWindow?.hide();
       return;
     }
 
-    browserWindow.show();
+    browserWindow?.show();
   });
 
   trayIcon.addListener('right-click', (_event, bounds) => {
@@ -143,11 +143,11 @@ const manageTrayIcon = async (): Promise<() => void> => {
             const browserWindow = await getRootWindow();
 
             if (isRootWindowVisible) {
-              browserWindow.hide();
+              browserWindow?.hide();
               return;
             }
 
-            browserWindow.show();
+            browserWindow?.show();
           },
         },
         {

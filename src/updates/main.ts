@@ -236,8 +236,8 @@ export const setupUpdates = async (): Promise<void> => {
         if (process.platform === 'darwin') {
           const allBrowserWindows = BrowserWindow.getAllWindows();
           allBrowserWindows.forEach((browserWindow) => {
-            browserWindow.removeAllListeners('close');
-            browserWindow.destroy();
+            browserWindow?.removeAllListeners('close');
+            browserWindow?.destroy();
           });
           nativeUpdater.checkForUpdates();
           nativeUpdater.on('update-downloaded', nativeUpdateDownloadedCallback);

@@ -85,10 +85,10 @@ export const performElectronStartup = (): void => {
 export const setupApp = (): void => {
   app.addListener('activate', async () => {
     const browserWindow = await getRootWindow();
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
+    if (!browserWindow?.isVisible()) {
+      browserWindow?.showInactive();
     }
-    browserWindow.focus();
+    browserWindow?.focus();
   });
 
   app.addListener('window-all-closed', () => {

@@ -108,7 +108,7 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     width = normalizeNumber(primaryDisplay.workAreaSize.width * 0.9);
     height = normalizeNumber(primaryDisplay.workAreaSize.height * 0.9);
   }
-  if (browserWindow.isVisible()) {
+  if (browserWindow?.isVisible()) {
     return;
   }
 
@@ -124,7 +124,7 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     Number.isInteger(x) &&
     Number.isInteger(y)
   ) {
-    browserWindow.setBounds({
+    browserWindow?.setBounds({
       width,
       height,
       x,
@@ -133,23 +133,23 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
   }
 
   if (rootWindowState.maximized) {
-    browserWindow.maximize();
+    browserWindow?.maximize();
   }
 
   if (rootWindowState.minimized) {
-    browserWindow.minimize();
+    browserWindow?.minimize();
   }
 
   if (rootWindowState.fullscreen) {
-    browserWindow.setFullScreen(true);
+    browserWindow?.setFullScreen(true);
   }
 
   if (rootWindowState.visible || !isTrayIconEnabled) {
-    browserWindow.show();
+    browserWindow?.show();
   }
 
   if (rootWindowState.focused) {
-    browserWindow.focus();
+    browserWindow?.focus();
   }
 };
 
@@ -173,7 +173,7 @@ export const setupRootWindow = (): void => {
     watch(selectGlobalBadgeCount, async (globalBadgeCount) => {
       const browserWindow = await getRootWindow();
 
-      if (browserWindow.isFocused() || globalBadgeCount === 0) {
+      if (browserWindow?.isFocused() || globalBadgeCount === 0) {
         return;
       }
 
@@ -185,24 +185,24 @@ export const setupRootWindow = (): void => {
           })
         );
 
-      if (isShowWindowOnUnreadChangedEnabled && !browserWindow.isVisible()) {
-        const isMinimized = browserWindow.isMinimized();
-        const isMaximized = browserWindow.isMaximized();
+      if (isShowWindowOnUnreadChangedEnabled && !browserWindow?.isVisible()) {
+        const isMinimized = browserWindow?.isMinimized();
+        const isMaximized = browserWindow?.isMaximized();
 
-        browserWindow.showInactive();
+        browserWindow?.showInactive();
 
         if (isMinimized) {
-          browserWindow.minimize();
+          browserWindow?.minimize();
         }
 
         if (isMaximized) {
-          browserWindow.maximize();
+          browserWindow?.maximize();
         }
         return;
       }
 
       if (isFlashFrameEnabled && process.platform !== 'darwin') {
-        browserWindow.flashFrame(true);
+        browserWindow?.flashFrame(true);
       }
     }),
     watch(
@@ -215,7 +215,7 @@ export const setupRootWindow = (): void => {
       },
       async (windowTitle) => {
         const browserWindow = await getRootWindow();
-        browserWindow.setTitle(windowTitle);
+        browserWindow?.setTitle(windowTitle);
       }
     ),
     listen(WEBVIEW_FOCUS_REQUESTED, async () => {
@@ -304,7 +304,7 @@ export const setupRootWindow = (): void => {
         const browserWindow = await getRootWindow();
 
         if (!rootWindowIcon) {
-          browserWindow.setIcon(
+          browserWindow?.setIcon(
             nativeImage.createFromPath(
               getTrayIconPath({
                 platform: process.platform,
@@ -336,7 +336,7 @@ export const setupRootWindow = (): void => {
           }
         }
 
-        browserWindow.setIcon(icon);
+        browserWindow?.setIcon(icon);
 
         if (process.platform === 'win32') {
           let overlayIcon: NativeImage | null = null;
@@ -372,9 +372,9 @@ export const setupRootWindow = (): void => {
                 ? `(${globalBadge}) ${t(translate)}`
                 : t(translate);
 
-            browserWindow.setTitle(taskbarTitle);
+            browserWindow?.setTitle(taskbarTitle);
           }
-          browserWindow.setOverlayIcon(overlayIcon, overlayDescription);
+          browserWindow?.setOverlayIcon(overlayIcon, overlayDescription);
         }
       }),
       watch(
@@ -382,7 +382,7 @@ export const setupRootWindow = (): void => {
         async (isMenuBarEnabled) => {
           const browserWindow = await getRootWindow();
           browserWindow.autoHideMenuBar = !isMenuBarEnabled;
-          browserWindow.setMenuBarVisibility(isMenuBarEnabled);
+          browserWindow?.setMenuBarVisibility(isMenuBarEnabled);
         }
       )
     );
@@ -396,14 +396,14 @@ export const setupRootWindow = (): void => {
 export const showRootWindow = async (): Promise<void> => {
   const browserWindow = await getRootWindow();
 
-  browserWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
+  browserWindow?.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 
   if (process.env.NODE_ENV === 'development') {
-    setupRootWindowReload(browserWindow.webContents);
+    setupRootWindowReload(browserWindow?.webContents);
   }
 
   return new Promise((resolve) => {
-    browserWindow.addListener('ready-to-show', () => {
+    browserWindow?.addListener('ready-to-show', () => {
       applyRootWindowState(browserWindow);
 
       const isTrayIconEnabled = select(
@@ -412,7 +412,7 @@ export const showRootWindow = async (): Promise<void> => {
 
       if (app.commandLine.hasSwitch('start-hidden') && isTrayIconEnabled) {
         console.debug('Start application in background');
-        browserWindow.hide();
+        browserWindow?.hide();
       }
 
       setupRootWindow();

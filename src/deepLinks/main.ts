@@ -236,10 +236,10 @@ export const setupDeepLinks = (): void => {
 
     const browserWindow = await getRootWindow();
 
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
+    if (!browserWindow?.isVisible()) {
+      browserWindow?.showInactive();
     }
-    browserWindow.focus();
+    browserWindow?.focus();
 
     await processDeepLink(url);
   });
@@ -249,10 +249,10 @@ export const setupDeepLinks = (): void => {
 
     const browserWindow = await getRootWindow();
 
-    if (browserWindow && !browserWindow.isVisible()) {
-      browserWindow.showInactive();
+    if (browserWindow && !browserWindow?.isVisible()) {
+      browserWindow?.showInactive();
     }
-    if (browserWindow) browserWindow.focus();
+    if (browserWindow) browserWindow?.focus();
 
     const args = argv.slice(app.isPackaged ? 1 : 2);
 

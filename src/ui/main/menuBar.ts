@@ -51,10 +51,10 @@ const createAppMenu = createSelector(
           click: async () => {
             const browserWindow = await getRootWindow();
 
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
+            if (!browserWindow?.isVisible()) {
+              browserWindow?.showInactive();
             }
-            browserWindow.focus();
+            browserWindow?.focus();
             dispatch({ type: MENU_BAR_ABOUT_CLICKED });
           },
         },
@@ -90,10 +90,10 @@ const createAppMenu = createSelector(
           click: async () => {
             const browserWindow = await getRootWindow();
 
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
+            if (!browserWindow?.isVisible()) {
+              browserWindow?.showInactive();
             }
-            browserWindow.focus();
+            browserWindow?.focus();
             dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
           },
         },
@@ -182,10 +182,10 @@ const selectViewDeps = createStructuredSelector<
 const getCurrentViewWebcontents = async () => {
   const browserWindow = await getRootWindow();
 
-  if (!browserWindow.isVisible()) {
-    browserWindow.showInactive();
+  if (!browserWindow?.isVisible()) {
+    browserWindow?.showInactive();
   }
-  browserWindow.focus();
+  browserWindow?.focus();
   const currentView = select(({ currentView }) => currentView);
   const url = typeof currentView === 'object' ? currentView.url : null;
   if (!url) {
@@ -214,10 +214,10 @@ const createViewMenu = createSelector(
         click: async () => {
           const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          if (!browserWindow?.isVisible()) {
+            browserWindow?.showInactive();
           }
-          browserWindow.focus();
+          browserWindow?.focus();
           const guestWebContents =
             typeof currentView === 'object'
               ? getWebContentsByServerUrl(currentView.url)
@@ -238,10 +238,10 @@ const createViewMenu = createSelector(
         click: async () => {
           const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          if (!browserWindow?.isVisible()) {
+            browserWindow?.showInactive();
           }
-          browserWindow.focus();
+          browserWindow?.focus();
           const guestWebContents =
             typeof currentView === 'object'
               ? getWebContentsByServerUrl(currentView.url)
@@ -291,10 +291,10 @@ const createViewMenu = createSelector(
         click: async () => {
           const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          if (!browserWindow?.isVisible()) {
+            browserWindow?.showInactive();
           }
-          browserWindow.focus();
+          browserWindow?.focus();
           const guestWebContents =
             typeof currentView === 'object'
               ? getWebContentsByServerUrl(currentView.url)
@@ -310,10 +310,10 @@ const createViewMenu = createSelector(
         click: async () => {
           const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          if (!browserWindow?.isVisible()) {
+            browserWindow?.showInactive();
           }
-          browserWindow.focus();
+          browserWindow?.focus();
           const guestWebContents =
             typeof currentView === 'object'
               ? getWebContentsByServerUrl(currentView.url)
@@ -348,11 +348,11 @@ const createViewMenu = createSelector(
           click: async ({ checked: enabled }) => {
             const browserWindow = await getRootWindow();
 
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
+            if (!browserWindow?.isVisible()) {
+              browserWindow?.showInactive();
             }
-            browserWindow.focus();
-            browserWindow.setFullScreen(enabled);
+            browserWindow?.focus();
+            browserWindow?.setFullScreen(enabled);
           },
         },
       ]),
@@ -367,10 +367,10 @@ const createViewMenu = createSelector(
           click: async ({ checked }) => {
             const browserWindow = await getRootWindow();
 
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
+            if (!browserWindow?.isVisible()) {
+              browserWindow?.showInactive();
             }
-            browserWindow.focus();
+            browserWindow?.focus();
             dispatch({
               type: MENU_BAR_TOGGLE_IS_MENU_BAR_ENABLED_CLICKED,
               payload: checked,
@@ -388,10 +388,10 @@ const createViewMenu = createSelector(
         click: async ({ checked }) => {
           const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          if (!browserWindow?.isVisible()) {
+            browserWindow?.showInactive();
           }
-          browserWindow.focus();
+          browserWindow?.focus();
           dispatch({
             type: MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
             payload: checked,
@@ -485,10 +485,10 @@ const createWindowMenu = createSelector(
           click: async () => {
             const browserWindow = await getRootWindow();
 
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
+            if (!browserWindow?.isVisible()) {
+              browserWindow?.showInactive();
             }
-            browserWindow.focus();
+            browserWindow?.focus();
             dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
           },
         },
@@ -509,10 +509,10 @@ const createWindowMenu = createSelector(
             click: async () => {
               const browserWindow = await getRootWindow();
 
-              if (!browserWindow.isVisible()) {
-                browserWindow.showInactive();
+              if (!browserWindow?.isVisible()) {
+                browserWindow?.showInactive();
               }
-              browserWindow.focus();
+              browserWindow?.focus();
               setTimeout(() => {
                 dispatch({
                   type: MENU_BAR_SELECT_SERVER_CLICKED,
@@ -532,10 +532,10 @@ const createWindowMenu = createSelector(
         click: async () => {
           const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          if (!browserWindow?.isVisible()) {
+            browserWindow?.showInactive();
           }
-          browserWindow.focus();
+          browserWindow?.focus();
           dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
         },
       },
@@ -546,10 +546,10 @@ const createWindowMenu = createSelector(
         click: async () => {
           const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          if (!browserWindow?.isVisible()) {
+            browserWindow?.showInactive();
           }
-          browserWindow.focus();
+          browserWindow?.focus();
           dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
         },
       },
@@ -561,10 +561,10 @@ const createWindowMenu = createSelector(
         click: async ({ checked }) => {
           const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          if (!browserWindow?.isVisible()) {
+            browserWindow?.showInactive();
           }
-          browserWindow.focus();
+          browserWindow?.focus();
           dispatch({
             type: MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
             payload: checked,
@@ -619,11 +619,11 @@ const createHelpMenu = createSelector(
         click: async () => {
           const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          if (!browserWindow?.isVisible()) {
+            browserWindow?.showInactive();
           }
-          browserWindow.focus();
-          browserWindow.webContents.reload();
+          browserWindow?.focus();
+          browserWindow?.webContents.reload();
         },
       },
       {
@@ -633,11 +633,11 @@ const createHelpMenu = createSelector(
         click: async () => {
           const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          if (!browserWindow?.isVisible()) {
+            browserWindow?.showInactive();
           }
-          browserWindow.focus();
-          browserWindow.webContents.toggleDevTools();
+          browserWindow?.focus();
+          browserWindow?.webContents.toggleDevTools();
         },
       },
       { type: 'separator' },
@@ -647,10 +647,10 @@ const createHelpMenu = createSelector(
         click: async () => {
           const browserWindow = await getRootWindow();
 
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          if (!browserWindow?.isVisible()) {
+            browserWindow?.showInactive();
           }
-          browserWindow.focus();
+          browserWindow?.focus();
           dispatch({ type: CERTIFICATES_CLEARED });
         },
       },
@@ -682,10 +682,10 @@ const createHelpMenu = createSelector(
           click: async () => {
             const browserWindow = await getRootWindow();
 
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
+            if (!browserWindow?.isVisible()) {
+              browserWindow?.showInactive();
             }
-            browserWindow.focus();
+            browserWindow?.focus();
             dispatch({ type: MENU_BAR_ABOUT_CLICKED });
           },
         },

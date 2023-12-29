@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
+import type { AxiosError } from 'axios';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
@@ -69,36 +70,44 @@ const getUniqueId = async (serverUrl: string): Promise<string> => {
   }
 };
 
-const getCloudInfo = (
+const getCloudInfo = async (
   serverDomain: string,
   uniqueID: string
-): Promise<CloudInfo | null> =>
-  axios
-    .get(
+): Promise<CloudInfo | null> => {
+  try {
+    const response = await axios.get<CloudInfo>(
       `https://releases.rocket.chat/v2/server/supportedVersions?domain=${serverDomain}&uniqueId=${uniqueID}&source=desktop`
-    )
-    .then((response) => response.data as CloudInfo)
-    .catch((error) => {
-      if (error.response) {
-        console.log(`Couldn't load Cloud Info: ${error.response.status}`);
-      } else {
-        console.error('Fetching Cloud Info error:', error.message);
-      }
-      return null;
-    });
+    );
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    if (axiosError.response) {
+      console.log(`Couldn't load Cloud Info: ${axiosError.response.status}`);
+    } else {
+      console.error('Fetching Cloud Info error:', axiosError.message);
+    }
+    return null;
+  }
+};
 
-export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
-  axios
-    .get(`${serverUrl}api/info`)
-    .then((response) => response.data as ServerInfo)
-    .catch((error) => {
-      if (error.response) {
-        console.log(`Couldn't load Server Info: ${error.response.status}`);
-      } else {
-        console.error('Fetching Server Info error:', error.message);
-      }
-      return null;
-    });
+export const getServerInfo = async (
+  serverUrl: string
+): Promise<ServerInfo | null> => {
+  try {
+    const response = await axios.get<ServerInfo>(`${serverUrl}api/info`);
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    if (axiosError.response) {
+      console.log(`Couldn't load Server Info: ${axiosError.response.status}`);
+    } else if (axiosError.request) {
+      console.log('No response was received:', axiosError.request);
+    } else {
+      console.error('Error setting up the request:', axiosError.message);
+    }
+    return null;
+  }
+};
 
 const updateSupportedVersionsSource = (
   source: 'server' | 'cloud' | 'builtin',

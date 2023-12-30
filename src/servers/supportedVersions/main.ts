@@ -426,7 +426,6 @@ export function checkSupportedVersionServers(): void {
         isSupportedVersion,
       },
     });
-    checkSupportedVersion(server.url);
   });
 
   listen(WEBVIEW_SERVER_VERSION_UPDATED, async (action) => {

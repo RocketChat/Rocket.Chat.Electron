@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
@@ -99,7 +99,10 @@ export const ServerPane: FC<ServerPaneProps> = ({
     if (!webview) {
       return;
     }
-    const addEventListenerOnce = (e: 'did-attach', cb: () => void): void => {
+    const addEventListenerOnce = (
+      e: 'did-attach' | 'new-window',
+      cb: () => void
+    ): void => {
       const handler = () => {
         cb();
         webview.removeEventListener(e, handler);
@@ -119,10 +122,43 @@ export const ServerPane: FC<ServerPaneProps> = ({
       }, 300);
     };
 
+    const handleDidStartLoading = (): void => {
+      webview.executeJavaScript(`
+         document.addEventListener('click', function(event) {
+            const fileDownloadURL = 'https://open.rocket.chat/file-upload';
+            const isFileDownloadURL = event.target.href.startsWith(fileDownloadURL);
+            const isTargetBlank = event.target.target === '_blank';
+
+            const fileName = event.target.href.split('/').pop().split('?')[0];
+
+            if (isFileDownloadURL && isTargetBlank) {
+               event.preventDefault()
+               
+               let downloadURL = event.target.href
+               if (!downloadURL.endsWith('?download')) downloadURL += '?download'
+
+               const dynamicAnchor = document.createElement('a');
+               dynamicAnchor.target = '_blank';
+               dynamicAnchor.download = fileName;
+               dynamicAnchor.href = downloadURL;
+
+               dynamicAnchor.addEventListener('click', function(e) {
+                  e.stopPropagation();
+               });
+   
+               document.body.appendChild(dynamicAnchor);
+               dynamicAnchor.click();
+            }
+         })
+      `);
+    };
+
     addEventListenerOnce('did-attach', handleAttachReady);
+    webview.addEventListener('did-start-loading', handleDidStartLoading);
 
     return () => {
       webview.removeEventListener('did-attach', handleAttachReady);
+      webview.removeEventListener('did-start-loading', handleDidStartLoading);
     };
   }, [dispatch, serverUrl]);
 

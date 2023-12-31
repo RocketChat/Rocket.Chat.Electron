@@ -129,25 +129,28 @@ export const ServerPane: FC<ServerPaneProps> = ({
             const isFileDownloadURL = event.target.href.startsWith(fileDownloadURL);
             const isTargetBlank = event.target.target === '_blank';
 
-            const fileName = event.target.href.split('/').pop().split('?')[0];
-
             if (isFileDownloadURL && isTargetBlank) {
-               event.preventDefault()
-               
-               let downloadURL = event.target.href
-               if (!downloadURL.endsWith('?download')) downloadURL += '?download'
+              event.preventDefault()
+              
+              // Prepare download URL
+              let downloadURL = event.target.href
+              if (!downloadURL.endsWith('?download')) downloadURL += '?download'
 
-               const dynamicAnchor = document.createElement('a');
-               dynamicAnchor.target = '_blank';
-               dynamicAnchor.download = fileName;
-               dynamicAnchor.href = downloadURL;
+              // Prepare file name
+              const fileName = event.target.href.split('/').pop().split('?')[0];
 
-               dynamicAnchor.addEventListener('click', function(e) {
-                  e.stopPropagation();
-               });
-   
-               document.body.appendChild(dynamicAnchor);
-               dynamicAnchor.click();
+              // Create link element
+              const linkElement = document.createElement('a');
+              linkElement.target = '_blank';
+              linkElement.download = fileName;
+              linkElement.href = downloadURL;
+              
+              // Stop propagation of the event to prevent infinite loop as document click event is also triggered
+              linkElement.addEventListener('click', (e) => e.stopPropagation());
+              
+              // Add link element to DOM and click it
+              document.body.appendChild(linkElement);
+              linkElement.click();
             }
          })
       `);

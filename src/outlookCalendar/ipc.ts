@@ -426,9 +426,14 @@ export const startOutlookCalendarUrlHandler = (): void => {
         credentials = response.outlookCredentials;
         saveCredentials = response.saveCredentials || false;
       } else {
-        credentials = safeStorage.isEncryptionAvailable()
-          ? decryptedCredentials(outlookCredentials)
-          : outlookCredentials;
+        try {
+          credentials = safeStorage.isEncryptionAvailable()
+            ? decryptedCredentials(outlookCredentials)
+            : outlookCredentials;
+        } catch (e) {
+          console.error('Error decrypting credentials:', e);
+          return Promise.reject(e);
+        }
       }
 
       try {

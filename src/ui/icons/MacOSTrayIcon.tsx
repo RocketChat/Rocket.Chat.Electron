@@ -1,6 +1,3 @@
-import type { FC } from 'react';
-import React from 'react';
-
 import AppIcon from './AppIcon';
 import Badge from './Badge';
 
@@ -8,7 +5,7 @@ type MacOSTrayIconProps = {
   notification?: boolean;
 };
 
-const MacOSTrayIcon: FC<MacOSTrayIconProps> = ({ notification }) => (
+const MacOSTrayIcon = ({ notification }: MacOSTrayIconProps) => (
   <svg
     width='100%'
     viewBox='0 0 512 512'

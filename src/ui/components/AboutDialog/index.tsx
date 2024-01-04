@@ -8,9 +8,9 @@ import {
   Throbber,
   ToggleSwitch,
 } from '@rocket.chat/fuselage';
-import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
-import type { FC, ChangeEvent } from 'react';
-import React, { useState, useEffect } from 'react';
+import { useAutoFocus } from '@rocket.chat/fuselage-hooks';
+import type { ChangeEvent } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -30,7 +30,7 @@ const copyright = `© 2016-${new Date().getFullYear()}, ${
   packageJsonInformation.productName
 }`;
 
-export const AboutDialog: FC = () => {
+export const AboutDialog = () => {
   const appVersion = useSelector(({ appVersion }: RootState) => appVersion);
   const doCheckForUpdatesOnStartup = useSelector(
     ({ doCheckForUpdatesOnStartup }: RootState) => doCheckForUpdatesOnStartup
@@ -120,7 +120,7 @@ export const AboutDialog: FC = () => {
   };
 
   const checkForUpdatesButtonRef = useAutoFocus(isVisible);
-  const checkForUpdatesOnStartupToggleSwitchId = useUniqueId();
+  const checkForUpdatesOnStartupToggleSwitchId = useId();
 
   return (
     <Dialog
@@ -134,7 +134,7 @@ export const AboutDialog: FC = () => {
           <Trans t={t} i18nKey='dialog.about.version'>
             Version:
             <Box is='span' fontScale='p2' style={{ userSelect: 'text' }}>
-              {{ version: appVersion }}
+              <>{{ version: appVersion }}</>
             </Box>
           </Trans>
         </Box>

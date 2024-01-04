@@ -1,7 +1,6 @@
 import { Box, Tabs } from '@rocket.chat/fuselage';
 import '@rocket.chat/fuselage-polyfills';
-import type { FC } from 'react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
@@ -9,7 +8,7 @@ import type { RootState } from '../../../store/rootReducer';
 import { CertificatesTab } from './CertificatesTab';
 import { GeneralTab } from './GeneralTab';
 
-export const SettingsView: FC = () => {
+export const SettingsView = () => {
   const isVisible = useSelector(
     ({ currentView }: RootState) => currentView === 'settings'
   );

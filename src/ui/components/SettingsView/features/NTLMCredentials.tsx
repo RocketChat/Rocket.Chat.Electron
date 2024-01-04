@@ -6,7 +6,8 @@ import {
   InputBox,
   ToggleSwitch,
 } from '@rocket.chat/fuselage';
-import React, { useCallback, type ChangeEvent, type FC } from 'react';
+import type { FocusEvent } from 'react';
+import { useCallback, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -16,11 +17,11 @@ import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_NTLM_CREDENTIALS_CHANGED } from '../../../actions';
 
-type Props = {
+type NTLMCredentialsProps = {
   className?: string;
 };
 
-export const NTLMCredentials: FC<Props> = (props) => {
+export const NTLMCredentials = (props: NTLMCredentialsProps) => {
   const isNTLMCredentialsEnabled = useSelector(
     ({ isNTLMCredentialsEnabled }: RootState) => isNTLMCredentialsEnabled
   );
@@ -43,7 +44,7 @@ export const NTLMCredentials: FC<Props> = (props) => {
   );
 
   const handleDomainsChange = useCallback(
-    (event: React.FocusEvent<HTMLInputElement>) => {
+    (event: FocusEvent<HTMLInputElement>) => {
       const domains = event.target.value;
       dispatch({
         type: APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET,

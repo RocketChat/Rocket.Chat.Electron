@@ -1,7 +1,4 @@
-import type { FC } from 'react';
-import React from 'react';
-
-export const RocketChatLogo: FC = () => {
+export const RocketChatLogo = () => {
   const color = '#F5455C';
 
   return (

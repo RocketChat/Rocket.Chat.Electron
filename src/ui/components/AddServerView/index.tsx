@@ -11,9 +11,9 @@ import {
   TextInput,
   Tile,
 } from '@rocket.chat/fuselage';
-import { useUniqueId, useAutoFocus } from '@rocket.chat/fuselage-hooks';
-import type { FC, FormEvent, ChangeEvent } from 'react';
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import { useAutoFocus } from '@rocket.chat/fuselage-hooks';
+import type { FormEvent, ChangeEvent } from 'react';
+import { useCallback, useEffect, useState, useMemo, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -32,7 +32,7 @@ import { Wrapper } from './styles';
 
 const defaultServerUrl = new URL('https://open.rocket.chat/');
 
-export const AddServerView: FC = () => {
+export const AddServerView = () => {
   const isVisible = useSelector(
     ({ currentView }: RootState) => currentView === 'add-new-server'
   );
@@ -79,7 +79,7 @@ export const AddServerView: FC = () => {
   );
 
   const resolveServerUrl = useCallback(
-    async (serverUrl): Promise<void> => {
+    async (serverUrl: string): Promise<void> => {
       beginValidation();
 
       const [resolvedServerUrl, result] = await request(
@@ -146,7 +146,7 @@ export const AddServerView: FC = () => {
     };
   }, []);
 
-  const inputId = useUniqueId();
+  const inputId = useId();
   const inputRef = useAutoFocus(isVisible);
 
   if (!isVisible) {

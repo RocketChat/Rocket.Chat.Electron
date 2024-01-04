@@ -1,7 +1,7 @@
 import { css } from '@rocket.chat/css-in-js';
 import { IconButton, Badge, Box } from '@rocket.chat/fuselage';
-import type { FC, DragEvent, MouseEvent } from 'react';
-import React, { useMemo } from 'react';
+import type { DragEvent, MouseEvent } from 'react';
+import { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
@@ -35,7 +35,7 @@ type ServerButtonProps = {
   onDrop: (event: DragEvent) => void;
 };
 
-const ServerButton: FC<ServerButtonProps> = ({
+const ServerButton = ({
   url,
   title,
   shortcutNumber,
@@ -50,7 +50,7 @@ const ServerButton: FC<ServerButtonProps> = ({
   onDragEnd,
   onDragEnter,
   onDrop,
-}) => {
+}: ServerButtonProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const handleServerClick = (): void => {

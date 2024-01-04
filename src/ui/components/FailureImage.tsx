@@ -1,6 +1,5 @@
-import { useUniqueId } from '@rocket.chat/fuselage-hooks';
-import type { FC, CSSProperties } from 'react';
-import React from 'react';
+import type { CSSProperties } from 'react';
+import { useId } from 'react';
 
 type FailureImageProps = {
   st3?: string;
@@ -21,7 +20,7 @@ type FailureImageProps = {
   style?: CSSProperties;
 };
 
-export const FailureImage: FC<FailureImageProps> = ({
+export const FailureImage = ({
   st3 = '#030C1A',
   st15 = '#030D19',
   st11 = '#0B182B',
@@ -38,11 +37,11 @@ export const FailureImage: FC<FailureImageProps> = ({
   st4 = '#FFCD52',
   st13 = '#FFFFFF',
   ...props
-}) => {
-  const a = useUniqueId();
-  const b = useUniqueId();
-  const c = useUniqueId();
-  const e = useUniqueId();
+}: FailureImageProps) => {
+  const a = useId();
+  const b = useId();
+  const c = useId();
+  const e = useId();
 
   return (
     <svg viewBox='0 0 1366 768' preserveAspectRatio='xMidYMid slice' {...props}>

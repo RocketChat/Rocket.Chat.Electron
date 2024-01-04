@@ -1,5 +1,4 @@
-import type { FC } from 'react';
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
@@ -22,13 +21,13 @@ type ServerPaneProps = {
   title: string | undefined;
 };
 
-export const ServerPane: FC<ServerPaneProps> = ({
+export const ServerPane = ({
   lastPath,
   serverUrl,
   isSelected,
   isFailed,
   isSupported,
-}) => {
+}: ServerPaneProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const webviewRef =

@@ -9,8 +9,8 @@ import {
   SelectLegacy,
 } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
-import type { FC, ChangeEvent } from 'react';
-import React, { useState, useMemo, useCallback } from 'react';
+import type { ChangeEvent } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
@@ -21,7 +21,7 @@ import type { RootState } from '../../../store/rootReducer';
 import { DOWNLOADS_BACK_BUTTON_CLICKED } from '../../actions';
 import DownloadItem from './DownloadItem';
 
-const DownloadsManagerView: FC = () => {
+const DownloadsManagerView = () => {
   const isVisible = useSelector(
     ({ currentView }: RootState) => currentView === 'downloads'
   );
@@ -129,7 +129,15 @@ const DownloadsManagerView: FC = () => {
   const [currentPagination, setCurrentPagination] = useState(0);
 
   const showingResultsLabel = useCallback(
-    ({ count, current, itemsPerPage }) =>
+    ({
+      count,
+      current,
+      itemsPerPage,
+    }: {
+      count: number;
+      current: number;
+      itemsPerPage: number;
+    }) =>
       t('downloads.showingResults', {
         first: current + 1,
         last: Math.min(current + itemsPerPage, count),

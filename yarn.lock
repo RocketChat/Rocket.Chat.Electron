@@ -5505,12 +5505,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:~17.0.25":
-  version: 17.0.25
-  resolution: "@types/react-dom@npm:17.0.25"
+"@types/react-dom@npm:~18.2.18":
+  version: 18.2.18
+  resolution: "@types/react-dom@npm:18.2.18"
   dependencies:
-    "@types/react": ^17
-  checksum: d1e582682478e0848c8d54ea3e89d02047bac6d916266b85ce63731b06987575919653ea7159d98fda47ade3362b8c4d5796831549564b83088e7aa9ce8b60ed
+    "@types/react": "*"
+  checksum: 8e3da404c980e2b2a76da3852f812ea6d8b9d0e7f5923fbaf3bfbbbfa1d59116ff91c129de8f68e9b7668a67ae34484fe9df74d5a7518cf8591ec07a0c4dad57
   languageName: node
   linkType: hard
 
@@ -5537,25 +5537,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^17":
-  version: 17.0.70
-  resolution: "@types/react@npm:17.0.70"
+"@types/react@npm:~18.2.46":
+  version: 18.2.46
+  resolution: "@types/react@npm:18.2.46"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: 24e6051f1beaa96ee40e918d72b44df55224cde4489606266e8bc8f72f5fda561161b453b89348db8b13c54562e81127448f58b1e949904687084beeeeda5a36
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:~17.0.74":
-  version: 17.0.74
-  resolution: "@types/react@npm:17.0.74"
-  dependencies:
-    "@types/prop-types": "*"
-    "@types/scheduler": "*"
-    csstype: ^3.0.2
-  checksum: 0234cee33281607db663a9d878e799458d9ab7e31f818528c75f0d0047175fb06db0672b0d2b93977ff066c07636a9a09b121178a55cbb4a4fe82ff61dae7474
+  checksum: cb0e4dc7f41988a059e1246a19ec377101f5b16097ec4bf7000ef3c431ec0c8c873f40e95075821f908db1f4e3352775f0f18cea53dcad14dce67c0f5110f2bd
   languageName: node
   linkType: hard
 
@@ -13501,16 +13490,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:~17.0.2":
-  version: 17.0.2
-  resolution: "react-dom@npm:17.0.2"
+"react-dom@npm:~18.2.0":
+  version: 18.2.0
+  resolution: "react-dom@npm:18.2.0"
   dependencies:
     loose-envify: ^1.1.0
-    object-assign: ^4.1.1
-    scheduler: ^0.20.2
+    scheduler: ^0.23.0
   peerDependencies:
-    react: 17.0.2
-  checksum: 1c1eaa3bca7c7228d24b70932e3d7c99e70d1d04e13bb0843bbf321582bc25d7961d6b8a6978a58a598af2af496d1cedcfb1bf65f6b0960a0a8161cb8dab743c
+    react: ^18.2.0
+  checksum: 7d323310bea3a91be2965f9468d552f201b1c27891e45ddc2d6b8f717680c95a75ae0bc1e3f5cf41472446a2589a75aed4483aee8169287909fcd59ad149e8cc
   languageName: node
   linkType: hard
 
@@ -13640,13 +13628,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:~17.0.2":
-  version: 17.0.2
-  resolution: "react@npm:17.0.2"
+"react@npm:~18.2.0":
+  version: 18.2.0
+  resolution: "react@npm:18.2.0"
   dependencies:
     loose-envify: ^1.1.0
-    object-assign: ^4.1.1
-  checksum: b254cc17ce3011788330f7bbf383ab653c6848902d7936a87b09d835d091e3f295f7e9dd1597c6daac5dc80f90e778c8230218ba8ad599f74adcc11e33b9d61b
+  checksum: 88e38092da8839b830cda6feef2e8505dec8ace60579e46aa5490fc3dc9bba0bd50336507dc166f43e3afc1c42939c09fe33b25fae889d6f402721dcd78fca1b
   languageName: node
   linkType: hard
 
@@ -14167,8 +14154,8 @@ __metadata:
     "@types/jest": ^27.4.0
     "@types/jsonwebtoken": ~9.0.5
     "@types/node": ~16.0.3
-    "@types/react": ~17.0.74
-    "@types/react-dom": ~17.0.25
+    "@types/react": ~18.2.46
+    "@types/react-dom": ~18.2.18
     "@types/react-redux": ~7.1.33
     "@types/resize-observer-browser": ~0.1.11
     "@types/rimraf": ^3.0.2
@@ -14207,8 +14194,8 @@ __metadata:
     npm-run-all: ^4.1.5
     prettier: ~2.8.8
     puppeteer: ^13.1.2
-    react: ~17.0.2
-    react-dom: ~17.0.2
+    react: ~18.2.0
+    react-dom: ~18.2.0
     react-hook-form: ^7.43.9
     react-i18next: ^11.15.3
     react-keyed-flatten-children: ^1.3.0
@@ -14344,13 +14331,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scheduler@npm:^0.20.2":
-  version: 0.20.2
-  resolution: "scheduler@npm:0.20.2"
+"scheduler@npm:^0.23.0":
+  version: 0.23.0
+  resolution: "scheduler@npm:0.23.0"
   dependencies:
     loose-envify: ^1.1.0
-    object-assign: ^4.1.1
-  checksum: c4b35cf967c8f0d3e65753252d0f260271f81a81e427241295c5a7b783abf4ea9e905f22f815ab66676f5313be0a25f47be582254db8f9241b259213e999b8fc
+  checksum: d79192eeaa12abef860c195ea45d37cbf2bbf5f66e3c4dcd16f54a7da53b17788a70d109ee3d3dde1a0fd50e6a8fc171f4300356c5aee4fc0171de526bf35f8a
   languageName: node
   linkType: hard
 

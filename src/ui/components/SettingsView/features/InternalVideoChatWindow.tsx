@@ -5,8 +5,8 @@ import {
   FieldLabel,
   FieldHint,
 } from '@rocket.chat/fuselage';
-import type { ChangeEvent, FC } from 'react';
-import React, { useCallback } from 'react';
+import type { ChangeEvent } from 'react';
+import { useCallback } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -15,11 +15,13 @@ import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED } from '../../../actions';
 
-type Props = {
+type InternalVideoChatWindowProps = {
   className?: string;
 };
 
-export const InternalVideoChatWindow: FC<Props> = (props) => {
+export const InternalVideoChatWindow = (
+  props: InternalVideoChatWindowProps
+) => {
   const isInternalVideoChatWindowEnabled = useSelector(
     ({ isInternalVideoChatWindowEnabled }: RootState) =>
       isInternalVideoChatWindowEnabled

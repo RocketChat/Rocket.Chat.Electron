@@ -1,9 +1,6 @@
-import type { FC } from 'react';
-import React from 'react';
-
 import AppIcon from '../icons/AppIcon';
 
-const NsisSideBar: FC = () => {
+const NsisSideBar = () => {
   const backgroundColor = '#F7F8FA';
 
   return (

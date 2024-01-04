@@ -11,11 +11,10 @@
   "devDependencies": {
     "@rocket.chat/eslint-config": "~0.6.0",
     "@rocket.chat/prettier-config": "~0.31.25",
-    "@types/node": "12.20.55",
+    "@types/node": "~16.0.3",
     "@typescript-eslint/eslint-plugin": "~5.60.1",
     "@typescript-eslint/parser": "~5.60.1",
-    "@vercel/ncc": "^0.28.6",
-    "cross-env": "^7.0.3",
+    "@vercel/ncc": "~0.38.1",
     "eslint": "~8.53.0",
     "eslint-config-prettier": "~9.0.0",
     "eslint-import-resolver-typescript": "~3.6.1",
@@ -32,5 +31,9 @@
     "@octokit/webhooks-types": "^3.77.1",
     "fast-glob": "^3.2.5",
     "semver": "^7.3.5"
+  },
+  "volta": {
+    "node": "20.10.0",
+    "yarn": "4.0.2"
   }
 }

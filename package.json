@@ -45,7 +45,7 @@
     ".:lint:tsc": "tsc --noEmit",
     "lint-fix": "run-s .:lint-fix:eslint .:lint:tsc",
     ".:lint-fix:eslint": "eslint --fix .",
-    "workspaces:build": "yarn workspaces foreach -t run build",
+    "workspaces:build": "yarn workspaces foreach -At run build",
     "build-get-cloud-info": "ts-node -O \"{\\\"module\\\":\\\"commonjs\\\"}\" src/servers/supportedVersions/downloadFromCloud.ts"
   },
   "dependencies": {
@@ -144,19 +144,19 @@
     "fsevents": "2.3.3"
   },
   "engines": {
-    "node": ">=12.8.x"
+    "node": ">=20.10.0"
   },
   "devEngines": {
-    "node": ">=12.8.x",
-    "yarn": ">=1.22.x"
+    "node": ">=20.10.0",
+    "yarn": ">=4.0.2"
   },
   "resolutions": {
     "@fiahfy/icns-convert/sharp": "0.29.3",
     "@fiahfy/ico-convert/sharp": "0.29.3"
   },
   "volta": {
-    "node": "14.21.3",
-    "yarn": "1.22.18"
+    "node": "20.10.0",
+    "yarn": "4.0.2"
   },
-  "packageManager": "yarn@3.2.2"
+  "packageManager": "yarn@4.0.2"
 }

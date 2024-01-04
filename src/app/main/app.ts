@@ -1,5 +1,5 @@
 import { app, session } from 'electron';
-import rimraf from 'rimraf';
+import { rimraf } from 'rimraf';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore:next-line

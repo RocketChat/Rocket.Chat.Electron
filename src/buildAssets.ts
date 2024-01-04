@@ -8,7 +8,7 @@ import Jimp from 'jimp';
 import puppeteer from 'puppeteer';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import rimraf from 'rimraf';
+import { rimraf } from 'rimraf';
 
 import type { Server } from './servers/common';
 import DmgBackground from './ui/assets/DmgBackground';
@@ -263,7 +263,7 @@ const run = async (): Promise<void> => {
   await createWindowsAppIcons();
   await createLinuxAppIcons();
 
-  await util.promisify(rimraf)('src/public/images/tray');
+  await rimraf('src/public/images/tray');
 
   await createMacOSTrayIcons();
   await createWindowsTrayIcons();

@@ -49,7 +49,7 @@
     "build-get-cloud-info": "ts-node -O \"{\\\"module\\\":\\\"commonjs\\\"}\" src/servers/supportedVersions/downloadFromCloud.ts"
   },
   "dependencies": {
-    "@bugsnag/js": "^7.16.0",
+    "@bugsnag/js": "~7.22.3",
     "@emotion/css": "^11.7.1",
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",

@@ -29,7 +29,7 @@
     "postinstall": "run-s install-app-deps clean",
     "start": "run-s build:watch",
     "clean": "rimraf app dist",
-    "build": "yarn build-get-cloud-info && rollup -c ",
+    "build": "rollup -c",
     "build:watch": "rollup -c -w",
     "build-mac": "yarn build && yarn electron-builder --publish never --mac --universal",
     "build-win": "yarn build && yarn electron-builder --publish never --win",
@@ -45,8 +45,7 @@
     ".:lint:tsc": "tsc --noEmit",
     "lint-fix": "run-s .:lint-fix:eslint .:lint:tsc",
     ".:lint-fix:eslint": "eslint --fix .",
-    "workspaces:build": "yarn workspaces foreach -At run build",
-    "build-get-cloud-info": "ts-node -O \"{\\\"module\\\":\\\"commonjs\\\"}\" src/servers/supportedVersions/downloadFromCloud.ts"
+    "workspaces:build": "yarn workspaces foreach -At run build"
   },
   "dependencies": {
     "@bugsnag/js": "~7.22.3",

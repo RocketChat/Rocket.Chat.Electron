@@ -2,7 +2,6 @@ import {
   Box,
   SearchInput,
   Icon,
-  Button,
   Pagination,
   Scrollable,
   IconButton,
@@ -252,13 +251,11 @@ const DownloadsManagerView = () => {
           />
         </Box>
         <Box display='flex' flexGrow={1} flexShrink={1} paddingInline={2}>
-          <Button
-            small
+          <IconButton
+            icon='trash'
             title={t('downloads.filters.clear')}
             onClick={handleClearAll}
-          >
-            <Icon name='trash' size={24} />
-          </Button>
+          />
         </Box>
       </Box>
       <Scrollable>

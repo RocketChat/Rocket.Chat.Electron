@@ -6,7 +6,7 @@ import {
   FieldHint,
 } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
-import { useCallback } from 'react';
+import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -37,16 +37,19 @@ export const HardwareAcceleration = (props: HardwareAccelerationProps) => {
     [dispatch]
   );
 
+  const isHardwareAccelerationEnabledId = useId();
+
   return (
     <Field className={props.className}>
       <FieldRow>
-        <ToggleSwitch
-          onChange={handleChange}
-          checked={isHardwareAccelerationEnabled}
-        />
-        <FieldLabel htmlFor='toggle-switch'>
+        <FieldLabel htmlFor={isHardwareAccelerationEnabledId}>
           {t('settings.options.hardwareAcceleration.title')}
         </FieldLabel>
+        <ToggleSwitch
+          id={isHardwareAccelerationEnabledId}
+          checked={isHardwareAccelerationEnabled}
+          onChange={handleChange}
+        />
       </FieldRow>
       <FieldRow>
         <FieldHint>

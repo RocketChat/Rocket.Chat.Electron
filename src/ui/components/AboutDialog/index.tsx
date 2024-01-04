@@ -174,15 +174,15 @@ export const AboutDialog = () => {
 
               <Field>
                 <FieldRow>
+                  <FieldLabel htmlFor={checkForUpdatesOnStartupToggleSwitchId}>
+                    {t('dialog.about.checkUpdatesOnStart')}
+                  </FieldLabel>
                   <ToggleSwitch
                     id={checkForUpdatesOnStartupToggleSwitchId}
                     checked={isCheckForUpdatesOnStartupChecked}
                     disabled={!canSetCheckForUpdatesOnStartup}
                     onChange={handleCheckForUpdatesOnStartCheckBoxChange}
                   />
-                  <FieldLabel htmlFor={checkForUpdatesOnStartupToggleSwitchId}>
-                    {t('dialog.about.checkUpdatesOnStart')}
-                  </FieldLabel>
                 </FieldRow>
               </Field>
             </Margins>

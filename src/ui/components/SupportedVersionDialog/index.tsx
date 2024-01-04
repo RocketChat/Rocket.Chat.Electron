@@ -87,7 +87,6 @@ export const SupportedVersionDialog = () => {
 
   useEffect(() => {
     checkServerVersion();
-    console.log('checkServerVersion');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [server?.supportedVersions, server?.lastPath, currentView]);
 

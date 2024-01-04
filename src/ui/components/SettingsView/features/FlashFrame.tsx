@@ -7,7 +7,7 @@ import {
   FieldHint,
 } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
-import { useCallback } from 'react';
+import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -37,15 +37,21 @@ export const FlashFrame = (props: FlashFrameProps) => {
     [dispatch]
   );
 
+  const isFlashFrameEnabledId = useId();
+
   return (
     <Field className={props.className}>
       <FieldRow>
-        <ToggleSwitch onChange={handleChange} checked={isFlashFrameEnabled} />
-        <FieldLabel htmlFor='toggle-switch'>
+        <FieldLabel htmlFor={isFlashFrameEnabledId}>
           {process.platform !== 'darwin'
             ? t('settings.options.flashFrame.title')
             : t('settings.options.flashFrame.titleDarwin')}
         </FieldLabel>
+        <ToggleSwitch
+          id={isFlashFrameEnabledId}
+          checked={isFlashFrameEnabled}
+          onChange={handleChange}
+        />
       </FieldRow>
       {process.platform === 'linux' && (
         <Callout

@@ -7,7 +7,7 @@ import {
   ToggleSwitch,
 } from '@rocket.chat/fuselage';
 import type { FocusEvent } from 'react';
-import { useCallback, type ChangeEvent } from 'react';
+import { useCallback, type ChangeEvent, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -54,16 +54,19 @@ export const NTLMCredentials = (props: NTLMCredentialsProps) => {
     [dispatch]
   );
 
+  const isNTLMCredentialsEnabledId = useId();
+
   return (
     <Field className={props.className}>
       <FieldRow>
-        <ToggleSwitch
-          onChange={handleToggleChange}
-          checked={isNTLMCredentialsEnabled}
-        />
-        <FieldLabel htmlFor='toggle-switch'>
+        <FieldLabel htmlFor={isNTLMCredentialsEnabledId}>
           {t('settings.options.ntlmCredentials.title')}
         </FieldLabel>
+        <ToggleSwitch
+          id={isNTLMCredentialsEnabledId}
+          checked={isNTLMCredentialsEnabled}
+          onChange={handleToggleChange}
+        />
       </FieldRow>
       <FieldRow>
         <FieldHint>

@@ -6,7 +6,7 @@ import {
   FieldHint,
 } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
-import { useCallback } from 'react';
+import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -36,13 +36,19 @@ export const SideBar = (props: SideBarProps) => {
     [dispatch]
   );
 
+  const isSideBarEnabledId = useId();
+
   return (
     <Field className={props.className}>
       <FieldRow>
-        <ToggleSwitch onChange={handleChange} checked={isSideBarEnabled} />
-        <FieldLabel htmlFor='toggle-switch'>
+        <FieldLabel htmlFor={isSideBarEnabledId}>
           {t('settings.options.sidebar.title')}
         </FieldLabel>
+        <ToggleSwitch
+          id={isSideBarEnabledId}
+          checked={isSideBarEnabled}
+          onChange={handleChange}
+        />
       </FieldRow>
       <FieldRow>
         <FieldHint>{t('settings.options.sidebar.description')}</FieldHint>

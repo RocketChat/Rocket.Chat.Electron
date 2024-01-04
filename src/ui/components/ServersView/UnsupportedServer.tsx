@@ -33,7 +33,7 @@ const UnsupportedServer = ({
   return (
     <ErrorPane isVisible={isSupported === false}>
       <Box
-        backgroundColor='white'
+        backgroundColor='surface-light'
         display='flex'
         flexDirection='column'
         style={{

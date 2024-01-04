@@ -6,7 +6,7 @@ import {
   FieldHint,
 } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
-import { useCallback } from 'react';
+import { useCallback, useId } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -39,17 +39,20 @@ export const InternalVideoChatWindow = (
     [dispatch]
   );
 
+  const isInternalVideoChatWindowEnabledId = useId();
+
   return (
     <Field className={props.className}>
       <FieldRow>
-        <ToggleSwitch
-          disabled={process.mas}
-          onChange={handleChange}
-          checked={isInternalVideoChatWindowEnabled}
-        />
-        <FieldLabel htmlFor='toggle-switch'>
+        <FieldLabel htmlFor={isInternalVideoChatWindowEnabledId}>
           {t('settings.options.internalVideoChatWindow.title')}
         </FieldLabel>
+        <ToggleSwitch
+          id={isInternalVideoChatWindowEnabledId}
+          disabled={process.mas}
+          checked={isInternalVideoChatWindowEnabled}
+          onChange={handleChange}
+        />
       </FieldRow>
       <FieldRow>
         {process.mas ? (

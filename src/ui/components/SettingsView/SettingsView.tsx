@@ -25,7 +25,6 @@ export const SettingsView = () => {
     >
       <Box
         width='full'
-        minHeight={64}
         padding={24}
         display='flex'
         flexDirection='row'

@@ -6,7 +6,7 @@ import {
   FieldHint,
 } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
-import { useCallback } from 'react';
+import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -36,17 +36,20 @@ export const ReportErrors = (props: ReportErrorsProps) => {
     [dispatch]
   );
 
+  const isReportEnabledId = useId();
+
   return (
     <Field className={props.className}>
       <FieldRow>
-        <ToggleSwitch
-          disabled={process.mas}
-          onChange={handleChange}
-          checked={isReportEnabled}
-        />
-        <FieldLabel htmlFor='toggle-switch'>
+        <FieldLabel htmlFor={isReportEnabledId}>
           {t('settings.options.report.title')}
         </FieldLabel>
+        <ToggleSwitch
+          id={isReportEnabledId}
+          disabled={process.mas}
+          checked={isReportEnabled}
+          onChange={handleChange}
+        />
       </FieldRow>
       <FieldRow>
         {process.mas ? (

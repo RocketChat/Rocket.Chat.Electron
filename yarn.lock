@@ -14218,10 +14218,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reselect@npm:~4.1.8":
-  version: 4.1.8
-  resolution: "reselect@npm:4.1.8"
-  checksum: 199984d9872f71cd207f4aa6e6fd2bd48d95154f7aa9b3aee3398335f39f5491059e732f28c12e9031d5d434adab2c458dc8af5afb6564d0ad37e1644445e09c
+"reselect@npm:~5.0.1":
+  version: 5.0.1
+  resolution: "reselect@npm:5.0.1"
+  checksum: 32ab562f00afb9441903bd3290e392b411d07d504899d0731d0dbd62de0bad467ff7301edab418d08a2ea4dbfa6e51400646ea64af86a811e71560558c92a5b4
   languageName: node
   linkType: hard
 
@@ -14483,7 +14483,7 @@ __metadata:
     react-redux: "npm:~9.0.4"
     react-virtuoso: "npm:~4.6.2"
     redux: "npm:~5.0.1"
-    reselect: "npm:~4.1.8"
+    reselect: "npm:~5.0.1"
     rimraf: "npm:~5.0.5"
     rollup: "npm:~2.79.1"
     rollup-plugin-copy: "npm:~3.4.0"

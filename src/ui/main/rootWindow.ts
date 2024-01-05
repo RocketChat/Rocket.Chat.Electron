@@ -6,11 +6,10 @@ import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
 import { setupRootWindowReload } from '../../app/main/dev';
-import type { Server } from '../../servers/common';
 import { select, watch, listen, dispatchLocal } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
-import type { RootWindowIcon, WindowState } from '../common';
+import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
 import { getTrayIconPath } from './icons';
@@ -288,15 +287,9 @@ export const setupRootWindow = (): void => {
   });
 
   if (process.platform === 'linux' || process.platform === 'win32') {
-    const selectRootWindowIcon = createStructuredSelector<
-      RootState,
-      {
-        globalBadge: Server['badge'];
-        rootWindowIcon: RootWindowIcon | null;
-      }
-    >({
+    const selectRootWindowIcon = createStructuredSelector({
       globalBadge: selectGlobalBadge,
-      rootWindowIcon: ({ rootWindowIcon }) => rootWindowIcon,
+      rootWindowIcon: ({ rootWindowIcon }: RootState) => rootWindowIcon,
     });
 
     unsubscribers.push(

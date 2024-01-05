@@ -2127,12 +2127,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@electron/remote@npm:^2.0.12":
-  version: 2.1.0
-  resolution: "@electron/remote@npm:2.1.0"
+"@electron/remote@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "@electron/remote@npm:2.1.1"
   peerDependencies:
     electron: ">= 13.0.0"
-  checksum: 205d3bd713b969f9452513275fa88cff0421cebde36d5154a802eb30eda0cbf8ad0062a3c8bdab1ef55e1a9767958dab3f850b7ac409cc8ea9740d9573bd36dd
+  checksum: 01ce6329d231e83dd79826c751bcd04afb991ddec381126217b5b28ca76318434e8a9a9ddf7f9f334bf6971b6c95a9349c25094ad79dccd7422f8b18ea0dcab6
   languageName: node
   linkType: hard
 
@@ -3351,14 +3351,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kayahr/jest-electron-runner@npm:~29.10.0":
-  version: 29.10.0
-  resolution: "@kayahr/jest-electron-runner@npm:29.10.0"
+"@kayahr/jest-electron-runner@npm:~29.11.0":
+  version: 29.11.0
+  resolution: "@kayahr/jest-electron-runner@npm:29.11.0"
   dependencies:
-    "@electron/remote": "npm:^2.0.12"
+    "@electron/remote": "npm:^2.1.1"
     "@jest/console": "npm:^29.7.0"
     "@jest/transform": "npm:^29.7.0"
-    electron: "npm:^27.0.0"
+    electron: "npm:^28.1.0"
     jest: "npm:^29.7.0"
     jest-docblock: "npm:^29.7.0"
     jest-haste-map: "npm:^29.7.0"
@@ -3375,7 +3375,7 @@ __metadata:
     throat: "npm:^6.0.2"
     tslib: "npm:^2.6.2"
     uuid: "npm:^9.0.1"
-  checksum: b2a78301306652f39ecd379ac8f107128803e34a84115d883e73fd6677f14fc4882197bb5f2c793660e5e94a5e16532d42b877ad83c88e01d907860d1a01f567
+  checksum: 88ef97367b2a39459c4c8cbbf79e324d3b416634c8fd8270d7549f2b683aea2129cda7e476e4c94d49954c31818a4fd206d9dd7ddf96abf1e66aad44ba4fea04
   languageName: node
   linkType: hard
 
@@ -5471,13 +5471,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:^27.4.0":
-  version: 27.5.2
-  resolution: "@types/jest@npm:27.5.2"
+"@types/jest@npm:~29.5.11":
+  version: 29.5.11
+  resolution: "@types/jest@npm:29.5.11"
   dependencies:
-    jest-matcher-utils: "npm:^27.0.0"
-    pretty-format: "npm:^27.0.0"
-  checksum: 8608696fbdea81bc9a600d1c5aeb290063357eaa55c0174e7db15087c4f483113b35f8b4c4ae364d2632cfed15a4dd674786254826b946c896de5612c8cb1a26
+    expect: "npm:^29.0.0"
+    pretty-format: "npm:^29.0.0"
+  checksum: 798f4c89407d9457bea1256de74c26f2b279f6c789c0e3311cd604cc75cdab333b9a29b00c51b0090d31abdf11cc788b4103282851a653bef6daf72edf97eef2
   languageName: node
   linkType: hard
 
@@ -8113,13 +8113,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff-sequences@npm:^27.5.1":
-  version: 27.5.1
-  resolution: "diff-sequences@npm:27.5.1"
-  checksum: 34d852a13eb82735c39944a050613f952038614ce324256e1c3544948fa090f1ca7f329a4f1f57c31fe7ac982c17068d8915b633e300f040b97708c81ceb26cd
-  languageName: node
-  linkType: hard
-
 "diff-sequences@npm:^29.6.3":
   version: 29.6.3
   resolution: "diff-sequences@npm:29.6.3"
@@ -8480,16 +8473,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^27.0.0":
-  version: 27.0.4
-  resolution: "electron@npm:27.0.4"
+"electron@npm:^28.1.0":
+  version: 28.1.1
+  resolution: "electron@npm:28.1.1"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^18.11.18"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 71721b1b45f5d13400bf2b289591fbe511653487134699bf5cc9139c85f2ce2b63cdaa4b5716a0f878ecb626ea2edbf0091652ba45c80c041929cacfd95d0183
+  checksum: fa5489892ce7376aa50f0dc4c1c3225d791a301c4559ce458dab1949aabf3b036a909888202e4bd75fbf9691c8c110cae843f1bb105d9f64778f8c115f7f2015
   languageName: node
   linkType: hard
 
@@ -9225,7 +9218,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expect@npm:^29.7.0":
+"expect@npm:^29.0.0, expect@npm:^29.7.0":
   version: 29.7.0
   resolution: "expect@npm:29.7.0"
   dependencies:
@@ -11132,18 +11125,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-diff@npm:^27.5.1":
-  version: 27.5.1
-  resolution: "jest-diff@npm:27.5.1"
-  dependencies:
-    chalk: "npm:^4.0.0"
-    diff-sequences: "npm:^27.5.1"
-    jest-get-type: "npm:^27.5.1"
-    pretty-format: "npm:^27.5.1"
-  checksum: af454f30f33af625832bdb02614e188a41e33ce79086b43f95dbcc515274dd36bf8443b8d0299e22c2416e7591da4321e6bc7f2b0aef56471d1133c6b6833221
-  languageName: node
-  linkType: hard
-
 "jest-diff@npm:^29.7.0":
   version: 29.7.0
   resolution: "jest-diff@npm:29.7.0"
@@ -11213,13 +11194,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-get-type@npm:^27.5.1":
-  version: 27.5.1
-  resolution: "jest-get-type@npm:27.5.1"
-  checksum: 63064ab70195c21007d897c1157bf88ff94a790824a10f8c890392e7d17eda9c3900513cb291ca1c8d5722cad79169764e9a1279f7c8a9c4cd6e9109ff04bbc0
-  languageName: node
-  linkType: hard
-
 "jest-get-type@npm:^29.6.3":
   version: 29.6.3
   resolution: "jest-get-type@npm:29.6.3"
@@ -11282,18 +11256,6 @@ __metadata:
     jest-get-type: "npm:^29.6.3"
     pretty-format: "npm:^29.7.0"
   checksum: e3950e3ddd71e1d0c22924c51a300a1c2db6cf69ec1e51f95ccf424bcc070f78664813bef7aed4b16b96dfbdeea53fe358f8aeaaea84346ae15c3735758f1605
-  languageName: node
-  linkType: hard
-
-"jest-matcher-utils@npm:^27.0.0":
-  version: 27.5.1
-  resolution: "jest-matcher-utils@npm:27.5.1"
-  dependencies:
-    chalk: "npm:^4.0.0"
-    jest-diff: "npm:^27.5.1"
-    jest-get-type: "npm:^27.5.1"
-    pretty-format: "npm:^27.5.1"
-  checksum: 037f99878a0515581d7728ed3aed03707810f4da5a1c7ffb9d68a2c6c3180851a6ec40b559af37fbe891dde3ba12552b19e47b8188a27b6c5a53376be6907f32
   languageName: node
   linkType: hard
 
@@ -13489,18 +13451,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pretty-format@npm:^27.0.0, pretty-format@npm:^27.5.1":
-  version: 27.5.1
-  resolution: "pretty-format@npm:27.5.1"
-  dependencies:
-    ansi-regex: "npm:^5.0.1"
-    ansi-styles: "npm:^5.0.0"
-    react-is: "npm:^17.0.1"
-  checksum: 248990cbef9e96fb36a3e1ae6b903c551ca4ddd733f8d0912b9cc5141d3d0b3f9f8dfb4d799fb1c6723382c9c2083ffbfa4ad43ff9a0e7535d32d41fd5f01da6
-  languageName: node
-  linkType: hard
-
-"pretty-format@npm:^29.7.0":
+"pretty-format@npm:^29.0.0, pretty-format@npm:^29.7.0":
   version: 29.7.0
   resolution: "pretty-format@npm:29.7.0"
   dependencies:
@@ -13810,13 +13761,6 @@ __metadata:
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
   checksum: 5aa564a1cde7d391ac980bedee21202fc90bdea3b399952117f54fb71a932af1e5902020144fb354b4690b2414a0c7aafe798eb617b76a3d441d956db7726fdf
-  languageName: node
-  linkType: hard
-
-"react-is@npm:^17.0.1":
-  version: 17.0.2
-  resolution: "react-is@npm:17.0.2"
-  checksum: 73b36281e58eeb27c9cc6031301b6ae19ecdc9f18ae2d518bdb39b0ac564e65c5779405d623f1df9abf378a13858b79442480244bd579968afc1faf9a2ce5e05
   languageName: node
   linkType: hard
 
@@ -14424,7 +14368,7 @@ __metadata:
     "@ewsjs/xhr": "npm:~2.0.2"
     "@fiahfy/icns-convert": "npm:~0.0.12"
     "@fiahfy/ico-convert": "npm:~0.0.12"
-    "@kayahr/jest-electron-runner": "npm:~29.10.0"
+    "@kayahr/jest-electron-runner": "npm:~29.11.0"
     "@rocket.chat/css-in-js": "npm:~0.31.25"
     "@rocket.chat/eslint-config": "npm:~0.6.0"
     "@rocket.chat/fuselage": "npm:~0.42.0"
@@ -14438,7 +14382,7 @@ __metadata:
     "@rollup/plugin-node-resolve": "npm:~13.3.0"
     "@rollup/plugin-replace": "npm:~3.1.0"
     "@types/electron-devtools-installer": "npm:~2.2.5"
-    "@types/jest": "npm:^27.4.0"
+    "@types/jest": "npm:~29.5.11"
     "@types/jsonwebtoken": "npm:~9.0.5"
     "@types/node": "npm:~16.0.3"
     "@types/react": "npm:~18.2.46"

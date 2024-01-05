@@ -13906,7 +13906,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-is@npm:^18.0.0":
+"react-is@npm:^18.0.0, react-is@npm:^18.2.0":
   version: 18.2.0
   resolution: "react-is@npm:18.2.0"
   checksum: 200cd65bf2e0be7ba6055f647091b725a45dd2a6abef03bf2380ce701fd5edccee40b49b9d15edab7ac08a762bf83cb4081e31ec2673a5bfb549a36ba21570df
@@ -13921,6 +13921,17 @@ __metadata:
   peerDependencies:
     react: ">=15.0.0"
   checksum: 3bb042bb7cd48909491a5f92b8e7b2fb0417d69ad24bf04dbe1ed7a308cc7dfe6e3c9b5550e7b9016ee6bef61829b92e7f3a355ed1b867affd251bd518bcdd90
+  languageName: node
+  linkType: hard
+
+"react-keyed-flatten-children@npm:~3.0.0":
+  version: 3.0.0
+  resolution: "react-keyed-flatten-children@npm:3.0.0"
+  dependencies:
+    react-is: "npm:^18.2.0"
+  peerDependencies:
+    react: ">=15.0.0"
+  checksum: 07c216e7420c3830969097bc7bdedaf50ae944f59540123680b99be7da3faecb6eda9edc71243f3f88696e93c4823646c609d774eee5116bdc348a7f53909b43
   languageName: node
   linkType: hard
 
@@ -14568,7 +14579,7 @@ __metadata:
     react-dom: "npm:~18.2.0"
     react-hook-form: "npm:~7.49.2"
     react-i18next: "npm:~14.0.0"
-    react-keyed-flatten-children: "npm:^1.3.0"
+    react-keyed-flatten-children: "npm:~3.0.0"
     react-redux: "npm:~7.1.3"
     react-virtuoso: "npm:1.2.4"
     redux: "npm:^4.2.1"

@@ -33,6 +33,16 @@
       }
     },
     {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        "@typescript-eslint/prefer-optional-chain": "warn"
+      },
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "project": ["./tsconfig.json"]
+      }
+    },
+    {
       "files": ["**/*.stories.js", "**/*.stories.jsx", "**/*.stories.ts", "**/*.stories.tsx", "**/*.spec.tsx"],
       "rules": {
         "react/display-name": "off",

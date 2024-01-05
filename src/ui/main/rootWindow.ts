@@ -89,13 +89,11 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     ({ isTrayIconEnabled }) => isTrayIconEnabled
   );
 
-  let { x, y } = rootWindowState.bounds;
+  let { x = null, y = null } = rootWindowState.bounds;
   let { width, height } = rootWindowState.bounds;
   if (
     x === null ||
-    x === undefined ||
     y === null ||
-    y === undefined ||
     !isInsideSomeScreen({ x, y, width, height })
   ) {
     const primaryDisplay = screen.getPrimaryDisplay();

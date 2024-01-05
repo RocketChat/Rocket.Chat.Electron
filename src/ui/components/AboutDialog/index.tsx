@@ -68,7 +68,7 @@ export const AboutDialog = () => {
   const [
     [checkingForUpdates, checkingForUpdatesMessage],
     setCheckingForUpdates,
-  ] = useState([false, null]);
+  ] = useState<[boolean, string | null]>([false, null]);
 
   useEffect(() => {
     if (updateError) {

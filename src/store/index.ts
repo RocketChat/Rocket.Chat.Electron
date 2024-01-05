@@ -1,4 +1,4 @@
-import type { Store, Middleware, Dispatch } from 'redux';
+import type { Store, Middleware } from 'redux';
 import { applyMiddleware, createStore, compose } from 'redux';
 
 import type { RootAction } from './actions';
@@ -11,11 +11,10 @@ let reduxStore: Store<RootState>;
 
 let lastAction: RootAction;
 
-const catchLastAction: Middleware =
-  () => (next: Dispatch<RootAction>) => (action) => {
-    lastAction = action;
-    return next(action);
-  };
+const catchLastAction: Middleware = () => (next) => (action: unknown) => {
+  lastAction = action as RootAction;
+  return next(action);
+};
 
 export const createMainReduxStore = (): void => {
   const middlewares = applyMiddleware(catchLastAction, forwardToRenderers);

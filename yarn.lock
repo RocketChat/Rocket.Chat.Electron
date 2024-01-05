@@ -5350,13 +5350,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/bluebird@npm:~3.5.42":
-  version: 3.5.42
-  resolution: "@types/bluebird@npm:3.5.42"
-  checksum: 09ad60b083f916c7611936d3c70986df8f2eae11e46768ab7901d86bee5b1ca6b00cd9ef8cc0d3761256e2bc4ada3388e5529f71745a6b3d7602e868e3530310
-  languageName: node
-  linkType: hard
-
 "@types/cacheable-request@npm:^6.0.1":
   version: 6.0.3
   resolution: "@types/cacheable-request@npm:6.0.3"
@@ -5424,16 +5417,6 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: ac545e377248039c596ef27d9f277b813507ebdd95d05f32fe7e9c67eb1ed567dafb4ba59f5fdcb6601dd7fd396ff9ba24f8c122e89cef096cdc17987c50a7fa
-  languageName: node
-  linkType: hard
-
-"@types/glob@npm:*":
-  version: 8.1.0
-  resolution: "@types/glob@npm:8.1.0"
-  dependencies:
-    "@types/minimatch": "npm:^5.1.2"
-    "@types/node": "npm:*"
-  checksum: 9101f3a9061e40137190f70626aa0e202369b5ec4012c3fabe6f5d229cce04772db9a94fa5a0eb39655e2e4ad105c38afbb4af56a56c0996a8c7d4fc72350e3d
   languageName: node
   linkType: hard
 
@@ -5558,7 +5541,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/minimatch@npm:*, @types/minimatch@npm:^5.1.2":
+"@types/minimatch@npm:*":
   version: 5.1.2
   resolution: "@types/minimatch@npm:5.1.2"
   checksum: 94db5060d20df2b80d77b74dd384df3115f01889b5b6c40fa2dfa27cfc03a68fb0ff7c1f2a0366070263eb2e9d6bfd8c87111d4bc3ae93c3f291297c1bf56c85
@@ -5711,13 +5694,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/resize-observer-browser@npm:~0.1.11":
-  version: 0.1.11
-  resolution: "@types/resize-observer-browser@npm:0.1.11"
-  checksum: 1e36bde885fb5d89d7138edce3b6dae51f14605a89cd1ffcf60e53ca1866515afe82b6fda7abb84f9c9639166f45480c9b7e512849bcc6502597984f302937c1
-  languageName: node
-  linkType: hard
-
 "@types/resolve@npm:1.17.1":
   version: 1.17.1
   resolution: "@types/resolve@npm:1.17.1"
@@ -5733,16 +5709,6 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: e4972389457e4edce3cbba5e8474fb33684d73879433a9eec989d0afb7e550fd6fa3ffb8fe68dbb429288d10707796a193bc0007c4e8429fd267bdc4d8404632
-  languageName: node
-  linkType: hard
-
-"@types/rimraf@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "@types/rimraf@npm:3.0.2"
-  dependencies:
-    "@types/glob": "npm:*"
-    "@types/node": "npm:*"
-  checksum: b47fa302f46434cba704d20465861ad250df79467d3d289f9d6490d3aeeb41e8cb32dd80bd1a8fd833d1e185ac719fbf9be12e05ad9ce9be094d8ee8f1405347
   languageName: node
   linkType: hard
 
@@ -5764,13 +5730,6 @@ __metadata:
   version: 2.0.1
   resolution: "@types/stack-utils@npm:2.0.1"
   checksum: 205fdbe3326b7046d7eaf5e494d8084f2659086a266f3f9cf00bccc549c8e36e407f88168ad4383c8b07099957ad669f75f2532ed4bc70be2b037330f7bae019
-  languageName: node
-  linkType: hard
-
-"@types/stylis@npm:~4.2.5":
-  version: 4.2.5
-  resolution: "@types/stylis@npm:4.2.5"
-  checksum: f8dde326432a7047b6684b96442f0e2ade2cfe8c29bf56217fb8cbbe4763997051fa9dc0f8dba4aeed2fddb794b4bc91feba913b780666b3adc28198ac7c63d4
   languageName: node
   linkType: hard
 
@@ -7027,7 +6986,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"builtin-modules@npm:^3.2.0, builtin-modules@npm:^3.3.0":
+"builtin-modules@npm:^3.3.0, builtin-modules@npm:~3.3.0":
   version: 3.3.0
   resolution: "builtin-modules@npm:3.3.0"
   checksum: 62e063ab40c0c1efccbfa9ffa31873e4f9d57408cb396a2649981a0ecbce56aabc93c28feaccbc5658c95aab2703ad1d11980e62ec2e5e72637404e1eb60f39e
@@ -14566,7 +14525,6 @@ __metadata:
     "@rollup/plugin-json": "npm:~4.1.0"
     "@rollup/plugin-node-resolve": "npm:~13.3.0"
     "@rollup/plugin-replace": "npm:~3.1.0"
-    "@types/bluebird": "npm:~3.5.42"
     "@types/electron-devtools-installer": "npm:~2.2.5"
     "@types/jest": "npm:^27.4.0"
     "@types/jsonwebtoken": "npm:~9.0.5"
@@ -14574,13 +14532,10 @@ __metadata:
     "@types/react": "npm:~18.2.46"
     "@types/react-dom": "npm:~18.2.18"
     "@types/react-redux": "npm:~7.1.33"
-    "@types/resize-observer-browser": "npm:~0.1.11"
-    "@types/rimraf": "npm:^3.0.2"
-    "@types/stylis": "npm:~4.2.5"
     "@typescript-eslint/eslint-plugin": "npm:~5.60.1"
     "@typescript-eslint/parser": "npm:~5.60.1"
     axios: "npm:~1.6.4"
-    builtin-modules: "npm:^3.2.0"
+    builtin-modules: "npm:~3.3.0"
     chokidar: "npm:~3.5.3"
     conventional-changelog-cli: "npm:~4.1.0"
     convert-svg-to-png: "npm:~0.6.4"
@@ -14625,7 +14580,7 @@ __metadata:
     ts-jest: "npm:~29.1.1"
     ts-node: "npm:^10.9.2"
     typescript: "npm:~5.3.3"
-    xvfb-maybe: "npm:^0.2.1"
+    xvfb-maybe: "npm:~0.2.1"
   dependenciesMeta:
     fsevents:
       optional: true
@@ -16708,7 +16663,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"xvfb-maybe@npm:^0.2.1":
+"xvfb-maybe@npm:~0.2.1":
   version: 0.2.1
   resolution: "xvfb-maybe@npm:0.2.1"
   dependencies:

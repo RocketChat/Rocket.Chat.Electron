@@ -5670,10 +5670,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^16.11.26":
-  version: 16.18.61
-  resolution: "@types/node@npm:16.18.61"
-  checksum: ea2fdb3876f77ef8be0bdeee7b0c301a6bf27ab743f55a10486725d8ddd51b84edea7c219e9d09fd24650e8b14c040207a48169bd396915e7a989bac1a7c0bee
+"@types/node@npm:^16.11.26, @types/node@npm:~16.18.69":
+  version: 16.18.69
+  resolution: "@types/node@npm:16.18.69"
+  checksum: d8a573b2e623868f5b3ff905eca53ac3ca02555100c3bfc6f347923eaf999965c2f0298e65743567ad7b9b8a3f4b1dc66f0cbb29a87d39c3de2fe2d5a01a0a22
   languageName: node
   linkType: hard
 
@@ -5792,14 +5792,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/semver@npm:^7.3.12, @types/semver@npm:^7.3.6":
+"@types/semver@npm:^7.3.12":
   version: 7.5.0
   resolution: "@types/semver@npm:7.5.0"
   checksum: 8fbfbf79e9c14c3c20160a42145a146cba44d9763d0fac78358b394dc36e41bc2590bc4f0129c6fcbbc9b30f12ea1ba821bfe84b29dc80897f315cc7dd251393
   languageName: node
   linkType: hard
 
-"@types/semver@npm:^7.5.0":
+"@types/semver@npm:^7.3.6, @types/semver@npm:^7.5.0":
   version: 7.5.6
   resolution: "@types/semver@npm:7.5.6"
   checksum: e77282b17f74354e17e771c0035cccb54b94cc53d0433fa7e9ba9d23fd5d7edcd14b6c8b7327d58bbd89e83b1c5eda71dfe408e06b929007e2b89586e9b63459
@@ -5842,11 +5842,11 @@ __metadata:
   linkType: hard
 
 "@types/yargs@npm:^17.0.1":
-  version: 17.0.24
-  resolution: "@types/yargs@npm:17.0.24"
+  version: 17.0.32
+  resolution: "@types/yargs@npm:17.0.32"
   dependencies:
     "@types/yargs-parser": "npm:*"
-  checksum: 03d9a985cb9331b2194a52d57a66aad88bf46aa32b3968a71cc6f39fb05c74f0709f0dd3aa9c0b29099cfe670343e3b1bd2ac6df2abfab596ede4453a616f63f
+  checksum: 1e2b2673847011ce43607df690d392f137d95a2d6ea85aa319403eadda2ef4277365efd4982354d8843f2611ef3846c88599660aaeb537fa9ccddae83c2a89de
   languageName: node
   linkType: hard
 
@@ -6197,6 +6197,13 @@ __metadata:
   version: 0.8.7
   resolution: "@xmldom/xmldom@npm:0.8.7"
   checksum: 612c12518f25c2c06c1505ea0acca535a6f1293cae594e6329b18b112b720fca7fceeadb65ea203faa081933306a5b0f0967c3c728c77c4b68eccfa0d5537d3c
+  languageName: node
+  linkType: hard
+
+"@xmldom/xmldom@npm:^0.8.8":
+  version: 0.8.10
+  resolution: "@xmldom/xmldom@npm:0.8.10"
+  checksum: 62400bc5e0e75b90650e33a5ceeb8d94829dd11f9b260962b71a784cd014ddccec3e603fe788af9c1e839fa4648d8c521ebd80d8b752878d3a40edabc9ce7ccf
   languageName: node
   linkType: hard
 
@@ -13690,7 +13697,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"plist@npm:^3.0.1, plist@npm:^3.0.4":
+"plist@npm:^3.0.1":
+  version: 3.1.0
+  resolution: "plist@npm:3.1.0"
+  dependencies:
+    "@xmldom/xmldom": "npm:^0.8.8"
+    base64-js: "npm:^1.5.1"
+    xmlbuilder: "npm:^15.1.1"
+  checksum: f513beecc01a021b4913d4e5816894580b284335ae437e7ed2d5e78f8b6f0d2e0f874ec57bab9c9d424cc49e77b8347efa75abcfa8ac138dbfb63a045e1ce559
+  languageName: node
+  linkType: hard
+
+"plist@npm:^3.0.4":
   version: 3.0.6
   resolution: "plist@npm:3.0.6"
   dependencies:
@@ -14710,7 +14728,7 @@ __metadata:
     "@types/electron-devtools-installer": "npm:~2.2.5"
     "@types/jest": "npm:~29.5.11"
     "@types/jsonwebtoken": "npm:~9.0.5"
-    "@types/node": "npm:~16.0.3"
+    "@types/node": "npm:~16.18.69"
     "@types/react": "npm:~18.2.46"
     "@types/react-dom": "npm:~18.2.18"
     "@typescript-eslint/eslint-plugin": "npm:~6.17.0"
@@ -14759,7 +14777,7 @@ __metadata:
     rollup-plugin-copy: "npm:~3.5.0"
     semver: "npm:~7.5.4"
     ts-jest: "npm:~29.1.1"
-    ts-node: "npm:^10.9.2"
+    ts-node: "npm:~10.9.2"
     typescript: "npm:~5.3.3"
     xvfb-maybe: "npm:~0.2.1"
   dependenciesMeta:
@@ -15997,7 +16015,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:^10.9.2":
+"ts-node@npm:~10.9.2":
   version: 10.9.2
   resolution: "ts-node@npm:10.9.2"
   dependencies:

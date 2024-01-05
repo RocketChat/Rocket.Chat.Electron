@@ -27,6 +27,12 @@
   },
   "overrides": [
     {
+      "files": ["*.mjs"],
+      "parserOptions": {
+        "sourceType": "module"
+      }
+    },
+    {
       "files": ["**/*.stories.js", "**/*.stories.jsx", "**/*.stories.ts", "**/*.stories.tsx", "**/*.spec.tsx"],
       "rules": {
         "react/display-name": "off",

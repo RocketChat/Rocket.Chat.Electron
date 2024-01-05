@@ -56,8 +56,9 @@ export const createNotification = async ({
     NOTIFICATIONS_CREATE_RESPONDED
   );
 
-  eventHandlers.set(id, (event) =>
-    onEvent?.({ type: event.type, detail: event.detail })
+  eventHandlers.set(
+    id,
+    (event) => onEvent?.({ type: event.type, detail: event.detail })
   );
 
   return id;

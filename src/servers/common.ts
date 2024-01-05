@@ -39,7 +39,7 @@ export type ServerUrlResolutionResult =
   | [
       resolvedServerUrl: Server['url'],
       result: Exclude<ServerUrlResolutionStatus, 'OK'>,
-      error: Error
+      error: Error,
     ];
 
 export const isServerUrlResolutionResult = (

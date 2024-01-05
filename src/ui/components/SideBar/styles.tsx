@@ -24,17 +24,16 @@ export const Wrapper = styled.div<WrapperProps>`
   user-select: none;
   -webkit-app-region: drag;
 
-  transition: margin-inline-start 230ms ease-in-out,
+  transition:
+    margin-inline-start 230ms ease-in-out,
     visibility 230ms ease-in-out;
 
-  ${({ sideBarStyle: { background } }) =>
-    css`
-      background: ${background ?? '#2f343d'};
-    `}
-  ${({ sideBarStyle: { color } }) =>
-    css`
-      color: ${color ?? '#ffffff'};
-    `}
+  ${({ sideBarStyle: { background } }) => css`
+    background: ${background ?? '#2f343d'};
+  `}
+  ${({ sideBarStyle: { color } }) => css`
+    color: ${color ?? '#ffffff'};
+  `}
 
   ${({ sideBarStyle: { border } }) =>
     border &&
@@ -120,10 +119,9 @@ export const KeyboardShortcut = styled.div<KeyboardShortcutProps>`
   text-align: center;
   font-size: 12px;
   line-height: 1;
-  ${({ visible }) =>
-    css`
-      visibility: ${visible ? 'visible' : 'hidden'};
-    `}
+  ${({ visible }) => css`
+    visibility: ${visible ? 'visible' : 'hidden'};
+  `}
 `;
 
 type InitialsProps = {
@@ -133,10 +131,9 @@ type InitialsProps = {
 export const Initials = styled.span<InitialsProps>`
   line-height: 42px;
 
-  ${({ visible }) =>
-    css`
-      display: ${visible ? 'initial' : 'none'};
-    `}
+  ${({ visible }) => css`
+    display: ${visible ? 'initial' : 'none'};
+  `}
 `;
 
 type FaviconProps = {
@@ -147,10 +144,9 @@ export const Favicon = styled.img<FaviconProps>`
   max-width: 100%;
   height: 100%;
   object-fit: contain;
-  ${({ visible }) =>
-    css`
-      display: ${visible ? 'initial' : 'none'};
-    `}
+  ${({ visible }) => css`
+    display: ${visible ? 'initial' : 'none'};
+  `}
 `;
 
 type AvatarProps = {
@@ -166,16 +162,14 @@ export const Avatar = styled.span<AvatarProps>`
   height: 42px;
   transition: opacity var(--transitions-duration);
 
-  ${({ isSelected }) =>
-    css`
-      opacity: ${isSelected ? '1' : '0.6'};
-    `}
+  ${({ isSelected }) => css`
+    opacity: ${isSelected ? '1' : '0.6'};
+  `}
 
   &:hover {
-    ${({ isSelected }) =>
-      css`
-        opacity: ${isSelected ? '1' : '0.8'};
-      `}
+    ${({ isSelected }) => css`
+      opacity: ${isSelected ? '1' : '0.8'};
+    `}
   }
 `;
 

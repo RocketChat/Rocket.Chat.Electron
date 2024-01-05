@@ -143,7 +143,7 @@ export abstract class Service {
   // eslint-disable-next-line no-dupe-class-members
   protected listen<
     ActionType extends RootAction['type'],
-    Action extends RootAction
+    Action extends RootAction,
   >(
     typeOrPredicate: ActionType | ((action: RootAction) => action is Action),
     listener: (action: RootAction) => void
@@ -178,7 +178,7 @@ export const request = <
       RootAction,
       { type: ResponseTypes[Index]; payload: unknown }
     >;
-  }[number]
+  }[number],
 >(
   requestAction: Request,
   ...types: ResponseTypes

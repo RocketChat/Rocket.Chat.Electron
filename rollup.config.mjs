@@ -10,7 +10,7 @@ import builtinModules from 'builtin-modules';
 import electron from 'electron';
 import copy from 'rollup-plugin-copy';
 
-import appManifest from './package.json';
+import appManifest from './package.json' with { type: 'json' };
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const canRun =
@@ -104,6 +104,7 @@ export default [
         dir: 'app',
         format: 'cjs',
         sourcemap: 'inline',
+        interop: 'auto',
       },
     ],
   },
@@ -138,6 +139,7 @@ export default [
       dir: 'app',
       format: 'cjs',
       sourcemap: true,
+      interop: 'auto',
     },
   },
   {
@@ -171,6 +173,7 @@ export default [
         dir: 'app',
         format: 'cjs',
         sourcemap: 'inline',
+        interop: 'auto',
       },
     ],
   },
@@ -235,6 +238,7 @@ export default [
       dir: 'app',
       format: 'cjs',
       sourcemap: 'inline',
+      interop: 'auto',
     },
   },
 ];

@@ -72,7 +72,7 @@
     "react-i18next": "~14.0.0",
     "react-keyed-flatten-children": "~3.0.0",
     "react-redux": "~9.0.4",
-    "react-virtuoso": "1.2.4",
+    "react-virtuoso": "~4.6.2",
     "redux": "~5.0.1",
     "reselect": "~4.1.8",
     "rimraf": "~5.0.5",

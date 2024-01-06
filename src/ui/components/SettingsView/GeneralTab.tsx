@@ -2,6 +2,7 @@ import { Box, FieldGroup } from '@rocket.chat/fuselage';
 import type { FC } from 'react';
 import React from 'react';
 
+import { AlwaysStartAtHomePage } from './features/AlwaysStartAtHomePage';
 import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
 import { FlashFrame } from './features/FlashFrame';
 import { HardwareAcceleration } from './features/HardwareAcceleration';
@@ -16,6 +17,7 @@ import { TrayIcon } from './features/TrayIcon';
 export const GeneralTab: FC = () => (
   <Box is='form' margin={24} maxWidth={960} flexGrow={1} flexShrink={1}>
     <FieldGroup>
+      <AlwaysStartAtHomePage />
       <ReportErrors />
       <FlashFrame />
       <HardwareAcceleration />

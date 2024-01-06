@@ -1,8 +1,10 @@
 import type { FC } from 'react';
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { selectPersistableValues } from '../../../app/selectors';
+import { select } from '../../../store';
 import type { RootAction } from '../../../store/actions';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
@@ -126,6 +128,8 @@ export const ServerPane: FC<ServerPaneProps> = ({
     };
   }, [dispatch, serverUrl]);
 
+  const { doAlwaysStartAtHomePage } = select(selectPersistableValues);
+
   useEffect(() => {
     const webview = webviewRef.current;
     if (!webview) {
@@ -133,9 +137,13 @@ export const ServerPane: FC<ServerPaneProps> = ({
     }
 
     if (!webview.src) {
-      webview.src = lastPath || serverUrl;
+      let finalPath = lastPath || serverUrl;
+      if (doAlwaysStartAtHomePage) {
+        finalPath = serverUrl;
+      }
+      webview.src = finalPath;
     }
-  }, [lastPath, serverUrl]);
+  }, [doAlwaysStartAtHomePage, lastPath, serverUrl]);
 
   const handleReload = (): void => {
     dispatch({

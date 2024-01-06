@@ -87,6 +87,8 @@ export const SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS =
   'settings/clear-permitted-screen-capture-permissions';
 export const SETTINGS_NTLM_CREDENTIALS_CHANGED =
   'settings/ntlm-credentials-changed';
+export const SETTINGS_SET_DO_ALWAYS_START_AT_HOME_PAGE_CHANGED =
+  'settings/set-always-start-at-home-page-changed';
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
@@ -174,6 +176,7 @@ export type UiActionTypeToPayloadMap = {
     allowedRedirects: Server['allowedRedirects'];
   };
   [SETTINGS_SET_REPORT_OPT_IN_CHANGED]: boolean;
+  [SETTINGS_SET_DO_ALWAYS_START_AT_HOME_PAGE_CHANGED]: boolean;
   [SETTINGS_SET_FLASHFRAME_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED]: boolean;
   [SETTINGS_SET_INTERNALVIDEOCHATWINDOW_OPT_IN_CHANGED]: boolean;

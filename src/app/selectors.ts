@@ -32,6 +32,8 @@ export const selectPersistableValues = createStructuredSelector<
   allowedJitsiServers: ({ allowedJitsiServers }) => allowedJitsiServers,
   isReportEnabled: ({ isReportEnabled }) => isReportEnabled,
   isFlashFrameEnabled: ({ isFlashFrameEnabled }) => isFlashFrameEnabled,
+  doAlwaysStartAtHomePage: ({ doAlwaysStartAtHomePage }) =>
+    doAlwaysStartAtHomePage,
   isInternalVideoChatWindowEnabled: ({ isInternalVideoChatWindowEnabled }) =>
     isInternalVideoChatWindowEnabled,
   isMinimizeOnCloseEnabled: ({ isMinimizeOnCloseEnabled }) =>

@@ -8,11 +8,12 @@ import { allowedJitsiServers } from '../jitsi/reducers';
 import {
   clientCertificates,
   externalProtocols,
-  trustedCertificates,
   notTrustedCertificates,
+  trustedCertificates,
 } from '../navigation/reducers';
 import { servers } from '../servers/reducers';
 import { currentView } from '../ui/reducers/currentView';
+import { doAlwaysStartAtHomePage } from '../ui/reducers/doAlwaysStartAtHomePage';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
@@ -69,6 +70,7 @@ export const rootReducer = combineReducers({
   trustedCertificates,
   notTrustedCertificates,
   updateError,
+  doAlwaysStartAtHomePage,
   isReportEnabled,
   isFlashFrameEnabled,
   isHardwareAccelerationEnabled,

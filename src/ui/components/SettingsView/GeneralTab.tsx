@@ -12,8 +12,8 @@ import { SideBar } from './features/SideBar';
 import { TrayIcon } from './features/TrayIcon';
 
 export const GeneralTab = () => (
-  <Box is='form' padding={24} maxWidth={960} flexGrow={1} flexShrink={1}>
-    <FieldGroup>
+  <Box display='flex' justifyContent='center'>
+    <FieldGroup is='form' maxWidth={600}>
       <ReportErrors />
       <FlashFrame />
       <HardwareAcceleration />

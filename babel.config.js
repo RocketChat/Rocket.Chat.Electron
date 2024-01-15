@@ -9,11 +9,17 @@ module.exports = {
         },
       },
     ],
-    '@babel/preset-react',
+    [
+      '@babel/preset-react',
+      {
+        runtime: 'automatic',
+      },
+    ],
     '@babel/preset-typescript',
   ],
   plugins: [
     '@babel/plugin-proposal-function-bind',
     '@babel/plugin-proposal-class-properties',
+    '@babel/plugin-syntax-import-attributes',
   ],
 };

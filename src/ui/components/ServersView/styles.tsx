@@ -13,10 +13,9 @@ export const Wrapper = styled.section<WrapperProps>`
   bottom: 0;
   background-color: #2f343d;
 
-  ${({ isVisible }) =>
-    css`
-      display: ${isVisible ? 'flex' : 'none'};
-    `};
+  ${({ isVisible }) => css`
+    display: ${isVisible ? 'flex' : 'none'};
+  `};
 `;
 
 type StyledWebViewProps = {
@@ -35,10 +34,9 @@ export const StyledWebView = styled('webview', {
   right: 0;
   bottom: 0;
 
-  ${({ isFailed }) =>
-    css`
-      display: ${isFailed ? 'none' : 'flex'};
-    `}
+  ${({ isFailed }) => css`
+    display: ${isFailed ? 'none' : 'flex'};
+  `}
 `;
 
 type ErrorPaneProps = {
@@ -57,8 +55,7 @@ export const ErrorPane = styled.div<ErrorPaneProps>`
   justify-content: center;
   user-select: none;
 
-  ${({ isVisible }) =>
-    css`
-      display: ${isVisible ? 'flex' : 'none'};
-    `}
+  ${({ isVisible }) => css`
+    display: ${isVisible ? 'flex' : 'none'};
+  `}
 `;

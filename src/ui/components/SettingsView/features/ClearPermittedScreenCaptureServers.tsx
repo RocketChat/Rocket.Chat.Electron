@@ -1,16 +1,16 @@
 import { Field, Button, FieldRow, FieldHint } from '@rocket.chat/fuselage';
-import type { FC } from 'react';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { dispatch } from '../../../../store';
 import { SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS } from '../../../actions';
 
-type Props = {
+type ClearPermittedScreenCaptureServersProps = {
   className?: string;
 };
 
-export const ClearPermittedScreenCaptureServers: FC<Props> = (props) => {
+export const ClearPermittedScreenCaptureServers = (
+  props: ClearPermittedScreenCaptureServersProps
+) => {
   const { t } = useTranslation();
 
   return (

@@ -1,4 +1,4 @@
-import type { Store, Middleware, Dispatch } from 'redux';
+import type { Store, Middleware } from 'redux';
 import { applyMiddleware, createStore, compose } from 'redux';
 
 import type { RootAction } from './actions';
@@ -11,11 +11,10 @@ let reduxStore: Store<RootState>;
 
 let lastAction: RootAction;
 
-const catchLastAction: Middleware =
-  () => (next: Dispatch<RootAction>) => (action) => {
-    lastAction = action;
-    return next(action);
-  };
+const catchLastAction: Middleware = () => (next) => (action: unknown) => {
+  lastAction = action as RootAction;
+  return next(action);
+};
 
 export const createMainReduxStore = (): void => {
   const middlewares = applyMiddleware(catchLastAction, forwardToRenderers);
@@ -144,7 +143,7 @@ export abstract class Service {
   // eslint-disable-next-line no-dupe-class-members
   protected listen<
     ActionType extends RootAction['type'],
-    Action extends RootAction
+    Action extends RootAction,
   >(
     typeOrPredicate: ActionType | ((action: RootAction) => action is Action),
     listener: (action: RootAction) => void
@@ -179,7 +178,7 @@ export const request = <
       RootAction,
       { type: ResponseTypes[Index]; payload: unknown }
     >;
-  }[number]
+  }[number],
 >(
   requestAction: Request,
   ...types: ResponseTypes

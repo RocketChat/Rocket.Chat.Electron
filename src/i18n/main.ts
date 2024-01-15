@@ -17,7 +17,7 @@ const getLng = async (): Promise<keyof typeof resources | undefined> => {
 
   let [languageCode, countryCode] = locale.split(/[-_]/) as [
     string,
-    string | null
+    string | null,
   ];
   if (!languageCode || languageCode.length !== 2) {
     return fallbackLng;

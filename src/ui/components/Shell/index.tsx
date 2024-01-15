@@ -1,5 +1,4 @@
-import type { FC } from 'react';
-import React, { useLayoutEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../store/rootReducer';
@@ -16,7 +15,7 @@ import { SupportedVersionDialog } from '../SupportedVersionDialog';
 import { UpdateDialog } from '../UpdateDialog';
 import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 
-export const Shell: FC = () => {
+export const Shell = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);
 
   useLayoutEffect(() => {

@@ -1,6 +1,5 @@
 import { Icon, TableCell, TableRow } from '@rocket.chat/fuselage';
-import type { FC } from 'react';
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { invoke } from '../../../ipc/renderer';
@@ -10,7 +9,7 @@ type CertificateItemProps = {
   url: string;
 };
 
-const CertificateItem: FC<CertificateItemProps> = ({ url }) => {
+const CertificateItem = ({ url }: CertificateItemProps) => {
   const { t } = useTranslation();
 
   const handleRemove = useCallback(() => {

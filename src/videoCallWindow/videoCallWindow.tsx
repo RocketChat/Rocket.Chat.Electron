@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ScreenSharePicker } from './screenSharePicker';
 

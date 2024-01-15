@@ -60,7 +60,6 @@ export const SupportedVersionDialog = () => {
       },
     });
 
-    console.log('supported.message', supported);
     if (!supported.message || !supported.expiration) return;
 
     if (

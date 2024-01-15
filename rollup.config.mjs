@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { mkdir, writeFile } from 'fs/promises';
 
 import babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
@@ -9,7 +10,7 @@ import builtinModules from 'builtin-modules';
 import electron from 'electron';
 import copy from 'rollup-plugin-copy';
 
-import appManifest from './package.json';
+import appManifest from './package.json' with { type: 'json' };
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const canRun =
@@ -38,6 +39,35 @@ const run = () => {
       proc.on('close', () => {
         proc = null;
       });
+    },
+  };
+};
+
+const downloadSupportedVersions = () => {
+  const apiUrl =
+    'https://releases.rocket.chat/v2/server/supportedVersions?source=desktop';
+
+  return {
+    writeBundle: async () => {
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch supported versions from ${apiUrl}: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const json = await response.json();
+      const signedContent = json?.signed;
+
+      if (!signedContent) {
+        throw new Error(
+          'JSON response does not contain the expected "signed" field.'
+        );
+      }
+
+      await mkdir('./app', { recursive: true });
+      await writeFile('./app/supportedVersions.jwt', signedContent);
+      console.info('Downloaded supported versions.');
     },
   };
 };
@@ -74,6 +104,7 @@ export default [
         dir: 'app',
         format: 'cjs',
         sourcemap: 'inline',
+        interop: 'auto',
       },
     ],
   },
@@ -108,6 +139,7 @@ export default [
       dir: 'app',
       format: 'cjs',
       sourcemap: true,
+      interop: 'auto',
     },
   },
   {
@@ -141,6 +173,7 @@ export default [
         dir: 'app',
         format: 'cjs',
         sourcemap: 'inline',
+        interop: 'auto',
       },
     ],
   },
@@ -184,6 +217,7 @@ export default [
           { src: 'node_modules/@rocket.chat/icons/dist/*', dest: 'app/icons' },
         ],
       }),
+      downloadSupportedVersions(),
       json(),
       replace({
         'process.env.BUGSNAG_API_KEY': JSON.stringify(
@@ -204,6 +238,7 @@ export default [
       dir: 'app',
       format: 'cjs',
       sourcemap: 'inline',
+      interop: 'auto',
     },
   },
 ];

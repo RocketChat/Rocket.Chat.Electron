@@ -8,8 +8,6 @@ import {
   StatesTitle,
 } from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
-import type { FC } from 'react';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ErrorPane } from './styles';
@@ -19,10 +17,10 @@ type UnsupportedServerProps = {
   instanceDomain: string;
 };
 
-const UnsupportedServer: FC<UnsupportedServerProps> = ({
+const UnsupportedServer = ({
   isSupported,
   instanceDomain,
-}) => {
+}: UnsupportedServerProps) => {
   const { t } = useTranslation();
 
   const handleMoreInfoButtonClick = (): void => {
@@ -35,7 +33,7 @@ const UnsupportedServer: FC<UnsupportedServerProps> = ({
   return (
     <ErrorPane isVisible={isSupported === false}>
       <Box
-        backgroundColor='white'
+        backgroundColor='surface-light'
         display='flex'
         flexDirection='column'
         style={{

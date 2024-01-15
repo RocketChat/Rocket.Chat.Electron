@@ -15,6 +15,7 @@
     "noUnusedParameters": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "importsNotUsedAsValues": "error"
+    "importsNotUsedAsValues": "error",
+    "skipLibCheck": true
   },
 }

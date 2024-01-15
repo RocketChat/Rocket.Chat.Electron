@@ -1,7 +1,6 @@
 import { Box, Button, Margins, Scrollable, Tile } from '@rocket.chat/fuselage';
 import type { Certificate } from 'electron';
-import type { FC } from 'react';
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -17,7 +16,7 @@ import { isRequest } from '../../../store/fsa';
 import type { RootState } from '../../../store/rootReducer';
 import { Dialog } from '../Dialog';
 
-export const SelectClientCertificateDialog: FC = () => {
+export const SelectClientCertificateDialog = () => {
   const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
   const clientCertificates = useSelector(
     ({ clientCertificates }: RootState) => clientCertificates

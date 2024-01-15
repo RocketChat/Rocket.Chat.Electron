@@ -1,5 +1,5 @@
 import { Box, IconButton } from '@rocket.chat/fuselage';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const DynamicWebview = ({
   url,

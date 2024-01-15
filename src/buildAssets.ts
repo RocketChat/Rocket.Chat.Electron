@@ -8,7 +8,7 @@ import Jimp from 'jimp';
 import puppeteer from 'puppeteer';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import rimraf from 'rimraf';
+import { rimraf } from 'rimraf';
 
 import type { Server } from './servers/common';
 import DmgBackground from './ui/assets/DmgBackground';
@@ -23,7 +23,10 @@ const convertSvgToPng = async (
   svg: string,
   ...sizes: (number | [number, number])[]
 ): Promise<Buffer[]> => {
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({
+    headless: 'new',
+    args: ['--use-gl=desktop'],
+  });
   const page = await browser.newPage();
   await page.goto(
     `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
@@ -44,10 +47,10 @@ const convertSvgToPng = async (
           }),
       deviceScaleFactor: 1,
     });
-    const buffer = (await page.screenshot({
+    const buffer = await page.screenshot({
       type: 'png',
       omitBackground: true,
-    })) as Buffer;
+    });
     buffers.push(buffer);
   }
 
@@ -65,7 +68,17 @@ const writeFile = async (filePath: string, data: Buffer): Promise<void> => {
 
 const createMacOSAppIcon = async (): Promise<void> => {
   const macOSAppIcon = renderToStaticMarkup(createElement(MacOSAppIcon));
-  const pngs = await convertSvgToPng(macOSAppIcon, 1024, 512, 256, 64, 32, 16);
+  const pngs = await convertSvgToPng(
+    macOSAppIcon,
+    1024,
+    512,
+    256,
+    128,
+    64,
+    48,
+    32,
+    16
+  );
   const icns = await icnsConvert.convert(pngs);
   await writeFile('build/icon.icns', icns);
 };
@@ -263,7 +276,7 @@ const run = async (): Promise<void> => {
   await createWindowsAppIcons();
   await createLinuxAppIcons();
 
-  await util.promisify(rimraf)('src/public/images/tray');
+  await rimraf('src/public/images/tray');
 
   await createMacOSTrayIcons();
   await createWindowsTrayIcons();

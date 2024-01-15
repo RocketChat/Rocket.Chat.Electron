@@ -1,5 +1,5 @@
 import { createElement } from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 import { setupRendererErrorHandling } from './errors';
 import { setupI18n } from './i18n/renderer';
@@ -28,10 +28,12 @@ const start = async (): Promise<void> => {
     throw new Error('cannot find the container node for React');
   }
 
-  render(createElement(App, { reduxStore }), container);
+  const root = createRoot(container);
+
+  root.render(createElement(App, { reduxStore }));
 
   window.addEventListener('beforeunload', () => {
-    unmountComponentAtNode(container);
+    root.unmount();
   });
 };
 

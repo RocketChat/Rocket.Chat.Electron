@@ -6,7 +6,7 @@
     "lib": ["DOM", "ES2021"],
     "sourceMap": true,
     "allowJs": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "outDir": "./app",
     "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,

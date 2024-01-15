@@ -1,5 +1,4 @@
-import type { FC } from 'react';
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
@@ -25,14 +24,14 @@ type ServerPaneProps = {
   documentViewerOpenUrl: string | undefined;
 };
 
-export const ServerPane: FC<ServerPaneProps> = ({
+export const ServerPane = ({
   lastPath,
   serverUrl,
   isSelected,
   isFailed,
   isSupported,
   documentViewerOpenUrl,
-}) => {
+}: ServerPaneProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const [documentViewerActive, setDocumentViewerActive] = useState(false);
@@ -172,7 +171,7 @@ export const ServerPane: FC<ServerPaneProps> = ({
     } else {
       webview?.blur();
     }
-    // setdocumentViewerActive(true);
+    // setDocumentViewerActive(true);
   }, [isSelected]);
 
   const closeDocumentViewer = () => {

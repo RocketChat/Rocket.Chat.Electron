@@ -1,5 +1,5 @@
 import type { ReactNode, ErrorInfo } from 'react';
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import { APP_ERROR_THROWN } from '../../../app/actions';
 import { dispatch } from '../../../store';

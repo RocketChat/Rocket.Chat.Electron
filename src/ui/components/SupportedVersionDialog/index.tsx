@@ -1,8 +1,7 @@
 import { Box, Button, Modal } from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
 import moment from 'moment';
-import type { FC } from 'react';
-import React, { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -23,14 +22,14 @@ import ModalBackdrop from '../Modal/ModalBackdrop';
 import { useServers } from '../hooks/useServers';
 import { Wrapper } from './styles';
 
-export const SupportedVersionDialog: FC = () => {
-  const [isVisible, setIsVisible] = React.useState(false);
+export const SupportedVersionDialog = () => {
+  const [isVisible, setIsVisible] = useState(false);
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
   const servers = useServers();
   const server = servers.find((server) => server.selected === true);
   const [expirationMessage, setExpirationMessage] =
-    React.useState<MessageTranslated>();
+    useState<MessageTranslated>();
 
   const { t } = useTranslation();
 
@@ -61,7 +60,6 @@ export const SupportedVersionDialog: FC = () => {
       },
     });
 
-    console.log('supported.message', supported);
     if (!supported.message || !supported.expiration) return;
 
     if (
@@ -88,7 +86,6 @@ export const SupportedVersionDialog: FC = () => {
 
   useEffect(() => {
     checkServerVersion();
-    console.log('checkServerVersion');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [server?.supportedVersions, server?.lastPath, currentView]);
 

@@ -7,8 +7,10 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store/rootReducer';
 import { CertificatesTab } from './CertificatesTab';
 import { GeneralTab } from './GeneralTab';
+import { useDarkMode } from '@rocket.chat/fuselage-hooks';
 
 export const SettingsView = () => {
+  const isDark=useDarkMode()
   const isVisible = useSelector(
     ({ currentView }: RootState) => currentView === 'settings'
   );
@@ -21,7 +23,7 @@ export const SettingsView = () => {
       display={isVisible ? 'flex' : 'none'}
       flexDirection='column'
       height='full'
-      backgroundColor='light'
+      backgroundColor={isDark?'dark':'light'}
     >
       <Box
         width='full'

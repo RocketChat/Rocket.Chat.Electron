@@ -7,7 +7,7 @@ import {
   IconButton,
   SelectLegacy,
 } from '@rocket.chat/fuselage';
-import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
+import { useDarkMode, useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import type { ChangeEvent } from 'react';
 import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -176,13 +176,15 @@ const DownloadsManagerView = () => {
       payload: lastSelectedServerUrl,
     });
   };
+  const isDark=useDarkMode()
 
   return (
     <Box
       display={isVisible ? 'flex' : 'none'}
       flexDirection='column'
       height='100vh'
-      backgroundColor='light'
+      backgroundColor={isDark?'dark':'light'}
+
     >
       <Box
         minHeight={64}

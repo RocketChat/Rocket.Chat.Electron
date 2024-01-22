@@ -7,6 +7,7 @@ import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
+import * as urls from '../../urls';
 import {
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
@@ -577,16 +578,14 @@ const createHelpMenu = createSelector(
         id: 'documentation',
         label: t('menus.documentation'),
         click: () => {
-          shell.openExternal('https://docs.rocket.chat/');
+          shell.openExternal(urls.docs.index);
         },
       },
       {
         id: 'reportIssue',
         label: t('menus.reportIssue'),
         click: () => {
-          shell.openExternal(
-            'https://github.com/RocketChat/Rocket.Chat/issues/new'
-          );
+          shell.openExternal(urls.docs.newIssue);
         },
       },
       { type: 'separator' },
@@ -650,7 +649,7 @@ const createHelpMenu = createSelector(
         id: 'learnMore',
         label: t('menus.learnMore'),
         click: () => {
-          shell.openExternal('https://rocket.chat');
+          shell.openExternal(urls.rocketchat.site);
         },
       },
       ...on(process.platform !== 'darwin', () => [

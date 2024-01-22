@@ -10,6 +10,7 @@ import {
 import { ipcRenderer } from 'electron';
 import { useTranslation } from 'react-i18next';
 
+import * as urls from '../../../urls';
 import { ErrorPane } from './styles';
 
 type UnsupportedServerProps = {
@@ -26,7 +27,7 @@ const UnsupportedServer = ({
   const handleMoreInfoButtonClick = (): void => {
     ipcRenderer.invoke(
       'server-view/open-url-on-browser',
-      'https://go.rocket.chat/i/supported-versions'
+      urls.docs.supportedVersions
     );
   };
 

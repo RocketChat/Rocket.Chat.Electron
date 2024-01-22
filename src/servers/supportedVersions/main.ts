@@ -16,6 +16,7 @@ import {
   WEBVIEW_SERVER_RELOADED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
 } from '../../ui/actions';
+import * as urls from '../../urls';
 import type { Server } from '../common';
 import type {
   CloudInfo,
@@ -60,7 +61,7 @@ export async function readBuiltinSupportedVersions(): Promise<SupportedVersions 
 const getUniqueId = async (serverUrl: string): Promise<string> => {
   try {
     const response = await axios.get(
-      `${serverUrl}/api/v1/settings.public?query={"_id": "uniqueID"}`
+      urls.server(serverUrl).setting('uniqueID')
     );
     return response.data?.settings?.[0]?.value;
   } catch (error) {
@@ -71,12 +72,10 @@ const getUniqueId = async (serverUrl: string): Promise<string> => {
 
 const getCloudInfo = (
   serverDomain: string,
-  uniqueID: string
+  uniqueId: string
 ): Promise<CloudInfo | null> =>
   axios
-    .get(
-      `https://releases.rocket.chat/v2/server/supportedVersions?domain=${serverDomain}&uniqueId=${uniqueID}&source=desktop`
-    )
+    .get(urls.supportedVersions({ serverDomain, uniqueId }))
     .then((response) => response.data as CloudInfo)
     .catch((error) => {
       if (error.response) {
@@ -89,7 +88,7 @@ const getCloudInfo = (
 
 export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
   axios
-    .get(`${serverUrl}api/info`)
+    .get(urls.server(serverUrl).info)
     .then((response) => response.data as ServerInfo)
     .catch((error) => {
       if (error.response) {
@@ -331,8 +330,8 @@ export const isServerVersionSupported = async (
 const updateSupportedVersionsData = async (
   serverUrl: string
 ): Promise<void> => {
-  const server = select(({ servers }) => servers).find(
-    (server) => server.url === serverUrl
+  const server = select(({ servers }) =>
+    servers.find((server) => server.url === serverUrl)
   );
   if (!server) return;
   const serverInfo = await getServerInfo(server.url);

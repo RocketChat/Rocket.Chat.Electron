@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
@@ -36,137 +36,77 @@ RpavrrCnpOFRfkC5T9eMKLgyapjufOtbjuzu25N3urBsg6oRFNzsGXWp1C7DwUO2
 kwIDAQAB
 -----END PUBLIC KEY-----`;
 
-export function decode(token: string) {
-  if (!publicKey) {
-    return jwt.decode(token);
-  }
-  const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
-  return decoded;
-}
+const decodeSupportedVersions = (token: string) =>
+  jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as SupportedVersions;
 
-export async function readBuiltinSupportedVersions(): Promise<SupportedVersions | null> {
+let builtinSupportedVersions: SupportedVersions | undefined;
+
+const getBuiltinSupportedVersions = async (): Promise<
+  SupportedVersions | undefined
+> => {
+  if (builtinSupportedVersions) return builtinSupportedVersions;
+
   try {
-    const filePath = path.join(__dirname, 'supportedVersions.jwt');
-    const builtinSupportedVersionsJWT = await fs.promises.readFile(
-      filePath,
-      'utf8'
+    const filePath = fileURLToPath(
+      new URL('./supportedVersions.jwt', import.meta.url)
     );
-    return decode(builtinSupportedVersionsJWT) as SupportedVersions;
+    const encodedToken = await readFile(filePath, 'utf8');
+    builtinSupportedVersions = decodeSupportedVersions(encodedToken);
+    return builtinSupportedVersions;
   } catch (e) {
-    console.log('Error loading supportedVersions.jwt', e);
-    return null;
-  }
-}
-
-const getUniqueId = async (serverUrl: string): Promise<string> => {
-  try {
-    const response = await axios.get(
-      urls.server(serverUrl).setting('uniqueID')
-    );
-    return response.data?.settings?.[0]?.value;
-  } catch (error) {
-    console.error('Error fetching unique ID:', error);
-    throw error;
+    console.error('Error loading supportedVersions.jwt', e);
+    return undefined;
   }
 };
 
-const getCloudInfo = (
-  serverDomain: string,
-  uniqueId: string
-): Promise<CloudInfo | null> =>
-  axios
-    .get(urls.supportedVersions({ serverDomain, uniqueId }))
-    .then((response) => response.data as CloudInfo)
-    .catch((error) => {
+const logRequestError =
+  (description: string) =>
+  (error: unknown): undefined => {
+    if (axios.isAxiosError(error)) {
       if (error.response) {
-        console.log(`Couldn't load Cloud Info: ${error.response.status}`);
+        console.error(
+          `Couldn't load ${description}: ${error.response.status} ${error.response.data}`
+        );
       } else {
-        console.error('Fetching Cloud Info error:', error.message);
+        // Something happened in setting up the request that triggered an Error
+        console.error(`Couldn't load ${description}: ${error.message}`);
       }
-      return null;
-    });
-
-export const getServerInfo = (serverUrl: string): Promise<ServerInfo | null> =>
-  axios
-    .get(urls.server(serverUrl).info)
-    .then((response) => response.data as ServerInfo)
-    .catch((error) => {
-      if (error.response) {
-        console.log(`Couldn't load Server Info: ${error.response.status}`);
-      } else {
-        console.error('Fetching Server Info error:', error.message);
-      }
-      return null;
-    });
-
-const updateSupportedVersionsSource = (
-  source: 'server' | 'cloud' | 'builtin',
-  serverUrl: string
-): void => {
-  dispatch({
-    type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
-    payload: {
-      url: serverUrl,
-      supportedVersionsSource: source,
-    },
-  });
-};
-
-export const getSupportedVersionsData = async (
-  serverUrl: string,
-  serverUniqueID: string
-): Promise<SupportedVersions | null> => {
-  const buildSupportedVersions = await readBuiltinSupportedVersions();
-  const serverInfo = await getServerInfo(serverUrl);
-  const serverSupportedVersions = serverInfo?.supportedVersions;
-
-  if (!serverSupportedVersions?.signed) {
-    if (serverUniqueID) {
-      const serverDomain = new URL(serverUrl).hostname;
-      const cloudSupportedVersions = await getCloudInfo(
-        serverDomain,
-        serverUniqueID
-      );
-      if (cloudSupportedVersions?.signed) {
-        const decodedCloudSupportedVersions = decode(
-          cloudSupportedVersions.signed
-        ) as SupportedVersions;
-        updateSupportedVersionsSource('cloud', serverUrl);
-        return decodedCloudSupportedVersions;
-      }
+    } else {
+      console.error('Fetching ${description} error:', error);
     }
-  }
+    return undefined;
+  };
 
-  if (!serverSupportedVersions && !buildSupportedVersions) return null;
-
-  if (!serverSupportedVersions && buildSupportedVersions) {
-    updateSupportedVersionsSource('builtin', serverUrl);
-    return buildSupportedVersions;
-  }
-
-  if (!serverSupportedVersions?.signed) return null;
-
-  const decodedServerSupportedVersions = decode(
-    serverSupportedVersions.signed
-  ) as SupportedVersions;
-
-  if (
-    decodedServerSupportedVersions &&
-    decodedServerSupportedVersions &&
-    buildSupportedVersions &&
-    decodedServerSupportedVersions?.timestamp <
-      buildSupportedVersions?.timestamp
-  ) {
-    updateSupportedVersionsSource('builtin', serverUrl);
-    return buildSupportedVersions;
-  }
-
-  updateSupportedVersionsSource('server', serverUrl);
-  if (decodedServerSupportedVersions) return decodedServerSupportedVersions;
-  return null;
+const getCloudInfo = async (
+  url: string,
+  uniqueId: string
+): Promise<CloudInfo | undefined> => {
+  const domain = new URL(url).hostname;
+  const response = await axios.get<CloudInfo>(
+    urls.supportedVersions({ domain, uniqueId })
+  );
+  return response.data;
 };
 
-export const getExpirationMessage = ({
+const getServerInfo = async (url: string): Promise<ServerInfo> => {
+  const response = await axios.get<ServerInfo>(urls.server(url).info);
+  return response.data;
+};
+
+const getUniqueId = async (url: string): Promise<string> => {
+  const response = await axios.get<{ settings: { value: string }[] }>(
+    urls.server(url).setting('uniqueID')
+  );
+  const value = response.data?.settings?.[0]?.value;
+
+  if (!value) {
+    throw new Error('No unique ID found');
+  }
+
+  return value;
+};
+
+const getExpirationMessage = ({
   messages,
   expiration,
 }: {
@@ -242,7 +182,7 @@ export const isServerVersionSupported = async (
   i18n?: Dictionary | undefined;
   expiration?: Date | undefined;
 }> => {
-  const builtInSupportedVersions = await readBuiltinSupportedVersions();
+  const builtInSupportedVersions = await getBuiltinSupportedVersions();
 
   const versions = supportedVersionsData?.versions;
   const exceptions = supportedVersionsData?.exceptions;
@@ -327,42 +267,117 @@ export const isServerVersionSupported = async (
   return { supported: false };
 };
 
-const updateSupportedVersionsData = async (
-  serverUrl: string
-): Promise<void> => {
-  const server = select(({ servers }) =>
-    servers.find((server) => server.url === serverUrl)
-  );
-  if (!server) return;
-  const serverInfo = await getServerInfo(server.url);
-  if (!serverInfo) return;
+const dispatchVersionUpdated = (url: string) => (info: ServerInfo) => {
   dispatch({
     type: WEBVIEW_SERVER_VERSION_UPDATED,
     payload: {
-      url: server.url,
-      version: serverInfo.version,
+      url,
+      version: info.version,
     },
   });
-  const uniqueID = await getUniqueId(server.url);
+
+  return info;
+};
+
+const dispatchUniqueIdUpdated = (url: string) => (uniqueID: string) => {
   dispatch({
     type: WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
     payload: {
-      url: server.url,
+      url,
       uniqueID,
     },
   });
 
-  const supportedVersions = await getSupportedVersionsData(
-    server.url,
-    uniqueID
-  );
-  if (!supportedVersions) return;
+  return uniqueID;
+};
+
+const dispatchSupportedVersionsUpdated = (
+  url: string,
+  supportedVersions: SupportedVersions,
+  { source }: { source: 'server' | 'cloud' | 'builtin' }
+): void => {
+  dispatch({
+    type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
+    payload: {
+      url,
+      supportedVersionsSource: source,
+    },
+  });
+
   dispatch({
     type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
     payload: {
-      url: server.url,
+      url,
       supportedVersions,
     },
+  });
+};
+
+const updateSupportedVersionsData = async (
+  serverUrl: string
+): Promise<void> => {
+  const builtinSupportedVersions = await getBuiltinSupportedVersions();
+
+  const server = select(({ servers }) =>
+    servers.find((server) => server.url === serverUrl)
+  );
+  if (!server) return;
+
+  const serverInfo = await getServerInfo(server.url)
+    .then(dispatchVersionUpdated(server.url))
+    .catch(logRequestError('server info'));
+  if (!serverInfo) return;
+
+  const uniqueID = await getUniqueId(server.url)
+    .then(dispatchUniqueIdUpdated(server.url))
+    .catch(logRequestError('unique ID'));
+
+  const serverEncoded = serverInfo.supportedVersions?.signed;
+
+  if (!serverEncoded) {
+    if (!uniqueID) {
+      if (!builtinSupportedVersions) return;
+
+      dispatchSupportedVersionsUpdated(server.url, builtinSupportedVersions, {
+        source: 'builtin',
+      });
+      return;
+    }
+
+    const cloudInfo = await getCloudInfo(server.url, uniqueID).catch(
+      logRequestError('cloud info')
+    );
+    const cloudEncoded = cloudInfo?.signed;
+    if (!cloudEncoded) return;
+
+    const cloudSupportedVersions = decodeSupportedVersions(cloudEncoded);
+    dispatchSupportedVersionsUpdated(server.url, cloudSupportedVersions, {
+      source: 'cloud',
+    });
+    return;
+  }
+
+  const serverSupportedVersions = decodeSupportedVersions(serverEncoded);
+
+  if (!builtinSupportedVersions) {
+    dispatchSupportedVersionsUpdated(server.url, serverSupportedVersions, {
+      source: 'server',
+    });
+    return;
+  }
+
+  const builtinTimetamp = Date.parse(builtinSupportedVersions.timestamp);
+  const serverTimestamp = Date.parse(serverSupportedVersions.timestamp);
+
+  if (serverTimestamp > builtinTimetamp) {
+    dispatchSupportedVersionsUpdated(server.url, serverSupportedVersions, {
+      source: 'server',
+    });
+    return;
+  }
+
+  dispatchSupportedVersionsUpdated(server.url, builtinSupportedVersions, {
+    source: 'builtin',
   });
 };
 

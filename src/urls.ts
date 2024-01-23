@@ -9,13 +9,13 @@ export const rocketchat = {
 export const open = rocketchat.subdomain('open');
 
 export const supportedVersions = ({
-  serverDomain,
+  domain,
   uniqueId,
 }: {
-  serverDomain: string;
+  domain: string;
   uniqueId: string;
 }): string =>
-  `https://releases.rocket.chat/v2/server/supportedVersions?domain=${serverDomain}&uniqueId=${uniqueId}&source=desktop` as const;
+  `https://releases.rocket.chat/v2/server/supportedVersions?domain=${domain}&uniqueId=${uniqueId}&source=desktop` as const;
 
 export const server = <T extends string>(serverUrl: T) =>
   ({

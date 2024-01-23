@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import axios from 'axios';
+import { ipcMain } from 'electron';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { coerce, satisfies } from 'semver';
@@ -392,5 +393,9 @@ export function checkSupportedVersionServers(): void {
 
   listen(WEBVIEW_SERVER_RELOADED, async (action) => {
     updateSupportedVersionsData(action.payload.url);
+  });
+
+  ipcMain.handle('refresh-supported-versions', async (_event, serverUrl) => {
+    updateSupportedVersionsData(serverUrl);
   });
 }

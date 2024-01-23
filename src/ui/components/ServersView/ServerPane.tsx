@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import { useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -153,6 +154,18 @@ export const ServerPane = ({
       webview?.blur();
     }
   }, [isSelected]);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      ipcRenderer.invoke('refresh-supported-versions', serverUrl);
+    };
+
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [serverUrl]);
 
   return (
     <Wrapper isVisible={isSelected}>

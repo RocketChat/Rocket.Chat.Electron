@@ -11,7 +11,6 @@ import { dispatch, listen, select } from '../../store';
 import {
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
   WEBVIEW_SERVER_VERSION_UPDATED,
-  WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
   WEBVIEW_READY,
   WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
   WEBVIEW_SERVER_RELOADED,
@@ -298,18 +297,11 @@ const dispatchSupportedVersionsUpdated = (
   { source }: { source: 'server' | 'cloud' | 'builtin' }
 ): void => {
   dispatch({
-    type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED,
-    payload: {
-      url,
-      supportedVersionsSource: source,
-    },
-  });
-
-  dispatch({
     type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
     payload: {
       url,
       supportedVersions,
+      source,
     },
   });
 };

@@ -13,6 +13,7 @@ import {
 } from '../../../servers/supportedVersions/main';
 import type { MessageTranslated } from '../../../servers/supportedVersions/types';
 import type { RootAction } from '../../../store/actions';
+import * as urls from '../../../urls';
 import {
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
@@ -98,7 +99,7 @@ export const SupportedVersionDialog = () => {
     }
     ipcRenderer.invoke(
       'server-view/open-url-on-browser',
-      'https://go.rocket.chat/i/supported-versions'
+      urls.docs.supportedVersions
     );
   };
 

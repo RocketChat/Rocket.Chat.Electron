@@ -1,18 +1,19 @@
-import { useRef, useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import type { Dispatch } from 'redux';
+import { ipcRenderer } from "electron";
+import { useRef, useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import type { Dispatch } from "redux";
 
-import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../../../servers/actions';
-import type { RootAction } from '../../../store/actions';
+import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from "../../../servers/actions";
+import type { RootAction } from "../../../store/actions";
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   WEBVIEW_ATTACHED,
   WEBVIEW_READY,
-} from '../../actions';
-import DocumentViewer from './DocumentViewer';
-import ErrorView from './ErrorView';
-import UnsupportedServer from './UnsupportedServer';
-import { StyledWebView, Wrapper } from './styles';
+} from "../../actions";
+import DocumentViewer from "./DocumentViewer";
+import ErrorView from "./ErrorView";
+import UnsupportedServer from "./UnsupportedServer";
+import { StyledWebView, Wrapper } from "./styles";
 
 type ServerPaneProps = {
   lastPath: string | undefined;
@@ -37,7 +38,7 @@ export const ServerPane = ({
   const [documentViewerActive, setDocumentViewerActive] = useState(false);
 
   const webviewRef =
-    useRef<ReturnType<(typeof document)['createElement']>>(null);
+    useRef<ReturnType<(typeof document)["createElement"]>>(null);
 
   useEffect(() => {
     const webview = webviewRef.current;
@@ -53,10 +54,10 @@ export const ServerPane = ({
       if (webview) webview.focus();
     };
 
-    window.addEventListener('focus', handleWindowFocus);
+    window.addEventListener("focus", handleWindowFocus);
 
     return () => {
-      window.removeEventListener('focus', handleWindowFocus);
+      window.removeEventListener("focus", handleWindowFocus);
     };
   }, [isFailed, isSelected, serverUrl]);
 
@@ -67,7 +68,7 @@ export const ServerPane = ({
     }
     let step = false;
     const addEventListenerOnce = (
-      e: 'did-attach' | 'dom-ready',
+      e: "did-attach" | "dom-ready",
       cb: () => void
     ): void => {
       const handler = () => {
@@ -90,12 +91,12 @@ export const ServerPane = ({
         }, 300);
       step = true;
     };
-    addEventListenerOnce('did-attach', handleAttachReady);
-    addEventListenerOnce('dom-ready', handleAttachReady);
+    addEventListenerOnce("did-attach", handleAttachReady);
+    addEventListenerOnce("dom-ready", handleAttachReady);
 
     return () => {
-      webview.removeEventListener('did-attach', handleAttachReady);
-      webview.removeEventListener('dom-ready', handleAttachReady);
+      webview.removeEventListener("did-attach", handleAttachReady);
+      webview.removeEventListener("dom-ready", handleAttachReady);
     };
   }, [dispatch, serverUrl]);
 
@@ -104,7 +105,7 @@ export const ServerPane = ({
     if (!webview) {
       return;
     }
-    const addEventListenerOnce = (e: 'did-attach', cb: () => void): void => {
+    const addEventListenerOnce = (e: "did-attach", cb: () => void): void => {
       const handler = () => {
         cb();
         webview.removeEventListener(e, handler);
@@ -124,10 +125,10 @@ export const ServerPane = ({
       }, 300);
     };
 
-    addEventListenerOnce('did-attach', handleAttachReady);
+    addEventListenerOnce("did-attach", handleAttachReady);
 
     return () => {
-      webview.removeEventListener('did-attach', handleAttachReady);
+      webview.removeEventListener("did-attach", handleAttachReady);
     };
   }, [dispatch, serverUrl]);
 
@@ -148,7 +149,7 @@ export const ServerPane = ({
       return;
     }
 
-    if (isSelected && documentViewerOpenUrl && documentViewerOpenUrl !== '') {
+    if (isSelected && documentViewerOpenUrl && documentViewerOpenUrl !== "") {
       setDocumentViewerActive(true);
     } else {
       setDocumentViewerActive(false);
@@ -177,10 +178,22 @@ export const ServerPane = ({
   const closeDocumentViewer = () => {
     dispatch({
       type: SERVER_DOCUMENT_VIEWER_OPEN_URL,
-      payload: { server: serverUrl, documentUrl: '' },
+      payload: { server: serverUrl, documentUrl: "" },
     });
     setDocumentViewerActive(false);
   };
+
+  useEffect(() => {
+    const handleOnline = () => {
+      ipcRenderer.invoke("refresh-supported-versions", serverUrl);
+    };
+
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+    };
+  }, [serverUrl]);
 
   return (
     <Wrapper isVisible={isSelected}>
@@ -188,10 +201,10 @@ export const ServerPane = ({
         ref={webviewRef}
         isFailed={isFailed}
         partition={`persist:${serverUrl}`}
-        {...({ allowpopups: 'allowpopups' } as any)}
-      />{' '}
+        {...({ allowpopups: "allowpopups" } as any)}
+      />{" "}
       <DocumentViewer
-        url={documentViewerOpenUrl || ''}
+        url={documentViewerOpenUrl || ""}
         isActive={documentViewerActive}
         partition={`persist:${serverUrl}`}
         closeDocumentViewer={closeDocumentViewer}

@@ -14,6 +14,7 @@ import {
 } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
+import * as urls from '../urls';
 import {
   SERVER_URL_RESOLUTION_REQUESTED,
   SERVER_URL_RESOLVED,
@@ -84,7 +85,7 @@ export const resolveServerUrl = async (
     if (
       !/(^https?:\/\/)|(\.)|(^([^:]+:[^@]+@)?localhost(:\d+)?$)/.test(input)
     ) {
-      return resolveServerUrl(`https://${input}.rocket.chat`);
+      return resolveServerUrl(urls.rocketchat.subdomain(input));
     }
 
     if (error?.name === 'AbortError') {

@@ -9,7 +9,7 @@ const getRepoParams = () =>
   ({
     owner: core.getInput('repository_owner') || github.context.repo.owner,
     repo: core.getInput('repository_name') || github.context.repo.repo,
-  } as const);
+  }) as const;
 
 const octokit = github.getOctokit(core.getInput('github_token'));
 

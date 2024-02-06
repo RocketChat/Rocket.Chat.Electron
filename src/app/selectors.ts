@@ -1,50 +1,56 @@
 import { createStructuredSelector } from 'reselect';
 
 import type { RootState } from '../store/rootReducer';
-import type { PersistableValues } from './PersistableValues';
 
-export const selectPersistableValues = createStructuredSelector<
-  RootState,
-  PersistableValues
->({
-  currentView: ({ currentView }) => currentView,
-  doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }) =>
+export const selectPersistableValues = createStructuredSelector({
+  currentView: ({ currentView }: RootState) => currentView,
+  doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }: RootState) =>
     doCheckForUpdatesOnStartup,
-  downloads: ({ downloads }) => downloads,
-  isMenuBarEnabled: ({ isMenuBarEnabled }) => isMenuBarEnabled,
+  downloads: ({ downloads }: RootState) => downloads,
+  isMenuBarEnabled: ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled,
   isShowWindowOnUnreadChangedEnabled: ({
     isShowWindowOnUnreadChangedEnabled,
-  }) => isShowWindowOnUnreadChangedEnabled,
-  isSideBarEnabled: ({ isSideBarEnabled }) => isSideBarEnabled,
-  isTrayIconEnabled: ({ isTrayIconEnabled }) => isTrayIconEnabled,
-  rootWindowState: ({ rootWindowState }) => rootWindowState,
-  servers: ({ servers }) => servers,
-  skippedUpdateVersion: ({ skippedUpdateVersion }) => skippedUpdateVersion,
-  trustedCertificates: ({ trustedCertificates }) => trustedCertificates,
-  notTrustedCertificates: ({ notTrustedCertificates }) =>
+  }: RootState) => isShowWindowOnUnreadChangedEnabled,
+  isSideBarEnabled: ({ isSideBarEnabled }: RootState) => isSideBarEnabled,
+  isTrayIconEnabled: ({ isTrayIconEnabled }: RootState) => isTrayIconEnabled,
+  rootWindowState: ({ rootWindowState }: RootState) => rootWindowState,
+  servers: ({ servers }: RootState) => servers,
+  skippedUpdateVersion: ({ skippedUpdateVersion }: RootState) =>
+    skippedUpdateVersion,
+  trustedCertificates: ({ trustedCertificates }: RootState) =>
+    trustedCertificates,
+  notTrustedCertificates: ({ notTrustedCertificates }: RootState) =>
     notTrustedCertificates,
-  isEachUpdatesSettingConfigurable: ({ isEachUpdatesSettingConfigurable }) =>
+  isEachUpdatesSettingConfigurable: ({
     isEachUpdatesSettingConfigurable,
-  isUpdatingEnabled: ({ isUpdatingEnabled }) => isUpdatingEnabled,
-  isHardwareAccelerationEnabled: ({ isHardwareAccelerationEnabled }) =>
+  }: RootState) => isEachUpdatesSettingConfigurable,
+  isUpdatingEnabled: ({ isUpdatingEnabled }: RootState) => isUpdatingEnabled,
+  isHardwareAccelerationEnabled: ({
     isHardwareAccelerationEnabled,
-  externalProtocols: ({ externalProtocols }) => externalProtocols,
-  allowedJitsiServers: ({ allowedJitsiServers }) => allowedJitsiServers,
-  isReportEnabled: ({ isReportEnabled }) => isReportEnabled,
-  isFlashFrameEnabled: ({ isFlashFrameEnabled }) => isFlashFrameEnabled,
-  doAlwaysStartAtHomePage: ({ doAlwaysStartAtHomePage }) =>
+  }: RootState) => isHardwareAccelerationEnabled,
+  externalProtocols: ({ externalProtocols }: RootState) => externalProtocols,
+  allowedJitsiServers: ({ allowedJitsiServers }: RootState) =>
+    allowedJitsiServers,
+  isReportEnabled: ({ isReportEnabled }: RootState) => isReportEnabled,
+  isFlashFrameEnabled: ({ isFlashFrameEnabled }: RootState) =>
+    isFlashFrameEnabled,
+  doAlwaysStartAtHomePage: ({ doAlwaysStartAtHomePage }: RootState) =>
     doAlwaysStartAtHomePage,
-  isInternalVideoChatWindowEnabled: ({ isInternalVideoChatWindowEnabled }) =>
+  isInternalVideoChatWindowEnabled: ({
     isInternalVideoChatWindowEnabled,
-  isMinimizeOnCloseEnabled: ({ isMinimizeOnCloseEnabled }) =>
+  }: RootState) => isInternalVideoChatWindowEnabled,
+  isMinimizeOnCloseEnabled: ({ isMinimizeOnCloseEnabled }: RootState) =>
     isMinimizeOnCloseEnabled,
-  isAddNewServersEnabled: ({ isAddNewServersEnabled }) =>
+  isAddNewServersEnabled: ({ isAddNewServersEnabled }: RootState) =>
     isAddNewServersEnabled,
-  hasHideOnTrayNotificationShown: ({ hasHideOnTrayNotificationShown }) =>
+  hasHideOnTrayNotificationShown: ({
     hasHideOnTrayNotificationShown,
-  lastSelectedServerUrl: ({ lastSelectedServerUrl }) => lastSelectedServerUrl,
-  allowedNTLMCredentialsDomains: ({ allowedNTLMCredentialsDomains }) =>
+  }: RootState) => hasHideOnTrayNotificationShown,
+  lastSelectedServerUrl: ({ lastSelectedServerUrl }: RootState) =>
+    lastSelectedServerUrl,
+  allowedNTLMCredentialsDomains: ({
     allowedNTLMCredentialsDomains,
-  isNTLMCredentialsEnabled: ({ isNTLMCredentialsEnabled }) =>
+  }: RootState) => allowedNTLMCredentialsDomains,
+  isNTLMCredentialsEnabled: ({ isNTLMCredentialsEnabled }: RootState) =>
     isNTLMCredentialsEnabled,
 });

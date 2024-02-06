@@ -1,9 +1,9 @@
-import type { Reducer } from "redux";
+import type { Reducer } from 'redux';
 
-import { APP_SETTINGS_LOADED } from "../app/actions";
-import { DEEP_LINKS_SERVER_ADDED } from "../deepLinks/actions";
-import { OUTLOOK_CALENDAR_SAVE_CREDENTIALS } from "../outlookCalendar/actions";
-import type { ActionOf } from "../store/actions";
+import { APP_SETTINGS_LOADED } from '../app/actions';
+import { DEEP_LINKS_SERVER_ADDED } from '../deepLinks/actions';
+import { OUTLOOK_CALENDAR_SAVE_CREDENTIALS } from '../outlookCalendar/actions';
+import type { ActionOf } from '../store/actions';
 import {
   ADD_SERVER_VIEW_SERVER_ADDED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
@@ -26,16 +26,16 @@ import {
   WEBVIEW_SERVER_VERSION_UPDATED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
-} from "../ui/actions";
-import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from "./actions";
-import type { Server } from "./common";
+} from '../ui/actions';
+import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from './actions';
+import type { Server } from './common';
 
 const ensureUrlFormat = (serverUrl: string | null): string => {
   if (serverUrl) {
     return new URL(serverUrl).href;
   }
 
-  throw new Error("cannot handle null server URLs");
+  throw new Error('cannot handle null server URLs');
 };
 
 type ServersActionTypes =
@@ -64,7 +64,6 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
   | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
-  | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_SOURCE_UPDATED>
   | ActionOf<typeof SERVER_DOCUMENT_VIEWER_OPEN_URL>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
@@ -208,7 +207,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
 
     case SERVERS_LOADED: {
       const { servers = state } = action.payload;
-      return servers.map((server) => ({
+      return servers.map((server: Server) => ({
         ...server,
         url: ensureUrlFormat(server.url),
       }));
@@ -216,9 +215,10 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
 
     case APP_SETTINGS_LOADED: {
       const { servers = state } = action.payload;
-      return servers.map((server) => ({
+      return servers.map((server: Server) => ({
         ...server,
         url: ensureUrlFormat(server.url),
+        documentViewerOpenUrl: '',
       }));
     }
 

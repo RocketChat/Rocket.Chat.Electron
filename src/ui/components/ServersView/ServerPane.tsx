@@ -23,6 +23,7 @@ type ServerPaneProps = {
   isSupported: boolean | undefined;
   title: string | undefined;
   documentViewerOpenUrl: string | undefined;
+  themeAppearance: string | undefined;
 };
 
 export const ServerPane = ({
@@ -32,6 +33,7 @@ export const ServerPane = ({
   isFailed,
   isSupported,
   documentViewerOpenUrl,
+  themeAppearance,
 }: ServerPaneProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
@@ -208,6 +210,7 @@ export const ServerPane = ({
           url={documentViewerOpenUrl || ''}
           partition={`persist:${serverUrl}`}
           closeDocumentViewer={closeDocumentViewer}
+          themeAppearance={themeAppearance}
         />
       </DocumentViewerWrapper>
       <UnsupportedServer

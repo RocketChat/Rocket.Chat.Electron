@@ -17,6 +17,7 @@ export const ServersView = () => {
           isSupported={server.isSupportedVersion}
           title={server.title}
           documentViewerOpenUrl={server.documentViewerOpenUrl}
+          themeAppearance={server.themeAppearance}
         />
       ))}
     </ReparentingContainer>

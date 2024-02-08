@@ -205,6 +205,21 @@ const start = async () => {
   Tracker.autorun(() => {
     const uid = Meteor.userId();
     if (!uid) return;
+    const themeAppearance: string = getUserPreference(uid, 'themeAppearence');
+    if (
+      ['dark', 'light', 'auto', 'high-contrast'].includes(
+        themeAppearance as any
+      )
+    ) {
+      window.RocketChatDesktop.setUserThemeAppearance(
+        themeAppearance as 'auto' | 'dark' | 'light' | 'high-contrast'
+      );
+    }
+  });
+
+  Tracker.autorun(() => {
+    const uid = Meteor.userId();
+    if (!uid) return;
     const isAutoAwayEnabled: unknown = getUserPreference(uid, 'enableAutoAway');
     const idleThreshold: unknown = getUserPreference(uid, 'idleTimeLimit');
 

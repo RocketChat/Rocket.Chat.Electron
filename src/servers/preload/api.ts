@@ -27,6 +27,7 @@ import {
   setServerVersionToSidebar,
   setSidebarCustomTheme,
 } from './sidebar';
+import { setUserThemeAppearance } from './themeAppearance';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
@@ -53,6 +54,7 @@ export type RocketChatDesktopAPI = {
     idleThreshold: number | null;
     setUserOnline: (online: boolean) => void;
   }) => void;
+  setUserThemeAppearance: (themeAppearance: Server['themeAppearance']) => void;
   createNotification: (
     options: NotificationOptions & {
       canReply?: boolean;
@@ -95,6 +97,7 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   setTitle,
   setUserPresenceDetection,
   setUserLoggedIn,
+  setUserThemeAppearance,
   createNotification,
   destroyNotification,
   getInternalVideoChatWindowEnabled,

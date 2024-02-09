@@ -18,6 +18,16 @@ export const Wrapper = styled.section<WrapperProps>`
   `};
 `;
 
+type DocumentViewerWrapperProps = {
+  isVisible: boolean;
+};
+
+export const DocumentViewerWrapper = styled.section<DocumentViewerWrapperProps>`
+  ${({ isVisible }) => css`
+    display: ${isVisible ? 'flex' : 'none'};
+  `};
+`;
+
 type StyledWebViewProps = {
   isFailed: boolean;
 };

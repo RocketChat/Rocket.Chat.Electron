@@ -325,7 +325,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.on(
       'will-download',
       (event, item, _webContents) => {
-        console.log('will-download', item);
         const fileName = item.getFilename();
         const extension = path.extname(fileName)?.slice(1).toLowerCase();
         const savePath = dialog.showSaveDialogSync(rootWindow, {

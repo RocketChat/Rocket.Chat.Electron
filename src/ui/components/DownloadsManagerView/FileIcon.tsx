@@ -1,15 +1,14 @@
 import path from 'path';
 
 import { Box } from '@rocket.chat/fuselage';
-import type { FC } from 'react';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 
 type FileIconProps = {
   fileName: string;
   mimeType: string;
 };
 
-const FileIcon: FC<FileIconProps> = ({ fileName, mimeType }) => {
+const FileIcon = ({ fileName, mimeType }: FileIconProps) => {
   const label = useMemo(() => {
     const extension = path.extname(fileName);
 

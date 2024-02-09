@@ -52,10 +52,7 @@ type RootWindowIconParams = {
   favicon: string | undefined;
 };
 
-const selectBadgeAndFavicon = createStructuredSelector<
-  RootState,
-  RootWindowIconParams
->({
+const selectBadgeAndFavicon = createStructuredSelector({
   badge: ({ servers }: RootState) => {
     const badges = servers.map(({ badge }) => badge);
 

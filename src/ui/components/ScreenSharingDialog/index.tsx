@@ -1,8 +1,7 @@
 import { Box, Margins, Scrollable } from '@rocket.chat/fuselage';
 import type { DesktopCapturerSource } from 'electron';
 import { desktopCapturer } from 'electron';
-import type { FC } from 'react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -14,7 +13,7 @@ import { WEBVIEW_SCREEN_SHARING_SOURCE_RESPONDED } from '../../actions';
 import { Dialog } from '../Dialog';
 import { Source } from './styles';
 
-export const ScreenSharingDialog: FC = () => {
+export const ScreenSharingDialog = () => {
   const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
   const isVisible = openDialog === 'screen-sharing';
   const dispatch = useDispatch<Dispatch<RootAction>>();

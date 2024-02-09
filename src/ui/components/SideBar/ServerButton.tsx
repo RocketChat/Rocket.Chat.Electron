@@ -1,5 +1,5 @@
 import { css } from '@rocket.chat/css-in-js';
-import { IconButton, Badge, Box } from '@rocket.chat/fuselage';
+import { Badge, Box, IconButton } from '@rocket.chat/fuselage';
 import type { DragEvent, MouseEvent } from 'react';
 import { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
@@ -7,16 +7,10 @@ import type { Dispatch } from 'redux';
 
 import type { RootAction } from '../../../store/actions';
 import {
-  SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
+  SIDE_BAR_SERVER_SELECTED,
 } from '../../actions';
-import {
-  Avatar,
-  Favicon,
-  Initials,
-  KeyboardShortcut,
-  ServerButtonWrapper,
-} from './styles';
+import { Avatar, Favicon, Initials, ServerButtonWrapper } from './styles';
 
 type ServerButtonProps = {
   url: string;
@@ -103,6 +97,20 @@ const ServerButton = ({
       />
       <Box
         className={css`
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        `}
+        position='absolute'
+      >
+        {shortcutNumber && isShortcutVisible && (
+          <Badge variant='primary'>
+            {process.platform === 'darwin' ? '⌘' : '^'} {shortcutNumber}
+          </Badge>
+        )}
+      </Box>
+      <Box
+        className={css`
           top: 0;
           right: 0;
           transform: translate(30%, -30%);
@@ -112,12 +120,6 @@ const ServerButton = ({
         {mentionCount && <Badge variant='danger'>{mentionCount}</Badge>}
         {!userLoggedIn && <Badge variant='danger'>!</Badge>}
       </Box>
-      {shortcutNumber && (
-        <KeyboardShortcut visible={isShortcutVisible}>
-          {process.platform === 'darwin' ? '⌘' : '^'}
-          {shortcutNumber}
-        </KeyboardShortcut>
-      )}
     </ServerButtonWrapper>
   );
 };

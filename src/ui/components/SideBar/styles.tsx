@@ -88,7 +88,7 @@ export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
   position: relative;
   flex: 0 0 auto;
   box-sizing: border-box;
-  margin: 4px 0;
+  margin: 8px 0;
   font-size: 24px;
   line-height: 1.25;
   display: flex;
@@ -115,6 +115,9 @@ type KeyboardShortcutProps = {
 
 export const KeyboardShortcut = styled.div<KeyboardShortcutProps>`
   flex: 1 0 100%;
+  position: absolute
+  top: 0
+  right: 0
   padding-top: 8px;
   text-align: center;
   font-size: 12px;

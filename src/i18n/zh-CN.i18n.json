@@ -1,18 +1,19 @@
 {
   "contextMenu": {
-    "cut": "剪切 (&T)",
-    "copy": "复制 (&P)",
-    "paste": "粘贴 (&P)",
-    "selectAll": "全选 (&A)",
-    "undo": "复原 (&U)",
-    "redo": "重做 (&R)",
-    "spellingLanguages": "拼写检查",
-    "moreSpellingSuggestions": "其他拼写建议",
-    "noSpellingSuggestions": "没有拼写建议",
-    "copyLinkAddress": "复制链接URL",
-    "copyLinkText": "复制链接文字",
+    "cut": "剪切",
+    "copy": "复制",
+    "paste": "粘贴",
+    "selectAll": "全选",
+    "undo": "撤销",
+    "redo": "重做",
+    "spelling": "拼写检查",
+    "spellingLanguages": "拼写语言",
+    "moreSpellingSuggestions": "更多拼写建议",
+    "noSpellingSuggestions": "无建议",
+    "copyLinkAddress": "复制链接地址",
+    "copyLinkText": "复制链接文本",
     "openLink": "打开链接",
-    "saveImageAs": "保存图片...",
+    "saveImageAs": "图片另存为...",
     "copyImage": "复制图片"
   },
   "dialog": {
@@ -21,75 +22,129 @@
       "version": "版本: <1>{{-version}}</1>",
       "checkUpdates": "检查更新",
       "checkUpdatesOnStart": "启动时检查更新",
-      "noUpdatesAvailable": "目前沒有可用的更新",
-      "copyright": "版权 {{copyright}}"
+      "noUpdatesAvailable": "没有可用的更新。",
+      "copyright": "版权所有 {{copyright}}",
+      "errorWhenLookingForUpdates": "查找更新时出错"
     },
     "addServer": {
-      "title": "新增服务器",
-      "message": "您是否要将 \"{{- host}}\" 新增到您的服务器列表中？",
-      "add": "新增",
+      "title": "添加服务器",
+      "message": "是否要将 \"{{- host}}\" 添加到服务器列表？",
+      "add": "添加",
       "cancel": "取消"
     },
     "addServerError": {
-      "title": "无效的网址",
-      "message": "网址 \"{{- host}}\" 无法验证，因此沒有新增。"
+      "title": "无效主机",
+      "message": "主机 \"{{- host}}\" 无法验证，因此未被添加。"
     },
     "certificateError": {
       "title": "证书错误",
-      "message": "您是否要信任來自 \"{{- issuerName}}\" 的证书？",
+      "message": "您信任来自\"{{- issuerName}}\"的证书吗？",
+      "yes": "是",
+      "no": "否"
+    },
+    "downloadRemoval": {
+      "title": "确定吗？",
+      "message": "移除此下载？",
       "yes": "是",
       "no": "否"
     },
     "resetAppData": {
-      "title": "重置应用数据",
-      "message": "您可以退出所有团队并将应用程序恢复为其原始设置。这将无法撤消。",
+      "title": "重置应用程序数据",
+      "message": "这将登出您的所有团队并将应用程序重置为原始设置。此操作无法撤销。",
+      "yes": "是",
+      "cancel": "取消"
+    },
+    "clearPermittedScreenCaptureServers": {
+      "title": "清除屏幕捕获服务器的权限",
+      "message": "这将清除所有屏幕捕获服务器的权限，使其再次请求权限。此操作无法撤销。",
       "yes": "是",
       "cancel": "取消"
     },
     "screenshare": {
-      "title": "分享您的画面",
-      "announcement": "选择要分享的画面"
+      "title": "分享屏幕",
+      "announcement": "选择要分享的屏幕"
     },
     "update": {
-      "title": "可用的更新",
-      "announcement": "有新的更新程序",
-      "message": "有新版本的 Rocket.Chat 桌面应用程序！",
-      "currentVersion": "目前版本:",
-      "newVersion": "最新版本:",
-      "install": "安裝更新",
-      "remindLater": "稍后再提醒我",
-      "skip": "忽略这个版本"
+      "title": "有更新可用",
+      "announcement": "新版本可用",
+      "message": "Rocket.Chat桌面应用有新版本可用！",
+      "currentVersion": "当前版本：",
+      "newVersion": "新版本：",
+      "install": "安装更新",
+      "remindLater": "稍后提醒",
+      "skip": "跳过此版本"
     },
     "updateDownloading": {
       "title": "正在下载更新",
-      "message": "当准备好可以安装更新程序的时候，您将会收到通知。",
-      "ok": "好"
+      "message": "更新准备就绪时，您将收到通知",
+      "ok": "确定"
     },
     "updateInstallLater": {
-      "title": "稍后再安裝",
-      "message": "结束程序的时候将会安装更新",
-      "ok": "OK"
+      "title": "稍后安装",
+      "message": "退出应用程序时将安装更新",
+      "ok": "确定"
     },
     "updateReady": {
-      "title": "已准备好安装更新",
-      "message": "更新程序已下载完毕",
-      "installNow": "立刻安裝",
-      "installLater": "稍后安裝"
+      "title": "准备安装更新",
+      "message": "更新已下载",
+      "installNow": "立即安装",
+      "installLater": "稍后安装"
     },
     "updateSkip": {
-      "title": "忽略更新",
-      "message": "我们将会在下次有新的更新版本的时候通知您\n如果您改变主意想安装此处更新，您可以从「关于」的选项中检查更新。",
-      "ok": "好"
+      "title": "跳过更新",
+      "message": "下次有更新时会通知您\n如果改变主意，您可以从\"关于\"菜单检查更新。",
+      "ok": "确定"
+    },
+    "selectClientCertificate": {
+      "announcement": "选择证书",
+      "select": "选择",
+      "validDates": "有效期从 {{-validStart,}} 到 {{-validExpiry,}}"
+    },
+    "openingExternalProtocol": {
+      "title": "具有自定义协议的链接",
+      "message": "{{- protocol }} 链接需要外部应用程序。",
+      "detail": "请求的链接是 {{- url }} 。您要继续吗？",
+      "dontAskAgain": "始终在关联的应用程序中打开此类链接",
+      "yes": "是",
+      "no": "否"
+    },
+    "allowVideoCallCaptureScreen": {
+      "title": "视频通话正在尝试捕获您的屏幕",
+      "message": "视频通话请求捕获您的屏幕的权限。",
+      "detail": "来自服务器 {{- url }} 的视频通话需要权限以与其他人共享您的屏幕。",
+      "dontAskAgain": "始终允许来自该服务器的视频通话捕获您的屏幕",
+      "yes": "允许",
+      "no": "取消"
+    },
+    "outlookCalendar": {
+      "title": "Outlook日历",
+      "encryptionUnavailableTitle": "加密不可用",
+      "encryptionUnavailable": "您的操作系统不支持加密。\n您的凭据将以明文存储。",
+      "field_required": "此字段为必填项",
+      "remember_credentials": "记住我的凭据",
+      "cancel": " 取消",
+      "submit": "登录"
+    },
+    "supportedVersion": {
+      "title": "工作区版本不受支持"
     }
   },
   "downloads": {
     "title": "下载",
+    "notifications": {
+      "downloadFinished": "下载完成",
+      "downloadInterrupted": "下载中断",
+      "downloadCancelled": "下载已取消",
+      "downloadFailed": "下载失败",
+      "downloadExpired": "下载已过期",
+      "downloadExpiredMessage": "请从源处重试下载。"
+    },
     "filters": {
       "search": "搜索",
       "server": "服务器",
       "mimeType": "类型",
       "status": "状态",
-      "clear": "清除筛选器",
+      "clear": "清除过滤器",
       "all": "全部",
       "mimes": {
         "images": "图片",
@@ -108,117 +163,193 @@
       "copyLink": "复制链接",
       "errored": "下载已取消",
       "pause": "暂停",
-      "progressSize": "{{receivedBytes, byteSize}} of {{totalBytes, byteSize}} ({{ratio, percentage}})",
-      "remove": "从列表中删除",
-      "resume": "暂停",
+      "progressSize": "{{receivedBytes, byteSize}} / {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "从列表中移除",
+      "resume": "恢复",
       "retry": "重试",
       "showInFolder": "在文件夹中显示"
     },
-    "showingResults": "显示{{count}}个中的第{{first}} - {{last}}个"
+    "showingResults": "显示结果 {{first}} - {{last}} 共 {{count}} 条"
+  },
+  "certificatesManager": {
+    "title": "证书管理器",
+    "trustedCertificates": "受信任的证书",
+    "notTrustedCertificates": "不受信任的证书",
+    "item": {
+      "domain": "域名",
+      "actions": "操作",
+      "remove": "移除"
+    }
   },
   "settings": {
     "title": "设置",
+    "general": "常规",
+    "certificates": "证书",
     "options": {
       "report": {
-        "title": "向开发者报告错误",
-        "description": "匿名向开发者报告错误。会发送包括程序版本号、操作系统类型、服务器地址、设备语言和错误类型。不会发送聊天内容和用户名等信息。"
+        "title": "向开发人员报告错误",
+        "description": "匿名向开发人员报告错误。共享的信息包括应用程序版本号、操作系统类型、服务器URL、设备语言和错误类型。不会共享内容或用户名。",
+        "masDescription": "从Mac App Store安装时，此选项被禁用，错误将通过Mac App Store错误报告流程报告。"
       },
       "flashFrame": {
-        "title": "允许闪屏",
-        "description": "使用闪屏来吸引用户的注意。",
-        "onLinux": "在一些Linux系统上这个功能不可用。"
+        "title": "启用闪烁框",
+        "titleDarwin": "在警报时切换Dock弹跳",
+        "description": "闪烁窗口以吸引用户的注意。",
+        "onLinux": "一些Linux发行版不支持此功能。",
+        "descriptionDarwin": "在Dock中的应用图标弹跳以吸引用户的注意。"
+      },
+      "hardwareAcceleration": {
+        "title": "硬件加速",
+        "description": "在可用时启用硬件加速。更改后，应用程序将重新加载。"
       },
       "internalVideoChatWindow": {
-        "title": "在程序窗口中打开视频通话",
-        "description": "视频通话会在程序窗口中打开，否则会在默认的浏览器窗口中打开。"
+        "title": "使用应用程序窗口打开视频聊天",
+        "description": "设置后，视频聊天将使用应用程序窗口打开，否则将使用默认浏览器。 <strong>Google Meet</strong>不支持在Electron应用程序中共享屏幕，因此此配置不会改变Meet通话的行为，它将在浏览器中打开。",
+        "masDescription": "从Mac App Store安装时，此选项被禁用，出于安全原因，它将默认使用浏览器打开视频聊天。"
+      },
+      "minimizeOnClose": {
+        "title": "关闭时最小化",
+        "description": "关闭应用程序时将其最小化，否则将退出应用程序。要生效，托盘图标需要被禁用。"
+      },
+      "menubar": {
+        "title": "菜单栏",
+        "description": "在窗口顶部显示菜单栏。"
+      },
+      "sidebar": {
+        "title": "侧边栏",
+        "description": "在窗口左侧显示带有服务器列表、下载和设置的侧边栏。"
+      },
+      "trayIcon": {
+        "title": "托盘图标",
+        "description": "在系统托盘中显示托盘图标。如果托盘图标处于活动状态，则关闭时应用程序将隐藏到托盘中。否则，它将退出应用程序。"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "清除屏幕捕获权限",
+        "description": "清除屏幕捕获权限，选择后不再在视频通话中询问。"
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "允许视频通话捕获屏幕",
+        "description": "允许视频通话捕获屏幕。这将在每次视频通话时请求权限。"
+      },
+      "ntlmCredentials": {
+        "title": "NTLM凭据",
+        "description": "允许在连接到服务器时使用NTLM凭据。",
+        "domains": "将使用凭据的域。用逗号分隔。使用*匹配所有域。"
       }
     }
   },
   "error": {
-    "authNeeded": "需要验证，请重新验证 <strong>{{- auth}}</strong>",
+    "authNeeded": "需要认证，请尝试<strong>{{- auth}}</strong>",
     "connectTimeout": "连接超时",
-    "differentCertificate": "证书与之前的不同。\n\n {{- detail}}",
-    "noValidServerFound": "在这个网址找不到有效的服务器",
-    "offline": "请检查您的网络连接！"
+    "differentCertificate": "证书与先前的不同。\n\n {{- detail}}",
+    "noValidServerFound": "在URL中找不到有效的服务器",
+    "offline": "检查您的互联网连接！"
   },
   "landing": {
-    "invalidUrl": "无效的网址",
+    "invalidUrl": "无效的URL",
     "validating": "验证中...",
-    "inputUrl": "请输入您的服务器网址",
+    "inputUrl": "输入您的服务器URL",
     "connect": "连接"
   },
   "menus": {
     "about": "关于 {{- appName}}",
-    "addNewServer": "新增服务器",
-    "back": "上一步 (&B)",
-    "clearTrustedCertificates": "清除已信任的证书",
+    "addNewServer": "添加新服务器",
+    "back": "返回",
+    "clearTrustedCertificates": "清除受信任的证书",
     "close": "关闭",
-    "copy": "复制 (&C)",
-    "cut": "剪切 (&T)",
+    "copy": "复制",
+    "cut": "剪切",
     "disableGpu": "禁用GPU",
-    "documentation": "文件",
+    "documentation": "文档",
     "downloads": "下载",
     "settings": "设置",
-    "editMenu": "编辑 (&E)",
-    "fileMenu": "文件 (&F)",
-    "forward": "下一步 (&F)",
-    "helpMenu": "帮助 (&H)",
+    "editMenu": "编辑",
+    "fileMenu": "文件",
+    "forward": "前进",
+    "helpMenu": "帮助",
+    "hide": "隐藏 {{- appName}}",
+    "hideOthers": "隐藏其他",
     "learnMore": "了解更多",
     "minimize": "最小化",
-    "openDevTools": "开启开发工具 (&D)",
-    "paste": "粘贴 (&P)",
-    "quit": "结束(&Q){{- appName}}",
-    "redo": "重做 (&R)",
-    "reload": "重新载入 (&R)",
-    "reloadIgnoringCache": "忽略缓存并重新加载",
+    "openDevTools": "打开DevTools",
+    "openDevToolsOnAllWindows": "在所有窗口中打开DevTools",
+    "paste": "粘贴",
+    "quit": "退出 {{- appName}}",
+    "redo": "重做",
+    "reload": "重新加载",
+    "reloadIgnoringCache": "忽略缓存重新加载",
     "reportIssue": "报告问题",
-    "resetAppData": "重置应用数据",
+    "resetAppData": "重置应用程序数据",
     "resetZoom": "重置缩放",
-    "selectAll": "选择全部 (&A)",
-    "showFullScreen": "全屏幕",
-    "showMenuBar": "选项",
-    "showOnUnreadMessage": "显示未读取的信息",
+    "selectAll": "全选",
+    "services": "服务",
+    "showFullScreen": "全屏",
+    "showMenuBar": "显示菜单栏",
+    "showOnUnreadMessage": "未读消息时显示",
     "showServerList": "服务器列表",
-    "showTrayIcon": "托盘图标",
-    "toggleDevTools": "切换开发工具 (&D)",
-    "undo": "还原 (&U)",
-    "viewMenu": "显示 (&V)",
-    "windowMenu": "窗口 (&W)",
+    "showTrayIcon": "显示托盘图标",
+    "toggleDevTools": "切换DevTools",
+    "undo": "撤销",
+    "unhide": "显示全部",
+    "viewMenu": "视图",
+    "windowMenu": "窗口",
     "zoomIn": "放大",
     "zoomOut": "缩小"
   },
   "loadingError": {
-    "title": "服务器载入失败",
-    "announcement": "稍等一下，我们遇到问题了",
-    "reload": "重新載入"
+    "title": "无法加载服务器",
+    "announcement": "休斯顿，我们有一个问题",
+    "reload": "重新加载"
+  },
+  "unsupportedServer": {
+    "title": "{{instanceDomain}}正在运行不受支持的版本的Rocket.Chat",
+    "announcement": "管理员需要更新工作区到受支持的版本，以便从移动和桌面应用程序重新启用访问。",
+    "moreInformation": "了解更多"
+  },
+  "selfxss": {
+    "title": "停止！",
+    "description": "这是一种面向开发人员的浏览器功能。如果有人告诉您在此处复制粘贴某些内容以启用Rocket.Chat功能或\"黑\"某人的帐户，则是一种诈骗，并且将使他们访问您的Rocket.Chat帐户。",
+    "moreInfo": "请查看 https://go.rocket.chat/i/xss 获取更多信息。"
   },
   "sidebar": {
-    "addNewServer": "新增服务器",
+    "addNewServer": "添加新服务器",
     "downloads": "下载",
     "settings": "设置",
     "item": {
-      "reload": "重新载入服务器",
+      "reload": "重新加载服务器",
       "remove": "移除服务器",
-      "openDevTools": "开启开发工具",
+      "openDevTools": "打开DevTools",
       "clearCache": "清除缓存",
-      "clearStorageData": "清除存储数据"
+      "clearStorageData": "清除存储数据",
+      "copyCurrentUrl": "复制当前URL"
     }
   },
   "touchBar": {
-    "formatting": "格式化",
+    "formatting": "格式",
     "selectServer": "选择服务器"
   },
   "tray": {
     "menu": {
       "show": "显示",
       "hide": "隐藏",
-      "quit": "结束"
+      "quit": "退出"
     },
     "tooltip": {
-      "noUnreadMessage": "{{- appName}}: 没有未读的信息",
-      "unreadMention": "{{- appName}}: 您有未读的直接或提及到您的信息",
-      "unreadMention_plural": "{{- appName}}: 您有 {{- count}} 封未读的直接或提及到您的信息",
-      "unreadMessage": "{{- appName}}: 您有未读的信息"
+      "noUnreadMessage": "{{- appName}}: 没有未读消息",
+      "unreadMention": "{{- appName}}: 您有未读提及/直接消息",
+      "unreadMention_plural": "{{- appName}}: 您有 {{- count}} 条未读提及/直接消息",
+      "unreadMessage": "{{- appName}}: 您有未读消息"
+    },
+    "balloon": {
+      "stillRunning": {
+        "title": "{{- appName}} 仍在运行",
+        "content": "{{- appName }} 设置为在系统托盘/通知区域中保持运行。"
+      }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "未读消息",
+    "unreadMention": "未读提及",
+    "noUnreadMessage": "没有未读消息"
   }
 }

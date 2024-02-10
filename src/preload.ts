@@ -24,6 +24,7 @@ declare global {
 }
 
 contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
+contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
 const start = async (): Promise<void> => {
   console.log('[Rocket.Chat Desktop] preload.ts start');
@@ -35,8 +36,6 @@ const start = async (): Promise<void> => {
   }
 
   window.removeEventListener('load', start);
-
-  contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
   setServerUrl(serverUrl);
 

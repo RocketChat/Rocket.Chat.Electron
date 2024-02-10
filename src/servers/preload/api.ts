@@ -14,6 +14,7 @@ import { setUserPresenceDetection } from '../../userPresence/preload';
 import type { Server } from '../common';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
+import { openDocumentViewer } from './documentViewer';
 import { setFavicon } from './favicon';
 import { setGitCommitHash } from './gitCommitHash';
 import type { videoCallWindowOptions } from './internalVideoChatWindow';
@@ -26,6 +27,7 @@ import {
   setServerVersionToSidebar,
   setSidebarCustomTheme,
 } from './sidebar';
+import { setUserThemeAppearance } from './themeAppearance';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
@@ -52,6 +54,7 @@ export type RocketChatDesktopAPI = {
     idleThreshold: number | null;
     setUserOnline: (online: boolean) => void;
   }) => void;
+  setUserThemeAppearance: (themeAppearance: Server['themeAppearance']) => void;
   createNotification: (
     options: NotificationOptions & {
       canReply?: boolean;
@@ -72,6 +75,7 @@ export type RocketChatDesktopAPI = {
   hasOutlookCredentials: () => Promise<boolean>;
   clearOutlookCredentials: () => void;
   setUserToken: (token: string, userId: string) => void;
+  openDocumentViewer: (url: string, format: string, options: any) => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -93,6 +97,7 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   setTitle,
   setUserPresenceDetection,
   setUserLoggedIn,
+  setUserThemeAppearance,
   createNotification,
   destroyNotification,
   getInternalVideoChatWindowEnabled,
@@ -105,4 +110,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   clearOutlookCredentials,
   setUserToken,
   setSidebarCustomTheme,
+  openDocumentViewer,
 };

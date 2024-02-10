@@ -394,7 +394,7 @@ export const showRootWindow = async (): Promise<void> => {
   }
 
   return new Promise((resolve) => {
-    browserWindow.addListener('ready-to-show', () => {
+    browserWindow.once('ready-to-show', () => {
       applyRootWindowState(browserWindow);
 
       const isTrayIconEnabled = select(
@@ -422,7 +422,7 @@ export const exportLocalStorage = async (): Promise<Record<string, string>> => {
     tempWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 
     await new Promise<void>((resolve) => {
-      tempWindow.addListener('ready-to-show', () => {
+      tempWindow.once('ready-to-show', () => {
         resolve();
       });
     });

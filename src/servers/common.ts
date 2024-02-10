@@ -25,6 +25,8 @@ export type Server = {
   supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
   supportedVersions?: SupportedVersions;
   expirationMessageLastTimeShown?: Date;
+  documentViewerOpenUrl?: string;
+  themeAppearance?: 'dark' | 'light' | 'auto' | 'high-contrast';
 };
 
 export const enum ServerUrlResolutionStatus {

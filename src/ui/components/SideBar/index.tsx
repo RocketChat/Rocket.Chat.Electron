@@ -1,5 +1,5 @@
 import { Icon } from '@rocket.chat/fuselage';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -30,21 +30,21 @@ export const SideBar = () => {
   const servers = useServers();
 
   const isSideBarEnabled = useSelector(
-    ({ isSideBarEnabled }: RootState) => isSideBarEnabled,
+    ({ isSideBarEnabled }: RootState) => isSideBarEnabled
   );
 
   const isAddNewServersEnabled = useSelector(
-    ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled,
+    ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled
   );
   const isVisible = servers.length > 0 && isSideBarEnabled;
   const style = useMemo(
     () => servers.find(({ selected }) => selected)?.style || {},
-    [servers],
+    [servers]
   );
 
   const customTheme = useMemo(
     () => servers.find(({ selected }) => selected)?.customTheme || '',
-    [servers],
+    [servers]
   );
   const isEachShortcutVisible = useKeyboardShortcuts();
   const {

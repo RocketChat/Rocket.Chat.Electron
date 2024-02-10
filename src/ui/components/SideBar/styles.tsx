@@ -24,8 +24,7 @@ export const Wrapper = styled.div<WrapperProps>`
   user-select: none;
   -webkit-app-region: drag;
 
-  transition:
-    margin-inline-start 230ms ease-in-out,
+  transition: margin-inline-start 230ms ease-in-out,
     visibility 230ms ease-in-out;
 
   ${({ sideBarStyle: { background } }) => css`

@@ -1,5 +1,4 @@
 import { Icon } from '@rocket.chat/fuselage';
-import type { FC } from 'react';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,18 +15,18 @@ import { useServers } from '../hooks/useServers';
 import ServerButton from './ServerButton';
 import CustomTheme from './customTheme';
 import {
-  Wrapper,
+  AddServerButton,
+  BottomButtons,
+  Button,
   Content,
   ServerList,
-  AddServerButton,
   SidebarActionButton,
-  Button,
-  BottomButtons,
+  Wrapper,
 } from './styles';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
 
-export const SideBar: FC = () => {
+export const SideBar = () => {
   const servers = useServers();
 
   const isSideBarEnabled = useSelector(
@@ -109,17 +108,17 @@ export const SideBar: FC = () => {
               onDrop={handleDrop(server.url)}
             />
           ))}
+          {isAddNewServersEnabled && (
+            <AddServerButton>
+              <SidebarActionButton
+                tooltip={t('sidebar.addNewServer')}
+                onClick={handleAddServerButtonClicked}
+              >
+                +
+              </SidebarActionButton>
+            </AddServerButton>
+          )}
         </ServerList>
-        {isAddNewServersEnabled && (
-          <AddServerButton>
-            <SidebarActionButton
-              tooltip={t('sidebar.addNewServer')}
-              onClick={handleAddServerButtonClicked}
-            >
-              +
-            </SidebarActionButton>
-          </AddServerButton>
-        )}
         <BottomButtons>
           <Button>
             <SidebarActionButton

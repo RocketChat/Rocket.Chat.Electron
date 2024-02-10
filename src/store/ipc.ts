@@ -1,12 +1,11 @@
 import type { WebContents } from 'electron';
-import type { Middleware, MiddlewareAPI, Dispatch } from 'redux';
+import type { Middleware, MiddlewareAPI } from 'redux';
 
 import { handle as handleOnMain, invoke as invokeFromMain } from '../ipc/main';
 import {
   handle as handleFromRenderer,
   invoke as invokeFromRenderer,
 } from '../ipc/renderer';
-import type { FluxStandardAction } from './fsa';
 import { isFSA, isLocallyScoped, hasMeta, isSingleScoped } from './fsa';
 
 const enum ActionScope {
@@ -39,7 +38,7 @@ export const forwardToRenderers: Middleware = (api: MiddlewareAPI) => {
     });
   });
 
-  return (next: Dispatch) => (action: FluxStandardAction<string, unknown>) => {
+  return (next) => (action) => {
     if (!isFSA(action) || isLocallyScoped(action)) {
       return next(action);
     }
@@ -79,7 +78,7 @@ export const forwardToMain: Middleware = (api: MiddlewareAPI) => {
     api.dispatch(action);
   });
 
-  return (next: Dispatch) => (action: FluxStandardAction<string, unknown>) => {
+  return (next) => (action) => {
     if (!isFSA(action) || isLocallyScoped(action)) {
       return next(action);
     }

@@ -5,6 +5,7 @@ import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
 import type { Server } from '../servers/common';
 import { dispatch, request, select } from '../store';
+import * as urls from '../urls';
 import {
   OUTLOOK_CALENDAR_SET_CREDENTIALS,
   OUTLOOK_CALENDAR_ASK_CREDENTIALS,
@@ -70,7 +71,7 @@ async function listEventsFromRocketChatServer(
 ) {
   try {
     const response = await axios.get(
-      `${serverUrl}api/v1/calendar-events.list`,
+      urls.server(serverUrl).calendarEvents.list,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +97,7 @@ async function createEventOnRocketChatServer(
 ) {
   try {
     await axios.post(
-      `${serverUrl}api/v1/calendar-events.import`,
+      urls.server(serverUrl).calendarEvents.import,
       {
         externalId: event.id,
         subject: event.subject,
@@ -126,7 +127,7 @@ async function updateEventOnRocketChatServer(
 ) {
   try {
     await axios.post(
-      `${serverUrl}api/v1/calendar-events.update`,
+      urls.server(serverUrl).calendarEvents.update,
       {
         eventId: rocketChatEventId,
         subject: event.subject,
@@ -155,7 +156,7 @@ async function deleteEventOnRocketChatServer(
 ) {
   try {
     await axios.post(
-      `${serverUrl}api/v1/calendar-events.delete`,
+      urls.server(serverUrl).calendarEvents.delete,
       {
         eventId: rocketChatEventId,
       },

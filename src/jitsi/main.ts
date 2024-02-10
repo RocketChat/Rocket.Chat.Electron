@@ -18,9 +18,8 @@ export const isJitsiServerAllowed = async (
     return { allowed: persistedServers[0][1], dontAskAgain: true };
   }
 
-  const { allowed, dontAskAgain } = await askForJitsiCaptureScreenPermission(
-    url
-  );
+  const { allowed, dontAskAgain } =
+    await askForJitsiCaptureScreenPermission(url);
 
   if (dontAskAgain) {
     dispatch({

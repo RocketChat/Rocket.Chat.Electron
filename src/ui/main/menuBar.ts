@@ -7,6 +7,7 @@ import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
+import * as urls from '../../urls';
 import {
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
@@ -30,11 +31,8 @@ const on = (
   getMenuItems: () => MenuItemConstructorOptions[]
 ): MenuItemConstructorOptions[] => (condition ? getMenuItems() : []);
 
-const selectAddServersDeps = createStructuredSelector<
-  RootState,
-  Pick<RootState, 'isAddNewServersEnabled'>
->({
-  isAddNewServersEnabled: ({ isAddNewServersEnabled }) =>
+const selectAddServersDeps = createStructuredSelector({
+  isAddNewServersEnabled: ({ isAddNewServersEnabled }: RootState) =>
     isAddNewServersEnabled,
 });
 
@@ -161,22 +159,12 @@ const createEditMenu = createSelector(
   })
 );
 
-const selectViewDeps = createStructuredSelector<
-  RootState,
-  Pick<
-    RootState,
-    | 'currentView'
-    | 'isSideBarEnabled'
-    | 'isTrayIconEnabled'
-    | 'isMenuBarEnabled'
-    | 'rootWindowState'
-  >
->({
-  currentView: ({ currentView }) => currentView,
-  isSideBarEnabled: ({ isSideBarEnabled }) => isSideBarEnabled,
-  isTrayIconEnabled: ({ isTrayIconEnabled }) => isTrayIconEnabled,
-  isMenuBarEnabled: ({ isMenuBarEnabled }) => isMenuBarEnabled,
-  rootWindowState: ({ rootWindowState }) => rootWindowState,
+const selectViewDeps = createStructuredSelector({
+  currentView: ({ currentView }: RootState) => currentView,
+  isSideBarEnabled: ({ isSideBarEnabled }: RootState) => isSideBarEnabled,
+  isTrayIconEnabled: ({ isTrayIconEnabled }: RootState) => isTrayIconEnabled,
+  isMenuBarEnabled: ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled,
+  rootWindowState: ({ rootWindowState }: RootState) => rootWindowState,
 });
 
 const getCurrentViewWebcontents = async () => {
@@ -446,22 +434,13 @@ const createViewMenu = createSelector(
   })
 );
 
-const selectWindowDeps = createStructuredSelector<
-  RootState,
-  Pick<
-    RootState,
-    | 'servers'
-    | 'currentView'
-    | 'isShowWindowOnUnreadChangedEnabled'
-    | 'isAddNewServersEnabled'
-  >
->({
-  servers: ({ servers }) => servers,
-  currentView: ({ currentView }) => currentView,
+const selectWindowDeps = createStructuredSelector({
+  servers: ({ servers }: RootState) => servers,
+  currentView: ({ currentView }: RootState) => currentView,
   isShowWindowOnUnreadChangedEnabled: ({
     isShowWindowOnUnreadChangedEnabled,
-  }) => isShowWindowOnUnreadChangedEnabled,
-  isAddNewServersEnabled: ({ isAddNewServersEnabled }) =>
+  }: RootState) => isShowWindowOnUnreadChangedEnabled,
+  isAddNewServersEnabled: ({ isAddNewServersEnabled }: RootState) =>
     isAddNewServersEnabled,
 });
 
@@ -599,16 +578,14 @@ const createHelpMenu = createSelector(
         id: 'documentation',
         label: t('menus.documentation'),
         click: () => {
-          shell.openExternal('https://docs.rocket.chat/');
+          shell.openExternal(urls.docs.index);
         },
       },
       {
         id: 'reportIssue',
         label: t('menus.reportIssue'),
         click: () => {
-          shell.openExternal(
-            'https://github.com/RocketChat/Rocket.Chat/issues/new'
-          );
+          shell.openExternal(urls.docs.newIssue);
         },
       },
       { type: 'separator' },
@@ -672,7 +649,7 @@ const createHelpMenu = createSelector(
         id: 'learnMore',
         label: t('menus.learnMore'),
         click: () => {
-          shell.openExternal('https://rocket.chat');
+          shell.openExternal(urls.rocketchat.site);
         },
       },
       ...on(process.platform !== 'darwin', () => [

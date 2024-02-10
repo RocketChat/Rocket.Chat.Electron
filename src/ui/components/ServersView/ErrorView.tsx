@@ -5,8 +5,7 @@ import {
   Margins,
   Throbber,
 } from '@rocket.chat/fuselage';
-import type { FC } from 'react';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FailureImage } from '../FailureImage';
@@ -17,7 +16,7 @@ type ErrorViewProps = {
   onReload: () => void;
 };
 
-const ErrorView: FC<ErrorViewProps> = ({ isFailed, onReload }) => {
+const ErrorView = ({ isFailed, onReload }: ErrorViewProps) => {
   const { t } = useTranslation();
 
   const [isReloading, setReloading] = useState(false);

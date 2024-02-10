@@ -11,7 +11,7 @@ import type {
   SourcesOptions,
 } from 'electron';
 import { ipcRenderer } from 'electron';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Dialog } from '../ui/components/Dialog';
 import { Source } from '../ui/components/ScreenSharingDialog/styles';

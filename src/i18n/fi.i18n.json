@@ -1,73 +1,73 @@
 {
   "contextMenu": {
-    "cut": "&Leikkaa",
-    "copy": "&Kopioi",
-    "paste": "L&iitä",
-    "selectAll": "V&alitse kaikki",
-    "undo": "K&umoa",
-    "redo": "T&ee uudelleen",
+    "cut": "Leikkaa",
+    "copy": "Kopioi",
+    "paste": "Liitä",
+    "selectAll": "Valitse kaikki",
+    "undo": "Kumoa",
+    "redo": "Tee uudelleen",
     "spelling": "Oikeinkirjoitus",
-    "spellingLanguages": "Oikeinkirjoituksen kielet",
+    "spellingLanguages": "Oikeinkirjoituskielet",
     "moreSpellingSuggestions": "Lisää oikeinkirjoitusehdotuksia",
     "noSpellingSuggestions": "Ei ehdotuksia",
     "copyLinkAddress": "Kopioi linkin osoite",
-    "copyLinkText": "Kopioi linkkiteksti",
+    "copyLinkText": "Kopioi linkin teksti",
     "openLink": "Avaa linkki",
     "saveImageAs": "Tallenna kuva nimellä...",
     "copyImage": "Kopioi kuva"
   },
   "dialog": {
     "about": {
-      "title": "Tietoja: {{- appName}}",
+      "title": "Tietoja {{- appName}}",
       "version": "Versio: <1>{{-version}}</1>",
       "checkUpdates": "Tarkista päivitykset",
-      "checkUpdatesOnStart": "Tarkista päivitykset käynnistettäessä",
+      "checkUpdatesOnStart": "Tarkista päivitykset käynnistyessä",
       "noUpdatesAvailable": "Päivityksiä ei ole saatavilla.",
-      "copyright": "Copyright {{copyright}}",
-      "errorWhenLookingForUpdates": "Virhe etsittäessä päivityksiä"
+      "copyright": "Tekijänoikeus {{copyright}}",
+      "errorWhenLookingForUpdates": "Virhe päivityksiä etsiessä"
     },
     "addServer": {
       "title": "Lisää palvelin",
-      "message": "Lisätäänkö {{- host}} palvelinluetteloon?",
+      "message": "Haluatko lisätä \"{{- host}}\" palvelinluetteloon?",
       "add": "Lisää",
       "cancel": "Peruuta"
     },
     "addServerError": {
       "title": "Virheellinen isäntä",
-      "message": "Isäntää {{- host}} ei voitu vahvistaa, joten sitä ei lisätty."
+      "message": "Isäntää \"{{- host}}\" ei voitu validoida, joten sitä ei lisätty."
     },
     "certificateError": {
-      "title": "Varmennevirhe",
-      "message": "Luotatko myöntäjän {{- issuerName}} varmenteeseen?",
+      "title": "Virheellinen sertifikaatti",
+      "message": "Luotatko sertifikaattiin \"{{- issuerName}}\"?",
       "yes": "Kyllä",
       "no": "Ei"
     },
     "downloadRemoval": {
       "title": "Oletko varma?",
-      "message": "Poistetaanko tämä lataus?",
+      "message": "Poista tämä lataus?",
       "yes": "Kyllä",
       "no": "Ei"
     },
     "resetAppData": {
-      "title": "Nollaa sovelluksen tiedot",
-      "message": "Tämä kirjaa sinut ulos kaikista tiimeistäsi ja palauttaa sovelluksen alkuperäiset asetukset. Tätä ei voi kumota.",
+      "title": "Nollaa sovellusdata",
+      "message": "Tämä kirjaa sinut ulos kaikista joukkueistasi ja palauttaa sovelluksen alkuperäiset asetukset. Tätä ei voi peruuttaa.",
       "yes": "Kyllä",
       "cancel": "Peruuta"
     },
     "clearPermittedScreenCaptureServers": {
-      "title": "Tyhjennä sallitut näyttökuvapalvelimet",
-      "message": "Tämä poistaa kaikki näyttökuvapalvelinten oikeudet, jotta niiden on pyydettävä oikeus uudelleen. Tätä ei voi kumota.",
+      "title": "Tyhjennä sallitut näyttötallennuspalvelimet",
+      "message": "Tämä poistaa kaikki luvat näyttötallennuspalvelimille, jolloin ne pyytävät lupaa uudelleen. Tätä ei voi peruuttaa.",
       "yes": "Kyllä",
       "cancel": "Peruuta"
     },
     "screenshare": {
-      "title": "Jaa näyttö",
+      "title": "Jaa näyttösi",
       "announcement": "Valitse jaettava näyttö"
     },
     "update": {
       "title": "Päivitys saatavilla",
       "announcement": "Uusi päivitys on saatavilla",
-      "message": "Rocket.Chat-tietokonesovelluksen uusi versio on saatavilla!",
+      "message": "Rocket.Chat Desktop -sovelluksen uusi versio on saatavilla!",
       "currentVersion": "Nykyinen versio:",
       "newVersion": "Uusi versio:",
       "install": "Asenna päivitys",
@@ -76,59 +76,71 @@
     },
     "updateDownloading": {
       "title": "Ladataan päivitystä",
-      "message": "Saat ilmoituksen, kun päivitys on valmis asennettavaksi",
+      "message": "Sinulle ilmoitetaan, kun päivitys on valmis asennettavaksi",
       "ok": "OK"
     },
     "updateInstallLater": {
       "title": "Asennetaan myöhemmin",
-      "message": "Päivitys asennetaan, kun suljet sovelluksen",
+      "message": "Päivitys asennetaan, kun poistut sovelluksesta",
       "ok": "OK"
     },
     "updateReady": {
-      "title": "Päivitys valmis asennettavaksi",
+      "title": "Päivitys on valmis asennettavaksi",
       "message": "Päivitys on ladattu",
       "installNow": "Asenna nyt",
       "installLater": "Asenna myöhemmin"
     },
     "updateSkip": {
       "title": "Ohita päivitys",
-      "message": "Saat ilmoituksen, kun seuraava päivitys on saatavilla\nJos muutat mielesi, voit tarkistaa päivitykset Tietoja-valikosta.",
+      "message": "Ilmoitamme, kun seuraava päivitys on saatavilla\nVoit tarkistaa päivitykset Tietoja-valikosta, jos muutat mieltäsi.",
       "ok": "OK"
     },
     "selectClientCertificate": {
-      "announcement": "Valitse varmenne",
+      "announcement": "Valitse sertifikaatti",
       "select": "Valitse",
       "validDates": "Voimassa {{-validStart,}} - {{-validExpiry,}}"
     },
     "openingExternalProtocol": {
-      "title": "Linkki mukautettuun yhteyskäytäntöön",
-      "message": "{{- protocol }} -linkki edellyttää ulkoista sovellusta.",
+      "title": "Linkki mukautetulla protokollalla",
+      "message": "{{- protocol }} linkki vaatii ulkoisen sovelluksen.",
       "detail": "Pyydetty linkki on {{- url }} . Haluatko jatkaa?",
-      "dontAskAgain": "Avaa aina tällaiset linkit liittyvässä sovelluksessa",
+      "dontAskAgain": "Avaa aina nämä linkkityypit liittyvällä sovelluksella",
       "yes": "Kyllä",
       "no": "Ei"
     },
     "allowVideoCallCaptureScreen": {
-      "title": "Videopuhelu yrittää ottaa näyttökuvan",
-      "message": "Videopuhelu pyytää oikeutta ottaa näyttökuva.",
-      "detail": "Videopuhelu palvelimesta {{- url }} tarvitsee oikeuden jakaa näyttösi muiden kanssa.",
-      "dontAskAgain": "Salli aina tämän palvelimen videopuhelujen ottaa näyttökuva",
+      "title": "Videopuhelu yrittää tallentaa näytöltäsi",
+      "message": "Videopuhelu pyytää lupaa tallentaa näyttösi.",
+      "detail": "Palvelimen {{- url }} videopuhelu vaatii luvan näytön jakamiseen muiden kanssa.",
+      "dontAskAgain": "Salli aina tämän palvelimen videopuheluiden tallentaa näyttösi",
       "yes": "Salli",
       "no": "Peruuta"
+    },
+    "outlookCalendar": {
+      "title": "Outlook-kalenteri",
+      "encryptionUnavailableTitle": "Salaus ei ole käytettävissä",
+      "encryptionUnavailable": "Käyttöjärjestelmäsi ei tue salausta.\nTunnuksesi tallennetaan selkokielisenä.",
+      "field_required": "Tämä kenttä on pakollinen",
+      "remember_credentials": "Muista tunnukseni",
+      "cancel": " Peruuta",
+      "submit": "Kirjaudu sisään"
+    },
+    "supportedVersion": {
+      "title": "Työtilan versioa ei tueta"
     }
   },
   "downloads": {
     "title": "Lataukset",
     "notifications": {
       "downloadFinished": "Lataus valmis",
-      "downloadInterrupted": "Lataus keskeytyi",
+      "downloadInterrupted": "Lataus keskeytetty",
       "downloadCancelled": "Lataus peruutettu",
       "downloadFailed": "Lataus epäonnistui",
-      "downloadExpired": "Lataus vanheni",
+      "downloadExpired": "Lataus vanhentunut",
       "downloadExpiredMessage": "Yritä ladata uudelleen lähteestä."
     },
     "filters": {
-      "search": "Haku",
+      "search": "Hae",
       "server": "Palvelin",
       "mimeType": "Tyyppi",
       "status": "Tila",
@@ -151,8 +163,8 @@
       "copyLink": "Kopioi linkki",
       "errored": "Lataus peruutettu",
       "pause": "Keskeytä",
-      "progressSize": "{{receivedBytes, byteSize}}/{{totalBytes, byteSize}} ({{ratio, percentage}})",
-      "remove": "Poista luettelosta",
+      "progressSize": "{{receivedBytes, byteSize}} / {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "Poista listalta",
       "resume": "Jatka",
       "retry": "Yritä uudelleen",
       "showInFolder": "Näytä kansiossa"
@@ -160,11 +172,11 @@
     "showingResults": "Näytetään tulokset {{first}} - {{last}} / {{count}}"
   },
   "certificatesManager": {
-    "title": "Varmenteiden hallinta",
-    "trustedCertificates": "Luotetut varmenteet",
-    "notTrustedCertificates": "Ei luotettuja varmenteita",
+    "title": "Sertifikaattien hallinta",
+    "trustedCertificates": "Luotetut sertifikaatit",
+    "notTrustedCertificates": "Ei-luotetut sertifikaatit",
     "item": {
-      "domain": "Toimialue",
+      "domain": "Verkkotunnus",
       "actions": "Toimet",
       "remove": "Poista"
     }
@@ -172,118 +184,132 @@
   "settings": {
     "title": "Asetukset",
     "general": "Yleiset",
-    "certificates": "Varmenteet",
+    "certificates": "Sertifikaatit",
     "options": {
       "report": {
-        "title": "Ilmoita virheistä kehittäjille",
-        "description": "Ilmoita virheistä kehittäjille nimettömästi. Jaettuja tietoja ovat mm. sovelluksen versionumero, käyttöjärjestelmän tyyppi, palvelimen URL-osoite, laitteen kieli ja virheen tyyppi. Sisältöä tai käyttäjätunnuksia ei jaeta.",
-        "masDescription": "Tämä ei ole käytössä, kun asennus on tehty Macin App Storesta. Virheistä ilmoitetaan Macin App Storen virheilmotusprosessilla."
+        "title": "Raportoi virheet kehittäjille",
+        "description": "Raportoi virheet nimettömästi kehittäjille. Jaetut tiedot sisältävät sovelluksen versio numeron, käyttöjärjestelmän tyypin, palvelimen URL-osoitteen, laitteen kielen ja virhetypen. Sisältöä tai käyttäjänimiä ei jaeta.",
+        "masDescription": "Tämä vaihtoehto on poistettu käytöstä, kun se on asennettu Mac App Storesta; virheet raportoidaan Mac App Storen virheraportointiprosessin kautta."
       },
       "flashFrame": {
-        "title": "Ota käyttöön Flash-kehys",
-        "titleDarwin": "Vaihda Dockin ponnahdusta hälytyksen yhteydessä",
-        "description": "Herättää käyttäjän huomion väläyttämällä ikkunaa.",
-        "onLinux": "Jotkin Linux-jakelut eivät tue tätä ominaisuutta.",
-        "descriptionDarwin": "Herättää käyttäjän huomion ponnauttamalla sovelluskuvaketta Dockissa."
+        "title": "Ota salama-kehys käyttöön",
+        "titleDarwin": "Kytke Dockin pomppaus ilmoituksessa",
+        "description": "Vilkuttaa ikkunaa houkutellakseen käyttäjän huomion.",
+        "onLinux": "Jotkut Linux-jakelut eivät tue tätä ominaisuutta.",
+        "descriptionDarwin": "Pomppaa sovelluskuvaketta telakalla houkutellakseen käyttäjän huomion."
       },
       "hardwareAcceleration": {
         "title": "Laitteistokiihdytys",
-        "description": "Ottaa käyttöön laitteistokiihdytyksen, jos se on käytettävissä. Sovellus latautuu uudelleen muutoksen yhteydessä."
+        "description": "Mahdollistaa laitteistokiihdytyksen käytön, kun se on käytettävissä. Sovellus latautuu uudelleen muutoksen jälkeen."
       },
       "internalVideoChatWindow": {
-        "title": "Avaa videokeskustelu sovellusikkunaan",
-        "description": "Tällä asetuksella videokeskustelu avautuu sovelluksen ikkunaan, muutoin oletusselaimeen.",
-        "masDescription": "Asetus ei ole käytössä, kun asennus on tehty Macin App Storesta. Suojaussyistä videokeskustelu avautuu oletusarvoisesti selaimeen."
+        "title": "Avaa videokeskustelu sovellusikkunassa",
+        "description": "Kun asetettu, videokeskustelu avataan sovelluksen ikkunassa; muuten oletusselain avautuu. <strong>Google Meet</strong> -näytön jakamista ei tueta elektronisovelluksissa, joten tämä asetus ei vaikuta Meet-puhelujen käyttäytymiseen, jotka avautuvat selaimeen.",
+        "masDescription": "Tämä vaihtoehto on poistettu käytöstä, kun se on asennettu Mac App Storesta; turvallisuussyistä videokeskustelu avautuu oletusselaimessa."
       },
       "minimizeOnClose": {
-        "title": "Pienennä suljettaessa",
-        "description": "Sovellus pienennetään suljettaessa, muutoin sovellus suljetaan. Ilmaisinalueen kuvakkeen on oltava poissa käytöstä, jotta tämä onnistuu."
+        "title": "Minimoi sulkeminen",
+        "description": "Sovellus minimoidaan suljettaessa, muuten se sulkeutuu. Ilmoitusalueen kuvakkeen on oltava pois päältä, jotta tämä vaikuttaa."
       },
       "menubar": {
         "title": "Valikkopalkki",
-        "description": "Näytä valikkopalkki ikkunan yläreunassa."
+        "description": "Näytä valikkopalkki ikkunan yläosassa."
       },
       "sidebar": {
         "title": "Sivupalkki",
-        "description": "Näytä ikkunan vasemmassa reunassa sivupalkki, jossa näkyvät palvelinluettelo, lataukset ja asetukset."
+        "description": "Näytä sivupalkki ikkunan vasemmalla puolella palvelinluettelon, latausten ja asetusten kanssa."
       },
       "trayIcon": {
-        "title": "Ilmaisinalueen kuvake",
-        "description": "Näytä ilmaisinalueen kuvake ilmaisinalueella. Jos ilmaisinalueen kuvake on käytössä, sovellus piilotetaan suljettaessa ilmaisinalueelle. Muutoin sovellus suljetaan."
+        "title": "Ilmoitusalueen kuvake",
+        "description": "Näytä ilmoitusalueen kuvake. Jos ilmoitusalueen kuvake on aktiivinen, sovellus piilotetaan ilmoitusalueelle suljettaessa. Muuten se sulkeutuu."
       },
       "clearPermittedScreenCaptureServers": {
-        "title": "Tyhjennä näyttökuvaoikeudet",
-        "description": "Tyhjennä valitut näyttökuvaoikeudet, joilla estettiin kysyminen uudelleen videopuheluissa."
+        "title": "Tyhjennä näytön tallennuslupat",
+        "description": "Tyhjennä näytön tallennusluvat, jotka on valittu, jotta niitä ei kysytä uudelleen videopuheluissa."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Salli näytön tallennus videopuheluissa",
+        "description": "Salli näytön tallennus videopuheluissa. Tämä kysyy lupaa jokaisessa videopuhelussa."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM-tunnistetiedot",
+        "description": "Salli NTLM-tunnistetietojen käyttö palvelimeen yhdistettäessä.",
+        "domains": "Verkkotunnukset, joilla käytetään tunnistetietoja. Erotettu pilkulla. Käytä * vastaamaan kaikkia verkkotunnuksia."
       }
     }
   },
   "error": {
-    "authNeeded": "Todennus tarvitaan, kokeile: <strong>{{- auth}}</strong>",
-    "connectTimeout": "Aikakatkaisu yritettäessä yhdistää",
-    "differentCertificate": "Varmenne ei ole sama kuin edellinen.\n\n {{- detail}}",
-    "noValidServerFound": "URL-osoitteesta ei löydy kelvollista palvelinta",
+    "authNeeded": "Todennus tarvitaan, kokeile <strong>{{- auth}}</strong>",
+    "connectTimeout": "Yhteysaikakatkaisu",
+    "differentCertificate": "Sertifikaatti eroaa edellisestä.\n\n {{- detail}}",
+    "noValidServerFound": "Kelvollista palvelinta ei löytynyt URL-osoitteesta",
     "offline": "Tarkista Internet-yhteys!"
   },
   "landing": {
-    "invalidUrl": "Virheellinen URL-osoite",
-    "validating": "Vahvistetaan...",
-    "inputUrl": "Anna palvelimesi URL-osoite",
+    "invalidUrl": "Virheellinen URL",
+    "validating": "Validoidaan...",
+    "inputUrl": "Syötä palvelimesi URL-osoite",
     "connect": "Yhdistä"
   },
   "menus": {
-    "about": "Tietoja: {{- appName}}",
-    "addNewServer": "Lisää &uusi palvelin",
-    "back": "&Takaisin",
-    "clearTrustedCertificates": "Tyhjennä luotetut varmenteet",
+    "about": "Tietoja {{- appName}}",
+    "addNewServer": "Lisää uusi palvelin",
+    "back": "Takaisin",
+    "clearTrustedCertificates": "Tyhjennä luotetut sertifikaatit",
     "close": "Sulje",
-    "copy": "&Kopioi",
-    "cut": "&Leikkaa",
-    "disableGpu": "Poista grafiikkasuoritin käytöstä",
-    "documentation": "Oppaat",
+    "copy": "Kopioi",
+    "cut": "Leikkaa",
+    "disableGpu": "Poista GPU käytöstä",
+    "documentation": "Dokumentaatio",
     "downloads": "Lataukset",
     "settings": "Asetukset",
-    "editMenu": "M&uokkaa",
-    "fileMenu": "Tie&dosto",
-    "forward": "V&älitä",
-    "helpMenu": "&Ohje",
+    "editMenu": "Muokkaa",
+    "fileMenu": "Tiedosto",
+    "forward": "Eteenpäin",
+    "helpMenu": "Ohje",
     "hide": "Piilota {{- appName}}",
     "hideOthers": "Piilota muut",
     "learnMore": "Lue lisää",
     "minimize": "Pienennä",
-    "openDevTools": "Avaa &DevTools",
-    "openDevToolsOnAllWindows": "Avaa &DevTools kaikissa ikkunoissa",
-    "paste": "L&iitä",
-    "quit": "&Sulje {{- appName}}",
-    "redo": "T&ee uudelleen",
-    "reload": "La&taa uudelleen",
-    "reloadIgnoringCache": "Lataa uudelleen, ohita välimuisti",
+    "openDevTools": "Avaa DevTools",
+    "openDevToolsOnAllWindows": "Avaa DevTools kaikissa ikkunoissa",
+    "paste": "Liitä",
+    "quit": "Lopeta {{- appName}}",
+    "redo": "Tee uudelleen",
+    "reload": "Lataa uudelleen",
+    "reloadIgnoringCache": "Lataa uudelleen välimuistia käyttämättä",
     "reportIssue": "Ilmoita ongelmasta",
-    "resetAppData": "Nollaa sovelluksen tiedot",
+    "resetAppData": "Nollaa sovellusdata",
     "resetZoom": "Nollaa zoomaus",
-    "selectAll": "V&alitse kaikki",
+    "selectAll": "Valitse kaikki",
     "services": "Palvelut",
     "showFullScreen": "Koko näyttö",
     "showMenuBar": "Valikkopalkki",
-    "showOnUnreadMessage": "Näytä lukemattomissa viesteissä",
+    "showOnUnreadMessage": "Näytä lukemattomilla viesteillä",
     "showServerList": "Palvelinluettelo",
-    "showTrayIcon": "Ilmaisinalueen kuvake",
-    "toggleDevTools": "Vaihda &DevTools",
-    "undo": "K&umoa",
+    "showTrayIcon": "Ilmoitusalueen kuvake",
+    "toggleDevTools": "Vaihda DevTools",
+    "undo": "Kumoa",
     "unhide": "Näytä kaikki",
-    "viewMenu": "&Näytä",
-    "windowMenu": "&Ikkuna",
+    "viewMenu": "Näytä",
+    "windowMenu": "Ikkuna",
     "zoomIn": "Lähennä",
     "zoomOut": "Loitonna"
   },
   "loadingError": {
-    "title": "Palvelimen lataus epäonnistui",
+    "title": "Palvelimen lataaminen epäonnistui",
     "announcement": "Houston, meillä on ongelma",
     "reload": "Lataa uudelleen"
   },
+  "unsupportedServer": {
+    "title": "{{instanceDomain}} käyttää Rocket.Chatin tuettua versiota",
+    "announcement": "Järjestelmänvalvojan on päivitettävä työtila tuetuksi versioksi, jotta pääsy mobiili- ja työpöytäsovelluksiin voidaan ottaa uudelleen käyttöön.",
+    "moreInformation": "Lisätietoja"
+  },
   "selfxss": {
-    "title": "Lopeta!",
-    "description": "Tämä on kehittäjille tarkoitettu selaimen ominaisuus. Jos joku kehottaa sinua kopioimaan ja liittämään tähän jotain, jotta saat käyttöön Rocket.Chat-ominaisuuden tai voit \"hakkeroida\" jonkun tilin, kyse on huijauksesta, jolla kyseinen taho pääsee Rocket.Chat-tilillesi.",
-    "moreInfo": "Lisätietoja on osoitteessa https://go.rocket.chat/i/xss."
+    "title": "Pysähdy!",
+    "description": "Tämä on selaimen ominaisuus, joka on tarkoitettu kehittäjille. Jos joku kehotti sinua kopioimaan ja liittämään jotain tänne mahdollistaaksesi Rocket.Chatin ominaisuuden tai \"hakkeroidaksesi\" jonkun tilin, kyseessä on huijaus, joka antaa heille pääsyn Rocket.Chat-tiliisi.",
+    "moreInfo": "Katso lisätietoja osoitteesta https://go.rocket.chat/i/xss."
   },
   "sidebar": {
     "addNewServer": "Lisää uusi palvelin",
@@ -294,7 +320,8 @@
       "remove": "Poista palvelin",
       "openDevTools": "Avaa DevTools",
       "clearCache": "Tyhjennä välimuisti",
-      "clearStorageData": "Tyhjennä tallennustiedot"
+      "clearStorageData": "Tyhjennä tallennustiedot",
+      "copyCurrentUrl": "Kopioi nykyinen URL-osoite"
     }
   },
   "touchBar": {
@@ -309,14 +336,14 @@
     },
     "tooltip": {
       "noUnreadMessage": "{{- appName}}: ei lukemattomia viestejä",
-      "unreadMention": "{{- appName}}: sinulla on lukematon maininta / suora viesti",
-      "unreadMention_plural": "{{- appName}}: sinulla on {{- count}} lukematonta mainintaa / suoraa viestiä",
+      "unreadMention": "{{- appName}}: sinulla on lukematon maininta/henkilökohtainen viesti",
+      "unreadMention_plural": "{{- appName}}: sinulla on {{- count}} lukematonta mainintaa/henkilökohtaista viestiä",
       "unreadMessage": "{{- appName}}: sinulla on lukemattomia viestejä"
     },
     "balloon": {
       "stillRunning": {
         "title": "{{- appName}} on edelleen käynnissä",
-        "content": "{{- appName }} on määritetty pysymään käynnissä ilmaisinalueella."
+        "content": "{{- appName }} on asetettu pysymään käynnissä järjestelmän ilmoitusalueella."
       }
     }
   },

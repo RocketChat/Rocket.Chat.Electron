@@ -1,6 +1,5 @@
 import { Icon } from '@rocket.chat/fuselage';
-import type { FC } from 'react';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -16,36 +15,36 @@ import { useServers } from '../hooks/useServers';
 import ServerButton from './ServerButton';
 import CustomTheme from './customTheme';
 import {
-  Wrapper,
+  AddServerButton,
+  BottomButtons,
+  Button,
   Content,
   ServerList,
-  AddServerButton,
   SidebarActionButton,
-  Button,
-  BottomButtons,
+  Wrapper,
 } from './styles';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
 
-export const SideBar: FC = () => {
+export const SideBar = () => {
   const servers = useServers();
 
   const isSideBarEnabled = useSelector(
-    ({ isSideBarEnabled }: RootState) => isSideBarEnabled
+    ({ isSideBarEnabled }: RootState) => isSideBarEnabled,
   );
 
   const isAddNewServersEnabled = useSelector(
-    ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled
+    ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled,
   );
   const isVisible = servers.length > 0 && isSideBarEnabled;
   const style = useMemo(
     () => servers.find(({ selected }) => selected)?.style || {},
-    [servers]
+    [servers],
   );
 
   const customTheme = useMemo(
     () => servers.find(({ selected }) => selected)?.customTheme || '',
-    [servers]
+    [servers],
   );
   const isEachShortcutVisible = useKeyboardShortcuts();
   const {
@@ -109,17 +108,17 @@ export const SideBar: FC = () => {
               onDrop={handleDrop(server.url)}
             />
           ))}
+          {isAddNewServersEnabled && (
+            <AddServerButton>
+              <SidebarActionButton
+                tooltip={t('sidebar.addNewServer')}
+                onClick={handleAddServerButtonClicked}
+              >
+                +
+              </SidebarActionButton>
+            </AddServerButton>
+          )}
         </ServerList>
-        {isAddNewServersEnabled && (
-          <AddServerButton>
-            <SidebarActionButton
-              tooltip={t('sidebar.addNewServer')}
-              onClick={handleAddServerButtonClicked}
-            >
-              +
-            </SidebarActionButton>
-          </AddServerButton>
-        )}
         <BottomButtons>
           <Button>
             <SidebarActionButton

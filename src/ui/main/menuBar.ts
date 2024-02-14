@@ -167,14 +167,18 @@ const selectViewDeps = createStructuredSelector({
   rootWindowState: ({ rootWindowState }: RootState) => rootWindowState,
 });
 
-const getCurrentViewWebcontents = async () => {
+const getCurrentView = async () => {
   const browserWindow = await getRootWindow();
 
   if (!browserWindow.isVisible()) {
     browserWindow.showInactive();
   }
   browserWindow.focus();
-  const currentView = select(({ currentView }) => currentView);
+  return select(({ currentView }) => currentView);
+};
+
+const getCurrentViewWebcontents = async () => {
+  const currentView = await getCurrentView();
   const url = typeof currentView === 'object' ? currentView.url : null;
   if (!url) {
     return null;
@@ -200,17 +204,9 @@ const createViewMenu = createSelector(
         accelerator: 'CommandOrControl+R',
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
+          const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.reload();
+          const currentView = await getCurrentView();
           if (typeof currentView === 'object' && !!currentView.url) {
             dispatch({
               type: WEBVIEW_SERVER_RELOADED,
@@ -224,17 +220,9 @@ const createViewMenu = createSelector(
         label: t('menus.reloadIgnoringCache'),
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
+          const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.reloadIgnoringCache();
+          const currentView = await getCurrentView();
           if (typeof currentView === 'object' && !!currentView.url) {
             dispatch({
               type: WEBVIEW_SERVER_RELOADED,
@@ -249,11 +237,8 @@ const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         accelerator:
           process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
-        click: () => {
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
+        click: async () => {
+          const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.toggleDevTools();
         },
       },
@@ -263,7 +248,7 @@ const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         accelerator:
           process.platform === 'darwin' ? 'Command+Alt+G' : 'Ctrl+Shift+G',
-        click: () => {
+        click: async () => {
           const windows = BrowserWindow.getAllWindows();
           windows.forEach((window) => {
             window.webContents.toggleDevTools();
@@ -277,16 +262,7 @@ const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
+          const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.goBack();
         },
       },
@@ -296,16 +272,7 @@ const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
+          const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.goForward();
         },
       },

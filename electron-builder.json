@@ -1,19 +1,19 @@
 {
   "files": ["app/**/*", "package.json"],
   "extraResources": ["build/icon.ico", "servers.json"],
-  "appId": "chat.rocket",
+  "appId": "quikboxchat",
   "protocols": {
-    "name": "Rocket.Chat",
-    "schemes": ["rocketchat"]
+    "name": "QuikBox Chat",
+    "schemes": ["quikboxchat"]
   },
   "mac": {
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],
     "icon": "build/icon.icns",
     "bundleVersion": "124",
-    "helperBundleId": "chat.rocket.electron.helper",
+    "helperBundleId": "quikboxchat.electron.helper",
     "type": "distribution",
-    "artifactName": "rocketchat-${version}-${os}.${ext}",
+    "artifactName": "quikboxchat-${version}-${os}.${ext}",
     "mergeASARs": false,
     "extendInfo": {
       "NSMicrophoneUsageDescription": "I need access to your microphone to record the audio you want to send.",
@@ -50,7 +50,7 @@
     "entitlementsLoginHelper": "build/entitlements.mas.inherit.plist",
     "hardenedRuntime": false,
     "asarUnpack": ["node_modules"],
-    "artifactName": "rocketchat-${version}-mas.${ext}"
+    "artifactName": "quikboxchat-${version}-mas.${ext}"
   },
   "win": {
     "target": [
@@ -68,13 +68,13 @@
       }
     ],
     "icon": "build/icon.ico",
-    "publisherName": "Rocket.Chat Technologies Corp.",
+    "publisherName": "QuikBox Solutions Inc.",
     "legalTrademarks": "",
-    "verifyUpdateCodeSignature": true,
+    "verifyUpdateCodeSignature": false,
     "requestedExecutionLevel": "asInvoker",
     "signAndEditExecutable": true,
     "signDlls": false,
-    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
+    "artifactName": "quikboxchat-${version}-${os}-${arch}.${ext}"
   },
   "nsis": {
     "oneClick": false,
@@ -100,18 +100,18 @@
   "appx": {
     "backgroundColor": "#2f343d",
     "languages": ["en-US", "en-GB", "pt-BR"],
-    "identityName": "0B67C87C.RocketChat",
+    "identityName": "0B67C87C.QuikBoxChat",
     "publisher": "CN=BBFF7141-7CAF-4FCD-8930-083FCDE6E854",
     "publisherDisplayName": "Rocket.Chat Technologies Corp.",
-    "applicationId": "RocketChat",
-    "displayName": "Rocket.Chat"
+    "applicationId": "QuikBoxChat",
+    "displayName": "QuikBox Chat"
   },
   "linux": {
     "target": ["AppImage", "tar.gz", "deb", "rpm", "snap", "flatpak"],
     "executableName": "rocketchat-desktop",
     "category": "GNOME;GTK;Network;InstantMessaging",
     "desktop": {
-      "StartupWMClass": "Rocket.Chat",
+      "StartupWMClass": "QuikBox Chat",
       "MimeType": "x-scheme-handler/rocketchat"
     },
     "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
@@ -143,7 +143,7 @@
   "publish": [
     {
       "provider": "github",
-      "owner": "RocketChat",
+      "owner": "quikbox",
       "repo": "Rocket.Chat.Electron",
       "vPrefixedTagName": false
     }

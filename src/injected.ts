@@ -371,8 +371,8 @@ const start = async () => {
       });
     }
   };
-};
 
-console.log('[Rocket.Chat Desktop] Injected');
+  console.log('[Rocket.Chat Desktop] Injected');
+};
 
 start();

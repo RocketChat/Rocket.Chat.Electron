@@ -1,6 +1,4 @@
 import { Box, FieldGroup } from '@rocket.chat/fuselage';
-import type { FC } from 'react';
-import React from 'react';
 
 import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
 import { FlashFrame } from './features/FlashFrame';
@@ -13,9 +11,9 @@ import { ReportErrors } from './features/ReportErrors';
 import { SideBar } from './features/SideBar';
 import { TrayIcon } from './features/TrayIcon';
 
-export const GeneralTab: FC = () => (
-  <Box is='form' margin={24} maxWidth={960} flexGrow={1} flexShrink={1}>
-    <FieldGroup>
+export const GeneralTab = () => (
+  <Box display='flex' justifyContent='center'>
+    <FieldGroup is='form' maxWidth={600}>
       <ReportErrors />
       <FlashFrame />
       <HardwareAcceleration />

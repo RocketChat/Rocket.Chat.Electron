@@ -8,6 +8,7 @@ import {
 } from './app/main/data';
 import { setUserDataDirectory } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
+import { startDocumentViewerHandler } from './documentViewer/ipc';
 import { setupDownloads } from './downloads/main';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
@@ -98,6 +99,7 @@ const start = async (): Promise<void> => {
   handleJitsiDesktopCapturerGetSources();
   handleDesktopCapturerGetSources();
   startOutlookCalendarUrlHandler();
+  startDocumentViewerHandler();
   checkSupportedVersionServers();
 
   await processDeepLinksInArgs();

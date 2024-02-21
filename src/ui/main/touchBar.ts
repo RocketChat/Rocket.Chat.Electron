@@ -23,7 +23,7 @@ const createTouchBar = (): [
   TouchBar,
   TouchBarPopover,
   TouchBarScrubber,
-  TouchBarSegmentedControl
+  TouchBarSegmentedControl,
 ] => {
   const serverSelectionScrubber = new TouchBar.TouchBarScrubber({
     selectedStyle: 'background',

@@ -1,6 +1,5 @@
 import { Icon } from '@rocket.chat/fuselage';
-import type { FC } from 'react';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -27,7 +26,7 @@ import {
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
 
-export const SideBar: FC = () => {
+export const SideBar = () => {
   const servers = useServers();
 
   const isSideBarEnabled = useSelector(

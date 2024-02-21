@@ -6,11 +6,10 @@ import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
 import { setupRootWindowReload } from '../../app/main/dev';
-import type { Server } from '../../servers/common';
 import { select, watch, listen, dispatchLocal } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
-import type { RootWindowIcon, WindowState } from '../common';
+import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
 import { getTrayIconPath } from './icons';
@@ -90,13 +89,11 @@ export const applyRootWindowState = (browserWindow: BrowserWindow): void => {
     ({ isTrayIconEnabled }) => isTrayIconEnabled
   );
 
-  let { x, y } = rootWindowState.bounds;
+  let { x = null, y = null } = rootWindowState.bounds;
   let { width, height } = rootWindowState.bounds;
   if (
     x === null ||
-    x === undefined ||
     y === null ||
-    y === undefined ||
     !isInsideSomeScreen({ x, y, width, height })
   ) {
     const primaryDisplay = screen.getPrimaryDisplay();
@@ -288,15 +285,9 @@ export const setupRootWindow = (): void => {
   });
 
   if (process.platform === 'linux' || process.platform === 'win32') {
-    const selectRootWindowIcon = createStructuredSelector<
-      RootState,
-      {
-        globalBadge: Server['badge'];
-        rootWindowIcon: RootWindowIcon | null;
-      }
-    >({
+    const selectRootWindowIcon = createStructuredSelector({
       globalBadge: selectGlobalBadge,
-      rootWindowIcon: ({ rootWindowIcon }) => rootWindowIcon,
+      rootWindowIcon: ({ rootWindowIcon }: RootState) => rootWindowIcon,
     });
 
     unsubscribers.push(
@@ -403,7 +394,7 @@ export const showRootWindow = async (): Promise<void> => {
   }
 
   return new Promise((resolve) => {
-    browserWindow.addListener('ready-to-show', () => {
+    browserWindow.once('ready-to-show', () => {
       applyRootWindowState(browserWindow);
 
       const isTrayIconEnabled = select(
@@ -431,7 +422,7 @@ export const exportLocalStorage = async (): Promise<Record<string, string>> => {
     tempWindow.loadFile(path.join(app.getAppPath(), 'app/index.html'));
 
     await new Promise<void>((resolve) => {
-      tempWindow.addListener('ready-to-show', () => {
+      tempWindow.once('ready-to-show', () => {
         resolve();
       });
     });

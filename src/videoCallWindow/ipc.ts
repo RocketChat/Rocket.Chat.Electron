@@ -1,6 +1,6 @@
 import path from 'path';
 
-import type { WebContents } from 'electron';
+import type { Event, WebContents } from 'electron';
 import {
   app,
   BrowserWindow,

@@ -23,20 +23,23 @@ declare global {
   }
 }
 
+console.log('[Rocket.Chat Desktop] Preload.ts');
+
 contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
+contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
 const start = async (): Promise<void> => {
-  console.log('[Rocket.Chat Desktop] preload.ts start');
+  console.log('[Rocket.Chat Desktop] Preload.ts start fired');
   const serverUrl = await invoke('server-view/get-url');
 
   if (!serverUrl) {
-    console.log('[Rocket.Chat Desktop] preload.ts serverUrl is not defined');
+    console.log('[Rocket.Chat Desktop] serverUrl is not defined');
+    console.log('[Rocket.Chat Desktop] Preload start - retrying in 1 seconds');
+    setTimeout(start, 1000);
     return;
   }
 
   window.removeEventListener('load', start);
-
-  contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
 
   setServerUrl(serverUrl);
 

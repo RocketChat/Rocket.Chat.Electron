@@ -1,9 +1,6 @@
-import type { FC } from 'react';
-import React from 'react';
-
 import { RocketChatLogo } from '../components/RocketChatLogo';
 
-const DmgBackground: FC = () => {
+const DmgBackground = () => {
   const backgroundColor = '#F7F8FA';
 
   return (

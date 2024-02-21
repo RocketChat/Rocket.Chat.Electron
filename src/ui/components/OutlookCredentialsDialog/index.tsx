@@ -14,8 +14,8 @@ import {
   FieldError,
   FieldLabel,
 } from '@rocket.chat/fuselage';
-import type { FC, ReactElement } from 'react';
-import React, { useEffect, useRef, useState } from 'react';
+import type { ReactElement } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
@@ -39,7 +39,7 @@ export type AuthPayload = {
   rememberCredentials?: boolean;
 };
 
-export const OutlookCredentialsDialog: FC = () => {
+export const OutlookCredentialsDialog = () => {
   const { t } = useTranslation();
   const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
   const isVisible = openDialog === 'outlook-credentials';

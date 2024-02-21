@@ -8,10 +8,9 @@ import {
   StatesTitle,
 } from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
-import type { FC } from 'react';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import * as urls from '../../../urls';
 import { ErrorPane } from './styles';
 
 type UnsupportedServerProps = {
@@ -19,23 +18,23 @@ type UnsupportedServerProps = {
   instanceDomain: string;
 };
 
-const UnsupportedServer: FC<UnsupportedServerProps> = ({
+const UnsupportedServer = ({
   isSupported,
   instanceDomain,
-}) => {
+}: UnsupportedServerProps) => {
   const { t } = useTranslation();
 
   const handleMoreInfoButtonClick = (): void => {
     ipcRenderer.invoke(
       'server-view/open-url-on-browser',
-      'https://go.rocket.chat/i/supported-versions'
+      urls.docs.supportedVersions
     );
   };
 
   return (
     <ErrorPane isVisible={isSupported === false}>
       <Box
-        backgroundColor='white'
+        backgroundColor='surface-light'
         display='flex'
         flexDirection='column'
         style={{

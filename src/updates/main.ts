@@ -127,7 +127,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
         (process.platform === 'linux' && !!process.env.APPIMAGE) ||
         (process.platform === 'win32' && !process.windowsStore) ||
         (process.platform === 'darwin' && !process.mas) ||
-        !isWindows10OrNewer,
+        isWindows10OrNewer,
       isEachUpdatesSettingConfigurable: true,
       isUpdatingEnabled,
       doCheckForUpdatesOnStartup,

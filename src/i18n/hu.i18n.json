@@ -186,6 +186,10 @@
     "general": "Általános",
     "certificates": "Tanúsítványok",
     "options": {
+      "startPage": {
+        "title": "Mindig a kezdőlapra induljon",
+        "description": "Amikor engedélyezve van, az alkalmazás mindig a kezdőlapra indul, egyébként az utolsó látogatott oldalon indul el."
+      },
       "report": {
         "title": "Hibák jelentése a fejlesztőknek",
         "description": "A hibák névtelenül történő jelentése a fejlesztőknek. A megosztott információk az alkalmazás verziószámát, az operációs rendszer típusát, a kiszolgáló URL-ét, az eszköz nyelvét és a hiba típusát tartalmazzák. Tartalom vagy felhasználónevek nem kerülnek megosztásra.",

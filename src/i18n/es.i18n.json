@@ -186,6 +186,10 @@
     "general": "General",
     "certificates": "Certificados",
     "options": {
+      "startPage": {
+        "title": "Siempre comenzar en la página de inicio",
+        "description": "Cuando está habilitado, la aplicación siempre comenzará en la página de inicio, de lo contrario, comenzará en la última página que visitaste."
+      },
       "report": {
         "title": "Informar errores a los desarrolladores",
         "description": "Informar errores de forma anónima a los desarrolladores. La información compartida incluye el número de versión de la aplicación, el tipo de sistema operativo, la URL del servidor, el idioma del dispositivo y el tipo de error. No se comparten contenidos ni nombres de usuario.",

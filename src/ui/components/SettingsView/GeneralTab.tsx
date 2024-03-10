@@ -1,5 +1,6 @@
 import { Box, FieldGroup } from '@rocket.chat/fuselage';
 
+import { AlwaysStartAtHomePage } from './features/AlwaysStartAtHomePage';
 import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
 import { FlashFrame } from './features/FlashFrame';
 import { HardwareAcceleration } from './features/HardwareAcceleration';
@@ -14,6 +15,7 @@ import { TrayIcon } from './features/TrayIcon';
 export const GeneralTab = () => (
   <Box display='flex' justifyContent='center'>
     <FieldGroup is='form' maxWidth={600}>
+      <AlwaysStartAtHomePage />
       <ReportErrors />
       <FlashFrame />
       <HardwareAcceleration />

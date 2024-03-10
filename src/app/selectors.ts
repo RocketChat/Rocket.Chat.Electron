@@ -34,6 +34,8 @@ export const selectPersistableValues = createStructuredSelector({
   isReportEnabled: ({ isReportEnabled }: RootState) => isReportEnabled,
   isFlashFrameEnabled: ({ isFlashFrameEnabled }: RootState) =>
     isFlashFrameEnabled,
+  doAlwaysStartAtHomePage: ({ doAlwaysStartAtHomePage }: RootState) =>
+    doAlwaysStartAtHomePage,
   isInternalVideoChatWindowEnabled: ({
     isInternalVideoChatWindowEnabled,
   }: RootState) => isInternalVideoChatWindowEnabled,

@@ -25,6 +25,8 @@ export type Server = {
   supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
   supportedVersions?: SupportedVersions;
   expirationMessageLastTimeShown?: Date;
+  documentViewerOpenUrl?: string;
+  themeAppearance?: 'dark' | 'light' | 'auto' | 'high-contrast';
 };
 
 export const enum ServerUrlResolutionStatus {
@@ -39,7 +41,7 @@ export type ServerUrlResolutionResult =
   | [
       resolvedServerUrl: Server['url'],
       result: Exclude<ServerUrlResolutionStatus, 'OK'>,
-      error: Error
+      error: Error,
     ];
 
 export const isServerUrlResolutionResult = (

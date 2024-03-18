@@ -7,6 +7,7 @@ import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
+import * as urls from '../../urls';
 import {
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
@@ -30,11 +31,8 @@ const on = (
   getMenuItems: () => MenuItemConstructorOptions[]
 ): MenuItemConstructorOptions[] => (condition ? getMenuItems() : []);
 
-const selectAddServersDeps = createStructuredSelector<
-  RootState,
-  Pick<RootState, 'isAddNewServersEnabled'>
->({
-  isAddNewServersEnabled: ({ isAddNewServersEnabled }) =>
+const selectAddServersDeps = createStructuredSelector({
+  isAddNewServersEnabled: ({ isAddNewServersEnabled }: RootState) =>
     isAddNewServersEnabled,
 });
 
@@ -161,32 +159,26 @@ const createEditMenu = createSelector(
   })
 );
 
-const selectViewDeps = createStructuredSelector<
-  RootState,
-  Pick<
-    RootState,
-    | 'currentView'
-    | 'isSideBarEnabled'
-    | 'isTrayIconEnabled'
-    | 'isMenuBarEnabled'
-    | 'rootWindowState'
-  >
->({
-  currentView: ({ currentView }) => currentView,
-  isSideBarEnabled: ({ isSideBarEnabled }) => isSideBarEnabled,
-  isTrayIconEnabled: ({ isTrayIconEnabled }) => isTrayIconEnabled,
-  isMenuBarEnabled: ({ isMenuBarEnabled }) => isMenuBarEnabled,
-  rootWindowState: ({ rootWindowState }) => rootWindowState,
+const selectViewDeps = createStructuredSelector({
+  currentView: ({ currentView }: RootState) => currentView,
+  isSideBarEnabled: ({ isSideBarEnabled }: RootState) => isSideBarEnabled,
+  isTrayIconEnabled: ({ isTrayIconEnabled }: RootState) => isTrayIconEnabled,
+  isMenuBarEnabled: ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled,
+  rootWindowState: ({ rootWindowState }: RootState) => rootWindowState,
 });
 
-const getCurrentViewWebcontents = async () => {
+const getCurrentView = async () => {
   const browserWindow = await getRootWindow();
 
   if (!browserWindow.isVisible()) {
     browserWindow.showInactive();
   }
   browserWindow.focus();
-  const currentView = select(({ currentView }) => currentView);
+  return select(({ currentView }) => currentView);
+};
+
+const getCurrentViewWebcontents = async () => {
+  const currentView = await getCurrentView();
   const url = typeof currentView === 'object' ? currentView.url : null;
   if (!url) {
     return null;
@@ -212,17 +204,9 @@ const createViewMenu = createSelector(
         accelerator: 'CommandOrControl+R',
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
+          const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.reload();
+          const currentView = await getCurrentView();
           if (typeof currentView === 'object' && !!currentView.url) {
             dispatch({
               type: WEBVIEW_SERVER_RELOADED,
@@ -236,17 +220,9 @@ const createViewMenu = createSelector(
         label: t('menus.reloadIgnoringCache'),
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
+          const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.reloadIgnoringCache();
+          const currentView = await getCurrentView();
           if (typeof currentView === 'object' && !!currentView.url) {
             dispatch({
               type: WEBVIEW_SERVER_RELOADED,
@@ -261,11 +237,8 @@ const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         accelerator:
           process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
-        click: () => {
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
+        click: async () => {
+          const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.toggleDevTools();
         },
       },
@@ -275,7 +248,7 @@ const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         accelerator:
           process.platform === 'darwin' ? 'Command+Alt+G' : 'Ctrl+Shift+G',
-        click: () => {
+        click: async () => {
           const windows = BrowserWindow.getAllWindows();
           windows.forEach((window) => {
             window.webContents.toggleDevTools();
@@ -289,16 +262,7 @@ const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         accelerator: process.platform === 'darwin' ? 'Command+[' : 'Alt+Left',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
+          const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.goBack();
         },
       },
@@ -308,16 +272,7 @@ const createViewMenu = createSelector(
         enabled: typeof currentView === 'object' && !!currentView.url,
         accelerator: process.platform === 'darwin' ? 'Command+]' : 'Alt+Right',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          const guestWebContents =
-            typeof currentView === 'object'
-              ? getWebContentsByServerUrl(currentView.url)
-              : null;
+          const guestWebContents = await getCurrentViewWebcontents();
           guestWebContents?.goForward();
         },
       },
@@ -446,22 +401,13 @@ const createViewMenu = createSelector(
   })
 );
 
-const selectWindowDeps = createStructuredSelector<
-  RootState,
-  Pick<
-    RootState,
-    | 'servers'
-    | 'currentView'
-    | 'isShowWindowOnUnreadChangedEnabled'
-    | 'isAddNewServersEnabled'
-  >
->({
-  servers: ({ servers }) => servers,
-  currentView: ({ currentView }) => currentView,
+const selectWindowDeps = createStructuredSelector({
+  servers: ({ servers }: RootState) => servers,
+  currentView: ({ currentView }: RootState) => currentView,
   isShowWindowOnUnreadChangedEnabled: ({
     isShowWindowOnUnreadChangedEnabled,
-  }) => isShowWindowOnUnreadChangedEnabled,
-  isAddNewServersEnabled: ({ isAddNewServersEnabled }) =>
+  }: RootState) => isShowWindowOnUnreadChangedEnabled,
+  isAddNewServersEnabled: ({ isAddNewServersEnabled }: RootState) =>
     isAddNewServersEnabled,
 });
 
@@ -599,16 +545,14 @@ const createHelpMenu = createSelector(
         id: 'documentation',
         label: t('menus.documentation'),
         click: () => {
-          shell.openExternal('https://docs.rocket.chat/');
+          shell.openExternal(urls.docs.index);
         },
       },
       {
         id: 'reportIssue',
         label: t('menus.reportIssue'),
         click: () => {
-          shell.openExternal(
-            'https://github.com/RocketChat/Rocket.Chat/issues/new'
-          );
+          shell.openExternal(urls.docs.newIssue);
         },
       },
       { type: 'separator' },
@@ -672,7 +616,7 @@ const createHelpMenu = createSelector(
         id: 'learnMore',
         label: t('menus.learnMore'),
         click: () => {
-          shell.openExternal('https://rocket.chat');
+          shell.openExternal(urls.rocketchat.site);
         },
       },
       ...on(process.platform !== 'darwin', () => [

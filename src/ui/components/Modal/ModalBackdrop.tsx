@@ -1,6 +1,6 @@
 import { Box } from '@rocket.chat/fuselage';
 import type { MouseEvent, ReactElement, ReactNode, RefObject } from 'react';
-import React, { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 const useEscapeKey = (onDismiss: (() => void) | undefined): void => {
   useEffect(() => {
@@ -41,7 +41,7 @@ const useOutsideClick = (
   const hasClicked = useRef<boolean>(false);
 
   const onMouseDown = useCallback(
-    (e) => {
+    (e: MouseEvent) => {
       if (isAtBackdropChildren(e, ref)) {
         hasClicked.current = false;
         return;

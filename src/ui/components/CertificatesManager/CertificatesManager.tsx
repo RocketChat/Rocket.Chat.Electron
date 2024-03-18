@@ -7,15 +7,13 @@ import {
   TableCell,
   TableBody,
 } from '@rocket.chat/fuselage';
-import type { FC } from 'react';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../store/rootReducer';
 import CertificateItem from './CertificateItem';
 
-export const CertificatesManager: FC = () => {
+export const CertificatesManager = () => {
   const trustedCertificates = useSelector(
     ({ trustedCertificates }: RootState) => trustedCertificates
   );

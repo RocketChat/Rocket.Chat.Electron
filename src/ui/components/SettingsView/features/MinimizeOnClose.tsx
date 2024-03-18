@@ -5,8 +5,8 @@ import {
   FieldLabel,
   FieldHint,
 } from '@rocket.chat/fuselage';
-import type { ChangeEvent, FC } from 'react';
-import React, { useCallback } from 'react';
+import type { ChangeEvent } from 'react';
+import { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -15,11 +15,11 @@ import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_MINIMIZE_ON_CLOSE_OPT_IN_CHANGED } from '../../../actions';
 
-type Props = {
+type MinimizeOnCloseProps = {
   className?: string;
 };
 
-export const MinimizeOnClose: FC<Props> = (props) => {
+export const MinimizeOnClose = (props: MinimizeOnCloseProps) => {
   const isMinimizeOnCloseEnabled = useSelector(
     ({ isMinimizeOnCloseEnabled }: RootState) => isMinimizeOnCloseEnabled
   );
@@ -39,17 +39,20 @@ export const MinimizeOnClose: FC<Props> = (props) => {
     [dispatch]
   );
 
+  const isMinimizeOnCloseEnabledId = useId();
+
   return (
     <Field className={props.className}>
       <FieldRow>
-        <ToggleSwitch
-          disabled={isTrayIconEnabled}
-          onChange={handleChange}
-          checked={isMinimizeOnCloseEnabled}
-        />
-        <FieldLabel htmlFor='toggle-switch'>
+        <FieldLabel htmlFor={isMinimizeOnCloseEnabledId}>
           {t('settings.options.minimizeOnClose.title')}
         </FieldLabel>
+        <ToggleSwitch
+          id={isMinimizeOnCloseEnabledId}
+          disabled={isTrayIconEnabled}
+          checked={isMinimizeOnCloseEnabled}
+          onChange={handleChange}
+        />
       </FieldRow>
       <FieldRow>
         <FieldHint>

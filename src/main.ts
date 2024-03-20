@@ -105,6 +105,4 @@ const start = async (): Promise<void> => {
   await processDeepLinksInArgs();
 };
 
-if (require.main === module) {
-  start();
-}
+start();

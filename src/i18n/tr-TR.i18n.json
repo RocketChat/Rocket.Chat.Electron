@@ -1,169 +1,355 @@
 {
   "contextMenu": {
-    "cut": "Kes",
+    "cut": "Ke&s",
     "copy": "Kopyala",
     "paste": "Yapıştır",
-    "selectAll": "Tümünü seç",
-    "undo": "Geri al",
+    "selectAll": "Tümünü Seç",
+    "undo": "Geri Al",
     "redo": "Yinele",
+    "spelling": "Yazım Denetimi",
     "spellingLanguages": "Yazım dilleri",
     "moreSpellingSuggestions": "Daha fazla yazım önerisi",
     "noSpellingSuggestions": "Öneri yok",
     "copyLinkAddress": "Bağlantı adresini kopyala",
     "copyLinkText": "Bağlantı metnini kopyala",
     "openLink": "Bağlantıyı aç",
-    "saveImageAs": "Görseli farklı kaydet..."
+    "saveImageAs": "Resmi farklı kaydet...",
+    "copyImage": "Resmi kopyala"
   },
   "dialog": {
     "about": {
-      "title": "Hakkında {{- appName}}",
-      "version": "Versiyon: <1>{{-version}}</1>",
-      "checkUpdates": "Güncellemeleri kontrol et",
-      "checkUpdatesOnStart": "Başlangıçta güncellemeleri kontrol et",
-      "noUpdatesAvailable": "Kullanıclabilir güncelleme yok.",
-      "copyright": "Telif hakkı {{copyright}}"
+      "title": "{{- appName}} Hakkında",
+      "version": "Sürüm: <1>{{-version}}</1>",
+      "checkUpdates": "Güncellemeleri Kontrol Et",
+      "checkUpdatesOnStart": "Başlangıçta Güncellemeleri Kontrol Et",
+      "noUpdatesAvailable": "Güncelleme mevcut değil.",
+      "copyright": "Telif Hakkı {{copyright}}",
+      "errorWhenLookingForUpdates": "Güncellemeler aranırken bir hata oluştu"
     },
     "addServer": {
-      "title": "Sunucu ekle",
-      "message": "\"{{- host}}\" sunucu listenize eklemek istiyor musunuz?",
+      "title": "Sunucu Ekle",
+      "message": "\"{{- host}}\" adresini sunucu listenize eklemek istiyor musunuz?",
       "add": "Ekle",
-      "cancel": "İptal et"
+      "cancel": "İptal"
     },
     "addServerError": {
-      "title": "Geçersiz host adresi",
-      "message": "The host \"{{- host}}\" doğrulanamadı yani eklenmedi."
+      "title": "Geçersiz Sunucu",
+      "message": "\"{{- host}}\" sunucu geçerli değil, bu yüzden eklenemedi."
     },
     "certificateError": {
       "title": "Sertifika hatası",
-      "message": "\"{{- issuerName}}\" sertifikasına güvenmek istiyor musunuz?",
+      "message": "\"{{- issuerName}}\" tarafından sağlanan sertifikaya güveniyor musunuz?",
+      "yes": "Evet",
+      "no": "Hayır"
+    },
+    "downloadRemoval": {
+      "title": "Emin misiniz?",
+      "message": "Bu indirme silinsin mi?",
       "yes": "Evet",
       "no": "Hayır"
     },
     "resetAppData": {
-      "title": "Uygulama verisini sıfırla",
-      "message": "Bu işlem sizi tüm sunuculardan çıkartır ve uygulamayı orijinal ayarlarına döndürür. Bu geri alınamaz.",
+      "title": "Uygulama verilerini sıfırla",
+      "message": "Bu işlem tüm takımlardan çıkış yapacak ve uygulamayı orijinal ayarlarına sıfırlayacak. Bu geri alınamaz.",
       "yes": "Evet",
-      "cancel": "İptal et"
+      "cancel": "İptal"
+    },
+    "clearPermittedScreenCaptureServers": {
+      "title": "İzin Verilen Ekran Yakalama Sunucularını Temizle",
+      "message": "Bu işlem ekran yakalama sunucuları için tüm izinleri temizleyecek ve tekrar izin isteyecek. Bu geri alınamaz.",
+      "yes": "Evet",
+      "cancel": "İptal"
     },
     "screenshare": {
-      "title": "Ekranınızı paylaşın",
-      "announcement": "Paylaşılacak ekran seçin"
+      "title": "Ekranınızı Paylaşın",
+      "announcement": "Paylaşmak için bir ekran seçin"
     },
     "update": {
-      "title": "Güncelleme kullanılabilir",
-      "announcement": "Yeni bir sürüm kullanılabilir",
-      "message": "Rocket.Chat için yeni bir masaüstü sürümü mevcut!",
-      "currentVersion": "Mevcut versiyon:",
-      "newVersion": "Yeni versiyon:",
-      "install": "Güncellemeyi yükle",
-      "remindLater": "Daha sonra hatırlat",
-      "skip": "Bu sürümü atla"
+      "title": "Güncelleme Mevcut",
+      "announcement": "Yeni Güncelleme Mevcut",
+      "message": "Rocket.Chat Masaüstü Uygulamasının yeni bir sürümü mevcut!",
+      "currentVersion": "Mevcut Sürüm:",
+      "newVersion": "Yeni Sürüm:",
+      "install": "Güncellemeyi Yükle",
+      "remindLater": "Daha Sonra Hatırlat",
+      "skip": "Bu Sürümü Atla"
     },
     "updateDownloading": {
-      "title": "Güncelleme indiriliyor",
-      "message": "Güncelleme yüklenmeye hazır olduğunda size bildirilecek.",
-      "ok": "TAMAM"
+      "title": "Güncelleme İndiriliyor",
+      "message": "Güncelleme yüklenecek olduğunda bildirim alacaksınız",
+      "ok": "Tamam"
     },
     "updateInstallLater": {
-      "title": "Installing Later",
-      "message": "Uygulamadan çıktığınızda güncelleme yüklenecek",
-      "ok": "TAMAM"
+      "title": "Daha Sonra Yükleme",
+      "message": "Güncelleme, uygulamadan çıkış yaparsanız yüklenecek",
+      "ok": "Tamam"
     },
     "updateReady": {
-      "title": "Güncelleme Yüklemeye Hazır",
+      "title": "Yüklenecek Güncelleme Hazır",
       "message": "Güncelleme indirildi",
-      "installNow": "Şimdi yükle",
-      "installLater": "Daha sonra yükle"
+      "installNow": "Şimdi Yükle",
+      "installLater": "Daha Sonra Yükle"
     },
     "updateSkip": {
       "title": "Güncellemeyi Atla",
-      "message": "Bir sonraki güncellemenin ne zaman yapılacağını size bildireceğiz. Fikrinizi değiştirirseniz Hakkında menüsünden güncellemeleri manuel kontrol edebilirsiniz.",
-      "ok": "TAMAM"
+      "message": "Bir sonraki güncelleme mevcut olduğunda size bildireceğiz.\nFikrinizi değiştirirseniz, Güncellemeler hakkında menüsünden güncellemeleri kontrol edebilirsiniz.",
+      "ok": "Tamam"
+    },
+    "selectClientCertificate": {
+      "announcement": "Sertifika Seç",
+      "select": "Seç",
+      "validDates": "Geçerlilik tarihi {{-validStart,}} ile {{-validExpiry,}} arasında"
+    },
+    "openingExternalProtocol": {
+      "title": "Özel protokol ile bağlantı",
+      "message": "{{- protocol }} bağlantısı harici bir uygulama gerektirir.",
+      "detail": "İstenen bağlantı {{- url }} . Devam etmek istiyor musunuz?",
+      "dontAskAgain": "Bu tür bağlantıları daima ilişkili uygulamada aç",
+      "yes": "Evet",
+      "no": "Hayır"
+    },
+    "allowVideoCallCaptureScreen": {
+      "title": "Video görüşme ekranınızı yakalamaya çalışıyor",
+      "message": "Video görüşme ekranınızı yakalamak için izin isteniyor.",
+      "detail": "Sunucudan gelen video görüşmesi {{- url }} başkalarıyla ekranınızı paylaşmak için izin gerektirir.",
+      "dontAskAgain": "Bu sunucudan gelen video görüşmelerine ekran yakalamasına her zaman izin ver",
+      "yes": "İzin Ver",
+      "no": "İptal"
+    },
+    "outlookCalendar": {
+      "title": "Outlook Takvimi",
+      "encryptionUnavailableTitle": "Şifreleme kullanılamıyor",
+      "encryptionUnavailable": "İşletim sisteminiz şifrelemeyi desteklemiyor.\nKimlik bilgileriniz düz metin olarak saklanacaktır.",
+      "field_required": "Bu alan gereklidir",
+      "remember_credentials": "Kimlik bilgilerimi hatırla",
+      "cancel": " İptal",
+      "submit": "Giriş Yap"
+    },
+    "supportedVersion": {
+      "title": "Çalışma Alanı sürümü desteklenmiyor"
+    }
+  },
+  "downloads": {
+    "title": "İndirmeler",
+    "notifications": {
+      "downloadFinished": "İndirme Tamamlandı",
+      "downloadInterrupted": "İndirme Kesildi",
+      "downloadCancelled": "İndirme İptal Edildi",
+      "downloadFailed": "İndirme Başarısız Oldu",
+      "downloadExpired": "İndirme Süresi Doldu",
+      "downloadExpiredMessage": "Lütfen kaynaktan yeniden indirmeyi deneyin."
+    },
+    "filters": {
+      "search": "Ara",
+      "server": "Sunucu",
+      "mimeType": "Tür",
+      "status": "Durum",
+      "clear": "Filtreleri Temizle",
+      "all": "Tümü",
+      "mimes": {
+        "images": "Resimler",
+        "videos": "Videolar",
+        "audios": "Sesler",
+        "texts": "Metinler",
+        "files": "Dosyalar"
+      },
+      "statuses": {
+        "paused": "Duraklatıldı",
+        "cancelled": "İptal Edildi"
+      }
+    },
+    "item": {
+      "cancel": "İptal",
+      "copyLink": "Bağlantıyı kopyala",
+      "errored": "İndirme iptal edildi",
+      "pause": "Duraklat",
+      "progressSize": "{{receivedBytes, byteSize}} / {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "Listeden Kaldır",
+      "resume": "Devam Et",
+      "retry": "Yeniden Dene",
+      "showInFolder": "Klasörde Göster"
+    },
+    "showingResults": "{{count}} öğeden {{first}} - {{last}} arası sonuçlar"
+  },
+  "certificatesManager": {
+    "title": "Sertifikalar yöneticisi",
+    "trustedCertificates": "Güvenilen sertifikalar",
+    "notTrustedCertificates": "Güvenilmeyen sertifikalar",
+    "item": {
+      "domain": "Alan adı",
+      "actions": "İşlemler",
+      "remove": "Kaldır"
+    }
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "general": "Genel",
+    "certificates": "Sertifikalar",
+    "options": {
+      "report": {
+        "title": "Hataları geliştiricilere bildir",
+        "description": "Hataları geliştiricilere anonim olarak bildirin. Paylaşılan bilgiler uygulama sürüm numarası, işletim sistemi türü, sunucu URL'si, cihaz dil ve hata türünü içerir. İçerik veya kullanıcı adları paylaşılmaz.",
+        "masDescription": "Mac App Store'dan yüklenmişse bu seçenek devre dışı bırakılır, hatalar Mac App Store hata raporu süreci aracılığıyla bildirilecektir."
+      },
+      "flashFrame": {
+        "title": "Flash Çerçeve Etkinleştir",
+        "titleDarwin": "Uyarıda Dock Zıplamasını Aç/Kapat",
+        "description": "Kullanıcının dikkatini çekmek için pencereyi flaşlandırır.",
+        "onLinux": "Bazı Linux dağıtımları bu özelliği desteklemeyebilir.",
+        "descriptionDarwin": "Kullanıcının dikkatini çekmek için uygulama simgesini dock'ta sallar."
+      },
+      "hardwareAcceleration": {
+        "title": "Donanım Hızlandırması",
+        "description": "Mevcut olduğunda donanım hızlandırmasını kullanır. Uygulama değişikliklerde yeniden yüklenir."
+      },
+      "internalVideoChatWindow": {
+        "title": "Uygulama Penceresini Kullanarak Video Görüşmesi Aç",
+        "description": "Belirlendiğinde Video Görüşmesi bir uygulama penceresinde açılır, aksi halde varsayılan tarayıcı kullanılır. <strong>Google Meet</strong> paylaşım ekranı, Elektron uygulamalarında desteklenmediğinden, bu yapılandırma Meet aramalarının davranışını değiştirmez, tarayıcıda açılır.",
+        "masDescription": "Bu seçenek Mac App Store'dan yüklenmişse devre dışı bırakılır, güvenlik nedenleriyle Video Görüşme varsayılan olarak tarayıcıyı kullanarak açılır."
+      },
+      "minimizeOnClose": {
+        "title": "Kapatırken Küçült",
+        "description": "Uygulama kapatıldığında uygulama küçültülür, aksi takdirde uygulama kapanır. Tepsi Simgesi bu etkin olmalıdır."
+      },
+      "menubar": {
+        "title": "Menü çubuğu",
+        "description": "Pencerenin üst kısmında menü çubuğunu göster."
+      },
+      "sidebar": {
+        "title": "Kenar Çubuğu",
+        "description": "Pencerenin solunda Sunucu Listesi, İndirmeler ve Ayarlar ile kenar çubuğunu göster."
+      },
+      "trayIcon": {
+        "title": "Tepsi Simgesi",
+        "description": "Sistem tepsisinde tepsi simgesini gösterir. Tepsi simgesi etkinse, uygulama kapatıldığında uygulama tepsiye gizlenir. Aksi takdirde uygulama kapanır."
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Ekran Yakalama İzinlerini Temizle",
+        "description": "Videolu görüşmelerde tekrar izin verilmemesi için ekran yakalama izinlerini temizler."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Video Görüşmelerinde Ekran Yakalamaya İzin Ver",
+        "description": "Video görüşmelerinde ekran yakalamaya izin verir. Bu her video görüşmesinde izin isteyecektir."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM Kimlik Bilgileri",
+        "description": "Bir sunucuya bağlanırken NTLM Kimlik Bilgilerinin kullanılmasına izin verir.",
+        "domains": "Kimlik bilgilerinin kullanılacağı alanlar. Virgülle ayrılmış. Tüm alanları eşleştirmek için * kullanın."
+      }
     }
   },
   "error": {
-    "authNeeded": "Yetkilendirme gerekli, deneyin <strong>{{- auth}}</strong>",
-    "connectTimeout": "Bağlanmaya çalışırken zaman aşımı oluştu",
-    "differentCertificate": "Sertifika bir önceki sürümden farklı.\n\n {{- detail}}",
-    "noValidServerFound": "Bağlantınızda geçerli bir sunucu bulunamadı",
+    "authNeeded": "Kimlik doğrulaması gerekiyor, <strong>{{- auth}}</strong> adresini deneyin",
+    "connectTimeout": "Bağlanma süresi aşıldı",
+    "differentCertificate": "Sertifika öncekinden farklıdır.\n\n {{- detail}}",
+    "noValidServerFound": "URL'de geçerli bir sunucu bulunamadı",
     "offline": "İnternet bağlantınızı kontrol edin!"
   },
   "landing": {
-    "invalidUrl": "Geçersiz bağlantı",
+    "invalidUrl": "Geçersiz url",
     "validating": "Doğrulanıyor...",
-    "inputUrl": "Sunucu bağlantısını girin",
+    "inputUrl": "Sunucu URL'nizi girin",
     "connect": "Bağlan"
   },
   "menus": {
-    "about": "Hakkında {{- appName}}",
+    "about": "{{- appName}} Hakkında",
     "addNewServer": "Yeni sunucu ekle",
-    "back": "&Geri dön",
+    "back": "Geri",
     "clearTrustedCertificates": "Güvenilen sertifikaları temizle",
     "close": "Kapat",
-    "copy": "&Kopyala",
+    "copy": "Kopyala",
     "cut": "Kes",
-    "documentation": "Dökümantasyon",
-    "editMenu": "&Düzenle",
-    "fileMenu": "&Dosya",
-    "forward": "&İleri",
-    "helpMenu": "&Yardım",
-    "learnMore": "Daha fazlasını öğren",
-    "minimize": "Minimize et",
-    "openDevTools": "&DevTools aç",
-    "paste": "&Yapıştır",
-    "quit": "&Çıkış yap {{- appName}}",
-    "redo": "&Yinele",
-    "reload": "&Yeniden yükle",
-    "reloadIgnoringCache": "Önbelleği yok sayarak yeniden yükle",
-    "reportIssue": "Hata bildir",
-    "resetAppData": "Uygulama verisini sıfırla",
-    "resetZoom": "Görünümü sıfırla",
-    "selectAll": "Tümünü seç",
+    "disableGpu": "GPU'yu Devre Dışı Bırak",
+    "documentation": "Belgeler",
+    "downloads": "İndirmeler",
+    "settings": "Ayarlar",
+    "editMenu": "Düzenle",
+    "fileMenu": "Dosya",
+    "forward": "İleri",
+    "helpMenu": "Yardım",
+    "hide": "{{- appName}}'i Gizle",
+    "hideOthers": "Diğerlerini Gizle",
+    "learnMore": "Daha fazla bilgi edinin",
+    "minimize": "Küçült",
+    "openDevTools": "Geliştirici Araçlarını Aç",
+    "openDevToolsOnAllWindows": "Tüm pencerelerde Geliştirici Araçlarını Aç",
+    "paste": "Yapıştır",
+    "quit": "{{- appName}}'i Kapat",
+    "redo": "Yinele",
+    "reload": "Yeniden Yükle",
+    "reloadIgnoringCache": "Önbelleği Yok Sayarak Yeniden Yükle",
+    "reportIssue": "Sorunu Bildir",
+    "resetAppData": "Uygulama verilerini sıfırla",
+    "resetZoom": "Yakınlaşmayı Sıfırla",
+    "selectAll": "Tümünü Seç",
+    "services": "Hizmetler",
     "showFullScreen": "Tam ekran",
-    "showMenuBar": "Menü alanını göster",
+    "showMenuBar": "Menü çubuğunu göster",
     "showOnUnreadMessage": "Okunmamış mesajlarda göster",
     "showServerList": "Sunucu listesi",
-    "showTrayIcon": "Görev çubuğu ikonu",
-    "toggleDevTools": "&DevTools aç",
-    "undo": "&Geri al",
-    "viewMenu": "&Görünüm",
-    "windowMenu": "&Pencereler",
+    "showTrayIcon": "Tepsi simgesini göster",
+    "toggleDevTools": "Geliştirici Araçlarını Aç/Kapat",
+    "undo": "Geri Al",
+    "unhide": "Tümünü Göster",
+    "viewMenu": "Görünüm",
+    "windowMenu": "Pencere",
     "zoomIn": "Yakınlaştır",
     "zoomOut": "Uzaklaştır"
   },
   "loadingError": {
-    "title": "Sunucu yüklenirken hata oluştu",
+    "title": "Sunucu Yüklenemedi",
     "announcement": "Houston, bir sorunumuz var",
-    "reload": "Yeniden yükle"
+    "reload": "Yeniden Yükle"
+  },
+  "unsupportedServer": {
+    "title": "{{instanceDomain}} Rocket.Chat'ın desteklenmeyen bir sürümünü çalıştırıyor",
+    "announcement": "Bir yönetici, mobil ve masaüstü uygulamalardan erişimi yeniden etkinleştirmek için çalışma alanını desteklenen bir sürüme güncellemelidir.",
+    "moreInformation": "Daha fazla bilgi"
   },
   "selfxss": {
-    "title": "Dur!",
-    "description": "Bu, geliştiricilere yönelik bir tarayıcı özelliğidir. Birisi size bir Rocket.Chat özelliğini etkinleştirmeniz veya herhangi bir şeyi kopyalayıp yapıştırmanızı söylediyse, bu bir aldatmacadır ve onlara Rocket.Chat hesabınıza erişme izni verir.",
-    "moreInfo": "Bkz. https://go.rocket.chat/i/xss"
+    "title": "Durdur!",
+    "description": "Bu, geliştiriciler için tasarlanmış bir tarayıcı özelliğidir. Birinin size buraya bir şey kopyalamanızı söylemesi Rocket.Chat özelliğini etkinleştirmek veya birinin hesabını \"hack\"lemek için bir şey kopyalamanızı istiyorsa, bu bir dolandırıcılıktır ve size Rocket.Chat hesabınıza erişim sağlar.",
+    "moreInfo": "Daha fazla bilgi için https://go.rocket.chat/i/xss adresine bakın."
   },
   "sidebar": {
     "addNewServer": "Yeni sunucu ekle",
+    "downloads": "İndirmeler",
+    "settings": "Ayarlar",
     "item": {
       "reload": "Sunucuyu yeniden yükle",
-      "remove": "Sunucuyu sil",
-      "openDevTools": "DevTools aç"
+      "remove": "Sunucuyu kaldır",
+      "openDevTools": "Geliştirici Araçlarını Aç",
+      "clearCache": "Önbelleği Temizle",
+      "clearStorageData": "Depolama Verilerini Temizle",
+      "copyCurrentUrl": "Geçerli URL'yi Kopyala"
     }
   },
   "touchBar": {
-    "formatting": "Bçimlendiriliyor",
-    "selectServer": "Sunucu seçin"
+    "formatting": "Biçimlendirme",
+    "selectServer": "Sunucu seç"
   },
   "tray": {
     "menu": {
       "show": "Göster",
       "hide": "Gizle",
-      "quit": "Çıkış yap"
+      "quit": "Çıkış"
     },
     "tooltip": {
       "noUnreadMessage": "{{- appName}}: okunmamış mesaj yok",
-      "unreadMention": "{{- appName}}: okunmamış bahsetme/direkt mesajınız var",
-      "unreadMention_plural": "{{- appName}}: {{- count}} okunmamış bahsetme/direkt mesajınız var",
+      "unreadMention": "{{- appName}}: okunmamış bir bahsetme/doğrudan mesajınız var",
+      "unreadMention_plural": "{{- appName}}: okunmamış {{- count}} bahsetme/doğrudan mesajınız var",
       "unreadMessage": "{{- appName}}: okunmamış mesajınız var"
+    },
+    "balloon": {
+      "stillRunning": {
+        "title": "{{- appName}} hala çalışıyor",
+        "content": "{{- appName }} sistem tepsisi/bildirim alanında çalışmaya devam edecek şekilde ayarlanmıştır."
+      }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Okunmamış mesajlar",
+    "unreadMention": "Okunmamış bahsetmeler",
+    "noUnreadMessage": "Okunmamış mesaj yok"
   }
 }

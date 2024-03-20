@@ -1,164 +1,310 @@
 {
   "contextMenu": {
-    "cut": "切り取り (&T)",
-    "copy": "コピー (&C)",
-    "paste": "貼り付け (&P)",
-    "selectAll": "全て選択 (&A)",
-    "undo": "元に戻す (&U)",
-    "redo": "やり直し (&R)",
-    "spellingLanguages": "スペルチェックの言語",
-    "moreSpellingSuggestions": "その他のスペルの提案",
-    "noSpellingSuggestions": "提案はありません",
-    "copyLinkAddress": "リンクURLをコピー",
-    "copyLinkText": "リンクテキストをコピー",
+    "cut": "切り取り(&T)",
+    "copy": "コピー(&C)",
+    "paste": "貼り付け(&P)",
+    "selectAll": "すべて選択(&A)",
+    "undo": "元に戻す(&U)",
+    "redo": "やり直す(&R)",
+    "spelling": "スペルチェック",
+    "spellingLanguages": "スペルチェック言語",
+    "moreSpellingSuggestions": "他のスペル候補",
+    "noSpellingSuggestions": "候補なし",
+    "copyLinkAddress": "リンクのアドレスをコピー",
+    "copyLinkText": "リンクのテキストをコピー",
     "openLink": "リンクを開く",
-    "saveImageAs": "画像を保存..."
+    "saveImageAs": "画像を名前を付けて保存...",
+    "copyImage": "画像をコピー"
   },
   "dialog": {
     "about": {
-      "title": "{{- appName}} について",
+      "title": "{{- appName}}について",
       "version": "バージョン: <1>{{-version}}</1>",
-      "checkUpdates": "アップデートを確認",
+      "checkUpdates": "更新を確認",
       "checkUpdatesOnStart": "起動時に更新を確認",
       "noUpdatesAvailable": "利用可能な更新はありません。",
-      "copyright": "著作権 {{copyright}}"
+      "copyright": "著作権 {{copyright}}",
+      "errorWhenLookingForUpdates": "更新を探している際にエラーが発生しました"
     },
     "addServer": {
       "title": "サーバーを追加",
-      "message": "サーバーリストに\"{{- host}}\"を追加しますか?",
+      "message": "\"{{- host}}\"をサーバーリストに追加しますか？",
       "add": "追加",
       "cancel": "キャンセル"
     },
     "addServerError": {
       "title": "無効なホスト",
-      "message": "ホスト \"{{- host}}\" を検証できなかったため、追加されませんでした。"
+      "message": "\"{{- host}}\"は検証できませんでしたので、追加されませんでした。"
     },
     "certificateError": {
-      "title": "証明書のエラー",
-      "message": "\"{{- issuerName}}\"から証明書を信頼しますか?",
+      "title": "証明書エラー",
+      "message": "\"{{- issuerName}}\"からの証明書を信頼しますか？",
+      "yes": "はい",
+      "no": "いいえ"
+    },
+    "downloadRemoval": {
+      "title": "よろしいですか？",
+      "message": "このダウンロードを削除しますか？",
       "yes": "はい",
       "no": "いいえ"
     },
     "resetAppData": {
-      "title": "アプリのデータをリセット",
-      "message": "すべてのチームからログアウトしアプリを元の設定に戻すことができます。 これは元に戻すことはできません。",
+      "title": "アプリデータをリセット",
+      "message": "これにより、すべてのチームからログアウトし、アプリを元の設定にリセットします。この操作は元に戻せません。",
+      "yes": "はい",
+      "cancel": "キャンセル"
+    },
+    "clearPermittedScreenCaptureServers": {
+      "title": "許可されたスクリーンキャプチャーサーバーをクリア",
+      "message": "これにより、スクリーンキャプチャーサーバーのすべての許可が解除され、再び許可を求められるようになります。この操作は元に戻せません。",
       "yes": "はい",
       "cancel": "キャンセル"
     },
     "screenshare": {
-      "title": "画面共有",
+      "title": "画面を共有",
       "announcement": "共有する画面を選択"
     },
     "update": {
-      "title": "利用可能な更新",
+      "title": "更新が利用可能です",
       "announcement": "新しい更新が利用可能です",
-      "message": "Rocket.Chat デスクトップアプリの新しいバージョンが利用可能です!",
+      "message": "Rocket.Chatデスクトップアプリの新しいバージョンが利用可能です！",
       "currentVersion": "現在のバージョン:",
       "newVersion": "新しいバージョン:",
-      "install": "更新プログラムをインストール",
-      "remindLater": "後で知らせる",
+      "install": "更新をインストール",
+      "remindLater": "後でリマインド",
       "skip": "このバージョンをスキップ"
     },
     "updateDownloading": {
-      "title": "更新プログラムをダウンロード中",
-      "message": "更新プログラムのインストール準備が整うと通知されます",
+      "title": "更新をダウンロード中",
+      "message": "更新がインストールできる準備ができ次第、お知らせします",
       "ok": "OK"
     },
     "updateInstallLater": {
       "title": "後でインストール",
-      "message": "アプリを終了すると更新プログラムがインストールされます",
+      "message": "アプリを終了すると更新がインストールされます",
       "ok": "OK"
     },
     "updateReady": {
-      "title": "更新プログラムをインストールする準備が整いました",
-      "message": "更新プログラムがダウンロードされました",
+      "title": "インストールの準備ができました",
+      "message": "更新がダウンロードされました",
       "installNow": "今すぐインストール",
       "installLater": "後でインストール"
     },
     "updateSkip": {
       "title": "更新をスキップ",
-      "message": "次回の更新プログラムが利用可能になったときにお知らせします。\n気になる場合は[バージョン情報]メニューから更新プログラムを確認できます。",
+      "message": "次の更新が利用可能になった際に通知します\n変更する場合は、[情報]メニューから更新を確認できます。",
       "ok": "OK"
+    },
+    "selectClientCertificate": {
+      "announcement": "証明書を選択",
+      "select": "選択",
+      "validDates": "{{-validStart,}} から {{-validExpiry,}} まで有効"
+    },
+    "openingExternalProtocol": {
+      "title": "カスタムプロトコルのリンク",
+      "message": "{{- protocol }} リンクは外部アプリケーションが必要です。",
+      "detail": "リクエストされたリンクは {{- url }} です。続行しますか？",
+      "dontAskAgain": "この種類のリンクを常に関連付けられたアプリで開く",
+      "yes": "はい",
+      "no": "いいえ"
+    },
+    "allowVideoCallCaptureScreen": {
+      "title": "ビデオ通話が画面をキャプチャしようとしています",
+      "message": "ビデオ通話が画面を共有する許可をリクエストしています。",
+      "detail": "サーバー {{- url }} からのビデオ通話は、他の人と画面を共有するために許可が必要です。",
+      "dontAskAgain": "このサーバーからのビデオ通話で常に画面キャプチャを許可する",
+      "yes": "許可",
+      "no": "キャンセル"
+    },
+    "outlookCalendar": {
+      "title": "Outlook カレンダー",
+      "encryptionUnavailableTitle": "暗号化利用不可",
+      "encryptionUnavailable": "お使いのオペレーティングシステムは暗号化をサポートしていません。\n資格情報は平文で保存されます。",
+      "field_required": "このフィールドは必須です",
+      "remember_credentials": "資格情報を記憶する",
+      "cancel": "キャンセル",
+      "submit": "ログイン"
+    },
+    "supportedVersion": {
+      "title": "ワークスペースバージョンがサポートされていません"
+    }
+  },
+  "downloads": {
+    "title": "ダウンロード",
+    "notifications": {
+      "downloadFinished": "ダウンロード完了",
+      "downloadInterrupted": "ダウンロード中断",
+      "downloadCancelled": "ダウンロードキャンセル",
+      "downloadFailed": "ダウンロード失敗",
+      "downloadExpired": "ダウンロード期限切れ",
+      "downloadExpiredMessage": "ソースからの再ダウンロードをお試しください。"
+    },
+    "filters": {
+      "search": "検索",
+      "server": "サーバー",
+      "mimeType": "タイプ",
+      "status": "ステータス",
+      "clear": "フィルターをクリア",
+      "all": "すべて",
+      "mimes": {
+        "images": "画像",
+        "videos": "ビデオ",
+        "audios": "音声",
+        "texts": "テキスト",
+        "files": "ファイル"
+      },
+      "statuses": {
+        "paused": "一時停止",
+        "cancelled": "キャンセル"
+      }
+    },
+    "item": {
+      "cancel": "キャンセル",
+      "copyLink": "リンクをコピー",
+      "errored": "ダウンロードキャンセル済み",
+      "pause": "一時停止",
+      "progressSize": "{{receivedBytes, byteSize}} / {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "リストから削除",
+      "resume": "再開",
+      "retry": "再試行",
+      "showInFolder": "フォルダで表示"
+    },
+    "showingResults": "結果 {{first}} - {{last}} / {{count}} を表示"
+  },
+  "certificatesManager": {
+    "title": "証明書マネージャー",
+    "trustedCertificates": "信頼された証明書",
+    "notTrustedCertificates": "信頼されていない証明書",
+    "item": {
+      "domain": "ドメイン",
+      "actions": "アクション",
+      "remove": "削除"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "general": "一般",
+    "certificates": "証明書",
+    "options": {
+      "report": {
+        "title": "開発者にエラーを報告",
+        "description": "エラーを開発者に匿名で報告します。共有される情報にはアプリのバージョン番号、オペレーティングシステムのタイプ、サーバーのURL、デバイスの言語、エラータイプが含まれます。コンテンツやユーザー名は共有されません。",
+        "masDescription": "Mac App Storeからインストールされた場合、このオプションは無効になり、エラーはMac App Storeのエラーレポートプロセスを介して報告されます。"
+      },
+      "flashFrame": {
+        "title": "フラッシュフレームを有効にする",
+        "titleDarwin": "アラート時にDockをバウンスさせる",
+        "description": "ウィンドウを点滅させてユーザーの注意を引きます。",
+        "onLinux": "一部のLinuxディストリビューションではこの機能がサポートされていません。",
+        "descriptionDarwin": "Dock内のアプリアイコンをバウンスさせてユーザーの注意を引きます。"
+      },
+      "hardwareAcceleration": {
+        "title": "ハードウェアアクセラレーション",
+        "description": "利用可能な場合にハードウェアアクセラレーションの使用を有効にします。変更するとアプリがリロードされます。"
+      },
+      "internalVideoChatWindow": {
+        "title": "アプリケーションウィンドウを使用してビデオチャットを開く",
+        "description": "ビデオチャットがアプリケーションウィンドウを使用して開かれるようになります。それ以外の場合はデフォルトのブラウザが使用されます。 <strong>Google Meet</strong> の画面共有はElectronアプリケーションではサポートされていないため、この設定はMeet通話の動作を変更しません。通話はブラウザで開かれます。",
+        "masDescription": "Mac App Storeからインストールされた場合、このオプションは無効になり、セキュリティ上の理由からデフォルトでブラウザを使用してビデオチャットが開かれます。"
+      },
+      "minimizeOnClose": {
+        "title": "終了時に最小化",
+        "description": "アプリを終了するときに最小化されます。それ以外の場合はアプリが終了します。トレイアイコンを無効にする必要があります。"
+      },
+      "menubar": {
+        "title": "メニューバー",
+        "description": "ウィンドウの上部にメニューバーを表示します。"
+      },
+      "sidebar": {
+        "title": "サイドバー",
+        "description": "ウィンドウの左側にサーバーリスト、ダウンロード、設定を表示します。"
+      },
+      "trayIcon": {
+        "title": "トレイアイコン",
+        "description": "システムトレイにトレイアイコンを表示します。トレイアイコンがアクティブな場合、アプリは終了時にトレイに隠されます。それ以外の場合はアプリが終了します。"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "スクリーンキャプチャー許可をクリア",
+        "description": "ビデオ通話時に再び許可を求めないように選択されたスクリーンキャプチャー許可をクリアします。"
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "ビデオ通話時のスクリーンキャプチャーを許可",
+        "description": "ビデオ通話時のスクリーンキャプチャーを許可します。これにより、各ビデオ通話で許可が求められます。"
+      },
+      "ntlmCredentials": {
+        "title": "NTLM資格情報",
+        "description": "サーバーに接続する際にNTLM資格情報を使用することを許可します。",
+        "domains": "資格情報を使用するドメイン。コンマで区切って指定します。すべてのドメインに一致させるには * を使用します。"
+      }
     }
   },
   "error": {
-    "authNeeded": "認証が必要です。<strong>{{- auth}}</strong> を試してみてください。",
-    "connectTimeout": "再接続がタイムアウトしました",
-    "differentCertificate": "証明書は以前の証明書とは異なります。\n\n {{- detail}}",
-    "noValidServerFound": "そのURLで有効なサーバーは見つかりません",
-    "offline": "インターネット接続を確認してください!"
+    "authNeeded": "認証が必要です。試してみてください <strong>{{- auth}}</strong>",
+    "connectTimeout": "接続のタイムアウト",
+    "differentCertificate": "証明書が以前のものと異なります。\n\n {{- detail}}",
+    "noValidServerFound": "URLで有効なサーバーが見つかりません",
+    "offline": "インターネット接続を確認してください！"
   },
   "landing": {
     "invalidUrl": "無効なURL",
     "validating": "検証中...",
-    "inputUrl": "サーバーのURLを入力してください",
+    "inputUrl": "サーバーURLを入力してください",
     "connect": "接続"
   },
   "menus": {
-    "about": "{{- appName}} について",
-    "addNewServer": "新しいサーバーを追加 (&N)",
-    "back": "戻る (&B)",
-    "clearTrustedCertificates": "信頼する証明書をクリア",
+    "about": "{{- appName}}について",
+    "addNewServer": "新しいサーバーを追加",
+    "back": "戻る(&B)",
+    "clearTrustedCertificates": "信頼された証明書をクリア",
     "close": "閉じる",
-    "copy": "コピー (&C)",
-    "cut": "切り取り (&T)",
+    "copy": "コピー(&C)",
+    "cut": "切り取り(&T)",
+    "disableGpu": "GPUを無効にする",
     "documentation": "ドキュメント",
-    "editMenu": "編集 (&E)",
-    "fileMenu": "ファイル (&F)",
+    "downloads": "ダウンロード",
+    "settings": "設定",
+    "editMenu": "編集(&E)",
+    "fileMenu": "ファイル(&F)",
     "forward": "進む(&F)",
-    "helpMenu": "ヘルプ (&H)",
-    "learnMore": "もっと詳しく知る",
+    "helpMenu": "ヘルプ(&H)",
+    "hide": "{{- appName}}を非表示",
+    "hideOthers": "その他を非表示",
+    "learnMore": "詳細",
     "minimize": "最小化",
-    "openDevTools": "開発ツールを開く (&D)",
-    "paste": "貼り付け (&P)",
-    "quit": "{{- appName}} を終了 (&Q)",
-    "redo": "やり直し (&R)",
+    "openDevTools": "開発ツールを開く(&D)",
+    "openDevToolsOnAllWindows": "すべてのウィンドウで開発ツールを開く(&A)",
+    "paste": "貼り付け(&P)",
+    "quit": "{{- appName}}を終了(&Q)",
+    "redo": "やり直す(&R)",
     "reload": "再読み込み(&R)",
     "reloadIgnoringCache": "キャッシュを無視して再読み込み",
-    "reportIssue": "問題を報告する",
+    "reportIssue": "問題を報告",
     "resetAppData": "アプリデータをリセット",
     "resetZoom": "ズームをリセット",
-    "selectAll": "全て選択 (&A)",
-    "showFullScreen": "全画面",
-    "showMenuBar": "メニューバー",
+    "selectAll": "すべて選択(&A)",
+    "services": "サービス",
+    "showFullScreen": "フルスクリーン表示",
+    "showMenuBar": "メニューバーを表示",
     "showOnUnreadMessage": "未読メッセージを表示",
-    "showServerList": "サーバー一覧",
-    "showTrayIcon": "トレイアイコン",
-    "toggleDevTools": "開発ツールの切り替え (&D)",
-    "undo": "元に戻す (&U)",
-    "viewMenu": "表示 (&V)",
-    "windowMenu": "ウィンドウ (&W)",
-    "zoomIn": "拡大",
-    "zoomOut": "縮小"
+    "showServerList": "サーバーリストを表示",
+    "showTrayIcon": "トレイアイコンを表示",
+    "toggleDevTools": "開発ツールを切り替える(&D)",
+    "undo": "元に戻す(&U)",
+    "unhide": "すべて表示",
+    "viewMenu": "表示(&V)",
+    "windowMenu": "ウィンドウ(&W)",
+    "zoomIn": "ズームイン(&I)",
+    "zoomOut": "ズームアウト(&O)"
   },
   "loadingError": {
     "title": "サーバーの読み込みに失敗しました",
-    "announcement": "ヒューストン、我々は問題を抱えています",
+    "announcement": "ヒューストン、問題が発生しました",
     "reload": "再読み込み"
   },
-  "sidebar": {
-    "addNewServer": "新しいサーバーを追加",
-    "item": {
-      "reload": "サーバーを再読み込み",
-      "remove": "サーバーを削除",
-      "openDevTools": "開発ツールを開く"
-    }
-  },
-  "touchBar": {
-    "formatting": "書式",
-    "selectServer": "サーバーを選択"
-  },
-  "tray": {
-    "menu": {
-      "show": "表示",
-      "hide": "隠す",
-      "quit": "終了"
-    },
-    "tooltip": {
-      "noUnreadMessage": "{{- appName}}: 未読のメッセージはありません",
-      "unreadMention": "{{- appName}}: 未読のメンション/ダイレクトメッセージがあります",
-      "unreadMention_plural": "{{- appName}}: 未読のメンション/ダイレクトメッセージが {{- count}} 件あります",
-      "unreadMessage": "{{- appName}}: 未読のメッセージがあります"
-    }
+  "unsupportedServer": {
+    "title": "{{instanceDomain}}はRocket.Chatのサポートされていないバージョンを実行しています",
+    "announcement": "ワークスペースをサポートされているバージョンに更新して、モバイルアプリを使用してください",
+    "learnMore": "詳細",
+    "reload": "再読み込み"
   }
 }

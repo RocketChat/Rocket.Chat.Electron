@@ -1,14 +1,14 @@
 {
   "contextMenu": {
     "cut": "Cor&tar",
-    "copy": "&Copiar",
-    "paste": "Co&lar",
-    "selectAll": "&Selecionar tudo",
+    "copy": "C&opiar",
+    "paste": "&Colar",
+    "selectAll": "Selecionar &tudo",
     "undo": "&Desfazer",
     "redo": "&Refazer",
-    "spelling": "Verificação ortográfica",
-    "spellingLanguages": "Idiomas",
-    "moreSpellingSuggestions": "Mais sugestões de grafia",
+    "spelling": "Ortografia",
+    "spellingLanguages": "Idiomas de ortografia",
+    "moreSpellingSuggestions": "Mais sugestões de ortografia",
     "noSpellingSuggestions": "Sem sugestões",
     "copyLinkAddress": "Copiar endereço do link",
     "copyLinkText": "Copiar texto do link",
@@ -20,110 +20,124 @@
     "about": {
       "title": "Sobre {{- appName}}",
       "version": "Versão: <1>{{-version}}</1>",
-      "checkUpdates": "Verificar Atualizações",
-      "checkUpdatesOnStart": "Verificar Atualizações ao Abrir",
+      "checkUpdates": "Verificar atualizações",
+      "checkUpdatesOnStart": "Verificar atualizações na inicialização",
       "noUpdatesAvailable": "Não há atualizações disponíveis.",
-      "copyright": "{{copyright}} Todos os direitos reservados.",
-      "errorWhenLookingForUpdates": "Ocorreu um erro ao procurar por atualizações"
+      "copyright": "Direitos autorais {{copyright}}",
+      "errorWhenLookingForUpdates": "Ocorreu um erro ao procurar atualizações"
     },
     "addServer": {
       "title": "Adicionar Servidor",
-      "message": "Você quer adicionar \"{{- host}}\" a sua lista de servidores?",
+      "message": "Deseja adicionar \"{{- host}}\" à sua lista de servidores?",
       "add": "Adicionar",
       "cancel": "Cancelar"
     },
     "addServerError": {
-      "title": "Host inválido",
+      "title": "Host Inválido",
       "message": "O host \"{{- host}}\" não pôde ser validado, portanto não foi adicionado."
     },
     "certificateError": {
-      "title": "Erro de Certificado",
+      "title": "Erro de certificado",
       "message": "Você confia no certificado de \"{{- issuerName}}\"?",
       "yes": "Sim",
       "no": "Não"
     },
     "downloadRemoval": {
-      "title": "Você tem certeza?",
+      "title": "Tem certeza?",
       "message": "Remover este download?",
       "yes": "Sim",
       "no": "Não"
     },
     "resetAppData": {
-      "title": "Limpar dados do aplicativo",
-      "message": "Isto vai deslogá-lo de todos os times e resetar o aplicativo para suas configurações originais. Isto não pode ser desfeito.",
+      "title": "Redefinir dados do aplicativo",
+      "message": "Isso irá desconectá-lo de todas as suas equipes e redefinir o aplicativo para suas configurações originais. Isso não pode ser desfeito.",
       "yes": "Sim",
       "cancel": "Cancelar"
     },
     "clearPermittedScreenCaptureServers": {
-      "title": "Limpar permissões de servidores com captura de tela",
-      "message": "Isto vai limpar todas as permissões de servidores com captura de tela. Isto não pode ser desfeito.",
+      "title": "Limpar Servidores de Captura de Tela Permitidos",
+      "message": "Isso limpará todas as permissões para servidores de captura de tela, fazendo-os pedir permissão novamente. Isso não pode ser desfeito.",
       "yes": "Sim",
       "cancel": "Cancelar"
     },
     "screenshare": {
-      "title": "Compartilhe sua tela",
+      "title": "Compartilhar sua tela",
       "announcement": "Selecione uma tela para compartilhar"
     },
     "update": {
       "title": "Atualização Disponível",
-      "announcement": "Nova versão está disponível",
-      "message": "Uma nova versão do aplicativo desktop Rocket.Chat está disponível!",
+      "announcement": "Nova Atualização Disponível",
+      "message": "Uma nova versão do aplicativo Rocket.Chat Desktop está disponível!",
       "currentVersion": "Versão Atual:",
       "newVersion": "Nova Versão:",
       "install": "Instalar Atualização",
       "remindLater": "Lembrar Depois",
-      "skip": "Pular Versão"
+      "skip": "Ignorar Esta Versão"
     },
     "updateDownloading": {
-      "title": "Baixando atualização",
-      "message": "Você será notificado quando a atualização estiver pronta para instalação",
+      "title": "Baixando Atualização",
+      "message": "Você será notificado quando a atualização estiver pronta para ser instalada",
       "ok": "OK"
     },
     "updateInstallLater": {
       "title": "Instalando Depois",
-      "message": "Atualização será instalada quando você sair do aplicativo",
+      "message": "A atualização será instalada quando você sair do aplicativo",
       "ok": "OK"
     },
     "updateReady": {
       "title": "Atualização Pronta para Instalar",
-      "message": "Atualização foi baixada",
+      "message": "A atualização foi baixada",
       "installNow": "Instalar Agora",
       "installLater": "Instalar Depois"
     },
     "updateSkip": {
-      "title": "Pular Atualização",
-      "message": "Nós iremos lembrá-lo quando a próxima atualização estiver disponível.\nSe você mudar de ideia, pode verificar as atualizações no menu Sobre.",
+      "title": "Ignorar Atualização",
+      "message": "Vamos notificá-lo quando a próxima atualização estiver disponível\nSe você mudar de ideia, pode verificar as atualizações no menu Sobre.",
       "ok": "OK"
     },
     "selectClientCertificate": {
-      "announcement": "Selecione o Certificado",
+      "announcement": "Selecionar Certificado",
       "select": "Selecionar",
       "validDates": "Válido de {{-validStart,}} a {{-validExpiry,}}"
     },
     "openingExternalProtocol": {
-      "title": "Link com protocolo externo",
-      "message": "O link {{- protocol }} requer uma aplicação externa.",
-      "detail": "O link solicitado é {{- url }} . Você quer continuar?",
-      "dontAskAgain": "Abrir sempre estes tipos de links no aplicativo associado",
+      "title": "Link com protocolo personalizado",
+      "message": "O link {{- protocol }} requer um aplicativo externo.",
+      "detail": "O link solicitado é {{- url }} . Deseja continuar?",
+      "dontAskAgain": "Sempre abrir esses tipos de links no aplicativo associado",
       "yes": "Sim",
       "no": "Não"
     },
     "allowVideoCallCaptureScreen": {
-      "title": "Permitir Captura de Tela pela Video Chamada",
-      "message": "A Video chamada está solicitando permissão para capturar sua tela.",
-      "detail": "A video chamada do servidor {{- url }} requer permissão para compartilhar sua tela com outros.",
-      "dontAskAgain": "Sempre permitir a captura de tela por video chamadas neste servidor",
+      "title": "A chamada de vídeo está tentando capturar sua tela",
+      "message": "A chamada de vídeo está solicitando permissão para capturar sua tela.",
+      "detail": "A chamada de vídeo do servidor {{- url }} requer permissão para compartilhar sua tela com outras pessoas.",
+      "dontAskAgain": "Sempre permitir chamadas de vídeo deste servidor para capturar sua tela",
       "yes": "Permitir",
       "no": "Cancelar"
     },
+    "outlookCalendar": {
+      "title": "Calendário do Outlook",
+      "encryptionUnavailableTitle": "Criptografia indisponível",
+      "encryptionUnavailable": "Seu sistema operacional não suporta criptografia.\nSuas credenciais serão armazenadas em texto simples.",
+      "field_required": "Este campo é obrigatório",
+      "remember_credentials": "Lembrar minhas credenciais",
+      "cancel": "Cancelar",
+      "submit": "Login"
+    },
     "supportedVersion": {
-      "title": "Versão de workspace não suportada"
+      "title": "Versão do espaço de trabalho não suportada"
     }
   },
   "downloads": {
     "title": "Downloads",
     "notifications": {
-      "downloadFinished": "Download finalizado"
+      "downloadFinished": "Download Concluído",
+      "downloadInterrupted": "Download Interrompido",
+      "downloadCancelled": "Download Cancelado",
+      "downloadFailed": "Download Falhou",
+      "downloadExpired": "Download Expirado",
+      "downloadExpiredMessage": "Por favor, tente baixar novamente da fonte."
     },
     "filters": {
       "search": "Buscar",
@@ -135,7 +149,7 @@
       "mimes": {
         "images": "Imagens",
         "videos": "Vídeos",
-        "audios": "Áudio",
+        "audios": "Áudios",
         "texts": "Textos",
         "files": "Arquivos"
       },
@@ -148,17 +162,17 @@
       "cancel": "Cancelar",
       "copyLink": "Copiar link",
       "errored": "Download cancelado",
-      "pause": "Pause",
+      "pause": "Pausar",
       "progressSize": "{{receivedBytes, byteSize}} de {{totalBytes, byteSize}} ({{ratio, percentage}})",
       "remove": "Remover da lista",
       "resume": "Continuar",
       "retry": "Tentar novamente",
-      "showInFolder": "Mostrar na Pasta"
+      "showInFolder": "Mostrar na pasta"
     },
     "showingResults": "Mostrando resultados {{first}} - {{last}} de {{count}}"
   },
   "certificatesManager": {
-    "title": "Gerenciador de certificados",
+    "title": "Gerenciador de Certificados",
     "trustedCertificates": "Certificados confiáveis",
     "notTrustedCertificates": "Certificados não confiáveis",
     "item": {
@@ -173,68 +187,68 @@
     "certificates": "Certificados",
     "options": {
       "report": {
-        "title": "Relatar erros aos desenvolvedores",
-        "description": "Reporte os erros anonimamente aos desenvolvedores. As informações compartilhadas incluem número de versão do aplicativo, tipo de sistema operacional, URL do servidor, idioma do dispositivo e tipo de erro. Nenhum conteúdo ou nome de usuário é compartilhado.",
-        "masDescription": "Esta opção esta desativada quando for instalado através da Mac App Store, os erros serão reportados através do processo de relatórios de erros da Mac Apple Store."
+        "title": "Reportar erros aos desenvolvedores",
+        "description": "Reportar erros anonimamente aos desenvolvedores. As informações compartilhadas incluem número da versão do aplicativo, tipo de sistema operacional, URL do servidor, idioma do dispositivo e tipo de erro. Nenhum conteúdo ou nomes de usuário são compartilhados.",
+        "masDescription": "Esta opção está desativada ao ser instalada a partir da Mac App Store; os erros serão reportados por meio do processo de relatório de erros da Mac App Store."
       },
       "flashFrame": {
-        "title": "Piscar janela",
-        "titleDarwin": "Ícone deve saltar na dock",
+        "title": "Ativar Flash Frame",
+        "titleDarwin": "Alternar Salto de Ícone na Barra de Ferramentas",
         "description": "Pisca a janela para atrair a atenção do usuário.",
-        "onLinux": "Algumas distribuições Linux não possuem suporte a esta funcionalidade.",
-        "descriptionDarwin": "Faz o ícone da aplicação saltar na dock quando recebe notificação."
+        "onLinux": "Algumas distribuições Linux não têm suporte para esse recurso.",
+        "descriptionDarwin": "Salta o ícone do aplicativo na barra de ferramentas para atrair a atenção do usuário."
       },
       "hardwareAcceleration": {
-        "title": "Aceleração de hardware",
-        "description": "Ativa aceleração de hardware quando disponível. O aplicativo será reiniciado ao ser alterado."
+        "title": "Aceleração de Hardware",
+        "description": "Ativa o uso de aceleração de hardware quando disponível. O aplicativo será recarregado na alteração."
       },
       "internalVideoChatWindow": {
-        "title": "Abrir chat em video em uma janela da aplicação",
-        "description": "Quando ativado, o Video Chat será aberto usando a janela do aplicativo, caso contrário, o navegador padrão será usado. O compartilhamento de tela do <strong>Google Meet</strong> não é suportado em aplicativos Electron, portanto, essa configuração não altera o comportamento das chamadas no Meet, que serão abertas no navegador.",
-        "masDescription": "Esta opção esta desativada quando for instalado através da Mac App Store, por motivos de segurança o chat em video sera aberto usando o navegador por padrão."
+        "title": "Abrir Bate-papo por Vídeo usando a Janela do Aplicativo",
+        "description": "Quando configurado, o Bate-papo por Vídeo será aberto usando a janela do aplicativo; caso contrário, o navegador padrão será usado. <strong>O Google Meet</strong> não é suportado em aplicativos Electron, portanto, essa configuração não altera o comportamento das chamadas do Meet, que serão abertas no navegador.",
+        "masDescription": "Esta opção está desativada ao ser instalada a partir da Mac App Store; por motivos de segurança, o Bate-papo por Vídeo será aberto usando o navegador por padrão."
       },
       "minimizeOnClose": {
         "title": "Minimizar ao fechar",
-        "description": "Quando fechado o aplicativo será minimizado para a barra de tarefas, senão será fechado. Ícone da bandeja precisa estar desativado para que isto funcione."
+        "description": "Quando fechado, o aplicativo será minimizado; caso contrário, ele será encerrado. O ícone da bandeja precisa estar desativado para que isso tenha efeito."
       },
       "menubar": {
-        "title": "Barra de menus",
-        "description": "Mostra a barra de menus no topo da aplicação"
+        "title": "Barra de menu",
+        "description": "Mostra a barra de menu no topo da janela."
       },
       "sidebar": {
         "title": "Barra lateral",
-        "description": "Mostra a barra na lateral da janela com a lista de servidores, downloads e configurações."
+        "description": "Mostra a barra lateral à esquerda da janela com a Lista de Servidores, Downloads e Configurações."
       },
       "trayIcon": {
-        "title": "Ícone da bandeja",
-        "description": "Mostra um ícone na bandeja do sistema para acessar rapidamente a aplicação. Se o ícone da bandeja estiver ativado, a aplicação será minimizada para a barra de tarefas ao ser fechada. Por outro lado se o ícone da bandeja estiver desativado, a aplicação será finalizada ao ser fechada."
+        "title": "Ícone na Bandeja",
+        "description": "Mostra o ícone na bandeja do sistema. Se o ícone da bandeja estiver ativo, o aplicativo será ocultado na bandeja ao fechar. Caso contrário, ele será encerrado."
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Limpar Permissões de Captura de Tela",
-        "description": "Limpar as permissões de captura de tela que foram selecionadas para não perguntar novamente em chamadas de vídeo."
+        "description": "Limpa as permissões de captura de tela que foram selecionadas para não perguntar novamente em chamadas de vídeo."
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Permitir Captura de Tela em Chamadas de Vídeo",
-        "description": "Permitir captura de tela em chamadas de vídeo. Isso solicitará permissão em cada chamada de vídeo."
+        "description": "Permite a captura de tela em chamadas de vídeo. Isso solicitará permissão em cada chamada de vídeo."
       },
       "ntlmCredentials": {
         "title": "Credenciais NTLM",
-        "description": "Permitir o uso de credenciais NTLM ao conectar-se a um servidor.",
-        "domains": "Domínios que usarão as credenciais. Separados por vírgula. Use * para permitir todos os domínios."
+        "description": "Permite o uso de credenciais NTLM ao se conectar a um servidor.",
+        "domains": "Domínios que usarão as credenciais. Separados por vírgula. Use * para corresponder a todos os domínios."
       }
     }
   },
   "error": {
     "authNeeded": "Autenticação necessária, tente <strong>{{- auth}}</strong>",
-    "connectTimeout": "Tempo esgotado ao conectar",
-    "differentCertificate": "Certificado é diferente do antigo.\n\n {{- detail}}",
-    "noValidServerFound": "Nenhum servidor válido encontrado neste endereço",
+    "connectTimeout": "Tempo esgotado ao tentar conectar",
+    "differentCertificate": "O certificado é diferente do anterior.\n\n {{- detail}}",
+    "noValidServerFound": "Nenhum servidor válido encontrado na URL",
     "offline": "Verifique sua conexão com a Internet!"
   },
   "landing": {
-    "invalidUrl": "Endereço inválido",
+    "invalidUrl": "URL inválida",
     "validating": "Validando...",
-    "inputUrl": "Insira o endereço do seu servidor",
+    "inputUrl": "Insira a URL do seu servidor",
     "connect": "Conectar"
   },
   "menus": {
@@ -244,58 +258,58 @@
     "clearTrustedCertificates": "Limpar certificados confiáveis",
     "close": "Fechar",
     "copy": "&Copiar",
-    "cut": "Cor&tar",
-    "disableGpu": "Desabilitar GPU",
+    "cut": "Recorta&r",
+    "disableGpu": "Desativar GPU",
     "documentation": "Documentação",
     "downloads": "Downloads",
     "settings": "Configurações",
     "editMenu": "&Editar",
     "fileMenu": "&Arquivo",
     "forward": "&Avançar",
-    "helpMenu": "Aj&uda",
+    "helpMenu": "&Ajuda",
     "hide": "Ocultar {{- appName}}",
     "hideOthers": "Ocultar Outros",
     "learnMore": "Saiba mais",
     "minimize": "Minimizar",
     "openDevTools": "Abrir &DevTools",
     "openDevToolsOnAllWindows": "Abrir &DevTools em todas as janelas",
-    "paste": "Co&lar",
-    "quit": "&Sair do {{- appName}}",
+    "paste": "&Colar",
+    "quit": "&Sair de {{- appName}}",
     "redo": "&Refazer",
     "reload": "&Recarregar",
-    "reloadIgnoringCache": "Recarregar ignorando o cache",
+    "reloadIgnoringCache": "Recarregar ignorando cache",
     "reportIssue": "Reportar problema",
-    "resetAppData": "Limpar dados do aplicativo",
+    "resetAppData": "Redefinir dados do aplicativo",
     "resetZoom": "Redefinir zoom",
-    "selectAll": "&Selecionar tudo",
+    "selectAll": "Selecionar &todos",
     "services": "Serviços",
     "showFullScreen": "Tela cheia",
-    "showMenuBar": "Barra de menus",
-    "showOnUnreadMessage": "Exibir quando há mensagens não lidas",
+    "showMenuBar": "Barra de menu",
+    "showOnUnreadMessage": "Mostrar em mensagens não lidas",
     "showServerList": "Lista de servidores",
-    "showTrayIcon": "Ícone da bandeja",
+    "showTrayIcon": "Ícone na bandeja",
     "toggleDevTools": "Alternar &DevTools",
     "undo": "&Desfazer",
-    "unhide": "Mostrar todos",
-    "viewMenu": "&Exibir",
+    "unhide": "Mostrar Todos",
+    "viewMenu": "&Visualizar",
     "windowMenu": "&Janela",
-    "zoomIn": "Aumentar zoom",
-    "zoomOut": "Diminuir zoom"
+    "zoomIn": "Ampliar",
+    "zoomOut": "Reduzir"
   },
   "loadingError": {
-    "title": "Servidor Falhou em Carregar",
-    "announcement": "Houston, nós temos um problema",
+    "title": "Falha ao Carregar o Servidor",
+    "announcement": "Houston, temos um problema",
     "reload": "Recarregar"
   },
   "unsupportedServer": {
     "title": "{{instanceDomain}} está executando uma versão não suportada do Rocket.Chat",
-    "announcement": "Um administrador precisa atualizar o workspace para uma versão suportada para reativar o acesso aos aplicativos móveis e desktop.",
+    "announcement": "Um administrador precisa atualizar o espaço de trabalho para uma versão suportada para reabilitar o acesso a partir de aplicativos móveis e desktop.",
     "moreInformation": "Saiba mais"
   },
   "selfxss": {
     "title": "Pare!",
-    "description": "Esta é uma funcionalidade do navegador destinada aos desenvolvedores. Se alguém lhe disse para copiar-colar algo aqui para activar uma funcionalidade Rocket.Chat ou \"hackear\" a conta de alguém, é um golpe e dará acesso à sua conta Rocket.Chat.",
-    "moreInfo": "Veja https://go.rocket.chat/i/xss para mais informações."
+    "description": "Este é um recurso do navegador destinado a desenvolvedores. Se alguém pediu para você copiar e colar algo aqui para ativar um recurso ou \"hackear\" a conta de alguém no Rocket.Chat, é uma fraude e dará a eles acesso à sua conta do Rocket.Chat.",
+    "moreInfo": "Consulte https://go.rocket.chat/i/xss para mais informações."
   },
   "sidebar": {
     "addNewServer": "Adicionar novo servidor",
@@ -305,8 +319,8 @@
       "reload": "Recarregar servidor",
       "remove": "Remover servidor",
       "openDevTools": "Abrir DevTools",
-      "clearCache": "Limpar cache",
-      "clearStorageData": "Limpar dados de armazenamento",
+      "clearCache": "Limpar Cache",
+      "clearStorageData": "Limpar Dados de Armazenamento",
       "copyCurrentUrl": "Copiar URL atual"
     }
   },
@@ -317,25 +331,25 @@
   "tray": {
     "menu": {
       "show": "Mostrar",
-      "hide": "Esconder",
+      "hide": "Ocultar",
       "quit": "Sair"
     },
     "tooltip": {
-      "noUnreadMessage": "{{- appName}}: não há mensagens não lidas",
+      "noUnreadMessage": "{{- appName}}: nenhuma mensagem não lida",
       "unreadMention": "{{- appName}}: você tem uma menção/mensagem direta não lida",
       "unreadMention_plural": "{{- appName}}: você tem {{- count}} menções/mensagens diretas não lidas",
       "unreadMessage": "{{- appName}}: você tem mensagens não lidas"
     },
     "balloon": {
       "stillRunning": {
-        "title": "{{- appName}} ainda está rodando",
-        "content": "{{- appName }} está configurado para permanecer em funcionamento na bandeja do sistema/área de notificação."
+        "title": "{{- appName}} ainda está em execução",
+        "content": "{{- appName }} está configurado para continuar em execução na bandeja do sistema/área de notificação."
       }
     }
   },
   "taskbar": {
     "unreadMessage": "Mensagens não lidas",
     "unreadMention": "Menções não lidas",
-    "noUnreadMessage": "Nenhuma mensagem"
+    "noUnreadMessage": "Nenhuma mensagem não lida"
   }
 }

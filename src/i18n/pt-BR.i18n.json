@@ -263,7 +263,7 @@
     "quit": "&Sair do {{- appName}}",
     "redo": "&Refazer",
     "reload": "&Recarregar",
-    "reloadIgnoringCache": "Recarregar ignorando o cache",
+    "reloadClearingCache": "Recarregar limpando cache",
     "reportIssue": "Reportar problema",
     "resetAppData": "Limpar dados do aplicativo",
     "resetZoom": "Redefinir zoom",

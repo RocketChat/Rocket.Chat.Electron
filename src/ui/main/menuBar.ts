@@ -5,6 +5,7 @@ import { createSelector, createStructuredSelector } from 'reselect';
 
 import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
+import { clearWebviewStorageKeepingLogin } from '../../servers/cache';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import * as urls from '../../urls';
@@ -216,12 +217,13 @@ const createViewMenu = createSelector(
         },
       },
       {
-        id: 'reloadIgnoringCache',
-        label: t('menus.reloadIgnoringCache'),
+        id: 'reloadClearingCache',
+        label: t('menus.reloadClearingCache'),
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
           const guestWebContents = await getCurrentViewWebcontents();
-          guestWebContents?.reloadIgnoringCache();
+          if (guestWebContents)
+            clearWebviewStorageKeepingLogin(guestWebContents);
           const currentView = await getCurrentView();
           if (typeof currentView === 'object' && !!currentView.url) {
             dispatch({

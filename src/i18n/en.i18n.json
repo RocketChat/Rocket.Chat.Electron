@@ -277,7 +277,7 @@
     "quit": "&Quit {{- appName}}",
     "redo": "&Redo",
     "reload": "&Reload",
-    "reloadIgnoringCache": "Reload ignoring cache",
+    "reloadClearingCache": "Reload clearing cache",
     "reportIssue": "Report issue",
     "resetAppData": "Reset app data",
     "resetZoom": "Reset zoom",

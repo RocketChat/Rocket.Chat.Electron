@@ -307,7 +307,8 @@
       "openDevTools": "Abrir DevTools",
       "clearCache": "Limpar cache",
       "clearStorageData": "Limpar dados de armazenamento",
-      "copyCurrentUrl": "Copiar URL atual"
+      "copyCurrentUrl": "Copiar URL atual",
+      "reloadClearingCache": "Recarregar limpando cache"
     }
   },
   "touchBar": {

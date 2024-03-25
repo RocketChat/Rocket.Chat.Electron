@@ -29,6 +29,7 @@ import { handleWillDownloadEvent } from '../../../downloads/main';
 import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
+import { clearWebviewStorageKeepingLogin } from '../../../servers/cache';
 import type { Server } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
 import {
@@ -425,17 +426,11 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         },
       },
       {
-        label: t('sidebar.item.clearCache'),
+        label: t('sidebar.item.reloadClearingCache'),
         click: async () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          await guestWebContents?.session.clearCache();
-        },
-      },
-      {
-        label: t('sidebar.item.clearStorageData'),
-        click: async () => {
-          const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          await guestWebContents?.session.clearStorageData();
+          if (!guestWebContents) return;
+          await clearWebviewStorageKeepingLogin(guestWebContents);
         },
       },
     ];

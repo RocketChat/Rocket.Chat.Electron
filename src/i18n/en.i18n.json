@@ -321,7 +321,8 @@
       "openDevTools": "Open DevTools",
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",
-      "copyCurrentUrl": "Copy current URL"
+      "copyCurrentUrl": "Copy current URL",
+      "reloadClearingCache": "Reload clearing cache"
     }
   },
   "touchBar": {

@@ -5,11 +5,11 @@ import { createSelector, createStructuredSelector } from 'reselect';
 
 import { relaunchApp } from '../../app/main/app';
 import { CERTIFICATES_CLEARED } from '../../navigation/actions';
-import { clearWebviewStorageKeepingLogin } from '../../servers/cache';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import * as urls from '../../urls';
 import {
+  CLEAR_CACHE_TRIGGERED,
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
   MENU_BAR_SELECT_SERVER_CLICKED,
@@ -223,7 +223,10 @@ const createViewMenu = createSelector(
         click: async () => {
           const guestWebContents = await getCurrentViewWebcontents();
           if (guestWebContents)
-            clearWebviewStorageKeepingLogin(guestWebContents);
+            dispatch({
+              type: CLEAR_CACHE_TRIGGERED,
+              payload: guestWebContents.id,
+            });
           const currentView = await getCurrentView();
           if (typeof currentView === 'object' && !!currentView.url) {
             dispatch({

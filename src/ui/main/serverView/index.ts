@@ -29,7 +29,6 @@ import { handleWillDownloadEvent } from '../../../downloads/main';
 import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
-import { clearWebviewStorageKeepingLogin } from '../../../servers/cache';
 import type { Server } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
 import {
@@ -42,6 +41,7 @@ import {
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_ATTACHED,
   WEBVIEW_SERVER_RELOADED,
+  CLEAR_CACHE_TRIGGERED,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -429,8 +429,13 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         label: t('sidebar.item.reloadClearingCache'),
         click: async () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          if (!guestWebContents) return;
-          await clearWebviewStorageKeepingLogin(guestWebContents);
+          if (!guestWebContents) {
+            return;
+          }
+          dispatch({
+            type: CLEAR_CACHE_TRIGGERED,
+            payload: guestWebContents.id,
+          });
         },
       },
     ];

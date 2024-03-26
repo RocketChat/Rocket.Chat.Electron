@@ -42,6 +42,13 @@
       "yes": "Sim",
       "no": "Não"
     },
+    "clearCache": {
+      "announcement": "Limpeza de cache",
+      "message": "Deseja manter os dados de login?",
+      "keepLoginData": "Manter",
+      "deleteLoginData": "Excluir",
+      "cancel": "Cancelar"
+    },
     "downloadRemoval": {
       "title": "Você tem certeza?",
       "message": "Remover este download?",

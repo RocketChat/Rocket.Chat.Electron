@@ -109,6 +109,10 @@
   "linux": {
     "target": ["AppImage", "tar.gz", "deb", "rpm", "snap", "flatpak"],
     "executableName": "rocketchat-desktop",
+    "executableArgs": [
+      "--ozone-platform-hint=auto",
+      "--enable-features=WaylandWindowDecorations"
+    ],
     "category": "GNOME;GTK;Network;InstantMessaging",
     "desktop": {
       "StartupWMClass": "Rocket.Chat",
@@ -124,7 +128,7 @@
       "desktop",
       "desktop-legacy",
       "home",
-      "x11",
+      "wayland",
       "unity7",
       "browser-support",
       "network",
@@ -136,7 +140,8 @@
       "audio-record",
       "screen-inhibit-control",
       "upower-observe"
-    ]
+    ],
+    "allowNativeWayland": true
   },
   "afterSign": "./build/notarize.js",
   "generateUpdatesFilesForAllChannels": true,

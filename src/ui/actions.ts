@@ -1,3 +1,5 @@
+import type { WebContents } from 'electron';
+
 import type { Server } from '../servers/common';
 import type { RootWindowIcon, WindowState } from './common';
 
@@ -5,6 +7,12 @@ export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START =
   'about-dialog/toggle-update-on-start';
 export const ADD_SERVER_VIEW_SERVER_ADDED = 'add-server/view-server-added';
+export const CLEAR_CACHE_TRIGGERED = 'clear-cache/triggered';
+export const CLEAR_CACHE_DIALOG_DISMISSED = 'clear-cache-dialog/dismissed';
+export const CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED =
+  'clear-cache-dialog/delete-login-data-clicked';
+export const CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED =
+  'clear-cache-dialog/keep-login-data-clicked';
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED =
   'loading-error-view/reload-server-clicked';
 export const MENU_BAR_ABOUT_CLICKED = 'menu-bar/about-clicked';
@@ -108,6 +116,10 @@ export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
   [ABOUT_DIALOG_TOGGLE_UPDATE_ON_START]: boolean;
   [ADD_SERVER_VIEW_SERVER_ADDED]: Server['url'];
+  [CLEAR_CACHE_TRIGGERED]: WebContents['id'];
+  [CLEAR_CACHE_DIALOG_DISMISSED]: void;
+  [CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED]: WebContents['id'];
+  [CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED]: WebContents['id'];
   [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
   [MENU_BAR_ABOUT_CLICKED]: void;
   [MENU_BAR_ADD_NEW_SERVER_CLICKED]: void;

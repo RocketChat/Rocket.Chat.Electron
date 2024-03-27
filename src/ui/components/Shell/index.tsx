@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store/rootReducer';
 import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
+import { ClearCacheDialog } from '../ClearCacheDialog';
 import DownloadsManagerView from '../DownloadsManagerView';
 import { OutlookCredentialsDialog } from '../OutlookCredentialsDialog';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
@@ -51,6 +52,7 @@ export const Shell = () => {
       <ScreenSharingDialog />
       <SelectClientCertificateDialog />
       <UpdateDialog />
+      <ClearCacheDialog />
       <OutlookCredentialsDialog />
     </>
   );

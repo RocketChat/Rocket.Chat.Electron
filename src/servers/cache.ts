@@ -6,7 +6,7 @@ import {
   CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED,
 } from '../ui/actions';
 
-export const clearWebviewStorageKeepLoginData = async (
+export const clearWebviewStorageKeepingLoginData = async (
   guestWebContents: WebContents
 ) => {
   if (!guestWebContents) return;
@@ -25,7 +25,7 @@ export const clearWebviewStorageKeepLoginData = async (
   guestWebContents?.reloadIgnoringCache();
 };
 
-export const clearWebviewStorageDeleteLoginData = async (
+export const clearWebviewStorageDeletingLoginData = async (
   guestWebContents: WebContents
 ) => {
   if (!guestWebContents) return;
@@ -40,7 +40,7 @@ export const handleClearCacheDialog = () => {
     if (!guestWebContents) {
       return;
     }
-    await clearWebviewStorageKeepLoginData(guestWebContents);
+    await clearWebviewStorageKeepingLoginData(guestWebContents);
   });
 
   listen(CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED, async (action) => {
@@ -48,6 +48,6 @@ export const handleClearCacheDialog = () => {
     if (!guestWebContents) {
       return;
     }
-    await clearWebviewStorageDeleteLoginData(guestWebContents);
+    await clearWebviewStorageDeletingLoginData(guestWebContents);
   });
 };

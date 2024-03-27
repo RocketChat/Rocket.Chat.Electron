@@ -49,7 +49,6 @@ export const ClearCacheDialog = () => {
   useEffect(
     () =>
       listen(CLEAR_CACHE_TRIGGERED, async (action) => {
-        console.log('CLEAR_CACHE_TRIGGERED', action);
         setWebcontentId(action.payload);
         setIsVisible(true);
       }),

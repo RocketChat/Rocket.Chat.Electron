@@ -44,9 +44,10 @@
     },
     "clearCache": {
       "announcement": "Limpeza de cache",
-      "message": "Deseja manter os dados de login?",
-      "keepLoginData": "Manter",
-      "deleteLoginData": "Excluir",
+      "title": "Deseja manter a sessão de login?",
+      "message": "Ao excluir sua sessão de login, você será desconectado e precisará informar suas credenciais novamente.",
+      "keepLoginData": "Manter sessão de login",
+      "deleteLoginData": "Excluir sessão de login",
       "cancel": "Cancelar"
     },
     "downloadRemoval": {

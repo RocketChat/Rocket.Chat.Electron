@@ -43,10 +43,11 @@
       "no": "No"
     },
     "clearCache": {
-      "announcement": "Clearing Cache",
-      "message": "Do you want to keep login data?",
-      "keepLoginData": "Keep",
-      "deleteLoginData": "Delete",
+      "announcement": "Clearing cache",
+      "title": "Keep your login session?",
+      "message": "By deleting your login session you will be logged out and asked to inform your credentials again.",
+      "keepLoginData": "Keep login session",
+      "deleteLoginData": "Delete login session",
       "cancel": "Cancel"
     },
     "downloadRemoval": {

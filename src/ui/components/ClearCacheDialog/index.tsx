@@ -58,14 +58,22 @@ export const ClearCacheDialog = () => {
 
   return (
     <Dialog isVisible={isVisible} onClose={handleClose}>
-      <Box display='flex' flexDirection='column' alignItems='center'>
-        <Box fontScale='h1'>{t('dialog.clearCache.announcement')}</Box>
-        <Margins block='x24'>
-          <Box>{t('dialog.clearCache.message')}</Box>
+      <Box
+        width='x300'
+        display='flex'
+        flexDirection='column'
+        alignItems='center'
+      >
+        <Margins block='x18'>
+          <Box fontScale='h1'>{t('dialog.clearCache.announcement')}</Box>
+          <Box>
+            <strong>{t('dialog.clearCache.title')}</strong>
+            <br />
+            {t('dialog.clearCache.message')}
+          </Box>
         </Margins>
       </Box>
-
-      <ButtonGroup>
+      <ButtonGroup stretch vertical>
         <Button type='button' primary onClick={handleKeepButtonClick}>
           {t('dialog.clearCache.keepLoginData')}
         </Button>

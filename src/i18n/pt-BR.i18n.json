@@ -271,7 +271,7 @@
     "quit": "&Sair do {{- appName}}",
     "redo": "&Refazer",
     "reload": "&Recarregar",
-    "reloadClearingCache": "Recarregar limpando cache",
+    "reloadClearingCache": "Forçar recarregamento",
     "reportIssue": "Reportar problema",
     "resetAppData": "Limpar dados do aplicativo",
     "resetZoom": "Redefinir zoom",
@@ -316,7 +316,7 @@
       "clearCache": "Limpar cache",
       "clearStorageData": "Limpar dados de armazenamento",
       "copyCurrentUrl": "Copiar URL atual",
-      "reloadClearingCache": "Recarregar limpando cache"
+      "reloadClearingCache": "Forçar recarregamento"
     }
   },
   "touchBar": {

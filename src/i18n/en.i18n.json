@@ -285,7 +285,7 @@
     "quit": "&Quit {{- appName}}",
     "redo": "&Redo",
     "reload": "&Reload",
-    "reloadClearingCache": "Reload clearing cache",
+    "reloadClearingCache": "Force reload",
     "reportIssue": "Report issue",
     "resetAppData": "Reset app data",
     "resetZoom": "Reset zoom",
@@ -330,7 +330,7 @@
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",
       "copyCurrentUrl": "Copy current URL",
-      "reloadClearingCache": "Reload clearing cache"
+      "reloadClearingCache": "Force reload"
     }
   },
   "touchBar": {

@@ -54,14 +54,14 @@ jobs:
 
       - name: Build Windows Package
         if: ${{ matrix.os == 'windows-latest'}}
-        run: yarn electron-builder --x64 --win nsis publish never
+        run: yarn electron-builder --x64 --win nsis
         env:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Build MacOS Package
         if: ${{ matrix.os == 'macos-latest'}}
-        run: yarn electron-builder --mac --universal dmg publish never
+        run: yarn electron-builder --publish never --mac --universal
         env:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
@@ -71,7 +71,7 @@ jobs:
 
       - name: Build Ubuntu Package
         if: ${{ matrix.os == 'ubuntu-latest'}}
-        run: yarn electron-builder --linux snap publish never
+        run: yarn electron-builder --publish never --linux snap
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3

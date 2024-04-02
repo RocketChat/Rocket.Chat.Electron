@@ -75,8 +75,9 @@ jobs:
         run: yarn electron-builder --publish never --linux snap
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+          name: ${{ runner.os }} Artifacts
           path: |
             dist/rocketchat-*.dmg
             dist/rocketchat-*.exe

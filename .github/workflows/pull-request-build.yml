@@ -3,7 +3,7 @@ name: Build pull request artifacts
 on:
   pull_request:
     branches:
-      - main
+      - master
       - develop
 
 jobs:

@@ -1,0 +1,83 @@
+name: Build pull request artifacts
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Disable git core.autocrlf
+        run: git config --global core.autocrlf false
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node 20.10.0
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.10.0'
+
+      - name: Setup node_modules cache
+        uses: actions/cache@v3
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install package dependencies
+        run: yarn install
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Test
+        run: yarn test
+
+      - name: Build app/
+        run: yarn build
+        env:
+          NODE_ENV: production
+          BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+
+      - name: Build Windows Package
+        if: ${{ matrix.os == 'windows-latest'}}
+        run: yarn electron-builder --x64 --win nsis publish never
+        env:
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+      - name: Build MacOS Package
+        if: ${{ matrix.os == 'macos-latest'}}
+        run: yarn electron-builder --mac --universal dmg publish never
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLEID: ${{ secrets.APPLEID }}
+          APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
+          ASC_PROVIDER: 'S6UPZG7ZR3'
+
+      - name: Build Ubuntu Package
+        if: ${{ matrix.os == 'ubuntu-latest'}}
+        run: yarn electron-builder --linux snap publish never
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}
+          path: |
+            dist/rocketchat-*.dmg
+            dist/rocketchat-*.exe
+            dist/rocketchat-*.snap

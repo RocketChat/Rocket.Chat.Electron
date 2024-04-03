@@ -61,11 +61,13 @@ jobs:
 
       - name: Build MacOS Package
         if: ${{ matrix.os == 'macos-latest'}}
-        run: yarn electron-builder --publish never --mac --universal
+        run: |
+          sudo mdutil -a -i off
+          yarn electron-builder --publish never --mac --universal
         env:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
-          IS_PULL_REQUEST: true
+          IS_PULL_REQUEST: 'false'
           APPLEID: ${{ secrets.APPLEID }}
           APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
           ASC_PROVIDER: 'S6UPZG7ZR3'

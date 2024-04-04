@@ -1,4 +1,8 @@
-import { notarize } from '@electron/notarize';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+
+const notarize = require('@electron/notarize');
 
 exports.default = function notarizing(context) {
   const { electronPlatformName, appOutDir } = context;

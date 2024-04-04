@@ -1,8 +1,4 @@
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-
-const notarize = require('@electron/notarize');
+const { notarize } = require('electron-notarize');
 
 exports.default = function notarizing(context) {
   const { electronPlatformName, appOutDir } = context;
@@ -22,6 +18,7 @@ exports.default = function notarizing(context) {
     }, 15000);
 
     notarize({
+      tool: 'notarytool',
       appBundleId: 'chat.rocket',
       appPath: `${appOutDir}/${appName}.app`,
       appleId: process.env.APPLEID,

@@ -22,7 +22,7 @@
     },
     "hardenedRuntime": true,
     "gatekeeperAssess": false,
-    "provisioningProfile": "embedded.provisionprofile"
+    "provisioningProfile": "Desktop.provisionprofile"
   },
   "dmg": {
     "background": "build/background.png",

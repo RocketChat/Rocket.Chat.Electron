@@ -54,7 +54,7 @@ jobs:
 
       - name: Build Windows Package
         if: ${{ matrix.os == 'windows-latest'}}
-        run: yarn electron-builder --x64 --win nsis
+        run: yarn electron-builder --publish never --x64 --win nsis
         env:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}

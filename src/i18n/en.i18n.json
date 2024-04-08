@@ -186,6 +186,10 @@
     "general": "General",
     "certificates": "Certificates",
     "options": {
+      "startPage": {
+        "title": "Always start on home page",
+        "description": "When enabled, the app will always start on the home page, otherwise it will start on the last page you were on."
+      },
       "report": {
         "title": "Report errors to developers",
         "description": "Report errors anonymously to the developers. Shared information include app version number, operating system type, server URL, device language and error type. No content or usernames are shared.",

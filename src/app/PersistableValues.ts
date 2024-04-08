@@ -64,6 +64,7 @@ type PersistableValues_3_9_6 = PersistableValues_3_8_12 & {
   lastSelectedServerUrl: string;
   allowedNTLMCredentialsDomains: string | null;
   isNTLMCredentialsEnabled: boolean;
+  doAlwaysStartAtHomePage: boolean;
 };
 
 export type PersistableValues = Pick<
@@ -120,5 +121,6 @@ export const migrations = {
     isNTLMCredentialsEnabled: false,
     allowedNTLMCredentialsDomains: null,
     lastSelectedServerUrl: '',
+    doAlwaysStartAtHomePage: false,
   }),
 };

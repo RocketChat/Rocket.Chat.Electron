@@ -3,6 +3,8 @@ import { useRef, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { selectPersistableValues } from '../../../app/selectors';
+import { select } from '../../../store';
 import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../../../servers/actions';
 import type { RootAction } from '../../../store/actions';
 import {
@@ -134,6 +136,8 @@ export const ServerPane = ({
     };
   }, [dispatch, serverUrl]);
 
+  const { doAlwaysStartAtHomePage } = select(selectPersistableValues);
+
   useEffect(() => {
     const webview = webviewRef.current;
     if (!webview) {
@@ -141,9 +145,13 @@ export const ServerPane = ({
     }
 
     if (!webview.src) {
-      webview.src = lastPath || serverUrl;
+      let finalPath = lastPath || serverUrl;
+      if (doAlwaysStartAtHomePage) {
+        finalPath = serverUrl;
+      }
+      webview.src = finalPath;
     }
-  }, [lastPath, serverUrl]);
+  }, [doAlwaysStartAtHomePage, lastPath, serverUrl]);
 
   useEffect(() => {
     const webview = webviewRef.current;

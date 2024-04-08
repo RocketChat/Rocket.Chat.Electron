@@ -167,6 +167,10 @@
     "general": "Allgemein",
     "certificates": "Zertifikate",
     "options": {
+      "startPage": {
+        "title": "Immer auf der Startseite beginnen",
+        "description": "Wenn aktiviert, startet die App immer auf der Startseite, sonst startet sie auf der zuletzt besuchten Seite."
+      },
       "report": {
         "title": "Fehler an Entwickler melden",
         "description": "Melden Sie Fehler anonym an die Entwickler. Zu den freigegebenen Informationen gehören App-Versionsnummer, Betriebssystemtyp, Server-URL, Gerätesprache und Fehlertyp. Es werden keine Inhalte oder Benutzernamen geteilt.",

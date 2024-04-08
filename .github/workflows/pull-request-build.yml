@@ -68,6 +68,7 @@ jobs:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
           CSC_FOR_PULL_REQUEST: true
+          FORCE_NOTARIZE: true
           APPLEID: ${{ secrets.APPLEID }}
           APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
           ASC_PROVIDER: 'S6UPZG7ZR3'

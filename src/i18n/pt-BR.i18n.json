@@ -43,11 +43,12 @@
       "no": "Não"
     },
     "clearCache": {
-      "announcement": "Limpeza de cache",
+      "announcement": "Forçar recarregamento",
       "title": "Deseja manter a sessão de login?",
       "message": "Ao excluir sua sessão de login, você será desconectado e precisará informar suas credenciais novamente.",
       "keepLoginData": "Manter sessão de login",
       "deleteLoginData": "Excluir sessão de login",
+      "clearingWait": "Aguarde, por favor",
       "cancel": "Cancelar"
     },
     "downloadRemoval": {

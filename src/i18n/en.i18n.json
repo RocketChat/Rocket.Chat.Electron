@@ -43,11 +43,12 @@
       "no": "No"
     },
     "clearCache": {
-      "announcement": "Clearing cache",
+      "announcement": "Force reload",
       "title": "Keep your login session?",
       "message": "By deleting your login session you will be logged out and asked to inform your credentials again.",
       "keepLoginData": "Keep login session",
       "deleteLoginData": "Delete login session",
+      "clearingWait": "Please wait",
       "cancel": "Cancel"
     },
     "downloadRemoval": {

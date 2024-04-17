@@ -1,5 +1,6 @@
 import { Box, IconButton } from '@rocket.chat/fuselage';
 import { useDarkMode } from '@rocket.chat/fuselage-hooks';
+import { useEffect, useState } from 'react';
 
 const DocumentViewer = ({
   url,
@@ -12,11 +13,22 @@ const DocumentViewer = ({
   themeAppearance: string | undefined;
   closeDocumentViewer: () => void;
 }) => {
+  const [documentUrl, setDocumentUrl] = useState('');
+
   const theme = useDarkMode(
     themeAppearance === 'auto' ? undefined : themeAppearance === 'dark'
   )
     ? 'dark'
     : 'light';
+
+  useEffect(() => {
+    if (documentUrl !== url && url !== '') {
+      setDocumentUrl('about:blank');
+      setTimeout(() => {
+        setDocumentUrl(url);
+      }, 100);
+    }
+  }, [url]);
   return (
     <>
       <Box
@@ -44,7 +56,7 @@ const DocumentViewer = ({
 
         <Box>
           <webview
-            src={url}
+            src={documentUrl}
             style={{
               width: '100%',
               height: '100%',

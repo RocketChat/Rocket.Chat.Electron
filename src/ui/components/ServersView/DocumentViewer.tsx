@@ -28,7 +28,7 @@ const DocumentViewer = ({
         setDocumentUrl(url);
       }, 100);
     }
-  }, [url]);
+  }, [url, documentUrl]);
   return (
     <>
       <Box

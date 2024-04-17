@@ -148,7 +148,7 @@ const initializeServerWebContentsAfterAttach = (
 
     const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 
-    if (key !== shortcutKey) {
+    if (key !== shortcutKey && key !== 'Escape') {
       return;
     }
 

@@ -4,7 +4,7 @@ exports.default = function notarizing(context) {
   const { electronPlatformName, appOutDir } = context;
   if (
     electronPlatformName !== 'darwin' ||
-    process.env.IS_PULL_REQUEST !== 'false'
+    process.env.FORCE_NOTARIZE !== 'true'
   ) {
     return;
   }
@@ -18,6 +18,7 @@ exports.default = function notarizing(context) {
     }, 15000);
 
     notarize({
+      tool: 'notarytool',
       appBundleId: 'chat.rocket',
       appPath: `${appOutDir}/${appName}.app`,
       appleId: process.env.APPLEID,

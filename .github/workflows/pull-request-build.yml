@@ -3,7 +3,7 @@ name: Build pull request artifacts
 on:
   pull_request:
     branches:
-      - main
+      - master
       - develop
 
 jobs:
@@ -54,29 +54,33 @@ jobs:
 
       - name: Build Windows Package
         if: ${{ matrix.os == 'windows-latest'}}
-        run: yarn electron-builder --x64 --win nsis publish never
+        run: yarn electron-builder --publish never --x64 --win nsis
         env:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Build MacOS Package
         if: ${{ matrix.os == 'macos-latest'}}
-        run: yarn electron-builder --mac --universal dmg publish never
+        run: |
+          sudo mdutil -a -i off
+          yarn electron-builder --publish never --mac --universal
         env:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          CSC_FOR_PULL_REQUEST: true
+          FORCE_NOTARIZE: true
           APPLEID: ${{ secrets.APPLEID }}
           APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
           ASC_PROVIDER: 'S6UPZG7ZR3'
 
       - name: Build Ubuntu Package
         if: ${{ matrix.os == 'ubuntu-latest'}}
-        run: yarn electron-builder --linux snap publish never
+        run: yarn electron-builder --publish never --linux snap
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}
+          name: ${{ runner.os }} Artifacts
           path: |
             dist/rocketchat-*.dmg
             dist/rocketchat-*.exe

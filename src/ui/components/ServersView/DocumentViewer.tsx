@@ -1,4 +1,4 @@
-import { Box, IconButton } from '@rocket.chat/fuselage';
+import { Box, IconButton, Throbber } from '@rocket.chat/fuselage';
 import { useDarkMode } from '@rocket.chat/fuselage-hooks';
 import { useEffect, useState } from 'react';
 
@@ -55,6 +55,19 @@ const DocumentViewer = ({
         </Box>
 
         <Box>
+          <Box
+            display='flex'
+            justifyContent='center'
+            alignItems='center'
+            height='100%'
+            width='100%'
+            position='absolute'
+          >
+            <Throbber
+              size='x16'
+              color={theme === 'dark' ? 'white' : 'default'}
+            />
+          </Box>
           <webview
             src={documentUrl}
             style={{

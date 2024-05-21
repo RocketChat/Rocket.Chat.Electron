@@ -17,6 +17,7 @@ import { setupNavigation } from './navigation/main';
 import { setupNotifications } from './notifications/main';
 import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
 import { setupScreenSharing } from './screenSharing/main';
+import { handleClearCacheDialog } from './servers/cache';
 import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
@@ -105,6 +106,4 @@ const start = async (): Promise<void> => {
   await processDeepLinksInArgs();
 };
 
-if (require.main === module) {
-  start();
-}
+start();

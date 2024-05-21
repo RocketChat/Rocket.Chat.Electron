@@ -42,6 +42,15 @@
       "yes": "Yes",
       "no": "No"
     },
+    "clearCache": {
+      "announcement": "Force reload",
+      "title": "Keep your login session?",
+      "message": "By deleting your login session you will be logged out and asked to inform your credentials again.",
+      "keepLoginData": "Keep login session",
+      "deleteLoginData": "Delete login session",
+      "clearingWait": "Please wait",
+      "cancel": "Cancel"
+    },
     "downloadRemoval": {
       "title": "Are you sure?",
       "message": "Remove this download?",
@@ -277,7 +286,7 @@
     "quit": "&Quit {{- appName}}",
     "redo": "&Redo",
     "reload": "&Reload",
-    "reloadIgnoringCache": "Reload ignoring cache",
+    "reloadClearingCache": "Force reload",
     "reportIssue": "Report issue",
     "resetAppData": "Reset app data",
     "resetZoom": "Reset zoom",
@@ -321,7 +330,8 @@
       "openDevTools": "Open DevTools",
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",
-      "copyCurrentUrl": "Copy current URL"
+      "copyCurrentUrl": "Copy current URL",
+      "reloadClearingCache": "Force reload"
     }
   },
   "touchBar": {

@@ -9,6 +9,7 @@ import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import * as urls from '../../urls';
 import {
+  CLEAR_CACHE_TRIGGERED,
   MENU_BAR_ABOUT_CLICKED,
   MENU_BAR_ADD_NEW_SERVER_CLICKED,
   MENU_BAR_SELECT_SERVER_CLICKED,
@@ -216,12 +217,16 @@ const createViewMenu = createSelector(
         },
       },
       {
-        id: 'reloadIgnoringCache',
-        label: t('menus.reloadIgnoringCache'),
+        id: 'reloadClearingCache',
+        label: t('menus.reloadClearingCache'),
         enabled: typeof currentView === 'object' && !!currentView.url,
         click: async () => {
           const guestWebContents = await getCurrentViewWebcontents();
-          guestWebContents?.reloadIgnoringCache();
+          if (guestWebContents)
+            dispatch({
+              type: CLEAR_CACHE_TRIGGERED,
+              payload: guestWebContents.id,
+            });
           const currentView = await getCurrentView();
           if (typeof currentView === 'object' && !!currentView.url) {
             dispatch({

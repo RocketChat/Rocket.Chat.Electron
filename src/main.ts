@@ -63,6 +63,7 @@ const start = async (): Promise<void> => {
   setupMainErrorHandling();
 
   createRootWindow();
+  startOutlookCalendarUrlHandler();
   attachGuestWebContentsEvents();
   await showRootWindow();
 
@@ -99,8 +100,6 @@ const start = async (): Promise<void> => {
   watchAndPersistChanges();
   handleJitsiDesktopCapturerGetSources();
   handleDesktopCapturerGetSources();
-  handleClearCacheDialog();
-  startOutlookCalendarUrlHandler();
   startDocumentViewerHandler();
   checkSupportedVersionServers();
 

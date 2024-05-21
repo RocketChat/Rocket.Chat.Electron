@@ -100,6 +100,7 @@ const start = async (): Promise<void> => {
   watchAndPersistChanges();
   handleJitsiDesktopCapturerGetSources();
   handleDesktopCapturerGetSources();
+  handleClearCacheDialog();
   startDocumentViewerHandler();
   checkSupportedVersionServers();
 

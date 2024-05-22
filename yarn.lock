@@ -5670,21 +5670,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^16.11.26":
+  version: 16.18.97
+  resolution: "@types/node@npm:16.18.97"
+  checksum: c7ffc135852b658ab6737f818492cab4f43a1c092ad4b032dd591c0ab2f66781191df4ddd08ba91436d7ee64c259987f94da8fa97e3b7d8d0fd5dae6f2775c26
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:^18.11.18":
   version: 18.18.9
   resolution: "@types/node@npm:18.18.9"
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: ebd98b117c868edc597807cd0dab214b6110b9cd5ee406632641d0cf5b8bd7cb199caaac657a046d9203c441dbcfb3c71154ffa2d615ec89f80e6972143e6ec8
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^20.9.0":
-  version: 20.11.28
-  resolution: "@types/node@npm:20.11.28"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: b03f69213ac6e7cd5f7efa86139f24e23ff70a12fed04adeac5413b62d6982343ce94906f74c401c5afefda48d36ae0efd6a575240996b15a5cf80b456ab4221
   languageName: node
   linkType: hard
 
@@ -8714,16 +8712,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:29.1.4":
-  version: 29.1.4
-  resolution: "electron@npm:29.1.4"
+"electron@npm:22.3.27":
+  version: 22.3.27
+  resolution: "electron@npm:22.3.27"
   dependencies:
     "@electron/get": "npm:^2.0.0"
-    "@types/node": "npm:^20.9.0"
+    "@types/node": "npm:^16.11.26"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 8c2ea5cfeba7b204f814433f79df33e291f17599be31db61452347a8d9a65e37054b341cd16e7028a9293aaab922b44e9bab2cfe5494af50c50cd3d8c2f8c67a
+  checksum: 1b3e83c352326078d6abc6bda2124938d32351f9d0cd7898e0eb9165513f6fdfb1db802b0c66e0e761519bcd39e37663634eb935f88d1598edc91e725939bdbb
   languageName: node
   linkType: hard
 
@@ -14747,7 +14745,7 @@ __metadata:
     chokidar: "npm:~3.5.3"
     conventional-changelog-cli: "npm:~4.1.0"
     convert-svg-to-png: "npm:~0.6.4"
-    electron: "npm:29.1.4"
+    electron: "npm:22.3.27"
     electron-builder: "npm:^23.6.0"
     electron-devtools-installer: "npm:^3.2.0"
     electron-dl: "npm:3.5.2"

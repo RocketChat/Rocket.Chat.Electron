@@ -21,19 +21,29 @@ export const getOutlookEvents = async (
   credentials: OutlookCredentials,
   date: Date
 ): Promise<AppointmentData[]> => {
+  const logs: { ts: Date; data: any[] }[] = [];
+  const log = (...args: any[]) => logs.push({ ts: new Date(), data: args });
+
   try {
+    log('getOutlookEvents started.');
     const { login, password, serverUrl } = credentials;
 
+    log('Configuring NTLM Authentication');
     const xhrApi = new XhrApi({ decompress: true });
     xhrApi.useNtlmAuthentication(login, password);
 
+    log('Enabling NTLM');
     ConfigurationApi.ConfigureXHR(xhrApi);
 
+    log('Creating Exchange Service 2013');
     const exchange = new ExchangeService(ExchangeVersion.Exchange2013);
     // This credentials object isn't used when ntlm is active, but the lib still requires it.
+    log('Creating placeholder Credentials');
     exchange.Credentials = new WebCredentials(login, password);
+    log('Creating server URL');
     exchange.Url = new Uri(`${serverUrl}/ews/exchange.asmx`);
 
+    log('Creating CalendarView');
     const validatedDate = new Date(date);
 
     const folderId = new FolderId(WellKnownFolderName.Calendar);
@@ -55,28 +65,43 @@ export const getOutlookEvents = async (
     let appointments: Appointment[] = [];
 
     try {
+      log('Searching for Appointments');
       appointments = (await exchange.FindAppointments(folderId, view))
         .Items as Appointment[];
     } catch (error) {
+      console.error('Error while searching for appointments');
       console.error(error);
+      console.log(logs);
       return Promise.reject(error);
     }
+
+    log('Search successful. Now filtering results.');
     // Filter out appointments that end exactly at midnight
     const filtered = appointments.filter(
       (appointment) => appointment.End > minTime
     );
 
     if (filtered.length === 0) {
+      console.log('Outlook Request successful with no results.');
       return [];
     }
 
+    log(
+      `${filtered.length} results left after filter. Loading additional data for them.`
+    );
     const propertySet = new PropertySet(BasePropertySet.FirstClassProperties);
     try {
       await exchange.LoadPropertiesForItems(filtered, propertySet);
     } catch (error) {
+      console.error('Failed to load additional data for Appointments');
+      console.error(error);
+      console.log(logs);
       return Promise.reject(error);
     }
 
+    log(
+      'Operation completed successfully, now mapping data to standard format.'
+    );
     return filtered.map<AppointmentData>((appointment) => {
       let description = '';
       try {
@@ -101,7 +126,9 @@ export const getOutlookEvents = async (
       };
     });
   } catch (error) {
+    console.error('Operation failed.');
     console.error(error);
+    console.log(logs);
     return Promise.reject(error);
   }
 };

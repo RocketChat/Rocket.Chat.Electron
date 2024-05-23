@@ -2408,7 +2408,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ewsjs/xhr@npm:^2.0.2, @ewsjs/xhr@npm:~2.0.2":
+"@ewsjs/ntlm-client@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "@ewsjs/ntlm-client@npm:3.0.1"
+  dependencies:
+    des.js: "npm:^1.1.0"
+    extend: "npm:^3.0.2"
+    js-md4: "npm:^0.3.2"
+  dependenciesMeta:
+    extend:
+      optional: true
+  checksum: c4aae035a3a19b650628382720b751faf0c438878586ac67a885386519d262a5a221c949650d72d2d29d1349f1fea75f7d6c5b439bacdb1de99fb901556effd7
+  languageName: node
+  linkType: hard
+
+"@ewsjs/xhr@npm:^2.0.2":
   version: 2.0.2
   resolution: "@ewsjs/xhr@npm:2.0.2"
   dependencies:
@@ -2417,6 +2431,18 @@ __metadata:
     http-cookie-agent: "npm:^5.0.4"
     tough-cookie: "npm:^4.1.3"
   checksum: 8390ae9cf50f1eaa0e0df767d82cf88d361e14b93174762c6ccb7ef39f1084984db29d3011b6d9107418e4242e675d56376f3461464504d4c167efc01e318e29
+  languageName: node
+  linkType: hard
+
+"@ewsjs/xhr@npm:~3.1.3":
+  version: 3.1.3
+  resolution: "@ewsjs/xhr@npm:3.1.3"
+  dependencies:
+    "@ewsjs/ntlm-client": "npm:^3.0.1"
+    axios: "npm:^1.6.8"
+    http-cookie-agent: "npm:^5.0.4"
+    tough-cookie: "npm:^4.1.3"
+  checksum: 50f7d9ff24bd4038db2c659d0f64cd066322667a4091f3e2d413f468b5ff844230b4b810c4b999a76856a10d3f4bb86562844ba5dc101ca81a54058104422c91
   languageName: node
   linkType: hard
 
@@ -6793,6 +6819,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axios@npm:^1.6.8":
+  version: 1.7.2
+  resolution: "axios@npm:1.7.2"
+  dependencies:
+    follow-redirects: "npm:^1.15.6"
+    form-data: "npm:^4.0.0"
+    proxy-from-env: "npm:^1.1.0"
+  checksum: 6ae80dda9736bb4762ce717f1a26ff997d94672d3a5799ad9941c24d4fb019c1dff45be8272f08d1975d7950bac281f3ba24aff5ecd49ef5a04d872ec428782f
+  languageName: node
+  linkType: hard
+
 "b4a@npm:^1.6.4":
   version: 1.6.4
   resolution: "b4a@npm:1.6.4"
@@ -8321,6 +8358,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"des.js@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "des.js@npm:1.1.0"
+  dependencies:
+    inherits: "npm:^2.0.1"
+    minimalistic-assert: "npm:^1.0.0"
+  checksum: d35fc82b5a0b2127b12699212e90b54ddd8134e0cf8d27a8c30507ed3572aa574ab71800cbb473769128a52dcf21acc3271c5c359508a5aa772e990df3b1a698
+  languageName: node
+  linkType: hard
+
 "detect-libc@npm:^1.0.3":
   version: 1.0.3
   resolution: "detect-libc@npm:1.0.3"
@@ -9808,6 +9855,16 @@ __metadata:
     debug:
       optional: true
   checksum: 2e8f5f259a6b02dfa8dc199e08431848a7c3beed32eb4c19945966164a52c89f07b86c3afcc32ebe4279cf0a960520e45a63013d6350309c5ec90133c5d9351a
+  languageName: node
+  linkType: hard
+
+"follow-redirects@npm:^1.15.6":
+  version: 1.15.6
+  resolution: "follow-redirects@npm:1.15.6"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: 70c7612c4cab18e546e36b991bbf8009a1a41cf85354afe04b113d1117569abf760269409cb3eb842d9f7b03d62826687086b081c566ea7b1e6613cf29030bf7
   languageName: node
   linkType: hard
 
@@ -11846,6 +11903,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"js-md4@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "js-md4@npm:0.3.2"
+  checksum: 66cea478a6b914a5f23a588565b4ae4d9fc2ccae316c32f971aab1f94467f96aaa2b79d359e951c2eeac9c166897efcaec103b9fa99565a81291e1364b77ac12
+  languageName: node
+  linkType: hard
+
 "js-message@npm:1.0.7":
   version: 1.0.7
   resolution: "js-message@npm:1.0.7"
@@ -12656,6 +12720,13 @@ __metadata:
   version: 1.0.1
   resolution: "min-indent@npm:1.0.1"
   checksum: bfc6dd03c5eaf623a4963ebd94d087f6f4bbbfd8c41329a7f09706b0cb66969c4ddd336abeb587bc44bc6f08e13bf90f0b374f9d71f9f01e04adc2cd6f083ef1
+  languageName: node
+  linkType: hard
+
+"minimalistic-assert@npm:^1.0.0":
+  version: 1.0.1
+  resolution: "minimalistic-assert@npm:1.0.1"
+  checksum: cc7974a9268fbf130fb055aff76700d7e2d8be5f761fb5c60318d0ed010d839ab3661a533ad29a5d37653133385204c503bfac995aaa4236f4e847461ea32ba7
   languageName: node
   linkType: hard
 
@@ -14716,7 +14787,7 @@ __metadata:
     "@emotion/css": "npm:~11.11.2"
     "@emotion/react": "npm:~11.11.3"
     "@emotion/styled": "npm:~11.11.0"
-    "@ewsjs/xhr": "npm:~2.0.2"
+    "@ewsjs/xhr": "npm:~3.1.3"
     "@fiahfy/icns-convert": "npm:~0.0.12"
     "@fiahfy/ico-convert": "npm:~0.0.12"
     "@kayahr/jest-electron-runner": "npm:~29.11.0"

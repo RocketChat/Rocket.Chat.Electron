@@ -277,7 +277,6 @@
     "quit": "&Kilépés a {{- appName}} programból",
     "redo": "&Ismétlés",
     "reload": "Új&ratöltés",
-    "reloadIgnoringCache": "Újratöltés gyorsítótár mellőzésével",
     "reportIssue": "Probléma jelentése",
     "resetAppData": "Alkalmazásadatok visszaállítása",
     "resetZoom": "Nagyítás visszaállítása",

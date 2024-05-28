@@ -1,1 +1,355 @@
-{ }
+{
+  "contextMenu": {
+    "cut": "قص",
+    "copy": "نسخ",
+    "paste": "لصق",
+    "selectAll": "تحديد الكل",
+    "undo": "تراجع",
+    "redo": "إعادة",
+    "spelling": "الإملاء",
+    "spellingLanguages": "لغات الإملاء",
+    "moreSpellingSuggestions": "مزيد من الاقتراحات للإملاء",
+    "noSpellingSuggestions": "لا توجد اقتراحات",
+    "copyLinkAddress": "نسخ عنوان الرابط",
+    "copyLinkText": "نسخ نص الرابط",
+    "openLink": "فتح الرابط",
+    "saveImageAs": "حفظ الصورة كـ...",
+    "copyImage": "نسخ الصورة"
+  },
+  "dialog": {
+    "about": {
+      "title": "حول {{- appName}}",
+      "version": "الإصدار: <1>{{-version}}</1>",
+      "checkUpdates": "التحقق من التحديثات",
+      "checkUpdatesOnStart": "التحقق من التحديثات عند بدء التشغيل",
+      "noUpdatesAvailable": "لا توجد تحديثات متاحة.",
+      "copyright": "حقوق النشر {{copyright}}",
+      "errorWhenLookingForUpdates": "حدث خطأ عند البحث عن التحديثات"
+    },
+    "addServer": {
+      "title": "إضافة خادم",
+      "message": "هل تريد إضافة \"{{- host}}\" إلى قائمة الخوادم الخاصة بك؟",
+      "add": "إضافة",
+      "cancel": "إلغاء"
+    },
+    "addServerError": {
+      "title": "مضيف غير صالح",
+      "message": "تعذر التحقق من مضيف \"{{- host}}\"، لذا لم يتم إضافته."
+    },
+    "certificateError": {
+      "title": "خطأ في الشهادة",
+      "message": "هل تثق في الشهادة من \"{{- issuerName}}\"؟",
+      "yes": "نعم",
+      "no": "لا"
+    },
+    "downloadRemoval": {
+      "title": "هل أنت متأكد؟",
+      "message": "هل تريد إزالة هذا التنزيل؟",
+      "yes": "نعم",
+      "no": "لا"
+    },
+    "resetAppData": {
+      "title": "إعادة تعيين بيانات التطبيق",
+      "message": "سيؤدي هذا إلى تسجيل خروجك من جميع فرقك وإعادة تعيين التطبيق إلى إعداداته الأصلية. لا يمكن التراجع عن هذا.",
+      "yes": "نعم",
+      "cancel": "إلغاء"
+    },
+    "clearPermittedScreenCaptureServers": {
+      "title": "مسح أذونات خوادم التقاط الشاشة المسموح بها",
+      "message": "سيؤدي هذا إلى مسح جميع الأذونات لخوادم التقاط الشاشة، مما يجعلها تطلب الإذن مرة أخرى. لا يمكن التراجع عن هذا.",
+      "yes": "نعم",
+      "cancel": "إلغاء"
+    },
+    "screenshare": {
+      "title": "مشاركة الشاشة الخاصة بك",
+      "announcement": "حدد شاشة للمشاركة"
+    },
+    "update": {
+      "title": "تحديث متاح",
+      "announcement": "تحديث جديد متاح",
+      "message": "الإصدار الجديد لتطبيق Rocket.Chat Desktop متاح الآن!",
+      "currentVersion": "الإصدار الحالي:",
+      "newVersion": "الإصدار الجديد:",
+      "install": "تثبيت التحديث",
+      "remindLater": "تذكير لاحقًا",
+      "skip": "تخطي هذا الإصدار"
+    },
+    "updateDownloading": {
+      "title": "جاري تحميل التحديث",
+      "message": "سيتم إعلامك عندما يكون التحديث جاهزًا للتثبيت",
+      "ok": "حسناً"
+    },
+    "updateInstallLater": {
+      "title": "التثبيت لاحقًا",
+      "message": "سيتم تثبيت التحديث عندما تخرج من التطبيق",
+      "ok": "حسناً"
+    },
+    "updateReady": {
+      "title": "التحديث جاهز للتثبيت",
+      "message": "تم تنزيل التحديث",
+      "installNow": "تثبيت الآن",
+      "installLater": "تثبيت لاحقًا"
+    },
+    "updateSkip": {
+      "title": "تخطي التحديث",
+      "message": "سنقوم بإخطارك عندما يكون التحديث التالي متاحًا\nإذا قررت تغيير رأيك، يمكنك التحقق من التحديثات من القائمة حول.",
+      "ok": "حسناً"
+    },
+    "selectClientCertificate": {
+      "announcement": "حدد الشهادة",
+      "select": "اختر",
+      "validDates": "صالحة من {{-validStart,}} إلى {{-validExpiry,}}"
+    },
+    "openingExternalProtocol": {
+      "title": "رابط ببروتوكول مخصص",
+      "message": "يتطلب رابط {{- protocol }} تطبيقًا خارجيًا.",
+      "detail": "الرابط المطلوب هو {{- url }} . هل ترغب في الاستمرار؟",
+      "dontAskAgain": "فتح هذه الأنواع من الروابط دائمًا في التطبيق المرتبط",
+      "yes": "نعم",
+      "no": "لا"
+    },
+    "allowVideoCallCaptureScreen": {
+      "title": "المكالمة الفيديوية تحاول التقاط شاشتك",
+      "message": "المكالمة الفيديوية تطلب الإذن لالتقاط شاشتك.",
+      "detail": "المكالمة الفيديوية من الخادم {{- url }} يتطلب الإذن لمشاركة شاشتك مع الآخرين.",
+      "dontAskAgain": "السماح دائمًا للمكالمات الفيديوية من هذا الخادم بالتقاط شاشتك",
+      "yes": "السماح",
+      "no": "إلغاء"
+    },
+    "outlookCalendar": {
+      "title": "تقويم Outlook",
+      "encryptionUnavailableTitle": "التشفير غير متاح",
+      "encryptionUnavailable": "نظام التشغيل الخاص بك لا يدعم التشفير.\nسيتم تخزين بيانات الاعتماد الخاصة بك على شكل نص عادي.",
+      "field_required": "هذا الحقل مطلوب",
+      "remember_credentials": "تذكر بيانات الاعتماد الخاصة بي",
+      "cancel": " إلغاء",
+      "submit": "تسجيل الدخول"
+    },
+    "supportedVersion": {
+      "title": "إصدار مساحة العمل غير معتمد"
+    }
+  },
+  "downloads": {
+    "title": "التنزيلات",
+    "notifications": {
+      "downloadFinished": "اكتمال التنزيل",
+      "downloadInterrupted": "تم إيقاف التنزيل",
+      "downloadCancelled": "تم إلغاء التنزيل",
+      "downloadFailed": "فشل التنزيل",
+      "downloadExpired": "انتهت صلاحية التنزيل",
+      "downloadExpiredMessage": "يرجى إعادة المحاولة للتنزيل من المصدر."
+    },
+    "filters": {
+      "search": "البحث",
+      "server": "الخادم",
+      "mimeType": "النوع",
+      "status": "الحالة",
+      "clear": "مسح الفلاتر",
+      "all": "الكل",
+      "mimes": {
+        "images": "الصور",
+        "videos": "مقاطع الفيديو",
+        "audios": "الملفات الصوتية",
+        "texts": "النصوص",
+        "files": "الملفات"
+      },
+      "statuses": {
+        "paused": "متوقف مؤقتاً",
+        "cancelled": "ملغى"
+      }
+    },
+    "item": {
+      "cancel": "إلغاء",
+      "copyLink": "نسخ الرابط",
+      "errored": "تم إلغاء التنزيل",
+      "pause": "إيقاف مؤقت",
+      "progressSize": "{{receivedBytes, byteSize}} من {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "إزالة من القائمة",
+      "resume": "استئناف",
+      "retry": "إعادة المحاولة",
+      "showInFolder": "عرض في المجلد"
+    },
+    "showingResults": "عرض النتائج {{first}} - {{last}} من {{count}}"
+  },
+  "certificatesManager": {
+    "title": "مدير الشهادات",
+    "trustedCertificates": "الشهادات الموثوق بها",
+    "notTrustedCertificates": "الشهادات غير الموثوق بها",
+    "item": {
+      "domain": "النطاق",
+      "actions": "الإجراءات",
+      "remove": "إزالة"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "general": "عام",
+    "certificates": "الشهادات",
+    "options": {
+      "report": {
+        "title": "الإبلاغ عن الأخطاء للمطورين",
+        "description": "الإبلاغ عن الأخطاء بشكل مجهول للمطورين. تشمل المعلومات المشتركة رقم إصدار التطبيق، نوع نظام التشغيل، عنوان URL للخادم، لغة الجهاز، ونوع الخطأ. لا تتم مشاركة المحتوى أو أسماء المستخدمين.",
+        "masDescription": "تكون هذه الخيار معطلة عند التثبيت من Mac App Store، سيتم الإبلاغ عن الأخطاء من خلال عملية الإبلاغ عن الأخطاء في Mac App Store."
+      },
+      "flashFrame": {
+        "title": "تمكين إطار الوميض",
+        "titleDarwin": "تبديل الاهتزاز في القائمة عند التنبيه",
+        "description": "يمكن من النافذة التفاف انتباه المستخدم.",
+        "onLinux": "بعض توزيعات Linux لا تدعم هذه الميزة.",
+        "descriptionDarwin": "يعمل تطبيق الرموز في القائمة على جذب انتباه المستخدم."
+      },
+      "hardwareAcceleration": {
+        "title": "تسريع العتاد",
+        "description": "يمكن تمكين استخدام التسريع العتادي عند الإتاحة. سيتم إعادة تحميل التطبيق عند التغيير."
+      },
+      "internalVideoChatWindow": {
+        "title": "فتح محادثة فيديو باستخدام نافذة التطبيق",
+        "description": "عند تعيين محادثة فيديو، ستتم فتح محادثة الفيديو باستخدام نافذة التطبيق، وإلا سيتم استخدام المتصفح الافتراضي. لا يتم دعم مشاركة الشاشة في Google Meet في تطبيقات Electron، لذا لن تغير هذه الإعدادات سلوك المكالمات في Meet، والتي ستفتح على المتصفح.",
+        "masDescription": "يتم تعطيل هذا الخيار عند التثبيت من Mac App Store، لأسباب أمنية سيتم فتح محادثة الفيديو باستخدام المتصفح افتراضيًا."
+      },
+      "minimizeOnClose": {
+        "title": "تصغير عند الإغلاق",
+        "description": "عند إغلاق التطبيق سيتم تصغيره، وإلا سيتم إنهاء التطبيق. يجب تعطيل أيقونة الصينية لتطبيق هذا التأثير."
+      },
+      "menubar": {
+        "title": "شريط القائمة",
+        "description": "إظهار شريط القائمة في أعلى النافذة."
+      },
+      "sidebar": {
+        "title": "الشريط الجانبي",
+        "description": "عرض الشريط الجانبي على اليسار من النافذة مع قائمة الخادم، التنزيلات، والإعدادات."
+      },
+      "trayIcon": {
+        "title": "أيقونة الصينية",
+        "description": "إظهار أيقونة الصينية على شريط النظام. إذا كانت أيقونة الصينية نشطة، فسيتم إخفاء التطبيق إلى الصينية عند الإغلاق. وإلا فسيتم إنهاء التطبيق."
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "مسح أذونات التقاط الشاشة",
+        "description": "مسح أذونات التقاط الشاشة التي تم تحديدها لعدم طلبها مرة أخرى في المكالمات الفيديو."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "السماح بالتقاط الشاشة في المكالمات الفيديو",
+        "description": "السماح بالتقاط الشاشة في المكالمات الفيديو. سيتم طلب الإذن في كل مكالمة فيديو."
+      },
+      "ntlmCredentials": {
+        "title": "بيانات الاعتماد NTLM",
+        "description": "السماح باستخدام بيانات الاعتماد NTLM عند الاتصال بالخادم.",
+        "domains": "النطاقات التي ستستخدم بيانات الاعتماد. مفصولة بفاصلة. استخدم * لمطابقة جميع النطاقات."
+      }
+    }
+  },
+  "error": {
+    "authNeeded": "المصادقة مطلوبة، حاول <strong>{{- auth}}</strong>",
+    "connectTimeout": "انتهت مهلة الاتصال",
+    "differentCertificate": "الشهادة مختلفة عن السابقة.\n\n {{- detail}}",
+    "noValidServerFound": "لم يتم العثور على خادم صالح على الرابط",
+    "offline": "تحقق من اتصال الإنترنت الخاص بك!"
+  },
+  "landing": {
+    "invalidUrl": "عنوان URL غير صالح",
+    "validating": "جار التحقق...",
+    "inputUrl": "أدخل عنوان الخادم الخاص بك",
+    "connect": "الاتصال"
+  },
+  "menus": {
+    "about": "حول {{- appName}}",
+    "addNewServer": "إضافة خادم جديد",
+    "back": "رجوع",
+    "clearTrustedCertificates": "مسح الشهادات الموثوق بها",
+    "close": "إغلاق",
+    "copy": "&نسخ",
+    "cut": "قص",
+    "disableGpu": "تعطيل وحدة المعالجة الرسومية",
+    "documentation": "التوثيق",
+    "downloads": "التنزيلات",
+    "settings": "الإعدادات",
+    "editMenu": "&تعديل",
+    "fileMenu": "&ملف",
+    "forward": "&إعادة توجيه",
+    "helpMenu": "&مساعدة",
+    "hide": "إخفاء {{- appName}}",
+    "hideOthers": "إخفاء الآخرين",
+    "learnMore": "معرفة المزيد",
+    "minimize": "تصغير",
+    "openDevTools": "فتح &أدوات المطورين",
+    "openDevToolsOnAllWindows": "فتح &أدوات المطورين على جميع النوافذ",
+    "paste": "&لصق",
+    "quit": "&خروج {{- appName}}",
+    "redo": "&إعادة",
+    "reload": "&إعادة تحميل",
+    "reloadIgnoringCache": "إعادة تحميل تجاهل الذاكرة المؤقتة",
+    "reportIssue": "الإبلاغ عن مشكلة",
+    "resetAppData": "إعادة تعيين بيانات التطبيق",
+    "resetZoom": "إعادة تعيين التكبير",
+    "selectAll": "تحديد الكل",
+    "services": "الخدمات",
+    "showFullScreen": "عرض بالشاشة الكاملة",
+    "showMenuBar": "عرض شريط القائمة",
+    "showOnUnreadMessage": "العرض عند وجود رسائل غير مقروءة",
+    "showServerList": "عرض قائمة الخوادم",
+    "showTrayIcon": "عرض أيقونة الصينية",
+    "toggleDevTools": "تبديل &أدوات المطورين",
+    "undo": "&تراجع",
+    "unhide": "إظهار الكل",
+    "viewMenu": "&عرض",
+    "windowMenu": "&نافذة",
+    "zoomIn": "تكبير",
+    "zoomOut": "تصغير"
+  },
+  "loadingError": {
+    "title": "فشل تحميل الخادم",
+    "announcement": "هيوستن، لدينا مشكلة",
+    "reload": "إعادة التحميل"
+  },
+  "unsupportedServer": {
+    "title": "{{instanceDomain}} يعمل بإصدار غير مدعوم من Rocket.Chat",
+    "announcement": "يجب على المسؤول تحديث مساحة العمل إلى إصدار مدعوم لإعادة تمكين الوصول من التطبيقات المحمولة وسطح المكتب.",
+    "moreInformation": "تعلم المزيد"
+  },
+  "selfxss": {
+    "title": "توقف!",
+    "description": "هذه ميزة مخصصة للمطورين في المتصفح. إذا قال لك شخص ما أن تنسخ وتلصق شيئًا هنا لتمكين ميزة في Rocket.Chat أو \"اختراق\" حساب شخص ما، فهذا نصب وسيمنحهم الوصول إلى حساب Rocket.Chat الخاص بك.",
+    "moreInfo": "انظر https://go.rocket.chat/i/xss للمزيد من المعلومات."
+  },
+  "sidebar": {
+    "addNewServer": "إضافة خادم جديد",
+    "downloads": "التنزيلات",
+    "settings": "الإعدادات",
+    "item": {
+      "reload": "إعادة تحميل الخادم",
+      "remove": "إزالة الخادم",
+      "openDevTools": "فتح أدوات المطورين",
+      "clearCache": "مسح الذاكرة المؤقتة",
+      "clearStorageData": "مسح بيانات التخزين",
+      "copyCurrentUrl": "نسخ عنوان URL الحالي"
+    }
+  },
+  "touchBar": {
+    "formatting": "تنسيق",
+    "selectServer": "اختيار الخادم"
+  },
+  "tray": {
+    "menu": {
+      "show": "عرض",
+      "hide": "إخفاء",
+      "quit": "خروج"
+    },
+    "tooltip": {
+      "noUnreadMessage": "{{- appName}}: لا توجد رسالة غير مقروءة",
+      "unreadMention": "{{- appName}}: لديك إشارة/رسالة مباشرة غير مقروءة",
+      "unreadMention_plural": "{{- appName}}: لديك {{- count}} إشارات/رسائل مباشرة غير مقروءة",
+      "unreadMessage": "{{- appName}}: لديك رسائل غير مقروءة"
+    },
+    "balloon": {
+      "stillRunning": {
+        "title": "{{- appName}} لا يزال يعمل",
+        "content": "{{- appName }} مضبوط للبقاء يعمل في صينية النظام/منطقة الإشعارات."
+      }
+    }
+  },
+  "taskbar": {
+    "unreadMessage": "رسائل غير مقروءة",
+    "unreadMention": "إشارات غير مقروءة",
+    "noUnreadMessage": "لا توجد رسائل غير مقروءة"
+  }
+}

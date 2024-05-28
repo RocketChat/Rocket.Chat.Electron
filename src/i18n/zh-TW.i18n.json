@@ -1,165 +1,355 @@
 {
   "contextMenu": {
-    "cut": "剪下 (&T)",
-    "copy": "複製 (&C)",
-    "paste": "貼上 (&P)",
-    "selectAll": "全選 (&A)",
-    "undo": "復原 (&U)",
-    "redo": "重做 (&R)",
-    "spellingLanguages": "拼字檢查",
+    "cut": "剪下(&T)",
+    "copy": "複製(&C)",
+    "paste": "貼上(&P)",
+    "selectAll": "全選(&A)",
+    "undo": "復原(&U)",
+    "redo": "重做(&R)",
+    "spelling": "拼字檢查",
+    "spellingLanguages": "拼字檢查語言",
     "moreSpellingSuggestions": "更多拼字建議",
-    "noSpellingSuggestions": "沒有拼字建議",
-    "copyLinkAddress": "複製連結",
+    "noSpellingSuggestions": "沒有建議",
+    "copyLinkAddress": "複製連結網址",
     "copyLinkText": "複製連結文字",
     "openLink": "開啟連結",
-    "saveImageAs": "儲存影像為...",
-    "copyImage": "複製影像"
+    "saveImageAs": "另存圖片為...",
+    "copyImage": "複製圖片"
   },
   "dialog": {
     "about": {
-      "title": "關於 {{- appName}}",
-      "version": "版本: <1>{{-version}}</1>",
+      "title": "關於{{- appName}}",
+      "version": "版本：<1>{{-version}}</1>",
       "checkUpdates": "檢查更新",
       "checkUpdatesOnStart": "啟動時檢查更新",
-      "noUpdatesAvailable": "目前沒有可用的更新",
-      "copyright": "版權 {{copyright}}"
+      "noUpdatesAvailable": "目前沒有可用的更新。",
+      "copyright": "版權 {{copyright}}",
+      "errorWhenLookingForUpdates": "檢查更新時發生錯誤"
     },
     "addServer": {
       "title": "新增伺服器",
-      "message": "您是否要將 \"{{- host}}\" 新增到您的伺服器列表中？",
+      "message": "您要將 \"{{- host}}\" 加入伺服器清單嗎？",
       "add": "新增",
       "cancel": "取消"
     },
     "addServerError": {
-      "title": "無效的網址",
-      "message": "網址 \"{{- host}}\" 無法驗證，因此沒有新增。"
+      "title": "無效的主機",
+      "message": "無法驗證主機 \"{{- host}}\"，因此未被新增。"
     },
     "certificateError": {
       "title": "憑證錯誤",
-      "message": "您是否要信任來自 \"{{- issuerName}}\" 的憑證？",
+      "message": "您信任來自 \"{{- issuerName}}\" 的憑證嗎？",
+      "yes": "是",
+      "no": "否"
+    },
+    "downloadRemoval": {
+      "title": "您確定嗎？",
+      "message": "移除此下載？",
       "yes": "是",
       "no": "否"
     },
     "resetAppData": {
-      "title": "回復程式設定",
-      "message": "這將會把您從所有團隊中退出，並將程式回復至原廠設定。這個操作無法被復原。",
+      "title": "重設應用程式資料",
+      "message": "這將登出您的所有團隊並將應用程式重設為原始設定。此操作無法還原。",
+      "yes": "是",
+      "cancel": "取消"
+    },
+    "clearPermittedScreenCaptureServers": {
+      "title": "清除允許的螢幕擷取伺服器",
+      "message": "這將清除所有螢幕擷取伺服器的權限，使其再次要求權限。此操作無法還原。",
       "yes": "是",
       "cancel": "取消"
     },
     "screenshare": {
-      "title": "分享您的畫面",
-      "announcement": "選擇要分享的畫面"
+      "title": "分享您的螢幕",
+      "announcement": "選擇要分享的螢幕"
     },
     "update": {
-      "title": "可用的更新",
-      "announcement": "有新的更新程式",
-      "message": "有新版本的 Rocket.Chat 桌面應用程式！",
-      "currentVersion": "目前版本:",
-      "newVersion": "最新版本:",
+      "title": "有新版本可用",
+      "announcement": "有新版本可用",
+      "message": "Rocket.Chat 桌面應用程式的新版本已經推出！",
+      "currentVersion": "目前版本：",
+      "newVersion": "新版本：",
       "install": "安裝更新",
-      "remindLater": "稍後再提醒我",
-      "skip": "略過這個版本"
+      "remindLater": "稍後提醒",
+      "skip": "跳過此版本"
     },
     "updateDownloading": {
       "title": "正在下載更新",
-      "message": "當準備好可以安裝更新程式的時候，您將會收到通知。",
-      "ok": "好"
+      "message": "當更新準備安裝時，您將收到通知",
+      "ok": "確定"
     },
     "updateInstallLater": {
-      "title": "稍後再安裝",
-      "message": "結束程式的時候將會安裝更新",
-      "ok": "OK"
+      "title": "稍後安裝",
+      "message": "退出應用程式時將安裝更新",
+      "ok": "確定"
     },
     "updateReady": {
-      "title": "已準備好安裝更新",
-      "message": "更新程式已下載完畢",
-      "installNow": "立刻安裝",
+      "title": "準備安裝更新",
+      "message": "更新已下載完成",
+      "installNow": "立即安裝",
       "installLater": "稍後安裝"
     },
     "updateSkip": {
-      "title": "忽略更新",
-      "message": "我們將會在下次有新的更新版本的時候通知您\n如果您改變主意想安裝此次更新，您可以從「關於」的選單中檢視更新",
-      "ok": "好"
+      "title": "跳過更新",
+      "message": "我們將在下次更新時通知您\n如果您改變主意，可以從「關於」選單檢查更新。",
+      "ok": "確定"
+    },
+    "selectClientCertificate": {
+      "announcement": "選擇憑證",
+      "select": "選擇",
+      "validDates": "有效期間自{{-validStart,}} 到 {{-validExpiry,}}"
+    },
+    "openingExternalProtocol": {
+      "title": "使用自訂協定開啟連結",
+      "message": "{{- protocol }} 連結需要外部應用程式。",
+      "detail": "所要求的連結是 {{- url }} 。您要繼續嗎？",
+      "dontAskAgain": "始終在相關應用程式中開啟這類型的連結",
+      "yes": "是",
+      "no": "否"
+    },
+    "allowVideoCallCaptureScreen": {
+      "title": "視訊通話正在嘗試擷取您的螢幕",
+      "message": "視訊通話正在請求擷取您的螢幕的權限。",
+      "detail": "來自伺服器 {{- url }} 的視訊通話需要權限才能與他人共享您的螢幕。",
+      "dontAskAgain": "始終允許來自此伺服器的視訊通話擷取您的螢幕",
+      "yes": "允許",
+      "no": "取消"
+    },
+    "outlookCalendar": {
+      "title": "Outlook 日曆",
+      "encryptionUnavailableTitle": "加密不可用",
+      "encryptionUnavailable": "您的作業系統不支援加密。\n您的憑證將以純文字形式儲存。",
+      "field_required": "此欄位為必填",
+      "remember_credentials": "記住我的憑證",
+      "cancel": " 取消",
+      "submit": "登入"
+    },
+    "supportedVersion": {
+      "title": "不支援的 Workspace 版本"
+    }
+  },
+  "downloads": {
+    "title": "下載",
+    "notifications": {
+      "downloadFinished": "下載完成",
+      "downloadInterrupted": "下載中斷",
+      "downloadCancelled": "下載已取消",
+      "downloadFailed": "下載失敗",
+      "downloadExpired": "下載已過期",
+      "downloadExpiredMessage": "請嘗試從來源重新下載。"
+    },
+    "filters": {
+      "search": "搜尋",
+      "server": "伺服器",
+      "mimeType": "類型",
+      "status": "狀態",
+      "clear": "清除篩選",
+      "all": "全部",
+      "mimes": {
+        "images": "圖片",
+        "videos": "影片",
+        "audios": "音訊",
+        "texts": "文字",
+        "files": "檔案"
+      },
+      "statuses": {
+        "paused": "已暫停",
+        "cancelled": "已取消"
+      }
+    },
+    "item": {
+      "cancel": "取消",
+      "copyLink": "複製連結",
+      "errored": "下載已取消",
+      "pause": "暫停",
+      "progressSize": "{{receivedBytes, byteSize}} / {{totalBytes, byteSize}}（{{ratio, percentage}}）",
+      "remove": "從清單中移除",
+      "resume": "繼續",
+      "retry": "重試",
+      "showInFolder": "在資料夾中顯示"
+    },
+    "showingResults": "顯示結果 {{first}} 到 {{last}}，共 {{count}} 條"
+  },
+  "certificatesManager": {
+    "title": "憑證管理器",
+    "trustedCertificates": "受信任的憑證",
+    "notTrustedCertificates": "未受信任的憑證",
+    "item": {
+      "domain": "網域",
+      "actions": "操作",
+      "remove": "移除"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "general": "一般",
+    "certificates": "憑證",
+    "options": {
+      "report": {
+        "title": "將錯誤報告給開發人員",
+        "description": "匿名向開發人員報告錯誤。共享的資訊包括應用程式版本號、作業系統類型、伺服器 URL、設備語言和錯誤類型。不共享內容或使用者名稱。",
+        "masDescription": "從 Mac App Store 安裝時，此選項將被停用，錯誤將透過 Mac App Store 的錯誤報告流程進行報告。"
+      },
+      "flashFrame": {
+        "title": "啟用閃爍框",
+        "titleDarwin": "警示時切換 Dock 彈跳",
+        "description": "閃爍視窗以吸引使用者注意。",
+        "onLinux": "某些 Linux 發行版不支援此功能。",
+        "descriptionDarwin": "在 Dock 中彈跳應用程式圖示以吸引使用者注意。"
+      },
+      "hardwareAcceleration": {
+        "title": "硬體加速",
+        "description": "啟用硬體加速（如果可用）。更改後應用程式將重新載入。"
+      },
+      "internalVideoChatWindow": {
+        "title": "使用應用程式視窗開啟視訊通話",
+        "description": "設定為使用應用程式視窗開啟視訊通話，否則將使用預設瀏覽器。 <strong>Google Meet</strong> 的螢幕分享在 Electron 應用程式中不受支援，因此此設定不會改變 Meet 通話的行為，仍將在瀏覽器中開啟。",
+        "masDescription": "從 Mac App Store 安裝時，此選項將被停用，出於安全考慮，它將預設使用瀏覽器開啟視訊通話。"
+      },
+      "minimizeOnClose": {
+        "title": "關閉時最小化",
+        "description": "關閉應用程式時將其最小化，否則將退出應用程式。要生效，托盤圖示需要被停用。"
+      },
+      "menubar": {
+        "title": "選單列",
+        "description": "在視窗頂部顯示選單列。"
+      },
+      "sidebar": {
+        "title": "側邊欄",
+        "description": "在視窗左側顯示包含伺服器清單、下載和設定的側邊欄。"
+      },
+      "trayIcon": {
+        "title": "托盤圖示",
+        "description": "在系統托盤上顯示托盤圖示。如果托盤圖示處於活動狀態，則應用程式在關閉時將隱藏到托盤中。否則將退出應用程式。"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "清除螢幕擷取權限",
+        "description": "清除已選擇不再要求在視訊通話中的螢幕擷取權限。"
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "允許在視訊通話中擷取螢幕",
+        "description": "允許在視訊通話中擷取螢幕。這將在每次視訊通話時要求權限。"
+      },
+      "ntlmCredentials": {
+        "title": "NTLM 憑證",
+        "description": "允許在連接到伺服器時使用 NTLM 憑證。",
+        "domains": "使用憑證的網域。用逗號分隔。使用 * 來匹配所有網域。"
+      }
     }
   },
   "error": {
-    "authNeeded": "需要驗證，請嘗試 <strong>{{- auth}}</strong>",
-    "connectTimeout": "連線逾時",
+    "authNeeded": "需要驗證，請嘗試<strong>{{- auth}}</strong>",
+    "connectTimeout": "連接逾時",
     "differentCertificate": "憑證與之前的不同。\n\n {{- detail}}",
-    "noValidServerFound": "在這個網址找不到有效的伺服器",
-    "offline": "請檢查您的網際網路連線！"
+    "noValidServerFound": "在 URL 中找不到有效的伺服器",
+    "offline": "請檢查您的網路連線！"
   },
   "landing": {
-    "invalidUrl": "無效的網址",
+    "invalidUrl": "無效的 URL",
     "validating": "驗證中...",
-    "inputUrl": "請輸入您的伺服器網址",
-    "connect": "連線"
+    "inputUrl": "輸入您的伺服器 URL",
+    "connect": "連接"
   },
   "menus": {
-    "about": "關於 {{- appName}}",
-    "addNewServer": "新增伺服器",
-    "back": "上一步 (&B)",
-    "clearTrustedCertificates": "清除已信任的憑證",
+    "about": "關於{{- appName}}",
+    "addNewServer": "新增伺服器(&N)",
+    "back": "返回(&B)",
+    "clearTrustedCertificates": "清除信任的憑證",
     "close": "關閉",
-    "copy": "複製 (&C)",
-    "cut": "剪下 (&T)",
+    "copy": "複製(&C)",
+    "cut": "剪下(&T)",
+    "disableGpu": "停用 GPU",
     "documentation": "文件",
-    "editMenu": "編輯 (&E)",
-    "fileMenu": "檔案 (&F)",
-    "forward": "下一步 (&F)",
-    "helpMenu": "幫助 (&H)",
+    "downloads": "下載",
+    "settings": "設定",
+    "editMenu": "編輯(&E)",
+    "fileMenu": "檔案(&F)",
+    "forward": "前進(&F)",
+    "helpMenu": "說明(&H)",
+    "hide": "隱藏{{- appName}}",
+    "hideOthers": "隱藏其他(&H)",
     "learnMore": "了解更多",
     "minimize": "最小化",
-    "openDevTools": "開啟開發工具 (&D)",
-    "paste": "貼上 (&P)",
-    "quit": "結束 (&Q) {{- appName}}",
-    "redo": "重做 (&R)",
-    "reload": "重新載入 (&R)",
-    "reloadIgnoringCache": "重新載入忽略的快取",
-    "reportIssue": "問題回報",
-    "resetAppData": "回復程式設定",
-    "resetZoom": "重置縮放比率",
-    "selectAll": "選擇全部 (&A)",
+    "openDevTools": "開啟開發人員工具(&D)",
+    "openDevToolsOnAllWindows": "在所有視窗上開啟開發人員工具(&D)",
+    "paste": "貼上(&P)",
+    "quit": "退出{{- appName}}(&Q)",
+    "redo": "重做(&R)",
+    "reload": "重新載入(&R)",
+    "reloadIgnoringCache": "忽略快取重新載入",
+    "reportIssue": "回報問題",
+    "resetAppData": "重設應用程式資料",
+    "resetZoom": "重設縮放",
+    "selectAll": "全選(&A)",
+    "services": "服務",
     "showFullScreen": "全螢幕",
-    "showMenuBar": "選單",
-    "showOnUnreadMessage": "顯示未讀取的訊息",
-    "showServerList": "伺服器列表",
-    "showTrayIcon": "系統匣圖示",
-    "toggleDevTools": "切換開發工具 (&D)",
-    "undo": "還原 (&U)",
-    "viewMenu": "檢視 (&V)",
-    "windowMenu": "視窗 (&W)",
+    "showMenuBar": "顯示選單列",
+    "showOnUnreadMessage": "在未讀訊息上顯示",
+    "showServerList": "伺服器清單",
+    "showTrayIcon": "顯示托盤圖示",
+    "toggleDevTools": "切換開發人員工具(&D)",
+    "undo": "復原(&U)",
+    "unhide": "全部顯示",
+    "viewMenu": "檢視(&V)",
+    "windowMenu": "視窗(&W)",
     "zoomIn": "放大",
     "zoomOut": "縮小"
   },
   "loadingError": {
-    "title": "伺服器載入失敗",
-    "announcement": "休士頓，我們遇到問題了",
+    "title": "伺服器無法載入",
+    "announcement": "休斯頓，我們有一個問題",
     "reload": "重新載入"
+  },
+  "unsupportedServer": {
+    "title": "{{instanceDomain}} 正在運行不受支援的 Rocket.Chat 版本",
+    "announcement": "管理員需要將工作區更新為受支援的版本，以重新啟用從移動設備和桌面應用程式的訪問。",
+    "moreInformation": "了解更多"
+  },
+  "selfxss": {
+    "title": "停止！",
+    "description": "這是一個針對開發人員的瀏覽器功能。如果有人告訴您在此處複製粘貼某些內容以啟用 Rocket.Chat 功能或\"入侵\"某人的帳戶，這是一種詐騙，將使他們能夠訪問您的 Rocket.Chat 帳戶。",
+    "moreInfo": "請參閱 https://go.rocket.chat/i/xss 以獲取更多信息。"
   },
   "sidebar": {
     "addNewServer": "新增伺服器",
+    "downloads": "下載",
+    "settings": "設定",
     "item": {
       "reload": "重新載入伺服器",
       "remove": "移除伺服器",
-      "openDevTools": "開啟開發工具"
+      "openDevTools": "開啟開發人員工具",
+      "clearCache": "清除快取",
+      "clearStorageData": "清除儲存資料",
+      "copyCurrentUrl": "複製目前的 URL"
     }
   },
   "touchBar": {
-    "formatting": "Formatting",
+    "formatting": "格式化",
     "selectServer": "選擇伺服器"
   },
   "tray": {
     "menu": {
       "show": "顯示",
       "hide": "隱藏",
-      "quit": "結束"
+      "quit": "退出"
     },
     "tooltip": {
-      "noUnreadMessage": "{{- appName}}: 沒有未讀的訊息",
-      "unreadMention": "{{- appName}}: 您有未讀的直接或提及到您的訊息",
-      "unreadMention_plural": "{{- appName}}: 您有 {{- count}} 封未讀的直接或提及到您的訊息",
-      "unreadMessage": "{{- appName}}: 您有未讀的訊息"
+      "noUnreadMessage": "{{- appName}}: 沒有未讀消息",
+      "unreadMention": "{{- appName}}: 您有未讀提及/直接消息",
+      "unreadMention_plural": "{{- appName}}: 您有 {{- count}} 條未讀提及/直接消息",
+      "unreadMessage": "{{- appName}}: 您有未讀消息"
+    },
+    "balloon": {
+      "stillRunning": {
+        "title": "{{- appName}} 仍在運行",
+        "content": "{{- appName }} 設定為在系統托盤/通知區域中保持運行。"
+      }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "未讀消息",
+    "unreadMention": "未讀提及",
+    "noUnreadMessage": "沒有未讀消息"
   }
 }

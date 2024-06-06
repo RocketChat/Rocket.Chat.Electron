@@ -70,6 +70,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure/msal-common@npm:14.11.0":
+  version: 14.11.0
+  resolution: "@azure/msal-common@npm:14.11.0"
+  checksum: 76ec9a0dda6ab3f71b371df2cadea91e02ec2b5d340cada43a35544b1fc06e8ec99e56d501b7070666b70eb7afce2ea291611f34ab6996c46cd8b6a605a3e511
+  languageName: node
+  linkType: hard
+
+"@azure/msal-node@npm:^2.6.5":
+  version: 2.9.1
+  resolution: "@azure/msal-node@npm:2.9.1"
+  dependencies:
+    "@azure/msal-common": "npm:14.11.0"
+    jsonwebtoken: "npm:^9.0.0"
+    uuid: "npm:^8.3.0"
+  checksum: 7d25cd66aef2cf0fcc26c169d5e4218f87c225290b8ffd2769668094864ac4c58e06e310b9b173a80e4c8154700ab49f1195c9241b30708e610acfd6c8d23720
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:^7.0.0, @babel/code-frame@npm:^7.21.4":
   version: 7.21.4
   resolution: "@babel/code-frame@npm:7.21.4"
@@ -2396,18 +2414,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ewsjs/ntlm-client@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@ewsjs/ntlm-client@npm:2.0.0"
-  dependencies:
-    extend: "npm:^3.0.2"
-  dependenciesMeta:
-    extend:
-      optional: true
-  checksum: 2452fd669bd6dc8e9c5ab89a1e04c9650daca8acfa5bc78e40e1dd29c0b0dd75927a286ea81f74ea178bf4b1e348ed9c3690f4aa655e8001a133842179e31e79
-  languageName: node
-  linkType: hard
-
 "@ewsjs/ntlm-client@npm:^3.0.1":
   version: 3.0.1
   resolution: "@ewsjs/ntlm-client@npm:3.0.1"
@@ -2422,19 +2428,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ewsjs/xhr@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@ewsjs/xhr@npm:2.0.2"
-  dependencies:
-    "@ewsjs/ntlm-client": "npm:^2.0.0"
-    axios: "npm:^1.6.0"
-    http-cookie-agent: "npm:^5.0.4"
-    tough-cookie: "npm:^4.1.3"
-  checksum: 8390ae9cf50f1eaa0e0df767d82cf88d361e14b93174762c6ccb7ef39f1084984db29d3011b6d9107418e4242e675d56376f3461464504d4c167efc01e318e29
-  languageName: node
-  linkType: hard
-
-"@ewsjs/xhr@npm:~3.1.3":
+"@ewsjs/xhr@npm:^3.1.3, @ewsjs/xhr@npm:~3.1.3":
   version: 3.1.3
   resolution: "@ewsjs/xhr@npm:3.1.3"
   dependencies:
@@ -6808,17 +6802,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.6.0, axios@npm:~1.6.4":
-  version: 1.6.4
-  resolution: "axios@npm:1.6.4"
-  dependencies:
-    follow-redirects: "npm:^1.15.4"
-    form-data: "npm:^4.0.0"
-    proxy-from-env: "npm:^1.1.0"
-  checksum: ed15229f447dd81a5a9e3dac5c84d64f8598145b1102fb6f8c5feb0d02d0dafaef7bf071d2575a7687dd0c014b9da2edbcff59ee9a57b59da941ae673b938919
-  languageName: node
-  linkType: hard
-
 "axios@npm:^1.6.8":
   version: 1.7.2
   resolution: "axios@npm:1.7.2"
@@ -6827,6 +6810,17 @@ __metadata:
     form-data: "npm:^4.0.0"
     proxy-from-env: "npm:^1.1.0"
   checksum: 6ae80dda9736bb4762ce717f1a26ff997d94672d3a5799ad9941c24d4fb019c1dff45be8272f08d1975d7950bac281f3ba24aff5ecd49ef5a04d872ec428782f
+  languageName: node
+  linkType: hard
+
+"axios@npm:~1.6.4":
+  version: 1.6.4
+  resolution: "axios@npm:1.6.4"
+  dependencies:
+    follow-redirects: "npm:^1.15.4"
+    form-data: "npm:^4.0.0"
+    proxy-from-env: "npm:^1.1.0"
+  checksum: ed15229f447dd81a5a9e3dac5c84d64f8598145b1102fb6f8c5feb0d02d0dafaef7bf071d2575a7687dd0c014b9da2edbcff59ee9a57b59da941ae673b938919
   languageName: node
   linkType: hard
 
@@ -9516,17 +9510,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ews-javascript-api@npm:~0.13.2":
-  version: 0.13.2
-  resolution: "ews-javascript-api@npm:0.13.2"
+"ews-javascript-api@npm:~0.15.3":
+  version: 0.15.3
+  resolution: "ews-javascript-api@npm:0.15.3"
   dependencies:
-    "@ewsjs/xhr": "npm:^2.0.2"
+    "@azure/msal-node": "npm:^2.6.5"
+    "@ewsjs/xhr": "npm:^3.1.3"
     "@xmldom/xmldom": "npm:^0.8.1"
     base64-js: "npm:^1.5.1"
-    moment: "npm:^2.29.4"
-    moment-timezone: "npm:^0.5.41"
-    uuid: "npm:^8.3.2"
-  checksum: b5a60ccc192bd182bff0cfc2afeb6c0d17f75f1cf8a161ad3cd4b1ad43ad9df8590afbee770ae7567d9ba0a27c72387a5f6100677c6d31561b3199b684755c0c
+    moment: "npm:^2.30.1"
+    moment-timezone: "npm:^0.5.45"
+    uuid: "npm:^9.0.1"
+  checksum: 22cf707b6f82e8c44d8ee79fb7c0267cb8b20231476096fedeb6a09cbb981cd9dc9d28e4d613a02c17d2d39203361f3c2c2dba659cf9d815c04cf62e89af9da6
   languageName: node
   linkType: hard
 
@@ -12128,7 +12123,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:~9.0.2":
+"jsonwebtoken@npm:^9.0.0, jsonwebtoken@npm:~9.0.2":
   version: 9.0.2
   resolution: "jsonwebtoken@npm:9.0.2"
   dependencies:
@@ -12909,12 +12904,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"moment-timezone@npm:^0.5.41":
-  version: 0.5.43
-  resolution: "moment-timezone@npm:0.5.43"
+"moment-timezone@npm:^0.5.45":
+  version: 0.5.45
+  resolution: "moment-timezone@npm:0.5.45"
   dependencies:
     moment: "npm:^2.29.4"
-  checksum: f8b66f8562960d6c2ec90ea7e2ca8c10bd5f5cf5ced2eaaac83deb1011b145d0154e8d77018cf5e913d489898a343122a3d815768809653ab039306dce1db1eb
+  checksum: 45e3793d44bea8e826c934a335ebf0b92c6d6dae562fdb59d8c45a16d5c11de4d6692b5fa7eebca969881f06b81b55f8535883bfbc727b597d601709fa5a2bb2
   languageName: node
   linkType: hard
 
@@ -12925,7 +12920,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"moment@npm:~2.30.1":
+"moment@npm:^2.30.1, moment@npm:~2.30.1":
   version: 2.30.1
   resolution: "moment@npm:2.30.1"
   checksum: ae42d876d4ec831ef66110bdc302c0657c664991e45cf2afffc4b0f6cd6d251dde11375c982a5c0564ccc0fa593fc564576ddceb8c8845e87c15f58aa6baca69
@@ -14830,7 +14825,7 @@ __metadata:
     eslint-plugin-prettier: "npm:~5.1.2"
     eslint-plugin-react: "npm:~7.33.2"
     eslint-plugin-react-hooks: "npm:~4.6.0"
-    ews-javascript-api: "npm:~0.13.2"
+    ews-javascript-api: "npm:~0.15.3"
     fsevents: "npm:2.3.3"
     i18next: "npm:~23.7.16"
     jest: "npm:~29.7.0"
@@ -16606,7 +16601,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^8.3.2":
+"uuid@npm:^8.3.0, uuid@npm:^8.3.2":
   version: 8.3.2
   resolution: "uuid@npm:8.3.2"
   bin:

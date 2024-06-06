@@ -13,6 +13,7 @@ import {
   ExchangeService,
   ExchangeVersion,
   Uri,
+  EwsLogging,
 } from 'ews-javascript-api';
 
 import type { OutlookCredentials, AppointmentData } from './type';
@@ -25,6 +26,8 @@ export const getOutlookEvents = async (
   const log = (...args: any[]) => logs.push({ ts: new Date(), data: args });
 
   try {
+    EwsLogging.DebugLogEnabled = true;
+
     log('getOutlookEvents started.');
     const { login, password, serverUrl } = credentials;
 
@@ -40,7 +43,7 @@ export const getOutlookEvents = async (
     // This credentials object isn't used when ntlm is active, but the lib still requires it.
     log('Creating placeholder Credentials');
     exchange.Credentials = new WebCredentials(login, password);
-    log('Creating server URL');
+    log(`Creating server URL: ${serverUrl?.length}`);
     exchange.Url = new Uri(`${serverUrl}/ews/exchange.asmx`);
 
     log('Creating CalendarView');

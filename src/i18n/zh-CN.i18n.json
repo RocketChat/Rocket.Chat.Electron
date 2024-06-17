@@ -170,7 +170,6 @@
     "quit": "结束(&Q){{- appName}}",
     "redo": "重做 (&R)",
     "reload": "重新载入 (&R)",
-    "reloadIgnoringCache": "忽略缓存并重新加载",
     "reportIssue": "报告问题",
     "resetAppData": "重置应用数据",
     "resetZoom": "重置缩放",

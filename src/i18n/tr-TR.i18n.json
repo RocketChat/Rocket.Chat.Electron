@@ -114,7 +114,6 @@
     "quit": "&Çıkış yap {{- appName}}",
     "redo": "&Yinele",
     "reload": "&Yeniden yükle",
-    "reloadIgnoringCache": "Önbelleği yok sayarak yeniden yükle",
     "reportIssue": "Hata bildir",
     "resetAppData": "Uygulama verisini sıfırla",
     "resetZoom": "Görünümü sıfırla",

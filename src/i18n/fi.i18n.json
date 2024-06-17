@@ -256,7 +256,6 @@
     "quit": "&Sulje {{- appName}}",
     "redo": "T&ee uudelleen",
     "reload": "La&taa uudelleen",
-    "reloadIgnoringCache": "Lataa uudelleen, ohita välimuisti",
     "reportIssue": "Ilmoita ongelmasta",
     "resetAppData": "Nollaa sovelluksen tiedot",
     "resetZoom": "Nollaa zoomaus",

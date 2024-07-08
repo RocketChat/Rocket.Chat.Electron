@@ -8946,16 +8946,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:29.4.1":
-  version: 29.4.1
-  resolution: "electron@npm:29.4.1"
+"electron@npm:30.1.2":
+  version: 30.1.2
+  resolution: "electron@npm:30.1.2"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^20.9.0"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: e68040d38affd18b336661ba64138ef67293264ef51d18dd5c2e19f929e8fa3d65147ed92aaa7c17f8f58003823808dbb41eb8f12b17150c22f9b12f4d18d090
+  checksum: ab8a67ac4a318aa8a1751d561b070007001398c642f98ebf41ce98e37b4b38e0ae80c7cb5bda1603c889433235f2e0176136e4d3b0ce177ebd9d1ba79f12cdc4
   languageName: node
   linkType: hard
 
@@ -15332,7 +15332,7 @@ __metadata:
     chokidar: "npm:~3.5.3"
     conventional-changelog-cli: "npm:~4.1.0"
     convert-svg-to-png: "npm:~0.6.4"
-    electron: "npm:29.4.1"
+    electron: "npm:30.1.2"
     electron-builder: "npm:24.13.3"
     electron-devtools-installer: "npm:^3.2.0"
     electron-dl: "npm:3.5.2"

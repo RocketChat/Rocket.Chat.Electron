@@ -6,7 +6,9 @@ import type {
   ContextMenuParams,
   Event,
   Input,
+  MediaAccessPermissionRequest,
   MenuItemConstructorOptions,
+  OpenExternalPermissionRequest,
   Session,
   UploadFile,
   UploadRawData,
@@ -269,6 +271,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   const handlePermissionRequest: Parameters<
     Session['setPermissionRequestHandler']
   >[0] = async (_webContents, permission, callback, details) => {
+    console.log('Permission request', permission, details);
     switch (permission) {
       case 'media': {
         if (process.platform !== 'darwin') {
@@ -276,7 +279,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
-        const { mediaTypes = [] } = details;
+        const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
         const allowed =
           (!mediaTypes.includes('audio') ||
             (await systemPreferences.askForMediaAccess('microphone'))) &&
@@ -295,12 +298,14 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         return;
 
       case 'openExternal': {
-        if (!details.externalURL) {
+        if (!(details as OpenExternalPermissionRequest).externalURL) {
           callback(false);
           return;
         }
 
-        const allowed = await isProtocolAllowed(details.externalURL);
+        const allowed = await isProtocolAllowed(
+          (details as OpenExternalPermissionRequest).externalURL as string
+        );
         callback(allowed);
         return;
       }

@@ -83,5 +83,6 @@ jobs:
           name: ${{ runner.os }} Artifacts
           path: |
             dist/rocketchat-*.dmg
+            dist/rocketchat-*.pkg
             dist/rocketchat-*.exe
             dist/rocketchat-*.snap

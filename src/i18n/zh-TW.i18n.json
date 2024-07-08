@@ -115,7 +115,6 @@
     "quit": "結束 (&Q) {{- appName}}",
     "redo": "重做 (&R)",
     "reload": "重新載入 (&R)",
-    "reloadIgnoringCache": "重新載入忽略的快取",
     "reportIssue": "問題回報",
     "resetAppData": "回復程式設定",
     "resetZoom": "重置縮放比率",

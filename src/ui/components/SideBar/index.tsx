@@ -1,4 +1,4 @@
-import { Icon } from '@rocket.chat/fuselage';
+import { Box, Icon, IconButton } from '@rocket.chat/fuselage';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -70,76 +70,95 @@ export const SideBar = () => {
   const currentView = useSelector(({ currentView }: RootState) => currentView);
 
   return (
-    <Wrapper
-      className='rcx-sidebar--main'
-      sideBarStyle={style}
-      isVisible={isVisible}
-    >
-      <CustomTheme customTheme={customTheme} />
-      <Content withWindowButtons={process.platform === 'darwin'}>
-        <ServerList>
+    <Box className='rcx-sidebar--main' backgroundColor='#f23'>
+      <Box
+        width='x44'
+        display='flex'
+        height='100%'
+        justifyContent='space-between'
+        flexDirection='column'
+      >
+        <Box>
           {sortedServers.map((server, order) => (
-            <ServerButton
-              key={server.url}
-              url={server.url}
-              title={
-                server.title === 'Rocket.Chat' &&
-                new URL(server.url).hostname !== 'open.rocket.chat'
-                  ? `${server.title} - ${server.url}`
-                  : server.title ?? server.url
-              }
-              shortcutNumber={
-                typeof order === 'number' && order <= 9
-                  ? String(order + 1)
-                  : null
-              }
-              isSelected={server.selected}
-              favicon={server.favicon ?? null}
-              hasUnreadMessages={!!server.badge}
-              userLoggedIn={server.userLoggedIn}
-              mentionCount={
-                typeof server.badge === 'number' ? server.badge : undefined
-              }
-              isShortcutVisible={isEachShortcutVisible}
-              isDragged={draggedServerUrl === server.url}
-              onDragStart={handleDragStart(server.url)}
-              onDragEnd={handleDragEnd}
-              onDragEnter={handleDragEnter(server.url)}
-              onDrop={handleDrop(server.url)}
-            />
+            <IconButton key={server.uniqueID} icon='adobe' />
           ))}
-        </ServerList>
-        {isAddNewServersEnabled && (
-          <AddServerButton>
-            <SidebarActionButton
-              tooltip={t('sidebar.addNewServer')}
-              onClick={handleAddServerButtonClicked}
-            >
-              +
-            </SidebarActionButton>
-          </AddServerButton>
-        )}
-        <BottomButtons>
-          <Button>
-            <SidebarActionButton
-              tooltip={t('sidebar.downloads')}
-              onClick={handelDownloadsButtonClicked}
-              isSelected={currentView === 'downloads'}
-            >
-              <Icon name='download' />
-            </SidebarActionButton>
-          </Button>
-          <Button>
-            <SidebarActionButton
-              tooltip={t('sidebar.settings')}
-              onClick={handelSettingsButtonClicked}
-              isSelected={currentView === 'settings'}
-            >
-              <Icon name='cog' />
-            </SidebarActionButton>
-          </Button>
-        </BottomButtons>
-      </Content>
-    </Wrapper>
+        </Box>
+
+        <Box>
+          <IconButton icon='airplane'></IconButton>
+        </Box>
+      </Box>
+    </Box>
+    // <Wrapper
+    //   className='rcx-sidebar--main'
+    //   sideBarStyle={style}
+    //   isVisible={isVisible}
+    // >
+    //   <CustomTheme customTheme={customTheme} />
+    //   <Content withWindowButtons={process.platform === 'darwin'}>
+    //     <ServerList>
+    //       {sortedServers.map((server, order) => (
+    //         <ServerButton
+    //           key={server.url}
+    //           url={server.url}
+    //           title={
+    //             server.title === 'Rocket.Chat' &&
+    //             new URL(server.url).hostname !== 'open.rocket.chat'
+    //               ? `${server.title} - ${server.url}`
+    //               : server.title ?? server.url
+    //           }
+    //           shortcutNumber={
+    //             typeof order === 'number' && order <= 9
+    //               ? String(order + 1)
+    //               : null
+    //           }
+    //           isSelected={server.selected}
+    //           favicon={server.favicon ?? null}
+    //           hasUnreadMessages={!!server.badge}
+    //           userLoggedIn={server.userLoggedIn}
+    //           mentionCount={
+    //             typeof server.badge === 'number' ? server.badge : undefined
+    //           }
+    //           isShortcutVisible={isEachShortcutVisible}
+    //           isDragged={draggedServerUrl === server.url}
+    //           onDragStart={handleDragStart(server.url)}
+    //           onDragEnd={handleDragEnd}
+    //           onDragEnter={handleDragEnter(server.url)}
+    //           onDrop={handleDrop(server.url)}
+    //         />
+    //       ))}
+    //     </ServerList>
+    //     {isAddNewServersEnabled && (
+    //       <AddServerButton>
+    //         <SidebarActionButton
+    //           tooltip={t('sidebar.addNewServer')}
+    //           onClick={handleAddServerButtonClicked}
+    //         >
+    //           +
+    //         </SidebarActionButton>
+    //       </AddServerButton>
+    //     )}
+    //     <BottomButtons>
+    //       <Button>
+    //         <SidebarActionButton
+    //           tooltip={t('sidebar.downloads')}
+    //           onClick={handelDownloadsButtonClicked}
+    //           isSelected={currentView === 'downloads'}
+    //         >
+    //           <Icon name='download' />
+    //         </SidebarActionButton>
+    //       </Button>
+    //       <Button>
+    //         <SidebarActionButton
+    //           tooltip={t('sidebar.settings')}
+    //           onClick={handelSettingsButtonClicked}
+    //           isSelected={currentView === 'settings'}
+    //         >
+    //           <Icon name='cog' />
+    //         </SidebarActionButton>
+    //       </Button>
+    //     </BottomButtons>
+    //   </Content>
+    // </Wrapper>
   );
 };

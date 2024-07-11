@@ -5198,9 +5198,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocket.chat/fuselage@npm:~0.54.2":
-  version: 0.54.2
-  resolution: "@rocket.chat/fuselage@npm:0.54.2"
+"@rocket.chat/fuselage@npm:~0.55.2":
+  version: 0.55.2
+  resolution: "@rocket.chat/fuselage@npm:0.55.2"
   dependencies:
     "@rocket.chat/css-in-js": "npm:^0.31.25"
     "@rocket.chat/css-supports": "npm:^0.31.25"
@@ -5218,7 +5218,7 @@ __metadata:
     react: ^17.0.2
     react-dom: ^17.0.2
     react-virtuoso: 1.2.4
-  checksum: 3a15254269d3caecffef1d4f6ea177f60680ac85f61d2be88d2b5db4aa8accdd1bb30c2daae8d1eb52775ad163cd7a03686db75ab857fb9275cc9474d0ddb8c2
+  checksum: 611275c5987cdbfb211c2bc2e2146e43de48c1b747e836cdea488f82e805929b998a1b5c6b50fa85b6ee932b88ff3743333441b1818d618c4dcb8cf89ac4ac3e
   languageName: node
   linkType: hard
 
@@ -15309,7 +15309,7 @@ __metadata:
     "@kayahr/jest-electron-runner": "npm:~29.11.0"
     "@rocket.chat/css-in-js": "npm:~0.31.25"
     "@rocket.chat/eslint-config": "npm:~0.7.0"
-    "@rocket.chat/fuselage": "npm:~0.54.2"
+    "@rocket.chat/fuselage": "npm:~0.55.2"
     "@rocket.chat/fuselage-hooks": "npm:~0.33.1"
     "@rocket.chat/fuselage-polyfills": "npm:~0.31.25"
     "@rocket.chat/icons": "npm:~0.36.0"

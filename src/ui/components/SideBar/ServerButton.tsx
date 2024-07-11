@@ -10,13 +10,7 @@ import {
   SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
 } from '../../actions';
-import {
-  Avatar,
-  Favicon,
-  Initials,
-  KeyboardShortcut,
-  ServerButtonWrapper,
-} from './styles';
+import { Avatar, Favicon, Initials, ServerButtonWrapper } from './styles';
 
 type ServerButtonProps = {
   url: string;
@@ -112,12 +106,6 @@ const ServerButton = ({
         {mentionCount && <Badge variant='danger'>{mentionCount}</Badge>}
         {!userLoggedIn && <Badge variant='danger'>!</Badge>}
       </Box>
-      {shortcutNumber && (
-        <KeyboardShortcut visible={isShortcutVisible}>
-          {process.platform === 'darwin' ? '⌘' : '^'}
-          {shortcutNumber}
-        </KeyboardShortcut>
-      )}
     </ServerButtonWrapper>
   );
 };

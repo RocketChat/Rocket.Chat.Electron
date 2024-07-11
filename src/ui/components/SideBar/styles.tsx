@@ -5,49 +5,15 @@ import { withTooltip } from './withTolltip';
 
 type WrapperProps = {
   sideBarStyle: {
-    background?: string;
-    color?: string;
-    border?: string;
+    // background?: string;
+    // color?: string;
+    // border?: string;
   };
   isVisible: boolean;
-  customTheme?: string;
+  // customTheme?: string;
 };
 
-export const Wrapper = styled.div<WrapperProps>`
-  flex: 0 0 68px;
-  align-self: stretch;
-
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-
-  user-select: none;
-  -webkit-app-region: drag;
-
-  transition:
-    margin-inline-start 230ms ease-in-out,
-    visibility 230ms ease-in-out;
-
-  ${({ sideBarStyle: { background } }) => css`
-    background: ${background ?? '#2f343d'};
-  `}
-  ${({ sideBarStyle: { color } }) => css`
-    color: ${color ?? '#ffffff'};
-  `}
-
-  ${({ sideBarStyle: { border } }) =>
-    border &&
-    css`
-      border-right: ${border ?? 'none'};
-    `}
-	${({ isVisible }) =>
-    !isVisible &&
-    css`
-      margin-inline-start: -68px;
-      visibility: hidden;
-    `}
-  ${({ customTheme }) => customTheme}
-`;
+export const Wrapper = styled.div<WrapperProps>``;
 
 type ContentProps = {
   withWindowButtons: boolean;
@@ -74,7 +40,7 @@ export const ServerList = styled.ol`
   flex: 0 0 auto;
   margin: 0;
   padding: 0;
-  align-items: stretch;
+  align-items: center;
 `;
 
 type ServerButtonWrapperProps = {
@@ -97,8 +63,8 @@ export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
   align-items: center;
   flex-flow: row wrap;
   justify-content: space-between;
-  margin-left: 14px;
-  margin-right: 12px;
+  margin-left: 8px;
+  margin-right: 8px;
 
   ${({ isDragged }) =>
     isDragged &&
@@ -107,21 +73,6 @@ export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
     `}
 
   ${withTooltip}
-`;
-
-type KeyboardShortcutProps = {
-  visible: boolean;
-};
-
-export const KeyboardShortcut = styled.div<KeyboardShortcutProps>`
-  flex: 1 0 100%;
-  padding-top: 8px;
-  text-align: center;
-  font-size: 12px;
-  line-height: 1;
-  ${({ visible }) => css`
-    visibility: ${visible ? 'visible' : 'hidden'};
-  `}
 `;
 
 type InitialsProps = {

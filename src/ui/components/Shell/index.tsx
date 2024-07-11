@@ -1,3 +1,4 @@
+import { Box } from '@rocket.chat/fuselage';
 import { useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -13,6 +14,7 @@ import { ServersView } from '../ServersView';
 import { SettingsView } from '../SettingsView';
 import { SideBar } from '../SideBar';
 import { SupportedVersionDialog } from '../SupportedVersionDialog';
+import { TopBar } from '../TopBar';
 import { UpdateDialog } from '../UpdateDialog';
 import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
 
@@ -38,15 +40,25 @@ export const Shell = () => {
     <>
       <GlobalStyles />
       {process.platform === 'darwin' && <WindowDragBar />}
-      <Wrapper>
-        <SideBar />
-        <ViewsWrapper>
+      <Box
+        backgroundColor='light'
+        display='flex'
+        flexWrap='wrap'
+        height='100vh'
+        flexDirection='column'
+      >
+        <TopBar />
+        <Box display='flex' flexDirection='row' flexGrow={1}>
+          <SideBar />
+          <Box>CONTENT</Box>
+        </Box>
+        {/* <ViewsWrapper>
           <ServersView />
           <AddServerView />
           <DownloadsManagerView />
           <SettingsView />
-        </ViewsWrapper>
-      </Wrapper>
+        </ViewsWrapper> */}
+      </Box>
       <AboutDialog />
       <SupportedVersionDialog />
       <ScreenSharingDialog />

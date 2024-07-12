@@ -114,7 +114,6 @@
     "quit": "{{- appName}} を終了 (&Q)",
     "redo": "やり直し (&R)",
     "reload": "再読み込み(&R)",
-    "reloadIgnoringCache": "キャッシュを無視して再読み込み",
     "reportIssue": "問題を報告する",
     "resetAppData": "アプリデータをリセット",
     "resetZoom": "ズームをリセット",

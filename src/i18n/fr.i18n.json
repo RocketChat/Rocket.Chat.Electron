@@ -256,7 +256,6 @@
     "quit": "&Quitter {{- appName}}",
     "redo": "&Rétablir",
     "reload": "Recharger",
-    "reloadIgnoringCache": "Recharger en ignorant le cache",
     "reportIssue": "Signaler un problème",
     "resetAppData": "Effacer les données de l'application",
     "resetZoom": "Réinitialiser le zoom",

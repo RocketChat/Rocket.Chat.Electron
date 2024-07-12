@@ -298,6 +298,7 @@
     "showServerList": "Server list",
     "showTrayIcon": "Tray icon",
     "toggleDevTools": "Toggle &DevTools",
+    "openConfigFolder": "Open &Configuration Folder",
     "undo": "&Undo",
     "unhide": "Show All",
     "viewMenu": "&View",

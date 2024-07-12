@@ -1,3 +1,5 @@
+import path from 'path';
+
 import type { MenuItemConstructorOptions } from 'electron';
 import { Menu, app, shell, BrowserWindow } from 'electron';
 import i18next from 'i18next';
@@ -587,6 +589,15 @@ const createHelpMenu = createSelector(
           }
           browserWindow.focus();
           browserWindow.webContents.toggleDevTools();
+        },
+      },
+      {
+        id: 'openConfigFolder',
+        label: t('menus.openConfigFolder'),
+        click: async () => {
+          shell.showItemInFolder(
+            path.join(app.getPath('userData'), 'config.json')
+          );
         },
       },
       { type: 'separator' },

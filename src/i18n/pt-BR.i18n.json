@@ -38,7 +38,7 @@
     },
     "certificateError": {
       "title": "Erro de Certificado",
-      "message": "Você confia no certificado de \"{{- issuerName}}\"?",
+      "message": "Você confia no certificado de \"{{- issuerName}}\"? Clique em 'Sim' apenas se você realmente confiar neste certificado. Se estiver em dúvida, entre em contato com sua equipe de TI ou segurança antes de clicar em 'Sim'.",
       "yes": "Sim",
       "no": "Não"
     },

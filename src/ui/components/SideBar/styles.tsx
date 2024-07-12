@@ -52,19 +52,7 @@ type ServerButtonWrapperProps = {
 
 export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
   position: relative;
-  flex: 0 0 auto;
-  box-sizing: border-box;
-  margin: 4px 0;
-  font-size: 24px;
-  line-height: 1.25;
   display: flex;
-  cursor: pointer;
-  color: inherit;
-  align-items: center;
-  flex-flow: row wrap;
-  justify-content: space-between;
-  margin-left: 8px;
-  margin-right: 8px;
 
   ${({ isDragged }) =>
     isDragged &&
@@ -176,14 +164,8 @@ export const SidebarActionButton = styled.span<SidebarActionButtonProps>`
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 40px;
-  height: 40px;
-  line-height: 30px;
   transition: opacity var(--transitions-duration);
   opacity: 0.6;
-  color: inherit;
-  background: rgba(0, 0, 0, 0);
-  cursor: pointer;
 
   ${({ isSelected }) =>
     isSelected &&

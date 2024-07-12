@@ -1,4 +1,4 @@
-import { Box } from '@rocket.chat/fuselage';
+import { Box, PaletteStyleTag } from '@rocket.chat/fuselage';
 import { useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -38,10 +38,15 @@ export const Shell = () => {
 
   return (
     <>
+      <PaletteStyleTag
+        theme='dark'
+        selector='.rcx-sidebar--main'
+        tagId='sidebar-palette'
+      />
       <GlobalStyles />
       {process.platform === 'darwin' && <WindowDragBar />}
       <Box
-        backgroundColor='light'
+        bg='light'
         display='flex'
         flexWrap='wrap'
         height='100vh'
@@ -50,14 +55,19 @@ export const Shell = () => {
         <TopBar />
         <Box display='flex' flexDirection='row' flexGrow={1}>
           <SideBar />
-          <Box>CONTENT</Box>
+          <Box
+            backgroundColor='darkblue'
+            width='100%'
+            position='relative'
+            alignSelf='stretch'
+            flexBasis='1 1 auto'
+          >
+            <ServersView />
+            <AddServerView />
+            <DownloadsManagerView />
+            <SettingsView />
+          </Box>
         </Box>
-        {/* <ViewsWrapper>
-          <ServersView />
-          <AddServerView />
-          <DownloadsManagerView />
-          <SettingsView />
-        </ViewsWrapper> */}
       </Box>
       <AboutDialog />
       <SupportedVersionDialog />

@@ -13,16 +13,6 @@ import {
 } from '../../actions';
 import { useServers } from '../hooks/useServers';
 import ServerButton from './ServerButton';
-import CustomTheme from './customTheme';
-import {
-  Wrapper,
-  Content,
-  ServerList,
-  AddServerButton,
-  SidebarActionButton,
-  Button,
-  BottomButtons,
-} from './styles';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
 
@@ -70,95 +60,60 @@ export const SideBar = () => {
   const currentView = useSelector(({ currentView }: RootState) => currentView);
 
   return (
-    <Box className='rcx-sidebar--main' backgroundColor='#f23'>
+    <Box className='rcx-sidebar--main' bg='tint'>
       <Box
         width='x44'
         display='flex'
         height='100%'
         justifyContent='space-between'
         flexDirection='column'
+        alignItems='center'
       >
-        <Box>
+        <Box cursor='pointer'>
           {sortedServers.map((server, order) => (
-            <IconButton key={server.uniqueID} icon='adobe' />
+            <ServerButton
+              key={server.url}
+              url={server.url}
+              title={
+                server.title === 'Rocket.Chat' &&
+                new URL(server.url).hostname !== 'open.rocket.chat'
+                  ? `${server.title} - ${server.url}`
+                  : server.title ?? server.url
+              }
+              shortcutNumber={
+                typeof order === 'number' && order <= 9
+                  ? String(order + 1)
+                  : null
+              }
+              isSelected={server.selected}
+              favicon={server.favicon ?? null}
+              hasUnreadMessages={!!server.badge}
+              userLoggedIn={server.userLoggedIn}
+              mentionCount={
+                typeof server.badge === 'number' ? server.badge : undefined
+              }
+              isShortcutVisible={isEachShortcutVisible}
+              isDragged={draggedServerUrl === server.url}
+              onDragStart={handleDragStart(server.url)}
+              onDragEnd={handleDragEnd}
+              onDragEnter={handleDragEnter(server.url)}
+              onDrop={handleDrop(server.url)}
+            />
           ))}
+          {isAddNewServersEnabled && (
+            <IconButton
+              icon='plus'
+              onClick={handleAddServerButtonClicked}
+            ></IconButton>
+          )}
         </Box>
 
         <Box>
-          <IconButton icon='airplane'></IconButton>
+          <IconButton icon='download' />
+
+          <IconButton icon='cog' />
         </Box>
       </Box>
     </Box>
-    // <Wrapper
-    //   className='rcx-sidebar--main'
-    //   sideBarStyle={style}
-    //   isVisible={isVisible}
-    // >
-    //   <CustomTheme customTheme={customTheme} />
-    //   <Content withWindowButtons={process.platform === 'darwin'}>
-    //     <ServerList>
-    //       {sortedServers.map((server, order) => (
-    //         <ServerButton
-    //           key={server.url}
-    //           url={server.url}
-    //           title={
-    //             server.title === 'Rocket.Chat' &&
-    //             new URL(server.url).hostname !== 'open.rocket.chat'
-    //               ? `${server.title} - ${server.url}`
-    //               : server.title ?? server.url
-    //           }
-    //           shortcutNumber={
-    //             typeof order === 'number' && order <= 9
-    //               ? String(order + 1)
-    //               : null
-    //           }
-    //           isSelected={server.selected}
-    //           favicon={server.favicon ?? null}
-    //           hasUnreadMessages={!!server.badge}
-    //           userLoggedIn={server.userLoggedIn}
-    //           mentionCount={
-    //             typeof server.badge === 'number' ? server.badge : undefined
-    //           }
-    //           isShortcutVisible={isEachShortcutVisible}
-    //           isDragged={draggedServerUrl === server.url}
-    //           onDragStart={handleDragStart(server.url)}
-    //           onDragEnd={handleDragEnd}
-    //           onDragEnter={handleDragEnter(server.url)}
-    //           onDrop={handleDrop(server.url)}
-    //         />
-    //       ))}
-    //     </ServerList>
-    //     {isAddNewServersEnabled && (
-    //       <AddServerButton>
-    //         <SidebarActionButton
-    //           tooltip={t('sidebar.addNewServer')}
-    //           onClick={handleAddServerButtonClicked}
-    //         >
-    //           +
-    //         </SidebarActionButton>
-    //       </AddServerButton>
-    //     )}
-    //     <BottomButtons>
-    //       <Button>
-    //         <SidebarActionButton
-    //           tooltip={t('sidebar.downloads')}
-    //           onClick={handelDownloadsButtonClicked}
-    //           isSelected={currentView === 'downloads'}
-    //         >
-    //           <Icon name='download' />
-    //         </SidebarActionButton>
-    //       </Button>
-    //       <Button>
-    //         <SidebarActionButton
-    //           tooltip={t('sidebar.settings')}
-    //           onClick={handelSettingsButtonClicked}
-    //           isSelected={currentView === 'settings'}
-    //         >
-    //           <Icon name='cog' />
-    //         </SidebarActionButton>
-    //       </Button>
-    //     </BottomButtons>
-    //   </Content>
-    // </Wrapper>
   );
 };

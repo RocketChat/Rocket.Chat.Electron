@@ -51,9 +51,7 @@ type ServerButtonWrapperProps = {
 };
 
 export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
-  position: relative;
-  display: flex;
-
+  list-style-type: none;
   ${({ isDragged }) =>
     isDragged &&
     css`
@@ -92,25 +90,7 @@ type AvatarProps = {
   isSelected: boolean;
 };
 
-export const Avatar = styled.span<AvatarProps>`
-  flex: 1 1 auto;
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-  justify-content: center;
-  height: 42px;
-  transition: opacity var(--transitions-duration);
-
-  ${({ isSelected }) => css`
-    opacity: ${isSelected ? '1' : '0.6'};
-  `}
-
-  &:hover {
-    ${({ isSelected }) => css`
-      opacity: ${isSelected ? '1' : '0.8'};
-    `}
-  }
-`;
+export const Avatar = styled.span<AvatarProps>``;
 
 export const AddServerButton = styled.button`
   -webkit-app-region: no-drag;
@@ -178,26 +158,4 @@ export const SidebarActionButton = styled.span<SidebarActionButtonProps>`
   }
 
   ${withTooltip}
-`;
-
-export const BottomButtons = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  padding-bottom: 16px;
-`;
-
-export const Button = styled.button`
-  position: relative;
-  height: 40px;
-  border: none;
-  padding: 0;
-  margin-top: 14px;
-  font-size: 2.5rem;
-  line-height: 1.25;
-  background: rgba(0, 0, 0, 0);
-  color: inherit;
-  font-family: inherit;
 `;

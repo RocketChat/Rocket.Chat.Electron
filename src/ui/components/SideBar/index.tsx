@@ -1,4 +1,4 @@
-import { Box, Icon, IconButton } from '@rocket.chat/fuselage';
+import { Box, ButtonGroup, Icon, IconButton } from '@rocket.chat/fuselage';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -68,8 +68,9 @@ export const SideBar = () => {
         justifyContent='space-between'
         flexDirection='column'
         alignItems='center'
+        marginBlockStart='x8'
       >
-        <Box cursor='pointer'>
+        <ButtonGroup vertical large>
           {sortedServers.map((server, order) => (
             <ServerButton
               key={server.url}
@@ -102,11 +103,12 @@ export const SideBar = () => {
           ))}
           {isAddNewServersEnabled && (
             <IconButton
+              small
               icon='plus'
               onClick={handleAddServerButtonClicked}
             ></IconButton>
           )}
-        </Box>
+        </ButtonGroup>
 
         <Box>
           <IconButton icon='download' />

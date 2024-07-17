@@ -13,6 +13,7 @@ import {
 import { Avatar, Favicon, Initials, ServerButtonWrapper } from './styles';
 
 type ServerButtonProps = {
+  className?: string;
   url: string;
   title: string;
   shortcutNumber: string | null;
@@ -44,6 +45,7 @@ const ServerButton = ({
   onDragEnd,
   onDragEnter,
   onDrop,
+  className,
 }: ServerButtonProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
@@ -81,8 +83,12 @@ const ServerButton = ({
       onDragEnd={onDragEnd}
       onDragEnter={onDragEnter}
       onDrop={onDrop}
+      className={className}
     >
       <IconButton
+        small
+        position='relative'
+        overflow='visible'
         className={[isSelected && 'is-focused'].filter(Boolean).join(' ')}
         icon={
           <Avatar isSelected={isSelected}>
@@ -94,18 +100,19 @@ const ServerButton = ({
             />
           </Avatar>
         }
-      />
-      <Box
-        className={css`
-          top: 0;
-          right: 0;
-          transform: translate(30%, -30%);
-        `}
-        position='absolute'
       >
-        {mentionCount && <Badge variant='danger'>{mentionCount}</Badge>}
-        {!userLoggedIn && <Badge variant='danger'>!</Badge>}
-      </Box>
+        <Box
+          className={css`
+            top: 0;
+            right: 0;
+            transform: translate(30%, -30%);
+          `}
+          position='absolute'
+        >
+          {mentionCount && <Badge variant='secondary'>{mentionCount}</Badge>}
+          {!userLoggedIn && <Badge variant='warning'>!</Badge>}
+        </Box>
+      </IconButton>
     </ServerButtonWrapper>
   );
 };

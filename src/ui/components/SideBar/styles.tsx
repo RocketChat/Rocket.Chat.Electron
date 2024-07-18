@@ -51,6 +51,9 @@ type ServerButtonWrapperProps = {
 };
 
 export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
+  position: relative;
+  display: flex;
+
   list-style-type: none;
   ${({ isDragged }) =>
     isDragged &&

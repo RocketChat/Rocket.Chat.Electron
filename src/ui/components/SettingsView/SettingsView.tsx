@@ -19,8 +19,10 @@ export const SettingsView = () => {
   return (
     <Box
       display={isVisible ? 'flex' : 'none'}
+      position='absolute'
       flexDirection='column'
       height='full'
+      width='full'
       backgroundColor='light'
     >
       <Box

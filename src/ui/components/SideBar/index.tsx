@@ -49,10 +49,10 @@ export const SideBar = () => {
   const handleAddServerButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
   };
-  const handelDownloadsButtonClicked = (): void => {
+  const handleDownloadsButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
   };
-  const handelSettingsButtonClicked = (): void => {
+  const handleSettingsButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
   };
   const { t } = useTranslation();
@@ -68,7 +68,8 @@ export const SideBar = () => {
         justifyContent='space-between'
         flexDirection='column'
         alignItems='center'
-        marginBlockStart='x8'
+        paddingBlockStart='x8'
+        paddingBlockEnd='x8'
       >
         <ButtonGroup vertical large>
           {sortedServers.map((server, order) => (
@@ -111,9 +112,9 @@ export const SideBar = () => {
         </ButtonGroup>
 
         <Box>
-          <IconButton icon='download' />
+          <IconButton icon='download' onClick={handleDownloadsButtonClicked} />
 
-          <IconButton icon='cog' />
+          <IconButton icon='cog' onClick={handleSettingsButtonClicked} />
         </Box>
       </Box>
     </Box>

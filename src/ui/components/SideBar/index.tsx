@@ -111,11 +111,25 @@ export const SideBar = () => {
           )}
         </ButtonGroup>
 
-        <Box>
-          <IconButton icon='download' onClick={handleDownloadsButtonClicked} />
+        <ButtonGroup vertical large>
+          <IconButton
+            small
+            icon='download'
+            onClick={handleDownloadsButtonClicked}
+            className={[currentView === 'downloads' && 'is-focused']
+              .filter(Boolean)
+              .join(' ')}
+          />
 
-          <IconButton icon='cog' onClick={handleSettingsButtonClicked} />
-        </Box>
+          <IconButton
+            small
+            icon='cog'
+            onClick={handleSettingsButtonClicked}
+            className={[currentView === 'settings' && 'is-focused']
+              .filter(Boolean)
+              .join(' ')}
+          />
+        </ButtonGroup>
       </Box>
     </Box>
   );

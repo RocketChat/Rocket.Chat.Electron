@@ -180,8 +180,10 @@ const DownloadsManagerView = () => {
   return (
     <Box
       display={isVisible ? 'flex' : 'none'}
+      position='absolute'
       flexDirection='column'
-      height='100vh'
+      height='full'
+      width='full'
       backgroundColor='light'
     >
       <Box

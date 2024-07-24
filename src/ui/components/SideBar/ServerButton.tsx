@@ -102,12 +102,13 @@ const ServerButton = ({
         }
       >
         <Box
+          position='absolute'
+          role='status'
           className={css`
             top: 0;
             right: 0;
             transform: translate(30%, -30%);
           `}
-          position='absolute'
         >
           {mentionCount && <Badge variant='secondary'>{mentionCount}</Badge>}
           {!userLoggedIn && <Badge variant='warning'>!</Badge>}

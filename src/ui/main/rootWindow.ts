@@ -5,8 +5,9 @@ import { app, BrowserWindow, nativeImage, screen } from 'electron';
 import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
+import { APP_MAIN_WINDOW_TITLE_SET } from '../../app/actions';
 import { setupRootWindowReload } from '../../app/main/dev';
-import { select, watch, listen, dispatchLocal } from '../../store';
+import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
 import type { WindowState } from '../common';
@@ -213,6 +214,10 @@ export const setupRootWindow = (): void => {
       async (windowTitle) => {
         const browserWindow = await getRootWindow();
         browserWindow.setTitle(windowTitle);
+        dispatch({
+          type: APP_MAIN_WINDOW_TITLE_SET,
+          payload: windowTitle,
+        });
       }
     ),
     listen(WEBVIEW_FOCUS_REQUESTED, async () => {

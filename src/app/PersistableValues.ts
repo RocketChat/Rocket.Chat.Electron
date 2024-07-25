@@ -66,6 +66,10 @@ type PersistableValues_3_9_6 = PersistableValues_3_8_12 & {
   isNTLMCredentialsEnabled: boolean;
 };
 
+type PersistableValues_4_1_0 = PersistableValues_3_9_6 & {
+  mainWindowTitle: string;
+};
+
 export type PersistableValues = Pick<
   PersistableValues_3_9_6,
   keyof PersistableValues_3_9_6
@@ -120,5 +124,9 @@ export const migrations = {
     isNTLMCredentialsEnabled: false,
     allowedNTLMCredentialsDomains: null,
     lastSelectedServerUrl: '',
+  }),
+  '>=4.1.0': (before: PersistableValues_3_9_6): PersistableValues_4_1_0 => ({
+    ...before,
+    mainWindowTitle: 'Rocket.Chat',
   }),
 };

@@ -1,6 +1,12 @@
 import { Box } from '@rocket.chat/fuselage';
+import { useSelector } from 'react-redux';
+
+import type { RootState } from '../../../store/rootReducer';
 
 export const TopBar = () => {
+  const mainWindowTitle = useSelector(
+    ({ mainWindowTitle }: RootState) => mainWindowTitle
+  );
   return (
     <Box
       className='rcx-sidebar--main'
@@ -13,7 +19,7 @@ export const TopBar = () => {
       bg='tint'
       width='100%'
     >
-      <Box fontScale='p2'>400 Mensagens nao lidas</Box>
+      <Box fontScale='p2'>{mainWindowTitle}</Box>
     </Box>
   );
 };

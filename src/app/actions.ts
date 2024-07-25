@@ -6,6 +6,7 @@ export const APP_VERSION_SET = 'app/version-set';
 export const APP_SETTINGS_LOADED = 'app/settings-loaded';
 export const APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET =
   'app/allowed-ntlm-credentials-domains-set';
+export const APP_MAIN_WINDOW_TITLE_SET = 'app/main-window-title-set';
 
 export type AppActionTypeToPayloadMap = {
   [APP_ERROR_THROWN]: Error;
@@ -13,4 +14,5 @@ export type AppActionTypeToPayloadMap = {
   [APP_VERSION_SET]: string;
   [APP_SETTINGS_LOADED]: Partial<PersistableValues>;
   [APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET]: string;
+  [APP_MAIN_WINDOW_TITLE_SET]: string;
 };

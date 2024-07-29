@@ -16,7 +16,7 @@ import { SideBar } from '../SideBar';
 import { SupportedVersionDialog } from '../SupportedVersionDialog';
 import { TopBar } from '../TopBar';
 import { UpdateDialog } from '../UpdateDialog';
-import { GlobalStyles, Wrapper, WindowDragBar, ViewsWrapper } from './styles';
+import { GlobalStyles, WindowDragBar } from './styles';
 
 export const Shell = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);
@@ -52,7 +52,7 @@ export const Shell = () => {
         height='100vh'
         flexDirection='column'
       >
-        <TopBar />
+        {process.platform === 'darwin' && <TopBar />}
         <Box display='flex' flexDirection='row' flexGrow={1}>
           <SideBar />
           <Box

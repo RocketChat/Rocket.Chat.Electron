@@ -11,8 +11,6 @@ export const machineTheme: Reducer<string | null, MachineThemeAction> = (
 ) => {
   switch (action.type) {
     case APP_MACHINE_THEME_SET: {
-      console.log(`[Rocket.Chat Desktop] machineTheme fired${action.payload}`);
-
       return action.payload;
     }
 

@@ -1,11 +1,14 @@
 import path from 'path';
 
 import type { Rectangle, NativeImage, WebPreferences } from 'electron';
-import { app, BrowserWindow, nativeImage, screen } from 'electron';
+import { app, BrowserWindow, nativeImage, nativeTheme, screen } from 'electron';
 import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
-import { APP_MAIN_WINDOW_TITLE_SET } from '../../app/actions';
+import {
+  APP_MACHINE_THEME_SET,
+  APP_MAIN_WINDOW_TITLE_SET,
+} from '../../app/actions';
 import { setupRootWindowReload } from '../../app/main/dev';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
@@ -414,6 +417,21 @@ export const showRootWindow = async (): Promise<void> => {
       setupRootWindow();
       resolve();
     });
+  });
+};
+
+export const watchMachineTheme = (): void => {
+  dispatchMachineTheme();
+  nativeTheme.on('updated', () => {
+    dispatchMachineTheme();
+  });
+};
+
+const dispatchMachineTheme = (): void => {
+  const isDarkMode = nativeTheme.shouldUseDarkColors;
+  dispatch({
+    type: APP_MACHINE_THEME_SET,
+    payload: isDarkMode ? 'dark' : 'light',
   });
 };
 

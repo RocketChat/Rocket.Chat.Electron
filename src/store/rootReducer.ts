@@ -3,6 +3,7 @@ import { combineReducers } from 'redux';
 import { allowedNTLMCredentialsDomains } from '../app/reducers/allowedNTLMCredentialsDomains';
 import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
+import { machineTheme } from '../app/reducers/machineTheme';
 import { mainWindowTitle } from '../app/reducers/mainWindowTitle';
 import { downloads } from '../downloads/reducers/downloads';
 import { allowedJitsiServers } from '../jitsi/reducers';
@@ -62,6 +63,7 @@ export const rootReducer = combineReducers({
   isUpdatingAllowed,
   isUpdatingEnabled,
   mainWindowTitle,
+  machineTheme,
   newUpdateVersion,
   openDialog,
   rootWindowIcon,

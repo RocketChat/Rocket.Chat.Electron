@@ -29,6 +29,7 @@ import {
   createRootWindow,
   showRootWindow,
   exportLocalStorage,
+  watchMachineTheme,
 } from './ui/main/rootWindow';
 import { attachGuestWebContentsEvents } from './ui/main/serverView';
 import touchBar from './ui/main/touchBar';
@@ -71,7 +72,7 @@ const start = async (): Promise<void> => {
   // if (process.env.NODE_ENV === 'development') {
   //   installDevTools();
   // }
-
+  watchMachineTheme();
   setupNotifications();
   setupScreenSharing();
   startVideoCallWindowHandler();

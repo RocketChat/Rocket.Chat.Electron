@@ -1,4 +1,5 @@
 import { Box, PaletteStyleTag } from '@rocket.chat/fuselage';
+import type { Themes } from '@rocket.chat/fuselage/dist/components/PaletteStyleTag/types/themes';
 import { useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -20,6 +21,9 @@ import { GlobalStyles, WindowDragBar } from './styles';
 
 export const Shell = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);
+  const machineTheme = useSelector(
+    ({ machineTheme }: RootState) => machineTheme
+  );
 
   useLayoutEffect(() => {
     if (!appPath) {
@@ -39,7 +43,7 @@ export const Shell = () => {
   return (
     <>
       <PaletteStyleTag
-        theme='dark'
+        theme={machineTheme as Themes}
         selector='.rcx-sidebar--main'
         tagId='sidebar-palette'
       />

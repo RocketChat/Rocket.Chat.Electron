@@ -84,7 +84,6 @@ export const Shell = () => {
         <Box display='flex' flexDirection='row' flexGrow={1}>
           <SideBar />
           <Box
-            backgroundColor='darkblue'
             width='100%'
             position='relative'
             alignSelf='stretch'

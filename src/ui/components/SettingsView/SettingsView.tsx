@@ -23,7 +23,8 @@ export const SettingsView = () => {
       flexDirection='column'
       height='full'
       width='full'
-      backgroundColor='light'
+      className='rcx-sidebar--main'
+      bg='light'
     >
       <Box
         width='full'
@@ -31,8 +32,8 @@ export const SettingsView = () => {
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
-        color='default'
         fontScale='h1'
+        color='font-default'
       >
         {t('settings.title')}
       </Box>

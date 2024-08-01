@@ -44,6 +44,7 @@ import {
   WEBVIEW_ATTACHED,
   WEBVIEW_SERVER_RELOADED,
   CLEAR_CACHE_TRIGGERED,
+  WEBVIEW_PAGE_TITLE_CHANGED,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -70,6 +71,13 @@ const initializeServerWebContentsAfterReady = (
     menu.popup({ window: rootWindow });
   };
   guestWebContents.addListener('context-menu', handleContextMenu);
+
+  guestWebContents.on('page-title-updated', (_event, pageTitle) => {
+    dispatch({
+      type: WEBVIEW_PAGE_TITLE_CHANGED,
+      payload: { url: _serverUrl, pageTitle },
+    });
+  });
 };
 
 const initializeServerWebContentsAfterAttach = (

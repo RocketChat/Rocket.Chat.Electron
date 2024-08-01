@@ -5,6 +5,7 @@ import { DEEP_LINKS_SERVER_ADDED } from '../deepLinks/actions';
 import { OUTLOOK_CALENDAR_SAVE_CREDENTIALS } from '../outlookCalendar/actions';
 import type { ActionOf } from '../store/actions';
 import {
+  WEBVIEW_PAGE_TITLE_CHANGED,
   ADD_SERVER_VIEW_SERVER_ADDED,
   SIDE_BAR_REMOVE_SERVER_CLICKED,
   SIDE_BAR_SERVERS_SORTED,
@@ -66,6 +67,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
   | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
   | ActionOf<typeof SERVER_DOCUMENT_VIEWER_OPEN_URL>
+  | ActionOf<typeof WEBVIEW_PAGE_TITLE_CHANGED>
   | ActionOf<typeof WEBVIEW_USER_THEME_APPEARANCE_CHANGED>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
@@ -118,6 +120,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
     case WEBVIEW_TITLE_CHANGED: {
       const { url, title = url } = action.payload;
       return upsert(state, { url, title });
+    }
+
+    case WEBVIEW_PAGE_TITLE_CHANGED: {
+      const { url, pageTitle } = action.payload;
+      return upsert(state, { url, pageTitle });
     }
 
     case WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED: {

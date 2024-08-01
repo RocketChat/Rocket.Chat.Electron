@@ -71,6 +71,7 @@ export const WEBVIEW_GIT_COMMIT_HASH_CHANGED =
   'webview/git-commit-hash-changed';
 export const WEBVIEW_GIT_COMMIT_HASH_CHECK = 'webview/git-commit-hash-check';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
+export const WEBVIEW_PAGE_TITLE_CHANGED = 'webview/page-title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 export const WEBVIEW_USER_LOGGED_IN = 'webview/user-loggedin';
 export const WEBVIEW_USER_THEME_APPEARANCE_CHANGED =
@@ -168,6 +169,10 @@ export type UiActionTypeToPayloadMap = {
     customTheme: Server['customTheme'];
   };
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
+  [WEBVIEW_PAGE_TITLE_CHANGED]: {
+    url: Server['url'];
+    pageTitle: Server['pageTitle'];
+  };
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
   [WEBVIEW_USER_LOGGED_IN]: {
     url: Server['url'];

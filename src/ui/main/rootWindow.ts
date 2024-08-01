@@ -212,7 +212,7 @@ export const setupRootWindow = (): void => {
           typeof currentView === 'object'
             ? servers.find(({ url }) => url === currentView.url)
             : null;
-        return currentServer?.title || app.name;
+        return currentServer?.pageTitle || currentServer?.title || app.name;
       },
       async (windowTitle) => {
         const browserWindow = await getRootWindow();

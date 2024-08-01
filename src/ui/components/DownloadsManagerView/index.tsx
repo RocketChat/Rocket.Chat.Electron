@@ -179,6 +179,7 @@ const DownloadsManagerView = () => {
 
   return (
     <Box
+      className='rcx-sidebar--main'
       display={isVisible ? 'flex' : 'none'}
       position='absolute'
       flexDirection='column'

@@ -1,4 +1,13 @@
-import { Box, ButtonGroup, Icon, IconButton } from '@rocket.chat/fuselage';
+import {
+  Box,
+  ButtonGroup,
+  IconButton,
+  MenuItem,
+  MenuSection,
+  MenuV2,
+  OptionContent,
+  OptionIcon,
+} from '@rocket.chat/fuselage';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,6 +16,7 @@ import type { Dispatch } from 'redux';
 import type { RootAction } from '../../../store/actions';
 import type { RootState } from '../../../store/rootReducer';
 import {
+  SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
@@ -55,6 +65,28 @@ export const SideBar = () => {
   const handleSettingsButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
   };
+
+  const handleHideWorkspaceBar = (): void => {
+    dispatch({
+      type: SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED,
+      payload: false,
+    });
+  };
+
+  const handleMenuClick = (key: React.Key) => {
+    switch (key) {
+      case 'hide_workspace_bar':
+        handleHideWorkspaceBar();
+        break;
+      case 'downloads':
+        handleDownloadsButtonClicked();
+        break;
+      case 'desktop_settings':
+        handleSettingsButtonClicked();
+        break;
+    }
+  };
+
   const { t } = useTranslation();
 
   const currentView = useSelector(({ currentView }: RootState) => currentView);
@@ -111,25 +143,22 @@ export const SideBar = () => {
           )}
         </ButtonGroup>
 
-        <ButtonGroup vertical large>
-          <IconButton
-            small
-            icon='download'
-            onClick={handleDownloadsButtonClicked}
-            className={[currentView === 'downloads' && 'is-focused']
-              .filter(Boolean)
-              .join(' ')}
-          />
-
-          <IconButton
-            small
-            icon='cog'
-            onClick={handleSettingsButtonClicked}
-            className={[currentView === 'settings' && 'is-focused']
-              .filter(Boolean)
-              .join(' ')}
-          />
-        </ButtonGroup>
+        <MenuV2 placement='right' onAction={handleMenuClick}>
+          <MenuSection title='Desktop app'>
+            <MenuItem key='hide_workspace_bar'>
+              <OptionIcon name='burger-arrow-left' />
+              <OptionContent>Hide workspace bar</OptionContent>
+            </MenuItem>
+            <MenuItem key='downloads'>
+              <OptionIcon name='circle-arrow-down' />
+              <OptionContent>Downloads</OptionContent>
+            </MenuItem>
+            <MenuItem key='desktop_settings'>
+              <OptionIcon name='customize' />
+              <OptionContent>Desktop settings</OptionContent>
+            </MenuItem>
+          </MenuSection>
+        </MenuV2>
       </Box>
     </Box>
   );

@@ -10,13 +10,12 @@ import {
 } from '@rocket.chat/fuselage';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import type { Dispatch } from 'redux';
+import { useSelector } from 'react-redux';
 
-import type { RootAction } from '../../../store/actions';
+import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import {
-  SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED,
+  SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
@@ -55,7 +54,6 @@ export const SideBar = () => {
     handleDragEnter,
     handleDrop,
   } = useSorting(servers);
-  const dispatch = useDispatch<Dispatch<RootAction>>();
   const handleAddServerButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
   };
@@ -68,7 +66,7 @@ export const SideBar = () => {
 
   const handleHideWorkspaceBar = (): void => {
     dispatch({
-      type: SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED,
+      type: SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED,
       payload: false,
     });
   };
@@ -95,7 +93,7 @@ export const SideBar = () => {
     <Box className='rcx-sidebar--main' bg='tint'>
       <Box
         width='x44'
-        display='flex'
+        display={isVisible ? 'flex' : 'none'}
         height='100%'
         justifyContent='space-between'
         flexDirection='column'

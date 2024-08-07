@@ -36,6 +36,19 @@ export const electronBuilderJsonInformation = {
   protocol: electronBuilderJson.protocols.schemes[0],
 };
 
+export const getPlatformName = (): string => {
+  switch (process.platform) {
+    case 'win32':
+      return 'Windows';
+    case 'linux':
+      return 'Linux';
+    case 'darwin':
+      return 'macOS';
+    default:
+      return 'Unknown';
+  }
+};
+
 export const relaunchApp = (...args: string[]): void => {
   const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
   app.relaunch({ args: [...command, ...args] });

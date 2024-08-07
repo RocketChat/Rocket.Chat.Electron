@@ -310,6 +310,7 @@
     "addNewServer": "Adicionar novo servidor",
     "downloads": "Downloads",
     "settings": "Configurações",
+    "menuTitle": "{{platform}} app",
     "item": {
       "reload": "Recarregar servidor",
       "remove": "Remover servidor",

@@ -12,6 +12,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
+import { getPlatformName } from '../../../app/main/app';
 import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import {
@@ -142,18 +143,20 @@ export const SideBar = () => {
         </ButtonGroup>
 
         <MenuV2 placement='right' onAction={handleMenuClick}>
-          <MenuSection title='Desktop app'>
-            <MenuItem key='hide_workspace_bar'>
+          <MenuSection
+            title={t('sidebar.menuTitle', { platform: getPlatformName() })}
+          >
+            {/* <MenuItem key='hide_workspace_bar'>
               <OptionIcon name='burger-arrow-left' />
               <OptionContent>Hide workspace bar</OptionContent>
-            </MenuItem>
+            </MenuItem> */}
             <MenuItem key='downloads'>
               <OptionIcon name='circle-arrow-down' />
-              <OptionContent>Downloads</OptionContent>
+              <OptionContent>{t('sidebar.downloads')}</OptionContent>
             </MenuItem>
             <MenuItem key='desktop_settings'>
               <OptionIcon name='customize' />
-              <OptionContent>Desktop settings</OptionContent>
+              <OptionContent>{t('sidebar.settings')}</OptionContent>
             </MenuItem>
           </MenuSection>
         </MenuV2>

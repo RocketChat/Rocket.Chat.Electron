@@ -323,7 +323,8 @@
   "sidebar": {
     "addNewServer": "Add new server",
     "downloads": "Downloads",
-    "settings": "Settings",
+    "settings": "Desktop settings",
+    "menuTitle": "{{platform}} app",
     "item": {
       "reload": "Reload server",
       "remove": "Remove server",

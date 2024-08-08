@@ -1,7 +1,19 @@
 import { css } from '@rocket.chat/css-in-js';
-import { IconButton, Badge, Box } from '@rocket.chat/fuselage';
+import {
+  IconButton,
+  Badge,
+  Box,
+  Dropdown,
+  Option,
+  MenuItem,
+  OptionIcon,
+  OptionContent,
+  OptionDivider,
+  OptionHeader,
+} from '@rocket.chat/fuselage';
 import type { DragEvent, MouseEvent } from 'react';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import type { Dispatch } from 'redux';
 
@@ -11,6 +23,7 @@ import {
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
 } from '../../actions';
 import { Avatar, Favicon, Initials, ServerButtonWrapper } from './styles';
+import { useDropdownVisibility } from './useDropdownVisibility';
 
 type ServerButtonProps = {
   className?: string;
@@ -53,6 +66,13 @@ const ServerButton = ({
     dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
   };
 
+  const reference = useRef(null);
+  const target = useRef(null);
+
+  const { t } = useTranslation();
+
+  const { isVisible, toggle } = useDropdownVisibility({ reference, target });
+
   const initials = useMemo(
     () =>
       title
@@ -64,13 +84,18 @@ const ServerButton = ({
     [title, url]
   );
 
+  const handleServerReloadClick = (): void => {
+    console.log('handleServerReloadClick');
+  };
+
   const handleServerContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
-    dispatch({ type: SIDE_BAR_CONTEXT_MENU_TRIGGERED, payload: url });
+    toggle();
   };
 
   return (
     <ServerButtonWrapper
+      ref={reference}
       draggable='true'
       tooltip={title}
       isSelected={isSelected}
@@ -113,6 +138,34 @@ const ServerButton = ({
           {mentionCount && <Badge variant='secondary'>{mentionCount}</Badge>}
           {!userLoggedIn && <Badge variant='warning'>!</Badge>}
         </Box>
+        {isVisible && (
+          <Dropdown reference={reference} ref={target} placement='right-start'>
+            <Box display='flex' className='rcx-option__title'>
+              Workspace
+            </Box>
+            <Option onClick={handleServerReloadClick}>
+              <OptionIcon name='refresh' />
+              <OptionContent>Reload</OptionContent>
+            </Option>
+            <Option onClick={handleServerReloadClick}>
+              <OptionIcon name='copy' />
+              <OptionContent>Copy current URL</OptionContent>
+            </Option>
+            <Option onClick={handleServerReloadClick}>
+              <OptionIcon name='code-block' />
+              <OptionContent>Open DevTools</OptionContent>
+            </Option>
+            <Option onClick={handleServerReloadClick}>
+              <OptionIcon name='refresh' />
+              <OptionContent>Force reload</OptionContent>
+            </Option>
+            <OptionDivider />
+            <Option onClick={handleServerReloadClick} variant='danger'>
+              <OptionIcon name='trash' />
+              <OptionContent>Remove</OptionContent>
+            </Option>
+          </Dropdown>
+        )}
       </IconButton>
     </ServerButtonWrapper>
   );

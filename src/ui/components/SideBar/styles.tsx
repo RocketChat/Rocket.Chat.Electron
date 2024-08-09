@@ -7,7 +7,7 @@ type ServerButtonWrapperProps = {
   isDragged: boolean;
   hasUnreadMessages: boolean;
   isSelected: boolean;
-  tooltip: string;
+  tooltip?: string;
 };
 
 export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`

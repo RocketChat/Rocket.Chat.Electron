@@ -12,8 +12,10 @@ import {
   OptionContent,
   OptionDivider,
   OptionHeader,
+  Tooltip,
 } from '@rocket.chat/fuselage';
-import type { DragEvent, MouseEvent } from 'react';
+import { useDebouncedState } from '@rocket.chat/fuselage-hooks';
+import type { DragEvent, MouseEvent, ReactNode } from 'react';
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -33,6 +35,7 @@ import {
   getWebContentsByServerUrl,
   serverReloadView,
 } from '../../main/serverView';
+import { TooltipComponent } from './TooltipComponent';
 import { Avatar, Favicon, Initials, ServerButtonWrapper } from './styles';
 import { useDropdownVisibility } from './useDropdownVisibility';
 
@@ -93,6 +96,8 @@ const ServerButton = ({
     [title, url]
   );
 
+  const [tooltip, setTooltip] = useDebouncedState<ReactNode>(null, 300);
+
   const handleActionDropdownClick = (
     action: string,
     serverUrl: string
@@ -112,11 +117,29 @@ const ServerButton = ({
     toggle();
   };
 
+  const handleOnMouseOver = (event: MouseEvent): void => {
+    if (tooltip === null) {
+      setTooltip(
+        <TooltipComponent
+          title={
+            <>
+              <div>{title}</div>
+              {hasUnreadMessages && <div>Second Line of Tooltip</div>}
+            </>
+          }
+          anchor={event.currentTarget as HTMLElement}
+        />
+      );
+    }
+  };
+
+  const handleOnMouseOut = () => setTooltip(null);
+
   return (
     <ServerButtonWrapper
       ref={reference}
       draggable='true'
-      tooltip={title}
+      // tooltip={title}
       isSelected={isSelected}
       isDragged={isDragged}
       hasUnreadMessages={hasUnreadMessages}
@@ -127,6 +150,8 @@ const ServerButton = ({
       onDragEnd={onDragEnd}
       onDragEnter={onDragEnter}
       onDrop={onDrop}
+      onMouseOver={handleOnMouseOver}
+      onMouseOut={handleOnMouseOut}
       className={className}
     >
       <IconButton
@@ -207,6 +232,7 @@ const ServerButton = ({
             </Option>
           </Dropdown>
         )}
+        {tooltip}
       </IconButton>
     </ServerButtonWrapper>
   );

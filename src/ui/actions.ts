@@ -112,6 +112,11 @@ export const WEBVIEW_SERVER_VERSION_UPDATED = 'webview/version-updated';
 export const SUPPORTED_VERSION_DIALOG_DISMISS =
   'supported-versions-dialog/dismiss';
 export const WEBVIEW_SERVER_RELOADED = 'webview/server-reloaded';
+export const SIDE_BAR_SERVER_RELOAD = 'side-bar/server-reload';
+export const SIDE_BAR_SERVER_COPY_URL = 'side-bar/server-copy-url';
+export const SIDE_BAR_SERVER_OPEN_DEV_TOOLS = 'side-bar/server-open-dev-tools';
+export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
+export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -138,6 +143,11 @@ export type UiActionTypeToPayloadMap = {
   [SIDE_BAR_REMOVE_SERVER_CLICKED]: Server['url'];
   [SIDE_BAR_SERVER_SELECTED]: Server['url'];
   [SIDE_BAR_SERVERS_SORTED]: Server['url'][];
+  [SIDE_BAR_SERVER_RELOAD]: Server['url'];
+  [SIDE_BAR_SERVER_COPY_URL]: Server['url'];
+  [SIDE_BAR_SERVER_OPEN_DEV_TOOLS]: Server['url'];
+  [SIDE_BAR_SERVER_FORCE_RELOAD]: Server['url'];
+  [SIDE_BAR_SERVER_REMOVE]: Server['url'];
   [TOUCH_BAR_FORMAT_BUTTON_TOUCHED]:
     | 'bold'
     | 'italic'

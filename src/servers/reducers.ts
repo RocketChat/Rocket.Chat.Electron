@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import type { Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../app/actions';
@@ -28,6 +29,7 @@ import {
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
   WEBVIEW_USER_THEME_APPEARANCE_CHANGED,
+  SIDE_BAR_SERVER_REMOVE,
 } from '../ui/actions';
 import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from './actions';
 import type { Server } from './common';
@@ -68,7 +70,8 @@ type ServersActionTypes =
   | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
   | ActionOf<typeof SERVER_DOCUMENT_VIEWER_OPEN_URL>
   | ActionOf<typeof WEBVIEW_PAGE_TITLE_CHANGED>
-  | ActionOf<typeof WEBVIEW_USER_THEME_APPEARANCE_CHANGED>;
+  | ActionOf<typeof WEBVIEW_USER_THEME_APPEARANCE_CHANGED>
+  | ActionOf<typeof SIDE_BAR_SERVER_REMOVE>;
 
 const upsert = (state: Server[], server: Server): Server[] => {
   const index = state.findIndex(({ url }) => url === server.url);
@@ -105,7 +108,8 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return upsert(state, { url, title: url });
     }
 
-    case SIDE_BAR_REMOVE_SERVER_CLICKED: {
+    case SIDE_BAR_REMOVE_SERVER_CLICKED:
+    case SIDE_BAR_SERVER_REMOVE: {
       const _url = action.payload;
       return state.filter(({ url }) => url !== _url);
     }

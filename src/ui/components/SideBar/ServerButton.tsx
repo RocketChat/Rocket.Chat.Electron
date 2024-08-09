@@ -1,3 +1,5 @@
+import { Server } from 'http';
+
 import { css } from '@rocket.chat/css-in-js';
 import {
   IconButton,
@@ -14,14 +16,23 @@ import {
 import type { DragEvent, MouseEvent } from 'react';
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
-import type { Dispatch } from 'redux';
 
+import { dispatch } from '../../../store';
 import type { RootAction } from '../../../store/actions';
 import {
   SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
+  WEBVIEW_SERVER_RELOADED,
+  SIDE_BAR_SERVER_RELOAD,
+  SIDE_BAR_SERVER_COPY_URL,
+  SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
+  SIDE_BAR_SERVER_FORCE_RELOAD,
+  SIDE_BAR_SERVER_REMOVE,
 } from '../../actions';
+import {
+  getWebContentsByServerUrl,
+  serverReloadView,
+} from '../../main/serverView';
 import { Avatar, Favicon, Initials, ServerButtonWrapper } from './styles';
 import { useDropdownVisibility } from './useDropdownVisibility';
 
@@ -60,8 +71,6 @@ const ServerButton = ({
   onDrop,
   className,
 }: ServerButtonProps) => {
-  const dispatch = useDispatch<Dispatch<RootAction>>();
-
   const handleServerClick = (): void => {
     dispatch({ type: SIDE_BAR_SERVER_SELECTED, payload: url });
   };
@@ -84,12 +93,23 @@ const ServerButton = ({
     [title, url]
   );
 
-  const handleServerReloadClick = (): void => {
-    console.log('handleServerReloadClick');
+  const handleActionDropdownClick = (
+    action: string,
+    serverUrl: string
+  ): void => {
+    dispatch({ type: action, payload: serverUrl });
+
+    toggle();
   };
+
+  // const handleServerContextMenu = (event: MouseEvent): void => {
+  //   event.preventDefault();
+  //   toggle();
+  // };
 
   const handleServerContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
+    // dispatch({ type: SIDE_BAR_CONTEXT_MENU_TRIGGERED, payload: url });
     toggle();
   };
 
@@ -143,24 +163,45 @@ const ServerButton = ({
             <Box display='flex' className='rcx-option__title'>
               Workspace
             </Box>
-            <Option onClick={handleServerReloadClick}>
+            <Option
+              onClick={() =>
+                handleActionDropdownClick(SIDE_BAR_SERVER_RELOAD, url)
+              }
+            >
               <OptionIcon name='refresh' />
               <OptionContent>Reload</OptionContent>
             </Option>
-            <Option onClick={handleServerReloadClick}>
+            <Option
+              onClick={() =>
+                handleActionDropdownClick(SIDE_BAR_SERVER_COPY_URL, url)
+              }
+            >
               <OptionIcon name='copy' />
               <OptionContent>Copy current URL</OptionContent>
             </Option>
-            <Option onClick={handleServerReloadClick}>
+            <Option
+              onClick={() =>
+                handleActionDropdownClick(SIDE_BAR_SERVER_OPEN_DEV_TOOLS, url)
+              }
+            >
               <OptionIcon name='code-block' />
               <OptionContent>Open DevTools</OptionContent>
             </Option>
-            <Option onClick={handleServerReloadClick}>
+            <Option
+              onClick={() =>
+                handleActionDropdownClick(SIDE_BAR_SERVER_FORCE_RELOAD, url)
+              }
+            >
               <OptionIcon name='refresh' />
               <OptionContent>Force reload</OptionContent>
             </Option>
             <OptionDivider />
-            <Option onClick={handleServerReloadClick} variant='danger'>
+            <Option
+              onClick={() =>
+                handleActionDropdownClick(SIDE_BAR_SERVER_REMOVE, url)
+              }
+              variant='danger'
+            >
               <OptionIcon name='trash' />
               <OptionContent>Remove</OptionContent>
             </Option>

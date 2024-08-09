@@ -17,6 +17,7 @@ import {
   SIDE_BAR_SERVER_SELECTED,
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   WEBVIEW_FOCUS_REQUESTED,
+  SIDE_BAR_SERVER_REMOVE,
 } from '../actions';
 
 type CurrentViewAction =
@@ -34,7 +35,8 @@ type CurrentViewAction =
   | ActionOf<typeof SIDE_BAR_SERVER_SELECTED>
   | ActionOf<typeof TOUCH_BAR_SELECT_SERVER_TOUCHED>
   | ActionOf<typeof WEBVIEW_FOCUS_REQUESTED>
-  | ActionOf<typeof DOWNLOADS_BACK_BUTTON_CLICKED>;
+  | ActionOf<typeof DOWNLOADS_BACK_BUTTON_CLICKED>
+  | ActionOf<typeof SIDE_BAR_SERVER_REMOVE>;
 
 type CurrentViewState =
   | 'add-new-server'
@@ -77,6 +79,7 @@ export const currentView = (
     case SIDE_BAR_ADD_NEW_SERVER_CLICKED:
       return 'add-new-server';
 
+    case SIDE_BAR_SERVER_REMOVE:
     case SIDE_BAR_REMOVE_SERVER_CLICKED: {
       if (typeof state === 'object' && state.url === action.payload) {
         return 'add-new-server';

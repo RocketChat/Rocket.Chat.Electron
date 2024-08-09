@@ -45,6 +45,7 @@ import {
   WEBVIEW_SERVER_RELOADED,
   CLEAR_CACHE_TRIGGERED,
   WEBVIEW_PAGE_TITLE_CHANGED,
+  SIDE_BAR_SERVER_RELOAD,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -78,6 +79,20 @@ const initializeServerWebContentsAfterReady = (
       payload: { url: _serverUrl, pageTitle },
     });
   });
+};
+
+export const serverReloadView = async (
+  serverUrl: Server['url']
+): Promise<void> => {
+  const url = new URL(serverUrl).href;
+  const guestWebContents = getWebContentsByServerUrl(url);
+  await guestWebContents?.loadURL(url);
+  if (url) {
+    dispatch({
+      type: WEBVIEW_SERVER_RELOADED,
+      payload: { url },
+    });
+  }
 };
 
 const initializeServerWebContentsAfterAttach = (
@@ -394,6 +409,11 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
     guestWebContents?.loadURL(action.payload.url);
+  });
+
+  listen(SIDE_BAR_SERVER_RELOAD, (action) => {
+    console.log('reload', action.payload);
+    serverReloadView(action.payload);
   });
 
   listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {

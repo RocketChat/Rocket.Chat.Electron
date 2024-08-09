@@ -123,8 +123,24 @@ const ServerButton = ({
         <TooltipComponent
           title={
             <>
-              <div>{title}</div>
-              {hasUnreadMessages && <div>Second Line of Tooltip</div>}
+              <Box>
+                {title} ({process.platform === 'darwin' ? '⌘' : '^'}+
+                {shortcutNumber})
+              </Box>
+              {hasUnreadMessages && (
+                <Box>
+                  {mentionCount && mentionCount > 1
+                    ? t('sidebar.tooltips.unreadMessages', {
+                        count: mentionCount,
+                      })
+                    : t('sidebar.tooltips.unreadMessage', {
+                        count: mentionCount,
+                      })}
+                </Box>
+              )}
+              {!userLoggedIn && (
+                <Box>{t('sidebar.tooltips.userNotLoggedIn')}</Box>
+              )}
             </>
           }
           anchor={event.currentTarget as HTMLElement}

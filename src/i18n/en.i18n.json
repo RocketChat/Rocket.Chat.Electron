@@ -333,6 +333,11 @@
       "clearStorageData": "Clear Storage Data",
       "copyCurrentUrl": "Copy current URL",
       "reloadClearingCache": "Force reload"
+    },
+    "tooltips": {
+      "unreadMessage": "{{- count}} unread message",
+      "unreadMessages": "{{- count}} unread messages",
+      "userNotLoggedIn": "No user logged in"
     }
   },
   "touchBar": {

@@ -152,105 +152,107 @@ const ServerButton = ({
   const handleOnMouseOut = () => setTooltip(null);
 
   return (
-    <ServerButtonWrapper
-      ref={reference}
-      draggable='true'
-      // tooltip={title}
-      isSelected={isSelected}
-      isDragged={isDragged}
-      hasUnreadMessages={hasUnreadMessages}
-      onClick={handleServerClick}
-      onContextMenu={handleServerContextMenu}
-      onDragOver={(event) => event.preventDefault()}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      onDragEnter={onDragEnter}
-      onDrop={onDrop}
-      onMouseOver={handleOnMouseOver}
-      onMouseOut={handleOnMouseOut}
-      className={className}
-    >
-      <IconButton
-        small
-        position='relative'
-        overflow='visible'
-        className={[isSelected && 'is-focused'].filter(Boolean).join(' ')}
-        icon={
-          <Avatar isSelected={isSelected}>
-            <Initials visible={!favicon}>{initials}</Initials>
-            <Favicon
-              draggable='false'
-              src={favicon ?? ''}
-              visible={!!favicon}
-            />
-          </Avatar>
-        }
+    <>
+      <ServerButtonWrapper
+        ref={reference}
+        draggable='true'
+        // tooltip={title}
+        isSelected={isSelected}
+        isDragged={isDragged}
+        hasUnreadMessages={hasUnreadMessages}
+        onClick={handleServerClick}
+        onContextMenu={handleServerContextMenu}
+        onDragOver={(event) => event.preventDefault()}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragEnter={onDragEnter}
+        onDrop={onDrop}
+        onMouseOver={handleOnMouseOver}
+        onMouseOut={handleOnMouseOut}
+        className={className}
       >
-        <Box
-          position='absolute'
-          role='status'
-          className={css`
-            top: 0;
-            right: 0;
-            transform: translate(30%, -30%);
-          `}
+        <IconButton
+          small
+          position='relative'
+          overflow='visible'
+          className={[isSelected && 'is-focused'].filter(Boolean).join(' ')}
+          icon={
+            <Avatar isSelected={isSelected}>
+              <Initials visible={!favicon}>{initials}</Initials>
+              <Favicon
+                draggable='false'
+                src={favicon ?? ''}
+                visible={!!favicon}
+              />
+            </Avatar>
+          }
         >
-          {mentionCount && <Badge variant='secondary'>{mentionCount}</Badge>}
-          {!userLoggedIn && <Badge variant='warning'>!</Badge>}
-        </Box>
-        {isVisible && (
-          <Dropdown reference={reference} ref={target} placement='right-start'>
-            <Box display='flex' className='rcx-option__title'>
-              Workspace
-            </Box>
-            <Option
-              onClick={() =>
-                handleActionDropdownClick(SIDE_BAR_SERVER_RELOAD, url)
-              }
-            >
-              <OptionIcon name='refresh' />
-              <OptionContent>Reload</OptionContent>
-            </Option>
-            <Option
-              onClick={() =>
-                handleActionDropdownClick(SIDE_BAR_SERVER_COPY_URL, url)
-              }
-            >
-              <OptionIcon name='copy' />
-              <OptionContent>Copy current URL</OptionContent>
-            </Option>
-            <Option
-              onClick={() =>
-                handleActionDropdownClick(SIDE_BAR_SERVER_OPEN_DEV_TOOLS, url)
-              }
-            >
-              <OptionIcon name='code-block' />
-              <OptionContent>Open DevTools</OptionContent>
-            </Option>
-            <Option
-              onClick={() =>
-                handleActionDropdownClick(SIDE_BAR_SERVER_FORCE_RELOAD, url)
-              }
-            >
-              <OptionIcon name='refresh' />
-              <OptionContent>Force reload</OptionContent>
-            </Option>
-            <OptionDivider />
-            <Option
-              onClick={(event) => {
-                event?.stopPropagation();
-                handleActionDropdownClick(SIDE_BAR_SERVER_REMOVE, url);
-              }}
-              variant='danger'
-            >
-              <OptionIcon name='trash' />
-              <OptionContent>Remove</OptionContent>
-            </Option>
-          </Dropdown>
-        )}
-        {tooltip}
-      </IconButton>
-    </ServerButtonWrapper>
+          <Box
+            position='absolute'
+            role='status'
+            className={css`
+              top: 0;
+              right: 0;
+              transform: translate(30%, -30%);
+            `}
+          >
+            {mentionCount && <Badge variant='secondary'>{mentionCount}</Badge>}
+            {!userLoggedIn && <Badge variant='warning'>!</Badge>}
+          </Box>
+          {tooltip}
+        </IconButton>
+      </ServerButtonWrapper>
+      {isVisible && (
+        <Dropdown reference={reference} ref={target} placement='right-start'>
+          <Box display='flex' className='rcx-option__title'>
+            Workspace
+          </Box>
+          <Option
+            onClick={() =>
+              handleActionDropdownClick(SIDE_BAR_SERVER_RELOAD, url)
+            }
+          >
+            <OptionIcon name='refresh' />
+            <OptionContent>Reload</OptionContent>
+          </Option>
+          <Option
+            onClick={() =>
+              handleActionDropdownClick(SIDE_BAR_SERVER_COPY_URL, url)
+            }
+          >
+            <OptionIcon name='copy' />
+            <OptionContent>Copy current URL</OptionContent>
+          </Option>
+          <Option
+            onClick={() =>
+              handleActionDropdownClick(SIDE_BAR_SERVER_OPEN_DEV_TOOLS, url)
+            }
+          >
+            <OptionIcon name='code-block' />
+            <OptionContent>Open DevTools</OptionContent>
+          </Option>
+          <Option
+            onClick={() =>
+              handleActionDropdownClick(SIDE_BAR_SERVER_FORCE_RELOAD, url)
+            }
+          >
+            <OptionIcon name='refresh' />
+            <OptionContent>Force reload</OptionContent>
+          </Option>
+          <OptionDivider />
+          <Option
+            onClick={(event) => {
+              event?.stopPropagation();
+              handleActionDropdownClick(SIDE_BAR_SERVER_REMOVE, url);
+            }}
+            variant='danger'
+          >
+            <OptionIcon name='trash' />
+            <OptionContent>Remove</OptionContent>
+          </Option>
+        </Dropdown>
+      )}
+    </>
   );
 };
 

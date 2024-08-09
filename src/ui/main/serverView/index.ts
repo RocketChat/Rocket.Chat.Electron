@@ -46,6 +46,10 @@ import {
   CLEAR_CACHE_TRIGGERED,
   WEBVIEW_PAGE_TITLE_CHANGED,
   SIDE_BAR_SERVER_RELOAD,
+  SIDE_BAR_SERVER_COPY_URL,
+  SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
+  SIDE_BAR_SERVER_FORCE_RELOAD,
+  SIDE_BAR_SERVER_REMOVE,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -412,8 +416,36 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   });
 
   listen(SIDE_BAR_SERVER_RELOAD, (action) => {
-    console.log('reload', action.payload);
     serverReloadView(action.payload);
+  });
+
+  listen(SIDE_BAR_SERVER_COPY_URL, async (action) => {
+    const guestWebContents = getWebContentsByServerUrl(action.payload);
+    const currentUrl = await guestWebContents?.getURL();
+    clipboard.writeText(currentUrl || '');
+  });
+
+  listen(SIDE_BAR_SERVER_OPEN_DEV_TOOLS, (action) => {
+    const guestWebContents = getWebContentsByServerUrl(action.payload);
+    guestWebContents?.openDevTools();
+  });
+
+  listen(SIDE_BAR_SERVER_FORCE_RELOAD, (action) => {
+    const guestWebContents = getWebContentsByServerUrl(action.payload);
+    if (!guestWebContents) {
+      return;
+    }
+    dispatch({
+      type: CLEAR_CACHE_TRIGGERED,
+      payload: guestWebContents.id,
+    });
+  });
+
+  listen(SIDE_BAR_SERVER_REMOVE, (action) => {
+    dispatch({
+      type: SIDE_BAR_REMOVE_SERVER_CLICKED,
+      payload: action.payload,
+    });
   });
 
   listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {

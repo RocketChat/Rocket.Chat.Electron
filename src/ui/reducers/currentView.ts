@@ -5,6 +5,7 @@ import {
 } from '../../deepLinks/actions';
 import { SERVERS_LOADED } from '../../servers/actions';
 import type { ActionOf } from '../../store/actions';
+import type { SIDE_BAR_SERVER_REMOVE } from '../actions';
 import {
   DOWNLOADS_BACK_BUTTON_CLICKED,
   ADD_SERVER_VIEW_SERVER_ADDED,
@@ -17,7 +18,6 @@ import {
   SIDE_BAR_SERVER_SELECTED,
   TOUCH_BAR_SELECT_SERVER_TOUCHED,
   WEBVIEW_FOCUS_REQUESTED,
-  SIDE_BAR_SERVER_REMOVE,
 } from '../actions';
 
 type CurrentViewAction =
@@ -48,6 +48,7 @@ export const currentView = (
   state: CurrentViewState = 'add-new-server',
   action: CurrentViewAction
 ): CurrentViewState => {
+  console.log(action.type);
   switch (action.type) {
     case ADD_SERVER_VIEW_SERVER_ADDED:
     case DEEP_LINKS_SERVER_ADDED:
@@ -79,7 +80,6 @@ export const currentView = (
     case SIDE_BAR_ADD_NEW_SERVER_CLICKED:
       return 'add-new-server';
 
-    case SIDE_BAR_SERVER_REMOVE:
     case SIDE_BAR_REMOVE_SERVER_CLICKED: {
       if (typeof state === 'object' && state.url === action.payload) {
         return 'add-new-server';

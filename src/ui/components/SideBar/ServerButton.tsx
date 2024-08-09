@@ -17,7 +17,7 @@ import type { DragEvent, MouseEvent } from 'react';
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { dispatch } from '../../../store';
+import { dispatch, select } from '../../../store';
 import type { RootAction } from '../../../store/actions';
 import {
   SIDE_BAR_SERVER_SELECTED,
@@ -98,7 +98,6 @@ const ServerButton = ({
     serverUrl: string
   ): void => {
     dispatch({ type: action, payload: serverUrl });
-
     toggle();
   };
 
@@ -197,9 +196,10 @@ const ServerButton = ({
             </Option>
             <OptionDivider />
             <Option
-              onClick={() =>
-                handleActionDropdownClick(SIDE_BAR_SERVER_REMOVE, url)
-              }
+              onClick={(event) => {
+                event?.stopPropagation();
+                handleActionDropdownClick(SIDE_BAR_SERVER_REMOVE, url);
+              }}
               variant='danger'
             >
               <OptionIcon name='trash' />

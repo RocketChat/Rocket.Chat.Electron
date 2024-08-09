@@ -5,6 +5,7 @@ import { APP_SETTINGS_LOADED } from '../app/actions';
 import { DEEP_LINKS_SERVER_ADDED } from '../deepLinks/actions';
 import { OUTLOOK_CALENDAR_SAVE_CREDENTIALS } from '../outlookCalendar/actions';
 import type { ActionOf } from '../store/actions';
+import type { SIDE_BAR_SERVER_REMOVE } from '../ui/actions';
 import {
   WEBVIEW_PAGE_TITLE_CHANGED,
   ADD_SERVER_VIEW_SERVER_ADDED,
@@ -29,7 +30,6 @@ import {
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
   WEBVIEW_USER_THEME_APPEARANCE_CHANGED,
-  SIDE_BAR_SERVER_REMOVE,
 } from '../ui/actions';
 import { SERVERS_LOADED, SERVER_DOCUMENT_VIEWER_OPEN_URL } from './actions';
 import type { Server } from './common';
@@ -108,8 +108,7 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
       return upsert(state, { url, title: url });
     }
 
-    case SIDE_BAR_REMOVE_SERVER_CLICKED:
-    case SIDE_BAR_SERVER_REMOVE: {
+    case SIDE_BAR_REMOVE_SERVER_CLICKED: {
       const _url = action.payload;
       return state.filter(({ url }) => url !== _url);
     }

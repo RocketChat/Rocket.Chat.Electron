@@ -1,5 +1,3 @@
-import { Server } from 'http';
-
 import { css } from '@rocket.chat/css-in-js';
 import {
   IconButton,
@@ -7,34 +5,24 @@ import {
   Box,
   Dropdown,
   Option,
-  MenuItem,
   OptionIcon,
   OptionContent,
   OptionDivider,
-  OptionHeader,
-  Tooltip,
 } from '@rocket.chat/fuselage';
 import { useDebouncedState } from '@rocket.chat/fuselage-hooks';
 import type { DragEvent, MouseEvent, ReactNode } from 'react';
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { dispatch, select } from '../../../store';
-import type { RootAction } from '../../../store/actions';
+import { dispatch } from '../../../store';
 import {
   SIDE_BAR_SERVER_SELECTED,
-  SIDE_BAR_CONTEXT_MENU_TRIGGERED,
-  WEBVIEW_SERVER_RELOADED,
   SIDE_BAR_SERVER_RELOAD,
   SIDE_BAR_SERVER_COPY_URL,
   SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
 } from '../../actions';
-import {
-  getWebContentsByServerUrl,
-  serverReloadView,
-} from '../../main/serverView';
 import { TooltipComponent } from './TooltipComponent';
 import { Avatar, Favicon, Initials, ServerButtonWrapper } from './styles';
 import { useDropdownVisibility } from './useDropdownVisibility';
@@ -57,13 +45,20 @@ type ServerButtonProps = {
   onDrop: (event: DragEvent) => void;
 };
 
+type ServerActionType =
+  | typeof SIDE_BAR_SERVER_SELECTED
+  | typeof SIDE_BAR_SERVER_RELOAD
+  | typeof SIDE_BAR_SERVER_COPY_URL
+  | typeof SIDE_BAR_SERVER_OPEN_DEV_TOOLS
+  | typeof SIDE_BAR_SERVER_FORCE_RELOAD
+  | typeof SIDE_BAR_SERVER_REMOVE;
+
 const ServerButton = ({
   url,
   title,
   shortcutNumber,
   isSelected,
   favicon,
-  isShortcutVisible,
   hasUnreadMessages,
   mentionCount,
   userLoggedIn,
@@ -99,10 +94,10 @@ const ServerButton = ({
   const [tooltip, setTooltip] = useDebouncedState<ReactNode>(null, 300);
 
   const handleActionDropdownClick = (
-    action: string,
+    action: ServerActionType,
     serverUrl: string
   ): void => {
-    dispatch({ type: action, payload: serverUrl });
+    if (action) dispatch({ type: action, payload: serverUrl });
     toggle();
   };
 

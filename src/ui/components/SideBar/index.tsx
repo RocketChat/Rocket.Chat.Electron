@@ -8,7 +8,6 @@ import {
   OptionContent,
   OptionIcon,
 } from '@rocket.chat/fuselage';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
@@ -37,15 +36,15 @@ export const SideBar = () => {
     ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled
   );
   const isVisible = servers.length > 0 && isSideBarEnabled;
-  const style = useMemo(
-    () => servers.find(({ selected }) => selected)?.style || {},
-    [servers]
-  );
+  // const style = useMemo(
+  //   () => servers.find(({ selected }) => selected)?.style || {},
+  //   [servers]
+  // );
 
-  const customTheme = useMemo(
-    () => servers.find(({ selected }) => selected)?.customTheme || '',
-    [servers]
-  );
+  // const customTheme = useMemo(
+  //   () => servers.find(({ selected }) => selected)?.customTheme || '',
+  //   [servers]
+  // );
   const isEachShortcutVisible = useKeyboardShortcuts();
   const {
     sortedServers,
@@ -88,7 +87,7 @@ export const SideBar = () => {
 
   const { t } = useTranslation();
 
-  const currentView = useSelector(({ currentView }: RootState) => currentView);
+  // const currentView = useSelector(({ currentView }: RootState) => currentView);
 
   return (
     <Box className='rcx-sidebar--main' bg='tint'>

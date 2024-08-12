@@ -105,6 +105,7 @@ const ServerButton = ({
   //   event.preventDefault();
   //   toggle();
   // };
+  // touch build
 
   const handleServerContextMenu = (event: MouseEvent): void => {
     event.preventDefault();

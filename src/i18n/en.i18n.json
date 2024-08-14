@@ -337,7 +337,9 @@
     "tooltips": {
       "unreadMessage": "{{- count}} unread message",
       "unreadMessages": "{{- count}} unread messages",
-      "userNotLoggedIn": "No user logged in"
+      "userNotLoggedIn": "Not logged in",
+      "addWorkspace": "Add workspace ({{shortcut}}+N)",
+      "settingsMenu": "{{platform}} app settings"
     }
   },
   "touchBar": {

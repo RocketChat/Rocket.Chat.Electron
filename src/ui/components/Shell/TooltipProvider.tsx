@@ -1,5 +1,5 @@
 import type { ReactNode, MouseEvent, ReactElement } from 'react';
-import {
+import React, {
   createContext,
   useContext,
   useMemo,
@@ -8,7 +8,7 @@ import {
   memo,
 } from 'react';
 
-import { TooltipComponent } from './TooltipComponent';
+import { TooltipComponent } from './TooltipComponent'; // Assuming this is the path to your TooltipComponent
 
 type TooltipProviderProps = {
   children: ReactNode;
@@ -16,7 +16,7 @@ type TooltipProviderProps = {
 
 type TooltipContextType = {
   onMouseOver: (event: MouseEvent) => void;
-  onMouseOut: () => void;
+  onMouseOut: (event: MouseEvent) => void;
 };
 
 const TooltipContext = createContext<TooltipContextType | undefined>(undefined);
@@ -42,9 +42,11 @@ const TooltipProvider = ({ children }: TooltipProviderProps): ReactElement => {
       return;
     }
 
+    // Store the title and remove it to prevent the default tooltip
     storedTitle.current = title;
     anchor.removeAttribute('title');
 
+    // Split the title by newline if it exists
     const lines = title
       .split('\n')
       .map((line, index) => <div key={index}>{line}</div>);
@@ -57,13 +59,23 @@ const TooltipProvider = ({ children }: TooltipProviderProps): ReactElement => {
     lastAnchor.current = anchor;
   };
 
-  const handleOnMouseOut = (): void => {
-    if (lastAnchor.current && storedTitle.current) {
-      lastAnchor.current.setAttribute('title', storedTitle.current);
-    }
+  const handleOnMouseOut = (event: MouseEvent): void => {
+    const anchor = lastAnchor.current;
 
-    setTooltip(null);
-    lastAnchor.current = null;
+    // Check if the mouse is leaving the element and its children
+    if (
+      !anchor ||
+      !event.relatedTarget ||
+      !anchor.contains(event.relatedTarget as Node)
+    ) {
+      // Restore the title attribute when the mouse leaves
+      if (anchor && storedTitle.current) {
+        anchor.setAttribute('title', storedTitle.current);
+      }
+
+      setTooltip(null);
+      lastAnchor.current = null;
+    }
   };
 
   const contextValue = useMemo(

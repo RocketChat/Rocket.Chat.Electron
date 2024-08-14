@@ -20,7 +20,6 @@ import {
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
 } from '../../actions';
-import { useTooltip } from '../Shell/TooltipProvider';
 import { useServers } from '../hooks/useServers';
 import ServerButton from './ServerButton';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
@@ -28,8 +27,6 @@ import { useSorting } from './useSorting';
 
 export const SideBar = () => {
   const servers = useServers();
-
-  const { onMouseOver, onMouseOut } = useTooltip();
 
   const isSideBarEnabled = useSelector(
     ({ isSideBarEnabled }: RootState) => isSideBarEnabled
@@ -143,36 +140,33 @@ export const SideBar = () => {
               title={t('sidebar.tooltips.addWorkspace', {
                 shortcut: process.platform === 'darwin' ? '⌘' : '^',
               })}
-              onMouseOut={onMouseOut}
-              onMouseOver={onMouseOver}
             ></IconButton>
           )}
         </ButtonGroup>
-        <Box
-          onMouseOver={onMouseOver}
-          onMouseOut={onMouseOut}
+
+        <MenuV2
           title={t('sidebar.tooltips.settingsMenu', {
             platform: getPlatformName(),
           })}
+          placement='right'
+          onAction={handleMenuClick}
         >
-          <MenuV2 placement='right' onAction={handleMenuClick}>
-            {/* <MenuSection
+          {/* <MenuSection
               title={t('sidebar.menuTitle', { platform: getPlatformName() })}
             > */}
-            {/* <MenuItem key='hide_workspace_bar'>
+          {/* <MenuItem key='hide_workspace_bar'>
               <OptionIcon name='burger-arrow-left' />
               <OptionContent>Hide workspace bar</OptionContent>
             </MenuItem> */}
-            <MenuItem key='downloads'>
-              <OptionIcon name='circle-arrow-down' />
-              <OptionContent>{t('sidebar.downloads')}</OptionContent>
-            </MenuItem>
-            <MenuItem key='desktop_settings'>
-              <OptionIcon name='customize' />
-              <OptionContent>{t('sidebar.settings')}</OptionContent>
-            </MenuItem>
-          </MenuV2>
-        </Box>
+          <MenuItem key='downloads'>
+            <OptionIcon name='circle-arrow-down' />
+            <OptionContent>{t('sidebar.downloads')}</OptionContent>
+          </MenuItem>
+          <MenuItem key='desktop_settings'>
+            <OptionIcon name='customize' />
+            <OptionContent>{t('sidebar.settings')}</OptionContent>
+          </MenuItem>
+        </MenuV2>
       </Box>
     </Box>
   );

@@ -22,7 +22,6 @@ import {
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
 } from '../../actions';
-import { useTooltip } from '../Shell/TooltipProvider';
 import { Avatar, Favicon, Initials, ServerButtonWrapper } from './styles';
 import { useDropdownVisibility } from './useDropdownVisibility';
 
@@ -90,8 +89,6 @@ const ServerButton = ({
     [title, url]
   );
 
-  const { onMouseOver, onMouseOut } = useTooltip();
-
   const handleActionDropdownClick = (
     action: ServerActionType,
     serverUrl: string
@@ -136,8 +133,6 @@ const ServerButton = ({
         onDragEnd={onDragEnd}
         onDragEnter={onDragEnter}
         onDrop={onDrop}
-        onMouseOver={onMouseOver}
-        onMouseOut={onMouseOut}
         className={className}
         title={tooltipContent}
       >

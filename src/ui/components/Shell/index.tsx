@@ -18,7 +18,7 @@ import { SideBar } from '../SideBar';
 import { SupportedVersionDialog } from '../SupportedVersionDialog';
 import { TopBar } from '../TopBar';
 import { UpdateDialog } from '../UpdateDialog';
-import TooltipProvider from './TooltipProvider';
+import TooltipProvider from '../utils/TooltipProvider';
 import { GlobalStyles, WindowDragBar } from './styles';
 
 export const Shell = () => {

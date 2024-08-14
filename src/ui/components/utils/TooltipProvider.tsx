@@ -1,13 +1,6 @@
-import { useMediaQuery } from '@rocket.chat/fuselage-hooks';
+import { useDebouncedState, useMediaQuery } from '@rocket.chat/fuselage-hooks';
 import type { ReactNode } from 'react';
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  memo,
-  useCallback,
-  useState,
-} from 'react';
+import { useEffect, useMemo, useRef, memo, useCallback } from 'react';
 
 import { TooltipComponent } from './TooltipComponent';
 import { TooltipContext } from './TooltipContext';
@@ -21,7 +14,7 @@ const TooltipProvider = ({ children }: TooltipProviderProps) => {
   const lastAnchor = useRef<HTMLElement | null>(null);
   const hasHover = !useMediaQuery('(hover: none)');
 
-  const [tooltip, setTooltip] = useState<ReactNode>(null);
+  const [tooltip, setTooltip] = useDebouncedState<ReactNode>(null, 300);
 
   const restoreTitle = useCallback(
     (previousAnchor: HTMLElement | undefined): void => {
@@ -67,7 +60,7 @@ const TooltipProvider = ({ children }: TooltipProviderProps) => {
       close: (): void => {
         const previousAnchor = lastAnchor.current;
         setTooltip(null);
-        lastAnchor.current = undefined;
+        lastAnchor.current = null;
         previousAnchor && restoreTitle(previousAnchor);
       },
       dismiss: (): void => {

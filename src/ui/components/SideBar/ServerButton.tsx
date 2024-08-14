@@ -23,6 +23,7 @@ import {
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
 } from '../../actions';
+import { useTooltip } from '../Shell/TooltipProvider';
 import { TooltipComponent } from './TooltipComponent';
 import { Avatar, Favicon, Initials, ServerButtonWrapper } from './styles';
 import { useDropdownVisibility } from './useDropdownVisibility';
@@ -92,6 +93,8 @@ const ServerButton = ({
   );
 
   const [tooltip, setTooltip] = useDebouncedState<ReactNode>(null, 300);
+
+  const { onMouseOver, onMouseOut } = useTooltip();
 
   const handleActionDropdownClick = (
     action: ServerActionType,
@@ -163,9 +166,10 @@ const ServerButton = ({
         onDragEnd={onDragEnd}
         onDragEnter={onDragEnter}
         onDrop={onDrop}
-        onMouseOver={handleOnMouseOver}
-        onMouseOut={handleOnMouseOut}
+        onMouseOver={onMouseOver}
+        onMouseOut={onMouseOut}
         className={className}
+        data-tooltip='Some Tooltip Text'
       >
         <IconButton
           small

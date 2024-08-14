@@ -5198,9 +5198,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocket.chat/fuselage@npm:~0.55.2":
-  version: 0.55.2
-  resolution: "@rocket.chat/fuselage@npm:0.55.2"
+"@rocket.chat/fuselage@npm:0.58.0":
+  version: 0.58.0
+  resolution: "@rocket.chat/fuselage@npm:0.58.0"
   dependencies:
     "@rocket.chat/css-in-js": "npm:^0.31.25"
     "@rocket.chat/css-supports": "npm:^0.31.25"
@@ -5218,14 +5218,14 @@ __metadata:
     react: ^17.0.2
     react-dom: ^17.0.2
     react-virtuoso: 1.2.4
-  checksum: 611275c5987cdbfb211c2bc2e2146e43de48c1b747e836cdea488f82e805929b998a1b5c6b50fa85b6ee932b88ff3743333441b1818d618c4dcb8cf89ac4ac3e
+  checksum: 37c1d32b3787605953557e7e601af61b18389df856996add99eddbb3973b057edd0e8d6c1859f60f25d2bc9c8a898c7ece483c788bdca35ddf8b2725b6a351b7
   languageName: node
   linkType: hard
 
-"@rocket.chat/icons@npm:~0.36.0":
-  version: 0.36.0
-  resolution: "@rocket.chat/icons@npm:0.36.0"
-  checksum: 5a351fc064f32679398460297a90408a612ee3b990937ba2c35ceb569ac5d3600468452550d28729983ee8be038012ff441a76fcd1a6b29454129e557a9660d9
+"@rocket.chat/icons@npm:0.37.0":
+  version: 0.37.0
+  resolution: "@rocket.chat/icons@npm:0.37.0"
+  checksum: 92f42e930f4adba0bbdab92860ef51443399cb959395203d4905af483f47ef762d3a3a1ab419e6163961d61748c1bdc782beea0a55d7be33d6f15bfdea856522
   languageName: node
   linkType: hard
 
@@ -15309,10 +15309,10 @@ __metadata:
     "@kayahr/jest-electron-runner": "npm:~29.11.0"
     "@rocket.chat/css-in-js": "npm:~0.31.25"
     "@rocket.chat/eslint-config": "npm:~0.7.0"
-    "@rocket.chat/fuselage": "npm:~0.55.2"
+    "@rocket.chat/fuselage": "npm:0.58.0"
     "@rocket.chat/fuselage-hooks": "npm:~0.33.1"
     "@rocket.chat/fuselage-polyfills": "npm:~0.31.25"
-    "@rocket.chat/icons": "npm:~0.36.0"
+    "@rocket.chat/icons": "npm:0.37.0"
     "@rocket.chat/prettier-config": "npm:~0.31.25"
     "@rollup/plugin-babel": "npm:~6.0.4"
     "@rollup/plugin-commonjs": "npm:~25.0.7"

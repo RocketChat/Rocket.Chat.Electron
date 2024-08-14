@@ -1,5 +1,5 @@
 import type { ReactNode, MouseEvent, ReactElement } from 'react';
-import React, {
+import {
   createContext,
   useContext,
   useMemo,
@@ -8,7 +8,7 @@ import React, {
   memo,
 } from 'react';
 
-import { TooltipComponent } from './TooltipComponent'; // Assuming this is the path to your TooltipComponent
+import { TooltipComponent } from './TooltipComponent';
 
 type TooltipProviderProps = {
   children: ReactNode;
@@ -32,6 +32,7 @@ export const useTooltip = (): TooltipContextType => {
 const TooltipProvider = ({ children }: TooltipProviderProps): ReactElement => {
   const [tooltip, setTooltip] = useState<ReactElement | null>(null);
   const lastAnchor = useRef<HTMLElement | null>(null);
+  const storedTitle = useRef<string | null>(null);
 
   const handleOnMouseOver = (event: MouseEvent): void => {
     const anchor = event.currentTarget as HTMLElement;
@@ -41,7 +42,9 @@ const TooltipProvider = ({ children }: TooltipProviderProps): ReactElement => {
       return;
     }
 
-    // Split the title by newline if it exists
+    storedTitle.current = title;
+    anchor.removeAttribute('title');
+
     const lines = title
       .split('\n')
       .map((line, index) => <div key={index}>{line}</div>);
@@ -55,6 +58,10 @@ const TooltipProvider = ({ children }: TooltipProviderProps): ReactElement => {
   };
 
   const handleOnMouseOut = (): void => {
+    if (lastAnchor.current && storedTitle.current) {
+      lastAnchor.current.setAttribute('title', storedTitle.current);
+    }
+
     setTooltip(null);
     lastAnchor.current = null;
   };

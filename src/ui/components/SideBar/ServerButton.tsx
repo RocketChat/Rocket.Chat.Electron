@@ -9,8 +9,7 @@ import {
   OptionContent,
   OptionDivider,
 } from '@rocket.chat/fuselage';
-import { useDebouncedState } from '@rocket.chat/fuselage-hooks';
-import type { DragEvent, MouseEvent, ReactNode } from 'react';
+import type { DragEvent, MouseEvent } from 'react';
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -24,7 +23,6 @@ import {
   SIDE_BAR_SERVER_REMOVE,
 } from '../../actions';
 import { useTooltip } from '../Shell/TooltipProvider';
-import { TooltipComponent } from './TooltipComponent';
 import { Avatar, Favicon, Initials, ServerButtonWrapper } from './styles';
 import { useDropdownVisibility } from './useDropdownVisibility';
 
@@ -92,8 +90,6 @@ const ServerButton = ({
     [title, url]
   );
 
-  const [tooltip, setTooltip] = useDebouncedState<ReactNode>(null, 300);
-
   const { onMouseOver, onMouseOut } = useTooltip();
 
   const handleActionDropdownClick = (
@@ -103,12 +99,6 @@ const ServerButton = ({
     if (action) dispatch({ type: action, payload: serverUrl });
     toggle();
   };
-
-  // const handleServerContextMenu = (event: MouseEvent): void => {
-  //   event.preventDefault();
-  //   toggle();
-  // };
-  // touch build
 
   const handleServerContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
@@ -179,7 +169,6 @@ const ServerButton = ({
             {mentionCount && <Badge variant='secondary'>{mentionCount}</Badge>}
             {!userLoggedIn && <Badge variant='warning'>!</Badge>}
           </Box>
-          {tooltip}
         </IconButton>
       </ServerButtonWrapper>
       {isVisible && (

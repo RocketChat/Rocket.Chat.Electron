@@ -3,7 +3,6 @@ import {
   ButtonGroup,
   IconButton,
   MenuItem,
-  MenuSection,
   MenuV2,
   OptionContent,
   OptionIcon,

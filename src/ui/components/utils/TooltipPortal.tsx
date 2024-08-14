@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { createAnchor } from './createAnchor';

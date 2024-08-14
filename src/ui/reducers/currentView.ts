@@ -48,7 +48,6 @@ export const currentView = (
   state: CurrentViewState = 'add-new-server',
   action: CurrentViewAction
 ): CurrentViewState => {
-  console.log(action.type);
   switch (action.type) {
     case ADD_SERVER_VIEW_SERVER_ADDED:
     case DEEP_LINKS_SERVER_ADDED:

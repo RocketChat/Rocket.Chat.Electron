@@ -1,6 +1,6 @@
 import { useDebouncedState, useMediaQuery } from '@rocket.chat/fuselage-hooks';
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useRef, memo, useCallback } from 'react';
+import { useEffect, useMemo, useRef, memo, useCallback, useState } from 'react';
 
 import { TooltipComponent } from './TooltipComponent';
 import { TooltipContext } from './TooltipContext';
@@ -11,7 +11,7 @@ type TooltipProviderProps = {
 };
 
 const TooltipProvider = ({ children }: TooltipProviderProps) => {
-  const lastAnchor = useRef<HTMLElement | null>(null);
+  const lastAnchor = useRef<HTMLElement>();
   const hasHover = !useMediaQuery('(hover: none)');
 
   const [tooltip, setTooltip] = useDebouncedState<ReactNode>(null, 300);
@@ -26,7 +26,7 @@ const TooltipProvider = ({ children }: TooltipProviderProps) => {
           );
           previousAnchor.removeAttribute('data-title');
         }
-      }, 0);
+      }, 100);
     },
     []
   );
@@ -60,11 +60,13 @@ const TooltipProvider = ({ children }: TooltipProviderProps) => {
       close: (): void => {
         const previousAnchor = lastAnchor.current;
         setTooltip(null);
-        lastAnchor.current = null;
+        setTooltip.flush();
+        lastAnchor.current = undefined;
         previousAnchor && restoreTitle(previousAnchor);
       },
       dismiss: (): void => {
         setTooltip(null);
+        setTooltip.flush();
       },
     }),
     [setTooltip, restoreTitle]
@@ -101,14 +103,55 @@ const TooltipProvider = ({ children }: TooltipProviderProps) => {
         return;
       }
 
-      contextValue.open(title, anchor);
-    };
+      // eslint-disable-next-line react/no-multi-comp
+      const Handler = () => {
+        const [state, setState] = useState<string[]>(title.split('\n'));
+        useEffect(() => {
+          const close = (): void => contextValue.close();
+          // store the title in a data attribute
+          anchor.setAttribute('data-title', title);
+          // Removes the title attribute to prevent the browser's tooltip from showing
+          anchor.setAttribute('title', '');
 
-    const handleMouseLeave = (e: MouseEvent): void => {
-      const anchor = lastAnchor.current;
-      if (anchor && !anchor.contains(e.relatedTarget as Node)) {
-        contextValue.close();
-      }
+          anchor.addEventListener('mouseleave', close);
+
+          const observer = new MutationObserver(() => {
+            const updatedTitle =
+              anchor.getAttribute('title') ??
+              anchor.getAttribute('data-tooltip') ??
+              '';
+
+            if (updatedTitle === '') {
+              return;
+            }
+
+            // store the title in a data attribute
+            anchor.setAttribute('data-title', updatedTitle);
+            // Removes the title attribute to prevent the browser's tooltip from showing
+            anchor.setAttribute('title', '');
+
+            setState(updatedTitle.split('\n'));
+          });
+
+          observer.observe(anchor, {
+            attributes: true,
+            attributeFilter: ['title', 'data-tooltip'],
+          });
+
+          return () => {
+            anchor.removeEventListener('mouseleave', close);
+            observer.disconnect();
+          };
+        }, []);
+        return (
+          <>
+            {state.map((line, index) => (
+              <div key={index}>{line}</div>
+            ))}
+          </>
+        );
+      };
+      contextValue.open(<Handler />, anchor);
     };
 
     const dismissOnClick = (): void => {
@@ -118,15 +161,11 @@ const TooltipProvider = ({ children }: TooltipProviderProps) => {
     document.body.addEventListener('mouseover', handleMouseOver, {
       passive: true,
     });
-    document.body.addEventListener('mouseleave', handleMouseLeave, {
-      passive: true,
-    });
     document.body.addEventListener('click', dismissOnClick, { capture: true });
 
     return (): void => {
       contextValue.close();
       document.body.removeEventListener('mouseover', handleMouseOver);
-      document.body.removeEventListener('mouseleave', handleMouseLeave);
       document.body.removeEventListener('click', dismissOnClick);
     };
   }, [contextValue, setTooltip, hasHover]);

@@ -115,7 +115,7 @@ const ServerButton = ({
     }`
       : ''
   }
-  ${!userLoggedIn ? 'User not logged in' : ''}
+  ${!userLoggedIn ? t('sidebar.tooltips.userNotLoggedIn') : ''}
 `.trim();
 
   return (

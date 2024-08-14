@@ -68,8 +68,8 @@ export const Shell = () => {
     <>
       <PaletteStyleTag
         theme={currentTheme}
-        selector='.rcx-sidebar--main'
-        tagId='sidebar-palette'
+        // selector='.rcx-sidebar--main'
+        // tagId='sidebar-palette'
       />
       <GlobalStyles />
       {process.platform === 'darwin' && <WindowDragBar />}

@@ -1,4 +1,3 @@
-import { Box } from '@rocket.chat/fuselage';
 import type { ReactNode, MouseEvent, ReactElement } from 'react';
 import React, {
   createContext,
@@ -9,7 +8,7 @@ import React, {
   memo,
 } from 'react';
 
-import { TooltipComponent } from './TooltipComponent';
+import { TooltipComponent } from './TooltipComponent'; // Assuming this is the path to your TooltipComponent
 
 type TooltipProviderProps = {
   children: ReactNode;
@@ -35,26 +34,24 @@ const TooltipProvider = ({ children }: TooltipProviderProps): ReactElement => {
   const lastAnchor = useRef<HTMLElement | null>(null);
 
   const handleOnMouseOver = (event: MouseEvent): void => {
-    if (!tooltip) {
-      const title = 'Tooltip Title'; // Replace with your dynamic title logic
+    const anchor = event.currentTarget as HTMLElement;
+    const title = anchor.getAttribute('title');
 
-      setTooltip(
-        <TooltipComponent
-          title={
-            <>
-              <Box>
-                {title} ({process.platform === 'darwin' ? '⌘' : '^'}+Shortcut
-                Number) {/* Replace with dynamic shortcutNumber */}
-              </Box>
-              {/* Replace with dynamic logic */}
-              <Box>Additional Tooltip Content</Box>
-            </>
-          }
-          anchor={event.currentTarget as HTMLElement}
-        />
-      );
-      lastAnchor.current = event.currentTarget as HTMLElement;
+    if (!anchor || !title) {
+      return;
     }
+
+    // Split the title by newline if it exists
+    const lines = title
+      .split('\n')
+      .map((line, index) => <div key={index}>{line}</div>);
+
+    const formattedTooltip = (
+      <TooltipComponent title={<>{lines}</>} anchor={anchor} />
+    );
+
+    setTooltip(formattedTooltip);
+    lastAnchor.current = anchor;
   };
 
   const handleOnMouseOut = (): void => {

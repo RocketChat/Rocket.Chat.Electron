@@ -116,46 +116,26 @@ const ServerButton = ({
     toggle();
   };
 
-  const handleOnMouseOver = (event: MouseEvent): void => {
-    if (tooltip === null) {
-      setTooltip(
-        <TooltipComponent
-          title={
-            <>
-              <Box>
-                {title} ({process.platform === 'darwin' ? '⌘' : '^'}+
-                {shortcutNumber})
-              </Box>
-              {hasUnreadMessages && (
-                <Box>
-                  {mentionCount && mentionCount > 1
-                    ? t('sidebar.tooltips.unreadMessages', {
-                        count: mentionCount,
-                      })
-                    : t('sidebar.tooltips.unreadMessage', {
-                        count: mentionCount,
-                      })}
-                </Box>
-              )}
-              {!userLoggedIn && (
-                <Box>{t('sidebar.tooltips.userNotLoggedIn')}</Box>
-              )}
-            </>
-          }
-          anchor={event.currentTarget as HTMLElement}
-        />
-      );
-    }
-  };
-
-  const handleOnMouseOut = () => setTooltip(null);
+  const tooltipContent = `
+  ${title} (${process.platform === 'darwin' ? '⌘' : '^'}+${shortcutNumber})
+  ${
+    hasUnreadMessages
+      ? `
+    ${
+      mentionCount && mentionCount > 1
+        ? t('sidebar.tooltips.unreadMessages', { count: mentionCount })
+        : t('sidebar.tooltips.unreadMessage', { count: mentionCount })
+    }`
+      : ''
+  }
+  ${!userLoggedIn ? 'User not logged in' : ''}
+`.trim();
 
   return (
     <>
       <ServerButtonWrapper
         ref={reference}
         draggable='true'
-        // tooltip={title}
         isSelected={isSelected}
         isDragged={isDragged}
         hasUnreadMessages={hasUnreadMessages}
@@ -169,7 +149,7 @@ const ServerButton = ({
         onMouseOver={onMouseOver}
         onMouseOut={onMouseOut}
         className={className}
-        data-tooltip='Some Tooltip Text'
+        title={tooltipContent}
       >
         <IconButton
           small

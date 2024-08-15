@@ -339,7 +339,7 @@
       "unreadMessages": "{{- count}} unread messages",
       "userNotLoggedIn": "Not logged in",
       "addWorkspace": "Add workspace ({{shortcut}}+N)",
-      "settingsMenu": "{{platform}} app settings"
+      "settingsMenu": "Customize and control app"
     }
   },
   "touchBar": {

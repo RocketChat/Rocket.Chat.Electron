@@ -3,6 +3,7 @@ import {
   ButtonGroup,
   IconButton,
   MenuItem,
+  MenuSection,
   MenuV2,
   OptionContent,
   OptionIcon,
@@ -144,27 +145,24 @@ export const SideBar = () => {
         </ButtonGroup>
 
         <MenuV2
-          title={t('sidebar.tooltips.settingsMenu', {
-            platform: getPlatformName(),
-          })}
+          title={t('sidebar.tooltips.settingsMenu')}
           placement='right'
           onAction={handleMenuClick}
         >
-          {/* <MenuSection
-              title={t('sidebar.menuTitle', { platform: getPlatformName() })}
-            > */}
-          {/* <MenuItem key='hide_workspace_bar'>
+          <MenuSection title={t('sidebar.tooltips.settingsMenu')}>
+            {/* <MenuItem key='hide_workspace_bar'>
               <OptionIcon name='burger-arrow-left' />
               <OptionContent>Hide workspace bar</OptionContent>
             </MenuItem> */}
-          <MenuItem key='downloads'>
-            <OptionIcon name='circle-arrow-down' />
-            <OptionContent>{t('sidebar.downloads')}</OptionContent>
-          </MenuItem>
-          <MenuItem key='desktop_settings'>
-            <OptionIcon name='customize' />
-            <OptionContent>{t('sidebar.settings')}</OptionContent>
-          </MenuItem>
+            <MenuItem key='downloads'>
+              <OptionIcon name='circle-arrow-down' />
+              <OptionContent>{t('sidebar.downloads')}</OptionContent>
+            </MenuItem>
+            <MenuItem key='desktop_settings'>
+              <OptionIcon name='customize' />
+              <OptionContent>{t('sidebar.settings')}</OptionContent>
+            </MenuItem>
+          </MenuSection>
         </MenuV2>
       </Box>
     </Box>

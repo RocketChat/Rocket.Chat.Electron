@@ -11,7 +11,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { getPlatformName } from '../../../app/main/app';
 import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import {

@@ -10,7 +10,7 @@
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],
     "icon": "build/icon.icns",
-    "bundleVersion": "126",
+    "bundleVersion": "24070",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
     "artifactName": "rocketchat-${version}-${os}.${ext}",
@@ -22,7 +22,7 @@
     },
     "hardenedRuntime": true,
     "gatekeeperAssess": false,
-    "provisioningProfile": "embedded.provisionprofile"
+    "provisioningProfile": "Desktop.provisionprofile"
   },
   "dmg": {
     "background": "build/background.png",

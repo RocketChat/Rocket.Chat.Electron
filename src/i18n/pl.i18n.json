@@ -122,7 +122,6 @@
     "quit": "Wy&jdź {{- appName}}",
     "redo": "P&onów",
     "reload": "P&rzeładuj",
-    "reloadIgnoringCache": "Przeładuj ignorując pamięć podręczną",
     "reportIssue": "Raportowanie błędu",
     "resetAppData": "Reset danych aplikacji",
     "resetZoom": "Reset zoomu",

@@ -38,9 +38,18 @@
     },
     "certificateError": {
       "title": "Erro de Certificado",
-      "message": "Você confia no certificado de \"{{- issuerName}}\"?",
+      "message": "Você confia no certificado de \"{{- issuerName}}\"? Clique em 'Sim' apenas se você realmente confiar neste certificado. Se estiver em dúvida, entre em contato com sua equipe de TI ou segurança antes de clicar em 'Sim'.",
       "yes": "Sim",
       "no": "Não"
+    },
+    "clearCache": {
+      "announcement": "Forçar recarregamento",
+      "title": "Deseja manter a sessão de login?",
+      "message": "Ao excluir sua sessão de login, você será desconectado e precisará informar suas credenciais novamente.",
+      "keepLoginData": "Manter sessão de login",
+      "deleteLoginData": "Excluir sessão de login",
+      "clearingWait": "Aguarde, por favor",
+      "cancel": "Cancelar"
     },
     "downloadRemoval": {
       "title": "Você tem certeza?",
@@ -263,7 +272,7 @@
     "quit": "&Sair do {{- appName}}",
     "redo": "&Refazer",
     "reload": "&Recarregar",
-    "reloadIgnoringCache": "Recarregar ignorando o cache",
+    "reloadClearingCache": "Forçar recarregamento",
     "reportIssue": "Reportar problema",
     "resetAppData": "Limpar dados do aplicativo",
     "resetZoom": "Redefinir zoom",
@@ -307,7 +316,8 @@
       "openDevTools": "Abrir DevTools",
       "clearCache": "Limpar cache",
       "clearStorageData": "Limpar dados de armazenamento",
-      "copyCurrentUrl": "Copiar URL atual"
+      "copyCurrentUrl": "Copiar URL atual",
+      "reloadClearingCache": "Forçar recarregamento"
     }
   },
   "touchBar": {

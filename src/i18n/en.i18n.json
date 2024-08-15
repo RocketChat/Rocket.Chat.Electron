@@ -38,9 +38,18 @@
     },
     "certificateError": {
       "title": "Certificate error",
-      "message": "Do you trust certificate from \"{{- issuerName}}\"?",
+      "message": "Do you trust certificate from \"{{- issuerName}}\"? Only click 'Yes' if you really trust this certificate. If you are unsure, contact your IT or security team before clicking on 'Yes'.",
       "yes": "Yes",
       "no": "No"
+    },
+    "clearCache": {
+      "announcement": "Force reload",
+      "title": "Keep your login session?",
+      "message": "By deleting your login session you will be logged out and asked to inform your credentials again.",
+      "keepLoginData": "Keep login session",
+      "deleteLoginData": "Delete login session",
+      "clearingWait": "Please wait",
+      "cancel": "Cancel"
     },
     "downloadRemoval": {
       "title": "Are you sure?",
@@ -277,7 +286,7 @@
     "quit": "&Quit {{- appName}}",
     "redo": "&Redo",
     "reload": "&Reload",
-    "reloadIgnoringCache": "Reload ignoring cache",
+    "reloadClearingCache": "Force reload",
     "reportIssue": "Report issue",
     "resetAppData": "Reset app data",
     "resetZoom": "Reset zoom",
@@ -289,6 +298,7 @@
     "showServerList": "Server list",
     "showTrayIcon": "Tray icon",
     "toggleDevTools": "Toggle &DevTools",
+    "openConfigFolder": "Open &Configuration Folder",
     "undo": "&Undo",
     "unhide": "Show All",
     "viewMenu": "&View",
@@ -321,7 +331,8 @@
       "openDevTools": "Open DevTools",
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",
-      "copyCurrentUrl": "Copy current URL"
+      "copyCurrentUrl": "Copy current URL",
+      "reloadClearingCache": "Force reload"
     }
   },
   "touchBar": {

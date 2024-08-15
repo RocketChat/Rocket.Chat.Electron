@@ -28722,6 +28722,9 @@ function httpRedirectFetch (fetchParams, response) {
     // https://fetch.spec.whatwg.org/#cors-non-wildcard-request-header-name
     request.headersList.delete('authorization')
 
+    // https://fetch.spec.whatwg.org/#authentication-entries
+    request.headersList.delete('proxy-authorization', true)
+
     // "Cookie" and "Host" are forbidden request-headers, which undici doesn't implement.
     request.headersList.delete('cookie')
     request.headersList.delete('host')
@@ -42174,7 +42177,7 @@ const disableSpotlightIndexing = () => lib_core.group('Disable Spotlight indexin
 const packOnMacOS = () => runElectronBuilder(`--mac --universal`, {
     CSC_LINK: lib_core.getInput('mac_csc_link'),
     CSC_KEY_PASSWORD: lib_core.getInput('mac_csc_key_password'),
-    IS_PULL_REQUEST: 'false',
+    FORCE_NOTARIZE: 'true',
     APPLEID: lib_core.getInput('mac_apple_id'),
     APPLEIDPASS: lib_core.getInput('mac_apple_id_password'),
     ASC_PROVIDER: lib_core.getInput('mac_asc_provider'),

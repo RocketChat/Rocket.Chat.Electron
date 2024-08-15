@@ -6,7 +6,9 @@ import type {
   ContextMenuParams,
   Event,
   Input,
+  MediaAccessPermissionRequest,
   MenuItemConstructorOptions,
+  OpenExternalPermissionRequest,
   Session,
   UploadFile,
   UploadRawData,
@@ -41,6 +43,7 @@ import {
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_ATTACHED,
   WEBVIEW_SERVER_RELOADED,
+  CLEAR_CACHE_TRIGGERED,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -148,7 +151,7 @@ const initializeServerWebContentsAfterAttach = (
 
     const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 
-    if (key !== shortcutKey) {
+    if (key !== shortcutKey && key !== 'Escape') {
       return;
     }
 
@@ -268,6 +271,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   const handlePermissionRequest: Parameters<
     Session['setPermissionRequestHandler']
   >[0] = async (_webContents, permission, callback, details) => {
+    console.log('Permission request', permission, details);
     switch (permission) {
       case 'media': {
         if (process.platform !== 'darwin') {
@@ -275,7 +279,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
-        const { mediaTypes = [] } = details;
+        const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
         const allowed =
           (!mediaTypes.includes('audio') ||
             (await systemPreferences.askForMediaAccess('microphone'))) &&
@@ -294,12 +298,14 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         return;
 
       case 'openExternal': {
-        if (!details.externalURL) {
+        if (!(details as OpenExternalPermissionRequest).externalURL) {
           callback(false);
           return;
         }
 
-        const allowed = await isProtocolAllowed(details.externalURL);
+        const allowed = await isProtocolAllowed(
+          (details as OpenExternalPermissionRequest).externalURL as string
+        );
         callback(allowed);
         return;
       }
@@ -425,17 +431,16 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         },
       },
       {
-        label: t('sidebar.item.clearCache'),
+        label: t('sidebar.item.reloadClearingCache'),
         click: async () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          await guestWebContents?.session.clearCache();
-        },
-      },
-      {
-        label: t('sidebar.item.clearStorageData'),
-        click: async () => {
-          const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          await guestWebContents?.session.clearStorageData();
+          if (!guestWebContents) {
+            return;
+          }
+          dispatch({
+            type: CLEAR_CACHE_TRIGGERED,
+            payload: guestWebContents.id,
+          });
         },
       },
     ];

@@ -44,6 +44,9 @@ export const Shell = () => {
         )
       );
       console.log(server?.themeAppearance);
+      if (server?.themeAppearance === 'auto') {
+        return setCurrentTheme(machineTheme as Themes);
+      }
       return setCurrentTheme(server?.themeAppearance as Themes);
     }
     console.log(machineTheme);
@@ -69,7 +72,7 @@ export const Shell = () => {
     <TooltipProvider>
       <PaletteStyleTag
         theme={currentTheme}
-        // selector='.rcx-sidebar--main'
+        selector=':root'
         // tagId='sidebar-palette'
       />
       <GlobalStyles />

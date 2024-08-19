@@ -6,13 +6,8 @@ on:
       - master
       - develop
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref }}
-  cancel-in-progress: true
-
 jobs:
   build:
-    if: contains(github.event.pull_request.labels.*.name, 'build-artifacts')
     strategy:
       fail-fast: false
       matrix:
@@ -42,7 +37,7 @@ jobs:
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install package dependencies
-        run: yarn install --inline-builds
+        run: yarn install
 
       - name: Lint
         run: yarn lint

@@ -25,10 +25,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node 20.10.0
+      - name: Setup Node 20.16.0
         uses: actions/setup-node@v3
         with:
-          node-version: '20.10.0'
+          node-version: '20.16.0'
 
       - name: Setup node_modules cache
         uses: actions/cache@v3

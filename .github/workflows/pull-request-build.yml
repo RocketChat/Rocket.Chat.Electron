@@ -42,7 +42,7 @@ jobs:
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install package dependencies
-        run: yarn install
+        run: yarn install --verbose
 
       - name: Lint
         run: yarn lint

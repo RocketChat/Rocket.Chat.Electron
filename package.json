@@ -38,7 +38,7 @@
     "build-assets-win": "ts-node -O \"{\\\"module\\\":\\\"commonjs\\\"}\" src/buildAssets.ts",
     "release": "yarn electron-builder --publish onTagOrDraft --x64",
     "install-app-deps": "electron-builder install-app-deps",
-    "test": "xvfb-maybe jest --runInBand --forceExit --detectOpenHandles --maxWorkers=1",
+    "test": "xvfb-maybe jest --forceExit --detectOpenHandles --maxWorkers=1",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "lint": "run-s .:lint:eslint .:lint:tsc",
     ".:lint:eslint": "eslint .",

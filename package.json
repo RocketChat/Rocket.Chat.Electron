@@ -88,7 +88,7 @@
     "@babel/preset-typescript": "~7.23.3",
     "@fiahfy/icns-convert": "~0.0.12",
     "@fiahfy/ico-convert": "~0.0.12",
-    "@kayahr/jest-electron-runner": "~29.11.0",
+    "@kayahr/jest-electron-runner": "29.14.0",
     "@rocket.chat/eslint-config": "~0.7.0",
     "@rocket.chat/prettier-config": "~0.31.25",
     "@rollup/plugin-babel": "~6.0.4",

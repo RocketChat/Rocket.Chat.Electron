@@ -2258,12 +2258,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@electron/remote@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "@electron/remote@npm:2.1.1"
+"@electron/remote@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "@electron/remote@npm:2.1.2"
   peerDependencies:
     electron: ">= 13.0.0"
-  checksum: 01ce6329d231e83dd79826c751bcd04afb991ddec381126217b5b28ca76318434e8a9a9ddf7f9f334bf6971b6c95a9349c25094ad79dccd7422f8b18ea0dcab6
+  checksum: c0fa92fb30ca0dab600513b17f648a935b3e9718516d446d65590ac98a8765e0a8d20c5c6714069a164b52a32f0f07cee87a23ff8ee65197f69d0151679ac291
   languageName: node
   linkType: hard
 
@@ -3494,14 +3494,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kayahr/jest-electron-runner@npm:~29.11.0":
-  version: 29.11.0
-  resolution: "@kayahr/jest-electron-runner@npm:29.11.0"
+"@kayahr/jest-electron-runner@npm:29.14.0":
+  version: 29.14.0
+  resolution: "@kayahr/jest-electron-runner@npm:29.14.0"
   dependencies:
-    "@electron/remote": "npm:^2.1.1"
+    "@electron/remote": "npm:^2.1.2"
     "@jest/console": "npm:^29.7.0"
     "@jest/transform": "npm:^29.7.0"
-    electron: "npm:^28.1.0"
+    electron: "npm:^31.0.1"
     jest: "npm:^29.7.0"
     jest-docblock: "npm:^29.7.0"
     jest-haste-map: "npm:^29.7.0"
@@ -3516,9 +3516,9 @@ __metadata:
     shell-quote: "npm:^1.8.1"
     source-map-support: "npm:^0.5.21"
     throat: "npm:^6.0.2"
-    tslib: "npm:^2.6.2"
-    uuid: "npm:^9.0.1"
-  checksum: 88ef97367b2a39459c4c8cbbf79e324d3b416634c8fd8270d7549f2b683aea2129cda7e476e4c94d49954c31818a4fd206d9dd7ddf96abf1e66aad44ba4fea04
+    tslib: "npm:^2.6.3"
+    uuid: "npm:^10.0.0"
+  checksum: e851765f755e80a925f5d0a9cbf605510ccdc6f69d1b0d797ab5007f70652e3e96f7170c011d5d9b4b036fb2f873e388b13dc7c44071e272e7d4e6785dff2aa0
   languageName: node
   linkType: hard
 
@@ -5827,15 +5827,6 @@ __metadata:
   version: 16.9.1
   resolution: "@types/node@npm:16.9.1"
   checksum: c144c007a42b3fbdea10dbb814b86d541197dfabcdc8b11e437ae984fd34dbac06e12b2b3a6a1d5453a8f877a505d3c269274c485cfc310ce14893094134a1d1
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^18.11.18":
-  version: 18.18.9
-  resolution: "@types/node@npm:18.18.9"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: ebd98b117c868edc597807cd0dab214b6110b9cd5ee406632641d0cf5b8bd7cb199caaac657a046d9203c441dbcfb3c71154ffa2d615ec89f80e6972143e6ec8
   languageName: node
   linkType: hard
 
@@ -8959,16 +8950,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^28.1.0":
-  version: 28.1.1
-  resolution: "electron@npm:28.1.1"
+"electron@npm:^31.0.1":
+  version: 31.4.0
+  resolution: "electron@npm:31.4.0"
   dependencies:
     "@electron/get": "npm:^2.0.0"
-    "@types/node": "npm:^18.11.18"
+    "@types/node": "npm:^20.9.0"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: fa5489892ce7376aa50f0dc4c1c3225d791a301c4559ce458dab1949aabf3b036a909888202e4bd75fbf9691c8c110cae843f1bb105d9f64778f8c115f7f2015
+  checksum: 445bf8b04f0f8fcc16da4832634507c01bbdd6733ef8236e2216f8f4667d070115d41b7bd28f73ca91f819a720a629e1cbea08b079fa7bde424fd24b6aef4499
   languageName: node
   linkType: hard
 
@@ -15306,7 +15297,7 @@ __metadata:
     "@ewsjs/xhr": "npm:~2.0.2"
     "@fiahfy/icns-convert": "npm:~0.0.12"
     "@fiahfy/ico-convert": "npm:~0.0.12"
-    "@kayahr/jest-electron-runner": "npm:~29.11.0"
+    "@kayahr/jest-electron-runner": "npm:29.14.0"
     "@rocket.chat/css-in-js": "npm:~0.31.25"
     "@rocket.chat/eslint-config": "npm:~0.7.0"
     "@rocket.chat/fuselage": "npm:0.58.0"
@@ -16781,6 +16772,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tslib@npm:^2.6.3":
+  version: 2.6.3
+  resolution: "tslib@npm:2.6.3"
+  checksum: 52109bb681f8133a2e58142f11a50e05476de4f075ca906d13b596ae5f7f12d30c482feb0bff167ae01cfc84c5803e575a307d47938999246f5a49d174fc558c
+  languageName: node
+  linkType: hard
+
 "tsutils@npm:^3.21.0":
   version: 3.21.0
   resolution: "tsutils@npm:3.21.0"
@@ -17283,21 +17281,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uuid@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "uuid@npm:10.0.0"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 35aa60614811a201ff90f8ca5e9ecb7076a75c3821e17f0f5ff72d44e36c2d35fcbc2ceee9c4ac7317f4cc41895da30e74f3885e30313bee48fda6338f250538
+  languageName: node
+  linkType: hard
+
 "uuid@npm:^8.3.2":
   version: 8.3.2
   resolution: "uuid@npm:8.3.2"
   bin:
     uuid: dist/bin/uuid
   checksum: 9a5f7aa1d6f56dd1e8d5f2478f855f25c645e64e26e347a98e98d95781d5ed20062d6cca2eecb58ba7c84bc3910be95c0451ef4161906abaab44f9cb68ffbdd1
-  languageName: node
-  linkType: hard
-
-"uuid@npm:^9.0.1":
-  version: 9.0.1
-  resolution: "uuid@npm:9.0.1"
-  bin:
-    uuid: dist/bin/uuid
-  checksum: 9d0b6adb72b736e36f2b1b53da0d559125ba3e39d913b6072f6f033e0c87835b414f0836b45bcfaf2bdf698f92297fea1c3cc19b0b258bc182c9c43cc0fab9f2
   languageName: node
   linkType: hard
 

@@ -35,14 +35,19 @@ jobs:
         with:
           node-version: '21.7.1'
 
-      - name: Setup node_modules cache
+      - name: Get Yarn cache directory
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: Use Yarn cache
         uses: actions/cache@v4
+        id: yarn-cache
         with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install package dependencies
-        run: yarn install
+        run: yarn install --prefer-offline --frozen-lockfile
 
       - name: Lint
         run: yarn lint

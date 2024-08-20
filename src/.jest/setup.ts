@@ -27,10 +27,3 @@ expect.extend({
     };
   },
 });
-
-afterAll(() => {
-  // Force cleanup of lingering processes or handles
-  if (process.platform === 'win32') {
-    require('child_process').execSync('taskkill /F /IM electron.exe || true');
-  }
-});

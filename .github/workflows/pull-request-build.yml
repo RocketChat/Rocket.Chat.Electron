@@ -47,7 +47,7 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install package dependencies
-        run: yarn install --prefer-offline --frozen-lockfile
+        run: yarn install
 
       - name: Lint
         run: yarn lint

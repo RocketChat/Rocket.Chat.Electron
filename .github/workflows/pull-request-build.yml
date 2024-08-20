@@ -20,6 +20,9 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
+        include:
+          - os: self-hosted
+            label: macos
     runs-on: ${{ matrix.os }}
     steps:
       - name: Disable git core.autocrlf

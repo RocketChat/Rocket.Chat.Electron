@@ -35,9 +35,14 @@ jobs:
         with:
           node-version: '21.7.1'
 
-      - name: Get Yarn cache directory
+      - name: Get Yarn cache directory (Linux and macOS)
+        if: ${{ matrix.os != 'windows-latest' }}
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir | tail -n 1)" >> $GITHUB_ENV
+
+      - name: Set Yarn cache directory for Windows
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: echo "dir=C:\\Users\\runneradmin\\AppData\\Local\\Yarn\\Cache" >> $GITHUB_ENV
 
       - name: Use Yarn cache
         uses: actions/cache@v4
@@ -63,14 +68,14 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       - name: Build Windows Package
-        if: ${{ matrix.os == 'windows-latest'}}
+        if: ${{ matrix.os == 'windows-latest' }}
         run: yarn electron-builder --publish never --x64 --win nsis
         env:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Build MacOS Package
-        if: ${{ matrix.os == 'macos-latest'}}
+        if: ${{ matrix.os == 'macos-latest' }}
         run: |
           sudo mdutil -a -i off
           yarn electron-builder --publish never --mac --universal
@@ -84,7 +89,7 @@ jobs:
           ASC_PROVIDER: 'S6UPZG7ZR3'
 
       - name: Build Ubuntu Package
-        if: ${{ matrix.os == 'ubuntu-latest'}}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: yarn electron-builder --publish never --linux snap
 
       - name: Upload Artifacts

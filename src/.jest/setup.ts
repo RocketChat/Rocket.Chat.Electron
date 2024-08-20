@@ -27,18 +27,3 @@ expect.extend({
     };
   },
 });
-
-afterAll(() => {
-  console.log('Cleaning up...');
-
-  if (process.platform === 'win32') {
-    try {
-      require('child_process').execSync('taskkill /F /IM electron.exe || true');
-      console.log('Successfully killed Electron process');
-    } catch (error) {
-      console.error('Failed to kill Electron process:', error);
-    }
-  }
-
-  console.log('Finished cleanup');
-});

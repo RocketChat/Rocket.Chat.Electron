@@ -37,7 +37,7 @@ jobs:
 
       - name: Get Yarn cache directory
         id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_ENV
 
       - name: Use Yarn cache
         uses: actions/cache@v4

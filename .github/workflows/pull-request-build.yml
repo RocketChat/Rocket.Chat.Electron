@@ -77,8 +77,8 @@ jobs:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
-      - name: Build MacOS Package
-        if: ${{ matrix.os == 'macos-latest' || runner.labels.contains('macos') }}
+      - name: Build MacOS Packag
+        if: matrix.os == 'macos-latest' || 'macos' in runner.labels
         run: |
           sudo mdutil -a -i off
           yarn electron-builder --publish never --mac --universal

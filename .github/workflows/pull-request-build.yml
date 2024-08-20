@@ -35,24 +35,20 @@ jobs:
         with:
           node-version: '21.7.1'
 
-      - name: Get Yarn cache directory (Linux and macOS)
+      - name: Use Yarn cache (Linux/MacOS)
         if: ${{ matrix.os != 'windows-latest' }}
-        id: yarn-cache-dir-path
-        run: echo "dir=$(yarn cache dir | tail -n 1)" >> $GITHUB_ENV
-
-      - name: Set Yarn cache directory for Windows
-        if: ${{ matrix.os == 'windows-latest' }}
-        id: yarn-cache-dir-path-windows
-        run: echo "dir=C:\\Users\\runneradmin\\AppData\\Local\\Yarn\\Cache" >> $GITHUB_ENV
-
-      - name: Debug Cache Path
-        run: echo "Cache path is ${{ env.dir }}"
-
-      - name: Use Yarn cache
         uses: actions/cache@v4
         id: yarn-cache
         with:
-          path: ${{ env.dir }}
+          path: ~/.cache/yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Use Yarn cache (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: actions/cache@v4
+        id: yarn-cache
+        with:
+          path: C:\Users\runneradmin\AppData\Local\Yarn\Cache
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install package dependencies

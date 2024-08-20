@@ -11,7 +11,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-self-hosted-macos:
+    runs-on: ubuntu-latest
+    outputs:
+      macos-runner-available: ${{ steps.check.outputs.available }}
+    steps:
+      - name: Check for self-hosted macOS runner
+        id: check
+        run: |
+          macos_runners=$(gh api -H "Accept: application/vnd.github.v3+json" /repos/${{ github.repository }}/actions/runners | jq '.runners[] | select(.labels | .[] | select(.name == "macos")) | select(.status == "online")')
+          if [ -z "$macos_runners" ]; then
+            echo "macos-runner-available=false" >> $GITHUB_ENV
+          else
+            echo "macos-runner-available=true" >> $GITHUB_ENV
+        shell: bash
+
   build:
+    needs: check-self-hosted-macos
     if: contains(github.event.pull_request.labels.*.name, 'build-artifacts')
     strategy:
       fail-fast: false
@@ -23,8 +39,9 @@ jobs:
           - self-hosted-macos
         include:
           - os: self-hosted-macos
-            runs-on: self-hosted
+            runs-on: self-hosted && macos  # This ensures it only runs on your self-hosted macOS runner
     runs-on: ${{ matrix.os }}
+    if: matrix.os != 'self-hosted-macos' || needs.check-self-hosted-macos.outputs.macos-runner-available == 'true'
     steps:
       - name: Disable git core.autocrlf
         run: git config --global core.autocrlf false
@@ -78,8 +95,8 @@ jobs:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
-      - name: Build MacOS Packag
-        if: matrix.os == 'macos-latest' || matrix.os == 'self-hosted-macos'
+      - name: Build MacOS Package
+        if: matrix.os == 'macos-latest' || (matrix.os == 'self-hosted-macos' && needs.check-self-hosted-macos.outputs.macos-runner-available == 'true')
         run: |
           sudo mdutil -a -i off
           yarn electron-builder --publish never --mac --universal

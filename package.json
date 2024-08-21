@@ -138,7 +138,7 @@
     "fsevents": "2.3.3"
   },
   "engines": {
-    "node": ">=20.10.0"
+    "node": ">=20.14.0"
   },
   "devEngines": {
     "node": ">=20.10.0",
@@ -149,8 +149,8 @@
     "@fiahfy/ico-convert/sharp": "0.29.3"
   },
   "volta": {
-    "node": "20.10.0",
-    "yarn": "4.0.2"
+    "node": "20.14.0",
+    "yarn": "4.4.0"
   },
-  "packageManager": "yarn@4.0.2"
+  "packageManager": "yarn@4.4.0"
 }

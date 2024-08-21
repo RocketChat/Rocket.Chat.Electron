@@ -117,19 +117,23 @@ jobs:
 
       - name: Generate Artifact Links (Linux/macOS)
         if: runner.os != 'Windows'
+        id: generate-links-linux-macos
         run: |
           if [ -n "${{ steps.get-artifact-url.outputs.artifact_url }}" ]; then
             echo "### Artifacts for ${{ matrix.os }}" > artifact-links.md
             echo "- [${{ runner.os }} Artifacts](${{ steps.get-artifact-url.outputs.artifact_url }})" >> artifact-links.md
+            echo "::set-output name=artifact_url::${{ steps.get-artifact-url.outputs.artifact_url }}"
           fi
         shell: bash
 
       - name: Generate Artifact Links (Windows)
         if: runner.os == 'Windows'
+        id: generate-links-windows
         run: |
           if ($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL -ne '') {
             "### Artifacts for $env:MATRIX_OS" | Out-File -FilePath artifact-links.md
             "- [$env:RUNNER_OS Artifacts]($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL)" | Out-File -FilePath artifact-links.md -Append
+            echo "::set-output name=artifact_url::$env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL"
           }
         shell: pwsh
 

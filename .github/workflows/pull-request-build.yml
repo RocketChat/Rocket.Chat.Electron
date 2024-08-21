@@ -115,35 +115,30 @@ jobs:
               core.setFailed(`Artifact not found for ${artifact.name}`);
             }
 
-      - name: Generate Artifact Links
-        id: generate-links
-        run: |
-          echo "### Artifacts for ${{ matrix.os }}" > artifact-links.md
-          echo "- [${{ runner.os }} Artifacts](${{ steps.get-artifact-url.outputs.artifact_url }})" >> artifact-links.md
-
-      - name: Verify Artifact Links File
-        run: |
-          if [ -f artifact-links.md ]; then
-            echo "artifact-links.md exists."
-          else
-            echo "artifact-links.md not found. Creating a placeholder."
-            echo "No artifacts found for this run." > artifact-links.md
-        shell: bash
+      - name: Generate Artifact Links (Linux/macOS)
         if: runner.os != 'Windows'
-
-      - name: Verify Artifact Links File on Windows
         run: |
-          if (!(Test-Path -Path "artifact-links.md")) {
-            Write-Output "artifact-links.md not found. Creating a placeholder."
-            "No artifacts found for this run." | Out-File -FilePath artifact-links.md
+          if [ -n "${{ steps.get-artifact-url.outputs.artifact_url }}" ]; then
+            echo "### Artifacts for ${{ matrix.os }}" > artifact-links.md
+            echo "- [${{ runner.os }} Artifacts](${{ steps.get-artifact-url.outputs.artifact_url }})" >> artifact-links.md
+          fi
+        shell: bash
+
+      - name: Generate Artifact Links (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          if ($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL -ne '') {
+            "### Artifacts for $env:MATRIX_OS" | Out-File -FilePath artifact-links.md
+            "- [$env:RUNNER_OS Artifacts]($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL)" | Out-File -FilePath artifact-links.md -Append
           }
         shell: pwsh
-        if: runner.os == 'Windows'
 
-      - name: Post Separate PR Comment for Each OS
+      - name: Post PR Comment with the Artifact link
+        if: steps.generate-links.outputs.artifact_url != ''
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           path: artifact-links.md
+          header: '### Artifact for ${{ matrix.os }}'
           recreate: true
           append: false

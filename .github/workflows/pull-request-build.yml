@@ -122,12 +122,23 @@ jobs:
           echo "- [${{ runner.os }} Artifacts](${{ steps.get-artifact-url.outputs.artifact_url }})" >> artifact-links.md
 
       - name: Verify Artifact Links File
-        id: verify-links
         run: |
-          if [ ! -f artifact-links.md ]; then
+          if [ -f artifact-links.md ]; then
+            echo "artifact-links.md exists."
+          else
             echo "artifact-links.md not found. Creating a placeholder."
             echo "No artifacts found for this run." > artifact-links.md
-          fi
+        shell: bash
+        if: runner.os != 'Windows'
+
+      - name: Verify Artifact Links File on Windows
+        run: |
+          if (!(Test-Path -Path "artifact-links.md")) {
+            Write-Output "artifact-links.md not found. Creating a placeholder."
+            "No artifacts found for this run." | Out-File -FilePath artifact-links.md
+          }
+        shell: pwsh
+        if: runner.os == 'Windows'
 
       - name: Post Separate PR Comment for Each OS
         uses: marocchino/sticky-pull-request-comment@v2

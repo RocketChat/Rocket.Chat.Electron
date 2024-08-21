@@ -133,13 +133,14 @@ jobs:
           if ($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL -ne '') {
             "### Artifacts for $env:MATRIX_OS" | Out-File -FilePath artifact-links.md
             "- [$env:RUNNER_OS Artifacts]($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL)" | Out-File -FilePath artifact-links.md -Append
-            echo "artifact_url=$env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL" >> $env:GITHUB_ENV
+            Add-Content -Path $env:GITHUB_ENV -Value "artifact_url=$($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL)"
           }
         shell: pwsh
 
       - name: Debug - Print GITHUB_ENV Content (Windows)
         if: runner.os == 'Windows'
         run: |
+          Write-Host "Contents of GITHUB_ENV:"
           Get-Content $env:GITHUB_ENV
         shell: pwsh
 

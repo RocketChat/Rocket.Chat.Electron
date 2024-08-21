@@ -97,10 +97,16 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const artifacts = await github.actions.listArtifactsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo
+            const runId = context.runId;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo,
+              run_id: runId
             });
+
             const artifact = artifacts.data.artifacts.find(a => a.name === '${{ runner.os }} Artifacts');
             if (artifact) {
               const url = `https://github.com/${{ github.repository }}/suites/${{ github.run_id }}/artifacts/${artifact.id}`;
@@ -114,6 +120,14 @@ jobs:
         run: |
           echo "### Artifacts for ${{ matrix.os }}" >> artifact-links.md
           echo "- [${{ runner.os }} Artifacts](${{ steps.get-artifact-url.outputs.artifact_url }})" >> artifact-links.md
+
+      - name: Verify Artifact Links File
+        id: verify-links
+        run: |
+          if [ ! -f artifact-links.md ]; then
+            echo "artifact-links.md not found. Creating a placeholder."
+            echo "No artifacts found for this run." > artifact-links.md
+          fi
 
       - name: Update Pull Request Comment
         if: always()

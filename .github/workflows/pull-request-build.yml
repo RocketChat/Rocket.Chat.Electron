@@ -122,7 +122,7 @@ jobs:
           if [ -n "${{ steps.get-artifact-url.outputs.artifact_url }}" ]; then
             echo "### Artifacts for ${{ matrix.os }}" > artifact-links.md
             echo "- [${{ runner.os }} Artifacts](${{ steps.get-artifact-url.outputs.artifact_url }})" >> artifact-links.md
-            echo "::set-output name=artifact_url::${{ steps.get-artifact-url.outputs.artifact_url }}"
+            echo "artifact_url=${{ steps.get-artifact-url.outputs.artifact_url }}" >> $GITHUB_ENV
           fi
         shell: bash
 
@@ -133,12 +133,12 @@ jobs:
           if ($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL -ne '') {
             "### Artifacts for $env:MATRIX_OS" | Out-File -FilePath artifact-links.md
             "- [$env:RUNNER_OS Artifacts]($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL)" | Out-File -FilePath artifact-links.md -Append
-            echo "::set-output name=artifact_url::$env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL"
+            echo "artifact_url=$env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL" >> $env:GITHUB_ENV
           }
         shell: pwsh
 
       - name: Post PR Comment with the Artifact link
-        if: steps.generate-links.outputs.artifact_url != ''
+        if: env.artifact_url != ''
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

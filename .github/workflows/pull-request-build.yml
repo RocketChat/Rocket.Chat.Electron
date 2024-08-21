@@ -156,4 +156,3 @@ jobs:
           header: '### Artifact for Windows'
           recreate: true
           append: false
-        shell: pwsh

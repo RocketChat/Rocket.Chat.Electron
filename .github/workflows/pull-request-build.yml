@@ -117,7 +117,7 @@ jobs:
 
       - name: Generate Artifact Links (Linux/macOS)
         if: runner.os != 'Windows'
-        id: generate-links-linux-macos
+        id: generate-links-unix
         run: |
           if [ -n "${{ steps.get-artifact-url.outputs.artifact_url }}" ]; then
             echo "### Artifacts for ${{ matrix.os }}" > artifact-links.md
@@ -137,7 +137,7 @@ jobs:
           }
         shell: pwsh
 
-      - name: Post PR Comment with the Artifact link
+      - name: Post PR Comment with the Artifact link (Linux/macOS)
         if: env.artifact_url != ''
         uses: marocchino/sticky-pull-request-comment@v2
         with:
@@ -146,3 +146,14 @@ jobs:
           header: '### Artifact for ${{ matrix.os }}'
           recreate: true
           append: false
+
+      - name: Post PR Comment with the Artifact link (Windows)
+        if: env.artifact_url != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: artifact-links.md
+          header: '### Artifact for Windows'
+          recreate: true
+          append: false
+        shell: pwsh

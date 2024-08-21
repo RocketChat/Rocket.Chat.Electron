@@ -145,10 +145,6 @@ jobs:
 
       - name: Post PR Comment with the Artifact link (Windows)
         if: runner.os == 'Windows'
-        run: |
-          if (Test-Path -Path "artifact-links.md") {
-            Write-Host "artifact-links.md exists, posting comment..."
-          }
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

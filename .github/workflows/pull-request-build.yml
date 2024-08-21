@@ -91,3 +91,33 @@ jobs:
             dist/rocketchat-*.pkg
             dist/rocketchat-*.exe
             dist/rocketchat-*.snap
+
+      - name: Get Artifact URL
+        id: get-artifact-url
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifacts = await github.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const artifact = artifacts.data.artifacts.find(a => a.name === '${{ runner.os }} Artifacts');
+            if (artifact) {
+              const url = `https://github.com/${{ github.repository }}/suites/${{ github.run_id }}/artifacts/${artifact.id}`;
+              core.setOutput('artifact_url', url);
+            } else {
+              core.setFailed(`Artifact not found for ${artifact.name}`);
+            }
+
+      - name: Generate Artifact Links
+        id: generate-links
+        run: |
+          echo "### Artifacts for ${{ matrix.os }}" >> artifact-links.md
+          echo "- [${{ runner.os }} Artifacts](${{ steps.get-artifact-url.outputs.artifact_url }})" >> artifact-links.md
+
+      - name: Update Pull Request Comment
+        if: always()
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: artifact-links.md

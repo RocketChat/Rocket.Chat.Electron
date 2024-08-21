@@ -137,6 +137,16 @@ jobs:
           }
         shell: pwsh
 
+      - name: Debug - Check artifact_url (Windows)
+        if: runner.os == 'Windows'
+        run: echo "artifact_url=$env:artifact_url"
+        shell: pwsh
+
+      - name: Debug - Check artifact_url (Windows)
+        if: env.artifact_url != ''
+        run: echo artifact_url=$env:artifact_url
+        shell: pwsh
+
       - name: Post PR Comment with the Artifact link (Linux/macOS)
         if: env.artifact_url != ''
         uses: marocchino/sticky-pull-request-comment@v2

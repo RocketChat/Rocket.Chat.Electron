@@ -117,7 +117,7 @@ jobs:
 
       - name: Update Pull Request Comment
         if: always()
-        uses: marocchino/sticky-pull-request-comment@v3
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           path: artifact-links.md

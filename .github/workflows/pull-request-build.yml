@@ -118,7 +118,7 @@ jobs:
       - name: Generate Artifact Links
         id: generate-links
         run: |
-          echo "### Artifacts for ${{ matrix.os }}" >> artifact-links.md
+          echo "### Artifacts for ${{ matrix.os }}" > artifact-links.md
           echo "- [${{ runner.os }} Artifacts](${{ steps.get-artifact-url.outputs.artifact_url }})" >> artifact-links.md
 
       - name: Verify Artifact Links File
@@ -129,9 +129,10 @@ jobs:
             echo "No artifacts found for this run." > artifact-links.md
           fi
 
-      - name: Update Pull Request Comment
-        if: always()
+      - name: Post Separate PR Comment for Each OS
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           path: artifact-links.md
+          recreate: true
+          append: false

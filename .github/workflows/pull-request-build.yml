@@ -157,14 +157,3 @@ jobs:
           header: '### Artifact for ${{ matrix.os }}'
           recreate: true
           append: false
-
-      - name: Post PR Comment with the Artifact link (Windows)
-        if: env.artifact_url != ''
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          path: artifact-links.md
-          header: '### Artifact for Windows'
-          recreate: true
-          append: false
-        shell: pwsh

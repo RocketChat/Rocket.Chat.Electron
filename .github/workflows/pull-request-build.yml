@@ -115,42 +115,13 @@ jobs:
               core.setFailed(`Artifact not found for ${artifact.name}`);
             }
 
-      - name: Generate Artifact Links (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          if [ -n "${{ steps.get-artifact-url.outputs.artifact_url }}" ]; then
-            echo "### Artifacts for ${{ matrix.os }}" > artifact-links.md
-            echo "- [${{ runner.os }} Artifacts](${{ steps.get-artifact-url.outputs.artifact_url }})" >> artifact-links.md
-          fi
-        shell: bash
-
-      - name: Generate Artifact Links (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          if ($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL -ne '') {
-            $artifactHeader = "### Artifacts for $env:MATRIX_OS"
-            $artifactLink = "- [$env:RUNNER_OS Artifacts]($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL)"
-            $artifactHeader | Out-File -FilePath artifact-links.md
-            $artifactLink | Out-File -FilePath artifact-links.md -Append
-          }
-        shell: pwsh
-
-      - name: Post PR Comment with the Artifact link (Linux/macOS)
-        if: runner.os != 'Windows'
+      - name: Post PR Comment with the Artifact link
+        if: steps.get-artifact-url.outputs.artifact_url != ''
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          path: artifact-links.md
-          header: '### Artifact for ${{ matrix.os }}'
-          recreate: true
-          append: false
-
-      - name: Post PR Comment with the Artifact link (Windows)
-        if: runner.os == 'Windows'
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          path: artifact-links.md
-          header: '### Artifact for Windows'
+          message: |
+            ### Artifacts for ${{ runner.os }}\n- [${{ runner.os }} Artifacts](${{ steps.get-artifact-url.outputs.artifact_url }})
+          header: '### Artifact for ${{ runner.os }}'
           recreate: true
           append: false

@@ -97,9 +97,9 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const runId = context.runId;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
+            const runId = context.runId;
 
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
               owner,
@@ -109,7 +109,7 @@ jobs:
 
             const artifact = artifacts.data.artifacts.find(a => a.name === '${{ runner.os }} Artifacts');
             if (artifact) {
-              const url = `https://github.com/${{ github.repository }}/suites/${{ github.run_id }}/artifacts/${artifact.id}`;
+              const url = `https://github.com/${owner}/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
               core.setOutput('artifact_url', url);
             } else {
               core.setFailed(`Artifact not found for ${artifact.name}`);

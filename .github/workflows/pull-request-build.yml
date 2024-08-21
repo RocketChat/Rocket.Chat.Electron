@@ -121,7 +121,7 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           message: |
-            - [${{ runner.os }} installer download](${{ steps.get-artifact-url.outputs.artifact_url }})
+            ###[${{ runner.os }} installer download](${{ steps.get-artifact-url.outputs.artifact_url }})
           header: '### Artifact for ${{ runner.os }}'
           recreate: true
           append: false

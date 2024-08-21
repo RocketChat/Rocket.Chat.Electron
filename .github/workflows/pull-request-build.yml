@@ -128,8 +128,10 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           if ($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL -ne '') {
-            "### Artifacts for $env:MATRIX_OS" | Out-File -FilePath artifact-links.md
-            "- [$env:RUNNER_OS Artifacts]($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL)" | Out-File -FilePath artifact-links.md -Append
+            $artifactHeader = "### Artifacts for $env:MATRIX_OS"
+            $artifactLink = "- [$env:RUNNER_OS Artifacts]($env:STEPS_GET_ARTIFACT_URL_OUTPUTS_ARTIFACT_URL)"
+            $artifactHeader | Out-File -FilePath artifact-links.md
+            $artifactLink | Out-File -FilePath artifact-links.md -Append
           }
         shell: pwsh
 

@@ -24,8 +24,8 @@ const convertSvgToPng = async (
   ...sizes: (number | [number, number])[]
 ): Promise<Buffer[]> => {
   const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--use-gl=desktop'],
+    // headless: 'new',
+    args: ['--use-gl=desktop', '--no-sandbox', '--disable-setuid-sandbox'],
   });
   const page = await browser.newPage();
   await page.goto(

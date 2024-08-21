@@ -47,10 +47,12 @@ const convertSvgToPng = async (
           }),
       deviceScaleFactor: 1,
     });
-    const buffer = await page.screenshot({
-      type: 'png',
-      omitBackground: true,
-    });
+    const buffer = Buffer.from(
+      await page.screenshot({
+        type: 'png',
+        omitBackground: true,
+      })
+    );
     buffers.push(buffer);
   }
 

@@ -9,6 +9,8 @@ declare global {
 
 console.log('[Rocket.Chat Desktop] Injected.ts');
 
+let retriesCount = 0;
+
 const resolveWithExponentialBackoff = <T>(
   fn: () => Promise<T>,
   { maxRetries = 5, delay = 1000 } = {}
@@ -41,6 +43,14 @@ const start = async () => {
     console.log('[Rocket.Chat Desktop] window.require is not defined');
     console.log('[Rocket.Chat Desktop] Inject start - retrying in 1 seconds');
     setTimeout(start, 1000);
+    if (retriesCount > 10) {
+      console.log(
+        '[Rocket.Chat Desktop] Inject start - retries exceeded, forcing reload'
+      );
+      location.reload();
+    } else {
+      retriesCount++;
+    }
     return;
   }
 

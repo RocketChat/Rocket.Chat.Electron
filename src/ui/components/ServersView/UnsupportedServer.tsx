@@ -11,7 +11,6 @@ import { ipcRenderer } from 'electron';
 import { useTranslation } from 'react-i18next';
 
 import * as urls from '../../../urls';
-import { ErrorPane } from './styles';
 
 type UnsupportedServerProps = {
   isSupported: boolean | undefined;

@@ -32,39 +32,36 @@ const UnsupportedServer = ({
   };
 
   return (
-    <ErrorPane isVisible={isSupported === false}>
-      <Box
-        backgroundColor='surface-light'
-        display='flex'
-        flexDirection='column'
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          zIndex: 0,
-        }}
-        justifyContent='center'
-        alignItems='center'
-        zIndex={1}
-      >
-        <States>
-          <StatesIcon name='warning' />
-          <StatesTitle>
-            {t('unsupportedServer.title', {
-              instanceDomain,
-            })}
-          </StatesTitle>
-          <StatesSubtitle>{t('unsupportedServer.announcement')}</StatesSubtitle>
-          <StatesActions>
-            <Button secondary onClick={handleMoreInfoButtonClick}>
-              {t('unsupportedServer.moreInformation')}
-            </Button>
-          </StatesActions>
-        </States>
-      </Box>
-    </ErrorPane>
+    <>
+      {isSupported === false && (
+        <Box
+          backgroundColor='surface-light'
+          display='flex'
+          flexDirection='column'
+          width='100vw'
+          justifyContent='center'
+          alignItems='center'
+          zIndex={1}
+        >
+          <States>
+            <StatesIcon name='warning' />
+            <StatesTitle>
+              {t('unsupportedServer.title', {
+                instanceDomain,
+              })}
+            </StatesTitle>
+            <StatesSubtitle>
+              {t('unsupportedServer.announcement')}
+            </StatesSubtitle>
+            <StatesActions>
+              <Button secondary onClick={handleMoreInfoButtonClick}>
+                {t('unsupportedServer.moreInformation')}
+              </Button>
+            </StatesActions>
+          </States>
+        </Box>
+      )}
+    </>
   );
 };
 

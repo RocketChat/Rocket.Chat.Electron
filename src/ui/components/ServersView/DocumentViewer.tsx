@@ -7,6 +7,7 @@ import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../../actions';
 
 // Extend the HTMLWebViewElement interface to include getWebContentsId
 declare global {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   interface HTMLWebViewElement {
     getWebContentsId: () => number;
     executeJavaScript: (code: string) => Promise<any>;
@@ -46,7 +47,7 @@ const DocumentViewer = ({
     const webviewElement = webviewRef.current;
 
     if (webviewElement) {
-      const handleDidAttach = () => {
+      const handleDidAttach: () => void = () => {
         const webContentsId = webviewElement.getWebContentsId();
         dispatch({
           type: WEBVIEW_PDF_VIEWER_ATTACHED,
@@ -70,6 +71,7 @@ const DocumentViewer = ({
         webviewElement.removeEventListener('did-attach', handleDidAttach);
       };
     }
+    return () => {};
   }, []);
 
   return (

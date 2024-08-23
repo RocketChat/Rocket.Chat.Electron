@@ -8,6 +8,10 @@ on:
     tags:
       - '*'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     strategy:
@@ -21,25 +25,32 @@ jobs:
     steps:
       - name: Disable git core.autocrlf
         run: git config --global core.autocrlf false
+
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Setup Node 20.10.0
-        uses: actions/setup-node@v3
+
+      - name: Setup Node 20.14.0
+        uses: actions/setup-node@v4
         with:
-          node-version: '20.10.0'
+          node-version: '20.14.0'
+
       - name: Setup node_modules cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
       - name: Install package dependencies
         run: yarn install
+
       - name: Lint
         run: yarn lint
+
       - name: Test
         run: yarn test
+
       - name: Build app/
         run: yarn build
         env:

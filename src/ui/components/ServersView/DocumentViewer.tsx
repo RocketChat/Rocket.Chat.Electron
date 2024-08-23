@@ -1,6 +1,16 @@
 import { Box, IconButton, Throbber } from '@rocket.chat/fuselage';
 import { useDarkMode } from '@rocket.chat/fuselage-hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+import { dispatch } from '../../../store';
+import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../../actions';
+
+// Extend the HTMLWebViewElement interface to include getWebContentsId
+declare global {
+  interface HTMLWebViewElement {
+    getWebContentsId: () => number;
+  }
+}
 
 const DocumentViewer = ({
   url,
@@ -14,6 +24,7 @@ const DocumentViewer = ({
   closeDocumentViewer: () => void;
 }) => {
   const [documentUrl, setDocumentUrl] = useState('');
+  const webviewRef = useRef<HTMLWebViewElement>(null);
 
   const theme = useDarkMode(
     themeAppearance === 'auto' ? undefined : themeAppearance === 'dark'
@@ -29,6 +40,27 @@ const DocumentViewer = ({
       }, 100);
     }
   }, [url, documentUrl]);
+
+  useEffect(() => {
+    const webviewElement = webviewRef.current;
+
+    if (webviewElement) {
+      const handleDidAttach = () => {
+        const webContentsId = webviewElement.getWebContentsId();
+        dispatch({
+          type: WEBVIEW_PDF_VIEWER_ATTACHED,
+          payload: { WebContentsId: webContentsId },
+        });
+      };
+
+      webviewElement.addEventListener('did-attach', handleDidAttach);
+
+      return () => {
+        webviewElement.removeEventListener('did-attach', handleDidAttach);
+      };
+    }
+  }, []);
+
   return (
     <>
       <Box
@@ -69,6 +101,7 @@ const DocumentViewer = ({
             />
           </Box>
           <webview
+            ref={webviewRef}
             src={documentUrl}
             style={{
               width: '100%',

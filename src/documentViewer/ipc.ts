@@ -1,6 +1,9 @@
+import { webContents } from 'electron';
+
 import { handle } from '../ipc/main';
 import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../servers/actions';
-import { dispatch, select } from '../store';
+import { dispatch, listen, select } from '../store';
+import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../ui/actions';
 
 export const startDocumentViewerHandler = (): void => {
   handle(
@@ -26,4 +29,14 @@ export const startDocumentViewerHandler = (): void => {
       });
     }
   );
+
+  listen(WEBVIEW_PDF_VIEWER_ATTACHED, async (action) => {
+    console.log('WEBVIEW_PDF_VIEWER_ATTACHED', action);
+    const webContentsId = action.payload.WebContentsId;
+    const webContent = webContents.fromId(webContentsId);
+    if (!webContent) {
+      return;
+    }
+    webContent.openDevTools();
+  });
 };

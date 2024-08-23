@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { dispatch } from '../../../store';
 import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../../actions';
 
-// Extend the HTMLWebViewElement interface to include getWebContentsId
 declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   interface HTMLWebViewElement {

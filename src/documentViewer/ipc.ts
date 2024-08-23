@@ -1,4 +1,4 @@
-import { webContents } from 'electron';
+import { shell, webContents } from 'electron';
 
 import { handle } from '../ipc/main';
 import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../servers/actions';
@@ -31,12 +31,16 @@ export const startDocumentViewerHandler = (): void => {
   );
 
   listen(WEBVIEW_PDF_VIEWER_ATTACHED, async (action) => {
-    console.log('WEBVIEW_PDF_VIEWER_ATTACHED', action);
     const webContentsId = action.payload.WebContentsId;
     const webContent = webContents.fromId(webContentsId);
     if (!webContent) {
       return;
     }
-    webContent.openDevTools();
+    webContent.on('will-navigate', (event, url) => {
+      event.preventDefault();
+      setTimeout(() => {
+        shell.openExternal(url);
+      }, 10);
+    });
   });
 };

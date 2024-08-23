@@ -9,6 +9,7 @@ import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../../actions';
 declare global {
   interface HTMLWebViewElement {
     getWebContentsId: () => number;
+    executeJavaScript: (code: string) => Promise<any>;
   }
 }
 
@@ -50,6 +51,16 @@ const DocumentViewer = ({
         dispatch({
           type: WEBVIEW_PDF_VIEWER_ATTACHED,
           payload: { WebContentsId: webContentsId },
+        });
+
+        webviewElement.addEventListener('did-finish-load', () => {
+          webviewElement.executeJavaScript(`
+            document.addEventListener('click', (event) => {
+              if (event.target.tagName === 'A' && event.target.href.endsWith('.pdf')) {
+                event.preventDefault(); // Block PDF link navigation
+              }
+            }, true);
+          `);
         });
       };
 

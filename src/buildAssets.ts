@@ -24,7 +24,7 @@ const convertSvgToPng = async (
   ...sizes: (number | [number, number])[]
 ): Promise<Buffer[]> => {
   const browser = await puppeteer.launch({
-    headless: 'new',
+    headless: true,
     args: ['--use-gl=desktop'],
   });
   const page = await browser.newPage();
@@ -47,10 +47,12 @@ const convertSvgToPng = async (
           }),
       deviceScaleFactor: 1,
     });
-    const buffer = await page.screenshot({
-      type: 'png',
-      omitBackground: true,
-    });
+    const buffer = Buffer.from(
+      await page.screenshot({
+        type: 'png',
+        omitBackground: true,
+      })
+    );
     buffers.push(buffer);
   }
 

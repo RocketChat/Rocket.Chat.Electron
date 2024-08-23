@@ -111,6 +111,7 @@ export const WEBVIEW_SERVER_VERSION_UPDATED = 'webview/version-updated';
 export const SUPPORTED_VERSION_DIALOG_DISMISS =
   'supported-versions-dialog/dismiss';
 export const WEBVIEW_SERVER_RELOADED = 'webview/server-reloaded';
+export const WEBVIEW_PDF_VIEWER_ATTACHED = 'webview/pdf-viewer/attached';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -223,4 +224,5 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_SERVER_RELOADED]: {
     url: Server['url'];
   };
+  [WEBVIEW_PDF_VIEWER_ATTACHED]: { WebContentsId: number };
 };

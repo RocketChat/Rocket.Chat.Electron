@@ -32,26 +32,35 @@ export const Shell = () => {
     typeof currentView === 'object' ? currentView.url : null
   );
 
+  const selectedServer = useSelector(({ servers }) => {
+    if (!currentServerUrl) return null;
+
+    try {
+      return servers.find(
+        (s: { url: string | URL }) =>
+          new URL(s.url).origin === new URL(currentServerUrl).origin
+      );
+    } catch (e) {
+      return null;
+    }
+  });
+
   const [currentTheme, setCurrentTheme] = useState<Themes | undefined>(
     machineTheme as Themes
   );
 
   useEffect(() => {
-    if (currentServerUrl !== null) {
-      const server = select(({ servers }) =>
-        servers.find(
-          (s) => new URL(s.url).origin === new URL(currentServerUrl).origin
-        )
-      );
-      console.log(server?.themeAppearance);
-      if (server?.themeAppearance === 'auto') {
-        return setCurrentTheme(machineTheme as Themes);
+    if (selectedServer) {
+      console.log(selectedServer.themeAppearance);
+      if (selectedServer.themeAppearance === 'auto') {
+        setCurrentTheme(machineTheme as Themes);
+      } else {
+        setCurrentTheme(selectedServer.themeAppearance as Themes);
       }
-      return setCurrentTheme(server?.themeAppearance as Themes);
+    } else {
+      setCurrentTheme(machineTheme as Themes);
     }
-    console.log(machineTheme);
-    setCurrentTheme(machineTheme as Themes);
-  }, [currentServerUrl, machineTheme, currentView]);
+  }, [selectedServer, machineTheme, currentView]);
 
   useLayoutEffect(() => {
     if (!appPath) {

@@ -323,11 +323,11 @@
   "sidebar": {
     "addNewServer": "Add new server",
     "downloads": "Downloads",
-    "settings": "Desktop settings",
-    "menuTitle": "{{platform}} app",
+    "settings": "Settings",
+    "menuTitle": "Customize and control app",
     "item": {
-      "reload": "Reload server",
-      "remove": "Remove server",
+      "reload": "Reload",
+      "remove": "Remove",
       "openDevTools": "Open DevTools",
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",

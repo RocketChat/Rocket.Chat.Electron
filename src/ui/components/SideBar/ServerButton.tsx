@@ -177,7 +177,7 @@ const ServerButton = ({
             }
           >
             <OptionIcon name='refresh' />
-            <OptionContent>Reload</OptionContent>
+            <OptionContent>{t('sidebar.item.reload')}</OptionContent>
           </Option>
           <Option
             onClick={() =>
@@ -185,7 +185,7 @@ const ServerButton = ({
             }
           >
             <OptionIcon name='copy' />
-            <OptionContent>Copy current URL</OptionContent>
+            <OptionContent>{t('sidebar.item.copyCurrentUrl')}</OptionContent>
           </Option>
           <Option
             onClick={() =>
@@ -193,7 +193,7 @@ const ServerButton = ({
             }
           >
             <OptionIcon name='code-block' />
-            <OptionContent>Open DevTools</OptionContent>
+            <OptionContent>{t('sidebar.item.openDevTools')}</OptionContent>
           </Option>
           <Option
             onClick={() =>
@@ -201,7 +201,9 @@ const ServerButton = ({
             }
           >
             <OptionIcon name='refresh' />
-            <OptionContent>Force reload</OptionContent>
+            <OptionContent>
+              {t('sidebar.item.reloadClearingCache')}
+            </OptionContent>
           </Option>
           <OptionDivider />
           <Option
@@ -212,7 +214,7 @@ const ServerButton = ({
             variant='danger'
           >
             <OptionIcon name='trash' />
-            <OptionContent>Remove</OptionContent>
+            <OptionContent>{t('sidebar.item.remove')}</OptionContent>
           </Option>
         </Dropdown>
       )}

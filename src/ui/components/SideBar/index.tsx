@@ -148,7 +148,7 @@ export const SideBar = () => {
           placement='right'
           onAction={handleMenuClick}
         >
-          <MenuSection title={t('sidebar.tooltips.settingsMenu')}>
+          <MenuSection title={t('sidebar.menuTitle')}>
             {/* <MenuItem key='hide_workspace_bar'>
               <OptionIcon name='burger-arrow-left' />
               <OptionContent>Hide workspace bar</OptionContent>

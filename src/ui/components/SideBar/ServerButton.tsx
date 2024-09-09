@@ -1,5 +1,6 @@
 import { css } from '@rocket.chat/css-in-js';
 import {
+  Avatar,
   IconButton,
   Badge,
   Box,
@@ -22,7 +23,7 @@ import {
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
 } from '../../actions';
-import { Avatar, Favicon, Initials, ServerButtonWrapper } from './styles';
+import { Initials, ServerButtonWrapper } from './styles';
 import { useDropdownVisibility } from './useDropdownVisibility';
 
 type ServerButtonProps = {
@@ -138,18 +139,23 @@ const ServerButton = ({
       >
         <IconButton
           small
+          secondary
           position='relative'
           overflow='visible'
-          className={[isSelected && 'is-focused'].filter(Boolean).join(' ')}
+          // className={[isSelected && 'is-focused'].filter(Boolean).join(' ')}
           icon={
-            <Avatar isSelected={isSelected}>
+            <Box>
               <Initials visible={!favicon}>{initials}</Initials>
-              <Favicon
-                draggable='false'
-                src={favicon ?? ''}
-                visible={!!favicon}
-              />
-            </Avatar>
+              <Box>
+                {!!favicon && (
+                  <Avatar
+                    draggable='false'
+                    url={favicon ?? ''}
+                    size='x28'
+                  ></Avatar>
+                )}
+              </Box>
+            </Box>
           }
         >
           <Box

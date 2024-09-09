@@ -1,6 +1,17 @@
 import { Box, IconButton, Throbber } from '@rocket.chat/fuselage';
 import { useDarkMode } from '@rocket.chat/fuselage-hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+import { dispatch } from '../../../store';
+import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../../actions';
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  interface HTMLWebViewElement {
+    getWebContentsId: () => number;
+    executeJavaScript: (code: string) => Promise<any>;
+  }
+}
 
 const DocumentViewer = ({
   url,
@@ -14,6 +25,7 @@ const DocumentViewer = ({
   closeDocumentViewer: () => void;
 }) => {
   const [documentUrl, setDocumentUrl] = useState('');
+  const webviewRef = useRef<HTMLWebViewElement>(null);
 
   const theme = useDarkMode(
     themeAppearance === 'auto' ? undefined : themeAppearance === 'dark'
@@ -29,6 +41,38 @@ const DocumentViewer = ({
       }, 100);
     }
   }, [url, documentUrl]);
+
+  useEffect(() => {
+    const webviewElement = webviewRef.current;
+
+    if (webviewElement) {
+      const handleDidAttach: () => void = () => {
+        const webContentsId = webviewElement.getWebContentsId();
+        dispatch({
+          type: WEBVIEW_PDF_VIEWER_ATTACHED,
+          payload: { WebContentsId: webContentsId },
+        });
+
+        webviewElement.addEventListener('did-finish-load', () => {
+          webviewElement.executeJavaScript(`
+            document.addEventListener('click', (event) => {
+              if (event.target.tagName === 'A' && event.target.href.endsWith('.pdf')) {
+                event.preventDefault(); // Block PDF link navigation
+              }
+            }, true);
+          `);
+        });
+      };
+
+      webviewElement.addEventListener('did-attach', handleDidAttach);
+
+      return () => {
+        webviewElement.removeEventListener('did-attach', handleDidAttach);
+      };
+    }
+    return () => {};
+  }, []);
+
   return (
     <>
       <Box
@@ -69,6 +113,7 @@ const DocumentViewer = ({
             />
           </Box>
           <webview
+            ref={webviewRef}
             src={documentUrl}
             style={{
               width: '100%',

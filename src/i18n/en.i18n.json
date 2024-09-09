@@ -38,7 +38,7 @@
     },
     "certificateError": {
       "title": "Certificate error",
-      "message": "Do you trust certificate from \"{{- issuerName}}\"?",
+      "message": "Do you trust certificate from \"{{- issuerName}}\"? Only click 'Yes' if you really trust this certificate. If you are unsure, contact your IT or security team before clicking on 'Yes'.",
       "yes": "Yes",
       "no": "No"
     },
@@ -298,6 +298,7 @@
     "showServerList": "Server list",
     "showTrayIcon": "Tray icon",
     "toggleDevTools": "Toggle &DevTools",
+    "openConfigFolder": "Open &Configuration Folder",
     "undo": "&Undo",
     "unhide": "Show All",
     "viewMenu": "&View",

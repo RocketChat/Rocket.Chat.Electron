@@ -16256,8 +16256,8 @@ __metadata:
   linkType: hard
 
 "streamx@npm:^2.18.0":
-  version: 2.18.0
-  resolution: "streamx@npm:2.18.0"
+  version: 2.19.0
+  resolution: "streamx@npm:2.19.0"
   dependencies:
     bare-events: "npm:^2.2.0"
     fast-fifo: "npm:^1.3.2"
@@ -16266,7 +16266,7 @@ __metadata:
   dependenciesMeta:
     bare-events:
       optional: true
-  checksum: 039e828e7e76399d65fed022ddaeb7ab3ee77f66d170733643b7f7510823a605315f3ee841e5c01f16df5a44dca18a97fc39460a2b42010484e7976f29c79296
+  checksum: 3e57a12402200cce347bd0658b5e7ef14a41636341256d2a9f43100e5c4f5d82166a4df77aef92082686150805a1b14f74370f3c96b4ed3d6d9889da1e3b3c21
   languageName: node
   linkType: hard
 

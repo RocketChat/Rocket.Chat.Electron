@@ -277,7 +277,6 @@
     "quit": "&Salir de {{- appName}}",
     "redo": "&Rehacer",
     "reload": "&Recargar",
-    "reloadIgnoringCache": "Recargar ignorando la caché",
     "reportIssue": "Informar problema",
     "resetAppData": "Restablecer datos de la aplicación",
     "resetZoom": "Restablecer zoom",

@@ -13,7 +13,7 @@ const hasLng = (lng: string): lng is keyof typeof resources => lng in resources;
 const getLng = async (): Promise<keyof typeof resources | undefined> => {
   await app.whenReady();
 
-  const locale = app.getLocale();
+  const locale = app.getSystemLocale();
 
   let [languageCode, countryCode] = locale.split(/[-_]/) as [
     string,

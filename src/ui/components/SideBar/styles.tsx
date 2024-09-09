@@ -1,8 +1,6 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
-import { withTooltip } from './withTolltip';
-
 type ServerButtonWrapperProps = {
   isDragged: boolean;
   hasUnreadMessages: boolean;

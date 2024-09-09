@@ -113,6 +113,11 @@ export const SUPPORTED_VERSION_DIALOG_DISMISS =
   'supported-versions-dialog/dismiss';
 export const WEBVIEW_SERVER_RELOADED = 'webview/server-reloaded';
 export const WEBVIEW_PDF_VIEWER_ATTACHED = 'webview/pdf-viewer/attached';
+export const SIDE_BAR_SERVER_RELOAD = 'side-bar/server-reload';
+export const SIDE_BAR_SERVER_COPY_URL = 'side-bar/server-copy-url';
+export const SIDE_BAR_SERVER_OPEN_DEV_TOOLS = 'side-bar/server-open-dev-tools';
+export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
+export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;

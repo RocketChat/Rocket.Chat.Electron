@@ -30,15 +30,15 @@ export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
       opacity var(--transitions-duration);
     border-radius: 0 4px 4px 0;
 
-    // background-color: var(
-    //   --rcx-color-surface-selected,
-    //   var(--rcx-color-neutral-450, #d7dbe0)
-    // ) !important;
-
     background-color: var(
-      --rcx-color-surface-dark,
-      var(--rcx-color-neutral-800, #2f343d)
+      --rcx-color-surface-selected,
+      var(--rcx-color-neutral-450, #d7dbe0)
     ) !important;
+
+    // background-color: var(
+    //   --rcx-color-surface-dark,
+    //   var(--rcx-color-neutral-800, #2f343d)
+    // ) !important;
 
     ${({ hasUnreadMessages }) =>
       hasUnreadMessages &&

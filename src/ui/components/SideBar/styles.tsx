@@ -40,13 +40,6 @@ export const ServerButtonWrapper = styled.li<ServerButtonWrapperProps>`
     //   var(--rcx-color-neutral-800, #2f343d)
     // ) !important;
 
-    ${({ hasUnreadMessages }) =>
-      hasUnreadMessages &&
-      css`
-        height: 6px;
-        opacity: 0.6;
-      `}
-
     ${({ isSelected }) =>
       isSelected &&
       css`

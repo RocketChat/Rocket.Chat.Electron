@@ -3,6 +3,7 @@ import {
   Button,
   Callout,
   Margins,
+  PaletteStyleTag,
   Scrollable,
 } from '@rocket.chat/fuselage';
 import type {
@@ -85,16 +86,23 @@ export function ScreenSharePicker() {
   };
 
   return (
-    <Dialog isVisible={visible} onClose={handleClose}>
-      <Box
-        display='flex'
-        flexWrap='wrap'
-        alignItems='stretch'
-        justifyContent='center'
-        maxWidth='x800'
-      >
-        {!isScreenRecordingPermissionGranted && (
-          <Box alignSelf='center' display='flex'>
+    <Box marginBlockStart='x24' display={true ? 'block' : 'none'}>
+      <PaletteStyleTag
+        theme='light'
+        selector=':root'
+        // tagId='sidebar-palette'
+      />
+      <Dialog isVisible={true} onClose={handleClose}>
+        <Box
+          display='flex'
+          flexWrap='wrap'
+          alignItems='stretch'
+          justifyContent='center'
+          maxWidth='x800'
+          bg='tint'
+          borderRadius='x16'
+        >
+          {isScreenRecordingPermissionGranted && (
             <Callout
               title='Screen Recording Permissions Denied'
               type='danger'
@@ -108,52 +116,55 @@ export function ScreenSharePicker() {
               <b> Screen Recording</b> and check
               <b> Rocket.Chat</b>
             </Callout>
+          )}
+          <Box alignSelf='center' display='flex'>
+            <Box fontScale='h1' alignSelf='left'>
+              Select a screen to share
+            </Box>
           </Box>
-        )}
-        <Box alignSelf='center' display='flex'>
-          <Box fontScale='h1' alignSelf='left'>
-            Select a screen to share
-          </Box>
-        </Box>
-        <Scrollable>
-          <Margins blockStart='x16' blockEnd='x16'>
-            <Box
-              display='flex'
-              flexWrap='wrap'
-              alignItems='stretch'
-              justifyContent='center'
-              maxSize='x730'
-            >
-              {sources.map(({ id, name, thumbnail }) => (
-                <Source
-                  key={id}
-                  display='flex'
-                  flexDirection='column'
-                  onClick={handleScreenSharingSourceClick(id)}
-                >
+          <Scrollable>
+            <Margins blockStart='x16' blockEnd='x16'>
+              <Box
+                display='flex'
+                flexWrap='wrap'
+                alignItems='stretch'
+                justifyContent='center'
+                maxSize='x730'
+              >
+                {sources.map(({ id, name, thumbnail }) => (
                   <Box
-                    flexGrow={1}
+                    width='x160'
+                    key={id}
                     display='flex'
-                    alignItems='center'
-                    justifyContent='center'
+                    flexDirection='column'
+                    onClick={handleScreenSharingSourceClick(id)}
+                    bg='tint'
+                    margin='x8'
                   >
                     <Box
-                      is='img'
-                      src={thumbnail.toDataURL()}
-                      alt={name}
-                      style={{ maxWidth: '148px', maxHeight: '148px' }}
-                    />
+                      flexGrow={1}
+                      display='flex'
+                      alignItems='center'
+                      justifyContent='center'
+                    >
+                      <Box
+                        is='img'
+                        src={thumbnail.toDataURL()}
+                        alt={name}
+                        style={{ maxWidth: '148px', maxHeight: '148px' }}
+                      />
+                    </Box>
+                    <Box>{name}</Box>
                   </Box>
-                  <Box>{name}</Box>
-                </Source>
-              ))}
-            </Box>
-          </Margins>
-        </Scrollable>
-      </Box>
-      <Box alignSelf='center' display='flex'>
-        <Button onClick={handleClose}>Cancel</Button>
-      </Box>
-    </Dialog>
+                ))}
+              </Box>
+            </Margins>
+          </Scrollable>
+        </Box>
+        <Box alignSelf='center' display='flex' marginBlockStart='x24'>
+          <Button onClick={handleClose}>Cancel</Button>
+        </Box>
+      </Dialog>
+    </Box>
   );
 }

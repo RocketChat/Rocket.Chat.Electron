@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Callout,
+  Label,
   Margins,
   PaletteStyleTag,
   Scrollable,
@@ -86,27 +87,28 @@ export function ScreenSharePicker() {
   };
 
   return (
-    <Box marginBlockStart='x24' display={true ? 'block' : 'none'}>
+    <Box>
       <PaletteStyleTag
         theme='light'
         selector=':root'
         // tagId='sidebar-palette'
       />
-      <Dialog isVisible={true} onClose={handleClose}>
+      <Dialog isVisible={visible} onClose={handleClose}>
         <Box
           display='flex'
           flexWrap='wrap'
           alignItems='stretch'
           justifyContent='center'
           maxWidth='x800'
-          bg='tint'
+          // bg='tint'
           borderRadius='x16'
         >
-          {isScreenRecordingPermissionGranted && (
+          {!isScreenRecordingPermissionGranted && (
             <Callout
               title='Screen Recording Permissions Denied'
               type='danger'
               maxWidth='100%'
+              marginBlockEnd='x16'
             >
               The screen sharing feature requires screen recording permissions
               to be granted. Please grant screen recording permissions in your
@@ -134,27 +136,35 @@ export function ScreenSharePicker() {
                 {sources.map(({ id, name, thumbnail }) => (
                   <Box
                     width='x160'
+                    height='x200'
                     key={id}
                     display='flex'
                     flexDirection='column'
                     onClick={handleScreenSharingSourceClick(id)}
-                    bg='tint'
+                    onMouseEnter={() }
+                    // bg='tint'
                     margin='x8'
+                    // borderRadius='x8'
+                    cursor='hand'
                   >
                     <Box
                       flexGrow={1}
                       display='flex'
                       alignItems='center'
                       justifyContent='center'
+                      content='center'
                     >
                       <Box
                         is='img'
                         src={thumbnail.toDataURL()}
                         alt={name}
                         style={{ maxWidth: '148px', maxHeight: '148px' }}
+                        borderRadius='x2'
                       />
                     </Box>
-                    <Box>{name}</Box>
+                    <Label margin='x8' withTruncatedText>
+                      {name}
+                    </Label>
                   </Box>
                 ))}
               </Box>

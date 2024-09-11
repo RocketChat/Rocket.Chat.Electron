@@ -16,7 +16,6 @@ import { ipcRenderer } from 'electron';
 import { useEffect, useState } from 'react';
 
 import { Dialog } from '../ui/components/Dialog';
-import { Source } from '../ui/components/ScreenSharingDialog/styles';
 
 const desktopCapturer: DesktopCapturer = {
   getSources: (opts: SourcesOptions) =>
@@ -26,6 +25,7 @@ const desktopCapturer: DesktopCapturer = {
 export function ScreenSharePicker() {
   const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
+  const [hoveredSourceId, setHoveredSourceId] = useState<string | null>(null);
   const [
     isScreenRecordingPermissionGranted,
     setIsScreenRecordingPermissionGranted,
@@ -35,9 +35,10 @@ export function ScreenSharePicker() {
     const sources = await desktopCapturer.getSources({
       types: ['window', 'screen'],
     });
-    const filteredSources = sources.filter(
-      (source) => source.thumbnail.isEmpty() === false
-    );
+    const filteredSources = sources
+      .filter((source) => !source.thumbnail.isEmpty())
+      .sort((a, b) => a.name.localeCompare(b.name));
+    if (filteredSources.length === 0) return;
     setSources(filteredSources);
   };
 
@@ -69,7 +70,7 @@ export function ScreenSharePicker() {
 
     const timer = setInterval(() => {
       fetchSources();
-    }, 2000);
+    }, 3000);
 
     return () => {
       clearInterval(timer);
@@ -84,6 +85,14 @@ export function ScreenSharePicker() {
   const handleClose = (): void => {
     setVisible(false);
     ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
+  };
+
+  const handleMouseEnter = (id: string) => {
+    setHoveredSourceId(id);
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredSourceId(null);
   };
 
   return (
@@ -141,11 +150,20 @@ export function ScreenSharePicker() {
                     display='flex'
                     flexDirection='column'
                     onClick={handleScreenSharingSourceClick(id)}
-                    onMouseEnter={() }
                     // bg='tint'
                     margin='x8'
                     // borderRadius='x8'
-                    cursor='hand'
+                    onMouseEnter={() => handleMouseEnter(id)}
+                    onMouseLeave={handleMouseLeave}
+                    style={{
+                      cursor: 'pointer',
+                    }}
+                    borderRadius='x8'
+                    border={
+                      hoveredSourceId === id
+                        ? '2px solid var(--rcx-color-stroke-light)'
+                        : '2px solid transparent'
+                    }
                   >
                     <Box
                       flexGrow={1}

@@ -1,3 +1,4 @@
+import { Box } from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
 import { useEffect, useRef, useState } from 'react';
 
@@ -20,7 +21,7 @@ function VideoCallWindow() {
   }, [videoCallUrl]);
 
   return (
-    <div>
+    <Box>
       <ScreenSharePicker />
       <webview
         ref={webviewRef}
@@ -29,7 +30,7 @@ function VideoCallWindow() {
         webpreferences='nodeIntegration,nativeWindowOpen=true'
         allowpopups={'true' as any}
       />
-    </div>
+    </Box>
   );
 }
 

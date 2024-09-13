@@ -71,6 +71,7 @@ export const WEBVIEW_GIT_COMMIT_HASH_CHANGED =
   'webview/git-commit-hash-changed';
 export const WEBVIEW_GIT_COMMIT_HASH_CHECK = 'webview/git-commit-hash-check';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
+export const WEBVIEW_PAGE_TITLE_CHANGED = 'webview/page-title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 export const WEBVIEW_USER_LOGGED_IN = 'webview/user-loggedin';
 export const WEBVIEW_USER_THEME_APPEARANCE_CHANGED =
@@ -112,6 +113,11 @@ export const SUPPORTED_VERSION_DIALOG_DISMISS =
   'supported-versions-dialog/dismiss';
 export const WEBVIEW_SERVER_RELOADED = 'webview/server-reloaded';
 export const WEBVIEW_PDF_VIEWER_ATTACHED = 'webview/pdf-viewer/attached';
+export const SIDE_BAR_SERVER_RELOAD = 'side-bar/server-reload';
+export const SIDE_BAR_SERVER_COPY_URL = 'side-bar/server-copy-url';
+export const SIDE_BAR_SERVER_OPEN_DEV_TOOLS = 'side-bar/server-open-dev-tools';
+export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
+export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -138,6 +144,11 @@ export type UiActionTypeToPayloadMap = {
   [SIDE_BAR_REMOVE_SERVER_CLICKED]: Server['url'];
   [SIDE_BAR_SERVER_SELECTED]: Server['url'];
   [SIDE_BAR_SERVERS_SORTED]: Server['url'][];
+  [SIDE_BAR_SERVER_RELOAD]: Server['url'];
+  [SIDE_BAR_SERVER_COPY_URL]: Server['url'];
+  [SIDE_BAR_SERVER_OPEN_DEV_TOOLS]: Server['url'];
+  [SIDE_BAR_SERVER_FORCE_RELOAD]: Server['url'];
+  [SIDE_BAR_SERVER_REMOVE]: Server['url'];
   [TOUCH_BAR_FORMAT_BUTTON_TOUCHED]:
     | 'bold'
     | 'italic'
@@ -169,6 +180,10 @@ export type UiActionTypeToPayloadMap = {
     customTheme: Server['customTheme'];
   };
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
+  [WEBVIEW_PAGE_TITLE_CHANGED]: {
+    url: Server['url'];
+    pageTitle: Server['pageTitle'];
+  };
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
   [WEBVIEW_USER_LOGGED_IN]: {
     url: Server['url'];

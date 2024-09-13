@@ -1,28 +1,26 @@
-import { Icon } from '@rocket.chat/fuselage';
-import { useMemo } from 'react';
+import {
+  Box,
+  ButtonGroup,
+  IconButton,
+  MenuItem,
+  MenuSection,
+  MenuV2,
+  OptionContent,
+  OptionIcon,
+} from '@rocket.chat/fuselage';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import type { Dispatch } from 'redux';
+import { useSelector } from 'react-redux';
 
-import type { RootAction } from '../../../store/actions';
+import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import {
+  SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED,
   SIDE_BAR_ADD_NEW_SERVER_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
 } from '../../actions';
 import { useServers } from '../hooks/useServers';
 import ServerButton from './ServerButton';
-import CustomTheme from './customTheme';
-import {
-  Wrapper,
-  Content,
-  ServerList,
-  AddServerButton,
-  SidebarActionButton,
-  Button,
-  BottomButtons,
-} from './styles';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useSorting } from './useSorting';
 
@@ -37,15 +35,15 @@ export const SideBar = () => {
     ({ isAddNewServersEnabled }: RootState) => isAddNewServersEnabled
   );
   const isVisible = servers.length > 0 && isSideBarEnabled;
-  const style = useMemo(
-    () => servers.find(({ selected }) => selected)?.style || {},
-    [servers]
-  );
+  // const style = useMemo(
+  //   () => servers.find(({ selected }) => selected)?.style || {},
+  //   [servers]
+  // );
 
-  const customTheme = useMemo(
-    () => servers.find(({ selected }) => selected)?.customTheme || '',
-    [servers]
-  );
+  // const customTheme = useMemo(
+  //   () => servers.find(({ selected }) => selected)?.customTheme || '',
+  //   [servers]
+  // );
   const isEachShortcutVisible = useKeyboardShortcuts();
   const {
     sortedServers,
@@ -55,29 +53,54 @@ export const SideBar = () => {
     handleDragEnter,
     handleDrop,
   } = useSorting(servers);
-  const dispatch = useDispatch<Dispatch<RootAction>>();
   const handleAddServerButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_ADD_NEW_SERVER_CLICKED });
   };
-  const handelDownloadsButtonClicked = (): void => {
+  const handleDownloadsButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
   };
-  const handelSettingsButtonClicked = (): void => {
+  const handleSettingsButtonClicked = (): void => {
     dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
   };
+
+  const handleHideWorkspaceBar = (): void => {
+    dispatch({
+      type: SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED,
+      payload: false,
+    });
+  };
+
+  const handleMenuClick = (key: React.Key) => {
+    switch (key) {
+      case 'hide_workspace_bar':
+        handleHideWorkspaceBar();
+        break;
+      case 'downloads':
+        handleDownloadsButtonClicked();
+        break;
+      case 'desktop_settings':
+        handleSettingsButtonClicked();
+        break;
+    }
+  };
+
   const { t } = useTranslation();
 
-  const currentView = useSelector(({ currentView }: RootState) => currentView);
+  // const currentView = useSelector(({ currentView }: RootState) => currentView);
 
   return (
-    <Wrapper
-      className='rcx-sidebar--main'
-      sideBarStyle={style}
-      isVisible={isVisible}
-    >
-      <CustomTheme customTheme={customTheme} />
-      <Content withWindowButtons={process.platform === 'darwin'}>
-        <ServerList>
+    <Box className='rcx-sidebar--main' bg='tint'>
+      <Box
+        width='x44'
+        display={isVisible ? 'flex' : 'none'}
+        height='100%'
+        justifyContent='space-between'
+        flexDirection='column'
+        alignItems='center'
+        paddingBlockStart='x8'
+        paddingBlockEnd='x8'
+      >
+        <ButtonGroup vertical large>
           {sortedServers.map((server, order) => (
             <ServerButton
               key={server.url}
@@ -108,38 +131,39 @@ export const SideBar = () => {
               onDrop={handleDrop(server.url)}
             />
           ))}
-        </ServerList>
-        {isAddNewServersEnabled && (
-          <AddServerButton>
-            <SidebarActionButton
-              tooltip={t('sidebar.addNewServer')}
+          {isAddNewServersEnabled && (
+            <IconButton
+              small
+              icon='plus'
               onClick={handleAddServerButtonClicked}
-            >
-              +
-            </SidebarActionButton>
-          </AddServerButton>
-        )}
-        <BottomButtons>
-          <Button>
-            <SidebarActionButton
-              tooltip={t('sidebar.downloads')}
-              onClick={handelDownloadsButtonClicked}
-              isSelected={currentView === 'downloads'}
-            >
-              <Icon name='download' />
-            </SidebarActionButton>
-          </Button>
-          <Button>
-            <SidebarActionButton
-              tooltip={t('sidebar.settings')}
-              onClick={handelSettingsButtonClicked}
-              isSelected={currentView === 'settings'}
-            >
-              <Icon name='cog' />
-            </SidebarActionButton>
-          </Button>
-        </BottomButtons>
-      </Content>
-    </Wrapper>
+              title={t('sidebar.tooltips.addWorkspace', {
+                shortcut: process.platform === 'darwin' ? '⌘' : '^',
+              })}
+            ></IconButton>
+          )}
+        </ButtonGroup>
+
+        <MenuV2
+          title={t('sidebar.tooltips.settingsMenu')}
+          placement='right'
+          onAction={handleMenuClick}
+        >
+          <MenuSection title={t('sidebar.menuTitle')}>
+            {/* <MenuItem key='hide_workspace_bar'>
+              <OptionIcon name='burger-arrow-left' />
+              <OptionContent>Hide workspace bar</OptionContent>
+            </MenuItem> */}
+            <MenuItem key='downloads'>
+              <OptionIcon name='circle-arrow-down' />
+              <OptionContent>{t('sidebar.downloads')}</OptionContent>
+            </MenuItem>
+            <MenuItem key='desktop_settings'>
+              <OptionIcon name='customize' />
+              <OptionContent>{t('sidebar.settings')}</OptionContent>
+            </MenuItem>
+          </MenuSection>
+        </MenuV2>
+      </Box>
+    </Box>
   );
 };

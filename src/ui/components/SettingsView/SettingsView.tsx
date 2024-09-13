@@ -19,9 +19,12 @@ export const SettingsView = () => {
   return (
     <Box
       display={isVisible ? 'flex' : 'none'}
+      position='absolute'
       flexDirection='column'
       height='full'
-      backgroundColor='light'
+      width='full'
+      className='rcx-sidebar--main'
+      bg='light'
     >
       <Box
         width='full'
@@ -29,8 +32,8 @@ export const SettingsView = () => {
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
-        color='default'
         fontScale='h1'
+        color='font-default'
       >
         {t('settings.title')}
       </Box>

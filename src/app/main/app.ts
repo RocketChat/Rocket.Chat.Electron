@@ -21,6 +21,7 @@ import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
 import {
   APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET,
+  APP_MAIN_WINDOW_TITLE_SET,
   APP_PATH_SET,
   APP_VERSION_SET,
 } from '../actions';
@@ -33,6 +34,19 @@ export const packageJsonInformation = {
 export const electronBuilderJsonInformation = {
   appId: electronBuilderJson.appId,
   protocol: electronBuilderJson.protocols.schemes[0],
+};
+
+export const getPlatformName = (): string => {
+  switch (process.platform) {
+    case 'win32':
+      return 'Windows';
+    case 'linux':
+      return 'Linux';
+    case 'darwin':
+      return 'macOS';
+    default:
+      return 'Unknown';
+  }
 };
 
 export const relaunchApp = (...args: string[]): void => {
@@ -151,4 +165,5 @@ export const setupApp = (): void => {
 
   dispatch({ type: APP_PATH_SET, payload: app.getAppPath() });
   dispatch({ type: APP_VERSION_SET, payload: app.getVersion() });
+  dispatch({ type: APP_MAIN_WINDOW_TITLE_SET, payload: 'Rocket.Chat' });
 };

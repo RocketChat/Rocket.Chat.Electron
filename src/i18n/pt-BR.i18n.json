@@ -310,14 +310,22 @@
     "addNewServer": "Adicionar novo servidor",
     "downloads": "Downloads",
     "settings": "Configurações",
+    "menuTitle": "Personalizar e controlar app",
     "item": {
-      "reload": "Recarregar servidor",
-      "remove": "Remover servidor",
+      "reload": "Recarregar",
+      "remove": "Remover",
       "openDevTools": "Abrir DevTools",
       "clearCache": "Limpar cache",
       "clearStorageData": "Limpar dados de armazenamento",
-      "copyCurrentUrl": "Copiar URL atual",
+      "copyCurrentUrl": "Copiar URL",
       "reloadClearingCache": "Forçar recarregamento"
+    },
+    "tooltips": {
+      "unreadMessage": "{{- count}} mensagem não lida",
+      "unreadMessages": "{{- count}} mensagens não lidas",
+      "userNotLoggedIn": "Não conectado",
+      "addWorkspace": "Adicionar workspace ({{shortcut}}+N)",
+      "settingsMenu": "Personalizar e controlar app"
     }
   },
   "touchBar": {

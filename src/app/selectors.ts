@@ -7,6 +7,7 @@ export const selectPersistableValues = createStructuredSelector({
   doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }: RootState) =>
     doCheckForUpdatesOnStartup,
   downloads: ({ downloads }: RootState) => downloads,
+  machineTheme: ({ machineTheme }: RootState) => machineTheme,
   isMenuBarEnabled: ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled,
   isShowWindowOnUnreadChangedEnabled: ({
     isShowWindowOnUnreadChangedEnabled,

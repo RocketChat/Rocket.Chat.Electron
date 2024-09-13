@@ -325,14 +325,22 @@
     "addNewServer": "Add new server",
     "downloads": "Downloads",
     "settings": "Settings",
+    "menuTitle": "Customize and control app",
     "item": {
-      "reload": "Reload server",
-      "remove": "Remove server",
+      "reload": "Reload",
+      "remove": "Remove",
       "openDevTools": "Open DevTools",
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",
       "copyCurrentUrl": "Copy current URL",
       "reloadClearingCache": "Force reload"
+    },
+    "tooltips": {
+      "unreadMessage": "{{- count}} unread message",
+      "unreadMessages": "{{- count}} unread messages",
+      "userNotLoggedIn": "Not logged in",
+      "addWorkspace": "Add workspace ({{shortcut}}+N)",
+      "settingsMenu": "Customize and control app"
     }
   },
   "touchBar": {

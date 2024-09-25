@@ -82,46 +82,55 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest'}}
         run: yarn electron-builder --publish never --linux snap
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ runner.os }} Artifacts
-          path: |
-            dist/rocketchat-*.dmg
-            dist/rocketchat-*.pkg
-            dist/rocketchat-*.exe
-            dist/rocketchat-*.snap
+      # Remove the 'Upload Artifacts' step that uses 'actions/upload-artifact@v4'
+      # - name: Upload Artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{ runner.os }} Artifacts
+      #     path: |
+      #       dist/rocketchat-*.dmg
+      #       dist/rocketchat-*.pkg
+      #       dist/rocketchat-*.exe
+      #       dist/rocketchat-*.snap
 
-      - name: Get Artifact URL
-        id: get-artifact-url
+      # Install AWS CLI
+      - name: Install AWS CLI
+        run: |
+          pip install awscli
+
+      # Upload artifacts to Wasabi
+      - name: Upload Artifacts to Wasabi
+        run: |
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/ --recursive --acl public-read --endpoint-url=https://s3.us-east-1.wasabisys.com
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
+
+      # Get Artifact URLs using actions/github-script
+      - name: Get Artifact URLs
+        id: get-artifact-urls
         uses: actions/github-script@v6
         with:
           script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const runId = context.runId;
-
-            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-              owner,
-              repo,
-              run_id: runId
-            });
-
-            const artifact = artifacts.data.artifacts.find(a => a.name === '${{ runner.os }} Artifacts');
-            if (artifact) {
-              const url = `https://github.com/${owner}/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
-              core.setOutput('artifact_url', url);
-            } else {
-              core.setFailed(`Artifact not found for ${artifact.name}`);
+            const fs = require('fs');
+            const path = require('path');
+            const distDir = path.join(process.cwd(), 'dist');
+            const files = fs.readdirSync(distDir);
+            let artifactUrls = '';
+            for (const file of files) {
+              const artifactUrl = `https://s3.us-east-1.wasabisys.com/${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/${file}`;
+              artifactUrls += `- [${file}](${artifactUrl})\n`;
             }
+            core.setOutput('artifact_urls', artifactUrls.trim());
 
-      - name: Post PR Comment with the Artifact link
-        if: steps.get-artifact-url.outputs.artifact_url != ''
+      - name: Post PR Comment with the Artifact links
+        if: steps.get-artifact-urls.outputs.artifact_urls != ''
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           message: |
-            ### [${{ runner.os }} installer download](${{ steps.get-artifact-url.outputs.artifact_url }})
-          header: '### Artifact for ${{ runner.os }}'
+            ### Artifact for ${{ matrix.os }}
+            ${{ steps.get-artifact-urls.outputs.artifact_urls }}
+          header: '### Artifact for ${{ matrix.os }}'
           recreate: true
           append: false

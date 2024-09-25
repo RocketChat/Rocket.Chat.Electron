@@ -82,9 +82,27 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: yarn electron-builder --publish never --linux snap
 
-      # Install AWS CLI
-      - name: Install AWS CLI
-        uses: aws-actions/setup-aws-cli@v2
+      # Install AWS CLI based on the OS
+      - name: Install AWS CLI on Ubuntu
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+
+      - name: Install AWS CLI on macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install awscli
+
+      - name: Install AWS CLI on Windows
+        if: runner.os == 'Windows'
+        run: |
+          Invoke-WebRequest -Uri "https://awscli.amazonaws.com/AWSCLIV2.msi" -OutFile "C:\awscliv2.msi"
+          Start-Process msiexec.exe -Wait -ArgumentList '/i C:\awscliv2.msi /qn'
+        shell: pwsh
 
       # Upload artifacts to Wasabi (Windows)
       - name: Upload Artifacts to Wasabi (Windows)
@@ -124,7 +142,7 @@ jobs:
           script: |
             const os = '${{ matrix.os }}';
             const bucketName = '${{ secrets.WASABI_BUCKET_NAME }}';
-            const endpoint = 'https://s3.wasabisys.com';
+            const endpoint = 'https://s3..wasabisys.com';
             const artifactDir = 'dist';
 
             const fs = require('fs');

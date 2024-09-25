@@ -42239,6 +42239,7 @@ const pack = () => src_awaiter(void 0, void 0, void 0, function* () {
     }
 });
 const getFilesToUpload = () => out_default()([
+    'dist/latest-linux.yml',
     'dist/*.tar.gz',
     'dist/*.snap',
     'dist/*.deb',

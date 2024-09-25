@@ -39,6 +39,7 @@ const pack = async () => {
 
 const getFilesToUpload = () =>
   fg([
+    'dist/latest-linux.yml',
     'dist/*.tar.gz',
     'dist/*.snap',
     'dist/*.deb',

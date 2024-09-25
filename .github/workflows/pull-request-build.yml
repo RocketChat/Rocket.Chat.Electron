@@ -82,17 +82,17 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest'}}
         run: yarn electron-builder --publish never --linux snap
 
-      # Install AWS CLI
+      # Install AWS CLI using the official action
       - name: Install AWS CLI
-        run: |
-          pip install awscli
+        uses: aws-actions/setup-aws-cli@v2
 
       # Upload artifacts to Wasabi (only specified file extensions)
       - name: Upload Artifacts to Wasabi
+        shell: bash
         run: |
           aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/ --recursive \
             --acl public-read \
-            --endpoint-url=https://s3.wasabisys.com \
+            --endpoint-url=https://s3.us-east-1.wasabisys.com \
             --exclude "*" \
             --include "rocketchat-*.dmg" \
             --include "rocketchat-*.pkg" \
@@ -116,7 +116,7 @@ jobs:
             let artifactUrls = '';
             for (const file of files) {
               if (patterns.some(pattern => pattern.test(file))) {
-                const artifactUrl = `https://s3.wasabisys.com/${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/${file}`;
+                const artifactUrl = `https://s3.us-east-1.wasabisys.com/${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/${file}`;
                 artifactUrls += `- [${file}](${artifactUrl})\n`;
               }
             }

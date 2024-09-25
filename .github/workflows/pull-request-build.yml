@@ -58,14 +58,14 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       - name: Build Windows Package
-        if: ${{ matrix.os == 'windows-latest'}}
+        if: ${{ matrix.os == 'windows-latest' }}
         run: yarn electron-builder --publish never --x64 --win nsis
         env:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Build MacOS Package
-        if: ${{ matrix.os == 'macos-latest'}}
+        if: ${{ matrix.os == 'macos-latest' }}
         run: |
           sudo mdutil -a -i off
           yarn electron-builder --publish never --mac --universal
@@ -79,49 +79,83 @@ jobs:
           ASC_PROVIDER: 'S6UPZG7ZR3'
 
       - name: Build Ubuntu Package
-        if: ${{ matrix.os == 'ubuntu-latest'}}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: yarn electron-builder --publish never --linux snap
-
-      # Remove the 'Upload Artifacts' step that uses 'actions/upload-artifact@v4'
-      # - name: Upload Artifacts
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: ${{ runner.os }} Artifacts
-      #     path: |
-      #       dist/rocketchat-*.dmg
-      #       dist/rocketchat-*.pkg
-      #       dist/rocketchat-*.exe
-      #       dist/rocketchat-*.snap
 
       # Install AWS CLI
       - name: Install AWS CLI
-        run: |
-          pip install awscli
+        uses: aws-actions/setup-aws-cli@v2
 
-      # Upload artifacts to Wasabi
-      - name: Upload Artifacts to Wasabi
+      # Upload artifacts to Wasabi (Windows)
+      - name: Upload Artifacts to Wasabi (Windows)
+        if: matrix.os == 'windows-latest'
         run: |
-          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/ --recursive --acl public-read --endpoint-url=https://s3.us-east-1.wasabisys.com
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/windows-latest/ --recursive --exclude "*" --include "rocketchat-*.exe" --acl public-read --endpoint-url=https://s3.us-east-1.wasabisys.com
+        shell: pwsh
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
 
-      # Get Artifact URLs using actions/github-script
+      # Upload artifacts to Wasabi (macOS)
+      - name: Upload Artifacts to Wasabi (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/macos-latest/ --recursive --exclude "*" --include "rocketchat-*.dmg" --include "rocketchat-*.pkg" --acl public-read --endpoint-url=https://s3.us-east-1.wasabisys.com
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
+
+      # Upload artifacts to Wasabi (Ubuntu)
+      - name: Upload Artifacts to Wasabi (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/ubuntu-latest/ --recursive --exclude "*" --include "rocketchat-*.snap" --acl public-read --endpoint-url=https://s3.us-east-1.wasabisys.com
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
+
+      # Get Artifact URLs
       - name: Get Artifact URLs
         id: get-artifact-urls
         uses: actions/github-script@v6
         with:
           script: |
+            const os = '${{ matrix.os }}';
+            const bucketName = '${{ secrets.WASABI_BUCKET_NAME }}';
+            const endpoint = 'https://s3.wasabisys.com';
+            const artifactDir = 'dist';
+
             const fs = require('fs');
             const path = require('path');
-            const distDir = path.join(process.cwd(), 'dist');
-            const files = fs.readdirSync(distDir);
+
+            let patterns = [];
+            if (os === 'windows-latest') {
+              patterns = ['rocketchat-*.exe'];
+            } else if (os === 'macos-latest') {
+              patterns = ['rocketchat-*.dmg', 'rocketchat-*.pkg'];
+            } else if (os === 'ubuntu-latest') {
+              patterns = ['rocketchat-*.snap'];
+            } else {
+              core.setFailed(`Unsupported OS: ${os}`);
+            }
+
+            const glob = require('glob');
+
             let artifactUrls = '';
-            for (const file of files) {
-              const artifactUrl = `https://s3.us-east-1.wasabisys.com/${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/${file}`;
-              artifactUrls += `- [${file}](${artifactUrl})\n`;
+            for (const pattern of patterns) {
+              const files = glob.sync(path.join(artifactDir, pattern));
+              for (const file of files) {
+                const fileName = path.basename(file);
+                const artifactUrl = `${endpoint}/${bucketName}/${os}/${fileName}`;
+                artifactUrls += `- [${fileName}](${artifactUrl})\n`;
+              }
             }
             core.setOutput('artifact_urls', artifactUrls.trim());
+          # Install glob dependency
+          prelude: |
+            const glob = require('glob');
 
       - name: Post PR Comment with the Artifact links
         if: steps.get-artifact-urls.outputs.artifact_urls != ''

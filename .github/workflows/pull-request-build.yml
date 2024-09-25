@@ -58,14 +58,14 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       - name: Build Windows Package
-        if: ${{ matrix.os == 'windows-latest'}}
+        if: ${{ matrix.os == 'windows-latest' }}
         run: yarn electron-builder --publish never --x64 --win nsis
         env:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Build MacOS Package
-        if: ${{ matrix.os == 'macos-latest'}}
+        if: ${{ matrix.os == 'macos-latest' }}
         run: |
           sudo mdutil -a -i off
           yarn electron-builder --publish never --mac --universal
@@ -79,24 +79,48 @@ jobs:
           ASC_PROVIDER: 'S6UPZG7ZR3'
 
       - name: Build Ubuntu Package
-        if: ${{ matrix.os == 'ubuntu-latest'}}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: yarn electron-builder --publish never --linux snap
 
-      # Install AWS CLI using the official action
+      # Install AWS CLI
       - name: Install AWS CLI
-        uses: aws-actions/setup-aws-cli@v2
+        run: pip install awscli
 
-      # Upload artifacts to Wasabi (only specified file extensions)
-      - name: Upload Artifacts to Wasabi
-        shell: bash
+      # Upload artifacts to Wasabi (Windows)
+      - name: Upload Artifacts to Wasabi (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/ --recursive `
+            --acl public-read `
+            --endpoint-url=https://s3.us-east-1.wasabisys.com `
+            --exclude "*" `
+            --include "rocketchat-*.exe"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
+
+      # Upload artifacts to Wasabi (macOS)
+      - name: Upload Artifacts to Wasabi (macOS)
+        if: ${{ matrix.os == 'macos-latest' }}
         run: |
           aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/ --recursive \
             --acl public-read \
             --endpoint-url=https://s3.us-east-1.wasabisys.com \
             --exclude "*" \
             --include "rocketchat-*.dmg" \
-            --include "rocketchat-*.pkg" \
-            --include "rocketchat-*.exe" \
+            --include "rocketchat-*.pkg"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
+
+      # Upload artifacts to Wasabi (Ubuntu)
+      - name: Upload Artifacts to Wasabi (Ubuntu)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/ --recursive \
+            --acl public-read \
+            --endpoint-url=https://s3.us-east-1.wasabisys.com \
+            --exclude "*" \
             --include "rocketchat-*.snap"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}

@@ -90,7 +90,7 @@ jobs:
       - name: Upload Artifacts to Wasabi (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
-          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/ --recursive `
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive `
             --acl public-read `
             --endpoint-url=https://s3.us-east-1.wasabisys.com `
             --exclude "*" `
@@ -103,7 +103,7 @@ jobs:
       - name: Upload Artifacts to Wasabi (macOS)
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
-          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/ --recursive \
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \
             --acl public-read \
             --endpoint-url=https://s3.us-east-1.wasabisys.com \
             --exclude "*" \
@@ -117,7 +117,7 @@ jobs:
       - name: Upload Artifacts to Wasabi (Ubuntu)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
-          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/ --recursive \
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \
             --acl public-read \
             --endpoint-url=https://s3.us-east-1.wasabisys.com \
             --exclude "*" \
@@ -140,7 +140,7 @@ jobs:
             let artifactUrls = '';
             for (const file of files) {
               if (patterns.some(pattern => pattern.test(file))) {
-                const artifactUrl = `https://s3.us-east-1.wasabisys.com/${{ secrets.WASABI_BUCKET_NAME }}/${{ matrix.os }}/${file}`;
+                const artifactUrl = `https://s3.us-east-1.wasabisys.com/${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/${file}`;
                 artifactUrls += `- [${file}](${artifactUrl})\n`;
               }
             }
@@ -152,8 +152,8 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           message: |
-            ### Artifact for ${{ matrix.os }}
+            ### ${{ runner.os }} installer download
             ${{ steps.get-artifact-urls.outputs.artifact_urls }}
-          header: '### Artifact for ${{ matrix.os }}'
+          header: '### ${{ runner.os }} installer download'
           recreate: true
           append: false

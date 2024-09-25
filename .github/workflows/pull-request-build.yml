@@ -82,27 +82,9 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: yarn electron-builder --publish never --linux snap
 
-      # Install AWS CLI based on the OS
-      - name: Install AWS CLI on Ubuntu
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y unzip
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install
-
-      - name: Install AWS CLI on macOS
-        if: runner.os == 'macOS'
-        run: |
-          brew install awscli
-
-      - name: Install AWS CLI on Windows
-        if: runner.os == 'Windows'
-        run: |
-          Invoke-WebRequest -Uri "https://awscli.amazonaws.com/AWSCLIV2.msi" -OutFile "C:\awscliv2.msi"
-          Start-Process msiexec.exe -Wait -ArgumentList '/i C:\awscliv2.msi /qn'
-        shell: pwsh
+      # Verify AWS CLI Installation
+      - name: Verify AWS CLI Installation
+        run: aws --version
 
       # Upload artifacts to Wasabi (Windows)
       - name: Upload Artifacts to Wasabi (Windows)

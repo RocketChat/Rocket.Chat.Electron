@@ -6,6 +6,7 @@ import { ipcMain } from 'electron';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { coerce, satisfies } from 'semver';
+import semverGte from 'semver/functions/gte';
 
 import { dispatch, listen, select } from '../../store';
 import {
@@ -93,9 +94,14 @@ const getServerInfo = async (url: string): Promise<ServerInfo> => {
   return response.data;
 };
 
-const getUniqueId = async (url: string): Promise<string> => {
+const getUniqueId = async (url: string, version: string): Promise<string> => {
+  if (!url || !version) return '';
+  const serverUrl = semverGte(`${version}.0`, '7.0.0')
+    ? urls.server(url).uniqueId
+    : urls.server(url).setting('uniqueID');
+
   const response = await axios.get<{ settings: { value: string }[] }>(
-    urls.server(url).setting('uniqueID')
+    serverUrl
   );
   const value = response.data?.settings?.[0]?.value;
 
@@ -321,7 +327,7 @@ const updateSupportedVersionsData = async (
     .catch(logRequestError('server info'));
   if (!serverInfo) return;
 
-  const uniqueID = await getUniqueId(server.url)
+  const uniqueID = await getUniqueId(server.url, server.version || '')
     .then(dispatchUniqueIdUpdated(server.url))
     .catch(logRequestError('unique ID'));
 

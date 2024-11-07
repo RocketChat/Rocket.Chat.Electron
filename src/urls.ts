@@ -19,6 +19,7 @@ export const supportedVersions = ({
 
 export const server = <T extends string>(serverUrl: T) =>
   ({
+    uniqueId: `${serverUrl}/api/v1/settings.public?_id=uniqueID` as const,
     setting: (id: string) =>
       `${serverUrl}/api/v1/settings.public?query={"_id": ${JSON.stringify(
         id

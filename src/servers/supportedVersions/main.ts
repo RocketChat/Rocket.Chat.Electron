@@ -95,7 +95,6 @@ const getServerInfo = async (url: string): Promise<ServerInfo> => {
 };
 
 const getUniqueId = async (url: string, version: string): Promise<string> => {
-  if (!url || !version) return '';
   const serverUrl = semverGte(`${version}.0`, '7.0.0')
     ? urls.server(url).uniqueId
     : urls.server(url).setting('uniqueID');

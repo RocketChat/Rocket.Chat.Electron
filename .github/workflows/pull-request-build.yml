@@ -106,6 +106,7 @@ jobs:
           aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \
             --acl public-read \
             --endpoint-url=https://s3.us-east-1.wasabisys.com \
+            --checksum-algorithm SHA1 \
             --exclude "*" \
             --include "rocketchat-*.dmg" \
             --include "rocketchat-*.pkg"

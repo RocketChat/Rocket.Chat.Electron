@@ -257,8 +257,8 @@ export const setupRootWindow = (): void => {
 
     rootWindow.addListener('close', async () => {
       if (rootWindow?.isFullScreen()) {
-        await new Promise((resolve) =>
-          rootWindow.once('leave-full-screen', resolve)
+        await new Promise<void>((resolve) =>
+          rootWindow.once('leave-full-screen', () => resolve())
         );
         rootWindow.setFullScreen(false);
       }

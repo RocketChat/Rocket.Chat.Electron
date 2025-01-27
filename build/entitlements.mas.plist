@@ -26,8 +26,6 @@
     <true/>
     <key>com.apple.security.network.client</key>
     <true/>
-    <key>com.apple.security.device.gpu-access</key>
-    <true/>
     <key>com.apple.security.application-groups</key>
     <array>
       <string>S6UPZG7ZR3.chat.rocket</string>

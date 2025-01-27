@@ -65,6 +65,10 @@ export const performElectronStartup = (): void => {
     'HardwareMediaKeyHandling,MediaSessionService'
   );
 
+  if (getPlatformName() === 'macOS' && process.mas) {
+    app.commandLine.appendSwitch('disable-accelerated-video-decode');
+  }
+
   const args = process.argv.slice(app.isPackaged ? 1 : 2);
 
   if (args.includes('--reset-app-data')) {

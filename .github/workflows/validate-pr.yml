@@ -24,10 +24,10 @@ jobs:
         run: git config --global core.autocrlf false
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Setup Node 20.14.0
+      - name: Setup Node 22.13.1
         uses: actions/setup-node@v4
         with:
-          node-version: '20.14.0'
+          node-version: '22.13.1'
       - name: Setup node_modules cache
         uses: actions/cache@v4
         with:

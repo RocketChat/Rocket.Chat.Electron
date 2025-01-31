@@ -52,7 +52,7 @@ jobs:
       - name: Running executable on ${{ runner.os }}
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
-          xvfb-run timeout 30 ./dist/linux-unpacked/rocketchat-desktop || code=$?
+          xvfb-run timeout 30 ./dist/linux-unpacked/rocketchat-desktop --no-sandbox || code=$?
           if [[ $code -ne 124 && $code -ne 0 ]]; then
             exit $code;
           fi

@@ -152,5 +152,5 @@
     "node": "22.13.1",
     "yarn": "4.0.2"
   },
-  "packageManager": "yarn@4.0.2"
+  "packageManager": "yarn@4.6.0"
 }

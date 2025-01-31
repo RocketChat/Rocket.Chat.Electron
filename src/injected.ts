@@ -1,3 +1,5 @@
+import type { NotificationAction } from 'electron';
+
 import type { RocketChatDesktopAPI } from './servers/preload/api';
 
 declare global {
@@ -241,8 +243,6 @@ const start = async () => {
     });
   });
 
-  const destroyPromiseSymbol = Symbol('destroyPromise');
-
   console.log('[Rocket.Chat Desktop] Injected.ts replaced Notification');
 
   window.Notification = class RocketChatDesktopNotification
@@ -258,7 +258,7 @@ const start = async () => {
       return Promise.resolve(RocketChatDesktopNotification.permission);
     }
 
-    [destroyPromiseSymbol]?: Promise<() => void>;
+    #destroy?: Promise<() => void>;
 
     constructor(
       title: string,
@@ -266,27 +266,7 @@ const start = async () => {
     ) {
       super();
 
-      for (const eventType of ['show', 'close', 'click', 'reply', 'action']) {
-        const propertyName = `on${eventType}`;
-        const propertySymbol = Symbol(propertyName);
-
-        Object.defineProperty(this, propertyName, {
-          get: () => this[propertySymbol],
-          set: (value) => {
-            if (this[propertySymbol]) {
-              this.removeEventListener(eventType, this[propertySymbol]);
-            }
-
-            this[propertySymbol] = value;
-
-            if (this[propertySymbol]) {
-              this.addEventListener(eventType, this[propertySymbol]);
-            }
-          },
-        });
-      }
-
-      this[destroyPromiseSymbol] = window.RocketChatDesktop.createNotification({
+      this.#destroy = window.RocketChatDesktop.createNotification({
         title,
         ...options,
         onEvent: this.handleEvent,
@@ -313,15 +293,95 @@ const start = async () => {
 
     lang = document.documentElement.lang;
 
-    onclick: ((this: Notification, ev: Event) => any) | null = null;
+    #onclick: ((this: Notification, ev: Event) => any) | null = null;
 
-    onclose: ((this: Notification, ev: Event) => any) | null = null;
+    get onclick() {
+      return this.#onclick;
+    }
 
-    onerror: ((this: Notification, ev: Event) => any) | null = null;
+    set onclick(value) {
+      if (this.#onclick) {
+        this.removeEventListener('click', this.#onclick);
+      }
 
-    onshow: ((this: Notification, ev: Event) => any) | null = null;
+      this.#onclick = value;
 
-    renotify = false;
+      if (this.#onclick) {
+        this.addEventListener('click', this.#onclick);
+      }
+    }
+
+    #onclose: ((this: Notification, ev: Event) => any) | null = null;
+
+    get onclose() {
+      return this.#onclose;
+    }
+
+    set onclose(value) {
+      if (this.#onclose) {
+        this.removeEventListener('close', this.#onclose);
+      }
+
+      this.#onclose = value;
+
+      if (this.#onclose) {
+        this.addEventListener('close', this.#onclose);
+      }
+    }
+
+    #onerror: ((this: Notification, ev: Event) => any) | null = null;
+
+    get onerror() {
+      return this.#onerror;
+    }
+
+    set onerror(value) {
+      if (this.#onerror) {
+        this.removeEventListener('error', this.#onerror);
+      }
+
+      this.#onerror = value;
+
+      if (this.#onerror) {
+        this.addEventListener('error', this.#onerror);
+      }
+    }
+
+    #onshow: ((this: Notification, ev: Event) => any) | null = null;
+
+    get onshow() {
+      return this.#onshow;
+    }
+
+    set onshow(value) {
+      if (this.#onshow) {
+        this.removeEventListener('show', this.#onshow);
+      }
+
+      this.#onshow = value;
+
+      if (this.#onshow) {
+        this.addEventListener('show', this.#onshow);
+      }
+    }
+
+    #onaction: ((this: Notification, ev: Event) => any) | null = null;
+
+    get onaction() {
+      return this.#onaction;
+    }
+
+    set onaction(value) {
+      if (this.#onaction) {
+        this.removeEventListener('action', this.#onaction);
+      }
+
+      this.#onaction = value;
+
+      if (this.#onaction) {
+        this.addEventListener('action', this.#onaction);
+      }
+    }
 
     requireInteraction = false;
 
@@ -361,12 +421,12 @@ const start = async () => {
     };
 
     close(): void {
-      if (!this[destroyPromiseSymbol]) {
+      if (!this.#destroy) {
         return;
       }
 
-      this[destroyPromiseSymbol]?.then((destroy) => {
-        delete this[destroyPromiseSymbol];
+      this.#destroy?.then((destroy) => {
+        this.#destroy = undefined;
         destroy();
       });
     }

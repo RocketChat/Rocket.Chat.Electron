@@ -17,7 +17,7 @@ import { getRootWindow } from '../ui/main/rootWindow';
 
 export const handleDesktopCapturerGetSources = () => {
   handle('desktop-capturer-get-sources', async (_event, opts) =>
-    desktopCapturer.getSources(opts[0])
+    desktopCapturer.getSources(opts)
   );
 };
 

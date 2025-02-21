@@ -98,7 +98,15 @@ export const mergePersistableValues = async (
       isTrayIconEnabled: localStorage.hideTray !== 'true',
     };
   }
-  const userRootWindowState = await (async () => {
+  const userRootWindowState = await (async (): Promise<{
+    isHidden?: boolean;
+    isMaximized?: boolean;
+    isMinimized?: boolean;
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+  } | null> => {
     try {
       const filePath = path.join(
         app.getPath('userData'),
@@ -122,24 +130,25 @@ export const mergePersistableValues = async (
         userRootWindowState?.isHidden ?? !values?.rootWindowState?.visible
       ),
       maximized:
-        userRootWindowState.isMaximized ?? values?.rootWindowState?.maximized,
+        userRootWindowState?.isMaximized ?? values?.rootWindowState?.maximized,
       minimized:
-        userRootWindowState.isMinimized ?? values?.rootWindowState?.minimized,
+        userRootWindowState?.isMinimized ?? values?.rootWindowState?.minimized,
       fullscreen: false,
-      normal:
-        !(userRootWindowState.isMinimized || userRootWindowState.isMaximized) ??
-        values?.rootWindowState?.normal,
+      normal: !(
+        userRootWindowState?.isMinimized || userRootWindowState?.isMaximized
+      ),
       bounds: {
         x:
-          userRootWindowState.x ??
+          userRootWindowState?.x ??
           normalizeNumber(values?.rootWindowState?.bounds?.x),
         y:
-          userRootWindowState.y ??
+          userRootWindowState?.y ??
           normalizeNumber(values?.rootWindowState?.bounds?.y),
         width:
-          userRootWindowState.width ?? values?.rootWindowState?.bounds?.width,
+          userRootWindowState?.width ?? values?.rootWindowState?.bounds?.width,
         height:
-          userRootWindowState.height ?? values?.rootWindowState?.bounds?.height,
+          userRootWindowState?.height ??
+          values?.rootWindowState?.bounds?.height,
       },
     },
   };

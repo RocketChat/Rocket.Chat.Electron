@@ -23,7 +23,9 @@ export const openInternalVideoChatWindow = (
   if (!process.mas && getInternalVideoChatWindowEnabled()) {
     switch (options?.providerName) {
       case 'jitsi':
-        window.open(validUrl.href, 'Video Call', 'scrollbars=true');
+        // window.open(validUrl.href, 'Video Call', 'scrollbars=true');
+        // We will open Jitsi on browser instead of opening a new window for compatibility from their side
+        shell.openExternal(validUrl.href);
         break;
       case 'googlemeet':
         shell.openExternal(validUrl.href);

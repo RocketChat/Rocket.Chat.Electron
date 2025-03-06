@@ -28,17 +28,17 @@
     },
     "addServer": {
       "title": "Kiszolgáló hozzáadása",
-      "message": "Szeretné hozzáadni a(z) „{{- host}}” kiszolgálót a kiszolgálólistájához?",
+      "message": "Szeretné hozzáadni a(z) \"{{- host}}\" kiszolgálót a kiszolgálólistájához?",
       "add": "Hozzáadás",
       "cancel": "Mégse"
     },
     "addServerError": {
       "title": "Érvénytelen kiszolgáló",
-      "message": "A(z) „{{- host}}” kiszolgálót nem sikerült ellenőrizni, ezért nem lett hozzáadva."
+      "message": "A(z) \"{{- host}}\" kiszolgálót nem sikerült ellenőrizni, ezért nem lett hozzáadva."
     },
     "certificateError": {
       "title": "Tanúsítványhiba",
-      "message": "Megbízik a(z) „{{- issuerName}}” által kiadott tanúsítványban?",
+      "message": "Megbízik a(z) \"{{- issuerName}}\" által kiadott tanúsítványban?",
       "yes": "Igen",
       "no": "Nem"
     },
@@ -204,7 +204,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Videocsevegés megnyitása alkalmazásablak használatával",
-        "description": "Ha be van állítva, akkor a videocsevegés egy alkalmazás ablakával nyílik meg, egyébként az alapértelmezett böngésző lesz használva. A <strong>Google Meet</strong> megosztási képernyője nem támogatott az Electront használó alkalmazásokban, így ez a beállítás nem változtatja meg azoknak a Meet-hívásoknak a viselkedését, amelyek a böngészőben fognak megnyílni.",
+        "description": "Ha engedélyezve van, a videocsevegés az alkalmazás ablakában nyílik meg az alapértelmezett böngésző helyett. Azonban a <strong>Google Meet</strong> és a <strong>Jitsi</strong> esetében a képernyőrögzítés nem támogatott az Electron alkalmazásokban, így ezek mindig a böngészőben fognak megnyílni, függetlenül ettől a beállítástól.",
         "masDescription": "Ez a beállítás a Mac alkalmazásboltból történő telepítéskor le van tiltva. Biztonsági okokból a videocsevegést alapértelmezetten a böngésző használatával fogja megnyitni."
       },
       "minimizeOnClose": {
@@ -307,7 +307,7 @@
   },
   "selfxss": {
     "title": "Megállj!",
-    "description": "Ez a böngészőfunkció fejlesztők számára készült. Ha valaki azt mondja, hogy másoljon le és illesszen be valamit ide, azért hogy egy Rocket.Chat funkciót engedélyezzen vagy „feltörje” valaki más fiókját, akkor az átverés, és hozzáférést fog adni nekik az Ön Rocket.Chat fiókjához.",
+    "description": "Ez a böngészőfunkció fejlesztők számára készült. Ha valaki azt mondja, hogy másoljon le és illesszen be valamit ide, azért hogy egy Rocket.Chat funkciót engedélyezzen vagy \"feltörje\" valaki más fiókját, akkor az átverés, és hozzáférést fog adni nekik az Ön Rocket.Chat fiókjához.",
     "moreInfo": "További információkért nézze meg a https://go.rocket.chat/i/xss oldalt."
   },
   "sidebar": {

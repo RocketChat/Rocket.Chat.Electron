@@ -212,9 +212,9 @@
         "description": "Enables the use of hardware acceleration when available. The application will reload on change."
       },
       "internalVideoChatWindow": {
-        "title": "Open Video Chat using Application Window",
-        "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used. <strong>Google Meet</strong> share screen is not supported in Electron applications, so this configuration don't change Meet calls behavior, that will open on browser.",
-        "masDescription": "This option is disabled when installed from the Mac App Store, for security reasons it will open Video Chat using the browser by default."
+        "title": "Open Video Chat in Application Window",
+        "description": "If enabled, the Video Chat will open in the application's window instead of the default browser. However, for <strong>Google Meet</strong> and <strong>Jitsi</strong>, screen recording is not supported in Electron applications, so they will always open in the browser regardless of this setting.",
+        "masDescription": "This option is disabled when installed from the Mac App Store. For security reasons, Video Chat will always open in the browser by default."
       },
       "minimizeOnClose": {
         "title": "Minimize on close",

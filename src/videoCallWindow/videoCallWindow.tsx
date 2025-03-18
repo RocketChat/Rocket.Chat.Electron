@@ -1,3 +1,5 @@
+import path from 'path';
+
 import { Box } from '@rocket.chat/fuselage';
 import { ipcRenderer } from 'electron';
 import { useEffect, useRef, useState } from 'react';
@@ -18,7 +20,19 @@ function VideoCallWindow() {
         setVideoCallUrl(url);
       }
     );
-  }, [videoCallUrl]);
+
+    // Listen for Jitsi screen share requests
+    ipcRenderer.on('video-call-window/jitsi-screen-share-requested', () => {
+      console.log('Jitsi screen share requested');
+      ipcRenderer.send('video-call-window/open-screen-picker');
+    });
+
+    return () => {
+      ipcRenderer.removeAllListeners(
+        'video-call-window/jitsi-screen-share-requested'
+      );
+    };
+  }, []);
 
   return (
     <Box>
@@ -26,7 +40,7 @@ function VideoCallWindow() {
       <webview
         ref={webviewRef}
         src={videoCallUrl}
-        preload='./preload.js'
+        preload={path.join(__dirname, 'preload', 'index.js')}
         webpreferences='nodeIntegration,nativeWindowOpen=true'
         allowpopups={'true' as any}
       />

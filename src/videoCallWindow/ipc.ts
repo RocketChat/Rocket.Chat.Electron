@@ -134,6 +134,14 @@ export const startVideoCallWindowHandler = (): void => {
         'did-attach-webview',
         handleDidAttachWebview
       );
+
+      // Set up IPC listener for Jitsi screen share requests
+      ipcMain.on('video-call-window/jitsi-screen-share-requested', () => {
+        console.log('[Rocket.Chat Desktop] Jitsi screen share requested');
+        videoCallWindow.webContents.send(
+          'video-call-window/open-screen-picker'
+        );
+      });
     }
   });
 };

@@ -16,9 +16,11 @@ import { handle } from '../ipc/main';
 import { getRootWindow } from '../ui/main/rootWindow';
 
 export const handleDesktopCapturerGetSources = () => {
-  handle('desktop-capturer-get-sources', async (_event, opts) =>
-    desktopCapturer.getSources(opts)
-  );
+  handle('desktop-capturer-get-sources', async (_event, opts) => {
+    // Check if opts is an array and extract the first element if it is
+    const options = Array.isArray(opts) ? opts[0] : opts;
+    return desktopCapturer.getSources(options);
+  });
 };
 
 export const startVideoCallWindowHandler = (): void => {
@@ -104,6 +106,7 @@ export const startVideoCallWindowHandler = (): void => {
         // console.log('[Rocket.Chat Desktop] did-attach-webview');
         // webContents.openDevTools();
         webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
+          console.log('[Rocket.Chat Desktop] setDisplayMediaRequestHandler');
           videoCallWindow.webContents.send(
             'video-call-window/open-screen-picker'
           );

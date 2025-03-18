@@ -108,8 +108,8 @@ export function ScreenSharePicker() {
     <Box>
       <PaletteStyleTag theme='light' selector=':root' />
       <Dialog isVisible={visible} onClose={handleClose}>
-        <Box display='flex' flexDirection='column' width='x640' height='x480'>
-          {isScreenRecordingPermissionGranted && (
+        <Box flexDirection='column'>
+          {!isScreenRecordingPermissionGranted && (
             <Callout
               title='Screen Recording Permissions Denied'
               type='danger'
@@ -126,41 +126,39 @@ export function ScreenSharePicker() {
           )}
 
           <Box fontScale='h1' mb='x16'>
-            Compartilhar sua tela
+            Share your screen
           </Box>
 
-          <Tabs style={{ outline: 'none' }}>
+          <Tabs>
             <Tabs.Item
               selected={currentTab === 'screen'}
               onClick={() => setCurrentTab('screen')}
-              style={{ outline: 'none' }}
             >
-              Toda sua tela
+              Your entire screen
             </Tabs.Item>
             <Tabs.Item
               selected={currentTab === 'window'}
               onClick={() => setCurrentTab('window')}
-              style={{ outline: 'none' }}
             >
-              Janela de aplicativo
+              Application window
             </Tabs.Item>
           </Tabs>
 
-          <Box overflowY='auto' flexGrow={1} p='x16'>
-            <Box display='flex' flexWrap='wrap' minHeight='x240'>
-              {filteredSources.length === 0 ? (
-                <Box
-                  display='flex'
-                  alignItems='center'
-                  justifyContent='center'
-                  width='100%'
-                >
-                  <Label>
-                    No {currentTab === 'screen' ? 'screens' : 'windows'} found
-                  </Label>
-                </Box>
-              ) : (
-                filteredSources.map(({ id, name, thumbnail }) => (
+          <Box m='x24'>
+            {filteredSources.length === 0 ? (
+              <Box
+                display='flex'
+                alignItems='center'
+                justifyContent='center'
+                width='100%'
+              >
+                <Label>
+                  No {currentTab === 'screen' ? 'screens' : 'windows'} found
+                </Label>
+              </Box>
+            ) : (
+              <Box display='flex' flexWrap='wrap'>
+                {filteredSources.map(({ id, name, thumbnail }) => (
                   <Box
                     key={id}
                     width='x180'
@@ -170,16 +168,14 @@ export function ScreenSharePicker() {
                     display='flex'
                     flexDirection='column'
                     onClick={handleScreenSharingSourceClick(id)}
-                    style={{
-                      cursor: 'pointer',
-                      border:
-                        selectedSourceId === id
-                          ? '2px solid #1D74F5'
-                          : '1px solid #e4e7ea',
-                      borderRadius: '4px',
-                      backgroundColor:
-                        selectedSourceId === id ? '#f1f6ff' : 'transparent',
-                    }}
+                    bg={
+                      selectedSourceId === id
+                        ? 'selection-background'
+                        : 'surface-light'
+                    }
+                    color={selectedSourceId === id ? 'primary' : 'default'}
+                    border='1px solid var(--rcx-color-stroke-light)'
+                    borderRadius='x2'
                   >
                     <Box
                       flexGrow={1}
@@ -197,27 +193,22 @@ export function ScreenSharePicker() {
                       />
                     </Box>
                     <Box p='x4'>
-                      <Label
-                        style={{
-                          color:
-                            selectedSourceId === id ? '#1D74F5' : 'inherit',
-                          fontWeight:
-                            selectedSourceId === id ? 'normal' : 'normal',
-                        }}
-                      >
-                        {name}
-                      </Label>
+                      <Label>{name}</Label>
                     </Box>
                   </Box>
-                ))
-              )}
-            </Box>
+                ))}
+              </Box>
+            )}
           </Box>
 
-          <Box display='flex' justifyContent='space-between' p='x16'>
-            <Button onClick={handleClose}>Cancelar</Button>
+          <Box
+            display='flex'
+            justifyContent='space-between'
+            marginBlockStart='x16'
+          >
+            <Button onClick={handleClose}>Cancel</Button>
             <Button primary onClick={handleShare} disabled={!selectedSourceId}>
-              Compartilhar
+              Share
             </Button>
           </Box>
         </Box>

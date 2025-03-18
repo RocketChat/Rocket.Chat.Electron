@@ -17,7 +17,6 @@ import { getRootWindow } from '../ui/main/rootWindow';
 
 export const handleDesktopCapturerGetSources = () => {
   handle('desktop-capturer-get-sources', async (_event, opts) => {
-    // Check if opts is an array and extract the first element if it is
     const options = Array.isArray(opts) ? opts[0] : opts;
     return desktopCapturer.getSources(options);
   });
@@ -106,7 +105,6 @@ export const startVideoCallWindowHandler = (): void => {
         // console.log('[Rocket.Chat Desktop] did-attach-webview');
         // webContents.openDevTools();
         webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
-          console.log('[Rocket.Chat Desktop] setDisplayMediaRequestHandler');
           videoCallWindow.webContents.send(
             'video-call-window/open-screen-picker'
           );
@@ -134,15 +132,6 @@ export const startVideoCallWindowHandler = (): void => {
         'did-attach-webview',
         handleDidAttachWebview
       );
-
-      // Handle screen picker directly instead of going through jitsi-screen-share-requested
-      ipcMain.handle('video-call-window/open-screen-picker', () => {
-        console.log('[Rocket.Chat Desktop] Opening screen picker directly');
-        videoCallWindow.webContents.send(
-          'video-call-window/open-screen-picker'
-        );
-        return true;
-      });
     }
   });
 };

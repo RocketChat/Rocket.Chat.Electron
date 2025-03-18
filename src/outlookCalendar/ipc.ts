@@ -102,6 +102,7 @@ async function createEventOnRocketChatServer(
         externalId: event.id,
         subject: event.subject,
         startTime: event.startTime,
+        endTime: event.endTime,
         description: event.description,
         reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
       },
@@ -132,6 +133,7 @@ async function updateEventOnRocketChatServer(
         eventId: rocketChatEventId,
         subject: event.subject,
         startTime: event.startTime,
+        endTime: event.endTime,
         description: event.description,
         reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
       },
@@ -206,8 +208,13 @@ export async function syncEventsWithRocketChatServer(
           externalId === appointment.id
       );
 
-      const { subject, startTime, description, reminderMinutesBeforeStart } =
-        appointment;
+      const {
+        subject,
+        startTime,
+        endTime,
+        description,
+        reminderMinutesBeforeStart,
+      } = appointment;
 
       // If the appointment is not in the rocket.chat calendar for today, add it.
       if (!alreadyOnRocketChatServer) {
@@ -224,6 +231,7 @@ export async function syncEventsWithRocketChatServer(
       if (
         alreadyOnRocketChatServer.subject === subject &&
         alreadyOnRocketChatServer.startTime === startTime &&
+        alreadyOnRocketChatServer.endTime === endTime &&
         alreadyOnRocketChatServer.description === description &&
         alreadyOnRocketChatServer.reminderMinutesBeforeStart ===
           reminderMinutesBeforeStart

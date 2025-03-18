@@ -21,17 +21,7 @@ function VideoCallWindow() {
       }
     );
 
-    // Listen for Jitsi screen share requests
-    ipcRenderer.on('video-call-window/jitsi-screen-share-requested', () => {
-      console.log('Jitsi screen share requested');
-      ipcRenderer.send('video-call-window/open-screen-picker');
-    });
-
-    return () => {
-      ipcRenderer.removeAllListeners(
-        'video-call-window/jitsi-screen-share-requested'
-      );
-    };
+    return () => {};
   }, []);
 
   return (

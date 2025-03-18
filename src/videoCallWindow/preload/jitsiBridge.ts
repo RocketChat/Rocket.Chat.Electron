@@ -351,30 +351,30 @@ class JitsiBridgeImpl implements JitsiBridge {
    * Handle screen sharing requests from Jitsi
    */
   private handleScreenSharingRequest(): void {
-    // Notify main process about the screen share request
-    ipcRenderer.send('video-call-window/jitsi-screen-share-requested');
+    // Directly invoke the screen picker
+    ipcRenderer.invoke('video-call-window/open-screen-picker').then(() => {
+      // Listener for the selected source remains the same
+      ipcRenderer.once(
+        'video-call-window/screen-sharing-source-responded',
+        (_event, sourceId) => {
+          if (!sourceId) {
+            console.log('JitsiBridge: Screen sharing cancelled');
+            this.sendMessageToJitsiIframe({
+              type: 'screen-sharing-canceled',
+            });
+            return;
+          }
 
-    // Listen for the selected source
-    ipcRenderer.once(
-      'video-call-window/screen-sharing-source-responded',
-      (_event, sourceId) => {
-        if (!sourceId) {
-          console.log('JitsiBridge: Screen sharing cancelled');
+          console.log('JitsiBridge: Screen sharing source selected:', sourceId);
+
+          // Send the selected source ID to Jitsi
           this.sendMessageToJitsiIframe({
-            type: 'screen-sharing-canceled',
+            type: 'selected-screen-share-source',
+            sourceId,
           });
-          return;
         }
-
-        console.log('JitsiBridge: Screen sharing source selected:', sourceId);
-
-        // Send the selected source ID to Jitsi
-        this.sendMessageToJitsiIframe({
-          type: 'selected-screen-share-source',
-          sourceId,
-        });
-      }
-    );
+      );
+    });
   }
 
   /**
@@ -384,8 +384,8 @@ class JitsiBridgeImpl implements JitsiBridge {
     console.log('JitsiBridge: Start screen sharing requested');
 
     try {
-      // Request screen sharing source selection
-      ipcRenderer.send('video-call-window/open-screen-picker');
+      // Direct invoke to screen picker
+      await ipcRenderer.invoke('video-call-window/open-screen-picker');
 
       return new Promise<boolean>((resolve) => {
         ipcRenderer.once(

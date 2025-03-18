@@ -4,7 +4,6 @@ import {
   Callout,
   Label,
   PaletteStyleTag,
-  Scrollable,
   Tabs,
 } from '@rocket.chat/fuselage';
 import type {
@@ -27,7 +26,6 @@ export function ScreenSharePicker() {
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
   const [currentTab, setCurrentTab] = useState<'screen' | 'window'>('screen');
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
-  const [hoveredSourceId, setHoveredSourceId] = useState<string | null>(null);
   const [
     isScreenRecordingPermissionGranted,
     setIsScreenRecordingPermissionGranted,
@@ -98,14 +96,6 @@ export function ScreenSharePicker() {
     ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
   };
 
-  const handleMouseEnter = (id: string) => {
-    setHoveredSourceId(id);
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredSourceId(null);
-  };
-
   // Filter sources based on the current tab
   const filteredSources = sources.filter((source) => {
     if (currentTab === 'screen') {
@@ -114,23 +104,81 @@ export function ScreenSharePicker() {
     return source.id.includes('window');
   });
 
+  const ScreensContent = () => (
+    <Box display='flex' flexWrap='wrap' minHeight='x240'>
+      {filteredSources.length === 0 ? (
+        <Box
+          display='flex'
+          alignItems='center'
+          justifyContent='center'
+          width='100%'
+        >
+          <Label>
+            No {currentTab === 'screen' ? 'screens' : 'windows'} found
+          </Label>
+        </Box>
+      ) : (
+        filteredSources.map(({ id, name, thumbnail }) => (
+          <Box
+            key={id}
+            width='x180'
+            height='x140'
+            m='x8'
+            overflow='hidden'
+            display='flex'
+            flexDirection='column'
+            onClick={handleScreenSharingSourceClick(id)}
+            style={{
+              cursor: 'pointer',
+              border:
+                selectedSourceId === id
+                  ? '2px solid #1D74F5'
+                  : '1px solid #e4e7ea',
+              borderRadius: '4px',
+              backgroundColor:
+                selectedSourceId === id ? '#f1f6ff' : 'transparent',
+            }}
+          >
+            <Box
+              flexGrow={1}
+              display='flex'
+              alignItems='center'
+              justifyContent='center'
+              overflow='hidden'
+            >
+              <Box
+                is='img'
+                src={thumbnail.toDataURL()}
+                alt={name}
+                width='100%'
+                height='auto'
+              />
+            </Box>
+            <Box p='x4'>
+              <Label
+                style={{
+                  color: selectedSourceId === id ? '#1D74F5' : 'inherit',
+                  fontWeight: selectedSourceId === id ? 'bold' : 'normal',
+                }}
+              >
+                {name}
+              </Label>
+            </Box>
+          </Box>
+        ))
+      )}
+    </Box>
+  );
+
   return (
     <Box>
       <PaletteStyleTag theme='light' selector=':root' />
       <Dialog isVisible={visible} onClose={handleClose}>
-        <Box
-          display='flex'
-          flexDirection='column'
-          bg='surface'
-          width='x640'
-          height='x480'
-          color='default'
-        >
+        <Box display='flex' flexDirection='column' width='x640' height='x480'>
           {!isScreenRecordingPermissionGranted && (
             <Callout
               title='Screen Recording Permissions Denied'
               type='danger'
-              maxWidth='100%'
               marginBlockEnd='x16'
             >
               The screen sharing feature requires screen recording permissions
@@ -143,122 +191,32 @@ export function ScreenSharePicker() {
             </Callout>
           )}
 
-          <Box fontScale='h1' color='default' pi='x24' pb='x16'>
+          <Box fontScale='h1' mb='x16'>
             Compartilhar sua tela
           </Box>
 
-          <Tabs>
+          <Tabs style={{ outline: 'none' }}>
             <Tabs.Item
               selected={currentTab === 'screen'}
               onClick={() => setCurrentTab('screen')}
+              style={{ outline: 'none' }}
             >
               Toda sua tela
             </Tabs.Item>
             <Tabs.Item
               selected={currentTab === 'window'}
               onClick={() => setCurrentTab('window')}
+              style={{ outline: 'none' }}
             >
               Janela de aplicativo
             </Tabs.Item>
           </Tabs>
 
-          <Box
-            display='flex'
-            flexDirection='column'
-            flexGrow={1}
-            overflow='hidden'
-            position='relative'
-            style={{ minHeight: '250px' }}
-          >
-            <Scrollable vertical>
-              <Box
-                display='flex'
-                flexWrap='wrap'
-                style={{ gap: '16px' }}
-                p='x16'
-                pb='x24'
-              >
-                {filteredSources.length === 0 ? (
-                  <Box
-                    display='flex'
-                    alignItems='center'
-                    justifyContent='center'
-                    height='x200'
-                    width='100%'
-                  >
-                    <Label>
-                      No {currentTab === 'screen' ? 'screens' : 'windows'} found
-                    </Label>
-                  </Box>
-                ) : (
-                  filteredSources.map(({ id, name, thumbnail }) => (
-                    <Box
-                      key={id}
-                      width='x180'
-                      height='x140'
-                      overflow='hidden'
-                      display='flex'
-                      flexDirection='column'
-                      onClick={handleScreenSharingSourceClick(id)}
-                      onMouseEnter={() => handleMouseEnter(id)}
-                      onMouseLeave={handleMouseLeave}
-                      style={{
-                        cursor: 'pointer',
-                      }}
-                      border={
-                        selectedSourceId === id
-                          ? '2px solid #1D74F5'
-                          : hoveredSourceId === id
-                            ? '1px solid var(--rcx-color-stroke-light)'
-                            : '1px solid var(--rcx-color-stroke-extra-light)'
-                      }
-                      borderRadius='x2'
-                    >
-                      <Box
-                        flexGrow={1}
-                        display='flex'
-                        alignItems='center'
-                        justifyContent='center'
-                        bg='surface-tint'
-                        overflow='hidden'
-                      >
-                        <Box
-                          is='img'
-                          src={thumbnail.toDataURL()}
-                          alt={name}
-                          style={{
-                            maxWidth: '100%',
-                            maxHeight: '100%',
-                            objectFit: 'contain',
-                          }}
-                        />
-                      </Box>
-                      <Box
-                        p='x4'
-                        fontSize='c1'
-                        color='hint'
-                        lineHeight='1.2'
-                        style={{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {name}
-                      </Box>
-                    </Box>
-                  ))
-                )}
-              </Box>
-            </Scrollable>
+          <Box overflowY='auto' flexGrow={1} p='x16'>
+            <ScreensContent />
           </Box>
 
-          <Box
-            display='flex'
-            justifyContent='space-between'
-            p='x16'
-            border='1px solid var(--rcx-color-stroke-extra-light) none none none'
-          >
+          <Box display='flex' justifyContent='space-between' p='x16'>
             <Button onClick={handleClose}>Cancelar</Button>
             <Button primary onClick={handleShare} disabled={!selectedSourceId}>
               Compartilhar

@@ -104,78 +104,12 @@ export function ScreenSharePicker() {
     return source.id.includes('window');
   });
 
-  const ScreensContent = () => (
-    <Box display='flex' flexWrap='wrap' minHeight='x240'>
-      {filteredSources.length === 0 ? (
-        <Box
-          display='flex'
-          alignItems='center'
-          justifyContent='center'
-          width='100%'
-        >
-          <Label>
-            No {currentTab === 'screen' ? 'screens' : 'windows'} found
-          </Label>
-        </Box>
-      ) : (
-        filteredSources.map(({ id, name, thumbnail }) => (
-          <Box
-            key={id}
-            width='x180'
-            height='x140'
-            m='x8'
-            overflow='hidden'
-            display='flex'
-            flexDirection='column'
-            onClick={handleScreenSharingSourceClick(id)}
-            style={{
-              cursor: 'pointer',
-              border:
-                selectedSourceId === id
-                  ? '2px solid #1D74F5'
-                  : '1px solid #e4e7ea',
-              borderRadius: '4px',
-              backgroundColor:
-                selectedSourceId === id ? '#f1f6ff' : 'transparent',
-            }}
-          >
-            <Box
-              flexGrow={1}
-              display='flex'
-              alignItems='center'
-              justifyContent='center'
-              overflow='hidden'
-            >
-              <Box
-                is='img'
-                src={thumbnail.toDataURL()}
-                alt={name}
-                width='100%'
-                height='auto'
-              />
-            </Box>
-            <Box p='x4'>
-              <Label
-                style={{
-                  color: selectedSourceId === id ? '#1D74F5' : 'inherit',
-                  fontWeight: selectedSourceId === id ? 'bold' : 'normal',
-                }}
-              >
-                {name}
-              </Label>
-            </Box>
-          </Box>
-        ))
-      )}
-    </Box>
-  );
-
   return (
     <Box>
       <PaletteStyleTag theme='light' selector=':root' />
       <Dialog isVisible={visible} onClose={handleClose}>
         <Box display='flex' flexDirection='column' width='x640' height='x480'>
-          {!isScreenRecordingPermissionGranted && (
+          {isScreenRecordingPermissionGranted && (
             <Callout
               title='Screen Recording Permissions Denied'
               type='danger'
@@ -213,7 +147,71 @@ export function ScreenSharePicker() {
           </Tabs>
 
           <Box overflowY='auto' flexGrow={1} p='x16'>
-            <ScreensContent />
+            <Box display='flex' flexWrap='wrap' minHeight='x240'>
+              {filteredSources.length === 0 ? (
+                <Box
+                  display='flex'
+                  alignItems='center'
+                  justifyContent='center'
+                  width='100%'
+                >
+                  <Label>
+                    No {currentTab === 'screen' ? 'screens' : 'windows'} found
+                  </Label>
+                </Box>
+              ) : (
+                filteredSources.map(({ id, name, thumbnail }) => (
+                  <Box
+                    key={id}
+                    width='x180'
+                    height='x140'
+                    m='x8'
+                    overflow='hidden'
+                    display='flex'
+                    flexDirection='column'
+                    onClick={handleScreenSharingSourceClick(id)}
+                    style={{
+                      cursor: 'pointer',
+                      border:
+                        selectedSourceId === id
+                          ? '2px solid #1D74F5'
+                          : '1px solid #e4e7ea',
+                      borderRadius: '4px',
+                      backgroundColor:
+                        selectedSourceId === id ? '#f1f6ff' : 'transparent',
+                    }}
+                  >
+                    <Box
+                      flexGrow={1}
+                      display='flex'
+                      alignItems='center'
+                      justifyContent='center'
+                      overflow='hidden'
+                    >
+                      <Box
+                        is='img'
+                        src={thumbnail.toDataURL()}
+                        alt={name}
+                        width='100%'
+                        height='auto'
+                      />
+                    </Box>
+                    <Box p='x4'>
+                      <Label
+                        style={{
+                          color:
+                            selectedSourceId === id ? '#1D74F5' : 'inherit',
+                          fontWeight:
+                            selectedSourceId === id ? 'normal' : 'normal',
+                        }}
+                      >
+                        {name}
+                      </Label>
+                    </Box>
+                  </Box>
+                ))
+              )}
+            </Box>
           </Box>
 
           <Box display='flex' justifyContent='space-between' p='x16'>

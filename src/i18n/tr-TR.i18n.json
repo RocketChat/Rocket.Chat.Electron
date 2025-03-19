@@ -164,5 +164,22 @@
       "unreadMention_plural": "{{- appName}}: {{- count}} okunmamış bahsetme/direkt mesajınız var",
       "unreadMessage": "{{- appName}}: okunmamış mesajınız var"
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Okunmamış mesajlar",
+    "unreadMention": "Okunmamış bahsetmeler",
+    "noUnreadMessage": "Okunmamış mesaj yok"
+  },
+  "screenSharing": {
+    "permissionDenied": "Ekran Kaydetme İzni Reddedildi",
+    "permissionRequired": "Ekranınızı paylaşmak için ekran kaydetme izni gereklidir.",
+    "permissionInstructions": "Lütfen sistem tercihlerinizde etkinleştirin ve tekrar deneyin.",
+    "title": "Ekranınızı paylaşın",
+    "entireScreen": "Tüm ekranınız",
+    "applicationWindow": "Uygulama penceresi",
+    "noScreensFound": "Ekran bulunamadı",
+    "noWindowsFound": "Pencere bulunamadı",
+    "cancel": "İptal et",
+    "share": "Paylaş"
   }
 }

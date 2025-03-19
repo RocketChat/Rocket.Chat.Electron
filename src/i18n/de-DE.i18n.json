@@ -311,5 +311,17 @@
     "unreadMessage": "Ungelesene Nachrichten",
     "unreadMention": "Ungelesene Erwähnungen",
     "noUnreadMessage": "Keine ungelesenen Nachrichten"
+  },
+  "screenSharing": {
+    "permissionDenied": "Bildschirmaufnahme-Berechtigung verweigert",
+    "permissionRequired": "Die Bildschirmaufnahme-Berechtigung ist erforderlich, um Ihren Bildschirm zu teilen.",
+    "permissionInstructions": "Bitte aktivieren Sie diese in den Systemeinstellungen und versuchen Sie es erneut.",
+    "title": "Bildschirm teilen",
+    "entireScreen": "Ihr gesamter Bildschirm",
+    "applicationWindow": "Anwendungsfenster",
+    "noScreensFound": "Keine Bildschirme gefunden",
+    "noWindowsFound": "Keine Fenster gefunden",
+    "cancel": "Abbrechen",
+    "share": "Teilen"
   }
 }

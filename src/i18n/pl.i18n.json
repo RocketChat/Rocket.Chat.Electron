@@ -180,5 +180,22 @@
         "content": "{{- appName }} jest ustawiony aby działał w zasobniku systemowym/obszarze powiadomień."
       }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Nieprzeczytane wiadomości",
+    "unreadMention": "Nieprzeczytane wzmianki",
+    "noUnreadMessage": "Brak nieprzeczytanych wiadomości"
+  },
+  "screenSharing": {
+    "permissionDenied": "Odmowa uprawnień do nagrywania ekranu",
+    "permissionRequired": "Uprawnienie do nagrywania ekranu jest wymagane, aby udostępnić ekran.",
+    "permissionInstructions": "Włącz je w preferencjach systemowych i spróbuj ponownie.",
+    "title": "Udostępnij swój ekran",
+    "entireScreen": "Cały ekran",
+    "applicationWindow": "Okno aplikacji",
+    "noScreensFound": "Nie znaleziono ekranów",
+    "noWindowsFound": "Nie znaleziono okien",
+    "cancel": "Anuluj",
+    "share": "Udostępnij"
   }
 }

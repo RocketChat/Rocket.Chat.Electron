@@ -323,5 +323,17 @@
     "unreadMessage": "Messages non lus",
     "unreadMention": "Mentions non lues",
     "noUnreadMessage": "Pas de messages non lus"
+  },
+  "screenSharing": {
+    "permissionDenied": "Permission d'Enregistrement d'Écran Refusée",
+    "permissionRequired": "La permission d'enregistrement d'écran est requise pour partager votre écran.",
+    "permissionInstructions": "Veuillez l'activer dans les préférences système et réessayer.",
+    "title": "Partager votre écran",
+    "entireScreen": "Votre écran entier",
+    "applicationWindow": "Fenêtre d'application",
+    "noScreensFound": "Aucun écran trouvé",
+    "noWindowsFound": "Aucune fenêtre trouvée",
+    "cancel": "Annuler",
+    "share": "Partager"
   }
 }

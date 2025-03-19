@@ -349,6 +349,18 @@
   "taskbar": {
     "unreadMessage": "Olvasatlan üzenetek",
     "unreadMention": "Olvasatlan említések",
-    "noUnreadMessage": "Nincsenek olvasatlan üzenetek"
+    "noUnreadMessage": "Nincs olvasatlan üzenet"
+  },
+  "screenSharing": {
+    "permissionDenied": "Képernyőfelvétel engedély megtagadva",
+    "permissionRequired": "Képernyőfelvétel engedély szükséges a képernyő megosztásához.",
+    "permissionInstructions": "Kérjük, engedélyezze a rendszerbeállításokban, majd próbálja újra.",
+    "title": "Képernyőmegosztás",
+    "entireScreen": "Teljes képernyő",
+    "applicationWindow": "Alkalmazás ablak",
+    "noScreensFound": "Nem található képernyő",
+    "noWindowsFound": "Nem található ablak",
+    "cancel": "Mégse",
+    "share": "Megosztás"
   }
 }

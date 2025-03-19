@@ -347,8 +347,20 @@
     }
   },
   "taskbar": {
-    "unreadMessage": "Mensajes sin leer",
-    "unreadMention": "Menciones sin leer",
-    "noUnreadMessage": "No hay mensajes sin leer"
+    "unreadMessage": "Mensajes no leídos",
+    "unreadMention": "Menciones no leídas",
+    "noUnreadMessage": "No hay mensajes no leídos"
+  },
+  "screenSharing": {
+    "permissionDenied": "Permiso de Grabación de Pantalla Denegado",
+    "permissionRequired": "Se requiere permiso de grabación de pantalla para compartir tu pantalla.",
+    "permissionInstructions": "Por favor, actívalo en las preferencias del sistema e inténtalo de nuevo.",
+    "title": "Compartir tu pantalla",
+    "entireScreen": "Tu pantalla completa",
+    "applicationWindow": "Ventana de aplicación",
+    "noScreensFound": "No se encontraron pantallas",
+    "noWindowsFound": "No se encontraron ventanas",
+    "cancel": "Cancelar",
+    "share": "Compartir"
   }
 }

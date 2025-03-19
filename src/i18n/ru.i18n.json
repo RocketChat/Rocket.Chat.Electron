@@ -313,5 +313,17 @@
     "unreadMessage": "Непрочитанные сообщения",
     "unreadMention": "Непрочитанные упоминания",
     "noUnreadMessage": "Нет непрочитанных сообщений"
+  },
+  "screenSharing": {
+    "permissionDenied": "Разрешение на запись экрана отклонено",
+    "permissionRequired": "Для демонстрации экрана требуется разрешение на запись экрана.",
+    "permissionInstructions": "Пожалуйста, включите его в настройках системы и попробуйте снова.",
+    "title": "Демонстрация экрана",
+    "entireScreen": "Весь экран",
+    "applicationWindow": "Окно приложения",
+    "noScreensFound": "Экраны не найдены",
+    "noWindowsFound": "Окна не найдены",
+    "cancel": "Отмена",
+    "share": "Демонстрировать"
   }
 }

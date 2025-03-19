@@ -323,5 +323,17 @@
     "unreadMessage": "Lukemattomat viestit",
     "unreadMention": "Lukemattomat maininnat",
     "noUnreadMessage": "Ei lukemattomia viestejä"
+  },
+  "screenSharing": {
+    "permissionDenied": "Näytön nauhoituslupa evätty",
+    "permissionRequired": "Näytön nauhoituslupa vaaditaan näytön jakamiseen.",
+    "permissionInstructions": "Ole hyvä ja ota se käyttöön järjestelmäasetuksissa ja yritä uudelleen.",
+    "title": "Jaa näyttösi",
+    "entireScreen": "Koko näyttösi",
+    "applicationWindow": "Sovellusikkuna",
+    "noScreensFound": "Näyttöjä ei löytynyt",
+    "noWindowsFound": "Ikkunoita ei löytynyt",
+    "cancel": "Peruuta",
+    "share": "Jaa"
   }
 }

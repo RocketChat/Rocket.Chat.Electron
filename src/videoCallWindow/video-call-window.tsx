@@ -1,5 +1,4 @@
 import i18next from 'i18next';
-import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { initReactI18next, I18nextProvider } from 'react-i18next';
 

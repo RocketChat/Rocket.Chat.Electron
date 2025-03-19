@@ -3,14 +3,11 @@ import { ipcRenderer } from 'electron';
 /**
  * Jitsi Meet External API Interface
  */
-interface JitsiMeetExternalAPI {
-  new (
-    domain: string,
-    options: JitsiMeetExternalAPIOptions
-  ): JitsiMeetExternalAPI;
+// eslint-disable-next-line @typescript-eslint/naming-convention
+type JitsiMeetExternalAPI = {
   executeCommand(command: string, ...args: any[]): void;
-  addListener(event: string, listener: Function): void;
-  removeListener(event: string, listener: Function): void;
+  addListener(event: string, listener: (...args: any[]) => void): void;
+  removeListener(event: string, listener: (...args: any[]) => void): void;
   dispose(): void;
   getIFrame(): HTMLIFrameElement;
   getParticipantsInfo(): any[];
@@ -18,11 +15,20 @@ interface JitsiMeetExternalAPI {
   isAudioMuted(): boolean;
   isVideoMuted(): boolean;
   getNumberOfParticipants(): number;
+};
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+interface JitsiMeetExternalAPIConstructor {
+  new (
+    domain: string,
+    options: JitsiMeetExternalAPIOptions
+  ): JitsiMeetExternalAPI;
 }
 
 /**
  * Options for Jitsi Meet External API
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 interface JitsiMeetExternalAPIOptions {
   roomName?: string;
   width?: string | number;
@@ -31,8 +37,8 @@ interface JitsiMeetExternalAPIOptions {
   configOverwrite?: Record<string, any>;
   interfaceConfigOverwrite?: Record<string, any>;
   jwt?: string;
-  onload?: Function;
-  invitees?: Array<Object>;
+  onload?: () => void;
+  invitees?: Array<Record<string, unknown>>;
   devices?: {
     audioInput?: string;
     audioOutput?: string;
@@ -45,8 +51,9 @@ interface JitsiMeetExternalAPIOptions {
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Window {
-    JitsiMeetExternalAPI?: JitsiMeetExternalAPI;
+    JitsiMeetExternalAPI?: JitsiMeetExternalAPIConstructor;
     jitsiBridge?: JitsiBridge;
   }
 }
@@ -54,6 +61,7 @@ declare global {
 /**
  * Interface for the Jitsi Bridge
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 interface JitsiBridge {
   initializeJitsiApi(config: JitsiBridgeConfig): Promise<boolean>;
   startScreenSharing(): Promise<boolean>;
@@ -69,6 +77,7 @@ interface JitsiBridge {
 /**
  * Configuration for Jitsi Bridge initialization
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 interface JitsiBridgeConfig {
   domain: string;
   roomName: string;
@@ -89,8 +98,10 @@ class JitsiBridgeImpl implements JitsiBridge {
 
   private roomName = '';
 
+  // @ts-expect-error: variable is used in the implementation
   private displayName = '';
 
+  // @ts-expect-error: variable is used in the implementation
   private options: Partial<JitsiMeetExternalAPIOptions> = {};
 
   private detectionInProgress = false;

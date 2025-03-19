@@ -370,5 +370,17 @@
     "unreadMessage": "Unread messages",
     "unreadMention": "Unread mentions",
     "noUnreadMessage": "No unread messages"
+  },
+  "screenSharing": {
+    "permissionDenied": "Screen Recording Permission Denied",
+    "permissionRequired": "Screen recording permission is required to share your screen.",
+    "permissionInstructions": "Please enable it in your system preferences and try again.",
+    "title": "Share your screen",
+    "entireScreen": "Your entire screen",
+    "applicationWindow": "Application window",
+    "noScreensFound": "No screens found",
+    "noWindowsFound": "No windows found",
+    "cancel": "Cancel",
+    "share": "Share"
   }
 }

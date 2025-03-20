@@ -94,21 +94,32 @@ const getServerInfo = async (url: string): Promise<ServerInfo> => {
   return response.data;
 };
 
-const getUniqueId = async (url: string, version: string): Promise<string> => {
-  const serverUrl = semverGte(`${version}.0`, '7.0.0')
+const getUniqueId = async (
+  url: string,
+  version: string
+): Promise<string | null> => {
+  const validVersion = coerce(version?.trim() || '0.0.0')?.version || '0.0.0';
+
+  const serverUrl = semverGte(validVersion, '7.0.0')
     ? urls.server(url).uniqueId
     : urls.server(url).setting('uniqueID');
 
-  const response = await axios.get<{ settings: { value: string }[] }>(
-    serverUrl
-  );
-  const value = response.data?.settings?.[0]?.value;
+  try {
+    const response = await axios.get<{ settings: { value: string }[] }>(
+      serverUrl
+    );
+    const value = response.data?.settings?.[0]?.value;
 
-  if (!value) {
-    throw new Error('No unique ID found');
+    if (!value) {
+      console.warn(`No unique ID found for server ${url}`);
+      return null;
+    }
+
+    return value;
+  } catch (error) {
+    console.warn(`Error fetching unique ID for server ${url}:`, error);
+    return null;
   }
-
-  return value;
 };
 
 const getExpirationMessage = ({
@@ -284,14 +295,16 @@ const dispatchVersionUpdated = (url: string) => (info: ServerInfo) => {
   return info;
 };
 
-const dispatchUniqueIdUpdated = (url: string) => (uniqueID: string) => {
-  dispatch({
-    type: WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
-    payload: {
-      url,
-      uniqueID,
-    },
-  });
+const dispatchUniqueIdUpdated = (url: string) => (uniqueID: string | null) => {
+  if (uniqueID) {
+    dispatch({
+      type: WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
+      payload: {
+        url,
+        uniqueID,
+      },
+    });
+  }
 
   return uniqueID;
 };

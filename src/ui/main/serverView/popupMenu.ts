@@ -3,7 +3,7 @@ import type {
   MenuItemConstructorOptions,
   WebContents,
 } from 'electron';
-import { shell, clipboard, Menu } from 'electron';
+import { clipboard, Menu } from 'electron';
 import i18next from 'i18next';
 
 import { isProtocolAllowed } from '../../../navigation/main';

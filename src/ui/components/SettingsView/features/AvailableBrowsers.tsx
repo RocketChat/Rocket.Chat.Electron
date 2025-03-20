@@ -66,12 +66,6 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
     [availableBrowsers, t]
   );
 
-  const currentBrowser = useMemo(() => {
-    if (!selectedBrowser)
-      return t('settings.options.availableBrowsers.systemDefault');
-    return selectedBrowser;
-  }, [selectedBrowser, t]);
-
   return (
     <Field className={props.className}>
       <Box

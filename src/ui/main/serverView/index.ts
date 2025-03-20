@@ -20,7 +20,6 @@ import {
   clipboard,
   dialog,
   Menu,
-  shell,
   systemPreferences,
   webContents,
 } from 'electron';

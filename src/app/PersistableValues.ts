@@ -67,8 +67,8 @@ type PersistableValues_3_9_6 = PersistableValues_3_8_12 & {
 };
 
 type PersistableValues_4_1_0 = PersistableValues_3_9_6 & {
-  mainWindowTitle: string;
-  machineTheme: string;
+  mainWindowTitle: string | null;
+  machineTheme: string | null;
 };
 
 type PersistableValues_4_2_0 = PersistableValues_4_1_0 & {

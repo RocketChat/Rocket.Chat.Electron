@@ -52,5 +52,7 @@ export const selectPersistableValues = createStructuredSelector({
   }: RootState) => allowedNTLMCredentialsDomains,
   isNTLMCredentialsEnabled: ({ isNTLMCredentialsEnabled }: RootState) =>
     isNTLMCredentialsEnabled,
+  mainWindowTitle: ({ mainWindowTitle }: RootState) =>
+    mainWindowTitle || 'Rocket.Chat',
   selectedBrowser: ({ selectedBrowser }: RootState) => selectedBrowser,
 });

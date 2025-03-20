@@ -32,6 +32,7 @@ import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
+import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
 import {
   doCheckForUpdatesOnStartup,
   isCheckingForUpdates,
@@ -82,6 +83,7 @@ export const rootReducer = combineReducers({
   lastSelectedServerUrl,
   allowedNTLMCredentialsDomains,
   isNTLMCredentialsEnabled,
+  videoCallWindowState,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

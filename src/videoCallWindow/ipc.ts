@@ -13,13 +13,28 @@ import {
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
-import { getRootWindow } from '../ui/main/rootWindow';
+import { select, dispatchLocal } from '../store';
+import { VIDEO_CALL_WINDOW_STATE_CHANGED } from '../ui/actions';
+import { debounce } from '../ui/main/debounce';
+import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 
 export const handleDesktopCapturerGetSources = () => {
   handle('desktop-capturer-get-sources', async (_event, opts) => {
     const options = Array.isArray(opts) ? opts[0] : opts;
     return desktopCapturer.getSources(options);
   });
+};
+
+const fetchVideoCallWindowState = async (browserWindow: BrowserWindow) => {
+  return {
+    focused: browserWindow.isFocused(),
+    visible: browserWindow.isVisible(),
+    maximized: false,
+    minimized: false,
+    fullscreen: false,
+    normal: true,
+    bounds: browserWindow.getNormalBounds(),
+  };
 };
 
 export const startVideoCallWindowHandler = (): void => {
@@ -52,39 +67,62 @@ export const startVideoCallWindowHandler = (): void => {
         y: centeredWindowPosition.y,
       });
 
-      let { x, y } = actualScreen.bounds;
-      let { width, height } = actualScreen.bounds;
-
-      width = Math.round(actualScreen.workAreaSize.width * 0.8);
-      height = Math.round(actualScreen.workAreaSize.height * 0.8);
-
-      x = Math.round(
-        (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
+      // Get persisted window state
+      const videoCallWindowState = select(
+        (state) => state.videoCallWindowState
       );
-      y = Math.round(
-        (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
-      );
+      let { x, y, width, height } = videoCallWindowState.bounds;
+
+      // If no persisted state, window would be outside screens, or dimensions are 0, calculate default position and size
+      if (
+        !x ||
+        !y ||
+        width === 0 ||
+        height === 0 ||
+        !isInsideSomeScreen({ x, y, width, height })
+      ) {
+        width = Math.round(actualScreen.workAreaSize.width * 0.8);
+        height = Math.round(actualScreen.workAreaSize.height * 0.8);
+        x = Math.round(
+          (actualScreen.workArea.width - width) / 2 + actualScreen.workArea.x
+        );
+        y = Math.round(
+          (actualScreen.workArea.height - height) / 2 + actualScreen.workArea.y
+        );
+      }
 
       const videoCallWindow = new BrowserWindow({
         width,
         height,
+        x,
+        y,
         webPreferences: {
           nodeIntegration: true,
           nodeIntegrationInSubFrames: true,
           contextIsolation: false,
           webviewTag: true,
-          // preload: `${__dirname}/video-call-window.js`,
         },
-
         show: false,
       });
 
-      videoCallWindow.setBounds({
-        width,
-        height,
-        x,
-        y,
-      });
+      // Track window state changes
+      const fetchAndDispatchWindowState = debounce(async () => {
+        dispatchLocal({
+          type: VIDEO_CALL_WINDOW_STATE_CHANGED,
+          payload: await fetchVideoCallWindowState(videoCallWindow),
+        });
+      }, 1000);
+
+      videoCallWindow.addListener('show', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('hide', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('focus', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('blur', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('maximize', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('unmaximize', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('minimize', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('restore', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('resize', fetchAndDispatchWindowState);
+      videoCallWindow.addListener('move', fetchAndDispatchWindowState);
 
       videoCallWindow.loadFile(
         path.join(app.getAppPath(), 'app/video-call-window.html')
@@ -96,14 +134,10 @@ export const startVideoCallWindowHandler = (): void => {
         videoCallWindow.show();
       });
 
-      // videoCallWindow.webContents.openDevTools();
-
       const handleDidAttachWebview = (
         _event: Event,
         webContents: WebContents
       ): void => {
-        // console.log('[Rocket.Chat Desktop] did-attach-webview');
-        // webContents.openDevTools();
         webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
           videoCallWindow.webContents.send(
             'video-call-window/open-screen-picker'

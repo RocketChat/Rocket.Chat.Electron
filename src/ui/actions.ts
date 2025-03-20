@@ -29,6 +29,8 @@ export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED =
   'menu-bar/toggle-is-tray-icon-enabled-clicked';
 export const ROOT_WINDOW_ICON_CHANGED = 'root-window/icon-changed';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';
+export const VIDEO_CALL_WINDOW_STATE_CHANGED =
+  'video-call-window/state-changed';
 export const SIDE_BAR_ADD_NEW_SERVER_CLICKED =
   'side-bar/add-new-server-clicked';
 export const SIDE_BAR_CONTEXT_MENU_TRIGGERED =
@@ -137,6 +139,7 @@ export type UiActionTypeToPayloadMap = {
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
   [ROOT_WINDOW_ICON_CHANGED]: RootWindowIcon | null;
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
+  [VIDEO_CALL_WINDOW_STATE_CHANGED]: WindowState;
   [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: void;
   [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
   [SIDE_BAR_DOWNLOADS_BUTTON_CLICKED]: void;

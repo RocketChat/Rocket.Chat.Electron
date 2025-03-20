@@ -33,6 +33,7 @@ import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
 import type { Server } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
+import { openExternal } from '../../../utils/browserLauncher';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
@@ -234,7 +235,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
             return { action: 'deny' };
           }
 
-          shell.openExternal(url);
+          openExternal(url);
           return { action: 'deny' };
         });
         return { action: 'deny' };
@@ -393,7 +394,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
             return;
           }
 
-          shell.openExternal(redirectUrl);
+          openExternal(redirectUrl);
         });
       }
     });
@@ -555,6 +556,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       return;
     }
 
-    shell.openExternal(url);
+    openExternal(url);
   });
 };

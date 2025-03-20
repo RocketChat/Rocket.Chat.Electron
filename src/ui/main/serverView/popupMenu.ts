@@ -12,6 +12,7 @@ import {
   SPELL_CHECKING_TOGGLED,
 } from '../../../spellChecking/actions';
 import { dispatch } from '../../../store';
+import { openExternal } from '../../../utils/browserLauncher';
 
 const t = i18next.t.bind(i18next);
 
@@ -145,7 +146,7 @@ const createLinkMenuTemplate = (
                 return;
               }
 
-              shell.openExternal(linkURL);
+              openExternal(linkURL);
             });
           },
         },

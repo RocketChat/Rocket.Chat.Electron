@@ -203,6 +203,15 @@
       "trayIcon": {
         "title": "Benachrichtigungssymbol",
         "description": "Taskleistensymbol in der Taskleiste anzeigen. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste ausgeblendet. Andernfalls wird die Anwendung beendet."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM-Anmeldeinformationen",
+        "description": "Erlauben Sie die Verwendung von NTLM-Anmeldeinformationen bei der Verbindung mit einem Server.",
+        "domains": "Domänen, die die Anmeldeinformationen verwenden werden. Durch Komma getrennt. Verwenden Sie *, um alle Domänen abzugleichen."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Videoanruf-Fensterposition speichern",
+        "description": "Position und Größe der Videoanruf-Fenster zwischen Sitzungen speichern und wiederherstellen"
       }
     }
   },

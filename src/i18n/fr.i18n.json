@@ -115,6 +115,15 @@
       "dontAskAgain": "Toujours autoriser les appels vidéo de ce serveur pour capturer votre écran",
       "yes": "Autoriser",
       "no": "Annuler"
+    },
+    "ntlmCredentials": {
+      "title": "Identifiants NTLM",
+      "description": "Autoriser l'utilisation des identifiants NTLM lors de la connexion à un serveur.",
+      "domains": "Domaines qui utiliseront les identifiants. Séparés par des virgules. Utilisez * pour correspondre à tous les domaines."
+    },
+    "videoCallWindowPersistence": {
+      "title": "Mémoriser la position de la fenêtre d'appel vidéo",
+      "description": "Sauvegarder et restaurer la position et la taille des fenêtres d'appel vidéo entre les sessions"
     }
   },
   "downloads": {

@@ -115,6 +115,15 @@
       "dontAskAgain": "Salli aina tämän palvelimen videopuhelujen ottaa näyttökuva",
       "yes": "Salli",
       "no": "Peruuta"
+    },
+    "ntlmCredentials": {
+      "title": "NTLM-tunnistetiedot",
+      "description": "Salli NTLM-tunnistetietojen käyttö palvelimeen yhdistettäessä.",
+      "domains": "Verkkotunnukset, jotka käyttävät tunnistetietoja. Pilkulla erotettuna. Käytä * kaikkien verkkotunnusten täsmäämiseen."
+    },
+    "videoCallWindowPersistence": {
+      "title": "Muista videopuhelun ikkunan sijainti",
+      "description": "Tallenna ja palauta videopuheluikkunoiden sijainti ja koko istuntojen välillä"
     }
   },
   "downloads": {

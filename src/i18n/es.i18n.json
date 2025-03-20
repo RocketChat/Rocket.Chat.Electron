@@ -233,8 +233,12 @@
       },
       "ntlmCredentials": {
         "title": "Credenciales NTLM",
-        "description": "Permitir el uso de credenciales NTLM al conectarse a un servidor.",
-        "domains": "Dominios que usarán las credenciales. Separados por comas. Usa * para coincidir con todos los dominios."
+        "description": "Permitir que se utilicen las credenciales NTLM al conectarse a un servidor.",
+        "domains": "Dominios que utilizarán las credenciales. Separados por coma. Use * para coincidir con todos los dominios."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Recordar posición de la ventana de videollamada",
+        "description": "Guardar y restaurar la posición y el tamaño de las ventanas de videollamada entre sesiones"
       }
     }
   },

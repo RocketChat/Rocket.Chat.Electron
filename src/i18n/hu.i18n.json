@@ -233,8 +233,12 @@
       },
       "ntlmCredentials": {
         "title": "NTLM hitelesítési adatok",
-        "description": "Egy kiszolgálóhoz való kapcsolódáskor használandó NTLM hitelesítési adatok engedélyezése.",
-        "domains": "A hitelesítési adatokat használó tartományok, vesszővel elválasztva. Használjon * karaktert az összes tartományra való illesztéshez."
+        "description": "NTLM hitelesítési adatok használatának engedélyezése szerverhez való csatlakozáskor.",
+        "domains": "Domének, amelyek használni fogják a hitelesítési adatokat. Vesszővel elválasztva. Használja a * jelet az összes domén egyeztetéséhez."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Videohívás ablak pozíciójának megjegyzése",
+        "description": "Videohívás ablakok pozíciójának és méretének mentése és visszaállítása a munkamenetek között"
       }
     }
   },

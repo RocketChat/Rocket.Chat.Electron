@@ -52,4 +52,5 @@ export const selectPersistableValues = createStructuredSelector({
   }: RootState) => allowedNTLMCredentialsDomains,
   isNTLMCredentialsEnabled: ({ isNTLMCredentialsEnabled }: RootState) =>
     isNTLMCredentialsEnabled,
+  selectedBrowser: ({ selectedBrowser }: RootState) => selectedBrowser,
 });

@@ -223,6 +223,13 @@
         "title": "Tálcaikon",
         "description": "Tálcaikon megjelenítése a rendszer tálcáján. Ha a tálcaikon aktív, akkor az alkalmazás a tálcára lesz elrejtve a bezáráskor. Egyébként kilép az alkalmazásból."
       },
+      "availableBrowsers": {
+        "title": "Alapértelmezett böngésző",
+        "description": "Válassza ki, melyik böngésző nyitja meg az alkalmazásból származó külső hivatkozásokat. A Rendszer alapértelmezett az operációs rendszer beállításait használja.",
+        "systemDefault": "Rendszer alapértelmezett",
+        "loading": "Böngészők betöltése...",
+        "current": "Jelenleg használatban:"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Képernyőfelvételi engedélyek törlése",
         "description": "Azon képernyőfelvételi engedélyek törlése, amelyek úgy lettek kiválasztva, hogy ne kérdezzenek újra a videohívásoknál."

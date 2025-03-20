@@ -65,9 +65,8 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
     detectBrowsers();
   }, [dispatch]);
 
-  // @ts-ignore - ignoring type error since we already know the SelectLegacy component works with this signature
   const handleChangeBrowser = useCallback(
-    (value) => {
+    (value: string) => {
       dispatch({
         type: SETTINGS_SELECTED_BROWSER_CHANGED,
         payload: value === 'system' ? null : value,
@@ -76,36 +75,41 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
     [dispatch]
   );
 
-  // @ts-ignore - ignoring type error since we already know the SelectLegacy component works with this format
+  // Format options for the SelectLegacy component as array of tuples [value, label]
   const options = useMemo(
-    () => [
+    (): [string, string][] => [
       [
         'system',
         t('settings.options.availableBrowsers.systemDefault', 'System Default'),
       ],
-      ...availableBrowsers.map((browser) => [browser, browser]),
+      ...availableBrowsers.map((browser): [string, string] => [
+        browser,
+        browser,
+      ]),
     ],
     [availableBrowsers, t]
   );
 
   return (
     <Field className={props.className}>
-      <FieldRow>
-        <FieldLabel>
-          {t('settings.options.availableBrowsers.title', 'Available Browsers')}
-        </FieldLabel>
-      </FieldRow>
-      <FieldRow>
-        <FieldHint>
-          {t(
-            'settings.options.availableBrowsers.description',
-            'Select a browser to open links'
-          )}
-        </FieldHint>
-      </FieldRow>
-      <FieldRow>
-        <Box width='full'>
-          {/* @ts-ignore - ignoring type error since we already know the SelectLegacy component works with this format */}
+      <Box
+        display='flex'
+        flexDirection='row'
+        justifyContent='space-between'
+        alignItems='flex-start'
+      >
+        <Box display='flex' flexDirection='column'>
+          <FieldLabel>
+            {t('settings.options.availableBrowsers.title', 'Default Browser')}
+          </FieldLabel>
+          <FieldHint>
+            {t(
+              'settings.options.availableBrowsers.description',
+              'Choose which browser will open external links from this app. System Default uses your operating system settings.'
+            )}
+          </FieldHint>
+        </Box>
+        <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
           <SelectLegacy
             options={options}
             value={selectedBrowser ?? 'system'}
@@ -115,9 +119,10 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
               'Loading browsers...'
             )}
             disabled={availableBrowsers.length === 0}
+            width={200}
           />
         </Box>
-      </FieldRow>
+      </Box>
     </Field>
   );
 };

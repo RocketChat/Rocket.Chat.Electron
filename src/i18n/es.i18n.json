@@ -221,7 +221,14 @@
       },
       "trayIcon": {
         "title": "Icono de la bandeja",
-        "description": "Mostrar el icono en la bandeja del sistema. Si el icono de la bandeja está activo, la aplicación se ocultará en la bandeja al cerrarse. De lo contrario, la aplicación se cerrará por completo."
+        "description": "Muestra un icono en la bandeja del sistema. Si el icono de la bandeja está activo, la aplicación se minimizará a la bandeja al cerrarla. De lo contrario, cerrará la aplicación."
+      },
+      "availableBrowsers": {
+        "title": "Navegador Predeterminado",
+        "description": "Elija qué navegador abrirá los enlaces externos de esta aplicación. Predeterminado del Sistema usa la configuración de su sistema operativo.",
+        "systemDefault": "Predeterminado del Sistema",
+        "loading": "Cargando navegadores...",
+        "current": "Usando actualmente:"
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Borrar permisos de captura de pantalla",

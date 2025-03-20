@@ -211,6 +211,13 @@
         "title": "Ilmaisinalueen kuvake",
         "description": "Näytä ilmaisinalueen kuvake ilmaisinalueella. Jos ilmaisinalueen kuvake on käytössä, sovellus piilotetaan suljettaessa ilmaisinalueelle. Muutoin sovellus suljetaan."
       },
+      "availableBrowsers": {
+        "title": "Oletusselain",
+        "description": "Valitse selain, joka avaa ulkoiset linkit tästä sovelluksesta. Järjestelmän oletus käyttää käyttöjärjestelmäsi asetuksia.",
+        "systemDefault": "Järjestelmän oletus",
+        "loading": "Ladataan selaimia...",
+        "current": "Käytössä nyt:"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Tyhjennä näyttökuvaoikeudet",
         "description": "Tyhjennä valitut näyttökuvaoikeudet, joilla estettiin kysyminen uudelleen videopuheluissa."

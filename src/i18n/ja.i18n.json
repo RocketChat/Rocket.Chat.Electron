@@ -158,6 +158,19 @@
       "unreadMention": "{{- appName}}: 未読のメンション/ダイレクトメッセージがあります",
       "unreadMention_plural": "{{- appName}}: 未読のメンション/ダイレクトメッセージが {{- count}} 件あります",
       "unreadMessage": "{{- appName}}: 未読のメッセージがあります"
+    },
+    "trayIcon": {
+      "title": "トレイアイコン",
+      "description": "システムトレイにアイコンを表示します。トレイアイコンがアクティブな場合、アプリを閉じるとトレイに最小化されます。それ以外の場合は、アプリケーションを終了します。"
+    },
+    "availableBrowsers": {
+      "title": "デフォルトブラウザ",
+      "description": "このアプリケーションから外部リンクを開くブラウザを選択します。システムデフォルトはお使いのオペレーティングシステムの設定を使用します。",
+      "systemDefault": "システムデフォルト",
+      "loading": "ブラウザを読み込み中...",
+      "current": "現在使用中："
+    },
+    "clearPermittedScreenCaptureServers": {
     }
   }
 }

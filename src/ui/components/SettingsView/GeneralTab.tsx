@@ -24,8 +24,8 @@ export const GeneralTab = () => (
       <SideBar />
       {process.platform !== 'darwin' && <MenuBar />}
       {process.platform === 'win32' && <NTLMCredentials />}
-      {!process.mas && <ClearPermittedScreenCaptureServers />}
       <AvailableBrowsers />
+      {!process.mas && <ClearPermittedScreenCaptureServers />}
     </FieldGroup>
   </Box>
 );

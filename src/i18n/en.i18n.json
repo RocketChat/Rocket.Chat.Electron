@@ -232,6 +232,13 @@
         "title": "Tray Icon",
         "description": "Show tray icon on the system tray. If tray icon is active the app will be hidden to tray on close. Otherwise it will quit the application."
       },
+      "availableBrowsers": {
+        "title": "Default Browser",
+        "description": "Choose which browser will open external links from this app. System Default uses your operating system settings.",
+        "systemDefault": "System Default",
+        "loading": "Loading browsers...",
+        "current": "Currently using:"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Clear Screen Capture Permissions",
         "description": "Clear the screen capture permissions that was selected to not ask again on video calls."

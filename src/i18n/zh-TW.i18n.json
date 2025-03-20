@@ -136,6 +136,23 @@
     "announcement": "休士頓，我們遇到問題了",
     "reload": "重新載入"
   },
+  "settings": {
+    "title": "設定",
+    "general": "一般",
+    "options": {
+      "trayIcon": {
+        "title": "系統匣圖示",
+        "description": "顯示系統匣圖示。啟用系統匣圖示時，關閉視窗會將應用程式最小化到系統匣。否則，應用程式將會關閉。"
+      },
+      "availableBrowsers": {
+        "title": "預設瀏覽器",
+        "description": "選擇哪個瀏覽器將開啟此應用程式的外部連結。系統預設使用您操作系統的設定。",
+        "systemDefault": "系統預設",
+        "loading": "正在載入瀏覽器...",
+        "current": "目前使用："
+      }
+    }
+  },
   "sidebar": {
     "addNewServer": "新增伺服器",
     "item": {

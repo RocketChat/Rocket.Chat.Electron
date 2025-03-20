@@ -135,6 +135,23 @@
     "announcement": "Houston, bir sorunumuz var",
     "reload": "Yeniden yükle"
   },
+  "settings": {
+    "title": "Ayarlar",
+    "general": "Genel",
+    "options": {
+      "trayIcon": {
+        "title": "Görev çubuğu ikonu",
+        "description": "Sistem tepsisinde bir simge gösterir. Tepsi simgesi etkinleştirildiğinde, uygulama kapatıldığında tepsiye gizlenir. Aksi takdirde uygulama kapatılır."
+      },
+      "availableBrowsers": {
+        "title": "Varsayılan Tarayıcı",
+        "description": "Bu uygulamadan harici bağlantıları hangi tarayıcının açacağını seçin. Sistem Varsayılanı, işletim sisteminizin ayarlarını kullanır.",
+        "systemDefault": "Sistem Varsayılanı",
+        "loading": "Tarayıcılar yükleniyor...",
+        "current": "Şu anda kullanılan:"
+      }
+    }
+  },
   "selfxss": {
     "title": "Dur!",
     "description": "Bu, geliştiricilere yönelik bir tarayıcı özelliğidir. Birisi size bir Rocket.Chat özelliğini etkinleştirmeniz veya herhangi bir şeyi kopyalayıp yapıştırmanızı söylediyse, bu bir aldatmacadır ve onlara Rocket.Chat hesabınıza erişme izni verir.",

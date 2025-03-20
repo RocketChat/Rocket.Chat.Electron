@@ -201,8 +201,17 @@
         "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen."
       },
       "trayIcon": {
-        "title": "Benachrichtigungssymbol",
-        "description": "Taskleistensymbol in der Taskleiste anzeigen. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste ausgeblendet. Andernfalls wird die Anwendung beendet."
+        "title": "Taskleistensymbol",
+        "description": "Zeigt ein Symbol in der Systemleiste an. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste minimiert. Andernfalls wird die Anwendung beendet."
+      },
+      "availableBrowsers": {
+        "title": "Standard-Browser",
+        "description": "Wählen Sie aus, welcher Browser externe Links aus dieser App öffnen soll. Systemstandard verwendet die Einstellungen Ihres Betriebssystems.",
+        "systemDefault": "Systemstandard",
+        "loading": "Browser werden geladen...",
+        "current": "Aktuell verwendet:"
+      },
+      "clearPermittedScreenCaptureServers": {
       }
     }
   },

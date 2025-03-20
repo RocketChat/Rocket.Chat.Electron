@@ -244,6 +244,10 @@
         "title": "NTLM Credentials",
         "description": "Allow NTLM Credentials to be used when connecting to a server.",
         "domains": "Domains that will use the credentials. Separated by comma. Use * to match all domains."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Remember video call window position",
+        "description": "Save and restore the position and size of video call windows between sessions"
       }
     }
   },

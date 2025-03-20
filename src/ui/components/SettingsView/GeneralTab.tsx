@@ -10,6 +10,7 @@ import { NTLMCredentials } from './features/NTLMCredentials';
 import { ReportErrors } from './features/ReportErrors';
 import { SideBar } from './features/SideBar';
 import { TrayIcon } from './features/TrayIcon';
+import { VideoCallWindowPersistence } from './features/VideoCallWindowPersistence';
 
 export const GeneralTab = () => (
   <Box display='flex' justifyContent='center'>
@@ -18,6 +19,7 @@ export const GeneralTab = () => (
       <FlashFrame />
       <HardwareAcceleration />
       <InternalVideoChatWindow />
+      <VideoCallWindowPersistence />
       <TrayIcon />
       {process.platform === 'win32' && <MinimizeOnClose />}
       <SideBar />

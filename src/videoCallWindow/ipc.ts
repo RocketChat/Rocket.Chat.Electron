@@ -67,14 +67,18 @@ export const startVideoCallWindowHandler = (): void => {
         y: centeredWindowPosition.y,
       });
 
-      // Get persisted window state
-      const videoCallWindowState = select(
-        (state) => state.videoCallWindowState
-      );
-      let { x, y, width, height } = videoCallWindowState.bounds;
+      // Get persisted window state and persistence setting
+      const state = select((state) => ({
+        videoCallWindowState: state.videoCallWindowState,
+        isVideoCallWindowPersistenceEnabled:
+          state.isVideoCallWindowPersistenceEnabled,
+      }));
 
-      // If no persisted state, window would be outside screens, or dimensions are 0, calculate default position and size
+      let { x, y, width, height } = state.videoCallWindowState.bounds;
+
+      // If persistence is disabled or no valid state exists, calculate default position and size
       if (
+        !state.isVideoCallWindowPersistenceEnabled ||
         !x ||
         !y ||
         width === 0 ||
@@ -105,24 +109,26 @@ export const startVideoCallWindowHandler = (): void => {
         show: false,
       });
 
-      // Track window state changes
-      const fetchAndDispatchWindowState = debounce(async () => {
-        dispatchLocal({
-          type: VIDEO_CALL_WINDOW_STATE_CHANGED,
-          payload: await fetchVideoCallWindowState(videoCallWindow),
-        });
-      }, 1000);
+      // Only track window state changes if persistence is enabled
+      if (state.isVideoCallWindowPersistenceEnabled) {
+        const fetchAndDispatchWindowState = debounce(async () => {
+          dispatchLocal({
+            type: VIDEO_CALL_WINDOW_STATE_CHANGED,
+            payload: await fetchVideoCallWindowState(videoCallWindow),
+          });
+        }, 1000);
 
-      videoCallWindow.addListener('show', fetchAndDispatchWindowState);
-      videoCallWindow.addListener('hide', fetchAndDispatchWindowState);
-      videoCallWindow.addListener('focus', fetchAndDispatchWindowState);
-      videoCallWindow.addListener('blur', fetchAndDispatchWindowState);
-      videoCallWindow.addListener('maximize', fetchAndDispatchWindowState);
-      videoCallWindow.addListener('unmaximize', fetchAndDispatchWindowState);
-      videoCallWindow.addListener('minimize', fetchAndDispatchWindowState);
-      videoCallWindow.addListener('restore', fetchAndDispatchWindowState);
-      videoCallWindow.addListener('resize', fetchAndDispatchWindowState);
-      videoCallWindow.addListener('move', fetchAndDispatchWindowState);
+        videoCallWindow.addListener('show', fetchAndDispatchWindowState);
+        videoCallWindow.addListener('hide', fetchAndDispatchWindowState);
+        videoCallWindow.addListener('focus', fetchAndDispatchWindowState);
+        videoCallWindow.addListener('blur', fetchAndDispatchWindowState);
+        videoCallWindow.addListener('maximize', fetchAndDispatchWindowState);
+        videoCallWindow.addListener('unmaximize', fetchAndDispatchWindowState);
+        videoCallWindow.addListener('minimize', fetchAndDispatchWindowState);
+        videoCallWindow.addListener('restore', fetchAndDispatchWindowState);
+        videoCallWindow.addListener('resize', fetchAndDispatchWindowState);
+        videoCallWindow.addListener('move', fetchAndDispatchWindowState);
+      }
 
       videoCallWindow.loadFile(
         path.join(app.getAppPath(), 'app/video-call-window.html')

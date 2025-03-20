@@ -28,6 +28,7 @@ import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
+import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
 import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
@@ -84,6 +85,7 @@ export const rootReducer = combineReducers({
   allowedNTLMCredentialsDomains,
   isNTLMCredentialsEnabled,
   videoCallWindowState,
+  isVideoCallWindowPersistenceEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

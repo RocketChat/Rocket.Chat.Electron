@@ -228,8 +228,12 @@
       },
       "ntlmCredentials": {
         "title": "Credenciais NTLM",
-        "description": "Permitir o uso de credenciais NTLM ao conectar-se a um servidor.",
-        "domains": "Domínios que usarão as credenciais. Separados por vírgula. Use * para permitir todos os domínios."
+        "description": "Permitir que as credenciais NTLM sejam usadas ao conectar-se a um servidor.",
+        "domains": "Domínios que usarão as credenciais. Separados por vírgula. Use * para corresponder a todos os domínios."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Lembrar posição da janela de videochamada",
+        "description": "Salvar e restaurar a posição e o tamanho das janelas de videochamada entre as sessões"
       }
     }
   },
@@ -355,5 +359,17 @@
     "unreadMessage": "Mensagens não lidas",
     "unreadMention": "Menções não lidas",
     "noUnreadMessage": "Nenhuma mensagem"
+  },
+  "screenSharing": {
+    "permissionDenied": "Permissão de Gravação de Tela Negada",
+    "permissionRequired": "A permissão de gravação de tela é necessária para compartilhar sua tela.",
+    "permissionInstructions": "Por favor, ative-a nas preferências do sistema e tente novamente.",
+    "title": "Compartilhar sua tela",
+    "entireScreen": "Toda sua tela",
+    "applicationWindow": "Janela de aplicativo",
+    "noScreensFound": "Nenhuma tela encontrada",
+    "noWindowsFound": "Nenhuma janela encontrada",
+    "cancel": "Cancelar",
+    "share": "Compartilhar"
   }
 }

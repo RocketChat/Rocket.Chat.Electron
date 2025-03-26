@@ -115,6 +115,15 @@
       "dontAskAgain": "Toujours autoriser les appels vidéo de ce serveur pour capturer votre écran",
       "yes": "Autoriser",
       "no": "Annuler"
+    },
+    "ntlmCredentials": {
+      "title": "Identifiants NTLM",
+      "description": "Autoriser l'utilisation des identifiants NTLM lors de la connexion à un serveur.",
+      "domains": "Domaines qui utiliseront les identifiants. Séparés par des virgules. Utilisez * pour correspondre à tous les domaines."
+    },
+    "videoCallWindowPersistence": {
+      "title": "Mémoriser la position de la fenêtre d'appel vidéo",
+      "description": "Sauvegarder et restaurer la position et la taille des fenêtres d'appel vidéo entre les sessions"
     }
   },
   "downloads": {
@@ -323,5 +332,17 @@
     "unreadMessage": "Messages non lus",
     "unreadMention": "Mentions non lues",
     "noUnreadMessage": "Pas de messages non lus"
+  },
+  "screenSharing": {
+    "permissionDenied": "Permission d'Enregistrement d'Écran Refusée",
+    "permissionRequired": "La permission d'enregistrement d'écran est requise pour partager votre écran.",
+    "permissionInstructions": "Veuillez l'activer dans les préférences système et réessayer.",
+    "title": "Partager votre écran",
+    "entireScreen": "Votre écran entier",
+    "applicationWindow": "Fenêtre d'application",
+    "noScreensFound": "Aucun écran trouvé",
+    "noWindowsFound": "Aucune fenêtre trouvée",
+    "cancel": "Annuler",
+    "share": "Partager"
   }
 }

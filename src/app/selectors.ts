@@ -52,4 +52,6 @@ export const selectPersistableValues = createStructuredSelector({
   }: RootState) => allowedNTLMCredentialsDomains,
   isNTLMCredentialsEnabled: ({ isNTLMCredentialsEnabled }: RootState) =>
     isNTLMCredentialsEnabled,
+  videoCallWindowState: ({ videoCallWindowState }: RootState) =>
+    videoCallWindowState,
 });

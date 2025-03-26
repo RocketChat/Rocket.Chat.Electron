@@ -76,7 +76,12 @@ export const createRootWindow = (): void => {
 export const normalizeNumber = (value: number | undefined): number =>
   value && isFinite(1 / value) ? value : 0;
 
-const isInsideSomeScreen = ({ x, y, width, height }: Rectangle): boolean =>
+export const isInsideSomeScreen = ({
+  x,
+  y,
+  width,
+  height,
+}: Rectangle): boolean =>
   screen
     .getAllDisplays()
     .some(

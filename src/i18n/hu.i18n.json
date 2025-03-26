@@ -233,8 +233,12 @@
       },
       "ntlmCredentials": {
         "title": "NTLM hitelesítési adatok",
-        "description": "Egy kiszolgálóhoz való kapcsolódáskor használandó NTLM hitelesítési adatok engedélyezése.",
-        "domains": "A hitelesítési adatokat használó tartományok, vesszővel elválasztva. Használjon * karaktert az összes tartományra való illesztéshez."
+        "description": "NTLM hitelesítési adatok használatának engedélyezése szerverhez való csatlakozáskor.",
+        "domains": "Domének, amelyek használni fogják a hitelesítési adatokat. Vesszővel elválasztva. Használja a * jelet az összes domén egyeztetéséhez."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Videohívás ablak pozíciójának megjegyzése",
+        "description": "Videohívás ablakok pozíciójának és méretének mentése és visszaállítása a munkamenetek között"
       }
     }
   },
@@ -349,6 +353,18 @@
   "taskbar": {
     "unreadMessage": "Olvasatlan üzenetek",
     "unreadMention": "Olvasatlan említések",
-    "noUnreadMessage": "Nincsenek olvasatlan üzenetek"
+    "noUnreadMessage": "Nincs olvasatlan üzenet"
+  },
+  "screenSharing": {
+    "permissionDenied": "Képernyőfelvétel engedély megtagadva",
+    "permissionRequired": "Képernyőfelvétel engedély szükséges a képernyő megosztásához.",
+    "permissionInstructions": "Kérjük, engedélyezze a rendszerbeállításokban, majd próbálja újra.",
+    "title": "Képernyőmegosztás",
+    "entireScreen": "Teljes képernyő",
+    "applicationWindow": "Alkalmazás ablak",
+    "noScreensFound": "Nem található képernyő",
+    "noWindowsFound": "Nem található ablak",
+    "cancel": "Mégse",
+    "share": "Megosztás"
   }
 }

@@ -29,6 +29,8 @@ export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED =
   'menu-bar/toggle-is-tray-icon-enabled-clicked';
 export const ROOT_WINDOW_ICON_CHANGED = 'root-window/icon-changed';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';
+export const VIDEO_CALL_WINDOW_STATE_CHANGED =
+  'video-call-window/state-changed';
 export const SIDE_BAR_ADD_NEW_SERVER_CLICKED =
   'side-bar/add-new-server-clicked';
 export const SIDE_BAR_CONTEXT_MENU_TRIGGERED =
@@ -94,6 +96,8 @@ export const SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED =
   'settings/set-is-side-bar-enabled-changed';
 export const SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED =
   'settings/set-is-menu-bar-enabled-changed';
+export const SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED =
+  'settings/set-is-video-call-window-persistence-enabled-changed';
 export const SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS =
   'settings/clear-permitted-screen-capture-permissions';
 export const SETTINGS_NTLM_CREDENTIALS_CHANGED =
@@ -137,6 +141,7 @@ export type UiActionTypeToPayloadMap = {
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
   [ROOT_WINDOW_ICON_CHANGED]: RootWindowIcon | null;
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
+  [VIDEO_CALL_WINDOW_STATE_CHANGED]: WindowState;
   [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: void;
   [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
   [SIDE_BAR_DOWNLOADS_BUTTON_CLICKED]: void;
@@ -213,6 +218,7 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED]: boolean;
   [SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS]: void;
   [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
   [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;

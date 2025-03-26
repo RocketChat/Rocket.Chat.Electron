@@ -203,6 +203,15 @@
       "trayIcon": {
         "title": "Benachrichtigungssymbol",
         "description": "Taskleistensymbol in der Taskleiste anzeigen. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste ausgeblendet. Andernfalls wird die Anwendung beendet."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM-Anmeldeinformationen",
+        "description": "Erlauben Sie die Verwendung von NTLM-Anmeldeinformationen bei der Verbindung mit einem Server.",
+        "domains": "Domänen, die die Anmeldeinformationen verwenden werden. Durch Komma getrennt. Verwenden Sie *, um alle Domänen abzugleichen."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Videoanruf-Fensterposition speichern",
+        "description": "Position und Größe der Videoanruf-Fenster zwischen Sitzungen speichern und wiederherstellen"
       }
     }
   },
@@ -311,5 +320,17 @@
     "unreadMessage": "Ungelesene Nachrichten",
     "unreadMention": "Ungelesene Erwähnungen",
     "noUnreadMessage": "Keine ungelesenen Nachrichten"
+  },
+  "screenSharing": {
+    "permissionDenied": "Bildschirmaufnahme-Berechtigung verweigert",
+    "permissionRequired": "Die Bildschirmaufnahme-Berechtigung ist erforderlich, um Ihren Bildschirm zu teilen.",
+    "permissionInstructions": "Bitte aktivieren Sie diese in den Systemeinstellungen und versuchen Sie es erneut.",
+    "title": "Bildschirm teilen",
+    "entireScreen": "Ihr gesamter Bildschirm",
+    "applicationWindow": "Anwendungsfenster",
+    "noScreensFound": "Keine Bildschirme gefunden",
+    "noWindowsFound": "Keine Fenster gefunden",
+    "cancel": "Abbrechen",
+    "share": "Teilen"
   }
 }

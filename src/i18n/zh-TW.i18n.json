@@ -177,5 +177,22 @@
       "unreadMention_plural": "{{- appName}}: 您有 {{- count}} 封未讀的直接或提及到您的訊息",
       "unreadMessage": "{{- appName}}: 您有未讀的訊息"
     }
+  },
+  "taskbar": {
+    "unreadMessage": "未讀訊息",
+    "unreadMention": "未讀提及",
+    "noUnreadMessage": "沒有未讀訊息"
+  },
+  "screenSharing": {
+    "permissionDenied": "螢幕錄製權限被拒絕",
+    "permissionRequired": "需要螢幕錄製權限才能共享您的螢幕。",
+    "permissionInstructions": "請在系統偏好設定中啟用它，然後重試。",
+    "title": "共享您的螢幕",
+    "entireScreen": "您的整個螢幕",
+    "applicationWindow": "應用程式視窗",
+    "noScreensFound": "未找到螢幕",
+    "noWindowsFound": "未找到視窗",
+    "cancel": "取消",
+    "share": "共享"
   }
 }

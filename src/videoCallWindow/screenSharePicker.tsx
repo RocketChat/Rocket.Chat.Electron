@@ -3,9 +3,9 @@ import {
   Button,
   Callout,
   Label,
-  Margins,
-  PaletteStyleTag,
+  Tabs,
   Scrollable,
+  PaletteStyleTag,
 } from '@rocket.chat/fuselage';
 import type {
   DesktopCapturer,
@@ -14,6 +14,7 @@ import type {
 } from 'electron';
 import { ipcRenderer } from 'electron';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Dialog } from '../ui/components/Dialog';
 
@@ -23,9 +24,11 @@ const desktopCapturer: DesktopCapturer = {
 };
 
 export function ScreenSharePicker() {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
-  const [hoveredSourceId, setHoveredSourceId] = useState<string | null>(null);
+  const [currentTab, setCurrentTab] = useState<'screen' | 'window'>('screen');
+  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [
     isScreenRecordingPermissionGranted,
     setIsScreenRecordingPermissionGranted,
@@ -78,8 +81,17 @@ export function ScreenSharePicker() {
   }, [visible]);
 
   const handleScreenSharingSourceClick = (id: string) => () => {
-    setVisible(false);
-    ipcRenderer.send('video-call-window/screen-sharing-source-responded', id);
+    setSelectedSourceId(id);
+  };
+
+  const handleShare = (): void => {
+    if (selectedSourceId) {
+      setVisible(false);
+      ipcRenderer.send(
+        'video-call-window/screen-sharing-source-responded',
+        selectedSourceId
+      );
+    }
   };
 
   const handleClose = (): void => {
@@ -87,112 +99,142 @@ export function ScreenSharePicker() {
     ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
   };
 
-  const handleMouseEnter = (id: string) => {
-    setHoveredSourceId(id);
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredSourceId(null);
-  };
+  // Filter sources based on the current tab
+  const filteredSources = sources.filter((source) => {
+    if (currentTab === 'screen') {
+      return source.id.includes('screen');
+    }
+    return source.id.includes('window');
+  });
 
   return (
-    <Box>
-      <PaletteStyleTag
-        theme='light'
-        selector=':root'
-        // tagId='sidebar-palette'
-      />
+    <>
+      <PaletteStyleTag theme='dark' selector=':root' />
       <Dialog isVisible={visible} onClose={handleClose}>
         <Box
+          width='680px'
+          margin='auto'
+          padding='x24'
           display='flex'
-          flexWrap='wrap'
-          alignItems='stretch'
-          justifyContent='center'
-          maxWidth='x800'
-          // bg='tint'
-          borderRadius='x16'
+          flexDirection='column'
+          height='560px'
+          backgroundColor='surface'
+          color='default'
         >
-          {!isScreenRecordingPermissionGranted && (
-            <Callout
-              title='Screen Recording Permissions Denied'
-              type='danger'
-              maxWidth='100%'
-              marginBlockEnd='x16'
-            >
-              The screen sharing feature requires screen recording permissions
-              to be granted. Please grant screen recording permissions in your
-              system settings and try again.
-              <br />
-              Open <b>System Preferences</b> -<b> Security & Privacy</b> -
-              <b> Screen Recording</b> and check
-              <b> Rocket.Chat</b>
-            </Callout>
-          )}
-          <Box alignSelf='center' display='flex'>
-            <Box fontScale='h1' alignSelf='left'>
-              Select a screen to share
+          <Box mb='x16'>
+            <Box fontScale='h1' mb='x16'>
+              {t('screenSharing.title')}
             </Box>
-          </Box>
-          <Scrollable>
-            <Margins blockStart='x16' blockEnd='x16'>
-              <Box
-                display='flex'
-                flexWrap='wrap'
-                alignItems='stretch'
-                justifyContent='center'
-                maxSize='x730'
+
+            <Tabs marginBlockEnd='x16'>
+              <Tabs.Item
+                selected={currentTab === 'screen'}
+                onClick={() => setCurrentTab('screen')}
               >
-                {sources.map(({ id, name, thumbnail }) => (
-                  <Box
-                    width='x160'
-                    height='x200'
-                    key={id}
-                    display='flex'
-                    flexDirection='column'
-                    onClick={handleScreenSharingSourceClick(id)}
-                    // bg='tint'
-                    margin='x8'
-                    // borderRadius='x8'
-                    onMouseEnter={() => handleMouseEnter(id)}
-                    onMouseLeave={handleMouseLeave}
-                    style={{
-                      cursor: 'pointer',
-                    }}
-                    borderRadius='x8'
-                    border={
-                      hoveredSourceId === id
-                        ? '2px solid var(--rcx-color-stroke-light)'
-                        : '2px solid transparent'
-                    }
-                  >
+                {t('screenSharing.entireScreen')}
+              </Tabs.Item>
+              <Tabs.Item
+                selected={currentTab === 'window'}
+                onClick={() => setCurrentTab('window')}
+              >
+                {t('screenSharing.applicationWindow')}
+              </Tabs.Item>
+            </Tabs>
+          </Box>
+          <Box
+            display='flex'
+            flexDirection='column'
+            overflow='hidden'
+            marginBlockStart='x10'
+            marginBlockEnd='x10'
+            flexGrow={1}
+          >
+            {!isScreenRecordingPermissionGranted ? (
+              <Callout
+                title={t('screenSharing.permissionDenied')}
+                type='danger'
+                margin='x32'
+              >
+                {t('screenSharing.permissionRequired')}
+                <br />
+                {t('screenSharing.permissionInstructions')}
+              </Callout>
+            ) : (
+              <Scrollable vertical>
+                <Box display='flex' flexWrap='wrap' justifyContent='flex-start'>
+                  {filteredSources.length === 0 ? (
                     <Box
-                      flexGrow={1}
                       display='flex'
                       alignItems='center'
                       justifyContent='center'
-                      content='center'
+                      width='100%'
+                      p='x16'
                     >
-                      <Box
-                        is='img'
-                        src={thumbnail.toDataURL()}
-                        alt={name}
-                        style={{ maxWidth: '148px', maxHeight: '148px' }}
-                        borderRadius='x2'
-                      />
+                      <Label>
+                        {currentTab === 'screen'
+                          ? t('screenSharing.noScreensFound')
+                          : t('screenSharing.noWindowsFound')}
+                      </Label>
                     </Box>
-                    <Label margin='x8' withTruncatedText>
-                      {name}
-                    </Label>
-                  </Box>
-                ))}
-              </Box>
-            </Margins>
-          </Scrollable>
-        </Box>
-        <Box alignSelf='center' display='flex' marginBlockStart='x24'>
-          <Button onClick={handleClose}>Cancel</Button>
+                  ) : (
+                    filteredSources.map(({ id, name, thumbnail }) => (
+                      <Box
+                        key={id}
+                        width='x180'
+                        height='x140'
+                        m='x8'
+                        overflow='hidden'
+                        display='flex'
+                        flexDirection='column'
+                        onClick={handleScreenSharingSourceClick(id)}
+                        bg={selectedSourceId === id ? 'selected' : 'light'}
+                        color={selectedSourceId === id ? 'selected' : 'light'}
+                        border={
+                          selectedSourceId === id
+                            ? '2px solid var(--rcx-color-stroke-highlight)'
+                            : '1px solid var(--rcx-color-stroke-light)'
+                        }
+                        borderRadius='x2'
+                        cursor='pointer'
+                        className='screen-share-thumbnail'
+                      >
+                        <Box
+                          flexGrow={1}
+                          display='flex'
+                          alignItems='center'
+                          justifyContent='center'
+                          overflow='hidden'
+                        >
+                          <Box
+                            is='img'
+                            src={thumbnail.toDataURL()}
+                            alt={name}
+                            width='100%'
+                            height='auto'
+                          />
+                        </Box>
+                        <Box p='x4'>
+                          <Label>{name}</Label>
+                        </Box>
+                      </Box>
+                    ))
+                  )}
+                </Box>
+              </Scrollable>
+            )}
+          </Box>
+          <Box
+            display='flex'
+            justifyContent='space-between'
+            marginBlockStart='auto'
+          >
+            <Button onClick={handleClose}>{t('screenSharing.cancel')}</Button>
+            <Button primary onClick={handleShare} disabled={!selectedSourceId}>
+              {t('screenSharing.share')}
+            </Button>
+          </Box>
         </Box>
       </Dialog>
-    </Box>
+    </>
   );
 }

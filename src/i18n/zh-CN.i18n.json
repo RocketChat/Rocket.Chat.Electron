@@ -233,5 +233,22 @@
     },
     "clearPermittedScreenCaptureServers": {
     }
+  },
+  "taskbar": {
+    "unreadMessage": "未读消息",
+    "unreadMention": "未读提及",
+    "noUnreadMessage": "没有未读消息"
+  },
+  "screenSharing": {
+    "permissionDenied": "屏幕录制权限被拒绝",
+    "permissionRequired": "需要屏幕录制权限才能共享您的屏幕。",
+    "permissionInstructions": "请在系统偏好设置中启用它，然后重试。",
+    "title": "共享您的屏幕",
+    "entireScreen": "您的整个屏幕",
+    "applicationWindow": "应用程序窗口",
+    "noScreensFound": "未找到屏幕",
+    "noWindowsFound": "未找到窗口",
+    "cancel": "取消",
+    "share": "共享"
   }
 }

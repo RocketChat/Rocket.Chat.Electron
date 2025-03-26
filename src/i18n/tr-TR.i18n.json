@@ -79,6 +79,15 @@
       "title": "Güncellemeyi Atla",
       "message": "Bir sonraki güncellemenin ne zaman yapılacağını size bildireceğiz. Fikrinizi değiştirirseniz Hakkında menüsünden güncellemeleri manuel kontrol edebilirsiniz.",
       "ok": "TAMAM"
+    },
+    "ntlmCredentials": {
+      "title": "NTLM Kimlik Bilgileri",
+      "description": "Bir sunucuya bağlanırken NTLM kimlik bilgilerinin kullanılmasına izin verin.",
+      "domains": "Kimlik bilgilerini kullanacak alan adları. Virgülle ayrılmış. Tüm alan adlarıyla eşleşmek için * kullanın."
+    },
+    "videoCallWindowPersistence": {
+      "title": "Görüntülü arama pencere konumunu hatırla",
+      "description": "Oturumlar arasında görüntülü arama pencerelerinin konumunu ve boyutunu kaydet ve geri yükle"
     }
   },
   "error": {
@@ -181,5 +190,22 @@
       "unreadMention_plural": "{{- appName}}: {{- count}} okunmamış bahsetme/direkt mesajınız var",
       "unreadMessage": "{{- appName}}: okunmamış mesajınız var"
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Okunmamış mesajlar",
+    "unreadMention": "Okunmamış bahsetmeler",
+    "noUnreadMessage": "Okunmamış mesaj yok"
+  },
+  "screenSharing": {
+    "permissionDenied": "Ekran Kaydetme İzni Reddedildi",
+    "permissionRequired": "Ekranınızı paylaşmak için ekran kaydetme izni gereklidir.",
+    "permissionInstructions": "Lütfen sistem tercihlerinizde etkinleştirin ve tekrar deneyin.",
+    "title": "Ekranınızı paylaşın",
+    "entireScreen": "Tüm ekranınız",
+    "applicationWindow": "Uygulama penceresi",
+    "noScreensFound": "Ekran bulunamadı",
+    "noWindowsFound": "Pencere bulunamadı",
+    "cancel": "İptal et",
+    "share": "Paylaş"
   }
 }

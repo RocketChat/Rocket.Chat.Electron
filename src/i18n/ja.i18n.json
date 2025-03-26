@@ -79,6 +79,15 @@
       "title": "更新をスキップ",
       "message": "次回の更新プログラムが利用可能になったときにお知らせします。\n気になる場合は[バージョン情報]メニューから更新プログラムを確認できます。",
       "ok": "OK"
+    },
+    "ntlmCredentials": {
+      "title": "NTLM認証情報",
+      "description": "サーバーに接続する際にNTLM認証情報の使用を許可します。",
+      "domains": "認証情報を使用するドメイン。カンマで区切ります。すべてのドメインに一致させるには * を使用します。"
+    },
+    "videoCallWindowPersistence": {
+      "title": "ビデオ通話ウィンドウの位置を記憶",
+      "description": "セッション間でビデオ通話ウィンドウの位置とサイズを保存・復元する"
     }
   },
   "error": {
@@ -172,5 +181,22 @@
     },
     "clearPermittedScreenCaptureServers": {
     }
+  },
+  "taskbar": {
+    "unreadMessage": "未読メッセージ",
+    "unreadMention": "未読メンション",
+    "noUnreadMessage": "未読メッセージはありません"
+  },
+  "screenSharing": {
+    "permissionDenied": "画面収録権限が拒否されました",
+    "permissionRequired": "画面を共有するには画面収録権限が必要です。",
+    "permissionInstructions": "システム環境設定で有効にして、もう一度お試しください。",
+    "title": "画面を共有する",
+    "entireScreen": "画面全体",
+    "applicationWindow": "アプリケーションウィンドウ",
+    "noScreensFound": "画面が見つかりません",
+    "noWindowsFound": "ウィンドウが見つかりません",
+    "cancel": "キャンセル",
+    "share": "共有"
   }
 }

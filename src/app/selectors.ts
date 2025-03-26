@@ -55,4 +55,6 @@ export const selectPersistableValues = createStructuredSelector({
   mainWindowTitle: ({ mainWindowTitle }: RootState) =>
     mainWindowTitle || 'Rocket.Chat',
   selectedBrowser: ({ selectedBrowser }: RootState) => selectedBrowser,
+  videoCallWindowState: ({ videoCallWindowState }: RootState) =>
+    videoCallWindowState,
 });

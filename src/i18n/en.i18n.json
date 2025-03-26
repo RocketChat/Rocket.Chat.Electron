@@ -251,6 +251,10 @@
         "title": "NTLM Credentials",
         "description": "Allow NTLM Credentials to be used when connecting to a server.",
         "domains": "Domains that will use the credentials. Separated by comma. Use * to match all domains."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Remember video call window position",
+        "description": "Save and restore the position and size of video call windows between sessions"
       }
     }
   },
@@ -377,5 +381,17 @@
     "unreadMessage": "Unread messages",
     "unreadMention": "Unread mentions",
     "noUnreadMessage": "No unread messages"
+  },
+  "screenSharing": {
+    "permissionDenied": "Screen Recording Permission Denied",
+    "permissionRequired": "Screen recording permission is required to share your screen.",
+    "permissionInstructions": "Please enable it in your system preferences and try again.",
+    "title": "Share your screen",
+    "entireScreen": "Your entire screen",
+    "applicationWindow": "Application window",
+    "noScreensFound": "No screens found",
+    "noWindowsFound": "No windows found",
+    "cancel": "Cancel",
+    "share": "Share"
   }
 }

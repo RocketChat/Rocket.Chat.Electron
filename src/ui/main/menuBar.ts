@@ -10,6 +10,7 @@ import { CERTIFICATES_CLEARED } from '../../navigation/actions';
 import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import * as urls from '../../urls';
+import { openExternal } from '../../utils/browserLauncher';
 import {
   CLEAR_CACHE_TRIGGERED,
   MENU_BAR_ABOUT_CLICKED,
@@ -552,14 +553,14 @@ const createHelpMenu = createSelector(
         id: 'documentation',
         label: t('menus.documentation'),
         click: () => {
-          shell.openExternal(urls.docs.index);
+          openExternal(urls.docs.index);
         },
       },
       {
         id: 'reportIssue',
         label: t('menus.reportIssue'),
         click: () => {
-          shell.openExternal(urls.docs.newIssue);
+          openExternal(urls.docs.newIssue);
         },
       },
       { type: 'separator' },
@@ -632,7 +633,7 @@ const createHelpMenu = createSelector(
         id: 'learnMore',
         label: t('menus.learnMore'),
         click: () => {
-          shell.openExternal(urls.rocketchat.site);
+          openExternal(urls.rocketchat.site);
         },
       },
       ...on(process.platform !== 'darwin', () => [

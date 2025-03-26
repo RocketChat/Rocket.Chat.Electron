@@ -8,7 +8,6 @@ import {
   ipcMain,
   screen,
   systemPreferences,
-  shell,
 } from 'electron';
 
 import { packageJsonInformation } from '../app/main/app';
@@ -17,6 +16,7 @@ import { select, dispatchLocal } from '../store';
 import { VIDEO_CALL_WINDOW_STATE_CHANGED } from '../ui/actions';
 import { debounce } from '../ui/main/debounce';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
+import { openExternal } from '../utils/browserLauncher';
 
 export const handleDesktopCapturerGetSources = () => {
   handle('desktop-capturer-get-sources', async (_event, opts) => {
@@ -50,7 +50,7 @@ export const startVideoCallWindowHandler = (): void => {
     const validUrl = new URL(url);
     const allowedProtocols = ['http:', 'https:'];
     if (validUrl.hostname.match(/(\.)?g\.co$/)) {
-      shell.openExternal(validUrl.toString());
+      openExternal(validUrl.toString());
       return;
     }
     if (allowedProtocols.includes(validUrl.protocol)) {

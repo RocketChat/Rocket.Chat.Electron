@@ -67,13 +67,17 @@ type PersistableValues_3_9_6 = PersistableValues_3_8_12 & {
 };
 
 type PersistableValues_4_1_0 = PersistableValues_3_9_6 & {
-  mainWindowTitle: string;
-  machineTheme: string;
+  mainWindowTitle: string | null;
+  machineTheme: string | null;
+};
+
+type PersistableValues_4_2_0 = PersistableValues_4_1_0 & {
+  selectedBrowser: string | null;
 };
 
 export type PersistableValues = Pick<
-  PersistableValues_3_9_6,
-  keyof PersistableValues_3_9_6
+  PersistableValues_4_2_0,
+  keyof PersistableValues_4_2_0
 >;
 
 export const migrations = {
@@ -130,5 +134,9 @@ export const migrations = {
     ...before,
     mainWindowTitle: 'Rocket.Chat',
     machineTheme: 'light',
+  }),
+  '>=4.2.0': (before: PersistableValues_4_1_0): PersistableValues_4_2_0 => ({
+    ...before,
+    selectedBrowser: null,
   }),
 };

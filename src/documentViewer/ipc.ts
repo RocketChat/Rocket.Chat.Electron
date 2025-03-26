@@ -1,9 +1,10 @@
-import { shell, webContents } from 'electron';
+import { webContents } from 'electron';
 
 import { handle } from '../ipc/main';
 import { SERVER_DOCUMENT_VIEWER_OPEN_URL } from '../servers/actions';
 import { dispatch, listen, select } from '../store';
 import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../ui/actions';
+import { openExternal } from '../utils/browserLauncher';
 
 export const startDocumentViewerHandler = (): void => {
   handle(
@@ -39,7 +40,7 @@ export const startDocumentViewerHandler = (): void => {
     webContent.on('will-navigate', (event, url) => {
       event.preventDefault();
       setTimeout(() => {
-        shell.openExternal(url);
+        openExternal(url);
       }, 10);
     });
   });

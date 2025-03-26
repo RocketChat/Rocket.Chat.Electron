@@ -218,6 +218,13 @@
         "title": "Ícone da bandeja",
         "description": "Mostra um ícone na bandeja do sistema para acessar rapidamente a aplicação. Se o ícone da bandeja estiver ativado, a aplicação será minimizada para a barra de tarefas ao ser fechada. Por outro lado se o ícone da bandeja estiver desativado, a aplicação será finalizada ao ser fechada."
       },
+      "availableBrowsers": {
+        "title": "Navegador Padrão",
+        "description": "Escolha qual navegador abrirá os links externos deste aplicativo. Sistema Padrão usa as configurações do seu sistema operacional.",
+        "systemDefault": "Sistema Padrão",
+        "loading": "Carregando navegadores...",
+        "current": "Usando atualmente:"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Limpar Permissões de Captura de Tela",
         "description": "Limpar as permissões de captura de tela que foram selecionadas para não perguntar novamente em chamadas de vídeo."

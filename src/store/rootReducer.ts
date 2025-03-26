@@ -14,6 +14,7 @@ import {
   notTrustedCertificates,
 } from '../navigation/reducers';
 import { servers } from '../servers/reducers';
+import { availableBrowsers } from '../ui/reducers/availableBrowsers';
 import { currentView } from '../ui/reducers/currentView';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
@@ -33,6 +34,7 @@ import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
+import { selectedBrowser } from '../ui/reducers/selectedBrowser';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
 import {
   doCheckForUpdatesOnStartup,
@@ -49,6 +51,7 @@ export const rootReducer = combineReducers({
   allowedJitsiServers,
   appPath,
   appVersion,
+  availableBrowsers,
   clientCertificates,
   currentView,
   doCheckForUpdatesOnStartup,
@@ -70,6 +73,7 @@ export const rootReducer = combineReducers({
   openDialog,
   rootWindowIcon,
   rootWindowState,
+  selectedBrowser,
   servers,
   skippedUpdateVersion,
   trustedCertificates,

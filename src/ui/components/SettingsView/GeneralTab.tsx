@@ -1,5 +1,6 @@
 import { Box, FieldGroup } from '@rocket.chat/fuselage';
 
+import { AvailableBrowsers } from './features/AvailableBrowsers';
 import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
 import { FlashFrame } from './features/FlashFrame';
 import { HardwareAcceleration } from './features/HardwareAcceleration';
@@ -25,6 +26,7 @@ export const GeneralTab = () => (
       <SideBar />
       {process.platform !== 'darwin' && <MenuBar />}
       {process.platform === 'win32' && <NTLMCredentials />}
+      <AvailableBrowsers />
       {!process.mas && <ClearPermittedScreenCaptureServers />}
     </FieldGroup>
   </Box>

@@ -19,6 +19,7 @@ import {
 } from '../../ui/actions';
 import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
+import { preloadBrowsersList } from '../../utils/browserLauncher';
 import {
   APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET,
   APP_MAIN_WINDOW_TITLE_SET,
@@ -113,7 +114,9 @@ export const setupApp = (): void => {
     app.quit();
   });
 
-  listen(SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED, (_action) => {
+  app.whenReady().then(() => preloadBrowsersList());
+
+  listen(SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED, () => {
     relaunchApp();
   });
 
@@ -140,19 +143,15 @@ export const setupApp = (): void => {
     }
   });
 
-  listen(
-    SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
-    async (_action) => {
-      const permitted = await askForClearScreenCapturePermission();
-
-      if (permitted) {
-        dispatch({
-          type: JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED,
-          payload: {},
-        });
-      }
+  listen(SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS, async () => {
+    const permitted = await askForClearScreenCapturePermission();
+    if (permitted) {
+      dispatch({
+        type: JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED,
+        payload: {},
+      });
     }
-  );
+  });
 
   const allowedNTLMCredentialsDomains = readSetting(
     'allowedNTLMCredentialsDomains'

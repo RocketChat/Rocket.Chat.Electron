@@ -217,8 +217,15 @@
         "description": "Afficher la barre latérale à gauche de la fenêtre avec la liste des serveurs, les téléchargements et les paramètres."
       },
       "trayIcon": {
-        "title": "Icône de la barre",
-        "description": "Afficher l'icône de la barre d'état système sur la barre d'état système. Si l'icône de la barre d'état est active, l'application sera masquée dans la barre d'état à la fermeture. Sinon, il quittera l'application."
+        "title": "Icône de la barre d'état système",
+        "description": "Afficher l'icône dans la barre d'état système. Si l'icône est active, l'application sera masquée dans la barre d'état lors de la fermeture. Sinon, elle sera complètement fermée."
+      },
+      "availableBrowsers": {
+        "title": "Navigateur par défaut",
+        "description": "Choisissez quel navigateur ouvrira les liens externes de cette application. La valeur par défaut du système utilise les paramètres de votre système d'exploitation.",
+        "systemDefault": "Par défaut du système",
+        "loading": "Chargement des navigateurs...",
+        "current": "Actuellement utilisé:"
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Effacer les autorisations de capture d'écran",

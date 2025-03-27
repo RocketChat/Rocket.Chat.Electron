@@ -104,6 +104,7 @@ async function createEventOnRocketChatServer(
         startTime: event.startTime,
         description: event.description,
         reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
+        busy: event.busy,
       },
       {
         headers: {
@@ -134,6 +135,7 @@ async function updateEventOnRocketChatServer(
         startTime: event.startTime,
         description: event.description,
         reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
+        busy: event.busy,
       },
       {
         headers: {
@@ -226,7 +228,8 @@ export async function syncEventsWithRocketChatServer(
         alreadyOnRocketChatServer.startTime === startTime &&
         alreadyOnRocketChatServer.description === description &&
         alreadyOnRocketChatServer.reminderMinutesBeforeStart ===
-          reminderMinutesBeforeStart
+          reminderMinutesBeforeStart &&
+        alreadyOnRocketChatServer.busy === appointment.busy
       ) {
         continue;
       }

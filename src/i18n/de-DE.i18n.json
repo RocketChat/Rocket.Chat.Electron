@@ -211,6 +211,10 @@
         "loading": "Browser werden geladen...",
         "current": "Aktuell verwendet:"
       },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Erlaubte Bildschirmaufnahmeserver löschen",
+        "description": "Löschen Sie Server, die Bildschirme von dieser App erfassen dürfen"
+      },
       "ntlmCredentials": {
         "title": "NTLM-Anmeldeinformationen",
         "description": "Erlauben Sie die Verwendung von NTLM-Anmeldeinformationen bei der Verbindung mit einem Server.",
@@ -219,10 +223,6 @@
       "videoCallWindowPersistence": {
         "title": "Videoanruf-Fensterposition speichern",
         "description": "Position und Größe der Videoanruf-Fenster zwischen Sitzungen speichern und wiederherstellen"
-      },
-      "clearPermittedScreenCaptureServers": {
-        "title": "Erlaubte Bildschirmaufnahmeserver löschen",
-        "description": "Löschen Sie Server, die Bildschirme von dieser App erfassen dürfen"
       }
     }
   },

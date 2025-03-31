@@ -79,15 +79,23 @@
       "title": "Güncellemeyi Atla",
       "message": "Bir sonraki güncellemenin ne zaman yapılacağını size bildireceğiz. Fikrinizi değiştirirseniz Hakkında menüsünden güncellemeleri manuel kontrol edebilirsiniz.",
       "ok": "TAMAM"
-    },
-    "ntlmCredentials": {
-      "title": "NTLM Kimlik Bilgileri",
-      "description": "Bir sunucuya bağlanırken NTLM kimlik bilgilerinin kullanılmasına izin verin.",
-      "domains": "Kimlik bilgilerini kullanacak alan adları. Virgülle ayrılmış. Tüm alan adlarıyla eşleşmek için * kullanın."
-    },
-    "videoCallWindowPersistence": {
-      "title": "Görüntülü arama pencere konumunu hatırla",
-      "description": "Oturumlar arasında görüntülü arama pencerelerinin konumunu ve boyutunu kaydet ve geri yükle"
+    }
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "general": "Genel",
+    "options": {
+      "trayIcon": {
+        "title": "Görev çubuğu ikonu",
+        "description": "Sistem tepsisinde bir simge gösterir. Tepsi simgesi etkinleştirildiğinde, uygulama kapatıldığında tepsiye gizlenir. Aksi takdirde uygulama kapatılır."
+      },
+      "availableBrowsers": {
+        "title": "Varsayılan Tarayıcı",
+        "description": "Bu uygulamadan harici bağlantıları hangi tarayıcının açacağını seçin. Sistem Varsayılanı, işletim sisteminizin ayarlarını kullanır.",
+        "systemDefault": "Sistem Varsayılanı",
+        "loading": "Tarayıcılar yükleniyor...",
+        "current": "Şu anda kullanılan:"
+      }
     }
   },
   "error": {
@@ -143,23 +151,6 @@
     "title": "Sunucu yüklenirken hata oluştu",
     "announcement": "Houston, bir sorunumuz var",
     "reload": "Yeniden yükle"
-  },
-  "settings": {
-    "title": "Ayarlar",
-    "general": "Genel",
-    "options": {
-      "trayIcon": {
-        "title": "Görev çubuğu ikonu",
-        "description": "Sistem tepsisinde bir simge gösterir. Tepsi simgesi etkinleştirildiğinde, uygulama kapatıldığında tepsiye gizlenir. Aksi takdirde uygulama kapatılır."
-      },
-      "availableBrowsers": {
-        "title": "Varsayılan Tarayıcı",
-        "description": "Bu uygulamadan harici bağlantıları hangi tarayıcının açacağını seçin. Sistem Varsayılanı, işletim sisteminizin ayarlarını kullanır.",
-        "systemDefault": "Sistem Varsayılanı",
-        "loading": "Tarayıcılar yükleniyor...",
-        "current": "Şu anda kullanılan:"
-      }
-    }
   },
   "selfxss": {
     "title": "Dur!",

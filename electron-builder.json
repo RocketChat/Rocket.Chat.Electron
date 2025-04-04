@@ -10,7 +10,7 @@
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],
     "icon": "build/icon.icns",
-    "bundleVersion": "25031",
+    "bundleVersion": "25030",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
     "artifactName": "rocketchat-${version}-${os}.${ext}",
@@ -114,10 +114,25 @@
       "StartupWMClass": "Rocket.Chat",
       "MimeType": "x-scheme-handler/rocketchat"
     },
-    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
+    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}",
+    "afterInstall": "./build/linux/after-install.sh"
   },
   "rpm": {
-    "fpm": ["--rpm-rpmbuild-define=_build_id_links none"]
+    "fpm": ["--rpm-rpmbuild-define=_build_id_links none"],
+    "afterInstall": "./build/linux/after-install.sh"
+  },
+  "deb": {
+    "afterInstall": "./build/linux/after-install.sh"
+  },
+  "appImage": {
+    "systemIntegration": "ask",
+    "license": "LICENSE",
+    "executableName": "rocketchat-desktop",
+    "desktop": {
+      "Name": "Rocket.Chat",
+      "Comment": "Official Desktop Client for Rocket.Chat",
+      "StartupWMClass": "Rocket.Chat"
+    }
   },
   "snap": {
     "plugs": [
@@ -135,7 +150,29 @@
       "audio-playback",
       "audio-record",
       "screen-inhibit-control",
-      "upower-observe"
+      "upower-observe",
+      "browser-sandbox"
+    ],
+    "confinement": "classic"
+  },
+  "flatpak": {
+    "runtimeVersion": "22.08",
+    "baseVersion": "23.08",
+    "runtime": "org.freedesktop.Platform",
+    "runtimeCommit": "2cb0d88b4fb05ae8455dcf4356f4ecf94efe0707c92094ec9c3622216234fa97",
+    "sdk": "org.freedesktop.Sdk",
+    "base": "org.electronjs.Electron2.BaseApp",
+    "baseCommit": "46cf1de5b26682030bade9c4fd86b9bd3c09a9bdf4db9ed18c82a8f5e9def36c",
+    "finishArgs": [
+      "--share=ipc",
+      "--socket=x11",
+      "--socket=pulseaudio",
+      "--share=network",
+      "--device=all",
+      "--filesystem=home",
+      "--talk-name=org.freedesktop.Notifications",
+      "--talk-name=org.freedesktop.secrets",
+      "--system-talk-name=org.freedesktop.UPower"
     ]
   },
   "afterSign": "./build/notarize.js",

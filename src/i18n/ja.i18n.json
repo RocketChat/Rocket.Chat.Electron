@@ -79,15 +79,6 @@
       "title": "更新をスキップ",
       "message": "次回の更新プログラムが利用可能になったときにお知らせします。\n気になる場合は[バージョン情報]メニューから更新プログラムを確認できます。",
       "ok": "OK"
-    },
-    "ntlmCredentials": {
-      "title": "NTLM認証情報",
-      "description": "サーバーに接続する際にNTLM認証情報の使用を許可します。",
-      "domains": "認証情報を使用するドメイン。カンマで区切ります。すべてのドメインに一致させるには * を使用します。"
-    },
-    "videoCallWindowPersistence": {
-      "title": "ビデオ通話ウィンドウの位置を記憶",
-      "description": "セッション間でビデオ通話ウィンドウの位置とサイズを保存・復元する"
     }
   },
   "error": {
@@ -167,19 +158,6 @@
       "unreadMention": "{{- appName}}: 未読のメンション/ダイレクトメッセージがあります",
       "unreadMention_plural": "{{- appName}}: 未読のメンション/ダイレクトメッセージが {{- count}} 件あります",
       "unreadMessage": "{{- appName}}: 未読のメッセージがあります"
-    },
-    "trayIcon": {
-      "title": "トレイアイコン",
-      "description": "システムトレイにアイコンを表示します。トレイアイコンがアクティブな場合、アプリを閉じるとトレイに最小化されます。それ以外の場合は、アプリケーションを終了します。"
-    },
-    "availableBrowsers": {
-      "title": "デフォルトブラウザ",
-      "description": "このアプリケーションから外部リンクを開くブラウザを選択します。システムデフォルトはお使いのオペレーティングシステムの設定を使用します。",
-      "systemDefault": "システムデフォルト",
-      "loading": "ブラウザを読み込み中...",
-      "current": "現在使用中："
-    },
-    "clearPermittedScreenCaptureServers": {
     }
   },
   "taskbar": {

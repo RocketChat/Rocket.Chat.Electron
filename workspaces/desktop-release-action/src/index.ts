@@ -15,14 +15,15 @@ import {
   getTaggedRelease,
   overrideAsset,
 } from './github';
-import { packOnLinux } from './linux';
+import { findAndUploadSnaps, packOnLinux, setupSnapcraft } from './linux';
 import { disableSpotlightIndexing, packOnMacOS } from './macos';
 import { packOnWindows } from './windows';
 
 const pack = async () => {
   switch (process.platform) {
     case 'linux':
-      // await setupSnapcraft();
+      // Setup snapcraft early to check credentials
+      await setupSnapcraft();
       await packOnLinux();
       break;
 
@@ -65,14 +66,15 @@ const releaseDevelopment = async (commitSha: string) => {
 
   for (const path of await getFilesToUpload()) {
     const name = basename(path);
-    // const extension = extname(path).toLowerCase();
     const { size } = await promises.stat(path);
     const data = await promises.readFile(path);
 
     await overrideAsset(release, assets, name, size, data);
-    // if (extension === '.snap') {
-    //   await uploadSnap(path, 'edge');
-    // }
+  }
+  
+  // Upload snaps to edge channel for development builds
+  if (process.platform === 'linux') {
+    await findAndUploadSnaps('development-build');
   }
 };
 
@@ -84,14 +86,15 @@ const releaseSnapshot = async (commitSha: string) => {
 
   for (const path of await getFilesToUpload()) {
     const name = basename(path);
-    // const extension = extname(path).toLowerCase();
     const { size } = await promises.stat(path);
     const data = await promises.readFile(path);
 
     await overrideAsset(release, assets, name, size, data);
-    // if (extension === '.snap') {
-    //   await uploadSnap(path, 'edge');
-    // }
+  }
+  
+  // Upload snaps to beta channel for snapshot builds
+  if (process.platform === 'linux') {
+    await findAndUploadSnaps('beta-snapshot');
   }
 };
 
@@ -108,20 +111,15 @@ const releaseTagged = async (version: SemVer, commitSha: string) => {
 
   for (const path of await getFilesToUpload()) {
     const name = basename(path);
-    // const extension = extname(path).toLowerCase();
     const { size } = await promises.stat(path);
     const data = await promises.readFile(path);
 
     await overrideAsset(release, assets, name, size, data);
-    // if (extension === '.snap') {
-    //   await uploadSnap(
-    //     path,
-    //     (!version.prerelease && 'stable') ||
-    //       (version.prerelease[0] === 'candidate' && 'candidate') ||
-    //       (version.prerelease[0] === 'beta' && 'beta') ||
-    //       'edge'
-    //   );
-    // }
+  }
+  
+  // Upload snaps with appropriate channel based on version
+  if (process.platform === 'linux') {
+    await findAndUploadSnaps(version.version);
   }
 };
 

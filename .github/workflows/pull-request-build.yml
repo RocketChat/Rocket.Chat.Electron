@@ -82,47 +82,14 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: yarn electron-builder --publish never --linux snap
 
-      # Setup Snapcraft for Ubuntu builds
-      - name: Setup Snapcraft
+      # Upload snap to store (edge channel only for PRs) using the official action
+      - name: Upload snap to Snap Store (edge)
         if: ${{ matrix.os == 'ubuntu-latest' && contains(github.event.pull_request.labels.*.name, 'upload-snap') }}
-        run: |
-          sudo snap install snapcraft --classic
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-
-      # Upload snap to store (edge channel only for PRs)
-      - name: Upload snap to Snap Store
-        if: ${{ matrix.os == 'ubuntu-latest' && contains(github.event.pull_request.labels.*.name, 'upload-snap') }}
-        run: |
-          # Find snap file
-          SNAP_FILE=$(find dist -name "*.snap" -type f | head -n 1)
-          if [ -n "$SNAP_FILE" ]; then
-            echo "Found snap file: $SNAP_FILE"
-            # Login to snapcraft and upload to edge channel
-            if [ -n "$SNAPCRAFT_STORE_CREDENTIALS" ]; then
-              # Create credentials file
-              CRED_FILE=$(mktemp)
-              echo "$SNAPCRAFT_STORE_CREDENTIALS" > "$CRED_FILE"
-              chmod 600 "$CRED_FILE"
-              
-              # Login with snapcraft
-              snapcraft login --with "$CRED_FILE"
-              
-              # Upload snap to edge channel only for PR builds
-              snapcraft upload --release=edge "$SNAP_FILE"
-              
-              # Remove credentials file
-              rm -f "$CRED_FILE"
-              
-              echo "Snap uploaded to edge channel successfully"
-            else
-              echo "No Snapcraft credentials found. Skipping upload."
-            fi
-          else
-            echo "No snap file found in dist directory"
-          fi
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        uses: snapcore/action-publish@v1
+        with:
+          store_login: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          snap: dist/rocketchat-*.snap # Assumes only one snap file matching this pattern
+          release: edge
 
       # Install AWS CLI
       - name: Install AWS CLI
@@ -169,7 +136,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
 
-      # Get Artifact URLs using actions/github-script (only specified file extensions)
+      # Get Artifact URLs
       - name: Get Artifact URLs
         id: get-artifact-urls
         uses: actions/github-script@v6
@@ -188,15 +155,7 @@ jobs:
               }
             }
             
-            // Check if this snap was uploaded to the store
-            let snapNote = '';
-            if ('${{ matrix.os }}' === 'ubuntu-latest' && 
-                ${{ contains(github.event.pull_request.labels.*.name, 'upload-snap') }}) {
-              snapNote = '\n\n**Note:** This build was also uploaded to the Snap Store edge channel.';
-            }
-            
             core.setOutput('artifact_urls', artifactUrls.trim());
-            core.setOutput('snap_note', snapNote);
 
       - name: Post PR Comment with the Artifact links
         if: steps.get-artifact-urls.outputs.artifact_urls != ''
@@ -205,7 +164,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           message: |
             ### ${{ runner.os }} installer download
-            ${{ steps.get-artifact-urls.outputs.artifact_urls }}${{ steps.get-artifact-urls.outputs.snap_note }}
+            ${{ steps.get-artifact-urls.outputs.artifact_urls }}
           header: '### ${{ runner.os }} installer download'
           recreate: true
           append: false

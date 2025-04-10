@@ -6,6 +6,7 @@ import { handle } from '../ipc/main';
 import type { Server } from '../servers/common';
 import { dispatch, request, select } from '../store';
 import * as urls from '../urls';
+import { meetsMinimumVersion } from '../utils';
 import {
   OUTLOOK_CALENDAR_SET_CREDENTIALS,
   OUTLOOK_CALENDAR_ASK_CREDENTIALS,
@@ -96,23 +97,32 @@ async function createEventOnRocketChatServer(
   event: AppointmentData
 ) {
   try {
-    await axios.post(
-      urls.server(serverUrl).calendarEvents.import,
-      {
-        externalId: event.id,
-        subject: event.subject,
-        startTime: event.startTime,
-        description: event.description,
-        reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
+    // Get server object to check version
+    const { servers } = select(selectPersistableValues);
+    const server = servers.find((server) => server.url === serverUrl);
+
+    // Base payload
+    const payload: Record<string, any> = {
+      externalId: event.id,
+      subject: event.subject,
+      startTime: event.startTime,
+      description: event.description,
+      reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
+    };
+
+    // Add endTime and busy only for server version 7.5.0 or higher
+    if (server?.version && meetsMinimumVersion(server.version, '7.5.0')) {
+      payload.endTime = event.endTime;
+      payload.busy = event.busy;
+    }
+
+    await axios.post(urls.server(serverUrl).calendarEvents.import, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': token,
+        'X-User-Id': userId,
       },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Auth-Token': token,
-          'X-User-Id': userId,
-        },
-      }
-    );
+    });
   } catch (error) {
     console.error('Error saving event on server:', error);
   }
@@ -126,23 +136,32 @@ async function updateEventOnRocketChatServer(
   event: AppointmentData
 ) {
   try {
-    await axios.post(
-      urls.server(serverUrl).calendarEvents.update,
-      {
-        eventId: rocketChatEventId,
-        subject: event.subject,
-        startTime: event.startTime,
-        description: event.description,
-        reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
+    // Get server object to check version
+    const { servers } = select(selectPersistableValues);
+    const server = servers.find((server) => server.url === serverUrl);
+
+    // Base payload
+    const payload: Record<string, any> = {
+      eventId: rocketChatEventId,
+      subject: event.subject,
+      startTime: event.startTime,
+      description: event.description,
+      reminderMinutesBeforeStart: event.reminderMinutesBeforeStart,
+    };
+
+    // Add endTime and busy only for server version 7.5.0 or higher
+    if (server?.version && meetsMinimumVersion(server.version, '7.5.0')) {
+      payload.endTime = event.endTime;
+      payload.busy = event.busy;
+    }
+
+    await axios.post(urls.server(serverUrl).calendarEvents.update, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': token,
+        'X-User-Id': userId,
       },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Auth-Token': token,
-          'X-User-Id': userId,
-        },
-      }
-    );
+    });
   } catch (error) {
     console.error('Error updating event on server:', error);
   }
@@ -199,6 +218,10 @@ export async function syncEventsWithRocketChatServer(
       ({ externalId }: { externalId?: string }) => externalId
     );
 
+  // Get server object to check version
+  const { servers } = select(selectPersistableValues);
+  const server = servers.find((server) => server.url === serverUrl);
+
   for await (const appointment of eventsOnOutlookServer) {
     try {
       const alreadyOnRocketChatServer = externalEventsFromRocketChatServer.find(
@@ -226,7 +249,11 @@ export async function syncEventsWithRocketChatServer(
         alreadyOnRocketChatServer.startTime === startTime &&
         alreadyOnRocketChatServer.description === description &&
         alreadyOnRocketChatServer.reminderMinutesBeforeStart ===
-          reminderMinutesBeforeStart
+          reminderMinutesBeforeStart &&
+        (!server?.version ||
+          !meetsMinimumVersion(server.version, '7.5.0') ||
+          (alreadyOnRocketChatServer.endTime === appointment.endTime &&
+            alreadyOnRocketChatServer.busy === appointment.busy))
       ) {
         continue;
       }

@@ -13,6 +13,7 @@ import {
   ExchangeService,
   ExchangeVersion,
   Uri,
+  LegacyFreeBusyStatus,
 } from 'ews-javascript-api';
 
 import type { OutlookCredentials, AppointmentData } from './type';
@@ -87,6 +88,11 @@ export const getOutlookEvents = async (
         // Ignore errors when the appointment body is missing.
       }
 
+      // Check if the busy status is Busy
+      // LegacyFreeBusyStatus enum: Free = 0, Tentative = 1, Busy = 2, OOF = 3
+      const isBusy =
+        appointment.LegacyFreeBusyStatus === LegacyFreeBusyStatus.Busy;
+
       return {
         id: appointment.Id.UniqueId,
         subject: appointment.Subject,
@@ -98,6 +104,7 @@ export const getOutlookEvents = async (
         meetingUrl: appointment.JoinOnlineMeetingUrl ?? undefined,
         reminderMinutesBeforeStart:
           appointment.ReminderMinutesBeforeStart ?? undefined,
+        busy: isBusy,
       };
     });
   } catch (error) {

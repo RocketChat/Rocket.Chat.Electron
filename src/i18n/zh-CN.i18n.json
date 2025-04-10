@@ -219,19 +219,6 @@
       "unreadMention": "{{- appName}}: 您有未读的直接或提及到您的信息",
       "unreadMention_plural": "{{- appName}}: 您有 {{- count}} 封未读的直接或提及到您的信息",
       "unreadMessage": "{{- appName}}: 您有未读的信息"
-    },
-    "trayIcon": {
-      "title": "托盘图标",
-      "description": "在系统托盘上显示图标。如果托盘图标处于活动状态，应用程序将在关闭时隐藏到托盘。否则，它将退出应用程序。"
-    },
-    "availableBrowsers": {
-      "title": "默认浏览器",
-      "description": "选择哪个浏览器将打开来自此应用程序的外部链接。系统默认使用您的操作系统设置。",
-      "systemDefault": "系统默认",
-      "loading": "正在加载浏览器...",
-      "current": "当前使用："
-    },
-    "clearPermittedScreenCaptureServers": {
     }
   },
   "taskbar": {

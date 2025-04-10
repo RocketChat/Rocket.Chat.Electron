@@ -1,7 +1,7 @@
 import path from 'path';
 
 import type { MenuItemConstructorOptions } from 'electron';
-import { Menu, app, shell, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Menu, shell } from 'electron';
 import i18next from 'i18next';
 import { createSelector, createStructuredSelector } from 'reselect';
 
@@ -368,7 +368,15 @@ const createViewMenu = createSelector(
         accelerator: 'CommandOrControl+0',
         click: async () => {
           const guestWebContents = await getCurrentViewWebcontents();
+          if (!guestWebContents) {
+            return;
+          }
+
           guestWebContents?.setZoomLevel(0);
+
+          const rootWindow = await getRootWindow();
+          rootWindow.focus();
+          rootWindow.webContents.setZoomLevel(0);
         },
       },
       {
@@ -380,12 +388,16 @@ const createViewMenu = createSelector(
           if (!guestWebContents) {
             return;
           }
-          const zoomLevel = guestWebContents?.getZoomLevel();
+
+          const zoomLevel = guestWebContents.getZoomLevel();
           if (zoomLevel >= 9) {
             return;
           }
-
           guestWebContents.setZoomLevel(zoomLevel + 1);
+
+          const rootWindow = await getRootWindow();
+          rootWindow.focus();
+          rootWindow.webContents.setZoomLevel(zoomLevel + 1);
         },
       },
       {
@@ -401,8 +413,11 @@ const createViewMenu = createSelector(
           if (zoomLevel <= -9) {
             return;
           }
-
           guestWebContents.setZoomLevel(zoomLevel - 1);
+
+          const rootWindow = await getRootWindow();
+          rootWindow.focus();
+          rootWindow.webContents.setZoomLevel(zoomLevel - 1);
         },
       },
     ],

@@ -87,6 +87,23 @@
       "validDates": "Ważny od {{-validStart,}} do {{-validExpiry,}}"
     }
   },
+  "settings": {
+    "title": "Ustawienia",
+    "general": "Ogólne",
+    "options": {
+      "trayIcon": {
+        "title": "Ikona zasobnika",
+        "description": "Wyświetla ikonę w zasobniku systemowym. Gdy ikona zasobnika jest aktywna, aplikacja będzie minimalizowana do zasobnika przy zamykaniu. W przeciwnym razie aplikacja zostanie zamknięta."
+      },
+      "availableBrowsers": {
+        "title": "Domyślna przeglądarka",
+        "description": "Wybierz, która przeglądarka będzie otwierać linki zewnętrzne z tej aplikacji. Ustawienie domyślne systemu używa ustawień Twojego systemu operacyjnego.",
+        "systemDefault": "Domyślna systemu",
+        "loading": "Ładowanie przeglądarek...",
+        "current": "Aktualnie używana:"
+      }
+    }
+  },
   "error": {
     "authNeeded": "Wymagane uwierzytelnienie, spróbuj <strong>{{- auth}}</strong>",
     "connectTimeout": "Przekroczony czas oczekiwania podczas próby połączenia",
@@ -144,23 +161,6 @@
     "title": "Błąd ładowania serwera",
     "announcement": "Hjuston, mamy problem",
     "reload": "Przeładuj"
-  },
-  "settings": {
-    "title": "Ustawienia",
-    "general": "Ogólne",
-    "options": {
-      "trayIcon": {
-        "title": "Ikona zasobnika",
-        "description": "Wyświetla ikonę w zasobniku systemowym. Gdy ikona zasobnika jest aktywna, aplikacja będzie minimalizowana do zasobnika przy zamykaniu. W przeciwnym razie aplikacja zostanie zamknięta."
-      },
-      "availableBrowsers": {
-        "title": "Domyślna przeglądarka",
-        "description": "Wybierz, która przeglądarka będzie otwierać linki zewnętrzne z tej aplikacji. Ustawienie domyślne systemu używa ustawień Twojego systemu operacyjnego.",
-        "systemDefault": "Domyślna systemu",
-        "loading": "Ładowanie przeglądarek...",
-        "current": "Aktualnie używana:"
-      }
-    }
   },
   "selfxss": {
     "title": "Stop!",

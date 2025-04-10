@@ -82,7 +82,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: yarn electron-builder --publish never --linux snap
 
-      # Upload snap to store (edge channel only for PRs) using the official action
+      # Upload snap to store (edge channel only for PRs) using the official action from snapcore
       - name: Upload snap to Snap Store (edge)
         if: ${{ matrix.os == 'ubuntu-latest' && contains(github.event.pull_request.labels.*.name, 'upload-snap') }}
         uses: snapcore/action-publish@v1

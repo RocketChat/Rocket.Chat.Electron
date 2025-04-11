@@ -86,6 +86,10 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: ls -l dist
 
+      - name: Verify snap file pattern resolution
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: ls -l dist/rocketchat-*.snap
+
       - name: Publish to Snap Store (Edge)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: snapcore/action-publish@v1

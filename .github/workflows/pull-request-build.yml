@@ -82,6 +82,10 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: yarn electron-builder --publish never --linux snap
 
+      - name: List dist directory contents
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: ls -l dist
+
       - name: Publish to Snap Store (Edge)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: snapcore/action-publish@v1

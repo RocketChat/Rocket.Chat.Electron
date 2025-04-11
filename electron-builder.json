@@ -125,7 +125,6 @@
     "afterInstall": "./build/linux/after-install.sh"
   },
   "appImage": {
-    "systemIntegration": "ask",
     "license": "LICENSE",
     "executableName": "rocketchat-desktop",
     "desktop": {

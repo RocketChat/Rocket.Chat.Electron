@@ -82,10 +82,6 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: yarn electron-builder --publish never --linux snap
 
-      - name: List dist directory contents
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: ls -l dist
-
       - name: Find Snap File
         id: find_snap
         if: ${{ matrix.os == 'ubuntu-latest' }}

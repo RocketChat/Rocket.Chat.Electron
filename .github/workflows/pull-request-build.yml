@@ -86,15 +86,23 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: ls -l dist
 
-      - name: Verify snap file pattern resolution
+      - name: Find Snap File
+        id: find_snap
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: ls -l dist/rocketchat-*.snap
+        run: |
+          SNAP_FILE=$(find dist/ -maxdepth 1 -name 'rocketchat-*.snap' -print -quit)
+          if [ -z "$SNAP_FILE" ]; then
+            echo "::error::Snap file not found in dist/"
+            exit 1
+          fi
+          echo "Found snap file: $SNAP_FILE"
+          echo "SNAP_FILE_PATH=$SNAP_FILE" >> $GITHUB_OUTPUT
 
       - name: Publish to Snap Store (Edge)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: snapcore/action-publish@v1
         with:
-          snap: dist/rocketchat-*.snap # Assuming the snap is in dist/
+          snap: ${{ steps.find_snap.outputs.SNAP_FILE_PATH }}
           release: edge
           store_login: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 

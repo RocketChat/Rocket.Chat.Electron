@@ -101,10 +101,11 @@ jobs:
       - name: Publish to Snap Store (Edge)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
           snap: ${{ steps.find_snap.outputs.SNAP_FILE_PATH }}
           release: edge
-          store_login: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       # Install AWS CLI
       - name: Install AWS CLI

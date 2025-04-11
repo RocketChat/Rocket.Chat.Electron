@@ -124,15 +124,6 @@
   "deb": {
     "afterInstall": "./build/linux/after-install.sh"
   },
-  "appImage": {
-    "license": "LICENSE",
-    "executableName": "rocketchat-desktop",
-    "desktop": {
-      "Name": "Rocket.Chat",
-      "Comment": "Official Desktop Client for Rocket.Chat",
-      "StartupWMClass": "Rocket.Chat"
-    }
-  },
   "snap": {
     "plugs": [
       "desktop",

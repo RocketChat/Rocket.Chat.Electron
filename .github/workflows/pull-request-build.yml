@@ -139,11 +139,11 @@ jobs:
       - name: Upload Artifacts to Wasabi (Ubuntu)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
-          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \\
-            --acl public-read \\
-            --endpoint-url=https://s3.us-east-1.wasabisys.com \\
-            --exclude "*" \\
-            --include "rocketchat-*.snap" \\
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \
+            --acl public-read \
+            --endpoint-url=https://s3.us-east-1.wasabisys.com \
+            --exclude "*" \
+            --include "rocketchat-*.snap" \
             --include "rocketchat-*.deb"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}

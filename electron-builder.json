@@ -122,7 +122,10 @@
         "MimeType": "x-scheme-handler/rocketchat"
       }
     },
-    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
+    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}",
+    "fpm": [
+      "--after-install=build/linux/postinst.sh"
+    ]
   },
   "rpm": {
     "fpm": ["--rpm-rpmbuild-define=_build_id_links none"]

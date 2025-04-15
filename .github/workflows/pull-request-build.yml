@@ -6,8 +6,13 @@ on:
       - master
       - develop
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
+    if: contains(github.event.pull_request.labels.*.name, 'build-artifacts')
     strategy:
       fail-fast: false
       matrix:
@@ -21,17 +26,17 @@ jobs:
         run: git config --global core.autocrlf false
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node 20.10.0
-        uses: actions/setup-node@v3
+      - name: Setup Node 22.13.1
+        uses: actions/setup-node@v4
         with:
-          node-version: '20.10.0'
+          node-version: '22.13.1'
 
       - name: Setup node_modules cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
@@ -53,14 +58,14 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       - name: Build Windows Package
-        if: ${{ matrix.os == 'windows-latest'}}
-        run: yarn electron-builder --x64 --win nsis
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: yarn electron-builder --publish never --x64 --win nsis
         env:
           CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Build MacOS Package
-        if: ${{ matrix.os == 'macos-latest'}}
+        if: ${{ matrix.os == 'macos-latest' }}
         run: |
           sudo mdutil -a -i off
           yarn electron-builder --publish never --mac --universal
@@ -68,19 +73,131 @@ jobs:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
           CSC_FOR_PULL_REQUEST: true
+          FORCE_NOTARIZE: true
           APPLEID: ${{ secrets.APPLEID }}
           APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
           ASC_PROVIDER: 'S6UPZG7ZR3'
 
       - name: Build Ubuntu Package
-        if: ${{ matrix.os == 'ubuntu-latest'}}
-        run: yarn electron-builder --publish never --linux snap
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: yarn electron-builder --publish never --linux snap deb
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Find Snap File
+        id: find_snap
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          SNAP_FILE=$(find dist/ -maxdepth 1 -name 'rocketchat-*.snap' -print -quit)
+          if [ -z "$SNAP_FILE" ]; then
+            echo "::error::Snap file not found in dist/"
+            exit 1
+          fi
+          echo "Found snap file: $SNAP_FILE"
+          echo "SNAP_FILE_PATH=$SNAP_FILE" >> $GITHUB_OUTPUT
+
+      - name: Publish to Snap Store (Edge)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
-          name: ${{ runner.os }} Artifacts
-          path: |
-            dist/rocketchat-*.dmg
-            dist/rocketchat-*.exe
-            dist/rocketchat-*.snap
+          snap: ${{ steps.find_snap.outputs.SNAP_FILE_PATH }}
+          release: edge
+
+      - name: Find Snap File
+        id: find_snap
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          SNAP_FILE=$(find dist/ -maxdepth 1 -name 'rocketchat-*.snap' -print -quit)
+          if [ -z "$SNAP_FILE" ]; then
+            echo "::error::Snap file not found in dist/"
+            exit 1
+          fi
+          echo "Found snap file: $SNAP_FILE"
+          echo "SNAP_FILE_PATH=$SNAP_FILE" >> $GITHUB_OUTPUT
+
+      - name: Publish to Snap Store (Edge)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.find_snap.outputs.SNAP_FILE_PATH }}
+          release: edge
+
+      # Install AWS CLI
+      - name: Install AWS CLI
+        run: pip install awscli
+
+      # Upload artifacts to Wasabi (Windows)
+      - name: Upload Artifacts to Wasabi (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive `
+            --acl public-read `
+            --endpoint-url=https://s3.us-east-1.wasabisys.com `
+            --exclude "*" `
+            --include "rocketchat-*.exe"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
+
+      # Upload artifacts to Wasabi (macOS)
+      - name: Upload Artifacts to Wasabi (macOS)
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: |
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \
+            --acl public-read \
+            --endpoint-url=https://s3.us-east-1.wasabisys.com \
+            --checksum-algorithm SHA1 \
+            --exclude "*" \
+            --include "rocketchat-*.dmg" \
+            --include "rocketchat-*.pkg"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
+
+      # Upload artifacts to Wasabi (Ubuntu)
+      - name: Upload Artifacts to Wasabi (Ubuntu)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \
+            --acl public-read \
+            --endpoint-url=https://s3.us-east-1.wasabisys.com \
+            --exclude "*" \
+            --include "rocketchat-*.snap" \
+            --include "rocketchat-*.deb"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
+
+      # Get Artifact URLs using actions/github-script (only specified file extensions)
+      - name: Get Artifact URLs
+        id: get-artifact-urls
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const distDir = path.join(process.cwd(), 'dist');
+            const files = fs.readdirSync(distDir);
+            const patterns = [/rocketchat-.*\.dmg$/, /rocketchat-.*\.pkg$/, /rocketchat-.*\.exe$/, /rocketchat-.*\.snap$/, /rocketchat-.*\.deb$/];
+            let artifactUrls = '';
+            for (const file of files) {
+              if (patterns.some(pattern => pattern.test(file))) {
+                const artifactUrl = `https://s3.us-east-1.wasabisys.com/${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/${file}`;
+                artifactUrls += `- [${file}](${artifactUrl})\n`;
+              }
+            }
+            core.setOutput('artifact_urls', artifactUrls.trim());
+
+      - name: Post PR Comment with the Artifact links
+        if: steps.get-artifact-urls.outputs.artifact_urls != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          message: |
+            ### ${{ runner.os }} installer download
+            ${{ steps.get-artifact-urls.outputs.artifact_urls }}
+          header: '### ${{ runner.os }} installer download'
+          recreate: true
+          append: false

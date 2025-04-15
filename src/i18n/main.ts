@@ -13,23 +13,20 @@ const hasLng = (lng: string): lng is keyof typeof resources => lng in resources;
 const getLng = async (): Promise<keyof typeof resources | undefined> => {
   await app.whenReady();
 
-  const locale = app.getLocale();
+  const locale = app.getSystemLocale();
 
-  let [languageCode, countryCode] = locale.split(/[-_]/) as [
-    string,
-    string | null,
-  ];
+  let [languageCode, countryCode] = locale.split(/[-_]/);
   if (!languageCode || languageCode.length !== 2) {
     return fallbackLng;
   }
 
   languageCode = languageCode.toLowerCase();
 
-  if (!countryCode || countryCode.length !== 2) {
-    countryCode = null;
-  } else {
-    countryCode = countryCode.toUpperCase();
-  }
+  const isCountryCodeInexistentOrNonStandard =
+    !countryCode || countryCode.length !== 2;
+  countryCode = isCountryCodeInexistentOrNonStandard
+    ? ''
+    : countryCode.toUpperCase();
 
   const lng = countryCode ? `${languageCode}-${countryCode}` : languageCode;
 
@@ -37,7 +34,9 @@ const getLng = async (): Promise<keyof typeof resources | undefined> => {
     return lng;
   }
 
-  return undefined;
+  return Object.keys(resources).find((language) =>
+    language.startsWith(languageCode)
+  ) as keyof typeof resources | undefined;
 };
 
 export let getLanguage = 'en';

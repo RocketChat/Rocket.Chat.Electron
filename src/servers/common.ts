@@ -4,6 +4,7 @@ import type { SupportedVersions } from './supportedVersions/types';
 export type Server = {
   url: string;
   title?: string;
+  pageTitle?: string;
   badge?: '•' | number;
   favicon?: string | null;
   style?: {

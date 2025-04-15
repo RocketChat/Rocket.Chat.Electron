@@ -6,7 +6,9 @@ import type {
   ContextMenuParams,
   Event,
   Input,
+  MediaAccessPermissionRequest,
   MenuItemConstructorOptions,
+  OpenExternalPermissionRequest,
   Session,
   UploadFile,
   UploadRawData,
@@ -18,7 +20,6 @@ import {
   clipboard,
   dialog,
   Menu,
-  shell,
   systemPreferences,
   webContents,
 } from 'electron';
@@ -31,6 +32,7 @@ import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
 import type { Server } from '../../../servers/common';
 import { dispatch, listen, select } from '../../../store';
+import { openExternal } from '../../../utils/browserLauncher';
 import {
   LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED,
   SIDE_BAR_CONTEXT_MENU_TRIGGERED,
@@ -41,6 +43,13 @@ import {
   WEBVIEW_DID_START_LOADING,
   WEBVIEW_ATTACHED,
   WEBVIEW_SERVER_RELOADED,
+  CLEAR_CACHE_TRIGGERED,
+  WEBVIEW_PAGE_TITLE_CHANGED,
+  SIDE_BAR_SERVER_RELOAD,
+  SIDE_BAR_SERVER_COPY_URL,
+  SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
+  SIDE_BAR_SERVER_FORCE_RELOAD,
+  SIDE_BAR_SERVER_REMOVE,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -67,6 +76,27 @@ const initializeServerWebContentsAfterReady = (
     menu.popup({ window: rootWindow });
   };
   guestWebContents.addListener('context-menu', handleContextMenu);
+
+  guestWebContents.on('page-title-updated', (_event, pageTitle) => {
+    dispatch({
+      type: WEBVIEW_PAGE_TITLE_CHANGED,
+      payload: { url: _serverUrl, pageTitle },
+    });
+  });
+};
+
+export const serverReloadView = async (
+  serverUrl: Server['url']
+): Promise<void> => {
+  const url = new URL(serverUrl).href;
+  const guestWebContents = getWebContentsByServerUrl(url);
+  await guestWebContents?.loadURL(url);
+  if (url) {
+    dispatch({
+      type: WEBVIEW_SERVER_RELOADED,
+      payload: { url },
+    });
+  }
 };
 
 const initializeServerWebContentsAfterAttach = (
@@ -148,7 +178,7 @@ const initializeServerWebContentsAfterAttach = (
 
     const shortcutKey = process.platform === 'darwin' ? 'Meta' : 'Control';
 
-    if (key !== shortcutKey) {
+    if (key !== shortcutKey && key !== 'Escape') {
       return;
     }
 
@@ -204,7 +234,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
             return { action: 'deny' };
           }
 
-          shell.openExternal(url);
+          openExternal(url);
           return { action: 'deny' };
         });
         return { action: 'deny' };
@@ -268,6 +298,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   const handlePermissionRequest: Parameters<
     Session['setPermissionRequestHandler']
   >[0] = async (_webContents, permission, callback, details) => {
+    console.log('Permission request', permission, details);
     switch (permission) {
       case 'media': {
         if (process.platform !== 'darwin') {
@@ -275,7 +306,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
-        const { mediaTypes = [] } = details;
+        const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
         const allowed =
           (!mediaTypes.includes('audio') ||
             (await systemPreferences.askForMediaAccess('microphone'))) &&
@@ -294,12 +325,14 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         return;
 
       case 'openExternal': {
-        if (!details.externalURL) {
+        if (!(details as OpenExternalPermissionRequest).externalURL) {
           callback(false);
           return;
         }
 
-        const allowed = await isProtocolAllowed(details.externalURL);
+        const allowed = await isProtocolAllowed(
+          (details as OpenExternalPermissionRequest).externalURL as string
+        );
         callback(allowed);
         return;
       }
@@ -360,7 +393,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
             return;
           }
 
-          shell.openExternal(redirectUrl);
+          openExternal(redirectUrl);
         });
       }
     });
@@ -380,6 +413,39 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
     guestWebContents?.loadURL(action.payload.url);
+  });
+
+  listen(SIDE_BAR_SERVER_RELOAD, (action) => {
+    serverReloadView(action.payload);
+  });
+
+  listen(SIDE_BAR_SERVER_COPY_URL, async (action) => {
+    const guestWebContents = getWebContentsByServerUrl(action.payload);
+    const currentUrl = await guestWebContents?.getURL();
+    clipboard.writeText(currentUrl || '');
+  });
+
+  listen(SIDE_BAR_SERVER_OPEN_DEV_TOOLS, (action) => {
+    const guestWebContents = getWebContentsByServerUrl(action.payload);
+    guestWebContents?.openDevTools();
+  });
+
+  listen(SIDE_BAR_SERVER_FORCE_RELOAD, (action) => {
+    const guestWebContents = getWebContentsByServerUrl(action.payload);
+    if (!guestWebContents) {
+      return;
+    }
+    dispatch({
+      type: CLEAR_CACHE_TRIGGERED,
+      payload: guestWebContents.id,
+    });
+  });
+
+  listen(SIDE_BAR_SERVER_REMOVE, (action) => {
+    dispatch({
+      type: SIDE_BAR_REMOVE_SERVER_CLICKED,
+      payload: action.payload,
+    });
   });
 
   listen(SIDE_BAR_CONTEXT_MENU_TRIGGERED, (action) => {
@@ -425,17 +491,16 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         },
       },
       {
-        label: t('sidebar.item.clearCache'),
+        label: t('sidebar.item.reloadClearingCache'),
         click: async () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          await guestWebContents?.session.clearCache();
-        },
-      },
-      {
-        label: t('sidebar.item.clearStorageData'),
-        click: async () => {
-          const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          await guestWebContents?.session.clearStorageData();
+          if (!guestWebContents) {
+            return;
+          }
+          dispatch({
+            type: CLEAR_CACHE_TRIGGERED,
+            payload: guestWebContents.id,
+          });
         },
       },
     ];
@@ -490,6 +555,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       return;
     }
 
-    shell.openExternal(url);
+    openExternal(url);
   });
 };

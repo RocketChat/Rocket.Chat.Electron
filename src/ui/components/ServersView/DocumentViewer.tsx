@@ -1,5 +1,17 @@
-import { Box, IconButton } from '@rocket.chat/fuselage';
+import { Box, IconButton, Throbber } from '@rocket.chat/fuselage';
 import { useDarkMode } from '@rocket.chat/fuselage-hooks';
+import { useEffect, useRef, useState } from 'react';
+
+import { dispatch } from '../../../store';
+import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../../actions';
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  interface HTMLWebViewElement {
+    getWebContentsId: () => number;
+    executeJavaScript: (code: string) => Promise<any>;
+  }
+}
 
 const DocumentViewer = ({
   url,
@@ -12,11 +24,55 @@ const DocumentViewer = ({
   themeAppearance: string | undefined;
   closeDocumentViewer: () => void;
 }) => {
+  const [documentUrl, setDocumentUrl] = useState('');
+  const webviewRef = useRef<HTMLWebViewElement>(null);
+
   const theme = useDarkMode(
     themeAppearance === 'auto' ? undefined : themeAppearance === 'dark'
   )
     ? 'dark'
     : 'light';
+
+  useEffect(() => {
+    if (documentUrl !== url && url !== '') {
+      setDocumentUrl('about:blank');
+      setTimeout(() => {
+        setDocumentUrl(url);
+      }, 100);
+    }
+  }, [url, documentUrl]);
+
+  useEffect(() => {
+    const webviewElement = webviewRef.current;
+
+    if (webviewElement) {
+      const handleDidAttach: () => void = () => {
+        const webContentsId = webviewElement.getWebContentsId();
+        dispatch({
+          type: WEBVIEW_PDF_VIEWER_ATTACHED,
+          payload: { WebContentsId: webContentsId },
+        });
+
+        webviewElement.addEventListener('did-finish-load', () => {
+          webviewElement.executeJavaScript(`
+            document.addEventListener('click', (event) => {
+              if (event.target.tagName === 'A' && event.target.href.endsWith('.pdf')) {
+                event.preventDefault(); // Block PDF link navigation
+              }
+            }, true);
+          `);
+        });
+      };
+
+      webviewElement.addEventListener('did-attach', handleDidAttach);
+
+      return () => {
+        webviewElement.removeEventListener('did-attach', handleDidAttach);
+      };
+    }
+    return () => {};
+  }, []);
+
   return (
     <>
       <Box
@@ -43,11 +99,24 @@ const DocumentViewer = ({
         </Box>
 
         <Box>
+          <Box
+            display='flex'
+            justifyContent='center'
+            alignItems='center'
+            height='100%'
+            width='100%'
+            position='absolute'
+          >
+            <Throbber
+              size='x16'
+              color={theme === 'dark' ? 'white' : 'default'}
+            />
+          </Box>
           <webview
-            src={url}
+            ref={webviewRef}
+            src={documentUrl}
             style={{
               width: '100%',
-              height: '100%',
               position: 'absolute',
               left: 0,
               top: 50,

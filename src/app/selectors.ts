@@ -7,6 +7,7 @@ export const selectPersistableValues = createStructuredSelector({
   doCheckForUpdatesOnStartup: ({ doCheckForUpdatesOnStartup }: RootState) =>
     doCheckForUpdatesOnStartup,
   downloads: ({ downloads }: RootState) => downloads,
+  machineTheme: ({ machineTheme }: RootState) => machineTheme,
   isMenuBarEnabled: ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled,
   isShowWindowOnUnreadChangedEnabled: ({
     isShowWindowOnUnreadChangedEnabled,
@@ -51,4 +52,9 @@ export const selectPersistableValues = createStructuredSelector({
   }: RootState) => allowedNTLMCredentialsDomains,
   isNTLMCredentialsEnabled: ({ isNTLMCredentialsEnabled }: RootState) =>
     isNTLMCredentialsEnabled,
+  mainWindowTitle: ({ mainWindowTitle }: RootState) =>
+    mainWindowTitle || 'Rocket.Chat',
+  selectedBrowser: ({ selectedBrowser }: RootState) => selectedBrowser,
+  videoCallWindowState: ({ videoCallWindowState }: RootState) =>
+    videoCallWindowState,
 });

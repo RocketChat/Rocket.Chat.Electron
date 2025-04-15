@@ -1,0 +1,30 @@
+diff --git a/node_modules/@kayahr/jest-electron-runner/lib/main/electron/TestRunner.js b/node_modules/@kayahr/jest-electron-runner/lib/main/electron/TestRunner.js
+index 4485862..f34ba6a 100644
+--- a/node_modules/@kayahr/jest-electron-runner/lib/main/electron/TestRunner.js
++++ b/node_modules/@kayahr/jest-electron-runner/lib/main/electron/TestRunner.js
+@@ -66,14 +66,19 @@ async function startWorker(rootDir, target, config) {
+         DISPOSABLES.add(() => {
+             if (child.pid != null) {
+                 try {
+-                    // Kill whole process group with negative PID (See `man kill`)
+-                    process.kill(-child.pid, "SIGKILL");
+-                }
+-                catch {
+-                    // Ignored
++                    if (process.platform === 'win32') {
++                        // On Windows, use taskkill instead of process.kill
++                        require('child_process').execSync(`taskkill /pid ${child.pid} /T /F`);
++                    } else {
++                        // Kill whole process group with negative PID (See `man kill`)
++                        process.kill(-child.pid, 'SIGKILL');
++                    }
++                } catch (error) {
++                    console.error('Failed to kill process:', error);
+                 }
+             }
+-            child.kill("SIGKILL");
++            // Fallback kill (this can remain as it works for most platforms)
++            child.kill('SIGKILL');
+         });
+         return child;
+     });

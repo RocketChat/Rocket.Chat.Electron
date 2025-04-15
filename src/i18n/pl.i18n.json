@@ -87,6 +87,23 @@
       "validDates": "Ważny od {{-validStart,}} do {{-validExpiry,}}"
     }
   },
+  "settings": {
+    "title": "Ustawienia",
+    "general": "Ogólne",
+    "options": {
+      "trayIcon": {
+        "title": "Ikona zasobnika",
+        "description": "Wyświetla ikonę w zasobniku systemowym. Gdy ikona zasobnika jest aktywna, aplikacja będzie minimalizowana do zasobnika przy zamykaniu. W przeciwnym razie aplikacja zostanie zamknięta."
+      },
+      "availableBrowsers": {
+        "title": "Domyślna przeglądarka",
+        "description": "Wybierz, która przeglądarka będzie otwierać linki zewnętrzne z tej aplikacji. Ustawienie domyślne systemu używa ustawień Twojego systemu operacyjnego.",
+        "systemDefault": "Domyślna systemu",
+        "loading": "Ładowanie przeglądarek...",
+        "current": "Aktualnie używana:"
+      }
+    }
+  },
   "error": {
     "authNeeded": "Wymagane uwierzytelnienie, spróbuj <strong>{{- auth}}</strong>",
     "connectTimeout": "Przekroczony czas oczekiwania podczas próby połączenia",
@@ -122,7 +139,6 @@
     "quit": "Wy&jdź {{- appName}}",
     "redo": "P&onów",
     "reload": "P&rzeładuj",
-    "reloadIgnoringCache": "Przeładuj ignorując pamięć podręczną",
     "reportIssue": "Raportowanie błędu",
     "resetAppData": "Reset danych aplikacji",
     "resetZoom": "Reset zoomu",
@@ -181,5 +197,22 @@
         "content": "{{- appName }} jest ustawiony aby działał w zasobniku systemowym/obszarze powiadomień."
       }
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Nieprzeczytane wiadomości",
+    "unreadMention": "Nieprzeczytane wzmianki",
+    "noUnreadMessage": "Brak nieprzeczytanych wiadomości"
+  },
+  "screenSharing": {
+    "permissionDenied": "Odmowa uprawnień do nagrywania ekranu",
+    "permissionRequired": "Uprawnienie do nagrywania ekranu jest wymagane, aby udostępnić ekran.",
+    "permissionInstructions": "Włącz je w preferencjach systemowych i spróbuj ponownie.",
+    "title": "Udostępnij swój ekran",
+    "entireScreen": "Cały ekran",
+    "applicationWindow": "Okno aplikacji",
+    "noScreensFound": "Nie znaleziono ekranów",
+    "noWindowsFound": "Nie znaleziono okien",
+    "cancel": "Anuluj",
+    "share": "Udostępnij"
   }
 }

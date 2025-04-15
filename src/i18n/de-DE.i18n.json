@@ -185,7 +185,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Öffnen Sie den Video-Chat mit dem Anwendungsfenster",
-        "description": "Wenn diese Option aktiviert ist, wird der Video-Chat über ein Anwendungsfenster geöffnet, andernfalls wird der Standardbrowser verwendet. <strong> Der Freigabebildschirm von Google Meet </strong> wird in Electron-Anwendungen nicht unterstützt, daher ändert diese Konfiguration nicht das Verhalten von Meet-Anrufen, die im Browser geöffnet werden.",
+        "description": "Wenn diese Option aktiviert ist, wird der Video-Chat im Anwendungsfenster anstelle des Standardbrowsers geöffnet. Allerdings wird für <strong>Google Meet</strong> und <strong>Jitsi</strong> die Bildschirmaufzeichnung in Electron-Anwendungen nicht unterstützt, daher werden sie unabhängig von dieser Einstellung immer im Browser geöffnet.",
         "masDescription": "Diese Option ist deaktiviert, wenn sie aus dem Mac App Store installiert wird. Aus Sicherheitsgründen wird der Video-Chat standardmäßig über den Browser geöffnet."
       },
       "minimizeOnClose": {
@@ -201,8 +201,28 @@
         "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen."
       },
       "trayIcon": {
-        "title": "Benachrichtigungssymbol",
-        "description": "Taskleistensymbol in der Taskleiste anzeigen. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste ausgeblendet. Andernfalls wird die Anwendung beendet."
+        "title": "Taskleistensymbol",
+        "description": "Zeigt ein Symbol in der Systemleiste an. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste minimiert. Andernfalls wird die Anwendung beendet."
+      },
+      "availableBrowsers": {
+        "title": "Standard-Browser",
+        "description": "Wählen Sie aus, welcher Browser externe Links aus dieser App öffnen soll. Systemstandard verwendet die Einstellungen Ihres Betriebssystems.",
+        "systemDefault": "Systemstandard",
+        "loading": "Browser werden geladen...",
+        "current": "Aktuell verwendet:"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Erlaubte Bildschirmaufnahmeserver löschen",
+        "description": "Löschen Sie Server, die Bildschirme von dieser App erfassen dürfen"
+      },
+      "ntlmCredentials": {
+        "title": "NTLM-Anmeldeinformationen",
+        "description": "Erlauben Sie die Verwendung von NTLM-Anmeldeinformationen bei der Verbindung mit einem Server.",
+        "domains": "Domänen, die die Anmeldeinformationen verwenden werden. Durch Komma getrennt. Verwenden Sie *, um alle Domänen abzugleichen."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Videoanruf-Fensterposition speichern",
+        "description": "Position und Größe der Videoanruf-Fenster zwischen Sitzungen speichern und wiederherstellen"
       }
     }
   },
@@ -244,7 +264,6 @@
     "quit": "{{- appName}} &beenden",
     "redo": "Wieder&holen",
     "reload": "&Neu laden",
-    "reloadIgnoringCache": "Cache ignorieren und neu laden",
     "reportIssue": "Problem melden",
     "resetAppData": "Appdaten löschen",
     "resetZoom": "Originalgröße",
@@ -312,5 +331,17 @@
     "unreadMessage": "Ungelesene Nachrichten",
     "unreadMention": "Ungelesene Erwähnungen",
     "noUnreadMessage": "Keine ungelesenen Nachrichten"
+  },
+  "screenSharing": {
+    "permissionDenied": "Bildschirmaufnahme-Berechtigung verweigert",
+    "permissionRequired": "Die Bildschirmaufnahme-Berechtigung ist erforderlich, um Ihren Bildschirm zu teilen.",
+    "permissionInstructions": "Bitte aktivieren Sie diese in den Systemeinstellungen und versuchen Sie es erneut.",
+    "title": "Bildschirm teilen",
+    "entireScreen": "Ihr gesamter Bildschirm",
+    "applicationWindow": "Anwendungsfenster",
+    "noScreensFound": "Keine Bildschirme gefunden",
+    "noWindowsFound": "Keine Fenster gefunden",
+    "cancel": "Abbrechen",
+    "share": "Teilen"
   }
 }

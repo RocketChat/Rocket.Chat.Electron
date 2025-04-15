@@ -114,7 +114,6 @@
     "quit": "{{- appName}} を終了 (&Q)",
     "redo": "やり直し (&R)",
     "reload": "再読み込み(&R)",
-    "reloadIgnoringCache": "キャッシュを無視して再読み込み",
     "reportIssue": "問題を報告する",
     "resetAppData": "アプリデータをリセット",
     "resetZoom": "ズームをリセット",
@@ -160,5 +159,22 @@
       "unreadMention_plural": "{{- appName}}: 未読のメンション/ダイレクトメッセージが {{- count}} 件あります",
       "unreadMessage": "{{- appName}}: 未読のメッセージがあります"
     }
+  },
+  "taskbar": {
+    "unreadMessage": "未読メッセージ",
+    "unreadMention": "未読メンション",
+    "noUnreadMessage": "未読メッセージはありません"
+  },
+  "screenSharing": {
+    "permissionDenied": "画面収録権限が拒否されました",
+    "permissionRequired": "画面を共有するには画面収録権限が必要です。",
+    "permissionInstructions": "システム環境設定で有効にして、もう一度お試しください。",
+    "title": "画面を共有する",
+    "entireScreen": "画面全体",
+    "applicationWindow": "アプリケーションウィンドウ",
+    "noScreensFound": "画面が見つかりません",
+    "noWindowsFound": "ウィンドウが見つかりません",
+    "cancel": "キャンセル",
+    "share": "共有"
   }
 }

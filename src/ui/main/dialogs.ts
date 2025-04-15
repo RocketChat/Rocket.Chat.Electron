@@ -117,6 +117,7 @@ export const askForCertificateTrust = async (
         t('dialog.certificateError.no'),
       ],
       cancelId: 1,
+      defaultId: 1,
     }
   );
 

@@ -6,6 +6,7 @@ import { ipcMain } from 'electron';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { coerce, satisfies } from 'semver';
+import semverGte from 'semver/functions/gte';
 
 import { dispatch, listen, select } from '../../store';
 import {
@@ -93,17 +94,32 @@ const getServerInfo = async (url: string): Promise<ServerInfo> => {
   return response.data;
 };
 
-const getUniqueId = async (url: string): Promise<string> => {
-  const response = await axios.get<{ settings: { value: string }[] }>(
-    urls.server(url).setting('uniqueID')
-  );
-  const value = response.data?.settings?.[0]?.value;
+const getUniqueId = async (
+  url: string,
+  version: string
+): Promise<string | null> => {
+  const validVersion = coerce(version?.trim() || '0.0.0')?.version || '0.0.0';
 
-  if (!value) {
-    throw new Error('No unique ID found');
+  const serverUrl = semverGte(validVersion, '7.0.0')
+    ? urls.server(url).uniqueId
+    : urls.server(url).setting('uniqueID');
+
+  try {
+    const response = await axios.get<{ settings: { value: string }[] }>(
+      serverUrl
+    );
+    const value = response.data?.settings?.[0]?.value;
+
+    if (!value) {
+      console.warn(`No unique ID found for server ${url}`);
+      return null;
+    }
+
+    return value;
+  } catch (error) {
+    console.warn(`Error fetching unique ID for server ${url}:`, error);
+    return null;
   }
-
-  return value;
 };
 
 const getExpirationMessage = ({
@@ -279,14 +295,16 @@ const dispatchVersionUpdated = (url: string) => (info: ServerInfo) => {
   return info;
 };
 
-const dispatchUniqueIdUpdated = (url: string) => (uniqueID: string) => {
-  dispatch({
-    type: WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
-    payload: {
-      url,
-      uniqueID,
-    },
-  });
+const dispatchUniqueIdUpdated = (url: string) => (uniqueID: string | null) => {
+  if (uniqueID) {
+    dispatch({
+      type: WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
+      payload: {
+        url,
+        uniqueID,
+      },
+    });
+  }
 
   return uniqueID;
 };
@@ -321,7 +339,7 @@ const updateSupportedVersionsData = async (
     .catch(logRequestError('server info'));
   if (!serverInfo) return;
 
-  const uniqueID = await getUniqueId(server.url)
+  const uniqueID = await getUniqueId(server.url, server.version || '')
     .then(dispatchUniqueIdUpdated(server.url))
     .catch(logRequestError('unique ID'));
 

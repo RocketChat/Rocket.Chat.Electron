@@ -39,6 +39,7 @@ const pack = async () => {
 
 const getFilesToUpload = () =>
   fg([
+    'dist/latest-linux.yml',
     'dist/*.tar.gz',
     'dist/*.snap',
     'dist/*.deb',
@@ -54,6 +55,8 @@ const getFilesToUpload = () =>
     'dist/*.msi',
     'dist/*.exe',
     'dist/*.exe.blockmap',
+    'dist/*.flatpak',
+    'dist/*.AppImage',
   ]);
 
 const releaseDevelopment = async (commitSha: string) => {

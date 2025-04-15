@@ -81,6 +81,23 @@
       "ok": "TAMAM"
     }
   },
+  "settings": {
+    "title": "Ayarlar",
+    "general": "Genel",
+    "options": {
+      "trayIcon": {
+        "title": "Görev çubuğu ikonu",
+        "description": "Sistem tepsisinde bir simge gösterir. Tepsi simgesi etkinleştirildiğinde, uygulama kapatıldığında tepsiye gizlenir. Aksi takdirde uygulama kapatılır."
+      },
+      "availableBrowsers": {
+        "title": "Varsayılan Tarayıcı",
+        "description": "Bu uygulamadan harici bağlantıları hangi tarayıcının açacağını seçin. Sistem Varsayılanı, işletim sisteminizin ayarlarını kullanır.",
+        "systemDefault": "Sistem Varsayılanı",
+        "loading": "Tarayıcılar yükleniyor...",
+        "current": "Şu anda kullanılan:"
+      }
+    }
+  },
   "error": {
     "authNeeded": "Yetkilendirme gerekli, deneyin <strong>{{- auth}}</strong>",
     "connectTimeout": "Bağlanmaya çalışırken zaman aşımı oluştu",
@@ -114,7 +131,6 @@
     "quit": "&Çıkış yap {{- appName}}",
     "redo": "&Yinele",
     "reload": "&Yeniden yükle",
-    "reloadIgnoringCache": "Önbelleği yok sayarak yeniden yükle",
     "reportIssue": "Hata bildir",
     "resetAppData": "Uygulama verisini sıfırla",
     "resetZoom": "Görünümü sıfırla",
@@ -165,5 +181,22 @@
       "unreadMention_plural": "{{- appName}}: {{- count}} okunmamış bahsetme/direkt mesajınız var",
       "unreadMessage": "{{- appName}}: okunmamış mesajınız var"
     }
+  },
+  "taskbar": {
+    "unreadMessage": "Okunmamış mesajlar",
+    "unreadMention": "Okunmamış bahsetmeler",
+    "noUnreadMessage": "Okunmamış mesaj yok"
+  },
+  "screenSharing": {
+    "permissionDenied": "Ekran Kaydetme İzni Reddedildi",
+    "permissionRequired": "Ekranınızı paylaşmak için ekran kaydetme izni gereklidir.",
+    "permissionInstructions": "Lütfen sistem tercihlerinizde etkinleştirin ve tekrar deneyin.",
+    "title": "Ekranınızı paylaşın",
+    "entireScreen": "Tüm ekranınız",
+    "applicationWindow": "Uygulama penceresi",
+    "noScreensFound": "Ekran bulunamadı",
+    "noWindowsFound": "Pencere bulunamadı",
+    "cancel": "İptal et",
+    "share": "Paylaş"
   }
 }

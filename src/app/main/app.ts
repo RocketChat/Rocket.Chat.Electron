@@ -19,8 +19,10 @@ import {
 } from '../../ui/actions';
 import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
+import { preloadBrowsersList } from '../../utils/browserLauncher';
 import {
   APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET,
+  APP_MAIN_WINDOW_TITLE_SET,
   APP_PATH_SET,
   APP_VERSION_SET,
 } from '../actions';
@@ -33,6 +35,19 @@ export const packageJsonInformation = {
 export const electronBuilderJsonInformation = {
   appId: electronBuilderJson.appId,
   protocol: electronBuilderJson.protocols.schemes[0],
+};
+
+export const getPlatformName = (): string => {
+  switch (process.platform) {
+    case 'win32':
+      return 'Windows';
+    case 'linux':
+      return 'Linux';
+    case 'darwin':
+      return 'macOS';
+    default:
+      return 'Unknown';
+  }
 };
 
 export const relaunchApp = (...args: string[]): void => {
@@ -50,6 +65,10 @@ export const performElectronStartup = (): void => {
     'disable-features',
     'HardwareMediaKeyHandling,MediaSessionService'
   );
+
+  if (getPlatformName() === 'macOS' && process.mas) {
+    app.commandLine.appendSwitch('disable-accelerated-video-decode');
+  }
 
   const args = process.argv.slice(app.isPackaged ? 1 : 2);
 
@@ -95,7 +114,9 @@ export const setupApp = (): void => {
     app.quit();
   });
 
-  listen(SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED, (_action) => {
+  app.whenReady().then(() => preloadBrowsersList());
+
+  listen(SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED, () => {
     relaunchApp();
   });
 
@@ -122,19 +143,15 @@ export const setupApp = (): void => {
     }
   });
 
-  listen(
-    SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
-    async (_action) => {
-      const permitted = await askForClearScreenCapturePermission();
-
-      if (permitted) {
-        dispatch({
-          type: JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED,
-          payload: {},
-        });
-      }
+  listen(SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS, async () => {
+    const permitted = await askForClearScreenCapturePermission();
+    if (permitted) {
+      dispatch({
+        type: JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED,
+        payload: {},
+      });
     }
-  );
+  });
 
   const allowedNTLMCredentialsDomains = readSetting(
     'allowedNTLMCredentialsDomains'
@@ -151,4 +168,5 @@ export const setupApp = (): void => {
 
   dispatch({ type: APP_PATH_SET, payload: app.getAppPath() });
   dispatch({ type: APP_VERSION_SET, payload: app.getVersion() });
+  dispatch({ type: APP_MAIN_WINDOW_TITLE_SET, payload: 'Rocket.Chat' });
 };

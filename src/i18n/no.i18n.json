@@ -1,0 +1,374 @@
+{
+  "contextMenu": {
+    "cut": "Kutte ut",
+    "copy": "Kopiere",
+    "paste": "Lim inn",
+    "selectAll": "Velg alle",
+    "undo": "Angre",
+    "redo": "Gjør om",
+    "spelling": "Stavemåte",
+    "spellingLanguages": "Stavespråk",
+    "moreSpellingSuggestions": "Flere staveforslag",
+    "noSpellingSuggestions": "Ingen forslag",
+    "copyLinkAddress": "Kopier lenkeadressen",
+    "copyLinkText": "Kopier lenketekst",
+    "openLink": "Åpne lenken",
+    "saveImageAs": "Lagre bildet som...",
+    "copyImage": "Kopier bildet"
+  },
+  "dialog": {
+    "about": {
+      "title": "Om {{- appName}}",
+      "version": "Versjon: <1>{{-version}}</1>",
+      "checkUpdates": "Se etter oppdateringer",
+      "checkUpdatesOnStart": "Se etter oppdateringer ved start",
+      "noUpdatesAvailable": "Ingen oppdateringer er tilgjengelige.",
+      "copyright": "Opphavsrett {{copyright}}",
+      "errorWhenLookingForUpdates": "Det har oppstått en feil under søk etter oppdateringer"
+    },
+    "addServer": {
+      "title": "Legg til server",
+      "message": "Vil du legge til \"{{- host}}\" til listen over servere?",
+      "add": "Legg til",
+      "cancel": "Kansellere"
+    },
+    "addServerError": {
+      "title": "Ugyldig vert",
+      "message": "Verten \"{{- host}}\" kunne ikke valideres, så den ble ikke lagt til."
+    },
+    "certificateError": {
+      "title": "Sertifikatfeil",
+      "message": "Stoler du på sertifikatet fra \"{{- issuerName}}\"? Klikk bare \"Ja\" hvis du virkelig stoler på dette sertifikatet. Hvis du er usikker, kontakt IT- eller sikkerhetsteamet ditt før du klikker på \"Ja\".",
+      "yes": "Ja",
+      "no": "Nei"
+    },
+    "clearCache": {
+      "announcement": "Tving omlasting",
+      "title": "Vil du beholde påloggingsøkten?",
+      "message": "Ved å slette påloggingsøkten vil du bli logget ut og bedt om å logge på igjen.",
+      "keepLoginData": "Fortsett påloggingsøkten",
+      "deleteLoginData": "Slette påloggingsøkten",
+      "clearingWait": "Vent",
+      "cancel": "Kansellere"
+    },
+    "downloadRemoval": {
+      "title": "Er du sikker?",
+      "message": "Vil du fjerne denne nedlastingen?",
+      "yes": "Ja",
+      "no": "Nei"
+    },
+    "resetAppData": {
+      "title": "Tilbakestill appdata",
+      "message": "Dette vil logge deg ut fra alle teamene dine og tilbakestille appen til de opprinnelige innstillingene. Dette kan ikke angres.",
+      "yes": "Ja",
+      "cancel": "Kansellere"
+    },
+    "clearPermittedScreenCaptureServers": {
+      "title": "Fjern tillatte skjermfangstservere",
+      "message": "Dette vil slette alle tillatelsene for skjermfangstservere, slik at de spør om tillatelse igjen. Dette kan ikke angres.",
+      "yes": "Ja",
+      "cancel": "Kansellere"
+    },
+    "screenshare": {
+      "title": "Del skjermen din",
+      "announcement": "Velg en skjerm du vil dele"
+    },
+    "update": {
+      "title": "Oppdatering tilgjengelig",
+      "announcement": "Ny oppdatering er tilgjengelig",
+      "message": "En ny versjon av Rocket.Chat Desktop App er tilgjengelig!",
+      "currentVersion": "Gjeldende versjon:",
+      "newVersion": "Ny versjon:",
+      "install": "Installer oppdatering",
+      "remindLater": "Påminn meg senere",
+      "skip": "Hopp over denne versjonen"
+    },
+    "updateDownloading": {
+      "title": "Laster ned oppdatering",
+      "message": "Du vil bli varslet når oppdateringen er klar til å installeres",
+      "ok": "OK"
+    },
+    "updateInstallLater": {
+      "title": "Installerer senere",
+      "message": "Oppdatering vil bli installert når du avslutter appen",
+      "ok": "OK"
+    },
+    "updateReady": {
+      "title": "Oppdatering klar til installasjon",
+      "message": "Oppdatering er lastet ned",
+      "installNow": "Installer nå",
+      "installLater": "Installer senere"
+    },
+    "updateSkip": {
+      "title": "Hopp over oppdatering",
+      "message": "Vi vil varsle deg når neste oppdatering er tilgjengelig\nHvis du ombestemmer deg, kan du se etter oppdateringer fra Om-menyen.",
+      "ok": "OK"
+    },
+    "selectClientCertificate": {
+      "announcement": "Velg sertifikat",
+      "select": "Velge",
+      "validDates": "Gyldig fra {{-validStart,}} til {{-validExpiry,}}"
+    },
+    "openingExternalProtocol": {
+      "title": "Koble til tilpasset protokoll",
+      "message": "{{- protocol }}-koblingen krever en ekstern applikasjon.",
+      "detail": "Den forespurte koblingen er {{- url }} . Vil du fortsette?",
+      "dontAskAgain": "Åpne alltid denne typen lenker i den tilknyttede appen",
+      "yes": "Ja",
+      "no": "Nei"
+    },
+    "allowVideoCallCaptureScreen": {
+      "title": "Videosamtalen prøver å fange skjermen din",
+      "message": "Videosamtalen ber om tillatelse til å ta opp skjermen din.",
+      "detail": "Videosamtalen fra serveren {{- url }} krever tillatelse for å dele skjermen din med andre.",
+      "dontAskAgain": "Tillat alltid videosamtaler fra denne serveren for å fange opp skjermen din",
+      "yes": "Tillate",
+      "no": "Kansellere"
+    },
+    "outlookCalendar": {
+      "title": "Outlook-kalender",
+      "encryptionUnavailableTitle": "Kryptering utilgjengelig",
+      "encryptionUnavailable": "Operativsystemet ditt støtter ikke kryptering.\nPåloggingsinformasjonen din vil bli lagret i ren tekst.",
+      "field_required": "Dette feltet er obligatorisk",
+      "remember_credentials": "Husk påloggingsinformasjonen min",
+      "cancel": " Kansellere",
+      "submit": "Logg inn"
+    },
+    "supportedVersion": {
+      "title": "Workspace-versjonen støttes ikke"
+    }
+  },
+  "downloads": {
+    "title": "Nedlastinger",
+    "notifications": {
+      "downloadFinished": "Nedlasting fullført",
+      "downloadInterrupted": "Nedlasting avbrutt",
+      "downloadCancelled": "Nedlasting avbrutt",
+      "downloadFailed": "Nedlasting mislyktes",
+      "downloadExpired": "Nedlastet utløpt",
+      "downloadExpiredMessage": "Prøv å laste ned fra kilden på nytt."
+    },
+    "filters": {
+      "search": "Søk",
+      "server": "Server",
+      "mimeType": "Type",
+      "status": "Status",
+      "clear": "Tøm filtre",
+      "all": "Alle",
+      "mimes": {
+        "images": "Bilder",
+        "videos": "Videoer",
+        "audios": "Lyd",
+        "texts": "Tekster",
+        "files": "Filer"
+      },
+      "statuses": {
+        "paused": "Satt på pause",
+        "cancelled": "Kansellert"
+      }
+    },
+    "item": {
+      "cancel": "Kansellere",
+      "copyLink": "Kopier lenken",
+      "errored": "Nedlasting avbrutt",
+      "pause": "Pause",
+      "progressSize": "{{receivedBytes, byteSize}} av {{totalBytes, byteSize}} ({{ratio, percentage}})",
+      "remove": "Fjern fra listen",
+      "resume": "Gjenoppta",
+      "retry": "Prøv på nytt",
+      "showInFolder": "Vis i mappe"
+    },
+    "showingResults": "Viser resultater {{first}} - {{last}} av {{count}}"
+  },
+  "certificatesManager": {
+    "title": "Sertifikatansvarlig",
+    "trustedCertificates": "Klarerte sertifikater",
+    "notTrustedCertificates": "Ikke klarerte sertifikater",
+    "item": {
+      "domain": "Domene",
+      "actions": "Handlinger",
+      "remove": "Fjerne"
+    }
+  },
+  "settings": {
+    "title": "Innstillinger",
+    "general": "General",
+    "certificates": "Sertifikater",
+    "options": {
+      "report": {
+        "title": "Rapporter feil til utviklere",
+        "description": "Rapporter feil anonymt til utviklerne. Delt informasjon inkluderer appversjonsnummer, operativsystemtype, server-URL, enhetsspråk og feiltype. Ingen innhold eller brukernavn deles.",
+        "masDescription": "Dette alternativet er deaktivert når det er installert fra Mac App Store, feilene vil bli rapportert gjennom Mac App Store feilrapporteringsprosessen."
+      },
+      "flashFrame": {
+        "title": "Aktiver Flash Frame",
+        "titleDarwin": "Slå av/på Dock Bounce på varsel",
+        "description": "Blinker vinduet for å tiltrekke brukerens oppmerksomhet.",
+        "onLinux": "Noen Linux-distroer har ikke støtte for denne funksjonen.",
+        "descriptionDarwin": "Spretter appikonet i dokken for å tiltrekke brukerens oppmerksomhet."
+      },
+      "hardwareAcceleration": {
+        "title": "Maskinvareakselerasjon",
+        "description": "Muliggjør maskinvareakselerasjon når tilgjengelig. Applikasjonen vil lastes inn på nytt ved endring."
+      },
+      "internalVideoChatWindow": {
+        "title": "Åpne videochat ved hjelp av applikasjonsvinduet",
+        "description": "Når innstilt, vil Videochat åpnes ved hjelp av et programvindu, ellers vil standardnettleseren brukes. <strong>Google Meet</strong> deleskjerm støttes ikke i Electron-applikasjoner, så denne konfigurasjonen endrer ikke Meet-anropsadferd, som åpnes i nettleseren.",
+        "masDescription": "Dette alternativet er deaktivert når det er installert fra Mac App Store, av sikkerhetsgrunner vil det åpne Video Chat ved å bruke nettleseren som standard."
+      },
+      "minimizeOnClose": {
+        "title": "Minimer på nært hold",
+        "description": "Når den er lukket, vil appen minimeres, ellers avsluttes applikasjonen. Systemstatusikon må deaktiveres for at dette skal tre i kraft."
+      },
+      "menubar": {
+        "title": "Menylinje",
+        "description": "Vis menylinjen øverst i vinduet."
+      },
+      "sidebar": {
+        "title": "Sidefelt",
+        "description": "Vis sidefeltet til venstre i vinduet med serverlisten, nedlastinger og innstillinger."
+      },
+      "trayIcon": {
+        "title": "Systemstatusikon",
+        "description": "Vis ikonet på systemstatusfeltet. Hvis systemstatusikonet er aktivt, vil appen være skjult ved lukke. Ellers avsluttes programmet."
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Fjern skjermopptakstillatelser",
+        "description": "Fjern skjermopptakstillatelsene på videosamtaler som ble valgt for ikke å spørre igjen."
+      },
+      "allowScreenCaptureOnVideoCalls": {
+        "title": "Tillat skjermopptak på videosamtaler",
+        "description": "Tillat skjermfangst på videosamtaler. Dette vil be om tillatelse for hver videosamtale."
+      },
+      "ntlmCredentials": {
+        "title": "NTLM-påloggingsinformasjon",
+        "description": "Tillat at NTLM-påloggingsinformasjon brukes når du kobler til en server.",
+        "domains": "Domener som vil bruke påloggingsinformasjonen. Atskilt med komma. Bruk * for å matche alle domener."
+      }
+    }
+  },
+  "error": {
+    "authNeeded": "Godkjenning kreves, prøv <strong>{{- auth}}</strong>",
+    "connectTimeout": "Tidsavbrudd prøver å koble til",
+    "differentCertificate": "Sertifikatet er forskjellig fra det forrige.\n\n {{- detail}}",
+    "noValidServerFound": "Ingen gyldig server funnet på URL-en",
+    "offline": "Sjekk Internett-tilkoblingen din!"
+  },
+  "landing": {
+    "invalidUrl": "Ugyldig URL",
+    "validating": "Validerer...",
+    "inputUrl": "Skriv inn serverens URL",
+    "connect": "Koble til"
+  },
+  "menus": {
+    "about": "Om {{- appName}}",
+    "addNewServer": "Legg til ny server",
+    "back": "Tilbake",
+    "clearTrustedCertificates": "Fjern klarerte sertifikater",
+    "close": "Lukke",
+    "copy": "Kopiere",
+    "cut": "Kutt",
+    "disableGpu": "Deaktiver GPU",
+    "documentation": "Dokumentasjon",
+    "downloads": "Nedlastinger",
+    "settings": "Innstillinger",
+    "editMenu": "Redigere",
+    "fileMenu": "Fil",
+    "forward": "Framover",
+    "helpMenu": "Hjelp",
+    "hide": "Skjul {{- appName}}",
+    "hideOthers": "Skjul andre",
+    "learnMore": "Lær mer",
+    "minimize": "Minimer",
+    "openDevTools": "Åpne Utviklerverktøy",
+    "openDevToolsOnAllWindows": "Åpne Utviklerverktøy på alle vinduer",
+    "paste": "Lim inn",
+    "quit": "Avslutt {{- appName}}",
+    "redo": "Gjør om",
+    "reload": "Last inn på nytt",
+    "reloadClearingCache": "Tving omlasting",
+    "reportIssue": "Rapporter problem",
+    "resetAppData": "Tilbakestill appdata",
+    "resetZoom": "Tilbakestill zoom",
+    "selectAll": "Velg alle",
+    "services": "Tjenester",
+    "showFullScreen": "Fullskjerm",
+    "showMenuBar": "Menylinje",
+    "showOnUnreadMessage": "Vis på uleste meldinger",
+    "showServerList": "Serverliste",
+    "showTrayIcon": "Systemstatusikon",
+    "toggleDevTools": "Slå på Utviklerverktøy",
+    "openConfigFolder": "Åpne konfigurasjonsmappe",
+    "undo": "Angre",
+    "unhide": "Vis alle",
+    "viewMenu": "Visning",
+    "windowMenu": "Vindu",
+    "zoomIn": "Zoom inn",
+    "zoomOut": "Zoom ut"
+  },
+  "loadingError": {
+    "title": "Serveren kunne ikke lastes inn",
+    "announcement": "Houston, vi har et problem",
+    "reload": "Last inn på nytt"
+  },
+  "unsupportedServer": {
+    "title": "{{instanceDomain}} kjører en versjon av Rocket.Chat som ikke støttes",
+    "announcement": "En administrator må oppdatere serveren til en støttet versjon for å gjenaktivere tilgang fra mobil- og skrivebordsapper.",
+    "moreInformation": "Mer informasjon"
+  },
+  "selfxss": {
+    "title": "Stoppe!",
+    "description": "Dette er en nettleserfunksjon beregnet på utviklere. Hvis noen ba deg kopiere og lime inn noe her for å aktivere en Rocket.Chat-funksjon eller \"hacke\" noens konto, er det en svindel og vil gi dem tilgang til Rocket.Chat-kontoen din.",
+    "moreInfo": "Se https://go.rocket.chat/i/xss for mer informasjon."
+  },
+  "sidebar": {
+    "addNewServer": "Legg til ny server",
+    "downloads": "Nedlastinger",
+    "settings": "Innstillinger",
+    "menuTitle": "Tilpass og kontroller appen",
+    "item": {
+      "reload": "Last inn på nytt",
+      "remove": "Fjerne",
+      "openDevTools": "Åpne DevTools",
+      "clearCache": "Tøm buffer",
+      "clearStorageData": "Fjern lagringsdata",
+      "copyCurrentUrl": "Kopier gjeldende URL",
+      "reloadClearingCache": "Tving omlasting"
+    },
+    "tooltips": {
+      "unreadMessage": "{{- count}} ulest melding",
+      "unreadMessages": "{{- count}} uleste meldinger",
+      "userNotLoggedIn": "Ikke innlogget",
+      "addWorkspace": "Legg til server ({{shortcut}}+N)",
+      "settingsMenu": "Tilpass og kontroller appen"
+    }
+  },
+  "touchBar": {
+    "formatting": "Formatering",
+    "selectServer": "Velg server"
+  },
+  "tray": {
+    "menu": {
+      "show": "Vise",
+      "hide": "Skjul meny",
+      "quit": "Avslutt"
+    },
+    "tooltip": {
+      "noUnreadMessage": "{{- appName}}: ingen ulest melding",
+      "unreadMention": "{{- appName}}: du har en ulest omtale/direktemelding",
+      "unreadMention_plural": "{{- appName}}: du har {{- count}} uleste omtaler/direktemeldinger",
+      "unreadMessage": "{{- appName}}: du har uleste meldinger"
+    },
+    "balloon": {
+      "stillRunning": {
+        "title": "{{- appName}} kjører fortsatt",
+        "content": "{{- appName }} er satt til å fortsette å kjøre i systemstatusfeltet/meldingsområdet."
+      }
+    }
+  },
+  "taskbar": {
+    "unreadMessage": "Uleste meldinger",
+    "unreadMention": "Uleste omtaler",
+    "noUnreadMessage": "Ingen uleste meldinger"
+  }
+}

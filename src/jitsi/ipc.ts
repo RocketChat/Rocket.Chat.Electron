@@ -8,17 +8,20 @@ let dontAskAgain = false;
 let firstAskPermission = true;
 
 export const handleJitsiDesktopCapturerGetSources = () => {
-  handle('jitsi-desktop-capturer-get-sources', async (_event, opts) => {
-    if (permitted) return desktopCapturer.getSources(opts[0]);
+  handle(
+    'jitsi-desktop-capturer-get-sources',
+    async (_event, [opts, jitsiDomain]) => {
+      if (permitted) return desktopCapturer.getSources(opts);
 
-    if (dontAskAgain) return [];
+      if (dontAskAgain) return [];
 
-    if (firstAskPermission) {
-      firstAskPermission = false;
-      const askResult = await isJitsiServerAllowed(opts[1]);
-      permitted = askResult.allowed;
-      dontAskAgain = askResult.dontAskAgain;
+      if (firstAskPermission) {
+        firstAskPermission = false;
+        const askResult = await isJitsiServerAllowed(jitsiDomain);
+        permitted = askResult.allowed;
+        dontAskAgain = askResult.dontAskAgain;
+      }
+      return [];
     }
-    return [];
-  });
+  );
 };

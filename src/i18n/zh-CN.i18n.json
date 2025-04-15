@@ -130,7 +130,8 @@
       },
       "internalVideoChatWindow": {
         "title": "在程序窗口中打开视频通话",
-        "description": "视频通话会在程序窗口中打开，否则会在默认的浏览器窗口中打开。"
+        "description": "如果启用，视频通话将在应用程序窗口中打开，而不是在默认浏览器中打开。但是，对于<strong>Google Meet</strong>和<strong>Jitsi</strong>，Electron应用程序不支持屏幕录制，所以无论此设置如何，它们始终会在浏览器中打开。",
+        "masDescription": "从Mac App Store安装时此选项被禁用。出于安全原因，视频通话将始终默认在浏览器中打开。"
       }
     }
   },
@@ -170,7 +171,6 @@
     "quit": "结束(&Q){{- appName}}",
     "redo": "重做 (&R)",
     "reload": "重新载入 (&R)",
-    "reloadIgnoringCache": "忽略缓存并重新加载",
     "reportIssue": "报告问题",
     "resetAppData": "重置应用数据",
     "resetZoom": "重置缩放",
@@ -220,5 +220,22 @@
       "unreadMention_plural": "{{- appName}}: 您有 {{- count}} 封未读的直接或提及到您的信息",
       "unreadMessage": "{{- appName}}: 您有未读的信息"
     }
+  },
+  "taskbar": {
+    "unreadMessage": "未读消息",
+    "unreadMention": "未读提及",
+    "noUnreadMessage": "没有未读消息"
+  },
+  "screenSharing": {
+    "permissionDenied": "屏幕录制权限被拒绝",
+    "permissionRequired": "需要屏幕录制权限才能共享您的屏幕。",
+    "permissionInstructions": "请在系统偏好设置中启用它，然后重试。",
+    "title": "共享您的屏幕",
+    "entireScreen": "您的整个屏幕",
+    "applicationWindow": "应用程序窗口",
+    "noScreensFound": "未找到屏幕",
+    "noWindowsFound": "未找到窗口",
+    "cancel": "取消",
+    "share": "共享"
   }
 }

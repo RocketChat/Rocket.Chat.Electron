@@ -38,9 +38,18 @@
     },
     "certificateError": {
       "title": "Certificate error",
-      "message": "Do you trust certificate from \"{{- issuerName}}\"?",
+      "message": "Do you trust certificate from \"{{- issuerName}}\"? Only click 'Yes' if you really trust this certificate. If you are unsure, contact your IT or security team before clicking on 'Yes'.",
       "yes": "Yes",
       "no": "No"
+    },
+    "clearCache": {
+      "announcement": "Force reload",
+      "title": "Keep your login session?",
+      "message": "By deleting your login session you will be logged out and asked to inform your credentials again.",
+      "keepLoginData": "Keep login session",
+      "deleteLoginData": "Delete login session",
+      "clearingWait": "Please wait",
+      "cancel": "Cancel"
     },
     "downloadRemoval": {
       "title": "Are you sure?",
@@ -203,9 +212,9 @@
         "description": "Enables the use of hardware acceleration when available. The application will reload on change."
       },
       "internalVideoChatWindow": {
-        "title": "Open Video Chat using Application Window",
-        "description": "When set Video Chat will be opened using an application's window, otherwise the default browser will be used. <strong>Google Meet</strong> share screen is not supported in Electron applications, so this configuration don't change Meet calls behavior, that will open on browser.",
-        "masDescription": "This option is disabled when installed from the Mac App Store, for security reasons it will open Video Chat using the browser by default."
+        "title": "Open Video Chat in Application Window",
+        "description": "If enabled, the Video Chat will open in the application's window instead of the default browser. However, for <strong>Google Meet</strong> and <strong>Jitsi</strong>, screen recording is not supported in Electron applications, so they will always open in the browser regardless of this setting.",
+        "masDescription": "This option is disabled when installed from the Mac App Store. For security reasons, Video Chat will always open in the browser by default."
       },
       "minimizeOnClose": {
         "title": "Minimize on close",
@@ -223,6 +232,13 @@
         "title": "Tray Icon",
         "description": "Show tray icon on the system tray. If tray icon is active the app will be hidden to tray on close. Otherwise it will quit the application."
       },
+      "availableBrowsers": {
+        "title": "Default Browser",
+        "description": "Choose which browser will open external links from this app. System Default uses your operating system settings.",
+        "systemDefault": "System Default",
+        "loading": "Loading browsers...",
+        "current": "Currently using:"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Clear Screen Capture Permissions",
         "description": "Clear the screen capture permissions that was selected to not ask again on video calls."
@@ -235,6 +251,10 @@
         "title": "NTLM Credentials",
         "description": "Allow NTLM Credentials to be used when connecting to a server.",
         "domains": "Domains that will use the credentials. Separated by comma. Use * to match all domains."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Remember video call window position",
+        "description": "Save and restore the position and size of video call windows between sessions"
       }
     }
   },
@@ -277,7 +297,7 @@
     "quit": "&Quit {{- appName}}",
     "redo": "&Redo",
     "reload": "&Reload",
-    "reloadIgnoringCache": "Reload ignoring cache",
+    "reloadClearingCache": "Force reload",
     "reportIssue": "Report issue",
     "resetAppData": "Reset app data",
     "resetZoom": "Reset zoom",
@@ -289,6 +309,7 @@
     "showServerList": "Server list",
     "showTrayIcon": "Tray icon",
     "toggleDevTools": "Toggle &DevTools",
+    "openConfigFolder": "Open &Configuration Folder",
     "undo": "&Undo",
     "unhide": "Show All",
     "viewMenu": "&View",
@@ -315,13 +336,22 @@
     "addNewServer": "Add new server",
     "downloads": "Downloads",
     "settings": "Settings",
+    "menuTitle": "Customize and control app",
     "item": {
-      "reload": "Reload server",
-      "remove": "Remove server",
+      "reload": "Reload",
+      "remove": "Remove",
       "openDevTools": "Open DevTools",
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",
-      "copyCurrentUrl": "Copy current URL"
+      "copyCurrentUrl": "Copy current URL",
+      "reloadClearingCache": "Force reload"
+    },
+    "tooltips": {
+      "unreadMessage": "{{- count}} unread message",
+      "unreadMessages": "{{- count}} unread messages",
+      "userNotLoggedIn": "Not logged in",
+      "addWorkspace": "Add workspace ({{shortcut}}+N)",
+      "settingsMenu": "Customize and control app"
     }
   },
   "touchBar": {
@@ -351,5 +381,17 @@
     "unreadMessage": "Unread messages",
     "unreadMention": "Unread mentions",
     "noUnreadMessage": "No unread messages"
+  },
+  "screenSharing": {
+    "permissionDenied": "Screen Recording Permission Denied",
+    "permissionRequired": "Screen recording permission is required to share your screen.",
+    "permissionInstructions": "Please enable it in your system preferences and try again.",
+    "title": "Share your screen",
+    "entireScreen": "Your entire screen",
+    "applicationWindow": "Application window",
+    "noScreensFound": "No screens found",
+    "noWindowsFound": "No windows found",
+    "cancel": "Cancel",
+    "share": "Share"
   }
 }

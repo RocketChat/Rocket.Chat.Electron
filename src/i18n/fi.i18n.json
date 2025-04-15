@@ -192,7 +192,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Avaa videokeskustelu sovellusikkunaan",
-        "description": "Tällä asetuksella videokeskustelu avautuu sovelluksen ikkunaan, muutoin oletusselaimeen.",
+        "description": "Jos käytössä, videokeskustelu avautuu sovelluksen ikkunaan oletusselaimen sijaan. Kuitenkin <strong>Google Meet</strong> ja <strong>Jitsi</strong> -palveluissa ruuduntallennus ei ole tuettu Electron-sovelluksissa, joten ne avautuvat aina selaimessa tästä asetuksesta riippumatta.",
         "masDescription": "Asetus ei ole käytössä, kun asennus on tehty Macin App Storesta. Suojaussyistä videokeskustelu avautuu oletusarvoisesti selaimeen."
       },
       "minimizeOnClose": {
@@ -210,6 +210,13 @@
       "trayIcon": {
         "title": "Ilmaisinalueen kuvake",
         "description": "Näytä ilmaisinalueen kuvake ilmaisinalueella. Jos ilmaisinalueen kuvake on käytössä, sovellus piilotetaan suljettaessa ilmaisinalueelle. Muutoin sovellus suljetaan."
+      },
+      "availableBrowsers": {
+        "title": "Oletusselain",
+        "description": "Valitse selain, joka avaa ulkoiset linkit tästä sovelluksesta. Järjestelmän oletus käyttää käyttöjärjestelmäsi asetuksia.",
+        "systemDefault": "Järjestelmän oletus",
+        "loading": "Ladataan selaimia...",
+        "current": "Käytössä nyt:"
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Tyhjennä näyttökuvaoikeudet",
@@ -256,7 +263,6 @@
     "quit": "&Sulje {{- appName}}",
     "redo": "T&ee uudelleen",
     "reload": "La&taa uudelleen",
-    "reloadIgnoringCache": "Lataa uudelleen, ohita välimuisti",
     "reportIssue": "Ilmoita ongelmasta",
     "resetAppData": "Nollaa sovelluksen tiedot",
     "resetZoom": "Nollaa zoomaus",
@@ -324,5 +330,17 @@
     "unreadMessage": "Lukemattomat viestit",
     "unreadMention": "Lukemattomat maininnat",
     "noUnreadMessage": "Ei lukemattomia viestejä"
+  },
+  "screenSharing": {
+    "permissionDenied": "Näytön nauhoituslupa evätty",
+    "permissionRequired": "Näytön nauhoituslupa vaaditaan näytön jakamiseen.",
+    "permissionInstructions": "Ole hyvä ja ota se käyttöön järjestelmäasetuksissa ja yritä uudelleen.",
+    "title": "Jaa näyttösi",
+    "entireScreen": "Koko näyttösi",
+    "applicationWindow": "Sovellusikkuna",
+    "noScreensFound": "Näyttöjä ei löytynyt",
+    "noWindowsFound": "Ikkunoita ei löytynyt",
+    "cancel": "Peruuta",
+    "share": "Jaa"
   }
 }

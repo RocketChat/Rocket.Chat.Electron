@@ -1,3 +1,5 @@
+import type { WebContents } from 'electron';
+
 import type { Server } from '../servers/common';
 import type { RootWindowIcon, WindowState } from './common';
 
@@ -5,6 +7,12 @@ export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START =
   'about-dialog/toggle-update-on-start';
 export const ADD_SERVER_VIEW_SERVER_ADDED = 'add-server/view-server-added';
+export const CLEAR_CACHE_TRIGGERED = 'clear-cache/triggered';
+export const CLEAR_CACHE_DIALOG_DISMISSED = 'clear-cache-dialog/dismissed';
+export const CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED =
+  'clear-cache-dialog/delete-login-data-clicked';
+export const CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED =
+  'clear-cache-dialog/keep-login-data-clicked';
 export const LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED =
   'loading-error-view/reload-server-clicked';
 export const MENU_BAR_ABOUT_CLICKED = 'menu-bar/about-clicked';
@@ -21,6 +29,8 @@ export const MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED =
   'menu-bar/toggle-is-tray-icon-enabled-clicked';
 export const ROOT_WINDOW_ICON_CHANGED = 'root-window/icon-changed';
 export const ROOT_WINDOW_STATE_CHANGED = 'root-window/state-changed';
+export const VIDEO_CALL_WINDOW_STATE_CHANGED =
+  'video-call-window/state-changed';
 export const SIDE_BAR_ADD_NEW_SERVER_CLICKED =
   'side-bar/add-new-server-clicked';
 export const SIDE_BAR_CONTEXT_MENU_TRIGGERED =
@@ -63,6 +73,7 @@ export const WEBVIEW_GIT_COMMIT_HASH_CHANGED =
   'webview/git-commit-hash-changed';
 export const WEBVIEW_GIT_COMMIT_HASH_CHECK = 'webview/git-commit-hash-check';
 export const WEBVIEW_TITLE_CHANGED = 'webview/title-changed';
+export const WEBVIEW_PAGE_TITLE_CHANGED = 'webview/page-title-changed';
 export const WEBVIEW_UNREAD_CHANGED = 'webview/unread-changed';
 export const WEBVIEW_USER_LOGGED_IN = 'webview/user-loggedin';
 export const WEBVIEW_USER_THEME_APPEARANCE_CHANGED =
@@ -85,10 +96,16 @@ export const SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED =
   'settings/set-is-side-bar-enabled-changed';
 export const SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED =
   'settings/set-is-menu-bar-enabled-changed';
+export const SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED =
+  'settings/set-is-video-call-window-persistence-enabled-changed';
 export const SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS =
   'settings/clear-permitted-screen-capture-permissions';
 export const SETTINGS_NTLM_CREDENTIALS_CHANGED =
   'settings/ntlm-credentials-changed';
+export const SETTINGS_AVAILABLE_BROWSERS_UPDATED =
+  'settings/available-browsers-updated';
+export const SETTINGS_SELECTED_BROWSER_CHANGED =
+  'settings/selected-browser-changed';
 export const SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN =
   'notifications/set-has-tray-minimize-notification-shown';
 export const VIDEO_CALL_WINDOW_OPEN_URL = 'video-call-window/open-url';
@@ -103,11 +120,21 @@ export const WEBVIEW_SERVER_VERSION_UPDATED = 'webview/version-updated';
 export const SUPPORTED_VERSION_DIALOG_DISMISS =
   'supported-versions-dialog/dismiss';
 export const WEBVIEW_SERVER_RELOADED = 'webview/server-reloaded';
+export const WEBVIEW_PDF_VIEWER_ATTACHED = 'webview/pdf-viewer/attached';
+export const SIDE_BAR_SERVER_RELOAD = 'side-bar/server-reload';
+export const SIDE_BAR_SERVER_COPY_URL = 'side-bar/server-copy-url';
+export const SIDE_BAR_SERVER_OPEN_DEV_TOOLS = 'side-bar/server-open-dev-tools';
+export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
+export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
   [ABOUT_DIALOG_TOGGLE_UPDATE_ON_START]: boolean;
   [ADD_SERVER_VIEW_SERVER_ADDED]: Server['url'];
+  [CLEAR_CACHE_TRIGGERED]: WebContents['id'];
+  [CLEAR_CACHE_DIALOG_DISMISSED]: void;
+  [CLEAR_CACHE_DIALOG_DELETE_LOGIN_DATA_CLICKED]: WebContents['id'];
+  [CLEAR_CACHE_DIALOG_KEEP_LOGIN_DATA_CLICKED]: WebContents['id'];
   [LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED]: { url: Server['url'] };
   [MENU_BAR_ABOUT_CLICKED]: void;
   [MENU_BAR_ADD_NEW_SERVER_CLICKED]: void;
@@ -118,6 +145,7 @@ export type UiActionTypeToPayloadMap = {
   [MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED]: boolean;
   [ROOT_WINDOW_ICON_CHANGED]: RootWindowIcon | null;
   [ROOT_WINDOW_STATE_CHANGED]: WindowState;
+  [VIDEO_CALL_WINDOW_STATE_CHANGED]: WindowState;
   [SIDE_BAR_ADD_NEW_SERVER_CLICKED]: void;
   [SIDE_BAR_CONTEXT_MENU_TRIGGERED]: Server['url'];
   [SIDE_BAR_DOWNLOADS_BUTTON_CLICKED]: void;
@@ -125,6 +153,11 @@ export type UiActionTypeToPayloadMap = {
   [SIDE_BAR_REMOVE_SERVER_CLICKED]: Server['url'];
   [SIDE_BAR_SERVER_SELECTED]: Server['url'];
   [SIDE_BAR_SERVERS_SORTED]: Server['url'][];
+  [SIDE_BAR_SERVER_RELOAD]: Server['url'];
+  [SIDE_BAR_SERVER_COPY_URL]: Server['url'];
+  [SIDE_BAR_SERVER_OPEN_DEV_TOOLS]: Server['url'];
+  [SIDE_BAR_SERVER_FORCE_RELOAD]: Server['url'];
+  [SIDE_BAR_SERVER_REMOVE]: Server['url'];
   [TOUCH_BAR_FORMAT_BUTTON_TOUCHED]:
     | 'bold'
     | 'italic'
@@ -156,6 +189,10 @@ export type UiActionTypeToPayloadMap = {
     customTheme: Server['customTheme'];
   };
   [WEBVIEW_TITLE_CHANGED]: { url: Server['url']; title: Server['title'] };
+  [WEBVIEW_PAGE_TITLE_CHANGED]: {
+    url: Server['url'];
+    pageTitle: Server['pageTitle'];
+  };
   [WEBVIEW_UNREAD_CHANGED]: { url: Server['url']; badge: Server['badge'] };
   [WEBVIEW_USER_LOGGED_IN]: {
     url: Server['url'];
@@ -185,9 +222,12 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_TRAY_ICON_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_SIDE_BAR_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_MENU_BAR_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED]: boolean;
   [SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS]: void;
-  [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
   [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;
+  [SETTINGS_AVAILABLE_BROWSERS_UPDATED]: string[];
+  [SETTINGS_SELECTED_BROWSER_CHANGED]: string | null;
+  [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;
   [VIDEO_CALL_WINDOW_OPEN_URL]: { url: string };
   [DOWNLOADS_BACK_BUTTON_CLICKED]: string;
   [WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED]: {
@@ -211,4 +251,5 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_SERVER_RELOADED]: {
     url: Server['url'];
   };
+  [WEBVIEW_PDF_VIEWER_ATTACHED]: { WebContentsId: number };
 };

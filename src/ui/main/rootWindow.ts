@@ -1,12 +1,16 @@
 import path from 'path';
 
 import type { Rectangle, NativeImage, WebPreferences } from 'electron';
-import { app, BrowserWindow, nativeImage, screen } from 'electron';
+import { app, BrowserWindow, nativeImage, nativeTheme, screen } from 'electron';
 import i18next from 'i18next';
 import { createStructuredSelector } from 'reselect';
 
+import {
+  APP_MACHINE_THEME_SET,
+  APP_MAIN_WINDOW_TITLE_SET,
+} from '../../app/actions';
 import { setupRootWindowReload } from '../../app/main/dev';
-import { select, watch, listen, dispatchLocal } from '../../store';
+import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
 import type { WindowState } from '../common';
@@ -72,7 +76,12 @@ export const createRootWindow = (): void => {
 export const normalizeNumber = (value: number | undefined): number =>
   value && isFinite(1 / value) ? value : 0;
 
-const isInsideSomeScreen = ({ x, y, width, height }: Rectangle): boolean =>
+export const isInsideSomeScreen = ({
+  x,
+  y,
+  width,
+  height,
+}: Rectangle): boolean =>
   screen
     .getAllDisplays()
     .some(
@@ -208,11 +217,15 @@ export const setupRootWindow = (): void => {
           typeof currentView === 'object'
             ? servers.find(({ url }) => url === currentView.url)
             : null;
-        return currentServer?.title || app.name;
+        return currentServer?.pageTitle || currentServer?.title || app.name;
       },
       async (windowTitle) => {
         const browserWindow = await getRootWindow();
         browserWindow.setTitle(windowTitle);
+        dispatch({
+          type: APP_MAIN_WINDOW_TITLE_SET,
+          payload: windowTitle,
+        });
       }
     ),
     listen(WEBVIEW_FOCUS_REQUESTED, async () => {
@@ -249,8 +262,8 @@ export const setupRootWindow = (): void => {
 
     rootWindow.addListener('close', async () => {
       if (rootWindow?.isFullScreen()) {
-        await new Promise((resolve) =>
-          rootWindow.once('leave-full-screen', resolve)
+        await new Promise<void>((resolve) =>
+          rootWindow.once('leave-full-screen', () => resolve())
         );
         rootWindow.setFullScreen(false);
       }
@@ -409,6 +422,21 @@ export const showRootWindow = async (): Promise<void> => {
       setupRootWindow();
       resolve();
     });
+  });
+};
+
+export const watchMachineTheme = (): void => {
+  dispatchMachineTheme();
+  nativeTheme.on('updated', () => {
+    dispatchMachineTheme();
+  });
+};
+
+const dispatchMachineTheme = (): void => {
+  const isDarkMode = nativeTheme.shouldUseDarkColors;
+  dispatch({
+    type: APP_MACHINE_THEME_SET,
+    payload: isDarkMode ? 'dark' : 'light',
   });
 };
 

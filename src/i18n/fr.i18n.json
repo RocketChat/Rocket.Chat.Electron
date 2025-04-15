@@ -192,7 +192,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Ouvrir le chat vidéo à l'aide de la fenêtre de l'application",
-        "description": "Une fois défini, le chat vidéo sera ouvert à l'aide d'une fenêtre d'application, sinon le navigateur par défaut sera utilisé.",
+        "description": "Si cette option est activée, le chat vidéo s'ouvrira dans la fenêtre de l'application au lieu du navigateur par défaut. Cependant, pour <strong>Google Meet</strong> et <strong>Jitsi</strong>, l'enregistrement d'écran n'est pas pris en charge dans les applications Electron, donc ils s'ouvriront toujours dans le navigateur, quel que soit ce paramètre.",
         "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store, pour des raisons de sécurité, elle ouvrira le chat vidéo en utilisant le navigateur par défaut."
       },
       "minimizeOnClose": {
@@ -208,8 +208,15 @@
         "description": "Afficher la barre latérale à gauche de la fenêtre avec la liste des serveurs, les téléchargements et les paramètres."
       },
       "trayIcon": {
-        "title": "Icône de la barre",
-        "description": "Afficher l'icône de la barre d'état système sur la barre d'état système. Si l'icône de la barre d'état est active, l'application sera masquée dans la barre d'état à la fermeture. Sinon, il quittera l'application."
+        "title": "Icône de la barre d'état système",
+        "description": "Afficher l'icône dans la barre d'état système. Si l'icône est active, l'application sera masquée dans la barre d'état lors de la fermeture. Sinon, elle sera complètement fermée."
+      },
+      "availableBrowsers": {
+        "title": "Navigateur par défaut",
+        "description": "Choisissez quel navigateur ouvrira les liens externes de cette application. La valeur par défaut du système utilise les paramètres de votre système d'exploitation.",
+        "systemDefault": "Par défaut du système",
+        "loading": "Chargement des navigateurs...",
+        "current": "Actuellement utilisé:"
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Effacer les autorisations de capture d'écran",
@@ -256,7 +263,6 @@
     "quit": "&Quitter {{- appName}}",
     "redo": "&Rétablir",
     "reload": "Recharger",
-    "reloadIgnoringCache": "Recharger en ignorant le cache",
     "reportIssue": "Signaler un problème",
     "resetAppData": "Effacer les données de l'application",
     "resetZoom": "Réinitialiser le zoom",
@@ -324,5 +330,17 @@
     "unreadMessage": "Messages non lus",
     "unreadMention": "Mentions non lues",
     "noUnreadMessage": "Pas de messages non lus"
+  },
+  "screenSharing": {
+    "permissionDenied": "Permission d'Enregistrement d'Écran Refusée",
+    "permissionRequired": "La permission d'enregistrement d'écran est requise pour partager votre écran.",
+    "permissionInstructions": "Veuillez l'activer dans les préférences système et réessayer.",
+    "title": "Partager votre écran",
+    "entireScreen": "Votre écran entier",
+    "applicationWindow": "Fenêtre d'application",
+    "noScreensFound": "Aucun écran trouvé",
+    "noWindowsFound": "Aucune fenêtre trouvée",
+    "cancel": "Annuler",
+    "share": "Partager"
   }
 }

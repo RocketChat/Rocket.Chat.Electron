@@ -9,7 +9,6 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FailureImage } from '../FailureImage';
-import { ErrorPane } from './styles';
 
 type ErrorViewProps = {
   isFailed: boolean;
@@ -56,53 +55,57 @@ const ErrorView = ({ isFailed, onReload }: ErrorViewProps) => {
   };
 
   return (
-    <ErrorPane isVisible={isFailed || isReloading}>
-      <FailureImage
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          zIndex: 0,
-        }}
-      />
-      <Box
-        is='section'
-        color='pure-white'
-        display='flex'
-        flexDirection='column'
-        justifyContent='center'
-        alignItems='center'
-        zIndex={1}
-      >
-        <Margins block='x12'>
-          <Box display='flex' flexDirection='column'>
-            <Margins block='x8' inline='auto'>
-              <Box fontScale='h1'>{t('loadingError.announcement')}</Box>
+    <>
+      {isFailed ||
+        (isReloading && (
+          <Box
+            display='flex'
+            flexDirection='column'
+            width='100vw'
+            justifyContent='center'
+            alignItems='center'
+            zIndex={1}
+          >
+            <FailureImage
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 0,
+              }}
+            />
+            <Box is='section' color='pure-white' zIndex={1}>
+              <Margins block='x12'>
+                <Box display='flex' flexDirection='column'>
+                  <Margins block='x8' inline='auto'>
+                    <Box fontScale='h1'>{t('loadingError.announcement')}</Box>
 
-              <Box fontScale='p1'>{t('loadingError.title')}</Box>
-            </Margins>
+                    <Box fontScale='p1'>{t('loadingError.title')}</Box>
+                  </Margins>
+                </Box>
+              </Margins>
+
+              <Box>
+                {isReloading && (
+                  <Margins block='x12'>
+                    <Throbber inheritColor size='x16' />
+                  </Margins>
+                )}
+
+                {!isReloading && (
+                  <ButtonGroup align='center'>
+                    <Button primary onClick={handleReloadButtonClick}>
+                      {t('loadingError.reload')} ({counter})
+                    </Button>
+                  </ButtonGroup>
+                )}
+              </Box>
+            </Box>
           </Box>
-        </Margins>
-
-        <Box>
-          {isReloading && (
-            <Margins block='x12'>
-              <Throbber inheritColor size='x16' />
-            </Margins>
-          )}
-
-          {!isReloading && (
-            <ButtonGroup align='center'>
-              <Button primary onClick={handleReloadButtonClick}>
-                {t('loadingError.reload')} ({counter})
-              </Button>
-            </ButtonGroup>
-          )}
-        </Box>
-      </Box>
-    </ErrorPane>
+        ))}
+    </>
   );
 };
 

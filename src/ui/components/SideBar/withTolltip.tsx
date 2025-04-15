@@ -4,7 +4,7 @@ import { css } from '@emotion/react';
 export const withTooltip = ({
   tooltip,
 }: {
-  tooltip: string;
+  tooltip?: string;
 }): SerializedStyles => css`
   &::after {
     position: absolute;

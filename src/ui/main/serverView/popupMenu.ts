@@ -3,7 +3,7 @@ import type {
   MenuItemConstructorOptions,
   WebContents,
 } from 'electron';
-import { shell, clipboard, Menu } from 'electron';
+import { clipboard, Menu } from 'electron';
 import i18next from 'i18next';
 
 import { isProtocolAllowed } from '../../../navigation/main';
@@ -12,6 +12,7 @@ import {
   SPELL_CHECKING_TOGGLED,
 } from '../../../spellChecking/actions';
 import { dispatch } from '../../../store';
+import { openExternal } from '../../../utils/browserLauncher';
 
 const t = i18next.t.bind(i18next);
 
@@ -145,7 +146,7 @@ const createLinkMenuTemplate = (
                 return;
               }
 
-              shell.openExternal(linkURL);
+              openExternal(linkURL);
             });
           },
         },

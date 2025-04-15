@@ -82,6 +82,23 @@
       "ok": "好"
     }
   },
+  "settings": {
+    "title": "設定",
+    "general": "一般",
+    "options": {
+      "trayIcon": {
+        "title": "系統匣圖示",
+        "description": "顯示系統匣圖示。啟用系統匣圖示時，關閉視窗會將應用程式最小化到系統匣。否則，應用程式將會關閉。"
+      },
+      "availableBrowsers": {
+        "title": "預設瀏覽器",
+        "description": "選擇哪個瀏覽器將開啟此應用程式的外部連結。系統預設使用您操作系統的設定。",
+        "systemDefault": "系統預設",
+        "loading": "正在載入瀏覽器...",
+        "current": "目前使用："
+      }
+    }
+  },
   "error": {
     "authNeeded": "需要驗證，請嘗試 <strong>{{- auth}}</strong>",
     "connectTimeout": "連線逾時",
@@ -115,7 +132,6 @@
     "quit": "結束 (&Q) {{- appName}}",
     "redo": "重做 (&R)",
     "reload": "重新載入 (&R)",
-    "reloadIgnoringCache": "重新載入忽略的快取",
     "reportIssue": "問題回報",
     "resetAppData": "回復程式設定",
     "resetZoom": "重置縮放比率",
@@ -161,5 +177,22 @@
       "unreadMention_plural": "{{- appName}}: 您有 {{- count}} 封未讀的直接或提及到您的訊息",
       "unreadMessage": "{{- appName}}: 您有未讀的訊息"
     }
+  },
+  "taskbar": {
+    "unreadMessage": "未讀訊息",
+    "unreadMention": "未讀提及",
+    "noUnreadMessage": "沒有未讀訊息"
+  },
+  "screenSharing": {
+    "permissionDenied": "螢幕錄製權限被拒絕",
+    "permissionRequired": "需要螢幕錄製權限才能共享您的螢幕。",
+    "permissionInstructions": "請在系統偏好設定中啟用它，然後重試。",
+    "title": "共享您的螢幕",
+    "entireScreen": "您的整個螢幕",
+    "applicationWindow": "應用程式視窗",
+    "noScreensFound": "未找到螢幕",
+    "noWindowsFound": "未找到視窗",
+    "cancel": "取消",
+    "share": "共享"
   }
 }

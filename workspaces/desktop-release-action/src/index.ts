@@ -55,6 +55,8 @@ const getFilesToUpload = () =>
     'dist/*.msi',
     'dist/*.exe',
     'dist/*.exe.blockmap',
+    'dist/*.flatpak',
+    'dist/*.AppImage',
   ]);
 
 const releaseDevelopment = async (commitSha: string) => {

@@ -1,4 +1,5 @@
 import path from 'path';
+import process from 'process';
 
 import type { Event, WebContents } from 'electron';
 import {
@@ -41,8 +42,11 @@ export const startVideoCallWindowHandler = (): void => {
   handle(
     'video-call-window/screen-recording-is-permission-granted',
     async () => {
-      const permission = systemPreferences.getMediaAccessStatus('screen');
-      return permission === 'granted';
+      if (process.platform === 'darwin') {
+        const permission = systemPreferences.getMediaAccessStatus('screen');
+        return permission === 'granted';
+      }
+      return true;
     }
   );
 

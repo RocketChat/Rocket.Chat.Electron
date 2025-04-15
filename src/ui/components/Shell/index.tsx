@@ -51,7 +51,6 @@ export const Shell = () => {
 
   useEffect(() => {
     if (selectedServer) {
-      console.log(selectedServer.themeAppearance);
       if (selectedServer.themeAppearance === 'auto') {
         setCurrentTheme(machineTheme as Themes);
       } else {

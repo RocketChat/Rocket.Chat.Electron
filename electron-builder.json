@@ -124,6 +124,11 @@
     },
     "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
   },
+  "deb": {
+    "fpm": [
+      "--after-install=build/linux/postinst.sh"
+    ]
+  },
   "rpm": {
     "fpm": ["--rpm-rpmbuild-define=_build_id_links none"]
   },

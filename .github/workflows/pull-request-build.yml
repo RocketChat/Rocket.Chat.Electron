@@ -80,7 +80,28 @@ jobs:
 
       - name: Build Ubuntu Package
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: yarn electron-builder --publish never --linux snap
+        run: yarn electron-builder --publish never --linux snap deb
+
+      - name: Find Snap File
+        id: find_snap
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          SNAP_FILE=$(find dist/ -maxdepth 1 -name 'rocketchat-*.snap' -print -quit)
+          if [ -z "$SNAP_FILE" ]; then
+            echo "::error::Snap file not found in dist/"
+            exit 1
+          fi
+          echo "Found snap file: $SNAP_FILE"
+          echo "SNAP_FILE_PATH=$SNAP_FILE" >> $GITHUB_OUTPUT
+
+      - name: Publish to Snap Store (Edge)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.find_snap.outputs.SNAP_FILE_PATH }}
+          release: edge
 
       - name: Find Snap File
         id: find_snap
@@ -143,7 +164,8 @@ jobs:
             --acl public-read \
             --endpoint-url=https://s3.us-east-1.wasabisys.com \
             --exclude "*" \
-            --include "rocketchat-*.snap"
+            --include "rocketchat-*.snap" \
+            --include "rocketchat-*.deb"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.WASABI_SECRET_ACCESS_KEY }}
@@ -158,7 +180,7 @@ jobs:
             const path = require('path');
             const distDir = path.join(process.cwd(), 'dist');
             const files = fs.readdirSync(distDir);
-            const patterns = [/rocketchat-.*\.dmg$/, /rocketchat-.*\.pkg$/, /rocketchat-.*\.exe$/, /rocketchat-.*\.snap$/];
+            const patterns = [/rocketchat-.*\.dmg$/, /rocketchat-.*\.pkg$/, /rocketchat-.*\.exe$/, /rocketchat-.*\.snap$/, /rocketchat-.*\.deb$/];
             let artifactUrls = '';
             for (const file of files) {
               if (patterns.some(pattern => pattern.test(file))) {

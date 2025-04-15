@@ -41470,7 +41470,7 @@ var linux_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _ar
 const setupSnapcraft = () => core.group('Setup Snapcraft', () => linux_awaiter(void 0, void 0, void 0, function* () {
     yield run(`sudo snap install snapcraft --classic --channel stable`);
 }));
-const packOnLinux = () => runElectronBuilder(`--linux tar.gz deb rpm snap AppImage flatpak`);
+const packOnLinux = () => runElectronBuilder(`--linux tar.gz deb rpm snap AppImage`);
 const snapChannels = (/* unused pure expression or super */ null && (['edge', 'beta', 'candidate', 'stable']));
 const uploadSnap = (snapFilePath, level) => linux_awaiter(void 0, void 0, void 0, function* () {
     const channels = snapChannels.slice(0, snapChannels.indexOf(level) + 1);
@@ -41564,7 +41564,6 @@ const getFilesToUpload = () => out_default()([
     'dist/*.msi',
     'dist/*.exe',
     'dist/*.exe.blockmap',
-    'dist/*.flatpak',
     'dist/*.AppImage',
 ]);
 const releaseDevelopment = (commitSha) => src_awaiter(void 0, void 0, void 0, function* () {

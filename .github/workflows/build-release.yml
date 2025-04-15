@@ -45,6 +45,17 @@ jobs:
       - name: Install package dependencies
         run: yarn install
 
+      - name: Install AppImage and Flatpak dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            fuse \
+            xz-utils \
+            libarchive-tools \
+            flatpak \
+            squashfs-tools
+
       - name: Lint
         run: yarn lint
 

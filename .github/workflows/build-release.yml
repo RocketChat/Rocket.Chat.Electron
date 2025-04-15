@@ -53,6 +53,7 @@ jobs:
             xz-utils \
             libarchive-tools \
             flatpak \
+            flatpak-builder \
             squashfs-tools
 
       - name: Lint

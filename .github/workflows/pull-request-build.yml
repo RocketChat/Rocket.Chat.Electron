@@ -82,6 +82,27 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: yarn electron-builder --publish never --linux snap
 
+      - name: Find Snap File
+        id: find_snap
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          SNAP_FILE=$(find dist/ -maxdepth 1 -name 'rocketchat-*.snap' -print -quit)
+          if [ -z "$SNAP_FILE" ]; then
+            echo "::error::Snap file not found in dist/"
+            exit 1
+          fi
+          echo "Found snap file: $SNAP_FILE"
+          echo "SNAP_FILE_PATH=$SNAP_FILE" >> $GITHUB_OUTPUT
+
+      - name: Publish to Snap Store (Edge)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.find_snap.outputs.SNAP_FILE_PATH }}
+          release: edge
+
       # Install AWS CLI
       - name: Install AWS CLI
         run: pip install awscli

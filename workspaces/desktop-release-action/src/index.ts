@@ -55,7 +55,6 @@ const getFilesToUpload = () =>
     'dist/*.msi',
     'dist/*.exe',
     'dist/*.exe.blockmap',
-    'dist/*.flatpak',
     'dist/*.AppImage',
   ]);
 

@@ -45,16 +45,13 @@ jobs:
       - name: Install package dependencies
         run: yarn install
 
-      - name: Install AppImage and Flatpak dependencies
+      - name: Setup Flatpak environment
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            xz-utils \
-            libarchive-tools \
-            flatpak \
-            flatpak-builder \
-            squashfs-tools
+          sudo apt-get install -y xz-utils libarchive-tools flatpak flatpak-builder squashfs-tools
+          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y flathub org.freedesktop.Platform//22.08 org.freedesktop.Sdk//22.08
 
       - name: Lint
         run: yarn lint

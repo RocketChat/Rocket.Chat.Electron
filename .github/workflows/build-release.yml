@@ -51,20 +51,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y xz-utils libarchive-tools squashfs-tools
 
-      - name: Install Flatpak
+      - name: Setup Flatpak
         if: runner.os == 'Linux'
         run: |
           sudo apt-get install -y flatpak flatpak-builder
-          sudo flatpak --system remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y flathub org.freedesktop.Platform//22.08 org.freedesktop.Sdk//22.08
+          sudo flatpak install -y flathub org.electronjs.Electron2.BaseApp//22.08
 
-      - name: Setup Flatpak runtimes
+      - name: Configure Flatpak
         if: runner.os == 'Linux'
         run: |
-          # Try newer runtime version
-          sudo flatpak install -y flathub org.freedesktop.Platform//23.08 org.freedesktop.Sdk//23.08
-          # Setting debug environment variables
-          echo "BUILDER_DEBUG=1" >> $GITHUB_ENV
-          echo "DEBUG=electron-builder,flatpak-bundler:*" >> $GITHUB_ENV
+          mkdir -p ~/.cache/electron-builder/flatpak-template
+          mkdir -p ~/.config/electron-builder
+          # Add debug for electron-builder
+          echo "ELECTRON_BUILDER_DEBUG=true" >> $GITHUB_ENV
 
       - name: Lint
         run: yarn lint

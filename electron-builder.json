@@ -6,10 +6,6 @@
     "name": "Rocket.Chat",
     "schemes": ["rocketchat"]
   },
-  "electronFuses": {
-    "enableEmbeddedAsarIntegrityValidation": true,
-    "onlyLoadAppFromAsar": true
-  },
   "mac": {
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],

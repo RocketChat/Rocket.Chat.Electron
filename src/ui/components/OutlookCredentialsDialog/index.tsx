@@ -170,7 +170,7 @@ export const OutlookCredentialsDialog = () => {
             </Callout>
           )}
           <Field>
-            <FieldRow>
+            <FieldRow justifyContent='initial'>
               <Controller
                 control={control}
                 name='rememberCredentials'
@@ -183,7 +183,7 @@ export const OutlookCredentialsDialog = () => {
                   />
                 )}
               />
-              <FieldLabel htmlFor='check-box'>
+              <FieldLabel mis={4} htmlFor='check-box'>
                 {t('dialog.outlookCalendar.remember_credentials')}
               </FieldLabel>
             </FieldRow>

@@ -68,10 +68,12 @@
       }
     ],
     "icon": "build/icon.ico",
+    "publisherName": "Rocket.Chat Technologies Corp.",
     "legalTrademarks": "",
     "verifyUpdateCodeSignature": true,
     "requestedExecutionLevel": "asInvoker",
     "signAndEditExecutable": true,
+    "signDlls": false,
     "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
   },
   "nsis": {
@@ -109,6 +111,8 @@
     "executableName": "rocketchat-desktop",
     "category": "GNOME;GTK;Network;InstantMessaging",
     "desktop": {
+      "StartupWMClass": "Rocket.Chat",
+      "MimeType": "x-scheme-handler/rocketchat",
       "entry": {
         "Name": "Rocket.Chat",
         "Comment": "Official Rocket.Chat Desktop Client",

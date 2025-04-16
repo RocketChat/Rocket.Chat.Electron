@@ -45,15 +45,11 @@ jobs:
       - name: Install package dependencies
         run: yarn install
 
-      - name: Install AppImage and Flatpak dependencies
+      - name: Install build dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            xz-utils \
-            libarchive-tools \
-            flatpak \
-            squashfs-tools
+          sudo apt-get install -y xz-utils libarchive-tools squashfs-tools
 
       - name: Lint
         run: yarn lint
@@ -77,3 +73,5 @@ jobs:
           win_csc_link: ${{ secrets.WIN_CSC_LINK }}
           win_csc_key_password: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
           github_token: ${{ secrets.GH_TOKEN }}
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}

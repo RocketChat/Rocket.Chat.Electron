@@ -41297,7 +41297,7 @@ var external_fs_ = __nccwpck_require__(7147);
 // EXTERNAL MODULE: external "path"
 var external_path_ = __nccwpck_require__(1017);
 // EXTERNAL MODULE: ../../node_modules/@actions/core/lib/core.js
-var lib_core = __nccwpck_require__(7117);
+var core = __nccwpck_require__(7117);
 // EXTERNAL MODULE: ../../node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(4005);
 // EXTERNAL MODULE: ../../node_modules/fast-glob/out/index.js
@@ -41319,7 +41319,7 @@ const mergeEnv = (env) => {
     }
     return env;
 };
-const shell_run = (command, env) => lib_core.group(`$ ${command}`, () => new Promise((resolve, reject) => {
+const run = (command, env) => core.group(`$ ${command}`, () => new Promise((resolve, reject) => {
     const p = (0,external_child_process_namespaceObject.spawn)(command, {
         env: mergeEnv(env),
         shell: true,
@@ -41350,7 +41350,7 @@ const runAndBuffer = (command, env) => new Promise((resolve, reject) => {
         reject(new Error(`process failed (exitCode=${exitCode})`));
     });
 });
-const runElectronBuilder = (args, env) => shell_run(`yarn electron-builder --publish never ${args}`, env);
+const runElectronBuilder = (args, env) => run(`yarn electron-builder --publish never ${args}`, env);
 
 ;// CONCATENATED MODULE: ./src/github.ts
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -41373,10 +41373,10 @@ var __asyncValues = (undefined && undefined.__asyncValues) || function (o) {
 
 
 const getRepoParams = () => ({
-    owner: lib_core.getInput('repository_owner') || github.context.repo.owner,
-    repo: lib_core.getInput('repository_name') || github.context.repo.repo,
+    owner: core.getInput('repository_owner') || github.context.repo.owner,
+    repo: core.getInput('repository_name') || github.context.repo.repo,
 });
-const octokit = github.getOctokit(lib_core.getInput('github_token'));
+const octokit = github.getOctokit(core.getInput('github_token'));
 const findRelease = (filter) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, e_1, _b, _c;
     const releasesPages = octokit.paginate.iterator('GET /repos/{owner}/{repo}/releases', Object.assign({}, getRepoParams()));
@@ -41438,10 +41438,10 @@ const getReleaseAssets = (releaseId) => __awaiter(void 0, void 0, void 0, functi
 const overrideAsset = (release, assets, name, size, data) => __awaiter(void 0, void 0, void 0, function* () {
     const asset = assets.find((asset) => asset.name === name);
     if (asset) {
-        lib_core.info(`deleting existing asset ${name}`);
+        core.info(`deleting existing asset ${name}`);
         yield octokit.request('DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}', Object.assign(Object.assign({}, getRepoParams()), { asset_id: asset.id }));
     }
-    lib_core.info(`uploading asset ${name}`);
+    core.info(`uploading asset ${name}`);
     yield octokit.request({
         method: 'POST',
         url: release.upload_url,
@@ -41470,8 +41470,8 @@ var linux_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _ar
 const setupSnapcraft = () => core.group('Setup Snapcraft', () => linux_awaiter(void 0, void 0, void 0, function* () {
     yield run(`sudo snap install snapcraft --classic --channel stable`);
 }));
-const packOnLinux = () => runElectronBuilder(`--linux tar.gz deb rpm snap AppImage flatpak`);
-const snapChannels = (/* unused pure expression or super */ null && (['edge', 'beta', 'candidate', 'stable']));
+const packOnLinux = () => runElectronBuilder(`--linux tar.gz deb rpm snap AppImage`);
+const snapChannels = ['edge', 'beta', 'candidate', 'stable'];
 const uploadSnap = (snapFilePath, level) => linux_awaiter(void 0, void 0, void 0, function* () {
     const channels = snapChannels.slice(0, snapChannels.indexOf(level) + 1);
     for (const channel of channels) {
@@ -41482,14 +41482,14 @@ const uploadSnap = (snapFilePath, level) => linux_awaiter(void 0, void 0, void 0
 ;// CONCATENATED MODULE: ./src/macos.ts
 
 
-const disableSpotlightIndexing = () => lib_core.group('Disable Spotlight indexing (to avoid errors of DMG generation)', () => shell_run(`sudo mdutil -a -i off`));
+const disableSpotlightIndexing = () => core.group('Disable Spotlight indexing (to avoid errors of DMG generation)', () => run(`sudo mdutil -a -i off`));
 const packOnMacOS = () => runElectronBuilder(`--mac --universal`, {
-    CSC_LINK: lib_core.getInput('mac_csc_link'),
-    CSC_KEY_PASSWORD: lib_core.getInput('mac_csc_key_password'),
+    CSC_LINK: core.getInput('mac_csc_link'),
+    CSC_KEY_PASSWORD: core.getInput('mac_csc_key_password'),
     FORCE_NOTARIZE: 'true',
-    APPLEID: lib_core.getInput('mac_apple_id'),
-    APPLEIDPASS: lib_core.getInput('mac_apple_id_password'),
-    ASC_PROVIDER: lib_core.getInput('mac_asc_provider'),
+    APPLEID: core.getInput('mac_apple_id'),
+    APPLEIDPASS: core.getInput('mac_apple_id_password'),
+    ASC_PROVIDER: core.getInput('mac_asc_provider'),
 });
 
 ;// CONCATENATED MODULE: ./src/windows.ts
@@ -41505,11 +41505,11 @@ var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
 
 
 const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* () {
-    yield runElectronBuilder(`--x64 --ia32 --win nsis msi`, {
-        CSC_LINK: lib_core.getInput('win_csc_link'),
-        CSC_KEY_PASSWORD: lib_core.getInput('win_csc_key_password'),
+    yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis msi`, {
+        CSC_LINK: core.getInput('win_csc_link'),
+        CSC_KEY_PASSWORD: core.getInput('win_csc_key_password'),
     });
-    yield runElectronBuilder(`--x64 --ia32 --win appx`);
+    yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`);
 });
 
 ;// CONCATENATED MODULE: ./src/index.ts
@@ -41535,7 +41535,7 @@ var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argu
 const pack = () => src_awaiter(void 0, void 0, void 0, function* () {
     switch (process.platform) {
         case 'linux':
-            // await setupSnapcraft();
+            yield setupSnapcraft();
             yield packOnLinux();
             break;
         case 'darwin':
@@ -41564,7 +41564,6 @@ const getFilesToUpload = () => out_default()([
     'dist/*.msi',
     'dist/*.exe',
     'dist/*.exe.blockmap',
-    'dist/*.flatpak',
     'dist/*.AppImage',
 ]);
 const releaseDevelopment = (commitSha) => src_awaiter(void 0, void 0, void 0, function* () {
@@ -41573,13 +41572,13 @@ const releaseDevelopment = (commitSha) => src_awaiter(void 0, void 0, void 0, fu
     const assets = yield getReleaseAssets(release.id);
     for (const path of yield getFilesToUpload()) {
         const name = (0,external_path_.basename)(path);
-        // const extension = extname(path).toLowerCase();
+        const extension = (0,external_path_.extname)(path).toLowerCase();
         const { size } = yield external_fs_.promises.stat(path);
         const data = yield external_fs_.promises.readFile(path);
         yield overrideAsset(release, assets, name, size, data);
-        // if (extension === '.snap') {
-        //   await uploadSnap(path, 'edge');
-        // }
+        if (extension === '.snap') {
+            yield uploadSnap(path, 'edge');
+        }
     }
 });
 const releaseSnapshot = (commitSha) => src_awaiter(void 0, void 0, void 0, function* () {
@@ -41588,13 +41587,13 @@ const releaseSnapshot = (commitSha) => src_awaiter(void 0, void 0, void 0, funct
     const assets = yield getReleaseAssets(release.id);
     for (const path of yield getFilesToUpload()) {
         const name = (0,external_path_.basename)(path);
-        // const extension = extname(path).toLowerCase();
+        const extension = (0,external_path_.extname)(path).toLowerCase();
         const { size } = yield external_fs_.promises.stat(path);
         const data = yield external_fs_.promises.readFile(path);
         yield overrideAsset(release, assets, name, size, data);
-        // if (extension === '.snap') {
-        //   await uploadSnap(path, 'edge');
-        // }
+        if (extension === '.snap') {
+            yield uploadSnap(path, 'edge');
+        }
     }
 });
 const releaseTagged = (version, commitSha) => src_awaiter(void 0, void 0, void 0, function* () {
@@ -41606,35 +41605,32 @@ const releaseTagged = (version, commitSha) => src_awaiter(void 0, void 0, void 0
     const assets = yield getReleaseAssets(release.id);
     for (const path of yield getFilesToUpload()) {
         const name = (0,external_path_.basename)(path);
-        // const extension = extname(path).toLowerCase();
+        const extension = (0,external_path_.extname)(path).toLowerCase();
         const { size } = yield external_fs_.promises.stat(path);
         const data = yield external_fs_.promises.readFile(path);
         yield overrideAsset(release, assets, name, size, data);
-        // if (extension === '.snap') {
-        //   await uploadSnap(
-        //     path,
-        //     (!version.prerelease && 'stable') ||
-        //       (version.prerelease[0] === 'candidate' && 'candidate') ||
-        //       (version.prerelease[0] === 'beta' && 'beta') ||
-        //       'edge'
-        //   );
-        // }
+        if (extension === '.snap') {
+            yield uploadSnap(path, (!version.prerelease && 'stable') ||
+                (version.prerelease[0] === 'candidate' && 'candidate') ||
+                (version.prerelease[0] === 'beta' && 'beta') ||
+                'edge');
+        }
     }
 });
 const start = () => src_awaiter(void 0, void 0, void 0, function* () {
     if (github.context.eventName !== 'push') {
-        lib_core.warning(`this action should be used in push events (eventName="${github.context.eventName}")`);
+        core.warning(`this action should be used in push events (eventName="${github.context.eventName}")`);
         return;
     }
     const payload = github.context.payload;
-    const ref = lib_core.getInput('ref') || payload.ref;
+    const ref = core.getInput('ref') || payload.ref;
     if (ref === 'refs/heads/develop') {
-        lib_core.info(`push event on develop branch detected, performing development release`);
+        core.info(`push event on develop branch detected, performing development release`);
         yield releaseDevelopment(payload.after);
         return;
     }
     if (ref === 'refs/heads/master') {
-        lib_core.info(`push event on master branch detected, performing snapshot release`);
+        core.info(`push event on master branch detected, performing snapshot release`);
         yield releaseSnapshot(payload.after);
         return;
     }
@@ -41642,18 +41638,18 @@ const start = () => src_awaiter(void 0, void 0, void 0, function* () {
         const tag = ref.slice('refs/tags/'.length);
         const version = (0,semver.parse)(tag);
         if (version) {
-            lib_core.info(`push event with tag detected (tag="${version.version}"), performing tagged release`);
+            core.info(`push event with tag detected (tag="${version.version}"), performing tagged release`);
             yield releaseTagged(version, payload.after);
             return;
         }
-        lib_core.info(`push event with non-semantic tag detected (tag="${tag}"), performing snapshot release`);
+        core.info(`push event with non-semantic tag detected (tag="${tag}"), performing snapshot release`);
         yield releaseSnapshot(payload.after);
         return;
     }
-    lib_core.warning(`push event without relevant ref (ref="${ref}"), skipping release`);
+    core.warning(`push event without relevant ref (ref="${ref}"), skipping release`);
 });
 start().catch((error) => {
-    lib_core.setFailed(error === null || error === void 0 ? void 0 : error.message);
+    core.setFailed(error === null || error === void 0 ? void 0 : error.message);
 });
 
 })();

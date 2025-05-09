@@ -18,6 +18,7 @@ export const ServersView = () => {
           title={server.title}
           documentViewerOpenUrl={server.documentViewerOpenUrl}
           themeAppearance={server.themeAppearance}
+          userLoggedIn={server.userLoggedIn}
         />
       ))}
     </ReparentingContainer>

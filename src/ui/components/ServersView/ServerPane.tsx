@@ -24,6 +24,7 @@ type ServerPaneProps = {
   title: string | undefined;
   documentViewerOpenUrl: string | undefined;
   themeAppearance: string | undefined;
+  userLoggedIn?: boolean;
 };
 
 export const ServerPane = ({
@@ -34,6 +35,7 @@ export const ServerPane = ({
   isSupported,
   documentViewerOpenUrl,
   themeAppearance,
+  userLoggedIn,
 }: ServerPaneProps) => {
   const dispatch = useDispatch<Dispatch<RootAction>>();
 
@@ -140,10 +142,12 @@ export const ServerPane = ({
       return;
     }
 
-    if (!webview.src) {
+    const shouldLoad = isSelected || userLoggedIn !== false;
+
+    if (!webview.src && shouldLoad) {
       webview.src = lastPath || serverUrl;
     }
-  }, [lastPath, serverUrl]);
+  }, [lastPath, serverUrl, isSelected, userLoggedIn]);
 
   useEffect(() => {
     const webview = webviewRef.current;

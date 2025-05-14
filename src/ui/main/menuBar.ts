@@ -374,7 +374,7 @@ const createViewMenu = createSelector(
       {
         id: 'zoomIn',
         label: t('menus.zoomIn'),
-        accelerator: 'CommandOrControl+Plus',
+        accelerator: 'CommandOrControl+=',
         click: async () => {
           const guestWebContents = await getCurrentViewWebcontents();
           if (!guestWebContents) {
@@ -384,7 +384,7 @@ const createViewMenu = createSelector(
           if (zoomLevel >= 9) {
             return;
           }
-
+      
           guestWebContents.setZoomLevel(zoomLevel + 1);
         },
       },
@@ -401,7 +401,7 @@ const createViewMenu = createSelector(
           if (zoomLevel <= -9) {
             return;
           }
-
+      
           guestWebContents.setZoomLevel(zoomLevel - 1);
         },
       },

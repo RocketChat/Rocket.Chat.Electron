@@ -1,9 +1,7 @@
 # Rocket.Chat Desktop App
 
-[![Travis CI Build Status](https://img.shields.io/travis/RocketChat/Rocket.Chat.Electron/master.svg?logo=travis)](https://travis-ci.org/RocketChat/Rocket.Chat.Electron)
 [![AppVeyor Build Status](https://img.shields.io/appveyor/ci/RocketChat/rocket-chat-electron/master.svg?logo=appveyor)](https://ci.appveyor.com/project/RocketChat/rocket-chat-electron)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3a87141c0a4442809d9a2bff455e3102)](https://www.codacy.com/app/tassoevan/Rocket.Chat.Electron?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RocketChat/Rocket.Chat.Electron&amp;utm_campaign=Badge_Grade)
-[![Project Dependencies](https://david-dm.org/RocketChat/Rocket.Chat.Electron.svg)](https://david-dm.org/RocketChat/Rocket.Chat.Electron)
+![Project Dependencies](https://img.shields.io/librariesio/github/RocketChat/Rocket.Chat.Electron)
 [![GitHub All Releases](https://img.shields.io/github/downloads/RocketChat/Rocket.Chat.Electron/total.svg)](https://github.com/RocketChat/Rocket.Chat.Electron/releases/latest)
 ![GitHub](https://img.shields.io/github/license/RocketChat/Rocket.Chat.Electron.svg)
 
@@ -30,7 +28,15 @@ releases, company related topics, events and use cases. [Sign Up!][]
 
 You can download the latest version from the [Releases][] page.
 
-[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/rocketchat-desktop)
+<div style="width: 100%">
+	<a href='https://snapcraft.io/rocketchat-desktop'>
+		<img width='200' alt='Get it on the Snap Store' src='https://snapcraft.io/static/images/badges/en/snap-store-black.svg'/>
+	</a>
+	&ensp;
+	<a href='https://flathub.org/apps/chat.rocket.RocketChat'>
+		<img width='200' alt='Get it on Flathub' src='https://flathub.org/api/badge'/>
+	</a>
+</div>
 
 ## Install
 

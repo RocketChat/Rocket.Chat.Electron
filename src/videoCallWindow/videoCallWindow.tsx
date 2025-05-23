@@ -16,13 +16,33 @@ function VideoCallWindow() {
     ipcRenderer.once(
       'video-call-window/open-url',
       async (_event, url: string) => {
-        console.log('videoCallWindow/open-url', url);
         setVideoCallUrl(url);
       }
     );
 
     return () => {};
   }, []);
+
+  useEffect(() => {
+    const webview = webviewRef.current as any;
+    if (!webview) return;
+
+    const checkForClosePage = (url: string) => {
+      if (url.includes('close')) {
+        ipcRenderer.invoke('video-call-window/close-requested');
+      }
+    };
+
+    const handleNavigate = (event: any) => {
+      checkForClosePage(event.url);
+    };
+
+    webview.addEventListener('did-navigate', handleNavigate);
+
+    return () => {
+      webview.removeEventListener('did-navigate', handleNavigate);
+    };
+  }, [videoCallUrl]);
 
   return (
     <Box>

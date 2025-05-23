@@ -28,7 +28,7 @@ function VideoCallWindow() {
     if (!webview) return;
 
     const checkForClosePage = (url: string) => {
-      if (url.includes('close')) {
+      if (url.includes('/close.html') || url.includes('/close2.html')) {
         ipcRenderer.invoke('video-call-window/close-requested');
       }
     };

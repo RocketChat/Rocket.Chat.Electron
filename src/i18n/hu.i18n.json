@@ -28,19 +28,28 @@
     },
     "addServer": {
       "title": "Kiszolgáló hozzáadása",
-      "message": "Szeretné hozzáadni a(z) \"{{- host}}\" kiszolgálót a kiszolgálólistájához?",
+      "message": "Szeretné hozzáadni a(z) „{{- host}}” kiszolgálót a kiszolgálólistájához?",
       "add": "Hozzáadás",
       "cancel": "Mégse"
     },
     "addServerError": {
       "title": "Érvénytelen kiszolgáló",
-      "message": "A(z) \"{{- host}}\" kiszolgálót nem sikerült ellenőrizni, ezért nem lett hozzáadva."
+      "message": "A(z) „{{- host}}” kiszolgálót nem sikerült ellenőrizni, ezért nem lett hozzáadva."
     },
     "certificateError": {
       "title": "Tanúsítványhiba",
-      "message": "Megbízik a(z) \"{{- issuerName}}\" által kiadott tanúsítványban?",
+      "message": "Megbízik a(z) „{{- issuerName}}” kibocsátótól származó tanúsítványban? Csak akkor kattintson az „Igen” gombra, ha valóban megbízik ebben a tanúsítványban. Ha bizonytalan, akkor vegye fel a kapcsolatot az informatikai vagy biztonsági csapatával, mielőtt az „Igen” gombra kattint.",
       "yes": "Igen",
       "no": "Nem"
+    },
+    "clearCache": {
+      "announcement": "Kényszerített újratöltés",
+      "title": "Megtartja a bejelentkezési munkamenetét?",
+      "message": "A bejelentkezési munkamenetének törlésével ki lesz léptetve, és a hitelesítési adatai újbóli megadására fogják kérni.",
+      "keepLoginData": "Bejelentkezési munkamenet megtartása",
+      "deleteLoginData": "Bejelentkezési munkamenet törlése",
+      "clearingWait": "Kis türelmet",
+      "cancel": "Mégse"
     },
     "downloadRemoval": {
       "title": "Biztos benne?",
@@ -203,9 +212,9 @@
         "description": "Engedélyezi a hardveres gyorsítás használatát, ha elérhető. Az alkalmazás újratöltődik a megváltoztatásakor."
       },
       "internalVideoChatWindow": {
-        "title": "Videocsevegés megnyitása alkalmazásablak használatával",
-        "description": "Ha engedélyezve van, a videocsevegés az alkalmazás ablakában nyílik meg az alapértelmezett böngésző helyett. Azonban a <strong>Google Meet</strong> és a <strong>Jitsi</strong> esetében a képernyőrögzítés nem támogatott az Electron alkalmazásokban, így ezek mindig a böngészőben fognak megnyílni, függetlenül ettől a beállítástól.",
-        "masDescription": "Ez a beállítás a Mac alkalmazásboltból történő telepítéskor le van tiltva. Biztonsági okokból a videocsevegést alapértelmezetten a böngésző használatával fogja megnyitni."
+        "title": "Videocsevegés megnyitása az alkalmazásablakban",
+        "description": "Ha engedélyezve van, akkor a videócsevegés az alkalmazás ablakában nyílik meg az alapértelmezett böngésző helyett. Azonban a <strong>Google Meet</strong> és a <strong>Jitsi</strong> esetében a képernyő rögzítése nem támogatott az Electron alkalmazásokban, így azok ettől a beállítástól függetlenül mindig a böngészőben nyílnak meg.",
+        "masDescription": "Ez a beállítás le van tiltva a Mac App Store-ból történő telepítéskor. Biztonsági okokból a videócsevegés alapértelmezetten mindig a böngészőben nyílik meg."
       },
       "minimizeOnClose": {
         "title": "Kis méret bezáráskor",
@@ -225,10 +234,10 @@
       },
       "availableBrowsers": {
         "title": "Alapértelmezett böngésző",
-        "description": "Válassza ki, melyik böngésző nyitja meg az alkalmazásból származó külső hivatkozásokat. A Rendszer alapértelmezett az operációs rendszer beállításait használja.",
-        "systemDefault": "Rendszer alapértelmezett",
-        "loading": "Böngészők betöltése...",
-        "current": "Jelenleg használatban:"
+        "description": "Annak kiválasztása, hogy melyik böngésző nyissa meg a külső hivatkozásokat az alkalmazásból. A rendszer alapértelmezettje az operációs rendszer beállításait használja.",
+        "systemDefault": "Rendszer alapértelmezettje",
+        "loading": "Böngészők betöltése…",
+        "current": "Jelenleg használt:"
       },
       "clearPermittedScreenCaptureServers": {
         "title": "Képernyőfelvételi engedélyek törlése",
@@ -240,12 +249,12 @@
       },
       "ntlmCredentials": {
         "title": "NTLM hitelesítési adatok",
-        "description": "NTLM hitelesítési adatok használatának engedélyezése szerverhez való csatlakozáskor.",
-        "domains": "Domének, amelyek használni fogják a hitelesítési adatokat. Vesszővel elválasztva. Használja a * jelet az összes domén egyeztetéséhez."
+        "description": "Egy kiszolgálóhoz való kapcsolódáskor használandó NTLM hitelesítési adatok engedélyezése.",
+        "domains": "A hitelesítési adatokat használó tartományok, vesszővel elválasztva. Használjon * karaktert az összes tartományra való illesztéshez."
       },
       "videoCallWindowPersistence": {
-        "title": "Videohívás ablak pozíciójának megjegyzése",
-        "description": "Videohívás ablakok pozíciójának és méretének mentése és visszaállítása a munkamenetek között"
+        "title": "A videohívás-ablak pozíciójának megjegyzése",
+        "description": "A videohívás-ablakok pozíciójának és méretének mentése és helyreállítása a munkamenetek között"
       }
     }
   },
@@ -280,7 +289,7 @@
     "helpMenu": "&Súgó",
     "hide": "A {{- appName}} elrejtése",
     "hideOthers": "Egyebek elrejtése",
-    "learnMore": "További információk",
+    "learnMore": "Tudjon meg többet",
     "minimize": "Kis méret",
     "openDevTools": "&Fejlesztői eszközök megnyitása",
     "openDevToolsOnAllWindows": "&Fejlesztői eszközök megnyitása az összes ablakban",
@@ -288,6 +297,7 @@
     "quit": "&Kilépés a {{- appName}} programból",
     "redo": "&Ismétlés",
     "reload": "Új&ratöltés",
+    "reloadClearingCache": "Kényszerített újratöltés",
     "reportIssue": "Probléma jelentése",
     "resetAppData": "Alkalmazásadatok visszaállítása",
     "resetZoom": "Nagyítás visszaállítása",
@@ -299,6 +309,7 @@
     "showServerList": "Kiszolgálólista",
     "showTrayIcon": "Tálcaikon",
     "toggleDevTools": "&Fejlesztői eszközök ki- és bekapcsolása",
+    "openConfigFolder": "&Beállítások mappa megnyitása",
     "undo": "&Visszavonás",
     "unhide": "Összes megjelenítése",
     "viewMenu": "&Nézet",
@@ -312,26 +323,35 @@
     "reload": "Újratöltés"
   },
   "unsupportedServer": {
-    "title": " {{instanceDomain}}a Rocket.Chat nem támogatott verzióját futtatja",
-    "announcement": "Az adminisztrátornak frissítenie kell ezt a munkaterületet egy támogatott verzióra, hogy visszaállítsa a hozzáférést az asztali és mobilalkalmazásokból.",
-    "moreInformation": "Tudjon meg többet"
+    "title": "A(z) {{instanceDomain}} a Rocket.Chat nem támogatott verzióját futtatja",
+    "announcement": "Egy rendszergazdának frissítenie kell a munkaterületet egy támogatott verzióra ahhoz, hogy újra engedélyezze a hozzáférést a mobil és asztali alkalmazásokból.",
+    "moreInformation": "További információk"
   },
   "selfxss": {
     "title": "Megállj!",
-    "description": "Ez a böngészőfunkció fejlesztők számára készült. Ha valaki azt mondja, hogy másoljon le és illesszen be valamit ide, azért hogy egy Rocket.Chat funkciót engedélyezzen vagy \"feltörje\" valaki más fiókját, akkor az átverés, és hozzáférést fog adni nekik az Ön Rocket.Chat fiókjához.",
+    "description": "Ez a böngészőfunkció fejlesztők számára készült. Ha valaki azt mondja, hogy másoljon le és illesszen be valamit ide, azért hogy egy Rocket.Chat funkciót engedélyezzen vagy „feltörje” valaki más fiókját, akkor az átverés, és hozzáférést fog adni nekik az Ön Rocket.Chat fiókjához.",
     "moreInfo": "További információkért nézze meg a https://go.rocket.chat/i/xss oldalt."
   },
   "sidebar": {
     "addNewServer": "Új kiszolgáló hozzáadása",
     "downloads": "Letöltések",
     "settings": "Beállítások",
+    "menuTitle": "Az alkalmazás személyre szabása és vezérlése",
     "item": {
-      "reload": "Kiszolgáló újratöltése",
-      "remove": "Kiszolgáló eltávolítása",
+      "reload": "Újratöltés",
+      "remove": "Eltávolítás",
       "openDevTools": "Fejlesztői eszközök megnyitása",
       "clearCache": "Gyorsítótár törlése",
       "clearStorageData": "Tárolóadatok törlése",
-      "copyCurrentUrl": "Jelenlegi URL másolása"
+      "copyCurrentUrl": "Jelenlegi URL másolása",
+      "reloadClearingCache": "Kényszerített újratöltés"
+    },
+    "tooltips": {
+      "unreadMessage": "{{- count}} olvasatlan üzenet",
+      "unreadMessages": "{{- count}} olvasatlan üzenet",
+      "userNotLoggedIn": "Nincs bejelentkezve",
+      "addWorkspace": "Munkaterület hozzáadása ({{shortcut}}+N)",
+      "settingsMenu": "Az alkalmazás személyre szabása és vezérlése"
     }
   },
   "touchBar": {
@@ -360,17 +380,17 @@
   "taskbar": {
     "unreadMessage": "Olvasatlan üzenetek",
     "unreadMention": "Olvasatlan említések",
-    "noUnreadMessage": "Nincs olvasatlan üzenet"
+    "noUnreadMessage": "Nincsenek olvasatlan üzenetek"
   },
   "screenSharing": {
-    "permissionDenied": "Képernyőfelvétel engedély megtagadva",
-    "permissionRequired": "Képernyőfelvétel engedély szükséges a képernyő megosztásához.",
-    "permissionInstructions": "Kérjük, engedélyezze a rendszerbeállításokban, majd próbálja újra.",
-    "title": "Képernyőmegosztás",
+    "permissionDenied": "A képernyő-rögzítési engedély megtagadva",
+    "permissionRequired": "Képernyő-rögzítési engedély szükséges a képernyő megosztásához.",
+    "permissionInstructions": "Engedélyezze a rendszerbeállításokban, és próbálja meg újra.",
+    "title": "Képernyő megosztása",
     "entireScreen": "Teljes képernyő",
-    "applicationWindow": "Alkalmazás ablak",
-    "noScreensFound": "Nem található képernyő",
-    "noWindowsFound": "Nem található ablak",
+    "applicationWindow": "Alkalmazásablak",
+    "noScreensFound": "Nem találhatók képernyők",
+    "noWindowsFound": "Nem találhatók ablakok",
     "cancel": "Mégse",
     "share": "Megosztás"
   }

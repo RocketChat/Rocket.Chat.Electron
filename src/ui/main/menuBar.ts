@@ -20,6 +20,7 @@ import {
   MENU_BAR_TOGGLE_IS_SHOW_WINDOW_ON_UNREAD_CHANGED_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
+  MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
   WEBVIEW_SERVER_RELOADED,
@@ -542,9 +543,14 @@ const createWindowMenu = createSelector(
   })
 );
 
+const selectHelpDeps = createStructuredSelector({
+  isDeveloperModeEnabled: ({ isDeveloperModeEnabled }: RootState) =>
+    isDeveloperModeEnabled,
+});
+
 const createHelpMenu = createSelector(
-  (_: RootState) => undefined,
-  (): MenuItemConstructorOptions => ({
+  selectHelpDeps,
+  ({ isDeveloperModeEnabled }): MenuItemConstructorOptions => ({
     id: 'helpMenu',
     label: t('menus.helpMenu'),
     role: 'help',
@@ -590,6 +596,24 @@ const createHelpMenu = createSelector(
           }
           browserWindow.focus();
           browserWindow.webContents.toggleDevTools();
+        },
+      },
+      {
+        id: 'developerMode',
+        type: 'checkbox',
+        label: t('menus.developerMode'),
+        checked: isDeveloperModeEnabled,
+        click: async ({ checked }) => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          dispatch({
+            type: MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED,
+            payload: checked,
+          });
         },
       },
       {

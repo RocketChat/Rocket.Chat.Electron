@@ -1,6 +1,6 @@
 {
   "contextMenu": {
-    "cut": "Cor&tar",
+    "cut": "Recor&tar",
     "copy": "&Copiar",
     "paste": "Co&lar",
     "selectAll": "&Selecionar tudo",
@@ -264,7 +264,8 @@
     "clearTrustedCertificates": "Limpar certificados confiáveis",
     "close": "Fechar",
     "copy": "&Copiar",
-    "cut": "Cor&tar",
+    "cut": "Recor&tar",
+    "developerMode": "Modo desenvolvedor",
     "disableGpu": "Desabilitar GPU",
     "documentation": "Documentação",
     "downloads": "Downloads",

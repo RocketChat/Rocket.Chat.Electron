@@ -279,6 +279,7 @@
     "close": "Close",
     "copy": "&Copy",
     "cut": "Cu&t",
+    "developerMode": "Developer Mode",
     "disableGpu": "Disable GPU",
     "documentation": "Documentation",
     "downloads": "Downloads",

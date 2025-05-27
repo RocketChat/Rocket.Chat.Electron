@@ -248,6 +248,7 @@
     "close": "Закрыть",
     "copy": "&Копировать",
     "cut": "В&ырезать",
+    "developerMode": "Режим разработчика",
     "disableGpu": "Отключить GPU",
     "documentation": "Документация",
     "downloads": "Загрузки",

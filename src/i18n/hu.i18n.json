@@ -270,6 +270,7 @@
     "close": "Bezárás",
     "copy": "&Másolás",
     "cut": "&Kivágás",
+    "developerMode": "Fejlesztői mód",
     "disableGpu": "GPU letiltása",
     "documentation": "Dokumentáció",
     "downloads": "Letöltések",

@@ -120,6 +120,7 @@
     "close": "關閉",
     "copy": "複製 (&C)",
     "cut": "剪下 (&T)",
+    "developerMode": "開發者模式",
     "documentation": "文件",
     "editMenu": "編輯 (&E)",
     "fileMenu": "檔案 (&F)",

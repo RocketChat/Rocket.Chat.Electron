@@ -18,6 +18,7 @@ import { availableBrowsers } from '../ui/reducers/availableBrowsers';
 import { currentView } from '../ui/reducers/currentView';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
+import { isDeveloperModeEnabled } from '../ui/reducers/isDeveloperModeEnabled';
 import { isFlashFrameEnabled } from '../ui/reducers/isFlashFrameEnabled';
 import { isHardwareAccelerationEnabled } from '../ui/reducers/isHardwareAccelerationEnabled';
 import { isInternalVideoChatWindowEnabled } from '../ui/reducers/isInternalVideoChatWindowEnabled';
@@ -90,6 +91,7 @@ export const rootReducer = combineReducers({
   isNTLMCredentialsEnabled,
   videoCallWindowState,
   isVideoCallWindowPersistenceEnabled,
+  isDeveloperModeEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

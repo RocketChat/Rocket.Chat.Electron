@@ -96,7 +96,7 @@ const ServerInfoDropdown = ({
 
   return (
     <Dropdown reference={reference} ref={target} placement='right-start'>
-      <Box width='300px'>
+      <Box width='400px'>
         <Box display='flex' className='rcx-option__title'>
           Server Information
         </Box>
@@ -109,9 +109,11 @@ const ServerInfoDropdown = ({
                 fontSize='x12'
                 color='hint'
                 style={{
-                  wordBreak: 'break-all',
+                  wordBreak: 'break-word',
                   overflowWrap: 'break-word',
                   whiteSpace: 'normal',
+                  lineHeight: '1.4',
+                  hyphens: 'auto',
                   maxWidth: '100%',
                 }}
               >
@@ -132,6 +134,8 @@ const ServerInfoDropdown = ({
                   wordBreak: 'break-word',
                   overflowWrap: 'break-word',
                   whiteSpace: 'normal',
+                  lineHeight: '1.4',
+                  hyphens: 'auto',
                   maxWidth: '100%',
                 }}
               >
@@ -165,6 +169,8 @@ const ServerInfoDropdown = ({
                       wordBreak: 'break-word',
                       overflowWrap: 'break-word',
                       whiteSpace: 'normal',
+                      lineHeight: '1.4',
+                      hyphens: 'auto',
                       maxWidth: '100%',
                     }}
                   >
@@ -190,6 +196,8 @@ const ServerInfoDropdown = ({
                       wordBreak: 'break-word',
                       overflowWrap: 'break-word',
                       whiteSpace: 'normal',
+                      lineHeight: '1.4',
+                      hyphens: 'auto',
                       maxWidth: '100%',
                     }}
                   >
@@ -216,6 +224,8 @@ const ServerInfoDropdown = ({
                                 wordBreak: 'break-word',
                                 overflowWrap: 'break-word',
                                 whiteSpace: 'normal',
+                                lineHeight: '1.4',
+                                hyphens: 'auto',
                                 maxWidth: '100%',
                               }}
                             >
@@ -228,6 +238,8 @@ const ServerInfoDropdown = ({
                                 wordBreak: 'break-word',
                                 overflowWrap: 'break-word',
                                 whiteSpace: 'normal',
+                                lineHeight: '1.4',
+                                hyphens: 'auto',
                                 maxWidth: '100%',
                               }}
                             >
@@ -247,6 +259,8 @@ const ServerInfoDropdown = ({
                             wordBreak: 'break-word',
                             overflowWrap: 'break-word',
                             whiteSpace: 'normal',
+                            lineHeight: '1.4',
+                            hyphens: 'auto',
                             maxWidth: '100%',
                           }}
                         >
@@ -264,6 +278,8 @@ const ServerInfoDropdown = ({
                         wordBreak: 'break-word',
                         overflowWrap: 'break-word',
                         whiteSpace: 'normal',
+                        lineHeight: '1.4',
+                        hyphens: 'auto',
                         maxWidth: '100%',
                       }}
                     >
@@ -285,6 +301,8 @@ const ServerInfoDropdown = ({
                         wordBreak: 'break-word',
                         overflowWrap: 'break-word',
                         whiteSpace: 'normal',
+                        lineHeight: '1.4',
+                        hyphens: 'auto',
                         maxWidth: '100%',
                       }}
                     >
@@ -304,6 +322,8 @@ const ServerInfoDropdown = ({
                               wordBreak: 'break-word',
                               overflowWrap: 'break-word',
                               whiteSpace: 'normal',
+                              lineHeight: '1.4',
+                              hyphens: 'auto',
                               maxWidth: '100%',
                             }}
                           >
@@ -316,6 +336,8 @@ const ServerInfoDropdown = ({
                               wordBreak: 'break-word',
                               overflowWrap: 'break-word',
                               whiteSpace: 'normal',
+                              lineHeight: '1.4',
+                              hyphens: 'auto',
                               maxWidth: '100%',
                             }}
                           >
@@ -329,6 +351,8 @@ const ServerInfoDropdown = ({
                               wordBreak: 'break-word',
                               overflowWrap: 'break-word',
                               whiteSpace: 'normal',
+                              lineHeight: '1.4',
+                              hyphens: 'auto',
                               maxWidth: '100%',
                             }}
                           >
@@ -344,6 +368,8 @@ const ServerInfoDropdown = ({
                         wordBreak: 'break-word',
                         overflowWrap: 'break-word',
                         whiteSpace: 'normal',
+                        lineHeight: '1.4',
+                        hyphens: 'auto',
                         maxWidth: '100%',
                       }}
                     >

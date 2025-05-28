@@ -345,7 +345,9 @@
       "clearCache": "Clear Cache",
       "clearStorageData": "Clear Storage Data",
       "copyCurrentUrl": "Copy current URL",
-      "reloadClearingCache": "Force reload"
+      "reloadClearingCache": "Force reload",
+      "serverInfo": "Server Info",
+      "supportedVersionsInfo": "Supported Versions Info"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} unread message",

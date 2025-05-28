@@ -102,10 +102,19 @@ const ServerInfoDropdown = ({
         </Box>
         <Option>
           <OptionIcon name='globe' />
-          <OptionContent>
+          <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
             <Box>
               <Box fontWeight='bold'>URL:</Box>
-              <Box fontSize='x12' color='hint'>
+              <Box
+                fontSize='x12'
+                color='hint'
+                style={{
+                  wordBreak: 'break-all',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  maxWidth: '100%',
+                }}
+              >
                 {url}
               </Box>
             </Box>
@@ -113,10 +122,19 @@ const ServerInfoDropdown = ({
         </Option>
         <Option>
           <OptionIcon name='info' />
-          <OptionContent>
+          <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
             <Box>
               <Box fontWeight='bold'>Version:</Box>
-              <Box fontSize='x12' color='hint'>
+              <Box
+                fontSize='x12'
+                color='hint'
+                style={{
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  maxWidth: '100%',
+                }}
+              >
                 {version || 'Unknown'}
               </Box>
             </Box>
@@ -138,10 +156,18 @@ const ServerInfoDropdown = ({
               <OptionIcon
                 name={expirationData?.message ? 'warning' : 'check'}
               />
-              <OptionContent>
+              <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
                 <Box>
                   <Box fontWeight='bold'>Supported:</Box>
-                  <Box fontSize='x12'>
+                  <Box
+                    fontSize='x12'
+                    style={{
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word',
+                      whiteSpace: 'normal',
+                      maxWidth: '100%',
+                    }}
+                  >
                     {(() => {
                       if (isSupportedVersion === undefined) return 'Unknown';
                       if (expirationData?.message) return 'Expiring';
@@ -154,10 +180,19 @@ const ServerInfoDropdown = ({
             </Option>
             <Option>
               <OptionIcon name='clock' />
-              <OptionContent>
+              <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
                 <Box>
                   <Box fontWeight='bold'>Timestamp:</Box>
-                  <Box fontSize='x12' color='hint'>
+                  <Box
+                    fontSize='x12'
+                    color='hint'
+                    style={{
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word',
+                      whiteSpace: 'normal',
+                      maxWidth: '100%',
+                    }}
+                  >
                     {new Date(supportedVersions.timestamp).toLocaleString()}
                   </Box>
                 </Box>
@@ -165,7 +200,7 @@ const ServerInfoDropdown = ({
             </Option>
             <Option>
               <OptionIcon name='warning' />
-              <OptionContent>
+              <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
                 <Box>
                   <Box fontWeight='bold'>Exceptions:</Box>
                   {supportedVersions.exceptions?.versions &&
@@ -176,8 +211,26 @@ const ServerInfoDropdown = ({
                         .slice(0, 3)
                         .map((version, index) => (
                           <Box key={index} marginInlineStart='x8'>
-                            <Box>• {version.version}</Box>
-                            <Box fontSize='x10' color='annotation'>
+                            <Box
+                              style={{
+                                wordBreak: 'break-word',
+                                overflowWrap: 'break-word',
+                                whiteSpace: 'normal',
+                                maxWidth: '100%',
+                              }}
+                            >
+                              • {version.version}
+                            </Box>
+                            <Box
+                              fontSize='x10'
+                              color='annotation'
+                              style={{
+                                wordBreak: 'break-word',
+                                overflowWrap: 'break-word',
+                                whiteSpace: 'normal',
+                                maxWidth: '100%',
+                              }}
+                            >
                               Expires:{' '}
                               {new Date(
                                 version.expiration
@@ -190,6 +243,12 @@ const ServerInfoDropdown = ({
                           fontSize='x10'
                           color='annotation'
                           marginInlineStart='x8'
+                          style={{
+                            wordBreak: 'break-word',
+                            overflowWrap: 'break-word',
+                            whiteSpace: 'normal',
+                            maxWidth: '100%',
+                          }}
                         >
                           ... and{' '}
                           {supportedVersions.exceptions.versions.length - 3}{' '}
@@ -198,7 +257,16 @@ const ServerInfoDropdown = ({
                       )}
                     </Box>
                   ) : (
-                    <Box fontSize='x12' color='hint'>
+                    <Box
+                      fontSize='x12'
+                      color='hint'
+                      style={{
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
+                        whiteSpace: 'normal',
+                        maxWidth: '100%',
+                      }}
+                    >
                       No version exceptions configured
                     </Box>
                   )}
@@ -208,10 +276,18 @@ const ServerInfoDropdown = ({
             {expirationData && (
               <Option variant={expirationData.message ? 'warning' : undefined}>
                 <OptionIcon name='calendar' />
-                <OptionContent>
+                <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
                   <Box>
                     <Box fontWeight='bold'>Expiration:</Box>
-                    <Box fontSize='x12'>
+                    <Box
+                      fontSize='x12'
+                      style={{
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
+                        whiteSpace: 'normal',
+                        maxWidth: '100%',
+                      }}
+                    >
                       Expires on{' '}
                       {new Date(expirationData.expiration).toLocaleDateString()}
                     </Box>
@@ -222,21 +298,55 @@ const ServerInfoDropdown = ({
                         marginBlockStart='x4'
                       >
                         {expirationData.message.title && (
-                          <Box fontWeight='bold'>
+                          <Box
+                            fontWeight='bold'
+                            style={{
+                              wordBreak: 'break-word',
+                              overflowWrap: 'break-word',
+                              whiteSpace: 'normal',
+                              maxWidth: '100%',
+                            }}
+                          >
                             {expirationData.message.title}
                           </Box>
                         )}
                         {expirationData.message.subtitle && (
-                          <Box>{expirationData.message.subtitle}</Box>
+                          <Box
+                            style={{
+                              wordBreak: 'break-word',
+                              overflowWrap: 'break-word',
+                              whiteSpace: 'normal',
+                              maxWidth: '100%',
+                            }}
+                          >
+                            {expirationData.message.subtitle}
+                          </Box>
                         )}
                         {expirationData.message.description && (
-                          <Box fontSize='x10'>
+                          <Box
+                            fontSize='x10'
+                            style={{
+                              wordBreak: 'break-word',
+                              overflowWrap: 'break-word',
+                              whiteSpace: 'normal',
+                              maxWidth: '100%',
+                            }}
+                          >
                             {expirationData.message.description}
                           </Box>
                         )}
                       </Box>
                     )}
-                    <Box fontSize='x10' color='annotation'>
+                    <Box
+                      fontSize='x10'
+                      color='annotation'
+                      style={{
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
+                        whiteSpace: 'normal',
+                        maxWidth: '100%',
+                      }}
+                    >
                       {(() => {
                         const expirationDate = new Date(
                           expirationData.expiration

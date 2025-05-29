@@ -1,7 +1,11 @@
 import path from 'path';
 import process from 'process';
 
-import type { Event, WebContents } from 'electron';
+import type {
+  Event,
+  WebContents,
+  MediaAccessPermissionRequest,
+} from 'electron';
 import {
   app,
   BrowserWindow,
@@ -9,6 +13,7 @@ import {
   ipcMain,
   screen,
   systemPreferences,
+  shell,
 } from 'electron';
 
 import { packageJsonInformation } from '../app/main/app';
@@ -16,6 +21,7 @@ import { handle } from '../ipc/main';
 import { select, dispatchLocal } from '../store';
 import { VIDEO_CALL_WINDOW_STATE_CHANGED } from '../ui/actions';
 import { debounce } from '../ui/main/debounce';
+import { askForMediaPermissionSettings } from '../ui/main/dialogs';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
 
@@ -163,6 +169,96 @@ export const startVideoCallWindowHandler = (): void => {
         _event: Event,
         webContents: WebContents
       ): void => {
+        webContents.session.setPermissionRequestHandler(
+          async (_webContents, permission, callback, details) => {
+            console.log(
+              'Video call window permission request',
+              permission,
+              details
+            );
+            switch (permission) {
+              case 'media': {
+                const { mediaTypes = [] } =
+                  details as MediaAccessPermissionRequest;
+
+                if (process.platform === 'darwin') {
+                  const allowed =
+                    (!mediaTypes.includes('audio') ||
+                      (await systemPreferences.askForMediaAccess(
+                        'microphone'
+                      ))) &&
+                    (!mediaTypes.includes('video') ||
+                      (await systemPreferences.askForMediaAccess('camera')));
+                  callback(allowed);
+                  break;
+                }
+
+                let microphoneAllowed = true;
+                let cameraAllowed = true;
+
+                if (mediaTypes.includes('audio')) {
+                  const micStatus =
+                    systemPreferences.getMediaAccessStatus('microphone');
+                  microphoneAllowed = micStatus === 'granted';
+                }
+
+                if (mediaTypes.includes('video')) {
+                  const camStatus =
+                    systemPreferences.getMediaAccessStatus('camera');
+                  cameraAllowed = camStatus === 'granted';
+                }
+
+                const allowed = microphoneAllowed && cameraAllowed;
+
+                if (!allowed) {
+                  console.log('Media permissions denied by system:', {
+                    microphone: microphoneAllowed,
+                    camera: cameraAllowed,
+                    requestedTypes: mediaTypes,
+                  });
+
+                  if (process.platform === 'win32') {
+                    let permissionType: 'microphone' | 'camera' | 'both';
+                    if (
+                      mediaTypes.includes('audio') &&
+                      mediaTypes.includes('video')
+                    ) {
+                      permissionType = 'both';
+                    } else if (mediaTypes.includes('audio')) {
+                      permissionType = 'microphone';
+                    } else {
+                      permissionType = 'camera';
+                    }
+
+                    askForMediaPermissionSettings(
+                      permissionType,
+                      videoCallWindow
+                    ).then((openSettings) => {
+                      if (openSettings) {
+                        shell.openExternal('ms-settings:privacy-microphone');
+                      }
+                    });
+                  }
+                }
+
+                callback(allowed);
+                break;
+              }
+
+              case 'geolocation':
+              case 'notifications':
+              case 'midiSysex':
+              case 'pointerLock':
+              case 'fullscreen':
+                callback(true);
+                return;
+
+              default:
+                callback(false);
+            }
+          }
+        );
+
         webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
           videoCallWindow.webContents.send(
             'video-call-window/open-screen-picker'

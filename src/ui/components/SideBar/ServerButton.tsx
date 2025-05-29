@@ -13,8 +13,11 @@ import {
 import type { DragEvent, MouseEvent } from 'react';
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
+import type { SupportedVersions } from '../../../servers/supportedVersions/types';
 import { dispatch } from '../../../store';
+import type { RootState } from '../../../store/rootReducer';
 import {
   SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_SERVER_RELOAD,
@@ -23,6 +26,7 @@ import {
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
 } from '../../actions';
+import ServerInfoDropdown from './ServerInfoDropdown';
 import { Initials, ServerButtonWrapper } from './styles';
 import { useDropdownVisibility } from './useDropdownVisibility';
 
@@ -38,6 +42,10 @@ type ServerButtonProps = {
   hasUnreadMessages: boolean;
   mentionCount?: number;
   isDragged: boolean;
+  version?: string;
+  isSupportedVersion?: boolean;
+  supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
+  supportedVersions?: SupportedVersions;
   onDragStart: (event: DragEvent) => void;
   onDragEnd: (event: DragEvent) => void;
   onDragEnter: (event: DragEvent) => void;
@@ -62,6 +70,10 @@ const ServerButton = ({
   mentionCount,
   userLoggedIn,
   isDragged,
+  version,
+  isSupportedVersion,
+  supportedVersionsSource,
+  supportedVersions,
   onDragStart,
   onDragEnd,
   onDragEnter,
@@ -74,10 +86,21 @@ const ServerButton = ({
 
   const reference = useRef(null);
   const target = useRef(null);
+  const serverInfoReference = useRef(null);
+  const serverInfoTarget = useRef(null);
 
   const { t } = useTranslation();
 
+  const isDeveloperModeEnabled = useSelector(
+    ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled
+  );
+
   const { isVisible, toggle } = useDropdownVisibility({ reference, target });
+  const { isVisible: isServerInfoVisible, toggle: toggleServerInfo } =
+    useDropdownVisibility({
+      reference: serverInfoReference,
+      target: serverInfoTarget,
+    });
 
   const initials = useMemo(
     () =>
@@ -100,7 +123,6 @@ const ServerButton = ({
 
   const handleServerContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
-    // dispatch({ type: SIDE_BAR_CONTEXT_MENU_TRIGGERED, payload: url });
     toggle();
   };
 
@@ -142,7 +164,6 @@ const ServerButton = ({
           secondary
           position='relative'
           overflow='visible'
-          // className={[isSelected && 'is-focused'].filter(Boolean).join(' ')}
           icon={
             <Box>
               <Initials visible={!favicon}>{initials}</Initials>
@@ -201,6 +222,16 @@ const ServerButton = ({
             <OptionIcon name='code-block' />
             <OptionContent>{t('sidebar.item.openDevTools')}</OptionContent>
           </Option>
+          {isDeveloperModeEnabled && (
+            <Option
+              ref={serverInfoReference}
+              onMouseEnter={() => toggleServerInfo(true)}
+              onMouseLeave={() => toggleServerInfo(false)}
+            >
+              <OptionIcon name='info' />
+              <OptionContent>{t('sidebar.item.serverInfo')}</OptionContent>
+            </Option>
+          )}
           <Option
             onClick={() =>
               handleActionDropdownClick(SIDE_BAR_SERVER_FORCE_RELOAD, url)
@@ -223,6 +254,17 @@ const ServerButton = ({
             <OptionContent>{t('sidebar.item.remove')}</OptionContent>
           </Option>
         </Dropdown>
+      )}
+      {isServerInfoVisible && isDeveloperModeEnabled && (
+        <ServerInfoDropdown
+          reference={serverInfoReference}
+          target={serverInfoTarget}
+          url={url}
+          version={version}
+          supportedVersions={supportedVersions}
+          isSupportedVersion={isSupportedVersion}
+          supportedVersionsSource={supportedVersionsSource}
+        />
       )}
     </>
   );

@@ -301,18 +301,19 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     console.log('Permission request', permission, details);
     switch (permission) {
       case 'media': {
-        if (process.platform !== 'darwin') {
-          callback(true);
+        const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
+
+        if (process.platform === 'darwin') {
+          const allowed =
+            (!mediaTypes.includes('audio') ||
+              (await systemPreferences.askForMediaAccess('microphone'))) &&
+            (!mediaTypes.includes('video') ||
+              (await systemPreferences.askForMediaAccess('camera')));
+          callback(allowed);
           return;
         }
 
-        const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
-        const allowed =
-          (!mediaTypes.includes('audio') ||
-            (await systemPreferences.askForMediaAccess('microphone'))) &&
-          (!mediaTypes.includes('video') ||
-            (await systemPreferences.askForMediaAccess('camera')));
-        callback(allowed);
+        callback(true);
         return;
       }
 

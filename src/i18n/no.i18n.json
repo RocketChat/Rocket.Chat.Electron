@@ -242,6 +242,13 @@
         "title": "Systemstatusikon",
         "description": "Vis ikonet på systemstatusfeltet. Hvis systemstatusikonet er aktivt, vil appen være skjult ved lukke. Ellers avsluttes programmet."
       },
+      "availableBrowsers": {
+        "title": "Standard nettleser",
+        "description": "Velg hvilken nettleser som skal åpne eksterne lenker fra denne appen. Systemstandard bruker operativsysteminnstillingene dine.",
+        "systemDefault": "Systemstandard",
+        "loading": "Laster inn nettlesere ...",
+        "current": "Bruker for øyeblikket:"
+      },
       "clearPermittedScreenCaptureServers": {
         "title": "Fjern skjermopptakstillatelser",
         "description": "Fjern skjermopptakstillatelsene på videosamtaler som ble valgt for ikke å spørre igjen."
@@ -254,6 +261,10 @@
         "title": "NTLM-påloggingsinformasjon",
         "description": "Tillat at NTLM-påloggingsinformasjon brukes når du kobler til en server.",
         "domains": "Domener som vil bruke påloggingsinformasjonen. Atskilt med komma. Bruk * for å matche alle domener."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Husk posisjonen til videosamtalevinduet",
+        "description": "Lagre og gjenopprett posisjonen og størrelsen på videosamtalevinduer mellom økter"
       }
     }
   },
@@ -380,5 +391,17 @@
     "unreadMessage": "Uleste meldinger",
     "unreadMention": "Uleste omtaler",
     "noUnreadMessage": "Ingen uleste meldinger"
+  },
+  "screenSharing": {
+    "permissionDenied": "Tillatelse til skjermopptak nektet",
+    "permissionRequired": "Tillatelse til skjermopptak kreves for å dele skjermen din.",
+    "permissionInstructions": "Vennligst aktiver det i systeminnstillingene dine og prøv på nytt.",
+    "title": "Del skjermen din",
+    "entireScreen": "Hele skjermen din",
+    "applicationWindow": "Programvindu",
+    "noScreensFound": "Ingen skjermer funnet",
+    "noWindowsFound": "Ingen vinduer funnet",
+    "cancel": "Kansellere",
+    "share": "Dele"
   }
 }

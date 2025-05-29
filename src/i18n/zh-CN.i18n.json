@@ -80,6 +80,16 @@
       "title": "忽略更新",
       "message": "我们将会在下次有新的更新版本的时候通知您\n如果您改变主意想安装此处更新，您可以从「关于」的选项中检查更新。",
       "ok": "好"
+    },
+    "mediaPermission": {
+      "title": "需要媒体权限",
+      "message": "{{- permissionType}}访问目前在您的系统设置中已被禁用。",
+      "detail": "要启用视频通话功能，请在您的系统隐私设置中允许访问，然后重新启动应用程序。",
+      "openSettings": "打开设置",
+      "cancel": "取消",
+      "microphone": "麦克风",
+      "camera": "摄像头",
+      "both": "麦克风和摄像头"
     }
   },
   "downloads": {

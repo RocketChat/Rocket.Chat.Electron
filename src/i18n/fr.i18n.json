@@ -115,6 +115,16 @@
       "dontAskAgain": "Toujours autoriser les appels vidéo de ce serveur pour capturer votre écran",
       "yes": "Autoriser",
       "no": "Annuler"
+    },
+    "mediaPermission": {
+      "title": "Autorisation Multimédia Requise",
+      "message": "L'accès au {{- permissionType}} est actuellement désactivé dans les paramètres de votre système.",
+      "detail": "Pour activer les fonctionnalités d'appel vidéo, veuillez autoriser l'accès dans les paramètres de confidentialité de votre système, puis redémarrer l'application.",
+      "openSettings": "Ouvrir les Paramètres",
+      "cancel": "Annuler",
+      "microphone": "Microphone",
+      "camera": "Caméra",
+      "both": "Microphone et Caméra"
     }
   },
   "downloads": {

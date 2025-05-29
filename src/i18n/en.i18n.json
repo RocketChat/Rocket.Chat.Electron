@@ -125,6 +125,16 @@
       "yes": "Allow",
       "no": "Cancel"
     },
+    "mediaPermission": {
+      "title": "Media Permission Required",
+      "message": "{{- permissionType}} access is currently disabled in your system settings.",
+      "detail": "To enable video calling features, please allow access in your system's privacy settings and then restart the application.",
+      "openSettings": "Open Settings",
+      "cancel": "Cancel",
+      "microphone": "Microphone",
+      "camera": "Camera",
+      "both": "Microphone and Camera"
+    },
     "outlookCalendar": {
       "title": "Outlook Calendar",
       "encryptionUnavailableTitle": "Encryption unavailable",

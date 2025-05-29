@@ -42,6 +42,8 @@ export const selectPersistableValues = createStructuredSelector({
     isMinimizeOnCloseEnabled,
   isAddNewServersEnabled: ({ isAddNewServersEnabled }: RootState) =>
     isAddNewServersEnabled,
+  isDeveloperModeEnabled: ({ isDeveloperModeEnabled }: RootState) =>
+    isDeveloperModeEnabled,
   hasHideOnTrayNotificationShown: ({
     hasHideOnTrayNotificationShown,
   }: RootState) => hasHideOnTrayNotificationShown,
@@ -57,4 +59,7 @@ export const selectPersistableValues = createStructuredSelector({
   selectedBrowser: ({ selectedBrowser }: RootState) => selectedBrowser,
   videoCallWindowState: ({ videoCallWindowState }: RootState) =>
     videoCallWindowState,
+  isVideoCallWindowPersistenceEnabled: ({
+    isVideoCallWindowPersistenceEnabled,
+  }: RootState) => isVideoCallWindowPersistenceEnabled,
 });

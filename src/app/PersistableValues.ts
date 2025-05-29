@@ -75,9 +75,13 @@ type PersistableValues_4_2_0 = PersistableValues_4_1_0 & {
   selectedBrowser: string | null;
 };
 
+type PersistableValues_4_4_0 = PersistableValues_4_2_0 & {
+  isDeveloperModeEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_2_0,
-  keyof PersistableValues_4_2_0
+  PersistableValues_4_4_0,
+  keyof PersistableValues_4_4_0
 >;
 
 export const migrations = {
@@ -138,5 +142,9 @@ export const migrations = {
   '>=4.2.0': (before: PersistableValues_4_1_0): PersistableValues_4_2_0 => ({
     ...before,
     selectedBrowser: null,
+  }),
+  '>=4.4.0': (before: PersistableValues_4_2_0): PersistableValues_4_4_0 => ({
+    ...before,
+    isDeveloperModeEnabled: false,
   }),
 };

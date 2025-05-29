@@ -125,6 +125,16 @@
       "yes": "Tillate",
       "no": "Kansellere"
     },
+    "mediaPermission": {
+      "title": "Medietillatelse Påkrevd",
+      "message": "Tilgang til {{- permissionType}} er for øyeblikket deaktivert i systeminnstillingene dine.",
+      "detail": "For å aktivere videosamtalefunksjoner, vennligst tillat tilgang i systemets personverninnstillinger og start deretter applikasjonen på nytt.",
+      "openSettings": "Åpne Innstillinger",
+      "cancel": "Avbryt",
+      "microphone": "Mikrofon",
+      "camera": "Kamera",
+      "both": "Mikrofon og Kamera"
+    },
     "outlookCalendar": {
       "title": "Outlook-kalender",
       "encryptionUnavailableTitle": "Kryptering utilgjengelig",

@@ -116,6 +116,16 @@
       "yes": "Permitir",
       "no": "Cancelar"
     },
+    "mediaPermission": {
+      "title": "Permiso de Medios Requerido",
+      "message": "El acceso al {{- permissionType}} está deshabilitado en la configuración de tu sistema.",
+      "detail": "Para habilitar las funciones de videollamada, por favor permite el acceso en la configuración de privacidad de tu sistema y luego reinicia la aplicación.",
+      "openSettings": "Abrir Configuración",
+      "cancel": "Cancelar",
+      "microphone": "Micrófono",
+      "camera": "Cámara",
+      "both": "Micrófono y Cámara"
+    },
     "outlookCalendar": {
       "title": "Calendario de Outlook",
       "encryptionUnavailableTitle": "Encriptación no disponible",

@@ -85,6 +85,16 @@
       "announcement": "Wybierz Certyfikat",
       "select": "Wybierz",
       "validDates": "Ważny od {{-validStart,}} do {{-validExpiry,}}"
+    },
+    "mediaPermission": {
+      "title": "Wymagane Uprawnienie Mediów",
+      "message": "Dostęp do {{- permissionType}} jest obecnie wyłączony w ustawieniach systemu.",
+      "detail": "Aby włączyć funkcje rozmów wideo, proszę zezwolić na dostęp w ustawieniach prywatności systemu, a następnie uruchomić ponownie aplikację.",
+      "openSettings": "Otwórz Ustawienia",
+      "cancel": "Anuluj",
+      "microphone": "Mikrofon",
+      "camera": "Kamera",
+      "both": "Mikrofon i Kamera"
     }
   },
   "settings": {

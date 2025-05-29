@@ -239,3 +239,29 @@ export const askForClearScreenCapturePermission = async (
 
   return response === 0;
 };
+
+export const askForMediaPermissionSettings = async (
+  permissionType: 'microphone' | 'camera' | 'both',
+  parentWindow?: BrowserWindow
+): Promise<boolean> => {
+  parentWindow?.show();
+
+  const { response } = await dialog.showMessageBox(
+    parentWindow ?? (await getRootWindow()),
+    {
+      type: 'warning',
+      buttons: [
+        t('dialog.mediaPermission.openSettings'),
+        t('dialog.mediaPermission.cancel'),
+      ],
+      defaultId: 0,
+      title: t('dialog.mediaPermission.title'),
+      message: t('dialog.mediaPermission.message', {
+        permissionType: t(`dialog.mediaPermission.${permissionType}`),
+      }),
+      detail: t('dialog.mediaPermission.detail'),
+    }
+  );
+
+  return response === 0;
+};

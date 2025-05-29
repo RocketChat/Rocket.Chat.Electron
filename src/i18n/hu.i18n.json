@@ -116,6 +116,16 @@
       "yes": "Engedélyezés",
       "no": "Mégse"
     },
+    "mediaPermission": {
+      "title": "Média Engedély Szükséges",
+      "message": "A {{- permissionType}} hozzáférés jelenleg le van tiltva a rendszerbeállításokban.",
+      "detail": "A videohívás funkciók engedélyezéséhez kérjük, engedélyezze a hozzáférést a rendszer adatvédelmi beállításaiban, majd indítsa újra az alkalmazást.",
+      "openSettings": "Beállítások Megnyitása",
+      "cancel": "Mégse",
+      "microphone": "Mikrofon",
+      "camera": "Kamera",
+      "both": "Mikrofon és Kamera"
+    },
     "outlookCalendar": {
       "title": "Outlook naptár",
       "encryptionUnavailableTitle": "A titkosítás nem érhető el",

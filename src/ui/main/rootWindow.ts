@@ -397,6 +397,26 @@ export const setupRootWindow = (): void => {
   });
 };
 
+const ensureWindowsMediaRegistration = async (): Promise<void> => {
+  if (process.platform !== 'win32') {
+    return;
+  }
+
+  try {
+    const browserWindow = await getRootWindow();
+    await browserWindow.webContents.executeJavaScript(`
+      if (!window._rocketChatMediaRegistered) {
+        window._rocketChatMediaRegistered = true;
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+          .then(() => console.log('Media access registered with Windows'))
+          .catch(() => console.log('Media registration attempted'));
+      }
+    `);
+  } catch (error) {
+    console.log('Media registration failed:', error);
+  }
+};
+
 export const showRootWindow = async (): Promise<void> => {
   const browserWindow = await getRootWindow();
 
@@ -420,6 +440,8 @@ export const showRootWindow = async (): Promise<void> => {
       }
 
       setupRootWindow();
+      ensureWindowsMediaRegistration();
+
       resolve();
     });
   });

@@ -115,6 +115,16 @@
       "dontAskAgain": "Salli aina tämän palvelimen videopuhelujen ottaa näyttökuva",
       "yes": "Salli",
       "no": "Peruuta"
+    },
+    "mediaPermission": {
+      "title": "Medialupa Vaaditaan",
+      "message": "{{- permissionType}} käyttöoikeus on tällä hetkellä poistettu käytöstä järjestelmäasetuksissa.",
+      "detail": "Ottaaksesi videopuheluominaisuudet käyttöön, salli pääsy järjestelmän yksityisyysasetuksissa ja käynnistä sitten sovellus uudelleen.",
+      "openSettings": "Avaa Asetukset",
+      "cancel": "Peruuta",
+      "microphone": "Mikrofoni",
+      "camera": "Kamera",
+      "both": "Mikrofoni ja Kamera"
     }
   },
   "downloads": {

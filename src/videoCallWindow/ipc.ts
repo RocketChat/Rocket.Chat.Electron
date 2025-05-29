@@ -50,6 +50,11 @@ export const startVideoCallWindowHandler = (): void => {
     }
   );
 
+  handle('video-call-window/open-screen-picker', async (_event) => {
+    // This is handled by the renderer process (screenSharePicker.tsx)
+    // The handler exists to satisfy the IPC call from preload script
+  });
+
   handle('video-call-window/open-window', async (_event, url) => {
     const validUrl = new URL(url);
     const allowedProtocols = ['http:', 'https:'];
@@ -142,6 +147,16 @@ export const startVideoCallWindowHandler = (): void => {
         videoCallWindow.setTitle(packageJsonInformation.productName);
         videoCallWindow.webContents.send('video-call-window/open-url', url);
         videoCallWindow.show();
+      });
+
+      // Handle close request from Jitsi bridge
+      handle('video-call-window/close-requested', async () => {
+        videoCallWindow.close();
+      });
+
+      videoCallWindow.on('closed', () => {
+        // Clean up the IPC handler to prevent duplicate registration
+        ipcMain.removeHandler('video-call-window/close-requested');
       });
 
       const handleDidAttachWebview = (

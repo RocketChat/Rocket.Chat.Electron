@@ -112,6 +112,7 @@
     "close": "閉じる",
     "copy": "コピー (&C)",
     "cut": "切り取り (&T)",
+    "developerMode": "開発者モード",
     "documentation": "ドキュメント",
     "editMenu": "編集 (&E)",
     "fileMenu": "ファイル (&F)",

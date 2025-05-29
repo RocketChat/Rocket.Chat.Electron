@@ -1,6 +1,6 @@
 {
   "contextMenu": {
-    "cut": "Co&rtar",
+    "cut": "Cor&tar",
     "copy": "&Copiar",
     "paste": "&Pegar",
     "selectAll": "Seleccionar &todo",
@@ -279,8 +279,9 @@
     "clearTrustedCertificates": "Borrar certificados de confianza",
     "close": "Cerrar",
     "copy": "&Copiar",
-    "cut": "Cu&tar",
-    "disableGpu": "Desactivar GPU",
+    "cut": "Cor&tar",
+    "developerMode": "Modo desarrollador",
+    "disableGpu": "Deshabilitar GPU",
     "documentation": "Documentación",
     "downloads": "Descargas",
     "settings": "Configuración",

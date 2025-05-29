@@ -79,6 +79,16 @@
       "title": "Güncellemeyi Atla",
       "message": "Bir sonraki güncellemenin ne zaman yapılacağını size bildireceğiz. Fikrinizi değiştirirseniz Hakkında menüsünden güncellemeleri manuel kontrol edebilirsiniz.",
       "ok": "TAMAM"
+    },
+    "mediaPermission": {
+      "title": "Medya İzni Gerekli",
+      "message": "{{- permissionType}} erişimi şu anda sistem ayarlarınızda devre dışı.",
+      "detail": "Video arama özelliklerini etkinleştirmek için lütfen sistem gizlilik ayarlarınızda erişime izin verin ve ardından uygulamayı yeniden başlatın.",
+      "openSettings": "Ayarları Aç",
+      "cancel": "İptal",
+      "microphone": "Mikrofon",
+      "camera": "Kamera",
+      "both": "Mikrofon ve Kamera"
     }
   },
   "settings": {

@@ -125,6 +125,16 @@
       "yes": "Permitir",
       "no": "Cancelar"
     },
+    "mediaPermission": {
+      "title": "Permissão de Mídia Necessária",
+      "message": "O acesso ao {{- permissionType}} está atualmente desabilitado nas configurações do seu sistema.",
+      "detail": "Para ativar os recursos de videochamada, permita o acesso nas configurações de privacidade do seu sistema e reinicie a aplicação.",
+      "openSettings": "Abrir Configurações",
+      "cancel": "Cancelar",
+      "microphone": "Microfone",
+      "camera": "Câmera",
+      "both": "Microfone e Câmera"
+    },
     "supportedVersion": {
       "title": "Versão de workspace não suportada"
     }

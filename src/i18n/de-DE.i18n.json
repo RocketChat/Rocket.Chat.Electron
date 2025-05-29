@@ -108,6 +108,16 @@
       "dontAskAgain": "Lassen Sie immer zu, dass Videoanrufe von diesem Server Ihren Bildschirm erfassen",
       "yes": "Erlauben",
       "no": "Absagen"
+    },
+    "mediaPermission": {
+      "title": "Medienberechtigung Erforderlich",
+      "message": "Der Zugriff auf {{- permissionType}} ist derzeit in Ihren Systemeinstellungen deaktiviert.",
+      "detail": "Um Videoanruf-Funktionen zu aktivieren, erlauben Sie bitte den Zugriff in den Datenschutzeinstellungen Ihres Systems und starten Sie dann die Anwendung neu.",
+      "openSettings": "Einstellungen Öffnen",
+      "cancel": "Abbrechen",
+      "microphone": "Mikrofon",
+      "camera": "Kamera",
+      "both": "Mikrofon und Kamera"
     }
   },
   "downloads": {

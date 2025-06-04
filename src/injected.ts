@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import type { NotificationAction } from 'electron';
 
 import type { RocketChatDesktopAPI } from './servers/preload/api';
@@ -10,6 +11,16 @@ declare global {
 }
 
 console.log('[Rocket.Chat Desktop] Injected.ts');
+// global.d.ts または injected.ts 内に追加
+// TODOワークスペースの切り替え時に更新しなきゃエラーになる
+declare global {
+  interface Window {
+    RocketChatDesktop: RocketChatDesktopAPI;
+    electronAPI: {
+      openChatPopup: (orogin: string, chatPath: string) => void;
+    };
+  }
+}
 
 const resolveWithExponentialBackoff = <T>(
   fn: () => Promise<T>,

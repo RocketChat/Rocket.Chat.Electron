@@ -1,4 +1,4 @@
-import { contextBridge, webFrame } from 'electron';
+import { contextBridge, webFrame, ipcRenderer } from 'electron';
 
 import { invoke } from './ipc/renderer';
 import type { JitsiMeetElectronAPI } from './jitsi/preload';
@@ -22,6 +22,63 @@ declare global {
     RocketChatDesktop: RocketChatDesktopAPI;
   }
 }
+
+// popup window読み込み
+contextBridge.exposeInMainWorld('electronAPI', {
+  openChatPopup: (origin: string, chatPath: string) =>
+    ipcRenderer.invoke('open-chat-popup', origin, chatPath),
+});
+
+// popup window へメインから送る
+window.addEventListener('message', (event) => {
+  console.log(event); // checke evet
+  if (event.data?.type === 'openChatPopup' && location.origin) {
+    console.log(
+      '[preload] received postMessage for openChatPopup:',
+      event.data.path
+    );
+    ipcRenderer.invoke('open-chat-popup', location.origin, event.data.path);
+    window.electronAPI?.openChatPopup(location.origin, event.data.path);
+  }
+});
+
+// popupwinowボタン挿入
+window.addEventListener('load', () => {
+  const insertButton = () => {
+    const header = document.querySelector(
+      '[aria-label="Primary Room actions"]'
+    );
+    if (!header || header.querySelector('.open-popup-btn')) return;
+
+    const btn = document.createElement('button');
+    btn.className = 'open-popup-btn';
+    btn.textContent = 'ポップアップ';
+    // 右寄せのスタイル
+    btn.style.marginLeft = 'auto'; // 左側にスペースをとることで右端へ寄せる
+    btn.style.padding = '4px 8px';
+    btn.style.background = '#1d74f5';
+    btn.style.color = '#fff';
+    btn.style.border = 'none';
+    btn.style.borderRadius = '4px';
+    btn.style.cursor = 'pointer';
+    btn.style.display = 'block';
+    btn.onclick = () => {
+      window.postMessage(
+        {
+          type: 'openChatPopup',
+          origin: location.origin,
+          path: location.pathname,
+        },
+        '*'
+      );
+    };
+    header.appendChild(btn);
+  };
+
+  const observer = new MutationObserver(insertButton);
+  observer.observe(document.body, { childList: true, subtree: true });
+  insertButton();
+});
 
 console.log('[Rocket.Chat Desktop] Preload.ts');
 

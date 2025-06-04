@@ -10,7 +10,7 @@ import builtinModules from 'builtin-modules';
 import electron from 'electron';
 import copy from 'rollup-plugin-copy';
 
-import appManifest from './package.json' with { type: 'json' };
+import appManifest from './package.json' assert { type: 'json' };
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const canRun =

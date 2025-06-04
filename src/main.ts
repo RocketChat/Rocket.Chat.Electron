@@ -21,10 +21,12 @@ import { handleClearCacheDialog } from './servers/cache';
 import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
-import { createMainReduxStore } from './store';
+import { createMainReduxStore, listen } from './store';
+import { SIDE_BAR_SERVER_SELECTED } from './ui/actions';
 import { handleCertificatesManager } from './ui/components/CertificatesManager/main';
 import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
+import { setupChatPopupIpc, closeAllChatPopups } from './ui/main/popupWindow';
 import {
   createRootWindow,
   showRootWindow,
@@ -64,6 +66,7 @@ const start = async (): Promise<void> => {
   setupMainErrorHandling();
 
   createRootWindow();
+  setupChatPopupIpc();
   startOutlookCalendarUrlHandler();
   attachGuestWebContentsEvents();
   await showRootWindow();
@@ -85,6 +88,11 @@ const start = async (): Promise<void> => {
   await setupUpdates();
   setupDownloads();
   handleCertificatesManager();
+
+  listen(SIDE_BAR_SERVER_SELECTED, () => {
+    console.log('[main] ワークスペース切り替え検知: 全ポップアップを閉じます');
+    closeAllChatPopups();
+  });
 
   dock.setUp();
   menuBar.setUp();

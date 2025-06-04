@@ -17,12 +17,14 @@ import type { WindowState } from '../common';
 import { selectGlobalBadge, selectGlobalBadgeCount } from '../selectors';
 import { debounce } from './debounce';
 import { getTrayIconPath } from './icons';
+import { closeAllChatPopups } from './popupWindow';
 
 const webPreferences: WebPreferences = {
   nodeIntegration: true,
   nodeIntegrationInSubFrames: true,
   contextIsolation: false,
   webviewTag: true,
+  partition: 'persist:rocketchat',
 };
 
 const selectRootWindowState = ({ rootWindowState }: RootState): WindowState =>
@@ -66,8 +68,21 @@ export const createRootWindow = (): void => {
     webPreferences,
   });
 
+  // TODO root windowが閉じられたらpopup削除
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  _rootWindow.webContents.on('ipc-message', (event, channel, args) => {
+    if (channel === 'message') {
+      const data = args[0];
+      if (data?.type === 'openChatPopup') {
+        console.log('[Rocket.Chat Desktop] openChatPopup received:', data.path);
+        _rootWindow.webContents.send('open-chat-popup', data.path);
+      }
+    }
+  });
+
   _rootWindow.addListener('close', (event) => {
     event.preventDefault();
+    closeAllChatPopups();
   });
 
   tempWindow.destroy();

@@ -1,10 +1,10 @@
 {
   "files": ["app/**/*", "package.json"],
   "extraResources": ["build/icon.ico", "servers.json"],
-  "appId": "chat.rocket",
+  "appId": "chat.rocket.popup.dev",
   "protocols": {
-    "name": "Rocket.Chat",
-    "schemes": ["rocketchat"]
+    "name": "Rocket.Chat via popup window dev",
+    "schemes": ["rocketchatViaPopupWindowDev"]
   },
   "mac": {
     "category": "public.app-category.productivity",

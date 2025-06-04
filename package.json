@@ -3,11 +3,11 @@
   "workspaces": [
     "workspaces/*"
   ],
-  "productName": "Rocket.Chat",
+  "productName": "Rocket.Chat POPUP DEV",
   "name": "rocketchat",
-  "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
+  "description": "NOT OFFCIAL!!! Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
   "version": "4.5.0",
-  "author": "Rocket.Chat Support <support@rocket.chat>",
+  "author": "Rocket.Chat Support <support@rocket.chat> + K.KAGAYAMA",
   "copyright": "© 2016-2025, Rocket.Chat",
   "homepage": "https://rocket.chat",
   "license": "MIT",

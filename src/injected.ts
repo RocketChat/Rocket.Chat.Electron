@@ -1,6 +1,7 @@
 import type { NotificationAction } from 'electron';
 
 import type { RocketChatDesktopAPI } from './servers/preload/api';
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Window {

@@ -164,77 +164,50 @@ const start = async () => {
     });
   }
 
-  Tracker.autorun(() => {
-    const userToken = Meteor._localStorage.getItem('Meteor.loginToken');
-    const user = Meteor.user() as unknown;
-    const defaultOutlookCalendarEnabled = settings.get(
-      'Outlook_Calendar_Enabled'
-    );
-    const defaultOutlookExchangeUrl = settings.get(
-      'Outlook_Calendar_Exchange_Url'
-    );
-    const outlookExchangeMapping = settings.get('Outlook_Calendar_Url_Mapping');
+  if (!versionIsGreaterOrEqualsTo(serverInfo.version, '7.8.0')) {
+    Tracker.autorun(() => {
+      const userToken = Meteor._localStorage.getItem('Meteor.loginToken');
+      const userId = Meteor.userId();
+      const outlookCalendarEnabled = settings.get('Outlook_Calendar_Enabled');
+      const outlookExchangeUrl = settings.get('Outlook_Calendar_Exchange_Url');
+      if (
+        !userToken ||
+        !userId ||
+        !outlookCalendarEnabled ||
+        !outlookExchangeUrl
+      )
+        return;
+      window.RocketChatDesktop.setUserToken(userToken, userId);
 
-    if (
-      !userToken ||
-      typeof user !== 'object' ||
-      !user ||
-      !('_id' in user) ||
-      typeof user._id !== 'string' ||
-      typeof outlookExchangeMapping !== 'string'
-    ) {
-      return;
-    }
-
-    const mapping: Record<
-      string,
-      {
-        Enabled?: boolean;
-        Exchange_Url?: string;
-        Outlook_Url?: string;
-        MeetingUrl_Regex?: string;
-        BusyStatus_Enabled?: string;
-      }
-    > = {};
-
-    try {
-      Object.assign(mapping, JSON.parse(outlookExchangeMapping));
-    } catch (error) {
-      console.error(
-        '[Rocket.Chat Desktop] Invalid Outlook Exchange URL mapping',
-        error
+      window.RocketChatDesktop.setOutlookExchangeUrl(
+        outlookExchangeUrl,
+        userId
       );
-      return;
-    }
+    });
+  } else {
+    Tracker.autorun(() => {
+      const userToken = Meteor._localStorage.getItem('Meteor.loginToken');
+      const user = Meteor.user();
+      const userId = user?._id;
+      const outlookSettings = user?.settings?.calendar?.outlook;
+      const outlookCalendarEnabled = outlookSettings?.enabled;
+      const outlookExchangeUrl = outlookSettings?.exchangeUrl;
 
-    if (
-      typeof user !== 'object' ||
-      !user ||
-      !('email' in user) ||
-      typeof user.email !== 'string'
-    ) {
-      console.error(
-        '[Rocket.Chat Desktop] Invalid user object or email not found in user object'
+      if (
+        !userToken ||
+        !userId ||
+        !outlookCalendarEnabled ||
+        !outlookExchangeUrl
+      )
+        return;
+      window.RocketChatDesktop.setUserToken(userToken, userId);
+
+      window.RocketChatDesktop.setOutlookExchangeUrl(
+        outlookExchangeUrl,
+        userId
       );
-      return;
-    }
-
-    const outlookSettings = mapping[user.email.split('@').pop() ?? ''];
-    const outlookCalendarEnabled =
-      outlookSettings.Enabled ?? defaultOutlookCalendarEnabled;
-    const outlookExchangeUrl =
-      outlookSettings.Exchange_Url ?? defaultOutlookExchangeUrl;
-
-    if (!outlookCalendarEnabled || !outlookExchangeUrl) {
-      return;
-    }
-
-    window.RocketChatDesktop.setUserToken(userToken, user._id);
-    window.RocketChatDesktop.setOutlookExchangeUrl(
-      outlookExchangeUrl,
-      user._id
-    );
-  });
+    });
+  }
 
   Tracker.autorun(() => {
     const siteName = settings.get('Site_Name');

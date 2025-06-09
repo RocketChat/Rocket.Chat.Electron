@@ -190,8 +190,8 @@ const start = async () => {
       const user = Meteor.user();
       const userId = user?._id;
       const outlookSettings = user?.settings?.calendar?.outlook;
-      const outlookCalendarEnabled = outlookSettings?.enabled;
-      const outlookExchangeUrl = outlookSettings?.exchangeUrl;
+      const outlookCalendarEnabled = outlookSettings?.Enabled;
+      const outlookExchangeUrl = outlookSettings?.Exchange_Url;
 
       if (
         !userToken ||

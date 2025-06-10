@@ -5,6 +5,7 @@ import {
   FieldLabel,
   FieldRow,
   Margins,
+  Select,
   Throbber,
   ToggleSwitch,
 } from '@rocket.chat/fuselage';
@@ -19,9 +20,11 @@ import { packageJsonInformation } from '../../../app/main/app';
 import type { RootAction } from '../../../store/actions';
 import type { RootState } from '../../../store/rootReducer';
 import { UPDATES_CHECK_FOR_UPDATES_REQUESTED } from '../../../updates/actions';
+import { UPDATE_CHANNELS } from '../../../updates/common';
 import {
   ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
   ABOUT_DIALOG_DISMISSED,
+  ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
 } from '../../actions';
 import { Dialog } from '../Dialog';
 import { RocketChatLogo } from '../RocketChatLogo';
@@ -53,6 +56,12 @@ export const AboutDialog = () => {
   );
   const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
   const updateError = useSelector(({ updateError }: RootState) => updateError);
+  const updateChannel = useSelector(
+    ({ updateChannel }: RootState) => updateChannel
+  );
+  const isDeveloperModeEnabled = useSelector(
+    ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled
+  );
 
   const isVisible = openDialog === 'about';
   const canUpdate = isUpdatingAllowed && isUpdatingEnabled;
@@ -119,8 +128,21 @@ export const AboutDialog = () => {
     });
   };
 
+  const handleUpdateChannelChange = (channel: string): void => {
+    dispatch({
+      type: ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
+      payload: channel,
+    });
+  };
+
   const checkForUpdatesButtonRef = useAutoFocus(isVisible);
   const checkForUpdatesOnStartupToggleSwitchId = useId();
+  const updateChannelSelectId = useId();
+
+  const updateChannelOptions = UPDATE_CHANNELS.map(
+    (channel) =>
+      [channel, t(`dialog.about.updateChannel.${channel}`)] as [string, string]
+  );
 
   return (
     <Dialog
@@ -170,6 +192,24 @@ export const AboutDialog = () => {
                     )}
                   </Margins>
                 </Box>
+              )}
+
+              {isDeveloperModeEnabled && (
+                <Field>
+                  <FieldRow>
+                    <FieldLabel htmlFor={updateChannelSelectId}>
+                      {t('dialog.about.updateChannel.label')}
+                    </FieldLabel>
+                    <Select
+                      id={updateChannelSelectId}
+                      value={updateChannel}
+                      options={updateChannelOptions}
+                      onChange={(value) =>
+                        handleUpdateChannelChange(value as string)
+                      }
+                    />
+                  </FieldRow>
+                </Field>
               )}
 
               <Field>

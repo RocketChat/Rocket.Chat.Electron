@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Vérifier les mises à jour au démarrage",
       "noUpdatesAvailable": "Aucune mise à jour n'est disponible.",
       "copyright": "Copyright {{copyright}}",
-      "errorWhenLookingForUpdates": "Une erreur s'est produite lors de la recherche de mises à jour"
+      "errorWhenLookingForUpdates": "Une erreur s'est produite lors de la recherche de mises à jour",
+      "updateChannel": {
+        "label": "Canal de mise à jour",
+        "latest": "Stable",
+        "beta": "Bêta",
+        "alpha": "Alpha (Expérimental)"
+      }
     },
     "addServer": {
       "title": "Ajouter un serveur",

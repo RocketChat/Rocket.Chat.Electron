@@ -46,6 +46,7 @@ import {
   newUpdateVersion,
   skippedUpdateVersion,
   updateError,
+  updateChannel,
 } from '../updates/reducers';
 
 export const rootReducer = combineReducers({
@@ -92,6 +93,7 @@ export const rootReducer = combineReducers({
   videoCallWindowState,
   isVideoCallWindowPersistenceEnabled,
   isDeveloperModeEnabled,
+  updateChannel,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

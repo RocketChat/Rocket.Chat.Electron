@@ -5,7 +5,6 @@ import {
   FieldLabel,
   FieldRow,
   Margins,
-  Select,
   Throbber,
   ToggleSwitch,
 } from '@rocket.chat/fuselage';

@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Frissítések keresése indításkor",
       "noUpdatesAvailable": "Nincsenek elérhető frissítések.",
       "copyright": "Copyright {{copyright}}",
-      "errorWhenLookingForUpdates": "Hiba történt a frissítések keresésekor"
+      "errorWhenLookingForUpdates": "Hiba történt a frissítések keresésekor",
+      "updateChannel": {
+        "label": "Frissítési csatorna",
+        "latest": "Stabil",
+        "beta": "Beta",
+        "alpha": "Alpha (Kísérleti)"
+      }
     },
     "addServer": {
       "title": "Kiszolgáló hozzáadása",

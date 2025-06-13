@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Проверять обновления при запуске",
       "noUpdatesAvailable": "Нет обновлений.",
       "copyright": "Все права защищены {{copyright}}",
-      "errorWhenLookingForUpdates": "При поиске обновлений произошла ошибка"
+      "errorWhenLookingForUpdates": "При поиске обновлений произошла ошибка",
+      "updateChannel": {
+        "label": "Канал обновлений",
+        "latest": "Стабильный",
+        "beta": "Бета",
+        "alpha": "Альфа (Экспериментальный)"
+      }
     },
     "addServer": {
       "title": "Добавить сервер",

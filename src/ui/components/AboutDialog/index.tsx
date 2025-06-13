@@ -141,7 +141,7 @@ export const AboutDialog = () => {
   const updateChannelOptions = UPDATE_CHANNELS.map(
     (channel) =>
       [channel, t(`dialog.about.updateChannel.${channel}`)] as [string, string]
-  );
+  ).sort((a, b) => a[1].localeCompare(b[1]));
 
   return (
     <Dialog

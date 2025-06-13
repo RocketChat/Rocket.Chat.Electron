@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Check for Updates on Start",
       "noUpdatesAvailable": "No updates are available.",
       "copyright": "Copyright {{copyright}}",
-      "errorWhenLookingForUpdates": "An error has occurred when looking for updates"
+      "errorWhenLookingForUpdates": "An error has occurred when looking for updates",
+      "updateChannel": {
+        "label": "Update Channel",
+        "latest": "Stable",
+        "beta": "Beta",
+        "alpha": "Alpha (Experimental)"
+      }
     },
     "addServer": {
       "title": "Add Server",

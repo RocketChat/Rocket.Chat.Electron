@@ -22,7 +22,13 @@
       "checkUpdatesOnStart": "Sprawdzanie aktualizacji przy uruchomieniu",
       "noUpdatesAvailable": "Brak dostępnych aktualizacji.",
       "copyright": "Prawa autorskie {{copyright}}",
-      "errorWhenLookingForUpdates": "Wystąpił błąd podczas wyszukiwania aktualizacji"
+      "errorWhenLookingForUpdates": "Wystąpił błąd podczas wyszukiwania aktualizacji",
+      "updateChannel": {
+        "label": "Kanał aktualizacji",
+        "latest": "Stabilny",
+        "beta": "Beta",
+        "alpha": "Alfa (Eksperymentalny)"
+      }
     },
     "addServer": {
       "title": "Dodaj Serwer",

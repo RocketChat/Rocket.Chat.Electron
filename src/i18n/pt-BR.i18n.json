@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Verificar Atualizações ao Abrir",
       "noUpdatesAvailable": "Não há atualizações disponíveis.",
       "copyright": "{{copyright}} Todos os direitos reservados.",
-      "errorWhenLookingForUpdates": "Ocorreu um erro ao procurar por atualizações"
+      "errorWhenLookingForUpdates": "Ocorreu um erro ao procurar por atualizações",
+      "updateChannel": {
+        "label": "Canal de atualização",
+        "latest": "Estável",
+        "beta": "Beta",
+        "alpha": "Alpha (Experimental)"
+      }
     },
     "addServer": {
       "title": "Adicionar Servidor",

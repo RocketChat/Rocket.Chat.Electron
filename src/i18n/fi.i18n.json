@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Tarkista päivitykset käynnistettäessä",
       "noUpdatesAvailable": "Päivityksiä ei ole saatavilla.",
       "copyright": "Copyright {{copyright}}",
-      "errorWhenLookingForUpdates": "Virhe etsittäessä päivityksiä"
+      "errorWhenLookingForUpdates": "Virhe etsittäessä päivityksiä",
+      "updateChannel": {
+        "label": "Päivityskanava",
+        "latest": "Vakaa",
+        "beta": "Beta",
+        "alpha": "Alpha (Kokeellinen)"
+      }
     },
     "addServer": {
       "title": "Lisää palvelin",

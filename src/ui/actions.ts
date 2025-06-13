@@ -6,6 +6,8 @@ import type { RootWindowIcon, WindowState } from './common';
 export const ABOUT_DIALOG_DISMISSED = 'about-dialog/dismissed';
 export const ABOUT_DIALOG_TOGGLE_UPDATE_ON_START =
   'about-dialog/toggle-update-on-start';
+export const ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED =
+  'about-dialog/update-channel-changed';
 export const ADD_SERVER_VIEW_SERVER_ADDED = 'add-server/view-server-added';
 export const CLEAR_CACHE_TRIGGERED = 'clear-cache/triggered';
 export const CLEAR_CACHE_DIALOG_DISMISSED = 'clear-cache-dialog/dismissed';
@@ -134,6 +136,7 @@ export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
   [ABOUT_DIALOG_TOGGLE_UPDATE_ON_START]: boolean;
+  [ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED]: string;
   [ADD_SERVER_VIEW_SERVER_ADDED]: Server['url'];
   [CLEAR_CACHE_TRIGGERED]: WebContents['id'];
   [CLEAR_CACHE_DIALOG_DISMISSED]: void;

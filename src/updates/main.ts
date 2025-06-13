@@ -9,6 +9,7 @@ import type { RootState } from '../store/rootReducer';
 import {
   UPDATE_DIALOG_SKIP_UPDATE_CLICKED,
   UPDATE_DIALOG_INSTALL_BUTTON_CLICKED,
+  ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
 } from '../ui/actions';
 import {
   askUpdateInstall,
@@ -25,6 +26,7 @@ import {
   UPDATES_NEW_VERSION_AVAILABLE,
   UPDATES_NEW_VERSION_NOT_AVAILABLE,
   UPDATES_READY,
+  UPDATES_CHANNEL_CHANGED,
 } from './actions';
 import type {
   AppLevelUpdateConfiguration,
@@ -88,6 +90,9 @@ export const mergeConfigurations = (
     ...(typeof appConfiguration.skip === 'string' && {
       skippedUpdateVersion: appConfiguration.skip,
     }),
+    ...(typeof appConfiguration.channel === 'string' && {
+      updateChannel: appConfiguration.channel,
+    }),
   };
 
   if (
@@ -106,6 +111,14 @@ export const mergeConfigurations = (
     configuration.skippedUpdateVersion = userConfiguration.skip;
   }
 
+  if (
+    typeof userConfiguration.channel === 'string' &&
+    (configuration.isEachUpdatesSettingConfigurable ||
+      typeof appConfiguration.channel === 'undefined')
+  ) {
+    configuration.updateChannel = userConfiguration.channel;
+  }
+
   return configuration;
 };
 
@@ -119,6 +132,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       isFlashFrameEnabled,
       isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
+      updateChannel,
     }: RootState) => ({
       isUpdatingAllowed:
         (process.platform === 'linux' && !!process.env.APPIMAGE) ||
@@ -132,6 +146,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       isFlashFrameEnabled,
       isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
+      updateChannel,
     })
   );
   const appConfiguration = await loadAppConfiguration();
@@ -170,6 +185,7 @@ export const setupUpdates = async (): Promise<void> => {
     isFlashFrameEnabled,
     isHardwareAccelerationEnabled,
     isInternalVideoChatWindowEnabled,
+    updateChannel,
   } = await loadConfiguration();
 
   dispatch({
@@ -184,12 +200,27 @@ export const setupUpdates = async (): Promise<void> => {
       isFlashFrameEnabled,
       isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
+      updateChannel,
     },
   });
 
   if (!isUpdatingAllowed || !isUpdatingEnabled) {
     return;
   }
+
+  // Set initial channel
+  autoUpdater.channel = updateChannel;
+
+  // Listen for channel changes
+  listen(ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED, async (action) => {
+    const newChannel = action.payload;
+    autoUpdater.channel = newChannel;
+
+    dispatch({
+      type: UPDATES_CHANNEL_CHANGED,
+      payload: newChannel,
+    });
+  });
 
   autoUpdater.addListener('checking-for-update', () => {
     dispatch({ type: UPDATES_CHECKING_FOR_UPDATE });

@@ -1,0 +1,165 @@
+{
+  "contextMenu": {
+    "cut": "Cu&t",
+    "copy": "&Kopiera",
+    "paste": "&Klistra in",
+    "selectAll": "Välj &alla",
+    "undo": "&Ångra",
+    "redo": "&Gör om",
+    "spelling": "Stavning",
+    "spellingLanguages": "Stavning av språk",
+    "moreSpellingSuggestions": "Fler stavningsförslag",
+    "noSpellingSuggestions": "Inga förslag",
+    "copyLinkAddress": "Kopiera länkadressen",
+    "copyLinkText": "Kopiera länktext",
+    "openLink": "Öppna länken",
+    "saveImageAs": "Spara bilden som...",
+    "copyImage": "Kopiera bilden"
+  },
+  "dialog": {
+    "about": {
+      "title": "Om {{- appName}}",
+      "version": "Version: <1>{{-version}}</1>",
+      "checkUpdates": "Sök efter uppdateringar",
+      "checkUpdatesOnStart": "Sök efter uppdateringar vid start",
+      "noUpdatesAvailable": "Inga uppdateringar är tillgängliga.",
+      "copyright": "Upphovsrätt {{copyright}}",
+      "errorWhenLookingForUpdates": "Ett fel har inträffat när du letar efter uppdateringar"
+    },
+    "addServer": {
+      "title": "Lägg till server",
+      "message": "Vill du lägga till \"{{- host}}\" till din lista över servrar?",
+      "add": "Lägg till",
+      "cancel": "Avbryt"
+    },
+    "addServerError": {
+      "title": "Ogiltigt servernamn",
+      "message": "Servern \"{{- host}}\" kunde inte valideras och lades därför inte till."
+    },
+    "certificateError": {
+      "title": "Certifikatsfel",
+      "message": "Litar du på certifikat från \"{{- issuerName}}\"? Klicka bara på \"Ja\" om du verkligen litar på det här certifikatet. Om du är osäker bör du kontakta ditt IT- eller säkerhetsteam innan du klickar på \"Ja\".",
+      "yes": "Ja",
+      "no": "Nej"
+    },
+    "clearCache": {
+      "announcement": "Tvinga omladdning",
+      "title": "Vill du behålla din inloggningssession?",
+      "message": "Om du tar bort din inloggningssession loggas du ut och ombeds att ange dina inloggningsuppgifter igen.",
+      "keepLoginData": "Behåll inloggningssessionen",
+      "deleteLoginData": "Radera inloggningssessionen",
+      "clearingWait": "Vänligen vänta",
+      "cancel": "Avbryt"
+    },
+    "downloadRemoval": {
+      "title": "Är du säker?",
+      "message": "Vill du ta bort denna nedladdning?",
+      "yes": "Ja",
+      "no": "Nej"
+    },
+    "resetAppData": {
+      "title": "Återställ appdata",
+      "message": "Detta kommer att logga ut dig från alla dina team och återställa appen till dess ursprungliga inställningar. Detta kan inte ångras.",
+      "yes": "Ja",
+      "cancel": "Avbryt"
+    },
+    "clearPermittedScreenCaptureServers": {
+      "title": "Rensa tillåtna servrar för skärmdumpning",
+      "message": "Detta kommer att rensa alla behörigheter för skärmdumpsservrar, vilket gör att de ber om tillstånd igen. Detta kan inte ångras.",
+      "yes": "Ja",
+      "cancel": "Avbryt"
+    },
+    "screenshare": {
+      "title": "Dela din skärm",
+      "announcement": "Välj en skärm att dela"
+    },
+    "update": {
+      "title": "Uppdatering finns tillgänglig",
+      "announcement": "En ny uppdatering finns tillgänglig",
+      "message": "En ny version av Rocket.Chat Desktop App är tillgänglig!",
+      "currentVersion": "Nuvarande version:",
+      "newVersion": "Ny version:",
+      "install": "Installera uppdatering",
+      "remindLater": "Påminn mig senare",
+      "skip": "Hoppa över denna version"
+    },
+    "updateDownloading": {
+      "title": "Nedladdning av uppdatering",
+      "message": "Du kommer att få ett meddelande när uppdateringen är klar att installeras",
+      "ok": "OK"
+    },
+    "updateInstallLater": {
+      "title": "Installera senare",
+      "message": "Uppdateringen kommer att installeras när du lämnar appen",
+      "ok": "OK"
+    },
+    "updateReady": {
+      "title": "Uppdatering klar för installation",
+      "message": "Uppdateringen har laddats ner",
+      "installNow": "Installera nu",
+      "installLater": "Installera senare"
+    },
+    "updateSkip": {
+      "title": "Hoppa över uppdatering",
+      "message": "Vi kommer att meddela dig när nästa uppdatering är tillgänglig.\nOm du ändrar dig kan du kontrollera om det finns uppdateringar i menyn Om.",
+      "ok": "OK"
+    },
+    "selectClientCertificate": {
+      "announcement": "Välj certifikat",
+      "select": "Välj",
+      "validDates": "Gäller från {{-validStart,}} till {{-validExpiry,}}"
+    },
+    "openingExternalProtocol": {
+      "title": "Länk med anpassat protokoll",
+      "message": "{{- protocol }} länken kräver en extern ansökan.",
+      "detail": "Den begärda länken är {{- url }}. Vill du fortsätta?",
+      "dontAskAgain": "Öppna alltid den här typen av länkar i den tillhörande appen",
+      "yes": "Ja",
+      "no": "Nej"
+    },
+    "allowVideoCallCaptureScreen": {
+      "title": "Videosamtalet försöker fånga din skärm",
+      "message": "Videosamtalet begär tillstånd att fånga din skärm.",
+      "detail": "Videosamtalet från servern {{- url }} kräver tillstånd för att du ska kunna dela din skärm med andra.",
+      "dontAskAgain": "Tillåt alltid videosamtal från denna server att fånga din skärm",
+      "yes": "Tillåt",
+      "no": "Avbryt"
+    },
+    "mediaPermission": {
+      "title": "Tillstånd för media krävs",
+      "message": "{{- permissionType}} är för närvarande avaktiverad i dina systeminställningar.",
+      "detail": "För att aktivera videosamtalsfunktioner måste du tillåta åtkomst i systemets sekretessinställningar och sedan starta om programmet.",
+      "openSettings": "Öppna inställningar",
+      "cancel": "Avbryt",
+      "microphone": "Mikrofon",
+      "camera": "Kamera",
+      "both": "Mikrofon och kamera"
+    },
+    "outlookCalendar": {
+      "title": "Outlook-kalender",
+      "encryptionUnavailableTitle": "Kryptering är inte tillgänglig",
+      "encryptionUnavailable": "Ditt operativsystem stöder inte kryptering.\nDina inloggningsuppgifter lagras i klartext.",
+      "field_required": "Detta fält är obligatoriskt",
+      "remember_credentials": "Kom ihåg mina referenser",
+      "cancel": " Avbryt",
+      "submit": "Logga in"
+    },
+    "supportedVersion": {
+      "title": "Version av arbetsyta som inte stöds"
+    }
+  },
+  "downloads": {
+    "title": "Nedladdningar",
+    "notifications": {
+      "downloadFinished": "Nedladdning klar",
+      "downloadInterrupted": "Nedladdning avbruten",
+      "downloadCancelled": "Nedladdning avbruten",
+      "downloadFailed": "Nedladdning misslyckades",
+      "downloadExpired": "Nedladdning har utgått",
+      "downloadExpiredMessage": "Försök ladda ner från källan igen."
+    },
+    "filters": {
+      "search": "Sök"
+    }
+  }
+}

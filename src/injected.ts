@@ -63,10 +63,16 @@ const start = async () => {
     version1: string,
     version2: string
   ): boolean {
-    const v1 = version1.match(/\d+/g)?.map(Number) || [];
-    const v2 = version2.match(/\d+/g)?.map(Number) || [];
+    // Extract only the core version number (before any suffix like -develop, -rc, etc.)
+    const cleanVersion1 = version1.split('-')[0];
+    const cleanVersion2 = version2.split('-')[0];
 
-    for (let i = 0; i < 3; i++) {
+    const v1 = cleanVersion1.split('.').map(Number);
+    const v2 = cleanVersion2.split('.').map(Number);
+
+    // Compare each version part
+    const maxLength = Math.max(v1.length, v2.length);
+    for (let i = 0; i < maxLength; i++) {
       const n1 = v1[i] || 0;
       const n2 = v2[i] || 0;
 
@@ -78,7 +84,7 @@ const start = async () => {
       }
     }
 
-    return true;
+    return true; // Equal versions
   }
 
   const userPresenceModulePath = versionIsGreaterOrEqualsTo(

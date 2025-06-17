@@ -170,50 +170,46 @@ const start = async () => {
     });
   }
 
-  if (!versionIsGreaterOrEqualsTo(serverInfo.version, '7.8.0')) {
-    Tracker.autorun(() => {
-      const userToken = Meteor._localStorage.getItem('Meteor.loginToken');
-      const userId = Meteor.userId();
-      const outlookCalendarEnabled = settings.get('Outlook_Calendar_Enabled');
-      const outlookExchangeUrl = settings.get('Outlook_Calendar_Exchange_Url');
-      if (
-        !userToken ||
-        !userId ||
-        !outlookCalendarEnabled ||
-        !outlookExchangeUrl
-      )
-        return;
-      window.RocketChatDesktop.setUserToken(userToken, userId);
+  // Helper function to get Outlook settings based on server version
+  const getOutlookSettings = () => {
+    const userToken = Meteor._localStorage.getItem('Meteor.loginToken');
 
-      window.RocketChatDesktop.setOutlookExchangeUrl(
-        outlookExchangeUrl,
-        userId
-      );
-    });
-  } else {
-    Tracker.autorun(() => {
-      const userToken = Meteor._localStorage.getItem('Meteor.loginToken');
-      const user = Meteor.user();
-      const userId = user?._id;
-      const outlookSettings = user?.settings?.calendar?.outlook;
-      const outlookCalendarEnabled = outlookSettings?.Enabled;
-      const outlookExchangeUrl = outlookSettings?.Exchange_Url;
+    if (!versionIsGreaterOrEqualsTo(serverInfo.version, '7.8.0')) {
+      // Pre-7.8.0: Use global server settings
+      return {
+        userToken,
+        userId: Meteor.userId(),
+        outlookCalendarEnabled: settings.get('Outlook_Calendar_Enabled'),
+        outlookExchangeUrl: settings.get('Outlook_Calendar_Exchange_Url'),
+      };
+    }
+    // 7.8.0+: Use user-specific settings
+    const user = Meteor.user();
+    const outlookSettings = user?.settings?.calendar?.outlook;
+    return {
+      userToken,
+      userId: user?._id,
+      outlookCalendarEnabled: outlookSettings?.Enabled,
+      outlookExchangeUrl: outlookSettings?.Exchange_Url,
+    };
+  };
 
-      if (
-        !userToken ||
-        !userId ||
-        !outlookCalendarEnabled ||
-        !outlookExchangeUrl
-      )
-        return;
-      window.RocketChatDesktop.setUserToken(userToken, userId);
+  Tracker.autorun(() => {
+    const { userToken, userId, outlookCalendarEnabled, outlookExchangeUrl } =
+      getOutlookSettings();
 
-      window.RocketChatDesktop.setOutlookExchangeUrl(
-        outlookExchangeUrl,
-        userId
-      );
-    });
-  }
+    if (
+      !userToken ||
+      !userId ||
+      !outlookCalendarEnabled ||
+      !outlookExchangeUrl
+    ) {
+      return;
+    }
+
+    window.RocketChatDesktop.setUserToken(userToken, userId);
+    window.RocketChatDesktop.setOutlookExchangeUrl(outlookExchangeUrl, userId);
+  });
 
   Tracker.autorun(() => {
     const siteName = settings.get('Site_Name');

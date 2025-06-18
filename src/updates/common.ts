@@ -8,6 +8,7 @@ export type UpdateConfiguration = {
   isHardwareAccelerationEnabled: boolean;
   isFlashFrameEnabled: boolean;
   isInternalVideoChatWindowEnabled: boolean;
+  updateChannel: string;
 };
 
 export type AppLevelUpdateConfiguration = {
@@ -15,9 +16,14 @@ export type AppLevelUpdateConfiguration = {
   canUpdate?: boolean;
   autoUpdate?: boolean;
   skip?: string | null;
+  channel?: string;
 };
 
 export type UserLevelUpdateConfiguration = {
   autoUpdate?: boolean;
   skip?: string | null;
+  channel?: string;
 };
+
+export const UPDATE_CHANNELS = ['latest', 'beta', 'alpha'] as const;
+export type UpdateChannel = (typeof UPDATE_CHANNELS)[number];

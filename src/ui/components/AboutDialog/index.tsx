@@ -19,9 +19,11 @@ import { packageJsonInformation } from '../../../app/main/app';
 import type { RootAction } from '../../../store/actions';
 import type { RootState } from '../../../store/rootReducer';
 import { UPDATES_CHECK_FOR_UPDATES_REQUESTED } from '../../../updates/actions';
+import { UPDATE_CHANNELS } from '../../../updates/common';
 import {
   ABOUT_DIALOG_TOGGLE_UPDATE_ON_START,
   ABOUT_DIALOG_DISMISSED,
+  ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
 } from '../../actions';
 import { Dialog } from '../Dialog';
 import { RocketChatLogo } from '../RocketChatLogo';
@@ -53,6 +55,12 @@ export const AboutDialog = () => {
   );
   const openDialog = useSelector(({ openDialog }: RootState) => openDialog);
   const updateError = useSelector(({ updateError }: RootState) => updateError);
+  const updateChannel = useSelector(
+    ({ updateChannel }: RootState) => updateChannel
+  );
+  const isDeveloperModeEnabled = useSelector(
+    ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled
+  );
 
   const isVisible = openDialog === 'about';
   const canUpdate = isUpdatingAllowed && isUpdatingEnabled;
@@ -119,8 +127,20 @@ export const AboutDialog = () => {
     });
   };
 
+  const handleUpdateChannelChange = (channel: string): void => {
+    dispatch({
+      type: ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED,
+      payload: channel,
+    });
+  };
+
   const checkForUpdatesButtonRef = useAutoFocus(isVisible);
   const checkForUpdatesOnStartupToggleSwitchId = useId();
+
+  const updateChannelOptions = UPDATE_CHANNELS.map(
+    (channel) =>
+      [channel, t(`dialog.about.updateChannel.${channel}`)] as [string, string]
+  ).sort((a, b) => a[1].localeCompare(b[1]));
 
   return (
     <Dialog
@@ -141,6 +161,53 @@ export const AboutDialog = () => {
 
         {canUpdate && (
           <Box display='flex' flexDirection='column'>
+            {isDeveloperModeEnabled && (
+              <Box marginBlockEnd={16}>
+                <Field>
+                  <FieldRow style={{ verticalAlign: 'middle' }}>
+                    <FieldLabel
+                      htmlFor='updateChannelSelect'
+                      marginBlock='auto'
+                    >
+                      {t('dialog.about.updateChannel.label')}
+                    </FieldLabel>
+                    <select
+                      id='updateChannelSelect'
+                      value={updateChannel}
+                      onChange={(e) =>
+                        handleUpdateChannelChange(e.target.value)
+                      }
+                      style={{
+                        width: '200px',
+                        height: '40px',
+                        padding: '8px 12px',
+                        border: '2px solid #e4e7ea',
+                        borderRadius: '4px',
+                        backgroundColor: '#ffffff',
+                        fontSize: '14px',
+                        color: '#2f343d',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        appearance: 'none',
+                        backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 12px center',
+                        backgroundSize: '16px',
+                        paddingRight: '40px',
+                      }}
+                    >
+                      {updateChannelOptions.map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </FieldRow>
+                </Field>
+              </Box>
+            )}
+
             <Margins block='x8'>
               {!checkingForUpdates && (
                 <Button

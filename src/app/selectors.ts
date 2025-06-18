@@ -62,4 +62,5 @@ export const selectPersistableValues = createStructuredSelector({
   isVideoCallWindowPersistenceEnabled: ({
     isVideoCallWindowPersistenceEnabled,
   }: RootState) => isVideoCallWindowPersistenceEnabled,
+  updateChannel: ({ updateChannel }: RootState) => updateChannel,
 });

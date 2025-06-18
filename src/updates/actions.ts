@@ -9,6 +9,7 @@ export const UPDATES_NEW_VERSION_AVAILABLE = 'updates/new-version-available';
 export const UPDATES_NEW_VERSION_NOT_AVAILABLE =
   'updates/new-version-not-available';
 export const UPDATES_READY = 'updates/ready';
+export const UPDATES_CHANNEL_CHANGED = 'updates/channel-changed';
 
 export type UpdatesActionTypeToPayloadMap = {
   [UPDATE_SKIPPED]: string | null;
@@ -18,4 +19,5 @@ export type UpdatesActionTypeToPayloadMap = {
   [UPDATES_NEW_VERSION_AVAILABLE]: string;
   [UPDATES_NEW_VERSION_NOT_AVAILABLE]: void;
   [UPDATES_READY]: UpdateConfiguration;
+  [UPDATES_CHANNEL_CHANGED]: string;
 };

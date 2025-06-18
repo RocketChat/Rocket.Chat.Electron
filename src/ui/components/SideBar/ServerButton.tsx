@@ -50,6 +50,7 @@ type ServerButtonProps = {
   onDragEnd: (event: DragEvent) => void;
   onDragEnter: (event: DragEvent) => void;
   onDrop: (event: DragEvent) => void;
+  exchangeUrl?: string;
 };
 
 type ServerActionType =
@@ -74,6 +75,7 @@ const ServerButton = ({
   isSupportedVersion,
   supportedVersionsSource,
   supportedVersions,
+  exchangeUrl,
   onDragStart,
   onDragEnd,
   onDragEnter,
@@ -261,6 +263,7 @@ const ServerButton = ({
           target={serverInfoTarget}
           url={url}
           version={version}
+          exchangeUrl={exchangeUrl}
           supportedVersions={supportedVersions}
           isSupportedVersion={isSupportedVersion}
           supportedVersionsSource={supportedVersionsSource}

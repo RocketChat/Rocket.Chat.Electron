@@ -6,13 +6,10 @@
     "name": "Rocket.Chat",
     "schemes": ["rocketchat"]
   },
-  "electronFuses": {
-    "enableEmbeddedAsarIntegrityValidation": true,
-    "onlyLoadAppFromAsar": true
-  },
+  "afterPack": "./build/afterPack.js",
   "mac": {
     "category": "public.app-category.productivity",
-    "target": ["dmg", "pkg", "zip"],
+    "target": ["dmg", "pkg", "zip", "mas"],
     "icon": "build/icon.icns",
     "bundleVersion": "25060",
     "helperBundleId": "chat.rocket.electron.helper",

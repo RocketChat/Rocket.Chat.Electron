@@ -20,12 +20,16 @@ exports.default = async function afterPack(context) {
   }
 
   // Apply security fuses for regular builds
-  console.log('Applying electron fuses for enhanced security');
+  let appPath;
+  if (context.electronPlatformName === 'darwin') {
+    appPath = `${context.appOutDir}/Rocket.Chat.app`;
+  } else if (context.electronPlatformName === 'win32') {
+    appPath = `${context.appOutDir}/Rocket.Chat.exe`;
+  } else {
+    appPath = `${context.appOutDir}/rocketchat-desktop`;
+  }
 
-  const appPath =
-    context.electronPlatformName === 'darwin'
-      ? `${context.appOutDir}/Rocket.Chat.app`
-      : context.appOutDir;
+  console.log('Applying electron fuses for enhanced security to:', appPath);
 
   await flipFuses(appPath, {
     version: FuseVersion.V1,

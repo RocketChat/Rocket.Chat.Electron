@@ -60,7 +60,7 @@ export const OutlookCredentialsDialog = () => {
     formState: { errors, isSubmitting },
   } = useForm<AuthPayload>({
     mode: 'onChange',
-    defaultValues: { rememberCredentials: false },
+    defaultValues: { rememberCredentials: true },
   });
 
   const { rememberCredentials } = watch();

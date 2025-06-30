@@ -109,6 +109,7 @@ export const SideBar = () => {
                 isSupportedVersion={server.isSupportedVersion}
                 supportedVersionsSource={server.supportedVersionsSource}
                 supportedVersions={server.supportedVersions}
+                exchangeUrl={server.outlookCredentials?.serverUrl}
                 isShortcutVisible={isEachShortcutVisible}
                 onDragStart={handleDragStart(server.url)}
                 onDragEnd={handleDragEnd}

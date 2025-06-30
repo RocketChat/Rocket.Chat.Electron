@@ -38,6 +38,39 @@ export const startDocumentViewerHandler = (): void => {
       return;
     }
     webContent.on('will-navigate', (event, url) => {
+      // Only prevent navigation for PDF viewer webviews, not video call windows
+      // Check if this is actually a PDF viewer by examining the context
+      const currentUrl = webContent.getURL();
+
+      // Skip handling if this is a video call window or not a PDF viewer context
+      if (
+        currentUrl.includes('video-call-window.html') ||
+        currentUrl.includes('app/video-call-window.html')
+      ) {
+        return;
+      }
+
+      // Also check if the navigation URL is an external protocol (like zoommtg://)
+      // that should be handled by the system, not intercepted
+      try {
+        const navUrl = new URL(url);
+        const isExternalProtocol = ![
+          'http:',
+          'https:',
+          'file:',
+          'data:',
+          'about:',
+        ].includes(navUrl.protocol);
+
+        // If it's an external protocol, let the system handle it normally
+        if (isExternalProtocol) {
+          return;
+        }
+      } catch (e) {
+        // If URL parsing fails, let the default handling proceed
+        return;
+      }
+
       event.preventDefault();
       setTimeout(() => {
         openExternal(url);

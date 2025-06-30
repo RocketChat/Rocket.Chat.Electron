@@ -24,6 +24,7 @@ type ServerInfoDropdownProps = {
   target: RefObject<HTMLElement>;
   url: string;
   version?: string;
+  exchangeUrl?: string;
   isSupportedVersion?: boolean;
   supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
   supportedVersions?: SupportedVersions;
@@ -34,6 +35,7 @@ const ServerInfoDropdown = ({
   target,
   url,
   version,
+  exchangeUrl,
   isSupportedVersion,
   supportedVersionsSource,
   supportedVersions,
@@ -144,6 +146,30 @@ const ServerInfoDropdown = ({
             </Box>
           </OptionContent>
         </Option>
+        {exchangeUrl && (
+          <Option>
+            <OptionIcon name='mail' />
+            <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
+              <Box>
+                <Box fontWeight='bold'>Outlook Exchange URL:</Box>
+                <Box
+                  fontSize='x12'
+                  color='hint'
+                  style={{
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                    whiteSpace: 'normal',
+                    lineHeight: '1.4',
+                    hyphens: 'auto',
+                    maxWidth: '100%',
+                  }}
+                >
+                  {exchangeUrl}
+                </Box>
+              </Box>
+            </OptionContent>
+          </Option>
+        )}
         {supportedVersions && (
           <>
             <OptionDivider />

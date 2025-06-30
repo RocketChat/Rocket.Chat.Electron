@@ -18,6 +18,7 @@ import {
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
+import { isProtocolAllowed } from '../navigation/main';
 import { select, dispatchLocal } from '../store';
 import { VIDEO_CALL_WINDOW_STATE_CHANGED } from '../ui/actions';
 import { debounce } from '../ui/main/debounce';
@@ -169,6 +170,59 @@ export const startVideoCallWindowHandler = (): void => {
         _event: Event,
         webContents: WebContents
       ): void => {
+        // Set up window open handler for external protocols (like zoommtg://)
+        webContents.setWindowOpenHandler(({ url, disposition }) => {
+          console.log('Video call window open handler:', { url, disposition });
+
+          // For external protocols and new windows, open them externally
+          if (
+            disposition === 'foreground-tab' ||
+            disposition === 'background-tab' ||
+            disposition === 'new-window'
+          ) {
+            isProtocolAllowed(url).then((allowed) => {
+              if (allowed) {
+                openExternal(url);
+              }
+            });
+            return { action: 'deny' };
+          }
+
+          // Allow other window opens to proceed normally
+          return { action: 'allow' };
+        });
+
+        // Handle navigation to external protocols in video call windows
+        webContents.on('will-navigate', (event, url) => {
+          console.log('Video call window will-navigate:', url);
+
+          try {
+            const parsedUrl = new URL(url);
+
+            // Check if this is an external protocol (not http/https)
+            if (
+              !['http:', 'https:', 'file:', 'data:', 'about:'].includes(
+                parsedUrl.protocol
+              )
+            ) {
+              console.log(
+                'External protocol detected in video call window:',
+                parsedUrl.protocol
+              );
+              event.preventDefault();
+
+              isProtocolAllowed(url).then((allowed) => {
+                if (allowed) {
+                  openExternal(url);
+                }
+              });
+            }
+          } catch (e) {
+            // If URL parsing fails, let the default handling proceed
+            console.warn('Failed to parse URL in video call window:', url, e);
+          }
+        });
+
         webContents.session.setPermissionRequestHandler(
           async (_webContents, permission, callback, details) => {
             console.log(
@@ -252,6 +306,13 @@ export const startVideoCallWindowHandler = (): void => {
               case 'fullscreen':
                 callback(true);
                 return;
+
+              case 'openExternal': {
+                // Allow external protocol handling for video call windows
+                // This is essential for Zoom, Teams, and other external app launches
+                callback(true);
+                return;
+              }
 
               default:
                 callback(false);

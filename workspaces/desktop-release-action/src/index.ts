@@ -27,7 +27,7 @@ const pack = async () => {
       break;
 
     case 'darwin':
-      await disableSpotlightIndexing();
+      await disableSpotlightIndexing(); 
       await packOnMacOS();
       break;
 
@@ -56,6 +56,12 @@ const getFilesToUpload = () =>
     'dist/*.exe',
     'dist/*.exe.blockmap',
     'dist/*.AppImage',
+    'dist/alpha.yml',
+    'dist/alpha-mac.yml',
+    'dist/alpha-linux.yml',
+    'dist/beta.yml',
+    'dist/beta-mac.yml',
+    'dist/beta-linux.yml',
   ]);
 
 const releaseDevelopment = async (commitSha: string) => {

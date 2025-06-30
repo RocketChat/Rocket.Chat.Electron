@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Se etter oppdateringer ved start",
       "noUpdatesAvailable": "Ingen oppdateringer er tilgjengelige.",
       "copyright": "Opphavsrett {{copyright}}",
-      "errorWhenLookingForUpdates": "Det har oppstått en feil under søk etter oppdateringer"
+      "errorWhenLookingForUpdates": "Det har oppstått en feil under søk etter oppdateringer",
+      "updateChannel": {
+        "label": "Oppdater kanal",
+        "latest": "Stabil",
+        "beta": "Beta",
+        "alpha": "Alfa (eksperimentell)"
+      }
     },
     "addServer": {
       "title": "Legg til server",
@@ -223,7 +229,7 @@
       },
       "internalVideoChatWindow": {
         "title": "Åpne videochat ved hjelp av applikasjonsvinduet",
-        "description": "Når innstilt, vil Videochat åpnes ved hjelp av et programvindu, ellers vil standardnettleseren brukes. <strong>Google Meet</strong> deleskjerm støttes ikke i Electron-applikasjoner, så denne konfigurasjonen endrer ikke Meet-anropsadferd, som åpnes i nettleseren.",
+        "description": "Når innstilt, vil Videochat åpnes ved hjelp av et programvindu, ellers vil standardnettleseren brukes. <strong>Google Meet</strong> og <strong>Jitsi</strong> skjermopptak støttes ikke i Electron-applikasjoner, så denne konfigurasjonen endrer ikke anropsadferd, som åpnes i nettleseren.",
         "masDescription": "Dette alternativet er deaktivert når det er installert fra Mac App Store, av sikkerhetsgrunner vil det åpne Video Chat ved å bruke nettleseren som standard."
       },
       "minimizeOnClose": {
@@ -289,6 +295,7 @@
     "close": "Lukke",
     "copy": "Kopiere",
     "cut": "Kutt",
+    "developerMode": "Utviklermodus",
     "disableGpu": "Deaktiver GPU",
     "documentation": "Dokumentasjon",
     "downloads": "Nedlastinger",
@@ -354,7 +361,9 @@
       "clearCache": "Tøm buffer",
       "clearStorageData": "Fjern lagringsdata",
       "copyCurrentUrl": "Kopier gjeldende URL",
-      "reloadClearingCache": "Tving omlasting"
+      "reloadClearingCache": "Tving omlasting",
+      "serverInfo": "Serverinfo",
+      "supportedVersionsInfo": "Informasjon om støttede versjoner"
     },
     "tooltips": {
       "unreadMessage": "{{- count}} ulest melding",

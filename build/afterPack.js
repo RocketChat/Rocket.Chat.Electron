@@ -8,25 +8,19 @@ exports.default = async function afterPack(context) {
     context.appOutDir
   );
 
-  // Skip fuses for MAS builds - they are incompatible
-  if (
-    context.electronPlatformName === 'mas' ||
-    context.appOutDir.includes('mas-universal')
-  ) {
-    console.log(
-      'Skipping fuses for MAS build (App Store has its own integrity validation)'
-    );
-    return;
-  }
-
-  // Apply security fuses for regular builds
+  // Apply security fuses for all builds
   let appPath;
-  if (context.electronPlatformName === 'darwin') {
-    appPath = `${context.appOutDir}/Rocket.Chat.app`;
-  } else if (context.electronPlatformName === 'win32') {
-    appPath = `${context.appOutDir}/Rocket.Chat.exe`;
-  } else {
-    appPath = `${context.appOutDir}/rocketchat-desktop`;
+  switch (context.electronPlatformName) {
+    case 'darwin':
+    case 'mas':
+      appPath = `${context.appOutDir}/Rocket.Chat.app`;
+      break;
+    case 'win32':
+      appPath = `${context.appOutDir}/Rocket.Chat.exe`;
+      break;
+    default:
+      appPath = `${context.appOutDir}/rocketchat-desktop`;
+      break;
   }
 
   console.log('Applying electron fuses for enhanced security to:', appPath);

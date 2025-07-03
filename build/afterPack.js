@@ -29,7 +29,7 @@ exports.default = async function afterPack(context) {
     version: FuseVersion.V1,
     [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
     [FuseV1Options.OnlyLoadAppFromAsar]: true,
-    [FuseV1Options.RunAsNode]: true,
+    [FuseV1Options.RunAsNode]: false,
     [FuseV1Options.EnableCookieEncryption]: false,
     [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: true,
     [FuseV1Options.EnableNodeCliInspectArguments]: true,

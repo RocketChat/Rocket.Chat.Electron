@@ -385,7 +385,7 @@ const createViewMenu = createSelector(
           if (zoomLevel >= 9) {
             return;
           }
-      
+
           guestWebContents.setZoomLevel(zoomLevel + 1);
         },
       },
@@ -402,7 +402,7 @@ const createViewMenu = createSelector(
           if (zoomLevel <= -9) {
             return;
           }
-      
+
           guestWebContents.setZoomLevel(zoomLevel - 1);
         },
       },

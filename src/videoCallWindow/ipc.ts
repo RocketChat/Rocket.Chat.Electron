@@ -247,31 +247,32 @@ export const startVideoCallWindowHandler = (): void => {
                   break;
                 }
 
-                let microphoneAllowed = true;
-                let cameraAllowed = true;
+                // For non-macOS platforms (including Linux), check system permissions on Windows only
+                if (process.platform === 'win32') {
+                  let microphoneAllowed = true;
+                  let cameraAllowed = true;
 
-                if (mediaTypes.includes('audio')) {
-                  const micStatus =
-                    systemPreferences.getMediaAccessStatus('microphone');
-                  microphoneAllowed = micStatus === 'granted';
-                }
+                  if (mediaTypes.includes('audio')) {
+                    const micStatus =
+                      systemPreferences.getMediaAccessStatus('microphone');
+                    microphoneAllowed = micStatus === 'granted';
+                  }
 
-                if (mediaTypes.includes('video')) {
-                  const camStatus =
-                    systemPreferences.getMediaAccessStatus('camera');
-                  cameraAllowed = camStatus === 'granted';
-                }
+                  if (mediaTypes.includes('video')) {
+                    const camStatus =
+                      systemPreferences.getMediaAccessStatus('camera');
+                    cameraAllowed = camStatus === 'granted';
+                  }
 
-                const allowed = microphoneAllowed && cameraAllowed;
+                  const allowed = microphoneAllowed && cameraAllowed;
 
-                if (!allowed) {
-                  console.log('Media permissions denied by system:', {
-                    microphone: microphoneAllowed,
-                    camera: cameraAllowed,
-                    requestedTypes: mediaTypes,
-                  });
+                  if (!allowed) {
+                    console.log('Media permissions denied by system:', {
+                      microphone: microphoneAllowed,
+                      camera: cameraAllowed,
+                      requestedTypes: mediaTypes,
+                    });
 
-                  if (process.platform === 'win32') {
                     let permissionType: 'microphone' | 'camera' | 'both';
                     if (
                       mediaTypes.includes('audio') &&
@@ -293,9 +294,13 @@ export const startVideoCallWindowHandler = (): void => {
                       }
                     });
                   }
+
+                  callback(allowed);
+                  break;
                 }
 
-                callback(allowed);
+                // For Linux and other platforms, always allow media access
+                callback(true);
                 break;
               }
 

@@ -16,6 +16,7 @@ import {
   SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
   SETTINGS_NTLM_CREDENTIALS_CHANGED,
   SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED,
+  SETTINGS_SET_WEBRTC_HIDE_LOCAL_IPS_ENABLED_CHANGED,
 } from '../../ui/actions';
 import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
@@ -99,6 +100,17 @@ export const performElectronStartup = (): void => {
     app.commandLine.appendSwitch('--disable-accelerated-2d-canvas');
     app.commandLine.appendSwitch('--disable-gpu');
   }
+
+  const isWebRTCHideLocalIPsEnabled = readSetting(
+    'isWebRTCHideLocalIPsEnabled'
+  );
+
+  if (isWebRTCHideLocalIPsEnabled) {
+    app.commandLine.appendSwitch(
+      '--enable-features',
+      'WebRtcHideLocalIpsWithMdns'
+    );
+  }
 };
 
 export const setupApp = (): void => {
@@ -117,6 +129,10 @@ export const setupApp = (): void => {
   app.whenReady().then(() => preloadBrowsersList());
 
   listen(SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED, () => {
+    relaunchApp();
+  });
+
+  listen(SETTINGS_SET_WEBRTC_HIDE_LOCAL_IPS_ENABLED_CHANGED, () => {
     relaunchApp();
   });
 

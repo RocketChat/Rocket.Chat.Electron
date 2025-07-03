@@ -31,6 +31,7 @@ import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowO
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
+import { isWebRTCHideLocalIPsEnabled } from '../ui/reducers/isWebRTCHideLocalIPsEnabled';
 import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
@@ -94,6 +95,7 @@ export const rootReducer = combineReducers({
   isVideoCallWindowPersistenceEnabled,
   isDeveloperModeEnabled,
   updateChannel,
+  isWebRTCHideLocalIPsEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

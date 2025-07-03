@@ -83,9 +83,13 @@ type PersistableValues_4_5_0 = PersistableValues_4_4_0 & {
   updateChannel: string;
 };
 
+type PersistableValues_4_6_0 = PersistableValues_4_5_0 & {
+  isWebRTCHideLocalIPsEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_5_0,
-  keyof PersistableValues_4_5_0
+  PersistableValues_4_6_0,
+  keyof PersistableValues_4_6_0
 >;
 
 export const migrations = {
@@ -154,5 +158,9 @@ export const migrations = {
   '>=4.5.0': (before: PersistableValues_4_4_0): PersistableValues_4_5_0 => ({
     ...before,
     updateChannel: 'latest',
+  }),
+  '>=4.6.0': (before: PersistableValues_4_5_0): PersistableValues_4_6_0 => ({
+    ...before,
+    isWebRTCHideLocalIPsEnabled: false,
   }),
 };

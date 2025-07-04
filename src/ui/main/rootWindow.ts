@@ -66,7 +66,20 @@ export const createRootWindow = (): void => {
     webPreferences,
   });
 
-  _rootWindow.addListener('close', (event) => {
+  // Block navigation to smb:// protocol
+  _rootWindow.webContents.on('will-navigate', (event, url) => {
+    if (typeof url === 'string' && url.toLowerCase().startsWith('smb://')) {
+      event.preventDefault();
+    }
+  });
+  _rootWindow.webContents.setWindowOpenHandler(({ url }: { url: string }) => {
+    if (url.toLowerCase().startsWith('smb://')) {
+      return { action: 'deny' };
+    }
+    return { action: 'allow' };
+  });
+
+  _rootWindow.addListener('close', (event: any) => {
     event.preventDefault();
   });
 

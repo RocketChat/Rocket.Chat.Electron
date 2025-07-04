@@ -125,6 +125,24 @@ export const startVideoCallWindowHandler = (): void => {
         show: false,
       });
 
+      // Block navigation to smb:// protocol
+      videoCallWindow.webContents.on(
+        'will-navigate',
+        (event: Event, url: string) => {
+          if (url.toLowerCase().startsWith('smb://')) {
+            event.preventDefault();
+          }
+        }
+      );
+      videoCallWindow.webContents.setWindowOpenHandler(
+        ({ url }: { url: string }) => {
+          if (url.toLowerCase().startsWith('smb://')) {
+            return { action: 'deny' };
+          }
+          return { action: 'allow' };
+        }
+      );
+
       // Only track window state changes if persistence is enabled
       if (state.isVideoCallWindowPersistenceEnabled) {
         const fetchAndDispatchWindowState = debounce(async () => {
@@ -171,29 +189,34 @@ export const startVideoCallWindowHandler = (): void => {
         webContents: WebContents
       ): void => {
         // Set up window open handler for external protocols (like zoommtg://)
-        webContents.setWindowOpenHandler(({ url, disposition }) => {
-          console.log('Video call window open handler:', { url, disposition });
-
-          // For external protocols and new windows, open them externally
-          if (
-            disposition === 'foreground-tab' ||
-            disposition === 'background-tab' ||
-            disposition === 'new-window'
-          ) {
-            isProtocolAllowed(url).then((allowed) => {
-              if (allowed) {
-                openExternal(url);
-              }
+        webContents.setWindowOpenHandler(
+          ({ url, disposition }: { url: string; disposition: any }) => {
+            console.log('Video call window open handler:', {
+              url,
+              disposition,
             });
-            return { action: 'deny' };
-          }
 
-          // Allow other window opens to proceed normally
-          return { action: 'allow' };
-        });
+            // For external protocols and new windows, open them externally
+            if (
+              disposition === 'foreground-tab' ||
+              disposition === 'background-tab' ||
+              disposition === 'new-window'
+            ) {
+              isProtocolAllowed(url).then((allowed) => {
+                if (allowed) {
+                  openExternal(url);
+                }
+              });
+              return { action: 'deny' };
+            }
+
+            // Allow other window opens to proceed normally
+            return { action: 'allow' };
+          }
+        );
 
         // Handle navigation to external protocols in video call windows
-        webContents.on('will-navigate', (event, url) => {
+        webContents.on('will-navigate', (event: any, url: string) => {
           console.log('Video call window will-navigate:', url);
 
           try {
@@ -224,7 +247,12 @@ export const startVideoCallWindowHandler = (): void => {
         });
 
         webContents.session.setPermissionRequestHandler(
-          async (_webContents, permission, callback, details) => {
+          async (
+            _webContents: any,
+            permission: any,
+            callback: any,
+            details: any
+          ) => {
             console.log(
               'Video call window permission request',
               permission,

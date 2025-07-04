@@ -63,4 +63,6 @@ export const selectPersistableValues = createStructuredSelector({
     isVideoCallWindowPersistenceEnabled,
   }: RootState) => isVideoCallWindowPersistenceEnabled,
   updateChannel: ({ updateChannel }: RootState) => updateChannel,
+  isWebRTCHideLocalIPsEnabled: ({ isWebRTCHideLocalIPsEnabled }: RootState) =>
+    isWebRTCHideLocalIPsEnabled,
 });

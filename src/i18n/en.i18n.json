@@ -225,7 +225,11 @@
       },
       "hardwareAcceleration": {
         "title": "Hardware Acceleration",
-        "description": "Enables the use of hardware acceleration when available. The application will reload on change."
+        "description": "Enable hardware acceleration when available. The app will be reloaded when changed."
+      },
+      "webrtcHideLocalIps": {
+        "title": "Hide local IP address with mDNS in WebRTC",
+        "description": "Enable this to improve privacy by hiding your local IP address, but it may affect connectivity. The app will be reloaded when changed."
       },
       "internalVideoChatWindow": {
         "title": "Open Video Chat in Application Window",

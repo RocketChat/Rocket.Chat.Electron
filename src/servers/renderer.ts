@@ -13,24 +13,25 @@ export const fetchInfo = async (
   urlHref: string
 ): Promise<[urlHref: string, version: string]> => {
   const url = new URL(urlHref);
-
   const { username, password } = url;
-  const headers = new Headers();
 
+  const headers = new Headers();
   if (username && password) {
     headers.append('Authorization', `Basic ${btoa(`${username}:${password}`)}`);
   }
 
-  const homeResponse = await fetch(url.href, { headers });
+  // Node.js fetch doesn't allow credentials in URL
+  const cleanUrl = new URL(url.href);
+  cleanUrl.username = '';
+  cleanUrl.password = '';
 
+  const homeResponse = await fetch(cleanUrl.href, { headers });
   if (!homeResponse.ok) {
     throw new Error(homeResponse.statusText);
   }
 
   const endpoint = new URL('api/info', homeResponse.url);
-
   const apiInfoResponse = await fetch(endpoint.href, { headers });
-
   if (!apiInfoResponse.ok) {
     throw new Error(apiInfoResponse.statusText);
   }
@@ -41,7 +42,7 @@ export const fetchInfo = async (
   } = await apiInfoResponse.json();
 
   if (!responseBody.success) {
-    throw new Error();
+    throw new Error('Server API returned unsuccessful response');
   }
 
   return [new URL('..', apiInfoResponse.url).href, responseBody.version];

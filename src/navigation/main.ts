@@ -180,18 +180,19 @@ export const setupNavigation = async (): Promise<void> => {
       event.preventDefault();
 
       const servers = select(({ servers }) => servers);
+      const requestHost = new URL(authenticationResponseDetails.url).host;
 
       for (const server of servers) {
         const { host: serverHost, username, password } = new URL(server.url);
-        const requestHost = new URL(authenticationResponseDetails.url).host;
 
-        if (serverHost !== requestHost || !username) {
-          callback();
+        if (serverHost === requestHost && username && password) {
+          callback(username, password);
           return;
         }
-
-        callback(username, password);
       }
+
+      // Allow Authorization header to work for Basic Auth
+      callback();
     }
   );
 

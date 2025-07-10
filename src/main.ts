@@ -13,6 +13,7 @@ import { setupDownloads } from './downloads/main';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
+import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
 import { logger, setupWebContentsLogging } from './logging';
 import { setupNavigation } from './navigation/main';
 import { setupNotifications } from './notifications/main';
@@ -83,6 +84,7 @@ const start = async (): Promise<void> => {
   setupNotifications();
   setupScreenSharing();
   startVideoCallWindowHandler();
+  startLogViewerWindowHandler();
 
   await setupSpellChecking();
 

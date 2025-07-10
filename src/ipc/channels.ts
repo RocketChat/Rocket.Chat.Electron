@@ -47,6 +47,14 @@ type ChannelToArgsMap = {
     format: string,
     options: any
   ) => void;
+  'log-viewer-window/open-window': () => void;
+  'log-viewer-window/close-requested': () => void;
+  'log-viewer-window/read-logs': () => {
+    success: boolean;
+    logs?: string;
+    error?: string;
+  };
+  'log-viewer-window/clear-logs': () => { success: boolean; error?: string };
 };
 
 export type Channel = keyof ChannelToArgsMap;

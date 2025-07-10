@@ -1,6 +1,12 @@
 import log from 'electron-log/renderer';
 
-// Function to override console methods in renderer processes
+import {
+  getProcessContext,
+  getComponentContext,
+  formatLogContext,
+} from './context';
+
+// Function to override console methods in renderer processes with enhanced context
 const overrideConsoleInRenderer = () => {
   // Store original console methods for fallback
   const originalConsole = {
@@ -12,36 +18,51 @@ const overrideConsoleInRenderer = () => {
   };
 
   try {
-    // Override console.log to use electron-log debug level
+    // Get process context once
+    const processContext = getProcessContext();
+
+    // Override console.log to use electron-log debug level with context
     console.log = (...args: any[]) => {
-      log.debug(...args);
+      const component = getComponentContext();
+      const contextStr = `[${processContext}]${component !== 'general' ? ` [${component}]` : ''}`;
+      log.debug(contextStr, ...args);
     };
 
-    // Override console.info to use electron-log info level
+    // Override console.info to use electron-log info level with context
     console.info = (...args: any[]) => {
-      log.info(...args);
+      const component = getComponentContext();
+      const contextStr = `[${processContext}]${component !== 'general' ? ` [${component}]` : ''}`;
+      log.info(contextStr, ...args);
     };
 
-    // Override console.warn to use electron-log warn level
+    // Override console.warn to use electron-log warn level with context
     console.warn = (...args: any[]) => {
-      log.warn(...args);
+      const component = getComponentContext();
+      const contextStr = `[${processContext}]${component !== 'general' ? ` [${component}]` : ''}`;
+      log.warn(contextStr, ...args);
     };
 
-    // Override console.error to use electron-log error level
+    // Override console.error to use electron-log error level with context
     console.error = (...args: any[]) => {
-      log.error(...args);
+      const component = getComponentContext();
+      const contextStr = `[${processContext}]${component !== 'general' ? ` [${component}]` : ''}`;
+      log.error(contextStr, ...args);
     };
 
-    // Override console.debug to use electron-log debug level
+    // Override console.debug to use electron-log debug level with context
     console.debug = (...args: any[]) => {
-      log.debug(...args);
+      const component = getComponentContext();
+      const contextStr = `[${processContext}]${component !== 'general' ? ` [${component}]` : ''}`;
+      log.debug(contextStr, ...args);
     };
 
-    // Add a way to access original console if needed
+    // Add marker to know console override is active
     (console as any).original = originalConsole;
 
-    // Log that console override is active in this renderer
-    log.debug('Console override activated in renderer process');
+    // Log that override is active
+    log.debug(
+      `[${processContext}] [preload] Console override activated in renderer process`
+    );
   } catch (error) {
     // If override fails, restore original console
     Object.assign(console, originalConsole);
@@ -52,7 +73,7 @@ const overrideConsoleInRenderer = () => {
   }
 };
 
-// Apply console override immediately when this preload script loads
+// Apply the override immediately
 overrideConsoleInRenderer();
 
 // Export for manual use if needed

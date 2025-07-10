@@ -35,14 +35,52 @@ export function ScreenSharePicker() {
   ] = useState(false);
 
   const fetchSources = async (): Promise<void> => {
-    const sources = await desktopCapturer.getSources({
-      types: ['window', 'screen'],
-    });
-    const filteredSources = sources
-      .filter((source) => !source.thumbnail.isEmpty())
-      .sort((a, b) => a.name.localeCompare(b.name));
-    if (filteredSources.length === 0) return;
-    setSources(filteredSources);
+    try {
+      const sources = await desktopCapturer.getSources({
+        types: ['window', 'screen'],
+      });
+
+      // Filter out sources that are not capturable
+      const filteredSources = sources
+        .filter((source) => {
+          // Check if the source has a valid thumbnail
+          if (source.thumbnail.isEmpty()) {
+            console.log(
+              'Filtering out source with empty thumbnail:',
+              source.name
+            );
+            return false;
+          }
+
+          // Additional validation for source name
+          if (!source.name || source.name.trim() === '') {
+            console.log('Filtering out source with empty name:', source.id);
+            return false;
+          }
+
+          return true;
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      console.log(
+        `Found ${filteredSources.length} valid screen sharing sources`
+      );
+      setSources(filteredSources);
+
+      // If the currently selected source is no longer available, clear the selection
+      if (
+        selectedSourceId &&
+        !filteredSources.find((s) => s.id === selectedSourceId)
+      ) {
+        console.log(
+          'Previously selected source no longer available, clearing selection'
+        );
+        setSelectedSourceId(null);
+      }
+    } catch (error) {
+      console.error('Error fetching screen sharing sources:', error);
+      setSources([]);
+    }
   };
 
   useEffect(() => {
@@ -86,6 +124,32 @@ export function ScreenSharePicker() {
 
   const handleShare = (): void => {
     if (selectedSourceId) {
+      // Validate that the selected source still exists in our current sources list
+      const selectedSource = sources.find((s) => s.id === selectedSourceId);
+
+      if (!selectedSource) {
+        console.error('Selected source no longer available:', selectedSourceId);
+        // Refresh sources and clear selection
+        fetchSources();
+        setSelectedSourceId(null);
+        return;
+      }
+
+      // Additional validation before sharing
+      if (selectedSource.thumbnail.isEmpty()) {
+        console.error(
+          'Selected source has empty thumbnail, cannot share:',
+          selectedSourceId
+        );
+        setSelectedSourceId(null);
+        return;
+      }
+
+      console.log('Sharing screen source:', {
+        id: selectedSource.id,
+        name: selectedSource.name,
+      });
+
       setVisible(false);
       ipcRenderer.send(
         'video-call-window/screen-sharing-source-responded',

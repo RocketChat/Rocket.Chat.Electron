@@ -45,29 +45,81 @@ const getLevelColor = (level: LogLevel): string => {
   }
 };
 
+const getLevelBackgroundColor = (level: LogLevel): string => {
+  switch (level) {
+    case 'error':
+      return 'surface-light';
+    case 'warn':
+      return 'surface-light';
+    case 'info':
+      return 'surface-light';
+    case 'debug':
+      return 'surface-light';
+    case 'verbose':
+      return 'surface-light';
+    default:
+      return 'surface-light';
+  }
+};
+
+const getLevelTextColor = (level: LogLevel): string => {
+  switch (level) {
+    case 'error':
+      return 'danger';
+    case 'warn':
+      return 'warning';
+    case 'info':
+      return 'info';
+    case 'debug':
+      return 'annotation';
+    case 'verbose':
+      return 'hint';
+    default:
+      return 'default';
+  }
+};
+
 const LogEntry = ({ entry }: { entry: LogEntryType }) => {
   return (
     <Box
       display='flex'
       flexDirection='row'
       alignItems='flex-start'
-      padding={8}
+      padding={12}
       borderBlockEnd='1px solid'
-      borderColor='neutral-300'
+      borderColor='neutral-200'
+      backgroundColor={getLevelBackgroundColor(entry.level)}
+      borderInlineStart='4px solid'
+      borderInlineStartColor={getLevelColor(entry.level)}
       fontFamily='mono'
       fontSize='x12'
       lineHeight='x16'
     >
-      <Box minWidth={140} marginInlineEnd={8} color='hint' fontWeight='normal'>
+      <Box
+        minWidth={140}
+        marginInlineEnd={12}
+        color='annotation'
+        fontWeight='normal'
+        fontSize='x11'
+      >
         {entry.timestamp}
       </Box>
-      <Box marginInlineEnd={8}>
+      <Box marginInlineEnd={12}>
         <Chip size='small' color={getLevelColor(entry.level)}>
           {entry.level.toUpperCase()}
         </Chip>
       </Box>
       {entry.context && (
-        <Box marginInlineEnd={8} color='info' fontWeight='bold' minWidth={80}>
+        <Box
+          marginInlineEnd={12}
+          color='annotation'
+          fontWeight='bold'
+          minWidth={120}
+          fontSize='x11'
+          backgroundColor='surface-tint'
+          padding={4}
+          borderRadius={4}
+        >
           [{entry.context}]
         </Box>
       )}
@@ -75,6 +127,8 @@ const LogEntry = ({ entry }: { entry: LogEntryType }) => {
         flexGrow={1}
         wordBreak='break-word'
         style={{ whiteSpace: 'pre-wrap' }}
+        color={getLevelTextColor(entry.level)}
+        fontWeight='normal'
       >
         {entry.message}
       </Box>
@@ -321,7 +375,7 @@ function LogViewerWindow() {
       flexDirection='column'
       height='100vh'
       width='100%'
-      backgroundColor='light'
+      backgroundColor='surface-light'
     >
       <Box
         minHeight={64}
@@ -332,6 +386,7 @@ function LogViewerWindow() {
         alignItems='center'
         borderBlockEnd='1px solid'
         borderColor='neutral-300'
+        backgroundColor='surface-tint'
       >
         <Box
           display='flex'
@@ -339,8 +394,8 @@ function LogViewerWindow() {
           alignItems='center'
           flexGrow={1}
         >
-          <Icon name='list-alt' size='x20' />
-          <Box fontScale='h4' marginInlineStart={8}>
+          <Icon name='list-alt' size='x20' color='info' />
+          <Box fontScale='h4' marginInlineStart={8} color='info'>
             Log Viewer
           </Box>
         </Box>
@@ -378,6 +433,7 @@ function LogViewerWindow() {
         alignItems='center'
         borderBlockEnd='1px solid'
         borderColor='neutral-300'
+        backgroundColor='surface-tint'
       >
         <Box flexGrow={1} minWidth={200} marginInlineEnd={12}>
           <SearchInput
@@ -408,28 +464,37 @@ function LogViewerWindow() {
       </Box>
 
       <Box flexGrow={1} padding={24} paddingBlockStart={12}>
-        <Tile elevation='1' padding={0} overflow='hidden' height='100%'>
+        <Tile elevation='2' padding={0} overflow='hidden' height='100%'>
           {isLoading ? (
             <Box
               display='flex'
               justifyContent='center'
               alignItems='center'
               height='400px'
+              backgroundColor='surface-light'
             >
               <Throbber size='x32' />
             </Box>
           ) : (
             <Scrollable>
-              <Box ref={scrollRef} padding={16}>
+              <Box ref={scrollRef} padding={0}>
                 {paginatedLogs.length === 0 ? (
                   <Box
                     display='flex'
+                    flexDirection='column'
                     justifyContent='center'
                     alignItems='center'
                     height='200px'
                     color='hint'
+                    backgroundColor='surface-light'
                   >
-                    No logs found
+                    <Icon name='list-alt' size='x32' color='annotation' />
+                    <Box marginBlockStart={8} fontScale='p2'>
+                      No logs found
+                    </Box>
+                    <Box marginBlockStart={4} fontScale='c1' color='hint'>
+                      Try adjusting your filters or refresh the logs
+                    </Box>
                   </Box>
                 ) : (
                   paginatedLogs.map((entry) => (

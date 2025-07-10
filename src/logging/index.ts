@@ -109,6 +109,7 @@ const configureLogging = () => {
       log.transports.file.maxSize = 10 * 1024 * 1024; // 10MB
       log.transports.file.format =
         '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
+      // Let electron-log use its default path: ~/Library/Logs/{app name}/main.log
 
       // Configure console transport with enhanced format
       log.transports.console.format =

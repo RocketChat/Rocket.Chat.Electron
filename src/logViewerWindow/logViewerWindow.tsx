@@ -166,25 +166,31 @@ function LogViewerWindow() {
   // Parse log line into structured format
   const parseLogLine = useCallback(
     (line: string, index: number): LogEntryType => {
-      const logRegex = /^\[([^\]]+)\] \[([^\]]+)\] (.*)$/;
+      // Match the actual electron-log format: [timestamp] [level] message
+      const logRegex = /^\[([^\]]+)\] \[([^\]]+)\]\s*(.*)$/;
       const match = line.match(logRegex);
 
       if (match) {
         const [, timestamp, level, rest] = match;
-        const contextMatch = rest.match(/^(\[[^\]]+\])*\s*(.*)$/);
+
+        // Check if the message contains context information in brackets
+        const contextMatch = rest.match(
+          /^(\[[^\]]+\](?:\s*\[[^\]]+\])*)\s*(.*)$/
+        );
         const context = contextMatch?.[1] || '';
         const message = contextMatch?.[2] || rest;
 
         return {
           id: `log-${index}`,
           timestamp,
-          level: level as LogLevel,
-          context: context.replace(/[\[\]]/g, ''),
-          message,
+          level: level.trim() as LogLevel,
+          context: context.replace(/[\[\]]/g, ' ').trim(),
+          message: message.trim(),
           raw: line,
         };
       }
 
+      // Fallback for unparseable lines
       return {
         id: `log-${index}`,
         timestamp: '',
@@ -206,8 +212,11 @@ function LogViewerWindow() {
         const parsedLogs = response.logs
           .split('\n')
           .filter((line: string) => line.trim())
-          .map(parseLogLine);
+          .map(parseLogLine)
+          .reverse(); // Show newest logs first
         setLogEntries(parsedLogs);
+      } else {
+        console.error('Failed to load logs:', response?.error);
       }
     } catch (error) {
       console.error('Failed to load logs:', error);
@@ -235,6 +244,19 @@ function LogViewerWindow() {
   }, [logEntries, searchFilter, levelFilter, contextFilter]);
 
   // Pagination
+  // Load logs on component mount
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
+
+  // Auto-refresh logs every 5 seconds when streaming is enabled
+  useEffect(() => {
+    if (!isStreaming) return;
+
+    const interval = setInterval(loadLogs, 5000);
+    return () => clearInterval(interval);
+  }, [isStreaming, loadLogs]);
+
   const paginatedLogs = useMemo(() => {
     const startIndex = currentPagination * itemsPerPage;
     return filteredLogs.slice(startIndex, startIndex + itemsPerPage);

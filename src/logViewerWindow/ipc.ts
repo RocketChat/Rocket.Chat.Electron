@@ -16,9 +16,9 @@ const writeFile = promisify(fs.writeFile);
 let logViewerWindow: BrowserWindow | null = null;
 
 const getLogFilePath = (): string => {
-  // Use the same path that electron-log uses by default
+  // Use electron-log's default path: ~/Library/Logs/{app name}/main.log
   const logsPath = app.getPath('logs');
-  return path.join(logsPath, 'rocket-chat.log');
+  return path.join(logsPath, 'main.log');
 };
 
 export const openLogViewerWindow = async (): Promise<void> => {

@@ -71,7 +71,11 @@ const LogEntry = ({ entry }: { entry: LogEntryType }) => {
           [{entry.context}]
         </Box>
       )}
-      <Box flexGrow={1} wordBreak='break-word'>
+      <Box
+        flexGrow={1}
+        wordBreak='break-word'
+        style={{ whiteSpace: 'pre-wrap' }}
+      >
         {entry.message}
       </Box>
     </Box>
@@ -163,14 +167,19 @@ function LogViewerWindow() {
     []
   );
 
-  // Parse log line into structured format
-  const parseLogLine = useCallback(
-    (line: string, index: number): LogEntryType => {
+  // Parse log lines into structured format, grouping multi-line entries
+  const parseLogLines = useCallback((logText: string): LogEntryType[] => {
+    const lines = logText.split('\n').filter((line: string) => line.trim());
+    const entries: LogEntryType[] = [];
+    let currentEntry: LogEntryType | null = null;
+
+    lines.forEach((line, index) => {
       // Match the actual electron-log format: [timestamp] [level] message
       const logRegex = /^\[([^\]]+)\] \[([^\]]+)\]\s*(.*)$/;
       const match = line.match(logRegex);
 
       if (match) {
+        // This is a new log entry
         const [, timestamp, level, rest] = match;
 
         // Check if the message contains context information in brackets
@@ -180,28 +189,35 @@ function LogViewerWindow() {
         const context = contextMatch?.[1] || '';
         const message = contextMatch?.[2] || rest;
 
-        return {
-          id: `log-${index}`,
+        // Save the previous entry if it exists
+        if (currentEntry) {
+          entries.push(currentEntry);
+        }
+
+        // Create new entry
+        currentEntry = {
+          id: `log-${entries.length}`,
           timestamp,
           level: level.trim() as LogLevel,
           context: context.replace(/[\[\]]/g, ' ').trim(),
           message: message.trim(),
           raw: line,
         };
+      } else if (currentEntry && line.trim()) {
+        // This is a continuation line (stack trace, etc.)
+        currentEntry.message += `\n${line}`;
+        currentEntry.raw += `\n${line}`;
       }
+    });
 
-      // Fallback for unparseable lines
-      return {
-        id: `log-${index}`,
-        timestamp: '',
-        level: 'info',
-        context: '',
-        message: line,
-        raw: line,
-      };
-    },
-    []
-  );
+    // Add the last entry
+    if (currentEntry) {
+      entries.push(currentEntry);
+    }
+
+    // Return newest first (reverse order)
+    return entries.reverse();
+  }, []);
 
   // Load logs from file
   const loadLogs = useCallback(async () => {
@@ -209,11 +225,7 @@ function LogViewerWindow() {
     try {
       const response = await ipcRenderer.invoke('log-viewer-window/read-logs');
       if (response?.success && response.logs) {
-        const parsedLogs = response.logs
-          .split('\n')
-          .filter((line: string) => line.trim())
-          .map(parseLogLine)
-          .reverse(); // Show newest logs first
+        const parsedLogs = parseLogLines(response.logs);
         setLogEntries(parsedLogs);
       } else {
         console.error('Failed to load logs:', response?.error);
@@ -223,7 +235,7 @@ function LogViewerWindow() {
     } finally {
       setIsLoading(false);
     }
-  }, [parseLogLine]);
+  }, [parseLogLines]);
 
   // Filter logs based on search and filters
   const filteredLogs = useMemo(() => {

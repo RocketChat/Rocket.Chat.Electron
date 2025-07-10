@@ -151,7 +151,9 @@
   },
   "resolutions": {
     "@fiahfy/icns-convert/sharp": "0.29.3",
-    "@fiahfy/ico-convert/sharp": "0.29.3"
+    "@fiahfy/ico-convert/sharp": "0.29.3",
+    "@rocket.chat/fuselage/react-virtuoso": "4.6.2",
+    "@rocket.chat/prettier-config/prettier": "3.2.5"
   },
   "volta": {
     "node": "22.13.1",

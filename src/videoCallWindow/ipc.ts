@@ -28,8 +28,38 @@ import { openExternal } from '../utils/browserLauncher';
 
 export const handleDesktopCapturerGetSources = () => {
   handle('desktop-capturer-get-sources', async (_event, opts) => {
-    const options = Array.isArray(opts) ? opts[0] : opts;
-    return desktopCapturer.getSources(options);
+    try {
+      const options = Array.isArray(opts) ? opts[0] : opts;
+      console.log('Getting desktop capturer sources with options:', options);
+
+      const sources = await desktopCapturer.getSources(options);
+
+      // Filter out invalid sources before returning
+      const validSources = sources.filter((source) => {
+        if (!source.name || source.name.trim() === '') {
+          console.log('Filtering out source with empty name:', source.id);
+          return false;
+        }
+
+        if (source.thumbnail.isEmpty()) {
+          console.log(
+            'Filtering out source with empty thumbnail:',
+            source.name
+          );
+          return false;
+        }
+
+        return true;
+      });
+
+      console.log(
+        `Returning ${validSources.length} valid sources out of ${sources.length} total`
+      );
+      return validSources;
+    } catch (error) {
+      console.error('Error getting desktop capturer sources:', error);
+      return [];
+    }
   });
 };
 
@@ -121,6 +151,10 @@ export const startVideoCallWindowHandler = (): void => {
           nodeIntegrationInSubFrames: true,
           contextIsolation: false,
           webviewTag: true,
+          // Improve GPU handling for better stability
+          experimentalFeatures: false,
+          // Ensure hardware acceleration is properly handled
+          offscreen: false,
         },
         show: false,
       });
@@ -337,6 +371,8 @@ export const startVideoCallWindowHandler = (): void => {
               case 'midiSysex':
               case 'pointerLock':
               case 'fullscreen':
+              case 'screen-wake-lock':
+              case 'system-wake-lock':
                 callback(true);
                 return;
 
@@ -348,6 +384,10 @@ export const startVideoCallWindowHandler = (): void => {
               }
 
               default:
+                console.log(
+                  'Unknown permission request in video call window:',
+                  permission
+                );
                 callback(false);
             }
           }
@@ -359,7 +399,7 @@ export const startVideoCallWindowHandler = (): void => {
           );
           ipcMain.once(
             'video-call-window/screen-sharing-source-responded',
-            (_event, id) => {
+            async (_event, id) => {
               if (!id) {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
@@ -367,11 +407,51 @@ export const startVideoCallWindowHandler = (): void => {
                 return;
               }
 
-              desktopCapturer
-                .getSources({ types: ['window', 'screen'] })
-                .then((sources) => {
-                  cb({ video: sources.find((s) => s.id === id) });
+              try {
+                // Re-fetch sources to ensure the selected source is still valid
+                const sources = await desktopCapturer.getSources({
+                  types: ['window', 'screen'],
                 });
+
+                // Find the selected source and validate it's still capturable
+                const selectedSource = sources.find((s) => s.id === id);
+
+                if (!selectedSource) {
+                  console.warn(
+                    'Selected screen sharing source no longer available:',
+                    id
+                  );
+                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  // @ts-ignore
+                  cb(null);
+                  return;
+                }
+
+                // Additional validation to ensure the source is capturable
+                if (selectedSource.thumbnail.isEmpty()) {
+                  console.warn(
+                    'Selected screen sharing source has empty thumbnail:',
+                    id
+                  );
+                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  // @ts-ignore
+                  cb(null);
+                  return;
+                }
+
+                console.log('Screen sharing source validated successfully:', {
+                  id: selectedSource.id,
+                  name: selectedSource.name,
+                  hasThumbnail: !selectedSource.thumbnail.isEmpty(),
+                });
+
+                cb({ video: selectedSource });
+              } catch (error) {
+                console.error('Error validating screen sharing source:', error);
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                cb(null);
+              }
             }
           );
         });

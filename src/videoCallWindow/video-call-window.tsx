@@ -6,6 +6,9 @@ import { fallbackLng, interpolation } from '../i18n/common';
 import resources from '../i18n/resources';
 import VideoCallWindow from './videoCallWindow';
 
+// Import and apply console override for the video call window renderer
+import '../logging/preload';
+
 // Initialize i18n for this window
 const setupI18n = async () => {
   // For now we'll use the fallback language (en)

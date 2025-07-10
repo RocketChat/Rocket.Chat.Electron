@@ -7,6 +7,9 @@ import { createRendererReduxStore } from './store';
 import { App } from './ui/components/App';
 import { whenReady } from './whenReady';
 
+// Import and apply console override for the root window renderer
+import './logging/preload';
+
 const start = async (): Promise<void> => {
   const reduxStore = await createRendererReduxStore();
 
@@ -37,4 +40,4 @@ const start = async (): Promise<void> => {
   });
 };
 
-start();
+start().catch(console.error);

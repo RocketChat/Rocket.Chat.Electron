@@ -13,6 +13,7 @@ import { setupDownloads } from './downloads/main';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
+import { logger, setupWebContentsLogging } from './logging';
 import { setupNavigation } from './navigation/main';
 import { setupNotifications } from './notifications/main';
 import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
@@ -45,6 +46,12 @@ electronDl({ saveAs: true });
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
+
+  // Initialize logging early in the process
+  logger.info('Starting Rocket.Chat Desktop application');
+
+  // Setup console override for all webContents
+  setupWebContentsLogging();
 
   performElectronStartup();
 
@@ -108,4 +115,4 @@ const start = async (): Promise<void> => {
   await processDeepLinksInArgs();
 };
 
-start();
+start().catch(console.error);

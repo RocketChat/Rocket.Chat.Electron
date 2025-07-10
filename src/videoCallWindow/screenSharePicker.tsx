@@ -13,7 +13,7 @@ import type {
   SourcesOptions,
 } from 'electron';
 import { ipcRenderer } from 'electron';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Dialog } from '../ui/components/Dialog';
@@ -34,7 +34,7 @@ export function ScreenSharePicker() {
     setIsScreenRecordingPermissionGranted,
   ] = useState(false);
 
-  const fetchSources = async (): Promise<void> => {
+  const fetchSources = useCallback(async (): Promise<void> => {
     try {
       const sources = await desktopCapturer.getSources({
         types: ['window', 'screen'],
@@ -81,7 +81,7 @@ export function ScreenSharePicker() {
       console.error('Error fetching screen sharing sources:', error);
       setSources([]);
     }
-  };
+  }, [selectedSourceId]);
 
   useEffect(() => {
     const checkScreenRecordingPermission = async () => {
@@ -96,7 +96,7 @@ export function ScreenSharePicker() {
 
   useEffect(() => {
     fetchSources();
-  }, []);
+  }, [fetchSources]);
 
   useEffect(() => {
     ipcRenderer.on('video-call-window/open-screen-picker', () => {
@@ -116,7 +116,7 @@ export function ScreenSharePicker() {
     return () => {
       clearInterval(timer);
     };
-  }, [visible]);
+  }, [visible, fetchSources]);
 
   const handleScreenSharingSourceClick = (id: string) => () => {
     setSelectedSourceId(id);

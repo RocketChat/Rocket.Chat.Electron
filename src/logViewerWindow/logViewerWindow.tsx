@@ -2,8 +2,6 @@ import {
   Box,
   SearchInput,
   Icon,
-  Pagination,
-  Scrollable,
   Button,
   ButtonGroup,
   SelectLegacy,
@@ -18,6 +16,8 @@ import { ipcRenderer } from 'electron';
 import type { ChangeEvent } from 'react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { VirtuosoHandle } from 'react-virtuoso';
+import { Virtuoso } from 'react-virtuoso';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'verbose';
 
@@ -175,7 +175,7 @@ function LogViewerWindow() {
   const [logEntries, setLogEntries] = useState<LogEntryType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [showContext, setShowContext] = useState(true);
   const [fileInfo, setFileInfo] = useState<{
@@ -273,23 +273,6 @@ function LogViewerWindow() {
     setEntryLimit('100');
   }, [setSearchFilter, setLevelFilter, setContextFilter, setEntryLimit]);
 
-  const [itemsPerPage, setItemsPerPage] = useState<25 | 50 | 100>(50);
-  const [currentPagination, setCurrentPagination] = useState(0);
-
-  const showingResultsLabel = useCallback(
-    ({
-      count,
-      current,
-      itemsPerPage,
-    }: {
-      count: number;
-      current: number;
-      itemsPerPage: number;
-    }) =>
-      `Showing ${current + 1}-${Math.min(current + itemsPerPage, count)} of ${count} entries`,
-    []
-  );
-
   // Parse log lines into structured format, grouping multi-line entries
   const parseLogLines = useCallback((logText: string): LogEntryType[] => {
     const lines = logText.split('\n').filter((line: string) => line.trim());
@@ -338,8 +321,8 @@ function LogViewerWindow() {
       entries.push(currentEntry);
     }
 
-    // Return newest first (reverse order)
-    return entries.reverse();
+    // Return in chronological order (oldest first, newest last)
+    return entries;
   }, []);
 
   // Load logs from file
@@ -425,7 +408,6 @@ function LogViewerWindow() {
     });
   }, [logEntries, searchFilter, levelFilter, contextFilter]);
 
-  // Pagination
   // Load logs on component mount and when file or limit changes
   useEffect(() => {
     loadLogs();
@@ -444,17 +426,32 @@ function LogViewerWindow() {
     return () => clearInterval(interval);
   }, [isStreaming, loadLogs]);
 
-  const paginatedLogs = useMemo(() => {
-    const startIndex = currentPagination * itemsPerPage;
-    return filteredLogs.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredLogs, currentPagination, itemsPerPage]);
-
-  // Auto-scroll to bottom when new logs arrive
+  // Auto-scroll to bottom when new logs arrive and auto-scroll is enabled
   useEffect(() => {
-    if (autoScroll && scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (autoScroll && filteredLogs.length > 0 && virtuosoRef.current) {
+      // Use a small delay to ensure Virtuoso is ready
+      const timeoutId = setTimeout(() => {
+        if (virtuosoRef.current) {
+          virtuosoRef.current.scrollToIndex({
+            index: filteredLogs.length - 1,
+            behavior: 'auto',
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [paginatedLogs, autoScroll]);
+  }, [filteredLogs, autoScroll]);
+
+  // Virtual scrolling item renderer
+  const renderLogEntry = useCallback(
+    (index: number, entry: LogEntryType) => {
+      return (
+        <LogEntry key={entry.id} entry={entry} showContext={showContext} />
+      );
+    },
+    [showContext]
+  );
 
   const handleOpenLogFile = useCallback(async () => {
     try {
@@ -643,13 +640,24 @@ function LogViewerWindow() {
         borderBlockEnd='1px solid var(--rcx-color-stroke-light)'
         backgroundColor='surface-tint'
       >
-        <Box display='flex' alignItems='center'>
-          <CheckBox
-            checked={showContext}
-            onChange={() => setShowContext(!showContext)}
-          />
-          <Box marginInlineStart='x4' display='inline'>
-            Show Context
+        <Box display='flex' alignItems='center' flexWrap='wrap'>
+          <Box display='flex' alignItems='center' marginInlineEnd='x16'>
+            <CheckBox
+              checked={showContext}
+              onChange={() => setShowContext(!showContext)}
+            />
+            <Box marginInlineStart='x4' display='inline'>
+              Show Context
+            </Box>
+          </Box>
+          <Box display='flex' alignItems='center'>
+            <CheckBox
+              checked={autoScroll}
+              onChange={() => setAutoScroll(!autoScroll)}
+            />
+            <Box marginInlineStart='x4' display='inline'>
+              Auto Scroll to Bottom
+            </Box>
           </Box>
         </Box>
         <Box display='flex' alignItems='center' flexWrap='wrap'>
@@ -702,55 +710,52 @@ function LogViewerWindow() {
             >
               <Throbber size='x32' />
             </Box>
-          ) : (
-            <Scrollable>
-              <Box ref={scrollRef} padding='x0'>
-                {paginatedLogs.length === 0 ? (
-                  <Box
-                    display='flex'
-                    flexDirection='column'
-                    justifyContent='center'
-                    alignItems='center'
-                    height='x200'
-                    color='hint'
-                    backgroundColor='surface-light'
-                  >
-                    <Icon name='list-alt' size='x32' color='hint' />
-                    <Box marginBlockStart='x8' fontScale='p2'>
-                      No logs found
-                    </Box>
-                    <Box marginBlockStart='x4' fontScale='c1' color='hint'>
-                      Try adjusting your filters or refresh the logs
-                    </Box>
-                  </Box>
-                ) : (
-                  paginatedLogs.map((entry) => (
-                    <LogEntry
-                      key={entry.id}
-                      entry={entry}
-                      showContext={showContext}
-                    />
-                  ))
-                )}
+          ) : filteredLogs.length === 0 ? (
+            <Box
+              display='flex'
+              flexDirection='column'
+              justifyContent='center'
+              alignItems='center'
+              height='100%'
+              color='hint'
+              backgroundColor='surface-light'
+            >
+              <Icon name='list-alt' size='x32' color='hint' />
+              <Box marginBlockStart='x8' fontScale='p2'>
+                No logs found
               </Box>
-            </Scrollable>
+              <Box marginBlockStart='x4' fontScale='c1' color='hint'>
+                Try adjusting your filters or refresh the logs
+              </Box>
+            </Box>
+          ) : (
+            <Box style={{ height: '100%', position: 'relative' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '8px',
+                  right: '8px',
+                  color: 'var(--rcx-color-font-hint)',
+                  fontSize: '12px',
+                  zIndex: 10,
+                  background: 'var(--rcx-color-surface-tint)',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                }}
+              >
+                {filteredLogs.length} entries
+              </div>
+              <Virtuoso
+                ref={virtuosoRef}
+                data={filteredLogs}
+                itemContent={renderLogEntry}
+                overscan={50}
+                style={{ height: '100%', width: '100%' }}
+              />
+            </Box>
           )}
         </Tile>
       </Box>
-
-      {filteredLogs.length > itemsPerPage && (
-        <Box padding='x24' paddingBlockStart='x0'>
-          <Pagination
-            current={currentPagination}
-            itemsPerPage={itemsPerPage}
-            itemsPerPageLabel={() => 'Items per page'}
-            showingResultsLabel={showingResultsLabel}
-            count={filteredLogs.length}
-            onSetItemsPerPage={setItemsPerPage}
-            onSetCurrent={setCurrentPagination}
-          />
-        </Box>
-      )}
     </Box>
   );
 }

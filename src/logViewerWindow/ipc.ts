@@ -141,6 +141,7 @@ export const startLogViewerWindowHandler = (): void => {
     async (_, options?: { filePath?: string; limit?: number | 'all' }) => {
       try {
         const logPath = options?.filePath || getLogFilePath();
+        const limit = options?.limit;
 
         // Check if file exists, if not create it (only for default log)
         if (!fs.existsSync(logPath)) {
@@ -159,7 +160,21 @@ export const startLogViewerWindowHandler = (): void => {
           }
         }
 
-        const logContent = await readFile(logPath, 'utf-8');
+        let logContent: string;
+
+        if (limit === 'all' || !limit) {
+          // Read entire file
+          logContent = await readFile(logPath, 'utf-8');
+        } else {
+          // Read only the last N lines efficiently
+          const fileContent = await readFile(logPath, 'utf-8');
+          const lines = fileContent.split('\n');
+
+          // Take the last 'limit' lines, but keep empty lines for proper parsing
+          const limitedLines = lines.slice(-limit);
+          logContent = limitedLines.join('\n');
+        }
+
         return {
           success: true,
           logs: logContent,

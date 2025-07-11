@@ -664,6 +664,10 @@ function LogViewerWindow() {
                   </Box>
                 </Box>
                 <Box marginInlineEnd='x8' display='flex' alignItems='center'>
+                  <Icon name='file' size='x12' />
+                  <Box marginInlineStart='x4'>{fileInfo.size}</Box>
+                </Box>
+                <Box marginInlineEnd='x8' display='flex' alignItems='center'>
                   <Icon name='clock' size='x12' />
                   <Box marginInlineStart='x4'>{fileInfo.dateRange}</Box>
                 </Box>
@@ -796,9 +800,7 @@ function LogViewerWindow() {
               onChange={handleContextFilterChange}
             />
           </Box>
-          <Button onClick={handleClearAll} small>
-            Clear Filters
-          </Button>
+          <Button onClick={handleClearAll}>Clear Filters</Button>
         </Box>
       </Box>
 

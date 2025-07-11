@@ -106,6 +106,15 @@ const getLevelBorderColor = (level: LogLevel): string => {
   }
 };
 
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  if (bytes < 1024) return `${bytes} B`;
+  const kb = bytes / 1024;
+  if (kb < 1024) return `${kb.toFixed(1)} KB`;
+  const mb = kb / 1024;
+  return `${mb.toFixed(1)} MB`;
+};
+
 const LogEntry = ({
   entry,
   showContext,
@@ -169,6 +178,12 @@ function LogViewerWindow() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [showContext, setShowContext] = useState(true);
+  const [fileInfo, setFileInfo] = useState<{
+    size: string;
+    totalEntries: number;
+    lastModified: string;
+    dateRange: string;
+  } | null>(null);
 
   const handleSearchFilterChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -305,11 +320,48 @@ function LogViewerWindow() {
       if (response?.success && response.logs) {
         const parsedLogs = parseLogLines(response.logs);
         setLogEntries(parsedLogs);
+
+        // Calculate file info
+        const logText = response.logs;
+        const sizeInBytes = new Blob([logText]).size;
+        const sizeFormatted = formatFileSize(sizeInBytes);
+
+        const timestamps = parsedLogs
+          .map((entry) => new Date(entry.timestamp))
+          .filter((date) => !isNaN(date.getTime()));
+        const oldestDate =
+          timestamps.length > 0
+            ? new Date(Math.min(...timestamps.map((d) => d.getTime())))
+            : null;
+        const newestDate =
+          timestamps.length > 0
+            ? new Date(Math.max(...timestamps.map((d) => d.getTime())))
+            : null;
+
+        let dateRange = 'No entries';
+        if (oldestDate && newestDate) {
+          if (oldestDate.toDateString() === newestDate.toDateString()) {
+            // Same day - show time range
+            dateRange = `${oldestDate.toLocaleTimeString('en-GB')} - ${newestDate.toLocaleTimeString('en-GB')}`;
+          } else {
+            // Multiple days - show date and time range
+            dateRange = `${oldestDate.toLocaleDateString()} ${oldestDate.toLocaleTimeString('en-GB')} - ${newestDate.toLocaleDateString()} ${newestDate.toLocaleTimeString('en-GB')}`;
+          }
+        }
+
+        setFileInfo({
+          size: sizeFormatted,
+          totalEntries: parsedLogs.length,
+          lastModified: new Date().toLocaleString(),
+          dateRange,
+        });
       } else {
         console.error('Failed to load logs:', response?.error);
+        setFileInfo(null);
       }
     } catch (error) {
       console.error('Failed to load logs:', error);
+      setFileInfo(null);
     } finally {
       setIsLoading(false);
     }
@@ -458,14 +510,40 @@ function LogViewerWindow() {
         borderBlockEnd='1px solid var(--rcx-color-stroke-light)'
         backgroundColor='surface-tint'
       >
-        <Box display='flex' alignItems='center'>
-          <CheckBox
-            checked={showContext}
-            onChange={() => setShowContext(!showContext)}
-          />
-          <Box marginInlineStart='x4' display='inline'>
-            Show Context
+        <Box display='flex' alignItems='center' flexWrap='wrap'>
+          <Box display='flex' alignItems='center' marginInlineEnd='x16'>
+            <CheckBox
+              checked={showContext}
+              onChange={() => setShowContext(!showContext)}
+            />
+            <Box marginInlineStart='x4' display='inline'>
+              Show Context
+            </Box>
           </Box>
+          {fileInfo && (
+            <Box
+              display='flex'
+              alignItems='center'
+              color='hint'
+              fontSize='x12'
+              flexWrap='wrap'
+            >
+              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
+                <Icon name='attachment' size='x12' />
+                <Box marginInlineStart='x4'>{fileInfo.size}</Box>
+              </Box>
+              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
+                <Icon name='hash' size='x12' />
+                <Box marginInlineStart='x4'>
+                  {fileInfo.totalEntries.toLocaleString()} entries
+                </Box>
+              </Box>
+              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
+                <Icon name='clock' size='x12' />
+                <Box marginInlineStart='x4'>{fileInfo.dateRange}</Box>
+              </Box>
+            </Box>
+          )}
         </Box>
         <Box display='flex' alignItems='center' flexWrap='wrap'>
           <Box minWidth='x200' marginInlineEnd='x12'>

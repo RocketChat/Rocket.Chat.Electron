@@ -177,12 +177,14 @@ function LogViewerWindow() {
   const [isStreaming, setIsStreaming] = useState(false);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [userHasScrolled, setUserHasScrolled] = useState(false);
   const [showContext, setShowContext] = useState(true);
   const [fileInfo, setFileInfo] = useState<{
     size: string;
     totalEntries: number;
     lastModified: string;
     dateRange: string;
+    lastModifiedTime?: number; // Track actual file modification time for smart refresh
   } | null>(null);
   const [currentLogFile, setCurrentLogFile] = useState<{
     filePath?: string;
@@ -321,8 +323,8 @@ function LogViewerWindow() {
       entries.push(currentEntry);
     }
 
-    // Return in chronological order (oldest first, newest last)
-    return entries;
+    // Return in reverse chronological order (newest first, oldest last)
+    return entries.reverse();
   }, []);
 
   // Load logs from file
@@ -331,7 +333,9 @@ function LogViewerWindow() {
     try {
       const response = await ipcRenderer.invoke('log-viewer-window/read-logs', {
         limit: entryLimit === 'all' ? 'all' : parseInt(entryLimit),
-        filePath: currentLogFile.filePath,
+        filePath: currentLogFile.isDefaultLog
+          ? undefined
+          : currentLogFile.filePath,
       });
       if (response?.success && response.logs) {
         const parsedLogs = parseLogLines(response.logs);
@@ -377,6 +381,7 @@ function LogViewerWindow() {
           totalEntries: parsedLogs.length,
           lastModified: new Date().toLocaleString(),
           dateRange,
+          lastModifiedTime: response.lastModifiedTime,
         });
       } else {
         console.error('Failed to load logs:', response?.error);
@@ -418,22 +423,62 @@ function LogViewerWindow() {
     entryLimit,
   ]);
 
-  // Auto-refresh logs every 5 seconds when streaming is enabled
-  useEffect(() => {
-    if (!isStreaming) return;
+  // Smart auto-refresh: only refresh if file has been modified
+  const checkForUpdates = useCallback(async () => {
+    if (!isStreaming || !currentLogFile.isDefaultLog) return;
 
-    const interval = setInterval(loadLogs, 5000);
+    try {
+      // Just get file info without loading full content
+      const response = await ipcRenderer.invoke('log-viewer-window/read-logs', {
+        limit: 1, // Just get minimal content to check modification time
+        filePath: undefined, // Always undefined for default log
+      });
+
+      if (response?.success && response.lastModifiedTime) {
+        const currentModTime = fileInfo?.lastModifiedTime;
+        if (currentModTime && response.lastModifiedTime > currentModTime) {
+          // File has been modified, reload logs
+          loadLogs();
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check for updates:', error);
+    }
+  }, [
+    isStreaming,
+    currentLogFile.isDefaultLog,
+    fileInfo?.lastModifiedTime,
+    loadLogs,
+  ]);
+
+  // Auto-refresh: check for file modifications every 2 seconds when streaming is enabled
+  useEffect(() => {
+    if (!isStreaming || !currentLogFile.isDefaultLog) return;
+
+    const interval = setInterval(checkForUpdates, 2000);
     return () => clearInterval(interval);
-  }, [isStreaming, loadLogs]);
+  }, [isStreaming, currentLogFile.isDefaultLog, checkForUpdates]);
 
-  // Auto-scroll to bottom when new logs arrive and auto-scroll is enabled
+  // Reset user scroll tracking when auto-scroll is re-enabled
   useEffect(() => {
-    if (autoScroll && filteredLogs.length > 0 && virtuosoRef.current) {
+    if (autoScroll) {
+      setUserHasScrolled(false);
+    }
+  }, [autoScroll]);
+
+  // Auto-scroll to top when new logs arrive and auto-scroll is enabled (newest logs are at top)
+  useEffect(() => {
+    if (
+      autoScroll &&
+      !userHasScrolled &&
+      logEntries.length > 0 &&
+      virtuosoRef.current
+    ) {
       // Use a small delay to ensure Virtuoso is ready
       const timeoutId = setTimeout(() => {
-        if (virtuosoRef.current) {
+        if (virtuosoRef.current && autoScroll && !userHasScrolled) {
           virtuosoRef.current.scrollToIndex({
-            index: filteredLogs.length - 1,
+            index: 0, // Scroll to top since newest logs are now at index 0
             behavior: 'auto',
           });
         }
@@ -441,7 +486,14 @@ function LogViewerWindow() {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [filteredLogs, autoScroll]);
+  }, [logEntries, autoScroll, userHasScrolled]);
+
+  // Track when user manually scrolls
+  const handleScroll = useCallback(() => {
+    if (autoScroll && !userHasScrolled) {
+      setUserHasScrolled(true);
+    }
+  }, [autoScroll, userHasScrolled]);
 
   // Virtual scrolling item renderer
   const renderLogEntry = useCallback(
@@ -463,6 +515,9 @@ function LogViewerWindow() {
         setLogEntries([]);
         setFileInfo(null);
 
+        // Disable auto refresh when switching to custom log file
+        setIsStreaming(false);
+
         setCurrentLogFile({
           filePath: response.filePath,
           fileName: response.fileName,
@@ -481,6 +536,7 @@ function LogViewerWindow() {
     setFileInfo(null);
 
     setCurrentLogFile({
+      filePath: undefined, // Clear any previous custom log file path
       fileName: 'main.log',
       isDefaultLog: true,
     });
@@ -653,10 +709,25 @@ function LogViewerWindow() {
           <Box display='flex' alignItems='center'>
             <CheckBox
               checked={autoScroll}
-              onChange={() => setAutoScroll(!autoScroll)}
+              onChange={() => {
+                const newAutoScroll = !autoScroll;
+                setAutoScroll(newAutoScroll);
+                if (newAutoScroll) {
+                  // When re-enabling auto-scroll, immediately scroll to top if there are logs
+                  setUserHasScrolled(false);
+                  if (filteredLogs.length > 0 && virtuosoRef.current) {
+                    setTimeout(() => {
+                      virtuosoRef.current?.scrollToIndex({
+                        index: 0,
+                        behavior: 'smooth',
+                      });
+                    }, 100);
+                  }
+                }
+              }}
             />
             <Box marginInlineStart='x4' display='inline'>
-              Auto Scroll to Bottom
+              Auto Scroll to Top
             </Box>
           </Box>
         </Box>
@@ -751,6 +822,7 @@ function LogViewerWindow() {
                 itemContent={renderLogEntry}
                 overscan={50}
                 style={{ height: '100%', width: '100%' }}
+                onScroll={handleScroll}
               />
             </Box>
           )}

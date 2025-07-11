@@ -65,6 +65,7 @@ type ChannelToArgsMap = {
     filePath?: string;
     fileName?: string;
     isDefaultLog?: boolean;
+    lastModifiedTime?: number;
     error?: string;
   };
   'log-viewer-window/clear-logs': () => { success: boolean; error?: string };

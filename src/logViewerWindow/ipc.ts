@@ -175,12 +175,17 @@ export const startLogViewerWindowHandler = (): void => {
           logContent = limitedLines.join('\n');
         }
 
+        // Get file modification time for smart refresh
+        const stats = fs.statSync(logPath);
+        const lastModifiedTime = stats.mtime.getTime();
+
         return {
           success: true,
           logs: logContent,
           filePath: logPath,
           fileName: path.basename(logPath),
           isDefaultLog: !options?.filePath,
+          lastModifiedTime,
         };
       } catch (error) {
         console.error('Failed to read log file:', error);

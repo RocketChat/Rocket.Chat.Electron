@@ -1,7 +1,8 @@
-import fs from 'fs';
+import fs, { createWriteStream } from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 
+import archiver from 'archiver';
 import type { Event } from 'electron';
 import { app, BrowserWindow, ipcMain, screen, dialog } from 'electron';
 
@@ -205,4 +206,68 @@ export const startLogViewerWindowHandler = (): void => {
       return { success: false, error: (error as Error).message };
     }
   });
+
+  // Handle log file saving as ZIP
+  handle(
+    'log-viewer-window/save-logs',
+    async (_, options: { content: string; defaultFileName: string }) => {
+      try {
+        if (!logViewerWindow || logViewerWindow.isDestroyed()) {
+          return { success: false, error: 'Log viewer window not found' };
+        }
+
+        const result = await dialog.showSaveDialog(logViewerWindow, {
+          title: 'Save Log File',
+          defaultPath: options.defaultFileName,
+          filters: [
+            { name: 'ZIP Files', extensions: ['zip'] },
+            { name: 'All Files', extensions: ['*'] },
+          ],
+        });
+
+        if (result.canceled || !result.filePath) {
+          return { success: false, canceled: true };
+        }
+
+        // Create ZIP file using archiver
+        await new Promise<void>((resolve, reject) => {
+          const output = createWriteStream(result.filePath!);
+          const archive = archiver('zip', {
+            zlib: { level: 9 }, // Maximum compression
+          });
+
+          output.on('close', () => {
+            resolve();
+          });
+
+          archive.on('error', (err) => {
+            reject(err);
+          });
+
+          // Pipe archive data to the file
+          archive.pipe(output);
+
+          // Extract base filename without extension for the log file inside ZIP
+          const baseName = options.defaultFileName
+            .replace(/\.zip$/i, '')
+            .replace(/\.log$/i, '');
+          const logFileName = `${baseName}.log`;
+
+          // Add the log content to the ZIP file
+          archive.append(options.content, { name: logFileName });
+
+          // Finalize the archive (this triggers the 'close' event)
+          archive.finalize();
+        });
+
+        return {
+          success: true,
+          filePath: result.filePath,
+        };
+      } catch (error) {
+        console.error('Failed to save log file:', error);
+        return { success: false, error: (error as Error).message };
+      }
+    }
+  );
 };

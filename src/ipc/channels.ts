@@ -69,6 +69,15 @@ type ChannelToArgsMap = {
     error?: string;
   };
   'log-viewer-window/clear-logs': () => { success: boolean; error?: string };
+  'log-viewer-window/save-logs': (options: {
+    content: string;
+    defaultFileName: string;
+  }) => {
+    success: boolean;
+    filePath?: string;
+    canceled?: boolean;
+    error?: string;
+  };
 };
 
 export type Channel = keyof ChannelToArgsMap;

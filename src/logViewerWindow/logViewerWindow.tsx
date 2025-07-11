@@ -277,6 +277,9 @@ function LogViewerWindow() {
 
   // Parse log lines into structured format, grouping multi-line entries
   const parseLogLines = useCallback((logText: string): LogEntryType[] => {
+    if (!logText || logText.trim() === '') {
+      return [];
+    }
     const lines = logText.split('\n').filter((line: string) => line.trim());
     const entries: LogEntryType[] = [];
     let currentEntry: LogEntryType | null = null;
@@ -337,7 +340,7 @@ function LogViewerWindow() {
           ? undefined
           : currentLogFile.filePath,
       });
-      if (response?.success && response.logs) {
+      if (response?.success && response.logs !== undefined) {
         const parsedLogs = parseLogLines(response.logs);
         setLogEntries(parsedLogs);
 
@@ -555,12 +558,13 @@ function LogViewerWindow() {
     try {
       const response = await ipcRenderer.invoke('log-viewer-window/clear-logs');
       if (response?.success) {
-        setLogEntries([]);
+        // Reload logs to properly update UI and file info after clearing
+        loadLogs();
       }
     } catch (error) {
       console.error('Failed to clear logs:', error);
     }
-  }, [currentLogFile.isDefaultLog]);
+  }, [currentLogFile.isDefaultLog, loadLogs]);
 
   const handleToggleStreaming = useCallback(() => {
     setIsStreaming(!isStreaming);
@@ -571,6 +575,29 @@ function LogViewerWindow() {
     const logText = filteredLogs.map((entry) => entry.raw).join('\n');
     navigator.clipboard.writeText(logText);
   }, [filteredLogs]);
+
+  const handleSaveLogs = useCallback(async () => {
+    try {
+      const logText = filteredLogs.map((entry) => entry.raw).join('\n');
+      const timestamp = new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace(/:/g, '-');
+      const response = await ipcRenderer.invoke('log-viewer-window/save-logs', {
+        content: logText,
+        defaultFileName: `rocketchat_${timestamp}.zip`,
+      });
+
+      if (response?.success) {
+        // Could show a success message here if needed
+        console.log('Logs saved successfully to:', response.filePath);
+      } else if (response?.error) {
+        console.error('Failed to save logs:', response.error);
+      }
+    } catch (error) {
+      console.error('Failed to save logs:', error);
+    }
+  }, [filteredLogs, currentLogFile.fileName]);
 
   const handleClose = useCallback(() => {
     ipcRenderer.invoke('log-viewer-window/close-requested');
@@ -670,6 +697,10 @@ function LogViewerWindow() {
           <Button onClick={handleCopyLogs}>
             <Icon name='copy' size='x16' />
             Copy
+          </Button>
+          <Button onClick={handleSaveLogs}>
+            <Icon name='download' size='x16' />
+            Save
           </Button>
           <Button
             onClick={handleClearLogs}

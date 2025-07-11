@@ -1,7 +1,5 @@
-import path from 'path';
-
 import type { WebContents } from 'electron';
-import { app, session, webContents } from 'electron';
+import { app, webContents, ipcMain } from 'electron';
 import log from 'electron-log';
 
 import { select } from '../store';
@@ -97,7 +95,7 @@ export const logWithContext = (
 const configureLogging = () => {
   try {
     // Only configure transports if they exist (main process)
-    if (log.transports && log.transports.console && log.transports.file) {
+    if (log.transports?.console && log.transports?.file) {
       // Set log level based on environment
       if (process.env.NODE_ENV === 'development') {
         log.transports.console.level = 'debug';
@@ -152,7 +150,7 @@ export const setupWebContentsLogging = () => {
     }
 
     // Listen for new webContents creation
-    app.on('web-contents-created', (event, webContents) => {
+    app.on('web-contents-created', (_event, webContents) => {
       // Skip if this is the main renderer process (it already has logging)
       if (webContents.getType() === 'window') return;
 
@@ -241,10 +239,9 @@ export const setupWebContentsLogging = () => {
     });
 
     // Handle console messages from renderer processes with enhanced context
-    const { ipcMain } = require('electron');
     ipcMain.on(
       'console-log',
-      (event, level, webContentsId, serverUrl, ...args) => {
+      (event, level, webContentsId, _serverUrl, ...args) => {
         try {
           // Find the webContents that sent this message
           const senderWebContents =

@@ -4,11 +4,10 @@ import { promisify } from 'util';
 
 import archiver from 'archiver';
 import type { Event } from 'electron';
-import { app, BrowserWindow, ipcMain, screen, dialog } from 'electron';
+import { app, BrowserWindow, screen, dialog } from 'electron';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
-import { debounce } from '../ui/main/debounce';
 import { getRootWindow } from '../ui/main/rootWindow';
 
 const readFile = promisify(fs.readFile);

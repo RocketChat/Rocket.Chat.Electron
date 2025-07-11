@@ -1,14 +1,22 @@
 import type { WebContents } from 'electron';
 
-// Server context mapping - anonymous server identification
-const serverContextMap = new Map<number, string>();
+// Define server context storage map
+const serverContextMap = new Map<
+  number,
+  { serverUrl: string; serverName: string }
+>();
 let serverCounter = 0;
 
-export interface LogContext {
-  process: string;
-  server?: string;
-  component?: string;
+// Define the log context interface
+export interface ILogContext {
+  processType: string;
+  webContentsType?: string;
   webContentsId?: number;
+  serverInfo?: {
+    url: string;
+    name: string;
+  };
+  component?: string;
 }
 
 /**
@@ -57,21 +65,27 @@ export const getServerContext = (webContents?: WebContents): string => {
 
   // Check if we already have a context for this webContents
   if (serverContextMap.has(webContentsId)) {
-    return serverContextMap.get(webContentsId)!;
+    return serverContextMap.get(webContentsId)!.serverName;
   }
 
   // For main window, it's local
   if (webContents.getType() === 'window') {
-    serverContextMap.set(webContentsId, 'local');
+    serverContextMap.set(webContentsId, {
+      serverUrl: 'local',
+      serverName: 'local',
+    });
     return 'local';
   }
 
   // For webviews, assign anonymous server ID
   if (webContents.getType() === 'webview') {
     serverCounter++;
-    const serverContext = `server-${serverCounter}`;
-    serverContextMap.set(webContentsId, serverContext);
-    return serverContext;
+    const serverName = `server-${serverCounter}`;
+    serverContextMap.set(webContentsId, {
+      serverUrl: 'unknown',
+      serverName,
+    });
+    return serverName;
   }
 
   return 'unknown';
@@ -159,15 +173,20 @@ export const getComponentContext = (error?: Error): string => {
 /**
  * Get complete log context
  */
-export const getLogContext = (webContents?: WebContents): LogContext => {
-  const context: LogContext = {
-    process: getProcessContext(),
+export const getLogContext = (webContents?: WebContents): ILogContext => {
+  const context: ILogContext = {
+    processType: getProcessContext(),
   };
 
   // Add server context if webContents is provided
   if (webContents) {
-    context.server = getServerContext(webContents);
+    context.webContentsType = webContents.getType();
     context.webContentsId = webContents.id;
+    const serverContext = getServerContext(webContents);
+    context.serverInfo = {
+      url: serverContext,
+      name: serverContext,
+    };
   }
 
   // Add component context
@@ -179,23 +198,23 @@ export const getLogContext = (webContents?: WebContents): LogContext => {
 /**
  * Format context for logging
  */
-export const formatLogContext = (context: LogContext): string => {
+export const formatLogContext = (context: ILogContext): string => {
   const parts: string[] = [];
 
   // Always include process
-  parts.push(context.process);
+  parts.push(context.processType);
 
   // Add server context if available
-  if (context.server && context.server !== 'local') {
-    parts.push(context.server);
+  if (context.serverInfo?.name && context.serverInfo.name !== 'local') {
+    parts.push(context.serverInfo.name);
   }
 
-  // Add component context
+  // Add component context if available
   if (context.component && context.component !== 'general') {
     parts.push(context.component);
   }
 
-  return parts.map((part) => `[${part}]`).join(' ');
+  return `[${parts.join('] [')}]`;
 };
 
 /**
@@ -208,6 +227,9 @@ export const cleanupServerContext = (webContentsId: number): void => {
 /**
  * Get current server mappings (for debugging)
  */
-export const getServerMappings = (): Map<number, string> => {
+export const getServerMappings = (): Map<
+  number,
+  { serverUrl: string; serverName: string }
+> => {
   return new Map(serverContextMap);
 };

@@ -1,25 +1,21 @@
 import log from 'electron-log/renderer';
 
-import {
-  getProcessContext,
-  getComponentContext,
-  formatLogContext,
-} from './context';
+import { getProcessContext, getComponentContext } from './context';
 
 // Function to override console methods in renderer processes with enhanced context
-const overrideConsoleInRenderer = () => {
-  // Store original console methods for fallback
-  const originalConsole = {
-    log: console.log,
-    info: console.info,
-    warn: console.warn,
-    error: console.error,
-    debug: console.debug,
-  };
+try {
+  // Get process context once
+  const processContext = getProcessContext();
 
-  try {
-    // Get process context once
-    const processContext = getProcessContext();
+  if (typeof console !== 'undefined') {
+    // Store original console methods
+    const originalConsole = {
+      log: console.log,
+      info: console.info,
+      warn: console.warn,
+      error: console.error,
+      debug: console.debug,
+    };
 
     // Override console.log to use electron-log debug level with context
     console.log = (...args: any[]) => {
@@ -58,23 +54,7 @@ const overrideConsoleInRenderer = () => {
 
     // Add marker to know console override is active
     (console as any).original = originalConsole;
-
-    // Log that override is active
-    log.debug(
-      `[${processContext}] [preload] Console override activated in renderer process`
-    );
-  } catch (error) {
-    // If override fails, restore original console
-    Object.assign(console, originalConsole);
-    originalConsole.warn(
-      'Failed to override console methods in renderer:',
-      error
-    );
   }
-};
-
-// Apply the override immediately
-overrideConsoleInRenderer();
-
-// Export for manual use if needed
-export { overrideConsoleInRenderer };
+} catch (error) {
+  // Silently fail if electron-log isn't available in this context
+}

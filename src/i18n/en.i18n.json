@@ -413,5 +413,104 @@
     "noWindowsFound": "No windows found",
     "cancel": "Cancel",
     "share": "Share"
+  },
+  "logging": {
+    "context": {
+      "processTypes": {
+        "main": "Main Process",
+        "renderer": "Renderer Process",
+        "preload": "Preload Process",
+        "rendererRoot": "Main Window",
+        "webview": "Server Webview",
+        "videoCall": "Video Call Window"
+      },
+      "components": {
+        "auth": "Authentication",
+        "connection": "Connection",
+        "notification": "Notification",
+        "videoCall": "Video Call",
+        "download": "Download",
+        "spellCheck": "Spell Check",
+        "general": "General"
+      },
+      "serverInfo": {
+        "anonymous": "Anonymous Server",
+        "local": "Local Process",
+        "unknown": "Unknown Server"
+      }
+    },
+    "status": {
+      "moduleNotAvailable": "Store module not available for server context mapping",
+      "importFailed": "Store import failed"
+    },
+    "errors": {
+      "configurationFailed": "Failed to configure electron-log",
+      "storeUnavailable": "Store module not available for server context mapping",
+      "webContentsLoggingFailed": "Failed to setup webContents logging",
+      "rendererLogFailed": "Failed to log from renderer",
+      "consoleOverrideFailed": "Failed to override console methods"
+    },
+    "messages": {
+      "serverContext": "Server {{- serverNumber}}",
+      "logContext": "Log Context: {{- context}}"
+    }
+  },
+  "logViewer": {
+    "title": "Log Viewer",
+    "fileInfo": {
+      "custom": "Custom",
+      "entries": "{{count}} entries",
+      "noEntries": "No entries"
+    },
+    "buttons": {
+      "openLogFile": "Open Log File",
+      "defaultLog": "Default Log",
+      "refresh": "Refresh",
+      "autoRefresh": "Auto Refresh",
+      "stopAutoRefresh": "Stop Auto Refresh",
+      "copy": "Copy",
+      "save": "Save",
+      "clear": "Clear",
+      "close": "Close",
+      "clearFilters": "Clear Filters"
+    },
+    "controls": {
+      "showContext": "Show Context",
+      "autoScrollToTop": "Auto Scroll to Top"
+    },
+    "placeholders": {
+      "loadAmount": "Load amount",
+      "searchLogs": "Search logs...",
+      "level": "Level",
+      "context": "Context"
+    },
+    "filters": {
+      "entryLimit": {
+        "last100": "Last 100 entries",
+        "last500": "Last 500 entries",
+        "last1000": "Last 1000 entries",
+        "last5000": "Last 5000 entries",
+        "all": "All entries"
+      },
+      "level": {
+        "all": "All Levels",
+        "debug": "Debug",
+        "info": "Info",
+        "warn": "Warning",
+        "error": "Error",
+        "verbose": "Verbose"
+      },
+      "context": {
+        "all": "All Contexts",
+        "main": "Main Process",
+        "renderer": "Renderer",
+        "webview": "Webview",
+        "videocall": "Video Call"
+      }
+    },
+    "messages": {
+      "noLogsFound": "No logs found",
+      "adjustFilters": "Try adjusting your filters or refresh the logs"
+    }
   }
 }

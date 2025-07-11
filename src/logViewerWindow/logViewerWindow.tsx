@@ -13,6 +13,7 @@ import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import { ipcRenderer } from 'electron';
 import type { ChangeEvent } from 'react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { VirtuosoHandle } from 'react-virtuoso';
 import { Virtuoso } from 'react-virtuoso';
 
@@ -28,6 +29,7 @@ const formatFileSize = (bytes: number): string => {
 };
 
 function LogViewerWindow() {
+  const { t } = useTranslation();
   const [searchFilter, setSearchFilter] = useLocalStorage('log-search', '');
   const [logEntries, setLogEntries] = useState<LogEntryType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,13 +56,13 @@ function LogViewerWindow() {
 
   const entryLimitOptions = useMemo<[string, string][]>(
     () => [
-      ['100', 'Last 100 entries'],
-      ['500', 'Last 500 entries'],
-      ['1000', 'Last 1000 entries'],
-      ['5000', 'Last 5000 entries'],
-      ['all', 'All entries'],
+      ['100', t('logViewer.filters.entryLimit.last100')],
+      ['500', t('logViewer.filters.entryLimit.last500')],
+      ['1000', t('logViewer.filters.entryLimit.last1000')],
+      ['5000', t('logViewer.filters.entryLimit.last5000')],
+      ['all', t('logViewer.filters.entryLimit.all')],
     ],
-    []
+    [t]
   );
 
   const [entryLimit, setEntryLimit] =
@@ -75,14 +77,14 @@ function LogViewerWindow() {
 
   const levelFilterOptions = useMemo<[LogLevel | 'all', string][]>(
     () => [
-      ['all', 'All Levels'],
-      ['debug', 'Debug'],
-      ['info', 'Info'],
-      ['warn', 'Warning'],
-      ['error', 'Error'],
-      ['verbose', 'Verbose'],
+      ['all', t('logViewer.filters.level.all')],
+      ['debug', t('logViewer.filters.level.debug')],
+      ['info', t('logViewer.filters.level.info')],
+      ['warn', t('logViewer.filters.level.warn')],
+      ['error', t('logViewer.filters.level.error')],
+      ['verbose', t('logViewer.filters.level.verbose')],
     ],
-    []
+    [t]
   );
 
   const [levelFilter, setLevelFilter] = useLocalStorage<
@@ -98,13 +100,13 @@ function LogViewerWindow() {
 
   const contextFilterOptions = useMemo<[string, string][]>(
     () => [
-      ['all', 'All Contexts'],
-      ['main', 'Main Process'],
-      ['renderer', 'Renderer'],
-      ['webview', 'Webview'],
-      ['videocall', 'Video Call'],
+      ['all', t('logViewer.filters.context.all')],
+      ['main', t('logViewer.filters.context.main')],
+      ['renderer', t('logViewer.filters.context.renderer')],
+      ['webview', t('logViewer.filters.context.webview')],
+      ['videocall', t('logViewer.filters.context.videocall')],
     ],
-    []
+    [t]
   );
 
   const [contextFilter, setContextFilter] = useLocalStorage<
@@ -225,7 +227,7 @@ function LogViewerWindow() {
             ? new Date(Math.max(...timestamps.map((d) => d.getTime())))
             : null;
 
-        let dateRange = 'No entries';
+        let dateRange = t('logViewer.fileInfo.noEntries');
         if (oldestDate && newestDate) {
           if (oldestDate.toDateString() === newestDate.toDateString()) {
             // Same day - show time range
@@ -258,6 +260,7 @@ function LogViewerWindow() {
     entryLimit,
     currentLogFile.filePath,
     currentLogFile.isDefaultLog,
+    t,
   ]);
 
   // Filter logs based on search and filters
@@ -492,7 +495,7 @@ function LogViewerWindow() {
         >
           <Icon name='list-alt' size='x20' color='default' />
           <Box fontScale='h4' marginInlineStart='x8' color='default'>
-            Log Viewer
+            {t('logViewer.title')}
           </Box>
           <Box
             display='flex'
@@ -514,7 +517,8 @@ function LogViewerWindow() {
                 color={currentLogFile.isDefaultLog ? 'default' : 'info'}
               >
                 {currentLogFile.fileName}
-                {!currentLogFile.isDefaultLog && ' (Custom)'}
+                {!currentLogFile.isDefaultLog &&
+                  ` (${t('logViewer.fileInfo.custom')})`}
               </Box>
             </Box>
             {/* File stats line */}
@@ -523,7 +527,9 @@ function LogViewerWindow() {
                 <Box marginInlineEnd='x8' display='flex' alignItems='center'>
                   <Icon name='hash' size='x12' />
                   <Box marginInlineStart='x4'>
-                    {fileInfo.totalEntries.toLocaleString()} entries
+                    {t('logViewer.fileInfo.entries', {
+                      count: fileInfo.totalEntries,
+                    })}
                   </Box>
                 </Box>
                 <Box marginInlineEnd='x8' display='flex' alignItems='center'>
@@ -541,17 +547,17 @@ function LogViewerWindow() {
         <ButtonGroup>
           <Button onClick={handleOpenLogFile}>
             <Icon name='folder' size='x16' />
-            Open Log File
+            {t('logViewer.buttons.openLogFile')}
           </Button>
           {!currentLogFile.isDefaultLog && (
             <Button onClick={handleOpenDefaultLog}>
               <Icon name='home' size='x16' />
-              Default Log
+              {t('logViewer.buttons.defaultLog')}
             </Button>
           )}
           <Button onClick={handleRefresh} disabled={isLoading}>
             <Icon name='refresh' size='x16' />
-            Refresh
+            {t('logViewer.buttons.refresh')}
           </Button>
           <Button
             onClick={handleToggleStreaming}
@@ -559,15 +565,17 @@ function LogViewerWindow() {
             disabled={!currentLogFile.isDefaultLog}
           >
             <Icon name={isStreaming ? 'pause' : 'play'} size='x16' />
-            {isStreaming ? 'Stop Auto Refresh' : 'Auto Refresh'}
+            {isStreaming
+              ? t('logViewer.buttons.stopAutoRefresh')
+              : t('logViewer.buttons.autoRefresh')}
           </Button>
           <Button onClick={handleCopyLogs}>
             <Icon name='copy' size='x16' />
-            Copy
+            {t('logViewer.buttons.copy')}
           </Button>
           <Button onClick={handleSaveLogs}>
             <Icon name='download' size='x16' />
-            Save
+            {t('logViewer.buttons.save')}
           </Button>
           <Button
             onClick={handleClearLogs}
@@ -575,11 +583,11 @@ function LogViewerWindow() {
             disabled={!currentLogFile.isDefaultLog}
           >
             <Icon name='trash' size='x16' />
-            Clear
+            {t('logViewer.buttons.clear')}
           </Button>
           <Button onClick={handleClose}>
             <Icon name='cross' size='x16' />
-            Close
+            {t('logViewer.buttons.close')}
           </Button>
         </ButtonGroup>
       </Box>
@@ -603,7 +611,7 @@ function LogViewerWindow() {
               onChange={() => setShowContext(!showContext)}
             />
             <Box marginInlineStart='x4' display='inline'>
-              Show Context
+              {t('logViewer.controls.showContext')}
             </Box>
           </Box>
           <Box display='flex' alignItems='center'>
@@ -627,14 +635,14 @@ function LogViewerWindow() {
               }}
             />
             <Box marginInlineStart='x4' display='inline'>
-              Auto Scroll to Top
+              {t('logViewer.controls.autoScrollToTop')}
             </Box>
           </Box>
         </Box>
         <Box display='flex' alignItems='center' flexWrap='wrap'>
           <Box minWidth='x160' marginInlineEnd='x12'>
             <SelectLegacy
-              placeholder='Load amount'
+              placeholder={t('logViewer.placeholders.loadAmount')}
               value={entryLimit}
               options={entryLimitOptions}
               onChange={handleEntryLimitChange}
@@ -642,14 +650,14 @@ function LogViewerWindow() {
           </Box>
           <Box minWidth='x200' marginInlineEnd='x12'>
             <SearchInput
-              placeholder='Search logs...'
+              placeholder={t('logViewer.placeholders.searchLogs')}
               value={searchFilter}
               onChange={handleSearchFilterChange}
             />
           </Box>
           <Box minWidth='x120' marginInlineEnd='x12'>
             <SelectLegacy
-              placeholder='Level'
+              placeholder={t('logViewer.placeholders.level')}
               value={levelFilter}
               options={levelFilterOptions}
               onChange={handleLevelFilterChange}
@@ -657,13 +665,15 @@ function LogViewerWindow() {
           </Box>
           <Box minWidth='x120' marginInlineEnd='x12'>
             <SelectLegacy
-              placeholder='Context'
+              placeholder={t('logViewer.placeholders.context')}
               value={contextFilter}
               options={contextFilterOptions}
               onChange={handleContextFilterChange}
             />
           </Box>
-          <Button onClick={handleClearAll}>Clear Filters</Button>
+          <Button onClick={handleClearAll}>
+            {t('logViewer.buttons.clearFilters')}
+          </Button>
         </Box>
       </Box>
 
@@ -692,10 +702,10 @@ function LogViewerWindow() {
             >
               <Icon name='list-alt' size='x32' color='hint' />
               <Box marginBlockStart='x8' fontScale='p2'>
-                No logs found
+                {t('logViewer.messages.noLogsFound')}
               </Box>
               <Box marginBlockStart='x4' fontScale='c1' color='hint'>
-                Try adjusting your filters or refresh the logs
+                {t('logViewer.messages.adjustFilters')}
               </Box>
             </Box>
           )}

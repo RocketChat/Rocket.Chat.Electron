@@ -429,7 +429,7 @@ function LogViewerWindow() {
           </Button>
           <Button onClick={handleToggleStreaming} primary={isStreaming}>
             <Icon name={isStreaming ? 'pause' : 'play'} size='x16' />
-            {isStreaming ? 'Stop' : 'Stream'}
+            {isStreaming ? 'Stop Auto Refresh' : 'Auto Refresh'}
           </Button>
           <Button onClick={handleCopyLogs}>
             <Icon name='copy' size='x16' />
@@ -454,33 +454,11 @@ function LogViewerWindow() {
         flexDirection='row'
         flexWrap='wrap'
         alignItems='center'
+        justifyContent='space-between'
         borderBlockEnd='1px solid var(--rcx-color-stroke-light)'
         backgroundColor='surface-tint'
       >
-        <Box flexGrow={1} minWidth='x200' marginInlineEnd='x12'>
-          <SearchInput
-            placeholder='Search logs...'
-            value={searchFilter}
-            onChange={handleSearchFilterChange}
-          />
-        </Box>
-        <Box minWidth='x120' marginInlineEnd='x12'>
-          <SelectLegacy
-            placeholder='Level'
-            value={levelFilter}
-            options={levelFilterOptions}
-            onChange={handleLevelFilterChange}
-          />
-        </Box>
-        <Box minWidth='x120' marginInlineEnd='x12'>
-          <SelectLegacy
-            placeholder='Context'
-            value={contextFilter}
-            options={contextFilterOptions}
-            onChange={handleContextFilterChange}
-          />
-        </Box>
-        <Box marginInlineEnd='x12'>
+        <Box display='flex' alignItems='center'>
           <CheckBox
             checked={showContext}
             onChange={() => setShowContext(!showContext)}
@@ -489,9 +467,34 @@ function LogViewerWindow() {
             Show Context
           </Box>
         </Box>
-        <Button onClick={handleClearAll} small>
-          Clear Filters
-        </Button>
+        <Box display='flex' alignItems='center' flexWrap='wrap'>
+          <Box minWidth='x200' marginInlineEnd='x12'>
+            <SearchInput
+              placeholder='Search logs...'
+              value={searchFilter}
+              onChange={handleSearchFilterChange}
+            />
+          </Box>
+          <Box minWidth='x120' marginInlineEnd='x12'>
+            <SelectLegacy
+              placeholder='Level'
+              value={levelFilter}
+              options={levelFilterOptions}
+              onChange={handleLevelFilterChange}
+            />
+          </Box>
+          <Box minWidth='x120' marginInlineEnd='x12'>
+            <SelectLegacy
+              placeholder='Context'
+              value={contextFilter}
+              options={contextFilterOptions}
+              onChange={handleContextFilterChange}
+            />
+          </Box>
+          <Button onClick={handleClearAll} small>
+            Clear Filters
+          </Button>
+        </Box>
       </Box>
 
       <Box flexGrow={1} padding='x24' paddingBlockStart='x12'>

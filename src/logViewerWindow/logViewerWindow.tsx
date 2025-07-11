@@ -9,7 +9,7 @@ import {
   SelectLegacy,
   Tile,
   Throbber,
-  Chip,
+  Badge,
 } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import { ipcRenderer } from 'electron';
@@ -28,7 +28,9 @@ type LogEntryType = {
   raw: string;
 };
 
-const getLevelColor = (level: LogLevel): string => {
+const getLevelColor = (
+  level: LogLevel
+): 'danger' | 'warning' | 'primary' | 'secondary' | 'ghost' => {
   switch (level) {
     case 'error':
       return 'danger';
@@ -39,9 +41,9 @@ const getLevelColor = (level: LogLevel): string => {
     case 'debug':
       return 'secondary';
     case 'verbose':
-      return 'neutral';
+      return 'ghost';
     default:
-      return 'neutral';
+      return 'ghost';
   }
 };
 
@@ -67,15 +69,32 @@ const getLevelTextColor = (level: LogLevel): string => {
     case 'error':
       return 'danger';
     case 'warn':
-      return 'warning';
+      return 'danger';
     case 'info':
-      return 'info';
+      return 'default';
     case 'debug':
-      return 'annotation';
+      return 'hint';
     case 'verbose':
       return 'hint';
     default:
       return 'default';
+  }
+};
+
+const getLevelBorderColor = (level: LogLevel): string => {
+  switch (level) {
+    case 'error':
+      return 'var(--rcx-color-stroke-highlight)';
+    case 'warn':
+      return 'var(--rcx-color-stroke-highlight)';
+    case 'info':
+      return 'var(--rcx-color-stroke-highlight)';
+    case 'debug':
+      return 'var(--rcx-color-stroke-light)';
+    case 'verbose':
+      return 'var(--rcx-color-stroke-light)';
+    default:
+      return 'var(--rcx-color-stroke-light)';
   }
 };
 
@@ -85,40 +104,38 @@ const LogEntry = ({ entry }: { entry: LogEntryType }) => {
       display='flex'
       flexDirection='row'
       alignItems='flex-start'
-      padding={12}
-      borderBlockEnd='1px solid'
-      borderColor='neutral-200'
+      padding='x12'
+      borderBlockEnd='1px solid var(--rcx-color-stroke-light)'
       backgroundColor={getLevelBackgroundColor(entry.level)}
-      borderInlineStart='4px solid'
-      borderInlineStartColor={getLevelColor(entry.level)}
+      borderInlineStart={`4px solid ${getLevelBorderColor(entry.level)}`}
       fontFamily='mono'
       fontSize='x12'
       lineHeight='x16'
     >
       <Box
-        minWidth={140}
-        marginInlineEnd={12}
-        color='annotation'
+        minWidth='x140'
+        marginInlineEnd='x12'
+        color='hint'
         fontWeight='normal'
         fontSize='x11'
       >
         {entry.timestamp}
       </Box>
-      <Box marginInlineEnd={12}>
-        <Chip size='small' color={getLevelColor(entry.level)}>
+      <Box marginInlineEnd='x12'>
+        <Badge variant={getLevelColor(entry.level)}>
           {entry.level.toUpperCase()}
-        </Chip>
+        </Badge>
       </Box>
       {entry.context && (
         <Box
-          marginInlineEnd={12}
-          color='annotation'
+          marginInlineEnd='x12'
+          color='hint'
           fontWeight='bold'
-          minWidth={120}
+          minWidth='x120'
           fontSize='x11'
           backgroundColor='surface-tint'
-          padding={4}
-          borderRadius={4}
+          padding='x4'
+          borderRadius='x2'
         >
           [{entry.context}]
         </Box>
@@ -378,14 +395,13 @@ function LogViewerWindow() {
       backgroundColor='surface-light'
     >
       <Box
-        minHeight={64}
-        padding={24}
+        minHeight='x64'
+        padding='x24'
         display='flex'
         flexDirection='row'
         flexWrap='nowrap'
         alignItems='center'
-        borderBlockEnd='1px solid'
-        borderColor='neutral-300'
+        borderBlockEnd='1px solid var(--rcx-color-stroke-light)'
         backgroundColor='surface-tint'
       >
         <Box
@@ -394,8 +410,8 @@ function LogViewerWindow() {
           alignItems='center'
           flexGrow={1}
         >
-          <Icon name='list-alt' size='x20' color='info' />
-          <Box fontScale='h4' marginInlineStart={8} color='info'>
+          <Icon name='list-alt' size='x20' color='default' />
+          <Box fontScale='h4' marginInlineStart='x8' color='default'>
             Log Viewer
           </Box>
         </Box>
@@ -424,25 +440,24 @@ function LogViewerWindow() {
       </Box>
 
       <Box
-        padding={24}
-        paddingBlockStart={12}
-        paddingBlockEnd={12}
+        padding='x24'
+        paddingBlockStart='x12'
+        paddingBlockEnd='x12'
         display='flex'
         flexDirection='row'
         flexWrap='wrap'
         alignItems='center'
-        borderBlockEnd='1px solid'
-        borderColor='neutral-300'
+        borderBlockEnd='1px solid var(--rcx-color-stroke-light)'
         backgroundColor='surface-tint'
       >
-        <Box flexGrow={1} minWidth={200} marginInlineEnd={12}>
+        <Box flexGrow={1} minWidth='x200' marginInlineEnd='x12'>
           <SearchInput
             placeholder='Search logs...'
             value={searchFilter}
             onChange={handleSearchFilterChange}
           />
         </Box>
-        <Box minWidth={120} marginInlineEnd={12}>
+        <Box minWidth='x120' marginInlineEnd='x12'>
           <SelectLegacy
             placeholder='Level'
             value={levelFilter}
@@ -450,7 +465,7 @@ function LogViewerWindow() {
             onChange={handleLevelFilterChange}
           />
         </Box>
-        <Box minWidth={120} marginInlineEnd={12}>
+        <Box minWidth='x120' marginInlineEnd='x12'>
           <SelectLegacy
             placeholder='Context'
             value={contextFilter}
@@ -463,36 +478,36 @@ function LogViewerWindow() {
         </Button>
       </Box>
 
-      <Box flexGrow={1} padding={24} paddingBlockStart={12}>
+      <Box flexGrow={1} padding='x24' paddingBlockStart='x12'>
         <Tile elevation='2' padding={0} overflow='hidden' height='100%'>
           {isLoading ? (
             <Box
               display='flex'
               justifyContent='center'
               alignItems='center'
-              height='400px'
+              height='x400'
               backgroundColor='surface-light'
             >
               <Throbber size='x32' />
             </Box>
           ) : (
             <Scrollable>
-              <Box ref={scrollRef} padding={0}>
+              <Box ref={scrollRef} padding='x0'>
                 {paginatedLogs.length === 0 ? (
                   <Box
                     display='flex'
                     flexDirection='column'
                     justifyContent='center'
                     alignItems='center'
-                    height='200px'
+                    height='x200'
                     color='hint'
                     backgroundColor='surface-light'
                   >
-                    <Icon name='list-alt' size='x32' color='annotation' />
-                    <Box marginBlockStart={8} fontScale='p2'>
+                    <Icon name='list-alt' size='x32' color='hint' />
+                    <Box marginBlockStart='x8' fontScale='p2'>
                       No logs found
                     </Box>
-                    <Box marginBlockStart={4} fontScale='c1' color='hint'>
+                    <Box marginBlockStart='x4' fontScale='c1' color='hint'>
                       Try adjusting your filters or refresh the logs
                     </Box>
                   </Box>
@@ -508,7 +523,7 @@ function LogViewerWindow() {
       </Box>
 
       {filteredLogs.length > itemsPerPage && (
-        <Box padding={24} paddingBlockStart={0}>
+        <Box padding='x24' paddingBlockStart='x0'>
           <Pagination
             current={currentPagination}
             itemsPerPage={itemsPerPage}

@@ -185,6 +185,20 @@ function LogViewerWindow() {
     dateRange: string;
   } | null>(null);
 
+  const entryLimitOptions = useMemo<[string, string][]>(
+    () => [
+      ['100', 'Last 100 entries'],
+      ['500', 'Last 500 entries'],
+      ['1000', 'Last 1000 entries'],
+      ['5000', 'Last 5000 entries'],
+      ['all', 'All entries'],
+    ],
+    []
+  );
+
+  const [entryLimit, setEntryLimit] =
+    useState<(typeof entryLimitOptions)[number][0]>('100');
+
   const handleSearchFilterChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       setSearchFilter(event.target.value);
@@ -237,11 +251,19 @@ function LogViewerWindow() {
     [setContextFilter]
   );
 
+  const handleEntryLimitChange = useCallback(
+    (value: string) => {
+      setEntryLimit(value);
+    },
+    [setEntryLimit]
+  );
+
   const handleClearAll = useCallback((): void => {
     setSearchFilter('');
     setLevelFilter('all');
     setContextFilter('all');
-  }, [setSearchFilter, setLevelFilter, setContextFilter]);
+    setEntryLimit('100');
+  }, [setSearchFilter, setLevelFilter, setContextFilter, setEntryLimit]);
 
   const [itemsPerPage, setItemsPerPage] = useState<25 | 50 | 100>(50);
   const [currentPagination, setCurrentPagination] = useState(0);
@@ -316,7 +338,9 @@ function LogViewerWindow() {
   const loadLogs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await ipcRenderer.invoke('log-viewer-window/read-logs');
+      const response = await ipcRenderer.invoke('log-viewer-window/read-logs', {
+        limit: entryLimit === 'all' ? 'all' : parseInt(entryLimit),
+      });
       if (response?.success && response.logs) {
         const parsedLogs = parseLogLines(response.logs);
         setLogEntries(parsedLogs);
@@ -365,7 +389,7 @@ function LogViewerWindow() {
     } finally {
       setIsLoading(false);
     }
-  }, [parseLogLines]);
+  }, [parseLogLines, entryLimit]);
 
   // Filter logs based on search and filters
   const filteredLogs = useMemo(() => {
@@ -411,7 +435,7 @@ function LogViewerWindow() {
     }
   }, [paginatedLogs, autoScroll]);
 
-  // Load logs on mount
+  // Load logs on mount and when entry limit changes
   useEffect(() => {
     loadLogs();
   }, [loadLogs]);
@@ -473,6 +497,31 @@ function LogViewerWindow() {
           <Box fontScale='h4' marginInlineStart='x8' color='default'>
             Log Viewer
           </Box>
+          {fileInfo && (
+            <Box
+              display='flex'
+              alignItems='center'
+              color='hint'
+              fontSize='x12'
+              marginInlineStart='x16'
+              flexWrap='wrap'
+            >
+              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
+                <Icon name='attachment' size='x12' />
+                <Box marginInlineStart='x4'>{fileInfo.size}</Box>
+              </Box>
+              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
+                <Icon name='hash' size='x12' />
+                <Box marginInlineStart='x4'>
+                  {fileInfo.totalEntries.toLocaleString()} entries
+                </Box>
+              </Box>
+              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
+                <Icon name='clock' size='x12' />
+                <Box marginInlineStart='x4'>{fileInfo.dateRange}</Box>
+              </Box>
+            </Box>
+          )}
         </Box>
         <ButtonGroup>
           <Button onClick={handleRefresh} disabled={isLoading}>
@@ -510,42 +559,24 @@ function LogViewerWindow() {
         borderBlockEnd='1px solid var(--rcx-color-stroke-light)'
         backgroundColor='surface-tint'
       >
-        <Box display='flex' alignItems='center' flexWrap='wrap'>
-          <Box display='flex' alignItems='center' marginInlineEnd='x16'>
-            <CheckBox
-              checked={showContext}
-              onChange={() => setShowContext(!showContext)}
-            />
-            <Box marginInlineStart='x4' display='inline'>
-              Show Context
-            </Box>
+        <Box display='flex' alignItems='center'>
+          <CheckBox
+            checked={showContext}
+            onChange={() => setShowContext(!showContext)}
+          />
+          <Box marginInlineStart='x4' display='inline'>
+            Show Context
           </Box>
-          {fileInfo && (
-            <Box
-              display='flex'
-              alignItems='center'
-              color='hint'
-              fontSize='x12'
-              flexWrap='wrap'
-            >
-              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
-                <Icon name='attachment' size='x12' />
-                <Box marginInlineStart='x4'>{fileInfo.size}</Box>
-              </Box>
-              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
-                <Icon name='hash' size='x12' />
-                <Box marginInlineStart='x4'>
-                  {fileInfo.totalEntries.toLocaleString()} entries
-                </Box>
-              </Box>
-              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
-                <Icon name='clock' size='x12' />
-                <Box marginInlineStart='x4'>{fileInfo.dateRange}</Box>
-              </Box>
-            </Box>
-          )}
         </Box>
         <Box display='flex' alignItems='center' flexWrap='wrap'>
+          <Box minWidth='x160' marginInlineEnd='x12'>
+            <SelectLegacy
+              placeholder='Load amount'
+              value={entryLimit}
+              options={entryLimitOptions}
+              onChange={handleEntryLimitChange}
+            />
+          </Box>
           <Box minWidth='x200' marginInlineEnd='x12'>
             <SearchInput
               placeholder='Search logs...'

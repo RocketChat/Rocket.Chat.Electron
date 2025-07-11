@@ -3,7 +3,7 @@ import path from 'path';
 import { promisify } from 'util';
 
 import type { Event } from 'electron';
-import { app, BrowserWindow, ipcMain, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, screen, dialog } from 'electron';
 
 import { packageJsonInformation } from '../app/main/app';
 import { handle } from '../ipc/main';
@@ -76,51 +76,6 @@ export const openLogViewerWindow = async (): Promise<void> => {
 
   logViewerWindow.on('closed', () => {
     logViewerWindow = null;
-    // Clean up IPC handlers
-    ipcMain.removeHandler('log-viewer-window/read-logs');
-    ipcMain.removeHandler('log-viewer-window/clear-logs');
-    ipcMain.removeHandler('log-viewer-window/close-requested');
-  });
-
-  // Handle close request
-  handle('log-viewer-window/close-requested', async () => {
-    logViewerWindow?.close();
-  });
-
-  // Handle log file reading
-  handle('log-viewer-window/read-logs', async () => {
-    try {
-      const logPath = getLogFilePath();
-
-      // Check if file exists, if not create it
-      if (!fs.existsSync(logPath)) {
-        // Ensure directory exists
-        const logDir = path.dirname(logPath);
-        if (!fs.existsSync(logDir)) {
-          fs.mkdirSync(logDir, { recursive: true });
-        }
-        // Create empty log file
-        await writeFile(logPath, '');
-      }
-
-      const logContent = await readFile(logPath, 'utf-8');
-      return { success: true, logs: logContent };
-    } catch (error) {
-      console.error('Failed to read log file:', error);
-      return { success: false, error: (error as Error).message };
-    }
-  });
-
-  // Handle log file clearing
-  handle('log-viewer-window/clear-logs', async () => {
-    try {
-      const logPath = getLogFilePath();
-      await writeFile(logPath, '');
-      return { success: true };
-    } catch (error) {
-      console.error('Failed to clear log file:', error);
-      return { success: false, error: (error as Error).message };
-    }
   });
 
   // Block navigation to external URLs
@@ -139,5 +94,95 @@ export const openLogViewerWindow = async (): Promise<void> => {
 };
 
 export const startLogViewerWindowHandler = (): void => {
+  // Register the window opener handler
   handle('log-viewer-window/open-window', openLogViewerWindow);
+
+  // Register all log viewer IPC handlers once globally
+
+  // Handle close request
+  handle('log-viewer-window/close-requested', async () => {
+    logViewerWindow?.close();
+  });
+
+  // Handle log file selection
+  handle('log-viewer-window/select-log-file', async () => {
+    try {
+      if (!logViewerWindow || logViewerWindow.isDestroyed()) {
+        return { success: false, error: 'Log viewer window not found' };
+      }
+
+      const result = await dialog.showOpenDialog(logViewerWindow, {
+        title: 'Select Log File',
+        filters: [
+          { name: 'Log Files', extensions: ['log', 'txt'] },
+          { name: 'All Files', extensions: ['*'] },
+        ],
+        properties: ['openFile'],
+      });
+
+      if (result.canceled || result.filePaths.length === 0) {
+        return { success: false, canceled: true };
+      }
+
+      return {
+        success: true,
+        filePath: result.filePaths[0],
+        fileName: path.basename(result.filePaths[0]),
+      };
+    } catch (error) {
+      console.error('Failed to select log file:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Handle log file reading
+  handle(
+    'log-viewer-window/read-logs',
+    async (_, options?: { filePath?: string; limit?: number | 'all' }) => {
+      try {
+        const logPath = options?.filePath || getLogFilePath();
+
+        // Check if file exists, if not create it (only for default log)
+        if (!fs.existsSync(logPath)) {
+          if (!options?.filePath) {
+            // Only create default log file if it doesn't exist
+            const logDir = path.dirname(logPath);
+            if (!fs.existsSync(logDir)) {
+              fs.mkdirSync(logDir, { recursive: true });
+            }
+            await writeFile(logPath, '');
+          } else {
+            return {
+              success: false,
+              error: 'Selected log file does not exist',
+            };
+          }
+        }
+
+        const logContent = await readFile(logPath, 'utf-8');
+        return {
+          success: true,
+          logs: logContent,
+          filePath: logPath,
+          fileName: path.basename(logPath),
+          isDefaultLog: !options?.filePath,
+        };
+      } catch (error) {
+        console.error('Failed to read log file:', error);
+        return { success: false, error: (error as Error).message };
+      }
+    }
+  );
+
+  // Handle log file clearing (only for default log)
+  handle('log-viewer-window/clear-logs', async () => {
+    try {
+      const logPath = getLogFilePath();
+      await writeFile(logPath, '');
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to clear log file:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
 };

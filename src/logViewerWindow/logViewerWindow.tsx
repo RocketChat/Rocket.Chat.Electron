@@ -184,6 +184,14 @@ function LogViewerWindow() {
     lastModified: string;
     dateRange: string;
   } | null>(null);
+  const [currentLogFile, setCurrentLogFile] = useState<{
+    filePath?: string;
+    fileName: string;
+    isDefaultLog: boolean;
+  }>({
+    fileName: 'main.log',
+    isDefaultLog: true,
+  });
 
   const entryLimitOptions = useMemo<[string, string][]>(
     () => [
@@ -340,10 +348,18 @@ function LogViewerWindow() {
     try {
       const response = await ipcRenderer.invoke('log-viewer-window/read-logs', {
         limit: entryLimit === 'all' ? 'all' : parseInt(entryLimit),
+        filePath: currentLogFile.filePath,
       });
       if (response?.success && response.logs) {
         const parsedLogs = parseLogLines(response.logs);
         setLogEntries(parsedLogs);
+
+        // Update current file info
+        setCurrentLogFile({
+          filePath: response.filePath,
+          fileName: response.fileName || 'main.log',
+          isDefaultLog: response.isDefaultLog ?? true,
+        });
 
         // Calculate file info
         const logText = response.logs;
@@ -389,7 +405,7 @@ function LogViewerWindow() {
     } finally {
       setIsLoading(false);
     }
-  }, [parseLogLines, entryLimit]);
+  }, [parseLogLines, entryLimit, currentLogFile.filePath]);
 
   // Filter logs based on search and filters
   const filteredLogs = useMemo(() => {
@@ -410,10 +426,15 @@ function LogViewerWindow() {
   }, [logEntries, searchFilter, levelFilter, contextFilter]);
 
   // Pagination
-  // Load logs on component mount
+  // Load logs on component mount and when file or limit changes
   useEffect(() => {
     loadLogs();
-  }, [loadLogs]);
+  }, [
+    loadLogs,
+    currentLogFile.filePath,
+    currentLogFile.isDefaultLog,
+    entryLimit,
+  ]);
 
   // Auto-refresh logs every 5 seconds when streaming is enabled
   useEffect(() => {
@@ -435,16 +456,49 @@ function LogViewerWindow() {
     }
   }, [paginatedLogs, autoScroll]);
 
-  // Load logs on mount and when entry limit changes
-  useEffect(() => {
-    loadLogs();
-  }, [loadLogs]);
+  const handleOpenLogFile = useCallback(async () => {
+    try {
+      const response = await ipcRenderer.invoke(
+        'log-viewer-window/select-log-file'
+      );
+      if (response?.success && response.filePath) {
+        // Clear current entries immediately to show loading state
+        setLogEntries([]);
+        setFileInfo(null);
+
+        setCurrentLogFile({
+          filePath: response.filePath,
+          fileName: response.fileName,
+          isDefaultLog: false,
+        });
+        // loadLogs will be triggered by the useEffect watching currentLogFile
+      }
+    } catch (error) {
+      console.error('Failed to open log file:', error);
+    }
+  }, []);
+
+  const handleOpenDefaultLog = useCallback(() => {
+    // Clear current entries immediately to show loading state
+    setLogEntries([]);
+    setFileInfo(null);
+
+    setCurrentLogFile({
+      fileName: 'main.log',
+      isDefaultLog: true,
+    });
+    // loadLogs will be triggered by the useEffect watching currentLogFile
+  }, []);
 
   const handleRefresh = useCallback(() => {
     loadLogs();
   }, [loadLogs]);
 
   const handleClearLogs = useCallback(async () => {
+    if (!currentLogFile.isDefaultLog) {
+      // Don't allow clearing custom log files
+      return;
+    }
     try {
       const response = await ipcRenderer.invoke('log-viewer-window/clear-logs');
       if (response?.success) {
@@ -453,7 +507,7 @@ function LogViewerWindow() {
     } catch (error) {
       console.error('Failed to clear logs:', error);
     }
-  }, []);
+  }, [currentLogFile.isDefaultLog]);
 
   const handleToggleStreaming = useCallback(() => {
     setIsStreaming(!isStreaming);
@@ -497,38 +551,64 @@ function LogViewerWindow() {
           <Box fontScale='h4' marginInlineStart='x8' color='default'>
             Log Viewer
           </Box>
-          {fileInfo && (
-            <Box
-              display='flex'
-              alignItems='center'
-              color='hint'
-              fontSize='x12'
-              marginInlineStart='x16'
-              flexWrap='wrap'
-            >
-              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
-                <Icon name='attachment' size='x12' />
-                <Box marginInlineStart='x4'>{fileInfo.size}</Box>
-              </Box>
-              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
-                <Icon name='hash' size='x12' />
-                <Box marginInlineStart='x4'>
-                  {fileInfo.totalEntries.toLocaleString()} entries
-                </Box>
-              </Box>
-              <Box marginInlineEnd='x8' display='flex' alignItems='center'>
-                <Icon name='clock' size='x12' />
-                <Box marginInlineStart='x4'>{fileInfo.dateRange}</Box>
+          <Box
+            display='flex'
+            alignItems='center'
+            color='hint'
+            fontSize='x12'
+            marginInlineStart='x16'
+            flexWrap='wrap'
+          >
+            <Box marginInlineEnd='x8' display='flex' alignItems='center'>
+              <Icon
+                name={currentLogFile.isDefaultLog ? 'home' : 'attachment'}
+                size='x12'
+              />
+              <Box
+                marginInlineStart='x4'
+                fontWeight='bold'
+                color={currentLogFile.isDefaultLog ? 'default' : 'info'}
+              >
+                {currentLogFile.fileName}
+                {!currentLogFile.isDefaultLog && ' (Custom)'}
               </Box>
             </Box>
-          )}
+            {fileInfo && (
+              <>
+                <Box marginInlineEnd='x8' display='flex' alignItems='center'>
+                  <Icon name='hash' size='x12' />
+                  <Box marginInlineStart='x4'>
+                    {fileInfo.totalEntries.toLocaleString()} entries
+                  </Box>
+                </Box>
+                <Box marginInlineEnd='x8' display='flex' alignItems='center'>
+                  <Icon name='clock' size='x12' />
+                  <Box marginInlineStart='x4'>{fileInfo.dateRange}</Box>
+                </Box>
+              </>
+            )}
+          </Box>
         </Box>
         <ButtonGroup>
+          <Button onClick={handleOpenLogFile}>
+            <Icon name='folder' size='x16' />
+            Open Log File
+          </Button>
+          {!currentLogFile.isDefaultLog && (
+            <Button onClick={handleOpenDefaultLog}>
+              <Icon name='home' size='x16' />
+              Default Log
+            </Button>
+          )}
           <Button onClick={handleRefresh} disabled={isLoading}>
             <Icon name='refresh' size='x16' />
             Refresh
           </Button>
-          <Button onClick={handleToggleStreaming} primary={isStreaming}>
+          <Button
+            onClick={handleToggleStreaming}
+            primary={isStreaming}
+            disabled={!currentLogFile.isDefaultLog}
+          >
             <Icon name={isStreaming ? 'pause' : 'play'} size='x16' />
             {isStreaming ? 'Stop Auto Refresh' : 'Auto Refresh'}
           </Button>
@@ -536,7 +616,11 @@ function LogViewerWindow() {
             <Icon name='copy' size='x16' />
             Copy
           </Button>
-          <Button onClick={handleClearLogs} danger>
+          <Button
+            onClick={handleClearLogs}
+            danger
+            disabled={!currentLogFile.isDefaultLog}
+          >
             <Icon name='trash' size='x16' />
             Clear
           </Button>

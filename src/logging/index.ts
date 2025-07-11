@@ -4,6 +4,8 @@ import type { WebContents } from 'electron';
 import { app, session, webContents } from 'electron';
 import log from 'electron-log';
 
+import { select } from '../store';
+import type { RootState } from '../store/rootReducer';
 import {
   getLogContext,
   formatLogContext,
@@ -136,14 +138,11 @@ export const setupWebContentsLogging = () => {
   if (process.type !== 'browser') return;
 
   try {
-    // Try to import store - use dynamic import to avoid module resolution issues
-    let selectFunction: any = null;
+    // Use the static import for store instead of dynamic imports
+    let selectFunction: typeof select | null = null;
 
     try {
-      // Try different import paths for the store
-      const storeModule =
-        require('../store') || require('../store/index') || require('./store');
-      selectFunction = storeModule.select;
+      selectFunction = select;
     } catch (importError: any) {
       // If store import fails, continue without server context mapping
       console.warn(
@@ -164,7 +163,9 @@ export const setupWebContentsLogging = () => {
           let serverUrl = 'unknown';
           if (selectFunction) {
             try {
-              const servers = selectFunction(({ servers }: any) => servers);
+              const servers = selectFunction(
+                (state: RootState) => state.servers
+              );
               const server = servers.find(
                 (s: any) => s.webContentsId === webContents.id
               );
@@ -254,7 +255,9 @@ export const setupWebContentsLogging = () => {
 
           if (selectFunction) {
             try {
-              const servers = selectFunction(({ servers }: any) => servers);
+              const servers = selectFunction(
+                (state: RootState) => state.servers
+              );
               const server = servers.find(
                 (s: any) => s.webContentsId === webContentsId
               );

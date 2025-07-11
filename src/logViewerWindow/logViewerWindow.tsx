@@ -606,13 +606,14 @@ function LogViewerWindow() {
           </Box>
           <Box
             display='flex'
-            alignItems='center'
+            flexDirection='column'
+            alignItems='flex-start'
             color='hint'
             fontSize='x12'
             marginInlineStart='x16'
-            flexWrap='wrap'
           >
-            <Box marginInlineEnd='x8' display='flex' alignItems='center'>
+            {/* File name line */}
+            <Box display='flex' alignItems='center' marginBlockEnd='x4'>
               <Icon
                 name={currentLogFile.isDefaultLog ? 'home' : 'attachment'}
                 size='x12'
@@ -626,8 +627,9 @@ function LogViewerWindow() {
                 {!currentLogFile.isDefaultLog && ' (Custom)'}
               </Box>
             </Box>
+            {/* File stats line */}
             {fileInfo && (
-              <>
+              <Box display='flex' alignItems='center' flexWrap='wrap'>
                 <Box marginInlineEnd='x8' display='flex' alignItems='center'>
                   <Icon name='hash' size='x12' />
                   <Box marginInlineStart='x4'>
@@ -638,7 +640,7 @@ function LogViewerWindow() {
                   <Icon name='clock' size='x12' />
                   <Box marginInlineStart='x4'>{fileInfo.dateRange}</Box>
                 </Box>
-              </>
+              </Box>
             )}
           </Box>
         </Box>

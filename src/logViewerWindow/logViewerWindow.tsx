@@ -10,6 +10,8 @@ import {
   Tile,
   Throbber,
   Badge,
+  Chip,
+  CheckBox,
 } from '@rocket.chat/fuselage';
 import { useLocalStorage } from '@rocket.chat/fuselage-hooks';
 import { ipcRenderer } from 'electron';
@@ -65,19 +67,25 @@ const getLevelBackgroundColor = (level: LogLevel): string => {
 };
 
 const getLevelTextColor = (level: LogLevel): string => {
+  // Match text colors to badge BACKGROUND colors:
+  // error → danger badge background (red) → red text
+  // warn → warning badge background (orange) → default text (no orange font token)
+  // info → primary badge background (blue) → blue text
+  // debug/verbose → secondary badge background (gray) → gray text
+
   switch (level) {
     case 'error':
-      return 'danger';
+      return 'font-danger'; // Red text (#ec0d2a) matching red danger badge
     case 'warn':
-      return 'danger';
+      return 'font-default'; // Default text color for warnings
     case 'info':
-      return 'default';
+      return 'font-info'; // Blue text (#095ad2) matching blue primary badge
     case 'debug':
-      return 'hint';
+      return 'font-default'; // Default text matching gray secondary badge
     case 'verbose':
-      return 'hint';
+      return 'font-default'; // Default text matching gray secondary badge
     default:
-      return 'default';
+      return 'font-default';
   }
 };
 
@@ -98,7 +106,13 @@ const getLevelBorderColor = (level: LogLevel): string => {
   }
 };
 
-const LogEntry = ({ entry }: { entry: LogEntryType }) => {
+const LogEntry = ({
+  entry,
+  showContext,
+}: {
+  entry: LogEntryType;
+  showContext: boolean;
+}) => {
   return (
     <Box
       display='flex'
@@ -118,6 +132,7 @@ const LogEntry = ({ entry }: { entry: LogEntryType }) => {
         color='hint'
         fontWeight='normal'
         fontSize='x11'
+        style={{ whiteSpace: 'nowrap' }}
       >
         {entry.timestamp}
       </Box>
@@ -126,18 +141,9 @@ const LogEntry = ({ entry }: { entry: LogEntryType }) => {
           {entry.level.toUpperCase()}
         </Badge>
       </Box>
-      {entry.context && (
-        <Box
-          marginInlineEnd='x12'
-          color='hint'
-          fontWeight='bold'
-          minWidth='x120'
-          fontSize='x11'
-          backgroundColor='surface-tint'
-          padding='x4'
-          borderRadius='x2'
-        >
-          [{entry.context}]
+      {showContext && entry.context && (
+        <Box marginInlineEnd='x12'>
+          <Chip>{entry.context}</Chip>
         </Box>
       )}
       <Box
@@ -162,6 +168,7 @@ function LogViewerWindow() {
   const [isStreaming, setIsStreaming] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [showContext, setShowContext] = useState(true);
 
   const handleSearchFilterChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -473,6 +480,15 @@ function LogViewerWindow() {
             onChange={handleContextFilterChange}
           />
         </Box>
+        <Box marginInlineEnd='x12'>
+          <CheckBox
+            checked={showContext}
+            onChange={() => setShowContext(!showContext)}
+          />
+          <Box marginInlineStart='x4' display='inline'>
+            Show Context
+          </Box>
+        </Box>
         <Button onClick={handleClearAll} small>
           Clear Filters
         </Button>
@@ -513,7 +529,11 @@ function LogViewerWindow() {
                   </Box>
                 ) : (
                   paginatedLogs.map((entry) => (
-                    <LogEntry key={entry.id} entry={entry} />
+                    <LogEntry
+                      key={entry.id}
+                      entry={entry}
+                      showContext={showContext}
+                    />
                   ))
                 )}
               </Box>

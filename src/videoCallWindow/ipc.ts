@@ -63,7 +63,7 @@ const logVideoCallWindowStats = () => {
 };
 
 export const handleDesktopCapturerGetSources = () => {
-  handle('desktop-capturer-get-sources', async (webContents, opts) => {
+  handle('desktop-capturer-get-sources', async (_webContents, opts) => {
     try {
       const options = Array.isArray(opts) ? opts[0] : opts;
 
@@ -267,12 +267,12 @@ export const startVideoCallWindowHandler = (): void => {
     }
   );
 
-  handle('video-call-window/open-screen-picker', async (webContents) => {
+  handle('video-call-window/open-screen-picker', async (_webContents) => {
     // This is handled by the renderer process (screenSharePicker.tsx)
     // The handler exists to satisfy the IPC call from preload script
   });
 
-  handle('video-call-window/open-window', async (webContents, url) => {
+  handle('video-call-window/open-window', async (_webContents, url) => {
     // Check if video call window already exists and is not destroyed
     if (videoCallWindow && !videoCallWindow.isDestroyed()) {
       console.log(
@@ -414,7 +414,7 @@ export const startVideoCallWindowHandler = (): void => {
       });
 
       // Handle window close attempt
-      videoCallWindow.on('close', (event) => {
+      videoCallWindow.on('close', (_event) => {
         // Allow normal close behavior, cleanup happens in 'closed' event
       });
 

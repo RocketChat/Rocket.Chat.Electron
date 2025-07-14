@@ -43,18 +43,8 @@ export function ScreenSharePicker() {
       // Filter out sources that are not capturable
       const filteredSources = sources
         .filter((source) => {
-          // Check if the source has a valid thumbnail
-          if (source.thumbnail.isEmpty()) {
-            console.log(
-              'Filtering out source with empty thumbnail:',
-              source.name
-            );
-            return false;
-          }
-
-          // Additional validation for source name
+          // Only check for basic validity - thumbnail validation is already done by IPC handler
           if (!source.name || source.name.trim() === '') {
-            console.log('Filtering out source with empty name:', source.id);
             return false;
           }
 
@@ -62,9 +52,6 @@ export function ScreenSharePicker() {
         })
         .sort((a, b) => a.name.localeCompare(b.name));
 
-      console.log(
-        `Found ${filteredSources.length} valid screen sharing sources`
-      );
       setSources(filteredSources);
 
       // If the currently selected source is no longer available, clear the selection

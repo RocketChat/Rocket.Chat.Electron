@@ -26,38 +26,127 @@ import { askForMediaPermissionSettings } from '../ui/main/dialogs';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
 
+// Singleton video call window instance
+let videoCallWindow: BrowserWindow | null = null;
+
+// Desktop capturer caching and debouncing
+let desktopCapturerCache: {
+  sources: Electron.DesktopCapturerSource[];
+  timestamp: number;
+} | null = null;
+
+let desktopCapturerPromise: Promise<Electron.DesktopCapturerSource[]> | null =
+  null;
+
+const DESKTOP_CAPTURER_CACHE_TTL = 3000; // 3 seconds cache for thumbnails (keeps screen content fresh)
+
+// Source validation cache to avoid redundant thumbnail checks
+// Two-tier caching strategy:
+// - Thumbnail cache (3s): Updates screen content regularly for current display
+// - Validation cache (30s): Remembers which source IDs work, avoiding expensive validation
+const sourceValidationCache: Set<string> = new Set();
+let sourceValidationCacheTimestamp = 0;
+const SOURCE_VALIDATION_CACHE_TTL = 30000; // 30 seconds cache for validation - longer since source IDs don't change often
+
+// Resource tracking for debugging
+let videoCallWindowCreationCount = 0;
+let videoCallWindowDestructionCount = 0;
+
+const logVideoCallWindowStats = () => {
+  console.log('Video call window stats:', {
+    created: videoCallWindowCreationCount,
+    destroyed: videoCallWindowDestructionCount,
+    currentInstance: videoCallWindow ? 'active' : 'none',
+    cacheStatus: desktopCapturerCache ? 'cached' : 'empty',
+    promiseStatus: desktopCapturerPromise ? 'pending' : 'none',
+  });
+};
+
 export const handleDesktopCapturerGetSources = () => {
-  handle('desktop-capturer-get-sources', async (_event, opts) => {
+  handle('desktop-capturer-get-sources', async (webContents, opts) => {
     try {
       const options = Array.isArray(opts) ? opts[0] : opts;
-      console.log('Getting desktop capturer sources with options:', options);
 
-      const sources = await desktopCapturer.getSources(options);
+      // Two-tier caching: Check if we have recent thumbnails (3s cache)
+      // This ensures screen content stays current while still optimizing performance
+      if (
+        desktopCapturerCache &&
+        Date.now() - desktopCapturerCache.timestamp < DESKTOP_CAPTURER_CACHE_TTL
+      ) {
+        return desktopCapturerCache.sources;
+      }
 
-      // Filter out invalid sources before returning
-      const validSources = sources.filter((source) => {
-        if (!source.name || source.name.trim() === '') {
-          console.log('Filtering out source with empty name:', source.id);
-          return false;
+      // If there's already a pending request, wait for it
+      if (desktopCapturerPromise) {
+        return await desktopCapturerPromise;
+      }
+
+      // Create new request
+      desktopCapturerPromise = (async () => {
+        try {
+          const sources = await desktopCapturer.getSources(options);
+
+          // Filter out invalid sources before returning
+          const validSources = sources.filter((source) => {
+            if (!source.name || source.name.trim() === '') {
+              return false;
+            }
+
+            // Validation cache (30s): Check if we've already validated this source ID
+            // This allows thumbnail refresh (3s) while avoiding expensive validation
+            const now = Date.now();
+            const cacheExpired =
+              now - sourceValidationCacheTimestamp >
+              SOURCE_VALIDATION_CACHE_TTL;
+
+            // If source was previously validated and cache is still valid, skip thumbnail check
+            if (!cacheExpired && sourceValidationCache.has(source.id)) {
+              return true; // Trust previously validated source, fresh thumbnail already fetched
+            }
+
+            // For new sources or expired cache, validate thumbnail
+            if (source.thumbnail.isEmpty()) {
+              return false;
+            }
+
+            // Add newly validated source to cache
+            if (cacheExpired) {
+              sourceValidationCache.clear();
+              sourceValidationCacheTimestamp = now;
+            }
+            sourceValidationCache.add(source.id);
+
+            return true;
+          });
+
+          // Cache the result
+          desktopCapturerCache = {
+            sources: validSources,
+            timestamp: Date.now(),
+          };
+
+          return validSources;
+        } catch (error) {
+          console.error('Error getting desktop capturer sources:', error);
+
+          // Clear cache on error
+          desktopCapturerCache = null;
+
+          return [];
+        } finally {
+          // Clear the promise reference
+          desktopCapturerPromise = null;
         }
+      })();
 
-        if (source.thumbnail.isEmpty()) {
-          console.log(
-            'Filtering out source with empty thumbnail:',
-            source.name
-          );
-          return false;
-        }
-
-        return true;
-      });
-
-      console.log(
-        `Returning ${validSources.length} valid sources out of ${sources.length} total`
-      );
-      return validSources;
+      return await desktopCapturerPromise;
     } catch (error) {
-      console.error('Error getting desktop capturer sources:', error);
+      console.error('Error in desktop capturer handler:', error);
+
+      // Clear cache and promise on error
+      desktopCapturerCache = null;
+      desktopCapturerPromise = null;
+
       return [];
     }
   });
@@ -75,6 +164,97 @@ const fetchVideoCallWindowState = async (browserWindow: BrowserWindow) => {
   };
 };
 
+const cleanupVideoCallWindow = () => {
+  if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+    console.log('Cleaning up video call window resources');
+
+    // Remove all event listeners to prevent memory leaks
+    videoCallWindow.removeAllListeners();
+
+    // Close the window
+    videoCallWindow.close();
+  }
+
+  videoCallWindow = null;
+  videoCallWindowDestructionCount++;
+
+  // Clear desktop capturer cache and promise
+  desktopCapturerCache = null;
+  desktopCapturerPromise = null;
+
+  // Clear source validation cache
+  sourceValidationCache.clear();
+  sourceValidationCacheTimestamp = 0;
+
+  console.log('Video call window cleanup completed');
+  logVideoCallWindowStats();
+};
+
+const setupWebviewHandlers = (webContents: WebContents) => {
+  // Handle webview attachment for screen sharing
+  const handleDidAttachWebview = (
+    _event: Event,
+    webviewWebContents: WebContents
+  ): void => {
+    // Set up screen sharing handler for the webview
+    webviewWebContents.session.setDisplayMediaRequestHandler((_request, cb) => {
+      if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+        videoCallWindow.webContents.send(
+          'video-call-window/open-screen-picker'
+        );
+
+        // Listen for screen sharing source response
+        ipcMain.once(
+          'video-call-window/screen-sharing-source-responded',
+          async (_event, sourceId) => {
+            if (!sourceId) {
+              // @ts-expect-error - cb expects specific format
+              cb(null);
+              return;
+            }
+
+            try {
+              // Re-fetch sources to ensure the selected source is still valid
+              const sources = await desktopCapturer.getSources({
+                types: ['window', 'screen'],
+              });
+
+              // Find the selected source
+              const selectedSource = sources.find((s) => s.id === sourceId);
+
+              if (!selectedSource) {
+                console.warn(
+                  'Selected screen sharing source no longer available:',
+                  sourceId
+                );
+                // @ts-expect-error - cb expects specific format
+                cb(null);
+                return;
+              }
+
+              // If a source was selected from the screen picker, it was already
+              // validated and displayed with a thumbnail. No need for additional
+              // thumbnail validation that could reject valid sources.
+
+              cb({ video: selectedSource });
+            } catch (error) {
+              console.error('Error validating screen sharing source:', error);
+              // @ts-expect-error - cb expects specific format
+              cb(null);
+            }
+          }
+        );
+      }
+    });
+  };
+
+  // Remove existing listener to prevent duplicates
+  webContents.removeAllListeners('did-attach-webview');
+
+  // Listen for webview attachment
+  webContents.on('did-attach-webview', handleDidAttachWebview);
+};
+
 export const startVideoCallWindowHandler = (): void => {
   handle(
     'video-call-window/screen-recording-is-permission-granted',
@@ -87,12 +267,30 @@ export const startVideoCallWindowHandler = (): void => {
     }
   );
 
-  handle('video-call-window/open-screen-picker', async (_event) => {
+  handle('video-call-window/open-screen-picker', async (webContents) => {
     // This is handled by the renderer process (screenSharePicker.tsx)
     // The handler exists to satisfy the IPC call from preload script
   });
 
-  handle('video-call-window/open-window', async (_event, url) => {
+  handle('video-call-window/open-window', async (webContents, url) => {
+    // Check if video call window already exists and is not destroyed
+    if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+      console.log(
+        'Video call window already exists, focusing and navigating to new URL'
+      );
+
+      // Focus existing window and navigate to new URL
+      videoCallWindow.show();
+      videoCallWindow.focus();
+      videoCallWindow.webContents.send('video-call-window/open-url', url);
+
+      // Ensure webview handlers are set up for screen sharing
+      setupWebviewHandlers(videoCallWindow.webContents);
+
+      logVideoCallWindowStats();
+      return;
+    }
+
     const validUrl = new URL(url);
     const allowedProtocols = ['http:', 'https:'];
     if (validUrl.hostname.match(/(\.)?g\.co$/)) {
@@ -141,7 +339,10 @@ export const startVideoCallWindowHandler = (): void => {
         );
       }
 
-      const videoCallWindow = new BrowserWindow({
+      console.log('Creating new video call window');
+      videoCallWindowCreationCount++;
+      logVideoCallWindowStats();
+      videoCallWindow = new BrowserWindow({
         width,
         height,
         x,
@@ -177,13 +378,15 @@ export const startVideoCallWindowHandler = (): void => {
         }
       );
 
-      // Only track window state changes if persistence is enabled
+      // Set up window state persistence if enabled
       if (state.isVideoCallWindowPersistenceEnabled) {
         const fetchAndDispatchWindowState = debounce(async () => {
-          dispatchLocal({
-            type: VIDEO_CALL_WINDOW_STATE_CHANGED,
-            payload: await fetchVideoCallWindowState(videoCallWindow),
-          });
+          if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+            dispatchLocal({
+              type: VIDEO_CALL_WINDOW_STATE_CHANGED,
+              payload: await fetchVideoCallWindowState(videoCallWindow),
+            });
+          }
         }, 1000);
 
         videoCallWindow.addListener('show', fetchAndDispatchWindowState);
@@ -198,155 +401,158 @@ export const startVideoCallWindowHandler = (): void => {
         videoCallWindow.addListener('move', fetchAndDispatchWindowState);
       }
 
+      // Handle window close event for proper cleanup
+      videoCallWindow.on('closed', () => {
+        videoCallWindow = null;
+        videoCallWindowDestructionCount++;
+
+        // Clear desktop capturer cache when window closes
+        desktopCapturerCache = null;
+        desktopCapturerPromise = null;
+
+        logVideoCallWindowStats();
+      });
+
+      // Handle window close attempt
+      videoCallWindow.on('close', (event) => {
+        // Allow normal close behavior, cleanup happens in 'closed' event
+      });
+
       videoCallWindow.loadFile(
         path.join(app.getAppPath(), 'app/video-call-window.html')
       );
 
       videoCallWindow.once('ready-to-show', () => {
-        videoCallWindow.setTitle(packageJsonInformation.productName);
-        videoCallWindow.webContents.send('video-call-window/open-url', url);
-        videoCallWindow.show();
+        if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+          videoCallWindow.setTitle(packageJsonInformation.productName);
+          videoCallWindow.webContents.send('video-call-window/open-url', url);
+          videoCallWindow.show();
+        }
       });
 
-      // Handle close request from Jitsi bridge
-      handle('video-call-window/close-requested', async () => {
-        videoCallWindow.close();
+      // Set up webContents event handlers
+      const { webContents } = videoCallWindow;
+
+      // Handle new window creation attempts
+      webContents.setWindowOpenHandler(({ url }: { url: string }) => {
+        console.log('Video call window - new window requested:', url);
+
+        if (url.toLowerCase().startsWith('smb://')) {
+          return { action: 'deny' };
+        }
+
+        // For external URLs, open in default browser
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+          openExternal(url);
+          return { action: 'deny' };
+        }
+
+        // Allow other window opens to proceed normally
+        return { action: 'allow' };
       });
 
-      videoCallWindow.on('closed', () => {
-        // Clean up the IPC handler to prevent duplicate registration
-        ipcMain.removeHandler('video-call-window/close-requested');
-      });
+      // Handle navigation to external protocols in video call windows
+      webContents.on('will-navigate', (event: any, url: string) => {
+        console.log('Video call window will-navigate:', url);
 
-      const handleDidAttachWebview = (
-        _event: Event,
-        webContents: WebContents
-      ): void => {
-        // Set up window open handler for external protocols (like zoommtg://)
-        webContents.setWindowOpenHandler(
-          ({ url, disposition }: { url: string; disposition: any }) => {
-            console.log('Video call window open handler:', {
-              url,
-              disposition,
-            });
+        try {
+          const parsedUrl = new URL(url);
 
-            // For external protocols and new windows, open them externally
-            if (
-              disposition === 'foreground-tab' ||
-              disposition === 'background-tab' ||
-              disposition === 'new-window'
-            ) {
-              isProtocolAllowed(url).then((allowed) => {
-                if (allowed) {
-                  openExternal(url);
-                }
-              });
-              return { action: 'deny' };
-            }
-
-            // Allow other window opens to proceed normally
-            return { action: 'allow' };
-          }
-        );
-
-        // Handle navigation to external protocols in video call windows
-        webContents.on('will-navigate', (event: any, url: string) => {
-          console.log('Video call window will-navigate:', url);
-
-          try {
-            const parsedUrl = new URL(url);
-
-            // Check if this is an external protocol (not http/https)
-            if (
-              !['http:', 'https:', 'file:', 'data:', 'about:'].includes(
-                parsedUrl.protocol
-              )
-            ) {
-              console.log(
-                'External protocol detected in video call window:',
-                parsedUrl.protocol
-              );
-              event.preventDefault();
-
-              isProtocolAllowed(url).then((allowed) => {
-                if (allowed) {
-                  openExternal(url);
-                }
-              });
-            }
-          } catch (e) {
-            // If URL parsing fails, let the default handling proceed
-            console.warn('Failed to parse URL in video call window:', url, e);
-          }
-        });
-
-        webContents.session.setPermissionRequestHandler(
-          async (
-            _webContents: any,
-            permission: any,
-            callback: any,
-            details: any
-          ) => {
+          // Check if this is an external protocol (not http/https)
+          if (
+            !['http:', 'https:', 'file:', 'data:', 'about:'].includes(
+              parsedUrl.protocol
+            )
+          ) {
             console.log(
-              'Video call window permission request',
-              permission,
-              details
+              'External protocol detected in video call window:',
+              parsedUrl.protocol
             );
-            switch (permission) {
-              case 'media': {
-                const { mediaTypes = [] } =
-                  details as MediaAccessPermissionRequest;
+            event.preventDefault();
 
-                if (process.platform === 'darwin') {
-                  const allowed =
-                    (!mediaTypes.includes('audio') ||
-                      (await systemPreferences.askForMediaAccess(
-                        'microphone'
-                      ))) &&
-                    (!mediaTypes.includes('video') ||
-                      (await systemPreferences.askForMediaAccess('camera')));
-                  callback(allowed);
-                  break;
+            isProtocolAllowed(url).then((allowed) => {
+              if (allowed) {
+                openExternal(url);
+              }
+            });
+          }
+        } catch (e) {
+          // If URL parsing fails, let the default handling proceed
+          console.warn('Failed to parse URL in video call window:', url, e);
+        }
+      });
+
+      // Handle webview attachment for screen sharing
+      setupWebviewHandlers(webContents);
+
+      webContents.session.setPermissionRequestHandler(
+        async (
+          _webContents: any,
+          permission: any,
+          callback: any,
+          details: any
+        ) => {
+          console.log(
+            'Video call window permission request',
+            permission,
+            details
+          );
+          switch (permission) {
+            case 'media': {
+              const { mediaTypes = [] } =
+                details as MediaAccessPermissionRequest;
+
+              if (process.platform === 'darwin') {
+                const allowed =
+                  (!mediaTypes.includes('audio') ||
+                    (await systemPreferences.askForMediaAccess(
+                      'microphone'
+                    ))) &&
+                  (!mediaTypes.includes('video') ||
+                    (await systemPreferences.askForMediaAccess('camera')));
+                callback(allowed);
+                break;
+              }
+
+              // For non-macOS platforms (including Linux), check system permissions on Windows only
+              if (process.platform === 'win32') {
+                let microphoneAllowed = true;
+                let cameraAllowed = true;
+
+                if (mediaTypes.includes('audio')) {
+                  const micStatus =
+                    systemPreferences.getMediaAccessStatus('microphone');
+                  microphoneAllowed = micStatus === 'granted';
                 }
 
-                // For non-macOS platforms (including Linux), check system permissions on Windows only
-                if (process.platform === 'win32') {
-                  let microphoneAllowed = true;
-                  let cameraAllowed = true;
+                if (mediaTypes.includes('video')) {
+                  const camStatus =
+                    systemPreferences.getMediaAccessStatus('camera');
+                  cameraAllowed = camStatus === 'granted';
+                }
 
-                  if (mediaTypes.includes('audio')) {
-                    const micStatus =
-                      systemPreferences.getMediaAccessStatus('microphone');
-                    microphoneAllowed = micStatus === 'granted';
+                const allowed = microphoneAllowed && cameraAllowed;
+
+                if (!allowed) {
+                  console.log('Media permissions denied by system:', {
+                    microphone: microphoneAllowed,
+                    camera: cameraAllowed,
+                    requestedTypes: mediaTypes,
+                  });
+
+                  let permissionType: 'microphone' | 'camera' | 'both';
+                  if (
+                    mediaTypes.includes('audio') &&
+                    mediaTypes.includes('video')
+                  ) {
+                    permissionType = 'both';
+                  } else if (mediaTypes.includes('audio')) {
+                    permissionType = 'microphone';
+                  } else {
+                    permissionType = 'camera';
                   }
 
-                  if (mediaTypes.includes('video')) {
-                    const camStatus =
-                      systemPreferences.getMediaAccessStatus('camera');
-                    cameraAllowed = camStatus === 'granted';
-                  }
-
-                  const allowed = microphoneAllowed && cameraAllowed;
-
-                  if (!allowed) {
-                    console.log('Media permissions denied by system:', {
-                      microphone: microphoneAllowed,
-                      camera: cameraAllowed,
-                      requestedTypes: mediaTypes,
-                    });
-
-                    let permissionType: 'microphone' | 'camera' | 'both';
-                    if (
-                      mediaTypes.includes('audio') &&
-                      mediaTypes.includes('video')
-                    ) {
-                      permissionType = 'both';
-                    } else if (mediaTypes.includes('audio')) {
-                      permissionType = 'microphone';
-                    } else {
-                      permissionType = 'camera';
-                    }
-
+                  if (videoCallWindow && !videoCallWindow.isDestroyed()) {
                     askForMediaPermissionSettings(
                       permissionType,
                       videoCallWindow
@@ -356,111 +562,52 @@ export const startVideoCallWindowHandler = (): void => {
                       }
                     });
                   }
-
-                  callback(allowed);
-                  break;
                 }
 
-                // For Linux and other platforms, always allow media access
-                callback(true);
+                callback(allowed);
                 break;
               }
 
-              case 'geolocation':
-              case 'notifications':
-              case 'midiSysex':
-              case 'pointerLock':
-              case 'fullscreen':
-              case 'screen-wake-lock':
-              case 'system-wake-lock':
-                callback(true);
-                return;
-
-              case 'openExternal': {
-                // Allow external protocol handling for video call windows
-                // This is essential for Zoom, Teams, and other external app launches
-                callback(true);
-                return;
-              }
-
-              default:
-                console.log(
-                  'Unknown permission request in video call window:',
-                  permission
-                );
-                callback(false);
+              // For Linux and other platforms, always allow media access
+              callback(true);
+              break;
             }
+
+            case 'geolocation':
+            case 'notifications':
+            case 'midiSysex':
+            case 'pointerLock':
+            case 'fullscreen':
+            case 'screen-wake-lock':
+            case 'system-wake-lock':
+              callback(true);
+              return;
+
+            case 'openExternal': {
+              // Allow external protocol handling for video call windows
+              // This is essential for Zoom, Teams, and other external app launches
+              callback(true);
+              return;
+            }
+
+            default:
+              callback(false);
           }
-        );
-
-        webContents.session.setDisplayMediaRequestHandler((_request, cb) => {
-          videoCallWindow.webContents.send(
-            'video-call-window/open-screen-picker'
-          );
-          ipcMain.once(
-            'video-call-window/screen-sharing-source-responded',
-            async (_event, id) => {
-              if (!id) {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                cb(null);
-                return;
-              }
-
-              try {
-                // Re-fetch sources to ensure the selected source is still valid
-                const sources = await desktopCapturer.getSources({
-                  types: ['window', 'screen'],
-                });
-
-                // Find the selected source and validate it's still capturable
-                const selectedSource = sources.find((s) => s.id === id);
-
-                if (!selectedSource) {
-                  console.warn(
-                    'Selected screen sharing source no longer available:',
-                    id
-                  );
-                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                  // @ts-ignore
-                  cb(null);
-                  return;
-                }
-
-                // Additional validation to ensure the source is capturable
-                if (selectedSource.thumbnail.isEmpty()) {
-                  console.warn(
-                    'Selected screen sharing source has empty thumbnail:',
-                    id
-                  );
-                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                  // @ts-ignore
-                  cb(null);
-                  return;
-                }
-
-                console.log('Screen sharing source validated successfully:', {
-                  id: selectedSource.id,
-                  name: selectedSource.name,
-                  hasThumbnail: !selectedSource.thumbnail.isEmpty(),
-                });
-
-                cb({ video: selectedSource });
-              } catch (error) {
-                console.error('Error validating screen sharing source:', error);
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                cb(null);
-              }
-            }
-          );
-        });
-      };
-
-      videoCallWindow.webContents.addListener(
-        'did-attach-webview',
-        handleDidAttachWebview
+        }
       );
     }
   });
+
+  // Handle close request from Jitsi bridge or other sources
+  handle('video-call-window/close-requested', async () => {
+    if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+      videoCallWindow.close();
+    }
+  });
+};
+
+// Export cleanup function for use in app shutdown
+export const cleanupVideoCallResources = () => {
+  console.log('Cleaning up all video call resources');
+  cleanupVideoCallWindow();
 };

@@ -24,7 +24,13 @@
       "checkUpdatesOnStart": "Sök efter uppdateringar vid start",
       "noUpdatesAvailable": "Inga uppdateringar är tillgängliga.",
       "copyright": "Upphovsrätt {{copyright}}",
-      "errorWhenLookingForUpdates": "Ett fel har inträffat vid sökning efter uppdateringar"
+      "errorWhenLookingForUpdates": "Ett fel har inträffat vid sökning efter uppdateringar",
+      "updateChannel": {
+        "label": "Uppdatera Kanal",
+        "latest": "Stabil",
+        "beta": "Beta",
+        "alpha": "Alpha (experimentell)"
+      }
     },
     "addServer": {
       "title": "Lägg till server",
@@ -140,12 +146,12 @@
       "encryptionUnavailableTitle": "Kryptering är inte tillgänglig",
       "encryptionUnavailable": "Ditt operativsystem stöder inte kryptering.\nDina inloggningsuppgifter lagras i klartext.",
       "field_required": "Detta fält är obligatoriskt",
-      "remember_credentials": "Kom ihåg mina referenser",
+      "remember_credentials": "Kom ihåg mina inloggningsuppgifter",
       "cancel": " Avbryt",
       "submit": "Logga in"
     },
     "supportedVersion": {
-      "title": "Version av arbetsyta som inte stöds"
+      "title": "Versionen av arbetsytan stöds inte"
     }
   },
   "downloads": {
@@ -155,7 +161,7 @@
       "downloadInterrupted": "Nedladdning avbruten",
       "downloadCancelled": "Nedladdning avbruten",
       "downloadFailed": "Nedladdning misslyckades",
-      "downloadExpired": "Nedladdning har utgått",
+      "downloadExpired": "Nedladdning har löpt ut",
       "downloadExpiredMessage": "Försök ladda ner från källan igen."
     },
     "filters": {
@@ -306,7 +312,7 @@
     "openDevToolsOnAllWindows": "Öppna &utvecklarverktyg för alla fönster",
     "paste": "&klistra in",
     "quit": "Avsluta {{- appName}}",
-    "redo": "&Redo",
+    "redo": "Gör om",
     "reload": "Ladda om",
     "reloadClearingCache": "Tvinga fram omladdning",
     "reportIssue": "Rapportera problem",
@@ -316,12 +322,12 @@
     "services": "Tjänster",
     "showFullScreen": "Fullskärm",
     "showMenuBar": "Menyfält",
-    "showOnUnreadMessage": "Visa olästa meddelanden",
+    "showOnUnreadMessage": "Visa vid olästa meddelanden",
     "showServerList": "Serverlista",
     "showTrayIcon": "Ikon för brickan",
     "toggleDevTools": "Toggle &DevTools",
     "openConfigFolder": "Öppna mappen &Konfiguration",
-    "undo": "&Undo",
+    "undo": "Ångra",
     "unhide": "Visa alla",
     "viewMenu": "&Visa",
     "windowMenu": "&Fönster",
@@ -396,7 +402,7 @@
     "noUnreadMessage": "Inga olästa meddelanden"
   },
   "screenSharing": {
-    "permissionDenied": "Tillstånd för skärminspelning nekas",
+    "permissionDenied": "Tillstånd för skärminspelning har nekats",
     "permissionRequired": "Tillstånd för skärminspelning krävs för att dela din skärm.",
     "permissionInstructions": "Aktivera det i dina systeminställningar och försök igen.",
     "title": "Dela din skärm",

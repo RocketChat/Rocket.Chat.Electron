@@ -395,5 +395,93 @@
     "noWindowsFound": "Nenhuma janela encontrada",
     "cancel": "Cancelar",
     "share": "Compartilhar"
+  },
+  "logging": {
+    "context": {
+      "processTypes": {
+        "main": "Processo Principal",
+        "renderer": "Processo Renderizador",
+        "preload": "Processo de Pré-carregamento",
+        "rendererRoot": "Janela Principal",
+        "webview": "Webview do Servidor",
+        "videoCall": "Janela de Video Chamada"
+      },
+      "components": {
+        "auth": "Autenticação",
+        "connection": "Conexão",
+        "notification": "Notificação",
+        "videoCall": "Video Chamada",
+        "download": "Download",
+        "spellCheck": "Verificação Ortográfica",
+        "general": "Geral"
+      },
+      "serverInfo": {
+        "anonymous": "Servidor Anônimo",
+        "local": "Processo Local",
+        "unknown": "Servidor Desconhecido"
+      }
+    },
+    "status": {
+      "moduleNotAvailable": "Módulo de store não disponível para mapeamento de contexto do servidor",
+      "importFailed": "Falha na importação do store"
+    }
+  },
+  "logViewer": {
+    "title": "Visualizador de Logs",
+    "fileInfo": {
+      "custom": "Personalizado",
+      "entries": "{{count}} entradas",
+      "noEntries": "Nenhuma entrada"
+    },
+    "buttons": {
+      "openLogFile": "Abrir Arquivo de Log",
+      "defaultLog": "Log Padrão",
+      "refresh": "Atualizar",
+      "autoRefresh": "Atualização Automática",
+      "stopAutoRefresh": "Parar Atualização Automática",
+      "copy": "Copiar",
+      "save": "Salvar",
+      "clear": "Limpar",
+      "close": "Fechar",
+      "clearFilters": "Limpar Filtros"
+    },
+    "controls": {
+      "showContext": "Mostrar Contexto",
+      "autoScrollToTop": "Rolagem Automática para o Topo"
+    },
+    "placeholders": {
+      "loadAmount": "Quantidade a carregar",
+      "searchLogs": "Pesquisar logs...",
+      "level": "Nível",
+      "context": "Contexto"
+    },
+    "filters": {
+      "entryLimit": {
+        "last100": "Últimas 100 entradas",
+        "last500": "Últimas 500 entradas",
+        "last1000": "Últimas 1000 entradas",
+        "last5000": "Últimas 5000 entradas",
+        "all": "Todas as entradas"
+      },
+      "level": {
+        "all": "Todos os Níveis",
+        "debug": "Debug",
+        "info": "Info",
+        "warn": "Aviso",
+        "error": "Erro",
+        "verbose": "Verboso"
+      },
+      "context": {
+        "all": "Todos os Contextos",
+        "main": "Processo Principal",
+        "renderer": "Renderizador",
+        "webview": "Webview",
+        "videocall": "Video Chamada"
+      }
+    },
+    "messages": {
+      "noLogsFound": "Nenhum log encontrado",
+      "adjustFilters": "Tente ajustar seus filtros ou atualizar os logs"
+    }
   }
 }

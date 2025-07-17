@@ -4,9 +4,9 @@ import { initReactI18next, I18nextProvider } from 'react-i18next';
 
 import { fallbackLng, interpolation } from '../i18n/common';
 import resources from '../i18n/resources';
-import VideoCallWindow from './videoCallWindow';
+import LogViewerWindow from './logViewerWindow';
 
-// Import and apply console override for the video call window renderer
+// Import and apply console override for the log viewer window renderer
 import '../logging/preload';
 
 // Initialize i18n for this window
@@ -40,7 +40,7 @@ const start = async () => {
   const root = createRoot(rootElement);
   root.render(
     <I18nextProvider i18n={i18next}>
-      <VideoCallWindow />
+      <LogViewerWindow />
     </I18nextProvider>
   );
 };

@@ -13,6 +13,11 @@ import {
   OUTLOOK_CALENDAR_DIALOG_DISMISSED,
   OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
 } from './actions';
+import {
+  createClassifiedError,
+  formatErrorForLogging,
+  generateUserFriendlyMessage,
+} from './errorClassification';
 import { getOutlookEvents } from './getOutlookEvents';
 import type {
   OutlookCredentials,
@@ -151,26 +156,26 @@ async function listEventsFromRocketChatServer(
 
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('[OutlookCalendar] Axios error fetching events:', {
-        url,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        message: error.message,
-        code: error.code,
-        responseData: error.response?.data,
-        headers: error.response?.headers,
-        userId,
-      });
-    } else {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      console.error('[OutlookCalendar] Non-axios error fetching events:', {
-        url,
-        error: errorMessage,
-        userId,
-      });
-    }
+    const classifiedError = createClassifiedError(error as Error, {
+      operation: 'fetch_events_from_rocket_chat',
+      url,
+      userId,
+      isAxiosError: axios.isAxiosError(error),
+      status: axios.isAxiosError(error) ? error.response?.status : undefined,
+      statusText: axios.isAxiosError(error)
+        ? error.response?.statusText
+        : undefined,
+      responseData: axios.isAxiosError(error)
+        ? error.response?.data
+        : undefined,
+    });
+
+    console.error(
+      formatErrorForLogging(
+        classifiedError,
+        'Fetch events from Rocket.Chat server'
+      )
+    );
     return null;
   }
 }
@@ -458,13 +463,20 @@ export async function syncEventsWithRocketChatServer(
       'events on Rocket.Chat server'
     );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[OutlookCalendar] Failed to fetch events during sync:', {
-      error: errorMessage,
+    const classifiedError = createClassifiedError(error as Error, {
+      operation: 'fetch_events_during_sync',
       serverUrl,
       userId: credentials.userId,
+      outlookServerUrl: credentials.serverUrl,
     });
-    throw new Error(`Sync failed during event fetching: ${errorMessage}`);
+
+    console.error(
+      formatErrorForLogging(classifiedError, 'Fetch events during sync')
+    );
+
+    throw new Error(
+      `Sync failed during event fetching: ${classifiedError.technicalMessage}`
+    );
   }
 
   const appointmentsFound = eventsOnOutlookServer.map(
@@ -660,13 +672,14 @@ async function maybeSyncEvents(serverToSync: Server) {
     await syncEventsWithRocketChatServer(server.url, credentials, userAPIToken);
     console.log('[OutlookCalendar] Sync task completed successfully');
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[OutlookCalendar] Error in maybeSyncEvents:', {
+    const classifiedError = createClassifiedError(error as Error, {
+      operation: 'maybe_sync_events',
       serverUrl: serverToSync.url,
-      error: errorMessage,
       hasToken: !!userAPIToken,
       webContentsId: serverToSync.webContentsId,
     });
+
+    console.error(formatErrorForLogging(classifiedError, 'Maybe sync events'));
     throw error; // Re-throw to let calling function handle it
   }
 }
@@ -680,11 +693,20 @@ async function recurringSyncTask(serverToSync: Server) {
     await maybeSyncEvents(serverToSync);
     console.log('[OutlookCalendar] Recurring sync task completed successfully');
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[OutlookCalendar] Recurring sync task failed:', {
+    const classifiedError = createClassifiedError(error as Error, {
+      operation: 'recurring_sync_task',
       serverUrl: serverToSync.url,
-      error: errorMessage,
     });
+
+    console.error(
+      formatErrorForLogging(classifiedError, 'Recurring sync task')
+    );
+
+    console.log(
+      '[OutlookCalendar] User-friendly error message for recurring sync:'
+    );
+    console.log(generateUserFriendlyMessage(classifiedError));
+
     console.log(
       '[OutlookCalendar] Stopping recurring sync due to persistent errors'
     );
@@ -899,7 +921,24 @@ export const startOutlookCalendarUrlHandler = (): void => {
           userAPIToken
         );
       } catch (e) {
-        console.error('Error syncing events with Rocket.Chat server', e);
+        const classifiedError = createClassifiedError(e as Error, {
+          operation: 'sync_events_with_rocket_chat',
+          serverUrl: server.url,
+          userId: credentials.userId,
+          hasToken: !!userAPIToken,
+        });
+
+        console.error(
+          formatErrorForLogging(
+            classifiedError,
+            'Sync events with Rocket.Chat server'
+          )
+        );
+
+        // Also log a user-friendly message that could be shown in UI
+        console.log('[OutlookCalendar] User-friendly error message:');
+        console.log(generateUserFriendlyMessage(classifiedError));
+
         return Promise.reject(e);
       }
 

@@ -16,205 +16,11 @@ import {
   LegacyFreeBusyStatus,
 } from 'ews-javascript-api';
 
+import {
+  createClassifiedError,
+  formatErrorForLogging,
+} from './errorClassification';
 import type { OutlookCredentials, AppointmentData } from './type';
-
-/**
- * Validates if a URL has proper basic structure
- */
-const validateUrlStructure = (
-  url: string
-): { isValid: boolean; errors: string[] } => {
-  const errors: string[] = [];
-
-  // Check for basic URL structure
-  if (!url.includes('.')) {
-    errors.push(
-      'URL must contain a domain with at least one dot (e.g., mail.example.com)'
-    );
-  }
-
-  // Check for obvious malformed patterns
-  if (url.includes('..')) {
-    errors.push('URL contains consecutive dots which is invalid');
-  }
-
-  if (url.includes('//') && !url.includes('://')) {
-    errors.push('URL contains double slashes without protocol');
-  }
-
-  // Check for valid characters (basic check)
-  const invalidChars = /[<>{}|\\^`\s]/;
-  if (invalidChars.test(url)) {
-    errors.push('URL contains invalid characters');
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors,
-  };
-};
-
-/**
- * Validates URL using the native URL constructor and additional checks
- */
-const validateUrlWithConstructor = (
-  url: string
-): { isValid: boolean; errors: string[]; parsedUrl?: URL } => {
-  const errors: string[] = [];
-
-  try {
-    const parsedUrl = new URL(url);
-
-    // Validate protocol
-    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-      errors.push(
-        `Invalid protocol "${parsedUrl.protocol}". Only HTTP and HTTPS are supported`
-      );
-    }
-
-    // Validate hostname
-    if (!parsedUrl.hostname || parsedUrl.hostname.length === 0) {
-      errors.push('URL must have a valid hostname');
-    }
-
-    // Check for localhost or private IPs (warn but don't fail)
-    if (
-      parsedUrl.hostname === 'localhost' ||
-      parsedUrl.hostname.startsWith('127.')
-    ) {
-      console.warn(
-        '[OutlookCalendar] URL validation warning: Using localhost/loopback address'
-      );
-    }
-
-    // Validate port if specified
-    if (parsedUrl.port) {
-      const portNum = parseInt(parsedUrl.port, 10);
-      if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
-        errors.push(
-          `Invalid port number "${parsedUrl.port}". Must be between 1 and 65535`
-        );
-      }
-    }
-
-    // Check for reasonable hostname format
-    if (
-      parsedUrl.hostname &&
-      !parsedUrl.hostname.includes('.') &&
-      parsedUrl.hostname !== 'localhost'
-    ) {
-      errors.push(
-        'Hostname should contain at least one dot for a valid domain'
-      );
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      parsedUrl,
-    };
-  } catch (error) {
-    return {
-      isValid: false,
-      errors: [
-        `Invalid URL format: ${error instanceof Error ? error.message : String(error)}`,
-      ],
-    };
-  }
-};
-
-/**
- * Performs comprehensive URL validation and logs detailed error information
- */
-const validateExchangeUrl = (
-  originalUrl: string,
-  sanitizedUrl: string
-): boolean => {
-  console.log('[OutlookCalendar] Validating Exchange URL:', {
-    originalUrl,
-    sanitizedUrl,
-  });
-
-  // Validate the sanitized URL structure
-  const structureCheck = validateUrlStructure(sanitizedUrl);
-  if (!structureCheck.isValid) {
-    console.error('[OutlookCalendar] URL structure validation failed:', {
-      url: sanitizedUrl,
-      errors: structureCheck.errors,
-    });
-    return false;
-  }
-
-  // Validate using URL constructor
-  const urlCheck = validateUrlWithConstructor(sanitizedUrl);
-  if (!urlCheck.isValid) {
-    console.error('[OutlookCalendar] URL constructor validation failed:', {
-      url: sanitizedUrl,
-      errors: urlCheck.errors,
-    });
-    return false;
-  }
-
-  // Additional Exchange-specific validations
-  const exchangeErrors: string[] = [];
-
-  if (urlCheck.parsedUrl) {
-    const { parsedUrl } = urlCheck;
-
-    // Check if the path looks like a valid Exchange endpoint
-    const pathname = parsedUrl.pathname.toLowerCase();
-    if (!pathname.includes('/ews/') || !pathname.endsWith('/exchange.asmx')) {
-      exchangeErrors.push(
-        'URL path should end with /ews/exchange.asmx for Exchange Web Services'
-      );
-    }
-
-    // Warn about non-standard ports
-    const { port } = parsedUrl;
-    if (port && !['80', '443', '8080', '8443'].includes(port)) {
-      console.warn(
-        '[OutlookCalendar] URL validation warning: Using non-standard port',
-        {
-          port,
-          url: sanitizedUrl,
-          message: 'Ensure your Exchange server is accessible on this port',
-        }
-      );
-    }
-
-    // Check for HTTPS recommendation
-    if (
-      parsedUrl.protocol === 'http:' &&
-      !parsedUrl.hostname.includes('localhost')
-    ) {
-      console.warn(
-        '[OutlookCalendar] URL validation warning: Using HTTP instead of HTTPS',
-        {
-          url: sanitizedUrl,
-          message:
-            'HTTPS is recommended for Exchange connections in production',
-        }
-      );
-    }
-  }
-
-  if (exchangeErrors.length > 0) {
-    console.error('[OutlookCalendar] Exchange-specific validation failed:', {
-      url: sanitizedUrl,
-      errors: exchangeErrors,
-    });
-    return false;
-  }
-
-  console.log('[OutlookCalendar] URL validation passed:', {
-    url: sanitizedUrl,
-    protocol: urlCheck.parsedUrl?.protocol,
-    hostname: urlCheck.parsedUrl?.hostname,
-    port: urlCheck.parsedUrl?.port || 'default',
-  });
-
-  return true;
-};
 
 /**
  * Optional function to test basic connectivity to the Exchange server
@@ -264,41 +70,6 @@ const testExchangeConnectivity = async (
 
     return false;
   }
-};
-
-/**
- * Enhanced validation function that optionally includes connectivity testing
- */
-const validateExchangeUrlWithConnectivity = async (
-  originalUrl: string,
-  sanitizedUrl: string,
-  testConnectivity: boolean = false
-): Promise<boolean> => {
-  // Run standard validation first
-  const isValid = validateExchangeUrl(originalUrl, sanitizedUrl);
-
-  if (!isValid || !testConnectivity) {
-    return isValid;
-  }
-
-  // Optional connectivity test (disabled by default to avoid delays)
-  try {
-    const isReachable = await testExchangeConnectivity(sanitizedUrl);
-    if (!isReachable) {
-      console.warn(
-        '[OutlookCalendar] URL validation warning: Server may not be reachable',
-        {
-          url: sanitizedUrl,
-          suggestion: 'Check network connectivity and firewall settings',
-        }
-      );
-      // Don't fail validation just because of connectivity issues
-    }
-  } catch (error) {
-    console.warn('[OutlookCalendar] Connectivity test error:', error);
-  }
-
-  return isValid;
 };
 
 // Export the connectivity test function for manual testing/debugging
@@ -513,11 +284,17 @@ export const getOutlookEvents = async (
     // Validate required credentials
     if (!login || !password || !serverUrl) {
       const error = new Error('Missing required Outlook credentials');
-      console.error('[OutlookCalendar] Credential validation failed:', {
+      const classifiedError = createClassifiedError(error, {
+        operation: 'credential_validation',
         hasLogin: !!login,
         hasPassword: !!password,
         hasServerUrl: !!serverUrl,
+        userId: credentials.userId,
       });
+
+      console.error(
+        formatErrorForLogging(classifiedError, 'Credential validation')
+      );
       throw error;
     }
 
@@ -536,16 +313,18 @@ export const getOutlookEvents = async (
       exchange.Url = new Uri(exchangeUrl);
       console.log('[OutlookCalendar] Exchange URL set:', exchangeUrl);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      console.error('[OutlookCalendar] Failed to set Exchange URL:', {
+      const classifiedError = createClassifiedError(error as Error, {
+        operation: 'exchange_url_configuration',
         serverUrl,
-        error: errorMessage,
-        suggestion:
-          'Please verify the Exchange server URL configuration. Expected format: https://mail.example.com or https://mail.example.com/ews',
+        userId: credentials.userId,
       });
+
+      console.error(
+        formatErrorForLogging(classifiedError, 'Exchange URL configuration')
+      );
+
       throw new Error(
-        `Invalid Exchange server URL configuration: ${errorMessage}`
+        `Invalid Exchange server URL configuration: ${classifiedError.technicalMessage}`
       );
     }
 
@@ -585,21 +364,24 @@ export const getOutlookEvents = async (
         'appointments'
       );
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      const errorType =
-        error instanceof Error ? error.constructor.name : 'Unknown';
+      const classifiedError = createClassifiedError(error as Error, {
+        operation: 'fetch_appointments',
+        serverUrl: credentials.serverUrl,
+        userId: credentials.userId,
+        exchangeUrl: exchange.Url?.ToString(),
+      });
+
       console.error(
-        '[OutlookCalendar] Failed to fetch appointments from Exchange:',
-        {
-          error: errorMessage,
-          serverUrl: credentials.serverUrl,
-          userId: credentials.userId,
-          errorType,
-        }
+        formatErrorForLogging(
+          classifiedError,
+          'Fetch appointments from Exchange'
+        )
       );
+
       return Promise.reject(
-        new Error(`Failed to fetch appointments: ${errorMessage}`)
+        new Error(
+          `Failed to fetch appointments: ${classifiedError.technicalMessage}`
+        )
       );
     }
     // Filter out appointments that end exactly at midnight
@@ -623,18 +405,21 @@ export const getOutlookEvents = async (
         '[OutlookCalendar] Successfully loaded appointment properties'
       );
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const classifiedError = createClassifiedError(error as Error, {
+        operation: 'load_appointment_properties',
+        appointmentCount: filtered.length,
+        serverUrl: credentials.serverUrl,
+        userId: credentials.userId,
+      });
+
       console.error(
-        '[OutlookCalendar] Failed to load appointment properties:',
-        {
-          error: errorMessage,
-          appointmentCount: filtered.length,
-          serverUrl: credentials.serverUrl,
-        }
+        formatErrorForLogging(classifiedError, 'Load appointment properties')
       );
+
       return Promise.reject(
-        new Error(`Failed to load appointment properties: ${errorMessage}`)
+        new Error(
+          `Failed to load appointment properties: ${classifiedError.technicalMessage}`
+        )
       );
     }
 
@@ -703,15 +488,19 @@ export const getOutlookEvents = async (
       }
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[OutlookCalendar] getOutlookEvents failed:', {
-      error: errorMessage,
+    const classifiedError = createClassifiedError(error as Error, {
+      operation: 'get_outlook_events',
       serverUrl: credentials.serverUrl,
       userId: credentials.userId,
       date: date.toISOString(),
     });
+
+    console.error(formatErrorForLogging(classifiedError, 'Get Outlook Events'));
+
     return Promise.reject(
-      new Error(`Outlook calendar sync failed: ${errorMessage}`)
+      new Error(
+        `Outlook calendar sync failed: ${classifiedError.technicalMessage}`
+      )
     );
   }
 };

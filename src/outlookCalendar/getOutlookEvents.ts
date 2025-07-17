@@ -18,6 +18,89 @@ import {
 
 import type { OutlookCredentials, AppointmentData } from './type';
 
+/**
+ * Sanitizes and constructs a proper Exchange Web Services (EWS) URL
+ * Handles various input formats and edge cases to prevent URL construction errors
+ *
+ * @param serverUrl - The server URL from configuration (can be base URL or include EWS path)
+ * @returns A properly formatted EWS endpoint URL
+ *
+ * Examples:
+ * - 'https://mail.example.com' → 'https://mail.example.com/ews/exchange.asmx'
+ * - 'https://mail.example.com/' → 'https://mail.example.com/ews/exchange.asmx'
+ * - 'https://mail.example.com/ews' → 'https://mail.example.com/ews/exchange.asmx'
+ * - 'https://mail.example.com/ews/' → 'https://mail.example.com/ews/exchange.asmx'
+ * - 'https://mail.example.com/EWS' → 'https://mail.example.com/ews/exchange.asmx'
+ * - 'https://mail.example.com/ews/exchange.asmx' → 'https://mail.example.com/ews/exchange.asmx'
+ */
+export const sanitizeExchangeUrl = (serverUrl: string): string => {
+  if (!serverUrl || typeof serverUrl !== 'string') {
+    throw new Error('Invalid server URL: must be a non-empty string');
+  }
+
+  try {
+    // Create URL object for proper parsing
+    const url = new URL(serverUrl);
+
+    // Normalize the pathname by removing trailing slashes
+    let pathname = url.pathname.replace(/\/+$/, '');
+
+    // Convert to lowercase for case-insensitive comparison
+    const pathnameLower = pathname.toLowerCase();
+
+    // Handle different scenarios
+    if (pathnameLower.endsWith('/ews/exchange.asmx')) {
+      // URL already has the complete EWS endpoint - use as is
+      pathname = `${pathname.slice(0, -'/ews/exchange.asmx'.length)}/ews/exchange.asmx`;
+    } else if (pathnameLower.endsWith('/ews')) {
+      // URL has /ews path - just append /exchange.asmx
+      pathname = `${pathname.slice(0, -'/ews'.length)}/ews/exchange.asmx`;
+    } else {
+      // Base URL or other path - append full /ews/exchange.asmx
+      pathname += '/ews/exchange.asmx';
+    }
+
+    // Reconstruct the URL with the sanitized pathname
+    url.pathname = pathname;
+
+    const sanitizedUrl = url.toString();
+
+    console.log('[OutlookCalendar] URL sanitization:', {
+      input: serverUrl,
+      output: sanitizedUrl,
+    });
+
+    return sanitizedUrl;
+  } catch (error) {
+    // Fallback for invalid URLs - try basic string manipulation
+    console.warn(
+      '[OutlookCalendar] URL parsing failed, falling back to string manipulation:',
+      error
+    );
+
+    // Remove protocol if present and clean up
+    let cleanUrl = serverUrl.trim();
+
+    // Add protocol if missing
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      cleanUrl = `https://${cleanUrl}`;
+    }
+
+    // Remove trailing slashes
+    cleanUrl = cleanUrl.replace(/\/+$/, '');
+
+    // Check for existing EWS paths (case-insensitive)
+    const lowerUrl = cleanUrl.toLowerCase();
+    if (lowerUrl.endsWith('/ews/exchange.asmx')) {
+      return cleanUrl;
+    }
+    if (lowerUrl.endsWith('/ews')) {
+      return `${cleanUrl}/exchange.asmx`;
+    }
+    return `${cleanUrl}/ews/exchange.asmx`;
+  }
+};
+
 export const getOutlookEvents = async (
   credentials: OutlookCredentials,
   date: Date
@@ -55,11 +138,9 @@ export const getOutlookEvents = async (
     exchange.Credentials = new WebCredentials(login, password);
 
     try {
-      exchange.Url = new Uri(`${serverUrl}/ews/exchange.asmx`);
-      console.log(
-        '[OutlookCalendar] Exchange URL set:',
-        `${serverUrl}/ews/exchange.asmx`
-      );
+      const exchangeUrl = sanitizeExchangeUrl(serverUrl);
+      exchange.Url = new Uri(exchangeUrl);
+      console.log('[OutlookCalendar] Exchange URL set:', exchangeUrl);
     } catch (error) {
       console.error('[OutlookCalendar] Failed to set Exchange URL:', error);
       throw new Error(`Invalid Exchange server URL: ${serverUrl}`);

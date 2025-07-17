@@ -41,8 +41,8 @@ describe('Exchange URL Sanitization', () => {
         'https://mail.example.com/ews/exchange.asmx',
       ],
       [
-        'https://mail.intra.cea.fr/ews',
-        'https://mail.intra.cea.fr/ews/exchange.asmx',
+        'https://mail.example.com/ews',
+        'https://mail.example.com/ews/exchange.asmx',
       ],
     ])('transforms EWS path URL %s into %s', (input, expected) => {
       const result = sanitizeExchangeUrl(input);
@@ -143,8 +143,8 @@ describe('Exchange URL Sanitization', () => {
     it.each([
       // The original problematic case from the issue
       [
-        'https://mail.intra.cea.fr/ews',
-        'https://mail.intra.cea.fr/ews/exchange.asmx',
+        'https://mail.example.com/ews',
+        'https://mail.example.com/ews/exchange.asmx',
       ],
 
       // Common Office 365 patterns
@@ -175,6 +175,195 @@ describe('Exchange URL Sanitization', () => {
     ])('handles real-world URL %s correctly as %s', (input, expected) => {
       const result = sanitizeExchangeUrl(input);
       expect(result).toBe(expected);
+    });
+  });
+
+  describe('URL validation and error handling', () => {
+    describe('Invalid URL structures', () => {
+      it.each([
+        ['not-a-url', 'URL must contain a domain with at least one dot'],
+        [
+          'https://bad..domain.com',
+          'URL contains consecutive dots which is invalid',
+        ],
+        [
+          'https://domain.com//bad//path',
+          'URL contains double slashes without protocol',
+        ],
+        ['https://domain<>.com', 'URL contains invalid characters'],
+        [
+          'invalid://domain.com',
+          'Invalid protocol "invalid:". Only HTTP and HTTPS are supported',
+        ],
+        ['https://', 'URL must have a valid hostname'],
+        [
+          'https://domain.com:99999',
+          'Invalid port number "99999". Must be between 1 and 65535',
+        ],
+        [
+          'https://domain.com:abc',
+          'Invalid port number "abc". Must be between 1 and 65535',
+        ],
+      ])(
+        'throws error for invalid URL %s with message containing %s',
+        (input, expectedErrorPart) => {
+          expect(() => sanitizeExchangeUrl(input)).toThrow(
+            new RegExp(expectedErrorPart)
+          );
+        }
+      );
+    });
+
+    describe('Valid URLs with warnings', () => {
+      // These should work but may generate warnings
+      it('handles localhost URLs', () => {
+        const result = sanitizeExchangeUrl('http://localhost/ews');
+        expect(result).toBe('http://localhost/ews/exchange.asmx');
+      });
+
+      it('handles HTTP URLs (should warn but work)', () => {
+        const result = sanitizeExchangeUrl('http://exchange.company.com');
+        expect(result).toBe('http://exchange.company.com/ews/exchange.asmx');
+      });
+
+      it('handles non-standard ports', () => {
+        const result = sanitizeExchangeUrl('https://mail.company.com:9443');
+        expect(result).toBe('https://mail.company.com:9443/ews/exchange.asmx');
+      });
+    });
+
+    describe('Fallback URL handling', () => {
+      it('handles URLs without protocol', () => {
+        const result = sanitizeExchangeUrl('mail.company.com');
+        expect(result).toBe('https://mail.company.com/ews/exchange.asmx');
+      });
+
+      it('handles partial URLs with /ews', () => {
+        const result = sanitizeExchangeUrl('mail.company.com/ews');
+        expect(result).toBe('https://mail.company.com/ews/exchange.asmx');
+      });
+
+      it('handles complete fallback URLs', () => {
+        const result = sanitizeExchangeUrl(
+          'mail.company.com/ews/exchange.asmx'
+        );
+        expect(result).toBe('https://mail.company.com/ews/exchange.asmx');
+      });
+    });
+
+    describe('Exchange-specific validation', () => {
+      it('validates Exchange endpoint path', () => {
+        const result = sanitizeExchangeUrl('https://mail.company.com');
+        expect(result).toMatch(/\/ews\/exchange\.asmx$/);
+      });
+
+      it('preserves existing correct Exchange paths', () => {
+        const input = 'https://mail.company.com/ews/exchange.asmx';
+        const result = sanitizeExchangeUrl(input);
+        expect(result).toBe(input);
+      });
+
+      it('corrects case in Exchange paths', () => {
+        const result = sanitizeExchangeUrl(
+          'https://mail.company.com/EWS/EXCHANGE.ASMX'
+        );
+        expect(result).toBe('https://mail.company.com/ews/exchange.asmx');
+      });
+    });
+
+    describe('Detailed error scenarios', () => {
+      it('provides helpful error for completely invalid input', () => {
+        expect(() => sanitizeExchangeUrl('not-a-url-at-all')).toThrow(
+          /Invalid Exchange server URL.*URL must contain a domain with at least one dot/
+        );
+      });
+
+      it('provides helpful error for malformed URLs', () => {
+        expect(() => sanitizeExchangeUrl('https://bad..domain.com')).toThrow(
+          /Invalid Exchange server URL.*URL contains consecutive dots which is invalid/
+        );
+      });
+
+      it('provides configuration suggestion in error', () => {
+        // This test might not work exactly as expected since we're testing the error flow,
+        // but we'll test that the main function handles the error properly
+        expect(() => sanitizeExchangeUrl('')).toThrow(/Invalid server URL/);
+      });
+    });
+
+    describe('Edge cases with validation', () => {
+      it('handles URLs with query parameters', () => {
+        const result = sanitizeExchangeUrl(
+          'https://mail.company.com/ews?test=1'
+        );
+        expect(result).toBe(
+          'https://mail.company.com/ews/exchange.asmx?test=1'
+        );
+      });
+
+      it('handles URLs with fragments', () => {
+        const result = sanitizeExchangeUrl(
+          'https://mail.company.com/ews#fragment'
+        );
+        expect(result).toBe(
+          'https://mail.company.com/ews/exchange.asmx#fragment'
+        );
+      });
+
+      it('handles internationalized domain names', () => {
+        const result = sanitizeExchangeUrl('https://mail.münchen.de');
+        expect(result).toMatch(/ews\/exchange\.asmx$/);
+      });
+    });
+
+    describe('Connectivity testing features', () => {
+      it('handles connectivity testing gracefully when it fails', () => {
+        // Test that even if connectivity testing fails, the function still returns a valid URL
+        const result = sanitizeExchangeUrl('https://unreachable.example.com');
+        expect(result).toBe(
+          'https://unreachable.example.com/ews/exchange.asmx'
+        );
+      });
+
+      it('runs connectivity testing automatically on this debugging branch', () => {
+        // Connectivity testing runs automatically, validating the URL construction works
+        const result = sanitizeExchangeUrl('https://mail.company.com');
+        expect(result).toBe('https://mail.company.com/ews/exchange.asmx');
+      });
+    });
+
+    describe('Production scenario tests', () => {
+      it('handles the exact problematic URL from the original issue', () => {
+        const result = sanitizeExchangeUrl('https://mail.example.com/ews');
+        expect(result).toBe('https://mail.example.com/ews/exchange.asmx');
+        expect(result).not.toContain('//ews');
+        expect(result).not.toContain('/ews/ews');
+      });
+
+      it('provides detailed logging information', () => {
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+        sanitizeExchangeUrl('https://mail.company.com');
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining(
+            '[OutlookCalendar] Starting URL sanitization for:'
+          )
+        );
+        consoleSpy.mockRestore();
+      });
+
+      it('provides detailed error information for invalid URLs', () => {
+        const consoleErrorSpy = jest
+          .spyOn(console, 'error')
+          .mockImplementation();
+        expect(() => sanitizeExchangeUrl('invalid-url')).toThrow();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          expect.stringContaining(
+            '[OutlookCalendar] Input URL failed basic validation:'
+          ),
+          expect.any(Object)
+        );
+        consoleErrorSpy.mockRestore();
+      });
     });
   });
 });

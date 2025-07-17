@@ -128,6 +128,16 @@ export const getComponentContext = (error?: Error): string => {
   }
 
   if (
+    stack.includes('outlook') ||
+    stack.includes('Outlook') ||
+    stack.includes('outlookCalendar') ||
+    stack.includes('getOutlookEvents') ||
+    stack.includes('syncEventsWithRocketChatServer')
+  ) {
+    return 'outlook';
+  }
+
+  if (
     stack.includes('video') ||
     stack.includes('Video') ||
     stack.includes('jitsi')

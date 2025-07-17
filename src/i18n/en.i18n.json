@@ -428,6 +428,7 @@
         "auth": "Authentication",
         "connection": "Connection",
         "notification": "Notification",
+        "outlook": "Outlook Calendar",
         "videoCall": "Video Call",
         "download": "Download",
         "spellCheck": "Spell Check",

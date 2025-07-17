@@ -403,6 +403,13 @@ export async function syncEventsWithRocketChatServer(
   credentials: OutlookCredentials,
   token: string
 ) {
+  console.info(
+    'Starting Outlook calendar synchronization for server:',
+    serverUrl
+  );
+
+  if (!checkIfCredentialsAreNotEmpty(credentials)) return;
+
   console.log('[OutlookCalendar] Starting sync with Rocket.Chat server:', {
     serverUrl,
     userId: credentials.userId,
@@ -420,11 +427,6 @@ export async function syncEventsWithRocketChatServer(
 
   if (!credentials || typeof credentials !== 'object') {
     throw new Error('Invalid credentials provided');
-  }
-
-  if (!checkIfCredentialsAreNotEmpty(credentials)) {
-    console.log('[OutlookCalendar] Credentials are empty, skipping sync');
-    return;
   }
 
   let eventsOnOutlookServer: AppointmentData[];

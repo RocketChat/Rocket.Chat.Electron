@@ -12,6 +12,7 @@ import { ReportErrors } from './features/ReportErrors';
 import { SideBar } from './features/SideBar';
 import { TrayIcon } from './features/TrayIcon';
 import { VideoCallWindowPersistence } from './features/VideoCallWindowPersistence';
+import { WebRTCHideLocalIPs } from './features/WebRTCHideLocalIPs';
 
 export const GeneralTab = () => (
   <Box display='flex' justifyContent='center'>
@@ -22,6 +23,7 @@ export const GeneralTab = () => (
       <InternalVideoChatWindow />
       <VideoCallWindowPersistence />
       <TrayIcon />
+      <WebRTCHideLocalIPs />
       {process.platform === 'win32' && <MinimizeOnClose />}
       <SideBar />
       {process.platform !== 'darwin' && <MenuBar />}

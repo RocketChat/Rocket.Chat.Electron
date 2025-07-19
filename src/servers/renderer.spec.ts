@@ -9,7 +9,7 @@ describe('servers/fetch-info', () => {
   ).join('.');
   let server: Server | null;
 
-  beforeEach(() => {
+  beforeEach((done) => {
     server = createServer((req, res) => {
       if (req.url === '/' || req.url?.match(/^(\/subdir)+\/$/)) {
         res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
@@ -46,12 +46,16 @@ describe('servers/fetch-info', () => {
       res.end();
     });
 
-    server.listen(3000);
+    server.listen(3000, done);
   });
 
-  afterEach(() => {
-    server?.close();
-    server = null;
+  afterEach((done) => {
+    if (server) {
+      server.close(done);
+      server = null;
+    } else {
+      done();
+    }
   });
 
   it('reaches the server at root directory', async () => {

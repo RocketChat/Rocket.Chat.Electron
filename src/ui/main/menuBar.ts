@@ -22,6 +22,7 @@ import {
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED,
+  MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
   WEBVIEW_SERVER_RELOADED,
@@ -547,11 +548,17 @@ const createWindowMenu = createSelector(
 const selectHelpDeps = createStructuredSelector({
   isDeveloperModeEnabled: ({ isDeveloperModeEnabled }: RootState) =>
     isDeveloperModeEnabled,
+  isVideoCallDevtoolsAutoOpenEnabled: ({
+    isVideoCallDevtoolsAutoOpenEnabled,
+  }: RootState) => isVideoCallDevtoolsAutoOpenEnabled,
 });
 
 const createHelpMenu = createSelector(
   selectHelpDeps,
-  ({ isDeveloperModeEnabled }): MenuItemConstructorOptions => ({
+  ({
+    isDeveloperModeEnabled,
+    isVideoCallDevtoolsAutoOpenEnabled,
+  }): MenuItemConstructorOptions => ({
     id: 'helpMenu',
     label: t('menus.helpMenu'),
     role: 'help',
@@ -619,28 +626,54 @@ const createHelpMenu = createSelector(
       },
       ...on(isDeveloperModeEnabled, () => [
         {
-          id: 'videoCallDevTools',
-          label: t('menus.videoCallDevTools'),
-          click: async () => {
-            const browserWindow = await getRootWindow();
+          id: 'videoCallToolsSubmenu',
+          label: t('menus.videoCallTools'),
+          submenu: [
+            {
+              id: 'videoCallDevTools',
+              label: t('menus.videoCallDevTools'),
+              click: async () => {
+                const browserWindow = await getRootWindow();
 
-            if (!browserWindow.isVisible()) {
-              browserWindow.showInactive();
-            }
-            browserWindow.focus();
+                if (!browserWindow.isVisible()) {
+                  browserWindow.showInactive();
+                }
+                browserWindow.focus();
 
-            try {
-              const success = await openVideoCallWebviewDevTools();
-              if (!success) {
-                // Could show a notification or message that no video call window is open
-                console.log(
-                  'No video call window available for developer tools'
-                );
-              }
-            } catch (error) {
-              console.error('Error opening video call developer tools:', error);
-            }
-          },
+                try {
+                  const success = await openVideoCallWebviewDevTools();
+                  if (!success) {
+                    console.log(
+                      'No video call window available for developer tools'
+                    );
+                  }
+                } catch (error) {
+                  console.error(
+                    'Error opening video call developer tools:',
+                    error
+                  );
+                }
+              },
+            },
+            {
+              id: 'videoCallDevToolsAutoOpen',
+              type: 'checkbox',
+              label: t('menus.videoCallDevToolsAutoOpen'),
+              checked: isVideoCallDevtoolsAutoOpenEnabled,
+              click: async ({ checked }) => {
+                const browserWindow = await getRootWindow();
+
+                if (!browserWindow.isVisible()) {
+                  browserWindow.showInactive();
+                }
+                browserWindow.focus();
+                dispatch({
+                  type: MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED,
+                  payload: checked,
+                });
+              },
+            },
+          ],
         },
       ]),
       {

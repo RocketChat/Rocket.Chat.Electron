@@ -438,7 +438,16 @@ export const startVideoCallWindowHandler = (): void => {
       videoCallWindow.once('ready-to-show', () => {
         if (videoCallWindow && !videoCallWindow.isDestroyed()) {
           videoCallWindow.setTitle(packageJsonInformation.productName);
-          videoCallWindow.webContents.send('video-call-window/open-url', url);
+
+          // Check if auto-open devtools is enabled and send it with the URL
+          const isAutoOpenEnabled = select(
+            (state) => state.isVideoCallDevtoolsAutoOpenEnabled
+          );
+          videoCallWindow.webContents.send(
+            'video-call-window/open-url',
+            url,
+            isAutoOpenEnabled
+          );
           videoCallWindow.show();
         }
       });

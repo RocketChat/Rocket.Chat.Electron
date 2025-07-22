@@ -342,6 +342,20 @@
     "announcement": "Houston, we have a problem",
     "reload": "Reload"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "Loading video call...",
+      "reloading": "Reloading video call...",
+      "description": "Please wait while we connect to the video call"
+    },
+    "error": {
+      "title": "Video Call Failed to Load",
+      "announcement": "Houston, we have a problem",
+      "timeout": "Loading timeout - video call failed to load within 15 seconds",
+      "crashed": "Webview crashed",
+      "reload": "Reload Video Call"
+    }
+  },
   "unsupportedServer": {
     "title": "{{instanceDomain}} is running an unsupported version of Rocket.Chat",
     "announcement": "An admin needs to update the workspace to a supported version in order to reenable access from mobile and desktop apps.",

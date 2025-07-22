@@ -575,13 +575,19 @@ const createHelpMenu = createSelector(
         label: t('menus.reload'),
         accelerator: 'CommandOrControl+Shift+R',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          const guestWebContents = await getCurrentViewWebcontents();
+          if (guestWebContents)
+            dispatch({
+              type: CLEAR_CACHE_TRIGGERED,
+              payload: guestWebContents.id,
+            });
+          const currentView = await getCurrentView();
+          if (typeof currentView === 'object' && !!currentView.url) {
+            dispatch({
+              type: WEBVIEW_SERVER_RELOADED,
+              payload: { url: currentView.url },
+            });
           }
-          browserWindow.focus();
-          browserWindow.webContents.reload();
         },
       },
       {

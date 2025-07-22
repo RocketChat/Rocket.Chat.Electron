@@ -624,58 +624,56 @@ const createHelpMenu = createSelector(
           });
         },
       },
-      ...on(isDeveloperModeEnabled, () => [
-        {
-          id: 'videoCallToolsSubmenu',
-          label: t('menus.videoCallTools'),
-          submenu: [
-            {
-              id: 'videoCallDevTools',
-              label: t('menus.videoCallDevTools'),
-              click: async () => {
-                const browserWindow = await getRootWindow();
+      {
+        id: 'videoCallToolsSubmenu',
+        label: t('menus.videoCallTools'),
+        submenu: [
+          {
+            id: 'videoCallDevTools',
+            label: t('menus.videoCallDevTools'),
+            click: async () => {
+              const browserWindow = await getRootWindow();
 
-                if (!browserWindow.isVisible()) {
-                  browserWindow.showInactive();
-                }
-                browserWindow.focus();
+              if (!browserWindow.isVisible()) {
+                browserWindow.showInactive();
+              }
+              browserWindow.focus();
 
-                try {
-                  const success = await openVideoCallWebviewDevTools();
-                  if (!success) {
-                    console.log(
-                      'No video call window available for developer tools'
-                    );
-                  }
-                } catch (error) {
-                  console.error(
-                    'Error opening video call developer tools:',
-                    error
+              try {
+                const success = await openVideoCallWebviewDevTools();
+                if (!success) {
+                  console.log(
+                    'No video call window available for developer tools'
                   );
                 }
-              },
+              } catch (error) {
+                console.error(
+                  'Error opening video call developer tools:',
+                  error
+                );
+              }
             },
-            {
-              id: 'videoCallDevToolsAutoOpen',
-              type: 'checkbox',
-              label: t('menus.videoCallDevToolsAutoOpen'),
-              checked: isVideoCallDevtoolsAutoOpenEnabled,
-              click: async ({ checked }) => {
-                const browserWindow = await getRootWindow();
+          },
+          {
+            id: 'videoCallDevToolsAutoOpen',
+            type: 'checkbox',
+            label: t('menus.videoCallDevToolsAutoOpen'),
+            checked: isVideoCallDevtoolsAutoOpenEnabled,
+            click: async ({ checked }) => {
+              const browserWindow = await getRootWindow();
 
-                if (!browserWindow.isVisible()) {
-                  browserWindow.showInactive();
-                }
-                browserWindow.focus();
-                dispatch({
-                  type: MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED,
-                  payload: checked,
-                });
-              },
+              if (!browserWindow.isVisible()) {
+                browserWindow.showInactive();
+              }
+              browserWindow.focus();
+              dispatch({
+                type: MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED,
+                payload: checked,
+              });
             },
-          ],
-        },
-      ]),
+          },
+        ],
+      },
       {
         id: 'openConfigFolder',
         label: t('menus.openConfigFolder'),

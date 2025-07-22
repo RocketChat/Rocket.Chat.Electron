@@ -11,6 +11,7 @@ import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import * as urls from '../../urls';
 import { openExternal } from '../../utils/browserLauncher';
+import { openVideoCallWebviewDevTools } from '../../videoCallWindow/ipc';
 import {
   CLEAR_CACHE_TRIGGERED,
   MENU_BAR_ABOUT_CLICKED,
@@ -616,6 +617,32 @@ const createHelpMenu = createSelector(
           });
         },
       },
+      ...on(isDeveloperModeEnabled, () => [
+        {
+          id: 'videoCallDevTools',
+          label: t('menus.videoCallDevTools'),
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+
+            try {
+              const success = await openVideoCallWebviewDevTools();
+              if (!success) {
+                // Could show a notification or message that no video call window is open
+                console.log(
+                  'No video call window available for developer tools'
+                );
+              }
+            } catch (error) {
+              console.error('Error opening video call developer tools:', error);
+            }
+          },
+        },
+      ]),
       {
         id: 'openConfigFolder',
         label: t('menus.openConfigFolder'),

@@ -14,6 +14,7 @@ import {
   screen,
   systemPreferences,
   shell,
+  webContents,
 } from 'electron';
 
 import { packageJsonInformation } from '../app/main/app';
@@ -616,6 +617,104 @@ export const startVideoCallWindowHandler = (): void => {
       videoCallWindow.close();
     }
   });
+
+  // Handle developer tools request for video call window webview
+  handle('video-call-window/open-webview-dev-tools', async () => {
+    if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+      console.warn('Video call window not available for dev tools');
+      return false;
+    }
+
+    try {
+      // Find the webview webContents by looking for attached webviews
+      const webviewWebContents = await new Promise<WebContents | null>(
+        (resolve) => {
+          const checkForWebview = () => {
+            // Get all webContents
+            const allWebContents = webContents.getAllWebContents();
+
+            // Find webContents that belongs to our video call window's webview
+            const webviewContents = allWebContents.find((wc) => {
+              // Check if this webContents has our video call window as parent
+              return wc.hostWebContents === videoCallWindow?.webContents;
+            });
+
+            if (webviewContents) {
+              resolve(webviewContents);
+            } else {
+              // If not found immediately, wait a bit and try again
+              setTimeout(checkForWebview, 100);
+            }
+          };
+
+          checkForWebview();
+
+          // Timeout after 2 seconds
+          setTimeout(() => resolve(null), 2000);
+        }
+      );
+
+      if (webviewWebContents && !webviewWebContents.isDestroyed()) {
+        console.log('Opening developer tools for video call webview');
+        webviewWebContents.openDevTools();
+        return true;
+      }
+      console.warn('Video call webview webContents not found or destroyed');
+      return false;
+    } catch (error) {
+      console.error('Error opening webview developer tools:', error);
+      return false;
+    }
+  });
+};
+
+// Export function to open webview developer tools (for direct calling from main process)
+export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
+  if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+    console.warn('Video call window not available for dev tools');
+    return false;
+  }
+
+  try {
+    // Find the webview webContents by looking for attached webviews
+    const webviewWebContents = await new Promise<WebContents | null>(
+      (resolve) => {
+        const checkForWebview = () => {
+          // Get all webContents
+          const allWebContents = webContents.getAllWebContents();
+
+          // Find webContents that belongs to our video call window's webview
+          const webviewContents = allWebContents.find((wc: WebContents) => {
+            // Check if this webContents has our video call window as parent
+            return wc.hostWebContents === videoCallWindow?.webContents;
+          });
+
+          if (webviewContents) {
+            resolve(webviewContents);
+          } else {
+            // If not found immediately, wait a bit and try again
+            setTimeout(checkForWebview, 100);
+          }
+        };
+
+        checkForWebview();
+
+        // Timeout after 2 seconds
+        setTimeout(() => resolve(null), 2000);
+      }
+    );
+
+    if (webviewWebContents && !webviewWebContents.isDestroyed()) {
+      console.log('Opening developer tools for video call webview');
+      webviewWebContents.openDevTools();
+      return true;
+    }
+    console.warn('Video call webview webContents not found or destroyed');
+    return false;
+  } catch (error) {
+    console.error('Error opening webview developer tools:', error);
+    return false;
+  }
 };
 
 // Export cleanup function for use in app shutdown

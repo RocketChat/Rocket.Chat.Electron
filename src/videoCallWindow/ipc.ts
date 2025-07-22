@@ -48,6 +48,10 @@ const sourceValidationCache: Set<string> = new Set();
 let sourceValidationCacheTimestamp = 0;
 const SOURCE_VALIDATION_CACHE_TTL = 30000; // 30 seconds cache for validation - longer since source IDs don't change often
 
+// Cache cleanup timer - clears cache after window closes if no new window opens
+let cacheCleanupTimer: NodeJS.Timeout | null = null;
+const CACHE_CLEANUP_DELAY = 60000; // 60 seconds delay before clearing cache
+
 // Resource tracking for debugging
 let videoCallWindowCreationCount = 0;
 let videoCallWindowDestructionCount = 0;
@@ -59,6 +63,7 @@ const logVideoCallWindowStats = () => {
     currentInstance: videoCallWindow ? 'active' : 'none',
     cacheStatus: desktopCapturerCache ? 'cached' : 'empty',
     promiseStatus: desktopCapturerPromise ? 'pending' : 'none',
+    cleanupTimer: cacheCleanupTimer ? 'active' : 'none',
   });
 };
 
@@ -178,13 +183,7 @@ const cleanupVideoCallWindow = () => {
   videoCallWindow = null;
   videoCallWindowDestructionCount++;
 
-  // Clear desktop capturer cache and promise
-  desktopCapturerCache = null;
-  desktopCapturerPromise = null;
-
-  // Clear source validation cache
-  sourceValidationCache.clear();
-  sourceValidationCacheTimestamp = 0;
+  // Note: Desktop capturer cache will be cleaned up by timer if no new window opens
 
   console.log('Video call window cleanup completed');
   logVideoCallWindowStats();
@@ -273,22 +272,11 @@ export const startVideoCallWindowHandler = (): void => {
   });
 
   handle('video-call-window/open-window', async (_webContents, url) => {
-    // Check if video call window already exists and is not destroyed
+    // Always create a fresh window - no reuse to prevent any resource accumulation
     if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-      console.log(
-        'Video call window already exists, focusing and navigating to new URL'
-      );
-
-      // Focus existing window and navigate to new URL
-      videoCallWindow.show();
-      videoCallWindow.focus();
-      videoCallWindow.webContents.send('video-call-window/open-url', url);
-
-      // Ensure webview handlers are set up for screen sharing
-      setupWebviewHandlers(videoCallWindow.webContents);
-
-      logVideoCallWindowStats();
-      return;
+      console.log('Closing existing video call window to create fresh one');
+      videoCallWindow.close();
+      videoCallWindow = null;
     }
 
     const validUrl = new URL(url);
@@ -341,6 +329,16 @@ export const startVideoCallWindowHandler = (): void => {
 
       console.log('Creating new video call window');
       videoCallWindowCreationCount++;
+
+      // Cancel any pending cache cleanup since we're creating a new window
+      if (cacheCleanupTimer) {
+        clearTimeout(cacheCleanupTimer);
+        cacheCleanupTimer = null;
+        console.log(
+          'Cancelled cache cleanup - creating new window, cache preserved for better performance'
+        );
+      }
+
       logVideoCallWindowStats();
       videoCallWindow = new BrowserWindow({
         width,
@@ -401,21 +399,35 @@ export const startVideoCallWindowHandler = (): void => {
         videoCallWindow.addListener('move', fetchAndDispatchWindowState);
       }
 
-      // Handle window close event for proper cleanup
+      // Handle window close event for complete cleanup
       videoCallWindow.on('closed', () => {
+        console.log('Video call window closed - destroying completely');
         videoCallWindow = null;
         videoCallWindowDestructionCount++;
 
-        // Clear desktop capturer cache when window closes
-        desktopCapturerCache = null;
-        desktopCapturerPromise = null;
+        // Start timer to clear desktop capturer cache after delay
+        // This allows quick reopening to reuse cache while cleaning up memory if user is done
+        cacheCleanupTimer = setTimeout(() => {
+          console.log(
+            'Clearing desktop capturer cache after window idle period'
+          );
+          desktopCapturerCache = null;
+          desktopCapturerPromise = null;
+          sourceValidationCache.clear();
+          sourceValidationCacheTimestamp = 0;
+          cacheCleanupTimer = null;
+          console.log('Desktop capturer cache cleared due to inactivity');
+        }, CACHE_CLEANUP_DELAY);
 
+        console.log(
+          `Desktop capturer cache will be cleared in ${CACHE_CLEANUP_DELAY / 1000} seconds if no new video call window is opened`
+        );
         logVideoCallWindowStats();
       });
 
       // Handle window close attempt
       videoCallWindow.on('close', (_event) => {
-        // Allow normal close behavior, cleanup happens in 'closed' event
+        // Allow normal close behavior, complete cleanup happens in 'closed' event
       });
 
       videoCallWindow.loadFile(
@@ -609,5 +621,19 @@ export const startVideoCallWindowHandler = (): void => {
 // Export cleanup function for use in app shutdown
 export const cleanupVideoCallResources = () => {
   console.log('Cleaning up all video call resources');
+
+  // Clear any pending cache cleanup timer
+  if (cacheCleanupTimer) {
+    clearTimeout(cacheCleanupTimer);
+    cacheCleanupTimer = null;
+    console.log('Cancelled pending cache cleanup timer');
+  }
+
+  // Clear desktop capturer cache immediately on app shutdown
+  desktopCapturerCache = null;
+  desktopCapturerPromise = null;
+  sourceValidationCache.clear();
+  sourceValidationCacheTimestamp = 0;
+
   cleanupVideoCallWindow();
 };

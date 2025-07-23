@@ -7,6 +7,9 @@
     "schemes": ["rocketchat"]
   },
   "afterPack": "./build/afterPack.js",
+  "extraMetadata": {
+    "description": "Rocket.Chat"
+  },
   "mac": {
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],
@@ -75,10 +78,7 @@
     "verifyUpdateCodeSignature": true,
     "requestedExecutionLevel": "asInvoker",
     "signAndEditExecutable": true,
-    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}",
-    "extraMetadata": {
-      "description": "Rocket.Chat"
-    }
+    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
   },
   "nsis": {
     "oneClick": false,

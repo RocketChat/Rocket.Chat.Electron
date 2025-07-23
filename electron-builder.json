@@ -75,7 +75,10 @@
     "verifyUpdateCodeSignature": true,
     "requestedExecutionLevel": "asInvoker",
     "signAndEditExecutable": true,
-    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
+    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}",
+    "extraMetadata": {
+      "description": "Rocket.Chat"
+    }
   },
   "nsis": {
     "oneClick": false,

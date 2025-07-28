@@ -242,7 +242,6 @@ export function ScreenSharePicker() {
                         key={id}
                         width='x208'
                         height='x170'
-                        overflow='hidden'
                         display='flex'
                         flexDirection='column'
                         onClick={handleScreenSharingSourceClick(id)}
@@ -256,24 +255,67 @@ export function ScreenSharePicker() {
                         borderRadius='x2'
                         cursor='pointer'
                         className='screen-share-thumbnail'
+                        style={{
+                          position: 'relative',
+                          overflow: 'visible',
+                        }}
                       >
                         <Box
                           flexGrow={1}
                           display='flex'
-                          alignItems='center'
-                          justifyContent='center'
+                          alignItems='flex-start'
+                          justifyContent='flex-start'
                           overflow='hidden'
+                          style={{
+                            minHeight: '120px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                          }}
                         >
                           <Box
                             is='img'
                             src={thumbnail.toDataURL()}
                             alt={name}
-                            width='100%'
-                            height='auto'
+                            style={{
+                              width: '100%',
+                              height: 'auto',
+                              objectFit: 'contain',
+                              objectPosition: 'top',
+                              display: 'block',
+                            }}
                           />
                         </Box>
-                        <Box p='x4'>
-                          <Label>{name}</Label>
+                        <Box
+                          p='x4'
+                          style={{
+                            position: 'absolute',
+                            bottom: '0',
+                            left: '0',
+                            right: '0',
+                            background: 'rgba(0, 0, 0, 0.5)',
+                            backdropFilter: 'blur(4px)',
+                            zIndex: 10,
+                            minHeight: 'auto',
+                          }}
+                        >
+                          <Label
+                            title={name}
+                            style={{
+                              fontSize: '11px',
+                              lineHeight: '1.2',
+                              color: 'white',
+                              textAlign: 'center',
+                              width: '100%',
+                              margin: 0,
+                              wordBreak: 'break-word',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {name}
+                          </Label>
                         </Box>
                       </Box>
                     ))

@@ -6,6 +6,7 @@ import {
   Tabs,
   Scrollable,
   PaletteStyleTag,
+  Margins,
 } from '@rocket.chat/fuselage';
 import type {
   DesktopCapturer,
@@ -211,7 +212,15 @@ export function ScreenSharePicker() {
               </Callout>
             ) : (
               <Scrollable vertical>
-                <Box display='flex' flexWrap='wrap' justifyContent='flex-start'>
+                <Box
+                  padding='x8'
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, 208px)',
+                    gap: '16px',
+                    justifyContent: 'center',
+                  }}
+                >
                   {filteredSources.length === 0 ? (
                     <Box
                       display='flex'
@@ -219,6 +228,7 @@ export function ScreenSharePicker() {
                       justifyContent='center'
                       width='100%'
                       p='x16'
+                      style={{ gridColumn: '1 / -1' }}
                     >
                       <Label>
                         {currentTab === 'screen'
@@ -232,8 +242,6 @@ export function ScreenSharePicker() {
                         key={id}
                         width='x208'
                         height='x170'
-                        marginBlockEnd='x16'
-                        marginInlineEnd='x16'
                         overflow='hidden'
                         display='flex'
                         flexDirection='column'

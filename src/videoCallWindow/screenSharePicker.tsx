@@ -161,23 +161,22 @@ export function ScreenSharePicker() {
   return (
     <>
       <PaletteStyleTag theme='dark' selector=':root' />
-      <Dialog isVisible={visible} onClose={handleClose}>
+      <Dialog isVisible={true} onClose={handleClose}>
         <Box
           width='680px'
           margin='auto'
-          padding='x24'
           display='flex'
           flexDirection='column'
           height='560px'
           backgroundColor='surface'
           color='default'
         >
-          <Box mb='x16'>
-            <Box fontScale='h1' mb='x16'>
+          <Box marginBlockEnd='x12'>
+            <Box fontScale='h1' marginBlockEnd='x12'>
               {t('screenSharing.title')}
             </Box>
 
-            <Tabs marginBlockEnd='x16'>
+            <Tabs>
               <Tabs.Item
                 selected={currentTab === 'screen'}
                 onClick={() => setCurrentTab('screen')}

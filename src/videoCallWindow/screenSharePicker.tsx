@@ -6,7 +6,6 @@ import {
   Tabs,
   Scrollable,
   PaletteStyleTag,
-  Margins,
 } from '@rocket.chat/fuselage';
 import type {
   DesktopCapturer,
@@ -162,7 +161,7 @@ export function ScreenSharePicker() {
   return (
     <>
       <PaletteStyleTag theme='dark' selector=':root' />
-      <Dialog isVisible={true} onClose={handleClose}>
+      <Dialog isVisible={visible} onClose={handleClose}>
         <Box
           width='680px'
           margin='auto'

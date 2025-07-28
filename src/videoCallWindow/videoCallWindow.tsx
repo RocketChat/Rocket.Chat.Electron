@@ -77,10 +77,12 @@ function VideoCallWindow() {
             'VideoCallWindow: IPC test failed - communication issues detected:',
             error
           );
-          setIsFailed(true);
-          setErrorMessage(
-            'Communication error - please restart the video call'
+
+          // Auto-recovery: Try to reload the window instead of showing error to user
+          console.log(
+            'VideoCallWindow: Attempting automatic recovery by reloading...'
           );
+          window.location.reload();
         });
     }, 15000); // Increased from 10 to 15 seconds to reduce false positives
 

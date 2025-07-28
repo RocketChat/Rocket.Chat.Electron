@@ -606,6 +606,20 @@ export const startVideoCallWindowHandler = (): void => {
                 'Video call window: Fallback URL send - webview has not started loading'
               );
               sendUrlWithDelay();
+
+              // If webview still hasn't started after fallback, try reloading the renderer
+              setTimeout(() => {
+                if (
+                  videoCallWindow &&
+                  !videoCallWindow.isDestroyed() &&
+                  !webviewStartedLoading
+                ) {
+                  console.log(
+                    'Video call window: Auto-recovery - reloading renderer due to persistent loading issues'
+                  );
+                  videoCallWindow.webContents.reload();
+                }
+              }, 5000); // Give 5 more seconds after fallback
             } else if (
               webviewStartedLoading &&
               process.env.NODE_ENV === 'development'

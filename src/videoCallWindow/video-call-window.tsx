@@ -121,6 +121,28 @@ const showFallbackUI = () => {
     const rootElement = document.getElementById('root');
     if (!rootElement) return;
 
+    // Auto-retry mechanism for fallback UI
+    let retryCount = 0;
+    const maxRetries = 3;
+
+    const attemptAutoRecovery = () => {
+      retryCount++;
+      console.log(
+        `VideoCallWindow: Auto-recovery attempt ${retryCount}/${maxRetries}`
+      );
+
+      if (retryCount <= maxRetries) {
+        // Try reloading the entire window
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000 * retryCount); // Increasing delay: 2s, 4s, 6s
+      } else {
+        console.error(
+          'VideoCallWindow: Auto-recovery failed after maximum attempts'
+        );
+      }
+    };
+
     rootElement.innerHTML = `
       <div style="
         display: flex;
@@ -136,26 +158,39 @@ const showFallbackUI = () => {
       ">
         <h2>Video Call Loading</h2>
         <p>Initializing video call window...</p>
-        <p style="font-size: 14px; color: #ccc; margin-top: 20px;">
-          If this message persists, please try restarting the application.
+        <div style="
+          width: 40px;
+          height: 40px;
+          border: 4px solid #1f5582;
+          border-top: 4px solid #fff;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 20px 0;
+        "></div>
+        <p style="font-size: 14px; color: #ccc;">
+          Attempting automatic recovery...
         </p>
-        <button onclick="window.location.reload()" style="
-          margin-top: 20px;
-          padding: 10px 20px;
-          background-color: #1f5582;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 14px;
-        ">
-          Reload Window
-        </button>
       </div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
     `;
-    console.log('Video call window: Fallback UI displayed');
+
+    console.log(
+      'VideoCallWindow: Fallback UI displayed, starting auto-recovery'
+    );
+
+    // Start auto-recovery after a short delay
+    setTimeout(attemptAutoRecovery, 3000);
   } catch (fallbackError) {
-    console.error('Video call window: Even fallback UI failed:', fallbackError);
+    console.error('VideoCallWindow: Even fallback UI failed:', fallbackError);
+    // Last resort: reload the window
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   }
 };
 

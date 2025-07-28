@@ -30,6 +30,9 @@ import { openExternal } from '../utils/browserLauncher';
 // Singleton video call window instance
 let videoCallWindow: BrowserWindow | null = null;
 
+// Destruction state tracking to prevent JS execution during cleanup
+let isVideoCallWindowDestroying = false;
+
 // Desktop capturer caching and debouncing
 let desktopCapturerCache: {
   sources: Electron.DesktopCapturerSource[];
@@ -171,17 +174,70 @@ const fetchVideoCallWindowState = async (browserWindow: BrowserWindow) => {
 };
 
 const cleanupVideoCallWindow = () => {
-  if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+  if (
+    videoCallWindow &&
+    !videoCallWindow.isDestroyed() &&
+    !isVideoCallWindowDestroying
+  ) {
     console.log('Cleaning up video call window resources');
+    isVideoCallWindowDestroying = true;
 
-    // Remove all event listeners to prevent memory leaks
-    videoCallWindow.removeAllListeners();
+    try {
+      // First, disable JavaScript execution to prevent race conditions
+      videoCallWindow.webContents.session.setPermissionRequestHandler(
+        () => false
+      );
 
-    // Close the window
-    videoCallWindow.close();
+      // Clear any pending JavaScript execution
+      videoCallWindow.webContents.executeJavaScript('void 0').catch(() => {
+        // Ignore errors during cleanup
+      });
+
+      // Stop any webview JavaScript execution before cleanup
+      try {
+        const allWebContents = webContents.getAllWebContents();
+        const webviewContents = allWebContents.find(
+          (wc) => wc.hostWebContents === videoCallWindow?.webContents
+        );
+
+        if (webviewContents && !webviewContents.isDestroyed()) {
+          console.log(
+            'Stopping webview JavaScript execution before window cleanup'
+          );
+          // Disable permissions to stop any ongoing operations
+          webviewContents.session.setPermissionRequestHandler(() => false);
+          // Navigate to blank page to stop current page execution
+          webviewContents.loadURL('about:blank').catch(() => {});
+        }
+      } catch (error) {
+        console.log(
+          'Could not clean webview contents, continuing with window cleanup'
+        );
+      }
+
+      // Clear all timers that might execute during destruction
+      if (cacheCleanupTimer) {
+        clearTimeout(cacheCleanupTimer);
+        cacheCleanupTimer = null;
+      }
+
+      // Remove all event listeners to prevent callbacks during destruction
+      videoCallWindow.removeAllListeners();
+
+      // Close the window
+      videoCallWindow.close();
+    } catch (error) {
+      console.error('Error during video call window cleanup:', error);
+      // Continue with cleanup even if some operations failed
+      if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+        videoCallWindow.removeAllListeners();
+        videoCallWindow.close();
+      }
+    }
   }
 
   videoCallWindow = null;
+  isVideoCallWindowDestroying = false;
   videoCallWindowDestructionCount++;
 
   // Note: Desktop capturer cache will be cleaned up by timer if no new window opens
@@ -273,11 +329,40 @@ export const startVideoCallWindowHandler = (): void => {
   });
 
   handle('video-call-window/open-window', async (_webContents, url) => {
+    // Wait for any ongoing destruction to complete before creating new window
+    if (isVideoCallWindowDestroying) {
+      console.log('Waiting for video call window destruction to complete...');
+      await new Promise<void>((resolve) => {
+        const checkDestructionComplete = () => {
+          if (!isVideoCallWindowDestroying) {
+            resolve();
+          } else {
+            setTimeout(checkDestructionComplete, 50);
+          }
+        };
+        checkDestructionComplete();
+      });
+    }
+
     // Always create a fresh window - no reuse to prevent any resource accumulation
     if (videoCallWindow && !videoCallWindow.isDestroyed()) {
       console.log('Closing existing video call window to create fresh one');
       videoCallWindow.close();
       videoCallWindow = null;
+
+      // Wait for window to be fully closed
+      if (isVideoCallWindowDestroying) {
+        await new Promise<void>((resolve) => {
+          const checkClosed = () => {
+            if (!isVideoCallWindowDestroying) {
+              resolve();
+            } else {
+              setTimeout(checkClosed, 50);
+            }
+          };
+          checkClosed();
+        });
+      }
     }
 
     const validUrl = new URL(url);
@@ -417,6 +502,7 @@ export const startVideoCallWindowHandler = (): void => {
       videoCallWindow.on('closed', () => {
         console.log('Video call window closed - destroying completely');
         videoCallWindow = null;
+        isVideoCallWindowDestroying = false; // Reset destruction flag
         videoCallWindowDestructionCount++;
 
         // Start timer to clear desktop capturer cache after delay
@@ -441,6 +527,28 @@ export const startVideoCallWindowHandler = (): void => {
 
       // Handle window close attempt
       videoCallWindow.on('close', (_event) => {
+        // Set destruction flag immediately to prevent any JS execution
+        if (!isVideoCallWindowDestroying) {
+          isVideoCallWindowDestroying = true;
+          console.log(
+            'Video call window close initiated - preventing JS execution'
+          );
+
+          try {
+            // Immediately disable JavaScript execution
+            if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+              videoCallWindow.webContents.session.setPermissionRequestHandler(
+                () => false
+              );
+              // Clear any pending JavaScript execution
+              videoCallWindow.webContents
+                .executeJavaScript('void 0')
+                .catch(() => {});
+            }
+          } catch (error) {
+            console.log('Error during close preparation:', error);
+          }
+        }
         // Allow normal close behavior, complete cleanup happens in 'closed' event
       });
 
@@ -925,6 +1033,8 @@ export const cleanupVideoCallResources = () => {
   sourceValidationCache.clear();
   sourceValidationCacheTimestamp = 0;
 
+  // Reset destruction flag before cleanup
+  isVideoCallWindowDestroying = false;
   cleanupVideoCallWindow();
 };
 

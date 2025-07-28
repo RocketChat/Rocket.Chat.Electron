@@ -10,6 +10,9 @@ import VideoCallWindow from './videoCallWindow';
 let initAttempts = 0;
 const MAX_INIT_ATTEMPTS = 3;
 
+// Track if the window is being destroyed to prevent operations during cleanup
+let isWindowDestroying = false;
+
 // Initialize i18n for this window
 const setupI18n = async () => {
   try {
@@ -39,6 +42,14 @@ const setupI18n = async () => {
 };
 
 const start = async (): Promise<void> => {
+  // Don't start if window is being destroyed
+  if (isWindowDestroying) {
+    console.log(
+      'Video call window: Skipping initialization - window is being destroyed'
+    );
+    return;
+  }
+
   initAttempts++;
 
   // Only log attempts if there were previous failures or in development
@@ -98,15 +109,19 @@ const start = async (): Promise<void> => {
     );
 
     // Retry on low-power devices if we haven't exceeded max attempts
-    if (initAttempts < MAX_INIT_ATTEMPTS) {
+    if (initAttempts < MAX_INIT_ATTEMPTS && !isWindowDestroying) {
       console.log(`Video call window: Retrying initialization in 1 second...`);
       setTimeout(() => {
-        start().catch((retryError) => {
-          console.error('Video call window retry also failed:', retryError);
-          showFallbackUI();
-        });
+        if (!isWindowDestroying) {
+          start().catch((retryError) => {
+            console.error('Video call window retry also failed:', retryError);
+            if (!isWindowDestroying) {
+              showFallbackUI();
+            }
+          });
+        }
       }, 1000);
-    } else {
+    } else if (!isWindowDestroying) {
       console.error(
         'Video call window: Max initialization attempts reached, showing fallback UI'
       );
@@ -117,6 +132,14 @@ const start = async (): Promise<void> => {
 
 // Fallback UI for when React fails to initialize
 const showFallbackUI = () => {
+  // Don't show fallback UI if window is being destroyed
+  if (isWindowDestroying) {
+    console.log(
+      'Video call window: Skipping fallback UI - window is being destroyed'
+    );
+    return;
+  }
+
   try {
     const rootElement = document.getElementById('root');
     if (!rootElement) return;
@@ -126,15 +149,25 @@ const showFallbackUI = () => {
     const maxRetries = 3;
 
     const attemptAutoRecovery = () => {
+      // Don't attempt recovery if window is being destroyed
+      if (isWindowDestroying) {
+        console.log(
+          'VideoCallWindow: Skipping auto-recovery - window is being destroyed'
+        );
+        return;
+      }
+
       retryCount++;
       console.log(
         `VideoCallWindow: Auto-recovery attempt ${retryCount}/${maxRetries}`
       );
 
-      if (retryCount <= maxRetries) {
+      if (retryCount <= maxRetries && !isWindowDestroying) {
         // Try reloading the entire window
         setTimeout(() => {
-          window.location.reload();
+          if (!isWindowDestroying) {
+            window.location.reload();
+          }
         }, 2000 * retryCount); // Increasing delay: 2s, 4s, 6s
       } else {
         console.error(
@@ -184,12 +217,18 @@ const showFallbackUI = () => {
     );
 
     // Start auto-recovery after a short delay
-    setTimeout(attemptAutoRecovery, 3000);
+    setTimeout(() => {
+      if (!isWindowDestroying) {
+        attemptAutoRecovery();
+      }
+    }, 3000);
   } catch (fallbackError) {
     console.error('VideoCallWindow: Even fallback UI failed:', fallbackError);
     // Last resort: reload the window
     setTimeout(() => {
-      window.location.reload();
+      if (!isWindowDestroying) {
+        window.location.reload();
+      }
     }, 1000);
   }
 };
@@ -201,6 +240,18 @@ window.addEventListener('error', (event) => {
 
 window.addEventListener('unhandledrejection', (event) => {
   console.error('Video call window unhandled promise rejection:', event.reason);
+});
+
+// Add beforeunload handler to set destruction flag
+window.addEventListener('beforeunload', () => {
+  isWindowDestroying = true;
+  console.log('Video call window: Setting destruction flag - window unloading');
+});
+
+// Add unload handler as backup
+window.addEventListener('unload', () => {
+  isWindowDestroying = true;
+  console.log('Video call window: Window unloaded');
 });
 
 // Check if we're in a working environment before starting

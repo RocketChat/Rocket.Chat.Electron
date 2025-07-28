@@ -38,7 +38,7 @@ const setupI18n = async () => {
   }
 };
 
-const start = async () => {
+const start = async (): Promise<void> => {
   initAttempts++;
 
   // Only log attempts if there were previous failures or in development
@@ -54,7 +54,7 @@ const start = async () => {
       if (process.env.NODE_ENV === 'development') {
         console.log('Video call window: DOM not ready, waiting...');
       }
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
         document.addEventListener('DOMContentLoaded', () => {
           if (process.env.NODE_ENV === 'development') {
             console.log(

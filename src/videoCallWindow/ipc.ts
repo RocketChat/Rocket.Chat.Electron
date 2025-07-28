@@ -447,7 +447,7 @@ export const startVideoCallWindowHandler = (): void => {
       // Add error handling for window loading failures
       videoCallWindow.webContents.on(
         'did-fail-load',
-        (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+        (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
           console.error('Video call window failed to load:', {
             errorCode,
             errorDescription,
@@ -504,7 +504,7 @@ export const startVideoCallWindowHandler = (): void => {
       // Enhanced console message handling for better debugging
       videoCallWindow.webContents.on(
         'console-message',
-        (event, level, message, line, sourceId) => {
+        (_event, level, message, line, sourceId) => {
           const logPrefix = 'Video call window console:';
           switch (level) {
             case 0: // Info
@@ -566,7 +566,7 @@ export const startVideoCallWindowHandler = (): void => {
           // Monitor console messages for webview load start
           videoCallWindow.webContents.on(
             'console-message',
-            (event, level, message) => {
+            (_event, _level, message) => {
               if (
                 message.includes('Load started') ||
                 message.includes('did-start-loading')

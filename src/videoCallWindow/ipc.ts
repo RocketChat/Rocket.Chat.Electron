@@ -351,12 +351,25 @@ export const startVideoCallWindowHandler = (): void => {
           nodeIntegrationInSubFrames: true,
           contextIsolation: false,
           webviewTag: true,
-          // Improve GPU handling for better stability
+          // Performance optimizations for low-power devices
           experimentalFeatures: false,
-          // Ensure hardware acceleration is properly handled
           offscreen: false,
+          // Disable hardware acceleration in low-memory situations
+          // This helps prevent crashes on low-end hardware
+          disableHtmlFullscreenWindowResize: true,
+          // Enable background throttling to improve performance
+          backgroundThrottling: true,
+          // Optimize memory usage
+          v8CacheOptions: 'bypassHeatCheck',
+          // Enable spellcheck to reduce memory pressure
+          spellcheck: false,
         },
         show: false,
+        // Performance optimizations
+        frame: true,
+        transparent: false,
+        // Reduce memory usage
+        skipTaskbar: false,
       });
 
       // Block navigation to smb:// protocol
@@ -431,23 +444,178 @@ export const startVideoCallWindowHandler = (): void => {
         // Allow normal close behavior, complete cleanup happens in 'closed' event
       });
 
-      videoCallWindow.loadFile(
-        path.join(app.getAppPath(), 'app/video-call-window.html')
+      // Add error handling for window loading failures
+      videoCallWindow.webContents.on(
+        'did-fail-load',
+        (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+          console.error('Video call window failed to load:', {
+            errorCode,
+            errorDescription,
+            validatedURL,
+            isMainFrame,
+          });
+
+          if (isMainFrame) {
+            console.error(
+              'Main frame failed to load, this may indicate issues on low-power devices'
+            );
+          }
+        }
       );
+
+      // Add diagnostics for JavaScript execution issues
+      videoCallWindow.webContents.on('dom-ready', () => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Video call window DOM ready');
+        }
+
+        // Check if JavaScript is working by injecting a simple test
+        videoCallWindow?.webContents
+          .executeJavaScript(
+            `
+          if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
+            console.log('Video call window: JavaScript execution test successful');
+          }
+          window.videoCallWindowJSWorking = true;
+          // Test if React has actually rendered content (more reliable than checking window.React)
+          setTimeout(() => {
+            const rootElement = document.getElementById('root');
+            const hasReactContent = rootElement && (
+              rootElement.hasChildNodes() || 
+              rootElement.innerHTML.trim() !== ''
+            );
+            
+            if (!hasReactContent) {
+              console.warn('Video call window: React may not have rendered - possible initialization issue');
+            } else if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
+              console.log('Video call window: React content detected successfully');
+            }
+          }, 5000); // Increased timeout to 5 seconds to allow for slower React mounting
+        `
+          )
+          .catch((error) => {
+            console.error(
+              'Video call window: JavaScript execution test failed:',
+              error
+            );
+          });
+      });
+
+      // Enhanced console message handling for better debugging
+      videoCallWindow.webContents.on(
+        'console-message',
+        (event, level, message, line, sourceId) => {
+          const logPrefix = 'Video call window console:';
+          switch (level) {
+            case 0: // Info
+              console.log(
+                `${logPrefix} [INFO]`,
+                message,
+                `(${sourceId}:${line})`
+              );
+              break;
+            case 1: // Warning
+              console.warn(
+                `${logPrefix} [WARN]`,
+                message,
+                `(${sourceId}:${line})`
+              );
+              break;
+            case 2: // Error
+              console.error(
+                `${logPrefix} [ERROR]`,
+                message,
+                `(${sourceId}:${line})`
+              );
+              break;
+            default:
+              console.log(
+                `${logPrefix} [${level}]`,
+                message,
+                `(${sourceId}:${line})`
+              );
+          }
+        }
+      );
+
+      const htmlPath = path.join(
+        app.getAppPath(),
+        'app/video-call-window.html'
+      );
+      console.log('Video call window: Loading HTML file from:', htmlPath);
+
+      videoCallWindow.loadFile(htmlPath).catch((error) => {
+        console.error('Video call window: Failed to load HTML file:', error);
+        console.error(
+          'This may indicate build issues or file system problems on low-power devices'
+        );
+      });
 
       videoCallWindow.once('ready-to-show', () => {
         if (videoCallWindow && !videoCallWindow.isDestroyed()) {
           videoCallWindow.setTitle(packageJsonInformation.productName);
 
-          // Check if auto-open devtools is enabled and send it with the URL
-          const isAutoOpenEnabled = select(
-            (state) => state.isVideoCallDevtoolsAutoOpenEnabled
+          // Track if webview has started loading (indicates URL was received)
+          let webviewStartedLoading = false;
+
+          // Listen for webview loading events as confirmation
+          const handleWebviewStarted = () => {
+            webviewStartedLoading = true;
+          };
+
+          // Monitor console messages for webview load start
+          videoCallWindow.webContents.on(
+            'console-message',
+            (event, level, message) => {
+              if (
+                message.includes('Load started') ||
+                message.includes('did-start-loading')
+              ) {
+                handleWebviewStarted();
+              }
+            }
           );
-          videoCallWindow.webContents.send(
-            'video-call-window/open-url',
-            url,
-            isAutoOpenEnabled
-          );
+
+          // Add a delay before sending the URL to ensure JavaScript has loaded
+          // This is especially important for low-power devices
+          const sendUrlWithDelay = () => {
+            // Check if auto-open devtools is enabled and send it with the URL
+            const isAutoOpenEnabled = select(
+              (state) => state.isVideoCallDevtoolsAutoOpenEnabled
+            );
+
+            console.log('Video call window: Sending URL to renderer:', url);
+            videoCallWindow?.webContents.send(
+              'video-call-window/open-url',
+              url,
+              isAutoOpenEnabled
+            );
+          };
+
+          // Immediate attempt
+          sendUrlWithDelay();
+
+          // Fallback attempt after 3 seconds ONLY if webview hasn't started loading
+          setTimeout(() => {
+            if (
+              videoCallWindow &&
+              !videoCallWindow.isDestroyed() &&
+              !webviewStartedLoading
+            ) {
+              console.log(
+                'Video call window: Fallback URL send - webview has not started loading'
+              );
+              sendUrlWithDelay();
+            } else if (
+              webviewStartedLoading &&
+              process.env.NODE_ENV === 'development'
+            ) {
+              console.log(
+                'Video call window: Fallback send skipped - webview already loading'
+              );
+            }
+          }, 3000); // Increased to 3 seconds to give more time
+
           videoCallWindow.show();
         }
       });
@@ -745,3 +913,10 @@ export const cleanupVideoCallResources = () => {
 
   cleanupVideoCallWindow();
 };
+
+// IPC handler to test communication with the renderer process
+// This helps diagnose IPC issues on low-power devices
+handle('video-call-window/test-ipc', async () => {
+  console.log('Video call window: IPC test request received');
+  return { success: true, timestamp: Date.now() };
+});

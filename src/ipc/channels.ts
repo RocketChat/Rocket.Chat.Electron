@@ -32,6 +32,7 @@ type ChannelToArgsMap = {
   'video-call-window/screen-recording-is-permission-granted': () => boolean;
   'video-call-window/close-requested': () => void;
   'video-call-window/open-webview-dev-tools': () => boolean;
+  'video-call-window/test-ipc': () => { success: boolean; timestamp: number };
   'jitsi-desktop-capturer-get-sources': (
     args: [options: Electron.SourcesOptions, jitsiDomain: string]
   ) => Electron.DesktopCapturerSource[];

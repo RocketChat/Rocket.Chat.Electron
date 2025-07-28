@@ -50,11 +50,52 @@ function VideoCallWindow() {
       setShouldAutoOpenDevtools(autoOpenDevtools);
     };
 
+    // Add timeout detection for low-power devices that might have IPC issues
+    const ipcTimeoutId = setTimeout(() => {
+      // Only log this in development or when there are actual issues
+      if (process.env.NODE_ENV === 'development') {
+        console.info(
+          'VideoCallWindow: No IPC message received after 15 seconds - this is normal during development'
+        );
+        return;
+      }
+
+      console.warn(
+        'VideoCallWindow: No IPC message received after 15 seconds - checking IPC communication'
+      );
+
+      // Test if IPC is working at all
+      ipcRenderer
+        .invoke('video-call-window/test-ipc')
+        .then(() => {
+          console.log(
+            'VideoCallWindow: IPC test successful, but no URL message received - this may be normal during development'
+          );
+        })
+        .catch((error) => {
+          console.error(
+            'VideoCallWindow: IPC test failed - communication issues detected:',
+            error
+          );
+          setIsFailed(true);
+          setErrorMessage(
+            'Communication error - please restart the video call'
+          );
+        });
+    }, 15000); // Increased from 10 to 15 seconds to reduce false positives
+
     // Remove any existing listeners to prevent duplicates
     ipcRenderer.removeAllListeners('video-call-window/open-url');
-    ipcRenderer.on('video-call-window/open-url', handleOpenUrl);
+    ipcRenderer.on(
+      'video-call-window/open-url',
+      (event, url, autoOpenDevtools) => {
+        clearTimeout(ipcTimeoutId); // Clear timeout since we received the message
+        handleOpenUrl(event, url, autoOpenDevtools);
+      }
+    );
 
     return () => {
+      clearTimeout(ipcTimeoutId);
       ipcRenderer.removeAllListeners('video-call-window/open-url');
     };
   }, []);

@@ -230,9 +230,10 @@ export function ScreenSharePicker() {
                     filteredSources.map(({ id, name, thumbnail }) => (
                       <Box
                         key={id}
-                        width='x180'
-                        height='x140'
-                        m='x8'
+                        width='x208'
+                        height='x170'
+                        marginBlockEnd='x16'
+                        marginInlineEnd='x16'
                         overflow='hidden'
                         display='flex'
                         flexDirection='column'

@@ -27,27 +27,17 @@ import { askForMediaPermissionSettings } from '../ui/main/dialogs';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
 
-// Constants for cache management
-const DESKTOP_CAPTURER_CACHE_TTL = 3000; // 3 seconds cache for thumbnails
-const SOURCE_VALIDATION_CACHE_TTL = 30000; // 30 seconds cache for validation
-const CACHE_CLEANUP_DELAY = 60000; // 60 seconds delay before clearing cache
+const DESKTOP_CAPTURER_CACHE_TTL = 3000;
+const SOURCE_VALIDATION_CACHE_TTL = 30000;
+const CACHE_CLEANUP_DELAY = 60000;
+const DESTRUCTION_CHECK_INTERVAL = 50;
+const DEVTOOLS_TIMEOUT = 2000;
+const WEBVIEW_CHECK_INTERVAL = 100;
 
-// Constants for window destruction polling
-const DESTRUCTION_CHECK_INTERVAL = 50; // 50ms polling interval
-const DEVTOOLS_TIMEOUT = 2000; // 2 seconds timeout for devtools operations
-const WEBVIEW_CHECK_INTERVAL = 100; // 100ms polling interval for webview search
-
-// Singleton video call window instance
 let videoCallWindow: BrowserWindow | null = null;
-
-// Destruction state tracking to prevent JS execution during cleanup
 let isVideoCallWindowDestroying = false;
-
-// Store the URL and settings for state-based communication
 let pendingVideoCallUrl: string | null = null;
-let pendingAutoOpenDevtools = false;
 
-// Desktop capturer caching and debouncing
 let desktopCapturerCache: {
   sources: Electron.DesktopCapturerSource[];
   timestamp: number;
@@ -56,17 +46,11 @@ let desktopCapturerCache: {
 let desktopCapturerPromise: Promise<Electron.DesktopCapturerSource[]> | null =
   null;
 
-// Source validation cache to avoid redundant thumbnail checks
-// Two-tier caching strategy:
-// - Thumbnail cache (3s): Updates screen content regularly for current display
-// - Validation cache (30s): Remembers which source IDs work, avoiding expensive validation
 const sourceValidationCache: Set<string> = new Set();
 let sourceValidationCacheTimestamp = 0;
 
-// Cache cleanup timer - clears cache after window closes if no new window opens
 let cacheCleanupTimer: NodeJS.Timeout | null = null;
 
-// Resource tracking for debugging
 let videoCallWindowCreationCount = 0;
 let videoCallWindowDestructionCount = 0;
 
@@ -86,8 +70,6 @@ export const handleDesktopCapturerGetSources = () => {
     try {
       const options = Array.isArray(opts) ? opts[0] : opts;
 
-      // Two-tier caching: Check if we have recent thumbnails (3s cache)
-      // This ensures screen content stays current while still optimizing performance
       if (
         desktopCapturerCache &&
         Date.now() - desktopCapturerCache.timestamp < DESKTOP_CAPTURER_CACHE_TTL
@@ -95,40 +77,32 @@ export const handleDesktopCapturerGetSources = () => {
         return desktopCapturerCache.sources;
       }
 
-      // If there's already a pending request, wait for it
       if (desktopCapturerPromise) {
         return await desktopCapturerPromise;
       }
 
-      // Create new request
       desktopCapturerPromise = (async () => {
         try {
           const sources = await desktopCapturer.getSources(options);
 
-          // Filter out invalid sources before returning
           const validSources = sources.filter((source) => {
             if (!source.name || source.name.trim() === '') {
               return false;
             }
 
-            // Validation cache (30s): Check if we've already validated this source ID
-            // This allows thumbnail refresh (3s) while avoiding expensive validation
             const now = Date.now();
             const cacheExpired =
               now - sourceValidationCacheTimestamp >
               SOURCE_VALIDATION_CACHE_TTL;
 
-            // If source was previously validated and cache is still valid, skip thumbnail check
             if (!cacheExpired && sourceValidationCache.has(source.id)) {
-              return true; // Trust previously validated source, fresh thumbnail already fetched
+              return true;
             }
 
-            // For new sources or expired cache, validate thumbnail
             if (source.thumbnail.isEmpty()) {
               return false;
             }
 
-            // Add newly validated source to cache
             if (cacheExpired) {
               sourceValidationCache.clear();
               sourceValidationCacheTimestamp = now;
@@ -138,7 +112,6 @@ export const handleDesktopCapturerGetSources = () => {
             return true;
           });
 
-          // Cache the result
           desktopCapturerCache = {
             sources: validSources,
             timestamp: Date.now(),
@@ -148,12 +121,10 @@ export const handleDesktopCapturerGetSources = () => {
         } catch (error) {
           console.error('Error getting desktop capturer sources:', error);
 
-          // Clear cache on error
           desktopCapturerCache = null;
 
           return [];
         } finally {
-          // Clear the promise reference
           desktopCapturerPromise = null;
         }
       })();
@@ -162,7 +133,6 @@ export const handleDesktopCapturerGetSources = () => {
     } catch (error) {
       console.error('Error in desktop capturer handler:', error);
 
-      // Clear cache and promise on error
       desktopCapturerCache = null;
       desktopCapturerPromise = null;
 
@@ -193,17 +163,14 @@ const cleanupVideoCallWindow = () => {
     isVideoCallWindowDestroying = true;
 
     try {
-      // First, disable JavaScript execution to prevent race conditions
       videoCallWindow.webContents.session.setPermissionRequestHandler(
         () => false
       );
 
-      // Clear any pending JavaScript execution
       videoCallWindow.webContents.executeJavaScript('void 0').catch(() => {
         // Ignore errors during cleanup
       });
 
-      // Stop any webview JavaScript execution before cleanup
       try {
         const allWebContents = webContents.getAllWebContents();
         const webviewContents = allWebContents.find(
@@ -214,9 +181,7 @@ const cleanupVideoCallWindow = () => {
           console.log(
             'Stopping webview JavaScript execution before window cleanup'
           );
-          // Disable permissions to stop any ongoing operations
           webviewContents.session.setPermissionRequestHandler(() => false);
-          // Navigate to blank page to stop current page execution
           webviewContents.loadURL('about:blank').catch(() => {});
         }
       } catch (error) {
@@ -225,20 +190,16 @@ const cleanupVideoCallWindow = () => {
         );
       }
 
-      // Clear all timers that might execute during destruction
       if (cacheCleanupTimer) {
         clearTimeout(cacheCleanupTimer);
         cacheCleanupTimer = null;
       }
 
-      // Remove all event listeners to prevent callbacks during destruction
       videoCallWindow.removeAllListeners();
 
-      // Close the window
       videoCallWindow.close();
     } catch (error) {
       console.error('Error during video call window cleanup:', error);
-      // Continue with cleanup even if some operations failed
       if (videoCallWindow && !videoCallWindow.isDestroyed()) {
         videoCallWindow.removeAllListeners();
         videoCallWindow.close();
@@ -250,46 +211,36 @@ const cleanupVideoCallWindow = () => {
   isVideoCallWindowDestroying = false;
   videoCallWindowDestructionCount++;
 
-  // Clear pending URL state
   pendingVideoCallUrl = null;
-  pendingAutoOpenDevtools = false;
-
-  // Note: Desktop capturer cache will be cleaned up by timer if no new window opens
 
   console.log('Video call window cleanup completed');
   logVideoCallWindowStats();
 };
 
 const setupWebviewHandlers = (webContents: WebContents) => {
-  // Handle webview attachment for screen sharing
   const handleDidAttachWebview = (
     _event: Event,
     webviewWebContents: WebContents
   ): void => {
-    // Set up screen sharing handler for the webview
     webviewWebContents.session.setDisplayMediaRequestHandler((_request, cb) => {
       if (videoCallWindow && !videoCallWindow.isDestroyed()) {
         videoCallWindow.webContents.send(
           'video-call-window/open-screen-picker'
         );
 
-        // Listen for screen sharing source response
         ipcMain.once(
           'video-call-window/screen-sharing-source-responded',
           async (_event, sourceId) => {
             if (!sourceId) {
-              // @ts-expect-error - cb expects specific format
-              cb(null);
+              cb({ video: false } as any);
               return;
             }
 
             try {
-              // Re-fetch sources to ensure the selected source is still valid
               const sources = await desktopCapturer.getSources({
                 types: ['window', 'screen'],
               });
 
-              // Find the selected source
               const selectedSource = sources.find((s) => s.id === sourceId);
 
               if (!selectedSource) {
@@ -297,20 +248,14 @@ const setupWebviewHandlers = (webContents: WebContents) => {
                   'Selected screen sharing source no longer available:',
                   sourceId
                 );
-                // @ts-expect-error - cb expects specific format
-                cb(null);
+                cb({ video: false } as any);
                 return;
               }
-
-              // If a source was selected from the screen picker, it was already
-              // validated and displayed with a thumbnail. No need for additional
-              // thumbnail validation that could reject valid sources.
 
               cb({ video: selectedSource });
             } catch (error) {
               console.error('Error validating screen sharing source:', error);
-              // @ts-expect-error - cb expects specific format
-              cb(null);
+              cb({ video: false } as any);
             }
           }
         );
@@ -318,10 +263,8 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     });
   };
 
-  // Remove existing listener to prevent duplicates
   webContents.removeAllListeners('did-attach-webview');
 
-  // Listen for webview attachment
   webContents.on('did-attach-webview', handleDidAttachWebview);
 };
 
@@ -343,7 +286,6 @@ export const startVideoCallWindowHandler = (): void => {
   });
 
   handle('video-call-window/open-window', async (_webContents, url) => {
-    // Wait for any ongoing destruction to complete before creating new window
     if (isVideoCallWindowDestroying) {
       console.log('Waiting for video call window destruction to complete...');
       await new Promise<void>((resolve) => {
@@ -358,13 +300,11 @@ export const startVideoCallWindowHandler = (): void => {
       });
     }
 
-    // Always create a fresh window - no reuse to prevent any resource accumulation
     if (videoCallWindow && !videoCallWindow.isDestroyed()) {
       console.log('Closing existing video call window to create fresh one');
       videoCallWindow.close();
       videoCallWindow = null;
 
-      // Wait for window to be fully closed
       if (isVideoCallWindowDestroying) {
         await new Promise<void>((resolve) => {
           const checkClosed = () => {
@@ -386,7 +326,6 @@ export const startVideoCallWindowHandler = (): void => {
       return;
     }
     if (allowedProtocols.includes(validUrl.protocol)) {
-      // Store the URL for state-based communication
       pendingVideoCallUrl = url;
 
       const mainWindow = await getRootWindow();
@@ -402,7 +341,6 @@ export const startVideoCallWindowHandler = (): void => {
         y: centeredWindowPosition.y,
       });
 
-      // Get persisted window state and persistence setting
       const state = select((state) => ({
         videoCallWindowState: state.videoCallWindowState,
         isVideoCallWindowPersistenceEnabled:
@@ -411,7 +349,6 @@ export const startVideoCallWindowHandler = (): void => {
 
       let { x, y, width, height } = state.videoCallWindowState.bounds;
 
-      // If persistence is disabled or no valid state exists, calculate default position and size
       if (
         !state.isVideoCallWindowPersistenceEnabled ||
         !x ||
@@ -433,7 +370,6 @@ export const startVideoCallWindowHandler = (): void => {
       console.log('Creating new video call window');
       videoCallWindowCreationCount++;
 
-      // Cancel any pending cache cleanup since we're creating a new window
       if (cacheCleanupTimer) {
         clearTimeout(cacheCleanupTimer);
         cacheCleanupTimer = null;
@@ -453,28 +389,19 @@ export const startVideoCallWindowHandler = (): void => {
           nodeIntegrationInSubFrames: true,
           contextIsolation: false,
           webviewTag: true,
-          // Performance optimizations for low-power devices
           experimentalFeatures: false,
           offscreen: false,
-          // Disable hardware acceleration in low-memory situations
-          // This helps prevent crashes on low-end hardware
           disableHtmlFullscreenWindowResize: true,
-          // Enable background throttling to improve performance
           backgroundThrottling: true,
-          // Optimize memory usage
           v8CacheOptions: 'bypassHeatCheck',
-          // Enable spellcheck to reduce memory pressure
           spellcheck: false,
         },
         show: false,
-        // Performance optimizations
         frame: true,
         transparent: false,
-        // Reduce memory usage
         skipTaskbar: false,
       });
 
-      // Block navigation to smb:// protocol
       videoCallWindow.webContents.on(
         'will-navigate',
         (event: Event, url: string) => {
@@ -492,7 +419,6 @@ export const startVideoCallWindowHandler = (): void => {
         }
       );
 
-      // Set up window state persistence if enabled
       if (state.isVideoCallWindowPersistenceEnabled) {
         const fetchAndDispatchWindowState = debounce(async () => {
           if (videoCallWindow && !videoCallWindow.isDestroyed()) {
@@ -515,15 +441,12 @@ export const startVideoCallWindowHandler = (): void => {
         videoCallWindow.addListener('move', fetchAndDispatchWindowState);
       }
 
-      // Handle window close event for complete cleanup
       videoCallWindow.on('closed', () => {
         console.log('Video call window closed - destroying completely');
         videoCallWindow = null;
-        isVideoCallWindowDestroying = false; // Reset destruction flag
+        isVideoCallWindowDestroying = false;
         videoCallWindowDestructionCount++;
 
-        // Start timer to clear desktop capturer cache after delay
-        // This allows quick reopening to reuse cache while cleaning up memory if user is done
         cacheCleanupTimer = setTimeout(() => {
           console.log(
             'Clearing desktop capturer cache after window idle period'
@@ -542,9 +465,7 @@ export const startVideoCallWindowHandler = (): void => {
         logVideoCallWindowStats();
       });
 
-      // Handle window close attempt
       videoCallWindow.on('close', (_event) => {
-        // Set destruction flag immediately to prevent any JS execution
         if (!isVideoCallWindowDestroying) {
           isVideoCallWindowDestroying = true;
           console.log(
@@ -552,12 +473,10 @@ export const startVideoCallWindowHandler = (): void => {
           );
 
           try {
-            // Immediately disable JavaScript execution
             if (videoCallWindow && !videoCallWindow.isDestroyed()) {
               videoCallWindow.webContents.session.setPermissionRequestHandler(
                 () => false
               );
-              // Clear any pending JavaScript execution
               videoCallWindow.webContents
                 .executeJavaScript('void 0')
                 .catch(() => {});
@@ -566,10 +485,8 @@ export const startVideoCallWindowHandler = (): void => {
             console.log('Error during close preparation:', error);
           }
         }
-        // Allow normal close behavior, complete cleanup happens in 'closed' event
       });
 
-      // Add error handling for window loading failures
       videoCallWindow.webContents.on(
         'did-fail-load',
         (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
@@ -588,13 +505,11 @@ export const startVideoCallWindowHandler = (): void => {
         }
       );
 
-      // Add diagnostics for JavaScript execution issues
       videoCallWindow.webContents.on('dom-ready', () => {
         if (process.env.NODE_ENV === 'development') {
           console.log('Video call window DOM ready');
         }
 
-        // Check if JavaScript is working by injecting a simple test
         videoCallWindow?.webContents
           .executeJavaScript(
             `
@@ -602,7 +517,6 @@ export const startVideoCallWindowHandler = (): void => {
             console.log('Video call window: JavaScript execution test successful');
           }
           window.videoCallWindowJSWorking = true;
-          // Test if React has actually rendered content (more reliable than checking window.React)
           setTimeout(() => {
             const rootElement = document.getElementById('root');
             const hasReactContent = rootElement && (
@@ -615,7 +529,7 @@ export const startVideoCallWindowHandler = (): void => {
             } else if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
               console.log('Video call window: React content detected successfully');
             }
-          }, 5000); // Increased timeout to 5 seconds to allow for slower React mounting
+          }, 5000);
         `
           )
           .catch((error) => {
@@ -626,27 +540,26 @@ export const startVideoCallWindowHandler = (): void => {
           });
       });
 
-      // Enhanced console message handling for better debugging
       videoCallWindow.webContents.on(
         'console-message',
         (_event, level, message, line, sourceId) => {
           const logPrefix = 'Video call window console:';
           switch (level) {
-            case 0: // Info
+            case 0:
               console.log(
                 `${logPrefix} [INFO]`,
                 message,
                 `(${sourceId}:${line})`
               );
               break;
-            case 1: // Warning
+            case 1:
               console.warn(
                 `${logPrefix} [WARN]`,
                 message,
                 `(${sourceId}:${line})`
               );
               break;
-            case 2: // Error
+            case 2:
               console.error(
                 `${logPrefix} [ERROR]`,
                 message,
@@ -687,10 +600,10 @@ export const startVideoCallWindowHandler = (): void => {
         }
       });
 
-      // Set up webContents event handlers
       const { webContents } = videoCallWindow;
 
-      // Handle new window creation attempts
+      setupWebviewHandlers(webContents);
+
       webContents.setWindowOpenHandler(({ url }: { url: string }) => {
         console.log('Video call window - new window requested:', url);
 
@@ -698,24 +611,20 @@ export const startVideoCallWindowHandler = (): void => {
           return { action: 'deny' };
         }
 
-        // For external URLs, open in default browser
         if (url.startsWith('http://') || url.startsWith('https://')) {
           openExternal(url);
           return { action: 'deny' };
         }
 
-        // Allow other window opens to proceed normally
         return { action: 'allow' };
       });
 
-      // Handle navigation to external protocols in video call windows
       webContents.on('will-navigate', (event: any, url: string) => {
         console.log('Video call window will-navigate:', url);
 
         try {
           const parsedUrl = new URL(url);
 
-          // Check if this is an external protocol (not http/https)
           if (
             !['http:', 'https:', 'file:', 'data:', 'about:'].includes(
               parsedUrl.protocol
@@ -734,13 +643,9 @@ export const startVideoCallWindowHandler = (): void => {
             });
           }
         } catch (e) {
-          // If URL parsing fails, let the default handling proceed
           console.warn('Failed to parse URL in video call window:', url, e);
         }
       });
-
-      // Handle webview attachment for screen sharing
-      setupWebviewHandlers(webContents);
 
       webContents.session.setPermissionRequestHandler(
         async (
@@ -771,7 +676,6 @@ export const startVideoCallWindowHandler = (): void => {
                 break;
               }
 
-              // For non-macOS platforms (including Linux), check system permissions on Windows only
               if (process.platform === 'win32') {
                 let microphoneAllowed = true;
                 let cameraAllowed = true;
@@ -825,7 +729,6 @@ export const startVideoCallWindowHandler = (): void => {
                 break;
               }
 
-              // For Linux and other platforms, always allow media access
               callback(true);
               break;
             }
@@ -841,8 +744,6 @@ export const startVideoCallWindowHandler = (): void => {
               return;
 
             case 'openExternal': {
-              // Allow external protocol handling for video call windows
-              // This is essential for Zoom, Teams, and other external app launches
               callback(true);
               return;
             }
@@ -855,14 +756,12 @@ export const startVideoCallWindowHandler = (): void => {
     }
   });
 
-  // Handle close request from Jitsi bridge or other sources
   handle('video-call-window/close-requested', async () => {
     if (videoCallWindow && !videoCallWindow.isDestroyed()) {
       videoCallWindow.close();
     }
   });
 
-  // Handle developer tools request for video call window webview
   handle('video-call-window/open-webview-dev-tools', async () => {
     if (!videoCallWindow || videoCallWindow.isDestroyed()) {
       console.warn('Video call window not available for dev tools');
@@ -870,30 +769,24 @@ export const startVideoCallWindowHandler = (): void => {
     }
 
     try {
-      // Find the webview webContents by looking for attached webviews
       const webviewWebContents = await new Promise<WebContents | null>(
         (resolve) => {
           const checkForWebview = () => {
-            // Get all webContents
             const allWebContents = webContents.getAllWebContents();
 
-            // Find webContents that belongs to our video call window's webview
             const webviewContents = allWebContents.find((wc) => {
-              // Check if this webContents has our video call window as parent
               return wc.hostWebContents === videoCallWindow?.webContents;
             });
 
             if (webviewContents) {
               resolve(webviewContents);
             } else {
-              // If not found immediately, wait a bit and try again
               setTimeout(checkForWebview, WEBVIEW_CHECK_INTERVAL);
             }
           };
 
           checkForWebview();
 
-          // Timeout after 2 seconds
           setTimeout(() => resolve(null), DEVTOOLS_TIMEOUT);
         }
       );
@@ -912,7 +805,6 @@ export const startVideoCallWindowHandler = (): void => {
   });
 };
 
-// Export function to open webview developer tools (for direct calling from main process)
 export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
   if (!videoCallWindow || videoCallWindow.isDestroyed()) {
     console.warn('Video call window not available for dev tools');
@@ -920,30 +812,24 @@ export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
   }
 
   try {
-    // Find the webview webContents by looking for attached webviews
     const webviewWebContents = await new Promise<WebContents | null>(
       (resolve) => {
         const checkForWebview = () => {
-          // Get all webContents
           const allWebContents = webContents.getAllWebContents();
 
-          // Find webContents that belongs to our video call window's webview
           const webviewContents = allWebContents.find((wc: WebContents) => {
-            // Check if this webContents has our video call window as parent
             return wc.hostWebContents === videoCallWindow?.webContents;
           });
 
           if (webviewContents) {
             resolve(webviewContents);
           } else {
-            // If not found immediately, wait a bit and try again
             setTimeout(checkForWebview, WEBVIEW_CHECK_INTERVAL);
           }
         };
 
         checkForWebview();
 
-        // Timeout after 2 seconds
         setTimeout(() => resolve(null), DEVTOOLS_TIMEOUT);
       }
     );
@@ -961,40 +847,31 @@ export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
   }
 };
 
-// Export cleanup function for use in app shutdown
 export const cleanupVideoCallResources = () => {
   console.log('Cleaning up all video call resources');
 
-  // Clear any pending cache cleanup timer
   if (cacheCleanupTimer) {
     clearTimeout(cacheCleanupTimer);
     cacheCleanupTimer = null;
     console.log('Cancelled pending cache cleanup timer');
   }
 
-  // Clear desktop capturer cache immediately on app shutdown
   desktopCapturerCache = null;
   desktopCapturerPromise = null;
   sourceValidationCache.clear();
   sourceValidationCacheTimestamp = 0;
 
-  // Clear pending URL state
   pendingVideoCallUrl = null;
-  pendingAutoOpenDevtools = false;
 
-  // Reset destruction flag before cleanup
   isVideoCallWindowDestroying = false;
   cleanupVideoCallWindow();
 };
 
-// IPC handler to test communication with the renderer process
-// This helps diagnose IPC issues on low-power devices
 handle('video-call-window/test-ipc', async () => {
   console.log('Video call window: IPC test request received');
   return { success: true, timestamp: Date.now() };
 });
 
-// New state-based communication handlers
 handle('video-call-window/handshake', async () => {
   console.log('Video call window: Handshake request received');
   return { success: true, timestamp: Date.now() };
@@ -1011,12 +888,10 @@ handle('video-call-window/renderer-ready', async () => {
     throw new Error('No pending URL to send');
   }
 
-  // Get the auto-open devtools setting
   const state = select((state) => ({
     isAutoOpenEnabled: state.isVideoCallDevtoolsAutoOpenEnabled,
   }));
 
-  // Send the URL now that renderer is ready
   console.log(
     'Video call window: Sending URL to ready renderer:',
     pendingVideoCallUrl
@@ -1027,9 +902,7 @@ handle('video-call-window/renderer-ready', async () => {
     state.isAutoOpenEnabled
   );
 
-  // Clear the pending URL
   pendingVideoCallUrl = null;
-  pendingAutoOpenDevtools = false;
 
   return {
     success: true,

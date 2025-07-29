@@ -14,21 +14,12 @@ import { useTranslation } from 'react-i18next';
 import { FailureImage } from '../ui/components/FailureImage';
 import { ScreenSharePicker } from './screenSharePicker';
 
-/**
- * Auto-recovery system constants
- *
- * The video call window implements an intelligent auto-recovery system that:
- * 1. Waits for LOADING_TIMEOUT_MS before starting recovery
- * 2. Tries up to MAX_RECOVERY_ATTEMPTS different strategies
- * 3. Uses progressive delays for each recovery attempt
- * 4. Operates silently without showing technical details to users
- */
 const MAX_RECOVERY_ATTEMPTS = 3;
-const LOADING_TIMEOUT_MS = 15000; // 15 seconds before auto-recovery starts
+const LOADING_TIMEOUT_MS = 15000;
 const RECOVERY_DELAYS = {
-  webviewReload: 1000, // 1 second
-  urlRefresh: 2000, // 2 seconds
-  fullReinitialize: 3000, // 3 seconds
+  webviewReload: 1000,
+  urlRefresh: 2000,
+  fullReinitialize: 3000,
 };
 
 const RECOVERY_STRATEGIES = {
@@ -37,39 +28,27 @@ const RECOVERY_STRATEGIES = {
   fullReinitialize: 'Full reinitialize',
 } as const;
 
-type RecoveryStrategy =
-  (typeof RECOVERY_STRATEGIES)[keyof typeof RECOVERY_STRATEGIES];
-
 const VideoCallWindow = () => {
   const { t } = useTranslation();
 
-  // Core state
   const [videoCallUrl, setVideoCallUrl] = useState('');
   const [shouldAutoOpenDevtools, setShouldAutoOpenDevtools] = useState(false);
-
-  // Loading states
   const [isFailed, setIsFailed] = useState(false);
   const [isReloading, setIsReloading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // Auto-recovery state
   const [recoveryAttempt, setRecoveryAttempt] = useState(0);
-  const [recoveryStrategy, setRecoveryStrategy] = useState<string>('');
 
-  // Refs
   const webviewRef = useRef<any>(null);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recoveryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Helper function to clear all loading state and timeouts
   const clearLoadingState = (reason: string): void => {
     console.log(`VideoCallWindow: Clearing loading state - ${reason}`);
     setIsFailed(false);
     setIsReloading(false);
     setIsLoading(false);
 
-    // Clear all timeouts
     [loadingTimeoutRef, recoveryTimeoutRef].forEach((ref) => {
       if (ref.current) {
         clearTimeout(ref.current);
@@ -78,10 +57,8 @@ const VideoCallWindow = () => {
     });
   };
 
-  // Helper function to reset recovery state
   const resetRecoveryState = (): void => {
     setRecoveryAttempt(0);
-    setRecoveryStrategy('');
   };
 
   useEffect(() => {
@@ -161,13 +138,6 @@ const VideoCallWindow = () => {
       const currentAttempt = recoveryAttempt + 1;
       setRecoveryAttempt(currentAttempt);
 
-      /**
-       * Recovery strategy configuration
-       *
-       * Attempt 1: Simple webview reload - fastest, least disruptive
-       * Attempt 2: URL refresh via blank page - fixes navigation issues
-       * Attempt 3: Full window reload - nuclear option for React/IPC issues
-       */
       const getRecoveryConfig = (attempt: number) => {
         switch (attempt) {
           case 1:
@@ -193,7 +163,6 @@ const VideoCallWindow = () => {
       const config = getRecoveryConfig(currentAttempt);
       if (!config) return;
 
-      setRecoveryStrategy(config.strategy);
       setIsReloading(true);
 
       if (process.env.NODE_ENV === 'development') {
@@ -207,13 +176,11 @@ const VideoCallWindow = () => {
 
         switch (currentAttempt) {
           case 1:
-            // Simple webview reload
             if (webview) {
               webview.reload();
             }
             break;
           case 2:
-            // Force URL reload by clearing and resetting
             if (webview && videoCallUrl) {
               webview.src = 'about:blank';
               setTimeout(() => {
@@ -222,7 +189,6 @@ const VideoCallWindow = () => {
             }
             break;
           case 3:
-            // Full window reload as last resort
             window.location.reload();
             break;
         }
@@ -243,7 +209,6 @@ const VideoCallWindow = () => {
       setIsReloading(false);
       setIsLoading(true);
 
-      // Clear any existing timeouts
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
         loadingTimeoutRef.current = null;
@@ -254,7 +219,6 @@ const VideoCallWindow = () => {
         recoveryTimeoutRef.current = null;
       }
 
-      // Signal webview started loading
       ipcRenderer
         .invoke('video-call-window/webview-loading')
         .then(() => {
@@ -271,7 +235,6 @@ const VideoCallWindow = () => {
           );
         });
 
-      // Auto-recovery timeout - starts recovery sequence after configured delay
       loadingTimeoutRef.current = setTimeout(() => {
         if (process.env.NODE_ENV === 'development') {
           console.log(
@@ -290,9 +253,7 @@ const VideoCallWindow = () => {
 
     const handleDomReady = () => {
       console.log('VideoCallWindow: Webview DOM ready');
-      // Don't set loading to false here - wait for did-finish-load
 
-      // Auto-open devtools if the setting is enabled
       if (shouldAutoOpenDevtools) {
         console.log('VideoCallWindow: Auto-opening devtools for webview');
         ipcRenderer
@@ -318,12 +279,9 @@ const VideoCallWindow = () => {
         'VideoCallWindow: Webview finished loading (all resources loaded)'
       );
 
-      // Reset recovery state on successful load
       resetRecoveryState();
-
       clearLoadingState('did-finish-load event');
 
-      // Signal webview ready
       ipcRenderer
         .invoke('video-call-window/webview-ready')
         .then(() => {
@@ -343,7 +301,6 @@ const VideoCallWindow = () => {
 
     const handleStopLoading = () => {
       console.log('VideoCallWindow: Webview stopped loading');
-      // Only clear loading if we haven't failed - this is a secondary indicator
       if (!isFailed) {
         clearLoadingState('did-stop-loading event');
       }
@@ -359,9 +316,7 @@ const VideoCallWindow = () => {
 
       console.error('VideoCallWindow: Webview failed to load:', errorInfo);
 
-      // Only treat main frame failures as actual failures
       if (event.isMainFrame) {
-        // Clear loading timeout since we're handling the failure
         if (loadingTimeoutRef.current) {
           clearTimeout(loadingTimeoutRef.current);
           loadingTimeoutRef.current = null;
@@ -372,7 +327,6 @@ const VideoCallWindow = () => {
         setIsLoading(false);
         setErrorMessage(`${event.errorDescription} (${event.errorCode})`);
 
-        // Signal webview failed
         ipcRenderer
           .invoke(
             'video-call-window/webview-failed',
@@ -390,7 +344,6 @@ const VideoCallWindow = () => {
     const handleCrashed = () => {
       console.error('VideoCallWindow: Webview crashed');
 
-      // Clear loading timeout since we're handling the crash
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
         loadingTimeoutRef.current = null;
@@ -401,7 +354,6 @@ const VideoCallWindow = () => {
       setIsLoading(false);
       setErrorMessage(t('videoCall.error.crashed'));
 
-      // Signal webview failed
       ipcRenderer
         .invoke('video-call-window/webview-failed', 'Webview crashed')
         .catch((error) => {
@@ -415,7 +367,6 @@ const VideoCallWindow = () => {
     const handleWebviewAttached = () => {
       console.log('VideoCallWindow: Webview attached');
 
-      // Signal webview created
       ipcRenderer
         .invoke('video-call-window/webview-created')
         .then(() => {
@@ -432,7 +383,6 @@ const VideoCallWindow = () => {
           );
         });
 
-      // Auto-open devtools immediately when webview is attached if the setting is enabled
       if (shouldAutoOpenDevtools) {
         console.log(
           'VideoCallWindow: Auto-opening devtools immediately on webview attach'
@@ -472,7 +422,6 @@ const VideoCallWindow = () => {
     webview.addEventListener('did-stop-loading', handleStopLoading);
 
     return () => {
-      // Clean up event listeners
       webview.removeEventListener('webview-attached', handleWebviewAttached);
       webview.removeEventListener('did-start-loading', handleLoadStart);
       webview.removeEventListener('did-navigate', handleNavigate);
@@ -482,19 +431,17 @@ const VideoCallWindow = () => {
       webview.removeEventListener('crashed', handleCrashed);
       webview.removeEventListener('did-stop-loading', handleStopLoading);
 
-      // Clear loading timeout
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
         loadingTimeoutRef.current = null;
       }
 
-      // Clear manual reload timeout
       if (recoveryTimeoutRef.current) {
         clearTimeout(recoveryTimeoutRef.current);
         recoveryTimeoutRef.current = null;
       }
     };
-  }, [videoCallUrl, shouldAutoOpenDevtools, isFailed, t]);
+  }, [videoCallUrl, shouldAutoOpenDevtools, isFailed, recoveryAttempt, t]);
 
   const handleReload = (): void => {
     console.log('VideoCallWindow: Manual reload requested');
@@ -502,9 +449,8 @@ const VideoCallWindow = () => {
     setIsFailed(false);
     setIsLoading(true);
     setErrorMessage(null);
-    resetRecoveryState(); // Reset recovery attempts
+    resetRecoveryState();
 
-    // Clear timeouts
     if (loadingTimeoutRef.current) {
       clearTimeout(loadingTimeoutRef.current);
       loadingTimeoutRef.current = null;
@@ -580,7 +526,6 @@ const VideoCallWindow = () => {
         </Box>
       )}
 
-      {/* Error overlay - following the same pattern as ErrorView */}
       {isFailed && (
         <Box
           display='flex'

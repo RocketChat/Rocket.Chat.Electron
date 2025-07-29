@@ -11,6 +11,7 @@ import { ipcRenderer } from 'electron';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { invokeWithRetry } from '../ipc/renderer';
 import { FailureImage } from '../ui/components/FailureImage';
 import { ScreenSharePicker } from './screenSharePicker';
 
@@ -85,16 +86,14 @@ const VideoCallWindow = () => {
 
       // Confirm URL received
       try {
-        const result = await ipcRenderer.invoke(
-          'video-call-window/url-received'
-        );
-        if (result?.success && process.env.NODE_ENV === 'development') {
+        await invokeWithRetry('video-call-window/url-received', {
+          maxAttempts: 2,
+          retryDelay: 500,
+          logRetries: process.env.NODE_ENV === 'development',
+        });
+        if (process.env.NODE_ENV === 'development') {
           console.log(
             'VideoCallWindow: URL received confirmation acknowledged by main process'
-          );
-        } else if (!result?.success) {
-          console.warn(
-            'VideoCallWindow: Main process did not acknowledge URL received'
           );
         }
       } catch (error) {

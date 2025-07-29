@@ -37,6 +37,18 @@ const WEBVIEW_CHECK_INTERVAL = 100;
 let videoCallWindow: BrowserWindow | null = null;
 let isVideoCallWindowDestroying = false;
 let pendingVideoCallUrl: string | null = null;
+let pendingAutoOpenDevtools: boolean = false;
+
+// Helper function to log URL changes
+const setPendingVideoCallUrl = (url: string | null, reason: string) => {
+  const previous = pendingVideoCallUrl;
+  pendingVideoCallUrl = url;
+  console.log(`Video call window: pendingVideoCallUrl changed - ${reason}`, {
+    previous,
+    new: url,
+    timestamp: Date.now(),
+  });
+};
 
 let desktopCapturerCache: {
   sources: Electron.DesktopCapturerSource[];
@@ -211,8 +223,6 @@ const cleanupVideoCallWindow = () => {
   isVideoCallWindowDestroying = false;
   videoCallWindowDestructionCount++;
 
-  pendingVideoCallUrl = null;
-
   console.log('Video call window cleanup completed');
   logVideoCallWindowStats();
 };
@@ -286,6 +296,8 @@ export const startVideoCallWindowHandler = (): void => {
   });
 
   handle('video-call-window/open-window', async (_webContents, url) => {
+    console.log('Video call window: Open-window handler called with URL:', url);
+
     if (isVideoCallWindowDestroying) {
       console.log('Waiting for video call window destruction to complete...');
       await new Promise<void>((resolve) => {
@@ -321,13 +333,21 @@ export const startVideoCallWindowHandler = (): void => {
 
     const validUrl = new URL(url);
     const allowedProtocols = ['http:', 'https:'];
+    console.log(
+      'Video call window: URL validation - hostname:',
+      validUrl.hostname,
+      'protocol:',
+      validUrl.protocol
+    );
+
     if (validUrl.hostname.match(/(\.)?g\.co$/)) {
+      console.log(
+        'Video call window: Google URL detected, opening externally instead of internal window'
+      );
       openExternal(validUrl.toString());
       return;
     }
     if (allowedProtocols.includes(validUrl.protocol)) {
-      pendingVideoCallUrl = url;
-
       const mainWindow = await getRootWindow();
       const winBounds = await mainWindow.getNormalBounds();
 
@@ -596,6 +616,10 @@ export const startVideoCallWindowHandler = (): void => {
           console.log(
             'Video call window: Window ready, waiting for renderer to signal ready state'
           );
+          console.log(
+            'Video call window: Current pending URL:',
+            pendingVideoCallUrl
+          );
           videoCallWindow.show();
         }
       });
@@ -603,6 +627,13 @@ export const startVideoCallWindowHandler = (): void => {
       const { webContents } = videoCallWindow;
 
       setupWebviewHandlers(webContents);
+
+      // Set the pending URL after window is created to prevent race condition with cleanup
+      setPendingVideoCallUrl(url, 'open-window-after-creation');
+      console.log(
+        'Video call window: Set pending URL after window creation:',
+        url
+      );
 
       webContents.setWindowOpenHandler(({ url }: { url: string }) => {
         console.log('Video call window - new window requested:', url);
@@ -861,7 +892,8 @@ export const cleanupVideoCallResources = () => {
   sourceValidationCache.clear();
   sourceValidationCacheTimestamp = 0;
 
-  pendingVideoCallUrl = null;
+  setPendingVideoCallUrl(null, 'cleanup');
+  pendingAutoOpenDevtools = false;
 
   isVideoCallWindowDestroying = false;
   cleanupVideoCallWindow();
@@ -881,11 +913,25 @@ handle('video-call-window/renderer-ready', async () => {
   console.log('Video call window: Renderer signals ready state');
 
   if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+    console.error(
+      'Video call window: Window not available when renderer ready'
+    );
     throw new Error('Video call window not available');
   }
 
   if (!pendingVideoCallUrl) {
-    throw new Error('No pending URL to send');
+    console.error(
+      'Video call window: No pending URL available when renderer ready'
+    );
+    console.log('Video call window: Current state:', {
+      hasWindow: !!videoCallWindow,
+      isDestroyed: videoCallWindow?.isDestroyed(),
+      pendingUrl: pendingVideoCallUrl,
+      pendingDevtools: pendingAutoOpenDevtools,
+    });
+    throw new Error(
+      'No pending URL to send - this indicates a race condition in window creation'
+    );
   }
 
   const state = select((state) => ({
@@ -896,13 +942,15 @@ handle('video-call-window/renderer-ready', async () => {
     'Video call window: Sending URL to ready renderer:',
     pendingVideoCallUrl
   );
+
   videoCallWindow.webContents.send(
     'video-call-window/open-url',
     pendingVideoCallUrl,
     state.isAutoOpenEnabled
   );
 
-  pendingVideoCallUrl = null;
+  setPendingVideoCallUrl(null, 'renderer-ready');
+  pendingAutoOpenDevtools = false;
 
   return {
     success: true,

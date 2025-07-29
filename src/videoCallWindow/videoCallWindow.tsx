@@ -130,16 +130,14 @@ const VideoCallWindow = () => {
 
       // Confirm URL received
       try {
-        const result = await ipcRenderer.invoke(
-          'video-call-window/url-received'
-        );
-        if (result?.success && process.env.NODE_ENV === 'development') {
+        await invokeWithRetry('video-call-window/url-received', {
+          maxAttempts: 2,
+          retryDelay: 500,
+          logRetries: process.env.NODE_ENV === 'development',
+        });
+        if (process.env.NODE_ENV === 'development') {
           console.log(
             'VideoCallWindow: URL received confirmation acknowledged by main process'
-          );
-        } else if (!result?.success) {
-          console.warn(
-            'VideoCallWindow: Main process did not acknowledge URL received'
           );
         }
       } catch (error) {
@@ -254,16 +252,14 @@ const VideoCallWindow = () => {
     const checkForClosePage = async (url: string) => {
       if (url.includes('/close.html') || url.includes('/close2.html')) {
         try {
-          const result = await ipcRenderer.invoke(
-            'video-call-window/close-requested'
-          );
-          if (result?.success && process.env.NODE_ENV === 'development') {
+          await invokeWithRetry('video-call-window/close-requested', {
+            maxAttempts: 2,
+            retryDelay: 500,
+            logRetries: process.env.NODE_ENV === 'development',
+          });
+          if (process.env.NODE_ENV === 'development') {
             console.log(
               'VideoCallWindow: Close request confirmed by main process'
-            );
-          } else if (!result?.success) {
-            console.warn(
-              'VideoCallWindow: Main process did not confirm close request'
             );
           }
         } catch (error) {
@@ -291,16 +287,15 @@ const VideoCallWindow = () => {
         recoveryTimeoutRef.current = null;
       }
 
-      ipcRenderer
-        .invoke('video-call-window/webview-loading')
-        .then((result) => {
-          if (result?.success && process.env.NODE_ENV === 'development') {
+      invokeWithRetry('video-call-window/webview-loading', {
+        maxAttempts: 2,
+        retryDelay: 500,
+        logRetries: process.env.NODE_ENV === 'development',
+      })
+        .then(() => {
+          if (process.env.NODE_ENV === 'development') {
             console.log(
               'VideoCallWindow: Webview loading state confirmed by main process'
-            );
-          } else if (!result?.success) {
-            console.warn(
-              'VideoCallWindow: Main process did not confirm webview loading state'
             );
           }
         })
@@ -332,8 +327,11 @@ const VideoCallWindow = () => {
 
       if (shouldAutoOpenDevtools) {
         console.log('VideoCallWindow: Auto-opening devtools for webview');
-        ipcRenderer
-          .invoke('video-call-window/open-webview-dev-tools')
+        invokeWithRetry('video-call-window/open-webview-dev-tools', {
+          maxAttempts: 2,
+          retryDelay: 500,
+          logRetries: process.env.NODE_ENV === 'development',
+        })
           .then((success: boolean) => {
             if (success) {
               console.log('VideoCallWindow: Successfully auto-opened devtools');
@@ -358,16 +356,15 @@ const VideoCallWindow = () => {
       resetRecoveryState();
       clearLoadingState('did-finish-load event');
 
-      ipcRenderer
-        .invoke('video-call-window/webview-ready')
-        .then((result) => {
-          if (result?.success && process.env.NODE_ENV === 'development') {
+      invokeWithRetry('video-call-window/webview-ready', {
+        maxAttempts: 2,
+        retryDelay: 500,
+        logRetries: process.env.NODE_ENV === 'development',
+      })
+        .then(() => {
+          if (process.env.NODE_ENV === 'development') {
             console.log(
               'VideoCallWindow: Webview ready state confirmed by main process'
-            );
-          } else if (!result?.success) {
-            console.warn(
-              'VideoCallWindow: Main process did not confirm webview ready state'
             );
           }
         })
@@ -445,16 +442,19 @@ const VideoCallWindow = () => {
       setIsLoading(false);
       setErrorMessage(t('videoCall.error.crashed'));
 
-      ipcRenderer
-        .invoke('video-call-window/webview-failed', 'Webview crashed')
-        .then((result) => {
-          if (result?.success && process.env.NODE_ENV === 'development') {
+      invokeWithRetry(
+        'video-call-window/webview-failed',
+        {
+          maxAttempts: 2,
+          retryDelay: 500,
+          logRetries: process.env.NODE_ENV === 'development',
+        },
+        'Webview crashed'
+      )
+        .then(() => {
+          if (process.env.NODE_ENV === 'development') {
             console.log(
               'VideoCallWindow: Webview crashed state confirmed by main process'
-            );
-          } else if (!result?.success) {
-            console.warn(
-              'VideoCallWindow: Main process did not confirm webview crashed state'
             );
           }
         })
@@ -469,16 +469,15 @@ const VideoCallWindow = () => {
     const handleWebviewAttached = () => {
       console.log('VideoCallWindow: Webview attached');
 
-      ipcRenderer
-        .invoke('video-call-window/webview-created')
-        .then((result) => {
-          if (result?.success && process.env.NODE_ENV === 'development') {
+      invokeWithRetry('video-call-window/webview-created', {
+        maxAttempts: 2,
+        retryDelay: 500,
+        logRetries: process.env.NODE_ENV === 'development',
+      })
+        .then(() => {
+          if (process.env.NODE_ENV === 'development') {
             console.log(
               'VideoCallWindow: Webview created state confirmed by main process'
-            );
-          } else if (!result?.success) {
-            console.warn(
-              'VideoCallWindow: Main process did not confirm webview created state'
             );
           }
         })
@@ -494,8 +493,11 @@ const VideoCallWindow = () => {
           'VideoCallWindow: Auto-opening devtools immediately on webview attach'
         );
         setTimeout(() => {
-          ipcRenderer
-            .invoke('video-call-window/open-webview-dev-tools')
+          invokeWithRetry('video-call-window/open-webview-dev-tools', {
+            maxAttempts: 2,
+            retryDelay: 500,
+            logRetries: process.env.NODE_ENV === 'development',
+          })
             .then((success: boolean) => {
               if (success) {
                 console.log(

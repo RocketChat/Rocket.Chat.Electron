@@ -62,13 +62,13 @@ const VideoCallWindow = () => {
   };
 
   useEffect(() => {
-    const handleOpenUrl = async (
-      _event: any,
-      url: string,
-      autoOpenDevtools: boolean = false
-    ) => {
+    // Listen for URL received events from bootstrap
+    const handleUrlReceived = async (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { url, autoOpenDevtools } = customEvent.detail;
+
       console.log(
-        'VideoCallWindow: Received new URL:',
+        'VideoCallWindow: Received URL event:',
         url,
         'Auto-open devtools:',
         autoOpenDevtools
@@ -85,9 +85,17 @@ const VideoCallWindow = () => {
 
       // Confirm URL received
       try {
-        await ipcRenderer.invoke('video-call-window/url-received');
-        if (process.env.NODE_ENV === 'development') {
-          console.log('VideoCallWindow: URL received confirmation sent');
+        const result = await ipcRenderer.invoke(
+          'video-call-window/url-received'
+        );
+        if (result?.success && process.env.NODE_ENV === 'development') {
+          console.log(
+            'VideoCallWindow: URL received confirmation acknowledged by main process'
+          );
+        } else if (!result?.success) {
+          console.warn(
+            'VideoCallWindow: Main process did not acknowledge URL received'
+          );
         }
       } catch (error) {
         console.error(
@@ -97,12 +105,59 @@ const VideoCallWindow = () => {
       }
     };
 
-    // Remove any existing listeners to prevent duplicates
+    // Add event listener for URL events
+    window.addEventListener('video-call-url-received', handleUrlReceived);
+
+    const handleOpenUrl = async (
+      _event: any,
+      url: string,
+      autoOpenDevtools: boolean = false
+    ) => {
+      console.log(
+        'VideoCallWindow: Received new URL via IPC:',
+        url,
+        'Auto-open devtools:',
+        autoOpenDevtools
+      );
+
+      // Reset states for new URL
+      setIsFailed(false);
+      setIsReloading(false);
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      setVideoCallUrl(url);
+      setShouldAutoOpenDevtools(autoOpenDevtools);
+
+      // Confirm URL received
+      try {
+        const result = await ipcRenderer.invoke(
+          'video-call-window/url-received'
+        );
+        if (result?.success && process.env.NODE_ENV === 'development') {
+          console.log(
+            'VideoCallWindow: URL received confirmation acknowledged by main process'
+          );
+        } else if (!result?.success) {
+          console.warn(
+            'VideoCallWindow: Main process did not acknowledge URL received'
+          );
+        }
+      } catch (error) {
+        console.error(
+          'VideoCallWindow: Failed to send URL received confirmation:',
+          error
+        );
+      }
+    };
+
+    // Keep IPC listener for potential future direct calls
     ipcRenderer.removeAllListeners('video-call-window/open-url');
     ipcRenderer.on('video-call-window/open-url', handleOpenUrl);
 
     return () => {
       ipcRenderer.removeAllListeners('video-call-window/open-url');
+      window.removeEventListener('video-call-url-received', handleUrlReceived);
     };
   }, []);
 
@@ -197,9 +252,27 @@ const VideoCallWindow = () => {
       }, config.delay);
     };
 
-    const checkForClosePage = (url: string) => {
+    const checkForClosePage = async (url: string) => {
       if (url.includes('/close.html') || url.includes('/close2.html')) {
-        ipcRenderer.invoke('video-call-window/close-requested');
+        try {
+          const result = await ipcRenderer.invoke(
+            'video-call-window/close-requested'
+          );
+          if (result?.success && process.env.NODE_ENV === 'development') {
+            console.log(
+              'VideoCallWindow: Close request confirmed by main process'
+            );
+          } else if (!result?.success) {
+            console.warn(
+              'VideoCallWindow: Main process did not confirm close request'
+            );
+          }
+        } catch (error) {
+          console.error(
+            'VideoCallWindow: Failed to send close request:',
+            error
+          );
+        }
       }
     };
 
@@ -221,10 +294,14 @@ const VideoCallWindow = () => {
 
       ipcRenderer
         .invoke('video-call-window/webview-loading')
-        .then(() => {
-          if (process.env.NODE_ENV === 'development') {
+        .then((result) => {
+          if (result?.success && process.env.NODE_ENV === 'development') {
             console.log(
-              'VideoCallWindow: Webview loading state sent to main process'
+              'VideoCallWindow: Webview loading state confirmed by main process'
+            );
+          } else if (!result?.success) {
+            console.warn(
+              'VideoCallWindow: Main process did not confirm webview loading state'
             );
           }
         })
@@ -284,10 +361,14 @@ const VideoCallWindow = () => {
 
       ipcRenderer
         .invoke('video-call-window/webview-ready')
-        .then(() => {
-          if (process.env.NODE_ENV === 'development') {
+        .then((result) => {
+          if (result?.success && process.env.NODE_ENV === 'development') {
             console.log(
-              'VideoCallWindow: Webview ready state sent to main process'
+              'VideoCallWindow: Webview ready state confirmed by main process'
+            );
+          } else if (!result?.success) {
+            console.warn(
+              'VideoCallWindow: Main process did not confirm webview ready state'
             );
           }
         })
@@ -332,6 +413,17 @@ const VideoCallWindow = () => {
             'video-call-window/webview-failed',
             `${event.errorDescription} (${event.errorCode})`
           )
+          .then((result) => {
+            if (result?.success && process.env.NODE_ENV === 'development') {
+              console.log(
+                'VideoCallWindow: Webview failed state confirmed by main process'
+              );
+            } else if (!result?.success) {
+              console.warn(
+                'VideoCallWindow: Main process did not confirm webview failed state'
+              );
+            }
+          })
           .catch((error) => {
             console.error(
               'VideoCallWindow: Failed to send webview failed state:',
@@ -356,6 +448,17 @@ const VideoCallWindow = () => {
 
       ipcRenderer
         .invoke('video-call-window/webview-failed', 'Webview crashed')
+        .then((result) => {
+          if (result?.success && process.env.NODE_ENV === 'development') {
+            console.log(
+              'VideoCallWindow: Webview crashed state confirmed by main process'
+            );
+          } else if (!result?.success) {
+            console.warn(
+              'VideoCallWindow: Main process did not confirm webview crashed state'
+            );
+          }
+        })
         .catch((error) => {
           console.error(
             'VideoCallWindow: Failed to send webview failed state:',
@@ -369,10 +472,14 @@ const VideoCallWindow = () => {
 
       ipcRenderer
         .invoke('video-call-window/webview-created')
-        .then(() => {
-          if (process.env.NODE_ENV === 'development') {
+        .then((result) => {
+          if (result?.success && process.env.NODE_ENV === 'development') {
             console.log(
-              'VideoCallWindow: Webview created state sent to main process'
+              'VideoCallWindow: Webview created state confirmed by main process'
+            );
+          } else if (!result?.success) {
+            console.warn(
+              'VideoCallWindow: Main process did not confirm webview created state'
             );
           }
         })

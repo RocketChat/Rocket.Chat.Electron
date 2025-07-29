@@ -788,9 +788,12 @@ export const startVideoCallWindowHandler = (): void => {
   });
 
   handle('video-call-window/close-requested', async () => {
+    console.log('Video call window: Close requested');
     if (videoCallWindow && !videoCallWindow.isDestroyed()) {
       videoCallWindow.close();
+      return { success: true };
     }
+    return { success: false };
   });
 
   handle('video-call-window/open-webview-dev-tools', async () => {
@@ -919,6 +922,20 @@ handle('video-call-window/renderer-ready', async () => {
     throw new Error('Video call window not available');
   }
 
+  console.log('Video call window: Renderer is ready to request URL');
+  return { success: true };
+});
+
+handle('video-call-window/request-url', async () => {
+  console.log('Video call window: Renderer requesting pending URL');
+
+  if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+    console.error(
+      'Video call window: Window not available when requesting URL'
+    );
+    return { success: false, url: null, autoOpenDevtools: false };
+  }
+
   if (!pendingVideoCallUrl) {
     console.log(
       'Video call window: No pending URL available yet, renderer should retry'
@@ -929,7 +946,7 @@ handle('video-call-window/renderer-ready', async () => {
       pendingUrl: pendingVideoCallUrl,
       pendingDevtools: pendingAutoOpenDevtools,
     });
-    return { success: false, autoOpenDevtools: false };
+    return { success: false, url: null, autoOpenDevtools: false };
   }
 
   const state = select((state) => ({
@@ -937,22 +954,20 @@ handle('video-call-window/renderer-ready', async () => {
   }));
 
   console.log(
-    'Video call window: Sending URL to ready renderer:',
+    'Video call window: Providing URL to renderer:',
     pendingVideoCallUrl
   );
 
-  videoCallWindow.webContents.send(
-    'video-call-window/open-url',
-    pendingVideoCallUrl,
-    state.isAutoOpenEnabled
-  );
+  const urlToReturn = pendingVideoCallUrl;
+  const autoOpenDevtools = state.isAutoOpenEnabled;
 
-  setPendingVideoCallUrl(null, 'renderer-ready');
+  setPendingVideoCallUrl(null, 'url-requested');
   pendingAutoOpenDevtools = false;
 
   return {
     success: true,
-    autoOpenDevtools: state.isAutoOpenEnabled,
+    url: urlToReturn,
+    autoOpenDevtools,
   };
 });
 

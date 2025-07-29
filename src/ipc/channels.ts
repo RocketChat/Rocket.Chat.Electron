@@ -30,12 +30,14 @@ type ChannelToArgsMap = {
   'video-call-window/open-screen-picker': () => void;
   'video-call-window/screen-sharing-source-responded': (source: string) => void;
   'video-call-window/screen-recording-is-permission-granted': () => boolean;
-  'video-call-window/close-requested': () => void;
+  'video-call-window/close-requested': () => { success: boolean };
   'video-call-window/open-webview-dev-tools': () => boolean;
   'video-call-window/test-ipc': () => { success: boolean; timestamp: number };
   'video-call-window/handshake': () => { success: boolean; timestamp: number };
-  'video-call-window/renderer-ready': () => {
+  'video-call-window/renderer-ready': () => { success: boolean };
+  'video-call-window/request-url': () => {
     success: boolean;
+    url: string | null;
     autoOpenDevtools: boolean;
   };
   'video-call-window/url-received': () => { success: boolean };

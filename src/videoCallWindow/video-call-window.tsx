@@ -36,6 +36,136 @@ const setupI18n = async () => {
   }
 };
 
+const waitForDOMReady = (): Promise<void> => {
+  if (document.readyState !== 'loading') {
+    return Promise.resolve();
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Video call window: DOM not ready, waiting...');
+  }
+
+  return new Promise<void>((resolve) => {
+    document.addEventListener('DOMContentLoaded', () => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Video call window: DOM ready, continuing initialization');
+      }
+      start().then(resolve).catch(resolve);
+    });
+  });
+};
+
+const initializeReactApp = async (): Promise<void> => {
+  await setupI18n();
+
+  const rootElement = document.getElementById('root');
+  if (!rootElement) {
+    throw new Error('Root element not found');
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Video call window: Creating React root and rendering');
+  }
+
+  const root = createRoot(rootElement);
+  root.render(
+    <I18nextProvider i18n={i18next}>
+      <VideoCallWindow />
+    </I18nextProvider>
+  );
+};
+
+const performIPCHandshake = async (): Promise<boolean> => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Video call window: Testing IPC handshake...');
+  }
+
+  const handshakeResult = await window
+    .require('electron')
+    .ipcRenderer.invoke('video-call-window/handshake');
+
+  if (!handshakeResult?.success) {
+    console.log('Video call window: IPC not ready yet, retrying...');
+    return false;
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log(
+      'Video call window: IPC handshake successful:',
+      handshakeResult
+    );
+  }
+  return true;
+};
+
+const signalRendererReady = async (): Promise<boolean> => {
+  console.log('Video call window: Signaling renderer ready state');
+
+  const rendererReadyResult = await window
+    .require('electron')
+    .ipcRenderer.invoke('video-call-window/renderer-ready');
+
+  if (!rendererReadyResult?.success) {
+    console.log('Video call window: Renderer not ready yet, retrying...');
+    return false;
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Video call window: Renderer ready, requesting URL');
+  }
+  return true;
+};
+
+const requestVideoCallURL = async (): Promise<{
+  url: string;
+  autoOpenDevtools: boolean;
+} | null> => {
+  const urlRequestResult = await window
+    .require('electron')
+    .ipcRenderer.invoke('video-call-window/request-url');
+
+  if (!urlRequestResult?.success || !urlRequestResult?.url) {
+    console.log('Video call window: No URL available yet, retrying...');
+    return null;
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Video call window: URL received:', urlRequestResult);
+  }
+
+  return {
+    url: urlRequestResult.url,
+    autoOpenDevtools: urlRequestResult.autoOpenDevtools,
+  };
+};
+
+const triggerURLEvent = (url: string, autoOpenDevtools: boolean): void => {
+  const event = new CustomEvent('video-call-url-received', {
+    detail: { url, autoOpenDevtools },
+  });
+  window.dispatchEvent(event);
+};
+
+const scheduleRetry = (errorType: string): void => {
+  if (initAttempts < MAX_INIT_ATTEMPTS && !isWindowDestroying) {
+    setTimeout(() => {
+      if (!isWindowDestroying) {
+        start().catch((retryError) => {
+          console.error(
+            `Video call window ${errorType} retry failed:`,
+            retryError
+          );
+        });
+      }
+    }, 1000);
+  } else if (!isWindowDestroying) {
+    console.error(
+      `Video call window: Max ${errorType} attempts reached, showing fallback UI`
+    );
+    showFallbackUI();
+  }
+};
+
 const start = async (): Promise<void> => {
   if (isWindowDestroying) {
     console.log(
@@ -54,103 +184,30 @@ const start = async (): Promise<void> => {
 
   try {
     if (document.readyState === 'loading') {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Video call window: DOM not ready, waiting...');
-      }
-      return new Promise<void>((resolve) => {
-        document.addEventListener('DOMContentLoaded', () => {
-          if (process.env.NODE_ENV === 'development') {
-            console.log(
-              'Video call window: DOM ready, continuing initialization'
-            );
-          }
-          start().then(resolve).catch(resolve);
-        });
-      });
+      return waitForDOMReady();
     }
 
-    await setupI18n();
+    await initializeReactApp();
 
-    const rootElement = document.getElementById('root');
-
-    if (!rootElement) {
-      throw new Error('Root element not found');
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Video call window: Creating React root and rendering');
-    }
-    const root = createRoot(rootElement);
-    root.render(
-      <I18nextProvider i18n={i18next}>
-        <VideoCallWindow />
-      </I18nextProvider>
-    );
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Video call window: Testing IPC handshake...');
-    }
-
-    const handshakeResult = await window
-      .require('electron')
-      .ipcRenderer.invoke('video-call-window/handshake');
-
-    if (!handshakeResult?.success) {
-      console.log('Video call window: IPC not ready yet, retrying...');
-      if (initAttempts < MAX_INIT_ATTEMPTS && !isWindowDestroying) {
-        setTimeout(() => {
-          if (!isWindowDestroying) {
-            start().catch((retryError) => {
-              console.error('Video call window IPC retry failed:', retryError);
-            });
-          }
-        }, 1000);
-      } else if (!isWindowDestroying) {
-        console.error(
-          'Video call window: Max IPC attempts reached, showing fallback UI'
-        );
-        showFallbackUI();
-      }
+    const handshakeSuccess = await performIPCHandshake();
+    if (!handshakeSuccess) {
+      scheduleRetry('IPC');
       return;
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log(
-        'Video call window: IPC handshake successful:',
-        handshakeResult
-      );
-    }
-
-    console.log('Video call window: Signaling renderer ready state');
-    const rendererReadyResult = await window
-      .require('electron')
-      .ipcRenderer.invoke('video-call-window/renderer-ready');
-
-    if (!rendererReadyResult?.success) {
-      console.log('Video call window: Renderer not ready yet, retrying...');
-      if (initAttempts < MAX_INIT_ATTEMPTS && !isWindowDestroying) {
-        setTimeout(() => {
-          if (!isWindowDestroying) {
-            start().catch((retryError) => {
-              console.error(
-                'Video call window renderer-ready retry failed:',
-                retryError
-              );
-            });
-          }
-        }, 1000);
-      } else if (!isWindowDestroying) {
-        console.error(
-          'Video call window: Max renderer-ready attempts reached, showing fallback UI'
-        );
-        showFallbackUI();
-      }
+    const rendererReadySuccess = await signalRendererReady();
+    if (!rendererReadySuccess) {
+      scheduleRetry('renderer-ready');
       return;
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Video call window: Renderer ready:', rendererReadyResult);
+    const urlData = await requestVideoCallURL();
+    if (!urlData) {
+      scheduleRetry('URL request');
+      return;
     }
+
+    triggerURLEvent(urlData.url, urlData.autoOpenDevtools);
 
     if (initAttempts === 1 && process.env.NODE_ENV !== 'development') {
       console.log('Video call window: Successfully initialized');
@@ -164,7 +221,7 @@ const start = async (): Promise<void> => {
     );
 
     if (initAttempts < MAX_INIT_ATTEMPTS && !isWindowDestroying) {
-      console.log(`Video call window: Retrying initialization in 1 second...`);
+      console.log('Video call window: Retrying initialization in 1 second...');
       setTimeout(() => {
         if (!isWindowDestroying) {
           start().catch((retryError) => {

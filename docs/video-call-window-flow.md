@@ -55,21 +55,29 @@ flowchart TD
     N --> O[Create React Root]
     O --> P[Render VideoCallWindow Component]
     
-    %% IPC Handshake
+    %% IPC Handshake with Retry
     P --> Q[IPC Handshake Test]
     Q --> R{Handshake Success?}
-    R -->|No| R1[Retry with Delay]
-    R1 --> Q
+    R -->|No| R1[Retry with 1s Delay]
+    R1 --> R2{Max Attempts?}
+    R2 -->|No| Q
+    R2 -->|Yes| R3[Show Fallback UI]
     R -->|Yes| S[Signal Renderer Ready]
     
-    %% URL Processing
+    %% URL Request with Immediate Retry
     S --> T[Request Pending URL]
-    T --> U{URL Available?}
-    U -->|No| U1[Return Not Ready]
-    U1 --> T
-    U -->|Yes| V[Return URL to Renderer]
+    T --> T1{URL Request Success?}
+    T1 -->|IPC Error| T2[URL Retry 1s Delay]
+    T2 --> T3{URL Retry Attempts Left?}
+    T3 -->|Yes| T
+    T3 -->|No| T4[Fall Back to Full Retry]
+    T4 --> R1
+    T1 -->|No URL Yet| T5[URL Not Ready - Retry]
+    T5 --> T3
+    T1 -->|Success| V[Dispatch URL Event]
     
-    %% Webview Creation
+    %% Component URL Reception
+    V --> W[VideoCallWindow Receives URL Event]
     W --> X[Create Webview Element]
     X --> Y[Setup Webview Event Handlers]
     
@@ -83,13 +91,13 @@ flowchart TD
     CC --> DD[Clear Loading State]
     DD --> EE[Video Call Active]
     
-    %% Error Handling
-    BB --> FF[did-fail-load]
+    %% Progressive Error Handling
+    BB --> FF[did-fail-load OR Timeout]
     FF --> GG[Show Error State]
-    GG --> HH{Auto Recovery?}
-    HH -->|Attempt 1| II[Webview Reload]
-    HH -->|Attempt 2| JJ[URL Refresh]
-    HH -->|Attempt 3| KK[Full Reinitialize]
+    GG --> HH{Recovery Attempt?}
+    HH -->|Attempt 1| II[Webview Reload - 1s Delay]
+    HH -->|Attempt 2| JJ[URL Refresh - 2s Delay]
+    HH -->|Attempt 3| KK[Full Reinitialize - 3s Delay]
     HH -->|Max Attempts| LL[Show Manual Reload Button]
     
     %% Screen Sharing Flow
@@ -131,12 +139,14 @@ flowchart TD
     classDef webview fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
     classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px
     classDef success fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef retry fill:#fff3e0,stroke:#f57c00,stroke-width:2px
     
     class A,B,C,D,E,F,G,H,I,J,PP,AAA,BBB,CCC mainProcess
     class K,L,M,N,O,P,Q,S,T,V,W,QQ,YY renderer
     class X,Y,Z,AA,BB,CC,DD,EE,MM,NN,OO,VV webview
     class FF,GG,HH,II,JJ,KK,LL error
     class DD,EE,UU success
+    class R1,R2,T2,T3,T4,T5 retry
 ```
 
 ## Detailed Flow Breakdown
@@ -164,6 +174,11 @@ flowchart TD
 - Retries with exponential backoff if handshake fails
 - Signals renderer ready state to main process
 - **Renderer requests pending URL from main process (pull-based)**
+- **URL Request Retry Logic**:
+  - Immediate retries for URL request failures (3 attempts)
+  - 1000ms delay between URL retry attempts
+  - Handles both "no URL yet" and IPC failure scenarios
+  - Falls back to full initialization retry if URL retries exhausted
 - Main process returns URL if available, or signals to retry
 
 ### 5. Webview Creation
@@ -283,4 +298,38 @@ This diagram will be automatically rendered on GitHub when viewing this markdown
 - **Console Logs** - Complete logging throughout the flow
 - **Developer Tools** - Auto-open available for debugging
 - **State Inspection** - Redux state shows window status
-- **Performance Monitoring** - Built-in stats and metrics 
+
+### Retry Patterns & Resilience
+
+The video call window implements a multi-layered retry strategy to handle various failure scenarios:
+
+#### URL Request Retries (Immediate)
+- **3 attempts** with 1000ms delays
+- Handles IPC communication failures
+- Separates "no URL yet" from "IPC failed" scenarios
+- Allows slower machines time to process requests
+
+#### Initialization Retries (Full)
+- **10 attempts** with 1-second delays
+- Triggered when URL retries are exhausted
+- Includes DOM readiness, React setup, and IPC handshake
+- Comprehensive recovery for complex initialization failures
+
+#### Webview Recovery (Progressive)
+- **3-tier strategy** with increasing delays (1s, 2s, 3s)
+- Webview reload → URL refresh → Full reinitialize
+- Automatic recovery for loading timeouts (15s)
+- Manual reload button as final fallback
+
+#### Failure Isolation
+- Each layer handles specific failure types
+- No cascading failures between retry systems
+- Clear logging for debugging retry attempts
+- Graceful degradation to user-controlled recovery
+
+### IPC Acknowledgment Patterns
+- **All Communications Use invoke/handle** - No fire-and-forget send() calls
+- **Proper Response Validation** - Every IPC call checks for success acknowledgment
+- **Error Detection** - Failed acknowledgments are logged for debugging
+- **Event-Based Communication** - Custom events for renderer-to-component communication
+- **Reliable State Tracking** - Main process confirms receipt of all lifecycle events 

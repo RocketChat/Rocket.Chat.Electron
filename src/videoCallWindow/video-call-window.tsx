@@ -7,7 +7,7 @@ import resources from '../i18n/resources';
 import VideoCallWindow from './videoCallWindow';
 
 let initAttempts = 0;
-const MAX_INIT_ATTEMPTS = 3;
+const MAX_INIT_ATTEMPTS = 10;
 
 let isWindowDestroying = false;
 
@@ -95,6 +95,25 @@ const start = async (): Promise<void> => {
       .require('electron')
       .ipcRenderer.invoke('video-call-window/handshake');
 
+    if (!handshakeResult?.success) {
+      console.log('Video call window: IPC not ready yet, retrying...');
+      if (initAttempts < MAX_INIT_ATTEMPTS && !isWindowDestroying) {
+        setTimeout(() => {
+          if (!isWindowDestroying) {
+            start().catch((retryError) => {
+              console.error('Video call window IPC retry failed:', retryError);
+            });
+          }
+        }, 1000);
+      } else if (!isWindowDestroying) {
+        console.error(
+          'Video call window: Max IPC attempts reached, showing fallback UI'
+        );
+        showFallbackUI();
+      }
+      return;
+    }
+
     if (process.env.NODE_ENV === 'development') {
       console.log(
         'Video call window: IPC handshake successful:',
@@ -103,9 +122,35 @@ const start = async (): Promise<void> => {
     }
 
     console.log('Video call window: Signaling renderer ready state');
-    await window
+    const rendererReadyResult = await window
       .require('electron')
       .ipcRenderer.invoke('video-call-window/renderer-ready');
+
+    if (!rendererReadyResult?.success) {
+      console.log('Video call window: Renderer not ready yet, retrying...');
+      if (initAttempts < MAX_INIT_ATTEMPTS && !isWindowDestroying) {
+        setTimeout(() => {
+          if (!isWindowDestroying) {
+            start().catch((retryError) => {
+              console.error(
+                'Video call window renderer-ready retry failed:',
+                retryError
+              );
+            });
+          }
+        }, 1000);
+      } else if (!isWindowDestroying) {
+        console.error(
+          'Video call window: Max renderer-ready attempts reached, showing fallback UI'
+        );
+        showFallbackUI();
+      }
+      return;
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Video call window: Renderer ready:', rendererReadyResult);
+    }
 
     if (initAttempts === 1 && process.env.NODE_ENV !== 'development') {
       console.log('Video call window: Successfully initialized');
@@ -124,9 +169,6 @@ const start = async (): Promise<void> => {
         if (!isWindowDestroying) {
           start().catch((retryError) => {
             console.error('Video call window retry also failed:', retryError);
-            if (!isWindowDestroying) {
-              showFallbackUI();
-            }
           });
         }
       }, 1000);

@@ -920,8 +920,8 @@ handle('video-call-window/renderer-ready', async () => {
   }
 
   if (!pendingVideoCallUrl) {
-    console.error(
-      'Video call window: No pending URL available when renderer ready'
+    console.log(
+      'Video call window: No pending URL available yet, renderer should retry'
     );
     console.log('Video call window: Current state:', {
       hasWindow: !!videoCallWindow,
@@ -929,9 +929,7 @@ handle('video-call-window/renderer-ready', async () => {
       pendingUrl: pendingVideoCallUrl,
       pendingDevtools: pendingAutoOpenDevtools,
     });
-    throw new Error(
-      'No pending URL to send - this indicates a race condition in window creation'
-    );
+    return { success: false, autoOpenDevtools: false };
   }
 
   const state = select((state) => ({

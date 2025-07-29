@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Rocket.Chat Electron app includes a sophisticated video call window system that creates a separate browser window for video conferencing. This document outlines the complete flow from initiation to cleanup.
+The Rocket.Chat Electron app includes a video call window system that creates a separate browser window for video conferencing. This document outlines the complete flow from initiation to cleanup.
 
 ## Architecture Components
 
@@ -63,67 +63,67 @@ flowchart TD
     R -->|Yes| S[Signal Renderer Ready]
     
     %% URL Processing
-    S --> T{Pending URL Available?}
-    T -->|No| T1[Return Not Ready]
-    T1 --> S
-    T -->|Yes| U[Send URL to Renderer]
+    S --> T[Request Pending URL]
+    T --> U{URL Available?}
+    U -->|No| U1[Return Not Ready]
+    U1 --> T
+    U -->|Yes| V[Return URL to Renderer]
     
     %% Webview Creation
-    U --> V[Component Receives URL]
-    V --> W[Create Webview Element]
-    W --> X[Setup Webview Event Handlers]
+    W --> X[Create Webview Element]
+    X --> Y[Setup Webview Event Handlers]
     
     %% Webview Loading States
-    X --> Y[did-start-loading]
-    Y --> Z[Set Loading State]
-    Z --> AA[Start Loading Timeout]
+    Y --> Z[did-start-loading]
+    Z --> AA[Set Loading State]
+    AA --> BB[Start Loading Timeout]
     
     %% Success Path
-    AA --> BB[did-finish-load]
-    BB --> CC[Clear Loading State]
-    CC --> DD[Video Call Active]
+    BB --> CC[did-finish-load]
+    CC --> DD[Clear Loading State]
+    DD --> EE[Video Call Active]
     
     %% Error Handling
-    AA --> EE[did-fail-load]
-    EE --> FF[Show Error State]
-    FF --> GG{Auto Recovery?}
-    GG -->|Attempt 1| HH[Webview Reload]
-    GG -->|Attempt 2| II[URL Refresh]
-    GG -->|Attempt 3| JJ[Full Reinitialize]
-    GG -->|Max Attempts| KK[Show Manual Reload Button]
+    BB --> FF[did-fail-load]
+    FF --> GG[Show Error State]
+    GG --> HH{Auto Recovery?}
+    HH -->|Attempt 1| II[Webview Reload]
+    HH -->|Attempt 2| JJ[URL Refresh]
+    HH -->|Attempt 3| KK[Full Reinitialize]
+    HH -->|Max Attempts| LL[Show Manual Reload Button]
     
     %% Screen Sharing Flow
-    DD --> LL[User Requests Screen Share]
-    LL --> MM[Webview Calls requestScreenSharing]
-    MM --> NN[Preload Script IPC Call]
-    NN --> OO[Main Process Opens Screen Picker]
-    OO --> PP[ScreenSharePicker Component]
-    PP --> QQ[Fetch Available Sources]
-    QQ --> RR[User Selects Source]
-    RR --> SS[Validate Source]
-    SS --> TT[Return Source ID]
-    TT --> UU[Webview Gets Stream Access]
+    EE --> MM[User Requests Screen Share]
+    MM --> NN[Webview Calls requestScreenSharing]
+    NN --> OO[Preload Script IPC Call]
+    OO --> PP[Main Process Opens Screen Picker]
+    PP --> QQ[ScreenSharePicker Component]
+    QQ --> RR[Fetch Available Sources]
+    RR --> SS[User Selects Source]
+    SS --> TT[Validate Source]
+    TT --> UU[Return Source ID]
+    UU --> VV[Webview Gets Stream Access]
     
     %% Window Lifecycle
-    DD --> VV[Window Events]
-    VV --> WW[Move/Resize/Focus Events]
-    WW --> XX[Update Redux State]
+    EE --> WW[Window Events]
+    WW --> XX[Move/Resize/Focus Events]
+    XX --> YY[Update Redux State]
     
     %% Cleanup
-    DD --> YY[User Closes Window]
-    YY --> ZZ[Cleanup Resources]
-    ZZ --> AAA[Clear Desktop Capturer Cache]
-    AAA --> BBB[Remove Event Listeners]
-    BBB --> CCC[Window Destroyed]
+    EE --> ZZ[User Closes Window]
+    ZZ --> AAA[Cleanup Resources]
+    AAA --> BBB[Clear Desktop Capturer Cache]
+    BBB --> CCC[Remove Event Listeners]
+    CCC --> DDD[Window Destroyed]
     
     %% Recovery Flows
-    HH --> Y
-    II --> W
-    JJ --> M
+    II --> Z
+    JJ --> X
+    KK --> M
     
     %% Manual Recovery
-    KK --> CCC1[User Clicks Reload]
-    CCC1 --> Y
+    LL --> DDD1[User Clicks Reload]
+    DDD1 --> Z
     
     %% Styling
     classDef mainProcess fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
@@ -132,11 +132,11 @@ flowchart TD
     classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px
     classDef success fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
     
-    class A,B,C,D,E,F,G,H,I,J,OO,ZZ,AAA,BBB mainProcess
-    class K,L,M,N,O,P,Q,S,V,PP,XX renderer
-    class W,X,Y,Z,AA,BB,CC,DD,LL,MM,NN,UU webview
-    class EE,FF,GG,HH,II,JJ,KK error
-    class CC,DD,TT success
+    class A,B,C,D,E,F,G,H,I,J,PP,AAA,BBB,CCC mainProcess
+    class K,L,M,N,O,P,Q,S,T,V,W,QQ,YY renderer
+    class X,Y,Z,AA,BB,CC,DD,EE,MM,NN,OO,VV webview
+    class FF,GG,HH,II,JJ,KK,LL error
+    class DD,EE,UU success
 ```
 
 ## Detailed Flow Breakdown
@@ -159,20 +159,21 @@ flowchart TD
 - Sets up i18n for localization
 - Creates React root and renders main component
 
-### 4. IPC Handshake
+### 4. IPC Handshake & URL Request
 - Performs handshake test to ensure IPC communication works
 - Retries with exponential backoff if handshake fails
 - Signals renderer ready state to main process
-- Main process sends pending URL when ready
+- **Renderer requests pending URL from main process (pull-based)**
+- Main process returns URL if available, or signals to retry
 
 ### 5. Webview Creation
 - Creates webview element with video call URL
-- Sets up comprehensive event handlers for loading states
+- Sets up event handlers for loading states
 - Configures preload script for API exposure
 - Implements loading timeout with auto-recovery
 
 ### 6. Error Handling & Recovery
-The system includes a sophisticated multi-tier recovery system:
+The system includes a multi-tier recovery system:
 
 #### Automatic Recovery Strategies
 1. **Webview Reload** (1s delay) - Simple webview refresh
@@ -210,7 +211,7 @@ The system includes a sophisticated multi-tier recovery system:
 
 ### Robust Error Handling
 - Multiple recovery strategies for different failure modes
-- Comprehensive logging for debugging
+- Complete logging for debugging
 - Graceful degradation when resources unavailable
 
 ### Security Measures
@@ -224,6 +225,20 @@ The system includes a sophisticated multi-tier recovery system:
 - Background throttling and memory management
 - Efficient caching strategies
 - Fallback recovery mechanisms
+
+### Pull-Based URL Handling
+- **Prevents Lost Calls** - Renderer actively requests URL instead of waiting for push
+- **Race Condition Immunity** - No timing dependencies between processes
+- **Retry Mechanism** - Built-in retry logic if URL not yet available
+- **Consistent Pattern** - Matches screen sharing request/response pattern
+- **Better Error Handling** - Clear success/failure responses for troubleshooting
+
+### IPC Acknowledgment Patterns
+- **All Communications Use invoke/handle** - No fire-and-forget send() calls
+- **Proper Response Validation** - Every IPC call checks for success acknowledgment
+- **Error Detection** - Failed acknowledgments are logged for debugging
+- **Event-Based Communication** - Custom events for renderer-to-component communication
+- **Reliable State Tracking** - Main process confirms receipt of all lifecycle events
 
 ## File Structure
 
@@ -265,7 +280,7 @@ This diagram will be automatically rendered on GitHub when viewing this markdown
 - **Window Creation Failures** - Check available memory and screen bounds
 
 ### Debug Tools
-- **Console Logs** - Comprehensive logging throughout the flow
+- **Console Logs** - Complete logging throughout the flow
 - **Developer Tools** - Auto-open available for debugging
 - **State Inspection** - Redux state shows window status
 - **Performance Monitoring** - Built-in stats and metrics 

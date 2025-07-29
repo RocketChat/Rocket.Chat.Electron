@@ -6,17 +6,13 @@ import { fallbackLng, interpolation } from '../i18n/common';
 import resources from '../i18n/resources';
 import VideoCallWindow from './videoCallWindow';
 
-// Track initialization attempts for debugging
 let initAttempts = 0;
 const MAX_INIT_ATTEMPTS = 3;
 
-// Track if the window is being destroyed to prevent operations during cleanup
 let isWindowDestroying = false;
 
-// Initialize i18n for this window
 const setupI18n = async () => {
   try {
-    // For now we'll use the fallback language (en)
     const lng = fallbackLng;
 
     await i18next.use(initReactI18next).init({
@@ -36,13 +32,11 @@ const setupI18n = async () => {
     }
   } catch (error) {
     console.error('Failed to initialize i18n for video call window:', error);
-    // Use basic fallback without i18n if it fails
     throw error;
   }
 };
 
 const start = async (): Promise<void> => {
-  // Don't start if window is being destroyed
   if (isWindowDestroying) {
     console.log(
       'Video call window: Skipping initialization - window is being destroyed'
@@ -52,7 +46,6 @@ const start = async (): Promise<void> => {
 
   initAttempts++;
 
-  // Only log attempts if there were previous failures or in development
   if (initAttempts > 1 || process.env.NODE_ENV === 'development') {
     console.log(
       `Video call window initialization attempt ${initAttempts}/${MAX_INIT_ATTEMPTS}`
@@ -60,7 +53,6 @@ const start = async (): Promise<void> => {
   }
 
   try {
-    // Check if DOM is ready
     if (document.readyState === 'loading') {
       if (process.env.NODE_ENV === 'development') {
         console.log('Video call window: DOM not ready, waiting...');
@@ -77,7 +69,6 @@ const start = async (): Promise<void> => {
       });
     }
 
-    // Initialize i18n before rendering
     await setupI18n();
 
     const rootElement = document.getElementById('root');
@@ -96,7 +87,6 @@ const start = async (): Promise<void> => {
       </I18nextProvider>
     );
 
-    // Test IPC communication and signal renderer is ready
     if (process.env.NODE_ENV === 'development') {
       console.log('Video call window: Testing IPC handshake...');
     }
@@ -112,13 +102,11 @@ const start = async (): Promise<void> => {
       );
     }
 
-    // Signal that renderer is ready and request URL
     console.log('Video call window: Signaling renderer ready state');
     await window
       .require('electron')
       .ipcRenderer.invoke('video-call-window/renderer-ready');
 
-    // Only log success on first attempt or in development
     if (initAttempts === 1 && process.env.NODE_ENV !== 'development') {
       console.log('Video call window: Successfully initialized');
     } else if (process.env.NODE_ENV === 'development') {
@@ -130,7 +118,6 @@ const start = async (): Promise<void> => {
       error
     );
 
-    // Retry on low-power devices if we haven't exceeded max attempts
     if (initAttempts < MAX_INIT_ATTEMPTS && !isWindowDestroying) {
       console.log(`Video call window: Retrying initialization in 1 second...`);
       setTimeout(() => {
@@ -152,9 +139,7 @@ const start = async (): Promise<void> => {
   }
 };
 
-// Fallback UI for when React fails to initialize
 const showFallbackUI = () => {
-  // Don't show fallback UI if window is being destroyed
   if (isWindowDestroying) {
     console.log(
       'Video call window: Skipping fallback UI - window is being destroyed'
@@ -163,46 +148,45 @@ const showFallbackUI = () => {
   }
 
   try {
-    const rootElement = document.getElementById('root');
-    if (!rootElement) return;
+    let retryCount = 0;
+    const MAX_FALLBACK_RETRIES = 4;
+    const RETRY_DELAYS = [3000, 6000, 8000, 10000];
 
-    rootElement.innerHTML = `
-      <div style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background-color: #2f343d;
-        color: white;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-        text-align: center;
-        padding: 20px;
-      ">
-        <h2>Video Call Failed to Load</h2>
-        <p>Unable to initialize video call window.</p>
-        <p style="font-size: 14px; color: #ccc;">
-          Please try closing and reopening the video call.
-        </p>
-        <button onclick="window.location.reload()" style="
-          margin-top: 20px;
-          padding: 10px 20px;
-          background-color: #1f5582;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 14px;
-        ">
-          Reload Window
-        </button>
-      </div>
-    `;
+    const attemptAutoRecovery = () => {
+      if (isWindowDestroying) return;
 
-    console.log('VideoCallWindow: Fallback UI displayed');
+      retryCount++;
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(
+          `VideoCallWindow: Auto-recovery attempt ${retryCount}/${MAX_FALLBACK_RETRIES}`
+        );
+      }
+
+      if (retryCount <= MAX_FALLBACK_RETRIES) {
+        setTimeout(
+          () => {
+            if (!isWindowDestroying) {
+              window.location.reload();
+            }
+          },
+          RETRY_DELAYS[retryCount - 1]
+        );
+      } else {
+        console.error(
+          'VideoCallWindow: Auto-recovery failed after maximum attempts'
+        );
+      }
+    };
+
+    console.log('VideoCallWindow: Starting silent auto-recovery');
+
+    setTimeout(attemptAutoRecovery, 3000);
   } catch (fallbackError) {
-    console.error('VideoCallWindow: Even fallback UI failed:', fallbackError);
-    // Last resort: reload the window
+    console.error(
+      'VideoCallWindow: Auto-recovery setup failed:',
+      fallbackError
+    );
     setTimeout(() => {
       if (!isWindowDestroying) {
         window.location.reload();
@@ -211,7 +195,6 @@ const showFallbackUI = () => {
   }
 };
 
-// Add global error handlers for the video call window
 window.addEventListener('error', (event) => {
   console.error('Video call window uncaught error:', event.error);
 });
@@ -220,21 +203,17 @@ window.addEventListener('unhandledrejection', (event) => {
   console.error('Video call window unhandled promise rejection:', event.reason);
 });
 
-// Add beforeunload handler to set destruction flag
 window.addEventListener('beforeunload', () => {
   isWindowDestroying = true;
   console.log('Video call window: Setting destruction flag - window unloading');
 });
 
-// Add unload handler as backup
 window.addEventListener('unload', () => {
   isWindowDestroying = true;
   console.log('Video call window: Window unloaded');
 });
 
-// Check if we're in a working environment before starting
 if (typeof document !== 'undefined' && typeof window !== 'undefined') {
-  // Start the application with error handling
   start().catch((error) => {
     console.error('Video call window failed to start:', error);
     showFallbackUI();

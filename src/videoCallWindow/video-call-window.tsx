@@ -116,27 +116,62 @@ const signalRendererReady = async (): Promise<boolean> => {
   return true;
 };
 
-const requestVideoCallURL = async (): Promise<{
+const requestVideoCallURL = async (
+  retryCount = 0
+): Promise<{
   url: string;
   autoOpenDevtools: boolean;
 } | null> => {
-  const urlRequestResult = await window
-    .require('electron')
-    .ipcRenderer.invoke('video-call-window/request-url');
+  const MAX_URL_RETRIES = 3;
+  const URL_RETRY_DELAY = 1000; // Give slower machines time to process
 
-  if (!urlRequestResult?.success || !urlRequestResult?.url) {
-    console.log('Video call window: No URL available yet, retrying...');
+  try {
+    const urlRequestResult = await window
+      .require('electron')
+      .ipcRenderer.invoke('video-call-window/request-url');
+
+    if (!urlRequestResult?.success || !urlRequestResult?.url) {
+      console.log(
+        `Video call window: No URL available yet (attempt ${retryCount + 1}/${MAX_URL_RETRIES + 1})`
+      );
+
+      // Immediate retry for URL request if we still have attempts
+      if (retryCount < MAX_URL_RETRIES && !isWindowDestroying) {
+        console.log(
+          `Video call window: Retrying URL request in ${URL_RETRY_DELAY}ms...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, URL_RETRY_DELAY));
+        return requestVideoCallURL(retryCount + 1);
+      }
+
+      return null;
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Video call window: URL received:', urlRequestResult);
+    }
+
+    return {
+      url: urlRequestResult.url,
+      autoOpenDevtools: urlRequestResult.autoOpenDevtools,
+    };
+  } catch (error) {
+    console.error(
+      `Video call window: URL request failed (attempt ${retryCount + 1}/${MAX_URL_RETRIES + 1}):`,
+      error
+    );
+
+    // Retry on IPC failure if we still have attempts
+    if (retryCount < MAX_URL_RETRIES && !isWindowDestroying) {
+      console.log(
+        `Video call window: Retrying URL request after IPC error in ${URL_RETRY_DELAY}ms...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, URL_RETRY_DELAY));
+      return requestVideoCallURL(retryCount + 1);
+    }
+
     return null;
   }
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Video call window: URL received:', urlRequestResult);
-  }
-
-  return {
-    url: urlRequestResult.url,
-    autoOpenDevtools: urlRequestResult.autoOpenDevtools,
-  };
 };
 
 const triggerURLEvent = (url: string, autoOpenDevtools: boolean): void => {

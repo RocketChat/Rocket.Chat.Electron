@@ -14,18 +14,75 @@ import { useTranslation } from 'react-i18next';
 import { FailureImage } from '../ui/components/FailureImage';
 import { ScreenSharePicker } from './screenSharePicker';
 
-function VideoCallWindow() {
+/**
+ * Auto-recovery system constants
+ *
+ * The video call window implements an intelligent auto-recovery system that:
+ * 1. Waits for LOADING_TIMEOUT_MS before starting recovery
+ * 2. Tries up to MAX_RECOVERY_ATTEMPTS different strategies
+ * 3. Uses progressive delays for each recovery attempt
+ * 4. Operates silently without showing technical details to users
+ */
+const MAX_RECOVERY_ATTEMPTS = 3;
+const LOADING_TIMEOUT_MS = 15000; // 15 seconds before auto-recovery starts
+const RECOVERY_DELAYS = {
+  webviewReload: 1000, // 1 second
+  urlRefresh: 2000, // 2 seconds
+  fullReinitialize: 3000, // 3 seconds
+};
+
+const RECOVERY_STRATEGIES = {
+  webviewReload: 'Webview reload',
+  urlRefresh: 'URL refresh',
+  fullReinitialize: 'Full reinitialize',
+} as const;
+
+type RecoveryStrategy =
+  (typeof RECOVERY_STRATEGIES)[keyof typeof RECOVERY_STRATEGIES];
+
+const VideoCallWindow = () => {
   const { t } = useTranslation();
+
+  // Core state
   const [videoCallUrl, setVideoCallUrl] = useState('');
   const [shouldAutoOpenDevtools, setShouldAutoOpenDevtools] = useState(false);
+
+  // Loading states
   const [isFailed, setIsFailed] = useState(false);
   const [isReloading, setIsReloading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const webviewRef =
-    useRef<ReturnType<(typeof document)['createElement']>>(null);
+  // Auto-recovery state
+  const [recoveryAttempt, setRecoveryAttempt] = useState(0);
+  const [recoveryStrategy, setRecoveryStrategy] = useState<string>('');
+
+  // Refs
+  const webviewRef = useRef<any>(null);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const recoveryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Helper function to clear all loading state and timeouts
+  const clearLoadingState = (reason: string): void => {
+    console.log(`VideoCallWindow: Clearing loading state - ${reason}`);
+    setIsFailed(false);
+    setIsReloading(false);
+    setIsLoading(false);
+
+    // Clear all timeouts
+    [loadingTimeoutRef, recoveryTimeoutRef].forEach((ref) => {
+      if (ref.current) {
+        clearTimeout(ref.current);
+        ref.current = null;
+      }
+    });
+  };
+
+  // Helper function to reset recovery state
+  const resetRecoveryState = (): void => {
+    setRecoveryAttempt(0);
+    setRecoveryStrategy('');
+  };
 
   useEffect(() => {
     const handleOpenUrl = async (
@@ -48,56 +105,26 @@ function VideoCallWindow() {
 
       setVideoCallUrl(url);
       setShouldAutoOpenDevtools(autoOpenDevtools);
-    };
 
-    // Add timeout detection for low-power devices that might have IPC issues
-    const ipcTimeoutId = setTimeout(() => {
-      // Only log this in development or when there are actual issues
-      if (process.env.NODE_ENV === 'development') {
-        console.info(
-          'VideoCallWindow: No IPC message received after 15 seconds - this is normal during development'
+      // Confirm URL received
+      try {
+        await ipcRenderer.invoke('video-call-window/url-received');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('VideoCallWindow: URL received confirmation sent');
+        }
+      } catch (error) {
+        console.error(
+          'VideoCallWindow: Failed to send URL received confirmation:',
+          error
         );
-        return;
       }
-
-      console.warn(
-        'VideoCallWindow: No IPC message received after 15 seconds - checking IPC communication'
-      );
-
-      // Test if IPC is working at all
-      ipcRenderer
-        .invoke('video-call-window/test-ipc')
-        .then(() => {
-          console.log(
-            'VideoCallWindow: IPC test successful, but no URL message received - this may be normal during development'
-          );
-        })
-        .catch((error) => {
-          console.error(
-            'VideoCallWindow: IPC test failed - communication issues detected:',
-            error
-          );
-
-          // Auto-recovery: Try to reload the window instead of showing error to user
-          console.log(
-            'VideoCallWindow: Attempting automatic recovery by reloading...'
-          );
-          window.location.reload();
-        });
-    }, 15000); // Increased from 10 to 15 seconds to reduce false positives
+    };
 
     // Remove any existing listeners to prevent duplicates
     ipcRenderer.removeAllListeners('video-call-window/open-url');
-    ipcRenderer.on(
-      'video-call-window/open-url',
-      (event, url, autoOpenDevtools) => {
-        clearTimeout(ipcTimeoutId); // Clear timeout since we received the message
-        handleOpenUrl(event, url, autoOpenDevtools);
-      }
-    );
+    ipcRenderer.on('video-call-window/open-url', handleOpenUrl);
 
     return () => {
-      clearTimeout(ipcTimeoutId);
       ipcRenderer.removeAllListeners('video-call-window/open-url');
     };
   }, []);
@@ -111,18 +138,97 @@ function VideoCallWindow() {
       videoCallUrl
     );
 
-    // Helper function to clear loading state
-    const clearLoadingState = (reason: string) => {
-      console.log(`VideoCallWindow: Clearing loading state - ${reason}`);
-      setIsFailed(false);
-      setIsReloading(false);
-      setIsLoading(false);
-
-      // Clear any existing timeout
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
+    // Auto-recovery function that tries different strategies
+    const attemptAutoRecovery = (): void => {
+      if (recoveryAttempt >= MAX_RECOVERY_ATTEMPTS) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(
+            'VideoCallWindow: Max recovery attempts reached, showing error'
+          );
+        }
+        setIsFailed(true);
+        setIsLoading(false);
+        setIsReloading(false);
+        setErrorMessage(
+          t(
+            'videoCall.error.maxRetriesReached',
+            'Failed to load after multiple attempts'
+          )
+        );
+        return;
       }
+
+      const currentAttempt = recoveryAttempt + 1;
+      setRecoveryAttempt(currentAttempt);
+
+      /**
+       * Recovery strategy configuration
+       *
+       * Attempt 1: Simple webview reload - fastest, least disruptive
+       * Attempt 2: URL refresh via blank page - fixes navigation issues
+       * Attempt 3: Full window reload - nuclear option for React/IPC issues
+       */
+      const getRecoveryConfig = (attempt: number) => {
+        switch (attempt) {
+          case 1:
+            return {
+              strategy: RECOVERY_STRATEGIES.webviewReload,
+              delay: RECOVERY_DELAYS.webviewReload,
+            };
+          case 2:
+            return {
+              strategy: RECOVERY_STRATEGIES.urlRefresh,
+              delay: RECOVERY_DELAYS.urlRefresh,
+            };
+          case 3:
+            return {
+              strategy: RECOVERY_STRATEGIES.fullReinitialize,
+              delay: RECOVERY_DELAYS.fullReinitialize,
+            };
+          default:
+            return null;
+        }
+      };
+
+      const config = getRecoveryConfig(currentAttempt);
+      if (!config) return;
+
+      setRecoveryStrategy(config.strategy);
+      setIsReloading(true);
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(
+          `VideoCallWindow: Auto-recovery attempt ${currentAttempt}/${MAX_RECOVERY_ATTEMPTS} - ${config.strategy}`
+        );
+      }
+
+      recoveryTimeoutRef.current = setTimeout(() => {
+        const webview = webviewRef.current;
+
+        switch (currentAttempt) {
+          case 1:
+            // Simple webview reload
+            if (webview) {
+              webview.reload();
+            }
+            break;
+          case 2:
+            // Force URL reload by clearing and resetting
+            if (webview && videoCallUrl) {
+              webview.src = 'about:blank';
+              setTimeout(() => {
+                webview.src = videoCallUrl;
+              }, 500);
+            }
+            break;
+          case 3:
+            // Full window reload as last resort
+            window.location.reload();
+            break;
+        }
+
+        recoveryTimeoutRef.current = null;
+      }, config.delay);
     };
 
     const checkForClosePage = (url: string) => {
@@ -137,27 +243,44 @@ function VideoCallWindow() {
       setIsReloading(false);
       setIsLoading(true);
 
-      // Clear any existing timeout
+      // Clear any existing timeouts
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
         loadingTimeoutRef.current = null;
       }
 
-      // Set a fallback timeout to clear loading state if events don't fire
+      if (recoveryTimeoutRef.current) {
+        clearTimeout(recoveryTimeoutRef.current);
+        recoveryTimeoutRef.current = null;
+      }
+
+      // Signal webview started loading
+      ipcRenderer
+        .invoke('video-call-window/webview-loading')
+        .then(() => {
+          if (process.env.NODE_ENV === 'development') {
+            console.log(
+              'VideoCallWindow: Webview loading state sent to main process'
+            );
+          }
+        })
+        .catch((error) => {
+          console.error(
+            'VideoCallWindow: Failed to send webview loading state:',
+            error
+          );
+        });
+
+      // Auto-recovery timeout - starts recovery sequence after configured delay
       loadingTimeoutRef.current = setTimeout(() => {
-        console.log(
-          'VideoCallWindow: Loading timeout reached - treating as failure'
-        );
-
-        // Clear the timeout reference
+        if (process.env.NODE_ENV === 'development') {
+          console.log(
+            'VideoCallWindow: Loading timeout reached - starting auto-recovery'
+          );
+        }
         loadingTimeoutRef.current = null;
-
-        // Set failed state with timeout error
-        setIsFailed(true);
-        setIsReloading(false);
-        setIsLoading(false);
-        setErrorMessage(t('videoCall.error.timeout'));
-      }, 15000); // 15 second timeout
+        attemptAutoRecovery();
+      }, LOADING_TIMEOUT_MS);
     };
 
     const handleNavigate = (event: any) => {
@@ -194,7 +317,28 @@ function VideoCallWindow() {
       console.log(
         'VideoCallWindow: Webview finished loading (all resources loaded)'
       );
+
+      // Reset recovery state on successful load
+      resetRecoveryState();
+
       clearLoadingState('did-finish-load event');
+
+      // Signal webview ready
+      ipcRenderer
+        .invoke('video-call-window/webview-ready')
+        .then(() => {
+          if (process.env.NODE_ENV === 'development') {
+            console.log(
+              'VideoCallWindow: Webview ready state sent to main process'
+            );
+          }
+        })
+        .catch((error) => {
+          console.error(
+            'VideoCallWindow: Failed to send webview ready state:',
+            error
+          );
+        });
     };
 
     const handleStopLoading = () => {
@@ -227,6 +371,19 @@ function VideoCallWindow() {
         setIsReloading(false);
         setIsLoading(false);
         setErrorMessage(`${event.errorDescription} (${event.errorCode})`);
+
+        // Signal webview failed
+        ipcRenderer
+          .invoke(
+            'video-call-window/webview-failed',
+            `${event.errorDescription} (${event.errorCode})`
+          )
+          .catch((error) => {
+            console.error(
+              'VideoCallWindow: Failed to send webview failed state:',
+              error
+            );
+          });
       }
     };
 
@@ -243,10 +400,37 @@ function VideoCallWindow() {
       setIsReloading(false);
       setIsLoading(false);
       setErrorMessage(t('videoCall.error.crashed'));
+
+      // Signal webview failed
+      ipcRenderer
+        .invoke('video-call-window/webview-failed', 'Webview crashed')
+        .catch((error) => {
+          console.error(
+            'VideoCallWindow: Failed to send webview failed state:',
+            error
+          );
+        });
     };
 
     const handleWebviewAttached = () => {
       console.log('VideoCallWindow: Webview attached');
+
+      // Signal webview created
+      ipcRenderer
+        .invoke('video-call-window/webview-created')
+        .then(() => {
+          if (process.env.NODE_ENV === 'development') {
+            console.log(
+              'VideoCallWindow: Webview created state sent to main process'
+            );
+          }
+        })
+        .catch((error) => {
+          console.error(
+            'VideoCallWindow: Failed to send webview created state:',
+            error
+          );
+        });
 
       // Auto-open devtools immediately when webview is attached if the setting is enabled
       if (shouldAutoOpenDevtools) {
@@ -303,6 +487,12 @@ function VideoCallWindow() {
         clearTimeout(loadingTimeoutRef.current);
         loadingTimeoutRef.current = null;
       }
+
+      // Clear manual reload timeout
+      if (recoveryTimeoutRef.current) {
+        clearTimeout(recoveryTimeoutRef.current);
+        recoveryTimeoutRef.current = null;
+      }
     };
   }, [videoCallUrl, shouldAutoOpenDevtools, isFailed, t]);
 
@@ -312,6 +502,18 @@ function VideoCallWindow() {
     setIsFailed(false);
     setIsLoading(true);
     setErrorMessage(null);
+    resetRecoveryState(); // Reset recovery attempts
+
+    // Clear timeouts
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+      loadingTimeoutRef.current = null;
+    }
+
+    if (recoveryTimeoutRef.current) {
+      clearTimeout(recoveryTimeoutRef.current);
+      recoveryTimeoutRef.current = null;
+    }
 
     const webview = webviewRef.current as any;
     if (webview) {
@@ -343,7 +545,7 @@ function VideoCallWindow() {
     <Box>
       <ScreenSharePicker />
 
-      {/* Loading overlay */}
+      {/* Loading overlay with escape option */}
       {isLoading && !isFailed && (
         <Box
           display='flex'
@@ -456,6 +658,6 @@ function VideoCallWindow() {
       />
     </Box>
   );
-}
+};
 
 export default VideoCallWindow;

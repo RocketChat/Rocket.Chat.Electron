@@ -96,6 +96,28 @@ const start = async (): Promise<void> => {
       </I18nextProvider>
     );
 
+    // Test IPC communication and signal renderer is ready
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Video call window: Testing IPC handshake...');
+    }
+
+    const handshakeResult = await window
+      .require('electron')
+      .ipcRenderer.invoke('video-call-window/handshake');
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        'Video call window: IPC handshake successful:',
+        handshakeResult
+      );
+    }
+
+    // Signal that renderer is ready and request URL
+    console.log('Video call window: Signaling renderer ready state');
+    await window
+      .require('electron')
+      .ipcRenderer.invoke('video-call-window/renderer-ready');
+
     // Only log success on first attempt or in development
     if (initAttempts === 1 && process.env.NODE_ENV !== 'development') {
       console.log('Video call window: Successfully initialized');
@@ -144,38 +166,6 @@ const showFallbackUI = () => {
     const rootElement = document.getElementById('root');
     if (!rootElement) return;
 
-    // Auto-retry mechanism for fallback UI
-    let retryCount = 0;
-    const maxRetries = 3;
-
-    const attemptAutoRecovery = () => {
-      // Don't attempt recovery if window is being destroyed
-      if (isWindowDestroying) {
-        console.log(
-          'VideoCallWindow: Skipping auto-recovery - window is being destroyed'
-        );
-        return;
-      }
-
-      retryCount++;
-      console.log(
-        `VideoCallWindow: Auto-recovery attempt ${retryCount}/${maxRetries}`
-      );
-
-      if (retryCount <= maxRetries && !isWindowDestroying) {
-        // Try reloading the entire window
-        setTimeout(() => {
-          if (!isWindowDestroying) {
-            window.location.reload();
-          }
-        }, 2000 * retryCount); // Increasing delay: 2s, 4s, 6s
-      } else {
-        console.error(
-          'VideoCallWindow: Auto-recovery failed after maximum attempts'
-        );
-      }
-    };
-
     rootElement.innerHTML = `
       <div style="
         display: flex;
@@ -189,39 +179,27 @@ const showFallbackUI = () => {
         text-align: center;
         padding: 20px;
       ">
-        <h2>Video Call Loading</h2>
-        <p>Initializing video call window...</p>
-        <div style="
-          width: 40px;
-          height: 40px;
-          border: 4px solid #1f5582;
-          border-top: 4px solid #fff;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 20px 0;
-        "></div>
+        <h2>Video Call Failed to Load</h2>
+        <p>Unable to initialize video call window.</p>
         <p style="font-size: 14px; color: #ccc;">
-          Attempting automatic recovery...
+          Please try closing and reopening the video call.
         </p>
+        <button onclick="window.location.reload()" style="
+          margin-top: 20px;
+          padding: 10px 20px;
+          background-color: #1f5582;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+        ">
+          Reload Window
+        </button>
       </div>
-      <style>
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      </style>
     `;
 
-    console.log(
-      'VideoCallWindow: Fallback UI displayed, starting auto-recovery'
-    );
-
-    // Start auto-recovery after a short delay
-    setTimeout(() => {
-      if (!isWindowDestroying) {
-        attemptAutoRecovery();
-      }
-    }, 3000);
+    console.log('VideoCallWindow: Fallback UI displayed');
   } catch (fallbackError) {
     console.error('VideoCallWindow: Even fallback UI failed:', fallbackError);
     // Last resort: reload the window

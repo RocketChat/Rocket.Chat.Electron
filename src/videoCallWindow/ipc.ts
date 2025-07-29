@@ -27,11 +27,25 @@ import { askForMediaPermissionSettings } from '../ui/main/dialogs';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
 
+// Constants for cache management
+const DESKTOP_CAPTURER_CACHE_TTL = 3000; // 3 seconds cache for thumbnails
+const SOURCE_VALIDATION_CACHE_TTL = 30000; // 30 seconds cache for validation
+const CACHE_CLEANUP_DELAY = 60000; // 60 seconds delay before clearing cache
+
+// Constants for window destruction polling
+const DESTRUCTION_CHECK_INTERVAL = 50; // 50ms polling interval
+const DEVTOOLS_TIMEOUT = 2000; // 2 seconds timeout for devtools operations
+const WEBVIEW_CHECK_INTERVAL = 100; // 100ms polling interval for webview search
+
 // Singleton video call window instance
 let videoCallWindow: BrowserWindow | null = null;
 
 // Destruction state tracking to prevent JS execution during cleanup
 let isVideoCallWindowDestroying = false;
+
+// Store the URL and settings for state-based communication
+let pendingVideoCallUrl: string | null = null;
+let pendingAutoOpenDevtools = false;
 
 // Desktop capturer caching and debouncing
 let desktopCapturerCache: {
@@ -42,19 +56,15 @@ let desktopCapturerCache: {
 let desktopCapturerPromise: Promise<Electron.DesktopCapturerSource[]> | null =
   null;
 
-const DESKTOP_CAPTURER_CACHE_TTL = 3000; // 3 seconds cache for thumbnails (keeps screen content fresh)
-
 // Source validation cache to avoid redundant thumbnail checks
 // Two-tier caching strategy:
 // - Thumbnail cache (3s): Updates screen content regularly for current display
 // - Validation cache (30s): Remembers which source IDs work, avoiding expensive validation
 const sourceValidationCache: Set<string> = new Set();
 let sourceValidationCacheTimestamp = 0;
-const SOURCE_VALIDATION_CACHE_TTL = 30000; // 30 seconds cache for validation - longer since source IDs don't change often
 
 // Cache cleanup timer - clears cache after window closes if no new window opens
 let cacheCleanupTimer: NodeJS.Timeout | null = null;
-const CACHE_CLEANUP_DELAY = 60000; // 60 seconds delay before clearing cache
 
 // Resource tracking for debugging
 let videoCallWindowCreationCount = 0;
@@ -240,6 +250,10 @@ const cleanupVideoCallWindow = () => {
   isVideoCallWindowDestroying = false;
   videoCallWindowDestructionCount++;
 
+  // Clear pending URL state
+  pendingVideoCallUrl = null;
+  pendingAutoOpenDevtools = false;
+
   // Note: Desktop capturer cache will be cleaned up by timer if no new window opens
 
   console.log('Video call window cleanup completed');
@@ -337,7 +351,7 @@ export const startVideoCallWindowHandler = (): void => {
           if (!isVideoCallWindowDestroying) {
             resolve();
           } else {
-            setTimeout(checkDestructionComplete, 50);
+            setTimeout(checkDestructionComplete, DESTRUCTION_CHECK_INTERVAL);
           }
         };
         checkDestructionComplete();
@@ -357,7 +371,7 @@ export const startVideoCallWindowHandler = (): void => {
             if (!isVideoCallWindowDestroying) {
               resolve();
             } else {
-              setTimeout(checkClosed, 50);
+              setTimeout(checkClosed, DESTRUCTION_CHECK_INTERVAL);
             }
           };
           checkClosed();
@@ -372,6 +386,9 @@ export const startVideoCallWindowHandler = (): void => {
       return;
     }
     if (allowedProtocols.includes(validUrl.protocol)) {
+      // Store the URL for state-based communication
+      pendingVideoCallUrl = url;
+
       const mainWindow = await getRootWindow();
       const winBounds = await mainWindow.getNormalBounds();
 
@@ -663,81 +680,9 @@ export const startVideoCallWindowHandler = (): void => {
         if (videoCallWindow && !videoCallWindow.isDestroyed()) {
           videoCallWindow.setTitle(packageJsonInformation.productName);
 
-          // Track if webview has started loading (indicates URL was received)
-          let webviewStartedLoading = false;
-
-          // Listen for webview loading events as confirmation
-          const handleWebviewStarted = () => {
-            webviewStartedLoading = true;
-          };
-
-          // Monitor console messages for webview load start
-          videoCallWindow.webContents.on(
-            'console-message',
-            (_event, _level, message) => {
-              if (
-                message.includes('Load started') ||
-                message.includes('did-start-loading')
-              ) {
-                handleWebviewStarted();
-              }
-            }
+          console.log(
+            'Video call window: Window ready, waiting for renderer to signal ready state'
           );
-
-          // Add a delay before sending the URL to ensure JavaScript has loaded
-          // This is especially important for low-power devices
-          const sendUrlWithDelay = () => {
-            // Check if auto-open devtools is enabled and send it with the URL
-            const isAutoOpenEnabled = select(
-              (state) => state.isVideoCallDevtoolsAutoOpenEnabled
-            );
-
-            console.log('Video call window: Sending URL to renderer:', url);
-            videoCallWindow?.webContents.send(
-              'video-call-window/open-url',
-              url,
-              isAutoOpenEnabled
-            );
-          };
-
-          // Immediate attempt
-          sendUrlWithDelay();
-
-          // Fallback attempt after 3 seconds ONLY if webview hasn't started loading
-          setTimeout(() => {
-            if (
-              videoCallWindow &&
-              !videoCallWindow.isDestroyed() &&
-              !webviewStartedLoading
-            ) {
-              console.log(
-                'Video call window: Fallback URL send - webview has not started loading'
-              );
-              sendUrlWithDelay();
-
-              // If webview still hasn't started after fallback, try reloading the renderer
-              setTimeout(() => {
-                if (
-                  videoCallWindow &&
-                  !videoCallWindow.isDestroyed() &&
-                  !webviewStartedLoading
-                ) {
-                  console.log(
-                    'Video call window: Auto-recovery - reloading renderer due to persistent loading issues'
-                  );
-                  videoCallWindow.webContents.reload();
-                }
-              }, 5000); // Give 5 more seconds after fallback
-            } else if (
-              webviewStartedLoading &&
-              process.env.NODE_ENV === 'development'
-            ) {
-              console.log(
-                'Video call window: Fallback send skipped - webview already loading'
-              );
-            }
-          }, 3000); // Increased to 3 seconds to give more time
-
           videoCallWindow.show();
         }
       });
@@ -942,14 +887,14 @@ export const startVideoCallWindowHandler = (): void => {
               resolve(webviewContents);
             } else {
               // If not found immediately, wait a bit and try again
-              setTimeout(checkForWebview, 100);
+              setTimeout(checkForWebview, WEBVIEW_CHECK_INTERVAL);
             }
           };
 
           checkForWebview();
 
           // Timeout after 2 seconds
-          setTimeout(() => resolve(null), 2000);
+          setTimeout(() => resolve(null), DEVTOOLS_TIMEOUT);
         }
       );
 
@@ -992,14 +937,14 @@ export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
             resolve(webviewContents);
           } else {
             // If not found immediately, wait a bit and try again
-            setTimeout(checkForWebview, 100);
+            setTimeout(checkForWebview, WEBVIEW_CHECK_INTERVAL);
           }
         };
 
         checkForWebview();
 
         // Timeout after 2 seconds
-        setTimeout(() => resolve(null), 2000);
+        setTimeout(() => resolve(null), DEVTOOLS_TIMEOUT);
       }
     );
 
@@ -1033,6 +978,10 @@ export const cleanupVideoCallResources = () => {
   sourceValidationCache.clear();
   sourceValidationCacheTimestamp = 0;
 
+  // Clear pending URL state
+  pendingVideoCallUrl = null;
+  pendingAutoOpenDevtools = false;
+
   // Reset destruction flag before cleanup
   isVideoCallWindowDestroying = false;
   cleanupVideoCallWindow();
@@ -1043,4 +992,72 @@ export const cleanupVideoCallResources = () => {
 handle('video-call-window/test-ipc', async () => {
   console.log('Video call window: IPC test request received');
   return { success: true, timestamp: Date.now() };
+});
+
+// New state-based communication handlers
+handle('video-call-window/handshake', async () => {
+  console.log('Video call window: Handshake request received');
+  return { success: true, timestamp: Date.now() };
+});
+
+handle('video-call-window/renderer-ready', async () => {
+  console.log('Video call window: Renderer signals ready state');
+
+  if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+    throw new Error('Video call window not available');
+  }
+
+  if (!pendingVideoCallUrl) {
+    throw new Error('No pending URL to send');
+  }
+
+  // Get the auto-open devtools setting
+  const state = select((state) => ({
+    isAutoOpenEnabled: state.isVideoCallDevtoolsAutoOpenEnabled,
+  }));
+
+  // Send the URL now that renderer is ready
+  console.log(
+    'Video call window: Sending URL to ready renderer:',
+    pendingVideoCallUrl
+  );
+  videoCallWindow.webContents.send(
+    'video-call-window/open-url',
+    pendingVideoCallUrl,
+    state.isAutoOpenEnabled
+  );
+
+  // Clear the pending URL
+  pendingVideoCallUrl = null;
+  pendingAutoOpenDevtools = false;
+
+  return {
+    success: true,
+    autoOpenDevtools: state.isAutoOpenEnabled,
+  };
+});
+
+handle('video-call-window/url-received', async () => {
+  console.log('Video call window: URL received confirmation');
+  return { success: true };
+});
+
+handle('video-call-window/webview-created', async () => {
+  console.log('Video call window: Webview created confirmation');
+  return { success: true };
+});
+
+handle('video-call-window/webview-loading', async () => {
+  console.log('Video call window: Webview started loading');
+  return { success: true };
+});
+
+handle('video-call-window/webview-ready', async () => {
+  console.log('Video call window: Webview finished loading');
+  return { success: true };
+});
+
+handle('video-call-window/webview-failed', async (_webContents, error) => {
+  console.error('Video call window: Webview failed to load:', error);
+  return { success: true };
 });

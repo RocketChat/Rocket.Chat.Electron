@@ -33,6 +33,16 @@ type ChannelToArgsMap = {
   'video-call-window/close-requested': () => void;
   'video-call-window/open-webview-dev-tools': () => boolean;
   'video-call-window/test-ipc': () => { success: boolean; timestamp: number };
+  'video-call-window/handshake': () => { success: boolean; timestamp: number };
+  'video-call-window/renderer-ready': () => {
+    success: boolean;
+    autoOpenDevtools: boolean;
+  };
+  'video-call-window/url-received': () => { success: boolean };
+  'video-call-window/webview-created': () => { success: boolean };
+  'video-call-window/webview-loading': () => { success: boolean };
+  'video-call-window/webview-ready': () => { success: boolean };
+  'video-call-window/webview-failed': (error: string) => { success: boolean };
   'jitsi-desktop-capturer-get-sources': (
     args: [options: Electron.SourcesOptions, jitsiDomain: string]
   ) => Electron.DesktopCapturerSource[];

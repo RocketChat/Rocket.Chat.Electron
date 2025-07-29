@@ -1,335 +1,64 @@
-# Video Call Window Flow Documentation
+# Video Call Window Documentation
 
 ## Overview
 
-The Rocket.Chat Electron app includes a video call window system that creates a separate browser window for video conferencing. This document outlines the complete flow from initiation to cleanup.
+The video call window system in Rocket.Chat Electron has two main parts:
 
-## Architecture Components
+1. **Window Management** - How the video call window is created and managed
+2. **Screen Sharing** - How screen sharing works within the video call
 
-### Main Process Components
-- **IPC Handler** (`src/videoCallWindow/ipc.ts`) - Manages window creation and IPC communication
-- **Window Management** - Handles BrowserWindow lifecycle and configuration
-- **Desktop Capturer** - Provides screen sharing capabilities with caching
+## Documentation Files
 
-### Renderer Process Components
-- **Bootstrap Script** (`src/videoCallWindow/video-call-window.tsx`) - Initializes the React app
-- **VideoCallWindow Component** (`src/videoCallWindow/videoCallWindow.tsx`) - Main React component
-- **ScreenSharePicker** (`src/videoCallWindow/screenSharePicker.tsx`) - Screen sharing interface
+### 📊 [Window Management Flow](./video-call-window-management.md)
+**What it covers:** How Rocket.Chat opens a video call window when you click a video call button.
 
-### Webview Process
-- **Preload Script** (`src/videoCallWindow/preload/index.ts`) - Exposes APIs to webview content
-- **Jitsi Bridge** - Handles video call platform integration
+This document explains the complete process from when you click "Join Call" to when you see a working video call interface. It shows how the app creates a separate window for your video call, sets it up safely, handles any problems that might occur, and makes sure everything works reliably even on slower computers.
 
-## Complete Flow Diagram
+**You'll learn about:**
+- How the app validates video call URLs for security
+- Why video calls open in separate windows  
+- How the app handles errors and tries to fix them automatically
+- The retry system that makes video calls work reliably
+- How multiple attempts ensure success even with slow internet
+- What happens when you close a video call window
 
-```mermaid
-flowchart TD
-    %% Main Process Entry Point
-    A[User Initiates Video Call] --> B[Main Process: video-call-window/open-window IPC]
-    
-    %% URL Validation
-    B --> C{URL Valid?}
-    C -->|Invalid| C1[Reject Request]
-    C -->|Google URL| C2[Open External Browser]
-    C -->|Valid| D[Check Existing Window]
-    
-    %% Window Management
-    D --> E{Window Exists?}
-    E -->|Yes| F[Close Existing Window]
-    E -->|No| G[Create New BrowserWindow]
-    F --> F1[Wait for Destruction] 
-    F1 --> G
-    
-    %% Window Creation
-    G --> H[Configure Window Properties]
-    H --> I[Set Permissions & Handlers]
-    I --> J[Load video-call-window.html]
-    
-    %% Renderer Process Initialization
-    J --> K[DOM Ready Event]
-    K --> L[Execute JavaScript Test]
-    L --> M[video-call-window.tsx Starts]
-    
-    %% React App Bootstrap
-    M --> N[Setup i18n]
-    N --> O[Create React Root]
-    O --> P[Render VideoCallWindow Component]
-    
-    %% IPC Handshake with Retry
-    P --> Q[IPC Handshake Test]
-    Q --> R{Handshake Success?}
-    R -->|No| R1[Retry with 1s Delay]
-    R1 --> R2{Max Attempts?}
-    R2 -->|No| Q
-    R2 -->|Yes| R3[Show Fallback UI]
-    R -->|Yes| S[Signal Renderer Ready]
-    
-    %% URL Request with Immediate Retry
-    S --> T[Request Pending URL]
-    T --> T1{URL Request Success?}
-    T1 -->|IPC Error| T2[URL Retry 1s Delay]
-    T2 --> T3{URL Retry Attempts Left?}
-    T3 -->|Yes| T
-    T3 -->|No| T4[Fall Back to Full Retry]
-    T4 --> R1
-    T1 -->|No URL Yet| T5[URL Not Ready - Retry]
-    T5 --> T3
-    T1 -->|Success| V[Dispatch URL Event]
-    
-    %% Component URL Reception
-    V --> W[VideoCallWindow Receives URL Event]
-    W --> X[Create Webview Element]
-    X --> Y[Setup Webview Event Handlers]
-    
-    %% Webview Loading States
-    Y --> Z[did-start-loading]
-    Z --> AA[Set Loading State]
-    AA --> BB[Start Loading Timeout]
-    
-    %% Success Path
-    BB --> CC[did-finish-load]
-    CC --> DD[Clear Loading State]
-    DD --> EE[Video Call Active]
-    
-    %% Progressive Error Handling
-    BB --> FF[did-fail-load OR Timeout]
-    FF --> GG[Show Error State]
-    GG --> HH{Recovery Attempt?}
-    HH -->|Attempt 1| II[Webview Reload - 1s Delay]
-    HH -->|Attempt 2| JJ[URL Refresh - 2s Delay]
-    HH -->|Attempt 3| KK[Full Reinitialize - 3s Delay]
-    HH -->|Max Attempts| LL[Show Manual Reload Button]
-    
-    %% Screen Sharing Flow
-    EE --> MM[User Requests Screen Share]
-    MM --> NN[Webview Calls requestScreenSharing]
-    NN --> OO[Preload Script IPC Call]
-    OO --> PP[Main Process Opens Screen Picker]
-    PP --> QQ[ScreenSharePicker Component]
-    QQ --> RR[Fetch Available Sources]
-    RR --> SS[User Selects Source]
-    SS --> TT[Validate Source]
-    TT --> UU[Return Source ID]
-    UU --> VV[Webview Gets Stream Access]
-    
-    %% Window Lifecycle
-    EE --> WW[Window Events]
-    WW --> XX[Move/Resize/Focus Events]
-    XX --> YY[Update Redux State]
-    
-    %% Cleanup
-    EE --> ZZ[User Closes Window]
-    ZZ --> AAA[Cleanup Resources]
-    AAA --> BBB[Clear Desktop Capturer Cache]
-    BBB --> CCC[Remove Event Listeners]
-    CCC --> DDD[Window Destroyed]
-    
-    %% Recovery Flows
-    II --> Z
-    JJ --> X
-    KK --> M
-    
-    %% Manual Recovery
-    LL --> DDD1[User Clicks Reload]
-    DDD1 --> Z
-    
-    %% Styling
-    classDef mainProcess fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef renderer fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef webview fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px
-    classDef success fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef retry fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    
-    class A,B,C,D,E,F,G,H,I,J,PP,AAA,BBB,CCC mainProcess
-    class K,L,M,N,O,P,Q,S,T,V,W,QQ,YY renderer
-    class X,Y,Z,AA,BB,CC,DD,EE,MM,NN,OO,VV webview
-    class FF,GG,HH,II,JJ,KK,LL error
-    class DD,EE,UU success
-    class R1,R2,T2,T3,T4,T5 retry
-```
+**Perfect for understanding:** Why video calls sometimes take a moment to open, how the app recovers from problems, and what's happening behind the scenes when you start a video call.
 
-## Detailed Flow Breakdown
+### 🖥️ [Screen Sharing Flow](./video-call-screen-sharing.md) 
+**What it covers:** How screen sharing works when you're already in a video call.
 
-### 1. Initiation Phase
-- User triggers video call from main Rocket.Chat window
-- Main process receives `video-call-window/open-window` IPC call with URL
-- URL validation ensures only HTTP/HTTPS protocols are allowed
-- Google URLs are redirected to external browser to prevent conflicts
+This document explains what happens when you click the screen share button during a video call. It shows how the app finds all your windows and screens, how it makes the selection process fast with smart caching, and how it ensures what you choose actually works before sharing it with others.
 
-### 2. Window Management
-- Checks if existing video call window exists
-- If exists, properly closes and waits for destruction to complete
-- Creates new BrowserWindow with optimized settings for video calls
-- Configures security settings and permission handlers
+**You'll learn about:**
+- How the app discovers all your open windows and screens
+- Why screen sharing feels instant the second time you use it
+- How the app organizes your options into easy-to-use tabs
+- The smart caching system that makes everything fast
+- How the app handles closed windows and disconnected screens
+- What happens to memory and cache when you end calls
 
-### 3. Renderer Initialization
-- Loads `video-call-window.html` template
-- Executes JavaScript initialization test
-- Sets up i18n for localization
-- Creates React root and renders main component
+**Perfect for understanding:** Why screen sharing opens quickly, how the preview thumbnails are generated, what the app does when windows disappear, and how it manages computer resources efficiently.
 
-### 4. IPC Handshake & URL Request
-- Performs handshake test to ensure IPC communication works
-- Retries with exponential backoff if handshake fails
-- Signals renderer ready state to main process
-- **Renderer requests pending URL from main process (pull-based)**
-- **URL Request Retry Logic**:
-  - Immediate retries for URL request failures (3 attempts)
-  - 1000ms delay between URL retry attempts
-  - Handles both "no URL yet" and IPC failure scenarios
-  - Falls back to full initialization retry if URL retries exhausted
-- Main process returns URL if available, or signals to retry
+## How They Work Together
 
-### 5. Webview Creation
-- Creates webview element with video call URL
-- Sets up event handlers for loading states
-- Configures preload script for API exposure
-- Implements loading timeout with auto-recovery
+### The Complete User Journey
 
-### 6. Error Handling & Recovery
-The system includes a multi-tier recovery system:
+1. **📊 Window Management** → You click a video call button, and the app creates a working video call window
+2. **🖥️ Screen Sharing** → While in the call, you click screen share and select what to share
 
-#### Automatic Recovery Strategies
-1. **Webview Reload** (1s delay) - Simple webview refresh
-2. **URL Refresh** (2s delay) - Clears webview and reloads URL
-3. **Full Reinitialize** (3s delay) - Reloads entire window
+### Real-World Example
 
-#### Fallback Mechanisms
-- Loading timeout (15 seconds) triggers auto-recovery
-- Maximum 3 automatic recovery attempts
-- Manual reload button if auto-recovery fails
-- Silent auto-recovery attempts with increasing delays
+**Starting a call:**
+- You click "Join Video Call" in a Rocket.Chat message
+- Window Management Flow takes over
+- A new window opens and loads the video call interface
+- You see other participants and can talk/video chat
 
-### 7. Screen Sharing Integration
-- Webview content requests screen sharing via exposed API
-- Preload script handles IPC communication
-- Main process opens ScreenSharePicker component
-- User selects from available windows/screens
-- Desktop capturer validates source availability
-- Source ID returned to webview for stream access
+**Sharing your screen:**
+- You click the screen share button in the video call
+- Screen Sharing Flow takes over  
+- A small window shows all your options with preview images
+- You click on a window or screen to share it
+- Others in the call immediately see what you're sharing
 
-### 8. Performance Optimizations
-- **Desktop Capturer Caching** - 3-second TTL for source lists
-- **Source Validation Caching** - 30-second TTL for source validity
-- **Lazy Cache Cleanup** - 60-second delay after window close
-- **Background Throttling** - Enabled for better performance
-- **V8 Cache Optimization** - Bypass heat check for faster startup
-
-### 9. Window Lifecycle Management
-- State persistence for window position/size
-- Event handlers for focus, resize, move events
-- Redux state updates for UI synchronization
-- Proper cleanup of resources on window close
-
-## Key Features
-
-### Robust Error Handling
-- Multiple recovery strategies for different failure modes
-- Complete logging for debugging
-- Graceful degradation when resources unavailable
-
-### Security Measures
-- URL validation and protocol restrictions
-- Permission request handling for media access
-- Context isolation for webview content
-- SMB protocol blocking for security
-
-### Low-Spec Machine Support
-- Optimized for performance on limited hardware
-- Background throttling and memory management
-- Efficient caching strategies
-- Fallback recovery mechanisms
-
-### Pull-Based URL Handling
-- **Prevents Lost Calls** - Renderer actively requests URL instead of waiting for push
-- **Race Condition Immunity** - No timing dependencies between processes
-- **Retry Mechanism** - Built-in retry logic if URL not yet available
-- **Consistent Pattern** - Matches screen sharing request/response pattern
-- **Better Error Handling** - Clear success/failure responses for troubleshooting
-
-### IPC Acknowledgment Patterns
-- **All Communications Use invoke/handle** - No fire-and-forget send() calls
-- **Proper Response Validation** - Every IPC call checks for success acknowledgment
-- **Error Detection** - Failed acknowledgments are logged for debugging
-- **Event-Based Communication** - Custom events for renderer-to-component communication
-- **Reliable State Tracking** - Main process confirms receipt of all lifecycle events
-
-## File Structure
-
-```
-src/videoCallWindow/
-├── ipc.ts                    # Main process IPC handlers
-├── video-call-window.tsx     # Renderer bootstrap script
-├── videoCallWindow.tsx       # Main React component
-├── screenSharePicker.tsx     # Screen sharing UI
-└── preload/
-    ├── index.ts             # Webview preload script
-    └── jitsiBridge.ts       # Video platform integration
-```
-
-## How to Display on GitHub
-
-This diagram will be automatically rendered on GitHub when viewing this markdown file. GitHub natively supports Mermaid diagrams in markdown files using the ```mermaid code block syntax.
-
-### Best Practices for GitHub Visibility:
-
-1. **Place in docs/ folder** - This ensures the documentation is easily discoverable
-2. **Link from README.md** - Add a reference to this flow documentation
-3. **Use descriptive filename** - `video-call-window-flow.md` clearly indicates the content
-4. **Include in PR descriptions** - Reference this diagram when making video call related changes
-
-### Alternative Display Options:
-
-1. **GitHub Issues/PRs** - Copy the mermaid code block directly
-2. **GitHub Wiki** - Create a dedicated wiki page for architecture docs
-3. **README sections** - Include simplified version in main README
-4. **GitHub Pages** - Host as part of project documentation site
-
-## Troubleshooting
-
-### Common Issues
-- **IPC Handshake Failures** - Usually resolved by retry mechanism
-- **Webview Loading Timeouts** - Auto-recovery handles most cases
-- **Screen Sharing Permission Denied** - System-level permissions required
-- **Window Creation Failures** - Check available memory and screen bounds
-
-### Debug Tools
-- **Console Logs** - Complete logging throughout the flow
-- **Developer Tools** - Auto-open available for debugging
-- **State Inspection** - Redux state shows window status
-
-### Retry Patterns & Resilience
-
-The video call window implements a multi-layered retry strategy to handle various failure scenarios:
-
-#### URL Request Retries (Immediate)
-- **3 attempts** with 1000ms delays
-- Handles IPC communication failures
-- Separates "no URL yet" from "IPC failed" scenarios
-- Allows slower machines time to process requests
-
-#### Initialization Retries (Full)
-- **10 attempts** with 1-second delays
-- Triggered when URL retries are exhausted
-- Includes DOM readiness, React setup, and IPC handshake
-- Comprehensive recovery for complex initialization failures
-
-#### Webview Recovery (Progressive)
-- **3-tier strategy** with increasing delays (1s, 2s, 3s)
-- Webview reload → URL refresh → Full reinitialize
-- Automatic recovery for loading timeouts (15s)
-- Manual reload button as final fallback
-
-#### Failure Isolation
-- Each layer handles specific failure types
-- No cascading failures between retry systems
-- Clear logging for debugging retry attempts
-- Graceful degradation to user-controlled recovery
-
-### IPC Acknowledgment Patterns
-- **All Communications Use invoke/handle** - No fire-and-forget send() calls
-- **Proper Response Validation** - Every IPC call checks for success acknowledgment
-- **Error Detection** - Failed acknowledgments are logged for debugging
-- **Event-Based Communication** - Custom events for renderer-to-component communication
-- **Reliable State Tracking** - Main process confirms receipt of all lifecycle events 
+Both systems work together seamlessly to give you a complete video calling experience that's fast, reliable, and easy to use. 

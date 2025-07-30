@@ -40,13 +40,14 @@ let pendingVideoCallUrl: string | null = null;
 let pendingAutoOpenDevtools: boolean = false;
 
 // Helper function to log URL changes
-const setPendingVideoCallUrl = (url: string | null, reason: string) => {
+const setPendingVideoCallUrl = (url: string, reason: string) => {
   const previous = pendingVideoCallUrl;
   pendingVideoCallUrl = url;
-  console.log(`Video call window: pendingVideoCallUrl changed - ${reason}`, {
+
+  console.log(`Video call window: pendingVideoCallUrl updated - ${reason}`, {
     previous,
     new: url,
-    timestamp: Date.now(),
+    timestamp: new Date().toISOString(),
   });
 };
 
@@ -895,7 +896,6 @@ export const cleanupVideoCallResources = () => {
   sourceValidationCache.clear();
   sourceValidationCacheTimestamp = 0;
 
-  setPendingVideoCallUrl(null, 'cleanup');
   pendingAutoOpenDevtools = false;
 
   isVideoCallWindowDestroying = false;
@@ -937,15 +937,7 @@ handle('video-call-window/request-url', async () => {
   }
 
   if (!pendingVideoCallUrl) {
-    console.log(
-      'Video call window: No pending URL available yet, renderer should retry'
-    );
-    console.log('Video call window: Current state:', {
-      hasWindow: !!videoCallWindow,
-      isDestroyed: videoCallWindow?.isDestroyed(),
-      pendingUrl: pendingVideoCallUrl,
-      pendingDevtools: pendingAutoOpenDevtools,
-    });
+    console.error('Video call window: No pending URL available');
     return { success: false, url: null, autoOpenDevtools: false };
   }
 
@@ -958,21 +950,15 @@ handle('video-call-window/request-url', async () => {
     pendingVideoCallUrl
   );
 
-  const urlToReturn = pendingVideoCallUrl;
-  const autoOpenDevtools = state.isAutoOpenEnabled;
-
-  setPendingVideoCallUrl(null, 'url-requested');
-  pendingAutoOpenDevtools = false;
-
   return {
     success: true,
-    url: urlToReturn,
-    autoOpenDevtools,
+    url: pendingVideoCallUrl,
+    autoOpenDevtools: state.isAutoOpenEnabled,
   };
 });
 
 handle('video-call-window/url-received', async () => {
-  console.log('Video call window: URL received confirmation');
+  console.log('Video call window: URL received confirmation from renderer');
   return { success: true };
 });
 

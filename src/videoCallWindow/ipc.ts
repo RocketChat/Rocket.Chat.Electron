@@ -37,7 +37,6 @@ const WEBVIEW_CHECK_INTERVAL = 100;
 let videoCallWindow: BrowserWindow | null = null;
 let isVideoCallWindowDestroying = false;
 let pendingVideoCallUrl: string | null = null;
-let pendingAutoOpenDevtools: boolean = false;
 
 // Helper function to log URL changes
 const setPendingVideoCallUrl = (url: string, reason: string) => {
@@ -895,8 +894,6 @@ export const cleanupVideoCallResources = () => {
   desktopCapturerPromise = null;
   sourceValidationCache.clear();
   sourceValidationCacheTimestamp = 0;
-
-  pendingAutoOpenDevtools = false;
 
   isVideoCallWindowDestroying = false;
   cleanupVideoCallWindow();

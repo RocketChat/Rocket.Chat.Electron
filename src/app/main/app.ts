@@ -1,4 +1,4 @@
-import { app, session } from 'electron';
+import { app, session, BrowserWindow } from 'electron';
 import { rimraf } from 'rimraf';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -111,7 +111,20 @@ export const setupApp = (): void => {
   });
 
   app.addListener('window-all-closed', () => {
-    app.quit();
+    // Don't quit immediately if this might be caused by video call window closure
+    // especially during first launch when main window might not be fully ready
+    setTimeout(() => {
+      const allWindows = BrowserWindow.getAllWindows();
+
+      // Only quit if there are truly no windows left after a brief delay
+      // This prevents crashes when video call window closes before main window is established
+      if (allWindows.length === 0) {
+        console.log('No windows remaining after delay, quitting application');
+        app.quit();
+      } else {
+        console.log(`${allWindows.length} window(s) still exist, not quitting`);
+      }
+    }, 100); // Brief delay to let window state stabilize
   });
 
   app.whenReady().then(() => preloadBrowsersList());

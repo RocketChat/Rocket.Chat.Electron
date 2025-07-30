@@ -12,6 +12,7 @@ let initAttempts = 0;
 const MAX_INIT_ATTEMPTS = 10;
 
 let isWindowDestroying = false;
+let reactRoot: any = null;
 
 const setupI18n = async () => {
   try {
@@ -49,24 +50,17 @@ const showFallbackUI = () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f5f5f5;
-    font-family: Arial, sans-serif;
-    flex-direction: column;
-    gap: 20px;
+    background: #2f343d;
+    color: white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+    z-index: 9999;
   `;
 
   fallbackContainer.innerHTML = `
     <div style="text-align: center;">
-      <h2 style="color: #333; margin: 0;">Video Call Unavailable</h2>
-      <p style="color: #666; margin: 10px 0;">Unable to initialize video call window</p>
-      <button onclick="window.location.reload()" style="
-        padding: 10px 20px;
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      ">Try Again</button>
+      <h2 style="color: #fff; margin: 0;">Video Call Unavailable</h2>
+      <p style="color: #ccc; margin: 10px 0;">Unable to initialize video call window</p>
+      <p style="color: #999; margin: 10px 0; font-size: 14px;">Retrying automatically in 3 seconds...</p>
     </div>
   `;
 
@@ -74,9 +68,19 @@ const showFallbackUI = () => {
 
   if (process.env.NODE_ENV === 'development') {
     console.error(
-      'Video call window: Showing fallback UI after failed initialization'
+      'Video call window: Showing fallback UI after failed initialization, will auto-reload in 3 seconds'
     );
   }
+
+  // Auto-reload after 3 seconds
+  setTimeout(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        'Video call window: Auto-reloading after fallback UI timeout'
+      );
+    }
+    window.location.reload();
+  }, 3000);
 };
 
 const triggerURLEvent = (url: string, autoOpenDevtools: boolean): void => {
@@ -131,8 +135,17 @@ const start = async (): Promise<void> => {
       console.log('Video call window: Creating React root and rendering');
     }
 
-    const root = createRoot(rootElement);
-    root.render(
+    // Clean up existing root if it exists
+    if (reactRoot) {
+      reactRoot.unmount();
+      reactRoot = null;
+    }
+
+    // Clear the root element to avoid React warnings
+    rootElement.innerHTML = '';
+
+    reactRoot = createRoot(rootElement);
+    reactRoot.render(
       <I18nextProvider i18n={i18next}>
         <VideoCallWindow />
       </I18nextProvider>
@@ -168,21 +181,45 @@ const start = async (): Promise<void> => {
 
     // Request URL with custom retry logic
     const urlRetryOptions: IRetryOptions = {
-      maxAttempts: 3,
-      retryDelay: 1000,
+      maxAttempts: 5, // Increased from 3
+      retryDelay: 2000, // Increased from 1000ms
       logRetries: process.env.NODE_ENV === 'development',
-      shouldRetry: (error, _attempt) => {
+      shouldRetry: (error, attempt) => {
         // Retry on IPC errors or if result indicates no URL yet
         const isIPCError = error.message.includes('IPC call failed');
         const isNoURLYet = error.message.includes('success: false');
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log(
+            `Video call window: URL request attempt ${attempt} failed:`,
+            {
+              error: error.message,
+              isIPCError,
+              isNoURLYet,
+              willRetry: isIPCError || isNoURLYet,
+            }
+          );
+        }
+
         return isIPCError || isNoURLYet;
       },
     };
 
-    const urlRequestResult = await invokeWithRetry(
-      'video-call-window/request-url',
-      urlRetryOptions
-    );
+    let urlRequestResult;
+    try {
+      urlRequestResult = await invokeWithRetry(
+        'video-call-window/request-url',
+        urlRetryOptions
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(
+        'Video call window: Failed to get URL after all retries:',
+        error
+      );
+      throw new Error(`Failed to get video call URL: ${errorMessage}`);
+    }
 
     if (process.env.NODE_ENV === 'development') {
       console.log('Video call window: URL received:', urlRequestResult);
@@ -239,6 +276,12 @@ window.addEventListener('beforeunload', () => {
   isWindowDestroying = true;
   if (process.env.NODE_ENV === 'development') {
     console.log('Video call window: Window unloading, stopping retries');
+  }
+
+  // Clean up React root
+  if (reactRoot) {
+    reactRoot.unmount();
+    reactRoot = null;
   }
 });
 

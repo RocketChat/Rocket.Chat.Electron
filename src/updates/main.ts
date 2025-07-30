@@ -211,10 +211,19 @@ export const setupUpdates = async (): Promise<void> => {
   // Set initial channel
   autoUpdater.channel = updateChannel;
 
+  // Enable prerelease updates for alpha and beta channels
+  if (updateChannel === 'alpha' || updateChannel === 'beta') {
+    autoUpdater.allowPrerelease = true;
+  }
+
   // Listen for channel changes
   listen(ABOUT_DIALOG_UPDATE_CHANNEL_CHANGED, async (action) => {
     const newChannel = action.payload;
     autoUpdater.channel = newChannel;
+
+    // Enable prerelease updates for alpha and beta channels
+    autoUpdater.allowPrerelease =
+      newChannel === 'alpha' || newChannel === 'beta';
 
     dispatch({
       type: UPDATES_CHANNEL_CHANGED,

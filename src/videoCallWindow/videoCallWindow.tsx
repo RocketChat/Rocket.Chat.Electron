@@ -17,6 +17,9 @@ import { ScreenSharePicker } from './screenSharePicker';
 
 const MAX_RECOVERY_ATTEMPTS = 3;
 const LOADING_TIMEOUT_MS = 15000;
+const LOADING_SHOW_DELAY = 500; // Delay before showing loading spinner to prevent quick flashes
+const ERROR_SHOW_DELAY = 800; // Delay before showing error to prevent flicker during retries
+
 const RECOVERY_DELAYS = {
   webviewReload: 1000,
   urlRefresh: 2000,
@@ -36,27 +39,17 @@ const VideoCallWindow = () => {
   const [shouldAutoOpenDevtools, setShouldAutoOpenDevtools] = useState(false);
   const [isFailed, setIsFailed] = useState(false);
   const [isReloading, setIsReloading] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Keep for internal state logic
+  const [showLoading, setShowLoading] = useState(false); // Delayed loading display
+  const [showError, setShowError] = useState(false); // Delayed error display
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [recoveryAttempt, setRecoveryAttempt] = useState(0);
 
   const webviewRef = useRef<any>(null);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recoveryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const clearLoadingState = (reason: string): void => {
-    console.log(`VideoCallWindow: Clearing loading state - ${reason}`);
-    setIsFailed(false);
-    setIsReloading(false);
-    setIsLoading(false);
-
-    [loadingTimeoutRef, recoveryTimeoutRef].forEach((ref) => {
-      if (ref.current) {
-        clearTimeout(ref.current);
-        ref.current = null;
-      }
-    });
-  };
+  const loadingDisplayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const errorDisplayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const resetRecoveryState = (): void => {
     setRecoveryAttempt(0);
@@ -251,23 +244,32 @@ const VideoCallWindow = () => {
 
     const checkForClosePage = async (url: string) => {
       if (url.includes('/close.html') || url.includes('/close2.html')) {
-        try {
-          await invokeWithRetry('video-call-window/close-requested', {
-            maxAttempts: 2,
-            retryDelay: 500,
-            logRetries: process.env.NODE_ENV === 'development',
-          });
-          if (process.env.NODE_ENV === 'development') {
-            console.log(
-              'VideoCallWindow: Close request confirmed by main process'
+        console.log(
+          'VideoCallWindow: Close page detected, scheduling window close:',
+          url
+        );
+
+        // Add delay to prevent crash during navigation to close2.html
+        // This allows the webview to complete the navigation before window destruction
+        setTimeout(async () => {
+          try {
+            await invokeWithRetry('video-call-window/close-requested', {
+              maxAttempts: 2,
+              retryDelay: 500,
+              logRetries: process.env.NODE_ENV === 'development',
+            });
+            if (process.env.NODE_ENV === 'development') {
+              console.log(
+                'VideoCallWindow: Close request confirmed by main process'
+              );
+            }
+          } catch (error) {
+            console.error(
+              'VideoCallWindow: Failed to send close request:',
+              error
             );
           }
-        } catch (error) {
-          console.error(
-            'VideoCallWindow: Failed to send close request:',
-            error
-          );
-        }
+        }, 1000); // 1 second delay to let navigation complete and prevent crash
       }
     };
 
@@ -276,6 +278,18 @@ const VideoCallWindow = () => {
       setIsFailed(false);
       setIsReloading(false);
       setIsLoading(true);
+      setShowError(false);
+
+      // Clear any pending display timeouts
+      if (loadingDisplayTimeoutRef.current) {
+        clearTimeout(loadingDisplayTimeoutRef.current);
+        loadingDisplayTimeoutRef.current = null;
+      }
+
+      if (errorDisplayTimeoutRef.current) {
+        clearTimeout(errorDisplayTimeoutRef.current);
+        errorDisplayTimeoutRef.current = null;
+      }
 
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
@@ -286,6 +300,20 @@ const VideoCallWindow = () => {
         clearTimeout(recoveryTimeoutRef.current);
         recoveryTimeoutRef.current = null;
       }
+
+      // Delay showing loading spinner to prevent quick flashes
+      loadingDisplayTimeoutRef.current = setTimeout(() => {
+        // Only show loading if we're still actually loading (not finished)
+        if (isLoading && !isFailed) {
+          console.log('VideoCallWindow: Showing loading spinner after delay');
+          setShowLoading(true);
+        } else {
+          console.log(
+            'VideoCallWindow: Skipping loading spinner - already finished loading'
+          );
+        }
+        loadingDisplayTimeoutRef.current = null;
+      }, LOADING_SHOW_DELAY);
 
       invokeWithRetry('video-call-window/webview-loading', {
         maxAttempts: 2,
@@ -354,7 +382,18 @@ const VideoCallWindow = () => {
       );
 
       resetRecoveryState();
-      clearLoadingState('did-finish-load event');
+
+      // Clear pending loading display timeout if it hasn't fired yet
+      if (loadingDisplayTimeoutRef.current) {
+        clearTimeout(loadingDisplayTimeoutRef.current);
+        loadingDisplayTimeoutRef.current = null;
+      }
+
+      // Hide loading immediately on success to make it feel snappy
+      setIsLoading(false);
+      setShowLoading(false);
+      setIsFailed(false);
+      setShowError(false);
 
       invokeWithRetry('video-call-window/webview-ready', {
         maxAttempts: 2,
@@ -379,7 +418,11 @@ const VideoCallWindow = () => {
     const handleStopLoading = () => {
       console.log('VideoCallWindow: Webview stopped loading');
       if (!isFailed) {
-        clearLoadingState('did-stop-loading event');
+        // Don't immediately hide loading on stop-loading, let finish-load handle it
+        // This prevents flicker when both events fire quickly
+        console.log(
+          'VideoCallWindow: Waiting for finish-load to complete transition'
+        );
       }
     };
 
@@ -399,10 +442,31 @@ const VideoCallWindow = () => {
           loadingTimeoutRef.current = null;
         }
 
-        setIsFailed(true);
-        setIsReloading(false);
+        // Clear pending loading display
+        if (loadingDisplayTimeoutRef.current) {
+          clearTimeout(loadingDisplayTimeoutRef.current);
+          loadingDisplayTimeoutRef.current = null;
+        }
+
         setIsLoading(false);
+        setShowLoading(false);
+        setIsReloading(false);
+        setIsFailed(true);
         setErrorMessage(`${event.errorDescription} (${event.errorCode})`);
+
+        // Delay showing error to prevent flicker during quick retry attempts
+        errorDisplayTimeoutRef.current = setTimeout(() => {
+          // Only show error if we're still in failed state (not recovered)
+          if (isFailed && !isLoading) {
+            console.log('VideoCallWindow: Showing error screen after delay');
+            setShowError(true);
+          } else {
+            console.log(
+              'VideoCallWindow: Skipping error screen - state recovered'
+            );
+          }
+          errorDisplayTimeoutRef.current = null;
+        }, ERROR_SHOW_DELAY);
 
         ipcRenderer
           .invoke(
@@ -437,10 +501,20 @@ const VideoCallWindow = () => {
         loadingTimeoutRef.current = null;
       }
 
-      setIsFailed(true);
-      setIsReloading(false);
+      // Clear pending loading display
+      if (loadingDisplayTimeoutRef.current) {
+        clearTimeout(loadingDisplayTimeoutRef.current);
+        loadingDisplayTimeoutRef.current = null;
+      }
+
       setIsLoading(false);
+      setShowLoading(false);
+      setIsReloading(false);
+      setIsFailed(true);
       setErrorMessage(t('videoCall.error.crashed'));
+
+      // Show error immediately for crashes (more serious than load failures)
+      setShowError(true);
 
       invokeWithRetry(
         'video-call-window/webview-failed',
@@ -539,17 +613,27 @@ const VideoCallWindow = () => {
       webview.removeEventListener('crashed', handleCrashed);
       webview.removeEventListener('did-stop-loading', handleStopLoading);
 
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
-
-      if (recoveryTimeoutRef.current) {
-        clearTimeout(recoveryTimeoutRef.current);
-        recoveryTimeoutRef.current = null;
-      }
+      // Clean up all timeout references
+      [
+        loadingTimeoutRef,
+        recoveryTimeoutRef,
+        loadingDisplayTimeoutRef,
+        errorDisplayTimeoutRef,
+      ].forEach((ref) => {
+        if (ref.current) {
+          clearTimeout(ref.current);
+          ref.current = null;
+        }
+      });
     };
-  }, [videoCallUrl, shouldAutoOpenDevtools, isFailed, recoveryAttempt, t]);
+  }, [
+    videoCallUrl,
+    shouldAutoOpenDevtools,
+    isFailed,
+    isLoading,
+    recoveryAttempt,
+    t,
+  ]);
 
   const handleReload = (): void => {
     console.log('VideoCallWindow: Manual reload requested');
@@ -600,7 +684,7 @@ const VideoCallWindow = () => {
       <ScreenSharePicker />
 
       {/* Loading overlay with escape option */}
-      {isLoading && !isFailed && (
+      {showLoading && !showError && (
         <Box
           display='flex'
           flexDirection='column'
@@ -634,7 +718,7 @@ const VideoCallWindow = () => {
         </Box>
       )}
 
-      {isFailed && (
+      {showError && (
         <Box
           display='flex'
           flexDirection='column'
@@ -706,7 +790,7 @@ const VideoCallWindow = () => {
         style={{
           width: '100%',
           height: '100%',
-          display: isFailed || isLoading ? 'none' : 'flex',
+          display: showError || showLoading ? 'none' : 'flex',
         }}
       />
     </Box>

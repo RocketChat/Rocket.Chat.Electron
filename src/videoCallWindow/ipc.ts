@@ -175,13 +175,19 @@ const cleanupVideoCallWindow = () => {
     isVideoCallWindowDestroying = true;
 
     try {
-      videoCallWindow.webContents.session.setPermissionRequestHandler(
-        () => false
-      );
+      // Set permission handler with additional safety
+      if (
+        videoCallWindow.webContents &&
+        !videoCallWindow.webContents.isDestroyed()
+      ) {
+        videoCallWindow.webContents.session.setPermissionRequestHandler(
+          () => false
+        );
 
-      videoCallWindow.webContents.executeJavaScript('void 0').catch(() => {
-        // Ignore errors during cleanup
-      });
+        videoCallWindow.webContents.executeJavaScript('void 0').catch(() => {
+          // Ignore errors during cleanup
+        });
+      }
 
       try {
         const allWebContents = webContents.getAllWebContents();
@@ -209,22 +215,39 @@ const cleanupVideoCallWindow = () => {
 
       videoCallWindow.removeAllListeners();
 
-      videoCallWindow.close();
+      // Use setImmediate to ensure this happens after current event loop
+      // This prevents timing issues during app initialization
+      setImmediate(() => {
+        if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+          videoCallWindow.close();
+        }
+      });
     } catch (error) {
       console.error('Error during video call window cleanup:', error);
       if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-        videoCallWindow.removeAllListeners();
-        videoCallWindow.close();
+        try {
+          videoCallWindow.removeAllListeners();
+          setImmediate(() => {
+            if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+              videoCallWindow.close();
+            }
+          });
+        } catch (fallbackError) {
+          console.error('Error in fallback cleanup:', fallbackError);
+        }
       }
     }
   }
 
-  videoCallWindow = null;
-  isVideoCallWindowDestroying = false;
-  videoCallWindowDestructionCount++;
+  // Use setTimeout to ensure this cleanup happens after any window events are processed
+  setTimeout(() => {
+    videoCallWindow = null;
+    isVideoCallWindowDestroying = false;
+    videoCallWindowDestructionCount++;
 
-  console.log('Video call window cleanup completed');
-  logVideoCallWindowStats();
+    console.log('Video call window cleanup completed');
+    logVideoCallWindowStats();
+  }, 10);
 };
 
 const setupWebviewHandlers = (webContents: WebContents) => {
@@ -463,26 +486,38 @@ export const startVideoCallWindowHandler = (): void => {
 
       videoCallWindow.on('closed', () => {
         console.log('Video call window closed - destroying completely');
-        videoCallWindow = null;
-        isVideoCallWindowDestroying = false;
-        videoCallWindowDestructionCount++;
 
-        cacheCleanupTimer = setTimeout(() => {
-          console.log(
-            'Clearing desktop capturer cache after window idle period'
-          );
-          desktopCapturerCache = null;
-          desktopCapturerPromise = null;
-          sourceValidationCache.clear();
-          sourceValidationCacheTimestamp = 0;
-          cacheCleanupTimer = null;
-          console.log('Desktop capturer cache cleared due to inactivity');
-        }, CACHE_CLEANUP_DELAY);
+        // Use setTimeout to ensure cleanup happens after any potential app lifecycle events
+        // This prevents crashes during first launch when timing is critical
+        setTimeout(() => {
+          try {
+            videoCallWindow = null;
+            isVideoCallWindowDestroying = false;
+            videoCallWindowDestructionCount++;
 
-        console.log(
-          `Desktop capturer cache will be cleared in ${CACHE_CLEANUP_DELAY / 1000} seconds if no new video call window is opened`
-        );
-        logVideoCallWindowStats();
+            cacheCleanupTimer = setTimeout(() => {
+              console.log(
+                'Clearing desktop capturer cache after window idle period'
+              );
+              desktopCapturerCache = null;
+              desktopCapturerPromise = null;
+              sourceValidationCache.clear();
+              sourceValidationCacheTimestamp = 0;
+              cacheCleanupTimer = null;
+              console.log('Desktop capturer cache cleared due to inactivity');
+            }, CACHE_CLEANUP_DELAY);
+
+            console.log(
+              `Desktop capturer cache will be cleared in ${CACHE_CLEANUP_DELAY / 1000} seconds if no new video call window is opened`
+            );
+            logVideoCallWindowStats();
+          } catch (error) {
+            console.error(
+              'Error during video call window closed event handling:',
+              error
+            );
+          }
+        }, 50); // Small delay to let app state stabilize
       });
 
       videoCallWindow.on('close', (_event) => {
@@ -653,6 +688,14 @@ export const startVideoCallWindowHandler = (): void => {
       webContents.on('will-navigate', (event: any, url: string) => {
         console.log('Video call window will-navigate:', url);
 
+        // Check for close pages and handle them specially to prevent crashes
+        if (url.includes('/close.html') || url.includes('/close2.html')) {
+          console.log(
+            'Video call window: Navigation to close page detected, will handle gracefully'
+          );
+          // Don't prevent navigation, but note it for safer handling
+        }
+
         try {
           const parsedUrl = new URL(url);
 
@@ -788,11 +831,40 @@ export const startVideoCallWindowHandler = (): void => {
   });
 
   handle('video-call-window/close-requested', async () => {
-    console.log('Video call window: Close requested');
+    console.log(
+      'Video call window: Close requested via navigation to close page'
+    );
+
+    // Add safety check and delay to prevent crashes during first launch
     if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-      videoCallWindow.close();
+      // Use setImmediate to ensure this happens after any pending navigation events
+      setImmediate(() => {
+        try {
+          if (
+            videoCallWindow &&
+            !videoCallWindow.isDestroyed() &&
+            !isVideoCallWindowDestroying
+          ) {
+            console.log(
+              'Video call window: Proceeding with close after navigation delay'
+            );
+            videoCallWindow.close();
+          } else {
+            console.log(
+              'Video call window: Already destroyed or being destroyed, skipping close'
+            );
+          }
+        } catch (error) {
+          console.error(
+            'Error closing video call window after close page navigation:',
+            error
+          );
+        }
+      });
       return { success: true };
     }
+
+    console.log('Video call window: Already destroyed, cannot close');
     return { success: false };
   });
 

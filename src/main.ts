@@ -108,6 +108,8 @@ const start = async (): Promise<void> => {
   checkSupportedVersionServers();
 
   await processDeepLinksInArgs();
+
+  console.log('Application initialization completed successfully');
 };
 
 start();

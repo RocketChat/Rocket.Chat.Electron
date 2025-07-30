@@ -41565,6 +41565,12 @@ const getFilesToUpload = () => out_default()([
     'dist/*.exe',
     'dist/*.exe.blockmap',
     'dist/*.AppImage',
+    'dist/alpha.yml',
+    'dist/alpha-mac.yml',
+    'dist/alpha-linux.yml',
+    'dist/beta.yml',
+    'dist/beta-mac.yml',
+    'dist/beta-linux.yml',
 ]);
 const releaseDevelopment = (commitSha) => src_awaiter(void 0, void 0, void 0, function* () {
     yield pack();

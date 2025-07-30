@@ -39,6 +39,7 @@ import { setupPowerMonitor } from './userPresence/main';
 import {
   handleDesktopCapturerGetSources,
   startVideoCallWindowHandler,
+  cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
 
 electronDl({ saveAs: true });
@@ -96,6 +97,7 @@ const start = async (): Promise<void> => {
     menuBar.tearDown();
     touchBar.tearDown();
     trayIcon.tearDown();
+    cleanupVideoCallResources();
   });
 
   watchAndPersistChanges();
@@ -106,6 +108,8 @@ const start = async (): Promise<void> => {
   checkSupportedVersionServers();
 
   await processDeepLinksInArgs();
+
+  console.log('Application initialization completed successfully');
 };
 
 start();

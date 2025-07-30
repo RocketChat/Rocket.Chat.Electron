@@ -83,9 +83,13 @@ type PersistableValues_4_5_0 = PersistableValues_4_4_0 & {
   updateChannel: string;
 };
 
+type PersistableValues_4_7_2 = PersistableValues_4_5_0 & {
+  isVideoCallDevtoolsAutoOpenEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_5_0,
-  keyof PersistableValues_4_5_0
+  PersistableValues_4_7_2,
+  keyof PersistableValues_4_7_2
 >;
 
 export const migrations = {

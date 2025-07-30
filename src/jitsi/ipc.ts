@@ -10,7 +10,7 @@ let firstAskPermission = true;
 export const handleJitsiDesktopCapturerGetSources = () => {
   handle(
     'jitsi-desktop-capturer-get-sources',
-    async (_event, [opts, jitsiDomain]) => {
+    async (_webContents, [opts, jitsiDomain]) => {
       if (permitted) return desktopCapturer.getSources(opts);
 
       if (dontAskAgain) return [];

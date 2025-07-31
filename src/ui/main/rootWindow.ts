@@ -274,37 +274,63 @@ export const setupRootWindow = (): void => {
     });
 
     rootWindow.addListener('close', async (event) => {
-      if (rootWindow?.isFullScreen()) {
-        await new Promise<void>((resolve) =>
-          rootWindow.once('leave-full-screen', () => resolve())
-        );
-        rootWindow.setFullScreen(false);
+      try {
+        if (rootWindow.isDestroyed()) {
+          return;
+        }
+
+        if (rootWindow.isFullScreen()) {
+          await new Promise<void>((resolve) =>
+            rootWindow.once('leave-full-screen', () => resolve())
+          );
+          rootWindow.setFullScreen(false);
+        }
+
+        if (process.platform !== 'linux' && !rootWindow.isDestroyed()) {
+          rootWindow.blur();
+        }
+
+        let isTrayIconEnabled: boolean;
+        let isMinimizeOnCloseEnabled: boolean;
+
+        try {
+          isTrayIconEnabled = select(
+            ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true
+          );
+          isMinimizeOnCloseEnabled = select(
+            ({ isMinimizeOnCloseEnabled }) => isMinimizeOnCloseEnabled ?? true
+          );
+        } catch (error) {
+          console.warn(
+            'Failed to access application state during close:',
+            error
+          );
+          isTrayIconEnabled = true;
+          isMinimizeOnCloseEnabled = true;
+        }
+
+        if (process.platform === 'darwin' || isTrayIconEnabled) {
+          if (!rootWindow.isDestroyed()) {
+            rootWindow.hide();
+          }
+          return;
+        }
+
+        if (process.platform === 'win32' && isMinimizeOnCloseEnabled) {
+          if (!rootWindow.isDestroyed()) {
+            rootWindow.minimize();
+          }
+          return;
+        }
+
+        // Prevent race condition: window destruction during app.quit()
+        event.preventDefault();
+        app.quit();
+      } catch (error) {
+        console.error('Error in close event handler:', error);
+        event.preventDefault();
+        app.quit();
       }
-
-      if (process.platform !== 'linux') rootWindow.blur();
-
-      const isTrayIconEnabled = select(
-        ({ isTrayIconEnabled }) => isTrayIconEnabled ?? true
-      );
-
-      if (process.platform === 'darwin' || isTrayIconEnabled) {
-        rootWindow.hide();
-        return;
-      }
-
-      const isMinimizeOnCloseEnabled = select(
-        ({ isMinimizeOnCloseEnabled }) => isMinimizeOnCloseEnabled ?? true
-      );
-
-      if (process.platform === 'win32' && isMinimizeOnCloseEnabled) {
-        rootWindow.minimize();
-        return;
-      }
-
-      // Prevent the close event from propagating and causing the window
-      // to be destroyed before app.quit() completes its cleanup
-      event.preventDefault();
-      app.quit();
     });
 
     unsubscribers.push(() => {

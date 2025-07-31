@@ -15,18 +15,10 @@ import type {
   WebContents,
   WebPreferences,
 } from 'electron';
-import {
-  app,
-  clipboard,
-  dialog,
-  Menu,
-  systemPreferences,
-  webContents,
-} from 'electron';
+import { app, clipboard, Menu, systemPreferences, webContents } from 'electron';
 import i18next from 'i18next';
 
 import { setupPreloadReload } from '../../../app/main/dev';
-import { handleWillDownloadEvent } from '../../../downloads/main';
 import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
@@ -356,32 +348,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.setPermissionRequestHandler(
       handlePermissionRequest
     );
-    guestWebContents.session.on(
-      'will-download',
-      (event, item, _webContents) => {
-        const fileName = item.getFilename();
-        const extension = path.extname(fileName)?.slice(1).toLowerCase();
-        const savePath = dialog.showSaveDialogSync(rootWindow, {
-          defaultPath: item.getFilename(),
-          filters: [
-            {
-              name: `*.${extension}`,
-              extensions: [extension],
-            },
-            {
-              name: '*.*',
-              extensions: ['*'],
-            },
-          ],
-        });
-        if (savePath !== undefined) {
-          item.setSavePath(savePath);
-          handleWillDownloadEvent(event, item, _webContents);
-          return;
-        }
-        event.preventDefault();
-      }
-    );
+    // Download handling is now managed by electron-dl in main.ts
+    // and integrated with our downloads system via setupDownloads()
 
     // prevents the webview from navigating because of twitter preview links
     guestWebContents.on('will-navigate', (e, redirectUrl) => {

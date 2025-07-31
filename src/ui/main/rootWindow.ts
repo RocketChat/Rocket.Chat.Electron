@@ -273,7 +273,7 @@ export const setupRootWindow = (): void => {
       rootWindow.flashFrame(false);
     });
 
-    rootWindow.addListener('close', async () => {
+    rootWindow.addListener('close', async (event) => {
       if (rootWindow?.isFullScreen()) {
         await new Promise<void>((resolve) =>
           rootWindow.once('leave-full-screen', () => resolve())
@@ -301,6 +301,9 @@ export const setupRootWindow = (): void => {
         return;
       }
 
+      // Prevent the close event from propagating and causing the window
+      // to be destroyed before app.quit() completes its cleanup
+      event.preventDefault();
       app.quit();
     });
 

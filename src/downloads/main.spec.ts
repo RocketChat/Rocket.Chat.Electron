@@ -1,7 +1,8 @@
 import type { DownloadItem, Event, WebContents } from 'electron';
 import { clipboard, shell } from 'electron';
 
-import { createMainReduxStore, dispatch, select } from '../store';
+import { handle } from '../ipc/main';
+import { dispatch, select } from '../store';
 import {
   DOWNLOAD_CREATED,
   DOWNLOAD_REMOVED,
@@ -23,9 +24,8 @@ jest.mock('electron', () => ({
 }));
 
 // Mock IPC handler
-const mockHandle = jest.fn();
 jest.mock('../ipc/main', () => ({
-  handle: mockHandle,
+  handle: jest.fn(),
 }));
 
 // Mock notifications
@@ -47,10 +47,10 @@ jest.mock('../store', () => ({
 describe('downloads/main', () => {
   const mockDispatch = dispatch as jest.MockedFunction<typeof dispatch>;
   const mockSelect = select as jest.MockedFunction<typeof select>;
+  const mockHandle = handle as jest.MockedFunction<typeof handle>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    createMainReduxStore();
   });
 
   describe('handleWillDownloadEvent', () => {
@@ -281,6 +281,22 @@ describe('downloads/main', () => {
         expect.any(Function)
       );
       expect(mockHandle).toHaveBeenCalledWith(
+        'downloads/pause',
+        expect.any(Function)
+      );
+      expect(mockHandle).toHaveBeenCalledWith(
+        'downloads/resume',
+        expect.any(Function)
+      );
+      expect(mockHandle).toHaveBeenCalledWith(
+        'downloads/cancel',
+        expect.any(Function)
+      );
+      expect(mockHandle).toHaveBeenCalledWith(
+        'downloads/retry',
+        expect.any(Function)
+      );
+      expect(mockHandle).toHaveBeenCalledWith(
         'downloads/clear-all',
         expect.any(Function)
       );
@@ -300,10 +316,10 @@ describe('downloads/main', () => {
 
         // Get the registered handler
         const showInFolderHandler = mockHandle.mock.calls.find(
-          ([channel]) => channel === 'downloads/show-in-folder'
-        )?.[1];
+          ([channel]) => (channel as string) === 'downloads/show-in-folder'
+        )?.[1] as any;
 
-        await showInFolderHandler?.(null, 'test-item-id');
+        await showInFolderHandler?.({} as any, 'test-item-id');
 
         expect(shell.showItemInFolder).toHaveBeenCalledWith(
           '/downloads/test-file.pdf'
@@ -314,10 +330,10 @@ describe('downloads/main', () => {
         mockSelect.mockReturnValue(undefined);
 
         const showInFolderHandler = mockHandle.mock.calls.find(
-          ([channel]) => channel === 'downloads/show-in-folder'
-        )?.[1];
+          ([channel]) => (channel as string) === 'downloads/show-in-folder'
+        )?.[1] as any;
 
-        await showInFolderHandler?.(null, 'non-existent-id');
+        await showInFolderHandler?.({} as any, 'non-existent-id');
 
         expect(shell.showItemInFolder).not.toHaveBeenCalled();
       });
@@ -332,10 +348,10 @@ describe('downloads/main', () => {
         mockSelect.mockReturnValue(mockDownload);
 
         const copyLinkHandler = mockHandle.mock.calls.find(
-          ([channel]) => channel === 'downloads/copy-link'
-        )?.[1];
+          ([channel]) => (channel as string) === 'downloads/copy-link'
+        )?.[1] as any;
 
-        await copyLinkHandler?.(null, 'test-item-id');
+        await copyLinkHandler?.({} as any, 'test-item-id');
 
         expect(clipboard.writeText).toHaveBeenCalledWith(
           'https://example.com/file.pdf'
@@ -346,10 +362,10 @@ describe('downloads/main', () => {
         mockSelect.mockReturnValue(undefined);
 
         const copyLinkHandler = mockHandle.mock.calls.find(
-          ([channel]) => channel === 'downloads/copy-link'
-        )?.[1];
+          ([channel]) => (channel as string) === 'downloads/copy-link'
+        )?.[1] as any;
 
-        await copyLinkHandler?.(null, 'non-existent-id');
+        await copyLinkHandler?.({} as any, 'non-existent-id');
 
         expect(clipboard.writeText).not.toHaveBeenCalled();
       });
@@ -358,10 +374,10 @@ describe('downloads/main', () => {
     describe('IPC handler: downloads/clear-all', () => {
       it('should dispatch DOWNLOADS_CLEARED action', async () => {
         const clearAllHandler = mockHandle.mock.calls.find(
-          ([channel]) => channel === 'downloads/clear-all'
-        )?.[1];
+          ([channel]) => (channel as string) === 'downloads/clear-all'
+        )?.[1] as any;
 
-        await clearAllHandler?.();
+        await clearAllHandler?.({} as any);
 
         expect(mockDispatch).toHaveBeenCalledWith({
           type: DOWNLOADS_CLEARED,
@@ -372,10 +388,10 @@ describe('downloads/main', () => {
     describe('IPC handler: downloads/remove', () => {
       it('should dispatch DOWNLOAD_REMOVED action with correct itemId', async () => {
         const removeHandler = mockHandle.mock.calls.find(
-          ([channel]) => channel === 'downloads/remove'
-        )?.[1];
+          ([channel]) => (channel as string) === 'downloads/remove'
+        )?.[1] as any;
 
-        await removeHandler?.(null, 'test-item-id');
+        await removeHandler?.({} as any, 'test-item-id');
 
         expect(mockDispatch).toHaveBeenCalledWith({
           type: DOWNLOAD_REMOVED,

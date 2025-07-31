@@ -9,6 +9,7 @@ import {
   DOWNLOAD_CREATED,
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
+  DOWNLOADS_CLEARED,
 } from './actions';
 import type { Download } from './common';
 import { DownloadStatus } from './common';
@@ -126,7 +127,7 @@ export const setupDownloads = (): void => {
       return;
     }
 
-    clipboard.write({ text: download.url });
+    clipboard.writeText(download.url);
   });
 
   handle('downloads/pause', async (_webContent, itemId) => {
@@ -227,6 +228,12 @@ export const setupDownloads = (): void => {
         }
       }
     }
+  });
+
+  handle('downloads/clear-all' as any, async () => {
+    dispatch({
+      type: DOWNLOADS_CLEARED,
+    });
   });
 
   handle('downloads/remove', async (_webContent, itemId) => {

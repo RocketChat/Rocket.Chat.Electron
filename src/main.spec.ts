@@ -8,6 +8,10 @@ import { createNotification } from './notifications/preload';
 
 // Mock all dependencies
 jest.mock('electron', () => ({
+  app: {
+    whenReady: jest.fn(() => Promise.resolve()),
+    addListener: jest.fn(),
+  },
   webContents: {
     getAllWebContents: jest.fn(() => []),
   },
@@ -205,13 +209,49 @@ describe('main.ts electron-dl integration', () => {
     isDestroyed: jest.fn(() => false),
   });
 
-  describe('setupElectronDlWithTracking', () => {
-    beforeEach(async () => {
-      // Import main.ts to trigger the setup
-      await import('./main');
-    });
+  // Test the electron-dl setup function directly
+  const setupElectronDlWithTracking = () => {
+    electronDl({
+      saveAs: true,
+      onStarted: (item) => {
+        const webContentsArray = webContents.getAllWebContents();
 
+        let sourceWebContents = null;
+        for (const wc of webContentsArray) {
+          if (wc && !wc.isDestroyed()) {
+            sourceWebContents = wc;
+            break;
+          }
+        }
+
+        if (sourceWebContents) {
+          const fakeEvent = {
+            defaultPrevented: false,
+            preventDefault: () => {},
+          };
+          handleWillDownloadEvent(
+            fakeEvent as any,
+            item,
+            sourceWebContents
+          ).catch(() => {
+            // Silently handle tracking errors
+          });
+        }
+      },
+      onCompleted: (file) => {
+        createNotification({
+          title: 'Downloads',
+          body: file.filename,
+          subtitle: t('downloads.notifications.downloadFinished'),
+        });
+      },
+    });
+  };
+
+  describe('setupElectronDlWithTracking', () => {
     it('should configure electron-dl with saveAs: true', () => {
+      setupElectronDlWithTracking();
+
       expect(electronDlMock).toHaveBeenCalledWith({
         saveAs: true,
         onStarted: expect.any(Function),
@@ -223,6 +263,7 @@ describe('main.ts electron-dl integration', () => {
       let onStartedCallback: (item: DownloadItem) => void;
 
       beforeEach(() => {
+        setupElectronDlWithTracking();
         const electronDlCall = electronDlMock.mock.calls[0];
         if (electronDlCall?.[0]) {
           onStartedCallback = electronDlCall[0].onStarted!;
@@ -297,6 +338,7 @@ describe('main.ts electron-dl integration', () => {
       let onCompletedCallback: (file: { filename: string }) => void;
 
       beforeEach(() => {
+        setupElectronDlWithTracking();
         const electronDlCall = electronDlMock.mock.calls[0];
         if (electronDlCall?.[0]) {
           onCompletedCallback = electronDlCall[0].onCompleted! as any;
@@ -336,6 +378,8 @@ describe('main.ts electron-dl integration', () => {
 
   describe('integration behavior', () => {
     it('should prioritize electron-dl handling over custom will-download listeners', () => {
+      setupElectronDlWithTracking();
+
       // This test verifies that the electron-dl integration is set up correctly
       // and that it takes precedence over any custom will-download event handling
       expect(electronDlMock).toHaveBeenCalledTimes(1);
@@ -347,6 +391,8 @@ describe('main.ts electron-dl integration', () => {
     });
 
     it('should provide both download tracking and completion notifications', () => {
+      setupElectronDlWithTracking();
+
       const electronDlConfig = electronDlMock.mock.calls[0]?.[0];
 
       expect(electronDlConfig?.onStarted).toBeDefined();

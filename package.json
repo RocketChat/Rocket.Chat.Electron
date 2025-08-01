@@ -6,7 +6,7 @@
   "productName": "Rocket.Chat",
   "name": "rocketchat",
   "description": "Official OSX, Windows, and Linux Desktop Clients for Rocket.Chat",
-  "version": "4.7.1",
+  "version": "4.8.0",
   "author": "Rocket.Chat Support <support@rocket.chat>",
   "copyright": "© 2016-2025, Rocket.Chat",
   "homepage": "https://rocket.chat",
@@ -118,7 +118,7 @@
     "chokidar": "~3.5.3",
     "conventional-changelog-cli": "~4.1.0",
     "convert-svg-to-png": "~0.6.4",
-    "electron": "37.2.0",
+    "electron": "37.2.4",
     "electron-builder": "26.0.3",
     "electron-devtools-installer": "^3.2.0",
     "electron-notarize": "^1.2.2",
@@ -147,10 +147,10 @@
     "fsevents": "2.3.3"
   },
   "engines": {
-    "node": ">=22.13.1"
+    "node": ">=22.17.1"
   },
   "devEngines": {
-    "node": ">=22.13.1",
+    "node": ">=22.17.1",
     "yarn": ">=4.0.2"
   },
   "resolutions": {
@@ -160,7 +160,7 @@
     "@rocket.chat/prettier-config/prettier": "3.2.5"
   },
   "volta": {
-    "node": "22.13.1",
+    "node": "22.17.1",
     "yarn": "4.0.2"
   },
   "packageManager": "yarn@4.6.0"

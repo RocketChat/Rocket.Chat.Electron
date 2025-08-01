@@ -31,8 +31,8 @@ exports.default = async function afterPack(context) {
     [FuseV1Options.OnlyLoadAppFromAsar]: true,
     [FuseV1Options.RunAsNode]: false,
     [FuseV1Options.EnableCookieEncryption]: false,
-    [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: true,
-    [FuseV1Options.EnableNodeCliInspectArguments]: true,
+    [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
+    [FuseV1Options.EnableNodeCliInspectArguments]: false,
     [FuseV1Options.LoadBrowserProcessSpecificV8Snapshot]: false,
     [FuseV1Options.GrantFileProtocolExtraPrivileges]: true,
   });

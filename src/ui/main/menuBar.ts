@@ -11,6 +11,7 @@ import { dispatch, select, Service } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import * as urls from '../../urls';
 import { openExternal } from '../../utils/browserLauncher';
+import { openVideoCallWebviewDevTools } from '../../videoCallWindow/ipc';
 import {
   CLEAR_CACHE_TRIGGERED,
   MENU_BAR_ABOUT_CLICKED,
@@ -21,6 +22,7 @@ import {
   MENU_BAR_TOGGLE_IS_SIDE_BAR_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_TRAY_ICON_ENABLED_CLICKED,
   MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED,
+  MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED,
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
   WEBVIEW_SERVER_RELOADED,
@@ -546,11 +548,17 @@ const createWindowMenu = createSelector(
 const selectHelpDeps = createStructuredSelector({
   isDeveloperModeEnabled: ({ isDeveloperModeEnabled }: RootState) =>
     isDeveloperModeEnabled,
+  isVideoCallDevtoolsAutoOpenEnabled: ({
+    isVideoCallDevtoolsAutoOpenEnabled,
+  }: RootState) => isVideoCallDevtoolsAutoOpenEnabled,
 });
 
 const createHelpMenu = createSelector(
   selectHelpDeps,
-  ({ isDeveloperModeEnabled }): MenuItemConstructorOptions => ({
+  ({
+    isDeveloperModeEnabled,
+    isVideoCallDevtoolsAutoOpenEnabled,
+  }): MenuItemConstructorOptions => ({
     id: 'helpMenu',
     label: t('menus.helpMenu'),
     role: 'help',
@@ -575,13 +583,19 @@ const createHelpMenu = createSelector(
         label: t('menus.reload'),
         accelerator: 'CommandOrControl+Shift+R',
         click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
+          const guestWebContents = await getCurrentViewWebcontents();
+          if (guestWebContents)
+            dispatch({
+              type: CLEAR_CACHE_TRIGGERED,
+              payload: guestWebContents.id,
+            });
+          const currentView = await getCurrentView();
+          if (typeof currentView === 'object' && !!currentView.url) {
+            dispatch({
+              type: WEBVIEW_SERVER_RELOADED,
+              payload: { url: currentView.url },
+            });
           }
-          browserWindow.focus();
-          browserWindow.webContents.reload();
         },
       },
       {
@@ -634,6 +648,56 @@ const createHelpMenu = createSelector(
             payload: checked,
           });
         },
+      },
+      {
+        id: 'videoCallToolsSubmenu',
+        label: t('menus.videoCallTools'),
+        submenu: [
+          {
+            id: 'videoCallDevTools',
+            label: t('menus.videoCallDevTools'),
+            click: async () => {
+              const browserWindow = await getRootWindow();
+
+              if (!browserWindow.isVisible()) {
+                browserWindow.showInactive();
+              }
+              browserWindow.focus();
+
+              try {
+                const success = await openVideoCallWebviewDevTools();
+                if (!success) {
+                  console.log(
+                    'No video call window available for developer tools'
+                  );
+                }
+              } catch (error) {
+                console.error(
+                  'Error opening video call developer tools:',
+                  error
+                );
+              }
+            },
+          },
+          {
+            id: 'videoCallDevToolsAutoOpen',
+            type: 'checkbox',
+            label: t('menus.videoCallDevToolsAutoOpen'),
+            checked: isVideoCallDevtoolsAutoOpenEnabled,
+            click: async ({ checked }) => {
+              const browserWindow = await getRootWindow();
+
+              if (!browserWindow.isVisible()) {
+                browserWindow.showInactive();
+              }
+              browserWindow.focus();
+              dispatch({
+                type: MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED,
+                payload: checked,
+              });
+            },
+          },
+        ],
       },
       {
         id: 'openConfigFolder',

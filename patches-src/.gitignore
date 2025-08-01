@@ -1,0 +1,14 @@
+# Ignore temporary files
+*.tmp
+*.log
+
+# Ignore backup files
+*.bak
+*~
+
+# Keep all source files - we want to track them
+!*.ts
+!*.js
+!*.json
+!*.md
+!*.sh

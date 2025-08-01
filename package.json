@@ -28,6 +28,7 @@
   "scripts": {
     "postinstall": "run-s install-app-deps clean patch-package",
     "patch-package": "patch-package",
+    "apply-patches": "./patches-src/apply-patches.sh",
     "start": "run-s build:watch",
     "clean": "rimraf app dist",
     "build": "rollup -c",

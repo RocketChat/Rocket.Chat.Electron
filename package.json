@@ -26,8 +26,9 @@
   },
   "main": "app/main.js",
   "scripts": {
-    "postinstall": "run-s install-app-deps clean patch-package",
+    "postinstall": "run-s install-app-deps clean patch-package-optional",
     "patch-package": "patch-package",
+    "patch-package-optional": "patch-package || echo 'Patch application failed - will be handled by apply-patches step'",
     "apply-patches": "./patches-src/apply-patches.sh",
     "start": "run-s build:watch",
     "clean": "rimraf app dist",

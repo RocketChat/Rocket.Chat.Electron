@@ -2147,10 +2147,10 @@ index 311a28a..0000000
 -    }
 -}
 diff --git a/node_modules/@ewsjs/xhr/src/ntlmProvider.ts b/node_modules/@ewsjs/xhr/src/ntlmProvider.ts
-index a06faf0..86361f8 100644
+index a06faf0..4b60eab 100644
 --- a/node_modules/@ewsjs/xhr/src/ntlmProvider.ts
 +++ b/node_modules/@ewsjs/xhr/src/ntlmProvider.ts
-@@ -1,79 +1,127 @@
+@@ -1,79 +1,131 @@
 -import * as request from 'request';
 -import * as  Promise from "bluebird";
 +import axios, { AxiosRequestConfig, AxiosInstance } from "axios";
@@ -2309,12 +2309,15 @@ index a06faf0..86361f8 100644
 +      console.log('[DEBUG] NTLM Provider - Response headers:', JSON.stringify(response.headers, null, 2));
 +
 +      if (!response.headers['www-authenticate']) {
-+        console.log('[DEBUG] NTLM Provider - CRITICAL: www-authenticate header missing!');
++        console.log('❌ [FAILURE] NTLM Provider - CRITICAL: www-authenticate header missing!');
++        console.log('📋 [FAILURE] Exchange server is NOT accepting NTLM authentication!');
 +        console.log('[DEBUG] NTLM Provider - Available headers:', Object.keys(response.headers));
 +        throw new Error('www-authenticate not found on response of second request');
 +      }
 +
-+      console.log('[DEBUG] NTLM Provider - www-authenticate header found:', response.headers['www-authenticate']);
++      console.log('✅ [SUCCESS FACTOR] NTLM Provider - www-authenticate header found!');
++      console.log('📋 [SUCCESS FACTOR] Exchange server IS accepting NTLM authentication!');
++      console.log('[DEBUG] NTLM Provider - www-authenticate content:', response.headers['www-authenticate']);
 +
 +      let type2msg = decodeType2Message(response.headers['www-authenticate']);
 +      console.log('[DEBUG] NTLM Provider - Type 2 message decoded successfully');
@@ -2329,8 +2332,9 @@ index a06faf0..86361f8 100644
 +      options.headers['Authorization'] = type3msg;
 +      options.headers['Connection'] = 'Close';
 +      
++      console.log('🎉 [SUCCESS] NTLM Provider - Type 3 authentication completed!');
++      console.log('📋 [SUCCESS] All 3 NTLM handshake steps successful - authentication should work!');
 +      console.log('[DEBUG] NTLM Provider - Final request headers prepared:', JSON.stringify(options.headers, null, 2));
-+      console.log('[DEBUG] NTLM Provider - NTLM authentication setup completed successfully');
 +      
 +      return options;
 +    } catch (err) {
@@ -2566,7 +2570,7 @@ index 802e99b..0000000
 -    reject(setupXhrResponse(xhrResponse));
 -}
 diff --git a/node_modules/@ewsjs/xhr/src/xhrApi.ts b/node_modules/@ewsjs/xhr/src/xhrApi.ts
-index 3700814..955ca81 100644
+index 3700814..d9952ac 100644
 --- a/node_modules/@ewsjs/xhr/src/xhrApi.ts
 +++ b/node_modules/@ewsjs/xhr/src/xhrApi.ts
 @@ -1,7 +1,6 @@
@@ -2580,7 +2584,7 @@ index 3700814..955ca81 100644
  import { setupXhrResponse } from "./utils";
  
  import { IProvider } from "./IProvider";
-@@ -17,288 +16,365 @@ import { CookieProvider } from './cookieProvider';
+@@ -17,288 +16,383 @@ import { CookieProvider } from './cookieProvider';
   */
  export class XhrApi implements IXHRApi {
  
@@ -2825,7 +2829,10 @@ index 3700814..955ca81 100644
 -    xhr(xhroptions: IXHROptions, progressDelegate?: (progressData: IXHRProgress) => void): Promise<XMLHttpRequest> {
 +    if (this.allowUntrustedCertificate) {
 +      options.httpsAgent = new https.Agent({ rejectUnauthorized: false });
-+      console.log('[DEBUG] XhrApi - Using custom HTTPS agent with rejectUnauthorized: false');
++      console.log('🔧 [SUCCESS FACTOR] XhrApi - Using custom HTTPS agent with rejectUnauthorized: false');
++      console.log('📋 [SUCCESS FACTOR] This setting allows self-signed/invalid certificates - CRITICAL for many Exchange servers!');
++    } else {
++      console.log('🔒 [POTENTIAL ISSUE] XhrApi - Using default certificate validation - may fail with self-signed certs');
 +    }
  
 -        //setup xhr for github.com/andris9/fetch options
@@ -2836,12 +2843,14 @@ index 3700814..955ca81 100644
 -            method: <any>xhroptions.type,
 -            followRedirect: !!xhroptions.allowRedirect,
 -            //resolveWithFullResponse: true
--        }
--        options["rejectUnauthorized"] = !this.allowUntrustedCertificate;
 +    let proxyConfig = this.getProxyOption();
 +    if (proxyConfig) {
 +      options["proxy"] = proxyConfig;
-+      console.log('[DEBUG] XhrApi - Using proxy configuration:', JSON.stringify(proxyConfig, null, 2));
++      console.log('🌐 [SUCCESS FACTOR] XhrApi - Using proxy configuration:', JSON.stringify(proxyConfig, null, 2));
++      console.log('📋 [SUCCESS FACTOR] Proxy is configured - CRITICAL for corporate environments behind firewalls!');
++    } else {
++      console.log('🚫 [INFO] XhrApi - No proxy configuration - direct connection will be attempted');
++    }
 +    }
 +    options = this.getOptions(options)
 +
@@ -2889,11 +2898,23 @@ index 3700814..955ca81 100644
 +        statusText: response.statusText,
 +      };
 +      if (xhrResponse.status === 200) {
-+        console.log('[DEBUG] XhrApi - Request successful, returning response');
++        console.log('🎉 [COMPLETE SUCCESS] XhrApi - HTTP 200 OK received!');
++        console.log('📋 [COMPLETE SUCCESS] NTLM authentication + Exchange communication FULLY WORKING!');
++        console.log('🏆 [SOLUTION SUMMARY] The following factors enabled success:');
++        if (this.allowUntrustedCertificate) {
++          console.log('  ✅ SSL Certificate validation disabled (allowUntrustedCertificate: true)');
++        }
++        if (this.getProxyOption()) {
++          console.log('  ✅ Proxy configuration was used');
+         }
+-        options["rejectUnauthorized"] = !this.allowUntrustedCertificate;
++        console.log('  ✅ NTLM 3-step handshake completed successfully');
++        console.log('  ✅ Exchange server accepted authentication');
 +        return setupXhrResponse(xhrResponse);
 +      }
 +      else {
-+        console.log('[DEBUG] XhrApi - Request failed with non-200 status, throwing error');
++        console.log('❌ [FINAL FAILURE] XhrApi - Request failed with status:', xhrResponse.status);
++        console.log('📋 [FINAL FAILURE] Even after successful NTLM auth, Exchange rejected the request');
 +        throw setupXhrResponse(xhrResponse);
 +      }
 +    } catch (error) {

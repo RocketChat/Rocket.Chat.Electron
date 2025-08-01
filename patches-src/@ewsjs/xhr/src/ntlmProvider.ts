@@ -90,12 +90,15 @@ export class NtlmProvider implements IProvider {
       console.log('[DEBUG] NTLM Provider - Response headers:', JSON.stringify(response.headers, null, 2));
 
       if (!response.headers['www-authenticate']) {
-        console.log('[DEBUG] NTLM Provider - CRITICAL: www-authenticate header missing!');
+        console.log('❌ [FAILURE] NTLM Provider - CRITICAL: www-authenticate header missing!');
+        console.log('📋 [FAILURE] Exchange server is NOT accepting NTLM authentication!');
         console.log('[DEBUG] NTLM Provider - Available headers:', Object.keys(response.headers));
         throw new Error('www-authenticate not found on response of second request');
       }
 
-      console.log('[DEBUG] NTLM Provider - www-authenticate header found:', response.headers['www-authenticate']);
+      console.log('✅ [SUCCESS FACTOR] NTLM Provider - www-authenticate header found!');
+      console.log('📋 [SUCCESS FACTOR] Exchange server IS accepting NTLM authentication!');
+      console.log('[DEBUG] NTLM Provider - www-authenticate content:', response.headers['www-authenticate']);
 
       let type2msg = decodeType2Message(response.headers['www-authenticate']);
       console.log('[DEBUG] NTLM Provider - Type 2 message decoded successfully');
@@ -110,8 +113,9 @@ export class NtlmProvider implements IProvider {
       options.headers['Authorization'] = type3msg;
       options.headers['Connection'] = 'Close';
       
+      console.log('🎉 [SUCCESS] NTLM Provider - Type 3 authentication completed!');
+      console.log('📋 [SUCCESS] All 3 NTLM handshake steps successful - authentication should work!');
       console.log('[DEBUG] NTLM Provider - Final request headers prepared:', JSON.stringify(options.headers, null, 2));
-      console.log('[DEBUG] NTLM Provider - NTLM authentication setup completed successfully');
       
       return options;
     } catch (err) {

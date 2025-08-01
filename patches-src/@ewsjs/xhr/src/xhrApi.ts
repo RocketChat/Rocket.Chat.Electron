@@ -151,13 +151,20 @@ export class XhrApi implements IXHRApi {
 
     if (this.allowUntrustedCertificate) {
       options.httpsAgent = new https.Agent({ rejectUnauthorized: false });
-      console.log('[DEBUG] XhrApi - Using custom HTTPS agent with rejectUnauthorized: false');
+      console.log('🔧 [SUCCESS FACTOR] XhrApi - Using custom HTTPS agent with rejectUnauthorized: false');
+      console.log('📋 [SUCCESS FACTOR] This setting allows self-signed/invalid certificates - CRITICAL for many Exchange servers!');
+    } else {
+      console.log('🔒 [POTENTIAL ISSUE] XhrApi - Using default certificate validation - may fail with self-signed certs');
     }
 
     let proxyConfig = this.getProxyOption();
     if (proxyConfig) {
       options["proxy"] = proxyConfig;
-      console.log('[DEBUG] XhrApi - Using proxy configuration:', JSON.stringify(proxyConfig, null, 2));
+      console.log('🌐 [SUCCESS FACTOR] XhrApi - Using proxy configuration:', JSON.stringify(proxyConfig, null, 2));
+      console.log('📋 [SUCCESS FACTOR] Proxy is configured - CRITICAL for corporate environments behind firewalls!');
+    } else {
+      console.log('🚫 [INFO] XhrApi - No proxy configuration - direct connection will be attempted');
+    }
     }
     options = this.getOptions(options)
 
@@ -205,11 +212,22 @@ export class XhrApi implements IXHRApi {
         statusText: response.statusText,
       };
       if (xhrResponse.status === 200) {
-        console.log('[DEBUG] XhrApi - Request successful, returning response');
+        console.log('🎉 [COMPLETE SUCCESS] XhrApi - HTTP 200 OK received!');
+        console.log('📋 [COMPLETE SUCCESS] NTLM authentication + Exchange communication FULLY WORKING!');
+        console.log('🏆 [SOLUTION SUMMARY] The following factors enabled success:');
+        if (this.allowUntrustedCertificate) {
+          console.log('  ✅ SSL Certificate validation disabled (allowUntrustedCertificate: true)');
+        }
+        if (this.getProxyOption()) {
+          console.log('  ✅ Proxy configuration was used');
+        }
+        console.log('  ✅ NTLM 3-step handshake completed successfully');
+        console.log('  ✅ Exchange server accepted authentication');
         return setupXhrResponse(xhrResponse);
       }
       else {
-        console.log('[DEBUG] XhrApi - Request failed with non-200 status, throwing error');
+        console.log('❌ [FINAL FAILURE] XhrApi - Request failed with status:', xhrResponse.status);
+        console.log('📋 [FINAL FAILURE] Even after successful NTLM auth, Exchange rejected the request');
         throw setupXhrResponse(xhrResponse);
       }
     } catch (error) {

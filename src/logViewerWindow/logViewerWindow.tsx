@@ -105,22 +105,7 @@ function LogViewerWindow() {
       ['renderer', t('logViewer.filters.context.renderer')],
       ['webview', t('logViewer.filters.context.webview')],
       ['videocall', t('logViewer.filters.context.videocall')],
-    ],
-    [t]
-  );
-
-  // Exchange Debug filter options with emojis for visual debugging
-  const exchangeDebugFilterOptions = useMemo<[string, string][]>(
-    () => [
-      ['all', t('logViewer.filters.exchangeDebug.all')],
-      ['success', t('logViewer.filters.exchangeDebug.success')],
-      ['failure', t('logViewer.filters.exchangeDebug.failure')],
-      ['ntlmFlow', t('logViewer.filters.exchangeDebug.ntlmFlow')],
-      ['exchangeComm', t('logViewer.filters.exchangeDebug.exchangeComm')],
-      ['sslCerts', t('logViewer.filters.exchangeDebug.sslCerts')],
-      ['networkErrors', t('logViewer.filters.exchangeDebug.networkErrors')],
-      ['successFactors', t('logViewer.filters.exchangeDebug.successFactors')],
-      ['outlookCalendar', t('logViewer.filters.exchangeDebug.outlookCalendar')],
+      ['outlook', '📅 Outlook Calendar'],
     ],
     [t]
   );
@@ -129,22 +114,11 @@ function LogViewerWindow() {
     (typeof contextFilterOptions)[number][0]
   >('log-context', 'all');
 
-  const [exchangeDebugFilter, setExchangeDebugFilter] = useLocalStorage<
-    (typeof exchangeDebugFilterOptions)[number][0]
-  >('log-exchange-debug', 'all');
-
   const handleContextFilterChange = useCallback(
     (value: string) => {
       setContextFilter(value);
     },
     [setContextFilter]
-  );
-
-  const handleExchangeDebugFilterChange = useCallback(
-    (value: string) => {
-      setExchangeDebugFilter(value);
-    },
-    [setExchangeDebugFilter]
   );
 
   const handleEntryLimitChange = useCallback(
@@ -158,15 +132,8 @@ function LogViewerWindow() {
     setSearchFilter('');
     setLevelFilter('all');
     setContextFilter('all');
-    setExchangeDebugFilter('all');
     setEntryLimit('100');
-  }, [
-    setSearchFilter,
-    setLevelFilter,
-    setContextFilter,
-    setExchangeDebugFilter,
-    setEntryLimit,
-  ]);
+  }, [setSearchFilter, setLevelFilter, setContextFilter, setEntryLimit]);
 
   // Parse log lines into structured format, grouping multi-line entries
   const parseLogLines = useCallback((logText: string): LogEntryType[] => {
@@ -307,96 +274,31 @@ function LogViewerWindow() {
 
       const matchesLevel = levelFilter === 'all' || entry.level === levelFilter;
 
-      const matchesContext =
-        contextFilter === 'all' ||
-        entry.context.toLowerCase().includes(contextFilter.toLowerCase());
-
-      // Exchange Debug Filter Logic
-      const matchesExchangeDebug = (() => {
-        if (exchangeDebugFilter === 'all') return true;
-
-        const message = entry.message.toLowerCase();
-        const context = entry.context.toLowerCase();
-
-        switch (exchangeDebugFilter) {
-          case 'success':
-            return (
-              message.includes('🎉') ||
-              message.includes('[success]') ||
-              message.includes('[complete success]')
-            );
-          case 'failure':
-            return (
-              message.includes('❌') ||
-              message.includes('[failure]') ||
-              message.includes('[error]') ||
-              message.includes('failed')
-            );
-          case 'ntlmFlow':
-            return (
-              message.includes('ntlm') ||
-              message.includes('🔐') ||
-              message.includes('authentication') ||
-              message.includes('type 1') ||
-              message.includes('type 2') ||
-              message.includes('type 3')
-            );
-          case 'exchangeComm':
-            return (
-              message.includes('exchange') ||
-              message.includes('📧') ||
-              message.includes('ewsjs') ||
-              message.includes('xhr') ||
-              context.includes('outlook')
-            );
-          case 'sslCerts':
-            return (
-              message.includes('🔒') ||
-              message.includes('certificate') ||
-              message.includes('ssl') ||
-              message.includes('tls') ||
-              message.includes('rejectunauthorized') ||
-              message.includes('untrusted')
-            );
-          case 'networkErrors':
-            return (
-              message.includes('🌐') ||
-              message.includes('network') ||
-              message.includes('connection') ||
-              message.includes('timeout') ||
-              message.includes('proxy') ||
-              message.includes('dns')
-            );
-          case 'successFactors':
-            return (
-              message.includes('✅') ||
-              message.includes('[success factor]') ||
-              message.includes('enabled success')
-            );
-          case 'outlookCalendar':
-            return (
-              message.includes('📅') ||
-              message.includes('outlook') ||
-              message.includes('calendar') ||
-              context.includes('outlook') ||
-              message.includes('events')
-            );
-          default:
-            return true;
+      const matchesContext = (() => {
+        if (contextFilter === 'all') return true;
+        if (contextFilter === 'outlook') {
+          // Match Outlook-related logs
+          const message = entry.message.toLowerCase();
+          const context = entry.context.toLowerCase();
+          return (
+            message.includes('outlook') ||
+            message.includes('calendar') ||
+            message.includes('exchange') ||
+            message.includes('ntlm') ||
+            message.includes('ewsjs') ||
+            message.includes('xhr') ||
+            context.includes('outlook') ||
+            message.includes('events')
+          );
         }
+        return entry.context
+          .toLowerCase()
+          .includes(contextFilter.toLowerCase());
       })();
 
-      return (
-        matchesSearch && matchesLevel && matchesContext && matchesExchangeDebug
-      );
+      return matchesSearch && matchesLevel && matchesContext;
     });
-  }, [
-    logEntries,
-    searchFilter,
-    levelFilter,
-    contextFilter,
-    exchangeDebugFilter,
-  ]);
+  }, [logEntries, searchFilter, levelFilter, contextFilter]);
 
   // Load logs on component mount and when file or limit changes
   useEffect(() => {
@@ -786,14 +688,6 @@ function LogViewerWindow() {
               value={contextFilter}
               options={contextFilterOptions}
               onChange={handleContextFilterChange}
-            />
-          </Box>
-          <Box minWidth='x160' marginInlineEnd='x12'>
-            <SelectLegacy
-              placeholder={t('logViewer.placeholders.exchangeDebug')}
-              value={exchangeDebugFilter}
-              options={exchangeDebugFilterOptions}
-              onChange={handleExchangeDebugFilterChange}
             />
           </Box>
           <Button onClick={handleClearAll}>

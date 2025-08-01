@@ -1,6 +1,7 @@
 {
   "extends": ["@rocket.chat/eslint-config"],
   "plugins": ["react", "react-hooks"],
+  "ignorePatterns": ["patches-src/**/*"],
   "env": {
     "browser": true,
     "commonjs": true,

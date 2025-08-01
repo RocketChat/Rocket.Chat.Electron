@@ -8,6 +8,10 @@ import { invokeWithRetry } from '../ipc/renderer';
 import type { IRetryOptions } from '../ipc/renderer';
 import VideoCallWindow from './videoCallWindow';
 
+// Import and apply console override for the video call window renderer
+import '../logging/preload';
+
+// Initialize i18n for this window
 let initAttempts = 0;
 const MAX_INIT_ATTEMPTS = 10;
 

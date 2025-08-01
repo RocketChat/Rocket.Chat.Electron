@@ -44,6 +44,9 @@ jobs:
       - name: Install package dependencies
         run: yarn install
 
+      - name: Apply enhanced debugging patches
+        run: yarn apply-patches
+
       - name: Lint
         run: yarn lint
 

@@ -483,7 +483,8 @@
       "loadAmount": "Load amount",
       "searchLogs": "Search logs...",
       "level": "Level",
-      "context": "Context"
+      "context": "Context",
+      "exchangeDebug": "Exchange Debug Filter"
     },
     "filters": {
       "entryLimit": {
@@ -507,6 +508,17 @@
         "renderer": "Renderer",
         "webview": "Webview",
         "videocall": "Video Call"
+      },
+      "exchangeDebug": {
+        "all": "All Logs",
+        "success": "🎉 Success Only",
+        "failure": "❌ Failures Only",
+        "ntlmFlow": "🔐 NTLM Authentication",
+        "exchangeComm": "📧 Exchange Communication",
+        "sslCerts": "🔒 SSL/Certificate Issues",
+        "networkErrors": "🌐 Network Issues",
+        "successFactors": "✅ Success Factors",
+        "outlookCalendar": "📅 Outlook Calendar"
       }
     },
     "messages": {

@@ -454,7 +454,8 @@
       "loadAmount": "Quantidade a carregar",
       "searchLogs": "Pesquisar logs...",
       "level": "Nível",
-      "context": "Contexto"
+      "context": "Contexto",
+      "exchangeDebug": "Filtro Debug Exchange"
     },
     "filters": {
       "entryLimit": {
@@ -478,6 +479,17 @@
         "renderer": "Renderizador",
         "webview": "Webview",
         "videocall": "Video Chamada"
+      },
+      "exchangeDebug": {
+        "all": "Todos os Logs",
+        "success": "🎉 Apenas Sucessos",
+        "failure": "❌ Apenas Falhas",
+        "ntlmFlow": "🔐 Autenticação NTLM",
+        "exchangeComm": "📧 Comunicação Exchange",
+        "sslCerts": "🔒 Problemas SSL/Certificado",
+        "networkErrors": "🌐 Problemas de Rede",
+        "successFactors": "✅ Fatores de Sucesso",
+        "outlookCalendar": "📅 Calendário Outlook"
       }
     },
     "messages": {

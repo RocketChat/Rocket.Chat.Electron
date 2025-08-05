@@ -1,7 +1,7 @@
 import type { Download } from './common';
 
 export const DOWNLOAD_CREATED = 'downloads/created';
-export const DOWNLOAD_REMOVED = 'dowloads/removed';
+export const DOWNLOAD_REMOVED = 'downloads/removed';
 export const DOWNLOADS_CLEARED = 'downloads/cleared';
 export const DOWNLOAD_UPDATED = 'downloads/updated';
 

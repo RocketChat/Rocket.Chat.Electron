@@ -66,30 +66,39 @@ flowchart TD
     W1 --> X[Create Webview Element]
     X --> Y[Setup Webview Event Handlers]
     
-    %% Webview Loading States with ACK
+    %% Webview Loading States with Smart Loading Control
     Y --> Z[did-start-loading]
-    Z --> AA[Set Loading State]
+    Z --> Z1{Initial Load Complete?}
+    Z1 -->|No| AA[Set Loading State & Hide Webview]
+    Z1 -->|Yes - Navigation| AA2[Skip Loading UI - Internal Navigation]
     AA --> AA1[Send Webview Loading State with invokeWithRetry]
     AA1 --> BB[Start Loading Timeout]
+    AA2 --> BB2[Continue Without Loading UI]
     
-    %% Success Path with ACK
+    %% Success Path with Loading State Tracking
     BB --> CC[did-finish-load]
-    CC --> DD[Clear Loading State]
-    DD --> DD1[Send Webview Ready State with invokeWithRetry]
+    BB2 --> CC
+    CC --> DD[Clear Loading State & Show Webview]
+    DD --> DD0[Mark Initial Load Complete]
+    DD0 --> DD1[Send Webview Ready State with invokeWithRetry]
     DD1 --> DD2[Send Webview Created State with invokeWithRetry]
     DD2 --> DD3{Auto-open DevTools?}
     DD3 -->|Yes| DD4[Open DevTools with invokeWithRetry]
     DD3 -->|No| EE[Video Call Active]
     DD4 --> EE
     
-    %% Progressive Error Handling with ACK
+    %% Enhanced Error Handling with Smart Delays
     BB --> FF[did-fail-load OR Timeout OR Crash]
-    FF --> FF1[Send Webview Failed State with invokeWithRetry]
+    FF --> FF0{404-like Error?}
+    FF0 -->|Yes| FF2[Extended 1500ms Delay]
+    FF0 -->|No| FF3[Standard 800ms Delay]
+    FF2 --> FF1[Send Webview Failed State with invokeWithRetry]
+    FF3 --> FF1
     FF1 --> GG[Show Error State]
     GG --> HH{Recovery Attempt?}
-    HH -->|Attempt 1| II[Webview Reload - 1s Delay]
-    HH -->|Attempt 2| JJ[URL Refresh - 2s Delay]
-    HH -->|Attempt 3| KK[Full Reinitialize - 3s Delay]
+    HH -->|Attempt 1| II[Webview Reload - 1s Delay - Reset Initial Load]
+    HH -->|Attempt 2| JJ[URL Refresh - 2s Delay - Reset Initial Load]
+    HH -->|Attempt 3| KK[Full Reinitialize - 3s Delay - Reset Initial Load]
     HH -->|Max Attempts| LL[Show Manual Reload Button]
     
     %% Window Lifecycle
@@ -104,14 +113,15 @@ flowchart TD
     AAA --> BBB[Remove Event Listeners]
     BBB --> CCC[Window Destroyed]
     
-    %% Recovery Flows
+    %% Recovery Flows (Allow Loading UI)
     II --> Z
     JJ --> X
     KK --> M
     
-    %% Manual Recovery
+    %% Manual Recovery (Reset Initial Load State)
     LL --> DDD1[User Clicks Reload]
-    DDD1 --> Z
+    DDD1 --> DDD2[Reset Initial Load State]
+    DDD2 --> Z
     
     %% Styling
     classDef mainProcess fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
@@ -216,12 +226,14 @@ Now the window asks the main app for the actual video call URL.
 - Once it gets the URL, it confirms receipt with the main app
 
 ### 7. Loading the Video Call
-With the URL in hand, the window can now load the actual video call website.
+With the URL in hand, the window can now load the actual video call website using smart loading controls.
 
 **What happens:**
-- Creates a special web area (webview) inside the window
+- Creates a special web area (webview) inside the window, initially hidden
 - Sets up monitoring for loading events
-- Tells the main app "I'm starting to load the video call"
+- Checks if this is the initial load or subsequent navigation
+- **For initial load**: Shows loading UI and tells main app "I'm starting to load"
+- **For navigation within call**: Skips loading UI to prevent interruption
 - Starts a 15-second timer in case loading takes too long
 
 ### 8. Success Path
@@ -229,19 +241,25 @@ When everything loads correctly, you get your working video call.
 
 **What happens:**
 - The video call website finishes loading
+- The webview becomes visible (no more 404 flicker)
+- The system marks "initial load complete" to prevent future loading screens
 - The window tells the main app "Video call is ready"
 - If developer tools are enabled, they open automatically
 - You now see the working video call interface
 - The window is ready for you to make calls and share your screen
+- **Important**: Subsequent navigations within the call won't show loading screens
 
-### 9. Error Handling
-If something goes wrong, the app tries to fix it automatically.
+### 9. Enhanced Error Handling
+If something goes wrong, the app tries to fix it automatically with smart error detection.
 
 **What happens:**
-- **First attempt**: Simple refresh of the video call (1 second delay)
-- **Second attempt**: Clear everything and reload the URL (2 second delay)  
-- **Third attempt**: Restart the entire window (3 second delay)
+- **Error detection**: Identifies 404-like errors (-6, -105, -106) vs other errors
+- **Smart delays**: 404 errors wait 1500ms, other errors wait 800ms before showing
+- **First attempt**: Simple refresh of the video call (1 second delay, resets loading state)
+- **Second attempt**: Clear everything and reload the URL (2 second delay, resets loading state)  
+- **Third attempt**: Restart the entire window (3 second delay, resets loading state)
 - **Final fallback**: Show you a manual reload button if all else fails
+- **Recovery benefit**: Manual and auto-recovery properly reset loading state to allow loading UI
 
 ### 10. Window Management
 While your video call is active, the window stays responsive and updated.
@@ -264,11 +282,19 @@ When you're done with your call, everything gets cleaned up properly.
 
 ## Key Features That Make It Reliable
 
+### Smart Loading System ✨ *New*
+- **Initial load tracking**: Distinguishes first load from internal navigations
+- **No flicker loading**: Webview hidden during loading to prevent 404 flashes
+- **Provider optimization**: Works seamlessly with Pexip and Jitsi
+- **Navigation intelligence**: Subsequent page changes don't show loading screens
+- **Error-specific delays**: 404 errors get longer delays to reduce false positives
+
 ### Retry System
 - **Multiple attempts**: If something fails, it tries again automatically
 - **Smart delays**: Waits longer between retries to give slow systems time
 - **Different strategies**: Uses different fix approaches for different problems
 - **User control**: Gives you manual options if automatic fixes don't work
+- **State reset**: Recovery attempts properly reset loading state for clean retries
 
 ### Communication Safety
 - **Acknowledgments**: Every message between parts gets confirmed
@@ -281,5 +307,89 @@ When you're done with your call, everything gets cleaned up properly.
 - **Memory efficiency**: Cleans up properly to avoid slowing down your computer
 - **Background throttling**: Uses less CPU when the window is hidden
 - **Smart validation**: Only allows safe URLs to protect your security
+- **Smooth experience**: No loading interruptions during active video calls
 
-This system ensures that your video calls start reliably, even on slower computers or with unstable internet connections. 
+This system ensures that your video calls start reliably, even on slower computers or with unstable internet connections.
+
+## Recent Loading System Improvements
+
+### Problem-Solution Overview
+
+The video call loading system was recently improved to solve critical user experience issues:
+
+**Problems Solved:**
+- ❌ Loading screens blocking active Pexip video calls during room transitions
+- ❌ 404 flicker visible during initial load before content appears
+- ❌ Users thinking calls were broken when loading screens appeared mid-call
+- ❌ Poor experience with providers that do internal page navigation
+
+**Solutions Implemented:**
+- ✅ **Smart Initial Load Tracking**: Only shows loading UI for the first load, not subsequent navigations
+- ✅ **Webview Visibility Control**: Hides webview during loading to prevent 404 flicker
+- ✅ **Enhanced Error Handling**: Longer delays for 404-like errors, better provider compatibility
+- ✅ **Recovery State Management**: Proper loading state reset during error recovery
+
+### Technical Implementation
+
+**Initial Load State Tracking:**
+```typescript
+// New state to track when initial load completes
+const [hasInitialLoadCompleted, setHasInitialLoadCompleted] = useState(false);
+
+// Only show loading for initial load, not subsequent navigations  
+if (hasInitialLoadCompleted && !isReloading && recoveryAttempt === 0) {
+  // Skip loading UI - this is navigation within the video call
+  return;
+}
+```
+
+**Webview Visibility Control:**
+```typescript
+// Hide webview during any loading state to prevent flicker
+style={{
+  display: showError || showLoading || isLoading ? 'none' : 'flex'
+}}
+```
+
+**Smart Error Delays:**
+```typescript
+// Different delays for different error types
+const ERROR_SHOW_DELAY = 800; // Regular errors
+const ERROR_SHOW_DELAY_404 = 1500; // 404-like errors (more time to resolve)
+
+// Error codes: -6 = ERR_FILE_NOT_FOUND, -105 = ERR_NAME_NOT_RESOLVED, -106 = ERR_INTERNET_DISCONNECTED
+const is404LikeError = [-6, -105, -106].includes(event.errorCode);
+const errorDelay = is404LikeError ? ERROR_SHOW_DELAY_404 : ERROR_SHOW_DELAY;
+```
+
+### Provider-Specific Benefits
+
+**Pexip Video Calls:**
+- Initial join shows loading screen normally
+- Room transitions, lobby pages, and call setup navigation happen without loading interruption
+- Users can hear audio and see video without loading overlays blocking the interface
+
+**Jitsi Meetings:**
+- No more 404 flicker during the redirect from meeting URL to actual room
+- Smooth transition from meeting link to active call interface
+- Better handling of authentication flows
+
+### Testing the Improvements
+
+**Successful Flow Test:**
+1. Join a Pexip video call from Rocket.Chat
+2. Verify loading screen appears only during initial connection
+3. Confirm no loading screens during room transitions or feature usage
+4. Test screen sharing, camera controls work without loading interruptions
+
+**Error Handling Test:**
+1. Try joining an invalid/broken video call URL
+2. Verify error screen appears after appropriate delay (800ms or 1500ms)
+3. Test manual reload resets loading state properly
+4. Confirm auto-recovery attempts work correctly
+
+**Provider Compatibility:**
+- ✅ Pexip: Smooth room transitions without loading interruption
+- ✅ Jitsi: No 404 flicker during room setup
+
+This improved loading system maintains all existing reliability features while providing a much smoother, more professional video calling experience. 

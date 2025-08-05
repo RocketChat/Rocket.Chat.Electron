@@ -19,6 +19,7 @@ const MAX_RECOVERY_ATTEMPTS = 3;
 const LOADING_TIMEOUT_MS = 15000;
 const LOADING_SHOW_DELAY = 500; // Delay before showing loading spinner to prevent quick flashes
 const ERROR_SHOW_DELAY = 800; // Delay before showing error to prevent flicker during retries
+const ERROR_SHOW_DELAY_404 = 1500; // Longer delay for 404 errors which often flicker during initial load
 
 const RECOVERY_DELAYS = {
   webviewReload: 1000,
@@ -44,6 +45,8 @@ const VideoCallWindow = () => {
   const [showError, setShowError] = useState(false); // Delayed error display
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [recoveryAttempt, setRecoveryAttempt] = useState(0);
+  const [isClosing, setIsClosing] = useState(false); // Track if window is about to close
+  const [hasInitialLoadCompleted, setHasInitialLoadCompleted] = useState(false); // Track if initial load completed successfully
 
   const webviewRef = useRef<any>(null);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -73,6 +76,7 @@ const VideoCallWindow = () => {
       setIsReloading(false);
       setIsLoading(true);
       setErrorMessage(null);
+      setHasInitialLoadCompleted(false); // Reset for new URL
 
       setVideoCallUrl(url);
       setShouldAutoOpenDevtools(autoOpenDevtools);
@@ -117,6 +121,7 @@ const VideoCallWindow = () => {
       setIsReloading(false);
       setIsLoading(true);
       setErrorMessage(null);
+      setHasInitialLoadCompleted(false); // Reset for new URL
 
       setVideoCallUrl(url);
       setShouldAutoOpenDevtools(autoOpenDevtools);
@@ -249,6 +254,24 @@ const VideoCallWindow = () => {
           url
         );
 
+        // Immediately set closing state to prevent loading UI flicker
+        setIsClosing(true);
+
+        // Clear any pending display timeouts to prevent flickers
+        if (loadingDisplayTimeoutRef.current) {
+          clearTimeout(loadingDisplayTimeoutRef.current);
+          loadingDisplayTimeoutRef.current = null;
+        }
+
+        if (errorDisplayTimeoutRef.current) {
+          clearTimeout(errorDisplayTimeoutRef.current);
+          errorDisplayTimeoutRef.current = null;
+        }
+
+        // Hide any currently displayed UI
+        setShowLoading(false);
+        setShowError(false);
+
         // Add delay to prevent crash during navigation to close2.html
         // This allows the webview to complete the navigation before window destruction
         setTimeout(async () => {
@@ -275,6 +298,24 @@ const VideoCallWindow = () => {
 
     const handleLoadStart = () => {
       console.log('VideoCallWindow: Load started');
+
+      // Don't update state or show loading UI if window is closing
+      if (isClosing) {
+        console.log(
+          'VideoCallWindow: Skipping load start handling - window is closing'
+        );
+        return;
+      }
+
+      // Don't show loading UI if initial load has already completed (subsequent navigations)
+      // BUT allow loading UI during recovery attempts or manual reloads
+      if (hasInitialLoadCompleted && !isReloading && recoveryAttempt === 0) {
+        console.log(
+          'VideoCallWindow: Skipping loading UI - initial load already completed, this is likely a navigation within the video call'
+        );
+        return;
+      }
+
       setIsFailed(false);
       setIsReloading(false);
       setIsLoading(true);
@@ -303,13 +344,20 @@ const VideoCallWindow = () => {
 
       // Delay showing loading spinner to prevent quick flashes
       loadingDisplayTimeoutRef.current = setTimeout(() => {
-        // Only show loading if we're still actually loading (not finished)
-        if (isLoading && !isFailed) {
+        // Only show loading if we're still actually loading (not finished) and not closing
+        // Allow loading during recovery attempts or manual reloads even if initial load completed
+        const shouldShowLoading =
+          isLoading &&
+          !isFailed &&
+          !isClosing &&
+          (!hasInitialLoadCompleted || isReloading || recoveryAttempt > 0);
+
+        if (shouldShowLoading) {
           console.log('VideoCallWindow: Showing loading spinner after delay');
           setShowLoading(true);
         } else {
           console.log(
-            'VideoCallWindow: Skipping loading spinner - already finished loading'
+            'VideoCallWindow: Skipping loading spinner - already finished loading or window is closing'
           );
         }
         loadingDisplayTimeoutRef.current = null;
@@ -395,6 +443,9 @@ const VideoCallWindow = () => {
       setIsFailed(false);
       setShowError(false);
 
+      // Mark that initial load has completed successfully
+      setHasInitialLoadCompleted(true);
+
       invokeWithRetry('video-call-window/webview-ready', {
         maxAttempts: 2,
         retryDelay: 500,
@@ -454,11 +505,20 @@ const VideoCallWindow = () => {
         setIsFailed(true);
         setErrorMessage(`${event.errorDescription} (${event.errorCode})`);
 
+        // Use longer delay for 404-like errors which tend to flicker during initial load
+        // Error codes: -6 = ERR_FILE_NOT_FOUND, -105 = ERR_NAME_NOT_RESOLVED, -106 = ERR_INTERNET_DISCONNECTED
+        const is404LikeError = [-6, -105, -106].includes(event.errorCode);
+        const errorDelay = is404LikeError
+          ? ERROR_SHOW_DELAY_404
+          : ERROR_SHOW_DELAY;
+
         // Delay showing error to prevent flicker during quick retry attempts
         errorDisplayTimeoutRef.current = setTimeout(() => {
           // Only show error if we're still in failed state (not recovered)
           if (isFailed && !isLoading) {
-            console.log('VideoCallWindow: Showing error screen after delay');
+            console.log(
+              `VideoCallWindow: Showing error screen after ${errorDelay}ms delay`
+            );
             setShowError(true);
           } else {
             console.log(
@@ -466,7 +526,7 @@ const VideoCallWindow = () => {
             );
           }
           errorDisplayTimeoutRef.current = null;
-        }, ERROR_SHOW_DELAY);
+        }, errorDelay);
 
         ipcRenderer
           .invoke(
@@ -631,7 +691,10 @@ const VideoCallWindow = () => {
     shouldAutoOpenDevtools,
     isFailed,
     isLoading,
+    isReloading,
     recoveryAttempt,
+    isClosing,
+    hasInitialLoadCompleted,
     t,
   ]);
 
@@ -641,6 +704,7 @@ const VideoCallWindow = () => {
     setIsFailed(false);
     setIsLoading(true);
     setErrorMessage(null);
+    setHasInitialLoadCompleted(false); // Reset for manual reload
     resetRecoveryState();
 
     if (loadingTimeoutRef.current) {
@@ -684,7 +748,7 @@ const VideoCallWindow = () => {
       <ScreenSharePicker />
 
       {/* Loading overlay with escape option */}
-      {showLoading && !showError && (
+      {showLoading && !showError && !isClosing && (
         <Box
           display='flex'
           flexDirection='column'
@@ -718,7 +782,7 @@ const VideoCallWindow = () => {
         </Box>
       )}
 
-      {showError && (
+      {showError && !isClosing && (
         <Box
           display='flex'
           flexDirection='column'
@@ -790,7 +854,7 @@ const VideoCallWindow = () => {
         style={{
           width: '100%',
           height: '100%',
-          display: showError || showLoading ? 'none' : 'flex',
+          display: showError || showLoading || isLoading ? 'none' : 'flex',
         }}
       />
     </Box>

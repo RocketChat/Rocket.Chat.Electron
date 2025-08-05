@@ -360,5 +360,20 @@
     "noWindowsFound": "Keine Fenster gefunden",
     "cancel": "Abbrechen",
     "share": "Teilen"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Videoanruf wird geladen...",
+      "reloading": "Videoanruf wird neu geladen...",
+      "description": "Bitte warten Sie, während wir eine Verbindung zum Videoanruf herstellen"
+    },
+    "error": {
+      "title": "Videoanruf konnte nicht geladen werden",
+      "announcement": "Houston, wir haben ein Problem",
+      "timeout": "Ladezeitüberschreitung - Videoanruf konnte nicht innerhalb von 15 Sekunden geladen werden",
+      "crashed": "Webview ist abgestürzt",
+      "maxRetriesReached": "Laden nach mehreren Versuchen fehlgeschlagen",
+      "reload": "Videoanruf neu laden"
+    }
   }
 }

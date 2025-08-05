@@ -231,5 +231,20 @@
     "noWindowsFound": "Nie znaleziono okien",
     "cancel": "Anuluj",
     "share": "Udostępnij"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Ładowanie połączenia wideo...",
+      "reloading": "Ponowne ładowanie połączenia wideo...",
+      "description": "Proszę czekać, łączymy z połączeniem wideo"
+    },
+    "error": {
+      "title": "Nie udało się załadować połączenia wideo",
+      "announcement": "Houston, mamy problem",
+      "timeout": "Przekroczono czas oczekiwania - nie udało się załadować połączenia wideo w ciągu 15 sekund",
+      "crashed": "Webview się zawiesił",
+      "maxRetriesReached": "Nie udało się załadować po wielu próbach",
+      "reload": "Przeładuj połączenie wideo"
+    }
   }
 }

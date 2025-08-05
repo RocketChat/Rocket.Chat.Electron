@@ -353,6 +353,7 @@
       "announcement": "Houston, we have a problem",
       "timeout": "Loading timeout - video call failed to load within 15 seconds",
       "crashed": "Webview crashed",
+      "maxRetriesReached": "Failed to load after multiple attempts",
       "reload": "Reload Video Call"
     }
   },

@@ -358,5 +358,20 @@
     "noWindowsFound": "Ikkunoita ei löytynyt",
     "cancel": "Peruuta",
     "share": "Jaa"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Ladataan videopuhelua...",
+      "reloading": "Ladataan videopuhelua uudelleen...",
+      "description": "Odota hetki, kun yhdistämme videopuheluun"
+    },
+    "error": {
+      "title": "Videopuhelun lataaminen epäonnistui",
+      "announcement": "Houston, meillä on ongelma",
+      "timeout": "Aikakatkaisu - videopuhelua ei voitu ladata 15 sekunnissa",
+      "crashed": "Webview kaatui",
+      "maxRetriesReached": "Lataaminen epäonnistui useiden yritysten jälkeen",
+      "reload": "Lataa videopuhelu uudelleen"
+    }
   }
 }

@@ -21,6 +21,7 @@ This document explains the complete process from when you click "Join Call" to w
 - The retry system that makes video calls work reliably
 - How multiple attempts ensure success even with slow internet
 - What happens when you close a video call window
+- ✨ **New**: Smart loading system that prevents flicker and loading interruptions
 
 **Perfect for understanding:** Why video calls sometimes take a moment to open, how the app recovers from problems, and what's happening behind the scenes when you start a video call.
 

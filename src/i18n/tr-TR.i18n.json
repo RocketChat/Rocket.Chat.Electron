@@ -209,5 +209,20 @@
     "noWindowsFound": "Pencere bulunamadı",
     "cancel": "İptal et",
     "share": "Paylaş"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Video görüşme yükleniyor...",
+      "reloading": "Video görüşme yeniden yükleniyor...",
+      "description": "Video görüşmeye bağlanırken lütfen bekleyin"
+    },
+    "error": {
+      "title": "Video görüşme yüklenemedi",
+      "announcement": "Houston, bir problemimiz var",
+      "timeout": "Zaman aşımı - video görüşme 15 saniye içinde yüklenemedi",
+      "crashed": "Webview çöktü",
+      "maxRetriesReached": "Birden fazla deneme sonrası yükleme başarısız",
+      "reload": "Video görüşmeyi yeniden yükle"
+    }
   }
 }

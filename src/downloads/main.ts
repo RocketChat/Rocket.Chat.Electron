@@ -9,6 +9,7 @@ import {
   DOWNLOAD_CREATED,
   DOWNLOAD_REMOVED,
   DOWNLOAD_UPDATED,
+  DOWNLOADS_CLEARED,
 } from './actions';
 import type { Download } from './common';
 import { DownloadStatus } from './common';
@@ -21,35 +22,36 @@ export const handleWillDownloadEvent = async (
   serverWebContents: WebContents
 ): Promise<void> => {
   const itemId = Date.now();
-
   items.set(itemId, item);
 
   const server = select(({ servers }) =>
     servers.find((server) => server.webContentsId === serverWebContents.id)
   );
 
-  if (!server) {
-    // TODO: check if the download always comes from the main frame webContents
-    throw new Error('could not match the server');
-  }
+  const serverUrl = server?.url || 'unknown';
+  const serverTitle = server?.title || 'Unknown Server';
+
+  const downloadPayload = {
+    itemId,
+    state: item.isPaused()
+      ? ('paused' as const)
+      : (item.getState() as Download['state']),
+    status: item.isPaused() ? DownloadStatus.PAUSED : DownloadStatus.ALL,
+    fileName: item.getFilename(),
+    receivedBytes: item.getReceivedBytes(),
+    totalBytes: item.getTotalBytes(),
+    startTime: item.getStartTime() * 1000,
+    endTime: undefined,
+    url: item.getURL(),
+    serverUrl,
+    serverTitle,
+    mimeType: item.getMimeType(),
+    savePath: item.getSavePath(),
+  };
 
   dispatch({
     type: DOWNLOAD_CREATED,
-    payload: {
-      itemId,
-      state: item.isPaused() ? 'paused' : item.getState(),
-      status: item.isPaused() ? DownloadStatus.PAUSED : DownloadStatus.ALL,
-      fileName: item.getFilename(),
-      receivedBytes: item.getReceivedBytes(),
-      totalBytes: item.getTotalBytes(),
-      startTime: item.getStartTime() * 1000,
-      endTime: undefined,
-      url: item.getURL(),
-      serverUrl: server?.url,
-      serverTitle: server?.title,
-      mimeType: item.getMimeType(),
-      savePath: item.getSavePath(),
-    },
+    payload: downloadPayload,
   });
 
   item.on('updated', () => {
@@ -57,7 +59,9 @@ export const handleWillDownloadEvent = async (
       type: DOWNLOAD_UPDATED,
       payload: {
         itemId,
-        state: item.isPaused() ? 'paused' : item.getState(),
+        state: item.isPaused()
+          ? ('paused' as const)
+          : (item.getState() as Download['state']),
         status: item.isPaused() ? DownloadStatus.PAUSED : DownloadStatus.ALL,
         fileName: item.getFilename(),
         receivedBytes: item.getReceivedBytes(),
@@ -85,7 +89,7 @@ export const handleWillDownloadEvent = async (
       type: DOWNLOAD_UPDATED,
       payload: {
         itemId,
-        state: item.getState(),
+        state: item.getState() as Download['state'],
         status:
           item.getState() === 'cancelled'
             ? DownloadStatus.CANCELLED
@@ -123,7 +127,7 @@ export const setupDownloads = (): void => {
       return;
     }
 
-    clipboard.write({ text: download.url });
+    clipboard.writeText(download.url);
   });
 
   handle('downloads/pause', async (_webContent, itemId) => {
@@ -224,6 +228,12 @@ export const setupDownloads = (): void => {
         }
       }
     }
+  });
+
+  handle('downloads/clear-all' as any, async () => {
+    dispatch({
+      type: DOWNLOADS_CLEARED,
+    });
   });
 
   handle('downloads/remove', async (_webContent, itemId) => {

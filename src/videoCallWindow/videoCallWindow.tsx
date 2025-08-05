@@ -44,6 +44,7 @@ const VideoCallWindow = () => {
   const [showError, setShowError] = useState(false); // Delayed error display
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [recoveryAttempt, setRecoveryAttempt] = useState(0);
+  const [isClosing, setIsClosing] = useState(false); // Track if window is about to close
 
   const webviewRef = useRef<any>(null);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -249,6 +250,24 @@ const VideoCallWindow = () => {
           url
         );
 
+        // Immediately set closing state to prevent loading UI flicker
+        setIsClosing(true);
+
+        // Clear any pending display timeouts to prevent flickers
+        if (loadingDisplayTimeoutRef.current) {
+          clearTimeout(loadingDisplayTimeoutRef.current);
+          loadingDisplayTimeoutRef.current = null;
+        }
+
+        if (errorDisplayTimeoutRef.current) {
+          clearTimeout(errorDisplayTimeoutRef.current);
+          errorDisplayTimeoutRef.current = null;
+        }
+
+        // Hide any currently displayed UI
+        setShowLoading(false);
+        setShowError(false);
+
         // Add delay to prevent crash during navigation to close2.html
         // This allows the webview to complete the navigation before window destruction
         setTimeout(async () => {
@@ -275,6 +294,14 @@ const VideoCallWindow = () => {
 
     const handleLoadStart = () => {
       console.log('VideoCallWindow: Load started');
+
+      // Don't update state or show loading UI if window is closing
+      if (isClosing) {
+        console.log(
+          'VideoCallWindow: Skipping load start handling - window is closing'
+        );
+        return;
+      }
       setIsFailed(false);
       setIsReloading(false);
       setIsLoading(true);
@@ -303,13 +330,13 @@ const VideoCallWindow = () => {
 
       // Delay showing loading spinner to prevent quick flashes
       loadingDisplayTimeoutRef.current = setTimeout(() => {
-        // Only show loading if we're still actually loading (not finished)
-        if (isLoading && !isFailed) {
+        // Only show loading if we're still actually loading (not finished) and not closing
+        if (isLoading && !isFailed && !isClosing) {
           console.log('VideoCallWindow: Showing loading spinner after delay');
           setShowLoading(true);
         } else {
           console.log(
-            'VideoCallWindow: Skipping loading spinner - already finished loading'
+            'VideoCallWindow: Skipping loading spinner - already finished loading or window is closing'
           );
         }
         loadingDisplayTimeoutRef.current = null;
@@ -632,6 +659,7 @@ const VideoCallWindow = () => {
     isFailed,
     isLoading,
     recoveryAttempt,
+    isClosing,
     t,
   ]);
 
@@ -684,7 +712,7 @@ const VideoCallWindow = () => {
       <ScreenSharePicker />
 
       {/* Loading overlay with escape option */}
-      {showLoading && !showError && (
+      {showLoading && !showError && !isClosing && (
         <Box
           display='flex'
           flexDirection='column'
@@ -718,7 +746,7 @@ const VideoCallWindow = () => {
         </Box>
       )}
 
-      {showError && (
+      {showError && !isClosing && (
         <Box
           display='flex'
           flexDirection='column'

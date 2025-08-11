@@ -324,6 +324,21 @@
     "announcement": "Houston, nós temos um problema",
     "reload": "Recarregar"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "Carregando chamada de vídeo...",
+      "reloading": "Recarregando chamada de vídeo...",
+      "description": "Por favor aguarde enquanto nos conectamos à chamada de vídeo"
+    },
+    "error": {
+      "title": "Falha ao carregar chamada de vídeo",
+      "announcement": "Houston, temos um problema",
+      "timeout": "Tempo limite excedido - a chamada de vídeo não pôde carregar em 15 segundos",
+      "crashed": "Webview travou",
+      "maxRetriesReached": "Falha ao carregar após múltiplas tentativas",
+      "reload": "Recarregar chamada de vídeo"
+    }
+  },
   "unsupportedServer": {
     "title": "{{instanceDomain}} está executando uma versão não suportada do Rocket.Chat",
     "announcement": "Um administrador precisa atualizar o workspace para uma versão suportada para reativar o acesso aos aplicativos móveis e desktop.",
@@ -395,20 +410,5 @@
     "noWindowsFound": "Nenhuma janela encontrada",
     "cancel": "Cancelar",
     "share": "Compartilhar"
-  },
-  "videoCall": {
-    "loading": {
-      "initial": "Carregando chamada de vídeo...",
-      "reloading": "Recarregando chamada de vídeo...",
-      "description": "Por favor aguarde enquanto nos conectamos à chamada de vídeo"
-    },
-    "error": {
-      "title": "Falha ao carregar chamada de vídeo",
-      "announcement": "Houston, temos um problema",
-      "timeout": "Tempo limite excedido - a chamada de vídeo não pôde carregar em 15 segundos",
-      "crashed": "Webview travou",
-      "maxRetriesReached": "Falha ao carregar após múltiplas tentativas",
-      "reload": "Recarregar chamada de vídeo"
-    }
   }
 }

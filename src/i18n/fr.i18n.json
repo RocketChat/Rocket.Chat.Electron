@@ -303,6 +303,21 @@
     "announcement": "Houston, nous avons un problème",
     "reload": "Recharger"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "Chargement de l'appel vidéo...",
+      "reloading": "Rechargement de l'appel vidéo...",
+      "description": "Veuillez patienter pendant que nous nous connectons à l'appel vidéo"
+    },
+    "error": {
+      "title": "Échec du chargement de l'appel vidéo",
+      "announcement": "Houston, nous avons un problème",
+      "timeout": "Délai d'attente dépassé - l'appel vidéo n'a pas pu se charger en 15 secondes",
+      "crashed": "Webview a planté",
+      "maxRetriesReached": "Échec du chargement après plusieurs tentatives",
+      "reload": "Recharger l'appel vidéo"
+    }
+  },
   "selfxss": {
     "title": "Stop !",
     "description": "Il s'agit d'une fonctionnalité de navigateur destinée aux développeurs. Si quelqu'un vous a dit de copier-coller quelque chose ici pour activer une fonctionnalité Rocket.Chat ou \"pirater\" le compte de quelqu'un, il s'agit d'une arnaque et ça lui donnera accès à votre compte Rocket.Chat.",
@@ -359,20 +374,5 @@
     "noWindowsFound": "Aucune fenêtre trouvée",
     "cancel": "Annuler",
     "share": "Partager"
-  },
-  "videoCall": {
-    "loading": {
-      "initial": "Chargement de l'appel vidéo...",
-      "reloading": "Rechargement de l'appel vidéo...",
-      "description": "Veuillez patienter pendant que nous nous connectons à l'appel vidéo"
-    },
-    "error": {
-      "title": "Échec du chargement de l'appel vidéo",
-      "announcement": "Houston, nous avons un problème",
-      "timeout": "Délai d'attente dépassé - l'appel vidéo n'a pas pu se charger en 15 secondes",
-      "crashed": "Webview a planté",
-      "maxRetriesReached": "Échec du chargement après plusieurs tentatives",
-      "reload": "Recharger l'appel vidéo"
-    }
   }
 }

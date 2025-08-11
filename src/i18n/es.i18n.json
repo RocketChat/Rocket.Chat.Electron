@@ -328,6 +328,21 @@
     "announcement": "Houston, tenemos un problema",
     "reload": "Recargar"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "Cargando videollamada...",
+      "reloading": "Recargando videollamada...",
+      "description": "Por favor espera mientras nos conectamos a la videollamada"
+    },
+    "error": {
+      "title": "Error al cargar la videollamada",
+      "announcement": "Houston, tenemos un problema",
+      "timeout": "Tiempo de espera agotado - la videollamada no pudo cargar en 15 segundos",
+      "crashed": "Webview se ha bloqueado",
+      "maxRetriesReached": "Error al cargar después de múltiples intentos",
+      "reload": "Recargar videollamada"
+    }
+  },
   "unsupportedServer": {
     "title": "{{instanceDomain}} está ejecutando una versión no compatible de Rocket.Chat",
     "announcement": "Un administrador debe actualizar el espacio de trabajo a una versión compatible para habilitar el acceso desde aplicaciones móviles y de escritorio.",
@@ -390,20 +405,5 @@
     "noWindowsFound": "No se encontraron ventanas",
     "cancel": "Cancelar",
     "share": "Compartir"
-  },
-  "videoCall": {
-    "loading": {
-      "initial": "Cargando videollamada...",
-      "reloading": "Recargando videollamada...",
-      "description": "Por favor espera mientras nos conectamos a la videollamada"
-    },
-    "error": {
-      "title": "Error al cargar la videollamada",
-      "announcement": "Houston, tenemos un problema",
-      "timeout": "Tiempo de espera agotado - la videollamada no pudo cargar en 15 segundos",
-      "crashed": "Webview se ha bloqueado",
-      "maxRetriesReached": "Error al cargar después de múltiples intentos",
-      "reload": "Recargar videollamada"
-    }
   }
 }

@@ -304,6 +304,21 @@
     "announcement": "Houston, we have a problem",
     "reload": "Neu laden"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "Videoanruf wird geladen...",
+      "reloading": "Videoanruf wird neu geladen...",
+      "description": "Bitte warten Sie, während wir eine Verbindung zum Videoanruf herstellen"
+    },
+    "error": {
+      "title": "Videoanruf konnte nicht geladen werden",
+      "announcement": "Houston, wir haben ein Problem",
+      "timeout": "Ladezeitüberschreitung - Videoanruf konnte nicht innerhalb von 15 Sekunden geladen werden",
+      "crashed": "Webview ist abgestürzt",
+      "maxRetriesReached": "Laden nach mehreren Versuchen fehlgeschlagen",
+      "reload": "Videoanruf neu laden"
+    }
+  },
   "selfxss": {
     "title": "Halt!",
     "description": "Dies ist eine Browserfunktion, die für Entwickler gedacht ist. Wenn Ihnen jemand gesagt hat, dass Sie hier etwas kopieren und einfügen sollen, um eine Rocket.Chat-Funktion zu aktivieren, oder \"hack\" das Konto einer anderen Person, ist dies ein Betrug und verschafft dieser Person Zugriff auf Ihr Rocket.Chat-Konto.",
@@ -360,20 +375,5 @@
     "noWindowsFound": "Keine Fenster gefunden",
     "cancel": "Abbrechen",
     "share": "Teilen"
-  },
-  "videoCall": {
-    "loading": {
-      "initial": "Videoanruf wird geladen...",
-      "reloading": "Videoanruf wird neu geladen...",
-      "description": "Bitte warten Sie, während wir eine Verbindung zum Videoanruf herstellen"
-    },
-    "error": {
-      "title": "Videoanruf konnte nicht geladen werden",
-      "announcement": "Houston, wir haben ein Problem",
-      "timeout": "Ladezeitüberschreitung - Videoanruf konnte nicht innerhalb von 15 Sekunden geladen werden",
-      "crashed": "Webview ist abgestürzt",
-      "maxRetriesReached": "Laden nach mehreren Versuchen fehlgeschlagen",
-      "reload": "Videoanruf neu laden"
-    }
   }
 }

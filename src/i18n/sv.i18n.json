@@ -339,6 +339,21 @@
     "announcement": "Houston, vi har ett problem",
     "reload": "Ladda om"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "Laddar videosamtal...",
+      "reloading": "Laddar om videosamtal...",
+      "description": "Vänta medan vi ansluter till videosamtalet"
+    },
+    "error": {
+      "title": "Videosamtalet kunde inte laddas",
+      "announcement": "Houston, vi har ett problem",
+      "timeout": "Tidsgräns överskriden - videosamtalet kunde inte laddas inom 15 sekunder",
+      "crashed": "Webview kraschade",
+      "maxRetriesReached": "Kunde inte ladda efter flera försök",
+      "reload": "Ladda om videosamtal"
+    }
+  },
   "unsupportedServer": {
     "title": "{{instanceDomain}} kör en version av Rocket.Chat som inte stöds",
     "announcement": "En administratör måste uppdatera arbetsytan till en version som stöds för att återaktivera åtkomst från mobil- och skrivbordsappar.",
@@ -412,20 +427,5 @@
     "noWindowsFound": "Inga fönster hittades",
     "cancel": "Avbryt",
     "share": "Dela"
-  },
-  "videoCall": {
-    "loading": {
-      "initial": "Laddar videosamtal...",
-      "reloading": "Laddar om videosamtal...",
-      "description": "Vänta medan vi ansluter till videosamtalet"
-    },
-    "error": {
-      "title": "Videosamtalet kunde inte laddas",
-      "announcement": "Houston, vi har ett problem",
-      "timeout": "Tidsgräns överskriden - videosamtalet kunde inte laddas inom 15 sekunder",
-      "crashed": "Webview kraschade",
-      "maxRetriesReached": "Kunde inte ladda efter flera försök",
-      "reload": "Ladda om videosamtal"
-    }
   }
 }

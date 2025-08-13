@@ -210,11 +210,13 @@
       },
       "menubar": {
         "title": "Menüleiste",
-        "description": "Menüleiste oben im Fenster anzeigen."
+        "description": "Menüleiste oben im Fenster anzeigen.",
+        "disabledHint": "Die Menüleiste kann nicht deaktiviert werden, wenn die Seitenleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
       },
       "sidebar": {
         "title": "Seitenleiste",
-        "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen."
+        "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen.",
+        "disabledHint": "Die Seitenleiste kann nicht deaktiviert werden, wenn die Menüleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
       },
       "trayIcon": {
         "title": "Taskleistensymbol",

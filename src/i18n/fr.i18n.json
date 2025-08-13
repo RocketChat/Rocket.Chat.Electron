@@ -217,11 +217,13 @@
       },
       "menubar": {
         "title": "Barre de menu",
-        "description": "Afficher la barre de menus en haut de la fenêtre."
+        "description": "Afficher la barre de menus en haut de la fenêtre.",
+        "disabledHint": "Impossible de désactiver la barre de menu quand la barre latérale est désactivée. Les paramètres deviendraient inaccessibles."
       },
       "sidebar": {
         "title": "Barre latérale",
-        "description": "Afficher la barre latérale à gauche de la fenêtre avec la liste des serveurs, les téléchargements et les paramètres."
+        "description": "Afficher la barre latérale à gauche de la fenêtre avec la liste des serveurs, les téléchargements et les paramètres.",
+        "disabledHint": "Impossible de désactiver la barre latérale quand la barre de menu est désactivée. Les paramètres deviendraient inaccessibles."
       },
       "trayIcon": {
         "title": "Icône de la barre d'état système",

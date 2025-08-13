@@ -328,7 +328,7 @@ const createViewMenu = createSelector(
           label: t('menus.showMenuBar'),
           type: 'checkbox',
           checked: isMenuBarEnabled,
-          enabled: isSideBarEnabled || isMenuBarEnabled, // Prevent disabling if sidebar is already disabled
+          enabled: !isMenuBarEnabled || isSideBarEnabled,
           accelerator:
             process.platform === 'darwin' ? 'Shift+Command+M' : 'Ctrl+Shift+M',
           click: async ({ checked }) => {
@@ -350,7 +350,7 @@ const createViewMenu = createSelector(
         label: t('menus.showServerList'),
         type: 'checkbox',
         checked: isSideBarEnabled,
-        enabled: isMenuBarEnabled || isSideBarEnabled, // Prevent disabling if menu bar is already disabled
+        enabled: !isSideBarEnabled || isMenuBarEnabled,
         accelerator:
           process.platform === 'darwin' ? 'Shift+Command+S' : 'Ctrl+Shift+S',
         click: async ({ checked }) => {

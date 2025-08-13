@@ -40,9 +40,7 @@ export const MenuBar = (props: MenuBarProps) => {
   );
 
   const isMenuBarEnabledId = useId();
-
-  // Prevent disabling menu bar if sidebar is already disabled to ensure settings access
-  const canDisable = isSideBarEnabled || isMenuBarEnabled;
+  const canToggle = !isMenuBarEnabled || isSideBarEnabled;
 
   return (
     <Field className={props.className}>
@@ -54,7 +52,7 @@ export const MenuBar = (props: MenuBarProps) => {
           id={isMenuBarEnabledId}
           checked={isMenuBarEnabled}
           onChange={handleChange}
-          disabled={!canDisable}
+          disabled={!canToggle}
         />
       </FieldRow>
       <FieldRow>

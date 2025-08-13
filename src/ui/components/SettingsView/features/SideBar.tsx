@@ -23,6 +23,9 @@ export const SideBar = (props: SideBarProps) => {
   const isSideBarEnabled = useSelector(
     ({ isSideBarEnabled }: RootState) => isSideBarEnabled
   );
+  const isMenuBarEnabled = useSelector(
+    ({ isMenuBarEnabled }: RootState) => isMenuBarEnabled
+  );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
   const handleChange = useCallback(
@@ -38,6 +41,9 @@ export const SideBar = (props: SideBarProps) => {
 
   const isSideBarEnabledId = useId();
 
+  // Prevent disabling sidebar if menu bar is already disabled to ensure settings access
+  const canDisable = isMenuBarEnabled || isSideBarEnabled;
+
   return (
     <Field className={props.className}>
       <FieldRow>
@@ -48,10 +54,15 @@ export const SideBar = (props: SideBarProps) => {
           id={isSideBarEnabledId}
           checked={isSideBarEnabled}
           onChange={handleChange}
+          disabled={!canDisable}
         />
       </FieldRow>
       <FieldRow>
-        <FieldHint>{t('settings.options.sidebar.description')}</FieldHint>
+        <FieldHint>
+          {!isMenuBarEnabled && isSideBarEnabled
+            ? t('settings.options.sidebar.disabledHint')
+            : t('settings.options.sidebar.description')}
+        </FieldHint>
       </FieldRow>
     </Field>
   );

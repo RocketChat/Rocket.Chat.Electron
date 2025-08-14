@@ -45,6 +45,10 @@ type ChannelToArgsMap = {
   'video-call-window/webview-loading': () => { success: boolean };
   'video-call-window/webview-ready': () => { success: boolean };
   'video-call-window/webview-failed': (error: string) => { success: boolean };
+  'video-call-window/get-language': () => {
+    success: boolean;
+    language: string;
+  };
   'jitsi-desktop-capturer-get-sources': (
     args: [options: Electron.SourcesOptions, jitsiDomain: string]
   ) => Electron.DesktopCapturerSource[];

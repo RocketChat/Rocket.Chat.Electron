@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import { createRoot } from 'react-dom/client';
-import { I18nextProvider, initReactI18next } from 'react-i18next';
+import { I18nextProvider } from 'react-i18next';
 
 import { interpolation, fallbackLng } from '../i18n/common';
 import resources from '../i18n/resources';
@@ -14,14 +14,34 @@ const MAX_INIT_ATTEMPTS = 10;
 let isWindowDestroying = false;
 let reactRoot: any = null;
 
-const setupI18n = async () => {
+const initializeI18n = async () => {
   try {
-    const lng = fallbackLng;
+    // Get the system language from main process
+    const languageResult = await invokeWithRetry(
+      'video-call-window/get-language',
+      {
+        maxAttempts: 3,
+        retryDelay: 500,
+        logRetries: process.env.NODE_ENV === 'development',
+      }
+    );
 
-    await i18next.use(initReactI18next).init({
+    const lng = languageResult?.language || fallbackLng;
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Video call window: Using language:', lng);
+    }
+
+    await i18next.init({
       lng,
       fallbackLng,
       resources: {
+        ...(lng &&
+          lng !== fallbackLng && {
+            [lng]: {
+              translation: await resources[lng as keyof typeof resources]?.(),
+            },
+          }),
         [fallbackLng]: {
           translation: await resources[fallbackLng](),
         },
@@ -125,7 +145,7 @@ const start = async (): Promise<void> => {
     }
 
     // Initialize React app
-    await setupI18n();
+    await initializeI18n();
     const rootElement = document.getElementById('root');
     if (!rootElement) {
       throw new Error('Root element not found');

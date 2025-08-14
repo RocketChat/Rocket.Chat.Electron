@@ -18,6 +18,7 @@ import {
 } from 'electron';
 
 import { packageJsonInformation } from '../app/main/app';
+import { fallbackLng } from '../i18n/common';
 import { handle } from '../ipc/main';
 import { isProtocolAllowed } from '../navigation/main';
 import { select, dispatchLocal } from '../store';
@@ -1049,4 +1050,18 @@ handle('video-call-window/webview-ready', async () => {
 handle('video-call-window/webview-failed', async (_webContents, error) => {
   console.error('Video call window: Webview failed to load:', error);
   return { success: true };
+});
+
+handle('video-call-window/get-language', async () => {
+  console.log('Video call window: Language request received');
+
+  // Import the i18n service to get the current language
+  try {
+    const { getLanguage } = await import('../i18n/main');
+    console.log('Video call window: Providing language:', getLanguage);
+    return { success: true, language: getLanguage };
+  } catch (error) {
+    console.error('Video call window: Failed to get language:', error);
+    return { success: true, language: fallbackLng };
+  }
 });

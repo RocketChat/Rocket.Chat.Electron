@@ -330,6 +330,21 @@
     "announcement": "Houston, baj van!",
     "reload": "Újratöltés"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "Videohívás betöltése...",
+      "reloading": "Videohívás újratöltése...",
+      "description": "Kérjük, várjon, amíg csatlakozunk a videohíváshoz"
+    },
+    "error": {
+      "title": "A videohívás betöltése sikertelen",
+      "announcement": "Houston, problémánk van",
+      "timeout": "Időtúllépés - a videohívás nem tudott betöltődni 15 másodperc alatt",
+      "crashed": "A webview összeomlott",
+      "maxRetriesReached": "A betöltés több próbálkozás után is sikertelen",
+      "reload": "Videohívás újratöltése"
+    }
+  },
   "unsupportedServer": {
     "title": " {{instanceDomain}}a Rocket.Chat nem támogatott verzióját futtatja",
     "announcement": "Az adminisztrátornak frissítenie kell ezt a munkaterületet egy támogatott verzióra, hogy visszaállítsa a hozzáférést az asztali és mobilalkalmazásokból.",
@@ -392,20 +407,5 @@
     "noWindowsFound": "Nem található ablak",
     "cancel": "Mégse",
     "share": "Megosztás"
-  },
-  "videoCall": {
-    "loading": {
-      "initial": "Videohívás betöltése...",
-      "reloading": "Videohívás újratöltése...",
-      "description": "Kérjük, várjon, amíg csatlakozunk a videohíváshoz"
-    },
-    "error": {
-      "title": "A videohívás betöltése sikertelen",
-      "announcement": "Houston, problémánk van",
-      "timeout": "Időtúllépés - a videohívás nem tudott betöltődni 15 másodperc alatt",
-      "crashed": "A webview összeomlott",
-      "maxRetriesReached": "A betöltés több próbálkozás után is sikertelen",
-      "reload": "Videohívás újratöltése"
-    }
   }
 }

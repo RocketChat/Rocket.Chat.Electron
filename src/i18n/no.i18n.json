@@ -341,6 +341,21 @@
     "announcement": "Houston, vi har et problem",
     "reload": "Last inn på nytt"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "Laster videosamtale...",
+      "reloading": "Laster videosamtale på nytt...",
+      "description": "Vennligst vent mens vi kobler til videosamtalen"
+    },
+    "error": {
+      "title": "Kunne ikke laste videosamtale",
+      "announcement": "Houston, vi har et problem",
+      "timeout": "Tidsavbrudd - videosamtalen kunne ikke lastes innen 15 sekunder",
+      "crashed": "Webview krasjet",
+      "maxRetriesReached": "Kunne ikke laste etter flere forsøk",
+      "reload": "Last videosamtale på nytt"
+    }
+  },
   "unsupportedServer": {
     "title": "{{instanceDomain}} kjører en versjon av Rocket.Chat som ikke støttes",
     "announcement": "En administrator må oppdatere serveren til en støttet versjon for å gjenaktivere tilgang fra mobil- og skrivebordsapper.",
@@ -414,20 +429,5 @@
     "noWindowsFound": "Ingen vinduer funnet",
     "cancel": "Kansellere",
     "share": "Dele"
-  },
-  "videoCall": {
-    "loading": {
-      "initial": "Laster videosamtale...",
-      "reloading": "Laster videosamtale på nytt...",
-      "description": "Vennligst vent mens vi kobler til videosamtalen"
-    },
-    "error": {
-      "title": "Kunne ikke laste videosamtale",
-      "announcement": "Houston, vi har et problem",
-      "timeout": "Tidsavbrudd - videosamtalen kunne ikke lastes innen 15 sekunder",
-      "crashed": "Webview krasjet",
-      "maxRetriesReached": "Kunne ikke laste etter flere forsøk",
-      "reload": "Last videosamtale på nytt"
-    }
   }
 }

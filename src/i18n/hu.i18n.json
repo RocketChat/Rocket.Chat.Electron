@@ -229,11 +229,13 @@
       },
       "menubar": {
         "title": "Menüsáv",
-        "description": "Menüsáv megjelenítése az ablak tetején."
+        "description": "Menüsáv megjelenítése az ablak tetején.",
+        "disabledHint": "A menüsáv nem tiltható le, ha az oldalsáv már le van tiltva. A beállítások elérhetetlenné válnának."
       },
       "sidebar": {
         "title": "Oldalsáv",
-        "description": "Oldalsáv megjelenítése az ablak bal oldalán a kiszolgálók listájával, a letöltésekkel és a beállításokkal."
+        "description": "Oldalsáv megjelenítése az ablak bal oldalán a kiszolgálók listájával, a letöltésekkel és a beállításokkal.",
+        "disabledHint": "Az oldalsáv nem tiltható le, ha a menüsáv már le van tiltva. A beállítások elérhetetlenné válnának."
       },
       "trayIcon": {
         "title": "Tálcaikon",

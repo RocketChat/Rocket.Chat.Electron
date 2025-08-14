@@ -229,11 +229,13 @@
       },
       "menubar": {
         "title": "Barra de menú",
-        "description": "Mostrar la barra de menú en la parte superior de la ventana."
+        "description": "Mostrar la barra de menú en la parte superior de la ventana.",
+        "disabledHint": "No se puede desactivar la barra de menú cuando la barra lateral está desactivada. La configuración sería inaccesible."
       },
       "sidebar": {
         "title": "Barra lateral",
-        "description": "Mostrar la barra lateral en el lado izquierdo de la ventana con la lista de servidores, las descargas y la configuración."
+        "description": "Mostrar la barra lateral en el lado izquierdo de la ventana con la lista de servidores, las descargas y la configuración.",
+        "disabledHint": "No se puede desactivar la barra lateral cuando la barra de menú está desactivada. La configuración sería inaccesible."
       },
       "trayIcon": {
         "title": "Icono de la bandeja",

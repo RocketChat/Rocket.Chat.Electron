@@ -238,11 +238,13 @@
       },
       "menubar": {
         "title": "Menylinje",
-        "description": "Vis menylinjen øverst i vinduet."
+        "description": "Vis menylinjen øverst i vinduet.",
+        "disabledHint": "Kan ikke deaktivere menylinjen når sidefeltet er deaktivert. Innstillinger ville bli utilgjengelige."
       },
       "sidebar": {
         "title": "Sidefelt",
-        "description": "Vis sidefeltet til venstre i vinduet med serverlisten, nedlastinger og innstillinger."
+        "description": "Vis sidefeltet til venstre i vinduet med serverlisten, nedlastinger og innstillinger.",
+        "disabledHint": "Kan ikke deaktivere sidefeltet når menylinjen er deaktivert. Innstillinger ville bli utilgjengelige."
       },
       "trayIcon": {
         "title": "Systemstatusikon",

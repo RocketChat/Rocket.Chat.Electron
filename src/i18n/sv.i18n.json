@@ -238,11 +238,13 @@
       },
       "menubar": {
         "title": "Menyfält",
-        "description": "Visa menyfältet högst upp i fönstret."
+        "description": "Visa menyfältet högst upp i fönstret.",
+        "disabledHint": "Kan inte inaktivera menyfältet när sidofältet är inaktiverat. Inställningar skulle bli otillgängliga."
       },
       "sidebar": {
         "title": "Sidofält",
-        "description": "Visa sidofältet till vänster i fönstret med serverlistan, nedladdningar och inställningar."
+        "description": "Visa sidofältet till vänster i fönstret med serverlistan, nedladdningar och inställningar.",
+        "disabledHint": "Kan inte inaktivera sidofältet när menyfältet är inaktiverat. Inställningar skulle bli otillgängliga."
       },
       "trayIcon": {
         "title": "Ikon för brickan",

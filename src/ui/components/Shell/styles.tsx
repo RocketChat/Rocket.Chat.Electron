@@ -34,6 +34,7 @@ export const WindowDragBar = styled.div`
   width: 100vw;
   height: 22px;
   -webkit-app-region: drag;
+  user-select: none;
 `;
 
 export const Wrapper = styled.div`

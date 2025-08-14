@@ -238,11 +238,13 @@
       },
       "menubar": {
         "title": "Menu bar",
-        "description": "Show menu bar on the top of the window."
+        "description": "Show menu bar on the top of the window.",
+        "disabledHint": "Cannot disable menu bar when sidebar is disabled. Settings would become inaccessible."
       },
       "sidebar": {
         "title": "Sidebar",
-        "description": "Show sidebar on the left of the window with the Server List, Downloads and Settings."
+        "description": "Show sidebar on the left of the window with the Server List, Downloads and Settings.",
+        "disabledHint": "Cannot disable sidebar when menu bar is disabled. Settings would become inaccessible."
       },
       "trayIcon": {
         "title": "Tray Icon",

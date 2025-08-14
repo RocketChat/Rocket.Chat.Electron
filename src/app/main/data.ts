@@ -153,6 +153,13 @@ export const mergePersistableValues = async (
     },
   };
 
+  if (!values.isMenuBarEnabled && !values.isSideBarEnabled) {
+    values = {
+      ...values,
+      isSideBarEnabled: true,
+    };
+  }
+
   dispatch({
     type: APP_SETTINGS_LOADED,
     payload: values,

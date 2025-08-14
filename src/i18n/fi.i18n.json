@@ -217,11 +217,13 @@
       },
       "menubar": {
         "title": "Valikkopalkki",
-        "description": "Näytä valikkopalkki ikkunan yläreunassa."
+        "description": "Näytä valikkopalkki ikkunan yläreunassa.",
+        "disabledHint": "Valikkopalkkinsa poisto ei ole mahdollista, kun sivupalkki on pois käytöstä. Asetukset tulisivat saavuttamattomiksi."
       },
       "sidebar": {
         "title": "Sivupalkki",
-        "description": "Näytä ikkunan vasemmassa reunassa sivupalkki, jossa näkyvät palvelinluettelo, lataukset ja asetukset."
+        "description": "Näytä ikkunan vasemmassa reunassa sivupalkki, jossa näkyvät palvelinluettelo, lataukset ja asetukset.",
+        "disabledHint": "Sivupalkin poisto ei ole mahdollista, kun valikkopalkki on pois käytöstä. Asetukset tulisivat saavuttamattomiksi."
       },
       "trayIcon": {
         "title": "Ilmaisinalueen kuvake",

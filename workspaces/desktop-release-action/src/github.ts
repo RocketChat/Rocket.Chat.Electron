@@ -150,6 +150,53 @@ export const getReleaseAssets = async (releaseId: number) =>
     release_id: releaseId,
   });
 
+export const clearStaleAssets = async (releaseId: number, expectedAssetNames: string[]) => {
+  const assets = await getReleaseAssets(releaseId);
+  
+  // Delete assets that are not in the expected list (stale assets)
+  for (const asset of assets) {
+    if (!expectedAssetNames.includes(asset.name)) {
+      core.info(`deleting stale asset ${asset.name}`);
+      await octokit.request(
+        'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}',
+        {
+          ...getRepoParams(),
+          asset_id: asset.id,
+        }
+      );
+    }
+  }
+};
+
+export const forceCleanOldAssets = async (releaseId: number, keepLatest: number = 100) => {
+  const assets = await getReleaseAssets(releaseId);
+  
+  if (assets.length <= keepLatest) {
+    core.info(`Release has ${assets.length} assets, no cleanup needed`);
+    return;
+  }
+  
+  // Sort assets by creation date (newest first) and keep the latest ones
+  const sortedAssets = assets.sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+  
+  const assetsToDelete = sortedAssets.slice(keepLatest);
+  
+  core.info(`Force cleaning ${assetsToDelete.length} old assets, keeping latest ${keepLatest} assets`);
+  
+  for (const asset of assetsToDelete) {
+    core.info(`deleting old asset ${asset.name} (created: ${asset.created_at})`);
+    await octokit.request(
+      'DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}',
+      {
+        ...getRepoParams(),
+        asset_id: asset.id,
+      }
+    );
+  }
+};
+
 export const overrideAsset = async (
   release: Pick<Release, 'upload_url'>,
   assets: Pick<ReleaseAsset, 'id' | 'name'>[],

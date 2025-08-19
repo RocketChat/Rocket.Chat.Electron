@@ -234,7 +234,7 @@
       },
       "minimizeOnClose": {
         "title": "Minimera vid stängning",
-        "description": "När appen stängs kommer den att minimeras, annars kommer den att avsluta applikationen. Tray Icon måste inaktiveras för att detta ska gälla."
+        "description": "När appen stängs kommer den att minimeras, annars kommer applikationen avslutas. Tray Icon måste inaktiveras för att detta ska gälla."
       },
       "menubar": {
         "title": "Menyfält",
@@ -329,6 +329,9 @@
     "showTrayIcon": "Ikon för brickan",
     "toggleDevTools": "Toggle &DevTools",
     "openConfigFolder": "Öppna mappen &Konfiguration",
+    "videoCallDevTools": "Öppna videosamtal &DevTools",
+    "videoCallTools": "Verktyg för videosamtal",
+    "videoCallDevToolsAutoOpen": "Auto-öppna utvecklarverktyg",
     "undo": "Ångra",
     "unhide": "Visa alla",
     "viewMenu": "&Visa",

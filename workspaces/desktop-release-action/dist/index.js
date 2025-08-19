@@ -41435,6 +41435,31 @@ const getTaggedRelease = (version, commitSha) => __awaiter(void 0, void 0, void 
 const getReleaseAssets = (releaseId) => __awaiter(void 0, void 0, void 0, function* () {
     return octokit.paginate('GET /repos/{owner}/{repo}/releases/{release_id}/assets', Object.assign(Object.assign({}, getRepoParams()), { release_id: releaseId }));
 });
+const clearStaleAssets = (releaseId, expectedAssetNames) => __awaiter(void 0, void 0, void 0, function* () {
+    const assets = yield getReleaseAssets(releaseId);
+    // Delete assets that are not in the expected list (stale assets)
+    for (const asset of assets) {
+        if (!expectedAssetNames.includes(asset.name)) {
+            core.info(`deleting stale asset ${asset.name}`);
+            yield octokit.request('DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}', Object.assign(Object.assign({}, getRepoParams()), { asset_id: asset.id }));
+        }
+    }
+});
+const forceCleanOldAssets = (releaseId_1, ...args_1) => __awaiter(void 0, [releaseId_1, ...args_1], void 0, function* (releaseId, keepLatest = 100) {
+    const assets = yield getReleaseAssets(releaseId);
+    if (assets.length <= keepLatest) {
+        core.info(`Release has ${assets.length} assets, no cleanup needed`);
+        return;
+    }
+    // Sort assets by creation date (newest first) and keep the latest ones
+    const sortedAssets = assets.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const assetsToDelete = sortedAssets.slice(keepLatest);
+    core.info(`Force cleaning ${assetsToDelete.length} old assets, keeping latest ${keepLatest} assets`);
+    for (const asset of assetsToDelete) {
+        core.info(`deleting old asset ${asset.name} (created: ${asset.created_at})`);
+        yield octokit.request('DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}', Object.assign(Object.assign({}, getRepoParams()), { asset_id: asset.id }));
+    }
+});
 const overrideAsset = (release, assets, name, size, data) => __awaiter(void 0, void 0, void 0, function* () {
     const asset = assets.find((asset) => asset.name === name);
     if (asset) {
@@ -41575,6 +41600,17 @@ const getFilesToUpload = () => out_default()([
 const releaseDevelopment = (commitSha) => src_awaiter(void 0, void 0, void 0, function* () {
     yield pack();
     const release = yield getDevelopmentRelease(commitSha);
+    const existingAssets = yield getReleaseAssets(release.id);
+    // Force clean old assets if we have too many (close to GitHub's 1000 limit)
+    if (existingAssets.length > 900) {
+        core.info(`Release has ${existingAssets.length} assets, cleaning old assets to prevent GitHub limit`);
+        yield forceCleanOldAssets(release.id, 100);
+    }
+    else {
+        const filesToUpload = yield getFilesToUpload();
+        const expectedAssetNames = filesToUpload.map(path => (0,external_path_.basename)(path));
+        yield clearStaleAssets(release.id, expectedAssetNames);
+    }
     const assets = yield getReleaseAssets(release.id);
     for (const path of yield getFilesToUpload()) {
         const name = (0,external_path_.basename)(path);
@@ -41590,6 +41626,17 @@ const releaseDevelopment = (commitSha) => src_awaiter(void 0, void 0, void 0, fu
 const releaseSnapshot = (commitSha) => src_awaiter(void 0, void 0, void 0, function* () {
     yield pack();
     const release = yield getSnapshotRelease(commitSha);
+    const existingAssets = yield getReleaseAssets(release.id);
+    // Force clean old assets if we have too many (close to GitHub's 1000 limit)
+    if (existingAssets.length > 900) {
+        core.info(`Release has ${existingAssets.length} assets, cleaning old assets to prevent GitHub limit`);
+        yield forceCleanOldAssets(release.id, 100);
+    }
+    else {
+        const filesToUpload = yield getFilesToUpload();
+        const expectedAssetNames = filesToUpload.map(path => (0,external_path_.basename)(path));
+        yield clearStaleAssets(release.id, expectedAssetNames);
+    }
     const assets = yield getReleaseAssets(release.id);
     for (const path of yield getFilesToUpload()) {
         const name = (0,external_path_.basename)(path);

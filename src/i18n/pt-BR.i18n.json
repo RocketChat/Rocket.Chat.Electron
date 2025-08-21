@@ -228,9 +228,9 @@
         "disabledHint": "Não é possível desativar a barra de menus quando a barra lateral está desativada. As configurações se tornariam inacessíveis."
       },
       "sidebar": {
-        "title": "Barra de espaços de trabalho",
-        "description": "Mostrar a barra esquerda com Espaços de trabalho, Downloads e Configurações.",
-        "disabledHint": "Não é possível desativar a barra de espaços de trabalho quando a barra de menus está desativada. As configurações se tornariam inacessíveis."
+        "title": "Barra de workspace",
+        "description": "Mostrar a barra esquerda com Workspaces, Downloads e Configurações.",
+        "disabledHint": "Não é possível desativar a barra de workspace quando a barra de menus está desativada. As configurações se tornariam inacessíveis."
       },
       "trayIcon": {
         "title": "Mostrar ícone na bandeja",

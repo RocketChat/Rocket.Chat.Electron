@@ -18,3 +18,5 @@ Thumbs.db
 !.yarn/sdks
 !.yarn/versions
 supportedVersions.jwt
+# local research (git-ignored)
+localdev/

@@ -127,7 +127,9 @@
     "showingResults": "显示{{count}}个中的第{{first}} - {{last}}个"
   },
   "settings": {
-    "title": "设置",
+    "title": "应用设置",
+    "general": "一般",
+    "certificates": "证书",
     "options": {
       "report": {
         "title": "向开发者报告错误",

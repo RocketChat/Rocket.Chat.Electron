@@ -42,6 +42,7 @@ import {
   SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
+  WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -525,5 +526,35 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     }
 
     openExternal(url);
+  });
+
+  listen(WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR, async (action) => {
+    const serverUrl = action.payload;
+    const guestWebContents = getWebContentsByServerUrl(serverUrl);
+    if (!guestWebContents) {
+      return;
+    }
+
+    // Clear cache keeping login data using the same method as Force Reload
+    await guestWebContents.session.clearCache();
+    await guestWebContents.session.clearStorageData({
+      storages: [
+        'cookies',
+        'indexdb',
+        'filesystem',
+        'shadercache',
+        'websql',
+        'serviceworkers',
+        'cachestorage',
+      ],
+    });
+
+    // Reload ignoring cache
+    guestWebContents.reloadIgnoringCache();
+
+    dispatch({
+      type: WEBVIEW_SERVER_RELOADED,
+      payload: { url: serverUrl },
+    });
   });
 };

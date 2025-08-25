@@ -186,59 +186,59 @@
     }
   },
   "settings": {
-    "title": "Paramètres",
+    "title": "Paramètres de l'application",
     "general": "Général",
     "certificates": "Certificats",
     "options": {
       "report": {
-        "title": "Signaler les erreurs aux développeurs",
-        "description": "Signaler les erreurs de manière anonyme aux développeurs. Les informations partagées incluent le numéro de version de l'application, le type de système d'exploitation, l'URL du serveur, la langue de l'appareil et le type d'erreur. Aucun contenu ou nom d'utilisateur n'est partagé.",
+        "title": "Envoyer des rapports d'erreurs",
+        "description": "Partager des rapports d'erreurs anonymes pour aider à améliorer l'application. Nous incluons la version de l'application, les informations du système d'exploitation et les détails d'erreur. Nous n'envoyons pas le contenu des messages ou les noms d'utilisateur.",
         "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store, les erreurs seront signalisées via le processus de rapport d'erreur du Mac App Store."
       },
       "flashFrame": {
-        "title": "Activer le cadre Flash",
-        "titleDarwin": "Basculer le Dock Bounce en cas d'alerte",
-        "description": "Clignote la fenêtre pour attirer l'attention de l'utilisateur.",
+        "title": "Faire clignoter la barre des tâches sur les alertes",
+        "titleDarwin": "Faire rebondir l'icône du Dock sur les alertes",
+        "description": "Fait clignoter la barre des tâches ou la fenêtre pour attirer votre attention.",
         "onLinux": "Certaines distributions Linux ne prennent pas en charge cette fonctionnalité.",
-        "descriptionDarwin": "Fait rebondir l'icône de l'application dans le dock pour attirer l'attention de l'utilisateur."
+        "descriptionDarwin": "Fait rebondir l'icône de l'application pour attirer votre attention."
       },
       "hardwareAcceleration": {
-        "title": "Accélération matérielle",
-        "description": "Active l'utilisation de l'accélération matérielle lorsqu'elle est disponible. L'application se rechargera en cas de changement."
+        "title": "Utiliser l'accélération matérielle",
+        "description": "Utiliser l'accélération matérielle lorsqu'elle est disponible. L'application redémarre pour appliquer les changements."
       },
       "internalVideoChatWindow": {
-        "title": "Ouvrir le chat vidéo à l'aide de la fenêtre de l'application",
-        "description": "Si cette option est activée, le chat vidéo s'ouvrira dans la fenêtre de l'application au lieu du navigateur par défaut. Cependant, pour <strong>Google Meet</strong> et <strong>Jitsi</strong>, l'enregistrement d'écran n'est pas pris en charge dans les applications Electron, donc ils s'ouvriront toujours dans le navigateur, quel que soit ce paramètre.",
+        "title": "Ouvrir les appels vidéo dans la fenêtre de l'application",
+        "description": "Ouvrir les appels vidéo dans l'application au lieu de votre navigateur. Pour <strong>Google Meet</strong> et <strong>Jitsi</strong>, le partage d'écran n'est pas pris en charge dans l'application, ils s'ouvrent donc toujours dans votre navigateur.",
         "masDescription": "Cette option est désactivée lorsqu'elle est installée à partir du Mac App Store, pour des raisons de sécurité, elle ouvrira le chat vidéo en utilisant le navigateur par défaut."
       },
       "minimizeOnClose": {
         "title": "Minimiser à la fermeture",
-        "description": "Une fois fermée, l'application sera minimisée, sinon elle quittera l'application. L'icône de la barre d'état doit être désactivée pour que cela prenne effet."
+        "description": "Quand activé, fermer la fenêtre minimise l'application au lieu de quitter. Désactivez l'icône de la barre d'état pour utiliser ceci."
       },
       "menubar": {
-        "title": "Barre de menu",
+        "title": "Afficher la barre de menu",
         "description": "Afficher la barre de menus en haut de la fenêtre.",
         "disabledHint": "Impossible de désactiver la barre de menu quand la barre latérale est désactivée. Les paramètres deviendraient inaccessibles."
       },
       "sidebar": {
-        "title": "Barre latérale",
-        "description": "Afficher la barre latérale à gauche de la fenêtre avec la liste des serveurs, les téléchargements et les paramètres.",
-        "disabledHint": "Impossible de désactiver la barre latérale quand la barre de menu est désactivée. Les paramètres deviendraient inaccessibles."
+        "title": "Barre d'espaces de travail",
+        "description": "Afficher la barre de gauche avec Espaces de travail, Téléchargements et Paramètres.",
+        "disabledHint": "Impossible de désactiver la barre d'espaces de travail quand la barre de menu est désactivée. Les paramètres deviendraient inaccessibles."
       },
       "trayIcon": {
-        "title": "Icône de la barre d'état système",
-        "description": "Afficher l'icône dans la barre d'état système. Si l'icône est active, l'application sera masquée dans la barre d'état lors de la fermeture. Sinon, elle sera complètement fermée."
+        "title": "Afficher l'icône dans la barre d'état",
+        "description": "Afficher une icône dans la barre d'état système. Quand activé, fermer la fenêtre maintient l'application en cours d'exécution ; quand désactivé, l'application se ferme."
       },
       "availableBrowsers": {
-        "title": "Navigateur par défaut",
-        "description": "Choisissez quel navigateur ouvrira les liens externes de cette application. La valeur par défaut du système utilise les paramètres de votre système d'exploitation.",
+        "title": "Ouvrir les liens dans",
+        "description": "Choisir le navigateur pour les liens externes. 'Par défaut du système' utilise les paramètres de votre système d'exploitation.",
         "systemDefault": "Par défaut du système",
         "loading": "Chargement des navigateurs...",
         "current": "Actuellement utilisé:"
       },
       "clearPermittedScreenCaptureServers": {
-        "title": "Effacer les autorisations de capture d'écran",
-        "description": "Effacez les autorisations de capture d'écran qui ont été sélectionnées pour ne plus demander lors des appels vidéo."
+        "title": "Effacer les autorisations de partage d'écran",
+        "description": "Supprimer les sites auxquels vous avez autorisé le partage de votre écran pour qu'ils demandent à nouveau lors du prochain appel vidéo."
       }
     }
   },

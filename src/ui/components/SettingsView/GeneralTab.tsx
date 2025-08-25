@@ -16,18 +16,18 @@ import { VideoCallWindowPersistence } from './features/VideoCallWindowPersistenc
 export const GeneralTab = () => (
   <Box display='flex' justifyContent='center'>
     <FieldGroup is='form' maxWidth={600}>
-      <ReportErrors />
-      <FlashFrame />
-      <HardwareAcceleration />
-      <InternalVideoChatWindow />
-      <VideoCallWindowPersistence />
-      <TrayIcon />
-      {process.platform === 'win32' && <MinimizeOnClose />}
       <SideBar />
       {process.platform !== 'darwin' && <MenuBar />}
-      {process.platform === 'win32' && <NTLMCredentials />}
+      <TrayIcon />
+      {process.platform === 'win32' && <MinimizeOnClose />}
       <AvailableBrowsers />
+      <FlashFrame />
+      <InternalVideoChatWindow />
+      <VideoCallWindowPersistence />
       {!process.mas && <ClearPermittedScreenCaptureServers />}
+      <ReportErrors />
+      <HardwareAcceleration />
+      {process.platform === 'win32' && <NTLMCredentials />}
     </FieldGroup>
   </Box>
 );

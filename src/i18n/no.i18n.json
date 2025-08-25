@@ -207,72 +207,72 @@
     }
   },
   "settings": {
-    "title": "Innstillinger",
+    "title": "App-innstillinger",
     "general": "General",
     "certificates": "Sertifikater",
     "options": {
       "report": {
-        "title": "Rapporter feil til utviklere",
-        "description": "Rapporter feil anonymt til utviklerne. Delt informasjon inkluderer appversjonsnummer, operativsystemtype, server-URL, enhetsspråk og feiltype. Ingen innhold eller brukernavn deles.",
+        "title": "Send feilrapporter",
+        "description": "Del anonyme krasjrapporter for å hjelpe til med å forbedre appen. Vi inkluderer appversjon, operativsystemsinformasjon og feildetaljer. Vi sender ikke meldingsinnhold eller brukernavn.",
         "masDescription": "Dette alternativet er deaktivert når det er installert fra Mac App Store, feilene vil bli rapportert gjennom Mac App Store feilrapporteringsprosessen."
       },
       "flashFrame": {
-        "title": "Aktiver Flash Frame",
-        "titleDarwin": "Slå av/på Dock Bounce på varsel",
-        "description": "Blinker vinduet for å tiltrekke brukerens oppmerksomhet.",
+        "title": "Blink oppgavelinje ved varsler",
+        "titleDarwin": "Hopp Dock-ikon ved varsler",
+        "description": "Blinker oppgavelinjen eller vinduet for å få oppmerksomheten din.",
         "onLinux": "Noen Linux-distroer har ikke støtte for denne funksjonen.",
-        "descriptionDarwin": "Spretter appikonet i dokken for å tiltrekke brukerens oppmerksomhet."
+        "descriptionDarwin": "Hopper app-ikonet for å få oppmerksomheten din."
       },
       "hardwareAcceleration": {
-        "title": "Maskinvareakselerasjon",
-        "description": "Muliggjør maskinvareakselerasjon når tilgjengelig. Applikasjonen vil lastes inn på nytt ved endring."
+        "title": "Bruk maskinvareakselerasjon",
+        "description": "Bruk maskinvareakselerasjon når tilgjengelig. Appen starter på nytt for å anvende endringer."
       },
       "internalVideoChatWindow": {
-        "title": "Åpne videochat ved hjelp av applikasjonsvinduet",
-        "description": "Når innstilt, vil Videochat åpnes ved hjelp av et programvindu, ellers vil standardnettleseren brukes. <strong>Google Meet</strong> og <strong>Jitsi</strong> skjermopptak støttes ikke i Electron-applikasjoner, så denne konfigurasjonen endrer ikke anropsadferd, som åpnes i nettleseren.",
+        "title": "Åpne videosamtaler i app-vindu",
+        "description": "Åpner videosamtaler i appen i stedet for nettleseren din. For **Google Meet** og **Jitsi** støttes ikke skjermdeling i appen, så de åpnes alltid i nettleseren din.",
         "masDescription": "Dette alternativet er deaktivert når det er installert fra Mac App Store, av sikkerhetsgrunner vil det åpne Video Chat ved å bruke nettleseren som standard."
       },
       "minimizeOnClose": {
-        "title": "Minimer på nært hold",
-        "description": "Når den er lukket, vil appen minimeres, ellers avsluttes applikasjonen. Systemstatusikon må deaktiveres for at dette skal tre i kraft."
+        "title": "Minimer ved lukking",
+        "description": "Når aktivert, minimerer lukking av vinduet appen i stedet for å avslutte. Krever at systemstatusikon er deaktivert."
       },
       "menubar": {
-        "title": "Menylinje",
+        "title": "Vis menylinje",
         "description": "Vis menylinjen øverst i vinduet.",
         "disabledHint": "Kan ikke deaktivere menylinjen når sidefeltet er deaktivert. Innstillinger ville bli utilgjengelige."
       },
       "sidebar": {
-        "title": "Sidefelt",
-        "description": "Vis sidefeltet til venstre i vinduet med serverlisten, nedlastinger og innstillinger.",
-        "disabledHint": "Kan ikke deaktivere sidefeltet når menylinjen er deaktivert. Innstillinger ville bli utilgjengelige."
+        "title": "Arbeidsområdepanel",
+        "description": "Vis venstre panel med Arbeidsområder, Nedlastinger og Innstillinger.",
+        "disabledHint": "Kan ikke deaktivere arbeidsområdepanelet når menylinjen er deaktivert. Innstillinger ville bli utilgjengelige."
       },
       "trayIcon": {
-        "title": "Systemstatusikon",
-        "description": "Vis ikonet på systemstatusfeltet. Hvis systemstatusikonet er aktivt, vil appen være skjult ved lukke. Ellers avsluttes programmet."
+        "title": "Vis systemstatusikon",
+        "description": "Vis et ikon i systemstatusfeltet. Når aktivert, holder lukking av vinduet appen kjørende i systemstatusfeltet; når deaktivert, avsluttes appen ved lukking."
       },
       "availableBrowsers": {
-        "title": "Standard nettleser",
-        "description": "Velg hvilken nettleser som skal åpne eksterne lenker fra denne appen. Systemstandard bruker operativsysteminnstillingene dine.",
+        "title": "Åpne lenker i",
+        "description": "Velg nettleser for eksterne lenker. 'Systemstandard' bruker operativsysteminnstillingene dine.",
         "systemDefault": "Systemstandard",
         "loading": "Laster inn nettlesere ...",
         "current": "Bruker for øyeblikket:"
       },
       "clearPermittedScreenCaptureServers": {
-        "title": "Fjern skjermopptakstillatelser",
-        "description": "Fjern skjermopptakstillatelsene på videosamtaler som ble valgt for ikke å spørre igjen."
+        "title": "Fjern skjermdelingstillatelser",
+        "description": "Fjern nettsteder du tillot å dele skjermen din, så de spør igjen neste gang."
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Tillat skjermopptak på videosamtaler",
         "description": "Tillat skjermfangst på videosamtaler. Dette vil be om tillatelse for hver videosamtale."
       },
       "ntlmCredentials": {
-        "title": "NTLM-påloggingsinformasjon",
-        "description": "Tillat at NTLM-påloggingsinformasjon brukes når du kobler til en server.",
-        "domains": "Domener som vil bruke påloggingsinformasjonen. Atskilt med komma. Bruk * for å matche alle domener."
+        "title": "Tillat NTLM-autentisering",
+        "description": "Bruk NTLM-legitimasjon ved tilkobling til servere.",
+        "domains": "Domener som kan bruke disse legitimasjonene, atskilt med komma. Bruk * for alle domener."
       },
       "videoCallWindowPersistence": {
         "title": "Husk posisjonen til videosamtalevinduet",
-        "description": "Lagre og gjenopprett posisjonen og størrelsen på videosamtalevinduer mellom økter"
+        "description": "Lagre og gjenopprett posisjonen og størrelsen på videosamtalevinduer mellom økter."
       }
     }
   },

@@ -198,72 +198,68 @@
     }
   },
   "settings": {
-    "title": "Beállítások",
+    "title": "Alkalmazás beállítások",
     "general": "Általános",
     "certificates": "Tanúsítványok",
     "options": {
       "report": {
-        "title": "Hibák jelentése a fejlesztőknek",
-        "description": "A hibák névtelenül történő jelentése a fejlesztőknek. A megosztott információk az alkalmazás verziószámát, az operációs rendszer típusát, a kiszolgáló URL-ét, az eszköz nyelvét és a hiba típusát tartalmazzák. Tartalom vagy felhasználónevek nem kerülnek megosztásra.",
+        "title": "Hibák jelentésének küldése",
+        "description": "Anonim összeomlási jelentések megosztása az alkalmazás fejlesztésének segítésére. Az alkalmazás verzióját, az operációs rendszer információit és a hiba részleteit tartalmazza. Nem küldünk üzenet tartalmat vagy felhasználóneveket.",
         "masDescription": "Ez a beállítás a Mac alkalmazásboltból történő telepítéskor le van tiltva. A hibák a Mac alkalmazásbolt hibajelentési folyamatán keresztül lesznek bejelentve."
       },
       "flashFrame": {
-        "title": "Keret villogtatásának engedélyezése",
-        "titleDarwin": "A dokk pattogásának be- és kikapcsolása riasztáskor",
-        "description": "Villogtatja az ablakot, hogy felhívja a felhasználó figyelmét.",
+        "title": "Tálca villogtatása riasztásoknál",
+        "titleDarwin": "Dokk ikon pattogtatása riasztásoknál",
+        "description": "Villogtatja a tálcát vagy ablakot, hogy felkeljem a figyelmét.",
         "onLinux": "Egyes Linux disztribúciók nem támogatják ezt a funkciót.",
-        "descriptionDarwin": "Pattogtatja az alkalmazás ikonját a dokkban, hogy felhívja a felhasználó figyelmét."
+        "descriptionDarwin": "Pattogtatja az alkalmazás ikonját, hogy felkeljem a figyelmét."
       },
       "hardwareAcceleration": {
-        "title": "Hardveres gyorsítás",
-        "description": "Engedélyezi a hardveres gyorsítás használatát, ha elérhető. Az alkalmazás újratöltődik a megváltoztatásakor."
+        "title": "Hardveres gyorsítás használata",
+        "description": "Hardveres gyorsítás használata, ha elérhető. Az alkalmazás újraindul a változások alkalmazásához."
       },
       "internalVideoChatWindow": {
-        "title": "Videocsevegés megnyitása alkalmazásablak használatával",
-        "description": "Ha engedélyezve van, a videocsevegés az alkalmazás ablakában nyílik meg az alapértelmezett böngésző helyett. Azonban a <strong>Google Meet</strong> és a <strong>Jitsi</strong> esetében a képernyőrögzítés nem támogatott az Electron alkalmazásokban, így ezek mindig a böngészőben fognak megnyílni, függetlenül ettől a beállítástól.",
+        "title": "Videohívások megnyitása az alkalmazás ablakában",
+        "description": "Videohívások megnyitása az alkalmazásban a böngésző helyett. A **Google Meet** és **Jitsi** esetében a képernyőmegosztás nem támogatott az alkalmazásban, ezért mindig a böngészőben nyilnak meg.",
         "masDescription": "Ez a beállítás a Mac alkalmazásboltból történő telepítéskor le van tiltva. Biztonsági okokból a videocsevegést alapértelmezetten a böngésző használatával fogja megnyitni."
       },
       "minimizeOnClose": {
-        "title": "Kis méret bezáráskor",
-        "description": "Bezáráskor az alkalmazás kis méretű lesz, egyébként kilép az alkalmazásból. A tálca ikonját le kell tiltani, hogy ez érvényesüljön."
+        "title": "Kiserítes bezáráskor",
+        "description": "Ha be van kapcsolva, az ablak bezárása kiseríti az alkalmazást a bezárás helyett. A tálca ikon kikapcsolása szükséges ennek a funkciónak a használatához."
       },
       "menubar": {
-        "title": "Menüsáv",
+        "title": "Menüsáv megjelenítése",
         "description": "Menüsáv megjelenítése az ablak tetején.",
         "disabledHint": "A menüsáv nem tiltható le, ha az oldalsáv már le van tiltva. A beállítások elérhetetlenné válnának."
       },
       "sidebar": {
-        "title": "Oldalsáv",
-        "description": "Oldalsáv megjelenítése az ablak bal oldalán a kiszolgálók listájával, a letöltésekkel és a beállításokkal.",
-        "disabledHint": "Az oldalsáv nem tiltható le, ha a menüsáv már le van tiltva. A beállítások elérhetetlenné válnának."
+        "title": "Munkaterület sáv",
+        "description": "Bal oldali sáv megjelenítése a Munkaterületekkel, Letöltésekkel és Beállításokkal.",
+        "disabledHint": "A munkaterület sáv nem tiltható le, ha a menüsáv már le van tiltva. A beállítások elérhetetlenné válnának."
       },
       "trayIcon": {
-        "title": "Tálcaikon",
-        "description": "Tálcaikon megjelenítése a rendszer tálcáján. Ha a tálcaikon aktív, akkor az alkalmazás a tálcára lesz elrejtve a bezáráskor. Egyébként kilép az alkalmazásból."
+        "title": "Tálcaikon megjelenítése",
+        "description": "Ikon megjelenítése a rendszer tálcáján. Ha be van kapcsolva, az ablak bezárása az alkalmazást a tálcán tartja futva; ha ki van kapcsolva, az alkalmazás bezáródik."
       },
       "availableBrowsers": {
-        "title": "Alapértelmezett böngésző",
-        "description": "Válassza ki, melyik böngésző nyitja meg az alkalmazásból származó külső hivatkozásokat. A Rendszer alapértelmezett az operációs rendszer beállításait használja.",
+        "title": "Linkek megnyitása itt",
+        "description": "Válassza ki a böngészőt a külső linkekhez. A 'Rendszer alapértelmezett' az operációs rendszer beállításait használja.",
         "systemDefault": "Rendszer alapértelmezett",
         "loading": "Böngészők betöltése...",
         "current": "Jelenleg használatban:"
       },
       "clearPermittedScreenCaptureServers": {
-        "title": "Képernyőfelvételi engedélyek törlése",
-        "description": "Azon képernyőfelvételi engedélyek törlése, amelyek úgy lettek kiválasztva, hogy ne kérdezzenek újra a videohívásoknál."
-      },
-      "allowScreenCaptureOnVideoCalls": {
-        "title": "Képernyőrögzítés engedélyezése videohívásoknál",
-        "description": "Képernyőrögzítés engedélyezése videohívásoknál. Engedélyt fog kérni minden egyes videohívásnál."
+        "title": "Képernyőmegosztási engedélyek törlése",
+        "description": "Azoknak az oldalaknak az eltávolítása, amelyeknek engedélyezte a képernyő megosztását, hogy következő alkalommal újra megkérdezzék."
       },
       "ntlmCredentials": {
-        "title": "NTLM hitelesítési adatok",
-        "description": "NTLM hitelesítési adatok használatának engedélyezése szerverhez való csatlakozáskor.",
-        "domains": "Domének, amelyek használni fogják a hitelesítési adatokat. Vesszővel elválasztva. Használja a * jelet az összes domén egyeztetéséhez."
+        "title": "NTLM hitelesítés engedélyezése",
+        "description": "NTLM hitelesítő adatok használata szerverekhez való csatlakozáskor.",
+        "domains": "Ezeket a hitelesítő adatokat használó domének, vesszővel elválasztva. Használja a * jelet minden doménhez."
       },
       "videoCallWindowPersistence": {
         "title": "Videohívás ablak pozíciójának megjegyzése",
-        "description": "Videohívás ablakok pozíciójának és méretének mentése és visszaállítása a munkamenetek között"
+        "description": "Videohívás ablakok pozíciójának és méretének mentése és visszaállítása a munkamenetek között."
       }
     }
   },

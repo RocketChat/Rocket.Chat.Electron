@@ -104,19 +104,66 @@
     }
   },
   "settings": {
-    "title": "Ustawienia",
+    "title": "Ustawienia aplikacji",
     "general": "Ogólne",
+    "certificates": "Certyfikaty",
     "options": {
+      "report": {
+        "title": "Wysyłaj raporty błędów",
+        "description": "Udostępniaj anonimowe raporty awarii, aby pomóc ulepszać aplikację. Zawierają wersję aplikacji, informacje o systemie operacyjnym i szczegóły błędów. Nie wysyłamy treści wiadomości ani nazw użytkowników.",
+        "masDescription": "Ta opcja jest wyłączona podczas instalacji z Mac App Store, błędy będą zgłaszane przez mechanizm zbierania błędów Mac App Store."
+      },
+      "flashFrame": {
+        "title": "Błyskanie paska zadań przy alertach",
+        "titleDarwin": "Odbijanie ikony Dock przy alertach",
+        "description": "Błyska paskiem zadań lub oknem, aby zwrócić uwagę.",
+        "onLinux": "Niektóre dystrybucje Linuksa nie obsługują tej funkcji.",
+        "descriptionDarwin": "Odbija ikoną aplikacji, aby zwrócić uwagę."
+      },
+      "hardwareAcceleration": {
+        "title": "Użyj przyspieszenia sprzętowego",
+        "description": "Używaj przyspieszenia sprzętowego, gdy jest dostępne. Aplikacja uruchamia się ponownie, aby zastosować zmiany."
+      },
+      "internalVideoChatWindow": {
+        "title": "Otwieraj rozmowy wideo w oknie aplikacji",
+        "description": "Otwiera rozmowy wideo w aplikacji zamiast w przeglądarce. Dla **Google Meet** i **Jitsi** udostępnianie ekranu nie jest obsługiwane w aplikacji, więc zawsze otwierają się w przeglądarce.",
+        "masDescription": "Ta opcja jest wyłączona podczas instalacji z Mac App Store, ze względów bezpieczeństwa okno czatu wideo zostanie otwarte w domyślnej przeglądarce."
+      },
+      "minimizeOnClose": {
+        "title": "Minimalizuj przy zamykaniu",
+        "description": "Gdy włączone, zamknięcie okna minimalizuje aplikację zamiast jej kończenia. Wymaga wyłączenia ikony zasobnika."
+      },
+      "menubar": {
+        "title": "Pokaż pasek menu",
+        "description": "Wyświetl pasek menu w górnej części okna."
+      },
+      "sidebar": {
+        "title": "Pasek obszarów roboczych",
+        "description": "Pokaż lewy pasek z Obszarami roboczymi, Pobieraniami i Ustawieniami."
+      },
       "trayIcon": {
-        "title": "Ikona zasobnika",
-        "description": "Wyświetla ikonę w zasobniku systemowym. Gdy ikona zasobnika jest aktywna, aplikacja będzie minimalizowana do zasobnika przy zamykaniu. W przeciwnym razie aplikacja zostanie zamknięta."
+        "title": "Pokaż ikonę zasobnika",
+        "description": "Wyświetla ikonę w zasobniku systemowym. Gdy włączone, zamknięcie okna utrzymuje aplikację uruchomioną w zasobniku; gdy wyłączone, aplikacja kończy się przy zamknięciu."
       },
       "availableBrowsers": {
-        "title": "Domyślna przeglądarka",
-        "description": "Wybierz, która przeglądarka będzie otwierać linki zewnętrzne z tej aplikacji. Ustawienie domyślne systemu używa ustawień Twojego systemu operacyjnego.",
+        "title": "Otwieraj linki w",
+        "description": "Wybierz przeglądarkę dla linków zewnętrznych. 'Domyślna systemu' używa ustawień Twojego systemu operacyjnego.",
         "systemDefault": "Domyślna systemu",
         "loading": "Ładowanie przeglądarek...",
         "current": "Aktualnie używana:"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "Wyczyść uprawnienia udostępniania ekranu",
+        "description": "Usuń strony, którym pozwoliłeś udostępniać ekran, aby zostały zapytane ponownie następnym razem."
+      },
+      "ntlmCredentials": {
+        "title": "Zezwól na uwierzytelnienie NTLM",
+        "description": "Używaj poświadczeń NTLM podczas łączenia z serwerami.",
+        "domains": "Domeny, które mogą używać tych poświadczeń, oddzielone przecinkami. Użyj * dla wszystkich domen."
+      },
+      "videoCallWindowPersistence": {
+        "title": "Zapamiętaj pozycję okna rozmowy wideo",
+        "description": "Zapisuj i przywracaj pozycję i rozmiar okien rozmów wideo między sesjami."
       }
     }
   },

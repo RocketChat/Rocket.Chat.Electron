@@ -198,72 +198,72 @@
     }
   },
   "settings": {
-    "title": "Configuración",
+    "title": "Configuración de la aplicación",
     "general": "General",
     "certificates": "Certificados",
     "options": {
       "report": {
-        "title": "Informar errores a los desarrolladores",
-        "description": "Informar errores de forma anónima a los desarrolladores. La información compartida incluye el número de versión de la aplicación, el tipo de sistema operativo, la URL del servidor, el idioma del dispositivo y el tipo de error. No se comparten contenidos ni nombres de usuario.",
+        "title": "Enviar informes de errores",
+        "description": "Compartir informes de errores anónimos para ayudar a mejorar la aplicación. Incluimos versión de la aplicación, información del sistema operativo y detalles del error. No enviamos contenido de mensajes ni nombres de usuario.",
         "masDescription": "Esta opción está desactivada cuando se instala desde la Mac App Store; los errores se informarán a través del proceso de informe de errores de la Mac App Store."
       },
       "flashFrame": {
-        "title": "Habilitar destello de ventana",
-        "titleDarwin": "Alternar rebote del Dock en alerta",
-        "description": "Hace destellar la ventana para atraer la atención del usuario.",
+        "title": "Destellar barra de tareas en alertas",
+        "titleDarwin": "Rebotar icono del Dock en alertas",
+        "description": "Destella la barra de tareas o ventana para llamar tu atención.",
         "onLinux": "Algunas distribuciones de Linux no admiten esta función.",
-        "descriptionDarwin": "Hace rebotar el icono de la aplicación en el dock para atraer la atención del usuario."
+        "descriptionDarwin": "Rebota el icono de la aplicación para llamar tu atención."
       },
       "hardwareAcceleration": {
-        "title": "Aceleración de hardware",
-        "description": "Habilita el uso de la aceleración de hardware cuando esté disponible. La aplicación se reiniciará al realizar cambios."
+        "title": "Usar aceleración de hardware",
+        "description": "Usar aceleración de hardware cuando esté disponible. La aplicación se reinicia para aplicar los cambios."
       },
       "internalVideoChatWindow": {
-        "title": "Abrir videollamada en la ventana de la aplicación",
-        "description": "Si está activado, la videollamada se abrirá en la ventana de la aplicación en lugar del navegador predeterminado. Sin embargo, para <strong>Google Meet</strong> y <strong>Jitsi</strong>, la grabación de pantalla no es compatible en aplicaciones Electron, por lo que siempre se abrirán en el navegador independientemente de esta configuración.",
+        "title": "Abrir videollamadas en ventana de la aplicación",
+        "description": "Abrir videollamadas en la aplicación en lugar de tu navegador. Para <strong>Google Meet</strong> y <strong>Jitsi</strong>, compartir pantalla no es compatible en la aplicación, por lo que siempre se abren en tu navegador.",
         "masDescription": "Esta opción está desactivada cuando se instala desde la Mac App Store; por razones de seguridad, las videollamadas se abrirán en el navegador de forma predeterminada."
       },
       "minimizeOnClose": {
         "title": "Minimizar al cerrar",
-        "description": "Cuando se cierra la aplicación, se minimiza en lugar de cerrarse por completo. El icono de la bandeja debe estar desactivado para que esto surta efecto."
+        "description": "Cuando está activo, cerrar la ventana minimiza la aplicación en lugar de salir. Desactiva el icono de la bandeja para usar esto."
       },
       "menubar": {
-        "title": "Barra de menú",
+        "title": "Mostrar barra de menú",
         "description": "Mostrar la barra de menú en la parte superior de la ventana.",
         "disabledHint": "No se puede desactivar la barra de menú cuando la barra lateral está desactivada. La configuración sería inaccesible."
       },
       "sidebar": {
-        "title": "Barra lateral",
-        "description": "Mostrar la barra lateral en el lado izquierdo de la ventana con la lista de servidores, las descargas y la configuración.",
-        "disabledHint": "No se puede desactivar la barra lateral cuando la barra de menú está desactivada. La configuración sería inaccesible."
+        "title": "Barra de espacios de trabajo",
+        "description": "Mostrar la barra izquierda con Espacios de trabajo, Descargas y Configuración.",
+        "disabledHint": "No se puede desactivar la barra de espacios de trabajo cuando la barra de menú está desactivada. La configuración sería inaccesible."
       },
       "trayIcon": {
-        "title": "Icono de la bandeja",
-        "description": "Muestra un icono en la bandeja del sistema. Si el icono de la bandeja está activo, la aplicación se minimizará a la bandeja al cerrarla. De lo contrario, cerrará la aplicación."
+        "title": "Mostrar icono en bandeja",
+        "description": "Mostrar un icono en la bandeja del sistema. Cuando está activo, cerrar la ventana mantiene la aplicación funcionando; cuando está desactivado, la aplicación se cierra al cerrar."
       },
       "availableBrowsers": {
-        "title": "Navegador Predeterminado",
-        "description": "Elija qué navegador abrirá los enlaces externos de esta aplicación. Predeterminado del Sistema usa la configuración de su sistema operativo.",
+        "title": "Abrir enlaces en",
+        "description": "Elegir el navegador para enlaces externos. 'Predeterminado del sistema' usa la configuración de tu sistema operativo.",
         "systemDefault": "Predeterminado del Sistema",
         "loading": "Cargando navegadores...",
         "current": "Usando actualmente:"
       },
       "clearPermittedScreenCaptureServers": {
-        "title": "Borrar permisos de captura de pantalla",
-        "description": "Borrar los permisos de captura de pantalla que se seleccionaron para no volver a preguntar en las videollamadas."
+        "title": "Borrar permisos de compartir pantalla",
+        "description": "Eliminar sitios a los que permitiste compartir tu pantalla para que te pregunten de nuevo en la próxima videollamada."
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Permitir captura de pantalla en videollamadas",
         "description": "Permitir la captura de pantalla en videollamadas. Esto solicitará permiso en cada videollamada."
       },
       "ntlmCredentials": {
-        "title": "Credenciales NTLM",
-        "description": "Permitir que se utilicen las credenciales NTLM al conectarse a un servidor.",
-        "domains": "Dominios que utilizarán las credenciales. Separados por coma. Use * para coincidir con todos los dominios."
+        "title": "Permitir autenticación NTLM",
+        "description": "Usar credenciales NTLM al conectarse a servidores.",
+        "domains": "Dominios que pueden usar estas credenciales, separados por comas. Use * para coincidir con todos los dominios."
       },
       "videoCallWindowPersistence": {
         "title": "Recordar posición de la ventana de videollamada",
-        "description": "Guardar y restaurar la posición y el tamaño de las ventanas de videollamada entre sesiones"
+        "description": "Guardar y restaurar la posición y el tamaño de las ventanas de videollamada entre sesiones."
       }
     }
   },

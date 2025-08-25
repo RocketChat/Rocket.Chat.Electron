@@ -193,72 +193,72 @@
     }
   },
   "settings": {
-    "title": "Configurações",
+    "title": "Configurações do aplicativo",
     "general": "Geral",
     "certificates": "Certificados",
     "options": {
       "report": {
-        "title": "Relatar erros aos desenvolvedores",
-        "description": "Reporte os erros anonimamente aos desenvolvedores. As informações compartilhadas incluem número de versão do aplicativo, tipo de sistema operacional, URL do servidor, idioma do dispositivo e tipo de erro. Nenhum conteúdo ou nome de usuário é compartilhado.",
+        "title": "Enviar relatórios de erro",
+        "description": "Compartilhar relatórios de erros anônimos para ajudar a melhorar o aplicativo. Incluímos versão do aplicativo, informações do sistema operacional e detalhes do erro. Não enviamos conteúdo de mensagens ou nomes de usuário.",
         "masDescription": "Esta opção esta desativada quando for instalado através da Mac App Store, os erros serão reportados através do processo de relatórios de erros da Mac Apple Store."
       },
       "flashFrame": {
-        "title": "Piscar janela",
-        "titleDarwin": "Ícone deve saltar na dock",
-        "description": "Pisca a janela para atrair a atenção do usuário.",
+        "title": "Piscar barra de tarefas em alertas",
+        "titleDarwin": "Pular ícone do Dock em alertas",
+        "description": "Pisca a barra de tarefas ou janela para chamar sua atenção.",
         "onLinux": "Algumas distribuições Linux não possuem suporte a esta funcionalidade.",
-        "descriptionDarwin": "Faz o ícone da aplicação saltar na dock quando recebe notificação."
+        "descriptionDarwin": "Faz o ícone do aplicativo pular para chamar sua atenção."
       },
       "hardwareAcceleration": {
-        "title": "Aceleração de hardware",
-        "description": "Ativa aceleração de hardware quando disponível. O aplicativo será reiniciado ao ser alterado."
+        "title": "Usar aceleração de hardware",
+        "description": "Usar aceleração de hardware quando disponível. O aplicativo reinicia para aplicar as alterações."
       },
       "internalVideoChatWindow": {
-        "title": "Abrir chat em video em uma janela da aplicação",
-        "description": "Se ativado, o Chat de Vídeo será aberto na janela do aplicativo em vez do navegador padrão. No entanto, para <strong>Google Meet</strong> e <strong>Jitsi</strong>, a gravação de tela não é suportada em aplicativos Electron, então eles sempre serão abertos no navegador independentemente desta configuração.",
+        "title": "Abrir chamadas de vídeo na janela do aplicativo",
+        "description": "Abrir chamadas de vídeo no aplicativo em vez do seu navegador. Para <strong>Google Meet</strong> e <strong>Jitsi</strong>, compartilhamento de tela não é suportado no aplicativo, então sempre abrem no seu navegador.",
         "masDescription": "Esta opção esta desativada quando for instalado através da Mac App Store, por motivos de segurança o chat em video sera aberto usando o navegador por padrão."
       },
       "minimizeOnClose": {
         "title": "Minimizar ao fechar",
-        "description": "Quando fechado o aplicativo será minimizado para a barra de tarefas, senão será fechado. Ícone da bandeja precisa estar desativado para que isto funcione."
+        "description": "Quando ativado, fechar a janela minimiza o aplicativo em vez de sair. Desative o ícone da bandeja para usar isso."
       },
       "menubar": {
-        "title": "Barra de menus",
+        "title": "Mostrar barra de menus",
         "description": "Mostra a barra de menus no topo da aplicação",
         "disabledHint": "Não é possível desativar a barra de menus quando a barra lateral está desativada. As configurações se tornariam inacessíveis."
       },
       "sidebar": {
-        "title": "Barra lateral",
-        "description": "Mostra a barra na lateral da janela com a lista de servidores, downloads e configurações.",
-        "disabledHint": "Não é possível desativar a barra lateral quando a barra de menus está desativada. As configurações se tornariam inacessíveis."
+        "title": "Barra de workspace",
+        "description": "Mostrar a barra esquerda com Workspaces, Downloads e Configurações.",
+        "disabledHint": "Não é possível desativar a barra de workspace quando a barra de menus está desativada. As configurações se tornariam inacessíveis."
       },
       "trayIcon": {
-        "title": "Ícone da bandeja",
-        "description": "Mostra um ícone na bandeja do sistema para acessar rapidamente a aplicação. Se o ícone da bandeja estiver ativado, a aplicação será minimizada para a barra de tarefas ao ser fechada. Por outro lado se o ícone da bandeja estiver desativado, a aplicação será finalizada ao ser fechada."
+        "title": "Mostrar ícone na bandeja",
+        "description": "Mostrar um ícone na bandeja do sistema. Quando ativado, fechar a janela mantém o aplicativo funcionando; quando desativado, o aplicativo fecha ao fechar."
       },
       "availableBrowsers": {
-        "title": "Navegador Padrão",
-        "description": "Escolha qual navegador abrirá os links externos deste aplicativo. Sistema Padrão usa as configurações do seu sistema operacional.",
+        "title": "Abrir links em",
+        "description": "Escolher o navegador para links externos. 'Sistema padrão' usa a configuração do seu sistema operacional.",
         "systemDefault": "Sistema Padrão",
         "loading": "Carregando navegadores...",
         "current": "Usando atualmente:"
       },
       "clearPermittedScreenCaptureServers": {
-        "title": "Limpar Permissões de Captura de Tela",
-        "description": "Limpar as permissões de captura de tela que foram selecionadas para não perguntar novamente em chamadas de vídeo."
+        "title": "Limpar permissões de compartilhamento de tela",
+        "description": "Remover sites que você permitiu compartilhar sua tela para que perguntem novamente na próxima chamada de vídeo."
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Permitir Captura de Tela em Chamadas de Vídeo",
         "description": "Permitir captura de tela em chamadas de vídeo. Isso solicitará permissão em cada chamada de vídeo."
       },
       "ntlmCredentials": {
-        "title": "Credenciais NTLM",
-        "description": "Permitir que as credenciais NTLM sejam usadas ao conectar-se a um servidor.",
-        "domains": "Domínios que usarão as credenciais. Separados por vírgula. Use * para corresponder a todos os domínios."
+        "title": "Permitir autenticação NTLM",
+        "description": "Usar credenciais NTLM ao conectar-se a servidores.",
+        "domains": "Domínios que podem usar essas credenciais, separados por vírgulas. Use * para corresponder a todos os domínios."
       },
       "videoCallWindowPersistence": {
         "title": "Lembrar posição da janela de videochamada",
-        "description": "Salvar e restaurar a posição e o tamanho das janelas de videochamada entre as sessões"
+        "description": "Salvar e restaurar a posição e o tamanho das janelas de videochamada entre as sessões."
       }
     }
   },

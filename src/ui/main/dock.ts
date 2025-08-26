@@ -58,18 +58,21 @@ class DockService extends Service {
               typeof currentView === 'object' && currentView.url === server.url,
             accelerator: `CommandOrControl+${i + 1}`,
             click: async () => {
+              // Switch view first, then bring window to front immediately
               dispatch({
                 type: MENU_BAR_SELECT_SERVER_CLICKED,
                 payload: server.url,
               });
               const browserWindow = await getRootWindow();
-              if (!browserWindow.isVisible()) {
-                browserWindow.show();
-              }
               if (browserWindow.isMinimized()) {
                 browserWindow.restore();
+                browserWindow.focus();
+              } else if (!browserWindow.isVisible()) {
+                browserWindow.show();
+                browserWindow.focus();
+              } else {
+                browserWindow.focus();
               }
-              browserWindow.focus();
             },
           })
         ),
@@ -81,13 +84,15 @@ class DockService extends Service {
           click: async () => {
             dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
             const browserWindow = await getRootWindow();
-            if (!browserWindow.isVisible()) {
-              browserWindow.show();
-            }
             if (browserWindow.isMinimized()) {
               browserWindow.restore();
+              browserWindow.focus();
+            } else if (!browserWindow.isVisible()) {
+              browserWindow.show();
+              browserWindow.focus();
+            } else {
+              browserWindow.focus();
             }
-            browserWindow.focus();
           },
         },
       ];

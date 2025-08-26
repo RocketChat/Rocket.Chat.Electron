@@ -43,6 +43,40 @@ const selectAddServersDeps = createStructuredSelector({
     isAddNewServersEnabled,
 });
 
+const createFileMenu = createSelector(
+  selectAddServersDeps,
+  ({ isAddNewServersEnabled }): MenuItemConstructorOptions => ({
+    id: 'fileMenu',
+    // Only show the File menu on macOS; other platforms already use a File-like app menu
+    label: t('menus.fileMenu'),
+    submenu: [
+      ...on(isAddNewServersEnabled, () => [
+        {
+          id: 'addNewServerFromFile',
+          label: t('menus.addNewServer'),
+          accelerator: 'CommandOrControl+N',
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            dispatch({ type: MENU_BAR_ADD_NEW_SERVER_CLICKED });
+          },
+        },
+        { type: 'separator' },
+      ]),
+      {
+        id: 'closeWindowFromFile',
+        role: 'close',
+        label: t('menus.close'),
+        accelerator: 'CommandOrControl+W',
+      },
+    ],
+  })
+);
+
 const createAppMenu = createSelector(
   selectAddServersDeps,
   ({ isAddNewServersEnabled }): MenuItemConstructorOptions => ({
@@ -61,6 +95,22 @@ const createAppMenu = createSelector(
             }
             browserWindow.focus();
             dispatch({ type: MENU_BAR_ABOUT_CLICKED });
+          },
+        },
+        { type: 'separator' },
+        // Preferences (Settings) — HIG: ⌘,
+        {
+          id: 'preferences',
+          label: 'Preferences…',
+          accelerator: 'Command+,',
+          click: async () => {
+            const browserWindow = await getRootWindow();
+
+            if (!browserWindow.isVisible()) {
+              browserWindow.showInactive();
+            }
+            browserWindow.focus();
+            dispatch({ type: SIDE_BAR_SETTINGS_BUTTON_CLICKED });
           },
         },
         { type: 'separator' },
@@ -104,15 +154,8 @@ const createAppMenu = createSelector(
         },
         { type: 'separator' },
       ]),
-      {
-        id: 'disableGpu',
-        label: t('menus.disableGpu'),
-        enabled: !app.commandLine.hasSwitch('disable-gpu'),
-        click: () => {
-          relaunchApp('--disable-gpu');
-        },
-      },
-      { type: 'separator' },
+      // Disable GPU moved to Help ▸ Troubleshooting
+      ...on(process.platform !== 'darwin', () => [{ type: 'separator' }]),
       {
         id: 'quit',
         label: t('menus.quit', { appName: app.name }),
@@ -161,6 +204,97 @@ const createEditMenu = createSelector(
         id: 'selectAll',
         label: t('menus.selectAll'),
         role: 'selectAll',
+      },
+      { type: 'separator' },
+      // HIG: Find commands live under Edit
+      {
+        id: 'find',
+        label: 'Find…',
+        accelerator: 'CommandOrControl+F',
+        click: async () => {
+          const guestWebContents = await getCurrentViewWebcontents();
+          if (!guestWebContents) {
+            return;
+          }
+          const modifier = process.platform === 'darwin' ? 'meta' : 'control';
+          guestWebContents.sendInputEvent({
+            type: 'keyDown',
+            keyCode: 'F',
+            modifiers: [modifier],
+          });
+          guestWebContents.sendInputEvent({
+            type: 'keyUp',
+            keyCode: 'F',
+            modifiers: [modifier],
+          });
+        },
+      },
+      {
+        id: 'findNext',
+        label: 'Find Next',
+        accelerator: 'CommandOrControl+G',
+        click: async () => {
+          const guestWebContents = await getCurrentViewWebcontents();
+          if (!guestWebContents) {
+            return;
+          }
+          const modifier = process.platform === 'darwin' ? 'meta' : 'control';
+          guestWebContents.sendInputEvent({
+            type: 'keyDown',
+            keyCode: 'G',
+            modifiers: [modifier],
+          });
+          guestWebContents.sendInputEvent({
+            type: 'keyUp',
+            keyCode: 'G',
+            modifiers: [modifier],
+          });
+        },
+      },
+      {
+        id: 'findPrevious',
+        label: 'Find Previous',
+        accelerator:
+          process.platform === 'darwin' ? 'Shift+Command+G' : 'Shift+Ctrl+G',
+        click: async () => {
+          const guestWebContents = await getCurrentViewWebcontents();
+          if (!guestWebContents) {
+            return;
+          }
+          const modifier = process.platform === 'darwin' ? 'meta' : 'control';
+          guestWebContents.sendInputEvent({
+            type: 'keyDown',
+            keyCode: 'G',
+            modifiers: ['shift', modifier],
+          });
+          guestWebContents.sendInputEvent({
+            type: 'keyUp',
+            keyCode: 'G',
+            modifiers: ['shift', modifier],
+          });
+        },
+      },
+      { type: 'separator' },
+      {
+        id: 'editPreviousMessage',
+        label: 'Edit Previous Message',
+        accelerator: process.platform === 'darwin' ? 'Alt+Up' : 'Alt+Up',
+        click: async () => {
+          const guestWebContents = await getCurrentViewWebcontents();
+          if (!guestWebContents) {
+            return;
+          }
+          guestWebContents.sendInputEvent({
+            type: 'keyDown',
+            keyCode: 'ArrowUp',
+            modifiers: ['alt'],
+          });
+          guestWebContents.sendInputEvent({
+            type: 'keyUp',
+            keyCode: 'ArrowUp',
+            modifiers: ['alt'],
+          });
+        },
       },
     ],
   })
@@ -242,27 +376,23 @@ const createViewMenu = createSelector(
           }
         },
       },
+      { type: 'separator' },
       {
-        id: 'openDevTools',
-        label: t('menus.openDevTools'),
+        id: 'markAllAsRead',
+        label: 'Mark All as Read',
         enabled: typeof currentView === 'object' && !!currentView.url,
-        accelerator:
-          process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
         click: async () => {
+          // Best-effort: send Shift+Escape to the guest contents if supported by the web app
           const guestWebContents = await getCurrentViewWebcontents();
-          guestWebContents?.toggleDevTools();
-        },
-      },
-      {
-        id: 'openDevToolsOnAllWindows',
-        label: t('menus.openDevToolsOnAllWindows'),
-        enabled: typeof currentView === 'object' && !!currentView.url,
-        accelerator:
-          process.platform === 'darwin' ? 'Command+Alt+G' : 'Ctrl+Shift+G',
-        click: async () => {
-          const windows = BrowserWindow.getAllWindows();
-          windows.forEach((window) => {
-            window.webContents.toggleDevTools();
+          guestWebContents?.sendInputEvent({
+            type: 'keyDown',
+            keyCode: 'Escape',
+            modifiers: ['shift'],
+          });
+          guestWebContents?.sendInputEvent({
+            type: 'keyUp',
+            keyCode: 'Escape',
+            modifiers: ['shift'],
           });
         },
       },
@@ -581,64 +711,13 @@ const createHelpMenu = createSelector(
       },
       { type: 'separator' },
       {
-        id: 'reload-window',
-        label: t('menus.reload'),
-        accelerator: 'CommandOrControl+Shift+R',
-        click: async () => {
-          const guestWebContents = await getCurrentViewWebcontents();
-          if (guestWebContents)
-            dispatch({
-              type: CLEAR_CACHE_TRIGGERED,
-              payload: guestWebContents.id,
-            });
-          const currentView = await getCurrentView();
-          if (typeof currentView === 'object' && !!currentView.url) {
-            dispatch({
-              type: WEBVIEW_SERVER_RELOADED,
-              payload: { url: currentView.url },
-            });
-          }
-        },
-      },
-      {
-        id: 'toggleDevTools',
-        label: t('menus.toggleDevTools'),
-        accelerator: 'CommandOrControl+Shift+D',
-        click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          browserWindow.webContents.toggleDevTools();
-        },
-      },
-      {
-        id: 'developerMode',
-        type: 'checkbox',
-        label: t('menus.developerMode'),
-        checked: isDeveloperModeEnabled,
-        click: async ({ checked }) => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          dispatch({
-            type: MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED,
-            payload: checked,
-          });
-        },
-      },
-      {
-        id: 'videoCallToolsSubmenu',
-        label: t('menus.videoCallTools'),
+        id: 'troubleshootingSubmenu',
+        label: 'Troubleshooting',
         submenu: [
           {
-            id: 'videoCallDevTools',
-            label: t('menus.videoCallDevTools'),
+            id: 'openMainDevTools',
+            label: 'Open DevTools for Main Window',
+            accelerator: 'CommandOrControl+Shift+D',
             click: async () => {
               const browserWindow = await getRootWindow();
 
@@ -647,26 +726,72 @@ const createHelpMenu = createSelector(
               }
               browserWindow.focus();
 
-              try {
-                const success = await openVideoCallWebviewDevTools();
-                if (!success) {
-                  console.log(
-                    'No video call window available for developer tools'
-                  );
-                }
-              } catch (error) {
-                console.error(
-                  'Error opening video call developer tools:',
-                  error
-                );
+              if (!browserWindow.webContents.isDevToolsOpened()) {
+                browserWindow.webContents.openDevTools();
               }
             },
           },
           {
-            id: 'videoCallDevToolsAutoOpen',
+            id: 'openWorkspaceDevTools',
+            label: 'Open DevTools for Workspace',
+            accelerator:
+              process.platform === 'darwin' ? 'Command+Alt+I' : 'Ctrl+Shift+I',
+            click: async () => {
+              const guestWebContents = await getCurrentViewWebcontents();
+              if (guestWebContents && !guestWebContents.isDevToolsOpened()) {
+                guestWebContents.openDevTools();
+              }
+            },
+          },
+          {
+            id: 'openDevToolsOnAllWindows',
+            label: 'Open DevTools on All Windows',
+            accelerator:
+              process.platform === 'darwin' ? 'Command+Alt+G' : 'Ctrl+Shift+G',
+            click: async () => {
+              const windows = BrowserWindow.getAllWindows();
+              windows.forEach((window) => {
+                if (!window.webContents.isDevToolsOpened()) {
+                  window.webContents.openDevTools();
+                }
+              });
+            },
+          },
+          {
+            id: 'openConfigFolder',
+            label: 'Reveal Configuration File',
+            click: async () => {
+              shell.showItemInFolder(
+                path.join(app.getPath('userData'), 'config.json')
+              );
+            },
+          },
+          {
+            id: 'clearTrustedCertificates',
+            label: 'Clear Trusted Certificates Cache',
+            click: async () => {
+              const browserWindow = await getRootWindow();
+
+              if (!browserWindow.isVisible()) {
+                browserWindow.showInactive();
+              }
+              browserWindow.focus();
+              dispatch({ type: CERTIFICATES_CLEARED });
+            },
+          },
+          {
+            id: 'disableGpu',
+            label: 'Relaunch with Hardware Acceleration Disabled',
+            enabled: !app.commandLine.hasSwitch('disable-gpu'),
+            click: () => {
+              relaunchApp('--disable-gpu');
+            },
+          },
+          {
+            id: 'developerMode',
             type: 'checkbox',
-            label: t('menus.videoCallDevToolsAutoOpen'),
-            checked: isVideoCallDevtoolsAutoOpenEnabled,
+            label: 'Developer Mode',
+            checked: isDeveloperModeEnabled,
             click: async ({ checked }) => {
               const browserWindow = await getRootWindow();
 
@@ -675,49 +800,76 @@ const createHelpMenu = createSelector(
               }
               browserWindow.focus();
               dispatch({
-                type: MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED,
+                type: MENU_BAR_TOGGLE_IS_DEVELOPER_MODE_ENABLED_CLICKED,
                 payload: checked,
               });
             },
           },
+          {
+            id: 'videoCallToolsSubmenu',
+            label: 'Video Call Debugging',
+            submenu: [
+              {
+                id: 'videoCallDevTools',
+                label: 'Open DevTools for Video Call Window',
+                click: async () => {
+                  const browserWindow = await getRootWindow();
+
+                  if (!browserWindow.isVisible()) {
+                    browserWindow.showInactive();
+                  }
+                  browserWindow.focus();
+
+                  try {
+                    const success = await openVideoCallWebviewDevTools();
+                    if (!success) {
+                      console.log(
+                        'No video call window available for developer tools'
+                      );
+                    }
+                  } catch (error) {
+                    console.error(
+                      'Error opening video call developer tools:',
+                      error
+                    );
+                  }
+                },
+              },
+              {
+                id: 'videoCallDevToolsAutoOpen',
+                type: 'checkbox',
+                label: 'Auto-open DevTools for Video Calls',
+                checked: isVideoCallDevtoolsAutoOpenEnabled,
+                click: async ({ checked }) => {
+                  const browserWindow = await getRootWindow();
+
+                  if (!browserWindow.isVisible()) {
+                    browserWindow.showInactive();
+                  }
+                  browserWindow.focus();
+                  dispatch({
+                    type: MENU_BAR_TOGGLE_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CLICKED,
+                    payload: checked,
+                  });
+                },
+              },
+            ],
+          },
+          ...on(!process.mas, () => [
+            {
+              id: 'resetAppData',
+              label: 'Reset Application Data',
+              click: async () => {
+                const permitted = await askForAppDataReset();
+
+                if (permitted) {
+                  relaunchApp('--reset-app-data');
+                }
+              },
+            },
+          ]),
         ],
       },
-      {
-        id: 'openConfigFolder',
-        label: t('menus.openConfigFolder'),
-        click: async () => {
-          shell.showItemInFolder(
-            path.join(app.getPath('userData'), 'config.json')
-          );
-        },
-      },
-      { type: 'separator' },
-      {
-        id: 'clearTrustedCertificates',
-        label: t('menus.clearTrustedCertificates'),
-        click: async () => {
-          const browserWindow = await getRootWindow();
-
-          if (!browserWindow.isVisible()) {
-            browserWindow.showInactive();
-          }
-          browserWindow.focus();
-          dispatch({ type: CERTIFICATES_CLEARED });
-        },
-      },
-      ...on(!process.mas, () => [
-        {
-          id: 'resetAppData',
-          label: t('menus.resetAppData'),
-          click: async () => {
-            const permitted = await askForAppDataReset();
-
-            if (permitted) {
-              relaunchApp('--reset-app-data');
-            }
-          },
-        },
-      ]),
       { type: 'separator' },
       {
         id: 'learnMore',
@@ -748,12 +900,16 @@ const createHelpMenu = createSelector(
 const selectMenuBarTemplate = createSelector(
   [
     createAppMenu,
+    createFileMenu,
     createEditMenu,
     createViewMenu,
     createWindowMenu,
     createHelpMenu,
   ],
-  (...menus) => menus
+  (appMenu, fileMenu, editMenu, viewMenu, windowMenu, helpMenu) =>
+    process.platform === 'darwin'
+      ? [appMenu, fileMenu, editMenu, viewMenu, windowMenu, helpMenu]
+      : [appMenu, editMenu, viewMenu, windowMenu, helpMenu]
 );
 
 const selectMenuBarTemplateAsJson = createSelector(

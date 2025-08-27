@@ -39,8 +39,8 @@ export interface SystemMemoryInfo {
 export class MemoryMonitor extends MemoryFeature {
   private monitorInterval: NodeJS.Timeout | null = null;
   private history: SystemMemoryInfo[] = [];
-  private maxHistorySize = 720; // 6 hours at 30-second intervals
-  private intervalMs = 30000; // 30 seconds default
+  private maxHistorySize = 180; // 6 hours at 2-minute intervals
+  private intervalMs = 120000; // 2 minutes default
   private webContentsList = new Map<string, WebContents>();
 
   getName(): string {
@@ -48,9 +48,8 @@ export class MemoryMonitor extends MemoryFeature {
   }
 
   protected async onEnable(): Promise<void> {
-    // Adjust interval based on available RAM
-    const totalGB = os.totalmem() / 1024 / 1024 / 1024;
-    this.intervalMs = totalGB <= 8 ? 10000 : 30000; // 10s for low-mem, 30s otherwise
+    // Use 2-minute interval for regular monitoring
+    this.intervalMs = 120000; // 2 minutes
 
     // Start monitoring
     this.startMonitoring();
@@ -58,7 +57,7 @@ export class MemoryMonitor extends MemoryFeature {
     // Capture initial snapshot
     await this.captureSnapshot();
     
-    console.log(`[MemoryMonitor] Started with ${this.intervalMs}ms interval`);
+    console.log(`[MemoryMonitor] Started with ${this.intervalMs / 1000} second interval`);
   }
 
   protected async onDisable(): Promise<void> {
@@ -268,7 +267,7 @@ export class MemoryMonitor extends MemoryFeature {
   private generateSummary() {
     if (this.history.length === 0) return null;
     
-    const recent = this.history.slice(-20); // Last 10 minutes (assuming 30s intervals)
+    const recent = this.history.slice(-20); // Last 40 minutes (assuming 2-min intervals)
     
     const appMemoryValues = recent.map(s => s.electron.totalAppMemory);
     const systemUsedValues = recent.map(s => s.system.percentUsed);

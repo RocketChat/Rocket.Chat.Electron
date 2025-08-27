@@ -79,7 +79,7 @@ export const MemoryImprovementsSection: React.FC = () => {
             <MemoryToggle
               label={t('settings.experimental.memoryImprovements.features.monitoring', 'Memory Monitoring')}
               description={t('settings.experimental.memoryImprovements.features.monitoringDesc', 
-                'Tracks system and app memory every 10-30 seconds. Monitors pressure levels (low/medium/high/critical) based on available RAM. Exports diagnostic reports when memory issues are detected.')}
+                'Tracks system and app memory every 2 minutes. Monitors pressure levels (low/medium/high/critical) based on available RAM. Stores 6 hours of history and exports diagnostic reports when memory issues are detected.')}
               checked={memorySettings.features.monitoring}
               onChange={handleFeatureToggle('monitoring')}
             />

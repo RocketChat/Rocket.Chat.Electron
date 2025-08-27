@@ -110,12 +110,6 @@ export class ExperimentalMemoryManager {
       await feature.enable();
       console.log(`[ExperimentalMemory] Feature ${name} enabled`);
       
-      // If this is MemoryMonitor, pass the webContentsList to it
-      if (name === 'monitoring' && 'setExternalWebContentsList' in feature) {
-        (feature as any).setExternalWebContentsList(this.webContentsList);
-        console.log(`[ExperimentalMemory] Passed webContentsList to MemoryMonitor`);
-      }
-      
       // Apply feature to all existing WebContents
       for (const [url, wc] of this.webContentsList) {
         if (!wc.isDestroyed()) {

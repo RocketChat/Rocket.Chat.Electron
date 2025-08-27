@@ -35,8 +35,6 @@ export class MemoryMonitor extends MemoryFeature {
   private history: SystemMemoryInfo[] = [];
   private maxHistorySize = 180; // 6 hours at 2-minute intervals
   private intervalMs = 120000; // 2 minutes default
-  private webContentsList = new Map<string, WebContents>();
-  private externalWebContentsList: Map<string, WebContents> | null = null;
 
   getName(): string {
     return 'MemoryMonitor';
@@ -66,29 +64,11 @@ export class MemoryMonitor extends MemoryFeature {
     
     // Clear history
     this.history = [];
-    this.webContentsList.clear();
   }
 
   protected async onApplyToWebContents(webContents: WebContents, serverUrl: string): Promise<void> {
-    // Track this webcontents for monitoring
-    this.webContentsList.set(serverUrl, webContents);
-    console.log(`[MemoryMonitor] Tracking WebContents for ${serverUrl}`);
-    
-    // Inject memory monitoring script into the webview
-    try {
-      await webContents.executeJavaScript(`
-        // Report memory usage from within the webview
-        if (window.performance && window.performance.memory) {
-          console.log('[MemoryMonitor] WebView Memory:', {
-            usedJSHeapSize: (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(2) + 'MB',
-            totalJSHeapSize: (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed(2) + 'MB',
-            jsHeapSizeLimit: (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2) + 'MB'
-          });
-        }
-      `);
-    } catch (error) {
-      // WebContents might not be ready yet, that's okay
-    }
+    // No need to track manually, we'll use Electron's API directly
+    console.log(`[MemoryMonitor] WebContents registered for ${serverUrl}`);
   }
 
   protected async onSystemResume(): Promise<void> {
@@ -121,8 +101,10 @@ export class MemoryMonitor extends MemoryFeature {
   }
 
   async captureSnapshot(): Promise<SystemMemoryInfo> {
-    // Get Electron app metrics
+    // Get Electron app metrics directly
     const appMetrics = app.getAppMetrics();
+    
+    // Calculate total app memory
     const totalAppMemory = appMetrics.reduce(
       (sum, metric) => sum + metric.memory.workingSetSize,
       0
@@ -130,50 +112,35 @@ export class MemoryMonitor extends MemoryFeature {
 
     // Count renderer processes
     const rendererProcesses = appMetrics.filter(m => m.type === 'Renderer').length;
-    
-    // Debug: Log metrics summary
-    const metricTypes = appMetrics.map(m => m.type);
-    console.log(`[MemoryMonitor] Metrics: ${appMetrics.length} total, ${rendererProcesses} renderers, types: ${[...new Set(metricTypes)].join(', ')}`);
 
     // Get main process memory
     const mainProcessMemory = process.memoryUsage();
 
-    // Get webview details from both local list and external list (if set)
+    // Get webview details directly from app metrics
+    // Webviews are renderer processes with associated webContents
     const webviews: SystemMemoryInfo['webviews'] = [];
-    const allWebContents = new Map([
-      ...this.webContentsList,
-      ...(this.externalWebContentsList || new Map())
-    ]);
     
-    // Debug logging
-    if (allWebContents.size > 0) {
-      console.log(`[MemoryMonitor] Checking ${allWebContents.size} WebContents`);
-    }
+    // Use webContents.getAllWebContents() to get all webviews
+    const { webContents } = require('electron');
+    const allWebContents = webContents.getAllWebContents();
     
-    for (const [url, wc] of allWebContents) {
-      if (!wc.isDestroyed()) {
-        const wcId = wc.id;
-        const metric = appMetrics.find(m => {
-          // Check if this metric has a webContents and it matches our ID
-          if (m.webContents && m.webContents.id === wcId) {
-            return true;
-          }
-          // Also check if the PID matches (fallback method)
-          if (m.pid === wc.getProcessId()) {
-            return true;
-          }
-          return false;
-        });
-        
-        if (metric) {
+    for (const wc of allWebContents) {
+      // Skip destroyed webcontents and main window
+      if (wc.isDestroyed() || wc.getType() === 'window') {
+        continue;
+      }
+      
+      // Find the metric for this webContents
+      const metric = appMetrics.find(m => m.webContents?.id === wc.id);
+      if (metric) {
+        const url = wc.getURL();
+        if (url && url.startsWith('http')) {
           webviews.push({
             url,
             pid: metric.pid,
             memory: metric.memory.workingSetSize * 1024, // Convert to bytes
             cpu: metric.cpu ? metric.cpu.percentCPUUsage : 0
           });
-        } else {
-          console.log(`[MemoryMonitor] No metric found for ${url} (WebContents ID: ${wcId})`);
         }
       }
     }
@@ -347,12 +314,5 @@ export class MemoryMonitor extends MemoryFeature {
    */
   async forceSnapshot(): Promise<SystemMemoryInfo> {
     return await this.captureSnapshot();
-  }
-
-  /**
-   * Set external WebContents list for tracking
-   */
-  setExternalWebContentsList(list: Map<string, WebContents>): void {
-    this.externalWebContentsList = list;
   }
 }

@@ -21,12 +21,16 @@ export const setupExperimentalReduxListeners = (): void => {
       // Enable manager if it was enabled
       if (settings.enabled) {
         console.log('[ExperimentalRedux] Manager was enabled, restoring state');
-        // Only enable the manager, not the features automatically
-        // Features will be restored by their individual states
+        await memoryManager.enable();
+        
+        // Now restore individual feature states
+        for (const [feature, enabled] of Object.entries(settings.features)) {
+          if (enabled) {
+            console.log(`[ExperimentalRedux] Restoring feature ${feature} as enabled`);
+            await memoryManager.toggleFeature(feature, true);
+          }
+        }
       }
-      
-      // Note: Individual features will be enabled when webviews are created
-      // if they were persisted as enabled
     }
   });
 
@@ -52,7 +56,8 @@ export const setupExperimentalReduxListeners = (): void => {
     const { feature, enabled } = action.payload;
     console.log(`[ExperimentalRedux] Feature ${feature} toggled: ${enabled}`);
     
-    await memoryManager.toggleFeature(feature, enabled);
+    const result = await memoryManager.toggleFeature(feature, enabled);
+    console.log(`[ExperimentalRedux] Feature ${feature} toggle result:`, result);
   });
 
   console.log('[ExperimentalRedux] Redux listeners registered');

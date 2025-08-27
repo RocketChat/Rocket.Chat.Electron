@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../store/rootReducer';
+import { invoke } from '../../../ipc/renderer';
 
 interface MemoryMetrics {
   totalAppMemory: number;
@@ -33,31 +34,30 @@ export const TopBar = () => {
       return;
     }
 
-    // Listen for memory updates from main process
-    const handleMemoryUpdate = (_event: any, data: any) => {
-      if (data && data.metrics) {
-        setMetrics({
-          totalAppMemory: data.metrics.electron?.totalAppMemory || 0,
-          pressure: data.metrics.system?.pressure || 'low',
-          systemPercent: data.metrics.system?.percentUsed || 0,
-          serverCount: data.metrics.electron?.webviews?.length || 0
-        });
+    // Request metrics via IPC
+    const requestMetrics = async () => {
+      try {
+        const data = await invoke('experimental/request-memory-metrics');
+        if (data) {
+          setMetrics({
+            totalAppMemory: data.electron?.totalAppMemory || 0,
+            pressure: data.system?.pressure || 'low',
+            systemPercent: data.system?.percentUsed || 0,
+            serverCount: data.electron?.webviews?.length || 0
+          });
+        }
+      } catch (error) {
+        console.error('[TopBar] Failed to get memory metrics:', error);
       }
     };
 
     // Request initial metrics
-    window.RocketChatDesktop?.experimental?.requestMemoryMetrics?.();
-    
-    // Listen for updates
-    window.addEventListener('memory-metrics-update', handleMemoryUpdate);
+    requestMetrics();
     
     // Request metrics every 30 seconds (lighter than full monitoring)
-    const interval = setInterval(() => {
-      window.RocketChatDesktop?.experimental?.requestMemoryMetrics?.();
-    }, 30000);
+    const interval = setInterval(requestMetrics, 30000);
 
     return () => {
-      window.removeEventListener('memory-metrics-update', handleMemoryUpdate);
       clearInterval(interval);
     };
   }, [showMemoryStatus]);

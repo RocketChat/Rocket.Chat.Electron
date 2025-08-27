@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Box, Margins, Tile, ProgressBar, Tag } from '@rocket.chat/fuselage';
+import { invoke } from '../../../../../ipc/renderer';
 
 interface LiveMetrics {
   timestamp: number;
@@ -36,40 +37,36 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
 
   useEffect(() => {
     // Request initial metrics
-    const requestMetrics = () => {
-      console.log('[MemoryMetrics] Requesting metrics, experimental API:', window.RocketChatDesktop?.experimental);
-      if (window.RocketChatDesktop?.experimental?.requestMemoryMetrics) {
-        window.RocketChatDesktop.experimental.requestMemoryMetrics();
-      } else {
-        console.error('[MemoryMetrics] experimental.requestMemoryMetrics not available');
+    const requestMetrics = async () => {
+      console.log('[MemoryMetrics] Requesting metrics via IPC');
+      try {
+        const metrics = await invoke('experimental/request-memory-metrics');
+        console.log('[MemoryMetrics] Got metrics:', metrics);
+        
+        if (metrics) {
+          setLiveMetrics({
+            timestamp: Date.now(),
+            system: metrics.system || {},
+            electron: metrics.electron || {},
+            features: metrics.features || {
+              memorySaved: 0,
+              interventions: 0,
+              lastCleanup: 0
+            }
+          });
+        }
+      } catch (error) {
+        console.error('[MemoryMetrics] Failed to get metrics:', error);
       }
       setUpdateTime(Date.now());
     };
 
-    // Listen for memory updates
-    const handleMemoryUpdate = (_event: any, data: any) => {
-      if (data && data.metrics) {
-        setLiveMetrics({
-          timestamp: Date.now(),
-          system: data.metrics.system || {},
-          electron: data.metrics.electron || {},
-          features: data.metrics.features || {
-            memorySaved: 0,
-            interventions: 0,
-            lastCleanup: 0
-          }
-        });
-      }
-    };
-
     requestMetrics();
-    window.addEventListener('memory-metrics-update', handleMemoryUpdate);
     
     // Update every 30 seconds
     const interval = setInterval(requestMetrics, 30000);
 
     return () => {
-      window.removeEventListener('memory-metrics-update', handleMemoryUpdate);
       clearInterval(interval);
     };
   }, []);

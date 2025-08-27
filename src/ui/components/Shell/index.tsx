@@ -19,7 +19,8 @@ import { SupportedVersionDialog } from '../SupportedVersionDialog';
 import { TopBar } from '../TopBar';
 import { UpdateDialog } from '../UpdateDialog';
 import TooltipProvider from '../utils/TooltipProvider';
-import { GlobalStyles, WindowDragBar } from './styles';
+import { GlobalStyles } from './styles';
+import { WindowDragBar } from '../WindowDragBar';
 
 export const Shell = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);

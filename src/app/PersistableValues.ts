@@ -90,6 +90,7 @@ type PersistableValues_4_7_2 = PersistableValues_4_5_0 & {
 type PersistableValues_4_8_1 = PersistableValues_4_7_2 & {
   experimentalMemoryImprovements: {
     enabled: boolean;
+    showStatusBar: boolean;
     features: {
       monitoring: boolean;
       smartCleanup: boolean;
@@ -97,6 +98,7 @@ type PersistableValues_4_8_1 = PersistableValues_4_7_2 & {
       domOptimization: boolean;
       websocket: boolean;
     };
+    metrics?: any;
   };
 };
 
@@ -180,6 +182,7 @@ export const migrations = {
     ...before,
     experimentalMemoryImprovements: {
       enabled: false,
+      showStatusBar: false,
       features: {
         monitoring: false,
         smartCleanup: false,

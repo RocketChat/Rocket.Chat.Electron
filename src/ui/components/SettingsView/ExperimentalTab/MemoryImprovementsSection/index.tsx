@@ -44,6 +44,14 @@ export const MemoryImprovementsSection: React.FC = () => {
     [dispatch]
   );
 
+  const handleStatusBarToggle = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const isChecked = event.currentTarget.checked;
+      dispatch(toggleMemoryFeature('showStatusBar', isChecked));
+    },
+    [dispatch]
+  );
+
   const memoryImprovementsId = useId();
 
   if (!memorySettings) {
@@ -84,6 +92,16 @@ export const MemoryImprovementsSection: React.FC = () => {
               onChange={handleFeatureToggle('monitoring')}
             />
 
+            {memorySettings.features.monitoring && (
+              <MemoryToggle
+                label={t('settings.experimental.memoryImprovements.features.statusBar', 'Show in Title Bar')}
+                description={t('settings.experimental.memoryImprovements.features.statusBarDesc', 
+                  'Display memory usage and pressure level in the macOS title bar. Shows app memory usage and system pressure status for quick monitoring without opening settings.')}
+                checked={memorySettings.showStatusBar}
+                onChange={handleStatusBarToggle}
+              />
+            )}
+
             <MemoryToggle
               label={t('settings.experimental.memoryImprovements.features.smartCleanup', 'Smart Cleanup')}
               description={t('settings.experimental.memoryImprovements.features.smartCleanupDesc',
@@ -117,10 +135,10 @@ export const MemoryImprovementsSection: React.FC = () => {
             />
           </Box>
 
-          {memorySettings.metrics && (
+          {memorySettings.features.monitoring && (
             <>
               <Divider />
-              <MemoryMetrics metrics={memorySettings.metrics} />
+              <MemoryMetrics />
             </>
           )}
         </>

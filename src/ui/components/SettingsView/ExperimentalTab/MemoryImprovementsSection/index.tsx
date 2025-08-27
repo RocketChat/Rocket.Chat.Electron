@@ -83,11 +83,18 @@ export const MemoryImprovementsSection: React.FC = () => {
         <>
           <Divider />
           
+          {memorySettings.features.monitoring && (
+            <>
+              <MemoryMetrics />
+              <Divider />
+            </>
+          )}
+          
           <Box marginBlock='x24'>
             <MemoryToggle
               label={t('settings.experimental.memoryImprovements.features.monitoring', 'Memory Monitoring')}
               description={t('settings.experimental.memoryImprovements.features.monitoringDesc', 
-                'Tracks system and app memory every 2 minutes. Monitors pressure levels (low/medium/high/critical) based on available RAM. Stores 6 hours of history and exports diagnostic reports when memory issues are detected.')}
+                'Tracks app memory usage every 2 minutes. Monitors memory pressure levels and stores 6 hours of history. Exports diagnostic reports when memory issues are detected.')}
               checked={memorySettings.features.monitoring}
               onChange={handleFeatureToggle('monitoring')}
             />
@@ -96,7 +103,7 @@ export const MemoryImprovementsSection: React.FC = () => {
               <MemoryToggle
                 label={t('settings.experimental.memoryImprovements.features.statusBar', 'Show in Title Bar')}
                 description={t('settings.experimental.memoryImprovements.features.statusBarDesc', 
-                  'Display memory usage and pressure level in the macOS title bar. Shows app memory usage and system pressure status for quick monitoring without opening settings.')}
+                  'Display total app memory usage in the title bar for quick monitoring without opening settings.')}
                 checked={memorySettings.showStatusBar}
                 onChange={handleStatusBarToggle}
               />
@@ -134,13 +141,6 @@ export const MemoryImprovementsSection: React.FC = () => {
               onChange={handleFeatureToggle('websocket')}
             />
           </Box>
-
-          {memorySettings.features.monitoring && (
-            <>
-              <Divider />
-              <MemoryMetrics />
-            </>
-          )}
         </>
       )}
     </>

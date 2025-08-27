@@ -117,14 +117,14 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
 
   if (!liveMetrics) {
     return (
-      <Margins block='x16'>
-        <Box fontScale='h4' mbe='x16'>
+      <Box marginBlock='x24'>
+        <Box fontScale='p2b' mbe='x12'>
           {t('settings.experimental.memoryImprovements.metrics.title', 'Memory Status')}
         </Box>
         <Box fontScale='p2' color='hint'>
           {t('settings.experimental.memoryImprovements.metrics.loading', 'Loading memory data...')}
         </Box>
-      </Margins>
+      </Box>
     );
   }
 
@@ -133,9 +133,9 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
   const serverCount = liveMetrics.webviews?.length || 0;
 
   return (
-    <Margins block='x16'>
-      <Box display='flex' alignItems='center' justifyContent='space-between' mbe='x16'>
-        <Box fontScale='h4'>
+    <Box marginBlock='x24'>
+      <Box display='flex' alignItems='center' justifyContent='space-between' mbe='x12'>
+        <Box fontScale='p2b'>
           {t('settings.experimental.memoryImprovements.metrics.title', 'Memory Status')}
         </Box>
         <Box fontScale='c1' color='hint'>
@@ -268,6 +268,6 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
           </Box>
         </Box>
       )}
-    </Margins>
+    </Box>
   );
 };

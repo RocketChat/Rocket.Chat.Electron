@@ -1,9 +1,18 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useId } from 'react';
 import type { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { Box, Divider, ToggleSwitch } from '@rocket.chat/fuselage';
+import { 
+  Box, 
+  Divider, 
+  ToggleSwitch,
+  Field,
+  FieldRow,
+  FieldLabel,
+  FieldHint,
+  Accordion 
+} from '@rocket.chat/fuselage';
 import {
   toggleMemoryImprovements,
   toggleMemoryFeature,
@@ -35,29 +44,32 @@ export const MemoryImprovementsSection: React.FC = () => {
     [dispatch]
   );
 
+  const memoryImprovementsId = useId();
+
   if (!memorySettings) {
     return null;
   }
 
   return (
     <Box>
-      <Box marginBlockEnd='x24'>
-        <Box display='flex' alignItems='center' justifyContent='space-between' marginBlockEnd='x24'>
-          <Box>
-            <Box is='h3' marginBlockEnd='x8' fontWeight='700'>
-              {t('settings.experimental.memoryImprovements.title', 'Memory Improvements')}
-            </Box>
-            <Box fontScale='p2' color='hint'>
-              {t('settings.experimental.memoryImprovements.description', 
-                'Experimental memory management features to improve stability and performance')}
-            </Box>
-          </Box>
+      <Field>
+        <FieldRow>
+          <FieldLabel htmlFor={memoryImprovementsId}>
+            {t('settings.experimental.memoryImprovements.title', 'Memory Improvements')}
+          </FieldLabel>
           <ToggleSwitch
+            id={memoryImprovementsId}
             checked={memorySettings.enabled}
             onChange={handleMasterToggle}
           />
-        </Box>
-      </Box>
+        </FieldRow>
+        <FieldRow>
+          <FieldHint>
+            {t('settings.experimental.memoryImprovements.description', 
+              'Experimental memory management features to improve stability and performance')}
+          </FieldHint>
+        </FieldRow>
+      </Field>
 
       {memorySettings.enabled && (
         <>

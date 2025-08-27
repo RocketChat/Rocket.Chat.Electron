@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Box } from '@rocket.chat/fuselage';
+import { Box, Margins, Tile } from '@rocket.chat/fuselage';
 
 interface MemoryMetricsProps {
   metrics: {
@@ -42,60 +42,47 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = ({ metrics }) => {
   };
 
   return (
-    <Box marginBlock='x24'>
-      <Box is='h4' marginBlockEnd='x16' fontWeight='700'>
+    <Margins block='x16'>
+      <Box fontScale='h4'>
         {t('settings.experimental.memoryImprovements.metrics.title', 'Performance Metrics')}
       </Box>
       
-      <Box display='flex' flexWrap='wrap' margin='neg-x8'>
-        <Box padding='x8' flexBasis='33.33%'>
-          <Box 
-            padding='x16'
-            borderRadius='x4'
-            backgroundColor='surface-light'
-            textAlign='center'
-          >
-            <Box fontScale='h3' color='info' marginBlockEnd='x4'>
-              {formatMemory(metrics.memorySaved)}
+      <Tile elevation='1' padding='x16'>
+        <Box display='flex' flexWrap='wrap' mi='neg-x8'>
+          <Box pi='x8' width='33.33%' minWidth='x200'>
+            <Box textAlign='center'>
+              <Box fontScale='h2' color='info-500' mbe='x4'>
+                {formatMemory(metrics.memorySaved)}
+              </Box>
+              <Box fontScale='c1' color='hint'>
+                {t('settings.experimental.memoryImprovements.metrics.memorySaved', 'Memory Saved')}
+              </Box>
             </Box>
-            <Box fontScale='c1' color='hint'>
-              {t('settings.experimental.memoryImprovements.metrics.memorySaved', 'Memory Saved')}
+          </Box>
+          
+          <Box pi='x8' width='33.33%' minWidth='x200'>
+            <Box textAlign='center'>
+              <Box fontScale='h2' color='success-500' mbe='x4'>
+                {metrics.interventions}
+              </Box>
+              <Box fontScale='c1' color='hint'>
+                {t('settings.experimental.memoryImprovements.metrics.interventions', 'Interventions')}
+              </Box>
+            </Box>
+          </Box>
+          
+          <Box pi='x8' width='33.33%' minWidth='x200'>
+            <Box textAlign='center'>
+              <Box fontScale='p2' mbe='x4'>
+                {formatTime(metrics.lastCleanup)}
+              </Box>
+              <Box fontScale='c1' color='hint'>
+                {t('settings.experimental.memoryImprovements.metrics.lastCleanup', 'Last Cleanup')}
+              </Box>
             </Box>
           </Box>
         </Box>
-        
-        <Box padding='x8' flexBasis='33.33%'>
-          <Box 
-            padding='x16'
-            borderRadius='x4'
-            backgroundColor='surface-light'
-            textAlign='center'
-          >
-            <Box fontScale='h3' color='success' marginBlockEnd='x4'>
-              {metrics.interventions}
-            </Box>
-            <Box fontScale='c1' color='hint'>
-              {t('settings.experimental.memoryImprovements.metrics.interventions', 'Interventions')}
-            </Box>
-          </Box>
-        </Box>
-        
-        <Box padding='x8' flexBasis='33.33%'>
-          <Box 
-            padding='x16'
-            borderRadius='x4'
-            backgroundColor='surface-light'
-            textAlign='center'
-          >
-            <Box fontScale='p2' marginBlockEnd='x4'>
-              {formatTime(metrics.lastCleanup)}
-            </Box>
-            <Box fontScale='c1' color='hint'>
-              {t('settings.experimental.memoryImprovements.metrics.lastCleanup', 'Last Cleanup')}
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-    </Box>
+      </Tile>
+    </Margins>
   );
 };

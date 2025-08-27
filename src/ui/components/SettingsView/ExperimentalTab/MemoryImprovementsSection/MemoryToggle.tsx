@@ -1,7 +1,13 @@
-import React from 'react';
+import React, { useId } from 'react';
 import type { ChangeEvent } from 'react';
 
-import { Box, ToggleSwitch } from '@rocket.chat/fuselage';
+import { 
+  Field,
+  FieldRow,
+  FieldLabel,
+  FieldHint,
+  ToggleSwitch 
+} from '@rocket.chat/fuselage';
 
 interface MemoryToggleProps {
   label: string;
@@ -18,29 +24,26 @@ export const MemoryToggle: React.FC<MemoryToggleProps> = ({
   onChange,
   disabled = false,
 }) => {
+  const toggleId = useId();
+  
   return (
-    <Box 
-      display='flex' 
-      alignItems='center' 
-      justifyContent='space-between' 
-      marginBlockEnd='x16'
-      padding='x12'
-      borderRadius='x4'
-      backgroundColor='surface-light'
-    >
-      <Box flexGrow={1} marginInlineEnd='x16'>
-        <Box fontScale='p2' fontWeight='600' marginBlockEnd='x4'>
+    <Field>
+      <FieldRow>
+        <FieldLabel htmlFor={toggleId}>
           {label}
-        </Box>
-        <Box fontScale='c1' color='hint'>
+        </FieldLabel>
+        <ToggleSwitch
+          id={toggleId}
+          checked={checked}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      </FieldRow>
+      <FieldRow>
+        <FieldHint>
           {description}
-        </Box>
-      </Box>
-      <ToggleSwitch
-        checked={checked}
-        onChange={onChange}
-        disabled={disabled}
-      />
-    </Box>
+        </FieldHint>
+      </FieldRow>
+    </Field>
   );
 };

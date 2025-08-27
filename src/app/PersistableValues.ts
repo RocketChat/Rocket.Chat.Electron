@@ -87,9 +87,22 @@ type PersistableValues_4_7_2 = PersistableValues_4_5_0 & {
   isVideoCallDevtoolsAutoOpenEnabled: boolean;
 };
 
+type PersistableValues_4_8_1 = PersistableValues_4_7_2 & {
+  experimentalMemoryImprovements: {
+    enabled: boolean;
+    features: {
+      monitoring: boolean;
+      smartCleanup: boolean;
+      autoReload: boolean;
+      domOptimization: boolean;
+      websocket: boolean;
+    };
+  };
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_7_2,
-  keyof PersistableValues_4_7_2
+  PersistableValues_4_8_1,
+  keyof PersistableValues_4_8_1
 >;
 
 export const migrations = {
@@ -158,5 +171,22 @@ export const migrations = {
   '>=4.5.0': (before: PersistableValues_4_4_0): PersistableValues_4_5_0 => ({
     ...before,
     updateChannel: 'latest',
+  }),
+  '>=4.7.2': (before: PersistableValues_4_5_0): PersistableValues_4_7_2 => ({
+    ...before,
+    isVideoCallDevtoolsAutoOpenEnabled: false,
+  }),
+  '>=4.8.1': (before: PersistableValues_4_7_2): PersistableValues_4_8_1 => ({
+    ...before,
+    experimentalMemoryImprovements: {
+      enabled: false,
+      features: {
+        monitoring: false,
+        smartCleanup: false,
+        autoReload: false,
+        domOptimization: false,
+        websocket: false,
+      },
+    },
   }),
 };

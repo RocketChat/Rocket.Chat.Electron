@@ -1,4 +1,7 @@
-import type { AnyAction } from 'redux';
+import type { AnyAction, Reducer } from 'redux';
+
+import { APP_SETTINGS_LOADED } from '../../app/actions';
+import type { ActionOf } from '../../store/actions';
 
 export interface MemoryFeatures {
   monitoring: boolean;
@@ -40,11 +43,17 @@ const initialState: ExperimentalFeaturesState = {
   },
 };
 
-export const experimentalFeaturesReducer = (
-  state = initialState,
-  action: AnyAction
-): ExperimentalFeaturesState => {
+export const experimentalFeaturesReducer: Reducer<
+  ExperimentalFeaturesState,
+  AnyAction | ActionOf<typeof APP_SETTINGS_LOADED>
+> = (state = initialState, action): ExperimentalFeaturesState => {
   switch (action.type) {
+    case APP_SETTINGS_LOADED: {
+      return {
+        ...state,
+        memoryImprovements: action.payload.experimentalMemoryImprovements || initialState.memoryImprovements,
+      };
+    }
     case EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED: {
       const enabled = action.payload.enabled;
       return {

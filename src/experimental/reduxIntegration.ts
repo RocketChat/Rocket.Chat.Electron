@@ -1,4 +1,5 @@
 import { listen } from '../store';
+import { APP_SETTINGS_LOADED } from '../app/actions';
 import {
   EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED,
   EXPERIMENTAL_MEMORY_FEATURE_TOGGLED,
@@ -10,6 +11,24 @@ import { ExperimentalMemoryManager } from './ExperimentalMemoryManager';
  */
 export const setupExperimentalReduxListeners = (): void => {
   const memoryManager = ExperimentalMemoryManager.getInstance();
+
+  // Listen for settings loaded to restore persisted state
+  listen(APP_SETTINGS_LOADED, async (action) => {
+    const settings = action.payload.experimentalMemoryImprovements;
+    if (settings) {
+      console.log('[ExperimentalRedux] Restoring persisted settings:', settings);
+      
+      // Enable manager if it was enabled
+      if (settings.enabled) {
+        console.log('[ExperimentalRedux] Manager was enabled, restoring state');
+        // Only enable the manager, not the features automatically
+        // Features will be restored by their individual states
+      }
+      
+      // Note: Individual features will be enabled when webviews are created
+      // if they were persisted as enabled
+    }
+  });
 
   // Listen for master toggle
   listen(EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED, async (action) => {

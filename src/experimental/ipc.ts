@@ -43,9 +43,11 @@ export const setupExperimentalIPC = (): void => {
 
   // Request current memory metrics
   handle('experimental/request-memory-metrics', async () => {
+    console.log('[ExperimentalIPC] Memory metrics requested');
     const monitoringFeature = memoryManager.getFeature('monitoring') as MemoryMonitor | undefined;
     
     if (!monitoringFeature || !monitoringFeature.isEnabled()) {
+      console.log('[ExperimentalIPC] Monitoring not enabled, returning null');
       return null;
     }
 

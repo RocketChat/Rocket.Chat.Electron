@@ -39,6 +39,7 @@ export const setupExperimentalReduxListeners = (): void => {
     // Individual features need to be enabled separately
     if (enabled) {
       // Enable manager but don't enable any features yet
+      await memoryManager.enable();
       console.log('[ExperimentalRedux] Manager enabled, features remain disabled until manually activated');
     } else {
       // Disable everything

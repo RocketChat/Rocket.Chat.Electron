@@ -93,12 +93,6 @@ export class ExperimentalMemoryManager {
    * Toggle a specific feature.
    */
   async toggleFeature(name: string, enabled: boolean): Promise<void> {
-    // Only allow toggling features if the manager is enabled
-    if (!this.enabled && enabled) {
-      console.warn(`[ExperimentalMemory] Cannot enable feature ${name}: manager is disabled`);
-      return;
-    }
-    
     const feature = this.features.get(name);
     
     if (!feature) {
@@ -106,10 +100,18 @@ export class ExperimentalMemoryManager {
       return;
     }
 
+    // Allow disabling at any time, but only enable if manager is enabled
+    if (enabled && !this.enabled) {
+      console.warn(`[ExperimentalMemory] Cannot enable feature ${name}: manager is disabled`);
+      return;
+    }
+
     if (enabled) {
       await feature.enable();
+      console.log(`[ExperimentalMemory] Feature ${name} enabled`);
     } else {
       await feature.disable();
+      console.log(`[ExperimentalMemory] Feature ${name} disabled`);
     }
   }
 

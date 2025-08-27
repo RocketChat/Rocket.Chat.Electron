@@ -2,6 +2,11 @@ import type { AnyAction, Reducer } from 'redux';
 
 import { APP_SETTINGS_LOADED } from '../../app/actions';
 import type { ActionOf } from '../../store/actions';
+import {
+  EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED,
+  EXPERIMENTAL_MEMORY_FEATURE_TOGGLED,
+  EXPERIMENTAL_MEMORY_METRICS_UPDATED,
+} from '../actions';
 
 export interface MemoryFeatures {
   monitoring: boolean;
@@ -20,19 +25,16 @@ export interface MemoryMetrics {
 export interface ExperimentalFeaturesState {
   memoryImprovements: {
     enabled: boolean;
+    showStatusBar: boolean;
     features: MemoryFeatures;
     metrics?: MemoryMetrics;
   };
 }
 
-// Action types
-export const EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED = 'experimental/memory-improvements-toggled';
-export const EXPERIMENTAL_MEMORY_FEATURE_TOGGLED = 'experimental/memory-feature-toggled';
-export const EXPERIMENTAL_MEMORY_METRICS_UPDATED = 'experimental/memory-metrics-updated';
-
 const initialState: ExperimentalFeaturesState = {
   memoryImprovements: {
     enabled: false,
+    showStatusBar: false,
     features: {
       monitoring: false,
       smartCleanup: false,
@@ -76,13 +78,26 @@ export const experimentalFeaturesReducer: Reducer<
     }
 
     case EXPERIMENTAL_MEMORY_FEATURE_TOGGLED: {
+      const { feature, enabled } = action.payload;
+      
+      // Handle showStatusBar separately as it's not a feature
+      if (feature === 'showStatusBar') {
+        return {
+          ...state,
+          memoryImprovements: {
+            ...state.memoryImprovements,
+            showStatusBar: enabled,
+          },
+        };
+      }
+      
       return {
         ...state,
         memoryImprovements: {
           ...state.memoryImprovements,
           features: {
             ...state.memoryImprovements.features,
-            [action.payload.feature]: action.payload.enabled,
+            [feature]: enabled,
           },
         },
       };

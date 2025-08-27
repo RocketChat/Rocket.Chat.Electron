@@ -41314,10 +41314,7 @@ const mergeEnv = (env) => {
     if (!env) {
         return undefined;
     }
-    if (process.platform === 'darwin') {
-        return Object.assign(Object.assign({}, process.env), env);
-    }
-    return env;
+    return Object.assign(Object.assign({}, process.env), env);
 };
 const run = (command, env) => core.group(`$ ${command}`, () => new Promise((resolve, reject) => {
     const p = (0,external_child_process_namespaceObject.spawn)(command, {
@@ -41529,12 +41526,45 @@ var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
 };
 
 
+const addCertToStore = (store_1, path_1, ...args_1) => windows_awaiter(void 0, [store_1, path_1, ...args_1], void 0, function* (store, path, user = true) {
+    if (!path)
+        return;
+    const userFlag = user ? '-user ' : '';
+    yield run(`certutil ${userFlag}-addstore "${store}" "${path}"`);
+});
+const computeThumbprint = (certPath) => windows_awaiter(void 0, void 0, void 0, function* () {
+    const out = yield runAndBuffer(`powershell -NoProfile -NonInteractive -Command "(Get-PfxCertificate \"${certPath}\").Thumbprint"`);
+    return out.trim();
+});
 const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* () {
+    const rootPath = core.getInput('win_root_path');
+    const intermediatePath = core.getInput('win_intermediate_path');
+    const certPath = core.getInput('win_cert_path');
+    // Optionally install provided certificates to the CurrentUser store
+    yield addCertToStore('ROOT', rootPath);
+    yield addCertToStore('CA', intermediatePath);
+    yield addCertToStore('MY', certPath);
+    let certSha1 = core.getInput('win_kms_cert_sha1');
+    if (!certSha1 && certPath) {
+        certSha1 = yield computeThumbprint(certPath);
+        core.info(`Computed WIN_KMS_CERT_SHA1 from ${certPath}`);
+    }
     yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis msi`, {
-        CSC_LINK: core.getInput('win_csc_link'),
-        CSC_KEY_PASSWORD: core.getInput('win_csc_key_password'),
+        WIN_KMS_KEY_RESOURCE: core.getInput('win_kms_key_resource'),
+        WIN_KMS_CERT_SHA1: certSha1,
+        WIN_KMS_CSP: core.getInput('win_kms_csp'),
+        WIN_TIMESTAMP_URL: core.getInput('win_timestamp_url'),
+        WIN_KMS_CERT_STORE: 'MY',
+        WIN_KMS_USE_LOCAL_MACHINE: 'false',
     });
-    yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`);
+    yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, {
+        WIN_KMS_KEY_RESOURCE: core.getInput('win_kms_key_resource'),
+        WIN_KMS_CERT_SHA1: certSha1,
+        WIN_KMS_CSP: core.getInput('win_kms_csp'),
+        WIN_TIMESTAMP_URL: core.getInput('win_timestamp_url'),
+        WIN_KMS_CERT_STORE: 'MY',
+        WIN_KMS_USE_LOCAL_MACHINE: 'false',
+    });
 });
 
 ;// CONCATENATED MODULE: ./src/index.ts

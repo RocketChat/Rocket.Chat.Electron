@@ -7,14 +7,10 @@ const mergeEnv = (env?: Record<string, string>) => {
     return undefined;
   }
 
-  if (process.platform === 'darwin') {
-    return {
-      ...process.env,
-      ...env,
-    };
-  }
-
-  return env;
+  return {
+    ...process.env,
+    ...env,
+  };
 };
 
 export const run = (

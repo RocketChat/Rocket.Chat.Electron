@@ -153,6 +153,7 @@ export class AutoReload extends MemoryFeature {
 
   private async checkAllWebContents(): Promise<void> {
     const appMetrics = app.getAppMetrics();
+    console.log(`[AutoReload] 🔍 Checking ${this.webContentsStates.size} WebContents for memory issues`);
     
     for (const [url, state] of this.webContentsStates) {
       if (state.webContents.isDestroyed()) {
@@ -165,6 +166,11 @@ export class AutoReload extends MemoryFeature {
       if (!metric) continue;
       
       const currentMemory = metric.memory.workingSetSize * 1024; // Convert to bytes
+      const currentMemoryGB = currentMemory / 1024 / 1024 / 1024;
+      
+      if (currentMemoryGB > 2.5) {
+        console.log(`[AutoReload] 📈 ${url}: ${currentMemoryGB.toFixed(2)}GB (approaching limit)`);
+      }
       
       // Update memory history
       state.memoryHistory.push(currentMemory);
@@ -210,19 +216,21 @@ export class AutoReload extends MemoryFeature {
     
     // Check if memory is critical
     if (currentMemory >= this.MEMORY_CRITICAL_THRESHOLD) {
-      console.warn(`[AutoReload] Critical memory for ${state.url}: ${(currentMemory / 1024 / 1024 / 1024).toFixed(2)}GB`);
+      console.warn(`[AutoReload] 🚨 CRITICAL: ${state.url} at ${(currentMemory / 1024 / 1024 / 1024).toFixed(2)}GB - MUST RELOAD!`);
       return true;
     }
     
     // Check if memory is high and growing fast
     if (currentMemory >= this.MEMORY_WARNING_THRESHOLD && state.growthRate > this.MEMORY_GROWTH_RATE_THRESHOLD) {
-      console.warn(`[AutoReload] High memory with fast growth for ${state.url}`);
+      const growthMBPerMin = state.growthRate / 1024 / 1024;
+      console.warn(`[AutoReload] ⚠️ WARNING: ${state.url} at ${(currentMemory / 1024 / 1024 / 1024).toFixed(2)}GB, growing ${growthMBPerMin.toFixed(1)}MB/min`);
       return true;
     }
     
     // Check if crash is predicted within 5 minutes
     if (state.predictedCrashTime && state.predictedCrashTime - now < 5 * 60000) {
-      console.warn(`[AutoReload] Crash predicted within 5 minutes for ${state.url}`);
+      const minutesUntilCrash = (state.predictedCrashTime - now) / 60000;
+      console.warn(`[AutoReload] 🔮 PREDICTION: ${state.url} will crash in ${minutesUntilCrash.toFixed(1)} minutes!`);
       return true;
     }
     
@@ -232,7 +240,7 @@ export class AutoReload extends MemoryFeature {
     const systemPressure = (totalMemory - freeMemory) / totalMemory;
     
     if (systemPressure > 0.9 && currentMemory > this.MEMORY_WARNING_THRESHOLD) {
-      console.warn(`[AutoReload] System memory pressure high, reloading ${state.url}`);
+      console.warn(`[AutoReload] 💥 SYSTEM PRESSURE: ${(systemPressure * 100).toFixed(1)}% memory used, reloading ${state.url}`);
       return true;
     }
     
@@ -243,15 +251,19 @@ export class AutoReload extends MemoryFeature {
     state: WebContentsMemoryState,
     memoryBefore: number
   ): Promise<void> {
-    console.log(`[AutoReload] Reloading ${state.url} to prevent memory crash`);
+    console.log(`[AutoReload] 🔄 RELOADING ${state.url} - Memory: ${(memoryBefore / 1024 / 1024 / 1024).toFixed(2)}GB`);
     
     // Determine reload reason
     let reason: ReloadEvent['reason'] = 'memory_limit';
+    let reasonText = 'Memory limit reached';
     if (state.growthRate > this.MEMORY_GROWTH_RATE_THRESHOLD) {
       reason = 'growth_rate';
+      reasonText = `Rapid growth (${(state.growthRate / 1024 / 1024).toFixed(1)}MB/min)`;
     } else if (state.predictedCrashTime) {
       reason = 'predicted_crash';
+      reasonText = 'Crash predicted';
     }
+    console.log(`[AutoReload] 📝 Reason: ${reasonText}`);
     
     try {
       // Save current state before reload

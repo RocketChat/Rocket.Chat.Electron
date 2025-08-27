@@ -55,24 +55,17 @@ export class ExperimentalMemoryManager {
   }
 
   /**
-   * Enable all memory features.
+   * Enable the memory manager (but not individual features).
    */
   async enable(): Promise<void> {
     if (this.enabled) {
       return;
     }
 
-    console.log('[ExperimentalMemory] Enabling all features');
+    console.log('[ExperimentalMemory] Manager enabled (features must be enabled individually)');
     this.enabled = true;
     
-    // Enable all features
-    for (const [name, feature] of this.features) {
-      try {
-        await feature.enable();
-      } catch (error) {
-        console.error(`[ExperimentalMemory] Failed to enable feature ${name}:`, error);
-      }
-    }
+    // Don't automatically enable features - they need to be enabled individually
   }
 
   /**
@@ -100,6 +93,12 @@ export class ExperimentalMemoryManager {
    * Toggle a specific feature.
    */
   async toggleFeature(name: string, enabled: boolean): Promise<void> {
+    // Only allow toggling features if the manager is enabled
+    if (!this.enabled && enabled) {
+      console.warn(`[ExperimentalMemory] Cannot enable feature ${name}: manager is disabled`);
+      return;
+    }
+    
     const feature = this.features.get(name);
     
     if (!feature) {
@@ -122,14 +121,17 @@ export class ExperimentalMemoryManager {
       return;
     }
 
-    console.log(`[ExperimentalMemory] Applying features to WebContents for ${serverUrl}`);
+    console.log(`[ExperimentalMemory] Applying enabled features to WebContents for ${serverUrl}`);
     this.webContentsList.set(serverUrl, webContents);
 
     for (const [name, feature] of this.features) {
-      try {
-        await feature.applyToWebContents(webContents, serverUrl);
-      } catch (error) {
-        console.error(`[ExperimentalMemory] Failed to apply feature ${name} to WebContents:`, error);
+      // Only apply if the feature is enabled
+      if (feature.isEnabled()) {
+        try {
+          await feature.applyToWebContents(webContents, serverUrl);
+        } catch (error) {
+          console.error(`[ExperimentalMemory] Failed to apply feature ${name} to WebContents:`, error);
+        }
       }
     }
   }

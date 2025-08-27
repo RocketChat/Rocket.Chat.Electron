@@ -16,9 +16,13 @@ export const setupExperimentalReduxListeners = (): void => {
     const { enabled } = action.payload;
     console.log(`[ExperimentalRedux] Memory improvements toggled: ${enabled}`);
     
+    // Master toggle only enables/disables the manager
+    // Individual features need to be enabled separately
     if (enabled) {
-      await memoryManager.enable();
+      // Enable manager but don't enable any features yet
+      console.log('[ExperimentalRedux] Manager enabled, features remain disabled until manually activated');
     } else {
+      // Disable everything
       await memoryManager.disable();
     }
   });

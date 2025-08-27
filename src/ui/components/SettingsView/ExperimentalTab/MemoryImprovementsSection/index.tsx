@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import type { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -19,15 +20,17 @@ export const MemoryImprovementsSection: React.FC = () => {
   );
 
   const handleMasterToggle = useCallback(
-    (enabled: boolean) => {
-      dispatch(toggleMemoryImprovements(enabled));
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const isChecked = event.currentTarget.checked;
+      dispatch(toggleMemoryImprovements(isChecked));
     },
     [dispatch]
   );
 
   const handleFeatureToggle = useCallback(
-    (feature: string, enabled: boolean) => {
-      dispatch(toggleMemoryFeature(feature, enabled));
+    (feature: string) => (event: ChangeEvent<HTMLInputElement>) => {
+      const isChecked = event.currentTarget.checked;
+      dispatch(toggleMemoryFeature(feature, isChecked));
     },
     [dispatch]
   );
@@ -66,7 +69,7 @@ export const MemoryImprovementsSection: React.FC = () => {
               description={t('settings.experimental.memoryImprovements.features.monitoringDesc', 
                 'Track memory usage and system health')}
               checked={memorySettings.features.monitoring}
-              onChange={(checked) => handleFeatureToggle('monitoring', checked)}
+              onChange={handleFeatureToggle('monitoring')}
             />
 
             <MemoryToggle
@@ -74,7 +77,7 @@ export const MemoryImprovementsSection: React.FC = () => {
               description={t('settings.experimental.memoryImprovements.features.smartCleanupDesc',
                 'Automatically clean memory during idle and after system sleep')}
               checked={memorySettings.features.smartCleanup}
-              onChange={(checked) => handleFeatureToggle('smartCleanup', checked)}
+              onChange={handleFeatureToggle('smartCleanup')}
             />
 
             <MemoryToggle
@@ -82,7 +85,7 @@ export const MemoryImprovementsSection: React.FC = () => {
               description={t('settings.experimental.memoryImprovements.features.autoReloadDesc',
                 'Reload tabs approaching memory limits to prevent crashes')}
               checked={memorySettings.features.autoReload}
-              onChange={(checked) => handleFeatureToggle('autoReload', checked)}
+              onChange={handleFeatureToggle('autoReload')}
             />
 
             <MemoryToggle
@@ -90,7 +93,7 @@ export const MemoryImprovementsSection: React.FC = () => {
               description={t('settings.experimental.memoryImprovements.features.domOptimizationDesc',
                 'Reduce memory usage by optimizing page content')}
               checked={memorySettings.features.domOptimization}
-              onChange={(checked) => handleFeatureToggle('domOptimization', checked)}
+              onChange={handleFeatureToggle('domOptimization')}
             />
 
             <MemoryToggle
@@ -98,7 +101,7 @@ export const MemoryImprovementsSection: React.FC = () => {
               description={t('settings.experimental.memoryImprovements.features.websocketDesc',
                 'Clean up network connections after system sleep')}
               checked={memorySettings.features.websocket}
-              onChange={(checked) => handleFeatureToggle('websocket', checked)}
+              onChange={handleFeatureToggle('websocket')}
             />
           </Box>
 

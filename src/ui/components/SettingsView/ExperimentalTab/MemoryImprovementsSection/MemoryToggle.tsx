@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ChangeEvent } from 'react';
 
 import { Box, ToggleSwitch } from '@rocket.chat/fuselage';
 
@@ -6,7 +7,7 @@ interface MemoryToggleProps {
   label: string;
   description: string;
   checked: boolean;
-  onChange: (checked: boolean) => void;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
 }
 

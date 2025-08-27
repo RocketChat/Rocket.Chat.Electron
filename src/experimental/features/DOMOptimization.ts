@@ -304,8 +304,12 @@ export class DOMOptimization extends MemoryFeature {
     
     // Check minimum interval
     if (now - this.lastOptimizationTime < this.minOptimizationInterval) {
+      const remainingTime = (this.minOptimizationInterval - (now - this.lastOptimizationTime)) / 1000;
+      console.log(`[DOMOptimization] ⏰ Next optimization in ${remainingTime.toFixed(0)} seconds`);
       return;
     }
+    
+    console.log(`[DOMOptimization] 🎯 Starting optimization cycle for ${this.webContentsList.size} WebContents`);
     
     for (const [url, webContents] of this.webContentsList) {
       if (webContents.isDestroyed()) {
@@ -362,11 +366,17 @@ export class DOMOptimization extends MemoryFeature {
         // Log significant optimizations
         const totalOptimized = Object.values(result).reduce((a, b) => a + b, 0);
         if (totalOptimized > 0) {
-          console.log(`[DOMOptimization] Optimized ${url}:`, {
-            elements: totalOptimized,
-            memorySaved: `${(memorySaved / 1024 / 1024).toFixed(1)}MB`,
-            details: result
-          });
+          console.log(`[DOMOptimization] ✂️ Optimized ${url}:`);
+          if (result.hiddenElements > 0) console.log(`  - 👻 Removed ${result.hiddenElements} hidden elements`);
+          if (result.offscreenImages > 0) console.log(`  - 🖼️ Lazy-loaded ${result.offscreenImages} off-screen images`);
+          if (result.unusedStyles > 0) console.log(`  - 🎨 Removed ${result.unusedStyles} unused CSS rules`);
+          if (result.detachedNodes > 0) console.log(`  - 🧹 Cleaned ${result.detachedNodes} detached nodes`);
+          if (result.largeTextNodes > 0) console.log(`  - 📝 Optimized ${result.largeTextNodes} large text nodes`);
+          if (memorySaved > 0) {
+            console.log(`  - 💾 Saved ${(memorySaved / 1024 / 1024).toFixed(1)}MB memory`);
+          }
+        } else {
+          console.log(`[DOMOptimization] ✨ ${url} already optimized`);
         }
       }
     } catch (error) {

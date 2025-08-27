@@ -261,12 +261,12 @@ export class WebSocketManager extends MemoryFeature {
   }
 
   protected async onSystemSleep(): Promise<void> {
-    console.log('[WebSocketManager] System going to sleep, closing connections');
+    console.log('[WebSocketManager] 😴 System going to sleep, closing all WebSocket connections');
     await this.closeAllConnections();
   }
 
   protected async onSystemResume(): Promise<void> {
-    console.log('[WebSocketManager] System resumed, reconnecting WebSockets');
+    console.log('[WebSocketManager] 🌅 System resumed, reconnecting WebSockets');
     await this.reconnectAllConnections();
   }
 
@@ -289,6 +289,8 @@ export class WebSocketManager extends MemoryFeature {
   }
 
   private async monitorConnections(): Promise<void> {
+    console.log(`[WebSocketManager] 🔌 Monitoring ${this.webContentsList.size} WebContents for WebSocket connections`);
+    
     for (const [url, webContents] of this.webContentsList) {
       if (webContents.isDestroyed()) {
         this.webContentsList.delete(url);
@@ -315,13 +317,17 @@ export class WebSocketManager extends MemoryFeature {
         currentStats.totalConnections = Math.max(currentStats.totalConnections, stats.total || 0);
         this.websocketStats.set(url, currentStats);
         
+        if (stats.active > 0) {
+          console.log(`[WebSocketManager] 📊 ${url}: ${stats.active} active connections`);
+        }
+        
         // Log if there are issues
         if (stats.active > 10) {
-          console.warn(`[WebSocketManager] High number of active connections for ${url}: ${stats.active}`);
+          console.warn(`[WebSocketManager] ⚠️ HIGH CONNECTION COUNT for ${url}: ${stats.active} active connections!`);
         }
         
         if (stats.bufferedData > 1024 * 1024) { // 1MB buffered
-          console.warn(`[WebSocketManager] High buffered data for ${url}: ${(stats.bufferedData / 1024 / 1024).toFixed(1)}MB`);
+          console.warn(`[WebSocketManager] 🔴 HIGH BUFFERED DATA for ${url}: ${(stats.bufferedData / 1024 / 1024).toFixed(1)}MB - possible memory leak!`);
         }
         
       } catch (error) {
@@ -361,13 +367,15 @@ export class WebSocketManager extends MemoryFeature {
         `);
         
         if (closed > 0) {
-          console.log(`[WebSocketManager] Closed ${closed} connections for ${url} before sleep`);
+          console.log(`[WebSocketManager] 🔒 Closed ${closed} connections for ${url} before sleep`);
           
           const stats = this.websocketStats.get(url);
           if (stats) {
             stats.closedConnections += closed;
             stats.lastCleanup = Date.now();
           }
+        } else {
+          console.log(`[WebSocketManager] ✅ ${url} - No active connections to close`);
         }
         
       } catch (error) {

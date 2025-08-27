@@ -138,9 +138,14 @@ export class SmartCleanup extends MemoryFeature {
       const now = Date.now();
       const timeSinceLastCleanup = now - this.lastCleanupTime;
       
+      console.log(`[SmartCleanup] 💤 System idle for ${(idleTime / 60).toFixed(1)} minutes`);
+      
       // Only cleanup if enough time has passed
       if (timeSinceLastCleanup >= this.minCleanupInterval) {
+        console.log(`[SmartCleanup] 🧹 Starting idle cleanup (last cleanup ${(timeSinceLastCleanup / 60000).toFixed(1)} minutes ago)`);
         await this.performCleanup('idle');
+      } else {
+        console.log(`[SmartCleanup] ⏳ Skipping cleanup (too soon, wait ${((this.minCleanupInterval - timeSinceLastCleanup) / 60000).toFixed(1)} more minutes)`);
       }
     }
   }
@@ -156,31 +161,36 @@ export class SmartCleanup extends MemoryFeature {
     const memoryBefore = this.getCurrentMemoryUsage();
     const actions: string[] = [];
 
-    console.log(`[SmartCleanup] Starting ${trigger} cleanup`);
+    console.log(`[SmartCleanup] 🚀 Starting ${trigger} cleanup - Memory before: ${(memoryBefore / 1024 / 1024).toFixed(1)}MB`);
 
     try {
       // 1. Clear Electron caches
       if (trigger === 'sleep' || trigger === 'resume' || trigger === 'pressure') {
+        console.log(`[SmartCleanup] 🗑️ Clearing Electron caches (trigger: ${trigger})`);
         await this.clearElectronCaches();
         actions.push('Cleared Electron caches');
       }
 
       // 2. Clear WebContents memory
+      console.log('[SmartCleanup] 🌐 Cleaning WebContents memory');
       await this.cleanupWebContents();
       actions.push('Cleaned WebContents memory');
 
       // 3. Run garbage collection if available
       if (global.gc) {
+        console.log('[SmartCleanup] ♻️ Running garbage collection');
         global.gc();
         actions.push('Ran garbage collection');
       }
 
       // 4. Clear unused memory in main process
+      console.log('[SmartCleanup] 🔧 Clearing main process memory');
       this.clearMainProcessMemory();
       actions.push('Cleared main process memory');
 
       // 5. Additional aggressive cleanup for pressure situations
       if (trigger === 'pressure') {
+        console.log('[SmartCleanup] 🔥 HIGH PRESSURE - Performing aggressive cleanup!');
         await this.aggressiveCleanup();
         actions.push('Performed aggressive cleanup');
       }
@@ -214,11 +224,13 @@ export class SmartCleanup extends MemoryFeature {
     this.metrics.lastRun = Date.now();
     this.lastCleanupTime = Date.now();
 
-    console.log(`[SmartCleanup] Completed ${trigger} cleanup:`, {
-      memorySaved: `${(memorySaved / 1024 / 1024).toFixed(1)}MB`,
-      duration: `${duration}ms`,
-      actions: actions.length
-    });
+    const memorySavedMB = memorySaved / 1024 / 1024;
+    if (memorySavedMB > 0) {
+      console.log(`[SmartCleanup] ✅ Cleanup completed! Freed ${memorySavedMB.toFixed(1)}MB in ${duration}ms`);
+    } else {
+      console.log(`[SmartCleanup] ✨ Cleanup completed - Memory already optimized (${duration}ms)`);
+    }
+    console.log(`[SmartCleanup] 📋 Actions performed: ${actions.join(', ')}`);
 
     this.isCleaningUp = false;
     return result;

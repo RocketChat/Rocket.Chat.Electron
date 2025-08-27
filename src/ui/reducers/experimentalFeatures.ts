@@ -52,11 +52,16 @@ export const experimentalFeaturesReducer = (
         memoryImprovements: {
           ...state.memoryImprovements,
           enabled,
-          // Toggle all features with master toggle
-          features: Object.keys(state.memoryImprovements.features).reduce(
-            (acc, key) => ({ ...acc, [key]: enabled }),
-            {} as MemoryFeatures
-          ),
+          // Keep individual feature states unchanged
+          // If disabling master, all features will be disabled in practice
+          // but their toggle states are preserved for when re-enabled
+          features: enabled ? state.memoryImprovements.features : {
+            monitoring: false,
+            smartCleanup: false,
+            autoReload: false,
+            domOptimization: false,
+            websocket: false,
+          },
         },
       };
     }

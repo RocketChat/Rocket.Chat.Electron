@@ -132,6 +132,8 @@ export class MemoryMonitor extends MemoryFeature {
     const usedMemory = totalMemory - freeMemory;
     const percentUsed = (usedMemory / totalMemory) * 100;
 
+    console.log(`[MemoryMonitor] 📊 Capturing snapshot - System: ${percentUsed.toFixed(1)}% used (${(freeMemory / 1024 / 1024 / 1024).toFixed(1)}GB free)`);
+
     // Get Electron app metrics
     const appMetrics = app.getAppMetrics();
     const totalAppMemory = appMetrics.reduce(
@@ -185,12 +187,14 @@ export class MemoryMonitor extends MemoryFeature {
 
     // Log if concerning
     if (pressure === 'high' || pressure === 'critical') {
-      console.warn('[MemoryMonitor] Memory pressure detected:', {
+      console.warn(`[MemoryMonitor] ⚠️ ${pressure.toUpperCase()} memory pressure detected!`, {
         pressure,
         systemUsed: `${percentUsed.toFixed(1)}%`,
         appMemory: `${(totalAppMemory / 1024).toFixed(1)}MB`,
-        topWebview: webviews[0]
+        topWebview: webviews[0] ? `${webviews[0].url} (${(webviews[0].memory / 1024 / 1024).toFixed(1)}MB)` : 'none'
       });
+    } else if (pressure === 'medium') {
+      console.log(`[MemoryMonitor] ⚡ Medium memory pressure - System: ${percentUsed.toFixed(1)}%, App: ${(totalAppMemory / 1024).toFixed(1)}MB`);
     }
 
     // Update metrics

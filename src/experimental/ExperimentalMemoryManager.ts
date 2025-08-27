@@ -5,9 +5,7 @@ import { MemoryMonitor } from './features/MemoryMonitor';
 import { SmartCleanup } from './features/SmartCleanup';
 import { AutoReload } from './features/AutoReload';
 import { DOMOptimization } from './features/DOMOptimization';
-
-// Import feature placeholders - these will be implemented later
-// import { WebSocketManager } from './features/WebSocketManager';
+import { WebSocketManager } from './features/WebSocketManager';
 
 export interface MemoryMetrics {
   memorySaved: number;
@@ -28,14 +26,12 @@ export class ExperimentalMemoryManager {
   private constructor() {
     this.features = new Map();
     
-    // Register memory features
+    // Register all memory features
     this.registerFeature('monitoring', new MemoryMonitor());
     this.registerFeature('smartCleanup', new SmartCleanup());
     this.registerFeature('autoReload', new AutoReload());
     this.registerFeature('domOptimization', new DOMOptimization());
-    
-    // Features to be implemented
-    // this.registerFeature('websocket', new WebSocketManager());
+    this.registerFeature('websocket', new WebSocketManager());
     
     console.log('[ExperimentalMemory] Manager initialized');
   }

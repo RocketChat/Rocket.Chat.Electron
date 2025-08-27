@@ -76,9 +76,6 @@ export const SettingsView = () => {
           onClick={() => setCurrentTab('experimental')}
         >
           {t('settings.experimental', 'Experimental')}
-          <Box as='span' marginInlineStart='x4' fontScale='micro' color='status-font-on-warning' backgroundColor='status-background-warning' padding='x2' borderRadius='x2'>
-            NEW
-          </Box>
         </Tabs.Item>
       </Tabs>
       <Box m='x24' overflowY='auto'>

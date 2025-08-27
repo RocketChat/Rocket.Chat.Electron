@@ -51,7 +51,7 @@ export const MemoryImprovementsSection: React.FC = () => {
   }
 
   return (
-    <Box>
+    <>
       <Field>
         <FieldRow>
           <FieldLabel htmlFor={memoryImprovementsId}>
@@ -125,6 +125,6 @@ export const MemoryImprovementsSection: React.FC = () => {
           )}
         </>
       )}
-    </Box>
+    </>
   );
 };

@@ -3,6 +3,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 
 import { MemoryFeature } from '../MemoryFeature';
+import { ExperimentalMemoryManager } from '../ExperimentalMemoryManager';
 import type { WebContents } from 'electron';
 
 export interface SystemMemoryInfo {
@@ -133,9 +134,14 @@ export class MemoryMonitor extends MemoryFeature {
     // Get main process memory
     const mainProcessMemory = process.memoryUsage();
 
-    // Get webview details
+    // Get webview details from both local list and manager's list
     const webviews: SystemMemoryInfo['webviews'] = [];
-    for (const [url, wc] of this.webContentsList) {
+    const allWebContents = new Map([
+      ...this.webContentsList,
+      ...ExperimentalMemoryManager.getInstance().getWebContentsList()
+    ]);
+    
+    for (const [url, wc] of allWebContents) {
       if (!wc.isDestroyed()) {
         const metric = appMetrics.find(m => m.webContents?.id === wc.id);
         if (metric) {

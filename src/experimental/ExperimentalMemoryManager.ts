@@ -109,6 +109,18 @@ export class ExperimentalMemoryManager {
     if (enabled) {
       await feature.enable();
       console.log(`[ExperimentalMemory] Feature ${name} enabled`);
+      
+      // Apply feature to all existing WebContents
+      for (const [url, wc] of this.webContentsList) {
+        if (!wc.isDestroyed()) {
+          try {
+            await feature.applyToWebContents(wc, url);
+            console.log(`[ExperimentalMemory] Applied ${name} to existing WebContents for ${url}`);
+          } catch (error) {
+            console.error(`[ExperimentalMemory] Failed to apply ${name} to ${url}:`, error);
+          }
+        }
+      }
     } else {
       await feature.disable();
       console.log(`[ExperimentalMemory] Feature ${name} disabled`);
@@ -119,13 +131,18 @@ export class ExperimentalMemoryManager {
    * Apply features to a WebContents instance.
    */
   async applyToWebContents(webContents: WebContents, serverUrl: string): Promise<void> {
+    // Always track the webcontents, even if manager is not enabled yet
+    // This ensures we have them available when features are enabled later
+    console.log(`[ExperimentalMemory] Tracking WebContents for ${serverUrl}`);
+    this.webContentsList.set(serverUrl, webContents);
+
     if (!this.enabled) {
+      console.log(`[ExperimentalMemory] Manager not enabled, skipping feature application for ${serverUrl}`);
       return;
     }
 
     console.log(`[ExperimentalMemory] Applying enabled features to WebContents for ${serverUrl}`);
-    this.webContentsList.set(serverUrl, webContents);
-
+    
     for (const [name, feature] of this.features) {
       // Only apply if the feature is enabled
       if (feature.isEnabled()) {
@@ -218,6 +235,13 @@ export class ExperimentalMemoryManager {
    */
   getFeature(name: string): MemoryFeature | undefined {
     return this.features.get(name);
+  }
+
+  /**
+   * Get the current list of tracked WebContents.
+   */
+  getWebContentsList(): Map<string, WebContents> {
+    return this.webContentsList;
   }
 
   /**

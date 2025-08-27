@@ -54,8 +54,8 @@ export const setupExperimentalIPC = (): void => {
     // Force a snapshot and get current state
     const snapshot = await monitoringFeature.forceSnapshot();
     const metrics = {
-      system: snapshot.system,
-      electron: snapshot.electron,
+      app: snapshot.app,
+      webviews: snapshot.webviews,
       features: memoryManager.getMetrics()
     };
 

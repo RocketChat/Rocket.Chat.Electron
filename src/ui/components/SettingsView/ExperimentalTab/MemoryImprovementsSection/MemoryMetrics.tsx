@@ -5,20 +5,21 @@ import { invoke } from '../../../../../ipc/renderer';
 
 interface LiveMetrics {
   timestamp: number;
-  system: {
-    total: number;
-    free: number;
-    used: number;
-    percentUsed: number;
-    pressure: 'low' | 'medium' | 'high' | 'critical';
+  app: {
+    totalMemory: number;
+    mainProcess: {
+      rss: number;
+      heapTotal: number;
+      heapUsed: number;
+      external: number;
+    };
+    rendererProcesses: number;
+    pressure: 'low' | 'medium' | 'high';
   };
-  electron: {
-    totalAppMemory: number;
-    webviews: Array<{
-      url: string;
-      memory: number;
-    }>;
-  };
+  webviews: Array<{
+    url: string;
+    memory: number;
+  }>;
   features: {
     memorySaved: number;
     interventions: number;
@@ -46,8 +47,8 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
         if (metrics) {
           setLiveMetrics({
             timestamp: Date.now(),
-            system: metrics.system || {},
-            electron: metrics.electron || {},
+            app: metrics.app || {},
+            webviews: metrics.webviews || [],
             features: metrics.features || {
               memorySaved: 0,
               interventions: 0,
@@ -127,9 +128,9 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
     );
   }
 
-  const systemUsagePercent = liveMetrics.system.percentUsed || 0;
-  const appMemoryGB = (liveMetrics.electron.totalAppMemory || 0) / 1024 / 1024 / 1024;
-  const serverCount = liveMetrics.electron.webviews?.length || 0;
+  const appMemoryMB = (liveMetrics.app.totalMemory || 0) / 1024 / 1024;
+  const mainProcessMB = (liveMetrics.app.mainProcess?.rss || 0) / 1024 / 1024;
+  const serverCount = liveMetrics.webviews?.length || 0;
 
   return (
     <Margins block='x16'>
@@ -142,34 +143,33 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
         </Box>
       </Box>
 
-      {/* System Memory Overview */}
+      {/* App Memory Overview */}
       <Tile elevation='1' padding='x16' mbe='x16'>
         <Box mbe='x8'>
           <Box display='flex' justifyContent='space-between' alignItems='center' mbe='x8'>
-            <Box>
-              <Box fontScale='p2'>
-                {t('settings.experimental.memoryImprovements.metrics.systemMemory', 'System Memory')}
-              </Box>
-              {process.platform === 'darwin' && (
-                <Box fontScale='c1' color='hint'>
-                  {t('settings.experimental.memoryImprovements.metrics.effectiveUsage', 'Effective usage (macOS manages cache)')}
-                </Box>
-              )}
+            <Box fontScale='p2'>
+              {t('settings.experimental.memoryImprovements.metrics.appMemory', 'Application Memory')}
             </Box>
-            <Tag variant={getPressureColor(liveMetrics.system.pressure)}>
-              {liveMetrics.system.pressure.toUpperCase()}
+            <Tag variant={getPressureColor(liveMetrics.app.pressure)}>
+              {liveMetrics.app.pressure.toUpperCase()}
             </Tag>
           </Box>
-          <ProgressBar 
-            percentage={systemUsagePercent} 
-            variant={getProgressColor(systemUsagePercent)}
-          />
           <Box display='flex' justifyContent='space-between' mbs='x4'>
-            <Box fontScale='c1' color='hint'>
-              {formatMemory(liveMetrics.system.free)} free
+            <Box>
+              <Box fontScale='h3'>
+                {formatMemory(liveMetrics.app.totalMemory)}
+              </Box>
+              <Box fontScale='c1' color='hint'>
+                {t('settings.experimental.memoryImprovements.metrics.totalUsage', 'Total usage')}
+              </Box>
             </Box>
-            <Box fontScale='c1' color='hint'>
-              {systemUsagePercent.toFixed(1)}% {process.platform === 'darwin' ? 'effective' : 'used'}
+            <Box textAlign='right'>
+              <Box fontScale='p1'>
+                {formatMemory(liveMetrics.app.mainProcess?.rss || 0)}
+              </Box>
+              <Box fontScale='c1' color='hint'>
+                {t('settings.experimental.memoryImprovements.metrics.mainProcess', 'Main process')}
+              </Box>
             </Box>
           </Box>
         </Box>
@@ -181,10 +181,10 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
           <Tile elevation='1' padding='x16'>
             <Box textAlign='center'>
               <Box fontScale='h2' color='info-500' mbe='x4'>
-                {formatMemory(liveMetrics.electron.totalAppMemory)}
+                {liveMetrics.app.rendererProcesses || 0}
               </Box>
               <Box fontScale='c1' color='hint'>
-                {t('settings.experimental.memoryImprovements.metrics.totalAppMemory', 'App Memory')}
+                {t('settings.experimental.memoryImprovements.metrics.rendererProcesses', 'Renderer Processes')}
               </Box>
             </Box>
           </Tile>
@@ -205,16 +205,16 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
       </Box>
 
       {/* Server Memory Breakdown */}
-      {liveMetrics.electron.webviews && liveMetrics.electron.webviews.length > 0 && (
+      {liveMetrics.webviews && liveMetrics.webviews.length > 0 && (
         <Tile elevation='1' padding='x16'>
           <Box fontScale='p2' mbe='x12'>
             {t('settings.experimental.memoryImprovements.metrics.serverBreakdown', 'Server Memory Usage')}
           </Box>
-          {liveMetrics.electron.webviews.slice(0, 5).map((webview, index) => {
+          {liveMetrics.webviews.slice(0, 5).map((webview, index) => {
             const serverName = new URL(webview.url).hostname;
-            const memoryPercent = (webview.memory / liveMetrics.electron.totalAppMemory) * 100;
+            const memoryPercent = (webview.memory / liveMetrics.app.totalMemory) * 100;
             return (
-              <Box key={index} mbe={index < liveMetrics.electron.webviews.length - 1 ? 'x8' : undefined}>
+              <Box key={index} mbe={index < liveMetrics.webviews.length - 1 ? 'x8' : undefined}>
                 <Box display='flex' justifyContent='space-between' mbe='x4'>
                   <Box fontScale='c1' withTruncatedText>
                     {serverName}

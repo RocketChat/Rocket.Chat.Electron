@@ -7,8 +7,7 @@ import { invoke } from '../../../ipc/renderer';
 
 interface MemoryMetrics {
   totalAppMemory: number;
-  pressure: 'low' | 'medium' | 'high' | 'critical';
-  systemPercent: number;
+  pressure: 'low' | 'medium' | 'high';
   serverCount: number;
 }
 
@@ -40,10 +39,9 @@ export const TopBar = () => {
         const data = await invoke('experimental/request-memory-metrics');
         if (data) {
           setMetrics({
-            totalAppMemory: data.electron?.totalAppMemory || 0,
-            pressure: data.system?.pressure || 'low',
-            systemPercent: data.system?.percentUsed || 0,
-            serverCount: data.electron?.webviews?.length || 0
+            totalAppMemory: data.app?.totalMemory || 0,
+            pressure: data.app?.pressure || 'low',
+            serverCount: data.webviews?.length || 0
           });
         }
       } catch (error) {
@@ -73,7 +71,7 @@ export const TopBar = () => {
 
   // Build the display title with memory info appended
   const displayTitle = showMemoryStatus && metrics 
-    ? `${mainWindowTitle} • ${formatMemory(metrics.totalAppMemory)} • ${metrics.pressure.toUpperCase()}`
+    ? `${mainWindowTitle} • ${formatMemory(metrics.totalAppMemory)}`
     : mainWindowTitle;
 
   return (

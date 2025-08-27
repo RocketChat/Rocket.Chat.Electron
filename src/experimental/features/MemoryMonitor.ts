@@ -1,5 +1,4 @@
 import { app } from 'electron';
-import * as os from 'os';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -8,28 +7,23 @@ import type { WebContents } from 'electron';
 
 export interface SystemMemoryInfo {
   timestamp: number;
-  system: {
-    total: number;
-    free: number;
-    used: number;
-    percentUsed: number;
-    pressure: 'low' | 'medium' | 'high' | 'critical';
+  app: {
+    totalMemory: number;
+    mainProcess: {
+      rss: number;
+      heapTotal: number;
+      heapUsed: number;
+      external: number;
+    };
+    rendererProcesses: number;
+    pressure: 'low' | 'medium' | 'high';
   };
-  process: {
-    rss: number;
-    heapTotal: number;
-    heapUsed: number;
-    external: number;
-  };
-  electron: {
-    totalAppMemory: number;
-    webviews: Array<{
-      url: string;
-      pid: number;
-      memory: number;
-      cpu: number;
-    }>;
-  };
+  webviews: Array<{
+    url: string;
+    pid: number;
+    memory: number;
+    cpu: number;
+  }>;
 }
 
 /**
@@ -126,51 +120,21 @@ export class MemoryMonitor extends MemoryFeature {
   }
 
   async captureSnapshot(): Promise<SystemMemoryInfo> {
-    const totalMemory = os.totalmem();
-    let freeMemory = os.freemem();
-    
-    // Calculate memory usage differently for macOS
-    // macOS memory = App Memory (active + wired) + Memory Pressure
-    // We can't get exact wired/active/compressed from Node.js, but we can approximate
-    let usedMemory = totalMemory - freeMemory;
-    let percentUsed = (usedMemory / totalMemory) * 100;
-    
-    if (process.platform === 'darwin') {
-      // On macOS, memory usage is complex:
-      // - Free memory is truly unused
-      // - File cache can be purged instantly (not counted as "used")
-      // - Compressed memory is counted as used but efficient
-      // - Memory pressure is based on paging activity, not just percentages
-      
-      const freeMB = freeMemory / 1024 / 1024;
-      const freeGB = freeMemory / 1024 / 1024 / 1024;
-      
-      // macOS typically keeps free memory very low (100-500MB) even on healthy systems
-      // Activity Monitor shows "Memory Used" as: App Memory + Wired + Compressed
-      // We approximate "App Memory" as 70% of used memory (rest is cache/buffers)
-      const appMemoryEstimate = usedMemory * 0.7;
-      const appMemoryPercent = (appMemoryEstimate / totalMemory) * 100;
-      
-      // Use a more macOS-like calculation
-      // Show the "App Memory" percentage, not total used
-      percentUsed = appMemoryPercent;
-      
-      // Adjust displayed metrics to be more realistic
-      // macOS aggressively uses memory, so 80% "app memory" is still healthy
-      console.log(`[MemoryMonitor] 📊 macOS Memory - App Memory: ${appMemoryPercent.toFixed(1)}%, Free: ${freeMB.toFixed(0)}MB, Total Used: ${((totalMemory - freeMemory) / totalMemory * 100).toFixed(1)}%`);
-    } else {
-      console.log(`[MemoryMonitor] 📊 Memory - Used: ${percentUsed.toFixed(1)}%, Free: ${(freeMemory / 1024 / 1024).toFixed(0)}MB`);
-    }
-
     // Get Electron app metrics
     const appMetrics = app.getAppMetrics();
     const totalAppMemory = appMetrics.reduce(
       (sum, metric) => sum + metric.memory.workingSetSize,
       0
-    );
+    ) * 1024; // Convert to bytes
+
+    // Count renderer processes
+    const rendererProcesses = appMetrics.filter(m => m.type === 'Renderer').length;
+
+    // Get main process memory
+    const mainProcessMemory = process.memoryUsage();
 
     // Get webview details
-    const webviews: SystemMemoryInfo['electron']['webviews'] = [];
+    const webviews: SystemMemoryInfo['webviews'] = [];
     for (const [url, wc] of this.webContentsList) {
       if (!wc.isDestroyed()) {
         const metric = appMetrics.find(m => m.webContents?.id === wc.id);
@@ -178,7 +142,7 @@ export class MemoryMonitor extends MemoryFeature {
           webviews.push({
             url,
             pid: metric.pid,
-            memory: metric.memory.workingSetSize,
+            memory: metric.memory.workingSetSize * 1024, // Convert to bytes
             cpu: metric.cpu ? metric.cpu.percentCPUUsage : 0
           });
         }
@@ -188,23 +152,18 @@ export class MemoryMonitor extends MemoryFeature {
     // Sort webviews by memory usage
     webviews.sort((a, b) => b.memory - a.memory);
 
-    // Determine memory pressure
-    const pressure = this.calculatePressure(percentUsed, freeMemory);
+    // Calculate app memory pressure based on total app memory
+    const pressure = this.calculateAppPressure(totalAppMemory);
 
     const snapshot: SystemMemoryInfo = {
       timestamp: Date.now(),
-      system: {
-        total: totalMemory,
-        free: freeMemory,
-        used: usedMemory,
-        percentUsed: percentUsed,
+      app: {
+        totalMemory: totalAppMemory,
+        mainProcess: mainProcessMemory,
+        rendererProcesses,
         pressure
       },
-      process: process.memoryUsage(),
-      electron: {
-        totalAppMemory: totalAppMemory * 1024, // Convert to bytes
-        webviews
-      }
+      webviews
     };
 
     // Add to history
@@ -213,17 +172,22 @@ export class MemoryMonitor extends MemoryFeature {
       this.history.shift();
     }
 
-    // Log if concerning
-    if (pressure === 'high' || pressure === 'critical') {
-      console.warn(`[MemoryMonitor] ⚠️ ${pressure.toUpperCase()} memory pressure detected!`, {
-        pressure,
-        systemUsed: process.platform === 'darwin' ? `${percentUsed.toFixed(1)}% app memory` : `${percentUsed.toFixed(1)}%`,
-        freeMB: `${(freeMemory / 1024 / 1024).toFixed(0)}MB`,
-        appMemory: `${(totalAppMemory / 1024).toFixed(1)}MB`,
-        topWebview: webviews[0] ? `${webviews[0].url} (${(webviews[0].memory / 1024 / 1024).toFixed(1)}MB)` : 'none'
+    // Log memory status
+    const totalAppMB = totalAppMemory / 1024 / 1024;
+    const mainMB = mainProcessMemory.rss / 1024 / 1024;
+    const topWebview = webviews[0];
+    
+    if (pressure === 'high') {
+      console.warn(`[MemoryMonitor] ⚠️ HIGH app memory usage!`, {
+        totalApp: `${totalAppMB.toFixed(0)}MB`,
+        mainProcess: `${mainMB.toFixed(0)}MB`,
+        webviews: webviews.length,
+        topWebview: topWebview ? `${new URL(topWebview.url).hostname} (${(topWebview.memory / 1024 / 1024).toFixed(0)}MB)` : 'none'
       });
     } else if (pressure === 'medium') {
-      console.log(`[MemoryMonitor] ⚡ Medium memory pressure - System: ${percentUsed.toFixed(1)}% ${process.platform === 'darwin' ? 'app memory' : 'used'}, ${(freeMemory / 1024 / 1024).toFixed(0)}MB free, App: ${(totalAppMemory / 1024).toFixed(1)}MB`);
+      console.log(`[MemoryMonitor] ⚡ Moderate app memory usage - Total: ${totalAppMB.toFixed(0)}MB, Main: ${mainMB.toFixed(0)}MB, WebViews: ${webviews.length}`);
+    } else {
+      console.log(`[MemoryMonitor] 📊 App memory - Total: ${totalAppMB.toFixed(0)}MB, WebViews: ${webviews.length}`);
     }
 
     // Update metrics
@@ -233,49 +197,14 @@ export class MemoryMonitor extends MemoryFeature {
     return snapshot;
   }
 
-  private calculatePressure(
-    percentUsed: number,
-    freeBytes: number
-  ): SystemMemoryInfo['system']['pressure'] {
-    const freeMB = freeBytes / 1024 / 1024;
-    const totalGB = os.totalmem() / 1024 / 1024 / 1024;
-    const platform = process.platform;
-
-    // macOS handles memory differently with compression and efficient swap
-    // Memory pressure should be based on free memory and swap usage, not percentages
-    if (platform === 'darwin') {
-      // macOS pressure levels based on free memory available
-      // These thresholds approximate macOS's internal pressure calculation
-      if (freeMB < 100) return 'critical';  // Less than 100MB = red in Activity Monitor
-      if (freeMB < 250) return 'high';      // Less than 250MB = yellow/orange
-      if (freeMB < 500) return 'medium';    // Less than 500MB = yellow
-      
-      // For percentage-based checks, use "app memory" percentage (already adjusted in captureSnapshot)
-      // macOS is healthy even at 80% app memory usage
-      if (percentUsed > 85) return 'high';    // Over 85% app memory is concerning
-      if (percentUsed > 75) return 'medium';  // Over 75% app memory warrants attention
-      
-      return 'low';  // Green in Activity Monitor
-    }
+  private calculateAppPressure(totalAppMemory: number): SystemMemoryInfo['app']['pressure'] {
+    const appMemoryMB = totalAppMemory / 1024 / 1024;
     
-    // Windows and Linux use more traditional memory management
-    if (totalGB <= 4) {
-      // Strict thresholds for low-memory systems
-      if (percentUsed > 85 || freeMB < 300) return 'critical';
-      if (percentUsed > 75 || freeMB < 500) return 'high';
-      if (percentUsed > 65 || freeMB < 1000) return 'medium';
-    } else if (totalGB <= 8) {
-      // Moderate thresholds
-      if (percentUsed > 90 || freeMB < 400) return 'critical';
-      if (percentUsed > 80 || freeMB < 800) return 'high';
-      if (percentUsed > 70 || freeMB < 1500) return 'medium';
-    } else {
-      // Relaxed thresholds for high-memory systems
-      if (percentUsed > 95 || freeMB < 500) return 'critical';
-      if (percentUsed > 85 || freeMB < 1000) return 'high';
-      if (percentUsed > 75 || freeMB < 2000) return 'medium';
-    }
-
+    // Calculate pressure based on app memory usage
+    // These thresholds are for the entire Electron app
+    if (appMemoryMB > 4000) return 'high';    // Over 4GB is concerning
+    if (appMemoryMB > 2000) return 'medium';  // Over 2GB warrants attention
+    
     return 'low';
   }
 
@@ -294,8 +223,6 @@ export class MemoryMonitor extends MemoryFeature {
       system: {
         platform: process.platform,
         arch: process.arch,
-        totalMemory: os.totalmem(),
-        cpus: os.cpus().length,
         electronVersion: process.versions.electron,
         nodeVersion: process.versions.node
       },
@@ -316,8 +243,8 @@ export class MemoryMonitor extends MemoryFeature {
     
     const recent = this.history.slice(-20); // Last 40 minutes (assuming 2-min intervals)
     
-    const appMemoryValues = recent.map(s => s.electron.totalAppMemory);
-    const systemUsedValues = recent.map(s => s.system.percentUsed);
+    const appMemoryValues = recent.map(s => s.app.totalMemory);
+    const mainProcessValues = recent.map(s => s.app.mainProcess.rss);
     
     return {
       samples: recent.length,
@@ -330,16 +257,15 @@ export class MemoryMonitor extends MemoryFeature {
         peak: Math.max(...appMemoryValues),
         current: appMemoryValues[appMemoryValues.length - 1]
       },
-      systemMemory: {
-        averagePercent: systemUsedValues.reduce((a, b) => a + b, 0) / systemUsedValues.length,
-        peakPercent: Math.max(...systemUsedValues),
-        currentPercent: systemUsedValues[systemUsedValues.length - 1]
+      mainProcess: {
+        average: mainProcessValues.reduce((a, b) => a + b, 0) / mainProcessValues.length,
+        peak: Math.max(...mainProcessValues),
+        current: mainProcessValues[mainProcessValues.length - 1]
       },
       pressureDistribution: {
-        low: recent.filter(s => s.system.pressure === 'low').length,
-        medium: recent.filter(s => s.system.pressure === 'medium').length,
-        high: recent.filter(s => s.system.pressure === 'high').length,
-        critical: recent.filter(s => s.system.pressure === 'critical').length
+        low: recent.filter(s => s.app.pressure === 'low').length,
+        medium: recent.filter(s => s.app.pressure === 'medium').length,
+        high: recent.filter(s => s.app.pressure === 'high').length
       },
       topMemoryConsumers: this.getTopMemoryConsumers(recent)
     };
@@ -350,7 +276,7 @@ export class MemoryMonitor extends MemoryFeature {
     
     // Collect memory usage for each URL
     for (const snapshot of snapshots) {
-      for (const webview of snapshot.electron.webviews) {
+      for (const webview of snapshot.webviews) {
         if (!urlMemoryMap.has(webview.url)) {
           urlMemoryMap.set(webview.url, []);
         }

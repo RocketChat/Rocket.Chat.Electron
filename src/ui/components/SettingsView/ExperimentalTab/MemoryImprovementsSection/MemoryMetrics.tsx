@@ -37,7 +37,12 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
   useEffect(() => {
     // Request initial metrics
     const requestMetrics = () => {
-      window.RocketChatDesktop?.experimental?.requestMemoryMetrics?.();
+      console.log('[MemoryMetrics] Requesting metrics, experimental API:', window.RocketChatDesktop?.experimental);
+      if (window.RocketChatDesktop?.experimental?.requestMemoryMetrics) {
+        window.RocketChatDesktop.experimental.requestMemoryMetrics();
+      } else {
+        console.error('[MemoryMetrics] experimental.requestMemoryMetrics not available');
+      }
       setUpdateTime(Date.now());
     };
 

@@ -69,6 +69,7 @@ export const selectPersistableValues = createStructuredSelector({
   experimentalMemoryImprovements: ({ experimentalFeatures }: RootState) =>
     experimentalFeatures?.memoryImprovements || {
       enabled: false,
+      showStatusBar: false,
       features: {
         monitoring: false,
         smartCleanup: false,

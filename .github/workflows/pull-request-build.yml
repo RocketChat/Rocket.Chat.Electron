@@ -102,6 +102,7 @@ jobs:
         run: yarn electron-builder --publish never --x64 --win nsis
         env:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
+          WIN_KMS_CERT_SHA1: ${{ env.WIN_KMS_CERT_SHA1 }}
           WIN_KMS_CSP: 'Google Cloud KMS Provider'
           WIN_TIMESTAMP_URL: 'http://timestamp.digicert.com'
           WIN_KMS_CERT_STORE: 'MY'

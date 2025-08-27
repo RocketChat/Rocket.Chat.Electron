@@ -26,12 +26,27 @@ inputs:
   mac_asc_provider:
     description: 'The membership account associated with the Apple Developer account'
     required: true
-  win_csc_link:
-    description: 'The base64-encoded data of certificates (*.p12) for code signing for Windows'
+  win_kms_key_resource:
+    description: 'Google Cloud KMS key resource (projects/.../locations/.../keyRings/.../cryptoKeys/.../cryptoKeyVersions/N)'
     required: true
-  win_csc_key_password:
-    description: 'The password to decrypt the certificates for code signing for Windows'
-    required: true
+  win_kms_cert_sha1:
+    description: 'SHA1 thumbprint of the issued code signing certificate in Windows cert store (optional if win_cert_path provided)'
+    required: false
+  win_kms_csp:
+    description: 'CSP name (default: Google Cloud KMS Provider)'
+    required: false
+  win_timestamp_url:
+    description: 'RFC3161 timestamp URL (default: http://timestamp.digicert.com)'
+    required: false
+  win_cert_path:
+    description: 'Path to issued code signing certificate (user.crt) to install in CI runner (optional)'
+    required: false
+  win_intermediate_path:
+    description: 'Path to intermediate CA certificate to install in CI runner (optional)'
+    required: false
+  win_root_path:
+    description: 'Path to root CA certificate to install in CI runner (optional)'
+    required: false
   github_token:
     description: 'The GitHub token to publish releases'
     required: true
@@ -42,4 +57,3 @@ inputs:
 runs:
   using: 'node12'
   main: 'dist/index.js'
-

@@ -146,8 +146,15 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
       <Tile elevation='1' padding='x16' mbe='x16'>
         <Box mbe='x8'>
           <Box display='flex' justifyContent='space-between' alignItems='center' mbe='x8'>
-            <Box fontScale='p2'>
-              {t('settings.experimental.memoryImprovements.metrics.systemMemory', 'System Memory')}
+            <Box>
+              <Box fontScale='p2'>
+                {t('settings.experimental.memoryImprovements.metrics.systemMemory', 'System Memory')}
+              </Box>
+              {process.platform === 'darwin' && (
+                <Box fontScale='c1' color='hint'>
+                  {t('settings.experimental.memoryImprovements.metrics.effectiveUsage', 'Effective usage (macOS manages cache)')}
+                </Box>
+              )}
             </Box>
             <Tag variant={getPressureColor(liveMetrics.system.pressure)}>
               {liveMetrics.system.pressure.toUpperCase()}
@@ -159,10 +166,10 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
           />
           <Box display='flex' justifyContent='space-between' mbs='x4'>
             <Box fontScale='c1' color='hint'>
-              {formatMemory(liveMetrics.system.used)} / {formatMemory(liveMetrics.system.total)}
+              {formatMemory(liveMetrics.system.free)} free
             </Box>
             <Box fontScale='c1' color='hint'>
-              {systemUsagePercent.toFixed(1)}%
+              {systemUsagePercent.toFixed(1)}% {process.platform === 'darwin' ? 'effective' : 'used'}
             </Box>
           </Box>
         </Box>

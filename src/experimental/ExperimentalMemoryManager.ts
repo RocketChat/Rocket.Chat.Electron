@@ -1,9 +1,9 @@
 import type { WebContents } from 'electron';
 
 import type { MemoryFeature } from './MemoryFeature';
+import { MemoryMonitor } from './features/MemoryMonitor';
 
-// Import feature placeholders - these will be implemented in feature branches
-// import { MemoryMonitor } from './features/MemoryMonitor';
+// Import feature placeholders - these will be implemented later
 // import { SmartCleanup } from './features/SmartCleanup';
 // import { AutoReload } from './features/AutoReload';
 // import { DOMOptimization } from './features/DOMOptimization';
@@ -28,8 +28,10 @@ export class ExperimentalMemoryManager {
   private constructor() {
     this.features = new Map();
     
+    // Register MemoryMonitor feature
+    this.registerFeature('monitoring', new MemoryMonitor());
+    
     // Features will be registered in feature branches
-    // this.registerFeature('monitoring', new MemoryMonitor());
     // this.registerFeature('smartCleanup', new SmartCleanup());
     // this.registerFeature('autoReload', new AutoReload());
     // this.registerFeature('domOptimization', new DOMOptimization());

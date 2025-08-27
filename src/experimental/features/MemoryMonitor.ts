@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, webContents } from 'electron';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -121,7 +121,6 @@ export class MemoryMonitor extends MemoryFeature {
     const webviews: SystemMemoryInfo['webviews'] = [];
     
     // Use webContents.getAllWebContents() to get all webviews
-    const { webContents } = require('electron');
     const allWebContents = webContents.getAllWebContents();
     
     for (const wc of allWebContents) {

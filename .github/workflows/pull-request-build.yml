@@ -61,12 +61,51 @@ jobs:
           BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
+      - name: Setup Google Cloud authentication (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          $tempDir = $env:RUNNER_TEMP
+          '${{ secrets.GCP_SA_JSON }}' | Out-File -FilePath "$tempDir\gcp-sa.json" -NoNewline
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$tempDir\gcp-sa.json" >> $env:GITHUB_ENV
+
+      - name: Install Google Cloud KMS CNG provider (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          $url = "https://github.com/GoogleCloudPlatform/kms-integrations/releases/latest/download/google-cloud-kms-cng-provider.msi"
+          $msi = "$env:RUNNER_TEMP\kms-cng.msi"
+          Invoke-WebRequest -Uri $url -OutFile $msi
+          Start-Process msiexec.exe -ArgumentList "/i `"$msi`" /qn /norestart" -Wait
+
+      - name: Setup Windows certificates (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          $certDir = "$env:RUNNER_TEMP\codesigning"
+          New-Item -ItemType Directory -Path $certDir -Force | Out-Null
+          '${{ secrets.WIN_USER_CRT }}' | Out-File -FilePath "$certDir\user.crt" -NoNewline
+          if ('${{ secrets.WIN_INTERMEDIATE_CRT }}' -ne '') { '${{ secrets.WIN_INTERMEDIATE_CRT }}' | Out-File -FilePath "$certDir\intermediate.crt" -NoNewline }
+          if ('${{ secrets.WIN_ROOT_CRT }}' -ne '') { '${{ secrets.WIN_ROOT_CRT }}' | Out-File -FilePath "$certDir\root.crt" -NoNewline }
+          
+          # Install certificates to stores
+          if (Test-Path "$certDir\root.crt") { certutil -user -addstore "ROOT" "$certDir\root.crt" }
+          if (Test-Path "$certDir\intermediate.crt") { certutil -user -addstore "CA" "$certDir\intermediate.crt" }
+          certutil -user -addstore "MY" "$certDir\user.crt"
+          
+          # Compute and set certificate thumbprint
+          $thumb = (Get-PfxCertificate "$certDir\user.crt").Thumbprint
+          echo "WIN_KMS_CERT_SHA1=$thumb" >> $env:GITHUB_ENV
+
       - name: Build Windows Package
         if: ${{ matrix.os == 'windows-latest' }}
         run: yarn electron-builder --publish never --x64 --win nsis
         env:
-          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
+          WIN_KMS_CSP: 'Google Cloud KMS Provider'
+          WIN_TIMESTAMP_URL: 'http://timestamp.digicert.com'
+          WIN_KMS_CERT_STORE: 'MY'
+          WIN_KMS_USE_LOCAL_MACHINE: 'false'
 
       - name: Build MacOS Package
         if: ${{ matrix.os == 'macos-latest' }}

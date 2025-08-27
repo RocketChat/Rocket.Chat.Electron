@@ -66,7 +66,7 @@ export const MemoryImprovementsSection: React.FC = () => {
         <FieldRow>
           <FieldHint>
             {t('settings.experimental.memoryImprovements.description', 
-              'Experimental memory management features to improve stability and performance')}
+              'Advanced memory management system designed to prevent crashes and reduce memory usage. Works within Chromium\'s 4GB per-process limit. Enable features individually to test their impact on your system.')}
           </FieldHint>
         </FieldRow>
       </Field>
@@ -79,7 +79,7 @@ export const MemoryImprovementsSection: React.FC = () => {
             <MemoryToggle
               label={t('settings.experimental.memoryImprovements.features.monitoring', 'Memory Monitoring')}
               description={t('settings.experimental.memoryImprovements.features.monitoringDesc', 
-                'Track memory usage and system health')}
+                'Tracks system and app memory every 10-30 seconds. Monitors pressure levels (low/medium/high/critical) based on available RAM. Exports diagnostic reports when memory issues are detected.')}
               checked={memorySettings.features.monitoring}
               onChange={handleFeatureToggle('monitoring')}
             />
@@ -87,7 +87,7 @@ export const MemoryImprovementsSection: React.FC = () => {
             <MemoryToggle
               label={t('settings.experimental.memoryImprovements.features.smartCleanup', 'Smart Cleanup')}
               description={t('settings.experimental.memoryImprovements.features.smartCleanupDesc',
-                'Automatically clean memory during idle and after system sleep')}
+                'Runs cleanup after 5 minutes of idle time, during system sleep/resume, and when memory usage exceeds 80%. Clears Electron caches, runs garbage collection, and can free 50-200MB per cleanup cycle.')}
               checked={memorySettings.features.smartCleanup}
               onChange={handleFeatureToggle('smartCleanup')}
             />
@@ -95,7 +95,7 @@ export const MemoryImprovementsSection: React.FC = () => {
             <MemoryToggle
               label={t('settings.experimental.memoryImprovements.features.autoReload', 'Auto-reload Protection')}
               description={t('settings.experimental.memoryImprovements.features.autoReloadDesc',
-                'Reload tabs approaching memory limits to prevent crashes')}
+                'Automatically reloads tabs approaching 3.8GB memory limit (Chromium hard limit is ~4GB). Monitors growth rate and predicts crashes. Minimum 10 minutes between reloads to avoid disruption.')}
               checked={memorySettings.features.autoReload}
               onChange={handleFeatureToggle('autoReload')}
             />
@@ -103,7 +103,7 @@ export const MemoryImprovementsSection: React.FC = () => {
             <MemoryToggle
               label={t('settings.experimental.memoryImprovements.features.domOptimization', 'DOM Optimization')}
               description={t('settings.experimental.memoryImprovements.features.domOptimizationDesc',
-                'Reduce memory usage by optimizing page content')}
+                'Removes hidden elements after 5 minutes, lazy-loads off-screen images, cleans unused CSS rules, and trims large text nodes. Runs every 2 minutes and can save 10-100MB per optimization.')}
               checked={memorySettings.features.domOptimization}
               onChange={handleFeatureToggle('domOptimization')}
             />
@@ -111,7 +111,7 @@ export const MemoryImprovementsSection: React.FC = () => {
             <MemoryToggle
               label={t('settings.experimental.memoryImprovements.features.websocket', 'WebSocket Management')}
               description={t('settings.experimental.memoryImprovements.features.websocketDesc',
-                'Clean up network connections after system sleep')}
+                'Closes idle WebSocket connections after 5 minutes of inactivity. Properly handles sleep/resume cycles by closing all connections before sleep and reconnecting after. Prevents connection leaks that can consume 50-100KB each.')}
               checked={memorySettings.features.websocket}
               onChange={handleFeatureToggle('websocket')}
             />

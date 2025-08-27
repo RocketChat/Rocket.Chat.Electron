@@ -127,33 +127,40 @@ export class MemoryMonitor extends MemoryFeature {
 
   async captureSnapshot(): Promise<SystemMemoryInfo> {
     const totalMemory = os.totalmem();
-    const freeMemory = os.freemem();
+    let freeMemory = os.freemem();
     
-    // On macOS, we need to consider that the OS uses RAM for caching
-    // The "free" memory reported is actually just unused memory
-    // Real available memory includes cached memory that can be freed
-    let effectiveUsedMemory = totalMemory - freeMemory;
-    let effectivePercentUsed = (effectiveUsedMemory / totalMemory) * 100;
+    // Calculate memory usage differently for macOS
+    // macOS memory = App Memory (active + wired) + Memory Pressure
+    // We can't get exact wired/active/compressed from Node.js, but we can approximate
+    let usedMemory = totalMemory - freeMemory;
+    let percentUsed = (usedMemory / totalMemory) * 100;
     
     if (process.platform === 'darwin') {
-      // On macOS, if we have more than 200MB free, consider the system healthy
-      // macOS will show 99% used but that includes cache which is instantly freeable
-      // We'll calculate an "effective" usage that better reflects pressure
+      // On macOS, memory usage is complex:
+      // - Free memory is truly unused
+      // - File cache can be purged instantly (not counted as "used")
+      // - Compressed memory is counted as used but efficient
+      // - Memory pressure is based on paging activity, not just percentages
+      
+      const freeMB = freeMemory / 1024 / 1024;
       const freeGB = freeMemory / 1024 / 1024 / 1024;
       
-      // Adjust the percentage to be more realistic for macOS
-      // If we have > 1GB free, cap the "used" percentage at 85%
-      if (freeGB > 1) {
-        effectivePercentUsed = Math.min(effectivePercentUsed, 85);
-      } else if (freeGB > 0.5) {
-        effectivePercentUsed = Math.min(effectivePercentUsed, 90);
-      } else if (freeGB > 0.2) {
-        effectivePercentUsed = Math.min(effectivePercentUsed, 95);
-      }
-      // If less than 200MB free, show the real percentage
+      // macOS typically keeps free memory very low (100-500MB) even on healthy systems
+      // Activity Monitor shows "Memory Used" as: App Memory + Wired + Compressed
+      // We approximate "App Memory" as 70% of used memory (rest is cache/buffers)
+      const appMemoryEstimate = usedMemory * 0.7;
+      const appMemoryPercent = (appMemoryEstimate / totalMemory) * 100;
+      
+      // Use a more macOS-like calculation
+      // Show the "App Memory" percentage, not total used
+      percentUsed = appMemoryPercent;
+      
+      // Adjust displayed metrics to be more realistic
+      // macOS aggressively uses memory, so 80% "app memory" is still healthy
+      console.log(`[MemoryMonitor] 📊 macOS Memory - App Memory: ${appMemoryPercent.toFixed(1)}%, Free: ${freeMB.toFixed(0)}MB, Total Used: ${((totalMemory - freeMemory) / totalMemory * 100).toFixed(1)}%`);
+    } else {
+      console.log(`[MemoryMonitor] 📊 Memory - Used: ${percentUsed.toFixed(1)}%, Free: ${(freeMemory / 1024 / 1024).toFixed(0)}MB`);
     }
-
-    console.log(`[MemoryMonitor] 📊 Capturing snapshot - System: ${effectivePercentUsed.toFixed(1)}% effective (${(freeMemory / 1024 / 1024).toFixed(0)}MB free)`);
 
     // Get Electron app metrics
     const appMetrics = app.getAppMetrics();
@@ -182,15 +189,15 @@ export class MemoryMonitor extends MemoryFeature {
     webviews.sort((a, b) => b.memory - a.memory);
 
     // Determine memory pressure
-    const pressure = this.calculatePressure(effectivePercentUsed, freeMemory);
+    const pressure = this.calculatePressure(percentUsed, freeMemory);
 
     const snapshot: SystemMemoryInfo = {
       timestamp: Date.now(),
       system: {
         total: totalMemory,
         free: freeMemory,
-        used: effectiveUsedMemory,
-        percentUsed: effectivePercentUsed,
+        used: usedMemory,
+        percentUsed: percentUsed,
         pressure
       },
       process: process.memoryUsage(),
@@ -210,13 +217,13 @@ export class MemoryMonitor extends MemoryFeature {
     if (pressure === 'high' || pressure === 'critical') {
       console.warn(`[MemoryMonitor] ⚠️ ${pressure.toUpperCase()} memory pressure detected!`, {
         pressure,
-        systemUsed: `${effectivePercentUsed.toFixed(1)}%`,
+        systemUsed: process.platform === 'darwin' ? `${percentUsed.toFixed(1)}% app memory` : `${percentUsed.toFixed(1)}%`,
         freeMB: `${(freeMemory / 1024 / 1024).toFixed(0)}MB`,
         appMemory: `${(totalAppMemory / 1024).toFixed(1)}MB`,
         topWebview: webviews[0] ? `${webviews[0].url} (${(webviews[0].memory / 1024 / 1024).toFixed(1)}MB)` : 'none'
       });
     } else if (pressure === 'medium') {
-      console.log(`[MemoryMonitor] ⚡ Medium memory pressure - System: ${effectivePercentUsed.toFixed(1)}% effective, ${(freeMemory / 1024 / 1024).toFixed(0)}MB free, App: ${(totalAppMemory / 1024).toFixed(1)}MB`);
+      console.log(`[MemoryMonitor] ⚡ Medium memory pressure - System: ${percentUsed.toFixed(1)}% ${process.platform === 'darwin' ? 'app memory' : 'used'}, ${(freeMemory / 1024 / 1024).toFixed(0)}MB free, App: ${(totalAppMemory / 1024).toFixed(1)}MB`);
     }
 
     // Update metrics
@@ -235,21 +242,20 @@ export class MemoryMonitor extends MemoryFeature {
     const platform = process.platform;
 
     // macOS handles memory differently with compression and efficient swap
-    // Activity Monitor's "Memory Pressure" is more nuanced than raw percentages
+    // Memory pressure should be based on free memory and swap usage, not percentages
     if (platform === 'darwin') {
-      // macOS specific thresholds - more lenient due to memory compression
-      // macOS can show 99% used but still be "green" in Activity Monitor
-      if (freeMB < 100) return 'critical';  // Less than 100MB free is always critical
-      if (freeMB < 250) return 'high';      // Less than 250MB is concerning
-      if (freeMB < 500) return 'medium';    // Less than 500MB warrants attention
+      // macOS pressure levels based on free memory available
+      // These thresholds approximate macOS's internal pressure calculation
+      if (freeMB < 100) return 'critical';  // Less than 100MB = red in Activity Monitor
+      if (freeMB < 250) return 'high';      // Less than 250MB = yellow/orange
+      if (freeMB < 500) return 'medium';    // Less than 500MB = yellow
       
-      // For percentage-based checks on macOS, only consider extreme cases
-      // since macOS efficiently uses all available RAM
-      if (percentUsed > 98 && freeMB < 200) return 'critical';
-      if (percentUsed > 95 && freeMB < 400) return 'high';
-      if (percentUsed > 90 && freeMB < 800) return 'medium';
+      // For percentage-based checks, use "app memory" percentage (already adjusted in captureSnapshot)
+      // macOS is healthy even at 80% app memory usage
+      if (percentUsed > 85) return 'high';    // Over 85% app memory is concerning
+      if (percentUsed > 75) return 'medium';  // Over 75% app memory warrants attention
       
-      return 'low';
+      return 'low';  // Green in Activity Monitor
     }
     
     // Windows and Linux use more traditional memory management

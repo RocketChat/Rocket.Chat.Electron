@@ -65,6 +65,16 @@ type ChannelToArgsMap = {
     format: string,
     options: any
   ) => void;
+  'experimental/toggle-memory-improvements': (enabled: boolean) => void;
+  'experimental/toggle-memory-feature': (
+    feature: string,
+    enabled: boolean
+  ) => void;
+  'experimental/get-memory-metrics': () => {
+    memorySaved: number;
+    interventions: number;
+    lastCleanup: number;
+  };
 };
 
 export type Channel = keyof ChannelToArgsMap;

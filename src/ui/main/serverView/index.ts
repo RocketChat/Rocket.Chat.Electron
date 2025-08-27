@@ -45,6 +45,7 @@ import {
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
+import { ExperimentalMemoryManager } from '../../../experimental/ExperimentalMemoryManager';
 
 const t = i18next.t.bind(i18next);
 
@@ -98,12 +99,19 @@ const initializeServerWebContentsAfterAttach = (
 ): void => {
   webContentsByServerUrl.set(serverUrl, guestWebContents);
 
+  // Apply experimental memory features
+  const experimentalManager = ExperimentalMemoryManager.getInstance();
+  experimentalManager.applyToWebContents(guestWebContents, serverUrl);
+
   const webviewSession = guestWebContents.session;
 
   guestWebContents.addListener('destroyed', () => {
     guestWebContents.removeAllListeners();
     webviewSession.removeAllListeners();
     webContentsByServerUrl.delete(serverUrl);
+    
+    // Notify experimental manager about webcontents destruction
+    experimentalManager.handleWebContentsDestroyed(serverUrl);
 
     const canPurge = select(
       ({ servers }) => !servers.some((server) => server.url === serverUrl)

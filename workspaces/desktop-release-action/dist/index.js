@@ -41526,45 +41526,96 @@ var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
 };
 
 
-const addCertToStore = (store_1, path_1, ...args_1) => windows_awaiter(void 0, [store_1, path_1, ...args_1], void 0, function* (store, path, user = true) {
-    if (!path)
+
+
+const addCertToStore = (store_1, certPath_1, ...args_1) => windows_awaiter(void 0, [store_1, certPath_1, ...args_1], void 0, function* (store, certPath, user = true) {
+    if (!certPath || !external_fs_.existsSync(certPath)) {
+        core.info(`Certificate file not found or not provided: ${certPath}`);
         return;
+    }
     const userFlag = user ? '-user ' : '';
-    yield run(`certutil ${userFlag}-addstore "${store}" "${path}"`);
+    core.info(`Installing certificate to ${store} store: ${certPath}`);
+    yield run(`certutil ${userFlag}-addstore "${store}" "${certPath}"`);
 });
 const computeThumbprint = (certPath) => windows_awaiter(void 0, void 0, void 0, function* () {
-    const out = yield runAndBuffer(`powershell -NoProfile -NonInteractive -Command "(Get-PfxCertificate \"${certPath}\").Thumbprint"`);
+    if (!external_fs_.existsSync(certPath)) {
+        throw new Error(`Certificate file not found: ${certPath}`);
+    }
+    const out = yield runAndBuffer(`powershell -NoProfile -NonInteractive -Command "(Get-PfxCertificate \\"${certPath}\\").Thumbprint"`);
     return out.trim();
 });
-const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* () {
-    const rootPath = core.getInput('win_root_path');
-    const intermediatePath = core.getInput('win_intermediate_path');
-    const certPath = core.getInput('win_cert_path');
-    // Optionally install provided certificates to the CurrentUser store
-    yield addCertToStore('ROOT', rootPath);
-    yield addCertToStore('CA', intermediatePath);
-    yield addCertToStore('MY', certPath);
-    let certSha1 = core.getInput('win_kms_cert_sha1');
-    if (!certSha1 && certPath) {
-        certSha1 = yield computeThumbprint(certPath);
-        core.info(`Computed WIN_KMS_CERT_SHA1 from ${certPath}`);
+const writeCertFromSecret = (secretValue, fileName) => windows_awaiter(void 0, void 0, void 0, function* () {
+    if (!secretValue)
+        return '';
+    const tempDir = process.env.RUNNER_TEMP || process.env.TEMP || '.';
+    const certDir = external_path_.join(tempDir, 'codesigning');
+    const certPath = external_path_.join(certDir, fileName);
+    // Create directory if it doesn't exist
+    if (!external_fs_.existsSync(certDir)) {
+        external_fs_.mkdirSync(certDir, { recursive: true });
     }
-    yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis msi`, {
-        WIN_KMS_KEY_RESOURCE: core.getInput('win_kms_key_resource'),
+    // Write certificate file
+    external_fs_.writeFileSync(certPath, secretValue, 'utf8');
+    core.info(`Certificate written to: ${certPath}`);
+    return certPath;
+});
+const setupGoogleCloudAuth = () => windows_awaiter(void 0, void 0, void 0, function* () {
+    const gcpSaJson = core.getInput('gcp_sa_json');
+    if (!gcpSaJson) {
+        throw new Error('gcp_sa_json input is required for Google Cloud KMS authentication');
+    }
+    const tempDir = process.env.RUNNER_TEMP || process.env.TEMP || '.';
+    const credentialsPath = external_path_.join(tempDir, 'gcp-sa.json');
+    external_fs_.writeFileSync(credentialsPath, gcpSaJson, 'utf8');
+    core.exportVariable('GOOGLE_APPLICATION_CREDENTIALS', credentialsPath);
+    core.info(`Google Cloud credentials configured: ${credentialsPath}`);
+});
+const installKmsCngProvider = () => windows_awaiter(void 0, void 0, void 0, function* () {
+    core.info('Installing Google Cloud KMS CNG provider...');
+    const url = 'https://github.com/GoogleCloudPlatform/kms-integrations/releases/latest/download/google-cloud-kms-cng-provider.msi';
+    const tempDir = process.env.RUNNER_TEMP || process.env.TEMP || '.';
+    const msiPath = external_path_.join(tempDir, 'kms-cng.msi');
+    yield run(`powershell -Command "Invoke-WebRequest -Uri '${url}' -OutFile '${msiPath}'"`);
+    yield run(`msiexec.exe /i "${msiPath}" /qn /norestart`);
+    core.info('Google Cloud KMS CNG provider installed successfully');
+});
+const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* () {
+    // Setup Google Cloud authentication
+    yield setupGoogleCloudAuth();
+    // Install Google Cloud KMS CNG provider
+    yield installKmsCngProvider();
+    // Write certificates from secrets to temporary files
+    const userCertPath = yield writeCertFromSecret(core.getInput('win_user_crt'), 'user.crt');
+    const intermediateCertPath = yield writeCertFromSecret(core.getInput('win_intermediate_crt'), 'intermediate.crt');
+    const rootCertPath = yield writeCertFromSecret(core.getInput('win_root_crt'), 'root.crt');
+    // Install certificates to Windows certificate stores (CurrentUser)
+    yield addCertToStore('ROOT', rootCertPath);
+    yield addCertToStore('CA', intermediateCertPath);
+    yield addCertToStore('MY', userCertPath);
+    // Compute certificate thumbprint if not provided
+    let certSha1 = core.getInput('win_kms_cert_sha1');
+    if (!certSha1 && userCertPath) {
+        certSha1 = yield computeThumbprint(userCertPath);
+        core.info(`Computed certificate thumbprint: ${certSha1}`);
+    }
+    if (!certSha1) {
+        throw new Error('Could not determine certificate thumbprint. Provide win_kms_cert_sha1 or win_user_crt input.');
+    }
+    const kmsKeyResource = core.getInput('win_kms_key_resource');
+    if (!kmsKeyResource) {
+        throw new Error('win_kms_key_resource input is required');
+    }
+    const env = {
+        WIN_KMS_KEY_RESOURCE: kmsKeyResource,
         WIN_KMS_CERT_SHA1: certSha1,
-        WIN_KMS_CSP: core.getInput('win_kms_csp'),
-        WIN_TIMESTAMP_URL: core.getInput('win_timestamp_url'),
+        WIN_KMS_CSP: core.getInput('win_kms_csp') || 'Google Cloud KMS Provider',
+        WIN_TIMESTAMP_URL: core.getInput('win_timestamp_url') || 'http://timestamp.digicert.com',
         WIN_KMS_CERT_STORE: 'MY',
         WIN_KMS_USE_LOCAL_MACHINE: 'false',
-    });
-    yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, {
-        WIN_KMS_KEY_RESOURCE: core.getInput('win_kms_key_resource'),
-        WIN_KMS_CERT_SHA1: certSha1,
-        WIN_KMS_CSP: core.getInput('win_kms_csp'),
-        WIN_TIMESTAMP_URL: core.getInput('win_timestamp_url'),
-        WIN_KMS_CERT_STORE: 'MY',
-        WIN_KMS_USE_LOCAL_MACHINE: 'false',
-    });
+    };
+    core.info('Building Windows packages with Google Cloud KMS signing...');
+    yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis msi`, env);
+    yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, env);
 });
 
 ;// CONCATENATED MODULE: ./src/index.ts

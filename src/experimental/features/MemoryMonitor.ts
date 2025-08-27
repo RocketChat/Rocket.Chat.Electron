@@ -3,7 +3,6 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 
 import { MemoryFeature } from '../MemoryFeature';
-import { ExperimentalMemoryManager } from '../ExperimentalMemoryManager';
 import type { WebContents } from 'electron';
 
 export interface SystemMemoryInfo {
@@ -37,6 +36,7 @@ export class MemoryMonitor extends MemoryFeature {
   private maxHistorySize = 180; // 6 hours at 2-minute intervals
   private intervalMs = 120000; // 2 minutes default
   private webContentsList = new Map<string, WebContents>();
+  private externalWebContentsList: Map<string, WebContents> | null = null;
 
   getName(): string {
     return 'MemoryMonitor';
@@ -130,20 +130,41 @@ export class MemoryMonitor extends MemoryFeature {
 
     // Count renderer processes
     const rendererProcesses = appMetrics.filter(m => m.type === 'Renderer').length;
+    
+    // Debug: Log metrics summary
+    const metricTypes = appMetrics.map(m => m.type);
+    console.log(`[MemoryMonitor] Metrics: ${appMetrics.length} total, ${rendererProcesses} renderers, types: ${[...new Set(metricTypes)].join(', ')}`);
 
     // Get main process memory
     const mainProcessMemory = process.memoryUsage();
 
-    // Get webview details from both local list and manager's list
+    // Get webview details from both local list and external list (if set)
     const webviews: SystemMemoryInfo['webviews'] = [];
     const allWebContents = new Map([
       ...this.webContentsList,
-      ...ExperimentalMemoryManager.getInstance().getWebContentsList()
+      ...(this.externalWebContentsList || new Map())
     ]);
+    
+    // Debug logging
+    if (allWebContents.size > 0) {
+      console.log(`[MemoryMonitor] Checking ${allWebContents.size} WebContents`);
+    }
     
     for (const [url, wc] of allWebContents) {
       if (!wc.isDestroyed()) {
-        const metric = appMetrics.find(m => m.webContents?.id === wc.id);
+        const wcId = wc.id;
+        const metric = appMetrics.find(m => {
+          // Check if this metric has a webContents and it matches our ID
+          if (m.webContents && m.webContents.id === wcId) {
+            return true;
+          }
+          // Also check if the PID matches (fallback method)
+          if (m.pid === wc.getProcessId()) {
+            return true;
+          }
+          return false;
+        });
+        
         if (metric) {
           webviews.push({
             url,
@@ -151,6 +172,8 @@ export class MemoryMonitor extends MemoryFeature {
             memory: metric.memory.workingSetSize * 1024, // Convert to bytes
             cpu: metric.cpu ? metric.cpu.percentCPUUsage : 0
           });
+        } else {
+          console.log(`[MemoryMonitor] No metric found for ${url} (WebContents ID: ${wcId})`);
         }
       }
     }
@@ -324,5 +347,12 @@ export class MemoryMonitor extends MemoryFeature {
    */
   async forceSnapshot(): Promise<SystemMemoryInfo> {
     return await this.captureSnapshot();
+  }
+
+  /**
+   * Set external WebContents list for tracking
+   */
+  setExternalWebContentsList(list: Map<string, WebContents>): void {
+    this.externalWebContentsList = list;
   }
 }

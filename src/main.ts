@@ -1,4 +1,4 @@
-import { app, webContents } from 'electron';
+import { app, webContents, powerMonitor } from 'electron';
 import electronDl from 'electron-dl';
 import { t } from 'i18next';
 
@@ -43,6 +43,9 @@ import {
   startVideoCallWindowHandler,
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
+import { ExperimentalMemoryManager } from './experimental/ExperimentalMemoryManager';
+import { setupExperimentalIPC } from './experimental/ipc';
+import { setupExperimentalReduxListeners } from './experimental/reduxIntegration';
 
 const setupElectronDlWithTracking = () => {
   electronDl({
@@ -89,6 +92,25 @@ const start = async (): Promise<void> => {
   await app.whenReady();
 
   createMainReduxStore();
+  
+  // Initialize experimental features
+  if (process.env.NODE_ENV !== 'test') {
+    console.log('[Experimental] Initializing experimental features');
+    const experimentalManager = ExperimentalMemoryManager.getInstance();
+    setupExperimentalIPC();
+    setupExperimentalReduxListeners();
+    
+    // Set up power monitor for sleep/resume
+    powerMonitor.on('suspend', () => {
+      experimentalManager.handleSystemSleep();
+    });
+    
+    powerMonitor.on('resume', () => {
+      experimentalManager.handleSystemResume();
+    });
+    
+    console.log('[Experimental] Experimental features initialized');
+  }
 
   // Set up electron-dl with our download tracking callbacks
   setupElectronDlWithTracking();

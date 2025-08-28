@@ -66,4 +66,16 @@ export const selectPersistableValues = createStructuredSelector({
     isVideoCallDevtoolsAutoOpenEnabled,
   }: RootState) => isVideoCallDevtoolsAutoOpenEnabled,
   updateChannel: ({ updateChannel }: RootState) => updateChannel,
+  experimentalMemoryImprovements: ({ experimentalFeatures }: RootState) =>
+    experimentalFeatures?.memoryImprovements || {
+      enabled: false,
+      showStatusBar: false,
+      features: {
+        monitoring: false,
+        smartCleanup: false,
+        autoReload: false,
+        domOptimization: false,
+        websocket: false,
+      },
+    },
 });

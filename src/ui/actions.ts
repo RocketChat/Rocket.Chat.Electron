@@ -137,6 +137,11 @@ export const SIDE_BAR_SERVER_OPEN_DEV_TOOLS = 'side-bar/server-open-dev-tools';
 export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
 export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 
+// Experimental Features Actions
+export const EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED = 'experimental/memory-improvements-toggled';
+export const EXPERIMENTAL_MEMORY_FEATURE_TOGGLED = 'experimental/memory-feature-toggled';
+export const EXPERIMENTAL_MEMORY_METRICS_UPDATED = 'experimental/memory-metrics-updated';
+
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
   [ABOUT_DIALOG_TOGGLE_UPDATE_ON_START]: boolean;
@@ -267,4 +272,31 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
   };
   [WEBVIEW_PDF_VIEWER_ATTACHED]: { WebContentsId: number };
+  [EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED]: { enabled: boolean };
+  [EXPERIMENTAL_MEMORY_FEATURE_TOGGLED]: { feature: string; enabled: boolean };
+  [EXPERIMENTAL_MEMORY_METRICS_UPDATED]: {
+    memorySaved: number;
+    interventions: number;
+    lastCleanup: number;
+  };
 };
+
+// Experimental Features Action Creators
+export const toggleMemoryImprovements = (enabled: boolean) => ({
+  type: EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED,
+  payload: { enabled },
+});
+
+export const toggleMemoryFeature = (feature: string, enabled: boolean) => ({
+  type: EXPERIMENTAL_MEMORY_FEATURE_TOGGLED,
+  payload: { feature, enabled },
+});
+
+export const updateMemoryMetrics = (metrics: {
+  memorySaved: number;
+  interventions: number;
+  lastCleanup: number;
+}) => ({
+  type: EXPERIMENTAL_MEMORY_METRICS_UPDATED,
+  payload: metrics,
+});

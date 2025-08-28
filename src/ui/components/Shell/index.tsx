@@ -19,7 +19,7 @@ import { SupportedVersionDialog } from '../SupportedVersionDialog';
 import { TopBar } from '../TopBar';
 import { UpdateDialog } from '../UpdateDialog';
 import TooltipProvider from '../utils/TooltipProvider';
-import { GlobalStyles, WindowDragBar } from './styles';
+import { GlobalStyles } from './styles';
 
 export const Shell = () => {
   const appPath = useSelector(({ appPath }: RootState) => appPath);
@@ -84,7 +84,6 @@ export const Shell = () => {
         // tagId='sidebar-palette'
       />
       <GlobalStyles />
-      {process.platform === 'darwin' && <WindowDragBar />}
       <Box
         bg='light'
         display='flex'

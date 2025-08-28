@@ -11,6 +11,8 @@ import {
 } from '../../outlookCalendar/preload';
 import type { OutlookEventsResponse } from '../../outlookCalendar/type';
 import { setUserPresenceDetection } from '../../userPresence/preload';
+import { experimental } from '../../experimental/preload';
+import type { ExperimentalAPI } from '../../experimental/preload';
 import type { Server } from '../common';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';
@@ -76,6 +78,7 @@ export type RocketChatDesktopAPI = {
   clearOutlookCredentials: () => void;
   setUserToken: (token: string, userId: string) => void;
   openDocumentViewer: (url: string, format: string, options: any) => void;
+  experimental?: ExperimentalAPI;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -111,4 +114,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   setUserToken,
   setSidebarCustomTheme,
   openDocumentViewer,
+  experimental,
 };

@@ -150,6 +150,28 @@ jobs:
           Write-Host "Installing user certificate..."
           certutil -user -addstore "MY" "$certDir\user.crt"
           
+          # For KMS signing, we need to associate the certificate with the KMS key
+          # This is done through the CSP (Cryptographic Service Provider)
+          Write-Host "Associating certificate with KMS provider..."
+          
+          # Get the KMS key resource from environment
+          $kmsKeyResource = "${{ secrets.WIN_KMS_KEY_RESOURCE }}"
+          if ($kmsKeyResource) {
+            Write-Host "KMS Key Resource: $kmsKeyResource (masked)"
+            
+            # The certificate needs to be linked to the KMS key through the CSP
+            # This is typically done when the certificate is initially created with the KMS key
+            # Since we're importing an existing cert, we need to verify it has the proper association
+            
+            # Try to repair the certificate association
+            $thumb = (Get-PfxCertificate "$certDir\user.crt").Thumbprint
+            Write-Host "Certificate thumbprint: $thumb"
+            
+            # Use certutil to check the certificate's key provider info
+            Write-Host "Checking certificate key provider information..."
+            certutil -user -store MY $thumb | Select-String "Provider\|Key Container"
+          }
+          
           # Compute and set certificate thumbprint
           $thumb = (Get-PfxCertificate "$certDir\user.crt").Thumbprint
           Write-Host "Certificate thumbprint: $thumb"
@@ -267,6 +289,63 @@ jobs:
             }
           } catch {
             Write-Host "⚠️ Could not verify CSP list: $_"
+          }
+          
+          # Test signing before the actual build
+          Write-Host "`n=== Testing Signing Configuration ===" -ForegroundColor Cyan
+          $testFile = "$env:RUNNER_TEMP\test-sign.exe"
+          
+          # Create a small test executable (copy powershell.exe as a test)
+          Copy-Item "$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -Destination $testFile -Force
+          
+          Write-Host "Testing signing with the following parameters:"
+          Write-Host "  CSP: $env:WIN_KMS_CSP"
+          Write-Host "  Key Resource: $(if ($env:WIN_KMS_KEY_RESOURCE) { 'Set (masked)' } else { 'Not set' })"
+          Write-Host "  Certificate SHA1: $env:WIN_KMS_CERT_SHA1"
+          Write-Host "  Certificate Store: $env:WIN_KMS_CERT_STORE"
+          
+          # Try to sign the test file
+          try {
+            $signtoolPath = if ($env:SIGNTOOL_PATH) { $env:SIGNTOOL_PATH } else { "signtool" }
+            Write-Host "Using signtool at: $signtoolPath"
+            
+            $signArgs = @(
+              "sign",
+              "/fd", "SHA256",
+              "/tr", "http://timestamp.digicert.com",
+              "/td", "SHA256",
+              "/csp", "$env:WIN_KMS_CSP",
+              "/kc", "$env:WIN_KMS_KEY_RESOURCE",
+              "/sha1", "$env:WIN_KMS_CERT_SHA1",
+              "/s", "$env:WIN_KMS_CERT_STORE",
+              "/v",  # Verbose output
+              "/debug",  # Debug output
+              "$testFile"
+            )
+            
+            Write-Host "Running test signing command..."
+            Write-Host "$signtoolPath $($signArgs -join ' ')" -ForegroundColor Gray
+            
+            $result = & $signtoolPath @signArgs 2>&1
+            $result | ForEach-Object { Write-Host $_ }
+            
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✅ Test signing successful!" -ForegroundColor Green
+            } else {
+              Write-Host "❌ Test signing failed with exit code: $LASTEXITCODE" -ForegroundColor Red
+              Write-Host "This indicates a configuration issue with KMS signing."
+              
+              # Additional debugging
+              Write-Host "`nAttempting to get more information about the certificate..."
+              certutil -user -store MY $env:WIN_KMS_CERT_SHA1 -v | Select-String "Provider\|Container\|Key\|Algorithm"
+            }
+          } catch {
+            Write-Host "❌ Exception during test signing: $_" -ForegroundColor Red
+          } finally {
+            # Clean up test file
+            if (Test-Path $testFile) {
+              Remove-Item $testFile -Force -ErrorAction SilentlyContinue
+            }
           }
           
           Write-Host "`n=== Starting Build ===" -ForegroundColor Cyan

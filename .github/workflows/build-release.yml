@@ -65,6 +65,16 @@ jobs:
           NODE_ENV: production
           BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+
+      - name: Cache Google Cloud KMS CNG provider (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: actions/cache@v4
+        with:
+          path: build/installers/google-cloud-kms-cng-provider.msi
+          key: kms-cng-provider-${{ hashFiles('build/installers/.gitkeep') }}-v1.2
+          restore-keys: |
+            kms-cng-provider-
+
       - uses: ./workspaces/desktop-release-action
         with:
           mac_csc_link: ${{ secrets.MAC_CSC_LINK }}

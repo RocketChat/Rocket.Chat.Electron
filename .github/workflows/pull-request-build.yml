@@ -69,14 +69,22 @@ jobs:
           '${{ secrets.GCP_SA_JSON }}' | Out-File -FilePath "$tempDir\gcp-sa.json" -NoNewline
           echo "GOOGLE_APPLICATION_CREDENTIALS=$tempDir\gcp-sa.json" >> $env:GITHUB_ENV
 
+      - name: Cache Google Cloud KMS CNG provider (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: actions/cache@v4
+        id: cache-kms-cng
+        with:
+          path: build/installers/google-cloud-kms-cng-provider.msi
+          key: kms-cng-provider-${{ hashFiles('build/installers/.gitkeep') }}-v1.2
+          restore-keys: |
+            kms-cng-provider-
+
       - name: Install Google Cloud KMS CNG provider (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         shell: pwsh
         run: |
-          $url = "https://github.com/GoogleCloudPlatform/kms-integrations/releases/latest/download/google-cloud-kms-cng-provider.msi"
-          $msi = "$env:RUNNER_TEMP\kms-cng.msi"
-          Invoke-WebRequest -Uri $url -OutFile $msi
-          Start-Process msiexec.exe -ArgumentList "/i `"$msi`" /qn /norestart" -Wait
+          $ForceDownload = if ('${{ steps.cache-kms-cng.outputs.cache-hit }}' -eq 'true') { $false } else { $true }
+          & "${{ github.workspace }}\build\install-kms-cng-provider.ps1" -Force:$ForceDownload
 
       - name: Setup Windows certificates (Windows)
         if: ${{ matrix.os == 'windows-latest' }}

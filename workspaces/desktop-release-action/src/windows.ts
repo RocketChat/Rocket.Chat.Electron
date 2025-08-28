@@ -60,13 +60,12 @@ const setupGoogleCloudAuth = async () => {
 
 const installKmsCngProvider = async () => {
   core.info('Installing Google Cloud KMS CNG provider...');
-  const url = 'https://github.com/GoogleCloudPlatform/kms-integrations/releases/latest/download/google-cloud-kms-cng-provider.msi';
-  const tempDir = process.env.RUNNER_TEMP || process.env.TEMP || '.';
-  const msiPath = path.join(tempDir, 'kms-cng.msi');
+  const workspaceDir = process.env.GITHUB_WORKSPACE || process.cwd();
+  const scriptPath = path.join(workspaceDir, 'build', 'install-kms-cng-provider.ps1');
   
-  await run(`powershell -Command "Invoke-WebRequest -Uri '${url}' -OutFile '${msiPath}'"`);
-  await run(`msiexec.exe /i "${msiPath}" /qn /norestart`);
-  core.info('Google Cloud KMS CNG provider installed successfully');
+  // Use caching - no need to force download, let the script handle cache logic
+  await run(`powershell -ExecutionPolicy Bypass -File "${scriptPath}"`);
+  core.info('Google Cloud KMS CNG provider setup completed');
 };
 
 export const packOnWindows = async (): Promise<void> => {

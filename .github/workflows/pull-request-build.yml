@@ -90,6 +90,21 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         shell: pwsh
         run: |
+          # Add Windows SDK signtool to PATH
+          $sdkPath = "${env:ProgramFiles(x86)}\Windows Kits\10\bin"
+          if (Test-Path $sdkPath) {
+            $signtoolPath = Get-ChildItem -Path $sdkPath -Include "signtool.exe" -Recurse | 
+              Sort-Object { $_.Directory.Name } -Descending | 
+              Select-Object -First 1
+            if ($signtoolPath) {
+              $binPath = Split-Path $signtoolPath.FullName -Parent
+              echo "Adding to PATH: $binPath"
+              echo "$binPath" >> $env:GITHUB_PATH
+            } else {
+              Write-Warning "signtool.exe not found in Windows SDK"
+            }
+          }
+          
           $certDir = "$env:RUNNER_TEMP\codesigning"
           New-Item -ItemType Directory -Path $certDir -Force | Out-Null
           '${{ secrets.WIN_USER_CRT }}' | Out-File -FilePath "$certDir\user.crt" -NoNewline

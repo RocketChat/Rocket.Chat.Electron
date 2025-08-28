@@ -90,21 +90,47 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         shell: pwsh
         run: |
-          # Add Windows SDK signtool to PATH
+          # Find and add Windows SDK signtool to PATH
+          Write-Host "Searching for signtool.exe in Windows SDK..." -ForegroundColor Cyan
           $sdkPath = "${env:ProgramFiles(x86)}\Windows Kits\10\bin"
+          $signtoolFound = $false
+          
           if (Test-Path $sdkPath) {
-            $signtoolPath = Get-ChildItem -Path $sdkPath -Include "signtool.exe" -Recurse | 
+            Write-Host "Windows SDK path exists: $sdkPath"
+            $signtoolPath = Get-ChildItem -Path $sdkPath -Include "signtool.exe" -Recurse -ErrorAction SilentlyContinue | 
               Sort-Object { $_.Directory.Name } -Descending | 
               Select-Object -First 1
+              
             if ($signtoolPath) {
               $binPath = Split-Path $signtoolPath.FullName -Parent
-              echo "Adding to PATH: $binPath"
+              Write-Host "✅ Found signtool.exe at: $($signtoolPath.FullName)" -ForegroundColor Green
+              Write-Host "Adding to PATH: $binPath"
+              
+              # Add to GITHUB_PATH for future steps
               echo "$binPath" >> $env:GITHUB_PATH
-            } else {
-              Write-Warning "signtool.exe not found in Windows SDK"
+              
+              # Also add to current PATH for immediate use
+              $env:PATH = "$binPath;$env:PATH"
+              
+              # Store the full path for electron-builder
+              echo "SIGNTOOL_PATH=$($signtoolPath.FullName)" >> $env:GITHUB_ENV
+              
+              # Verify it's accessible
+              Write-Host "Verifying signtool accessibility..."
+              & $signtoolPath.FullName /? 2>&1 | Select-Object -First 1
+              $signtoolFound = $true
             }
           }
           
+          if (-not $signtoolFound) {
+            Write-Error "❌ signtool.exe not found in Windows SDK"
+            Write-Host "Attempting to install Windows SDK..."
+            # This would normally require admin rights and might not work in CI
+            # but let's log the issue clearly
+            exit 1
+          }
+          
+          # Setup certificates
           $certDir = "$env:RUNNER_TEMP\codesigning"
           New-Item -ItemType Directory -Path $certDir -Force | Out-Null
           '${{ secrets.WIN_USER_CRT }}' | Out-File -FilePath "$certDir\user.crt" -NoNewline
@@ -118,11 +144,47 @@ jobs:
           
           # Compute and set certificate thumbprint
           $thumb = (Get-PfxCertificate "$certDir\user.crt").Thumbprint
+          Write-Host "Certificate thumbprint: $thumb"
           echo "WIN_KMS_CERT_SHA1=$thumb" >> $env:GITHUB_ENV
 
       - name: Build Windows Package
         if: ${{ matrix.os == 'windows-latest' }}
-        run: yarn electron-builder --publish never --x64 --win nsis
+        shell: pwsh
+        run: |
+          # Verify PATH contains signtool before starting build
+          Write-Host "Current PATH: $env:PATH"
+          Write-Host "Checking signtool availability..."
+          
+          $signtoolCmd = Get-Command signtool -ErrorAction SilentlyContinue
+          if ($signtoolCmd) {
+            Write-Host "✅ signtool found in PATH at: $($signtoolCmd.Source)" -ForegroundColor Green
+          } else {
+            # Try to use the stored SIGNTOOL_PATH if available
+            if ($env:SIGNTOOL_PATH) {
+              Write-Host "Using SIGNTOOL_PATH: $env:SIGNTOOL_PATH"
+              # Create a shim/wrapper for signtool
+              $shimDir = "$env:RUNNER_TEMP\shims"
+              New-Item -ItemType Directory -Path $shimDir -Force | Out-Null
+              
+              # Create a batch file wrapper
+              $batchContent = "@echo off`n`"$env:SIGNTOOL_PATH`" %*"
+              $batchContent | Out-File -FilePath "$shimDir\signtool.bat" -Encoding ASCII
+              
+              # Also create a PowerShell wrapper
+              $psContent = "& `"$env:SIGNTOOL_PATH`" @args"
+              $psContent | Out-File -FilePath "$shimDir\signtool.ps1" -Encoding UTF8
+              
+              # Add shim directory to PATH
+              $env:PATH = "$shimDir;$env:PATH"
+              Write-Host "Added signtool shim to PATH at: $shimDir"
+            } else {
+              Write-Error "❌ signtool not found in PATH and SIGNTOOL_PATH not set"
+              exit 1
+            }
+          }
+          
+          # Run electron-builder
+          yarn electron-builder --publish never --x64 --win nsis
         env:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
           WIN_KMS_CERT_SHA1: ${{ env.WIN_KMS_CERT_SHA1 }}
@@ -130,6 +192,7 @@ jobs:
           WIN_TIMESTAMP_URL: 'http://timestamp.digicert.com'
           WIN_KMS_CERT_STORE: 'MY'
           WIN_KMS_USE_LOCAL_MACHINE: 'false'
+          SIGNTOOL_PATH: ${{ env.SIGNTOOL_PATH }}
 
       - name: Build MacOS Package
         if: ${{ matrix.os == 'macos-latest' }}

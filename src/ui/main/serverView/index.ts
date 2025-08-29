@@ -48,6 +48,72 @@ import { createPopupMenuForServerView } from './popupMenu';
 
 const t = i18next.t.bind(i18next);
 
+/**
+ * Determines if a URL and context indicates an authentication popup that should
+ * be opened in the default browser instead of an Electron popup window.
+ * This allows users to access their saved credentials and passkeys.
+ */
+const isAuthenticationPopup = (
+  url: string,
+  frameName: string,
+  disposition: string
+): boolean => {
+  try {
+    const parsedUrl = new URL(url);
+
+    // Check frame name for explicit authentication indicators
+    if (frameName === 'Login' || frameName === 'OAuth' || frameName === 'SSO') {
+      return true;
+    }
+
+    // Check for authentication-related URLs in new windows
+    if (disposition === 'new-window') {
+      // Check URL patterns for authentication keywords
+      const authKeywords = [
+        'oauth',
+        'auth',
+        'login',
+        'signin',
+        'sso',
+        'authenticate',
+      ];
+      const urlLower = url.toLowerCase();
+
+      if (authKeywords.some((keyword) => urlLower.includes(keyword))) {
+        return true;
+      }
+
+      // Check for known authentication providers
+      const authProviders = [
+        /(\.)?google\.com$/,
+        /(\.)?microsoft\.com$/,
+        /(\.)?microsoftonline\.com$/,
+        /(\.)?facebook\.com$/,
+        /(\.)?github\.com$/,
+        /(\.)?gitlab\.com$/,
+        /(\.)?okta\.com$/,
+        /(\.)?auth0\.com$/,
+        /(\.)?saml\.com$/,
+        /(\.)?onelogin\.com$/,
+      ];
+
+      if (authProviders.some((pattern) => parsedUrl.hostname.match(pattern))) {
+        return true;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    // If URL parsing fails, err on the side of caution and don't redirect
+    console.warn(
+      'Failed to parse URL for authentication detection:',
+      url,
+      error
+    );
+    return false;
+  }
+};
+
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
 export const getWebContentsByServerUrl = (
@@ -232,6 +298,17 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         return { action: 'deny' };
       }
 
+      // Check if this is an authentication popup (e.g., Login, OAuth, SSO)
+      // Open authentication popups in the default browser for saved credentials access
+      if (isAuthenticationPopup(url, frameName, disposition)) {
+        isProtocolAllowed(url).then((allowed) => {
+          if (allowed) {
+            openExternal(url);
+          }
+        });
+        return { action: 'deny' };
+      }
+
       const isVideoCall = frameName === 'Video Call';
 
       return {
@@ -260,6 +337,14 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         isProtocolAllowed(url).then((allowed) => {
           if (!allowed) {
             window.destroy();
+            return;
+          }
+
+          // Check if this is an authentication window that should be redirected to browser
+          // If it's an authentication window, close it and open in default browser
+          if (isAuthenticationPopup(url, frameName, disposition)) {
+            window.destroy();
+            openExternal(url);
             return;
           }
 

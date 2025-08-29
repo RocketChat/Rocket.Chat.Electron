@@ -85,16 +85,16 @@ const isAuthenticationPopup = (
 
       // Check for known authentication providers
       const authProviders = [
-        /(\.)?google\.com$/,
-        /(\.)?microsoft\.com$/,
-        /(\.)?microsoftonline\.com$/,
-        /(\.)?facebook\.com$/,
-        /(\.)?github\.com$/,
-        /(\.)?gitlab\.com$/,
-        /(\.)?okta\.com$/,
-        /(\.)?auth0\.com$/,
-        /(\.)?saml\.com$/,
-        /(\.)?onelogin\.com$/,
+        /^([a-z0-9-]+\.)*google\.com$/,
+        /^([a-z0-9-]+\.)*microsoft\.com$/,
+        /^([a-z0-9-]+\.)*microsoftonline\.com$/,
+        /^([a-z0-9-]+\.)*facebook\.com$/,
+        /^([a-z0-9-]+\.)*github\.com$/,
+        /^([a-z0-9-]+\.)*gitlab\.com$/,
+        /^([a-z0-9-]+\.)*okta\.com$/,
+        /^([a-z0-9-]+\.)*auth0\.com$/,
+        /^([a-z0-9-]+\.)*saml\.com$/,
+        /^([a-z0-9-]+\.)*onelogin\.com$/,
       ];
 
       if (authProviders.some((pattern) => parsedUrl.hostname.match(pattern))) {
@@ -301,11 +301,15 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
       // Check if this is an authentication popup (e.g., Login, OAuth, SSO)
       // Open authentication popups in the default browser for saved credentials access
       if (isAuthenticationPopup(url, frameName, disposition)) {
-        isProtocolAllowed(url).then((allowed) => {
-          if (allowed) {
-            openExternal(url);
-          }
-        });
+        isProtocolAllowed(url)
+          .then((allowed) => {
+            if (allowed) {
+              openExternal(url);
+            }
+          })
+          .catch((error) => {
+            console.error('Failed to check protocol permission:', error);
+          });
         return { action: 'deny' };
       }
 
@@ -390,11 +394,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
-        callback(true);
+        callback(false);
         return;
       }
 
-      case 'geolocation':
       case 'notifications':
       case 'midiSysex':
       case 'pointerLock':

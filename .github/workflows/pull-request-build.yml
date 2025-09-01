@@ -16,7 +16,8 @@ concurrency:
 
 jobs:
   build:
-    if: contains(github.event.pull_request.labels.*.name, 'build-artifacts')
+    # Temporarily always run to debug CI issues
+    # if: contains(github.event.pull_request.labels.*.name, 'build-artifacts')
     strategy:
       fail-fast: false
       matrix:

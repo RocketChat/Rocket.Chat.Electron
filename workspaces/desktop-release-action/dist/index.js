@@ -41514,8 +41514,8 @@ const packOnMacOS = () => runElectronBuilder(`--mac --universal`, {
     ASC_PROVIDER: core.getInput('mac_asc_provider'),
 });
 
-;// CONCATENATED MODULE: ./src/windows.ts
-var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+;// CONCATENATED MODULE: ./src/windows-on-linux.ts
+var windows_on_linux_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -41528,93 +41528,108 @@ var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
 
 
 
-const addCertToStore = (store_1, certPath_1, ...args_1) => windows_awaiter(void 0, [store_1, certPath_1, ...args_1], void 0, function* (store, certPath, user = true) {
-    if (!certPath || !external_fs_.existsSync(certPath)) {
-        core.info(`Certificate file not found or not provided: ${certPath}`);
-        return;
-    }
-    const userFlag = user ? '-user ' : '';
-    core.info(`Installing certificate to ${store} store: ${certPath}`);
-    yield run(`certutil ${userFlag}-addstore "${store}" "${certPath}"`);
+/**
+ * Build Windows packages on Linux using osslsigncode with Google Cloud KMS
+ * This avoids Windows KMS compatibility issues by using Linux's better PKCS#11 support
+ */
+const setupOsslSignCode = () => windows_on_linux_awaiter(void 0, void 0, void 0, function* () {
+    core.info('Installing osslsigncode and dependencies...');
+    yield run('sudo apt-get update');
+    yield run('sudo apt-get install -y osslsigncode libengine-pkcs11-openssl opensc wget wine64');
 });
-const computeThumbprint = (certPath) => windows_awaiter(void 0, void 0, void 0, function* () {
-    if (!external_fs_.existsSync(certPath)) {
-        throw new Error(`Certificate file not found: ${certPath}`);
-    }
-    const out = yield runAndBuffer(`powershell -NoProfile -NonInteractive -Command "(Get-PfxCertificate \\"${certPath}\\").Thumbprint"`);
-    return out.trim();
+const installLibKmsp11 = () => windows_on_linux_awaiter(void 0, void 0, void 0, function* () {
+    core.info('Installing Google Cloud KMS PKCS#11 library...');
+    const version = '1.7';
+    const url = `https://github.com/GoogleCloudPlatform/kms-integrations/releases/download/pkcs11-v${version}/libkmsp11-${version}-linux-amd64.tar.gz`;
+    yield run(`wget -q -O /tmp/libkmsp11.tar.gz ${url}`);
+    yield run('sudo mkdir -p /opt/libkmsp11');
+    yield run('sudo tar -xzf /tmp/libkmsp11.tar.gz -C /opt/libkmsp11 --strip-components=1');
+    yield run('sudo chmod 755 /opt/libkmsp11/libkmsp11.so');
+    core.info('libkmsp11 installed successfully');
 });
-const writeCertFromSecret = (secretValue, fileName) => windows_awaiter(void 0, void 0, void 0, function* () {
-    if (!secretValue)
-        return '';
-    const tempDir = process.env.RUNNER_TEMP || process.env.TEMP || '.';
-    const certDir = external_path_.join(tempDir, 'codesigning');
-    const certPath = external_path_.join(certDir, fileName);
-    // Create directory if it doesn't exist
+const setupCertificates = () => windows_on_linux_awaiter(void 0, void 0, void 0, function* () {
+    const tempDir = process.env.RUNNER_TEMP || '/tmp';
+    const certDir = external_path_.join(tempDir, 'certs');
     if (!external_fs_.existsSync(certDir)) {
         external_fs_.mkdirSync(certDir, { recursive: true });
     }
-    // Write certificate file
-    external_fs_.writeFileSync(certPath, secretValue, 'utf8');
-    core.info(`Certificate written to: ${certPath}`);
-    return certPath;
+    // Build certificate chain file
+    const userCrt = core.getInput('win_user_crt');
+    if (!userCrt) {
+        throw new Error('win_user_crt is required for Linux-based Windows signing');
+    }
+    let certChain = userCrt;
+    const intermediateCrt = core.getInput('win_intermediate_crt');
+    if (intermediateCrt) {
+        certChain += '\n' + intermediateCrt;
+    }
+    const rootCrt = core.getInput('win_root_crt');
+    if (rootCrt) {
+        certChain += '\n' + rootCrt;
+    }
+    const certFile = external_path_.join(certDir, 'user.crt');
+    external_fs_.writeFileSync(certFile, certChain, 'utf8');
+    core.info(`Certificate chain written to: ${certFile}`);
+    return certFile;
 });
-const setupGoogleCloudAuth = () => windows_awaiter(void 0, void 0, void 0, function* () {
+const setupKmsPkcs11Config = () => windows_on_linux_awaiter(void 0, void 0, void 0, function* () {
+    const tempDir = process.env.RUNNER_TEMP || '/tmp';
+    const configPath = external_path_.join(tempDir, 'kms_pkcs11_config.yaml');
+    const kmsKeyResource = core.getInput('win_kms_key_resource');
+    if (!kmsKeyResource) {
+        throw new Error('win_kms_key_resource is required');
+    }
+    // Extract key ring from the full resource path
+    // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY/cryptoKeyVersions/VERSION
+    const keyRingMatch = kmsKeyResource.match(/^(projects\/[^\/]+\/locations\/[^\/]+\/keyRings\/[^\/]+)/);
+    if (!keyRingMatch) {
+        throw new Error('Invalid KMS key resource format');
+    }
+    const keyRing = keyRingMatch[1];
+    const config = `---
+tokens:
+  - key_ring: ${keyRing}
+`;
+    external_fs_.writeFileSync(configPath, config, 'utf8');
+    core.info(`KMS PKCS#11 config written to: ${configPath}`);
+    return configPath;
+});
+const setupGoogleCloudAuth = () => windows_on_linux_awaiter(void 0, void 0, void 0, function* () {
     const gcpSaJson = core.getInput('gcp_sa_json');
     if (!gcpSaJson) {
-        throw new Error('gcp_sa_json input is required for Google Cloud KMS authentication');
+        throw new Error('gcp_sa_json is required for Google Cloud KMS authentication');
     }
-    const tempDir = process.env.RUNNER_TEMP || process.env.TEMP || '.';
+    const tempDir = process.env.RUNNER_TEMP || '/tmp';
     const credentialsPath = external_path_.join(tempDir, 'gcp-sa.json');
     external_fs_.writeFileSync(credentialsPath, gcpSaJson, 'utf8');
     core.exportVariable('GOOGLE_APPLICATION_CREDENTIALS', credentialsPath);
     core.info(`Google Cloud credentials configured: ${credentialsPath}`);
 });
-const installKmsCngProvider = () => windows_awaiter(void 0, void 0, void 0, function* () {
-    core.info('Installing Google Cloud KMS CNG provider...');
-    const workspaceDir = process.env.GITHUB_WORKSPACE || process.cwd();
-    const scriptPath = external_path_.join(workspaceDir, 'build', 'install-kms-cng-provider.ps1');
-    // Use caching - no need to force download, let the script handle cache logic
-    yield run(`powershell -ExecutionPolicy Bypass -File "${scriptPath}"`);
-    core.info('Google Cloud KMS CNG provider setup completed');
-});
-const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* () {
+const packWindowsOnLinux = () => windows_on_linux_awaiter(void 0, void 0, void 0, function* () {
+    core.info('Building Windows packages on Linux with Google Cloud KMS signing...');
+    // Install required tools
+    yield setupOsslSignCode();
+    yield installLibKmsp11();
     // Setup Google Cloud authentication
     yield setupGoogleCloudAuth();
-    // Install Google Cloud KMS CNG provider
-    yield installKmsCngProvider();
-    // Write certificates from secrets to temporary files
-    const userCertPath = yield writeCertFromSecret(core.getInput('win_user_crt'), 'user.crt');
-    const intermediateCertPath = yield writeCertFromSecret(core.getInput('win_intermediate_crt'), 'intermediate.crt');
-    const rootCertPath = yield writeCertFromSecret(core.getInput('win_root_crt'), 'root.crt');
-    // Install certificates to Windows certificate stores (CurrentUser)
-    yield addCertToStore('ROOT', rootCertPath);
-    yield addCertToStore('CA', intermediateCertPath);
-    yield addCertToStore('MY', userCertPath);
-    // Compute certificate thumbprint if not provided
-    let certSha1 = core.getInput('win_kms_cert_sha1');
-    if (!certSha1 && userCertPath) {
-        certSha1 = yield computeThumbprint(userCertPath);
-        core.info(`Computed certificate thumbprint: ${certSha1}`);
-    }
-    if (!certSha1) {
-        throw new Error('Could not determine certificate thumbprint. Provide win_kms_cert_sha1 or win_user_crt input.');
-    }
-    const kmsKeyResource = core.getInput('win_kms_key_resource');
-    if (!kmsKeyResource) {
-        throw new Error('win_kms_key_resource input is required');
-    }
+    // Setup certificates
+    const certFile = yield setupCertificates();
+    // Setup KMS PKCS#11 configuration
+    const kmsPkcs11Config = yield setupKmsPkcs11Config();
+    // Set environment variables for signing
     const env = {
-        WIN_KMS_KEY_RESOURCE: kmsKeyResource,
-        WIN_KMS_CERT_SHA1: certSha1,
-        WIN_KMS_CSP: core.getInput('win_kms_csp') || 'Google Cloud KMS Provider',
-        WIN_TIMESTAMP_URL: core.getInput('win_timestamp_url') || 'http://timestamp.digicert.com',
-        WIN_KMS_CERT_STORE: 'MY',
-        WIN_KMS_USE_LOCAL_MACHINE: 'false',
+        GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS || '',
+        PKCS11_MODULE_PATH: '/opt/libkmsp11/libkmsp11.so',
+        KMS_PKCS11_CONFIG: kmsPkcs11Config,
+        WIN_KMS_KEY_RESOURCE: core.getInput('win_kms_key_resource'),
+        WIN_CERT_FILE: certFile,
     };
-    core.info('Building Windows packages with Google Cloud KMS signing...');
-    yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis msi`, env);
-    yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, env);
+    core.info('Building Windows x64, ia32, and arm64 packages...');
+    // Build NSIS and MSI installers
+    yield runElectronBuilder(`--win nsis msi --x64 --ia32 --arm64`, env);
+    // Build AppX packages
+    yield runElectronBuilder(`--win appx --x64 --ia32 --arm64`, env);
+    core.info('Windows packages built successfully on Linux');
 });
 
 ;// CONCATENATED MODULE: ./src/index.ts
@@ -41636,19 +41651,25 @@ var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argu
 
 
 
+// import { packOnWindows } from './windows'; // Disabled - using Linux for Windows builds
 
 const pack = () => src_awaiter(void 0, void 0, void 0, function* () {
     switch (process.platform) {
         case 'linux':
             yield setupSnapcraft();
+            // Build both Linux and Windows packages on Linux
             yield packOnLinux();
+            // Build Windows packages using osslsigncode with KMS
+            yield packWindowsOnLinux();
             break;
         case 'darwin':
             yield disableSpotlightIndexing();
             yield packOnMacOS();
             break;
         case 'win32':
-            yield packOnWindows();
+            // Windows native build disabled - using Linux for KMS signing
+            // await packOnWindows();
+            core.warning('Windows native build disabled - Windows packages are built on Linux with KMS signing');
             break;
     }
 });

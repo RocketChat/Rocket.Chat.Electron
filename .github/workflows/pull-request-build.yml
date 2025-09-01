@@ -211,8 +211,66 @@ jobs:
             exit 1
           }
 
-      - name: Build Windows Package
-        if: ${{ matrix.os == 'windows-latest' }}
+      # Set up Google Cloud authentication for Linux builds
+      - name: Setup Google Cloud authentication (Linux)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          echo "Setting up Google Cloud authentication..."
+          echo '${{ secrets.GCP_SA_JSON }}' > $RUNNER_TEMP/gcp-sa.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/gcp-sa.json" >> $GITHUB_ENV
+
+      # Build Windows package on Linux when using KMS signing
+      - name: Build Windows Package (Linux with KMS)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          # Install Windows signing tools for Linux
+          echo "Installing osslsigncode and dependencies..."
+          sudo apt-get update
+          sudo apt-get install -y osslsigncode libengine-pkcs11-openssl opensc wget wine64
+          
+          # Download and install Google Cloud KMS PKCS#11 library
+          echo "Installing Google Cloud KMS PKCS#11 library..."
+          wget -q -O /tmp/libkmsp11.tar.gz https://github.com/GoogleCloudPlatform/kms-integrations/releases/download/pkcs11-v1.7/libkmsp11-1.7-linux-amd64.tar.gz
+          sudo mkdir -p /opt/libkmsp11
+          sudo tar -xzf /tmp/libkmsp11.tar.gz -C /opt/libkmsp11 --strip-components=1
+          sudo chmod 755 /opt/libkmsp11/libkmsp11.so
+          
+          # Set up certificates
+          echo "Setting up certificates..."
+          mkdir -p $RUNNER_TEMP/certs
+          echo '${{ secrets.WIN_USER_CRT }}' > $RUNNER_TEMP/certs/user.crt
+          if [ -n '${{ secrets.WIN_INTERMEDIATE_CRT }}' ]; then
+            echo '${{ secrets.WIN_INTERMEDIATE_CRT }}' > $RUNNER_TEMP/certs/intermediate.crt
+            cat $RUNNER_TEMP/certs/intermediate.crt >> $RUNNER_TEMP/certs/user.crt
+          fi
+          if [ -n '${{ secrets.WIN_ROOT_CRT }}' ]; then
+            echo '${{ secrets.WIN_ROOT_CRT }}' > $RUNNER_TEMP/certs/root.crt
+            cat $RUNNER_TEMP/certs/root.crt >> $RUNNER_TEMP/certs/user.crt
+          fi
+          
+          # Create KMS PKCS#11 config
+          echo "Creating KMS configuration..."
+          cat > $RUNNER_TEMP/kms_pkcs11_config.yaml << EOF
+          ---
+          tokens:
+            - key_ring: $(echo "${{ secrets.WIN_KMS_KEY_RESOURCE }}" | sed -E 's|/cryptoKeys/[^/]+/cryptoKeyVersions/[0-9]+$||')
+          EOF
+          
+          # Build Windows installer on Linux
+          echo "Building Windows installer on Linux..."
+          yarn electron-builder --win --x64 --publish never
+        env:
+          # Google Cloud KMS configuration
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+          PKCS11_MODULE_PATH: /opt/libkmsp11/libkmsp11.so
+          KMS_PKCS11_CONFIG: ${{ runner.temp }}/kms_pkcs11_config.yaml
+          WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
+          WIN_CERT_FILE: ${{ runner.temp }}/certs/user.crt
+          # Use our custom signing script
+          WIN_SIGN_TOOL_PATH: ${{ github.workspace }}/build/linuxSignWindows.js
+
+      - name: Build Windows Package (Windows native - old method)
+        if: ${{ matrix.os == 'windows-latest' && false }}
         shell: pwsh
         run: |
           # Verify environment before build

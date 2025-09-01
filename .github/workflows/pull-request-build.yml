@@ -20,10 +20,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
+        include:
+          # Regular Linux build for Linux packages
+          - os: ubuntu-latest
+            build-target: linux
+          # macOS build
+          - os: macos-latest
+            build-target: mac
+          # Windows build on Linux for KMS signing
+          - os: ubuntu-latest
+            build-target: windows-on-linux
+          # Windows native build (disabled for now)
+          # - os: windows-latest
+          #   build-target: windows
     runs-on: ${{ matrix.os }}
     steps:
       - name: Disable git core.autocrlf
@@ -220,8 +229,9 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/gcp-sa.json" >> $GITHUB_ENV
 
       # Build Windows package on Linux when using KMS signing
-      - name: Build Windows Package (Linux with KMS)
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+      # This is a separate job specifically for Windows builds on Linux
+      - name: Build Windows Package on Linux (KMS Signing)
+        if: ${{ matrix.build-target == 'windows-on-linux' }}
         run: |
           # Install Windows signing tools for Linux
           echo "Installing osslsigncode and dependencies..."
@@ -420,7 +430,7 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
 
       - name: Build MacOS Package
-        if: ${{ matrix.os == 'macos-latest' }}
+        if: ${{ matrix.build-target == 'mac' }}
         run: |
           sudo mdutil -a -i off
           yarn electron-builder --publish never --mac --universal
@@ -434,12 +444,12 @@ jobs:
           ASC_PROVIDER: 'S6UPZG7ZR3'
 
       - name: Build Ubuntu Package
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.build-target == 'linux' }}
         run: yarn electron-builder --publish never --linux snap deb
 
       - name: Find Snap File
         id: find_snap
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.build-target == 'linux' }}
         run: |
           SNAP_FILE=$(find dist/ -maxdepth 1 -name 'rocketchat-*.snap' -print -quit)
           if [ -z "$SNAP_FILE" ]; then
@@ -450,7 +460,7 @@ jobs:
           echo "SNAP_FILE_PATH=$SNAP_FILE" >> $GITHUB_OUTPUT
 
       - name: Publish to Snap Store (Edge)
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.build-target == 'linux' }}
         uses: snapcore/action-publish@v1
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
@@ -464,7 +474,7 @@ jobs:
 
       # Upload artifacts to Wasabi (Windows)
       - name: Upload Artifacts to Wasabi (Windows)
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ matrix.build-target == 'windows' || matrix.build-target == 'windows-on-linux' }}
         run: |
           aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive `
             --acl public-read `
@@ -477,7 +487,7 @@ jobs:
 
       # Upload artifacts to Wasabi (macOS)
       - name: Upload Artifacts to Wasabi (macOS)
-        if: ${{ matrix.os == 'macos-latest' }}
+        if: ${{ matrix.build-target == 'mac' }}
         run: |
           aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \
             --acl public-read \
@@ -492,7 +502,7 @@ jobs:
 
       # Upload artifacts to Wasabi (Ubuntu)
       - name: Upload Artifacts to Wasabi (Ubuntu)
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.build-target == 'linux' }}
         run: |
           aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \
             --acl public-read \

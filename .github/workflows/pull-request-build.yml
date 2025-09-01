@@ -15,6 +15,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  debug-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug Labels
+        run: |
+          echo "PR Labels: ${{ toJson(github.event.pull_request.labels) }}"
+          echo "Label Names: ${{ toJson(github.event.pull_request.labels.*.name) }}"
+          echo "Has build-artifacts: ${{ contains(github.event.pull_request.labels.*.name, 'build-artifacts') }}"
+  
   build:
     if: contains(github.event.pull_request.labels.*.name, 'build-artifacts')
     strategy:

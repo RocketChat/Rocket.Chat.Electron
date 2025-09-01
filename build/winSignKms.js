@@ -127,16 +127,14 @@ signWindowsOnLinux = async function (config) {
 
   // Extract key alias from KMS resource
   // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY/cryptoKeyVersions/VERSION
-  // When using a PKCS#11 config file with key_ring specified, we only need the key name
-  // not the full path
+  // According to Google Cloud KMS PKCS#11 documentation, use the full Cloud KMS key resource name
+  // Remove only the version part
 
   console.log(`[winSignKms] Full KMS resource: ${kmsKeyResource}`);
   console.log(`[winSignKms] KMS resource length: ${kmsKeyResource.length}`);
 
-  // Extract just the key name (not the full path)
-  const keyParts = kmsKeyResource.split('/');
-  const keyIndex = keyParts.indexOf('cryptoKeys');
-  const keyAlias = keyParts[keyIndex + 1];
+  // Use full path without the version suffix
+  const keyAlias = kmsKeyResource.replace(/\/cryptoKeyVersions\/\d+$/, '');
 
   console.log(`[winSignKms] Using key alias: ${keyAlias}`);
 

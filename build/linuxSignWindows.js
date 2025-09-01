@@ -1,6 +1,6 @@
 const { spawn } = require('child_process');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 
 /**
  * Sign Windows executables on Linux using osslsigncode with Google Cloud KMS
@@ -23,11 +23,14 @@ module.exports = async function signWindowsOnLinux(config) {
   // Check if osslsigncode is available
   const osslsigncodeAvailable = await checkCommand('osslsigncode');
   if (!osslsigncodeAvailable) {
-    throw new Error('[linuxSignWindows] osslsigncode not found. Please install it: apt-get install osslsigncode');
+    throw new Error(
+      '[linuxSignWindows] osslsigncode not found. Please install it: apt-get install osslsigncode'
+    );
   }
 
   // Environment variables for KMS configuration
-  const pkcs11Module = process.env.PKCS11_MODULE_PATH || '/opt/libkmsp11/libkmsp11.so';
+  const pkcs11Module =
+    process.env.PKCS11_MODULE_PATH || '/opt/libkmsp11/libkmsp11.so';
   const kmsKeyUri = process.env.WIN_KMS_KEY_RESOURCE;
   const certFile = process.env.WIN_CERT_FILE;
   const googleCreds = process.env.GOOGLE_APPLICATION_CREDENTIALS;
@@ -38,16 +41,24 @@ module.exports = async function signWindowsOnLinux(config) {
     throw new Error('[linuxSignWindows] WIN_KMS_KEY_RESOURCE is required');
   }
   if (!certFile) {
-    throw new Error('[linuxSignWindows] WIN_CERT_FILE is required (path to certificate file)');
+    throw new Error(
+      '[linuxSignWindows] WIN_CERT_FILE is required (path to certificate file)'
+    );
   }
   if (!googleCreds) {
-    throw new Error('[linuxSignWindows] GOOGLE_APPLICATION_CREDENTIALS is required');
+    throw new Error(
+      '[linuxSignWindows] GOOGLE_APPLICATION_CREDENTIALS is required'
+    );
   }
   if (!fs.existsSync(pkcs11Module)) {
-    throw new Error(`[linuxSignWindows] PKCS11 module not found at ${pkcs11Module}`);
+    throw new Error(
+      `[linuxSignWindows] PKCS11 module not found at ${pkcs11Module}`
+    );
   }
   if (!fs.existsSync(certFile)) {
-    throw new Error(`[linuxSignWindows] Certificate file not found at ${certFile}`);
+    throw new Error(
+      `[linuxSignWindows] Certificate file not found at ${certFile}`
+    );
   }
 
   // Extract key alias from KMS resource URI
@@ -57,13 +68,20 @@ module.exports = async function signWindowsOnLinux(config) {
   // Build osslsigncode command
   const args = [
     'sign',
-    '-pkcs11engine', '/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so',
-    '-pkcs11module', pkcs11Module,
-    '-key', `pkcs11:object=${keyAlias}`,
-    '-certs', certFile,
-    '-t', 'http://timestamp.digicert.com',
-    '-h', 'sha256',
-    '-n', name,
+    '-pkcs11engine',
+    '/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so',
+    '-pkcs11module',
+    pkcs11Module,
+    '-key',
+    `pkcs11:object=${keyAlias}`,
+    '-certs',
+    certFile,
+    '-t',
+    'http://timestamp.digicert.com',
+    '-h',
+    'sha256',
+    '-n',
+    name,
   ];
 
   if (site) {
@@ -75,7 +93,7 @@ module.exports = async function signWindowsOnLinux(config) {
 
   // Input and output files
   args.push('-in', path.resolve(input));
-  
+
   // Sign in-place (overwrite the original file)
   const tempOutput = `${input}.signed`;
   args.push('-out', tempOutput);
@@ -100,12 +118,18 @@ module.exports = async function signWindowsOnLinux(config) {
         console.log('[linuxSignWindows] Successfully signed:', input);
         resolve();
       } else {
-        reject(new Error(`[linuxSignWindows] osslsigncode exited with code ${code}`));
+        reject(
+          new Error(`[linuxSignWindows] osslsigncode exited with code ${code}`)
+        );
       }
     });
 
     child.on('error', (err) => {
-      reject(new Error(`[linuxSignWindows] Failed to execute osslsigncode: ${err.message}`));
+      reject(
+        new Error(
+          `[linuxSignWindows] Failed to execute osslsigncode: ${err.message}`
+        )
+      );
     });
   });
 };

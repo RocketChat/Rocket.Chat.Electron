@@ -1,13 +1,13 @@
 const { spawn } = require('child_process');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 
 module.exports = async function signWithGoogleKms(config) {
   // Handle Linux-based signing for Windows executables
   if (process.platform === 'linux') {
     return signWindowsOnLinux(config);
   }
-  
+
   if (process.platform !== 'win32') {
     console.log('[winSignKms] Skipping (non-Windows platform).');
     return;
@@ -85,13 +85,14 @@ module.exports = async function signWithGoogleKms(config) {
  */
 async function signWindowsOnLinux(config) {
   console.log('[winSignKms] Linux-based Windows signing with Google Cloud KMS');
-  
+
   const input = config.path;
   const name = config.name || 'Rocket.Chat';
   const { site } = config;
 
   // Check required environment variables
-  const pkcs11Module = process.env.PKCS11_MODULE_PATH || '/opt/libkmsp11/libkmsp11.so';
+  const pkcs11Module =
+    process.env.PKCS11_MODULE_PATH || '/opt/libkmsp11/libkmsp11.so';
   const kmsKeyResource = process.env.WIN_KMS_KEY_RESOURCE;
   const certFile = process.env.WIN_CERT_FILE;
   const kmsPkcs11Config = process.env.KMS_PKCS11_CONFIG;
@@ -120,7 +121,7 @@ async function signWindowsOnLinux(config) {
     '/usr/lib/x86_64-linux-gnu/engines-3/pkcs11.so',
     '/usr/lib/engines-1.1/libpkcs11.so',
   ];
-  
+
   let pkcs11Engine = null;
   for (const engine of possibleEngines) {
     if (fs.existsSync(engine)) {
@@ -130,19 +131,28 @@ async function signWindowsOnLinux(config) {
   }
 
   if (!pkcs11Engine) {
-    throw new Error('[winSignKms] PKCS#11 engine not found. Install libengine-pkcs11-openssl');
+    throw new Error(
+      '[winSignKms] PKCS#11 engine not found. Install libengine-pkcs11-openssl'
+    );
   }
 
   // Build osslsigncode command
   const args = [
     'sign',
-    '-pkcs11engine', pkcs11Engine,
-    '-pkcs11module', pkcs11Module,
-    '-key', `pkcs11:object=${keyAlias}`,
-    '-certs', certFile,
-    '-t', 'http://timestamp.digicert.com',
-    '-h', 'sha256',
-    '-n', name,
+    '-pkcs11engine',
+    pkcs11Engine,
+    '-pkcs11module',
+    pkcs11Module,
+    '-key',
+    `pkcs11:object=${keyAlias}`,
+    '-certs',
+    certFile,
+    '-t',
+    'http://timestamp.digicert.com',
+    '-h',
+    'sha256',
+    '-n',
+    name,
   ];
 
   if (site) {
@@ -154,9 +164,11 @@ async function signWindowsOnLinux(config) {
   args.push('-in', path.resolve(input));
   args.push('-out', tempOutput);
 
-  console.log('[winSignKms] Running:', 'osslsigncode', args.map(a => 
-    a.startsWith('pkcs11:') ? a : a
-  ).join(' '));
+  console.log(
+    '[winSignKms] Running:',
+    'osslsigncode',
+    args.map((a) => (a.startsWith('pkcs11:') ? a : a)).join(' ')
+  );
 
   await new Promise((resolve, reject) => {
     const child = spawn('osslsigncode', args, {
@@ -183,7 +195,9 @@ async function signWindowsOnLinux(config) {
     });
 
     child.on('error', (err) => {
-      reject(new Error(`[winSignKms] Failed to execute osslsigncode: ${err.message}`));
+      reject(
+        new Error(`[winSignKms] Failed to execute osslsigncode: ${err.message}`)
+      );
     });
   });
 }

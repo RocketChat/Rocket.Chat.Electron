@@ -2,6 +2,9 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+// Forward declaration
+let signWindowsOnLinux;
+
 module.exports = async function signWithGoogleKms(config) {
   // Handle Linux-based signing for Windows executables
   if (process.platform === 'linux') {
@@ -83,7 +86,7 @@ module.exports = async function signWithGoogleKms(config) {
 /**
  * Sign Windows executables on Linux using osslsigncode with Google Cloud KMS
  */
-async function signWindowsOnLinux(config) {
+signWindowsOnLinux = async function (config) {
   console.log('[winSignKms] Linux-based Windows signing with Google Cloud KMS');
 
   const input = config.path;
@@ -200,4 +203,4 @@ async function signWindowsOnLinux(config) {
       );
     });
   });
-}
+};

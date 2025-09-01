@@ -2,6 +2,16 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+// Helper function to check if a command exists
+async function checkCommand(command) {
+  return new Promise((resolve) => {
+    const child = spawn('which', [command], { stdio: 'ignore' });
+    child.on('exit', (code) => {
+      resolve(code === 0);
+    });
+  });
+}
+
 /**
  * Sign Windows executables on Linux using osslsigncode with Google Cloud KMS
  * This is used because Google Cloud KMS works better with PKCS#11 on Linux
@@ -133,13 +143,3 @@ module.exports = async function signWindowsOnLinux(config) {
     });
   });
 };
-
-// Helper function to check if a command exists
-async function checkCommand(command) {
-  return new Promise((resolve) => {
-    const child = spawn('which', [command], { stdio: 'ignore' });
-    child.on('exit', (code) => {
-      resolve(code === 0);
-    });
-  });
-}

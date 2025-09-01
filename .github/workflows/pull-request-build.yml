@@ -245,7 +245,11 @@ jobs:
           # Install Windows signing tools for Linux
           echo "Installing osslsigncode and dependencies..."
           sudo apt-get update
-          sudo apt-get install -y osslsigncode libengine-pkcs11-openssl opensc wget wine64
+          # Enable 32-bit architecture for Wine32
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          # Install both Wine32 and Wine64
+          sudo apt-get install -y osslsigncode libengine-pkcs11-openssl opensc wget wine64 wine32:i386
           
           # Download and install Google Cloud KMS PKCS#11 library
           echo "Installing Google Cloud KMS PKCS#11 library..."

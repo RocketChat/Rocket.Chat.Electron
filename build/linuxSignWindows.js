@@ -70,13 +70,37 @@ module.exports = async function signWindowsOnLinux(config) {
 
   // Extract key alias from KMS resource URI
   // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY/cryptoKeyVersions/VERSION
-  const keyAlias = kmsKeyUri.split('/').slice(-3, -2)[0]; // Gets the KEY part
+  // The PKCS#11 object name should be the full path without the version
+  // e.g., projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY
+  const keyAlias = kmsKeyUri.replace(/\/cryptoKeyVersions\/\d+$/, '');
+
+  // Find the PKCS#11 engine (different locations on different Ubuntu versions)
+  const possibleEngines = [
+    '/usr/lib/x86_64-linux-gnu/engines-3/pkcs11.so', // Ubuntu 22.04+
+    '/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so', // Ubuntu 20.04
+    '/usr/lib/engines-1.1/libpkcs11.so',
+  ];
+
+  let pkcs11Engine = null;
+  for (const engine of possibleEngines) {
+    if (fs.existsSync(engine)) {
+      pkcs11Engine = engine;
+      console.log(`[linuxSignWindows] Using PKCS#11 engine: ${engine}`);
+      break;
+    }
+  }
+
+  if (!pkcs11Engine) {
+    throw new Error(
+      '[linuxSignWindows] PKCS#11 engine not found. Install libengine-pkcs11-openssl'
+    );
+  }
 
   // Build osslsigncode command
   const args = [
     'sign',
     '-pkcs11engine',
-    '/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so',
+    pkcs11Engine,
     '-pkcs11module',
     pkcs11Module,
     '-key',

@@ -119,9 +119,9 @@ signWindowsOnLinux = async function (config) {
 
   // Extract key alias from KMS resource
   // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY/cryptoKeyVersions/VERSION
-  const keyParts = kmsKeyResource.split('/');
-  const keyIndex = keyParts.indexOf('cryptoKeys');
-  const keyAlias = keyParts[keyIndex + 1];
+  // The PKCS#11 object name should be the full path without the version
+  // e.g., projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY
+  const keyAlias = kmsKeyResource.replace(/\/cryptoKeyVersions\/\d+$/, '');
 
   console.log(`[winSignKms] Using key alias: ${keyAlias}`);
 

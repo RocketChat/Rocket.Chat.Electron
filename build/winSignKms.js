@@ -32,11 +32,15 @@ module.exports = async function signWithGoogleKms(config) {
   );
 
   if (!kmsKeyResource) {
-    console.log('[winSignKms] WIN_KMS_KEY_RESOURCE not set - skipping signing (validation build)');
+    console.log(
+      '[winSignKms] WIN_KMS_KEY_RESOURCE not set - skipping signing (validation build)'
+    );
     return;
   }
   if (!certSha1) {
-    console.log('[winSignKms] WIN_KMS_CERT_SHA1 not set - skipping signing (validation build)');
+    console.log(
+      '[winSignKms] WIN_KMS_CERT_SHA1 not set - skipping signing (validation build)'
+    );
     return;
   }
 
@@ -103,15 +107,21 @@ signWindowsOnLinux = async function (config) {
   const kmsPkcs11Config = process.env.KMS_PKCS11_CONFIG;
 
   if (!kmsKeyResource) {
-    console.log('[winSignKms] WIN_KMS_KEY_RESOURCE not set - skipping signing (validation build)');
+    console.log(
+      '[winSignKms] WIN_KMS_KEY_RESOURCE not set - skipping signing (validation build)'
+    );
     return;
   }
   if (!certFile || !fs.existsSync(certFile)) {
-    console.log('[winSignKms] WIN_CERT_FILE not set or does not exist - skipping signing (validation build)');
+    console.log(
+      '[winSignKms] WIN_CERT_FILE not set or does not exist - skipping signing (validation build)'
+    );
     return;
   }
   if (!fs.existsSync(pkcs11Module)) {
-    console.log(`[winSignKms] PKCS11 module not found at ${pkcs11Module} - skipping signing (validation build)`);
+    console.log(
+      `[winSignKms] PKCS11 module not found at ${pkcs11Module} - skipping signing (validation build)`
+    );
     return;
   }
 

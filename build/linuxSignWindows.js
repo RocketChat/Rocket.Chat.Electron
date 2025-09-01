@@ -48,23 +48,33 @@ module.exports = async function signWindowsOnLinux(config) {
 
   // Validate required environment variables
   if (!kmsKeyUri) {
-    console.log('[linuxSignWindows] WIN_KMS_KEY_RESOURCE not set - skipping signing (validation build)');
+    console.log(
+      '[linuxSignWindows] WIN_KMS_KEY_RESOURCE not set - skipping signing (validation build)'
+    );
     return;
   }
   if (!certFile) {
-    console.log('[linuxSignWindows] WIN_CERT_FILE not set - skipping signing (validation build)');
+    console.log(
+      '[linuxSignWindows] WIN_CERT_FILE not set - skipping signing (validation build)'
+    );
     return;
   }
   if (!googleCreds) {
-    console.log('[linuxSignWindows] GOOGLE_APPLICATION_CREDENTIALS not set - skipping signing (validation build)');
+    console.log(
+      '[linuxSignWindows] GOOGLE_APPLICATION_CREDENTIALS not set - skipping signing (validation build)'
+    );
     return;
   }
   if (!fs.existsSync(pkcs11Module)) {
-    console.log(`[linuxSignWindows] PKCS11 module not found at ${pkcs11Module} - skipping signing (validation build)`);
+    console.log(
+      `[linuxSignWindows] PKCS11 module not found at ${pkcs11Module} - skipping signing (validation build)`
+    );
     return;
   }
   if (!fs.existsSync(certFile)) {
-    console.log(`[linuxSignWindows] Certificate file not found at ${certFile} - skipping signing (validation build)`);
+    console.log(
+      `[linuxSignWindows] Certificate file not found at ${certFile} - skipping signing (validation build)`
+    );
     return;
   }
 

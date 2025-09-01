@@ -87,7 +87,7 @@ module.exports = async function signWithGoogleKms(config) {
  * Sign Windows executables on Linux using osslsigncode with Google Cloud KMS
  */
 signWindowsOnLinux = async function (config) {
-  console.log('[winSignKms] Linux-based Windows signing with Google Cloud KMS');
+  console.log('[winSignKms] Linux-based Windows signing with Google Cloud KMS via PKCS#11');
 
   const input = config.path;
   const name = config.name || 'Rocket.Chat';

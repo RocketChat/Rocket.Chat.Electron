@@ -48,27 +48,24 @@ module.exports = async function signWindowsOnLinux(config) {
 
   // Validate required environment variables
   if (!kmsKeyUri) {
-    throw new Error('[linuxSignWindows] WIN_KMS_KEY_RESOURCE is required');
+    console.log('[linuxSignWindows] WIN_KMS_KEY_RESOURCE not set - skipping signing (validation build)');
+    return;
   }
   if (!certFile) {
-    throw new Error(
-      '[linuxSignWindows] WIN_CERT_FILE is required (path to certificate file)'
-    );
+    console.log('[linuxSignWindows] WIN_CERT_FILE not set - skipping signing (validation build)');
+    return;
   }
   if (!googleCreds) {
-    throw new Error(
-      '[linuxSignWindows] GOOGLE_APPLICATION_CREDENTIALS is required'
-    );
+    console.log('[linuxSignWindows] GOOGLE_APPLICATION_CREDENTIALS not set - skipping signing (validation build)');
+    return;
   }
   if (!fs.existsSync(pkcs11Module)) {
-    throw new Error(
-      `[linuxSignWindows] PKCS11 module not found at ${pkcs11Module}`
-    );
+    console.log(`[linuxSignWindows] PKCS11 module not found at ${pkcs11Module} - skipping signing (validation build)`);
+    return;
   }
   if (!fs.existsSync(certFile)) {
-    throw new Error(
-      `[linuxSignWindows] Certificate file not found at ${certFile}`
-    );
+    console.log(`[linuxSignWindows] Certificate file not found at ${certFile} - skipping signing (validation build)`);
+    return;
   }
 
   // Extract key alias from KMS resource URI

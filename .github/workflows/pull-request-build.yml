@@ -245,11 +245,24 @@ jobs:
           # Install Windows signing tools for Linux
           echo "Installing osslsigncode and dependencies..."
           sudo apt-get update
-          # Enable 32-bit architecture for Wine32
+          
+          # Enable 32-bit architecture for Wine32 and install Wine properly
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          # Install both Wine32 and Wine64
-          sudo apt-get install -y osslsigncode libengine-pkcs11-openssl opensc wget wine64 wine32:i386
+          
+          # Install Wine with proper 32-bit support
+          sudo apt-get install -y osslsigncode libengine-pkcs11-openssl opensc wget
+          sudo apt-get install -y wine64 wine32:i386
+          
+          # Set up Wine environment
+          export WINEARCH=win32
+          export WINEPREFIX=$HOME/.wine32
+          
+          # Initialize Wine with 32-bit prefix
+          wineboot --init
+          
+          # Verify Wine32 is working
+          wine --version
           
           # Download and install Google Cloud KMS PKCS#11 library
           echo "Installing Google Cloud KMS PKCS#11 library..."
@@ -291,6 +304,9 @@ jobs:
           WIN_CERT_FILE: ${{ runner.temp }}/certs/user.crt
           # Use our custom signing script
           WIN_SIGN_TOOL_PATH: ${{ github.workspace }}/build/linuxSignWindows.js
+          # Wine environment for 32-bit support
+          WINEARCH: win32
+          WINEPREFIX: /home/runner/.wine32
 
       - name: Build Windows Package (Windows native - old method)
         if: ${{ matrix.os == 'windows-latest' && false }}

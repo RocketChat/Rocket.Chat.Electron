@@ -82,12 +82,12 @@ module.exports = async function signWindowsOnLinux(config) {
   // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY/cryptoKeyVersions/VERSION
   // The PKCS#11 object name should be the full path without the version
   // e.g., projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY
-  
+
   console.log(`[linuxSignWindows] Full KMS resource: ${kmsKeyUri}`);
   console.log(`[linuxSignWindows] KMS resource length: ${kmsKeyUri.length}`);
-  
+
   const keyAlias = kmsKeyUri.replace(/\/cryptoKeyVersions\/\d+$/, '');
-  
+
   console.log(`[linuxSignWindows] Using key alias: ${keyAlias}`);
 
   // Find the PKCS#11 engine (different locations on different Ubuntu versions)

@@ -276,22 +276,38 @@ signWindowsOnLinux = async function (config) {
     );
 
     try {
-      const fullKeyResource = `${kmsKeyResource}/cryptoKeys/Electron_Desktop_App_Key/cryptoKeyVersions/1`;
+      // For Google Cloud KMS with jsign, we need:
+      // - storetype: GOOGLECLOUD
+      // - keystore: projects/PROJECT_ID
+      // - alias: cryptoKeys/KEY_NAME/cryptoKeyVersions/VERSION
+      // - certificate file for the public key
+      const projectId = kmsKeyResource.split('/')[1]; // Extract project ID from resource
+      const keyName = keyAlias || 'Electron_Desktop_App_Key';
       const jsignArgs = [
         '--storetype',
-        'GOOGLEKMS',
-        '--storepass',
-        fullKeyResource,
+        'GOOGLECLOUD',
         '--keystore',
-        'projects/rocketchat-rnd',
+        `projects/${projectId}`,
         '--alias',
-        'Electron_Desktop_App_Key',
+        `cryptoKeys/${keyName}/cryptoKeyVersions/1`,
+        '--certfile',
+        certFile,
         '--tsaurl',
         'http://timestamp.digicert.com',
         path.resolve(input),
       ];
 
-      console.log(`[winSignKms] jsign command: jsign ${jsignArgs.join(' ')}`);
+      // Log command with masked sensitive info
+      const maskedArgs = jsignArgs.map((arg, index) => {
+        if (
+          jsignArgs[index - 1] === '--keystore' ||
+          jsignArgs[index - 1] === '--alias'
+        ) {
+          return '***';
+        }
+        return arg;
+      });
+      console.log(`[winSignKms] jsign command: jsign ${maskedArgs.join(' ')}`);
 
       const jsignResult = spawnSync('jsign', jsignArgs, {
         stdio: 'pipe',

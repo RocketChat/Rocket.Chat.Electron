@@ -152,14 +152,37 @@ signWindowsOnLinux = async function (config) {
   console.log(`[winSignKms] Key parts: ${JSON.stringify(keyParts)}`);
   console.log(`[winSignKms] cryptoKeys index: ${keyIndex}`);
 
-  if (keyIndex === -1 || keyIndex + 1 >= keyParts.length) {
-    throw new Error(
-      `[winSignKms] Invalid KMS key resource format: ${kmsKeyResource}`
-    );
+  let keyAlias;
+  if (keyIndex === -1) {
+    // If cryptoKeys not found, the resource might be truncated to just the key_ring
+    // In this case, we need to extract the key name from a different source
+    // Check if there's a separate environment variable or use a hardcoded fallback
+    const fullKeyResource = process.env.WIN_KMS_FULL_KEY_RESOURCE || process.env.WIN_KMS_KEY_RESOURCE;
+    console.log(`[winSignKms] Trying full key resource: ${fullKeyResource}`);
+    
+    if (fullKeyResource && fullKeyResource !== kmsKeyResource) {
+      const fullKeyParts = fullKeyResource.split('/');
+      const fullKeyIndex = fullKeyParts.indexOf('cryptoKeys');
+      if (fullKeyIndex !== -1 && fullKeyIndex + 1 < fullKeyParts.length) {
+        keyAlias = fullKeyParts[fullKeyIndex + 1];
+        console.log(`[winSignKms] Using key from full resource: ${keyAlias}`);
+      }
+    }
+    
+    if (!keyAlias) {
+      // Last resort: use a known key name for this project
+      keyAlias = 'Electron_Desktop_App_Signing_Key';
+      console.log(`[winSignKms] Using fallback key name: ${keyAlias}`);
+    }
+  } else {
+    if (keyIndex + 1 >= keyParts.length) {
+      throw new Error(
+        `[winSignKms] Invalid KMS key resource format: ${kmsKeyResource}`
+      );
+    }
+    keyAlias = keyParts[keyIndex + 1];
+    console.log(`[winSignKms] Extracted key name: ${keyAlias}`);
   }
-
-  const keyAlias = keyParts[keyIndex + 1];
-  console.log(`[winSignKms] Extracted key name: ${keyAlias}`);
 
   console.log(`[winSignKms] Using key alias: ${keyAlias}`);
   console.log(`[winSignKms] Certificate file: ${certFile}`);

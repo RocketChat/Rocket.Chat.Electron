@@ -557,6 +557,7 @@ jobs:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
           WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt
           GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+          PATH: "C:/Program Files/jsign;C:/ProgramData/chocolatey/lib/gcloudsdk/tools/google-cloud-sdk/bin;${{ env.PATH }}"
 
       - name: Build MacOS Package
         if: ${{ matrix.build-target == 'mac' }}

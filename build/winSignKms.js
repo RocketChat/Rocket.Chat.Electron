@@ -183,6 +183,7 @@ signWindowsOnLinux = async function (config) {
       ...process.env,
       GOOGLE_APPLICATION_CREDENTIALS:
         process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
     },
   });
 
@@ -238,6 +239,7 @@ signWindowsOnLinux = async function (config) {
       ...process.env,
       GOOGLE_APPLICATION_CREDENTIALS:
         process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
     },
   });
 
@@ -318,6 +320,7 @@ signWindowsOnWindows = async function (config) {
         ...process.env,
         GOOGLE_APPLICATION_CREDENTIALS:
           process.env.GOOGLE_APPLICATION_CREDENTIALS,
+        CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
       },
     }
   );
@@ -374,6 +377,7 @@ signWindowsOnWindows = async function (config) {
       ...process.env,
       GOOGLE_APPLICATION_CREDENTIALS:
         process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
     },
   });
 

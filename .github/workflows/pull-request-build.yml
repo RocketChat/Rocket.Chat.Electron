@@ -547,6 +547,32 @@ jobs:
           
           Write-Host "PATH includes: $env:PATH" -ForegroundColor Cyan
           
+          # Find Python installation for gcloud
+          Write-Host "Locating Python installation..." -ForegroundColor Yellow
+          $pythonPaths = @(
+            "C:\hostedtoolcache\windows\Python\*\x64\python.exe",
+            "C:\Python*\python.exe", 
+            "C:\Program Files\Python*\python.exe",
+            "$env:LOCALAPPDATA\Programs\Python\Python*\python.exe"
+          )
+          
+          $pythonExe = $null
+          foreach ($path in $pythonPaths) {
+            $found = Get-ChildItem $path -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) {
+              $pythonExe = $found.FullName
+              break
+            }
+          }
+          
+          if (-not $pythonExe) {
+            Write-Error "Python not found in expected locations"
+            exit 1
+          }
+          
+          Write-Host "Found Python at: $pythonExe" -ForegroundColor Green
+          $env:CLOUDSDK_PYTHON = $pythonExe
+          
           # Authenticate gcloud with service account
           Write-Host "Authenticating gcloud with service account..." -ForegroundColor Yellow
           $gcpCredentials = "$env:RUNNER_TEMP\gcp-sa.json"

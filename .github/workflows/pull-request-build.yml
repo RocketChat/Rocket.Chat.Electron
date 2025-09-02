@@ -547,6 +547,37 @@ jobs:
           
           Write-Host "PATH includes: $env:PATH" -ForegroundColor Cyan
           
+          # Authenticate gcloud with service account
+          Write-Host "Authenticating gcloud with service account..." -ForegroundColor Yellow
+          $gcpCredentials = "$env:RUNNER_TEMP\gcp-sa.json"
+          Write-Host "Service account credentials at: $gcpCredentials" -ForegroundColor Cyan
+          
+          & gcloud auth activate-service-account --key-file="$gcpCredentials"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to activate service account"
+            exit 1
+          }
+          
+          # Set project from service account file
+          $projectData = Get-Content $gcpCredentials | ConvertFrom-Json
+          $projectId = $projectData.project_id
+          Write-Host "Setting project to: $projectId" -ForegroundColor Cyan
+          & gcloud config set project $projectId
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to set project"
+            exit 1
+          }
+          
+          # Verify authentication is working
+          Write-Host "Verifying gcloud authentication..." -ForegroundColor Yellow
+          $tokenOutput = & gcloud auth print-access-token 2>&1
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ Google Cloud authentication successful" -ForegroundColor Green
+          } else {
+            Write-Host "❌ Google Cloud authentication failed: $tokenOutput" -ForegroundColor Red
+            exit 1
+          }
+          
           yarn electron-builder --publish never --x64 --win nsis
         env:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}

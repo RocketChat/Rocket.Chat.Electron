@@ -528,7 +528,7 @@ jobs:
           Write-Host "=== Building Windows Package Natively ===" -ForegroundColor Cyan
           
           # Ensure tools are accessible by adding them to PATH explicitly
-          $jsignPath = "$env:ProgramFiles\jsign"
+          $jsignPath = "C:\ProgramData\chocolatey\lib\jsign\tools"
           $gcloudPath = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin"
           $env:PATH += ";$jsignPath;$gcloudPath"
           

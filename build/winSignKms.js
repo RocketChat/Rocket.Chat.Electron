@@ -171,20 +171,8 @@ signWindowsOnLinux = async function (config) {
     }
 
     if (!keyAlias) {
-      // Last resort: try multiple common key names based on the keyRing name
-      const possibleKeyNames = [
-        'Electron_Desktop_App', // Same as keyRing
-        'Electron-Desktop-App', // Hyphenated version
-        'ElectronDesktopApp', // CamelCase
-        'electron-desktop-app', // lowercase
-        'signing-key', // Generic
-        'code-signing', // Generic
-        'Electron_Desktop_App_Signing_Key', // Original fallback
-      ];
-      
-      keyAlias = possibleKeyNames[0]; // Try the first one (most likely)
-      console.log(`[winSignKms] Using fallback key name: ${keyAlias}`);
-      console.log(`[winSignKms] Available fallback options: ${possibleKeyNames.join(', ')}`);
+      // Will try multiple key names in the signing function
+      console.log(`[winSignKms] No key found in resource, will try multiple key names`);
     }
   } else {
     if (keyIndex + 1 >= keyParts.length) {
@@ -196,7 +184,18 @@ signWindowsOnLinux = async function (config) {
     console.log(`[winSignKms] Extracted key name: ${keyAlias}`);
   }
 
-  console.log(`[winSignKms] Using key alias: ${keyAlias}`);
+  // If no keyAlias found, prepare multiple key names to try
+  const possibleKeyNames = keyAlias ? [keyAlias] : [
+    'Electron_Desktop_App', // Same as keyRing
+    'Electron-Desktop-App', // Hyphenated version
+    'ElectronDesktopApp', // CamelCase
+    'electron-desktop-app', // lowercase
+    'signing-key', // Generic
+    'code-signing', // Generic
+    'Electron_Desktop_App_Signing_Key', // Original fallback
+  ];
+
+  console.log(`[winSignKms] Will try key names: ${possibleKeyNames.join(', ')}`);
   console.log(`[winSignKms] Certificate file: ${certFile}`);
   console.log(`[winSignKms] PKCS#11 module: ${pkcs11Module}`);
 
@@ -227,79 +226,93 @@ signWindowsOnLinux = async function (config) {
     );
   }
 
-  // Build osslsigncode command
-  // Based on working examples from Google Cloud KMS PKCS#11 documentation
-  const args = [
-    'sign',
-    '-pkcs11engine',
-    pkcs11Engine,
-    '-pkcs11module',
-    pkcs11Module,
-    '-key',
-    `pkcs11:object=${keyAlias}`, // Key name only, config file has key_ring
-    '-certs',
-    certFile,
-    '-t',
-    'http://timestamp.digicert.com',
-    '-h',
-    'sha256',
-    '-n',
-    name,
-  ];
+  // Try each key name until one works
+  let signingSuccessful = false;
+  let lastError = null;
 
-  console.log(`[winSignKms] osslsigncode command:`);
-  console.log(`[winSignKms] osslsigncode ${args.join(' ')}`);
-  console.log(`[winSignKms] Environment variables:`);
-  console.log(
-    `[winSignKms] - KMS_PKCS11_CONFIG: ${process.env.KMS_PKCS11_CONFIG}`
-  );
-  console.log(
-    `[winSignKms] - GOOGLE_APPLICATION_CREDENTIALS: ${process.env.GOOGLE_APPLICATION_CREDENTIALS ? 'set' : 'not set'}`
-  );
+  for (let i = 0; i < possibleKeyNames.length; i++) {
+    const currentKeyName = possibleKeyNames[i];
+    console.log(`[winSignKms] Attempt ${i + 1}/${possibleKeyNames.length}: Trying key name: ${currentKeyName}`);
 
-  if (site) {
-    args.push('-i', site);
+    // Build osslsigncode command
+    const args = [
+      'sign',
+      '-pkcs11engine',
+      pkcs11Engine,
+      '-pkcs11module',
+      pkcs11Module,
+      '-key',
+      `pkcs11:object=${currentKeyName}`,
+      '-certs',
+      certFile,
+      '-t',
+      'http://timestamp.digicert.com',
+      '-h',
+      'sha256',
+      '-n',
+      name,
+    ];
+
+    if (site) {
+      args.push('-i', site);
+    }
+
+    // Sign in-place
+    const tempOutput = `${input}.signed`;
+    args.push('-in', path.resolve(input));
+    args.push('-out', tempOutput);
+
+    console.log(`[winSignKms] Command: osslsigncode ${args.join(' ')}`);
+
+    try {
+      await new Promise((resolve, reject) => {
+        const child = spawn('osslsigncode', args, {
+          stdio: 'inherit',
+          env: {
+            ...process.env,
+            KMS_PKCS11_CONFIG: kmsPkcs11Config,
+          },
+        });
+
+        child.on('exit', (code) => {
+          if (code === 0) {
+            // Move signed file back to original
+            fs.renameSync(tempOutput, input);
+            console.log(`[winSignKms] Successfully signed with key: ${currentKeyName}`);
+            resolve();
+          } else {
+            // Clean up temp file if it exists
+            if (fs.existsSync(tempOutput)) {
+              fs.unlinkSync(tempOutput);
+            }
+            reject(new Error(`osslsigncode exited with code ${code}`));
+          }
+        });
+
+        child.on('error', (err) => {
+          reject(new Error(`Failed to execute osslsigncode: ${err.message}`));
+        });
+      });
+
+      // If we reach here, signing was successful
+      signingSuccessful = true;
+      console.log(`[winSignKms] Successfully signed on Linux with key '${currentKeyName}': ${input}`);
+      break;
+
+    } catch (error) {
+      console.log(`[winSignKms] Failed with key '${currentKeyName}': ${error.message}`);
+      lastError = error;
+      
+      // If this isn't the last attempt, continue to next key name
+      if (i < possibleKeyNames.length - 1) {
+        console.log(`[winSignKms] Trying next key name...`);
+        continue;
+      }
+    }
   }
 
-  // Sign in-place
-  const tempOutput = `${input}.signed`;
-  args.push('-in', path.resolve(input));
-  args.push('-out', tempOutput);
-
-  console.log(
-    '[winSignKms] Running:',
-    'osslsigncode',
-    args.map((a) => (a.startsWith('pkcs11:') ? a : a)).join(' ')
-  );
-
-  await new Promise((resolve, reject) => {
-    const child = spawn('osslsigncode', args, {
-      stdio: 'inherit',
-      env: {
-        ...process.env,
-        KMS_PKCS11_CONFIG: kmsPkcs11Config,
-      },
-    });
-
-    child.on('exit', (code) => {
-      if (code === 0) {
-        // Move signed file back to original
-        fs.renameSync(tempOutput, input);
-        console.log('[winSignKms] Successfully signed on Linux:', input);
-        resolve();
-      } else {
-        // Clean up temp file if it exists
-        if (fs.existsSync(tempOutput)) {
-          fs.unlinkSync(tempOutput);
-        }
-        reject(new Error(`[winSignKms] osslsigncode exited with code ${code}`));
-      }
-    });
-
-    child.on('error', (err) => {
-      reject(
-        new Error(`[winSignKms] Failed to execute osslsigncode: ${err.message}`)
-      );
-    });
-  });
+  if (!signingSuccessful) {
+    console.log(`[winSignKms] All key names failed. Tried: ${possibleKeyNames.join(', ')}`);
+    throw new Error(`[winSignKms] Failed to sign with any key name. Last error: ${lastError?.message}`);
+  }
 };

@@ -133,7 +133,9 @@ signWindowsOnLinux = async function (config) {
   console.log(`[winSignKms] Full KMS resource: ${kmsKeyResource}`);
   console.log(`[winSignKms] KMS resource length: ${kmsKeyResource.length}`);
   console.log(`[winSignKms] KMS resource type: ${typeof kmsKeyResource}`);
-  console.log(`[winSignKms] First 20 chars: "${kmsKeyResource.substring(0, 20)}"`);
+  console.log(
+    `[winSignKms] First 20 chars: "${kmsKeyResource.substring(0, 20)}"`
+  );
   console.log(`[winSignKms] KMS PKCS#11 config: ${kmsPkcs11Config}`);
   // Debug: show config file contents if it exists
   if (kmsPkcs11Config && fs.existsSync(kmsPkcs11Config)) {
@@ -146,14 +148,16 @@ signWindowsOnLinux = async function (config) {
   // when using a config file with key_ring specified, use the key name only
   const keyParts = kmsKeyResource.split('/');
   const keyIndex = keyParts.indexOf('cryptoKeys');
-  
+
   console.log(`[winSignKms] Key parts: ${JSON.stringify(keyParts)}`);
   console.log(`[winSignKms] cryptoKeys index: ${keyIndex}`);
-  
+
   if (keyIndex === -1 || keyIndex + 1 >= keyParts.length) {
-    throw new Error(`[winSignKms] Invalid KMS key resource format: ${kmsKeyResource}`);
+    throw new Error(
+      `[winSignKms] Invalid KMS key resource format: ${kmsKeyResource}`
+    );
   }
-  
+
   const keyAlias = keyParts[keyIndex + 1];
   console.log(`[winSignKms] Extracted key name: ${keyAlias}`);
 

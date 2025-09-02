@@ -531,6 +531,27 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "=== Building Windows Package Natively ===" -ForegroundColor Cyan
+          
+          # Ensure tools are accessible by adding them to PATH explicitly
+          $jsignPath = "$env:ProgramFiles\jsign"
+          $gcloudPath = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin"
+          $env:PATH += ";$jsignPath;$gcloudPath"
+          
+          Write-Host "Verifying tools before build..." -ForegroundColor Yellow
+          if (Test-Path "$jsignPath\jsign.cmd") {
+            Write-Host "✅ jsign.cmd found at $jsignPath\jsign.cmd" -ForegroundColor Green
+          } else {
+            Write-Error "❌ jsign.cmd not found at $jsignPath\jsign.cmd"
+          }
+          
+          if (Test-Path "$gcloudPath\gcloud.cmd") {
+            Write-Host "✅ gcloud.cmd found at $gcloudPath\gcloud.cmd" -ForegroundColor Green  
+          } else {
+            Write-Error "❌ gcloud.cmd not found at $gcloudPath\gcloud.cmd"
+          }
+          
+          Write-Host "PATH includes: $env:PATH" -ForegroundColor Cyan
+          
           yarn electron-builder --publish never --x64 --win nsis
         env:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}

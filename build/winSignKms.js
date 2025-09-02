@@ -46,9 +46,18 @@ function extractKeyAlias(kmsKeyResource) {
  * Check available tools
  */
 function checkAvailableTools() {
-  // On Windows, we need to use .cmd extensions
-  const jsignCmd = process.platform === 'win32' ? 'jsign.cmd' : 'jsign';
-  const gcloudCmd = process.platform === 'win32' ? 'gcloud.cmd' : 'gcloud';
+  // Use absolute paths on Windows based on CI installation locations
+  let jsignCmd;
+  let gcloudCmd;
+
+  if (process.platform === 'win32') {
+    jsignCmd = 'C:\\Program Files\\jsign\\jsign.cmd';
+    gcloudCmd =
+      'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
+  } else {
+    jsignCmd = 'jsign';
+    gcloudCmd = 'gcloud';
+  }
 
   const jsignResult = spawnSync(jsignCmd, ['--help'], { stdio: 'pipe' });
   const jsignAvailable = jsignResult.status === 0;

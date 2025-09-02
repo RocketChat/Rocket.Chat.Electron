@@ -27,12 +27,12 @@ jobs:
           # macOS build
           - os: macos-latest
             build-target: mac
-          # Windows build on Linux for KMS signing
+          # Windows build on Linux for KMS signing (backup method)
           - os: ubuntu-latest
             build-target: windows-on-linux
-          # Windows native build (disabled for now)
-          # - os: windows-latest
-          #   build-target: windows
+          # Windows native build (preferred method)
+          - os: windows-latest
+            build-target: windows
     runs-on: ${{ matrix.os }}
     steps:
       - name: Disable git core.autocrlf
@@ -518,6 +518,17 @@ jobs:
           WIN_KMS_CERT_STORE: 'MY'
           WIN_KMS_USE_LOCAL_MACHINE: 'false'
           SIGNTOOL_PATH: ${{ env.SIGNTOOL_PATH }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+
+      - name: Build Windows Package (Windows native)
+        if: ${{ matrix.build-target == 'windows' }}
+        shell: pwsh
+        run: |
+          Write-Host "=== Building Windows Package Natively ===" -ForegroundColor Cyan
+          yarn electron-builder --publish never --x64 --win nsis
+        env:
+          WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
+          WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt
           GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
 
       - name: Build MacOS Package

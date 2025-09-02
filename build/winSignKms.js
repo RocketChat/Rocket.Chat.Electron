@@ -204,13 +204,9 @@ module.exports = async function signWithGoogleKms(config) {
   let jsignExe = jsignCmd;
   let finalArgs = jsignArgs;
 
-  // On Windows, run through cmd.exe
-  if (process.platform === 'win32') {
-    jsignExe = 'cmd';
-    finalArgs = ['/c', jsignCmd].concat(jsignArgs);
-  }
+  // Always invoke jsign directly, do not use cmd.exe or /c to avoid shell interpretation.
 
-  const result = spawnSync(jsignExe, finalArgs, {
+  const result = spawnSync(jsignCmd, jsignArgs, {
     stdio: 'pipe',
     timeout: 120000,
     env: {

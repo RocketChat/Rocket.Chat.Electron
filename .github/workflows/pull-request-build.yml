@@ -147,25 +147,25 @@ jobs:
           Write-Host "Found Python at: $pythonExe" -ForegroundColor Green
           echo "CLOUDSDK_PYTHON=$pythonExe" >> $env:GITHUB_ENV
           
-          # Authenticate with Google Cloud
-          Write-Host "Authenticating gcloud with service account..." -ForegroundColor Yellow
-          $gcpCredentials = "$env:RUNNER_TEMP\gcp-sa.json"
-          Write-Host "Service account credentials at: $gcpCredentials" -ForegroundColor Cyan
+          # Also manually add gcloud to PATH for this session
+          $gcloudPath = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin"
+          $env:PATH += ";$gcloudPath"
+          echo "$gcloudPath" >> $env:GITHUB_PATH
           
-          # Use full path to gcloud.cmd from chocolatey installation
-          $gcloudCmd = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin\gcloud.cmd"
+          # Verify gcloud is accessible
+          Write-Host "Verifying gcloud installation..."
+          & "$gcloudPath\gcloud.cmd" version
           
-          & $gcloudCmd auth activate-service-account --key-file="$gcpCredentials"
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Failed to activate service account"
-            exit 1
+          # Authenticate with service account
+          Write-Host "Authenticating with Google Cloud..." -ForegroundColor Cyan
+          if ($env:GOOGLE_APPLICATION_CREDENTIALS -and (Test-Path $env:GOOGLE_APPLICATION_CREDENTIALS)) {
+            & "$gcloudPath\gcloud.cmd" auth activate-service-account --key-file="$env:GOOGLE_APPLICATION_CREDENTIALS"
+            $projectId = (Get-Content $env:GOOGLE_APPLICATION_CREDENTIALS | ConvertFrom-Json).project_id
+            & "$gcloudPath\gcloud.cmd" config set project $projectId
+            Write-Host "✅ Google Cloud authentication successful"
+          } else {
+            Write-Error "❌ Google Cloud credentials not available"
           }
-          
-          # Set project from service account file
-          $projectData = Get-Content $gcpCredentials | ConvertFrom-Json
-          $projectId = $projectData.project_id
-          & $gcloudCmd config set project $projectId
-          Write-Host "✅ Google Cloud authentication successful for project: $projectId" -ForegroundColor Green
 
       - name: Build Windows Package
         if: ${{ matrix.os == 'windows-latest' }}

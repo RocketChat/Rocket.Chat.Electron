@@ -54,8 +54,12 @@ function checkAvailableTools() {
     jsignCmd = 'jsign.cmd';
     gcloudCmd = 'gcloud.cmd';
 
-    let jsignResult = spawnSync(jsignCmd, ['--help'], { stdio: 'pipe' });
-    let gcloudResult = spawnSync(gcloudCmd, ['--version'], { stdio: 'pipe' });
+    let jsignResult = spawnSync('cmd', ['/c', jsignCmd, '--help'], {
+      stdio: 'pipe',
+    });
+    let gcloudResult = spawnSync('cmd', ['/c', gcloudCmd, '--version'], {
+      stdio: 'pipe',
+    });
 
     // If PATH fails, try direct chocolatey paths
     if (jsignResult.status !== 0) {
@@ -63,7 +67,9 @@ function checkAvailableTools() {
         '[winSignKms] jsign not found in PATH, trying direct chocolatey path...'
       );
       jsignCmd = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
-      jsignResult = spawnSync(jsignCmd, ['--help'], { stdio: 'pipe' });
+      jsignResult = spawnSync('cmd', ['/c', jsignCmd, '--help'], {
+        stdio: 'pipe',
+      });
     }
 
     if (gcloudResult.status !== 0) {
@@ -72,7 +78,9 @@ function checkAvailableTools() {
       );
       gcloudCmd =
         'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
-      gcloudResult = spawnSync(gcloudCmd, ['--version'], { stdio: 'pipe' });
+      gcloudResult = spawnSync('cmd', ['/c', gcloudCmd, '--version'], {
+        stdio: 'pipe',
+      });
     }
 
     const jsignAvailable = jsignResult.status === 0;
@@ -193,15 +201,19 @@ signWindowsOnLinux = async function (config) {
 
   // Get access token using gcloud
   console.log('[winSignKms] Getting access token from gcloud...');
-  const gcloudResult = spawnSync(gcloudCmd, ['auth', 'print-access-token'], {
-    stdio: 'pipe',
-    timeout: 30000,
-    env: {
-      ...process.env,
-      GOOGLE_APPLICATION_CREDENTIALS:
-        process.env.GOOGLE_APPLICATION_CREDENTIALS,
-    },
-  });
+  const gcloudResult = spawnSync(
+    'cmd',
+    ['/c', gcloudCmd, 'auth', 'print-access-token'],
+    {
+      stdio: 'pipe',
+      timeout: 30000,
+      env: {
+        ...process.env,
+        GOOGLE_APPLICATION_CREDENTIALS:
+          process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      },
+    }
+  );
 
   if (gcloudResult.status !== 0) {
     const errorOutput = gcloudResult.stderr
@@ -248,7 +260,7 @@ signWindowsOnLinux = async function (config) {
   );
 
   // Execute jsign
-  const result = spawnSync(jsignCmd, jsignArgs, {
+  const result = spawnSync('cmd', ['/c', jsignCmd].concat(jsignArgs), {
     stdio: 'pipe',
     timeout: 120000,
     env: {
@@ -325,15 +337,19 @@ signWindowsOnWindows = async function (config) {
 
   // Get access token using gcloud
   console.log('[winSignKms] Getting access token from gcloud...');
-  const gcloudResult = spawnSync(gcloudCmd, ['auth', 'print-access-token'], {
-    stdio: 'pipe',
-    timeout: 30000,
-    env: {
-      ...process.env,
-      GOOGLE_APPLICATION_CREDENTIALS:
-        process.env.GOOGLE_APPLICATION_CREDENTIALS,
-    },
-  });
+  const gcloudResult = spawnSync(
+    'cmd',
+    ['/c', gcloudCmd, 'auth', 'print-access-token'],
+    {
+      stdio: 'pipe',
+      timeout: 30000,
+      env: {
+        ...process.env,
+        GOOGLE_APPLICATION_CREDENTIALS:
+          process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      },
+    }
+  );
 
   if (gcloudResult.status !== 0) {
     const errorOutput = gcloudResult.stderr
@@ -380,7 +396,7 @@ signWindowsOnWindows = async function (config) {
   );
 
   // Execute jsign
-  const result = spawnSync(jsignCmd, jsignArgs, {
+  const result = spawnSync('cmd', ['/c', jsignCmd].concat(jsignArgs), {
     stdio: 'pipe',
     timeout: 120000,
     env: {

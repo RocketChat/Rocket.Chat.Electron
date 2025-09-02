@@ -50,41 +50,27 @@ function checkAvailableTools() {
   let gcloudCmd;
 
   if (process.platform === 'win32') {
-    // First try PATH (after refreshenv)
-    jsignCmd = 'jsign.cmd';
-    gcloudCmd = 'gcloud.cmd';
+    // Use known chocolatey paths directly since we know they were installed
+    const jsignChocolateyPath = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
+    const gcloudChocolateyPath = 'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
 
-    let jsignResult = spawnSync('cmd', ['/c', jsignCmd, '--help'], {
-      stdio: 'pipe',
-    });
-    let gcloudResult = spawnSync('cmd', ['/c', gcloudCmd, '--version'], {
-      stdio: 'pipe',
-    });
+    // Check if files exist using filesystem
+    const jsignAvailable = fs.existsSync(jsignChocolateyPath);
+    const gcloudAvailable = fs.existsSync(gcloudChocolateyPath);
 
-    // If PATH fails, try direct chocolatey paths
-    if (jsignResult.status !== 0) {
-      console.log(
-        '[winSignKms] jsign not found in PATH, trying direct chocolatey path...'
-      );
-      jsignCmd = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
-      jsignResult = spawnSync('cmd', ['/c', jsignCmd, '--help'], {
-        stdio: 'pipe',
-      });
+    if (jsignAvailable) {
+      jsignCmd = jsignChocolateyPath;
+      console.log(`[winSignKms] jsign found at: ${jsignCmd}`);
+    } else {
+      console.log(`[winSignKms] jsign not found at: ${jsignChocolateyPath}`);
     }
 
-    if (gcloudResult.status !== 0) {
-      console.log(
-        '[winSignKms] gcloud not found in PATH, trying direct chocolatey path...'
-      );
-      gcloudCmd =
-        'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
-      gcloudResult = spawnSync('cmd', ['/c', gcloudCmd, '--version'], {
-        stdio: 'pipe',
-      });
+    if (gcloudAvailable) {
+      gcloudCmd = gcloudChocolateyPath;
+      console.log(`[winSignKms] gcloud found at: ${gcloudCmd}`);
+    } else {
+      console.log(`[winSignKms] gcloud not found at: ${gcloudChocolateyPath}`);
     }
-
-    const jsignAvailable = jsignResult.status === 0;
-    const gcloudAvailable = gcloudResult.status === 0;
 
     console.log(
       `[winSignKms] jsign available: ${jsignAvailable} (${jsignCmd})`
@@ -92,19 +78,6 @@ function checkAvailableTools() {
     console.log(
       `[winSignKms] gcloud available: ${gcloudAvailable} (${gcloudCmd})`
     );
-
-    if (!jsignAvailable) {
-      console.log(
-        '[winSignKms] jsign check failed:',
-        jsignResult.error?.message || 'No error message'
-      );
-    }
-    if (!gcloudAvailable) {
-      console.log(
-        '[winSignKms] gcloud check failed:',
-        gcloudResult.error?.message || 'No error message'
-      );
-    }
 
     return { jsignAvailable, gcloudAvailable, jsignCmd, gcloudCmd };
   }

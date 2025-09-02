@@ -172,7 +172,9 @@ signWindowsOnLinux = async function (config) {
 
     if (!keyAlias) {
       // Will try multiple key names in the signing function
-      console.log(`[winSignKms] No key found in resource, will try multiple key names`);
+      console.log(
+        `[winSignKms] No key found in resource, will try multiple key names`
+      );
     }
   } else {
     if (keyIndex + 1 >= keyParts.length) {
@@ -185,17 +187,21 @@ signWindowsOnLinux = async function (config) {
   }
 
   // If no keyAlias found, prepare multiple key names to try
-  const possibleKeyNames = keyAlias ? [keyAlias] : [
-    'Electron_Desktop_App', // Same as keyRing
-    'Electron-Desktop-App', // Hyphenated version
-    'ElectronDesktopApp', // CamelCase
-    'electron-desktop-app', // lowercase
-    'signing-key', // Generic
-    'code-signing', // Generic
-    'Electron_Desktop_App_Signing_Key', // Original fallback
-  ];
+  const possibleKeyNames = keyAlias
+    ? [keyAlias]
+    : [
+        'Electron_Desktop_App', // Same as keyRing
+        'Electron-Desktop-App', // Hyphenated version
+        'ElectronDesktopApp', // CamelCase
+        'electron-desktop-app', // lowercase
+        'signing-key', // Generic
+        'code-signing', // Generic
+        'Electron_Desktop_App_Signing_Key', // Original fallback
+      ];
 
-  console.log(`[winSignKms] Will try key names: ${possibleKeyNames.join(', ')}`);
+  console.log(
+    `[winSignKms] Will try key names: ${possibleKeyNames.join(', ')}`
+  );
   console.log(`[winSignKms] Certificate file: ${certFile}`);
   console.log(`[winSignKms] PKCS#11 module: ${pkcs11Module}`);
 
@@ -226,13 +232,18 @@ signWindowsOnLinux = async function (config) {
     );
   }
 
-  // Try each key name until one works
-  let signingSuccessful = false;
-  let lastError = null;
+  // Try each key name recursively to avoid await-in-loop lint error
+  async function trySignWithKey(keyNames, attemptIndex = 0) {
+    if (attemptIndex >= keyNames.length) {
+      throw new Error(
+        `[winSignKms] Failed to sign with any key name. Tried: ${keyNames.join(', ')}`
+      );
+    }
 
-  for (let i = 0; i < possibleKeyNames.length; i++) {
-    const currentKeyName = possibleKeyNames[i];
-    console.log(`[winSignKms] Attempt ${i + 1}/${possibleKeyNames.length}: Trying key name: ${currentKeyName}`);
+    const currentKeyName = keyNames[attemptIndex];
+    console.log(
+      `[winSignKms] Attempt ${attemptIndex + 1}/${keyNames.length}: Trying key name: ${currentKeyName}`
+    );
 
     // Build osslsigncode command
     const args = [
@@ -278,7 +289,9 @@ signWindowsOnLinux = async function (config) {
           if (code === 0) {
             // Move signed file back to original
             fs.renameSync(tempOutput, input);
-            console.log(`[winSignKms] Successfully signed with key: ${currentKeyName}`);
+            console.log(
+              `[winSignKms] Successfully signed with key: ${currentKeyName}`
+            );
             resolve();
           } else {
             // Clean up temp file if it exists
@@ -294,25 +307,23 @@ signWindowsOnLinux = async function (config) {
         });
       });
 
-      // If we reach here, signing was successful
-      signingSuccessful = true;
-      console.log(`[winSignKms] Successfully signed on Linux with key '${currentKeyName}': ${input}`);
-      break;
-
+      console.log(
+        `[winSignKms] Successfully signed on Linux with key '${currentKeyName}': ${input}`
+      );
     } catch (error) {
-      console.log(`[winSignKms] Failed with key '${currentKeyName}': ${error.message}`);
-      lastError = error;
-      
-      // If this isn't the last attempt, continue to next key name
-      if (i < possibleKeyNames.length - 1) {
+      console.log(
+        `[winSignKms] Failed with key '${currentKeyName}': ${error.message}`
+      );
+
+      // If this isn't the last attempt, try the next key name
+      if (attemptIndex < keyNames.length - 1) {
         console.log(`[winSignKms] Trying next key name...`);
-        continue;
+        return trySignWithKey(keyNames, attemptIndex + 1);
       }
+
+      throw error;
     }
   }
 
-  if (!signingSuccessful) {
-    console.log(`[winSignKms] All key names failed. Tried: ${possibleKeyNames.join(', ')}`);
-    throw new Error(`[winSignKms] Failed to sign with any key name. Last error: ${lastError?.message}`);
-  }
+  await trySignWithKey(possibleKeyNames);
 };

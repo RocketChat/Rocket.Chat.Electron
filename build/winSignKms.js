@@ -171,9 +171,20 @@ signWindowsOnLinux = async function (config) {
     }
 
     if (!keyAlias) {
-      // Last resort: use a known key name for this project
-      keyAlias = 'Electron_Desktop_App_Signing_Key';
+      // Last resort: try multiple common key names based on the keyRing name
+      const possibleKeyNames = [
+        'Electron_Desktop_App', // Same as keyRing
+        'Electron-Desktop-App', // Hyphenated version
+        'ElectronDesktopApp', // CamelCase
+        'electron-desktop-app', // lowercase
+        'signing-key', // Generic
+        'code-signing', // Generic
+        'Electron_Desktop_App_Signing_Key', // Original fallback
+      ];
+      
+      keyAlias = possibleKeyNames[0]; // Try the first one (most likely)
       console.log(`[winSignKms] Using fallback key name: ${keyAlias}`);
+      console.log(`[winSignKms] Available fallback options: ${possibleKeyNames.join(', ')}`);
     }
   } else {
     if (keyIndex + 1 >= keyParts.length) {

@@ -61,12 +61,112 @@ jobs:
           BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
+      # Setup Google Cloud authentication and Windows signing tools
+      - name: Setup Google Cloud authentication (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          Write-Host "Setting up Google Cloud authentication..." -ForegroundColor Cyan
+          echo '${{ secrets.GCP_SA_JSON }}' > $env:RUNNER_TEMP\gcp-sa.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$env:RUNNER_TEMP\gcp-sa.json" >> $env:GITHUB_ENV
+          
+          # Also set environment variables for the signing process
+          echo "WIN_KMS_KEY_RESOURCE=${{ secrets.WIN_KMS_KEY_RESOURCE }}" >> $env:GITHUB_ENV
+          echo "WIN_CERT_FILE=$env:RUNNER_TEMP\codesigning\user.crt" >> $env:GITHUB_ENV
+
+      - name: Setup Windows certificates
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          Write-Host "Setting up Windows certificates..." -ForegroundColor Cyan
+          mkdir -p $env:RUNNER_TEMP\codesigning
+          echo '${{ secrets.WIN_USER_CRT }}' > $env:RUNNER_TEMP\codesigning\user.crt
+
+      - name: Setup jsign and Google Cloud CLI (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          # Install Java and jsign via chocolatey
+          Write-Host "Installing OpenJDK 11..." -ForegroundColor Cyan
+          choco install openjdk11 -y
+          
+          # Refresh environment to pick up Java
+          refreshenv
+          
+          # Verify Java installation and add to PATH
+          $javaHome = [System.Environment]::GetEnvironmentVariable("JAVA_HOME", "Machine")
+          if ($javaHome -and (Test-Path "$javaHome\bin\java.exe")) {
+            Write-Host "Java found at: $javaHome" -ForegroundColor Green
+            $env:JAVA_HOME = $javaHome
+            $javaBinPath = "$javaHome\bin"
+            $env:PATH = "$javaBinPath;$env:PATH"
+            echo "$javaBinPath" >> $env:GITHUB_PATH
+          } else {
+            Write-Error "Java installation not found or JAVA_HOME not set"
+            exit 1
+          }
+          
+          Write-Host "Installing jsign..." -ForegroundColor Cyan
+          choco install jsign -y
+          
+          # Refresh environment variables to pick up PATH changes from jsign
+          Write-Host "Refreshing environment variables after jsign installation..." -ForegroundColor Cyan
+          refreshenv
+          
+          # Install Google Cloud CLI
+          Write-Host "Installing Google Cloud CLI..." -ForegroundColor Cyan
+          choco install gcloudsdk -y
+          
+          # Refresh environment variables to pick up PATH changes
+          Write-Host "Refreshing environment variables..." -ForegroundColor Cyan
+          refreshenv
+          
+          # Find Python installation for gcloud
+          Write-Host "Locating Python installation..." -ForegroundColor Yellow
+          $pythonPaths = @(
+            "C:\hostedtoolcache\windows\Python\*\x64\python.exe",
+            "C:\Python*\python.exe", 
+            "C:\Program Files\Python*\python.exe",
+            "$env:LOCALAPPDATA\Programs\Python\Python*\python.exe"
+          )
+          
+          $pythonExe = $null
+          foreach ($path in $pythonPaths) {
+            $found = Get-ChildItem $path -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) {
+              $pythonExe = $found.FullName
+              break
+            }
+          }
+          
+          if (-not $pythonExe) {
+            Write-Error "Python not found in expected locations"
+            exit 1
+          }
+          
+          Write-Host "Found Python at: $pythonExe" -ForegroundColor Green
+          echo "CLOUDSDK_PYTHON=$pythonExe" >> $env:GITHUB_ENV
+          
+          # Authenticate with Google Cloud
+          Write-Host "Authenticating gcloud with service account..." -ForegroundColor Yellow
+          $gcpCredentials = "$env:RUNNER_TEMP\gcp-sa.json"
+          Write-Host "Service account credentials at: $gcpCredentials" -ForegroundColor Cyan
+          
+          & gcloud.cmd auth activate-service-account --key-file="$gcpCredentials"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to activate service account"
+            exit 1
+          }
+          
+          # Set project from service account file
+          $projectData = Get-Content $gcpCredentials | ConvertFrom-Json
+          $projectId = $projectData.project_id
+          & gcloud.cmd config set project $projectId
+          Write-Host "✅ Google Cloud authentication successful for project: $projectId" -ForegroundColor Green
+
       - name: Build Windows Package
         if: ${{ matrix.os == 'windows-latest' }}
         run: yarn electron-builder --publish never --x64 --win nsis
-        env:
-          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Build MacOS Package
         if: ${{ matrix.os == 'macos-latest' }}

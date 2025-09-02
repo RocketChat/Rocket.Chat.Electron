@@ -75,7 +75,8 @@
     "verifyUpdateCodeSignature": true,
     "requestedExecutionLevel": "asInvoker",
     "signAndEditExecutable": true,
-    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
+    "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}",
+    "sign": "./build/winSignKms.js"
   },
   "nsis": {
     "oneClick": false,

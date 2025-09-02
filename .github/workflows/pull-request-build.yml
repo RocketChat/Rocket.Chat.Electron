@@ -375,8 +375,8 @@ jobs:
           WINEPREFIX: /home/runner/.wine32
           DISPLAY: :99
 
-      - name: Build Windows Package (Windows native)
-        if: ${{ matrix.os == 'windows-latest' }}
+      - name: Build Windows Package (Windows native - old signtool method)  
+        if: ${{ matrix.os == 'windows-latest' && false }}
         shell: pwsh
         run: |
           # Verify environment before build

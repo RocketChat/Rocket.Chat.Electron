@@ -51,8 +51,10 @@ function checkAvailableTools() {
 
   if (process.platform === 'win32') {
     // Use known chocolatey paths directly since we know they were installed
-    const jsignChocolateyPath = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
-    const gcloudChocolateyPath = 'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
+    const jsignChocolateyPath =
+      'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
+    const gcloudChocolateyPath =
+      'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
 
     // Check if files exist using filesystem
     const jsignAvailable = fs.existsSync(jsignChocolateyPath);

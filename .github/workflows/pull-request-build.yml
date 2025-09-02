@@ -225,25 +225,16 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         shell: pwsh
         run: |
-          # Install Java for jsign
+          # Install Java and jsign via chocolatey
           Write-Host "Installing OpenJDK 11..." -ForegroundColor Cyan
           choco install openjdk11 -y
           
-          # Download and setup jsign
           Write-Host "Installing jsign..." -ForegroundColor Cyan
-          $jsignUrl = "https://github.com/ebourg/jsign/releases/download/6.0/jsign-6.0.jar"
-          $jsignPath = "$env:ProgramFiles\jsign"
-          New-Item -ItemType Directory -Path $jsignPath -Force | Out-Null
+          choco install jsign -y
           
-          Invoke-WebRequest -Uri $jsignUrl -OutFile "$jsignPath\jsign.jar"
-          
-          # Create jsign wrapper script
-          $jsignScript = "@echo off`njava -jar `"$jsignPath\jsign.jar`" %*"
-          $jsignScript | Out-File -FilePath "$jsignPath\jsign.cmd" -Encoding ASCII
-          
-          # Add jsign to PATH
-          $env:PATH += ";$jsignPath"
-          echo "$jsignPath" >> $env:GITHUB_PATH
+          # Refresh environment variables to pick up PATH changes from jsign
+          Write-Host "Refreshing environment variables after jsign installation..." -ForegroundColor Cyan
+          refreshenv
           
           # Install Google Cloud CLI
           Write-Host "Installing Google Cloud CLI..." -ForegroundColor Cyan

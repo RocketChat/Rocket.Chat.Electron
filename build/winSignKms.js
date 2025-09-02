@@ -46,9 +46,64 @@ function extractKeyAlias(kmsKeyResource) {
  * Check available tools
  */
 function checkAvailableTools() {
-  // On Windows, we use cmd extensions; refreshenv ensures PATH is updated
-  const jsignCmd = process.platform === 'win32' ? 'jsign.cmd' : 'jsign';
-  const gcloudCmd = process.platform === 'win32' ? 'gcloud.cmd' : 'gcloud';
+  let jsignCmd;
+  let gcloudCmd;
+
+  if (process.platform === 'win32') {
+    // First try PATH (after refreshenv)
+    jsignCmd = 'jsign.cmd';
+    gcloudCmd = 'gcloud.cmd';
+
+    let jsignResult = spawnSync(jsignCmd, ['--help'], { stdio: 'pipe' });
+    let gcloudResult = spawnSync(gcloudCmd, ['--version'], { stdio: 'pipe' });
+
+    // If PATH fails, try direct chocolatey paths
+    if (jsignResult.status !== 0) {
+      console.log(
+        '[winSignKms] jsign not found in PATH, trying direct chocolatey path...'
+      );
+      jsignCmd = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
+      jsignResult = spawnSync(jsignCmd, ['--help'], { stdio: 'pipe' });
+    }
+
+    if (gcloudResult.status !== 0) {
+      console.log(
+        '[winSignKms] gcloud not found in PATH, trying direct chocolatey path...'
+      );
+      gcloudCmd =
+        'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
+      gcloudResult = spawnSync(gcloudCmd, ['--version'], { stdio: 'pipe' });
+    }
+
+    const jsignAvailable = jsignResult.status === 0;
+    const gcloudAvailable = gcloudResult.status === 0;
+
+    console.log(
+      `[winSignKms] jsign available: ${jsignAvailable} (${jsignCmd})`
+    );
+    console.log(
+      `[winSignKms] gcloud available: ${gcloudAvailable} (${gcloudCmd})`
+    );
+
+    if (!jsignAvailable) {
+      console.log(
+        '[winSignKms] jsign check failed:',
+        jsignResult.error?.message || 'No error message'
+      );
+    }
+    if (!gcloudAvailable) {
+      console.log(
+        '[winSignKms] gcloud check failed:',
+        gcloudResult.error?.message || 'No error message'
+      );
+    }
+
+    return { jsignAvailable, gcloudAvailable, jsignCmd, gcloudCmd };
+  }
+
+  // Linux/macOS - use normal PATH resolution
+  jsignCmd = 'jsign';
+  gcloudCmd = 'gcloud';
 
   const jsignResult = spawnSync(jsignCmd, ['--help'], { stdio: 'pipe' });
   const jsignAvailable = jsignResult.status === 0;
@@ -61,13 +116,13 @@ function checkAvailableTools() {
 
   if (!jsignAvailable) {
     console.log(
-      `[winSignKms] jsign check failed with ${jsignCmd}:`,
+      '[winSignKms] jsign check failed:',
       jsignResult.error?.message || 'No error message'
     );
   }
   if (!gcloudAvailable) {
     console.log(
-      `[winSignKms] gcloud check failed with ${gcloudCmd}:`,
+      '[winSignKms] gcloud check failed:',
       gcloudResult.error?.message || 'No error message'
     );
   }

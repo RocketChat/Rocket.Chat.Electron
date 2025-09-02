@@ -190,6 +190,7 @@ signWindowsOnLinux = async function (config) {
   const possibleKeyNames = keyAlias
     ? [keyAlias]
     : [
+        'Electron_Desktop_App_Key', // Actual key name found via PKCS#11 listing
         'Electron_Desktop_App', // Same as keyRing
         'Electron-Desktop-App', // Hyphenated version
         'ElectronDesktopApp', // CamelCase

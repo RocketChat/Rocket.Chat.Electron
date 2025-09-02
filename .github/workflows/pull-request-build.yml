@@ -152,7 +152,10 @@ jobs:
           $gcpCredentials = "$env:RUNNER_TEMP\gcp-sa.json"
           Write-Host "Service account credentials at: $gcpCredentials" -ForegroundColor Cyan
           
-          & gcloud.cmd auth activate-service-account --key-file="$gcpCredentials"
+          # Use full path to gcloud.cmd from chocolatey installation
+          $gcloudCmd = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin\gcloud.cmd"
+          
+          & $gcloudCmd auth activate-service-account --key-file="$gcpCredentials"
           if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to activate service account"
             exit 1
@@ -161,7 +164,7 @@ jobs:
           # Set project from service account file
           $projectData = Get-Content $gcpCredentials | ConvertFrom-Json
           $projectId = $projectData.project_id
-          & gcloud.cmd config set project $projectId
+          & $gcloudCmd config set project $projectId
           Write-Host "✅ Google Cloud authentication successful for project: $projectId" -ForegroundColor Green
 
       - name: Build Windows Package

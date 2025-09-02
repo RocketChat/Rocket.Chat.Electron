@@ -140,25 +140,34 @@ signWindowsOnLinux = async function (config) {
   }
 
   // Extract just the key name (not the full path)
-  // When using a config file with key_ring specified, only the key name is needed
+  // Based on Google Cloud KMS PKCS#11 documentation and working examples,
+  // when using a config file with key_ring specified, use the key name only
   const keyParts = kmsKeyResource.split('/');
   const keyIndex = keyParts.indexOf('cryptoKeys');
   const keyAlias = keyParts[keyIndex + 1];
 
   console.log(`[winSignKms] Using key alias: ${keyAlias}`);
+  console.log(`[winSignKms] Certificate file: ${certFile}`);
+  console.log(`[winSignKms] PKCS#11 module: ${pkcs11Module}`);
 
   // Find the PKCS#11 engine
   const possibleEngines = [
-    '/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so',
-    '/usr/lib/x86_64-linux-gnu/engines-3/pkcs11.so',
+    '/usr/lib/x86_64-linux-gnu/engines-3/pkcs11.so', // Ubuntu 22.04+ with OpenSSL 3
+    '/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so', // Ubuntu 20.04
     '/usr/lib/engines-1.1/libpkcs11.so',
+    '/usr/lib/x86_64-linux-gnu/engines-1.1/libpkcs11.so', // Alternative path
   ];
 
   let pkcs11Engine = null;
+  console.log(`[winSignKms] Looking for PKCS#11 engine...`);
   for (const engine of possibleEngines) {
+    console.log(`[winSignKms] Checking engine: ${engine}`);
     if (fs.existsSync(engine)) {
       pkcs11Engine = engine;
+      console.log(`[winSignKms] Found PKCS#11 engine: ${engine}`);
       break;
+    } else {
+      console.log(`[winSignKms] Engine not found: ${engine}`);
     }
   }
 
@@ -169,6 +178,7 @@ signWindowsOnLinux = async function (config) {
   }
 
   // Build osslsigncode command
+  // Based on working examples from Google Cloud KMS PKCS#11 documentation
   const args = [
     'sign',
     '-pkcs11engine',
@@ -176,7 +186,7 @@ signWindowsOnLinux = async function (config) {
     '-pkcs11module',
     pkcs11Module,
     '-key',
-    `pkcs11:object=${keyAlias}`,
+    `pkcs11:object=${keyAlias}`, // Key name only, config file has key_ring
     '-certs',
     certFile,
     '-t',
@@ -186,6 +196,16 @@ signWindowsOnLinux = async function (config) {
     '-n',
     name,
   ];
+
+  console.log(`[winSignKms] osslsigncode command:`);
+  console.log(`[winSignKms] osslsigncode ${args.join(' ')}`);
+  console.log(`[winSignKms] Environment variables:`);
+  console.log(
+    `[winSignKms] - KMS_PKCS11_CONFIG: ${process.env.KMS_PKCS11_CONFIG}`
+  );
+  console.log(
+    `[winSignKms] - GOOGLE_APPLICATION_CREDENTIALS: ${process.env.GOOGLE_APPLICATION_CREDENTIALS ? 'set' : 'not set'}`
+  );
 
   if (site) {
     args.push('-i', site);

@@ -157,9 +157,10 @@ signWindowsOnLinux = async function (config) {
     // If cryptoKeys not found, the resource might be truncated to just the key_ring
     // In this case, we need to extract the key name from a different source
     // Check if there's a separate environment variable or use a hardcoded fallback
-    const fullKeyResource = process.env.WIN_KMS_FULL_KEY_RESOURCE || process.env.WIN_KMS_KEY_RESOURCE;
+    const fullKeyResource =
+      process.env.WIN_KMS_FULL_KEY_RESOURCE || process.env.WIN_KMS_KEY_RESOURCE;
     console.log(`[winSignKms] Trying full key resource: ${fullKeyResource}`);
-    
+
     if (fullKeyResource && fullKeyResource !== kmsKeyResource) {
       const fullKeyParts = fullKeyResource.split('/');
       const fullKeyIndex = fullKeyParts.indexOf('cryptoKeys');
@@ -168,7 +169,7 @@ signWindowsOnLinux = async function (config) {
         console.log(`[winSignKms] Using key from full resource: ${keyAlias}`);
       }
     }
-    
+
     if (!keyAlias) {
       // Last resort: use a known key name for this project
       keyAlias = 'Electron_Desktop_App_Signing_Key';

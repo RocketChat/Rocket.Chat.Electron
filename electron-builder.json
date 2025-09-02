@@ -76,7 +76,11 @@
     "requestedExecutionLevel": "asInvoker",
     "signAndEditExecutable": true,
     "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}",
-    "sign": "./build/winSignKms.js"
+    "signtoolOptions": {
+      "sign": "./build/winSignKms.js",
+      "signingHashAlgorithms": ["sha256"],
+      "timeStampServer": "http://timestamp.digicert.com"
+    }
   },
   "nsis": {
     "oneClick": false,

@@ -211,38 +211,100 @@ signWindowsOnLinux = async function (config) {
   console.log(`[winSignKms] Certificate file: ${certFile}`);
   console.log(`[winSignKms] PKCS#11 module: ${pkcs11Module}`);
 
-  // Try to list available keys in the PKCS#11 token for debugging
-  console.log(`[winSignKms] Attempting to list available PKCS#11 objects...`);
-  try {
-    const { spawnSync } = require('child_process');
-    const listResult = spawnSync(
-      'pkcs11-tool',
-      ['--module', pkcs11Module, '--list-objects'],
-      {
-        stdio: 'pipe',
-        timeout: 10000,
-        env: {
-          ...process.env,
-          KMS_PKCS11_CONFIG: kmsPkcs11Config,
-        },
-      }
-    );
+  // PKCS#11 approach is broken (segfaults), try alternative signing tools
+  console.log(
+    `[winSignKms] PKCS#11 approach fails with segfault, checking alternative tools...`
+  );
 
-    if (listResult.stdout) {
-      console.log(
-        `[winSignKms] PKCS#11 objects:\n${listResult.stdout.toString()}`
-      );
-    }
-    if (listResult.stderr) {
-      console.log(
-        `[winSignKms] PKCS#11 tool stderr:\n${listResult.stderr.toString()}`
-      );
+  // Check available signing tools
+  const { spawnSync } = require('child_process');
+  const availableTools = [];
+
+  // Check for jsign (Java-based code signing with better cloud support)
+  try {
+    const jsignCheck = spawnSync('jsign', ['--help'], { stdio: 'pipe' });
+    if (jsignCheck.status === 0 || jsignCheck.status === 1) {
+      // jsign may return 1 for help
+      availableTools.push('jsign');
+      console.log(`[winSignKms] jsign is available`);
     }
   } catch (error) {
-    console.log(
-      `[winSignKms] Could not list PKCS#11 objects: ${error.message}`
-    );
+    console.log(`[winSignKms] jsign not available`);
   }
+
+  // Check for gcloud
+  try {
+    const gcloudCheck = spawnSync('gcloud', ['--version'], { stdio: 'pipe' });
+    if (gcloudCheck.status === 0) {
+      availableTools.push('gcloud');
+      console.log(`[winSignKms] gcloud is available`);
+    }
+  } catch (error) {
+    console.log(`[winSignKms] gcloud not available`);
+  }
+
+  console.log(
+    `[winSignKms] Available alternative tools: ${availableTools.join(', ')}`
+  );
+
+  // If jsign is available, try to use it with Google Cloud KMS
+  if (availableTools.includes('jsign')) {
+    console.log(
+      `[winSignKms] Attempting to sign with jsign and Google Cloud KMS...`
+    );
+
+    try {
+      const fullKeyResource = `${kmsKeyResource}/cryptoKeys/Electron_Desktop_App_Key/cryptoKeyVersions/1`;
+      const jsignArgs = [
+        '--storetype',
+        'GOOGLEKMS',
+        '--storepass',
+        fullKeyResource,
+        '--keystore',
+        'projects/rocketchat-rnd',
+        '--alias',
+        'Electron_Desktop_App_Key',
+        '--tsaurl',
+        'http://timestamp.digicert.com',
+        path.resolve(input),
+      ];
+
+      console.log(`[winSignKms] jsign command: jsign ${jsignArgs.join(' ')}`);
+
+      const jsignResult = spawnSync('jsign', jsignArgs, {
+        stdio: 'pipe',
+        timeout: 300000, // 5 minutes
+        env: {
+          ...process.env,
+          GOOGLE_APPLICATION_CREDENTIALS:
+            process.env.GOOGLE_APPLICATION_CREDENTIALS,
+        },
+      });
+
+      console.log(`[winSignKms] jsign exit code: ${jsignResult.status}`);
+      if (jsignResult.stdout) {
+        console.log(
+          `[winSignKms] jsign stdout: ${jsignResult.stdout.toString()}`
+        );
+      }
+      if (jsignResult.stderr) {
+        console.log(
+          `[winSignKms] jsign stderr: ${jsignResult.stderr.toString()}`
+        );
+      }
+
+      if (jsignResult.status === 0) {
+        console.log(`[winSignKms] Successfully signed with jsign!`);
+        return; // Skip the broken PKCS#11 approach
+      }
+    } catch (error) {
+      console.log(`[winSignKms] jsign signing failed: ${error.message}`);
+    }
+  }
+
+  console.log(
+    `[winSignKms] Falling back to broken PKCS#11 approach as last resort...`
+  );
 
   // Find the PKCS#11 engine
   const possibleEngines = [

@@ -264,13 +264,26 @@ jobs:
           gcloud auth activate-service-account --key-file=$RUNNER_TEMP/gcp-sa.json
           gcloud config set project $(cat $RUNNER_TEMP/gcp-sa.json | jq -r '.project_id')
           
+          # Install Wine Mono and required dependencies for MSI building
+          echo "Installing Wine Mono and dependencies..."
+          sudo apt-get install -y xvfb winetricks
+          
           # Set up Wine environment
           echo "Setting up Wine environment..."
           export WINEARCH=win32
           export WINEPREFIX=$HOME/.wine32
+          export DISPLAY=:99
+          
+          # Start Xvfb for headless display
+          Xvfb :99 -screen 0 1024x768x24 &
+          sleep 2
           
           # Initialize Wine with 32-bit prefix
           wineboot --init
+          
+          # Install Wine Mono for .NET support (required for MSI building)
+          echo "Installing Wine Mono..."
+          winetricks --unattended mono210
           
           # Verify Wine32 is working
           wine --version
@@ -305,6 +318,7 @@ jobs:
           # Wine environment for 32-bit support
           WINEARCH: win32
           WINEPREFIX: /home/runner/.wine32
+          DISPLAY: :99
 
       - name: Build Windows Package (Windows native - old method)
         if: ${{ matrix.os == 'windows-latest' && false }}

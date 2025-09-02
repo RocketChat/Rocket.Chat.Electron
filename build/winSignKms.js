@@ -319,7 +319,25 @@ signWindowsOnLinux = async function (config) {
           },
         });
 
-        child.on('exit', (code) => {
+        // Set a longer timeout for KMS operations (5 minutes)
+        const timeout = setTimeout(
+          () => {
+            console.log(
+              `[winSignKms] Killing osslsigncode process due to timeout (5 min)`
+            );
+            child.kill('SIGTERM');
+            setTimeout(() => child.kill('SIGKILL'), 10000); // Force kill after 10s
+            reject(new Error('osslsigncode timed out after 5 minutes'));
+          },
+          5 * 60 * 1000
+        );
+
+        child.on('exit', (code, signal) => {
+          clearTimeout(timeout);
+          console.log(
+            `[winSignKms] osslsigncode exited with code: ${code}, signal: ${signal}`
+          );
+
           if (code === 0) {
             // Move signed file back to original
             fs.renameSync(tempOutput, input);
@@ -332,11 +350,19 @@ signWindowsOnLinux = async function (config) {
             if (fs.existsSync(tempOutput)) {
               fs.unlinkSync(tempOutput);
             }
-            reject(new Error(`osslsigncode exited with code ${code}`));
+            reject(
+              new Error(
+                `osslsigncode exited with code ${code}, signal ${signal}`
+              )
+            );
           }
         });
 
         child.on('error', (err) => {
+          clearTimeout(timeout);
+          console.log(
+            `[winSignKms] osslsigncode process error: ${err.message}`
+          );
           reject(new Error(`Failed to execute osslsigncode: ${err.message}`));
         });
       });

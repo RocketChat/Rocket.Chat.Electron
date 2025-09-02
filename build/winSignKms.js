@@ -205,6 +205,39 @@ signWindowsOnLinux = async function (config) {
   console.log(`[winSignKms] Certificate file: ${certFile}`);
   console.log(`[winSignKms] PKCS#11 module: ${pkcs11Module}`);
 
+  // Try to list available keys in the PKCS#11 token for debugging
+  console.log(`[winSignKms] Attempting to list available PKCS#11 objects...`);
+  try {
+    const { spawnSync } = require('child_process');
+    const listResult = spawnSync(
+      'pkcs11-tool',
+      ['--module', pkcs11Module, '--list-objects'],
+      {
+        stdio: 'pipe',
+        timeout: 10000,
+        env: {
+          ...process.env,
+          KMS_PKCS11_CONFIG: kmsPkcs11Config,
+        },
+      }
+    );
+
+    if (listResult.stdout) {
+      console.log(
+        `[winSignKms] PKCS#11 objects:\n${listResult.stdout.toString()}`
+      );
+    }
+    if (listResult.stderr) {
+      console.log(
+        `[winSignKms] PKCS#11 tool stderr:\n${listResult.stderr.toString()}`
+      );
+    }
+  } catch (error) {
+    console.log(
+      `[winSignKms] Could not list PKCS#11 objects: ${error.message}`
+    );
+  }
+
   // Find the PKCS#11 engine
   const possibleEngines = [
     '/usr/lib/x86_64-linux-gnu/engines-3/pkcs11.so', // Ubuntu 22.04+ with OpenSSL 3

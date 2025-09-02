@@ -249,15 +249,21 @@ jobs:
           Write-Host "Installing Google Cloud CLI..." -ForegroundColor Cyan
           choco install gcloudsdk -y
           
-          # Refresh environment to get gcloud in PATH
-          refreshenv
+          # Manually add gcloud to PATH since refreshenv doesn't work in CI
+          $gcloudPath = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin"
+          $env:PATH += ";$gcloudPath"
+          echo "$gcloudPath" >> $env:GITHUB_PATH
+          
+          # Verify gcloud is accessible
+          Write-Host "Verifying gcloud installation..."
+          & "$gcloudPath\gcloud.cmd" version
           
           # Authenticate with service account
           Write-Host "Authenticating with Google Cloud..." -ForegroundColor Cyan
           if ($env:GOOGLE_APPLICATION_CREDENTIALS -and (Test-Path $env:GOOGLE_APPLICATION_CREDENTIALS)) {
-            gcloud auth activate-service-account --key-file="$env:GOOGLE_APPLICATION_CREDENTIALS"
+            & "$gcloudPath\gcloud.cmd" auth activate-service-account --key-file="$env:GOOGLE_APPLICATION_CREDENTIALS"
             $projectId = (Get-Content $env:GOOGLE_APPLICATION_CREDENTIALS | ConvertFrom-Json).project_id
-            gcloud config set project $projectId
+            & "$gcloudPath\gcloud.cmd" config set project $projectId
             Write-Host "✅ Google Cloud authentication successful"
           } else {
             Write-Error "❌ Google Cloud credentials not available"
@@ -267,7 +273,7 @@ jobs:
           Write-Host "Verifying installations..." -ForegroundColor Cyan
           java -version
           jsign --help | Select-Object -First 2
-          gcloud version
+          & "$gcloudPath\gcloud.cmd" version
 
       # Set up Google Cloud authentication for Linux builds
       - name: Setup Google Cloud authentication (Linux)

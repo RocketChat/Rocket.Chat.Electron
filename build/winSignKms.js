@@ -1,9 +1,150 @@
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
 // Forward declaration
 let signWindowsOnLinux;
+
+/**
+ * Check required environment variables for signing
+ */
+function validateEnvironment() {
+  const pkcs11Module =
+    process.env.PKCS11_MODULE_PATH || '/opt/libkmsp11/libkmsp11.so';
+  const kmsKeyResource = process.env.WIN_KMS_KEY_RESOURCE;
+  const certFile = process.env.WIN_CERT_FILE;
+  const kmsPkcs11Config = process.env.KMS_PKCS11_CONFIG;
+
+  if (!kmsKeyResource) {
+    console.log(
+      '[winSignKms] WIN_KMS_KEY_RESOURCE not set - skipping signing (validation build)'
+    );
+    return null;
+  }
+  if (!certFile || !fs.existsSync(certFile)) {
+    console.log(
+      '[winSignKms] WIN_CERT_FILE not set or does not exist - skipping signing (validation build)'
+    );
+    return null;
+  }
+  if (!fs.existsSync(pkcs11Module)) {
+    console.log(
+      `[winSignKms] PKCS11 module not found at ${pkcs11Module} - skipping signing (validation build)`
+    );
+    return null;
+  }
+
+  return { pkcs11Module, kmsKeyResource, certFile, kmsPkcs11Config };
+}
+
+/**
+ * Extract key alias from KMS resource
+ */
+function extractKeyAlias(kmsKeyResource, kmsPkcs11Config) {
+  console.log(`[winSignKms] Full KMS resource: ${kmsKeyResource}`);
+  console.log(`[winSignKms] KMS resource length: ${kmsKeyResource.length}`);
+  console.log(`[winSignKms] KMS resource type: ${typeof kmsKeyResource}`);
+  console.log(
+    `[winSignKms] First 20 chars: "${kmsKeyResource.substring(0, 20)}"`
+  );
+  console.log(`[winSignKms] KMS PKCS#11 config: ${kmsPkcs11Config}`);
+
+  // Debug: show config file contents if it exists
+  if (kmsPkcs11Config && fs.existsSync(kmsPkcs11Config)) {
+    const configContent = fs.readFileSync(kmsPkcs11Config, 'utf8');
+    console.log(`[winSignKms] Config file contents:\n${configContent}`);
+  }
+
+  const keyParts = kmsKeyResource.split('/');
+  const keyIndex = keyParts.indexOf('cryptoKeys');
+
+  console.log(`[winSignKms] Key parts: ${JSON.stringify(keyParts)}`);
+  console.log(`[winSignKms] cryptoKeys index: ${keyIndex}`);
+
+  let keyAlias;
+  if (keyIndex === -1) {
+    const fullKeyResource =
+      process.env.WIN_KMS_FULL_KEY_RESOURCE || process.env.WIN_KMS_KEY_RESOURCE;
+    console.log(`[winSignKms] Trying full key resource: ${fullKeyResource}`);
+
+    if (fullKeyResource && fullKeyResource !== kmsKeyResource) {
+      const fullKeyParts = fullKeyResource.split('/');
+      const fullKeyIndex = fullKeyParts.indexOf('cryptoKeys');
+      if (fullKeyIndex !== -1 && fullKeyIndex + 1 < fullKeyParts.length) {
+        keyAlias = fullKeyParts[fullKeyIndex + 1];
+        console.log(`[winSignKms] Using key from full resource: ${keyAlias}`);
+      }
+    }
+
+    if (!keyAlias) {
+      console.log(
+        `[winSignKms] No key found in resource, will try multiple key names`
+      );
+    }
+  } else {
+    if (keyIndex + 1 >= keyParts.length) {
+      throw new Error(
+        `[winSignKms] Invalid KMS key resource format: ${kmsKeyResource}`
+      );
+    }
+    keyAlias = keyParts[keyIndex + 1];
+    console.log(`[winSignKms] Extracted key name: ${keyAlias}`);
+  }
+
+  return keyAlias;
+}
+
+/**
+ * Get possible key identifiers to try
+ */
+function getPossibleKeyNames(keyAlias) {
+  const possibleKeyIds = keyAlias
+    ? [`id:${keyAlias}`, keyAlias]
+    : [
+        'id:70726f6a656374732f726f636b6574636861742d726e642f6c6f636174696f6e732f75732f6b657952696e67732f456c656374726f6e5f4465736b746f705f4170702f63727970746f4b6579732f456c656374726f6e5f4465736b746f705f4170705f4b65792f63727970746f4b657956657273696f6e732f31',
+        'Electron_Desktop_App_Key',
+        'Electron_Desktop_App',
+        'Electron-Desktop-App',
+        'ElectronDesktopApp',
+        'electron-desktop-app',
+        'signing-key',
+        'code-signing',
+        'Electron_Desktop_App_Signing_Key',
+      ];
+
+  return possibleKeyIds;
+}
+
+/**
+ * Check available signing tools
+ */
+function checkAvailableTools() {
+  const availableTools = [];
+
+  // Check for jsign
+  try {
+    const jsignCheck = spawnSync('jsign', ['--help'], { stdio: 'pipe' });
+    if (jsignCheck.status === 0 || jsignCheck.status === 1) {
+      availableTools.push('jsign');
+      console.log(`[winSignKms] jsign is available`);
+    }
+  } catch (error) {
+    console.log(`[winSignKms] jsign not available`);
+  }
+
+  // Check for gcloud
+  try {
+    const gcloudCheck = spawnSync('gcloud', ['--version'], { stdio: 'pipe' });
+    if (gcloudCheck.status === 0) {
+      availableTools.push('gcloud');
+      console.log(`[winSignKms] gcloud is available`);
+    }
+  } catch (error) {
+    console.log(`[winSignKms] gcloud not available`);
+  }
+
+  return availableTools;
+}
 
 module.exports = async function signWithGoogleKms(config) {
   // Handle Linux-based signing for Windows executables
@@ -100,110 +241,15 @@ signWindowsOnLinux = async function (config) {
   const { site } = config;
 
   // Check required environment variables
-  const pkcs11Module =
-    process.env.PKCS11_MODULE_PATH || '/opt/libkmsp11/libkmsp11.so';
-  const kmsKeyResource = process.env.WIN_KMS_KEY_RESOURCE;
-  const certFile = process.env.WIN_CERT_FILE;
-  const kmsPkcs11Config = process.env.KMS_PKCS11_CONFIG;
-
-  if (!kmsKeyResource) {
-    console.log(
-      '[winSignKms] WIN_KMS_KEY_RESOURCE not set - skipping signing (validation build)'
-    );
+  const env = validateEnvironment();
+  if (!env) {
     return;
   }
-  if (!certFile || !fs.existsSync(certFile)) {
-    console.log(
-      '[winSignKms] WIN_CERT_FILE not set or does not exist - skipping signing (validation build)'
-    );
-    return;
-  }
-  if (!fs.existsSync(pkcs11Module)) {
-    console.log(
-      `[winSignKms] PKCS11 module not found at ${pkcs11Module} - skipping signing (validation build)`
-    );
-    return;
-  }
+  const { pkcs11Module, kmsKeyResource, certFile, kmsPkcs11Config } = env;
 
   // Extract key alias from KMS resource
-  // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY/cryptoKeyVersions/VERSION
-  // According to Google Cloud KMS PKCS#11 documentation, when using a config file with key_ring,
-  // use just the key name with pkcs11:object=KEY_NAME, not the full path
-
-  console.log(`[winSignKms] Full KMS resource: ${kmsKeyResource}`);
-  console.log(`[winSignKms] KMS resource length: ${kmsKeyResource.length}`);
-  console.log(`[winSignKms] KMS resource type: ${typeof kmsKeyResource}`);
-  console.log(
-    `[winSignKms] First 20 chars: "${kmsKeyResource.substring(0, 20)}"`
-  );
-  console.log(`[winSignKms] KMS PKCS#11 config: ${kmsPkcs11Config}`);
-  // Debug: show config file contents if it exists
-  if (kmsPkcs11Config && fs.existsSync(kmsPkcs11Config)) {
-    const configContent = fs.readFileSync(kmsPkcs11Config, 'utf8');
-    console.log(`[winSignKms] Config file contents:\n${configContent}`);
-  }
-
-  // Extract just the key name (not the full path)
-  // Based on Google Cloud KMS PKCS#11 documentation and working examples,
-  // when using a config file with key_ring specified, use the key name only
-  const keyParts = kmsKeyResource.split('/');
-  const keyIndex = keyParts.indexOf('cryptoKeys');
-
-  console.log(`[winSignKms] Key parts: ${JSON.stringify(keyParts)}`);
-  console.log(`[winSignKms] cryptoKeys index: ${keyIndex}`);
-
-  let keyAlias;
-  if (keyIndex === -1) {
-    // If cryptoKeys not found, the resource might be truncated to just the key_ring
-    // In this case, we need to extract the key name from a different source
-    // Check if there's a separate environment variable or use a hardcoded fallback
-    const fullKeyResource =
-      process.env.WIN_KMS_FULL_KEY_RESOURCE || process.env.WIN_KMS_KEY_RESOURCE;
-    console.log(`[winSignKms] Trying full key resource: ${fullKeyResource}`);
-
-    if (fullKeyResource && fullKeyResource !== kmsKeyResource) {
-      const fullKeyParts = fullKeyResource.split('/');
-      const fullKeyIndex = fullKeyParts.indexOf('cryptoKeys');
-      if (fullKeyIndex !== -1 && fullKeyIndex + 1 < fullKeyParts.length) {
-        keyAlias = fullKeyParts[fullKeyIndex + 1];
-        console.log(`[winSignKms] Using key from full resource: ${keyAlias}`);
-      }
-    }
-
-    if (!keyAlias) {
-      // Will try multiple key names in the signing function
-      console.log(
-        `[winSignKms] No key found in resource, will try multiple key names`
-      );
-    }
-  } else {
-    if (keyIndex + 1 >= keyParts.length) {
-      throw new Error(
-        `[winSignKms] Invalid KMS key resource format: ${kmsKeyResource}`
-      );
-    }
-    keyAlias = keyParts[keyIndex + 1];
-    console.log(`[winSignKms] Extracted key name: ${keyAlias}`);
-  }
-
-  // If no keyAlias found, prepare multiple key identifiers to try
-  // Based on PKCS#11 object listing, we can reference keys by ID or label
-  const possibleKeyIds = keyAlias
-    ? [`id:${keyAlias}`, keyAlias]
-    : [
-        // Try using the hex-encoded ID from PKCS#11 listing to avoid segfault
-        'id:70726f6a656374732f726f636b6574636861742d726e642f6c6f636174696f6e732f75732f6b657952696e67732f456c656374726f6e5f4465736b746f705f4170702f63727970746f4b6579732f456c656374726f6e5f4465736b746f705f4170705f4b65792f63727970746f4b657956657273696f6e732f31',
-        'Electron_Desktop_App_Key', // Actual key name found via PKCS#11 listing (causes SIGSEGV)
-        'Electron_Desktop_App', // Same as keyRing
-        'Electron-Desktop-App', // Hyphenated version
-        'ElectronDesktopApp', // CamelCase
-        'electron-desktop-app', // lowercase
-        'signing-key', // Generic
-        'code-signing', // Generic
-        'Electron_Desktop_App_Signing_Key', // Original fallback
-      ];
-
-  const possibleKeyNames = possibleKeyIds;
+  const keyAlias = extractKeyAlias(kmsKeyResource, kmsPkcs11Config);
+  const possibleKeyNames = getPossibleKeyNames(keyAlias);
 
   console.log(
     `[winSignKms] Will try key names: ${possibleKeyNames.join(', ')}`
@@ -217,31 +263,7 @@ signWindowsOnLinux = async function (config) {
   );
 
   // Check available signing tools
-  const { spawnSync } = require('child_process');
-  const availableTools = [];
-
-  // Check for jsign (Java-based code signing with better cloud support)
-  try {
-    const jsignCheck = spawnSync('jsign', ['--help'], { stdio: 'pipe' });
-    if (jsignCheck.status === 0 || jsignCheck.status === 1) {
-      // jsign may return 1 for help
-      availableTools.push('jsign');
-      console.log(`[winSignKms] jsign is available`);
-    }
-  } catch (error) {
-    console.log(`[winSignKms] jsign not available`);
-  }
-
-  // Check for gcloud
-  try {
-    const gcloudCheck = spawnSync('gcloud', ['--version'], { stdio: 'pipe' });
-    if (gcloudCheck.status === 0) {
-      availableTools.push('gcloud');
-      console.log(`[winSignKms] gcloud is available`);
-    }
-  } catch (error) {
-    console.log(`[winSignKms] gcloud not available`);
-  }
+  const availableTools = checkAvailableTools();
 
   console.log(
     `[winSignKms] Available alternative tools: ${availableTools.join(', ')}`
@@ -299,6 +321,87 @@ signWindowsOnLinux = async function (config) {
       }
     } catch (error) {
       console.log(`[winSignKms] jsign signing failed: ${error.message}`);
+    }
+  }
+
+  // If gcloud is available, try a custom signing approach using gcloud + osslsigncode
+  if (availableTools.includes('gcloud')) {
+    console.log(
+      `[winSignKms] Attempting custom signing with gcloud KMS + osslsigncode...`
+    );
+
+    try {
+      // First, let's try to skip PKCS#11 and use a direct approach
+      // Check if we can use openssl with the certificate directly
+      console.log(
+        `[winSignKms] Testing direct certificate and gcloud approach...`
+      );
+
+      // Try osslsigncode with just the certificate file (no PKCS#11)
+      const directArgs = [
+        'sign',
+        '-certs',
+        certFile,
+        '-key',
+        certFile, // This will fail but let's see the error
+        '-t',
+        'http://timestamp.digicert.com',
+        '-h',
+        'sha256',
+        '-n',
+        name,
+      ];
+
+      if (site) {
+        directArgs.push('-i', site);
+      }
+
+      const tempOutput = `${input}.direct_signed`;
+      directArgs.push('-in', path.resolve(input));
+      directArgs.push('-out', tempOutput);
+
+      console.log(
+        `[winSignKms] Direct command: osslsigncode ${directArgs.join(' ')}`
+      );
+
+      const directResult = spawnSync('osslsigncode', directArgs, {
+        stdio: 'pipe',
+        timeout: 60000,
+        env: {
+          ...process.env,
+          GOOGLE_APPLICATION_CREDENTIALS:
+            process.env.GOOGLE_APPLICATION_CREDENTIALS,
+        },
+      });
+
+      console.log(
+        `[winSignKms] Direct approach exit code: ${directResult.status}`
+      );
+      if (directResult.stdout) {
+        console.log(
+          `[winSignKms] Direct stdout: ${directResult.stdout.toString()}`
+        );
+      }
+      if (directResult.stderr) {
+        console.log(
+          `[winSignKms] Direct stderr: ${directResult.stderr.toString()}`
+        );
+      }
+
+      if (directResult.status === 0) {
+        // Move signed file back to original location
+        fs.renameSync(tempOutput, input);
+        console.log(`[winSignKms] Successfully signed with direct approach!`);
+        return;
+      }
+      // Clean up temp file if it exists
+      if (fs.existsSync(tempOutput)) {
+        fs.unlinkSync(tempOutput);
+      }
+    } catch (error) {
+      console.log(
+        `[winSignKms] gcloud direct approach failed: ${error.message}`
+      );
     }
   }
 

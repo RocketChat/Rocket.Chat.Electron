@@ -242,7 +242,7 @@ jobs:
           sudo apt-get update
           
           # Install Wine with proper 32-bit support
-          sudo apt-get install -y osslsigncode libengine-pkcs11-openssl opensc wget
+          sudo apt-get install -y osslsigncode libengine-pkcs11-openssl opensc wget jq
           sudo apt-get install -y wine64 wine32:i386
           
           # Install Java and jsign for alternative signing
@@ -254,6 +254,18 @@ jobs:
           echo '#!/bin/bash' | sudo tee /usr/local/bin/jsign
           echo 'java -jar /opt/jsign/jsign.jar "$@"' | sudo tee -a /usr/local/bin/jsign
           sudo chmod +x /usr/local/bin/jsign
+          
+          # Install Google Cloud CLI for direct KMS access
+          echo "Installing Google Cloud CLI..."
+          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo tee /usr/share/keyrings/cloud.google.gpg
+          sudo apt-get update && sudo apt-get install -y google-cloud-cli
+          
+          # Authenticate gcloud with service account
+          echo "Authenticating gcloud..."
+          gcloud auth activate-service-account --key-file=$RUNNER_TEMP/gcp-sa.json
+          gcloud config set project $(cat $RUNNER_TEMP/gcp-sa.json | jq -r '.project_id')
           
           # Set up Wine environment
           export WINEARCH=win32

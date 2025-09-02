@@ -278,18 +278,58 @@ signWindowsOnLinux = async function (config) {
     try {
       // For Google Cloud KMS with jsign, we need:
       // - storetype: GOOGLECLOUD
-      // - keystore: projects/PROJECT_ID
-      // - alias: cryptoKeys/KEY_NAME/cryptoKeyVersions/VERSION
+      // - keystore: full keyring path (projects/PROJECT_ID/locations/LOCATION/keyRings/KEYRING)
+      // - alias: key name only (KEY_NAME)
       // - certificate file for the public key
-      const projectId = kmsKeyResource.split('/')[1]; // Extract project ID from resource
+      // - access token via gcloud auth print-access-token
+
+      // Extract components from KMS resource path
+      // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY/cryptoKeyVersions/VERSION
+      const resourceParts = kmsKeyResource.split('/');
+      const projectId = resourceParts[1];
+      const location = resourceParts[3];
+      const keyRingName = resourceParts[5];
       const keyName = keyAlias || 'Electron_Desktop_App_Key';
+
+      console.log(
+        `[winSignKms] Extracted: project=${projectId}, location=${location}, keyring=${keyRingName}, key=${keyName}`
+      );
+
+      // Get access token using gcloud
+      const gcloudResult = spawnSync('gcloud', ['auth', 'print-access-token'], {
+        stdio: 'pipe',
+        timeout: 30000,
+        env: {
+          ...process.env,
+          GOOGLE_APPLICATION_CREDENTIALS:
+            process.env.GOOGLE_APPLICATION_CREDENTIALS,
+        },
+      });
+
+      if (gcloudResult.status !== 0 || !gcloudResult.stdout) {
+        console.log(`[winSignKms] Failed to get access token via gcloud`);
+        if (gcloudResult.stderr) {
+          console.log(
+            `[winSignKms] gcloud error: ${gcloudResult.stderr.toString()}`
+          );
+        }
+        throw new Error('Failed to get Google Cloud access token');
+      }
+
+      const accessToken = gcloudResult.stdout.toString().trim();
+      console.log(
+        `[winSignKms] Got access token (${accessToken.length} chars)`
+      );
+
       const jsignArgs = [
         '--storetype',
         'GOOGLECLOUD',
         '--keystore',
-        `projects/${projectId}`,
+        `projects/${projectId}/locations/${location}/keyRings/${keyRingName}`,
+        '--storepass',
+        accessToken,
         '--alias',
-        `cryptoKeys/${keyName}/cryptoKeyVersions/1`,
+        keyName,
         '--certfile',
         certFile,
         '--tsaurl',

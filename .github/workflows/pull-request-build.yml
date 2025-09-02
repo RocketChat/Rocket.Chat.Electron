@@ -249,7 +249,11 @@ jobs:
           Write-Host "Installing Google Cloud CLI..." -ForegroundColor Cyan
           choco install gcloudsdk -y
           
-          # Manually add gcloud to PATH since refreshenv doesn't work in CI
+          # Refresh environment variables to pick up PATH changes
+          Write-Host "Refreshing environment variables..." -ForegroundColor Cyan
+          refreshenv
+          
+          # Also manually add gcloud to PATH for this session
           $gcloudPath = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin"
           $env:PATH += ";$gcloudPath"
           echo "$gcloudPath" >> $env:GITHUB_PATH

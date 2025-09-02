@@ -229,6 +229,22 @@ jobs:
           Write-Host "Installing OpenJDK 11..." -ForegroundColor Cyan
           choco install openjdk11 -y
           
+          # Refresh environment to pick up Java
+          refreshenv
+          
+          # Verify Java installation and add to PATH
+          $javaHome = [System.Environment]::GetEnvironmentVariable("JAVA_HOME", "Machine")
+          if ($javaHome -and (Test-Path "$javaHome\bin\java.exe")) {
+            Write-Host "Java found at: $javaHome" -ForegroundColor Green
+            $env:JAVA_HOME = $javaHome
+            $javaBinPath = "$javaHome\bin"
+            $env:PATH = "$javaBinPath;$env:PATH"
+            echo "$javaBinPath" >> $env:GITHUB_PATH
+          } else {
+            Write-Error "Java installation not found or JAVA_HOME not set"
+            exit 1
+          }
+          
           Write-Host "Installing jsign..." -ForegroundColor Cyan
           choco install jsign -y
           

@@ -201,19 +201,15 @@ signWindowsOnLinux = async function (config) {
 
   // Get access token using gcloud
   console.log('[winSignKms] Getting access token from gcloud...');
-  const gcloudResult = spawnSync(
-    'cmd',
-    ['/c', gcloudCmd, 'auth', 'print-access-token'],
-    {
-      stdio: 'pipe',
-      timeout: 30000,
-      env: {
-        ...process.env,
-        GOOGLE_APPLICATION_CREDENTIALS:
-          process.env.GOOGLE_APPLICATION_CREDENTIALS,
-      },
-    }
-  );
+  const gcloudResult = spawnSync(gcloudCmd, ['auth', 'print-access-token'], {
+    stdio: 'pipe',
+    timeout: 30000,
+    env: {
+      ...process.env,
+      GOOGLE_APPLICATION_CREDENTIALS:
+        process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    },
+  });
 
   if (gcloudResult.status !== 0) {
     const errorOutput = gcloudResult.stderr
@@ -260,7 +256,7 @@ signWindowsOnLinux = async function (config) {
   );
 
   // Execute jsign
-  const result = spawnSync('cmd', ['/c', jsignCmd].concat(jsignArgs), {
+  const result = spawnSync(jsignCmd, jsignArgs, {
     stdio: 'pipe',
     timeout: 120000,
     env: {

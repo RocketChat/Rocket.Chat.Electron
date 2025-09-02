@@ -133,7 +133,7 @@ signWindowsOnLinux = async function (config) {
   console.log(`[winSignKms] Full KMS resource: ${kmsKeyResource}`);
   console.log(`[winSignKms] KMS resource length: ${kmsKeyResource.length}`);
   console.log(`[winSignKms] KMS PKCS#11 config: ${kmsPkcs11Config}`);
-  
+
   // Debug: show config file contents if it exists
   if (kmsPkcs11Config && fs.existsSync(kmsPkcs11Config)) {
     const configContent = fs.readFileSync(kmsPkcs11Config, 'utf8');

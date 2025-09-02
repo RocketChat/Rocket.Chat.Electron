@@ -186,11 +186,14 @@ signWindowsOnLinux = async function (config) {
     console.log(`[winSignKms] Extracted key name: ${keyAlias}`);
   }
 
-  // If no keyAlias found, prepare multiple key names to try
-  const possibleKeyNames = keyAlias
-    ? [keyAlias]
+  // If no keyAlias found, prepare multiple key identifiers to try
+  // Based on PKCS#11 object listing, we can reference keys by ID or label
+  const possibleKeyIds = keyAlias
+    ? [`id:${keyAlias}`, keyAlias]
     : [
-        'Electron_Desktop_App_Key', // Actual key name found via PKCS#11 listing
+        // Try using the hex-encoded ID from PKCS#11 listing to avoid segfault
+        'id:70726f6a656374732f726f636b6574636861742d726e642f6c6f636174696f6e732f75732f6b657952696e67732f456c656374726f6e5f4465736b746f705f4170702f63727970746f4b6579732f456c656374726f6e5f4465736b746f705f4170705f4b65792f63727970746f4b657956657273696f6e732f31',
+        'Electron_Desktop_App_Key', // Actual key name found via PKCS#11 listing (causes SIGSEGV)
         'Electron_Desktop_App', // Same as keyRing
         'Electron-Desktop-App', // Hyphenated version
         'ElectronDesktopApp', // CamelCase
@@ -199,6 +202,8 @@ signWindowsOnLinux = async function (config) {
         'code-signing', // Generic
         'Electron_Desktop_App_Signing_Key', // Original fallback
       ];
+
+  const possibleKeyNames = possibleKeyIds;
 
   console.log(
     `[winSignKms] Will try key names: ${possibleKeyNames.join(', ')}`

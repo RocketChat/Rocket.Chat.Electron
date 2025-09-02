@@ -46,16 +46,33 @@ function extractKeyAlias(kmsKeyResource) {
  * Check available tools
  */
 function checkAvailableTools() {
-  const jsignResult = spawnSync('jsign', ['--help'], { stdio: 'pipe' });
+  // On Windows, we need to use .cmd extensions
+  const jsignCmd = process.platform === 'win32' ? 'jsign.cmd' : 'jsign';
+  const gcloudCmd = process.platform === 'win32' ? 'gcloud.cmd' : 'gcloud';
+
+  const jsignResult = spawnSync(jsignCmd, ['--help'], { stdio: 'pipe' });
   const jsignAvailable = jsignResult.status === 0;
 
-  const gcloudResult = spawnSync('gcloud', ['--version'], { stdio: 'pipe' });
+  const gcloudResult = spawnSync(gcloudCmd, ['--version'], { stdio: 'pipe' });
   const gcloudAvailable = gcloudResult.status === 0;
 
   console.log(`[winSignKms] jsign available: ${jsignAvailable}`);
   console.log(`[winSignKms] gcloud available: ${gcloudAvailable}`);
 
-  return { jsignAvailable, gcloudAvailable };
+  if (!jsignAvailable) {
+    console.log(
+      `[winSignKms] jsign check failed with ${jsignCmd}:`,
+      jsignResult.error?.message || 'No error message'
+    );
+  }
+  if (!gcloudAvailable) {
+    console.log(
+      `[winSignKms] gcloud check failed with ${gcloudCmd}:`,
+      gcloudResult.error?.message || 'No error message'
+    );
+  }
+
+  return { jsignAvailable, gcloudAvailable, jsignCmd, gcloudCmd };
 }
 
 module.exports = async function signWithGoogleKms(config) {
@@ -93,7 +110,8 @@ signWindowsOnLinux = async function (config) {
   const { kmsKeyResource, certFile } = envConfig;
 
   // Check available tools
-  const { jsignAvailable, gcloudAvailable } = checkAvailableTools();
+  const { jsignAvailable, gcloudAvailable, jsignCmd, gcloudCmd } =
+    checkAvailableTools();
 
   if (!jsignAvailable) {
     throw new Error('[winSignKms] jsign not available. Please install jsign.');
@@ -120,7 +138,7 @@ signWindowsOnLinux = async function (config) {
 
   // Get access token using gcloud
   console.log('[winSignKms] Getting access token from gcloud...');
-  const gcloudResult = spawnSync('gcloud', ['auth', 'print-access-token'], {
+  const gcloudResult = spawnSync(gcloudCmd, ['auth', 'print-access-token'], {
     stdio: 'pipe',
     timeout: 30000,
     env: {
@@ -175,7 +193,7 @@ signWindowsOnLinux = async function (config) {
   );
 
   // Execute jsign
-  const result = spawnSync('jsign', jsignArgs, {
+  const result = spawnSync(jsignCmd, jsignArgs, {
     stdio: 'pipe',
     timeout: 120000,
     env: {
@@ -224,7 +242,8 @@ signWindowsOnWindows = async function (config) {
   const { kmsKeyResource, certFile } = envConfig;
 
   // Check available tools
-  const { jsignAvailable, gcloudAvailable } = checkAvailableTools();
+  const { jsignAvailable, gcloudAvailable, jsignCmd, gcloudCmd } =
+    checkAvailableTools();
 
   if (!jsignAvailable) {
     throw new Error('[winSignKms] jsign not available. Please install jsign.');
@@ -251,7 +270,7 @@ signWindowsOnWindows = async function (config) {
 
   // Get access token using gcloud
   console.log('[winSignKms] Getting access token from gcloud...');
-  const gcloudResult = spawnSync('gcloud', ['auth', 'print-access-token'], {
+  const gcloudResult = spawnSync(gcloudCmd, ['auth', 'print-access-token'], {
     stdio: 'pipe',
     timeout: 30000,
     env: {
@@ -306,7 +325,7 @@ signWindowsOnWindows = async function (config) {
   );
 
   // Execute jsign
-  const result = spawnSync('jsign', jsignArgs, {
+  const result = spawnSync(jsignCmd, jsignArgs, {
     stdio: 'pipe',
     timeout: 120000,
     env: {

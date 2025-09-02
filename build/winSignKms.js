@@ -201,9 +201,6 @@ module.exports = async function signWithGoogleKms(config) {
   );
 
   // Execute jsign
-  let jsignExe = jsignCmd;
-  let finalArgs = jsignArgs;
-
   // Always invoke jsign directly, do not use cmd.exe or /c to avoid shell interpretation.
 
   const result = spawnSync(jsignCmd, jsignArgs, {

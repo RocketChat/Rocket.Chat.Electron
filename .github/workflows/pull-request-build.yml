@@ -233,9 +233,17 @@ jobs:
       - name: Build Windows Package on Linux (KMS Signing)
         if: ${{ matrix.build-target == 'windows-on-linux' }}
         run: |
+          # Install Wine for electron-builder (required even with custom signing)
+          echo "Installing Wine for electron-builder..."
+          sudo apt-get update
+          
+          # Enable 32-bit architecture for Wine32 and install Wine properly
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y wine64 wine32:i386
+          
           # Install Java and jsign for signing
           echo "Installing Java and jsign..."
-          sudo apt-get update
           sudo apt-get install -y openjdk-11-jre-headless wget jq
           wget -q -O /tmp/jsign-6.0.jar https://github.com/ebourg/jsign/releases/download/6.0/jsign-6.0.jar
           sudo mkdir -p /opt/jsign
@@ -255,6 +263,17 @@ jobs:
           echo "Authenticating gcloud..."
           gcloud auth activate-service-account --key-file=$RUNNER_TEMP/gcp-sa.json
           gcloud config set project $(cat $RUNNER_TEMP/gcp-sa.json | jq -r '.project_id')
+          
+          # Set up Wine environment
+          echo "Setting up Wine environment..."
+          export WINEARCH=win32
+          export WINEPREFIX=$HOME/.wine32
+          
+          # Initialize Wine with 32-bit prefix
+          wineboot --init
+          
+          # Verify Wine32 is working
+          wine --version
           
           # Set up certificates
           echo "Setting up certificates..."
@@ -283,6 +302,9 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
           WIN_CERT_FILE: ${{ runner.temp }}/certs/user.crt
+          # Wine environment for 32-bit support
+          WINEARCH: win32
+          WINEPREFIX: /home/runner/.wine32
 
       - name: Build Windows Package (Windows native - old method)
         if: ${{ matrix.os == 'windows-latest' && false }}

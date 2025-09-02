@@ -220,6 +220,55 @@ jobs:
             exit 1
           }
 
+      # Set up jsign and Google Cloud CLI for Windows builds
+      - name: Setup jsign and Google Cloud CLI (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          # Install Java for jsign
+          Write-Host "Installing OpenJDK 11..." -ForegroundColor Cyan
+          choco install openjdk11 -y
+          
+          # Download and setup jsign
+          Write-Host "Installing jsign..." -ForegroundColor Cyan
+          $jsignUrl = "https://github.com/ebourg/jsign/releases/download/6.0/jsign-6.0.jar"
+          $jsignPath = "$env:ProgramFiles\jsign"
+          New-Item -ItemType Directory -Path $jsignPath -Force | Out-Null
+          
+          Invoke-WebRequest -Uri $jsignUrl -OutFile "$jsignPath\jsign.jar"
+          
+          # Create jsign wrapper script
+          $jsignScript = "@echo off`njava -jar `"$jsignPath\jsign.jar`" %*"
+          $jsignScript | Out-File -FilePath "$jsignPath\jsign.cmd" -Encoding ASCII
+          
+          # Add jsign to PATH
+          $env:PATH += ";$jsignPath"
+          echo "$jsignPath" >> $env:GITHUB_PATH
+          
+          # Install Google Cloud CLI
+          Write-Host "Installing Google Cloud CLI..." -ForegroundColor Cyan
+          choco install gcloudsdk -y
+          
+          # Refresh environment to get gcloud in PATH
+          refreshenv
+          
+          # Authenticate with service account
+          Write-Host "Authenticating with Google Cloud..." -ForegroundColor Cyan
+          if ($env:GOOGLE_APPLICATION_CREDENTIALS -and (Test-Path $env:GOOGLE_APPLICATION_CREDENTIALS)) {
+            gcloud auth activate-service-account --key-file="$env:GOOGLE_APPLICATION_CREDENTIALS"
+            $projectId = (Get-Content $env:GOOGLE_APPLICATION_CREDENTIALS | ConvertFrom-Json).project_id
+            gcloud config set project $projectId
+            Write-Host "✅ Google Cloud authentication successful"
+          } else {
+            Write-Error "❌ Google Cloud credentials not available"
+          }
+          
+          # Verify tools are installed
+          Write-Host "Verifying installations..." -ForegroundColor Cyan
+          java -version
+          jsign --help | Select-Object -First 2
+          gcloud version
+
       # Set up Google Cloud authentication for Linux builds
       - name: Setup Google Cloud authentication (Linux)
         if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -320,8 +369,8 @@ jobs:
           WINEPREFIX: /home/runner/.wine32
           DISPLAY: :99
 
-      - name: Build Windows Package (Windows native - old method)
-        if: ${{ matrix.os == 'windows-latest' && false }}
+      - name: Build Windows Package (Windows native)
+        if: ${{ matrix.os == 'windows-latest' }}
         shell: pwsh
         run: |
           # Verify environment before build
@@ -462,6 +511,7 @@ jobs:
           yarn electron-builder --publish never --x64 --win nsis
         env:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
+          WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt
           WIN_KMS_CERT_SHA1: ${{ env.WIN_KMS_CERT_SHA1 }}
           WIN_KMS_CSP: 'Google Cloud KMS Provider'
           WIN_TIMESTAMP_URL: 'http://timestamp.digicert.com'

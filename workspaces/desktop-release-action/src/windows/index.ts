@@ -86,7 +86,9 @@ export const packOnWindows = async (): Promise<void> => {
     core.info('Signing all built packages...');
     // The action runs from the repository root in GitHub Actions
     // Current working directory is D:\a\Rocket.Chat.Electron\Rocket.Chat.Electron
-    const distPath = path.join(process.cwd(), 'dist');
+    // Use resolve to ensure we get the correct absolute path
+    const distPath = path.resolve(process.cwd(), 'dist');
+    core.info(`Looking for packages to sign in: ${distPath}`);
     await signBuiltPackages(distPath);
     
     core.info('✅ Windows packages built and signed successfully');

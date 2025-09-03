@@ -46554,8 +46554,10 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
         lib_core.info('Signing all built packages...');
         // The action runs from the repository root in GitHub Actions
         // Current working directory is D:\a\Rocket.Chat.Electron\Rocket.Chat.Electron
-        const distPath = __nccwpck_require__.ab + "dist";
-        yield signBuiltPackages(__nccwpck_require__.ab + "dist");
+        // Use resolve to ensure we get the correct absolute path
+        const distPath = external_path_.resolve(process.cwd(), 'dist');
+        lib_core.info(`Looking for packages to sign in: ${distPath}`);
+        yield signBuiltPackages(distPath);
         lib_core.info('✅ Windows packages built and signed successfully');
     }
     catch (error) {

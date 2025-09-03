@@ -96,9 +96,9 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
   core.info(`Found ${uniqueFiles.length} files to sign`);
   
   if (uniqueFiles.length === 0) {
-    core.warning(`No packages found to sign in ${distPath}`);
-    core.warning(`Current working directory: ${process.cwd()}`);
-    return;
+    core.error(`No packages found to sign in ${distPath}`);
+    core.error(`Current working directory: ${process.cwd()}`);
+    throw new Error(`No Windows packages found to sign. Expected .exe, .msi, or .appx files in ${distPath}`);
   }
   
   // Sign each file

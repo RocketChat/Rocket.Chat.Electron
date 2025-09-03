@@ -46420,9 +46420,9 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
     const uniqueFiles = Array.from(new Set(filesToSign));
     lib_core.info(`Found ${uniqueFiles.length} files to sign`);
     if (uniqueFiles.length === 0) {
-        lib_core.warning(`No packages found to sign in ${distPath}`);
-        lib_core.warning(`Current working directory: ${process.cwd()}`);
-        return;
+        lib_core.error(`No packages found to sign in ${distPath}`);
+        lib_core.error(`Current working directory: ${process.cwd()}`);
+        throw new Error(`No Windows packages found to sign. Expected .exe, .msi, or .appx files in ${distPath}`);
     }
     // Sign each file
     for (const file of uniqueFiles) {

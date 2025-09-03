@@ -46552,9 +46552,10 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
         process.env.GCLOUD_PATH = gcloudPath;
         // Sign all the built packages
         lib_core.info('Signing all built packages...');
-        // electron-builder runs from the repository root, so dist is at the root
-        const distPath = external_path_.resolve(process.cwd(), '../../dist');
-        yield signBuiltPackages(distPath);
+        // The action runs from the repository root in GitHub Actions
+        // Current working directory is D:\a\Rocket.Chat.Electron\Rocket.Chat.Electron
+        const distPath = __nccwpck_require__.ab + "dist";
+        yield signBuiltPackages(__nccwpck_require__.ab + "dist");
         lib_core.info('✅ Windows packages built and signed successfully');
     }
     catch (error) {

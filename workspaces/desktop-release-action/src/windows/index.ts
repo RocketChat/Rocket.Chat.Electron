@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as core from '@actions/core';
 import { runElectronBuilder } from '../shell';
 import { setupCertificates } from './certificates';
@@ -83,7 +84,8 @@ export const packOnWindows = async (): Promise<void> => {
     
     // Sign all the built packages
     core.info('Signing all built packages...');
-    const distPath = process.cwd() + '/dist';
+    // electron-builder runs from the repository root, so dist is at the root
+    const distPath = path.resolve(process.cwd(), '../../dist');
     await signBuiltPackages(distPath);
     
     core.info('✅ Windows packages built and signed successfully');

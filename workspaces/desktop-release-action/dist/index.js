@@ -46478,23 +46478,20 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
         // Build all Windows packages WITHOUT signing
         // We'll sign them after build to avoid KMS CNG provider MSI installation
         // interfering with our MSI builds
-        // Create electron-builder config that disables signing
-        const buildConfig = {
-            win: {
-                forceCodeSigning: false,
-                sign: false,
-                signAndEditExecutable: false
-            }
-        };
+        // Temporarily disable signing by removing the signing script from env
+        // This is the most reliable way to prevent electron-builder from signing
+        const buildEnv = Object.assign(Object.assign({}, baseEnv), { 
+            // Remove KMS key so winSignKms.js will skip signing
+            WIN_KMS_KEY_RESOURCE: '', WIN_CERT_FILE: '' });
         // Build NSIS installer (unsigned)
         lib_core.info('Building NSIS installer (unsigned)...');
-        yield runElectronBuilder(`--x64 --win nsis`, Object.assign(Object.assign({}, baseEnv), { ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig) }));
+        yield runElectronBuilder(`--x64 --win nsis`, buildEnv);
         // Build MSI installer (unsigned)
         lib_core.info('Building MSI installer (unsigned)...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, Object.assign(Object.assign({}, baseEnv), { ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig) }));
+        yield runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
         // Build AppX package (unsigned)
         lib_core.info('Building AppX package (unsigned)...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, Object.assign(Object.assign({}, baseEnv), { ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig) }));
+        yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, buildEnv);
         lib_core.info('✅ All Windows packages built successfully (unsigned)');
         // NOW install KMS CNG provider and signing tools
         // This won't interfere with MSI builds since they're already done
@@ -46507,7 +46504,9 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
         const gcloudPath = yield installGoogleCloudCLI();
         // Authenticate gcloud with service account
         yield authenticateGcloud(credentialsPath, gcloudPath);
-        // Update environment with gcloud path for signing
+        // Restore environment variables for signing
+        process.env.WIN_KMS_KEY_RESOURCE = kmsKeyResource;
+        process.env.WIN_CERT_FILE = userCertPath;
         process.env.GCLOUD_PATH = gcloudPath;
         // Sign all the built packages
         lib_core.info('Signing all built packages...');

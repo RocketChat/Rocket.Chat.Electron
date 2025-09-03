@@ -43016,6 +43016,38 @@ const installJsign = () => signing_tools_awaiter(void 0, void 0, void 0, functio
     process.env.PATH = `${jsignPath};${process.env.PATH}`;
 });
 
+;// CONCATENATED MODULE: ./src/windows/msi-service-fix.ts
+var msi_service_fix_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+/**
+ * Fix Windows Installer service to prevent MSI build errors
+ * This resolves the common "LGHT0217" error when building MSI packages
+ */
+const fixWindowsInstallerService = () => msi_service_fix_awaiter(void 0, void 0, void 0, function* () {
+    core.info('Fixing Windows Installer service for MSI builds...');
+    try {
+        // Re-register Windows Installer service
+        yield run('msiexec /unregister');
+        yield run('msiexec /regserver');
+        // Ensure the service is running
+        yield run('powershell -Command "Start-Service msiserver -ErrorAction SilentlyContinue"');
+        core.info('Windows Installer service fixed successfully');
+    }
+    catch (error) {
+        core.warning(`Failed to fix Windows Installer service: ${error}`);
+        // Don't fail the build if this fix doesn't work
+    }
+});
+
 ;// CONCATENATED MODULE: ./src/windows/index.ts
 var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -43032,6 +43064,7 @@ var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
 
 
 
+
 const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* () {
     try {
         // Find and setup signtool
@@ -43040,6 +43073,8 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
         const credentialsPath = yield setupGoogleCloudAuth();
         // Install Google Cloud KMS CNG provider
         yield installKmsCngProvider();
+        // Fix Windows Installer service for MSI builds
+        yield fixWindowsInstallerService();
         // Install jsign for Java-based signing
         yield installJsign();
         // Install and configure Google Cloud CLI

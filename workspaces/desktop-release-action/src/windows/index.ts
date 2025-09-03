@@ -4,6 +4,7 @@ import { setupCertificates } from './certificates';
 import { setupGoogleCloudAuth, installGoogleCloudCLI, authenticateGcloud } from './google-cloud';
 import { installKmsCngProvider } from './kms-provider';
 import { findSigntool, installJsign } from './signing-tools';
+import { fixWindowsInstallerService } from './msi-service-fix';
 
 export const packOnWindows = async (): Promise<void> => {
   try {
@@ -15,6 +16,9 @@ export const packOnWindows = async (): Promise<void> => {
     
     // Install Google Cloud KMS CNG provider
     await installKmsCngProvider();
+    
+    // Fix Windows Installer service for MSI builds
+    await fixWindowsInstallerService();
     
     // Install jsign for Java-based signing
     await installJsign();

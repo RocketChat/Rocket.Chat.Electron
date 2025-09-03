@@ -46341,6 +46341,7 @@ var sign_packages_awaiter = (undefined && undefined.__awaiter) || function (this
 
 
 
+
 /**
  * Sign all built Windows packages using jsign
  */
@@ -46363,11 +46364,20 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
     const keyName = resourceParts[7]; // cryptoKeys/KEY_NAME
     // Get access token from gcloud
     lib_core.info('Getting access token from gcloud...');
-    const accessTokenRaw = yield runAndBuffer(`"${gcloudPath}" auth print-access-token`);
-    const accessToken = accessTokenRaw.trim();
+    let accessToken = '';
+    yield exec.exec(`${gcloudPath}`, ['auth', 'print-access-token'], {
+        listeners: {
+            stdout: (data) => {
+                accessToken += data.toString();
+            }
+        },
+        silent: true // Don't show the token in logs
+    });
+    accessToken = accessToken.trim();
     if (!accessToken) {
         throw new Error('Failed to get access token from gcloud');
     }
+    lib_core.info(`Access token retrieved successfully (length: ${accessToken.length})`);
     // Find all packages to sign
     const patterns = [
         '**/*.exe', // All executables (NSIS installers and unpacked apps)

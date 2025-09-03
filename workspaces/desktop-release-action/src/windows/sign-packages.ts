@@ -1,7 +1,8 @@
 import * as core from '@actions/core';
+import * as exec from '@actions/exec';
 import * as path from 'path';
 import * as glob from 'glob';
-import { run, runAndBuffer } from '../shell';
+import { run } from '../shell';
 
 /**
  * Sign all built Windows packages using jsign
@@ -29,12 +30,23 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
   
   // Get access token from gcloud
   core.info('Getting access token from gcloud...');
-  const accessTokenRaw = await runAndBuffer(`"${gcloudPath}" auth print-access-token`);
-  const accessToken = accessTokenRaw.trim();
+  let accessToken = '';
+  await exec.exec(`${gcloudPath}`, ['auth', 'print-access-token'], {
+    listeners: {
+      stdout: (data: Buffer) => {
+        accessToken += data.toString();
+      }
+    },
+    silent: true  // Don't show the token in logs
+  });
+  
+  accessToken = accessToken.trim();
   
   if (!accessToken) {
     throw new Error('Failed to get access token from gcloud');
   }
+  
+  core.info(`Access token retrieved successfully (length: ${accessToken.length})`)
   
   // Find all packages to sign
   const patterns = [

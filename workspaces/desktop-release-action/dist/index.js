@@ -43904,6 +43904,21 @@ try {
 
 /***/ }),
 
+/***/ 3783:
+/***/ ((module) => {
+
+function webpackEmptyContext(req) {
+	var e = new Error("Cannot find module '" + req + "'");
+	e.code = 'MODULE_NOT_FOUND';
+	throw e;
+}
+webpackEmptyContext.keys = () => ([]);
+webpackEmptyContext.resolve = webpackEmptyContext;
+webpackEmptyContext.id = 3783;
+module.exports = webpackEmptyContext;
+
+/***/ }),
+
 /***/ 9491:
 /***/ ((module) => {
 
@@ -46340,60 +46355,23 @@ var sign_packages_awaiter = (undefined && undefined.__awaiter) || function (this
 
 
 
-
-
 /**
- * Sign all built Windows packages using jsign
+ * Sign all built Windows packages using the existing winSignKms.js
  */
 const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, void 0, function* () {
     lib_core.info('Signing built Windows packages...');
-    // Get signing configuration
+    // Check that required environment variables are set
     const kmsKeyResource = process.env.WIN_KMS_KEY_RESOURCE;
     const certFile = process.env.WIN_CERT_FILE;
-    const gcloudBinPath = process.env.GCLOUD_PATH || 'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin';
-    const gcloudCmd = `${gcloudBinPath}\\gcloud.cmd`;
-    const jsignPath = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
     if (!kmsKeyResource || !certFile) {
         lib_core.warning('Signing credentials not available, skipping package signing');
         return;
     }
-    // Extract KMS configuration
-    // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY/cryptoKeyVersions/VERSION
-    // But sometimes the cryptoKeys/KEY part is missing, so we need to handle that
-    const resourceParts = kmsKeyResource.split('/');
-    // Extract key alias (same logic as winSignKms.js)
-    function extractKeyAlias(resource) {
-        const parts = resource.split('/');
-        if (parts.length >= 6 && parts[4] === 'cryptoKeys') {
-            return parts[5];
-        }
-        // Fallback to default key name if we can't parse
-        return 'Electron_Desktop_App_Key';
-    }
-    const projectId = resourceParts[1];
-    const location = resourceParts[3];
-    const keyRingName = resourceParts[5];
-    const keyName = extractKeyAlias(kmsKeyResource);
-    lib_core.info(`Using project: ${projectId}`);
-    lib_core.info(`Using location: ${location}`);
-    lib_core.info(`Using keyring: ${keyRingName}`);
-    lib_core.info(`Using key: ${keyName}`);
-    // Get access token from gcloud
-    lib_core.info('Getting access token from gcloud...');
-    let accessToken = '';
-    yield exec.exec(gcloudCmd, ['auth', 'print-access-token'], {
-        listeners: {
-            stdout: (data) => {
-                accessToken += data.toString();
-            }
-        },
-        silent: true // Don't show the token in logs
-    });
-    accessToken = accessToken.trim();
-    if (!accessToken) {
-        throw new Error('Failed to get access token from gcloud');
-    }
-    lib_core.info(`Access token retrieved successfully (length: ${accessToken.length})`);
+    // Path to the winSignKms.js script
+    const scriptPath = external_path_.resolve(process.cwd(), 'build', 'winSignKms.js');
+    lib_core.info(`Using signing script: ${scriptPath}`);
+    // Load the signing function
+    const signWithGoogleKms = __nccwpck_require__(3783)(scriptPath);
     // Debug: Check what's in the dist directory
     lib_core.info(`Looking for packages in: ${distPath}`);
     // List all files in dist to debug
@@ -46415,16 +46393,13 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
         '*.exe', // Executables in root of dist
         '*.msi', // MSI installers in root of dist  
         '*.appx', // AppX packages in root of dist
-        '**/*.exe', // All executables (including subdirectories)
-        '**/*.msi', // MSI installers (including subdirectories)
-        '**/*.appx', // AppX packages (including subdirectories)
     ];
     const filesToSign = [];
     for (const pattern of patterns) {
         const files = glob_glob.sync(pattern, {
             cwd: distPath,
             absolute: true,
-            ignore: ['**/node_modules/**', '**/temp/**', '**/win-unpacked/**']
+            ignore: ['**/node_modules/**', '**/temp/**', '**/win-unpacked/**', '**/win-ia32-unpacked/**', '**/win-arm64-unpacked/**']
         });
         if (files.length > 0) {
             lib_core.info(`Pattern '${pattern}' found ${files.length} files`);
@@ -46439,38 +46414,20 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
         lib_core.error(`Current working directory: ${process.cwd()}`);
         throw new Error(`No Windows packages found to sign. Expected .exe, .msi, or .appx files in ${distPath}`);
     }
-    // Sign each file
+    // Sign each file using the existing winSignKms.js script
     for (const file of uniqueFiles) {
-        const fileName = external_path_.basename(file);
-        // Skip already signed files (electron-builder may have partially signed some)
-        // We'll re-sign everything to be safe
-        lib_core.info(`Signing ${fileName}...`);
-        const jsignArgs = [
-            '--storetype', 'GOOGLECLOUD',
-            '--keystore', `projects/${projectId}/locations/${location}/keyRings/${keyRingName}`,
-            '--storepass', accessToken,
-            '--alias', keyName,
-            '--certfile', certFile,
-            '--tsaurl', 'http://timestamp.digicert.com',
-            '--name', 'Rocket.Chat',
-            '--url', 'https://rocket.chat',
-            file
-        ];
+        lib_core.info(`Signing ${external_path_.basename(file)}...`);
+        const config = {
+            path: file,
+            name: 'Rocket.Chat',
+            site: 'https://rocket.chat'
+        };
         try {
-            // Log command without token
-            lib_core.info(`Running: jsign --storetype GOOGLECLOUD --keystore projects/${projectId}/locations/${location}/keyRings/${keyRingName} --storepass [MASKED] --alias ${keyName} --certfile ${certFile} --tsaurl http://timestamp.digicert.com ${fileName}`);
-            // Execute signing
-            yield run(`cmd /c "${jsignPath}" ${jsignArgs.map(arg => {
-                // Quote arguments with spaces
-                if (arg && typeof arg === 'string' && arg.includes(' ') && !arg.startsWith('"')) {
-                    return `"${arg}"`;
-                }
-                return arg;
-            }).join(' ')}`);
-            lib_core.info(`✓ Successfully signed ${fileName}`);
+            yield signWithGoogleKms(config);
+            lib_core.info(`✓ Successfully signed ${external_path_.basename(file)}`);
         }
         catch (error) {
-            lib_core.error(`Failed to sign ${fileName}: ${error}`);
+            lib_core.error(`Failed to sign ${external_path_.basename(file)}: ${error}`);
             throw error;
         }
     }

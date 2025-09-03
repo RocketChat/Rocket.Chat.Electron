@@ -79,7 +79,7 @@ if ((Test-Path $CachedMsiPath) -and -not $Force) {
                 Write-Host "[SUCCESS] ZIP downloaded successfully ($zipSize MB)" -ForegroundColor Green
                 
                 # Extract MSI from ZIP
-                Write-Host "📦 Extracting MSI from ZIP..." -ForegroundColor Cyan
+                Write-Host "[INFO] Extracting MSI from ZIP..." -ForegroundColor Cyan
                 if (Test-Path $TempExtractDir) {
                     Remove-Item -Path $TempExtractDir -Recurse -Force
                 }

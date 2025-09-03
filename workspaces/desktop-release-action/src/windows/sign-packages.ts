@@ -29,7 +29,8 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
   
   // Get access token from gcloud
   core.info('Getting access token from gcloud...');
-  const accessToken = await runAndBuffer(`"${gcloudPath}" auth print-access-token`);
+  const accessTokenRaw = await runAndBuffer(`"${gcloudPath}" auth print-access-token`);
+  const accessToken = accessTokenRaw.trim();
   
   if (!accessToken) {
     throw new Error('Failed to get access token from gcloud');

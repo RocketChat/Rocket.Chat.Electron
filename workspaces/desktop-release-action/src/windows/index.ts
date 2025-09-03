@@ -4,7 +4,7 @@ import { setupCertificates } from './certificates';
 import { setupGoogleCloudAuth, installGoogleCloudCLI, authenticateGcloud } from './google-cloud';
 import { installKmsCngProvider } from './kms-provider';
 import { findSigntool, installJsign } from './signing-tools';
-import { fixWindowsInstallerService } from './msi-service-fix';
+import { signBuiltPackages } from './sign-packages';
 
 export const packOnWindows = async (): Promise<void> => {
   try {
@@ -13,21 +13,6 @@ export const packOnWindows = async (): Promise<void> => {
     
     // Setup Google Cloud authentication
     const credentialsPath = await setupGoogleCloudAuth();
-    
-    // Install Google Cloud KMS CNG provider
-    await installKmsCngProvider();
-    
-    // Fix Windows Installer service for MSI builds
-    await fixWindowsInstallerService();
-    
-    // Install jsign for Java-based signing
-    await installJsign();
-    
-    // Install and configure Google Cloud CLI
-    const gcloudPath = await installGoogleCloudCLI();
-    
-    // Authenticate gcloud with service account
-    await authenticateGcloud(credentialsPath, gcloudPath);
     
     // Setup certificates and get the user certificate path
     const userCertPath = await setupCertificates();
@@ -38,27 +23,77 @@ export const packOnWindows = async (): Promise<void> => {
       throw new Error('win_kms_key_resource input is required');
     }
     
-    // Setup environment variables for electron-builder
-    const env = {
+    // Setup base environment variables
+    const baseEnv = {
       WIN_KMS_KEY_RESOURCE: kmsKeyResource,
       WIN_CERT_FILE: userCertPath,
       GOOGLE_APPLICATION_CREDENTIALS: credentialsPath,
-      // Ensure jsign and gcloud are in PATH
-      PATH: `C:/ProgramData/chocolatey/lib/jsign/tools;${gcloudPath};${process.env.PATH}`
     };
     
-    core.info('Building Windows packages with Google Cloud KMS signing...');
+    core.info('Building Windows packages WITHOUT signing...');
+    core.info('Packages will be signed after build to avoid MSI/ICE issues');
     
-    // Build NSIS installer
-    await runElectronBuilder(`--x64 --win nsis`, env);
+    // Build all Windows packages WITHOUT signing
+    // We'll sign them after build to avoid KMS CNG provider MSI installation
+    // interfering with our MSI builds
     
-    // Build MSI installer
-    await runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, env);
+    // Create electron-builder config that disables signing
+    const buildConfig = {
+      win: {
+        forceCodeSigning: false,
+        sign: false,
+        signAndEditExecutable: false
+      }
+    };
     
-    // Build AppX package
-    await runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, env);
+    // Build NSIS installer (unsigned)
+    core.info('Building NSIS installer (unsigned)...');
+    await runElectronBuilder(`--x64 --win nsis`, {
+      ...baseEnv,
+      ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig)
+    });
     
-    core.info('✅ Windows packages built successfully');
+    // Build MSI installer (unsigned)
+    core.info('Building MSI installer (unsigned)...');
+    await runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, {
+      ...baseEnv,
+      ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig)
+    });
+    
+    // Build AppX package (unsigned)
+    core.info('Building AppX package (unsigned)...');
+    await runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, {
+      ...baseEnv,
+      ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig)
+    });
+    
+    core.info('✅ All Windows packages built successfully (unsigned)');
+    
+    // NOW install KMS CNG provider and signing tools
+    // This won't interfere with MSI builds since they're already done
+    core.info('Setting up signing environment...');
+    
+    // Install Google Cloud KMS CNG provider
+    await installKmsCngProvider();
+    
+    // Install jsign for Java-based signing
+    await installJsign();
+    
+    // Install and configure Google Cloud CLI
+    const gcloudPath = await installGoogleCloudCLI();
+    
+    // Authenticate gcloud with service account
+    await authenticateGcloud(credentialsPath, gcloudPath);
+    
+    // Update environment with gcloud path for signing
+    process.env.GCLOUD_PATH = gcloudPath;
+    
+    // Sign all the built packages
+    core.info('Signing all built packages...');
+    const distPath = process.cwd() + '/dist';
+    await signBuiltPackages(distPath);
+    
+    core.info('✅ Windows packages built and signed successfully');
   } catch (error) {
     core.error(`Failed to build Windows packages: ${error}`);
     throw error;

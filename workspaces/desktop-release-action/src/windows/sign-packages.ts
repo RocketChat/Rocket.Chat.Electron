@@ -49,11 +49,31 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
   
   core.info(`Access token retrieved successfully (length: ${accessToken.length})`)
   
+  // Debug: Check what's in the dist directory
+  core.info(`Looking for packages in: ${distPath}`);
+  
+  // List all files in dist to debug
+  try {
+    const allFiles = glob.sync('**/*', {
+      cwd: distPath,
+      absolute: false
+    });
+    core.info(`Files in dist directory: ${allFiles.length} total`);
+    allFiles.filter(f => f.endsWith('.exe') || f.endsWith('.msi') || f.endsWith('.appx')).forEach(f => {
+      core.info(`  - ${f}`);
+    });
+  } catch (e) {
+    core.warning(`Could not list files: ${e}`);
+  }
+  
   // Find all packages to sign
   const patterns = [
-    '**/*.exe',  // All executables (NSIS installers and unpacked apps)
-    '**/*.msi',  // MSI installers
-    '**/*.appx', // AppX packages
+    '*.exe',      // Executables in root of dist
+    '*.msi',      // MSI installers in root of dist  
+    '*.appx',     // AppX packages in root of dist
+    '**/*.exe',   // All executables (including subdirectories)
+    '**/*.msi',   // MSI installers (including subdirectories)
+    '**/*.appx',  // AppX packages (including subdirectories)
   ];
   
   const filesToSign: string[] = [];
@@ -62,15 +82,27 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
     const files = glob.sync(pattern, {
       cwd: distPath,
       absolute: true,
-      ignore: ['**/node_modules/**', '**/temp/**']
+      ignore: ['**/node_modules/**', '**/temp/**', '**/win-unpacked/**']
     });
+    if (files.length > 0) {
+      core.info(`Pattern '${pattern}' found ${files.length} files`);
+    }
     filesToSign.push(...files);
   }
   
-  core.info(`Found ${filesToSign.length} files to sign`);
+  // Remove duplicates
+  const uniqueFiles = Array.from(new Set(filesToSign));
+  
+  core.info(`Found ${uniqueFiles.length} files to sign`);
+  
+  if (uniqueFiles.length === 0) {
+    core.warning(`No packages found to sign in ${distPath}`);
+    core.warning(`Current working directory: ${process.cwd()}`);
+    return;
+  }
   
   // Sign each file
-  for (const file of filesToSign) {
+  for (const file of uniqueFiles) {
     const fileName = path.basename(file);
     
     // Skip already signed files (electron-builder may have partially signed some)

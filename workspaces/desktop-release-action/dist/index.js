@@ -46379,24 +46379,53 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
         throw new Error('Failed to get access token from gcloud');
     }
     lib_core.info(`Access token retrieved successfully (length: ${accessToken.length})`);
+    // Debug: Check what's in the dist directory
+    lib_core.info(`Looking for packages in: ${distPath}`);
+    // List all files in dist to debug
+    try {
+        const allFiles = glob_glob.sync('**/*', {
+            cwd: distPath,
+            absolute: false
+        });
+        lib_core.info(`Files in dist directory: ${allFiles.length} total`);
+        allFiles.filter(f => f.endsWith('.exe') || f.endsWith('.msi') || f.endsWith('.appx')).forEach(f => {
+            lib_core.info(`  - ${f}`);
+        });
+    }
+    catch (e) {
+        lib_core.warning(`Could not list files: ${e}`);
+    }
     // Find all packages to sign
     const patterns = [
-        '**/*.exe', // All executables (NSIS installers and unpacked apps)
-        '**/*.msi', // MSI installers
-        '**/*.appx', // AppX packages
+        '*.exe', // Executables in root of dist
+        '*.msi', // MSI installers in root of dist  
+        '*.appx', // AppX packages in root of dist
+        '**/*.exe', // All executables (including subdirectories)
+        '**/*.msi', // MSI installers (including subdirectories)
+        '**/*.appx', // AppX packages (including subdirectories)
     ];
     const filesToSign = [];
     for (const pattern of patterns) {
         const files = glob_glob.sync(pattern, {
             cwd: distPath,
             absolute: true,
-            ignore: ['**/node_modules/**', '**/temp/**']
+            ignore: ['**/node_modules/**', '**/temp/**', '**/win-unpacked/**']
         });
+        if (files.length > 0) {
+            lib_core.info(`Pattern '${pattern}' found ${files.length} files`);
+        }
         filesToSign.push(...files);
     }
-    lib_core.info(`Found ${filesToSign.length} files to sign`);
+    // Remove duplicates
+    const uniqueFiles = Array.from(new Set(filesToSign));
+    lib_core.info(`Found ${uniqueFiles.length} files to sign`);
+    if (uniqueFiles.length === 0) {
+        lib_core.warning(`No packages found to sign in ${distPath}`);
+        lib_core.warning(`Current working directory: ${process.cwd()}`);
+        return;
+    }
     // Sign each file
-    for (const file of filesToSign) {
+    for (const file of uniqueFiles) {
         const fileName = external_path_.basename(file);
         // Skip already signed files (electron-builder may have partially signed some)
         // We'll re-sign everything to be safe

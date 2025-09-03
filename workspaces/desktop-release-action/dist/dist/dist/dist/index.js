@@ -46363,7 +46363,8 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
     const keyName = resourceParts[7]; // cryptoKeys/KEY_NAME
     // Get access token from gcloud
     lib_core.info('Getting access token from gcloud...');
-    const accessToken = yield runAndBuffer(`"${gcloudPath}" auth print-access-token`);
+    const accessTokenRaw = yield runAndBuffer(`"${gcloudPath}" auth print-access-token`);
+    const accessToken = accessTokenRaw.trim();
     if (!accessToken) {
         throw new Error('Failed to get access token from gcloud');
     }

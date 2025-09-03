@@ -46670,6 +46670,12 @@ const start = () => src_awaiter(void 0, void 0, void 0, function* () {
         yield releaseSnapshot(payload.after);
         return;
     }
+    // TEMPORARY: Test branch for MSI build fix - remove after testing
+    if (ref === 'refs/heads/fix-disable-signing-during-build') {
+        lib_core.info(`push event on test branch detected, performing test build only`);
+        yield pack(); // Just build, don't release
+        return;
+    }
     if (ref.match(/^refs\/tags\//)) {
         const tag = ref.slice('refs/tags/'.length);
         const version = (0,semver.parse)(tag);

@@ -19,17 +19,13 @@ import {
 } from './github';
 import { packOnLinux, setupSnapcraft, uploadSnap } from './linux';
 import { disableSpotlightIndexing, packOnMacOS } from './macos';
-// import { packOnWindows } from './windows'; // Disabled - using Linux for Windows builds
-import { packWindowsOnLinux } from './windows-on-linux';
+import { packOnWindows } from './windows/index';
 
 const pack = async () => {
   switch (process.platform) {
     case 'linux':
       await setupSnapcraft();
-      // Build both Linux and Windows packages on Linux
       await packOnLinux();
-      // Build Windows packages using osslsigncode with KMS
-      await packWindowsOnLinux();
       break;
 
     case 'darwin':
@@ -38,9 +34,7 @@ const pack = async () => {
       break;
 
     case 'win32':
-      // Windows native build disabled - using Linux for KMS signing
-      // await packOnWindows();
-      core.warning('Windows native build disabled - Windows packages are built on Linux with KMS signing');
+      await packOnWindows();
       break;
   }
 };

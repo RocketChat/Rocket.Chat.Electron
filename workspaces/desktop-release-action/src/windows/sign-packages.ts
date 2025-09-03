@@ -13,7 +13,8 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
   // Get signing configuration
   const kmsKeyResource = process.env.WIN_KMS_KEY_RESOURCE;
   const certFile = process.env.WIN_CERT_FILE;
-  const gcloudPath = process.env.GCLOUD_PATH || 'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
+  const gcloudBinPath = process.env.GCLOUD_PATH || 'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin';
+  const gcloudCmd = `${gcloudBinPath}\\gcloud.cmd`;
   const jsignPath = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
   
   if (!kmsKeyResource || !certFile) {
@@ -31,7 +32,7 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
   // Get access token from gcloud
   core.info('Getting access token from gcloud...');
   let accessToken = '';
-  await exec.exec(`${gcloudPath}`, ['auth', 'print-access-token'], {
+  await exec.exec(gcloudCmd, ['auth', 'print-access-token'], {
     listeners: {
       stdout: (data: Buffer) => {
         accessToken += data.toString();

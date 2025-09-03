@@ -46350,7 +46350,8 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
     // Get signing configuration
     const kmsKeyResource = process.env.WIN_KMS_KEY_RESOURCE;
     const certFile = process.env.WIN_CERT_FILE;
-    const gcloudPath = process.env.GCLOUD_PATH || 'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
+    const gcloudBinPath = process.env.GCLOUD_PATH || 'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin';
+    const gcloudCmd = `${gcloudBinPath}\\gcloud.cmd`;
     const jsignPath = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
     if (!kmsKeyResource || !certFile) {
         lib_core.warning('Signing credentials not available, skipping package signing');
@@ -46365,7 +46366,7 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
     // Get access token from gcloud
     lib_core.info('Getting access token from gcloud...');
     let accessToken = '';
-    yield exec.exec(`${gcloudPath}`, ['auth', 'print-access-token'], {
+    yield exec.exec(gcloudCmd, ['auth', 'print-access-token'], {
         listeners: {
             stdout: (data) => {
                 accessToken += data.toString();

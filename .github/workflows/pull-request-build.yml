@@ -20,10 +20,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
+        include:
+          # Regular Linux build for Linux packages
+          - os: ubuntu-latest
+            build-target: linux
+          # macOS build
+          - os: macos-latest
+            build-target: mac
+          # Windows native build
+          - os: windows-latest
+            build-target: windows
     runs-on: ${{ matrix.os }}
     steps:
       - name: Disable git core.autocrlf
@@ -61,15 +67,473 @@ jobs:
           BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
-      - name: Build Windows Package
+      - name: Setup Google Cloud authentication (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
-        run: yarn electron-builder --publish never --x64 --win nsis
+        shell: pwsh
+        run: |
+          $tempDir = $env:RUNNER_TEMP
+          '${{ secrets.GCP_SA_JSON }}' | Out-File -FilePath "$tempDir\gcp-sa.json" -NoNewline
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$tempDir\gcp-sa.json" >> $env:GITHUB_ENV
+
+      - name: Cache Google Cloud KMS CNG provider (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: actions/cache@v4
+        id: cache-kms-cng
+        with:
+          path: build/installers/google-cloud-kms-cng-provider.msi
+          key: kms-cng-provider-${{ hashFiles('build/installers/.gitkeep') }}-v1.2
+          restore-keys: |
+            kms-cng-provider-
+
+      - name: Install Google Cloud KMS CNG provider (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          $ForceDownload = if ('${{ steps.cache-kms-cng.outputs.cache-hit }}' -eq 'true') { $false } else { $true }
+          & "${{ github.workspace }}\build\install-kms-cng-provider.ps1" -Force:$ForceDownload
+
+      - name: Setup Windows certificates (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          # Find and add Windows SDK signtool to PATH
+          Write-Host "Searching for signtool.exe in Windows SDK..." -ForegroundColor Cyan
+          $sdkPath = "${env:ProgramFiles(x86)}\Windows Kits\10\bin"
+          $signtoolFound = $false
+          
+          if (Test-Path $sdkPath) {
+            Write-Host "Windows SDK path exists: $sdkPath"
+            $signtoolPath = Get-ChildItem -Path $sdkPath -Include "signtool.exe" -Recurse -ErrorAction SilentlyContinue | 
+              Sort-Object { $_.Directory.Name } -Descending | 
+              Select-Object -First 1
+              
+            if ($signtoolPath) {
+              $binPath = Split-Path $signtoolPath.FullName -Parent
+              Write-Host "✅ Found signtool.exe at: $($signtoolPath.FullName)" -ForegroundColor Green
+              Write-Host "Adding to PATH: $binPath"
+              
+              # Add to GITHUB_PATH for future steps
+              echo "$binPath" >> $env:GITHUB_PATH
+              
+              # Also add to current PATH for immediate use
+              $env:PATH = "$binPath;$env:PATH"
+              
+              # Store the full path for electron-builder
+              echo "SIGNTOOL_PATH=$($signtoolPath.FullName)" >> $env:GITHUB_ENV
+              
+              # Verify it's accessible
+              Write-Host "Verifying signtool accessibility..."
+              & $signtoolPath.FullName /? 2>&1 | Select-Object -First 1
+              $signtoolFound = $true
+            }
+          }
+          
+          if (-not $signtoolFound) {
+            Write-Error "❌ signtool.exe not found in Windows SDK"
+            Write-Host "Attempting to install Windows SDK..."
+            # This would normally require admin rights and might not work in CI
+            # but let's log the issue clearly
+            exit 1
+          }
+          
+          # Setup certificates
+          $certDir = "$env:RUNNER_TEMP\codesigning"
+          New-Item -ItemType Directory -Path $certDir -Force | Out-Null
+          '${{ secrets.WIN_USER_CRT }}' | Out-File -FilePath "$certDir\user.crt" -NoNewline
+          if ('${{ secrets.WIN_INTERMEDIATE_CRT }}' -ne '') { '${{ secrets.WIN_INTERMEDIATE_CRT }}' | Out-File -FilePath "$certDir\intermediate.crt" -NoNewline }
+          if ('${{ secrets.WIN_ROOT_CRT }}' -ne '') { '${{ secrets.WIN_ROOT_CRT }}' | Out-File -FilePath "$certDir\root.crt" -NoNewline }
+          
+          # Install certificates to stores
+          Write-Host "Installing certificates to Windows certificate stores..."
+          if (Test-Path "$certDir\root.crt") { 
+            Write-Host "Installing root certificate..."
+            certutil -user -addstore "ROOT" "$certDir\root.crt"
+          }
+          if (Test-Path "$certDir\intermediate.crt") { 
+            Write-Host "Installing intermediate certificate..."
+            certutil -user -addstore "CA" "$certDir\intermediate.crt"
+          }
+          Write-Host "Installing user certificate..."
+          certutil -user -addstore "MY" "$certDir\user.crt"
+          
+          # For KMS signing, we need to associate the certificate with the KMS key
+          # This is done through the CSP (Cryptographic Service Provider)
+          Write-Host "Associating certificate with KMS provider..."
+          
+          # Get the KMS key resource from environment
+          $kmsKeyResource = "${{ secrets.WIN_KMS_KEY_RESOURCE }}"
+          if ($kmsKeyResource) {
+            Write-Host "KMS Key Resource: $kmsKeyResource (masked)"
+            
+            # The certificate needs to be linked to the KMS key through the CSP
+            # This is typically done when the certificate is initially created with the KMS key
+            # Since we're importing an existing cert, we need to verify it has the proper association
+            
+            # Try to repair the certificate association
+            $thumb = (Get-PfxCertificate "$certDir\user.crt").Thumbprint
+            Write-Host "Certificate thumbprint: $thumb"
+            
+            # Use certutil to check the certificate's key provider info
+            Write-Host "Checking certificate key provider information..."
+            certutil -user -store MY $thumb | Select-String "Provider\|Key Container"
+          }
+          
+          # Compute and set certificate thumbprint
+          $thumb = (Get-PfxCertificate "$certDir\user.crt").Thumbprint
+          Write-Host "Certificate thumbprint: $thumb"
+          echo "WIN_KMS_CERT_SHA1=$thumb" >> $env:GITHUB_ENV
+          
+          # Verify the certificate is properly installed
+          Write-Host "Verifying certificate installation..."
+          $cert = Get-ChildItem -Path "Cert:\CurrentUser\My" | Where-Object { $_.Thumbprint -eq $thumb }
+          if ($cert) {
+            Write-Host "✅ Certificate found in store: $($cert.Subject)"
+            Write-Host "   Issuer: $($cert.Issuer)"
+            Write-Host "   Thumbprint: $($cert.Thumbprint)"
+            
+            # Check if the certificate has a private key reference
+            if ($cert.HasPrivateKey) {
+              Write-Host "✅ Certificate reports having a private key"
+            } else {
+              Write-Host "⚠️ Certificate does NOT have a private key - this is expected for KMS"
+              # For KMS signing, the private key is in the cloud, so this is actually OK
+            }
+          } else {
+            Write-Error "❌ Certificate not found in store!"
+            exit 1
+          }
+          
+          # Verify Google Cloud authentication
+          if ($env:GOOGLE_APPLICATION_CREDENTIALS) {
+            Write-Host "✅ Google Cloud credentials configured: $env:GOOGLE_APPLICATION_CREDENTIALS"
+            if (Test-Path $env:GOOGLE_APPLICATION_CREDENTIALS) {
+              Write-Host "✅ Credentials file exists"
+            } else {
+              Write-Error "❌ Credentials file not found!"
+              exit 1
+            }
+          } else {
+            Write-Error "❌ GOOGLE_APPLICATION_CREDENTIALS not set!"
+            exit 1
+          }
+
+      # Set up jsign and Google Cloud CLI for Windows builds
+      - name: Setup jsign and Google Cloud CLI (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          # Install Java and jsign via chocolatey
+          Write-Host "Installing OpenJDK 11..." -ForegroundColor Cyan
+          choco install openjdk11 -y
+          
+          # Refresh environment to pick up Java
+          refreshenv
+          
+          # Verify Java installation and add to PATH
+          $javaHome = [System.Environment]::GetEnvironmentVariable("JAVA_HOME", "Machine")
+          if ($javaHome -and (Test-Path "$javaHome\bin\java.exe")) {
+            Write-Host "Java found at: $javaHome" -ForegroundColor Green
+            $env:JAVA_HOME = $javaHome
+            $javaBinPath = "$javaHome\bin"
+            $env:PATH = "$javaBinPath;$env:PATH"
+            echo "$javaBinPath" >> $env:GITHUB_PATH
+          } else {
+            Write-Error "Java installation not found or JAVA_HOME not set"
+            exit 1
+          }
+          
+          Write-Host "Installing jsign..." -ForegroundColor Cyan
+          choco install jsign -y
+          
+          # Refresh environment variables to pick up PATH changes from jsign
+          Write-Host "Refreshing environment variables after jsign installation..." -ForegroundColor Cyan
+          refreshenv
+          
+          # Install Google Cloud CLI
+          Write-Host "Installing Google Cloud CLI..." -ForegroundColor Cyan
+          choco install gcloudsdk -y
+          
+          # Refresh environment variables to pick up PATH changes
+          Write-Host "Refreshing environment variables..." -ForegroundColor Cyan
+          refreshenv
+          
+          # Also manually add gcloud to PATH for this session
+          $gcloudPath = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin"
+          $env:PATH += ";$gcloudPath"
+          echo "$gcloudPath" >> $env:GITHUB_PATH
+          
+          # Verify gcloud is accessible
+          Write-Host "Verifying gcloud installation..."
+          & "$gcloudPath\gcloud.cmd" version
+          
+          # Authenticate with service account
+          Write-Host "Authenticating with Google Cloud..." -ForegroundColor Cyan
+          if ($env:GOOGLE_APPLICATION_CREDENTIALS -and (Test-Path $env:GOOGLE_APPLICATION_CREDENTIALS)) {
+            & "$gcloudPath\gcloud.cmd" auth activate-service-account --key-file="$env:GOOGLE_APPLICATION_CREDENTIALS"
+            $projectId = (Get-Content $env:GOOGLE_APPLICATION_CREDENTIALS | ConvertFrom-Json).project_id
+            & "$gcloudPath\gcloud.cmd" config set project $projectId
+            Write-Host "✅ Google Cloud authentication successful"
+          } else {
+            Write-Error "❌ Google Cloud credentials not available"
+          }
+          
+          # Verify tools are installed
+          Write-Host "Verifying installations..." -ForegroundColor Cyan
+          java -version
+          jsign --help | Select-Object -First 2
+          & "$gcloudPath\gcloud.cmd" version
+
+      # Set up Google Cloud authentication for Linux builds
+      - name: Setup Google Cloud authentication (Linux)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          echo "Setting up Google Cloud authentication..."
+          echo '${{ secrets.GCP_SA_JSON }}' > $RUNNER_TEMP/gcp-sa.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/gcp-sa.json" >> $GITHUB_ENV
+
+      - name: Build Windows Package (Windows native - old signtool method)  
+        if: ${{ matrix.os == 'windows-latest' && false }}
+        shell: pwsh
+        run: |
+          # Verify environment before build
+          Write-Host "=== Pre-build Environment Check ===" -ForegroundColor Cyan
+          
+          # Check signtool availability
+          Write-Host "Checking signtool availability..."
+          $signtoolCmd = Get-Command signtool -ErrorAction SilentlyContinue
+          if ($signtoolCmd) {
+            Write-Host "✅ signtool found in PATH at: $($signtoolCmd.Source)" -ForegroundColor Green
+          } else {
+            # Try to use the stored SIGNTOOL_PATH if available
+            if ($env:SIGNTOOL_PATH) {
+              Write-Host "Using SIGNTOOL_PATH: $env:SIGNTOOL_PATH"
+              # Create a shim/wrapper for signtool
+              $shimDir = "$env:RUNNER_TEMP\shims"
+              New-Item -ItemType Directory -Path $shimDir -Force | Out-Null
+              
+              # Create a batch file wrapper
+              $batchContent = "@echo off`n`"$env:SIGNTOOL_PATH`" %*"
+              $batchContent | Out-File -FilePath "$shimDir\signtool.bat" -Encoding ASCII
+              
+              # Also create a PowerShell wrapper
+              $psContent = "& `"$env:SIGNTOOL_PATH`" @args"
+              $psContent | Out-File -FilePath "$shimDir\signtool.ps1" -Encoding UTF8
+              
+              # Add shim directory to PATH
+              $env:PATH = "$shimDir;$env:PATH"
+              Write-Host "Added signtool shim to PATH at: $shimDir"
+            } else {
+              Write-Error "❌ signtool not found in PATH and SIGNTOOL_PATH not set"
+              exit 1
+            }
+          }
+          
+          # Verify KMS configuration
+          Write-Host "`n=== KMS Configuration ===" -ForegroundColor Cyan
+          Write-Host "WIN_KMS_KEY_RESOURCE: $(if ($env:WIN_KMS_KEY_RESOURCE) { '✅ Set' } else { '❌ Not set' })"
+          Write-Host "WIN_KMS_CERT_SHA1: $(if ($env:WIN_KMS_CERT_SHA1) { '✅ ' + $env:WIN_KMS_CERT_SHA1 } else { '❌ Not set' })"
+          Write-Host "WIN_KMS_CSP: $env:WIN_KMS_CSP"
+          Write-Host "WIN_KMS_CERT_STORE: $env:WIN_KMS_CERT_STORE"
+          Write-Host "GOOGLE_APPLICATION_CREDENTIALS: $(if ($env:GOOGLE_APPLICATION_CREDENTIALS) { '✅ ' + $env:GOOGLE_APPLICATION_CREDENTIALS } else { '❌ Not set' })"
+          
+          # Verify certificate in store
+          Write-Host "`n=== Certificate Verification ===" -ForegroundColor Cyan
+          if ($env:WIN_KMS_CERT_SHA1) {
+            $cert = Get-ChildItem -Path "Cert:\CurrentUser\My" | Where-Object { $_.Thumbprint -eq $env:WIN_KMS_CERT_SHA1 }
+            if ($cert) {
+              Write-Host "✅ Certificate found in store"
+              Write-Host "   Subject: $($cert.Subject)"
+              Write-Host "   HasPrivateKey: $($cert.HasPrivateKey)"
+            } else {
+              Write-Error "❌ Certificate with thumbprint $env:WIN_KMS_CERT_SHA1 not found in CurrentUser\My store!"
+              # Try to list all certs in the store for debugging
+              Write-Host "Certificates in CurrentUser\My store:"
+              Get-ChildItem -Path "Cert:\CurrentUser\My" | ForEach-Object {
+                Write-Host "  - $($_.Thumbprint): $($_.Subject)"
+              }
+            }
+          }
+          
+          # Test KMS provider
+          Write-Host "`n=== Testing KMS Provider ===" -ForegroundColor Cyan
+          try {
+            # List available CSPs to verify KMS provider is installed
+            $cspList = @(certutil -csplist | Select-String "Provider Name")
+            $kmsProviderFound = $cspList | Where-Object { $_ -match "Google Cloud KMS Provider" }
+            if ($kmsProviderFound) {
+              Write-Host "✅ Google Cloud KMS Provider is installed"
+            } else {
+              Write-Host "⚠️ Google Cloud KMS Provider not found in CSP list"
+              Write-Host "Available CSPs:"
+              $cspList | ForEach-Object { Write-Host "  $_" }
+            }
+          } catch {
+            Write-Host "⚠️ Could not verify CSP list: $_"
+          }
+          
+          # Test signing before the actual build
+          Write-Host "`n=== Testing Signing Configuration ===" -ForegroundColor Cyan
+          $testFile = "$env:RUNNER_TEMP\test-sign.exe"
+          
+          # Create a small test executable (copy powershell.exe as a test)
+          Copy-Item "$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -Destination $testFile -Force
+          
+          Write-Host "Testing signing with the following parameters:"
+          Write-Host "  CSP: $env:WIN_KMS_CSP"
+          Write-Host "  Key Resource: $(if ($env:WIN_KMS_KEY_RESOURCE) { 'Set (masked)' } else { 'Not set' })"
+          Write-Host "  Certificate SHA1: $env:WIN_KMS_CERT_SHA1"
+          Write-Host "  Certificate Store: $env:WIN_KMS_CERT_STORE"
+          
+          # Try to sign the test file
+          try {
+            $signtoolPath = if ($env:SIGNTOOL_PATH) { $env:SIGNTOOL_PATH } else { "signtool" }
+            Write-Host "Using signtool at: $signtoolPath"
+            
+            $signArgs = @(
+              "sign",
+              "/fd", "SHA256",
+              "/tr", "http://timestamp.digicert.com",
+              "/td", "SHA256",
+              "/csp", "$env:WIN_KMS_CSP",
+              "/kc", "$env:WIN_KMS_KEY_RESOURCE",
+              "/sha1", "$env:WIN_KMS_CERT_SHA1",
+              "/s", "$env:WIN_KMS_CERT_STORE",
+              "/v",  # Verbose output
+              "/debug",  # Debug output
+              "$testFile"
+            )
+            
+            Write-Host "Running test signing command..."
+            Write-Host "$signtoolPath $($signArgs -join ' ')" -ForegroundColor Gray
+            
+            $result = & $signtoolPath @signArgs 2>&1
+            $result | ForEach-Object { Write-Host $_ }
+            
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✅ Test signing successful!" -ForegroundColor Green
+            } else {
+              Write-Host "❌ Test signing failed with exit code: $LASTEXITCODE" -ForegroundColor Red
+              Write-Host "This indicates a configuration issue with KMS signing."
+              
+              # Additional debugging
+              Write-Host "`nAttempting to get more information about the certificate..."
+              certutil -user -store MY $env:WIN_KMS_CERT_SHA1 -v | Select-String "Provider\|Container\|Key\|Algorithm"
+            }
+          } catch {
+            Write-Host "❌ Exception during test signing: $_" -ForegroundColor Red
+          } finally {
+            # Clean up test file
+            if (Test-Path $testFile) {
+              Remove-Item $testFile -Force -ErrorAction SilentlyContinue
+            }
+          }
+          
+          Write-Host "`n=== Starting Build ===" -ForegroundColor Cyan
+          # Run electron-builder
+          yarn electron-builder --publish never --x64 --win nsis
         env:
-          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
+          WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt
+          WIN_KMS_CERT_SHA1: ${{ env.WIN_KMS_CERT_SHA1 }}
+          WIN_KMS_CSP: 'Google Cloud KMS Provider'
+          WIN_TIMESTAMP_URL: 'http://timestamp.digicert.com'
+          WIN_KMS_CERT_STORE: 'MY'
+          WIN_KMS_USE_LOCAL_MACHINE: 'false'
+          SIGNTOOL_PATH: ${{ env.SIGNTOOL_PATH }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+
+      - name: Build Windows Package (Windows native)
+        if: ${{ matrix.build-target == 'windows' }}
+        shell: pwsh
+        run: |
+          Write-Host "=== Building Windows Package Natively ===" -ForegroundColor Cyan
+          
+          # Ensure tools are accessible by adding them to PATH explicitly
+          $jsignPath = "C:\ProgramData\chocolatey\lib\jsign\tools"
+          $gcloudPath = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin"
+          $env:PATH += ";$jsignPath;$gcloudPath"
+          
+          Write-Host "Verifying tools before build..." -ForegroundColor Yellow
+          if (Test-Path "$jsignPath\jsign.cmd") {
+            Write-Host "✅ jsign.cmd found at $jsignPath\jsign.cmd" -ForegroundColor Green
+          } else {
+            Write-Error "❌ jsign.cmd not found at $jsignPath\jsign.cmd"
+          }
+          
+          if (Test-Path "$gcloudPath\gcloud.cmd") {
+            Write-Host "✅ gcloud.cmd found at $gcloudPath\gcloud.cmd" -ForegroundColor Green  
+          } else {
+            Write-Error "❌ gcloud.cmd not found at $gcloudPath\gcloud.cmd"
+          }
+          
+          Write-Host "PATH includes: $env:PATH" -ForegroundColor Cyan
+          
+          # Find Python installation for gcloud
+          Write-Host "Locating Python installation..." -ForegroundColor Yellow
+          $pythonPaths = @(
+            "C:\hostedtoolcache\windows\Python\*\x64\python.exe",
+            "C:\Python*\python.exe", 
+            "C:\Program Files\Python*\python.exe",
+            "$env:LOCALAPPDATA\Programs\Python\Python*\python.exe"
+          )
+          
+          $pythonExe = $null
+          foreach ($path in $pythonPaths) {
+            $found = Get-ChildItem $path -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) {
+              $pythonExe = $found.FullName
+              break
+            }
+          }
+          
+          if (-not $pythonExe) {
+            Write-Error "Python not found in expected locations"
+            exit 1
+          }
+          
+          Write-Host "Found Python at: $pythonExe" -ForegroundColor Green
+          $env:CLOUDSDK_PYTHON = $pythonExe
+          
+          # Authenticate gcloud with service account
+          Write-Host "Authenticating gcloud with service account..." -ForegroundColor Yellow
+          $gcpCredentials = "$env:RUNNER_TEMP\gcp-sa.json"
+          Write-Host "Service account credentials at: $gcpCredentials" -ForegroundColor Cyan
+          
+          & gcloud.cmd auth activate-service-account --key-file="$gcpCredentials"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to activate service account"
+            exit 1
+          }
+          
+          # Set project from service account file
+          $projectData = Get-Content $gcpCredentials | ConvertFrom-Json
+          $projectId = $projectData.project_id
+          Write-Host "Setting project to: $projectId" -ForegroundColor Cyan
+          & gcloud.cmd config set project $projectId
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to set project"
+            exit 1
+          }
+          
+          # Verify authentication is working
+          Write-Host "Verifying gcloud authentication..." -ForegroundColor Yellow
+          $tokenOutput = & gcloud.cmd auth print-access-token 2>&1
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ Google Cloud authentication successful" -ForegroundColor Green
+          } else {
+            Write-Host "❌ Google Cloud authentication failed: $tokenOutput" -ForegroundColor Red
+            exit 1
+          }
+          
+          yarn electron-builder --publish never --x64 --win nsis
+        env:
+          WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
+          WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+          PATH: "C:/Program Files/jsign;C:/ProgramData/chocolatey/lib/gcloudsdk/tools/google-cloud-sdk/bin;C:/hostedtoolcache/windows/node/22.17.1/x64;C:/npm/prefix;C:/Windows/System32;C:/Windows;C:/Windows/System32/WindowsPowerShell/v1.0;C:/Program Files/PowerShell/7;C:/ProgramData/Chocolatey/bin"
 
       - name: Build MacOS Package
-        if: ${{ matrix.os == 'macos-latest' }}
+        if: ${{ matrix.build-target == 'mac' }}
         run: |
           sudo mdutil -a -i off
           yarn electron-builder --publish never --mac --universal
@@ -83,12 +547,12 @@ jobs:
           ASC_PROVIDER: 'S6UPZG7ZR3'
 
       - name: Build Ubuntu Package
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.build-target == 'linux' }}
         run: yarn electron-builder --publish never --linux snap deb
 
       - name: Find Snap File
         id: find_snap
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.build-target == 'linux' }}
         run: |
           SNAP_FILE=$(find dist/ -maxdepth 1 -name 'rocketchat-*.snap' -print -quit)
           if [ -z "$SNAP_FILE" ]; then
@@ -99,7 +563,7 @@ jobs:
           echo "SNAP_FILE_PATH=$SNAP_FILE" >> $GITHUB_OUTPUT
 
       - name: Publish to Snap Store (Edge)
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.build-target == 'linux' }}
         uses: snapcore/action-publish@v1
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
@@ -113,7 +577,7 @@ jobs:
 
       # Upload artifacts to Wasabi (Windows)
       - name: Upload Artifacts to Wasabi (Windows)
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ matrix.build-target == 'windows' }}
         run: |
           aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive `
             --acl public-read `
@@ -126,7 +590,7 @@ jobs:
 
       # Upload artifacts to Wasabi (macOS)
       - name: Upload Artifacts to Wasabi (macOS)
-        if: ${{ matrix.os == 'macos-latest' }}
+        if: ${{ matrix.build-target == 'mac' }}
         run: |
           aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \
             --acl public-read \
@@ -141,7 +605,7 @@ jobs:
 
       # Upload artifacts to Wasabi (Ubuntu)
       - name: Upload Artifacts to Wasabi (Ubuntu)
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.build-target == 'linux' }}
         run: |
           aws s3 cp dist/ s3://${{ secrets.WASABI_BUCKET_NAME }}/pr-${{ github.event.pull_request.number }}/${{ matrix.os }}/ --recursive \
             --acl public-read \

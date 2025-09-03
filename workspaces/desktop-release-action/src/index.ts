@@ -19,7 +19,7 @@ import {
 } from './github';
 import { packOnLinux, setupSnapcraft, uploadSnap } from './linux';
 import { disableSpotlightIndexing, packOnMacOS } from './macos';
-import { packOnWindows } from './windows';
+import { packOnWindows } from './windows/index';
 
 const pack = async () => {
   switch (process.platform) {

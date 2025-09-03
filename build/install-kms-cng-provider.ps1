@@ -27,7 +27,7 @@ if ((Test-Path $CachedMsiPath) -and -not $Force) {
     $MsiPath = $CachedMsiPath
 } else {
     Write-Host "Downloading KMS CNG provider..."
-    
+
     # Clean up any existing temp files
     if (Test-Path $TempZipPath) {
         Remove-Item $TempZipPath -Force
@@ -35,7 +35,7 @@ if ((Test-Path $CachedMsiPath) -and -not $Force) {
     if (Test-Path $TempExtractDir) {
         Remove-Item $TempExtractDir -Recurse -Force
     }
-    
+
     # Download the ZIP file
     try {
         Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $TempZipPath -UseBasicParsing
@@ -44,18 +44,18 @@ if ((Test-Path $CachedMsiPath) -and -not $Force) {
         Write-Error "Failed to download KMS CNG provider"
         exit 1
     }
-    
+
     # Extract the ZIP file
     Write-Host "Extracting files..."
     Expand-Archive -Path $TempZipPath -DestinationPath $TempExtractDir -Force
-    
+
     # Find the MSI file
     $ExtractedMsi = Get-ChildItem -Path $TempExtractDir -Filter "*.msi" -Recurse | Select-Object -First 1
     if (-not $ExtractedMsi) {
         Write-Error "MSI file not found in archive"
         exit 1
     }
-    
+
     # Copy to cache
     Copy-Item -Path $ExtractedMsi.FullName -Destination $CachedMsiPath -Force
     Write-Host "MSI file cached"

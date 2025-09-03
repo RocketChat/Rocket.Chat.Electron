@@ -23,11 +23,19 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
   }
   
   // Extract KMS configuration
+  // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY
   const resourceParts = kmsKeyResource.split('/');
+  core.info(`KMS Resource: ${kmsKeyResource}`);
+  core.info(`Resource parts: ${resourceParts.join(' | ')}`);
+  
   const projectId = resourceParts[1];
   const location = resourceParts[3];
   const keyRingName = resourceParts[5];
   const keyName = resourceParts[7]; // cryptoKeys/KEY_NAME
+  
+  if (!keyName) {
+    throw new Error(`Invalid KMS key resource format. Expected: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY, got: ${kmsKeyResource}`);
+  }
   
   // Get access token from gcloud
   core.info('Getting access token from gcloud...');
@@ -129,7 +137,9 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
       // Execute signing
       await run(`cmd /c "${jsignPath}" ${jsignArgs.map(arg => {
         // Quote arguments with spaces
-        if (arg.includes(' ') && !arg.startsWith('"')) return `"${arg}"`;
+        if (arg && typeof arg === 'string' && arg.includes(' ') && !arg.startsWith('"')) {
+          return `"${arg}"`;
+        }
         return arg;
       }).join(' ')}`);
       

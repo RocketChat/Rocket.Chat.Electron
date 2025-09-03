@@ -16,7 +16,7 @@
 
 .EXAMPLE
     .\install-kms-cng-provider.ps1
-    
+
 .EXAMPLE
     .\install-kms-cng-provider.ps1 -CacheDir "C:\temp\kms" -Force
 #>
@@ -60,33 +60,33 @@ if ((Test-Path $CachedMsiPath) -and -not $Force) {
     } else {
         Write-Host "📥 MSI not found in cache, downloading..." -ForegroundColor Yellow
     }
-    
+
     # Download and extract
     $MaxRetries = 3
     $Downloaded = $false
-    
+
     for ($RetryCount = 1; $RetryCount -le $MaxRetries -and -not $Downloaded; $RetryCount++) {
         try {
             Write-Host "🌐 Download attempt $RetryCount of $MaxRetries" -ForegroundColor Cyan
             Write-Host "   URL: $DOWNLOAD_URL" -ForegroundColor Gray
-            
+
             # Download ZIP file
             Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $TempZipPath -UserAgent "Mozilla/5.0" -TimeoutSec 300
             
             # Verify download
             if ((Get-Item $TempZipPath).Length -gt 1MB) {
                 Write-Host "✅ ZIP downloaded successfully ($('{0:N2}' -f ((Get-Item $TempZipPath).Length / 1MB)) MB)" -ForegroundColor Green
-                
+
                 # Extract MSI from ZIP
                 Write-Host "📦 Extracting MSI from ZIP..." -ForegroundColor Cyan
                 if (Test-Path $TempExtractDir) {
                     Remove-Item -Path $TempExtractDir -Recurse -Force
                 }
                 Expand-Archive -Path $TempZipPath -DestinationPath $TempExtractDir -Force
-                
+
                 # Find MSI file
                 $ExtractedMsi = Get-ChildItem -Path $TempExtractDir -Filter "*.msi" -Recurse | Select-Object -First 1
-                
+
                 if ($ExtractedMsi) {
                     # Copy to cache location
                     Copy-Item -Path $ExtractedMsi.FullName -Destination $CachedMsiPath -Force
@@ -101,14 +101,14 @@ if ((Test-Path $CachedMsiPath) -and -not $Force) {
             }
         } catch {
             Write-Host "❌ Download attempt $RetryCount failed: $_" -ForegroundColor Red
-            
+
             if ($RetryCount -lt $MaxRetries) {
                 Write-Host "⏳ Waiting 5 seconds before retry..." -ForegroundColor Yellow
                 Start-Sleep -Seconds 5
             }
         }
     }
-    
+
     if (-not $Downloaded) {
         throw "❌ Failed to download KMS CNG provider after $MaxRetries attempts"
     }

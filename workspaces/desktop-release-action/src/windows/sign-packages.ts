@@ -23,19 +23,29 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
   }
   
   // Extract KMS configuration
-  // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY
+  // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY/cryptoKeyVersions/VERSION
+  // But sometimes the cryptoKeys/KEY part is missing, so we need to handle that
   const resourceParts = kmsKeyResource.split('/');
-  core.info(`KMS Resource: ${kmsKeyResource}`);
-  core.info(`Resource parts: ${resourceParts.join(' | ')}`);
+  
+  // Extract key alias (same logic as winSignKms.js)
+  function extractKeyAlias(resource: string): string {
+    const parts = resource.split('/');
+    if (parts.length >= 6 && parts[4] === 'cryptoKeys') {
+      return parts[5];
+    }
+    // Fallback to default key name if we can't parse
+    return 'Electron_Desktop_App_Key';
+  }
   
   const projectId = resourceParts[1];
   const location = resourceParts[3];
   const keyRingName = resourceParts[5];
-  const keyName = resourceParts[7]; // cryptoKeys/KEY_NAME
+  const keyName = extractKeyAlias(kmsKeyResource);
   
-  if (!keyName) {
-    throw new Error(`Invalid KMS key resource format. Expected: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY, got: ${kmsKeyResource}`);
-  }
+  core.info(`Using project: ${projectId}`);
+  core.info(`Using location: ${location}`);
+  core.info(`Using keyring: ${keyRingName}`);
+  core.info(`Using key: ${keyName}`)
   
   // Get access token from gcloud
   core.info('Getting access token from gcloud...');

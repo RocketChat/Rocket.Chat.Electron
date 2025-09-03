@@ -46358,17 +46358,26 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
         return;
     }
     // Extract KMS configuration
-    // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY
+    // Format: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY/cryptoKeyVersions/VERSION
+    // But sometimes the cryptoKeys/KEY part is missing, so we need to handle that
     const resourceParts = kmsKeyResource.split('/');
-    lib_core.info(`KMS Resource: ${kmsKeyResource}`);
-    lib_core.info(`Resource parts: ${resourceParts.join(' | ')}`);
+    // Extract key alias (same logic as winSignKms.js)
+    function extractKeyAlias(resource) {
+        const parts = resource.split('/');
+        if (parts.length >= 6 && parts[4] === 'cryptoKeys') {
+            return parts[5];
+        }
+        // Fallback to default key name if we can't parse
+        return 'Electron_Desktop_App_Key';
+    }
     const projectId = resourceParts[1];
     const location = resourceParts[3];
     const keyRingName = resourceParts[5];
-    const keyName = resourceParts[7]; // cryptoKeys/KEY_NAME
-    if (!keyName) {
-        throw new Error(`Invalid KMS key resource format. Expected: projects/PROJECT/locations/LOCATION/keyRings/RING/cryptoKeys/KEY, got: ${kmsKeyResource}`);
-    }
+    const keyName = extractKeyAlias(kmsKeyResource);
+    lib_core.info(`Using project: ${projectId}`);
+    lib_core.info(`Using location: ${location}`);
+    lib_core.info(`Using keyring: ${keyRingName}`);
+    lib_core.info(`Using key: ${keyName}`);
     // Get access token from gcloud
     lib_core.info('Getting access token from gcloud...');
     let accessToken = '';

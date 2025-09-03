@@ -5,8 +5,8 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # Configuration
-$KMS_VERSION = "1.2.1"
-$DOWNLOAD_URL = "https://github.com/GoogleCloudPlatform/kms-integrations/releases/download/cng-provider-v$KMS_VERSION/cng_provider_windows_amd64.zip"
+$KMS_VERSION = "1.2"
+$DOWNLOAD_URL = "https://github.com/GoogleCloudPlatform/kms-integrations/releases/download/cng-v$KMS_VERSION/kmscng-$KMS_VERSION-windows-amd64.zip"
 $CacheDir = Join-Path $env:GITHUB_WORKSPACE "build\installers"
 $CachedMsiPath = Join-Path $CacheDir "google-cloud-kms-cng-provider.msi"
 $TempZipPath = Join-Path $env:TEMP "kms-cng-provider.zip"

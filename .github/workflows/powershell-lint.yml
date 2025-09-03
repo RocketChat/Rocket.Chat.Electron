@@ -1,0 +1,48 @@
+name: PowerShell Lint
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - '**.ps1'
+      - '**.psm1'
+      - '**.psd1'
+      - '.github/workflows/powershell-lint.yml'
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - '**.ps1'
+      - '**.psm1'
+      - '**.psd1'
+      - '.github/workflows/powershell-lint.yml'
+
+jobs:
+  lint:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+      
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          # Exclude Write-Host warnings as they're useful for CI output
+          $results = Invoke-ScriptAnalyzer -Path . -Recurse -ReportSummary -ExcludeRule PSAvoidUsingWriteHost
+          if ($results) {
+            $results | Format-Table -AutoSize
+            Write-Error "PSScriptAnalyzer found issues"
+            exit 1
+          } else {
+            Write-Host "✅ No PowerShell issues found"
+          }

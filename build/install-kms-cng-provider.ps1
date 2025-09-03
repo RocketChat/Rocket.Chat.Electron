@@ -1,155 +1,92 @@
-#!/usr/bin/env pwsh
-<#
-.SYNOPSIS
-    Downloads and installs Google Cloud KMS CNG Provider for Windows code signing.
-
-.DESCRIPTION
-    This script handles the complete process of downloading, extracting, caching, and installing
-    the Google Cloud KMS CNG Provider. It uses GitHub Actions caching when available and falls
-    back to downloading from the official Google repository.
-
-.PARAMETER CacheDir
-    Directory to cache the MSI file (default: build/installers)
-
-.PARAMETER Force
-    Force download even if cached file exists
-
-.EXAMPLE
-    .\install-kms-cng-provider.ps1
-    
-.EXAMPLE
-    .\install-kms-cng-provider.ps1 -CacheDir "C:\temp\kms" -Force
-#>
-
 param(
-    [string]$CacheDir = "build/installers",
     [switch]$Force
 )
+
+$ErrorActionPreference = 'Stop'
 
 # Configuration
 $KMS_VERSION = "cng-v1.2"
 $ZIP_FILENAME = "kmscng-1.2-windows-amd64.zip"
-$MSI_FILENAME = "google-cloud-kms-cng-provider.msi"
 $DOWNLOAD_URL = "https://github.com/GoogleCloudPlatform/kms-integrations/releases/download/$KMS_VERSION/$ZIP_FILENAME"
+$CacheDir = Join-Path $env:GITHUB_WORKSPACE "build\installers"
+$CachedMsiPath = Join-Path $CacheDir "google-cloud-kms-cng-provider.msi"
+$TempZipPath = Join-Path $env:TEMP "kms-cng-provider.zip"
+$TempExtractDir = Join-Path $env:TEMP "kms-cng-extract"
 
-# Paths
-$WorkspaceDir = if ($env:GITHUB_WORKSPACE) { $env:GITHUB_WORKSPACE } else { $PWD }
-$CacheDir = Join-Path $WorkspaceDir $CacheDir
-$CachedMsiPath = Join-Path $CacheDir $MSI_FILENAME
-$TempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { $env:TEMP }
-$TempZipPath = Join-Path $TempDir "kmscng.zip"
-$TempExtractDir = Join-Path $TempDir "kmscng"
+Write-Host "Google Cloud KMS CNG Provider Installation Script"
+Write-Host "=================================================="
 
-Write-Host "🚀 Google Cloud KMS CNG Provider Installer" -ForegroundColor Cyan
-Write-Host "Version: $KMS_VERSION" -ForegroundColor Gray
-Write-Host "Cache Directory: $CacheDir" -ForegroundColor Gray
-
-# Create cache directory if it doesn't exist
+# Create cache directory if needed
 if (-not (Test-Path $CacheDir)) {
-    Write-Host "[INFO] Creating cache directory: $CacheDir" -ForegroundColor Yellow
+    Write-Host "Creating cache directory..."
     New-Item -ItemType Directory -Path $CacheDir -Force | Out-Null
 }
 
-# Check if MSI is already cached (unless Force is specified)
+# Check for cached MSI
 if ((Test-Path $CachedMsiPath) -and -not $Force) {
-    Write-Host "[SUCCESS] Using cached MSI: $CachedMsiPath" -ForegroundColor Green
+    Write-Host "Using cached MSI file"
     $MsiPath = $CachedMsiPath
 } else {
-    if ($Force) {
-        Write-Host "[INFO] Force download requested, ignoring cache" -ForegroundColor Yellow
-    } else {
-        Write-Host "📥 MSI not found in cache, downloading..." -ForegroundColor Yellow
+    Write-Host "Downloading KMS CNG provider..."
+
+    # Clean up any existing temp files
+    if (Test-Path $TempZipPath) {
+        Remove-Item $TempZipPath -Force
     }
-    
-    # Download and extract
-    $MaxRetries = 3
-    $Downloaded = $false
-    
-    for ($RetryCount = 1; $RetryCount -le $MaxRetries -and -not $Downloaded; $RetryCount++) {
-        try {
-            Write-Host "🌐 Download attempt $RetryCount of $MaxRetries" -ForegroundColor Cyan
-            Write-Host "   URL: $DOWNLOAD_URL" -ForegroundColor Gray
-            
-            # Download ZIP file
-            Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $TempZipPath -UserAgent "Mozilla/5.0" -TimeoutSec 300
-            
-            # Verify download
-            if ((Get-Item $TempZipPath).Length -gt 1MB) {
-                $zipSize = [math]::Round((Get-Item $TempZipPath).Length / 1MB, 2)
-                Write-Host "[SUCCESS] ZIP downloaded successfully ($zipSize MB)" -ForegroundColor Green
-                
-                # Extract MSI from ZIP
-                Write-Host "[INFO] Extracting MSI from ZIP..." -ForegroundColor Cyan
-                if (Test-Path $TempExtractDir) {
-                    Remove-Item -Path $TempExtractDir -Recurse -Force
-                }
-                Expand-Archive -Path $TempZipPath -DestinationPath $TempExtractDir -Force
-                
-                # Find MSI file
-                $ExtractedMsi = Get-ChildItem -Path $TempExtractDir -Filter "*.msi" -Recurse | Select-Object -First 1
-                
-                if ($ExtractedMsi) {
-                    # Copy to cache location
-                    Copy-Item -Path $ExtractedMsi.FullName -Destination $CachedMsiPath -Force
-                    Write-Host "[SUCCESS] MSI extracted and cached: $($ExtractedMsi.Name)" -ForegroundColor Green
-                    $MsiPath = $CachedMsiPath
-                    $Downloaded = $true
-                } else {
-                    throw "No MSI file found in ZIP archive"
-                }
-            } else {
-                $fileSize = [math]::Round((Get-Item $TempZipPath).Length / 1KB, 2)
-                throw "Downloaded file is too small ($fileSize KB)"
-            }
-        } catch {
-            Write-Host "[ERROR] Download attempt $RetryCount failed: $_" -ForegroundColor Red
-            
-            if ($RetryCount -lt $MaxRetries) {
-                Write-Host "[WAIT] Waiting 5 seconds before retry..." -ForegroundColor Yellow
-                Start-Sleep -Seconds 5
-            }
-        }
+    if (Test-Path $TempExtractDir) {
+        Remove-Item $TempExtractDir -Recurse -Force
     }
-    
-    if (-not $Downloaded) {
-        throw "[FATAL] Failed to download KMS CNG provider after $MaxRetries attempts"
+
+    # Download the ZIP file
+    Write-Host "Downloading from: $DOWNLOAD_URL"
+    try {
+        Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $TempZipPath -UseBasicParsing
+        Write-Host "Download completed"
+    } catch {
+        Write-Error "Failed to download KMS CNG provider: $_"
+        exit 1
     }
+
+    # Extract the ZIP file
+    Write-Host "Extracting files..."
+    Expand-Archive -Path $TempZipPath -DestinationPath $TempExtractDir -Force
+
+    # Find the MSI file
+    $ExtractedMsi = Get-ChildItem -Path $TempExtractDir -Filter "*.msi" -Recurse | Select-Object -First 1
+    if (-not $ExtractedMsi) {
+        Write-Error "MSI file not found in archive"
+        exit 1
+    }
+
+    # Copy to cache
+    Copy-Item -Path $ExtractedMsi.FullName -Destination $CachedMsiPath -Force
+    Write-Host "MSI file cached"
+    $MsiPath = $CachedMsiPath
 }
 
-# Install MSI
-Write-Host "🔧 Installing Google Cloud KMS CNG Provider..." -ForegroundColor Cyan
-$LogPath = Join-Path $TempDir "kms-install.log"
+# Install the MSI
+Write-Host "Installing KMS CNG provider..."
 $InstallArgs = @(
     "/i", "`"$MsiPath`"",
-    "/qn",
+    "/quiet",
     "/norestart",
-    "/l*v", "`"$LogPath`""
+    "/l*v", "`"$env:TEMP\kms-cng-install.log`""
 )
 
-Write-Host "   Command: msiexec.exe $($InstallArgs -join ' ')" -ForegroundColor Gray
-
-$Process = Start-Process -FilePath "msiexec.exe" -ArgumentList $InstallArgs -Wait -PassThru -NoNewWindow
-
+$Process = Start-Process -FilePath "msiexec.exe" -ArgumentList $InstallArgs -Wait -PassThru
 if ($Process.ExitCode -eq 0) {
-    Write-Host "[SUCCESS] Google Cloud KMS CNG Provider installed successfully!" -ForegroundColor Green
+    Write-Host "Installation completed successfully"
 } else {
-    Write-Host "[ERROR] Installation failed with exit code: $($Process.ExitCode)" -ForegroundColor Red
-    
-    # Show installation log if available
-    if (Test-Path $LogPath) {
-        Write-Host "📋 Installation log (last 20 lines):" -ForegroundColor Yellow
-        Get-Content $LogPath | Select-Object -Last 20 | ForEach-Object { Write-Host "   $_" -ForegroundColor Gray }
-    }
-    
-    throw "MSI installation failed"
+    Write-Error "Installation failed with exit code: $($Process.ExitCode)"
+    exit 1
 }
 
-# Cleanup temporary files
-Write-Host "[INFO] Cleaning up temporary files..." -ForegroundColor Cyan
-@($TempZipPath, $TempExtractDir) | ForEach-Object {
-    if (Test-Path $_) {
-        Remove-Item -Path $_ -Recurse -Force -ErrorAction SilentlyContinue
-    }
+# Cleanup
+if (Test-Path $TempZipPath) {
+    Remove-Item $TempZipPath -Force -ErrorAction SilentlyContinue
+}
+if (Test-Path $TempExtractDir) {
+    Remove-Item $TempExtractDir -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host "[SUCCESS] KMS CNG Provider setup completed successfully!" -ForegroundColor Green
+Write-Host "Setup completed"

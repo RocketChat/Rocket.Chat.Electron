@@ -5,8 +5,9 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # Configuration
-$KMS_VERSION = "1.2"
-$DOWNLOAD_URL = "https://github.com/GoogleCloudPlatform/kms-integrations/releases/download/cng-v$KMS_VERSION/kmscng-$KMS_VERSION-windows-amd64.zip"
+$KMS_VERSION = "cng-v1.2"
+$ZIP_FILENAME = "kmscng-1.2-windows-amd64.zip"
+$DOWNLOAD_URL = "https://github.com/GoogleCloudPlatform/kms-integrations/releases/download/$KMS_VERSION/$ZIP_FILENAME"
 $CacheDir = Join-Path $env:GITHUB_WORKSPACE "build\installers"
 $CachedMsiPath = Join-Path $CacheDir "google-cloud-kms-cng-provider.msi"
 $TempZipPath = Join-Path $env:TEMP "kms-cng-provider.zip"
@@ -37,11 +38,12 @@ if ((Test-Path $CachedMsiPath) -and -not $Force) {
     }
     
     # Download the ZIP file
+    Write-Host "Downloading from: $DOWNLOAD_URL"
     try {
         Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $TempZipPath -UseBasicParsing
         Write-Host "Download completed"
     } catch {
-        Write-Error "Failed to download KMS CNG provider"
+        Write-Error "Failed to download KMS CNG provider: $_"
         exit 1
     }
     

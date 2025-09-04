@@ -83,20 +83,14 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
   };
 
   const formatTime = (timestamp: number): string => {
-    if (!timestamp || timestamp === 0) return t('settings.experimental.memoryImprovements.metrics.never', 'Never');
+    if (!timestamp || timestamp === 0) return '';
     const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffMins < 1) return t('settings.experimental.memoryImprovements.metrics.justNow', 'Just now');
-    if (diffMins < 60) return `${diffMins} ${t('settings.experimental.memoryImprovements.metrics.minutesAgo', 'min ago')}`;
-    
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} ${t('settings.experimental.memoryImprovements.metrics.hoursAgo', 'hr ago')}`;
-    
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} ${t('settings.experimental.memoryImprovements.metrics.daysAgo', 'days ago')}`;
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false 
+    });
   };
 
   const getPressureColor = (pressure: string): string => {
@@ -137,9 +131,11 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
         <Box fontScale='p2b'>
           {t('settings.experimental.memoryImprovements.metrics.title', 'Memory Status')}
         </Box>
-        <Box fontScale='c1' color='hint'>
-          {t('settings.experimental.memoryImprovements.metrics.updated', 'Updated')}: {formatTime(updateTime)}
-        </Box>
+        {formatTime(updateTime) && (
+          <Box fontScale='c1' color='hint'>
+            {formatTime(updateTime)}
+          </Box>
+        )}
       </Box>
 
       {/* App Memory Overview */}

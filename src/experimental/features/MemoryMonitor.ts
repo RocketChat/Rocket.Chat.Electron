@@ -105,13 +105,6 @@ export class MemoryMonitor extends MemoryFeature {
     // Get Electron app metrics directly
     const appMetrics = app.getAppMetrics();
     
-    // Debug: Log all process types
-    console.log('[MemoryMonitor] Process types:', appMetrics.map(m => ({ 
-      type: m.type, 
-      pid: m.pid,
-      hasWebContents: !!m.webContents
-    })));
-    
     // Calculate total app memory
     const totalAppMemory = appMetrics.reduce(
       (sum, metric) => sum + metric.memory.workingSetSize,
@@ -120,7 +113,6 @@ export class MemoryMonitor extends MemoryFeature {
 
     // Count renderer processes
     const rendererProcesses = appMetrics.filter(m => m.type === 'Renderer').length;
-    console.log(`[MemoryMonitor] Found ${rendererProcesses} renderer processes`);
 
     // Get main process memory
     const mainProcessMemory = process.memoryUsage();
@@ -131,25 +123,17 @@ export class MemoryMonitor extends MemoryFeature {
     
     // Use webContents.getAllWebContents() to get all webviews
     const allWebContents = webContents.getAllWebContents();
-    console.log(`[MemoryMonitor] Total WebContents: ${allWebContents.length}`);
     
     for (const wc of allWebContents) {
       // Skip destroyed webcontents and main window
-      if (wc.isDestroyed()) {
-        continue;
-      }
-      
-      const wcType = wc.getType();
-      const url = wc.getURL();
-      console.log(`[MemoryMonitor] WebContents type: ${wcType}, URL: ${url}`);
-      
-      if (wcType === 'window') {
+      if (wc.isDestroyed() || wc.getType() === 'window') {
         continue;
       }
       
       // Find the metric for this webContents
       const metric = appMetrics.find(m => m.webContents?.id === wc.id);
       if (metric) {
+        const url = wc.getURL();
         if (url && url.startsWith('http')) {
           webviews.push({
             url,
@@ -157,7 +141,6 @@ export class MemoryMonitor extends MemoryFeature {
             memory: metric.memory.workingSetSize * 1024, // Convert to bytes
             cpu: metric.cpu ? metric.cpu.percentCPUUsage : 0
           });
-          console.log(`[MemoryMonitor] Added webview: ${url}`);
         }
       }
     }

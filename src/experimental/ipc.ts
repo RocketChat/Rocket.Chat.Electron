@@ -15,6 +15,9 @@ export const setupExperimentalIPC = (): void => {
     
     if (enabled) {
       await memoryManager.enable();
+      // Enable monitoring by default when memory improvements are enabled
+      await memoryManager.toggleFeature('monitoring', true);
+      console.log('[ExperimentalIPC] Enabled monitoring feature by default');
     } else {
       await memoryManager.disable();
     }

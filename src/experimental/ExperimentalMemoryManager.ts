@@ -39,7 +39,6 @@ export class ExperimentalMemoryManager {
     this.registerFeature('leakDetector', new MemoryLeakDetector());
     this.registerFeature('performanceCollector', new PerformanceCollector());
     
-    console.log('[ExperimentalMemory] Manager initialized');
   }
 
   /**
@@ -56,7 +55,6 @@ export class ExperimentalMemoryManager {
    * Register a memory feature.
    */
   registerFeature(name: string, feature: MemoryFeature): void {
-    console.log(`[ExperimentalMemory] Registering feature: ${name}`);
     this.features.set(name, feature);
   }
 
@@ -68,7 +66,6 @@ export class ExperimentalMemoryManager {
       return;
     }
 
-    console.log('[ExperimentalMemory] Manager enabled (features must be enabled individually)');
     this.enabled = true;
     
     // Don't automatically enable features - they need to be enabled individually
@@ -82,7 +79,6 @@ export class ExperimentalMemoryManager {
       return;
     }
 
-    console.log('[ExperimentalMemory] Disabling all features');
     this.enabled = false;
     
     // Disable all features
@@ -102,26 +98,22 @@ export class ExperimentalMemoryManager {
     const feature = this.features.get(name);
     
     if (!feature) {
-      console.warn(`[ExperimentalMemory] Unknown feature: ${name}`);
       return;
     }
 
     // Allow disabling at any time, but only enable if manager is enabled
     if (enabled && !this.enabled) {
-      console.warn(`[ExperimentalMemory] Cannot enable feature ${name}: manager is disabled`);
       return;
     }
 
     if (enabled) {
       await feature.enable();
-      console.log(`[ExperimentalMemory] Feature ${name} enabled`);
       
       // Apply feature to all existing WebContents
       for (const [url, wc] of this.webContentsList) {
         if (!wc.isDestroyed()) {
           try {
             await feature.applyToWebContents(wc, url);
-            console.log(`[ExperimentalMemory] Applied ${name} to existing WebContents for ${url}`);
           } catch (error) {
             console.error(`[ExperimentalMemory] Failed to apply ${name} to ${url}:`, error);
           }
@@ -129,7 +121,6 @@ export class ExperimentalMemoryManager {
       }
     } else {
       await feature.disable();
-      console.log(`[ExperimentalMemory] Feature ${name} disabled`);
     }
   }
 
@@ -139,15 +130,12 @@ export class ExperimentalMemoryManager {
   async applyToWebContents(webContents: WebContents, serverUrl: string): Promise<void> {
     // Always track the webcontents, even if manager is not enabled yet
     // This ensures we have them available when features are enabled later
-    console.log(`[ExperimentalMemory] Tracking WebContents for ${serverUrl}`);
     this.webContentsList.set(serverUrl, webContents);
 
     if (!this.enabled) {
-      console.log(`[ExperimentalMemory] Manager not enabled, skipping feature application for ${serverUrl}`);
       return;
     }
 
-    console.log(`[ExperimentalMemory] Applying enabled features to WebContents for ${serverUrl}`);
     
     for (const [name, feature] of this.features) {
       // Only apply if the feature is enabled
@@ -165,7 +153,6 @@ export class ExperimentalMemoryManager {
    * Handle WebContents destruction.
    */
   handleWebContentsDestroyed(serverUrl: string): void {
-    console.log(`[ExperimentalMemory] WebContents destroyed for ${serverUrl}`);
     this.webContentsList.delete(serverUrl);
   }
 
@@ -177,7 +164,6 @@ export class ExperimentalMemoryManager {
       return;
     }
 
-    console.log('[ExperimentalMemory] System going to sleep');
     
     for (const [name, feature] of this.features) {
       try {
@@ -196,7 +182,6 @@ export class ExperimentalMemoryManager {
       return;
     }
 
-    console.log('[ExperimentalMemory] System resumed from sleep');
     
     for (const [name, feature] of this.features) {
       try {
@@ -328,7 +313,6 @@ export class ExperimentalMemoryManager {
     const configManager = MemoryConfigurationManager.getInstance();
     await configManager.loadConfiguration();
     
-    console.log('[ExperimentalMemory] Configuration reloaded');
     
     // Apply configuration to features
     for (const [name, feature] of this.features) {

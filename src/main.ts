@@ -95,7 +95,7 @@ const start = async (): Promise<void> => {
   
   // Initialize experimental features
   if (process.env.NODE_ENV !== 'test') {
-    console.log('[Experimental] Initializing experimental features');
+    // Initialize experimental features
     const experimentalManager = ExperimentalMemoryManager.getInstance();
     setupExperimentalIPC();
     setupExperimentalReduxListeners();
@@ -109,7 +109,7 @@ const start = async (): Promise<void> => {
       experimentalManager.handleSystemResume();
     });
     
-    console.log('[Experimental] Experimental features initialized');
+    // Experimental features initialized
   }
 
   // Set up electron-dl with our download tracking callbacks

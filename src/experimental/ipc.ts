@@ -11,13 +11,10 @@ export const setupExperimentalIPC = (): void => {
 
   // Toggle all memory improvements
   handle('experimental/toggle-memory-improvements', async (_webContents, enabled) => {
-    console.log(`[ExperimentalIPC] Toggle memory improvements: ${enabled}`);
-    
     if (enabled) {
       await memoryManager.enable();
       // Enable monitoring by default when memory improvements are enabled
       await memoryManager.toggleFeature('monitoring', true);
-      console.log('[ExperimentalIPC] Enabled monitoring feature by default');
     } else {
       await memoryManager.disable();
     }
@@ -25,8 +22,6 @@ export const setupExperimentalIPC = (): void => {
 
   // Toggle specific feature
   handle('experimental/toggle-memory-feature', async (_webContents, feature, enabled) => {
-    console.log(`[ExperimentalIPC] Toggle feature ${feature}: ${enabled}`);
-    
     // Handle special case for showStatusBar
     if (feature === 'showStatusBar') {
       // This is just a UI toggle, no feature to enable/disable
@@ -38,19 +33,14 @@ export const setupExperimentalIPC = (): void => {
 
   // Get memory metrics
   handle('experimental/get-memory-metrics', async () => {
-    const metrics = memoryManager.getMetrics();
-    console.log('[ExperimentalIPC] Getting memory metrics:', metrics);
-    
-    return metrics;
+    return memoryManager.getMetrics();
   });
 
   // Request current memory metrics
   handle('experimental/request-memory-metrics', async () => {
-    console.log('[ExperimentalIPC] Memory metrics requested');
     const monitoringFeature = memoryManager.getFeature('monitoring') as MemoryMonitor | undefined;
     
     if (!monitoringFeature || !monitoringFeature.isEnabled()) {
-      console.log('[ExperimentalIPC] Monitoring not enabled, returning null');
       return null;
     }
 
@@ -72,5 +62,5 @@ export const setupExperimentalIPC = (): void => {
     return metrics;
   });
 
-  console.log('[ExperimentalIPC] IPC handlers registered');
+  // IPC handlers registered
 };

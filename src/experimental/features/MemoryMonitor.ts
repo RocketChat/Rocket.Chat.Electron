@@ -51,37 +51,28 @@ export class MemoryMonitor extends MemoryFeature {
     // Capture initial snapshot
     await this.captureSnapshot();
     
-    console.log(`[MemoryMonitor] Started with ${this.intervalMs / 1000} second interval`);
+    // Started monitoring
   }
 
   protected async onDisable(): Promise<void> {
     this.stopMonitoring();
-    
-    // Export diagnostics on disable if there's significant data
-    if (this.history.length > 10) {
-      const filePath = await this.exportDiagnostics();
-      console.log(`[MemoryMonitor] Exported diagnostics to ${filePath}`);
-    }
-    
     // Clear history
     this.history = [];
   }
 
   protected async onApplyToWebContents(webContents: WebContents, serverUrl: string): Promise<void> {
     // No need to track manually, we'll use Electron's API directly
-    console.log(`[MemoryMonitor] WebContents registered for ${serverUrl}`);
+    // WebContents registered
   }
 
   protected async onSystemResume(): Promise<void> {
     // After system resume, capture a snapshot immediately
-    console.log('[MemoryMonitor] System resumed, capturing memory snapshot');
+    // System resumed, capturing snapshot
     await this.captureSnapshot();
     
     // Check if we have memory pressure
     const latestSnapshot = this.history[this.history.length - 1];
-    if (latestSnapshot && latestSnapshot.app.pressure !== 'low') {
-      console.warn('[MemoryMonitor] Memory pressure detected after resume:', latestSnapshot.app.pressure);
-    }
+    // Memory pressure detected after resume
   }
 
   private startMonitoring(): void {

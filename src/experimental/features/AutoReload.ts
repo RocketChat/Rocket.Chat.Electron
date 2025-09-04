@@ -386,4 +386,35 @@ export class AutoReload extends MemoryFeature {
     }
     return predictions;
   }
+
+  /**
+   * Get statistics for all WebContents
+   */
+  getWebContentsStats(): Array<{
+    url: string;
+    memoryHistory: number[];
+    reloadCount: number;
+    growthRate: number;
+    lastReload: number;
+  }> {
+    const stats: Array<{
+      url: string;
+      memoryHistory: number[];
+      reloadCount: number;
+      growthRate: number;
+      lastReload: number;
+    }> = [];
+    
+    for (const [url, state] of this.webContentsStates) {
+      stats.push({
+        url,
+        memoryHistory: state.memoryHistory,
+        reloadCount: state.reloadCount,
+        growthRate: state.growthRate,
+        lastReload: state.lastReload,
+      });
+    }
+    
+    return stats;
+  }
 }

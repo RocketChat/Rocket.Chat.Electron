@@ -1,4 +1,5 @@
 import type { WebContents } from 'electron';
+import { app } from 'electron';
 
 import type { MemoryFeature } from './MemoryFeature';
 import { MemoryMonitor } from './features/MemoryMonitor';
@@ -7,6 +8,8 @@ import { AutoReload } from './features/AutoReload';
 import { DOMOptimization } from './features/DOMOptimization';
 import { WebSocketManager } from './features/WebSocketManager';
 import { MemoryLeakDetector } from './features/MemoryLeakDetector';
+import { PerformanceCollector } from './features/PerformanceCollector';
+import { MemoryConfigurationManager } from './MemoryConfiguration';
 
 export interface MemoryMetrics {
   memorySaved: number;
@@ -34,6 +37,7 @@ export class ExperimentalMemoryManager {
     this.registerFeature('domOptimization', new DOMOptimization());
     this.registerFeature('websocket', new WebSocketManager());
     this.registerFeature('leakDetector', new MemoryLeakDetector());
+    this.registerFeature('performanceCollector', new PerformanceCollector());
     
     console.log('[ExperimentalMemory] Manager initialized');
   }
@@ -243,13 +247,167 @@ export class ExperimentalMemoryManager {
    * Get the current list of tracked WebContents.
    */
   getWebContentsList(): Map<string, WebContents> {
-    return this.webContentsList;
+    return new Map(this.webContentsList);
   }
 
   /**
    * Get all WebContents being managed.
    */
-  getWebContentsList(): Map<string, WebContents> {
-    return new Map(this.webContentsList);
+  getWebContents(): WebContents[] {
+    return Array.from(this.webContentsList.values()).filter(wc => !wc.isDestroyed());
   }
+
+  /**
+   * Get list of enabled features.
+   */
+  getEnabledFeatures(): string[] {
+    const enabledFeatures: string[] = [];
+    for (const [name, feature] of this.features) {
+      if (feature.isEnabled()) {
+        enabledFeatures.push(name);
+      }
+    }
+    return enabledFeatures;
+  }
+
+  /**
+   * Enable a specific feature.
+   */
+  async enableFeature(name: string): Promise<void> {
+    await this.toggleFeature(name, true);
+  }
+
+  /**
+   * Disable a specific feature.
+   */
+  async disableFeature(name: string): Promise<void> {
+    await this.toggleFeature(name, false);
+  }
+  
+  /**
+   * Set feature enabled state (alias for toggleFeature).
+   */
+  async setFeatureEnabled(name: string, enabled: boolean): Promise<void> {
+    await this.toggleFeature(name, enabled);
+  }
+
+  /**
+   * Get memory information for all webContents.
+   */
+  getWebContentsMemory(): Array<{ id: number; url: string; memory: number }> {
+    const webContentsMemory: Array<{ id: number; url: string; memory: number }> = [];
+    const metrics = app.getAppMetrics();
+    
+    for (const [url, wc] of this.webContentsList) {
+      if (!wc.isDestroyed()) {
+        const metric = metrics.find(m => (m as any).webContents?.id === wc.id);
+        if (metric) {
+          webContentsMemory.push({
+            id: wc.id,
+            url,
+            memory: metric.memory.workingSetSize * 1024, // Convert KB to bytes
+          });
+        }
+      }
+    }
+    
+    return webContentsMemory;
+  }
+
+  /**
+   * Register a new WebContents (alias for applyToWebContents).
+   */
+  async registerWebContents(webContents: WebContents, serverUrl: string): Promise<void> {
+    await this.applyToWebContents(webContents, serverUrl);
+  }
+
+  /**
+   * Reload configuration from the configuration manager.
+   */
+  async reloadConfiguration(): Promise<void> {
+    const configManager = MemoryConfigurationManager.getInstance();
+    await configManager.loadConfiguration();
+    
+    console.log('[ExperimentalMemory] Configuration reloaded');
+    
+    // Apply configuration to features
+    for (const [name, feature] of this.features) {
+      const config = configManager.getFeatureConfig(name as any);
+      if (config) {
+        if (config.enabled && !feature.isEnabled()) {
+          await feature.enable();
+        } else if (!config.enabled && feature.isEnabled()) {
+          await feature.disable();
+        }
+      }
+    }
+  }
+
+  /**
+   * Generate a comprehensive report.
+   */
+  async generateReport(): Promise<any> {
+    const report: any = {
+      timestamp: Date.now(),
+      duration: Date.now() - (this.startTime || Date.now()),
+      enabled: this.enabled,
+      features: {},
+      metrics: this.getMetrics(),
+      interventions: [],
+      webContents: this.getWebContentsMemory(),
+    };
+    
+    // Collect feature reports
+    for (const [name, feature] of this.features) {
+      report.features[name] = {
+        enabled: feature.isEnabled(),
+        metrics: feature.getMetrics(),
+      };
+      
+      // Add feature-specific data
+      if (name === 'leakDetector') {
+        const leakDetector = feature as any;
+        report.leaks = leakDetector.getDetectedLeaks?.() || [];
+      }
+      
+      if (name === 'performanceCollector') {
+        const collector = feature as any;
+        try {
+          report.performance = collector.generateReport?.();
+        } catch (error) {
+          // Ignore if not enough data
+        }
+      }
+    }
+    
+    return report;
+  }
+
+  /**
+   * Export data as CSV.
+   */
+  exportCSV(): string {
+    const headers = ['timestamp', 'feature', 'metric', 'value'];
+    const rows: any[] = [];
+    
+    for (const [name, feature] of this.features) {
+      const metrics = feature.getMetrics();
+      rows.push([
+        Date.now(),
+        name,
+        'activations',
+        metrics.activations,
+      ]);
+      rows.push([
+        Date.now(),
+        name,
+        'memorySaved',
+        metrics.memorySaved,
+      ]);
+    }
+    
+    return [headers, ...rows].map(row => row.join(',')).join('\n');
+  }
+
+  private startTime: number = Date.now();
 }

@@ -1,6 +1,7 @@
 import { app, webContents } from 'electron';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 
 import { MemoryFeature } from '../MemoryFeature';
 import type { WebContents } from 'electron';
@@ -166,6 +167,9 @@ export class MemoryMonitor extends MemoryFeature {
     if (this.history.length > this.maxHistorySize) {
       this.history.shift();
     }
+    
+    // Check for memory alerts
+    this.checkMemoryAlerts(snapshot);
 
     // Log memory status
     const totalAppMB = totalAppMemory / 1024 / 1024;
@@ -313,5 +317,154 @@ export class MemoryMonitor extends MemoryFeature {
    */
   async forceSnapshot(): Promise<SystemMemoryInfo> {
     return await this.captureSnapshot();
+  }
+
+  /**
+   * Get current memory snapshot
+   */
+  getCurrentSnapshot(): any {
+    const metrics = app.getAppMetrics();
+    const totalMemory = metrics.reduce((sum, m) => sum + m.memory.workingSetSize * 1024, 0);
+    const processCount = metrics.length;
+    const averageMemory = processCount > 0 ? totalMemory / processCount : 0;
+    
+    // Find peak memory from history
+    const peakMemory = this.history.reduce((max, h) => {
+      const historyTotal = h.app.totalMemory || 0;
+      return Math.max(max, historyTotal);
+    }, totalMemory);
+    
+    return {
+      timestamp: Date.now(),
+      totalMemory,
+      averageMemory,
+      peakMemory,
+      processCount,
+      processes: metrics.map(m => ({
+        pid: m.pid,
+        type: m.type,
+        memory: m.memory.workingSetSize * 1024,
+      })),
+      webContents: webContents.getAllWebContents().map(wc => ({
+        id: wc.id,
+        url: wc.getURL(),
+        memory: 0, // Would need process mapping
+      })),
+    };
+  }
+
+  /**
+   * Get memory history
+   */
+  getMemoryHistory(): any[] {
+    return [...this.history];
+  }
+
+  /**
+   * Set up memory alert callback
+   */
+  onMemoryAlert(callback: (alert: any) => void): void {
+    this.alertCallback = callback;
+  }
+
+  private alertCallback: ((alert: any) => void) | null = null;
+
+  /**
+   * Get memory trend
+   */
+  getMemoryTrend(): 'increasing' | 'stable' | 'decreasing' {
+    if (this.history.length < 3) return 'stable';
+    
+    const recentHistory = this.history.slice(-5);
+    const memoryValues = recentHistory.map(h => h.app.totalMemory);
+    
+    // Calculate trend using simple linear regression
+    const n = memoryValues.length;
+    if (n < 2) return 'stable';
+    
+    const indices = Array.from({ length: n }, (_, i) => i);
+    const sumX = indices.reduce((a, b) => a + b, 0);
+    const sumY = memoryValues.reduce((a, b) => a + b, 0);
+    const sumXY = indices.reduce((sum, x, i) => sum + x * memoryValues[i], 0);
+    const sumX2 = indices.reduce((sum, x) => sum + x * x, 0);
+    
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const avgMemory = sumY / n;
+    const slopePercent = (slope / avgMemory) * 100;
+    
+    if (slopePercent > 2) return 'increasing';
+    if (slopePercent < -2) return 'decreasing';
+    return 'stable';
+  }
+
+  /**
+   * Export memory report
+   */
+  exportReport(): any {
+    const now = Date.now();
+    const duration = this.history.length > 0 
+      ? now - this.history[0].timestamp 
+      : 0;
+    
+    const memoryValues = this.history.map(h => h.app.totalMemory);
+    const averageMemory = memoryValues.length > 0
+      ? memoryValues.reduce((a, b) => a + b, 0) / memoryValues.length
+      : 0;
+    const peakMemory = memoryValues.length > 0
+      ? Math.max(...memoryValues)
+      : 0;
+    
+    return {
+      generatedAt: now,
+      duration,
+      samples: this.history.length,
+      summary: {
+        averageMemory,
+        peakMemory,
+        trend: this.getMemoryTrend(),
+      },
+      history: this.history,
+    };
+  }
+
+  /**
+   * Export as CSV
+   */
+  exportCSV(): string {
+    const headers = ['timestamp', 'totalMemory', 'processCount', 'pressure'];
+    const rows = this.history.map(h => [
+      h.timestamp,
+      h.app.totalMemory,
+      h.app.rendererProcesses || 0,
+      h.app.pressure,
+    ]);
+    
+    return [headers, ...rows].map(row => row.join(',')).join('\n');
+  }
+
+  private checkMemoryAlerts(info: SystemMemoryInfo): void {
+    if (!this.alertCallback) return;
+    
+    const totalMemory = info.app.totalMemory;
+    const totalSystemMemory = os.totalmem();
+    const usagePercent = (totalMemory / totalSystemMemory) * 100;
+    
+    if (usagePercent > 90) {
+      this.alertCallback({
+        level: 'critical',
+        message: `Critical memory usage: ${usagePercent.toFixed(1)}%`,
+        currentMemory: totalMemory,
+        threshold: totalSystemMemory * 0.9,
+        timestamp: Date.now(),
+      });
+    } else if (usagePercent > 75) {
+      this.alertCallback({
+        level: 'high',
+        message: `High memory usage: ${usagePercent.toFixed(1)}%`,
+        currentMemory: totalMemory,
+        threshold: totalSystemMemory * 0.75,
+        timestamp: Date.now(),
+      });
+    }
   }
 }

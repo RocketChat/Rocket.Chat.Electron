@@ -9,6 +9,7 @@ import type { RootState } from '../../../store/rootReducer';
 import { DOWNLOADS_BACK_BUTTON_CLICKED } from '../../actions';
 import { CertificatesTab } from './CertificatesTab';
 import { GeneralTab } from './GeneralTab';
+import { ExperimentalTab } from './ExperimentalTab';
 
 export const SettingsView = () => {
   const isVisible = useSelector(
@@ -70,10 +71,17 @@ export const SettingsView = () => {
         >
           {t('settings.certificates')}
         </Tabs.Item>
+        <Tabs.Item
+          selected={currentTab === 'experimental'}
+          onClick={() => setCurrentTab('experimental')}
+        >
+          {t('settings.experimental', 'Experimental')}
+        </Tabs.Item>
       </Tabs>
       <Box m='x24' overflowY='auto'>
         {(currentTab === 'general' && <GeneralTab />) ||
-          (currentTab === 'certificates' && <CertificatesTab />)}
+          (currentTab === 'certificates' && <CertificatesTab />) ||
+          (currentTab === 'experimental' && <ExperimentalTab />)}
       </Box>
     </Box>
   );

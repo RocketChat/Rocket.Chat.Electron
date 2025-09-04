@@ -29,14 +29,6 @@ export const GlobalStyles = () => (
   />
 );
 
-export const WindowDragBar = styled.div`
-  position: fixed;
-  width: 100vw;
-  height: 22px;
-  -webkit-app-region: drag;
-  user-select: none;
-`;
-
 export const Wrapper = styled.div`
   overflow: hidden;
   width: 100vw;

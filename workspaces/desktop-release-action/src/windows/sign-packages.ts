@@ -21,35 +21,13 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
     return;
   }
   
-  // Debug: Check what's in the dist directory
-  core.info(`Looking for packages in: ${distPath}`);
-  
-  // List all files in dist to debug
-  try {
-    const allFiles = glob.sync('**/*', {
-      cwd: distPath,
-      absolute: false
-    });
-    core.info(`Files in dist directory: ${allFiles.length} total`);
-    const packages = allFiles.filter(f => f.endsWith('.exe') || f.endsWith('.msi') || f.endsWith('.appx'));
-    packages.forEach(f => {
-      core.info(`  - ${f}`);
-    });
-    
-    const appxFiles = packages.filter(f => f.endsWith('.appx'));
-    if (appxFiles.length > 0) {
-      core.warning(`Found ${appxFiles.length} .appx files but skipping them - AppX packages require special publisher name handling`);
-    }
-  } catch (e) {
-    core.warning(`Could not list files: ${e}`);
-  }
+  core.info(`Looking for packages to sign in: ${distPath}`);
   
   // Find all packages to sign
-  // Note: Skipping .appx files as they require special publisher name handling
+  // Note: AppX files are for Microsoft Store and don't need code signing
   const patterns = [
-    '*.exe',      // Executables in root of dist
-    '*.msi',      // MSI installers in root of dist  
-    // '*.appx',  // AppX packages need special handling - skip for now
+    '*.exe',      // NSIS installers
+    '*.msi',      // MSI installers
   ];
   
   const filesToSign: string[] = [];
@@ -60,9 +38,6 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
       absolute: true,
       ignore: ['**/node_modules/**', '**/temp/**', '**/win-unpacked/**', '**/win-ia32-unpacked/**', '**/win-arm64-unpacked/**']
     });
-    if (files.length > 0) {
-      core.info(`Pattern '${pattern}' found ${files.length} files`);
-    }
     filesToSign.push(...files);
   }
   

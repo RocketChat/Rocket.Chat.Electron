@@ -185,14 +185,6 @@ const start = async () => {
     return;
   }
 
-  // TEMPORARY: Test branch for MSI build fix - remove after testing
-  if (ref === 'refs/heads/fix-disable-signing-during-build') {
-    core.info(
-      `push event on test branch detected, performing test build only`
-    );
-    await pack();  // Just build, don't release
-    return;
-  }
 
   if (ref.match(/^refs\/tags\//)) {
     const tag = ref.slice('refs/tags/'.length);

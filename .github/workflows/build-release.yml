@@ -7,7 +7,6 @@ on:
     branches:
       - master
       - develop
-      - fix-disable-signing-during-build  # TEMPORARY: Remove this line after testing
     tags:
       - '*'
 

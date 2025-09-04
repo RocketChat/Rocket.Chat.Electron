@@ -46357,33 +46357,12 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
         lib_core.warning('Signing credentials not available, skipping package signing');
         return;
     }
-    // Debug: Check what's in the dist directory
-    lib_core.info(`Looking for packages in: ${distPath}`);
-    // List all files in dist to debug
-    try {
-        const allFiles = glob_glob.sync('**/*', {
-            cwd: distPath,
-            absolute: false
-        });
-        lib_core.info(`Files in dist directory: ${allFiles.length} total`);
-        const packages = allFiles.filter(f => f.endsWith('.exe') || f.endsWith('.msi') || f.endsWith('.appx'));
-        packages.forEach(f => {
-            lib_core.info(`  - ${f}`);
-        });
-        const appxFiles = packages.filter(f => f.endsWith('.appx'));
-        if (appxFiles.length > 0) {
-            lib_core.warning(`Found ${appxFiles.length} .appx files but skipping them - AppX packages require special publisher name handling`);
-        }
-    }
-    catch (e) {
-        lib_core.warning(`Could not list files: ${e}`);
-    }
+    lib_core.info(`Looking for packages to sign in: ${distPath}`);
     // Find all packages to sign
-    // Note: Skipping .appx files as they require special publisher name handling
+    // Note: AppX files are for Microsoft Store and don't need code signing
     const patterns = [
-        '*.exe', // Executables in root of dist
-        '*.msi', // MSI installers in root of dist  
-        // '*.appx',  // AppX packages need special handling - skip for now
+        '*.exe', // NSIS installers
+        '*.msi', // MSI installers
     ];
     const filesToSign = [];
     for (const pattern of patterns) {
@@ -46392,9 +46371,6 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
             absolute: true,
             ignore: ['**/node_modules/**', '**/temp/**', '**/win-unpacked/**', '**/win-ia32-unpacked/**', '**/win-arm64-unpacked/**']
         });
-        if (files.length > 0) {
-            lib_core.info(`Pattern '${pattern}' found ${files.length} files`);
-        }
         filesToSign.push(...files);
     }
     // Remove duplicates
@@ -46542,11 +46518,7 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
         process.env.GCLOUD_PATH = gcloudPath;
         // Sign all the built packages
         lib_core.info('Signing all built packages...');
-        // The action runs from the repository root in GitHub Actions
-        // Current working directory is D:\a\Rocket.Chat.Electron\Rocket.Chat.Electron
-        // Use resolve to ensure we get the correct absolute path
         const distPath = external_path_.resolve(process.cwd(), 'dist');
-        lib_core.info(`Looking for packages to sign in: ${distPath}`);
         yield signBuiltPackages(distPath);
         lib_core.info('✅ Windows packages built and signed successfully');
     }
@@ -46704,12 +46676,6 @@ const start = () => src_awaiter(void 0, void 0, void 0, function* () {
     if (ref === 'refs/heads/master') {
         lib_core.info(`push event on master branch detected, performing snapshot release`);
         yield releaseSnapshot(payload.after);
-        return;
-    }
-    // TEMPORARY: Test branch for MSI build fix - remove after testing
-    if (ref === 'refs/heads/fix-disable-signing-during-build') {
-        lib_core.info(`push event on test branch detected, performing test build only`);
-        yield pack(); // Just build, don't release
         return;
     }
     if (ref.match(/^refs\/tags\//)) {

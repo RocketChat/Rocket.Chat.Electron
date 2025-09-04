@@ -23,13 +23,17 @@ export const setupExperimentalReduxListeners = (): void => {
         console.log('[ExperimentalRedux] Manager was enabled, restoring state');
         await memoryManager.enable();
         
-        // Now restore individual feature states
+        // Enable monitoring by default (always needed for metrics)
+        await memoryManager.toggleFeature('monitoring', true);
+        
+        // Now restore other individual feature states
         for (const [feature, enabled] of Object.entries(settings.features)) {
-          if (enabled) {
+          if (enabled && feature !== 'monitoring') {
             console.log(`[ExperimentalRedux] Restoring feature ${feature} as enabled`);
             await memoryManager.toggleFeature(feature, true);
           }
         }
+        console.log('[ExperimentalRedux] All features restored');
       }
     }
   });
@@ -39,12 +43,12 @@ export const setupExperimentalReduxListeners = (): void => {
     const { enabled } = action.payload;
     console.log(`[ExperimentalRedux] Memory improvements toggled: ${enabled}`);
     
-    // Master toggle only enables/disables the manager
-    // Individual features need to be enabled separately
     if (enabled) {
-      // Enable manager but don't enable any features yet
+      // Enable manager
       await memoryManager.enable();
-      console.log('[ExperimentalRedux] Manager enabled, features remain disabled until manually activated');
+      // Enable monitoring by default when memory improvements are toggled on
+      await memoryManager.toggleFeature('monitoring', true);
+      console.log('[ExperimentalRedux] Manager enabled with monitoring feature');
     } else {
       // Disable everything
       await memoryManager.disable();

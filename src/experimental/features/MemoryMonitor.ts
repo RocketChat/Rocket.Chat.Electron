@@ -176,6 +176,7 @@ export class MemoryMonitor extends MemoryFeature {
     const mainMB = mainProcessMemory.rss / 1024 / 1024;
     const topWebview = webviews[0];
     
+    // Only log warnings, not regular status updates
     if (pressure === 'high') {
       console.warn(`[MemoryMonitor] ⚠️ HIGH app memory usage!`, {
         totalApp: `${totalAppMB.toFixed(0)}MB`,
@@ -183,10 +184,6 @@ export class MemoryMonitor extends MemoryFeature {
         webviews: webviews.length,
         topWebview: topWebview ? `${new URL(topWebview.url).hostname} (${(topWebview.memory / 1024 / 1024).toFixed(0)}MB)` : 'none'
       });
-    } else if (pressure === 'medium') {
-      console.log(`[MemoryMonitor] ⚡ Moderate app memory usage - Total: ${totalAppMB.toFixed(0)}MB, Main: ${mainMB.toFixed(0)}MB, WebViews: ${webviews.length}`);
-    } else {
-      console.log(`[MemoryMonitor] 📊 App memory - Total: ${totalAppMB.toFixed(0)}MB, WebViews: ${webviews.length}`);
     }
 
     // Update metrics

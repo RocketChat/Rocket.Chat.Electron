@@ -31,18 +31,25 @@ export const signBuiltPackages = async (distPath: string): Promise<void> => {
       absolute: false
     });
     core.info(`Files in dist directory: ${allFiles.length} total`);
-    allFiles.filter(f => f.endsWith('.exe') || f.endsWith('.msi') || f.endsWith('.appx')).forEach(f => {
+    const packages = allFiles.filter(f => f.endsWith('.exe') || f.endsWith('.msi') || f.endsWith('.appx'));
+    packages.forEach(f => {
       core.info(`  - ${f}`);
     });
+    
+    const appxFiles = packages.filter(f => f.endsWith('.appx'));
+    if (appxFiles.length > 0) {
+      core.warning(`Found ${appxFiles.length} .appx files but skipping them - AppX packages require special publisher name handling`);
+    }
   } catch (e) {
     core.warning(`Could not list files: ${e}`);
   }
   
   // Find all packages to sign
+  // Note: Skipping .appx files as they require special publisher name handling
   const patterns = [
     '*.exe',      // Executables in root of dist
     '*.msi',      // MSI installers in root of dist  
-    '*.appx',     // AppX packages in root of dist
+    // '*.appx',  // AppX packages need special handling - skip for now
   ];
   
   const filesToSign: string[] = [];

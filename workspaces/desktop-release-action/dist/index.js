@@ -46366,18 +46366,24 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
             absolute: false
         });
         lib_core.info(`Files in dist directory: ${allFiles.length} total`);
-        allFiles.filter(f => f.endsWith('.exe') || f.endsWith('.msi') || f.endsWith('.appx')).forEach(f => {
+        const packages = allFiles.filter(f => f.endsWith('.exe') || f.endsWith('.msi') || f.endsWith('.appx'));
+        packages.forEach(f => {
             lib_core.info(`  - ${f}`);
         });
+        const appxFiles = packages.filter(f => f.endsWith('.appx'));
+        if (appxFiles.length > 0) {
+            lib_core.warning(`Found ${appxFiles.length} .appx files but skipping them - AppX packages require special publisher name handling`);
+        }
     }
     catch (e) {
         lib_core.warning(`Could not list files: ${e}`);
     }
     // Find all packages to sign
+    // Note: Skipping .appx files as they require special publisher name handling
     const patterns = [
         '*.exe', // Executables in root of dist
         '*.msi', // MSI installers in root of dist  
-        '*.appx', // AppX packages in root of dist
+        // '*.appx',  // AppX packages need special handling - skip for now
     ];
     const filesToSign = [];
     for (const pattern of patterns) {

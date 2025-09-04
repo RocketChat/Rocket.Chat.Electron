@@ -17,7 +17,6 @@ import { SettingsView } from '../SettingsView';
 import { SideBar } from '../SideBar';
 import { SupportedVersionDialog } from '../SupportedVersionDialog';
 import { TopBar } from '../TopBar';
-import { StatusBar } from '../StatusBar';
 import { UpdateDialog } from '../UpdateDialog';
 import TooltipProvider from '../utils/TooltipProvider';
 import { GlobalStyles } from './styles';
@@ -107,7 +106,6 @@ export const Shell = () => {
             <SettingsView />
           </Box>
         </Box>
-        <StatusBar />
       </Box>
       <AboutDialog />
       <SupportedVersionDialog />

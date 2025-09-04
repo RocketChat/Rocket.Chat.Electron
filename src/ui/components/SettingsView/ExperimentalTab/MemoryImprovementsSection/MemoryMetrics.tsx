@@ -130,7 +130,6 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
 
   const appMemoryMB = (liveMetrics.app.totalMemory || 0) / 1024 / 1024;
   const mainProcessMB = (liveMetrics.app.mainProcess?.rss || 0) / 1024 / 1024;
-  const serverCount = liveMetrics.webviews?.length || 0;
 
   return (
     <Box marginBlock='x24'>
@@ -175,36 +174,7 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
         </Box>
       </Tile>
 
-      {/* App Memory Stats */}
-      <Box display='flex' flexWrap='wrap' mi='neg-x8' mbe='x16'>
-        <Box pi='x8' width='50%'>
-          <Tile elevation='1' padding='x16'>
-            <Box textAlign='center'>
-              <Box fontScale='h2' color='info-500' mbe='x4'>
-                {liveMetrics.app.rendererProcesses || 0}
-              </Box>
-              <Box fontScale='c1' color='hint'>
-                {t('settings.experimental.memoryImprovements.metrics.rendererProcesses', 'Renderer Processes')}
-              </Box>
-            </Box>
-          </Tile>
-        </Box>
-        
-        <Box pi='x8' width='50%'>
-          <Tile elevation='1' padding='x16'>
-            <Box textAlign='center'>
-              <Box fontScale='h2' color='success-500' mbe='x4'>
-                {serverCount}
-              </Box>
-              <Box fontScale='c1' color='hint'>
-                {t('settings.experimental.memoryImprovements.metrics.activeServers', 'Active Servers')}
-              </Box>
-            </Box>
-          </Tile>
-        </Box>
-      </Box>
-
-      {/* Server Memory Breakdown */}
+      {/* Server Memory Breakdown - only show if there are servers */}
       {liveMetrics.webviews && liveMetrics.webviews.length > 0 && (
         <Tile elevation='1' padding='x16'>
           <Box fontScale='p2' mbe='x12'>

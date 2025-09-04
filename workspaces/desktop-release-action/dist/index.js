@@ -43904,21 +43904,6 @@ try {
 
 /***/ }),
 
-/***/ 3783:
-/***/ ((module) => {
-
-function webpackEmptyContext(req) {
-	var e = new Error("Cannot find module '" + req + "'");
-	e.code = 'MODULE_NOT_FOUND';
-	throw e;
-}
-webpackEmptyContext.keys = () => ([]);
-webpackEmptyContext.resolve = webpackEmptyContext;
-webpackEmptyContext.id = 3783;
-module.exports = webpackEmptyContext;
-
-/***/ }),
-
 /***/ 9491:
 /***/ ((module) => {
 
@@ -46342,6 +46327,8 @@ const installJsign = () => signing_tools_awaiter(void 0, void 0, void 0, functio
 
 // EXTERNAL MODULE: ../../node_modules/glob/glob.js
 var glob_glob = __nccwpck_require__(1246);
+// EXTERNAL MODULE: external "util"
+var external_util_ = __nccwpck_require__(3837);
 ;// CONCATENATED MODULE: ./src/windows/sign-packages.ts
 var sign_packages_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -46355,6 +46342,9 @@ var sign_packages_awaiter = (undefined && undefined.__awaiter) || function (this
 
 
 
+
+
+const execAsync = (0,external_util_.promisify)(external_child_process_.exec);
 /**
  * Sign all built Windows packages using the existing winSignKms.js
  */
@@ -46367,11 +46357,6 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
         lib_core.warning('Signing credentials not available, skipping package signing');
         return;
     }
-    // Path to the winSignKms.js script
-    const scriptPath = external_path_.resolve(process.cwd(), 'build', 'winSignKms.js');
-    lib_core.info(`Using signing script: ${scriptPath}`);
-    // Load the signing function
-    const signWithGoogleKms = __nccwpck_require__(3783)(scriptPath);
     // Debug: Check what's in the dist directory
     lib_core.info(`Looking for packages in: ${distPath}`);
     // List all files in dist to debug
@@ -46415,19 +46400,45 @@ const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, vo
         throw new Error(`No Windows packages found to sign. Expected .exe, .msi, or .appx files in ${distPath}`);
     }
     // Sign each file using the existing winSignKms.js script
+    // We need to execute it as node script with the config as a JSON argument
     for (const file of uniqueFiles) {
         lib_core.info(`Signing ${external_path_.basename(file)}...`);
-        const config = {
-            path: file,
-            name: 'Rocket.Chat',
-            site: 'https://rocket.chat'
-        };
+        // Create a temporary script that calls winSignKms.js
+        const scriptContent = `
+      const sign = require('./build/winSignKms.js');
+      const config = {
+        path: '${file.replace(/\\/g, '\\\\')}',
+        name: 'Rocket.Chat',
+        site: 'https://rocket.chat'
+      };
+      
+      sign(config).then(() => {
+        console.log('Successfully signed');
+        process.exit(0);
+      }).catch(err => {
+        console.error('Signing failed:', err);
+        process.exit(1);
+      });
+    `;
         try {
-            yield signWithGoogleKms(config);
+            // Execute the script using node
+            const { stdout, stderr } = yield execAsync(`node -e "${scriptContent.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`, {
+                cwd: process.cwd(),
+                env: Object.assign(Object.assign({}, process.env), { WIN_KMS_KEY_RESOURCE: kmsKeyResource, WIN_CERT_FILE: certFile, GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS, CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON }),
+                maxBuffer: 10 * 1024 * 1024 // 10MB buffer for output
+            });
+            if (stdout)
+                lib_core.info(stdout);
+            if (stderr)
+                lib_core.warning(stderr);
             lib_core.info(`✓ Successfully signed ${external_path_.basename(file)}`);
         }
         catch (error) {
-            lib_core.error(`Failed to sign ${external_path_.basename(file)}: ${error}`);
+            lib_core.error(`Failed to sign ${external_path_.basename(file)}: ${error.message}`);
+            if (error.stdout)
+                lib_core.error(`stdout: ${error.stdout}`);
+            if (error.stderr)
+                lib_core.error(`stderr: ${error.stderr}`);
             throw error;
         }
     }

@@ -298,7 +298,14 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
   const handlePermissionRequest: Parameters<
     Session['setPermissionRequestHandler']
   >[0] = async (_webContents, permission, callback, details) => {
-    console.log('Permission request', permission, details);
+    // Use debug logging that won't throw on EPIPE errors
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        console.log('Permission request', permission, details);
+      } catch {
+        // Silently ignore logging errors (EPIPE, etc.)
+      }
+    }
     switch (permission) {
       case 'media': {
         const { mediaTypes = [] } = details as MediaAccessPermissionRequest;

@@ -128,7 +128,7 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
   return (
     <Box marginBlock='x24'>
       <Box display='flex' alignItems='center' justifyContent='space-between' mbe='x12'>
-        <Box fontScale='p2b'>
+        <Box fontScale='p2b' color='default'>
           {t('settings.experimental.memoryImprovements.metrics.title', 'Memory Status')}
         </Box>
         {formatTime(updateTime) && (

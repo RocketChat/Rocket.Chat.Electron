@@ -49,7 +49,7 @@ export const packOnWindows = async (): Promise<void> => {
     
     // Build NSIS installer (unsigned)
     core.info('Building NSIS installer (unsigned)...');
-    await runElectronBuilder(`--x64 --win nsis`, buildEnv);
+    await runElectronBuilder(`--x64 --ia32 --arm64 --win nsis`, buildEnv);
     
     // Build MSI installer (unsigned)
     core.info('Building MSI installer (unsigned)...');

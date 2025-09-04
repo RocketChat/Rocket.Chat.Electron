@@ -136,6 +136,8 @@ export const SIDE_BAR_SERVER_COPY_URL = 'side-bar/server-copy-url';
 export const SIDE_BAR_SERVER_OPEN_DEV_TOOLS = 'side-bar/server-open-dev-tools';
 export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
 export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
+export const WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR =
+  'webview/force-reload-with-cache-clear';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -171,6 +173,7 @@ export type UiActionTypeToPayloadMap = {
   [SIDE_BAR_SERVER_OPEN_DEV_TOOLS]: Server['url'];
   [SIDE_BAR_SERVER_FORCE_RELOAD]: Server['url'];
   [SIDE_BAR_SERVER_REMOVE]: Server['url'];
+  [WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR]: Server['url'];
   [TOUCH_BAR_FORMAT_BUTTON_TOUCHED]:
     | 'bold'
     | 'italic'

@@ -37,15 +37,49 @@ const resolveWithExponentialBackoff = <T>(
 const tryRequire = <T = any>(path: string) =>
   resolveWithExponentialBackoff<T>(() => window.require(path));
 
+let startRetryCount = 0;
+let totalRetryTime = 0;
+const MAX_RETRY_TIME = 30000; // Maximum 30 seconds total retry time
+const INITIAL_RETRY_DELAY = 1000; // Start with 1 second
+
 // eslint-disable-next-line complexity
 const start = async () => {
   console.log('[Rocket.Chat Desktop] Injected.ts start fired');
   if (typeof window.require !== 'function') {
     console.log('[Rocket.Chat Desktop] window.require is not defined');
-    console.log('[Rocket.Chat Desktop] Inject start - retrying in 1 seconds');
-    setTimeout(start, 1000);
+
+    if (totalRetryTime >= MAX_RETRY_TIME) {
+      console.error(
+        `[Rocket.Chat Desktop] Maximum retry time (${MAX_RETRY_TIME}ms) reached. window.require is still not available.`
+      );
+      console.log(
+        '[Rocket.Chat Desktop] Triggering force reload with cache clear to recover...'
+      );
+      // Trigger force reload with cache clear to recover
+      window.RocketChatDesktop.reloadServer();
+      return;
+    }
+
+    startRetryCount++;
+    const retryDelay = Math.min(
+      INITIAL_RETRY_DELAY * Math.pow(1.5, startRetryCount - 1),
+      5000
+    ); // Cap at 5 seconds per retry
+
+    // Ensure we don't exceed max total time
+    const actualDelay = Math.min(retryDelay, MAX_RETRY_TIME - totalRetryTime);
+    totalRetryTime += actualDelay;
+
+    console.log(
+      `[Rocket.Chat Desktop] Inject start - retry ${startRetryCount} in ${actualDelay}ms (total time: ${totalRetryTime}ms)`
+    );
+    setTimeout(start, actualDelay);
     return;
   }
+
+  // Reset retry counters on successful require detection
+  startRetryCount = 0;
+  totalRetryTime = 0;
 
   const { Info: serverInfo = {} } = await tryRequire(
     '/app/utils/rocketchat.info'

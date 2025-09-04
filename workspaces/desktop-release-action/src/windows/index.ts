@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as core from '@actions/core';
 import { runElectronBuilder } from '../shell';
 import { setupCertificates } from './certificates';
@@ -37,35 +38,26 @@ export const packOnWindows = async (): Promise<void> => {
     // We'll sign them after build to avoid KMS CNG provider MSI installation
     // interfering with our MSI builds
     
-    // Create electron-builder config that disables signing
-    const buildConfig = {
-      win: {
-        forceCodeSigning: false,
-        sign: false,
-        signAndEditExecutable: false
-      }
+    // Temporarily disable signing by clearing the environment variables
+    // The winSignKms.js script checks these and skips signing when not set
+    const buildEnv = {
+      ...baseEnv,
+      // Clear signing credentials to make winSignKms.js skip signing
+      WIN_KMS_KEY_RESOURCE: '',
+      WIN_CERT_FILE: ''
     };
     
     // Build NSIS installer (unsigned)
     core.info('Building NSIS installer (unsigned)...');
-    await runElectronBuilder(`--x64 --win nsis`, {
-      ...baseEnv,
-      ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig)
-    });
+    await runElectronBuilder(`--x64 --win nsis`, buildEnv);
     
     // Build MSI installer (unsigned)
     core.info('Building MSI installer (unsigned)...');
-    await runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, {
-      ...baseEnv,
-      ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig)
-    });
+    await runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
     
     // Build AppX package (unsigned)
     core.info('Building AppX package (unsigned)...');
-    await runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, {
-      ...baseEnv,
-      ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig)
-    });
+    await runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, buildEnv);
     
     core.info('✅ All Windows packages built successfully (unsigned)');
     
@@ -85,12 +77,14 @@ export const packOnWindows = async (): Promise<void> => {
     // Authenticate gcloud with service account
     await authenticateGcloud(credentialsPath, gcloudPath);
     
-    // Update environment with gcloud path for signing
+    // Restore environment variables for signing phase
+    process.env.WIN_KMS_KEY_RESOURCE = kmsKeyResource;
+    process.env.WIN_CERT_FILE = userCertPath;
     process.env.GCLOUD_PATH = gcloudPath;
     
     // Sign all the built packages
     core.info('Signing all built packages...');
-    const distPath = process.cwd() + '/dist';
+    const distPath = path.resolve(process.cwd(), 'dist');
     await signBuiltPackages(distPath);
     
     core.info('✅ Windows packages built and signed successfully');

@@ -6,6 +6,7 @@ import { SmartCleanup } from './features/SmartCleanup';
 import { AutoReload } from './features/AutoReload';
 import { DOMOptimization } from './features/DOMOptimization';
 import { WebSocketManager } from './features/WebSocketManager';
+import { MemoryLeakDetector } from './features/MemoryLeakDetector';
 
 export interface MemoryMetrics {
   memorySaved: number;
@@ -32,6 +33,7 @@ export class ExperimentalMemoryManager {
     this.registerFeature('autoReload', new AutoReload());
     this.registerFeature('domOptimization', new DOMOptimization());
     this.registerFeature('websocket', new WebSocketManager());
+    this.registerFeature('leakDetector', new MemoryLeakDetector());
     
     console.log('[ExperimentalMemory] Manager initialized');
   }

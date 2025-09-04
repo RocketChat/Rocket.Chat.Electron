@@ -430,7 +430,7 @@ jobs:
           
           Write-Host "`n=== Starting Build ===" -ForegroundColor Cyan
           # Run electron-builder
-          yarn electron-builder --publish never --x64 --win nsis
+          yarn electron-builder --publish never --x64 --ia32 --arm64 --win nsis
         env:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
           WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt

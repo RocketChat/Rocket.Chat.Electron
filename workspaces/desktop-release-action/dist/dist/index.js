@@ -46493,7 +46493,7 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
             WIN_KMS_KEY_RESOURCE: '', WIN_CERT_FILE: '' });
         // Build NSIS installer (unsigned)
         lib_core.info('Building NSIS installer (unsigned)...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis`, buildEnv);
+        yield runElectronBuilder(`--x64 --win nsis`, buildEnv);
         // Build MSI installer (unsigned)
         lib_core.info('Building MSI installer (unsigned)...');
         yield runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
@@ -46518,8 +46518,8 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
         process.env.GCLOUD_PATH = gcloudPath;
         // Sign all the built packages
         lib_core.info('Signing all built packages...');
-        const distPath = __nccwpck_require__.ab + "dist";
-        yield signBuiltPackages(__nccwpck_require__.ab + "dist");
+        const distPath = external_path_.resolve(process.cwd(), 'dist');
+        yield signBuiltPackages(distPath);
         lib_core.info('✅ Windows packages built and signed successfully');
     }
     catch (error) {

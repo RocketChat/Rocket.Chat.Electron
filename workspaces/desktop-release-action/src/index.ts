@@ -185,6 +185,7 @@ const start = async () => {
     return;
   }
 
+
   if (ref.match(/^refs\/tags\//)) {
     const tag = ref.slice('refs/tags/'.length);
     const version = parse(tag);

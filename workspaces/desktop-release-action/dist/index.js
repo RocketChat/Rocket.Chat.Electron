@@ -46327,6 +46327,8 @@ const installJsign = () => signing_tools_awaiter(void 0, void 0, void 0, functio
 
 // EXTERNAL MODULE: ../../node_modules/glob/glob.js
 var glob_glob = __nccwpck_require__(1246);
+// EXTERNAL MODULE: external "util"
+var external_util_ = __nccwpck_require__(3837);
 ;// CONCATENATED MODULE: ./src/windows/sign-packages.ts
 var sign_packages_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -46341,79 +46343,84 @@ var sign_packages_awaiter = (undefined && undefined.__awaiter) || function (this
 
 
 
+
+const execAsync = (0,external_util_.promisify)(external_child_process_.exec);
 /**
- * Sign all built Windows packages using jsign
+ * Sign all built Windows packages using the existing winSignKms.js
  */
 const signBuiltPackages = (distPath) => sign_packages_awaiter(void 0, void 0, void 0, function* () {
     lib_core.info('Signing built Windows packages...');
-    // Get signing configuration
+    // Check that required environment variables are set
     const kmsKeyResource = process.env.WIN_KMS_KEY_RESOURCE;
     const certFile = process.env.WIN_CERT_FILE;
-    const gcloudPath = process.env.GCLOUD_PATH || 'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
-    const jsignPath = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
     if (!kmsKeyResource || !certFile) {
         lib_core.warning('Signing credentials not available, skipping package signing');
         return;
     }
-    // Extract KMS configuration
-    const resourceParts = kmsKeyResource.split('/');
-    const projectId = resourceParts[1];
-    const location = resourceParts[3];
-    const keyRingName = resourceParts[5];
-    const keyName = resourceParts[7]; // cryptoKeys/KEY_NAME
-    // Get access token from gcloud
-    lib_core.info('Getting access token from gcloud...');
-    const accessToken = yield runAndBuffer(`"${gcloudPath}" auth print-access-token`);
-    if (!accessToken) {
-        throw new Error('Failed to get access token from gcloud');
-    }
+    lib_core.info(`Looking for packages to sign in: ${distPath}`);
     // Find all packages to sign
+    // Note: AppX files are for Microsoft Store and don't need code signing
     const patterns = [
-        '**/*.exe', // All executables (NSIS installers and unpacked apps)
-        '**/*.msi', // MSI installers
-        '**/*.appx', // AppX packages
+        '*.exe', // NSIS installers
+        '*.msi', // MSI installers
     ];
     const filesToSign = [];
     for (const pattern of patterns) {
         const files = glob_glob.sync(pattern, {
             cwd: distPath,
             absolute: true,
-            ignore: ['**/node_modules/**', '**/temp/**']
+            ignore: ['**/node_modules/**', '**/temp/**', '**/win-unpacked/**', '**/win-ia32-unpacked/**', '**/win-arm64-unpacked/**']
         });
         filesToSign.push(...files);
     }
-    lib_core.info(`Found ${filesToSign.length} files to sign`);
-    // Sign each file
-    for (const file of filesToSign) {
-        const fileName = external_path_.basename(file);
-        // Skip already signed files (electron-builder may have partially signed some)
-        // We'll re-sign everything to be safe
-        lib_core.info(`Signing ${fileName}...`);
-        const jsignArgs = [
-            '--storetype', 'GOOGLECLOUD',
-            '--keystore', `projects/${projectId}/locations/${location}/keyRings/${keyRingName}`,
-            '--storepass', accessToken,
-            '--alias', keyName,
-            '--certfile', certFile,
-            '--tsaurl', 'http://timestamp.digicert.com',
-            '--name', 'Rocket.Chat',
-            '--url', 'https://rocket.chat',
-            file
-        ];
+    // Remove duplicates
+    const uniqueFiles = Array.from(new Set(filesToSign));
+    lib_core.info(`Found ${uniqueFiles.length} files to sign`);
+    if (uniqueFiles.length === 0) {
+        lib_core.error(`No packages found to sign in ${distPath}`);
+        lib_core.error(`Current working directory: ${process.cwd()}`);
+        throw new Error(`No Windows packages found to sign. Expected .exe, .msi, or .appx files in ${distPath}`);
+    }
+    // Sign each file using the existing winSignKms.js script
+    // We need to execute it as node script with the config as a JSON argument
+    for (const file of uniqueFiles) {
+        lib_core.info(`Signing ${external_path_.basename(file)}...`);
+        // Create a temporary script that calls winSignKms.js
+        const scriptContent = `
+      const sign = require('./build/winSignKms.js');
+      const config = {
+        path: '${file.replace(/\\/g, '\\\\')}',
+        name: 'Rocket.Chat',
+        site: 'https://rocket.chat'
+      };
+      
+      sign(config).then(() => {
+        console.log('Successfully signed');
+        process.exit(0);
+      }).catch(err => {
+        console.error('Signing failed:', err);
+        process.exit(1);
+      });
+    `;
         try {
-            // Log command without token
-            lib_core.info(`Running: jsign --storetype GOOGLECLOUD --keystore projects/${projectId}/locations/${location}/keyRings/${keyRingName} --storepass [MASKED] --alias ${keyName} --certfile ${certFile} --tsaurl http://timestamp.digicert.com ${fileName}`);
-            // Execute signing
-            yield run(`cmd /c "${jsignPath}" ${jsignArgs.map(arg => {
-                // Quote arguments with spaces
-                if (arg.includes(' ') && !arg.startsWith('"'))
-                    return `"${arg}"`;
-                return arg;
-            }).join(' ')}`);
-            lib_core.info(`✓ Successfully signed ${fileName}`);
+            // Execute the script using node
+            const { stdout, stderr } = yield execAsync(`node -e "${scriptContent.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`, {
+                cwd: process.cwd(),
+                env: Object.assign(Object.assign({}, process.env), { WIN_KMS_KEY_RESOURCE: kmsKeyResource, WIN_CERT_FILE: certFile, GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS, CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON }),
+                maxBuffer: 10 * 1024 * 1024 // 10MB buffer for output
+            });
+            if (stdout)
+                lib_core.info(stdout);
+            if (stderr)
+                lib_core.warning(stderr);
+            lib_core.info(`✓ Successfully signed ${external_path_.basename(file)}`);
         }
         catch (error) {
-            lib_core.error(`Failed to sign ${fileName}: ${error}`);
+            lib_core.error(`Failed to sign ${external_path_.basename(file)}: ${error.message}`);
+            if (error.stdout)
+                lib_core.error(`stdout: ${error.stdout}`);
+            if (error.stderr)
+                lib_core.error(`stderr: ${error.stderr}`);
             throw error;
         }
     }
@@ -46454,6 +46461,7 @@ var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
 
 
 
+
 const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* () {
     try {
         // Find and setup signtool
@@ -46478,23 +46486,20 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
         // Build all Windows packages WITHOUT signing
         // We'll sign them after build to avoid KMS CNG provider MSI installation
         // interfering with our MSI builds
-        // Create electron-builder config that disables signing
-        const buildConfig = {
-            win: {
-                forceCodeSigning: false,
-                sign: false,
-                signAndEditExecutable: false
-            }
-        };
+        // Temporarily disable signing by clearing the environment variables
+        // The winSignKms.js script checks these and skips signing when not set
+        const buildEnv = Object.assign(Object.assign({}, baseEnv), { 
+            // Clear signing credentials to make winSignKms.js skip signing
+            WIN_KMS_KEY_RESOURCE: '', WIN_CERT_FILE: '' });
         // Build NSIS installer (unsigned)
         lib_core.info('Building NSIS installer (unsigned)...');
-        yield runElectronBuilder(`--x64 --win nsis`, Object.assign(Object.assign({}, baseEnv), { ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig) }));
+        yield runElectronBuilder(`--x64 --win nsis`, buildEnv);
         // Build MSI installer (unsigned)
         lib_core.info('Building MSI installer (unsigned)...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, Object.assign(Object.assign({}, baseEnv), { ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig) }));
+        yield runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
         // Build AppX package (unsigned)
         lib_core.info('Building AppX package (unsigned)...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, Object.assign(Object.assign({}, baseEnv), { ELECTRON_BUILDER_CONFIG: JSON.stringify(buildConfig) }));
+        yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, buildEnv);
         lib_core.info('✅ All Windows packages built successfully (unsigned)');
         // NOW install KMS CNG provider and signing tools
         // This won't interfere with MSI builds since they're already done
@@ -46507,12 +46512,14 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
         const gcloudPath = yield installGoogleCloudCLI();
         // Authenticate gcloud with service account
         yield authenticateGcloud(credentialsPath, gcloudPath);
-        // Update environment with gcloud path for signing
+        // Restore environment variables for signing phase
+        process.env.WIN_KMS_KEY_RESOURCE = kmsKeyResource;
+        process.env.WIN_CERT_FILE = userCertPath;
         process.env.GCLOUD_PATH = gcloudPath;
         // Sign all the built packages
         lib_core.info('Signing all built packages...');
-        const distPath = __nccwpck_require__.ab + "dist";
-        yield signBuiltPackages(__nccwpck_require__.ab + "dist");
+        const distPath = external_path_.resolve(process.cwd(), 'dist');
+        yield signBuiltPackages(distPath);
         lib_core.info('✅ Windows packages built and signed successfully');
     }
     catch (error) {

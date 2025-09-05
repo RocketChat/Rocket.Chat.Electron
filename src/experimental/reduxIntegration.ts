@@ -1,5 +1,5 @@
-import { listen } from '../store';
 import { APP_SETTINGS_LOADED } from '../app/actions';
+import { listen } from '../store';
 import {
   EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED,
   EXPERIMENTAL_MEMORY_FEATURE_TOGGLED,
@@ -17,10 +17,10 @@ export const setupExperimentalReduxListeners = (): void => {
     const settings = action.payload.experimentalMemoryImprovements;
     if (settings && settings.enabled) {
       await memoryManager.enable();
-      
+
       // Enable monitoring by default (always needed for metrics)
       await memoryManager.toggleFeature('monitoring', true);
-      
+
       // Now restore other individual feature states
       for (const [feature, enabled] of Object.entries(settings.features)) {
         if (enabled && feature !== 'monitoring') {
@@ -33,7 +33,7 @@ export const setupExperimentalReduxListeners = (): void => {
   // Listen for master toggle
   listen(EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED, async (action) => {
     const { enabled } = action.payload;
-    
+
     if (enabled) {
       await memoryManager.enable();
       // Enable monitoring by default when memory improvements are toggled on

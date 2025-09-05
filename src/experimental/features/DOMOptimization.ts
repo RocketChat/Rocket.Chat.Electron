@@ -1,5 +1,6 @@
-import { MemoryFeature } from '../MemoryFeature';
 import type { WebContents } from 'electron';
+
+import { MemoryFeature } from '../MemoryFeature';
 
 export interface DOMOptimizationStats {
   elementsOptimized: number;
@@ -20,9 +21,13 @@ export interface DOMOptimizationStats {
  */
 export class DOMOptimization extends MemoryFeature {
   private optimizationInterval: NodeJS.Timeout | null = null;
+
   private webContentsList = new Map<string, WebContents>();
+
   private optimizationStats = new Map<string, DOMOptimizationStats>();
+
   private lastOptimizationTime = 0;
+
   private minOptimizationInterval = 2 * 60 * 1000; // 2 minutes minimum
 
   getName(): string {
@@ -40,9 +45,12 @@ export class DOMOptimization extends MemoryFeature {
     this.optimizationStats.clear();
   }
 
-  protected async onApplyToWebContents(webContents: WebContents, serverUrl: string): Promise<void> {
+  protected async onApplyToWebContents(
+    webContents: WebContents,
+    serverUrl: string
+  ): Promise<void> {
     this.webContentsList.set(serverUrl, webContents);
-    
+
     // Initialize stats for this URL
     this.optimizationStats.set(serverUrl, {
       elementsOptimized: 0,
@@ -53,10 +61,10 @@ export class DOMOptimization extends MemoryFeature {
         offscreenImages: 0,
         unusedStyles: 0,
         detachedNodes: 0,
-        largeTextNodes: 0
-      }
+        largeTextNodes: 0,
+      },
     });
-    
+
     // Inject DOM optimization script
     try {
       await webContents.executeJavaScript(`
@@ -271,7 +279,7 @@ export class DOMOptimization extends MemoryFeature {
     } catch (error) {
       // WebContents might not be ready
     }
-    
+
     console.log(`[DOMOptimization] Applied to WebContents for ${serverUrl}`);
   }
 
@@ -301,33 +309,42 @@ export class DOMOptimization extends MemoryFeature {
 
   private async optimizeAllWebContents(): Promise<void> {
     const now = Date.now();
-    
+
     // Check minimum interval
     if (now - this.lastOptimizationTime < this.minOptimizationInterval) {
-      const remainingTime = (this.minOptimizationInterval - (now - this.lastOptimizationTime)) / 1000;
-      console.log(`[DOMOptimization] ⏰ Next optimization in ${remainingTime.toFixed(0)} seconds`);
+      const remainingTime =
+        (this.minOptimizationInterval - (now - this.lastOptimizationTime)) /
+        1000;
+      console.log(
+        `[DOMOptimization] ⏰ Next optimization in ${remainingTime.toFixed(0)} seconds`
+      );
       return;
     }
-    
-    console.log(`[DOMOptimization] 🎯 Starting optimization cycle for ${this.webContentsList.size} WebContents`);
-    
+
+    console.log(
+      `[DOMOptimization] 🎯 Starting optimization cycle for ${this.webContentsList.size} WebContents`
+    );
+
     for (const [url, webContents] of this.webContentsList) {
       if (webContents.isDestroyed()) {
         this.webContentsList.delete(url);
         continue;
       }
-      
+
       await this.optimizeWebContents(url, webContents);
     }
-    
+
     this.lastOptimizationTime = now;
   }
 
-  private async optimizeWebContents(url: string, webContents: WebContents): Promise<void> {
+  private async optimizeWebContents(
+    url: string,
+    webContents: WebContents
+  ): Promise<void> {
     try {
       // Get memory before optimization
       const memoryBefore = await this.getWebContentsMemory(webContents);
-      
+
       // Run optimization
       const result = await webContents.executeJavaScript(`
         (function() {
@@ -337,43 +354,67 @@ export class DOMOptimization extends MemoryFeature {
           return null;
         })();
       `);
-      
+
       if (result) {
         // Get memory after optimization
         const memoryAfter = await this.getWebContentsMemory(webContents);
         const memorySaved = Math.max(0, memoryBefore - memoryAfter);
-        
+
         // Update stats
-        const stats = this.optimizationStats.get(url) || this.createEmptyStats();
-        stats.elementsOptimized += Object.values(result).reduce((a, b) => a + b, 0);
+        const stats =
+          this.optimizationStats.get(url) || this.createEmptyStats();
+        stats.elementsOptimized += (Object.values(result) as number[]).reduce(
+          (a, b) => (a || 0) + (b || 0),
+          0
+        );
         stats.memorySaved += memorySaved;
         stats.lastOptimization = Date.now();
-        
+
         // Update optimization type counts
         stats.optimizationTypes.hiddenElements += result.hiddenElements || 0;
         stats.optimizationTypes.offscreenImages += result.offscreenImages || 0;
         stats.optimizationTypes.unusedStyles += result.unusedStyles || 0;
         stats.optimizationTypes.detachedNodes += result.detachedNodes || 0;
         stats.optimizationTypes.largeTextNodes += result.largeTextNodes || 0;
-        
+
         this.optimizationStats.set(url, stats);
-        
+
         // Update metrics
         this.metrics.memorySaved += memorySaved;
         this.metrics.activations++;
         this.metrics.lastRun = Date.now();
-        
+
         // Log significant optimizations
-        const totalOptimized = Object.values(result).reduce((a, b) => a + b, 0);
+        const totalOptimized = (Object.values(result) as number[]).reduce(
+          (a, b) => (a || 0) + (b || 0),
+          0
+        );
         if (totalOptimized > 0) {
           console.log(`[DOMOptimization] ✂️ Optimized ${url}:`);
-          if (result.hiddenElements > 0) console.log(`  - 👻 Removed ${result.hiddenElements} hidden elements`);
-          if (result.offscreenImages > 0) console.log(`  - 🖼️ Lazy-loaded ${result.offscreenImages} off-screen images`);
-          if (result.unusedStyles > 0) console.log(`  - 🎨 Removed ${result.unusedStyles} unused CSS rules`);
-          if (result.detachedNodes > 0) console.log(`  - 🧹 Cleaned ${result.detachedNodes} detached nodes`);
-          if (result.largeTextNodes > 0) console.log(`  - 📝 Optimized ${result.largeTextNodes} large text nodes`);
+          if (result.hiddenElements > 0)
+            console.log(
+              `  - 👻 Removed ${result.hiddenElements} hidden elements`
+            );
+          if (result.offscreenImages > 0)
+            console.log(
+              `  - 🖼️ Lazy-loaded ${result.offscreenImages} off-screen images`
+            );
+          if (result.unusedStyles > 0)
+            console.log(
+              `  - 🎨 Removed ${result.unusedStyles} unused CSS rules`
+            );
+          if (result.detachedNodes > 0)
+            console.log(
+              `  - 🧹 Cleaned ${result.detachedNodes} detached nodes`
+            );
+          if (result.largeTextNodes > 0)
+            console.log(
+              `  - 📝 Optimized ${result.largeTextNodes} large text nodes`
+            );
           if (memorySaved > 0) {
-            console.log(`  - 💾 Saved ${(memorySaved / 1024 / 1024).toFixed(1)}MB memory`);
+            console.log(
+              `  - 💾 Saved ${(memorySaved / 1024 / 1024).toFixed(1)}MB memory`
+            );
           }
         } else {
           console.log(`[DOMOptimization] ✨ ${url} already optimized`);
@@ -384,7 +425,9 @@ export class DOMOptimization extends MemoryFeature {
     }
   }
 
-  private async getWebContentsMemory(webContents: WebContents): Promise<number> {
+  private async getWebContentsMemory(
+    webContents: WebContents
+  ): Promise<number> {
     try {
       const result = await webContents.executeJavaScript(`
         performance.memory ? performance.memory.usedJSHeapSize : 0
@@ -405,8 +448,8 @@ export class DOMOptimization extends MemoryFeature {
         offscreenImages: 0,
         unusedStyles: 0,
         detachedNodes: 0,
-        largeTextNodes: 0
-      }
+        largeTextNodes: 0,
+      },
     };
   }
 

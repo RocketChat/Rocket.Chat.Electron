@@ -1,5 +1,6 @@
-import { MemoryFeature } from '../MemoryFeature';
 import type { WebContents } from 'electron';
+
+import { MemoryFeature } from '../MemoryFeature';
 
 export interface WebSocketInfo {
   url: string;
@@ -26,11 +27,14 @@ export interface WebSocketStats {
  */
 export class WebSocketManager extends MemoryFeature {
   private monitorInterval: NodeJS.Timeout | null = null;
+
   private webContentsList = new Map<string, WebContents>();
+
   private websocketStats = new Map<string, WebSocketStats>();
+
   private connectionHistory = new Map<string, WebSocketInfo[]>();
-  private readonly MAX_IDLE_TIME = 5 * 60 * 1000; // 5 minutes
-  private readonly MAX_RECONNECT_ATTEMPTS = 3;
+  // private readonly MAX_IDLE_TIME = 5 * 60 * 1000; // 5 minutes - unused for now
+  // private readonly MAX_RECONNECT_ATTEMPTS = 3; // unused for now
 
   getName(): string {
     return 'WebSocketManager';
@@ -48,9 +52,12 @@ export class WebSocketManager extends MemoryFeature {
     this.connectionHistory.clear();
   }
 
-  protected async onApplyToWebContents(webContents: WebContents, serverUrl: string): Promise<void> {
+  protected async onApplyToWebContents(
+    webContents: WebContents,
+    serverUrl: string
+  ): Promise<void> {
     this.webContentsList.set(serverUrl, webContents);
-    
+
     // Initialize stats for this URL
     this.websocketStats.set(serverUrl, {
       totalConnections: 0,
@@ -58,9 +65,9 @@ export class WebSocketManager extends MemoryFeature {
       closedConnections: 0,
       reconnections: 0,
       dataTransferred: 0,
-      lastCleanup: 0
+      lastCleanup: 0,
     });
-    
+
     // Inject WebSocket management script
     try {
       await webContents.executeJavaScript(`
@@ -256,17 +263,21 @@ export class WebSocketManager extends MemoryFeature {
     } catch (error) {
       // WebContents might not be ready
     }
-    
+
     console.log(`[WebSocketManager] Applied to WebContents for ${serverUrl}`);
   }
 
   protected async onSystemSleep(): Promise<void> {
-    console.log('[WebSocketManager] 😴 System going to sleep, closing all WebSocket connections');
+    console.log(
+      '[WebSocketManager] 😴 System going to sleep, closing all WebSocket connections'
+    );
     await this.closeAllConnections();
   }
 
   protected async onSystemResume(): Promise<void> {
-    console.log('[WebSocketManager] 🌅 System resumed, reconnecting WebSockets');
+    console.log(
+      '[WebSocketManager] 🌅 System resumed, reconnecting WebSockets'
+    );
     await this.reconnectAllConnections();
   }
 
@@ -289,52 +300,64 @@ export class WebSocketManager extends MemoryFeature {
   }
 
   private async monitorConnections(): Promise<void> {
-    console.log(`[WebSocketManager] 🔌 Monitoring ${this.webContentsList.size} WebContents for WebSocket connections`);
-    
+    console.log(
+      `[WebSocketManager] 🔌 Monitoring ${this.webContentsList.size} WebContents for WebSocket connections`
+    );
+
     for (const [url, webContents] of this.webContentsList) {
       if (webContents.isDestroyed()) {
         this.webContentsList.delete(url);
         continue;
       }
-      
+
       try {
         // Get current WebSocket connections
         const connections = await webContents.executeJavaScript(`
           window.__websocketManager ? window.__websocketManager.getConnections() : []
         `);
-        
+
         // Update connection history
         this.connectionHistory.set(url, connections || []);
-        
+
         // Get stats
         const stats = await webContents.executeJavaScript(`
           window.__websocketManager ? window.__websocketManager.getStats() : { total: 0, active: 0, bufferedData: 0 }
         `);
-        
+
         // Update stats
-        const currentStats = this.websocketStats.get(url) || this.createEmptyStats();
+        const currentStats =
+          this.websocketStats.get(url) || this.createEmptyStats();
         currentStats.activeConnections = stats.active || 0;
-        currentStats.totalConnections = Math.max(currentStats.totalConnections, stats.total || 0);
+        currentStats.totalConnections = Math.max(
+          currentStats.totalConnections,
+          stats.total || 0
+        );
         this.websocketStats.set(url, currentStats);
-        
+
         if (stats.active > 0) {
-          console.log(`[WebSocketManager] 📊 ${url}: ${stats.active} active connections`);
+          console.log(
+            `[WebSocketManager] 📊 ${url}: ${stats.active} active connections`
+          );
         }
-        
+
         // Log if there are issues
         if (stats.active > 10) {
-          console.warn(`[WebSocketManager] ⚠️ HIGH CONNECTION COUNT for ${url}: ${stats.active} active connections!`);
+          console.warn(
+            `[WebSocketManager] ⚠️ HIGH CONNECTION COUNT for ${url}: ${stats.active} active connections!`
+          );
         }
-        
-        if (stats.bufferedData > 1024 * 1024) { // 1MB buffered
-          console.warn(`[WebSocketManager] 🔴 HIGH BUFFERED DATA for ${url}: ${(stats.bufferedData / 1024 / 1024).toFixed(1)}MB - possible memory leak!`);
+
+        if (stats.bufferedData > 1024 * 1024) {
+          // 1MB buffered
+          console.warn(
+            `[WebSocketManager] 🔴 HIGH BUFFERED DATA for ${url}: ${(stats.bufferedData / 1024 / 1024).toFixed(1)}MB - possible memory leak!`
+          );
         }
-        
       } catch (error) {
         // Page might have navigated
       }
     }
-    
+
     // Update metrics
     this.metrics.activations++;
     this.metrics.lastRun = Date.now();
@@ -343,7 +366,7 @@ export class WebSocketManager extends MemoryFeature {
   private async closeAllConnections(): Promise<void> {
     for (const [url, webContents] of this.webContentsList) {
       if (webContents.isDestroyed()) continue;
-      
+
       try {
         const closed = await webContents.executeJavaScript(`
           (function() {
@@ -365,19 +388,22 @@ export class WebSocketManager extends MemoryFeature {
             return closed;
           })();
         `);
-        
+
         if (closed > 0) {
-          console.log(`[WebSocketManager] 🔒 Closed ${closed} connections for ${url} before sleep`);
-          
+          console.log(
+            `[WebSocketManager] 🔒 Closed ${closed} connections for ${url} before sleep`
+          );
+
           const stats = this.websocketStats.get(url);
           if (stats) {
             stats.closedConnections += closed;
             stats.lastCleanup = Date.now();
           }
         } else {
-          console.log(`[WebSocketManager] ✅ ${url} - No active connections to close`);
+          console.log(
+            `[WebSocketManager] ✅ ${url} - No active connections to close`
+          );
         }
-        
       } catch (error) {
         // Page might not be ready
       }
@@ -386,29 +412,30 @@ export class WebSocketManager extends MemoryFeature {
 
   private async reconnectAllConnections(): Promise<void> {
     // Wait a bit for network to stabilize after resume
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     for (const [url, webContents] of this.webContentsList) {
       if (webContents.isDestroyed()) continue;
-      
+
       try {
         // Force reconnect all WebSockets
         const reconnected = await webContents.executeJavaScript(`
           window.__websocketManager ? window.__websocketManager.forceReconnect('') : 0
         `);
-        
+
         if (reconnected > 0) {
-          console.log(`[WebSocketManager] Reconnected ${reconnected} WebSockets for ${url}`);
-          
+          console.log(
+            `[WebSocketManager] Reconnected ${reconnected} WebSockets for ${url}`
+          );
+
           const stats = this.websocketStats.get(url);
           if (stats) {
             stats.reconnections += reconnected;
           }
         }
-        
+
         // Update memory saved metric
         this.metrics.memorySaved += reconnected * 100 * 1024; // Estimate 100KB per reconnected socket
-        
       } catch (error) {
         // Page might not be ready
       }
@@ -422,7 +449,7 @@ export class WebSocketManager extends MemoryFeature {
       closedConnections: 0,
       reconnections: 0,
       dataTransferred: 0,
-      lastCleanup: 0
+      lastCleanup: 0,
     };
   }
 
@@ -445,17 +472,17 @@ export class WebSocketManager extends MemoryFeature {
    */
   async forceCleanup(): Promise<number> {
     let totalCleaned = 0;
-    
+
     for (const [url, webContents] of this.webContentsList) {
       if (webContents.isDestroyed()) continue;
-      
+
       try {
         const cleaned = await webContents.executeJavaScript(`
           window.__websocketManager ? window.__websocketManager.cleanupIdleConnections() : 0
         `);
-        
+
         totalCleaned += cleaned || 0;
-        
+
         if (cleaned > 0) {
           const stats = this.websocketStats.get(url);
           if (stats) {
@@ -467,12 +494,14 @@ export class WebSocketManager extends MemoryFeature {
         // Page might not be ready
       }
     }
-    
+
     if (totalCleaned > 0) {
-      console.log(`[WebSocketManager] Force cleaned ${totalCleaned} idle connections`);
+      console.log(
+        `[WebSocketManager] Force cleaned ${totalCleaned} idle connections`
+      );
       this.metrics.memorySaved += totalCleaned * 50 * 1024; // Estimate 50KB per connection
     }
-    
+
     return totalCleaned;
   }
 

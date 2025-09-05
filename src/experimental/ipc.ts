@@ -1,5 +1,6 @@
-import { handle } from '../ipc/main';
 import { webContents } from 'electron';
+
+import { handle } from '../ipc/main';
 import { ExperimentalMemoryManager } from './ExperimentalMemoryManager';
 import type { MemoryMonitor } from './features/MemoryMonitor';
 
@@ -10,26 +11,32 @@ export const setupExperimentalIPC = (): void => {
   const memoryManager = ExperimentalMemoryManager.getInstance();
 
   // Toggle all memory improvements
-  handle('experimental/toggle-memory-improvements', async (_webContents, enabled) => {
-    if (enabled) {
-      await memoryManager.enable();
-      // Enable monitoring by default when memory improvements are enabled
-      await memoryManager.toggleFeature('monitoring', true);
-    } else {
-      await memoryManager.disable();
+  handle(
+    'experimental/toggle-memory-improvements',
+    async (_webContents, enabled) => {
+      if (enabled) {
+        await memoryManager.enable();
+        // Enable monitoring by default when memory improvements are enabled
+        await memoryManager.toggleFeature('monitoring', true);
+      } else {
+        await memoryManager.disable();
+      }
     }
-  });
+  );
 
   // Toggle specific feature
-  handle('experimental/toggle-memory-feature', async (_webContents, feature, enabled) => {
-    // Handle special case for showStatusBar
-    if (feature === 'showStatusBar') {
-      // This is just a UI toggle, no feature to enable/disable
-      return;
+  handle(
+    'experimental/toggle-memory-feature',
+    async (_webContents, feature, enabled) => {
+      // Handle special case for showStatusBar
+      if (feature === 'showStatusBar') {
+        // This is just a UI toggle, no feature to enable/disable
+        return;
+      }
+
+      await memoryManager.toggleFeature(feature, enabled);
     }
-    
-    await memoryManager.toggleFeature(feature, enabled);
-  });
+  );
 
   // Get memory metrics
   handle('experimental/get-memory-metrics', async () => {
@@ -38,8 +45,10 @@ export const setupExperimentalIPC = (): void => {
 
   // Request current memory metrics
   handle('experimental/request-memory-metrics', async () => {
-    const monitoringFeature = memoryManager.getFeature('monitoring') as MemoryMonitor | undefined;
-    
+    const monitoringFeature = memoryManager.getFeature('monitoring') as
+      | MemoryMonitor
+      | undefined;
+
     if (!monitoringFeature || !monitoringFeature.isEnabled()) {
       return null;
     }
@@ -49,11 +58,11 @@ export const setupExperimentalIPC = (): void => {
     const metrics = {
       app: snapshot.app,
       webviews: snapshot.webviews,
-      features: memoryManager.getMetrics()
+      features: memoryManager.getMetrics(),
     };
 
     // Send to all webContents
-    webContents.getAllWebContents().forEach(wc => {
+    webContents.getAllWebContents().forEach((wc) => {
       if (!wc.isDestroyed()) {
         wc.send('memory-metrics-update', { metrics });
       }

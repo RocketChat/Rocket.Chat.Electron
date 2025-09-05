@@ -1,7 +1,7 @@
+import { Box, Callout, FieldGroup } from '@rocket.chat/fuselage';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Box, Callout, FieldGroup } from '@rocket.chat/fuselage';
 import { MemoryImprovementsSection } from './MemoryImprovementsSection';
 
 export const ExperimentalTab: React.FC = () => {
@@ -12,7 +12,10 @@ export const ExperimentalTab: React.FC = () => {
       <FieldGroup maxWidth={600}>
         <Box marginBlockEnd='x24'>
           <Callout type='warning'>
-            {t('settings.experimental.warning', 'These features are experimental and may affect stability. Enable at your own risk.')}
+            {t(
+              'settings.experimental.warning',
+              'These features are experimental and may affect stability. Enable at your own risk.'
+            )}
           </Callout>
         </Box>
 

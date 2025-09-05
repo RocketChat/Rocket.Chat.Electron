@@ -1,3 +1,5 @@
+import { experimental } from '../../experimental/preload';
+import type { ExperimentalAPI } from '../../experimental/preload';
 import {
   createNotification,
   destroyNotification,
@@ -11,8 +13,6 @@ import {
 } from '../../outlookCalendar/preload';
 import type { OutlookEventsResponse } from '../../outlookCalendar/type';
 import { setUserPresenceDetection } from '../../userPresence/preload';
-import { experimental } from '../../experimental/preload';
-import type { ExperimentalAPI } from '../../experimental/preload';
 import type { Server } from '../common';
 import { setBadge } from './badge';
 import { writeTextToClipboard } from './clipboard';

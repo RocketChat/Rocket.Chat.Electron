@@ -2,8 +2,8 @@ import { Box } from '@rocket.chat/fuselage';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import type { RootState } from '../../../store/rootReducer';
 import { invoke } from '../../../ipc/renderer';
+import type { RootState } from '../../../store/rootReducer';
 
 interface MemoryMetrics {
   totalAppMemory: number;
@@ -15,17 +15,18 @@ export const TopBar = () => {
   const mainWindowTitle = useSelector(
     ({ mainWindowTitle }: RootState) => mainWindowTitle
   );
-  
+
   const [metrics, setMetrics] = useState<MemoryMetrics | null>(null);
-  
+
   // Check if memory monitoring is enabled and status bar should show
   const memorySettings = useSelector(
     (state: RootState) => state.experimentalFeatures?.memoryImprovements
   );
-  
-  const showMemoryStatus = memorySettings?.enabled && 
-                          memorySettings?.features?.monitoring &&
-                          memorySettings?.showStatusBar;
+
+  const showMemoryStatus =
+    memorySettings?.enabled &&
+    memorySettings?.features?.monitoring &&
+    memorySettings?.showStatusBar;
 
   useEffect(() => {
     if (!showMemoryStatus) {
@@ -41,7 +42,7 @@ export const TopBar = () => {
           setMetrics({
             totalAppMemory: data.app?.totalMemory || 0,
             pressure: data.app?.pressure || 'low',
-            serverCount: data.webviews?.length || 0
+            serverCount: data.webviews?.length || 0,
           });
         }
       } catch (error) {
@@ -51,7 +52,7 @@ export const TopBar = () => {
 
     // Request initial metrics
     requestMetrics();
-    
+
     // Request metrics every 30 seconds (lighter than full monitoring)
     const interval = setInterval(requestMetrics, 30000);
 
@@ -70,9 +71,10 @@ export const TopBar = () => {
   };
 
   // Build the display title with memory info appended
-  const displayTitle = showMemoryStatus && metrics 
-    ? `${mainWindowTitle} • ${formatMemory(metrics.totalAppMemory)}`
-    : mainWindowTitle;
+  const displayTitle =
+    showMemoryStatus && metrics
+      ? `${mainWindowTitle} • ${formatMemory(metrics.totalAppMemory)}`
+      : mainWindowTitle;
 
   return (
     <Box

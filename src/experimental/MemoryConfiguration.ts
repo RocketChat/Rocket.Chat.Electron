@@ -1,5 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
+
 import { app } from 'electron';
 
 export interface FeatureConfig {
@@ -100,7 +101,7 @@ export interface MemoryConfiguration {
     checkInterval?: number; // milliseconds
     autoOptimize?: boolean;
   };
-  
+
   features: {
     smartCleanup: SmartCleanupConfig;
     autoReload: AutoReloadConfig;
@@ -110,7 +111,7 @@ export interface MemoryConfiguration {
     domOptimization: DOMOptimizationConfig;
     webSocketManager: WebSocketManagerConfig;
   };
-  
+
   profiles: {
     [key: string]: MemoryProfile;
   };
@@ -135,26 +136,29 @@ export interface ProfileTrigger {
  */
 export class MemoryConfigurationManager {
   private static instance: MemoryConfigurationManager | null = null;
+
   private configuration: MemoryConfiguration;
+
   private configPath: string;
+
   private activeProfile: string = 'default';
-  
+
   private constructor() {
     this.configPath = path.join(app.getPath('userData'), 'memory-config.json');
     this.configuration = this.getDefaultConfiguration();
   }
-  
+
   static getInstance(): MemoryConfigurationManager {
     if (!this.instance) {
       this.instance = new MemoryConfigurationManager();
     }
     return this.instance;
   }
-  
+
   private getDefaultConfiguration(): MemoryConfiguration {
     return {
       version: '1.0.0',
-      
+
       globalSettings: {
         enabled: true,
         debugMode: false,
@@ -163,7 +167,7 @@ export class MemoryConfigurationManager {
         checkInterval: 30000, // 30 seconds
         autoOptimize: true,
       },
-      
+
       features: {
         smartCleanup: {
           enabled: true,
@@ -177,7 +181,7 @@ export class MemoryConfigurationManager {
             idleTimeThreshold: 2 * 60 * 1000, // 2 minutes
           },
         },
-        
+
         autoReload: {
           enabled: true,
           priority: 90,
@@ -191,7 +195,7 @@ export class MemoryConfigurationManager {
             excludeUrls: [],
           },
         },
-        
+
         memoryMonitor: {
           enabled: true,
           priority: 100,
@@ -207,7 +211,7 @@ export class MemoryConfigurationManager {
             reportPath: app.getPath('userData'),
           },
         },
-        
+
         memoryLeakDetector: {
           enabled: true,
           priority: 80,
@@ -220,7 +224,7 @@ export class MemoryConfigurationManager {
             notifyOnDetection: true,
           },
         },
-        
+
         performanceCollector: {
           enabled: false, // Disabled by default for performance
           priority: 50,
@@ -234,7 +238,7 @@ export class MemoryConfigurationManager {
             autoSaveReports: true,
           },
         },
-        
+
         domOptimization: {
           enabled: true,
           priority: 60,
@@ -247,7 +251,7 @@ export class MemoryConfigurationManager {
             debounceScrollEvents: 100,
           },
         },
-        
+
         webSocketManager: {
           enabled: true,
           priority: 40,
@@ -261,14 +265,14 @@ export class MemoryConfigurationManager {
           },
         },
       },
-      
+
       profiles: {
         default: {
           name: 'default',
           description: 'Balanced configuration for general use',
           features: {}, // Uses default feature settings
         },
-        
+
         aggressive: {
           name: 'aggressive',
           description: 'Aggressive memory management for low-memory systems',
@@ -294,7 +298,7 @@ export class MemoryConfigurationManager {
             },
           },
         },
-        
+
         performance: {
           name: 'performance',
           description: 'Focus on performance monitoring and optimization',
@@ -317,7 +321,7 @@ export class MemoryConfigurationManager {
             },
           },
         },
-        
+
         minimal: {
           name: 'minimal',
           description: 'Minimal memory management for high-performance systems',
@@ -343,41 +347,41 @@ export class MemoryConfigurationManager {
       },
     };
   }
-  
+
   async loadConfiguration(): Promise<void> {
     try {
       const configData = await fs.readFile(this.configPath, 'utf-8');
       const loadedConfig = JSON.parse(configData) as MemoryConfiguration;
-      
+
       // Merge with defaults to ensure all fields exist
       this.configuration = this.mergeWithDefaults(loadedConfig);
-      
+
       console.log('[MemoryConfig] Configuration loaded from', this.configPath);
     } catch (error) {
       console.log('[MemoryConfig] No configuration found, using defaults');
       await this.saveConfiguration();
     }
   }
-  
+
   async saveConfiguration(): Promise<void> {
     try {
       const configDir = path.dirname(this.configPath);
       await fs.mkdir(configDir, { recursive: true });
-      
+
       await fs.writeFile(
         this.configPath,
         JSON.stringify(this.configuration, null, 2)
       );
-      
+
       console.log('[MemoryConfig] Configuration saved to', this.configPath);
     } catch (error) {
       console.error('[MemoryConfig] Failed to save configuration:', error);
     }
   }
-  
+
   private mergeWithDefaults(loaded: MemoryConfiguration): MemoryConfiguration {
     const defaults = this.getDefaultConfiguration();
-    
+
     return {
       ...defaults,
       ...loaded,
@@ -395,26 +399,26 @@ export class MemoryConfigurationManager {
       },
     };
   }
-  
+
   getConfiguration(): MemoryConfiguration {
     return this.configuration;
   }
-  
+
   getFeatureConfig<T extends keyof MemoryConfiguration['features']>(
     feature: T
   ): MemoryConfiguration['features'][T] {
     const profileConfig = this.getActiveProfileConfig();
-    
+
     if (profileConfig.features[feature]) {
       return {
         ...this.configuration.features[feature],
         ...profileConfig.features[feature],
       };
     }
-    
+
     return this.configuration.features[feature];
   }
-  
+
   async updateFeatureConfig<T extends keyof MemoryConfiguration['features']>(
     feature: T,
     config: Partial<MemoryConfiguration['features'][T]>
@@ -423,94 +427,98 @@ export class MemoryConfigurationManager {
       ...this.configuration.features[feature],
       ...config,
     };
-    
+
     await this.saveConfiguration();
   }
-  
-  async updateGlobalSettings(settings: Partial<MemoryConfiguration['globalSettings']>): Promise<void> {
+
+  async updateGlobalSettings(
+    settings: Partial<MemoryConfiguration['globalSettings']>
+  ): Promise<void> {
     this.configuration.globalSettings = {
       ...this.configuration.globalSettings,
       ...settings,
     };
-    
+
     await this.saveConfiguration();
   }
-  
+
   setActiveProfile(profileName: string): void {
     if (!this.configuration.profiles[profileName]) {
       throw new Error(`Profile ${profileName} does not exist`);
     }
-    
+
     this.activeProfile = profileName;
     console.log(`[MemoryConfig] Switched to profile: ${profileName}`);
   }
-  
+
   getActiveProfile(): string {
     return this.activeProfile;
   }
-  
+
   getActiveProfileConfig(): MemoryProfile {
-    return this.configuration.profiles[this.activeProfile] || 
-           this.configuration.profiles.default;
+    return (
+      this.configuration.profiles[this.activeProfile] ||
+      this.configuration.profiles.default
+    );
   }
-  
+
   async createProfile(profile: MemoryProfile): Promise<void> {
     this.configuration.profiles[profile.name] = profile;
     await this.saveConfiguration();
   }
-  
+
   async deleteProfile(profileName: string): Promise<void> {
     if (profileName === 'default') {
       throw new Error('Cannot delete default profile');
     }
-    
+
     delete this.configuration.profiles[profileName];
-    
+
     if (this.activeProfile === profileName) {
       this.activeProfile = 'default';
     }
-    
+
     await this.saveConfiguration();
   }
-  
+
   getProfiles(): string[] {
     return Object.keys(this.configuration.profiles);
   }
-  
+
   isFeatureEnabled(feature: keyof MemoryConfiguration['features']): boolean {
     if (!this.configuration.globalSettings.enabled) {
       return false;
     }
-    
+
     const config = this.getFeatureConfig(feature);
     return config.enabled;
   }
-  
+
   getFeaturePriority(feature: keyof MemoryConfiguration['features']): number {
     const config = this.getFeatureConfig(feature);
     return config.priority;
   }
-  
+
   async exportConfiguration(filePath: string): Promise<void> {
     await fs.writeFile(filePath, JSON.stringify(this.configuration, null, 2));
     console.log(`[MemoryConfig] Configuration exported to ${filePath}`);
   }
-  
+
   async importConfiguration(filePath: string): Promise<void> {
     const configData = await fs.readFile(filePath, 'utf-8');
     const importedConfig = JSON.parse(configData) as MemoryConfiguration;
-    
+
     this.configuration = this.mergeWithDefaults(importedConfig);
     await this.saveConfiguration();
-    
+
     console.log(`[MemoryConfig] Configuration imported from ${filePath}`);
   }
-  
+
   async resetToDefaults(): Promise<void> {
     this.configuration = this.getDefaultConfiguration();
     this.activeProfile = 'default';
     await this.saveConfiguration();
-    
+
     console.log('[MemoryConfig] Configuration reset to defaults');
   }
 }

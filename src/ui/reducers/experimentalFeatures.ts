@@ -53,11 +53,13 @@ export const experimentalFeaturesReducer: Reducer<
     case APP_SETTINGS_LOADED: {
       return {
         ...state,
-        memoryImprovements: action.payload.experimentalMemoryImprovements || initialState.memoryImprovements,
+        memoryImprovements:
+          action.payload.experimentalMemoryImprovements ||
+          initialState.memoryImprovements,
       };
     }
     case EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED: {
-      const enabled = action.payload.enabled;
+      const { enabled } = action.payload;
       return {
         ...state,
         memoryImprovements: {
@@ -66,20 +68,22 @@ export const experimentalFeaturesReducer: Reducer<
           // Keep individual feature states unchanged
           // If disabling master, all features will be disabled in practice
           // but their toggle states are preserved for when re-enabled
-          features: enabled ? state.memoryImprovements.features : {
-            monitoring: false,
-            smartCleanup: false,
-            autoReload: false,
-            domOptimization: false,
-            websocket: false,
-          },
+          features: enabled
+            ? state.memoryImprovements.features
+            : {
+                monitoring: false,
+                smartCleanup: false,
+                autoReload: false,
+                domOptimization: false,
+                websocket: false,
+              },
         },
       };
     }
 
     case EXPERIMENTAL_MEMORY_FEATURE_TOGGLED: {
       const { feature, enabled } = action.payload;
-      
+
       // Handle showStatusBar separately as it's not a feature
       if (feature === 'showStatusBar') {
         return {
@@ -90,7 +94,7 @@ export const experimentalFeaturesReducer: Reducer<
           },
         };
       }
-      
+
       return {
         ...state,
         memoryImprovements: {

@@ -1,7 +1,8 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
+import '../setup'; // Import setup first to initialize mocks
 import { MemoryMonitor } from '../../features/MemoryMonitor';
-import { createMockMemoryInfo, advanceTimersAndFlush } from '../setup';
-import { app, webContents, BrowserWindow } from 'electron';
+import { createMockMemoryInfo, advanceTimersAndFlush, mockApp } from '../setup';
+import { webContents, BrowserWindow } from 'electron';
 
 describe('MemoryMonitor', () => {
   let memoryMonitor: MemoryMonitor;
@@ -12,8 +13,8 @@ describe('MemoryMonitor', () => {
     memoryMonitor = new MemoryMonitor();
     
     mockWebContents = [
-      { id: 1, getURL: jest.fn(() => 'https://app1.example.com'), isDestroyed: jest.fn(() => false) },
-      { id: 2, getURL: jest.fn(() => 'https://app2.example.com'), isDestroyed: jest.fn(() => false) },
+      { id: 1, getURL: jest.fn(() => 'https://app1.example.com'), isDestroyed: jest.fn(() => false), getType: jest.fn(() => 'webview') },
+      { id: 2, getURL: jest.fn(() => 'https://app2.example.com'), isDestroyed: jest.fn(() => false), getType: jest.fn(() => 'webview') },
     ];
     
     mockWindows = [
@@ -24,7 +25,7 @@ describe('MemoryMonitor', () => {
     (webContents.getAllWebContents as jest.Mock).mockReturnValue(mockWebContents);
     (BrowserWindow.getAllWindows as jest.Mock).mockReturnValue(mockWindows);
     
-    (app.getAppMetrics as jest.Mock).mockReturnValue([
+    mockApp.getAppMetrics.mockReturnValue([
       { pid: 1, type: 'Browser', memory: createMockMemoryInfo({ workingSetSize: 200 * 1024 }) },
       { pid: 2, type: 'Renderer', memory: createMockMemoryInfo({ workingSetSize: 300 * 1024 }) },
       { pid: 3, type: 'Renderer', memory: createMockMemoryInfo({ workingSetSize: 250 * 1024 }) },
@@ -108,15 +109,17 @@ describe('MemoryMonitor', () => {
       await advanceTimersAndFlush(10000);
       
       // Simulate memory spike
-      (app.getAppMetrics as jest.Mock).mockReturnValue([
+      mockApp.getAppMetrics.mockReturnValue([
         { pid: 1, type: 'Renderer', memory: createMockMemoryInfo({ workingSetSize: 1000 * 1024 }) },
       ]);
+      await memoryMonitor.forceSnapshot();
       await advanceTimersAndFlush(10000);
       
       // Return to normal
-      (app.getAppMetrics as jest.Mock).mockReturnValue([
+      mockApp.getAppMetrics.mockReturnValue([
         { pid: 1, type: 'Renderer', memory: createMockMemoryInfo({ workingSetSize: 300 * 1024 }) },
       ]);
+      await memoryMonitor.forceSnapshot();
       await advanceTimersAndFlush(10000);
       
       const snapshot = memoryMonitor.getCurrentSnapshot();
@@ -133,11 +136,13 @@ describe('MemoryMonitor', () => {
       const alertCallback = jest.fn();
       memoryMonitor.onMemoryAlert(alertCallback);
       
-      // Simulate high memory usage
-      (app.getAppMetrics as jest.Mock).mockReturnValue([
+      // Simulate high memory usage (3.5GB is above 3GB threshold)
+      mockApp.getAppMetrics.mockReturnValue([
         { pid: 1, type: 'Renderer', memory: createMockMemoryInfo({ workingSetSize: 3500 * 1024 }) },
       ]);
       
+      // Force snapshot to trigger alert check
+      await memoryMonitor.forceSnapshot();
       await advanceTimersAndFlush(10000);
       
       expect(alertCallback).toHaveBeenCalledWith(expect.objectContaining({
@@ -152,11 +157,13 @@ describe('MemoryMonitor', () => {
       const alertCallback = jest.fn();
       memoryMonitor.onMemoryAlert(alertCallback);
       
-      // Simulate critical memory usage
-      (app.getAppMetrics as jest.Mock).mockReturnValue([
+      // Simulate critical memory usage (4GB is above critical threshold)
+      mockApp.getAppMetrics.mockReturnValue([
         { pid: 1, type: 'Renderer', memory: createMockMemoryInfo({ workingSetSize: 4000 * 1024 }) },
       ]);
       
+      // Force snapshot to trigger alert check
+      await memoryMonitor.forceSnapshot();
       await advanceTimersAndFlush(10000);
       
       expect(alertCallback).toHaveBeenCalledWith(expect.objectContaining({
@@ -174,10 +181,11 @@ describe('MemoryMonitor', () => {
       const readings = [100, 150, 200, 250, 300].map(mb => mb * 1024);
       
       for (const reading of readings) {
-        (app.getAppMetrics as jest.Mock).mockReturnValue([
+        mockApp.getAppMetrics.mockReturnValue([
           { pid: 1, type: 'Renderer', memory: createMockMemoryInfo({ workingSetSize: reading }) },
         ]);
-        await advanceTimersAndFlush(10000);
+        await memoryMonitor.forceSnapshot();
+        await advanceTimersAndFlush(1000);
       }
       
       const trend = memoryMonitor.getMemoryTrend();
@@ -188,10 +196,11 @@ describe('MemoryMonitor', () => {
       const readings = [500, 450, 400, 350, 300].map(mb => mb * 1024);
       
       for (const reading of readings) {
-        (app.getAppMetrics as jest.Mock).mockReturnValue([
+        mockApp.getAppMetrics.mockReturnValue([
           { pid: 1, type: 'Renderer', memory: createMockMemoryInfo({ workingSetSize: reading }) },
         ]);
-        await advanceTimersAndFlush(10000);
+        await memoryMonitor.forceSnapshot();
+        await advanceTimersAndFlush(1000);
       }
       
       const trend = memoryMonitor.getMemoryTrend();
@@ -203,7 +212,7 @@ describe('MemoryMonitor', () => {
       const readings = [0, 5, -5, 3, -3].map(delta => baseMemory + delta);
       
       for (const reading of readings) {
-        (app.getAppMetrics as jest.Mock).mockReturnValue([
+        mockApp.getAppMetrics.mockReturnValue([
           { pid: 1, type: 'Renderer', memory: createMockMemoryInfo({ workingSetSize: reading }) },
         ]);
         await advanceTimersAndFlush(10000);
@@ -220,18 +229,21 @@ describe('MemoryMonitor', () => {
     });
 
     it('should maintain memory history', async () => {
+      // Manually capture snapshots
       for (let i = 0; i < 5; i++) {
+        await memoryMonitor.forceSnapshot();
         await advanceTimersAndFlush(10000);
       }
       
-      const history = memoryMonitor.getMemoryHistory();
-      expect(history.length).toBe(5);
+      const history = memoryMonitor.getHistory();
+      // First snapshot is captured on enable, plus 5 manual ones = 6
+      expect(history.length).toBe(6);
       
       history.forEach(snapshot => {
         expect(snapshot).toHaveProperty('timestamp');
-        expect(snapshot).toHaveProperty('totalMemory');
-        expect(snapshot).toHaveProperty('processes');
-        expect(snapshot).toHaveProperty('webContents');
+        expect(snapshot).toHaveProperty('app');
+        expect(snapshot.app).toHaveProperty('totalMemory');
+        expect(snapshot).toHaveProperty('webviews');
       });
     });
 
@@ -248,15 +260,18 @@ describe('MemoryMonitor', () => {
     });
 
     it('should clear history on disable', async () => {
+      // Force capture some snapshots
+      await memoryMonitor.forceSnapshot();
       await advanceTimersAndFlush(10000);
-      await advanceTimersAndFlush(10000);
+      await memoryMonitor.forceSnapshot();
       
       expect(memoryMonitor.getMemoryHistory().length).toBeGreaterThan(0);
       
       await memoryMonitor.disable();
-      await memoryMonitor.enable();
       
-      expect(memoryMonitor.getMemoryHistory().length).toBe(0);
+      // History should be cleared after disable
+      const historyAfterDisable = memoryMonitor.getMemoryHistory();
+      expect(historyAfterDisable.length).toBe(0);
     });
   });
 
@@ -283,8 +298,12 @@ describe('MemoryMonitor', () => {
     });
 
     it('should export CSV data', async () => {
+      // Capture initial snapshot by calling forceSnapshot
+      await memoryMonitor.forceSnapshot();
+      
       for (let i = 0; i < 2; i++) {
         await advanceTimersAndFlush(10000);
+        await memoryMonitor.forceSnapshot();
       }
       
       const csv = memoryMonitor.exportCSV();

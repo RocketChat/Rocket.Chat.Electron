@@ -1,10 +1,10 @@
-import { app, webContents } from 'electron';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as os from 'os';
+
+import { app, webContents } from 'electron';
+import type { WebContents } from 'electron';
 
 import { MemoryFeature } from '../MemoryFeature';
-import type { WebContents } from 'electron';
 
 export interface SystemMemoryInfo {
   timestamp: number;
@@ -33,8 +33,13 @@ export interface SystemMemoryInfo {
  */
 export class MemoryMonitor extends MemoryFeature {
   private monitorInterval: NodeJS.Timeout | null = null;
+
   private history: SystemMemoryInfo[] = [];
+  
+  private peakMemory = 0; // Track peak memory usage
+
   private maxHistorySize = 180; // 6 hours at 2-minute intervals
+
   private intervalMs = 120000; // 2 minutes default
 
   getName(): string {
@@ -47,10 +52,10 @@ export class MemoryMonitor extends MemoryFeature {
 
     // Start monitoring
     this.startMonitoring();
-    
+
     // Capture initial snapshot
     await this.captureSnapshot();
-    
+
     // Started monitoring
   }
 
@@ -60,7 +65,10 @@ export class MemoryMonitor extends MemoryFeature {
     this.history = [];
   }
 
-  protected async onApplyToWebContents(webContents: WebContents, serverUrl: string): Promise<void> {
+  protected async onApplyToWebContents(
+    _webContents: WebContents,
+    _serverUrl: string
+  ): Promise<void> {
     // No need to track manually, we'll use Electron's API directly
     // WebContents registered
   }
@@ -69,9 +77,9 @@ export class MemoryMonitor extends MemoryFeature {
     // After system resume, capture a snapshot immediately
     // System resumed, capturing snapshot
     await this.captureSnapshot();
-    
+
     // Check if we have memory pressure
-    const latestSnapshot = this.history[this.history.length - 1];
+    // const latestSnapshot = this.history[this.history.length - 1];
     // Memory pressure detected after resume
   }
 
@@ -95,15 +103,21 @@ export class MemoryMonitor extends MemoryFeature {
   async captureSnapshot(): Promise<SystemMemoryInfo> {
     // Get Electron app metrics directly
     const appMetrics = app.getAppMetrics();
-    
+
     // Calculate total app memory
-    const totalAppMemory = appMetrics.reduce(
-      (sum, metric) => sum + metric.memory.workingSetSize,
-      0
-    ) * 1024; // Convert to bytes
+    const totalAppMemory =
+      appMetrics.reduce(
+        (sum, metric) => sum + metric.memory.workingSetSize,
+        0
+      ) * 1024; // Convert to bytes
+    
+    // Track peak memory
+    this.peakMemory = Math.max(this.peakMemory || 0, totalAppMemory);
 
     // Count renderer processes
-    const rendererProcesses = appMetrics.filter(m => m.type === 'Renderer').length;
+    const rendererProcesses = appMetrics.filter(
+      (m) => (m as any).type === 'Renderer'
+    ).length;
 
     // Get main process memory
     const mainProcessMemory = process.memoryUsage();
@@ -111,18 +125,20 @@ export class MemoryMonitor extends MemoryFeature {
     // Get webview details directly from app metrics
     // Webviews are renderer processes with associated webContents
     const webviews: SystemMemoryInfo['webviews'] = [];
-    
+
     // Use webContents.getAllWebContents() to get all webviews
     const allWebContents = webContents.getAllWebContents();
-    
+
     for (const wc of allWebContents) {
       // Skip destroyed webcontents and main window
       if (wc.isDestroyed() || wc.getType() === 'window') {
         continue;
       }
-      
+
       // Find the metric for this webContents
-      const metric = appMetrics.find(m => m.webContents?.id === wc.id);
+      const metric = appMetrics.find(
+        (m) => (m as any).webContents?.id === wc.id
+      );
       if (metric) {
         const url = wc.getURL();
         if (url && url.startsWith('http')) {
@@ -130,7 +146,7 @@ export class MemoryMonitor extends MemoryFeature {
             url,
             pid: metric.pid,
             memory: metric.memory.workingSetSize * 1024, // Convert to bytes
-            cpu: metric.cpu ? metric.cpu.percentCPUUsage : 0
+            cpu: metric.cpu ? metric.cpu.percentCPUUsage : 0,
           });
         }
       }
@@ -148,9 +164,9 @@ export class MemoryMonitor extends MemoryFeature {
         totalMemory: totalAppMemory,
         mainProcess: mainProcessMemory,
         rendererProcesses,
-        pressure
+        pressure,
       },
-      webviews
+      webviews,
     };
 
     // Add to history
@@ -158,7 +174,7 @@ export class MemoryMonitor extends MemoryFeature {
     if (this.history.length > this.maxHistorySize) {
       this.history.shift();
     }
-    
+
     // Check for memory alerts
     this.checkMemoryAlerts(snapshot);
 
@@ -166,14 +182,16 @@ export class MemoryMonitor extends MemoryFeature {
     const totalAppMB = totalAppMemory / 1024 / 1024;
     const mainMB = mainProcessMemory.rss / 1024 / 1024;
     const topWebview = webviews[0];
-    
+
     // Only log warnings, not regular status updates
     if (pressure === 'high') {
       console.warn(`[MemoryMonitor] ⚠️ HIGH app memory usage!`, {
         totalApp: `${totalAppMB.toFixed(0)}MB`,
         mainProcess: `${mainMB.toFixed(0)}MB`,
         webviews: webviews.length,
-        topWebview: topWebview ? `${new URL(topWebview.url).hostname} (${(topWebview.memory / 1024 / 1024).toFixed(0)}MB)` : 'none'
+        topWebview: topWebview
+          ? `${new URL(topWebview.url).hostname} (${(topWebview.memory / 1024 / 1024).toFixed(0)}MB)`
+          : 'none',
       });
     }
 
@@ -184,14 +202,16 @@ export class MemoryMonitor extends MemoryFeature {
     return snapshot;
   }
 
-  private calculateAppPressure(totalAppMemory: number): SystemMemoryInfo['app']['pressure'] {
+  private calculateAppPressure(
+    totalAppMemory: number
+  ): SystemMemoryInfo['app']['pressure'] {
     const appMemoryMB = totalAppMemory / 1024 / 1024;
-    
+
     // Calculate pressure based on app memory usage
     // These thresholds are for the entire Electron app
-    if (appMemoryMB > 4000) return 'high';    // Over 4GB is concerning
-    if (appMemoryMB > 2000) return 'medium';  // Over 2GB warrants attention
-    
+    if (appMemoryMB > 4000) return 'high'; // Over 4GB is concerning
+    if (appMemoryMB > 2000) return 'medium'; // Over 2GB warrants attention
+
     return 'low';
   }
 
@@ -200,67 +220,70 @@ export class MemoryMonitor extends MemoryFeature {
       app.getPath('userData'),
       'memory-diagnostics'
     );
-    
+
     await fs.mkdir(diagnosticsDir, { recursive: true });
-    
+
     const filename = `memory-${Date.now()}.json`;
     const filepath = path.join(diagnosticsDir, filename);
-    
+
     const report = {
       system: {
         platform: process.platform,
         arch: process.arch,
         electronVersion: process.versions.electron,
-        nodeVersion: process.versions.node
+        nodeVersion: process.versions.node,
       },
       monitoringConfig: {
         intervalMs: this.intervalMs,
-        maxHistorySize: this.maxHistorySize
+        maxHistorySize: this.maxHistorySize,
       },
       history: this.history.slice(-100), // Last 100 snapshots
-      summary: this.generateSummary()
+      summary: this.generateSummary(),
     };
-    
+
     await fs.writeFile(filepath, JSON.stringify(report, null, 2));
     return filepath;
   }
 
   private generateSummary() {
     if (this.history.length === 0) return null;
-    
+
     const recent = this.history.slice(-20); // Last 40 minutes (assuming 2-min intervals)
-    
-    const appMemoryValues = recent.map(s => s.app.totalMemory);
-    const mainProcessValues = recent.map(s => s.app.mainProcess.rss);
-    
+
+    const appMemoryValues = recent.map((s) => s.app.totalMemory);
+    const mainProcessValues = recent.map((s) => s.app.mainProcess.rss);
+
     return {
       samples: recent.length,
       period: {
         start: new Date(recent[0].timestamp).toISOString(),
-        end: new Date(recent[recent.length - 1].timestamp).toISOString()
+        end: new Date(recent[recent.length - 1].timestamp).toISOString(),
       },
       appMemory: {
-        average: appMemoryValues.reduce((a, b) => a + b, 0) / appMemoryValues.length,
+        average:
+          appMemoryValues.reduce((a, b) => a + b, 0) / appMemoryValues.length,
         peak: Math.max(...appMemoryValues),
-        current: appMemoryValues[appMemoryValues.length - 1]
+        current: appMemoryValues[appMemoryValues.length - 1],
       },
       mainProcess: {
-        average: mainProcessValues.reduce((a, b) => a + b, 0) / mainProcessValues.length,
+        average:
+          mainProcessValues.reduce((a, b) => a + b, 0) /
+          mainProcessValues.length,
         peak: Math.max(...mainProcessValues),
-        current: mainProcessValues[mainProcessValues.length - 1]
+        current: mainProcessValues[mainProcessValues.length - 1],
       },
       pressureDistribution: {
-        low: recent.filter(s => s.app.pressure === 'low').length,
-        medium: recent.filter(s => s.app.pressure === 'medium').length,
-        high: recent.filter(s => s.app.pressure === 'high').length
+        low: recent.filter((s) => s.app.pressure === 'low').length,
+        medium: recent.filter((s) => s.app.pressure === 'medium').length,
+        high: recent.filter((s) => s.app.pressure === 'high').length,
       },
-      topMemoryConsumers: this.getTopMemoryConsumers(recent)
+      topMemoryConsumers: this.getTopMemoryConsumers(recent),
     };
   }
 
   private getTopMemoryConsumers(snapshots: SystemMemoryInfo[]) {
     const urlMemoryMap = new Map<string, number[]>();
-    
+
     // Collect memory usage for each URL
     for (const snapshot of snapshots) {
       for (const webview of snapshot.webviews) {
@@ -270,17 +293,17 @@ export class MemoryMonitor extends MemoryFeature {
         urlMemoryMap.get(webview.url)!.push(webview.memory);
       }
     }
-    
+
     // Calculate averages and sort
     const consumers = Array.from(urlMemoryMap.entries())
       .map(([url, memories]) => ({
         url,
         averageMemory: memories.reduce((a, b) => a + b, 0) / memories.length,
-        peakMemory: Math.max(...memories)
+        peakMemory: Math.max(...memories),
       }))
       .sort((a, b) => b.averageMemory - a.averageMemory)
       .slice(0, 5); // Top 5
-    
+
     return consumers;
   }
 
@@ -288,7 +311,7 @@ export class MemoryMonitor extends MemoryFeature {
    * Get current memory state for display in UI
    */
   getCurrentState(): SystemMemoryInfo | null {
-    return this.history.length > 0 
+    return this.history.length > 0
       ? this.history[this.history.length - 1]
       : null;
   }
@@ -312,28 +335,25 @@ export class MemoryMonitor extends MemoryFeature {
    */
   getCurrentSnapshot(): any {
     const metrics = app.getAppMetrics();
-    const totalMemory = metrics.reduce((sum, m) => sum + m.memory.workingSetSize * 1024, 0);
+    const totalMemory = metrics.reduce(
+      (sum, m) => sum + m.memory.workingSetSize * 1024,
+      0
+    );
     const processCount = metrics.length;
     const averageMemory = processCount > 0 ? totalMemory / processCount : 0;
-    
-    // Find peak memory from history
-    const peakMemory = this.history.reduce((max, h) => {
-      const historyTotal = h.app.totalMemory || 0;
-      return Math.max(max, historyTotal);
-    }, totalMemory);
-    
+
     return {
       timestamp: Date.now(),
       totalMemory,
       averageMemory,
-      peakMemory,
+      peakMemory: this.peakMemory,
       processCount,
-      processes: metrics.map(m => ({
+      processes: metrics.map((m) => ({
         pid: m.pid,
         type: m.type,
         memory: m.memory.workingSetSize * 1024,
       })),
-      webContents: webContents.getAllWebContents().map(wc => ({
+      webContents: webContents.getAllWebContents().map((wc) => ({
         id: wc.id,
         url: wc.getURL(),
         memory: 0, // Would need process mapping
@@ -362,24 +382,24 @@ export class MemoryMonitor extends MemoryFeature {
    */
   getMemoryTrend(): 'increasing' | 'stable' | 'decreasing' {
     if (this.history.length < 3) return 'stable';
-    
+
     const recentHistory = this.history.slice(-5);
-    const memoryValues = recentHistory.map(h => h.app.totalMemory);
-    
+    const memoryValues = recentHistory.map((h) => h.app.totalMemory);
+
     // Calculate trend using simple linear regression
     const n = memoryValues.length;
     if (n < 2) return 'stable';
-    
+
     const indices = Array.from({ length: n }, (_, i) => i);
     const sumX = indices.reduce((a, b) => a + b, 0);
     const sumY = memoryValues.reduce((a, b) => a + b, 0);
     const sumXY = indices.reduce((sum, x, i) => sum + x * memoryValues[i], 0);
     const sumX2 = indices.reduce((sum, x) => sum + x * x, 0);
-    
+
     const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
     const avgMemory = sumY / n;
     const slopePercent = (slope / avgMemory) * 100;
-    
+
     if (slopePercent > 2) return 'increasing';
     if (slopePercent < -2) return 'decreasing';
     return 'stable';
@@ -390,18 +410,16 @@ export class MemoryMonitor extends MemoryFeature {
    */
   exportReport(): any {
     const now = Date.now();
-    const duration = this.history.length > 0 
-      ? now - this.history[0].timestamp 
-      : 0;
-    
-    const memoryValues = this.history.map(h => h.app.totalMemory);
-    const averageMemory = memoryValues.length > 0
-      ? memoryValues.reduce((a, b) => a + b, 0) / memoryValues.length
-      : 0;
-    const peakMemory = memoryValues.length > 0
-      ? Math.max(...memoryValues)
-      : 0;
-    
+    const duration =
+      this.history.length > 0 ? now - this.history[0].timestamp : 0;
+
+    const memoryValues = this.history.map((h) => h.app.totalMemory);
+    const averageMemory =
+      memoryValues.length > 0
+        ? memoryValues.reduce((a, b) => a + b, 0) / memoryValues.length
+        : 0;
+    const peakMemory = memoryValues.length > 0 ? Math.max(...memoryValues) : 0;
+
     return {
       generatedAt: now,
       duration,
@@ -420,37 +438,37 @@ export class MemoryMonitor extends MemoryFeature {
    */
   exportCSV(): string {
     const headers = ['timestamp', 'totalMemory', 'processCount', 'pressure'];
-    const rows = this.history.map(h => [
+    const rows = this.history.map((h) => [
       h.timestamp,
       h.app.totalMemory,
       h.app.rendererProcesses || 0,
       h.app.pressure,
     ]);
-    
-    return [headers, ...rows].map(row => row.join(',')).join('\n');
+
+    return [headers, ...rows].map((row) => row.join(',')).join('\n');
   }
 
   private checkMemoryAlerts(info: SystemMemoryInfo): void {
     if (!this.alertCallback) return;
+
+    const { totalMemory } = info.app;
+    const CRITICAL_THRESHOLD = 3.8 * 1024 * 1024 * 1024; // 3.8GB
+    const HIGH_THRESHOLD = 3 * 1024 * 1024 * 1024; // 3GB
     
-    const totalMemory = info.app.totalMemory;
-    const totalSystemMemory = os.totalmem();
-    const usagePercent = (totalMemory / totalSystemMemory) * 100;
-    
-    if (usagePercent > 90) {
+    if (totalMemory >= CRITICAL_THRESHOLD) {
       this.alertCallback({
         level: 'critical',
-        message: `Critical memory usage: ${usagePercent.toFixed(1)}%`,
+        message: `Critical memory usage: ${(totalMemory / 1024 / 1024 / 1024).toFixed(1)}GB`,
         currentMemory: totalMemory,
-        threshold: totalSystemMemory * 0.9,
+        threshold: CRITICAL_THRESHOLD,
         timestamp: Date.now(),
       });
-    } else if (usagePercent > 75) {
+    } else if (totalMemory >= HIGH_THRESHOLD) {
       this.alertCallback({
         level: 'high',
-        message: `High memory usage: ${usagePercent.toFixed(1)}%`,
+        message: `High memory usage: ${(totalMemory / 1024 / 1024 / 1024).toFixed(1)}GB`,
         currentMemory: totalMemory,
-        threshold: totalSystemMemory * 0.75,
+        threshold: HIGH_THRESHOLD,
         timestamp: Date.now(),
       });
     }

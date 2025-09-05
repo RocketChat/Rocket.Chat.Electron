@@ -1,15 +1,18 @@
 import { jest } from '@jest/globals';
 
+// Create mock app object
+const mockApp = {
+  getPath: jest.fn(() => '/mock/path'),
+  getVersion: jest.fn(() => '1.0.0'),
+  on: jest.fn(),
+  once: jest.fn(),
+  removeListener: jest.fn(),
+  getAppMetrics: jest.fn(() => [] as any[]),
+};
+
 // Mock Electron modules
 jest.mock('electron', () => ({
-  app: {
-    getPath: jest.fn(() => '/mock/path'),
-    getVersion: jest.fn(() => '1.0.0'),
-    on: jest.fn(),
-    once: jest.fn(),
-    removeListener: jest.fn(),
-    getAppMetrics: jest.fn(() => []),
-  },
+  app: mockApp,
   webContents: {
     getAllWebContents: jest.fn(() => []),
     getFocusedWebContents: jest.fn(() => null),
@@ -50,6 +53,7 @@ export function createMockWebContents(overrides = {}): any {
   return {
     id: Math.random(),
     getURL: jest.fn(() => 'https://example.com'),
+    getType: jest.fn(() => 'webview'),
     reload: jest.fn(),
     executeJavaScript: jest.fn(),
     isDestroyed: jest.fn(() => false),
@@ -76,10 +80,11 @@ export function createMockMemoryInfo(overrides = {}): any {
 // Helper function to simulate memory pressure
 export function simulateMemoryPressure(level: 'moderate' | 'critical') {
   const totalMemory = 16 * 1024 * 1024 * 1024;
-  const freeMemory = level === 'critical' 
-    ? totalMemory * 0.05  // 5% free for critical
-    : totalMemory * 0.15; // 15% free for moderate
-    
+  const freeMemory =
+    level === 'critical'
+      ? totalMemory * 0.05 // 5% free for critical
+      : totalMemory * 0.15; // 15% free for moderate
+
   const os = require('os');
   (os.freemem as jest.Mock).mockReturnValue(freeMemory);
 }
@@ -89,5 +94,8 @@ export async function advanceTimersAndFlush(ms: number) {
   jest.advanceTimersByTime(ms);
   await Promise.resolve(); // Flush promise queue
 }
+
+// Export mocks for test usage
+export { mockApp };
 
 export default {};

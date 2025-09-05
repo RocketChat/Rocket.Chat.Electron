@@ -12,6 +12,9 @@ import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { startDocumentViewerHandler } from './documentViewer/ipc';
 import { setupDownloads, handleWillDownloadEvent } from './downloads/main';
 import { setupMainErrorHandling } from './errors';
+import { ExperimentalMemoryManager } from './experimental/ExperimentalMemoryManager';
+import { setupExperimentalIPC } from './experimental/ipc';
+import { setupExperimentalReduxListeners } from './experimental/reduxIntegration';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { setupNavigation } from './navigation/main';
@@ -43,9 +46,6 @@ import {
   startVideoCallWindowHandler,
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
-import { ExperimentalMemoryManager } from './experimental/ExperimentalMemoryManager';
-import { setupExperimentalIPC } from './experimental/ipc';
-import { setupExperimentalReduxListeners } from './experimental/reduxIntegration';
 
 const setupElectronDlWithTracking = () => {
   electronDl({
@@ -92,23 +92,23 @@ const start = async (): Promise<void> => {
   await app.whenReady();
 
   createMainReduxStore();
-  
+
   // Initialize experimental features
   if (process.env.NODE_ENV !== 'test') {
     // Initialize experimental features
     const experimentalManager = ExperimentalMemoryManager.getInstance();
     setupExperimentalIPC();
     setupExperimentalReduxListeners();
-    
+
     // Set up power monitor for sleep/resume
     powerMonitor.on('suspend', () => {
       experimentalManager.handleSystemSleep();
     });
-    
+
     powerMonitor.on('resume', () => {
       experimentalManager.handleSystemResume();
     });
-    
+
     // Experimental features initialized
   }
 

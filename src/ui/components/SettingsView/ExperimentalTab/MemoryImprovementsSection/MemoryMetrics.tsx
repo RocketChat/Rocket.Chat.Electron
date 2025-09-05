@@ -1,6 +1,7 @@
+import { Box, Margins, Tile, ProgressBar, Tag } from '@rocket.chat/fuselage';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Box, Margins, Tile, ProgressBar, Tag } from '@rocket.chat/fuselage';
+
 import { invoke } from '../../../../../ipc/renderer';
 
 interface LiveMetrics {
@@ -43,7 +44,7 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
       try {
         const metrics = await invoke('experimental/request-memory-metrics');
         console.log('[MemoryMetrics] Got metrics:', metrics);
-        
+
         if (metrics) {
           setLiveMetrics({
             timestamp: Date.now(),
@@ -52,8 +53,8 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
             features: metrics.features || {
               memorySaved: 0,
               interventions: 0,
-              lastCleanup: 0
-            }
+              lastCleanup: 0,
+            },
           });
         }
       } catch (error) {
@@ -63,7 +64,7 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
     };
 
     requestMetrics();
-    
+
     // Update every 30 seconds
     const interval = setInterval(requestMetrics, 30000);
 
@@ -85,20 +86,24 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
   const formatTime = (timestamp: number): string => {
     if (!timestamp || timestamp === 0) return '';
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-      hour12: false 
+      hour12: false,
     });
   };
 
   const getPressureColor = (pressure: string): string => {
     switch (pressure) {
-      case 'critical': return 'danger';
-      case 'high': return 'warning';
-      case 'medium': return 'primary';
-      default: return 'success';
+      case 'critical':
+        return 'danger';
+      case 'high':
+        return 'warning';
+      case 'medium':
+        return 'primary';
+      default:
+        return 'success';
     }
   };
 
@@ -113,10 +118,16 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
     return (
       <Box marginBlock='x24'>
         <Box fontScale='p2b' mbe='x12'>
-          {t('settings.experimental.memoryImprovements.metrics.title', 'Memory Status')}
+          {t(
+            'settings.experimental.memoryImprovements.metrics.title',
+            'Memory Status'
+          )}
         </Box>
         <Box fontScale='p2' color='hint'>
-          {t('settings.experimental.memoryImprovements.metrics.loading', 'Loading memory data...')}
+          {t(
+            'settings.experimental.memoryImprovements.metrics.loading',
+            'Loading memory data...'
+          )}
         </Box>
       </Box>
     );
@@ -127,9 +138,17 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
 
   return (
     <Box marginBlock='x24'>
-      <Box display='flex' alignItems='center' justifyContent='space-between' mbe='x12'>
+      <Box
+        display='flex'
+        alignItems='center'
+        justifyContent='space-between'
+        mbe='x12'
+      >
         <Box fontScale='p2b' color='default'>
-          {t('settings.experimental.memoryImprovements.metrics.title', 'Memory Status')}
+          {t(
+            'settings.experimental.memoryImprovements.metrics.title',
+            'Memory Status'
+          )}
         </Box>
         {formatTime(updateTime) && (
           <Box fontScale='c1' color='hint'>
@@ -141,9 +160,17 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
       {/* App Memory Overview */}
       <Tile elevation='1' padding='x16' mbe='x16'>
         <Box mbe='x8'>
-          <Box display='flex' justifyContent='space-between' alignItems='center' mbe='x8'>
+          <Box
+            display='flex'
+            justifyContent='space-between'
+            alignItems='center'
+            mbe='x8'
+          >
             <Box fontScale='p2'>
-              {t('settings.experimental.memoryImprovements.metrics.appMemory', 'Application Memory')}
+              {t(
+                'settings.experimental.memoryImprovements.metrics.appMemory',
+                'Application Memory'
+              )}
             </Box>
             <Tag variant={getPressureColor(liveMetrics.app.pressure)}>
               {liveMetrics.app.pressure.toUpperCase()}
@@ -155,7 +182,10 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
                 {formatMemory(liveMetrics.app.totalMemory)}
               </Box>
               <Box fontScale='c1' color='hint'>
-                {t('settings.experimental.memoryImprovements.metrics.totalUsage', 'Total usage')}
+                {t(
+                  'settings.experimental.memoryImprovements.metrics.totalUsage',
+                  'Total usage'
+                )}
               </Box>
             </Box>
             <Box textAlign='right'>
@@ -163,7 +193,10 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
                 {formatMemory(liveMetrics.app.mainProcess?.rss || 0)}
               </Box>
               <Box fontScale='c1' color='hint'>
-                {t('settings.experimental.memoryImprovements.metrics.mainProcess', 'Main process')}
+                {t(
+                  'settings.experimental.memoryImprovements.metrics.mainProcess',
+                  'Main process'
+                )}
               </Box>
             </Box>
           </Box>
@@ -174,13 +207,20 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
       {liveMetrics.webviews && liveMetrics.webviews.length > 0 && (
         <Tile elevation='1' padding='x16'>
           <Box fontScale='p2' mbe='x12'>
-            {t('settings.experimental.memoryImprovements.metrics.serverBreakdown', 'Server Memory Usage')}
+            {t(
+              'settings.experimental.memoryImprovements.metrics.serverBreakdown',
+              'Server Memory Usage'
+            )}
           </Box>
           {liveMetrics.webviews.slice(0, 5).map((webview, index) => {
             const serverName = new URL(webview.url).hostname;
-            const memoryPercent = (webview.memory / liveMetrics.app.totalMemory) * 100;
+            const memoryPercent =
+              (webview.memory / liveMetrics.app.totalMemory) * 100;
             return (
-              <Box key={index} mbe={index < liveMetrics.webviews.length - 1 ? 'x8' : undefined}>
+              <Box
+                key={index}
+                mbe={index < liveMetrics.webviews.length - 1 ? 'x8' : undefined}
+              >
                 <Box display='flex' justifyContent='space-between' mbe='x4'>
                   <Box fontScale='c1' withTruncatedText>
                     {serverName}
@@ -189,10 +229,7 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
                     {formatMemory(webview.memory)}
                   </Box>
                 </Box>
-                <ProgressBar 
-                  percentage={memoryPercent} 
-                  variant='primary'
-                />
+                <ProgressBar percentage={memoryPercent} variant='primary' />
               </Box>
             );
           })}
@@ -200,40 +237,51 @@ export const MemoryMetrics: React.FC<MemoryMetricsProps> = () => {
       )}
 
       {/* Feature Stats */}
-      {liveMetrics.features && (liveMetrics.features.interventions > 0 || liveMetrics.features.memorySaved > 0) && (
-        <Box display='flex' flexWrap='wrap' mi='neg-x8' mbs='x16'>
-          <Box pi='x8' width='33.33%'>
-            <Box textAlign='center'>
-              <Box fontScale='p1' color='success-500'>
-                {formatMemory(liveMetrics.features.memorySaved)}
+      {liveMetrics.features &&
+        (liveMetrics.features.interventions > 0 ||
+          liveMetrics.features.memorySaved > 0) && (
+          <Box display='flex' flexWrap='wrap' mi='neg-x8' mbs='x16'>
+            <Box pi='x8' width='33.33%'>
+              <Box textAlign='center'>
+                <Box fontScale='p1' color='success-500'>
+                  {formatMemory(liveMetrics.features.memorySaved)}
+                </Box>
+                <Box fontScale='c1' color='hint'>
+                  {t(
+                    'settings.experimental.memoryImprovements.metrics.saved',
+                    'Saved'
+                  )}
+                </Box>
               </Box>
-              <Box fontScale='c1' color='hint'>
-                {t('settings.experimental.memoryImprovements.metrics.saved', 'Saved')}
+            </Box>
+            <Box pi='x8' width='33.33%'>
+              <Box textAlign='center'>
+                <Box fontScale='p1' color='info-500'>
+                  {liveMetrics.features.interventions}
+                </Box>
+                <Box fontScale='c1' color='hint'>
+                  {t(
+                    'settings.experimental.memoryImprovements.metrics.cleanups',
+                    'Cleanups'
+                  )}
+                </Box>
+              </Box>
+            </Box>
+            <Box pi='x8' width='33.33%'>
+              <Box textAlign='center'>
+                <Box fontScale='p1'>
+                  {formatTime(liveMetrics.features.lastCleanup)}
+                </Box>
+                <Box fontScale='c1' color='hint'>
+                  {t(
+                    'settings.experimental.memoryImprovements.metrics.lastRun',
+                    'Last Run'
+                  )}
+                </Box>
               </Box>
             </Box>
           </Box>
-          <Box pi='x8' width='33.33%'>
-            <Box textAlign='center'>
-              <Box fontScale='p1' color='info-500'>
-                {liveMetrics.features.interventions}
-              </Box>
-              <Box fontScale='c1' color='hint'>
-                {t('settings.experimental.memoryImprovements.metrics.cleanups', 'Cleanups')}
-              </Box>
-            </Box>
-          </Box>
-          <Box pi='x8' width='33.33%'>
-            <Box textAlign='center'>
-              <Box fontScale='p1'>
-                {formatTime(liveMetrics.features.lastCleanup)}
-              </Box>
-              <Box fontScale='c1' color='hint'>
-                {t('settings.experimental.memoryImprovements.metrics.lastRun', 'Last Run')}
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      )}
+        )}
     </Box>
   );
 };

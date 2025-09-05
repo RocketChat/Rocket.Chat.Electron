@@ -138,9 +138,12 @@ export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
 export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 
 // Experimental Features Actions
-export const EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED = 'experimental/memory-improvements-toggled';
-export const EXPERIMENTAL_MEMORY_FEATURE_TOGGLED = 'experimental/memory-feature-toggled';
-export const EXPERIMENTAL_MEMORY_METRICS_UPDATED = 'experimental/memory-metrics-updated';
+export const EXPERIMENTAL_MEMORY_IMPROVEMENTS_TOGGLED =
+  'experimental/memory-improvements-toggled';
+export const EXPERIMENTAL_MEMORY_FEATURE_TOGGLED =
+  'experimental/memory-feature-toggled';
+export const EXPERIMENTAL_MEMORY_METRICS_UPDATED =
+  'experimental/memory-metrics-updated';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;

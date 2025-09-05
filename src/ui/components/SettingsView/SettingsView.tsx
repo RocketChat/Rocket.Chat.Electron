@@ -8,8 +8,8 @@ import { dispatch } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import { DOWNLOADS_BACK_BUTTON_CLICKED } from '../../actions';
 import { CertificatesTab } from './CertificatesTab';
-import { GeneralTab } from './GeneralTab';
 import { ExperimentalTab } from './ExperimentalTab';
+import { GeneralTab } from './GeneralTab';
 
 export const SettingsView = () => {
   const isVisible = useSelector(

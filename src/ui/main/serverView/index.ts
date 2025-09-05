@@ -19,6 +19,7 @@ import { app, clipboard, Menu, systemPreferences, webContents } from 'electron';
 import i18next from 'i18next';
 
 import { setupPreloadReload } from '../../../app/main/dev';
+import { ExperimentalMemoryManager } from '../../../experimental/ExperimentalMemoryManager';
 import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
@@ -45,7 +46,6 @@ import {
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
-import { ExperimentalMemoryManager } from '../../../experimental/ExperimentalMemoryManager';
 
 const t = i18next.t.bind(i18next);
 
@@ -109,7 +109,7 @@ const initializeServerWebContentsAfterAttach = (
     guestWebContents.removeAllListeners();
     webviewSession.removeAllListeners();
     webContentsByServerUrl.delete(serverUrl);
-    
+
     // Notify experimental manager about webcontents destruction
     experimentalManager.handleWebContentsDestroyed(serverUrl);
 

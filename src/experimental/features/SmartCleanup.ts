@@ -1,8 +1,9 @@
-import { app, webContents } from 'electron';
 import * as os from 'os';
 
-import { MemoryFeature } from '../MemoryFeature';
+import { app, webContents } from 'electron';
 import type { WebContents } from 'electron';
+
+import { MemoryFeature } from '../MemoryFeature';
 
 export interface CleanupResult {
   timestamp: number;
@@ -19,11 +20,17 @@ export interface CleanupResult {
  */
 export class SmartCleanup extends MemoryFeature {
   private cleanupInterval: NodeJS.Timeout | null = null;
+
   private lastCleanupTime = 0;
+
   private minCleanupInterval = 5 * 60 * 1000; // 5 minutes minimum between cleanups
+
   private cleanupHistory: CleanupResult[] = [];
+
   private maxHistorySize = 50;
+
   private isCleaningUp = false;
+
   private webContentsList = new Map<string, WebContents>();
 
   getName(): string {
@@ -33,10 +40,10 @@ export class SmartCleanup extends MemoryFeature {
   protected async onEnable(): Promise<void> {
     // Start periodic idle cleanup
     this.startIdleCleanup();
-    
+
     // Perform initial cleanup after a short delay
     setTimeout(() => this.performCleanup('initial'), 5000);
-    
+
     console.log('[SmartCleanup] Enabled with idle monitoring');
   }
 
@@ -46,9 +53,12 @@ export class SmartCleanup extends MemoryFeature {
     this.webContentsList.clear();
   }
 
-  protected async onApplyToWebContents(webContents: WebContents, serverUrl: string): Promise<void> {
+  protected async onApplyToWebContents(
+    webContents: WebContents,
+    serverUrl: string
+  ): Promise<void> {
     this.webContentsList.set(serverUrl, webContents);
-    
+
     // Inject cleanup helper script
     try {
       await webContents.executeJavaScript(`
@@ -106,7 +116,9 @@ export class SmartCleanup extends MemoryFeature {
   }
 
   protected async onSystemResume(): Promise<void> {
-    console.log('[SmartCleanup] System resumed, performing post-resume cleanup');
+    console.log(
+      '[SmartCleanup] System resumed, performing post-resume cleanup'
+    );
     // Wait a bit for system to stabilize
     setTimeout(() => this.performCleanup('resume'), 3000);
   }
@@ -131,29 +143,46 @@ export class SmartCleanup extends MemoryFeature {
 
   private async checkAndCleanupIfIdle(): Promise<void> {
     // Get system idle time (in seconds)
-    const idleTime = app.getSystemIdleTime();
-    
+    const idleTime = (app as any).getSystemIdleTime?.() || 0;
+
     // Consider system idle after 5 minutes
     if (idleTime > 300) {
       const now = Date.now();
       const timeSinceLastCleanup = now - this.lastCleanupTime;
-      
-      console.log(`[SmartCleanup] 💤 System idle for ${(idleTime / 60).toFixed(1)} minutes`);
-      
+
+      console.log(
+        `[SmartCleanup] 💤 System idle for ${(idleTime / 60).toFixed(1)} minutes`
+      );
+
       // Only cleanup if enough time has passed
       if (timeSinceLastCleanup >= this.minCleanupInterval) {
-        console.log(`[SmartCleanup] 🧹 Starting idle cleanup (last cleanup ${(timeSinceLastCleanup / 60000).toFixed(1)} minutes ago)`);
+        console.log(
+          `[SmartCleanup] 🧹 Starting idle cleanup (last cleanup ${(timeSinceLastCleanup / 60000).toFixed(1)} minutes ago)`
+        );
         await this.performCleanup('idle');
       } else {
-        console.log(`[SmartCleanup] ⏳ Skipping cleanup (too soon, wait ${((this.minCleanupInterval - timeSinceLastCleanup) / 60000).toFixed(1)} more minutes)`);
+        console.log(
+          `[SmartCleanup] ⏳ Skipping cleanup (too soon, wait ${((this.minCleanupInterval - timeSinceLastCleanup) / 60000).toFixed(1)} more minutes)`
+        );
       }
     }
   }
 
-  async performCleanup(trigger: 'manual' | 'idle' | 'sleep' | 'resume' | 'pressure' | 'initial' = 'manual'): Promise<CleanupResult> {
+  async performCleanup(
+    trigger:
+      | 'manual'
+      | 'idle'
+      | 'sleep'
+      | 'resume'
+      | 'pressure'
+      | 'initial' = 'manual'
+  ): Promise<CleanupResult> {
     if (this.isCleaningUp) {
       console.log('[SmartCleanup] Cleanup already in progress, skipping');
-      return this.cleanupHistory[this.cleanupHistory.length - 1] || this.createEmptyResult();
+      return (
+        this.cleanupHistory[this.cleanupHistory.length - 1] ||
+        this.createEmptyResult()
+      );
     }
 
     this.isCleaningUp = true;
@@ -161,12 +190,20 @@ export class SmartCleanup extends MemoryFeature {
     const memoryBefore = this.getCurrentMemoryUsage();
     const actions: string[] = [];
 
-    console.log(`[SmartCleanup] 🚀 Starting ${trigger} cleanup - Memory before: ${(memoryBefore / 1024 / 1024).toFixed(1)}MB`);
+    console.log(
+      `[SmartCleanup] 🚀 Starting ${trigger} cleanup - Memory before: ${(memoryBefore / 1024 / 1024).toFixed(1)}MB`
+    );
 
     try {
       // 1. Clear Electron caches
-      if (trigger === 'sleep' || trigger === 'resume' || trigger === 'pressure') {
-        console.log(`[SmartCleanup] 🗑️ Clearing Electron caches (trigger: ${trigger})`);
+      if (
+        trigger === 'sleep' ||
+        trigger === 'resume' ||
+        trigger === 'pressure'
+      ) {
+        console.log(
+          `[SmartCleanup] 🗑️ Clearing Electron caches (trigger: ${trigger})`
+        );
         await this.clearElectronCaches();
         actions.push('Cleared Electron caches');
       }
@@ -190,11 +227,12 @@ export class SmartCleanup extends MemoryFeature {
 
       // 5. Additional aggressive cleanup for pressure situations
       if (trigger === 'pressure') {
-        console.log('[SmartCleanup] 🔥 HIGH PRESSURE - Performing aggressive cleanup!');
+        console.log(
+          '[SmartCleanup] 🔥 HIGH PRESSURE - Performing aggressive cleanup!'
+        );
         await this.aggressiveCleanup();
         actions.push('Performed aggressive cleanup');
       }
-
     } catch (error) {
       console.error('[SmartCleanup] Error during cleanup:', error);
     }
@@ -209,7 +247,7 @@ export class SmartCleanup extends MemoryFeature {
       memoryAfter,
       memorySaved,
       actions,
-      duration
+      duration,
     };
 
     // Update history
@@ -226,9 +264,13 @@ export class SmartCleanup extends MemoryFeature {
 
     const memorySavedMB = memorySaved / 1024 / 1024;
     if (memorySavedMB > 0) {
-      console.log(`[SmartCleanup] ✅ Cleanup completed! Freed ${memorySavedMB.toFixed(1)}MB in ${duration}ms`);
+      console.log(
+        `[SmartCleanup] ✅ Cleanup completed! Freed ${memorySavedMB.toFixed(1)}MB in ${duration}ms`
+      );
     } else {
-      console.log(`[SmartCleanup] ✨ Cleanup completed - Memory already optimized (${duration}ms)`);
+      console.log(
+        `[SmartCleanup] ✨ Cleanup completed - Memory already optimized (${duration}ms)`
+      );
     }
     console.log(`[SmartCleanup] 📋 Actions performed: ${actions.join(', ')}`);
 
@@ -239,13 +281,21 @@ export class SmartCleanup extends MemoryFeature {
   private async clearElectronCaches(): Promise<void> {
     try {
       // Clear HTTP cache for all sessions
-      const sessions = webContents.getAllWebContents().map(wc => wc.session);
+      const sessions = webContents.getAllWebContents().map((wc) => wc.session);
       const uniqueSessions = [...new Set(sessions)];
-      
+
       for (const session of uniqueSessions) {
         await session.clearCache();
         await session.clearStorageData({
-          storages: ['cookies', 'filesystem', 'indexdb', 'localstorage', 'shadercache', 'websql', 'serviceworkers']
+          storages: [
+            'cookies',
+            'filesystem',
+            'indexdb',
+            'localstorage',
+            'shadercache',
+            'websql',
+            'serviceworkers',
+          ],
         });
       }
     } catch (error) {
@@ -287,7 +337,6 @@ export class SmartCleanup extends MemoryFeature {
         if (wc.canGoBack()) {
           wc.clearHistory();
         }
-
       } catch (error) {
         // WebContents might not be ready or might have navigated
       }
@@ -309,19 +358,28 @@ export class SmartCleanup extends MemoryFeature {
   }
 
   private async aggressiveCleanup(): Promise<void> {
-    console.log('[SmartCleanup] Performing aggressive cleanup due to memory pressure');
-    
+    console.log(
+      '[SmartCleanup] Performing aggressive cleanup due to memory pressure'
+    );
+
     // Force reload of the heaviest WebContents if memory is critical
     const appMetrics = app.getAppMetrics();
     const sortedMetrics = appMetrics
-      .filter(m => m.type === 'Webview' || m.type === 'Web Contents')
+      .filter((m) => (m as any).type === 'Renderer')
       .sort((a, b) => b.memory.workingSetSize - a.memory.workingSetSize);
-    
+
     // Consider reloading the heaviest consumer if it's using > 1GB
-    if (sortedMetrics.length > 0 && sortedMetrics[0].memory.workingSetSize > 1024 * 1024) {
-      const heaviestWC = webContents.fromId(sortedMetrics[0].webContents?.id || -1);
+    if (
+      sortedMetrics.length > 0 &&
+      sortedMetrics[0].memory.workingSetSize > 1024 * 1024
+    ) {
+      const heaviestWC = webContents.fromId(
+        (sortedMetrics[0] as any).webContents?.id || -1
+      );
       if (heaviestWC && !heaviestWC.isDestroyed()) {
-        console.log('[SmartCleanup] Reloading heaviest WebContents to free memory');
+        console.log(
+          '[SmartCleanup] Reloading heaviest WebContents to free memory'
+        );
         heaviestWC.reload();
       }
     }
@@ -329,7 +387,10 @@ export class SmartCleanup extends MemoryFeature {
 
   private getCurrentMemoryUsage(): number {
     const appMetrics = app.getAppMetrics();
-    return appMetrics.reduce((sum, metric) => sum + metric.memory.workingSetSize, 0);
+    return appMetrics.reduce(
+      (sum, metric) => sum + metric.memory.workingSetSize,
+      0
+    );
   }
 
   private createEmptyResult(): CleanupResult {
@@ -339,7 +400,7 @@ export class SmartCleanup extends MemoryFeature {
       memoryAfter: 0,
       memorySaved: 0,
       actions: [],
-      duration: 0
+      duration: 0,
     };
   }
 
@@ -354,7 +415,10 @@ export class SmartCleanup extends MemoryFeature {
    * Get total memory saved across all cleanups
    */
   getTotalMemorySaved(): number {
-    return this.cleanupHistory.reduce((sum, result) => sum + result.memorySaved, 0);
+    return this.cleanupHistory.reduce(
+      (sum, result) => sum + result.memorySaved,
+      0
+    );
   }
 
   /**
@@ -371,13 +435,13 @@ export class SmartCleanup extends MemoryFeature {
     const totalMemory = os.totalmem();
     const freeMemory = os.freemem();
     const percentUsed = ((totalMemory - freeMemory) / totalMemory) * 100;
-    
+
     // Trigger cleanup if memory usage is high
     if (percentUsed > 80) {
       await this.performCleanup('pressure');
       return true;
     }
-    
+
     return false;
   }
 }

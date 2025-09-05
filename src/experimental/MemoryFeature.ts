@@ -12,6 +12,7 @@ export interface FeatureMetrics {
  */
 export abstract class MemoryFeature {
   protected enabled = false;
+
   protected metrics: FeatureMetrics = {
     activations: 0,
     memorySaved: 0,
@@ -30,7 +31,7 @@ export abstract class MemoryFeature {
     if (this.enabled) {
       return;
     }
-    
+
     this.enabled = true;
     console.log(`[ExperimentalMemory] Enabling feature: ${this.getName()}`);
     await this.onEnable();
@@ -43,7 +44,7 @@ export abstract class MemoryFeature {
     if (!this.enabled) {
       return;
     }
-    
+
     this.enabled = false;
     console.log(`[ExperimentalMemory] Disabling feature: ${this.getName()}`);
     await this.onDisable();
@@ -66,11 +67,14 @@ export abstract class MemoryFeature {
   /**
    * Apply this feature to a specific webcontents.
    */
-  async applyToWebContents(webContents: WebContents, serverUrl: string): Promise<void> {
+  async applyToWebContents(
+    webContents: WebContents,
+    serverUrl: string
+  ): Promise<void> {
     if (!this.enabled) {
       return;
     }
-    
+
     await this.onApplyToWebContents(webContents, serverUrl);
   }
 
@@ -81,7 +85,7 @@ export abstract class MemoryFeature {
     if (!this.enabled) {
       return;
     }
-    
+
     await this.onSystemSleep();
   }
 
@@ -92,10 +96,12 @@ export abstract class MemoryFeature {
     if (!this.enabled) {
       return;
     }
-    
-    console.log(`[ExperimentalMemory] ${this.getName()} handling system resume`);
+
+    console.log(
+      `[ExperimentalMemory] ${this.getName()} handling system resume`
+    );
     await this.onSystemResume();
-    
+
     this.metrics.activations++;
     this.metrics.lastRun = Date.now();
   }
@@ -104,19 +110,23 @@ export abstract class MemoryFeature {
    * Subclasses must implement these methods.
    */
   protected abstract onEnable(): Promise<void>;
+
   protected abstract onDisable(): Promise<void>;
-  
+
   /**
    * Optional methods for subclasses to override.
    */
-  protected async onApplyToWebContents(_webContents: WebContents, _serverUrl: string): Promise<void> {
+  protected async onApplyToWebContents(
+    _webContents: WebContents,
+    _serverUrl: string
+  ): Promise<void> {
     // Default: no-op
   }
-  
+
   protected async onSystemSleep(): Promise<void> {
     // Default: no-op
   }
-  
+
   protected async onSystemResume(): Promise<void> {
     // Default: no-op
   }

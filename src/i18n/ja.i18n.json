@@ -191,6 +191,67 @@
     "unreadMention": "未読メンション",
     "noUnreadMessage": "未読メッセージはありません"
   },
+  "settings": {
+    "title": "アプリ設定",
+    "general": "一般",
+    "certificates": "証明書",
+    "options": {
+      "report": {
+        "title": "エラー報告を送信",
+        "description": "アプリの改善に役立つ匿名のクラッシュレポートを共有します。アプリのバージョン、OS情報、エラーの詳細が含まれます。メッセージの内容やユーザー名は送信されません。",
+        "masDescription": "このオプションはMac App Storeからのインストール時に無効になります。エラーはMac App Storeのエラー収集メカニズムを通じて報告されます。"
+      },
+      "flashFrame": {
+        "title": "アラート時にタスクバーを点滅",
+        "titleDarwin": "アラート時にDockアイコンをバウンス",
+        "description": "注意を引くためにタスクバーまたはウィンドウを点滅させます。",
+        "onLinux": "一部のLinuxディストリビューションではこの機能はサポートされていません。",
+        "descriptionDarwin": "注意を引くためにアプリアイコンをバウンスさせます。"
+      },
+      "hardwareAcceleration": {
+        "title": "ハードウェアアクセラレーションを使用",
+        "description": "利用可能な場合はハードウェアアクセラレーションを使用します。変更を適用するためにアプリが再起動されます。"
+      },
+      "internalVideoChatWindow": {
+        "title": "ビデオ通話をアプリウィンドウで開く",
+        "description": "ブラウザの代わりにアプリ内でビデオ通話を開きます。**Google Meet**と**Jitsi**では、アプリ内での画面共有がサポートされていないため、常にブラウザで開かれます。",
+        "masDescription": "このオプションはMac App Storeからのインストール時に無効になります。セキュリティ上の理由から、ビデオチャットウィンドウはデフォルトブラウザで開かれます。"
+      },
+      "minimizeOnClose": {
+        "title": "閉じる時に最小化",
+        "description": "有効時、ウィンドウを閉じると終了ではなくアプリが最小化されます。この機能を使用するにはトレイアイコンを無効にする必要があります。"
+      },
+      "menubar": {
+        "title": "メニューバーを表示",
+        "description": "ウィンドウの上部にメニューバーを表示します。"
+      },
+      "sidebar": {
+        "title": "ワークスペースバー",
+        "description": "ワークスペース、ダウンロード、設定を含む左バーを表示します。"
+      },
+      "trayIcon": {
+        "title": "トレイアイコンを表示",
+        "description": "システムトレイにアイコンを表示します。有効時、ウィンドウを閉じてもアプリはトレイで実行され続けます；無効時、アプリは閉じると終了します。"
+      },
+      "availableBrowsers": {
+        "title": "リンクを開く",
+        "description": "外部リンク用のブラウザを選択します。「システムデフォルト」はOSの設定を使用します。"
+      },
+      "clearPermittedScreenCaptureServers": {
+        "title": "画面共有許可をクリア",
+        "description": "画面共有を許可したサイトを削除し、次回ビデオ通話時に再度確認されるようにします。"
+      },
+      "ntlmCredentials": {
+        "title": "NTLM認証を許可",
+        "description": "サーバーへの接続時にNTLM認証情報を使用します。",
+        "domains": "これらの認証情報を使用するドメイン（カンマ区切り）。すべてのドメインに一致させるには*を使用してください。"
+      },
+      "videoCallWindowPersistence": {
+        "title": "ビデオ通話ウィンドウの位置を記憶",
+        "description": "セッション間でビデオ通話ウィンドウの位置とサイズを保存・復元します。"
+      }
+    }
+  },
   "screenSharing": {
     "permissionDenied": "画面収録権限が拒否されました",
     "permissionRequired": "画面を共有するには画面収録権限が必要です。",

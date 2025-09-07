@@ -207,72 +207,72 @@
     }
   },
   "settings": {
-    "title": "Settings",
+    "title": "App settings",
     "general": "General",
     "certificates": "Certificates",
     "options": {
       "report": {
-        "title": "Report errors to developers",
-        "description": "Report errors anonymously to the developers. Shared information include app version number, operating system type, server URL, device language and error type. No content or usernames are shared.",
+        "title": "Send error reports",
+        "description": "Share anonymous crash reports to help improve the app. We include app version, operating system information, and error details. We do not send message content or usernames.",
         "masDescription": "This option is disabled when installed from the Mac App Store, the errors will be reported through the Mac App Store error report process."
       },
       "flashFrame": {
-        "title": "Enable Flash Frame",
-        "titleDarwin": "Toggle Dock Bounce on alert",
-        "description": "Flashes the window to attract user's attention.",
+        "title": "Flash taskbar on alerts",
+        "titleDarwin": "Bounce Dock icon on alerts",
+        "description": "Flashes the taskbar or window to get your attention.",
         "onLinux": "Some Linux distros don't have support for this feature.",
-        "descriptionDarwin": "Bounces the app icon in the dock to attract user's attention."
+        "descriptionDarwin": "Bounces the app icon to get your attention."
       },
       "hardwareAcceleration": {
-        "title": "Hardware Acceleration",
-        "description": "Enables the use of hardware acceleration when available. The application will reload on change."
+        "title": "Use hardware acceleration",
+        "description": "Use hardware acceleration when available. The app restarts to apply changes."
       },
       "internalVideoChatWindow": {
-        "title": "Open Video Chat in Application Window",
-        "description": "If enabled, the Video Chat will open in the application's window instead of the default browser. However, for <strong>Google Meet</strong> and <strong>Jitsi</strong>, screen recording is not supported in Electron applications, so they will always open in the browser regardless of this setting.",
+        "title": "Open video calls in app window",
+        "description": "Open video calls in the app instead of your browser. For <strong>Google Meet</strong> and <strong>Jitsi</strong>, screen sharing isn’t supported in the app, so those always open in your browser.",
         "masDescription": "This option is disabled when installed from the Mac App Store. For security reasons, Video Chat will always open in the browser by default."
       },
       "minimizeOnClose": {
         "title": "Minimize on close",
-        "description": "When closed the app will be minimized, otherwise it will quit the application. Tray Icon need to be disabled to this take effect."
+        "description": "When on, closing the window minimizes the app instead of quitting. Turn off the tray icon to use this."
       },
       "menubar": {
-        "title": "Menu bar",
-        "description": "Show menu bar on the top of the window.",
+        "title": "Show menu bar",
+        "description": "Show the menu bar at the top of the window.",
         "disabledHint": "Cannot disable menu bar when sidebar is disabled. Settings would become inaccessible."
       },
       "sidebar": {
-        "title": "Sidebar",
-        "description": "Show sidebar on the left of the window with the Server List, Downloads and Settings.",
-        "disabledHint": "Cannot disable sidebar when menu bar is disabled. Settings would become inaccessible."
+        "title": "Workspace bar",
+        "description": "Show the left bar with Workspaces, Downloads, and Settings.",
+        "disabledHint": "Cannot disable the workspace bar when the menu bar is disabled. Settings would become inaccessible."
       },
       "trayIcon": {
-        "title": "Tray Icon",
-        "description": "Show tray icon on the system tray. If tray icon is active the app will be hidden to tray on close. Otherwise it will quit the application."
+        "title": "Show tray icon",
+        "description": "Show an icon in the system tray. When on, closing the window keeps the app running; when off, the app quits on close."
       },
       "availableBrowsers": {
-        "title": "Default Browser",
-        "description": "Choose which browser will open external links from this app. System Default uses your operating system settings.",
+        "title": "Open links in",
+        "description": "Choose the browser for external links. 'System default' uses your operating system setting.",
         "systemDefault": "System Default",
         "loading": "Loading browsers...",
         "current": "Currently using:"
       },
       "clearPermittedScreenCaptureServers": {
-        "title": "Clear Screen Capture Permissions",
-        "description": "Clear the screen capture permissions that was selected to not ask again on video calls."
+        "title": "Clear screen sharing permissions",
+        "description": "Remove sites you allowed to share your screen so you’re asked again on the next video call."
       },
       "allowScreenCaptureOnVideoCalls": {
         "title": "Allow Screen Capture on Video Calls",
         "description": "Allow screen capture on video calls. This will ask for permission on each video call."
       },
       "ntlmCredentials": {
-        "title": "NTLM Credentials",
-        "description": "Allow NTLM Credentials to be used when connecting to a server.",
-        "domains": "Domains that will use the credentials. Separated by comma. Use * to match all domains."
+        "title": "Allow NTLM authentication",
+        "description": "Use NTLM credentials when connecting to servers.",
+        "domains": "Domains that can use these credentials, separated by commas. Use * to match all domains."
       },
       "videoCallWindowPersistence": {
         "title": "Remember video call window position",
-        "description": "Save and restore the position and size of video call windows between sessions"
+        "description": "Save and restore the position and size of video call windows between sessions."
       }
     }
   },

@@ -179,68 +179,68 @@
     }
   },
   "settings": {
-    "title": "Einstellungen",
+    "title": "App-Einstellungen",
     "general": "Allgemein",
     "certificates": "Zertifikate",
     "options": {
       "report": {
-        "title": "Fehler an Entwickler melden",
-        "description": "Melden Sie Fehler anonym an die Entwickler. Zu den freigegebenen Informationen gehören App-Versionsnummer, Betriebssystemtyp, Server-URL, Gerätesprache und Fehlertyp. Es werden keine Inhalte oder Benutzernamen geteilt.",
+        "title": "Fehlerberichte senden",
+        "description": "Anonyme Absturzberichte teilen, um die App zu verbessern. Wir verwenden App-Version, Betriebssystem-Informationen und Fehlerdetails. Wir senden keine Nachrichteninhalte oder Benutzernamen.",
         "masDescription": "Diese Option ist bei der Installation aus dem Mac App Store deaktiviert, die Fehler werden über den Fehlerberichtsprozess des Mac App Store gemeldet."
       },
       "flashFrame": {
-        "title": "Flashframe aktivieren",
-        "titleDarwin": "Schalten Sie Dock Bounce bei Alarm um",
-        "description": "Lässt das Fenster blinken, um die Aufmerksamkeit des Benutzers zu erregen.",
+        "title": "Taskleiste bei Benachrichtigungen blinken lassen",
+        "titleDarwin": "Dock-Symbol bei Benachrichtigungen hüpfen lassen",
+        "description": "Lässt die Taskleiste oder das Fenster blinken, um Ihre Aufmerksamkeit zu erregen.",
         "onLinux": "Einige Linux-Distributionen unterstützen diese Funktion nicht.",
-        "descriptionDarwin": "Lässt das App-Symbol im Dock hüpfen, um die Aufmerksamkeit des Benutzers zu erregen."
+        "descriptionDarwin": "Lässt das App-Symbol hüpfen, um Ihre Aufmerksamkeit zu erregen."
       },
       "hardwareAcceleration": {
-        "title": "Hardware-Beschleunigung",
-        "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."
+        "title": "Hardware-Beschleunigung verwenden",
+        "description": "Hardware-Beschleunigung verwenden, wenn verfügbar. Die App startet neu, um Änderungen anzuwenden."
       },
       "internalVideoChatWindow": {
-        "title": "Öffnen Sie den Video-Chat mit dem Anwendungsfenster",
-        "description": "Wenn diese Option aktiviert ist, wird der Video-Chat im Anwendungsfenster anstelle des Standardbrowsers geöffnet. Allerdings wird für <strong>Google Meet</strong> und <strong>Jitsi</strong> die Bildschirmaufzeichnung in Electron-Anwendungen nicht unterstützt, daher werden sie unabhängig von dieser Einstellung immer im Browser geöffnet.",
+        "title": "Videoanrufe in App-Fenster öffnen",
+        "description": "Videoanrufe in der App statt in Ihrem Browser öffnen. Für <strong>Google Meet</strong> und <strong>Jitsi</strong> wird Bildschirmfreigabe in der App nicht unterstützt, diese öffnen sich daher immer in Ihrem Browser.",
         "masDescription": "Diese Option ist deaktiviert, wenn sie aus dem Mac App Store installiert wird. Aus Sicherheitsgründen wird der Video-Chat standardmäßig über den Browser geöffnet."
       },
       "minimizeOnClose": {
         "title": "Beim Schließen minimieren",
-        "description": "Beim Schließen wird die App minimiert, andernfalls wird die Anwendung beendet. Das Taskleistensymbol muss deaktiviert werden, damit dies wirksam wird."
+        "description": "Wenn aktiviert, minimiert das Schließen des Fensters die App statt zu beenden. Deaktivieren Sie das Taskleistensymbol, um dies zu verwenden."
       },
       "menubar": {
-        "title": "Menüleiste",
+        "title": "Menüleiste anzeigen",
         "description": "Menüleiste oben im Fenster anzeigen.",
         "disabledHint": "Die Menüleiste kann nicht deaktiviert werden, wenn die Seitenleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
       },
       "sidebar": {
-        "title": "Seitenleiste",
-        "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen.",
-        "disabledHint": "Die Seitenleiste kann nicht deaktiviert werden, wenn die Menüleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
+        "title": "Arbeitsbereich-Leiste",
+        "description": "Die linke Leiste mit Arbeitsbereichen, Downloads und Einstellungen anzeigen.",
+        "disabledHint": "Die Arbeitsbereich-Leiste kann nicht deaktiviert werden, wenn die Menüleiste deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
       },
       "trayIcon": {
-        "title": "Taskleistensymbol",
-        "description": "Zeigt ein Symbol in der Systemleiste an. Wenn das Taskleistensymbol aktiv ist, wird die App beim Schließen in der Taskleiste minimiert. Andernfalls wird die Anwendung beendet."
+        "title": "Taskleistensymbol anzeigen",
+        "description": "Ein Symbol in der Systemleiste anzeigen. Wenn aktiviert, hält das Schließen des Fensters die App am Laufen; wenn deaktiviert, wird die App beim Schließen beendet."
       },
       "availableBrowsers": {
-        "title": "Standard-Browser",
-        "description": "Wählen Sie aus, welcher Browser externe Links aus dieser App öffnen soll. Systemstandard verwendet die Einstellungen Ihres Betriebssystems.",
+        "title": "Links öffnen in",
+        "description": "Browser für externe Links wählen. 'Systemstandard' verwendet Ihre Betriebssystem-Einstellung.",
         "systemDefault": "Systemstandard",
         "loading": "Browser werden geladen...",
         "current": "Aktuell verwendet:"
       },
       "clearPermittedScreenCaptureServers": {
-        "title": "Erlaubte Bildschirmaufnahmeserver löschen",
-        "description": "Löschen Sie Server, die Bildschirme von dieser App erfassen dürfen"
+        "title": "Bildschirmfreigabe-Berechtigungen löschen",
+        "description": "Seiten entfernen, denen Sie die Bildschirmfreigabe erlaubt haben, damit beim nächsten Videoanruf wieder gefragt wird."
       },
       "ntlmCredentials": {
-        "title": "NTLM-Anmeldeinformationen",
-        "description": "Erlauben Sie die Verwendung von NTLM-Anmeldeinformationen bei der Verbindung mit einem Server.",
-        "domains": "Domänen, die die Anmeldeinformationen verwenden werden. Durch Komma getrennt. Verwenden Sie *, um alle Domänen abzugleichen."
+        "title": "NTLM-Authentifizierung erlauben",
+        "description": "NTLM-Anmeldeinformationen beim Verbinden mit Servern verwenden.",
+        "domains": "Domänen, die diese Anmeldeinformationen verwenden können, durch Kommas getrennt. Verwenden Sie * für alle Domänen."
       },
       "videoCallWindowPersistence": {
         "title": "Videoanruf-Fensterposition speichern",
-        "description": "Position und Größe der Videoanruf-Fenster zwischen Sitzungen speichern und wiederherstellen"
+        "description": "Position und Größe der Videoanruf-Fenster zwischen Sitzungen speichern und wiederherstellen."
       }
     }
   },

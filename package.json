@@ -47,7 +47,8 @@
     ".:lint:tsc": "tsc --noEmit",
     "lint-fix": "run-s .:lint-fix:eslint .:lint:tsc",
     ".:lint-fix:eslint": "eslint --fix .",
-    "workspaces:build": "yarn workspaces foreach -At run build"
+    "workspaces:build": "yarn workspaces foreach -At run build",
+    "validate-yarn-config": "node scripts/validate-yarn-config.js"
   },
   "dependencies": {
     "@bugsnag/js": "~7.22.3",
@@ -153,7 +154,7 @@
   },
   "volta": {
     "node": "22.17.1",
-    "yarn": "4.0.2"
+    "yarn": "4.6.0"
   },
   "packageManager": "yarn@4.6.0"
 }

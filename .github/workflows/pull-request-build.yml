@@ -67,23 +67,7 @@ jobs:
           BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
-      - name: Setup Google Cloud authentication (Windows)
-        if: ${{ matrix.os == 'windows-latest' }}
-        shell: pwsh
-        run: |
-          $tempDir = $env:RUNNER_TEMP
-          '${{ secrets.GCP_SA_JSON }}' | Out-File -FilePath "$tempDir\gcp-sa.json" -NoNewline
-          echo "GOOGLE_APPLICATION_CREDENTIALS=$tempDir\gcp-sa.json" >> $env:GITHUB_ENV
 
-      - name: Cache Google Cloud KMS CNG provider (Windows)
-        if: ${{ matrix.os == 'windows-latest' }}
-        uses: actions/cache@v4
-        id: cache-kms-cng
-        with:
-          path: build/installers/google-cloud-kms-cng-provider.msi
-          key: kms-cng-provider-${{ hashFiles('build/installers/.gitkeep') }}-v1.2
-          restore-keys: |
-            kms-cng-provider-
 
       - name: Install Google Cloud KMS CNG provider (Windows)
         if: ${{ matrix.os == 'windows-latest' }}

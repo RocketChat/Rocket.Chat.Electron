@@ -32,44 +32,34 @@ export const findSigntool = async (): Promise<void> => {
 };
 
 export const installJsign = async (): Promise<void> => {
-  // Verify Java is already available (should be set up by workflow)
-  core.info('Verifying Java installation...');
-  try {
-    await exec.exec('java', ['-version']);
-    core.info('✅ Java is available');
-  } catch (error) {
-    throw new Error('Java not found. Please ensure Java is set up in the workflow before calling this action.');
+  core.info('Installing OpenJDK 11...');
+  await exec.exec('choco', ['install', 'openjdk11', '-y']);
+  
+  // Refresh environment to pick up Java
+  await exec.exec('refreshenv');
+  
+  // Verify Java installation and add to PATH
+  const javaHomeCmd = `powershell -Command "[System.Environment]::GetEnvironmentVariable('JAVA_HOME', 'Machine')"`;
+  const javaHome = await runAndBuffer(javaHomeCmd);
+  
+  if (javaHome && fs.existsSync(path.join(javaHome.trim(), 'bin', 'java.exe'))) {
+    core.info(`Java found at: ${javaHome.trim()}`);
+    const javaBinPath = path.join(javaHome.trim(), 'bin');
+    core.addPath(javaBinPath);
+    process.env.PATH = `${javaBinPath};${process.env.PATH}`;
+    process.env.JAVA_HOME = javaHome.trim();
+  } else {
+    throw new Error('Java installation not found or JAVA_HOME not set');
   }
   
   core.info('Installing jsign...');
   await exec.exec('choco', ['install', 'jsign', '-y']);
   
-  // Manually add jsign to PATH (more reliable than refreshenv in CI)
+  // Refresh environment variables to pick up PATH changes from jsign
+  await exec.exec('refreshenv');
+  
+  // Add jsign to PATH
   const jsignPath = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools';
-  if (fs.existsSync(jsignPath)) {
-    core.info(`Adding jsign to PATH: ${jsignPath}`);
-    core.addPath(jsignPath);
-    process.env.PATH = `${jsignPath};${process.env.PATH}`;
-    
-    // Verify jsign is now accessible
-    const jsignCmd = path.join(jsignPath, 'jsign.cmd');
-    if (fs.existsSync(jsignCmd)) {
-      core.info(`✅ jsign.cmd found at ${jsignCmd}`);
-      
-      // Test jsign command
-      try {
-        await exec.exec('jsign', ['--help'], {
-          ignoreReturnCode: true,
-          silent: true
-        });
-        core.info('✅ jsign is working correctly');
-      } catch (error) {
-        core.warning(`jsign command test failed: ${error}`);
-      }
-    } else {
-      throw new Error(`jsign.cmd not found at expected location: ${jsignCmd}`);
-    }
-  } else {
-    throw new Error(`jsign installation directory not found: ${jsignPath}`);
-  }
+  core.addPath(jsignPath);
+  process.env.PATH = `${jsignPath};${process.env.PATH}`;
 };

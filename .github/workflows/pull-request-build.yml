@@ -472,9 +472,14 @@ jobs:
             $gcloudCmd = Get-Command gcloud -ErrorAction Stop
             Write-Host "✅ gcloud found at: $($gcloudCmd.Source)" -ForegroundColor Green
             
-            # Test gcloud version
-            $gcloudOutput = & gcloud version --format=text *>&1 | Out-String
-            Write-Host "✅ gcloud is available from GitHub Actions setup" -ForegroundColor Green
+            # Test gcloud version - use gcloud directly since it's set up by GitHub Actions
+            gcloud version --format=text
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✅ gcloud is available from GitHub Actions setup" -ForegroundColor Green
+            } else {
+              Write-Error "❌ gcloud command failed with exit code $LASTEXITCODE"
+              exit 1
+            }
           } catch {
             Write-Error "❌ gcloud not available: $_"
             exit 1
@@ -485,11 +490,11 @@ jobs:
           # Verify Google Cloud authentication is already set up by GitHub Actions
           Write-Host "Verifying Google Cloud authentication..." -ForegroundColor Yellow
           try {
-            $tokenOutput = & gcloud auth print-access-token *>&1 | Out-String
+            gcloud auth print-access-token | Out-Null
             if ($LASTEXITCODE -eq 0) {
               Write-Host "✅ Google Cloud authentication successful (set up by GitHub Actions)" -ForegroundColor Green
             } else {
-              Write-Host "❌ Google Cloud authentication failed: $tokenOutput" -ForegroundColor Red
+              Write-Error "❌ Google Cloud authentication failed with exit code $LASTEXITCODE"
               exit 1
             }
           } catch {

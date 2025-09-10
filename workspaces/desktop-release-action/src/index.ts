@@ -9,6 +9,8 @@ import type { SemVer } from 'semver';
 import { parse } from 'semver';
 
 import {
+  clearStaleAssets,
+  forceCleanOldAssets,
   getDevelopmentRelease,
   getReleaseAssets,
   getSnapshotRelease,
@@ -17,7 +19,7 @@ import {
 } from './github';
 import { packOnLinux, setupSnapcraft, uploadSnap } from './linux';
 import { disableSpotlightIndexing, packOnMacOS } from './macos';
-import { packOnWindows } from './windows';
+import { packOnWindows } from './windows/index';
 
 const pack = async () => {
   switch (process.platform) {
@@ -68,6 +70,18 @@ const releaseDevelopment = async (commitSha: string) => {
   await pack();
 
   const release = await getDevelopmentRelease(commitSha);
+  const existingAssets = await getReleaseAssets(release.id);
+  
+  // Force clean old assets if we have too many (close to GitHub's 1000 limit)
+  if (existingAssets.length > 900) {
+    core.info(`Release has ${existingAssets.length} assets, cleaning old assets to prevent GitHub limit`);
+    await forceCleanOldAssets(release.id, 100);
+  } else {
+    const filesToUpload = await getFilesToUpload();
+    const expectedAssetNames = filesToUpload.map(path => basename(path));
+    await clearStaleAssets(release.id, expectedAssetNames);
+  }
+  
   const assets = await getReleaseAssets(release.id);
 
   for (const path of await getFilesToUpload()) {
@@ -87,6 +101,18 @@ const releaseSnapshot = async (commitSha: string) => {
   await pack();
 
   const release = await getSnapshotRelease(commitSha);
+  const existingAssets = await getReleaseAssets(release.id);
+  
+  // Force clean old assets if we have too many (close to GitHub's 1000 limit)
+  if (existingAssets.length > 900) {
+    core.info(`Release has ${existingAssets.length} assets, cleaning old assets to prevent GitHub limit`);
+    await forceCleanOldAssets(release.id, 100);
+  } else {
+    const filesToUpload = await getFilesToUpload();
+    const expectedAssetNames = filesToUpload.map(path => basename(path));
+    await clearStaleAssets(release.id, expectedAssetNames);
+  }
+  
   const assets = await getReleaseAssets(release.id);
 
   for (const path of await getFilesToUpload()) {
@@ -158,6 +184,7 @@ const start = async () => {
     await releaseSnapshot(payload.after);
     return;
   }
+
 
   if (ref.match(/^refs\/tags\//)) {
     const tag = ref.slice('refs/tags/'.length);

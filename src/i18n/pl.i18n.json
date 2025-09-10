@@ -179,6 +179,21 @@
     "announcement": "Hjuston, mamy problem",
     "reload": "Przeładuj"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "Ładowanie połączenia wideo...",
+      "reloading": "Ponowne ładowanie połączenia wideo...",
+      "description": "Proszę czekać, łączymy z połączeniem wideo"
+    },
+    "error": {
+      "title": "Nie udało się załadować połączenia wideo",
+      "announcement": "Houston, mamy problem",
+      "timeout": "Przekroczono czas oczekiwania - nie udało się załadować połączenia wideo w ciągu 15 sekund",
+      "crashed": "Webview się zawiesił",
+      "maxRetriesReached": "Nie udało się załadować po wielu próbach",
+      "reload": "Przeładuj połączenie wideo"
+    }
+  },
   "selfxss": {
     "title": "Stop!",
     "description": "To jest funkcja przeglądarki dedykowana programistom. Jeśli ktoś powiedział Ci, by skopiować i wkleić coś tutaj aby włączyć funcjonalność Rocket.Chata lub \"zhackować\" czyjeś konto, to jest to oszustwo a Ty dasz temu komuś dostęp do swojego konta Rocket.Chat.",

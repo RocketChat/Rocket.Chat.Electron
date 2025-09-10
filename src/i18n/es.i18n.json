@@ -229,11 +229,13 @@
       },
       "menubar": {
         "title": "Barra de menú",
-        "description": "Mostrar la barra de menú en la parte superior de la ventana."
+        "description": "Mostrar la barra de menú en la parte superior de la ventana.",
+        "disabledHint": "No se puede desactivar la barra de menú cuando la barra lateral está desactivada. La configuración sería inaccesible."
       },
       "sidebar": {
         "title": "Barra lateral",
-        "description": "Mostrar la barra lateral en el lado izquierdo de la ventana con la lista de servidores, las descargas y la configuración."
+        "description": "Mostrar la barra lateral en el lado izquierdo de la ventana con la lista de servidores, las descargas y la configuración.",
+        "disabledHint": "No se puede desactivar la barra lateral cuando la barra de menú está desactivada. La configuración sería inaccesible."
       },
       "trayIcon": {
         "title": "Icono de la bandeja",
@@ -327,6 +329,21 @@
     "title": "Fallo al cargar el servidor",
     "announcement": "Houston, tenemos un problema",
     "reload": "Recargar"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Cargando videollamada...",
+      "reloading": "Recargando videollamada...",
+      "description": "Por favor espera mientras nos conectamos a la videollamada"
+    },
+    "error": {
+      "title": "Error al cargar la videollamada",
+      "announcement": "Houston, tenemos un problema",
+      "timeout": "Tiempo de espera agotado - la videollamada no pudo cargar en 15 segundos",
+      "crashed": "Webview se ha bloqueado",
+      "maxRetriesReached": "Error al cargar después de múltiples intentos",
+      "reload": "Recargar videollamada"
+    }
   },
   "unsupportedServer": {
     "title": "{{instanceDomain}} está ejecutando una versión no compatible de Rocket.Chat",

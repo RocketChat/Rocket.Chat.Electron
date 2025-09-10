@@ -1,5 +1,6 @@
-import { app } from 'electron';
+import { app, webContents } from 'electron';
 import electronDl from 'electron-dl';
+import { t } from 'i18next';
 
 import { performElectronStartup, setupApp } from './app/main/app';
 import {
@@ -9,7 +10,7 @@ import {
 import { setUserDataDirectory } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { startDocumentViewerHandler } from './documentViewer/ipc';
-import { setupDownloads } from './downloads/main';
+import { setupDownloads, handleWillDownloadEvent } from './downloads/main';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
@@ -17,6 +18,7 @@ import { startLogViewerWindowHandler } from './logViewerWindow/ipc';
 import { logger, setupWebContentsLogging } from './logging';
 import { setupNavigation } from './navigation/main';
 import { setupNotifications } from './notifications/main';
+import { createNotification } from './notifications/preload';
 import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
 import { setupScreenSharing } from './screenSharing/main';
 import { handleClearCacheDialog } from './servers/cache';
@@ -44,7 +46,42 @@ import {
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
 
-electronDl({ saveAs: true });
+const setupElectronDlWithTracking = () => {
+  electronDl({
+    saveAs: true,
+    onStarted: (item) => {
+      // Find the webContents that initiated this download
+      const webContentsArray = webContents.getAllWebContents();
+
+      // Use the first available webContents for tracking
+      let sourceWebContents = null;
+      for (const wc of webContentsArray) {
+        if (wc && !wc.isDestroyed()) {
+          sourceWebContents = wc;
+          break;
+        }
+      }
+
+      if (sourceWebContents) {
+        const fakeEvent = { defaultPrevented: false, preventDefault: () => {} };
+        handleWillDownloadEvent(
+          fakeEvent as any,
+          item,
+          sourceWebContents
+        ).catch(() => {
+          // Silently handle tracking errors
+        });
+      }
+    },
+    onCompleted: (file) => {
+      createNotification({
+        title: 'Downloads',
+        body: file.filename,
+        subtitle: t('downloads.notifications.downloadFinished'),
+      });
+    },
+  });
+};
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();
@@ -60,6 +97,9 @@ const start = async (): Promise<void> => {
   await app.whenReady();
 
   createMainReduxStore();
+
+  // Set up electron-dl with our download tracking callbacks
+  setupElectronDlWithTracking();
 
   const localStorage = await exportLocalStorage();
   await mergePersistableValues(localStorage);

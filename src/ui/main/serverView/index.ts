@@ -15,18 +15,10 @@ import type {
   WebContents,
   WebPreferences,
 } from 'electron';
-import {
-  app,
-  clipboard,
-  dialog,
-  Menu,
-  systemPreferences,
-  webContents,
-} from 'electron';
+import { app, clipboard, Menu, systemPreferences, webContents } from 'electron';
 import i18next from 'i18next';
 
 import { setupPreloadReload } from '../../../app/main/dev';
-import { handleWillDownloadEvent } from '../../../downloads/main';
 import { handle } from '../../../ipc/main';
 import { CERTIFICATES_CLEARED } from '../../../navigation/actions';
 import { isProtocolAllowed } from '../../../navigation/main';
@@ -50,6 +42,7 @@ import {
   SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
+  WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
@@ -356,32 +349,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     guestWebContents.session.setPermissionRequestHandler(
       handlePermissionRequest
     );
-    guestWebContents.session.on(
-      'will-download',
-      (event, item, _webContents) => {
-        const fileName = item.getFilename();
-        const extension = path.extname(fileName)?.slice(1).toLowerCase();
-        const savePath = dialog.showSaveDialogSync(rootWindow, {
-          defaultPath: item.getFilename(),
-          filters: [
-            {
-              name: `*.${extension}`,
-              extensions: [extension],
-            },
-            {
-              name: '*.*',
-              extensions: ['*'],
-            },
-          ],
-        });
-        if (savePath !== undefined) {
-          item.setSavePath(savePath);
-          handleWillDownloadEvent(event, item, _webContents);
-          return;
-        }
-        event.preventDefault();
-      }
-    );
+    // Download handling is now managed by electron-dl in main.ts
+    // and integrated with our downloads system via setupDownloads()
 
     // prevents the webview from navigating because of twitter preview links
     guestWebContents.on('will-navigate', (e, redirectUrl) => {
@@ -557,5 +526,35 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     }
 
     openExternal(url);
+  });
+
+  listen(WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR, async (action) => {
+    const serverUrl = action.payload;
+    const guestWebContents = getWebContentsByServerUrl(serverUrl);
+    if (!guestWebContents) {
+      return;
+    }
+
+    // Clear cache keeping login data using the same method as Force Reload
+    await guestWebContents.session.clearCache();
+    await guestWebContents.session.clearStorageData({
+      storages: [
+        'cookies',
+        'indexdb',
+        'filesystem',
+        'shadercache',
+        'websql',
+        'serviceworkers',
+        'cachestorage',
+      ],
+    });
+
+    // Reload ignoring cache
+    guestWebContents.reloadIgnoringCache();
+
+    dispatch({
+      type: WEBVIEW_SERVER_RELOADED,
+      payload: { url: serverUrl },
+    });
   });
 };

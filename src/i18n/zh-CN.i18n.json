@@ -203,6 +203,21 @@
     "announcement": "稍等一下，我们遇到问题了",
     "reload": "重新載入"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "正在加载视频通话...",
+      "reloading": "正在重新加载视频通话...",
+      "description": "请稍候，我们正在连接到视频通话"
+    },
+    "error": {
+      "title": "视频通话加载失败",
+      "announcement": "休斯顿，我们遇到了问题",
+      "timeout": "加载超时 - 视频通话无法在15秒内加载",
+      "crashed": "网页视图崩溃了",
+      "maxRetriesReached": "多次尝试后加载失败",
+      "reload": "重新加载视频通话"
+    }
+  },
   "sidebar": {
     "addNewServer": "新增服务器",
     "downloads": "下载",

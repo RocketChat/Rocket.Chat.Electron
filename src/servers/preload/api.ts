@@ -22,6 +22,7 @@ import {
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
 } from './internalVideoChatWindow';
+import { reloadServer } from './reloadServer';
 import {
   setBackground,
   setServerVersionToSidebar,
@@ -76,6 +77,7 @@ export type RocketChatDesktopAPI = {
   clearOutlookCredentials: () => void;
   setUserToken: (token: string, userId: string) => void;
   openDocumentViewer: (url: string, format: string, options: any) => void;
+  reloadServer: () => void;
 };
 
 export const RocketChatDesktop: RocketChatDesktopAPI = {
@@ -111,4 +113,5 @@ export const RocketChatDesktop: RocketChatDesktopAPI = {
   setUserToken,
   setSidebarCustomTheme,
   openDocumentViewer,
+  reloadServer,
 };

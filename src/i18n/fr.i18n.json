@@ -217,11 +217,13 @@
       },
       "menubar": {
         "title": "Barre de menu",
-        "description": "Afficher la barre de menus en haut de la fenêtre."
+        "description": "Afficher la barre de menus en haut de la fenêtre.",
+        "disabledHint": "Impossible de désactiver la barre de menu quand la barre latérale est désactivée. Les paramètres deviendraient inaccessibles."
       },
       "sidebar": {
         "title": "Barre latérale",
-        "description": "Afficher la barre latérale à gauche de la fenêtre avec la liste des serveurs, les téléchargements et les paramètres."
+        "description": "Afficher la barre latérale à gauche de la fenêtre avec la liste des serveurs, les téléchargements et les paramètres.",
+        "disabledHint": "Impossible de désactiver la barre latérale quand la barre de menu est désactivée. Les paramètres deviendraient inaccessibles."
       },
       "trayIcon": {
         "title": "Icône de la barre d'état système",
@@ -302,6 +304,21 @@
     "title": "Echec du chargement du serveur",
     "announcement": "Houston, nous avons un problème",
     "reload": "Recharger"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Chargement de l'appel vidéo...",
+      "reloading": "Rechargement de l'appel vidéo...",
+      "description": "Veuillez patienter pendant que nous nous connectons à l'appel vidéo"
+    },
+    "error": {
+      "title": "Échec du chargement de l'appel vidéo",
+      "announcement": "Houston, nous avons un problème",
+      "timeout": "Délai d'attente dépassé - l'appel vidéo n'a pas pu se charger en 15 secondes",
+      "crashed": "Webview a planté",
+      "maxRetriesReached": "Échec du chargement après plusieurs tentatives",
+      "reload": "Recharger l'appel vidéo"
+    }
   },
   "selfxss": {
     "title": "Stop !",

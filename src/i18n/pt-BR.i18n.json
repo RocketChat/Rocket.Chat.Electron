@@ -224,11 +224,13 @@
       },
       "menubar": {
         "title": "Barra de menus",
-        "description": "Mostra a barra de menus no topo da aplicação"
+        "description": "Mostra a barra de menus no topo da aplicação",
+        "disabledHint": "Não é possível desativar a barra de menus quando a barra lateral está desativada. As configurações se tornariam inacessíveis."
       },
       "sidebar": {
         "title": "Barra lateral",
-        "description": "Mostra a barra na lateral da janela com a lista de servidores, downloads e configurações."
+        "description": "Mostra a barra na lateral da janela com a lista de servidores, downloads e configurações.",
+        "disabledHint": "Não é possível desativar a barra lateral quando a barra de menus está desativada. As configurações se tornariam inacessíveis."
       },
       "trayIcon": {
         "title": "Ícone da bandeja",
@@ -323,6 +325,21 @@
     "title": "Servidor Falhou em Carregar",
     "announcement": "Houston, nós temos um problema",
     "reload": "Recarregar"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Carregando chamada de vídeo...",
+      "reloading": "Recarregando chamada de vídeo...",
+      "description": "Por favor aguarde enquanto nos conectamos à chamada de vídeo"
+    },
+    "error": {
+      "title": "Falha ao carregar chamada de vídeo",
+      "announcement": "Houston, temos um problema",
+      "timeout": "Tempo limite excedido - a chamada de vídeo não pôde carregar em 15 segundos",
+      "crashed": "Webview travou",
+      "maxRetriesReached": "Falha ao carregar após múltiplas tentativas",
+      "reload": "Recarregar chamada de vídeo"
+    }
   },
   "unsupportedServer": {
     "title": "{{instanceDomain}} está executando uma versão não suportada do Rocket.Chat",

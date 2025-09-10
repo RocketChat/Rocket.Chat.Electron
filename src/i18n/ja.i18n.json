@@ -146,6 +146,21 @@
     "announcement": "ヒューストン、我々は問題を抱えています",
     "reload": "再読み込み"
   },
+  "videoCall": {
+    "loading": {
+      "initial": "ビデオ通話を読み込み中...",
+      "reloading": "ビデオ通話を再読み込み中...",
+      "description": "ビデオ通話に接続中です。しばらくお待ちください"
+    },
+    "error": {
+      "title": "ビデオ通話の読み込みに失敗しました",
+      "announcement": "ヒューストン、問題が発生しました",
+      "timeout": "タイムアウト - ビデオ通話が15秒以内に読み込めませんでした",
+      "crashed": "Webviewがクラッシュしました",
+      "maxRetriesReached": "複数回の試行後も読み込みに失敗しました",
+      "reload": "ビデオ通話を再読み込み"
+    }
+  },
   "sidebar": {
     "addNewServer": "新しいサーバーを追加",
     "item": {

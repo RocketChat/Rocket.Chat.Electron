@@ -234,15 +234,17 @@
       },
       "minimizeOnClose": {
         "title": "Minimera vid stängning",
-        "description": "När appen stängs kommer den att minimeras, annars kommer den att avsluta applikationen. Tray Icon måste inaktiveras för att detta ska gälla."
+        "description": "När appen stängs kommer den att minimeras, annars kommer applikationen avslutas. Tray Icon måste inaktiveras för att detta ska gälla."
       },
       "menubar": {
         "title": "Menyfält",
-        "description": "Visa menyfältet högst upp i fönstret."
+        "description": "Visa menyfältet högst upp i fönstret.",
+        "disabledHint": "Kan inte inaktivera menyfältet när sidofältet är inaktiverat. Inställningar skulle bli otillgängliga."
       },
       "sidebar": {
         "title": "Sidofält",
-        "description": "Visa sidofältet till vänster i fönstret med serverlistan, nedladdningar och inställningar."
+        "description": "Visa sidofältet till vänster i fönstret med serverlistan, nedladdningar och inställningar.",
+        "disabledHint": "Kan inte inaktivera sidofältet när menyfältet är inaktiverat. Inställningar skulle bli otillgängliga."
       },
       "trayIcon": {
         "title": "Ikon för brickan",
@@ -327,6 +329,9 @@
     "showTrayIcon": "Ikon för brickan",
     "toggleDevTools": "Toggle &DevTools",
     "openConfigFolder": "Öppna mappen &Konfiguration",
+    "videoCallDevTools": "Öppna videosamtal &DevTools",
+    "videoCallTools": "Verktyg för videosamtal",
+    "videoCallDevToolsAutoOpen": "Auto-öppna utvecklarverktyg",
     "undo": "Ångra",
     "unhide": "Visa alla",
     "viewMenu": "&Visa",
@@ -338,6 +343,21 @@
     "title": "Servern kunde inte laddas",
     "announcement": "Houston, vi har ett problem",
     "reload": "Ladda om"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Laddar videosamtal...",
+      "reloading": "Laddar om videosamtal...",
+      "description": "Vänta medan vi ansluter till videosamtalet"
+    },
+    "error": {
+      "title": "Videosamtalet kunde inte laddas",
+      "announcement": "Houston, vi har ett problem",
+      "timeout": "Tidsgräns överskriden - videosamtalet kunde inte laddas inom 15 sekunder",
+      "crashed": "Webview kraschade",
+      "maxRetriesReached": "Kunde inte ladda efter flera försök",
+      "reload": "Ladda om videosamtal"
+    }
   },
   "unsupportedServer": {
     "title": "{{instanceDomain}} kör en version av Rocket.Chat som inte stöds",

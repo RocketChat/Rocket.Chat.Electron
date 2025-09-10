@@ -210,11 +210,13 @@
       },
       "menubar": {
         "title": "Menüleiste",
-        "description": "Menüleiste oben im Fenster anzeigen."
+        "description": "Menüleiste oben im Fenster anzeigen.",
+        "disabledHint": "Die Menüleiste kann nicht deaktiviert werden, wenn die Seitenleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
       },
       "sidebar": {
         "title": "Seitenleiste",
-        "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen."
+        "description": "Seitenleiste auf der linken Seite des Fensters mit Serverliste, Downloads und Einstellungen anzeigen.",
+        "disabledHint": "Die Seitenleiste kann nicht deaktiviert werden, wenn die Menüleiste bereits deaktiviert ist. Die Einstellungen wären sonst nicht erreichbar."
       },
       "trayIcon": {
         "title": "Taskleistensymbol",
@@ -303,6 +305,21 @@
     "title": "Server konnte nicht geladen werden",
     "announcement": "Houston, we have a problem",
     "reload": "Neu laden"
+  },
+  "videoCall": {
+    "loading": {
+      "initial": "Videoanruf wird geladen...",
+      "reloading": "Videoanruf wird neu geladen...",
+      "description": "Bitte warten Sie, während wir eine Verbindung zum Videoanruf herstellen"
+    },
+    "error": {
+      "title": "Videoanruf konnte nicht geladen werden",
+      "announcement": "Houston, wir haben ein Problem",
+      "timeout": "Ladezeitüberschreitung - Videoanruf konnte nicht innerhalb von 15 Sekunden geladen werden",
+      "crashed": "Webview ist abgestürzt",
+      "maxRetriesReached": "Laden nach mehreren Versuchen fehlgeschlagen",
+      "reload": "Videoanruf neu laden"
+    }
   },
   "selfxss": {
     "title": "Halt!",

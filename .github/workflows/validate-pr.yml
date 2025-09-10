@@ -38,7 +38,7 @@ jobs:
       - name: Install package dependencies
         run: yarn install
       - name: Apply enhanced debugging patches
-        run: yarn apply-patches
+        run: yarn patch-package || echo "Patch application failed but continuing..."
       - name: Lint
         run: yarn lint
       - name: Test

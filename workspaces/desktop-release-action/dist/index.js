@@ -46174,6 +46174,24 @@ const setupGoogleCloudAuth = () => google_cloud_awaiter(void 0, void 0, void 0, 
     return credentialsPath;
 });
 const installGoogleCloudCLI = () => google_cloud_awaiter(void 0, void 0, void 0, function* () {
+    // Check if gcloud is already available (set up by workflow)
+    try {
+        lib_core.info('Checking if Google Cloud CLI is already available...');
+        yield exec.exec('gcloud', ['version'], { silent: true });
+        lib_core.info('✅ Google Cloud CLI is already available');
+        // Find the gcloud path
+        const gcloudWhichCmd = 'powershell -Command "(Get-Command gcloud -ErrorAction SilentlyContinue).Source"';
+        const gcloudExePath = yield runAndBuffer(gcloudWhichCmd);
+        if (gcloudExePath && gcloudExePath.trim()) {
+            const gcloudPath = external_path_.dirname(gcloudExePath.trim());
+            lib_core.info(`Using existing gcloud at: ${gcloudPath}`);
+            return gcloudPath;
+        }
+    }
+    catch (error) {
+        lib_core.info('Google Cloud CLI not found, installing...');
+    }
+    // Fallback: install via chocolatey
     lib_core.info('Installing Google Cloud CLI...');
     yield exec.exec('choco', ['install', 'gcloudsdk', '-y']);
     // Refresh environment variables to pick up PATH changes
@@ -46285,31 +46303,46 @@ const findSigntool = () => signing_tools_awaiter(void 0, void 0, void 0, functio
     lib_core.exportVariable('SIGNTOOL_PATH', signtoolPath.trim());
 });
 const installJsign = () => signing_tools_awaiter(void 0, void 0, void 0, function* () {
-    lib_core.info('Installing OpenJDK 11...');
-    yield exec.exec('choco', ['install', 'openjdk11', '-y']);
-    // Refresh environment to pick up Java
-    yield exec.exec('refreshenv');
-    // Verify Java installation and add to PATH
-    const javaHomeCmd = `powershell -Command "[System.Environment]::GetEnvironmentVariable('JAVA_HOME', 'Machine')"`;
-    const javaHome = yield runAndBuffer(javaHomeCmd);
-    if (javaHome && external_fs_.existsSync(external_path_.join(javaHome.trim(), 'bin', 'java.exe'))) {
-        lib_core.info(`Java found at: ${javaHome.trim()}`);
-        const javaBinPath = external_path_.join(javaHome.trim(), 'bin');
-        lib_core.addPath(javaBinPath);
-        process.env.PATH = `${javaBinPath};${process.env.PATH}`;
-        process.env.JAVA_HOME = javaHome.trim();
+    // Verify Java is already available (should be set up by workflow)
+    lib_core.info('Verifying Java installation...');
+    try {
+        yield exec.exec('java', ['-version']);
+        lib_core.info('✅ Java is available');
     }
-    else {
-        throw new Error('Java installation not found or JAVA_HOME not set');
+    catch (error) {
+        throw new Error('Java not found. Please ensure Java is set up in the workflow before calling this action.');
     }
     lib_core.info('Installing jsign...');
     yield exec.exec('choco', ['install', 'jsign', '-y']);
-    // Refresh environment variables to pick up PATH changes from jsign
-    yield exec.exec('refreshenv');
-    // Add jsign to PATH
+    // Manually add jsign to PATH (more reliable than refreshenv in CI)
     const jsignPath = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools';
-    lib_core.addPath(jsignPath);
-    process.env.PATH = `${jsignPath};${process.env.PATH}`;
+    if (external_fs_.existsSync(jsignPath)) {
+        lib_core.info(`Adding jsign to PATH: ${jsignPath}`);
+        lib_core.addPath(jsignPath);
+        process.env.PATH = `${jsignPath};${process.env.PATH}`;
+        // Verify jsign is now accessible
+        const jsignCmd = external_path_.join(jsignPath, 'jsign.cmd');
+        if (external_fs_.existsSync(jsignCmd)) {
+            lib_core.info(`✅ jsign.cmd found at ${jsignCmd}`);
+            // Test jsign command
+            try {
+                yield exec.exec('jsign', ['--help'], {
+                    ignoreReturnCode: true,
+                    silent: true
+                });
+                lib_core.info('✅ jsign is working correctly');
+            }
+            catch (error) {
+                lib_core.warning(`jsign command test failed: ${error}`);
+            }
+        }
+        else {
+            throw new Error(`jsign.cmd not found at expected location: ${jsignCmd}`);
+        }
+    }
+    else {
+        throw new Error(`jsign installation directory not found: ${jsignPath}`);
+    }
 });
 
 // EXTERNAL MODULE: ../../node_modules/glob/glob.js

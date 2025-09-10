@@ -21,6 +21,25 @@ export const setupGoogleCloudAuth = async (): Promise<string> => {
 };
 
 export const installGoogleCloudCLI = async (): Promise<string> => {
+  // Check if gcloud is already available (set up by workflow)
+  try {
+    core.info('Checking if Google Cloud CLI is already available...');
+    await exec.exec('gcloud', ['version'], { silent: true });
+    core.info('✅ Google Cloud CLI is already available');
+    
+    // Find the gcloud path
+    const gcloudWhichCmd = 'powershell -Command "(Get-Command gcloud -ErrorAction SilentlyContinue).Source"';
+    const gcloudExePath = await runAndBuffer(gcloudWhichCmd);
+    if (gcloudExePath && gcloudExePath.trim()) {
+      const gcloudPath = path.dirname(gcloudExePath.trim());
+      core.info(`Using existing gcloud at: ${gcloudPath}`);
+      return gcloudPath;
+    }
+  } catch (error) {
+    core.info('Google Cloud CLI not found, installing...');
+  }
+  
+  // Fallback: install via chocolatey
   core.info('Installing Google Cloud CLI...');
   await exec.exec('choco', ['install', 'gcloudsdk', '-y']);
   

@@ -45916,10 +45916,21 @@ const getRepoParams = () => ({
     owner: lib_core.getInput('repository_owner') || github.context.repo.owner,
     repo: lib_core.getInput('repository_name') || github.context.repo.repo,
 });
-const octokit = github.getOctokit(lib_core.getInput('github_token'));
+// Lazy client to avoid requiring github_token on PR builds (where secrets may be unavailable)
+let octokit = null;
+const getOctokit = () => {
+    if (!octokit) {
+        const token = lib_core.getInput('github_token');
+        if (!token) {
+            throw new Error('github_token is required for release publishing');
+        }
+        octokit = github.getOctokit(token);
+    }
+    return octokit;
+};
 const findRelease = (filter) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, e_1, _b, _c;
-    const releasesPages = octokit.paginate.iterator('GET /repos/{owner}/{repo}/releases', Object.assign({}, getRepoParams()));
+    const releasesPages = getOctokit().paginate.iterator('GET /repos/{owner}/{repo}/releases', Object.assign({}, getRepoParams()));
     try {
         for (var _d = true, releasesPages_1 = __asyncValues(releasesPages), releasesPages_1_1; releasesPages_1_1 = yield releasesPages_1.next(), _a = releasesPages_1_1.done, !_a; _d = true) {
             _c = releasesPages_1_1.value;
@@ -45952,28 +45963,28 @@ const getDevelopmentRelease = (commitSha) => __awaiter(void 0, void 0, void 0, f
     const body = yield getChangelog();
     const release = yield findRelease((release) => release.name === 'Development');
     if (release) {
-        return (yield octokit.request('PATCH /repos/{owner}/{repo}/releases/{release_id}', Object.assign(Object.assign({}, getRepoParams()), { release_id: release.id, draft: true, body, tag_name: `development-${commitSha}`, target_commitish: commitSha }))).data;
+        return (yield getOctokit().request('PATCH /repos/{owner}/{repo}/releases/{release_id}', Object.assign(Object.assign({}, getRepoParams()), { release_id: release.id, draft: true, body, tag_name: `development-${commitSha}`, target_commitish: commitSha }))).data;
     }
-    return (yield octokit.request('POST /repos/{owner}/{repo}/releases', Object.assign(Object.assign({}, getRepoParams()), { draft: true, name: 'Development', body, tag_name: `development-${commitSha}`, target_commitish: commitSha }))).data;
+    return (yield getOctokit().request('POST /repos/{owner}/{repo}/releases', Object.assign(Object.assign({}, getRepoParams()), { draft: true, name: 'Development', body, tag_name: `development-${commitSha}`, target_commitish: commitSha }))).data;
 });
 const getSnapshotRelease = (commitSha) => __awaiter(void 0, void 0, void 0, function* () {
     const body = yield getChangelog();
     const release = yield findRelease((release) => release.name === 'Snapshot');
     if (release) {
-        return (yield octokit.request('PATCH /repos/{owner}/{repo}/releases/{release_id}', Object.assign(Object.assign({}, getRepoParams()), { release_id: release.id, draft: true, body, tag_name: `snapshot-${commitSha}`, target_commitish: commitSha }))).data;
+        return (yield getOctokit().request('PATCH /repos/{owner}/{repo}/releases/{release_id}', Object.assign(Object.assign({}, getRepoParams()), { release_id: release.id, draft: true, body, tag_name: `snapshot-${commitSha}`, target_commitish: commitSha }))).data;
     }
-    return (yield octokit.request('POST /repos/{owner}/{repo}/releases', Object.assign(Object.assign({}, getRepoParams()), { draft: true, name: 'Snapshot', body, tag_name: `snapshot-${commitSha}`, target_commitish: commitSha }))).data;
+    return (yield getOctokit().request('POST /repos/{owner}/{repo}/releases', Object.assign(Object.assign({}, getRepoParams()), { draft: true, name: 'Snapshot', body, tag_name: `snapshot-${commitSha}`, target_commitish: commitSha }))).data;
 });
 const getTaggedRelease = (version, commitSha) => __awaiter(void 0, void 0, void 0, function* () {
     const body = yield getChangelog();
     const release = yield findRelease((release) => release.tag_name === version.version);
     if (release) {
-        return (yield octokit.request('PATCH /repos/{owner}/{repo}/releases/{release_id}', Object.assign(Object.assign({}, getRepoParams()), { release_id: release.id, draft: true, body, tag_name: version.version, target_commitish: commitSha }))).data;
+        return (yield getOctokit().request('PATCH /repos/{owner}/{repo}/releases/{release_id}', Object.assign(Object.assign({}, getRepoParams()), { release_id: release.id, draft: true, body, tag_name: version.version, target_commitish: commitSha }))).data;
     }
-    return (yield octokit.request('POST /repos/{owner}/{repo}/releases', Object.assign(Object.assign({}, getRepoParams()), { draft: true, name: version.version, body, tag_name: version.version, target_commitish: commitSha }))).data;
+    return (yield getOctokit().request('POST /repos/{owner}/{repo}/releases', Object.assign(Object.assign({}, getRepoParams()), { draft: true, name: version.version, body, tag_name: version.version, target_commitish: commitSha }))).data;
 });
 const getReleaseAssets = (releaseId) => __awaiter(void 0, void 0, void 0, function* () {
-    return octokit.paginate('GET /repos/{owner}/{repo}/releases/{release_id}/assets', Object.assign(Object.assign({}, getRepoParams()), { release_id: releaseId }));
+    return getOctokit().paginate('GET /repos/{owner}/{repo}/releases/{release_id}/assets', Object.assign(Object.assign({}, getRepoParams()), { release_id: releaseId }));
 });
 const clearStaleAssets = (releaseId, expectedAssetNames) => __awaiter(void 0, void 0, void 0, function* () {
     const assets = yield getReleaseAssets(releaseId);
@@ -45981,7 +45992,7 @@ const clearStaleAssets = (releaseId, expectedAssetNames) => __awaiter(void 0, vo
     for (const asset of assets) {
         if (!expectedAssetNames.includes(asset.name)) {
             lib_core.info(`deleting stale asset ${asset.name}`);
-            yield octokit.request('DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}', Object.assign(Object.assign({}, getRepoParams()), { asset_id: asset.id }));
+            yield getOctokit().request('DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}', Object.assign(Object.assign({}, getRepoParams()), { asset_id: asset.id }));
         }
     }
 });
@@ -45997,17 +46008,17 @@ const forceCleanOldAssets = (releaseId_1, ...args_1) => __awaiter(void 0, [relea
     lib_core.info(`Force cleaning ${assetsToDelete.length} old assets, keeping latest ${keepLatest} assets`);
     for (const asset of assetsToDelete) {
         lib_core.info(`deleting old asset ${asset.name} (created: ${asset.created_at})`);
-        yield octokit.request('DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}', Object.assign(Object.assign({}, getRepoParams()), { asset_id: asset.id }));
+        yield getOctokit().request('DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}', Object.assign(Object.assign({}, getRepoParams()), { asset_id: asset.id }));
     }
 });
 const overrideAsset = (release, assets, name, size, data) => __awaiter(void 0, void 0, void 0, function* () {
     const asset = assets.find((asset) => asset.name === name);
     if (asset) {
         lib_core.info(`deleting existing asset ${name}`);
-        yield octokit.request('DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}', Object.assign(Object.assign({}, getRepoParams()), { asset_id: asset.id }));
+        yield getOctokit().request('DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}', Object.assign(Object.assign({}, getRepoParams()), { asset_id: asset.id }));
     }
     lib_core.info(`uploading asset ${name}`);
-    yield octokit.request({
+    yield getOctokit().request({
         method: 'POST',
         url: release.upload_url,
         headers: {
@@ -46451,60 +46462,40 @@ var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
 
 const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Find and setup signtool
+        const hasKmsKey = !!lib_core.getInput('win_kms_key_resource') || !!process.env.WIN_KMS_KEY_RESOURCE;
+        const hasGcpSa = !!lib_core.getInput('gcp_sa_json') || !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        const hasCert = !!lib_core.getInput('win_user_crt') || !!lib_core.getInput('win_kms_cert_sha1') || !!process.env.WIN_CERT_FILE;
+        const shouldSign = hasKmsKey && hasGcpSa && hasCert;
+        // Always build first. If we don't have signing secrets (typical in PRs),
+        // we only build unsigned and stop there.
+        // Ensure signtool (required by electron-builder on Windows toolchain)
         yield findSigntool();
-        // Setup Google Cloud authentication
-        const credentialsPath = yield setupGoogleCloudAuth();
-        // Setup certificates and get the user certificate path
-        const userCertPath = yield setupCertificates();
-        // Get KMS key resource
-        const kmsKeyResource = lib_core.getInput('win_kms_key_resource');
-        if (!kmsKeyResource) {
-            throw new Error('win_kms_key_resource input is required');
+        if (!shouldSign) {
+            lib_core.info('No signing credentials detected. Performing unsigned Windows build (PR-safe).');
+            yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis msi appx`);
+            lib_core.info('✅ Windows packages built (unsigned).');
+            return;
         }
-        // Setup base environment variables
-        const baseEnv = {
-            WIN_KMS_KEY_RESOURCE: kmsKeyResource,
-            WIN_CERT_FILE: userCertPath,
-            GOOGLE_APPLICATION_CREDENTIALS: credentialsPath,
+        // Secrets are available: prepare environment and perform post-build signing
+        const credentialsPath = yield setupGoogleCloudAuth();
+        const userCertPath = yield setupCertificates();
+        const kmsKeyResource = lib_core.getInput('win_kms_key_resource') || process.env.WIN_KMS_KEY_RESOURCE;
+        const buildEnv = {
+            // Intentionally blank to force electron-builder to skip inline signing
+            WIN_KMS_KEY_RESOURCE: '',
+            WIN_CERT_FILE: '',
         };
-        lib_core.info('Building Windows packages WITHOUT signing...');
-        lib_core.info('Packages will be signed after build to avoid MSI/ICE issues');
-        // Build all Windows packages WITHOUT signing
-        // We'll sign them after build to avoid KMS CNG provider MSI installation
-        // interfering with our MSI builds
-        // Temporarily disable signing by clearing the environment variables
-        // The winSignKms.js script checks these and skips signing when not set
-        const buildEnv = Object.assign(Object.assign({}, baseEnv), { 
-            // Clear signing credentials to make winSignKms.js skip signing
-            WIN_KMS_KEY_RESOURCE: '', WIN_CERT_FILE: '' });
-        // Build NSIS installer (unsigned)
-        lib_core.info('Building NSIS installer (unsigned)...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis`, buildEnv);
-        // Build MSI installer (unsigned)
-        lib_core.info('Building MSI installer (unsigned)...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
-        // Build AppX package (unsigned)
-        lib_core.info('Building AppX package (unsigned)...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, buildEnv);
-        lib_core.info('✅ All Windows packages built successfully (unsigned)');
-        // NOW install KMS CNG provider and signing tools
-        // This won't interfere with MSI builds since they're already done
-        lib_core.info('Setting up signing environment...');
-        // Install Google Cloud KMS CNG provider
+        lib_core.info('Building Windows packages WITHOUT signing (will sign after build)...');
+        yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis msi appx`, buildEnv);
+        lib_core.info('✅ Windows packages built (unsigned). Proceeding with signing...');
         yield installKmsCngProvider();
-        // Install jsign for Java-based signing
         yield installJsign();
-        // Install and configure Google Cloud CLI
         const gcloudPath = yield installGoogleCloudCLI();
-        // Authenticate gcloud with service account
         yield authenticateGcloud(credentialsPath, gcloudPath);
-        // Restore environment variables for signing phase
         process.env.WIN_KMS_KEY_RESOURCE = kmsKeyResource;
         process.env.WIN_CERT_FILE = userCertPath;
         process.env.GCLOUD_PATH = gcloudPath;
-        // Sign all the built packages
-        lib_core.info('Signing all built packages...');
+        process.env.GOOGLE_APPLICATION_CREDENTIALS = credentialsPath;
         const distPath = external_path_.resolve(process.cwd(), 'dist');
         yield signBuiltPackages(distPath);
         lib_core.info('✅ Windows packages built and signed successfully');
@@ -46649,6 +46640,12 @@ const releaseTagged = (version, commitSha) => src_awaiter(void 0, void 0, void 0
     }
 });
 const start = () => src_awaiter(void 0, void 0, void 0, function* () {
+    // Support PR builds by doing build-only without publishing
+    if (github.context.eventName === 'pull_request' || github.context.eventName === 'pull_request_target') {
+        lib_core.info(`pull_request event detected, performing build-only (no release publish)`);
+        yield pack();
+        return;
+    }
     if (github.context.eventName !== 'push') {
         lib_core.warning(`this action should be used in push events (eventName="${github.context.eventName}")`);
         return;

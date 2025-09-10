@@ -159,6 +159,13 @@ const releaseTagged = async (version: SemVer, commitSha: string) => {
 };
 
 const start = async () => {
+  // Support PR builds by doing build-only without publishing
+  if (github.context.eventName === 'pull_request' || github.context.eventName === 'pull_request_target') {
+    core.info(`pull_request event detected, performing build-only (no release publish)`);
+    await pack();
+    return;
+  }
+
   if (github.context.eventName !== 'push') {
     core.warning(
       `this action should be used in push events (eventName="${github.context.eventName}")`

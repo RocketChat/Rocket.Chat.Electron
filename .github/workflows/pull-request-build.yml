@@ -449,29 +449,22 @@ jobs:
           SIGNTOOL_PATH: ${{ env.SIGNTOOL_PATH }}
           GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
 
-      - name: Build Windows Package (Windows native)
+      # Use desktop-release-action for Windows builds (like the working release workflow)
+      - uses: ./workspaces/desktop-release-action
         if: ${{ matrix.build-target == 'windows' }}
-        shell: pwsh
-        run: |
-          Write-Host "=== Building Windows Package Natively ===" -ForegroundColor Cyan
-          
-          # Ensure jsign is accessible
-          $jsignPath = "C:\ProgramData\chocolatey\lib\jsign\tools"
-          $env:PATH += ";$jsignPath"
-          
-          Write-Host "Verifying tools before build..." -ForegroundColor Yellow
-          if (Test-Path "$jsignPath\jsign.cmd") {
-            Write-Host "✅ jsign.cmd found at $jsignPath\jsign.cmd" -ForegroundColor Green
-          } else {
-            Write-Error "❌ jsign.cmd not found at $jsignPath\jsign.cmd"
-          }
-          
-          yarn electron-builder --publish never --x64 --win nsis
-        env:
-          WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
-          WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
-          PATH: "C:/Program Files/jsign;C:/ProgramData/chocolatey/lib/gcloudsdk/tools/google-cloud-sdk/bin;C:/hostedtoolcache/windows/node/22.17.1/x64;C:/npm/prefix;C:/Windows/System32;C:/Windows;C:/Windows/System32/WindowsPowerShell/v1.0;C:/Program Files/PowerShell/7;C:/ProgramData/Chocolatey/bin"
+        with:
+          gcp_sa_json: ${{ secrets.GCP_SA_JSON }}
+          win_kms_key_resource: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
+          win_user_crt: ${{ secrets.WIN_USER_CRT }}
+          win_intermediate_crt: ${{ secrets.WIN_INTERMEDIATE_CRT }}
+          win_root_crt: ${{ secrets.WIN_ROOT_CRT }}
+          mac_csc_link: ${{ secrets.MAC_CSC_LINK }}
+          mac_csc_key_password: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          mac_apple_id: ${{ secrets.APPLEID }}
+          mac_apple_id_password: ${{ secrets.APPLEIDPASS }}
+          mac_asc_provider: 'S6UPZG7ZR3'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          snapcraft_token: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
       - name: Build MacOS Package
         if: ${{ matrix.build-target == 'mac' }}

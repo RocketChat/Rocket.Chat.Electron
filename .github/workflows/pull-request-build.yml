@@ -466,38 +466,6 @@ jobs:
             Write-Error "❌ jsign.cmd not found at $jsignPath\jsign.cmd"
           }
           
-          # Verify gcloud is available (set up by GitHub Actions)
-          Write-Host "Verifying gcloud availability..." -ForegroundColor Yellow
-          try {
-            $gcloudCmd = Get-Command gcloud -ErrorAction Stop
-            Write-Host "✅ gcloud found at: $($gcloudCmd.Source)" -ForegroundColor Green
-            
-            # Test gcloud version - invoke the .ps1 script properly
-            try {
-              & $gcloudCmd version --format=text | Out-Null
-              Write-Host "✅ gcloud is available from GitHub Actions setup" -ForegroundColor Green
-            } catch {
-              Write-Error "❌ gcloud command failed: $_"
-              exit 1
-            }
-          } catch {
-            Write-Error "❌ gcloud not available: $_"
-            exit 1
-          }
-          
-          Write-Host "PATH includes: $env:PATH" -ForegroundColor Cyan
-          
-          # Verify Google Cloud authentication is already set up by GitHub Actions
-          Write-Host "Verifying Google Cloud authentication..." -ForegroundColor Yellow
-          try {
-            $gcloudCmd = Get-Command gcloud -ErrorAction Stop
-            & $gcloudCmd auth print-access-token | Out-Null
-            Write-Host "✅ Google Cloud authentication successful (set up by GitHub Actions)" -ForegroundColor Green
-          } catch {
-            Write-Host "❌ Google Cloud authentication error: $_" -ForegroundColor Red  
-            exit 1
-          }
-          
           yarn electron-builder --publish never --x64 --win nsis
         env:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}

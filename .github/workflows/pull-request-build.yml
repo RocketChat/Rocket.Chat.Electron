@@ -256,14 +256,44 @@ jobs:
           
           Write-Host "Installing jsign..." -ForegroundColor Cyan
           choco install jsign -y
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to install jsign"
+            exit 1
+          }
           
-          # Refresh environment variables to pick up PATH changes from jsign
-          Write-Host "Refreshing environment variables after jsign installation..." -ForegroundColor Cyan
-          refreshenv
-          
-          # Verify jsign is installed
-          Write-Host "Verifying jsign installation..." -ForegroundColor Cyan
-          jsign --help | Select-Object -First 2
+          # Manually add jsign to PATH (more reliable than refreshenv in CI)
+          $jsignPath = "C:\ProgramData\chocolatey\lib\jsign\tools"
+          if (Test-Path $jsignPath) {
+            Write-Host "Adding jsign to PATH: $jsignPath" -ForegroundColor Yellow
+            $env:PATH = "$jsignPath;$env:PATH"
+            echo "$jsignPath" >> $env:GITHUB_PATH
+            
+            # Verify jsign is now accessible
+            if (Test-Path "$jsignPath\jsign.cmd") {
+              Write-Host "✅ jsign.cmd found at $jsignPath\jsign.cmd" -ForegroundColor Green
+              
+              # Test jsign command
+              Write-Host "Testing jsign command..." -ForegroundColor Cyan
+              & "$jsignPath\jsign.cmd" --help | Select-Object -First 2
+              
+              if ($LASTEXITCODE -eq 0) {
+                Write-Host "✅ jsign is working correctly" -ForegroundColor Green
+              } else {
+                Write-Error "jsign command failed"
+                exit 1
+              }
+            } else {
+              Write-Error "jsign.cmd not found at expected location: $jsignPath\jsign.cmd"
+              # List contents to debug
+              Get-ChildItem $jsignPath -Recurse | Select-Object Name, FullName
+              exit 1
+            }
+          } else {
+            Write-Error "jsign installation directory not found: $jsignPath"
+            # List chocolatey lib contents to debug
+            Get-ChildItem "C:\ProgramData\chocolatey\lib" | Where-Object Name -like "*jsign*" | Select-Object Name, FullName
+            exit 1
+          }
           
           Write-Host "✅ All tools ready for signing" -ForegroundColor Green
 

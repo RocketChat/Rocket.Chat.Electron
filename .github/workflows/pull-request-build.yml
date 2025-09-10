@@ -220,30 +220,39 @@ jobs:
             exit 1
           }
 
-      # Set up jsign and Google Cloud CLI for Windows builds
-      - name: Setup jsign and Google Cloud CLI (Windows)
+      # Set up Java for jsign (use pre-installed Java)
+      - name: Setup Java for Windows signing
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      # Set up Google Cloud CLI for Windows
+      - name: Setup Google Cloud CLI (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: google-github-actions/setup-gcloud@v2
+
+      # Authenticate with Google Cloud
+      - name: Authenticate Google Cloud (Windows)  
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_JSON }}
+
+      # Set up jsign for Windows builds
+      - name: Setup jsign (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         shell: pwsh
         run: |
-          # Install Java and jsign via chocolatey
-          Write-Host "Installing OpenJDK 11..." -ForegroundColor Cyan
-          choco install openjdk11 -y
-          
-          # Refresh environment to pick up Java
-          refreshenv
-          
-          # Verify Java installation and add to PATH
-          $javaHome = [System.Environment]::GetEnvironmentVariable("JAVA_HOME", "Machine")
-          if ($javaHome -and (Test-Path "$javaHome\bin\java.exe")) {
-            Write-Host "Java found at: $javaHome" -ForegroundColor Green
-            $env:JAVA_HOME = $javaHome
-            $javaBinPath = "$javaHome\bin"
-            $env:PATH = "$javaBinPath;$env:PATH"
-            echo "$javaBinPath" >> $env:GITHUB_PATH
-          } else {
-            Write-Error "Java installation not found or JAVA_HOME not set"
+          # Verify Java is available
+          Write-Host "Verifying Java installation..." -ForegroundColor Cyan
+          java -version
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Java not found"
             exit 1
           }
+          Write-Host "✅ Java is available" -ForegroundColor Green
           
           Write-Host "Installing jsign..." -ForegroundColor Cyan
           choco install jsign -y
@@ -252,39 +261,11 @@ jobs:
           Write-Host "Refreshing environment variables after jsign installation..." -ForegroundColor Cyan
           refreshenv
           
-          # Install Google Cloud CLI
-          Write-Host "Installing Google Cloud CLI..." -ForegroundColor Cyan
-          choco install gcloudsdk -y
-          
-          # Refresh environment variables to pick up PATH changes
-          Write-Host "Refreshing environment variables..." -ForegroundColor Cyan
-          refreshenv
-          
-          # Also manually add gcloud to PATH for this session
-          $gcloudPath = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin"
-          $env:PATH += ";$gcloudPath"
-          echo "$gcloudPath" >> $env:GITHUB_PATH
-          
-          # Verify gcloud is accessible
-          Write-Host "Verifying gcloud installation..."
-          & "$gcloudPath\gcloud.cmd" version
-          
-          # Authenticate with service account
-          Write-Host "Authenticating with Google Cloud..." -ForegroundColor Cyan
-          if ($env:GOOGLE_APPLICATION_CREDENTIALS -and (Test-Path $env:GOOGLE_APPLICATION_CREDENTIALS)) {
-            & "$gcloudPath\gcloud.cmd" auth activate-service-account --key-file="$env:GOOGLE_APPLICATION_CREDENTIALS"
-            $projectId = (Get-Content $env:GOOGLE_APPLICATION_CREDENTIALS | ConvertFrom-Json).project_id
-            & "$gcloudPath\gcloud.cmd" config set project $projectId
-            Write-Host "✅ Google Cloud authentication successful"
-          } else {
-            Write-Error "❌ Google Cloud credentials not available"
-          }
-          
-          # Verify tools are installed
-          Write-Host "Verifying installations..." -ForegroundColor Cyan
-          java -version
+          # Verify jsign is installed
+          Write-Host "Verifying jsign installation..." -ForegroundColor Cyan
           jsign --help | Select-Object -First 2
-          & "$gcloudPath\gcloud.cmd" version
+          
+          Write-Host "✅ All tools ready for signing" -ForegroundColor Green
 
       # Set up Google Cloud authentication for Linux builds
       - name: Setup Google Cloud authentication (Linux)

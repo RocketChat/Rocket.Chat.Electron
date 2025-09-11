@@ -1,14 +1,5 @@
 import type { NotificationAction } from 'electron';
 
-import type { RocketChatDesktopAPI } from './servers/preload/api';
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  interface Window {
-    RocketChatDesktop: RocketChatDesktopAPI;
-  }
-}
-
 console.log('[Rocket.Chat Desktop] Injected.ts');
 
 const resolveWithExponentialBackoff = <T>(

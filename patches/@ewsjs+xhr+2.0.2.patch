@@ -834,7 +834,12 @@ index b91622a..df9a914 100644
 +        delete opt['data'];
 +        delete opt['responseType'];
 +        try {
-+            const response = await (0, axios_1.default)(opt).catch(err => err.response);
++            const response = await (0, axios_1.default)(opt).catch(err => {
+                if (!err.response) {
+                    throw err;
+                }
+                return err.response;
+             });
 +            if (!response.headers['www-authenticate'])
 +                throw new Error('www-authenticate not found on response of second request');
 +            let type2msg = (0, ntlm_client_1.decodeType2Message)(response.headers['www-authenticate']);

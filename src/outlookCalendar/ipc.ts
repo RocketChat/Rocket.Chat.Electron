@@ -482,7 +482,9 @@ async function performSync(
   }
 
   if (!token || typeof token !== 'string') {
-    throw new Error('Invalid authentication token provided');
+    throw new Error(
+      'Authentication required - please log in to Rocket.Chat first'
+    );
   }
 
   if (!credentials || typeof credentials !== 'object') {
@@ -1056,6 +1058,15 @@ export const startOutlookCalendarUrlHandler = (): void => {
       }
 
       try {
+        // Check if user is logged in before attempting sync
+        if (!userAPIToken) {
+          return Promise.reject(
+            new Error(
+              'Please log in to Rocket.Chat first to sync calendar events'
+            )
+          );
+        }
+
         await syncEventsWithRocketChatServer(
           server.url,
           credentials,

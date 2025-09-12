@@ -434,6 +434,12 @@ export async function syncEventsWithRocketChatServer(
     return new Promise<void>((resolve, reject) => {
       syncQueue.push(async () => {
         try {
+          // Re-validate token when the queued sync actually runs
+          if (!token || typeof token !== 'string') {
+            throw new Error(
+              'Authentication required - please log in to Rocket.Chat first'
+            );
+          }
           await performSync(serverUrl, credentials, token);
           resolve();
         } catch (error) {
@@ -460,7 +466,10 @@ export async function syncEventsWithRocketChatServer(
       // Only process the last sync request (most recent state)
       const lastSync = syncQueue[syncQueue.length - 1];
       syncQueue = [];
-      lastSync();
+      // Execute the queued sync but don't await it to avoid blocking
+      lastSync().catch((error) => {
+        console.error('[OutlookCalendar] Queued sync failed:', error);
+      });
     }
   }
 }

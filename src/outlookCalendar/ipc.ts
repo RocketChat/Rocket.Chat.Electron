@@ -417,6 +417,13 @@ export async function syncEventsWithRocketChatServer(
   credentials: OutlookCredentials,
   token: string
 ) {
+  // Validate token before doing anything else
+  if (!token || typeof token !== 'string') {
+    throw new Error(
+      'Authentication required - please log in to Rocket.Chat first'
+    );
+  }
+
   // Check if sync is already in progress
   if (isSyncInProgress) {
     console.log(
@@ -481,15 +488,11 @@ async function performSync(
     throw new Error('Invalid server URL provided');
   }
 
-  if (!token || typeof token !== 'string') {
-    throw new Error(
-      'Authentication required - please log in to Rocket.Chat first'
-    );
-  }
-
   if (!credentials || typeof credentials !== 'object') {
     throw new Error('Invalid credentials provided');
   }
+
+  // Token is already validated in syncEventsWithRocketChatServer
 
   let eventsOnOutlookServer: AppointmentData[];
   let eventsOnRocketChatServer: any;

@@ -417,6 +417,52 @@ export async function syncEventsWithRocketChatServer(
   credentials: OutlookCredentials,
   token: string
 ) {
+  // Check if sync is already in progress
+  if (isSyncInProgress) {
+    console.log(
+      '[OutlookCalendar] Sync already in progress, queueing this request'
+    );
+
+    // Queue this sync request to run after current sync completes
+    return new Promise<void>((resolve, reject) => {
+      syncQueue.push(async () => {
+        try {
+          await performSync(serverUrl, credentials, token);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+  }
+
+  // Set lock
+  isSyncInProgress = true;
+
+  try {
+    await performSync(serverUrl, credentials, token);
+  } finally {
+    // Release lock
+    isSyncInProgress = false;
+
+    // Process next sync in queue if any
+    if (syncQueue.length > 0) {
+      console.log(
+        `[OutlookCalendar] Processing ${syncQueue.length} queued sync requests`
+      );
+      // Only process the last sync request (most recent state)
+      const lastSync = syncQueue[syncQueue.length - 1];
+      syncQueue = [];
+      lastSync();
+    }
+  }
+}
+
+async function performSync(
+  serverUrl: string,
+  credentials: OutlookCredentials,
+  token: string
+) {
   console.info(
     'Starting Outlook calendar synchronization for server:',
     serverUrl
@@ -508,6 +554,62 @@ export async function syncEventsWithRocketChatServer(
   const { servers } = select(selectPersistableValues);
   const server = servers.find((server) => server.url === serverUrl);
 
+  // Check for and clean up duplicate events
+  const eventsByExternalId = new Map<string, any[]>();
+  for (const event of externalEventsFromRocketChatServer) {
+    if (!eventsByExternalId.has(event.externalId)) {
+      eventsByExternalId.set(event.externalId, []);
+    }
+    eventsByExternalId.get(event.externalId)!.push(event);
+  }
+
+  // Collect all duplicate deletion promises
+  const allDeletionPromises: Promise<void>[] = [];
+
+  // Remove duplicates - keep only the first occurrence
+  for (const [externalId, events] of eventsByExternalId) {
+    if (events.length > 1) {
+      console.log(
+        `[OutlookCalendar] Found ${events.length} duplicate events for externalId: ${externalId}`
+      );
+      console.log('[OutlookCalendar] Keeping first event, deleting duplicates');
+
+      // Delete all duplicates except the first one
+      const deletionPromises = events.slice(1).map(async (duplicateEvent) => {
+        console.log('[OutlookCalendar] Deleting duplicate event:', {
+          rocketChatId: duplicateEvent._id,
+          externalId: duplicateEvent.externalId,
+          subject: duplicateEvent.subject,
+        });
+
+        try {
+          await deleteEventOnRocketChatServer(
+            serverUrl,
+            credentials.userId,
+            token,
+            duplicateEvent._id
+          );
+        } catch (error) {
+          console.error('[OutlookCalendar] Failed to delete duplicate event:', {
+            eventId: duplicateEvent._id,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      });
+
+      allDeletionPromises.push(...deletionPromises);
+    }
+  }
+
+  // Wait for all duplicate deletions to complete
+  if (allDeletionPromises.length > 0) {
+    console.log(
+      '[OutlookCalendar] Waiting for duplicate deletion to complete...'
+    );
+    await Promise.all(allDeletionPromises);
+    console.log('[OutlookCalendar] Duplicate deletion completed');
+  }
+
   console.log(
     '[OutlookCalendar] Starting sync loop for',
     eventsOnOutlookServer.length,
@@ -522,10 +624,10 @@ export async function syncEventsWithRocketChatServer(
         startTime: appointment.startTime,
       });
 
-      const alreadyOnRocketChatServer = externalEventsFromRocketChatServer.find(
-        ({ externalId }: { externalId?: string }) =>
-          externalId === appointment.id
-      );
+      // Use the deduplicated map to find the event (only first occurrence kept)
+      const eventsForThisAppointment =
+        eventsByExternalId.get(appointment.id) || [];
+      const alreadyOnRocketChatServer = eventsForThisAppointment[0];
 
       const { subject, startTime, description, reminderMinutesBeforeStart } =
         appointment;
@@ -649,6 +751,8 @@ export async function syncEventsWithRocketChatServer(
 let recurringSyncTaskId: NodeJS.Timeout;
 let userAPIToken: string;
 let initialSyncTimeoutId: NodeJS.Timeout;
+let isSyncInProgress = false;
+let syncQueue: Array<() => Promise<void>> = [];
 
 async function maybeSyncEvents(serverToSync: Server) {
   console.log(
@@ -817,6 +921,12 @@ export const startOutlookCalendarUrlHandler = (): void => {
       // Perform initial sync with debounce to prevent duplicate calls
       initialSyncTimeoutId = setTimeout(() => {
         console.log('[OutlookCalendar] Executing initial sync');
+        if (isSyncInProgress) {
+          console.log(
+            '[OutlookCalendar] Sync already in progress, skipping initial sync'
+          );
+          return;
+        }
         maybeSyncEvents(server).catch((error) => {
           const errorMessage =
             error instanceof Error ? error.message : String(error);

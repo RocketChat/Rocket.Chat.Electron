@@ -508,6 +508,13 @@ const start = async () => {
           outlookExchangeUrl,
         } = getOutlookSettings();
 
+        console.log('[Rocket.Chat Desktop] Outlook integration check:', {
+          hasToken: !!userToken,
+          hasUserId: !!userId,
+          calendarEnabled: outlookCalendarEnabled,
+          hasExchangeUrl: !!outlookExchangeUrl,
+        });
+
         if (
           !userToken ||
           !userId ||
@@ -517,6 +524,7 @@ const start = async () => {
           return;
         }
 
+        console.log('[Rocket.Chat Desktop] Setting Outlook token for user:', userId);
         window.RocketChatDesktop.setUserToken(userToken, userId);
         window.RocketChatDesktop.setOutlookExchangeUrl(
           outlookExchangeUrl,

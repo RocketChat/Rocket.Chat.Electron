@@ -15,6 +15,9 @@ import { listenToMessageBoxEvents } from './ui/preload/messageBox';
 import { handleTrafficLightsSpacing } from './ui/preload/sidebar';
 import { whenReady } from './whenReady';
 
+// Import and apply console override for the main renderer process
+import './logging/preload';
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Window {
@@ -77,3 +80,4 @@ const start = async (): Promise<void> => {
 
 console.log('[Rocket.Chat Desktop] waiting for window load');
 window.addEventListener('load', start);
+window.addEventListener('DOMContentLoaded', start);

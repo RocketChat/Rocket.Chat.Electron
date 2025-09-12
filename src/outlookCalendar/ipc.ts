@@ -1,3 +1,5 @@
+import https from 'https';
+
 import axios from 'axios';
 import { safeStorage } from 'electron';
 
@@ -147,6 +149,9 @@ async function listEventsFromRocketChatServer(
         date: new Date().toISOString(),
       },
       timeout: 10000, // 10 second timeout
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false, // Allow self-signed certificates
+      }),
     });
 
     console.log('[OutlookCalendar] Successfully fetched events from server:', {
@@ -224,6 +229,9 @@ async function createEventOnRocketChatServer(
         'X-User-Id': userId,
       },
       timeout: 10000, // 10 second timeout
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false, // Allow self-signed certificates
+      }),
     });
 
     console.log('[OutlookCalendar] Successfully created event:', {
@@ -303,6 +311,9 @@ async function updateEventOnRocketChatServer(
         'X-User-Id': userId,
       },
       timeout: 10000, // 10 second timeout
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false, // Allow self-signed certificates
+      }),
     });
 
     console.log('[OutlookCalendar] Successfully updated event:', {
@@ -365,6 +376,9 @@ async function deleteEventOnRocketChatServer(
           'X-User-Id': userId,
         },
         timeout: 10000, // 10 second timeout
+        httpsAgent: new https.Agent({
+          rejectUnauthorized: false, // Allow self-signed certificates
+        }),
       }
     );
 

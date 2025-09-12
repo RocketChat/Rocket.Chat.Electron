@@ -301,9 +301,9 @@ export const getOutlookEvents = async (
     console.log('[OutlookCalendar] Initializing Exchange connection');
     // Exchange 2016 compatibility: Allow self-signed certificates
     // This is commonly needed for on-premises Exchange servers
-    const xhrApi = new XhrApi({ 
+    const xhrApi = new XhrApi({
       decompress: true,
-      rejectUnauthorized: false  // Allows self-signed/internal CA certificates
+      rejectUnauthorized: false, // Allows self-signed/internal CA certificates
     });
     xhrApi.useNtlmAuthentication(login, password);
 

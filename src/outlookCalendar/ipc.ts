@@ -1,7 +1,7 @@
 import https from 'https';
 
 import axios from 'axios';
-import { safeStorage } from 'electron';
+import { safeStorage, webContents } from 'electron';
 
 import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
@@ -1063,9 +1063,14 @@ export const startOutlookCalendarUrlHandler = (): void => {
       try {
         // Check if user is logged in before attempting sync
         if (!userAPIToken) {
+          console.warn('[OutlookCalendar] Manual sync attempted but token not available', {
+            serverUrl: server.url,
+            userId: outlookCredentials.userId,
+            hint: 'Token is set by injected script when: 1) User is logged in, 2) Outlook is enabled in settings, 3) Exchange URL is configured'
+          });
           return Promise.reject(
             new Error(
-              'Please log in to Rocket.Chat first to sync calendar events'
+              'Authentication token not yet available. Please ensure: 1) You are logged into Rocket.Chat, 2) Outlook Calendar is enabled in settings, 3) Exchange URL is configured.'
             )
           );
         }

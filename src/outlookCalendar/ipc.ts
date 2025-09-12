@@ -648,6 +648,7 @@ export async function syncEventsWithRocketChatServer(
 
 let recurringSyncTaskId: NodeJS.Timeout;
 let userAPIToken: string;
+let initialSyncTimeoutId: NodeJS.Timeout;
 
 async function maybeSyncEvents(serverToSync: Server) {
   console.log(
@@ -732,6 +733,13 @@ async function recurringSyncTask(serverToSync: Server) {
 
 function startRecurringSyncTask(server: Server) {
   if (!userAPIToken) return;
+
+  // Clear any existing recurring sync task to prevent duplicates
+  if (recurringSyncTaskId) {
+    console.log('[OutlookCalendar] Clearing existing recurring sync task');
+    clearInterval(recurringSyncTaskId);
+  }
+
   recurringSyncTaskId = setInterval(
     () => recurringSyncTask(server),
     60 * 60 * 1000
@@ -800,8 +808,15 @@ export const startOutlookCalendarUrlHandler = (): void => {
       );
       startRecurringSyncTask(server);
 
-      // Perform initial sync
-      setImmediate(() => {
+      // Cancel any pending initial sync to prevent duplicates
+      if (initialSyncTimeoutId) {
+        console.log('[OutlookCalendar] Cancelling pending initial sync');
+        clearTimeout(initialSyncTimeoutId);
+      }
+
+      // Perform initial sync with debounce to prevent duplicate calls
+      initialSyncTimeoutId = setTimeout(() => {
+        console.log('[OutlookCalendar] Executing initial sync');
         maybeSyncEvents(server).catch((error) => {
           const errorMessage =
             error instanceof Error ? error.message : String(error);
@@ -814,7 +829,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
             }
           );
         });
-      });
+      }, 100); // Small delay to debounce multiple rapid calls
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);

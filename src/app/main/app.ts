@@ -16,6 +16,7 @@ import {
   SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
   SETTINGS_NTLM_CREDENTIALS_CHANGED,
   SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED,
+  SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED,
 } from '../../ui/actions';
 import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
@@ -88,6 +89,9 @@ export const performElectronStartup = (): void => {
   const isHardwareAccelerationEnabled = readSetting(
     'isHardwareAccelerationEnabled'
   );
+  const isScreenCaptureFallbackEnabled = readSetting(
+    'isVideoCallScreenCaptureFallbackEnabled'
+  );
 
   if (
     args.includes('--disable-gpu') ||
@@ -98,6 +102,28 @@ export const performElectronStartup = (): void => {
     app.commandLine.appendSwitch('--disable-2d-canvas-image-chromium');
     app.commandLine.appendSwitch('--disable-accelerated-2d-canvas');
     app.commandLine.appendSwitch('--disable-gpu');
+  }
+
+  if (process.platform === 'win32') {
+    const sessionName = process.env.SESSIONNAME;
+    const isRdpSession =
+      typeof sessionName === 'string' && sessionName !== 'Console';
+
+    if (isScreenCaptureFallbackEnabled || isRdpSession) {
+      console.log(
+        'Disabling Windows Graphics Capture for video calls',
+        JSON.stringify({
+          reason: isScreenCaptureFallbackEnabled
+            ? 'user-setting'
+            : 'rdp-session',
+          sessionName,
+        })
+      );
+      app.commandLine.appendSwitch(
+        'disable-features',
+        'WebRtcAllowWgcDesktopCapturer'
+      );
+    }
   }
 };
 
@@ -132,6 +158,13 @@ export const setupApp = (): void => {
   listen(SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED, () => {
     relaunchApp();
   });
+
+  listen(
+    SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED,
+    () => {
+      relaunchApp();
+    }
+  );
 
   listen(APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET, (action) => {
     if (action.payload.length > 0) {

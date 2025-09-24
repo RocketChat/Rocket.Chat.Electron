@@ -178,14 +178,23 @@ export const setupApp = (): void => {
 
   listen(
     SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED,
-    () => {
-      if (isScreenCaptureFallbackForced) {
+    (action) => {
+      const newSettingValue = action.payload;
+      const currentPersistedSetting = readSetting(
+        'isVideoCallScreenCaptureFallbackEnabled'
+      );
+      const sessionName = process.env.SESSIONNAME;
+      const isRdpSession =
+        typeof sessionName === 'string' && sessionName !== 'Console';
+
+      // Relaunch only if the setting actually changes AND it's not already forced by RDP
+      if (newSettingValue !== currentPersistedSetting && !isRdpSession) {
+        relaunchApp();
+      } else if (isRdpSession) {
         console.log(
-          'Screen capture fallback already forced by environment; skipping relaunch'
+          'Screen Capture Fallback setting changed, but app is in RDP session. Skipping relaunch.'
         );
-        return;
       }
-      relaunchApp();
     }
   );
 

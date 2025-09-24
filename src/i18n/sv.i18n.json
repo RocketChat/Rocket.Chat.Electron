@@ -229,7 +229,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Reservläge för videosamtal",
-        "description": "Stänger av Windows Graphics Capture så att delning fungerar i RDP-sessioner. Appen startas om när du ändrar valet."
+        "description": "Stänger av Windows Graphics Capture så att delning fungerar i RDP-sessioner. Appen startas om när du ändrar valet.",
+        "forcedDescription": "Redan aktiverat eftersom appen upptäckte en RDP-session. Vippbrytaren anger beteendet vid kommande lokala starter."
       },
       "internalVideoChatWindow": {
         "title": "Öppna videochatt i programfönstret",

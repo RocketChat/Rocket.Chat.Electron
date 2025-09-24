@@ -201,7 +201,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Alternative Bildschirmaufnahme für Videoanrufe",
-        "description": "Deaktiviert Windows Graphics Capture, damit das Teilen in RDP-Sitzungen funktioniert. Die App startet neu, wenn Sie diese Option ändern."
+        "description": "Deaktiviert Windows Graphics Capture, damit das Teilen in RDP-Sitzungen funktioniert. Die App startet neu, wenn Sie diese Option ändern.",
+        "forcedDescription": "Bereits aktiv, weil die Anwendung eine RDP-Sitzung erkannt hat. Der Schalter bestimmt das Verhalten bei zukünftigen lokalen Starts."
       },
       "internalVideoChatWindow": {
         "title": "Öffnen Sie den Video-Chat mit dem Anwendungsfenster",

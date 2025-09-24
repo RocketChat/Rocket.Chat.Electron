@@ -220,7 +220,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Modo alternativo de captura en videollamadas",
-        "description": "Desactiva Windows Graphics Capture para que el uso compartido funcione en sesiones RDP. La app se reinicia cuando cambias esta opción."
+        "description": "Desactiva Windows Graphics Capture para que el uso compartido funcione en sesiones RDP. La app se reinicia cuando cambias esta opción.",
+        "forcedDescription": "Actualmente está aplicado porque la app detectó una sesión RDP. El interruptor controla el comportamiento en siguientes arranques locales."
       },
       "internalVideoChatWindow": {
         "title": "Abrir videollamada en la ventana de la aplicación",

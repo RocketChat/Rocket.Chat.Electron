@@ -68,5 +68,7 @@ export const selectPersistableValues = createStructuredSelector({
   isVideoCallScreenCaptureFallbackEnabled: ({
     isVideoCallScreenCaptureFallbackEnabled,
   }: RootState) => isVideoCallScreenCaptureFallbackEnabled,
+  screenCaptureFallbackForced: ({ screenCaptureFallbackForced }: RootState) =>
+    screenCaptureFallbackForced,
   updateChannel: ({ updateChannel }: RootState) => updateChannel,
 });

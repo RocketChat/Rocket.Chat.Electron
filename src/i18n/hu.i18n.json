@@ -220,7 +220,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Videohívások képernyőfelvételi tartalék módja",
-        "description": "Letiltja a Windows Graphics Capture funkciót, hogy a megosztás működjön RDP-munkamenetekben. Az alkalmazás újraindul, amikor ezt a beállítást módosítja."
+        "description": "Letiltja a Windows Graphics Capture funkciót, hogy a megosztás működjön RDP-munkamenetekben. Az alkalmazás újraindul, amikor ezt a beállítást módosítja.",
+        "forcedDescription": "Jelenleg érvényben van, mert az alkalmazás RDP-munkamenetet észlelt. A kapcsoló a következő helyi indítások viselkedését határozza meg."
       },
       "internalVideoChatWindow": {
         "title": "Videocsevegés megnyitása alkalmazásablak használatával",

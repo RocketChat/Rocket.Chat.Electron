@@ -26,6 +26,7 @@ import {
   APP_MAIN_WINDOW_TITLE_SET,
   APP_PATH_SET,
   APP_VERSION_SET,
+  APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
 } from '../actions';
 
 export const packageJsonInformation = {
@@ -97,6 +98,11 @@ export const performElectronStartup = (): void => {
 
   isScreenCaptureFallbackForced = false;
 
+  dispatch({
+    type: APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
+    payload: isScreenCaptureFallbackForced,
+  });
+
   if (
     args.includes('--disable-gpu') ||
     isHardwareAccelerationEnabled === false
@@ -114,6 +120,11 @@ export const performElectronStartup = (): void => {
       typeof sessionName === 'string' && sessionName !== 'Console';
 
     isScreenCaptureFallbackForced = isRdpSession;
+
+    dispatch({
+      type: APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
+      payload: isScreenCaptureFallbackForced,
+    });
 
     if (isScreenCaptureFallbackEnabled || isRdpSession) {
       console.log(

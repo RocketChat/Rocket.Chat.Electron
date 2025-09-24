@@ -208,7 +208,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Videopuhelujen varanäyttökaappaus",
-        "description": "Poistaa Windows Graphics Capture -tilan, jotta jakaminen toimii RDP-istunnoissa. Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu."
+        "description": "Poistaa Windows Graphics Capture -tilan, jotta jakaminen toimii RDP-istunnoissa. Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu.",
+        "forcedDescription": "Tällä hetkellä pakotettu, koska sovellus havaitsi RDP-istunnon. Vaihtoehto määrittää seuraavien paikallisten käynnistysten käytöksen."
       },
       "internalVideoChatWindow": {
         "title": "Avaa videokeskustelu sovellusikkunaan",

@@ -229,7 +229,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Fallback Screen Capture for Video Calls",
-        "description": "Disable Windows Graphics Capture so screen sharing works in Remote Desktop sessions. The app restarts when you change this option."
+        "description": "Disable Windows Graphics Capture so screen sharing works in Remote Desktop sessions. The app restarts when you change this option.",
+        "forcedDescription": "Currently enforced because the app detected a Remote Desktop session. Toggle now controls future launches when running locally."
       },
       "internalVideoChatWindow": {
         "title": "Open Video Chat in Application Window",

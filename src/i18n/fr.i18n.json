@@ -208,7 +208,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Solution de capture d'écran pour les appels vidéo",
-        "description": "Désactive Windows Graphics Capture pour permettre le partage d'écran dans les sessions RDP. L'application redémarre lorsque vous modifiez cette option."
+        "description": "Désactive Windows Graphics Capture pour permettre le partage d'écran dans les sessions RDP. L'application redémarre lorsque vous modifiez cette option.",
+        "forcedDescription": "Actuellement appliqué car l'application a détecté une session RDP. Le commutateur contrôle le comportement lors des prochains démarrages locaux."
       },
       "internalVideoChatWindow": {
         "title": "Ouvrir le chat vidéo à l'aide de la fenêtre de l'application",

@@ -6,7 +6,7 @@ import {
   ToggleSwitch,
 } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
-import { useCallback, useId } from 'react';
+import { useCallback, useId, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -24,6 +24,9 @@ export const ScreenCaptureFallback = (props: ScreenCaptureFallbackProps) => {
     ({ isVideoCallScreenCaptureFallbackEnabled }: RootState) =>
       isVideoCallScreenCaptureFallbackEnabled
   );
+  const isFallbackForced = useSelector(
+    ({ screenCaptureFallbackForced }: RootState) => screenCaptureFallbackForced
+  );
   const dispatch = useDispatch<Dispatch<RootAction>>();
   const { t } = useTranslation();
 
@@ -40,6 +43,15 @@ export const ScreenCaptureFallback = (props: ScreenCaptureFallbackProps) => {
 
   const fallbackToggleId = useId();
 
+  const description = useMemo(() => {
+    if (isFallbackForced) {
+      return t(
+        'settings.options.videoCallScreenCaptureFallback.forcedDescription'
+      );
+    }
+    return t('settings.options.videoCallScreenCaptureFallback.description');
+  }, [isFallbackForced, t]);
+
   return (
     <Field className={props.className}>
       <FieldRow>
@@ -53,9 +65,7 @@ export const ScreenCaptureFallback = (props: ScreenCaptureFallbackProps) => {
         />
       </FieldRow>
       <FieldRow>
-        <FieldHint>
-          {t('settings.options.videoCallScreenCaptureFallback.description')}
-        </FieldHint>
+        <FieldHint>{description}</FieldHint>
       </FieldRow>
     </Field>
   );

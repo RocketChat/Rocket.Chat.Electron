@@ -229,7 +229,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Reserveopptak for videosamtaler",
-        "description": "Deaktiverer Windows Graphics Capture slik at deling virker i RDP-økter. Appen starter på nytt når du endrer dette valget."
+        "description": "Deaktiverer Windows Graphics Capture slik at deling virker i RDP-økter. Appen starter på nytt når du endrer dette valget.",
+        "forcedDescription": "Allerede aktivert fordi appen oppdaget en RDP-økt. Bytt til for å bestemme oppførsel ved fremtidige lokale oppstarter."
       },
       "internalVideoChatWindow": {
         "title": "Åpne videochat ved hjelp av applikasjonsvinduet",

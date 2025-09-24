@@ -215,7 +215,8 @@
       },
       "videoCallScreenCaptureFallback": {
         "title": "Fallback de captura para videochamadas",
-        "description": "Desativa o Windows Graphics Capture para que o compartilhamento funcione em sessões RDP. O aplicativo reinicia ao mudar esta opção."
+        "description": "Desativa o Windows Graphics Capture para que o compartilhamento funcione em sessões RDP. O aplicativo reinicia ao mudar esta opção.",
+        "forcedDescription": "Atualmente aplicado porque o aplicativo detectou uma sessão RDP. O alternador define o comportamento das próximas execuções locais."
       },
       "internalVideoChatWindow": {
         "title": "Abrir chat em video em uma janela da aplicação",

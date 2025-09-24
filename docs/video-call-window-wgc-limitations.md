@@ -15,11 +15,9 @@
 - If the value changes after launch (user switches to RDP), Chromium must be restarted to apply a new screen-capture backend.
 
 ## Recommended Workaround
-1. When the app starts on Windows:
-   - if `process.env.SESSIONNAME` is not `Console`, append `disable-features=WebRtcAllowWgcDesktopCapturer` before creating the app window.
-   - This forces Chromium to use the legacy Desktop Duplication capturer, which works in RDP sessions.
-2. Tell users to restart the desktop app after switching between local and RDP sessions so the correct capturer is selected.
-3. Optionally expose a manual toggle in settings so administrators can force the legacy capturer for every session.
+- **Use the Screen Capture Fallback toggle** in `Settings → General` (Windows only). When enabled, the app relaunches and forces Chromium to use the legacy Desktop Duplication capturer that works in RDP sessions.
+- **Automatic RDP detection** – starting with this change, if `process.env.SESSIONNAME` is anything other than `Console`, the app automatically disables Windows Graphics Capture even if the toggle is off. This protects users who launch the client directly inside an RDP session.
+- **Restart after switching session types** – if a user launches locally and later connects via RDP (or the other way around), they should restart the app so the correct capturer is selected. The toggle automatically triggers that restart for administrators who force the fallback.
 
 ## References
 - Microsoft documentation on Windows Graphics Capture limitations (remote sessions unsupported): https://learn.microsoft.com/windows/uwp/audio-video-camera/screen-capture#limitations

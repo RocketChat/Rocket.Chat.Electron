@@ -38,6 +38,8 @@ export const electronBuilderJsonInformation = {
   protocol: electronBuilderJson.protocols.schemes[0],
 };
 
+let isScreenCaptureFallbackForced = false;
+
 export const getPlatformName = (): string => {
   switch (process.platform) {
     case 'win32':
@@ -93,6 +95,8 @@ export const performElectronStartup = (): void => {
     'isVideoCallScreenCaptureFallbackEnabled'
   );
 
+  isScreenCaptureFallbackForced = false;
+
   if (
     args.includes('--disable-gpu') ||
     isHardwareAccelerationEnabled === false
@@ -108,6 +112,8 @@ export const performElectronStartup = (): void => {
     const sessionName = process.env.SESSIONNAME;
     const isRdpSession =
       typeof sessionName === 'string' && sessionName !== 'Console';
+
+    isScreenCaptureFallbackForced = isRdpSession;
 
     if (isScreenCaptureFallbackEnabled || isRdpSession) {
       console.log(
@@ -162,6 +168,12 @@ export const setupApp = (): void => {
   listen(
     SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED,
     () => {
+      if (isScreenCaptureFallbackForced) {
+        console.log(
+          'Screen capture fallback already forced by environment; skipping relaunch'
+        );
+        return;
+      }
       relaunchApp();
     }
   );

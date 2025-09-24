@@ -65,10 +65,11 @@ export const performElectronStartup = (): void => {
   app.setAppUserModelId(electronBuilderJsonInformation.appId);
 
   app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
-  app.commandLine.appendSwitch(
-    'disable-features',
-    'HardwareMediaKeyHandling,MediaSessionService'
-  );
+
+  const disabledChromiumFeatures = [
+    'HardwareMediaKeyHandling',
+    'MediaSessionService',
+  ];
 
   if (getPlatformName() === 'macOS' && process.mas) {
     app.commandLine.appendSwitch('disable-accelerated-video-decode');
@@ -126,12 +127,15 @@ export const performElectronStartup = (): void => {
           sessionName,
         })
       );
-      app.commandLine.appendSwitch(
-        'disable-features',
-        'WebRtcAllowWgcDesktopCapturer'
-      );
+      disabledChromiumFeatures.push('WebRtcAllowWgcDesktopCapturer');
     }
   }
+
+  // Apply all disabled features in a single call
+  app.commandLine.appendSwitch(
+    'disable-features',
+    disabledChromiumFeatures.join(',')
+  );
 };
 
 export const initializeScreenCaptureFallbackState = (): void => {

@@ -87,9 +87,13 @@ type PersistableValues_4_7_2 = PersistableValues_4_5_0 & {
   isVideoCallDevtoolsAutoOpenEnabled: boolean;
 };
 
+type PersistableValues_4_9_0 = PersistableValues_4_7_2 & {
+  isVideoCallScreenCaptureFallbackEnabled: boolean;
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_7_2,
-  keyof PersistableValues_4_7_2
+  PersistableValues_4_9_0,
+  keyof PersistableValues_4_9_0
 >;
 
 export const migrations = {
@@ -158,5 +162,9 @@ export const migrations = {
   '>=4.5.0': (before: PersistableValues_4_4_0): PersistableValues_4_5_0 => ({
     ...before,
     updateChannel: 'latest',
+  }),
+  '>=4.9.0': (before: PersistableValues_4_5_0): PersistableValues_4_9_0 => ({
+    ...before,
+    isVideoCallScreenCaptureFallbackEnabled: false,
   }),
 };

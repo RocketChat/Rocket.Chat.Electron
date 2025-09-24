@@ -6,7 +6,7 @@ import {
   ToggleSwitch,
 } from '@rocket.chat/fuselage';
 import type { ChangeEvent } from 'react';
-import { useCallback, useId, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -41,7 +41,10 @@ export const ScreenCaptureFallback = (props: ScreenCaptureFallbackProps) => {
     [dispatch]
   );
 
-  const fallbackToggleId = useId();
+  const fallbackToggleId = useMemo(
+    () => `screen-capture-fallback-${Math.random().toString(36).substr(2, 9)}`,
+    []
+  );
 
   const description = useMemo(() => {
     if (isFallbackForced) {

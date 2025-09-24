@@ -213,6 +213,10 @@
         "title": "Aceleração de hardware",
         "description": "Ativa aceleração de hardware quando disponível. O aplicativo será reiniciado ao ser alterado."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Fallback de captura para videochamadas",
+        "description": "Desativa o Windows Graphics Capture para que o compartilhamento funcione em sessões RDP. O aplicativo reinicia ao mudar esta opção."
+      },
       "internalVideoChatWindow": {
         "title": "Abrir chat em video em uma janela da aplicação",
         "description": "Se ativado, o Chat de Vídeo será aberto na janela do aplicativo em vez do navegador padrão. No entanto, para <strong>Google Meet</strong> e <strong>Jitsi</strong>, a gravação de tela não é suportada em aplicativos Electron, então eles sempre serão abertos no navegador independentemente desta configuração.",

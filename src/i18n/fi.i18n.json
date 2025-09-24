@@ -206,6 +206,10 @@
         "title": "Laitteistokiihdytys",
         "description": "Ottaa käyttöön laitteistokiihdytyksen, jos se on käytettävissä. Sovellus latautuu uudelleen muutoksen yhteydessä."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Videopuhelujen varanäyttökaappaus",
+        "description": "Poistaa Windows Graphics Capture -tilan, jotta jakaminen toimii RDP-istunnoissa. Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu."
+      },
       "internalVideoChatWindow": {
         "title": "Avaa videokeskustelu sovellusikkunaan",
         "description": "Jos käytössä, videokeskustelu avautuu sovelluksen ikkunaan oletusselaimen sijaan. Kuitenkin <strong>Google Meet</strong> ja <strong>Jitsi</strong> -palveluissa ruuduntallennus ei ole tuettu Electron-sovelluksissa, joten ne avautuvat aina selaimessa tästä asetuksesta riippumatta.",

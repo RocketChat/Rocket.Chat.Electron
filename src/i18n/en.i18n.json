@@ -227,6 +227,10 @@
         "title": "Hardware Acceleration",
         "description": "Enables the use of hardware acceleration when available. The application will reload on change."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Fallback Screen Capture for Video Calls",
+        "description": "Disable Windows Graphics Capture so screen sharing works in Remote Desktop sessions. The app restarts when you change this option."
+      },
       "internalVideoChatWindow": {
         "title": "Open Video Chat in Application Window",
         "description": "If enabled, the Video Chat will open in the application's window instead of the default browser. However, for <strong>Google Meet</strong> and <strong>Jitsi</strong>, screen recording is not supported in Electron applications, so they will always open in the browser regardless of this setting.",

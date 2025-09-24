@@ -31,6 +31,7 @@ import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowO
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
+import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
 import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
 import { openDialog } from '../ui/reducers/openDialog';
@@ -96,6 +97,7 @@ export const rootReducer = combineReducers({
   isDeveloperModeEnabled,
   updateChannel,
   isVideoCallDevtoolsAutoOpenEnabled,
+  isVideoCallScreenCaptureFallbackEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

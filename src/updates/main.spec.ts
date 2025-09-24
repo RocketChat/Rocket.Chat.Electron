@@ -17,6 +17,7 @@ describe('mergeConfigurations', () => {
       isFlashFrameEnabled: true,
       isHardwareAccelerationEnabled: true,
       isInternalVideoChatWindowEnabled: true,
+      isVideoCallScreenCaptureFallbackEnabled: false,
       updateChannel: 'latest',
     };
     const appConfiguration: AppLevelUpdateConfiguration = {};
@@ -42,6 +43,7 @@ describe('mergeConfigurations', () => {
       isFlashFrameEnabled: true,
       isHardwareAccelerationEnabled: true,
       isInternalVideoChatWindowEnabled: true,
+      isVideoCallScreenCaptureFallbackEnabled: false,
       updateChannel: 'latest',
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
@@ -74,6 +76,7 @@ describe('mergeConfigurations', () => {
       isFlashFrameEnabled: true,
       isHardwareAccelerationEnabled: true,
       isInternalVideoChatWindowEnabled: true,
+      isVideoCallScreenCaptureFallbackEnabled: false,
       updateChannel: 'latest',
     };
     const appConfiguration: AppLevelUpdateConfiguration = {
@@ -110,6 +113,7 @@ describe('mergeConfigurations', () => {
       isFlashFrameEnabled: true,
       isHardwareAccelerationEnabled: true,
       isInternalVideoChatWindowEnabled: true,
+      isVideoCallScreenCaptureFallbackEnabled: false,
       updateChannel: 'latest',
     };
     const appConfiguration: AppLevelUpdateConfiguration = {

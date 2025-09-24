@@ -98,11 +98,6 @@ export const performElectronStartup = (): void => {
 
   isScreenCaptureFallbackForced = false;
 
-  dispatch({
-    type: APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
-    payload: isScreenCaptureFallbackForced,
-  });
-
   if (
     args.includes('--disable-gpu') ||
     isHardwareAccelerationEnabled === false
@@ -121,11 +116,6 @@ export const performElectronStartup = (): void => {
 
     isScreenCaptureFallbackForced = isRdpSession;
 
-    dispatch({
-      type: APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
-      payload: isScreenCaptureFallbackForced,
-    });
-
     if (isScreenCaptureFallbackEnabled || isRdpSession) {
       console.log(
         'Disabling Windows Graphics Capture for video calls',
@@ -142,6 +132,13 @@ export const performElectronStartup = (): void => {
       );
     }
   }
+};
+
+export const initializeScreenCaptureFallbackState = (): void => {
+  dispatch({
+    type: APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
+    payload: isScreenCaptureFallbackForced,
+  });
 };
 
 export const setupApp = (): void => {

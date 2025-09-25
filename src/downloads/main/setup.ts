@@ -1,4 +1,5 @@
 import { existsSync, statSync } from 'fs';
+import os from 'os';
 import path from 'path';
 
 import { app, webContents } from 'electron';
@@ -10,15 +11,21 @@ import { createNotification } from '../../notifications/preload';
 import { handleWillDownloadEvent } from '../main';
 
 type DownloadPrefs = {
-  lastDownloadDirectory: string;
+  lastDownloadDirectory?: string;
 };
 
-// Simple store for download directory persistence
-let defaultDownloadPath: string;
-try {
-  defaultDownloadPath = app.getPath('downloads');
-} catch {
-  defaultDownloadPath = '/tmp';
+// Lazy default download path resolution
+let cachedDefaultDownloadPath: string | null = null;
+
+function getDefaultDownloadPath(): string {
+  if (cachedDefaultDownloadPath === null) {
+    try {
+      cachedDefaultDownloadPath = app.getPath('downloads');
+    } catch {
+      cachedDefaultDownloadPath = os.tmpdir();
+    }
+  }
+  return cachedDefaultDownloadPath;
 }
 
 function isValidDirectory(dir: string): boolean {
@@ -31,9 +38,6 @@ function isValidDirectory(dir: string): boolean {
 
 const downloadStore = new ElectronStore<DownloadPrefs>({
   name: 'download-preferences',
-  defaults: {
-    lastDownloadDirectory: defaultDownloadPath,
-  },
   schema: {
     lastDownloadDirectory: { type: 'string' },
   },
@@ -47,12 +51,12 @@ export const setupElectronDlWithTracking = () => {
         // Set the save dialog options with both directory and filename
         const configuredDir = downloadStore.get(
           'lastDownloadDirectory',
-          defaultDownloadPath
+          getDefaultDownloadPath()
         );
         const lastDownloadDir =
           configuredDir && isValidDirectory(configuredDir)
             ? configuredDir
-            : defaultDownloadPath;
+            : getDefaultDownloadPath();
         const fullPath = path.join(lastDownloadDir, item.getFilename());
 
         item.setSaveDialogOptions({

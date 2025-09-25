@@ -1,3 +1,5 @@
+import path from 'path';
+
 import type { DownloadItem } from 'electron';
 import { app, webContents } from 'electron';
 import electronDl from 'electron-dl';
@@ -10,6 +12,11 @@ jest.mock('fs', () => ({
   statSync: jest.fn(() => ({
     isDirectory: () => true, // Default to being directories
   })),
+}));
+
+// Mock os module for cross-platform compatibility
+jest.mock('os', () => ({
+  tmpdir: jest.fn(() => '/tmp'),
 }));
 
 // Mock all dependencies with comprehensive mocking
@@ -163,7 +170,7 @@ describe('Download Folder Persistence', () => {
       );
 
       expect(mockItem.setSaveDialogOptions).toHaveBeenCalledWith({
-        defaultPath: '/Users/test/Documents/document.pdf',
+        defaultPath: path.join('/Users/test/Documents', 'document.pdf'),
       });
     });
 
@@ -176,7 +183,10 @@ describe('Download Folder Persistence', () => {
       onStartedCallback(mockItem);
 
       expect(mockItem.setSaveDialogOptions).toHaveBeenCalledWith({
-        defaultPath: '/Users/test/Documents/My File (2023) [Copy].pdf',
+        defaultPath: path.join(
+          '/Users/test/Documents',
+          'My File (2023) [Copy].pdf'
+        ),
       });
     });
 
@@ -207,7 +217,7 @@ describe('Download Folder Persistence', () => {
       onStartedCallback(mockItem);
 
       expect(mockItem.setSaveDialogOptions).toHaveBeenCalledWith({
-        defaultPath: '/Users/test/Downloads/test.pdf', // Should fallback to default
+        defaultPath: path.join('/Users/test/Downloads', 'test.pdf'), // Should fallback to default
       });
     });
 
@@ -228,7 +238,7 @@ describe('Download Folder Persistence', () => {
         onStartedCallback(mockItem);
 
         expect(mockItem.setSaveDialogOptions).toHaveBeenCalledWith({
-          defaultPath: `${dir}/${filename}`,
+          defaultPath: path.join(dir, filename),
         });
       });
     });
@@ -376,7 +386,7 @@ describe('Download Folder Persistence', () => {
       onStartedCallback(secondItem);
 
       expect(secondItem.setSaveDialogOptions).toHaveBeenCalledWith({
-        defaultPath: '/Users/test/Documents/second-file.xlsx',
+        defaultPath: path.join('/Users/test/Documents', 'second-file.xlsx'),
       });
     });
 
@@ -547,7 +557,7 @@ describe('Download Regression Prevention', () => {
       newOnStartedCallback(mockItem);
 
       expect(mockItem.setSaveDialogOptions).toHaveBeenCalledWith({
-        defaultPath: '/Users/test/Custom/new-file.xlsx',
+        defaultPath: path.join('/Users/test/Custom', 'new-file.xlsx'),
       });
     }
   });
@@ -591,7 +601,7 @@ describe('Download Regression Prevention', () => {
             : '/Users/test/Downloads';
 
         expect(mockItem.setSaveDialogOptions).toHaveBeenCalledWith({
-          defaultPath: `${expectedStartDir}/${filename}`,
+          defaultPath: path.join(expectedStartDir, filename),
         });
       }
 
@@ -599,7 +609,7 @@ describe('Download Regression Prevention', () => {
       if (onCompletedCallback) {
         onCompletedCallback({
           filename,
-          path: `${dir}/${filename}`,
+          path: path.join(dir, filename),
         });
 
         // Verify new directory was stored

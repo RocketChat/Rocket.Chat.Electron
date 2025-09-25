@@ -96,11 +96,6 @@ export const setupElectronDlWithTracking = () => {
           downloadStore.set('lastDownloadDirectory', downloadDirectory);
         }
 
-        createNotification({
-          title: t('downloads.title', { defaultValue: 'Downloads' }),
-          body: file.filename || 'Unknown file',
-          subtitle: t('downloads.notifications.downloadFinished'),
-        });
       } catch {
         // Silently handle any errors in onCompleted
       }

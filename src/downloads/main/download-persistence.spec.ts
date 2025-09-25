@@ -193,6 +193,23 @@ describe('Download Folder Persistence', () => {
       });
     });
 
+    it('should use fallback directory when configured directory does not exist', () => {
+      expect(onStartedCallback).toBeDefined();
+
+      // Mock fs functions to simulate non-existent directory
+      const { existsSync } = require('fs');
+      existsSync.mockReturnValueOnce(false); // Directory doesn't exist
+
+      const mockItem = createMockDownloadItem('test.pdf');
+      sharedMockStore.get.mockReturnValue('/Users/test/NonExistentDirectory');
+
+      onStartedCallback(mockItem);
+
+      expect(mockItem.setSaveDialogOptions).toHaveBeenCalledWith({
+        defaultPath: '/Users/test/Downloads/test.pdf', // Should fallback to default
+      });
+    });
+
     it('should handle different file extensions correctly', () => {
       expect(onStartedCallback).toBeDefined();
 

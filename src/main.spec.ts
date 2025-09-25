@@ -351,7 +351,7 @@ describe('main.ts electron-dl integration', () => {
         onCompletedCallback(mockFile);
 
         expect(createNotificationMock).toHaveBeenCalledWith({
-          title: 'Downloads',
+          title: 'downloads.title',
           body: 'completed-file.pdf',
           subtitle: 'downloads.notifications.downloadFinished',
         });
@@ -363,7 +363,17 @@ describe('main.ts electron-dl integration', () => {
       it('should use translated subtitle', () => {
         const mockFile = { filename: 'test.pdf' };
         const tMock = t as jest.MockedFunction<typeof t>;
-        tMock.mockReturnValue('Download finished');
+        tMock.mockImplementation((...args: any[]) => {
+          const key = args[0];
+          const options = args[1];
+          if (key === 'downloads.title') {
+            return options?.defaultValue || 'Downloads';
+          }
+          if (key === 'downloads.notifications.downloadFinished') {
+            return 'Download finished';
+          }
+          return key;
+        });
 
         onCompletedCallback(mockFile);
 

@@ -279,7 +279,7 @@ describe('Download Folder Persistence', () => {
 
       expect(sharedMockStore.set).toHaveBeenCalledWith(
         'lastDownloadDirectory',
-        '/Users/test/Documents/Projects'
+        path.dirname('/Users/test/Documents/Projects/completed-file.pdf')
       );
     });
 
@@ -295,7 +295,7 @@ describe('Download Folder Persistence', () => {
 
       expect(sharedMockStore.set).toHaveBeenCalledWith(
         'lastDownloadDirectory',
-        '/'
+        path.dirname('/root-file.txt')
       );
     });
 
@@ -311,7 +311,7 @@ describe('Download Folder Persistence', () => {
 
       expect(sharedMockStore.set).toHaveBeenCalledWith(
         'lastDownloadDirectory',
-        '/Users/test/Documents/Work/2023/Q4'
+        path.dirname('/Users/test/Documents/Work/2023/Q4/deep-file.json')
       );
     });
 
@@ -377,7 +377,7 @@ describe('Download Folder Persistence', () => {
 
       expect(sharedMockStore.set).toHaveBeenCalledWith(
         'lastDownloadDirectory',
-        '/Users/test/Documents'
+        path.dirname('/Users/test/Documents/first-file.pdf')
       );
 
       // Second download should use stored directory
@@ -412,13 +412,13 @@ describe('Download Folder Persistence', () => {
         },
       ];
 
-      testSequence.forEach(({ filename, savePath, expectedDir }, index) => {
+      testSequence.forEach(({ filename, savePath }, index) => {
         const mockItem = createMockDownloadItem(filename);
 
         // Mock store to return previous directory
         if (index > 0) {
           sharedMockStore.get.mockReturnValueOnce(
-            testSequence[index - 1].expectedDir
+            path.dirname(testSequence[index - 1].savePath)
           );
         } else {
           sharedMockStore.get.mockReturnValueOnce('/Users/test/Downloads');
@@ -429,7 +429,7 @@ describe('Download Folder Persistence', () => {
 
         expect(sharedMockStore.set).toHaveBeenCalledWith(
           'lastDownloadDirectory',
-          expectedDir
+          path.dirname(savePath)
         );
       });
     });
@@ -537,7 +537,7 @@ describe('Download Regression Prevention', () => {
     // Verify directory was stored
     expect(sharedMockStore.set).toHaveBeenCalledWith(
       'lastDownloadDirectory',
-      '/Users/test/Custom'
+      path.dirname('/Users/test/Custom/test-file.pdf')
     );
 
     // Simulate app restart by clearing mocks and setting up again
@@ -615,7 +615,7 @@ describe('Download Regression Prevention', () => {
         // Verify new directory was stored
         expect(sharedMockStore.set).toHaveBeenCalledWith(
           'lastDownloadDirectory',
-          dir
+          path.dirname(path.join(dir, filename))
         );
       }
     });

@@ -62,16 +62,16 @@ export const setupElectronDlWithTracking = () => {
         // Find the webContents that initiated this download
         const webContentsArray = webContents.getAllWebContents();
 
-        // Use the first available webContents for tracking
-        let sourceWebContents = null;
-        for (const wc of webContentsArray) {
-          if (wc && typeof wc.isDestroyed === 'function' && !wc.isDestroyed()) {
-            sourceWebContents = wc;
-            break;
-          }
-        }
+        const sourceWebContents =
+          // electron-dl passes a BrowserWindow; fall back if it already gave us webContents.
+          (browserWindowOrWebContents as Electron.BrowserWindow | undefined)?.webContents ??
+          (browserWindowOrWebContents as Electron.WebContents | undefined);
 
-        if (sourceWebContents) {
+        if (
+          sourceWebContents &&
+          typeof sourceWebContents.isDestroyed === 'function' &&
+          !sourceWebContents.isDestroyed()
+        ) {
           const fakeEvent = {
             defaultPrevented: false,
             preventDefault: () => {},

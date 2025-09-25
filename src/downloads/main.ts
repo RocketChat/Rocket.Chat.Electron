@@ -77,7 +77,7 @@ export const handleWillDownloadEvent = async (
 
   item.on('done', (_event, state) => {
     createNotification({
-      title: 'Downloads',
+      title: t('downloads.title', { defaultValue: 'Downloads' }),
       body: item.getFilename(),
       subtitle:
         state === 'completed'

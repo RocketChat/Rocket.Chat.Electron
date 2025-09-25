@@ -4,6 +4,14 @@ import electronDl from 'electron-dl';
 
 import { setupElectronDlWithTracking } from './setup';
 
+// Mock fs functions for directory validation
+jest.mock('fs', () => ({
+  existsSync: jest.fn(() => true), // Default to directories existing
+  statSync: jest.fn(() => ({
+    isDirectory: () => true, // Default to being directories
+  })),
+}));
+
 // Mock all dependencies with comprehensive mocking
 jest.mock('electron', () => ({
   app: {

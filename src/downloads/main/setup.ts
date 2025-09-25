@@ -1,3 +1,4 @@
+import { existsSync, statSync } from 'fs';
 import path from 'path';
 
 import { app, webContents } from 'electron';
@@ -8,6 +9,10 @@ import { t } from 'i18next';
 import { createNotification } from '../../notifications/preload';
 import { handleWillDownloadEvent } from '../main';
 
+type DownloadPrefs = {
+  lastDownloadDirectory: string;
+};
+
 // Simple store for download directory persistence
 let defaultDownloadPath: string;
 try {
@@ -16,10 +21,21 @@ try {
   defaultDownloadPath = '/tmp';
 }
 
-const downloadStore = new ElectronStore({
+function isValidDirectory(dir: string): boolean {
+  try {
+    return !!dir && existsSync(dir) && statSync(dir).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+const downloadStore = new ElectronStore<DownloadPrefs>({
   name: 'download-preferences',
   defaults: {
     lastDownloadDirectory: defaultDownloadPath,
+  },
+  schema: {
+    lastDownloadDirectory: { type: 'string' },
   },
 });
 
@@ -29,17 +45,14 @@ export const setupElectronDlWithTracking = () => {
     onStarted: (item) => {
       try {
         // Set the save dialog options with both directory and filename
-        let lastDownloadDir: string;
-        try {
-          lastDownloadDir = downloadStore.get(
-            'lastDownloadDirectory',
-            defaultDownloadPath
-          ) as string;
-        } catch {
-          // Fallback if store fails
-          lastDownloadDir = defaultDownloadPath;
-        }
-
+        const configuredDir = downloadStore.get(
+          'lastDownloadDirectory',
+          defaultDownloadPath
+        );
+        const lastDownloadDir =
+          configuredDir && isValidDirectory(configuredDir)
+            ? configuredDir
+            : defaultDownloadPath;
         const fullPath = path.join(lastDownloadDir, item.getFilename());
 
         item.setSaveDialogOptions({
@@ -78,12 +91,14 @@ export const setupElectronDlWithTracking = () => {
     onCompleted: (file) => {
       try {
         // Remember the directory where the file was saved
-        const downloadDirectory = path.dirname(file.path);
-        downloadStore.set('lastDownloadDirectory', downloadDirectory);
+        if (file.path) {
+          const downloadDirectory = path.dirname(file.path);
+          downloadStore.set('lastDownloadDirectory', downloadDirectory);
+        }
 
         createNotification({
-          title: 'Downloads',
-          body: file.filename,
+          title: t('downloads.title', { defaultValue: 'Downloads' }),
+          body: file.filename || 'Unknown file',
           subtitle: t('downloads.notifications.downloadFinished'),
         });
       } catch {

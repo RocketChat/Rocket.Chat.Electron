@@ -240,8 +240,8 @@ describe('main.ts electron-dl integration', () => {
       },
       onCompleted: (file) => {
         createNotification({
-          title: 'Downloads',
-          body: file.filename,
+          title: t('downloads.title', { defaultValue: 'Downloads' }),
+          body: file.filename || 'Unknown file',
           subtitle: t('downloads.notifications.downloadFinished'),
         });
       },
@@ -355,6 +355,9 @@ describe('main.ts electron-dl integration', () => {
           body: 'completed-file.pdf',
           subtitle: 'downloads.notifications.downloadFinished',
         });
+        expect(t).toHaveBeenCalledWith('downloads.title', {
+          defaultValue: 'Downloads',
+        });
       });
 
       it('should use translated subtitle', () => {
@@ -371,6 +374,9 @@ describe('main.ts electron-dl integration', () => {
           title: 'Downloads',
           body: 'test.pdf',
           subtitle: 'Download finished',
+        });
+        expect(tMock).toHaveBeenCalledWith('downloads.title', {
+          defaultValue: 'Downloads',
         });
       });
     });

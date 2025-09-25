@@ -1,5 +1,8 @@
+import path from 'path';
+
 import { app, webContents } from 'electron';
 import electronDl from 'electron-dl';
+import ElectronStore from 'electron-store';
 import { t } from 'i18next';
 
 import { performElectronStartup, setupApp } from './app/main/app';
@@ -44,10 +47,30 @@ import {
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
 
+// Simple store for download directory persistence
+const downloadStore = new ElectronStore({
+  name: 'download-preferences',
+  defaults: {
+    lastDownloadDirectory: app.getPath('downloads'),
+  },
+});
+
 const setupElectronDlWithTracking = () => {
   electronDl({
     saveAs: true,
     onStarted: (item) => {
+      // Set the save dialog options with both directory and filename
+      const lastDownloadDir = downloadStore.get(
+        'lastDownloadDirectory',
+        app.getPath('downloads')
+      ) as string;
+
+      const fullPath = path.join(lastDownloadDir, item.getFilename());
+
+      item.setSaveDialogOptions({
+        defaultPath: fullPath,
+      });
+
       // Find the webContents that initiated this download
       const webContentsArray = webContents.getAllWebContents();
 
@@ -72,6 +95,10 @@ const setupElectronDlWithTracking = () => {
       }
     },
     onCompleted: (file) => {
+      // Remember the directory where the file was saved
+      const downloadDirectory = path.dirname(file.path);
+      downloadStore.set('lastDownloadDirectory', downloadDirectory);
+
       createNotification({
         title: 'Downloads',
         body: file.filename,

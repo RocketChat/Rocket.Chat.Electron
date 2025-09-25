@@ -197,6 +197,7 @@ describe('Download Folder Persistence', () => {
       expect(onStartedCallback).toBeDefined();
 
       // Mock fs functions to simulate non-existent directory
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { existsSync } = require('fs');
       existsSync.mockReturnValueOnce(false); // Directory doesn't exist
 

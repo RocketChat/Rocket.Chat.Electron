@@ -60,18 +60,20 @@ export const setupElectronDlWithTracking = () => {
         });
 
         // Find the webContents that initiated this download
+        // According to electron-dl docs, onStarted only receives DownloadItem
+        // We need to find an active webContents for tracking purposes
         const webContentsArray = webContents.getAllWebContents();
 
-        const sourceWebContents =
-          // electron-dl passes a BrowserWindow; fall back if it already gave us webContents.
-          (browserWindowOrWebContents as Electron.BrowserWindow | undefined)?.webContents ??
-          (browserWindowOrWebContents as Electron.WebContents | undefined);
+        // Use the first available webContents for tracking
+        let sourceWebContents = null;
+        for (const wc of webContentsArray) {
+          if (wc && typeof wc.isDestroyed === 'function' && !wc.isDestroyed()) {
+            sourceWebContents = wc;
+            break;
+          }
+        }
 
-        if (
-          sourceWebContents &&
-          typeof sourceWebContents.isDestroyed === 'function' &&
-          !sourceWebContents.isDestroyed()
-        ) {
+        if (sourceWebContents) {
           const fakeEvent = {
             defaultPrevented: false,
             preventDefault: () => {},
@@ -96,6 +98,11 @@ export const setupElectronDlWithTracking = () => {
           downloadStore.set('lastDownloadDirectory', downloadDirectory);
         }
 
+        createNotification({
+          title: t('downloads.title', { defaultValue: 'Downloads' }),
+          body: file.filename || 'Unknown file',
+          subtitle: t('downloads.notifications.downloadFinished'),
+        });
       } catch {
         // Silently handle any errors in onCompleted
       }

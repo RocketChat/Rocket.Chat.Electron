@@ -1,8 +1,8 @@
-import path from 'path';
-
 import type { DownloadItem } from 'electron';
 import { app, webContents } from 'electron';
 import electronDl from 'electron-dl';
+
+import { setupElectronDlWithTracking } from './setup';
 
 // Mock all dependencies with comprehensive mocking
 jest.mock('electron', () => ({
@@ -16,25 +16,27 @@ jest.mock('electron', () => ({
 
 jest.mock('electron-dl', () => jest.fn());
 
-// Create a comprehensive mock store
-const createMockStore = () => ({
-  get: jest.fn(),
-  set: jest.fn(),
-  has: jest.fn(),
-  delete: jest.fn(),
-  clear: jest.fn(),
-  size: 0,
-  store: {},
+jest.mock('electron-store', () => {
+  // Create a shared mock store instance inside the mock factory
+  const sharedMockStore = {
+    get: jest.fn(),
+    set: jest.fn(),
+    has: jest.fn(),
+    delete: jest.fn(),
+    clear: jest.fn(),
+    size: 0,
+    store: {},
+  };
+
+  return jest.fn(() => sharedMockStore);
 });
 
-jest.mock('electron-store', () => {
-  let mockStoreInstance: any;
-  return jest.fn(() => {
-    if (!mockStoreInstance) {
-      mockStoreInstance = createMockStore();
-    }
-    return mockStoreInstance;
-  });
+// Get access to the shared mock store for tests
+let sharedMockStore: any;
+beforeAll(() => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const ElectronStore = require('electron-store');
+  sharedMockStore = new ElectronStore();
 });
 
 // Mock the handleWillDownloadEvent function from the parent directory
@@ -42,9 +44,21 @@ jest.mock('../main', () => ({
   handleWillDownloadEvent: jest.fn(() => Promise.resolve()),
 }));
 
+// Mock i18next
+jest.mock('i18next', () => ({
+  t: jest.fn((key: string) => key),
+}));
+
+// Mock notifications
+jest.mock('../../notifications/preload', () => ({
+  createNotification: jest.fn(),
+}));
+
+// Don't mock the setup module - we want to use the real implementation
+// but with mocked dependencies. The mocks above will handle the dependencies.
+
 describe('Download Folder Persistence', () => {
   let electronDlMock: jest.MockedFunction<typeof electronDl>;
-  let mockStore: ReturnType<typeof createMockStore>;
   let appMock: jest.Mocked<typeof app>;
   let webContentsMock: jest.Mocked<typeof webContents>;
 
@@ -57,16 +71,11 @@ describe('Download Folder Persistence', () => {
     appMock = app as jest.Mocked<typeof app>;
     webContentsMock = webContents as jest.Mocked<typeof webContents>;
 
-    // Get fresh mock store instance
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const ElectronStore = require('electron-store');
-    mockStore = new ElectronStore();
-
     // Set up default mock behaviors
     appMock.getPath.mockReturnValue('/Users/test/Downloads');
     webContentsMock.getAllWebContents.mockReturnValue([]);
-    mockStore.get.mockReturnValue('/Users/test/Downloads');
-    mockStore.set.mockReturnValue(undefined);
+    sharedMockStore.get.mockReturnValue('/Users/test/Downloads');
+    sharedMockStore.set.mockReturnValue(undefined);
   });
 
   const createMockDownloadItem = (
@@ -108,69 +117,6 @@ describe('Download Folder Persistence', () => {
       off: jest.fn(),
     }) as any;
 
-  // Setup function that properly mocks the electron-dl configuration
-  const setupElectronDlWithTracking = () => {
-    let onStartedCallback: ((item: DownloadItem) => void) | undefined;
-    let onCompletedCallback:
-      | ((file: { filename: string; path: string }) => void)
-      | undefined;
-
-    electronDlMock.mockImplementation((config) => {
-      if (config) {
-        onStartedCallback = config.onStarted;
-        onCompletedCallback = config.onCompleted as any;
-      }
-    });
-
-    electronDlMock({
-      saveAs: true,
-      onStarted: (item) => {
-        try {
-          // Set the save dialog options with both directory and filename
-          const lastDownloadDir = mockStore.get(
-            'lastDownloadDirectory',
-            appMock.getPath('downloads')
-          ) as string;
-
-          const fullPath = path.join(lastDownloadDir, item.getFilename());
-
-          item.setSaveDialogOptions({
-            defaultPath: fullPath,
-          });
-
-          // Find the webContents that initiated this download
-          const webContentsArray = webContentsMock.getAllWebContents();
-
-          // Use the first available webContents for tracking
-          for (const wc of webContentsArray) {
-            if (
-              wc &&
-              typeof wc.isDestroyed === 'function' &&
-              !wc.isDestroyed()
-            ) {
-              break;
-            }
-          }
-        } catch (error) {
-          // Silently handle errors to prevent test failures
-          console.warn('Error in onStarted callback:', error);
-        }
-      },
-      onCompleted: (file: any) => {
-        try {
-          // Remember the directory where the file was saved
-          const downloadDirectory = path.dirname(file.path);
-          mockStore.set('lastDownloadDirectory', downloadDirectory);
-        } catch (error) {
-          // Silently handle errors to prevent test failures
-          console.warn('Error in onCompleted callback:', error);
-        }
-      },
-    });
-
-    return { onStartedCallback, onCompletedCallback };
-  };
-
   describe('Store Configuration', () => {
     it('should use the mocked store for download persistence', () => {
       setupElectronDlWithTracking();
@@ -199,11 +145,11 @@ describe('Download Folder Persistence', () => {
       expect(onStartedCallback).toBeDefined();
 
       const mockItem = createMockDownloadItem('document.pdf');
-      mockStore.get.mockReturnValue('/Users/test/Documents');
+      sharedMockStore.get.mockReturnValue('/Users/test/Documents');
 
       onStartedCallback(mockItem);
 
-      expect(mockStore.get).toHaveBeenCalledWith(
+      expect(sharedMockStore.get).toHaveBeenCalledWith(
         'lastDownloadDirectory',
         '/Users/test/Downloads'
       );
@@ -217,7 +163,7 @@ describe('Download Folder Persistence', () => {
       expect(onStartedCallback).toBeDefined();
 
       const mockItem = createMockDownloadItem('My File (2023) [Copy].pdf');
-      mockStore.get.mockReturnValue('/Users/test/Documents');
+      sharedMockStore.get.mockReturnValue('/Users/test/Documents');
 
       onStartedCallback(mockItem);
 
@@ -230,7 +176,7 @@ describe('Download Folder Persistence', () => {
       expect(onStartedCallback).toBeDefined();
 
       const mockItem = createMockDownloadItem('test.pdf');
-      mockStore.get.mockReturnValue('/Users/test/Downloads'); // Fallback value
+      sharedMockStore.get.mockReturnValue('/Users/test/Downloads'); // Fallback value
 
       onStartedCallback(mockItem);
 
@@ -251,7 +197,7 @@ describe('Download Folder Persistence', () => {
 
       testCases.forEach(({ filename, dir }) => {
         const mockItem = createMockDownloadItem(filename);
-        mockStore.get.mockReturnValue(dir);
+        sharedMockStore.get.mockReturnValue(dir);
 
         onStartedCallback(mockItem);
 
@@ -265,7 +211,7 @@ describe('Download Folder Persistence', () => {
       expect(onStartedCallback).toBeDefined();
 
       const mockItem = createMockDownloadItem('test.pdf');
-      mockStore.get.mockImplementation(() => {
+      sharedMockStore.get.mockImplementation(() => {
         throw new Error('Store error');
       });
 
@@ -295,7 +241,7 @@ describe('Download Folder Persistence', () => {
 
       onCompletedCallback(mockFile);
 
-      expect(mockStore.set).toHaveBeenCalledWith(
+      expect(sharedMockStore.set).toHaveBeenCalledWith(
         'lastDownloadDirectory',
         '/Users/test/Documents/Projects'
       );
@@ -311,7 +257,10 @@ describe('Download Folder Persistence', () => {
 
       onCompletedCallback(mockFile);
 
-      expect(mockStore.set).toHaveBeenCalledWith('lastDownloadDirectory', '/');
+      expect(sharedMockStore.set).toHaveBeenCalledWith(
+        'lastDownloadDirectory',
+        '/'
+      );
     });
 
     it('should extract directory from nested paths', () => {
@@ -324,7 +273,7 @@ describe('Download Folder Persistence', () => {
 
       onCompletedCallback(mockFile);
 
-      expect(mockStore.set).toHaveBeenCalledWith(
+      expect(sharedMockStore.set).toHaveBeenCalledWith(
         'lastDownloadDirectory',
         '/Users/test/Documents/Work/2023/Q4'
       );
@@ -333,7 +282,7 @@ describe('Download Folder Persistence', () => {
     it('should handle errors gracefully in onCompleted callback', () => {
       expect(onCompletedCallback).toBeDefined();
 
-      mockStore.set.mockImplementation(() => {
+      sharedMockStore.set.mockImplementation(() => {
         throw new Error('Store write error');
       });
 
@@ -381,7 +330,7 @@ describe('Download Folder Persistence', () => {
 
       // First download
       const firstItem = createMockDownloadItem('first-file.pdf');
-      mockStore.get.mockReturnValueOnce('/Users/test/Downloads');
+      sharedMockStore.get.mockReturnValueOnce('/Users/test/Downloads');
       onStartedCallback(firstItem);
 
       // User saves to custom directory
@@ -390,14 +339,14 @@ describe('Download Folder Persistence', () => {
         path: '/Users/test/Documents/first-file.pdf',
       });
 
-      expect(mockStore.set).toHaveBeenCalledWith(
+      expect(sharedMockStore.set).toHaveBeenCalledWith(
         'lastDownloadDirectory',
         '/Users/test/Documents'
       );
 
       // Second download should use stored directory
       const secondItem = createMockDownloadItem('second-file.xlsx');
-      mockStore.get.mockReturnValueOnce('/Users/test/Documents');
+      sharedMockStore.get.mockReturnValueOnce('/Users/test/Documents');
       onStartedCallback(secondItem);
 
       expect(secondItem.setSaveDialogOptions).toHaveBeenCalledWith({
@@ -432,17 +381,17 @@ describe('Download Folder Persistence', () => {
 
         // Mock store to return previous directory
         if (index > 0) {
-          mockStore.get.mockReturnValueOnce(
+          sharedMockStore.get.mockReturnValueOnce(
             testSequence[index - 1].expectedDir
           );
         } else {
-          mockStore.get.mockReturnValueOnce('/Users/test/Downloads');
+          sharedMockStore.get.mockReturnValueOnce('/Users/test/Downloads');
         }
 
         onStartedCallback(mockItem);
         onCompletedCallback({ filename, path: savePath });
 
-        expect(mockStore.set).toHaveBeenCalledWith(
+        expect(sharedMockStore.set).toHaveBeenCalledWith(
           'lastDownloadDirectory',
           expectedDir
         );
@@ -512,7 +461,6 @@ describe('Download Folder Persistence', () => {
 
 describe('Download Regression Prevention', () => {
   let electronDlMock: jest.MockedFunction<typeof electronDl>;
-  let mockStore: ReturnType<typeof createMockStore>;
   let appMock: jest.Mocked<typeof app>;
 
   beforeEach(() => {
@@ -521,14 +469,10 @@ describe('Download Regression Prevention', () => {
     electronDlMock = electronDl as jest.MockedFunction<typeof electronDl>;
     appMock = app as jest.Mocked<typeof app>;
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const ElectronStore = require('electron-store');
-    mockStore = new ElectronStore();
-
     // Set up default behaviors
     appMock.getPath.mockReturnValue('/Users/test/Downloads');
-    mockStore.get.mockReturnValue('/Users/test/Downloads');
-    mockStore.set.mockReturnValue(undefined);
+    sharedMockStore.get.mockReturnValue('/Users/test/Downloads');
+    sharedMockStore.set.mockReturnValue(undefined);
   });
 
   const createMockDownloadItem = (
@@ -539,46 +483,6 @@ describe('Download Regression Prevention', () => {
       setSaveDialogOptions: jest.fn(),
       on: jest.fn(),
     }) as any;
-
-  const setupElectronDlWithTracking = () => {
-    electronDlMock.mockImplementation((config) => {
-      // Store the callbacks for later use
-      if (config?.onStarted) {
-        (electronDlMock as any).lastOnStarted = config.onStarted;
-      }
-      if (config?.onCompleted) {
-        (electronDlMock as any).lastOnCompleted = config.onCompleted;
-      }
-    });
-
-    electronDlMock({
-      saveAs: true,
-      onStarted: (item) => {
-        try {
-          const lastDownloadDir = mockStore.get(
-            'lastDownloadDirectory',
-            appMock.getPath('downloads')
-          ) as string;
-
-          const fullPath = path.join(lastDownloadDir, item.getFilename());
-
-          item.setSaveDialogOptions({
-            defaultPath: fullPath,
-          });
-        } catch (error) {
-          console.warn('Error in regression test onStarted:', error);
-        }
-      },
-      onCompleted: (file: any) => {
-        try {
-          const downloadDirectory = path.dirname(file.path);
-          mockStore.set('lastDownloadDirectory', downloadDirectory);
-        } catch (error) {
-          console.warn('Error in regression test onCompleted:', error);
-        }
-      },
-    });
-  };
 
   it('should maintain download folder persistence after app restarts', () => {
     // First session - simulate download completion
@@ -595,14 +499,14 @@ describe('Download Regression Prevention', () => {
     });
 
     // Verify directory was stored
-    expect(mockStore.set).toHaveBeenCalledWith(
+    expect(sharedMockStore.set).toHaveBeenCalledWith(
       'lastDownloadDirectory',
       '/Users/test/Custom'
     );
 
     // Simulate app restart by clearing mocks and setting up again
     jest.clearAllMocks();
-    mockStore.get.mockReturnValue('/Users/test/Custom'); // Simulate persisted value
+    sharedMockStore.get.mockReturnValue('/Users/test/Custom'); // Simulate persisted value
 
     setupElectronDlWithTracking();
     const newElectronDlCall = electronDlMock.mock.calls[0];
@@ -635,9 +539,9 @@ describe('Download Regression Prevention', () => {
 
       // Mock persisted directory from previous session
       if (sessionIndex > 0) {
-        mockStore.get.mockReturnValue(sessionData[sessionIndex - 1].dir);
+        sharedMockStore.get.mockReturnValue(sessionData[sessionIndex - 1].dir);
       } else {
-        mockStore.get.mockReturnValue('/Users/test/Downloads');
+        sharedMockStore.get.mockReturnValue('/Users/test/Downloads');
       }
 
       setupElectronDlWithTracking();
@@ -673,7 +577,7 @@ describe('Download Regression Prevention', () => {
         });
 
         // Verify new directory was stored
-        expect(mockStore.set).toHaveBeenCalledWith(
+        expect(sharedMockStore.set).toHaveBeenCalledWith(
           'lastDownloadDirectory',
           dir
         );
@@ -683,10 +587,10 @@ describe('Download Regression Prevention', () => {
 
   it('should handle complete failure scenarios gracefully', () => {
     // Test when everything fails
-    mockStore.get.mockImplementation(() => {
+    sharedMockStore.get.mockImplementation(() => {
       throw new Error('Complete store failure');
     });
-    mockStore.set.mockImplementation(() => {
+    sharedMockStore.set.mockImplementation(() => {
       throw new Error('Complete store failure');
     });
     appMock.getPath.mockImplementation(() => {

@@ -1,9 +1,4 @@
-import path from 'path';
-
-import { app, webContents } from 'electron';
-import electronDl from 'electron-dl';
-import ElectronStore from 'electron-store';
-import { t } from 'i18next';
+import { app } from 'electron';
 
 import { performElectronStartup, setupApp } from './app/main/app';
 import {
@@ -13,13 +8,13 @@ import {
 import { setUserDataDirectory } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { startDocumentViewerHandler } from './documentViewer/ipc';
-import { setupDownloads, handleWillDownloadEvent } from './downloads/main';
+import { setupDownloads } from './downloads/main';
+import { setupElectronDlWithTracking } from './downloads/main/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { setupNavigation } from './navigation/main';
 import { setupNotifications } from './notifications/main';
-import { createNotification } from './notifications/preload';
 import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
 import { setupScreenSharing } from './screenSharing/main';
 import { handleClearCacheDialog } from './servers/cache';
@@ -46,67 +41,6 @@ import {
   startVideoCallWindowHandler,
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
-
-// Simple store for download directory persistence
-const downloadStore = new ElectronStore({
-  name: 'download-preferences',
-  defaults: {
-    lastDownloadDirectory: app.getPath('downloads'),
-  },
-});
-
-const setupElectronDlWithTracking = () => {
-  electronDl({
-    saveAs: true,
-    onStarted: (item) => {
-      // Set the save dialog options with both directory and filename
-      const lastDownloadDir = downloadStore.get(
-        'lastDownloadDirectory',
-        app.getPath('downloads')
-      ) as string;
-
-      const fullPath = path.join(lastDownloadDir, item.getFilename());
-
-      item.setSaveDialogOptions({
-        defaultPath: fullPath,
-      });
-
-      // Find the webContents that initiated this download
-      const webContentsArray = webContents.getAllWebContents();
-
-      // Use the first available webContents for tracking
-      let sourceWebContents = null;
-      for (const wc of webContentsArray) {
-        if (wc && !wc.isDestroyed()) {
-          sourceWebContents = wc;
-          break;
-        }
-      }
-
-      if (sourceWebContents) {
-        const fakeEvent = { defaultPrevented: false, preventDefault: () => {} };
-        handleWillDownloadEvent(
-          fakeEvent as any,
-          item,
-          sourceWebContents
-        ).catch(() => {
-          // Silently handle tracking errors
-        });
-      }
-    },
-    onCompleted: (file) => {
-      // Remember the directory where the file was saved
-      const downloadDirectory = path.dirname(file.path);
-      downloadStore.set('lastDownloadDirectory', downloadDirectory);
-
-      createNotification({
-        title: 'Downloads',
-        body: file.filename,
-        subtitle: t('downloads.notifications.downloadFinished'),
-      });
-    },
-  });
-};
 
 const start = async (): Promise<void> => {
   setUserDataDirectory();

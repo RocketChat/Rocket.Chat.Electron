@@ -27,12 +27,6 @@ export const GlobalStyles = () => (
           ? 'transparent'
           : '#2f343d'};
       }
-
-      :root {
-        ${process.platform === 'darwin'
-          ? '--rcx-color-surface-overlay: rgba(47, 52, 61, 0.13);'
-          : ''}
-      }
     `}
   />
 );

@@ -6,9 +6,7 @@ export const Wrapper = styled.section`
   top: 0;
   right: 0;
   bottom: 0;
-  background-color: ${process.platform === 'darwin'
-    ? 'transparent'
-    : '#2f343d'};
+  background-color: #2f343d;
 
   overflow-y: auto;
   align-items: center;

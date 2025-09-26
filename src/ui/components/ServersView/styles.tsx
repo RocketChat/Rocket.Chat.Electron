@@ -11,9 +11,7 @@ export const Wrapper = styled.section<WrapperProps>`
   top: 0;
   right: 0;
   bottom: 0;
-  background-color: ${process.platform === 'darwin'
-    ? 'transparent'
-    : '#2f343d'};
+  background-color: #2f343d;
 
   ${({ isVisible }) => css`
     display: ${isVisible ? 'flex' : 'none'};

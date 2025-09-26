@@ -100,6 +100,7 @@ export const Shell = () => {
             position='relative'
             alignSelf='stretch'
             flexBasis='1 1 auto'
+            bg={process.platform === 'darwin' ? 'light' : undefined}
           >
             <ServersView />
             <AddServerView />

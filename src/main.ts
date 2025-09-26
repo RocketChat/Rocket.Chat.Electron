@@ -1,6 +1,10 @@
 import { app } from 'electron';
 
-import { performElectronStartup, setupApp } from './app/main/app';
+import {
+  performElectronStartup,
+  setupApp,
+  initializeScreenCaptureFallbackState,
+} from './app/main/app';
 import {
   mergePersistableValues,
   watchAndPersistChanges,
@@ -50,6 +54,9 @@ const start = async (): Promise<void> => {
   await app.whenReady();
 
   createMainReduxStore();
+
+  // Initialize screen capture fallback state after store is available
+  initializeScreenCaptureFallbackState();
 
   // Set up electron-dl with our download tracking callbacks
   setupElectronDlWithTracking();

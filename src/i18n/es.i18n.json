@@ -218,6 +218,11 @@
         "title": "Aceleración de hardware",
         "description": "Habilita el uso de la aceleración de hardware cuando esté disponible. La aplicación se reiniciará al realizar cambios."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Modo alternativo de captura en videollamadas",
+        "description": "Desactiva Windows Graphics Capture para que el uso compartido funcione en sesiones RDP. La app se reinicia cuando cambias esta opción.",
+        "forcedDescription": "Actualmente está aplicado porque la app detectó una sesión RDP. El interruptor controla el comportamiento en siguientes arranques locales."
+      },
       "internalVideoChatWindow": {
         "title": "Abrir videollamada en la ventana de la aplicación",
         "description": "Si está activado, la videollamada se abrirá en la ventana de la aplicación en lugar del navegador predeterminado. Sin embargo, para <strong>Google Meet</strong> y <strong>Jitsi</strong>, la grabación de pantalla no es compatible en aplicaciones Electron, por lo que siempre se abrirán en el navegador independientemente de esta configuración.",

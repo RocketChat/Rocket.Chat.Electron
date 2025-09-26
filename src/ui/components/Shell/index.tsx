@@ -86,7 +86,7 @@ export const Shell = () => {
       <GlobalStyles />
       {process.platform === 'darwin' && <WindowDragBar />}
       <Box
-        bg='light'
+        bg={process.platform === 'darwin' ? undefined : 'light'}
         display='flex'
         flexWrap='wrap'
         height='100vh'

@@ -16,7 +16,7 @@ export const TopBar = () => {
       justifyContent='center'
       alignItems='center'
       color='default'
-      bg='tint'
+      bg={process.platform === 'darwin' ? undefined : 'tint'}
       width='100%'
     >
       <Box fontScale='p2'>{mainWindowTitle}</Box>

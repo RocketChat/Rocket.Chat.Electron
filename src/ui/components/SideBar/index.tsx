@@ -69,7 +69,10 @@ export const SideBar = () => {
   const { t } = useTranslation();
 
   return (
-    <Box className='rcx-sidebar--main' bg='tint'>
+    <Box
+      className='rcx-sidebar--main'
+      bg={process.platform === 'darwin' ? undefined : 'tint'}
+    >
       <Box
         width='x44'
         display={isVisible ? 'flex' : 'none'}

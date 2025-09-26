@@ -23,7 +23,15 @@ export const GlobalStyles = () => (
         font-family: system-ui;
         font-size: 0.875rem;
         line-height: 1rem;
-        background-color: #2f343d;
+        background-color: ${process.platform === 'darwin'
+          ? 'transparent'
+          : '#2f343d'};
+      }
+
+      :root {
+        ${process.platform === 'darwin'
+          ? '--rcx-color-surface-overlay: rgba(47, 52, 61, 0.13);'
+          : ''}
       }
     `}
   />
@@ -43,7 +51,9 @@ export const Wrapper = styled.div`
   height: 100vh;
   cursor: default;
   user-select: none;
-  background-color: #2f343d;
+  background-color: ${process.platform === 'darwin'
+    ? 'transparent'
+    : '#2f343d'};
   display: flex;
   flex-flow: row nowrap;
 `;

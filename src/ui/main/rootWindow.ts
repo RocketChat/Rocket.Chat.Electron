@@ -54,6 +54,9 @@ export const getRootWindow = (): Promise<BrowserWindow> =>
 const platformTitleBarStyle =
   process.platform === 'darwin' ? 'hidden' : 'default';
 
+const isMac = process.platform === 'darwin';
+const enableVibrancy = isMac;
+
 export const createRootWindow = (): void => {
   _rootWindow = new BrowserWindow({
     width: 1000,
@@ -61,9 +64,16 @@ export const createRootWindow = (): void => {
     minWidth: 400,
     minHeight: 400,
     titleBarStyle: platformTitleBarStyle,
-    backgroundColor: '#2f343d',
+    backgroundColor: enableVibrancy ? '#00000000' : '#2f343d',
     show: false,
     webPreferences,
+    ...(enableVibrancy
+      ? {
+          transparent: true,
+          vibrancy: 'sidebar',
+          visualEffectState: 'active',
+        }
+      : {}),
   });
 
   // Block navigation to smb:// protocol

@@ -108,6 +108,8 @@ export const SETTINGS_SET_IS_DEVELOPER_MODE_ENABLED_CHANGED =
   'settings/set-is-developer-mode-enabled-changed';
 export const SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED =
   'settings/set-is-video-call-devtools-auto-open-enabled-changed';
+export const SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED =
+  'settings/set-is-video-call-screen-capture-fallback-enabled-changed';
 export const SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS =
   'settings/clear-permitted-screen-capture-permissions';
 export const SETTINGS_NTLM_CREDENTIALS_CHANGED =
@@ -241,6 +243,7 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_VIDEO_CALL_WINDOW_PERSISTENCE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_DEVELOPER_MODE_ENABLED_CHANGED]: boolean;
   [SETTINGS_SET_IS_VIDEO_CALL_DEVTOOLS_AUTO_OPEN_ENABLED_CHANGED]: boolean;
+  [SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED]: boolean;
   [SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS]: void;
   [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;
   [SETTINGS_AVAILABLE_BROWSERS_UPDATED]: string[];

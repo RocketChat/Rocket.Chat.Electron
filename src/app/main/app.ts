@@ -16,6 +16,7 @@ import {
   SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
   SETTINGS_NTLM_CREDENTIALS_CHANGED,
   SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED,
+  SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED,
 } from '../../ui/actions';
 import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
@@ -25,6 +26,7 @@ import {
   APP_MAIN_WINDOW_TITLE_SET,
   APP_PATH_SET,
   APP_VERSION_SET,
+  APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
 } from '../actions';
 
 export const packageJsonInformation = {
@@ -36,6 +38,8 @@ export const electronBuilderJsonInformation = {
   appId: electronBuilderJson.appId,
   protocol: electronBuilderJson.protocols.schemes[0],
 };
+
+let isScreenCaptureFallbackForced = false;
 
 export const getPlatformName = (): string => {
   switch (process.platform) {
@@ -61,10 +65,11 @@ export const performElectronStartup = (): void => {
   app.setAppUserModelId(electronBuilderJsonInformation.appId);
 
   app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
-  app.commandLine.appendSwitch(
-    'disable-features',
-    'HardwareMediaKeyHandling,MediaSessionService'
-  );
+
+  const disabledChromiumFeatures = [
+    'HardwareMediaKeyHandling',
+    'MediaSessionService',
+  ];
 
   if (getPlatformName() === 'macOS' && process.mas) {
     app.commandLine.appendSwitch('disable-accelerated-video-decode');
@@ -88,6 +93,11 @@ export const performElectronStartup = (): void => {
   const isHardwareAccelerationEnabled = readSetting(
     'isHardwareAccelerationEnabled'
   );
+  const isScreenCaptureFallbackEnabled = readSetting(
+    'isVideoCallScreenCaptureFallbackEnabled'
+  );
+
+  isScreenCaptureFallbackForced = false;
 
   if (
     args.includes('--disable-gpu') ||
@@ -99,6 +109,40 @@ export const performElectronStartup = (): void => {
     app.commandLine.appendSwitch('--disable-accelerated-2d-canvas');
     app.commandLine.appendSwitch('--disable-gpu');
   }
+
+  if (process.platform === 'win32') {
+    const sessionName = process.env.SESSIONNAME;
+    const isRdpSession =
+      typeof sessionName === 'string' && sessionName !== 'Console';
+
+    isScreenCaptureFallbackForced = isRdpSession;
+
+    if (isScreenCaptureFallbackEnabled || isRdpSession) {
+      console.log(
+        'Disabling Windows Graphics Capture for video calls',
+        JSON.stringify({
+          reason: isScreenCaptureFallbackEnabled
+            ? 'user-setting'
+            : 'rdp-session',
+          sessionName,
+        })
+      );
+      disabledChromiumFeatures.push('WebRtcAllowWgcDesktopCapturer');
+    }
+  }
+
+  // Apply all disabled features in a single call
+  app.commandLine.appendSwitch(
+    'disable-features',
+    disabledChromiumFeatures.join(',')
+  );
+};
+
+export const initializeScreenCaptureFallbackState = (): void => {
+  dispatch({
+    type: APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
+    payload: isScreenCaptureFallbackForced,
+  });
 };
 
 export const setupApp = (): void => {
@@ -132,6 +176,28 @@ export const setupApp = (): void => {
   listen(SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED, () => {
     relaunchApp();
   });
+
+  listen(
+    SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED,
+    (action) => {
+      const newSettingValue = action.payload;
+      const currentPersistedSetting = readSetting(
+        'isVideoCallScreenCaptureFallbackEnabled'
+      );
+      const sessionName = process.env.SESSIONNAME;
+      const isRdpSession =
+        typeof sessionName === 'string' && sessionName !== 'Console';
+
+      // Relaunch only if the setting actually changes AND it's not already forced by RDP
+      if (newSettingValue !== currentPersistedSetting && !isRdpSession) {
+        relaunchApp();
+      } else if (isRdpSession) {
+        console.log(
+          'Screen Capture Fallback setting changed, but app is in RDP session. Skipping relaunch.'
+        );
+      }
+    }
+  );
 
   listen(APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET, (action) => {
     if (action.payload.length > 0) {

@@ -8,6 +8,7 @@ export type UpdateConfiguration = {
   isHardwareAccelerationEnabled: boolean;
   isFlashFrameEnabled: boolean;
   isInternalVideoChatWindowEnabled: boolean;
+  isVideoCallScreenCaptureFallbackEnabled: boolean;
   updateChannel: string;
 };
 

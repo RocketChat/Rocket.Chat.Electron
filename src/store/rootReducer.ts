@@ -5,6 +5,7 @@ import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
 import { machineTheme } from '../app/reducers/machineTheme';
 import { mainWindowTitle } from '../app/reducers/mainWindowTitle';
+import { screenCaptureFallbackForced } from '../app/reducers/screenCaptureFallbackForced';
 import { downloads } from '../downloads/reducers/downloads';
 import { allowedJitsiServers } from '../jitsi/reducers';
 import {
@@ -31,6 +32,7 @@ import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowO
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
+import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
 import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
 import { openDialog } from '../ui/reducers/openDialog';
@@ -95,7 +97,9 @@ export const rootReducer = combineReducers({
   isVideoCallWindowPersistenceEnabled,
   isDeveloperModeEnabled,
   updateChannel,
+  screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,
+  isVideoCallScreenCaptureFallbackEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

@@ -206,6 +206,11 @@
         "title": "Accélération matérielle",
         "description": "Active l'utilisation de l'accélération matérielle lorsqu'elle est disponible. L'application se rechargera en cas de changement."
       },
+      "videoCallScreenCaptureFallback": {
+        "title": "Solution de capture d'écran pour les appels vidéo",
+        "description": "Désactive Windows Graphics Capture pour permettre le partage d'écran dans les sessions RDP. L'application redémarre lorsque vous modifiez cette option.",
+        "forcedDescription": "Actuellement appliqué car l'application a détecté une session RDP. Le commutateur contrôle le comportement lors des prochains démarrages locaux."
+      },
       "internalVideoChatWindow": {
         "title": "Ouvrir le chat vidéo à l'aide de la fenêtre de l'application",
         "description": "Si cette option est activée, le chat vidéo s'ouvrira dans la fenêtre de l'application au lieu du navigateur par défaut. Cependant, pour <strong>Google Meet</strong> et <strong>Jitsi</strong>, l'enregistrement d'écran n'est pas pris en charge dans les applications Electron, donc ils s'ouvriront toujours dans le navigateur, quel que soit ce paramètre.",

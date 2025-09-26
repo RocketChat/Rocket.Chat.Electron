@@ -132,6 +132,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       isFlashFrameEnabled,
       isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
+      isVideoCallScreenCaptureFallbackEnabled,
       updateChannel,
     }: RootState) => ({
       isUpdatingAllowed:
@@ -146,6 +147,7 @@ const loadConfiguration = async (): Promise<UpdateConfiguration> => {
       isFlashFrameEnabled,
       isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
+      isVideoCallScreenCaptureFallbackEnabled,
       updateChannel,
     })
   );
@@ -185,6 +187,7 @@ export const setupUpdates = async (): Promise<void> => {
     isFlashFrameEnabled,
     isHardwareAccelerationEnabled,
     isInternalVideoChatWindowEnabled,
+    isVideoCallScreenCaptureFallbackEnabled,
     updateChannel,
   } = await loadConfiguration();
 
@@ -200,6 +203,7 @@ export const setupUpdates = async (): Promise<void> => {
       isFlashFrameEnabled,
       isHardwareAccelerationEnabled,
       isInternalVideoChatWindowEnabled,
+      isVideoCallScreenCaptureFallbackEnabled,
       updateChannel,
     },
   });

@@ -162,7 +162,8 @@
       "downloadCancelled": "Download Cancelled",
       "downloadFailed": "Download Failed",
       "downloadExpired": "Downlaod Expired",
-      "downloadExpiredMessage": "Please retry downloading from source."
+      "downloadExpiredMessage": "Please retry downloading from source.",
+      "userLoggedOut": "You've been logged out"
     },
     "filters": {
       "search": "Search",

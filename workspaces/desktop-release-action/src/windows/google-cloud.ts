@@ -22,7 +22,7 @@ export const setupGoogleCloudAuth = async (): Promise<string> => {
 
 export const installGoogleCloudCLI = async (): Promise<string> => {
   core.info('Installing Google Cloud CLI...');
-  await exec.exec('choco', ['install', 'gcloudsdk', '-y']);
+  await exec.exec('choco', ['install', 'gcloudsdk', '--version', '536.0.0', '-y']);
   
   // Refresh environment variables to pick up PATH changes
   await exec.exec('refreshenv');

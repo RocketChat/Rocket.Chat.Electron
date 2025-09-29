@@ -50,11 +50,21 @@ function checkAvailableTools() {
   let gcloudCmd;
 
   if (process.platform === 'win32') {
-    const jsignChocolateyPath = 'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
-    const gcloudChocolateyPath = 'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
-    const gcloudWingetPath1 = 'C:\\Program Files\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd';
+    const jsignChocolateyPath =
+      'C:\\ProgramData\\chocolatey\\lib\\jsign\\tools\\jsign.cmd';
+    const gcloudChocolateyPath =
+      'C:\\ProgramData\\chocolatey\\lib\\gcloudsdk\\tools\\google-cloud-sdk\\bin\\gcloud.cmd';
+    const gcloudWingetPath1 =
+      'C:\\Program Files\\Google\\Cloud SDK\\google-cloud-sdk\\bin\\gcloud.cmd';
     const gcloudWingetPath2 = process.env.LOCALAPPDATA
-      ? path.join(process.env.LOCALAPPDATA, 'Google', 'Cloud SDK', 'google-cloud-sdk', 'bin', 'gcloud.cmd')
+      ? path.join(
+          process.env.LOCALAPPDATA,
+          'Google',
+          'Cloud SDK',
+          'google-cloud-sdk',
+          'bin',
+          'gcloud.cmd'
+        )
       : null;
 
     const jsignAvailable = fs.existsSync(jsignChocolateyPath);
@@ -88,8 +98,12 @@ function checkAvailableTools() {
       console.log('[winSignKms] gcloud not found in known locations or PATH');
     }
 
-    console.log(`[winSignKms] jsign available: ${jsignAvailable} (${jsignCmd})`);
-    console.log(`[winSignKms] gcloud available: ${gcloudAvailable} (${gcloudCmd})`);
+    console.log(
+      `[winSignKms] jsign available: ${jsignAvailable} (${jsignCmd})`
+    );
+    console.log(
+      `[winSignKms] gcloud available: ${gcloudAvailable} (${gcloudCmd})`
+    );
 
     return { jsignAvailable, gcloudAvailable, jsignCmd, gcloudCmd };
   }

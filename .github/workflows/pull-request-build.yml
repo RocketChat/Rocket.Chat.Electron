@@ -251,7 +251,7 @@ jobs:
           
           # Install Google Cloud CLI
           Write-Host "Installing Google Cloud CLI..." -ForegroundColor Cyan
-          choco install gcloudsdk -y
+          choco install gcloudsdk --version=536.0.0 -y
           
           # Refresh environment variables to pick up PATH changes
           Write-Host "Refreshing environment variables..." -ForegroundColor Cyan

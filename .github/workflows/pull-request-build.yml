@@ -218,18 +218,13 @@ jobs:
           }
 
       # Set up jsign and Google Cloud CLI for Windows builds
-      - name: Setup jsign and Google Cloud CLI (Windows)
+      - name: Setup jsign (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         shell: pwsh
         run: |
-          # Install Java and jsign via chocolatey
           Write-Host "Installing OpenJDK 11..." -ForegroundColor Cyan
           choco install openjdk11 -y
-          
-          # Refresh environment to pick up Java
           refreshenv
-          
-          # Verify Java installation and add to PATH
           $javaHome = [System.Environment]::GetEnvironmentVariable("JAVA_HOME", "Machine")
           if ($javaHome -and (Test-Path "$javaHome\bin\java.exe")) {
             Write-Host "Java found at: $javaHome" -ForegroundColor Green
@@ -237,51 +232,30 @@ jobs:
             $javaBinPath = "$javaHome\bin"
             $env:PATH = "$javaBinPath;$env:PATH"
             echo "$javaBinPath" >> $env:GITHUB_PATH
-          } else {
-            Write-Error "Java installation not found or JAVA_HOME not set"
-            exit 1
-          }
-          
+          } else { Write-Error "Java installation not found or JAVA_HOME not set"; exit 1 }
           Write-Host "Installing jsign..." -ForegroundColor Cyan
           choco install jsign -y
-          
-          # Refresh environment variables to pick up PATH changes from jsign
-          Write-Host "Refreshing environment variables after jsign installation..." -ForegroundColor Cyan
           refreshenv
-          
-          # Install Google Cloud CLI
-          Write-Host "Installing Google Cloud CLI..." -ForegroundColor Cyan
-          choco install gcloudsdk --version=536.0.0 -y
-          
-          # Refresh environment variables to pick up PATH changes
-          Write-Host "Refreshing environment variables..." -ForegroundColor Cyan
-          refreshenv
-          
-          # Also manually add gcloud to PATH for this session
-          $gcloudPath = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin"
-          $env:PATH += ";$gcloudPath"
-          echo "$gcloudPath" >> $env:GITHUB_PATH
-          
-          # Verify gcloud is accessible
-          Write-Host "Verifying gcloud installation..."
-          & "$gcloudPath\gcloud.cmd" version
-          
-          # Authenticate with service account
-          Write-Host "Authenticating with Google Cloud..." -ForegroundColor Cyan
-          if ($env:GOOGLE_APPLICATION_CREDENTIALS -and (Test-Path $env:GOOGLE_APPLICATION_CREDENTIALS)) {
-            & "$gcloudPath\gcloud.cmd" auth activate-service-account --key-file="$env:GOOGLE_APPLICATION_CREDENTIALS"
-            $projectId = (Get-Content $env:GOOGLE_APPLICATION_CREDENTIALS | ConvertFrom-Json).project_id
-            & "$gcloudPath\gcloud.cmd" config set project $projectId
-            Write-Host "✅ Google Cloud authentication successful"
-          } else {
-            Write-Error "❌ Google Cloud credentials not available"
-          }
-          
-          # Verify tools are installed
-          Write-Host "Verifying installations..." -ForegroundColor Cyan
+
+      - name: Setup gcloud (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: '>=536.0.0'
+
+      - name: Authenticate to Google Cloud (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_JSON }}
+
+      - name: Verify tools (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
           java -version
           jsign --help | Select-Object -First 2
-          & "$gcloudPath\gcloud.cmd" version
+          gcloud --version
 
       # Set up Google Cloud authentication for Linux builds
       - name: Setup Google Cloud authentication (Linux)
@@ -448,22 +422,23 @@ jobs:
         run: |
           Write-Host "=== Building Windows Package Natively ===" -ForegroundColor Cyan
           
-          # Ensure tools are accessible by adding them to PATH explicitly
+          # Ensure jsign is accessible
           $jsignPath = "C:\ProgramData\chocolatey\lib\jsign\tools"
-          $gcloudPath = "C:\ProgramData\chocolatey\lib\gcloudsdk\tools\google-cloud-sdk\bin"
-          $env:PATH += ";$jsignPath;$gcloudPath"
-          
-          Write-Host "Verifying tools before build..." -ForegroundColor Yellow
           if (Test-Path "$jsignPath\jsign.cmd") {
             Write-Host "✅ jsign.cmd found at $jsignPath\jsign.cmd" -ForegroundColor Green
+            $env:PATH = "$jsignPath;$env:PATH"
+            echo "$jsignPath" >> $env:GITHUB_PATH
           } else {
             Write-Error "❌ jsign.cmd not found at $jsignPath\jsign.cmd"
           }
           
-          if (Test-Path "$gcloudPath\gcloud.cmd") {
-            Write-Host "✅ gcloud.cmd found at $gcloudPath\gcloud.cmd" -ForegroundColor Green  
+          # Resolve gcloud from PATH (setup-gcloud added it)
+          $gcloudCmd = (Get-Command gcloud -ErrorAction SilentlyContinue)?.Source
+          if ($gcloudCmd) {
+            Write-Host "✅ gcloud resolved to: $gcloudCmd" -ForegroundColor Green
           } else {
-            Write-Error "❌ gcloud.cmd not found at $gcloudPath\gcloud.cmd"
+            Write-Error "❌ gcloud not found on PATH. Ensure setup-gcloud@v2 ran successfully."
+            exit 1
           }
           
           Write-Host "PATH includes: $env:PATH" -ForegroundColor Cyan
@@ -499,7 +474,7 @@ jobs:
           $gcpCredentials = "$env:RUNNER_TEMP\gcp-sa.json"
           Write-Host "Service account credentials at: $gcpCredentials" -ForegroundColor Cyan
           
-          & gcloud.cmd auth activate-service-account --key-file="$gcpCredentials"
+          & $gcloudCmd auth activate-service-account --key-file="$gcpCredentials"
           if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to activate service account"
             exit 1
@@ -509,7 +484,7 @@ jobs:
           $projectData = Get-Content $gcpCredentials | ConvertFrom-Json
           $projectId = $projectData.project_id
           Write-Host "Setting project to: $projectId" -ForegroundColor Cyan
-          & gcloud.cmd config set project $projectId
+          & $gcloudCmd config set project $projectId
           if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to set project"
             exit 1
@@ -517,7 +492,7 @@ jobs:
           
           # Verify authentication is working
           Write-Host "Verifying gcloud authentication..." -ForegroundColor Yellow
-          $tokenOutput = & gcloud.cmd auth print-access-token 2>&1
+          $tokenOutput = & $gcloudCmd auth print-access-token 2>&1
           if ($LASTEXITCODE -eq 0) {
             Write-Host "✅ Google Cloud authentication successful" -ForegroundColor Green
           } else {
@@ -530,7 +505,6 @@ jobs:
           WIN_KMS_KEY_RESOURCE: ${{ secrets.WIN_KMS_KEY_RESOURCE }}
           WIN_CERT_FILE: ${{ runner.temp }}\codesigning\user.crt
           GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
-          PATH: "C:/Program Files/jsign;C:/ProgramData/chocolatey/lib/gcloudsdk/tools/google-cloud-sdk/bin;C:/hostedtoolcache/windows/node/22.17.1/x64;C:/npm/prefix;C:/Windows/System32;C:/Windows;C:/Windows/System32/WindowsPowerShell/v1.0;C:/Program Files/PowerShell/7;C:/ProgramData/Chocolatey/bin"
 
       - name: Build MacOS Package
         if: ${{ matrix.build-target == 'mac' }}

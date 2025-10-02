@@ -49,6 +49,105 @@ import { createPopupMenuForServerView } from './popupMenu';
 
 const t = i18next.t.bind(i18next);
 
+/**
+ * Determines if a URL and context indicates an authentication popup that should
+ * be opened in the default browser instead of an Electron popup window.
+ * This allows users to access their saved credentials and passkeys.
+ */
+const isAuthenticationPopup = (
+  url: string,
+  frameName: string,
+  disposition: string
+): boolean => {
+  try {
+    const parsedUrl = new URL(url);
+
+    // HIGHEST PRIORITY: Check for OAuth parameters in URL query string
+    // This ensures support for custom/in-house OAuth providers (e.g., BitWarden, custom SSO)
+    // Use stricter logic to avoid false positives - require meaningful OAuth parameter combinations
+    const { searchParams } = parsedUrl;
+
+    // Core OAuth identifiers that strongly indicate OAuth flow
+    const clientIdentifiers = ['client_id', 'redirect_uri'];
+    const oauthFlowParams = [
+      'response_type',
+      'state',
+      'scope',
+      'code_challenge',
+      'nonce',
+    ];
+    const samlParams = ['SAMLRequest', 'SAMLResponse'];
+
+    // Check for SAML authentication (definitive indicators)
+    if (samlParams.some((param) => searchParams.has(param))) {
+      return true;
+    }
+
+    // Check for OAuth: require both a client identifier AND at least one flow parameter
+    const hasClientIdentifier = clientIdentifiers.some((param) =>
+      searchParams.has(param)
+    );
+    const hasFlowParam = oauthFlowParams.some((param) =>
+      searchParams.has(param)
+    );
+
+    if (hasClientIdentifier && hasFlowParam) {
+      return true;
+    }
+
+    // Check frame name for explicit authentication indicators
+    if (frameName === 'Login' || frameName === 'OAuth' || frameName === 'SSO') {
+      return true;
+    }
+
+    // Check for authentication-related URLs in new windows
+    if (disposition === 'new-window') {
+      // Check URL patterns for authentication keywords
+      const authKeywords = [
+        'oauth',
+        'auth',
+        'login',
+        'signin',
+        'sso',
+        'authenticate',
+      ];
+      const urlLower = url.toLowerCase();
+
+      if (authKeywords.some((keyword) => urlLower.includes(keyword))) {
+        return true;
+      }
+
+      // Check for known authentication providers (fallback for well-known domains)
+      const authProviders = [
+        /^([a-z0-9-]+\.)*google\.com$/,
+        /^([a-z0-9-]+\.)*microsoft\.com$/,
+        /^([a-z0-9-]+\.)*microsoftonline\.com$/,
+        /^([a-z0-9-]+\.)*facebook\.com$/,
+        /^([a-z0-9-]+\.)*github\.com$/,
+        /^([a-z0-9-]+\.)*gitlab\.com$/,
+        /^([a-z0-9-]+\.)*okta\.com$/,
+        /^([a-z0-9-]+\.)*auth0\.com$/,
+        /^([a-z0-9-]+\.)*saml\.com$/,
+        /^([a-z0-9-]+\.)*onelogin\.com$/,
+      ];
+
+      if (authProviders.some((pattern) => parsedUrl.hostname.match(pattern))) {
+        return true;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    // If URL parsing fails, err on the side of caution and don't redirect
+    console.warn(
+      'Failed to parse URL for authentication detection:',
+      url,
+      error
+    );
+    return false;
+  }
+};
+
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
 export const getWebContentsByServerUrl = (
@@ -233,6 +332,21 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         return { action: 'deny' };
       }
 
+      // Check if this is an authentication popup (e.g., Login, OAuth, SSO)
+      // Open authentication popups in the default browser for saved credentials access
+      if (isAuthenticationPopup(url, frameName, disposition)) {
+        isProtocolAllowed(url)
+          .then((allowed) => {
+            if (allowed) {
+              openExternal(url);
+            }
+          })
+          .catch((error) => {
+            console.error('Failed to check protocol permission:', error);
+          });
+        return { action: 'deny' };
+      }
+
       const isVideoCall = frameName === 'Video Call';
 
       return {
@@ -261,6 +375,14 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         isProtocolAllowed(url).then((allowed) => {
           if (!allowed) {
             window.destroy();
+            return;
+          }
+
+          // Check if this is an authentication window that should be redirected to browser
+          // If it's an authentication window, close it and open in default browser
+          if (isAuthenticationPopup(url, frameName, disposition)) {
+            window.destroy();
+            openExternal(url);
             return;
           }
 
@@ -306,11 +428,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           return;
         }
 
-        callback(true);
+        callback(false);
         return;
       }
 
-      case 'geolocation':
       case 'notifications':
       case 'midiSysex':
       case 'pointerLock':

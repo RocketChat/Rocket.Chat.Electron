@@ -61,6 +61,39 @@ const isAuthenticationPopup = (
   try {
     const parsedUrl = new URL(url);
 
+    // HIGHEST PRIORITY: Check for OAuth parameters in URL query string
+    // This ensures support for custom/in-house OAuth providers (e.g., BitWarden, custom SSO)
+    // Use stricter logic to avoid false positives - require meaningful OAuth parameter combinations
+    const { searchParams } = parsedUrl;
+
+    // Core OAuth identifiers that strongly indicate OAuth flow
+    const clientIdentifiers = ['client_id', 'redirect_uri'];
+    const oauthFlowParams = [
+      'response_type',
+      'state',
+      'scope',
+      'code_challenge',
+      'nonce',
+    ];
+    const samlParams = ['SAMLRequest', 'SAMLResponse'];
+
+    // Check for SAML authentication (definitive indicators)
+    if (samlParams.some((param) => searchParams.has(param))) {
+      return true;
+    }
+
+    // Check for OAuth: require both a client identifier AND at least one flow parameter
+    const hasClientIdentifier = clientIdentifiers.some((param) =>
+      searchParams.has(param)
+    );
+    const hasFlowParam = oauthFlowParams.some((param) =>
+      searchParams.has(param)
+    );
+
+    if (hasClientIdentifier && hasFlowParam) {
+      return true;
+    }
+
     // Check frame name for explicit authentication indicators
     if (frameName === 'Login' || frameName === 'OAuth' || frameName === 'SSO') {
       return true;
@@ -83,7 +116,7 @@ const isAuthenticationPopup = (
         return true;
       }
 
-      // Check for known authentication providers
+      // Check for known authentication providers (fallback for well-known domains)
       const authProviders = [
         /^([a-z0-9-]+\.)*google\.com$/,
         /^([a-z0-9-]+\.)*microsoft\.com$/,

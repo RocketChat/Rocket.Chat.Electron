@@ -7,7 +7,7 @@ import {
   Box,
 } from '@rocket.chat/fuselage';
 import type { FocusEvent } from 'react';
-import { useCallback, useId, useState } from 'react';
+import { useCallback, useId, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -34,6 +34,11 @@ export const ScreenLock = (props: ScreenLockProps) => {
   const [timeoutValue, setTimeoutValue] = useState<string>(
     timeout !== undefined && timeout !== null ? String(timeout) : '0'
   );
+  useEffect(() => {
+    setTimeoutValue(
+      timeout !== undefined && timeout !== null ? String(timeout) : '0'
+    );
+  }, [timeout]);
 
   const handleTimeoutChange = useCallback(
     (event: FocusEvent<HTMLInputElement>) => {

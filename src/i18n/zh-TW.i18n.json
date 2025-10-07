@@ -100,12 +100,12 @@
       "screenLock": {
         "timeout": {
           "title": "畫面鎖定逾時（秒）",
-          "description": "應用在無操作達到此時間（秒）後將被鎖定。設定為 0 可停用。"
+          "description": "應用程式在無操作達到此時間（秒）後將被鎖定。設定為 0 可停用。"
         },
         "password": {
           "title": "鎖定密碼",
           "placeholder": "輸入密碼",
-          "description": "設定一個用於解鎖應用的密碼。密碼以 SHA-256 雜湊形式存儲。"
+          "description": "設定一個用於解鎖應用程式的密碼。密碼將以 SHA-256 雜湊形式儲存。"
         }
       }
     }

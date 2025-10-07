@@ -27,19 +27,24 @@ const createTrayIcon = (): Tray => {
 
   const trayIcon = new Tray(nativeImage.createEmpty());
 
-  if (process.platform !== 'darwin') {
-    trayIcon.addListener('click', async () => {
-      const isRootWindowVisible = select(selectIsRootWindowVisible);
-      const browserWindow = await getRootWindow();
+  trayIcon.addListener('click', async () => {
+    const browserWindow = await getRootWindow();
 
-      if (isRootWindowVisible) {
-        browserWindow.hide();
-        return;
-      }
-
+    if (process.platform === 'darwin') {
       browserWindow.show();
-    });
-  }
+      browserWindow.focus();
+      return;
+    }
+
+    const isRootWindowVisible = select(selectIsRootWindowVisible);
+
+    if (isRootWindowVisible) {
+      browserWindow.hide();
+      return;
+    }
+
+    browserWindow.show();
+  });
 
   trayIcon.addListener('balloon-click', async () => {
     const isRootWindowVisible = select(selectIsRootWindowVisible);

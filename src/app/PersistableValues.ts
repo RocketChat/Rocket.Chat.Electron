@@ -91,10 +91,17 @@ type PersistableValues_4_9_0 = PersistableValues_4_7_2 & {
   isVideoCallScreenCaptureFallbackEnabled: boolean;
 };
 
-// Add screen lock persisted settings: timeout (seconds) and passwordHash (sha256 hex)
+// Add screen lock persisted settings: timeout (seconds) and passwordHash (now an object with algorithm, hash, salt, params)
+export type ScreenLockPasswordStored = {
+  algorithm: string; // e.g. 'scrypt', 'pbkdf2', 'legacy-sha256'
+  hash: string; // base64 encoded derived key or legacy hex encoded then base64
+  salt: string; // base64 encoded salt (or empty string for legacy where salt wasn't used)
+  params?: Record<string, any>; // algorithm-specific params (iterations, keylen, maxmem, digest, etc.)
+};
+
 type PersistableValues_5_0_0 = PersistableValues_4_9_0 & {
   screenLockTimeoutSeconds: number; // 0 = disabled
-  screenLockPasswordHash: string | null; // sha256 hex
+  screenLockPasswordHash: ScreenLockPasswordStored | null;
 };
 
 export type PersistableValues = Pick<
@@ -177,10 +184,80 @@ export const migrations = {
     ...before,
     isVideoCallScreenCaptureFallbackEnabled: false,
   }),
-  // New migration for screen lock defaults
+  // New migration for screen lock defaults (initial addition)
   '>=5.0.0': (before: PersistableValues_4_9_0): PersistableValues_5_0_0 => ({
     ...before,
     screenLockTimeoutSeconds: 0,
     screenLockPasswordHash: null,
   }),
+  // Convert older plain sha256 hex or legacy pbkdf2 string into structured object
+  '>=5.0.1': (before: any): PersistableValues_5_0_0 => {
+    // If there is no prior screen lock value, keep as null
+    const raw = (before && before.screenLockPasswordHash) || null;
+
+    if (!raw) {
+      return {
+        ...before,
+        screenLockTimeoutSeconds: before.screenLockTimeoutSeconds ?? 0,
+        screenLockPasswordHash: null,
+      };
+    }
+
+    // If already an object with algorithm, assume it's in new format
+    if (typeof raw === 'object' && raw.algorithm) {
+      return {
+        ...before,
+        screenLockTimeoutSeconds: before.screenLockTimeoutSeconds ?? 0,
+        screenLockPasswordHash: raw as ScreenLockPasswordStored,
+      };
+    }
+
+    // If string: could be legacy sha256 hex (64 hex chars) or our old pbkdf2$... encoded string
+    if (typeof raw === 'string') {
+      // pbkdf2 encoded string format: pbkdf2$<digest>$i=<iterations>$s=<saltHex>$d=<derivedHex>
+      const pbkdf2Match =
+        /^pbkdf2\$(\w+)\$i=(\d+)\$s=([0-9a-f]+)\$d=([0-9a-f]+)$/.exec(raw);
+      if (pbkdf2Match) {
+        const [, digest, itStr, saltHex, derivedHex] = pbkdf2Match;
+        const saltBuf = Buffer.from(saltHex, 'hex');
+        const derivedBuf = Buffer.from(derivedHex, 'hex');
+        return {
+          ...before,
+          screenLockTimeoutSeconds: before.screenLockTimeoutSeconds ?? 0,
+          screenLockPasswordHash: {
+            algorithm: 'pbkdf2',
+            hash: derivedBuf.toString('base64'),
+            salt: saltBuf.toString('base64'),
+            params: {
+              iterations: Number(itStr),
+              digest,
+              keylen: derivedBuf.length,
+            },
+          },
+        };
+      }
+
+      // legacy unsalted sha256 hex
+      if (/^[0-9a-f]{64}$/.test(raw)) {
+        const buf = Buffer.from(raw, 'hex');
+        return {
+          ...before,
+          screenLockTimeoutSeconds: before.screenLockTimeoutSeconds ?? 0,
+          screenLockPasswordHash: {
+            algorithm: 'legacy-sha256',
+            hash: buf.toString('base64'),
+            salt: '',
+            params: {},
+          },
+        };
+      }
+    }
+
+    // Unknown format — drop it and require user to reset password
+    return {
+      ...before,
+      screenLockTimeoutSeconds: before.screenLockTimeoutSeconds ?? 0,
+      screenLockPasswordHash: null,
+    };
+  },
 };

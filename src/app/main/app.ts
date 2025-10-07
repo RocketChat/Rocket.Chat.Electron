@@ -36,6 +36,7 @@ import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
 import { preloadBrowsersList } from '../../utils/browserLauncher';
 import { getPersistedValues } from './persistence';
+import type { ScreenLockPasswordStored } from '../PersistableValues';
 
 export const packageJsonInformation = {
   productName: packageJson.productName,
@@ -63,30 +64,50 @@ const lockAttemptMap: Map<string, LockAttemptRecord> = new Map();
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-// Secure password hashing utilities
+// Secure password hashing utilities (use scrypt by default)
 const PASSWORD_KDF = {
-  algorithm: 'pbkdf2',
-  iterations: 210_000,
+  algorithm: 'scrypt' as const,
+  N: 16384, // cost
+  r: 8,
+  p: 1,
   keylen: 32,
-  digest: 'sha256',
+  maxmem: 32 * 1024 * 1024, // 32MB
 };
 
-const encodeStoredPassword = (salt: Buffer, derived: Buffer) =>
-  `pbkdf2$${PASSWORD_KDF.digest}$i=${PASSWORD_KDF.iterations}$s=${salt.toString('hex')}$d=${derived.toString('hex')}`;
+type StoredPasswordObject = {
+  algorithm: string;
+  hash: string; // base64
+  salt: string; // base64
+  params?: Record<string, any>;
+};
 
-const hashPlainPassword = (plain: string): Promise<string> =>
+const hashPlainPassword = (plain: string): Promise<StoredPasswordObject> =>
   new Promise((resolve, reject) => {
     try {
       const salt = crypto.randomBytes(16);
-      crypto.pbkdf2(
+      crypto.scrypt(
         String(plain),
         salt,
-        PASSWORD_KDF.iterations,
         PASSWORD_KDF.keylen,
-        PASSWORD_KDF.digest,
+        {
+          N: PASSWORD_KDF.N,
+          r: PASSWORD_KDF.r,
+          p: PASSWORD_KDF.p,
+          maxmem: PASSWORD_KDF.maxmem,
+        },
         (err, derived) => {
           if (err) return reject(err);
-          resolve(encodeStoredPassword(salt, derived));
+          resolve({
+            algorithm: 'scrypt',
+            hash: derived.toString('base64'),
+            salt: salt.toString('base64'),
+            params: {
+              N: PASSWORD_KDF.N,
+              r: PASSWORD_KDF.r,
+              p: PASSWORD_KDF.p,
+              keylen: PASSWORD_KDF.keylen,
+            },
+          });
         }
       );
     } catch (e) {
@@ -94,57 +115,133 @@ const hashPlainPassword = (plain: string): Promise<string> =>
     }
   });
 
-const verifyPassword = (password: string, stored: string): Promise<boolean> =>
+const verifyPassword = (password: string, stored: any): Promise<boolean> =>
   new Promise((resolve) => {
     try {
-      // Legacy: unsalted SHA-256 hex (64 chars)
-      if (/^[0-9a-f]{64}$/.test(stored)) {
-        try {
-          const derived = Buffer.from(
-            crypto.createHash('sha256').update(String(password)).digest('hex'),
-            'hex'
+      if (!stored) return resolve(false);
+
+      // If stored is an object in new format
+      if (typeof stored === 'object' && stored.algorithm) {
+        if (stored.algorithm === 'scrypt') {
+          const salt = Buffer.from(stored.salt, 'base64');
+          const expected = Buffer.from(stored.hash, 'base64');
+          const keylen = expected.length;
+          const params = stored.params || {};
+          const opts: any = {
+            N: params.N ?? PASSWORD_KDF.N,
+            r: params.r ?? PASSWORD_KDF.r,
+            p: params.p ?? PASSWORD_KDF.p,
+            maxmem: params.maxmem ?? PASSWORD_KDF.maxmem,
+          };
+          crypto.scrypt(
+            String(password),
+            salt,
+            keylen,
+            opts,
+            (err, derived) => {
+              if (err) {
+                console.error(
+                  'Error deriving key for password verification (scrypt):',
+                  err
+                );
+                return resolve(false);
+              }
+              try {
+                const match =
+                  derived.length === expected.length &&
+                  crypto.timingSafeEqual(derived, expected);
+                return resolve(Boolean(match));
+              } catch (e) {
+                return resolve(false);
+              }
+            }
           );
-          const expected = Buffer.from(stored, 'hex');
-          const match =
-            derived.length === expected.length &&
-            crypto.timingSafeEqual(derived, expected);
-          return resolve(Boolean(match));
-        } catch (e) {
-          return resolve(false);
+          return;
         }
-      }
 
-      const m = /^pbkdf2\$(\w+)\$i=(\d+)\$s=([0-9a-f]+)\$d=([0-9a-f]+)$/.exec(
-        stored
-      );
-      if (!m) return resolve(false);
-      const [, digest, itStr, saltHex, expectedHex] = m;
-      const iterations = Number(itStr);
-      const salt = Buffer.from(saltHex, 'hex');
-      const expected = Buffer.from(expectedHex, 'hex');
-
-      crypto.pbkdf2(
-        String(password),
-        salt,
-        iterations,
-        expected.length,
-        digest,
-        (err, derived) => {
-          if (err) {
-            console.error('Error deriving key for password verification:', err);
-            return resolve(false);
-          }
+        // If it's marked as legacy-sha256, compare using sha256
+        if (stored.algorithm === 'legacy-sha256') {
           try {
+            const derived = Buffer.from(
+              crypto
+                .createHash('sha256')
+                .update(String(password))
+                .digest('hex'),
+              'hex'
+            );
+            const expected = Buffer.from(stored.hash, 'base64');
             const match =
               derived.length === expected.length &&
               crypto.timingSafeEqual(derived, expected);
-            resolve(Boolean(match));
+            return resolve(Boolean(match));
           } catch (e) {
-            // timingSafeEqual can throw on length mismatch in some Node versions
-            resolve(false);
+            return resolve(false);
           }
         }
-      );
+
+        // Unknown object algorithm
+        return resolve(false);
+      }
+
+      // If stored is a string, support old pbkdf2$... format or legacy sha256 hex
+      if (typeof stored === 'string') {
+        // pbkdf2 encoded string format: pbkdf2$<digest>$i=<iterations>$s=<saltHex>$d=<derivedHex>
+        const pbkdf2Match =
+          /^pbkdf2\$(\w+)\$i=(\d+)\$s=([0-9a-f]+)\$d=([0-9a-f]+)$/.exec(stored);
+        if (pbkdf2Match) {
+          const [, digest, itStr, saltHex, expectedHex] = pbkdf2Match;
+          const iterations = Number(itStr);
+          const salt = Buffer.from(saltHex, 'hex');
+          const expected = Buffer.from(expectedHex, 'hex');
+          crypto.pbkdf2(
+            String(password),
+            salt,
+            iterations,
+            expected.length,
+            digest,
+            (err, derived) => {
+              if (err) {
+                console.error(
+                  'Error deriving key for password verification (pbkdf2):',
+                  err
+                );
+                return resolve(false);
+              }
+              try {
+                const match =
+                  derived.length === expected.length &&
+                  crypto.timingSafeEqual(derived, expected);
+                resolve(Boolean(match));
+              } catch (e) {
+                resolve(false);
+              }
+            }
+          );
+          return;
+        }
+
+        // legacy unsalted sha256 hex
+        if (/^[0-9a-f]{64}$/.test(stored)) {
+          try {
+            const derived = Buffer.from(
+              crypto
+                .createHash('sha256')
+                .update(String(password))
+                .digest('hex'),
+              'hex'
+            );
+            const expected = Buffer.from(stored, 'hex');
+            const match =
+              derived.length === expected.length &&
+              crypto.timingSafeEqual(derived, expected);
+            return resolve(Boolean(match));
+          } catch (e) {
+            return resolve(false);
+          }
+        }
+      }
+
+      return resolve(false);
     } catch (e) {
       console.error('Error verifying password:', e);
       resolve(false);
@@ -352,6 +449,40 @@ export const registerLockIpcHandlers = (): void => {
           }
           lockAttemptMap.delete(senderId);
         }
+
+        // If stored format is not scrypt (string legacy or object with different algorithm),
+        // re-hash using scrypt in background and dispatch updated stored object so future
+        // verifications use the stronger KDF.
+        try {
+          const stored = persisted?.screenLockPasswordHash;
+          const needsMigration =
+            typeof stored === 'string' ||
+            (typeof stored === 'object' &&
+              stored &&
+              stored.algorithm &&
+              stored.algorithm !== 'scrypt');
+          if (needsMigration) {
+            // Fire-and-forget re-hash; do not block unlock
+            await (async () => {
+              try {
+                const newStored = await hashPlainPassword(String(password));
+                dispatch({
+                  type: SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED,
+                  payload: newStored as unknown as ScreenLockPasswordStored,
+                });
+              } catch (e) {
+                // Do not prevent unlocking; just log migration failures
+                console.error(
+                  'Error migrating legacy screen lock password to scrypt:',
+                  e
+                );
+              }
+            })();
+          }
+        } catch (e) {
+          // ignore migration errors
+        }
+
         return true;
       }
 
@@ -591,7 +722,7 @@ export const setupApp = (): void => {
       const encoded = await hashPlainPassword(String(plain));
       dispatch({
         type: SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED,
-        payload: encoded,
+        payload: encoded as unknown as ScreenLockPasswordStored,
       });
     } catch (error) {
       console.error('Error hashing screen lock password:', error);

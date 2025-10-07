@@ -1,5 +1,6 @@
 import type { WebContents } from 'electron';
 
+import type { ScreenLockPasswordStored } from '../app/PersistableValues';
 import type { Server } from '../servers/common';
 import type { RootWindowIcon, WindowState } from './common';
 
@@ -286,6 +287,6 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_PDF_VIEWER_ATTACHED]: { WebContentsId: number };
   [SETTINGS_SET_SCREEN_LOCK_TIMEOUT_CHANGED]: number;
   [SETTINGS_SET_SCREEN_LOCK_PASSWORD_CHANGED]: string; // plaintext
-  [SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED]: string | null; // hash
+  [SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED]: ScreenLockPasswordStored | null; // structured hash
   [MENU_BAR_LOCK_SCREEN_CLICKED]: void;
 };

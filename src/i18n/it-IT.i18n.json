@@ -15,14 +15,14 @@
           "description": "Imposta una password che sarà richiesta per sbloccare l'applicazione. La password viene memorizzata come hash SHA-256."
         }
       }
-    },
-    "lockScreen": {
-      "title": "Schermata bloccata",
-      "description": "Sblocca l'app per continuare",
-      "placeholder": "Inserisci la password",
-      "unlock": "Sblocca",
-      "incorrect": "Password errata",
-      "unlockFailed": "Impossibile sbloccare"
     }
+  },
+  "lockScreen": {
+    "title": "Schermata bloccata",
+    "description": "Sblocca l'app per continuare",
+    "placeholder": "Inserisci la password",
+    "unlock": "Sblocca",
+    "incorrect": "Password errata",
+    "unlockFailed": "Impossibile sbloccare"
   }
 }

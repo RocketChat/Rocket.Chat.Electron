@@ -1,1 +1,28 @@
-{ }
+{
+  "settings": {
+    "title": "Inställningar",
+    "general": "Allmänt",
+    "certificates": "Certifikat",
+    "options": {
+      "screenLock": {
+        "timeout": {
+          "title": "Skärmlås timeout (sekunder)",
+          "description": "Inaktivitetstid (i sekunder) efter vilken applikationen låses. Ställ in 0 för att inaktivera."
+        },
+        "password": {
+          "title": "Låslösenord",
+          "placeholder": "Ange lösenord",
+          "description": "Ange ett lösenord som krävs för att låsa upp applikationen. Lösenordet lagras som en SHA-256-hash."
+        }
+      }
+    }
+  },
+  "lockScreen": {
+    "title": "Skärmen är låst",
+    "description": "Lås upp appen för att fortsätta",
+    "placeholder": "Ange lösenord",
+    "unlock": "Lås upp",
+    "incorrect": "Fel lösenord",
+    "unlockFailed": "Kunde inte låsa upp"
+  }
+}

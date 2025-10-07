@@ -96,6 +96,17 @@
         "systemDefault": "系統預設",
         "loading": "正在載入瀏覽器...",
         "current": "目前使用："
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "畫面鎖定逾時（秒）",
+          "description": "應用在無操作達到此時間（秒）後將被鎖定。設定為 0 可停用。"
+        },
+        "password": {
+          "title": "鎖定密碼",
+          "placeholder": "輸入密碼",
+          "description": "設定一個用於解鎖應用的密碼。密碼以 SHA-256 雜湊形式存儲。"
+        }
       }
     }
   },
@@ -195,5 +206,13 @@
     "noWindowsFound": "未找到視窗",
     "cancel": "取消",
     "share": "共享"
+  },
+  "lockScreen": {
+    "title": "畫面已鎖定",
+    "description": "請解鎖應用以繼續",
+    "placeholder": "輸入密碼",
+    "unlock": "解除鎖定",
+    "incorrect": "密碼不正確",
+    "unlockFailed": "解除鎖定失敗"
   }
 }

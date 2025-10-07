@@ -38,6 +38,8 @@ import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
+import { screenLockPasswordHash } from '../ui/reducers/screenLockPasswordHash';
+import { screenLockTimeoutSeconds } from '../ui/reducers/screenLockTimeoutSeconds';
 import { selectedBrowser } from '../ui/reducers/selectedBrowser';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
 import {
@@ -100,6 +102,8 @@ export const rootReducer = combineReducers({
   screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,
   isVideoCallScreenCaptureFallbackEnabled,
+  screenLockTimeoutSeconds,
+  screenLockPasswordHash,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

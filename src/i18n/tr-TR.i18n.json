@@ -105,6 +105,17 @@
         "systemDefault": "Sistem Varsayılanı",
         "loading": "Tarayıcılar yükleniyor...",
         "current": "Şu anda kullanılan:"
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Ekran kilidi zaman aşımı (saniye)",
+          "description": "Uygulamanın kilitleneceği eylemsizlik süresi (saniye cinsinden). Devre dışı bırakmak için 0 ayarlayın."
+        },
+        "password": {
+          "title": "Kilit parolası",
+          "placeholder": "Parolayı girin",
+          "description": "Uygulamayı açmak için gerekli olacak bir parola belirleyin. Parola SHA-256 özet (hash) olarak saklanır."
+        }
       }
     }
   },
@@ -224,5 +235,13 @@
     "noWindowsFound": "Pencere bulunamadı",
     "cancel": "İptal et",
     "share": "Paylaş"
+  },
+  "lockScreen": {
+    "title": "Ekran kilitlendi",
+    "description": "Devam etmek için uygulamanın kilidini açın",
+    "placeholder": "Parolayı girin",
+    "unlock": "Kilidi aç",
+    "incorrect": "Geçersiz parola",
+    "unlockFailed": "Kilidi açma başarısız"
   }
 }

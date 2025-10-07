@@ -109,6 +109,40 @@ export default [
     ],
   },
   {
+    // Lock screen renderer bundle
+    external: [
+      ...builtinModules,
+      ...Object.keys(appManifest.dependencies),
+      ...Object.keys(appManifest.devDependencies),
+    ].filter((moduleName) => moduleName !== '@bugsnag/js'),
+    input: 'src/lockScreen/lock-screen.tsx',
+    preserveEntrySignatures: 'strict',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({
+        browser: true,
+        extensions,
+      }),
+      commonjs(),
+    ],
+    output: [
+      {
+        dir: 'app',
+        format: 'cjs',
+        sourcemap: 'inline',
+        interop: 'auto',
+      },
+    ],
+  },
+  {
     external: [
       ...builtinModules,
       ...Object.keys(appManifest.dependencies),

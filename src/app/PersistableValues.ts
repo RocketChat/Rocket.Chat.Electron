@@ -91,9 +91,15 @@ type PersistableValues_4_9_0 = PersistableValues_4_7_2 & {
   isVideoCallScreenCaptureFallbackEnabled: boolean;
 };
 
+// Add screen lock persisted settings: timeout (seconds) and passwordHash (sha256 hex)
+type PersistableValues_5_0_0 = PersistableValues_4_9_0 & {
+  screenLockTimeoutSeconds: number; // 0 = disabled
+  screenLockPasswordHash: string | null; // sha256 hex
+};
+
 export type PersistableValues = Pick<
-  PersistableValues_4_9_0,
-  keyof PersistableValues_4_9_0
+  PersistableValues_5_0_0,
+  keyof PersistableValues_5_0_0
 >;
 
 export const migrations = {
@@ -170,5 +176,11 @@ export const migrations = {
   '>=4.9.0': (before: PersistableValues_4_7_2): PersistableValues_4_9_0 => ({
     ...before,
     isVideoCallScreenCaptureFallbackEnabled: false,
+  }),
+  // New migration for screen lock defaults
+  '>=5.0.0': (before: PersistableValues_4_9_0): PersistableValues_5_0_0 => ({
+    ...before,
+    screenLockTimeoutSeconds: 0,
+    screenLockPasswordHash: null,
   }),
 };

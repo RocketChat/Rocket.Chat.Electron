@@ -141,6 +141,17 @@ export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 export const WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR =
   'webview/force-reload-with-cache-clear';
 
+// New screen lock settings actions
+export const SETTINGS_SET_SCREEN_LOCK_TIMEOUT_CHANGED =
+  'settings/set-screen-lock-timeout-changed';
+export const SETTINGS_SET_SCREEN_LOCK_PASSWORD_CHANGED =
+  'settings/set-screen-lock-password-changed'; // plaintext from UI to main
+export const SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED =
+  'settings/set-screen-lock-password-hashed'; // hashed value (sha256 hex) set by main
+
+// Menu action for locking screen (optional external handling)
+export const MENU_BAR_LOCK_SCREEN_CLICKED = 'menu-bar/lock-screen-clicked';
+
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
   [ABOUT_DIALOG_TOGGLE_UPDATE_ON_START]: boolean;
@@ -273,4 +284,8 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
   };
   [WEBVIEW_PDF_VIEWER_ATTACHED]: { WebContentsId: number };
+  [SETTINGS_SET_SCREEN_LOCK_TIMEOUT_CHANGED]: number;
+  [SETTINGS_SET_SCREEN_LOCK_PASSWORD_CHANGED]: string; // plaintext
+  [SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED]: string | null; // hash
+  [MENU_BAR_LOCK_SCREEN_CLICKED]: void;
 };

@@ -244,6 +244,17 @@
       "clearPermittedScreenCaptureServers": {
         "title": "Tyhjennä näyttökuvaoikeudet",
         "description": "Tyhjennä valitut näyttökuvaoikeudet, joilla estettiin kysyminen uudelleen videopuheluissa."
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Näytön lukituksen aikakatkaisu (sekunteina)",
+          "description": "Passiivisuuden kesto (sekunteina), jonka jälkeen sovellus lukittuu. Aseta 0 poistaaksesi käytöstä."
+        },
+        "password": {
+          "title": "Lukituksen salasana",
+          "placeholder": "Anna salasana",
+          "description": "Aseta salasana, joka vaaditaan sovelluksen lukituksen poistamiseen. Salasana tallennetaan SHA-256-hashina."
+        }
       }
     }
   },
@@ -380,5 +391,13 @@
     "noWindowsFound": "Ikkunoita ei löytynyt",
     "cancel": "Peruuta",
     "share": "Jaa"
+  },
+  "lockScreen": {
+    "title": "Näyttö on lukittu",
+    "description": "Poista sovelluksen lukitus jatkaaksesi",
+    "placeholder": "Anna salasana",
+    "unlock": "Avaa",
+    "incorrect": "Väärä salasana",
+    "unlockFailed": "Avaus epäonnistui"
   }
 }

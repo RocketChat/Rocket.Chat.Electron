@@ -269,6 +269,17 @@
       "videoCallWindowPersistence": {
         "title": "Recordar posición de la ventana de videollamada",
         "description": "Guardar y restaurar la posición y el tamaño de las ventanas de videollamada entre sesiones"
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Tiempo de bloqueo de pantalla (segundos)",
+          "description": "Tiempo de inactividad (en segundos) tras el cual la aplicación se bloqueará. Establezca 0 para desactivar."
+        },
+        "password": {
+          "title": "Contraseña de bloqueo",
+          "placeholder": "Introduzca la contraseña",
+          "description": "Establezca una contraseña que se requerirá para desbloquear la aplicación. La contraseña se almacena como un hash SHA-256."
+        }
       }
     }
   },
@@ -412,5 +423,13 @@
     "noWindowsFound": "No se encontraron ventanas",
     "cancel": "Cancelar",
     "share": "Compartir"
+  },
+  "lockScreen": {
+    "title": "Pantalla bloqueada",
+    "description": "Desbloquea la aplicación para continuar",
+    "placeholder": "Introducir contraseña",
+    "unlock": "Desbloquear",
+    "incorrect": "Contraseña incorrecta",
+    "unlockFailed": "No se pudo desbloquear"
   }
 }

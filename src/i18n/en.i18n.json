@@ -241,6 +241,17 @@
         "title": "Minimize on close",
         "description": "When closed the app will be minimized, otherwise it will quit the application. Tray Icon need to be disabled to this take effect."
       },
+      "screenLock": {
+        "timeout": {
+          "title": "Screen lock timeout (seconds)",
+          "description": "Time of inactivity (in seconds) after which the application will lock. Set to 0 to disable."
+        },
+        "password": {
+          "title": "Lock password",
+          "placeholder": "Enter password",
+          "description": "Set a password that will be required to unlock the application. The password is stored as a SHA-256 hash."
+        }
+      },
       "menubar": {
         "title": "Menu bar",
         "description": "Show menu bar on the top of the window.",
@@ -342,7 +353,8 @@
     "viewMenu": "&View",
     "windowMenu": "&Window",
     "zoomIn": "Zoom in",
-    "zoomOut": "Zoom out"
+    "zoomOut": "Zoom out",
+    "lockScreen": "Lock Screen"
   },
   "loadingError": {
     "title": "Server Failed to Load",
@@ -437,5 +449,13 @@
     "noWindowsFound": "No windows found",
     "cancel": "Cancel",
     "share": "Share"
+  },
+  "lockScreen": {
+    "title": "Screen locked",
+    "description": "Please unlock the app to continue",
+    "placeholder": "Enter password",
+    "unlock": "Unlock",
+    "incorrect": "Incorrect password",
+    "unlockFailed": "Failed to unlock"
   }
 }

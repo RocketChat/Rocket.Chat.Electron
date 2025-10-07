@@ -244,6 +244,17 @@
       "clearPermittedScreenCaptureServers": {
         "title": "Effacer les autorisations de capture d'écran",
         "description": "Effacez les autorisations de capture d'écran qui ont été sélectionnées pour ne plus demander lors des appels vidéo."
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Délai de verrouillage de l'écran (secondes)",
+          "description": "Temps d'inactivité (en secondes) après lequel l'application sera verrouillée. Réglez sur 0 pour désactiver."
+        },
+        "password": {
+          "title": "Mot de passe de verrouillage",
+          "placeholder": "Entrez le mot de passe",
+          "description": "Définissez un mot de passe qui sera requis pour déverrouiller l'application. Le mot de passe est stocké sous forme de hachage SHA-256."
+        }
       }
     }
   },
@@ -381,5 +392,13 @@
     "noWindowsFound": "Aucune fenêtre trouvée",
     "cancel": "Annuler",
     "share": "Partager"
+  },
+  "lockScreen": {
+    "title": "Écran verrouillé",
+    "description": "Veuillez déverrouiller l'application pour continuer",
+    "placeholder": "Entrez le mot de passe",
+    "unlock": "Déverrouiller",
+    "incorrect": "Mot de passe incorrect",
+    "unlockFailed": "Échec du déverrouillage"
   }
 }

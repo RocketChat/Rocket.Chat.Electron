@@ -117,6 +117,17 @@
         "systemDefault": "Domyślna systemu",
         "loading": "Ładowanie przeglądarek...",
         "current": "Aktualnie używana:"
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Czas do zablokowania ekranu (sekundy)",
+          "description": "Czas bezczynności (w sekundach), po którym aplikacja zostanie zablokowana. Ustaw 0, aby wyłączyć."
+        },
+        "password": {
+          "title": "Hasło blokady",
+          "placeholder": "Wprowadź hasło",
+          "description": "Ustaw hasło, które będzie wymagane do odblokowania aplikacji. Hasło jest przechowywane jako skrót SHA-256."
+        }
       }
     }
   },
@@ -246,5 +257,13 @@
     "noWindowsFound": "Nie znaleziono okien",
     "cancel": "Anuluj",
     "share": "Udostępnij"
+  },
+  "lockScreen": {
+    "title": "Ekran zablokowany",
+    "description": "Odblokuj aplikację, aby kontynuować",
+    "placeholder": "Wprowadź hasło",
+    "unlock": "Odblokuj",
+    "incorrect": "Nieprawidłowe hasło",
+    "unlockFailed": "Nie udało się odblokować"
   }
 }

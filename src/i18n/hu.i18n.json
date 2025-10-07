@@ -269,6 +269,17 @@
       "videoCallWindowPersistence": {
         "title": "Videohívás ablak pozíciójának megjegyzése",
         "description": "Videohívás ablakok pozíciójának és méretének mentése és visszaállítása a munkamenetek között"
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Képernyőzár időtúllépés (másodperc)",
+          "description": "A tétlenség időtartama (másodpercben), amely után az alkalmazás lezáródik. Állítsa 0-ra a letiltáshoz."
+        },
+        "password": {
+          "title": "Zár jelszó",
+          "placeholder": "Jelszó megadása",
+          "description": "Állítson be egy jelszót, amelyre szükség lesz az alkalmazás feloldásához. A jelszó SHA-256 hashként kerül tárolásra."
+        }
       }
     }
   },
@@ -412,5 +423,13 @@
     "noWindowsFound": "Nem található ablak",
     "cancel": "Mégse",
     "share": "Megosztás"
+  },
+  "lockScreen": {
+    "title": "Képernyő zárolva",
+    "description": "Kérjük, oldja fel az alkalmazás zárolását a folytatáshoz",
+    "placeholder": "Írja be a jelszót",
+    "unlock": "Feloldás",
+    "incorrect": "Érvénytelen jelszó",
+    "unlockFailed": "A feloldás sikertelen"
   }
 }

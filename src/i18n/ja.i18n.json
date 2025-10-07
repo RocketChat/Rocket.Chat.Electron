@@ -202,5 +202,31 @@
     "noWindowsFound": "ウィンドウが見つかりません",
     "cancel": "キャンセル",
     "share": "共有"
+  },
+  "settings": {
+    "title": "設定",
+    "general": "一般",
+    "certificates": "証明書",
+    "options": {
+      "screenLock": {
+        "timeout": {
+          "title": "画面ロックのタイムアウト（秒）",
+          "description": "アプリがロックされるまでの無操作時間（秒）。無効にするには 0 に設定します。"
+        },
+        "password": {
+          "title": "ロックパスワード",
+          "placeholder": "パスワードを入力",
+          "description": "アプリのロックを解除するために必要なパスワードを設定します。パスワードは SHA-256 ハッシュとして保存されます。"
+        }
+      }
+    },
+    "lockScreen": {
+      "title": "画面はロックされています",
+      "description": "続行するにはアプリのロックを解除してください",
+      "placeholder": "パスワードを入力",
+      "unlock": "解除",
+      "incorrect": "パスワードが間違っています",
+      "unlockFailed": "ロック解除に失敗しました"
+    }
   }
 }

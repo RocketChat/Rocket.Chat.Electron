@@ -63,6 +63,94 @@ const lockAttemptMap: Map<string, LockAttemptRecord> = new Map();
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
+// Secure password hashing utilities
+const PASSWORD_KDF = {
+  algorithm: 'pbkdf2',
+  iterations: 210_000,
+  keylen: 32,
+  digest: 'sha256',
+};
+
+const encodeStoredPassword = (salt: Buffer, derived: Buffer) =>
+  `pbkdf2$${PASSWORD_KDF.digest}$i=${PASSWORD_KDF.iterations}$s=${salt.toString('hex')}$d=${derived.toString('hex')}`;
+
+const hashPlainPassword = (plain: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    try {
+      const salt = crypto.randomBytes(16);
+      crypto.pbkdf2(
+        String(plain),
+        salt,
+        PASSWORD_KDF.iterations,
+        PASSWORD_KDF.keylen,
+        PASSWORD_KDF.digest,
+        (err, derived) => {
+          if (err) return reject(err);
+          resolve(encodeStoredPassword(salt, derived));
+        }
+      );
+    } catch (e) {
+      reject(e);
+    }
+  });
+
+const verifyPassword = (password: string, stored: string): Promise<boolean> =>
+  new Promise((resolve) => {
+    try {
+      // Legacy: unsalted SHA-256 hex (64 chars)
+      if (/^[0-9a-f]{64}$/.test(stored)) {
+        try {
+          const derived = Buffer.from(
+            crypto.createHash('sha256').update(String(password)).digest('hex'),
+            'hex'
+          );
+          const expected = Buffer.from(stored, 'hex');
+          const match =
+            derived.length === expected.length &&
+            crypto.timingSafeEqual(derived, expected);
+          return resolve(Boolean(match));
+        } catch (e) {
+          return resolve(false);
+        }
+      }
+
+      const m = /^pbkdf2\$(\w+)\$i=(\d+)\$s=([0-9a-f]+)\$d=([0-9a-f]+)$/.exec(
+        stored
+      );
+      if (!m) return resolve(false);
+      const [, digest, itStr, saltHex, expectedHex] = m;
+      const iterations = Number(itStr);
+      const salt = Buffer.from(saltHex, 'hex');
+      const expected = Buffer.from(expectedHex, 'hex');
+
+      crypto.pbkdf2(
+        String(password),
+        salt,
+        iterations,
+        expected.length,
+        digest,
+        (err, derived) => {
+          if (err) {
+            console.error('Error deriving key for password verification:', err);
+            return resolve(false);
+          }
+          try {
+            const match =
+              derived.length === expected.length &&
+              crypto.timingSafeEqual(derived, expected);
+            resolve(Boolean(match));
+          } catch (e) {
+            // timingSafeEqual can throw on length mismatch in some Node versions
+            resolve(false);
+          }
+        }
+      );
+    } catch (e) {
+      console.error('Error verifying password:', e);
+      resolve(false);
+    }
+  });
+
 export const getPlatformName = (): string => {
   switch (process.platform) {
     case 'win32':
@@ -253,12 +341,7 @@ export const registerLockIpcHandlers = (): void => {
         return false;
       }
 
-      const hash = crypto
-        .createHash('sha256')
-        .update(String(password))
-        .digest('hex');
-
-      const success = hash === storedHash;
+      const success = await verifyPassword(password, storedHash);
 
       if (success) {
         // Reset any attempt record on success
@@ -494,15 +577,21 @@ export const setupApp = (): void => {
   );
 
   // Hash and persist screen lock password when renderer sends plaintext
-  listen(SETTINGS_SET_SCREEN_LOCK_PASSWORD_CHANGED, (action) => {
+  listen(SETTINGS_SET_SCREEN_LOCK_PASSWORD_CHANGED, async (action) => {
     try {
       const plain = action.payload || '';
-      const hash = plain
-        ? crypto.createHash('sha256').update(String(plain)).digest('hex')
-        : null;
+      if (!plain) {
+        dispatch({
+          type: SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED,
+          payload: null,
+        });
+        return;
+      }
+
+      const encoded = await hashPlainPassword(String(plain));
       dispatch({
         type: SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED,
-        payload: hash,
+        payload: encoded,
       });
     } catch (error) {
       console.error('Error hashing screen lock password:', error);

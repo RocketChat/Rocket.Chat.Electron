@@ -287,7 +287,7 @@
         "password": {
           "title": "Låslösenord",
           "placeholder": "Ange lösenord",
-          "description": "Ange ett lösenord som krävs för att låsa upp applikationen. Lösenordet lagras som en SHA-256-hash."
+          "description": "Ange ett lösenord som krävs för att låsa upp applikationen. Lösenordet lagras säkert (saltat och hashat med PBKDF2)."
         }
       }
     }
@@ -421,7 +421,7 @@
     },
     "tooltip": {
       "noUnreadMessage": "{{- appName}}: inget oläst meddelande",
-      "unreadMention": "{{- appName}}: du har ett oläst meddelande/direktmeddelande",
+      "unreadMention": "{{- appName}}: du har ett olästa meddelande/direktmeddelande",
       "unreadMention_plural": "{{- appName}}: du har {{- count}} olästa omnämnanden/direkt meddelanden",
       "unreadMessage": "{{- appName}}: du har olästa meddelanden"
     },

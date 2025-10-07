@@ -28,22 +28,29 @@ const createTrayIcon = (): Tray => {
   const trayIcon = new Tray(nativeImage.createEmpty());
 
   trayIcon.addListener('click', async () => {
+    try {
     const browserWindow = await getRootWindow();
 
-    if (process.platform === 'darwin') {
+      if (process.platform === 'darwin') {
+        browserWindow.show();
+        browserWindow.focus();
+        return;
+      }
+
+      const isRootWindowVisible = select(selectIsRootWindowVisible);
+
+      if (isRootWindowVisible) {
+        browserWindow.hide();
+        return;
+      }
+
       browserWindow.show();
-      browserWindow.focus();
+      
+        } catch (error) {
+      console.error('Failed to get root window on tray click:', error);
       return;
     }
 
-    const isRootWindowVisible = select(selectIsRootWindowVisible);
-
-    if (isRootWindowVisible) {
-      browserWindow.hide();
-      return;
-    }
-
-    browserWindow.show();
   });
 
   trayIcon.addListener('balloon-click', async () => {

@@ -47,6 +47,22 @@ export const electronBuilderJsonInformation = {
   protocol: electronBuilderJson.protocols.schemes[0],
 };
 
+// Throttling for lock attempts (in-memory only)
+const MAX_LOCK_ATTEMPTS = 5;
+const LOCKOUT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+const BACKOFF_BASE_MS = 500; // base backoff in ms
+
+type LockAttemptRecord = {
+  count: number;
+  firstFailureTs: number;
+  timeout?: NodeJS.Timeout | null;
+};
+
+// Keyed by webContents id (stringified) to limit attempts per sender
+const lockAttemptMap: Map<string, LockAttemptRecord> = new Map();
+
+const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
 export const getPlatformName = (): string => {
   switch (process.platform) {
     case 'win32':
@@ -210,8 +226,27 @@ export const registerLockIpcHandlers = (): void => {
     return;
   }
 
-  ipcMain.handle('lock:verify', async (_event, password: string) => {
+  ipcMain.handle('lock:verify', async (event, password: string) => {
     try {
+      // Identify caller by webContents id when possible
+      const senderId =
+        event && (event as any).sender && (event as any).sender.id
+          ? String((event as any).sender.id)
+          : 'unknown';
+
+      const now = Date.now();
+      const record = lockAttemptMap.get(senderId);
+
+      // If exceeded max attempts within lockout window, reject immediately
+      if (record && record.count >= MAX_LOCK_ATTEMPTS) {
+        const elapsed = now - record.firstFailureTs;
+        if (elapsed < LOCKOUT_WINDOW_MS) {
+          // Do not reveal timing differences; quickly return false
+          return false;
+        }
+        // else allow attempts again (record expired by time but keeper not yet cleared)
+      }
+
       const persisted = getPersistedValues();
       const storedHash = persisted?.screenLockPasswordHash ?? null;
       if (!storedHash) {
@@ -223,7 +258,51 @@ export const registerLockIpcHandlers = (): void => {
         .update(String(password))
         .digest('hex');
 
-      return hash === storedHash;
+      const success = hash === storedHash;
+
+      if (success) {
+        // Reset any attempt record on success
+        const existing = lockAttemptMap.get(senderId);
+        if (existing) {
+          if (existing.timeout) {
+            clearTimeout(existing.timeout);
+          }
+          lockAttemptMap.delete(senderId);
+        }
+        return true;
+      }
+
+      // Failure: update attempt record
+      const prev = lockAttemptMap.get(senderId);
+      let newCount = 1;
+      let firstFailureTs = now;
+      if (prev) {
+        newCount = prev.count + 1;
+        firstFailureTs = prev.firstFailureTs || now;
+        if (prev.timeout) {
+          clearTimeout(prev.timeout);
+        }
+      }
+
+      // Schedule record removal after LOCKOUT_WINDOW_MS to avoid unbounded growth
+      const timeout = setTimeout(() => {
+        lockAttemptMap.delete(senderId);
+      }, LOCKOUT_WINDOW_MS);
+
+      lockAttemptMap.set(senderId, {
+        count: newCount,
+        firstFailureTs,
+        timeout,
+      });
+
+      // Apply exponential backoff before returning false to slow brute-force
+      const backoffMs = Math.min(
+        BACKOFF_BASE_MS * 2 ** Math.max(0, newCount - 1),
+        30_000
+      );
+      await sleep(backoffMs);
+
+      return false;
     } catch (error) {
       console.error('Error verifying lock password:', error);
       return false;

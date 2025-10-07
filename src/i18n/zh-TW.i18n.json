@@ -209,7 +209,7 @@
   },
   "lockScreen": {
     "title": "畫面已鎖定",
-    "description": "請解鎖應用以繼續",
+    "description": "請解鎖應用程式以繼續",
     "placeholder": "輸入密碼",
     "unlock": "解除鎖定",
     "incorrect": "密碼不正確",

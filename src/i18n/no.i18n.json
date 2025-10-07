@@ -282,7 +282,7 @@
       "screenLock": {
         "timeout": {
           "title": "Skjermlås tidsavbrudd (sekunder)",
-          "description": "Inaktivitetstid (i sekunder) etter hvilken applikasjonen låses. Sett til 0 for å deaktivere."
+          "description": "Inaktivitetstid (i sekunder) etter hvor lang tid applikasjonen låses. Sett til 0 for å deaktivere."
         },
         "password": {
           "title": "Låspassord",

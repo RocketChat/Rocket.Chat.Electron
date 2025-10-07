@@ -15,14 +15,14 @@
           "description": "设置一个将用于解锁应用的密码。密码以 SHA-256 哈希形式存储。"
         }
       }
-    },
-    "lockScreen": {
-      "title": "屏幕已锁定",
-      "description": "请解锁应用以继续",
-      "placeholder": "输入密码",
-      "unlock": "解锁",
-      "incorrect": "密码不正确",
-      "unlockFailed": "解锁失败"
     }
+  },
+  "lockScreen": {
+    "title": "屏幕已锁定",
+    "description": "请解锁应用以继续",
+    "placeholder": "输入密码",
+    "unlock": "解锁",
+    "incorrect": "密码不正确",
+    "unlockFailed": "解锁失败"
   }
 }

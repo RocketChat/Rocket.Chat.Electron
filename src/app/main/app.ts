@@ -111,8 +111,11 @@ const showLockWindow = async (): Promise<void> => {
     // the entire content area.
     lockWindow = new BrowserView({
       webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
+        // so we can safely expose a minimal API via preload.
+        nodeIntegration: false,
+        contextIsolation: true,
+        // Use the built preload script placed into the `app/` folder during build
+        preload: path.join(app.getAppPath(), 'app/lockPreload.js'),
       },
     });
 
@@ -140,18 +143,6 @@ const showLockWindow = async (): Promise<void> => {
     );
 
     lockWindow.webContents.once('did-finish-load', async () => {
-      try {
-        await lockWindow?.webContents.executeJavaScript(`
-          window.electronAPI = {
-            verifyPassword: (password) => require('electron').ipcRenderer.invoke('lock:verify', password),
-            unlockApp: () => require('electron').ipcRenderer.invoke('lock:unlock')
-          };
-          null;
-        `);
-      } catch (e) {
-        console.warn('Failed to inject electronAPI into lock view', e);
-      }
-
       lockWindow?.webContents.focus();
     });
 

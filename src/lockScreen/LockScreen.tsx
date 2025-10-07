@@ -21,9 +21,16 @@ const LockScreen: React.FC = () => {
     setError(null);
     setBusy(true);
     try {
-      const ok = await window.electronAPI?.verifyPassword(password);
+      if (
+        !window.electronAPI?.verifyPassword ||
+        !window.electronAPI?.unlockApp
+      ) {
+        setError(t('lockScreen.unlockFailed'));
+        return;
+      }
+      const ok = await window.electronAPI.verifyPassword(password);
       if (ok) {
-        await window.electronAPI?.unlockApp();
+        await window.electronAPI.unlockApp();
       } else {
         setError(t('lockScreen.incorrect'));
       }

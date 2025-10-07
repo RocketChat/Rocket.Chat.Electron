@@ -15,14 +15,14 @@
           "description": "Angi et passord som kreves for å låse opp applikasjonen. Passordet lagres som en SHA-256-hash."
         }
       }
-    },
-    "lockScreen": {
-      "title": "Skjermen er låst",
-      "description": "Lås opp appen for å fortsette",
-      "placeholder": "Skriv inn passord",
-      "unlock": "Lås opp",
-      "incorrect": "Feil passord",
-      "unlockFailed": "Kunne ikke låse opp"
     }
+  },
+  "lockScreen": {
+    "title": "Skjermen er låst",
+    "description": "Lås opp appen for å fortsette",
+    "placeholder": "Skriv inn passord",
+    "unlock": "Lås opp",
+    "incorrect": "Feil passord",
+    "unlockFailed": "Kunne ikke låse opp"
   }
 }

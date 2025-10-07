@@ -118,76 +118,77 @@ export const setupScreenLock = (): void => {
   listen(WEBVIEW_USER_LOGGED_IN, onUserActivity);
 
   // Attach listeners to root window to detect activity
-  getRootWindow()
-    .then((rootWindow) => {
-      // Clear timer on focus (user returned to app)
-      rootWindow.addListener('focus', () => {
-        rootWindowFocused = true;
-        suspended = false;
-        if (blurStartTimeout) {
-          clearTimeout(blurStartTimeout);
-          blurStartTimeout = null;
-        }
-        clearTimer('focus');
-      });
-
-      // Start timer on blur (user left the app) — delay start slightly to avoid races
-      rootWindow.addListener('blur', () => {
-        rootWindowFocused = false;
-        suspended = false;
-        lastBlurAt = Date.now();
-        if (blurStartTimeout) {
-          clearTimeout(blurStartTimeout);
-        }
-        blurStartTimeout = setTimeout(() => {
-          blurStartTimeout = null;
-          // Only start the timer if the window is still unfocused
-          try {
-            if (!rootWindow.isFocused()) {
-              startTimer();
-            }
-          } catch (e) {
-            // ignore
-          }
-        }, BLUR_START_DELAY_MS);
-      });
-
-      // Any input while focused is activity: clear timer
-      rootWindow.webContents.on('before-input-event', () => {
-        suspended = false;
-        if (blurStartTimeout) {
-          clearTimeout(blurStartTimeout);
-          blurStartTimeout = null;
-        }
-        clearTimer('before-input-event');
-      });
-
-      // IPC messages from renderer indicate activity: clear timer
-      rootWindow.webContents.on('ipc-message', () => {
-        try {
-          // Ignore IPCs that happen immediately after blur (they may be caused
-          // by blur handling in renderers). Use a small grace window.
-          const now = Date.now();
-          if (now - lastBlurAt < GRACE_WINDOW_MS) {
-            return;
-          }
-          if (!rootWindow.isFocused()) {
-            return;
-          }
+  const attachRootWindowListeners = () => {
+    getRootWindow()
+      .then((rootWindow) => {
+        // Clear timer on focus (user returned to app)
+        rootWindow.addListener('focus', () => {
+          rootWindowFocused = true;
           suspended = false;
           if (blurStartTimeout) {
             clearTimeout(blurStartTimeout);
             blurStartTimeout = null;
           }
-          clearTimer('ipc-message');
-        } catch (e) {
-          // ignore
-        }
+          clearTimer('focus');
+        });
+
+        // Start timer on blur (user left the app) — delay start slightly to avoid races
+        rootWindow.addListener('blur', () => {
+          rootWindowFocused = false;
+          suspended = false;
+          lastBlurAt = Date.now();
+          if (blurStartTimeout) {
+            clearTimeout(blurStartTimeout);
+          }
+          blurStartTimeout = setTimeout(() => {
+            blurStartTimeout = null;
+            // Only start the timer if the window is still unfocused
+            try {
+              if (!rootWindow.isFocused()) {
+                startTimer();
+              }
+            } catch (e) {
+              // ignore
+            }
+          }, BLUR_START_DELAY_MS);
+        });
+
+        // Any input while focused is activity: clear timer
+        rootWindow.webContents.on('before-input-event', () => {
+          suspended = false;
+          if (blurStartTimeout) {
+            clearTimeout(blurStartTimeout);
+            blurStartTimeout = null;
+          }
+          clearTimer('before-input-event');
+        });
+
+        // IPC messages from renderer indicate activity: clear timer
+        rootWindow.webContents.on('ipc-message', () => {
+          try {
+            // Ignore IPCs that happen immediately after blur (they may be caused
+            // by blur handling in renderers). Use a small grace window.
+            const now = Date.now();
+            if (now - lastBlurAt < GRACE_WINDOW_MS) {
+              return;
+            }
+            if (!rootWindow.isFocused()) {
+              return;
+            }
+            suspended = false;
+            if (blurStartTimeout) {
+              clearTimeout(blurStartTimeout);
+              blurStartTimeout = null;
+            }
+            clearTimer('ipc-message');
+          } catch (e) {
+            // ignore
+          }
+        });
+      })
+      .catch(() => {
+        setTimeout(attachRootWindowListeners, 500);
       });
-    })
-    .catch(() => {
-      // If root window isn't ready yet, watch again later when it's created elsewhere.
-      // We rely on the watch above to start timer when timeout changes and root window will
-      // be available soon after application start.
-    });
+  };
+  attachRootWindowListeners();
 };

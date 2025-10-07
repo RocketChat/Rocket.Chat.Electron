@@ -309,8 +309,13 @@ export const registerLockIpcHandlers = (): void => {
     }
   });
 
-  ipcMain.handle('lock:unlock', async () => {
+  ipcMain.handle('lock:unlock', async (event) => {
     try {
+      // Only accept unlock from the lock BrowserView itself
+      if (!lockWindow || event.sender !== lockWindow.webContents) {
+        return false;
+      }
+
       if (lockWindow && !lockWindow.webContents.isDestroyed()) {
         try {
           const rootWindow = await getRootWindow();

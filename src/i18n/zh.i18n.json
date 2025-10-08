@@ -12,7 +12,7 @@
         "password": {
           "title": "锁屏密码",
           "placeholder": "输入密码",
-          "description": "设置一个将用于解锁应用的密码。密码以 SHA-256 哈希形式存储。"
+          "description": "密码将使用带盐的安全哈希方式存储。"
         }
       }
     }

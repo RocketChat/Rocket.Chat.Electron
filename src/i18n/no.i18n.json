@@ -287,7 +287,7 @@
         "password": {
           "title": "Låspassord",
           "placeholder": "Angi passord",
-          "description": "Angi et passord som kreves for å låse opp applikasjonen. Passordet lagres som en SHA-256-hash."
+          "description": "Angi et passord som kreves for å låse opp applikasjonen. Passordet lagres med en sikker, saltet hash."
         }
       }
     }

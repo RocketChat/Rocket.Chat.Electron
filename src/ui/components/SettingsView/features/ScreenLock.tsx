@@ -6,7 +6,6 @@ import {
   InputBox,
   Box,
 } from '@rocket.chat/fuselage';
-import { ipcRenderer } from 'electron';
 import type { FocusEvent } from 'react';
 import { useCallback, useId, useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -72,8 +71,6 @@ export const ScreenLock = (props: ScreenLockProps) => {
   const applySetPassword = useCallback(async (password: string) => {
     if (window.electronAPI?.setLockPassword) {
       await window.electronAPI.setLockPassword(password);
-    } else if (ipcRenderer && typeof ipcRenderer.invoke === 'function') {
-      await ipcRenderer.invoke('lock:set', password);
     } else {
       console.warn('No available API to set lock password');
     }
@@ -89,7 +86,6 @@ export const ScreenLock = (props: ScreenLockProps) => {
   const handlePasswordBlur = useCallback(
     async (_event: FocusEvent<HTMLInputElement>) => {
       // Do not commit on blur to avoid accidental changes when focus leaves due to lock overlay
-      return;
     },
     []
   );

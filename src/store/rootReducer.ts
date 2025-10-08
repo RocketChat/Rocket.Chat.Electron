@@ -3,10 +3,10 @@ import { combineReducers } from 'redux';
 import { allowedNTLMCredentialsDomains } from '../app/reducers/allowedNTLMCredentialsDomains';
 import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
+import { isScreenLocked } from '../app/reducers/isScreenLocked';
 import { machineTheme } from '../app/reducers/machineTheme';
 import { mainWindowTitle } from '../app/reducers/mainWindowTitle';
 import { screenCaptureFallbackForced } from '../app/reducers/screenCaptureFallbackForced';
-import { isScreenLocked } from '../app/reducers/isScreenLocked';
 import { downloads } from '../downloads/reducers/downloads';
 import { allowedJitsiServers } from '../jitsi/reducers';
 import {

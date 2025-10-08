@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
+import { invoke } from '../../../../ipc/renderer';
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import { SETTINGS_SET_SCREEN_LOCK_TIMEOUT_CHANGED } from '../../../actions';
@@ -71,8 +72,12 @@ export const ScreenLock = (props: ScreenLockProps) => {
   const applySetPassword = useCallback(async (password: string) => {
     if (window.electronAPI?.setLockPassword) {
       await window.electronAPI.setLockPassword(password);
-    } else {
-      console.warn('No available API to set lock password');
+      return;
+    }
+    try {
+      await invoke('lock:set', password);
+    } catch (err) {
+      console.error('IPC fallback lock:set failed', err);
     }
   }, []);
 

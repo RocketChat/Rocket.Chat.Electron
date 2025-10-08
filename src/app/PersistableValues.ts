@@ -102,6 +102,7 @@ export type ScreenLockPasswordStored = {
 type PersistableValues_5_0_0 = PersistableValues_4_9_0 & {
   screenLockTimeoutSeconds: number; // 0 = disabled
   screenLockPasswordHash: ScreenLockPasswordStored | null;
+  isScreenLocked: boolean; // new: lock state across restarts
 };
 
 export type PersistableValues = Pick<
@@ -189,6 +190,7 @@ export const migrations = {
     ...before,
     screenLockTimeoutSeconds: 0,
     screenLockPasswordHash: null,
+    isScreenLocked: false,
   }),
   // Convert older plain sha256 hex or legacy pbkdf2 string into structured object
   '>=5.0.1': (before: any): PersistableValues_5_0_0 => {
@@ -200,7 +202,8 @@ export const migrations = {
         ...before,
         screenLockTimeoutSeconds: before.screenLockTimeoutSeconds ?? 0,
         screenLockPasswordHash: null,
-      };
+        isScreenLocked: before.isScreenLocked ?? false,
+      } as PersistableValues_5_0_0;
     }
 
     // If already an object with algorithm, assume it's in new format
@@ -209,7 +212,8 @@ export const migrations = {
         ...before,
         screenLockTimeoutSeconds: before.screenLockTimeoutSeconds ?? 0,
         screenLockPasswordHash: raw as ScreenLockPasswordStored,
-      };
+        isScreenLocked: before.isScreenLocked ?? false,
+      } as PersistableValues_5_0_0;
     }
 
     // If string: could be legacy sha256 hex (64 hex chars) or our old pbkdf2$... encoded string
@@ -234,7 +238,8 @@ export const migrations = {
               keylen: derivedBuf.length,
             },
           },
-        };
+          isScreenLocked: before.isScreenLocked ?? false,
+        } as PersistableValues_5_0_0;
       }
 
       // legacy unsalted sha256 hex
@@ -249,7 +254,8 @@ export const migrations = {
             salt: '',
             params: {},
           },
-        };
+          isScreenLocked: before.isScreenLocked ?? false,
+        } as PersistableValues_5_0_0;
       }
     }
 
@@ -258,6 +264,7 @@ export const migrations = {
       ...before,
       screenLockTimeoutSeconds: before.screenLockTimeoutSeconds ?? 0,
       screenLockPasswordHash: null,
-    };
+      isScreenLocked: before.isScreenLocked ?? false,
+    } as PersistableValues_5_0_0;
   },
 };

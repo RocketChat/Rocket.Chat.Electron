@@ -4,6 +4,7 @@ import {
   performElectronStartup,
   setupApp,
   initializeScreenCaptureFallbackState,
+  showLockWindow,
 } from './app/main/app';
 import {
   mergePersistableValues,
@@ -27,6 +28,7 @@ import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
+import { select } from './store';
 import { handleCertificatesManager } from './ui/components/CertificatesManager/main';
 import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
@@ -77,6 +79,13 @@ const start = async (): Promise<void> => {
   startOutlookCalendarUrlHandler();
   attachGuestWebContentsEvents();
   await showRootWindow();
+  // Auto-show lock on startup if previously locked
+  try {
+    const locked = select((s) => s.isScreenLocked);
+    if (locked) {
+      await showLockWindow();
+    }
+  } catch {}
   // Set up automatic screen locking based on user-configured timeout
   setupScreenLock();
 

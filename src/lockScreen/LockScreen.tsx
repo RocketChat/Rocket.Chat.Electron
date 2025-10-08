@@ -5,8 +5,9 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Window {
     electronAPI?: {
-      verifyPassword: (pwd: string) => Promise<boolean>;
-      unlockApp: () => Promise<void>;
+      setLockPassword?: (password: string) => Promise<unknown>;
+      verifyPassword?: (pwd: string) => Promise<boolean>;
+      unlockApp?: () => Promise<void>;
     };
   }
 }

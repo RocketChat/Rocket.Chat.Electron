@@ -73,4 +73,5 @@ export const selectPersistableValues = createStructuredSelector({
     screenLockTimeoutSeconds,
   screenLockPasswordHash: ({ screenLockPasswordHash }: RootState) =>
     screenLockPasswordHash,
+  isScreenLocked: ({ isScreenLocked }: RootState) => isScreenLocked,
 });

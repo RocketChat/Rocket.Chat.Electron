@@ -6,18 +6,16 @@ import {
   InputBox,
   Box,
 } from '@rocket.chat/fuselage';
+import { ipcRenderer } from 'electron';
 import type { FocusEvent } from 'react';
-import { useCallback, useId, useState, useEffect } from 'react';
+import { useCallback, useId, useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
 import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
-import {
-  SETTINGS_SET_SCREEN_LOCK_TIMEOUT_CHANGED,
-  SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED,
-} from '../../../actions';
+import { SETTINGS_SET_SCREEN_LOCK_TIMEOUT_CHANGED } from '../../../actions';
 
 type ScreenLockProps = {
   className?: string;
@@ -67,55 +65,53 @@ export const ScreenLock = (props: ScreenLockProps) => {
     [dispatch]
   );
 
-  const handlePasswordChange = useCallback(
-    async (event: FocusEvent<HTMLInputElement>) => {
-      // Capture the input element and its plaintext value immediately
-      const inputEl = event.target as HTMLInputElement;
-      const plain = inputEl.value || '';
+  // Controlled password input to avoid reading stale DOM and double-commit races
+  const [passwordInput, setPasswordInput] = useState('');
+  const skipNextBlurRef = useRef(false);
 
-      // Do not store plaintext in Redux. Send it over the secure IPC channel
-      // to the main process which will hash & persist it and return the hashed
-      // representation. Handle errors and ensure the plaintext is cleared.
+  const applySetPassword = useCallback(async (password: string) => {
+    if (window.electronAPI?.setLockPassword) {
+      await window.electronAPI.setLockPassword(password);
+    } else if (ipcRenderer && typeof ipcRenderer.invoke === 'function') {
+      await ipcRenderer.invoke('lock:set', password);
+    } else {
+      console.warn('No available API to set lock password');
+    }
+  }, []);
+
+  const handlePasswordChangeInput = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setPasswordInput(event.target.value);
+    },
+    []
+  );
+
+  const handlePasswordBlur = useCallback(
+    async (_event: FocusEvent<HTMLInputElement>) => {
+      // Do not commit on blur to avoid accidental changes when focus leaves due to lock overlay
+      return;
+    },
+    []
+  );
+
+  const handlePasswordKeyDown = useCallback(
+    async (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      const value = passwordInput;
       try {
-        // Guard in case electronAPI is not available in non-electron environments
-        const setLockPassword = (window as any)?.electronAPI?.setLockPassword;
-        if (typeof setLockPassword !== 'function') {
-          console.error('secure IPC method setLockPassword is not available');
-          // Ensure no plaintext lingers in the input
-          try {
-            inputEl.value = '';
-          } catch (e) {
-            // ignore
-          }
-          return;
+        if (value) {
+          await applySetPassword(value);
         }
-
-        // Call secure IPC method. It should return the hashed stored object (or null).
-        const hashed = await setLockPassword(String(plain));
-
-        // Clear plaintext from the input immediately after the roundtrip
-        try {
-          inputEl.value = '';
-        } catch (e) {
-          // ignore
-        }
-
-        // Only dispatch the hashed result to Redux (no plaintext ever stored)
-        dispatch({
-          type: SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED,
-          payload: hashed ?? null,
-        });
-      } catch (err) {
-        // Do not include plaintext in logs; log only that an error occurred
-        console.error('Error setting screen lock password via IPC:', err);
-        try {
-          inputEl.value = '';
-        } catch (e) {
-          // ignore
-        }
+      } catch (e) {
+        console.error('Failed setting lock password via Enter:', e);
+      } finally {
+        setPasswordInput('');
+        // Prevent the subsequent blur from clearing/resetting the password to empty
+        skipNextBlurRef.current = true;
       }
     },
-    [dispatch]
+    [applySetPassword, passwordInput]
   );
 
   const timeoutId = useId();
@@ -160,9 +156,13 @@ export const ScreenLock = (props: ScreenLockProps) => {
         <Box display='flex' alignItems='center' style={{ paddingTop: 4 }}>
           <InputBox
             id={passwordId}
-            onBlur={handlePasswordChange}
+            value={passwordInput}
+            onChange={handlePasswordChangeInput}
+            onBlur={handlePasswordBlur}
+            onKeyDown={handlePasswordKeyDown}
             type='password'
             placeholder={t('settings.options.screenLock.password.placeholder')}
+            style={{ width: 240 }}
           />
         </Box>
       </FieldRow>

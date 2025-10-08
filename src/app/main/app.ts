@@ -14,7 +14,7 @@ import electronBuilderJson from '../../../electron-builder.json';
 // eslint-disable-next-line import/order, @typescript-eslint/no-unused-vars
 import packageJson from '../../../package.json';
 import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED } from '../../jitsi/actions';
-import { dispatch, listen } from '../../store';
+import { dispatch, listen, select } from '../../store';
 import { readSetting } from '../../store/readSetting';
 import {
   APP_ALLOWED_NTLM_CREDENTIALS_DOMAINS_SET,
@@ -22,6 +22,7 @@ import {
   APP_PATH_SET,
   APP_VERSION_SET,
   APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
+  APP_IS_SCREEN_LOCKED_SET,
 } from '../actions';
 import {
   SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
@@ -275,10 +276,13 @@ const lockState: {
   resizeListener?: () => void;
 } = {};
 
-const showLockWindow = async (): Promise<void> => {
+export const showLockWindow = async (): Promise<void> => {
   try {
+    // Prefer current in-memory state; fall back to persisted store
+    const liveHash = select((s) => s.screenLockPasswordHash);
     const persisted = getPersistedValues();
-    if (!persisted?.screenLockPasswordHash) {
+    const effectiveHash = liveHash ?? persisted?.screenLockPasswordHash;
+    if (!effectiveHash) {
       console.log('No screen lock password configured; skipping lock overlay');
       return;
     }
@@ -288,6 +292,9 @@ const showLockWindow = async (): Promise<void> => {
     if (lockWindow && !lockWindow.webContents.isDestroyed()) {
       return;
     }
+
+    // Mark app as locked (persisted)
+    dispatch({ type: APP_IS_SCREEN_LOCKED_SET, payload: true });
 
     // Save current window flags and bounds so we can restore them
     try {
@@ -428,14 +435,15 @@ export const registerLockIpcHandlers = (): void => {
       if (record && record.count >= MAX_LOCK_ATTEMPTS) {
         const elapsed = now - record.firstFailureTs;
         if (elapsed < LOCKOUT_WINDOW_MS) {
-          // Do not reveal timing differences; quickly return false
           return false;
         }
-        // else allow attempts again (record expired by time but keeper not yet cleared)
       }
 
-      const persisted = getPersistedValues();
-      const storedHash = persisted?.screenLockPasswordHash ?? null;
+      // Prefer current in-memory state to avoid races with disk persistence
+      const liveHash = select((s) => s.screenLockPasswordHash);
+      const persisted = liveHash ? null : getPersistedValues();
+      const storedHash = liveHash ?? persisted?.screenLockPasswordHash ?? null;
+
       if (!storedHash) {
         return false;
       }
@@ -518,10 +526,37 @@ export const registerLockIpcHandlers = (): void => {
         rootWindow.show();
         rootWindow.focus();
       }
+      // Clear lock flag
+      dispatch({ type: APP_IS_SCREEN_LOCKED_SET, payload: false });
       return true;
     } catch (error) {
       console.error('Error unlocking app:', error);
       return false;
+    }
+  });
+
+  // New: directly set (or clear) the lock password securely from renderer
+  ipcMain.handle('lock:set', async (_event, password: string) => {
+    try {
+      const plain = password || '';
+      if (!plain) {
+        dispatch({
+          type: SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED,
+          payload: null,
+        });
+        return null;
+      }
+
+      const encoded = await hashPlainPassword(String(plain));
+      const stored = encoded as unknown as ScreenLockPasswordStored;
+      dispatch({
+        type: SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED,
+        payload: stored,
+      });
+      return stored;
+    } catch (error) {
+      console.error('Error setting lock password:', error);
+      throw new Error('lock-set-failed');
     }
   });
 };

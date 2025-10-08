@@ -6,6 +6,7 @@ import { appVersion } from '../app/reducers/appVersion';
 import { machineTheme } from '../app/reducers/machineTheme';
 import { mainWindowTitle } from '../app/reducers/mainWindowTitle';
 import { screenCaptureFallbackForced } from '../app/reducers/screenCaptureFallbackForced';
+import { isScreenLocked } from '../app/reducers/isScreenLocked';
 import { downloads } from '../downloads/reducers/downloads';
 import { allowedJitsiServers } from '../jitsi/reducers';
 import {
@@ -104,6 +105,7 @@ export const rootReducer = combineReducers({
   isVideoCallScreenCaptureFallbackEnabled,
   screenLockTimeoutSeconds,
   screenLockPasswordHash,
+  isScreenLocked,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

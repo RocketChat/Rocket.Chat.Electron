@@ -29,7 +29,7 @@ const clearTimer = (reason?: string) => {
     lastStartAt &&
     now - lastStartAt < MIN_CLEAR_IGNORE_MS &&
     reason &&
-    ['redux-action', 'ipc-message', 'user-activity-action'].includes(reason)
+    ['redux-action'].includes(reason)
   ) {
     return;
   }

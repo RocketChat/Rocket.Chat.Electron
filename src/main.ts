@@ -5,7 +5,6 @@ import {
   setupApp,
   initializeScreenCaptureFallbackState,
   showLockWindow,
-  setAllowedLockSetterWebContents,
 } from './app/main/app';
 import {
   mergePersistableValues,
@@ -28,8 +27,7 @@ import { handleClearCacheDialog } from './servers/cache';
 import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
-import { createMainReduxStore } from './store';
-import { select } from './store';
+import { createMainReduxStore, select } from './store';
 import { handleCertificatesManager } from './ui/components/CertificatesManager/main';
 import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
@@ -38,7 +36,6 @@ import {
   showRootWindow,
   exportLocalStorage,
   watchMachineTheme,
-  getRootWindow,
 } from './ui/main/rootWindow';
 import { attachGuestWebContentsEvents } from './ui/main/serverView';
 import touchBar from './ui/main/touchBar';
@@ -78,13 +75,6 @@ const start = async (): Promise<void> => {
   setupMainErrorHandling();
 
   createRootWindow();
-  // Configure which renderer is authorized to set the lock password
-  try {
-    const rootWindow = await getRootWindow();
-    setAllowedLockSetterWebContents(rootWindow.webContents);
-  } catch (e) {
-    // If root window is not ready yet, it will be configured later when available
-  }
   startOutlookCalendarUrlHandler();
   attachGuestWebContentsEvents();
   await showRootWindow();
@@ -94,7 +84,9 @@ const start = async (): Promise<void> => {
     if (locked) {
       await showLockWindow();
     }
-  } catch {}
+  } catch {
+    // ignore
+  }
   // Set up automatic screen locking based on user-configured timeout
   setupScreenLock();
 

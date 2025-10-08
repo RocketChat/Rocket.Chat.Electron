@@ -63,14 +63,6 @@ type LockAttemptRecord = {
 // Keyed by webContents id (stringified) to limit attempts per sender
 const lockAttemptMap: Map<string, LockAttemptRecord> = new Map();
 
-// Optional: a specifically authorized WebContents (e.g., Settings window) allowed to set/clear lock
-let allowedLockSetterWebContents: Electron.WebContents | null = null;
-export const setAllowedLockSetterWebContents = (
-  wc: Electron.WebContents | null
-): void => {
-  allowedLockSetterWebContents = wc;
-};
-
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 // Secure password hashing utilities (use scrypt by default)
@@ -431,6 +423,11 @@ export const registerLockIpcHandlers = (): void => {
 
   ipcMain.handle('lock:verify', async (event, password: string) => {
     try {
+      // Only allow verification from the lock overlay BrowserView itself
+      if (!lockWindow || event.sender !== lockWindow.webContents) {
+        return false;
+      }
+
       // Identify caller by webContents id when possible
       const senderId = (event as any)?.sender?.id
         ? String((event as any).sender.id)
@@ -507,9 +504,9 @@ export const registerLockIpcHandlers = (): void => {
     }
   });
 
+  // Re-add: unlock handler, only from lock overlay
   ipcMain.handle('lock:unlock', async (event) => {
     try {
-      // Only accept unlock from the lock BrowserView itself
       if (!lockWindow || event.sender !== lockWindow.webContents) {
         return false;
       }
@@ -522,19 +519,18 @@ export const registerLockIpcHandlers = (): void => {
           // ignore
         }
         try {
-          // WebContents.destroy may not be in the TypeScript definitions, cast to any
           (lockWindow.webContents as any).destroy?.();
         } catch (e) {
           // ignore
         }
         lockWindow = null;
       }
+
       const rootWindow = await getRootWindow();
       if (rootWindow && !rootWindow.isDestroyed()) {
         rootWindow.show();
         rootWindow.focus();
       }
-      // Clear lock flag
       dispatch({ type: APP_IS_SCREEN_LOCKED_SET, payload: false });
       return true;
     } catch (error) {
@@ -543,12 +539,15 @@ export const registerLockIpcHandlers = (): void => {
     }
   });
 
-  // New: directly set (or clear) the lock password securely from renderer
+  // Directly set (or clear) the lock password securely from renderer
   ipcMain.handle('lock:set', async (event, password: string) => {
     try {
-      // Only allow from an explicitly authorized WebContents (e.g., Settings window)
-      const allowedWc = allowedLockSetterWebContents;
-      if (!allowedWc || event.sender !== allowedWc) {
+      // Allow only from lock overlay OR the main root window (Settings UI)
+      const rootWindow = await getRootWindow().catch(() => null as any);
+      const rootWc = rootWindow?.webContents ?? null;
+      const isFromLock = lockWindow && event.sender === lockWindow.webContents;
+      const isFromRoot = rootWc && event.sender === rootWc;
+      if (!isFromLock && !isFromRoot) {
         const err: any = new Error('unauthorized');
         err.code = 'ERR_UNAUTHORIZED';
         throw err;
@@ -693,11 +692,9 @@ export const setupApp = (): void => {
     }, 100); // Brief delay to let window state stabilize
   });
 
-  // Register IPC handlers and other readiness tasks once Electron is ready
-  app.whenReady().then(() => {
-    preloadBrowsersList();
-    registerLockIpcHandlers();
-  });
+  // We are called after app.whenReady() in main.ts, so register immediately to avoid races
+  preloadBrowsersList();
+  registerLockIpcHandlers();
 
   listen(SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED, () => {
     relaunchApp();

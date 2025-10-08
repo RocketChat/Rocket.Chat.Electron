@@ -69,20 +69,22 @@ export const setupScreenLock = (): void => {
       currentTimeoutSeconds = timeout ?? 0;
       if (currentTimeoutSeconds > 0) {
         // Start timer only if the root window is not focused (we run timer while app is unfocused)
-        getRootWindow()
-          .then((rootWindow) => {
-            if (!rootWindow.isFocused()) {
-              rootWindowFocused = false;
-              startTimer();
-            } else {
-              rootWindowFocused = true;
-              clearTimer('timeout-focused');
-            }
-          })
-          .catch(() => {
-            // If root window isn't available, default to starting timer
-            startTimer();
-          });
+        const evaluateFocusAndMaybeStart = () => {
+          getRootWindow()
+            .then((rootWindow) => {
+              if (!rootWindow.isFocused()) {
+                rootWindowFocused = false;
+                startTimer();
+              } else {
+                rootWindowFocused = true;
+                clearTimer('timeout-focused');
+              }
+            })
+            .catch(() => {
+              setTimeout(evaluateFocusAndMaybeStart, 500);
+            });
+        };
+        evaluateFocusAndMaybeStart();
       } else {
         clearTimer('timeout-disabled');
       }

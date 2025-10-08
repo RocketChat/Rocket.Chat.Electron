@@ -16,7 +16,7 @@ import type { RootAction } from '../../../../store/actions';
 import type { RootState } from '../../../../store/rootReducer';
 import {
   SETTINGS_SET_SCREEN_LOCK_TIMEOUT_CHANGED,
-  SETTINGS_SET_SCREEN_LOCK_PASSWORD_CHANGED,
+  SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED,
 } from '../../../actions';
 
 type ScreenLockProps = {
@@ -68,13 +68,52 @@ export const ScreenLock = (props: ScreenLockProps) => {
   );
 
   const handlePasswordChange = useCallback(
-    (event: FocusEvent<HTMLInputElement>) => {
-      const password = event.target.value || '';
-      // Send plaintext to main process to be hashed before persisting
-      dispatch({
-        type: SETTINGS_SET_SCREEN_LOCK_PASSWORD_CHANGED,
-        payload: password,
-      });
+    async (event: FocusEvent<HTMLInputElement>) => {
+      // Capture the input element and its plaintext value immediately
+      const inputEl = event.target as HTMLInputElement;
+      const plain = inputEl.value || '';
+
+      // Do not store plaintext in Redux. Send it over the secure IPC channel
+      // to the main process which will hash & persist it and return the hashed
+      // representation. Handle errors and ensure the plaintext is cleared.
+      try {
+        // Guard in case electronAPI is not available in non-electron environments
+        const setLockPassword = (window as any)?.electronAPI?.setLockPassword;
+        if (typeof setLockPassword !== 'function') {
+          console.error('secure IPC method setLockPassword is not available');
+          // Ensure no plaintext lingers in the input
+          try {
+            inputEl.value = '';
+          } catch (e) {
+            // ignore
+          }
+          return;
+        }
+
+        // Call secure IPC method. It should return the hashed stored object (or null).
+        const hashed = await setLockPassword(String(plain));
+
+        // Clear plaintext from the input immediately after the roundtrip
+        try {
+          inputEl.value = '';
+        } catch (e) {
+          // ignore
+        }
+
+        // Only dispatch the hashed result to Redux (no plaintext ever stored)
+        dispatch({
+          type: SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED,
+          payload: hashed ?? null,
+        });
+      } catch (err) {
+        // Do not include plaintext in logs; log only that an error occurred
+        console.error('Error setting screen lock password via IPC:', err);
+        try {
+          inputEl.value = '';
+        } catch (e) {
+          // ignore
+        }
+      }
     },
     [dispatch]
   );

@@ -193,7 +193,7 @@ export const migrations = {
   // Convert older plain sha256 hex or legacy pbkdf2 string into structured object
   '>=5.0.1': (before: any): PersistableValues_5_0_0 => {
     // If there is no prior screen lock value, keep as null
-    const raw = (before && before.screenLockPasswordHash) || null;
+    const raw = before?.screenLockPasswordHash || null;
 
     if (!raw) {
       return {

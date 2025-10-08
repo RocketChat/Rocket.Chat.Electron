@@ -34,7 +34,7 @@ import {
 } from '../../ui/actions';
 import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
-import { preloadBrowsersList } from '../../utils/browserLauncher';
+import { preloadBrowsersList } from '../../utils';
 import { getPersistedValues } from './persistence';
 import type { ScreenLockPasswordStored } from '../PersistableValues';
 
@@ -370,19 +370,22 @@ const showLockWindow = async (): Promise<void> => {
         rootWindow.removeListener('move', updateBounds);
 
         if (typeof lockState.prevResizable === 'boolean') {
-          rootWindow.setResizable(!!lockState.prevResizable);
+          rootWindow.setResizable(Boolean(lockState.prevResizable));
         }
         if (typeof lockState.prevMinimizable === 'boolean') {
-          rootWindow.setMinimizable(!!lockState.prevMinimizable);
+          rootWindow.setMinimizable(Boolean(lockState.prevMinimizable));
         }
         if (typeof lockState.prevMaximizable === 'boolean') {
-          rootWindow.setMaximizable(!!lockState.prevMaximizable);
+          rootWindow.setMaximizable(Boolean(lockState.prevMaximizable));
         }
+        // use optional chaining for prevMovable where possible
         if (
-          typeof rootWindow.setMovable === 'function' &&
-          typeof (lockState as any).prevMovable !== 'undefined'
+          typeof (rootWindow as any).setMovable === 'function' &&
+          (lockState as any)?.prevMovable !== undefined
         ) {
-          rootWindow.setMovable(!!(lockState as any).prevMovable);
+          (rootWindow as any).setMovable(
+            Boolean((lockState as any).prevMovable)
+          );
         }
       } catch (e) {
         // ignore
@@ -414,10 +417,9 @@ export const registerLockIpcHandlers = (): void => {
   ipcMain.handle('lock:verify', async (event, password: string) => {
     try {
       // Identify caller by webContents id when possible
-      const senderId =
-        event && (event as any).sender && (event as any).sender.id
-          ? String((event as any).sender.id)
-          : 'unknown';
+      const senderId = (event as any)?.sender?.id
+        ? String((event as any).sender.id)
+        : 'unknown';
 
       const now = Date.now();
       const record = lockAttemptMap.get(senderId);
@@ -449,40 +451,6 @@ export const registerLockIpcHandlers = (): void => {
           }
           lockAttemptMap.delete(senderId);
         }
-
-        // If stored format is not scrypt (string legacy or object with different algorithm),
-        // re-hash using scrypt in background and dispatch updated stored object so future
-        // verifications use the stronger KDF.
-        try {
-          const stored = persisted?.screenLockPasswordHash;
-          const needsMigration =
-            typeof stored === 'string' ||
-            (typeof stored === 'object' &&
-              stored &&
-              stored.algorithm &&
-              stored.algorithm !== 'scrypt');
-          if (needsMigration) {
-            // Fire-and-forget re-hash; do not block unlock
-            await (async () => {
-              try {
-                const newStored = await hashPlainPassword(String(password));
-                dispatch({
-                  type: SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED,
-                  payload: newStored as unknown as ScreenLockPasswordStored,
-                });
-              } catch (e) {
-                // Do not prevent unlocking; just log migration failures
-                console.error(
-                  'Error migrating legacy screen lock password to scrypt:',
-                  e
-                );
-              }
-            })();
-          }
-        } catch (e) {
-          // ignore migration errors
-        }
-
         return true;
       }
 
@@ -616,8 +584,7 @@ export const performElectronStartup = (): void => {
 
   if (process.platform === 'win32') {
     const sessionName = process.env.SESSIONNAME;
-    const isRdpSession =
-      typeof sessionName === 'string' && sessionName !== 'Console';
+    const isRdpSession = Boolean(sessionName && sessionName !== 'Console');
 
     isScreenCaptureFallbackForced = isRdpSession;
 
@@ -693,8 +660,7 @@ export const setupApp = (): void => {
         'isVideoCallScreenCaptureFallbackEnabled'
       );
       const sessionName = process.env.SESSIONNAME;
-      const isRdpSession =
-        typeof sessionName === 'string' && sessionName !== 'Console';
+      const isRdpSession = Boolean(sessionName && sessionName !== 'Console');
 
       // Relaunch only if the setting actually changes AND it's not already forced by RDP
       if (newSettingValue !== currentPersistedSetting && !isRdpSession) {

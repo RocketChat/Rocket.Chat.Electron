@@ -63,6 +63,14 @@ type LockAttemptRecord = {
 // Keyed by webContents id (stringified) to limit attempts per sender
 const lockAttemptMap: Map<string, LockAttemptRecord> = new Map();
 
+// Optional: a specifically authorized WebContents (e.g., Settings window) allowed to set/clear lock
+let allowedLockSetterWebContents: Electron.WebContents | null = null;
+export const setAllowedLockSetterWebContents = (
+  wc: Electron.WebContents | null
+): void => {
+  allowedLockSetterWebContents = wc;
+};
+
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 // Secure password hashing utilities (use scrypt by default)
@@ -536,8 +544,16 @@ export const registerLockIpcHandlers = (): void => {
   });
 
   // New: directly set (or clear) the lock password securely from renderer
-  ipcMain.handle('lock:set', async (_event, password: string) => {
+  ipcMain.handle('lock:set', async (event, password: string) => {
     try {
+      // Only allow from an explicitly authorized WebContents (e.g., Settings window)
+      const allowedWc = allowedLockSetterWebContents;
+      if (!allowedWc || event.sender !== allowedWc) {
+        const err: any = new Error('unauthorized');
+        err.code = 'ERR_UNAUTHORIZED';
+        throw err;
+      }
+
       const plain = password || '';
       if (!plain) {
         dispatch({
@@ -556,7 +572,7 @@ export const registerLockIpcHandlers = (): void => {
       return stored;
     } catch (error) {
       console.error('Error setting lock password:', error);
-      throw new Error('lock-set-failed');
+      throw error instanceof Error ? error : new Error('lock-set-failed');
     }
   });
 };

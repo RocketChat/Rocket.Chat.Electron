@@ -5,6 +5,7 @@ import {
   setupApp,
   initializeScreenCaptureFallbackState,
   showLockWindow,
+  setAllowedLockSetterWebContents,
 } from './app/main/app';
 import {
   mergePersistableValues,
@@ -37,6 +38,7 @@ import {
   showRootWindow,
   exportLocalStorage,
   watchMachineTheme,
+  getRootWindow,
 } from './ui/main/rootWindow';
 import { attachGuestWebContentsEvents } from './ui/main/serverView';
 import touchBar from './ui/main/touchBar';
@@ -76,6 +78,13 @@ const start = async (): Promise<void> => {
   setupMainErrorHandling();
 
   createRootWindow();
+  // Configure which renderer is authorized to set the lock password
+  try {
+    const rootWindow = await getRootWindow();
+    setAllowedLockSetterWebContents(rootWindow.webContents);
+  } catch (e) {
+    // If root window is not ready yet, it will be configured later when available
+  }
   startOutlookCalendarUrlHandler();
   attachGuestWebContentsEvents();
   await showRootWindow();

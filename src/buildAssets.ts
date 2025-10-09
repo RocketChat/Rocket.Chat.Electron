@@ -65,7 +65,7 @@ const convertSvgToPng = async (
 const writeFile = async (filePath: string, data: Buffer): Promise<void> => {
   console.log(util.inspect(filePath, { colors: true }));
   await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-  return fs.promises.writeFile(filePath, data);
+  return fs.promises.writeFile(filePath, new Uint8Array(data));
 };
 
 const createMacOSAppIcon = async (): Promise<void> => {

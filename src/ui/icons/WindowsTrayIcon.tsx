@@ -7,7 +7,7 @@ type WindowsTrayIconProps = {
 };
 
 const WindowsTrayIcon = ({ badge }: WindowsTrayIconProps) => {
-  const color = '#9EA2A8';
+  const color = '#00b3ffff';
 
   return <AppIcon color={color}>{!!badge && <Badge value={badge} />}</AppIcon>;
 };

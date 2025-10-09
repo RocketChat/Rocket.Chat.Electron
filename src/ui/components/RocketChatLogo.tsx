@@ -1,5 +1,5 @@
 export const RocketChatLogo = () => {
-  const color = '#F5455C';
+  const color = '#4144ffff';
 
   return (
     <svg

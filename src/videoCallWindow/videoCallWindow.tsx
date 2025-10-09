@@ -851,11 +851,7 @@ const VideoCallWindow = () => {
         webpreferences='nodeIntegration,nativeWindowOpen=true'
         allowpopups={'true' as any}
         partition='persist:jitsi-session'
-        style={{
-          width: '100%',
-          height: '100%',
-          display: showError || showLoading || isLoading ? 'none' : 'flex',
-        }}
+        className={`video-call-webview${showError || showLoading || isLoading ? ' hidden' : ''}`}
       />
     </Box>
   );

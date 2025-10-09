@@ -1,7 +1,7 @@
 import AppIcon from '../icons/AppIcon';
 
 const NsisSideBar = () => {
-  const backgroundColor = '#F7F8FA';
+  const backgroundColor = '#fe7e7eff';
 
   return (
     <svg viewBox='0 0 164 314' xmlns='http://www.w3.org/2000/svg'>

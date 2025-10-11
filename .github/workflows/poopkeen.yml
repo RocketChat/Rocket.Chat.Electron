@@ -1,0 +1,83 @@
+name: Build poopkeen release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+\-poopkeen'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Disable git core.autocrlf
+        run: git config --global core.autocrlf false
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node 22.17.1
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.17.1'
+
+      - name: Setup node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install package dependencies
+        run: yarn install
+
+      - name: Install build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xz-utils libarchive-tools squashfs-tools
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Test
+        run: yarn test
+
+      - name: Build app/
+        run: yarn build
+        env:
+          NODE_ENV: production
+          BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          
+      - name: Release app (linux)/
+        if: runner.os == 'Linux'
+        run: yarn build && yarn electron-builder --publish never --linux
+
+      - name: Release app (macOS)/
+        if: runner.os == 'macOS'
+        run: yarn build && yarn electron-builder --publish never --mac --universal
+ 
+      - name: Release app (windows)/
+        if: runner.os == 'Windows'
+        run: yarn build && yarn electron-builder --publish never --win
+
+      - name: LS
+        run: dir
+  
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-artifact
+          path: dist/

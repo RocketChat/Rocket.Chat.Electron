@@ -42,9 +42,7 @@ let cb = (_serverInfo: ServerInfo): void => undefined;
 declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Window {
-    RocketChatDesktop: IRocketChatDesktop & {
-      reloadServer: () => void; // TODO: remove this after updating @rocket.chat/desktop-api
-    };
+    RocketChatDesktop: IRocketChatDesktop;
   }
 }
 

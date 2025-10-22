@@ -93,11 +93,23 @@ export const getOutlookEvents = async (
       const isBusy =
         appointment.LegacyFreeBusyStatus === LegacyFreeBusyStatus.Busy;
 
+      // FIX: Preserve timezone offset instead of converting to UTC
+      // Use Format() with timezone-aware format string (YYYY-MM-DDTHH:mm:ss.SSSZ)
+      // This ensures RocketChat receives times with proper timezone offset (e.g., +03:00)
+      // so Windows notifications display the correct local time
+      const startTime = appointment.Start.Format('YYYY-MM-DDTHH:mm:ss.SSSZ');
+      const endTime = appointment.End.Format('YYYY-MM-DDTHH:mm:ss.SSSZ');
+
+      // Log for debugging timezone preservation
+      console.log(
+        `[Outlook Sync] Appointment: "${appointment.Subject}" | Start: ${startTime} | End: ${endTime}`
+      );
+
       return {
         id: appointment.Id.UniqueId,
         subject: appointment.Subject,
-        startTime: appointment.Start.ToISOString(),
-        endTime: appointment.End.ToISOString(),
+        startTime,
+        endTime,
         description,
         isAllDay: appointment.IsAllDayEvent ?? false,
         isCanceled: appointment.IsCancelled ?? false,

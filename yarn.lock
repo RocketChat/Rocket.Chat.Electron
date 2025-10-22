@@ -4589,6 +4589,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rocket.chat/desktop-api@npm:~1.1.0":
+  version: 1.1.0
+  resolution: "@rocket.chat/desktop-api@npm:1.1.0"
+  checksum: 10/a09f896fb4bdefd950f93fa962a90ed082d54bfccc9d62d10a33934ade538bd54140d027f0743cf01b4080adf1ef117cdc2c25a5e6b8baca7f6cc179b790900e
+  languageName: node
+  linkType: hard
+
 "@rocket.chat/desktop-release-action@workspace:workspaces/desktop-release-action":
   version: 0.0.0-use.local
   resolution: "@rocket.chat/desktop-release-action@workspace:workspaces/desktop-release-action"
@@ -14495,6 +14502,7 @@ __metadata:
     "@fiahfy/ico-convert": "npm:~0.0.12"
     "@kayahr/jest-electron-runner": "npm:29.14.0"
     "@rocket.chat/css-in-js": "npm:~0.31.25"
+    "@rocket.chat/desktop-api": "npm:~1.1.0"
     "@rocket.chat/eslint-config": "npm:~0.7.0"
     "@rocket.chat/fuselage": "npm:0.58.0"
     "@rocket.chat/fuselage-hooks": "npm:~0.33.1"

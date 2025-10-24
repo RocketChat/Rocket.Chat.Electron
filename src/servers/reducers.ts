@@ -27,6 +27,7 @@ import {
   WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
   WEBVIEW_SERVER_VERSION_UPDATED,
+  WEBVIEW_SERVER_VERSION_CHECK_FAILED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
   WEBVIEW_SIDEBAR_CUSTOM_THEME_CHANGED,
   WEBVIEW_USER_THEME_APPEARANCE_CHANGED,
@@ -67,6 +68,7 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_SERVER_UNIQUE_ID_UPDATED>
   | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
+  | ActionOf<typeof WEBVIEW_SERVER_VERSION_CHECK_FAILED>
   | ActionOf<typeof SUPPORTED_VERSION_DIALOG_DISMISS>
   | ActionOf<typeof SERVER_DOCUMENT_VIEWER_OPEN_URL>
   | ActionOf<typeof WEBVIEW_PAGE_TITLE_CHANGED>
@@ -136,6 +138,9 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         url,
         supportedVersions,
         supportedVersionsSource: source,
+        lastKnownGoodSupportedVersions: supportedVersions,
+        lastSuccessfulVersionCheck: new Date(),
+        versionCheckFailureCount: 0,
       });
     }
 
@@ -161,7 +166,18 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
 
     case WEBVIEW_SERVER_VERSION_UPDATED: {
       const { url, version } = action.payload;
-      return upsert(state, { url, version });
+      return upsert(state, { url, version, lastKnownGoodVersion: version });
+    }
+
+    case WEBVIEW_SERVER_VERSION_CHECK_FAILED: {
+      const { url } = action.payload;
+      const existingServer = state.find((s) => s.url === url);
+      const currentFailureCount = existingServer?.versionCheckFailureCount || 0;
+      return upsert(state, {
+        url,
+        versionCheckFailureCount: currentFailureCount + 1,
+        lastVersionCheckAttempt: new Date(),
+      });
     }
 
     case WEBVIEW_UNREAD_CHANGED: {

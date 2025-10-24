@@ -129,6 +129,8 @@ export const WEBVIEW_SERVER_UNIQUE_ID_UPDATED =
 export const WEBVIEW_SERVER_IS_SUPPORTED_VERSION =
   'webview/server-is-supported-version';
 export const WEBVIEW_SERVER_VERSION_UPDATED = 'webview/version-updated';
+export const WEBVIEW_SERVER_VERSION_CHECK_FAILED =
+  'webview/server-version-check-failed';
 export const SUPPORTED_VERSION_DIALOG_DISMISS =
   'supported-versions-dialog/dismiss';
 export const WEBVIEW_SERVER_RELOADED = 'webview/server-reloaded';
@@ -267,6 +269,9 @@ export type UiActionTypeToPayloadMap = {
   [WEBVIEW_SERVER_VERSION_UPDATED]: {
     url: Server['url'];
     version: Server['version'];
+  };
+  [WEBVIEW_SERVER_VERSION_CHECK_FAILED]: {
+    url: Server['url'];
   };
   [SUPPORTED_VERSION_DIALOG_DISMISS]: { url: Server['url'] };
   [WEBVIEW_SERVER_RELOADED]: {

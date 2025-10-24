@@ -190,14 +190,24 @@ export const ServerPane = ({
   };
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const handleOnline = () => {
-      ipcRenderer.invoke('refresh-supported-versions', serverUrl);
+      // Debounce network reconnection checks (5 second delay)
+      console.log(
+        `[ServerPane] Network reconnected, scheduling version check for ${serverUrl}`
+      );
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        ipcRenderer.invoke('refresh-supported-versions', serverUrl);
+      }, 5000);
     };
 
     window.addEventListener('online', handleOnline);
 
     return () => {
       window.removeEventListener('online', handleOnline);
+      clearTimeout(timeoutId);
     };
   }, [serverUrl]);
 

@@ -16,9 +16,11 @@ import {
   WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
   WEBVIEW_SERVER_RELOADED,
   SUPPORTED_VERSION_DIALOG_DISMISS,
+  WEBVIEW_SERVER_VERSION_CHECK_FAILED,
 } from '../../ui/actions';
 import * as urls from '../../urls';
 import type { Server } from '../common';
+import { scheduleVersionCheck } from './checkManager';
 import type {
   CloudInfo,
   Dictionary,
@@ -194,24 +196,62 @@ export const isServerVersionSupported = async (
   supportedVersionsData?: SupportedVersions
 ): Promise<{
   supported: boolean;
+  confidence: 'high' | 'medium' | 'low';
   message?: Message | undefined;
   i18n?: Dictionary | undefined;
   expiration?: Date | undefined;
 }> => {
   const builtInSupportedVersions = await getBuiltinSupportedVersions();
 
-  const versions = supportedVersionsData?.versions;
-  const exceptions = supportedVersionsData?.exceptions;
-  const serverVersion = server.version;
-  if (!serverVersion) return { supported: false };
-  if (!versions) return { supported: false };
+  // Use last known good data as fallback
+  const dataToCheck =
+    supportedVersionsData ||
+    server.lastKnownGoodSupportedVersions ||
+    builtInSupportedVersions;
+  const versionToCheck = server.version || server.lastKnownGoodVersion;
+
+  const failureCount = server.versionCheckFailureCount || 0;
+  const { FAILURE_THRESHOLD } = await import('./checkManager');
+
+  // If we've hit failure threshold with no good data, mark unsupported with high confidence
+  if (failureCount >= FAILURE_THRESHOLD && !dataToCheck) {
+    console.log(
+      `[SupportedVersions] Failure threshold reached for ${server.url}, no fallback data`
+    );
+    return { supported: false, confidence: 'high' };
+  }
+
+  const versions = dataToCheck?.versions;
+  const exceptions = dataToCheck?.exceptions;
+  const serverVersion = versionToCheck;
+  if (!serverVersion)
+    return {
+      supported: false,
+      confidence: failureCount >= FAILURE_THRESHOLD ? 'high' : 'low',
+    };
+  if (!versions)
+    return {
+      supported: false,
+      confidence: failureCount >= FAILURE_THRESHOLD ? 'high' : 'low',
+    };
 
   const serverVersionTilde = `~${serverVersion
     .split('.')
     .slice(0, 2)
     .join('.')}`;
 
-  if (!supportedVersionsData) return { supported: false };
+  if (!dataToCheck)
+    return {
+      supported: false,
+      confidence: failureCount >= FAILURE_THRESHOLD ? 'high' : 'low',
+    };
+
+  // Determine confidence based on data freshness and failure count
+  const getConfidence = (isSupported: boolean): 'high' | 'medium' | 'low' => {
+    if (failureCount === 0) return 'high';
+    if (failureCount < FAILURE_THRESHOLD) return 'medium';
+    return isSupported ? 'medium' : 'high'; // High confidence when marking unsupported after threshold
+  };
 
   const exception = exceptions?.versions?.find(({ version }) =>
     satisfies(coerce(version)?.version ?? '', serverVersionTilde)
@@ -230,10 +270,9 @@ export const isServerVersionSupported = async (
 
       return {
         supported: true,
+        confidence: getConfidence(true),
         message: selectedExpirationMessage,
-        i18n: selectedExpirationMessage
-          ? supportedVersionsData?.i18n
-          : undefined,
+        i18n: selectedExpirationMessage ? dataToCheck?.i18n : undefined,
         expiration: exception.expiration,
       };
     }
@@ -246,7 +285,7 @@ export const isServerVersionSupported = async (
   if (supportedVersion) {
     if (new Date(supportedVersion.expiration) > new Date()) {
       const messages =
-        supportedVersionsData?.messages || builtInSupportedVersions?.messages;
+        dataToCheck?.messages || builtInSupportedVersions?.messages;
 
       const selectedExpirationMessage = getExpirationMessage({
         messages,
@@ -255,32 +294,34 @@ export const isServerVersionSupported = async (
 
       return {
         supported: true,
+        confidence: getConfidence(true),
         message: selectedExpirationMessage,
-        i18n: selectedExpirationMessage
-          ? supportedVersionsData?.i18n
-          : undefined,
+        i18n: selectedExpirationMessage ? dataToCheck?.i18n : undefined,
         expiration: supportedVersion.expiration,
       };
     }
   }
 
-  const enforcementStartDate = new Date(
-    supportedVersionsData?.enforcementStartDate
-  );
+  const enforcementStartDate = new Date(dataToCheck?.enforcementStartDate);
   if (enforcementStartDate > new Date()) {
     const selectedExpirationMessage = getExpirationMessage({
-      messages: supportedVersionsData.messages,
+      messages: dataToCheck.messages,
       expiration: enforcementStartDate,
     }) as Message;
 
     return {
       supported: true,
+      confidence: getConfidence(true),
       message: selectedExpirationMessage,
-      i18n: selectedExpirationMessage ? supportedVersionsData?.i18n : undefined,
+      i18n: selectedExpirationMessage ? dataToCheck?.i18n : undefined,
       expiration: enforcementStartDate,
     };
   }
-  return { supported: false };
+
+  console.log(
+    `[SupportedVersions] Server ${server.url} version ${serverVersion} is not supported (failures: ${failureCount})`
+  );
+  return { supported: false, confidence: getConfidence(false) };
 };
 
 const dispatchVersionUpdated = (url: string) => (info: ServerInfo) => {
@@ -309,6 +350,16 @@ const dispatchUniqueIdUpdated = (url: string) => (uniqueID: string | null) => {
   return uniqueID;
 };
 
+const dispatchVersionCheckFailed = (url: string): void => {
+  console.log(
+    `[SupportedVersions] Dispatching version check failure for ${url}`
+  );
+  dispatch({
+    type: WEBVIEW_SERVER_VERSION_CHECK_FAILED,
+    payload: { url },
+  });
+};
+
 const dispatchSupportedVersionsUpdated = (
   url: string,
   supportedVersions: SupportedVersions,
@@ -327,28 +378,76 @@ const dispatchSupportedVersionsUpdated = (
 const updateSupportedVersionsData = async (
   serverUrl: string
 ): Promise<void> => {
+  console.log(`[SupportedVersions] Starting version check for ${serverUrl}`);
   const builtinSupportedVersions = await getBuiltinSupportedVersions();
 
   const server = select(({ servers }) =>
     servers.find((server) => server.url === serverUrl)
   );
-  if (!server) return;
+  if (!server) {
+    console.warn(`[SupportedVersions] Server not found: ${serverUrl}`);
+    return;
+  }
 
+  // Try to get server info
   const serverInfo = await getServerInfo(server.url)
     .then(dispatchVersionUpdated(server.url))
-    .catch(logRequestError('server info'));
-  if (!serverInfo) return;
+    .catch((error) => {
+      logRequestError('server info')(error);
+      return undefined;
+    });
+
+  // If server info failed, check if we have last known good data
+  if (!serverInfo) {
+    console.log(
+      `[SupportedVersions] Server info failed for ${serverUrl}, checking last known good data`
+    );
+    if (server.lastKnownGoodSupportedVersions) {
+      console.log(
+        `[SupportedVersions] Using last known good data for ${serverUrl}, incrementing failure count`
+      );
+      dispatchVersionCheckFailed(serverUrl);
+      // Don't return - we have last known good data to use
+      return;
+    }
+    console.warn(
+      `[SupportedVersions] No last known good data for ${serverUrl}, marking as failed`
+    );
+    dispatchVersionCheckFailed(serverUrl);
+    return;
+  }
 
   const uniqueID = await getUniqueId(server.url, server.version || '')
     .then(dispatchUniqueIdUpdated(server.url))
-    .catch(logRequestError('unique ID'));
+    .catch((error) => {
+      logRequestError('unique ID')(error);
+      return null;
+    });
 
   const serverEncoded = serverInfo.supportedVersions?.signed;
 
   if (!serverEncoded) {
     if (!uniqueID) {
-      if (!builtinSupportedVersions) return;
+      // Try to use last known good or builtin
+      if (server.lastKnownGoodSupportedVersions) {
+        console.log(
+          `[SupportedVersions] No server/cloud data, using last known good for ${serverUrl}`
+        );
+        dispatchVersionCheckFailed(serverUrl);
+        return;
+      }
 
+      if (!builtinSupportedVersions) {
+        console.warn(
+          `[SupportedVersions] No data sources available for ${serverUrl}`
+        );
+        dispatchVersionCheckFailed(serverUrl);
+        return;
+      }
+
+      console.log(
+        `[SupportedVersions] Using builtin supported versions for ${serverUrl}`
+      );
       dispatchSupportedVersionsUpdated(server.url, builtinSupportedVersions, {
         source: 'builtin',
       });
@@ -356,12 +455,32 @@ const updateSupportedVersionsData = async (
     }
 
     const cloudInfo = await getCloudInfo(server.url, uniqueID).catch(
-      logRequestError('cloud info')
+      (error) => {
+        logRequestError('cloud info')(error);
+        return undefined;
+      }
     );
     const cloudEncoded = cloudInfo?.signed;
-    if (!cloudEncoded) return;
+
+    if (!cloudEncoded) {
+      // Cloud fetch failed, check for last known good
+      if (server.lastKnownGoodSupportedVersions) {
+        console.log(
+          `[SupportedVersions] Cloud fetch failed, using last known good for ${serverUrl}`
+        );
+        dispatchVersionCheckFailed(serverUrl);
+        return;
+      }
+
+      console.warn(`[SupportedVersions] Cloud fetch failed for ${serverUrl}`);
+      dispatchVersionCheckFailed(serverUrl);
+      return;
+    }
 
     const cloudSupportedVersions = decodeSupportedVersions(cloudEncoded);
+    console.log(
+      `[SupportedVersions] Successfully fetched cloud data for ${serverUrl}`
+    );
     dispatchSupportedVersionsUpdated(server.url, cloudSupportedVersions, {
       source: 'cloud',
     });
@@ -371,6 +490,9 @@ const updateSupportedVersionsData = async (
   const serverSupportedVersions = decodeSupportedVersions(serverEncoded);
 
   if (!builtinSupportedVersions) {
+    console.log(
+      `[SupportedVersions] Using server supported versions for ${serverUrl}`
+    );
     dispatchSupportedVersionsUpdated(server.url, serverSupportedVersions, {
       source: 'server',
     });
@@ -381,31 +503,57 @@ const updateSupportedVersionsData = async (
   const serverTimestamp = Date.parse(serverSupportedVersions.timestamp);
 
   if (serverTimestamp > builtinTimetamp) {
+    console.log(
+      `[SupportedVersions] Server data newer than builtin for ${serverUrl}`
+    );
     dispatchSupportedVersionsUpdated(server.url, serverSupportedVersions, {
       source: 'server',
     });
     return;
   }
 
+  console.log(
+    `[SupportedVersions] Using builtin data (newer) for ${serverUrl}`
+  );
   dispatchSupportedVersionsUpdated(server.url, builtinSupportedVersions, {
     source: 'builtin',
   });
 };
 
 export function checkSupportedVersionServers(): void {
+  // WEBVIEW_READY: debounced version check when webview is ready
   listen(WEBVIEW_READY, async (action) => {
-    updateSupportedVersionsData(action.payload.url);
+    console.log(`[SupportedVersions] WEBVIEW_READY for ${action.payload.url}`);
+    scheduleVersionCheck(action.payload.url, updateSupportedVersionsData, {
+      immediate: false,
+    });
   });
 
+  // SUPPORTED_VERSION_DIALOG_DISMISS: immediate check when user dismisses dialog
   listen(SUPPORTED_VERSION_DIALOG_DISMISS, async (action) => {
-    updateSupportedVersionsData(action.payload.url);
+    console.log(
+      `[SupportedVersions] Dialog dismissed for ${action.payload.url}, immediate recheck`
+    );
+    scheduleVersionCheck(action.payload.url, updateSupportedVersionsData, {
+      immediate: true,
+    });
   });
 
+  // WEBVIEW_SERVER_RELOADED: debounced check after server reload
   listen(WEBVIEW_SERVER_RELOADED, async (action) => {
-    updateSupportedVersionsData(action.payload.url);
+    console.log(`[SupportedVersions] Server reloaded: ${action.payload.url}`);
+    scheduleVersionCheck(action.payload.url, updateSupportedVersionsData, {
+      immediate: false,
+    });
   });
 
+  // Manual refresh: immediate check
   ipcMain.handle('refresh-supported-versions', async (_event, serverUrl) => {
-    updateSupportedVersionsData(serverUrl);
+    console.log(
+      `[SupportedVersions] Manual refresh requested for ${serverUrl}`
+    );
+    scheduleVersionCheck(serverUrl, updateSupportedVersionsData, {
+      immediate: true,
+    });
   });
 }

@@ -53,21 +53,43 @@ export const SupportedVersionDialog = () => {
       server?.supportedVersions
     );
 
+    // Only mark as unsupported with high confidence to avoid false positives
+    const shouldMarkUnsupported =
+      !supported.supported && supported.confidence === 'high';
+    const isSupportedValue = supported.supported || !shouldMarkUnsupported;
+
+    console.log(
+      `[SupportedVersionDialog] Version check for ${server.url}: supported=${supported.supported}, confidence=${supported.confidence}, marking as supported=${isSupportedValue}`
+    );
+
     dispatch({
       type: WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
       payload: {
         url: server.url,
-        isSupportedVersion: supported.supported,
+        isSupportedVersion: isSupportedValue,
       },
     });
 
     if (!supported.message || !supported.expiration) return;
 
+    // Don't show if confidence is low (likely false positive)
+    if (supported.confidence === 'low') {
+      console.log(
+        `[SupportedVersionDialog] Low confidence for ${server.url}, not showing dialog`
+      );
+      return;
+    }
+
+    // Keep 12-hour cooldown for confirmed unsupported servers
     if (
       server.expirationMessageLastTimeShown &&
       moment().diff(server.expirationMessageLastTimeShown, 'hours') < 12
-    )
+    ) {
+      console.log(
+        `[SupportedVersionDialog] Last shown less than 12h ago for ${server.url}`
+      );
       return;
+    }
 
     const translatedMessage = getExpirationMessageTranslated(
       supported?.i18n,
@@ -86,7 +108,19 @@ export const SupportedVersionDialog = () => {
   }, [server, dispatch, setExpirationMessage, setIsVisible]);
 
   useEffect(() => {
-    checkServerVersion();
+    // Add 10-second delay before first check to avoid instant false positives
+    const isFirstCheck = !server?.lastSuccessfulVersionCheck;
+    const delay = isFirstCheck ? 10000 : 0;
+
+    console.log(
+      `[SupportedVersionDialog] Scheduling check for ${server?.url} with ${delay}ms delay (first check: ${isFirstCheck})`
+    );
+
+    const timer = setTimeout(() => {
+      checkServerVersion();
+    }, delay);
+
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [server?.supportedVersions, server?.lastPath, currentView]);
 

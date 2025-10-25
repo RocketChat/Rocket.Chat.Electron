@@ -216,7 +216,7 @@ export async function syncEventsWithRocketChatServer(
   const externalEventsFromRocketChatServer =
     eventsOnRocketChatServer?.data.filter(
       ({ externalId }: { externalId?: string }) => externalId
-    );
+    ) ?? [];
 
   // Get server object to check version
   const { servers } = select(selectPersistableValues);
@@ -271,7 +271,7 @@ export async function syncEventsWithRocketChatServer(
     }
   }
 
-  if (!eventsOnRocketChatServer.data.length) {
+  if (!eventsOnRocketChatServer?.data?.length) {
     return;
   }
 

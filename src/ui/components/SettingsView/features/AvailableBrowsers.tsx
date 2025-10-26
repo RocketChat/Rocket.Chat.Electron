@@ -82,7 +82,12 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
             {t('settings.options.availableBrowsers.description')}
           </FieldHint>
         </Box>
-        <Box display='flex' alignItems='center' style={{ paddingTop: '4px' }}>
+        <Box
+          color='hint'
+          display='flex'
+          alignItems='center'
+          style={{ paddingTop: '4px' }}
+        >
           <SelectLegacy
             options={options}
             value={selectedBrowser ?? 'system'}

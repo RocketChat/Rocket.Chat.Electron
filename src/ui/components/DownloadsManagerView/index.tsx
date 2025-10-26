@@ -229,6 +229,7 @@ const DownloadsManagerView = () => {
           flexShrink={3}
           flexBasis='0'
           paddingInline={2}
+          style={{ color: '#C0C0C0' }}
         >
           <SelectLegacy
             value={serverFilter}
@@ -237,7 +238,7 @@ const DownloadsManagerView = () => {
             onChange={handleServerFilterChange}
           />
         </Box>
-        <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2}>
+        <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2} style={{ color: '#C0C0C0' }}>
           <SelectLegacy
             value={mimeTypeFilter}
             placeholder={t('downloads.filters.mimeType')}
@@ -245,7 +246,7 @@ const DownloadsManagerView = () => {
             onChange={handleMimeFilter}
           />
         </Box>
-        <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2}>
+        <Box display='flex' flexGrow={3} flexShrink={3} paddingInline={2} style={{ color: '#C0C0C0' }}>
           <SelectLegacy
             value={statusFilter}
             placeholder={t('downloads.filters.status')}

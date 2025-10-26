@@ -64,14 +64,16 @@ const listenToBugsnagEnabledToggle = async (appType: AppType) => {
   const { appVersion, isReportEnabled } = select(
     ({ appVersion, isReportEnabled }) => ({ appVersion, isReportEnabled })
   );
-  if (!appVersion) {
-    throw new Error('app version was not set');
+  const effectiveVersion = appVersion || app.getVersion();
+  if (!effectiveVersion) {
+    console.warn('Bugsnag init deferred: app version not available yet');
+    return;
   }
 
   let bugsnagInstance: ReturnType<typeof initBugsnag>;
 
   if (isReportEnabled && !process.mas) {
-    bugsnagInstance = initBugsnag(apiKey, appVersion, appType);
+    bugsnagInstance = initBugsnag(apiKey, effectiveVersion, appType);
     bugsnagInstance.startSession();
   }
 
@@ -80,7 +82,7 @@ const listenToBugsnagEnabledToggle = async (appType: AppType) => {
 
     if (isReportEnabled) {
       bugsnagInstance =
-        bugsnagInstance || initBugsnag(apiKey, appVersion, appType);
+        bugsnagInstance || initBugsnag(apiKey, effectiveVersion, appType);
       bugsnagInstance.startSession();
     } else {
       bugsnagInstance?.pauseSession();

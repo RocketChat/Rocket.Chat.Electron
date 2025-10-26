@@ -83,9 +83,10 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
           </FieldHint>
         </Box>
         <Box
+          color='hint'
           display='flex'
           alignItems='center'
-          style={{ paddingTop: '4px', color: '#C0C0C0' }}
+          style={{ paddingTop: '4px' }}
         >
           <SelectLegacy
             options={options}

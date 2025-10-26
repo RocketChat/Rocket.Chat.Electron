@@ -1,9 +1,51 @@
 import Bugsnag from '@bugsnag/js';
+import { app } from 'electron';
 
 import { select, listen } from './store';
 import { SETTINGS_SET_REPORT_OPT_IN_CHANGED } from './ui/actions';
 
 type AppType = 'main' | 'rootWindow';
+
+const isCriticalError = (error: Error): boolean => {
+  const criticalPatterns = [
+    'FATAL',
+    'Cannot access native module',
+    'Electron internal error',
+  ];
+
+  return criticalPatterns.some(
+    (pattern) =>
+      error.message?.includes(pattern) || error.stack?.includes(pattern)
+  );
+};
+
+const setupGlobalErrorHandlers = (): void => {
+  process.on('uncaughtException', (error: Error) => {
+    console.error('Uncaught Exception:', error);
+
+    if (Bugsnag.isStarted()) {
+      Bugsnag.notify(error);
+    }
+
+    if (isCriticalError(error)) {
+      console.error('Critical error detected, app cannot continue');
+      app.quit();
+    }
+  });
+
+  process.on('unhandledRejection', (reason: unknown) => {
+    const error =
+      reason instanceof Error
+        ? reason
+        : new Error(`Unhandled Promise Rejection: ${String(reason)}`);
+
+    console.error('Unhandled Promise Rejection:', error);
+
+    if (Bugsnag.isStarted()) {
+      Bugsnag.notify(error);
+    }
+  });
+};
 
 const initBugsnag = (apiKey: string, appVersion: string, appType: AppType) =>
   Bugsnag.start({
@@ -52,5 +94,7 @@ export const setupRendererErrorHandling = async (
   listenToBugsnagEnabledToggle(appType);
 };
 
-export const setupMainErrorHandling = async (): Promise<void> =>
+export const setupMainErrorHandling = async (): Promise<void> => {
+  setupGlobalErrorHandlers();
   setupRendererErrorHandling('main');
+};

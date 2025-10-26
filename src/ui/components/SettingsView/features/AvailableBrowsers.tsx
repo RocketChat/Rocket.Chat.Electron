@@ -86,7 +86,7 @@ export const AvailableBrowsers = (props: AvailableBrowsersProps) => {
           color='hint'
           display='flex'
           alignItems='center'
-          style={{ paddingTop: '4px' }}
+          paddingBlockStart={4}
         >
           <SelectLegacy
             options={options}

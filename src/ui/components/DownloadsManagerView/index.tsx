@@ -243,6 +243,7 @@ const DownloadsManagerView = () => {
           display='flex'
           flexGrow={3}
           flexShrink={3}
+          flexBasis='0'
           paddingInline={2}
         >
           <SelectLegacy
@@ -257,6 +258,7 @@ const DownloadsManagerView = () => {
           display='flex'
           flexGrow={3}
           flexShrink={3}
+          flexBasis='0'
           paddingInline={2}
         >
           <SelectLegacy

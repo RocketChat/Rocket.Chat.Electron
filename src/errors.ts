@@ -19,7 +19,11 @@ const isCriticalError = (error: Error): boolean => {
   );
 };
 
+let _globalHandlersBound = false;
+
 const setupGlobalErrorHandlers = (): void => {
+  if (_globalHandlersBound) return;
+
   process.on('uncaughtException', (error: Error) => {
     console.error('Uncaught Exception:', error);
 
@@ -44,7 +48,14 @@ const setupGlobalErrorHandlers = (): void => {
     if (Bugsnag.isStarted()) {
       Bugsnag.notify(error);
     }
+
+    if (isCriticalError(error)) {
+      console.error('Critical promise rejection, app cannot continue');
+      app.quit();
+    }
   });
+
+  _globalHandlersBound = true;
 };
 
 const initBugsnag = (apiKey: string, appVersion: string, appType: AppType) =>
@@ -98,5 +109,5 @@ export const setupRendererErrorHandling = async (
 
 export const setupMainErrorHandling = async (): Promise<void> => {
   setupGlobalErrorHandlers();
-  setupRendererErrorHandling('main');
+  await setupRendererErrorHandling('main');
 };

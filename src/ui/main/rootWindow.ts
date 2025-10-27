@@ -420,7 +420,7 @@ export const setupRootWindow = (): void => {
             for (const representation of rootWindowIcon.icon) {
               icon.addRepresentation({
                 ...representation,
-                scaleFactor: representation.width ?? 0 / 32,
+                scaleFactor: Math.max((representation.width ?? 0) / 32, 1),
               });
             }
           }

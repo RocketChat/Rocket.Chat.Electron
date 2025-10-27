@@ -343,9 +343,18 @@ describe('rootWindow close event handler', () => {
   });
 
   describe('new error handling', () => {
+    const ORIGINAL_PLATFORM = process.platform;
+
     beforeEach(() => {
       Object.defineProperty(process, 'platform', {
         value: 'linux',
+        configurable: true,
+      });
+    });
+
+    afterAll(() => {
+      Object.defineProperty(process, 'platform', {
+        value: ORIGINAL_PLATFORM,
         configurable: true,
       });
     });

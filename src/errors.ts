@@ -6,14 +6,50 @@ import { SETTINGS_SET_REPORT_OPT_IN_CHANGED } from './ui/actions';
 
 type AppType = 'main' | 'rootWindow';
 
-const isCriticalError = (error: Error): boolean => {
-  const criticalPatterns = [
-    'FATAL',
-    'Cannot access native module',
-    'Electron internal error',
-  ];
+const DEFAULT_CRITICAL_PATTERNS = [
+  'FATAL',
+  'Cannot access native module',
+  'Electron internal error',
+];
 
-  return criticalPatterns.some(
+export type CriticalErrorMatcher = (error: Error) => boolean;
+
+let _criticalMatcher: CriticalErrorMatcher | null = null;
+
+/**
+ * Set a custom critical error matcher. Returns a cleanup function that restores the previous matcher.
+ * @param fn - Custom matcher function or null to reset to default
+ * @returns Cleanup function that restores the previous matcher
+ * @example
+ * const restore = setCriticalErrorMatcher((err) => err.message.includes('FATAL'));
+ * try {
+ *   // ... code that might throw ...
+ * } finally {
+ *   restore(); // Restores previous matcher
+ * }
+ */
+export const setCriticalErrorMatcher = (
+  fn: CriticalErrorMatcher | null
+): (() => void) => {
+  const previous = _criticalMatcher;
+  _criticalMatcher = fn;
+
+  return () => {
+    _criticalMatcher = previous;
+  };
+};
+
+const isCriticalError = (error: Error): boolean => {
+  if (_criticalMatcher) {
+    try {
+      return _criticalMatcher(error);
+    } catch (matcherError) {
+      console.error('Critical error matcher failed:', matcherError);
+      // Fall through to default behavior
+    }
+  }
+
+  return DEFAULT_CRITICAL_PATTERNS.some(
     (pattern) =>
       error.message?.includes(pattern) || error.stack?.includes(pattern)
   );

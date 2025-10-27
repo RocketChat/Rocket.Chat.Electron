@@ -150,7 +150,11 @@ export const setupApp = (): void => {
     try {
       const browserWindow = await getRootWindow();
       if (!browserWindow.isVisible()) {
+        const wasMinimized = browserWindow.isMinimized();
+        const wasMaximized = browserWindow.isMaximized();
         browserWindow.showInactive();
+        if (wasMinimized) browserWindow.minimize();
+        if (wasMaximized) browserWindow.maximize();
       }
       browserWindow.focus();
     } catch (error) {

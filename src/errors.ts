@@ -104,7 +104,7 @@ const listenToBugsnagEnabledToggle = async (appType: AppType) => {
 export const setupRendererErrorHandling = async (
   appType: AppType
 ): Promise<void> => {
-  listenToBugsnagEnabledToggle(appType);
+  await listenToBugsnagEnabledToggle(appType);
 };
 
 export const setupMainErrorHandling = async (): Promise<void> => {

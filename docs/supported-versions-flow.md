@@ -143,6 +143,51 @@ graph TD
 
 ---
 
+## Modal Display Logic
+
+The version support modal (warning dialog) appears independently from the blocking overlay. It shows version expiration information and is controlled by the `fetchState`:
+
+```mermaid
+graph TD
+    Check{"Has version<br/>data available?"}
+
+    Check -->|No| NoModal["❌ NO MODAL<br/>supportedVersions = undefined"]
+    Check -->|Yes| CheckFetch
+
+    CheckFetch{"Is data<br/>currently loading?"}
+
+    CheckFetch -->|loading| NoModal2["❌ NO MODAL<br/>fetchState = loading<br/>Wait for data"]
+    CheckFetch -->|not loading| HasModal
+
+    HasModal["✅ SHOW MODAL<br/>if expiration warning exists<br/>(any data source: fresh, cached, builtin)"]
+
+    style NoModal fill:#fff9c4
+    style NoModal2 fill:#fff9c4
+    style HasModal fill:#c8e6c9
+```
+
+**Modal shows when**:
+- `supportedVersions` data exists AND
+- `fetchState !== 'loading'` (not actively fetching) AND
+- Server version is expiring soon (has expiration message)
+
+**Modal skips when**:
+- No data available (`supportedVersions` undefined)
+- Currently fetching (`fetchState === 'loading'`)
+- 12-hour display throttle active (not shown again within 12 hours)
+
+**Data sources that trigger modal**:
+- ✅ Fresh server data (`fetchState === 'success'`)
+- ✅ Fresh cloud data (`fetchState === 'success'`)
+- ✅ Stale cached data (`fetchState === 'error'`)
+- ✅ Generic builtin fallback (`fetchState === 'error'`)
+
+**Key difference from blocking overlay**:
+- **Overlay blocks access** - only when definitely unsupported with fresh data
+- **Modal warns users** - shows expiration info from any available data, but not while actively loading
+
+---
+
 ## Per-Server State Structure
 
 ```typescript

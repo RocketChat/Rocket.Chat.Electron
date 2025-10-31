@@ -24,6 +24,8 @@ import {
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
   WEBVIEW_ALLOWED_REDIRECTS_CHANGED,
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
+  WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING,
+  WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
   WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
   WEBVIEW_SERVER_IS_SUPPORTED_VERSION,
   WEBVIEW_SERVER_VERSION_UPDATED,
@@ -64,6 +66,8 @@ type ServersActionTypes =
   | ActionOf<typeof WEBVIEW_ATTACHED>
   | ActionOf<typeof OUTLOOK_CALENDAR_SAVE_CREDENTIALS>
   | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED>
+  | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING>
+  | ActionOf<typeof WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR>
   | ActionOf<typeof WEBVIEW_SERVER_UNIQUE_ID_UPDATED>
   | ActionOf<typeof WEBVIEW_SERVER_IS_SUPPORTED_VERSION>
   | ActionOf<typeof WEBVIEW_SERVER_VERSION_UPDATED>
@@ -136,7 +140,18 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
         url,
         supportedVersions,
         supportedVersionsSource: source,
+        supportedVersionsFetchState: 'success',
       });
+    }
+
+    case WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING: {
+      const { url } = action.payload;
+      return upsert(state, { url, supportedVersionsFetchState: 'loading' });
+    }
+
+    case WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR: {
+      const { url } = action.payload;
+      return upsert(state, { url, supportedVersionsFetchState: 'error' });
     }
 
     case SUPPORTED_VERSION_DIALOG_DISMISS: {

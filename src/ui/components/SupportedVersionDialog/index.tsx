@@ -48,7 +48,7 @@ export const SupportedVersionDialog = () => {
   const checkServerVersion = useCallback(async () => {
     if (
       !server?.supportedVersions ||
-      server?.supportedVersionsFetchState !== 'success'
+      server?.supportedVersionsFetchState === 'loading'
     )
       return;
 

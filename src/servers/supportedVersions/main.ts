@@ -203,15 +203,15 @@ export const isServerVersionSupported = async (
   const versions = supportedVersionsData?.versions;
   const exceptions = supportedVersionsData?.exceptions;
   const serverVersion = server.version;
-  if (!serverVersion) return { supported: false };
-  if (!versions) return { supported: false };
+  if (!serverVersion) return { supported: true };
+  if (!versions) return { supported: true };
 
   const serverVersionTilde = `~${serverVersion
     .split('.')
     .slice(0, 2)
     .join('.')}`;
 
-  if (!supportedVersionsData) return { supported: false };
+  if (!supportedVersionsData) return { supported: true };
 
   const exception = exceptions?.versions?.find(({ version }) =>
     satisfies(coerce(version)?.version ?? '', serverVersionTilde)

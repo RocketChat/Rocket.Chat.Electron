@@ -425,6 +425,8 @@ export const updateSupportedVersionsData = async (
         return;
       } catch (error) {
         console.error('Error decoding server supported versions:', error);
+        // Clear serverEncoded to allow cloud fallback
+        serverEncoded = undefined;
       }
     }
   }

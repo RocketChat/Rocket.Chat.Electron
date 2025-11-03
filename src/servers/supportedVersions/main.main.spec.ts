@@ -193,7 +193,11 @@ describe('supportedVersions/main.ts', () => {
         .mockRejectedValueOnce(new Error('Timeout'))
         .mockResolvedValueOnce({ data: mockServerInfo });
 
-      await updateSupportedVersionsData(mockServer.url);
+      jest.useFakeTimers();
+      updateSupportedVersionsData(mockServer.url);
+      // Let microtasks process, then advance timers for retry delay
+      await jest.advanceTimersByTimeAsync(2000);
+      jest.useRealTimers();
 
       // Should call axios.get twice (fail, retry, succeed)
       expect(axiosMock.get).toHaveBeenCalledTimes(2);
@@ -212,7 +216,11 @@ describe('supportedVersions/main.ts', () => {
       // All attempts fail - server retries (3) + unique ID (1) = 4 total
       axiosMock.get = jest.fn().mockRejectedValue(new Error('Network error'));
 
-      await updateSupportedVersionsData(mockServer.url);
+      jest.useFakeTimers();
+      updateSupportedVersionsData(mockServer.url);
+      // Advance timers by enough time for server retries (2 delays of 2000ms each = 4000ms)
+      await jest.advanceTimersByTimeAsync(4000);
+      jest.useRealTimers();
 
       // Should call axios.get 4 times (3 server attempts + 1 unique ID attempt)
       expect(axiosMock.get).toHaveBeenCalledTimes(4);
@@ -227,7 +235,6 @@ describe('supportedVersions/main.ts', () => {
     it('should support 2s retry delay configuration', async () => {
       // This test verifies withRetries is configured with 2s delay
       // by checking that retries actually happen (3 attempts)
-      // without testing specific timing which is fragile with fake timers
       const mockServer = createMockServer();
       selectMock.mockReturnValue(mockServer);
 
@@ -237,7 +244,11 @@ describe('supportedVersions/main.ts', () => {
         .mockRejectedValueOnce(new Error('Error 2'))
         .mockResolvedValueOnce({ data: createMockServerInfo() });
 
-      await updateSupportedVersionsData(mockServer.url);
+      jest.useFakeTimers();
+      updateSupportedVersionsData(mockServer.url);
+      // Advance timers by enough time for all retries (2 delays of 2000ms each = 4000ms)
+      await jest.advanceTimersByTimeAsync(4000);
+      jest.useRealTimers();
 
       // All 3 attempts should be made
       expect(axiosMock.get).toHaveBeenCalledTimes(3);
@@ -467,7 +478,11 @@ describe('supportedVersions/main.ts', () => {
         .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
         .mockRejectedValue(new Error('Cloud error'));
 
-      await updateSupportedVersionsData(mockServer.url);
+      jest.useFakeTimers();
+      updateSupportedVersionsData(mockServer.url);
+      // Advance timers by enough time for cloud retries (2 delays of 2000ms each = 4000ms)
+      await jest.advanceTimersByTimeAsync(4000);
+      jest.useRealTimers();
 
       // Should attempt cloud 3 times (server + unique ID + 3 cloud attempts = 5 calls)
       expect(axiosMock.get).toHaveBeenCalledTimes(5);
@@ -561,26 +576,45 @@ describe('supportedVersions/main.ts', () => {
     it('should log error when JWT decode fails', async () => {
       const mockServer = createMockServer();
       const mockServerInfo = createMockServerInfo();
+      const mockCloudInfo = createMockCloudInfo();
+      const mockSupportedVersions = createMockSupportedVersions();
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       selectMock.mockReturnValue(mockServer);
+
+      // Mock axios: server info, unique ID, cloud info
       axiosMock.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
-        .mockRejectedValueOnce(new Error('Cloud error'));
+        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockResolvedValueOnce({ data: mockCloudInfo });
 
-      jest.spyOn(require('jsonwebtoken'), 'verify').mockImplementation(() => {
-        throw new Error('jwt malformed');
+      // Mock verify: throw for server decode, succeed for cloud decode
+      const verifyMock = jest.spyOn(require('jsonwebtoken'), 'verify') as jest.Mock;
+      verifyMock.mockImplementation((token) => {
+        if (token === 'mock-jwt-token') {
+          throw new Error('jwt malformed');
+        }
+        return mockSupportedVersions;
       });
 
       await updateSupportedVersionsData(mockServer.url);
 
-      // Should log decode error
+      // Should log decode error for server JWT
       const errorCalls = consoleErrorSpy.mock.calls.filter((call) =>
         call[0]?.includes('decoding')
       );
       expect(errorCalls.length).toBeGreaterThan(0);
 
+      // Should dispatch UPDATED with source: 'cloud' (cloud fallback executed)
+      const cloudDispatch = dispatchMock.mock.calls.find(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED &&
+          (action as any).payload?.source === 'cloud'
+      );
+      expect(cloudDispatch).toBeDefined();
+
       consoleErrorSpy.mockRestore();
+      verifyMock.mockRestore();
     });
 
     it('should return early after successful server decode and dispatch', async () => {

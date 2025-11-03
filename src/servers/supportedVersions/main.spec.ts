@@ -1,13 +1,3 @@
-jest.mock('../../store');
-jest.mock('axios');
-jest.mock('jsonwebtoken');
-jest.mock('electron-store');
-jest.mock('electron', () => ({
-  ipcMain: {
-    handle: jest.fn(),
-  },
-}));
-
 import { listen, select, dispatch } from '../../store';
 import {
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
@@ -18,6 +8,16 @@ import {
   SUPPORTED_VERSION_DIALOG_DISMISS,
 } from '../../ui/actions';
 import { checkSupportedVersionServers, isServerVersionSupported } from './main';
+
+jest.mock('../../store');
+jest.mock('axios');
+jest.mock('jsonwebtoken');
+jest.mock('electron-store');
+jest.mock('electron', () => ({
+  ipcMain: {
+    handle: jest.fn(),
+  },
+}));
 
 const dispatchMock = dispatch as jest.MockedFunction<typeof dispatch>;
 const selectMock = select as jest.MockedFunction<typeof select>;
@@ -40,7 +40,7 @@ describe('supportedVersions/main.ts', () => {
       checkSupportedVersionServers();
 
       expect(listenMock).toHaveBeenCalled();
-      const calls = listenMock.mock.calls;
+      const { calls } = listenMock.mock;
       // @ts-expect-error - comparing action types
       expect(calls.some(([action]) => action === WEBVIEW_READY)).toBe(true);
     });
@@ -49,7 +49,7 @@ describe('supportedVersions/main.ts', () => {
       checkSupportedVersionServers();
 
       expect(listenMock).toHaveBeenCalled();
-      const calls = listenMock.mock.calls;
+      const { calls } = listenMock.mock;
       expect(
         // @ts-expect-error - comparing action types
         calls.some(([action]) => action === SUPPORTED_VERSION_DIALOG_DISMISS)
@@ -60,7 +60,7 @@ describe('supportedVersions/main.ts', () => {
       checkSupportedVersionServers();
 
       expect(listenMock).toHaveBeenCalled();
-      const calls = listenMock.mock.calls;
+      const { calls } = listenMock.mock;
       // @ts-expect-error - comparing action types
       expect(calls.some(([action]) => action === WEBVIEW_SERVER_RELOADED)).toBe(
         true
@@ -76,7 +76,7 @@ describe('supportedVersions/main.ts', () => {
     it('should provide callback function for each listener', () => {
       checkSupportedVersionServers();
 
-      const calls = listenMock.mock.calls;
+      const { calls } = listenMock.mock;
       calls.forEach(([, callback]) => {
         expect(typeof callback).toBe('function');
       });
@@ -96,7 +96,9 @@ describe('supportedVersions/main.ts', () => {
         title: 'My Server',
       };
 
-      const result = await isServerVersionSupported(serverWithoutVersion as any);
+      const result = await isServerVersionSupported(
+        serverWithoutVersion as any
+      );
 
       expect(result.supported).toBe(true);
     });
@@ -222,7 +224,7 @@ describe('supportedVersions/main.ts', () => {
     it('should call listen with valid action and function', () => {
       checkSupportedVersionServers();
 
-      const calls = listenMock.mock.calls;
+      const { calls } = listenMock.mock;
       expect(calls.length).toBe(3);
 
       calls.forEach(([action, callback]) => {
@@ -244,8 +246,8 @@ describe('supportedVersions/main.ts', () => {
 
   describe('Error Handling', () => {
     it('should not throw when server is undefined in isServerVersionSupported', async () => {
-      expect(
-        async () => await isServerVersionSupported(undefined as any)
+      expect(async () =>
+        isServerVersionSupported(undefined as any)
       ).not.toThrow();
     });
 

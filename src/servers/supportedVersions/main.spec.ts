@@ -266,6 +266,100 @@ describe('supportedVersions/main.ts', () => {
     });
   });
 
+  // ========== UNIQUE ID FETCH TESTS ==========
+  describe('Unique ID Fetch', () => {
+    it('should not fetch unique ID if server versions found', async () => {
+      const mockServer = createMockServer();
+      const mockServerInfo = createMockServerInfo(); // Has supportedVersions
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValue({ data: mockServerInfo });
+
+      jest
+        .spyOn(require('jsonwebtoken'), 'verify')
+        .mockReturnValue(createMockSupportedVersions());
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      // Should only call axios once (server), not for unique ID
+      expect(axiosMock.get).toHaveBeenCalledTimes(1);
+
+      // Should not have UNIQUE_ID_UPDATED
+      const uniqueIdDispatches = dispatchMock.mock.calls.filter(
+        ([action]) => (action as any).type === WEBVIEW_SERVER_UNIQUE_ID_UPDATED
+      );
+      expect(uniqueIdDispatches.length).toBe(0);
+    });
+
+    it('should handle unique ID fetch errors gracefully', async () => {
+      const mockServer = createMockServer();
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockRejectedValueOnce(new Error('Unique ID fetch failed'));
+
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      await updateSupportedVersionsData(mockServer.url);
+
+      // Should log warning about unique ID error but continue
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error fetching unique ID'),
+        expect.any(Error)
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('should dispatch UNIQUE_ID_UPDATED when unique ID is successfully fetched', async () => {
+      const mockServer = createMockServer();
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined, // No server versions
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } });
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      // Should dispatch UNIQUE_ID_UPDATED
+      const uniqueIdDispatch = dispatchMock.mock.calls.find(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_UNIQUE_ID_UPDATED &&
+          (action as any).payload?.uniqueID === 'unique-id-123'
+      );
+      expect(uniqueIdDispatch).toBeDefined();
+    });
+
+    it('should return null unique ID if settings not found', async () => {
+      const mockServer = createMockServer();
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({ data: { settings: [] } }); // Empty settings
+
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      await updateSupportedVersionsData(mockServer.url);
+
+      // Should log warning about missing unique ID
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('No unique ID found')
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+  });
+
   // ========== SERVER DECODE & DISPATCH TESTS ==========
   describe('Server Decode & Dispatch', () => {
     it('should decode valid server JWT and dispatch UPDATED with source server', async () => {

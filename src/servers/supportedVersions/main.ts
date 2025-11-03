@@ -87,7 +87,8 @@ const logRequestError =
     return undefined;
   };
 
-const getCacheKey = (serverUrl: string): string => `supportedVersions:${serverUrl}`;
+const getCacheKey = (serverUrl: string): string =>
+  `supportedVersions:${serverUrl}`;
 
 const loadFromCache = (serverUrl: string): SupportedVersions | undefined => {
   try {
@@ -115,6 +116,7 @@ const withRetries = async <T>(
 ): Promise<T | undefined> => {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
+      // eslint-disable-next-line no-await-in-loop
       const result = await fetchFn();
       if (result !== undefined) {
         return result;
@@ -129,6 +131,7 @@ const withRetries = async <T>(
 
     // Wait before next attempt (except after the last attempt)
     if (attempt < maxAttempts) {
+      // eslint-disable-next-line no-await-in-loop
       await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }

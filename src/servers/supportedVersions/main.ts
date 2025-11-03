@@ -480,7 +480,14 @@ export const updateSupportedVersionsData = async (
       type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
       payload: { url: serverUrl },
     });
+    return;
   }
+
+  // No data available from any source
+  dispatch({
+    type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
+    payload: { url: serverUrl },
+  });
 };
 
 export function checkSupportedVersionServers(): void {

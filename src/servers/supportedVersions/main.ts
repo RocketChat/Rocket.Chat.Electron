@@ -384,7 +384,7 @@ const dispatchSupportedVersionsUpdated = (
   });
 };
 
-const updateSupportedVersionsData = async (
+export const updateSupportedVersionsData = async (
   serverUrl: string
 ): Promise<void> => {
   const server = select(({ servers }) =>

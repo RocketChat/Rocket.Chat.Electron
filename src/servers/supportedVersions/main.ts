@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
 import axios from 'axios';
 import { ipcMain } from 'electron';
@@ -57,9 +57,7 @@ const getBuiltinSupportedVersions = async (): Promise<
   if (builtinSupportedVersions) return builtinSupportedVersions;
 
   try {
-    const filePath = fileURLToPath(
-      new URL('./supportedVersions.jwt', import.meta.url)
-    );
+    const filePath = join(__dirname, 'supportedVersions.jwt');
     const encodedToken = await readFile(filePath, 'utf8');
     builtinSupportedVersions = decodeSupportedVersions(encodedToken);
     return builtinSupportedVersions;
@@ -114,29 +112,30 @@ const withRetries = async <T>(
   maxAttempts: number = 3,
   delayMs: number = 2000
 ): Promise<T | undefined> => {
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+  const attempt = async (attemptNumber: number): Promise<T | undefined> => {
     try {
-      // eslint-disable-next-line no-await-in-loop
       const result = await fetchFn();
       if (result !== undefined) {
         return result;
       }
     } catch (error) {
       // Log but continue to next attempt
-      if (attempt === maxAttempts) {
+      if (attemptNumber === maxAttempts) {
         // Last attempt failed
         return undefined;
       }
     }
 
-    // Wait before next attempt (except after the last attempt)
-    if (attempt < maxAttempts) {
-      // eslint-disable-next-line no-await-in-loop
+    // If we haven't exhausted attempts, wait then try again
+    if (attemptNumber < maxAttempts) {
       await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return attempt(attemptNumber + 1);
     }
-  }
 
-  return undefined;
+    return undefined;
+  };
+
+  return attempt(1);
 };
 
 const getCloudInfo = async (
@@ -407,7 +406,25 @@ const updateSupportedVersionsData = async (
     3,
     2000
   );
-  if (!serverInfo) return;
+  if (!serverInfo) {
+    // Server info fetch failed, try fallback chain
+    const cachedVersions = loadFromCache(serverUrl);
+    if (cachedVersions) {
+      dispatchSupportedVersionsUpdated(server.url, cachedVersions, {
+        source: 'cloud',
+      });
+    } else if (builtinSupportedVersions) {
+      saveToCache(serverUrl, builtinSupportedVersions);
+      dispatchSupportedVersionsUpdated(server.url, builtinSupportedVersions, {
+        source: 'builtin',
+      });
+    }
+    dispatch({
+      type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
+      payload: { url: serverUrl },
+    });
+    return;
+  }
 
   dispatchVersionUpdated(server.url)(serverInfo);
 

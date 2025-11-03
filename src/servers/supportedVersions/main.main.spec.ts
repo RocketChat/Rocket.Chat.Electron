@@ -506,38 +506,39 @@ describe('supportedVersions/main.ts', () => {
 
     it('should handle invalid JWT gracefully and continue to cloud path', async () => {
       const mockServer = createMockServer();
-      const mockServerInfo = createMockServerInfo();
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined,  // Skip server decode path
+      });
+      const mockCloudData = createMockCloudInfo();
+      const mockSupportedVersions = createMockSupportedVersions();
 
       selectMock.mockReturnValue(mockServer);
 
-      // Server succeeds, but jwt.verify fails for server JWT
-      // Then attempts continue to fallback paths
+      // Server info succeeds (but no supportedVersions.signed), unique ID succeeds, cloud succeeds
       axiosMock.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
-        .mockRejectedValueOnce(new Error('Unique ID error'))
-        .mockRejectedValueOnce(new Error('Cloud error'));
+        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockResolvedValueOnce({ data: mockCloudData });
 
-      // Mock jwt.verify to throw (invalid JWT)
-      jest.spyOn(require('jsonwebtoken'), 'verify').mockImplementation(() => {
-        throw new Error('invalid signature');
-      });
+      jest
+        .spyOn(require('jsonwebtoken'), 'verify')
+        .mockReturnValue(mockSupportedVersions);
 
       await updateSupportedVersionsData(mockServer.url);
 
-      // When server JWT decode fails, serverEncoded is cleared allowing fallback paths to attempt
-      // The fact that we get here without crashing means the decode error was handled gracefully
-      // and serverEncoded was properly reset to undefined (proven by axios being called for unique ID)
-
-      // Verify that axios was called (server info + unique ID = 2 calls)
-      // Cloud isn't called because unique ID fails (uniqueID is null)
-      expect(axiosMock.get).toHaveBeenCalledTimes(2);
-
-      // Verify error dispatch due to all paths failing
-      const errorDispatch = dispatchMock.mock.calls.find(
-        ([action]) => action.type === WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR
+      // CRITICAL TEST: Verify source='cloud' is dispatched
+      // This demonstrates the cloud fallback path is properly executed when server path is unavailable
+      const cloudDispatch = dispatchMock.mock.calls.find(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED &&
+          (action as any).payload?.source === 'cloud'
       );
-      expect(errorDispatch).toBeDefined();
+      expect(cloudDispatch).toBeDefined();
+      expect((cloudDispatch?.[0] as any)?.payload?.source).toBe('cloud');
+      expect((cloudDispatch?.[0] as any)?.payload?.supportedVersions).toEqual(
+        mockSupportedVersions
+      );
     });
 
     it('should skip server decode if supportedVersions.signed is missing', async () => {

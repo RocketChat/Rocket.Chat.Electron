@@ -401,52 +401,37 @@ const updateSupportedVersionsData = async (
   const builtinSupportedVersions = await getBuiltinSupportedVersions();
 
   // Fetch server info with retries (3x with 2s delays)
-  const serverInfo = await withRetries(
+  const serverInfoResult = await withRetries(
     () => getServerInfo(server.url),
     3,
     2000
   );
-  if (!serverInfo) {
-    // Server info fetch failed, try fallback chain
-    const cachedVersions = loadFromCache(serverUrl);
-    if (cachedVersions) {
-      dispatchSupportedVersionsUpdated(server.url, cachedVersions, {
-        source: 'cloud',
-      });
-    } else if (builtinSupportedVersions) {
-      saveToCache(serverUrl, builtinSupportedVersions);
-      dispatchSupportedVersionsUpdated(server.url, builtinSupportedVersions, {
-        source: 'builtin',
-      });
-    }
-    dispatch({
-      type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
-      payload: { url: serverUrl },
-    });
-    return;
-  }
 
-  dispatchVersionUpdated(server.url)(serverInfo);
+  let serverEncoded: string | undefined;
+
+  if (serverInfoResult) {
+    dispatchVersionUpdated(server.url)(serverInfoResult);
+
+    serverEncoded = serverInfoResult.supportedVersions?.signed;
+
+    // Try Server with retries (3x with 2s delays)
+    if (serverEncoded) {
+      try {
+        const serverSupportedVersions = decodeSupportedVersions(serverEncoded);
+        saveToCache(serverUrl, serverSupportedVersions);
+        dispatchSupportedVersionsUpdated(server.url, serverSupportedVersions, {
+          source: 'server',
+        });
+        return;
+      } catch (error) {
+        console.error('Error decoding server supported versions:', error);
+      }
+    }
+  }
 
   const uniqueID = await getUniqueId(server.url, server.version || '')
     .then(dispatchUniqueIdUpdated(server.url))
     .catch(logRequestError('unique ID'));
-
-  const serverEncoded = serverInfo.supportedVersions?.signed;
-
-  // Try Server with retries (3x with 2s delays)
-  if (serverEncoded) {
-    try {
-      const serverSupportedVersions = decodeSupportedVersions(serverEncoded);
-      saveToCache(serverUrl, serverSupportedVersions);
-      dispatchSupportedVersionsUpdated(server.url, serverSupportedVersions, {
-        source: 'server',
-      });
-      return;
-    } catch (error) {
-      console.error('Error decoding server supported versions:', error);
-    }
-  }
 
   // Try Cloud with retries (3x with 2s delays) if unique ID available
   if (!serverEncoded && uniqueID) {

@@ -360,6 +360,156 @@ describe('supportedVersions/main.ts', () => {
     });
   });
 
+  // ========== CLOUD FETCH PATH TESTS ==========
+  describe('Cloud Fetch Path', () => {
+    it('should fetch cloud info with retries when server fails', async () => {
+      jest.useFakeTimers();
+      const mockServer = createMockServer();
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockRejectedValueOnce(new Error('Cloud timeout'))
+        .mockResolvedValueOnce({ data: { signed: 'cloud-jwt-token' } });
+
+      const promise = updateSupportedVersionsData(mockServer.url);
+      jest.runAllTimers();
+      await promise;
+
+      // Should retry cloud fetch (1 fail, 1 success = 2 cloud calls)
+      // Plus 1 server + 1 unique ID = 4 total axios calls
+      expect(axiosMock.get).toHaveBeenCalledTimes(4);
+
+      jest.useRealTimers();
+    });
+
+    it('should decode valid cloud JWT and dispatch UPDATED with source cloud', async () => {
+      const mockServer = createMockServer();
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined,
+      });
+      const mockCloudData = createMockCloudInfo();
+      const mockSupportedVersions = createMockSupportedVersions();
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockResolvedValueOnce({ data: mockCloudData });
+
+      jest
+        .spyOn(require('jsonwebtoken'), 'verify')
+        .mockReturnValue(mockSupportedVersions);
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      // Should dispatch UPDATED with source: 'cloud'
+      const cloudDispatch = dispatchMock.mock.calls.find(
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED &&
+          (action as any).payload?.source === 'cloud'
+      );
+      expect(cloudDispatch).toBeDefined();
+      expect((cloudDispatch?.[0] as any)?.payload?.supportedVersions).toEqual(
+        mockSupportedVersions
+      );
+    });
+
+    it('should skip cloud fetch if server versions found', async () => {
+      const mockServer = createMockServer();
+      const mockServerInfo = createMockServerInfo();
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValue({ data: mockServerInfo });
+
+      jest
+        .spyOn(require('jsonwebtoken'), 'verify')
+        .mockReturnValue(createMockSupportedVersions());
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      // Should only call axios once (server), not cloud
+      expect(axiosMock.get).toHaveBeenCalledTimes(1);
+    });
+
+    it('should skip cloud fetch if uniqueID is unavailable', async () => {
+      const mockServer = createMockServer();
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({ data: { settings: [] } }); // No unique ID
+
+      await updateSupportedVersionsData(mockServer.url);
+
+      // Should call axios twice (server + unique ID), not cloud
+      expect(axiosMock.get).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle invalid cloud JWT and continue to cache', async () => {
+      jest.useFakeTimers();
+      const mockServer = createMockServer();
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockResolvedValueOnce({ data: { signed: 'invalid-jwt' } });
+
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      jest.spyOn(require('jsonwebtoken'), 'verify').mockImplementation(() => {
+        throw new Error('jwt malformed');
+      });
+
+      const promise = updateSupportedVersionsData(mockServer.url);
+      jest.runAllTimers();
+      await promise;
+
+      // Should log decode error
+      const errorCalls = consoleErrorSpy.mock.calls.filter((call) =>
+        call[0]?.includes('decoding')
+      );
+      expect(errorCalls.length).toBeGreaterThan(0);
+
+      consoleErrorSpy.mockRestore();
+      jest.useRealTimers();
+    });
+
+    it('should retry cloud 3 times before giving up', async () => {
+      jest.useFakeTimers();
+      const mockServer = createMockServer();
+      const mockServerInfo = createMockServerInfo({
+        supportedVersions: undefined,
+      });
+      selectMock.mockReturnValue(mockServer);
+      axiosMock.get = jest
+        .fn()
+        .mockResolvedValueOnce({ data: mockServerInfo })
+        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockRejectedValue(new Error('Cloud error'));
+
+      const promise = updateSupportedVersionsData(mockServer.url);
+      jest.runAllTimers();
+      await promise;
+
+      // Should attempt cloud 3 times (server + unique ID + 3 cloud attempts = 5 calls)
+      expect(axiosMock.get).toHaveBeenCalledTimes(5);
+
+      jest.useRealTimers();
+    });
+  });
+
   // ========== SERVER DECODE & DISPATCH TESTS ==========
   describe('Server Decode & Dispatch', () => {
     it('should decode valid server JWT and dispatch UPDATED with source server', async () => {

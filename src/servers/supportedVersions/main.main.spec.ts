@@ -1,6 +1,6 @@
 import axios from 'axios';
-
 import * as jsonwebtoken from 'jsonwebtoken';
+
 import { listen, select, dispatch } from '../../store';
 import {
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
@@ -161,9 +161,7 @@ describe('supportedVersions/main.ts', () => {
       const mockServer = createMockServer();
       const mockServerInfo = createMockServerInfo();
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
-        .fn()
-        .mockResolvedValue({ data: mockServerInfo });
+      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
 
       await updateSupportedVersionsData(mockServer.url);
 
@@ -263,13 +261,11 @@ describe('supportedVersions/main.ts', () => {
       const mockServer = createMockServer();
       const mockServerInfo = createMockServerInfo(); // Has supportedVersions
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
-        .fn()
-        .mockResolvedValue({ data: mockServerInfo });
+      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
 
-      jest
-        .spyOn(require('jsonwebtoken'), 'verify')
-        .mockReturnValue(createMockSupportedVersions());
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        createMockSupportedVersions()
+      );
 
       await updateSupportedVersionsData(mockServer.url);
 
@@ -315,7 +311,9 @@ describe('supportedVersions/main.ts', () => {
       axiosMock.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
-        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } });
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'unique-id-123' }] },
+        });
 
       await updateSupportedVersionsData(mockServer.url);
 
@@ -362,7 +360,9 @@ describe('supportedVersions/main.ts', () => {
       axiosMock.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
-        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'unique-id-123' }] },
+        })
         .mockRejectedValueOnce(new Error('Cloud timeout'))
         .mockResolvedValueOnce({ data: { signed: 'cloud-jwt-token' } });
 
@@ -384,12 +384,14 @@ describe('supportedVersions/main.ts', () => {
       axiosMock.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
-        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'unique-id-123' }] },
+        })
         .mockResolvedValueOnce({ data: mockCloudData });
 
-      jest
-        .spyOn(require('jsonwebtoken'), 'verify')
-        .mockReturnValue(mockSupportedVersions);
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        mockSupportedVersions
+      );
 
       await updateSupportedVersionsData(mockServer.url);
 
@@ -409,13 +411,11 @@ describe('supportedVersions/main.ts', () => {
       const mockServer = createMockServer();
       const mockServerInfo = createMockServerInfo();
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
-        .fn()
-        .mockResolvedValue({ data: mockServerInfo });
+      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
 
-      jest
-        .spyOn(require('jsonwebtoken'), 'verify')
-        .mockReturnValue(createMockSupportedVersions());
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        createMockSupportedVersions()
+      );
 
       await updateSupportedVersionsData(mockServer.url);
 
@@ -449,7 +449,9 @@ describe('supportedVersions/main.ts', () => {
       axiosMock.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
-        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'unique-id-123' }] },
+        })
         .mockResolvedValueOnce({ data: { signed: 'invalid-jwt' } });
 
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
@@ -477,7 +479,9 @@ describe('supportedVersions/main.ts', () => {
       axiosMock.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
-        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'unique-id-123' }] },
+        })
         .mockRejectedValue(new Error('Cloud error'));
 
       jest.useFakeTimers();
@@ -498,14 +502,12 @@ describe('supportedVersions/main.ts', () => {
       const mockServerInfo = createMockServerInfo();
       const mockSupportedVersions = createMockSupportedVersions();
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
-        .fn()
-        .mockResolvedValue({ data: mockServerInfo });
+      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
 
       // Mock jwt.verify to return valid decoded versions
-      jest
-        .spyOn(require('jsonwebtoken'), 'verify')
-        .mockReturnValue(mockSupportedVersions);
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        mockSupportedVersions
+      );
 
       await updateSupportedVersionsData(mockServer.url);
 
@@ -524,7 +526,7 @@ describe('supportedVersions/main.ts', () => {
     it('should handle invalid JWT gracefully and continue to cloud path', async () => {
       const mockServer = createMockServer();
       const mockServerInfo = createMockServerInfo({
-        supportedVersions: undefined,  // Skip server decode path
+        supportedVersions: undefined, // Skip server decode path
       });
       const mockCloudData = createMockCloudInfo();
       const mockSupportedVersions = createMockSupportedVersions();
@@ -535,12 +537,14 @@ describe('supportedVersions/main.ts', () => {
       axiosMock.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
-        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'unique-id-123' }] },
+        })
         .mockResolvedValueOnce({ data: mockCloudData });
 
-      jest
-        .spyOn(require('jsonwebtoken'), 'verify')
-        .mockReturnValue(mockSupportedVersions);
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        mockSupportedVersions
+      );
 
       await updateSupportedVersionsData(mockServer.url);
 
@@ -587,7 +591,9 @@ describe('supportedVersions/main.ts', () => {
       axiosMock.get = jest
         .fn()
         .mockResolvedValueOnce({ data: mockServerInfo })
-        .mockResolvedValueOnce({ data: { settings: [{ value: 'unique-id-123' }] } })
+        .mockResolvedValueOnce({
+          data: { settings: [{ value: 'unique-id-123' }] },
+        })
         .mockResolvedValueOnce({ data: mockCloudInfo });
 
       // Mock verify: throw for server decode, succeed for cloud decode
@@ -624,13 +630,11 @@ describe('supportedVersions/main.ts', () => {
       const mockServerInfo = createMockServerInfo();
       const mockSupportedVersions = createMockSupportedVersions();
       selectMock.mockReturnValue(mockServer);
-      axiosMock.get = jest
-        .fn()
-        .mockResolvedValue({ data: mockServerInfo });
+      axiosMock.get = jest.fn().mockResolvedValue({ data: mockServerInfo });
 
-      jest
-        .spyOn(require('jsonwebtoken'), 'verify')
-        .mockReturnValue(mockSupportedVersions);
+      (jest.spyOn(jsonwebtoken, 'verify') as jest.Mock).mockReturnValue(
+        mockSupportedVersions
+      );
 
       await updateSupportedVersionsData(mockServer.url);
 
@@ -639,7 +643,8 @@ describe('supportedVersions/main.ts', () => {
 
       // Should NOT have ERROR dispatch (only UPDATED)
       const errorDispatches = dispatchMock.mock.calls.filter(
-        ([action]) => (action as any).type === WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR
+        ([action]) =>
+          (action as any).type === WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR
       );
       expect(errorDispatches.length).toBe(0);
     });
@@ -726,7 +731,7 @@ describe('supportedVersions/main.ts', () => {
         timestamp: new Date().toISOString(),
         versions: [
           {
-            version: '7.1.0',  // Must match mockServer version ~7.1
+            version: '7.1.0', // Must match mockServer version ~7.1
             expiration: futureDate,
           },
         ],
@@ -903,10 +908,10 @@ describe('supportedVersions/main.ts', () => {
       };
 
       // Create a server with version 5.4.x to match the test name
-      const serverWith5_4 = { ...mockServer, version: '5.4.1' };
+      const serverWith54 = { ...mockServer, version: '5.4.1' };
 
       const result = await isServerVersionSupported(
-        serverWith5_4 as any,
+        serverWith54 as any,
         supportedVersions as any
       );
 

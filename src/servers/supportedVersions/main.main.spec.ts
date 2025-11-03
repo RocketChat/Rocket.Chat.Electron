@@ -1,4 +1,6 @@
 import axios from 'axios';
+
+import * as jsonwebtoken from 'jsonwebtoken';
 import { listen, select, dispatch } from '../../store';
 import {
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
@@ -451,7 +453,7 @@ describe('supportedVersions/main.ts', () => {
         .mockResolvedValueOnce({ data: { signed: 'invalid-jwt' } });
 
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      jest.spyOn(require('jsonwebtoken'), 'verify').mockImplementation(() => {
+      jest.spyOn(jsonwebtoken, 'verify').mockImplementation(() => {
         throw new Error('jwt malformed');
       });
 
@@ -589,7 +591,7 @@ describe('supportedVersions/main.ts', () => {
         .mockResolvedValueOnce({ data: mockCloudInfo });
 
       // Mock verify: throw for server decode, succeed for cloud decode
-      const verifyMock = jest.spyOn(require('jsonwebtoken'), 'verify') as jest.Mock;
+      const verifyMock = jest.spyOn(jsonwebtoken, 'verify') as jest.Mock;
       verifyMock.mockImplementation((token) => {
         if (token === 'mock-jwt-token') {
           throw new Error('jwt malformed');

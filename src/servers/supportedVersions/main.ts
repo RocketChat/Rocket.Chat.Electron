@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import axios from 'axios';
 import { ipcMain } from 'electron';
+import ElectronStore from 'electron-store';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { coerce, satisfies } from 'semver';
@@ -41,6 +42,12 @@ kwIDAQAB
 
 const decodeSupportedVersions = (token: string) =>
   jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as SupportedVersions;
+
+const supportedVersionsStore = new ElectronStore<{
+  [key: string]: SupportedVersions;
+}>({
+  name: 'supportedVersions',
+});
 
 let builtinSupportedVersions: SupportedVersions | undefined;
 
@@ -84,9 +91,9 @@ const getCacheKey = (serverUrl: string): string => `supportedVersions:${serverUr
 
 const loadFromCache = (serverUrl: string): SupportedVersions | undefined => {
   try {
-    const cached = localStorage.getItem(getCacheKey(serverUrl));
+    const cached = supportedVersionsStore.get(getCacheKey(serverUrl));
     if (!cached) return undefined;
-    return JSON.parse(cached) as SupportedVersions;
+    return cached as SupportedVersions;
   } catch (error) {
     console.warn(`Error loading cache for ${serverUrl}:`, error);
     return undefined;
@@ -95,7 +102,7 @@ const loadFromCache = (serverUrl: string): SupportedVersions | undefined => {
 
 const saveToCache = (serverUrl: string, data: SupportedVersions): void => {
   try {
-    localStorage.setItem(getCacheKey(serverUrl), JSON.stringify(data));
+    supportedVersionsStore.set(getCacheKey(serverUrl), data);
   } catch (error) {
     console.warn(`Error saving cache for ${serverUrl}:`, error);
   }
@@ -391,11 +398,15 @@ const updateSupportedVersionsData = async (
 
   const builtinSupportedVersions = await getBuiltinSupportedVersions();
 
-  // Fetch server info
-  const serverInfo = await getServerInfo(server.url)
-    .then(dispatchVersionUpdated(server.url))
-    .catch(logRequestError('server info'));
+  // Fetch server info with retries (3x with 2s delays)
+  const serverInfo = await withRetries(
+    () => getServerInfo(server.url),
+    3,
+    2000
+  );
   if (!serverInfo) return;
+
+  dispatchVersionUpdated(server.url)(serverInfo);
 
   const uniqueID = await getUniqueId(server.url, server.version || '')
     .then(dispatchUniqueIdUpdated(server.url))

@@ -102,13 +102,6 @@ const createMockServer = (overrides?: Partial<any>) => ({
 describe('supportedVersions/main.ts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Suppress unused import/factory warnings
-    void WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED;
-    void WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR;
-    void WEBVIEW_SERVER_VERSION_UPDATED;
-    void WEBVIEW_SERVER_UNIQUE_ID_UPDATED;
-    void createMockSupportedVersions;
-    void createMockCloudInfo;
   });
 
   // ========== INITIALIZATION & SETUP TESTS ==========
@@ -194,9 +187,9 @@ describe('supportedVersions/main.ts', () => {
         .mockResolvedValueOnce({ data: mockServerInfo });
 
       jest.useFakeTimers();
-      updateSupportedVersionsData(mockServer.url);
-      // Let microtasks process, then advance timers for retry delay
+      const promise = updateSupportedVersionsData(mockServer.url);
       await jest.advanceTimersByTimeAsync(2000);
+      await promise;
       jest.useRealTimers();
 
       // Should call axios.get twice (fail, retry, succeed)
@@ -217,9 +210,9 @@ describe('supportedVersions/main.ts', () => {
       axiosMock.get = jest.fn().mockRejectedValue(new Error('Network error'));
 
       jest.useFakeTimers();
-      updateSupportedVersionsData(mockServer.url);
-      // Advance timers by enough time for server retries (2 delays of 2000ms each = 4000ms)
+      const promise = updateSupportedVersionsData(mockServer.url);
       await jest.advanceTimersByTimeAsync(4000);
+      await promise;
       jest.useRealTimers();
 
       // Should call axios.get 4 times (3 server attempts + 1 unique ID attempt)
@@ -245,9 +238,9 @@ describe('supportedVersions/main.ts', () => {
         .mockResolvedValueOnce({ data: createMockServerInfo() });
 
       jest.useFakeTimers();
-      updateSupportedVersionsData(mockServer.url);
-      // Advance timers by enough time for all retries (2 delays of 2000ms each = 4000ms)
+      const promise = updateSupportedVersionsData(mockServer.url);
       await jest.advanceTimersByTimeAsync(4000);
+      await promise;
       jest.useRealTimers();
 
       // All 3 attempts should be made
@@ -485,9 +478,9 @@ describe('supportedVersions/main.ts', () => {
         .mockRejectedValue(new Error('Cloud error'));
 
       jest.useFakeTimers();
-      updateSupportedVersionsData(mockServer.url);
-      // Advance timers by enough time for cloud retries (2 delays of 2000ms each = 4000ms)
+      const promise = updateSupportedVersionsData(mockServer.url);
       await jest.advanceTimersByTimeAsync(4000);
+      await promise;
       jest.useRealTimers();
 
       // Should attempt cloud 3 times (server + unique ID + 3 cloud attempts = 5 calls)

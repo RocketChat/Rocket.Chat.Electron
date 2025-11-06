@@ -213,17 +213,18 @@ const ServerInfoContent = ({
               statusText = isSupportedVersion ? 'Yes' : 'No';
             }
 
+            let iconName: 'warning' | 'check' | 'circle-exclamation';
+            if (expirationData?.message) {
+              iconName = 'warning';
+            } else if (isSupportedVersion) {
+              iconName = 'check';
+            } else {
+              iconName = 'circle-exclamation';
+            }
+
             return (
               <Option variant={variantValue}>
-                <OptionIcon
-                  name={
-                    expirationData?.message
-                      ? 'warning'
-                      : isSupportedVersion
-                        ? 'check'
-                        : 'circle-exclamation'
-                  }
-                />
+                <OptionIcon name={iconName} />
                 <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
                   <Box>
                     <Box fontWeight='bold'>Supported:</Box>

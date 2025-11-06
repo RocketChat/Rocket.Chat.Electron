@@ -216,7 +216,13 @@ const ServerInfoContent = ({
             return (
               <Option variant={variantValue}>
                 <OptionIcon
-                  name={expirationData?.message ? 'warning' : 'check'}
+                  name={
+                    expirationData?.message
+                      ? 'warning'
+                      : isSupportedVersion
+                        ? 'check'
+                        : 'circle-exclamation'
+                  }
                 />
                 <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
                   <Box>

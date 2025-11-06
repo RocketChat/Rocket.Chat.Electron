@@ -12,6 +12,7 @@ import DownloadsManagerView from '../DownloadsManagerView';
 import { OutlookCredentialsDialog } from '../OutlookCredentialsDialog';
 import { ScreenSharingDialog } from '../ScreenSharingDialog';
 import { SelectClientCertificateDialog } from '../SelectClientCertificateDialog';
+import { ServerInfoModal } from '../ServerInfoModal';
 import { ServersView } from '../ServersView';
 import { SettingsView } from '../SettingsView';
 import { SideBar } from '../SideBar';
@@ -109,6 +110,7 @@ export const Shell = () => {
         </Box>
       </Box>
       <AboutDialog />
+      <ServerInfoModal />
       <SupportedVersionDialog />
       <ScreenSharingDialog />
       <SelectClientCertificateDialog />

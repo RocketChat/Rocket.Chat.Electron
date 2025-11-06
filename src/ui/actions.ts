@@ -144,6 +144,8 @@ export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
 export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 export const WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR =
   'webview/force-reload-with-cache-clear';
+export const OPEN_SERVER_INFO_MODAL = 'server-info-modal/open';
+export const CLOSE_SERVER_INFO_MODAL = 'server-info-modal/close';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -283,4 +285,14 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
   };
   [WEBVIEW_PDF_VIEWER_ATTACHED]: { WebContentsId: number };
+  [OPEN_SERVER_INFO_MODAL]: {
+    url: string;
+    version?: string;
+    exchangeUrl?: string;
+    isSupportedVersion?: boolean;
+    supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
+    supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
+    supportedVersions?: Server['supportedVersions'];
+  };
+  [CLOSE_SERVER_INFO_MODAL]: void;
 };

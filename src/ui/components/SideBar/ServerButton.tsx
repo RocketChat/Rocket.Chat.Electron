@@ -13,11 +13,9 @@ import {
 import type { DragEvent, MouseEvent } from 'react';
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import type { SupportedVersions } from '../../../servers/supportedVersions/types';
 import { dispatch } from '../../../store';
-import type { RootState } from '../../../store/rootReducer';
 import {
   SIDE_BAR_SERVER_SELECTED,
   SIDE_BAR_SERVER_RELOAD,
@@ -25,6 +23,7 @@ import {
   SIDE_BAR_SERVER_OPEN_DEV_TOOLS,
   SIDE_BAR_SERVER_FORCE_RELOAD,
   SIDE_BAR_SERVER_REMOVE,
+  OPEN_SERVER_INFO_MODAL,
 } from '../../actions';
 import ServerInfoDropdown from './ServerInfoDropdown';
 import { Initials, ServerButtonWrapper } from './styles';
@@ -95,10 +94,6 @@ const ServerButton = ({
 
   const { t } = useTranslation();
 
-  const isDeveloperModeEnabled = useSelector(
-    ({ isDeveloperModeEnabled }: RootState) => isDeveloperModeEnabled
-  );
-
   const { isVisible, toggle } = useDropdownVisibility({ reference, target });
   const { isVisible: isServerInfoVisible, toggle: toggleServerInfo } =
     useDropdownVisibility({
@@ -123,6 +118,23 @@ const ServerButton = ({
   ): void => {
     if (action) dispatch({ type: action, payload: serverUrl });
     toggle();
+  };
+
+  const handleOpenServerInfoModal = (): void => {
+    dispatch({
+      type: OPEN_SERVER_INFO_MODAL,
+      payload: {
+        url,
+        version,
+        exchangeUrl,
+        isSupportedVersion,
+        supportedVersionsSource,
+        supportedVersionsFetchState,
+        supportedVersions,
+      },
+    });
+    toggle();
+    toggleServerInfo(false);
   };
 
   const handleServerContextMenu = (event: MouseEvent): void => {
@@ -230,6 +242,7 @@ const ServerButton = ({
             ref={serverInfoReference}
             onMouseEnter={() => toggleServerInfo(true)}
             onMouseLeave={() => toggleServerInfo(false)}
+            onClick={handleOpenServerInfoModal}
           >
             <OptionIcon name='info' />
             <OptionContent>{t('sidebar.item.serverInfo')}</OptionContent>

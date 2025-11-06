@@ -63,36 +63,35 @@ export const SupportedVersionDialog = () => {
       timeSinceLastValidation !== undefined &&
       timeSinceLastValidation < thirtyMinutesInMs
     ) {
-      // Still check if 12 hours have passed to show warning again
-      if (!server.isSupportedVersion) {
-        if (
-          server.expirationMessageLastTimeShown &&
-          moment().diff(server.expirationMessageLastTimeShown, 'hours') < 12
-        )
-          return;
+      // Within 30-minute throttle window - skip full validation
+      // But still check if 12 hours have passed to show warning again
+      if (
+        server.expirationMessageLastTimeShown &&
+        moment().diff(server.expirationMessageLastTimeShown, 'hours') < 12
+      )
+        return;
 
-        // Prepare and show warning if 12 hours have passed
-        if (server.supportedVersions) {
-          const supported = await isServerVersionSupported(
-            server,
-            server.supportedVersions
-          );
+      // If 12 hours have passed, show warning if it exists (for any server)
+      if (server.supportedVersions) {
+        const supported = await isServerVersionSupported(
+          server,
+          server.supportedVersions
+        );
 
-          if (supported.message && supported.expiration) {
-            const translatedMessage = getExpirationMessageTranslated(
-              supported?.i18n,
-              supported.message,
-              supported.expiration,
-              getLanguage,
-              server.title,
-              server.url,
-              server.version
-            ) as MessageTranslated;
+        if (supported.message && supported.expiration) {
+          const translatedMessage = getExpirationMessageTranslated(
+            supported?.i18n,
+            supported.message,
+            supported.expiration,
+            getLanguage,
+            server.title,
+            server.url,
+            server.version
+          ) as MessageTranslated;
 
-            if (translatedMessage) {
-              setExpirationMessage(translatedMessage);
-              setIsVisible(supported.supported);
-            }
+          if (translatedMessage) {
+            setExpirationMessage(translatedMessage);
+            setIsVisible(supported.supported);
           }
         }
       }

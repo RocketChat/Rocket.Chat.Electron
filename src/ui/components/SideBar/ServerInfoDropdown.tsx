@@ -27,6 +27,7 @@ type ServerInfoDropdownProps = {
   exchangeUrl?: string;
   isSupportedVersion?: boolean;
   supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
+  supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
   supportedVersions?: SupportedVersions;
 };
 
@@ -38,6 +39,7 @@ const ServerInfoDropdown = ({
   exchangeUrl,
   isSupportedVersion,
   supportedVersionsSource,
+  supportedVersionsFetchState,
   supportedVersions,
 }: ServerInfoDropdownProps) => {
   const { i18n } = useTranslation();
@@ -176,6 +178,53 @@ const ServerInfoDropdown = ({
             <Box display='flex' className='rcx-option__title'>
               Supported Versions
             </Box>
+            <Option>
+              <OptionIcon
+                name={
+                  supportedVersionsFetchState === 'loading'
+                    ? 'loading'
+                    : supportedVersionsFetchState === 'error'
+                      ? 'circle-exclamation'
+                      : 'info'
+                }
+              />
+              <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
+                <Box>
+                  <Box fontWeight='bold'>Status:</Box>
+                  <Box
+                    fontSize='x12'
+                    color={
+                      supportedVersionsFetchState === 'error'
+                        ? 'status-font-on-danger'
+                        : 'hint'
+                    }
+                    style={{
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word',
+                      whiteSpace: 'normal',
+                      lineHeight: '1.4',
+                      hyphens: 'auto',
+                      maxWidth: '100%',
+                    }}
+                  >
+                    {(() => {
+                      switch (supportedVersionsFetchState) {
+                        case 'loading':
+                          return 'Loading...';
+                        case 'error':
+                          return 'Failed to load';
+                        case 'success':
+                          return 'Loaded';
+                        case 'idle':
+                        default:
+                          return 'Idle';
+                      }
+                    })()}
+                    {supportedVersionsSource && ` from ${supportedVersionsSource}`}
+                  </Box>
+                </Box>
+              </OptionContent>
+            </Option>
             <Option
               variant={(() => {
                 if (expirationData?.message) return 'warning';

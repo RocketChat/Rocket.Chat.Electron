@@ -45,6 +45,7 @@ type ServerButtonProps = {
   version?: string;
   isSupportedVersion?: boolean;
   supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
+  supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
   supportedVersions?: SupportedVersions;
   onDragStart: (event: DragEvent) => void;
   onDragEnd: (event: DragEvent) => void;
@@ -74,6 +75,7 @@ const ServerButton = ({
   version,
   isSupportedVersion,
   supportedVersionsSource,
+  supportedVersionsFetchState,
   supportedVersions,
   exchangeUrl,
   onDragStart,
@@ -224,16 +226,14 @@ const ServerButton = ({
             <OptionIcon name='code-block' />
             <OptionContent>{t('sidebar.item.openDevTools')}</OptionContent>
           </Option>
-          {isDeveloperModeEnabled && (
-            <Option
-              ref={serverInfoReference}
-              onMouseEnter={() => toggleServerInfo(true)}
-              onMouseLeave={() => toggleServerInfo(false)}
-            >
-              <OptionIcon name='info' />
-              <OptionContent>{t('sidebar.item.serverInfo')}</OptionContent>
-            </Option>
-          )}
+          <Option
+            ref={serverInfoReference}
+            onMouseEnter={() => toggleServerInfo(true)}
+            onMouseLeave={() => toggleServerInfo(false)}
+          >
+            <OptionIcon name='info' />
+            <OptionContent>{t('sidebar.item.serverInfo')}</OptionContent>
+          </Option>
           <Option
             onClick={() =>
               handleActionDropdownClick(SIDE_BAR_SERVER_FORCE_RELOAD, url)
@@ -257,7 +257,7 @@ const ServerButton = ({
           </Option>
         </Dropdown>
       )}
-      {isServerInfoVisible && isDeveloperModeEnabled && (
+      {isServerInfoVisible && (
         <ServerInfoDropdown
           reference={serverInfoReference}
           target={serverInfoTarget}
@@ -267,6 +267,7 @@ const ServerButton = ({
           supportedVersions={supportedVersions}
           isSupportedVersion={isSupportedVersion}
           supportedVersionsSource={supportedVersionsSource}
+          supportedVersionsFetchState={supportedVersionsFetchState}
         />
       )}
     </>

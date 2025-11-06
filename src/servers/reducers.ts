@@ -171,7 +171,11 @@ export const servers: Reducer<Server[], ServersActionTypes> = (
 
     case WEBVIEW_SERVER_IS_SUPPORTED_VERSION: {
       const { url, isSupportedVersion } = action.payload;
-      return upsert(state, { url, isSupportedVersion });
+      return upsert(state, {
+        url,
+        isSupportedVersion,
+        supportedVersionsValidatedAt: new Date(),
+      });
     }
 
     case WEBVIEW_SERVER_VERSION_UPDATED: {

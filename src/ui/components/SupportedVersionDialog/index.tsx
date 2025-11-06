@@ -52,6 +52,53 @@ export const SupportedVersionDialog = () => {
     )
       return;
 
+    // Skip validation if it was done less than 30 minutes ago
+    const thirtyMinutesInMs = 30 * 60 * 1000;
+    const timeSinceLastValidation = server.supportedVersionsValidatedAt
+      ? moment().diff(server.supportedVersionsValidatedAt, 'milliseconds')
+      : undefined;
+
+    if (
+      server.supportedVersionsValidatedAt &&
+      timeSinceLastValidation !== undefined &&
+      timeSinceLastValidation < thirtyMinutesInMs
+    ) {
+      // Still check if 12 hours have passed to show warning again
+      if (!server.isSupportedVersion) {
+        if (
+          server.expirationMessageLastTimeShown &&
+          moment().diff(server.expirationMessageLastTimeShown, 'hours') < 12
+        )
+          return;
+
+        // Prepare and show warning if 12 hours have passed
+        if (server.supportedVersions) {
+          const supported = await isServerVersionSupported(
+            server,
+            server.supportedVersions
+          );
+
+          if (supported.message && supported.expiration) {
+            const translatedMessage = getExpirationMessageTranslated(
+              supported?.i18n,
+              supported.message,
+              supported.expiration,
+              getLanguage,
+              server.title,
+              server.url,
+              server.version
+            ) as MessageTranslated;
+
+            if (translatedMessage) {
+              setExpirationMessage(translatedMessage);
+              setIsVisible(supported.supported);
+            }
+          }
+        }
+      }
+      return;
+    }
+
     const supported = await isServerVersionSupported(
       server,
       server?.supportedVersions

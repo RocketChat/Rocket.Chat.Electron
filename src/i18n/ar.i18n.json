@@ -1,1 +1,27 @@
-{ }
+{
+  "serverInfo": {
+    "title": "معلومات الخادم",
+    "urlLabel": "الرابط:",
+    "versionLabel": "الإصدار:",
+    "unknown": "غير معروف",
+    "exchangeUrlLabel": "رابط Outlook Exchange:",
+    "supportedVersionsTitle": "الإصدارات المدعومة",
+    "status": {
+      "loading": "جاري التحميل...",
+      "error": "فشل التحميل",
+      "loaded": "تم التحميل",
+      "idle": "خامل",
+      "from": "من {{source}}"
+    },
+    "supported": {
+      "unknown": "غير معروف",
+      "expiring": "قريب الانتهاء",
+      "yes": "نعم",
+      "no": "لا"
+    },
+    "expiration": {
+      "label": "تاريخ الانتهاء:",
+      "expiresOn": "ينتهي في {{date}}"
+    }
+  }
+}

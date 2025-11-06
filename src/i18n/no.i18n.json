@@ -437,5 +437,30 @@
     "noWindowsFound": "Ingen vinduer funnet",
     "cancel": "Kansellere",
     "share": "Dele"
+  },
+  "serverInfo": {
+    "title": "Serverinformasjon",
+    "urlLabel": "URL:",
+    "versionLabel": "Versjon:",
+    "unknown": "Ukjent",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Støttede versjoner",
+    "status": {
+      "loading": "Laster...",
+      "error": "Kunne ikke laste",
+      "loaded": "Lastet",
+      "idle": "Inaktiv",
+      "from": "fra {{source}}"
+    },
+    "supported": {
+      "unknown": "Ukjent",
+      "expiring": "Utløper snart",
+      "yes": "Ja",
+      "no": "Nei"
+    },
+    "expiration": {
+      "label": "Utløpsdato:",
+      "expiresOn": "Utløper {{date}}"
+    }
   }
 }

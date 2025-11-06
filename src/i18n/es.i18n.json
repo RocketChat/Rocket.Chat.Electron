@@ -412,5 +412,30 @@
     "noWindowsFound": "No se encontraron ventanas",
     "cancel": "Cancelar",
     "share": "Compartir"
+  },
+  "serverInfo": {
+    "title": "Información del Servidor",
+    "urlLabel": "URL:",
+    "versionLabel": "Versión:",
+    "unknown": "Desconocido",
+    "exchangeUrlLabel": "URL de Outlook Exchange:",
+    "supportedVersionsTitle": "Versiones Soportadas",
+    "status": {
+      "loading": "Cargando...",
+      "error": "Error al cargar",
+      "loaded": "Cargado",
+      "idle": "Inactivo",
+      "from": "desde {{source}}"
+    },
+    "supported": {
+      "unknown": "Desconocido",
+      "expiring": "Por expirar",
+      "yes": "Sí",
+      "no": "No"
+    },
+    "expiration": {
+      "label": "Expiración:",
+      "expiresOn": "Expira el {{date}}"
+    }
   }
 }

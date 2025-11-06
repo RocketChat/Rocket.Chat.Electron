@@ -382,5 +382,30 @@
     "noWindowsFound": "Keine Fenster gefunden",
     "cancel": "Abbrechen",
     "share": "Teilen"
+  },
+  "serverInfo": {
+    "title": "Serverinformationen",
+    "urlLabel": "URL:",
+    "versionLabel": "Version:",
+    "unknown": "Unbekannt",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Unterstützte Versionen",
+    "status": {
+      "loading": "Lädt...",
+      "error": "Laden fehlgeschlagen",
+      "loaded": "Geladen",
+      "idle": "Inaktiv",
+      "from": "von {{source}}"
+    },
+    "supported": {
+      "unknown": "Unbekannt",
+      "expiring": "Läuft ab",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "expiration": {
+      "label": "Ablauf:",
+      "expiresOn": "Läuft ab am {{date}}"
+    }
   }
 }

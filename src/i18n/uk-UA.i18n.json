@@ -227,5 +227,30 @@
     "noWindowsFound": "Вікна не знайдено",
     "cancel": "Скасувати",
     "share": "Демонструвати"
+  },
+  "serverInfo": {
+    "title": "Інформація про сервер",
+    "urlLabel": "URL:",
+    "versionLabel": "Версія:",
+    "unknown": "Невідомо",
+    "exchangeUrlLabel": "URL Outlook Exchange:",
+    "supportedVersionsTitle": "Підтримувані версії",
+    "status": {
+      "loading": "Завантаження...",
+      "error": "Помилка завантаження",
+      "loaded": "Завантажено",
+      "idle": "Неактивно",
+      "from": "з {{source}}"
+    },
+    "supported": {
+      "unknown": "Невідомо",
+      "expiring": "Термін дії закінчується",
+      "yes": "Так",
+      "no": "Ні"
+    },
+    "expiration": {
+      "label": "Термін дії:",
+      "expiresOn": "Закінчується {{date}}"
+    }
   }
 }

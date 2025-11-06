@@ -38,7 +38,7 @@ const ServerInfoContent = ({
   supportedVersions,
   isModal = false,
 }: ServerInfoContentProps) => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [expirationData, setExpirationData] = useState<
     | {
         expiration: string;
@@ -55,38 +55,46 @@ const ServerInfoContent = ({
         return;
       }
 
-      const server = { url, version, title: url };
-      const result = await isServerVersionSupported(server, supportedVersions);
-
-      if (result.expiration && result.message) {
-        const translatedMessage = getExpirationMessageTranslated(
-          result.i18n,
-          result.message,
-          result.expiration,
-          i18n.language,
-          url,
-          url,
-          version
+      try {
+        const server = { url, version, title: url };
+        const result = await isServerVersionSupported(
+          server,
+          supportedVersions
         );
 
-        setExpirationData({
-          expiration:
-            result.expiration instanceof Date
-              ? result.expiration.toISOString()
-              : result.expiration,
-          supported: result.supported,
-          message: translatedMessage || undefined,
-        });
-      } else if (result.expiration) {
-        setExpirationData({
-          expiration:
-            result.expiration instanceof Date
-              ? result.expiration.toISOString()
-              : result.expiration,
-          supported: result.supported,
-          message: undefined,
-        });
-      } else {
+        if (result.expiration && result.message) {
+          const translatedMessage = getExpirationMessageTranslated(
+            result.i18n,
+            result.message,
+            result.expiration,
+            i18n.language,
+            url,
+            url,
+            version
+          );
+
+          setExpirationData({
+            expiration:
+              result.expiration instanceof Date
+                ? result.expiration.toISOString()
+                : result.expiration,
+            supported: result.supported,
+            message: translatedMessage || undefined,
+          });
+        } else if (result.expiration) {
+          setExpirationData({
+            expiration:
+              result.expiration instanceof Date
+                ? result.expiration.toISOString()
+                : result.expiration,
+            supported: result.supported,
+            message: undefined,
+          });
+        } else {
+          setExpirationData(undefined);
+        }
+      } catch (error) {
+        console.error('Failed to load expiration data:', error);
         setExpirationData(undefined);
       }
     };
@@ -108,14 +116,14 @@ const ServerInfoContent = ({
     <Box width='100%'>
       {!isModal && (
         <Box display='flex' className='rcx-option__title'>
-          Server Information
+          {t('serverInfo.title')}
         </Box>
       )}
       <Option>
         <OptionIcon name='globe' />
         <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
           <Box>
-            <Box fontWeight='bold'>URL:</Box>
+            <Box fontWeight='bold'>{t('serverInfo.urlLabel')}</Box>
             <Box fontSize='x12' color='hint' style={textWrapStyle}>
               {url}
             </Box>
@@ -126,9 +134,9 @@ const ServerInfoContent = ({
         <OptionIcon name='info' />
         <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
           <Box>
-            <Box fontWeight='bold'>Version:</Box>
+            <Box fontWeight='bold'>{t('serverInfo.versionLabel')}</Box>
             <Box fontSize='x12' color='hint' style={textWrapStyle}>
-              {version || 'Unknown'}
+              {version || t('serverInfo.unknown')}
             </Box>
           </Box>
         </OptionContent>
@@ -138,7 +146,7 @@ const ServerInfoContent = ({
           <OptionIcon name='mail' />
           <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
             <Box>
-              <Box fontWeight='bold'>Outlook Exchange URL:</Box>
+              <Box fontWeight='bold'>{t('serverInfo.exchangeUrlLabel')}</Box>
               <Box fontSize='x12' color='hint' style={textWrapStyle}>
                 {exchangeUrl}
               </Box>
@@ -150,7 +158,7 @@ const ServerInfoContent = ({
         <>
           <OptionDivider />
           <Box display='flex' className='rcx-option__title'>
-            Supported Versions
+            {t('serverInfo.supportedVersionsTitle')}
           </Box>
           <Option>
             <OptionIcon
@@ -180,18 +188,20 @@ const ServerInfoContent = ({
                   {(() => {
                     switch (supportedVersionsFetchState) {
                       case 'loading':
-                        return 'Loading...';
+                        return t('serverInfo.status.loading');
                       case 'error':
-                        return 'Failed to load';
+                        return t('serverInfo.status.error');
                       case 'success':
-                        return 'Loaded';
+                        return t('serverInfo.status.loaded');
                       case 'idle':
                       default:
-                        return 'Idle';
+                        return t('serverInfo.status.idle');
                     }
                   })()}
                   {supportedVersionsSource &&
-                    ` from ${supportedVersionsSource}`}
+                    ` ${t('serverInfo.status.from', {
+                      source: supportedVersionsSource,
+                    })}`}
                 </Box>
               </Box>
             </OptionContent>
@@ -206,16 +216,20 @@ const ServerInfoContent = ({
 
             let statusText = '';
             if (isSupportedVersion === undefined) {
-              statusText = 'Unknown';
+              statusText = t('serverInfo.supported.unknown');
             } else if (expirationData?.message) {
-              statusText = 'Expiring';
+              statusText = t('serverInfo.supported.expiring');
             } else {
-              statusText = isSupportedVersion ? 'Yes' : 'No';
+              statusText = isSupportedVersion
+                ? t('serverInfo.supported.yes')
+                : t('serverInfo.supported.no');
             }
 
-            let iconName: 'warning' | 'check' | 'circle-exclamation';
+            let iconName: 'warning' | 'check' | 'circle-exclamation' | 'help';
             if (expirationData?.message) {
               iconName = 'warning';
+            } else if (isSupportedVersion === undefined) {
+              iconName = 'help';
             } else if (isSupportedVersion) {
               iconName = 'check';
             } else {
@@ -298,10 +312,15 @@ const ServerInfoContent = ({
               <OptionIcon name='calendar' />
               <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
                 <Box>
-                  <Box fontWeight='bold'>Expiration:</Box>
+                  <Box fontWeight='bold'>
+                    {t('serverInfo.expiration.label')}
+                  </Box>
                   <Box fontSize='x12' style={textWrapStyle}>
-                    Expires on{' '}
-                    {new Date(expirationData.expiration).toLocaleDateString()}
+                    {t('serverInfo.expiration.expiresOn', {
+                      date: new Date(
+                        expirationData.expiration
+                      ).toLocaleDateString(i18n.language),
+                    })}
                   </Box>
                   {expirationData.message && (
                     <Box
@@ -332,9 +351,21 @@ const ServerInfoContent = ({
                         expirationData.expiration
                       );
                       const today = new Date();
+
+                      const todayMidnight = new Date(
+                        today.getFullYear(),
+                        today.getMonth(),
+                        today.getDate()
+                      );
+                      const expirationMidnight = new Date(
+                        expirationDate.getFullYear(),
+                        expirationDate.getMonth(),
+                        expirationDate.getDate()
+                      );
+
                       const diffTime =
-                        expirationDate.getTime() - today.getTime();
-                      const diffDays = Math.ceil(
+                        expirationMidnight.getTime() - todayMidnight.getTime();
+                      const diffDays = Math.floor(
                         diffTime / (1000 * 60 * 60 * 24)
                       );
 

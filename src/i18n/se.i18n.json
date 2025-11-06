@@ -1,1 +1,27 @@
-{ }
+{
+  "serverInfo": {
+    "title": "Serverinformation",
+    "urlLabel": "URL:",
+    "versionLabel": "Version:",
+    "unknown": "Okänd",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Versioner som stöds",
+    "status": {
+      "loading": "Laddar...",
+      "error": "Laddning misslyckades",
+      "loaded": "Laddad",
+      "idle": "Viloläge",
+      "from": "från {{source}}"
+    },
+    "supported": {
+      "unknown": "Okänd",
+      "expiring": "Upphör snart",
+      "yes": "Ja",
+      "no": "Nej"
+    },
+    "expiration": {
+      "label": "Utgångsdatum:",
+      "expiresOn": "Upphör {{date}}"
+    }
+  }
+}

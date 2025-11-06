@@ -143,6 +143,51 @@ graph TD
 
 ---
 
+## Validation Throttling (30-Minute Window)
+
+To reduce expensive validation checks on every navigation, the app implements a **30-minute throttle** on the `isServerVersionSupported()` validation logic (independent from the 12-hour dialog suppression).
+
+### How it Works
+
+```mermaid
+timeline
+    title Validation Throttle Timeline
+    0min: User navigates → Full validation runs
+    0min: supportedVersionsValidatedAt = now
+    10min: User navigates again → Check throttle
+    10min: Time since last validation < 30min → SKIP validation
+    10min: Still check 12-hour dialog suppression
+    30min: User navigates → 30min has passed → Run full validation
+    30min: supportedVersionsValidatedAt = now
+    40min: User navigates → SKIP validation (within 30min window)
+    12h: User navigates → Even within throttle, show dialog if suppression expired
+```
+
+### Throttle Behavior
+
+| Navigation | Time Since Last Validation | Action |
+|-----------|---------------------------|--------|
+| First load | N/A | ✅ Run full validation |
+| Within 30 minutes | < 30 min | ⏸️ Skip validation, check 12h timer |
+| After 30 minutes | ≥ 30 min | ✅ Run full validation again |
+| Dialog showing timing | Independent | ✅ Can show if 12h passed, even within throttle |
+
+### Benefits
+
+- **Reduces API load**: Validation runs at most once per 30 minutes per server
+- **Maintains accuracy**: Fresh check every 30 minutes ensures data isn't stale
+- **Preserves warning display**: 12-hour dialog suppression works independently
+- **Navigation performance**: Repeated navigation within 30 min doesn't trigger expensive checks
+
+### When Throttle is Bypassed
+
+- ✅ Server reload (manual or forced) - Always validates fresh
+- ✅ Server switch - Different server always validates
+- ✅ Dialog dismissed - Triggers fetch, resets validation timer
+- ✅ App startup (WEBVIEW_READY) - Always validates first time
+
+---
+
 ## Modal Display Logic
 
 The version support modal (warning dialog) appears independently from the blocking overlay. It shows version expiration information and is controlled by the `fetchState`:
@@ -169,12 +214,13 @@ graph TD
 **Modal shows when**:
 - `supportedVersions` data exists AND
 - `fetchState !== 'loading'` (not actively fetching) AND
+- 12 hours have passed since last shown (independent timer) AND
 - Server version is expiring soon (has expiration message)
 
 **Modal skips when**:
 - No data available (`supportedVersions` undefined)
 - Currently fetching (`fetchState === 'loading'`)
-- 12-hour display throttle active (not shown again within 12 hours)
+- Within 12-hour display suppression window (shows max once per 12 hours)
 
 **Data sources that trigger modal**:
 - ✅ Fresh server data (`fetchState === 'success'`)
@@ -185,6 +231,7 @@ graph TD
 **Key difference from blocking overlay**:
 - **Overlay blocks access** - only when definitely unsupported with fresh data
 - **Modal warns users** - shows expiration info from any available data, but not while actively loading
+- **Modal has separate suppression** - shows max once per 12 hours independent of validation throttle
 
 ---
 
@@ -200,6 +247,10 @@ graph TD
   supportedVersionsData: SupportedVersions | undefined,
   supportedVersionsFetchState: 'idle' | 'loading' | 'success' | 'error',
   isSupportedVersion: boolean | undefined,
+  supportedVersionsValidatedAt?: Date,  // Timestamp of last validation (for 30-min throttle)
+
+  // Warning display management
+  expirationMessageLastTimeShown?: Date,  // 12-hour dialog suppression timer
 
   // Other fields...
   title: string,
@@ -215,6 +266,11 @@ localStorage['supportedVersions:https://chat.example.com'] = {
   enforcementStartDate: "2024-11-15T..."
 }
 ```
+
+**New field `supportedVersionsValidatedAt`**:
+- Tracks when the last version validation check occurred
+- Used to implement 30-minute validation throttle (see "Validation Throttling" section)
+- Independent from the 12-hour dialog suppression timer
 
 ---
 
@@ -398,6 +454,55 @@ graph TD
 
 ---
 
+## URL Encoding & Cloud API Requirements
+
+### URL Parameter Encoding
+
+The app constructs API URLs with proper URL encoding to ensure reliable server communication:
+
+```typescript
+// Query parameter for uniqueID lookup (< v7.0.0)
+// ✅ Properly encoded:
+`${serverUrl}api/v1/settings.public?query=${encodeURIComponent(JSON.stringify({ _id: 'uniqueID' }))}`
+// Results in: ?query=%7B%22_id%22%3A%20%22uniqueID%22%7D
+
+// ❌ Would fail if unencoded (causes "Invalid query parameter" errors):
+// `${serverUrl}api/v1/settings.public?query={"_id": "uniqueID"}`
+```
+
+**Why encoding matters**:
+- Servers validate query parameters strictly
+- Special characters in JSON (quotes, braces) must be URL-encoded
+- Without encoding, older Rocket.Chat versions (especially v6.x) reject the request
+- With proper encoding, all server versions handle it reliably
+
+### Cloud API Domain Requirement
+
+The Cloud API endpoint requires a valid **domain** (not IP address) to look up server-specific version policies:
+
+```
+https://releases.rocket.chat/v2/server/supportedVersions?domain={domain}&uniqueId={uniqueId}&source=desktop
+```
+
+**Domain requirement**:
+- ✅ Works: `domain=chat.company.com`
+- ✅ Works: `domain=ngrok-provided-url.ngrok.io` (tunneled service)
+- ❌ Fails: `domain=192.168.1.100:3000` (IP addresses not recognized by Cloud API)
+- ❌ Fails: `domain=192.168.1.100:3000:3620` (malformed)
+
+**Workarounds for local/internal servers**:
+1. Use a reverse proxy with domain routing (ngrok, Caddy, nginx)
+2. Add DNS record pointing to the server IP
+3. Configure local `/etc/hosts` entry if only for local access
+
+**Impact when domain is unavailable**:
+- Cloud API returns generic/default version policies
+- Server may not be correctly identified
+- Version validation uses fallback data (cache or builtin)
+- May not reflect server-specific policies
+
+---
+
 ## Cache Management
 
 ### Storage Strategy
@@ -444,6 +549,8 @@ stateDiagram-v2
 
 ## Summary
 
+### Fetch Scenarios
+
 | Scenario | Server | Cloud | Cache | Builtin | Result | Time |
 |----------|--------|-------|-------|---------|--------|------|
 | Fast network | ✓ | - | - | - | Allow/Block based on data | ~1s |
@@ -452,4 +559,24 @@ stateDiagram-v2
 | Offline + no cache | ✗ | ✗ | ✗ | ✓ | Allow/Block based on builtin | ~12s |
 | Airgapped | ✓ | ✗ | - | - | Allow/Block (Cloud skipped) | ~1s |
 
-**Key principle**: Block only on fresh `success` state. Allow on `loading` or `error` states.
+### Validation Throttle Scenarios
+
+| Scenario | Last Validation | Time Elapsed | Action |
+|----------|-----------------|--------------|--------|
+| First navigation | None | N/A | ✅ Run full validation |
+| Subsequent nav (quick) | 5 min ago | 5 min | ⏸️ Skip validation (within 30 min) |
+| Subsequent nav (delayed) | 35 min ago | 35 min | ✅ Run validation (30 min passed) |
+| Server reload | Any time | Any time | ✅ Always validate (bypass throttle) |
+| Dialog dismissed | Any time | Any time | ✅ Always validate (bypass throttle) |
+
+### Key Principles
+
+1. **Blocking decision**: Block only on fresh `success` state with confirmed unsupported version. Allow on `loading` or `error` states.
+
+2. **Validation throttle**: Expensive validation checks run max once per 30 minutes per server. Reduces API load while maintaining accuracy.
+
+3. **Warning display**: Modal shows max once per 12 hours (independent of validation throttle). Can appear even within 30-minute validation window if 12 hours have passed.
+
+4. **False positive prevention**: With proper URL encoding and Cloud API integration, supported servers no longer show false unsupported warnings due to transient failures.
+
+5. **Fallback reliability**: Multiple fallback sources (cache, builtin) ensure users can always access servers, even in offline scenarios.

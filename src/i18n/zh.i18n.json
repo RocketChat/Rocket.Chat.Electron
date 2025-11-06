@@ -6,6 +6,7 @@
     "unknown": "未知",
     "exchangeUrlLabel": "Outlook Exchange URL:",
     "supportedVersionsTitle": "支持的版本",
+    "statusLabel": "状态:",
     "status": {
       "loading": "加载中...",
       "error": "加载失败",

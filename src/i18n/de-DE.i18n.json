@@ -390,6 +390,7 @@
     "unknown": "Unbekannt",
     "exchangeUrlLabel": "Outlook Exchange URL:",
     "supportedVersionsTitle": "Unterstützte Versionen",
+    "statusLabel": "Status:",
     "status": {
       "loading": "Lädt...",
       "error": "Laden fehlgeschlagen",

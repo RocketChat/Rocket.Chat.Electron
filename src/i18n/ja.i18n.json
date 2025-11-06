@@ -210,6 +210,7 @@
     "unknown": "不明",
     "exchangeUrlLabel": "Outlook Exchange URL:",
     "supportedVersionsTitle": "サポートされているバージョン",
+    "statusLabel": "ステータス:",
     "status": {
       "loading": "読み込み中...",
       "error": "読み込みに失敗しました",

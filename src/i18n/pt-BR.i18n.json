@@ -425,6 +425,7 @@
     "unknown": "Desconhecido",
     "exchangeUrlLabel": "URL do Outlook Exchange:",
     "supportedVersionsTitle": "Versões Suportadas",
+    "statusLabel": "Status:",
     "status": {
       "loading": "Carregando...",
       "error": "Falha ao carregar",

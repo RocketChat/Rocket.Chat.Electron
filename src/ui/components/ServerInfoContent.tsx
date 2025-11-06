@@ -175,7 +175,7 @@ const ServerInfoContent = ({
             />
             <OptionContent style={{ minWidth: 0, overflow: 'visible' }}>
               <Box>
-                <Box fontWeight='bold'>Status:</Box>
+                <Box fontWeight='bold'>{t('serverInfo.statusLabel')}</Box>
                 <Box
                   fontSize='x12'
                   color={

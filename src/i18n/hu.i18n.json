@@ -420,6 +420,7 @@
     "unknown": "Ismeretlen",
     "exchangeUrlLabel": "Outlook Exchange URL:",
     "supportedVersionsTitle": "Támogatott verziók",
+    "statusLabel": "Állapot:",
     "status": {
       "loading": "Betöltés...",
       "error": "Betöltés sikertelen",

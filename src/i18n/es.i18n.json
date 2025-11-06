@@ -420,6 +420,7 @@
     "unknown": "Desconocido",
     "exchangeUrlLabel": "URL de Outlook Exchange:",
     "supportedVersionsTitle": "Versiones Soportadas",
+    "statusLabel": "Estado:",
     "status": {
       "loading": "Cargando...",
       "error": "Error al cargar",

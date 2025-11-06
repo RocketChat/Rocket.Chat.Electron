@@ -445,6 +445,7 @@
     "unknown": "Unknown",
     "exchangeUrlLabel": "Outlook Exchange URL:",
     "supportedVersionsTitle": "Supported Versions",
+    "statusLabel": "Status:",
     "status": {
       "loading": "Loading...",
       "error": "Failed to load",

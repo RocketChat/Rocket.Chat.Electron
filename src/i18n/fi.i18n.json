@@ -388,6 +388,7 @@
     "unknown": "Tuntematon",
     "exchangeUrlLabel": "Outlook Exchange URL:",
     "supportedVersionsTitle": "Tuetut versiot",
+    "statusLabel": "Tila:",
     "status": {
       "loading": "Ladataan...",
       "error": "Lataus epäonnistui",

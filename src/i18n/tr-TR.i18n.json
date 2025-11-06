@@ -232,6 +232,7 @@
     "unknown": "Bilinmiyor",
     "exchangeUrlLabel": "Outlook Exchange URL:",
     "supportedVersionsTitle": "Desteklenen Sürümler",
+    "statusLabel": "Durum:",
     "status": {
       "loading": "Yükleniyor...",
       "error": "Yükleme başarısız",

@@ -389,6 +389,7 @@
     "unknown": "Inconnu",
     "exchangeUrlLabel": "URL Outlook Exchange :",
     "supportedVersionsTitle": "Versions Prise en Charge",
+    "statusLabel": "Statut :",
     "status": {
       "loading": "Chargement...",
       "error": "Échec du chargement",

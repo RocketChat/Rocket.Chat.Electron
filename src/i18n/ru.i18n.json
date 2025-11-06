@@ -392,6 +392,7 @@
     "unknown": "Неизвестно",
     "exchangeUrlLabel": "URL Outlook Exchange:",
     "supportedVersionsTitle": "Поддерживаемые версии",
+    "statusLabel": "Статус:",
     "status": {
       "loading": "Загрузка...",
       "error": "Ошибка загрузки",

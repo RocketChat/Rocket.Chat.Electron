@@ -6,6 +6,7 @@
     "unknown": "Sconosciuto",
     "exchangeUrlLabel": "URL Outlook Exchange:",
     "supportedVersionsTitle": "Versioni Supportate",
+    "statusLabel": "Stato:",
     "status": {
       "loading": "Caricamento...",
       "error": "Caricamento fallito",

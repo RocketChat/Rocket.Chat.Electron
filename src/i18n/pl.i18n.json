@@ -254,6 +254,7 @@
     "unknown": "Nieznana",
     "exchangeUrlLabel": "URL Outlook Exchange:",
     "supportedVersionsTitle": "Obsługiwane wersje",
+    "statusLabel": "Status:",
     "status": {
       "loading": "Ładowanie...",
       "error": "Nie udało się załadować",

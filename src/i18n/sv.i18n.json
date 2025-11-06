@@ -445,6 +445,7 @@
     "unknown": "Okänd",
     "exchangeUrlLabel": "Outlook Exchange URL:",
     "supportedVersionsTitle": "Versioner som stöds",
+    "statusLabel": "Status:",
     "status": {
       "loading": "Laddar...",
       "error": "Laddning misslyckades",

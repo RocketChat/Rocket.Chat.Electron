@@ -6,6 +6,7 @@
     "unknown": "غير معروف",
     "exchangeUrlLabel": "رابط Outlook Exchange:",
     "supportedVersionsTitle": "الإصدارات المدعومة",
+    "statusLabel": "الحالة:",
     "status": {
       "loading": "جاري التحميل...",
       "error": "فشل التحميل",

@@ -6,6 +6,7 @@
     "unknown": "Ukjent",
     "exchangeUrlLabel": "Outlook Exchange URL:",
     "supportedVersionsTitle": "Støttede versjoner",
+    "statusLabel": "Status:",
     "status": {
       "loading": "Laster...",
       "error": "Kunne ikke laste",

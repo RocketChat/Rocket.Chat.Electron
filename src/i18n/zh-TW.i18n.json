@@ -203,6 +203,7 @@
     "unknown": "未知",
     "exchangeUrlLabel": "Outlook Exchange URL:",
     "supportedVersionsTitle": "支援的版本",
+    "statusLabel": "狀態:",
     "status": {
       "loading": "載入中...",
       "error": "載入失敗",

@@ -17,6 +17,7 @@ import {
 import { servers } from '../servers/reducers';
 import { availableBrowsers } from '../ui/reducers/availableBrowsers';
 import { currentView } from '../ui/reducers/currentView';
+import { dialogs } from '../ui/reducers/dialogs';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
 import { isDeveloperModeEnabled } from '../ui/reducers/isDeveloperModeEnabled';
@@ -59,6 +60,7 @@ export const rootReducer = combineReducers({
   availableBrowsers,
   clientCertificates,
   currentView,
+  dialogs,
   doCheckForUpdatesOnStartup,
   downloads,
   externalProtocols,

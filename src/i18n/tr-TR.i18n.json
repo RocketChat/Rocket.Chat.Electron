@@ -224,5 +224,31 @@
     "noWindowsFound": "Pencere bulunamadı",
     "cancel": "İptal et",
     "share": "Paylaş"
+  },
+  "serverInfo": {
+    "title": "Sunucu Bilgileri",
+    "urlLabel": "URL:",
+    "versionLabel": "Sürüm:",
+    "unknown": "Bilinmiyor",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Desteklenen Sürümler",
+    "statusLabel": "Durum:",
+    "status": {
+      "loading": "Yükleniyor...",
+      "error": "Yükleme başarısız",
+      "loaded": "Yüklendi",
+      "idle": "Boşta",
+      "from": "{{source}} kaynağından"
+    },
+    "supported": {
+      "unknown": "Bilinmiyor",
+      "expiring": "Süresi doluyor",
+      "yes": "Evet",
+      "no": "Hayır"
+    },
+    "expiration": {
+      "label": "Son Kullanma:",
+      "expiresOn": "{{date}} tarihinde sona eriyor"
+    }
   }
 }

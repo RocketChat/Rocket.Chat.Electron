@@ -21,9 +21,9 @@ export const server = <T extends string>(serverUrl: T) =>
   ({
     uniqueId: `${serverUrl}api/v1/settings.public?_id=uniqueID` as const,
     setting: (id: string) =>
-      `${serverUrl}api/v1/settings.public?query={"_id": ${JSON.stringify(
-        id
-      )}}` as const,
+      `${serverUrl}api/v1/settings.public?query=${encodeURIComponent(
+        JSON.stringify({ _id: id })
+      )}` as const,
     info: `${serverUrl}api/info` as const,
     calendarEvents: {
       list: `${serverUrl}api/v1/calendar-events.list` as const,

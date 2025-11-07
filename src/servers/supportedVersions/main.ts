@@ -1,8 +1,9 @@
 import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
 import axios from 'axios';
 import { ipcMain } from 'electron';
+import ElectronStore from 'electron-store';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import { coerce, satisfies } from 'semver';
@@ -11,6 +12,8 @@ import semverGte from 'semver/functions/gte';
 import { dispatch, listen, select } from '../../store';
 import {
   WEBVIEW_SERVER_SUPPORTED_VERSIONS_UPDATED,
+  WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING,
+  WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
   WEBVIEW_SERVER_VERSION_UPDATED,
   WEBVIEW_READY,
   WEBVIEW_SERVER_UNIQUE_ID_UPDATED,
@@ -40,6 +43,12 @@ kwIDAQAB
 const decodeSupportedVersions = (token: string) =>
   jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as SupportedVersions;
 
+const supportedVersionsStore = new ElectronStore<{
+  [key: string]: SupportedVersions;
+}>({
+  name: 'supportedVersions',
+});
+
 let builtinSupportedVersions: SupportedVersions | undefined;
 
 const getBuiltinSupportedVersions = async (): Promise<
@@ -48,9 +57,7 @@ const getBuiltinSupportedVersions = async (): Promise<
   if (builtinSupportedVersions) return builtinSupportedVersions;
 
   try {
-    const filePath = fileURLToPath(
-      new URL('./supportedVersions.jwt', import.meta.url)
-    );
+    const filePath = join(__dirname, 'supportedVersions.jwt');
     const encodedToken = await readFile(filePath, 'utf8');
     builtinSupportedVersions = decodeSupportedVersions(encodedToken);
     return builtinSupportedVersions;
@@ -77,6 +84,59 @@ const logRequestError =
     }
     return undefined;
   };
+
+const getCacheKey = (serverUrl: string): string =>
+  `supportedVersions:${serverUrl}`;
+
+const loadFromCache = (serverUrl: string): SupportedVersions | undefined => {
+  try {
+    const cached = supportedVersionsStore.get(getCacheKey(serverUrl));
+    if (!cached) return undefined;
+    return cached as SupportedVersions;
+  } catch (error) {
+    console.warn(`Error loading cache for ${serverUrl}:`, error);
+    return undefined;
+  }
+};
+
+const saveToCache = (serverUrl: string, data: SupportedVersions): void => {
+  try {
+    supportedVersionsStore.set(getCacheKey(serverUrl), data);
+  } catch (error) {
+    console.warn(`Error saving cache for ${serverUrl}:`, error);
+  }
+};
+
+const withRetries = async <T>(
+  fetchFn: () => Promise<T | undefined>,
+  maxAttempts: number = 3,
+  delayMs: number = 2000
+): Promise<T | undefined> => {
+  const attempt = async (attemptNumber: number): Promise<T | undefined> => {
+    try {
+      const result = await fetchFn();
+      if (result !== undefined) {
+        return result;
+      }
+    } catch (error) {
+      // Log but continue to next attempt
+      if (attemptNumber === maxAttempts) {
+        // Last attempt failed
+        return undefined;
+      }
+    }
+
+    // If we haven't exhausted attempts, wait then try again
+    if (attemptNumber < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return attempt(attemptNumber + 1);
+    }
+
+    return undefined;
+  };
+
+  return attempt(1);
+};
 
 const getCloudInfo = async (
   url: string,
@@ -203,15 +263,15 @@ export const isServerVersionSupported = async (
   const versions = supportedVersionsData?.versions;
   const exceptions = supportedVersionsData?.exceptions;
   const serverVersion = server.version;
-  if (!serverVersion) return { supported: false };
-  if (!versions) return { supported: false };
+  if (!serverVersion) return { supported: true };
+  if (!versions) return { supported: true };
 
   const serverVersionTilde = `~${serverVersion
     .split('.')
     .slice(0, 2)
     .join('.')}`;
 
-  if (!supportedVersionsData) return { supported: false };
+  if (!supportedVersionsData) return { supported: true };
 
   const exception = exceptions?.versions?.find(({ version }) =>
     satisfies(coerce(version)?.version ?? '', serverVersionTilde)
@@ -324,71 +384,111 @@ const dispatchSupportedVersionsUpdated = (
   });
 };
 
-const updateSupportedVersionsData = async (
+export const updateSupportedVersionsData = async (
   serverUrl: string
 ): Promise<void> => {
-  const builtinSupportedVersions = await getBuiltinSupportedVersions();
-
   const server = select(({ servers }) =>
     servers.find((server) => server.url === serverUrl)
   );
   if (!server) return;
 
-  const serverInfo = await getServerInfo(server.url)
-    .then(dispatchVersionUpdated(server.url))
-    .catch(logRequestError('server info'));
-  if (!serverInfo) return;
+  // Dispatch loading state
+  dispatch({
+    type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING,
+    payload: { url: serverUrl },
+  });
+
+  const builtinSupportedVersions = await getBuiltinSupportedVersions();
+
+  // Fetch server info with retries (3x with 2s delays)
+  const serverInfoResult = await withRetries(
+    () => getServerInfo(server.url),
+    3,
+    2000
+  );
+
+  let serverEncoded: string | undefined;
+
+  if (serverInfoResult) {
+    dispatchVersionUpdated(server.url)(serverInfoResult);
+
+    serverEncoded = serverInfoResult.supportedVersions?.signed;
+
+    // Try Server with retries (3x with 2s delays)
+    if (serverEncoded) {
+      try {
+        const serverSupportedVersions = decodeSupportedVersions(serverEncoded);
+        saveToCache(serverUrl, serverSupportedVersions);
+        dispatchSupportedVersionsUpdated(server.url, serverSupportedVersions, {
+          source: 'server',
+        });
+        return;
+      } catch (error) {
+        console.error('Error decoding server supported versions:', error);
+        // Clear serverEncoded to allow cloud fallback
+        serverEncoded = undefined;
+      }
+    }
+  }
 
   const uniqueID = await getUniqueId(server.url, server.version || '')
     .then(dispatchUniqueIdUpdated(server.url))
     .catch(logRequestError('unique ID'));
 
-  const serverEncoded = serverInfo.supportedVersions?.signed;
-
-  if (!serverEncoded) {
-    if (!uniqueID) {
-      if (!builtinSupportedVersions) return;
-
-      dispatchSupportedVersionsUpdated(server.url, builtinSupportedVersions, {
-        source: 'builtin',
-      });
-      return;
-    }
-
-    const cloudInfo = await getCloudInfo(server.url, uniqueID).catch(
-      logRequestError('cloud info')
+  // Try Cloud with retries (3x with 2s delays) if unique ID available
+  if (!serverEncoded && uniqueID) {
+    const cloudVersionsWithRetry = await withRetries(
+      () => getCloudInfo(server.url, uniqueID),
+      3,
+      2000
     );
-    const cloudEncoded = cloudInfo?.signed;
-    if (!cloudEncoded) return;
 
-    const cloudSupportedVersions = decodeSupportedVersions(cloudEncoded);
-    dispatchSupportedVersionsUpdated(server.url, cloudSupportedVersions, {
+    if (cloudVersionsWithRetry?.signed) {
+      try {
+        const cloudSupportedVersions = decodeSupportedVersions(
+          cloudVersionsWithRetry.signed
+        );
+        saveToCache(serverUrl, cloudSupportedVersions);
+        dispatchSupportedVersionsUpdated(server.url, cloudSupportedVersions, {
+          source: 'cloud',
+        });
+        return;
+      } catch (error) {
+        console.error('Error decoding cloud supported versions:', error);
+      }
+    }
+  }
+
+  // Try to load from cache
+  const cachedVersions = loadFromCache(serverUrl);
+  if (cachedVersions) {
+    dispatchSupportedVersionsUpdated(server.url, cachedVersions, {
       source: 'cloud',
     });
-    return;
-  }
-
-  const serverSupportedVersions = decodeSupportedVersions(serverEncoded);
-
-  if (!builtinSupportedVersions) {
-    dispatchSupportedVersionsUpdated(server.url, serverSupportedVersions, {
-      source: 'server',
+    dispatch({
+      type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
+      payload: { url: serverUrl },
     });
     return;
   }
 
-  const builtinTimetamp = Date.parse(builtinSupportedVersions.timestamp);
-  const serverTimestamp = Date.parse(serverSupportedVersions.timestamp);
-
-  if (serverTimestamp > builtinTimetamp) {
-    dispatchSupportedVersionsUpdated(server.url, serverSupportedVersions, {
-      source: 'server',
+  // Fall back to builtin (always available)
+  if (builtinSupportedVersions) {
+    saveToCache(serverUrl, builtinSupportedVersions);
+    dispatchSupportedVersionsUpdated(server.url, builtinSupportedVersions, {
+      source: 'builtin',
+    });
+    dispatch({
+      type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
+      payload: { url: serverUrl },
     });
     return;
   }
 
-  dispatchSupportedVersionsUpdated(server.url, builtinSupportedVersions, {
-    source: 'builtin',
+  // No data available from any source
+  dispatch({
+    type: WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR,
+    payload: { url: serverUrl },
   });
 };
 

@@ -108,6 +108,7 @@ export const SideBar = () => {
                 version={server.version}
                 isSupportedVersion={server.isSupportedVersion}
                 supportedVersionsSource={server.supportedVersionsSource}
+                supportedVersionsFetchState={server.supportedVersionsFetchState}
                 supportedVersions={server.supportedVersions}
                 exchangeUrl={server.outlookCredentials?.serverUrl}
                 isShortcutVisible={isEachShortcutVisible}

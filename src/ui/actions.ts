@@ -128,6 +128,10 @@ export const WEBVIEW_SERVER_UNIQUE_ID_UPDATED =
   'webview/server-workspace-uid-updated';
 export const WEBVIEW_SERVER_IS_SUPPORTED_VERSION =
   'webview/server-is-supported-version';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING =
+  'webview/server-supported-versions-loading';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR =
+  'webview/server-supported-versions-error';
 export const WEBVIEW_SERVER_VERSION_UPDATED = 'webview/version-updated';
 export const SUPPORTED_VERSION_DIALOG_DISMISS =
   'supported-versions-dialog/dismiss';
@@ -140,6 +144,8 @@ export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
 export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 export const WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR =
   'webview/force-reload-with-cache-clear';
+export const OPEN_SERVER_INFO_MODAL = 'server-info-modal/open';
+export const CLOSE_SERVER_INFO_MODAL = 'server-info-modal/close';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -264,6 +270,12 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
     isSupportedVersion: Server['isSupportedVersion'];
   };
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING]: {
+    url: Server['url'];
+  };
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR]: {
+    url: Server['url'];
+  };
   [WEBVIEW_SERVER_VERSION_UPDATED]: {
     url: Server['url'];
     version: Server['version'];
@@ -273,4 +285,14 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
   };
   [WEBVIEW_PDF_VIEWER_ATTACHED]: { WebContentsId: number };
+  [OPEN_SERVER_INFO_MODAL]: {
+    url: string;
+    version?: string;
+    exchangeUrl?: string;
+    isSupportedVersion?: boolean;
+    supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
+    supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
+    supportedVersions?: Server['supportedVersions'];
+  };
+  [CLOSE_SERVER_INFO_MODAL]: void;
 };

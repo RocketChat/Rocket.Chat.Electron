@@ -341,4 +341,136 @@ describe('rootWindow close event handler', () => {
       expect(app.quit).not.toHaveBeenCalled();
     });
   });
+
+  describe('new error handling', () => {
+    const ORIGINAL_PLATFORM = process.platform;
+
+    beforeEach(() => {
+      Object.defineProperty(process, 'platform', {
+        value: 'linux',
+        configurable: true,
+      });
+    });
+
+    afterAll(() => {
+      Object.defineProperty(process, 'platform', {
+        value: ORIGINAL_PLATFORM,
+        configurable: true,
+      });
+    });
+
+    it('should handle destroyed window in unsubscriber without crashing', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      selectMock.mockImplementation((selector: any) => {
+        const mockState = { isTrayIconEnabled: false };
+        return selector(mockState);
+      });
+
+      const { setupRootWindow } = require('./rootWindow');
+      const getRootWindowMock = jest.fn().mockResolvedValue(mockWindow);
+      require('./rootWindow').getRootWindow = getRootWindowMock;
+
+      setupRootWindow();
+      await Promise.resolve();
+
+      const beforeQuitCall = (app.addListener as jest.Mock).mock.calls.find(
+        (call: any) => call[0] === 'before-quit'
+      );
+      expect(beforeQuitCall).toBeDefined();
+
+      const beforeQuitHandler = beforeQuitCall[1];
+
+      mockWindow.isDestroyed.mockReturnValue(true);
+
+      expect(() => beforeQuitHandler()).not.toThrow();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should handle errors in unsubscribers during before-quit', async () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      selectMock.mockImplementation((selector: any) => {
+        const mockState = { isTrayIconEnabled: false };
+        return selector(mockState);
+      });
+
+      const { setupRootWindow } = require('./rootWindow');
+      const getRootWindowMock = jest.fn().mockResolvedValue(mockWindow);
+      require('./rootWindow').getRootWindow = getRootWindowMock;
+
+      setupRootWindow();
+      await Promise.resolve();
+
+      const beforeQuitCall = (app.addListener as jest.Mock).mock.calls.find(
+        (call: any) => call[0] === 'before-quit'
+      );
+
+      const beforeQuitHandler = beforeQuitCall[1];
+
+      mockWindow.removeAllListeners.mockImplementation(() => {
+        throw new Error('Test error in removeAllListeners');
+      });
+
+      expect(() => beforeQuitHandler()).not.toThrow();
+
+      const warnCalls = consoleWarnSpy.mock.calls;
+      const errorCalls = consoleErrorSpy.mock.calls;
+
+      const hasExpectedLog =
+        warnCalls.some((call) =>
+          call[0]?.includes('Unsubscriber error during quit')
+        ) ||
+        errorCalls.some((call) =>
+          call[0]?.includes('Error during root window cleanup')
+        );
+
+      expect(hasExpectedLog).toBe(true);
+
+      consoleWarnSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should call setImmediate for deferred cleanup in unsubscriber', async () => {
+      const setImmediateSpy = jest.spyOn(global, 'setImmediate');
+
+      selectMock.mockImplementation((selector: any) => {
+        const mockState = { isTrayIconEnabled: false };
+        return selector(mockState);
+      });
+
+      const { setupRootWindow } = require('./rootWindow');
+      const getRootWindowMock = jest.fn().mockResolvedValue(mockWindow);
+      require('./rootWindow').getRootWindow = getRootWindowMock;
+
+      setupRootWindow();
+      await Promise.resolve();
+
+      const beforeQuitCall = (app.addListener as jest.Mock).mock.calls.find(
+        (call: any) => call[0] === 'before-quit'
+      );
+
+      const beforeQuitHandler = beforeQuitCall[1];
+      mockWindow.isDestroyed.mockReturnValue(false);
+
+      beforeQuitHandler();
+
+      expect(setImmediateSpy).toHaveBeenCalled();
+
+      setImmediateSpy.mockRestore();
+    });
+
+    it('should use safeWindowOperation pattern in callbacks', () => {
+      selectMock.mockImplementation((selector: any) => {
+        const mockState = { isTrayIconEnabled: false };
+        return selector(mockState);
+      });
+
+      const { setupRootWindow } = require('./rootWindow');
+
+      expect(() => setupRootWindow()).not.toThrow();
+    });
+  });
 });

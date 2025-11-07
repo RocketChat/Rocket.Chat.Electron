@@ -1,1 +1,28 @@
-{ }
+{
+  "serverInfo": {
+    "title": "Serverinformasjon",
+    "urlLabel": "URL:",
+    "versionLabel": "Versjon:",
+    "unknown": "Ukjent",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Støttede versjoner",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Lastar...",
+      "error": "Kunne ikkje laste",
+      "loaded": "Lasta",
+      "idle": "Inaktiv",
+      "from": "frå {{source}}"
+    },
+    "supported": {
+      "unknown": "Ukjent",
+      "expiring": "Utløper snart",
+      "yes": "Ja",
+      "no": "Nei"
+    },
+    "expiration": {
+      "label": "Utløpsdato:",
+      "expiresOn": "Utløper {{date}}"
+    }
+  }
+}

@@ -384,5 +384,31 @@
     "noWindowsFound": "Окна не найдены",
     "cancel": "Отмена",
     "share": "Демонстрировать"
+  },
+  "serverInfo": {
+    "title": "Информация о сервере",
+    "urlLabel": "URL:",
+    "versionLabel": "Версия:",
+    "unknown": "Неизвестно",
+    "exchangeUrlLabel": "URL Outlook Exchange:",
+    "supportedVersionsTitle": "Поддерживаемые версии",
+    "statusLabel": "Статус:",
+    "status": {
+      "loading": "Загрузка...",
+      "error": "Ошибка загрузки",
+      "loaded": "Загружено",
+      "idle": "Неактивно",
+      "from": "из {{source}}"
+    },
+    "supported": {
+      "unknown": "Неизвестно",
+      "expiring": "Истекает",
+      "yes": "Да",
+      "no": "Нет"
+    },
+    "expiration": {
+      "label": "Истечение срока:",
+      "expiresOn": "Истекает {{date}}"
+    }
   }
 }

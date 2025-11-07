@@ -246,5 +246,31 @@
     "noWindowsFound": "Nie znaleziono okien",
     "cancel": "Anuluj",
     "share": "Udostępnij"
+  },
+  "serverInfo": {
+    "title": "Informacje o serwerze",
+    "urlLabel": "URL:",
+    "versionLabel": "Wersja:",
+    "unknown": "Nieznana",
+    "exchangeUrlLabel": "URL Outlook Exchange:",
+    "supportedVersionsTitle": "Obsługiwane wersje",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Ładowanie...",
+      "error": "Nie udało się załadować",
+      "loaded": "Załadowano",
+      "idle": "Bezczynny",
+      "from": "z {{source}}"
+    },
+    "supported": {
+      "unknown": "Nieznana",
+      "expiring": "Wygasa",
+      "yes": "Tak",
+      "no": "Nie"
+    },
+    "expiration": {
+      "label": "Wygaśnięcie:",
+      "expiresOn": "Wygasa {{date}}"
+    }
   }
 }

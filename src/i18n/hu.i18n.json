@@ -412,5 +412,31 @@
     "noWindowsFound": "Nem található ablak",
     "cancel": "Mégse",
     "share": "Megosztás"
+  },
+  "serverInfo": {
+    "title": "Kiszolgáló információ",
+    "urlLabel": "URL:",
+    "versionLabel": "Verzió:",
+    "unknown": "Ismeretlen",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Támogatott verziók",
+    "statusLabel": "Állapot:",
+    "status": {
+      "loading": "Betöltés...",
+      "error": "Betöltés sikertelen",
+      "loaded": "Betöltve",
+      "idle": "Tétlen",
+      "from": "forrás: {{source}}"
+    },
+    "supported": {
+      "unknown": "Ismeretlen",
+      "expiring": "Lejáró",
+      "yes": "Igen",
+      "no": "Nem"
+    },
+    "expiration": {
+      "label": "Lejárat:",
+      "expiresOn": "Lejár: {{date}}"
+    }
   }
 }

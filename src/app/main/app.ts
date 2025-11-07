@@ -147,11 +147,19 @@ export const initializeScreenCaptureFallbackState = (): void => {
 
 export const setupApp = (): void => {
   app.addListener('activate', async () => {
-    const browserWindow = await getRootWindow();
-    if (!browserWindow.isVisible()) {
-      browserWindow.showInactive();
+    try {
+      const browserWindow = await getRootWindow();
+      if (!browserWindow.isVisible()) {
+        const wasMinimized = browserWindow.isMinimized();
+        const wasMaximized = browserWindow.isMaximized();
+        browserWindow.showInactive();
+        if (wasMinimized) browserWindow.minimize();
+        if (wasMaximized) browserWindow.maximize();
+      }
+      browserWindow.focus();
+    } catch (error) {
+      console.warn('Could not activate window:', error);
     }
-    browserWindow.focus();
   });
 
   app.addListener('window-all-closed', () => {

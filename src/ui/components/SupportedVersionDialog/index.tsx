@@ -46,7 +46,57 @@ export const SupportedVersionDialog = () => {
   };
 
   const checkServerVersion = useCallback(async () => {
-    if (!server?.supportedVersions) return;
+    if (
+      !server?.supportedVersions ||
+      server?.supportedVersionsFetchState === 'loading'
+    )
+      return;
+
+    // Skip validation if it was done less than 30 minutes ago
+    const thirtyMinutesInMs = 30 * 60 * 1000;
+    const timeSinceLastValidation = server.supportedVersionsValidatedAt
+      ? moment().diff(server.supportedVersionsValidatedAt, 'milliseconds')
+      : undefined;
+
+    if (
+      server.supportedVersionsValidatedAt &&
+      timeSinceLastValidation !== undefined &&
+      timeSinceLastValidation < thirtyMinutesInMs
+    ) {
+      // Within 30-minute throttle window - skip full validation
+      // But still check if 12 hours have passed to show warning again
+      if (
+        server.expirationMessageLastTimeShown &&
+        moment().diff(server.expirationMessageLastTimeShown, 'hours') < 12
+      )
+        return;
+
+      // If 12 hours have passed, show warning if it exists (for any server)
+      if (server.supportedVersions) {
+        const supported = await isServerVersionSupported(
+          server,
+          server.supportedVersions
+        );
+
+        if (supported.message && supported.expiration) {
+          const translatedMessage = getExpirationMessageTranslated(
+            supported?.i18n,
+            supported.message,
+            supported.expiration,
+            getLanguage,
+            server.title,
+            server.url,
+            server.version
+          ) as MessageTranslated;
+
+          if (translatedMessage) {
+            setExpirationMessage(translatedMessage);
+            setIsVisible(supported.supported);
+          }
+        }
+      }
+      return;
+    }
 
     const supported = await isServerVersionSupported(
       server,

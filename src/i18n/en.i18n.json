@@ -437,5 +437,31 @@
     "noWindowsFound": "No windows found",
     "cancel": "Cancel",
     "share": "Share"
+  },
+  "serverInfo": {
+    "title": "Server Information",
+    "urlLabel": "URL:",
+    "versionLabel": "Version:",
+    "unknown": "Unknown",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Supported Versions",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Loading...",
+      "error": "Failed to load",
+      "loaded": "Loaded",
+      "idle": "Idle",
+      "from": "from {{source}}"
+    },
+    "supported": {
+      "unknown": "Unknown",
+      "expiring": "Expiring",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "expiration": {
+      "label": "Expiration:",
+      "expiresOn": "Expires on {{date}}"
+    }
   }
 }

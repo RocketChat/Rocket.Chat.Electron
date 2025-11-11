@@ -1,10 +1,7 @@
 import type { BrowserWindow } from 'electron';
 import { shell, systemPreferences } from 'electron';
 
-import {
-  askForMediaPermissionSettings,
-  showMicrophonePermissionDeniedMessage,
-} from './dialogs';
+import { askForMediaPermissionSettings } from './dialogs';
 
 export type MediaPermissionActionType =
   | 'initiateCall'
@@ -14,54 +11,80 @@ export type MediaPermissionActionType =
 export const handleMediaPermissionRequest = async (
   mediaTypes: string[],
   parentWindow: BrowserWindow | null,
-  actionType: MediaPermissionActionType,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  _actionType: MediaPermissionActionType,
   callback: (allowed: boolean) => void
 ): Promise<void> => {
   if (process.platform === 'darwin') {
-    let microphoneAllowed = true;
-    let cameraAllowed = true;
+    const needsAudio = mediaTypes.includes('audio');
+    const needsVideo = mediaTypes.includes('video');
 
-    if (mediaTypes.includes('audio')) {
-      const micStatus = systemPreferences.getMediaAccessStatus('microphone');
-      if (micStatus === 'granted') {
-        microphoneAllowed = true;
-      } else if (micStatus === 'not-determined') {
-        microphoneAllowed =
-          await systemPreferences.askForMediaAccess('microphone');
-      } else {
-        microphoneAllowed = false;
-        if (parentWindow && !parentWindow.isDestroyed()) {
-          await showMicrophonePermissionDeniedMessage(actionType, parentWindow);
-        }
-      }
+    let micStatus: string | undefined;
+    let camStatus: string | undefined;
+
+    if (needsAudio) {
+      micStatus = systemPreferences.getMediaAccessStatus('microphone');
+    }
+    if (needsVideo) {
+      camStatus = systemPreferences.getMediaAccessStatus('camera');
     }
 
-    if (mediaTypes.includes('video')) {
-      const camStatus = systemPreferences.getMediaAccessStatus('camera');
-      if (camStatus === 'granted') {
-        cameraAllowed = true;
-      } else if (camStatus === 'not-determined') {
-        cameraAllowed = await systemPreferences.askForMediaAccess('camera');
-      } else {
-        cameraAllowed = false;
-        if (parentWindow && !parentWindow.isDestroyed()) {
-          let permissionType: 'microphone' | 'camera' | 'both';
-          if (mediaTypes.includes('audio') && mediaTypes.includes('video')) {
-            permissionType = 'both';
-          } else {
-            permissionType = 'camera';
-          }
-          await askForMediaPermissionSettings(
-            permissionType,
-            parentWindow
-          ).then((openSettings) => {
-            if (openSettings) {
-              shell.openExternal(
-                'x-apple.systempreferences:com.apple.preference.security?Privacy_Camera'
-              );
-            }
-          });
+    let microphoneAllowed = !needsAudio || micStatus === 'granted';
+    let cameraAllowed = !needsVideo || camStatus === 'granted';
+
+    if (micStatus === 'not-determined') {
+      microphoneAllowed =
+        await systemPreferences.askForMediaAccess('microphone');
+    }
+    if (camStatus === 'not-determined') {
+      cameraAllowed = await systemPreferences.askForMediaAccess('camera');
+    }
+
+    if (
+      micStatus === 'denied' ||
+      micStatus === 'restricted' ||
+      camStatus === 'denied' ||
+      camStatus === 'restricted'
+    ) {
+      if (parentWindow && !parentWindow.isDestroyed()) {
+        let permissionType: 'microphone' | 'camera' | 'both';
+        const micDenied = micStatus === 'denied' || micStatus === 'restricted';
+        const camDenied = camStatus === 'denied' || camStatus === 'restricted';
+
+        if (micDenied && camDenied) {
+          permissionType = 'both';
+        } else if (micDenied) {
+          permissionType = 'microphone';
+        } else {
+          permissionType = 'camera';
         }
+
+        await askForMediaPermissionSettings(permissionType, parentWindow).then(
+          (openSettings) => {
+            if (openSettings) {
+              if (permissionType === 'microphone') {
+                shell.openExternal(
+                  'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone'
+                );
+              } else if (permissionType === 'camera') {
+                shell.openExternal(
+                  'x-apple.systempreferences:com.apple.preference.security?Privacy_Camera'
+                );
+              } else {
+                shell.openExternal(
+                  'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone'
+                );
+              }
+            }
+          }
+        );
+      }
+
+      if (micStatus === 'denied' || micStatus === 'restricted') {
+        microphoneAllowed = false;
+      }
+      if (camStatus === 'denied' || camStatus === 'restricted') {
+        cameraAllowed = false;
       }
     }
 
@@ -70,47 +93,56 @@ export const handleMediaPermissionRequest = async (
   }
 
   if (process.platform === 'win32') {
-    let microphoneAllowed = true;
-    let cameraAllowed = true;
+    const needsAudio = mediaTypes.includes('audio');
+    const needsVideo = mediaTypes.includes('video');
 
-    if (mediaTypes.includes('audio')) {
-      const micStatus = systemPreferences.getMediaAccessStatus('microphone');
-      if (micStatus === 'granted') {
-        microphoneAllowed = true;
-      } else if (micStatus === 'denied') {
-        microphoneAllowed = false;
-        if (parentWindow && !parentWindow.isDestroyed()) {
-          await showMicrophonePermissionDeniedMessage(actionType, parentWindow);
-        }
-      } else {
-        microphoneAllowed = true;
-      }
+    let micStatus: string | undefined;
+    let camStatus: string | undefined;
+
+    if (needsAudio) {
+      micStatus = systemPreferences.getMediaAccessStatus('microphone');
+    }
+    if (needsVideo) {
+      camStatus = systemPreferences.getMediaAccessStatus('camera');
     }
 
-    if (mediaTypes.includes('video')) {
-      const camStatus = systemPreferences.getMediaAccessStatus('camera');
-      if (camStatus === 'granted') {
-        cameraAllowed = true;
-      } else if (camStatus === 'denied') {
-        cameraAllowed = false;
-        if (parentWindow && !parentWindow.isDestroyed()) {
-          let permissionType: 'microphone' | 'camera' | 'both';
-          if (mediaTypes.includes('audio') && mediaTypes.includes('video')) {
-            permissionType = 'both';
-          } else {
-            permissionType = 'camera';
-          }
-          await askForMediaPermissionSettings(
-            permissionType,
-            parentWindow
-          ).then((openSettings) => {
-            if (openSettings) {
-              shell.openExternal('ms-settings:privacy-camera');
-            }
-          });
+    let microphoneAllowed = !needsAudio || micStatus === 'granted';
+    let cameraAllowed = !needsVideo || camStatus === 'granted';
+
+    if (micStatus === 'denied' || camStatus === 'denied') {
+      if (parentWindow && !parentWindow.isDestroyed()) {
+        let permissionType: 'microphone' | 'camera' | 'both';
+        const micDenied = micStatus === 'denied';
+        const camDenied = camStatus === 'denied';
+
+        if (micDenied && camDenied) {
+          permissionType = 'both';
+        } else if (micDenied) {
+          permissionType = 'microphone';
+        } else {
+          permissionType = 'camera';
         }
-      } else {
-        cameraAllowed = true;
+
+        await askForMediaPermissionSettings(permissionType, parentWindow).then(
+          (openSettings) => {
+            if (openSettings) {
+              if (permissionType === 'microphone') {
+                shell.openExternal('ms-settings:privacy-microphone');
+              } else if (permissionType === 'camera') {
+                shell.openExternal('ms-settings:privacy-camera');
+              } else {
+                shell.openExternal('ms-settings:privacy-microphone');
+              }
+            }
+          }
+        );
+      }
+
+      if (micStatus === 'denied') {
+        microphoneAllowed = false;
+      }
+      if (camStatus === 'denied') {
+        cameraAllowed = false;
       }
     }
 

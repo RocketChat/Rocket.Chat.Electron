@@ -737,13 +737,21 @@ export const startVideoCallWindowHandler = (): void => {
             case 'media': {
               const { mediaTypes = [] } =
                 details as MediaAccessPermissionRequest;
-              await handleMediaPermissionRequest(
-                mediaTypes,
-                videoCallWindow,
-                'initiateCall',
-                callback
-              );
-              break;
+              try {
+                await handleMediaPermissionRequest(
+                  mediaTypes as ReadonlyArray<'audio' | 'video'>,
+                  videoCallWindow,
+                  'initiateCall',
+                  callback
+                );
+              } catch (error) {
+                console.error(
+                  'Error handling media permission request in video call window:',
+                  error
+                );
+                callback(false);
+              }
+              return;
             }
 
             case 'geolocation':

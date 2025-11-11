@@ -133,15 +133,15 @@
       "both": "Mikrofon és Kamera"
     },
     "microphonePermissionDenied": {
-      "title": "Microphone Access Required",
-      "message": "Microphone access is required to {{- actionType}}. Please check your system settings.",
-      "detail": "You can enable microphone access in your system's privacy settings.",
-      "openSettings": "Open Settings",
-      "cancel": "Cancel",
+      "title": "A mikrofonhoz való hozzáférés szükséges",
+      "message": "A mikrofonhoz való hozzáférés szükséges a(z) {{- actionType}} elvégzéséhez. Kérjük, ellenőrizze a rendszerbeállításokat.",
+      "detail": "A mikrofonhozzáférést engedélyezheti a rendszer adatvédelmi beállításaiban.",
+      "openSettings": "Beállítások megnyitása",
+      "cancel": "Mégse",
       "actionTypes": {
-        "initiateCall": "make calls",
-        "answerCall": "answer calls",
-        "recordMessage": "record messages"
+        "initiateCall": "hívás indításához",
+        "answerCall": "hívás fogadásához",
+        "recordMessage": "üzenet rögzítéséhez"
       }
     },
     "outlookCalendar": {

@@ -126,15 +126,15 @@
       "both": "Mikrofon und Kamera"
     },
     "microphonePermissionDenied": {
-      "title": "Microphone Access Required",
-      "message": "Microphone access is required to {{- actionType}}. Please check your system settings.",
-      "detail": "You can enable microphone access in your system's privacy settings.",
-      "openSettings": "Open Settings",
-      "cancel": "Cancel",
+      "title": "Mikrofonzugriff erforderlich",
+      "message": "Mikrofonzugriff ist erforderlich, um {{- actionType}}. Bitte überprüfen Sie Ihre Systemeinstellungen.",
+      "detail": "Sie können den Mikrofonzugriff in den Datenschutzeinstellungen Ihres Systems aktivieren.",
+      "openSettings": "Einstellungen öffnen",
+      "cancel": "Abbrechen",
       "actionTypes": {
-        "initiateCall": "make calls",
-        "answerCall": "answer calls",
-        "recordMessage": "record messages"
+        "initiateCall": "Anrufe tätigen",
+        "answerCall": "Anrufe entgegennehmen",
+        "recordMessage": "Nachrichten aufnehmen"
       }
     }
   },

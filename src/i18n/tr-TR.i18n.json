@@ -91,15 +91,15 @@
       "both": "Mikrofon ve Kamera"
     },
     "microphonePermissionDenied": {
-      "title": "Microphone Access Required",
-      "message": "Microphone access is required to {{- actionType}}. Please check your system settings.",
-      "detail": "You can enable microphone access in your system's privacy settings.",
-      "openSettings": "Open Settings",
-      "cancel": "Cancel",
+      "title": "Mikrofon Erişimi Gerekli",
+      "message": "{{- actionType}} için mikrofon erişimi gereklidir. Lütfen sistem ayarlarınızı kontrol edin.",
+      "detail": "Mikrofon erişimini sistem gizlilik ayarlarınızdan etkinleştirebilirsiniz.",
+      "openSettings": "Ayarları Aç",
+      "cancel": "İptal",
       "actionTypes": {
-        "initiateCall": "make calls",
-        "answerCall": "answer calls",
-        "recordMessage": "record messages"
+        "initiateCall": "aramalar yapmak",
+        "answerCall": "aramaları yanıtlamak",
+        "recordMessage": "mesaj kaydetmek"
       }
     }
   },

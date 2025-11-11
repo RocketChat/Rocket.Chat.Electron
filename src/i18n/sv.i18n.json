@@ -142,15 +142,15 @@
       "both": "Mikrofon och kamera"
     },
     "microphonePermissionDenied": {
-      "title": "Microphone Access Required",
-      "message": "Microphone access is required to {{- actionType}}. Please check your system settings.",
-      "detail": "You can enable microphone access in your system's privacy settings.",
-      "openSettings": "Open Settings",
-      "cancel": "Cancel",
+      "title": "Mikrofonåtkomst krävs",
+      "message": "Mikrofonåtkomst krävs för att {{- actionType}}. Kontrollera dina systeminställningar.",
+      "detail": "Du kan aktivera mikrofonåtkomst i datorns integritetsinställningar.",
+      "openSettings": "Öppna inställningar",
+      "cancel": "Avbryt",
       "actionTypes": {
-        "initiateCall": "make calls",
-        "answerCall": "answer calls",
-        "recordMessage": "record messages"
+        "initiateCall": "ringa samtal",
+        "answerCall": "svara på samtal",
+        "recordMessage": "spela in meddelanden"
       }
     },
     "outlookCalendar": {

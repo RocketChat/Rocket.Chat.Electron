@@ -133,15 +133,15 @@
       "both": "Micrófono y Cámara"
     },
     "microphonePermissionDenied": {
-      "title": "Microphone Access Required",
-      "message": "Microphone access is required to {{- actionType}}. Please check your system settings.",
-      "detail": "You can enable microphone access in your system's privacy settings.",
-      "openSettings": "Open Settings",
-      "cancel": "Cancel",
+      "title": "Acceso al Micrófono Requerido",
+      "message": "Se requiere acceso al micrófono para {{- actionType}}. Por favor revisa la configuración de tu sistema.",
+      "detail": "Puedes habilitar el acceso al micrófono en la configuración de privacidad de tu sistema.",
+      "openSettings": "Abrir Configuración",
+      "cancel": "Cancelar",
       "actionTypes": {
-        "initiateCall": "make calls",
-        "answerCall": "answer calls",
-        "recordMessage": "record messages"
+        "initiateCall": "realizar llamadas",
+        "answerCall": "responder llamadas",
+        "recordMessage": "grabar mensajes"
       }
     },
     "outlookCalendar": {

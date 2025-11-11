@@ -44,8 +44,8 @@ import {
   SIDE_BAR_SERVER_REMOVE,
   WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
 } from '../../actions';
-import { getRootWindow } from '../rootWindow';
 import { handleMediaPermissionRequest } from '../mediaPermissions';
+import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
 
 const t = i18next.t.bind(i18next);

@@ -296,7 +296,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     switch (permission) {
       case 'media': {
         const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
-        const rootWindow = await getRootWindow();
         await handleMediaPermissionRequest(
           mediaTypes as ReadonlyArray<'audio' | 'video'>,
           rootWindow,

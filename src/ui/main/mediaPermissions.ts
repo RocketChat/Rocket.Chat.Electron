@@ -129,7 +129,7 @@ export const handleMediaPermissionRequest = async (
               if (permissionType === 'microphone') {
                 shell.openExternal('ms-settings:privacy-microphone');
               } else if (permissionType === 'camera') {
-                shell.openExternal('ms-settings:privacy-camera');
+                shell.openExternal('ms-settings:privacy-webcam');
               } else {
                 shell.openExternal('ms-settings:privacy-microphone');
               }

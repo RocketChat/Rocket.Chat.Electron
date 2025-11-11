@@ -13,7 +13,6 @@ import {
   ipcMain,
   screen,
   systemPreferences,
-  shell,
   webContents,
 } from 'electron';
 
@@ -24,7 +23,7 @@ import { isProtocolAllowed } from '../navigation/main';
 import { select, dispatchLocal } from '../store';
 import { VIDEO_CALL_WINDOW_STATE_CHANGED } from '../ui/actions';
 import { debounce } from '../ui/main/debounce';
-import { askForMediaPermissionSettings } from '../ui/main/dialogs';
+import { handleMediaPermissionRequest } from '../ui/main/mediaPermissions';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
 
@@ -738,73 +737,12 @@ export const startVideoCallWindowHandler = (): void => {
             case 'media': {
               const { mediaTypes = [] } =
                 details as MediaAccessPermissionRequest;
-
-              if (process.platform === 'darwin') {
-                const allowed =
-                  (!mediaTypes.includes('audio') ||
-                    (await systemPreferences.askForMediaAccess(
-                      'microphone'
-                    ))) &&
-                  (!mediaTypes.includes('video') ||
-                    (await systemPreferences.askForMediaAccess('camera')));
-                callback(allowed);
-                break;
-              }
-
-              if (process.platform === 'win32') {
-                let microphoneAllowed = true;
-                let cameraAllowed = true;
-
-                if (mediaTypes.includes('audio')) {
-                  const micStatus =
-                    systemPreferences.getMediaAccessStatus('microphone');
-                  microphoneAllowed = micStatus === 'granted';
-                }
-
-                if (mediaTypes.includes('video')) {
-                  const camStatus =
-                    systemPreferences.getMediaAccessStatus('camera');
-                  cameraAllowed = camStatus === 'granted';
-                }
-
-                const allowed = microphoneAllowed && cameraAllowed;
-
-                if (!allowed) {
-                  console.log('Media permissions denied by system:', {
-                    microphone: microphoneAllowed,
-                    camera: cameraAllowed,
-                    requestedTypes: mediaTypes,
-                  });
-
-                  let permissionType: 'microphone' | 'camera' | 'both';
-                  if (
-                    mediaTypes.includes('audio') &&
-                    mediaTypes.includes('video')
-                  ) {
-                    permissionType = 'both';
-                  } else if (mediaTypes.includes('audio')) {
-                    permissionType = 'microphone';
-                  } else {
-                    permissionType = 'camera';
-                  }
-
-                  if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-                    askForMediaPermissionSettings(
-                      permissionType,
-                      videoCallWindow
-                    ).then((openSettings) => {
-                      if (openSettings) {
-                        shell.openExternal('ms-settings:privacy-microphone');
-                      }
-                    });
-                  }
-                }
-
-                callback(allowed);
-                break;
-              }
-
-              callback(true);
+              await handleMediaPermissionRequest(
+                mediaTypes,
+                videoCallWindow,
+                'initiateCall',
+                callback
+              );
               break;
             }
 

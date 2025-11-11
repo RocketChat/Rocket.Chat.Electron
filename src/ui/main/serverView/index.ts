@@ -15,7 +15,7 @@ import type {
   WebContents,
   WebPreferences,
 } from 'electron';
-import { app, clipboard, Menu, systemPreferences, webContents } from 'electron';
+import { app, clipboard, Menu, webContents } from 'electron';
 import i18next from 'i18next';
 
 import { setupPreloadReload } from '../../../app/main/dev';
@@ -45,6 +45,7 @@ import {
   WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
 } from '../../actions';
 import { getRootWindow } from '../rootWindow';
+import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { createPopupMenuForServerView } from './popupMenu';
 
 const t = i18next.t.bind(i18next);
@@ -295,18 +296,13 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     switch (permission) {
       case 'media': {
         const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
-
-        if (process.platform === 'darwin') {
-          const allowed =
-            (!mediaTypes.includes('audio') ||
-              (await systemPreferences.askForMediaAccess('microphone'))) &&
-            (!mediaTypes.includes('video') ||
-              (await systemPreferences.askForMediaAccess('camera')));
-          callback(allowed);
-          return;
-        }
-
-        callback(true);
+        const rootWindow = await getRootWindow();
+        await handleMediaPermissionRequest(
+          mediaTypes,
+          rootWindow,
+          'recordMessage',
+          callback
+        );
         return;
       }
 

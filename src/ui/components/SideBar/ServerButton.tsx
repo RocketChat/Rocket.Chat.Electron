@@ -142,6 +142,7 @@ const ServerButton = ({
           secondary
           position='relative'
           overflow='visible'
+          aria-label={tooltipContent}
           // className={[isSelected && 'is-focused'].filter(Boolean).join(' ')}
           icon={
             <Box>

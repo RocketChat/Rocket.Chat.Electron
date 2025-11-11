@@ -90,6 +90,18 @@
       "microphone": "麦克风",
       "camera": "摄像头",
       "both": "麦克风和摄像头"
+    },
+    "microphonePermissionDenied": {
+      "title": "Microphone Access Required",
+      "message": "Microphone access is required to {{- actionType}}. Please check your system settings.",
+      "detail": "You can enable microphone access in your system's privacy settings.",
+      "openSettings": "Open Settings",
+      "cancel": "Cancel",
+      "actionTypes": {
+        "initiateCall": "make calls",
+        "answerCall": "answer calls",
+        "recordMessage": "record messages"
+      }
     }
   },
   "downloads": {

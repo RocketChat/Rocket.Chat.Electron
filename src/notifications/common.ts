@@ -7,3 +7,13 @@ export type ExtendedNotificationOptions = NotificationOptions & {
   }[];
   renotify?: boolean;
 };
+
+export type CustomNotificationOptions = {
+  type: 'voice' | 'text';
+  payload: {
+    title: string;
+    body: string;
+    avatar?: string;
+    silent?: boolean;
+  };
+};

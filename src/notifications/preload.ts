@@ -11,6 +11,7 @@ import {
   NOTIFICATIONS_NOTIFICATION_REPLIED,
   NOTIFICATIONS_NOTIFICATION_SHOWN,
 } from './actions';
+import type { CustomNotificationOptions } from './common';
 
 const normalizeIconUrl = (iconUrl: string): string => {
   if (/^data:/.test(iconUrl)) {
@@ -66,6 +67,18 @@ export const createNotification = async ({
 export const destroyNotification = (id: unknown): void => {
   dispatch({ type: NOTIFICATIONS_NOTIFICATION_DISMISSED, payload: { id } });
   eventHandlers.delete(id);
+};
+
+export const dispatchNotification = async (
+  options: CustomNotificationOptions
+): Promise<unknown> => {
+  const { payload } = options;
+  return createNotification({
+    title: payload.title,
+    body: payload.body,
+    icon: payload.avatar,
+    silent: payload.silent,
+  });
 };
 
 export const listenToNotificationsRequests = (): void => {

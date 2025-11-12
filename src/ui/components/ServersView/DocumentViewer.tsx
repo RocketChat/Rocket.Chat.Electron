@@ -134,10 +134,10 @@ const DocumentViewer = ({
 
                 if (webviewElement) {
                   await webviewElement.executeJavaScript(`
-            if (document.fullscreenElement) {
-              document.exitFullscreen();
-                  }             
-               `);
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen();
+                    }             
+                  `);
                   webviewElement.src = 'about:blank';
                 }
 

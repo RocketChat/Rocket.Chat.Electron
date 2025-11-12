@@ -1,7 +1,6 @@
 import { Box, IconButton, Throbber } from '@rocket.chat/fuselage';
 import { useDarkMode } from '@rocket.chat/fuselage-hooks';
 import { useEffect, useRef, useState } from 'react';
-
 import { dispatch } from '../../../store';
 import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../../actions';
 
@@ -10,6 +9,7 @@ declare global {
   interface HTMLWebViewElement {
     getWebContentsId: () => number;
     executeJavaScript: (code: string) => Promise<any>;
+    src: string;
   }
 }
 
@@ -89,13 +89,68 @@ const DocumentViewer = ({
           display='flex'
           color={theme === 'dark' ? 'font-white' : 'font-text'}
         >
-          <IconButton
-            icon='arrow-back'
-            onClick={closeDocumentViewer}
-            mi='x8'
-            color={theme === 'dark' ? 'white' : 'default'}
-          />
+
+           <IconButton
+              icon="arrow-back"
+              onClick={() => {
+                const webviewElement = webviewRef.current;
+                if (!webviewElement) return;
+              
+                webviewElement.executeJavaScript(`
+                  (async () => {
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen();
+                      return "exited-fullscreen";
+                    } else {
+                      return "no-fullscreen";
+                    }
+                  })();
+                `)
+                .then((result) => {
+                  if (result === "no-fullscreen") {
+                    closeDocumentViewer();
+                  }
+                })
+                .catch((err) => console.error("Back button error:", err));
+              }}
+              mi="x8"
+              color={theme === "dark" ? "white" : "default"}
+            />
+
+
+          <Box
+          display='flex'
+          justifyContent='space-between'
+          alignItems='center'
+          width='100%'
+          >
           <h2>PDF Viewer</h2>
+
+          <IconButton
+              icon='cross'
+              onClick={() => {
+                const webviewElement = webviewRef.current;
+              
+                if (webviewElement) {
+                  webviewElement.executeJavaScript(`
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen();
+                    }
+                  `);
+                  webviewElement.src = 'about:blank';
+                }
+              
+                // reset React state 
+                setDocumentUrl('about:blank');
+              
+                // finally close the viewer 
+                closeDocumentViewer();
+              }}
+              mi='x8'
+              color={theme === 'dark' ? 'white' : 'default'}
+            />
+            
+          </Box>
         </Box>
 
         <Box>

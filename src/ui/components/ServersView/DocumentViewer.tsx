@@ -129,15 +129,15 @@ const DocumentViewer = ({
 
             <IconButton
               icon='cross'
-              onClick={() => {
+              onClick={async () => {
                 const webviewElement = webviewRef.current;
 
                 if (webviewElement) {
-                  webviewElement.executeJavaScript(`
-                    if (document.fullscreenElement) {
-                      document.exitFullscreen();
-                    }
-                  `);
+                  await webviewElement.executeJavaScript(`
+            if (document.fullscreenElement) {
+              document.exitFullscreen();
+                  }             
+               `);
                   webviewElement.src = 'about:blank';
                 }
 

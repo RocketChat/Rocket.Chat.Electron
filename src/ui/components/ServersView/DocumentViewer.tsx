@@ -89,14 +89,15 @@ const DocumentViewer = ({
           display='flex'
           color={theme === 'dark' ? 'font-white' : 'font-text'}
         >
+          <IconButton
+            icon='arrow-back'
+            onClick={() => {
+              const webviewElement = webviewRef.current;
+              if (!webviewElement) return;
 
-           <IconButton
-              icon="arrow-back"
-              onClick={() => {
-                const webviewElement = webviewRef.current;
-                if (!webviewElement) return;
-              
-                webviewElement.executeJavaScript(`
+              webviewElement
+                .executeJavaScript(
+                  `
                   (async () => {
                     if (document.fullscreenElement) {
                       document.exitFullscreen();
@@ -105,32 +106,32 @@ const DocumentViewer = ({
                       return "no-fullscreen";
                     }
                   })();
-                `)
+                `
+                )
                 .then((result) => {
-                  if (result === "no-fullscreen") {
+                  if (result === 'no-fullscreen') {
                     closeDocumentViewer();
                   }
                 })
-                .catch((err) => console.error("Back button error:", err));
-              }}
-              mi="x8"
-              color={theme === "dark" ? "white" : "default"}
-            />
-
+                .catch((err) => console.error('Back button error:', err));
+            }}
+            mi='x8'
+            color={theme === 'dark' ? 'white' : 'default'}
+          />
 
           <Box
-          display='flex'
-          justifyContent='space-between'
-          alignItems='center'
-          width='100%'
+            display='flex'
+            justifyContent='space-between'
+            alignItems='center'
+            width='100%'
           >
-          <h2>PDF Viewer</h2>
+            <h2>PDF Viewer</h2>
 
-          <IconButton
+            <IconButton
               icon='cross'
               onClick={() => {
                 const webviewElement = webviewRef.current;
-              
+
                 if (webviewElement) {
                   webviewElement.executeJavaScript(`
                     if (document.fullscreenElement) {
@@ -139,17 +140,16 @@ const DocumentViewer = ({
                   `);
                   webviewElement.src = 'about:blank';
                 }
-              
-                // reset React state 
+
+                // reset React state
                 setDocumentUrl('about:blank');
-              
-                // finally close the viewer 
+
+                // finally close the viewer
                 closeDocumentViewer();
               }}
               mi='x8'
               color={theme === 'dark' ? 'white' : 'default'}
             />
-            
           </Box>
         </Box>
 

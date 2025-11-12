@@ -133,11 +133,15 @@ const DocumentViewer = ({
                 const webviewElement = webviewRef.current;
 
                 if (webviewElement) {
-                  await webviewElement.executeJavaScript(`
-                    if (document.fullscreenElement) {
-                      document.exitFullscreen();
-                    }             
-                  `);
+                  try {
+                    await webviewElement.executeJavaScript(`
+                      if (document.fullscreenElement) {
+                        document.exitFullscreen();
+                      }
+                   `);
+                  } catch (err) {
+                    console.error('Close button error:', err);
+                  }
                   webviewElement.src = 'about:blank';
                 }
 

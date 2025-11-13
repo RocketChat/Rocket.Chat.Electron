@@ -3,7 +3,8 @@ import type { IRocketChatDesktop } from '@rocket.chat/desktop-api';
 import {
   createNotification,
   destroyNotification,
-  dispatchNotification,
+  dispatchCustomNotification,
+  closeCustomNotification,
 } from '../../notifications/preload';
 import {
   getOutlookEvents,
@@ -69,7 +70,8 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setUserThemeAppearance,
   createNotification,
   destroyNotification,
-  dispatchNotification,
+  dispatchCustomNotification,
+  closeCustomNotification,
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
   setGitCommitHash,

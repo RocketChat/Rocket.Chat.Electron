@@ -55,6 +55,7 @@ const createNotification = async (
     silent,
     canReply,
     actions,
+    requireInteraction,
   }: ExtendedNotificationOptions,
   ipcMeta?: ActionIPCMeta
 ): Promise<string> => {
@@ -69,6 +70,7 @@ const createNotification = async (
       type: 'button',
       text: action.title,
     })),
+    ...(requireInteraction !== undefined && { requireInteraction }),
   });
 
   notification.addListener('show', () => {
@@ -121,25 +123,45 @@ const createNotification = async (
 
 const updateNotification = async (
   id: string,
-  { title, body, silent, renotify }: ExtendedNotificationOptions
+  {
+    title,
+    body,
+    silent,
+    renotify: _renotify,
+    icon,
+    requireInteraction,
+  }: ExtendedNotificationOptions
 ): Promise<string> => {
   const notification = notifications.get(id);
 
-  if (title) {
+  if (!notification) {
+    return id;
+  }
+
+  if (title !== undefined) {
     notification.title = title;
   }
 
-  if (body) {
+  if (body !== undefined) {
     notification.body = body;
   }
 
-  if (silent) {
+  if (silent !== undefined) {
     notification.silent = silent;
   }
 
-  if (renotify) {
-    notification.show();
+  if (icon !== undefined) {
+    const resolvedIcon = await resolveIcon(icon);
+    if (resolvedIcon) {
+      notification.icon = resolvedIcon;
+    }
   }
+
+  if (requireInteraction !== undefined) {
+    notification.requireInteraction = requireInteraction;
+  }
+
+  notification.show();
 
   return id;
 };

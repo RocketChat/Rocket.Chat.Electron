@@ -69,16 +69,22 @@ export const destroyNotification = (id: unknown): void => {
   eventHandlers.delete(id);
 };
 
-export const dispatchNotification = async (
+export const dispatchCustomNotification = async (
   options: CustomNotificationOptions
 ): Promise<unknown> => {
-  const { payload } = options;
+  const { id, payload } = options;
+  const notificationId = id || Math.random().toString(36).slice(2);
   return createNotification({
     title: payload.title,
     body: payload.body,
     icon: payload.avatar,
-    silent: payload.silent,
+    tag: notificationId,
+    requireInteraction: payload.requireInteraction,
   });
+};
+
+export const closeCustomNotification = (id: unknown): void => {
+  destroyNotification(id);
 };
 
 export const listenToNotificationsRequests = (): void => {

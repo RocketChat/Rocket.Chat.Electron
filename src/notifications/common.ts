@@ -7,6 +7,7 @@ export type ExtendedNotificationOptions = NotificationOptions & {
   }[];
   renotify?: boolean;
   requireInteraction?: boolean;
+  notificationType?: 'voice' | 'text';
 };
 
 export type CustomNotificationOptions = {

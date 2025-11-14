@@ -39,6 +39,7 @@ export const createNotification = async ({
   canReply?: boolean;
   title: string;
   subtitle?: string;
+  notificationType?: 'voice' | 'text';
   onEvent?: (eventDescriptor: { type: string; detail: unknown }) => void;
 }): Promise<unknown> => {
   const id = await request(
@@ -72,7 +73,7 @@ export const destroyNotification = (id: unknown): void => {
 export const dispatchCustomNotification = async (
   options: CustomNotificationOptions
 ): Promise<unknown> => {
-  const { id, payload } = options;
+  const { id, payload, type } = options;
   const notificationId = id || Math.random().toString(36).slice(2);
   return createNotification({
     title: payload.title,
@@ -80,6 +81,7 @@ export const dispatchCustomNotification = async (
     icon: payload.avatar,
     tag: notificationId,
     requireInteraction: payload.requireInteraction,
+    notificationType: type,
   });
 };
 

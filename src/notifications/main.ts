@@ -16,6 +16,7 @@ import {
   NOTIFICATIONS_NOTIFICATION_ACTIONED,
   NOTIFICATIONS_NOTIFICATION_DISMISSED,
 } from './actions';
+import attentionDrawing from './attentionDrawing';
 import type { ExtendedNotificationOptions } from './common';
 
 const resolveIcon = async (
@@ -44,6 +45,7 @@ const resolveIcon = async (
 };
 
 const notifications = new Map();
+const notificationTypes = new Map<string, 'voice' | 'text'>();
 
 const createNotification = async (
   id: string,
@@ -79,6 +81,11 @@ const createNotification = async (
       payload: { id },
       ipcMeta,
     });
+
+    const notificationType = notificationTypes.get(id);
+    if (notificationType === 'voice') {
+      attentionDrawing.drawAttention(id);
+    }
   });
 
   notification.addListener('close', () => {
@@ -88,6 +95,12 @@ const createNotification = async (
       ipcMeta,
     });
     notifications.delete(id);
+
+    const notificationType = notificationTypes.get(id);
+    if (notificationType === 'voice') {
+      attentionDrawing.stopAttention(id);
+    }
+    notificationTypes.delete(id);
   });
 
   notification.addListener('click', () => {
@@ -130,6 +143,7 @@ const updateNotification = async (
     renotify: _renotify,
     icon,
     requireInteraction,
+    notificationType,
   }: ExtendedNotificationOptions
 ): Promise<string> => {
   const notification = notifications.get(id);
@@ -161,7 +175,23 @@ const updateNotification = async (
     notification.requireInteraction = requireInteraction;
   }
 
+  let changedToVoice = false;
+  if (notificationType !== undefined) {
+    const previousType = notificationTypes.get(id);
+    notificationTypes.set(id, notificationType);
+
+    if (previousType === 'voice' && notificationType !== 'voice') {
+      attentionDrawing.stopAttention(id);
+    } else if (previousType !== 'voice' && notificationType === 'voice') {
+      changedToVoice = true;
+    }
+  }
+
   notification.show();
+
+  if (changedToVoice) {
+    attentionDrawing.drawAttention(id);
+  }
 
   return id;
 };
@@ -175,6 +205,7 @@ const handleCreateEvent = async (
   }
 
   const id = tag || Math.random().toString(36).slice(2);
+  notificationTypes.set(id, options.notificationType || 'text');
   return createNotification(id, options, ipcMeta);
 };
 
@@ -194,6 +225,14 @@ export const setupNotifications = (): void => {
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_DISMISSED, (action) => {
-    notifications.get(action.payload.id)?.close();
+    const notificationId = String(action.payload.id);
+    const notificationType = notificationTypes.get(notificationId);
+
+    notifications.get(notificationId)?.close();
+
+    if (notificationType === 'voice') {
+      attentionDrawing.stopAttention(notificationId);
+    }
+    notificationTypes.delete(notificationId);
   });
 };

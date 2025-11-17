@@ -393,6 +393,32 @@
     "cancel": "Annuler",
     "share": "Partager"
   },
+  "serverInfo": {
+    "title": "Informations du Serveur",
+    "urlLabel": "URL :",
+    "versionLabel": "Version :",
+    "unknown": "Inconnu",
+    "exchangeUrlLabel": "URL Outlook Exchange :",
+    "supportedVersionsTitle": "Versions Prise en Charge",
+    "statusLabel": "Statut :",
+    "status": {
+      "loading": "Chargement...",
+      "error": "Échec du chargement",
+      "loaded": "Chargé",
+      "idle": "Inactif",
+      "from": "depuis {{source}}"
+    },
+    "supported": {
+      "unknown": "Inconnu",
+      "expiring": "Expiration proche",
+      "yes": "Oui",
+      "no": "Non"
+    },
+    "expiration": {
+      "label": "Expiration :",
+      "expiresOn": "Expire le {{date}}"
+    }
+  },
   "lockScreen": {
     "title": "Écran verrouillé",
     "description": "Veuillez déverrouiller l'application pour continuer",

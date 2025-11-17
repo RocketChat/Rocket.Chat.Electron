@@ -449,6 +449,32 @@
     "cancel": "Kansellere",
     "share": "Dele"
   },
+  "serverInfo": {
+    "title": "Serverinformasjon",
+    "urlLabel": "URL:",
+    "versionLabel": "Versjon:",
+    "unknown": "Ukjent",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Støttede versjoner",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Laster...",
+      "error": "Kunne ikke laste",
+      "loaded": "Lastet",
+      "idle": "Inaktiv",
+      "from": "fra {{source}}"
+    },
+    "supported": {
+      "unknown": "Ukjent",
+      "expiring": "Utløper snart",
+      "yes": "Ja",
+      "no": "Nei"
+    },
+    "expiration": {
+      "label": "Utløpsdato:",
+      "expiresOn": "Utløper {{date}}"
+    }
+  },
   "lockScreen": {
     "title": "Skjermen er låst",
     "description": "Lås opp appen for å fortsette",

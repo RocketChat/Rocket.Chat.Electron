@@ -239,6 +239,45 @@
     "cancel": "Скасувати",
     "share": "Демонструвати"
   },
+  "serverInfo": {
+    "title": "Інформація про сервер",
+    "urlLabel": "URL:",
+    "versionLabel": "Версія:",
+    "unknown": "Невідомо",
+    "exchangeUrlLabel": "URL Outlook Exchange:",
+    "supportedVersionsTitle": "Підтримувані версії",
+    "statusLabel": "Статус:",
+    "supportedLabel": "Підтримується:",
+    "timestampLabel": "Мітка часу:",
+    "exceptionsLabel": "Винятки:",
+    "exceptionVersionsLabel": "Версії винятків:",
+    "expiresLabel": "Закінчується:",
+    "andMore": "... та ще {{count}}",
+    "noExceptions": "Не налаштовано версій винятків",
+    "status": {
+      "loading": "Завантаження...",
+      "error": "Помилка завантаження",
+      "loaded": "Завантажено",
+      "idle": "Неактивно",
+      "from": "з {{source}}"
+    },
+    "supported": {
+      "unknown": "Невідомо",
+      "expiring": "Термін дії закінчується",
+      "yes": "Так",
+      "no": "Ні"
+    },
+    "expiration": {
+      "label": "Термін дії:",
+      "expiresOn": "Закінчується {{date}}"
+    },
+    "expiresRelative": {
+      "today": "Закінчується сьогодні",
+      "inOneDay": "Закінчується через 1 день",
+      "inDays": "Закінчується через {{count}} днів",
+      "expired": "Термін дії закінчився"
+    }
+  },
   "lockScreen": {
     "title": "Екран заблоковано",
     "description": "Будь ласка, розблокуйте додаток, щоб продовжити",

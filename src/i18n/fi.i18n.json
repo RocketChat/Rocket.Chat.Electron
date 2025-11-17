@@ -392,6 +392,32 @@
     "cancel": "Peruuta",
     "share": "Jaa"
   },
+  "serverInfo": {
+    "title": "Palvelimen tiedot",
+    "urlLabel": "URL:",
+    "versionLabel": "Versio:",
+    "unknown": "Tuntematon",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Tuetut versiot",
+    "statusLabel": "Tila:",
+    "status": {
+      "loading": "Ladataan...",
+      "error": "Lataus epäonnistui",
+      "loaded": "Ladattu",
+      "idle": "Käyttämättä",
+      "from": "lähteestä {{source}}"
+    },
+    "supported": {
+      "unknown": "Tuntematon",
+      "expiring": "Vanhenee",
+      "yes": "Kyllä",
+      "no": "Ei"
+    },
+    "expiration": {
+      "label": "Vanheneminen:",
+      "expiresOn": "Vanhenee {{date}}"
+    }
+  },
   "lockScreen": {
     "title": "Näyttö on lukittu",
     "description": "Poista sovelluksen lukitus jatkaaksesi",

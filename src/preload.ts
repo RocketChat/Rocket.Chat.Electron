@@ -5,7 +5,6 @@ import type { JitsiMeetElectronAPI } from './jitsi/preload';
 import { JitsiMeetElectron } from './jitsi/preload';
 import { listenToNotificationsRequests } from './notifications/preload';
 import { listenToScreenSharingRequests } from './screenSharing/preload';
-import type { RocketChatDesktopAPI } from './servers/preload/api';
 import { RocketChatDesktop } from './servers/preload/api';
 import { setServerUrl } from './servers/preload/urls';
 import { createRendererReduxStore, listen } from './store';
@@ -19,7 +18,6 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Window {
     JitsiMeetElectron: JitsiMeetElectronAPI;
-    RocketChatDesktop: RocketChatDesktopAPI;
     electronAPI?: {
       setLockPassword?: (password: string) => Promise<unknown>;
       verifyPassword?: (pwd: string) => Promise<boolean>;

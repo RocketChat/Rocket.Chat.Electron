@@ -129,6 +129,10 @@ export const WEBVIEW_SERVER_UNIQUE_ID_UPDATED =
   'webview/server-workspace-uid-updated';
 export const WEBVIEW_SERVER_IS_SUPPORTED_VERSION =
   'webview/server-is-supported-version';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING =
+  'webview/server-supported-versions-loading';
+export const WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR =
+  'webview/server-supported-versions-error';
 export const WEBVIEW_SERVER_VERSION_UPDATED = 'webview/version-updated';
 export const SUPPORTED_VERSION_DIALOG_DISMISS =
   'supported-versions-dialog/dismiss';
@@ -141,16 +145,14 @@ export const SIDE_BAR_SERVER_FORCE_RELOAD = 'side-bar/server-force-reload';
 export const SIDE_BAR_SERVER_REMOVE = 'side-bar/server-remove';
 export const WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR =
   'webview/force-reload-with-cache-clear';
-
-// New screen lock settings actions
+export const OPEN_SERVER_INFO_MODAL = 'server-info-modal/open';
+export const CLOSE_SERVER_INFO_MODAL = 'server-info-modal/close';
 export const SETTINGS_SET_SCREEN_LOCK_TIMEOUT_CHANGED =
   'settings/set-screen-lock-timeout-changed';
 export const SETTINGS_SET_SCREEN_LOCK_PASSWORD_CHANGED =
   'settings/set-screen-lock-password-changed'; // plaintext from UI to main
 export const SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED =
   'settings/set-screen-lock-password-hashed'; // hashed value (sha256 hex) set by main
-
-// Menu action for locking screen (optional external handling)
 export const MENU_BAR_LOCK_SCREEN_CLICKED = 'menu-bar/lock-screen-clicked';
 
 export type UiActionTypeToPayloadMap = {
@@ -276,6 +278,12 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
     isSupportedVersion: Server['isSupportedVersion'];
   };
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_LOADING]: {
+    url: Server['url'];
+  };
+  [WEBVIEW_SERVER_SUPPORTED_VERSIONS_ERROR]: {
+    url: Server['url'];
+  };
   [WEBVIEW_SERVER_VERSION_UPDATED]: {
     url: Server['url'];
     version: Server['version'];
@@ -285,6 +293,16 @@ export type UiActionTypeToPayloadMap = {
     url: Server['url'];
   };
   [WEBVIEW_PDF_VIEWER_ATTACHED]: { WebContentsId: number };
+  [OPEN_SERVER_INFO_MODAL]: {
+    url: string;
+    version?: string;
+    exchangeUrl?: string;
+    isSupportedVersion?: boolean;
+    supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
+    supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
+    supportedVersions?: Server['supportedVersions'];
+  };
+  [CLOSE_SERVER_INFO_MODAL]: void;
   [SETTINGS_SET_SCREEN_LOCK_TIMEOUT_CHANGED]: number;
   [SETTINGS_SET_SCREEN_LOCK_PASSWORD_CHANGED]: string; // plaintext
   [SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED]: ScreenLockPasswordStored | null; // structured hash

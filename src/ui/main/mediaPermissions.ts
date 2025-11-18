@@ -162,5 +162,16 @@ export const handleMediaPermissionRequest = async (
     return;
   }
 
+  if (process.platform === 'linux') {
+    // Linux: Electron's systemPreferences APIs are not available on Linux.
+    // Permission handling is delegated to:
+    // 1. Browser permission prompts (Chromium will show native permission dialogs)
+    // 2. System-level audio configuration (PulseAudio, PipeWire, ALSA)
+    // We allow the request and let the browser and OS handle the permission flow.
+    callback(true);
+    return;
+  }
+
+  // Other platforms (unsupported): Allow access and let browser handle permissions
   callback(true);
 };

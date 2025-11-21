@@ -83,7 +83,12 @@ export const serverReloadView = async (
 ): Promise<void> => {
   const url = new URL(serverUrl).href;
   const guestWebContents = getWebContentsByServerUrl(url);
-  await guestWebContents?.loadURL(url);
+  try {
+    await guestWebContents?.loadURL(url);
+  } catch (error) {
+    // Error is already handled by did-fail-load event listener
+    // This just prevents unhandled promise rejection
+  }
   if (url) {
     dispatch({
       type: WEBVIEW_SERVER_RELOADED,

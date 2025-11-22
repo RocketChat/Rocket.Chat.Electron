@@ -132,6 +132,18 @@
       "camera": "Cámara",
       "both": "Micrófono y Cámara"
     },
+    "microphonePermissionDenied": {
+      "title": "Acceso al Micrófono Requerido",
+      "message": "Se requiere acceso al micrófono para {{- actionType}}. Por favor revisa la configuración de tu sistema.",
+      "detail": "Puedes habilitar el acceso al micrófono en la configuración de privacidad de tu sistema.",
+      "openSettings": "Abrir Configuración",
+      "cancel": "Cancelar",
+      "actionTypes": {
+        "initiateCall": "realizar llamadas",
+        "answerCall": "responder llamadas",
+        "recordMessage": "grabar mensajes"
+      }
+    },
     "outlookCalendar": {
       "title": "Calendario de Outlook",
       "encryptionUnavailableTitle": "Encriptación no disponible",

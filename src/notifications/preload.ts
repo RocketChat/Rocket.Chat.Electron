@@ -11,6 +11,7 @@ import {
   NOTIFICATIONS_NOTIFICATION_REPLIED,
   NOTIFICATIONS_NOTIFICATION_SHOWN,
 } from './actions';
+import type { CustomNotificationOptions } from './common';
 
 const normalizeIconUrl = (iconUrl: string): string => {
   if (/^data:/.test(iconUrl)) {
@@ -38,6 +39,7 @@ export const createNotification = async ({
   canReply?: boolean;
   title: string;
   subtitle?: string;
+  notificationType?: 'voice' | 'text';
   onEvent?: (eventDescriptor: { type: string; detail: unknown }) => void;
 }): Promise<unknown> => {
   const id = await request(
@@ -66,6 +68,25 @@ export const createNotification = async ({
 export const destroyNotification = (id: unknown): void => {
   dispatch({ type: NOTIFICATIONS_NOTIFICATION_DISMISSED, payload: { id } });
   eventHandlers.delete(id);
+};
+
+export const dispatchCustomNotification = async (
+  options: CustomNotificationOptions
+): Promise<unknown> => {
+  const { id, payload, type } = options;
+  const notificationId = id || Math.random().toString(36).slice(2);
+  return createNotification({
+    title: payload.title,
+    body: payload.body,
+    icon: payload.avatar,
+    tag: notificationId,
+    requireInteraction: payload.requireInteraction,
+    notificationType: type,
+  });
+};
+
+export const closeCustomNotification = (id: unknown): void => {
+  destroyNotification(id);
 };
 
 export const listenToNotificationsRequests = (): void => {

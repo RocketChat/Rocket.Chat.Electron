@@ -6,4 +6,18 @@ export type ExtendedNotificationOptions = NotificationOptions & {
     title: string;
   }[];
   renotify?: boolean;
+  requireInteraction?: boolean;
+  notificationType?: 'voice' | 'text';
+};
+
+export type CustomNotificationOptions = {
+  type: 'voice' | 'text';
+  id?: string;
+  payload: {
+    title: string;
+    body: string;
+    avatar?: string;
+    silent?: boolean;
+    requireInteraction?: boolean;
+  };
 };

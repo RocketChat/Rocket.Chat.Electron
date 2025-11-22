@@ -89,6 +89,18 @@
       "microphone": "Mikrofon",
       "camera": "Kamera",
       "both": "Mikrofon ve Kamera"
+    },
+    "microphonePermissionDenied": {
+      "title": "Mikrofon Erişimi Gerekli",
+      "message": "{{- actionType}} için mikrofon erişimi gereklidir. Lütfen sistem ayarlarınızı kontrol edin.",
+      "detail": "Mikrofon erişimini sistem gizlilik ayarlarınızdan etkinleştirebilirsiniz.",
+      "openSettings": "Ayarları Aç",
+      "cancel": "İptal",
+      "actionTypes": {
+        "initiateCall": "aramalar yapmak",
+        "answerCall": "aramaları yanıtlamak",
+        "recordMessage": "mesaj kaydetmek"
+      }
     }
   },
   "settings": {

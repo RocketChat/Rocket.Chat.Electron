@@ -131,6 +131,18 @@
       "microphone": "Mikrofoni",
       "camera": "Kamera",
       "both": "Mikrofoni ja Kamera"
+    },
+    "microphonePermissionDenied": {
+      "title": "Mikrofonin käyttö vaaditaan",
+      "message": "Mikrofonin käyttö vaaditaan {{- actionType}}. Tarkista järjestelmäsi asetukset.",
+      "detail": "Voit ottaa mikrofonin käyttöön järjestelmäsi tietosuoja-asetuksista.",
+      "openSettings": "Avaa asetukset",
+      "cancel": "Peruuta",
+      "actionTypes": {
+        "initiateCall": "soittaa",
+        "answerCall": "vastata puheluun",
+        "recordMessage": "tallentaa viestin"
+      }
     }
   },
   "downloads": {

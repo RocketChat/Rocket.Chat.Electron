@@ -84,13 +84,18 @@ export const serverReloadView = async (
 ): Promise<void> => {
   const url = new URL(serverUrl).href;
   const guestWebContents = getWebContentsByServerUrl(url);
-  await guestWebContents?.loadURL(url);
-  if (url) {
-    dispatch({
-      type: WEBVIEW_SERVER_RELOADED,
-      payload: { url },
-    });
+  if (!guestWebContents) {
+    return;
   }
+  try {
+    await guestWebContents.loadURL(url);
+  } catch (error) {
+    console.error('Failed to load URL for guestWebContents:', error);
+  }
+  dispatch({
+    type: WEBVIEW_SERVER_RELOADED,
+    payload: { url },
+  });
 };
 
 const initializeServerWebContentsAfterAttach = (
@@ -377,7 +382,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
-    guestWebContents?.loadURL(action.payload.url);
+    if (!guestWebContents) {
+      return;
+    }
+    guestWebContents.loadURL(action.payload.url).catch((error) => {
+      console.error('Failed to load URL for guestWebContents:', error);
+    });
   });
 
   listen(SIDE_BAR_SERVER_RELOAD, (action) => {
@@ -421,7 +431,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         label: t('sidebar.item.reload'),
         click: () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          guestWebContents?.loadURL(serverUrl);
+          if (!guestWebContents) {
+            return;
+          }
+          guestWebContents.loadURL(serverUrl).catch((error) => {
+            console.error('Failed to load URL for guestWebContents:', error);
+          });
           if (serverUrl) {
             dispatch({
               type: WEBVIEW_SERVER_RELOADED,

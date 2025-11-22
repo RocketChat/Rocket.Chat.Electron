@@ -83,17 +83,18 @@ export const serverReloadView = async (
 ): Promise<void> => {
   const url = new URL(serverUrl).href;
   const guestWebContents = getWebContentsByServerUrl(url);
+  if (!guestWebContents) {
+    return;
+  }
   try {
-    await guestWebContents?.loadURL(url);
+    await guestWebContents.loadURL(url);
   } catch (error) {
     console.error('Failed to load URL for guestWebContents:', error);
   }
-  if (url) {
-    dispatch({
-      type: WEBVIEW_SERVER_RELOADED,
-      payload: { url },
-    });
-  }
+  dispatch({
+    type: WEBVIEW_SERVER_RELOADED,
+    payload: { url },
+  });
 };
 
 const initializeServerWebContentsAfterAttach = (

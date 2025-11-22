@@ -86,8 +86,7 @@ export const serverReloadView = async (
   try {
     await guestWebContents?.loadURL(url);
   } catch (error) {
-    // Error is already handled by did-fail-load event listener
-    // This just prevents unhandled promise rejection
+    console.error('Failed to load URL for guestWebContents:', error);
   }
   if (url) {
     dispatch({
@@ -387,7 +386,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
-    guestWebContents?.loadURL(action.payload.url);
+    guestWebContents?.loadURL(action.payload.url).catch((error) => {
+      console.error('Failed to load URL for guestWebContents:', error);
+    });
   });
 
   listen(SIDE_BAR_SERVER_RELOAD, (action) => {
@@ -431,7 +432,9 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         label: t('sidebar.item.reload'),
         click: () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          guestWebContents?.loadURL(serverUrl);
+          guestWebContents?.loadURL(serverUrl).catch((error) => {
+            console.error('Failed to load URL for guestWebContents:', error);
+          });
           if (serverUrl) {
             dispatch({
               type: WEBVIEW_SERVER_RELOADED,

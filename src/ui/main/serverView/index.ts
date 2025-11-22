@@ -386,7 +386,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
-    guestWebContents?.loadURL(action.payload.url).catch((error) => {
+    if (!guestWebContents) {
+      return;
+    }
+    guestWebContents.loadURL(action.payload.url).catch((error) => {
       console.error('Failed to load URL for guestWebContents:', error);
     });
   });
@@ -432,7 +435,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         label: t('sidebar.item.reload'),
         click: () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          guestWebContents?.loadURL(serverUrl).catch((error) => {
+          if (!guestWebContents) {
+            return;
+          }
+          guestWebContents.loadURL(serverUrl).catch((error) => {
             console.error('Failed to load URL for guestWebContents:', error);
           });
           if (serverUrl) {

@@ -141,6 +141,18 @@
       "camera": "Kamera",
       "both": "Mikrofon och kamera"
     },
+    "microphonePermissionDenied": {
+      "title": "Mikrofonåtkomst krävs",
+      "message": "Mikrofonåtkomst krävs för att {{- actionType}}. Kontrollera dina systeminställningar.",
+      "detail": "Du kan aktivera mikrofonåtkomst i datorns integritetsinställningar.",
+      "openSettings": "Öppna inställningar",
+      "cancel": "Avbryt",
+      "actionTypes": {
+        "initiateCall": "ringa samtal",
+        "answerCall": "svara på samtal",
+        "recordMessage": "spela in meddelanden"
+      }
+    },
     "outlookCalendar": {
       "title": "Outlook-kalender",
       "encryptionUnavailableTitle": "Kryptering är inte tillgänglig",

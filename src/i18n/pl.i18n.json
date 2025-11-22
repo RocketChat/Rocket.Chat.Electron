@@ -101,6 +101,18 @@
       "microphone": "Mikrofon",
       "camera": "Kamera",
       "both": "Mikrofon i Kamera"
+    },
+    "microphonePermissionDenied": {
+      "title": "Wymagany dostęp do mikrofonu",
+      "message": "Do {{- actionType}} wymagany jest dostęp do mikrofonu. Sprawdź ustawienia systemowe.",
+      "detail": "Możesz włączyć dostęp do mikrofonu w ustawieniach prywatności systemu.",
+      "openSettings": "Otwórz ustawienia",
+      "cancel": "Anuluj",
+      "actionTypes": {
+        "initiateCall": "wykonywania połączeń",
+        "answerCall": "odbierania połączeń",
+        "recordMessage": "nagrywania wiadomości"
+      }
     }
   },
   "settings": {

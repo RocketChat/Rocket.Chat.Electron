@@ -131,6 +131,18 @@
       "microphone": "Microphone",
       "camera": "Caméra",
       "both": "Microphone et Caméra"
+    },
+    "microphonePermissionDenied": {
+      "title": "Accès au Microphone Requis",
+      "message": "L'accès au microphone est requis pour {{- actionType}}. Veuillez vérifier les paramètres de votre système.",
+      "detail": "Vous pouvez activer l'accès au microphone dans les paramètres de confidentialité de votre système.",
+      "openSettings": "Ouvrir les Paramètres",
+      "cancel": "Annuler",
+      "actionTypes": {
+        "initiateCall": "passer des appels",
+        "answerCall": "répondre aux appels",
+        "recordMessage": "enregistrer des messages"
+      }
     }
   },
   "downloads": {

@@ -18,6 +18,7 @@ import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { setupNavigation } from './navigation/main';
+import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
 import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
 import { setupScreenSharing } from './screenSharing/main';
@@ -83,6 +84,7 @@ const start = async (): Promise<void> => {
   // }
   watchMachineTheme();
   setupNotifications();
+  attentionDrawing.setUp();
   setupScreenSharing();
   startVideoCallWindowHandler();
 
@@ -105,6 +107,7 @@ const start = async (): Promise<void> => {
     menuBar.tearDown();
     touchBar.tearDown();
     trayIcon.tearDown();
+    attentionDrawing.tearDown();
     cleanupVideoCallResources();
   });
 

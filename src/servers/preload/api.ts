@@ -1,8 +1,11 @@
 import type { IRocketChatDesktop } from '@rocket.chat/desktop-api';
 
+import type { CustomNotificationOptions } from '../../notifications/common';
 import {
   createNotification,
   destroyNotification,
+  dispatchCustomNotification,
+  closeCustomNotification,
 } from '../../notifications/preload';
 import {
   getOutlookEvents,
@@ -39,10 +42,17 @@ type ServerInfo = {
 export let serverInfo: ServerInfo;
 let cb = (_serverInfo: ServerInfo): void => undefined;
 
+type ExtendedIRocketChatDesktop = IRocketChatDesktop & {
+  dispatchCustomNotification: (
+    options: CustomNotificationOptions
+  ) => Promise<unknown>;
+  closeCustomNotification: (id: unknown) => void;
+};
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Window {
-    RocketChatDesktop: IRocketChatDesktop;
+    RocketChatDesktop: ExtendedIRocketChatDesktop;
   }
 }
 
@@ -68,6 +78,8 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setUserThemeAppearance,
   createNotification,
   destroyNotification,
+  dispatchCustomNotification,
+  closeCustomNotification,
   getInternalVideoChatWindowEnabled,
   openInternalVideoChatWindow,
   setGitCommitHash,

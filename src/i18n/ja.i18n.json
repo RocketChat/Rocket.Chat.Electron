@@ -91,15 +91,15 @@
       "both": "マイクとカメラ"
     },
     "microphonePermissionDenied": {
-      "title": "Microphone Access Required",
-      "message": "Microphone access is required to {{- actionType}}. Please check your system settings.",
-      "detail": "You can enable microphone access in your system's privacy settings.",
-      "openSettings": "Open Settings",
-      "cancel": "Cancel",
+      "title": "マイクアクセスが必要",
+      "message": "{{- actionType}}にはマイクアクセスが必要です。システム設定を確認してください。",
+      "detail": "システムのプライバシー設定でマイクアクセスを有効にできます。",
+      "openSettings": "設定を開く",
+      "cancel": "キャンセル",
       "actionTypes": {
-        "initiateCall": "make calls",
-        "answerCall": "answer calls",
-        "recordMessage": "record messages"
+        "initiateCall": "通話を行う",
+        "answerCall": "通話に応答する",
+        "recordMessage": "メッセージを録音する"
       }
     }
   },

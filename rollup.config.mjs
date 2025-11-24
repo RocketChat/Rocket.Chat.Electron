@@ -134,7 +134,7 @@ export default [
     ],
     output: [
       {
-        dir: 'app',
+        dir: 'app/preload',
         name: 'preload',
         format: 'cjs',
         sourcemap: 'inline',

@@ -422,6 +422,29 @@ export const startVideoCallWindowHandler = (): void => {
       }
 
       logVideoCallWindowStats();
+
+      const additionalArgs: string[] = [];
+
+      if (process.platform === 'win32') {
+        const sessionName = process.env.SESSIONNAME;
+        const isRdpSession =
+          typeof sessionName === 'string' && sessionName !== 'Console';
+        const { readSetting } = await import('../store/readSetting');
+        const isScreenCaptureFallbackEnabled = readSetting(
+          'isVideoCallScreenCaptureFallbackEnabled'
+        );
+
+        if (isScreenCaptureFallbackEnabled || isRdpSession) {
+          additionalArgs.push(
+            '--disable-features=WebRtcAllowWgcDesktopCapturer,WebRtcAllowWgcScreenCapturer'
+          );
+          console.log(
+            'Video call window: Explicitly passing WGC disable flags to webview via additionalArguments',
+            { isRdpSession, isScreenCaptureFallbackEnabled }
+          );
+        }
+      }
+
       videoCallWindow = new BrowserWindow({
         width,
         height,
@@ -438,6 +461,9 @@ export const startVideoCallWindowHandler = (): void => {
           backgroundThrottling: true,
           v8CacheOptions: 'bypassHeatCheck',
           spellcheck: false,
+          ...(additionalArgs.length > 0 && {
+            additionalArguments: additionalArgs,
+          }),
         },
         show: false,
         frame: true,

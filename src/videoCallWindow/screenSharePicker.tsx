@@ -168,8 +168,8 @@ export function ScreenSharePicker() {
           display='flex'
           flexDirection='column'
           height='560px'
-          backgroundColor='surface'
-          color='default'
+          backgroundColor='surface-light'
+          color='font-default'
         >
           <Box marginBlockEnd='x12'>
             <Box fontScale='h1' marginBlockEnd='x12'>
@@ -244,8 +244,16 @@ export function ScreenSharePicker() {
                         display='flex'
                         flexDirection='column'
                         onClick={handleScreenSharingSourceClick(id)}
-                        bg={selectedSourceId === id ? 'selected' : 'light'}
-                        color={selectedSourceId === id ? 'selected' : 'light'}
+                        bg={
+                          selectedSourceId === id
+                            ? 'surface-selected'
+                            : 'surface-tint'
+                        }
+                        color={
+                          selectedSourceId === id
+                            ? 'font-on-dark'
+                            : 'font-default'
+                        }
                         border={
                           selectedSourceId === id
                             ? '2px solid var(--rcx-color-stroke-highlight)'

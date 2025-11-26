@@ -1,6 +1,9 @@
 import { getServerUrl, getAbsoluteUrl } from '../servers/preload/urls';
 import { dispatch, listen, request } from '../store';
-import { WEBVIEW_FOCUS_REQUESTED } from '../ui/actions';
+import {
+  SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
+  WEBVIEW_FOCUS_REQUESTED,
+} from '../ui/actions';
 import {
   NOTIFICATIONS_CREATE_REQUESTED,
   NOTIFICATIONS_CREATE_RESPONDED,
@@ -112,13 +115,17 @@ export const listenToNotificationsRequests = (): void => {
       payload: { id, title },
     } = action;
 
-    dispatch({
-      type: WEBVIEW_FOCUS_REQUESTED,
-      payload: {
-        url: getServerUrl(),
-        view: title === 'Downloads' ? 'downloads' : 'server',
-      },
-    });
+    if (title === 'Downloads') {
+      dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
+    } else {
+      dispatch({
+        type: WEBVIEW_FOCUS_REQUESTED,
+        payload: {
+          url: getServerUrl(),
+          view: 'server',
+        },
+      });
+    }
 
     const eventHandler = eventHandlers.get(id);
     eventHandler?.({ type: 'click' });

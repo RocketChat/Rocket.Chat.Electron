@@ -75,7 +75,7 @@ export const handleWillDownloadEvent = async (
     });
   });
 
-  item.on('done', (_event, state) => {
+  item.on('done', (_event, _state) => {
     dispatch({
       type: DOWNLOAD_UPDATED,
       payload: {

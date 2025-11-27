@@ -23,7 +23,11 @@ const desktopCapturer: DesktopCapturer = {
     ipcRenderer.invoke('desktop-capturer-get-sources', [opts]),
 };
 
-export function ScreenSharePicker() {
+interface IScreenSharePickerProps {
+  onMounted?: (setVisible: (visible: boolean) => void) => void;
+}
+
+export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
@@ -85,20 +89,12 @@ export function ScreenSharePicker() {
     fetchSources();
   }, [fetchSources]);
 
+  // Expose setVisible to parent mount module for IPC event handling
   useEffect(() => {
-    const handleOpenPicker = () => {
-      setVisible(true);
-    };
-
-    ipcRenderer.on('video-call-window/open-screen-picker', handleOpenPicker);
-
-    return () => {
-      ipcRenderer.removeListener(
-        'video-call-window/open-screen-picker',
-        handleOpenPicker
-      );
-    };
-  }, []);
+    if (onMounted) {
+      onMounted(setVisible);
+    }
+  }, [onMounted]);
 
   useEffect(() => {
     if (!visible) {

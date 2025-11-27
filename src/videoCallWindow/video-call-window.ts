@@ -1,3 +1,5 @@
+import path from 'path';
+
 import { ipcRenderer } from 'electron';
 import i18next from 'i18next';
 
@@ -558,9 +560,18 @@ const createWebview = (url: string): void => {
     throw new Error('Webview container not found');
   }
 
+  // Construct absolute file:// path for preload script
+  // Electron webview requires absolute paths, not relative
+  const htmlPath = window.location.pathname; // e.g., /path/to/app/video-call-window.html
+  const appDir = path.dirname(htmlPath); // e.g., /path/to/app
+  const preloadPath = path.join(appDir, 'preload', 'preload.js');
+  // Normalize path separators for file:// URL (always use forward slashes)
+  const normalizedPath = preloadPath.replace(/\\/g, '/');
+  const preloadUrl = `file://${normalizedPath}`;
+
   const webview = document.createElement('webview');
   webview.src = url;
-  webview.setAttribute('preload', './preload/preload.js');
+  webview.setAttribute('preload', preloadUrl);
   webview.setAttribute(
     'webpreferences',
     'nodeIntegration,nativeWindowOpen=true'
@@ -754,16 +765,24 @@ window.addEventListener('unhandledrejection', (event) => {
   event.preventDefault();
 });
 
-window.addEventListener('beforeunload', () => {
-  isWindowDestroying = true;
-  clearAllTimeouts();
-});
-
-ipcRenderer.on('video-call-window/open-screen-picker', async () => {
+// IPC listener for screen picker (with cleanup on page unload)
+const handleOpenScreenPicker = async (): Promise<void> => {
   if (!screenPickerModule) {
     screenPickerModule = await import('./screenSharePickerMount');
   }
   screenPickerModule.show();
+};
+
+ipcRenderer.on('video-call-window/open-screen-picker', handleOpenScreenPicker);
+
+window.addEventListener('beforeunload', () => {
+  isWindowDestroying = true;
+  clearAllTimeouts();
+  // Clean up IPC listener to prevent memory leaks on reload
+  ipcRenderer.removeListener(
+    'video-call-window/open-screen-picker',
+    handleOpenScreenPicker
+  );
 });
 
 // Setup reload button handler when DOM is ready

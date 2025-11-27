@@ -135,7 +135,7 @@ export default [
     output: [
       {
         dir: 'app/preload',
-        name: 'preload',
+        entryFileNames: 'preload.js',
         format: 'cjs',
         sourcemap: 'inline',
         interop: 'auto',

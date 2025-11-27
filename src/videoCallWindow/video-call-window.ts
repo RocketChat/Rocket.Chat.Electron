@@ -1,5 +1,3 @@
-import path from 'path';
-
 import { ipcRenderer } from 'electron';
 import i18next from 'i18next';
 
@@ -562,7 +560,7 @@ const createWebview = (url: string): void => {
 
   const webview = document.createElement('webview');
   webview.src = url;
-  webview.setAttribute('preload', path.join(__dirname, 'preload', 'index.js'));
+  webview.setAttribute('preload', './preload/preload.js');
   webview.setAttribute(
     'webpreferences',
     'nodeIntegration,nativeWindowOpen=true'

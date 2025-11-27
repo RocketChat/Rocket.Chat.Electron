@@ -26,6 +26,7 @@ import {
   SIDE_BAR_DOWNLOADS_BUTTON_CLICKED,
   SIDE_BAR_SETTINGS_BUTTON_CLICKED,
   WEBVIEW_SERVER_RELOADED,
+  MENU_BAR_LOCK_SCREEN_CLICKED,
 } from '../actions';
 import { askForAppDataReset } from './dialogs';
 import { getRootWindow } from './rootWindow';
@@ -104,6 +105,20 @@ const createAppMenu = createSelector(
         },
         { type: 'separator' },
       ]),
+      {
+        id: 'lockScreen',
+        label: t('menus.lockScreen'),
+        accelerator: 'CommandOrControl+L',
+        click: async () => {
+          const browserWindow = await getRootWindow();
+
+          if (!browserWindow.isVisible()) {
+            browserWindow.showInactive();
+          }
+          browserWindow.focus();
+          dispatch({ type: MENU_BAR_LOCK_SCREEN_CLICKED });
+        },
+      },
       {
         id: 'disableGpu',
         label: t('menus.disableGpu'),

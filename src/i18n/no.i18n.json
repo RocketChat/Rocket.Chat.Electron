@@ -290,6 +290,17 @@
       "videoCallWindowPersistence": {
         "title": "Husk posisjonen til videosamtalevinduet",
         "description": "Lagre og gjenopprett posisjonen og størrelsen på videosamtalevinduer mellom økter"
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Skjermlås tidsavbrudd (sekunder)",
+          "description": "Inaktivitetstid (i sekunder) etter hvor lang tid applikasjonen låses. Sett til 0 for å deaktivere."
+        },
+        "password": {
+          "title": "Låspassord",
+          "placeholder": "Angi passord",
+          "description": "Angi et passord som kreves for å låse opp applikasjonen. Passordet lagres med en sikker, saltet hash."
+        }
       }
     }
   },
@@ -475,5 +486,13 @@
       "label": "Utløpsdato:",
       "expiresOn": "Utløper {{date}}"
     }
+  },
+  "lockScreen": {
+    "title": "Skjermen er låst",
+    "description": "Lås opp appen for å fortsette",
+    "placeholder": "Skriv inn passord",
+    "unlock": "Lås opp",
+    "incorrect": "Feil passord",
+    "unlockFailed": "Kunne ikke låse opp"
   }
 }

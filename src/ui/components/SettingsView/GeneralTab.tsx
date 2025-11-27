@@ -10,6 +10,7 @@ import { MinimizeOnClose } from './features/MinimizeOnClose';
 import { NTLMCredentials } from './features/NTLMCredentials';
 import { ReportErrors } from './features/ReportErrors';
 import { ScreenCaptureFallback } from './features/ScreenCaptureFallback';
+import { ScreenLock } from './features/ScreenLock';
 import { SideBar } from './features/SideBar';
 import { TrayIcon } from './features/TrayIcon';
 import { VideoCallWindowPersistence } from './features/VideoCallWindowPersistence';
@@ -29,6 +30,7 @@ export const GeneralTab = () => (
       {process.platform !== 'darwin' && <MenuBar />}
       {process.platform === 'win32' && <NTLMCredentials />}
       <AvailableBrowsers />
+      <ScreenLock />
       {!process.mas && <ClearPermittedScreenCaptureServers />}
     </FieldGroup>
   </Box>

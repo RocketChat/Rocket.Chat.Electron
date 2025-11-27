@@ -4,12 +4,14 @@ import {
   performElectronStartup,
   setupApp,
   initializeScreenCaptureFallbackState,
+  showLockWindow,
 } from './app/main/app';
 import {
   mergePersistableValues,
   watchAndPersistChanges,
 } from './app/main/data';
 import { setUserDataDirectory } from './app/main/dev';
+import { setupScreenLock } from './app/main/screenLock';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { startDocumentViewerHandler } from './documentViewer/ipc';
 import { setupDownloads } from './downloads/main';
@@ -26,7 +28,7 @@ import { handleClearCacheDialog } from './servers/cache';
 import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
-import { createMainReduxStore } from './store';
+import { createMainReduxStore, select } from './store';
 import { handleCertificatesManager } from './ui/components/CertificatesManager/main';
 import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
@@ -77,6 +79,17 @@ const start = async (): Promise<void> => {
   startOutlookCalendarUrlHandler();
   attachGuestWebContentsEvents();
   await showRootWindow();
+  // Auto-show lock on startup if previously locked
+  try {
+    const locked = select((s) => s.isScreenLocked);
+    if (locked) {
+      await showLockWindow();
+    }
+  } catch {
+    // ignore
+  }
+  // Set up automatic screen locking based on user-configured timeout
+  setupScreenLock();
 
   // React DevTools is currently incompatible with Electron 10
   // if (process.env.NODE_ENV === 'development') {

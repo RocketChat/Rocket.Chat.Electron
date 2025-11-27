@@ -10,6 +10,7 @@ export const APP_MAIN_WINDOW_TITLE_SET = 'app/main-window-title-set';
 export const APP_MACHINE_THEME_SET = 'app/machine-theme-set';
 export const APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET =
   'app/screen-capture-fallback-forced-set';
+export const APP_IS_SCREEN_LOCKED_SET = 'app/is-screen-locked-set';
 
 export type AppActionTypeToPayloadMap = {
   [APP_ERROR_THROWN]: Error;
@@ -20,4 +21,5 @@ export type AppActionTypeToPayloadMap = {
   [APP_MAIN_WINDOW_TITLE_SET]: string;
   [APP_MACHINE_THEME_SET]: string;
   [APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET]: boolean;
+  [APP_IS_SCREEN_LOCKED_SET]: boolean;
 };

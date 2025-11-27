@@ -13,6 +13,7 @@ import {
 } from '../../../spellChecking/actions';
 import { dispatch } from '../../../store';
 import { openExternal } from '../../../utils/browserLauncher';
+import { MENU_BAR_LOCK_SCREEN_CLICKED } from '../../actions';
 
 const t = i18next.t.bind(i18next);
 
@@ -213,6 +214,14 @@ const createDefaultMenuTemplate = (
     role: 'selectAll',
     accelerator: 'CommandOrControl+A',
     enabled: canSelectAll,
+  },
+  // Add Lock Screen item
+  {
+    label: t('menus.lockScreen'),
+    accelerator: 'CommandOrControl+L',
+    click: () => {
+      dispatch({ type: MENU_BAR_LOCK_SCREEN_CLICKED });
+    },
   },
 ];
 

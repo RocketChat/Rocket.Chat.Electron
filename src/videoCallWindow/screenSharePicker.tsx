@@ -168,7 +168,7 @@ export function ScreenSharePicker() {
           display='flex'
           flexDirection='column'
           height='560px'
-          backgroundColor='surface'
+          backgroundColor='light'
           color='default'
         >
           <Box marginBlockEnd='x12'>
@@ -245,7 +245,6 @@ export function ScreenSharePicker() {
                         flexDirection='column'
                         onClick={handleScreenSharingSourceClick(id)}
                         bg={selectedSourceId === id ? 'selected' : 'light'}
-                        color={selectedSourceId === id ? 'selected' : 'light'}
                         border={
                           selectedSourceId === id
                             ? '2px solid var(--rcx-color-stroke-highlight)'

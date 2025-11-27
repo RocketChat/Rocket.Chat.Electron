@@ -123,7 +123,9 @@ const clearAllTimeouts = (): void => {
 };
 
 const updateLoadingUI = (show: boolean, isReloading: boolean = false): void => {
-  const overlay = document.getElementById('loading-overlay-root') as HTMLElement | null;
+  const overlay = document.getElementById(
+    'loading-overlay-root'
+  ) as HTMLElement | null;
   if (!overlay) return;
 
   if (show) {
@@ -151,7 +153,9 @@ const updateLoadingUI = (show: boolean, isReloading: boolean = false): void => {
 };
 
 const updateErrorUI = (show: boolean, message: string | null = null): void => {
-  const overlay = document.getElementById('error-overlay-root') as HTMLElement | null;
+  const overlay = document.getElementById(
+    'error-overlay-root'
+  ) as HTMLElement | null;
   if (!overlay) return;
 
   if (show) {
@@ -159,7 +163,9 @@ const updateErrorUI = (show: boolean, message: string | null = null): void => {
     const title = overlay.querySelector('.error-title');
     const announcement = overlay.querySelector('.error-announcement');
     const errorMsg = overlay.querySelector('.error-message');
-    const reloadButton = overlay.querySelector('#error-reload-button') as HTMLButtonElement | null;
+    const reloadButton = overlay.querySelector(
+      '#error-reload-button'
+    ) as HTMLButtonElement | null;
 
     if (title) {
       title.textContent = t('videoCall.error.title', 'Connection Failed');
@@ -590,8 +596,9 @@ const preloadScreenSharePicker = async (): Promise<void> => {
       console.log('Video call window: Preloading React for screen picker');
     }
     screenPickerModule = await import('./screenSharePickerMount');
+    screenPickerModule.show(); // Mount early (stays hidden until IPC event)
     if (process.env.NODE_ENV === 'development') {
-      console.log('Video call window: React preloaded successfully');
+      console.log('Video call window: Screen picker preloaded and mounted');
     }
   } catch (error) {
     console.error('Video call window: Failed to preload React:', error);

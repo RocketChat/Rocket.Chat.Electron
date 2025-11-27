@@ -23,11 +23,7 @@ const desktopCapturer: DesktopCapturer = {
     ipcRenderer.invoke('desktop-capturer-get-sources', [opts]),
 };
 
-type ScreenSharePickerProps = {
-  onUnmount?: () => void;
-};
-
-export function ScreenSharePicker({ onUnmount }: ScreenSharePickerProps = {}) {
+export function ScreenSharePicker() {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
@@ -90,10 +86,19 @@ export function ScreenSharePicker({ onUnmount }: ScreenSharePickerProps = {}) {
   }, [fetchSources]);
 
   useEffect(() => {
-    ipcRenderer.on('video-call-window/open-screen-picker', () => {
+    const handleOpenPicker = () => {
       setVisible(true);
-    });
-  }, [visible]);
+    };
+
+    ipcRenderer.on('video-call-window/open-screen-picker', handleOpenPicker);
+
+    return () => {
+      ipcRenderer.removeListener(
+        'video-call-window/open-screen-picker',
+        handleOpenPicker
+      );
+    };
+  }, []);
 
   useEffect(() => {
     if (!visible) {
@@ -146,13 +151,8 @@ export function ScreenSharePicker({ onUnmount }: ScreenSharePickerProps = {}) {
         'video-call-window/screen-sharing-source-responded',
         selectedSourceId
       );
-      
-      // Unmount React component after closing animation
-      if (onUnmount) {
-        setTimeout(() => {
-          onUnmount();
-        }, 300);
-      }
+
+      // Component stays mounted for reuse - just hide it
     }
   };
 
@@ -160,12 +160,7 @@ export function ScreenSharePicker({ onUnmount }: ScreenSharePickerProps = {}) {
     setVisible(false);
     ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
 
-    // Unmount React component after closing animation
-    if (onUnmount) {
-      setTimeout(() => {
-        onUnmount();
-      }, 300);
-    }
+    // Component stays mounted for reuse - just hide it
   };
 
   // Filter sources based on the current tab

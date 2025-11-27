@@ -8,21 +8,23 @@ let reactRoot: Root | null = null;
 let isMounted = false;
 
 export const show = (): void => {
-  if (isMounted) {
-    return;
-  }
-
   const container = document.getElementById('screen-picker-root');
   if (!container) {
     console.error('Screen picker root container not found');
     return;
   }
 
+  // If already mounted, component's IPC listener will handle showing
+  if (isMounted) {
+    return;
+  }
+
+  // Mount for the first time
   try {
     reactRoot = createRoot(container);
     reactRoot.render(
       <I18nextProvider i18n={i18next}>
-        <ScreenSharePicker onUnmount={hide} />
+        <ScreenSharePicker />
       </I18nextProvider>
     );
     isMounted = true;
@@ -36,19 +38,9 @@ export const show = (): void => {
 };
 
 export const hide = (): void => {
-  if (!isMounted || !reactRoot) {
-    return;
-  }
-
-  try {
-    reactRoot.unmount();
-    reactRoot = null;
-    isMounted = false;
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Screen share picker unmounted');
-    }
-  } catch (error) {
-    console.error('Failed to unmount screen share picker:', error);
+  // Don't unmount - component stays mounted for reuse
+  // The component handles hiding internally via visible state
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Screen share picker hidden (kept mounted for reuse)');
   }
 };

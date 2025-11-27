@@ -16,12 +16,6 @@ Desktop Capturer Cache
 └── Cache persists indefinitely (never expires)
 ```
 
-**Key benefits:**
-- Instant screen picker display (no loading state)
-- Thumbnails stay current through background refresh
-- Memory efficient (~150KB-1.4MB)
-- Pre-warmed when video call loads
-
 ## Screen Sharing Flow
 
 ```mermaid
@@ -168,7 +162,7 @@ flowchart TD
 - **Stale threshold**: 3 seconds
 - **Validation cache**: 30 seconds
 - **Expiration**: Never (persists until app quit or error)
-- **Memory**: ~150KB-1.4MB
+- **Memory**: Varies based on number of sources and thumbnail sizes
 
 **Color Guide:**
 - **Blue** - Main process operations
@@ -299,20 +293,19 @@ Window close → Keep cache (no cleanup timer)
 ## Performance Characteristics
 
 ### Response Times
-| Scenario | Time |
-|----------|------|
-| Pre-warmed cache | ~0ms (instant) |
-| Cache hit (fresh) | ~0ms (instant) |
-| Cache hit (stale) | ~0ms + background refresh |
-| Cold start (no cache) | ~200-500ms (initial fetch) |
+| Scenario | Behavior |
+|----------|----------|
+| Pre-warmed cache | Instant (no delay) |
+| Cache hit (fresh) | Instant (no delay) |
+| Cache hit (stale) | Instant return with background refresh |
+| Cold start (no cache) | Requires initial system call to fetch sources |
 
 ### Memory Usage
-| Component | Size |
-|-----------|------|
-| Source metadata | ~10KB |
-| Thumbnails (10 sources) | ~100KB-500KB |
-| Thumbnails (50 sources) | ~500KB-1.4MB |
-| Validation cache | ~1KB |
+| Component | Behavior |
+|-----------|----------|
+| Source metadata | Minimal overhead per source |
+| Thumbnails | Varies with number of sources and thumbnail resolution |
+| Validation cache | Negligible overhead |
 
 ### Cache Lifecycle
 ```

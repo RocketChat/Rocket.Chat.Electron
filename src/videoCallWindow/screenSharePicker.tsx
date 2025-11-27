@@ -93,7 +93,8 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
     if (onMounted) {
       onMounted(setVisible);
     }
-  }, [onMounted]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!visible) {

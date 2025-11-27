@@ -52,6 +52,96 @@ const t = i18next.t.bind(i18next);
 
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
+/**
+ * Determines if a webview is a video call webview based on partition and URL patterns.
+ * Uses strict URL parsing to avoid false positives from substring matching.
+ */
+const isVideoCallWebview = (
+  partition?: string,
+  src?: string,
+  frameName?: string
+): boolean => {
+  if (partition === 'persist:jitsi-session') {
+    return true;
+  }
+
+  if (frameName === 'Video Call') {
+    return true;
+  }
+
+  if (!src) {
+    return false;
+  }
+
+  try {
+    const url = new URL(src);
+    const hostname = url.hostname.toLowerCase();
+    const pathname = url.pathname.toLowerCase();
+
+    const knownJitsiHosts = ['meet.jit.si', '8x8.vc', 'jitsi.rocket.chat'];
+    const isKnownHost = knownJitsiHosts.some(
+      (host) => hostname === host || hostname.endsWith(`.${host}`)
+    );
+
+    if (isKnownHost) {
+      return true;
+    }
+
+    const jitsiPathPatterns = ['/meet/', '/conference/'];
+    const hasJitsiPath = jitsiPathPatterns.some((pattern) =>
+      pathname.includes(pattern)
+    );
+
+    if (hasJitsiPath) {
+      return true;
+    }
+
+    if (url.searchParams.has('jwt')) {
+      return true;
+    }
+
+    const roomNamePattern = /^\/[a-zA-Z0-9_-]{6,}$/;
+    if (roomNamePattern.test(pathname)) {
+      return true;
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
+};
+
+/**
+ * Resolves and validates preload file paths, falling back to safe defaults.
+ * Returns the preload path or null if no valid preload is available.
+ */
+const resolvePreloadPath = (isVideoCall: boolean): string | null => {
+  const appPath = app.getAppPath();
+  const defaultPreload = path.join(appPath, 'app/preload.js');
+  const videoCallPreload = path.join(appPath, 'app/preload/preload.js');
+
+  const targetPreload = isVideoCall ? videoCallPreload : defaultPreload;
+  const fallbackPreload = isVideoCall ? defaultPreload : null;
+
+  if (fs.existsSync(targetPreload)) {
+    return targetPreload;
+  }
+
+  if (fallbackPreload && fs.existsSync(fallbackPreload)) {
+    console.warn(
+      `Preload file not found: ${targetPreload}, falling back to: ${fallbackPreload}`
+    );
+    return fallbackPreload;
+  }
+
+  console.warn(
+    `Preload file not found: ${targetPreload}${
+      fallbackPreload ? ` or fallback: ${fallbackPreload}` : ''
+    }. Preload will be disabled.`
+  );
+  return null;
+};
+
 export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
@@ -202,15 +292,17 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     _params: Record<string, string>
   ): void => {
     delete webPreferences.enableBlinkFeatures;
-    // Check if this is a video call webview (identified by partition or URL pattern)
-    const isVideoCallWebview =
-      _params.partition === 'persist:jitsi-session' ||
-      _params.src?.includes('jitsi') ||
-      _params.src?.includes('video-call');
-    webPreferences.preload = path.join(
-      app.getAppPath(),
-      isVideoCallWebview ? 'app/preload/preload.js' : 'app/preload.js'
+    const isVideoCall = isVideoCallWebview(
+      _params.partition,
+      _params.src,
+      undefined
     );
+    const preloadPath = resolvePreloadPath(isVideoCall);
+    if (preloadPath) {
+      webPreferences.preload = preloadPath;
+    } else {
+      delete webPreferences.preload;
+    }
     webPreferences.nodeIntegration = false;
     webPreferences.nodeIntegrationInWorker = false;
     webPreferences.nodeIntegrationInSubFrames = false;
@@ -247,7 +339,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         return { action: 'deny' };
       }
 
-      const isVideoCall = frameName === 'Video Call';
+      const isVideoCall = isVideoCallWebview(undefined, url, frameName);
+      const preloadPath = resolvePreloadPath(isVideoCall);
 
       return {
         action: 'allow',
@@ -255,10 +348,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           ...(isVideoCall
             ? {
                 webPreferences: {
-                  preload: path.join(
-                    app.getAppPath(),
-                    'app/preload/preload.js'
-                  ),
+                  ...(preloadPath ? { preload: preloadPath } : {}),
                   sandbox: false,
                 },
               }

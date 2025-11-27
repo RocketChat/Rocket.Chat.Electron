@@ -76,7 +76,6 @@ This document explains the caching architecture that makes screen sharing feel i
 - Always returns data immediately
 - Background refresh when stale (>3s)
 - Persists until app quit or error
-- ~150KB-1.4MB memory footprint
 
 ### [WGC Limitations](./video-call-window-wgc-limitations.md)
 
@@ -122,31 +121,6 @@ This document explains why screen sharing fails in Remote Desktop (RDP) sessions
 4. Background refresh updates thumbnails if stale
 5. Select window or screen
 6. Stream starts immediately
-
-## Performance Characteristics
-
-### Window Startup
-| Phase | Time |
-|-------|------|
-| BrowserWindow creation | ~50ms |
-| HTML load | ~20ms |
-| i18n initialization | ~100ms |
-| Webview creation | ~10ms |
-| Provider load | ~1-3s (network dependent) |
-
-### Screen Sharing
-| Scenario | Response Time |
-|----------|---------------|
-| Pre-warmed cache | ~0ms |
-| Cache hit | ~0ms |
-| Cold start | ~200-500ms |
-
-### Memory
-| Component | Size |
-|-----------|------|
-| Base window | ~30MB |
-| React (when loaded) | ~5MB |
-| Desktop capturer cache | ~150KB-1.4MB |
 
 ## Key Innovations
 

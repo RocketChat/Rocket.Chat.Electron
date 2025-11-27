@@ -447,6 +447,11 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
     });
 
     preloadScreenSharePicker();
+
+    // Pre-warm desktop capturer cache in background to avoid empty state on first open
+    ipcRenderer.invoke('video-call-window/prewarm-capturer-cache').catch(() => {
+      // Silent failure - cache warming is optional optimization
+    });
   };
 
   const handleDidFailLoad = (event: any): void => {
@@ -560,24 +565,19 @@ const createWebview = (url: string): void => {
     throw new Error('Webview container not found');
   }
 
-  // Construct absolute file:// path for preload script
-  // Electron webview requires absolute paths, not relative
-  const htmlPath = window.location.pathname; // e.g., /path/to/app/video-call-window.html
-  const appDir = path.dirname(htmlPath); // e.g., /path/to/app
-  const preloadPath = path.join(appDir, 'preload', 'preload.js');
-  // Normalize path separators for file:// URL (always use forward slashes)
-  const normalizedPath = preloadPath.replace(/\\/g, '/');
-  const preloadUrl = `file://${normalizedPath}`;
+  const htmlPath = window.location.pathname;
+  const appDir = path.posix.dirname(htmlPath);
+  const preloadPath = path.posix.join(appDir, 'preload', 'preload.js');
 
   const webview = document.createElement('webview');
-  webview.src = url;
-  webview.setAttribute('preload', preloadUrl);
+  webview.setAttribute('preload', preloadPath);
   webview.setAttribute(
     'webpreferences',
     'nodeIntegration,nativeWindowOpen=true'
   );
   webview.setAttribute('allowpopups', 'true');
   webview.setAttribute('partition', 'persist:jitsi-session');
+  webview.src = url;
 
   webview.style.cssText = `
     position: absolute;
@@ -605,7 +605,7 @@ const preloadScreenSharePicker = async (): Promise<void> => {
       console.log('Video call window: Preloading React for screen picker');
     }
     screenPickerModule = await import('./screenSharePickerMount');
-    screenPickerModule.show(); // Mount early (stays hidden until IPC event)
+    screenPickerModule.mount(); // Mount only (stays hidden until IPC event)
     if (process.env.NODE_ENV === 'development') {
       console.log('Video call window: Screen picker preloaded and mounted');
     }

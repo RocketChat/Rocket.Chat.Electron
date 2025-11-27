@@ -49,6 +49,9 @@ type ChannelToArgsMap = {
     success: boolean;
     language: string;
   };
+  'video-call-window/prewarm-capturer-cache': () => {
+    success: boolean;
+  };
   'jitsi-desktop-capturer-get-sources': (
     args: [options: Electron.SourcesOptions, jitsiDomain: string]
   ) => Electron.DesktopCapturerSource[];

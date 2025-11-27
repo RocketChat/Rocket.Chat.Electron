@@ -202,7 +202,15 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     _params: Record<string, string>
   ): void => {
     delete webPreferences.enableBlinkFeatures;
-    webPreferences.preload = path.join(app.getAppPath(), 'app/preload.js');
+    // Check if this is a video call webview (identified by partition or URL pattern)
+    const isVideoCallWebview =
+      _params.partition === 'persist:jitsi-session' ||
+      _params.src?.includes('jitsi') ||
+      _params.src?.includes('video-call');
+    webPreferences.preload = path.join(
+      app.getAppPath(),
+      isVideoCallWebview ? 'app/preload/preload.js' : 'app/preload.js'
+    );
     webPreferences.nodeIntegration = false;
     webPreferences.nodeIntegrationInWorker = false;
     webPreferences.nodeIntegrationInSubFrames = false;
@@ -247,7 +255,10 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           ...(isVideoCall
             ? {
                 webPreferences: {
-                  preload: path.join(app.getAppPath(), 'app/preload.js'),
+                  preload: path.join(
+                    app.getAppPath(),
+                    'app/preload/preload.js'
+                  ),
                   sandbox: false,
                 },
               }

@@ -89,7 +89,6 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
     fetchSources();
   }, [fetchSources]);
 
-  // Expose setVisible to parent mount module for IPC event handling
   useEffect(() => {
     if (onMounted) {
       onMounted(setVisible);
@@ -147,16 +146,12 @@ export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
         'video-call-window/screen-sharing-source-responded',
         selectedSourceId
       );
-
-      // Component stays mounted for reuse - just hide it
     }
   };
 
   const handleClose = (): void => {
     setVisible(false);
     ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
-
-    // Component stays mounted for reuse - just hide it
   };
 
   // Filter sources based on the current tab

@@ -81,7 +81,7 @@ export default [
       ...Object.keys(appManifest.dependencies),
       ...Object.keys(appManifest.devDependencies),
     ].filter((moduleName) => moduleName !== '@bugsnag/js'),
-    input: 'src/videoCallWindow/video-call-window.tsx',
+    input: 'src/videoCallWindow/video-call-window.ts',
     preserveEntrySignatures: 'strict',
     plugins: [
       json(),

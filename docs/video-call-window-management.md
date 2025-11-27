@@ -32,7 +32,7 @@ flowchart TD
     %% Renderer Process Initialization
     J --> K[DOM Ready Event]
     K --> L[Execute JavaScript Test]
-    L --> M[video-call-window.tsx Starts]
+    L --> M[video-call-window.ts Starts]
     
     %% React App Bootstrap
     M --> N[Setup i18n]

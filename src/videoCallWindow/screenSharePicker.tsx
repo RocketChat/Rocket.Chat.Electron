@@ -23,7 +23,11 @@ const desktopCapturer: DesktopCapturer = {
     ipcRenderer.invoke('desktop-capturer-get-sources', [opts]),
 };
 
-export function ScreenSharePicker() {
+type ScreenSharePickerProps = {
+  onUnmount?: () => void;
+};
+
+export function ScreenSharePicker({ onUnmount }: ScreenSharePickerProps = {}) {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
@@ -142,12 +146,26 @@ export function ScreenSharePicker() {
         'video-call-window/screen-sharing-source-responded',
         selectedSourceId
       );
+      
+      // Unmount React component after closing animation
+      if (onUnmount) {
+        setTimeout(() => {
+          onUnmount();
+        }, 300);
+      }
     }
   };
 
   const handleClose = (): void => {
     setVisible(false);
     ipcRenderer.send('video-call-window/screen-sharing-source-responded', null);
+
+    // Unmount React component after closing animation
+    if (onUnmount) {
+      setTimeout(() => {
+        onUnmount();
+      }, 300);
+    }
   };
 
   // Filter sources based on the current tab

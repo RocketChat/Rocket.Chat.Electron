@@ -36,12 +36,18 @@ const RECOVERY_STRATEGIES = {
 const VideoCallWindow = () => {
   const { t } = useTranslation();
 
-  const [videoCallUrl, setVideoCallUrl] = useState('');
-  const [shouldAutoOpenDevtools, setShouldAutoOpenDevtools] = useState(false);
+  const [videoCallUrl, setVideoCallUrl] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('url') || '';
+  });
+  const [shouldAutoOpenDevtools, setShouldAutoOpenDevtools] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('autoOpenDevtools') === 'true';
+  });
   const [isFailed, setIsFailed] = useState(false);
   const [isReloading, setIsReloading] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Keep for internal state logic
-  const [showLoading, setShowLoading] = useState(false); // Delayed loading display
+  const [isLoading, setIsLoading] = useState(!!videoCallUrl); // Keep for internal state logic
+  const [showLoading, setShowLoading] = useState(!!videoCallUrl); // Delayed loading display - start true if we have URL (prevents grey screen)
   const [showError, setShowError] = useState(false); // Delayed error display
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [recoveryAttempt, setRecoveryAttempt] = useState(0);
@@ -852,9 +858,12 @@ const VideoCallWindow = () => {
         allowpopups={'true' as any}
         partition='persist:jitsi-session'
         style={{
+          position: 'absolute',
+          inset: 0,
           width: '100%',
           height: '100%',
-          display: showError || showLoading || isLoading ? 'none' : 'flex',
+          visibility: showError || showLoading || isLoading ? 'hidden' : 'visible',
+          zIndex: 0,
         }}
       />
     </Box>

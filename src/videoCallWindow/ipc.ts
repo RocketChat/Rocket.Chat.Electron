@@ -388,6 +388,7 @@ export const startVideoCallWindowHandler = (): void => {
         videoCallWindowState: state.videoCallWindowState,
         isVideoCallWindowPersistenceEnabled:
           state.isVideoCallWindowPersistenceEnabled,
+        isAutoOpenEnabled: state.isVideoCallDevtoolsAutoOpenEnabled,
       }));
 
       let { x, y, width, height } = state.videoCallWindowState.bounds;
@@ -637,7 +638,12 @@ export const startVideoCallWindowHandler = (): void => {
       );
       console.log('Video call window: Loading HTML file from:', htmlPath);
 
-      videoCallWindow.loadFile(htmlPath).catch((error) => {
+      videoCallWindow.loadFile(htmlPath, {
+        query: {
+          url: url,
+          autoOpenDevtools: String(state.isAutoOpenEnabled),
+        },
+      }).catch((error) => {
         console.error('Video call window: Failed to load HTML file:', error);
         console.error(
           'This may indicate build issues or file system problems on low-power devices'

@@ -39,6 +39,7 @@ let isWindowDestroying = false;
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 let screenPickerModule: typeof import('./screenSharePickerMount') | null = null;
 let screenPickerModulePromise: Promise<
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   typeof import('./screenSharePickerMount')
 > | null = null;
 

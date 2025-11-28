@@ -8,7 +8,7 @@ This document shows how the video call window is created and managed in Rocket.C
 
 The video call window uses a **vanilla JavaScript bootstrap** architecture for optimal performance:
 
-```
+```text
 video-call-window.ts (Vanilla JS)
 ├── i18n initialization
 ├── Webview creation and lifecycle management
@@ -325,7 +325,7 @@ Proper cleanup when the window closes.
 
 ## File Structure
 
-```
+```text
 src/videoCallWindow/
 ├── video-call-window.ts      # Vanilla JS bootstrap (main entry)
 ├── screenSharePicker.tsx     # React component for source selection

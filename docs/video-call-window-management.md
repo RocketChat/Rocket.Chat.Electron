@@ -242,6 +242,11 @@ The webview element is created and configured before loading begins.
 - Sets `src` last to trigger loading (attribute order matters)
 - Attaches event handlers for loading states
 
+**Partition support:**
+- Video call windows use `persist:jitsi-session` partition for storage isolation
+- The detection logic recognizes both `persist:jitsi-session` and `persist:pexip-session` partitions
+- This ensures webviews with either partition are correctly identified as video call webviews and receive the appropriate preload script
+
 ### 5. Loading States
 Loading UI is shown during initial load but not during in-call navigation.
 
@@ -343,7 +348,7 @@ const webview = document.createElement('webview');
 webview.setAttribute('preload', preloadPath);
 webview.setAttribute('webpreferences', 'nodeIntegration,nativeWindowOpen=true');
 webview.setAttribute('allowpopups', 'true');
-webview.setAttribute('partition', 'persist:jitsi-session');
+webview.setAttribute('partition', 'persist:jitsi-session'); // Also supports 'persist:pexip-session'
 webview.src = url; // Set last - triggers loading
 ```
 

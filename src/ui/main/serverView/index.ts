@@ -52,6 +52,8 @@ const t = i18next.t.bind(i18next);
 
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
+const VIDEO_CALL_PRELOAD_PATH = 'app/preload/preload.js';
+
 /**
  * Determines if a webview is a video call webview based on partition and URL patterns.
  * Uses strict URL parsing to avoid false positives from substring matching.
@@ -61,7 +63,10 @@ const isVideoCallWebview = (
   src?: string,
   frameName?: string
 ): boolean => {
-  if (partition === 'persist:jitsi-session') {
+  if (
+    partition === 'persist:jitsi-session' ||
+    partition === 'persist:pexip-session'
+  ) {
     return true;
   }
 
@@ -118,7 +123,7 @@ const isVideoCallWebview = (
 const resolvePreloadPath = (isVideoCall: boolean): string | null => {
   const appPath = app.getAppPath();
   const defaultPreload = path.join(appPath, 'app/preload.js');
-  const videoCallPreload = path.join(appPath, 'app/preload/preload.js');
+  const videoCallPreload = path.join(appPath, VIDEO_CALL_PRELOAD_PATH);
 
   const targetPreload = isVideoCall ? videoCallPreload : defaultPreload;
   const fallbackPreload = isVideoCall ? defaultPreload : null;

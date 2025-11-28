@@ -4,6 +4,11 @@ import { I18nextProvider } from 'react-i18next';
 
 import { ScreenSharePicker } from './screenSharePicker';
 
+export type ScreenSharePickerModuleType = {
+  mount: () => void;
+  show: () => void;
+};
+
 let reactRoot: Root | null = null;
 let setVisibleCallback: ((visible: boolean) => void) | null = null;
 let shouldShowOnMount = false;

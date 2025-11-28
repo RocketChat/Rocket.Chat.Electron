@@ -7,6 +7,7 @@ import { interpolation, fallbackLng } from '../i18n/common';
 import resources from '../i18n/resources';
 import { invokeWithRetry } from '../ipc/renderer';
 import type { IRetryOptions } from '../ipc/renderer';
+import type { ScreenSharePickerModuleType } from './screenSharePickerMount';
 
 const MAX_INIT_ATTEMPTS = 10;
 const MAX_RECOVERY_ATTEMPTS = 3;
@@ -14,6 +15,7 @@ const LOADING_TIMEOUT_MS = 15000;
 const LOADING_SHOW_DELAY = 500;
 const ERROR_SHOW_DELAY = 800;
 const ERROR_SHOW_DELAY_404 = 1500;
+const VIDEO_CALL_PRELOAD_RELATIVE_PATH = 'preload/preload.js';
 
 const RECOVERY_DELAYS = {
   webviewReload: 1000,
@@ -36,12 +38,9 @@ interface IVideoCallWindowState {
 
 let initAttempts = 0;
 let isWindowDestroying = false;
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-let screenPickerModule: typeof import('./screenSharePickerMount') | null = null;
-let screenPickerModulePromise: Promise<
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  typeof import('./screenSharePickerMount')
-> | null = null;
+let screenPickerModule: ScreenSharePickerModuleType | null = null;
+let screenPickerModulePromise: Promise<ScreenSharePickerModuleType> | null =
+  null;
 
 const state: IVideoCallWindowState = {
   url: null,
@@ -288,12 +287,30 @@ const attemptAutoRecovery = (): void => {
         break;
       case 2:
         if (webview && state.url) {
-          webview.src = 'about:blank';
-          setTimeout(() => {
-            if (webview && state.url) {
-              webview.src = state.url;
+          try {
+            const validatedUrl = validateVideoCallUrl(state.url);
+            webview.src = 'about:blank';
+            setTimeout(() => {
+              if (webview) {
+                webview.src = validatedUrl;
+              }
+            }, 500);
+          } catch (error) {
+            console.error(
+              'Video call window: URL validation failed during recovery:',
+              error
+            );
+            console.error(
+              'Video call window: Skipping URL refresh recovery step, proceeding to next recovery attempt'
+            );
+            if (recoveryTimeout) {
+              clearTimeout(recoveryTimeout);
+              recoveryTimeout = null;
             }
-          }, 500);
+            state.recoveryAttempt = currentAttempt;
+            attemptAutoRecovery();
+            return;
+          }
         }
         break;
       case 3:
@@ -563,15 +580,72 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
   webviewElement.addEventListener('crashed', handleCrashed);
 };
 
+const validateVideoCallUrl = (url: string): string => {
+  try {
+    const parsedUrl = new URL(url);
+
+    const allowedProtocols = ['http:', 'https:'];
+    if (!allowedProtocols.includes(parsedUrl.protocol)) {
+      throw new Error(
+        `Invalid URL protocol: ${parsedUrl.protocol}. Only http: and https: are allowed.`
+      );
+    }
+
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const pathname = parsedUrl.pathname.toLowerCase();
+
+    const knownJitsiHosts = ['meet.jit.si', '8x8.vc', 'jitsi.rocket.chat'];
+    const isKnownHost = knownJitsiHosts.some(
+      (host) => hostname === host || hostname.endsWith(`.${host}`)
+    );
+
+    if (isKnownHost) {
+      return parsedUrl.href;
+    }
+
+    const jitsiPathPatterns = ['/meet/', '/conference/'];
+    const hasJitsiPath = jitsiPathPatterns.some((pattern) =>
+      pathname.includes(pattern)
+    );
+
+    if (hasJitsiPath) {
+      return parsedUrl.href;
+    }
+
+    if (parsedUrl.searchParams.has('jwt')) {
+      return parsedUrl.href;
+    }
+
+    const roomNamePattern = /^\/[a-zA-Z0-9_-]{6,}$/;
+    if (roomNamePattern.test(pathname)) {
+      return parsedUrl.href;
+    }
+
+    throw new Error(
+      `URL does not match expected video call patterns. Hostname: ${hostname}, Pathname: ${pathname}`
+    );
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error(`Invalid URL format: ${url}`);
+    }
+    throw error;
+  }
+};
+
 const createWebview = (url: string): void => {
   const container = document.getElementById('webview-container');
   if (!container) {
     throw new Error('Webview container not found');
   }
 
+  const validatedUrl = validateVideoCallUrl(url);
+
   const htmlPath = window.location.pathname;
   const appDir = path.posix.dirname(htmlPath);
-  const preloadRelativePath = path.posix.join(appDir, 'preload', 'preload.js');
+  const preloadRelativePath = path.posix.join(
+    appDir,
+    VIDEO_CALL_PRELOAD_RELATIVE_PATH
+  );
 
   // Convert to file:// URL format required by Electron webview preload attribute
   // window.location.origin is 'file://' on all platforms
@@ -590,7 +664,7 @@ const createWebview = (url: string): void => {
   );
   webview.setAttribute('allowpopups', 'true');
   webview.setAttribute('partition', 'persist:jitsi-session');
-  webview.src = url;
+  webview.src = validatedUrl;
 
   webview.style.cssText = `
     position: absolute;

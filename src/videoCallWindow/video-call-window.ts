@@ -829,6 +829,7 @@ const handleOpenScreenPicker = (): void => {
       }
       screenPickerModule.show();
     } catch (error) {
+      screenPickerModulePromise = null;
       console.error('Video call window: Failed to open screen picker:', error);
     }
   })();

@@ -205,9 +205,10 @@ When you click a video call button in Rocket.Chat, the app opens a dedicated win
 
 **What happens:**
 - Main app receives the request with the video call URL
-- Validates the URL (only allows https:// and http://)
+- Validates the URL (only allows https:// and http:// - no provider-specific patterns)
 - Google Meet links open in your default browser instead
 - Valid URLs proceed to window creation
+- Works with any provider: Jitsi, PEXIP, self-hosted, or any other video call service
 
 ### 2. Managing Windows
 The app ensures only one video call window exists at a time.
@@ -243,9 +244,10 @@ The webview element is created and configured before loading begins.
 - Attaches event handlers for loading states
 
 **Partition support:**
-- Video call windows use `persist:jitsi-session` partition for storage isolation
-- The detection logic recognizes both `persist:jitsi-session` and `persist:pexip-session` partitions
-- This ensures webviews with either partition are correctly identified as video call webviews and receive the appropriate preload script
+- Video call windows use `persist:video-call-session` partition for storage isolation
+- This generic partition name works with all providers (Jitsi, PEXIP, self-hosted, etc.)
+- The detection logic checks for this partition to identify video call webviews
+- All video call providers share the same partition for consistent behavior
 
 ### 5. Loading States
 Loading UI is shown during initial load but not during in-call navigation.
@@ -308,7 +310,7 @@ Proper cleanup when the window closes.
 ### Smart Loading System
 - **Initial load tracking** - distinguishes first load from navigation
 - **Webview visibility control** - hidden during loading to prevent flicker
-- **Provider optimization** - works with Pexip and Jitsi seamlessly
+- **Provider agnostic** - works with any video call provider (Jitsi, PEXIP, self-hosted, etc.)
 - **Error-specific delays** - 404 errors get longer delays
 
 ### Cache Pre-warming
@@ -332,12 +334,13 @@ Proper cleanup when the window closes.
 
 ```text
 src/videoCallWindow/
-├── video-call-window.ts      # Vanilla JS bootstrap (main entry)
-├── screenSharePicker.tsx     # React component for source selection
-├── screenSharePickerMount.tsx # React mounting utilities
-├── ipc.ts                    # Main process IPC handlers
+├── video-call-window.ts      # Vanilla JS bootstrap (main entry, generic)
+├── screenSharePicker.tsx     # React component for source selection (generic)
+├── screenSharePickerMount.tsx # React mounting utilities (generic)
+├── ipc.ts                    # Main process IPC handlers (generic)
 └── preload/
-    └── index.ts              # Webview preload script
+    ├── index.ts              # Webview preload script (generic)
+    └── jitsiBridge.ts        # Jitsi-specific bridge (required for Jitsi screen sharing)
 ```
 
 ## Technical Implementation
@@ -348,7 +351,7 @@ const webview = document.createElement('webview');
 webview.setAttribute('preload', preloadPath);
 webview.setAttribute('webpreferences', 'nodeIntegration,nativeWindowOpen=true');
 webview.setAttribute('allowpopups', 'true');
-webview.setAttribute('partition', 'persist:jitsi-session'); // Also supports 'persist:pexip-session'
+webview.setAttribute('partition', 'persist:video-call-session'); // Generic partition for all providers
 webview.src = url; // Set last - triggers loading
 ```
 

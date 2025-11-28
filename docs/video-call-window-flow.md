@@ -2,7 +2,7 @@
 
 ## Overview
 
-The video call window system in Rocket.Chat Electron provides a dedicated, high-performance environment for video conferencing with providers like Jitsi and Pexip.
+The video call window system in Rocket.Chat Electron provides a dedicated, high-performance environment for video conferencing with any provider (Jitsi, PEXIP, self-hosted, and others). The core system is provider-agnostic and works with any HTTP/HTTPS video call URL.
 
 ## Architecture
 
@@ -110,9 +110,10 @@ This document explains why screen sharing fails in Remote Desktop (RDP) sessions
 1. Click "Join Video Call" in Rocket.Chat
 2. Window Management Flow creates dedicated window
 3. Vanilla JS shows loading overlay with localized text
-4. Webview loads Jitsi/Pexip interface
+4. Webview loads video call provider interface (Jitsi, PEXIP, or any provider)
 5. Cache pre-warmed in background
 6. Loading overlay hidden, video call visible
+7. If Jitsi: jitsiBridge auto-detects and initializes (required for screen sharing)
 
 **Sharing your screen:**
 1. Click screen share button in video call
@@ -143,16 +144,42 @@ Traditional apps fetch data on demand. This system pre-warms:
 - **Zero wait**: First screen share shows sources instantly
 - **Background operation**: No impact on video call startup
 
+## Provider Support
+
+The video call window is designed to work with any video conferencing provider. The core system is generic and provider-agnostic:
+
+### Generic Support (All Providers)
+- **URL validation**: Only checks HTTP/HTTPS protocol (no provider-specific patterns)
+- **Webview lifecycle**: Standard Electron webview handling
+- **Screen sharing**: Uses generic Electron desktop capturer API
+- **Partition**: Uses generic `persist:video-call-session` partition
+
+### Jitsi-Specific Requirements
+For Jitsi servers, a required bridge module (`jitsiBridge.ts`) is essential for screen sharing:
+- **Auto-detection**: Automatically detects Jitsi meetings and initializes integration
+- **Screen sharing coordination**: Required for screen sharing to work with Jitsi's External API
+- **Event handling**: Listens for Jitsi-specific events and messages
+
+**Important**: The jitsiBridge is **required** for Jitsi calls - screen sharing will not work without it. Other providers (like PEXIP) work with the standard generic events and do not need a bridge.
+
+### PEXIP and Other Providers
+PEXIP and other providers work seamlessly with the generic event system:
+- No special bridge code required
+- Uses standard webview events and IPC communication
+- Screen sharing works through the generic desktop capturer API
+- Easier to integrate than Jitsi (no bridge needed)
+
 ## File Structure
 
 ```
 src/videoCallWindow/
-├── video-call-window.ts       # Vanilla JS bootstrap
-├── screenSharePicker.tsx      # React screen picker UI
-├── screenSharePickerMount.tsx # React mounting utilities
-├── ipc.ts                     # Main process handlers
+├── video-call-window.ts       # Vanilla JS bootstrap (generic)
+├── screenSharePicker.tsx      # React screen picker UI (generic)
+├── screenSharePickerMount.tsx # React mounting utilities (generic)
+├── ipc.ts                     # Main process handlers (generic)
 └── preload/
-    └── index.ts               # Webview preload script
+    ├── index.ts               # Webview preload script (generic)
+    └── jitsiBridge.ts         # Jitsi-specific bridge (required for Jitsi screen sharing)
 
 src/public/
 ├── video-call-window.html     # Window HTML with overlay containers

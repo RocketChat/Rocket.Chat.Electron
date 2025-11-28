@@ -60,57 +60,15 @@ const VIDEO_CALL_PRELOAD_PATH = 'app/preload/preload.js';
  */
 const isVideoCallWebview = (
   partition?: string,
-  src?: string,
+  _src?: string,
   frameName?: string
 ): boolean => {
-  if (
-    partition === 'persist:jitsi-session' ||
-    partition === 'persist:pexip-session'
-  ) {
+  if (partition === 'persist:video-call-session') {
     return true;
   }
 
   if (frameName === 'Video Call') {
     return true;
-  }
-
-  if (!src) {
-    return false;
-  }
-
-  try {
-    const url = new URL(src);
-    const hostname = url.hostname.toLowerCase();
-    const pathname = url.pathname.toLowerCase();
-
-    const knownJitsiHosts = ['meet.jit.si', '8x8.vc', 'jitsi.rocket.chat'];
-    const isKnownHost = knownJitsiHosts.some(
-      (host) => hostname === host || hostname.endsWith(`.${host}`)
-    );
-
-    if (isKnownHost) {
-      return true;
-    }
-
-    const jitsiPathPatterns = ['/meet/', '/conference/'];
-    const hasJitsiPath = jitsiPathPatterns.some((pattern) =>
-      pathname.includes(pattern)
-    );
-
-    if (hasJitsiPath) {
-      return true;
-    }
-
-    if (url.searchParams.has('jwt')) {
-      return true;
-    }
-
-    const roomNamePattern = /^\/[a-zA-Z0-9_-]{6,}$/;
-    if (roomNamePattern.test(pathname)) {
-      return true;
-    }
-  } catch {
-    return false;
   }
 
   return false;

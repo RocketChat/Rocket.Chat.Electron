@@ -591,39 +591,7 @@ const validateVideoCallUrl = (url: string): string => {
       );
     }
 
-    const hostname = parsedUrl.hostname.toLowerCase();
-    const pathname = parsedUrl.pathname.toLowerCase();
-
-    const knownJitsiHosts = ['meet.jit.si', '8x8.vc', 'jitsi.rocket.chat'];
-    const isKnownHost = knownJitsiHosts.some(
-      (host) => hostname === host || hostname.endsWith(`.${host}`)
-    );
-
-    if (isKnownHost) {
-      return parsedUrl.href;
-    }
-
-    const jitsiPathPatterns = ['/meet/', '/conference/'];
-    const hasJitsiPath = jitsiPathPatterns.some((pattern) =>
-      pathname.includes(pattern)
-    );
-
-    if (hasJitsiPath) {
-      return parsedUrl.href;
-    }
-
-    if (parsedUrl.searchParams.has('jwt')) {
-      return parsedUrl.href;
-    }
-
-    const roomNamePattern = /^\/[a-zA-Z0-9_-]{6,}$/;
-    if (roomNamePattern.test(pathname)) {
-      return parsedUrl.href;
-    }
-
-    throw new Error(
-      `URL does not match expected video call patterns. Hostname: ${hostname}, Pathname: ${pathname}`
-    );
+    return parsedUrl.href;
   } catch (error) {
     if (error instanceof TypeError) {
       throw new Error(`Invalid URL format: ${url}`);
@@ -663,7 +631,7 @@ const createWebview = (url: string): void => {
     'nodeIntegration,nativeWindowOpen=true'
   );
   webview.setAttribute('allowpopups', 'true');
-  webview.setAttribute('partition', 'persist:jitsi-session');
+  webview.setAttribute('partition', 'persist:video-call-session');
   webview.src = validatedUrl;
 
   webview.style.cssText = `

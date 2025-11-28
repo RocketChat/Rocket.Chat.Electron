@@ -310,8 +310,14 @@ export const startVideoCallWindowHandler = (): void => {
   );
 
   handle('video-call-window/open-screen-picker', async (_webContents) => {
-    // This is handled by the renderer process (screenSharePicker.tsx)
-    // The handler exists to satisfy the IPC call from preload script
+    if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+      videoCallWindow.webContents.send('video-call-window/open-screen-picker');
+      return { success: true };
+    }
+    console.warn(
+      'Video call window: Cannot open screen picker - window not available'
+    );
+    return { success: false };
   });
 
   handle('video-call-window/open-window', async (_webContents, url) => {

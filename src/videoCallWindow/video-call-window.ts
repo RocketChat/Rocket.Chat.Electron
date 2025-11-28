@@ -38,6 +38,9 @@ let initAttempts = 0;
 let isWindowDestroying = false;
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 let screenPickerModule: typeof import('./screenSharePickerMount') | null = null;
+let screenPickerModulePromise: Promise<
+  typeof import('./screenSharePickerMount')
+> | null = null;
 
 const state: IVideoCallWindowState = {
   url: null,
@@ -567,7 +570,16 @@ const createWebview = (url: string): void => {
 
   const htmlPath = window.location.pathname;
   const appDir = path.posix.dirname(htmlPath);
-  const preloadPath = path.posix.join(appDir, 'preload', 'preload.js');
+  const preloadRelativePath = path.posix.join(appDir, 'preload', 'preload.js');
+
+  // Convert to file:// URL format required by Electron webview preload attribute
+  // window.location.origin is 'file://' on all platforms
+  // path.posix.join produces absolute paths starting with '/'
+  // Combining them: 'file://' + '/path' = 'file:///path' (correct format)
+  // Works on Linux: file:///home/user/app/preload/preload.js
+  // Works on macOS: file:///Users/user/app/preload/preload.js
+  // Works on Windows: file:///C:/Users/user/app/preload/preload.js
+  const preloadPath = `${window.location.origin}${preloadRelativePath}`;
 
   const webview = document.createElement('webview');
   webview.setAttribute('preload', preloadPath);
@@ -604,13 +616,19 @@ const preloadScreenSharePicker = async (): Promise<void> => {
     if (process.env.NODE_ENV === 'development') {
       console.log('Video call window: Preloading React for screen picker');
     }
-    screenPickerModule = await import('./screenSharePickerMount');
+    // Track import promise to prevent concurrent imports
+    if (!screenPickerModulePromise) {
+      screenPickerModulePromise = import('./screenSharePickerMount');
+    }
+    screenPickerModule = await screenPickerModulePromise;
+    screenPickerModulePromise = null;
     screenPickerModule.mount(); // Mount only (stays hidden until IPC event)
     if (process.env.NODE_ENV === 'development') {
       console.log('Video call window: Screen picker preloaded and mounted');
     }
   } catch (error) {
     console.error('Video call window: Failed to preload React:', error);
+    screenPickerModulePromise = null;
   }
 };
 
@@ -694,13 +712,45 @@ const start = async (): Promise<void> => {
     await initializeI18n();
 
     const params = new URLSearchParams(window.location.search);
-    const url = params.get('url');
+    let url = params.get('url');
     const autoOpenDevtools = params.get('autoOpenDevtools') === 'true';
 
     state.shouldAutoOpenDevtools = autoOpenDevtools;
 
     if (!url) {
-      updateLoadingUI(true, false);
+      // Try to get URL via IPC if not provided in query params
+      try {
+        const urlResult = await invokeWithRetry(
+          'video-call-window/request-url',
+          {
+            maxAttempts: 2,
+            retryDelay: 500,
+            logRetries: process.env.NODE_ENV === 'development',
+          }
+        );
+        if (urlResult?.success && urlResult?.url) {
+          url = urlResult.url;
+          if (urlResult.autoOpenDevtools !== undefined) {
+            state.shouldAutoOpenDevtools = urlResult.autoOpenDevtools;
+          }
+        }
+      } catch (error) {
+        console.error(
+          'Video call window: Failed to request URL via IPC:',
+          error
+        );
+      }
+    }
+
+    if (!url) {
+      // No URL available - show error state instead of stuck loading screen
+      state.status = 'error';
+      state.errorMessage = t(
+        'videoCall.error.noUrl',
+        'No video call URL provided'
+      );
+      updateLoadingUI(false);
+      showErrorWithDelay(state.errorMessage, false);
       return;
     }
 
@@ -766,11 +816,22 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 // IPC listener for screen picker (with cleanup on page unload)
-const handleOpenScreenPicker = async (): Promise<void> => {
-  if (!screenPickerModule) {
-    screenPickerModule = await import('./screenSharePickerMount');
-  }
-  screenPickerModule.show();
+const handleOpenScreenPicker = (): void => {
+  (async () => {
+    try {
+      if (!screenPickerModule) {
+        // Track import promise to prevent concurrent imports
+        if (!screenPickerModulePromise) {
+          screenPickerModulePromise = import('./screenSharePickerMount');
+        }
+        screenPickerModule = await screenPickerModulePromise;
+        screenPickerModulePromise = null;
+      }
+      screenPickerModule.show();
+    } catch (error) {
+      console.error('Video call window: Failed to open screen picker:', error);
+    }
+  })();
 };
 
 ipcRenderer.on('video-call-window/open-screen-picker', handleOpenScreenPicker);

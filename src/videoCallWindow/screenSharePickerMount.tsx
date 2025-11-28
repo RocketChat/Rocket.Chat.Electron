@@ -48,8 +48,9 @@ export const mount = (): void => {
 
 export const show = (): void => {
   if (!reactRoot) {
-    mount();
+    // Set flag BEFORE mounting so onMounted callback can see it during render
     shouldShowOnMount = true;
+    mount();
     return;
   }
 

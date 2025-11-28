@@ -61,8 +61,8 @@ export const show = (): void => {
     setTimeout(() => {
       if (setVisibleCallback) {
         setVisibleCallback(true);
-        shouldShowOnMount = false;
       }
+      shouldShowOnMount = false;
     }, 0);
   }
 };

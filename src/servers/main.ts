@@ -5,12 +5,15 @@ import { app } from 'electron';
 import { satisfies, coerce } from 'semver';
 
 import { packageJsonInformation } from '../app/main/app';
+import i18n from '../i18n/main';
 import { invoke } from '../ipc/main';
+import { createNotification } from '../notifications/preload';
 import { select, dispatch, listen } from '../store';
 import { hasMeta } from '../store/fsa';
 import {
   WEBVIEW_GIT_COMMIT_HASH_CHANGED,
   WEBVIEW_GIT_COMMIT_HASH_CHECK,
+  WEBVIEW_USER_LOGGED_IN,
 } from '../ui/actions';
 import { getRootWindow } from '../ui/main/rootWindow';
 import { getWebContentsByServerUrl } from '../ui/main/serverView';
@@ -200,6 +203,24 @@ export const setupServers = async (
       });
       await guestWebContents?.session.clearCache();
       guestWebContents?.reload();
+    }
+  });
+
+  const userLoginStates = new Map<string, boolean>();
+
+  listen(WEBVIEW_USER_LOGGED_IN, async (action) => {
+    const { url, userLoggedIn } = action.payload;
+    const previousState = userLoginStates.get(url);
+
+    if (previousState === true && userLoggedIn === false) {
+      await createNotification({
+        title: i18n.t('downloads.notifications.userLoggedOut'),
+        body: '',
+      });
+    }
+
+    if (typeof userLoggedIn === 'boolean') {
+      userLoginStates.set(url, userLoggedIn);
     }
   });
 

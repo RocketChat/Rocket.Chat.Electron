@@ -87,7 +87,7 @@ export const Shell = () => {
       <GlobalStyles />
       {process.platform === 'darwin' && <WindowDragBar />}
       <Box
-        bg='light'
+        bg={process.platform === 'darwin' ? undefined : 'light'}
         display='flex'
         flexWrap='wrap'
         height='100vh'
@@ -101,6 +101,7 @@ export const Shell = () => {
             position='relative'
             alignSelf='stretch'
             flexBasis='1 1 auto'
+            bg={process.platform === 'darwin' ? 'light' : undefined}
           >
             <ServersView />
             <AddServerView />

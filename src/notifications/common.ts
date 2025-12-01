@@ -1,3 +1,5 @@
+export type NotificationCategory = 'DOWNLOADS' | 'SERVER';
+
 export type ExtendedNotificationOptions = NotificationOptions & {
   canReply?: boolean;
   title: string;
@@ -8,6 +10,7 @@ export type ExtendedNotificationOptions = NotificationOptions & {
   renotify?: boolean;
   requireInteraction?: boolean;
   notificationType?: 'voice' | 'text';
+  category?: NotificationCategory;
 };
 
 export type CustomNotificationOptions = {

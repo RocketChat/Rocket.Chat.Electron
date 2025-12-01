@@ -109,6 +109,18 @@ export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
 
+export const getServerUrlByWebContentsId = (
+  webContentsId: number
+): string | undefined => {
+  const targetWebContents = webContents.fromId(webContentsId);
+  if (!targetWebContents) {
+    return undefined;
+  }
+  return Array.from(webContentsByServerUrl.entries()).find(
+    ([, wc]) => wc === targetWebContents
+  )?.[0];
+};
+
 const initializeServerWebContentsAfterReady = (
   _serverUrl: string,
   guestWebContents: WebContents,

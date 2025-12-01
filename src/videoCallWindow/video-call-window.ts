@@ -626,10 +626,7 @@ const createWebview = (url: string): void => {
 
   const webview = document.createElement('webview');
   webview.setAttribute('preload', preloadPath);
-  webview.setAttribute(
-    'webpreferences',
-    'nodeIntegration,nativeWindowOpen=true'
-  );
+  webview.setAttribute('webpreferences', 'nodeIntegration');
   webview.setAttribute('allowpopups', 'true');
   webview.setAttribute('partition', 'persist:video-call-session');
   webview.src = validatedUrl;

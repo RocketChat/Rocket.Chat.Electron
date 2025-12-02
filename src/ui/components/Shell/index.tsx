@@ -28,6 +28,9 @@ export const Shell = () => {
     ({ machineTheme }: RootState) => machineTheme
   );
   const currentView = useSelector(({ currentView }: RootState) => currentView);
+  const isTransparentWindowEnabled = useSelector(
+    ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
+  );
 
   const currentServerUrl = select(({ currentView }) =>
     typeof currentView === 'object' ? currentView.url : null
@@ -84,7 +87,7 @@ export const Shell = () => {
         selector=':root'
         // tagId='sidebar-palette'
       />
-      <GlobalStyles />
+      <GlobalStyles isTransparentWindowEnabled={isTransparentWindowEnabled} />
       {process.platform === 'darwin' && <WindowDragBar />}
       <Box
         bg={process.platform === 'darwin' ? undefined : 'light'}

@@ -69,8 +69,9 @@ const getEnableVibrancy = (): boolean => {
     return false;
   }
   try {
-    const persistedValues = getPersistedValues();
-    return persistedValues.isTransparentWindowEnabled === true;
+    const persistedValues: { isTransparentWindowEnabled?: boolean } =
+      getPersistedValues();
+    return persistedValues?.isTransparentWindowEnabled === true;
   } catch (error) {
     return false;
   }

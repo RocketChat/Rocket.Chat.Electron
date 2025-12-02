@@ -10,6 +10,7 @@ import {
   APP_MAIN_WINDOW_TITLE_SET,
 } from '../../app/actions';
 import { setupRootWindowReload } from '../../app/main/dev';
+import { getPersistedValues } from '../../app/main/persistence';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
@@ -55,9 +56,20 @@ const platformTitleBarStyle =
   process.platform === 'darwin' ? 'hidden' : 'default';
 
 const isMac = process.platform === 'darwin';
-const enableVibrancy = isMac;
+const getEnableVibrancy = (): boolean => {
+  if (!isMac) {
+    return false;
+  }
+  try {
+    const persistedValues = getPersistedValues();
+    return persistedValues.isTransparentWindowEnabled === true;
+  } catch (error) {
+    return false;
+  }
+};
 
 export const createRootWindow = (): void => {
+  const enableVibrancy = getEnableVibrancy();
   _rootWindow = new BrowserWindow({
     width: 1000,
     height: 600,

@@ -29,6 +29,7 @@ import { isNTLMCredentialsEnabled } from '../ui/reducers/isNTLMCredentialsEnable
 import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
+import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
@@ -96,6 +97,7 @@ export const rootReducer = combineReducers({
   isDeveloperModeEnabled,
   updateChannel,
   isVideoCallDevtoolsAutoOpenEnabled,
+  isTransparentWindowEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

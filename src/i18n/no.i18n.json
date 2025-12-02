@@ -273,6 +273,10 @@
       "videoCallWindowPersistence": {
         "title": "Husk posisjonen til videosamtalevinduet",
         "description": "Lagre og gjenopprett posisjonen og størrelsen på videosamtalevinduer mellom økter"
+      },
+      "transparentWindow": {
+        "title": "Gjennomsiktig vinduseffekt",
+        "description": "Aktiver innfødt vibrans/gjennomsiktighetseffekt for vinduet. Krever omstart for å brukes."
       }
     }
   },

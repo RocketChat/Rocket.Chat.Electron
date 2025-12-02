@@ -264,6 +264,10 @@
       "videoCallWindowPersistence": {
         "title": "Videohívás ablak pozíciójának megjegyzése",
         "description": "Videohívás ablakok pozíciójának és méretének mentése és visszaállítása a munkamenetek között"
+      },
+      "transparentWindow": {
+        "title": "Áttetsző ablak effektus",
+        "description": "Natív vibráció/áttetszőség effektus engedélyezése az ablakhoz. Újraindítás szükséges az alkalmazáshoz."
       }
     }
   },

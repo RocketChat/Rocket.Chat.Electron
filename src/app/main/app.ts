@@ -16,6 +16,7 @@ import {
   SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
   SETTINGS_NTLM_CREDENTIALS_CHANGED,
   SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED,
+  SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED,
 } from '../../ui/actions';
 import { askForClearScreenCapturePermission } from '../../ui/main/dialogs';
 import { getRootWindow } from '../../ui/main/rootWindow';
@@ -130,6 +131,10 @@ export const setupApp = (): void => {
   app.whenReady().then(() => preloadBrowsersList());
 
   listen(SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED, () => {
+    relaunchApp();
+  });
+
+  listen(SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED, () => {
     relaunchApp();
   });
 

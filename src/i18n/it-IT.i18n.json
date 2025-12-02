@@ -1,4 +1,12 @@
 {
+  "settings": {
+    "options": {
+      "transparentWindow": {
+        "title": "Effetto finestra trasparente",
+        "description": "Abilita l'effetto nativo di vibrazione/trasparenza per la finestra. Richiede il riavvio per applicare."
+      }
+    }
+  },
   "serverInfo": {
     "title": "Informazioni sul Server",
     "urlLabel": "URL:",

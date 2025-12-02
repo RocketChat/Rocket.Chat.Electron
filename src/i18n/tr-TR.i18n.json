@@ -237,6 +237,14 @@
     "cancel": "İptal et",
     "share": "Paylaş"
   },
+  "settings": {
+    "options": {
+      "transparentWindow": {
+        "title": "Şeffaf pencere efekti",
+        "description": "Pencere için yerel titreşim/şeffaflık efektini etkinleştir. Uygulamak için yeniden başlatma gerektirir."
+      }
+    }
+  },
   "serverInfo": {
     "title": "Sunucu Bilgileri",
     "urlLabel": "URL:",

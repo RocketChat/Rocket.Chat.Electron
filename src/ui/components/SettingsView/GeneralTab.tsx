@@ -9,6 +9,7 @@ import { MenuBar } from './features/MenuBar';
 import { MinimizeOnClose } from './features/MinimizeOnClose';
 import { NTLMCredentials } from './features/NTLMCredentials';
 import { ReportErrors } from './features/ReportErrors';
+import { ScreenCaptureFallback } from './features/ScreenCaptureFallback';
 import { SideBar } from './features/SideBar';
 import { TransparentWindow } from './features/TransparentWindow';
 import { TrayIcon } from './features/TrayIcon';
@@ -20,6 +21,7 @@ export const GeneralTab = () => (
       <ReportErrors />
       <FlashFrame />
       <HardwareAcceleration />
+      {process.platform === 'win32' && <ScreenCaptureFallback />}
       <InternalVideoChatWindow />
       <VideoCallWindowPersistence />
       {process.platform === 'darwin' && <TransparentWindow />}

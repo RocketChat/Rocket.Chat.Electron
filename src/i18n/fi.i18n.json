@@ -131,6 +131,18 @@
       "microphone": "Mikrofoni",
       "camera": "Kamera",
       "both": "Mikrofoni ja Kamera"
+    },
+    "microphonePermissionDenied": {
+      "title": "Mikrofonin käyttö vaaditaan",
+      "message": "Mikrofonin käyttö vaaditaan {{- actionType}}. Tarkista järjestelmäsi asetukset.",
+      "detail": "Voit ottaa mikrofonin käyttöön järjestelmäsi tietosuoja-asetuksista.",
+      "openSettings": "Avaa asetukset",
+      "cancel": "Peruuta",
+      "actionTypes": {
+        "initiateCall": "soittaa",
+        "answerCall": "vastata puheluun",
+        "recordMessage": "tallentaa viestin"
+      }
     }
   },
   "downloads": {
@@ -205,6 +217,11 @@
       "hardwareAcceleration": {
         "title": "Laitteistokiihdytys",
         "description": "Ottaa käyttöön laitteistokiihdytyksen, jos se on käytettävissä. Sovellus latautuu uudelleen muutoksen yhteydessä."
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "Videopuhelujen varanäyttökaappaus",
+        "description": "Poistaa Windows Graphics Capture -tilan, jotta jakaminen toimii RDP-istunnoissa. Sovellus käynnistyy uudelleen, kun tämä vaihtoehto muuttuu.",
+        "forcedDescription": "Tällä hetkellä pakotettu, koska sovellus havaitsi RDP-istunnon. Vaihtoehto määrittää seuraavien paikallisten käynnistysten käytöksen."
       },
       "internalVideoChatWindow": {
         "title": "Avaa videokeskustelu sovellusikkunaan",
@@ -375,5 +392,31 @@
     "noWindowsFound": "Ikkunoita ei löytynyt",
     "cancel": "Peruuta",
     "share": "Jaa"
+  },
+  "serverInfo": {
+    "title": "Palvelimen tiedot",
+    "urlLabel": "URL:",
+    "versionLabel": "Versio:",
+    "unknown": "Tuntematon",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Tuetut versiot",
+    "statusLabel": "Tila:",
+    "status": {
+      "loading": "Ladataan...",
+      "error": "Lataus epäonnistui",
+      "loaded": "Ladattu",
+      "idle": "Käyttämättä",
+      "from": "lähteestä {{source}}"
+    },
+    "supported": {
+      "unknown": "Tuntematon",
+      "expiring": "Vanhenee",
+      "yes": "Kyllä",
+      "no": "Ei"
+    },
+    "expiration": {
+      "label": "Vanheneminen:",
+      "expiresOn": "Vanhenee {{date}}"
+    }
   }
 }

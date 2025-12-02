@@ -141,6 +141,18 @@
       "camera": "Camera",
       "both": "Microphone and Camera"
     },
+    "microphonePermissionDenied": {
+      "title": "Microphone Access Required",
+      "message": "Microphone access is required to {{- actionType}}. Please check your system settings.",
+      "detail": "You can enable microphone access in your system's privacy settings.",
+      "openSettings": "Open Settings",
+      "cancel": "Cancel",
+      "actionTypes": {
+        "initiateCall": "make calls",
+        "answerCall": "answer calls",
+        "recordMessage": "record messages"
+      }
+    },
     "outlookCalendar": {
       "title": "Outlook Calendar",
       "encryptionUnavailableTitle": "Encryption unavailable",
@@ -226,6 +238,11 @@
       "hardwareAcceleration": {
         "title": "Hardware Acceleration",
         "description": "Enables the use of hardware acceleration when available. The application will reload on change."
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "Fallback Screen Capture for Video Calls",
+        "description": "Disable Windows Graphics Capture so screen sharing works in Remote Desktop sessions. The app restarts when you change this option.",
+        "forcedDescription": "Currently enforced because the app detected a Remote Desktop session. Toggle now controls future launches when running locally."
       },
       "internalVideoChatWindow": {
         "title": "Open Video Chat in Application Window",
@@ -436,5 +453,31 @@
     "noWindowsFound": "No windows found",
     "cancel": "Cancel",
     "share": "Share"
+  },
+  "serverInfo": {
+    "title": "Server Information",
+    "urlLabel": "URL:",
+    "versionLabel": "Version:",
+    "unknown": "Unknown",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Supported Versions",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Loading...",
+      "error": "Failed to load",
+      "loaded": "Loaded",
+      "idle": "Idle",
+      "from": "from {{source}}"
+    },
+    "supported": {
+      "unknown": "Unknown",
+      "expiring": "Expiring",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "expiration": {
+      "label": "Expiration:",
+      "expiresOn": "Expires on {{date}}"
+    }
   }
 }

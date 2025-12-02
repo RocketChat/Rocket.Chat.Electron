@@ -1,8 +1,10 @@
-import { app, webContents } from 'electron';
-import electronDl from 'electron-dl';
-import { t } from 'i18next';
+import { app } from 'electron';
 
-import { performElectronStartup, setupApp } from './app/main/app';
+import {
+  performElectronStartup,
+  setupApp,
+  initializeScreenCaptureFallbackState,
+} from './app/main/app';
 import {
   mergePersistableValues,
   watchAndPersistChanges,
@@ -10,13 +12,14 @@ import {
 import { setUserDataDirectory } from './app/main/dev';
 import { setupDeepLinks, processDeepLinksInArgs } from './deepLinks/main';
 import { startDocumentViewerHandler } from './documentViewer/ipc';
-import { setupDownloads, handleWillDownloadEvent } from './downloads/main';
+import { setupDownloads } from './downloads/main';
+import { setupElectronDlWithTracking } from './downloads/main/setup';
 import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { setupNavigation } from './navigation/main';
+import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
-import { createNotification } from './notifications/preload';
 import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
 import { setupScreenSharing } from './screenSharing/main';
 import { handleClearCacheDialog } from './servers/cache';
@@ -44,43 +47,6 @@ import {
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
 
-const setupElectronDlWithTracking = () => {
-  electronDl({
-    saveAs: true,
-    onStarted: (item) => {
-      // Find the webContents that initiated this download
-      const webContentsArray = webContents.getAllWebContents();
-
-      // Use the first available webContents for tracking
-      let sourceWebContents = null;
-      for (const wc of webContentsArray) {
-        if (wc && !wc.isDestroyed()) {
-          sourceWebContents = wc;
-          break;
-        }
-      }
-
-      if (sourceWebContents) {
-        const fakeEvent = { defaultPrevented: false, preventDefault: () => {} };
-        handleWillDownloadEvent(
-          fakeEvent as any,
-          item,
-          sourceWebContents
-        ).catch(() => {
-          // Silently handle tracking errors
-        });
-      }
-    },
-    onCompleted: (file) => {
-      createNotification({
-        title: 'Downloads',
-        body: file.filename,
-        subtitle: t('downloads.notifications.downloadFinished'),
-      });
-    },
-  });
-};
-
 const start = async (): Promise<void> => {
   setUserDataDirectory();
 
@@ -89,6 +55,9 @@ const start = async (): Promise<void> => {
   await app.whenReady();
 
   createMainReduxStore();
+
+  // Initialize screen capture fallback state after store is available
+  initializeScreenCaptureFallbackState();
 
   // Set up electron-dl with our download tracking callbacks
   setupElectronDlWithTracking();
@@ -115,6 +84,7 @@ const start = async (): Promise<void> => {
   // }
   watchMachineTheme();
   setupNotifications();
+  attentionDrawing.setUp();
   setupScreenSharing();
   startVideoCallWindowHandler();
 
@@ -137,6 +107,7 @@ const start = async (): Promise<void> => {
     menuBar.tearDown();
     touchBar.tearDown();
     trayIcon.tearDown();
+    attentionDrawing.tearDown();
     cleanupVideoCallResources();
   });
 

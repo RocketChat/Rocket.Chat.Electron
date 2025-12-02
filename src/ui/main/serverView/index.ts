@@ -15,7 +15,7 @@ import type {
   WebContents,
   WebPreferences,
 } from 'electron';
-import { app, clipboard, Menu, systemPreferences, webContents } from 'electron';
+import { app, clipboard, Menu, webContents } from 'electron';
 import i18next from 'i18next';
 
 import { setupPreloadReload } from '../../../app/main/dev';
@@ -44,6 +44,7 @@ import {
   SIDE_BAR_SERVER_REMOVE,
   WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR,
 } from '../../actions';
+import { handleMediaPermissionRequest } from '../mediaPermissions';
 import { getRootWindow } from '../rootWindow';
 import { createPopupMenuForServerView } from './popupMenu';
 
@@ -83,13 +84,18 @@ export const serverReloadView = async (
 ): Promise<void> => {
   const url = new URL(serverUrl).href;
   const guestWebContents = getWebContentsByServerUrl(url);
-  await guestWebContents?.loadURL(url);
-  if (url) {
-    dispatch({
-      type: WEBVIEW_SERVER_RELOADED,
-      payload: { url },
-    });
+  if (!guestWebContents) {
+    return;
   }
+  try {
+    await guestWebContents.loadURL(url);
+  } catch (error) {
+    console.error('Failed to load URL for guestWebContents:', error);
+  }
+  dispatch({
+    type: WEBVIEW_SERVER_RELOADED,
+    payload: { url },
+  });
 };
 
 const initializeServerWebContentsAfterAttach = (
@@ -295,18 +301,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     switch (permission) {
       case 'media': {
         const { mediaTypes = [] } = details as MediaAccessPermissionRequest;
-
-        if (process.platform === 'darwin') {
-          const allowed =
-            (!mediaTypes.includes('audio') ||
-              (await systemPreferences.askForMediaAccess('microphone'))) &&
-            (!mediaTypes.includes('video') ||
-              (await systemPreferences.askForMediaAccess('camera')));
-          callback(allowed);
-          return;
-        }
-
-        callback(true);
+        await handleMediaPermissionRequest(
+          mediaTypes as ReadonlyArray<'audio' | 'video'>,
+          rootWindow,
+          'recordMessage',
+          callback
+        );
         return;
       }
 
@@ -382,7 +382,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
 
   listen(LOADING_ERROR_VIEW_RELOAD_SERVER_CLICKED, (action) => {
     const guestWebContents = getWebContentsByServerUrl(action.payload.url);
-    guestWebContents?.loadURL(action.payload.url);
+    if (!guestWebContents) {
+      return;
+    }
+    guestWebContents.loadURL(action.payload.url).catch((error) => {
+      console.error('Failed to load URL for guestWebContents:', error);
+    });
   });
 
   listen(SIDE_BAR_SERVER_RELOAD, (action) => {
@@ -426,7 +431,12 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         label: t('sidebar.item.reload'),
         click: () => {
           const guestWebContents = getWebContentsByServerUrl(serverUrl);
-          guestWebContents?.loadURL(serverUrl);
+          if (!guestWebContents) {
+            return;
+          }
+          guestWebContents.loadURL(serverUrl).catch((error) => {
+            console.error('Failed to load URL for guestWebContents:', error);
+          });
           if (serverUrl) {
             dispatch({
               type: WEBVIEW_SERVER_RELOADED,

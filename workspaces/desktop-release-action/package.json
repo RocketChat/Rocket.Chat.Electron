@@ -29,7 +29,11 @@
     "@actions/exec": "~1.1.1",
     "@actions/github": "~6.0.0",
     "@octokit/webhooks-types": "~7.3.1",
+    "@types/glob": "~9.0.0",
+    "@types/js-yaml": "~4.0.9",
     "fast-glob": "~3.3.2",
+    "glob": "~11.0.3",
+    "js-yaml": "~4.1.0",
     "semver": "~7.5.4"
   },
   "volta": {

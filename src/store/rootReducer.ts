@@ -5,6 +5,7 @@ import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
 import { machineTheme } from '../app/reducers/machineTheme';
 import { mainWindowTitle } from '../app/reducers/mainWindowTitle';
+import { screenCaptureFallbackForced } from '../app/reducers/screenCaptureFallbackForced';
 import { downloads } from '../downloads/reducers/downloads';
 import { allowedJitsiServers } from '../jitsi/reducers';
 import {
@@ -16,6 +17,7 @@ import {
 import { servers } from '../servers/reducers';
 import { availableBrowsers } from '../ui/reducers/availableBrowsers';
 import { currentView } from '../ui/reducers/currentView';
+import { dialogs } from '../ui/reducers/dialogs';
 import { hasHideOnTrayNotificationShown } from '../ui/reducers/hasHideOnTrayNotificationShown';
 import { isAddNewServersEnabled } from '../ui/reducers/isAddNewServersEnabled';
 import { isDeveloperModeEnabled } from '../ui/reducers/isDeveloperModeEnabled';
@@ -32,6 +34,7 @@ import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
 import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
+import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
 import { isVideoCallWindowPersistenceEnabled } from '../ui/reducers/isVideoCallWindowPersistenceEnabled';
 import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
 import { openDialog } from '../ui/reducers/openDialog';
@@ -58,6 +61,7 @@ export const rootReducer = combineReducers({
   availableBrowsers,
   clientCertificates,
   currentView,
+  dialogs,
   doCheckForUpdatesOnStartup,
   downloads,
   externalProtocols,
@@ -96,8 +100,10 @@ export const rootReducer = combineReducers({
   isVideoCallWindowPersistenceEnabled,
   isDeveloperModeEnabled,
   updateChannel,
+  screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,
   isTransparentWindowEnabled,
+  isVideoCallScreenCaptureFallbackEnabled,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

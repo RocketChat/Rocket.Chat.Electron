@@ -25,7 +25,9 @@ export type Server = {
   isSupportedVersion?: boolean;
   supportedVersionsSource?: 'server' | 'cloud' | 'builtin';
   supportedVersions?: SupportedVersions;
+  supportedVersionsFetchState?: 'idle' | 'loading' | 'success' | 'error';
   expirationMessageLastTimeShown?: Date;
+  supportedVersionsValidatedAt?: Date;
   documentViewerOpenUrl?: string;
   themeAppearance?: 'dark' | 'light' | 'auto' | 'high-contrast';
 };

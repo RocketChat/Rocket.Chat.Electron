@@ -124,6 +124,18 @@
       "microphone": "Mikrofon",
       "camera": "Kamera",
       "both": "Mikrofon und Kamera"
+    },
+    "microphonePermissionDenied": {
+      "title": "Mikrofonzugriff erforderlich",
+      "message": "Mikrofonzugriff ist erforderlich, um {{- actionType}}. Bitte überprüfen Sie Ihre Systemeinstellungen.",
+      "detail": "Sie können den Mikrofonzugriff in den Datenschutzeinstellungen Ihres Systems aktivieren.",
+      "openSettings": "Einstellungen öffnen",
+      "cancel": "Abbrechen",
+      "actionTypes": {
+        "initiateCall": "Anrufe tätigen",
+        "answerCall": "Anrufe entgegennehmen",
+        "recordMessage": "Nachrichten aufnehmen"
+      }
     }
   },
   "downloads": {
@@ -198,6 +210,11 @@
       "hardwareAcceleration": {
         "title": "Hardware-Beschleunigung",
         "description": "Aktiviert die Verwendung der Hardwarebeschleunigung, sofern verfügbar. Die Anwendung wird bei Änderung neu geladen."
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "Alternative Bildschirmaufnahme für Videoanrufe",
+        "description": "Deaktiviert Windows Graphics Capture, damit das Teilen in RDP-Sitzungen funktioniert. Die App startet neu, wenn Sie diese Option ändern.",
+        "forcedDescription": "Bereits aktiv, weil die Anwendung eine RDP-Sitzung erkannt hat. Der Schalter bestimmt das Verhalten bei zukünftigen lokalen Starts."
       },
       "internalVideoChatWindow": {
         "title": "Öffnen Sie den Video-Chat mit dem Anwendungsfenster",
@@ -381,5 +398,31 @@
     "noWindowsFound": "Keine Fenster gefunden",
     "cancel": "Abbrechen",
     "share": "Teilen"
+  },
+  "serverInfo": {
+    "title": "Serverinformationen",
+    "urlLabel": "URL:",
+    "versionLabel": "Version:",
+    "unknown": "Unbekannt",
+    "exchangeUrlLabel": "Outlook Exchange URL:",
+    "supportedVersionsTitle": "Unterstützte Versionen",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Lädt...",
+      "error": "Laden fehlgeschlagen",
+      "loaded": "Geladen",
+      "idle": "Inaktiv",
+      "from": "von {{source}}"
+    },
+    "supported": {
+      "unknown": "Unbekannt",
+      "expiring": "Läuft ab",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "expiration": {
+      "label": "Ablauf:",
+      "expiresOn": "Läuft ab am {{date}}"
+    }
   }
 }

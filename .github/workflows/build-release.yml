@@ -66,6 +66,18 @@ jobs:
           BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
+      - name: Setup gcloud (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: '>=536.0.0'
+
+      - name: Authenticate to Google Cloud (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_JSON }}
+
       - uses: ./workspaces/desktop-release-action
         with:
           mac_csc_link: ${{ secrets.MAC_CSC_LINK }}

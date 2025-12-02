@@ -141,6 +141,18 @@
       "camera": "Câmera",
       "both": "Microfone e Câmera"
     },
+    "microphonePermissionDenied": {
+      "title": "Acesso ao microfone necessário",
+      "message": "O acesso ao microfone é necessário para {{- actionType }}. Verifique as configurações do sistema.",
+      "detail": "Você pode ativar o acesso ao microfone nas configurações de privacidade do sistema.",
+      "openSettings": "Abrir configurações",
+      "cancel": "Cancelar",
+      "actionTypes": {
+        "initiateCall": "fazer chamadas",
+        "answerCall": "atender chamadas",
+        "recordMessage": "gravar mensagens"
+      }
+    },
     "supportedVersion": {
       "title": "Versão de workspace não suportada"
     }
@@ -212,6 +224,11 @@
       "hardwareAcceleration": {
         "title": "Aceleração de hardware",
         "description": "Ativa aceleração de hardware quando disponível. O aplicativo será reiniciado ao ser alterado."
+      },
+      "videoCallScreenCaptureFallback": {
+        "title": "Fallback de captura para videochamadas",
+        "description": "Desativa o Windows Graphics Capture para que o compartilhamento funcione em sessões RDP. O aplicativo reinicia ao mudar esta opção.",
+        "forcedDescription": "Atualmente aplicado porque o aplicativo detectou uma sessão RDP. O alternador define o comportamento das próximas execuções locais."
       },
       "internalVideoChatWindow": {
         "title": "Abrir chat em video em uma janela da aplicação",
@@ -416,5 +433,31 @@
     "noWindowsFound": "Nenhuma janela encontrada",
     "cancel": "Cancelar",
     "share": "Compartilhar"
+  },
+  "serverInfo": {
+    "title": "Informações do Servidor",
+    "urlLabel": "URL:",
+    "versionLabel": "Versão:",
+    "unknown": "Desconhecido",
+    "exchangeUrlLabel": "URL do Outlook Exchange:",
+    "supportedVersionsTitle": "Versões Suportadas",
+    "statusLabel": "Status:",
+    "status": {
+      "loading": "Carregando...",
+      "error": "Falha ao carregar",
+      "loaded": "Carregado",
+      "idle": "Inativo",
+      "from": "de {{source}}"
+    },
+    "supported": {
+      "unknown": "Desconhecido",
+      "expiring": "Expirando",
+      "yes": "Sim",
+      "no": "Não"
+    },
+    "expiration": {
+      "label": "Expiração:",
+      "expiresOn": "Expira em {{date}}"
+    }
   }
 }

@@ -89,6 +89,7 @@ type PersistableValues_4_7_2 = PersistableValues_4_5_0 & {
 
 type PersistableValues_4_9_0 = PersistableValues_4_7_2 & {
   isTransparentWindowEnabled: boolean;
+  isVideoCallScreenCaptureFallbackEnabled: boolean;
 };
 
 export type PersistableValues = Pick<
@@ -163,8 +164,13 @@ export const migrations = {
     ...before,
     updateChannel: 'latest',
   }),
+  '>=4.7.2': (before: PersistableValues_4_5_0): PersistableValues_4_7_2 => ({
+    ...before,
+    isVideoCallDevtoolsAutoOpenEnabled: false,
+  }),
   '>=4.9.0': (before: PersistableValues_4_7_2): PersistableValues_4_9_0 => ({
     ...before,
     isTransparentWindowEnabled: false,
+    isVideoCallScreenCaptureFallbackEnabled: false,
   }),
 };

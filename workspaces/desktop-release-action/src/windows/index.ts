@@ -6,6 +6,7 @@ import { setupGoogleCloudAuth, installGoogleCloudCLI, authenticateGcloud } from 
 import { installKmsCngProvider } from './kms-provider';
 import { findSigntool, installJsign } from './signing-tools';
 import { signBuiltPackages } from './sign-packages';
+import { updateYamlChecksums } from './update-yaml-checksums';
 
 export const packOnWindows = async (): Promise<void> => {
   try {
@@ -86,6 +87,10 @@ export const packOnWindows = async (): Promise<void> => {
     core.info('Signing all built packages...');
     const distPath = path.resolve(process.cwd(), 'dist');
     await signBuiltPackages(distPath);
+    
+    // Update latest.yml with correct checksums after signing
+    core.info('Updating latest.yml with correct checksums...');
+    await updateYamlChecksums(distPath);
     
     core.info('✅ Windows packages built and signed successfully');
   } catch (error) {

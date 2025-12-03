@@ -31,6 +31,7 @@ import { isNTLMCredentialsEnabled } from '../ui/reducers/isNTLMCredentialsEnable
 import { isReportEnabled } from '../ui/reducers/isReportEnabled';
 import { isShowWindowOnUnreadChangedEnabled } from '../ui/reducers/isShowWindowOnUnreadChangedEnabled';
 import { isSideBarEnabled } from '../ui/reducers/isSideBarEnabled';
+import { isTransparentWindowEnabled } from '../ui/reducers/isTransparentWindowEnabled';
 import { isTrayIconEnabled } from '../ui/reducers/isTrayIconEnabled';
 import { isVideoCallDevtoolsAutoOpenEnabled } from '../ui/reducers/isVideoCallDevtoolsAutoOpenEnabled';
 import { isVideoCallScreenCaptureFallbackEnabled } from '../ui/reducers/isVideoCallScreenCaptureFallbackEnabled';
@@ -101,6 +102,7 @@ export const rootReducer = combineReducers({
   updateChannel,
   screenCaptureFallbackForced,
   isVideoCallDevtoolsAutoOpenEnabled,
+  isTransparentWindowEnabled,
   isVideoCallScreenCaptureFallbackEnabled,
 });
 

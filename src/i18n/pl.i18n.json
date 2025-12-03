@@ -129,6 +129,10 @@
         "systemDefault": "Domyślna systemu",
         "loading": "Ładowanie przeglądarek...",
         "current": "Aktualnie używana:"
+      },
+      "transparentWindow": {
+        "title": "Efekt przezroczystego okna",
+        "description": "Włącz natywny efekt wibracji/przezroczystości dla okna. Wymaga ponownego uruchomienia, aby zastosować."
       }
     }
   },

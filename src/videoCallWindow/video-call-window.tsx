@@ -103,7 +103,6 @@ const showFallbackUI = () => {
   }, 3000);
 };
 
-
 const start = async (): Promise<void> => {
   if (isWindowDestroying) {
     console.log(

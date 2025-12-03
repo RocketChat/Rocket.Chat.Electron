@@ -8,7 +8,6 @@ exports.default = async function afterPack(context) {
     context.appOutDir
   );
 
-  // Apply security fuses for all builds
   let appPath;
   switch (context.electronPlatformName) {
     case 'darwin':
@@ -23,6 +22,17 @@ exports.default = async function afterPack(context) {
       break;
   }
 
+  // For Windows: Skip fuses here - they will be applied in afterSign (notarize.js)
+  // This is because electron-builder's signing runs AFTER afterPack but BEFORE afterSign
+  // Fuses modify the PE structure and must be applied AFTER signing
+  if (context.electronPlatformName === 'win32') {
+    console.log(
+      'Skipping electron fuses for Windows - will be applied after signing'
+    );
+    return;
+  }
+
+  // For macOS and Linux: Apply fuses here (no signing order concerns)
   console.log('Applying electron fuses for enhanced security to:', appPath);
 
   await flipFuses(appPath, {

@@ -862,7 +862,8 @@ const VideoCallWindow = () => {
           inset: 0,
           width: '100%',
           height: '100%',
-          visibility: showError || showLoading || isLoading ? 'hidden' : 'visible',
+          visibility:
+            showError || showLoading || isLoading ? 'hidden' : 'visible',
           zIndex: 0,
         }}
       />

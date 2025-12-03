@@ -96,6 +96,10 @@
         "systemDefault": "系統預設",
         "loading": "正在載入瀏覽器...",
         "current": "目前使用："
+      },
+      "transparentWindow": {
+        "title": "透明視窗效果",
+        "description": "啟用視窗的原生模糊/透明效果。需要重新啟動才能套用。"
       }
     }
   },

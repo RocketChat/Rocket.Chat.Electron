@@ -229,7 +229,7 @@ exports.default = async function afterPack(context) {
     context.appOutDir
   );
 
-  // Apply security fuses for all builds
+  // Determine app path for all builds
   let appPath;
   switch (context.electronPlatformName) {
     case 'darwin':
@@ -244,6 +244,19 @@ exports.default = async function afterPack(context) {
       break;
   }
 
+  // IMPORTANT: Sign Windows executable BEFORE applying electron fuses
+  // The fuses modify the PE file structure in a way that prevents jsign from signing
+  if (context.electronPlatformName === 'win32' && fs.existsSync(appPath)) {
+    try {
+      await signWindowsExecutable(appPath);
+    } catch (error) {
+      console.error('[afterPack] Failed to sign executable:', error.message);
+      // Don't fail the build if signing fails - it might be a validation build
+      // The build will continue but the executable won't be signed
+    }
+  }
+
+  // Apply security fuses AFTER signing (fuses can be applied to signed executables)
   console.log('Applying electron fuses for enhanced security to:', appPath);
 
   await flipFuses(appPath, {
@@ -259,15 +272,4 @@ exports.default = async function afterPack(context) {
   });
 
   console.log('Electron fuses applied successfully');
-
-  // Sign Windows executable if we're building for Windows and credentials are available
-  if (context.electronPlatformName === 'win32' && fs.existsSync(appPath)) {
-    try {
-      await signWindowsExecutable(appPath);
-    } catch (error) {
-      console.error('[afterPack] Failed to sign executable:', error.message);
-      // Don't fail the build if signing fails - it might be a validation build
-      // The build will continue but the executable won't be signed
-    }
-  }
 };

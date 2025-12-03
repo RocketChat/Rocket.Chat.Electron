@@ -1,7 +1,8 @@
-const { flipFuses, FuseVersion, FuseV1Options } = require('@electron/fuses');
 const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+
+const { flipFuses, FuseVersion, FuseV1Options } = require('@electron/fuses');
 
 /**
  * Check required environment variables for signing
@@ -30,9 +31,10 @@ function validateSigningEnvironment() {
  * Extract key alias from KMS resource
  */
 function extractKeyAlias(kmsKeyResource) {
-  const parts = kmsKeyResource.split('/');
-  if (parts.length >= 6 && parts[4] === 'cryptoKeys') {
-    return parts[5];
+  const trimmed = kmsKeyResource.trim();
+  const parts = trimmed.split('/').filter((part) => part.length > 0);
+  if (parts.length >= 8 && parts[6] === 'cryptoKeys') {
+    return parts[7];
   }
   return 'Electron_Desktop_App_Key';
 }
@@ -118,27 +120,28 @@ async function signWindowsExecutable(exePath) {
   const keyName = extractKeyAlias(kmsKeyResource);
 
   console.log('[afterPack] Getting access token from gcloud...');
-  const gcloudResult = process.platform === 'win32'
-    ? spawnSync('cmd', ['/c', gcloudCmd, 'auth', 'print-access-token'], {
-        stdio: 'pipe',
-        timeout: 30000,
-        env: {
-          ...process.env,
-          GOOGLE_APPLICATION_CREDENTIALS:
-            process.env.GOOGLE_APPLICATION_CREDENTIALS,
-          CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
-        },
-      })
-    : spawnSync(gcloudCmd, ['auth', 'print-access-token'], {
-        stdio: 'pipe',
-        timeout: 30000,
-        env: {
-          ...process.env,
-          GOOGLE_APPLICATION_CREDENTIALS:
-            process.env.GOOGLE_APPLICATION_CREDENTIALS,
-          CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
-        },
-      });
+  const gcloudResult =
+    process.platform === 'win32'
+      ? spawnSync('cmd', ['/c', gcloudCmd, 'auth', 'print-access-token'], {
+          stdio: 'pipe',
+          timeout: 30000,
+          env: {
+            ...process.env,
+            GOOGLE_APPLICATION_CREDENTIALS:
+              process.env.GOOGLE_APPLICATION_CREDENTIALS,
+            CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
+          },
+        })
+      : spawnSync(gcloudCmd, ['auth', 'print-access-token'], {
+          stdio: 'pipe',
+          timeout: 30000,
+          env: {
+            ...process.env,
+            GOOGLE_APPLICATION_CREDENTIALS:
+              process.env.GOOGLE_APPLICATION_CREDENTIALS,
+            CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
+          },
+        });
 
   if (gcloudResult.status !== 0) {
     const errorOutput = gcloudResult.stderr
@@ -177,27 +180,28 @@ async function signWindowsExecutable(exePath) {
   ];
 
   console.log('[afterPack] Running jsign to sign executable...');
-  const result = process.platform === 'win32'
-    ? spawnSync('cmd', ['/c', jsignCmd].concat(jsignArgs), {
-        stdio: 'pipe',
-        timeout: 120000,
-        env: {
-          ...process.env,
-          GOOGLE_APPLICATION_CREDENTIALS:
-            process.env.GOOGLE_APPLICATION_CREDENTIALS,
-          CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
-        },
-      })
-    : spawnSync(jsignCmd, jsignArgs, {
-        stdio: 'pipe',
-        timeout: 120000,
-        env: {
-          ...process.env,
-          GOOGLE_APPLICATION_CREDENTIALS:
-            process.env.GOOGLE_APPLICATION_CREDENTIALS,
-          CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
-        },
-      });
+  const result =
+    process.platform === 'win32'
+      ? spawnSync('cmd', ['/c', jsignCmd].concat(jsignArgs), {
+          stdio: 'pipe',
+          timeout: 120000,
+          env: {
+            ...process.env,
+            GOOGLE_APPLICATION_CREDENTIALS:
+              process.env.GOOGLE_APPLICATION_CREDENTIALS,
+            CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
+          },
+        })
+      : spawnSync(jsignCmd, jsignArgs, {
+          stdio: 'pipe',
+          timeout: 120000,
+          env: {
+            ...process.env,
+            GOOGLE_APPLICATION_CREDENTIALS:
+              process.env.GOOGLE_APPLICATION_CREDENTIALS,
+            CLOUDSDK_PYTHON: process.env.CLOUDSDK_PYTHON,
+          },
+        });
 
   if (result.status !== 0) {
     const stderr = result.stderr ? result.stderr.toString() : '';

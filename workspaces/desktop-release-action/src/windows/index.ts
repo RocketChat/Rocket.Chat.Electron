@@ -25,51 +25,10 @@ export const packOnWindows = async (): Promise<void> => {
       throw new Error('win_kms_key_resource input is required');
     }
     
-    // Setup base environment variables
-    const baseEnv = {
-      WIN_KMS_KEY_RESOURCE: kmsKeyResource,
-      WIN_CERT_FILE: userCertPath,
-      GOOGLE_APPLICATION_CREDENTIALS: credentialsPath,
-    };
+    // Install signing tools BEFORE building so electron-builder can sign
+    core.info('Setting up signing environment before build...');
     
-    core.info('Building Windows packages WITHOUT signing...');
-    core.info('Packages will be signed after build to avoid MSI/ICE issues');
-    
-    // Build all Windows packages WITHOUT signing
-    // We'll sign them after build to avoid KMS CNG provider MSI installation
-    // interfering with our MSI builds
-    
-    // Temporarily disable signing by clearing the environment variables
-    // The winSignKms.js script checks these and skips signing when not set
-    const buildEnv = {
-      ...baseEnv,
-      // Clear signing credentials to make winSignKms.js skip signing
-      WIN_KMS_KEY_RESOURCE: '',
-      WIN_CERT_FILE: ''
-    };
-    
-    // Build NSIS installer (unsigned)
-    core.info('Building NSIS installer (unsigned)...');
-    await runElectronBuilder(`--x64 --ia32 --arm64 --win nsis`, buildEnv);
-    
-    // Build MSI installer (unsigned)
-    core.info('Building MSI installer (unsigned)...');
-    await runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
-    
-    // Build AppX package (unsigned)
-    core.info('Building AppX package (unsigned)...');
-    await runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, buildEnv);
-    
-    core.info('✅ All Windows packages built successfully (unsigned)');
-    
-    // NOW install KMS CNG provider and signing tools
-    // This won't interfere with MSI builds since they're already done
-    core.info('Setting up signing environment...');
-    
-    // Install Google Cloud KMS CNG provider
-    await installKmsCngProvider();
-    
-    // Install jsign for Java-based signing
+    // Install jsign for Java-based signing (doesn't require KMS CNG provider)
     await installJsign();
     
     // Install and configure Google Cloud CLI
@@ -78,13 +37,46 @@ export const packOnWindows = async (): Promise<void> => {
     // Authenticate gcloud with service account
     await authenticateGcloud(credentialsPath, gcloudPath);
     
-    // Restore environment variables for signing phase
+    // Setup environment variables for electron-builder's signing via winSignKms.js
+    // Build flow: afterPack (skip fuses) -> sign via winSignKms.js -> afterSign (apply fuses)
+    const buildEnv = {
+      WIN_KMS_KEY_RESOURCE: kmsKeyResource,
+      WIN_CERT_FILE: userCertPath,
+      GOOGLE_APPLICATION_CREDENTIALS: credentialsPath,
+      GCLOUD_PATH: gcloudPath,
+    };
+    
+    // Set process.env so electron-builder's signing can access credentials
     process.env.WIN_KMS_KEY_RESOURCE = kmsKeyResource;
     process.env.WIN_CERT_FILE = userCertPath;
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = credentialsPath;
     process.env.GCLOUD_PATH = gcloudPath;
     
-    // Sign all the built packages
-    core.info('Signing all built packages...');
+    core.info('Building Windows packages...');
+    core.info('Executables will be signed by electron-builder via winSignKms.js');
+    
+    // Build NSIS installer (Rocket.Chat.exe signed by electron-builder, fuses applied in afterSign)
+    core.info('Building NSIS installer...');
+    await runElectronBuilder(`--x64 --ia32 --arm64 --win nsis`, buildEnv);
+    
+    // Build MSI installer (Rocket.Chat.exe signed by electron-builder, fuses applied in afterSign)
+    core.info('Building MSI installer...');
+    await runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
+    
+    // Build AppX package (Rocket.Chat.exe signed by electron-builder, fuses applied in afterSign)
+    core.info('Building AppX package...');
+    await runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, buildEnv);
+    
+    core.info('✅ All Windows packages built successfully');
+    
+    // Install KMS CNG provider for signing final installer packages
+    // Safe to install after MSI builds are complete
+    core.info('Installing KMS CNG provider for installer signing...');
+    await installKmsCngProvider();
+    
+    // Sign the installer packages (.exe setup files, .msi)
+    // The Rocket.Chat.exe inside is already signed by electron-builder
+    core.info('Signing installer packages...');
     const distPath = path.resolve(process.cwd(), 'dist');
     await signBuiltPackages(distPath);
     

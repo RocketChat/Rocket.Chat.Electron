@@ -55,12 +55,10 @@ const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 const VIDEO_CALL_PRELOAD_PATH = 'app/preload/preload.js';
 
 /**
- * Determines if a webview is a video call webview based on partition and URL patterns.
- * Uses strict URL parsing to avoid false positives from substring matching.
+ * Determines if a webview is a video call webview based on partition and frame name.
  */
 const isVideoCallWebview = (
   partition?: string,
-  _src?: string,
   frameName?: string
 ): boolean => {
   if (partition === 'persist:video-call-session') {
@@ -270,7 +268,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     const isVideoCall = isVideoCallWebview(
       _params.partition,
       _params.src,
-      undefined
+      _params.frameName
     );
     const preloadPath = resolvePreloadPath(isVideoCall);
     if (preloadPath) {

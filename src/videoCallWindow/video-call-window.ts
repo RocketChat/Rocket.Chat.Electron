@@ -692,7 +692,16 @@ const handleReload = (): void => {
   }
 };
 
+const FALLBACK_RELOAD_KEY = 'video-call-fallback-reloads';
+const MAX_FALLBACK_RELOADS = 3;
+
 const showFallbackUI = (): void => {
+  const reloadCount = parseInt(
+    sessionStorage.getItem(FALLBACK_RELOAD_KEY) || '0',
+    10
+  );
+  const canAutoReload = reloadCount < MAX_FALLBACK_RELOADS;
+
   const fallbackContainer = document.createElement('div');
   fallbackContainer.style.cssText = `
     position: fixed;
@@ -713,15 +722,18 @@ const showFallbackUI = (): void => {
     <div style="text-align: center;">
       <h2 style="color: #fff; margin: 0;">Video Call Unavailable</h2>
       <p style="color: #ccc; margin: 10px 0;">Unable to initialize video call window</p>
-      <p style="color: #999; margin: 10px 0; font-size: 14px;">Retrying automatically in 3 seconds...</p>
+      <p style="color: #999; margin: 10px 0; font-size: 14px;">${canAutoReload ? 'Retrying automatically in 3 seconds...' : 'Please close and reopen the video call.'}</p>
     </div>
   `;
 
   document.body.appendChild(fallbackContainer);
 
-  setTimeout(() => {
-    window.location.reload();
-  }, 3000);
+  if (canAutoReload) {
+    sessionStorage.setItem(FALLBACK_RELOAD_KEY, String(reloadCount + 1));
+    setTimeout(() => {
+      window.location.reload();
+    }, 3000);
+  }
 };
 
 const start = async (): Promise<void> => {

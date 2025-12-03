@@ -214,7 +214,7 @@ The core caching strategy that makes screen sharing feel instant.
 - **Next request**: Gets the fresh data
 - **Cache never expires**: Only cleared on error or app quit
 
-**Example flow:**
+**Example flow (illustrative timings):**
 ```
 T=0s: User opens picker → Cache returns instantly (2s old)
 T=0s: Background refresh starts (async)
@@ -397,6 +397,28 @@ handle('video-call-window/prewarm-capturer-cache', async () => {
   refreshDesktopCapturerCache({ types: ['window', 'screen'] });
   return { success: true };
 });
+```
+
+### Source Validation Cache
+```typescript
+const SOURCE_VALIDATION_CACHE_TTL = 30000;
+
+// Validates selected source still exists
+// Cached for 30 seconds to avoid repeated system calls
+const sourceValidationCache: Set<string> = new Set();
+let sourceValidationCacheTimestamp = 0;
+
+const cacheExpired = 
+  now - sourceValidationCacheTimestamp > SOURCE_VALIDATION_CACHE_TTL;
+
+if (!cacheExpired && sourceValidationCache.has(source.id)) {
+  return { isValid: true }; // Use cached validation
+}
+
+// Re-validate and update cache
+sourceValidationCache.clear();
+sourceValidationCache.add(source.id);
+sourceValidationCacheTimestamp = now;
 ```
 
 ## User Experience Benefits

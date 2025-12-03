@@ -43,6 +43,7 @@ export const createNotification = async ({
   title: string;
   subtitle?: string;
   notificationType?: 'voice' | 'text';
+  category?: 'DOWNLOADS' | 'SERVER';
   onEvent?: (eventDescriptor: { type: string; detail: unknown }) => void;
 }): Promise<unknown> => {
   const id = await request(
@@ -112,16 +113,16 @@ export const listenToNotificationsRequests = (): void => {
 
   listen(NOTIFICATIONS_NOTIFICATION_CLICKED, (action) => {
     const {
-      payload: { id, title },
+      payload: { id, serverUrl, category },
     } = action;
 
-    if (title === 'Downloads') {
+    if (category === 'DOWNLOADS') {
       dispatch({ type: SIDE_BAR_DOWNLOADS_BUTTON_CLICKED });
     } else {
       dispatch({
         type: WEBVIEW_FOCUS_REQUESTED,
         payload: {
-          url: getServerUrl(),
+          url: serverUrl || getServerUrl(),
           view: 'server',
         },
       });

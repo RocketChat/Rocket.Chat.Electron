@@ -163,6 +163,17 @@ signWindowsOnLinux = async function (config) {
   const name = config.name || 'Rocket.Chat';
   const { site } = config;
 
+  // Skip files that don't need standard Authenticode signing
+  const ext = path.extname(input).toLowerCase();
+  const skipExtensions = ['.appx', '.zip'];
+  if (skipExtensions.includes(ext)) {
+    console.log(
+      `[winSignKms] Skipping ${ext} file (not applicable for Authenticode signing):`,
+      path.basename(input)
+    );
+    return;
+  }
+
   // Validate environment
   const envConfig = validateEnvironment();
   if (!envConfig) {
@@ -296,6 +307,17 @@ signWindowsOnWindows = async function (config) {
   const input = config.path;
   const name = config.name || 'Rocket.Chat';
   const { site } = config;
+
+  // Skip files that don't need standard Authenticode signing
+  const ext = path.extname(input).toLowerCase();
+  const skipExtensions = ['.appx', '.zip'];
+  if (skipExtensions.includes(ext)) {
+    console.log(
+      `[winSignKms] Skipping ${ext} file (not applicable for Authenticode signing):`,
+      path.basename(input)
+    );
+    return;
+  }
 
   // Validate environment
   const envConfig = validateEnvironment();

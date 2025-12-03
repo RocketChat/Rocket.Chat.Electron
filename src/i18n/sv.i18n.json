@@ -290,6 +290,10 @@
       "videoCallWindowPersistence": {
         "title": "Kom ihåg fönstrets position för videosamtal",
         "description": "Spara och återställ position och storlek för videosamtalsfönster mellan sessioner"
+      },
+      "transparentWindow": {
+        "title": "Transparent fönstereffekt",
+        "description": "Aktivera inbyggd vibrans/transparenseffekt för fönstret. Kräver omstart för att tillämpas."
       }
     }
   },

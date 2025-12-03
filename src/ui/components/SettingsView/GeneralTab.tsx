@@ -11,6 +11,7 @@ import { NTLMCredentials } from './features/NTLMCredentials';
 import { ReportErrors } from './features/ReportErrors';
 import { ScreenCaptureFallback } from './features/ScreenCaptureFallback';
 import { SideBar } from './features/SideBar';
+import { TransparentWindow } from './features/TransparentWindow';
 import { TrayIcon } from './features/TrayIcon';
 import { VideoCallWindowPersistence } from './features/VideoCallWindowPersistence';
 
@@ -23,6 +24,7 @@ export const GeneralTab = () => (
       {process.platform === 'win32' && <ScreenCaptureFallback />}
       <InternalVideoChatWindow />
       <VideoCallWindowPersistence />
+      {process.platform === 'darwin' && <TransparentWindow />}
       <TrayIcon />
       {process.platform === 'win32' && <MinimizeOnClose />}
       <SideBar />

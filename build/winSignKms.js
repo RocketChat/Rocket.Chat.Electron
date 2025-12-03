@@ -167,7 +167,10 @@ signWindowsOnLinux = async function (config) {
   const ext = path.extname(input).toLowerCase();
   const skipExtensions = ['.appx', '.zip'];
   if (skipExtensions.includes(ext)) {
-    console.log(`[winSignKms] Skipping ${ext} file (not applicable for Authenticode signing):`, path.basename(input));
+    console.log(
+      `[winSignKms] Skipping ${ext} file (not applicable for Authenticode signing):`,
+      path.basename(input)
+    );
     return;
   }
 
@@ -309,7 +312,10 @@ signWindowsOnWindows = async function (config) {
   const ext = path.extname(input).toLowerCase();
   const skipExtensions = ['.appx', '.zip'];
   if (skipExtensions.includes(ext)) {
-    console.log(`[winSignKms] Skipping ${ext} file (not applicable for Authenticode signing):`, path.basename(input));
+    console.log(
+      `[winSignKms] Skipping ${ext} file (not applicable for Authenticode signing):`,
+      path.basename(input)
+    );
     return;
   }
 

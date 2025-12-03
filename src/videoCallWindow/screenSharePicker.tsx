@@ -23,7 +23,11 @@ const desktopCapturer: DesktopCapturer = {
     ipcRenderer.invoke('desktop-capturer-get-sources', [opts]),
 };
 
-export function ScreenSharePicker() {
+interface IScreenSharePickerProps {
+  onMounted?: (setVisible: (visible: boolean) => void) => void;
+}
+
+export function ScreenSharePicker({ onMounted }: IScreenSharePickerProps = {}) {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [sources, setSources] = useState<DesktopCapturerSource[]>([]);
@@ -86,10 +90,11 @@ export function ScreenSharePicker() {
   }, [fetchSources]);
 
   useEffect(() => {
-    ipcRenderer.on('video-call-window/open-screen-picker', () => {
-      setVisible(true);
-    });
-  }, [visible]);
+    if (onMounted) {
+      onMounted(setVisible);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!visible) {

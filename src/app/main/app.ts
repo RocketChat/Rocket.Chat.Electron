@@ -129,6 +129,7 @@ export const performElectronStartup = (): void => {
         })
       );
       disabledChromiumFeatures.push('WebRtcAllowWgcDesktopCapturer');
+      disabledChromiumFeatures.push('WebRtcAllowWgcScreenCapturer');
     }
   }
 
@@ -201,12 +202,11 @@ export const setupApp = (): void => {
       const isRdpSession =
         typeof sessionName === 'string' && sessionName !== 'Console';
 
-      // Relaunch only if the setting actually changes AND it's not already forced by RDP
       if (newSettingValue !== currentPersistedSetting && !isRdpSession) {
         relaunchApp();
       } else if (isRdpSession) {
         console.log(
-          'Screen Capture Fallback setting changed, but app is in RDP session. Skipping relaunch.'
+          'Screen Capture Fallback setting changed in RDP session. Change will apply when running locally. No restart needed now since WGC is already disabled by RDP detection.'
         );
       }
     }

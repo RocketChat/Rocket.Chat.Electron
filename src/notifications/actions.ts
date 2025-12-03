@@ -19,7 +19,12 @@ export type NotificationsActionTypeToPayloadMap = {
   [NOTIFICATIONS_CREATE_REQUESTED]: ExtendedNotificationOptions;
   [NOTIFICATIONS_CREATE_RESPONDED]: unknown;
   [NOTIFICATIONS_NOTIFICATION_ACTIONED]: { id: unknown; index: number };
-  [NOTIFICATIONS_NOTIFICATION_CLICKED]: { id: unknown; title: string };
+  [NOTIFICATIONS_NOTIFICATION_CLICKED]: {
+    id: unknown;
+    title: string;
+    serverUrl?: string;
+    category?: 'DOWNLOADS' | 'SERVER';
+  };
   [NOTIFICATIONS_NOTIFICATION_CLOSED]: { id: unknown };
   [NOTIFICATIONS_NOTIFICATION_DISMISSED]: { id: unknown };
   [NOTIFICATIONS_NOTIFICATION_REPLIED]: { id: unknown; reply: string };

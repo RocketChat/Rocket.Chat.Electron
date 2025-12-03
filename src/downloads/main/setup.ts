@@ -106,6 +106,7 @@ export const setupElectronDlWithTracking = () => {
           title: t('downloads.title', { defaultValue: 'Downloads' }),
           body: file.filename || 'Unknown file',
           subtitle: t('downloads.notifications.downloadFinished'),
+          category: 'DOWNLOADS',
         });
       } catch {
         // Silently handle any errors in onCompleted

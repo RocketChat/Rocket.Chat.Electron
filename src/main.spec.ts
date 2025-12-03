@@ -243,6 +243,7 @@ describe('main.ts electron-dl integration', () => {
           title: t('downloads.title', { defaultValue: 'Downloads' }),
           body: file.filename || 'Unknown file',
           subtitle: t('downloads.notifications.downloadFinished'),
+          category: 'DOWNLOADS',
         });
       },
     });
@@ -354,6 +355,7 @@ describe('main.ts electron-dl integration', () => {
           title: 'downloads.title',
           body: 'completed-file.pdf',
           subtitle: 'downloads.notifications.downloadFinished',
+          category: 'DOWNLOADS',
         });
         expect(t).toHaveBeenCalledWith('downloads.title', {
           defaultValue: 'Downloads',
@@ -384,6 +386,7 @@ describe('main.ts electron-dl integration', () => {
           title: 'Downloads',
           body: 'test.pdf',
           subtitle: 'Download finished',
+          category: 'DOWNLOADS',
         });
         expect(tMock).toHaveBeenCalledWith('downloads.title', {
           defaultValue: 'Downloads',

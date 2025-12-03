@@ -6,6 +6,7 @@ import { dispatch, dispatchSingle, listen } from '../store';
 import type { ActionIPCMeta } from '../store/actions';
 import { hasMeta } from '../store/fsa';
 import { getRootWindow } from '../ui/main/rootWindow';
+import { getServerUrlByWebContentsId } from '../ui/main/serverView';
 import {
   NOTIFICATIONS_CREATE_REQUESTED,
   NOTIFICATIONS_CREATE_RESPONDED,
@@ -46,6 +47,7 @@ const resolveIcon = async (
 
 const notifications = new Map();
 const notificationTypes = new Map<string, 'voice' | 'text'>();
+const notificationCategories = new Map<string, 'DOWNLOADS' | 'SERVER'>();
 
 const createNotification = async (
   id: string,
@@ -58,6 +60,7 @@ const createNotification = async (
     canReply,
     actions,
     requireInteraction,
+    category,
   }: ExtendedNotificationOptions,
   ipcMeta?: ActionIPCMeta
 ): Promise<string> => {
@@ -101,12 +104,23 @@ const createNotification = async (
       attentionDrawing.stopAttention(id);
     }
     notificationTypes.delete(id);
+    notificationCategories.delete(id);
   });
 
   notification.addListener('click', () => {
+    const serverUrl =
+      ipcMeta?.webContentsId !== undefined
+        ? getServerUrlByWebContentsId(ipcMeta.webContentsId)
+        : undefined;
+    const notificationCategory = notificationCategories.get(id);
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_CLICKED,
-      payload: { id, title },
+      payload: {
+        id,
+        title,
+        ...(serverUrl && { serverUrl }),
+        ...(notificationCategory && { category: notificationCategory }),
+      },
       ipcMeta,
     });
   });
@@ -128,6 +142,9 @@ const createNotification = async (
   });
 
   notifications.set(id, notification);
+  if (category) {
+    notificationCategories.set(id, category);
+  }
 
   notification.show();
 

@@ -52,9 +52,72 @@ const t = i18next.t.bind(i18next);
 
 const webContentsByServerUrl = new Map<Server['url'], WebContents>();
 
+const VIDEO_CALL_PRELOAD_PATH = 'app/preload/preload.js';
+
+/**
+ * Determines if a webview is a video call webview based on partition and frame name.
+ */
+const isVideoCallWebview = (
+  partition?: string,
+  frameName?: string
+): boolean => {
+  if (partition === 'persist:video-call-session') {
+    return true;
+  }
+
+  if (frameName === 'Video Call') {
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Resolves and validates preload file paths, falling back to safe defaults.
+ * Returns the preload path or null if no valid preload is available.
+ */
+const resolvePreloadPath = (isVideoCall: boolean): string | null => {
+  const appPath = app.getAppPath();
+  const defaultPreload = path.join(appPath, 'app/preload.js');
+  const videoCallPreload = path.join(appPath, VIDEO_CALL_PRELOAD_PATH);
+
+  const targetPreload = isVideoCall ? videoCallPreload : defaultPreload;
+  const fallbackPreload = isVideoCall ? defaultPreload : null;
+
+  if (fs.existsSync(targetPreload)) {
+    return targetPreload;
+  }
+
+  if (fallbackPreload && fs.existsSync(fallbackPreload)) {
+    console.warn(
+      `Preload file not found: ${targetPreload}, falling back to: ${fallbackPreload}`
+    );
+    return fallbackPreload;
+  }
+
+  console.warn(
+    `Preload file not found: ${targetPreload}${
+      fallbackPreload ? ` or fallback: ${fallbackPreload}` : ''
+    }. Preload will be disabled.`
+  );
+  return null;
+};
+
 export const getWebContentsByServerUrl = (
   url: string
 ): WebContents | undefined => webContentsByServerUrl.get(url);
+
+export const getServerUrlByWebContentsId = (
+  webContentsId: number
+): string | undefined => {
+  const targetWebContents = webContents.fromId(webContentsId);
+  if (!targetWebContents) {
+    return undefined;
+  }
+  return Array.from(webContentsByServerUrl.entries()).find(
+    ([, wc]) => wc === targetWebContents
+  )?.[0];
+};
 
 const initializeServerWebContentsAfterReady = (
   _serverUrl: string,
@@ -202,7 +265,16 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     _params: Record<string, string>
   ): void => {
     delete webPreferences.enableBlinkFeatures;
-    webPreferences.preload = path.join(app.getAppPath(), 'app/preload.js');
+    const isVideoCall = isVideoCallWebview(
+      _params.partition,
+      _params.frameName
+    );
+    const preloadPath = resolvePreloadPath(isVideoCall);
+    if (preloadPath) {
+      webPreferences.preload = preloadPath;
+    } else {
+      delete webPreferences.preload;
+    }
     webPreferences.nodeIntegration = false;
     webPreferences.nodeIntegrationInWorker = false;
     webPreferences.nodeIntegrationInSubFrames = false;
@@ -239,7 +311,8 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         return { action: 'deny' };
       }
 
-      const isVideoCall = frameName === 'Video Call';
+      const isVideoCall = isVideoCallWebview(undefined, frameName);
+      const preloadPath = resolvePreloadPath(isVideoCall);
 
       return {
         action: 'allow',
@@ -247,7 +320,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
           ...(isVideoCall
             ? {
                 webPreferences: {
-                  preload: path.join(app.getAppPath(), 'app/preload.js'),
+                  ...(preloadPath ? { preload: preloadPath } : {}),
                   sandbox: false,
                 },
               }

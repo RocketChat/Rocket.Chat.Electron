@@ -27,9 +27,8 @@ import { handleMediaPermissionRequest } from '../ui/main/mediaPermissions';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
 
-const DESKTOP_CAPTURER_CACHE_TTL = 3000;
+const DESKTOP_CAPTURER_STALE_THRESHOLD = 3000;
 const SOURCE_VALIDATION_CACHE_TTL = 30000;
-const CACHE_CLEANUP_DELAY = 60000;
 const DESTRUCTION_CHECK_INTERVAL = 50;
 const DEVTOOLS_TIMEOUT = 2000;
 const WEBVIEW_CHECK_INTERVAL = 100;
@@ -61,8 +60,6 @@ let desktopCapturerPromise: Promise<Electron.DesktopCapturerSource[]> | null =
 const sourceValidationCache: Set<string> = new Set();
 let sourceValidationCacheTimestamp = 0;
 
-let cacheCleanupTimer: NodeJS.Timeout | null = null;
-
 let videoCallWindowCreationCount = 0;
 let videoCallWindowDestructionCount = 0;
 
@@ -73,8 +70,57 @@ const logVideoCallWindowStats = () => {
     currentInstance: videoCallWindow ? 'active' : 'none',
     cacheStatus: desktopCapturerCache ? 'cached' : 'empty',
     promiseStatus: desktopCapturerPromise ? 'pending' : 'none',
-    cleanupTimer: cacheCleanupTimer ? 'active' : 'none',
   });
+};
+
+const refreshDesktopCapturerCache = (
+  options: Electron.SourcesOptions
+): void => {
+  if (desktopCapturerPromise) return;
+
+  desktopCapturerPromise = (async () => {
+    try {
+      const sources = await desktopCapturer.getSources(options);
+
+      const validSources = sources.filter((source) => {
+        if (!source.name || source.name.trim() === '') {
+          return false;
+        }
+
+        const now = Date.now();
+        const cacheExpired =
+          now - sourceValidationCacheTimestamp > SOURCE_VALIDATION_CACHE_TTL;
+
+        if (!cacheExpired && sourceValidationCache.has(source.id)) {
+          return true;
+        }
+
+        if (source.thumbnail.isEmpty()) {
+          return false;
+        }
+
+        if (cacheExpired) {
+          sourceValidationCache.clear();
+          sourceValidationCacheTimestamp = now;
+        }
+        sourceValidationCache.add(source.id);
+
+        return true;
+      });
+
+      desktopCapturerCache = {
+        sources: validSources,
+        timestamp: Date.now(),
+      };
+
+      return validSources;
+    } catch (error) {
+      console.error('Background cache refresh failed:', error);
+      return desktopCapturerCache?.sources || [];
+    } finally {
+      desktopCapturerPromise = null;
+    }
+  })();
 };
 
 export const handleDesktopCapturerGetSources = () => {
@@ -82,10 +128,13 @@ export const handleDesktopCapturerGetSources = () => {
     try {
       const options = Array.isArray(opts) ? opts[0] : opts;
 
-      if (
-        desktopCapturerCache &&
-        Date.now() - desktopCapturerCache.timestamp < DESKTOP_CAPTURER_CACHE_TTL
-      ) {
+      if (desktopCapturerCache) {
+        const isStale =
+          Date.now() - desktopCapturerCache.timestamp >
+          DESKTOP_CAPTURER_STALE_THRESHOLD;
+        if (isStale && !desktopCapturerPromise) {
+          refreshDesktopCapturerCache(options);
+        }
         return desktopCapturerCache.sources;
       }
 
@@ -93,62 +142,14 @@ export const handleDesktopCapturerGetSources = () => {
         return await desktopCapturerPromise;
       }
 
-      desktopCapturerPromise = (async () => {
-        try {
-          const sources = await desktopCapturer.getSources(options);
-
-          const validSources = sources.filter((source) => {
-            if (!source.name || source.name.trim() === '') {
-              return false;
-            }
-
-            const now = Date.now();
-            const cacheExpired =
-              now - sourceValidationCacheTimestamp >
-              SOURCE_VALIDATION_CACHE_TTL;
-
-            if (!cacheExpired && sourceValidationCache.has(source.id)) {
-              return true;
-            }
-
-            if (source.thumbnail.isEmpty()) {
-              return false;
-            }
-
-            if (cacheExpired) {
-              sourceValidationCache.clear();
-              sourceValidationCacheTimestamp = now;
-            }
-            sourceValidationCache.add(source.id);
-
-            return true;
-          });
-
-          desktopCapturerCache = {
-            sources: validSources,
-            timestamp: Date.now(),
-          };
-
-          return validSources;
-        } catch (error) {
-          console.error('Error getting desktop capturer sources:', error);
-
-          desktopCapturerCache = null;
-
-          return [];
-        } finally {
-          desktopCapturerPromise = null;
-        }
-      })();
-
-      return await desktopCapturerPromise;
+      refreshDesktopCapturerCache(options);
+      if (desktopCapturerPromise) {
+        return await desktopCapturerPromise;
+      }
+      return [];
     } catch (error) {
       console.error('Error in desktop capturer handler:', error);
-
-      desktopCapturerCache = null;
-      desktopCapturerPromise = null;
-
-      return [];
+      return desktopCapturerCache?.sources || [];
     }
   });
 };
@@ -206,11 +207,6 @@ const cleanupVideoCallWindow = () => {
         console.log(
           'Could not clean webview contents, continuing with window cleanup'
         );
-      }
-
-      if (cacheCleanupTimer) {
-        clearTimeout(cacheCleanupTimer);
-        cacheCleanupTimer = null;
       }
 
       videoCallWindow.removeAllListeners();
@@ -314,8 +310,14 @@ export const startVideoCallWindowHandler = (): void => {
   );
 
   handle('video-call-window/open-screen-picker', async (_webContents) => {
-    // This is handled by the renderer process (screenSharePicker.tsx)
-    // The handler exists to satisfy the IPC call from preload script
+    if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+      videoCallWindow.webContents.send('video-call-window/open-screen-picker');
+      return { success: true };
+    }
+    console.warn(
+      'Video call window: Cannot open screen picker - window not available'
+    );
+    return { success: false };
   });
 
   handle('video-call-window/open-window', async (_webContents, url) => {
@@ -414,15 +416,30 @@ export const startVideoCallWindowHandler = (): void => {
       console.log('Creating new video call window');
       videoCallWindowCreationCount++;
 
-      if (cacheCleanupTimer) {
-        clearTimeout(cacheCleanupTimer);
-        cacheCleanupTimer = null;
-        console.log(
-          'Cancelled cache cleanup - creating new window, cache preserved for better performance'
+      logVideoCallWindowStats();
+
+      const additionalArgs: string[] = [];
+
+      if (process.platform === 'win32') {
+        const sessionName = process.env.SESSIONNAME;
+        const isRdpSession =
+          typeof sessionName === 'string' && sessionName !== 'Console';
+        const { readSetting } = await import('../store/readSetting');
+        const isScreenCaptureFallbackEnabled = readSetting(
+          'isVideoCallScreenCaptureFallbackEnabled'
         );
+
+        if (isScreenCaptureFallbackEnabled || isRdpSession) {
+          additionalArgs.push(
+            '--disable-features=WebRtcAllowWgcDesktopCapturer,WebRtcAllowWgcScreenCapturer'
+          );
+          console.log(
+            'Video call window: Explicitly passing WGC disable flags to webview via additionalArguments',
+            { isRdpSession, isScreenCaptureFallbackEnabled }
+          );
+        }
       }
 
-      logVideoCallWindowStats();
       videoCallWindow = new BrowserWindow({
         width,
         height,
@@ -439,6 +456,9 @@ export const startVideoCallWindowHandler = (): void => {
           backgroundThrottling: true,
           v8CacheOptions: 'bypassHeatCheck',
           spellcheck: false,
+          ...(additionalArgs.length > 0 && {
+            additionalArguments: additionalArgs,
+          }),
         },
         show: false,
         frame: true,
@@ -496,21 +516,6 @@ export const startVideoCallWindowHandler = (): void => {
             isVideoCallWindowDestroying = false;
             videoCallWindowDestructionCount++;
 
-            cacheCleanupTimer = setTimeout(() => {
-              console.log(
-                'Clearing desktop capturer cache after window idle period'
-              );
-              desktopCapturerCache = null;
-              desktopCapturerPromise = null;
-              sourceValidationCache.clear();
-              sourceValidationCacheTimestamp = 0;
-              cacheCleanupTimer = null;
-              console.log('Desktop capturer cache cleared due to inactivity');
-            }, CACHE_CLEANUP_DELAY);
-
-            console.log(
-              `Desktop capturer cache will be cleared in ${CACHE_CLEANUP_DELAY / 1000} seconds if no new video call window is opened`
-            );
             logVideoCallWindowStats();
           } catch (error) {
             console.error(
@@ -911,12 +916,6 @@ export const openVideoCallWebviewDevTools = async (): Promise<boolean> => {
 export const cleanupVideoCallResources = () => {
   console.log('Cleaning up all video call resources');
 
-  if (cacheCleanupTimer) {
-    clearTimeout(cacheCleanupTimer);
-    cacheCleanupTimer = null;
-    console.log('Cancelled pending cache cleanup timer');
-  }
-
   desktopCapturerCache = null;
   desktopCapturerPromise = null;
   sourceValidationCache.clear();
@@ -1018,4 +1017,9 @@ handle('video-call-window/get-language', async () => {
     console.error('Video call window: Failed to get language:', error);
     return { success: true, language: fallbackLng };
   }
+});
+
+handle('video-call-window/prewarm-capturer-cache', async () => {
+  refreshDesktopCapturerCache({ types: ['window', 'screen'] });
+  return { success: true };
 });

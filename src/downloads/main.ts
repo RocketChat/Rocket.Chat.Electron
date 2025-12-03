@@ -192,6 +192,7 @@ export const setupDownloads = (): void => {
         title: t('downloads.notifications.downloadExpired'),
         body: t('downloads.notifications.downloadExpiredMessage'),
         subtitle: download.fileName,
+        category: 'DOWNLOADS',
       });
 
       dispatch({

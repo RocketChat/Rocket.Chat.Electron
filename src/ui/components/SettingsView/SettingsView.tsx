@@ -1,4 +1,4 @@
-import { Box, IconButton, Tabs } from '@rocket.chat/fuselage';
+import { Box, IconButton, Scrollable, Tabs } from '@rocket.chat/fuselage';
 import '@rocket.chat/fuselage-polyfills';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -71,10 +71,12 @@ export const SettingsView = () => {
           {t('settings.certificates')}
         </Tabs.Item>
       </Tabs>
-      <Box m='x24' overflowY='auto'>
-        {(currentTab === 'general' && <GeneralTab />) ||
-          (currentTab === 'certificates' && <CertificatesTab />)}
-      </Box>
+      <Scrollable>
+        <Box m='x24'>
+          {(currentTab === 'general' && <GeneralTab />) ||
+            (currentTab === 'certificates' && <CertificatesTab />)}
+        </Box>
+      </Scrollable>
     </Box>
   );
 };

@@ -103,12 +103,6 @@ const showFallbackUI = () => {
   }, 3000);
 };
 
-const triggerURLEvent = (url: string, autoOpenDevtools: boolean): void => {
-  const event = new CustomEvent('video-call-url-received', {
-    detail: { url, autoOpenDevtools },
-  });
-  window.dispatchEvent(event);
-};
 
 const start = async (): Promise<void> => {
   if (isWindowDestroying) {
@@ -196,60 +190,7 @@ const start = async (): Promise<void> => {
     );
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('Video call window: Renderer ready, requesting URL');
-    }
-
-    // Request URL with custom retry logic
-    const urlRetryOptions: IRetryOptions = {
-      maxAttempts: 5, // Increased from 3
-      retryDelay: 2000, // Increased from 1000ms
-      logRetries: process.env.NODE_ENV === 'development',
-      shouldRetry: (error, attempt) => {
-        // Retry on IPC errors or if result indicates no URL yet
-        const isIPCError = error.message.includes('IPC call failed');
-        const isNoURLYet = error.message.includes('success: false');
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log(
-            `Video call window: URL request attempt ${attempt} failed:`,
-            {
-              error: error.message,
-              isIPCError,
-              isNoURLYet,
-              willRetry: isIPCError || isNoURLYet,
-            }
-          );
-        }
-
-        return isIPCError || isNoURLYet;
-      },
-    };
-
-    let urlRequestResult;
-    try {
-      urlRequestResult = await invokeWithRetry(
-        'video-call-window/request-url',
-        urlRetryOptions
-      );
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      console.error(
-        'Video call window: Failed to get URL after all retries:',
-        error
-      );
-      throw new Error(`Failed to get video call URL: ${errorMessage}`);
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Video call window: URL received:', urlRequestResult);
-    }
-
-    // Trigger URL event for VideoCallWindow component
-    if (urlRequestResult.url) {
-      triggerURLEvent(urlRequestResult.url, urlRequestResult.autoOpenDevtools);
-    } else {
-      throw new Error('No URL received from main process');
+      console.log('Video call window: Renderer ready');
     }
 
     if (initAttempts === 1 && process.env.NODE_ENV !== 'development') {

@@ -63,8 +63,9 @@ export const ScreenCaptureFallback = (props: ScreenCaptureFallbackProps) => {
         </FieldLabel>
         <ToggleSwitch
           id={fallbackToggleId}
-          checked={isFallbackEnabled}
+          checked={isFallbackEnabled || isFallbackForced}
           onChange={handleChange}
+          disabled={isFallbackForced}
         />
       </FieldRow>
       <FieldRow>

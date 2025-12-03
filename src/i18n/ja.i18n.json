@@ -215,6 +215,14 @@
     "cancel": "キャンセル",
     "share": "共有"
   },
+  "settings": {
+    "options": {
+      "transparentWindow": {
+        "title": "透明ウィンドウ効果",
+        "description": "ウィンドウのネイティブなビブランシー/透明効果を有効にします。適用するには再起動が必要です。"
+      }
+    }
+  },
   "serverInfo": {
     "title": "サーバー情報",
     "urlLabel": "URL:",

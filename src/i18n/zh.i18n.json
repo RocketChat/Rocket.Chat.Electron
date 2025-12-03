@@ -1,4 +1,12 @@
 {
+  "settings": {
+    "options": {
+      "transparentWindow": {
+        "title": "透明窗口效果",
+        "description": "启用窗口的原生模糊/透明效果。需要重启才能应用。"
+      }
+    }
+  },
   "serverInfo": {
     "title": "服务器信息",
     "urlLabel": "URL:",

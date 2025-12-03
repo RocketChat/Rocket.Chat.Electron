@@ -281,6 +281,10 @@
       "videoCallWindowPersistence": {
         "title": "Recordar posición de la ventana de videollamada",
         "description": "Guardar y restaurar la posición y el tamaño de las ventanas de videollamada entre sesiones"
+      },
+      "transparentWindow": {
+        "title": "Efecto de ventana transparente",
+        "description": "Habilitar efecto nativo de vibración/transparencia para la ventana. Requiere reinicio para aplicar."
       }
     }
   },

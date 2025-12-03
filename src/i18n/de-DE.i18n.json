@@ -258,6 +258,10 @@
       "videoCallWindowPersistence": {
         "title": "Videoanruf-Fensterposition speichern",
         "description": "Position und Größe der Videoanruf-Fenster zwischen Sitzungen speichern und wiederherstellen"
+      },
+      "transparentWindow": {
+        "title": "Transparentes Fenstereffekt",
+        "description": "Natives Vibrancy-/Transparenzeffekt für das Fenster aktivieren. Erfordert Neustart zur Anwendung."
       }
     }
   },

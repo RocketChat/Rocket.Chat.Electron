@@ -290,6 +290,10 @@
       "videoCallWindowPersistence": {
         "title": "Remember video call window position",
         "description": "Save and restore the position and size of video call windows between sessions"
+      },
+      "transparentWindow": {
+        "title": "Transparent window effect",
+        "description": "Enable native vibrancy/transparency effect for the window. Requires restart to apply."
       }
     }
   },

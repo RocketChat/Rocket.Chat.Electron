@@ -267,7 +267,6 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
     delete webPreferences.enableBlinkFeatures;
     const isVideoCall = isVideoCallWebview(
       _params.partition,
-      _params.src,
       _params.frameName
     );
     const preloadPath = resolvePreloadPath(isVideoCall);
@@ -312,7 +311,7 @@ export const attachGuestWebContentsEvents = async (): Promise<void> => {
         return { action: 'deny' };
       }
 
-      const isVideoCall = isVideoCallWebview(undefined, url, frameName);
+      const isVideoCall = isVideoCallWebview(undefined, frameName);
       const preloadPath = resolvePreloadPath(isVideoCall);
 
       return {

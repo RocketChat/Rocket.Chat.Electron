@@ -288,8 +288,12 @@
         "domains": "A hitelesítési adatokat használó tartományok, vesszővel elválasztva. Használjon * karaktert az összes tartományra való illesztéshez."
       },
       "videoCallWindowPersistence": {
-        "title": "A videohívás-ablak pozíciójának megjegyzése",
-        "description": "A videohívás-ablakok pozíciójának és méretének mentése és helyreállítása a munkamenetek között"
+        "title": "Videohívás ablak pozíciójának megjegyzése",
+        "description": "Videohívás ablakok pozíciójának és méretének mentése és visszaállítása a munkamenetek között"
+      },
+      "transparentWindow": {
+        "title": "Áttetsző ablak effektus",
+        "description": "Natív vibráció/áttetszőség effektus engedélyezése az ablakhoz. Újraindítás szükséges az alkalmazáshoz."
       }
     }
   },

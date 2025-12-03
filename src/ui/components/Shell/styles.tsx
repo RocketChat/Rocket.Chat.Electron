@@ -1,33 +1,46 @@
 import { Global, css } from '@emotion/react';
 import styled from '@emotion/styled';
 
-export const GlobalStyles = () => (
-  <Global
-    styles={css`
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-      }
+import { isDarwin } from '../../utils/platform';
 
-      :focus {
-        outline: 0 !important;
-        outline-style: none;
-        outline-color: transparent;
-      }
+type GlobalStylesProps = {
+  isTransparentWindowEnabled: boolean;
+};
 
-      body {
-        -webkit-font-smoothing: antialiased;
-        margin: 0;
-        padding: 0;
-        font-family: system-ui;
-        font-size: 0.875rem;
-        line-height: 1rem;
-        background-color: #2f343d;
-      }
-    `}
-  />
-);
+export const GlobalStyles = ({
+  isTransparentWindowEnabled,
+}: GlobalStylesProps) => {
+  const backgroundColor =
+    isDarwin && isTransparentWindowEnabled ? 'transparent' : '#2f343d';
+
+  return (
+    <Global
+      styles={css`
+        *,
+        *::before,
+        *::after {
+          box-sizing: border-box;
+        }
+
+        :focus {
+          outline: 0 !important;
+          outline-style: none;
+          outline-color: transparent;
+        }
+
+        body {
+          -webkit-font-smoothing: antialiased;
+          margin: 0;
+          padding: 0;
+          font-family: system-ui;
+          font-size: 0.875rem;
+          line-height: 1rem;
+          background-color: ${backgroundColor};
+        }
+      `}
+    />
+  );
+};
 
 export const WindowDragBar = styled.div`
   position: fixed;
@@ -37,13 +50,18 @@ export const WindowDragBar = styled.div`
   user-select: none;
 `;
 
-export const Wrapper = styled.div`
+type WrapperProps = {
+  isTransparentWindowEnabled: boolean;
+};
+
+export const Wrapper = styled.div<WrapperProps>`
   overflow: hidden;
   width: 100vw;
   height: 100vh;
   cursor: default;
   user-select: none;
-  background-color: #2f343d;
+  background-color: ${({ isTransparentWindowEnabled }) =>
+    isDarwin && isTransparentWindowEnabled ? 'transparent' : '#2f343d'};
   display: flex;
   flex-flow: row nowrap;
 `;

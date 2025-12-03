@@ -256,6 +256,10 @@
       "clearPermittedScreenCaptureServers": {
         "title": "Effacer les autorisations de capture d'écran",
         "description": "Effacez les autorisations de capture d'écran qui ont été sélectionnées pour ne plus demander lors des appels vidéo."
+      },
+      "transparentWindow": {
+        "title": "Effet de fenêtre transparente",
+        "description": "Activer l'effet natif de vibrance/transparence pour la fenêtre. Nécessite un redémarrage pour s'appliquer."
       }
     }
   },

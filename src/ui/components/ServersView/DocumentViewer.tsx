@@ -17,21 +17,15 @@ const DocumentViewer = ({
   url,
   partition,
   closeDocumentViewer,
-  themeAppearance,
 }: {
   url: string;
   partition: string;
-  themeAppearance: string | undefined;
   closeDocumentViewer: () => void;
 }) => {
   const [documentUrl, setDocumentUrl] = useState('');
   const webviewRef = useRef<HTMLWebViewElement>(null);
 
-  const theme = useDarkMode(
-    themeAppearance === 'auto' ? undefined : themeAppearance === 'dark'
-  )
-    ? 'dark'
-    : 'light';
+  const theme = useDarkMode() ? 'dark' : 'light';
 
   useEffect(() => {
     if (documentUrl !== url && url !== '') {

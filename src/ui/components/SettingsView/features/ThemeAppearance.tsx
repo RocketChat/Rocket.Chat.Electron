@@ -28,10 +28,17 @@ export const ThemeAppearance = (props: ThemeAppearanceProps) => {
 
   const handleChangeTheme = useCallback(
     (value: Key) => {
-      const stringValue = String(value) as 'auto' | 'light' | 'dark';
+      const stringValue = String(value);
+      if (
+        stringValue !== 'auto' &&
+        stringValue !== 'light' &&
+        stringValue !== 'dark'
+      ) {
+        return;
+      }
       dispatch({
         type: SETTINGS_USER_THEME_PREFERENCE_CHANGED,
-        payload: stringValue,
+        payload: stringValue as 'auto' | 'light' | 'dark',
       });
     },
     [dispatch]

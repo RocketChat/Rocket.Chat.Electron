@@ -7,7 +7,7 @@
       },
       "themeAppearance": {
         "title": "Tema",
-        "description": "Vel fargtemaet for applikasjonen.",
+        "description": "Velg fargtemaet for applikasjonen.",
         "auto": "Følg system",
         "light": "Lys",
         "dark": "Mørk"

@@ -1,8 +1,9 @@
 import { Box, IconButton, Throbber } from '@rocket.chat/fuselage';
-import { useDarkMode } from '@rocket.chat/fuselage-hooks';
 import { useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 
 import { dispatch } from '../../../store';
+import type { RootState } from '../../../store/rootReducer';
 import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../../actions';
 
 declare global {
@@ -25,7 +26,21 @@ const DocumentViewer = ({
   const [documentUrl, setDocumentUrl] = useState('');
   const webviewRef = useRef<HTMLWebViewElement>(null);
 
-  const theme = useDarkMode() ? 'dark' : 'light';
+  const machineTheme = useSelector(
+    ({ machineTheme }: RootState) => machineTheme
+  );
+  const userThemePreference = useSelector(
+    ({ userThemePreference }: RootState) => userThemePreference
+  );
+
+  const theme =
+    userThemePreference === 'auto'
+      ? machineTheme === 'dark'
+        ? 'dark'
+        : 'light'
+      : userThemePreference === 'dark'
+        ? 'dark'
+        : 'light';
 
   useEffect(() => {
     if (documentUrl !== url && url !== '') {

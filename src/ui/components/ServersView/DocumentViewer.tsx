@@ -1,9 +1,7 @@
 import { Box, IconButton, Throbber } from '@rocket.chat/fuselage';
 import { useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
 
 import { dispatch } from '../../../store';
-import type { RootState } from '../../../store/rootReducer';
 import { WEBVIEW_PDF_VIEWER_ATTACHED } from '../../actions';
 
 declare global {
@@ -25,22 +23,6 @@ const DocumentViewer = ({
 }) => {
   const [documentUrl, setDocumentUrl] = useState('');
   const webviewRef = useRef<HTMLWebViewElement>(null);
-
-  const machineTheme = useSelector(
-    ({ machineTheme }: RootState) => machineTheme
-  );
-  const userThemePreference = useSelector(
-    ({ userThemePreference }: RootState) => userThemePreference
-  );
-
-  const theme =
-    userThemePreference === 'auto'
-      ? machineTheme === 'dark'
-        ? 'dark'
-        : 'light'
-      : userThemePreference === 'dark'
-        ? 'dark'
-        : 'light';
 
   useEffect(() => {
     if (documentUrl !== url && url !== '') {
@@ -85,7 +67,7 @@ const DocumentViewer = ({
   return (
     <>
       <Box
-        bg={theme}
+        bg='tint'
         width='100%'
         height='100%'
         position='absolute'
@@ -96,14 +78,9 @@ const DocumentViewer = ({
           content='center'
           alignItems='center'
           display='flex'
-          color={theme === 'dark' ? 'font-white' : 'font-text'}
+          color='default'
         >
-          <IconButton
-            icon='arrow-back'
-            onClick={closeDocumentViewer}
-            mi='x8'
-            color={theme === 'dark' ? 'white' : 'default'}
-          />
+          <IconButton icon='arrow-back' onClick={closeDocumentViewer} mi='x8' />
           <h2>PDF Viewer</h2>
         </Box>
 
@@ -115,11 +92,9 @@ const DocumentViewer = ({
             height='100%'
             width='100%'
             position='absolute'
+            color='default'
           >
-            <Throbber
-              size='x16'
-              color={theme === 'dark' ? 'white' : 'default'}
-            />
+            <Throbber size='x16' inheritColor />
           </Box>
           <webview
             ref={webviewRef}

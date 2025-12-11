@@ -76,6 +76,10 @@ export const performElectronStartup = (): void => {
     app.commandLine.appendSwitch('disable-accelerated-video-decode');
   }
 
+  if (process.platform === 'linux') {
+    app.commandLine.appendSwitch('ozone-platform', 'x11');
+  }
+
   const args = process.argv.slice(app.isPackaged ? 1 : 2);
 
   if (args.includes('--reset-app-data')) {

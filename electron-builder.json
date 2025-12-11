@@ -155,7 +155,8 @@
       "audio-record",
       "screen-inhibit-control",
       "upower-observe"
-    ]
+    ],
+    "executableArgs": ["--ozone-platform=x11"]
   },
   "afterSign": "./build/notarize.js",
   "generateUpdatesFilesForAllChannels": true,

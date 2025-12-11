@@ -11,7 +11,7 @@ export const Wrapper = styled.section<WrapperProps>`
   top: 0;
   right: 0;
   bottom: 0;
-  background-color: #2f343d;
+  background-color: transparent;
 
   ${({ isVisible }) => css`
     display: ${isVisible ? 'flex' : 'none'};

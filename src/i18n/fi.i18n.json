@@ -260,6 +260,13 @@
       "transparentWindow": {
         "title": "Läpinäkyvä ikkuna-efekti",
         "description": "Ota käyttöön natiivi värinäkyvyys/läpinäkyvyys-efekti ikkunalle. Vaatii uudelleenkäynnistyksen toimiakseen."
+      },
+      "themeAppearance": {
+        "title": "Teema",
+        "description": "Valitse sovelluksen väriteema.",
+        "auto": "Seuraa järjestelmää",
+        "light": "Vaalea",
+        "dark": "Tumma"
       }
     }
   },

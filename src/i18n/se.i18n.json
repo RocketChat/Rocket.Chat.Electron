@@ -4,6 +4,13 @@
       "transparentWindow": {
         "title": "Genomskinlig fönstereffekt",
         "description": "Aktivera inbyggd vibrans/genomskinlighetseffekt för fönstret. Kräver omstart för att tillämpa."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Välj färgtemat för applikationen.",
+        "auto": "Följ system",
+        "light": "Ljus",
+        "dark": "Mörk"
       }
     }
   },

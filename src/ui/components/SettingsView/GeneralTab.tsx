@@ -11,6 +11,7 @@ import { NTLMCredentials } from './features/NTLMCredentials';
 import { ReportErrors } from './features/ReportErrors';
 import { ScreenCaptureFallback } from './features/ScreenCaptureFallback';
 import { SideBar } from './features/SideBar';
+import { ThemeAppearance } from './features/ThemeAppearance';
 import { TransparentWindow } from './features/TransparentWindow';
 import { TrayIcon } from './features/TrayIcon';
 import { VideoCallWindowPersistence } from './features/VideoCallWindowPersistence';
@@ -30,6 +31,7 @@ export const GeneralTab = () => (
       <SideBar />
       {process.platform !== 'darwin' && <MenuBar />}
       {process.platform === 'win32' && <NTLMCredentials />}
+      <ThemeAppearance />
       <AvailableBrowsers />
       {!process.mas && <ClearPermittedScreenCaptureServers />}
     </FieldGroup>

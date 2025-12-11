@@ -121,6 +121,13 @@
       "transparentWindow": {
         "title": "Şeffaf pencere efekti",
         "description": "Pencere için yerel titreşim/şeffaflık efektini etkinleştir. Uygulamak için yeniden başlatma gerektirir."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Uygulama için renk temasını seçin.",
+        "auto": "Sistemi takip et",
+        "light": "Açık",
+        "dark": "Koyu"
       }
     }
   },

@@ -262,6 +262,13 @@
       "transparentWindow": {
         "title": "Transparentes Fenstereffekt",
         "description": "Natives Vibrancy-/Transparenzeffekt für das Fenster aktivieren. Erfordert Neustart zur Anwendung."
+      },
+      "themeAppearance": {
+        "title": "Design",
+        "description": "Wählen Sie das Farbschema für die Anwendung.",
+        "auto": "System folgen",
+        "light": "Hell",
+        "dark": "Dunkel"
       }
     }
   },

@@ -251,45 +251,48 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     _event: Event,
     webviewWebContents: WebContents
   ): void => {
-    webviewWebContents.session.setDisplayMediaRequestHandler((_request, cb) => {
-      if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-        videoCallWindow.webContents.send(
-          'video-call-window/open-screen-picker'
-        );
+    webviewWebContents.session.setDisplayMediaRequestHandler(
+      (_request, cb) => {
+        if (videoCallWindow && !videoCallWindow.isDestroyed()) {
+          videoCallWindow.webContents.send(
+            'video-call-window/open-screen-picker'
+          );
 
-        ipcMain.once(
-          'video-call-window/screen-sharing-source-responded',
-          async (_event, sourceId) => {
-            if (!sourceId) {
-              cb({ video: false } as any);
-              return;
-            }
-
-            try {
-              const sources = await desktopCapturer.getSources({
-                types: ['window', 'screen'],
-              });
-
-              const selectedSource = sources.find((s) => s.id === sourceId);
-
-              if (!selectedSource) {
-                console.warn(
-                  'Selected screen sharing source no longer available:',
-                  sourceId
-                );
+          ipcMain.once(
+            'video-call-window/screen-sharing-source-responded',
+            async (_event, sourceId) => {
+              if (!sourceId) {
                 cb({ video: false } as any);
                 return;
               }
 
-              cb({ video: selectedSource });
-            } catch (error) {
-              console.error('Error validating screen sharing source:', error);
-              cb({ video: false } as any);
+              try {
+                const sources = await desktopCapturer.getSources({
+                  types: ['window', 'screen'],
+                });
+
+                const selectedSource = sources.find((s) => s.id === sourceId);
+
+                if (!selectedSource) {
+                  console.warn(
+                    'Selected screen sharing source no longer available:',
+                    sourceId
+                  );
+                  cb({ video: false } as any);
+                  return;
+                }
+
+                cb({ video: selectedSource });
+              } catch (error) {
+                console.error('Error validating screen sharing source:', error);
+                cb({ video: false } as any);
+              }
             }
-          }
-        );
-      }
-    });
+          );
+        }
+      },
+      { useSystemPicker: true }
+    );
   };
 
   webContents.removeAllListeners('did-attach-webview');

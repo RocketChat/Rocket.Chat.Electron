@@ -133,10 +133,18 @@
   "deb": {
     "fpm": [
       "--after-install=build/linux/postinst.sh"
+    ],
+    "recommends": [
+      "xdg-desktop-portal",
+      "xdg-desktop-portal-gtk"
     ]
   },
   "rpm": {
-    "fpm": ["--rpm-rpmbuild-define=_build_id_links none"]
+    "fpm": [
+      "--rpm-rpmbuild-define=_build_id_links none",
+      "--rpm-tag=Recommends: xdg-desktop-portal",
+      "--rpm-tag=Recommends: xdg-desktop-portal-gtk"
+    ]
   },
   "snap": {
     "plugs": [
@@ -154,9 +162,9 @@
       "audio-playback",
       "audio-record",
       "screen-inhibit-control",
-      "upower-observe"
-    ],
-    "executableArgs": ["--ozone-platform=x11"]
+      "upower-observe",
+      "pipewire"
+    ]
   },
   "afterSign": "./build/notarize.js",
   "generateUpdatesFilesForAllChannels": true,

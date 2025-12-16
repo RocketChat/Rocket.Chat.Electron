@@ -360,10 +360,26 @@ const setupWebviewHandlers = (webContents: WebContents) => {
 
         // Set timeout to prevent orphaned listeners
         screenSharingTimeout = setTimeout(() => {
+          // Validate that this timeout is for the current request
+          // This prevents double-invocation if the listener already handled it
+          if (activeScreenSharingRequestId !== requestId) {
+            console.warn(
+              'Screen sharing timeout fired for different request, ignoring'
+            );
+            return;
+          }
+
           console.warn(
             'Screen sharing request timed out, cleaning up listener'
           );
+
+          // Clear timeout reference to prevent racing callbacks
+          screenSharingTimeout = null;
+
+          // Clean up listener (mirrors listener path)
           cleanupScreenSharingListener();
+
+          // Invoke callback once (mirrors listener path)
           cb({ video: false } as any);
         }, SCREEN_SHARING_REQUEST_TIMEOUT);
 

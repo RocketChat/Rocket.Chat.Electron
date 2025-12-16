@@ -276,6 +276,26 @@ const cleanupScreenSharingListener = (): void => {
   isScreenSharingRequestPending = false;
 };
 
+const removeScreenSharingListenerOnly = (): void => {
+  if (activeScreenSharingListener) {
+    ipcMain.removeListener(
+      'video-call-window/screen-sharing-source-responded',
+      activeScreenSharingListener
+    );
+    activeScreenSharingListener = null;
+  }
+
+  if (screenSharingTimeout) {
+    clearTimeout(screenSharingTimeout);
+    screenSharingTimeout = null;
+  }
+};
+
+const markScreenSharingComplete = (): void => {
+  activeScreenSharingRequestId = null;
+  isScreenSharingRequestPending = false;
+};
+
 const setupWebviewHandlers = (webContents: WebContents) => {
   const handleDidAttachWebview = (
     _event: Event,
@@ -318,17 +338,14 @@ const setupWebviewHandlers = (webContents: WebContents) => {
             return;
           }
 
-          // Clean up timeout
-          if (screenSharingTimeout) {
-            clearTimeout(screenSharingTimeout);
-            screenSharingTimeout = null;
-          }
-
-          // Remove listener
-          cleanupScreenSharingListener();
+          // Remove listener and clear timeout (prevent re-firing)
+          // BUT keep isScreenSharingRequestPending=true to block concurrent requests
+          removeScreenSharingListenerOnly();
 
           if (!sourceId) {
             cb({ video: false } as any);
+            // Now mark complete to allow new requests
+            markScreenSharingComplete();
             return;
           }
 
@@ -345,13 +362,19 @@ const setupWebviewHandlers = (webContents: WebContents) => {
                 sourceId
               );
               cb({ video: false } as any);
+              // Now mark complete to allow new requests
+              markScreenSharingComplete();
               return;
             }
 
             cb({ video: selectedSource });
+            // Now mark complete to allow new requests
+            markScreenSharingComplete();
           } catch (error) {
             console.error('Error validating screen sharing source:', error);
             cb({ video: false } as any);
+            // Now mark complete to allow new requests
+            markScreenSharingComplete();
           }
         };
 
@@ -373,14 +396,14 @@ const setupWebviewHandlers = (webContents: WebContents) => {
             'Screen sharing request timed out, cleaning up listener'
           );
 
-          // Clear timeout reference to prevent racing callbacks
-          screenSharingTimeout = null;
-
-          // Clean up listener (mirrors listener path)
-          cleanupScreenSharingListener();
+          // Remove listener only (keep pending flag to block concurrent requests)
+          removeScreenSharingListenerOnly();
 
           // Invoke callback once (mirrors listener path)
           cb({ video: false } as any);
+
+          // Now mark complete to allow new requests
+          markScreenSharingComplete();
         }, SCREEN_SHARING_REQUEST_TIMEOUT);
 
         // Register listener

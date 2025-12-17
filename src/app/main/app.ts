@@ -208,7 +208,7 @@ export const performElectronStartup = (): void => {
           // Recent crash detected
           const newCrashCount = sentinel.crashCount + 1;
 
-          if (newCrashCount >= MAX_CRASH_COUNT) {
+          if (newCrashCount > MAX_CRASH_COUNT) {
             // Too many crashes, enable fallback
             console.log(
               `Detected ${newCrashCount} crashes in ${CRASH_WINDOW_MS}ms, enabling X11 fallback`
@@ -295,8 +295,10 @@ export const setupGpuCrashHandler = (): void => {
     saveGpuFallbackMode('x11');
     console.log('GPU fallback mode set to x11, relaunching...');
 
-    const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
-    app.relaunch({ args: command });
+    // Preserve command-line arguments when relaunching
+    // When packaged: slice(1) gets user args after executable
+    // When not packaged: slice(1) gets script path + user args
+    app.relaunch({ args: process.argv.slice(1) });
     app.exit(0);
   });
 };

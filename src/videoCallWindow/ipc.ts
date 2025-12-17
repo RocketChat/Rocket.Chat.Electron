@@ -328,6 +328,11 @@ const setupWebviewHandlers = (webContents: WebContents) => {
         activeScreenSharingRequestId = requestId;
         isScreenSharingRequestPending = true;
 
+        // Flag to prevent double-invocation of callback
+        // This guards against race conditions where both timeout and listener
+        // are queued in the event loop simultaneously
+        let callbackInvoked = false;
+
         // Create the listener function
         const listener = async (_event: Event, sourceId: string | null) => {
           // Ignore responses for different requests
@@ -337,6 +342,15 @@ const setupWebviewHandlers = (webContents: WebContents) => {
             );
             return;
           }
+
+          // Guard against double-invocation (race with timeout)
+          if (callbackInvoked) {
+            console.warn(
+              'Screen sharing callback already invoked, ignoring duplicate'
+            );
+            return;
+          }
+          callbackInvoked = true;
 
           // Remove listener and clear timeout (prevent re-firing)
           // BUT keep isScreenSharingRequestPending=true to block concurrent requests
@@ -391,6 +405,15 @@ const setupWebviewHandlers = (webContents: WebContents) => {
             );
             return;
           }
+
+          // Guard against double-invocation (race with listener)
+          if (callbackInvoked) {
+            console.warn(
+              'Screen sharing callback already invoked by listener, ignoring timeout'
+            );
+            return;
+          }
+          callbackInvoked = true;
 
           console.warn(
             'Screen sharing request timed out, cleaning up listener'

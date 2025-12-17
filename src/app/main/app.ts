@@ -52,7 +52,7 @@ let isScreenCaptureFallbackForced = false;
 let isMainWindowStable = false;
 
 const STARTUP_SENTINEL_FILE = 'startup-sentinel.json';
-const MAX_CRASH_COUNT = 2;
+const CRASH_THRESHOLD = 2;
 const CRASH_WINDOW_MS = 60000; // 1 minute
 
 interface IStartupSentinel {
@@ -208,10 +208,10 @@ export const performElectronStartup = (): void => {
           // Recent crash detected
           const newCrashCount = sentinel.crashCount + 1;
 
-          if (newCrashCount > MAX_CRASH_COUNT) {
+          if (newCrashCount > CRASH_THRESHOLD) {
             // Too many crashes, enable fallback
             console.log(
-              `Detected ${newCrashCount} crashes in ${CRASH_WINDOW_MS}ms, enabling X11 fallback`
+              `Crash threshold exceeded (${newCrashCount} > ${CRASH_THRESHOLD}), enabling X11 fallback`
             );
             saveGpuFallbackMode('x11');
             gpuFallbackMode = 'x11';

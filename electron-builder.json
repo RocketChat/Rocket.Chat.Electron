@@ -152,6 +152,7 @@
       "desktop-legacy",
       "home",
       "x11",
+      "wayland",
       "unity7",
       "browser-support",
       "network",
@@ -164,8 +165,7 @@
       "screen-inhibit-control",
       "upower-observe",
       "pipewire"
-    ],
-    "executableArgs": ["--ozone-platform=x11"]
+    ]
   },
   "afterSign": "./build/notarize.js",
   "generateUpdatesFilesForAllChannels": true,

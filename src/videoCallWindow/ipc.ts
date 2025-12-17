@@ -324,7 +324,7 @@ const setupWebviewHandlers = (webContents: WebContents) => {
         cleanupScreenSharingListener();
 
         // Generate unique request ID
-        const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
         activeScreenSharingRequestId = requestId;
         isScreenSharingRequestPending = true;
 

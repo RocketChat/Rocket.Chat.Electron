@@ -7,7 +7,7 @@ Rocket.Chat Desktop automatically detects and uses the best display server (Wayl
 | Package Type | Display Server | Notes |
 |--------------|---------------|-------|
 | **deb/rpm** | Auto-detect | Uses Wayland if available, falls back to X11 |
-| **Snap** | X11 (forced) | Due to sandbox limitations |
+| **Snap** | Auto-detect | Uses Wayland if available, falls back to X11 |
 | **AppImage** | Auto-detect | Uses Wayland if available, falls back to X11 |
 
 ## Automatic GPU Crash Recovery
@@ -133,7 +133,7 @@ If the GPU crashes again, the app will automatically switch back to X11.
 - **Real Hardware + Wayland**: Use default (auto-detection) for best experience
 - **VM + Wayland**: The app will auto-detect and switch to X11 after first crash
 - **X11 Session**: No configuration needed, works automatically
-- **Snap Package**: X11 is forced automatically, no action needed
+- **Snap Package**: Uses auto-detection like other package types
 
 ## Reporting Issues
 

@@ -193,45 +193,8 @@ export const performElectronStartup = (): void => {
   if (process.platform === 'linux') {
     app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
 
-    // Check startup sentinel for crash detection
-    let gpuFallbackMode = readGpuFallbackMode();
-
-    if (gpuFallbackMode === 'none') {
-      // Not in fallback mode, check for repeated crashes
-      const sentinel = readStartupSentinel();
-      const now = Date.now();
-
-      if (sentinel) {
-        const timeSinceLastCrash = now - sentinel.lastCrashTime;
-
-        if (timeSinceLastCrash < CRASH_WINDOW_MS) {
-          // Recent crash detected
-          const newCrashCount = sentinel.crashCount + 1;
-
-          if (newCrashCount > CRASH_THRESHOLD) {
-            // Too many crashes, enable fallback
-            console.log(
-              `Crash threshold exceeded (${newCrashCount} > ${CRASH_THRESHOLD}), enabling X11 fallback`
-            );
-            saveGpuFallbackMode('x11');
-            gpuFallbackMode = 'x11';
-            clearStartupSentinel();
-          } else {
-            // Increment crash count
-            writeStartupSentinel({
-              crashCount: newCrashCount,
-              lastCrashTime: now,
-            });
-          }
-        } else {
-          // Crash was too long ago, reset counter
-          writeStartupSentinel({ crashCount: 1, lastCrashTime: now });
-        }
-      } else {
-        // No previous sentinel, create one
-        writeStartupSentinel({ crashCount: 1, lastCrashTime: now });
-      }
-    }
+    // Read GPU fallback mode (may have been set by previous GPU crash)
+    const gpuFallbackMode = readGpuFallbackMode();
 
     // Apply GPU fallback mode
     if (gpuFallbackMode === 'x11') {
@@ -291,10 +254,26 @@ export const setupGpuCrashHandler = (): void => {
       JSON.stringify(details)
     );
 
-    // Save fallback mode and relaunch
-    saveGpuFallbackMode('x11');
-    console.log('GPU fallback mode set to x11, relaunching...');
+    // Track GPU crash in sentinel
+    const sentinel = readStartupSentinel();
+    const now = Date.now();
+    let newCrashCount = 1;
 
+    if (sentinel && now - sentinel.lastCrashTime < CRASH_WINDOW_MS) {
+      newCrashCount = sentinel.crashCount + 1;
+    }
+
+    if (newCrashCount > CRASH_THRESHOLD) {
+      console.log(
+        `GPU crash threshold exceeded (${newCrashCount} > ${CRASH_THRESHOLD}), enabling X11 fallback`
+      );
+      saveGpuFallbackMode('x11');
+      clearStartupSentinel();
+    } else {
+      writeStartupSentinel({ crashCount: newCrashCount, lastCrashTime: now });
+    }
+
+    console.log('Relaunching app...');
     // Preserve command-line arguments when relaunching
     // When packaged: slice(1) gets user args after executable
     // When not packaged: slice(1) gets script path + user args

@@ -274,11 +274,9 @@ export const setupGpuCrashHandler = (): void => {
     }
 
     console.log('Relaunching app...');
-    // Preserve command-line arguments when relaunching
-    // When packaged: slice(1) gets user args after executable
-    // When not packaged: slice(1) gets script path + user args
-    app.relaunch({ args: process.argv.slice(1) });
-    app.exit(0);
+    // Preserve user command-line arguments when relaunching
+    const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
+    relaunchApp(...userArgs);
   });
 };
 

@@ -12,7 +12,7 @@ Rocket.Chat Desktop automatically detects and uses the best display server (Wayl
 
 ## Automatic GPU Crash Recovery
 
-Starting with version 4.10.2, Rocket.Chat Desktop includes automatic GPU crash detection and recovery:
+Rocket.Chat Desktop includes automatic GPU crash detection and recovery:
 
 1. **Crash Detection**: If the GPU process crashes during startup (e.g., due to incompatible drivers), the app detects this automatically.
 
@@ -41,11 +41,11 @@ Rocket.Chat Desktop includes native Wayland support with:
 VMs with paravirtual graphics (QXL, VirtualBox, VMware) may have issues with Wayland GPU acceleration.
 
 **Symptoms:**
-```
+```text
 ERROR:viz_main_impl.cc:189] Exiting GPU process due to errors during initialization
 ```
 
-**Automatic Recovery:** Starting with version 4.10.2, the app automatically detects this crash and switches to X11 mode. You should see the app restart and work normally after the first crash.
+**Automatic Recovery:** The app automatically detects this crash and switches to X11 mode. You should see the app restart and work normally after the first crash.
 
 **Manual Solution:** If auto-recovery doesn't work, force X11 mode:
 ```bash
@@ -107,6 +107,9 @@ vainfo
 ```
 
 ### Enable Verbose Logging
+
+These are standard Chromium flags that enable detailed logging output:
+
 ```bash
 rocketchat-desktop --enable-logging --v=1
 ```

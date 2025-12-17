@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 import { app, session, BrowserWindow } from 'electron';
 import { rimraf } from 'rimraf';
 
@@ -11,9 +14,14 @@ import electronBuilderJson from '../../../electron-builder.json';
 import packageJson from '../../../package.json';
 import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED } from '../../jitsi/actions';
 import { dispatch, listen } from '../../store';
-import { readSetting } from '../../store/readSetting';
+import {
+  readGpuFallbackMode,
+  readSetting,
+  saveGpuFallbackMode,
+} from '../../store/readSetting';
 import {
   SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
+  SETTINGS_GPU_FALLBACK_MODE_CHANGED,
   SETTINGS_NTLM_CREDENTIALS_CHANGED,
   SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED,
   SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED,
@@ -41,6 +49,48 @@ export const electronBuilderJsonInformation = {
 };
 
 let isScreenCaptureFallbackForced = false;
+let isMainWindowStable = false;
+
+const STARTUP_SENTINEL_FILE = 'startup-sentinel.json';
+const MAX_CRASH_COUNT = 2;
+const CRASH_WINDOW_MS = 60000; // 1 minute
+
+interface IStartupSentinel {
+  crashCount: number;
+  lastCrashTime: number;
+}
+
+const getStartupSentinelPath = (): string =>
+  path.join(app.getPath('userData'), STARTUP_SENTINEL_FILE);
+
+const readStartupSentinel = (): IStartupSentinel | null => {
+  try {
+    const content = fs.readFileSync(getStartupSentinelPath(), 'utf8');
+    return JSON.parse(content) as IStartupSentinel;
+  } catch {
+    return null;
+  }
+};
+
+const writeStartupSentinel = (sentinel: IStartupSentinel): void => {
+  try {
+    fs.writeFileSync(
+      getStartupSentinelPath(),
+      JSON.stringify(sentinel),
+      'utf8'
+    );
+  } catch (error) {
+    console.error('Failed to write startup sentinel:', error);
+  }
+};
+
+const clearStartupSentinel = (): void => {
+  try {
+    fs.unlinkSync(getStartupSentinelPath());
+  } catch {
+    // File doesn't exist, ignore
+  }
+};
 
 export const getPlatformName = (): string => {
   switch (process.platform) {
@@ -142,6 +192,56 @@ export const performElectronStartup = (): void => {
   // Enable PipeWire screen capture for Linux (Wayland support)
   if (process.platform === 'linux') {
     app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
+
+    // Check startup sentinel for crash detection
+    let gpuFallbackMode = readGpuFallbackMode();
+
+    if (gpuFallbackMode === 'none') {
+      // Not in fallback mode, check for repeated crashes
+      const sentinel = readStartupSentinel();
+      const now = Date.now();
+
+      if (sentinel) {
+        const timeSinceLastCrash = now - sentinel.lastCrashTime;
+
+        if (timeSinceLastCrash < CRASH_WINDOW_MS) {
+          // Recent crash detected
+          const newCrashCount = sentinel.crashCount + 1;
+
+          if (newCrashCount >= MAX_CRASH_COUNT) {
+            // Too many crashes, enable fallback
+            console.log(
+              `Detected ${newCrashCount} crashes in ${CRASH_WINDOW_MS}ms, enabling X11 fallback`
+            );
+            saveGpuFallbackMode('x11');
+            gpuFallbackMode = 'x11';
+            clearStartupSentinel();
+          } else {
+            // Increment crash count
+            writeStartupSentinel({
+              crashCount: newCrashCount,
+              lastCrashTime: now,
+            });
+          }
+        } else {
+          // Crash was too long ago, reset counter
+          writeStartupSentinel({ crashCount: 1, lastCrashTime: now });
+        }
+      } else {
+        // No previous sentinel, create one
+        writeStartupSentinel({ crashCount: 1, lastCrashTime: now });
+      }
+    }
+
+    // Apply GPU fallback mode
+    if (gpuFallbackMode === 'x11') {
+      console.log('GPU fallback mode: forcing X11 display server');
+      app.commandLine.appendSwitch('ozone-platform', 'x11');
+    } else if (gpuFallbackMode === 'disabled') {
+      console.log('GPU fallback mode: GPU disabled');
+      app.disableHardwareAcceleration();
+      app.commandLine.appendSwitch('disable-gpu');
+    }
   }
 };
 
@@ -149,6 +249,55 @@ export const initializeScreenCaptureFallbackState = (): void => {
   dispatch({
     type: APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
     payload: isScreenCaptureFallbackForced,
+  });
+};
+
+export const markMainWindowStable = (): void => {
+  isMainWindowStable = true;
+
+  // Clear startup sentinel on successful startup (Linux only)
+  if (process.platform === 'linux') {
+    clearStartupSentinel();
+  }
+};
+
+export const setupGpuCrashHandler = (): void => {
+  if (process.platform !== 'linux') {
+    return;
+  }
+
+  const currentFallbackMode = readGpuFallbackMode();
+  if (currentFallbackMode !== 'none') {
+    // Already in fallback mode, don't set up crash handler
+    return;
+  }
+
+  app.on('child-process-gone', (_event, details) => {
+    // Only handle GPU process crashes
+    if (details.type !== 'GPU') {
+      return;
+    }
+
+    // Only trigger fallback during early startup (before main window is stable)
+    if (isMainWindowStable) {
+      console.log(
+        'GPU process crashed after main window stable, not triggering fallback'
+      );
+      return;
+    }
+
+    console.log(
+      'GPU process crashed during startup, details:',
+      JSON.stringify(details)
+    );
+
+    // Save fallback mode and relaunch
+    saveGpuFallbackMode('x11');
+    console.log('GPU fallback mode set to x11, relaunching...');
+
+    const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
+    app.relaunch({ args: command });
+    app.exit(0);
   });
 };
 
@@ -193,6 +342,15 @@ export const setupApp = (): void => {
   });
 
   listen(SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED, () => {
+    relaunchApp();
+  });
+
+  // Linux only: handle GPU fallback mode changes
+  listen(SETTINGS_GPU_FALLBACK_MODE_CHANGED, (action) => {
+    if (process.platform !== 'linux') {
+      return;
+    }
+    saveGpuFallbackMode(action.payload);
     relaunchApp();
   });
 

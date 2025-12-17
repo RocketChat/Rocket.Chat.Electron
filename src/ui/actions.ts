@@ -1,5 +1,6 @@
 import type { WebContents } from 'electron';
 
+import type { GpuFallbackMode } from '../app/PersistableValues';
 import type { Server } from '../servers/common';
 import type { RootWindowIcon, WindowState } from './common';
 
@@ -116,6 +117,8 @@ export const SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS =
   'settings/clear-permitted-screen-capture-permissions';
 export const SETTINGS_NTLM_CREDENTIALS_CHANGED =
   'settings/ntlm-credentials-changed';
+export const SETTINGS_GPU_FALLBACK_MODE_CHANGED =
+  'settings/gpu-fallback-mode-changed';
 export const SETTINGS_AVAILABLE_BROWSERS_UPDATED =
   'settings/available-browsers-updated';
 export const SETTINGS_SELECTED_BROWSER_CHANGED =
@@ -255,6 +258,7 @@ export type UiActionTypeToPayloadMap = {
   [SETTINGS_SET_IS_VIDEO_CALL_SCREEN_CAPTURE_FALLBACK_ENABLED_CHANGED]: boolean;
   [SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS]: void;
   [SETTINGS_NTLM_CREDENTIALS_CHANGED]: boolean;
+  [SETTINGS_GPU_FALLBACK_MODE_CHANGED]: GpuFallbackMode;
   [SETTINGS_AVAILABLE_BROWSERS_UPDATED]: string[];
   [SETTINGS_SELECTED_BROWSER_CHANGED]: string | null;
   [SET_HAS_TRAY_MINIMIZE_NOTIFICATION_SHOWN]: boolean;

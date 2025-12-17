@@ -239,6 +239,15 @@
         "title": "Hardware Acceleration",
         "description": "Enables the use of hardware acceleration when available. The application will reload on change."
       },
+      "gpuFallbackMode": {
+        "title": "Display Server Mode",
+        "description": "Controls how the app connects to your display. Auto-detect works on most systems. If the app crashes on startup, it will automatically switch to Force X11. The app will restart on change.",
+        "options": {
+          "auto": "Auto-detect (Wayland/X11)",
+          "x11": "Force X11",
+          "disabled": "Disable GPU"
+        }
+      },
       "videoCallScreenCaptureFallback": {
         "title": "Fallback Screen Capture for Video Calls",
         "description": "Disable Windows Graphics Capture so screen sharing works in Remote Desktop sessions. The app restarts when you change this option.",

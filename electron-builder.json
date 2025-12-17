@@ -164,7 +164,8 @@
       "screen-inhibit-control",
       "upower-observe",
       "pipewire"
-    ]
+    ],
+    "executableArgs": ["--ozone-platform=x11"]
   },
   "afterSign": "./build/notarize.js",
   "generateUpdatesFilesForAllChannels": true,

@@ -1,3 +1,5 @@
+import { desktopCapturer } from 'electron';
+
 import type { DisplayMediaCallback, ScreenPickerProvider } from '../types';
 
 export class PortalPickerProvider implements ScreenPickerProvider {
@@ -6,9 +8,31 @@ export class PortalPickerProvider implements ScreenPickerProvider {
   readonly requiresCacheWarming = false;
 
   handleDisplayMediaRequest(callback: DisplayMediaCallback): void {
-    // Empty video object delegates to OS picker via XDG portal
-    console.log('Screen picker [portal]: delegating to OS screen picker');
-    callback({ video: {} } as any);
+    // On Linux/Wayland, calling getSources() triggers XDG portal picker
+    // The user selects a source, and we get exactly one source back
+    console.log(
+      'Screen picker [portal]: triggering XDG portal picker via getSources()'
+    );
+
+    desktopCapturer
+      .getSources({ types: ['screen', 'window'] })
+      .then((sources) => {
+        if (sources.length > 0) {
+          // User selected a source via portal picker
+          callback({ video: sources[0] });
+        } else {
+          // User cancelled or no source available
+          console.warn('Screen picker [portal]: No source selected by user');
+          callback({ video: false } as any);
+        }
+      })
+      .catch((error) => {
+        console.error(
+          'Screen picker [portal]: Failed to get source from XDG portal:',
+          error
+        );
+        callback({ video: false } as any);
+      });
   }
 
   async initialize(): Promise<void> {

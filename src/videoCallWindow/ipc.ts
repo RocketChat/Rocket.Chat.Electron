@@ -26,7 +26,6 @@ import { debounce } from '../ui/main/debounce';
 import { handleMediaPermissionRequest } from '../ui/main/mediaPermissions';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
-import { createScreenPicker, InternalPickerProvider } from './screenPicker';
 import type { DisplayMediaCallback } from './screenPicker/types';
 
 const DESKTOP_CAPTURER_STALE_THRESHOLD = 3000;
@@ -420,30 +419,53 @@ const createInternalPickerHandler = (): ((
   };
 };
 
-const setupWebviewHandlers = (webContents: WebContents) => {
-  // Create screen picker provider
-  const provider = createScreenPicker();
+const setupWebviewHandlers = async (webContents: WebContents) => {
+  try {
+    // Lazy import to avoid module initialization issues that could block webview loading
+    const screenPickerModule = await import('./screenPicker');
+    const { createScreenPicker, InternalPickerProvider } = screenPickerModule;
+    
+    // Create screen picker provider
+    const provider = createScreenPicker();
 
-  // Set handler for internal picker
-  if (provider instanceof InternalPickerProvider) {
-    provider.setHandleRequestHandler(createInternalPickerHandler());
+    // Set handler for internal picker
+    if (provider instanceof InternalPickerProvider) {
+      provider.setHandleRequestHandler(createInternalPickerHandler());
+    }
+
+    const handleDidAttachWebview = (
+      _event: Event,
+      webviewWebContents: WebContents
+    ): void => {
+      try {
+        // For portal mode on Linux, we use getSources() to trigger XDG portal
+        // useSystemPicker is macOS-only and doesn't work properly on Linux
+        webviewWebContents.session.setDisplayMediaRequestHandler(
+          (_request, cb) => {
+            try {
+              provider.handleDisplayMediaRequest(cb);
+            } catch (error) {
+              console.error(
+                'Error in screen picker handler:',
+                error
+              );
+              cb({ video: false } as any);
+            }
+          },
+          { useSystemPicker: false } // Always false - portal handled via callback on Linux
+        );
+      } catch (error) {
+        console.error('Error setting up display media request handler:', error);
+      }
+    };
+
+    webContents.removeAllListeners('did-attach-webview');
+
+    webContents.on('did-attach-webview', handleDidAttachWebview);
+  } catch (error) {
+    console.error('Error setting up webview handlers:', error);
+    // Don't prevent webview from loading if screen picker setup fails
   }
-
-  const handleDidAttachWebview = (
-    _event: Event,
-    webviewWebContents: WebContents
-  ): void => {
-    webviewWebContents.session.setDisplayMediaRequestHandler(
-      (_request, cb) => {
-        provider.handleDisplayMediaRequest(cb);
-      },
-      { useSystemPicker: provider.type === 'portal' }
-    );
-  };
-
-  webContents.removeAllListeners('did-attach-webview');
-
-  webContents.on('did-attach-webview', handleDidAttachWebview);
 };
 
 export const startVideoCallWindowHandler = (): void => {
@@ -829,7 +851,10 @@ export const startVideoCallWindowHandler = (): void => {
 
       const { webContents } = videoCallWindow;
 
-      setupWebviewHandlers(webContents);
+      // Setup webview handlers asynchronously to avoid blocking
+      setupWebviewHandlers(webContents).catch((error) => {
+        console.error('Failed to setup webview handlers:', error);
+      });
 
       // Set the pending URL after window is created to prevent race condition with cleanup
       setPendingVideoCallUrl(url, 'open-window-after-creation');

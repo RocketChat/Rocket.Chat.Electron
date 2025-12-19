@@ -1,5 +1,5 @@
 import type { Event } from 'electron';
-import { desktopCapturer, ipcMain, ipcRenderer } from 'electron';
+import { desktopCapturer, ipcMain } from 'electron';
 
 import type { DisplayMediaCallback, ScreenPickerProvider } from '../types';
 

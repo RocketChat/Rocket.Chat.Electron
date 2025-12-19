@@ -26,6 +26,8 @@ import { debounce } from '../ui/main/debounce';
 import { handleMediaPermissionRequest } from '../ui/main/mediaPermissions';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
+import { createScreenPicker, InternalPickerProvider } from './screenPicker';
+import type { DisplayMediaCallback } from './screenPicker/types';
 
 const DESKTOP_CAPTURER_STALE_THRESHOLD = 3000;
 const SOURCE_VALIDATION_CACHE_TTL = 30000;
@@ -296,175 +298,145 @@ const markScreenSharingComplete = (): void => {
   isScreenSharingRequestPending = false;
 };
 
+// Internal picker handler function - encapsulates the internal picker logic
+const createInternalPickerHandler =
+  (): ((callback: DisplayMediaCallback) => void) => {
+    return (cb: DisplayMediaCallback) => {
+      // Prevent concurrent requests
+      if (isScreenSharingRequestPending) {
+        console.warn(
+          'Screen sharing request already pending, ignoring concurrent request'
+        );
+        cb({ video: false } as any);
+        return;
+      }
+
+      if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+        console.warn(
+          'Screen sharing request rejected - video call window not available'
+        );
+        cb({ video: false } as any);
+        return;
+      }
+
+      // Clean up any existing listener
+      cleanupScreenSharingListener();
+
+      // Generate unique request ID
+      const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+      activeScreenSharingRequestId = requestId;
+      isScreenSharingRequestPending = true;
+
+      // Flag to prevent double-invocation of callback
+      let callbackInvoked = false;
+
+      // Create the listener function
+      const listener = async (_event: Event, sourceId: string | null) => {
+        // Ignore responses for different requests
+        if (activeScreenSharingRequestId !== requestId) {
+          console.warn(
+            'Screen sharing response received for different request, ignoring'
+          );
+          return;
+        }
+
+        // Guard against double-invocation (race with timeout)
+        if (callbackInvoked) {
+          console.warn(
+            'Screen sharing callback already invoked, ignoring duplicate'
+          );
+          return;
+        }
+        callbackInvoked = true;
+
+        // Remove listener and clear timeout
+        removeScreenSharingListenerOnly();
+
+        if (!sourceId) {
+          cb({ video: false } as any);
+          markScreenSharingComplete();
+          return;
+        }
+
+        try {
+          const sources = await desktopCapturer.getSources({
+            types: ['window', 'screen'],
+          });
+
+          const selectedSource = sources.find((s) => s.id === sourceId);
+
+          if (!selectedSource) {
+            console.warn(
+              'Selected screen sharing source no longer available:',
+              sourceId
+            );
+            cb({ video: false } as any);
+            markScreenSharingComplete();
+            return;
+          }
+
+          cb({ video: selectedSource });
+          markScreenSharingComplete();
+        } catch (error) {
+          console.error('Error validating screen sharing source:', error);
+          cb({ video: false } as any);
+          markScreenSharingComplete();
+        }
+      };
+
+      // Store listener for cleanup
+      activeScreenSharingListener = listener;
+
+      // Set timeout to prevent orphaned listeners
+      screenSharingTimeout = setTimeout(() => {
+        if (activeScreenSharingRequestId !== requestId) {
+          console.warn(
+            'Screen sharing timeout fired for different request, ignoring'
+          );
+          return;
+        }
+
+        if (callbackInvoked) {
+          console.warn(
+            'Screen sharing callback already invoked by listener, ignoring timeout'
+          );
+          return;
+        }
+        callbackInvoked = true;
+
+        console.warn(
+          'Screen sharing request timed out, cleaning up listener'
+        );
+
+        removeScreenSharingListenerOnly();
+        cb({ video: false } as any);
+        markScreenSharingComplete();
+      }, SCREEN_SHARING_REQUEST_TIMEOUT);
+
+      // Register listener
+      ipcMain.once('video-call-window/screen-sharing-source-responded', listener);
+
+      // Send request to open picker
+      videoCallWindow.webContents.send('video-call-window/open-screen-picker');
+    };
+  };
+
 const setupWebviewHandlers = (webContents: WebContents) => {
+  // Create screen picker provider
+  const provider = createScreenPicker();
+
+  // Set handler for internal picker
+  if (provider instanceof InternalPickerProvider) {
+    provider.setHandleRequestHandler(createInternalPickerHandler());
+  }
+
   const handleDidAttachWebview = (
     _event: Event,
     webviewWebContents: WebContents
   ): void => {
     webviewWebContents.session.setDisplayMediaRequestHandler(
       (_request, cb) => {
-        // On Linux with Wayland session or portal-capable desktop, use the OS picker
-        // via XDG portal. This bypasses desktopCapturer.getSources() which doesn't work on Wayland.
-        // On X11 without portal, fall through to use the internal picker.
-        if (process.platform === 'linux') {
-          const sessionType = process.env.XDG_SESSION_TYPE;
-          const currentDesktop = process.env.XDG_CURRENT_DESKTOP || '';
-
-          // Portal is available on Wayland sessions, or on modern desktops with portal support
-          const isWaylandSession = sessionType === 'wayland';
-          const hasPortalDesktop = /GNOME|KDE|XFCE|Cinnamon|MATE|Pantheon|Budgie|Unity/i.test(currentDesktop);
-          const usePortal = isWaylandSession || hasPortalDesktop;
-
-          if (usePortal) {
-            console.log(
-              `Screen sharing request on Linux - using system picker (XDG portal, session=${sessionType}, desktop=${currentDesktop})`
-            );
-            // Empty video object triggers the system picker via XDG portal
-            cb({ video: {} } as any);
-            return;
-          }
-          // Fall through to internal picker for X11 without portal support
-          console.log(
-            `Screen sharing request on Linux - using internal picker (no portal, session=${sessionType}, desktop=${currentDesktop})`
-          );
-        }
-
-        // Prevent concurrent requests
-        if (isScreenSharingRequestPending) {
-          console.warn(
-            'Screen sharing request already pending, ignoring concurrent request'
-          );
-          cb({ video: false } as any);
-          return;
-        }
-
-        if (!videoCallWindow || videoCallWindow.isDestroyed()) {
-          console.warn(
-            'Screen sharing request rejected - video call window not available'
-          );
-          cb({ video: false } as any);
-          return;
-        }
-
-        // Clean up any existing listener
-        cleanupScreenSharingListener();
-
-        // Generate unique request ID
-        const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-        activeScreenSharingRequestId = requestId;
-        isScreenSharingRequestPending = true;
-
-        // Flag to prevent double-invocation of callback
-        // This guards against race conditions where both timeout and listener
-        // are queued in the event loop simultaneously
-        let callbackInvoked = false;
-
-        // Create the listener function
-        const listener = async (_event: Event, sourceId: string | null) => {
-          // Ignore responses for different requests
-          if (activeScreenSharingRequestId !== requestId) {
-            console.warn(
-              'Screen sharing response received for different request, ignoring'
-            );
-            return;
-          }
-
-          // Guard against double-invocation (race with timeout)
-          if (callbackInvoked) {
-            console.warn(
-              'Screen sharing callback already invoked, ignoring duplicate'
-            );
-            return;
-          }
-          callbackInvoked = true;
-
-          // Remove listener and clear timeout (prevent re-firing)
-          // BUT keep isScreenSharingRequestPending=true to block concurrent requests
-          removeScreenSharingListenerOnly();
-
-          if (!sourceId) {
-            cb({ video: false } as any);
-            // Now mark complete to allow new requests
-            markScreenSharingComplete();
-            return;
-          }
-
-          try {
-            const sources = await desktopCapturer.getSources({
-              types: ['window', 'screen'],
-            });
-
-            const selectedSource = sources.find((s) => s.id === sourceId);
-
-            if (!selectedSource) {
-              console.warn(
-                'Selected screen sharing source no longer available:',
-                sourceId
-              );
-              cb({ video: false } as any);
-              // Now mark complete to allow new requests
-              markScreenSharingComplete();
-              return;
-            }
-
-            cb({ video: selectedSource });
-            // Now mark complete to allow new requests
-            markScreenSharingComplete();
-          } catch (error) {
-            console.error('Error validating screen sharing source:', error);
-            cb({ video: false } as any);
-            // Now mark complete to allow new requests
-            markScreenSharingComplete();
-          }
-        };
-
-        // Store listener for cleanup
-        activeScreenSharingListener = listener;
-
-        // Set timeout to prevent orphaned listeners
-        screenSharingTimeout = setTimeout(() => {
-          // Validate that this timeout is for the current request
-          // This prevents double-invocation if the listener already handled it
-          if (activeScreenSharingRequestId !== requestId) {
-            console.warn(
-              'Screen sharing timeout fired for different request, ignoring'
-            );
-            return;
-          }
-
-          // Guard against double-invocation (race with listener)
-          if (callbackInvoked) {
-            console.warn(
-              'Screen sharing callback already invoked by listener, ignoring timeout'
-            );
-            return;
-          }
-          callbackInvoked = true;
-
-          console.warn(
-            'Screen sharing request timed out, cleaning up listener'
-          );
-
-          // Remove listener only (keep pending flag to block concurrent requests)
-          removeScreenSharingListenerOnly();
-
-          // Invoke callback once (mirrors listener path)
-          cb({ video: false } as any);
-
-          // Now mark complete to allow new requests
-          markScreenSharingComplete();
-        }, SCREEN_SHARING_REQUEST_TIMEOUT);
-
-        // Register listener
-        ipcMain.once(
-          'video-call-window/screen-sharing-source-responded',
-          listener
-        );
-
-        // Send request to open picker
-        videoCallWindow.webContents.send(
-          'video-call-window/open-screen-picker'
-        );
+        provider.handleDisplayMediaRequest(cb);
       },
       { useSystemPicker: true }
     );

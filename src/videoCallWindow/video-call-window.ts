@@ -8,6 +8,7 @@ import resources from '../i18n/resources';
 import { invokeWithRetry } from '../ipc/renderer';
 import type { IRetryOptions } from '../ipc/renderer';
 import type { ScreenSharePickerModuleType } from './screenSharePickerMount';
+import { createScreenPicker, InternalPickerProvider } from './screenPicker';
 
 const MAX_INIT_ATTEMPTS = 10;
 const MAX_RECOVERY_ATTEMPTS = 3;
@@ -467,11 +468,21 @@ const setupWebviewEventHandlers = (webview: HTMLElement): void => {
       );
     });
 
-    preloadScreenSharePicker();
-
-    // Pre-warm desktop capturer cache in background to avoid empty state on first open
-    ipcRenderer.invoke('video-call-window/prewarm-capturer-cache').catch(() => {
-      // Silent failure - cache warming is optional optimization
+    // Initialize the screen picker (provider handles its own needs)
+    const provider = createScreenPicker();
+    
+    // Set initialize handler for internal picker
+    if (provider instanceof InternalPickerProvider) {
+      provider.setInitializeHandler(async () => {
+        await preloadScreenSharePicker();
+        ipcRenderer.invoke('video-call-window/prewarm-capturer-cache').catch(() => {
+          // Silent failure - cache warming is optional optimization
+        });
+      });
+    }
+    
+    provider.initialize().catch((error) => {
+      console.error('Screen picker initialization failed:', error);
     });
   };
 
@@ -650,7 +661,7 @@ const createWebview = (url: string): void => {
   setupWebviewEventHandlers(webview);
 };
 
-const preloadScreenSharePicker = async (): Promise<void> => {
+export const preloadScreenSharePicker = async (): Promise<void> => {
   if (screenPickerModule) {
     return;
   }

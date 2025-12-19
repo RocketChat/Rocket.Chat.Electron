@@ -299,127 +299,126 @@ const markScreenSharingComplete = (): void => {
 };
 
 // Internal picker handler function - encapsulates the internal picker logic
-const createInternalPickerHandler =
-  (): ((callback: DisplayMediaCallback) => void) => {
-    return (cb: DisplayMediaCallback) => {
-      // Prevent concurrent requests
-      if (isScreenSharingRequestPending) {
+const createInternalPickerHandler = (): ((
+  callback: DisplayMediaCallback
+) => void) => {
+  return (cb: DisplayMediaCallback) => {
+    // Prevent concurrent requests
+    if (isScreenSharingRequestPending) {
+      console.warn(
+        'Screen sharing request already pending, ignoring concurrent request'
+      );
+      cb({ video: false } as any);
+      return;
+    }
+
+    if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+      console.warn(
+        'Screen sharing request rejected - video call window not available'
+      );
+      cb({ video: false } as any);
+      return;
+    }
+
+    // Clean up any existing listener
+    cleanupScreenSharingListener();
+
+    // Generate unique request ID
+    const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    activeScreenSharingRequestId = requestId;
+    isScreenSharingRequestPending = true;
+
+    // Flag to prevent double-invocation of callback
+    let callbackInvoked = false;
+
+    // Create the listener function
+    const listener = async (_event: Event, sourceId: string | null) => {
+      // Ignore responses for different requests
+      if (activeScreenSharingRequestId !== requestId) {
         console.warn(
-          'Screen sharing request already pending, ignoring concurrent request'
+          'Screen sharing response received for different request, ignoring'
         );
-        cb({ video: false } as any);
         return;
       }
 
-      if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+      // Guard against double-invocation (race with timeout)
+      if (callbackInvoked) {
         console.warn(
-          'Screen sharing request rejected - video call window not available'
+          'Screen sharing callback already invoked, ignoring duplicate'
         );
-        cb({ video: false } as any);
         return;
       }
+      callbackInvoked = true;
 
-      // Clean up any existing listener
-      cleanupScreenSharingListener();
+      // Remove listener and clear timeout
+      removeScreenSharingListenerOnly();
 
-      // Generate unique request ID
-      const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-      activeScreenSharingRequestId = requestId;
-      isScreenSharingRequestPending = true;
-
-      // Flag to prevent double-invocation of callback
-      let callbackInvoked = false;
-
-      // Create the listener function
-      const listener = async (_event: Event, sourceId: string | null) => {
-        // Ignore responses for different requests
-        if (activeScreenSharingRequestId !== requestId) {
-          console.warn(
-            'Screen sharing response received for different request, ignoring'
-          );
-          return;
-        }
-
-        // Guard against double-invocation (race with timeout)
-        if (callbackInvoked) {
-          console.warn(
-            'Screen sharing callback already invoked, ignoring duplicate'
-          );
-          return;
-        }
-        callbackInvoked = true;
-
-        // Remove listener and clear timeout
-        removeScreenSharingListenerOnly();
-
-        if (!sourceId) {
-          cb({ video: false } as any);
-          markScreenSharingComplete();
-          return;
-        }
-
-        try {
-          const sources = await desktopCapturer.getSources({
-            types: ['window', 'screen'],
-          });
-
-          const selectedSource = sources.find((s) => s.id === sourceId);
-
-          if (!selectedSource) {
-            console.warn(
-              'Selected screen sharing source no longer available:',
-              sourceId
-            );
-            cb({ video: false } as any);
-            markScreenSharingComplete();
-            return;
-          }
-
-          cb({ video: selectedSource });
-          markScreenSharingComplete();
-        } catch (error) {
-          console.error('Error validating screen sharing source:', error);
-          cb({ video: false } as any);
-          markScreenSharingComplete();
-        }
-      };
-
-      // Store listener for cleanup
-      activeScreenSharingListener = listener;
-
-      // Set timeout to prevent orphaned listeners
-      screenSharingTimeout = setTimeout(() => {
-        if (activeScreenSharingRequestId !== requestId) {
-          console.warn(
-            'Screen sharing timeout fired for different request, ignoring'
-          );
-          return;
-        }
-
-        if (callbackInvoked) {
-          console.warn(
-            'Screen sharing callback already invoked by listener, ignoring timeout'
-          );
-          return;
-        }
-        callbackInvoked = true;
-
-        console.warn(
-          'Screen sharing request timed out, cleaning up listener'
-        );
-
-        removeScreenSharingListenerOnly();
+      if (!sourceId) {
         cb({ video: false } as any);
         markScreenSharingComplete();
-      }, SCREEN_SHARING_REQUEST_TIMEOUT);
+        return;
+      }
 
-      // Register listener
-      ipcMain.once('video-call-window/screen-sharing-source-responded', listener);
+      try {
+        const sources = await desktopCapturer.getSources({
+          types: ['window', 'screen'],
+        });
 
-      // Send request to open picker
-      videoCallWindow.webContents.send('video-call-window/open-screen-picker');
+        const selectedSource = sources.find((s) => s.id === sourceId);
+
+        if (!selectedSource) {
+          console.warn(
+            'Selected screen sharing source no longer available:',
+            sourceId
+          );
+          cb({ video: false } as any);
+          markScreenSharingComplete();
+          return;
+        }
+
+        cb({ video: selectedSource });
+        markScreenSharingComplete();
+      } catch (error) {
+        console.error('Error validating screen sharing source:', error);
+        cb({ video: false } as any);
+        markScreenSharingComplete();
+      }
     };
+
+    // Store listener for cleanup
+    activeScreenSharingListener = listener;
+
+    // Set timeout to prevent orphaned listeners
+    screenSharingTimeout = setTimeout(() => {
+      if (activeScreenSharingRequestId !== requestId) {
+        console.warn(
+          'Screen sharing timeout fired for different request, ignoring'
+        );
+        return;
+      }
+
+      if (callbackInvoked) {
+        console.warn(
+          'Screen sharing callback already invoked by listener, ignoring timeout'
+        );
+        return;
+      }
+      callbackInvoked = true;
+
+      console.warn('Screen sharing request timed out, cleaning up listener');
+
+      removeScreenSharingListenerOnly();
+      cb({ video: false } as any);
+      markScreenSharingComplete();
+    }, SCREEN_SHARING_REQUEST_TIMEOUT);
+
+    // Register listener
+    ipcMain.once('video-call-window/screen-sharing-source-responded', listener);
+
+    // Send request to open picker
+    videoCallWindow.webContents.send('video-call-window/open-screen-picker');
   };
+};
 
 const setupWebviewHandlers = (webContents: WebContents) => {
   // Create screen picker provider
@@ -438,7 +437,7 @@ const setupWebviewHandlers = (webContents: WebContents) => {
       (_request, cb) => {
         provider.handleDisplayMediaRequest(cb);
       },
-      { useSystemPicker: true }
+      { useSystemPicker: provider.type === 'portal' }
     );
   };
 

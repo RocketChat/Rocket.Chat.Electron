@@ -38,7 +38,20 @@ const run = () => {
       
       // Linux-specific flags for development
       if (process.platform === 'linux') {
-        electronArgs.push('--no-sandbox', '--ozone-platform=x11', '--disable-gpu');
+        electronArgs.push('--no-sandbox');
+        
+        // Auto-detect Wayland and use X11 fallback for stability
+        // XDG_SESSION_TYPE is set by the display manager
+        const isWaylandSession = process.env.XDG_SESSION_TYPE === 'wayland';
+        
+        if (process.env.FORCE_WAYLAND === 'true') {
+          // User explicitly wants native Wayland
+          electronArgs.push('--ozone-platform=wayland');
+        } else if (process.env.FORCE_X11 === 'true' || isWaylandSession) {
+          // Use X11: either forced or auto-detected Wayland session
+          // Wayland sessions often have GPU issues in VMs, X11 is more stable
+          electronArgs.push('--ozone-platform=x11');
+        }
       }
 
       proc = spawn(electron, electronArgs, { stdio: 'inherit' });

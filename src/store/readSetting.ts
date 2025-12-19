@@ -19,7 +19,7 @@ export const readSetting = (key: string) => {
 
 export const readGpuFallbackMode = (): GpuFallbackMode => {
   const value = readSetting('gpuFallbackMode');
-  if (value === 'x11' || value === 'disabled') {
+  if (value === 'x11' || value === 'wayland' || value === 'disabled') {
     return value;
   }
   return 'none';

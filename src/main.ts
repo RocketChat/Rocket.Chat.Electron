@@ -6,6 +6,7 @@ import {
   initializeScreenCaptureFallbackState,
   setupGpuCrashHandler,
   markMainWindowStable,
+  relaunchApp,
 } from './app/main/app';
 import {
   mergePersistableValues,
@@ -29,6 +30,7 @@ import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
+import { readGpuFallbackMode } from './store/readSetting';
 import { handleCertificatesManager } from './ui/components/CertificatesManager/main';
 import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
@@ -49,8 +51,59 @@ import {
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
 
+// Handle Wayland detection and X11 fallback BEFORE Electron fully initializes
+// ozone-platform must be set via command line, not appendSwitch
+// In development, rollup.config.mjs handles this; in production, we relaunch if needed
+const handleLinuxDisplayServer = (): void => {
+  if (process.platform !== 'linux') {
+    return;
+  }
+
+  // In development mode, rollup.config.mjs passes the flag - skip relaunch logic
+  if (!app.isPackaged) {
+    return;
+  }
+
+  const args = process.argv;
+  const hasOzonePlatformFlag = args.some((arg) =>
+    arg.startsWith('--ozone-platform=')
+  );
+
+  // If ozone-platform is already set via command line, respect it
+  if (hasOzonePlatformFlag) {
+    return;
+  }
+
+  const gpuFallbackMode = readGpuFallbackMode();
+  const sessionType = process.env.XDG_SESSION_TYPE;
+  const isWaylandSession = sessionType === 'wayland';
+
+  // Determine if we need to relaunch with X11 flag
+  let needsX11 = false;
+
+  if (gpuFallbackMode === 'x11') {
+    needsX11 = true;
+  } else if (gpuFallbackMode === 'wayland') {
+    // User explicitly wants native Wayland, don't add X11 flag
+    needsX11 = false;
+  } else if (gpuFallbackMode === 'none' && isWaylandSession) {
+    // Default: On Wayland, use X11 fallback for stability
+    needsX11 = true;
+  }
+
+  if (needsX11) {
+    console.log(
+      'Wayland session detected, relaunching with X11 fallback for stability'
+    );
+    relaunchApp('--ozone-platform=x11');
+  }
+};
+
 const start = async (): Promise<void> => {
   setUserDataDirectory();
+
+  // Check for Wayland and relaunch with X11 if needed (must happen before performElectronStartup)
+  handleLinuxDisplayServer();
 
   performElectronStartup();
 

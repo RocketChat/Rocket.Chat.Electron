@@ -303,6 +303,32 @@ const setupWebviewHandlers = (webContents: WebContents) => {
   ): void => {
     webviewWebContents.session.setDisplayMediaRequestHandler(
       (_request, cb) => {
+        // On Linux with Wayland session or portal-capable desktop, use the OS picker
+        // via XDG portal. This bypasses desktopCapturer.getSources() which doesn't work on Wayland.
+        // On X11 without portal, fall through to use the internal picker.
+        if (process.platform === 'linux') {
+          const sessionType = process.env.XDG_SESSION_TYPE;
+          const currentDesktop = process.env.XDG_CURRENT_DESKTOP || '';
+
+          // Portal is available on Wayland sessions, or on modern desktops with portal support
+          const isWaylandSession = sessionType === 'wayland';
+          const hasPortalDesktop = /GNOME|KDE|XFCE|Cinnamon|MATE|Pantheon|Budgie|Unity/i.test(currentDesktop);
+          const usePortal = isWaylandSession || hasPortalDesktop;
+
+          if (usePortal) {
+            console.log(
+              `Screen sharing request on Linux - using system picker (XDG portal, session=${sessionType}, desktop=${currentDesktop})`
+            );
+            // Empty video object triggers the system picker via XDG portal
+            cb({ video: {} } as any);
+            return;
+          }
+          // Fall through to internal picker for X11 without portal support
+          console.log(
+            `Screen sharing request on Linux - using internal picker (no portal, session=${sessionType}, desktop=${currentDesktop})`
+          );
+        }
+
         // Prevent concurrent requests
         if (isScreenSharingRequestPending) {
           console.warn(

@@ -115,7 +115,7 @@ export const performElectronStartup = (): void => {
   app.setAsDefaultProtocolClient(electronBuilderJsonInformation.protocol);
   app.setAppUserModelId(electronBuilderJsonInformation.appId);
 
-  app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
+  app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
   const disabledChromiumFeatures = [
     'HardwareMediaKeyHandling',
@@ -156,9 +156,9 @@ export const performElectronStartup = (): void => {
   ) {
     console.log('Disabling Hardware acceleration');
     app.disableHardwareAcceleration();
-    app.commandLine.appendSwitch('--disable-2d-canvas-image-chromium');
-    app.commandLine.appendSwitch('--disable-accelerated-2d-canvas');
-    app.commandLine.appendSwitch('--disable-gpu');
+    app.commandLine.appendSwitch('disable-2d-canvas-image-chromium');
+    app.commandLine.appendSwitch('disable-accelerated-2d-canvas');
+    app.commandLine.appendSwitch('disable-gpu');
   }
 
   if (process.platform === 'win32') {
@@ -193,17 +193,31 @@ export const performElectronStartup = (): void => {
   if (process.platform === 'linux') {
     app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
 
-    // Read GPU fallback mode (may have been set by previous GPU crash)
+    // Read GPU fallback mode (may have been set by previous GPU crash or user setting)
     const gpuFallbackMode = readGpuFallbackMode();
 
-    // Apply GPU fallback mode
+    // Detect Wayland session
+    const sessionType = process.env.XDG_SESSION_TYPE;
+    const isWaylandSession = sessionType === 'wayland';
+
+    // Apply display server mode based on settings and environment
     if (gpuFallbackMode === 'x11') {
-      console.log('GPU fallback mode: forcing X11 display server');
+      console.log('Display server mode: forcing X11');
       app.commandLine.appendSwitch('ozone-platform', 'x11');
+    } else if (gpuFallbackMode === 'wayland') {
+      console.log('Display server mode: forcing native Wayland');
+      app.commandLine.appendSwitch('ozone-platform', 'wayland');
     } else if (gpuFallbackMode === 'disabled') {
-      console.log('GPU fallback mode: GPU disabled');
+      console.log('Display server mode: GPU disabled');
       app.disableHardwareAcceleration();
       app.commandLine.appendSwitch('disable-gpu');
+    } else if (gpuFallbackMode === 'none' && isWaylandSession) {
+      // On Wayland sessions, default to X11 to avoid GPU initialization issues
+      // Users can set gpuFallbackMode to 'wayland' in settings to use native Wayland
+      console.log(
+        'Wayland session detected, using X11 fallback for stability (XDG_SESSION_TYPE=wayland)'
+      );
+      app.commandLine.appendSwitch('ozone-platform', 'x11');
     }
   }
 };
@@ -254,7 +268,17 @@ export const setupGpuCrashHandler = (): void => {
       JSON.stringify(details)
     );
 
-    // Track GPU crash in sentinel
+    // In development, disable GPU immediately on first crash
+    if (!app.isPackaged) {
+      console.log(
+        'Development mode: Disabling GPU immediately after crash'
+      );
+      saveGpuFallbackMode('disabled');
+      // Don't relaunch - let the app continue without GPU
+      return;
+    }
+
+    // In production, use threshold-based approach
     const sentinel = readStartupSentinel();
     const now = Date.now();
     let newCrashCount = 1;
@@ -263,20 +287,24 @@ export const setupGpuCrashHandler = (): void => {
       newCrashCount = sentinel.crashCount + 1;
     }
 
-    if (newCrashCount > CRASH_THRESHOLD) {
+    if (newCrashCount >= CRASH_THRESHOLD) {
       console.log(
-        `GPU crash threshold exceeded (${newCrashCount} > ${CRASH_THRESHOLD}), enabling X11 fallback`
+        `GPU crash threshold reached (${newCrashCount} >= ${CRASH_THRESHOLD}), enabling X11 fallback`
       );
       saveGpuFallbackMode('x11');
       clearStartupSentinel();
+      console.log('Relaunching app with X11 fallback...');
+      // Preserve user command-line arguments when relaunching
+      const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
+      relaunchApp(...userArgs);
     } else {
+      // Save progress but don't relaunch yet
       writeStartupSentinel({ crashCount: newCrashCount, lastCrashTime: now });
+      console.log(
+        `GPU crash ${newCrashCount}/${CRASH_THRESHOLD} - will enable fallback after ${CRASH_THRESHOLD} crashes`
+      );
+      // Continue running - let user see the error, don't auto-relaunch
     }
-
-    console.log('Relaunching app...');
-    // Preserve user command-line arguments when relaunching
-    const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
-    relaunchApp(...userArgs);
   });
 };
 

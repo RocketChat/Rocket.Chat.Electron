@@ -92,7 +92,7 @@ type PersistableValues_4_9_0 = PersistableValues_4_7_2 & {
   isVideoCallScreenCaptureFallbackEnabled: boolean;
 };
 
-export type GpuFallbackMode = 'none' | 'x11' | 'disabled';
+export type GpuFallbackMode = 'none' | 'x11' | 'wayland' | 'disabled';
 
 type PersistableValues_4_10_2 = PersistableValues_4_9_0 & {
   gpuFallbackMode: GpuFallbackMode;

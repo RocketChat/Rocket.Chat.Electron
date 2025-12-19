@@ -25,7 +25,7 @@ export const gpuFallbackMode: Reducer<
       return isValidFallbackMode(value) ? value : 'none';
     }
     case SETTINGS_GPU_FALLBACK_MODE_CHANGED: {
-      return action.payload;
+      return isValidFallbackMode(action.payload) ? action.payload : state;
     }
     default:
       return state;

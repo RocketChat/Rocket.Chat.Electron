@@ -270,9 +270,7 @@ export const setupGpuCrashHandler = (): void => {
 
     // In development, disable GPU immediately on first crash
     if (!app.isPackaged) {
-      console.log(
-        'Development mode: Disabling GPU immediately after crash'
-      );
+      console.log('Development mode: Disabling GPU immediately after crash');
       saveGpuFallbackMode('disabled');
       // Don't relaunch - let the app continue without GPU
       return;

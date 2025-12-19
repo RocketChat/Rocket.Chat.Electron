@@ -35,15 +35,15 @@ const run = () => {
       );
 
       const electronArgs = ['.'];
-      
+
       // Linux-specific flags for development
       if (process.platform === 'linux') {
         electronArgs.push('--no-sandbox');
-        
+
         // Auto-detect Wayland and use X11 fallback for stability
         // XDG_SESSION_TYPE is set by the display manager
         const isWaylandSession = process.env.XDG_SESSION_TYPE === 'wayland';
-        
+
         if (process.env.FORCE_WAYLAND === 'true') {
           // User explicitly wants native Wayland
           electronArgs.push('--ozone-platform=wayland');

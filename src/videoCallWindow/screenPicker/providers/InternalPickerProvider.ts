@@ -1,6 +1,3 @@
-import type { Event } from 'electron';
-import { desktopCapturer, ipcMain } from 'electron';
-
 import type { DisplayMediaCallback, ScreenPickerProvider } from '../types';
 
 /**
@@ -14,12 +11,16 @@ import type { DisplayMediaCallback, ScreenPickerProvider } from '../types';
  */
 export class InternalPickerProvider implements ScreenPickerProvider {
   readonly type = 'internal' as const;
+
   readonly requiresInternalUI = true;
+
   readonly requiresCacheWarming = true;
 
   private isInitialized = false;
+
   private handleRequestFn: ((callback: DisplayMediaCallback) => void) | null =
     null;
+
   private initializeFn: (() => Promise<void>) | null = null;
 
   /**

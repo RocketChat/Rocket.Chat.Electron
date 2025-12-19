@@ -57,9 +57,7 @@ install_volta() {
     fi
     
     # Install Volta using the official installer
-    curl https://get.volta.sh | bash
-    
-    if [ $? -ne 0 ]; then
+    if ! curl https://get.volta.sh | bash; then
         error "Failed to install Volta"
         return 1
     fi

@@ -115,17 +115,17 @@ if [ "$SKIP_BUILD" = false ]; then
         info "Attempting to install missing dependencies..."
         
         if [ "$NEED_SUDO" = true ]; then
-            sudo apt-get update
-            sudo apt-get install -y "${MISSING_DEPS[@]}"
+            if ! sudo apt-get update || ! sudo apt-get install -y "${MISSING_DEPS[@]}"; then
+                error "Failed to install dependencies: ${MISSING_DEPS[*]}"
+                error "Please install them manually with: sudo apt-get install ${MISSING_DEPS[*]}"
+                exit 1
+            fi
         else
-            apt-get update
-            apt-get install -y "${MISSING_DEPS[@]}"
-        fi
-        
-        if [ $? -ne 0 ]; then
-            error "Failed to install dependencies: ${MISSING_DEPS[*]}"
-            error "Please install them manually with: sudo apt-get install ${MISSING_DEPS[*]}"
-            exit 1
+            if ! apt-get update || ! apt-get install -y "${MISSING_DEPS[@]}"; then
+                error "Failed to install dependencies: ${MISSING_DEPS[*]}"
+                error "Please install them manually with: sudo apt-get install ${MISSING_DEPS[*]}"
+                exit 1
+            fi
         fi
         
         success "Dependencies installed successfully!"
@@ -153,10 +153,11 @@ if [ "$SKIP_BUILD" = false ]; then
     
     # Build only .deb package to avoid issues with other Linux targets
     info "Building .deb package only..."
-    $YARN_CMD build
-    $YARN_CMD electron-builder --publish never --linux deb
-    
-    if [ $? -ne 0 ]; then
+    if ! $YARN_CMD build; then
+        error "Build failed!"
+        exit 1
+    fi
+    if ! $YARN_CMD electron-builder --publish never --linux deb; then
         error "Build failed!"
         exit 1
     fi
@@ -198,17 +199,21 @@ if [ "$SKIP_INSTALL" = false ]; then
     
     # Install the new package
     if [ "$NEED_SUDO" = true ]; then
+        set +e
         sudo dpkg -i "$DEB_FILE"
-    else
-        dpkg -i "$DEB_FILE"
-    fi
-    
-    # Fix any missing dependencies
-    if [ $? -ne 0 ]; then
-        warning "Installation had dependency issues, attempting to fix..."
-        if [ "$NEED_SUDO" = true ]; then
+        dpkg_rc=$?
+        set -e
+        if [ $dpkg_rc -ne 0 ]; then
+            warning "Installation had dependency issues, attempting to fix..."
             sudo apt-get install -f -y
-        else
+        fi
+    else
+        set +e
+        dpkg -i "$DEB_FILE"
+        dpkg_rc=$?
+        set -e
+        if [ $dpkg_rc -ne 0 ]; then
+            warning "Installation had dependency issues, attempting to fix..."
             apt-get install -f -y
         fi
     fi

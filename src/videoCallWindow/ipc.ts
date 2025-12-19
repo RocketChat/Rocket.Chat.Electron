@@ -433,8 +433,9 @@ const setupWebviewHandlers = (webContents: WebContents) => {
     if (!provider) return;
     const currentProvider = provider; // Capture for closure
     try {
-      // For portal mode on Linux, we use getSources() to trigger XDG portal
-      // useSystemPicker is macOS-only and doesn't work properly on Linux
+      // useSystemPicker is an experimental macOS 15+ option; not available on other platforms.
+      // We set it to false unconditionally and use the callback handler on all platforms to
+      // enable custom source selection (including PipeWire on Wayland via XDG portal).
       webviewWebContents.session.setDisplayMediaRequestHandler(
         (_request, cb) => {
           try {

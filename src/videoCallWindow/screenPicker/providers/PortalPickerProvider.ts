@@ -4,12 +4,15 @@ import type { DisplayMediaCallback, ScreenPickerProvider } from '../types';
 
 export class PortalPickerProvider implements ScreenPickerProvider {
   readonly type = 'portal' as const;
+
   readonly requiresInternalUI = false;
+
   readonly requiresCacheWarming = false;
 
   handleDisplayMediaRequest(callback: DisplayMediaCallback): void {
-    // On Linux/Wayland, calling getSources() triggers XDG portal picker
-    // The user selects a source, and we get exactly one source back
+    // On Linux/Wayland, calling getSources() triggers the XDG portal picker.
+    // The portal typically returns exactly one source on selection or an empty array
+    // on cancellation; we defensively check for > 0 and use only the first source.
     console.log(
       'Screen picker [portal]: triggering XDG portal picker via getSources()'
     );

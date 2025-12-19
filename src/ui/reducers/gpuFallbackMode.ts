@@ -10,7 +10,10 @@ type GpuFallbackModeAction = ActionOf<
 >;
 
 const isValidFallbackMode = (value: unknown): value is GpuFallbackMode =>
-  value === 'none' || value === 'x11' || value === 'disabled';
+  value === 'none' ||
+  value === 'x11' ||
+  value === 'wayland' ||
+  value === 'disabled';
 
 export const gpuFallbackMode: Reducer<
   GpuFallbackMode,

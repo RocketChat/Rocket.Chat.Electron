@@ -215,11 +215,7 @@ export const performElectronStartup = (): void => {
     // Read GPU fallback mode (may have been set by previous GPU crash or user setting)
     const gpuFallbackMode = readGpuFallbackMode();
 
-    // Detect Wayland session
-    const sessionType = process.env.XDG_SESSION_TYPE;
-    const isWaylandSession = sessionType === 'wayland';
-
-    // Apply display server mode based on settings and environment
+    // Apply display server mode based on settings
     if (gpuFallbackMode === 'x11') {
       console.log('Display server mode: forcing X11');
       app.commandLine.appendSwitch('ozone-platform', 'x11');
@@ -230,14 +226,9 @@ export const performElectronStartup = (): void => {
       console.log('Display server mode: GPU disabled');
       app.disableHardwareAcceleration();
       app.commandLine.appendSwitch('disable-gpu');
-    } else if (gpuFallbackMode === 'none' && isWaylandSession) {
-      // On Wayland sessions, default to X11 to avoid GPU initialization issues
-      // Users can set gpuFallbackMode to 'wayland' in settings to use native Wayland
-      console.log(
-        'Wayland session detected, using X11 fallback for stability (XDG_SESSION_TYPE=wayland)'
-      );
-      app.commandLine.appendSwitch('ozone-platform', 'x11');
     }
+    // Note: 'none' mode on Wayland is handled by handleLinuxDisplayServer() in main.ts
+    // which relaunches with --ozone-platform=x11 before Electron initializes
   }
 };
 

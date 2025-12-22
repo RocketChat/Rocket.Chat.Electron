@@ -79,16 +79,26 @@ const handleLinuxDisplayServer = (): void => {
   // Determine if we need to relaunch with X11 flag
   let needsX11 = false;
 
+  const isWaylandSession = process.env.XDG_SESSION_TYPE === 'wayland';
+
   if (gpuFallbackMode === 'x11') {
     needsX11 = true;
   } else if (gpuFallbackMode === 'wayland') {
     // User explicitly wants native Wayland, don't add X11 flag
     needsX11 = false;
+  } else if (gpuFallbackMode === 'none' && isWaylandSession) {
+    // Default to XWayland on Wayland sessions for stability.
+    // Native Wayland can hang on VMs/systems with GPU issues.
+    // Users can opt-in to native Wayland via Settings > General > Display Server Mode.
+    // XWayland remains available even on Wayland-only distros (Fedora 43+).
+    needsX11 = true;
   }
-  // If gpuFallbackMode is 'none', try native mode and let crash handler decide
 
   if (needsX11) {
-    console.log('GPU fallback mode set to X11, relaunching with X11');
+    console.log(
+      'Wayland detected, using XWayland for stability. To use native Wayland, change Display Server Mode in Settings.',
+      { gpuFallbackMode, isWaylandSession }
+    );
     relaunchApp('--ozone-platform=x11');
   }
 };

@@ -586,7 +586,7 @@ jobs:
             --endpoint-url=https://s3.us-east-1.wasabisys.com \
             --exclude "*" \
             --include "rocketchat-*.snap" \
-            --include "rocketchat-*.AppImage" \
+            --include "rocketchat-*.appimage" \
             --include "rocketchat-*.deb"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}

@@ -75,8 +75,6 @@ const handleLinuxDisplayServer = (): void => {
   }
 
   const gpuFallbackMode = readGpuFallbackMode();
-  const sessionType = process.env.XDG_SESSION_TYPE;
-  const isWaylandSession = sessionType === 'wayland';
 
   // Determine if we need to relaunch with X11 flag
   let needsX11 = false;
@@ -86,15 +84,11 @@ const handleLinuxDisplayServer = (): void => {
   } else if (gpuFallbackMode === 'wayland') {
     // User explicitly wants native Wayland, don't add X11 flag
     needsX11 = false;
-  } else if (gpuFallbackMode === 'none' && isWaylandSession) {
-    // Default: On Wayland, use X11 fallback for stability
-    needsX11 = true;
   }
+  // If gpuFallbackMode is 'none', try native mode and let crash handler decide
 
   if (needsX11) {
-    console.log(
-      'Wayland session detected, relaunching with X11 fallback for stability'
-    );
+    console.log('GPU fallback mode set to X11, relaunching with X11');
     relaunchApp('--ozone-platform=x11');
   }
 };
@@ -107,10 +101,10 @@ const start = async (): Promise<void> => {
 
   performElectronStartup();
 
-  await app.whenReady();
-
-  // Set up GPU crash handler early to catch crashes during startup
+  // Set up GPU crash handler BEFORE whenReady to catch early GPU failures
   setupGpuCrashHandler();
+
+  await app.whenReady();
 
   createMainReduxStore();
 

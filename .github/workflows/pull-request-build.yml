@@ -522,7 +522,7 @@ jobs:
 
       - name: Build Ubuntu Package
         if: ${{ matrix.build-target == 'linux' }}
-        run: yarn electron-builder --publish never --linux snap deb
+        run: yarn electron-builder --publish never --linux snap deb appimage
 
       - name: Find Snap File
         id: find_snap

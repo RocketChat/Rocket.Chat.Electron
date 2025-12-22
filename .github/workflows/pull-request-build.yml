@@ -602,7 +602,7 @@ jobs:
             const path = require('path');
             const distDir = path.join(process.cwd(), 'dist');
             const files = fs.readdirSync(distDir);
-            const patterns = [/rocketchat-.*\.dmg$/, /rocketchat-.*\.pkg$/, /rocketchat-.*\.exe$/, /rocketchat-.*\.snap$/, /rocketchat-.*\.deb$/];
+            const patterns = [/rocketchat-.*\.dmg$/, /rocketchat-.*\.pkg$/, /rocketchat-.*\.exe$/, /rocketchat-.*\.snap$/, /rocketchat-.*\.deb$/, /rocketchat-.*\.appimage$/i];
             let artifactUrls = '';
             for (const file of files) {
               if (patterns.some(pattern => pattern.test(file))) {

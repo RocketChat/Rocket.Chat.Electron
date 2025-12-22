@@ -106,6 +106,25 @@ export const getPlatformName = (): string => {
 };
 
 export const relaunchApp = (...args: string[]): void => {
+  // For AppImage, use spawn to relaunch because app.relaunch() doesn't work reliably
+  if (process.env.APPIMAGE) {
+    const { spawn } = require('child_process');
+    console.log('Relaunching AppImage:', {
+      appImage: process.env.APPIMAGE,
+      args,
+    });
+    
+    // Spawn the AppImage as a detached process
+    spawn(process.env.APPIMAGE, args, {
+      detached: true,
+      stdio: 'ignore',
+    }).unref();
+    
+    app.exit();
+    return;
+  }
+  
+  // For non-AppImage, use the standard relaunch method
   const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
   app.relaunch({ args: [...command, ...args] });
   app.exit();

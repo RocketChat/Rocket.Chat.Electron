@@ -586,7 +586,7 @@ jobs:
             --endpoint-url=https://s3.us-east-1.wasabisys.com \
             --exclude "*" \
             --include "rocketchat-*.snap" \
-            --include "rocketchat-*.appimage" \
+            --include "rocketchat-*.AppImage" \
             --include "rocketchat-*.deb"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
@@ -617,9 +617,7 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          header: ${{ runner.os }}-installer
           message: |
             ### ${{ runner.os }} installer download
             ${{ steps.get-artifact-urls.outputs.artifact_urls }}
-          header: '### ${{ runner.os }} installer download'
-          recreate: true
-          append: false

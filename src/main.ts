@@ -30,7 +30,6 @@ import { setupServers } from './servers/main';
 import { checkSupportedVersionServers } from './servers/supportedVersions/main';
 import { setupSpellChecking } from './spellChecking/main';
 import { createMainReduxStore } from './store';
-import { readGpuFallbackMode } from './store/readSetting';
 import { handleCertificatesManager } from './ui/components/CertificatesManager/main';
 import dock from './ui/main/dock';
 import menuBar from './ui/main/menuBar';
@@ -51,7 +50,7 @@ import {
   cleanupVideoCallResources,
 } from './videoCallWindow/ipc';
 
-// Handle Wayland detection and X11 fallback BEFORE Electron fully initializes
+// Handle Wayland detection and X11 enforcement BEFORE Electron fully initializes
 // ozone-platform must be set via command line, not appendSwitch
 // In development, rollup.config.mjs handles this; in production, we relaunch if needed
 const handleLinuxDisplayServer = (): void => {
@@ -74,33 +73,12 @@ const handleLinuxDisplayServer = (): void => {
     return;
   }
 
-  const gpuFallbackMode = readGpuFallbackMode();
-
-  // Determine if we need to relaunch with X11 flag
-  let needsX11 = false;
-
   const isWaylandSession = process.env.XDG_SESSION_TYPE === 'wayland';
 
-  if (gpuFallbackMode === 'x11') {
-    needsX11 = true;
-  } else if (gpuFallbackMode === 'wayland') {
-    // User explicitly wants native Wayland, don't add X11 flag
-    needsX11 = false;
-  }
-  // When gpuFallbackMode is 'none' (auto-detect), let Electron use native Wayland
-  // The GPU crash handler will fallback to X11 if there are issues
-
-  if (needsX11) {
-    console.log(
-      'Using X11 mode as configured in settings',
-      JSON.stringify({ gpuFallbackMode, isWaylandSession })
-    );
+  // Always enforce X11 on Wayland sessions for stability
+  if (isWaylandSession) {
+    console.log('Wayland session detected, enforcing X11 mode for stability');
     relaunchApp('--ozone-platform=x11');
-  } else if (isWaylandSession) {
-    console.log(
-      'Running with native Wayland support',
-      JSON.stringify({ gpuFallbackMode })
-    );
   }
 };
 

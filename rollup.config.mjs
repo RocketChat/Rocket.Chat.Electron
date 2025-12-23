@@ -43,12 +43,9 @@ const run = () => {
         // XDG_SESSION_TYPE is set by the display manager
         const isWaylandSession = process.env.XDG_SESSION_TYPE === 'wayland';
 
-        if (process.env.FORCE_X11 === 'true') {
-          // User explicitly wants X11
+        // Always enforce X11 on Wayland sessions for stability
+        if (isWaylandSession || process.env.FORCE_X11 === 'true') {
           electronArgs.push('--ozone-platform=x11');
-        } else if (process.env.FORCE_WAYLAND === 'true' || isWaylandSession) {
-          // Use native Wayland: either forced or auto-detected Wayland session
-          electronArgs.push('--ozone-platform=wayland');
         }
       }
 

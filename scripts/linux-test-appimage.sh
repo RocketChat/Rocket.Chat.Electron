@@ -184,13 +184,11 @@ if [ "$SKIP_RUN" = false ]; then
         info "Setting DISPLAY=$DISPLAY"
     fi
     
-    # Launch the AppImage directly
+    # Launch the AppImage directly (native Wayland is now supported)
     if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
-        info "Detected Wayland session, launching with X11 fallback..."
-        nohup "$APPIMAGE_FILE" --ozone-platform=x11 > /tmp/rocketchat-appimage.log 2>&1 &
-    else
-        nohup "$APPIMAGE_FILE" > /tmp/rocketchat-appimage.log 2>&1 &
+        info "Detected Wayland session, launching with native Wayland support..."
     fi
+    nohup "$APPIMAGE_FILE" > /tmp/rocketchat-appimage.log 2>&1 &
     
     # Get the PID
     sleep 1

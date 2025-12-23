@@ -86,20 +86,20 @@ const handleLinuxDisplayServer = (): void => {
   } else if (gpuFallbackMode === 'wayland') {
     // User explicitly wants native Wayland, don't add X11 flag
     needsX11 = false;
-  } else if (gpuFallbackMode === 'none' && isWaylandSession) {
-    // Default to XWayland on Wayland sessions for stability.
-    // Native Wayland can hang on VMs/systems with GPU issues.
-    // Users can opt-in to native Wayland via Settings > General > Display Server Mode.
-    // XWayland remains available even on Wayland-only distros (Fedora 43+).
-    needsX11 = true;
   }
+  // When gpuFallbackMode is 'none' (auto-detect), let Electron use native Wayland
+  // The GPU crash handler will fallback to X11 if there are issues
 
   if (needsX11) {
-    console.log(
-      'Wayland detected, using XWayland for stability. To use native Wayland, change Display Server Mode in Settings.',
-      { gpuFallbackMode, isWaylandSession }
-    );
+    console.log('Using X11 mode as configured in settings', {
+      gpuFallbackMode,
+      isWaylandSession,
+    });
     relaunchApp('--ozone-platform=x11');
+  } else if (isWaylandSession) {
+    console.log('Running with native Wayland support', {
+      gpuFallbackMode,
+    });
   }
 };
 

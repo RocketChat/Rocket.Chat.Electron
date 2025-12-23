@@ -3,7 +3,6 @@ import { Box, FieldGroup } from '@rocket.chat/fuselage';
 import { AvailableBrowsers } from './features/AvailableBrowsers';
 import { ClearPermittedScreenCaptureServers } from './features/ClearPermittedScreenCaptureServers';
 import { FlashFrame } from './features/FlashFrame';
-import { GpuFallbackMode } from './features/GpuFallbackMode';
 import { HardwareAcceleration } from './features/HardwareAcceleration';
 import { InternalVideoChatWindow } from './features/InternalVideoChatWindow';
 import { MenuBar } from './features/MenuBar';
@@ -22,7 +21,6 @@ export const GeneralTab = () => (
       <ReportErrors />
       <FlashFrame />
       <HardwareAcceleration />
-      {process.platform === 'linux' && <GpuFallbackMode />}
       {process.platform === 'win32' && <ScreenCaptureFallback />}
       <InternalVideoChatWindow />
       <VideoCallWindowPersistence />

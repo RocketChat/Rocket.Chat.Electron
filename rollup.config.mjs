@@ -39,14 +39,6 @@ const run = () => {
       // Linux-specific flags for development
       if (process.platform === 'linux') {
         electronArgs.push('--no-sandbox');
-
-        // XDG_SESSION_TYPE is set by the display manager
-        const isWaylandSession = process.env.XDG_SESSION_TYPE === 'wayland';
-
-        // Always enforce X11 on Wayland sessions for stability
-        if (isWaylandSession || process.env.FORCE_X11 === 'true') {
-          electronArgs.push('--ozone-platform=x11');
-        }
       }
 
       proc = spawn(electron, electronArgs, { stdio: 'inherit' });

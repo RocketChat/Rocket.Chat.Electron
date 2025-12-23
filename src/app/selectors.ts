@@ -71,5 +71,4 @@ export const selectPersistableValues = createStructuredSelector({
     isVideoCallScreenCaptureFallbackEnabled,
   }: RootState) => isVideoCallScreenCaptureFallbackEnabled,
   updateChannel: ({ updateChannel }: RootState) => updateChannel,
-  gpuFallbackMode: ({ gpuFallbackMode }: RootState) => gpuFallbackMode,
 });

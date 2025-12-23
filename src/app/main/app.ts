@@ -15,14 +15,9 @@ import electronBuilderJson from '../../../electron-builder.json';
 import packageJson from '../../../package.json';
 import { JITSI_SERVER_CAPTURE_SCREEN_PERMISSIONS_CLEARED } from '../../jitsi/actions';
 import { dispatch, listen } from '../../store';
-import {
-  readGpuFallbackMode,
-  readSetting,
-  saveGpuFallbackMode,
-} from '../../store/readSetting';
+import { readSetting } from '../../store/readSetting';
 import {
   SETTINGS_CLEAR_PERMITTED_SCREEN_CAPTURE_PERMISSIONS,
-  SETTINGS_GPU_FALLBACK_MODE_CHANGED,
   SETTINGS_NTLM_CREDENTIALS_CHANGED,
   SETTINGS_SET_HARDWARE_ACCELERATION_OPT_IN_CHANGED,
   SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED,
@@ -211,24 +206,6 @@ export const performElectronStartup = (): void => {
   // Enable PipeWire screen capture for Linux (Wayland support)
   if (process.platform === 'linux') {
     app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
-
-    // Read GPU fallback mode (may have been set by previous GPU crash or user setting)
-    const gpuFallbackMode = readGpuFallbackMode();
-
-    // Apply display server mode based on settings
-    if (gpuFallbackMode === 'x11') {
-      console.log('Display server mode: forcing X11');
-      app.commandLine.appendSwitch('ozone-platform', 'x11');
-    } else if (gpuFallbackMode === 'wayland') {
-      console.log('Display server mode: forcing native Wayland');
-      app.commandLine.appendSwitch('ozone-platform', 'wayland');
-    } else if (gpuFallbackMode === 'disabled') {
-      console.log('Display server mode: GPU disabled');
-      app.disableHardwareAcceleration();
-      app.commandLine.appendSwitch('disable-gpu');
-    }
-    // Note: 'none' mode on Wayland is handled by handleLinuxDisplayServer() in main.ts
-    // which relaunches with --ozone-platform=x11 before Electron initializes
   }
 };
 
@@ -253,19 +230,17 @@ export const setupGpuCrashHandler = (): void => {
     return;
   }
 
-  const currentFallbackMode = readGpuFallbackMode();
-  if (currentFallbackMode !== 'none') {
-    // Already in fallback mode, don't set up crash handler
+  // Skip if GPU is already disabled
+  const args = process.argv.slice(app.isPackaged ? 1 : 2);
+  if (args.includes('--disable-gpu')) {
     return;
   }
 
   app.on('child-process-gone', (_event, details) => {
-    // Only handle GPU process crashes
     if (details.type !== 'GPU') {
       return;
     }
 
-    // Only trigger fallback during early startup (before main window is stable)
     if (isMainWindowStable) {
       console.log(
         'GPU process crashed after main window stable, not triggering fallback'
@@ -278,15 +253,6 @@ export const setupGpuCrashHandler = (): void => {
       JSON.stringify(details)
     );
 
-    // In development, disable GPU immediately on first crash
-    if (!app.isPackaged) {
-      console.log('Development mode: Disabling GPU immediately after crash');
-      saveGpuFallbackMode('disabled');
-      // Don't relaunch - let the app continue without GPU
-      return;
-    }
-
-    // In production, use threshold-based approach
     const sentinel = readStartupSentinel();
     const now = Date.now();
     let newCrashCount = 1;
@@ -297,21 +263,16 @@ export const setupGpuCrashHandler = (): void => {
 
     if (newCrashCount >= CRASH_THRESHOLD) {
       console.log(
-        `GPU crash threshold reached (${newCrashCount} >= ${CRASH_THRESHOLD}), enabling X11 fallback`
+        `GPU crash threshold reached (${newCrashCount} >= ${CRASH_THRESHOLD}), disabling GPU acceleration`
       );
-      saveGpuFallbackMode('x11');
       clearStartupSentinel();
-      console.log('Relaunching app with X11 fallback...');
-      // Preserve user command-line arguments when relaunching
       const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
-      relaunchApp(...userArgs);
+      relaunchApp('--disable-gpu', ...userArgs);
     } else {
-      // Save progress but don't relaunch yet
       writeStartupSentinel({ crashCount: newCrashCount, lastCrashTime: now });
       console.log(
-        `GPU crash ${newCrashCount}/${CRASH_THRESHOLD} - will enable fallback after ${CRASH_THRESHOLD} crashes`
+        `GPU crash ${newCrashCount}/${CRASH_THRESHOLD} - will disable GPU after ${CRASH_THRESHOLD} crashes`
       );
-      // Continue running - let user see the error, don't auto-relaunch
     }
   });
 };
@@ -357,15 +318,6 @@ export const setupApp = (): void => {
   });
 
   listen(SETTINGS_SET_IS_TRANSPARENT_WINDOW_ENABLED_CHANGED, () => {
-    relaunchApp();
-  });
-
-  // Linux only: handle GPU fallback mode changes
-  listen(SETTINGS_GPU_FALLBACK_MODE_CHANGED, (action) => {
-    if (process.platform !== 'linux') {
-      return;
-    }
-    saveGpuFallbackMode(action.payload);
     relaunchApp();
   });
 

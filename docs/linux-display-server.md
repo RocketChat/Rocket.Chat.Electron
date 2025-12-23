@@ -1,14 +1,14 @@
 # Linux Display Server Configuration
 
-Rocket.Chat Desktop automatically detects and uses the best display server (Wayland or X11) for your system. If the app detects GPU issues during startup, it automatically switches to a compatible mode.
+Rocket.Chat Desktop uses native Wayland by default when available, with automatic GPU crash recovery.
 
 ## Default Behavior
 
 | Package Type | Display Server | Notes |
 |--------------|---------------|-------|
-| **deb/rpm** | Auto-detect | Uses Wayland if available, falls back to X11 |
-| **Snap** | Auto-detect | Uses Wayland if available, falls back to X11 |
-| **AppImage** | Auto-detect | Uses Wayland if available, falls back to X11 |
+| **deb/rpm** | Native (Wayland/X11) | Uses system default |
+| **Snap** | Native (Wayland/X11) | Uses system default |
+| **AppImage** | Native (Wayland/X11) | Uses system default |
 
 ## Automatic GPU Crash Recovery
 
@@ -16,11 +16,9 @@ Rocket.Chat Desktop includes automatic GPU crash detection and recovery:
 
 1. **Crash Detection**: If the GPU process crashes during startup (e.g., due to incompatible drivers), the app detects this automatically.
 
-2. **Automatic Fallback**: After detecting crashes, the app saves a fallback mode and relaunches with X11 forced.
+2. **Automatic Fallback**: After detecting repeated crashes, the app relaunches with GPU acceleration disabled.
 
-3. **Persistent Setting**: The fallback mode is remembered across restarts, preventing repeated crashes.
-
-4. **User Control**: You can view and reset the fallback mode in Settings > General > Display Server Mode.
+3. **Recovery**: Once GPU is disabled, the app will continue to run with software rendering.
 
 ## Wayland Support
 
@@ -38,21 +36,19 @@ Rocket.Chat Desktop includes native Wayland support with:
 ## Known Issues
 
 ### Virtual Machines
-VMs with paravirtual graphics (QXL, VirtualBox, VMware) may have issues with Wayland GPU acceleration.
+VMs with paravirtual graphics (QXL, VirtualBox, VMware) may have issues with GPU acceleration.
 
 **Symptoms:**
 ```text
 ERROR:viz_main_impl.cc:189] Exiting GPU process due to errors during initialization
 ```
 
-**Automatic Recovery:** The app automatically detects this crash and switches to X11 mode. You should see the app restart and work normally after the first crash.
+**Automatic Recovery:** The app automatically detects this crash and disables GPU acceleration. You should see the app restart and work normally after the crashes.
 
-**Manual Solution:** If auto-recovery doesn't work, force X11 mode:
+**Manual Solution:** If auto-recovery doesn't work, disable GPU:
 ```bash
-rocketchat-desktop --ozone-platform=x11
+rocketchat-desktop --disable-gpu
 ```
-
-**Settings Option:** Go to Settings > General > Display Server Mode and select "Force X11".
 
 ### Screen Sharing Not Working on Wayland
 
@@ -85,8 +81,11 @@ You can force a specific display server:
 # Force X11
 rocketchat-desktop --ozone-platform=x11
 
-# Force Wayland (if system supports it)
+# Force Wayland
 rocketchat-desktop --ozone-platform=wayland
+
+# Disable GPU acceleration
+rocketchat-desktop --disable-gpu
 ```
 
 ## Troubleshooting
@@ -119,24 +118,12 @@ rocketchat-desktop --enable-logging --v=1
 rocketchat-desktop --disable-gpu
 ```
 
-## Resetting Display Server Mode
-
-If the app auto-switched to X11 and you want to try Wayland again (e.g., after updating GPU drivers):
-
-1. Open the app (it will run in X11 mode)
-2. Go to Settings > General
-3. Find "Display Server Mode"
-4. Select "Auto-detect (Wayland/X11)"
-5. The app will restart and attempt Wayland
-
-If the GPU crashes again, the app will automatically switch back to X11.
-
 ## Best Practices
 
-- **Real Hardware + Wayland**: Use default (auto-detection) for best experience
-- **VM + Wayland**: The app will auto-detect and switch to X11 after first crash
-- **X11 Session**: No configuration needed, works automatically
-- **Snap Package**: Uses auto-detection like other package types
+- **Real Hardware + Wayland**: Use default for best experience
+- **VM**: The app will auto-detect and disable GPU after crashes
+- **X11 Session**: Works automatically
+- **Snap Package**: Uses native display server
 
 ## Reporting Issues
 

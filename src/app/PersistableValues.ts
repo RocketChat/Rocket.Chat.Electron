@@ -92,15 +92,9 @@ type PersistableValues_4_9_0 = PersistableValues_4_7_2 & {
   isVideoCallScreenCaptureFallbackEnabled: boolean;
 };
 
-export type GpuFallbackMode = 'none' | 'x11' | 'wayland' | 'disabled';
-
-type PersistableValues_4_10_2 = PersistableValues_4_9_0 & {
-  gpuFallbackMode: GpuFallbackMode;
-};
-
 export type PersistableValues = Pick<
-  PersistableValues_4_10_2,
-  keyof PersistableValues_4_10_2
+  PersistableValues_4_9_0,
+  keyof PersistableValues_4_9_0
 >;
 
 export const migrations = {
@@ -178,9 +172,5 @@ export const migrations = {
     ...before,
     isTransparentWindowEnabled: false,
     isVideoCallScreenCaptureFallbackEnabled: false,
-  }),
-  '>=4.10.2': (before: PersistableValues_4_9_0): PersistableValues_4_10_2 => ({
-    ...before,
-    gpuFallbackMode: 'none',
   }),
 };

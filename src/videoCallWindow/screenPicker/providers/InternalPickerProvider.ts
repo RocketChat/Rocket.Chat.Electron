@@ -48,7 +48,7 @@ export class InternalPickerProvider implements ScreenPickerProvider {
       console.error(
         'InternalPickerProvider: handleRequest handler not set. This should be set by ipc.ts'
       );
-      callback({ video: false } as any);
+      callback({ video: false });
     }
   }
 

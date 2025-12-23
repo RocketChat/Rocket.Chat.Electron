@@ -91,15 +91,16 @@ const handleLinuxDisplayServer = (): void => {
   // The GPU crash handler will fallback to X11 if there are issues
 
   if (needsX11) {
-    console.log('Using X11 mode as configured in settings', {
-      gpuFallbackMode,
-      isWaylandSession,
-    });
+    console.log(
+      'Using X11 mode as configured in settings',
+      JSON.stringify({ gpuFallbackMode, isWaylandSession })
+    );
     relaunchApp('--ozone-platform=x11');
   } else if (isWaylandSession) {
-    console.log('Running with native Wayland support', {
-      gpuFallbackMode,
-    });
+    console.log(
+      'Running with native Wayland support',
+      JSON.stringify({ gpuFallbackMode })
+    );
   }
 };
 

@@ -266,29 +266,11 @@ if [ "$SKIP_RUN" = false ]; then
         info "Setting DISPLAY=$DISPLAY"
     fi
     
-    # Try to launch via desktop file first (handles display connection better)
-    # Fall back to direct launch if desktop file method fails
-    DESKTOP_FILE="/usr/share/applications/rocketchat-desktop.desktop"
-    if [ -f "$DESKTOP_FILE" ] && command -v gtk-launch &> /dev/null; then
-        info "Launching via desktop file (recommended method)..."
-        if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
-            # For Wayland, we need to pass the ozone-platform flag
-            # But gtk-launch doesn't support flags, so use direct launch
-            info "Detected Wayland session, launching with X11 fallback..."
-            nohup "$APP_PATH" --ozone-platform=x11 > /tmp/rocketchat-desktop.log 2>&1 &
-        else
-            # Try desktop file launch for X11
-            gtk-launch rocketchat-desktop > /tmp/rocketchat-desktop.log 2>&1 &
-        fi
-    else
-        # Direct launch with appropriate flags
-        if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
-            info "Detected Wayland session, launching with X11 fallback..."
-            nohup "$APP_PATH" --ozone-platform=x11 > /tmp/rocketchat-desktop.log 2>&1 &
-        else
-            nohup "$APP_PATH" > /tmp/rocketchat-desktop.log 2>&1 &
-        fi
+    # Launch the app directly (native Wayland is now supported)
+    if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+        info "Detected Wayland session, launching with native Wayland support..."
     fi
+    nohup "$APP_PATH" > /tmp/rocketchat-desktop.log 2>&1 &
     
     # Get the PID
     sleep 1
@@ -317,6 +299,7 @@ if [ "$SKIP_RUN" = false ]; then
             error "Last 10 lines of log:"
             tail -10 /tmp/rocketchat-desktop.log | sed 's/^/  /'
         fi
+        warning "Testing completed with warnings - app exited early"
     else
         echo ""
         success "Rocket.Chat started! (PID: $APP_PID)"
@@ -324,10 +307,10 @@ if [ "$SKIP_RUN" = false ]; then
         info "Logs are available at: /tmp/rocketchat-desktop.log"
         info "To stop it, run: kill $APP_PID"
         echo ""
+        success "All steps completed successfully!"
     fi
 else
     info "Skipping run (--skip-run flag set)"
+    success "All steps completed successfully!"
 fi
-
-success "All steps completed successfully!"
 

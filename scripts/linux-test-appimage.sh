@@ -217,6 +217,7 @@ if [ "$SKIP_RUN" = false ]; then
             error "Last 10 lines of log:"
             tail -10 /tmp/rocketchat-appimage.log | sed 's/^/  /'
         fi
+        warning "Testing completed with warnings - app exited early"
     else
         echo ""
         success "Rocket.Chat started! (PID: $APP_PID)"
@@ -224,10 +225,10 @@ if [ "$SKIP_RUN" = false ]; then
         info "Logs are available at: /tmp/rocketchat-appimage.log"
         info "To stop it, run: kill $APP_PID"
         echo ""
+        success "All steps completed successfully!"
     fi
 else
     info "Skipping run (--skip-run flag set)"
+    success "All steps completed successfully!"
 fi
-
-success "All steps completed successfully!"
 

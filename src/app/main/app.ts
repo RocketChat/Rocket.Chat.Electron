@@ -1,6 +1,4 @@
 import { spawn } from 'child_process';
-import fs from 'fs';
-import path from 'path';
 
 import { app, session, BrowserWindow } from 'electron';
 import { rimraf } from 'rimraf';
@@ -45,48 +43,6 @@ export const electronBuilderJsonInformation = {
 };
 
 let isScreenCaptureFallbackForced = false;
-let isMainWindowStable = false;
-
-const STARTUP_SENTINEL_FILE = 'startup-sentinel.json';
-const CRASH_THRESHOLD = 2;
-const CRASH_WINDOW_MS = 60000; // 1 minute
-
-interface IStartupSentinel {
-  crashCount: number;
-  lastCrashTime: number;
-}
-
-const getStartupSentinelPath = (): string =>
-  path.join(app.getPath('userData'), STARTUP_SENTINEL_FILE);
-
-const readStartupSentinel = (): IStartupSentinel | null => {
-  try {
-    const content = fs.readFileSync(getStartupSentinelPath(), 'utf8');
-    return JSON.parse(content) as IStartupSentinel;
-  } catch {
-    return null;
-  }
-};
-
-const writeStartupSentinel = (sentinel: IStartupSentinel): void => {
-  try {
-    fs.writeFileSync(
-      getStartupSentinelPath(),
-      JSON.stringify(sentinel),
-      'utf8'
-    );
-  } catch (error) {
-    console.error('Failed to write startup sentinel:', error);
-  }
-};
-
-const clearStartupSentinel = (): void => {
-  try {
-    fs.unlinkSync(getStartupSentinelPath());
-  } catch {
-    // File doesn't exist, ignore
-  }
-};
 
 export const getPlatformName = (): string => {
   switch (process.platform) {
@@ -217,12 +173,7 @@ export const initializeScreenCaptureFallbackState = (): void => {
 };
 
 export const markMainWindowStable = (): void => {
-  isMainWindowStable = true;
-
-  // Clear startup sentinel on successful startup (Linux only)
-  if (process.platform === 'linux') {
-    clearStartupSentinel();
-  }
+  // No-op: kept for API compatibility
 };
 
 export const setupGpuCrashHandler = (): void => {
@@ -230,50 +181,44 @@ export const setupGpuCrashHandler = (): void => {
     return;
   }
 
-  // Skip if GPU is already disabled
   const args = process.argv.slice(app.isPackaged ? 1 : 2);
   if (args.includes('--disable-gpu')) {
     return;
   }
 
+  // Handle GPU process crashes (runtime failures)
   app.on('child-process-gone', (_event, details) => {
     if (details.type !== 'GPU') {
       return;
     }
 
-    if (isMainWindowStable) {
+    console.log('GPU process crashed, disabling GPU and relaunching with X11');
+    const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
+    relaunchApp('--disable-gpu', '--ozone-platform=x11', ...userArgs);
+  });
+
+  // Proactive GPU detection: check GPU status once info is available
+  app.once('gpu-info-update', () => {
+    const gpuFeatures = app.getGPUFeatureStatus();
+    const { gpu_compositing: gpuCompositing, webgl } = gpuFeatures;
+
+    // Check if key GPU features are disabled/unavailable (includes _software variants)
+    const isGpuBroken = (status: string | undefined): boolean =>
+      !status ||
+      status.startsWith('disabled') ||
+      status.startsWith('unavailable');
+
+    if (isGpuBroken(gpuCompositing) || isGpuBroken(webgl)) {
       console.log(
-        'GPU process crashed after main window stable, not triggering fallback'
+        'GPU features unavailable, disabling GPU and relaunching with X11',
+        JSON.stringify(gpuFeatures)
       );
+      const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
+      relaunchApp('--disable-gpu', '--ozone-platform=x11', ...userArgs);
       return;
     }
 
-    console.log(
-      'GPU process crashed during startup, details:',
-      JSON.stringify(details)
-    );
-
-    const sentinel = readStartupSentinel();
-    const now = Date.now();
-    let newCrashCount = 1;
-
-    if (sentinel && now - sentinel.lastCrashTime < CRASH_WINDOW_MS) {
-      newCrashCount = sentinel.crashCount + 1;
-    }
-
-    if (newCrashCount >= CRASH_THRESHOLD) {
-      console.log(
-        `GPU crash threshold reached (${newCrashCount} >= ${CRASH_THRESHOLD}), disabling GPU acceleration`
-      );
-      clearStartupSentinel();
-      const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
-      relaunchApp('--disable-gpu', ...userArgs);
-    } else {
-      writeStartupSentinel({ crashCount: newCrashCount, lastCrashTime: now });
-      console.log(
-        `GPU crash ${newCrashCount}/${CRASH_THRESHOLD} - will disable GPU after ${CRASH_THRESHOLD} crashes`
-      );
-    }
+    console.log('GPU features status:', JSON.stringify(gpuFeatures));
   });
 };
 

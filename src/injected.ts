@@ -392,6 +392,7 @@ const start = async () => {
     gitCommitHash: false,
     themeAppearance: false,
     userPresence: false,
+    hoverTooltips: false,
   };
 
   // Setup reactive features that depend on modules (with polling)
@@ -593,6 +594,24 @@ const start = async () => {
         });
       });
       setupFlags.userPresence = true;
+    }
+    // Generic hover tooltip for truncated text
+    if (!setupFlags.hoverTooltips) {
+      document.body.addEventListener('mouseover', (e) => {
+        const target = e.target as HTMLElement;
+
+        if (
+          target.nodeType === Node.ELEMENT_NODE &&
+          target.scrollWidth > target.clientWidth &&
+          target.innerText &&
+          !target.hasAttribute('title') &&
+          target.className.includes &&
+          target.className.includes('title')
+        ) {
+          target.setAttribute('title', target.innerText);
+        }
+      });
+      setupFlags.hoverTooltips = true;
     }
   };
 

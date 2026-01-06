@@ -1,3 +1,5 @@
+import { spawn } from 'child_process';
+
 import { app, session, BrowserWindow } from 'electron';
 import { rimraf } from 'rimraf';
 
@@ -56,6 +58,24 @@ export const getPlatformName = (): string => {
 };
 
 export const relaunchApp = (...args: string[]): void => {
+  // For AppImage, use spawn to relaunch because app.relaunch() doesn't work reliably
+  if (process.env.APPIMAGE) {
+    console.log('Relaunching AppImage:', {
+      appImage: process.env.APPIMAGE,
+      args,
+    });
+
+    // Spawn the AppImage as a detached process
+    spawn(process.env.APPIMAGE, args, {
+      detached: true,
+      stdio: 'ignore',
+    }).unref();
+
+    app.exit();
+    return;
+  }
+
+  // For non-AppImage, use the standard relaunch method
   const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
   app.relaunch({ args: [...command, ...args] });
   app.exit();
@@ -65,7 +85,7 @@ export const performElectronStartup = (): void => {
   app.setAsDefaultProtocolClient(electronBuilderJsonInformation.protocol);
   app.setAppUserModelId(electronBuilderJsonInformation.appId);
 
-  app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
+  app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
   const disabledChromiumFeatures = [
     'HardwareMediaKeyHandling',
@@ -74,10 +94,6 @@ export const performElectronStartup = (): void => {
 
   if (getPlatformName() === 'macOS' && process.mas) {
     app.commandLine.appendSwitch('disable-accelerated-video-decode');
-  }
-
-  if (process.platform === 'linux') {
-    app.commandLine.appendSwitch('ozone-platform', 'x11');
   }
 
   const args = process.argv.slice(app.isPackaged ? 1 : 2);
@@ -110,9 +126,9 @@ export const performElectronStartup = (): void => {
   ) {
     console.log('Disabling Hardware acceleration');
     app.disableHardwareAcceleration();
-    app.commandLine.appendSwitch('--disable-2d-canvas-image-chromium');
-    app.commandLine.appendSwitch('--disable-accelerated-2d-canvas');
-    app.commandLine.appendSwitch('--disable-gpu');
+    app.commandLine.appendSwitch('disable-2d-canvas-image-chromium');
+    app.commandLine.appendSwitch('disable-accelerated-2d-canvas');
+    app.commandLine.appendSwitch('disable-gpu');
   }
 
   if (process.platform === 'win32') {
@@ -142,12 +158,67 @@ export const performElectronStartup = (): void => {
     'disable-features',
     disabledChromiumFeatures.join(',')
   );
+
+  // Enable PipeWire screen capture for Linux (Wayland support)
+  if (process.platform === 'linux') {
+    app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
+  }
 };
 
 export const initializeScreenCaptureFallbackState = (): void => {
   dispatch({
     type: APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
     payload: isScreenCaptureFallbackForced,
+  });
+};
+
+export const markMainWindowStable = (): void => {
+  // No-op: kept for API compatibility
+};
+
+export const setupGpuCrashHandler = (): void => {
+  if (process.platform !== 'linux') {
+    return;
+  }
+
+  const args = process.argv.slice(app.isPackaged ? 1 : 2);
+  if (args.includes('--disable-gpu')) {
+    return;
+  }
+
+  // Handle GPU process crashes (runtime failures)
+  app.on('child-process-gone', (_event, details) => {
+    if (details.type !== 'GPU') {
+      return;
+    }
+
+    console.log('GPU process crashed, disabling GPU and relaunching with X11');
+    const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
+    relaunchApp('--disable-gpu', '--ozone-platform=x11', ...userArgs);
+  });
+
+  // Proactive GPU detection: check GPU status once info is available
+  app.once('gpu-info-update', () => {
+    const gpuFeatures = app.getGPUFeatureStatus();
+    const { gpu_compositing: gpuCompositing, webgl } = gpuFeatures;
+
+    // Check if key GPU features are disabled/unavailable (includes _software variants)
+    const isGpuBroken = (status: string | undefined): boolean =>
+      !status ||
+      status.startsWith('disabled') ||
+      status.startsWith('unavailable');
+
+    if (isGpuBroken(gpuCompositing) || isGpuBroken(webgl)) {
+      console.log(
+        'GPU features unavailable, disabling GPU and relaunching with X11',
+        JSON.stringify(gpuFeatures)
+      );
+      const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
+      relaunchApp('--disable-gpu', '--ozone-platform=x11', ...userArgs);
+      return;
+    }
+
+    console.log('GPU features status:', JSON.stringify(gpuFeatures));
   });
 };
 

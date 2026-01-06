@@ -522,7 +522,7 @@ jobs:
 
       - name: Build Ubuntu Package
         if: ${{ matrix.build-target == 'linux' }}
-        run: yarn electron-builder --publish never --linux snap deb
+        run: yarn electron-builder --publish never --linux snap deb appimage
 
       - name: Find Snap File
         id: find_snap
@@ -586,6 +586,7 @@ jobs:
             --endpoint-url=https://s3.us-east-1.wasabisys.com \
             --exclude "*" \
             --include "rocketchat-*.snap" \
+            --include "rocketchat-*.AppImage" \
             --include "rocketchat-*.deb"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.WASABI_ACCESS_KEY_ID }}
@@ -601,7 +602,7 @@ jobs:
             const path = require('path');
             const distDir = path.join(process.cwd(), 'dist');
             const files = fs.readdirSync(distDir);
-            const patterns = [/rocketchat-.*\.dmg$/, /rocketchat-.*\.pkg$/, /rocketchat-.*\.exe$/, /rocketchat-.*\.snap$/, /rocketchat-.*\.deb$/];
+            const patterns = [/rocketchat-.*\.dmg$/, /rocketchat-.*\.pkg$/, /rocketchat-.*\.exe$/, /rocketchat-.*\.snap$/, /rocketchat-.*\.deb$/, /rocketchat-.*\.appimage$/i];
             let artifactUrls = '';
             for (const file of files) {
               if (patterns.some(pattern => pattern.test(file))) {
@@ -616,9 +617,7 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          header: ${{ runner.os }}-installer
           message: |
             ### ${{ runner.os }} installer download
             ${{ steps.get-artifact-urls.outputs.artifact_urls }}
-          header: '### ${{ runner.os }} installer download'
-          recreate: true
-          append: false

@@ -103,6 +103,14 @@
       }
     }
   },
+  "settings": {
+    "options": {
+      "transparentWindow": {
+        "title": "透明ウィンドウ効果",
+        "description": "ウィンドウのネイティブなビブランシー/透明効果を有効にします。適用するには再起動が必要です。"
+      }
+    }
+  },
   "error": {
     "authNeeded": "認証が必要です。<strong>{{- auth}}</strong> を試してみてください。",
     "connectTimeout": "再接続がタイムアウトしました",

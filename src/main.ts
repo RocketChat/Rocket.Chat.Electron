@@ -4,6 +4,8 @@ import {
   performElectronStartup,
   setupApp,
   initializeScreenCaptureFallbackState,
+  setupGpuCrashHandler,
+  markMainWindowStable,
 } from './app/main/app';
 import {
   mergePersistableValues,
@@ -52,6 +54,9 @@ const start = async (): Promise<void> => {
 
   performElectronStartup();
 
+  // Set up GPU crash handler BEFORE whenReady to catch early GPU failures
+  setupGpuCrashHandler();
+
   await app.whenReady();
 
   createMainReduxStore();
@@ -77,6 +82,9 @@ const start = async (): Promise<void> => {
   startOutlookCalendarUrlHandler();
   attachGuestWebContentsEvents();
   await showRootWindow();
+
+  // Mark main window as stable - GPU crashes after this won't trigger fallback
+  markMainWindowStable();
 
   // React DevTools is currently incompatible with Electron 10
   // if (process.env.NODE_ENV === 'development') {

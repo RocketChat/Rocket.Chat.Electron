@@ -375,7 +375,6 @@ describe('performElectronStartup - Platform Detection', () => {
       expect(waylandLog).toBeDefined();
       expect(waylandLog).toHaveLength(2);
       expect(typeof waylandLog[0]).toBe('string');
-      expect(() => JSON.parse(waylandLog[1])).not.toThrow();
       const logData = JSON.parse(waylandLog[1]);
       expect(logData).toHaveProperty('sessionType');
       expect(logData).toHaveProperty('waylandDisplay');
@@ -392,7 +391,6 @@ describe('performElectronStartup - Platform Detection', () => {
       expect(x11Log).toBeDefined();
       expect(x11Log).toHaveLength(2);
       expect(typeof x11Log[0]).toBe('string');
-      expect(() => JSON.parse(x11Log[1])).not.toThrow();
       const logData = JSON.parse(x11Log[1]);
       expect(logData).toHaveProperty('reason');
       expect(logData).toHaveProperty('sessionType');

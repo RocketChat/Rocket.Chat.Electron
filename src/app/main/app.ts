@@ -162,6 +162,65 @@ export const performElectronStartup = (): void => {
   // Enable PipeWire screen capture for Linux (Wayland support)
   if (process.platform === 'linux') {
     app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
+
+    // Detect display server and force X11 if not in Wayland session
+    // This must happen BEFORE Electron tries to auto-select platform
+    // to prevent segfaults when Wayland is attempted but unavailable
+    const hasOzonePlatformOverride = args.some((arg) =>
+      arg.startsWith('--ozone-platform=')
+    );
+
+    if (!hasOzonePlatformOverride) {
+      const sessionType = process.env.XDG_SESSION_TYPE;
+      const waylandDisplay = process.env.WAYLAND_DISPLAY;
+
+      // Normalize values: trim whitespace and handle empty strings
+      const normalizedSessionType = sessionType?.trim() || '';
+      const normalizedWaylandDisplay = waylandDisplay?.trim() || '';
+
+      // Only use Wayland if we're actually in a Wayland session AND have a display
+      // This covers all edge cases:
+      // - X11 sessions (sessionType === 'x11' or unset) → force X11
+      // - Invalid session types (tty, mir, etc.) → force X11
+      // - Wayland session but no display → force X11
+      // - Wayland session but empty display string → force X11
+      const isWaylandSession =
+        normalizedSessionType === 'wayland' && normalizedWaylandDisplay !== '';
+
+      if (isWaylandSession) {
+        console.log(
+          'Using Wayland platform',
+          JSON.stringify({
+            sessionType: normalizedSessionType,
+            waylandDisplay: normalizedWaylandDisplay,
+          })
+        );
+        // Let Electron use Wayland (default auto behavior)
+        // Don't set ozone-platform, let Electron auto-detect
+      } else {
+        // Determine reason for X11 fallback
+        let reason: string;
+        if (normalizedSessionType === 'wayland') {
+          reason = 'no-wayland-display';
+        } else if (normalizedSessionType === 'x11') {
+          reason = 'x11-session';
+        } else if (normalizedSessionType === '') {
+          reason = 'no-session-type';
+        } else {
+          reason = 'invalid-session-type';
+        }
+
+        console.log(
+          'Forcing X11 platform',
+          JSON.stringify({
+            sessionType: normalizedSessionType || 'unset',
+            waylandDisplay: normalizedWaylandDisplay || 'unset',
+            reason,
+          })
+        );
+        app.commandLine.appendSwitch('ozone-platform', 'x11');
+      }
+    }
   }
 };
 

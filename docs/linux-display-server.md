@@ -1,14 +1,26 @@
 # Linux Display Server Configuration
 
-Rocket.Chat Desktop uses native Wayland by default when available, with automatic GPU crash recovery.
+Rocket.Chat Desktop uses native Wayland by default when available, with automatic X11 fallback and GPU crash recovery.
 
 ## Default Behavior
 
 | Package Type | Display Server | Notes |
 |--------------|---------------|-------|
-| **deb/rpm** | Native (Wayland/X11) | Uses system default |
-| **Snap** | Native (Wayland/X11) | Uses system default |
-| **AppImage** | Native (Wayland/X11) | Uses system default |
+| **deb/rpm** | Native (Wayland/X11) | Auto-detects session type, falls back to X11 if Wayland unavailable |
+| **Snap** | Native (Wayland/X11) | Auto-detects session type, falls back to X11 if Wayland unavailable |
+| **AppImage** | Native (Wayland/X11) | Auto-detects session type, falls back to X11 if Wayland unavailable |
+
+## Automatic Platform Detection
+
+Rocket.Chat Desktop automatically detects your display server session and selects the appropriate platform:
+
+1. **Wayland Detection**: Checks both `XDG_SESSION_TYPE=wayland` and `WAYLAND_DISPLAY` environment variables
+2. **Automatic X11 Fallback**: If not in a Wayland session or Wayland display is unavailable, automatically forces X11 mode
+3. **Prevents Crashes**: This prevents segfaults that occur when Electron tries Wayland but fails during initialization (common on Ubuntu 22.04 LTS with X11 sessions)
+
+The app logs platform selection decisions for troubleshooting:
+- `Forcing X11 platform` - When X11 fallback is used
+- `Using Wayland platform` - When Wayland is detected and available
 
 ## Automatic GPU Crash Recovery
 
@@ -34,6 +46,22 @@ Rocket.Chat Desktop includes native Wayland support with:
 - Modern GPU drivers
 
 ## Known Issues
+
+### Ubuntu 22.04 LTS X11 Sessions
+
+**Symptoms:**
+```text
+Failed to connect to Wayland display: No such file or directory (2)
+Failed to initialize Wayland platform
+[segmentation fault]
+```
+
+**Automatic Fix:** The app now automatically detects X11 sessions and forces X11 mode, preventing these crashes.
+
+**Manual Override:** If needed, you can explicitly force X11:
+```bash
+rocketchat-desktop --ozone-platform=x11
+```
 
 ### Virtual Machines
 VMs with paravirtual graphics (QXL, VirtualBox, VMware) may have issues with GPU acceleration.
@@ -75,7 +103,7 @@ systemctl --user status pipewire
 
 ## Manual Override
 
-You can force a specific display server:
+You can force a specific display server (overrides automatic detection):
 
 ```bash
 # Force X11
@@ -87,6 +115,8 @@ rocketchat-desktop --ozone-platform=wayland
 # Disable GPU acceleration
 rocketchat-desktop --disable-gpu
 ```
+
+**Note:** Manual overrides take precedence over automatic detection. Use these flags if you need to override the default behavior.
 
 ## Troubleshooting
 
@@ -122,8 +152,9 @@ rocketchat-desktop --disable-gpu
 
 - **Real Hardware + Wayland**: Use default for best experience
 - **VM**: The app will auto-detect and disable GPU after crashes
-- **X11 Session**: Works automatically
-- **Snap Package**: Uses native display server
+- **X11 Session**: Automatically detected and used (prevents Wayland connection failures)
+- **Snap Package**: Auto-detects display server, works in both X11 and Wayland environments
+- **Ubuntu 22.04 LTS**: Automatic X11 fallback prevents segfaults on X11 sessions
 
 ## Reporting Issues
 

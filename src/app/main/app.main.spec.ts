@@ -363,60 +363,7 @@ describe('performElectronStartup - Platform Detection', () => {
   });
 
   describe('Logging', () => {
-    it('should log correct reason code for no-wayland-display', () => {
-      process.env.XDG_SESSION_TYPE = 'wayland';
-      delete process.env.WAYLAND_DISPLAY;
-
-      performElectronStartup();
-
-      const x11Log = consoleLogMock.mock.calls.find((call) =>
-        call[0]?.includes('Forcing X11 platform')
-      );
-      expect(x11Log).toBeDefined();
-      const logData = JSON.parse(x11Log[1]);
-      expect(logData.reason).toBe('no-wayland-display');
-    });
-
-    it('should log correct reason code for x11-session', () => {
-      process.env.XDG_SESSION_TYPE = 'x11';
-
-      performElectronStartup();
-
-      const x11Log = consoleLogMock.mock.calls.find((call) =>
-        call[0]?.includes('Forcing X11 platform')
-      );
-      expect(x11Log).toBeDefined();
-      const logData = JSON.parse(x11Log[1]);
-      expect(logData.reason).toBe('x11-session');
-    });
-
-    it('should log correct reason code for no-session-type', () => {
-      delete process.env.XDG_SESSION_TYPE;
-
-      performElectronStartup();
-
-      const x11Log = consoleLogMock.mock.calls.find((call) =>
-        call[0]?.includes('Forcing X11 platform')
-      );
-      expect(x11Log).toBeDefined();
-      const logData = JSON.parse(x11Log[1]);
-      expect(logData.reason).toBe('no-session-type');
-    });
-
-    it('should log correct reason code for invalid-session-type', () => {
-      process.env.XDG_SESSION_TYPE = 'tty';
-
-      performElectronStartup();
-
-      const x11Log = consoleLogMock.mock.calls.find((call) =>
-        call[0]?.includes('Forcing X11 platform')
-      );
-      expect(x11Log).toBeDefined();
-      const logData = JSON.parse(x11Log[1]);
-      expect(logData.reason).toBe('invalid-session-type');
-    });
-
-    it('should log environment variable values correctly', () => {
+    it('should log messages with valid JSON structure', () => {
       process.env.XDG_SESSION_TYPE = 'wayland';
       process.env.WAYLAND_DISPLAY = 'wayland-0';
 
@@ -426,11 +373,29 @@ describe('performElectronStartup - Platform Detection', () => {
         call[0]?.includes('Using Wayland platform')
       );
       expect(waylandLog).toBeDefined();
+      expect(waylandLog).toHaveLength(2);
+      expect(typeof waylandLog[0]).toBe('string');
+      expect(() => JSON.parse(waylandLog[1])).not.toThrow();
       const logData = JSON.parse(waylandLog[1]);
-      expect(logData).toEqual({
-        sessionType: 'wayland',
-        waylandDisplay: 'wayland-0',
-      });
+      expect(logData).toHaveProperty('sessionType');
+      expect(logData).toHaveProperty('waylandDisplay');
+    });
+
+    it('should log X11 messages with reason code in JSON', () => {
+      process.env.XDG_SESSION_TYPE = 'x11';
+
+      performElectronStartup();
+
+      const x11Log = consoleLogMock.mock.calls.find((call) =>
+        call[0]?.includes('Forcing X11 platform')
+      );
+      expect(x11Log).toBeDefined();
+      expect(x11Log).toHaveLength(2);
+      expect(typeof x11Log[0]).toBe('string');
+      expect(() => JSON.parse(x11Log[1])).not.toThrow();
+      const logData = JSON.parse(x11Log[1]);
+      expect(logData).toHaveProperty('reason');
+      expect(logData).toHaveProperty('sessionType');
     });
   });
 

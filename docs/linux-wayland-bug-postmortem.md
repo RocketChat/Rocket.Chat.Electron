@@ -365,6 +365,6 @@ bash -x /opt/Rocket.Chat/rocketchat-desktop --help 2>&1 | grep ozone
 
 ---
 
-_Post-mortem completed: 2025-01-08_
+_Post-mortem completed: 2026-01-08_
 _Validated on: Fedora 42 (physical + VM), Ubuntu 22.04 LTS (physical)_
 _Packages validated: DEB, AppImage, tar.gz, Snap, RPM_

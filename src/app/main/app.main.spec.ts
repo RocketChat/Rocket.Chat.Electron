@@ -31,13 +31,6 @@ jest.mock('rimraf', () => ({
   },
 }));
 
-jest.mock('../actions', () => ({
-  electronBuilderJsonInformation: {
-    protocol: 'rocketchat',
-    appId: 'chat.rocket',
-  },
-}));
-
 const originalPlatform = process.platform;
 const originalEnv = process.env;
 const originalArgv = process.argv;

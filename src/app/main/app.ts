@@ -194,7 +194,8 @@ export const performElectronStartup = (): void => {
         }
         try {
           const runtimeDir =
-            process.env.XDG_RUNTIME_DIR || `/run/user/${process.getuid()}`;
+            process.env.XDG_RUNTIME_DIR ||
+            `/run/user/${process.getuid?.() ?? 1000}`;
           const socketPath = `${runtimeDir}/${normalizedWaylandDisplay}`;
           const stats = fs.statSync(socketPath);
           return stats.isSocket();

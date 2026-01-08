@@ -57,7 +57,6 @@ describe('performElectronStartup - Platform Detection', () => {
     statSyncMock = fs.statSync as jest.Mock;
     statSyncMock.mockReturnValue({ isSocket: () => true });
 
-    // Reset process
     Object.defineProperty(process, 'platform', {
       value: 'linux',
       writable: true,
@@ -66,10 +65,11 @@ describe('performElectronStartup - Platform Detection', () => {
     process.env = { ...originalEnv };
     process.argv = ['node', 'script.js'];
 
-    // Clear all environment variables we care about
     delete process.env.XDG_SESSION_TYPE;
     delete process.env.WAYLAND_DISPLAY;
     delete process.env.DISPLAY;
+    delete process.env.ELECTRON_OZONE_PLATFORM_HINT;
+    process.env.XDG_RUNTIME_DIR = '/run/user/1000';
   });
 
   afterEach(() => {

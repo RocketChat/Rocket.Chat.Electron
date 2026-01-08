@@ -300,8 +300,6 @@ bash -x /opt/Rocket.Chat/rocketchat-desktop --help 2>&1 | grep ozone
 
 | Date | Event |
 |------|-------|
-| 2024-XX-XX | Issue #3154 reported |
-| 2024-XX-XX | PR #3171 submitted with `app.commandLine.appendSwitch()` fix |
 | 2025-01-07 | Comprehensive testing reveals code fix is ineffective |
 | 2025-01-07 | Wrapper script solution validated on Fedora 42 + Ubuntu 22.04 |
 | 2025-01-07 | Fix implemented in build process |

@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import * as fs from 'fs';
 
 import { app, session, BrowserWindow } from 'electron';
 import { rimraf } from 'rimraf';
@@ -178,14 +179,30 @@ export const performElectronStartup = (): void => {
       const normalizedSessionType = sessionType?.trim() || '';
       const normalizedWaylandDisplay = waylandDisplay?.trim() || '';
 
-      // Only use Wayland if we're actually in a Wayland session AND have a display
+      // Only use Wayland if we're actually in a Wayland session AND have a valid socket
       // This covers all edge cases:
       // - X11 sessions (sessionType === 'x11' or unset) → force X11
       // - Invalid session types (tty, mir, etc.) → force X11
       // - Wayland session but no display → force X11
-      // - Wayland session but empty display string → force X11
-      const isWaylandSession =
-        normalizedSessionType === 'wayland' && normalizedWaylandDisplay !== '';
+      // - Wayland session but socket doesn't exist → force X11
+      const checkWaylandSocket = (): boolean => {
+        if (
+          normalizedSessionType !== 'wayland' ||
+          normalizedWaylandDisplay === ''
+        ) {
+          return false;
+        }
+        try {
+          const runtimeDir =
+            process.env.XDG_RUNTIME_DIR || `/run/user/${process.getuid()}`;
+          const socketPath = `${runtimeDir}/${normalizedWaylandDisplay}`;
+          const stats = fs.statSync(socketPath);
+          return stats.isSocket();
+        } catch {
+          return false;
+        }
+      };
+      const isWaylandSession = checkWaylandSocket();
 
       if (isWaylandSession) {
         console.log(
@@ -198,9 +215,13 @@ export const performElectronStartup = (): void => {
         // Let Electron use Wayland (default auto behavior)
         // Don't set ozone-platform, let Electron auto-detect
       } else {
-        // Determine reason for X11 fallback
         let reason: string;
-        if (normalizedSessionType === 'wayland') {
+        if (
+          normalizedSessionType === 'wayland' &&
+          normalizedWaylandDisplay !== ''
+        ) {
+          reason = 'socket-not-found';
+        } else if (normalizedSessionType === 'wayland') {
           reason = 'no-wayland-display';
         } else if (normalizedSessionType === 'x11') {
           reason = 'x11-session';

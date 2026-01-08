@@ -1,6 +1,10 @@
+import * as fs from 'fs';
+
 import { app } from 'electron';
 
 import { performElectronStartup } from './app';
+
+jest.mock('fs');
 
 jest.mock('electron', () => ({
   app: {
@@ -42,12 +46,16 @@ const originalConsoleLog = console.log;
 describe('performElectronStartup - Platform Detection', () => {
   let appendSwitchMock: jest.Mock;
   let consoleLogMock: jest.Mock;
+  let statSyncMock: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     appendSwitchMock = app.commandLine.appendSwitch as jest.Mock;
     consoleLogMock = jest.fn();
     console.log = consoleLogMock;
+
+    statSyncMock = fs.statSync as jest.Mock;
+    statSyncMock.mockReturnValue({ isSocket: () => true });
 
     // Reset process
     Object.defineProperty(process, 'platform', {
@@ -201,6 +209,42 @@ describe('performElectronStartup - Platform Detection', () => {
       expect(x11Log).toBeDefined();
       const logData = JSON.parse(x11Log[1]);
       expect(logData.reason).toBe('no-wayland-display');
+    });
+
+    it('should force X11 when Wayland socket does not exist', () => {
+      process.env.XDG_SESSION_TYPE = 'wayland';
+      process.env.WAYLAND_DISPLAY = 'wayland-0';
+      statSyncMock.mockImplementation(() => {
+        throw new Error('ENOENT');
+      });
+
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith('ozone-platform', 'x11');
+
+      const x11Log = consoleLogMock.mock.calls.find((call) =>
+        call[0]?.includes('Forcing X11 platform')
+      );
+      expect(x11Log).toBeDefined();
+      const logData = JSON.parse(x11Log[1]);
+      expect(logData.reason).toBe('socket-not-found');
+    });
+
+    it('should force X11 when path exists but is not a socket', () => {
+      process.env.XDG_SESSION_TYPE = 'wayland';
+      process.env.WAYLAND_DISPLAY = 'wayland-0';
+      statSyncMock.mockReturnValue({ isSocket: () => false });
+
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith('ozone-platform', 'x11');
+
+      const x11Log = consoleLogMock.mock.calls.find((call) =>
+        call[0]?.includes('Forcing X11 platform')
+      );
+      expect(x11Log).toBeDefined();
+      const logData = JSON.parse(x11Log[1]);
+      expect(logData.reason).toBe('socket-not-found');
     });
   });
 

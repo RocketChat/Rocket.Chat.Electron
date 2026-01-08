@@ -1,6 +1,32 @@
-const { flipFuses, FuseVersion, FuseV1Options } = require('@electron/fuses');
 const fs = require('fs');
 const path = require('path');
+
+const { flipFuses, FuseVersion, FuseV1Options } = require('@electron/fuses');
+
+async function setupLinuxWrapper(context) {
+  const { appOutDir } = context;
+
+  const binaryPath = path.join(appOutDir, 'rocketchat-desktop');
+  const binaryBinPath = path.join(appOutDir, 'rocketchat-desktop.bin');
+  const wrapperSrc = path.join(__dirname, 'linux', 'wrapper.sh');
+  const wrapperDest = path.join(appOutDir, 'rocketchat-desktop');
+
+  if (fs.existsSync(binaryBinPath)) {
+    console.log('Wrapper already installed, skipping');
+    return;
+  }
+
+  console.log('Setting up Linux display server wrapper...');
+
+  fs.renameSync(binaryPath, binaryBinPath);
+  console.log('  Renamed binary to rocketchat-desktop.bin');
+
+  fs.copyFileSync(wrapperSrc, wrapperDest);
+  fs.chmodSync(wrapperDest, 0o755);
+  console.log('  Installed wrapper script as rocketchat-desktop');
+
+  console.log('Linux wrapper setup complete');
+}
 
 exports.default = async function afterPack(context) {
   console.log(
@@ -55,28 +81,3 @@ exports.default = async function afterPack(context) {
     await setupLinuxWrapper(context);
   }
 };
-
-async function setupLinuxWrapper(context) {
-  const { appOutDir } = context;
-
-  const binaryPath = path.join(appOutDir, 'rocketchat-desktop');
-  const binaryBinPath = path.join(appOutDir, 'rocketchat-desktop.bin');
-  const wrapperSrc = path.join(__dirname, 'linux', 'wrapper.sh');
-  const wrapperDest = path.join(appOutDir, 'rocketchat-desktop');
-
-  if (fs.existsSync(binaryBinPath)) {
-    console.log('Wrapper already installed, skipping');
-    return;
-  }
-
-  console.log('Setting up Linux display server wrapper...');
-
-  fs.renameSync(binaryPath, binaryBinPath);
-  console.log('  Renamed binary to rocketchat-desktop.bin');
-
-  fs.copyFileSync(wrapperSrc, wrapperDest);
-  fs.chmodSync(wrapperDest, 0o755);
-  console.log('  Installed wrapper script as rocketchat-desktop');
-
-  console.log('Linux wrapper setup complete');
-}

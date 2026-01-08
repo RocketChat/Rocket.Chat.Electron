@@ -147,6 +147,7 @@
     ]
   },
   "snap": {
+    "allowNativeWayland": false,
     "plugs": [
       "desktop",
       "desktop-legacy",

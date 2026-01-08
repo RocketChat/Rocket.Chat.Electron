@@ -1,167 +1,146 @@
 # Linux Display Server Configuration
 
-Rocket.Chat Desktop uses native Wayland by default when available, with automatic X11 fallback and GPU crash recovery.
+Rocket.Chat Desktop supports both Wayland and X11 display servers on Linux, with automatic detection and safe fallback mechanisms.
 
-## Default Behavior
+## How It Works
+
+Rocket.Chat Desktop uses a **wrapper script** to detect your display server before the application starts. This prevents crashes that occur when Chromium tries to connect to an unavailable Wayland compositor.
+
+### Detection Logic
+
+The wrapper checks (in order):
+1. Is `XDG_SESSION_TYPE` set to `wayland`?
+2. Is `WAYLAND_DISPLAY` set?
+3. Does the Wayland socket actually exist?
+
+If any check fails, the wrapper forces X11 mode via `--ozone-platform=x11`.
+
+| Session Type | WAYLAND_DISPLAY | Socket Exists | Result |
+|--------------|-----------------|---------------|--------|
+| wayland | wayland-0 | Yes | Native Wayland |
+| wayland | wayland-0 | No | Force X11 |
+| wayland | (empty) | N/A | Force X11 |
+| x11 | (any) | (any) | Force X11 |
+| tty | (any) | (any) | Force X11 |
+
+## Package Behavior
 
 | Package Type | Display Server | Notes |
 |--------------|---------------|-------|
-| **deb/rpm** | Native (Wayland/X11) | Auto-detects session type, falls back to X11 if Wayland unavailable |
-| **Snap** | Native (Wayland/X11) | Auto-detects session type, falls back to X11 if Wayland unavailable |
-| **AppImage** | Native (Wayland/X11) | Auto-detects session type, falls back to X11 if Wayland unavailable |
+| **deb/rpm** | Auto-detect via wrapper | Native Wayland when available, safe X11 fallback |
+| **AppImage** | Auto-detect via wrapper | Native Wayland when available, safe X11 fallback |
+| **Snap** | Auto-detect | Uses Snap's display server access |
 
-## Automatic Platform Detection
+## Why a Wrapper Script?
 
-Rocket.Chat Desktop automatically detects your display server session and selects the appropriate platform:
+Chromium (which powers Electron) selects its display server during native initialization, **before** any JavaScript code runs. This means:
 
-1. **Wayland Detection**: Checks both `XDG_SESSION_TYPE=wayland` and `WAYLAND_DISPLAY` environment variables
-2. **Automatic X11 Fallback**: If not in a Wayland session or Wayland display is unavailable, automatically forces X11 mode
-3. **Prevents Crashes**: This prevents segfaults that occur when Electron tries Wayland but fails during initialization (common on Ubuntu 22.04 LTS with X11 sessions)
+- `app.commandLine.appendSwitch()` in Electron code runs too late
+- Environment variable checks in JavaScript run too late
+- The only reliable fix is a shell wrapper that sets flags **before** the binary starts
 
-The app logs platform selection decisions for troubleshooting:
-- `Forcing X11 platform` - When X11 fallback is used
-- `Using Wayland platform` - When Wayland is detected and available
-
-## Automatic GPU Crash Recovery
-
-Rocket.Chat Desktop includes automatic GPU crash detection and recovery:
-
-1. **Crash Detection**: If the GPU process crashes during startup (e.g., due to incompatible drivers), the app detects this automatically.
-
-2. **Automatic Fallback**: After detecting repeated crashes, the app relaunches with GPU acceleration disabled.
-
-3. **Recovery**: Once GPU is disabled, the app will continue to run with software rendering.
+For technical details, see [linux-wayland-bug-postmortem.md](./linux-wayland-bug-postmortem.md).
 
 ## Wayland Support
 
-Rocket.Chat Desktop includes native Wayland support with:
+When running on a proper Wayland session, Rocket.Chat Desktop provides:
+- Native Wayland rendering
 - PipeWire screen capture for video calls
 - Native OS screen picker integration
 - Hardware acceleration
 
 ### Requirements for Wayland
+- Active Wayland compositor with accessible socket
 - `xdg-desktop-portal` (recommended, auto-suggested by deb/rpm packages)
 - `xdg-desktop-portal-gtk` or desktop-specific portal backend
 - PipeWire for screen sharing
-- Modern GPU drivers
 
-## Known Issues
+## GPU Crash Recovery
 
-### Ubuntu 22.04 LTS X11 Sessions
+Rocket.Chat Desktop includes automatic GPU crash detection:
 
-**Symptoms:**
-```text
-Failed to connect to Wayland display: No such file or directory (2)
-Failed to initialize Wayland platform
-[segmentation fault]
-```
+1. **Crash Detection**: If the GPU process crashes during startup (e.g., incompatible drivers), the app detects this.
+2. **Automatic Fallback**: The app relaunches with GPU acceleration disabled.
+3. **Software Rendering**: The app continues with software rendering.
 
-**Automatic Fix:** The app now automatically detects X11 sessions and forces X11 mode, preventing these crashes.
+This is separate from display server selection and handles GPU driver issues.
 
-**Manual Override:** If needed, you can explicitly force X11:
-```bash
-rocketchat-desktop --ozone-platform=x11
-```
+## Common Scenarios
+
+### Ubuntu 22.04 LTS (X11 Session)
+
+Ubuntu 22.04 defaults to X11 with GNOME. The wrapper detects `XDG_SESSION_TYPE=x11` and forces X11 mode, preventing Wayland connection errors.
+
+### Fedora (Wayland Session)
+
+Fedora defaults to Wayland with GNOME. The wrapper detects the Wayland session and socket, allowing native Wayland operation.
+
+### SSH Sessions
+
+SSH sessions inherit environment variables from the graphical session but don't have Wayland socket access. The wrapper detects the missing socket and forces X11 mode.
 
 ### Virtual Machines
-VMs with paravirtual graphics (QXL, VirtualBox, VMware) may have issues with GPU acceleration.
 
-**Symptoms:**
-```text
-ERROR:viz_main_impl.cc:189] Exiting GPU process due to errors during initialization
-```
-
-**Automatic Recovery:** The app automatically detects this crash and disables GPU acceleration. You should see the app restart and work normally after the crashes.
-
-**Manual Solution:** If auto-recovery doesn't work, disable GPU:
-```bash
-rocketchat-desktop --disable-gpu
-```
-
-### Screen Sharing Not Working on Wayland
-
-If screen sharing doesn't work on Wayland:
-
-1. Install portal dependencies:
-```bash
-# Ubuntu/Debian
-sudo apt install xdg-desktop-portal xdg-desktop-portal-gtk pipewire
-
-# Fedora
-sudo dnf install xdg-desktop-portal xdg-desktop-portal-gtk pipewire
-
-# Arch
-sudo pacman -S xdg-desktop-portal xdg-desktop-portal-gtk pipewire
-```
-
-2. Restart your session or reboot
-
-3. Verify PipeWire is running:
-```bash
-systemctl --user status pipewire
-```
+VMs with paravirtual graphics may not support GPU acceleration. The GPU crash recovery system handles this automatically.
 
 ## Manual Override
 
-You can force a specific display server (overrides automatic detection):
+You can force a specific display server:
 
 ```bash
-# Force X11
+# Force X11 (bypass wrapper detection)
 rocketchat-desktop --ozone-platform=x11
 
-# Force Wayland
+# Force Wayland (use with caution)
 rocketchat-desktop --ozone-platform=wayland
 
 # Disable GPU acceleration
 rocketchat-desktop --disable-gpu
 ```
 
-**Note:** Manual overrides take precedence over automatic detection. Use these flags if you need to override the default behavior.
-
 ## Troubleshooting
 
 ### Check Your Display Server
 ```bash
-echo $XDG_SESSION_TYPE
-# Output: "wayland" or "x11"
+echo "Session Type: $XDG_SESSION_TYPE"
+echo "Wayland Display: $WAYLAND_DISPLAY"
+echo "X11 Display: $DISPLAY"
 ```
 
-### Check GPU Support
+### Check Wayland Socket
 ```bash
-# Check graphics card
-lspci | grep -i vga
-
-# Check VA-API support (hardware video decode)
-vainfo
+ls -la ${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/${WAYLAND_DISPLAY:-wayland-0}
 ```
 
 ### Enable Verbose Logging
-
-These are standard Chromium flags that enable detailed logging output:
-
 ```bash
 rocketchat-desktop --enable-logging --v=1
 ```
 
-### Disable GPU Acceleration (last resort)
+### Screen Sharing Not Working on Wayland
+
+Install portal dependencies:
 ```bash
-rocketchat-desktop --disable-gpu
+# Ubuntu/Debian
+sudo apt install xdg-desktop-portal xdg-desktop-portal-gtk pipewire
+
+# Fedora
+sudo dnf install xdg-desktop-portal xdg-desktop-portal-gtk pipewire
 ```
 
-## Best Practices
-
-- **Real Hardware + Wayland**: Use default for best experience
-- **VM**: The app will auto-detect and disable GPU after crashes
-- **X11 Session**: Automatically detected and used (prevents Wayland connection failures)
-- **Snap Package**: Auto-detects display server, works in both X11 and Wayland environments
-- **Ubuntu 22.04 LTS**: Automatic X11 fallback prevents segfaults on X11 sessions
+Verify PipeWire is running:
+```bash
+systemctl --user status pipewire
+```
 
 ## Reporting Issues
 
 When reporting display server issues, include:
 
-1. Display server type: `echo $XDG_SESSION_TYPE`
-2. Graphics card: `lspci | grep -i vga`
-3. Distribution: `cat /etc/os-release`
-4. Package type: snap/deb/rpm/AppImage
-5. Full error output with `--enable-logging --v=1`
+1. Session type: `echo $XDG_SESSION_TYPE`
+2. Wayland display: `echo $WAYLAND_DISPLAY`
+3. Socket check: `ls -la ${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}`
+4. Graphics card: `lspci | grep -i vga`
+5. Distribution: `cat /etc/os-release`
+6. Package type: snap/deb/rpm/AppImage
+7. Full error output with `--enable-logging --v=1`

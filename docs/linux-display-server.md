@@ -29,7 +29,7 @@ If any check fails, the wrapper forces X11 mode via `--ozone-platform=x11`.
 |--------------|---------------|-------|
 | **deb/rpm** | Auto-detect via wrapper | Native Wayland when available, safe X11 fallback |
 | **AppImage** | Auto-detect via wrapper | Native Wayland when available, safe X11 fallback |
-| **Snap** | Auto-detect | Uses Snap's display server access |
+| **Snap** | Force X11 | Wayland disabled via `allowNativeWayland: false` |
 
 ## Why a Wrapper Script?
 

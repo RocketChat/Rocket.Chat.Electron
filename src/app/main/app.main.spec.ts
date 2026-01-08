@@ -137,6 +137,37 @@ describe('performElectronStartup - Platform Detection', () => {
       expect(waylandLogs).toHaveLength(0);
       expect(x11Logs).toHaveLength(0);
     });
+
+    it('should respect ELECTRON_OZONE_PLATFORM_HINT environment variable', () => {
+      process.env.ELECTRON_OZONE_PLATFORM_HINT = 'x11';
+      process.env.XDG_SESSION_TYPE = 'wayland';
+      process.env.WAYLAND_DISPLAY = 'wayland-0';
+
+      performElectronStartup();
+
+      const ozonePlatformCalls = appendSwitchMock.mock.calls.filter(
+        (call) => call[0] === 'ozone-platform'
+      );
+      expect(ozonePlatformCalls).toHaveLength(0);
+    });
+
+    it('should ignore empty ELECTRON_OZONE_PLATFORM_HINT', () => {
+      process.env.ELECTRON_OZONE_PLATFORM_HINT = '';
+      process.env.XDG_SESSION_TYPE = 'x11';
+
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith('ozone-platform', 'x11');
+    });
+
+    it('should ignore whitespace-only ELECTRON_OZONE_PLATFORM_HINT', () => {
+      process.env.ELECTRON_OZONE_PLATFORM_HINT = '   ';
+      process.env.XDG_SESSION_TYPE = 'x11';
+
+      performElectronStartup();
+
+      expect(appendSwitchMock).toHaveBeenCalledWith('ozone-platform', 'x11');
+    });
   });
 
   describe('Wayland Detection', () => {

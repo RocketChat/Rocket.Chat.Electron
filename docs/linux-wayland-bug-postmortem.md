@@ -3,12 +3,31 @@
 ## Issue Reference
 - **GitHub Issue**: [#3154](https://github.com/RocketChat/Rocket.Chat.Electron/issues/3154)
 - **Related PR**: [#3171](https://github.com/RocketChat/Rocket.Chat.Electron/pull/3171)
-- **Date**: January 2025
+- **Date**: January 2026
 - **Severity**: Critical (application crash/segfault)
 
 ## Executive Summary
 
 Rocket.Chat Desktop crashes with SEGFAULT when environment variables suggest a Wayland session but no valid Wayland compositor is available. The initial fix attempt using `app.commandLine.appendSwitch()` was **ineffective** because Chromium's display platform initialization occurs before any Electron JavaScript code executes. The solution requires a **shell wrapper script** that detects the display server situation and passes appropriate command-line flags before the binary starts.
+
+---
+
+## The Solution That Actually Worked
+
+### Problem
+Rocket.Chat Desktop crashes with SEGFAULT when environment variables suggest a Wayland session but no valid Wayland compositor is available, because Chromium's display platform initialization occurs before any Electron JavaScript code executes.
+
+### Solution
+Implement a shell wrapper script (`build/linux/wrapper.sh`) that detects the display server situation before the binary starts. The wrapper checks XDG_SESSION_TYPE, WAYLAND_DISPLAY, and socket existence, then passes `--ozone-platform=x11` when needed.
+
+### Result
+All test scenarios pass on Ubuntu 22.04 and Fedora 42 (physical and VM). The wrapper correctly:
+- Allows native Wayland when valid socket exists
+- Forces X11 in all failure scenarios (fake socket, missing display, X11 session, etc.)
+- Prevents all previously occurring segfaults
+
+### PR
+[#3171](https://github.com/RocketChat/Rocket.Chat.Electron/pull/3171)
 
 ---
 

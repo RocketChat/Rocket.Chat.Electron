@@ -122,6 +122,22 @@ Chromium's Ozone platform layer auto-detects the display server based on environ
 | No session type | **PASS** | Window visible |
 | TTY type | **PASS** | Window visible |
 
+### Fedora 42 Physical - All Packages with Wrapper Script Fix
+
+| Scenario | RPM | AppImage | tar.gz |
+|----------|-----|----------|--------|
+| Real Wayland session | **PASS** | **PASS** | **PASS** |
+| Fake Wayland socket | **PASS** | **PASS** | **PASS** |
+
+**Key validation**: Real Wayland session shows "Using Wayland platform" in logs, confirming wrapper correctly allows native Wayland when socket exists.
+
+### Fedora 42 VM (No GPU) - RPM with Wrapper Script Fix
+
+| Scenario | Result | Notes |
+|----------|--------|-------|
+| Real Wayland session | **PASS** | Detects no GPU, gracefully falls back to X11 |
+| Fake Wayland socket | **PASS** | Wrapper forces X11 |
+
 ---
 
 ## Technical Analysis
@@ -315,5 +331,6 @@ bash -x /opt/Rocket.Chat/rocketchat-desktop --help 2>&1 | grep ozone
 
 ---
 
-*Post-mortem completed: 2025-01-07*
-*Validated on: Fedora 42 (physical), Ubuntu 22.04 LTS (physical)*
+*Post-mortem completed: 2025-01-08*
+*Validated on: Fedora 42 (physical + VM), Ubuntu 22.04 LTS (physical)*
+*Packages validated: DEB, AppImage, tar.gz, Snap, RPM*

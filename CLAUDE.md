@@ -28,6 +28,7 @@ The action only needs `workspaces/desktop-release-action/dist/index.js` to funct
 ## Committing Changes
 
 **NEVER** commit directly to master/main branch. Always:
+
 1. Create a new branch for changes
 2. Test thoroughly
 3. Create a Pull Request (PR)
@@ -46,11 +47,13 @@ yarn test
 ## Windows Build Architectures
 
 When modifying Windows build commands, ensure all architectures are included:
+
 - x64 (64-bit)
 - ia32 (32-bit)
 - arm64 (ARM)
 
 Example:
+
 ```bash
 yarn electron-builder --x64 --ia32 --arm64 --win nsis
 ```
@@ -58,6 +61,7 @@ yarn electron-builder --x64 --ia32 --arm64 --win nsis
 ## Code Signing
 
 Windows packages use Google Cloud KMS for signing. The signing happens in two phases:
+
 1. Build packages without signing (with empty environment variables)
 2. Sign the built packages using jsign with Google Cloud KMS
 
@@ -68,6 +72,7 @@ This prevents MSI build failures caused by KMS CNG provider installation conflic
 When creating any technical documentation, retrospectives, or reports:
 
 ### NEVER:
+
 - Invent or estimate time spent (e.g., "3 days debugging", "2 weeks of effort")
 - Speculate on user counts affected (e.g., "500+ users", "thousands of developers")
 - Create arbitrary metrics without concrete evidence
@@ -75,6 +80,7 @@ When creating any technical documentation, retrospectives, or reports:
 - Guess at durations based on PR dates or commit history
 
 ### ONLY Include:
+
 - Numbers that come directly from actual logs or error messages
 - Metrics that are explicitly documented in issues/PRs
 - Data that can be verified from the repository
@@ -82,6 +88,7 @@ When creating any technical documentation, retrospectives, or reports:
 - Time tracking ONLY when the user explicitly asks for it to be added
 
 ### Examples:
+
 - ❌ Wrong: "Spent 3 days debugging this issue"
 - ✅ Correct: "Multiple debugging approaches attempted"
 
@@ -96,9 +103,10 @@ When creating any technical documentation, retrospectives, or reports:
 When documenting metrics, follow this approach:
 
 #### ❌ AVOID Invented Metrics:
+
 ```markdown
 - IPC Success Rate: 50% on slow machines
-- After System Load: 10% success rate  
+- After System Load: 10% success rate
 - Recovery Time: 2-4 seconds average
 - Max Recovery Time: 10 seconds
 - Support Tickets: Multiple per day → Zero
@@ -106,26 +114,31 @@ When documenting metrics, follow this approach:
 ```
 
 #### ✅ USE Verifiable Information:
+
 ```markdown
 ### Before Implementation
+
 - **Issue Pattern**: Intermittent failures on slower hardware
 - **System Load Impact**: Failures increased significantly under load
 - **Recovery Method**: Required manual app restart
 - **Customer Impact**: Enterprise customer severely affected
 
 ### After Implementation
+
 - **Recovery Method**: Automatic retry with exponential backoff
 - **System Load Impact**: Maintains stability even under resource pressure
 - **Customer Impact**: Issue completely resolved
 
 ### Key Implementation Parameters (from actual code)
+
 - **Handshake Retries**: 3 attempts configured
-- **URL Request Retries**: 5 attempts configured  
+- **URL Request Retries**: 5 attempts configured
 - **Retry Delay**: 2000ms between attempts
 - **Fallback UI**: Triggers after maximum retry attempts exceeded
 ```
 
 Focus on:
+
 - Qualitative descriptions over fake quantitative data
 - Actual configuration values from code
 - Observable behaviors rather than percentages
@@ -138,13 +151,15 @@ When creating retrospective/post-mortem documents for complex technical issues, 
 ### 1. Start with "The Solution That Actually Worked"
 
 Add a concise section at the very top containing:
+
 - **Problem**: Brief summary of the core issue
 - **Solution**: Actual code/approach that fixed it
 - **Result**: Measurable outcome improvement
 - **PR**: Link to the relevant pull request
 
 Example structure:
-```markdown
+
+````markdown
 ## The Solution That Actually Worked
 
 **Problem**: [Core technical issue in one sentence]
@@ -157,7 +172,7 @@ Example structure:
 **Result**: [Metric before] → [Metric after]
 
 **PR**: [Link to PR]
-```
+````
 
 ### 2. Focus on Root Causes
 
@@ -168,14 +183,17 @@ Example structure:
 ### 3. Document Diagnostic Challenges
 
 Essential aspects to capture:
+
 - **Silent failures**: Issues with no error output or logging
 - **Environment-specific**: Problems only reproducible in certain conditions
 - **Tooling limitations**: Why standard debugging approaches failed
 - **Documentation gaps**: Absence of existing solutions or references
 
 Structure:
+
 ```markdown
 **Why This Was Hard to Debug**:
+
 - [Specific challenge 1]
 - [Specific challenge 2]
 - [Environmental factor]
@@ -185,6 +203,7 @@ Structure:
 ### 4. Specify Environmental Requirements
 
 Document precise reproduction conditions:
+
 - Hardware specifications (CPU, RAM, GPU)
 - Operating system and version
 - Virtualization attempts and why they failed
@@ -194,6 +213,7 @@ Document precise reproduction conditions:
 ### 5. Chronicle the Investigation
 
 Structure the timeline to show:
+
 - Initial hypothesis and why it was wrong
 - Each attempted solution and its failure mode
 - The breakthrough that led to understanding
@@ -209,16 +229,19 @@ Structure the timeline to show:
 ### 7. Layer Solutions Appropriately
 
 When multiple improvements were made:
+
 ```markdown
 ## The Complete Solution
 
-While [primary fix] was THE critical fix that resolved the crisis, 
+While [primary fix] was THE critical fix that resolved the crisis,
 we also implemented additional improvements:
 
 ### Layer 1: [Primary Fix Name] (THE MAIN FIX)
+
 [Implementation details]
 
 ### Additional Improvements
+
 - [Secondary improvement 1]
 - [Secondary improvement 2]
 ```
@@ -226,6 +249,7 @@ we also implemented additional improvements:
 ### 8. Document Unsuccessful Remediation Attempts
 
 Record what should have worked but didn't:
+
 ```markdown
 ### Known Issues Not Fixed by Updates
 
@@ -237,6 +261,7 @@ Record what should have worked but didn't:
 ### 9. Include Comprehensive Code Examples
 
 Provide code for:
+
 - Problem manifestation
 - Failed solution attempts
 - Working implementation
@@ -268,6 +293,7 @@ Provide code for:
 ### 12. Highlight Unprecedented Issues
 
 When encountering undocumented problems:
+
 - Emphasize the absence of existing documentation
 - Explain why standard approaches failed
 - Note when creating first-known documentation
@@ -276,6 +302,7 @@ When encountering undocumented problems:
 ### 13. Theory Documentation
 
 When the root cause involves unconfirmed theories:
+
 - Clearly label as "theory" or "hypothesis"
 - Explain the reasoning and evidence
 - Describe what testing confirmed or refuted
@@ -284,6 +311,7 @@ When the root cause involves unconfirmed theories:
 ### 14. Hardware vs Virtualization Distinctions
 
 Document when issues are hardware-specific:
+
 - VM configuration attempts and specifications
 - Why virtualization couldn't reproduce the issue
 - Hardware-specific factors (GPU, thermal, timing)
@@ -296,12 +324,15 @@ This structured approach ensures post-mortems are comprehensive, technically acc
 This is an Electron desktop application for Rocket.Chat built with TypeScript and React.
 
 ### Entry Points
+
 The application has three main entry files compiled by Rollup:
+
 - `src/main.ts` - Main Electron process that orchestrates the application
 - `src/rootWindow.ts` - Renderer process for the main window UI
 - `src/preload.ts` - Preload script with privileged API access bridging main and renderer processes
 
 ### Core Technologies
+
 - **Electron 37.2.4** - Desktop application framework
 - **TypeScript 5.7.3** - Type-safe JavaScript
 - **React 18.3.1** - UI components
@@ -310,6 +341,7 @@ The application has three main entry files compiled by Rollup:
 - **Jest with Electron runner** - Testing framework
 
 ### Key Directories
+
 - `src/main/` - Main process code
 - `src/ui/` - React components and UI logic
 - `src/preload/` - Preload scripts for secure IPC
@@ -321,18 +353,68 @@ The application has three main entry files compiled by Rollup:
 - `src/i18n/` - Internationalization resources
 
 ### State Management
+
 The app uses Redux with a modular reducer structure. State is synchronized between main and renderer processes via IPC channels defined in `src/ipc/`.
 
 ### Server Configuration
+
 Default servers can be configured via `servers.json` at the root level or in user preferences folders. The app supports multiple Rocket.Chat server connections simultaneously.
 
 ### Testing Strategy
+
 Tests are split between main process tests (`*.main.spec.ts`) and renderer process tests (`*.spec.ts`). The test runner uses `@kayahr/jest-electron-runner` for proper Electron environment simulation.
+
+### Cross-Platform Test Compatibility (CRITICAL)
+
+Tests run on Windows, macOS, AND Linux CI. When testing platform-specific code:
+
+**Primary Pattern: Defensive Coding (VSCode approach)**
+
+Use optional chaining with fallbacks for Linux-only APIs. This eliminates the need for mocks entirely.
+
+Source: [VSCode codebase](https://github.com/microsoft/vscode/blob/main/src/vs/platform/native/electron-main/nativeHostMainService.ts#L688-L691)
+
+```typescript
+// ✅ PREFERRED: Defensive coding - works on all platforms without mocks
+const uid = process.getuid?.() ?? 1000;
+const isRoot = process.getuid?.() === 0;
+const runtimeDir =
+  process.env.XDG_RUNTIME_DIR || `/run/user/${process.getuid?.() ?? 1000}`;
+```
+
+**Fallback Pattern: Mocking (only when defensive coding isn't possible)**
+
+```typescript
+const originalPlatform = process.platform;
+
+beforeEach(() => {
+  Object.defineProperty(process, 'platform', {
+    value: 'linux',
+    configurable: true,
+  });
+  process.env.XDG_RUNTIME_DIR = '/run/user/1000';
+});
+
+afterEach(() => {
+  Object.defineProperty(process, 'platform', {
+    value: originalPlatform,
+    configurable: true,
+  });
+});
+```
+
+**Linux-only APIs that require defensive coding:**
+
+- `process.getuid()` → `process.getuid?.() ?? 1000`
+- `process.getgid()` → `process.getgid?.() ?? 1000`
+- `process.geteuid()` / `process.getegid()` → Same pattern
+
+**Rule**: Always use defensive coding (`?.` with `??` fallback) for Linux-only APIs. Never rely on mocks when the production code can be made cross-platform safe.
 
 ## Important Configuration Files
 
 - `rollup.config.mjs` - Build configuration
-- `electron-builder.json` - Electron packager configuration  
+- `electron-builder.json` - Electron packager configuration
 - `tsconfig.json` - TypeScript compiler options
 - `.eslintrc.json` - ESLint rules extending `@rocket.chat/eslint-config`
 - `jest.config.js` - Jest test configuration with separate projects for main/renderer
@@ -367,7 +449,7 @@ Tests are split between main process tests (`*.main.spec.ts`) and renderer proce
 - Always use Fuselage's Box, Button, TextInput, Modal, etc. instead of HTML elements
 - Follow Fuselage patterns for spacing, colors, and typography
 - Import from `@rocket.chat/fuselage` package
-- **Reference implementation examples**: 
+- **Reference implementation examples**:
   - Check https://github.com/RocketChat/Rocket.Chat for real-world Fuselage usage patterns
   - If available locally, reference the main Rocket.Chat repository for implementation examples
 

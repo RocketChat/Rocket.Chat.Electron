@@ -147,6 +147,8 @@
     ]
   },
   "snap": {
+    "base": "core22",
+    "allowNativeWayland": false,
     "plugs": [
       "desktop",
       "desktop-legacy",

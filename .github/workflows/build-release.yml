@@ -9,6 +9,10 @@ on:
       - develop
     tags:
       - '*'
+  # TEMPORARY: Enable for PR testing - REMOVE AFTER PR #3175 IS MERGED
+  pull_request:
+    branches:
+      - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}

@@ -55069,11 +55069,13 @@ var verify_signature_awaiter = (undefined && undefined.__awaiter) || function (t
 
 
 
+
 const verifyWithPowerShell = (filePath) => verify_signature_awaiter(void 0, void 0, void 0, function* () {
     const fileName = external_path_.basename(filePath);
     try {
+        const safePath = filePath.replace(/\\/g, '\\\\').replace(/'/g, "''");
         const script = `
-      $sig = Get-AuthenticodeSignature -FilePath '${filePath.replace(/'/g, "''")}'
+      $sig = Get-AuthenticodeSignature -FilePath '${safePath}'
       @{
         Status = $sig.Status.ToString()
         SignerCertificate = if ($sig.SignerCertificate) { $sig.SignerCertificate.Subject } else { $null }
@@ -55113,22 +55115,19 @@ const verifyExecutableSignature = (distPath) => verify_signature_awaiter(void 0,
     let hasFailures = false;
     for (const dir of unpackedDirs) {
         const exePath = external_path_.join(distPath, dir, 'Rocket.Chat.exe');
-        const files = sync(exePath);
-        if (files.length === 0) {
+        if (!external_fs_.existsSync(exePath)) {
             lib_core.debug(`No executable found in ${dir}`);
             continue;
         }
-        for (const file of files) {
-            lib_core.info(`Verifying: ${external_path_.relative(distPath, file)}`);
-            const result = yield verifySignature(file);
-            results.push(result);
-            if (result.valid) {
-                lib_core.info(`  ✓ Valid signature - Signer: ${result.signer || 'Unknown'}`);
-            }
-            else {
-                lib_core.error(`  ✗ INVALID: ${result.status}${result.error ? ` - ${result.error}` : ''}`);
-                hasFailures = true;
-            }
+        lib_core.info(`Verifying: ${external_path_.relative(distPath, exePath)}`);
+        const result = yield verifySignature(exePath);
+        results.push(result);
+        if (result.valid) {
+            lib_core.info(`  ✓ Valid signature - Signer: ${result.signer || 'Unknown'}`);
+        }
+        else {
+            lib_core.error(`  ✗ INVALID: ${result.status}${result.error ? ` - ${result.error}` : ''}`);
+            hasFailures = true;
         }
     }
     if (results.length === 0) {

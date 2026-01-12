@@ -33,12 +33,12 @@ exports.default = async function afterSign(context) {
       teamId: 'S6UPZG7ZR3',
     })
       .then(() => {
-        clearTimeout(timer);
+        clearInterval(timer);
         console.log();
         resolve();
       })
       .catch((error) => {
-        clearTimeout(timer);
+        clearInterval(timer);
         console.log();
         reject(error);
       });

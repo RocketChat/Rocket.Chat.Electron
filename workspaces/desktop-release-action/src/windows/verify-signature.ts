@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
 import { runAndBuffer } from '../shell';
@@ -17,8 +18,9 @@ const verifyWithPowerShell = async (
   const fileName = path.basename(filePath);
 
   try {
+    const safePath = filePath.replace(/\\/g, '\\\\').replace(/'/g, "''");
     const script = `
-      $sig = Get-AuthenticodeSignature -FilePath '${filePath.replace(/'/g, "''")}'
+      $sig = Get-AuthenticodeSignature -FilePath '${safePath}'
       @{
         Status = $sig.Status.ToString()
         SignerCertificate = if ($sig.SignerCertificate) { $sig.SignerCertificate.Subject } else { $null }
@@ -71,28 +73,23 @@ export const verifyExecutableSignature = async (
 
   for (const dir of unpackedDirs) {
     const exePath = path.join(distPath, dir, 'Rocket.Chat.exe');
-    const files = glob.sync(exePath);
 
-    if (files.length === 0) {
+    if (!fs.existsSync(exePath)) {
       core.debug(`No executable found in ${dir}`);
       continue;
     }
 
-    for (const file of files) {
-      core.info(`Verifying: ${path.relative(distPath, file)}`);
-      const result = await verifySignature(file);
-      results.push(result);
+    core.info(`Verifying: ${path.relative(distPath, exePath)}`);
+    const result = await verifySignature(exePath);
+    results.push(result);
 
-      if (result.valid) {
-        core.info(
-          `  ✓ Valid signature - Signer: ${result.signer || 'Unknown'}`
-        );
-      } else {
-        core.error(
-          `  ✗ INVALID: ${result.status}${result.error ? ` - ${result.error}` : ''}`
-        );
-        hasFailures = true;
-      }
+    if (result.valid) {
+      core.info(`  ✓ Valid signature - Signer: ${result.signer || 'Unknown'}`);
+    } else {
+      core.error(
+        `  ✗ INVALID: ${result.status}${result.error ? ` - ${result.error}` : ''}`
+      );
+      hasFailures = true;
     }
   }
 

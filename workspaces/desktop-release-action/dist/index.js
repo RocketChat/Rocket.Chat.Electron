@@ -55071,24 +55071,22 @@ var verify_signature_awaiter = (undefined && undefined.__awaiter) || function (t
 
 
 const verifyWithPowerShell = (filePath) => verify_signature_awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const fileName = external_path_.basename(filePath);
     try {
-        const safePath = filePath.replace(/\\/g, '\\\\').replace(/'/g, "''");
-        const script = `
-      $sig = Get-AuthenticodeSignature -FilePath '${safePath}'
-      @{
-        Status = $sig.Status.ToString()
-        SignerCertificate = if ($sig.SignerCertificate) { $sig.SignerCertificate.Subject } else { $null }
-      } | ConvertTo-Json
-    `;
-        const output = yield runAndBuffer(`powershell -NoProfile -Command "${script.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`);
+        const escapedPath = filePath.replace(/'/g, "''");
+        const psCommand = `"Get-AuthenticodeSignature -LiteralPath '${escapedPath}' | ConvertTo-Json -Compress"`;
+        const command = `chcp 65001 >NUL & powershell.exe -NoProfile -NonInteractive -InputFormat None -Command ${psCommand}`;
+        const output = yield runAndBuffer(command);
         const result = JSON.parse(output.trim());
-        const isValid = result.Status === 'Valid';
+        const isValid = result.Status === 0 || result.Status === 'Valid';
+        const statusText = result.Status === 0 ? 'Valid' : String((_a = result.Status) !== null && _a !== void 0 ? _a : 'Unknown');
+        const signerSubject = (_b = result.SignerCertificate) === null || _b === void 0 ? void 0 : _b.Subject;
         return {
             file: fileName,
             valid: isValid,
-            status: result.Status,
-            signer: result.SignerCertificate || undefined,
+            status: statusText,
+            signer: signerSubject || undefined,
         };
     }
     catch (error) {

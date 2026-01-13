@@ -61,11 +61,11 @@
     "@rocket.chat/fuselage-hooks": "~0.33.1",
     "@rocket.chat/fuselage-polyfills": "~0.31.25",
     "@rocket.chat/icons": "0.37.0",
-    "axios": "~1.6.4",
+    "axios": "~1.13.2",
     "detect-browsers": "~6.1.0",
     "electron-dl": "4.0.0",
     "electron-store": "~8.1.0",
-    "electron-updater": "^5.3.0",
+    "electron-updater": "^6.3.9",
     "ews-javascript-api": "~0.13.2",
     "i18next": "~23.7.16",
     "jsonwebtoken": "~9.0.2",
@@ -131,7 +131,7 @@
     "patch-package": "~8.0.0",
     "prettier": "~3.2.5",
     "puppeteer": "23.1.1",
-    "rollup": "~4.9.6",
+    "rollup": "~4.32.0",
     "rollup-plugin-copy": "~3.5.0",
     "ts-jest": "~29.1.4",
     "ts-node": "~10.9.2",
@@ -150,7 +150,14 @@
   },
   "resolutions": {
     "@fiahfy/icns-convert/sharp": "0.29.3",
-    "@fiahfy/ico-convert/sharp": "0.29.3"
+    "@fiahfy/ico-convert/sharp": "0.29.3",
+    "cross-spawn": "7.0.6",
+    "braces": "3.0.3",
+    "ws": "8.18.0",
+    "follow-redirects": "1.15.9",
+    "form-data": "4.0.5",
+    "tar-fs": "3.0.8",
+    "undici": "5.28.5"
   },
   "volta": {
     "node": "22.17.1",

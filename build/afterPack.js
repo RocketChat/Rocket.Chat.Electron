@@ -50,17 +50,11 @@ exports.default = async function afterPack(context) {
       break;
   }
 
-  // For Windows: Skip fuses here - they will be applied in afterSign (notarize.js)
-  // This is because electron-builder's signing runs AFTER afterPack but BEFORE afterSign
-  // Fuses modify the PE structure and must be applied AFTER signing
-  if (context.electronPlatformName === 'win32') {
-    console.log(
-      'Skipping electron fuses for Windows - will be applied after signing'
-    );
-    return;
-  }
-
-  // For macOS and Linux: Apply fuses here (no signing order concerns)
+  // Fuses MUST be applied BEFORE signing. Per Electron docs:
+  // "Because they are flipped at package time before you code sign your app,
+  // the OS becomes responsible for ensuring those bits aren't flipped back
+  // via OS-level code signing validation"
+  // See: https://www.electronjs.org/docs/latest/tutorial/fuses
   console.log('Applying electron fuses for enhanced security to:', appPath);
 
   await flipFuses(appPath, {

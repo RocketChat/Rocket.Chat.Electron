@@ -14,11 +14,11 @@ using [Electron][].
 
 ## Supported Platforms
 
-| Platform | Minimum Version | Architectures |
-|----------|-----------------|---------------|
-| Windows | 10 | x64, arm64 |
-| macOS | 12 (Monterey) | x64, arm64 (Apple Silicon) |
-| Linux | Ubuntu 22.04+ or equivalent | x64, arm64 |
+| Platform | Minimum Version | Architectures | Formats |
+|----------|-----------------|---------------|---------|
+| Windows | 10 | x64, ia32, arm64 | NSIS, MSI |
+| macOS | 12 (Monterey) | Universal (x64 + Apple Silicon) | DMG, PKG, ZIP |
+| Linux | Ubuntu 22.04+ or equivalent | x64 | AppImage, deb, rpm, snap, tar.gz |
 
 ---
 
@@ -39,12 +39,16 @@ releases, company related topics, events and use cases. [Sign Up!][]
 You can download the latest version from the [Releases][] page.
 
 <div style="width: 100%">
-	<a href='https://snapcraft.io/rocketchat-desktop'>
-		<img width='200' alt='Get it on the Snap Store' src='https://snapcraft.io/static/images/badges/en/snap-store-black.svg'/>
+	<a href='https://apps.microsoft.com/detail/9nblggh52jv6'>
+		<img width='200' alt='Get it from Microsoft Store' src='https://get.microsoft.com/images/en-us%20dark.svg'/>
 	</a>
 	&ensp;
-	<a href='https://flathub.org/apps/chat.rocket.RocketChat'>
-		<img width='200' alt='Get it on Flathub' src='https://flathub.org/api/badge'/>
+	<a href='https://apps.apple.com/app/rocket-chat/id1086818840'>
+		<img width='200' alt='Download on the Mac App Store' src='https://developer.apple.com/assets/elements/badges/download-on-the-mac-app-store.svg'/>
+	</a>
+	&ensp;
+	<a href='https://snapcraft.io/rocketchat-desktop'>
+		<img width='200' alt='Get it on the Snap Store' src='https://snapcraft.io/static/images/badges/en/snap-store-black.svg'/>
 	</a>
 </div>
 

@@ -113,7 +113,7 @@
     "chokidar": "~3.5.3",
     "conventional-changelog-cli": "~4.1.0",
     "convert-svg-to-png": "~0.6.4",
-    "electron": "39.2.5",
+    "electron": "40.0.0",
     "electron-builder": "26.0.3",
     "electron-devtools-installer": "^3.2.0",
     "electron-notarize": "^1.2.2",
@@ -142,10 +142,10 @@
     "fsevents": "2.3.3"
   },
   "engines": {
-    "node": ">=22.17.1"
+    "node": ">=24.11.1"
   },
   "devEngines": {
-    "node": ">=22.17.1",
+    "node": ">=24.11.1",
     "yarn": ">=4.0.2"
   },
   "resolutions": {
@@ -153,7 +153,7 @@
     "@fiahfy/ico-convert/sharp": "0.29.3"
   },
   "volta": {
-    "node": "22.17.1",
+    "node": "24.11.1",
     "yarn": "4.0.2"
   },
   "packageManager": "yarn@4.6.0"

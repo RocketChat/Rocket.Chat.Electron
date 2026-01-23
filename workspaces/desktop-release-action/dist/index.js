@@ -56684,8 +56684,8 @@ const start = () => src_awaiter(void 0, void 0, void 0, function* () {
     }
     const payload = github.context.payload;
     const ref = lib_core.getInput('ref') || payload.ref;
-    if (ref === 'refs/heads/develop') {
-        lib_core.info(`push event on develop branch detected, performing development release`);
+    if (ref === 'refs/heads/dev') {
+        lib_core.info(`push event on dev branch detected, performing development release`);
         yield releaseDevelopment(payload.after);
         return;
     }

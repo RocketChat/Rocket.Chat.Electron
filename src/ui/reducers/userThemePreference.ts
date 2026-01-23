@@ -25,4 +25,3 @@ export const userThemePreference: Reducer<
       return state;
   }
 };
-

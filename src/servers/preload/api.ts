@@ -30,6 +30,7 @@ import {
   setServerVersionToSidebar,
   setSidebarCustomTheme,
 } from './sidebar';
+import { setUserThemeAppearance } from './themeAppearance';
 import { setTitle } from './title';
 import { setUrlResolver } from './urls';
 import { setUserLoggedIn } from './userLoggedIn';
@@ -74,6 +75,7 @@ export const RocketChatDesktop: Window['RocketChatDesktop'] = {
   setTitle,
   setUserPresenceDetection,
   setUserLoggedIn,
+  setUserThemeAppearance,
   createNotification,
   destroyNotification,
   dispatchCustomNotification,

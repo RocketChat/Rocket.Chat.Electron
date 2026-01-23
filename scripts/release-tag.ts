@@ -35,9 +35,16 @@ const fetchTags = (): void => {
   execSync('git fetch --tags', { stdio: 'inherit' });
 };
 
+const normalizeTag = (tag: string): string => {
+  // Strip leading 'v' if present for consistent comparison
+  return tag.startsWith('v') ? tag.slice(1) : tag;
+};
+
 const getExistingTags = (): string[] => {
   const output = exec('git tag -l');
-  return output ? output.split('\n').filter(Boolean) : [];
+  if (!output) return [];
+  // Return normalized tags (without 'v' prefix) for consistent comparison
+  return output.split('\n').filter(Boolean).map(normalizeTag);
 };
 
 const getLatestTagForChannel = (tags: string[], channel: string): SemVer | null => {

@@ -4,6 +4,13 @@
       "transparentWindow": {
         "title": "Gjennomsiktig vinduseffekt",
         "description": "Aktiver innfødd vibrasjon/gjennomsiktighetseffekt for vinduet. Krever omstart for å bruke."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Velg fargtemaet for applikasjonen.",
+        "auto": "Følg system",
+        "light": "Lys",
+        "dark": "Mørk"
       }
     }
   },

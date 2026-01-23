@@ -3,7 +3,6 @@ import type { Themes } from '@rocket.chat/fuselage/dist/components/PaletteStyleT
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import { select } from '../../../store';
 import type { RootState } from '../../../store/rootReducer';
 import { AboutDialog } from '../AboutDialog';
 import { AddServerView } from '../AddServerView';
@@ -27,43 +26,24 @@ export const Shell = () => {
   const machineTheme = useSelector(
     ({ machineTheme }: RootState) => machineTheme
   );
-  const currentView = useSelector(({ currentView }: RootState) => currentView);
+  const userThemePreference = useSelector(
+    ({ userThemePreference }: RootState) => userThemePreference
+  );
   const isTransparentWindowEnabled = useSelector(
     ({ isTransparentWindowEnabled }: RootState) => isTransparentWindowEnabled
   );
-
-  const currentServerUrl = select(({ currentView }) =>
-    typeof currentView === 'object' ? currentView.url : null
-  );
-
-  const selectedServer = useSelector(({ servers }) => {
-    if (!currentServerUrl) return null;
-
-    try {
-      return servers.find(
-        (s: { url: string | URL }) =>
-          new URL(s.url).origin === new URL(currentServerUrl).origin
-      );
-    } catch (e) {
-      return null;
-    }
-  });
 
   const [currentTheme, setCurrentTheme] = useState<Themes | undefined>(
     machineTheme as Themes
   );
 
   useEffect(() => {
-    if (selectedServer) {
-      if (selectedServer.themeAppearance === 'auto') {
-        setCurrentTheme(machineTheme as Themes);
-      } else {
-        setCurrentTheme(selectedServer.themeAppearance as Themes);
-      }
-    } else {
+    if (userThemePreference === 'auto') {
       setCurrentTheme(machineTheme as Themes);
+    } else {
+      setCurrentTheme(userThemePreference as Themes);
     }
-  }, [selectedServer, machineTheme, currentView]);
+  }, [machineTheme, userThemePreference]);
 
   useLayoutEffect(() => {
     if (!appPath) {
@@ -104,7 +84,6 @@ export const Shell = () => {
             position='relative'
             alignSelf='stretch'
             flexBasis='1 1 auto'
-            bg={process.platform === 'darwin' ? 'light' : undefined}
           >
             <ServersView />
             <AddServerView />

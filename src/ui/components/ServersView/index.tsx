@@ -18,7 +18,6 @@ export const ServersView = () => {
           supportedVersionsFetchState={server.supportedVersionsFetchState}
           title={server.title}
           documentViewerOpenUrl={server.documentViewerOpenUrl}
-          themeAppearance={server.themeAppearance}
           userLoggedIn={server.userLoggedIn}
         />
       ))}

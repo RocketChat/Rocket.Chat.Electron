@@ -294,6 +294,13 @@
       "transparentWindow": {
         "title": "Transparent fönstereffekt",
         "description": "Aktivera inbyggd vibrans/transparenseffekt för fönstret. Kräver omstart för att tillämpas."
+      },
+      "themeAppearance": {
+        "title": "Tema",
+        "description": "Välj färgtemat för applikationen.",
+        "auto": "Följ system",
+        "light": "Ljus",
+        "dark": "Mörk"
       }
     }
   },

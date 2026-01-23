@@ -38,19 +38,19 @@ releases, company related topics, events and use cases. [Sign Up!][]
 
 You can download the latest version from the [Releases][] page.
 
-<div style="width: 100%">
-	<a href='https://apps.microsoft.com/detail/9nblggh52jv6'>
-		<img width='200' alt='Get it from Microsoft Store' src='https://get.microsoft.com/images/en-us%20dark.svg'/>
-	</a>
-	&ensp;
-	<a href='https://apps.apple.com/app/rocket-chat/id1086818840'>
-		<img width='200' alt='Download on the Mac App Store' src='https://developer.apple.com/assets/elements/badges/download-on-the-mac-app-store.svg'/>
-	</a>
-	&ensp;
-	<a href='https://snapcraft.io/rocketchat-desktop'>
-		<img width='200' alt='Get it on the Snap Store' src='https://snapcraft.io/static/images/badges/en/snap-store-black.svg'/>
-	</a>
-</div>
+<p>
+  <a href="https://apps.microsoft.com/detail/9nblggh52jv6">
+    <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft Store" height="50"/>
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://apps.apple.com/app/rocket-chat/id1086818840">
+    <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-mac-app-store/black/en-us" alt="Download on the Mac App Store" height="50"/>
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://snapcraft.io/rocketchat-desktop">
+    <img src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" alt="Get it from the Snap Store" height="50"/>
+  </a>
+</p>
 
 ## Install
 

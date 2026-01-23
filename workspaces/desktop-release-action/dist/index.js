@@ -42929,11 +42929,12 @@ const getSnapshotRelease = (commitSha) => __awaiter(void 0, void 0, void 0, func
 });
 const getTaggedRelease = (version, commitSha) => __awaiter(void 0, void 0, void 0, function* () {
     const body = yield getChangelog();
+    const isPrerelease = version.prerelease.length > 0;
     const release = yield findRelease((release) => release.tag_name === version.version);
     if (release) {
-        return (yield octokit.request('PATCH /repos/{owner}/{repo}/releases/{release_id}', Object.assign(Object.assign({}, getRepoParams()), { release_id: release.id, draft: true, body, tag_name: version.version, target_commitish: commitSha }))).data;
+        return (yield octokit.request('PATCH /repos/{owner}/{repo}/releases/{release_id}', Object.assign(Object.assign({}, getRepoParams()), { release_id: release.id, draft: true, prerelease: isPrerelease, body, tag_name: version.version, target_commitish: commitSha }))).data;
     }
-    return (yield octokit.request('POST /repos/{owner}/{repo}/releases', Object.assign(Object.assign({}, getRepoParams()), { draft: true, name: version.version, body, tag_name: version.version, target_commitish: commitSha }))).data;
+    return (yield octokit.request('POST /repos/{owner}/{repo}/releases', Object.assign(Object.assign({}, getRepoParams()), { draft: true, prerelease: isPrerelease, name: version.version, body, tag_name: version.version, target_commitish: commitSha }))).data;
 });
 const getReleaseAssets = (releaseId) => __awaiter(void 0, void 0, void 0, function* () {
     return octokit.paginate('GET /repos/{owner}/{repo}/releases/{release_id}/assets', Object.assign(Object.assign({}, getRepoParams()), { release_id: releaseId }));
@@ -56683,8 +56684,8 @@ const start = () => src_awaiter(void 0, void 0, void 0, function* () {
     }
     const payload = github.context.payload;
     const ref = lib_core.getInput('ref') || payload.ref;
-    if (ref === 'refs/heads/develop') {
-        lib_core.info(`push event on develop branch detected, performing development release`);
+    if (ref === 'refs/heads/dev') {
+        lib_core.info(`push event on dev branch detected, performing development release`);
         yield releaseDevelopment(payload.after);
         return;
     }

@@ -142,10 +142,10 @@
     "fsevents": "2.3.3"
   },
   "engines": {
-    "node": ">=24.11.1"
+    "node": ">=20.0.0"
   },
   "devEngines": {
-    "node": ">=24.11.1",
+    "node": ">=20.0.0",
     "yarn": ">=4.0.2"
   },
   "resolutions": {

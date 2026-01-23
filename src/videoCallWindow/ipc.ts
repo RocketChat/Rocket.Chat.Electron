@@ -26,16 +26,29 @@ import { debounce } from '../ui/main/debounce';
 import { handleMediaPermissionRequest } from '../ui/main/mediaPermissions';
 import { isInsideSomeScreen, getRootWindow } from '../ui/main/rootWindow';
 import { openExternal } from '../utils/browserLauncher';
+import type {
+  DisplayMediaCallback,
+  ScreenPickerProvider,
+} from './screenPicker/types';
 
 const DESKTOP_CAPTURER_STALE_THRESHOLD = 3000;
 const SOURCE_VALIDATION_CACHE_TTL = 30000;
 const DESTRUCTION_CHECK_INTERVAL = 50;
 const DEVTOOLS_TIMEOUT = 2000;
 const WEBVIEW_CHECK_INTERVAL = 100;
+const SCREEN_SHARING_REQUEST_TIMEOUT = 60000; // 60 seconds timeout
 
 let videoCallWindow: BrowserWindow | null = null;
 let isVideoCallWindowDestroying = false;
 let pendingVideoCallUrl: string | null = null;
+
+// Screen sharing request tracking
+let activeScreenSharingListener:
+  | ((event: Event, sourceId: string | null) => void)
+  | null = null;
+let activeScreenSharingRequestId: string | null = null;
+let screenSharingTimeout: NodeJS.Timeout | null = null;
+let isScreenSharingRequestPending = false;
 
 // Helper function to log URL changes
 const setPendingVideoCallUrl = (url: string, reason: string) => {
@@ -209,6 +222,9 @@ const cleanupVideoCallWindow = () => {
         );
       }
 
+      // Clean up screen sharing listener before removing window listeners
+      cleanupScreenSharingListener();
+
       videoCallWindow.removeAllListeners();
 
       // Use setImmediate to ensure this happens after current event loop
@@ -246,55 +262,235 @@ const cleanupVideoCallWindow = () => {
   }, 10);
 };
 
+const cleanupScreenSharingListener = (): void => {
+  if (activeScreenSharingListener) {
+    ipcMain.removeListener(
+      'video-call-window/screen-sharing-source-responded',
+      activeScreenSharingListener
+    );
+    activeScreenSharingListener = null;
+  }
+
+  if (screenSharingTimeout) {
+    clearTimeout(screenSharingTimeout);
+    screenSharingTimeout = null;
+  }
+
+  activeScreenSharingRequestId = null;
+  isScreenSharingRequestPending = false;
+};
+
+const removeScreenSharingListenerOnly = (): void => {
+  if (activeScreenSharingListener) {
+    ipcMain.removeListener(
+      'video-call-window/screen-sharing-source-responded',
+      activeScreenSharingListener
+    );
+    activeScreenSharingListener = null;
+  }
+
+  if (screenSharingTimeout) {
+    clearTimeout(screenSharingTimeout);
+    screenSharingTimeout = null;
+  }
+};
+
+const markScreenSharingComplete = (): void => {
+  activeScreenSharingRequestId = null;
+  isScreenSharingRequestPending = false;
+};
+
+// Internal picker handler function - encapsulates the internal picker logic
+const createInternalPickerHandler = (): ((
+  callback: DisplayMediaCallback
+) => void) => {
+  return (cb: DisplayMediaCallback) => {
+    // Prevent concurrent requests
+    if (isScreenSharingRequestPending) {
+      console.warn(
+        'Screen sharing request already pending, ignoring concurrent request'
+      );
+      cb({ video: false } as any);
+      return;
+    }
+
+    if (!videoCallWindow || videoCallWindow.isDestroyed()) {
+      console.warn(
+        'Screen sharing request rejected - video call window not available'
+      );
+      cb({ video: false } as any);
+      return;
+    }
+
+    // Clean up any existing listener
+    cleanupScreenSharingListener();
+
+    // Generate unique request ID
+    const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    activeScreenSharingRequestId = requestId;
+    isScreenSharingRequestPending = true;
+
+    // Flag to prevent double-invocation of callback
+    let callbackInvoked = false;
+
+    // Create the listener function
+    const listener = async (_event: Event, sourceId: string | null) => {
+      // Ignore responses for different requests
+      if (activeScreenSharingRequestId !== requestId) {
+        console.warn(
+          'Screen sharing response received for different request, ignoring'
+        );
+        return;
+      }
+
+      // Guard against double-invocation (race with timeout)
+      if (callbackInvoked) {
+        console.warn(
+          'Screen sharing callback already invoked, ignoring duplicate'
+        );
+        return;
+      }
+      callbackInvoked = true;
+
+      // Remove listener and clear timeout
+      removeScreenSharingListenerOnly();
+
+      if (!sourceId) {
+        cb({ video: false } as any);
+        markScreenSharingComplete();
+        return;
+      }
+
+      try {
+        const sources = await desktopCapturer.getSources({
+          types: ['window', 'screen'],
+        });
+
+        const selectedSource = sources.find((s) => s.id === sourceId);
+
+        if (!selectedSource) {
+          console.warn(
+            'Selected screen sharing source no longer available:',
+            sourceId
+          );
+          cb({ video: false } as any);
+          markScreenSharingComplete();
+          return;
+        }
+
+        cb({ video: selectedSource });
+        markScreenSharingComplete();
+      } catch (error) {
+        console.error('Error validating screen sharing source:', error);
+        cb({ video: false } as any);
+        markScreenSharingComplete();
+      }
+    };
+
+    // Store listener for cleanup
+    activeScreenSharingListener = listener;
+
+    // Set timeout to prevent orphaned listeners
+    screenSharingTimeout = setTimeout(() => {
+      if (activeScreenSharingRequestId !== requestId) {
+        console.warn(
+          'Screen sharing timeout fired for different request, ignoring'
+        );
+        return;
+      }
+
+      if (callbackInvoked) {
+        console.warn(
+          'Screen sharing callback already invoked by listener, ignoring timeout'
+        );
+        return;
+      }
+      callbackInvoked = true;
+
+      console.warn('Screen sharing request timed out, cleaning up listener');
+
+      removeScreenSharingListenerOnly();
+      cb({ video: false } as any);
+      markScreenSharingComplete();
+    }, SCREEN_SHARING_REQUEST_TIMEOUT);
+
+    // Register listener
+    ipcMain.once('video-call-window/screen-sharing-source-responded', listener);
+
+    // Send request to open picker
+    videoCallWindow.webContents.send('video-call-window/open-screen-picker');
+  };
+};
+
 const setupWebviewHandlers = (webContents: WebContents) => {
+  // Track attached webviews that need handler setup
+  const pendingWebviews: WebContents[] = [];
+  let screenPickerReady = false;
+  let provider: ScreenPickerProvider | null = null;
+
+  // Function to set up display media handler for a webview
+  const setupDisplayMediaHandler = (webviewWebContents: WebContents): void => {
+    if (!provider) return;
+    const currentProvider = provider; // Capture for closure
+    try {
+      // useSystemPicker is an experimental macOS 15+ option; not available on other platforms.
+      // We set it to false unconditionally and use the callback handler on all platforms to
+      // enable custom source selection (including PipeWire on Wayland via XDG portal).
+      webviewWebContents.session.setDisplayMediaRequestHandler(
+        (_request, cb) => {
+          try {
+            currentProvider.handleDisplayMediaRequest(cb);
+          } catch (error) {
+            console.error('Error in screen picker handler:', error);
+            cb({ video: false } as any);
+          }
+        },
+        { useSystemPicker: false } // Always false - portal handled via callback on Linux
+      );
+    } catch (error) {
+      console.error('Error setting up display media request handler:', error);
+    }
+  };
+
+  // Register listener SYNCHRONOUSLY before async work
   const handleDidAttachWebview = (
     _event: Event,
     webviewWebContents: WebContents
   ): void => {
-    webviewWebContents.session.setDisplayMediaRequestHandler((_request, cb) => {
-      if (videoCallWindow && !videoCallWindow.isDestroyed()) {
-        videoCallWindow.webContents.send(
-          'video-call-window/open-screen-picker'
-        );
-
-        ipcMain.once(
-          'video-call-window/screen-sharing-source-responded',
-          async (_event, sourceId) => {
-            if (!sourceId) {
-              cb({ video: false } as any);
-              return;
-            }
-
-            try {
-              const sources = await desktopCapturer.getSources({
-                types: ['window', 'screen'],
-              });
-
-              const selectedSource = sources.find((s) => s.id === sourceId);
-
-              if (!selectedSource) {
-                console.warn(
-                  'Selected screen sharing source no longer available:',
-                  sourceId
-                );
-                cb({ video: false } as any);
-                return;
-              }
-
-              cb({ video: selectedSource });
-            } catch (error) {
-              console.error('Error validating screen sharing source:', error);
-              cb({ video: false } as any);
-            }
-          }
-        );
-      }
-    });
+    if (screenPickerReady && provider) {
+      setupDisplayMediaHandler(webviewWebContents);
+    } else {
+      pendingWebviews.push(webviewWebContents);
+    }
   };
 
   webContents.removeAllListeners('did-attach-webview');
-
   webContents.on('did-attach-webview', handleDidAttachWebview);
+
+  // Load screen picker module asynchronously
+  import('./screenPicker')
+    .then((screenPickerModule) => {
+      const { createScreenPicker, InternalPickerProvider } = screenPickerModule;
+      provider = createScreenPicker();
+
+      if (provider instanceof InternalPickerProvider) {
+        provider.setHandleRequestHandler(createInternalPickerHandler());
+      }
+
+      screenPickerReady = true;
+
+      // Set up handlers for any webviews that attached while loading
+      for (const webviewWebContents of pendingWebviews) {
+        if (!webviewWebContents.isDestroyed()) {
+          setupDisplayMediaHandler(webviewWebContents);
+        }
+      }
+      pendingWebviews.length = 0;
+    })
+    .catch((error) => {
+      console.error('Error loading screen picker module:', error);
+      // Don't prevent webview from loading if screen picker setup fails
+    });
 };
 
 export const startVideoCallWindowHandler = (): void => {
@@ -508,6 +704,9 @@ export const startVideoCallWindowHandler = (): void => {
       videoCallWindow.on('closed', () => {
         console.log('Video call window closed - destroying completely');
 
+        // Clean up screen sharing listener
+        cleanupScreenSharingListener();
+
         // Use setTimeout to ensure cleanup happens after any potential app lifecycle events
         // This prevents crashes during first launch when timing is critical
         setTimeout(() => {
@@ -532,6 +731,9 @@ export const startVideoCallWindowHandler = (): void => {
           console.log(
             'Video call window close initiated - preventing JS execution'
           );
+
+          // Clean up screen sharing listener
+          cleanupScreenSharingListener();
 
           try {
             if (videoCallWindow && !videoCallWindow.isDestroyed()) {
@@ -674,6 +876,7 @@ export const startVideoCallWindowHandler = (): void => {
 
       const { webContents } = videoCallWindow;
 
+      // Setup webview handlers (listener registered synchronously, module loads async)
       setupWebviewHandlers(webContents);
 
       // Set the pending URL after window is created to prevent race condition with cleanup

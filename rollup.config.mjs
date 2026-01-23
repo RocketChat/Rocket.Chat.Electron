@@ -34,7 +34,14 @@ const run = () => {
         proc ? 'Restarting main process...' : 'Starting main process...'
       );
 
-      proc = spawn(electron, ['.'], { stdio: 'inherit' });
+      const electronArgs = ['.'];
+
+      // Linux-specific flags for development
+      if (process.platform === 'linux') {
+        electronArgs.push('--no-sandbox');
+      }
+
+      proc = spawn(electron, electronArgs, { stdio: 'inherit' });
 
       proc.on('close', () => {
         proc = null;

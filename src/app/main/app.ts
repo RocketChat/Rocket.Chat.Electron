@@ -1,3 +1,6 @@
+import { spawn } from 'child_process';
+import * as fs from 'fs';
+
 import { app, session, BrowserWindow } from 'electron';
 import { rimraf } from 'rimraf';
 
@@ -56,6 +59,24 @@ export const getPlatformName = (): string => {
 };
 
 export const relaunchApp = (...args: string[]): void => {
+  // For AppImage, use spawn to relaunch because app.relaunch() doesn't work reliably
+  if (process.env.APPIMAGE) {
+    console.log('Relaunching AppImage:', {
+      appImage: process.env.APPIMAGE,
+      args,
+    });
+
+    // Spawn the AppImage as a detached process
+    spawn(process.env.APPIMAGE, args, {
+      detached: true,
+      stdio: 'ignore',
+    }).unref();
+
+    app.exit();
+    return;
+  }
+
+  // For non-AppImage, use the standard relaunch method
   const command = process.argv.slice(1, app.isPackaged ? 1 : 2);
   app.relaunch({ args: [...command, ...args] });
   app.exit();
@@ -65,7 +86,7 @@ export const performElectronStartup = (): void => {
   app.setAsDefaultProtocolClient(electronBuilderJsonInformation.protocol);
   app.setAppUserModelId(electronBuilderJsonInformation.appId);
 
-  app.commandLine.appendSwitch('--autoplay-policy', 'no-user-gesture-required');
+  app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
   const disabledChromiumFeatures = [
     'HardwareMediaKeyHandling',
@@ -106,9 +127,9 @@ export const performElectronStartup = (): void => {
   ) {
     console.log('Disabling Hardware acceleration');
     app.disableHardwareAcceleration();
-    app.commandLine.appendSwitch('--disable-2d-canvas-image-chromium');
-    app.commandLine.appendSwitch('--disable-accelerated-2d-canvas');
-    app.commandLine.appendSwitch('--disable-gpu');
+    app.commandLine.appendSwitch('disable-2d-canvas-image-chromium');
+    app.commandLine.appendSwitch('disable-accelerated-2d-canvas');
+    app.commandLine.appendSwitch('disable-gpu');
   }
 
   if (process.platform === 'win32') {
@@ -138,12 +159,147 @@ export const performElectronStartup = (): void => {
     'disable-features',
     disabledChromiumFeatures.join(',')
   );
+
+  // Enable PipeWire screen capture for Linux (Wayland support)
+  if (process.platform === 'linux') {
+    app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
+
+    // Detect display server and force X11 if not in Wayland session
+    // This must happen BEFORE Electron tries to auto-select platform
+    // to prevent segfaults when Wayland is attempted but unavailable
+    const hasOzonePlatformOverride =
+      args.some((arg) => arg.startsWith('--ozone-platform=')) ||
+      (process.env.ELECTRON_OZONE_PLATFORM_HINT?.trim() || '') !== '';
+
+    if (!hasOzonePlatformOverride) {
+      const sessionType = process.env.XDG_SESSION_TYPE;
+      const waylandDisplay = process.env.WAYLAND_DISPLAY;
+
+      // Normalize values: trim whitespace and handle empty strings
+      const normalizedSessionType = sessionType?.trim() || '';
+      const normalizedWaylandDisplay = waylandDisplay?.trim() || '';
+
+      // Only use Wayland if we're actually in a Wayland session AND have a valid socket
+      // This covers all edge cases:
+      // - X11 sessions (sessionType === 'x11' or unset) → force X11
+      // - Invalid session types (tty, mir, etc.) → force X11
+      // - Wayland session but no display → force X11
+      // - Wayland session but socket doesn't exist → force X11
+      const checkWaylandSocket = (): boolean => {
+        if (
+          normalizedSessionType !== 'wayland' ||
+          normalizedWaylandDisplay === ''
+        ) {
+          return false;
+        }
+        try {
+          const runtimeDir =
+            process.env.XDG_RUNTIME_DIR ||
+            `/run/user/${process.getuid?.() ?? 1000}`;
+          const socketPath = `${runtimeDir}/${normalizedWaylandDisplay}`;
+          const stats = fs.statSync(socketPath);
+          return stats.isSocket();
+        } catch {
+          return false;
+        }
+      };
+      const isWaylandSession = checkWaylandSocket();
+
+      if (isWaylandSession) {
+        console.log(
+          'Using Wayland platform',
+          JSON.stringify({
+            sessionType: normalizedSessionType,
+            waylandDisplay: normalizedWaylandDisplay,
+          })
+        );
+        // Let Electron use Wayland (default auto behavior)
+        // Don't set ozone-platform, let Electron auto-detect
+      } else {
+        let reason: string;
+        if (
+          normalizedSessionType === 'wayland' &&
+          normalizedWaylandDisplay !== ''
+        ) {
+          reason = 'socket-not-found';
+        } else if (normalizedSessionType === 'wayland') {
+          reason = 'no-wayland-display';
+        } else if (normalizedSessionType === 'x11') {
+          reason = 'x11-session';
+        } else if (normalizedSessionType === '') {
+          reason = 'no-session-type';
+        } else {
+          reason = 'invalid-session-type';
+        }
+
+        console.log(
+          'Forcing X11 platform',
+          JSON.stringify({
+            sessionType: normalizedSessionType || 'unset',
+            waylandDisplay: normalizedWaylandDisplay || 'unset',
+            reason,
+          })
+        );
+        app.commandLine.appendSwitch('ozone-platform', 'x11');
+      }
+    }
+  }
 };
 
 export const initializeScreenCaptureFallbackState = (): void => {
   dispatch({
     type: APP_SCREEN_CAPTURE_FALLBACK_FORCED_SET,
     payload: isScreenCaptureFallbackForced,
+  });
+};
+
+export const markMainWindowStable = (): void => {
+  // No-op: kept for API compatibility
+};
+
+export const setupGpuCrashHandler = (): void => {
+  if (process.platform !== 'linux') {
+    return;
+  }
+
+  const args = process.argv.slice(app.isPackaged ? 1 : 2);
+  if (args.includes('--disable-gpu')) {
+    return;
+  }
+
+  // Handle GPU process crashes (runtime failures)
+  app.on('child-process-gone', (_event, details) => {
+    if (details.type !== 'GPU') {
+      return;
+    }
+
+    console.log('GPU process crashed, disabling GPU and relaunching with X11');
+    const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
+    relaunchApp('--disable-gpu', '--ozone-platform=x11', ...userArgs);
+  });
+
+  // Proactive GPU detection: check GPU status once info is available
+  app.once('gpu-info-update', () => {
+    const gpuFeatures = app.getGPUFeatureStatus();
+    const { gpu_compositing: gpuCompositing, webgl } = gpuFeatures;
+
+    // Check if key GPU features are disabled/unavailable (includes _software variants)
+    const isGpuBroken = (status: string | undefined): boolean =>
+      !status ||
+      status.startsWith('disabled') ||
+      status.startsWith('unavailable');
+
+    if (isGpuBroken(gpuCompositing) || isGpuBroken(webgl)) {
+      console.log(
+        'GPU features unavailable, disabling GPU and relaunching with X11',
+        JSON.stringify(gpuFeatures)
+      );
+      const userArgs = process.argv.slice(app.isPackaged ? 1 : 2);
+      relaunchApp('--disable-gpu', '--ozone-platform=x11', ...userArgs);
+      return;
+    }
+
+    console.log('GPU features status:', JSON.stringify(gpuFeatures));
   });
 };
 

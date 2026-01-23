@@ -1,4 +1,5 @@
 /node_modules
 /app
 /workspaces/*
+# Standalone tooling scripts (not part of main app, run with ts-node)
 /scripts

@@ -22,11 +22,11 @@ const getChannel = (version: SemVer): string => {
   return 'prerelease';
 };
 
-const exec = (cmd: string): string => {
+const exec = (cmd: string): string | null => {
   try {
     return execSync(cmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-  } catch (error) {
-    return '';
+  } catch {
+    return null;
   }
 };
 
@@ -42,6 +42,10 @@ const normalizeTag = (tag: string): string => {
 
 const getExistingTags = (): string[] => {
   const output = exec('git tag -l');
+  if (output === null) {
+    console.error('  Warning: Failed to list git tags');
+    return [];
+  }
   if (!output) return [];
   // Return normalized tags (without 'v' prefix) for consistent comparison
   return output.split('\n').filter(Boolean).map(normalizeTag);
@@ -135,7 +139,7 @@ const main = async (): Promise<void> => {
   // 7. Create and push tag
   console.log(`\n  Creating tag ${version.version}...`);
   try {
-    execSync(`git tag ${version.version}`, { stdio: 'inherit' });
+    execSync(`git tag -- ${version.version}`, { stdio: 'inherit' });
   } catch {
     console.error(`  Error: Failed to create tag`);
     process.exit(1);
@@ -143,7 +147,7 @@ const main = async (): Promise<void> => {
 
   console.log(`  Pushing tag to origin...`);
   try {
-    execSync(`git push origin ${version.version}`, { stdio: 'inherit' });
+    execSync(`git push origin tag -- ${version.version}`, { stdio: 'inherit' });
   } catch {
     console.error(`  Error: Failed to push tag`);
     console.error(`  The local tag was created. You may need to push it manually.`);

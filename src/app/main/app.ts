@@ -167,9 +167,10 @@ export const performElectronStartup = (): void => {
     // Detect display server and force X11 if not in Wayland session
     // This must happen BEFORE Electron tries to auto-select platform
     // to prevent segfaults when Wayland is attempted but unavailable
-    const hasOzonePlatformOverride =
-      args.some((arg) => arg.startsWith('--ozone-platform=')) ||
-      (process.env.ELECTRON_OZONE_PLATFORM_HINT?.trim() || '') !== '';
+    // Note: ELECTRON_OZONE_PLATFORM_HINT was removed in Electron 38
+    const hasOzonePlatformOverride = args.some((arg) =>
+      arg.startsWith('--ozone-platform=')
+    );
 
     if (!hasOzonePlatformOverride) {
       const sessionType = process.env.XDG_SESSION_TYPE;

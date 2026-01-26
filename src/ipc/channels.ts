@@ -68,6 +68,9 @@ type ChannelToArgsMap = {
     format: string,
     options: any
   ) => void;
+  'lock:verify': (password: string) => boolean;
+  'lock:unlock': () => boolean;
+  'lock:set': (password: string) => unknown;
 };
 
 export type Channel = keyof ChannelToArgsMap;

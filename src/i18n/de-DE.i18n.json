@@ -262,6 +262,17 @@
       "transparentWindow": {
         "title": "Transparentes Fenstereffekt",
         "description": "Natives Vibrancy-/Transparenzeffekt für das Fenster aktivieren. Erfordert Neustart zur Anwendung."
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Zeit bis Bildschirmsperre (Sekunden)",
+          "description": "Inaktivitätsdauer (in Sekunden), nach der die Anwendung gesperrt wird. Auf 0 setzen, um zu deaktivieren."
+        },
+        "password": {
+          "title": "Sperrpasswort",
+          "placeholder": "Passwort eingeben",
+          "description": "Legen Sie ein Passwort fest, das zum Entsperren der Anwendung erforderlich ist. Das Passwort wird als SHA-256-Hash gespeichert."
+        }
       }
     }
   },
@@ -424,5 +435,13 @@
       "label": "Ablauf:",
       "expiresOn": "Läuft ab am {{date}}"
     }
+  },
+  "lockScreen": {
+    "title": "Bildschirm gesperrt",
+    "description": "Bitte entsperren Sie die App, um fortzufahren",
+    "placeholder": "Passwort eingeben",
+    "unlock": "Entsperren",
+    "incorrect": "Falsches Passwort",
+    "unlockFailed": "Entsperren fehlgeschlagen"
   }
 }

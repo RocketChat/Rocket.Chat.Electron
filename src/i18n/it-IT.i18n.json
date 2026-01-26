@@ -32,5 +32,31 @@
       "label": "Scadenza:",
       "expiresOn": "Scade il {{date}}"
     }
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "general": "Generale",
+    "certificates": "Certificati",
+    "options": {
+      "screenLock": {
+        "timeout": {
+          "title": "Timeout blocco schermo (secondi)",
+          "description": "Tempo di inattività (in secondi) dopo il quale l'applicazione verrà bloccata. Impostare 0 per disabilitare."
+        },
+        "password": {
+          "title": "Password di blocco",
+          "placeholder": "Inserisci password",
+          "description": "Imposta una password che sarà richiesta per sbloccare l'applicazione. La password viene memorizzata come hash SHA-256."
+        }
+      }
+    }
+  },
+  "lockScreen": {
+    "title": "Schermata bloccata",
+    "description": "Sblocca l'app per continuare",
+    "placeholder": "Inserisci la password",
+    "unlock": "Sblocca",
+    "incorrect": "Password errata",
+    "unlockFailed": "Impossibile sbloccare"
   }
 }

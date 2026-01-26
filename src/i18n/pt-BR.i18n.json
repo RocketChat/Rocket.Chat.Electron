@@ -280,6 +280,17 @@
       "transparentWindow": {
         "title": "Efeito de janela transparente",
         "description": "Ativar efeito nativo de vibração/transparência para a janela. Requer reinicialização para aplicar."
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Tempo limite de bloqueio da tela (segundos)",
+          "description": "Tempo de inatividade (em segundos) após o qual o aplicativo será bloqueado. Defina 0 para desativar."
+        },
+        "password": {
+          "title": "Senha de bloqueio",
+          "placeholder": "Digite a senha",
+          "description": "Defina uma senha que será necessária para desbloquear o aplicativo. A senha é armazenada como hash SHA-256."
+        }
       }
     }
   },
@@ -459,5 +470,13 @@
       "label": "Expiração:",
       "expiresOn": "Expira em {{date}}"
     }
+  },
+  "lockScreen": {
+    "title": "Tela bloqueada",
+    "description": "Desbloqueie o aplicativo para continuar",
+    "placeholder": "Digite a senha",
+    "unlock": "Desbloquear",
+    "incorrect": "Senha incorreta",
+    "unlockFailed": "Falha ao desbloquear"
   }
 }

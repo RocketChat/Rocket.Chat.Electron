@@ -1,4 +1,4 @@
-import { contextBridge, webFrame } from 'electron';
+import { contextBridge, webFrame, ipcRenderer } from 'electron';
 
 import { invoke } from './ipc/renderer';
 import type { JitsiMeetElectronAPI } from './jitsi/preload';
@@ -18,6 +18,11 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Window {
     JitsiMeetElectron: JitsiMeetElectronAPI;
+    electronAPI?: {
+      setLockPassword?: (password: string) => Promise<unknown>;
+      verifyPassword?: (pwd: string) => Promise<boolean>;
+      unlockApp?: () => Promise<void>;
+    };
   }
 }
 
@@ -25,6 +30,12 @@ console.log('[Rocket.Chat Desktop] Preload.ts');
 
 contextBridge.exposeInMainWorld('JitsiMeetElectron', JitsiMeetElectron);
 contextBridge.exposeInMainWorld('RocketChatDesktop', RocketChatDesktop);
+
+// Expose secure API for setting the screen lock password from renderer
+contextBridge.exposeInMainWorld('electronAPI', {
+  setLockPassword: (password: string) =>
+    ipcRenderer.invoke('lock:set', password),
+});
 
 let retryCount = 0;
 

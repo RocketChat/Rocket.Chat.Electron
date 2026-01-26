@@ -32,5 +32,31 @@
       "label": "过期时间:",
       "expiresOn": "将于 {{date}} 过期"
     }
+  },
+  "settings": {
+    "title": "设置",
+    "general": "常规",
+    "certificates": "证书",
+    "options": {
+      "screenLock": {
+        "timeout": {
+          "title": "屏幕锁定超时（秒）",
+          "description": "应用在无操作达到该时间（秒）后将被锁定。设置为 0 可禁用。"
+        },
+        "password": {
+          "title": "锁屏密码",
+          "placeholder": "输入密码",
+          "description": "密码将使用带盐的安全哈希方式存储。"
+        }
+      }
+    }
+  },
+  "lockScreen": {
+    "title": "屏幕已锁定",
+    "description": "请解锁应用以继续",
+    "placeholder": "输入密码",
+    "unlock": "解锁",
+    "incorrect": "密码不正确",
+    "unlockFailed": "解锁失败"
   }
 }

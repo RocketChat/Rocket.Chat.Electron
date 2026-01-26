@@ -1,5 +1,6 @@
 import type { WebContents } from 'electron';
 
+import type { ScreenLockPasswordStored } from '../app/PersistableValues';
 import type { Server } from '../servers/common';
 import type { RootWindowIcon, WindowState } from './common';
 
@@ -148,6 +149,13 @@ export const WEBVIEW_FORCE_RELOAD_WITH_CACHE_CLEAR =
   'webview/force-reload-with-cache-clear';
 export const OPEN_SERVER_INFO_MODAL = 'server-info-modal/open';
 export const CLOSE_SERVER_INFO_MODAL = 'server-info-modal/close';
+export const SETTINGS_SET_SCREEN_LOCK_TIMEOUT_CHANGED =
+  'settings/set-screen-lock-timeout-changed';
+export const SETTINGS_SET_SCREEN_LOCK_PASSWORD_CHANGED =
+  'settings/set-screen-lock-password-changed'; // plaintext from UI to main
+export const SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED =
+  'settings/set-screen-lock-password-hashed'; // hashed value (sha256 hex) set by main
+export const MENU_BAR_LOCK_SCREEN_CLICKED = 'menu-bar/lock-screen-clicked';
 
 export type UiActionTypeToPayloadMap = {
   [ABOUT_DIALOG_DISMISSED]: void;
@@ -298,4 +306,8 @@ export type UiActionTypeToPayloadMap = {
     supportedVersions?: Server['supportedVersions'];
   };
   [CLOSE_SERVER_INFO_MODAL]: void;
+  [SETTINGS_SET_SCREEN_LOCK_TIMEOUT_CHANGED]: number;
+  [SETTINGS_SET_SCREEN_LOCK_PASSWORD_CHANGED]: string; // plaintext
+  [SETTINGS_SET_SCREEN_LOCK_PASSWORD_HASHED]: ScreenLockPasswordStored | null; // structured hash
+  [MENU_BAR_LOCK_SCREEN_CLICKED]: void;
 };

@@ -285,6 +285,17 @@
       "transparentWindow": {
         "title": "Áttetsző ablak effektus",
         "description": "Natív vibráció/áttetszőség effektus engedélyezése az ablakhoz. Újraindítás szükséges az alkalmazáshoz."
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Képernyőzár időtúllépés (másodperc)",
+          "description": "A tétlenség időtartama (másodpercben), amely után az alkalmazás lezáródik. Állítsa 0-ra a letiltáshoz."
+        },
+        "password": {
+          "title": "Zár jelszó",
+          "placeholder": "Jelszó megadása",
+          "description": "Állítson be egy jelszót, amelyre szükség lesz az alkalmazás feloldásához. A jelszó SHA-256 hashként kerül tárolásra."
+        }
       }
     }
   },
@@ -454,5 +465,13 @@
       "label": "Lejárat:",
       "expiresOn": "Lejár: {{date}}"
     }
+  },
+  "lockScreen": {
+    "title": "Képernyő zárolva",
+    "description": "Kérjük, oldja fel az alkalmazás zárolását a folytatáshoz",
+    "placeholder": "Írja be a jelszót",
+    "unlock": "Feloldás",
+    "incorrect": "Érvénytelen jelszó",
+    "unlockFailed": "A feloldás sikertelen"
   }
 }

@@ -32,5 +32,31 @@
       "label": "Utløpsdato:",
       "expiresOn": "Utløper {{date}}"
     }
+  },
+  "settings": {
+    "title": "Innstillinger",
+    "general": "Generelt",
+    "certificates": "Sertifikater",
+    "options": {
+      "screenLock": {
+        "timeout": {
+          "title": "Skjermlås tidsavbrudd (sekunder)",
+          "description": "Inaktivitetstid (i sekunder) etter hvilken applikasjonen låses. Sett til 0 for å deaktivere."
+        },
+        "password": {
+          "title": "Lås passord",
+          "placeholder": "Angi passord",
+          "description": "Angi et passord som kreves for å låse opp applikasjonen. Passordet lagres som en SHA-256-hash."
+        }
+      }
+    }
+  },
+  "lockScreen": {
+    "title": "Skjermen er låst",
+    "description": "Lås opp appen for å fortsette",
+    "placeholder": "Skriv inn passord",
+    "unlock": "Lås opp",
+    "incorrect": "Feil passord",
+    "unlockFailed": "Kunne ikke låse opp"
   }
 }

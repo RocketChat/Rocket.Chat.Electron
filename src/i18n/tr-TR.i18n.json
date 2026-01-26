@@ -121,6 +121,17 @@
       "transparentWindow": {
         "title": "Şeffaf pencere efekti",
         "description": "Pencere için yerel titreşim/şeffaflık efektini etkinleştir. Uygulamak için yeniden başlatma gerektirir."
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Ekran kilidi zaman aşımı (saniye)",
+          "description": "Uygulamanın kilitleneceği eylemsizlik süresi (saniye cinsinden). Devre dışı bırakmak için 0 ayarlayın."
+        },
+        "password": {
+          "title": "Kilit parolası",
+          "placeholder": "Parolayı girin",
+          "description": "Uygulamayı açmak için gerekli olacak bir parola belirleyin. Parola SHA-256 özet (hash) olarak saklanır."
+        }
       }
     }
   },
@@ -266,5 +277,13 @@
       "label": "Son Kullanma:",
       "expiresOn": "{{date}} tarihinde sona eriyor"
     }
+  },
+  "lockScreen": {
+    "title": "Ekran kilitlendi",
+    "description": "Devam etmek için uygulamanın kilidini açın",
+    "placeholder": "Parolayı girin",
+    "unlock": "Kilidi aç",
+    "incorrect": "Geçersiz parola",
+    "unlockFailed": "Kilidi açma başarısız"
   }
 }

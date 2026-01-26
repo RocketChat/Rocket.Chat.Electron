@@ -116,6 +116,70 @@ export default [
     ],
   },
   {
+    // Lock screen renderer bundle
+    external: [
+      // Bundle all deps for IIFE so it runs without globals/require
+    ],
+    input: 'src/lockScreen/lock-screen.tsx',
+    preserveEntrySignatures: 'strict',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({
+        browser: true,
+        extensions,
+      }),
+      commonjs(),
+    ],
+    output: [
+      {
+        dir: 'app',
+        // Use IIFE so it runs in isolated renderer without Node/CJS
+        format: 'iife',
+        sourcemap: 'inline',
+        inlineDynamicImports: true,
+        name: 'LockScreenBundle',
+      },
+    ],
+  },
+  {
+    // Lock screen preload (exposes safe API via contextBridge)
+    external: ['electron'],
+    input: 'src/lockScreen/preload.ts',
+    preserveEntrySignatures: 'strict',
+    plugins: [
+      json(),
+      replace({
+        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        'preventAssignment': true,
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions,
+      }),
+      nodeResolve({
+        browser: true,
+        extensions,
+      }),
+      commonjs(),
+    ],
+    output: [
+      {
+        file: 'app/lockPreload.js',
+        format: 'cjs',
+        sourcemap: 'inline',
+        interop: 'auto',
+      },
+    ],
+  },
+  {
     external: [
       ...builtinModules,
       ...Object.keys(appManifest.dependencies),

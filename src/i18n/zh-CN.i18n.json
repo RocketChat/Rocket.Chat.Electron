@@ -141,6 +141,17 @@
   "settings": {
     "title": "设置",
     "options": {
+      "screenLock": {
+        "timeout": {
+          "title": "屏幕锁定超时（秒）",
+          "description": "应用在无操作达到该时间（秒）后将被锁定。设置为 0 可禁用。"
+        },
+        "password": {
+          "title": "锁屏密码",
+          "placeholder": "输入密码",
+          "description": "设置一个将用于解锁应用的密码。密码以 SHA-256 哈希形式存储。"
+        }
+      },
       "report": {
         "title": "向开发者报告错误",
         "description": "匿名向开发者报告错误。会发送包括程序版本号、操作系统类型、服务器地址、设备语言和错误类型。不会发送聊天内容和用户名等信息。"
@@ -305,5 +316,13 @@
       "label": "过期时间:",
       "expiresOn": "将于 {{date}} 过期"
     }
+  },
+  "lockScreen": {
+    "title": "屏幕已锁定",
+    "description": "请解锁应用以继续",
+    "placeholder": "输入密码",
+    "unlock": "解锁",
+    "incorrect": "密码不正确",
+    "unlockFailed": "解锁失败"
   }
 }

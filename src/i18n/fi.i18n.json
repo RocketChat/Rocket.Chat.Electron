@@ -260,6 +260,17 @@
       "transparentWindow": {
         "title": "Läpinäkyvä ikkuna-efekti",
         "description": "Ota käyttöön natiivi värinäkyvyys/läpinäkyvyys-efekti ikkunalle. Vaatii uudelleenkäynnistyksen toimiakseen."
+      },
+      "screenLock": {
+        "timeout": {
+          "title": "Näytön lukituksen aikakatkaisu (sekunteina)",
+          "description": "Passiivisuuden kesto (sekunteina), jonka jälkeen sovellus lukittuu. Aseta 0 poistaaksesi käytöstä."
+        },
+        "password": {
+          "title": "Lukituksen salasana",
+          "placeholder": "Anna salasana",
+          "description": "Aseta salasana, joka vaaditaan sovelluksen lukituksen poistamiseen. Salasana tallennetaan SHA-256-hashina."
+        }
       }
     }
   },
@@ -422,5 +433,13 @@
       "label": "Vanheneminen:",
       "expiresOn": "Vanhenee {{date}}"
     }
+  },
+  "lockScreen": {
+    "title": "Näyttö on lukittu",
+    "description": "Poista sovelluksen lukitus jatkaaksesi",
+    "placeholder": "Anna salasana",
+    "unlock": "Avaa",
+    "incorrect": "Väärä salasana",
+    "unlockFailed": "Avaus epäonnistui"
   }
 }

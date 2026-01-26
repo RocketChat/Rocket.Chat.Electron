@@ -3,6 +3,7 @@ import { combineReducers } from 'redux';
 import { allowedNTLMCredentialsDomains } from '../app/reducers/allowedNTLMCredentialsDomains';
 import { appPath } from '../app/reducers/appPath';
 import { appVersion } from '../app/reducers/appVersion';
+import { isScreenLocked } from '../app/reducers/isScreenLocked';
 import { machineTheme } from '../app/reducers/machineTheme';
 import { mainWindowTitle } from '../app/reducers/mainWindowTitle';
 import { screenCaptureFallbackForced } from '../app/reducers/screenCaptureFallbackForced';
@@ -40,6 +41,8 @@ import { lastSelectedServerUrl } from '../ui/reducers/lastSelectedServerUrl';
 import { openDialog } from '../ui/reducers/openDialog';
 import { rootWindowIcon } from '../ui/reducers/rootWindowIcon';
 import { rootWindowState } from '../ui/reducers/rootWindowState';
+import { screenLockPasswordHash } from '../ui/reducers/screenLockPasswordHash';
+import { screenLockTimeoutSeconds } from '../ui/reducers/screenLockTimeoutSeconds';
 import { selectedBrowser } from '../ui/reducers/selectedBrowser';
 import { videoCallWindowState } from '../ui/reducers/videoCallWindowState';
 import {
@@ -104,6 +107,9 @@ export const rootReducer = combineReducers({
   isVideoCallDevtoolsAutoOpenEnabled,
   isTransparentWindowEnabled,
   isVideoCallScreenCaptureFallbackEnabled,
+  screenLockTimeoutSeconds,
+  screenLockPasswordHash,
+  isScreenLocked,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

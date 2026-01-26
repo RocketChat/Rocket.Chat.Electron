@@ -5,7 +5,6 @@ import crypto from 'crypto';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 
-import { app, session, BrowserWindow } from 'electron';
 import { rimraf } from 'rimraf';
 import { app, session, BrowserWindow, ipcMain, BrowserView } from 'electron';
 

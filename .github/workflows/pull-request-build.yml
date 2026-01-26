@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - master
-      - develop
+      - dev
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}

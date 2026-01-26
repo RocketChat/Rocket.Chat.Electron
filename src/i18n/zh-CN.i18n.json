@@ -90,6 +90,18 @@
       "microphone": "麦克风",
       "camera": "摄像头",
       "both": "麦克风和摄像头"
+    },
+    "microphonePermissionDenied": {
+      "title": "需要麦克风访问权限",
+      "message": "需要麦克风访问权限才能{{- actionType}}。请检查您的系统设置。",
+      "detail": "您可以在系统的隐私设置中启用麦克风访问权限。",
+      "openSettings": "打开设置",
+      "cancel": "取消",
+      "actionTypes": {
+        "initiateCall": "拨打电话",
+        "answerCall": "接听电话",
+        "recordMessage": "录制消息"
+      }
     }
   },
   "downloads": {
@@ -153,6 +165,10 @@
         "title": "在程序窗口中打开视频通话",
         "description": "如果启用，视频通话将在应用程序窗口中打开，而不是在默认浏览器中打开。但是，对于<strong>Google Meet</strong>和<strong>Jitsi</strong>，Electron应用程序不支持屏幕录制，所以无论此设置如何，它们始终会在浏览器中打开。",
         "masDescription": "从Mac App Store安装时此选项被禁用。出于安全原因，视频通话将始终默认在浏览器中打开。"
+      },
+      "transparentWindow": {
+        "title": "透明窗口效果",
+        "description": "启用窗口的原生模糊/透明效果。需要重启才能应用。"
       }
     }
   },

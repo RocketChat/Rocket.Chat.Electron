@@ -8322,16 +8322,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:37.6.0":
-  version: 37.6.0
-  resolution: "electron@npm:37.6.0"
+"electron@npm:39.2.5":
+  version: 39.2.5
+  resolution: "electron@npm:39.2.5"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^22.7.7"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10/b2b5179bb32e05db9e244e36bb2e1829675a18fb2466fa4fd9823566e204256d43efae1ef365db6f41501361bf1d7e354d3cb1692d643fcc0ce324b5417734c4
+  checksum: 10/e73ca93a67f98546b7b5e182719bae63b7b4fdd9a4f0842ecf66c063243883eb69fd5cd4e4fabf245fcbbf7e1b95b1084a9aca5727117363f5bdcb937bf9a5a4
   languageName: node
   linkType: hard
 
@@ -14528,7 +14528,7 @@ __metadata:
     conventional-changelog-cli: "npm:~4.1.0"
     convert-svg-to-png: "npm:~0.6.4"
     detect-browsers: "npm:~6.1.0"
-    electron: "npm:37.6.0"
+    electron: "npm:39.2.5"
     electron-builder: "npm:26.0.3"
     electron-devtools-installer: "npm:^3.2.0"
     electron-dl: "npm:4.0.0"

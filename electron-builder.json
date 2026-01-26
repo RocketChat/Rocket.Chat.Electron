@@ -11,7 +11,7 @@
     "category": "public.app-category.productivity",
     "target": ["dmg", "pkg", "zip", "mas"],
     "icon": "build/icon.icns",
-    "bundleVersion": "25110",
+    "bundleVersion": "26011",
     "helperBundleId": "chat.rocket.electron.helper",
     "type": "distribution",
     "artifactName": "rocketchat-${version}-${os}.${ext}",
@@ -131,19 +131,25 @@
     "artifactName": "rocketchat-${version}-${os}-${arch}.${ext}"
   },
   "deb": {
-    "fpm": [
-      "--after-install=build/linux/postinst.sh"
-    ]
+    "fpm": ["--after-install=build/linux/postinst.sh"],
+    "recommends": ["xdg-desktop-portal", "xdg-desktop-portal-gtk"]
   },
   "rpm": {
-    "fpm": ["--rpm-rpmbuild-define=_build_id_links none"]
+    "fpm": [
+      "--rpm-rpmbuild-define=_build_id_links none",
+      "--rpm-tag=Recommends: xdg-desktop-portal",
+      "--rpm-tag=Recommends: xdg-desktop-portal-gtk"
+    ]
   },
   "snap": {
+    "base": "core22",
+    "allowNativeWayland": false,
     "plugs": [
       "desktop",
       "desktop-legacy",
       "home",
       "x11",
+      "wayland",
       "unity7",
       "browser-support",
       "network",
@@ -154,7 +160,8 @@
       "audio-playback",
       "audio-record",
       "screen-inhibit-control",
-      "upower-observe"
+      "upower-observe",
+      "pipewire"
     ]
   },
   "afterSign": "./build/notarize.js",

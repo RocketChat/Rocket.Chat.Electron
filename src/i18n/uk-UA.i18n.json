@@ -100,6 +100,10 @@
         "loading": "Завантаження браузерів...",
         "current": "Зараз використовується:"
       },
+      "transparentWindow": {
+        "title": "Ефект прозорого вікна",
+        "description": "Увімкнути нативний ефект вібрації/прозорості для вікна. Потрібен перезапуск для застосування."
+      },
       "screenLock": {
         "timeout": {
           "title": "Час до блокування екрана (секунди)",
@@ -247,13 +251,6 @@
     "exchangeUrlLabel": "URL Outlook Exchange:",
     "supportedVersionsTitle": "Підтримувані версії",
     "statusLabel": "Статус:",
-    "supportedLabel": "Підтримується:",
-    "timestampLabel": "Мітка часу:",
-    "exceptionsLabel": "Винятки:",
-    "exceptionVersionsLabel": "Версії винятків:",
-    "expiresLabel": "Закінчується:",
-    "andMore": "... та ще {{count}}",
-    "noExceptions": "Не налаштовано версій винятків",
     "status": {
       "loading": "Завантаження...",
       "error": "Помилка завантаження",
@@ -270,12 +267,6 @@
     "expiration": {
       "label": "Термін дії:",
       "expiresOn": "Закінчується {{date}}"
-    },
-    "expiresRelative": {
-      "today": "Закінчується сьогодні",
-      "inOneDay": "Закінчується через 1 день",
-      "inDays": "Закінчується через {{count}} днів",
-      "expired": "Термін дії закінчився"
     }
   },
   "lockScreen": {

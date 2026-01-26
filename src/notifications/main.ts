@@ -6,6 +6,7 @@ import { dispatch, dispatchSingle, listen } from '../store';
 import type { ActionIPCMeta } from '../store/actions';
 import { hasMeta } from '../store/fsa';
 import { getRootWindow } from '../ui/main/rootWindow';
+import { getServerUrlByWebContentsId } from '../ui/main/serverView';
 import {
   NOTIFICATIONS_CREATE_REQUESTED,
   NOTIFICATIONS_CREATE_RESPONDED,
@@ -16,6 +17,7 @@ import {
   NOTIFICATIONS_NOTIFICATION_ACTIONED,
   NOTIFICATIONS_NOTIFICATION_DISMISSED,
 } from './actions';
+import attentionDrawing from './attentionDrawing';
 import type { ExtendedNotificationOptions } from './common';
 
 const resolveIcon = async (
@@ -44,6 +46,8 @@ const resolveIcon = async (
 };
 
 const notifications = new Map();
+const notificationTypes = new Map<string, 'voice' | 'text'>();
+const notificationCategories = new Map<string, 'DOWNLOADS' | 'SERVER'>();
 
 const createNotification = async (
   id: string,
@@ -55,6 +59,8 @@ const createNotification = async (
     silent,
     canReply,
     actions,
+    requireInteraction,
+    category,
   }: ExtendedNotificationOptions,
   ipcMeta?: ActionIPCMeta
 ): Promise<string> => {
@@ -69,6 +75,7 @@ const createNotification = async (
       type: 'button',
       text: action.title,
     })),
+    ...(requireInteraction !== undefined && { requireInteraction }),
   });
 
   notification.addListener('show', () => {
@@ -77,6 +84,11 @@ const createNotification = async (
       payload: { id },
       ipcMeta,
     });
+
+    const notificationType = notificationTypes.get(id);
+    if (notificationType === 'voice') {
+      attentionDrawing.drawAttention(id);
+    }
   });
 
   notification.addListener('close', () => {
@@ -86,12 +98,29 @@ const createNotification = async (
       ipcMeta,
     });
     notifications.delete(id);
+
+    const notificationType = notificationTypes.get(id);
+    if (notificationType === 'voice') {
+      attentionDrawing.stopAttention(id);
+    }
+    notificationTypes.delete(id);
+    notificationCategories.delete(id);
   });
 
   notification.addListener('click', () => {
+    const serverUrl =
+      ipcMeta?.webContentsId !== undefined
+        ? getServerUrlByWebContentsId(ipcMeta.webContentsId)
+        : undefined;
+    const notificationCategory = notificationCategories.get(id);
     dispatchSingle({
       type: NOTIFICATIONS_NOTIFICATION_CLICKED,
-      payload: { id, title },
+      payload: {
+        id,
+        title,
+        ...(serverUrl && { serverUrl }),
+        ...(notificationCategory && { category: notificationCategory }),
+      },
       ipcMeta,
     });
   });
@@ -113,6 +142,9 @@ const createNotification = async (
   });
 
   notifications.set(id, notification);
+  if (category) {
+    notificationCategories.set(id, category);
+  }
 
   notification.show();
 
@@ -121,24 +153,61 @@ const createNotification = async (
 
 const updateNotification = async (
   id: string,
-  { title, body, silent, renotify }: ExtendedNotificationOptions
+  {
+    title,
+    body,
+    silent,
+    renotify: _renotify,
+    icon,
+    requireInteraction,
+    notificationType,
+  }: ExtendedNotificationOptions
 ): Promise<string> => {
   const notification = notifications.get(id);
 
-  if (title) {
+  if (!notification) {
+    return id;
+  }
+
+  if (title !== undefined) {
     notification.title = title;
   }
 
-  if (body) {
+  if (body !== undefined) {
     notification.body = body;
   }
 
-  if (silent) {
+  if (silent !== undefined) {
     notification.silent = silent;
   }
 
-  if (renotify) {
-    notification.show();
+  if (icon !== undefined) {
+    const resolvedIcon = await resolveIcon(icon);
+    if (resolvedIcon) {
+      notification.icon = resolvedIcon;
+    }
+  }
+
+  if (requireInteraction !== undefined) {
+    notification.requireInteraction = requireInteraction;
+  }
+
+  let changedToVoice = false;
+  if (notificationType !== undefined) {
+    const previousType = notificationTypes.get(id);
+    notificationTypes.set(id, notificationType);
+
+    if (previousType === 'voice' && notificationType !== 'voice') {
+      attentionDrawing.stopAttention(id);
+    } else if (previousType !== 'voice' && notificationType === 'voice') {
+      changedToVoice = true;
+    }
+  }
+
+  notification.show();
+
+  if (changedToVoice) {
+    attentionDrawing.drawAttention(id);
   }
 
   return id;
@@ -153,6 +222,7 @@ const handleCreateEvent = async (
   }
 
   const id = tag || Math.random().toString(36).slice(2);
+  notificationTypes.set(id, options.notificationType || 'text');
   return createNotification(id, options, ipcMeta);
 };
 
@@ -172,6 +242,14 @@ export const setupNotifications = (): void => {
   });
 
   listen(NOTIFICATIONS_NOTIFICATION_DISMISSED, (action) => {
-    notifications.get(action.payload.id)?.close();
+    const notificationId = String(action.payload.id);
+    const notificationType = notificationTypes.get(notificationId);
+
+    notifications.get(notificationId)?.close();
+
+    if (notificationType === 'voice') {
+      attentionDrawing.stopAttention(notificationId);
+    }
+    notificationTypes.delete(notificationId);
   });
 };

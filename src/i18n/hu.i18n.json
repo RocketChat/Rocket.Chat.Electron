@@ -132,6 +132,18 @@
       "camera": "Kamera",
       "both": "Mikrofon és Kamera"
     },
+    "microphonePermissionDenied": {
+      "title": "A mikrofonhoz való hozzáférés szükséges",
+      "message": "A mikrofonhoz való hozzáférés szükséges a(z) {{- actionType}} elvégzéséhez. Kérjük, ellenőrizze a rendszerbeállításokat.",
+      "detail": "A mikrofonhozzáférést engedélyezheti a rendszer adatvédelmi beállításaiban.",
+      "openSettings": "Beállítások megnyitása",
+      "cancel": "Mégse",
+      "actionTypes": {
+        "initiateCall": "hívás indításához",
+        "answerCall": "hívás fogadásához",
+        "recordMessage": "üzenet rögzítéséhez"
+      }
+    },
     "outlookCalendar": {
       "title": "Outlook naptár",
       "encryptionUnavailableTitle": "A titkosítás nem érhető el",
@@ -269,6 +281,10 @@
       "videoCallWindowPersistence": {
         "title": "Videohívás ablak pozíciójának megjegyzése",
         "description": "Videohívás ablakok pozíciójának és méretének mentése és visszaállítása a munkamenetek között"
+      },
+      "transparentWindow": {
+        "title": "Áttetsző ablak effektus",
+        "description": "Natív vibráció/áttetszőség effektus engedélyezése az ablakhoz. Újraindítás szükséges az alkalmazáshoz."
       },
       "screenLock": {
         "timeout": {

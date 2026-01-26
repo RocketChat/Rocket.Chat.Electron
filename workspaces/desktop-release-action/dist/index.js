@@ -42698,11 +42698,12 @@ const getSnapshotRelease = (commitSha) => __awaiter(void 0, void 0, void 0, func
 });
 const getTaggedRelease = (version, commitSha) => __awaiter(void 0, void 0, void 0, function* () {
     const body = yield getChangelog();
+    const isPrerelease = version.prerelease.length > 0;
     const release = yield findRelease((release) => release.tag_name === version.version);
     if (release) {
-        return (yield octokit.request('PATCH /repos/{owner}/{repo}/releases/{release_id}', Object.assign(Object.assign({}, getRepoParams()), { release_id: release.id, draft: true, body, tag_name: version.version, target_commitish: commitSha }))).data;
+        return (yield octokit.request('PATCH /repos/{owner}/{repo}/releases/{release_id}', Object.assign(Object.assign({}, getRepoParams()), { release_id: release.id, draft: true, prerelease: isPrerelease, body, tag_name: version.version, target_commitish: commitSha }))).data;
     }
-    return (yield octokit.request('POST /repos/{owner}/{repo}/releases', Object.assign(Object.assign({}, getRepoParams()), { draft: true, name: version.version, body, tag_name: version.version, target_commitish: commitSha }))).data;
+    return (yield octokit.request('POST /repos/{owner}/{repo}/releases', Object.assign(Object.assign({}, getRepoParams()), { draft: true, prerelease: isPrerelease, name: version.version, body, tag_name: version.version, target_commitish: commitSha }))).data;
 });
 const getReleaseAssets = (releaseId) => __awaiter(void 0, void 0, void 0, function* () {
     return octokit.paginate('GET /repos/{owner}/{repo}/releases/{release_id}/assets', Object.assign(Object.assign({}, getRepoParams()), { release_id: releaseId }));
@@ -55055,6 +55056,126 @@ const updateYamlChecksums = (distPath) => update_yaml_checksums_awaiter(void 0, 
     yield updateWindowsYamlChecksums(distPath);
 });
 
+;// CONCATENATED MODULE: ./src/windows/verify-signature.ts
+var verify_signature_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+
+
+
+const verifyWithPowerShell = (filePath) => verify_signature_awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const fileName = external_path_.basename(filePath);
+    try {
+        const escapedPath = filePath.replace(/'/g, "''");
+        const psCommand = `"Get-AuthenticodeSignature -LiteralPath '${escapedPath}' | ConvertTo-Json -Compress"`;
+        const command = `chcp 65001 >NUL & powershell.exe -NoProfile -NonInteractive -InputFormat None -Command ${psCommand}`;
+        const output = yield runAndBuffer(command);
+        const result = JSON.parse(output.trim());
+        const isValid = result.Status === 0 || result.Status === 'Valid';
+        const statusText = result.Status === 0 ? 'Valid' : String((_a = result.Status) !== null && _a !== void 0 ? _a : 'Unknown');
+        const signerSubject = (_b = result.SignerCertificate) === null || _b === void 0 ? void 0 : _b.Subject;
+        return {
+            file: fileName,
+            valid: isValid,
+            status: statusText,
+            signer: signerSubject || undefined,
+        };
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return {
+            file: fileName,
+            valid: false,
+            status: 'Error',
+            error: errorMessage,
+        };
+    }
+});
+const verifySignature = (filePath) => verify_signature_awaiter(void 0, void 0, void 0, function* () {
+    return verifyWithPowerShell(filePath);
+});
+const verifyExecutableSignature = (distPath) => verify_signature_awaiter(void 0, void 0, void 0, function* () {
+    lib_core.info('Verifying Windows executable signatures...');
+    const unpackedDirs = [
+        'win-unpacked',
+        'win-ia32-unpacked',
+        'win-arm64-unpacked',
+    ];
+    const results = [];
+    let hasFailures = false;
+    for (const dir of unpackedDirs) {
+        const exePath = external_path_.join(distPath, dir, 'Rocket.Chat.exe');
+        if (!external_fs_.existsSync(exePath)) {
+            lib_core.debug(`No executable found in ${dir}`);
+            continue;
+        }
+        lib_core.info(`Verifying: ${external_path_.relative(distPath, exePath)}`);
+        const result = yield verifySignature(exePath);
+        results.push(result);
+        if (result.valid) {
+            lib_core.info(`  ✓ Valid signature - Signer: ${result.signer || 'Unknown'}`);
+        }
+        else {
+            lib_core.error(`  ✗ INVALID: ${result.status}${result.error ? ` - ${result.error}` : ''}`);
+            hasFailures = true;
+        }
+    }
+    if (results.length === 0) {
+        lib_core.warning('No executables found to verify');
+        return;
+    }
+    if (hasFailures) {
+        throw new Error('Executable signature verification failed - one or more files have invalid signatures');
+    }
+    lib_core.info(`✅ All ${results.length} executable(s) have valid signatures`);
+});
+const verifyInstallerSignatures = (distPath) => verify_signature_awaiter(void 0, void 0, void 0, function* () {
+    lib_core.info('Verifying Windows installer signatures...');
+    const patterns = ['*.exe', '*.msi'];
+    const results = [];
+    let hasFailures = false;
+    for (const pattern of patterns) {
+        const files = sync(pattern, {
+            cwd: distPath,
+            absolute: true,
+            ignore: [
+                '**/win-unpacked/**',
+                '**/win-ia32-unpacked/**',
+                '**/win-arm64-unpacked/**',
+            ],
+        });
+        for (const file of files) {
+            lib_core.info(`Verifying: ${external_path_.basename(file)}`);
+            const result = yield verifySignature(file);
+            results.push(result);
+            if (result.valid) {
+                lib_core.info(`  ✓ Valid signature - Signer: ${result.signer || 'Unknown'}`);
+            }
+            else {
+                lib_core.error(`  ✗ INVALID: ${result.status}${result.error ? ` - ${result.error}` : ''}`);
+                hasFailures = true;
+            }
+        }
+    }
+    if (results.length === 0) {
+        lib_core.warning('No installers found to verify');
+        return;
+    }
+    if (hasFailures) {
+        throw new Error('Installer signature verification failed - one or more files have invalid signatures');
+    }
+    lib_core.info(`✅ All ${results.length} installer(s) have valid signatures`);
+});
+
 ;// CONCATENATED MODULE: ./src/windows/index.ts
 var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -55065,6 +55186,7 @@ var windows_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+
 
 
 
@@ -55087,55 +55209,48 @@ const packOnWindows = () => windows_awaiter(void 0, void 0, void 0, function* ()
         if (!kmsKeyResource) {
             throw new Error('win_kms_key_resource input is required');
         }
-        // Setup base environment variables
-        const baseEnv = {
-            WIN_KMS_KEY_RESOURCE: kmsKeyResource,
-            WIN_CERT_FILE: userCertPath,
-            GOOGLE_APPLICATION_CREDENTIALS: credentialsPath,
-        };
-        lib_core.info('Building Windows packages WITHOUT signing...');
-        lib_core.info('Packages will be signed after build to avoid MSI/ICE issues');
-        // Build all Windows packages WITHOUT signing
-        // We'll sign them after build to avoid KMS CNG provider MSI installation
-        // interfering with our MSI builds
-        // Temporarily disable signing by clearing the environment variables
-        // The winSignKms.js script checks these and skips signing when not set
-        const buildEnv = Object.assign(Object.assign({}, baseEnv), { 
-            // Clear signing credentials to make winSignKms.js skip signing
-            WIN_KMS_KEY_RESOURCE: '', WIN_CERT_FILE: '' });
-        // Build NSIS installer (unsigned)
-        lib_core.info('Building NSIS installer (unsigned)...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis`, buildEnv);
-        // Build MSI installer (unsigned)
-        lib_core.info('Building MSI installer (unsigned)...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
-        // Build AppX package (unsigned)
-        lib_core.info('Building AppX package (unsigned)...');
-        yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, buildEnv);
-        lib_core.info('✅ All Windows packages built successfully (unsigned)');
-        // NOW install KMS CNG provider and signing tools
-        // This won't interfere with MSI builds since they're already done
-        lib_core.info('Setting up signing environment...');
-        // Install Google Cloud KMS CNG provider
-        yield installKmsCngProvider();
-        // Install jsign for Java-based signing
+        // Install signing tools BEFORE building so electron-builder can sign
+        lib_core.info('Setting up signing environment before build...');
+        // Install jsign for Java-based signing (doesn't require KMS CNG provider)
         yield installJsign();
         // Install and configure Google Cloud CLI
         const gcloudPath = yield installGoogleCloudCLI();
         // Authenticate gcloud with service account
         yield authenticateGcloud(credentialsPath, gcloudPath);
-        // Restore environment variables for signing phase
+        // Setup environment variables for electron-builder's signing via winSignKms.js
+        // Build flow: afterPack (apply fuses) -> sign via winSignKms.js -> package
+        const buildEnv = {
+            WIN_KMS_KEY_RESOURCE: kmsKeyResource,
+            WIN_CERT_FILE: userCertPath,
+            GOOGLE_APPLICATION_CREDENTIALS: credentialsPath,
+            GCLOUD_PATH: gcloudPath,
+        };
+        // Set process.env so electron-builder's signing can access credentials
         process.env.WIN_KMS_KEY_RESOURCE = kmsKeyResource;
         process.env.WIN_CERT_FILE = userCertPath;
+        process.env.GOOGLE_APPLICATION_CREDENTIALS = credentialsPath;
         process.env.GCLOUD_PATH = gcloudPath;
-        // Sign all the built packages
-        lib_core.info('Signing all built packages...');
+        lib_core.info('Building Windows packages...');
+        lib_core.info('Executables will be signed by electron-builder via winSignKms.js');
+        lib_core.info('Building NSIS installer...');
+        yield runElectronBuilder(`--x64 --ia32 --arm64 --win nsis`, buildEnv);
+        lib_core.info('Building MSI installer...');
+        yield runElectronBuilder(`--x64 --ia32 --arm64 --win msi`, buildEnv);
+        lib_core.info('Building AppX package...');
+        yield runElectronBuilder(`--x64 --ia32 --arm64 --win appx`, buildEnv);
+        lib_core.info('✅ All Windows packages built successfully');
         const distPath = external_path_.resolve(process.cwd(), 'dist');
+        lib_core.info('Verifying executable signatures...');
+        yield verifyExecutableSignature(distPath);
+        lib_core.info('Installing KMS CNG provider for installer signing...');
+        yield installKmsCngProvider();
+        lib_core.info('Signing installer packages...');
         yield signBuiltPackages(distPath);
-        // Update latest.yml with correct checksums after signing
+        lib_core.info('Verifying installer signatures...');
+        yield verifyInstallerSignatures(distPath);
         lib_core.info('Updating latest.yml with correct checksums...');
         yield updateYamlChecksums(distPath);
-        lib_core.info('✅ Windows packages built and signed successfully');
+        lib_core.info('✅ Windows packages built, signed, and verified successfully');
     }
     catch (error) {
         lib_core.error(`Failed to build Windows packages: ${error}`);
@@ -55283,8 +55398,8 @@ const start = () => src_awaiter(void 0, void 0, void 0, function* () {
     }
     const payload = github.context.payload;
     const ref = lib_core.getInput('ref') || payload.ref;
-    if (ref === 'refs/heads/develop') {
-        lib_core.info(`push event on develop branch detected, performing development release`);
+    if (ref === 'refs/heads/dev') {
+        lib_core.info(`push event on dev branch detected, performing development release`);
         yield releaseDevelopment(payload.after);
         return;
     }

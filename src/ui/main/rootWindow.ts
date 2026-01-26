@@ -10,6 +10,7 @@ import {
   APP_MAIN_WINDOW_TITLE_SET,
 } from '../../app/actions';
 import { setupRootWindowReload } from '../../app/main/dev';
+import { getPersistedValues } from '../../app/main/persistence';
 import { select, watch, listen, dispatchLocal, dispatch } from '../../store';
 import type { RootState } from '../../store/rootReducer';
 import { ROOT_WINDOW_STATE_CHANGED, WEBVIEW_FOCUS_REQUESTED } from '../actions';
@@ -62,16 +63,38 @@ export const getRootWindow = (): Promise<BrowserWindow> =>
 const platformTitleBarStyle =
   process.platform === 'darwin' ? 'hidden' : 'default';
 
+const isMac = process.platform === 'darwin';
+const getEnableVibrancy = (): boolean => {
+  if (!isMac) {
+    return false;
+  }
+  try {
+    const persistedValues: { isTransparentWindowEnabled?: boolean } =
+      getPersistedValues();
+    return persistedValues?.isTransparentWindowEnabled === true;
+  } catch (error) {
+    return false;
+  }
+};
+
 export const createRootWindow = (): void => {
+  const enableVibrancy = getEnableVibrancy();
   _rootWindow = new BrowserWindow({
     width: 1000,
     height: 600,
     minWidth: 400,
     minHeight: 400,
     titleBarStyle: platformTitleBarStyle,
-    backgroundColor: '#2f343d',
+    backgroundColor: enableVibrancy ? '#00000000' : '#2f343d',
     show: false,
     webPreferences,
+    ...(enableVibrancy
+      ? {
+          transparent: true,
+          vibrancy: 'sidebar',
+          visualEffectState: 'active',
+        }
+      : {}),
   });
 
   // Block navigation to smb:// protocol
@@ -490,26 +513,6 @@ export const setupRootWindow = (): void => {
   });
 };
 
-const ensureWindowsMediaRegistration = async (): Promise<void> => {
-  if (process.platform !== 'win32') {
-    return;
-  }
-
-  try {
-    const browserWindow = await getRootWindow();
-    await browserWindow.webContents.executeJavaScript(`
-      if (!window._rocketChatMediaRegistered) {
-        window._rocketChatMediaRegistered = true;
-        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-          .then(() => console.log('Media access registered with Windows'))
-          .catch(() => console.log('Media registration attempted'));
-      }
-    `);
-  } catch (error) {
-    console.log('Media registration failed:', error);
-  }
-};
-
 export const showRootWindow = async (): Promise<void> => {
   const browserWindow = await getRootWindow();
 
@@ -533,7 +536,6 @@ export const showRootWindow = async (): Promise<void> => {
       }
 
       setupRootWindow();
-      ensureWindowsMediaRegistration();
 
       resolve();
     });

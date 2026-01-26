@@ -141,6 +141,18 @@
       "camera": "Kamera",
       "both": "Mikrofon og Kamera"
     },
+    "microphonePermissionDenied": {
+      "title": "Mikrofontilgang påkrevd",
+      "message": "Mikrofontilgang kreves for å {{- actionType}}. Vennligst sjekk systeminnstillingene dine.",
+      "detail": "Du kan aktivere mikrofontilgang i systemets personverninnstillinger.",
+      "openSettings": "Åpne innstillinger",
+      "cancel": "Avbryt",
+      "actionTypes": {
+        "initiateCall": "foreta samtaler",
+        "answerCall": "ta imot samtaler",
+        "recordMessage": "spille inn meldinger"
+      }
+    },
     "outlookCalendar": {
       "title": "Outlook-kalender",
       "encryptionUnavailableTitle": "Kryptering utilgjengelig",
@@ -278,6 +290,10 @@
       "videoCallWindowPersistence": {
         "title": "Husk posisjonen til videosamtalevinduet",
         "description": "Lagre og gjenopprett posisjonen og størrelsen på videosamtalevinduer mellom økter"
+      },
+      "transparentWindow": {
+        "title": "Gjennomsiktig vinduseffekt",
+        "description": "Aktiver innfødt vibrans/gjennomsiktighetseffekt for vinduet. Krever omstart for å brukes."
       },
       "screenLock": {
         "timeout": {

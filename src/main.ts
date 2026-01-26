@@ -4,6 +4,8 @@ import {
   performElectronStartup,
   setupApp,
   initializeScreenCaptureFallbackState,
+  setupGpuCrashHandler,
+  markMainWindowStable,
   showLockWindow,
 } from './app/main/app';
 import {
@@ -20,6 +22,7 @@ import { setupMainErrorHandling } from './errors';
 import i18n from './i18n/main';
 import { handleJitsiDesktopCapturerGetSources } from './jitsi/ipc';
 import { setupNavigation } from './navigation/main';
+import attentionDrawing from './notifications/attentionDrawing';
 import { setupNotifications } from './notifications/main';
 import { startOutlookCalendarUrlHandler } from './outlookCalendar/ipc';
 import { setupScreenSharing } from './screenSharing/main';
@@ -52,6 +55,9 @@ const start = async (): Promise<void> => {
   setUserDataDirectory();
 
   performElectronStartup();
+
+  // Set up GPU crash handler BEFORE whenReady to catch early GPU failures
+  setupGpuCrashHandler();
 
   await app.whenReady();
 
@@ -90,12 +96,16 @@ const start = async (): Promise<void> => {
   // Set up automatic screen locking based on user-configured timeout
   setupScreenLock();
 
+  // Mark main window as stable - GPU crashes after this won't trigger fallback
+  markMainWindowStable();
+
   // React DevTools is currently incompatible with Electron 10
   // if (process.env.NODE_ENV === 'development') {
   //   installDevTools();
   // }
   watchMachineTheme();
   setupNotifications();
+  attentionDrawing.setUp();
   setupScreenSharing();
   startVideoCallWindowHandler();
 
@@ -118,6 +128,7 @@ const start = async (): Promise<void> => {
     menuBar.tearDown();
     touchBar.tearDown();
     trayIcon.tearDown();
+    attentionDrawing.tearDown();
     cleanupVideoCallResources();
   });
 

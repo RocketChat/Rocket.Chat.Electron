@@ -89,6 +89,26 @@
       "microphone": "マイク",
       "camera": "カメラ",
       "both": "マイクとカメラ"
+    },
+    "microphonePermissionDenied": {
+      "title": "マイクアクセスが必要",
+      "message": "{{- actionType}}にはマイクアクセスが必要です。システム設定を確認してください。",
+      "detail": "システムのプライバシー設定でマイクアクセスを有効にできます。",
+      "openSettings": "設定を開く",
+      "cancel": "キャンセル",
+      "actionTypes": {
+        "initiateCall": "通話を行う",
+        "answerCall": "通話に応答する",
+        "recordMessage": "メッセージを録音する"
+      }
+    }
+  },
+  "settings": {
+    "options": {
+      "transparentWindow": {
+        "title": "透明ウィンドウ効果",
+        "description": "ウィンドウのネイティブなビブランシー/透明効果を有効にします。適用するには再起動が必要です。"
+      }
     }
   },
   "error": {

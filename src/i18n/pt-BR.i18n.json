@@ -141,6 +141,18 @@
       "camera": "Câmera",
       "both": "Microfone e Câmera"
     },
+    "microphonePermissionDenied": {
+      "title": "Acesso ao microfone necessário",
+      "message": "O acesso ao microfone é necessário para {{- actionType }}. Verifique as configurações do sistema.",
+      "detail": "Você pode ativar o acesso ao microfone nas configurações de privacidade do sistema.",
+      "openSettings": "Abrir configurações",
+      "cancel": "Cancelar",
+      "actionTypes": {
+        "initiateCall": "fazer chamadas",
+        "answerCall": "atender chamadas",
+        "recordMessage": "gravar mensagens"
+      }
+    },
     "supportedVersion": {
       "title": "Versão de workspace não suportada"
     }
@@ -264,6 +276,10 @@
       "videoCallWindowPersistence": {
         "title": "Lembrar posição da janela de videochamada",
         "description": "Salvar e restaurar a posição e o tamanho das janelas de videochamada entre as sessões"
+      },
+      "transparentWindow": {
+        "title": "Efeito de janela transparente",
+        "description": "Ativar efeito nativo de vibração/transparência para a janela. Requer reinicialização para aplicar."
       },
       "screenLock": {
         "timeout": {

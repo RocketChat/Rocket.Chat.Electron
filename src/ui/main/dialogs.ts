@@ -1,5 +1,5 @@
 import type { BrowserWindow } from 'electron';
-import { dialog } from 'electron';
+import { dialog, shell } from 'electron';
 import i18next from 'i18next';
 
 import { getRootWindow } from './rootWindow';
@@ -264,4 +264,40 @@ export const askForMediaPermissionSettings = async (
   );
 
   return response === 0;
+};
+
+export const showMicrophonePermissionDeniedMessage = async (
+  actionType: 'initiateCall' | 'answerCall' | 'recordMessage',
+  parentWindow?: BrowserWindow
+): Promise<void> => {
+  parentWindow?.show();
+
+  const { response } = await dialog.showMessageBox(
+    parentWindow ?? (await getRootWindow()),
+    {
+      type: 'warning',
+      buttons: [
+        t('dialog.microphonePermissionDenied.openSettings'),
+        t('dialog.microphonePermissionDenied.cancel'),
+      ],
+      defaultId: 0,
+      title: t('dialog.microphonePermissionDenied.title'),
+      message: t('dialog.microphonePermissionDenied.message', {
+        actionType: t(
+          `dialog.microphonePermissionDenied.actionTypes.${actionType}`
+        ),
+      }),
+      detail: t('dialog.microphonePermissionDenied.detail'),
+    }
+  );
+
+  if (response === 0) {
+    if (process.platform === 'darwin') {
+      shell.openExternal(
+        'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone'
+      );
+    } else if (process.platform === 'win32') {
+      shell.openExternal('ms-settings:privacy-microphone');
+    }
+  }
 };

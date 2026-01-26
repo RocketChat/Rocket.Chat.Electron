@@ -1,4 +1,12 @@
 {
+  "settings": {
+    "options": {
+      "transparentWindow": {
+        "title": "Gjennomsiktig vinduseffekt",
+        "description": "Aktiver innfødd vibrasjon/gjennomsiktighetseffekt for vinduet. Krever omstart for å bruke."
+      }
+    }
+  },
   "serverInfo": {
     "title": "Serverinformasjon",
     "urlLabel": "URL:",

@@ -141,6 +141,18 @@
       "camera": "Camera",
       "both": "Microphone and Camera"
     },
+    "microphonePermissionDenied": {
+      "title": "Microphone Access Required",
+      "message": "Microphone access is required to {{- actionType}}. Please check your system settings.",
+      "detail": "You can enable microphone access in your system's privacy settings.",
+      "openSettings": "Open Settings",
+      "cancel": "Cancel",
+      "actionTypes": {
+        "initiateCall": "make calls",
+        "answerCall": "answer calls",
+        "recordMessage": "record messages"
+      }
+    },
     "outlookCalendar": {
       "title": "Outlook Calendar",
       "encryptionUnavailableTitle": "Encryption unavailable",
@@ -289,6 +301,10 @@
       "videoCallWindowPersistence": {
         "title": "Remember video call window position",
         "description": "Save and restore the position and size of video call windows between sessions"
+      },
+      "transparentWindow": {
+        "title": "Transparent window effect",
+        "description": "Enable native vibrancy/transparency effect for the window. Requires restart to apply."
       }
     }
   },

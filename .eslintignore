@@ -1,3 +1,6 @@
 /node_modules
 /app
 /workspaces/*
+# The /scripts directory contains utility scripts that run outside the main app
+# and use different patterns (e.g., interactive prompts, direct console output)
+/scripts

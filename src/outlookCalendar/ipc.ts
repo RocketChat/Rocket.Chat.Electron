@@ -145,7 +145,7 @@ async function listEventsFromRocketChatServer(
       },
       timeout: 10000, // 10 second timeout
       httpsAgent: new https.Agent({
-        rejectUnauthorized: false, // Allow self-signed certificates
+        // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
       }),
     });
 
@@ -225,7 +225,7 @@ async function createEventOnRocketChatServer(
       },
       timeout: 10000, // 10 second timeout
       httpsAgent: new https.Agent({
-        rejectUnauthorized: false, // Allow self-signed certificates
+        // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
       }),
     });
 
@@ -307,7 +307,7 @@ async function updateEventOnRocketChatServer(
       },
       timeout: 10000, // 10 second timeout
       httpsAgent: new https.Agent({
-        rejectUnauthorized: false, // Allow self-signed certificates
+        // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
       }),
     });
 
@@ -372,7 +372,7 @@ async function deleteEventOnRocketChatServer(
         },
         timeout: 10000, // 10 second timeout
         httpsAgent: new https.Agent({
-          rejectUnauthorized: false, // Allow self-signed certificates
+          // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
         }),
       }
     );

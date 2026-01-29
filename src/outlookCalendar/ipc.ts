@@ -1,8 +1,11 @@
+import https from 'https';
+
 import axios from 'axios';
-import { safeStorage } from 'electron';
+import { safeStorage, webContents } from 'electron';
 
 import { selectPersistableValues } from '../app/selectors';
 import { handle } from '../ipc/main';
+import { loggers } from '../logging/scopes';
 import type { Server } from '../servers/common';
 import { dispatch, request, select } from '../store';
 import * as urls from '../urls';
@@ -13,6 +16,11 @@ import {
   OUTLOOK_CALENDAR_DIALOG_DISMISSED,
   OUTLOOK_CALENDAR_SAVE_CREDENTIALS,
 } from './actions';
+import {
+  createClassifiedError,
+  formatErrorForLogging,
+  generateUserFriendlyMessage,
+} from './errorClassification';
 import { getOutlookEvents } from './getOutlookEvents';
 import type {
   OutlookCredentials,
@@ -42,27 +50,90 @@ function checkIfCredentialsAreNotEmpty(
 function encryptedCredentials(
   credentials: OutlookCredentials
 ): OutlookCredentials {
-  return {
-    ...credentials,
-    login: safeStorage.encryptString(credentials.login).toString('base64'),
-    password: safeStorage
+  loggers.outlook.info('Encrypting credentials for user:', credentials.userId);
+  try {
+    if (!safeStorage.isEncryptionAvailable()) {
+      console.warn(
+        '[OutlookCalendar] Encryption not available, storing credentials in plain text'
+      );
+      return credentials;
+    }
+
+    const encryptedLogin = safeStorage
+      .encryptString(credentials.login)
+      .toString('base64');
+    const encryptedPassword = safeStorage
       .encryptString(credentials.password)
-      .toString('base64'),
-  };
+      .toString('base64');
+
+    loggers.outlook.info('Successfully encrypted credentials');
+    return {
+      ...credentials,
+      login: encryptedLogin,
+      password: encryptedPassword,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('[OutlookCalendar] Failed to encrypt credentials:', {
+      error: errorMessage,
+      userId: credentials.userId,
+      hasLogin: !!credentials.login,
+      hasPassword: !!credentials.password,
+    });
+    throw new Error(`Failed to encrypt credentials: ${errorMessage}`);
+  }
 }
+
+const isLikelyBase64 = (str: string): boolean => {
+  if (!str || str.length < 4) return false;
+  return /^[A-Za-z0-9+/]+=*$/.test(str) && str.length % 4 === 0;
+};
 
 function decryptedCredentials(
   credentials: OutlookCredentials
 ): OutlookCredentials {
-  return {
-    ...credentials,
-    login: safeStorage
+  loggers.outlook.info('Decrypting credentials for user:', credentials.userId);
+
+  if (!safeStorage.isEncryptionAvailable()) {
+    loggers.outlook.warn(
+      'Encryption not available, using credentials as plaintext'
+    );
+    return credentials;
+  }
+
+  const loginLooksEncrypted = isLikelyBase64(credentials.login);
+  const passwordLooksEncrypted = isLikelyBase64(credentials.password);
+
+  if (!loginLooksEncrypted || !passwordLooksEncrypted) {
+    loggers.outlook.warn(
+      'Credentials do not appear to be encrypted (legacy/plaintext), using as-is',
+      { userId: credentials.userId }
+    );
+    return credentials;
+  }
+
+  try {
+    const decryptedLogin = safeStorage
       .decryptString(Buffer.from(credentials.login, 'base64'))
-      .toString(),
-    password: safeStorage
+      .toString();
+    const decryptedPassword = safeStorage
       .decryptString(Buffer.from(credentials.password, 'base64'))
-      .toString(),
-  };
+      .toString();
+
+    loggers.outlook.info('Successfully decrypted credentials');
+    return {
+      ...credentials,
+      login: decryptedLogin,
+      password: decryptedPassword,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    loggers.outlook.warn(
+      'Failed to decrypt credentials, falling back to plaintext (legacy credentials)',
+      { userId: credentials.userId, error: errorMessage }
+    );
+    return credentials;
+  }
 }
 
 async function listEventsFromRocketChatServer(
@@ -70,23 +141,57 @@ async function listEventsFromRocketChatServer(
   userId: string,
   token: string
 ) {
+  const url = urls.server(serverUrl).calendarEvents.list;
+  loggers.outlook.info('Fetching events from Rocket.Chat server:', {
+    url,
+    userId,
+    hasToken: !!token,
+  });
+
   try {
-    const response = await axios.get(
-      urls.server(serverUrl).calendarEvents.list,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Auth-Token': token,
-          'X-User-Id': userId,
-        },
-        params: {
-          date: new Date().toISOString(),
-        },
-      }
-    );
+    const response = await axios.get(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': token,
+        'X-User-Id': userId,
+      },
+      params: {
+        date: new Date().toISOString(),
+      },
+      timeout: 10000, // 10 second timeout
+      httpsAgent: new https.Agent({
+        // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
+      }),
+    });
+
+    console.log('[OutlookCalendar] Successfully fetched events from server:', {
+      statusCode: response.status,
+      eventCount: response.data?.data?.length || 0,
+    });
+
     return response.data;
   } catch (error) {
-    console.error('Error sending message:', error);
+    const classifiedError = createClassifiedError(error as Error, {
+      operation: 'fetch_events_from_rocket_chat',
+      url,
+      userId,
+      isAxiosError: axios.isAxiosError(error),
+      status: axios.isAxiosError(error) ? error.response?.status : undefined,
+      statusText: axios.isAxiosError(error)
+        ? error.response?.statusText
+        : undefined,
+      responseData: axios.isAxiosError(error)
+        ? error.response?.data
+        : undefined,
+    });
+
+    console.error(
+      formatErrorForLogging(
+        classifiedError,
+        'Fetch events from Rocket.Chat server'
+      )
+    );
+    return null;
   }
 }
 
@@ -96,6 +201,14 @@ async function createEventOnRocketChatServer(
   token: string,
   event: AppointmentData
 ) {
+  const url = urls.server(serverUrl).calendarEvents.import;
+  console.log('[OutlookCalendar] Creating event on Rocket.Chat server:', {
+    url,
+    eventId: event.id,
+    subject: event.subject,
+    userId,
+  });
+
   try {
     // Get server object to check version
     const { servers } = select(selectPersistableValues);
@@ -114,17 +227,51 @@ async function createEventOnRocketChatServer(
     if (server?.version && meetsMinimumVersion(server.version, '7.5.0')) {
       payload.endTime = event.endTime;
       payload.busy = event.busy;
+      console.log(
+        '[OutlookCalendar] Including endTime and busy status (server version >= 7.5.0)'
+      );
     }
 
-    await axios.post(urls.server(serverUrl).calendarEvents.import, payload, {
+    const response = await axios.post(url, payload, {
       headers: {
         'Content-Type': 'application/json',
         'X-Auth-Token': token,
         'X-User-Id': userId,
       },
+      timeout: 10000, // 10 second timeout
+      httpsAgent: new https.Agent({
+        // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
+      }),
+    });
+
+    console.log('[OutlookCalendar] Successfully created event:', {
+      eventId: event.id,
+      statusCode: response.status,
+      responseData: response.data,
     });
   } catch (error) {
-    console.error('Error saving event on server:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('[OutlookCalendar] Axios error creating event:', {
+        url,
+        eventId: event.id,
+        subject: event.subject,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: error.message,
+        code: error.code,
+        responseData: error.response?.data,
+        userId,
+      });
+    } else {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error('[OutlookCalendar] Non-axios error creating event:', {
+        url,
+        eventId: event.id,
+        error: errorMessage,
+        userId,
+      });
+    }
   }
 }
 
@@ -135,6 +282,15 @@ async function updateEventOnRocketChatServer(
   rocketChatEventId: string,
   event: AppointmentData
 ) {
+  const url = urls.server(serverUrl).calendarEvents.update;
+  console.log('[OutlookCalendar] Updating event on Rocket.Chat server:', {
+    url,
+    rocketChatEventId,
+    eventId: event.id,
+    subject: event.subject,
+    userId,
+  });
+
   try {
     // Get server object to check version
     const { servers } = select(selectPersistableValues);
@@ -153,17 +309,54 @@ async function updateEventOnRocketChatServer(
     if (server?.version && meetsMinimumVersion(server.version, '7.5.0')) {
       payload.endTime = event.endTime;
       payload.busy = event.busy;
+      console.log(
+        '[OutlookCalendar] Including endTime and busy status for update (server version >= 7.5.0)'
+      );
     }
 
-    await axios.post(urls.server(serverUrl).calendarEvents.update, payload, {
+    const response = await axios.post(url, payload, {
       headers: {
         'Content-Type': 'application/json',
         'X-Auth-Token': token,
         'X-User-Id': userId,
       },
+      timeout: 10000, // 10 second timeout
+      httpsAgent: new https.Agent({
+        // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
+      }),
+    });
+
+    console.log('[OutlookCalendar] Successfully updated event:', {
+      rocketChatEventId,
+      eventId: event.id,
+      statusCode: response.status,
+      responseData: response.data,
     });
   } catch (error) {
-    console.error('Error updating event on server:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('[OutlookCalendar] Axios error updating event:', {
+        url,
+        rocketChatEventId,
+        eventId: event.id,
+        subject: event.subject,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: error.message,
+        code: error.code,
+        responseData: error.response?.data,
+        userId,
+      });
+    } else {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error('[OutlookCalendar] Non-axios error updating event:', {
+        url,
+        rocketChatEventId,
+        eventId: event.id,
+        error: errorMessage,
+        userId,
+      });
+    }
   }
 }
 
@@ -173,9 +366,16 @@ async function deleteEventOnRocketChatServer(
   token: string,
   rocketChatEventId: string
 ) {
+  const url = urls.server(serverUrl).calendarEvents.delete;
+  console.log('[OutlookCalendar] Deleting event from Rocket.Chat server:', {
+    url,
+    rocketChatEventId,
+    userId,
+  });
+
   try {
-    await axios.post(
-      urls.server(serverUrl).calendarEvents.delete,
+    const response = await axios.post(
+      url,
       {
         eventId: rocketChatEventId,
       },
@@ -185,10 +385,40 @@ async function deleteEventOnRocketChatServer(
           'X-Auth-Token': token,
           'X-User-Id': userId,
         },
+        timeout: 10000, // 10 second timeout
+        httpsAgent: new https.Agent({
+          // rejectUnauthorized: false, // Allow self-signed certificates (disabled for production)
+        }),
       }
     );
+
+    console.log('[OutlookCalendar] Successfully deleted event:', {
+      rocketChatEventId,
+      statusCode: response.status,
+      responseData: response.data,
+    });
   } catch (error) {
-    console.error('Error deleting event on server:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('[OutlookCalendar] Axios error deleting event:', {
+        url,
+        rocketChatEventId,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: error.message,
+        code: error.code,
+        responseData: error.response?.data,
+        userId,
+      });
+    } else {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error('[OutlookCalendar] Non-axios error deleting event:', {
+        url,
+        rocketChatEventId,
+        error: errorMessage,
+        userId,
+      });
+    }
   }
 }
 
@@ -197,44 +427,244 @@ export async function syncEventsWithRocketChatServer(
   credentials: OutlookCredentials,
   token: string
 ) {
-  if (!checkIfCredentialsAreNotEmpty(credentials)) return;
-  const eventsOnOutlookServer = await getOutlookEvents(
-    credentials,
-    new Date(Date.now())
+  // Validate token before doing anything else
+  if (!token || typeof token !== 'string') {
+    throw new Error(
+      'Authentication required - please log in to Rocket.Chat first'
+    );
+  }
+
+  // Check if sync is already in progress
+  if (isSyncInProgress) {
+    console.log(
+      '[OutlookCalendar] Sync already in progress, queueing this request'
+    );
+
+    // Queue this sync request to run after current sync completes
+    return new Promise<void>((resolve, reject) => {
+      syncQueue.push(async () => {
+        try {
+          // Re-validate token when the queued sync actually runs
+          if (!token || typeof token !== 'string') {
+            throw new Error(
+              'Authentication required - please log in to Rocket.Chat first'
+            );
+          }
+          await performSync(serverUrl, credentials, token);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+  }
+
+  // Set lock
+  isSyncInProgress = true;
+
+  try {
+    await performSync(serverUrl, credentials, token);
+
+    // Process queued sync while still holding the lock to prevent race condition
+    if (syncQueue.length > 0) {
+      console.log(
+        `[OutlookCalendar] Processing ${syncQueue.length} queued sync requests`
+      );
+      // Only process the last sync request (most recent state)
+      const lastSync = syncQueue[syncQueue.length - 1];
+      syncQueue = [];
+      try {
+        await lastSync();
+      } catch (error) {
+        console.error('[OutlookCalendar] Queued sync failed:', error);
+      }
+    }
+  } finally {
+    // Release lock after all syncs complete
+    isSyncInProgress = false;
+  }
+}
+
+// eslint-disable-next-line complexity
+async function performSync(
+  serverUrl: string,
+  credentials: OutlookCredentials,
+  token: string
+) {
+  console.info(
+    'Starting Outlook calendar synchronization for server:',
+    serverUrl
   );
 
-  const eventsOnRocketChatServer = await listEventsFromRocketChatServer(
+  if (!checkIfCredentialsAreNotEmpty(credentials)) return;
+
+  console.log('[OutlookCalendar] Starting sync with Rocket.Chat server:', {
     serverUrl,
-    credentials.userId,
-    token
-  );
+    userId: credentials.userId,
+    hasToken: !!token,
+  });
+
+  // Validate input parameters
+  if (!serverUrl || typeof serverUrl !== 'string') {
+    throw new Error('Invalid server URL provided');
+  }
+
+  if (!credentials || typeof credentials !== 'object') {
+    throw new Error('Invalid credentials provided');
+  }
+
+  // Token is already validated in syncEventsWithRocketChatServer
+
+  let eventsOnOutlookServer: AppointmentData[];
+  let eventsOnRocketChatServer: any;
+
+  try {
+    console.log('[OutlookCalendar] Fetching events from Outlook server...');
+    eventsOnOutlookServer = await getOutlookEvents(
+      credentials,
+      new Date(Date.now())
+    );
+    console.log(
+      '[OutlookCalendar] Found',
+      eventsOnOutlookServer.length,
+      'events on Outlook server'
+    );
+
+    console.log('[OutlookCalendar] Fetching events from Rocket.Chat server...');
+    eventsOnRocketChatServer = await listEventsFromRocketChatServer(
+      serverUrl,
+      credentials.userId,
+      token
+    );
+
+    // If we can't fetch events from the server, skip the sync
+    if (!eventsOnRocketChatServer) {
+      console.log(
+        '[OutlookCalendar] Skipping sync due to server connection issues'
+      );
+      return;
+    }
+
+    console.log(
+      '[OutlookCalendar] Found',
+      eventsOnRocketChatServer?.data?.length || 0,
+      'events on Rocket.Chat server'
+    );
+  } catch (error) {
+    const classifiedError = createClassifiedError(error as Error, {
+      operation: 'fetch_events_during_sync',
+      serverUrl,
+      userId: credentials.userId,
+      outlookServerUrl: credentials.serverUrl,
+    });
+
+    console.error(
+      formatErrorForLogging(classifiedError, 'Fetch events during sync')
+    );
+
+    throw new Error(
+      `Sync failed during event fetching: ${classifiedError.technicalMessage}`
+    );
+  }
 
   const appointmentsFound = eventsOnOutlookServer.map(
     (appointment) => appointment.id
   );
 
   const externalEventsFromRocketChatServer =
-    eventsOnRocketChatServer?.data.filter(
+    eventsOnRocketChatServer?.data?.filter(
       ({ externalId }: { externalId?: string }) => externalId
-    );
+    ) || [];
 
   // Get server object to check version
   const { servers } = select(selectPersistableValues);
   const server = servers.find((server) => server.url === serverUrl);
 
+  // Check for and clean up duplicate events
+  const eventsByExternalId = new Map<string, any[]>();
+  for (const event of externalEventsFromRocketChatServer) {
+    if (!eventsByExternalId.has(event.externalId)) {
+      eventsByExternalId.set(event.externalId, []);
+    }
+    eventsByExternalId.get(event.externalId)!.push(event);
+  }
+
+  // Collect all duplicate deletion promises
+  const allDeletionPromises: Promise<void>[] = [];
+
+  // Remove duplicates - keep only the first occurrence
+  for (const [externalId, events] of eventsByExternalId) {
+    if (events.length > 1) {
+      console.log(
+        `[OutlookCalendar] Found ${events.length} duplicate events for externalId: ${externalId}`
+      );
+      console.log('[OutlookCalendar] Keeping first event, deleting duplicates');
+
+      // Delete all duplicates except the first one
+      const deletionPromises = events.slice(1).map(async (duplicateEvent) => {
+        console.log('[OutlookCalendar] Deleting duplicate event:', {
+          rocketChatId: duplicateEvent._id,
+          externalId: duplicateEvent.externalId,
+          subject: duplicateEvent.subject,
+        });
+
+        try {
+          await deleteEventOnRocketChatServer(
+            serverUrl,
+            credentials.userId,
+            token,
+            duplicateEvent._id
+          );
+        } catch (error) {
+          console.error('[OutlookCalendar] Failed to delete duplicate event:', {
+            eventId: duplicateEvent._id,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      });
+
+      allDeletionPromises.push(...deletionPromises);
+    }
+  }
+
+  // Wait for all duplicate deletions to complete
+  if (allDeletionPromises.length > 0) {
+    console.log(
+      '[OutlookCalendar] Waiting for duplicate deletion to complete...'
+    );
+    await Promise.all(allDeletionPromises);
+    console.log('[OutlookCalendar] Duplicate deletion completed');
+  }
+
+  console.log(
+    '[OutlookCalendar] Starting sync loop for',
+    eventsOnOutlookServer.length,
+    'Outlook events'
+  );
+
   for await (const appointment of eventsOnOutlookServer) {
     try {
-      const alreadyOnRocketChatServer = externalEventsFromRocketChatServer.find(
-        ({ externalId }: { externalId?: string }) =>
-          externalId === appointment.id
-      );
+      console.log('[OutlookCalendar] Processing appointment:', {
+        id: appointment.id,
+        subject: appointment.subject,
+        startTime: appointment.startTime,
+      });
+
+      // Use the deduplicated map to find the event (only first occurrence kept)
+      const eventsForThisAppointment =
+        eventsByExternalId.get(appointment.id) || [];
+      const alreadyOnRocketChatServer = eventsForThisAppointment[0];
 
       const { subject, startTime, description, reminderMinutesBeforeStart } =
         appointment;
 
       // If the appointment is not in the rocket.chat calendar for today, add it.
       if (!alreadyOnRocketChatServer) {
-        createEventOnRocketChatServer(
+        console.log(
+          '[OutlookCalendar] Creating new event in Rocket.Chat:',
+          appointment.id
+        );
+        await createEventOnRocketChatServer(
           serverUrl,
           credentials.userId,
           token,
@@ -244,7 +674,7 @@ export async function syncEventsWithRocketChatServer(
       }
 
       // If nothing on the event has changed, do nothing.
-      if (
+      const hasChanges = !(
         alreadyOnRocketChatServer.subject === subject &&
         alreadyOnRocketChatServer.startTime === startTime &&
         alreadyOnRocketChatServer.description === description &&
@@ -254,11 +684,22 @@ export async function syncEventsWithRocketChatServer(
           !meetsMinimumVersion(server.version, '7.5.0') ||
           (alreadyOnRocketChatServer.endTime === appointment.endTime &&
             alreadyOnRocketChatServer.busy === appointment.busy))
-      ) {
+      );
+
+      if (!hasChanges) {
+        console.log(
+          '[OutlookCalendar] No changes detected for event:',
+          appointment.id
+        );
         continue;
       }
 
       // If the appointment is in the rocket.chat calendar for today, but something has changed, update it.
+      console.log('[OutlookCalendar] Updating existing event in Rocket.Chat:', {
+        rocketChatId: alreadyOnRocketChatServer._id,
+        outlookId: appointment.id,
+      });
+
       await updateEventOnRocketChatServer(
         serverUrl,
         credentials.userId,
@@ -267,68 +708,168 @@ export async function syncEventsWithRocketChatServer(
         appointment
       );
     } catch (error) {
-      console.error('Error syncing event:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error('[OutlookCalendar] Error syncing individual event:', {
+        appointmentId: appointment.id,
+        subject: appointment.subject,
+        error: errorMessage,
+      });
+      // Continue with other events even if one fails
     }
   }
 
-  if (!eventsOnRocketChatServer.data.length) {
+  if (!eventsOnRocketChatServer?.data?.length) {
+    console.log(
+      '[OutlookCalendar] No events on Rocket.Chat server to check for deletion'
+    );
     return;
   }
 
-  for await (const event of eventsOnRocketChatServer.data) {
-    if (!event.externalId || appointmentsFound.includes(event.externalId)) {
-      continue;
-    }
+  console.log(
+    '[OutlookCalendar] Checking for events to delete from Rocket.Chat server'
+  );
+  const eventsToDelete = eventsOnRocketChatServer.data.filter(
+    (event: any) =>
+      event.externalId && !appointmentsFound.includes(event.externalId)
+  );
 
+  if (eventsToDelete.length === 0) {
+    console.log('[OutlookCalendar] No events need to be deleted');
+  } else {
+    console.log(
+      '[OutlookCalendar] Found',
+      eventsToDelete.length,
+      'events to delete'
+    );
+  }
+
+  for await (const event of eventsToDelete) {
     try {
+      console.log('[OutlookCalendar] Deleting event from Rocket.Chat:', {
+        rocketChatId: event._id,
+        externalId: event.externalId,
+        subject: event.subject,
+      });
+
       await deleteEventOnRocketChatServer(
         serverUrl,
         credentials.userId,
         token,
         event._id
       );
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error('[OutlookCalendar] Error deleting individual event:', {
+        eventId: event._id,
+        externalId: event.externalId,
+        subject: event.subject,
+        error: errorMessage,
+      });
+      // Continue with other deletions even if one fails
     }
   }
+
+  console.log('[OutlookCalendar] Sync completed successfully');
 }
 
 let recurringSyncTaskId: NodeJS.Timeout;
 let userAPIToken: string;
+let initialSyncTimeoutId: NodeJS.Timeout;
+let isSyncInProgress = false;
+let syncQueue: Array<() => Promise<void>> = [];
 
 async function maybeSyncEvents(serverToSync: Server) {
-  if (!userAPIToken) throw new Error('No user token');
-  if (!serverToSync.webContentsId) throw new Error('No webContentsId');
-  const server = getServerInformationByWebContentsId(
-    serverToSync.webContentsId
+  console.log(
+    '[OutlookCalendar] Starting maybeSyncEvents for server:',
+    serverToSync.url
   );
-  if (!server.outlookCredentials) throw new Error('No credentials');
-  const credentials = safeStorage.isEncryptionAvailable()
-    ? decryptedCredentials(server.outlookCredentials)
-    : server.outlookCredentials;
 
-  if (!checkIfCredentialsAreNotEmpty(credentials))
-    throw new Error('Credentials are empty');
   try {
+    if (!userAPIToken) {
+      throw new Error('No user API token available');
+    }
+
+    if (!serverToSync.webContentsId) {
+      throw new Error('No webContentsId available for server');
+    }
+
+    const server = getServerInformationByWebContentsId(
+      serverToSync.webContentsId
+    );
+    if (!server?.url) {
+      throw new Error('Server information not found');
+    }
+
+    if (!server.outlookCredentials) {
+      throw new Error('No Outlook credentials configured for server');
+    }
+
+    console.log('[OutlookCalendar] Decrypting credentials...');
+    const credentials = safeStorage.isEncryptionAvailable()
+      ? decryptedCredentials(server.outlookCredentials)
+      : server.outlookCredentials;
+
+    if (!checkIfCredentialsAreNotEmpty(credentials)) {
+      throw new Error('Outlook credentials are empty or invalid');
+    }
+
+    console.log('[OutlookCalendar] Starting sync with server:', server.url);
     await syncEventsWithRocketChatServer(server.url, credentials, userAPIToken);
-    console.log('Recurring task executed successfully');
-  } catch (e) {
-    console.error('Error sending events to server', e);
+    console.log('[OutlookCalendar] Sync task completed successfully');
+  } catch (error) {
+    const classifiedError = createClassifiedError(error as Error, {
+      operation: 'maybe_sync_events',
+      serverUrl: serverToSync.url,
+      hasToken: !!userAPIToken,
+      webContentsId: serverToSync.webContentsId,
+    });
+
+    console.error(formatErrorForLogging(classifiedError, 'Maybe sync events'));
+    throw error; // Re-throw to let calling function handle it
   }
 }
 
 async function recurringSyncTask(serverToSync: Server) {
   try {
-    console.log('Executing recurring task');
+    console.log(
+      '[OutlookCalendar] Executing recurring sync task for server:',
+      serverToSync.url
+    );
     await maybeSyncEvents(serverToSync);
+    console.log('[OutlookCalendar] Recurring sync task completed successfully');
   } catch (error) {
-    console.error('Error occurred:', error);
+    const classifiedError = createClassifiedError(error as Error, {
+      operation: 'recurring_sync_task',
+      serverUrl: serverToSync.url,
+    });
+
+    console.error(
+      formatErrorForLogging(classifiedError, 'Recurring sync task')
+    );
+
+    console.log(
+      '[OutlookCalendar] User-friendly error message for recurring sync:'
+    );
+    console.log(generateUserFriendlyMessage(classifiedError));
+
+    console.log(
+      '[OutlookCalendar] Stopping recurring sync due to persistent errors'
+    );
     clearInterval(recurringSyncTaskId);
   }
 }
 
 function startRecurringSyncTask(server: Server) {
   if (!userAPIToken) return;
+
+  // Clear any existing recurring sync task to prevent duplicates
+  if (recurringSyncTaskId) {
+    console.log('[OutlookCalendar] Clearing existing recurring sync task');
+    clearInterval(recurringSyncTaskId);
+  }
+
   recurringSyncTaskId = setInterval(
     () => recurringSyncTask(server),
     60 * 60 * 1000
@@ -337,22 +878,103 @@ function startRecurringSyncTask(server: Server) {
 
 export const startOutlookCalendarUrlHandler = (): void => {
   handle('outlook-calendar/set-user-token', async (event, token, userId) => {
-    userAPIToken = token;
-    const server = getServerInformationByWebContentsId(event.id);
-    if (!server) return;
-    const { outlookCredentials } = server;
-    if (!outlookCredentials) return;
-    if (outlookCredentials.userId !== userId || !userAPIToken) return;
-    if (!checkIfCredentialsAreNotEmpty(outlookCredentials)) return;
-    startRecurringSyncTask(server);
+    console.log(
+      '[OutlookCalendar] Setting user token for webContents:',
+      event.id
+    );
 
-    setImmediate(() => {
-      try {
-        maybeSyncEvents(server);
-      } catch (e) {
-        console.error('Failed to sync outlook events on startup.', e);
+    try {
+      if (!token || typeof token !== 'string') {
+        console.error('[OutlookCalendar] Invalid token provided');
+        return;
       }
-    });
+
+      if (!userId || typeof userId !== 'string') {
+        console.error('[OutlookCalendar] Invalid userId provided');
+        return;
+      }
+
+      userAPIToken = token;
+      console.log('[OutlookCalendar] User API token set successfully');
+
+      const server = getServerInformationByWebContentsId(event.id);
+      if (!server) {
+        console.error(
+          '[OutlookCalendar] Server not found for webContents:',
+          event.id
+        );
+        return;
+      }
+
+      const { outlookCredentials } = server;
+      if (!outlookCredentials) {
+        console.log(
+          '[OutlookCalendar] No Outlook credentials configured for server:',
+          server.url
+        );
+        return;
+      }
+
+      if (outlookCredentials.userId !== userId) {
+        console.log(
+          '[OutlookCalendar] User ID mismatch - credentials are for different user'
+        );
+        return;
+      }
+
+      if (!userAPIToken) {
+        console.error('[OutlookCalendar] User API token is empty');
+        return;
+      }
+
+      if (!checkIfCredentialsAreNotEmpty(outlookCredentials)) {
+        console.log('[OutlookCalendar] Outlook credentials are empty');
+        return;
+      }
+
+      console.log(
+        '[OutlookCalendar] Starting recurring sync task for server:',
+        server.url
+      );
+      startRecurringSyncTask(server);
+
+      // Cancel any pending initial sync to prevent duplicates
+      if (initialSyncTimeoutId) {
+        console.log('[OutlookCalendar] Cancelling pending initial sync');
+        clearTimeout(initialSyncTimeoutId);
+      }
+
+      // Perform initial sync with debounce to prevent duplicate calls
+      initialSyncTimeoutId = setTimeout(() => {
+        console.log('[OutlookCalendar] Executing initial sync');
+        if (isSyncInProgress) {
+          console.log(
+            '[OutlookCalendar] Sync already in progress, skipping initial sync'
+          );
+          return;
+        }
+        maybeSyncEvents(server).catch((error) => {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          console.error(
+            '[OutlookCalendar] Failed to sync outlook events on startup:',
+            {
+              serverUrl: server.url,
+              userId,
+              error: errorMessage,
+            }
+          );
+        });
+      }, 100); // Small delay to debounce multiple rapid calls
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error('[OutlookCalendar] Error in set-user-token handler:', {
+        webContentsId: event.id,
+        userId,
+        error: errorMessage,
+      });
+    }
   });
 
   handle('outlook-calendar/clear-credentials', async (event) => {
@@ -402,7 +1024,7 @@ export const startOutlookCalendarUrlHandler = (): void => {
 
   handle(
     'outlook-calendar/has-credentials',
-    async (event): Promise<Promise<boolean>> => {
+    async (event): Promise<boolean> => {
       const server = getServerInformationByWebContentsId(event.id);
       if (!server) return false;
       const { outlookCredentials } = server;
@@ -460,13 +1082,79 @@ export const startOutlookCalendarUrlHandler = (): void => {
       }
 
       try {
+        // Check if user is logged in before attempting sync
+        if (!userAPIToken) {
+          console.warn(
+            '[OutlookCalendar] Manual sync attempted but token not available',
+            {
+              serverUrl: server.url,
+              userId: outlookCredentials.userId,
+              hint: 'Token is set by injected script when: 1) User is logged in, 2) Outlook is enabled in settings, 3) Exchange URL is configured',
+            }
+          );
+
+          // Try to get the token from the webContents
+          console.log(
+            '[OutlookCalendar] Attempting to fetch token from webContents...'
+          );
+          const contents = webContents.fromId(event.id);
+          if (contents) {
+            try {
+              const token = await contents.executeJavaScript(
+                `Meteor._localStorage?.getItem('Meteor.loginToken')`
+              );
+              if (token) {
+                console.log(
+                  '[OutlookCalendar] Successfully retrieved token from webContents'
+                );
+                userAPIToken = token; // Store it for future use
+                // Continue with sync using the retrieved token
+                await syncEventsWithRocketChatServer(
+                  server.url,
+                  credentials,
+                  token
+                );
+                return { status: 'success' };
+              }
+            } catch (error) {
+              console.error(
+                '[OutlookCalendar] Failed to get token from webContents:',
+                error
+              );
+            }
+          }
+
+          return Promise.reject(
+            new Error(
+              'Authentication token not yet available. Please ensure: 1) You are logged into Rocket.Chat, 2) Outlook Calendar is enabled in settings, 3) Exchange URL is configured.'
+            )
+          );
+        }
+
         await syncEventsWithRocketChatServer(
           server.url,
           credentials,
           userAPIToken
         );
       } catch (e) {
-        console.error('Error syncing events with Rocket.Chat server', e);
+        const classifiedError = createClassifiedError(e as Error, {
+          operation: 'sync_events_with_rocket_chat',
+          serverUrl: server.url,
+          userId: credentials.userId,
+          hasToken: !!userAPIToken,
+        });
+
+        console.error(
+          formatErrorForLogging(
+            classifiedError,
+            'Sync events with Rocket.Chat server'
+          )
+        );
+
+        // Also log a user-friendly message that could be shown in UI
+        console.log('[OutlookCalendar] User-friendly error message:');
+        console.log(generateUserFriendlyMessage(classifiedError));
+
         return Promise.reject(e);
       }
 

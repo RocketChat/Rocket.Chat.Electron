@@ -18,6 +18,35 @@ const SENSITIVE_PATTERNS: RegExp[] = [
   /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
 ];
 
+// Keys that together indicate a Redux state dump (need 3+ to trigger)
+const STATE_SIGNATURE_KEYS = [
+  'apppath',
+  'appversion',
+  'servers',
+  'clientcertificates',
+  'currentview',
+  'allowedjitsiServers',
+  'downloads',
+  'isupdatingenabled',
+  'istrayiconenabled',
+  'rootwindowstate',
+];
+
+/**
+ * Detects if an object looks like a Redux state dump
+ * Returns true if object has 3+ state signature keys
+ */
+const isStateDump = (obj: any): boolean => {
+  if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+    return false;
+  }
+  const keys = Object.keys(obj).map((k) => k.toLowerCase());
+  const matchCount = STATE_SIGNATURE_KEYS.filter((k) =>
+    keys.includes(k)
+  ).length;
+  return matchCount >= 3;
+};
+
 export const redactSensitiveData = (text: string): string => {
   let result = text;
   for (const pattern of SENSITIVE_PATTERNS) {
@@ -32,6 +61,15 @@ const redactObject = (obj: any): any => {
   if (typeof obj === 'string') return redactSensitiveData(obj);
   if (Array.isArray(obj)) return obj.map(redactObject);
   if (typeof obj === 'object') {
+    // Check if this looks like a Redux state dump
+    if (isStateDump(obj)) {
+      return '[Redux State Redacted]';
+    }
+    // Also check for nested state (e.g., { state: { appPath: ... } })
+    if (obj.state && isStateDump(obj.state)) {
+      return { ...redactObject(obj), state: '[Redux State Redacted]' };
+    }
+
     const result: any = {};
     for (const key of Object.keys(obj)) {
       const lowerKey = key.toLowerCase();
